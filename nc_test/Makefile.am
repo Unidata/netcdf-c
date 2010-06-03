@@ -7,7 +7,7 @@
 # $Id: Makefile.am,v 1.65 2010/05/29 00:43:23 dmh Exp $
 
 LDADD = -lm
-AM_CPPFLAGS = -I$(top_srcdir) 
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\

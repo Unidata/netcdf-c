@@ -7,7 +7,7 @@
 LDADD = -lm
 
 AM_LDFLAGS =
-AM_CPPFLAGS = -I$(top_srcdir)/nc_test 
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/nc_test 
 
 LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 AM_CPPFLAGS += -I${top_srcdir}/liblib @EXTERN_CPPFLAGS@

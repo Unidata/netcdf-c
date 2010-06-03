@@ -12,7 +12,7 @@
 # c++ -c -g -O2 -I../libsrc -I.   -Df2cFortran nctst.cpp
 # c++ -o nctst -g -O2  nctst.o libnetcdf_c++.a -L../libsrc -lnetcdf 
 
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS =
 
 CLEANFILES = nctst_classic.nc nctst_64bit_offset.nc nctst_netcdf4.nc	\

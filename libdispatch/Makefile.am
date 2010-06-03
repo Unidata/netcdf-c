@@ -7,22 +7,27 @@
 
 # $Id: Makefile.am,v 1.10 2010/06/01 15:34:50 ed Exp $
 
-AM_LDFLAGS = 
-
 # This is our output
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
-libdispatch_la_SOURCES = netcdf.m4 dispatch.h parallel.c copy.c
+libdispatch_la_SOURCES = netcdf.m4 dispatch.h parallel.c copy.c	\
+error.c
 if USE_NETCDF4
 libdispatch_la_SOURCES += nc4.c
 endif
+
+# Does  the user want the V2 API?
+if BUILD_V2
+noinst_LTLIBRARIES += libnetcdf2.la 
+libnetcdf2_la_SOURCES = v2i.c
+endif # BUILD_V2
 
 # Include this so that user does not have to have m4.
 EXTRA_DIST = netcdf.c
 
 # Set up include directories.
-AM_CPPFLAGS = -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif

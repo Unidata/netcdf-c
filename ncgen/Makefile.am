@@ -31,7 +31,7 @@ TESTS = run_tests.sh
 CLEANFILES = c0.nc c0_64.nc
 
 AM_LDFLAGS =
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 AM_CPPFLAGS += -I${top_srcdir}/liblib @EXTERN_CPPFLAGS@

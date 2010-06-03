@@ -9,7 +9,7 @@ AM_CPPFLAGS =
 LDADD =
 
 LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
-AM_CPPFLAGS += -I${top_srcdir}/liblib
+AM_CPPFLAGS += -I$(top_srcdir)/include -I${top_srcdir}/liblib
 
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen3

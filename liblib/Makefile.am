@@ -9,7 +9,7 @@
 # $Id: Makefile.am,v 1.13 2010/06/01 15:34:50 ed Exp $
 
 AM_LDFLAGS = 
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 # This is our output
 lib_LTLIBRARIES = libnetcdf.la
