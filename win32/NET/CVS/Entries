@@ -1,0 +1,16 @@
+/Makefile.am/1.6/Thu Sep 24 18:28:28 2009//
+/config.h/1.8/Thu Mar 26 15:22:24 2009//
+/getopt.c/1.1/Tue May 25 13:22:15 2004//
+/inttypes.h/1.1/Tue Sep 16 02:12:04 2008//
+/netcdf.sln/1.9/Sun Sep 28 14:17:45 2008//
+/snprintf.c/1.1/Thu Sep 25 16:46:47 2008//
+/stdint.h/1.1/Tue Sep 16 02:12:05 2008//
+D/examples////
+D/fortran////
+D/libsrc////
+D/nc_test////
+D/ncdump////
+D/ncgen////
+D/ncgen3////
+D/nctest////
+D/netcdf_vb////

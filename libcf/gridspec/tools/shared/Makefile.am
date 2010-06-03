@@ -1,0 +1,47 @@
+## This is an automake file, part of Unidata's NetCDF CF Library
+## package. Copyright 2009, see the COPYRIGHT file for more
+## information.
+
+# This automake file is in charge of building the gridspec
+# tools/shared convenience library.
+
+# $Id: Makefile.am,v 1.6 2010/05/29 01:46:37 dmh Exp $
+
+noinst_LTLIBRARIES = libtoolsshared.la 
+libtoolsshared_la_SOURCES = mpp.c mpp_domain.c mpp_domain.h mpp.h	\
+mpp_io.c mpp_io.h tool_util.c tool_util.h create_lonlat_grid.c		\
+create_gnomonic_cubic_grid.c create_grid_from_file.c			\
+create_conformal_cubic_grid.c fregrid_util.c conserve_interp.c		\
+bilinear_interp.c topog.c get_contact.c create_vgrid.c			\
+transfer_to_mosaic.c
+
+
+# Initalize these.
+AM_CPPFLAGS =
+AM_LDFLAGS =
+LDADD =
+
+AM_CPPFLAGS +=\
+-I${top_srcdir}/shared \
+-I${top_srcdir}/shared/mosaic \
+-I${top_srcdir}/make_hgrid	\
+-I${top_srcdir}/fregrid \
+-I${top_srcdir}/make_coupler_mosaic \
+-I${top_srcdir}/make_topog \
+-I${top_srcdir}/make_solo_mosaic \
+-I${top_srcdir}/make_vgrid \
+-I${top_srcdir}/river_regrid \
+-I${top_srcdir}/transfer_to_mosaic_grid
+
+if USE_NETCDF_DIR
+AM_CPPFLAGS += -I@NETCDFDIR@/include
+AM_LDFLAGS += -L@NETCDFDIR@/lib
+else
+AM_CPPFLAGS += -I${top_srcdir}/../liblib
+AM_LDFLAGS += ${top_builddir}/../liblib/libnetcdf.la
+endif
+
+AM_LDFLAGS += @EXTERN_LDFLAGS@ -lm
+
+
+
