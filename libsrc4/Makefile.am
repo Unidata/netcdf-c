@@ -37,7 +37,7 @@ if USE_DAP
 LDADD += ${top_builddir}/oc/liboc.la
 endif
 
-check_PROGRAMS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts2	\
+NC4_TESTS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts2	\
 tst_h_atts3 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps		\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
 tst_h_opaques tst_h_strings tst_h_strings1 tst_h_dimscales		\
@@ -50,6 +50,7 @@ tst_enums tst_vars2 tst_coords tst_coords2 tst_coords3 tst_vars3	\
 tst_chunks tst_utf8 tst_fills tst_fillbug $(TST_V2) tst_xplatform	\
 tst_xplatform2 tst_endian_fill
 
+check_PROGRAMS = $(NC4_TESTS)
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
 endif
@@ -59,17 +60,7 @@ if TEST_PARALLEL
 check_PROGRAMS += tst_h_par
 endif
 
-TESTS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts3 tst_h_vars	\
-tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2	\
-tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_opaques tst_h_strings		\
-tst_h_strings1 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2	\
-tst_h_dimscales3 tst_h_enums tst_dims tst_dims2 tst_dims3 tst_files	\
-tst_files4 tst_vars tst_varms tst_unlim_vars tst_atts tst_atts2		\
-tst_converts tst_converts2 tst_grps tst_compounds tst_compounds2	\
-tst_compounds3 tst_vl tst_h_vl2 tst_opaques tst_strings tst_interops	\
-tst_interops4 tst_interops5 tst_enums tst_vars2 tst_vars3 tst_chunks	\
-tst_coords tst_coords2 tst_coords3 tst_utf8 tst_fills tst_fillbug	\
-$(TST_V2) tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill
+TESTS = $(NC4_TESTS)
 
 if USE_HDF4
 check_PROGRAMS += tst_interops2 
@@ -81,19 +72,11 @@ endif # USE_HDF4_FILE_TESTS
 tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl -lhdf5 -lz 
 endif # USE_HDF4
 
-# Thee tst_lists programs needs to be fixed
-# to match libsrc/nclistmgr.c
-#check_PROGRAMS += tst_lists
-#TESTS += tst_lists
-
 EXTRA_DIST = ref_tst_compounds.nc ref_tst_h_compounds.h5	\
 ref_tst_h_compounds2.h5 run_par_tests.sh run_valgrind_tests.sh	\
 run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc		\
 ref_tst_xplatform2_2.nc ref_tst_dims.nc run_get_hdf4_files.sh	\
 ref_tst_interops4.nc stub4.c
-
-# (The above does not include tst_h_converts, which won't work until I
-# sort out the MAX_INT problem. - Ed)
 
 # These linker flags will be applied to all test program compiles.
 LDADD += ${lib_LTLIBRARIES} 
@@ -107,9 +90,6 @@ LDADD += -lhdf5_hl -lhdf5 -lz
 if USE_PNETCDF
 LDADD += -lpnetcdf
 endif
-
-# Always need to link to hdf5 and zlib.
-#libnetcdf_la_LIBADD += -lhdf5_hl -lhdf5 
 
 # This script will run all the parallel test programs.
 if TEST_PARALLEL
@@ -137,10 +117,8 @@ endif # USE_VALGRIND_TESTS
 CLEANFILES = tst_nc_converts.nc tst_h_*.h5 tst_*.nc tst_interops*.h5	\
 tst_interops2.h4 tst_interops4.nc AMSR_E_* MYD29.A2* 
 
-DISTCLEANFILES = 
-
 if USE_HDF4_FILE_TESTS
-DISTCLEANFILES += AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
+DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
 AMSR_E_L3_DailyLand_V06_20020619.hdf			\
 MYD29.A2009152.0000.005.2009153124331.hdf		\
 MYD29.A2002185.0000.005.2007160150627.hdf		\
