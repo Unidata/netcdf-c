@@ -1,0 +1,9 @@
+
+#!/bin/sh 
+export LOCAL=/projects/codes/equilibrium/efit++/efit++Data/netCDF/development/local
+export CPLUS_INCLUDE_PATH=$LOCAL/include
+export LIBRARY_PATH=$LOCAL/lib
+export LD_LIBRARY_PATH=$LIBRARY_PATH":"$LD_LIBRARY_PATH
+# headers only
+# ./ncdump -h firstFile.cdf
+./ncdump  -s  $1
