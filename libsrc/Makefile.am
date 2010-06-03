@@ -34,7 +34,7 @@ netcdf.3: $(top_srcdir)/man4/netcdf.m4
 
 # These files are part of the netCDF-3 library.
 NC3_SOURCES = nc.h error3.c libvers.c \
-string.c v1hpg.c fbits.h ncio.h netcdf.h	\
+string.c v1hpg.c fbits.h ncio.h \
 onstack.h rnd.h utf8proc.c utf8proc.h utf8proc_data.h \
 nclistmgr.c
 
@@ -139,7 +139,7 @@ endif
 else # not USE_NETCDF4
 
 # This will cause the netcdf-3 header file to be installed.
-include_HEADERS = netcdf.h
+#include_HEADERS = netcdf.h
 
 # Include netcdf-2 convenience library.
 if BUILD_V2
