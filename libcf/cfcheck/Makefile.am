@@ -16,7 +16,7 @@ if USE_NETCDF_DIR
 AM_CPPFLAGS += -I@NETCDFDIR@/include
 AM_LDFLAGS += -L@NETCDFDIR@/lib
 else #!USE_NETCDF_DIR
-AM_CPPFLAGS += -I${top_srcdir}/../liblib
+AM_CPPFLAGS += -I${top_srcdir}/.. -I${top_srcdir}/../liblib
 AM_LDFLAGS += ${top_builddir}/../liblib/libnetcdf.la
 endif #!USE_NETCDF_DIR
 
