@@ -71,8 +71,7 @@ endif
 endif #!USE_DISPATCH
 
 # Netcdf-4 source.
-NC4SOURCES = nc4internal.h netcdf3.h error4.c error.h \
-		netcdf4l.h nctolnc4.h
+NC4SOURCES = nc4internal.h netcdf3.h error4.c netcdf4l.h nctolnc4.h
 
 if USE_DISPATCH
 NC4SOURCES += nc4dispatch.c nc4dispatch.h nc3stub.c nc3stub.h \

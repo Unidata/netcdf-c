@@ -21,10 +21,6 @@ TESTPROGRAMS = tst_small nc_test tst_misc tst_norm tst_names
 nc_test_SOURCES = nc_test.c error.c test_get.m4 test_put.m4 \
 test_read.c test_write.c util.c error.h tests.h 
 
-# These are aptly named test programs.
-tst_small_SOURCES = tst_small.c nc_tests.h
-tst_misc_SOURCES = tst_misc.c nc_tests.h
-
 LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
@@ -32,13 +28,6 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib
 if LARGE_FILE_TESTS
 TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var \
 tst_large large_files
-quick_large_files_SOURCES = quick_large_files.c nc_tests.h
-tst_big_var6_SOURCES = tst_big_var6.c nc_tests.h
-tst_big_var2_SOURCES = tst_big_var2.c nc_tests.h
-tst_big_rvar_SOURCES = tst_big_rvar.c nc_tests.h
-tst_big_var_SOURCES = tst_big_var.c nc_tests.h
-tst_large_SOURCES = tst_large.c nc_tests.h
-large_files_SOURCES = large_files.c nc_tests.h
 CLEANFILES += large_files.nc quick_large_files.nc tst_big_var.nc \
 tst_big_var2.nc tst_big_rvar.nc
 endif # LARGE_FILE_TESTS
