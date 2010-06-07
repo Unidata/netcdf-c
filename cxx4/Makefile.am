@@ -6,7 +6,7 @@
 # $Id: Makefile.am,v 1.18 2010/05/29 00:20:16 dmh Exp $
 
 # Point pre-preprocessor to netcdf-4 directory (libsrc4).
-AM_CPPFLAGS = -I$(top_srcdir)/libsrc4 
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libsrc4 
 AM_LDFLAGS =
 LDADD =
 
