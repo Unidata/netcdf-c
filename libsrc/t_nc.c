@@ -76,6 +76,8 @@ union getret
 };
 
 
+const char *nc3_strerror(int ncerr);
+
 static void
 chkgot(nc_type type, union getret got, double check)
 {
@@ -471,7 +473,7 @@ main(int ac, char *av[])
 	if(ret != NC_NOERR)
 	{
 		(void) printf("Could not open %s: %s\n", fname,
-			nc_strerror(ret));
+			nc3_strerror(ret));
 		exit(1);
 	}
 	(void) printf("reopen id = %d for filename %s\n",
