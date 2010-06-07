@@ -8,7 +8,7 @@
 # $Id: Makefile.am,v 1.194 2010/06/01 15:34:50 ed Exp $
 
 # Initialize
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)
 AM_LDFLAGS =
 LDADD =
 libnetcdf_la_LIBADD =

@@ -10,7 +10,7 @@
 if USE_NETCDF4
 
 AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
-AM_CPPFLAGS = -I$(top_builddir)/liblib @EXTERN_CFLAGS@
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/liblib @EXTERN_CFLAGS@
 
 # Unfortunately, libsrc4 contains nc_test.h
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc

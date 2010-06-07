@@ -76,7 +76,7 @@ endif # BUILD_V2
 
 if USE_DISPATCH
 
-AM_CPPFLAGS +=  -I${top_srcdir}/liblib
+AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/liblib
 
 AM_CPPFLAGS +=  -I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch -I${top_srcdir}/oc
 
@@ -194,13 +194,7 @@ endif
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS)
 
-# If building a DLL, the test program needs to define DLL_NETCDF.
-if BUILD_DLL
-t_nc_CPPFLAGS = -DDLL_NETCDF
-endif
-
 CLEANFILES += t_nc
-
 
 # These files are cleaned on developer workstations (and then rebuilt
 # with m4), but they are included in the distribution so that the user

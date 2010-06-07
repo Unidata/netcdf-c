@@ -22,7 +22,7 @@ endif
 EXTRA_DIST = netcdf.c
 
 # Set up include directories.
-AM_CPPFLAGS = -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif
