@@ -6,23 +6,18 @@
 # $Id: Makefile.am,v 1.12 2010/05/29 01:46:39 dmh Exp $
 
 # Initalize these.
-AM_CPPFLAGS =
-AM_LDFLAGS =
-LDADD =
-
-AM_CPPFLAGS += -I${top_srcdir}/../liblib
-AM_LDFLAGS += ${lib_LTLIBRARIES}  ${top_builddir}/../ncdump/nctime.o
-AM_LDFLAGS += ${top_builddir}/../liblib/libnetcdf.la
-AM_LDFLAGS += @EXTERN_LDFLAGS@ -lm
+AM_CPPFLAGS = -I$(top_srcdir)/.. -I${top_srcdir}/../liblib
+AM_LDFLAGS = ${lib_LTLIBRARIES} ${top_builddir}/../ncdump/nctime.o	\
+${top_builddir}/../liblib/libnetcdf.la @EXTERN_LDFLAGS@ -lm
 
 # Tell automake that libcf.h is a header file we want to install.
 include_HEADERS = libcf.h
 
 # This is our output, the NetCDF CF Library.
 lib_LTLIBRARIES = libcf.la
+
 # These linker flags specify libtool version info.
 libcf_la_LDFLAGS = -version-info 0:0:0
-
 
 # This is the coordinate systems stuff.
 libcf_la_SOURCES = nccoord.c libcf.h libcf_int.h cffiles.c cfvars.c	\
@@ -57,7 +52,6 @@ endif # EXTRA_DATA_TESTS
 
 # tst_f03_file.o:tst_f03_file.f90
 # 	$(FC) -c $(AM_FCFLAGS) $(FCFLAGS) -c $? -o $@
-
 
 TESTS = $(check_PROGRAMS)
 

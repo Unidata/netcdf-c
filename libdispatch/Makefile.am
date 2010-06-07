@@ -3,7 +3,9 @@
 
 # This Makefile controls the building of the dispatch layer of the
 # netCDF library. The dispatch layer decides whether to call the
-# netcdf-classic code, netcdf-4 code, nc3 dap code, or nc4 dap code.
+# netcdf-classic code, netcdf-4 code, nc3 dap code, or nc4 dap
+# code. It also contains code that sit above the dispatch layer, like
+# the v2 API.
 
 # $Id: Makefile.am,v 1.10 2010/06/01 15:34:50 ed Exp $
 

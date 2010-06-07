@@ -1,19 +1,22 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2010, see the COPYRIGHT file for more information.
 
 # This Makefile assembles the correct libnetcdf based on various
-# configure flags.  It is assumed that all the relevant dispatch
-# libraries have been built.  (e.g libsrc, libsrc4, libncdap3,
+# configure flags. It is assumed that all the relevant dispatch
+# libraries have been built. (e.g libsrc, libsrc4, libncdap3,
 # libncdap4, fortran).
 
 # $Id: Makefile.am,v 1.13 2010/06/01 15:34:50 ed Exp $
 
-AM_LDFLAGS = 
+AM_LDFLAGS = @EXTERN_LDFLAGS@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-# This is our output
+# This is our output, the netcdf library the user will install.
 lib_LTLIBRARIES = libnetcdf.la
-libnetcdf_la_LIBADD = 
+
+# The output library will always include netcdf3 and dispatch libraries.
+libnetcdf_la_LIBADD = ${top_builddir}/libdispatch/libdispatch.la	\
+${top_builddir}/libsrc/libnetcdf3.la
 
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c 
@@ -28,17 +31,14 @@ endif
 
 AM_CPPFLAGS += -I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch
 
-# The output library will always include netcdf3 and dispatch libraries
-libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf3.la
-
 if USE_DAP
 # netcdf3 + dap
 libnetcdf_la_LIBADD += ${top_builddir}/libncdap3/libncdap3.la
 endif
 
+# The v2 API...
 if BUILD_V2
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf2.la
+libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la
 endif
 
 if USE_NETCDF4
@@ -55,9 +55,6 @@ libnetcdf_la_LIBADD += ${top_builddir}/fortran/libnetcdff.la
 endif #!BUILD_SEPARATE_FORTRAN
 endif #BUILD_F77
 
-AM_LDFLAGS += @EXTERN_LDFLAGS@
 
-# Clean up.
-EXTRA_DIST=
 
 

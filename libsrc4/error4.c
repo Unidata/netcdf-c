@@ -37,7 +37,8 @@ extern int nc_log_level;
 
    This function is heavily based on the function in section 15.5 of
    the C FAQ. */
-void nc_log(int severity, const char *fmt, ...)
+void 
+nc_log(int severity, const char *fmt, ...)
 {
    va_list argp;
    int t;
@@ -64,7 +65,8 @@ void nc_log(int severity, const char *fmt, ...)
    fflush(stdout);
 }
 
-void nc_log_hdf5(void)
+void 
+nc_log_hdf5(void)
 {
     H5Eprint(NULL);
 }
