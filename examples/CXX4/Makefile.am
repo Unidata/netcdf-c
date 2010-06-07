@@ -7,7 +7,7 @@
 
 # We will need to find the C++ header files.
 AM_CXXFLAGS = -I$(top_srcdir)/cxx4
-AM_CPPFLAGS = -I$(top_srcdir)/cxx4
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/cxx4
 AM_LDFLAGS=
 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
