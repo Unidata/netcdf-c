@@ -1,12 +1,10 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2010, see the COPYRIGHT file for more information.
 
 # This Makefile assembles the correct libnetcdf based on various
 # configure flags.  It is assumed that all the relevant dispatch
 # libraries have been built.  (e.g libsrc, libsrc4, libncdap3,
 # libncdap4, fortran).
-
-# $Id: Makefile.am,v 1.13 2010/06/01 15:34:50 ed Exp $
 
 AM_LDFLAGS = 
 AM_CPPFLAGS = -I$(top_srcdir)

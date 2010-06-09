@@ -26,9 +26,9 @@ libnetcdff90_la_SOURCES = typeSizes.f90
 # The file netcdf.f90 includes all of these.
 libnetcdff90_la_DEPENDENCIES = netcdf_attributes.f90			\
 netcdf_constants.f90 netcdf_dims.f90 netcdf_expanded.f90		\
-netcdf_externals.f90 netcdf_file.f90 netcdf3_file.f90 netcdf4_file.f90	\
-netcdf_overloads.f90 netcdf_text_variables.f90 netcdf_variables.f90	\
-netcdf_visibility.f90 netcdf_eightbyte.f90
+netcdf_externals.f90 netcdf_file.f90 netcdf_overloads.f90		\
+netcdf_text_variables.f90 netcdf_variables.f90 netcdf_visibility.f90	\
+netcdf_eightbyte.f90
 
 # Is the user building netCDF-4?
 if USE_NETCDF4
@@ -39,15 +39,15 @@ libnetcdff90_la_SOURCES += netcdf4.f90
 # These are the extra netCDF-4 F90 source files.
 libnetcdff90_la_DEPENDENCIES += netcdf4_func.f90 netcdf4_externals.f90	\
 netcdf4_visibility.f90 netcdf4_constants.f90 netcdf4.f90		\
-netcdf4_eightbyte.f90 netcdf4_variables.f90
+netcdf4_eightbyte.f90 netcdf4_variables.f90 netcdf4_file.f90
 
 NETCDF_O = netcdf4.o
 
 else # not USE_NETCDF4
 
 # Use netcdf.f90 to get the library.
-libnetcdff90_la_SOURCES += netcdf.f90
-libnetcdff90_la_DEPENDENCIES += netcdf.f90
+libnetcdff90_la_SOURCES += netcdf.f90 
+libnetcdff90_la_DEPENDENCIES += netcdf.f90 netcdf3_file.f90
 
 NETCDF_O = netcdf.o
 

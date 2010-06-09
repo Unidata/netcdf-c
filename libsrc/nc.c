@@ -2,7 +2,6 @@
  *	Copyright 1996, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
-/* $Id: nc.c,v 2.173 2010/05/26 20:13:31 dmh Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
