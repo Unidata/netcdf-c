@@ -14,10 +14,10 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/liblib @EXTERN_CFLAGS@
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
 
 # Our test programs and sources...
-check_PROGRAMS = cdm_sea_soundings tst_camrun
+check_PROGRAMS = t_type cdm_sea_soundings tst_camrun
 cdm_sea_soundings_SOURCES = cdm_sea_soundings.c tests.h
 tst_camrun_SOURCES = tst_camrun.c tests.h
-TESTS = cdm_sea_soundings tst_camrun
+TESTS = t_type cdm_sea_soundings tst_camrun
 
 if LARGE_FILE_TESTS
 tst_large_SOURCES = tst_large.c tests.h

@@ -186,24 +186,11 @@ endif # BUILD_DLL
 
 endif # USE_NETCDF4
 
-# Test the netCDF-3 library.
-TESTPROGRAMS = t_nc
-if !USE_NETCDF4
-TESTPROGRAMS += t_type
-endif
-check_PROGRAMS = $(TESTPROGRAMS)
-TESTS = $(TESTPROGRAMS)
-
-CLEANFILES += t_nc
-
 # These files are cleaned on developer workstations (and then rebuilt
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.
 MAINTAINERCLEANFILES = attr.c ncx.c putget.c $(man_MANS) attrx.c putgetx.c
 EXTRA_DIST = attr.c ncx.c putget.c $(man_MANS) stub3.c netcdf_par.h
-
-# This file is created by the test.
-CLEANFILES += test.nc
 
 # This tells make how to turn .m4 files into .c files.
 .m4.c:
