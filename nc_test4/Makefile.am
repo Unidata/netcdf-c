@@ -7,8 +7,6 @@
 #
 # $Id: Makefile.am,v 1.72 2010/05/29 00:44:02 dmh Exp $
 
-if USE_NETCDF4
-
 AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/liblib @EXTERN_CFLAGS@
 
@@ -47,6 +45,18 @@ benchmarks: check
 	./run_bm_ar4.sh
 endif # BUILD_BENCHMARKS
 
+# These are the tests for HDF4.
+if USE_HDF4
+check_PROGRAMS += tst_interops2 
+TESTS += tst_interops2
+if USE_HDF4_FILE_TESTS
+check_PROGRAMS += tst_interops3
+TESTS += run_get_hdf4_files.sh tst_interops3
+endif # USE_HDF4_FILE_TESTS
+tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
+-lhdf5 -lz
+endif # USE_HDF4
+
 CLEANFILES = cdm_sea_soundings.nc tst_large.nc bm_chunking.nc		\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
 radar_3d_compression.txt radar_2d_compression.txt			\
@@ -73,9 +83,17 @@ endif
 
 EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh run_bm_test2.sh	\
 run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh run_par_bm_test.sh	\
-run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh   \
-run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh
+run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh	\
+run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
+run_get_hdf4_files.sh
 
-endif # BUILD_NETCDF4
+if USE_HDF4_FILE_TESTS
+DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
+AMSR_E_L3_DailyLand_V06_20020619.hdf			\
+MYD29.A2009152.0000.005.2009153124331.hdf		\
+MYD29.A2002185.0000.005.2007160150627.hdf		\
+MOD29.A2000055.0005.005.2006267200024.hdf
+endif # HDF4_FILE_TESTS
+
 
 

@@ -4,8 +4,8 @@
 
 # $Id: Makefile.am,v 1.54 2010/05/29 00:42:11 dmh Exp $
 
-AM_LDFLAGS = 
-AM_CPPFLAGS = -I${top_srcdir} 
+AM_LDFLAGS = @EXTERN_LDFLAGS@
+AM_CPPFLAGS = -I${top_srcdir} @EXTERN_CFLAGS@
 LDADD =
 
 LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@

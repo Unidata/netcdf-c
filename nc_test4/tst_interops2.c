@@ -8,6 +8,7 @@
 */
 #include <config.h>
 #include <nc_tests.h>
+#include <hdf5.h>
 #include <H5DSpublic.h>
 #include <mfhdf.h>
 
