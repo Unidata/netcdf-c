@@ -662,6 +662,7 @@
 #   define RANK_wat_a3 4
 
 #ifdef EXTRA_TESTS
+#define MEGABYTE 1048576
 void
 get_mem_used2(int *mem_used)
 {
