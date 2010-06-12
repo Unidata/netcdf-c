@@ -1,0 +1,165 @@
+#NCLIB=../libsrc4/.libs/libnetcdf.a
+NCLIB=../liblib/.libs/libnetcdf.a
+#HDF5DIR = /upc/share/stdinstall/local/spock
+HDF5DIR = /machine/local
+HDFLIBS=${HDF5DIR}/lib/libhdf5_hl.a ${HDF5DIR}/lib/libhdf5.a
+NCINCL=-I../libsrc4 -I${HDF5DIR}/include -I${NCDAP3DIR}
+#CURLLIB=-L/opt/csw/lib -lcurl
+CURLLIB=-L/opt/csw/lib -lcurl -lidn -lssl -lcrypto -llber -lldap -lnsl
+CURLINCL=-I/opt/csw/include
+RPCLIB=-lnsl
+ZLIB=-L/opt/csw/lib -lz
+TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
+VALGRIND=valgrind --leak-check=full
+
+
+OCLIB=../libncdap3/oc/.libs/liboc.a
+OCINCL=-I../libncdap3/oc
+
+OTHERLIBS=-lm
+
+# Might want to specify a particular C compiler with flags
+#CC=cc
+CFLAGS=-Wall -DHAVE_CONFIG_H
+#CFLAGS=-DHAVE_CONFIG_H
+
+GFLAGS=-g
+#############################################
+
+LIBS=${NCLIB} ${CURLLIB} ${HDFLIBS} ${ZLIB} ${OTHERLIBS} ${RPCLIB}
+INCL=-I. -I.. ${OCINCL} ${NCINCL} ${CURLINCL}
+
+TESTLIBS=${LIBS}
+TESTINCL=${INCL}
+
+##################################################
+
+SRC=\
+ncdap4.c \
+getvar4.c \
+dispatch4.c \
+dapdispatch4.c
+ 
+HDRS=\
+ncdap4.h \
+dispatch4.h \
+dapdispatch4.c
+
+OBJ=${SRC:%.c=%.o}
+
+ALLSRC=${SRC} ${HDRS}
+
+DRNOLIB=libncdap4.a
+
+all:: ncd
+
+##################################################
+
+#${EXE}: ${DRNOLIB} main.c
+#	${CC} ${INCL} ${GFLAGS} -c main.c
+#	${CC} -o ${EXE} main.o ${DRNOLIB} ${OCLIB} ${LIBS}
+
+${DRNOLIB}:
+	cp .libs/${DRNOLIB} .
+
+#${DRNOLIB}: ${OBJ}
+#	ar r ${DRNOLIB} ${OBJ}
+
+${OBJ}: ${SRC} ${HDRS}
+	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}
+
+##################################################
+clean::
+	rm -f *.o *.exe ${EXE} ${DRNOLIB} ncdump.exe
+	rm -fr *.tab.c *.tab.h *.output 
+	rm -f *.stackdump
+
+##################################################
+# ncd
+NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime.c ../ncdump/vardata.c
+NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime.h ../ncdump/vardata.h
+NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
+
+#${NCDUMPC} ${NCDUMPH} ${NCLIB}
+ncd:: 
+	cd ../libncdap3; make 
+	cd ../libsrc; make 
+	cd ../libncdap4; make 
+	cd ../libsrc4; make 
+	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${NCDUMPC}
+	${CC} -o ncd ${GFLAGS} ${NCDUMPOBJ} ${NCLIB} ${CURLLIB} ${HDFLIBS} ${OTHERLIBS}
+
+##################################################
+ALLTESTS=
+
+tests::
+	rm -fr results
+	mkdir results
+	for t in ${ALLTESTS} ; do (\
+	  echo "-------------------------" ; \
+	  echo "$${t}:" ; \
+	  echo "-------------------------"; \
+	  ./ncd "${TESTPARAMS}${TESTURL}/$${t}${TESTCONS}" > results/$${t}.dmp ; \
+	  echo; \
+	) done
+
+td:: ${TESTSRC} ${TEST}.c
+	${CC} ${CFLAGS} ${TESTINCL} ${GFLAGS} -c ${TEST}.c ${TESTSRC}
+	${CC} -o ${TEST}.exe ${TEST}.o ${TESTOBJ} ${TESTLIBS}
+	./${TEST}.exe -v ${TEST}
+
+URL=${TESTPARAMS}${TESTURL}/${TEST}${TESTCONS}
+
+t:: ${EXE}
+	${VALGRIND} ./${EXE} -v ${TESTDEBUG} "${URL}"
+
+cpp::
+	rm -f junki
+	cc -E -DHAVE_CONFIG_H -I. -I.. -I../fortran -I../libsrc -I../libncdap/oc ${GFLAGS} drno.c >junk
+
+cvt::
+	rm -f tmp1 tmp2
+	cp translation.html tmp1
+	sed -e 's|[&]gt;|>|g' -e 's|[&]lt;|<|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|&#8209;|-|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<p>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<html>||g' -e 's|</html>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<body>||g' -e 's|</body>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<ol>|@enumerate|g' -e 's|</ol>|@end enumerate|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<ul>|@itemize|g' -e 's|</ul>|@end itemize|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<li>|@item |g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<pre>|@verbatim|g' -e 's|</pre>|@end verbatim|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<a[^>]*>||g' -e 's|</a>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<h1>|@subsection |g' -e 's|</h1>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<h2>|@subsubsection |g' -e 's|</h2>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<h3>|@subsubsection |g' -e 's|</h3>||g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<table[^>]*>|@table @emph|g' -e 's|</table>|@end table|g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	sed -e 's|<tr>|@item |g' -e 's|<td>| |g' -e 's|<th>| |g' <tmp1 >tmp2
+	rm tmp1; mv tmp2 tmp1
+	mv tmp1 ../man4/translation.texi
+	rm -fr tmp1 tmp2
+	scp translation.html conan:/content/staff/dmh/daptranslation.html
+	
+##################################################
+
+v::
+	gcc -g -c tst_cvt.c ${INCL}
+	gcc -g -o tst_cvt tst_cvt.o ${LIBS}
+
+i::
+	cc -fPIC -g -c -I/tmp/install/${HOST}/include test_cvt.c
+	cc -g -o v test_cvt.o -L/tmp/install/${HOST}/lib -lnetcdf -R/tmp/install/${HOST}/lib

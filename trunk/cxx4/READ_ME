@@ -1,0 +1,27 @@
+(1)
+Exception 
+
+  case NC_EBADTYPID     // netcdf.h file inconsistent with documentation!!
+  case NC_EBADFIELD     // netcdf.h file inconsistent with documentation!!
+  case NC_EUNKNAME      // netcdf.h file inconsistent with documentation!!
+
+  There are lots of undocumented error codes.
+   eg. -What is the error code if try to use nc_create to open a file that exists using the  NC_NOCLOBBER flag?
+       - What is the error code if try to use nc_open with NC_WRITE  and the file does not exist?   
+(2)
+need to add const  for pointers (these are mainly char* pointers):
+
+nc_insert_compound(int ncid, nc_type typeid, char *name, size_t offset,nc_type field_typeid)
+nc_insert_array_compound(int ncid, int typeid, char *name,size_t offset, nc_type field_typeid,int ndims, int *dim_sizesp)
+nc_inq_compound_fieldindex(groupId,myId, const_cast<char*>(memberName.c_str()),&fieldidp)
+nc_def_grp(myId,name.c_str(),&new_ncid)
+nc_def_vlen(myId,  const_cast<char*>(name.c_str()),baseType.getId(),&typeId)
+nc_def_opaque(myId, size,const_cast<char*>(name.c_str()), &typeId)
+nc_def_compound(myId, size,const_cast<char*>(name.c_str()),&typeId)
+
+(3)
+If you open a file with "read" access, and try to define a group, you get an error  "NC_ENAMEINUSE".  This is  inappropriate.
+
+(4) 
+The following error used by nc_inq_grp_parent isn't properly documented in the c documentation.
+NC_ENOGRP         : throw NcEnogrp("No netCDF group found");
