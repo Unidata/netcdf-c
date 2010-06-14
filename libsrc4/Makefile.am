@@ -88,11 +88,13 @@ libnetcdf4_la_SOURCES = ${NC4SOURCES}
 LDADD += stub4.lo
 LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
 LDADD += ${top_builddir}/libsrc/libnetcdf3.la
-LDADD += ${top_builddir}/libsrc/libnetcdf2.la
 LDADD += ${top_builddir}/libdispatch/libdispatch.la
 if USE_DAP
 LDADD += ${top_builddir}/oc/liboc.la
 endif
+if BUILD_V2
+LDADD += ${top_builddir}/libsrc/libnetcdf2.la
+endif 
 
 #else #!USE_DISPATCH
 

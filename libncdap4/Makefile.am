@@ -51,8 +51,11 @@ AM_LDFLAGS += @EXTERN_LDFLAGS@
 AM_LDFLAGS += ${top_builddir}/libncdap3/libncdap3.la \
          ${top_builddir}/libsrc4/libnetcdf4.la \
          ${top_builddir}/libsrc/libnetcdf3.la \
-         ${top_builddir}/libsrc/libnetcdf2.la \
          ${top_builddir}/libdispatch/libdispatch.la
+
+if BUILD_V2
+AM_LDFLAGS += ${top_builddir}/libsrc/libnetcdf2.la 
+endif # BUILD_V2
 
 AM_LDFLAGS += @EXTERN_LDFLAGS@
 
