@@ -63,15 +63,12 @@ tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
 -lhdf5 -lz
 endif # USE_HDF4
 
-CLEANFILES = cdm_sea_soundings.nc tst_large.nc bm_chunking.nc		\
-bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
-radar_3d_compression.txt radar_2d_compression.txt			\
-radar_3d_chunking.txt tst_floats_1D.nc tst_floats_1D.cdl		\
-floats_1D_3.nc floats_1D.cdl tst_floats2_*.nc tst_ints2_*.nc		\
-tst_shorts2_*.nc tst_elena_*.nc tst_simple*.nc tst_floats2_*.cdl	\
+CLEANFILES = cdm_sea_soundings.nc bm_chunking.nc bm_radar.nc		\
+bm_radar1.nc radar_3d_compression_test.txt radar_3d_compression.txt	\
+radar_2d_compression.txt radar_3d_chunking.txt tst_floats_1D.cdl	\
+floats_1D_3.nc floats_1D.cdl tst_*.nc tst_floats2_*.cdl	\
 tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl tst_simple*.cdl	\
-tst_chunks.nc tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
-tst_camrun.nc
+tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
