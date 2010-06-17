@@ -11,36 +11,23 @@ AM_CPPFLAGS = -I$(top_srcdir)
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc
 
 # These are the tests which are always run.
-TESTPROGRAMS = tst_small nc_test tst_misc tst_norm tst_names
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
 nc_test_SOURCES = nc_test.c error.c test_get.m4 test_put.m4 \
 test_read.c test_write.c util.c error.h tests.h 
 
-# These are aptly named test programs.
-tst_small_SOURCES = tst_small.c nc_tests.h
-tst_misc_SOURCES = tst_misc.c nc_tests.h
-
 LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
-TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var \
-tst_large large_files
-quick_large_files_SOURCES = quick_large_files.c nc_tests.h
-tst_big_var6_SOURCES = tst_big_var6.c nc_tests.h
-tst_big_var2_SOURCES = tst_big_var2.c nc_tests.h
-tst_big_rvar_SOURCES = tst_big_rvar.c nc_tests.h
-tst_big_var_SOURCES = tst_big_var.c nc_tests.h
-tst_large_SOURCES = tst_large.c nc_tests.h
-large_files_SOURCES = large_files.c nc_tests.h
-CLEANFILES += large_files.nc quick_large_files.nc tst_big_var.nc \
-tst_big_var2.nc tst_big_rvar.nc
+TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2	\
+tst_big_rvar tst_big_var tst_large large_files
 endif # LARGE_FILE_TESTS
 
 # Set up the tests.
@@ -59,4 +46,3 @@ MAINTAINERCLEANFILES = test_get.c test_put.c
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
 
-test: check

@@ -8,7 +8,7 @@
 # $Id: Makefile.am,v 1.1 2010/05/23 21:05:33 dmh Exp $
 
 # Cause C preprocessor to search current and parent directory.
-AM_CPPFLAGS = -I$(top_srcdir)/libsrc
+AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/libsrc
 
 # Linker needs to search current directory when building tests.
 AM_LDFLAGS = 

@@ -1,4 +1,4 @@
-enab#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2006, see
@@ -1416,6 +1416,7 @@ AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_F77,[$nc_build_f77])
 AC_SUBST(HAS_F90,[$nc_build_f90])
@@ -1448,6 +1449,13 @@ if test "x$enable_netcdf_4" = xyes ; then
       EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$HDF4DIR/include"
     fi      
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lmfhdf -ldf"
+  fi
+  if test "x$enable_pnetcdf" = xyes; then
+    if test "x$PNETCDFDIR" != x ; then 
+      EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$PNETCDFDIR/lib"
+      EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$PNETCDFDIR/include"
+    fi      
+    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lpnetcdf"
   fi
 fi # netcdf-4
 # Do zlib and szlib if either dap or netcdf4 is enabled

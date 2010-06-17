@@ -3,13 +3,17 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2            2010-04-10
+4.1.2          2010-06-20
 
                 Modified constraint parser to be more compatible with
                 a java version of the parser.
 
                 Modified ncgen to utilize iterators internally; should be
                 no user visible effect.
+
+		Fixed two large-file bugs with using classic format or
+		64-bit offset format and accessing multidimensional
+		variables with more than 2**32 values.
 
 4.1.1          2010-04-01
 

@@ -417,20 +417,20 @@ AC_CONFIG_FILES([gridspec/tools/make_topog/run_tests],
 AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  cfcheck/Makefile
-                 src/Makefile
-		 gridspec/Makefile
-		 gridspec/shared/Makefile
-		 gridspec/shared/mosaic/Makefile
-		 gridspec/tools/Makefile
-		 gridspec/tools/shared/Makefile
-		 gridspec/tools/make_hgrid/Makefile
-		 gridspec/tools/make_solo_mosaic/Makefile
-		 gridspec/tools/make_coupler_mosaic/Makefile
-		 gridspec/tools/fregrid/Makefile
-		 gridspec/tools/make_topog/Makefile
-		 gridspec/tools/make_vgrid/Makefile
-		 gridspec/tools/river_regrid/Makefile
-		 gridspec/tools/transfer_to_mosaic_grid/Makefile])
+                 src/Makefile])
+dnl 		 gridspec/Makefile
+dnl 		 gridspec/shared/Makefile
+dnl 		 gridspec/shared/mosaic/Makefile
+dnl 		 gridspec/tools/Makefile
+dnl 		 gridspec/tools/shared/Makefile
+dnl 		 gridspec/tools/make_hgrid/Makefile
+dnl 		 gridspec/tools/make_solo_mosaic/Makefile
+dnl 		 gridspec/tools/make_coupler_mosaic/Makefile
+dnl 		 gridspec/tools/fregrid/Makefile
+dnl 		 gridspec/tools/make_topog/Makefile
+dnl 		 gridspec/tools/make_vgrid/Makefile
+dnl 		 gridspec/tools/river_regrid/Makefile
+dnl 		 gridspec/tools/transfer_to_mosaic_grid/Makefile])
 
 AC_OUTPUT()
 

@@ -6,8 +6,6 @@
 
   Copyright 2003, University Corporation for Atmospheric Research. See
   COPYRIGHT file for copying and redistribution conditions.
-
-  $Id: nc4file.c,v 1.165 2010/06/01 15:34:51 ed Exp $
 */
 
 #include "nc4internal.h"

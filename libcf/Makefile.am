@@ -22,7 +22,7 @@ endif
 
 # Does the user want to build the gridspec?
 if BUILD_GRIDSPEC
-GRIDSPEC = gridspec
+#GRIDSPEC = gridspec
 endif
 
 SUBDIRS = $(GRIDSPEC) src $(CFCHECK) $(DOC) 

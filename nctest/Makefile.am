@@ -8,7 +8,7 @@
 
 # One of the tests needs the math library for some reason. 
 LDADD = -lm
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)
 AM_LDFLAGS =
 
 AM_CPPFLAGS += -I$(top_builddir)/liblib

@@ -15,33 +15,27 @@ create_conformal_cubic_grid.c fregrid_util.c conserve_interp.c		\
 bilinear_interp.c topog.c get_contact.c create_vgrid.c			\
 transfer_to_mosaic.c
 
-
 # Initalize these.
-AM_CPPFLAGS =
 AM_LDFLAGS =
 LDADD =
 
-AM_CPPFLAGS +=\
--I${top_srcdir}/shared \
--I${top_srcdir}/shared/mosaic \
--I${top_srcdir}/make_hgrid	\
--I${top_srcdir}/fregrid \
--I${top_srcdir}/make_coupler_mosaic \
--I${top_srcdir}/make_topog \
--I${top_srcdir}/make_solo_mosaic \
--I${top_srcdir}/make_vgrid \
--I${top_srcdir}/river_regrid \
--I${top_srcdir}/transfer_to_mosaic_grid
+AM_CPPFLAGS = -I${top_srcdir}/gridspec/shared				\
+-I${top_srcdir}/gridspec/shared/mosaic -I${top_srcdir}/make_hgrid	\
+-I${top_srcdir}/gridspec/tools/fregrid					\
+-I${top_srcdir}/gridspec/tools/make_coupler_mosaic			\
+-I${top_srcdir}/gridspec/tools/make_topog				\
+-I${top_srcdir}/gridspec/tools/make_hgrid				\
+-I${top_srcdir}/gridspec/tools/make_solo_mosaic				\
+-I${top_srcdir}/gridspec/tools/make_vgrid				\
+-I${top_srcdir}/gridspec/tools/river_regrid				\
+-I${top_srcdir}/gridspec/tools/transfer_to_mosaic_grid
 
 if USE_NETCDF_DIR
 AM_CPPFLAGS += -I@NETCDFDIR@/include
 AM_LDFLAGS += -L@NETCDFDIR@/lib
 else
-AM_CPPFLAGS += -I${top_srcdir}/../liblib
+AM_CPPFLAGS += -I${top_srcdir}/.. -I${top_srcdir}/../liblib 
 AM_LDFLAGS += ${top_builddir}/../liblib/libnetcdf.la
 endif
 
 AM_LDFLAGS += @EXTERN_LDFLAGS@ -lm
-
-
-

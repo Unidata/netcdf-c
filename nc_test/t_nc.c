@@ -1,20 +1,15 @@
-/*
- * 	Copyright 1988 University Corporation for Atmospheric Research
- *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
- */
-/* $Id: t_nc.c,v 1.94 2010/05/27 21:34:13 dmh Exp $ */
+/* Copyright 1988-2010 University Corporation for Atmospheric Research
+   See netcdf/COPYRIGHT file for copying and redistribution
+   conditions.
 
-/*
- *	 Program to create a cdf, exercise all cdf functions.
- *  Creates cdf, stuff it full of numbers, closes it. Then
- *  reopens it, and checks for consistency.
- *  Leaves the file around afterwards.
- *
- *	Based on a program to test the nasa look-alike program,
- * so not the most appropropriate test. See ../nctest for a
- * complete spec test.
- */
-
+   Program to create a cdf, exercise all cdf functions.  Creates cdf,
+   stuff it full of numbers, closes it. Then reopens it, and checks
+   for consistency.  Leaves the file around afterwards.
+ 
+   Based on a program to test the nasa look-alike program, so not the
+   most appropropriate test. See ../nctest for a complete spec test.
+ 
+   $Id: t_nc.c,v 1.94 2010/05/27 21:34:13 dmh Exp $ */
 
 #define REDEF
 /* #define SYNCDEBUG */
@@ -28,16 +23,13 @@
 #include <string.h>
 #include <assert.h>
 #include <netcdf.h>
-#ifndef USE_DISPATCH
-#include "rename.h"
-#endif
 
 #define MAXSHORT	32767
 #define MAXINT		2147483647
 #define MAXBYTE		127
 
 
-#define FNAME		"test.nc"
+#define FNAME		"t_nc.nc"
 #define	NUM_DIMS 	3
 #define DONT_CARE	-1
 /* make these numbers big when you want to give this a real workout */
@@ -75,6 +67,10 @@ union getret
     double          dbl;
 };
 
+
+#ifdef USE_NETCDF4
+const char *nc3_strerror(int ncerr);
+#endif
 
 static void
 chkgot(nc_type type, union getret got, double check)
@@ -470,8 +466,13 @@ main(int ac, char *av[])
 	ret = nc__open(fname,NC_NOWRITE, &chunksz, &id);
 	if(ret != NC_NOERR)
 	{
+#ifdef USE_NETCDF4
+		(void) printf("Could not open %s: %s\n", fname,
+			nc3_strerror(ret));
+#else
 		(void) printf("Could not open %s: %s\n", fname,
 			nc_strerror(ret));
+#endif
 		exit(1);
 	}
 	(void) printf("reopen id = %d for filename %s\n",

@@ -43,13 +43,13 @@ main()
       for (i = 0; i < num_obj; i++)
       {
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
-				i, &obj_info, H5P_DEFAULT) < 0) ERR;
+				i, &obj_info, H5P_DEFAULT) < 0) ERR_RET;
 	 obj_class = obj_info.type;
 	 if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-					NULL, 0, H5P_DEFAULT)) < 0) ERR;
-	 if (size > NC_MAX_NAME) ERR;
+					NULL, 0, H5P_DEFAULT)) < 0) ERR_RET;
+	 if (size > NC_MAX_NAME) ERR_RET;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-				obj_name, size+1, H5P_DEFAULT) < 0) ERR;
+				obj_name, size+1, H5P_DEFAULT) < 0) ERR_RET;
 	 /*printf("nc4_rec_read_metadata: encountered HDF5 object obj_class %d obj_name %s.\n", 
 	   obj_class, obj_name);*/
 	 /* Deal with groups and datasets. */
@@ -63,14 +63,14 @@ main()
 	       break;
 	    case H5O_TYPE_NAMED_DATATYPE:
 	       printf("type\n");
-	       if ((hdf_typeid = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR;
-	       if ((class = H5Tget_class(hdf_typeid)) < 0) ERR;
+	       if ((hdf_typeid = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR_RET;
+	       if ((class = H5Tget_class(hdf_typeid)) < 0) ERR_RET;
 	       switch (class)
 	       {
 		  case H5T_VLEN:
 		     /* Find the base type of this vlen (i.e. what is this a * vlen of?) and its size. */
-		     if (!(base_hdf_typeid = H5Tget_super(hdf_typeid))) ERR;
-		     if (!(type_size = H5Tget_size(base_hdf_typeid))) ERR;
+		     if (!(base_hdf_typeid = H5Tget_super(hdf_typeid))) ERR_RET;
+		     if (!(type_size = H5Tget_size(base_hdf_typeid))) ERR_RET;
 		     break;
 		  default:
 		     LOG((0, "unknown datatype class"));
@@ -91,10 +91,10 @@ main()
       {
 	 if (attid > 0) 
 	    H5Aclose(attid);
-	 if ((attid = H5Aopen_idx(grpid, (unsigned int)i)) < 0) ERR;
-	 if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) ERR;
+	 if ((attid = H5Aopen_idx(grpid, (unsigned int)i)) < 0) ERR_RET;
+	 if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) ERR_RET;
 	 LOG((4, "reading attribute of _netCDF group, named %s", obj_name));
-	 if ((attid && H5Aclose(attid))) ERR;      
+	 if ((attid && H5Aclose(attid))) ERR_RET;      
       }
 
       /* Open the HDF5 attribute. */

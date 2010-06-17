@@ -34,7 +34,7 @@ netcdf.3: $(top_srcdir)/man4/netcdf.m4
 
 # These files are part of the netCDF-3 library.
 NC3_SOURCES = nc.h error3.c libvers.c \
-string.c v1hpg.c fbits.h ncio.h netcdf.h	\
+string.c v1hpg.c fbits.h ncio.h \
 onstack.h rnd.h utf8proc.c utf8proc.h utf8proc_data.h \
 nclistmgr.c
 
@@ -76,7 +76,7 @@ endif # BUILD_V2
 
 if USE_DISPATCH
 
-AM_CPPFLAGS +=  -I${top_srcdir}/liblib
+AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/liblib
 
 AM_CPPFLAGS +=  -I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch -I${top_srcdir}/oc
 
@@ -139,7 +139,7 @@ endif
 else # not USE_NETCDF4
 
 # This will cause the netcdf-3 header file to be installed.
-include_HEADERS = netcdf.h
+#include_HEADERS = netcdf.h
 
 # Include netcdf-2 convenience library.
 if BUILD_V2
@@ -186,30 +186,11 @@ endif # BUILD_DLL
 
 endif # USE_NETCDF4
 
-# Test the netCDF-3 library.
-TESTPROGRAMS = t_nc
-if !USE_NETCDF4
-TESTPROGRAMS += t_type
-endif
-check_PROGRAMS = $(TESTPROGRAMS)
-TESTS = $(TESTPROGRAMS)
-
-# If building a DLL, the test program needs to define DLL_NETCDF.
-if BUILD_DLL
-t_nc_CPPFLAGS = -DDLL_NETCDF
-endif
-
-CLEANFILES += t_nc
-
-
 # These files are cleaned on developer workstations (and then rebuilt
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.
 MAINTAINERCLEANFILES = attr.c ncx.c putget.c $(man_MANS) attrx.c putgetx.c
 EXTRA_DIST = attr.c ncx.c putget.c $(man_MANS) stub3.c netcdf_par.h
-
-# This file is created by the test.
-CLEANFILES += test.nc
 
 # This tells make how to turn .m4 files into .c files.
 .m4.c:
