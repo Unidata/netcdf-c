@@ -91,10 +91,10 @@ main()
       {
 	 if (attid > 0) 
 	    H5Aclose(attid);
-	 if ((attid = H5Aopen_idx(grpid, (unsigned int)i)) < 0) ERR;
-	 if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) ERR;
+	 if ((attid = H5Aopen_idx(grpid, (unsigned int)i)) < 0) ERR_RET;
+	 if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) ERR_RET;
 	 LOG((4, "reading attribute of _netCDF group, named %s", obj_name));
-	 if ((attid && H5Aclose(attid))) ERR;      
+	 if ((attid && H5Aclose(attid))) ERR_RET;      
       }
 
       /* Open the HDF5 attribute. */
