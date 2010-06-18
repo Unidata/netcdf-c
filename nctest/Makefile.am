@@ -36,4 +36,3 @@ tests.h val.c val.h vardef.c varget.c vargetg.c varput.c varputg.c	\
 vartests.c vputget.c vputgetg.c
 
 # For those who can't remember to type make check instead of make test.
-test: check

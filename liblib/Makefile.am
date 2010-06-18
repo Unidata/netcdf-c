@@ -6,8 +6,6 @@
 # libraries have been built. (e.g libsrc, libsrc4, libncdap3,
 # libncdap4, fortran).
 
-# $Id: Makefile.am,v 1.13 2010/06/01 15:34:50 ed Exp $
-
 AM_LDFLAGS = @EXTERN_LDFLAGS@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 

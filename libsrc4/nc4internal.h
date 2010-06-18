@@ -8,7 +8,6 @@
 
 #include <config.h>
 #include <stdio.h>
-#include "error.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>

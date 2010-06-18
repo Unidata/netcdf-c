@@ -52,16 +52,6 @@ if USE_DAP
 LDADD += ${top_builddir}/oc/liboc.la
 endif
 
-# Test the netCDF-3 library.
-TESTPROGRAMS = t_nc
-if !USE_NETCDF4
-TESTPROGRAMS += t_type
-endif
-check_PROGRAMS = $(TESTPROGRAMS)
-TESTS = $(TESTPROGRAMS)
-
-CLEANFILES = t_nc test.nc
-
 # These files are cleaned on developer workstations (and then rebuilt
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.

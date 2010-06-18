@@ -11,10 +11,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc
 
 # These are the tests which are always run.
-TESTPROGRAMS = tst_small nc_test tst_misc tst_norm tst_names
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
@@ -26,10 +26,8 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
-TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var \
-tst_large large_files
-CLEANFILES += large_files.nc quick_large_files.nc tst_big_var.nc \
-tst_big_var2.nc tst_big_rvar.nc
+TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2	\
+tst_big_rvar tst_big_var tst_large large_files
 endif # LARGE_FILE_TESTS
 
 # Set up the tests.
@@ -48,4 +46,3 @@ MAINTAINERCLEANFILES = test_get.c test_put.c
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
 
-test: check

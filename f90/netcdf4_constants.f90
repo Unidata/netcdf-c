@@ -1,4 +1,5 @@
-! This is part of netCDF-4. Copyright 2006 UCAR. See COPYRIGHT file for details.
+! This is part of netCDF-4. Copyright 2006 UCAR. See COPYRIGHT file
+! for details.
 
 ! This file contains the extra F90 constants needed for netCDF-4.
 

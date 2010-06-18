@@ -46,6 +46,7 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
                   const size_t* start, const size_t* count,
 		  const unsigned long long* value);
 
+#define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */
 #define MAGIC_NUMBER_LEN 4

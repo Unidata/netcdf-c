@@ -9,38 +9,33 @@
 
 # $Id: Makefile.am,v 1.10 2010/06/01 15:34:50 ed Exp $
 
+# Set up include directories.
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
+
 # This is our output
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
-libdispatch_la_SOURCES = netcdf.m4 dispatch.h parallel.c copy.c	\
-error.c
+libdispatch_la_SOURCES = dispatch.h parallel.c copy.c file.c dim.c	\
+att.c error.c var.c dispatch.c
+
+# Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += nc4.c
-endif
+endif # USE_NETCDF4
 
-# Does  the user want the V2 API?
+# Add functions needed by opendap client.
+if USE_DAP
+libdispatch_la_SOURCES += dap.c
+AM_CPPFLAGS += -I${top_srcdir}/oc
+endif # USE_DAP
+
+# Add V2 API functions.
 if BUILD_V2
 noinst_LTLIBRARIES += libnetcdf2.la 
 libnetcdf2_la_SOURCES = v2i.c
 endif # BUILD_V2
 
-# Include this so that user does not have to have m4.
-EXTRA_DIST = netcdf.c
-
-# Set up include directories.
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
-if USE_DAP
-AM_CPPFLAGS += -I${top_srcdir}/oc
-endif
-
-# Clean up.
-MAINTAINERCLEANFILES = netcdf.c
-
-# This tells make how to turn .m4 files into .c files.
-.m4.c:
-	if test -f $@ ; then rm -f $@.bak ; cp $@ $@.bak ; fi
-	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
 
 
 
