@@ -8,7 +8,7 @@
 # $Id: Makefile.am,v 1.1 2010/05/23 21:05:33 dmh Exp $
 
 # Cause C preprocessor to search current and parent directory.
-AM_CPPFLAGS = -I$(top_srcdir)/libsrc
+AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/libsrc
 
 # Linker needs to search current directory when building tests.
 AM_LDFLAGS = 
@@ -63,7 +63,13 @@ ocutil.h \
 rc.h \
 read.h
 
-GRAMFILES=dap.y ce.y
+if ENABLE_RC
+SRC += ocrc.c
+HDRS += ocrc.h
+endif
+
+
+GRAMFILES=dap.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h

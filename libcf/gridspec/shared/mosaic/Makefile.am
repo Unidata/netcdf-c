@@ -5,8 +5,6 @@
 # This automake file is in charge of building the gridspec
 # tools/shared convenience library.
 
-# $Id: Makefile.am,v 1.5 2010/05/29 01:46:31 dmh Exp $
-
 noinst_LTLIBRARIES = libshared.la 
 libshared_la_SOURCES = constant.h create_xgrid.c create_xgrid.h	\
 gradient_c2l.c gradient_c2l.h interp.c interp.h mosaic_util.c	\
@@ -18,8 +16,8 @@ LDADD =
 
 AM_CPPFLAGS += -I${top_srcdir}/src
 
-AM_CPPFLAGS += ${top_srcdir}../liblib
-AM_LDFLAGS += ${top_builddir}../liblib/libnetcdf.la
+AM_CPPFLAGS += ${top_srcdir}/../liblib
+AM_LDFLAGS += ${top_builddir}/../liblib/libnetcdf.la
 
 AM_LDFLAGS += @EXTERN_LDFLAGS@ -lm
 

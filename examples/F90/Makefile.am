@@ -16,7 +16,7 @@ AM_LDFLAGS =
 # Tell the compiler where to find the .mod files. The .mod file is
 # built, and therefore found in the build directory, not the source
 # directory.
-AM_FCFLAGS += -I$(top_srcdir)/fortran -I$(top_builddir)/f90 @MOD_FLAG@$(top_builddir)/f90
+AM_FCFLAGS +=  -I$(top_srcdir) -I$(top_srcdir)/fortran -I$(top_builddir)/f90 @MOD_FLAG@$(top_builddir)/f90
 AM_FFLAGS += ${AM_FCFLAGS}
 
 if BUILD_SEPARATE_FORTRAN

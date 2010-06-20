@@ -322,7 +322,12 @@ extern "C" {
 #define NC_ESTORAGE      (-126) /* Can't specify both contiguous and chunking. */
 #define NC_EBADCHUNK     (-127) /* Bad chunksize. */
 #define NC_ENOTBUILT     (-128) /* Attempt to use feature that was not turned on when netCDF was built. */
-#define NC4_LAST_ERROR   (-128) 
+
+/* Following error(s) added for RC file support (experimental) */
+
+#define NC_ERCFILE   (-129)  /* malformed .netcdfrc file */
+
+#define NC4_LAST_ERROR   (-129) 
 
 /* This is used in netCDF-4 files for dimensions without coordinate
  * vars. */

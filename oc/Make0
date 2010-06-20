@@ -6,10 +6,11 @@ all::
 makeoc::
 	rm -f ${THISDIR}/*.[chy]
 	for f in ${OCDIR}/*.[chy]; do \
-	        base=`basename $$f` ; \
-		cat $$f | tr -d '' >${THISDIR}/$$base; done
+	    base=`basename $$f` ; \
+	    cat $$f | tr -d '' >${THISDIR}/$$base; \
+	done
 	rm -f i.* apitest.* getoc.* imain.* main.*
-	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
+	rm -f config.h dap.tab.c dap.tab.h ceparselex.*
 	rm -f ocshadow.*
 	rm -f octest.c
 	rm -f ocinternal.h
@@ -17,20 +18,22 @@ makeoc::
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
-	for f in ${THISDIR}/*.[chy] ; do \
+	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
 	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
 	    if test -e ${THISDIR}/$$x ; then \
-		diff -qw ${THISDIR}/$$x $$f ; \
+		diff -q ${THISDIR}/$$x $$f ; \
+	    else \
+	        echo "new file: $$f"; \
 	    fi; \
 	done
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f|tr -d '' ` ; \
 	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
 	    if test -e ${THISDIR}/$$x ; then \
-		if ! diff -qw ${THISDIR}/$$x $$f > /dev/null ; then \
-		echo diff -w ${THISDIR}/$$x $$f ;\
-		diff -w ${THISDIR}/$$x $$f ; \
+		if ! diff -q ${THISDIR}/$$x $$f > /dev/null ; then \
+		echo diff ${THISDIR}/$$x $$f ;\
+		diff -bBw ${THISDIR}/$$x $$f ; \
 		fi; \
 	    fi; \
 	done

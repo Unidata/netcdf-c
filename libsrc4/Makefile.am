@@ -8,7 +8,7 @@
 # $Id: Makefile.am,v 1.194 2010/06/01 15:34:50 ed Exp $
 
 # Initialize
-AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)
 AM_LDFLAGS =
 LDADD =
 libnetcdf_la_LIBADD =
@@ -88,11 +88,13 @@ libnetcdf4_la_SOURCES = ${NC4SOURCES}
 LDADD += stub4.lo
 LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
 LDADD += ${top_builddir}/libsrc/libnetcdf3.la
-LDADD += ${top_builddir}/libsrc/libnetcdf2.la
 LDADD += ${top_builddir}/libdispatch/libdispatch.la
 if USE_DAP
 LDADD += ${top_builddir}/oc/liboc.la
 endif
+if BUILD_V2
+LDADD += ${top_builddir}/libsrc/libnetcdf2.la
+endif 
 
 #else #!USE_DISPATCH
 
@@ -110,7 +112,7 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf3.la
 # Include netcdf-2 unless v2 has been turned off..
 if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf2.la
-TST_V2 = tst_v2 
+#TST_V2 = tst_v2 
 endif
 
 # Netcdf-4 source.
@@ -139,12 +141,11 @@ tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
 tst_h_opaques tst_h_strings tst_h_strings1 tst_h_dimscales		\
 tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums		\
 tst_h_vl2 tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars	\
-tst_varms tst_unlim_vars tst_atts tst_atts2 tst_converts tst_converts2	\
-tst_grps tst_compounds tst_compounds2 tst_compounds3 tst_vl		\
-tst_opaques tst_strings tst_interops tst_interops4 tst_interops5	\
-tst_enums tst_vars2 tst_coords tst_coords2 tst_coords3 tst_vars3	\
-tst_chunks tst_utf8 tst_fills tst_fillbug $(TST_V2) tst_xplatform	\
-tst_xplatform2 tst_endian_fill
+tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps		\
+tst_compounds tst_compounds2 tst_compounds3 tst_opaques tst_strings	\
+tst_interops tst_interops4 tst_interops5 tst_enums tst_coords		\
+tst_coords2 tst_coords3 tst_vars3 tst_chunks tst_utf8 tst_fills		\
+tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill
 
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
@@ -160,33 +161,17 @@ tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2	\
 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_opaques tst_h_strings		\
 tst_h_strings1 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2	\
 tst_h_dimscales3 tst_h_enums tst_dims tst_dims2 tst_dims3 tst_files	\
-tst_files4 tst_vars tst_varms tst_unlim_vars tst_atts tst_atts2		\
-tst_converts tst_converts2 tst_grps tst_compounds tst_compounds2	\
-tst_compounds3 tst_vl tst_h_vl2 tst_opaques tst_strings tst_interops	\
-tst_interops4 tst_interops5 tst_enums tst_vars2 tst_vars3 tst_chunks	\
-tst_coords tst_coords2 tst_coords3 tst_utf8 tst_fills tst_fillbug	\
-$(TST_V2) tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill
+tst_files4 tst_vars tst_varms tst_unlim_vars tst_converts		\
+tst_converts2 tst_grps tst_compounds tst_compounds2 tst_compounds3	\
+tst_h_vl2 tst_opaques tst_strings tst_interops tst_interops4		\
+tst_interops5 tst_enums tst_vars3 tst_chunks tst_coords tst_coords2	\
+tst_coords3 tst_utf8 tst_fills tst_fillbug tst_xplatform		\
+tst_xplatform2 tst_h_atts2 tst_endian_fill
 
-if USE_HDF4
-check_PROGRAMS += tst_interops2 
-TESTS += tst_interops2
-if USE_HDF4_FILE_TESTS
-check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh tst_interops3
-endif # USE_HDF4_FILE_TESTS
-tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl -lhdf5 -lz 
-endif # USE_HDF4
-
-# Thee tst_lists programs needs to be fixed
-# to match libsrc/nclistmgr.c
-#check_PROGRAMS += tst_lists
-#TESTS += tst_lists
-
-EXTRA_DIST = ref_tst_compounds.nc ref_tst_h_compounds.h5	\
-ref_tst_h_compounds2.h5 run_par_tests.sh run_valgrind_tests.sh	\
-run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc		\
-ref_tst_xplatform2_2.nc ref_tst_dims.nc run_get_hdf4_files.sh	\
-ref_tst_interops4.nc stub4.c
+EXTRA_DIST = ref_tst_compounds.nc ref_tst_h_compounds.h5		\
+ref_tst_h_compounds2.h5 run_par_tests.sh run_valgrind_tests.sh		\
+run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc			\
+ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc stub4.c
 
 # (The above does not include tst_h_converts, which won't work until I
 # sort out the MAX_INT problem. - Ed)
@@ -235,14 +220,3 @@ endif # USE_VALGRIND_TESTS
 CLEANFILES = tst_nc_converts.nc tst_h_*.h5 tst_*.nc tst_interops*.h5	\
 tst_interops2.h4 tst_interops4.nc AMSR_E_* MYD29.A2* 
 
-DISTCLEANFILES = 
-
-if USE_HDF4_FILE_TESTS
-DISTCLEANFILES += AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
-AMSR_E_L3_DailyLand_V06_20020619.hdf			\
-MYD29.A2009152.0000.005.2009153124331.hdf		\
-MYD29.A2002185.0000.005.2007160150627.hdf		\
-MOD29.A2000055.0005.005.2006267200024.hdf
-endif # HDF4_FILE_TESTS
-
-test: check

@@ -10,6 +10,26 @@
 */
 
 #include "dispatch.h"
+
+#ifdef USE_DAP
+#include "oc.h"
+#endif
+
+#ifdef ENABLE_RC
+#include "ncrc.h"
+
+#define NETCDFRC ".netcdfrc"
+
+ncrcnode* ncrcroot = NULL;
+ncrcnode* netcdfroot = NULL;
+ncrcnode* netcdf3root = NULL;
+ncrcnode* netcdf4root = NULL;
+
+static int loadrcfile(void);
+
+#endif
+
+
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
 #if defined(__cplusplus)
@@ -149,8 +169,6 @@ NC_urlmodel(const char* path)
     return model;
 }
 
-static int initialized = 0;
-
 /* Override dispatch table management */
 static NC_Dispatch* NC_dispatch_override = NULL;
 
@@ -165,7 +183,102 @@ void NC_set_dispatch_override(NC_Dispatch* d)
     NC_dispatch_override = d;
 }
 
+static int initialized = 0;
 
+static int
+ncinitialize(void)
+{
+    int stat = NC_NOERR;
+    stat = NC_initialize(); /* in liblib/stub.c */
+    if(stat != NC_NOERR) goto done;
+
+#ifdef ENABLE_RC
+    stat = loadrcfile();
+#endif /*ENABLE_RC*/    
+
+done:
+    initialized = 1;
+    return stat;
+}
+
+#ifdef ENABLE_RC
+static char* defaultrc = NULL;
+
+int
+nc_set_defaultrc(char* dfalt)
+{
+    if(dfalt == NULL) return NC_EINVAL;
+    if(strlen(dfalt)==0) return NC_EINVAL;
+    if(defaultrc != NULL) free(defaultrc);
+    defaultrc = strdup(dfalt);
+    return NC_NOERR;
+}
+
+static int
+loadrcfile(void)
+{
+    char *homepath;
+    char *dotpath = NULL;
+    char* path = NULL;
+    int stat = NC_NOERR;
+    FILE* rcfile;
+    ncrcerror err;
+
+    /* Ensure defaultrc is defined */
+    if(defaultrc == NULL || strlen(defaultrc) == 0)
+	nc_set_defaultrc(NETCDFRC);
+
+#ifdef USE_DAP
+    /* Make oc use same rc file */
+    oc_setrcfile(defaultrc);
+#endif
+
+    /* compute the config file path */
+    homepath = getenv("HOME");
+
+    if(defaultrc[0] == '/') {
+	path = (char*)malloc(strlen(defaultrc)+1);
+    } else {
+	if (homepath != NULL) {
+	    path = (char*)malloc(strlen(homepath)+1+strlen(defaultrc)+1);
+	    strcpy(path,homepath);
+	    strcat(path,"/");
+	    strcat(path,defaultrc);
+	}
+	dotpath = (char*)malloc(1+1+strlen(defaultrc)+1);
+	strcpy(dotpath,"./");
+        strcat(dotpath,defaultrc);
+    }
+    rcfile = NULL;
+    /* try ./DEFAULTRC then $HOME/DEFAULTRC */
+    if(dotpath != NULL)
+        rcfile = fopen(dotpath,"r");
+    if(rcfile == NULL && path != NULL) 
+        rcfile = fopen(path,"r");
+    if(rcfile == NULL)  goto done; /* ignore */
+    if(!ncrc(rcfile,&ncrcroot,&err)) {
+	fprintf(stderr,"Error parsing %s; %s: lineno=%d charno=%d\n",
+			path,err.errmsg,err.lineno,err.charno);
+	stat = NC_ERCFILE;
+	goto done;
+    }
+    /* Get the netcdf entry */
+    netcdfroot = ncrc_lookup(ncrcroot,"netcdf");
+    if(netcdfroot == NULL) {
+        fprintf(stderr,"Cannot find \"netcdf\" entry in rc file\n");
+	goto done;
+    }
+    /* Dont' char if missing */
+    netcdf3root = ncrc_lookup(netcdfroot,"netcdf3");
+    netcdf4root = ncrc_lookup(netcdfroot,"netcdf4");
+
+done:
+    if(path != NULL) free(path);
+    if(dotpath != NULL) free(dotpath);
+    return  stat;
+}
+
+#endif /*ENABLE_RC*/
 /**************************************************/
 int
 nc_create(const char * path, int cmode, int *ncid_ptr)
@@ -208,7 +321,7 @@ NC_create(const char *path, int cmode,
     int dap = 0;   /* dap vs !dap */
 
     if(!initialized)
-	{stat = NC_initialize(); if(stat) return stat; initialized = 1;}
+	{stat = ncinitialize(); if(stat) return stat;}
 
     if((dap = NC_testurl(path))) model = NC_urlmodel(path);
 
@@ -306,7 +419,7 @@ NC_open(const char *path, int cmode,
     int hdfversion = 0;
 
     if(!initialized)
-	{stat = NC_initialize(); if(stat) return stat; initialized = 1;}
+	{stat = ncinitialize(); if(stat) return stat;}
 
     if((dap = NC_testurl(path)))
 	model = NC_urlmodel(path);
@@ -2438,7 +2551,7 @@ NCGETVAR1(uchar,unsigned char)
 NCGETVAR1(short,short)
 NCGETVAR1(int,int)
 NCGETVAR1(long,long)
-NCGETVAR1(ulong,ulong)
+dnl NCGETVAR1(ulong,ulong)
 NCGETVAR1(float,float)
 NCGETVAR1(double,double)
 NCGETVAR1(ubyte,unsigned char)
@@ -2471,7 +2584,7 @@ NCPUTVAR1(uchar,unsigned char)
 NCPUTVAR1(short,short)
 NCPUTVAR1(int,int)
 NCPUTVAR1(long,long)
-NCPUTVAR1(ulong,ulong)
+dnl NCPUTVAR1(ulong,ulong)
 NCPUTVAR1(float,float)
 NCPUTVAR1(double,double)
 NCPUTVAR1(ubyte,unsigned char)
@@ -2503,7 +2616,7 @@ NCGETVAR(uchar,unsigned char)
 NCGETVAR(short,short)
 NCGETVAR(int,int)
 NCGETVAR(long,long)
-NCGETVAR(ulong,ulong)
+dnl NCGETVAR(ulong,ulong)
 NCGETVAR(float,float)
 NCGETVAR(double,double)
 NCGETVAR(ubyte,unsigned char)
@@ -2535,7 +2648,7 @@ NCPUTVAR(uchar,unsigned char)
 NCPUTVAR(short,short)
 NCPUTVAR(int,int)
 NCPUTVAR(long,long)
-NCPUTVAR(ulong,ulong)
+dnl NCPUTVAR(ulong,ulong)
 NCPUTVAR(float,float)
 NCPUTVAR(double,double)
 NCPUTVAR(ubyte,unsigned char)
@@ -2569,7 +2682,7 @@ NCPUTVARA(uchar,unsigned char)
 NCPUTVARA(short,short)
 NCPUTVARA(int,int)
 NCPUTVARA(long,long)
-NCPUTVARA(ulong,ulong)
+dnl NCPUTVARA(ulong,ulong)
 NCPUTVARA(float,float)
 NCPUTVARA(double,double)
 NCPUTVARA(ubyte,unsigned char)
@@ -2602,7 +2715,7 @@ NCGETVARA(uchar,unsigned char)
 NCGETVARA(short,short)
 NCGETVARA(int,int)
 NCGETVARA(long,long)
-NCGETVARA(ulong,ulong)
+dnl NCGETVARA(ulong,ulong)
 NCGETVARA(float,float)
 NCGETVARA(double,double)
 NCGETVARA(ubyte,unsigned char)
@@ -2637,7 +2750,7 @@ NCPUTVARM(uchar,unsigned char)
 NCPUTVARM(short,short)
 NCPUTVARM(int,int)
 NCPUTVARM(long,long)
-NCPUTVARM(ulong,ulong)
+dnl NCPUTVARM(ulong,ulong)
 NCPUTVARM(float,float)
 NCPUTVARM(double,double)
 NCPUTVARM(ubyte,unsigned char)
@@ -2672,7 +2785,7 @@ NCGETVARM(uchar,unsigned char)
 NCGETVARM(short,short)
 NCGETVARM(int,int)
 NCGETVARM(long,long)
-NCGETVARM(ulong,ulong)
+dnl NCGETVARM(ulong,ulong)
 NCGETVARM(float,float)
 NCGETVARM(double,double)
 NCGETVARM(ubyte,unsigned char)
@@ -2707,7 +2820,7 @@ NCPUTVARS(uchar,unsigned char)
 NCPUTVARS(short,short)
 NCPUTVARS(int,int)
 NCPUTVARS(long,long)
-NCPUTVARS(ulong,ulong)
+dnl NCPUTVARS(ulong,ulong)
 NCPUTVARS(float,float)
 NCPUTVARS(double,double)
 NCPUTVARS(ubyte,unsigned char)
@@ -2742,7 +2855,7 @@ NCGETVARS(uchar,unsigned char)
 NCGETVARS(short,short)
 NCGETVARS(int,int)
 NCGETVARS(long,long)
-NCGETVARS(ulong,ulong)
+dnl NCGETVARS(ulong,ulong)
 NCGETVARS(float,float)
 NCGETVARS(double,double)
 NCGETVARS(ubyte,unsigned char)
@@ -2775,7 +2888,7 @@ NC_GET_ATT(uchar, unsigned char)
 NC_GET_ATT(short, short)
 NC_GET_ATT(int, int)
 NC_GET_ATT(long,long)
-NC_GET_ATT(ulong,ulong)
+dnl NC_GET_ATT(ulong,ulong)
 NC_GET_ATT(float, float)
 NC_GET_ATT(double, double)
 NC_GET_ATT(ubyte,unsigned char)
@@ -2808,7 +2921,7 @@ NC_PUT_ATT(uchar, unsigned char)
 NC_PUT_ATT(short, short)
 NC_PUT_ATT(int, int)
 NC_PUT_ATT(long,long)
-NC_PUT_ATT(ulong,ulong)
+dnl NC_PUT_ATT(ulong,ulong)
 NC_PUT_ATT(float, float)
 NC_PUT_ATT(double, double)
 NC_PUT_ATT(ubyte,unsigned char)

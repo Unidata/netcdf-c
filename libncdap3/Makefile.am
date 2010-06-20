@@ -15,7 +15,7 @@ LDADD=
 #CURL_CFLAGS = @CURL_CFLAGS@
 #AM_CPPFLAGS = ${CURL_CFLAGS}
 #AM_LDFLAGS = $(CURL_LIBS)
-AM_CPPFLAGS = 
+AM_CPPFLAGS = -I$(top_srcdir)
 AM_LDFLAGS = 
 
 # DRNO Sources
@@ -64,9 +64,6 @@ libncdap3_la_CPPFLAGS = $(AM_CPPFLAGS)
 libncdap3_la_LIBADD =
 
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch
-AM_LDFLAGS += ${top_builddir}/libsrc/libnetcdf3.la \
-         ${top_builddir}/libsrc/libnetcdf2.la \
-         ${top_builddir}/libdispatch/libdispatch.la
 
 if USE_NETCDF4
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
@@ -87,8 +84,14 @@ LDADD +=  ${top_builddir}/libncdap3/libncdap3.la ${AM_LDFLAGS}
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
 TESTS = t_dap
-t_dap_SOURCES=t_dap.c stubdap3.c
+t_dap_SOURCES = t_dap.c stubdap3.c
+t_dap_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
+${top_builddir}/libdispatch/libdispatch.la
+
+
 CLEANFILES += t_dap
+
+EXTRA_DIST = ce.y
 
 endif # BUILD_DAP
 
@@ -96,8 +99,8 @@ endif # BUILD_DAP
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-cetab.c cetab.h: ${top_srcdir}/oc/ce.y
-	bison -d -t -p ce ${top_srcdir}/oc/ce.y
+cetab.c cetab.h: ce.y
+	bison -d -t -p ce ce.y
 	rm -f cetab.c cetab.h
 	mv ce.tab.c cetab.c
 	mv ce.tab.h cetab.h

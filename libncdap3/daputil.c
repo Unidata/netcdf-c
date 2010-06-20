@@ -146,7 +146,7 @@ nc_type
 nctypeconvert(NCDRNO* drno, nc_type nctype)
 {
     nc_type upgrade = NC_NAT;
-    if(drno->controls.flags & NCF_NC3) {
+    if(FLAGSET(drno,NCF_NC3)) {
 	/* libnc-dap mimic invariant is to maintain type size */
 	switch (nctype) {
 	case NC_CHAR:    upgrade = NC_CHAR; break;
@@ -164,7 +164,7 @@ nctypeconvert(NCDRNO* drno, nc_type nctype)
 	case NC_STRING:  upgrade = NC_CHAR; break;
 	default: break;
 	}
-    } else if(drno->controls.flags & NCF_NC4) {
+    } else if(FLAGSET(drno,NCF_NC4)) {
 	/* netcdf-4 conversion is more correct */
 	switch (nctype) {
 	case NC_CHAR:    upgrade = NC_CHAR; break;

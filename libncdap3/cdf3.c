@@ -99,8 +99,10 @@ computevarnodes3(NCDRNO* drno, NClist* allnodes, NClist* varnodes)
 	    nclistpush(varnodes,(ncelem)node);
 	    nclistset(allvarnodes,i,(ncelem)NULL);
         } else if(dapgridmap(node)) {
+#ifdef NOMIMIC
 	    if(!FLAGSET(drno,NCF_NCDAP))
 		nclistpush(varnodes,(ncelem)node);
+#endif
 	    nclistset(allvarnodes,i,(ncelem)NULL);
 	}
     }
@@ -165,7 +167,7 @@ computecdfvarnames3(NCDRNO* drno, CDFnode* root, NClist* varnodes)
 	var->ncfullname = makecdfpathstring3(var,drno->cdf.separator);
     }
     /*  unify all variables with same fullname and dimensions. */
-    if(drno->controls.flags & (NCF_NC3)) {
+    if(FLAGSET(drno,NCF_NC3)){ 
         for(i=0;i<nclistlength(varnodes);i++) {
 	    int match;
 	    CDFnode* var = (CDFnode*)nclistget(varnodes,i);

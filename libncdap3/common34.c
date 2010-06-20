@@ -16,6 +16,10 @@ static NCerror  attachsubset34r(CDFnode*, CDFnode*);
 static void free1cdfnode34(CDFnode* node);
 static CDFnode* clonedim(NCDRNO* drno, CDFnode* dim, CDFnode* var);
 static int getcompletedimset3(CDFnode*, NClist*);
+static void processncmatch(NCDRNO* drno, ncrcnode* match);
+static void processrccontrol(NCDRNO* drno, ncrcnode* pair);
+static void processshowflags(NCDRNO* drno, ncrcnode* list);
+
 
 /* Define Procedures that are common to both
    libncdap3 and libncdap4
@@ -92,7 +96,7 @@ fixgrid34(NCDRNO* drno, CDFnode* grid)
 
     glen = nclistlength(grid->subnodes);
     array = (CDFnode*)nclistget(grid->subnodes,0);	        
-    if(drno->controls.flags & (NCF_NC3)) {
+    if(FLAGSET(drno,NCF_NC3)) {
         /* Rename grid Array: variable, but leave its oc base name alone */
         efree(array->ncbasename);
         array->ncbasename = nulldup(grid->ncbasename);
@@ -134,7 +138,12 @@ fixgrid34(NCDRNO* drno, CDFnode* grid)
 	    if(!arraydim->ncbasename) return NC_ENOMEM;
 	    DIMFLAGCLR(arraydim,CDFDIMANON);
 	}
-        if(FLAGSET(drno,(NCF_NCDAP|NCF_NC3))) {
+#ifdef NOMIMIC
+        if(FLAGSET(drno,(NCF_NCDAP|NCF_NC3)))
+#else
+        if(FLAGSET(drno,(NCF_NC3)))
+#endif
+        {
 	    char tmp[3*NC_MAX_NAME];
             /* Add the grid name to the basename of the map */
 	    snprintf(tmp,sizeof(tmp),"%s%s%s",map->container->ncbasename,
@@ -537,6 +546,104 @@ dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDRNO* drno, CDFtree* tree)
     }    
 }
 
+/* Extract various configuration parameters from the .netcdfrc file */
+/* The general structure of the netcdf entry in the rc files is like this.
+
+netcdf : {
+  show: [ fetch seqdims projection translate url dds das ...]
+  ...
+  dap : {
+    <url-prefix|"*">: {
+      cache: true|false;
+      cachelimit: <integer>    
+      cachecount: <integer>    
+      fetchlimit: <integer>    
+      smallsizelimit: <integer>    
+      stringlength: <integer>
+      stringlength_<varname>: <integer>
+      sequencelimit_<varname>: <integer>|false
+    }
+  }
+  ...
+} //netcdf
+
+
+*/
+
+NCerror
+applyrcparams34(NCDRNO* drno)
+{
+    ncrcnode* ncroot;
+    ncrcnode* daproot;
+    int nmatches;
+    ncrcnode** matches = NULL;
+    int i;
+
+    if(FLAGSET(drno,NCF_NC3)) ncroot = netcdf3root;
+    else if(FLAGSET(drno,NCF_NC4)) ncroot = netcdf4root;
+    else ncroot = NULL;
+
+    if(ncroot == NULL) return NC_NOERR;
+    /* Locate the dap parameters */
+    daproot = ncrc_lookup(ncroot,"dap");
+    if(daproot == NULL) return NC_NOERR;    
+    if(daproot->nodeclass != ncrc_map) goto complain;
+
+    nmatches = ncrc_urlmatch(daproot, drno->dap.url.base, &matches);
+    if(nmatches > 0) {
+ 	for(i=0;i<nmatches;i++) {
+ 	    ncrcnode* match = matches[i];
+            if(match->nodeclass != ncrc_pair) continue;
+ 	    processncmatch(drno,match);
+ 	}
+    }
+    return NC_NOERR;
+complain:
+    return NC_ERCFILE;    
+}
+
+static void
+processncmatch(NCDRNO* drno, ncrcnode* pair)
+{
+    int i;
+    char tmpname[NC_MAX_NAME+32];
+    char* pathstr = NULL;
+
+    /* Extract variable specific parameters */
+    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
+        CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+        /* Define the client param stringlength for this variable*/
+        var->maxstringlength = drno->cdf.defaultstringlength; /* unless otherwise stated*/
+        strcpy(tmpname,"stringlength_");
+        pathstr = makeocpathstring3(drno->dap.conn,var->dds,".");
+        strcat(tmpname,pathstr);
+        efree(pathstr);
+        if(strcmp(pair->pair.key->constvalue,tmpname)==0) {
+            if(pair->pair.value->constclass == ncrc_number) {
+                int value = atoi(pair->pair.value->constvalue);
+                var->maxstringlength = value;
+            } 
+        }
+    }
+
+    /* Sequence limits apply to sequences */
+    for(i=0;i<nclistlength(drno->cdf.ddsroot->tree->nodes);i++) {
+        CDFnode* var = (CDFnode*)nclistget(drno->cdf.ddsroot->tree->nodes,i);
+        if(var->nctype != NC_Sequence) continue;
+        var->sequencelimit = drno->cdf.defaultsequencelimit;
+        strcpy(tmpname,"nolimit_");
+        pathstr = makeocpathstring3(drno->dap.conn,var->dds,".");
+        strcat(tmpname,pathstr);
+        efree(pathstr);
+        if(strcmp(pair->pair.key->constvalue,tmpname)==0) {
+           if(pair->pair.value->constclass == ncrc_number) {
+                int value = atoi(pair->pair.value->constvalue);
+                var->sequencelimit = value;
+            } 
+        }
+    }
+}
+
 /* Note: this routine only applies some common
    client parameters, other routines may apply
    specific ones.
@@ -546,54 +653,16 @@ NCerror
 applyclientparams34(NCDRNO* drno)
 {
     int i,len;
-    int dfaltstrlen = DEFAULTSTRINGLENGTH;
-    int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
     char* pathstr;
     OCconnection conn = drno->dap.conn;
-    unsigned long limit;
 
-    drno->cdf.cache.cachelimit = DFALTCACHELIMIT;
-    value = oc_clientparam_get(conn,"cachelimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachelimit = limit;
-
-    drno->cdf.fetchlimit = DFALTFETCHLIMIT;
-    value = oc_clientparam_get(conn,"fetchlimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.fetchlimit = limit;
-
-    drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    value = oc_clientparam_get(conn,"smallsizelimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.smallsizelimit = limit;
-
-    drno->cdf.cache.cachecount = DFALTCACHECOUNT;
-    value = oc_clientparam_get(conn,"cachecount");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachecount = limit;
-
-    if(oc_clientparam_get(conn,"nolimit") != NULL)
-	dfaltseqlim = 0;
-    value = oc_clientparam_get(conn,"limit");
-    if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0) dfaltseqlim = len;
-    }
-    drno->cdf.defaultsequencelimit = dfaltseqlim;
-
-    /* allow embedded _ */
-    value = oc_clientparam_get(conn,"stringlength");
-    if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
-    }
-    drno->cdf.defaultstringlength = dfaltstrlen;
-
-    /* String dimension limits apply to variables */
+    /* Extract variable specific parameters */
     for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
 	/* Define the client param stringlength for this variable*/
-	var->maxstringlength = dfaltstrlen; /* unless otherwise stated*/
+	var->maxstringlength = drno->cdf.defaultstringlength; /* unless otherwise stated*/
 	strcpy(tmpname,"stringlength_");
 	pathstr = makeocpathstring3(conn,var->dds,".");
 	strcat(tmpname,pathstr);
@@ -607,7 +676,7 @@ applyclientparams34(NCDRNO* drno)
     for(i=0;i<nclistlength(drno->cdf.ddsroot->tree->nodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(drno->cdf.ddsroot->tree->nodes,i);
 	if(var->nctype != NC_Sequence) continue;
-	var->sequencelimit = dfaltseqlim;
+	var->sequencelimit = drno->cdf.defaultsequencelimit;
 	strcpy(tmpname,"nolimit_");
 	pathstr = makeocpathstring3(conn,var->dds,".");
 	strcat(tmpname,pathstr);
@@ -1005,3 +1074,203 @@ done:
     return THROW(ncstat);
 }
 
+
+/* Extract various configuration parameters from the .netcdfrc file */
+/* The general structure of the netcdf entry in the rc files is like this.
+
+netcdf : {
+  show: [ fetch seqdims projection translate url dds das ...]
+  ...
+  dap : {
+    <url-prefix>|"*": {
+      cache: true|false;
+      cachelimit: <integer>    
+      cachecount: <integer>    
+      fetchlimit: <integer>    
+      smallsizelimit: <integer>    
+      stringlength: <integer>
+      stringlength_<varname>: <integer>
+      sequencelimit_<varname>: <integer>|false
+    }
+  }
+  ...
+} //netcdf
+*/
+
+void
+applyrccontrols34(NCDRNO* drno)
+{
+    ncrcnode* ncroot;
+    ncrcnode* daproot;
+    int i, j, nmatches;
+    ncrcnode** matches = NULL;
+
+    if(FLAGSET(drno,NCF_NC3)) ncroot = netcdf3root;
+    else if(FLAGSET(drno,NCF_NC4)) ncroot = netcdf4root;
+    else ncroot = NULL;
+
+    if(ncroot == NULL) return;
+    daproot = ncrc_lookup(ncroot,"dap");
+    if(daproot == NULL) return;
+    if(daproot->nodeclass != ncrc_map) goto complain;
+
+    nmatches = ncrc_urlmatch(daproot, drno->dap.url.base, &matches);
+    if(nmatches > 0) {
+ 	for(i=0;i<nmatches;i++) {
+ 	    ncrcnode* match = matches[i];
+	    if(match == NULL) goto complain;
+            if(match->nodeclass != ncrc_map) goto complain;
+    	    for(j=0;j<match->list.nvalues;j++) {
+	        ncrcnode* pair = match->list.values[j];
+		assert(pair->nodeclass == ncrc_pair);
+	        processrccontrol(drno,pair);
+		if(strcmp(pair->pair.key->constvalue,"show")==0) {
+	            if(pair->pair.value->nodeclass != ncrc_array)
+			goto complain;
+	            processshowflags(drno,pair->pair.value);
+		}
+	    }
+	}
+    }
+    return;
+complain:
+    return;
+}
+
+static void
+processrccontrol(NCDRNO* drno, ncrcnode* pair)
+{
+    if(pair->pair.value->nodeclass != ncrc_const) goto complain;
+    if(strcmp(pair->pair.key->constvalue,"cache")==0) {
+        if(pair->pair.value == ncrc_const_true)
+	    SETFLAG(drno,NCF_CACHE);
+        if(pair->pair.value == ncrc_const_false)
+	    CLRFLAG(drno,NCF_CACHE);
+    } else if(strcmp(pair->pair.key->constvalue,"cachelimit")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int limit = atoi(pair->pair.value->constvalue);
+	    if(limit > 0)
+	        drno->cdf.cache.cachelimit = limit;
+	    else
+	        drno->cdf.cache.cachelimit = DFALTCACHELIMIT;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"cachecount")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int value = atoi(pair->pair.value->constvalue);
+	    if(value > 0)
+	        drno->cdf.cache.cachecount = value;
+	    else
+	        drno->cdf.cache.cachecount = DFALTCACHECOUNT;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"fetchlimit")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int limit = atoi(pair->pair.value->constvalue);
+	    if(limit > 0)
+	        drno->cdf.fetchlimit = limit;
+	    else
+	        drno->cdf.fetchlimit = DFALTFETCHLIMIT;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"smallsizelimit")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int limit = atoi(pair->pair.value->constvalue);
+	    if(limit > 0)
+	        drno->cdf.smallsizelimit = limit;
+	    else
+	        drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"nolimit")==0) {
+        if(pair->pair.value == ncrc_const_true)
+	    drno->cdf.defaultsequencelimit = 0;
+    } else if(strcmp(pair->pair.key->constvalue,"limit")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int value = atoi(pair->pair.value->constvalue);
+	    drno->cdf.defaultsequencelimit = value;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"stringlength")==0) {
+        if(pair->pair.value->constclass == ncrc_number) {
+	    int value = atoi(pair->pair.value->constvalue);
+	    drno->cdf.defaultstringlength = value;
+	} 
+    } else if(strcmp(pair->pair.key->constvalue,"log")==0) {
+	if(pair->pair.value != NULL && pair->pair.value->constvalue != NULL
+	   && strlen(pair->pair.value->constvalue) > 0) {
+	    SETFLAG(drno,NCF_LOGGING);
+	    oc_loginit();
+            oc_setlogging(1);
+            oc_logopen(pair->pair.value->constvalue);
+	}
+    } /* else ignore */
+
+complain:
+    return;
+}
+
+static void
+processshowflags(NCDRNO* drno, ncrcnode* list)
+{
+    int i;
+    for(i=0;;i++) {
+	ncrcnode* value = ncrc_get(list,i);
+        if(value == NULL) break;
+        if(value->nodeclass != ncrc_const) goto complain;
+	if(strcmp(value->constvalue,"fetch")==0) {
+	    SETFLAG(drno,NCF_SHOWFETCH);
+	} else if(strcmp(value->constvalue,"seqdims")==0) {
+	    SETFLAG(drno,NCF_SHOWSEQDIMS);
+	} else if(strcmp(value->constvalue,"projections")==0) {
+	    SETFLAG(drno,NCF_SHOWPROJECTIONS);
+	} else if(strcmp(value->constvalue,"translation")==0) {
+	    SETFLAG(drno,NCF_SHOWTRANSLATE);
+	} else if(strcmp(value->constvalue,"url")==0) {
+	    SETFLAG(drno,NCF_SHOWURL);
+	} else if(strcmp(value->constvalue,"dds")==0) {
+	    SETFLAG(drno,NCF_SHOWDDS);
+	} else if(strcmp(value->constvalue,"das")==0) {
+	    SETFLAG(drno,NCF_SHOWDAS);
+	} /* else ignore */
+    }
+
+//#ifdef DEBUG
+fprintf(stderr,"\tshow=[");
+    if(FLAGSET(drno,NCF_SHOWFETCH))
+	fprintf(stderr," fetch");
+    if(FLAGSET(drno,NCF_SHOWSEQDIMS))
+	fprintf(stderr," seqdims");
+    if(FLAGSET(drno,NCF_SHOWPROJECTIONS))
+	fprintf(stderr," projections");
+    if(FLAGSET(drno,NCF_SHOWTRANSLATE))
+	fprintf(stderr," translate");
+    if(FLAGSET(drno,NCF_SHOWURL))
+	fprintf(stderr," url");
+    if(FLAGSET(drno,NCF_SHOWDDS))
+	fprintf(stderr," dds");
+    if(FLAGSET(drno,NCF_SHOWDAS))
+	fprintf(stderr," das");
+fprintf(stderr,"]\n");
+fflush(stderr);
+//#endif
+    return;
+complain:
+    return;
+}
+
+
+void
+dapreportflags34(NCDRNO* drno)
+{
+//#ifdef DEBUG
+fprintf(stderr,"Flags state:\n");
+fprintf(stderr,"\tlogging=%s\n",FLAGSET(drno,NCF_LOGGING)?"true":"false");
+fprintf(stderr,"\tcache=%s\n",FLAGSET(drno,NCF_CACHE)?"true":"false");
+fprintf(stderr,"\tcachelimit=%lu\n",(unsigned long)drno->cdf.cache.cachelimit);
+fprintf(stderr,"\tcachecount=%lu\n",(unsigned long)drno->cdf.cache.cachecount);
+fprintf(stderr,"\tfetchlimit=%lu\n",(unsigned long)drno->cdf.fetchlimit);
+fprintf(stderr,"\tsmallsizelimit=%lu\n",(unsigned long)drno->cdf.smallsizelimit);
+if(drno->cdf.defaultsequencelimit == 0)
+    fprintf(stderr,"\tnolimit=true\n");
+else
+    fprintf(stderr,"\tlimit=%d\n",drno->cdf.defaultsequencelimit);
+fprintf(stderr,"\tstringlength=%d\n",drno->cdf.defaultstringlength);
+fflush(stderr);
+//#endif
+}

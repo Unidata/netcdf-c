@@ -81,35 +81,6 @@ buildconstraints3(NCDRNO* drno)
 	dapconstraint.selections = nclistnew();
     }
 
-#ifdef NCCONSTRAINTS
-    /* Ditto the netcdf projections */
-    ncconstraintstring = (char*)oc_clientparam_get(drno->dap.conn,"ce");
-    if(ncconstraintstring != NULL) {
-        /* Split into projections and selections and process */
-        if(ncconstraintstring[0] == '?') ncconstraintstring++;
-        ncprojectionstring = nulldup(ncconstraintstring);
-        tmp = strchr(ncprojectionstring,'&');
-        if(tmp != NULL) {
-            ncselectionstring = nulldup(tmp);
-            *tmp = '\0'; /* terminate the projections */
-        }
-        ncstat = convertncconstraint3(drno,
-                                     ddsroot,
-                                     ncprojectionstring,
-                                     ncselectionstring,
-                                     &ncconstraint);
-        if(ncstat != NC_NOERR) goto done;
-        /* qualify all the names */
-        ncstat = qualifyconstraintnames3(drno, &ncconstraint);
-        if(ncstat != NC_NOERR) goto done;
-	/* assign slices to segments (netcdf constraints only) */
-	ncstat = assignslices3(drno,ncconstraint.projections);
-        if(ncstat != NC_NOERR) goto done;
-    } else {
-	ncconstraint.projections = nclistnew();
-	ncconstraint.selections = nclistnew();
-    }
-#endif
 
 #ifdef DEBUG
 fprintf(stderr,"buildconstraint: url:%s\n",drno->dap.url.url);

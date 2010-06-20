@@ -18,11 +18,15 @@ if USE_NETCDF4
 libdispatch_la_SOURCES += nc4.c
 endif
 
+if ENABLE_RC
+libdispatch_la_SOURCES += ncrc.c ncrc.h
+endif
+
 # Include this so that user does not have to have m4.
 EXTRA_DIST = netcdf.c
 
 # Set up include directories.
-AM_CPPFLAGS = -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif
