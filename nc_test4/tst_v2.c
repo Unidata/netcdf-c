@@ -7,7 +7,6 @@
 */
 
 #include <config.h>
-#include "netcdf.h"
 #include <nc_tests.h>
 
 #define FILE_NAME "tst_v2.nc"
@@ -25,7 +24,6 @@ extern int ncopts;
 int
 main(int argc, char **argv)
 {
-   /*nc_set_log_level(3);*/
    printf("\n*** Testing netcdf-4 v2 API functions.\n");
    printf("*** testing simple opens and creates...");
    {

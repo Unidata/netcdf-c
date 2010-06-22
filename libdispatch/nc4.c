@@ -651,3 +651,4 @@ nc_show_metadata(int ncid)
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->show_metadata(ncid);
 }
+

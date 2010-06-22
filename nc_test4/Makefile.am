@@ -15,15 +15,17 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
 
 # Our test programs and sources...
 NC4_TEST_PROGS = t_type cdm_sea_soundings tst_camrun tst_vl tst_atts	\
-tst_atts2 tst_vars2 tst_v2
+tst_atts2 tst_vars2 
 cdm_sea_soundings_SOURCES = cdm_sea_soundings.c tests.h
 tst_camrun_SOURCES = tst_camrun.c tests.h
+
 check_PROGRAMS = $(NC4_TEST_PROGS)
 TESTS = $(NC4_TEST_PROGS)
 
-#if BUILD_V2
-#TESTS += tst_v2 
-#endif # BUILD_V2
+if BUILD_V2
+check_PROGRAMS += tst_v2 
+TESTS += tst_v2
+endif # BUILD_V2
 
 if LARGE_FILE_TESTS
 tst_large_SOURCES = tst_large.c tests.h
@@ -40,11 +42,13 @@ check_PROGRAMS += tst_create_files bm_file tst_chunks tst_ar4	\
 tst_ar4_3d tst_ar4_4d
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh run_bm_ar4.sh
+
 if TEST_PARALLEL
 TESTS += run_par_bm_test.sh
 endif # TEST_PARALLEL
+
 benchmarks: check
-	./run_bm_radar_2D.sh	
+./run_bm_radar_2D.sh	
 	./run_bm_radar_2D_compression1.sh	
 	./run_bm.sh
 	./run_tst_chunks.sh
