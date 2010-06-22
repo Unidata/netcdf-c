@@ -1436,10 +1436,7 @@ int
 NC4_put_vara(int ncid, int varid, const size_t *startp, 
             const size_t *countp, const void *op, int memtype)
 {
-   if(memtype == NC_INT64)
-       return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
-   else
-       return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
+   return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
 }
 
 
@@ -1448,8 +1445,5 @@ int
 NC4_get_vara(int ncid, int varid, const size_t *startp, 
             const size_t *countp, void *ip, int memtype)
 {
-   if(memtype == NC_INT64)
-       return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
-   else
-       return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
+   return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
 }
