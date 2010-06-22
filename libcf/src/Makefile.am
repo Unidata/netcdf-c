@@ -6,7 +6,7 @@
 # $Id: Makefile.am,v 1.12 2010/05/29 01:46:39 dmh Exp $
 
 # Initalize these.
-AM_CPPFLAGS = -I$(top_srcdir)/.. -I${top_srcdir}/../liblib
+AM_CPPFLAGS = -I$(top_srcdir)/.. -I$(top_srcdir)/../include  -I${top_srcdir}/../liblib
 AM_LDFLAGS = ${lib_LTLIBRARIES} ${top_builddir}/../ncdump/nctime.o	\
 ${top_builddir}/../liblib/libnetcdf.la @EXTERN_LDFLAGS@ -lm
 
