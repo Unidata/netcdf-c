@@ -108,7 +108,7 @@ typedef struct NC_DIM_INFO
    int dirty;
    unsigned char coord_var_in_grp;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
-   int too_long; /* True is len it too big to fit in local size_t. */
+   int too_long; /* True if len it too big to fit in local size_t. */
 } NC_DIM_INFO_T;
 
 typedef struct 
