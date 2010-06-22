@@ -22,6 +22,7 @@ check_PROGRAMS = $(NC4_TEST_PROGS)
 TESTS = $(NC4_TEST_PROGS)
 
 if BUILD_V2
+check_PROGRAMS += tst_v2 
 TESTS += tst_v2 
 endif # BUILD_V2
 
