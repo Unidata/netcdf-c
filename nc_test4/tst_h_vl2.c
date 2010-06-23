@@ -15,8 +15,7 @@ int
 main()
 {
    printf("\n*** Checking HDF5 VLEN types even more.\n");
-#ifdef EXTRA_TESTS
-   printf("*** Reading reference file...");
+   printf("*** Reading file created by netcdf-4 tests tst_vl...");
    {
       hid_t fileid, grpid, fapl_id, hdf_typeid = 0, base_hdf_typeid = 0, attid = 0;
       hid_t file_typeid, spaceid, native_typeid;
@@ -56,13 +55,10 @@ main()
 	 switch (obj_class)
 	 {
 	    case H5O_TYPE_GROUP:
-	       printf("group\n");
 	       break;
 	    case H5O_TYPE_DATASET:
-	       printf("dataset\n");
 	       break;
 	    case H5O_TYPE_NAMED_DATATYPE:
-	       printf("type\n");
 	       if ((hdf_typeid = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR_RET;
 	       if ((class = H5Tget_class(hdf_typeid)) < 0) ERR_RET;
 	       switch (class)
@@ -128,7 +124,5 @@ main()
    }
 
    SUMMARIZE_ERR;
-#endif
-
    FINAL_RESULTS;
 }
