@@ -13,17 +13,18 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/liblib @EXTERN_CFLAGS@
 # Unfortunately, libsrc4 contains nc_test.h
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
 
-# Our test programs and sources...
+# Our test programs and sources. (tst_h_vl2 must come after tst_vl.)
 NC4_TEST_PROGS = t_type cdm_sea_soundings tst_camrun tst_vl tst_atts	\
-tst_atts2 tst_vars2 tst_v2
+tst_atts2 tst_vars2 tst_h_vl2
 cdm_sea_soundings_SOURCES = cdm_sea_soundings.c tests.h
 tst_camrun_SOURCES = tst_camrun.c tests.h
 check_PROGRAMS = $(NC4_TEST_PROGS)
 TESTS = $(NC4_TEST_PROGS)
 
-#if BUILD_V2
-#TESTS += tst_v2 
-#endif # BUILD_V2
+if BUILD_V2
+check_PROGRAMS += tst_v2 
+TESTS += tst_v2 
+endif # BUILD_V2
 
 if LARGE_FILE_TESTS
 tst_large_SOURCES = tst_large.c tests.h
@@ -63,6 +64,12 @@ tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
 -lhdf5 -lz
 endif # USE_HDF4
 
+# This will run a bunch of the test programs with valgrind, the memory
+# checking tool. (Valgrind must be present for this to work.)
+if USE_VALGRIND_TESTS
+TESTS += run_valgrind_tests.sh
+endif # USE_VALGRIND_TESTS
+
 CLEANFILES = cdm_sea_soundings.nc bm_chunking.nc bm_radar.nc		\
 bm_radar1.nc radar_3d_compression_test.txt radar_3d_compression.txt	\
 radar_2d_compression.txt radar_3d_chunking.txt tst_floats_1D.cdl	\
@@ -88,7 +95,7 @@ EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh run_bm_test2.sh	\
 run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh run_par_bm_test.sh	\
 run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh	\
 run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
-run_get_hdf4_files.sh
+run_get_hdf4_files.sh run_valgrind_tests.sh
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\
