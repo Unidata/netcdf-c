@@ -113,23 +113,17 @@ endif
 # built right before LIBSRC4_DIR.
 # If using dispatch, then the order is different
 if BUILD_SEPARATE_FORTRAN
-SUBDIRS = $(UDUNITS) $(DISPATCHDIR) $(OCLIB) \
-          $(F90_DIR) $(F77_DIR) \
-          $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) \
-          ${ASSEMBLEDIR} \
-	  $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) \
-          $(F77_TEST) ${CXX_DIR} $(CXX4) \
-          $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) \
-          man4 $(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
+$(EXAMPLES) $(WIN32) $(LIBCF)
 else
-SUBDIRS = $(UDUNITS) $(DISPATCHDIR) $(OCLIB) \
-	  $(F90_DIR) $(F77_DIR) \
-          $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) \
-          ${ASSEMBLEDIR} \
-	  $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) \
-          $(F77_TEST) ${CXX_DIR} $(CXX4) \
-          $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) \
-          man4 $(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
+$(EXAMPLES) $(WIN32) $(LIBCF)
 endif
 
 # Remove these generated files, for a distclean.

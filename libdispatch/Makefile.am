@@ -12,7 +12,7 @@
 # Set up include directories.
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
 
-# This is our output
+# This is our output, the dispatch convenience library.
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
@@ -30,7 +30,7 @@ libdispatch_la_SOURCES += dap.c
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif # USE_DAP
 
-# Add V2 API functions.
+# Add V2 API convenience library if needed.
 if BUILD_V2
 noinst_LTLIBRARIES += libnetcdf2.la 
 libnetcdf2_la_SOURCES = v2i.c
