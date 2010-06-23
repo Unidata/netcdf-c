@@ -8,7 +8,8 @@
 # $Id: Makefile.am,v 1.194 2010/06/01 15:34:50 ed Exp $
 
 # Initialize
-AM_CPPFLAGS = -I$(top_srcdir)/include @EXTERN_CFLAGS@ -I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch
+AM_CPPFLAGS = -I$(top_srcdir)/include @EXTERN_CFLAGS@	\
+-I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch
 AM_LDFLAGS = @EXTERN_LDFLAGS@
 LDADD =
 
