@@ -9,12 +9,27 @@
 #include "oclog.h"
 #include "occlientparams.h"
 
+#ifdef ENABLE_RC
+#include "ocrc.h"
+#endif
+
 #undef TRACK
 
 /**************************************************/
-/* Track legal ids */
 
-static OClist* ocmap = NULL;
+static int ocinitialized = 0;
+
+/**************************************************/
+/* .rc file info */
+#ifdef ENABLE_RC
+struct OCrcfile {
+    char* rcfilename;
+    ocrcnode* root;        
+} ocrcfile = {NULL,NULL};
+#endif
+
+/**************************************************/
+/* Track legal ids */
 
 #ifdef OC_FASTCONSISTENCY
 
@@ -24,6 +39,8 @@ static OClist* ocmap = NULL;
 #define ocassignall(list)
 
 #else /*!OC_FASTCONSISTENCY*/
+
+static OClist* ocmap = NULL;
 
 static int
 ocverify(unsigned long object)
@@ -78,15 +95,27 @@ fprintf(stderr,"assign: %lu\n",(unsigned long)object); fflush(stderr);
 
 /**************************************************/
 
+static int
+oc_initialize(void)
+{
+    int status = OC_NOERR;
+#ifndef OC_FASTCONSISTENCY
+    ocmap = oclistnew();    
+    oclistsetalloc(ocmap,1024);
+#endif
+    status = ocinternalinitialize();
+    ocinitialized = 1;
+    return status;
+}
+
+/**************************************************/
+
 OCerror
 oc_open(const char* url, OCconnection* connp)
 {
     OCerror ocerr;
     OCstate* state;
-    if(ocmap == NULL) {
-	ocmap = oclistnew();    
-        oclistsetalloc(ocmap,1024);
-    }
+    if(!ocinitialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && connp) {
 	*connp = (OCconnection)ocassign(state);
@@ -1033,4 +1062,15 @@ oc_dumpnode(OCconnection conn, OCobject root0)
     OCDEREF(OCnode*,root,root0);
     ocdumpnode(root);
     return ocerr;
+}
+
+OCerror
+oc_setrcfile(char* rcfile)
+{
+#ifdef ENABLE_RC
+    return ocsetrcfile(rcfile);
+#else
+    return OC_EINVAL;
+#endif
+
 }

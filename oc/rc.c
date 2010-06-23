@@ -19,13 +19,7 @@
 /* These globals are where information from the .dodsrc file is stored. See the
  * functions in curlfunctions.c
  */
-int dods_compress = 0;
-int dods_verify = 0;
 struct OCproxy *pstructProxy = NULL;
-char *cook = NULL;
-
-char *userName = NULL;
-char *password = NULL;
 
 /* The Username and password are in the URL if the URL is of the form:
  * http://<name>:<passwd>@<host>/....
@@ -98,32 +92,11 @@ extract_credentials(const char *url, char **name, char **pw, char **result_url)
 	}
 }
 
-int
-set_credentials(const char *name, const char *pw)
-{
-	if (!(name && pw)) {
-		oc_log(LOGERR, "Both username and password must be given.");
-		return OC_EIO;
-	}
-
-	userName = malloc(sizeof(char) * (strlen(name) + 1));
-	if (!userName)
-		return OC_ENOMEM;
-	strcpy(userName, name);
-
-	password = malloc(sizeof(char) * (strlen(pw) + 1));
-	if (!password)
-		return OC_ENOMEM;
-	strcpy(password, pw);
-
-	return OC_NOERR;
-}
-
 /*Allows for a .dodsrc file to be read in and parsed in order to get authentication information*/
 int
-read_dodsrc(char *in_file_name)
+read_dodsrc(char *in_file_name, OCstate* state)
 {
-    char *p;
+        char *p;
 	char more[1024];
 	char *v;
 	FILE *in_file;
@@ -132,7 +105,7 @@ read_dodsrc(char *in_file_name)
 	in_file = fopen(in_file_name, "r"); /* Open the file to read it */
 	if (in_file == NULL) {
 		oc_log(LOGERR, "Could not open the .dodsrc file");
-		return OC_EIO;
+		return OC_EPERM;
 	}
 
         unsupported[0] = '\0';
@@ -143,48 +116,39 @@ read_dodsrc(char *in_file_name)
 			*p = '\0';
 
 			if (strcmp(more, "USE_CACHE") == 0) {
-				strcat(unsupported,",USE_CACHE");
+				/*strcat(unsupported,",USE_CACHE");*/
 			} else if (strcmp(more, "MAX_CACHE_SIZE") == 0) {
-				strcat(unsupported,",USE_CACHE");
+				/*strcat(unsupported,",USE_CACHE");*/
 			} else if (strcmp(more, "MAX_CACHED_OBJ") == 0) {
-				strcat(unsupported,",MAX_CACHED_OBJ");
+				/*strcat(unsupported,",MAX_CACHED_OBJ");*/
 			} else if (strcmp(more, "IGNORE_EXPIRES") == 0) {
-				strcat(unsupported,",IGNORE_EXPIRES");
+				/*strcat(unsupported,",IGNORE_EXPIRES");*/
 			} else if (strcmp(more, "CACHE_ROOT") == 0) {
-				strcat(unsupported,",CACHE_ROOT");
+				/*strcat(unsupported,",CACHE_ROOT");*/
 			} else if (strcmp(more, "DEFAULT_EXPIRES") == 0) {
-				strcat(unsupported,",DEFAULT_EXPIRES");
+				/*strcat(unsupported,",DEFAULT_EXPIRES");*/
 			} else if (strcmp(more, "ALWAYS_VALIDATE") == 0) {
-				strcat(unsupported,",ALWAYS_VALIDATE");
+				/*strcat(unsupported,",ALWAYS_VALIDATE");*/
 			} else if (strcmp(more, "DEFLATE") == 0) {
 				/* int v_len = strlen(v); unused */
-				dods_compress = atoi(v);
+				if(atoi(v)) state->curlflags.compress = 1;
 				if (ocdebug > 1)
-					oc_log(LOGNOTE,"Compression: %d", dods_compress);
+					oc_log(LOGNOTE,"Compression: %d", state->curlflags.compress);
 			} else if (strcmp(more, "VALIDATE_SSL") == 0) {
-				dods_verify = atoi(v);
+				if(atoi(v)) state->curlflags.verify = 1;
 				if (ocdebug > 1)
-					oc_log(LOGNOTE,"SSL Verification: %d", dods_verify);
+					oc_log(LOGNOTE,"SSL Verification: %d", state->curlflags.verify);
 			} else if (strcmp(more, "PROXY_SERVER") == 0) {
 				char *host_pos = NULL;
 				char *port_pos = NULL;
 				/* int v_len = strlen(v); unused */
 
 			        if(strlen(v) == 0) continue; /* nothing there*/
-				pstructProxy = malloc(sizeof(struct OCproxy));
-				if (!pstructProxy)
-					return OC_ENOMEM;
-
 				if (credentials_in_url(v)) {
 					char *result_url = NULL;
-					extract_credentials(v, &pstructProxy->user, &pstructProxy->password, &result_url);
+					extract_credentials(v, &state->proxy.username, &state->proxy.password, &result_url);
 					v = result_url;
 				}
-				else {
-					pstructProxy->user = NULL;
-					pstructProxy->password = NULL;
-				}
-
 				/* allocating a bit more than likely needed ... */
 				host_pos = strstr(v, "http://");
 				if (host_pos)
@@ -197,79 +161,82 @@ read_dodsrc(char *in_file_name)
 					port_pos++;
 					*port_sep = '\0';
 					host_len = strlen(host_pos);
-					pstructProxy->host = malloc(sizeof(char) * host_len + 1);
-					if (!pstructProxy->host)
+					state->proxy.host = malloc(sizeof(char) * host_len + 1);
+					if (!state->proxy.host)
 						return OC_ENOMEM;
 
-					strncpy(pstructProxy->host, host_pos, host_len);
-					pstructProxy->host[host_len + 1] = '\0';
+					strncpy(state->proxy.host, host_pos, host_len);
+					state->proxy.host[host_len + 1] = '\0';
 
-					pstructProxy->port = atoi(port_pos);
+					state->proxy.port = atoi(port_pos);
 				}
 				else {
 					int host_len = strlen(host_pos);
-					pstructProxy->host = malloc(sizeof(char) * host_len + 1);
-					if (!pstructProxy->host)
+					state->proxy.host = malloc(sizeof(char) * host_len + 1);
+					if (!state->proxy.host)
 						return OC_ENOMEM;
 
-					strncpy(pstructProxy->host, host_pos, host_len);
-					pstructProxy->host[host_len + 1] = '\0';
+					strncpy(state->proxy.host, host_pos, host_len);
+					state->proxy.host[host_len + 1] = '\0';
 
-					pstructProxy->port = 80;
+					state->proxy.port = 80;
 				}
 #if 0
-				pstructProxy->host[v_len] = '\0';
+				state->proxy.host[v_len] = '\0';
 
-				pstructProxy->port = atoi(v);
+				state->proxy.port = atoi(v);
 
 				s_len = strlen(v);
-				pstructProxy->user = malloc(sizeof(char) * s_len + 1);
-				if (!pstructProxy->user)
+				state->proxy.user = malloc(sizeof(char) * s_len + 1);
+				if (!state->proxy.user)
 					return OC_ENOMEM;
-				strncpy(pstructProxy->user, v, s_len);
-				pstructProxy->user[s_len] = '\0';
+				strncpy(state->proxy.user, v, s_len);
+				state->proxy.user[s_len] = '\0';
 
 				p_len = strlen(v);
-				pstructProxy->password = malloc(sizeof(char) * p_len + 1);
-				if (!pstructProxy->password)
+				state->proxy.password = malloc(sizeof(char) * p_len + 1);
+				if (!state->proxy.password)
 					return OC_ENOMEM;
-				strncpy(pstructProxy->password, v, p_len);
-				pstructProxy->password[p_len] = '\0';
+				strncpy(state->proxy.password, v, p_len);
+				state->proxy.password[p_len] = '\0';
 #endif
 				if (ocdebug > 1) {
-					oc_log(LOGNOTE,"host name: %s", pstructProxy->host);
-					oc_log(LOGNOTE,"user name: %s", pstructProxy->user);
-					oc_log(LOGNOTE,"password name: %s", pstructProxy->password);
-					oc_log(LOGNOTE,"port number: %d", pstructProxy->port);
+					oc_log(LOGNOTE,"host name: %s", state->proxy.host);
+					oc_log(LOGNOTE,"user name: %s", state->proxy.username);
+					oc_log(LOGNOTE,"password name: %s", state->proxy.password);
+					oc_log(LOGNOTE,"port number: %d", state->proxy.port);
 				}
 
 			} else if (strcmp(more, "NO_PROXY_FOR") == 0) {
-				strcat(unsupported,",NO_PROXY_FOR");
+				/*strcat(unsupported,",NO_PROXY_FOR");*/
 			} else if (strcmp(more, "AIS_DATABASE") == 0) {
-				strcat(unsupported,",AIS_DATABASE");
+				/*strcat(unsupported,",AIS_DATABASE");*/
 			} else if (strcmp(more, "COOKIE_JAR") == 0) {
 				int v_len = strlen(v);
-				cook = malloc(sizeof(char) * v_len + 1);
-				if (!cook)
+				state->curlflags.cookies = malloc(sizeof(char) * v_len + 1);
+				if (!state->curlflags.cookies)
 					return OC_ENOMEM;
-				strncpy(cook, v, v_len);
-				cook[v_len] = '\0';
+				strncpy(state->curlflags.cookies, v, v_len);
+				state->curlflags.cookies[v_len] = '\0';
 				if (ocdebug > 1)
-					oc_log(LOGNOTE,"Cookie jar name: %s", cook);
+					oc_log(LOGNOTE,"Cookie jar name: %s", state->curlflags.cookies);
 			}
 
 		}
 	}
 	fclose(in_file);
 
+#ifdef IGNORE
 	if(unsupported[0] != '\0') {
 	    unsupported[0] = ' '; /* Elide leading comma */
 	    oc_log(LOGNOTE,"Not currently supported in .dodsrc: %s",unsupported);
 	}
+#endif
 
 	return OC_NOERR;
 }
 
+#ifdef OBSOLETE
 /*Allows for a .dodsrc file to be created if one does not currently exist for default authentication
  *  values*/
 int
@@ -317,3 +284,4 @@ write_dodsrc(char *out_file_name)
 
     return OC_NOERR;
 }
+#endif
