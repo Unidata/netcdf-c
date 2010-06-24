@@ -1,10 +1,9 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2006, 2009-2010 Free Software
+   Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,7 +45,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.4.1"
+#define YYBISON_VERSION "2.4.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -80,7 +79,7 @@
 #include "ceparselex.h"
 
 /* Line 189 of yacc.c  */
-#line 84 "ce.tab.c"
+#line 83 "ce.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -127,7 +126,7 @@ typedef int YYSTYPE;
 
 
 /* Line 264 of yacc.c  */
-#line 131 "ce.tab.c"
+#line 130 "ce.tab.c"
 
 #ifdef short
 # undef short
@@ -177,7 +176,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if YYENABLE_NLS
+# if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -591,9 +590,18 @@ static const yytype_uint8 yystos[] =
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
-   Once GCC version 2 has supplanted version 1, this can go.  */
+   Once GCC version 2 has supplanted version 1, this can go.  However,
+   YYFAIL appears to be in use.  Nevertheless, it is formally deprecated
+   in Bison 2.4.2's NEWS entry, where a plan to phase it out is
+   discussed.  */
 
 #define YYFAIL		goto yyerrlab
+#if defined YYFAIL
+  /* This is here to suppress warnings from the GCC cpp's
+     -Wunused-macros.  Normally we don't worry about that warning, but
+     some users do, and we want to make it easy for users to remove
+     YYFAIL uses, which will produce warnings from Bison 2.5.  */
+#endif
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
@@ -650,7 +658,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if YYLTYPE_IS_TRIVIAL
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -1394,322 +1402,322 @@ yyreduce:
     {
         case 2:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 24 "../oc/ce.y"
     {projections(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 3:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 25 "../oc/ce.y"
     {selections(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 4:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 27 "../oc/ce.y"
     {projections(parsestate,(yyvsp[(1) - (2)])); selections(parsestate,(yyvsp[(2) - (2)]));;}
     break;
 
   case 5:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 31 "../oc/ce.y"
     {(yyval)=(yyvsp[(1) - (1)]);;}
     break;
 
   case 6:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 34 "../oc/ce.y"
     {(yyval)=(yyvsp[(1) - (1)]);;}
     break;
 
   case 7:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 39 "../oc/ce.y"
     {(yyval)=projectionlist(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 8:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 41 "../oc/ce.y"
     {(yyval)=projectionlist(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 9:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 47 "../oc/ce.y"
     {(yyval)=projection(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 10:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 53 "../oc/ce.y"
     {(yyval)=segmentlist(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 11:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 55 "../oc/ce.y"
     {(yyval)=segmentlist(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 12:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 61 "../oc/ce.y"
     {(yyval)=segment(parsestate,(yyvsp[(1) - (1)]),null);;}
     break;
 
   case 13:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 63 "../oc/ce.y"
     {(yyval)=segment(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 14:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 69 "../oc/ce.y"
     {(yyval)=array_indices(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 15:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 71 "../oc/ce.y"
     {(yyval)=array_indices(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 16:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 76 "../oc/ce.y"
     {(yyval)=(yyvsp[(1) - (1)]);;}
     break;
 
   case 17:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 82 "../oc/ce.y"
     {(yyval)=range(parsestate,(yyvsp[(1) - (1)]),null,null);;}
     break;
 
   case 18:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 84 "../oc/ce.y"
     {(yyval)=range(parsestate,(yyvsp[(2) - (5)]),null,(yyvsp[(4) - (5)]));;}
     break;
 
   case 19:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 86 "../oc/ce.y"
     {(yyval)=range(parsestate,(yyvsp[(2) - (7)]),(yyvsp[(4) - (7)]),(yyvsp[(6) - (7)]));;}
     break;
 
   case 20:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 89 "../oc/ce.y"
     {(yyval)=(yyvsp[(2) - (3)]);;}
     break;
 
   case 21:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 94 "../oc/ce.y"
     {(yyval)=selectionlist(parsestate,null,(yyvsp[(2) - (2)]));;}
     break;
 
   case 22:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 96 "../oc/ce.y"
     {(yyval)=selectionlist(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 23:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 102 "../oc/ce.y"
     {(yyval)=sel_clause(parsestate,1,(yyvsp[(1) - (5)]),(yyvsp[(2) - (5)]),(yyvsp[(4) - (5)]));;}
     break;
 
   case 24:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 104 "../oc/ce.y"
     {(yyval)=sel_clause(parsestate,2,(yyvsp[(1) - (3)]),(yyvsp[(2) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 26:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 111 "../oc/ce.y"
     {(yyval)=(yyvsp[(1) - (1)]);;}
     break;
 
   case 27:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 116 "../oc/ce.y"
     {(yyvsp[(1) - (1)])=selectionpath(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 28:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 118 "../oc/ce.y"
     {(yyval)=selectionpath(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 29:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 123 "../oc/ce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (3)]),null);;}
     break;
 
   case 30:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 125 "../oc/ce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (4)]),(yyvsp[(3) - (4)]));;}
     break;
 
   case 31:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 130 "../oc/ce.y"
     {(yyval)=arg_list(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 32:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 132 "../oc/ce.y"
     {(yyval)=arg_list(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 33:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 137 "../oc/ce.y"
     {(yyval)=value_list(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 34:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 139 "../oc/ce.y"
     {(yyval)=value_list(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 35:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 144 "../oc/ce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]),SCAN_WORD);;}
     break;
 
   case 36:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 146 "../oc/ce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]),SCAN_NUMBERCONST);;}
     break;
 
   case 37:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 148 "../oc/ce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]),SCAN_STRINGCONST);;}
     break;
 
   case 38:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 153 "../oc/ce.y"
     {(yyval)=(Object)ST_EQ;;}
     break;
 
   case 39:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 154 "../oc/ce.y"
     {(yyval)=(Object)ST_GT;;}
     break;
 
   case 40:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 155 "../oc/ce.y"
     {(yyval)=(Object)ST_LT;;}
     break;
 
   case 41:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 156 "../oc/ce.y"
     {(yyval)=(Object)ST_NEQ;;}
     break;
 
   case 42:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 157 "../oc/ce.y"
     {(yyval)=(Object)ST_RE;;}
     break;
 
   case 43:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 158 "../oc/ce.y"
     {(yyval)=(Object)ST_GE;;}
     break;
 
   case 44:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 159 "../oc/ce.y"
     {(yyval)=(Object)ST_LE;;}
     break;
 
   case 45:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 165 "../oc/ce.y"
     {(yyval)=arrayelement(parsestate,(yyvsp[(1) - (1)]),null);;}
     break;
 
   case 46:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 167 "../oc/ce.y"
     {(yyval)=arrayelement(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 47:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 171 "../oc/ce.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
   case 48:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 175 "../oc/ce.y"
     { unsigned long tmp = 0;
 		if(sscanf((char*)(yyvsp[(1) - (1)]),"%lu",&tmp) != 1) {
@@ -1721,29 +1729,29 @@ yyreduce:
 
   case 49:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 184 "../oc/ce.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
   case 50:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 188 "../oc/ce.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
   case 51:
 
-/* Line 1455 of yacc.c  */
+/* Line 1464 of yacc.c  */
 #line 192 "../oc/ce.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
 
 
-/* Line 1455 of yacc.c  */
-#line 1747 "ce.tab.c"
+/* Line 1464 of yacc.c  */
+#line 1755 "ce.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1954,7 +1962,7 @@ yyreturn:
 
 
 
-/* Line 1675 of yacc.c  */
+/* Line 1684 of yacc.c  */
 #line 195 "../oc/ce.y"
 
 
