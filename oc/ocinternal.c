@@ -15,10 +15,6 @@
 #include "occontent.h"
 #include "occlientparams.h"
 #include "rc.h"
-#include "curlfunctions.h"
-#ifdef ENABLE_RC
-#include "ocrc.h"
-#endif
 
 #include "http.h"
 #include "read.h"
@@ -30,15 +26,9 @@
 /*#define TMPPATH "/tmp/"*/
 #endif
 #define TMPPATH "./"
-
-/* Define default rc files */
-#define DODSRC ".dodsrc"
-#define OPENDAPRC ".opendap.rc"
-
-#ifdef ENABLE_RC
-static char* defaultrc = NULL;
-static ocrcnode* ocrcroot = NULL;
-#endif
+#define BUFSIZE 512
+#define DODSRC_SIZE 9
+#define DODSRC "/.dodsrc"
 
 static int ocextractdds(OCstate*,OCtree*);
 static char* constraintescape(const char* url);
@@ -46,13 +36,7 @@ static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 #endif
 
-static void ocsetcurlproperties(OCstate*);
-
 extern OCnode* makeunlimiteddimension(void);
-
-#ifdef ENABLE_RC
-static void loadrc(OCstate* state, ocrcnode* root);
-#endif
 
 #ifdef WIN32
 #include <fcntl.h>
@@ -75,10 +59,15 @@ int oc_network_order; /* network order is big endian */
 int oc_invert_xdr_double;
 int oc_curl_file_supported;
 
-int
-ocinternalinitialize(void)
+static int ocinitialized = 0;
+
+static int
+ocinitialize(void)
 {
     int stat = OC_NOERR;
+    char buf[BUFSIZE];
+    char *env;
+    int len;
 
     /* Compute if we are same as network order v-a-v xdr */
 #ifdef XDRBYTEORDER
@@ -140,6 +129,37 @@ ocinternalinitialize(void)
     }
     oc_loginit();
 
+    /* read/write configuration file */
+    env = getenv("HOME");
+    if (env != NULL) {
+            len = strlen(env);
+            if (len >= BUFSIZE - DODSRC_SIZE) {
+                    oc_log(LOGERR, "length of home directory is too long\n");
+                    stat = OC_EIO;
+                    goto end;
+            }
+            strncpy(buf, env, BUFSIZE - 1);
+            buf[len] = '\0';
+            strncat(buf, DODSRC, BUFSIZE - 1);
+            buf[len + DODSRC_SIZE] = '\0';
+
+            if (ocdebug > 1)
+                    fprintf(stderr, "Your RC file: %s\n", buf);
+
+            /* stat = OC_NOERR; */
+            if (access(buf, R_OK) != 0) {
+                    if (write_dodsrc(buf) != OC_NOERR) {
+                            oc_log(LOGERR, "Error getting buffer\n");
+                            stat = OC_EIO;
+                    }
+            }
+
+            if (read_dodsrc(buf) != OC_NOERR) {
+                    oc_log(LOGERR, "Error parsing buffer\n");
+                    stat = OC_EIO;
+            }
+    }
+
     /* Determine if this version of curl supports "file://..." urls.*/
     {
         const char* const* proto; /*weird*/
@@ -154,6 +174,9 @@ ocinternalinitialize(void)
         }
     }
 
+    ocinitialized = 1;
+
+end:
     return THROW(stat);
 }
 
@@ -167,6 +190,11 @@ ocopen(OCstate** statep, const char* url)
     CURL* curl = NULL; /* curl handle*/
 
     memset((void*)&tmpurl,0,sizeof(tmpurl));
+
+    if(!ocinitialized) {
+	stat=ocinitialize();
+	if(stat) {THROWCHK(stat=OC_EBADURL); goto fail;}
+    }
 
     if(!dapurlparse(url,&tmpurl)) {THROWCHK(stat=OC_EBADURL); goto fail;}
     
@@ -188,10 +216,6 @@ ocopen(OCstate** statep, const char* url)
     }
     state->packet = ocbytesnew();
     ocbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
-
-    /* set curl properties for this link */
-    ocsetcurlproperties(state);
-
     if(statep) *statep = state;
     return THROW(stat);   
 
@@ -504,274 +528,3 @@ ocupdatelastmodifieddata(OCstate* state)
     }
     return status;
 }
-
-/*
-    Set curl properties for link based on rc files
-*/
-static void
-ocsetcurlproperties(OCstate* state)
-{
-    CURL* curl = state->curl;
-    CURLcode cstat = CURLE_OK;
-    char* userName = NULL;
-    char* password = NULL;
-    int stat = OC_NOERR;
-    char *homepath;
-    char* path = NULL;
-
-    /* Load dodsrc file */
-    /* locate the configuration files */
-    homepath = getenv("HOME");
-    if (homepath!= NULL) {
-	path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
-	strcpy(path,homepath);
-	strcat(path,"/");
-	strcat(path,DODSRC);
-        if (ocdebug > 1)
-           fprintf(stderr, "DODS RC file: %s\n", path);
-        if(read_dodsrc(path,state) != OC_NOERR) {
-	    oc_log(LOGERR, "Error parsing %s\n",path);
-	    goto fail;
-	}
-    } else {/*complain*/
-	oc_log(LOGWARN,"Cannot find runtime .dodsrc configuration file");
-	goto fail;
-    }
-    if(path != NULL) {free(path) ; path = NULL;}
-
-    if (credentials_in_url(state->url.url)) {
-        char *result_url = NULL;
-	if(userName) free(userName);
-	if(password) free(password);
-        if (extract_credentials(state->url.url, &userName, &password, &result_url) != OC_NOERR)
-            goto fail;
-	dapurlclear(&state->url);
-	dapurlparse(result_url,&state->url);
-    }
-
-#ifdef ENABLE_RC
-    path = NULL;
-    if(defaultrc == NULL || strlen(defaultrc) == 0) {
-	if(defaultrc != NULL) free(defaultrc);
-        defaultrc = strdup(OPENDAPRC);
-    }
-    if(defaultrc[0] == '/') {
-	path = (char*)malloc(strlen(defaultrc)+1);
-    } else if (homepath!= NULL) {
-	path = (char*)malloc(strlen(homepath)+1+strlen(defaultrc)+1);
-	strcpy(path,homepath);
-	strcat(path,"/");
-	strcat(path,defaultrc);
-    }
-    if(path!= NULL) {
-        FILE* rcfile;
-        ocrcerror err;
-        if (ocdebug > 1)
-            fprintf(stderr, "OPENDAP RC file: %s\n", path);
-        rcfile = fopen(path,"r");
-        if(rcfile != NULL) {
-	    if(!ocrc(rcfile,&ocrcroot,&err)) {
-	        oc_log(LOGERR, "Error parsing %s; %s: lineno=%d charno=%d\n",
-			path,err.errmsg,err.lineno,err.charno);
-	        goto fail;
-	    }
-        } else { /* complain */
-	    oc_log(LOGWARN,"Cannot find runtime configuration file");
-	    goto fail;
-        }
-        loadrc(state,ocrcroot);
-    } else {/*complain*/
-	oc_log(LOGWARN,"Cannot find runtime configuration file");
-	goto fail;
-    }
-    if(path != NULL) {free(path) ; path = NULL;}
-
-#endif
-
-    if(state->credentials.password) free(state->credentials.password);
-    state->credentials.password = password; password = NULL;
-    if(state->credentials.identity) free(state->credentials.identity);
-    state->credentials.identity = userName; userName = NULL;
-
-    /* Set curl properties */
-    if((stat=set_curl_flags(curl,state)) != OC_NOERR) goto fail;
-    return;
-
-fail:
-    if(path != NULL) free(path);
-    if(cstat != CURLE_OK)
-	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return;
-}
-
-#ifdef ENABLE_RC
-/*
-Presumed format of the .rc file
-...
-curl : {
-    <url-prefix|"*">: {
-        compress: true|false
-        verify: true|false
-        cookies: <string>
-        verbose: true|false
-        followlocation: true|false
-        maxredirs: <number>
-        useragent: <string>
-        credentials: {
-            identity: <string>
-	    password: <string>
-	    ssl-certificate: <string>
-	    ssl-key: <string>
-            ssl-authority : <string>
-            capath: <string>
-            cookiefile: <string>
-            cookiejar: <string>
-        } //credentials
-	proxy: {
-	    host: <string>
-	    port: <number>
-	    username: <string>
-	    password: <string>
-	} //proxy
-    }
-    <url-prefix>: {
-	...
-    }
-} // curl
-
-oc : {
-    <url-prefix>: { // oc specific flags per url
-	...
-    } <url-prefix>
-} //oc
-...
-*/
-
-static void
-processproxy(OCstate* state, ocrcnode* creds)
-{
-    ocrcnode* value;
-    if((value=ocrc_lookup(creds,"host"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->proxy.host = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"port"))) {
-	if(value->nodeclass == ocrc_const && value->constclass == ocrc_number)
-	    state->proxy.port = atoi(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"username"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->proxy.username = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"password"))) {
-	if(value->nodeclass == ocrc_const && value->constclass == ocrc_number)
-	    state->proxy.password = strdup(value->constvalue);
-    }
-}
-
-static void
-processcreds(OCstate* state, ocrcnode* match)
-{
-    ocrcnode* value;
-    ocrcnode* creds = ocrc_lookup(match,"credentials");
-    if((value=ocrc_lookup(match,"compress"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.identity = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(match,"verify"))) {
-	if(value->nodeclass == ocrc_const && value->constclass == ocrc_number)
-	    state->curlflags.verify = atoi(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"identity"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.identity = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"password"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.password = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"ssl-certificate"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.ssl_certificate = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"ssl-key"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.ssl_key = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"ssl-authority "))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.ssl_authority = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"capath"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.capath = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"cookiefile"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.cookiefile = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(creds,"cookiejar"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->credentials.cookiejar = strdup(value->constvalue);
-    }
-}
-
-static void
-processmatch(OCstate* state, ocrcnode* match)
-{
-    ocrcnode* value;
-    if((value=ocrc_lookup(match,"compress"))) {
-	if(value == ocrc_const_true) state->curlflags.compress = 1;
-    } else if((value=ocrc_lookup(match,"verify"))) {
-	if(value == ocrc_const_true) state->curlflags.verify = 1;
-    } else if((value=ocrc_lookup(match,"cookies"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->curlflags.cookies = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(match,"verbose"))) {
-	if(value == ocrc_const_true) state->curlflags.verbose = 1;
-    } else if((value=ocrc_lookup(match,"followlocation"))) {
-	if(value == ocrc_const_true) state->curlflags.followlocation = 1;
-    } else if((value=ocrc_lookup(match,"maxredirs"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->curlflags.cookies = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(match,"useragent"))) {
-	if(value->nodeclass == ocrc_const)
-	    state->curlflags.useragent = strdup(value->constvalue);
-    } else if((value=ocrc_lookup(match,"credentials"))) {
-	processcreds(state,value);
-    } else if((value=ocrc_lookup(match,"proxy"))) {
-	processproxy(state,value);
-    }
-}
-
-static void
-loadrc(OCstate* state, ocrcnode* root)
-{
-     /* Get curl : {...} for matching urls */
-     char* url = state->url.base;
-     ocrcnode** matches;
-     ocrcnode* ocroot;
-     int i;
- 
-     ocrcnode* curlroot = ocrc_lookup(root,"curl");
-     if(curlroot->nodeclass != ocrc_map) {
- 	oc_log(LOGERR, "non-map oc in rc file");
- 	fprintf(stderr,"non-map oc in rc file\n");
- 	goto fail;
-    }
-    if(curlroot != NULL) {
- 	int nmatches = ocrc_urlmatch(curlroot,url,&matches);
- 	if(nmatches == 0) goto oc;
- 	for(i=0;i<nmatches;i++) {
- 	    ocrcnode* match = matches[i];
- 	    processmatch(state,match);
- 	}
-    }
-
-oc:
-    ocroot = ocrc_lookup(root,"oc");
-    if(ocroot != NULL) {
-    }
-
-fail:
-    return;
-}
-
-OCerror
-ocsetrcfile(char* rcfile)
-{
-    if(rcfile == NULL || strlen(rcfile) == 0) return OC_ERCFILE;
-    if(defaultrc != NULL) free(defaultrc);
-    defaultrc = strdup(rcfile);
-    return OC_NOERR;
-}
-
-#endif /*ENABLE_RC*/

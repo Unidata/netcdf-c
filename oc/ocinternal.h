@@ -94,33 +94,6 @@ typedef struct OCstate
     } error;
     long ddslastmodified;
     long datalastmodified;
-    /* Store .rc file info */
-    struct OCcurlflags {
-	int compress;
-	int verify;
-	char *cookies;
-	int verbose;
-	int followlocation;
-	int maxredirs;
-	char* useragent;
-    } curlflags;
-    struct OCcredentials {
-	char *identity;
-	char *password;
-        char* ssl_certificate;
-	char* ssl_key;
-	char* ssl_authority;
-        char* cainfo; /* certificate authority */
-	char* capath; 
-	char* cookiefile;
-	char* cookiejar;
-    } credentials;
-    struct OCproxy {
-	char *host;
-	int port;
-	char *username;
-	char *password;
-    } proxy;
 } OCstate;
 
 /*! Specifies all the info about a particular DAP tree
@@ -212,7 +185,6 @@ extern OCerror ocfetch(OCstate*, const char*, OCdxd, OCnode**);
 /* Location: ocinternal.c */
 extern int oc_network_order;
 extern int oc_invert_xdr_double;
-extern int ocinternalinitialize(void);
 
 /* Location: ocnode.c */
 extern void ocfreetree(OCtree* tree);
@@ -229,8 +201,6 @@ extern int ocddsdasmerge(struct OCstate*, OCnode* das, OCnode* dds);
 
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
-extern int ocinternalinitialize(void);
-
 /* Use my own ntohl an htonl */
 #define ocntoh(i) (oc_network_order?(i):ocbyteswap((i)))
 #define ochton(i) ocntoh(i)
@@ -245,7 +215,5 @@ extern int ocinternalinitialize(void);
     b3 = (i) & 0x000000ff; \
     iswap = (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)); \
 }
-
-extern OCerror ocsetrcfile(char* rcfile);
 
 #endif /*COMMON_H*/
