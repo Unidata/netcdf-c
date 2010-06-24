@@ -357,7 +357,7 @@ main(int argc, char **argv)
       if (nc_put_var_int(ncid, int_varid, (int *)int_out)) ERR;
       if (nc_put_var_float(ncid, float_varid, (float *)float_out)) ERR;
       if (nc_put_var_double(ncid, double_varid, (double *)double_out)) ERR;
-      if (nc_put_var_ubyte(ncid, ubyte_varid, (unsigned char *)ubyte_out)) ERR;
+      if (nc_put_var_uchar(ncid, ubyte_varid, (unsigned char *)ubyte_out)) ERR;
       if (nc_put_var_ushort(ncid, ushort_varid, (unsigned short *)ushort_out)) ERR;
       if (nc_put_var_uint(ncid, uint_varid, (unsigned int *)uint_out)) ERR;
       if (nc_put_var_longlong(ncid, int64_varid, (long long *)int64_out)) ERR;
@@ -614,7 +614,7 @@ main(int argc, char **argv)
       if (nc_put_var_int(ncid, int_varid, (int *)int_out)) ERR;
       if (nc_put_var_float(ncid, float_varid, (float *)float_out)) ERR;
       if (nc_put_var_double(ncid, double_varid, (double *)double_out)) ERR;
-      if (nc_put_var_ubyte(ncid, ubyte_varid, (unsigned char *)ubyte_out)) ERR;
+      if (nc_put_var_uchar(ncid, ubyte_varid, (unsigned char *)ubyte_out)) ERR;
       if (nc_put_var_ushort(ncid, ushort_varid, (unsigned short *)ushort_out)) ERR;
       if (nc_put_var_uint(ncid, uint_varid, (unsigned int *)uint_out)) ERR;
       if (nc_put_var_longlong(ncid, int64_varid, (long long *)int64_out)) ERR;

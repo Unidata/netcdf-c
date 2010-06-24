@@ -261,7 +261,7 @@ AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
 AC_ARG_WITH([default-chunk-size],
               [AS_HELP_STRING([--with-default-chunk-size=<integer>],
                               [Specify default size of chunks in bytes.])],
-            [DEFAULTT_CHUNK_SIZE=$with_default_chunk_size], [DEFAULT_CHUNK_SIZE=4194304])
+            [DEFAULT_CHUNK_SIZE=$with_default_chunk_size], [DEFAULT_CHUNK_SIZE=4194304])
 AC_MSG_RESULT([$DEFAULT_CHUNK_SIZE])
 AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_SIZE], [$DEFAULT_CHUNK_SIZE], [default chunk size in bytes])
 

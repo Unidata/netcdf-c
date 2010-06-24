@@ -351,10 +351,10 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
 					   (double *)data);
 	    break;
 	 case NC_UBYTE:
-	    retval = nc_get_vara_ubyte(ncid_in, varid_in, start, count,
+	    retval = nc_get_vara_uchar(ncid_in, varid_in, start, count,
 				       (unsigned char *)data);
 	    if (!retval)
-	       retval = nc_put_vara_ubyte(ncid_out, varid_out, start, count, 
+	       retval = nc_put_vara_uchar(ncid_out, varid_out, start, count, 
 					  (unsigned char *)data);
 	    break;
 	 case NC_USHORT:
