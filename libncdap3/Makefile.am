@@ -91,6 +91,8 @@ ${top_builddir}/libdispatch/libdispatch.la
 
 CLEANFILES += t_dap
 
+EXTRA_DIST = ce.y
+
 endif # BUILD_DAP
 
 # These rule are used if someone wants to rebuild the grammar files.
