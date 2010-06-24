@@ -18,47 +18,47 @@ CURL_LIBS = @CURL_LIBS@
 
 # OC Sources
 SRC=\
-curlfunctions.c \
+oc.c \
+occontent.c \
+ocdata.c \
+ocdebug.c \
+ocdump.c \
+oclog.c \
+ocnode.c \
+ocutil.c \
+occompile.c \
 dapparse.c \
 daplex.c \
 dapurl.c \
 http.c \
-ocbytes.c \
-oc.c \
-occompile.c \
-occontent.c \
-ocdata.c \
-ocdebug.c \
-ocdrno.c \
-ocdump.c \
+read.c \
+curlfunctions.c \
 ocinternal.c \
 oclist.c \
-oclog.c \
-ocnode.c \
-ocutil.c \
-occlientparams.c \
+ocbytes.c \
+ocdrno.c \
 ocxdr_stdio.c \
-rc.c \
-read.c
+occlientparams.c \
+rc.c
 
 HDRS=\
+oc.h \
 constraints.h \
+curlfunctions.h \
 dapparselex.h \
 dapurl.h \
 http.h \
 ocbytes.h \
+occlientparams.h \
 occontent.h \
 ocdata.h \
 ocdatatypes.h \
 ocdebug.h \
-ocdrno.h \
 ocdump.h \
-oc.h \
 ocinternal.h \
 oclist.h \
 oclog.h \
 ocnode.h \
-occlientparams.h \
 ocutil.h \
 rc.h \
 read.h
@@ -87,4 +87,3 @@ daptab.c daptab.h: dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
 
 test: check
-

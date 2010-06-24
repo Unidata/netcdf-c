@@ -16,13 +16,13 @@ static int check_int32(char* val, long* value);
 
 /* Switch to DAS parsing SCAN_WORD definition */
 void
-dassetup(DAPparsestate* state)
+dap_dassetup(DAPparsestate* state)
 {
-    setwordchars(state->lexstate,1);
+    dapsetwordchars(state->lexstate,1);
 }
 
 Object
-datasetbody(DAPparsestate* state, Object name, Object decls)
+dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
     OCnode* node = newocnode((char*)name,OC_Dataset,state);
     node->subnodes = (OClist*)decls;
@@ -35,7 +35,7 @@ datasetbody(DAPparsestate* state, Object name, Object decls)
 }
 
 Object
-attributebody(DAPparsestate* state, Object attrlist)
+dap_attributebody(DAPparsestate* state, Object attrlist)
 {
     OCnode* node = newocnode(NULL,OC_Attributeset,state);
     OCASSERT((state->root == NULL));
@@ -48,7 +48,7 @@ attributebody(DAPparsestate* state, Object attrlist)
 }
 
 Object
-errorbody(DAPparsestate* state,
+dap_errorbody(DAPparsestate* state,
 	  Object code, Object msg, Object ptype, Object prog)
 {
     state->svcerror = 1;
@@ -59,13 +59,13 @@ errorbody(DAPparsestate* state,
 }
 
 Object
-unrecognizedresponse(DAPparsestate* state)
+dap_unrecognizedresponse(DAPparsestate* state)
 {
-    return errorbody(state,"0",state->lexstate->input,NULL,NULL);
+    return dap_errorbody(state,"0",state->lexstate->input,NULL,NULL);
 }
 
 Object
-declarations(DAPparsestate* state, Object decls, Object decl)
+dap_declarations(DAPparsestate* state, Object decls, Object decl)
 {
     OClist* alist = (OClist*)decls;
     if(alist == NULL)
@@ -76,7 +76,7 @@ declarations(DAPparsestate* state, Object decls, Object decl)
 }
 
 Object
-arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
+dap_arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
 {
     OClist* alist = (OClist*)arraydecls;
     if(alist == NULL)
@@ -87,7 +87,7 @@ arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
 }
 
 Object
-arraydecl(DAPparsestate* state, Object name, Object size)
+dap_arraydecl(DAPparsestate* state, Object name, Object size)
 {
     long value;
     OCnode* dim;
@@ -102,7 +102,7 @@ arraydecl(DAPparsestate* state, Object name, Object size)
 }
 
 Object
-attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
+dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 {
     OClist* alist = (OClist*)attrlist;
     if(alist == NULL)
@@ -122,7 +122,7 @@ attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 }
 
 Object
-attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
+dap_attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
 {
     OClist* alist = (OClist*)valuelist;
     if(alist == NULL) alist = oclistnew();
@@ -133,7 +133,7 @@ attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
 }
 
 Object
-attribute(DAPparsestate* state, Object name, Object values, Object etype)
+dap_attribute(DAPparsestate* state, Object name, Object values, Object etype)
 {
     OCnode* att;
     att = newocnode((char*)name,OC_Attribute,state);
@@ -143,7 +143,7 @@ attribute(DAPparsestate* state, Object name, Object values, Object etype)
 }
 
 Object
-attrset(DAPparsestate* state, Object name, Object attributes)
+dap_attrset(DAPparsestate* state, Object name, Object attributes)
 {
     OCnode* attset;
     attset = newocnode((char*)name,OC_Attributeset,state);
@@ -204,7 +204,7 @@ dimnameanon(char* basename, unsigned int index)
 }
 
 Object
-makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
+dap_makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
 {
     OCnode* node;
     node = newocnode((char*)name,OC_Primitive,state);
@@ -214,7 +214,7 @@ makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
 }
 
 Object
-makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
+dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
 {
     OCnode* node;
     char* dupname;    
@@ -230,7 +230,7 @@ makestructure(DAPparsestate* state, Object name, Object dimensions, Object field
 }
 
 Object
-makesequence(DAPparsestate* state, Object name, Object members)
+dap_makesequence(DAPparsestate* state, Object name, Object members)
 {
     OCnode* node;
     char* dupname;    
@@ -245,7 +245,7 @@ makesequence(DAPparsestate* state, Object name, Object members)
 }
 
 Object
-makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecls)
+dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecls)
 {
     OCnode* node;
     /* Check for duplicate map names */
