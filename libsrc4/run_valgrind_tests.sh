@@ -9,7 +9,7 @@ echo ""
 echo "Testing programs with valgrind..."
 
 # These are my test programs.
-list='tst_h_dimscales tst_h_vl2 tst_h_files '\
+list='tst_h_dimscales tst_h_files '\
 'tst_h_atts2 tst_h_dimscales2 tst_h_enums '\
 'tst_h_grps tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_atts '\
 'tst_h_dimscales3 tst_h_files2 tst_h_compounds '\
