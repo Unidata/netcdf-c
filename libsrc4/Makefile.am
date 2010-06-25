@@ -140,10 +140,10 @@ tst_h_atts3 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps		\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
 tst_h_opaques tst_h_strings tst_h_strings1 tst_h_dimscales		\
 tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums		\
-tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars	\
-tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps		\
-tst_compounds tst_compounds2 tst_compounds3 tst_opaques tst_strings	\
-tst_interops tst_interops4 tst_interops5 tst_enums tst_coords		\
+tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars tst_varms	\
+tst_unlim_vars tst_converts tst_converts2 tst_grps tst_compounds	\
+tst_compounds2 tst_compounds3 tst_opaques tst_strings tst_interops	\
+tst_interops4 tst_interops5 tst_interops6 tst_enums tst_coords		\
 tst_coords2 tst_coords3 tst_vars3 tst_chunks tst_utf8 tst_fills		\
 tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill
 
@@ -164,9 +164,9 @@ tst_h_dimscales3 tst_h_enums tst_dims tst_dims2 tst_dims3 tst_files	\
 tst_files4 tst_vars tst_varms tst_unlim_vars tst_converts		\
 tst_converts2 tst_grps tst_compounds tst_compounds2 tst_compounds3	\
 tst_opaques tst_strings tst_interops tst_interops4 tst_interops5	\
-tst_enums tst_vars3 tst_chunks tst_coords tst_coords2 tst_coords3	\
-tst_utf8 tst_fills tst_fillbug tst_xplatform tst_xplatform2		\
-tst_h_atts2 tst_endian_fill
+tst_interops6 tst_enums tst_vars3 tst_chunks tst_coords tst_coords2	\
+tst_coords3 tst_utf8 tst_fills tst_fillbug tst_xplatform		\
+tst_xplatform2 tst_h_atts2 tst_endian_fill
 
 EXTRA_DIST = ref_tst_compounds.nc ref_tst_h_compounds.h5		\
 ref_tst_h_compounds2.h5 run_par_tests.sh run_valgrind_tests.sh		\
