@@ -238,7 +238,7 @@ nc_get_att_string(int ncid, int varid, const char *name, char* *value)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->get_att(ncid,varid,name,(void*)value,T_string);
+    return ncp->dispatch->get_att(ncid,varid,name,(void*)value, NC_STRING);
 }
 
 int
@@ -381,7 +381,7 @@ nc_put_att_string(int ncid, int varid, const char *name,
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->put_att(ncid,varid,name,NC_STRING,len,(void*)value,T_string);
+    return ncp->dispatch->put_att(ncid,varid,name,NC_STRING,len,(void*)value,NC_STRING);
 }
 
 int

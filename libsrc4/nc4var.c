@@ -78,7 +78,8 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
 /* Set chunk cache size for a variable. */
 int
-NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, float preemption)
+NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, 
+			float preemption)
 {
    NC_FILE_INFO_T *nc;
    NC_GRP_INFO_T *grp; 
@@ -144,7 +145,8 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
 
 /* Get chunk cache size for a variable. */
 int
-NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp)
+NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep, 
+			size_t *nelemsp, float *preemptionp)
 {
    NC_FILE_INFO_T *nc;
    NC_GRP_INFO_T *grp; 

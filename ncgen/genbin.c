@@ -401,7 +401,7 @@ genbin_defineattr(Symbol* asym,Bytebuffer* databuf)
 		} break;
             case NC_UBYTE: {
                 unsigned char* data = (unsigned char*)bbContents(databuf);
-                stat = nc_put_att_ubyte(grpid,varid,asym->name,typid,len,data);
+                stat = nc_put_att_uchar(grpid,varid,asym->name,typid,len,data);
                 check_err(stat,__LINE__,__FILE__);  
             } break;
             case NC_USHORT: {

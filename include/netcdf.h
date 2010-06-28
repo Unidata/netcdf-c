@@ -905,14 +905,6 @@ EXTERNL int
 nc_get_att_double(int ncid, int varid, const char *name, double *ip);
 
 EXTERNL int
-nc_put_att_ubyte(int ncid, int varid, const char *name, nc_type xtype,
-		 size_t len, const unsigned char *op);
-
-EXTERNL int
-nc_get_att_ubyte(int ncid, int varid, const char *name, 
-		 unsigned char *ip);
-
-EXTERNL int
 nc_put_att_ushort(int ncid, int varid, const char *name, nc_type xtype,
 		  size_t len, const unsigned short *op);
 
@@ -1046,14 +1038,6 @@ EXTERNL int
 nc_get_var1_double(int ncid, int varid, const size_t *indexp, double *ip);
 
 EXTERNL int
-nc_put_var1_ubyte(int ncid, int varid, const size_t *indexp, 
-		  const unsigned char *op);
-
-EXTERNL int
-nc_get_var1_ubyte(int ncid, int varid, const size_t *indexp, 
-		  unsigned char *ip);
-
-EXTERNL int
 nc_put_var1_ushort(int ncid, int varid, const size_t *indexp, 
 		   const unsigned short *op);
 
@@ -1159,14 +1143,6 @@ nc_put_vara_double(int ncid, int varid, const size_t *startp,
 EXTERNL int
 nc_get_vara_double(int ncid, int varid, const size_t *startp, 
 		   const size_t *countp, double *ip);
-
-EXTERNL int
-nc_put_vara_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, const unsigned char *op);
-
-EXTERNL int
-nc_get_vara_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, unsigned char *ip);
 
 EXTERNL int
 nc_put_vara_ushort(int ncid, int varid, const size_t *startp, 
@@ -1290,16 +1266,6 @@ EXTERNL int
 nc_get_vars_double(int ncid, int varid,	const size_t *startp, 
 		   const size_t *countp, const ptrdiff_t *stridep,
 		   double *ip);
-
-EXTERNL int
-nc_put_vars_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, const ptrdiff_t *stridep, 
-		  const unsigned char *op);
-
-EXTERNL int
-nc_get_vars_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, const ptrdiff_t *stridep, 
-		  unsigned char *ip);
 
 EXTERNL int
 nc_put_vars_ushort(int ncid, int varid, const size_t *startp, 
@@ -1435,16 +1401,6 @@ nc_get_varm_double(int ncid, int varid,	const size_t *startp,
 		   const ptrdiff_t * imapp, double *ip);
 
 EXTERNL int
-nc_put_varm_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, const ptrdiff_t *stridep, 
-		  const ptrdiff_t * imapp, const unsigned char *op);
-
-EXTERNL int
-nc_get_varm_ubyte(int ncid, int varid, const size_t *startp, 
-		  const size_t *countp, const ptrdiff_t *stridep, 
-		  const ptrdiff_t * imapp, unsigned char *ip);
-
-EXTERNL int
 nc_put_varm_ushort(int ncid, int varid, const size_t *startp, 
 		   const size_t *countp, const ptrdiff_t *stridep, 
 		   const ptrdiff_t * imapp, const unsigned short *op);
@@ -1546,12 +1502,6 @@ EXTERNL int
 nc_get_var_double(int ncid, int varid, double *ip);
 
 EXTERNL int
-nc_put_var_ubyte(int ncid, int varid, const unsigned char *op);
-
-EXTERNL int
-nc_get_var_ubyte(int ncid, int varid, unsigned char *ip);
-
-EXTERNL int
 nc_put_var_ushort(int ncid, int varid, const unsigned short *op);
 
 EXTERNL int
@@ -1580,6 +1530,47 @@ nc_put_var_string(int ncid, int varid, const char **op);
 
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
+
+/* Begin Deprecated, same as functions with "_ubyte" replaced by "_uchar" */
+EXTERNL int
+nc_put_att_ubyte(int ncid, int varid, const char *name, nc_type xtype,
+		 size_t len, const unsigned char *op);
+EXTERNL int
+nc_get_att_ubyte(int ncid, int varid, const char *name, 
+		 unsigned char *ip);
+EXTERNL int
+nc_put_var1_ubyte(int ncid, int varid, const size_t *indexp, 
+		  const unsigned char *op);
+EXTERNL int
+nc_get_var1_ubyte(int ncid, int varid, const size_t *indexp, 
+		  unsigned char *ip);
+EXTERNL int
+nc_put_vara_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const unsigned char *op);
+EXTERNL int
+nc_get_vara_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, unsigned char *ip);
+EXTERNL int
+nc_put_vars_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const ptrdiff_t *stridep, 
+		  const unsigned char *op);
+EXTERNL int
+nc_get_vars_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const ptrdiff_t *stridep, 
+		  unsigned char *ip);
+EXTERNL int
+nc_put_varm_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const ptrdiff_t *stridep, 
+		  const ptrdiff_t * imapp, const unsigned char *op);
+EXTERNL int
+nc_get_varm_ubyte(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const ptrdiff_t *stridep, 
+		  const ptrdiff_t * imapp, unsigned char *ip);
+EXTERNL int
+nc_put_var_ubyte(int ncid, int varid, const unsigned char *op);
+EXTERNL int
+nc_get_var_ubyte(int ncid, int varid, unsigned char *ip);
+/* End Deprecated */
 
 #ifdef LOGGING
 
