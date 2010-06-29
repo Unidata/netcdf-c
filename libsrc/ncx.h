@@ -117,9 +117,6 @@ typedef unsigned char uchar;
 #endif
 #define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
 #define X_DBL_MAX	X_DOUBLE_MAX	/* alias compatible with limits.h */
-#ifndef X_INT64_MAX
-#define X_INT64_MAX     9223372036854775807LL
-#endif
 
 #define X_SIZE_MAX	X_UINT_MAX
 #define X_OFF_MAX	X_INT_MAX

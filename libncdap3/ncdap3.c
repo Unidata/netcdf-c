@@ -40,8 +40,10 @@ static NCerror showprojection3(NCDRNO* drno, CDFnode* var);
 static void estimatevarsizes3(NCDRNO* drno);
 static NCerror suppressunusablevars3(NCDRNO* drno);
 static NCerror fixzerodims3(NCDRNO* drno);
+static void applyclientparamcontrols3(NCDRNO* drno);
 static NCerror defrecorddim3(NCDRNO* drno);
 static NClist* getalldims3(NClist* vars, int visibleonly);
+
 
 #define getncid(ncp) (((NC*)(ncp))->ext_ncid)
 
@@ -94,7 +96,7 @@ NCD3_open(const char * path, int mode,
     if(!nc3dinitialized) nc3dinitialize();
 
 #ifdef DEBUG
-extern int ocdebug; ocdebug = 1;
+extern int ocdebug; ocdebug = 2;
 #endif
 
     if(!dapurlparse(path,&tmpurl)) PANIC("libncdap3: non-url path");
@@ -115,12 +117,9 @@ extern int ocdebug; ocdebug = 1;
     memset((void*)drno,0,sizeof(NCDRNO));
     drno->dap.urltext = modifiedpath;
     dapurlparse(drno->dap.urltext,&drno->dap.url);
-    SETFLAG(drno,NCF_NC3);
     if(!constrainable34(&drno->dap.url))
 	SETFLAG(drno,NCF_UNCONSTRAINABLE);
     drno->cdf.separator = ".";
-    drno->cdf.defaultstringlength = DFALTSTRINGLENGTH; 
-    drno->cdf.defaultsequencelimit = DFALTSEQUENCELIMIT;
     drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
     drno->cdf.cache.cachelimit = DFALTCACHELIMIT;
     drno->cdf.cache.cachesize = 0;
@@ -135,12 +134,7 @@ extern int ocdebug; ocdebug = 1;
 #endif
 
     /* process control client parameters */
-#ifdef ENABLE_RC
-    applyrccontrols34(drno);
-#endif
     applyclientparamcontrols3(drno);
-
-    dapreportflags34(drno);
 
 #ifdef PSEUDOFILE
     tmpname = nulldup(PSEUDOFILE);
@@ -189,7 +183,7 @@ extern int ocdebug; ocdebug = 1;
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
 
     if(paramcheck34(drno,"show","fetch"))
-	SETFLAG(drno,NCF_SHOWFETCH);
+	drno->controls.flags |= NCF_SHOWFETCH;
 
     /* Turn on logging; only do this after oc_open*/
     value = oc_clientparam_get(drno->dap.conn,"log");
@@ -239,12 +233,7 @@ extern int ocdebug; ocdebug = 1;
         if(ncstat) {THROWCHK(ncstat); goto fail;}
     }
 
-    /* apply runtime parameters (after computcdfinfo and computecdfvars)*/
-#ifdef ENABLE_RC
-    /* process rc file parameters */
-    ncstat = applyrcparams34(drno);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
-#endif
+    /* apply client parameters (after computcdfinfo and computecdfvars)*/
     ncstat = applyclientparams34(drno);
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
@@ -1462,69 +1451,30 @@ fixzerodims3(NCDRNO* drno)
     return NC_NOERR;
 }
 
-void
+static void
 applyclientparamcontrols3(NCDRNO* drno)
 {
     NClist* params = NULL;
     const char* value;
-    int limit,len;
 
     /* Get client parameters */
     params = dapparamdecode(drno->dap.url.params);
 
-    /* Turn on logging; only do this after oc_open*/
-    value = dapparamlookup(params,"log");
-    if(value != NULL && strlen(value) > 0) {
-	SETFLAG(drno,NCF_LOGGING);
-	oc_loginit();
-        oc_setlogging(1);
-        oc_logopen(value);
-    }
     /* enable/disable caching */
-    if((value = dapparamlookup(params,"cache"))) {
-	if(strcmp(value,"0")==0 || value[0] == 'n')
-	    CLRFLAG(drno,NCF_CACHE);
-        else if(strcmp(value,"1")==0 || value[0] == 'y')
-	    SETFLAG(drno,NCF_CACHE);
-    }
-    value = dapparamlookup(params,"cachelimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachelimit = limit;
-
-    value = dapparamlookup(params,"fetchlimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.fetchlimit = limit;
-
-    drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    value = dapparamlookup(params,"smallsizelimit");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.smallsizelimit = limit;
-
-    drno->cdf.cache.cachecount = DFALTCACHECOUNT;
-    value = dapparamlookup(params,"cachecount");
-    limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachecount = limit;
-
-    if(dapparamlookup(params,"nolimit") != NULL)
-        drno->cdf.defaultsequencelimit = 0;
-    value = dapparamlookup(params,"limit");
-    if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0)
-            drno->cdf.defaultsequencelimit = len;
-    }
-
-    value = dapparamlookup(params,"stringlength");
-    if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0)
-        drno->cdf.defaultstringlength = len;
-    }
+    value = dapparamlookup(params,"cache");    
+    if(value == NULL)
+	drno->controls.flags |= DFALTCACHEFLAG;
+    else if(strlen(value) == 0)
+	drno->controls.flags |= NCF_CACHE;
+    else if(strcmp(value,"1")==0 || value[0] == 'y')
+	drno->controls.flags |= NCF_CACHE;
 
     if(FLAGSET(drno,NCF_UNCONSTRAINABLE))
-	SETFLAG(drno,NCF_CACHE);
+	drno->controls.flags |= NCF_CACHE;
 
     oc_log(OCLOGNOTE,"Caching=%d",FLAGSET(drno,NCF_CACHE));
 
-    SETFLAG(drno,NCF_NC3);
+    drno->controls.flags |= (NCF_NC3|NCF_NCDAP);
 
     /* No longer need params */
     dapparamfree(params);

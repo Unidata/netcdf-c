@@ -1,18 +1,15 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2010, see the COPYRIGHT file for more information.
 
-# This automake file generates the Makefile to build netCDF-4. The
-# generated makefile is not run unless the user selected to build
-# netCDF-4.
+# This builds the netcdf-4 version of the opendap client.
 
 # $Id: Makefile.am,v 1.18 2010/05/29 18:45:47 dmh Exp $
 
 DISTCLEANFILES =
 CLEANFILES =
 LDADD=
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
-
 
 #CURL_CFLAGS = @CURL_CFLAGS@
 #AM_CPPFLAGS = ${CURL_CFLAGS}
@@ -54,7 +51,7 @@ AM_LDFLAGS += ${top_builddir}/libncdap3/libncdap3.la \
          ${top_builddir}/libdispatch/libdispatch.la
 
 if BUILD_V2
-AM_LDFLAGS += ${top_builddir}/libsrc/libnetcdf2.la 
+AM_LDFLAGS += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
 
 AM_LDFLAGS += @EXTERN_LDFLAGS@

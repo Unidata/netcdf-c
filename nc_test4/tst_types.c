@@ -165,10 +165,10 @@ int main(int argc, char *argv[])
    count[0] = 2;
    stride[0] = STRIDE_SIZE;
 
-   if ((res = nc_put_vars_ubyte(ncid, varid[0], start, count, 
+   if ((res = nc_put_vars_uchar(ncid, varid[0], start, count, 
 				stride, ubyte_data_out)))
       BAIL(res);
-   if ((res = nc_get_vars_ubyte(ncid, varid[0], start, count, 
+   if ((res = nc_get_vars_uchar(ncid, varid[0], start, count, 
 				stride, ubyte_data_in)))
       BAIL(res);
    if (ubyte_data_in[0] != ubyte_data_out[0]) ERR;
@@ -232,9 +232,9 @@ int main(int argc, char *argv[])
    start[0] = 0;
    count[0] = SIZE;
 
-   if ((res = nc_put_vara_ubyte(ncid, varid[0], start, count, ubyte_data_out)))
+   if ((res = nc_put_vara_uchar(ncid, varid[0], start, count, ubyte_data_out)))
       BAIL(res);
-   if ((res = nc_get_vara_ubyte(ncid, varid[0], start, count, ubyte_data_in)))
+   if ((res = nc_get_vara_uchar(ncid, varid[0], start, count, ubyte_data_in)))
       BAIL(res);
    for (i=0; i<SIZE; i++)
       if (ubyte_data_in[i] != ubyte_data_out[i]) ERR;
@@ -286,11 +286,11 @@ int main(int argc, char *argv[])
    errors = 0;
    index1[0] = 0;
 
-   if ((res = nc_put_var1_ubyte(ncid, varid[0], index1, ubyte_data_out)))
+   if ((res = nc_put_var1_uchar(ncid, varid[0], index1, uchar_data_out)))
       BAIL(res);
-   if ((res = nc_get_var1_ubyte(ncid, varid[0], index1, ubyte_data_in)))
+   if ((res = nc_get_var1_uchar(ncid, varid[0], index1, uchar_data_in)))
       BAIL(res);
-   if (ubyte_data_in[0] != ubyte_data_out[0]) ERR;
+   if (uchar_data_in[0] != uchar_data_out[0]) ERR;
 
    if ((res = nc_put_var1_ushort(ncid, varid[1], index1, ushort_data_out)))
       BAIL(res);

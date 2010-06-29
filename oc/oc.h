@@ -84,7 +84,6 @@ typedef int OCerror;
 #define OC_EDAS		(-21)
 #define OC_EDDS		(-22)
 #define OC_EDATADDS	(-23)
-#define OC_ERCFILE	(-24)
 
 typedef enum OCmode {
 OCFIELDMODE = OC_Structure,
@@ -448,11 +447,6 @@ extern OCerror oc_update_lastmodified_data(OClink);
 
 /* Get last known modification time; -1 => data unknown */
 extern long oc_get_lastmodified_data(OClink);
-
-/**************************************************/
-/* New .rc file system support */
-
-extern OCerror oc_setrcfile(char* rcfile);
 
 /**************************************************/
 

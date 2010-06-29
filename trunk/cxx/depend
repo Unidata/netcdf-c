@@ -1,4 +1,0 @@
-example.o: ../libsrc/netcdf.h
-example.o: ../libsrc/netcdf.h
-example.o: example.c
-example.o: example.c

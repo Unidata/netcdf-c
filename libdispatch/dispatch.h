@@ -22,9 +22,6 @@
 #ifdef USE_DAP
 #include "dapurl.h"
 #endif
-#ifdef ENABLE_RC
-#include "ncrc.h"
-#endif
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
@@ -49,6 +46,7 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
                   const size_t* start, const size_t* count,
 		  const unsigned long long* value);
 
+#define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */
 #define MAGIC_NUMBER_LEN 4
@@ -318,14 +316,6 @@ extern int NC_urlmodel(const char* path);
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-
-#ifdef ENABLE_RC
-extern ncrcnode* ncrcroot;
-extern ncrcnode* netcdfroot;
-extern ncrcnode* netcdf3root;
-extern ncrcnode* netcdf4root;
-extern int nc_set_defaultrc(char* dfalt);
-#endif
 
 #endif /* _DISPATCH_H */
 

@@ -28,13 +28,12 @@
 
 #define PSEUDOFILE
 
-#define DFALTSTRINGLENGTH 64
-
+#define DEFAULTSTRINGLENGTH 64
 /* The sequence limit default is zero because
    most servers do not implement projections
    on sequences.
 */
-#define DFALTSEQUENCELIMIT 0
+#define DEFAULTSEQLIMIT 0
 
 #ifndef USE_NETCDF4
 #define	NC_UBYTE 	7	/* unsigned 1 byte int */
@@ -62,41 +61,36 @@ affect the operation of the system.
 */
 
 typedef unsigned int NCFLAGS;
-#  define SETFLAG(drno,flag) ((drno)->controls.controls |= (flag))
-#  define CLRFLAG(drno,flag) ((drno)->controls.controls &= ~(flag))
-#  define FLAGSET(drno,flag) (((drno)->controls.controls & (flag)) != 0)
+#  define SETFLAG(drno,flag) ((drno)->controls.flags |= (flag))
+#  define CLRFLAG(drno,flag) ((drno)->controls.flags &= ~(flag))
+#  define FLAGSET(drno,flag) (((drno)->controls.flags & (flag)) != 0)
 
 /* Base translations */
-#define NCF_NC3                 (0x01)    /* DAP->netcdf-3 */
-#define NCF_NC4                 (0x02) /* DAP->netcdf-4 */
+#define NCF_NC3      (0x01)    /* DAP->netcdf-3 */
+#define NCF_NC4      (0x02) /* DAP->netcdf-4 */
+
+/* OR'd with the translation model */
+#define NCF_NCDAP    (0x04) /* libnc-dap mimic */
+#define NCF_COORD    (0x08) /* libnc-dap mimic + add coordinate variables */
+#define NCF_VLEN     (0x10) /* map sequences to vlen+struct */
+
+/*  Cache control flags */
+#define NCF_CACHE    (0x20) /* Cache enabled/disabled */
 
 /*  Misc control flags */
-#define NCF_NOUNLIM             (0x04) /* suppress bad sequences 
+#define NCF_NOUNLIM         (0x40) /* suppress bad sequences 
                                      (vs convert to unlimited) */
-#define NCF_UPGRADE             (0x08) /* Do proper type upgrades */
-#define NCF_UNCONSTRAINABLE     (0x10) /* Not a constrainable URL */
+#define NCF_UPGRADE         (0x80) /* Do proper type upgrades */
 
-/* Define the flags that are set from e.g. applyrccontrols */
-#define NCF_LOGGING             (0x20)
-#define NCF_CACHE               (0x40) /* Cache enabled/disabled */
-
-/* Define show flags */
-#define NCF_SHOWSEQDIMS		(0x100)
-#define NCF_SHOWPROJECTIONS	(0x200)
-#define NCF_SHOWTRANSLATE       (0x400)
-#define NCF_SHOWURL		(0x800)
-#define NCF_SHOWDDS		(0x1000)
-#define NCF_SHOWDAS		(0x2000)
-#define NCF_SHOWFETCH		(0x4000)
-
-#define NCF_MAXFLAG		(0x10000000)
+#define NCF_UNCONSTRAINABLE (0x100) /* Not a constrainable URL */
+#define NCF_SHOWFETCH       (0x200) /* show fetch calls */
 
 
-/* Currently, defalt is off */
+/* Currently, defalt is on */
 #define DFALTCACHEFLAG (0)
 
 typedef struct NCCONTROLS {
-    NCFLAGS  controls;
+    NCFLAGS  flags;
 } NCCONTROLS;
 
 struct NCTMODEL {
@@ -342,10 +336,7 @@ extern void freecdfroot34(CDFnode*);
 
 extern NCerror findnodedds34(NCDRNO* drno, CDFnode* ddssrc);
 extern NCerror makegetvar34(struct NCDRNO*, struct CDFnode*, void*, nc_type, struct Getvara**);
-extern void applyclientparamcontrols3(NCDRNO* drno);
-extern void applyrccontrols34(NCDRNO* drno);
 extern NCerror applyclientparams34(NCDRNO* drno);
-extern NCerror applyrcparams34(NCDRNO* drno);
 extern NCerror attach34(CDFnode* xroot, CDFnode* ddstarget);
 extern NCerror attachall34(CDFnode* xroot, CDFnode* ddsroot);
 extern NCerror attachsubset34(CDFnode*, CDFnode*);
@@ -397,11 +388,9 @@ extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 #endif
 
-
 extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
 extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
 extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
 
-extern void dapreportflags34(NCDRNO*);
 
 #endif /*NCDAP_H*/

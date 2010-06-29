@@ -3,41 +3,39 @@
 
 # This Makefile controls the building of the dispatch layer of the
 # netCDF library. The dispatch layer decides whether to call the
-# netcdf-classic code, netcdf-4 code, nc3 dap code, or nc4 dap code.
+# netcdf-classic code, netcdf-4 code, nc3 dap code, or nc4 dap
+# code. It also contains code that sit above the dispatch layer, like
+# the v2 API.
 
 # $Id: Makefile.am,v 1.10 2010/06/01 15:34:50 ed Exp $
 
-AM_LDFLAGS = 
+# Set up include directories.
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
 
-# This is our output
+# This is our output, the dispatch convenience library.
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
-libdispatch_la_SOURCES = netcdf.m4 dispatch.h parallel.c copy.c
+libdispatch_la_SOURCES = dispatch.h parallel.c copy.c file.c dim.c	\
+att.c error.c var.c dispatch.c
+
+# Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += nc4.c
-endif
+endif # USE_NETCDF4
 
-if ENABLE_RC
-libdispatch_la_SOURCES += ncrc.c ncrc.h
-endif
-
-# Include this so that user does not have to have m4.
-EXTRA_DIST = netcdf.c
-
-# Set up include directories.
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/liblib -I${top_srcdir}/libsrc
+# Add functions needed by opendap client.
 if USE_DAP
+libdispatch_la_SOURCES += dap.c
 AM_CPPFLAGS += -I${top_srcdir}/oc
-endif
+endif # USE_DAP
 
-# Clean up.
-MAINTAINERCLEANFILES = netcdf.c
+# Add V2 API convenience library if needed.
+if BUILD_V2
+noinst_LTLIBRARIES += libnetcdf2.la 
+libnetcdf2_la_SOURCES = v2i.c
+endif # BUILD_V2
 
-# This tells make how to turn .m4 files into .c files.
-.m4.c:
-	if test -f $@ ; then rm -f $@.bak ; cp $@ $@.bak ; fi
-	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
 
 
 

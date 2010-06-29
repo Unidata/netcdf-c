@@ -63,13 +63,7 @@ ocutil.h \
 rc.h \
 read.h
 
-if ENABLE_RC
-SRC += ocrc.c
-HDRS += ocrc.h
-endif
-
-
-GRAMFILES=dap.y
+GRAMFILES=dap.y ce.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h

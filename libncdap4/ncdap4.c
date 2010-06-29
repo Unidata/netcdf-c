@@ -46,7 +46,6 @@ static NCerror fixzerodims4(NCDRNO* drno);
 static NCerror fixzerodims4r(NCDRNO* drno, CDFnode* node);
 static NCerror cvtunlimiteddim(NCDRNO* drno, CDFnode* dim);
 static void applyclientparamcontrols4(NCDRNO* drno);
-static void applyrccontrols4(NCDRNO* drno);
 
 static int nc4dinitialized = 0;
 
@@ -110,7 +109,6 @@ ocdebug = 1;
     drno->dap.urltext = modifiedpath;
     drno->cdf.separator = ".";
     dapurlparse(drno->dap.urltext,&drno->dap.url);
-    SETFLAG(drno,NCF_NC4);
     if(!constrainable34(&drno->dap.url))
 	SETFLAG(drno,NCF_UNCONSTRAINABLE);
     drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
@@ -127,9 +125,6 @@ ocdebug = 1;
     }
 #endif
 
-#ifdef ENABLE_RC
-    applyrccontrols4(drno);
-#endif
     /* Re-scan the client parameters */
     applyclientparamcontrols4(drno);
 
@@ -185,7 +180,7 @@ ocdebug = 1;
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
 
     if(paramcheck34(drno,"show","fetch"))
-	SETFLAG(drno,NCF_SHOWFETCH);
+	drno->controls.flags |= NCF_SHOWFETCH;
 
     /* Turn on logging */
     value = oc_clientparam_get(drno->dap.conn,"log");
@@ -224,15 +219,8 @@ ocdebug = 1;
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
-#ifdef ENABLE_RC
-    /* process rc file parameters */
-    ncstat = applyrcparams34(drno);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
-#endif
     ncstat = applyclientparams34(drno);
     if(ncstat) {THROWCHK(ncstat); goto fail;}
-
-    dapreportflags34(drno);
 
     /* Accumulate the nodes representing user types*/
     ncstat = computeusertypes4(drno);
@@ -805,18 +793,26 @@ cvtunlimiteddim(NCDRNO* drno, CDFnode* dim)
 }
 
 static void
-applyrccontrols4(NCDRNO* drno)
-{
-    applyrccontrols34(drno);
-    return;
-}
-
-static void
 applyclientparamcontrols4(NCDRNO* drno)
 {
-    applyclientparamcontrols3(drno);
+    NClist* params = NULL;
+    const char* value;
+
+    /* Get client parameters */
+    params = dapparamdecode(drno->dap.url.params);
+
+    /* enable/disable caching */
+    value = dapparamlookup(params,"cache");    
+    if(value == NULL)
+	drno->controls.flags |= DFALTCACHEFLAG;
+    else if(strlen(value) == 0)
+	drno->controls.flags |= NCF_CACHE;
+    else if(strcmp(value,"1")==0 || value[0] == 'y')
+	drno->controls.flags |= NCF_CACHE;
 
     /* Set the translation base  */
-    CLRFLAG(drno,NCF_NC3);
-    SETFLAG(drno,NCF_NC4);
+    drno->controls.flags |= (NCF_NC4);
+
+    /* No longer need params */
+    dapparamfree(params);
 }

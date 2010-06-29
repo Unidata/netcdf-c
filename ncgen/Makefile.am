@@ -4,6 +4,9 @@
 
 # $Id: Makefile.am,v 1.59 2010/05/29 00:47:33 dmh Exp $
 
+AM_CPPFLAGS = -I$(top_srcdir)/include -I${top_srcdir}/liblib @EXTERN_CPPFLAGS@
+LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@ -lm
+
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen
 
@@ -30,12 +33,6 @@ run_tests.sh run_nc4_tests.sh c0.cdl ref_camrun.cdl
 TESTS = run_tests.sh 
 CLEANFILES = c0.nc c0_64.nc
 
-AM_LDFLAGS =
-AM_CPPFLAGS = -I$(top_srcdir)
-
-LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
-AM_CPPFLAGS += -I${top_srcdir}/liblib @EXTERN_CPPFLAGS@
-
 if USE_NETCDF4
 # This shell script causes ncgen to build a netcdf-4 and netcdf-4
 # classic file from a cdl file shipped with the distribution.
@@ -45,20 +42,16 @@ CLEANFILES += c0_4.nc c0_4c.nc ref_camrun.c
 
 endif
 
-LDADD += -lm
-
-test: check
-
 # These rule are used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-ncgenyy.c: ncgen.l
-	flex -Pncg -8 ncgen.l
-	rm -f ncgenyy.c
-	mv lex.ncg.c ncgenyy.c
-
-ncgentab.c: ncgen.y ncgenyy.c
-	bison -pncg -t ncgen.y
-	rm -f ncgentab.c
-	mv ncgen.tab.c ncgentab.c
+#ncgenyy.c: ncgen.l
+#	flex -Pncg -8 ncgen.l
+#	rm -f ncgenyy.c
+#	mv lex.ncg.c ncgenyy.c
+#
+#ncgentab.c: ncgen.y ncgenyy.c
+#	bison -pncg -t ncgen.y
+#	rm -f ncgentab.c
+#	mv ncgen.tab.c ncgentab.c
