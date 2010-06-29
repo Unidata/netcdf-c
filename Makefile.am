@@ -10,16 +10,6 @@
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
-# Tell automake that netcdf.h (and maybe netcdf_par.h) is a header
-# file we want to install.
-include_HEADERS = netcdf.h
-if BUILD_PARALLEL
-include_HEADERS += netcdf_par.h
-endif
-
-# This header is used by all test programs but will not be installed.
-noinst_HEADERS = nc_tests.h nc_logging.h
-
 # These files get added to the distribution.
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL test_prog.c	\
 test_prog.F test_prog.f90
@@ -123,27 +113,18 @@ endif
 # built right before LIBSRC4_DIR.
 # If using dispatch, then the order is different
 if BUILD_SEPARATE_FORTRAN
-SUBDIRS = $(UDUNITS) $(DISPATCHDIR) $(OCLIB) \
-          $(F90_DIR) $(F77_DIR) \
-          $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) \
-          ${ASSEMBLEDIR} \
-	  $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) \
-          $(F77_TEST) ${CXX_DIR} $(CXX4) \
-          $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) \
-          man4 $(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
+$(EXAMPLES) $(WIN32) $(LIBCF)
 else
-SUBDIRS = $(UDUNITS) $(DISPATCHDIR) $(OCLIB) \
-	  $(F90_DIR) $(F77_DIR) \
-          $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) \
-          ${ASSEMBLEDIR} \
-	  $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) \
-          $(F77_TEST) ${CXX_DIR} $(CXX4) \
-          $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) \
-          man4 $(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
+$(EXAMPLES) $(WIN32) $(LIBCF)
 endif
-
-# make test should do the same as make check.
-test: check
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
@@ -235,63 +216,4 @@ install-data-hook:
 	@echo '| http://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
-
-# If building the dll on windows, with MingW, this extra target
-# # packages the results.
-# win32_bin:
-# 	@echo 'This netCDF DLL was generated using MingW.' > README_DLL.txt
-# 	@echo '' >> README_DLL.txt
-# 	@echo './configure --enable-dll --enable-shared --disable-separate-fortram --disable-cxx --disable-f90' >> README_DLL.txt
-# 	@echo 'To use the DLL from C, include netcdf.h and set pre-processor macro DLL_NETCDF.' >> README_DLL.txt
-# 	@echo 'To use the DLL from Fortran, include netcdf.inc.' >> README_DLL.txt
-# 	cd libsrc/.libs
-# 	lib /machine:i386 /def:libnetcdf.def
-# 	ls
-# 	cd ../..
-# 	cp libsrc/.libs/netcdf.lib .
-# 	cp libsrc/netcdf.h .
-# 	cp fortran/netcdf.inc .
-# 	cp ncgen3/.libs/ncgen3.exe .
-# 	cp ncgen/.libs/ncgen.exe .
-# 	cp ncdump/.libs/ncdump.exe .
-# 	cp libsrc/.libs/libnetcdf-4.dll .
-# 	cp libsrc/.libs/libnetcdf.a .
-# 	cp libsrc/.libs/libnetcdf.dll.a .
-# 	tar -cf win32_dll_$(VERSION).tar netcdf.h libnetcdf-4.dll README_DLL.txt netcdf.inc ncgen3.exe ncgen.exe ncdump.exe netcdf.lib
-# 	gzip -f win32_dll_$(VERSION).tar
-
-# # If building the dll on windows, with Cygwin, using the -mno-cygwin
-# # option, this extra target packages the results.
-# win32_bin_nocygwin:
-# 	@echo 'This netCDF DLL was generated using MingW.' > README_DLL.txt
-# 	@echo '' >> README_DLL.txt
-# 	@echo './configure --enable-dll --enable-shared --disable-separate-fortram --disable-cxx --disable-f90' >> README_DLL.txt
-# 	@echo 'To use the DLL from C, include netcdf.h and set pre-processor macro DLL_NETCDF.' >> README_DLL.txt
-# 	@echo 'To use the DLL from Fortran, include netcdf.inc.' >> README_DLL.txt
-# 	cp libsrc/netcdf.h .
-# 	cp fortran/netcdf.inc .
-# 	cp ncgen3/.libs/ncgen3.exe .
-# 	cp ncgen/.libs/ncgen.exe .
-# 	cp ncdump/.libs/ncdump.exe .
-# 	cp libsrc/.libs/cygnetcdf-4.dll libnetcdf-4.dll
-# 	cp libsrc/.libs/libnetcdf.a .
-# 	cp libsrc/.libs/libnetcdf.dll.a .
-# 	tar -cf win32_dll_$(VERSION).tar netcdf.h libnetcdf-4.dll README_DLL.txt netcdf.inc ncgen3.exe ncgen.exe ncdump.exe
-# 	gzip -f win32_dll_$(VERSION).tar
-
-# # If building the dll on windows, with visual studio, this extra
-# # target packages the results.
-# win32_vs_bin:
-# 	@echo 'This netCDF DLL was generated using visual studio.' > README_DLL.txt
-# 	@echo '' >> README_DLL.txt
-# 	@echo 'To use the DLL from C, include netcdf.h and set pre-processor macro DLL_NETCDF.' >> README_DLL.txt
-# 	@echo 'To use the DLL from Fortran, include netcdf.inc.' >> README_DLL.txt
-# 	cp libsrc4/netcdf.h .
-# 	cp fortran/netcdf.inc .
-# 	cp win32/NET/Debug/ncgen.exe .
-# 	cp win32/NET/Debug/ncdump.exe .
-# 	cp win32/NET/Debug/netcdf.dll .
-# 	cp win32/NET/Debug/netcdf.exp .
-# 	cp win32/NET/Debug/netcdf.lib .
-# 	zip win32_vs_dll_$(VERSION).zip netcdf.h netcdf.dll netcdf.lib netcdf.exp README_DLL.txt netcdf.inc ncgen.exe ncdump.exe
 

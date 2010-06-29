@@ -8,75 +8,19 @@
 # $Id: Makefile.am,v 1.194 2010/06/01 15:34:50 ed Exp $
 
 # Initialize
-AM_CPPFLAGS = -I$(top_srcdir)
-AM_LDFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)/include @EXTERN_CFLAGS@	\
+-I${top_srcdir}/libsrc -I${top_srcdir}/libdispatch
+AM_LDFLAGS = @EXTERN_LDFLAGS@
 LDADD =
-libnetcdf_la_LIBADD =
-
-if USE_DISPATCH
-
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch
-# Get nc.h
-AM_CPPFLAGS += -I${top_srcdir}/libsrc
 
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif
 
-AM_CPPFLAGS += @EXTERN_CFLAGS@
-AM_LDFLAGS += @EXTERN_LDFLAGS@
-
-else #!USE_DISPATCH
-
-# Cause C preprocessor to search current and parent directory.
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc
-
-# If the user specified a root location for HDF5, use it.
-if USE_HDF5_DIR
-AM_CPPFLAGS += -I@HDF5DIR@/include
-AM_LDFLAGS += -L@HDF5DIR@/lib
-endif
-
-# If the user specified a root location for HDF4, use it.
-if USE_HDF4_DIR
-AM_CPPFLAGS += -I@HDF4DIR@/include
-AM_LDFLAGS += -L@HDF4DIR@/lib
-endif
-
-# If the user specified a root location for ZLIB, use it.
-if USE_ZLIB_DIR
-AM_CPPFLAGS += -I@ZLIBDIR@/include
-AM_LDFLAGS += -L@ZLIBDIR@/lib
-endif
-
-# If the user specified a root location for SZLIB, use it.
-if USE_SZLIB_DIR
-AM_CPPFLAGS += -I@SZLIBDIR@/include
-AM_LDFLAGS += -L@SZLIBDIR@/lib
-endif
-
-# If the user specified a root location for pnetcdf, use it.
-if USE_PNETCDF_DIR
-AM_CPPFLAGS += -I@PNETCDFDIR@/include
-AM_LDFLAGS += -L@PNETCDFDIR@/lib
-endif
-
-if BUILD_DAP
-libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
-AM_CPPFLAGS += @CURL_CFLAGS@ -I${top_builddir}/libncdap3
-AM_LDFLAGS += ${top_builddir}/oc/liboc.la
-AM_LDFLAGS += @CURL_LIBS@
-endif
-
-endif #!USE_DISPATCH
-
 # Netcdf-4 source.
-NC4SOURCES = nc4internal.h netcdf3.h error4.c netcdf4l.h nctolnc4.h
-
-if USE_DISPATCH
-NC4SOURCES += nc4dispatch.c nc4dispatch.h nc3stub.c nc3stub.h \
-		nc4attr.c nc4dim.c nc4file.c nc4grp.c nc4type.c \
-		nc4var.c ncfunc.c nc4internal.c nc4hdf.c 
+NC4SOURCES = nc4internal.h netcdf3.h error4.c netcdf4l.h nctolnc4.h	\
+nc4dispatch.c nc4dispatch.h nc3stub.c nc3stub.h nc4attr.c nc4dim.c	\
+nc4file.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c nc4hdf.c
 
 # This is our output. The big enchilada.
 noinst_LTLIBRARIES = libnetcdf4.la
@@ -85,68 +29,30 @@ libnetcdf4_la_SOURCES = ${NC4SOURCES}
 # These linker flags will be applied to all test program compiles.
 # Currently we cannot get away from loading libnetcdf3.la and libnetcdf2.la
 # and various other things
-LDADD += stub4.lo
-LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
-LDADD += ${top_builddir}/libsrc/libnetcdf3.la
-LDADD += ${top_builddir}/libdispatch/libdispatch.la
+LDADD += stub4.lo ${top_builddir}/libsrc4/libnetcdf4.la	\
+${top_builddir}/libsrc/libnetcdf3.la			\
+${top_builddir}/libdispatch/libdispatch.la
+
 if USE_DAP
 LDADD += ${top_builddir}/oc/liboc.la
 endif
 if BUILD_V2
-LDADD += ${top_builddir}/libsrc/libnetcdf2.la
+LDADD += ${top_builddir}/libdispatch/libnetcdf2.la
 endif 
 
-#else #!USE_DISPATCH
+NC4_TESTS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts3 tst_h_vars	\
+tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2	\
+tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_opaques tst_h_strings		\
+tst_h_strings1 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2	\
+tst_h_dimscales3 tst_h_enums tst_dims tst_dims2 tst_dims3 tst_files	\
+tst_files4 tst_vars tst_varms tst_unlim_vars tst_converts		\
+tst_converts2 tst_grps tst_compounds tst_compounds2 tst_compounds3	\
+tst_opaques tst_strings tst_interops tst_interops4 tst_interops5	\
+tst_interops6 tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3	\
+tst_chunks tst_utf8 tst_fills tst_fillbug tst_xplatform tst_xplatform2	\
+tst_h_atts2 tst_endian_fill
 
-#NC4SOURCES += old_nc4attr.c old_nc4dim.c old_nc4file.c old_nc4grp.c old_nc4type.c \
-#		old_nc4var.c old_ncfunc.c old_nc4hdf.c \
-#		old_nc4internal.c rename4.h
-
-# This is our output. The big enchilada.
-lib_LTLIBRARIES = libnetcdf.la
-
-# Our output library will also include contents of the netcdf3
-# convenience library.
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf3.la
-
-# Include netcdf-2 unless v2 has been turned off..
-if BUILD_V2
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc/libnetcdf2.la
-#TST_V2 = tst_v2 
-endif
-
-# Netcdf-4 source.
-libnetcdf_la_SOURCES = ${NC4SOURCES}
-
-# If we are not building separate fortran libraries, then include
-# their functions in the C library.
-if !BUILD_SEPARATE_FORTRAN
-
-# If F77 is built, include its convenience library. If F90 is built,
-# it will also be part of this convenience library.
-if BUILD_F77
-libnetcdf_la_LIBADD += ${top_builddir}/fortran/libnetcdff.la
-endif
-
-endif # !BUILD_SEPARATE_FORTRAN
-
-# These linker flags specify libtool version info.
-libnetcdf_la_LDFLAGS = -version-number 6:0:0
-
-endif #USE_DISPATCH
-
-check_PROGRAMS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts2	\
-tst_h_atts3 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps		\
-tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
-tst_h_opaques tst_h_strings tst_h_strings1 tst_h_dimscales		\
-tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums		\
-tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars tst_varms	\
-tst_unlim_vars tst_converts tst_converts2 tst_grps tst_compounds	\
-tst_compounds2 tst_compounds3 tst_opaques tst_strings tst_interops	\
-tst_interops4 tst_interops5 tst_interops6 tst_enums tst_coords		\
-tst_coords2 tst_coords3 tst_vars3 tst_chunks tst_utf8 tst_fills		\
-tst_fillbug tst_xplatform tst_xplatform2 tst_endian_fill
-
+check_PROGRAMS = $(NC4_TESTS)
 if LARGE_FILE_TESTS
 check_PROGRAMS += tst_large tst_large2
 endif
@@ -156,43 +62,25 @@ if TEST_PARALLEL
 check_PROGRAMS += tst_h_par
 endif
 
-TESTS = tst_h_files tst_h_files2 tst_h_atts tst_h_atts3 tst_h_vars	\
-tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2	\
-tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_opaques tst_h_strings		\
-tst_h_strings1 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2	\
-tst_h_dimscales3 tst_h_enums tst_dims tst_dims2 tst_dims3 tst_files	\
-tst_files4 tst_vars tst_varms tst_unlim_vars tst_converts		\
-tst_converts2 tst_grps tst_compounds tst_compounds2 tst_compounds3	\
-tst_opaques tst_strings tst_interops tst_interops4 tst_interops5	\
-tst_interops6 tst_enums tst_vars3 tst_chunks tst_coords tst_coords2	\
-tst_coords3 tst_utf8 tst_fills tst_fillbug tst_xplatform		\
-tst_xplatform2 tst_h_atts2 tst_endian_fill
+TESTS = $(NC4_TESTS)
 
 EXTRA_DIST = ref_tst_compounds.nc ref_tst_h_compounds.h5		\
 ref_tst_h_compounds2.h5 run_par_tests.sh run_valgrind_tests.sh		\
 run_hdf4_valgrind_tests.sh ref_tst_xplatform2_1.nc			\
 ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc stub4.c
 
-# (The above does not include tst_h_converts, which won't work until I
-# sort out the MAX_INT problem. - Ed)
-
 # These linker flags will be applied to all test program compiles.
 LDADD += ${lib_LTLIBRARIES} 
 
 if USE_HDF4
 LDADD += -lmfhdf -ldf -ljpeg
-libnetcdf_la_LIBADD += -lmfhdf -ldf 
 endif # USE_HDF4
 
 LDADD += -lhdf5_hl -lhdf5 -lz 
 
 if USE_PNETCDF
 LDADD += -lpnetcdf
-libnetcdf_la_LIBADD += -lpnetcdf
 endif
-
-# Always need to link to hdf5 and zlib.
-#libnetcdf_la_LIBADD += -lhdf5_hl -lhdf5 
 
 # This script will run all the parallel test programs.
 if TEST_PARALLEL
@@ -219,4 +107,5 @@ endif # USE_VALGRIND_TESTS
 # files and netCDF-4 files.
 CLEANFILES = tst_nc_converts.nc tst_h_*.h5 tst_*.nc tst_interops*.h5	\
 tst_interops2.h4 tst_interops4.nc AMSR_E_* MYD29.A2* 
+
 

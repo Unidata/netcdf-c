@@ -15,11 +15,6 @@
 
 extern int NC3_initialize(void);
 
-#ifdef USE_NETCDF4
-extern const char* nc3_strerror(int);
-const char* nc_strerror(int err) {return nc3_strerror(err);}
-#endif
-
 int
 NC_initialize(void)
 {

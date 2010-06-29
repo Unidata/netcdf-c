@@ -2004,7 +2004,7 @@ main()
    int wat_a1_dims[RANK_wat_a1];
    int wat_a2_dims[RANK_wat_a2];
    int wat_a3_dims[RANK_wat_a3];
-   int memused;
+/*   int memused;*/
 
    printf("\n*** Testing CAM output file in netCDF-4.\n");
    printf("*** creating file...");

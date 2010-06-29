@@ -5,11 +5,10 @@
 
 # $Id: Makefile.am,v 1.60 2010/05/29 00:21:22 dmh Exp $
 
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/include 
 AM_LDFLAGS =
 # May need to set this.
 libnetcdff_la_LIBADD = 
-
 
 # The F77 API man page.
 man_MANS = netcdf_f77.3

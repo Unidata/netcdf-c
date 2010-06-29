@@ -6,7 +6,7 @@
 
 # $Id: Makefile.am,v 1.36 2010/05/29 00:40:23 dmh Exp $
 
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/include
 LDADD = -lm
 
 # Link to the netCDF-4 and the HDF5 libraries.
