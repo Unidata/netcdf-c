@@ -160,7 +160,7 @@ typedef struct hdf5_objid
 typedef struct NC_VAR_INFO
 {
    char name[NC_MAX_NAME + 1];
-   char hdf5_name[NC_MAX_NAME + 1]; /* used if different */
+   char *hdf5_name; /* used if different from name */
    int ndims;
    int dimids[NC_MAX_VAR_DIMS];
    NC_DIM_INFO_T **dim;
@@ -189,7 +189,6 @@ typedef struct NC_VAR_INFO
    int fletcher32;
    int options_mask;
    int pixels_per_block;
-   int coords[NC_MAX_VAR_DIMS];
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
    /* Stuff below is for hdf4 files. */

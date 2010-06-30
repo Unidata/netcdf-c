@@ -910,9 +910,11 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    /* Free the memory that holds pointers to dims. */
    free(var->dim);
 
-   /* If this was a chunked variable, free the chunk sizes. */
+   /* Free some things that may be allocated. */
    if (var->chunksizes)
       free(var->chunksizes);
+   if (var->hdf5_name)
+      free(var->hdf5_name);
 
    /* Remove the var from the linked list. */
    if(*list == var)

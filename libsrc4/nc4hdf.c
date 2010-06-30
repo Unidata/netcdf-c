@@ -1439,7 +1439,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 	 BAIL(NC_EHDFERR);
 
    /* At long last, create the dataset. */
-   name_to_use = strlen(var->hdf5_name) ? var->hdf5_name : var->name;
+   name_to_use = var->hdf5_name ? var->hdf5_name : var->name;
    LOG((4, "var_create_dataset: about to H5Dcreate dataset %s of type 0x%x", 
         name_to_use, typeid));
    if ((var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid, 

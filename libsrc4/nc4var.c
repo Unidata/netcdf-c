@@ -424,6 +424,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	     * name clash. */
 	    if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
 	       return NC_EMAXNAME;
+	    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) + 
+					   strlen(norm_name) + 1) * sizeof(char))))
+	       return NC_ENOMEM;
+
 	    sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
 	 }
       }
