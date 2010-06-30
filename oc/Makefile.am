@@ -43,6 +43,7 @@ read.c
 
 HDRS=\
 constraints.h \
+curlfunctions.h \
 dapparselex.h \
 dapurl.h \
 http.h \

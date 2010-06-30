@@ -12,6 +12,7 @@
 #include "ocdebug.h"
 #include "http.h"
 #include "read.h"
+#include "rc.h"
 
 extern int oc_curl_file_supported;
 
@@ -177,3 +178,5 @@ readfile(char* path, char* suffix, OCbytes* packet)
     close(fd);
     return THROW(stat);
 }
+
+

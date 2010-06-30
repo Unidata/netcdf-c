@@ -217,3 +217,10 @@ install-data-hook:
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
 
+
+#.PHONY: msproj:
+#msproj:
+#	for dir in $(SUBDIRS); do \
+#	    (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1; \
+#	done
+

@@ -37,5 +37,10 @@ libnetcdf2_la_SOURCES = v2i.c
 endif # BUILD_V2
 
 
-
-
+#.PHONY: msproj:
+#msproj:
+#	for dir in $(SUBDIRS); do \
+#	    (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1; \
+#	done
+#	rm -f projectfile
+#	echo $libdispatch_la_SOURCES $libnetcdf2_la_SOURCES >./projectfiles
