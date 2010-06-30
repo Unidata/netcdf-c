@@ -10,63 +10,25 @@
 # Cause C preprocessor to search current and parent directory.
 AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/libsrc
 
-# Linker needs to search current directory when building tests.
-AM_LDFLAGS = 
-
 CURL_CFLAGS = @CURL_CFLAGS@
 CURL_LIBS = @CURL_LIBS@
 
 # OC Sources
-SRC=\
-curlfunctions.c \
-dapparse.c \
-daplex.c \
-dapurl.c \
-http.c \
-ocbytes.c \
-oc.c \
-occompile.c \
-occontent.c \
-ocdata.c \
-ocdebug.c \
-ocdrno.c \
-ocdump.c \
-ocinternal.c \
-oclist.c \
-oclog.c \
-ocnode.c \
-ocutil.c \
-occlientparams.c \
-ocxdr_stdio.c \
-rc.c \
-read.c
+SRC= curlfunctions.c dapparse.c daplex.c dapurl.c http.c ocbytes.c	\
+oc.c occompile.c occontent.c ocdata.c ocdebug.c ocdrno.c ocdump.c	\
+ocinternal.c oclist.c oclog.c ocnode.c ocutil.c occlientparams.c	\
+ocxdr_stdio.c rc.c read.c
 
-HDRS=\
-constraints.h \
-dapparselex.h \
-dapurl.h \
-http.h \
-ocbytes.h \
-occontent.h \
-ocdata.h \
-ocdatatypes.h \
-ocdebug.h \
-ocdrno.h \
-ocdump.h \
-oc.h \
-ocinternal.h \
-oclist.h \
-oclog.h \
-ocnode.h \
-occlientparams.h \
-ocutil.h \
-rc.h \
+HDRS= constraints.h dapparselex.h dapurl.h http.h ocbytes.h		\
+occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h oc.h	\
+ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h rc.h	\
 read.h
 
 GRAMFILES=dap.y ce.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h
+BUILT_SOURCES = daptab.c daptab.h
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
@@ -76,9 +38,7 @@ liboc_la_CPPFLAGS = $(AM_CPPFLAGS) $(CURL_CFLAGS)
 liboc_la_LIBADD = $(CURL_LIBS)
 endif
 
-EXTRA_DIST=${GRAMFILES}
-CLEANFILES =
-DISTCLEANFILES =
+EXTRA_DIST = ${GRAMFILES}
 
 #Normally not invoked unless after maintainer-clean or deliberate deletion
 daptab.c daptab.h: dap.y
@@ -86,5 +46,4 @@ daptab.c daptab.h: dap.y
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
 
-test: check
 
