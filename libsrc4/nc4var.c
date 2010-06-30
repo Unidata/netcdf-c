@@ -208,7 +208,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
 
 /* Find the default chunk nelems (i.e. length of chunk along each
  * dimension). */
-int 
+static int 
 nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
 {
    int d;
@@ -218,10 +218,6 @@ nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
       type_size = sizeof(char *);
    else
       type_size = var->type_info->size;
-
-   /* No chunk sizes for contiguous variables, you dunce! */
-   if (var->contiguous) 
-      return NC_NOERR;
 
    /* How many values in the non-unlimited dimensions? */
    for (d = 0; d < var->ndims; d++)
@@ -395,7 +391,13 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       var->dim[d] = dim;
    }
 
-   /* Determine default chunksizes for this variable. */
+   /* Determine default chunksizes for this variable. (Even for
+    * variables which may be contiguous. */
+   LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
+	var->ndims, var->name));
+   if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+      return NC_ENOMEM;
+
    if ((retval = nc4_find_default_chunksizes(var)))
       return retval;
 
@@ -461,6 +463,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
 
+   /* Netcdf-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
+
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc->pnetcdf_file)
@@ -474,11 +479,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 
    }
 #endif /* USE_PNETCDF */
-
-   /* Handle netcdf-3 cases. */
-   if (!nc->nc4_info)
-      return nc3_def_var(nc->int_ncid, name, xtype, ndims, 
-                         dimidsp, varidp);
 
    /* Handle netcdf-4 cases. */
    return nc_def_var_nc4(ncid, name, xtype, ndims, dimidsp, varidp);
@@ -570,7 +570,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    }
    
    /* Chunking stuff. */
-   if (chunksizesp)
+   if (!var->contiguous && chunksizesp)
       for (d = 0; d < var->ndims; d++)
       {
          chunksizesp[d] = var->chunksizes[d];
@@ -1249,34 +1249,8 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    }
 #endif /* USE_PNETCDF */   
    
-   /* Handle netCDF-3 cases. */
-   if (!nc->nc4_info)
-   {
-      if (mem_type == NC_UBYTE)
-         mem_type = NC_BYTE;
-      switch(mem_type)
-      {
-         case NC_NAT:
-            return nc3_put_vara(nc->int_ncid, varid, startp, countp, op);
-         case NC_BYTE:
-            return nc3_put_vara_schar(nc->int_ncid, varid, startp, countp, op);
-         case NC_CHAR:
-            return nc3_put_vara_text(nc->int_ncid, varid, startp, countp, op);
-         case NC_SHORT:
-            return nc3_put_vara_short(nc->int_ncid, varid, startp, countp, op);
-         case NC_INT:
-            if (mem_type_is_long)
-               return nc3_put_vara_long(nc->int_ncid, varid, startp, countp, op);
-            else
-               return nc3_put_vara_int(nc->int_ncid, varid, startp, countp, op);
-         case NC_FLOAT:
-            return nc3_put_vara_float(nc->int_ncid, varid, startp, countp, op);
-         case NC_DOUBLE:
-            return nc3_put_vara_double(nc->int_ncid, varid, startp, countp, op);
-         default:
-            return NC_EBADTYPE;
-      }
-   }
+   /* NetCDF-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
 
    return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type, 
                        mem_type_is_long, (void *)op);

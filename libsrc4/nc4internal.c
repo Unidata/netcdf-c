@@ -1,5 +1,4 @@
 /*
-
 This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
 HDF5 backend for netCDF, depending on your point of view.
 
@@ -910,6 +909,10 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 
    /* Free the memory that holds pointers to dims. */
    free(var->dim);
+
+   /* If this was a chunked variable, free the chunk sizes. */
+   if (var->chunksizes)
+      free(var->chunksizes);
 
    /* Remove the var from the linked list. */
    if(*list == var)

@@ -134,28 +134,12 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
 int
 nc_inq_var_chunking(int ncid, int varid, int *contiguousp, size_t *chunksizesp)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
+   NC *ncp;
+   int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      contiguousp, /*contiguousp*/
-      chunksizesp, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
-      );
+   return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, 
+				     NULL, NULL, NULL, NULL, NULL, contiguousp, 
+				     chunksizesp, NULL, NULL, NULL, NULL, NULL);
 }
 
 int

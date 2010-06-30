@@ -1305,6 +1305,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    {
       if (H5Pget_chunk(propid, NC_MAX_VAR_DIMS, chunksize) < 0)
          BAIL(NC_EHDFERR);
+      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+	 BAIL(NC_ENOMEM);
       for (d = 0; d < var->ndims; d++)
          var->chunksizes[d] = chunksize[d];
    }
