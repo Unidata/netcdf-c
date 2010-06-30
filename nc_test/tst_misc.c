@@ -37,9 +37,6 @@ main(int argc, char **argv)
 	 if (fclose(file)) ERR;
 	 
 	 /* Make sure that netCDF rejects this file politely. */
-if(i==3) {
-int x=1;
-}
 	 if (nc_open(FILE_NAME, 0, &ncid) != NC_ENOTNC) ERR;
       }
    }

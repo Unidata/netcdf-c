@@ -15,7 +15,7 @@ LDADD=
 #CURL_CFLAGS = @CURL_CFLAGS@
 #AM_CPPFLAGS = ${CURL_CFLAGS}
 #AM_LDFLAGS = $(CURL_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
 # DRNO Sources

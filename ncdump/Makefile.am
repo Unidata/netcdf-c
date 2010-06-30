@@ -4,14 +4,9 @@
 
 # $Id: Makefile.am,v 1.147 2010/05/29 00:50:39 dmh Exp $
 
-LDADD = -lm
-
-AM_LDFLAGS =
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/nc_test 
-
-LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
-AM_CPPFLAGS += -I${top_srcdir}/liblib @EXTERN_CPPFLAGS@
-
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/nc_test	\
+-I${top_srcdir}/liblib @EXTERN_CPPFLAGS@
+LDADD = -lm ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
@@ -44,17 +39,17 @@ endif #!USE_NETCDF4
 CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c	\
 ctest64.c ctest0.nc ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
-tmp.cdl \
-tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc tst_unicode.nc \
-tst_solar_2.nc tst_string_data.nc tst_calendars.nc tst_nans.nc \
-tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc tst_solar_1.nc \
-tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc \
-tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc \
-tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl \
-tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl \
-tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl \
-tst_utf8.cdl tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl \
-tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl
+tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
+tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc	\
+tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc	\
+tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc	\
+tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc		\
+tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
+tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
+tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
+tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
+tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
+tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl
 
 
 # This is the program we're building, and it's sources.
@@ -111,5 +106,3 @@ TESTS += tst_ncgen4_classic.sh
 if USE_NETCDF4
 TESTS += tst_ncgen4.sh
 endif
-
-test: check

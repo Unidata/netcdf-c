@@ -6,7 +6,7 @@
 # $Id: Makefile.am,v 1.26 2010/05/29 00:17:41 dmh Exp $
 
 LDADD = -lm
-AM_CPPFLAGS = -I$(top_srcdir) 
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS =
 
 # These are the netCDF-3 examples. 

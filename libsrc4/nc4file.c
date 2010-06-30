@@ -417,7 +417,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
            int *dim_without_var)
 {
    /*char *start_of_len;*/
-   char dimscale_name_att[NC_MAX_NAME + 1];
+   char dimscale_name_att[NC_MAX_NAME + 1] = "";
    int natts, a;
    hid_t attid = 0;
    char att_name[NC_MAX_HDF5_NAME + 1];
@@ -485,15 +485,6 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
                return retval;
             grp->dim->len = *lenp;
          }
-/*          else */
-/*          { */
-/*             start_of_len = dimscale_name_att + strlen(DIM_WITHOUT_VARIABLE); */
-/* #if (SIZEOF_SIZE_T < 8) */
-/*             sscanf(start_of_len, "%d", (int *)&grp->dim->len); */
-/* #else */
-/* 	    sscanf(start_of_len, "%ld", (size_t *)&grp->dim->len); */
-/* #endif */
-/*          } */
          (*dim_without_var)++;
       }
    }
