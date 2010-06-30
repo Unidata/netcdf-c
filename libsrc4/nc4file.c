@@ -1667,9 +1667,19 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
    H5O_info_t obj_info;
    H5_index_t idx_field = H5_INDEX_CRT_ORDER;
    ssize_t size;
+   herr_t res;
 
-   if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
-			  i, &obj_info, H5P_DEFAULT) < 0) 
+   /* These HDF5 macros prevent an HDF5 error message when a
+    * non-creation-ordered HDF5 file is opened. */
+   H5E_BEGIN_TRY {
+      res = H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			       i, &obj_info, H5P_DEFAULT);
+   } H5E_END_TRY;
+   
+   /* Creation ordering not available, so make sure this file is
+    * opened for read-only access. This is a plain old HDF5 file being
+    * read by netCDF-4. */
+   if (res < 0)
    {
       if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_NAME, H5_ITER_INC, 
 			     i, &obj_info, H5P_DEFAULT) < 0) 
@@ -1679,6 +1689,7 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
       h5->ignore_creationorder = 1;
       idx_field = H5_INDEX_NAME;	 
    }
+
    *obj_class = obj_info.type;
    if ((size = H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i,
 				  NULL, 0, H5P_DEFAULT)) < 0) 
