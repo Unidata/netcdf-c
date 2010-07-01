@@ -1489,6 +1489,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
 	    
 	    /* Fill in the information we know. */
 	    att->attnum = var->natts++;
+	    if (!(att->name = malloc((strlen(att_name) + 1) * sizeof(char))))
+	       BAIL(NC_ENOMEM);
 	    strcpy(att->name, att_name);
 	    
 	    /* Read the rest of the info about the att,
@@ -1527,6 +1529,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
    NC_ATT_INFO_T *att;
    NC_TYPE_INFO_T *type;
    char obj_name[NC_MAX_HDF5_NAME + 1];
+   int max_len;
    int retval = NC_NOERR;
 
    num_obj = H5Aget_num_attrs(grp->hdf_grpid);
@@ -1553,8 +1556,13 @@ read_grp_atts(NC_GRP_INFO_T *grp)
             BAIL(retval);
          for (att = grp->att; att->next; att = att->next)
             ;
-         strncpy(att->name, obj_name, NC_MAX_NAME + 1);
-         att->name[NC_MAX_NAME] = 0;
+
+	 /* Add the info about this attribute. */
+	 max_len = strlen(obj_name) > NC_MAX_NAME ? NC_MAX_NAME : strlen(obj_name);
+	 if (!(att->name = malloc((max_len + 1) * sizeof(char))))
+	    BAIL(NC_ENOMEM);
+         strncpy(att->name, obj_name, max_len);
+         att->name[max_len] = 0;
          att->attnum = grp->natts++;
          if ((retval = read_hdf5_att(grp, attid, att)))
             BAIL(retval);
@@ -2068,8 +2076,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
       att->created++;
 
       /* Learn about this attribute. */
-      if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, 
-		     &att_count)) 
+      if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
+	 return NC_ENOMEM;
+      if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count)) 
 	 return NC_EATTMETA;
       if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
 					      &att->xtype)))
@@ -2185,8 +2194,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	 att->created++;
 
 	 /* Learn about this attribute. */
-	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, 
-			&att_count)) 
+	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
+	    return NC_ENOMEM;
+	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) 
 	    return NC_EATTMETA;
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
 						 &att->xtype)))

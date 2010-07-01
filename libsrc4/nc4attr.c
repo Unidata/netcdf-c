@@ -303,6 +303,8 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
    /* Now fill in the metadata. */
    att->dirty++;
+   if (!(att->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(att->name, norm_name);
    att->xtype = file_type;
    att->len = len;
@@ -649,6 +651,9 @@ NC4_rename_att(int ncid, int varid, const char *name,
    }
 
    /* Copy the new name into our metadata. */
+   free(att->name);
+   if (!(att->name = malloc((strlen(norm_newname) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(att->name, norm_newname);
    att->dirty = 1;
 

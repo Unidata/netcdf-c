@@ -1184,6 +1184,10 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
    if (att->data)
       free(att->data);
 
+   /* Free the name. */
+   if (att->name)
+      free(att->name);
+
    /* Close the HDF5 typeid. */
    if (att->native_typeid && H5Tclose(att->native_typeid) < 0)
       return NC_EHDFERR;

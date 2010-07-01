@@ -127,7 +127,7 @@ typedef struct
 typedef struct NC_ATT_INFO
 {
    int len;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    struct NC_ATT_INFO *next;
    struct NC_ATT_INFO *prev;
    int dirty;
