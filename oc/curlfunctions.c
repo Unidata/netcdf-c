@@ -9,21 +9,6 @@
 
 #include "rc.h"
 
-/* Set various general curl flags */
-int
-set_curl_flags(CURL* curl, struct OCcurlflags* flags)
-{
-    if (flags->verify)
-	{if (set_verify(curl) != OC_NOERR) goto fail;}
-    if (flags->compress)
-	{if (set_compression(curl) != OC_NOERR) goto fail;}
-    if (flags->cookies)
-	{if (set_cookies(curl, flags->cookies) != OC_NOERR) goto fail;}
-    return OC_NOERR;
-fail:
-    return OC_ECURL;
-}
-
 /* This is called with arguments while the other functions in this file are
  * used with global values read from the.dodsrc file.
  */
@@ -58,28 +43,28 @@ set_user_password(CURL* curl, const char *userC, const char *passwordC)
 }
 
 int
-set_proxy(CURL* curl, struct OCproxy *proxy)
+set_proxy(CURL* curl, struct OCproxy *pstructProxy)
 {
 	CURLcode cstat;
-	cstat = curl_easy_setopt(curl, CURLOPT_PROXY, proxy->host);
+	cstat = curl_easy_setopt(curl, CURLOPT_PROXY, pstructProxy->host);
 	if (cstat != CURLE_OK)
 		return OC_ECURL;
 
-	cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, proxy->port);
+	cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, pstructProxy->port);
 	if (cstat != CURLE_OK)
 		return OC_ECURL;
 
-	if (proxy->username) {
-		int userPassSize = strlen(proxy->username) + strlen(
-				proxy->password) + 2;
+	if (pstructProxy->user) {
+		int userPassSize = strlen(pstructProxy->user) + strlen(
+				pstructProxy->password) + 2;
 		char *userPassword = malloc(sizeof(char) * userPassSize);
 		if (!userPassword) {
 			oc_log(LOGERR, "Out of Memory\n");
 			return OC_ENOMEM;
 		}
-		strncpy(userPassword, proxy->username, userPassSize);
+		strncpy(userPassword, pstructProxy->user, userPassSize);
 		strncat(userPassword, ":", userPassSize);
-		strncat(userPassword, proxy->password, userPassSize);
+		strncat(userPassword, pstructProxy->password, userPassSize);
 		cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, userPassword);
 		if (cstat != CURLE_OK) {
 			free(userPassword);
@@ -137,36 +122,3 @@ set_compression(CURL* curl)
 	return OC_NOERR;
 }
 
-int
-set_credentials(CURL* curl, struct OCcredentials* creds)
-{
-    CURLcode cstat = CURLE_OK;
-    if(creds->ssl_certificate) {
-	cstat = curl_easy_setopt(curl, CURLOPT_SSLCERT, creds->ssl_certificate);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    if(creds->ssl_key) {
-	cstat = curl_easy_setopt(curl, CURLOPT_SSLKEY, creds->ssl_key);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    if(creds->cainfo) {
-	cstat = curl_easy_setopt(curl, CURLOPT_CAINFO, creds->cainfo);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    if(creds->capath) {
-	cstat = curl_easy_setopt(curl, CURLOPT_CAPATH, creds->capath);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    if(creds->cookiefile) {
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, creds->cookiefile);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    if(creds->cookiejar) {
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, creds->cookiejar);
-	if(cstat != CURLE_OK) goto fail;
-    }
-    return OC_NOERR;
-
-fail:
-    return OC_ECURL;
-}

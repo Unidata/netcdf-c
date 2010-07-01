@@ -1,81 +1,36 @@
 THISDIR=../oc
 OCDIR=/home/dmh/nc/oc
 
-SRC=\
-curlfunctions.c \
-dapparse.c \
-daplex.c \
-dapurl.c \
-http.c \
-ocbytes.c \
-oc.c \
-occompile.c \
-occontent.c \
-ocdata.c \
-ocdebug.c \
-ocdrno.c \
-ocdump.c \
-ocinternal.c \
-oclist.c \
-oclog.c \
-ocnode.c \
-ocutil.c \
-occlientparams.c \
-ocxdr_stdio.c \
-rc.c \
-read.c
-
-HDRS=\
-constraints.h \
-curlfunctions.h \
-dapparselex.h \
-dapurl.h \
-http.h \
-ocbytes.h \
-occontent.h \
-ocdata.h \
-ocdatatypes.h \
-ocdebug.h \
-ocdrno.h \
-ocdump.h \
-oc.h \
-ocinternal.h \
-oclist.h \
-oclog.h \
-ocnode.h \
-occlientparams.h \
-ocutil.h \
-rc.h \
-read.h
-
-
-GRAMFILES=dap.y ce.y
-
-ALLSRC=${SRC} ${HDRS} ${GRAMFILES}
-
 all::
 
 makeoc::
 	rm -f ${THISDIR}/*.[chy]
-	for f in ${ALLSRC} ; do \
-		cat ${OCDIR}/$$f | tr -d '' >${THISDIR}/$$f; done
-	rm -f ${THISDIR}/ocinternal.h
+	for f in ${OCDIR}/*.[chy]; do \
+	        base=`basename $$f` ; \
+		cat $$f | tr -d '' >${THISDIR}/$$base; done
+	rm -f i.* apitest.* getoc.* imain.* main.*
+	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
+	rm -f ocshadow.*
+	rm -f octest.c
+	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
-	for f in ${ALLSRC} ; do \
-	    if test -e ${THISDIR}/$$f ; then \
-		diff -qwBb ${OCDIR}/$$f ${THISDIR}/$$f  ; \
-	    else \
-		echo "Only in ${OCDIR}: " $$f; \
+	for f in ${THISDIR}/*.[chy] ; do \
+	    x=`basename $$f | tr -d '' ` ; \
+	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
+	    if test -e ${THISDIR}/$$x ; then \
+		diff -qw ${THISDIR}/$$x $$f ; \
 	    fi; \
 	done
-	for f in ${ALLSRC} ; do \
-	    if test -e ${THISDIR}/$$f ; then \
-		if ! diff -qwBb ${OCDIR}/$$f ${THISDIR}/$$f >/dev/null; then \
-		echo diff -wBb ${OCDIR}/$$f ${THISDIR}/$$f ;\
-		diff -w ${OCDIR}/$$f ${THISDIR}/$$f ; \
+	for f in ${OCDIR}/*.[chy] ; do \
+	    x=`basename $$f|tr -d '' ` ; \
+	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
+	    if test -e ${THISDIR}/$$x ; then \
+		if ! diff -qw ${THISDIR}/$$x $$f > /dev/null ; then \
+		echo diff -w ${THISDIR}/$$x $$f ;\
+		diff -w ${THISDIR}/$$x $$f ; \
 		fi; \
 	    fi; \
 	done

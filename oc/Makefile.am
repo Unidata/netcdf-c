@@ -5,7 +5,7 @@
 # generated makefile is not run unless the user selected to build
 # netCDF-4.
 
-# $Id$
+# $Id: Makefile.am,v 1.1 2010/05/23 21:05:33 dmh Exp $
 
 # Cause C preprocessor to search current and parent directory.
 AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/libsrc
@@ -19,7 +19,7 @@ oc.c occompile.c occontent.c ocdata.c ocdebug.c ocdrno.c ocdump.c	\
 ocinternal.c oclist.c oclog.c ocnode.c ocutil.c occlientparams.c	\
 ocxdr_stdio.c rc.c read.c
 
-HDRS= constraints.h curlfunctions.h dapparselex.h dapurl.h http.h ocbytes.h		\
+HDRS= constraints.h dapparselex.h dapurl.h http.h ocbytes.h		\
 occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h oc.h	\
 ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h rc.h	\
 read.h

@@ -7,9 +7,3 @@
 
 EXTRA_DIST = netcdf.cpp netcdf.vcproj nfconfig.inc stdafx.cpp stdafx.h
 
-#.PHONY: msproj:
-#msproj:
-#	for dir in $(SUBDIRS); do \
-#	    (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1; \
-#	done
-#	perl -w "${top_srcdir}/buildprojectfiles" "${top_srcdir}" "libsrc"
