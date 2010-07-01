@@ -159,7 +159,7 @@ typedef struct hdf5_objid
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
-   char name[NC_MAX_NAME + 1];
+   char *name;
    char *hdf5_name; /* used if different from name */
    int ndims;
    int dimids[NC_MAX_VAR_DIMS];

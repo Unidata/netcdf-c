@@ -915,6 +915,8 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       free(var->chunksizes);
    if (var->hdf5_name)
       free(var->hdf5_name);
+   if (var->name)
+      free(var->name);
 
    /* Remove the var from the linked list. */
    if(*list == var)

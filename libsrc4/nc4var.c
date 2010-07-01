@@ -340,6 +340,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       return retval;
 
    /* Now fill in the values in the var info structure. */
+   if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(var->name, norm_name);
    var->varid = grp->nvars++;
    var->xtype = xtype;
@@ -514,6 +516,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
+   assert(nc && grp && h5);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -521,17 +524,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
 			   dimidsp, nattsp);
 #endif /* USE_PNETCDF */
-
-   /* Handle netcdf-3 cases. Better not ask for var options for a
-    * netCDF-3 file! */
-   if (!h5)
-   {
-      if (contiguousp)
-	 *contiguousp = NC_CONTIGUOUS;
-      return nc3_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
-                         dimidsp, nattsp);
-   }
-   assert(nc && grp && h5);
 
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
@@ -582,7 +574,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       }
 
    if (contiguousp)
-      *contiguousp = var->contiguous;
+      *contiguousp = var->contiguous ? NC_CONTIGUOUS : NC_CHUNKED;
 
    /* Filter stuff. */
    if (deflatep)
@@ -1110,6 +1102,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    }
 
    /* Now change the name in our metadata. */
+   free(var->name);
+   if (!(var->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(var->name, name);
 
   exit:

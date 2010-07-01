@@ -1277,6 +1277,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
       return NC_EHDFERR;
    var->chunk_cache_preemption = rdcc_w0;
 
+   /* Allocate space for the name. */
+   if (!(var->name = malloc((strlen(obj_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
+
    /* Check for a weird case: a non-coordinate variable that has the
     * same name as a dimension. It's legal in netcdf, and requires
     * that the HDF5 dataset name be changed. */
@@ -2098,6 +2102,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	 return NC_EVARMETA;
 
       /* Get shape, name, type, and attribute info about this dataset. */
+      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1)))
+	 return NC_ENOMEM;
       if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts))
 	 return NC_EVARMETA;
       var->ndims = rank;
