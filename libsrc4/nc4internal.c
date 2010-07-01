@@ -173,6 +173,8 @@ nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode)
    h5 = nc->nc4_info;
 
    /* Hang on to the filename for nc_abort. */
+   if (!(h5->path = malloc((strlen(path) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(h5->path, path);
 
    /* Hang on to cmode, and note that we're in define mode. */
@@ -590,16 +592,26 @@ nc4_file_list_add(NC_FILE_INFO_T** ncp)
 {
     NC_FILE_INFO_T *nc;
     int status = NC_NOERR;
-    if (!(nc = calloc(1, sizeof(NC_FILE_INFO_T)))) return NC_ENOMEM;
-    add_to_NCList((NC*)nc);
-    if(status != NC_NOERR) {
-	if(nc != NULL && nc->ext_ncid > 0) {
-            del_from_NCList((NC*)nc);
- 	    free(nc);
-	}
-	return status;
+
+    /* Allocate memory for this info. */
+    if (!(nc = calloc(1, sizeof(NC_FILE_INFO_T)))) 
+       return NC_ENOMEM;
+
+    /* Add this file to the list. */
+    if ((status = add_to_NCList((NC *)nc)))
+    {
+       if(nc && nc->ext_ncid > 0) 
+       {
+	  del_from_NCList((NC *)nc);
+	  free(nc);
+       }
+       return status;
     }
-    if(ncp) *ncp = nc;
+    
+    /* Return a pointer to the new struct. */
+    if(ncp) 
+       *ncp = nc;
+
     return NC_NOERR;
 }
 
@@ -608,7 +620,13 @@ nc4_file_list_add(NC_FILE_INFO_T** ncp)
 void
 nc4_file_list_del(NC_FILE_INFO_T *nc)
 {
-   del_from_NCList((NC*)nc);
+   /* Delete the memory for the path, if it's been allocated. */
+   if (nc->nc4_info)
+      if (nc->nc4_info->path)
+	 free(nc->nc4_info->path);
+
+   /* Remove file from master list. */
+   del_from_NCList((NC *)nc);
    free(nc);
 }
 
@@ -841,6 +859,8 @@ nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
 
    /* Store the information about this field. */
    field->fieldid = fieldid;
+   if (!(field->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(field->name, name);
    field->hdf_typeid = field_hdf_typeid;
    field->native_typeid = native_typeid;
@@ -884,6 +904,8 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    }
 
    /* Store the information about this member. */
+   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(member->name, name);
    memcpy(member->value, value, size);
 
@@ -980,6 +1002,10 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
    if(field->next)
       field->next->prev = field->prev;
 
+   /* Free the name. */
+   if (field->name)
+      free(field->name);
+
    /* Nc_Free the memory. */
    free(field);
 }
@@ -1023,6 +1049,7 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
    {
       em = enum_member->next;
       free(enum_member->value);
+      free(enum_member->name);
       free(enum_member);
       enum_member = em;
    }

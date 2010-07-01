@@ -117,13 +117,6 @@ typedef struct NC_DIM_INFO
    int too_long; /* True if len it too big to fit in local size_t. */
 } NC_DIM_INFO_T;
 
-typedef struct 
-{
-   char name[NC_MAX_NAME + 1];
-   int len;
-   int id;
-} DIM_FILE_T;
-
 typedef struct NC_ATT_INFO
 {
    int len;
@@ -140,15 +133,6 @@ typedef struct NC_ATT_INFO
    char **stdata; /* only for string type. */
    int class;
 } NC_ATT_INFO_T;
-
-typedef struct var_file_infot_nc
-{
-   char name[NC_MAX_NAME + 1];
-   int ndims;
-   int dimids[NC_MAX_VAR_DIMS];
-   int varid;
-   int nc_char;
-} NC_VAR_FILE_INFO_T;
 
 typedef struct hdf5_objid 
 {
@@ -204,7 +188,7 @@ typedef struct NC_FIELD_INFO
    hid_t hdf_typeid;
    hid_t native_typeid;
    size_t offset;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    int fieldid;
    int ndims;
    int dim_size[NC_MAX_VAR_DIMS];
@@ -214,7 +198,7 @@ typedef struct NC_ENUM_MEMBER_INFO
 {
    struct NC_ENUM_MEMBER_INFO *next;
    struct NC_ENUM_MEMBER_INFO *prev;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    void *value;
 } NC_ENUM_MEMBER_INFO_T;
 
@@ -281,7 +265,7 @@ typedef struct
    int natts;
    int parallel;  /* true if file is open for parallel access */
    int redef;
-   char path[NC_MAX_NAME + 1];
+   char *path;
    int fill_mode;
    int no_write; /* true if nc_open has mode NC_NOWRITE. */
    NC_GRP_INFO_T *root_grp;
