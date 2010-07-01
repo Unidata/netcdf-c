@@ -102,7 +102,7 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
 {
-   char name[NC_MAX_NAME + 1];
+   char *name;
    size_t len;
    int dimid;
    int unlimited;
@@ -110,7 +110,7 @@ typedef struct NC_DIM_INFO
    struct NC_DIM_INFO *next;
    struct NC_DIM_INFO *prev;
    hid_t hdf_dimscaleid;
-   char old_name[NC_MAX_NAME + 1]; /* only used to rename dim */
+   char *old_name; /* only used to rename dim */
    int dirty;
    unsigned char coord_var_in_grp;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */

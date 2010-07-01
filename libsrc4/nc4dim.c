@@ -140,6 +140,8 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    grp->dim->dimid = grp->file->nc4_info->next_dimid++;
 
    /* Initialize the metadata for this dimension. */
+   if (!(grp->dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(grp->dim->name, norm_name);
    grp->dim->len = len;
    grp->dim->dirty++;
@@ -340,16 +342,23 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    /* Save the old name, we'll need it to rename this object when we
     * sync to HDF5 file. But if there already is an old_name saved,
     * just stick with what we've got, since the user might be renaming
-    * the shit out of this thing, without ever syncing with the
+    * the crap out of this thing, without ever syncing with the
     * file. When the sync does take place, we only need the original
     * name of the dim, not any of the intermediate ones. If the user
     * could just make up his mind, we could all get on to writing some
     * data... */
-   if (!strlen(dim->old_name))
+   if (!dim->old_name)
+   {
+      if (!(dim->old_name = malloc((strlen(dim->name) + 1) * sizeof(char))))
+	 return NC_ENOMEM;
       strcpy(dim->old_name, dim->name);
+   }
 
    /* Give the dimension its new name in metadata. UTF8 normalization
     * has been done. */
+   free(dim->name);
+   if (!(dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(dim->name, norm_name);
 
    return NC_NOERR;

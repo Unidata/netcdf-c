@@ -2202,7 +2202,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
          /* If we define, and then rename this dimension before
           * creation of the dimscale dataset, then we can throw
           * away the old_name of the dimension. */
-         if (strlen(dim->old_name))
+         if (dim->old_name && strlen(dim->old_name))
             strcpy(dim->old_name, "");
 
          if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
@@ -2295,7 +2295,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
    }
 
    /* Did we rename this dimension? */
-   if (strlen(dim->old_name))
+   if (dim->old_name && strlen(dim->old_name))
    {
       /* Rename the dimension's dataset in the HDF5 file. */
       if (H5Gmove2(grp->hdf_grpid, dim->old_name, grp->hdf_grpid, dim->name) < 0)
@@ -3838,6 +3838,8 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 		  dim = grp->dim;
 		  dim->dimid = grp->file->nc4_info->next_dimid++;
 		  sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
+		  if (!(dim->name = malloc((strlen(phony_dim_name) + 1) * sizeof(char))))
+		     return NC_ENOMEM;
 		  strcpy(dim->name, phony_dim_name);
 		  dim->len = h5dimlen[d];
 		  if (h5dimlenmax[d] == H5S_UNLIMITED)

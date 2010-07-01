@@ -421,6 +421,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    int natts, a;
    hid_t attid = 0;
    char att_name[NC_MAX_HDF5_NAME + 1];
+   int max_len;
    int retval;
 
    /* Add a dimension for this scale. */
@@ -454,8 +455,10 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
 	 break;
    }
 
-   
-   strncpy(grp->dim->name, obj_name, NC_MAX_NAME + 1);
+   max_len = strlen(obj_name) > NC_MAX_NAME ? NC_MAX_NAME : strlen(obj_name);
+   if (!(grp->dim->name = malloc((max_len + 1) * sizeof(char))))
+      return NC_ENOMEM;
+   strncpy(grp->dim->name, obj_name, max_len + 1);
    if (SIZEOF_SIZE_T < 8 && scale_size > NC_MAX_UINT)
    {
       grp->dim->len = NC_MAX_UINT;
@@ -2172,7 +2175,11 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	    grp->ndims++;
 	    dim = grp->dim;
 	    dim->dimid = grp->file->nc4_info->next_dimid++;
-	    strncpy(dim->name, dim_name, NC_MAX_NAME + 1);
+	    if (strlen(dim_name) > NC_MAX_HDF4_NAME)
+	       return NC_EMAXNAME;
+	    if (!(dim->name = malloc(NC_MAX_HDF4_NAME + 1)))
+	       return NC_ENOMEM;
+	    strcpy(dim->name, dim_name);
 	    if (dim_len)
 	       dim->len = dim_len;
 	    else

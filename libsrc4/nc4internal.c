@@ -1055,6 +1055,12 @@ nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
    if(dim->next)
       dim->next->prev = dim->prev;
 
+   /* Free memory allocated for names. */
+   if (dim->name)
+      free(dim->name);
+   if (dim->old_name)
+      free(dim->old_name);
+
    free(dim);
    return NC_NOERR;
 }
