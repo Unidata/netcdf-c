@@ -1003,6 +1003,10 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 	 return NC_EHDFERR;
    }
 
+   /* Free the name. */
+   if (type->name)
+      free(type->name);
+
    /* Delete all the fields in this type (there will be some if its a
     * compound). */
    field = type->field;

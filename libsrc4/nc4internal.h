@@ -227,7 +227,7 @@ typedef struct NC_TYPE_INFO
    hid_t native_typeid;
    size_t size;
    int committed; /* What the pig is, but the hen isn't, at breakfast. */
-   char name[NC_MAX_NAME + 1];
+   char *name;
    int class; /* NC_VLEN, NC_COMPOUND, NC_OPAQUE, or NC_ENUM */
    int num_enum_members;
    NC_ENUM_MEMBER_INFO_T *enum_member;

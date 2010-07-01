@@ -774,6 +774,8 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       *xtype = nc_type_constant[t];
       (*type_info)->nc_typeid = nc_type_constant[t];
       (*type_info)->size = type_size[t];
+      if (!((*type_info)->name = malloc((strlen(type_name[t]) + 1) * sizeof(char))))
+	 return NC_ENOMEM;
       strcpy((*type_info)->name, type_name[t]);
       (*type_info)->class = class;
       (*type_info)->hdf_typeid = hdf_typeid;
@@ -1100,6 +1102,8 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
    /* Remember info about this type. */
    type->nc_typeid = grp->file->nc4_info->next_typeid++;
    type->size = type_size;
+   if (!(type->name = malloc((strlen(type_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(type->name, type_name);
    type->class = ud_type_type;
    type->base_nc_type = base_nc_type;
