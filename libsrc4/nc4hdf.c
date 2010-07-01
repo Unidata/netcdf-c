@@ -1156,10 +1156,6 @@ write_coord_dimids(NC_VAR_INFO_T *var)
    hid_t c_spaceid = -1, c_attid = -1;
    int ret = 0;
 
-   LOG((4, "A multidimensional coordinate variable can be "
-        "a devilishly tricky little blighter! %d %d %d", var->dimids[0], 
-        var->dimids[1], var->dimids[2]));
-
    /* Write our attribute. */
    coords_len[0] = var->ndims;
    if ((c_spaceid = H5Screate_simple(1, coords_len, coords_len)) < 0) ret++;
@@ -2050,7 +2046,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
 
    if (!var->dirty)
    {
-      if (write_dimid)
+      if (write_dimid && var->ndims)
 	 if ((retval = write_netcdf4_dimid(var->hdf_datasetid, 
 					   var->dimids[0])))
 	    BAIL(retval);
@@ -2345,12 +2341,15 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
     * vars. Detect if this is about to happen. */
    for (var = grp->var; var; var = var->next)
    {
-      if (var->dimscale && var->dimids[0] < last_dimid)
+      if (var->ndims)
       {
-	 bad_coord_order++;
-	 break;
+	 if (var->dimscale && var->dimids[0] < last_dimid)
+	 {
+	    bad_coord_order++;
+	    break;
+	 }
+	 last_dimid = var->dimids[0];
       }
-      last_dimid = var->dimids[0];
    }
       
    /* Set the pointer to the beginning of the list of vars in this

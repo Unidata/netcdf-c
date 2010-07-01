@@ -371,13 +371,19 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    if (!num_unlim)
       var->contiguous = 1;
 
+   /* Allocate space for dimension information. */
+   if (ndims)
+   {
+      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
+	 return NC_ENOMEM;
+      if (!(var->dimids = malloc(sizeof(int) * ndims)))
+	 return NC_ENOMEM;
+   }
+
    /* At the same time, check to see if this is a coordinate
     * variable. If so, it will have the same name as one of its
     * dimensions. If it is a coordinate var, is it a coordinate var in
     * the same group as the dim? */
-   if (ndims)
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
-	 return NC_ENOMEM;
    for (d = 0; d < ndims; d++)
    {
       NC_GRP_INFO_T *dim_grp;

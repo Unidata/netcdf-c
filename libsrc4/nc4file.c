@@ -1266,10 +1266,15 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    var->created++;
    var->ndims = ndims;
 
-   /* We need an array of pointers to dimensions for this var. */
+   /* We need some room to store information about dimensions for this
+    * var. */
    if (var->ndims)
+   {
       if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
 	 return NC_ENOMEM;
+      if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
+	 return NC_ENOMEM;
+   }
 
    /* Learn about current chunk cache settings. */
    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems), 

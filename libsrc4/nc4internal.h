@@ -162,7 +162,7 @@ typedef struct NC_VAR_INFO
    char *name;
    char *hdf5_name; /* used if different from name */
    int ndims;
-   int dimids[NC_MAX_VAR_DIMS];
+   int *dimids;
    NC_DIM_INFO_T **dim;
    int varid;
    int natts;
