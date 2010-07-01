@@ -191,7 +191,7 @@ typedef struct NC_FIELD_INFO
    char *name;
    int fieldid;
    int ndims;
-   int dim_size[NC_MAX_VAR_DIMS];
+   int *dim_size;
 } NC_FIELD_INFO_T;
 
 typedef struct NC_ENUM_MEMBER_INFO
@@ -239,7 +239,7 @@ typedef struct NC_GRP_INFO
    int ndims;
    int natts;
    struct NC_FILE_INFO *file;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
 } NC_GRP_INFO_T;

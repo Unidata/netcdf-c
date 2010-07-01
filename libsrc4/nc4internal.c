@@ -763,6 +763,8 @@ nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
    /* Fill in this group's information. */
    (*grp)->nc_grpid = new_nc_grpid;
    (*grp)->parent = parent_grp;
+   if (!((*grp)->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy((*grp)->name, name);
    (*grp)->file = nc;
 
@@ -867,8 +869,13 @@ nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
    field->nctype = xtype;
    field->offset = offset;
    field->ndims = ndims;
-   for (i = 0; i < ndims; i++)
-      field->dim_size[i] = dim_sizesp[i];
+   if (ndims)
+   {
+      if (!(field->dim_size = malloc(ndims * sizeof(int))))
+	 return NC_ENOMEM;
+      for (i = 0; i < ndims; i++)
+	 field->dim_size[i] = dim_sizesp[i];
+   }
 
    return NC_NOERR;
 }
@@ -1002,9 +1009,11 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
    if(field->next)
       field->next->prev = field->prev;
 
-   /* Free the name. */
+   /* Free some stuff. */
    if (field->name)
       free(field->name);
+   if (field->dim_size)
+      free(field->dim_size);
 
    /* Nc_Free the memory. */
    free(field);
@@ -1191,6 +1200,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    LOG((4, "nc4_rec_grp_del: closing group %s", grp->name));         
    if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) 
       return NC_EHDFERR;
+
+   /* Free the name. */
+   free(grp->name);
 
    /* Finally, redirect pointers around this entry in the list, and
     * nc_free its memory. */
