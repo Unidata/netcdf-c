@@ -1777,17 +1777,29 @@ init_types(int ncid) {
 int
 iscoordvar(int ncid, int varid)
 {
-    int ndims;
+    int ndims, ndims1;
     int dimid;
-    ncdim_t *dims;
+    int* dimids = 0;
+    ncdim_t *dims = 0;
+    int include_parents = 1;
     int is_coord = 0;		/* true if variable is a coordinate variable */
     char varname[NC_MAX_NAME];
     int varndims;
 
-    NC_CHECK( nc_inq_ndims(ncid, &ndims) );
-    dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+    do {	  /* be safe in case someone is currently adding
+		   * dimensions */
+	NC_CHECK( nc_inq_ndims(ncid, &ndims) );
+	if (dims)
+	    free(dims);
+	dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+	if (dimids)
+	    free(dimids);
+	dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+	NC_CHECK( nc_inq_dimids(ncid, &ndims1, dimids, include_parents ) );
+    } while (ndims != ndims1);
+
     for (dimid = 0; dimid < ndims; dimid++) {
-	NC_CHECK( nc_inq_dimname(ncid, dimid, dims[dimid].name) );
+	NC_CHECK( nc_inq_dimname(ncid, dimids[dimid], dims[dimid].name) );
     }
     NC_CHECK( nc_inq_varname(ncid, varid, varname) );
     NC_CHECK( nc_inq_varndims(ncid, varid, &varndims) );
@@ -1798,7 +1810,10 @@ iscoordvar(int ncid, int varid)
 	    break;
 	}
     }
-    free(dims);
+    if(dims)
+	free(dims);
+    if(dimids)
+	free(dimids);
     return is_coord;
 }
 
