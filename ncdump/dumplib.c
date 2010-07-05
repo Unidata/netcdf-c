@@ -1798,10 +1798,13 @@ iscoordvar(int ncid, int varid)
 #ifdef USE_NETCDF4
 	NC_CHECK( nc_inq_dimids(ncid, &ndims1, dimids, include_parents ) );
 #else
-	for(int i = 0; i < ndims; i++) {
-	    dimids[i] = i;	/* for netCDF-3, dimids are 0, 1, ..., ndims-1 */
+	{
+	    int i;
+	    for(i = 0; i < ndims; i++) {
+		dimids[i] = i;	/* for netCDF-3, dimids are 0, 1, ..., ndims-1 */
+	    }
+	    NC_CHECK( nc_inq_ndims(ncid, &ndims1) );
 	}
-	NC_CHECK( nc_inq_ndims(ncid, &ndims1) );
 #endif	/* USE_NETCDF4 */
     } while (ndims != ndims1);
 
