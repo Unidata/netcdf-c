@@ -2065,6 +2065,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
    if ((h5->sdid = SDstart(path, DFACC_READ)) == FAIL)
       return NC_EHDFERR;
 
+   /* Learn how many datasets and global atts we have. */
    if (SDfileinfo(h5->sdid, &num_datasets, &num_gatts))
       return NC_EHDFERR;
 
@@ -2144,6 +2145,15 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	 /* Whoops! No fill value! */
 	 free(var->fill_value);
 	 var->fill_value = NULL;
+      }
+
+      /* Allocate storage for dimension info in this variable. */
+      if (var->ndims)
+      {
+	 if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
+	    return NC_ENOMEM;
+	 if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
+	    return NC_ENOMEM;
       }
 
       /* Find its dimensions. */

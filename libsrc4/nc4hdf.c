@@ -1524,15 +1524,18 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
    else
       chunk_size_bytes *= sizeof(char *);
 
-   /* Is it too small? */
-   if (chunk_size_bytes > var->chunk_cache_size)
-   {
-      var->chunk_cache_size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-      if (var->chunk_cache_size > MAX_DEFAULT_CACHE_SIZE)
-	 var->chunk_cache_size = MAX_DEFAULT_CACHE_SIZE;
-      if ((retval = nc4_reopen_dataset(grp, var)))
-	 return retval;
-   }
+   /* If the chunk cache is too small, and the user has not changed
+    * the default value of the chunk cache size, then increase the
+    * size of the cache. */
+   if (var->chunk_cache_size == CHUNK_CACHE_SIZE)
+      if (chunk_size_bytes > var->chunk_cache_size)
+      {
+	 var->chunk_cache_size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
+	 if (var->chunk_cache_size > MAX_DEFAULT_CACHE_SIZE)
+	    var->chunk_cache_size = MAX_DEFAULT_CACHE_SIZE;
+	 if ((retval = nc4_reopen_dataset(grp, var)))
+	    return retval;
+      }
 
    return NC_NOERR;
 }
