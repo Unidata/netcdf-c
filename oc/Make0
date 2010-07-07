@@ -1,25 +1,26 @@
 THISDIR=../oc
-OCDIR=/home/dmh/nc/oc
+OCDIR=./oc
+OCSVN="http://scm.opendap.org/svn/trunk/oc"
 
 all::
 
 makeoc::
 	rm -f ${THISDIR}/*.[chy]
+	rm -fr ${OCDIR}
+	svn co ${OCSVN}
 	for f in ${OCDIR}/*.[chy]; do \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; done
-	rm -f i.* apitest.* getoc.* imain.* main.*
-	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
-	rm -f ocshadow.*
-	rm -f octest.c
-	rm -f ocinternal.h
+	rm -f ocinternal.h octest.c
+	rm -f ce.y ceparselex.h ceparse.c celex.c
+	rm -f dap.tab.h dap.tab.c
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
-	for f in ${THISDIR}/*.[chy] ; do \
+	if test -e ${OCDIR} ; then ignore=1; else svn co ${OCSVN}; fi
+	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
-	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
 	    if test -e ${THISDIR}/$$x ; then \
 		diff -qw ${THISDIR}/$$x $$f ; \
 	    fi; \
@@ -35,3 +36,8 @@ diffoc::
 	    fi; \
 	done
 
+#	rm -f i.* apitest.* getoc.* imain.* main.*
+#	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
+#	rm -f ocshadow.*
+#	rm -f octest.c
+#	rm -f ocinternal.h

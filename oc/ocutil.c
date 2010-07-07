@@ -381,6 +381,8 @@ ocerrstring(int err)
 	    return "OC_EDDS: Malformed or unreadable DDS";
 	case OC_EDATADDS:
 	    return "OC_EDATADDS: Malformed or unreadable DATADDS";
+	case OC_ERCFILE:
+	    return "OC_ERCFILE: Malformed or unreadable run-time configuration file";
 	default: break;
     }
     return "<unknown error code>";

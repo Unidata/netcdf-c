@@ -15,6 +15,7 @@
 #include "occontent.h"
 #include "occlientparams.h"
 #include "rc.h"
+#include "curlfunctions.h"
 
 #include "http.h"
 #include "read.h"
@@ -26,15 +27,18 @@
 /*#define TMPPATH "/tmp/"*/
 #endif
 #define TMPPATH "./"
-#define BUFSIZE 512
-#define DODSRC_SIZE 9
-#define DODSRC "/.dodsrc"
+
+/* Define default rc files */
+#define DODSRC ".dodsrc"
+#define OPENDAPRC ".opendap.rc"
 
 static int ocextractdds(OCstate*,OCtree*);
 static char* constraintescape(const char* url);
 #ifdef OC_DISK_STORAGE
 static OCerror createtempfile(OCstate*,OCtree*);
 #endif
+
+static void ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -58,16 +62,12 @@ static int oc_big_endian;
 int oc_network_order; /* network order is big endian */
 int oc_invert_xdr_double;
 int oc_curl_file_supported;
+int oc_curl_https_supported;
 
-static int ocinitialized = 0;
-
-static int
-ocinitialize(void)
+int
+ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
-    char buf[BUFSIZE];
-    char *env;
-    int len;
 
     /* Compute if we are same as network order v-a-v xdr */
 #ifdef XDRBYTEORDER
@@ -129,54 +129,25 @@ ocinitialize(void)
     }
     oc_loginit();
 
-    /* read/write configuration file */
-    env = getenv("HOME");
-    if (env != NULL) {
-            len = strlen(env);
-            if (len >= BUFSIZE - DODSRC_SIZE) {
-                    oc_log(LOGERR, "length of home directory is too long\n");
-                    stat = OC_EIO;
-                    goto end;
-            }
-            strncpy(buf, env, BUFSIZE - 1);
-            buf[len] = '\0';
-            strncat(buf, DODSRC, BUFSIZE - 1);
-            buf[len + DODSRC_SIZE] = '\0';
-
-            if (ocdebug > 1)
-                    fprintf(stderr, "Your RC file: %s\n", buf);
-
-            /* stat = OC_NOERR; */
-            if (access(buf, R_OK) != 0) {
-                    if (write_dodsrc(buf) != OC_NOERR) {
-                            oc_log(LOGERR, "Error getting buffer\n");
-                            stat = OC_EIO;
-                    }
-            }
-
-            if (read_dodsrc(buf) != OC_NOERR) {
-                    oc_log(LOGERR, "Error parsing buffer\n");
-                    stat = OC_EIO;
-            }
-    }
-
-    /* Determine if this version of curl supports "file://..." urls.*/
+    /* Determine if this version of curl supports
+       "file://..." &/or "https://..." urls.
+    */
     {
         const char* const* proto; /*weird*/
         curl_version_info_data* curldata;
         curldata = curl_version_info(CURLVERSION_NOW);
         oc_curl_file_supported = 0;
+        oc_curl_https_supported = 0;
         for(proto=curldata->protocols;*proto;proto++) {
             if(strcmp("file",*proto)==0) {oc_curl_file_supported=1;break;}
+            if(strcmp("https",*proto)==0) {oc_curl_https_supported=1;break;}
         }
         if(ocdebug > 0) {
             oc_log(LOGNOTE,"Curl file:// support = %d",oc_curl_file_supported);
+            oc_log(LOGNOTE,"Curl https:// support = %d",oc_curl_file_supported);
         }
     }
 
-    ocinitialized = 1;
-
-end:
     return THROW(stat);
 }
 
@@ -190,11 +161,6 @@ ocopen(OCstate** statep, const char* url)
     CURL* curl = NULL; /* curl handle*/
 
     memset((void*)&tmpurl,0,sizeof(tmpurl));
-
-    if(!ocinitialized) {
-	stat=ocinitialize();
-	if(stat) {THROWCHK(stat=OC_EBADURL); goto fail;}
-    }
 
     if(!dapurlparse(url,&tmpurl)) {THROWCHK(stat=OC_EBADURL); goto fail;}
     
@@ -216,6 +182,10 @@ ocopen(OCstate** statep, const char* url)
     }
     state->packet = ocbytesnew();
     ocbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
+
+    /* set curl properties for this link */
+    ocsetcurlproperties(state);
+
     if(statep) *statep = state;
     return THROW(stat);   
 
@@ -527,4 +497,90 @@ ocupdatelastmodifieddata(OCstate* state)
 	state->datalastmodified = lastmodified;
     }
     return status;
+}
+
+/*
+    Set curl properties for link based on rc files
+*/
+static void
+ocsetcurlproperties(OCstate* state)
+{
+    CURL* curl = state->curl;
+    CURLcode cstat = CURLE_OK;
+    int stat = OC_NOERR;
+    char *homepath = NULL;
+    char* path = NULL;
+    FILE* f = NULL;
+
+    /* Load dodsrc file */
+    /* locate the configuration files: . first, then $HOME */
+    path = (char*)malloc(strlen(".")+1+strlen(DODSRC)+1);
+    strcpy(path,"./");
+    strcat(path,DODSRC);
+    /* see if file is readable */
+    f = fopen(path,"r");
+    if(f == NULL) {
+	/* try $HOME */
+        homepath = getenv("HOME");
+        if (homepath!= NULL) {
+	    path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
+	    strcpy(path,homepath);
+	    strcat(path,"/");
+	    strcat(path,DODSRC);
+	    f = fopen(path,"r");
+        }
+    }
+    if(f != NULL) {
+	fclose(f);
+        if (ocdebug > 1)
+           fprintf(stderr, "DODS RC file: %s\n", path);
+        if(ocread_dodsrc(path,state) != OC_NOERR) {
+	    oc_log(LOGERR, "Error parsing %s\n",path);
+	    goto fail;
+	}
+    } else {/*complain*/
+	oc_log(LOGWARN,"Cannot find runtime .dodsrc configuration file");
+	goto fail;
+    }
+    if(path != NULL) {free(path) ; path = NULL;}
+
+    /* Set username+password from .dodsrc */
+    stat=ocset_user_password(curl,state->creds.username,
+                                  state->creds.password);
+    if(stat != OC_NOERR) goto fail;    
+
+    if (occredentials_in_url(state->url.url)) {
+	/* this overrides .dodsrc */
+        char *result_url = NULL;
+        char* userName = NULL;
+        char* password = NULL;
+        if (ocextract_credentials(state->url.url, &userName, &password, &result_url) != OC_NOERR)
+            goto fail;
+	dapurlclear(&state->url);
+	dapurlparse(result_url,&state->url);
+	/* this overrides .dodsrc */
+        if(password != NULL && strlen(password) > 0) {
+            if(state->creds.password) free(state->creds.password);
+            state->creds.password = password;
+	}
+        if(userName != NULL && strlen(userName) > 0) {
+            if(state->creds.username) free(state->creds.username);
+            state->creds.username = userName;
+	}
+    }
+
+    /* Set curl properties */
+    if((stat=ocset_curl_flags(curl,state)) != OC_NOERR) goto fail;
+    /* Set curl proxy */
+    if((stat=ocset_proxy(curl,state)) != OC_NOERR) goto fail;
+    /* Set curl ssl */
+    if((stat=ocset_ssl(curl,state)) != OC_NOERR) goto fail;
+
+    return;
+
+fail:
+    if(path != NULL) free(path);
+    if(cstat != CURLE_OK)
+	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    return;
 }
