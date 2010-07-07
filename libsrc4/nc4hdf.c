@@ -1156,10 +1156,6 @@ write_coord_dimids(NC_VAR_INFO_T *var)
    hid_t c_spaceid = -1, c_attid = -1;
    int ret = 0;
 
-   LOG((4, "A multidimensional coordinate variable can be "
-        "a devilishly tricky little blighter! %d %d %d", var->dimids[0], 
-        var->dimids[1], var->dimids[2]));
-
    /* Write our attribute. */
    coords_len[0] = var->ndims;
    if ((c_spaceid = H5Screate_simple(1, coords_len, coords_len)) < 0) ret++;
@@ -1439,7 +1435,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 	 BAIL(NC_EHDFERR);
 
    /* At long last, create the dataset. */
-   name_to_use = strlen(var->hdf5_name) ? var->hdf5_name : var->name;
+   name_to_use = var->hdf5_name ? var->hdf5_name : var->name;
    LOG((4, "var_create_dataset: about to H5Dcreate dataset %s of type 0x%x", 
         name_to_use, typeid));
    if ((var->hdf_datasetid = H5Dcreate2(grp->hdf_grpid, name_to_use, typeid, 
@@ -1528,15 +1524,18 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var)
    else
       chunk_size_bytes *= sizeof(char *);
 
-   /* Is it too small? */
-   if (chunk_size_bytes > var->chunk_cache_size)
-   {
-      var->chunk_cache_size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-      if (var->chunk_cache_size > MAX_DEFAULT_CACHE_SIZE)
-	 var->chunk_cache_size = MAX_DEFAULT_CACHE_SIZE;
-      if ((retval = nc4_reopen_dataset(grp, var)))
-	 return retval;
-   }
+   /* If the chunk cache is too small, and the user has not changed
+    * the default value of the chunk cache size, then increase the
+    * size of the cache. */
+   if (var->chunk_cache_size == CHUNK_CACHE_SIZE)
+      if (chunk_size_bytes > var->chunk_cache_size)
+      {
+	 var->chunk_cache_size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
+	 if (var->chunk_cache_size > MAX_DEFAULT_CACHE_SIZE)
+	    var->chunk_cache_size = MAX_DEFAULT_CACHE_SIZE;
+	 if ((retval = nc4_reopen_dataset(grp, var)))
+	    return retval;
+      }
 
    return NC_NOERR;
 }
@@ -2050,7 +2049,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
 
    if (!var->dirty)
    {
-      if (write_dimid)
+      if (write_dimid && var->ndims)
 	 if ((retval = write_netcdf4_dimid(var->hdf_datasetid, 
 					   var->dimids[0])))
 	    BAIL(retval);
@@ -2206,7 +2205,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
          /* If we define, and then rename this dimension before
           * creation of the dimscale dataset, then we can throw
           * away the old_name of the dimension. */
-         if (strlen(dim->old_name))
+         if (dim->old_name && strlen(dim->old_name))
             strcpy(dim->old_name, "");
 
          if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
@@ -2299,7 +2298,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
    }
 
    /* Did we rename this dimension? */
-   if (strlen(dim->old_name))
+   if (dim->old_name && strlen(dim->old_name))
    {
       /* Rename the dimension's dataset in the HDF5 file. */
       if (H5Gmove2(grp->hdf_grpid, dim->old_name, grp->hdf_grpid, dim->name) < 0)
@@ -2345,12 +2344,15 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
     * vars. Detect if this is about to happen. */
    for (var = grp->var; var; var = var->next)
    {
-      if (var->dimscale && var->dimids[0] < last_dimid)
+      if (var->ndims)
       {
-	 bad_coord_order++;
-	 break;
+	 if (var->dimscale && var->dimids[0] < last_dimid)
+	 {
+	    bad_coord_order++;
+	    break;
+	 }
+	 last_dimid = var->dimids[0];
       }
-      last_dimid = var->dimids[0];
    }
       
    /* Set the pointer to the beginning of the list of vars in this
@@ -3839,6 +3841,8 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 		  dim = grp->dim;
 		  dim->dimid = grp->file->nc4_info->next_dimid++;
 		  sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
+		  if (!(dim->name = malloc((strlen(phony_dim_name) + 1) * sizeof(char))))
+		     return NC_ENOMEM;
 		  strcpy(dim->name, phony_dim_name);
 		  dim->len = h5dimlen[d];
 		  if (h5dimlenmax[d] == H5S_UNLIMITED)

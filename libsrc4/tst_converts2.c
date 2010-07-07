@@ -14,7 +14,6 @@
 #define FILE_NAME "tst_converts2.nc"
 #define VAR_NAME "Monkey"
 
-
 int
 main(int argc, char **argv)
 {
@@ -47,7 +46,6 @@ main(int argc, char **argv)
       if (long_in != schar) ERR;
       if (nc_close(ncid)) ERR;
    }
-
    SUMMARIZE_ERR;
    printf ("*** Testing MAX_INT converstions...");
    {

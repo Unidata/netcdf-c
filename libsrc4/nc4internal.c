@@ -1,5 +1,4 @@
 /*
-
 This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
 HDF5 backend for netCDF, depending on your point of view.
 
@@ -174,6 +173,8 @@ nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode)
    h5 = nc->nc4_info;
 
    /* Hang on to the filename for nc_abort. */
+   if (!(h5->path = malloc((strlen(path) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(h5->path, path);
 
    /* Hang on to cmode, and note that we're in define mode. */
@@ -591,16 +592,26 @@ nc4_file_list_add(NC_FILE_INFO_T** ncp)
 {
     NC_FILE_INFO_T *nc;
     int status = NC_NOERR;
-    if (!(nc = calloc(1, sizeof(NC_FILE_INFO_T)))) return NC_ENOMEM;
-    add_to_NCList((NC*)nc);
-    if(status != NC_NOERR) {
-	if(nc != NULL && nc->ext_ncid > 0) {
-            del_from_NCList((NC*)nc);
- 	    free(nc);
-	}
-	return status;
+
+    /* Allocate memory for this info. */
+    if (!(nc = calloc(1, sizeof(NC_FILE_INFO_T)))) 
+       return NC_ENOMEM;
+
+    /* Add this file to the list. */
+    if ((status = add_to_NCList((NC *)nc)))
+    {
+       if(nc && nc->ext_ncid > 0) 
+       {
+	  del_from_NCList((NC *)nc);
+	  free(nc);
+       }
+       return status;
     }
-    if(ncp) *ncp = nc;
+    
+    /* Return a pointer to the new struct. */
+    if(ncp) 
+       *ncp = nc;
+
     return NC_NOERR;
 }
 
@@ -609,7 +620,13 @@ nc4_file_list_add(NC_FILE_INFO_T** ncp)
 void
 nc4_file_list_del(NC_FILE_INFO_T *nc)
 {
-   del_from_NCList((NC*)nc);
+   /* Delete the memory for the path, if it's been allocated. */
+   if (nc->nc4_info)
+      if (nc->nc4_info->path)
+	 free(nc->nc4_info->path);
+
+   /* Remove file from master list. */
+   del_from_NCList((NC *)nc);
    free(nc);
 }
 
@@ -746,6 +763,8 @@ nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
    /* Fill in this group's information. */
    (*grp)->nc_grpid = new_nc_grpid;
    (*grp)->parent = parent_grp;
+   if (!((*grp)->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy((*grp)->name, name);
    (*grp)->file = nc;
 
@@ -842,14 +861,21 @@ nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
 
    /* Store the information about this field. */
    field->fieldid = fieldid;
+   if (!(field->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(field->name, name);
    field->hdf_typeid = field_hdf_typeid;
    field->native_typeid = native_typeid;
    field->nctype = xtype;
    field->offset = offset;
    field->ndims = ndims;
-   for (i = 0; i < ndims; i++)
-      field->dim_size[i] = dim_sizesp[i];
+   if (ndims)
+   {
+      if (!(field->dim_size = malloc(ndims * sizeof(int))))
+	 return NC_ENOMEM;
+      for (i = 0; i < ndims; i++)
+	 field->dim_size[i] = dim_sizesp[i];
+   }
 
    return NC_NOERR;
 }
@@ -885,6 +911,8 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    }
 
    /* Store the information about this member. */
+   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(member->name, name);
    memcpy(member->value, value, size);
 
@@ -908,8 +936,17 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       att = a;
    }
 
-   /* Free the memory that holds pointers to dims. */
-   free(var->dim);
+   /* Free some things that may be allocated. */
+   if (var->chunksizes)
+      free(var->chunksizes);
+   if (var->hdf5_name)
+      free(var->hdf5_name);
+   if (var->name)
+      free(var->name);
+   if (var->dimids)
+      free(var->dimids);
+   if (var->dim)
+      free(var->dim);
 
    /* Remove the var from the linked list. */
    if(*list == var)
@@ -972,6 +1009,12 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
    if(field->next)
       field->next->prev = field->prev;
 
+   /* Free some stuff. */
+   if (field->name)
+      free(field->name);
+   if (field->dim_size)
+      free(field->dim_size);
+
    /* Nc_Free the memory. */
    free(field);
 }
@@ -995,6 +1038,10 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 	 return NC_EHDFERR;
    }
 
+   /* Free the name. */
+   if (type->name)
+      free(type->name);
+
    /* Delete all the fields in this type (there will be some if its a
     * compound). */
    field = type->field;
@@ -1011,6 +1058,7 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
    {
       em = enum_member->next;
       free(enum_member->value);
+      free(enum_member->name);
       free(enum_member);
       enum_member = em;
    }
@@ -1042,6 +1090,12 @@ nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
 
    if(dim->next)
       dim->next->prev = dim->prev;
+
+   /* Free memory allocated for names. */
+   if (dim->name)
+      free(dim->name);
+   if (dim->old_name)
+      free(dim->old_name);
 
    free(dim);
    return NC_NOERR;
@@ -1147,6 +1201,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) 
       return NC_EHDFERR;
 
+   /* Free the name. */
+   free(grp->name);
+
    /* Finally, redirect pointers around this entry in the list, and
     * nc_free its memory. */
    grp_list_del(list, grp);
@@ -1175,6 +1232,10 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
     * attribute. */
    if (att->data)
       free(att->data);
+
+   /* Free the name. */
+   if (att->name)
+      free(att->name);
 
    /* Close the HDF5 typeid. */
    if (att->native_typeid && H5Tclose(att->native_typeid) < 0)
