@@ -847,220 +847,202 @@ nc_get_vara(int ncid, int varid,
 int
 nc_get_var(int ncid, int varid, void *value)
 {
-   return NC_get_var(ncid,varid,value,NC_NAT);
+   return NC_get_var(ncid, varid, value, NC_NAT);
 }
 
 int
 nc_put_var(int ncid, int varid, const void *value)
 {
-   return NC_put_var(ncid,varid,value,NC_NAT);
+   return NC_put_var(ncid, varid, value, NC_NAT);
 }
 
 int
 nc_get_var1(int ncid, int varid, const size_t *coord, void *value)
 {
-   return NC_get_var1(ncid,varid,coord,value,NC_NAT);
+   return NC_get_var1(ncid, varid, coord, value, NC_NAT);
 }
 
 int
 nc_put_var1(int ncid, int varid, const size_t *coord, const void *value)
 {
-   return NC_put_var1(ncid,varid,coord,value,NC_NAT);
+   return NC_put_var1(ncid, varid, coord, value, NC_NAT);
 }
 
 int
-nc_get_varm(
-   int ncid,
-   int varid,
-   const size_t * start,
-   const size_t * edges,
-   const ptrdiff_t * stride,
-   const ptrdiff_t * imapp,
-   void *value)
+nc_get_varm(int ncid, int varid, const size_t * start,
+	    const size_t * edges, const ptrdiff_t * stride,
+	    const ptrdiff_t * imapp, void *value)
 {
-   return NC_get_varm (ncid, varid, start, edges, stride, imapp,
-		       value, NC_NAT);
+   return NC_get_varm(ncid, varid, start, edges, stride, imapp,
+		      value, NC_NAT);
 }
 
 int
-nc_put_varm (
-   int ncid,
-   int varid,
-   const size_t * start,
-   const size_t * edges,
-   const ptrdiff_t * stride,
-   const ptrdiff_t * imapp,
-   const void *value)
+nc_put_varm (int ncid, int varid, const size_t * start,
+	     const size_t * edges, const ptrdiff_t * stride,
+	     const ptrdiff_t * imapp, const void *value)
 {
-   return NC_put_varm (ncid, varid, start, edges, stride, imapp,
-		       value, NC_NAT);
+   return NC_put_varm(ncid, varid, start, edges, stride, imapp,
+		      value, NC_NAT);
 }
 
 int
-nc_get_vars(
-   int ncid,
-   int varid,
-   const size_t * start,
-   const size_t * edges,
-   const ptrdiff_t * stride,
-   void *value)
+nc_get_vars(int ncid, int varid, const size_t * start,
+	    const size_t * edges, const ptrdiff_t * stride,
+	    void *value)
 {
-   return nc_get_varm (ncid, varid, start, edges,
-		       stride, NULL, value);
+   return nc_get_varm(ncid, varid, start, edges,
+		      stride, NULL, value);
 }
 
 int
-nc_put_vars (
-   int ncid,
-   int varid,
-   const size_t * start,
-   const size_t * edges,
-   const ptrdiff_t * stride,
-   const void *value)
+nc_put_vars (int ncid, int varid, const size_t * start,
+	     const size_t * edges, const ptrdiff_t * stride,
+	     const void *value)
 {
-   return nc_put_varm (ncid, varid, start, edges,
-		       stride, NULL, value);
+   return nc_put_varm(ncid, varid, start, edges,
+		      stride, NULL, value);
 }
 int
 nc_get_var1_text(int ncid, int varid, const size_t *coord, char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid, varid, coord, (void*)value, NC_CHAR);
 }
 
 int
 nc_get_var1_schar(int ncid, int varid, const size_t *coord, signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid, varid, coord, (void*)value, NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid, varid, coord, (void*)value, NC_BYTE);
 }
 
 int
 nc_get_var1_uchar(int ncid, int varid, const size_t *coord, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid, varid, coord, (void*)value, NC_UBYTE);
 }
 
 int
 nc_get_var1_short(int ncid, int varid, const size_t *coord, short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid, varid, coord, (void*)value, NC_SHORT);
 }
 
 int
 nc_get_var1_int(int ncid, int varid, const size_t *coord, int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid, varid, coord, (void*)value, NC_INT);
 }
 
 int
 nc_get_var1_long(int ncid, int varid, const size_t *coord, long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, longtype);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, longtype);
 }
 
 int
 nc_get_var1_float(int ncid, int varid, const size_t *coord, float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_FLOAT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_FLOAT);
 }
 
 int
 nc_get_var1_double(int ncid, int varid, const size_t *coord, double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_DOUBLE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_DOUBLE);
 }
 
 int
 nc_get_var1_ubyte(int ncid, int varid, const size_t *coord, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
 }
 
 int
 nc_get_var1_ushort(int ncid, int varid, const size_t *coord, 
 		   unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_USHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_USHORT);
 }
 
 int
 nc_get_var1_uint(int ncid, int varid, const size_t *coord, unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_INT);
 }
 
 int
 nc_get_var1_longlong(int ncid, int varid, const size_t *coord, long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_INT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_INT64);
 }
 
 int
 nc_get_var1_ulonglong(int ncid, int varid, const size_t *coord, unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_get_var1_string(int ncid, int varid, const size_t *coord, char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_get_var1(ncid,varid,coord,(void*)value, NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_get_var1(ncid,varid,coord,(void*)value, NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
@@ -1068,142 +1050,142 @@ nc_get_var1_string(int ncid, int varid, const size_t *coord, char* *value)
 int
 nc_put_var1_text(int ncid, int varid, const size_t *coord, const char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_CHAR);
 }
 
 int
 nc_put_var1_schar(int ncid, int varid, const size_t *coord, const signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_BYTE);
 }
 
 int
 nc_put_var1_uchar(int ncid, int varid, const size_t *coord, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
 }
 
 int
 nc_put_var1_short(int ncid, int varid, const size_t *coord, const short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
 }
 
 int
 nc_put_var1_int(int ncid, int varid, const size_t *coord, const int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_INT);
 }
 
 int
 nc_put_var1_long(int ncid, int varid, const size_t *coord, const long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, longtype);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, longtype);
 }
 
 int
 nc_put_var1_float(int ncid, int varid, const size_t *coord, const float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_FLOAT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_FLOAT);
 }
 
 int
 nc_put_var1_double(int ncid, int varid, const size_t *coord, const double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_DOUBLE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_DOUBLE);
 }
 
 int
 nc_put_var1_ubyte(int ncid, int varid, const size_t *coord, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_UBYTE);
 }
 
 int
 nc_put_var1_ushort(int ncid, int varid, const size_t *coord, const unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
 }
 
 int
 nc_put_var1_uint(int ncid, int varid, const size_t *coord, const unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_UINT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_UINT);
 }
 
 int
 nc_put_var1_longlong(int ncid, int varid, const size_t *coord, const long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_INT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_INT64);
 }
 
 int
 nc_put_var1_ulonglong(int ncid, int varid, const size_t *coord, const unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid,varid,coord,(void*)value, NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_put_var1_string(int ncid, int varid, const size_t *coord, const char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    INITCOORD1;
-    return NC_put_var1(ncid, varid, coord, (void*)value, NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   INITCOORD1;
+   return NC_put_var1(ncid, varid, coord, (void*)value, NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
@@ -1211,128 +1193,128 @@ nc_put_var1_string(int ncid, int varid, const size_t *coord, const char* *value)
 int
 nc_get_var_text(int ncid, int varid, char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid, varid, (void*)value, NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid, varid, (void*)value, NC_CHAR);
 }
 
 int
 nc_get_var_schar(int ncid, int varid, signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_BYTE);
 }
 
 int
 nc_get_var_uchar(int ncid, int varid, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_UBYTE);
 }
 
 int
 nc_get_var_short(int ncid, int varid, short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_SHORT);
 }
 
 int
 nc_get_var_int(int ncid, int varid, int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_INT);
 }
 
 int
 nc_get_var_long(int ncid, int varid, long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, longtype);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, longtype);
 }
 
 int
 nc_get_var_float(int ncid, int varid, float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_FLOAT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_FLOAT);
 }
 
 int
 nc_get_var_double(int ncid, int varid, double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_DOUBLE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_DOUBLE);
 }
 
 int
 nc_get_var_ubyte(int ncid, int varid, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_UBYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_UBYTE);
 }
 
 int
 nc_get_var_ushort(int ncid, int varid, unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_USHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_USHORT);
 }
 
 int
 nc_get_var_uint(int ncid, int varid, unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_UINT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_UINT);
 }
 
 int
 nc_get_var_longlong(int ncid, int varid, long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value, NC_INT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value, NC_INT64);
 }
 
 int
 nc_get_var_ulonglong(int ncid, int varid, unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_get_var_string(int ncid, int varid, char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_var(ncid,varid,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_var(ncid,varid,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
@@ -1340,1099 +1322,1097 @@ nc_get_var_string(int ncid, int varid, char* *value)
 int
 nc_put_var_text(int ncid, int varid, const char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_CHAR);
 }
 
 int
 nc_put_var_schar(int ncid, int varid, const signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_BYTE);
 }
 
 int
 nc_put_var_uchar(int ncid, int varid, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_uchar);
 }
 
 int
 nc_put_var_short(int ncid, int varid, const short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_SHORT);
 }
 
 int
 nc_put_var_int(int ncid, int varid, const int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_INT);
 }
 
 int
 nc_put_var_long(int ncid, int varid, const long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_long);
 }
 
 int
 nc_put_var_float(int ncid, int varid, const float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_float);
 }
 
 int
 nc_put_var_double(int ncid, int varid, const double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_double);
 }
 
 int
 nc_put_var_ubyte(int ncid, int varid, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_ubyte);
 }
 
 int
 nc_put_var_ushort(int ncid, int varid, const unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_ushort);
 }
 
 int
 nc_put_var_uint(int ncid, int varid, const unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_uint);
 }
 
 int
 nc_put_var_longlong(int ncid, int varid, const long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,T_longlong);
 }
 
 int
 nc_put_var_ulonglong(int ncid, int varid, const unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_put_var_string(int ncid, int varid, const char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_var(ncid,varid,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_var(ncid,varid,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 
 int
-nc_put_vara_text(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const char *value)
+nc_put_vara_text(int ncid, int varid, const size_t *start, 
+		 const size_t *edges, const char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_CHAR);
+   return NC_put_vara(ncid, varid, start, edges, 
+		      (void*)value, NC_CHAR);
 }
 
 int
 nc_put_vara_schar(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const signed char *value)
+		  const size_t *start, const size_t *edges, const signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_BYTE);
 }
 
 int
 nc_put_vara_uchar(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const unsigned char *value)
+		  const size_t *start, const size_t *edges, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_uchar);
 }
 
 int
 nc_put_vara_short(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const short *value)
+		  const size_t *start, const size_t *edges, const short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_SHORT);
 }
 
 int
 nc_put_vara_int(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const int *value)
+		const size_t *start, const size_t *edges, const int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_INT);
 }
 
 int
 nc_put_vara_long(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const long *value)
+		 const size_t *start, const size_t *edges, const long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_long);
 }
 
 int
 nc_put_vara_float(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const float *value)
+		  const size_t *start, const size_t *edges, const float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_float);
 }
 
 int
 nc_put_vara_double(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const double *value)
+		   const size_t *start, const size_t *edges, const double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_double);
 }
 
 int
 nc_put_vara_ubyte(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const unsigned char *value)
+		  const size_t *start, const size_t *edges, const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_ubyte);
 }
 
 int
 nc_put_vara_ushort(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const unsigned short *value)
+		   const size_t *start, const size_t *edges, const unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_ushort);
 }
 
 int
 nc_put_vara_uint(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const unsigned int *value)
+		 const size_t *start, const size_t *edges, const unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_uint);
 }
 
 int
 nc_put_vara_longlong(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const long long *value)
+		     const size_t *start, const size_t *edges, const long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,T_longlong);
 }
 
 int
 nc_put_vara_ulonglong(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const unsigned long long *value)
+		      const size_t *start, const size_t *edges, const unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_put_vara_string(int ncid, int varid,
-	 const size_t *start, const size_t *edges, const char* *value)
+		   const size_t *start, const size_t *edges, const char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vara(ncid,varid,start,edges,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 int
 nc_get_vara_text(int ncid, int varid,
-	 const size_t *start, const size_t *edges, char *value)
+		 const size_t *start, const size_t *edges, char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_CHAR);
 }
 
 int
 nc_get_vara_schar(int ncid, int varid,
-	 const size_t *start, const size_t *edges, signed char *value)
+		  const size_t *start, const size_t *edges, signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_BYTE);
 }
 
 int
 nc_get_vara_uchar(int ncid, int varid,
-	 const size_t *start, const size_t *edges, unsigned char *value)
+		  const size_t *start, const size_t *edges, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_uchar);
 }
 
 int
 nc_get_vara_short(int ncid, int varid,
-	 const size_t *start, const size_t *edges, short *value)
+		  const size_t *start, const size_t *edges, short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_SHORT);
 }
 
 int
 nc_get_vara_int(int ncid, int varid,
-	 const size_t *start, const size_t *edges, int *value)
+		const size_t *start, const size_t *edges, int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_INT);
 }
 
 int
 nc_get_vara_long(int ncid, int varid,
-	 const size_t *start, const size_t *edges, long *value)
+		 const size_t *start, const size_t *edges, long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_long);
 }
 
 int
 nc_get_vara_float(int ncid, int varid,
-	 const size_t *start, const size_t *edges, float *value)
+		  const size_t *start, const size_t *edges, float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_float);
 }
 
 int
 nc_get_vara_double(int ncid, int varid,
-	 const size_t *start, const size_t *edges, double *value)
+		   const size_t *start, const size_t *edges, double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_double);
 }
 
 int
 nc_get_vara_ubyte(int ncid, int varid,
-	 const size_t *start, const size_t *edges, unsigned char *value)
+		  const size_t *start, const size_t *edges, unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_ubyte);
 }
 
 int
 nc_get_vara_ushort(int ncid, int varid,
-	 const size_t *start, const size_t *edges, unsigned short *value)
+		   const size_t *start, const size_t *edges, unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_ushort);
 }
 
 int
 nc_get_vara_uint(int ncid, int varid,
-	 const size_t *start, const size_t *edges, unsigned int *value)
+		 const size_t *start, const size_t *edges, unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_uint);
 }
 
 int
 nc_get_vara_longlong(int ncid, int varid,
-	 const size_t *start, const size_t *edges, long long *value)
+		     const size_t *start, const size_t *edges, long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,T_longlong);
 }
 
 int
 nc_get_vara_ulonglong(int ncid, int varid,
-	 const size_t *start, const size_t *edges, unsigned long long *value)
+		      const size_t *start, const size_t *edges, unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_get_vara_string(int ncid, int varid,
-	 const size_t *start, const size_t *edges, char* *value)
+		   const size_t *start, const size_t *edges, char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vara(ncid,varid,start,edges,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 int
 nc_put_varm_text(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const char *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 const char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_CHAR);
 }
 
 int
 nc_put_varm_schar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const signed char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  const signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_BYTE);
 }
 
 int
 nc_put_varm_uchar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uchar);
 }
 
 int
 nc_put_varm_short(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const short *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  const short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_SHORT);
 }
 
 int
 nc_put_varm_int(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const int *value)
+		const size_t *start, const size_t *edges,
+		const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		const int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_INT);
 }
 
 int
 nc_put_varm_long(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const long *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 const long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_long);
 }
 
 int
 nc_put_varm_float(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const float *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  const float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_float);
 }
 
 int
 nc_put_varm_double(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const double *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   const double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_double);
 }
 
 int
 nc_put_varm_ubyte(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ubyte);
 }
 
 int
 nc_put_varm_ushort(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const unsigned short *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   const unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ushort);
 }
 
 int
 nc_put_varm_uint(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const unsigned int *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 const unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uint);
 }
 
 int
 nc_put_varm_longlong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const long long *value)
+		     const size_t *start, const size_t *edges,
+		     const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		     const long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_longlong);
 }
 
 int
 nc_put_varm_ulonglong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const unsigned long long *value)
+		      const size_t *start, const size_t *edges,
+		      const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		      const unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_put_varm_string(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            const char* *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   const char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 int
 nc_get_varm_text(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            char *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_CHAR);
 }
 
 int
 nc_get_varm_schar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            signed char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_BYTE);
 }
 
 int
 nc_get_varm_uchar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uchar);
 }
 
 int
 nc_get_varm_short(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            short *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_SHORT);
 }
 
 int
 nc_get_varm_int(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            int *value)
+		const size_t *start, const size_t *edges,
+		const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_INT);
 }
 
 int
 nc_get_varm_long(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            long *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_long);
 }
 
 int
 nc_get_varm_float(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            float *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_float);
 }
 
 int
 nc_get_varm_double(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            double *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_double);
 }
 
 int
 nc_get_varm_ubyte(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		  unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ubyte);
 }
 
 int
 nc_get_varm_ushort(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            unsigned short *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_ushort);
 }
 
 int
 nc_get_varm_uint(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            unsigned int *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		 unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_uint);
 }
 
 int
 nc_get_varm_longlong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            long long *value)
+		     const size_t *start, const size_t *edges,
+		     const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		     long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,T_longlong);
 }
 
 int
 nc_get_varm_ulonglong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            unsigned long long *value)
+		      const size_t *start, const size_t *edges,
+		      const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		      unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_get_varm_string(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride, const ptrdiff_t * imapp,
-            char* *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride, const ptrdiff_t * imapp,
+		   char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_varm(ncid,varid,start,edges,stride,imapp,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 int
 nc_put_vars_text(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const char *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 const char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_CHAR);
 }
 
 int
 nc_put_vars_schar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const signed char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  const signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_BYTE);
 }
 
 int
 nc_put_vars_uchar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_uchar);
 }
 
 int
 nc_put_vars_short(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const short *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  const short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_SHORT);
 }
 
 int
 nc_put_vars_int(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const int *value)
+		const size_t *start, const size_t *edges,
+		const ptrdiff_t * stride,
+		const int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_INT);
 }
 
 int
 nc_put_vars_long(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const long *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 const long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_long);
 }
 
 int
 nc_put_vars_float(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const float *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  const float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_float);
 }
 
 int
 nc_put_vars_double(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const double *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   const double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_double);
 }
 
 int
 nc_put_vars_ubyte(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  const unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_ubyte);
 }
 
 int
 nc_put_vars_ushort(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const unsigned short *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   const unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_ushort);
 }
 
 int
 nc_put_vars_uint(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const unsigned int *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 const unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_uint);
 }
 
 int
 nc_put_vars_longlong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const long long *value)
+		     const size_t *start, const size_t *edges,
+		     const ptrdiff_t * stride,
+		     const long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,T_longlong);
 }
 
 int
 nc_put_vars_ulonglong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const unsigned long long *value)
+		      const size_t *start, const size_t *edges,
+		      const ptrdiff_t * stride,
+		      const unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_put_vars_string(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            const char* *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   const char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_put_vars(ncid,varid,start,edges,stride,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/
 
 int
 nc_get_vars_text(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            char *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_CHAR);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_CHAR);
 }
 
 int
 nc_get_vars_schar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            signed char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  signed char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_BYTE);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_BYTE);
 }
 
 int
 nc_get_vars_uchar(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_uchar);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_uchar);
 }
 
 int
 nc_get_vars_short(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            short *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_SHORT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_SHORT);
 }
 
 int
 nc_get_vars_int(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            int *value)
+		const size_t *start, const size_t *edges,
+		const ptrdiff_t * stride,
+		int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_INT);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_INT);
 }
 
 int
 nc_get_vars_long(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            long *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_long);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_long);
 }
 
 int
 nc_get_vars_float(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            float *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  float *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_float);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_float);
 }
 
 int
 nc_get_vars_double(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            double *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   double *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_double);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_double);
 }
 
 int
 nc_get_vars_ubyte(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            unsigned char *value)
+		  const size_t *start, const size_t *edges,
+		  const ptrdiff_t * stride,
+		  unsigned char *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_ubyte);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_ubyte);
 }
 
 int
 nc_get_vars_ushort(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            unsigned short *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   unsigned short *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_ushort);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_ushort);
 }
 
 int
 nc_get_vars_uint(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            unsigned int *value)
+		 const size_t *start, const size_t *edges,
+		 const ptrdiff_t * stride,
+		 unsigned int *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_uint);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_uint);
 }
 
 int
 nc_get_vars_longlong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            long long *value)
+		     const size_t *start, const size_t *edges,
+		     const ptrdiff_t * stride,
+		     long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_longlong);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,T_longlong);
 }
 
 int
 nc_get_vars_ulonglong(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            unsigned long long *value)
+		      const size_t *start, const size_t *edges,
+		      const ptrdiff_t * stride,
+		      unsigned long long *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_UINT64);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_UINT64);
 }
 
 #ifdef USE_NETCDF4
 int
 nc_get_vars_string(int ncid, int varid,
-	    const size_t *start, const size_t *edges,
-	    const ptrdiff_t * stride,
-            char* *value)
+		   const size_t *start, const size_t *edges,
+		   const ptrdiff_t * stride,
+		   char* *value)
 {
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_STRING);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return NC_get_vars(ncid,varid,start,edges,stride,(void*)value,NC_STRING);
 }
 
 #endif /*USE_NETCDF4*/

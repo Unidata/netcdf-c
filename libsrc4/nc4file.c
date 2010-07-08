@@ -1726,8 +1726,7 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
 			  obj_name, size+1, H5P_DEFAULT) < 0) 
       return NC_EHDFERR;
 
-   LOG((4, "get_name_by_idx: encountered HDF5 object obj_class %d obj_name %s", 
-	obj_class, obj_name));
+   LOG((4, "get_name_by_idx: encountered HDF5 object obj_name %s", obj_name));
 
    return NC_NOERR;
 }

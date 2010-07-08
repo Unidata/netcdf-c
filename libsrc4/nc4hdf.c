@@ -1192,6 +1192,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
 
    /* Does the attribute already exist? If so, don't try to create it. */
+  
    if ((num = H5Aget_num_attrs(datasetid)) < 0)
       return NC_EHDFERR;
    for (a = 0; a < num && !found_it; a++) 
@@ -1229,7 +1230,8 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
    if (H5Aclose(dimid_attid) < 0)
       return NC_EHDFERR;
-   LOG((4, "write_dim: wrote secret dimid attribute with value %d", dimid));
+   LOG((4, "write_netcdf4_dimid: wrote secret dimid attribute with value %d", 
+	dimid));
 
    return NC_NOERR;
 }
@@ -2237,15 +2239,6 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
          if (H5DSset_scale(dim->hdf_dimscaleid, dimscale_wo_var) < 0)
             BAIL(NC_EHDFERR);
 
-	 /* If desired, write the secret dimid. This will be used
-	  * instead of the dimid that the dimension would otherwise
-	  * receive based on creation order. This can be necessary
-	  * when dims and their coordinate variables were created in
-	  * different order. */
-	 if (write_dimid)
-	    if ((retval = write_netcdf4_dimid(dim->hdf_dimscaleid, 
-					      dim->dimid)))
-	       BAIL(retval);
       }
       dim->dirty = 0;
    }
@@ -2308,6 +2301,15 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
       strcpy(dim->old_name, "");
    }
 
+   /* If desired, write the secret dimid. This will be used instead of
+    * the dimid that the dimension would otherwise receive based on
+    * creation order. This can be necessary when dims and their
+    * coordinate variables were created in different order. */
+   if (write_dimid && dim->hdf_dimscaleid)
+      if ((retval = write_netcdf4_dimid(dim->hdf_dimscaleid, 
+					dim->dimid)))
+	 BAIL(retval);
+
    return NC_NOERR;
   exit:
    return retval;
@@ -2333,20 +2335,16 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
    if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
       return retval;
 
-   /* For some stupid reason, the dim list is stored backwards! Get to
-    * the back of the list. */
-   for (dim = grp->dim; dim && dim->next; dim = dim->next)
-      ;
-
    /* If the user writes coord vars in a different order then he
     * defined their dimensions, then, when the file is reopened, the
     * order of the dimids will change to match the order of the coord
     * vars. Detect if this is about to happen. */
    for (var = grp->var; var; var = var->next)
    {
-      if (var->ndims)
+      LOG((5, "checking %s for out of order coord var", var->name));
+      if (var->ndims && var->dimscale)
       {
-	 if (var->dimscale && var->dimids[0] < last_dimid)
+	 if (var->dimids[0] < last_dimid)
 	 {
 	    bad_coord_order++;
 	    break;
@@ -2354,7 +2352,25 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
 	 last_dimid = var->dimids[0];
       }
    }
+
+   /* Did the user define a dimension, end define mode, reenter define
+    * mode, and then define a coordinate variable for that dimension?
+    * If so, dimensions will be out of order. */
+   for (var = grp->var; var; var = var->next)
+      if (var->dirty && !var->created && var->ndims)
+	 for (dim = grp->dim; dim && dim->next; dim = dim->next)
+	    if (strcmp(dim->name, var->name) && !dim->dirty)
+	    {
+	       LOG((5, "coord var defined after enddef/redef"));
+	       bad_coord_order++;
+	    }
+   
       
+   /* For some stupid reason, the dim list is stored backwards! Get to
+    * the back of the list. */
+   for (dim = grp->dim; dim && dim->next; dim = dim->next)
+      ;
+
    /* Set the pointer to the beginning of the list of vars in this
     * group. */
    var = grp->var;
