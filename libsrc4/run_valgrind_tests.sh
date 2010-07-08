@@ -14,7 +14,7 @@ list='tst_h_dimscales tst_h_files '\
 'tst_h_grps tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_atts '\
 'tst_h_dimscales3 tst_h_files2 tst_h_compounds '\
 'tst_h_vars tst_h_opaques tst_h_compounds2 '\
-'tst_vl tst_compounds '\
+'tst_compounds '\
 'tst_files tst_utf8 tst_fillbug '\
 'tst_vars3 tst_xplatform tst_dims '\
 'tst_dims2 tst_dims3 tst_varms tst_unlim_vars '\

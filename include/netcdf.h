@@ -202,6 +202,9 @@ extern "C" {
 /* As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS*/
 #define NC_MAX_VAR_DIMS	1024 /* max per variable dimensions */
 
+/* This is the max size of an SD dataset name in HDF4. */
+#define NC_MAX_HDF4_NAME 64 /* From HDF4 documentation. */
+
 /* In HDF5 files you can set the endianness of variables with
  * nc_def_var_endian(). These defines are used there. */   
 #define NC_ENDIAN_NATIVE 0

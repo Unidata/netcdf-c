@@ -608,7 +608,7 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_UINT64_NAME, NC_UINT64, 2, dimids, &uint64_varid)) ERR;
       if (nc_def_var_deflate(ncid, uint64_varid, NC_NOSHUFFLE, 1, DEFLATE_LEVEL_4)) ERR;
 
-      if (nc_put_var_schar(ncid, byte_varid, (signed char *)byte_out)) ERR;
+      if (nc_put_var_schar(ncid, byte_varid, (signed char *)byte_out)) ERR_RET;
       if (nc_put_var_text(ncid, char_varid, (char *)char_out)) ERR;
       if (nc_put_var_short(ncid, short_varid, (short *)short_out)) ERR;
       if (nc_put_var_int(ncid, int_varid, (int *)int_out)) ERR;
