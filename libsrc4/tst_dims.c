@@ -856,7 +856,7 @@ main(int argc, char **argv)
       count[1] = LON_LEN;
       count[2] = LEVEL_LEN;
       count[3] = TIME_LEN;
-      if (nc_put_vara(ncid, pres_varid, start, count,
+      if (nc_put_vara(ncid, pres_varid, start, count, 
 		      (double *)pres)) ERR;
       count[2] = TIME_LEN;
       if (nc_put_vara(ncid, hp_varid, start, count,

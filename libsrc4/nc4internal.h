@@ -1,7 +1,13 @@
 /*
- * Copyright 2005 University Corporation for Atmospheric Research/Unidata
- */
-/* "$Id: nc4internal.h,v 1.137 2010/06/01 15:34:51 ed Exp $" */
+  This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
+  HDF5 backend for netCDF, depending on your point of view.
+
+  This header file contains the definitions of structs used to hold
+  netCDF file metadata in memory.
+
+  Copyright 2005 University Corporation for Atmospheric Research/Unidata.
+
+  $Id: nc4internal.h,v 1.137 2010/06/01 15:34:51 ed Exp $ */
 
 #ifndef _NC4INTERNAL_
 #define _NC4INTERNAL_
@@ -96,7 +102,7 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
 {
-   char name[NC_MAX_NAME + 1];
+   char *name;
    size_t len;
    int dimid;
    int unlimited;
@@ -104,24 +110,17 @@ typedef struct NC_DIM_INFO
    struct NC_DIM_INFO *next;
    struct NC_DIM_INFO *prev;
    hid_t hdf_dimscaleid;
-   char old_name[NC_MAX_NAME + 1]; /* only used to rename dim */
+   char *old_name; /* only used to rename dim */
    int dirty;
    unsigned char coord_var_in_grp;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
    int too_long; /* True if len it too big to fit in local size_t. */
 } NC_DIM_INFO_T;
 
-typedef struct 
-{
-   char name[NC_MAX_NAME + 1];
-   int len;
-   int id;
-} DIM_FILE_T;
-
 typedef struct NC_ATT_INFO
 {
    int len;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    struct NC_ATT_INFO *next;
    struct NC_ATT_INFO *prev;
    int dirty;
@@ -135,15 +134,6 @@ typedef struct NC_ATT_INFO
    int class;
 } NC_ATT_INFO_T;
 
-typedef struct var_file_infot_nc
-{
-   char name[NC_MAX_NAME + 1];
-   int ndims;
-   int dimids[NC_MAX_VAR_DIMS];
-   int varid;
-   int nc_char;
-} NC_VAR_FILE_INFO_T;
-
 typedef struct hdf5_objid 
 {
    unsigned long fileno[2]; /* file number */
@@ -153,10 +143,10 @@ typedef struct hdf5_objid
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
-   char name[NC_MAX_NAME + 1];
-   char hdf5_name[NC_MAX_NAME + 1]; /* used if different */
+   char *name;
+   char *hdf5_name; /* used if different from name */
    int ndims;
-   int dimids[NC_MAX_VAR_DIMS];
+   int *dimids;
    NC_DIM_INFO_T **dim;
    int varid;
    int natts;
@@ -172,7 +162,7 @@ typedef struct NC_VAR_INFO
    NC_ATT_INFO_T *att;
    int no_fill;
    void *fill_value;
-   size_t chunksizes[NC_MAX_VAR_DIMS];
+   size_t *chunksizes;
    int contiguous;
    int parallel_access;
    int dimscale;
@@ -183,7 +173,6 @@ typedef struct NC_VAR_INFO
    int fletcher32;
    int options_mask;
    int pixels_per_block;
-   int coords[NC_MAX_VAR_DIMS];
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
    /* Stuff below is for hdf4 files. */
@@ -199,17 +188,17 @@ typedef struct NC_FIELD_INFO
    hid_t hdf_typeid;
    hid_t native_typeid;
    size_t offset;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    int fieldid;
    int ndims;
-   int dim_size[NC_MAX_VAR_DIMS];
+   int *dim_size;
 } NC_FIELD_INFO_T;
 
 typedef struct NC_ENUM_MEMBER_INFO
 {
    struct NC_ENUM_MEMBER_INFO *next;
    struct NC_ENUM_MEMBER_INFO *prev;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    void *value;
 } NC_ENUM_MEMBER_INFO_T;
 
@@ -222,7 +211,7 @@ typedef struct NC_TYPE_INFO
    hid_t native_typeid;
    size_t size;
    int committed; /* What the pig is, but the hen isn't, at breakfast. */
-   char name[NC_MAX_NAME + 1];
+   char *name;
    int class; /* NC_VLEN, NC_COMPOUND, NC_OPAQUE, or NC_ENUM */
    int num_enum_members;
    NC_ENUM_MEMBER_INFO_T *enum_member;
@@ -250,7 +239,7 @@ typedef struct NC_GRP_INFO
    int ndims;
    int natts;
    struct NC_FILE_INFO *file;
-   char name[NC_MAX_NAME + 1];
+   char *name;
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
 } NC_GRP_INFO_T;
@@ -276,7 +265,7 @@ typedef struct
    int natts;
    int parallel;  /* true if file is open for parallel access */
    int redef;
-   char path[NC_MAX_NAME + 1];
+   char *path;
    int fill_mode;
    int no_write; /* true if nc_open has mode NC_NOWRITE. */
    NC_GRP_INFO_T *root_grp;

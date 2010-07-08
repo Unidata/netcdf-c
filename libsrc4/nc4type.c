@@ -230,6 +230,8 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Remember info about this type. */
    type->nc_typeid = grp->file->nc4_info->next_typeid++;
    type->size = size;
+   if (!(type->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(type->name, norm_name);
    type->class = type_class;
    type->base_nc_type = base_typeid;

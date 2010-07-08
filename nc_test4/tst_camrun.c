@@ -2016,7 +2016,7 @@ main()
    printf("data memory %d MB\n", memused);
 #endif /* EXTRA_TESTS */
 
-   if (nc_set_chunk_cache(10000000, 1009, .75)) ERR;
+   if (nc_set_chunk_cache(0, 1009, .75)) ERR;
 
    /* enter define mode */
    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
