@@ -12,5 +12,10 @@ tail -n +2 $srcdir/ref_nc_test_netcdf4.cdl > tmp.cdl
 tail -n +2 tst_nc_test_netcdf4_4_0.cdl > tmp_4_0.cdl
 diff -w tmp.cdl tmp_4_0.cdl
 
+echo "*** checking 2D char array ref_tst_char2d.cdl..."
+../ncgen/ncgen -b $srcdir/ref_tst_char2d.cdl 
+./ncdump tst_char2d.nc > tst_char2d.cdl
+diff -w tst_char2d.cdl $srcdir/ref_tst_char2d.cdl
+
 echo "*** All backward compatibility tests passed!"
 exit 0

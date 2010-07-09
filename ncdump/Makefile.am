@@ -80,7 +80,7 @@ ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
-ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl
+ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl ref_tst_char2d.cdl
 
 BUILT_SOURCES = ctest.c ctest64.c
 
