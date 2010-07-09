@@ -456,8 +456,10 @@ test_redef(int format)
 	    ERR;
 	}
    }
-//   if ((format != NC_FORMAT_NETCDF4 && ret != NC_ENOTINDEFINE) ||
-//       (format == NC_FORMAT_NETCDF4 && ret != NC_EPERM)) ERR;
+#ifdef IGNORE
+   if ((format != NC_FORMAT_NETCDF4 && ret != NC_ENOTINDEFINE) ||
+       (format == NC_FORMAT_NETCDF4 && ret != NC_EPERM)) ERR;
+#endif
 
    /* This will fail. */
    if (!nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_CHAR, 1, &uchar_out)) ERR;

@@ -99,7 +99,7 @@ char   yaxis_name[128];
 /*   char   filename[128]; */
 /* } river_type; */
 
-//inline void swap(void *x, void *y, size_t l);
+/*inline void swap(void *x, void *y, size_t l);*/
 void qsort_index(double array[], int start, int end, int rank[]);
 void get_source_data(const char *src_file, river_type *river_data);
 void get_mosaic_grid(const char *coupler_mosaic, const char *land_mosaic,

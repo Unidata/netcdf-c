@@ -94,8 +94,7 @@ ocset_ssl(CURL* curl, OCstate* state)
     cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verify);
     if (cstat != CURLE_OK) goto fail;
     oc_log(LOGNOTE,"CURLOPT_SSL_VERIFYPEER=%ld",verify);
-//    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
-    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
     if (cstat != CURLE_OK) goto fail;
     oc_log(LOGNOTE,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
 #ifdef IGNORE
