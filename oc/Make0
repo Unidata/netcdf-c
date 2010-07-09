@@ -1,26 +1,22 @@
 THISDIR=../oc
-OCDIR=./oc
-
+OCDIR=/home/dmh/nc/oc
 
 all::
 
 makeoc::
-	rm -fr ${OCDIR}
-	svn co "http://scm.opendap.org/svn/trunk/oc"
 	rm -f ${THISDIR}/*.[chy]
 	for f in ${OCDIR}/*.[chy]; do \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; done
-	rm -f ce.y ceparselex.h ceparse.c celex.c
+	rm -f i.* apitest.* getoc.* imain.* main.*
+	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
+	rm -f ocshadow.*
 	rm -f octest.c
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
-	if ! test -e ${OCDIR} ; then \
-	    svn co "http://scm.opendap.org/svn/trunk/oc"; \
-	fi
 	for f in ${THISDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
 	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
