@@ -3,21 +3,7 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.1.2-beta1    2010-07-09
-
-	        Fixed bug in man4 directory automake file which caused
-	        documentation to be rebuilt after make clean.
-
-		Turned off HDF5 caching when parallel I/O is in use
-		because of its memory use.
-
-		Refactoring of netCDF code with dispatch layer to
-		decide whether to call netCDF classic, netCDF-4, or
-		opendap version of a function.
-
-		Refactoring of netCDF-4 memory internals to reduce
-		memory use and end dependance on NC_MAX_DIMS and
-		NC_MAX_NAME.
+4.1.2          2010-06-20
 
                 Modified constraint parser to be more compatible with
                 a java version of the parser.
