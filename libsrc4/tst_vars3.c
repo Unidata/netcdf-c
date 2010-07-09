@@ -31,7 +31,7 @@ main(int argc, char **argv)
    {
 #define NX 6
 #define NY 36
-#define D1_NAME "zD1"
+#define ZD1_NAME "zD1"
 #define D2_NAME "D2"
 
       int ncid, x_dimid, y_dimid, varid2;
@@ -39,7 +39,7 @@ main(int argc, char **argv)
 
       /* Create file with two dims, two 1D vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_dim(ncid, D1_NAME, NX, &x_dimid)) ERR;
+      if (nc_def_dim(ncid, ZD1_NAME, NX, &x_dimid)) ERR;
       if (nc_def_dim(ncid, D2_NAME, NY, &y_dimid)) ERR;
       if (nc_enddef(ncid)) ERR;
 
@@ -47,7 +47,7 @@ main(int argc, char **argv)
        * dimensions will be out of order. Thanks for confusing my poor
        * library. Why can't you just make up your bloody mind? */
       if (nc_redef(ncid)) ERR;
-      if (nc_def_var(ncid, D1_NAME, NC_DOUBLE, NDIMS1, &x_dimid, &varid2)) ERR;
+      if (nc_def_var(ncid, ZD1_NAME, NC_DOUBLE, NDIMS1, &x_dimid, &varid2)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Reopen file and check the name of the first dimension. Even
@@ -58,7 +58,7 @@ main(int argc, char **argv)
        * try and be a little bit more considerate? Jerk. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
-      if (strcmp(name_in, D1_NAME)) ERR;
+      if (strcmp(name_in, ZD1_NAME)) ERR;
       if (nc_inq_dimname(ncid, 1, name_in)) ERR;
       if (strcmp(name_in, D2_NAME)) ERR;
       if (nc_close(ncid)) ERR;

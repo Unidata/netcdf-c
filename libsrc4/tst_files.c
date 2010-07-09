@@ -309,7 +309,7 @@ main(int argc, char **argv)
       int dimid;
       size_t count[NDIMS], index[NDIMS] = {0};
       const char ttext[TEXT_LEN + 1] = "20051224.150000";
-      const char ttext_in[TEXT_LEN + 1];
+      char ttext_in[TEXT_LEN + 1];
       char file_name[NC_MAX_NAME + 1];
       size_t chunks[NDIMS] = {TEXT_LEN + 1};
       int f;
@@ -456,9 +456,6 @@ test_redef(int format)
 	    ERR;
 	}
    }
-//   if ((format != NC_FORMAT_NETCDF4 && ret != NC_ENOTINDEFINE) ||
-//       (format == NC_FORMAT_NETCDF4 && ret != NC_EPERM)) ERR;
-
    /* This will fail. */
    if (!nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_CHAR, 1, &uchar_out)) ERR;
    if (nc_close(ncid)) ERR;      

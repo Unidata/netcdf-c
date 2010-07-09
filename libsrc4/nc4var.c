@@ -403,8 +403,9 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * variables which may be contiguous. */
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	var->ndims, var->name));
-   if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
-      return NC_ENOMEM;
+   if (var->ndims)
+      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+	 return NC_ENOMEM;
 
    if ((retval = nc4_find_default_chunksizes(var)))
       return retval;
