@@ -5,6 +5,12 @@ VERSION         COMMENTS
 -------         --------
 4.1.2-beta1    2010-07-09
 
+		Fix "ncdump -c" bug identifying coordinate variables in groups.
+
+		Fix bug in libsrc/posixio.c when providing sizehint
+		larger than default, which then doesn't get used
+		(thanks to Harald Anlauf).
+
 	        Fix netCDF-4 bug caused when doing enddef/redef and
 	        then defining coordinate variable out of order.
 
