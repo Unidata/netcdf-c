@@ -31,7 +31,7 @@ GFLAGS=-g3 -O0
 #############################################
 
 LIBS=${NCLIB} ${CURLLIB} ${ZLIB} ${OTHERLIBS} ${HDF5}
-INCL=-I. -I.. ${OCINCL} ${NCINCL} ${CURLINCL}
+INCL=-I. -I.. -I../include ${OCINCL} ${NCINCL} ${CURLINCL}
 
 TESTLIBS=${LIBS}
 TESTINCL=${INCL}
@@ -223,6 +223,7 @@ cpp::
 
 ##################################################
 # ncd
+
 NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime.c ../ncdump/vardata.c
 NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime.h ../ncdump/vardata.h
 NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
