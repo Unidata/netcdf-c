@@ -24,7 +24,7 @@ occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h oc.h	\
 ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h rc.h	\
 read.h
 
-GRAMFILES=dap.y ce.y
+GRAMFILES=dap.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h
