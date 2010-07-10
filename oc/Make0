@@ -1,33 +1,35 @@
 THISDIR=../oc
-OCDIR=/home/dmh/nc/oc
+OCDIR=./oc
+OCSVN=http://scm.opendap.org/svn/trunk/oc
 
 all::
 
 makeoc::
+	rm -fr ${OCDIR}
+	svn co ${OCSVN}
 	rm -f ${THISDIR}/*.[chy]
 	for f in ${OCDIR}/*.[chy]; do \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; done
-	rm -f i.* apitest.* getoc.* imain.* main.*
-	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
-	rm -f ocshadow.*
+	rm -f ce.y ceparse.c celex.c ceparselex.h
 	rm -f octest.c
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
-	for f in ${THISDIR}/*.[chy] ; do \
+	if ! test -e ${OCDIR} ; then echo "${OCDIR} not found"; exit ; fi
+	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
-	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
-	    if test -e ${THISDIR}/$$x ; then \
+	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		diff -qw ${THISDIR}/$$x $$f ; \
+	    else \
+		echo "Only in ${OCDIR}: $$x"; \
 	    fi; \
 	done
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f|tr -d '' ` ; \
-	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
-	    if test -e ${THISDIR}/$$x ; then \
+	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		if ! diff -qw ${THISDIR}/$$x $$f > /dev/null ; then \
 		echo diff -w ${THISDIR}/$$x $$f ;\
 		diff -w ${THISDIR}/$$x $$f ; \

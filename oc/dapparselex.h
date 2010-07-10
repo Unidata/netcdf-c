@@ -63,30 +63,30 @@ extern void dap_parse_error(DAPparsestate*,const char *fmt, ...);
 /* bison parse entry point */
 extern int dapparse(DAPparsestate*);
 
-extern Object datasetbody(DAPparsestate*,Object decls, Object name);
-extern Object declarations(DAPparsestate*,Object decls, Object decl);
-extern Object arraydecls(DAPparsestate*,Object arraydecls, Object arraydecl);
-extern Object arraydecl(DAPparsestate*,Object name, Object size);
+extern Object dap_datasetbody(DAPparsestate*,Object decls, Object name);
+extern Object dap_declarations(DAPparsestate*,Object decls, Object decl);
+extern Object dap_arraydecls(DAPparsestate*,Object arraydecls, Object arraydecl);
+extern Object dap_arraydecl(DAPparsestate*,Object name, Object size);
 
-extern void dassetup(DAPparsestate*);
-extern Object attributebody(DAPparsestate*,Object attrlist);
-extern Object attrlist(DAPparsestate*,Object attrlist, Object attrtuple);
-extern Object attribute(DAPparsestate*,Object name, Object value, Object etype);
-extern Object attrset(DAPparsestate*,Object name, Object attributes);
-extern Object attrvalue(DAPparsestate*,Object valuelist, Object value, Object etype);
+extern void dap_dassetup(DAPparsestate*);
+extern Object dap_attributebody(DAPparsestate*,Object attrlist);
+extern Object dap_attrlist(DAPparsestate*,Object attrlist, Object attrtuple);
+extern Object dap_attribute(DAPparsestate*,Object name, Object value, Object etype);
+extern Object dap_attrset(DAPparsestate*,Object name, Object attributes);
+extern Object dap_attrvalue(DAPparsestate*,Object valuelist, Object value, Object etype);
 
-extern Object makebase(DAPparsestate*,Object name, Object etype, Object dimensions);
-extern Object makestructure(DAPparsestate*,Object name, Object dimensions, Object fields);
-extern Object makesequence(DAPparsestate*,Object name, Object members);
-extern Object makegrid(DAPparsestate*,Object name, Object arraydecl, Object mapdecls);
+extern Object dap_makebase(DAPparsestate*,Object name, Object etype, Object dimensions);
+extern Object dap_makestructure(DAPparsestate*,Object name, Object dimensions, Object fields);
+extern Object dap_makesequence(DAPparsestate*,Object name, Object members);
+extern Object dap_makegrid(DAPparsestate*,Object name, Object arraydecl, Object mapdecls);
 
-extern Object errorbody(DAPparsestate*, Object, Object, Object, Object);
-extern Object unrecognizedresponse(DAPparsestate*);
+extern Object dap_errorbody(DAPparsestate*, Object, Object, Object, Object);
+extern Object dap_unrecognizedresponse(DAPparsestate*);
 
 /* Lexer entry points */
 extern int daplex(YYSTYPE*, DAPparsestate*);
 extern void daplexinit(char* input, DAPlexstate** lexstatep);
 extern void daplexcleanup(DAPlexstate** lexstatep);
-extern void setwordchars(DAPlexstate* lexstate, int kind);
+extern void dapsetwordchars(DAPlexstate* lexstate, int kind);
 
 #endif /*DAPPARSELEX_H*/
