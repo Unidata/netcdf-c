@@ -248,7 +248,7 @@ Simple lexer
 */
 
 void
-dapsetwordchars(DAPlexstate* lexstate, int kind)
+setwordchars(DAPlexstate* lexstate, int kind)
 {
     switch (kind) {
     case 0:
@@ -281,7 +281,7 @@ daplexinit(char* input, DAPlexstate** lexstatep)
     lexstate->next = lexstate->input;
     lexstate->yytext = ocbytesnew();
     lexstate->reclaim = oclistnew();
-    dapsetwordchars(lexstate,0); /* Assume DDS */
+    setwordchars(lexstate,0); /* Assume DDS */
 }
 
 void
