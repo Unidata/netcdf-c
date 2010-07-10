@@ -4,7 +4,6 @@
 /*The lines down to DO NOT DELETE ... comment are specific to the C Parser.
   They will be commennted out when building a java parser.
 */
-%error-verbose
 %pure-parser
 %lex-param {DAPparsestate* parsestate}
 %parse-param {DAPparsestate* parsestate}
@@ -49,32 +48,32 @@ start:
 	| SCAN_ATTR dassetup attributebody
 	| SCAN_ERROR errorbody
         | error
-            {$$=dap_unrecognizedresponse(parsestate); YYABORT; }
+            {$$=unrecognizedresponse(parsestate);}
 	;
 
 datasetbody:
 	  '{' declarations '}' datasetname ';'
-		{dap_datasetbody(parsestate,$4,$2);}
+		{datasetbody(parsestate,$4,$2);}
 	;
 
 
 declarations:
-	  /* empty */ {$$=dap_declarations(parsestate,null,null);}
-        | declarations declaration {$$=dap_declarations(parsestate,$1,$2);}
+	  /* empty */ {$$=declarations(parsestate,null,null);}
+        | declarations declaration {$$=declarations(parsestate,$1,$2);}
 	;
 
 /* 01/21/08: James says: no dimensions for grids or sequences */
 /* 05/08/09: James says: no duplicate map names */
 declaration:
 	  base_type var_name array_decls ';'
-		{$$=dap_makebase(parsestate,$2,$1,$3);}
+		{$$=makebase(parsestate,$2,$1,$3);}
 	| SCAN_STRUCTURE '{' declarations '}' var_name array_decls ';'
-	    {if(($$=dap_makestructure(parsestate,$5,$6,$3))==null) {YYABORT;}}
+	    {if(($$ = makestructure(parsestate,$5,$6,$3))==null) {YYABORT;}}
 	| SCAN_SEQUENCE '{' declarations '}' var_name ';'
-	    {if(($$=dap_makesequence(parsestate,$5,$3))==null) {YYABORT;}}
+	    {if(($$ = makesequence(parsestate,$5,$3))==null) {YYABORT;}}
 	| SCAN_GRID '{' SCAN_ARRAY ':' declaration SCAN_MAPS ':'
           declarations '}' var_name ';'
-	    {if(($$=dap_makegrid(parsestate,$10,$5,$8))==null) {YYABORT;}}
+	    {if(($$ = makegrid(parsestate,$10,$5,$8))==null) {YYABORT;}}
         | error 
             {daperror(parsestate,"Unrecognized type"); YYABORT;}
 	;
@@ -93,13 +92,13 @@ base_type:
 	;
 
 array_decls:
-	  /* empty */ {$$=dap_arraydecls(parsestate,null,null);}
-	| array_decls array_decl {$$=dap_arraydecls(parsestate,$1,$2);}
+	  /* empty */ {$$=arraydecls(parsestate,null,null);}
+	| array_decls array_decl {$$=arraydecls(parsestate,$1,$2);}
 	;
 
 array_decl:
-	   '[' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,null,$2);}
-	 | '[' name '=' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,$2,$4);}
+	   '[' SCAN_WORD ']' {$$=arraydecl(parsestate,null,$2);}
+	 | '[' name '=' SCAN_WORD ']' {$$=arraydecl(parsestate,$2,$4);}
 	 | error
 	    {daperror(parsestate,"Illegal dimension declaration"); YYABORT;}
 	;
@@ -112,84 +111,84 @@ datasetname:
 
 var_name: name {$$=$1;};
 
-dassetup: {dap_dassetup(parsestate);}
+dassetup: {dassetup(parsestate);}
 
 attributebody:
-	  '{' attr_list '}' {dap_attributebody(parsestate,$2);}
+	  '{' attr_list '}' {attributebody(parsestate,$2);}
 	| error
             {daperror(parsestate,"Illegal DAS body"); YYABORT;}
 	;
 
 attr_list:
-	  /* empty */ {$$=dap_attrlist(parsestate,null,null);}
-	| attr_list attribute {$$=dap_attrlist(parsestate,$1,$2);}
+	  /* empty */ {$$=attrlist(parsestate,null,null);}
+	| attr_list attribute {$$=attrlist(parsestate,$1,$2);}
 	;
 
 attribute:
 	  alias ';' {$$=null;} /* ignored */ 
         | SCAN_BYTE name bytes ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_BYTE);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_BYTE);}
 	| SCAN_INT16 name int16 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_INT16);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_INT16);}
 	| SCAN_UINT16 name uint16 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_UINT16);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_UINT16);}
 	| SCAN_INT32 name int32 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_INT32);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_INT32);}
 	| SCAN_UINT32 name uint32 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_UINT32);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_UINT32);}
 	| SCAN_FLOAT32 name float32 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_FLOAT32);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_FLOAT32);}
 	| SCAN_FLOAT64 name float64 ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_FLOAT64);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_FLOAT64);}
 	| SCAN_STRING name strs ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_STRING);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_STRING);}
 	| SCAN_URL name urls ';'
-	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_URL);}
-	| name '{' attr_list '}' {$$=dap_attrset(parsestate,$1,$3);}
+	    {$$=attribute(parsestate,$2,$3,(Object)SCAN_URL);}
+	| name '{' attr_list '}' {$$=attrset(parsestate,$1,$3);}
 	| error 
             {daperror(parsestate,"Illegal attribute"); YYABORT;}
 	;
 
 bytes:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_BYTE);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_BYTE);}
 	| bytes ',' SCAN_WORD
-		{$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_BYTE);}
+		{$$=attrvalue(parsestate,$1,$3,(Object)SCAN_BYTE);}
 	;
 int16:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_INT16);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_INT16);}
 	| int16 ',' SCAN_WORD
-		{$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_INT16);}
+		{$$=attrvalue(parsestate,$1,$3,(Object)SCAN_INT16);}
 	;
 uint16:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_UINT16);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_UINT16);}
 	| uint16 ',' SCAN_WORD
-		{$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_UINT16);}
+		{$$=attrvalue(parsestate,$1,$3,(Object)SCAN_UINT16);}
 	;
 int32:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_INT32);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_INT32);}
 	| int32 ',' SCAN_WORD
-		{$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_INT32);}
+		{$$=attrvalue(parsestate,$1,$3,(Object)SCAN_INT32);}
 	;
 uint32:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_UINT32);}
-	| uint32 ',' SCAN_WORD  {$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_UINT32);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_UINT32);}
+	| uint32 ',' SCAN_WORD  {$$=attrvalue(parsestate,$1,$3,(Object)SCAN_UINT32);}
 	;
 float32:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_FLOAT32);}
-	| float32 ',' SCAN_WORD  {$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_FLOAT32);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_FLOAT32);}
+	| float32 ',' SCAN_WORD  {$$=attrvalue(parsestate,$1,$3,(Object)SCAN_FLOAT32);}
 	;
 float64:
-	  SCAN_WORD {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_FLOAT64);}
-	| float64 ',' SCAN_WORD  {$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_FLOAT64);}
+	  SCAN_WORD {$$=attrvalue(parsestate,null,$1,(Object)SCAN_FLOAT64);}
+	| float64 ',' SCAN_WORD  {$$=attrvalue(parsestate,$1,$3,(Object)SCAN_FLOAT64);}
 	;
 strs:
-	  str_or_id {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_STRING);}
-	| strs ',' str_or_id {$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_STRING);}
+	  str_or_id {$$=attrvalue(parsestate,null,$1,(Object)SCAN_STRING);}
+	| strs ',' str_or_id {$$=attrvalue(parsestate,$1,$3,(Object)SCAN_STRING);}
 	;
 
 urls:
-	  url {$$=dap_attrvalue(parsestate,null,$1,(Object)SCAN_URL);}
-	| urls ',' url {$$=dap_attrvalue(parsestate,$1,$3,(Object)SCAN_URL);}
+	  url {$$=attrvalue(parsestate,null,$1,(Object)SCAN_URL);}
+	| urls ',' url {$$=attrvalue(parsestate,$1,$3,(Object)SCAN_URL);}
 	;
 
 url:
@@ -212,7 +211,7 @@ alias:
 
 errorbody:
 	'{' errorcode errormsg errorptype errorprog '}' ';'
-		{$$=dap_errorbody(parsestate,$2,$3,$4,$5);}
+		{$$=errorbody(parsestate,$2,$3,$4,$5);}
 	;
 
 errorcode:  /*empty*/ {$$=null;} | SCAN_CODE    '=' SCAN_WORD ';' {$$=$3;}
