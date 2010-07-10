@@ -1,27 +1,30 @@
 THISDIR=../oc
-OCDIR=/home/dmh/nc/oc
+OCDIR=./oc
+OCSVN=http://scm.opendap.org/svn/trunk/oc
 
 all::
 
 makeoc::
+	rm -fr ${OCDIR}
+	svn co ${OCSVN}
 	rm -f ${THISDIR}/*.[chy]
 	for f in ${OCDIR}/*.[chy]; do \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; done
-	rm -f i.* apitest.* getoc.* imain.* main.*
-	rm -f config.h dap.tab.c dap.tab.h ce.y ceparselex.*
-	rm -f ocshadow.*
+	rm -f ce.y ceparse.c ceparselex.h celex.c
 	rm -f octest.c
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
 
 diffoc::
+	if ! test -e ${OCDIR} ; then svn co ${OCSVN} ; fi
 	for f in ${THISDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
-	    if test "x$$x" = "xdaptab.c"; then continue ; fi ; \
-	    if test -e ${THISDIR}/$$x ; then \
+	    if test -e ${OCDIR}/$$x -a -e ${THISDIR}/$$x ; then \
 		diff -qw ${THISDIR}/$$x $$f ; \
+	    elif test ! -e ${THISDIR}/$$x ; then \
+		echo "Only in ${THISDIR}: $$x" ; \
 	    fi; \
 	done
 	for f in ${OCDIR}/*.[chy] ; do \
