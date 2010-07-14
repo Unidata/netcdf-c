@@ -119,16 +119,16 @@ NC_create(const char *path, int cmode,
 
     if(model == 0) {
 	int format = 0;
-	nc_default_format(0,&format);
+	nc_set_default_format(0,&format);
 	switch (format) {
 	default: 
 	case NC_FORMAT_CLASSIC:
 	case NC_FORMAT_64BIT:
-            model = 3; /* final default */
+            model = 3;
 	    break;
 	case NC_FORMAT_NETCDF4:
 	case NC_FORMAT_NETCDF4_CLASSIC:
-            model = 4
+            model = 4;
 	    break;
 	}
     }
