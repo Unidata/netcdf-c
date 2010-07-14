@@ -119,7 +119,7 @@ NC_create(const char *path, int cmode,
 
     if(model == 0) {
 	int format = 0;
-	nc_default_format(0,&format)
+	nc_default_format(0,&format);
 	switch (format) {
 	default: 
 	case NC_FORMAT_CLASSIC:
