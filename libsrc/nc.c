@@ -977,6 +977,8 @@ nc_set_default_format(int format, int *old_formatp)
     if (old_formatp)
       *old_formatp = default_create_format;
 
+    if(format == 0) return NC_NOERR;
+
     /* Make sure only valid format is set. */
 #ifdef USE_NETCDF4
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT &&
