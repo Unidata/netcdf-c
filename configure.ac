@@ -17,7 +17,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2-beta1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -261,7 +261,7 @@ AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
 AC_ARG_WITH([default-chunk-size],
               [AS_HELP_STRING([--with-default-chunk-size=<integer>],
                               [Specify default size of chunks in bytes.])],
-            [DEFAULTT_CHUNK_SIZE=$with_default_chunk_size], [DEFAULT_CHUNK_SIZE=4194304])
+            [DEFAULT_CHUNK_SIZE=$with_default_chunk_size], [DEFAULT_CHUNK_SIZE=4194304])
 AC_MSG_RESULT([$DEFAULT_CHUNK_SIZE])
 AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_SIZE], [$DEFAULT_CHUNK_SIZE], [default chunk size in bytes])
 
@@ -1533,6 +1533,7 @@ dnl                  cxx4/d/html/Makefile
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
+                 include/Makefile
                  man4/Makefile
                  fortran/Makefile
                  libsrc/Makefile

@@ -208,7 +208,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
 
 /* Find the default chunk nelems (i.e. length of chunk along each
  * dimension). */
-int 
+static int 
 nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
 {
    int d;
@@ -218,10 +218,6 @@ nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
       type_size = sizeof(char *);
    else
       type_size = var->type_info->size;
-
-   /* No chunk sizes for contiguous variables, you dunce! */
-   if (var->contiguous) 
-      return NC_NOERR;
 
    /* How many values in the non-unlimited dimensions? */
    for (d = 0; d < var->ndims; d++)
@@ -344,6 +340,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       return retval;
 
    /* Now fill in the values in the var info structure. */
+   if (!(var->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(var->name, norm_name);
    var->varid = grp->nvars++;
    var->xtype = xtype;
@@ -373,13 +371,19 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    if (!num_unlim)
       var->contiguous = 1;
 
+   /* Allocate space for dimension information. */
+   if (ndims)
+   {
+      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
+	 return NC_ENOMEM;
+      if (!(var->dimids = malloc(sizeof(int) * ndims)))
+	 return NC_ENOMEM;
+   }
+
    /* At the same time, check to see if this is a coordinate
     * variable. If so, it will have the same name as one of its
     * dimensions. If it is a coordinate var, is it a coordinate var in
     * the same group as the dim? */
-   if (ndims)
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
-	 return NC_ENOMEM;
    for (d = 0; d < ndims; d++)
    {
       NC_GRP_INFO_T *dim_grp;
@@ -395,7 +399,14 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       var->dim[d] = dim;
    }
 
-   /* Determine default chunksizes for this variable. */
+   /* Determine default chunksizes for this variable. (Even for
+    * variables which may be contiguous. */
+   LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
+	var->ndims, var->name));
+   if (var->ndims)
+      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+	 return NC_ENOMEM;
+
    if ((retval = nc4_find_default_chunksizes(var)))
       return retval;
 
@@ -422,6 +433,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	     * name clash. */
 	    if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
 	       return NC_EMAXNAME;
+	    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) + 
+					   strlen(norm_name) + 1) * sizeof(char))))
+	       return NC_ENOMEM;
+
 	    sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
 	 }
       }
@@ -461,6 +476,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
 
+   /* Netcdf-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
+
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc->pnetcdf_file)
@@ -474,11 +492,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 
    }
 #endif /* USE_PNETCDF */
-
-   /* Handle netcdf-3 cases. */
-   if (!nc->nc4_info)
-      return nc3_def_var(nc->int_ncid, name, xtype, ndims, 
-                         dimidsp, varidp);
 
    /* Handle netcdf-4 cases. */
    return nc_def_var_nc4(ncid, name, xtype, ndims, dimidsp, varidp);
@@ -510,6 +523,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
+   assert(nc && grp && h5);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -517,17 +531,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
 			   dimidsp, nattsp);
 #endif /* USE_PNETCDF */
-
-   /* Handle netcdf-3 cases. Better not ask for var options for a
-    * netCDF-3 file! */
-   if (!h5)
-   {
-      if (contiguousp)
-	 *contiguousp = NC_CONTIGUOUS;
-      return nc3_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
-                         dimidsp, nattsp);
-   }
-   assert(nc && grp && h5);
 
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
@@ -570,7 +573,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    }
    
    /* Chunking stuff. */
-   if (chunksizesp)
+   if (!var->contiguous && chunksizesp)
       for (d = 0; d < var->ndims; d++)
       {
          chunksizesp[d] = var->chunksizes[d];
@@ -578,7 +581,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       }
 
    if (contiguousp)
-      *contiguousp = var->contiguous;
+      *contiguousp = var->contiguous ? NC_CONTIGUOUS : NC_CHUNKED;
 
    /* Filter stuff. */
    if (deflatep)
@@ -1106,6 +1109,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    }
 
    /* Now change the name in our metadata. */
+   free(var->name);
+   if (!(var->name = malloc((strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
    strcpy(var->name, name);
 
   exit:
@@ -1249,34 +1255,8 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    }
 #endif /* USE_PNETCDF */   
    
-   /* Handle netCDF-3 cases. */
-   if (!nc->nc4_info)
-   {
-      if (mem_type == NC_UBYTE)
-         mem_type = NC_BYTE;
-      switch(mem_type)
-      {
-         case NC_NAT:
-            return nc3_put_vara(nc->int_ncid, varid, startp, countp, op);
-         case NC_BYTE:
-            return nc3_put_vara_schar(nc->int_ncid, varid, startp, countp, op);
-         case NC_CHAR:
-            return nc3_put_vara_text(nc->int_ncid, varid, startp, countp, op);
-         case NC_SHORT:
-            return nc3_put_vara_short(nc->int_ncid, varid, startp, countp, op);
-         case NC_INT:
-            if (mem_type_is_long)
-               return nc3_put_vara_long(nc->int_ncid, varid, startp, countp, op);
-            else
-               return nc3_put_vara_int(nc->int_ncid, varid, startp, countp, op);
-         case NC_FLOAT:
-            return nc3_put_vara_float(nc->int_ncid, varid, startp, countp, op);
-         case NC_DOUBLE:
-            return nc3_put_vara_double(nc->int_ncid, varid, startp, countp, op);
-         default:
-            return NC_EBADTYPE;
-      }
-   }
+   /* NetCDF-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
 
    return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type, 
                        mem_type_is_long, (void *)op);
@@ -1438,10 +1418,7 @@ int
 NC4_put_vara(int ncid, int varid, const size_t *startp, 
             const size_t *countp, const void *op, int memtype)
 {
-   if(memtype == NC_INT64)
-       return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
-   else
-       return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
+   return nc4_put_vara_tc(ncid, varid, memtype, 0, startp, countp, op);
 }
 
 
@@ -1450,8 +1427,5 @@ int
 NC4_get_vara(int ncid, int varid, const size_t *startp, 
             const size_t *countp, void *ip, int memtype)
 {
-   if(memtype == NC_INT64)
-       return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
-   else
-       return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
+   return nc4_get_vara_tc(ncid, varid, memtype, 0, startp, countp, ip);
 }

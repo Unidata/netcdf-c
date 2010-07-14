@@ -47,15 +47,15 @@ main()
       {
 	 /* Get the name. */
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
-				i, &obj_info, H5P_DEFAULT) < 0) ERR;
+				i, &obj_info, H5P_DEFAULT) < 0) ERR_RET;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i,
-				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR_RET;
 	 printf(" reading type %s ", obj_name);
-	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR;
+	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR_RET;
 
 	 /* Get the typeid. */
-	 if ((file_typeid1[i] = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR;
-	 if ((native_typeid1[i] = H5Tget_native_type(file_typeid1[i], H5T_DIR_DEFAULT)) < 0) ERR;
+	 if ((file_typeid1[i] = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR_RET;
+	 if ((native_typeid1[i] = H5Tget_native_type(file_typeid1[i], H5T_DIR_DEFAULT)) < 0) ERR_RET;
       }
 
       /* There is one att: open it by index. */
@@ -69,12 +69,12 @@ main()
       if (H5Aclose(attid) < 0) ERR;
 
       /* Close the typeids. */
-      if (H5Tclose(file_typeid2) < 0) ERR;
-      if (H5Tclose(native_typeid2) < 0) ERR;
+      if (H5Tclose(file_typeid2) < 0) ERR_RET;
+      if (H5Tclose(native_typeid2) < 0) ERR_RET;
       for (i = 0; i < NUM_OBJ; i++)
       {
-	 if (H5Tclose(file_typeid1[i]) < 0) ERR;
-	 if (H5Tclose(native_typeid1[i]) < 0) ERR;
+	 if (H5Tclose(file_typeid1[i]) < 0) ERR_RET;
+	 if (H5Tclose(native_typeid1[i]) < 0) ERR_RET;
       }
 
       /* Close the group and file. */

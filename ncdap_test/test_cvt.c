@@ -306,7 +306,7 @@ int main()
 #ifdef USE_NETCDF4
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_ubyte(ncid,varid,uint8));
+    CHECK(nc_get_var_uchar(ncid,varid,uint8));
 #ifdef GENERATE
     printf("static %s ubyte_data[DIMSIZE]={","unsigned char");
     for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);

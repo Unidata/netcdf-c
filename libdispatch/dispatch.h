@@ -46,6 +46,7 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
                   const size_t* start, const size_t* count,
 		  const unsigned long long* value);
 
+#define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */
 #define MAGIC_NUMBER_LEN 4
@@ -154,7 +155,9 @@ struct NC;
 #define MPI_Comm int
 #define MPI_Info int
 #define MPI_COMM_WORLD 0
+#ifndef MPI_INFO_NULL
 #define MPI_INFO_NULL 0
+#endif
 #endif
 #endif
 

@@ -2004,7 +2004,9 @@ main()
    int wat_a1_dims[RANK_wat_a1];
    int wat_a2_dims[RANK_wat_a2];
    int wat_a3_dims[RANK_wat_a3];
+#ifdef EXTRA_TESTS
    int memused;
+#endif /* EXTRA_TESTS */
 
    printf("\n*** Testing CAM output file in netCDF-4.\n");
    printf("*** creating file...");
@@ -2012,9 +2014,9 @@ main()
 #ifdef EXTRA_TESTS
    get_mem_used2(&memused);
    printf("data memory %d MB\n", memused);
-#endif 
+#endif /* EXTRA_TESTS */
 
-   if (nc_set_chunk_cache(10000000, 1009, .75)) ERR;
+   if (nc_set_chunk_cache(0, 1009, .75)) ERR;
 
    /* enter define mode */
    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;

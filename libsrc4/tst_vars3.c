@@ -27,8 +27,127 @@ main(int argc, char **argv)
 {
 
    printf("\n*** Testing netcdf-4 variable functions, some more.\n");
-   printf("**** testing endianness of compound type variable...");
+   printf("**** testing definition of coordinate variable after endef/redef...");
+   {
+#define NX 6
+#define NY 36
+#define ZD1_NAME "zD1"
+#define D2_NAME "D2"
 
+      int ncid, x_dimid, y_dimid, varid2;
+      char name_in[NC_MAX_NAME + 1];
+
+      /* Create file with two dims, two 1D vars. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, ZD1_NAME, NX, &x_dimid)) ERR;
+      if (nc_def_dim(ncid, D2_NAME, NY, &y_dimid)) ERR;
+      if (nc_enddef(ncid)) ERR;
+
+      /* Go back into define mode and add a coordinate variable. Now
+       * dimensions will be out of order. Thanks for confusing my poor
+       * library. Why can't you just make up your bloody mind? */
+      if (nc_redef(ncid)) ERR;
+      if (nc_def_var(ncid, ZD1_NAME, NC_DOUBLE, NDIMS1, &x_dimid, &varid2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen file and check the name of the first dimension. Even
+       * though you've changed the order after doing a redef, you will
+       * still expect to get D1_NAME. I sure hope you appreciate how
+       * hard you are making life for a poor C library, just trying to
+       * do its best in a demanding world. Next time, why don't you
+       * try and be a little bit more considerate? Jerk. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dimname(ncid, 0, name_in)) ERR;
+      if (strcmp(name_in, ZD1_NAME)) ERR;
+      if (nc_inq_dimname(ncid, 1, name_in)) ERR;
+      if (strcmp(name_in, D2_NAME)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing definition of coordinate variable with some data...");
+   {
+#define NX 6
+#define NY 36
+#define V1_NAME "V1"
+#define D1_NAME "D1"
+#define D2_NAME "D2"
+
+      int ncid, x_dimid, y_dimid, varid1, varid2;
+      int nvars, ndims, ngatts, unlimdimid, dimids_in[2], natts;
+      double data_outx[NX], data_outy[NY];
+      int x, y, retval;
+      size_t len_in;
+      char name_in[NC_MAX_NAME + 1];
+      nc_type xtype_in;
+
+      /* Create some pretend data. */
+      for (x = 0; x < NX; x++)
+     	 data_outx[x] = x;
+      for (y = 0; y < NY; y++)
+     	 data_outy[y] = y;
+     
+      /* Create file with two dims, two 1D vars. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D1_NAME, NX, &x_dimid)) ERR;
+      if (nc_def_dim(ncid, D2_NAME, NY, &y_dimid)) ERR;
+      if (nc_def_var(ncid, V1_NAME, NC_DOUBLE, NDIMS1, &y_dimid, &varid1)) ERR;
+      if (nc_enddef(ncid)) ERR;
+      if (nc_redef(ncid)) ERR;
+      if (nc_def_var(ncid, D1_NAME, NC_DOUBLE, NDIMS1, &x_dimid, &varid2)) ERR;
+
+/*       if (nc_put_var_double(ncid, varid1, &data_outy[0])) ERR; */
+/*       if (nc_put_var_double(ncid, varid2, &data_outx[0])) ERR; */
+/*       if (nc_sync(ncid)) ERR; */
+
+      /* Check the file. */
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 2 || ndims != 2 || ngatts != 0 || unlimdimid != -1) ERR;
+      
+      /* Check the dimensions. */
+      if (nc_inq_dimids(ncid, &ndims, dimids_in, 1)) ERR;
+      if (ndims != 2 || dimids_in[0] != x_dimid || dimids_in[1] != y_dimid) ERR;
+      if (nc_inq_dim(ncid, dimids_in[0], name_in, &len_in)) ERR;
+      if (strcmp(name_in, D1_NAME) || len_in != NX) ERR;
+      if (nc_inq_dim(ncid, dimids_in[1], name_in, &len_in)) ERR;
+      if (strcmp(name_in, D2_NAME) || len_in != NY) ERR;
+
+      /* Check the variables. */
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, V1_NAME) || xtype_in != NC_DOUBLE || ndims != 1 ||
+	  natts != 0 || dimids_in[0] != y_dimid) ERR;
+      if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, D1_NAME) || xtype_in != NC_DOUBLE || ndims != 1 ||
+	  natts != 0 || dimids_in[0] != x_dimid) ERR;
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen and check the file. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 2 || ndims != 2 || ngatts != 0 || unlimdimid != -1) ERR;
+      
+      /* Check the dimensions. */
+      if (nc_inq_dimids(ncid, &ndims, dimids_in, 1)) ERR;
+      if (ndims != 2 || dimids_in[0] != x_dimid || dimids_in[1] != y_dimid) ERR;
+      if (nc_inq_dim(ncid, dimids_in[0], name_in, &len_in)) ERR;
+      if (strcmp(name_in, D1_NAME) || len_in != NX) ERR;
+      if (nc_inq_dim(ncid, dimids_in[1], name_in, &len_in)) ERR;
+      if (strcmp(name_in, D2_NAME) || len_in != NY) ERR;
+
+      /* Check the variables. */
+      if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, V1_NAME) || xtype_in != NC_DOUBLE || ndims != 1 ||
+	  natts != 0 || dimids_in[0] != y_dimid) ERR;
+      if (nc_inq_var(ncid, 1, name_in, &xtype_in, &ndims, dimids_in, &natts)) ERR;
+      if (strcmp(name_in, D1_NAME) || xtype_in != NC_DOUBLE || ndims != 1 ||
+	  natts != 0 || dimids_in[0] != x_dimid) ERR;
+
+      if (nc_close(ncid)) ERR;
+
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing endianness of compound type variable...");
    {
 #define COMPOUND_NAME "Billy-Bob"
 #define BILLY "Billy"
@@ -67,10 +186,8 @@ main(int argc, char **argv)
 	  natts_in != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
-
    SUMMARIZE_ERR;
    printf("**** testing that fixed vars with no filter end up being contiguous...");
-
    {
 #define VAR_NAME2 "Yoman_of_the_Guard"
 #define NDIMS 2
@@ -159,7 +276,6 @@ main(int argc, char **argv)
 
       if (nc_close(ncid)) ERR;
    }
-
    SUMMARIZE_ERR;
    printf("**** testing large number of vars with unlimited dimension...");
    {
@@ -189,7 +305,7 @@ main(int argc, char **argv)
       if (nvars != NUM_VARS || ndims != 1 || ngatts != 0 || unlimdimid != 0) ERR;
       if (nc_close(ncid)) ERR;
    }
-   SUMMARIZE_ERR; 
+   SUMMARIZE_ERR;
 /* #ifdef USE_SZIP */
 /*    printf("**** testing that szip works..."); */
 /*    { */

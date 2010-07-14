@@ -202,6 +202,7 @@ Variables
 * nc_rename_var::               Rename a Variable
 * nc_copy_var::                 
 * nc_var_par_access::           
+* nc_var_ubyte::                
 
 Reading and Writing Character String Values
 
@@ -6349,6 +6350,7 @@ See the example section for @ref{nc_inq_enum} for a full example.
 * nc_rename_var::               Rename a Variable
 * nc_copy_var::                 
 * nc_var_par_access::           
+* nc_var_ubyte::                Deprecated variable ``_ubyte'' functions
 @end menu
 
 @node Variable Introduction, Variable Types, Variables, Variables
@@ -7913,7 +7915,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_put_var1_long 
 @findex nc_put_var1_float
 @findex nc_put_var1_double
-@findex nc_put_var1_ubyte
 @findex nc_put_var1_ushort
 @findex nc_put_var1_uint
 @findex nc_put_var1_longlong
@@ -7953,8 +7954,6 @@ int nc_put_var1_float (int ncid, int varid, const size_t index[],
                        const float *fp); 
 int nc_put_var1_double(int ncid, int varid, const size_t index[],
                        const double *dp);
-int nc_put_var1_ubyte (int ncid, int varid, const size_t index[],
-                       const unsigned char *up);
 int nc_put_var1_ushort(int ncid, int varid, const size_t index[],
                        const unsigned short *sp);
 int nc_put_var1_uint  (int ncid, int varid, const size_t index[],
@@ -8072,7 +8071,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_put_var_long  
 @findex nc_put_var_float 
 @findex nc_put_var_double
-@findex nc_put_var_ubyte 
 @findex nc_put_var_ushort
 @findex nc_put_var_uint  
 @findex nc_put_var_longlong 
@@ -8116,7 +8114,6 @@ int nc_put_var_int   (int ncid, int varid, const int *ip);
 int nc_put_var_long  (int ncid, int varid, const long *lp);
 int nc_put_var_float (int ncid, int varid, const float *fp);
 int nc_put_var_double(int ncid, int varid, const double *dp);
-int nc_put_var_ubyte (int ncid, int varid, const unsigned char *op);
 int nc_put_var_ushort(int ncid, int varid, const unsigned short *op);
 int nc_put_var_uint  (int ncid, int varid, const unsigned int *op);
 int nc_put_var_longlong (int ncid, int varid, const long long *op);
@@ -8223,7 +8220,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_put_vara_long  
 @findex nc_put_vara_float 
 @findex nc_put_vara_double
-@findex nc_put_vara_ubyte 
 @findex nc_put_vara_ushort
 @findex nc_put_vara_uint  
 @findex nc_put_vara_longlong 
@@ -8267,8 +8263,6 @@ int nc_put_vara_float (int ncid, int varid, const size_t start[],
                        const size_t count[], const float *fp);
 int nc_put_vara_double(int ncid, int varid, const size_t start[],
                        const size_t count[], const double *dp);
-int nc_put_vara_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, const unsigned char *op);
 int nc_put_vara_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, const unsigned short *op);
 int nc_put_vara_uint  (int ncid, int varid, const size_t *startp, 
@@ -8425,7 +8419,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_put_vars_long  
 @findex nc_put_vars_float 
 @findex nc_put_vars_double
-@findex nc_put_vars_ubyte 
 @findex nc_put_vars_ushort
 @findex nc_put_vars_uint  
 @findex nc_put_vars_longlong 
@@ -8474,9 +8467,6 @@ int nc_put_vars_float (int ncid, int varid, const size_t start[],
 int nc_put_vars_double(int ncid, int varid, const size_t start[],
                        const size_t count[], const ptrdiff_t stride[],
                        const double *dp);
-int nc_put_vars_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, const ptrdiff_t *stridep, 
-                       const unsigned char *op);
 int nc_put_vars_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, const ptrdiff_t *stridep, 
                        const unsigned short *op);
@@ -8647,7 +8637,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_put_varm_long  
 @findex nc_put_varm_float 
 @findex nc_put_varm_double
-@findex nc_put_varm_ubyte 
 @findex nc_put_varm_ushort
 @findex nc_put_varm_uint  
 @findex nc_put_varm_longlong 
@@ -8699,9 +8688,6 @@ int nc_put_varm_float (int ncid, int varid, const size_t start[],
 int nc_put_varm_double(int ncid, int varid, const size_t start[],
                        const size_t count[], const ptrdiff_t stride[],
                        const ptrdiff_t imap[], const double *dp);
-int nc_put_varm_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, const ptrdiff_t *stridep, 
-                       const ptrdiff_t * imapp, const unsigned char *op);
 int nc_put_varm_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, const ptrdiff_t *stridep, 
                        const ptrdiff_t * imapp, const unsigned short *op);
@@ -8934,7 +8920,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_get_var1_long  
 @findex nc_get_var1_float 
 @findex nc_get_var1_double
-@findex nc_get_var1_ubyte 
 @findex nc_get_var1_ushort
 @findex nc_get_var1_uint  
 @findex nc_get_var1_longlong 
@@ -8975,8 +8960,6 @@ int nc_get_var1_float (int ncid, int varid, const size_t index[],
                        float *fp); 
 int nc_get_var1_double(int ncid, int varid, const size_t index[],
                        double *dp);
-int nc_get_var1_ubyte (int ncid, int varid, const size_t *indexp, 
-                       unsigned char *ip);
 int nc_get_var1_ushort(int ncid, int varid, const size_t *indexp, 
                        unsigned short *ip);
 int nc_get_var1_uint  (int ncid, int varid, const size_t *indexp, 
@@ -9106,7 +9089,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_get_var_long  
 @findex nc_get_var_float 
 @findex nc_get_var_double
-@findex nc_get_var_ubyte 
 @findex nc_get_var_ushort
 @findex nc_get_var_uint  
 @findex nc_get_var_longlong 
@@ -9145,7 +9127,6 @@ int nc_get_var_int   (int ncid, int varid, int *ip);
 int nc_get_var_long  (int ncid, int varid, long *lp);
 int nc_get_var_float (int ncid, int varid, float *fp);
 int nc_get_var_double(int ncid, int varid, double *dp);
-int nc_get_var_ubyte (int ncid, int varid, unsigned char *ip);
 int nc_get_var_ushort(int ncid, int varid, unsigned short *ip);
 int nc_get_var_uint  (int ncid, int varid, unsigned int *ip);
 int nc_get_var_longlong (int ncid, int varid, long long *ip);
@@ -9264,7 +9245,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_get_vara_long  
 @findex nc_get_vara_float 
 @findex nc_get_vara_double
-@findex nc_get_vara_ubyte 
 @findex nc_get_vara_ushort
 @findex nc_get_vara_uint  
 @findex nc_get_vara_longlong
@@ -9304,8 +9284,6 @@ int nc_get_vara_float (int ncid, int varid, const size_t start[],
                        const size_t count[], float *fp);
 int nc_get_vara_double(int ncid, int varid, const size_t start[],
                        const size_t count[], double *dp);
-int nc_get_vara_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, unsigned char *ip);
 int nc_get_vara_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, unsigned short *ip);
 int nc_get_vara_uint  (int ncid, int varid, const size_t *startp, 
@@ -9444,7 +9422,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_get_vars_long  
 @findex nc_get_vars_float 
 @findex nc_get_vars_double
-@findex nc_get_vars_ubyte 
 @findex nc_get_vars_ushort
 @findex nc_get_vars_uint  
 @findex nc_get_vars_longlong 
@@ -9493,9 +9470,6 @@ int nc_get_vars_float (int ncid, int varid, const size_t start[],
 int nc_get_vars_double(int ncid, int varid, const size_t start[],
                        const size_t count[], const ptrdiff_t stride[],
                        double *dp)
-int nc_get_vars_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, const ptrdiff_t *stridep, 
-                       unsigned char *ip);
 int nc_get_vars_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, const ptrdiff_t *stridep, 
                        unsigned short *ip);
@@ -9660,7 +9634,6 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_get_varm_long  
 @findex nc_get_varm_float 
 @findex nc_get_varm_double
-@findex nc_get_varm_ubyte 
 @findex nc_get_varm_ushort
 @findex nc_get_varm_uint  
 @findex nc_get_varm_longlong 
@@ -9713,9 +9686,6 @@ int nc_get_varm_float (int ncid, int varid, const size_t start[],
 int nc_get_varm_double(int ncid, int varid, const size_t start[],
                        const size_t count[], const ptrdiff_t stride[],
                        const ptrdiff_t imap[], double *dp);
-int nc_get_varm_ubyte (int ncid, int varid, const size_t *startp, 
-                       const size_t *countp, const ptrdiff_t *stridep, 
-                       const ptrdiff_t * imapp, unsigned char *ip);
 int nc_get_varm_ushort(int ncid, int varid, const size_t *startp, 
                        const size_t *countp, const ptrdiff_t *stridep, 
                        const ptrdiff_t * imapp, unsigned short *ip);
@@ -10280,9 +10250,16 @@ This function will copy a variable from one file to another.
 It works even if the files are different formats, (i.e. classic
 vs. netCDF-4/HDF5.)
 
-If you're copying into a netcdf-3 file, from a netcdf-4 file, you must
-be copying a var of one of the six netcdf-3 types. Similarly for the
+If you're copying into a netCDF-3 file, from a netCDF-4 file, you must
+be copying a var of one of the six netCDF-3 types. Similarly for the
 attributes.
+
+For large netCDF-3 files, this can be a very inefficient way to copy
+data from one file to another, because adding a new variable to the
+target file may require more space in the header and thus result in
+moving data for other variables in the target file.  This is not a problem
+for netCDF-4 files, which support efficient addition of variables
+without moving data for other variables.
 
 @heading Usage 
 
@@ -10332,7 +10309,7 @@ One or more values out of range.
 @example
 @end example
 
-@node nc_var_par_access,  , nc_copy_var, Variables
+@node nc_var_par_access, nc_var_ubyte, nc_copy_var, Variables
 @section Change between Collective and Independent Parallel Access: nc_var_par_access
 @findex nc_var_par_access
 @cindex nc_var_par_access, example
@@ -10424,6 +10401,48 @@ Here is an example using nc_var_par_access:
 
 @end example
 
+@node nc_var_ubyte,  , nc_var_par_access, Variables
+@section Deprecated ``_ubyte'' variable functions
+@findex nc_put_var1_ubyte
+@findex nc_put_var_ubyte 
+@findex nc_put_vara_ubyte 
+@findex nc_put_vars_ubyte 
+@findex nc_put_varm_ubyte 
+@findex nc_get_var1_ubyte 
+@findex nc_get_var_ubyte 
+@findex nc_get_vara_ubyte 
+@findex nc_get_vars_ubyte 
+@findex nc_get_varm_ubyte 
+
+Note: the following functions are also defined but deprecated, as they
+are identical in arguments and behavior to the corresponding functions
+with ``uchar'' substituted for ``ubyte'' in the function name.
+
+@example
+int nc_put_var1_ubyte (int ncid, int varid, const size_t index[],
+                       const unsigned char *up);
+int nc_put_var_ubyte (int ncid, int varid, const unsigned char *op);
+int nc_put_vara_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, const unsigned char *op);
+int nc_put_vars_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, const ptrdiff_t *stridep, 
+                       const unsigned char *op);
+int nc_put_varm_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, const ptrdiff_t *stridep, 
+                       const ptrdiff_t * imapp, const unsigned char *op);
+int nc_get_var1_ubyte (int ncid, int varid, const size_t *indexp, 
+                       unsigned char *ip);
+int nc_get_var_ubyte (int ncid, int varid, unsigned char *ip);
+int nc_get_vara_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, unsigned char *ip);
+int nc_get_vars_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, const ptrdiff_t *stridep, 
+                       unsigned char *ip);
+int nc_get_varm_ubyte (int ncid, int varid, const size_t *startp, 
+                       const size_t *countp, const ptrdiff_t *stridep, 
+                       const ptrdiff_t * imapp, unsigned char *ip);
+@end example
+
 @node Attributes, Summary of C Interface, Variables, Top
 @chapter Attributes
 
@@ -10435,6 +10454,7 @@ Here is an example using nc_var_par_access:
 * nc_copy_att::                 
 * nc_rename_att::               
 * nc_del_att::                  
+* nc_att_ubyte::                Deprecated attribute ``_ubyte'' functions
 @end menu
 
 @node Attributes Introduction, nc_put_att_ type, Attributes, Attributes
@@ -10534,8 +10554,6 @@ int nc_put_att_float     (int ncid, int varid, const char *name, nc_type xtype,
                           size_t len, const float *fp);
 int nc_put_att_double    (int ncid, int varid, const char *name, nc_type xtype,
                           size_t len, const double *dp);
-int nc_put_att_ubyte     (int ncid, int varid, const char *name, nc_type xtype,
-                          size_t len, const unsigned char *op);
 int nc_put_att_ushort    (int ncid, int varid, const char *name, nc_type xtype,
                           size_t len, const unsigned short *op);
 int nc_put_att_uint      (int ncid, int varid, const char *name, nc_type xtype,
@@ -10840,7 +10858,6 @@ int nc_get_att_int       (int ncid, int varid, const char *name, int *ip);
 int nc_get_att_long      (int ncid, int varid, const char *name, long *lp);
 int nc_get_att_float     (int ncid, int varid, const char *name, float *fp);
 int nc_get_att_double    (int ncid, int varid, const char *name, double *dp);
-int nc_get_att_ubyte     (int ncid, int varid, const char *name, unsigned char *ip);
 int nc_get_att_ushort    (int ncid, int varid, const char *name, unsigned short *ip);
 int nc_get_att_uint      (int ncid, int varid, const char *name, unsigned int *ip);
 int nc_get_att_longlong  (int ncid, int varid, const char *name, long long *ip);
@@ -11139,7 +11156,7 @@ status = nc_rename_att(ncid, rh_id, "units", "Units");
 if (status != NC_NOERR) handle_error(status);
 @end example
 
-@node nc_del_att,  , nc_rename_att, Attributes
+@node nc_del_att, nc_att_ubyte, nc_rename_att, Attributes
 @section Delete an Attribute: nc_del_att 
 @findex nc_del_att
 @cindex nc_del_att, example
@@ -11210,6 +11227,21 @@ if (status != NC_NOERR) handle_error(status);
 status = nc_enddef(ncid);       /* leave define mode */
 if (status != NC_NOERR) handle_error(status);
 @end example
+
+@node nc_att_ubyte, , nc_del_att, Attributes
+@findex nc_put_att_ubyte
+@findex nc_get_att_ubyte
+
+Note: the following functions are also defined but deprecated, as they
+are identical in arguments and behavior to the corresponding functions
+with ``uchar'' substituted for ``ubyte'' in the function name.
+
+@example
+int nc_put_att_ubyte     (int ncid, int varid, const char *name, nc_type xtype,
+                          size_t len, const unsigned char *op);
+int nc_get_att_ubyte     (int ncid, int varid, const char *name, unsigned char *ip);
+@end example
+
 
 @node Summary of C Interface, NetCDF 3 Transition Guide, Attributes, Top
 @appendix Summary of C Interface
@@ -11882,7 +11914,10 @@ treat NC_BYTE as signed for the purposes of conversion to short, int,
 long, float, or double. (Of course, no conversion takes place when the
 internal type is signed char.) In the _uchar functions, we treat
 NC_BYTE as if it were unsigned. Thus, no NC_ERANGE error can occur
-converting between NC_BYTE and unsigned char.
+converting between NC_BYTE and unsigned char.  The _uchar and _schar
+functions will behave differently when writing data or attribute
+values to a larger type, because the type conversion is from unsigned
+or signed to the larger type, respectively.
 
 @section Error handling
 

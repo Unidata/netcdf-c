@@ -765,8 +765,6 @@ main(int argc, char **argv)
       if (strcmp(name_in, VAR_NAME6) || xtype_in != NC_INT || ndims != 1 || natts != 0 || 
 	  dimids_in[0] != 0) ERR;
       if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
-      for (d = 0; d < NDIMS6; d++)
-	 if (chunksize_in[d] != 0) ERR;
       if (storage_in != NC_CONTIGUOUS) ERR;
       if (nc_get_var_int(ncid, varid, data_in)) ERR;
       for (i = 0; i < DIM6_LEN; i++)
@@ -788,8 +786,6 @@ main(int argc, char **argv)
       if (strcmp(name_in, VAR_NAME6) || xtype_in != NC_INT || ndims != 1 || natts != 0 || 
 	  dimids_in[0] != 0) ERR;
       if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
-      for (d = 0; d < NDIMS6; d++)
-	 if (chunksize_in[d] != 0) ERR;
       if (storage_in != NC_CONTIGUOUS) ERR;
       if (nc_get_var_int(ncid, varid, data_in)) ERR;
       for (i = 0; i < DIM6_LEN; i++)
