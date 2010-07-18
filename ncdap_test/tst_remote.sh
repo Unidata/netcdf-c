@@ -258,6 +258,9 @@ for t in ${TESTSET} ; do
   esac
 
 done
+
+rm -f ./.dodsrc
+
 cd ..
 
 done

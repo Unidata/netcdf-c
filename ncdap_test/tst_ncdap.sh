@@ -104,6 +104,9 @@ for x in ${TESTSET} ; do
   esac
 
 done
+
+rm -f ./.dodsrc
+
 cd ..
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
