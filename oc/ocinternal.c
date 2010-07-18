@@ -384,13 +384,12 @@ ocextractdds(OCstate* state, OCtree* tree)
     /* Read until we find the separator (or EOF)*/
     bodfound = findbod(state->packet,&bod,&ddslen);
 #endif
-    if(bodfound) {
-	tree->data.bod = bod;
-	tree->data.ddslen = ddslen;
-    } else { /* No BOD; pretend */
-        tree->data.bod = tree->data.datasize;
-	tree->data.ddslen = tree->data.bod;
+    if(!bodfound) {/* No BOD; pretend */
+	bod = tree->data.bod;
+	ddslen = tree->data.datasize;
     }
+    tree->data.bod = bod;
+    tree->data.ddslen = ddslen;
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);

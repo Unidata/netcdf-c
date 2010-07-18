@@ -65,6 +65,13 @@ t_dap_SOURCES = t_dap.c stubdap4.c
 CLEANFILES += t_dap
 
 endif # USE_NETCDF4
+
+
+# One last thing
+BUILT_SOURCES = .dodsrc
+.dodsrc:
+	echo "#DODSRC" >.dodsrc
+
 endif # BUILD_DAP
 
 test: check

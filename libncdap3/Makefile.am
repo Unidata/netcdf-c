@@ -105,5 +105,10 @@ endif # BUILD_DAP
 #	mv ce.tab.c cetab.c
 #	mv ce.tab.h cetab.h
 
+# One last thing
+BUILT_SOURCES = .dodsrc
+.dodsrc:
+	echo "#DODSRC" >.dodsrc
+
 test: check
 

@@ -65,6 +65,9 @@ echo "        Base URL: ${TESTURL}"
 echo "        Client Parameters: ${PARAMS}"
 
 cd ${RESULTSDIR}
+rm -f ./.dodsrc
+echo '#DODSRC' >./.dodsrc
+
 for x in ${TESTSET} ; do
   url="${PARAMS}${TESTURL}/$x"
   if test "x$quiet" = "x0" ; then echo "*** Testing: ${x}"; fi

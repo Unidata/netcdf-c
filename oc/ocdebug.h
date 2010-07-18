@@ -24,7 +24,7 @@
 
 /* Need some syntactic trickery to make these macros work*/
 #define DEBUG(l,msg) if(ocdebug >= l) {oc_log(LOGDBG,msg);} else {}
-#define DEBUG1(l,msg,arg) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg1);} else {}
+#define DEBUG1(l,msg,arg) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg);} else {}
 #define DEBUG2(l,msg,arg1,arg2) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg1,arg2);} else {}
 #define DEBUGTEXT(l,text) if(ocdebug >= l) {oc_logtext(LOGNOTE,text);} else {}
 #define DEBUGCODE(l,code) if(ocdebug >= l) {code;} else {}
