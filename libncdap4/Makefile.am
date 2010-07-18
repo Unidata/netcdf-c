@@ -71,6 +71,7 @@ endif # USE_NETCDF4
 BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+DISTCLEANFILES += .dodsrc
 
 endif # BUILD_DAP
 

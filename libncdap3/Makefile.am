@@ -109,6 +109,7 @@ endif # BUILD_DAP
 BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+DISTCLEANFILES += .dodsrc
 
 test: check
 
