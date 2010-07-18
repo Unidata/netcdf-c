@@ -92,7 +92,6 @@ to use to determine the dispatch table.
 1. table specified by override
 2. path
 3. cmode
-4. default create format
 */
 int
 NC_create(const char *path, int cmode,
@@ -117,21 +116,7 @@ NC_create(const char *path, int cmode,
 	if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = 4;
     }
 
-    if(model == 0) {
-	int format = 0;
-	nc_set_default_format(0,&format);
-	switch (format) {
-	default: 
-	case NC_FORMAT_CLASSIC:
-	case NC_FORMAT_64BIT:
-            model = 3;
-	    break;
-	case NC_FORMAT_NETCDF4:
-	case NC_FORMAT_NETCDF4_CLASSIC:
-            model = 4;
-	    break;
-	}
-    }
+    if(model == 0) model = 3; /* final default */
 
     /* Force flag consistentcy */
     if(model == 4)
