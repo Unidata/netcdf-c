@@ -11,7 +11,6 @@
 
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
-static int ocsetcurlproperties(CURL* curl, const char*);
 
 struct Fetchdata {
 	FILE* stream;
@@ -36,9 +35,6 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 	int stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
 	struct Fetchdata fetchdata;
-
-
-	if((stat = ocsetcurlproperties(curl,url)) != OC_NOERR) goto fail;
 
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
@@ -86,8 +82,6 @@ ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
 	int stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
 	size_t len;
-
-	if((stat = ocsetcurlproperties(curl,url)) != OC_NOERR) goto fail;
 
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
@@ -242,55 +236,11 @@ occurlclose(CURL* curl)
 		curl_easy_cleanup(curl);
 }
 
-static int
-ocsetcurlproperties(CURL* curl, const char* url)
-{
-    CURLcode cstat = CURLE_OK;
-    /* These conditionals look for value in four globals set when the
-     * .dodsrc file was read.
-     */
-    if (dods_verify) {
-        if (set_verify(curl) != OC_NOERR)
-            goto fail;
-    }
-    if (dods_compress) {
-        if (set_compression(curl) != OC_NOERR)
-            goto fail;
-    }
-    if (pstructProxy) {
-        if (set_proxy(curl, pstructProxy) != OC_NOERR)
-            goto fail;
-    }
-    if (cook) {
-        if (set_cookies(curl, cook) != OC_NOERR)
-            goto fail;
-    }
-
-    if (credentials_in_url(url)) {
-        char *result_url = NULL;
-        if (extract_credentials(url, &userName, &password, &result_url) != OC_NOERR)
-            goto fail;
-        url = result_url;
-    }
-
-    if (userName && password) {
-        if (set_user_password(curl, userName, password) != OC_NOERR)
-            goto fail;
-    }
-    return OC_NOERR;
-
-fail:
-    oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return THROW(OC_ECURL);
-}
-
 int
 ocfetchlastmodified(CURL* curl, char* url, long* filetime)
 {
     int stat = OC_NOERR;
     CURLcode cstat = CURLE_OK;
-
-    if((stat = ocsetcurlproperties(curl,url)) != OC_NOERR) goto fail;
 
     /* Set the URL */
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);

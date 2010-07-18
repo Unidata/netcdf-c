@@ -9,116 +9,165 @@
 
 #include "rc.h"
 
+static char* combinecredentials(const char* user, const char* pwd);
+
+
+/* Set various general curl flags */
+int
+ocset_curl_flags(CURL* curl,  OCstate* state)
+{
+    CURLcode cstat = CURLE_OK;
+    struct OCcurlflags* flags = &state->curlflags;
+#ifdef CURLOPT_ENCODING
+    if (flags->compress) {
+	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING, 'deflate, gzip');
+	if(cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOP_ENCODING=deflat, gzip");
+    }
+#endif
+    if (flags->cookiejar || flags->cookiefile) {
+	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
+	if (cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOP_COOKIESESSION=1");
+    }
+    if (flags->cookiejar) {
+	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, flags->cookiejar);
+	if (cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOP_COOKIEJAR=%s",flags->cookiejar);
+    }
+    if (flags->cookiefile) {
+	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiefile);
+	if (cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOPT_COOKIEFILE=%s",flags->cookiefile);
+    }
+    if (flags->verbose) {
+	cstat = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	if (cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOPT_VERBOSE=%ld",1L);
+    }
+
+    /* Following are always set */
+    cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    oc_log(LOGNOTE,"CURLOPT_FOLLOWLOCATION=%ld",1L);
+    return OC_NOERR;
+fail:
+    return OC_ECURL;
+}
+
+int
+ocset_proxy(CURL* curl, OCstate* state)
+{
+    CURLcode cstat;
+    struct OCproxy *proxy = &state->proxy;
+    struct OCcredentials *creds = &state->creds;
+
+    cstat = curl_easy_setopt(curl, CURLOPT_PROXY, proxy->host);
+    if (cstat != CURLE_OK) return OC_ECURL;
+    oc_log(LOGNOTE,"CURLOPT_PROXY=%s",proxy->host);
+
+    cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, proxy->port);
+    if (cstat != CURLE_OK) return OC_ECURL;
+    oc_log(LOGNOTE,"CURLOPT_PROXYPORT=%d",proxy->port);
+
+    if (creds->username) {
+        char *combined = combinecredentials(creds->username,creds->password);
+        if (!combined) return OC_ENOMEM;
+        cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, combined);
+        free(combined);
+        if (cstat != CURLE_OK) return OC_ECURL;
+	oc_log(LOGNOTE,"CURLOPT_PROXYUSERPWD=%s",combined);
+#ifdef CURLOPT_PROXYAUTH
+        cstat = curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
+        if(cstat != CURLE_OK) goto fail;
+	oc_log(LOGNOTE,"CURLOPT_PROXYAUTH=%ld",(long)CURLAUTH_ANY);
+#endif
+    }
+    return OC_NOERR;
+}
+
+int
+ocset_ssl(CURL* curl, OCstate* state)
+{
+    CURLcode cstat = CURLE_OK;
+    struct OCSSL* ssl = &state->ssl;
+    long verify = (ssl->validate?1L:0L);
+    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verify);
+    if (cstat != CURLE_OK) goto fail;
+    oc_log(LOGNOTE,"CURLOPT_SSL_VERIFYPEER=%ld",verify);
+    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
+    if (cstat != CURLE_OK) goto fail;
+    oc_log(LOGNOTE,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
+#ifdef IGNORE
+    if(verify)
+#endif
+    {
+        if(ssl->certificate) {
+            cstat = curl_easy_setopt(curl, CURLOPT_SSLCERT, ssl->certificate);
+            if(cstat != CURLE_OK) goto fail;
+	    oc_log(LOGNOTE,"CURLOPT_SSLCERT=%s",ssl->certificate);
+        }
+        if(ssl->key) {
+            cstat = curl_easy_setopt(curl, CURLOPT_SSLKEY, ssl->key);
+            if(cstat != CURLE_OK) goto fail;
+	    oc_log(LOGNOTE,"CURLOPT_SSLKEY=%s",ssl->key);
+        }
+        if(ssl->cainfo) {
+            cstat = curl_easy_setopt(curl, CURLOPT_CAINFO, ssl->cainfo);
+            if(cstat != CURLE_OK) goto fail;
+	    oc_log(LOGNOTE,"CURLOPT_CAINFO=%s",ssl->cainfo);
+        }
+        if(ssl->capath) {
+            cstat = curl_easy_setopt(curl, CURLOPT_CAPATH, ssl->capath);
+            if(cstat != CURLE_OK) goto fail;
+	    oc_log(LOGNOTE,"CURLOPT_CAPATH=%s",ssl->capath);
+        }
+    }    
+    return OC_NOERR;
+
+fail:
+    return OC_ECURL;
+}
+
 /* This is called with arguments while the other functions in this file are
- * used with global values read from the.dodsrc file.
+ * used with global values read from the.dodsrc file. The reason is that
+ * we may have multiple password sources.
  */
 int
-set_user_password(CURL* curl, const char *userC, const char *passwordC)
+ocset_user_password(CURL* curl, const char *userC, const char *passwordC)
 {
-	CURLcode cstat;
-	int iUserPassSize = strlen(userC) + strlen(passwordC) + 2;
-	char *userPassword = malloc(sizeof(char) * iUserPassSize);
-	if (!userPassword) {
-		oc_log(LOGERR,
-		      "Failed to allocate memory for the username and/or password.\n");
-		return OC_ENOMEM;
-	}
-	strncpy(userPassword, userC, iUserPassSize);
-	strncat(userPassword, ":", iUserPassSize);
-	strncat(userPassword, passwordC, iUserPassSize);
-	cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, userPassword);
-	if (cstat != CURLE_OK) {
-		free(userPassword);
-		return OC_ECURL;
-	}
+    CURLcode cstat;
+    char* combined = NULL;
 
-	cstat = curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long) CURLAUTH_ANY);
-	if (cstat != CURLE_OK) {
-		free(userPassword);
-		return OC_ECURL;
-	}
+    if(userC == NULL && passwordC == NULL) return OC_NOERR;
+    if(userC == NULL) userC = "";
+    if(passwordC == NULL) passwordC = "";
 
-	free(userPassword);
-	return OC_NOERR;
+    combined = combinecredentials(userC,passwordC);
+    if (!combined) return OC_ENOMEM;
+    cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, combined);
+    if (cstat != CURLE_OK) goto done;
+    oc_log(LOGNOTE,"CURLOPT_USERPWD=%s",combined);
+    cstat = curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long) CURLAUTH_ANY);
+    if (cstat != CURLE_OK) goto done;
+    oc_log(LOGNOTE,"CURLOPT_HTTPAUTH=%ld",(long)CURLAUTH_ANY);
+
+done:
+    if(combined != NULL) free(combined);
+    return (cstat == CURLE_OK?OC_NOERR:OC_ECURL);
 }
 
-int
-set_proxy(CURL* curl, struct OCproxy *pstructProxy)
+
+static char*
+combinecredentials(const char* user, const char* pwd)
 {
-	CURLcode cstat;
-	cstat = curl_easy_setopt(curl, CURLOPT_PROXY, pstructProxy->host);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-
-	cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, pstructProxy->port);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-
-	if (pstructProxy->user) {
-		int userPassSize = strlen(pstructProxy->user) + strlen(
-				pstructProxy->password) + 2;
-		char *userPassword = malloc(sizeof(char) * userPassSize);
-		if (!userPassword) {
-			oc_log(LOGERR, "Out of Memory\n");
-			return OC_ENOMEM;
-		}
-		strncpy(userPassword, pstructProxy->user, userPassSize);
-		strncat(userPassword, ":", userPassSize);
-		strncat(userPassword, pstructProxy->password, userPassSize);
-		cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, userPassword);
-		if (cstat != CURLE_OK) {
-			free(userPassword);
-			return OC_ECURL;
-		}
-
-#ifdef CURLOPT_PROXYAUTH
-		cstat = curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
-		if(cstat != CURLE_OK) goto fail;
-#endif
-		free(userPassword);
-	}
-
-	return OC_NOERR;
+    int userPassSize = strlen(user) + strlen(pwd) + 2;
+    char *userPassword = malloc(sizeof(char) * userPassSize);
+    if (!userPassword) {
+        oc_log(LOGERR, "Out of Memory\n");
+	return NULL;
+    }
+    strcpy(userPassword, user);
+    strcat(userPassword, ":");
+    strcat(userPassword, pwd);
+    return userPassword;
 }
-
-int
-set_cookies(CURL* curl, const char *cook)
-{
-	CURLcode cstat;
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, cook);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-
-	return OC_NOERR;
-}
-
-int
-set_verify(CURL* curl)
-{
-	CURLcode cstat;
-	cstat = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-	cstat = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-	if (cstat != CURLE_OK)
-		return OC_ECURL;
-
-	return OC_NOERR;
-}
-
-int
-set_compression(CURL* curl)
-{
-#ifdef CURLOPT_ENCODING
-	CURLcode cstat;
-	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING, 'deflate, gzip');
-	if(cstat != CURLE_OK)
-		return OC_ECURL;
-#endif
-	return OC_NOERR;
-}
-
