@@ -10,8 +10,8 @@
 #define snprintf _snprintf
 #endif
 
-/* Null terminate; element 0 is preferred form.*/
-static char* DDSdatamarks[] = {"Data:\n", "Data:\r\n",(char*)0};
+static char* DDSdatamark = "Data:";
+static char* DDSdatamarkR = "Data:\r";
 
 /* Not all systems have strndup, so provide one*/
 char*
@@ -100,19 +100,23 @@ findbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
     unsigned int i;
     char* content;
     size_t len = ocbyteslength(buffer);
+    int tlen = strlen(DDSdatamark);
 
     content = ocbytescontents(buffer);
     for(i=0;i<len;i++) {
-	char** tagp;
-	for(tagp=DDSdatamarks;*tagp;tagp++) {
-	    int tlen = strlen(*tagp);
-	    if((i+tlen) <= len && strncmp(content+i,*tagp,tlen)==0) {
-		*ddslenp = i;
-	        *bodp = (i+tlen);
-	        return 1;
-	    }
+	if((i+tlen) <= len 
+	   && (strncmp(content+i,DDSdatamark,tlen)==0)
+	       || strncmp(content+i,DDSdatamarkR,tlen)==0) {
+	    *ddslenp = i;
+	    i += tlen;
+	    if(i < len && content[i] == '\r') i++;
+	    if(i < len && content[i] == '\n') i++;
+	    *bodp = i;
+	    return 1;
 	}
     }
+    *ddslenp = 0;
+    *bodp = 0;
     return 0; /* tag not found; not necessarily an error*/
 }
 
@@ -381,6 +385,8 @@ ocerrstring(int err)
 	    return "OC_EDDS: Malformed or unreadable DDS";
 	case OC_EDATADDS:
 	    return "OC_EDATADDS: Malformed or unreadable DATADDS";
+	case OC_ERCFILE:
+	    return "OC_ERCFILE: Malformed or unreadable run-time configuration file";
 	default: break;
     }
     return "<unknown error code>";
