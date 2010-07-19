@@ -8,7 +8,7 @@ makeoc::
 	rm -fr ${OCDIR}
 	svn co ${OCSVN}
 	rm -f ${THISDIR}/*.[chy]
-	for f in ${OCDIR}/*.[chy]; do \
+	for f in ${OCDIR}/*.[chy] ; do \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; done
 	rm -f ce.y ceparse.c celex.c ceparselex.h

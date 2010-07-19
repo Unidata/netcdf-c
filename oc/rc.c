@@ -135,80 +135,80 @@ ocread_dodsrc(char *in_file_name, OCstate* state)
 	    v = p+1;
 	    *p = '\0';
 #ifdef IGNORE
-            if (strcmp(more, "USE_CACHE") == 0) {
+            if (strcmp(more, "CURL.USE_CACHE") == 0) {
                     /*strcat(unsupported,",USE_CACHE");*/
-            } else if (strcmp(more, "MAX_CACHE_SIZE") == 0) {
+            } else if (strcmp(more, "CURL.MAX_CACHE_SIZE") == 0) {
                     /*strcat(unsupported,",USE_CACHE");*/
-            } else if (strcmp(more, "MAX_CACHED_OBJ") == 0) {
+            } else if (strcmp(more, "CURL.MAX_CACHED_OBJ") == 0) {
                     /*strcat(unsupported,",MAX_CACHED_OBJ");*/
-            } else if (strcmp(more, "IGNORE_EXPIRES") == 0) {
+            } else if (strcmp(more, "CURL.IGNORE_EXPIRES") == 0) {
                     /*strcat(unsupported,",IGNORE_EXPIRES");*/
-            } else if (strcmp(more, "CACHE_ROOT") == 0) {
+            } else if (strcmp(more, "CURL.CACHE_ROOT") == 0) {
                     /*strcat(unsupported,",CACHE_ROOT");*/
-            } else if (strcmp(more, "DEFAULT_EXPIRES") == 0) {
+            } else if (strcmp(more, "CURL.DEFAULT_EXPIRES") == 0) {
                     /*strcat(unsupported,",DEFAULT_EXPIRES");*/
-            } else if (strcmp(more, "ALWAYS_VALIDATE") == 0) {
+            } else if (strcmp(more, "CURL.ALWAYS_VALIDATE") == 0) {
                     /*strcat(unsupported,",ALWAYS_VALIDATE");*/
-            } else if (strcmp(more, "NO_PROXY_FOR") == 0) {
+            } else if (strcmp(more, "CURL.NO_PROXY_FOR") == 0) {
                     /*strcat(unsupported,",NO_PROXY_FOR");*/
-            } else if (strcmp(more, "AIS_DATABASE") == 0) {
+            } else if (strcmp(more, "CURL.AIS_DATABASE") == 0) {
                     /*strcat(unsupported,",AIS_DATABASE");*/
             } else
 #endif
-            if (strcmp(more, "DEFLATE") == 0) {
+            if (strcmp(more, "CURL.DEFLATE") == 0) {
                     /* int v_len = strlen(v); unused */
                     if(atoi(v)) state->curlflags.compress = 1;
                     if (ocdebug > 1)
                             oc_log(LOGNOTE,"Compression: %l", state->curlflags.compress);
-            } else if (strcmp(more, "VERBOSE") == 0) {
+            } else if (strcmp(more, "CURL.VERBOSE") == 0) {
                     if(atoi(v)) state->curlflags.verbose = 1;
                     if (ocdebug > 1)
-                        oc_log(LOGNOTE,"Verbose: %l", state->curlflags.verbose);
-            } else if(strcmp(more, "COOKIEFILE") == 0) {
+                        oc_log(LOGNOTE,"curl.verbose: %l", state->curlflags.verbose);
+            } else if(strcmp(more, "CURL.COOKIEFILE") == 0) {
                 state->curlflags.cookiefile = strdup(TRIM(v));
                 if (!state->curlflags.cookiefile) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
-            } else if(strcmp(more, "COOKIEJAR") == 0
-                      || strcmp(more, "COOKIE_JAR") == 0) {
+            } else if(strcmp(more, "CURL.COOKIEJAR") == 0
+                      || strcmp(more, "CURL.COOKIE_JAR") == 0) {
                 state->curlflags.cookiejar = strdup(TRIM(v));
                 if (!state->curlflags.cookiejar) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
                 
-            } else if(strcmp(more, "PROXY_SERVER") == 0) {
+            } else if(strcmp(more, "CURL.PROXY_SERVER") == 0) {
                 int stat = parseproxy(state,TRIM(v));
                 if(stat != OC_NOERR) return stat;
-            } else if(strcmp(more, "SSL.VALIDATE") == 0) {
+            } else if(strcmp(more, "CURL.SSL.VALIDATE") == 0) {
                     if(atoi(v)) state->ssl.validate = 1;
                     if (ocdebug > 1)
                             oc_log(LOGNOTE,"SSL Verification: %l", state->ssl.validate);
-            } else if(strcmp(more, "SSL.CERTIFICATE") == 0) {
+            } else if(strcmp(more, "CURL.SSL.CERTIFICATE") == 0) {
                 state->ssl.certificate = strdup(TRIM(v));
                 if (!state->ssl.certificate) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"CREDENTIALS.SSL.CERTIFICATE: %s", state->ssl.certificate);
-            } else if(strcmp(more, "SSL.KEY") == 0) {
+            } else if(strcmp(more, "CURL.SSL.KEY") == 0) {
                 state->ssl.key = strdup(TRIM(v));
                 if (!state->ssl.key) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"CREDENTIALS.SSL.KEY: %s", state->ssl.key);
-            } else if(strcmp(more, "SSL.CAINFO") == 0) {
+            } else if(strcmp(more, "CURL.SSL.CAINFO") == 0) {
                 state->ssl.cainfo = strdup(TRIM(v));
                 if (!state->ssl.cainfo) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"SSL.CAINFO: %s", state->ssl.cainfo);
-            } else if(strcmp(more, "SSL.CAPATH") == 0) {
+            } else if(strcmp(more, "CURL.SSL.CAPATH") == 0) {
                 state->ssl.capath = strdup(TRIM(v));
                 if (!state->ssl.capath) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"SSL.CAPATH: %s", state->ssl.capath);
-            } else if(strcmp(more, "CREDENTIALS.USER") == 0) {
+            } else if(strcmp(more, "CURL.CREDENTIALS.USER") == 0) {
                 state->creds.username = strdup(TRIM(v));
                 if (!state->creds.username) return OC_ENOMEM;
                 if (ocdebug > 0)
                     oc_log(LOGNOTE,"CREDENTIALS.USER: %s", state->creds.username);
-            } else if(strcmp(more, "CREDENTIALS.PASSWORD") == 0) {
+            } else if(strcmp(more, "CURL.CREDENTIALS.PASSWORD") == 0) {
                 state->creds.password = strdup(TRIM(v));
                 if (!state->creds.password) return OC_ENOMEM;
             } /* else ignore */
