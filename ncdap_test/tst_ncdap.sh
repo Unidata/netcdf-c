@@ -65,6 +65,9 @@ echo "        Base URL: ${TESTURL}"
 echo "        Client Parameters: ${PARAMS}"
 
 cd ${RESULTSDIR}
+rm -f ./.dodsrc
+echo '#DODSRC' >./.dodsrc
+
 for x in ${TESTSET} ; do
   url="${PARAMS}${TESTURL}/$x"
   if test "x$quiet" = "x0" ; then echo "*** Testing: ${x}"; fi
@@ -101,6 +104,9 @@ for x in ${TESTSET} ; do
   esac
 
 done
+
+rm -f ./.dodsrc
+
 cd ..
 
 totalcount=`expr $passcount + $failcount + $xfailcount`

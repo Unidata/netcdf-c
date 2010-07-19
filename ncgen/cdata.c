@@ -47,25 +47,34 @@ cdata_array(Symbol* vsym,
 {
     int i;
     int rank = odom->rank;
-    int lastdim = (index == (rank - 1)); /* last dimension*/
+    int pushed = 0;
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
+    int lastdim = (index == (rank - 1)); /* last dimension*/
+    int isunlimited = (odom->declsize[index] == 0);
+
     ASSERT(index >= 0 && index < rank);
 
     count = odom->count[index];
 
+    if(isunlimited && issublist(src)) {
+	srcpush(src);
+	pushed = 1;
+    }
+   
     if(lastdim) {
         for(i=0;i<count;i++) {
             cdata_basetype(basetype,src,codebuf,fillsrc);
 	}
-	goto done;
     } else {
         /* now walk count elements and generate recursively */
         for(i=0;i<count;i++) {
 	   cdata_array(vsym,codebuf,src,odom,index+1,fillsrc);
 	}
     }
-done:
+
+    if(isunlimited && pushed) srcpop(src);
+
     return;
 }
 

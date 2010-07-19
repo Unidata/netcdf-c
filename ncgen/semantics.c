@@ -26,12 +26,13 @@ static void checkconsistency(void);
 static void validate(void);
 static int tagvlentypes(Symbol* tsym);
 
-static size_t walkdata(Symbol*, Datasrc*);
+static size_t walkdata(Symbol*);
 static size_t walkarray(Symbol*, Datasrc*, int, Datalist*);
 static size_t walktype(Symbol*, Datasrc*, Datalist*);
 static void walkfieldarray(Symbol*, Datasrc*, Dimset*, int);
 static int lastunlimited(Dimset* dimset, int from);
 
+static size_t walkchararray(Symbol*,Datasrc*,Datalist*);
 
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
 
@@ -901,9 +902,7 @@ processdatalist(Symbol* sym)
 {
     Datasrc* src;
     size_t total = 0;
-    src = datalist2src(sym->data);
-    total = walkdata(sym,src);
-    freedatasrc(src);
+    total = walkdata(sym);
     return total;
 }
 
@@ -920,30 +919,40 @@ and a datalist.
 */
 
 static size_t
-walkdata(Symbol* sym, Datasrc* src)
+walkdata(Symbol* sym)
 {
     int rank = sym->typ.dimset.ndims;
     size_t total = 0;
+    Datasrc* src = NULL;
     Datalist* fillsrc = sym->var.special._Fillvalue;
+    int ischartype = (sym->typ.basetype->typ.typecode == NC_CHAR);
 
-    switch (sym->objectclass) {
-    case NC_VAR:
-	if(rank == 0) /*scalar*/
-	    total = walktype(sym->typ.basetype,src,fillsrc);
-	else
-	    total = walkarray(sym,src,0,fillsrc);
-	break;
-    case NC_ATT:
-	for(total=0;srcpeek(src) != NULL;total++)
-	    walktype(sym->typ.basetype,src,NULL);	
-	break;
-    default:
-	PANIC1("walkdata: illegal objectclass: %d",(int)sym->objectclass);
-	break;	
+    /* special case */
+    if(sym->objectclass == NC_VAR && ischartype) {
+	total = walkchararray(Symbol* vsym, Datalist* fillsrc)
+    } else {
+        src = datalist2src(sym->data);
+        switch (sym->objectclass) {
+        case NC_VAR:
+	    if(rank == 0) /*scalar*/
+	        total = walktype(sym->typ.basetype,src,fillsrc);
+	    else
+	        total = walkarray(sym,src,0,fillsrc);
+	    break;
+        case NC_ATT:
+	    for(total=0;srcpeek(src) != NULL;total++)
+	        walktype(sym->typ.basetype,src,NULL);	
+	    break;
+        default:
+	    PANIC1("walkdata: illegal objectclass: %d",(int)sym->objectclass);
+	    break;	
+        }
+        if(src) freedatasrc(src);
     }
     return total;
 }
 
+/* Walk non-character arrays */
 static size_t
 walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
 {
@@ -951,52 +960,35 @@ walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
     Dimset* dimset = &vsym->typ.dimset;
     int rank = dimset->ndims;
     int lastdim = (dimindex == (rank-1));
+    int firstdim = (dimindex == 0);
     Symbol* dim = dimset->dimsyms[dimindex];
     int isunlimited = (dim->dim.declsize == NC_UNLIMITED);
     int islastunlimited = lastunlimited(dimset,dimindex+1);
-    int ischartype = (vsym->typ.basetype->typ.typecode == NC_CHAR);
     size_t total = 1;
     size_t count = 0;
 
     ASSERT(rank > 0);
 
+    ASSERT(vsym->typ.basetype->typ.typecode != NC_CHAR);
+
     if(isunlimited) {
-	if(islastunlimited && ischartype) {
-	    /* the remainder of src must be all stringables */
-	    int checkpoint = src->index; /* save */
-	    size_t subsize, slen;
-	    Bytebuffer* buf = bbNew();
-	    /* test and collect the complete string */
-	    for(;;) {	    
-	        Constant* con = srcnext(src);
-		if(con == NULL) break;
-		if(!isstringable(con->nctype)) {
-		    semerror(srcline(src),"Illegal string constant");
-		} else
-		    collectstring(con,0,buf);
-	    }
-	    src->index = checkpoint;
-	    /* Compute the subslice size */
-	    subsize = subarraylength(dimset,dimindex+1);
-	    /* pad the string */
-	    slen = bbLength(buf);
-	    slen += (subsize-1);
-	    /* Compute the presumed size of this unlimited. */
-	    count = slen / subsize;	    
-	    /* compute unlimited max */
-	    dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
-	    bbFree(buf);
-	} else {
-	    for(count=0;srcpeek(src) != NULL;count++) {
-                if(lastdim)
-                    walktype(vsym->typ.basetype,src,fillsrc);
-	        else
-	            total *= walkarray(vsym,src,dimindex+1,fillsrc);
-	    }
-	    /* compute unlimited max */
-	    dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
+        int pushed = 0;
+	if(!firstdim) {
+	      if(!issublist(src))
+	         semerror(srcline(src),"Expected {..} found primitive");
+	    srcpush(src);
+	    pushed = 1;
+        }
+	for(count=0;srcpeek(src) != NULL;count++) {
+            if(lastdim)
+                walktype(vsym->typ.basetype,src,fillsrc);
+	    else
+	        total *= walkarray(vsym,src,dimindex+1,fillsrc);
 	}
-    } else {
+        /* compute unlimited max */
+	dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
+	if(pushed) srcpop(src);
+    } else { /* !ischartype && !isunlimited */
 	count = dim->dim.declsize;
 	for(i=0;i<dim->dim.declsize;i++) {
             if(lastdim)
@@ -1120,3 +1112,84 @@ lastunlimited(Dimset* dimset, int from)
     }
     return 1;
 }
+static char*
+buildcanonicalcharlist(Dimset* dimset, Datalist* list, size_t size,
+                       Datalist* fillsrc)
+{
+    int i,padding;
+    Bytebuffer* buf = bbNew();
+
+    ASSERT(size > 0);
+
+    for(i=0;i<list->length;i++) {
+	Constant* con = list->data[i];
+	switch(con->nc_type)
+	case NC_CHAR:
+	    bbAppend(buf,con->value.charv);
+	    padding = (size - 1);
+	    break;
+	case NC_STRING:
+	    bbAppendn(buf,con->value.stringv.stringv,con->value.stringv.len);
+	    padding = (size - (con->value.stringv.len % size));
+	    break;
+	default:
+	    semerror(srcline(src),"Malformed Character datalist");
+	    break;		
+	}
+
+
+
+    /* Compute the subslice size */
+    subsize = subarraylength(dimset,dimindex+1);
+
+    /* test and collect the complete string (with padding)*/
+for(;;) {
+Constant* con = srcnext(src);
+if(con == NULL) break;
+if(!isstringable(con->nctype)) {
+semerror(srcline(src),"Illegal string constant");
+} else {
+slen = collectstring(con,0,buf);
+/* pad the string */
+for(i=slen;i<subsize;i++) bbAppend(buf,'\0');
+}
+}
+src->index = checkpoint;
+/* Compute the presumed size of this unlimited. */
+slen = bbLength(buf);
+count = slen / subsize;
+/* compute unlimited max */
+dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
+bbFree(buf);
+}
+
+static size_t
+walkchararray(Symbol* vsym, Datalist* fillsrc)
+{
+    /* does this symbol have any interior unlimiteds */
+    int simpleunlim = lastunlimited(dimset,1)); /* 1=>no interior unlimiteds*/
+    Constant* con;
+    int i;
+    int rank = dimset->ndims;
+    Symbol* lastdim = dimset->dimsyms[rank-1];
+    size_t lastdimsize lastdim->dim.declsize;
+    Datalist* data = vsym->data;
+    char* canon;
+
+    if(simpleunlim) {
+        canon = buildcanonicalcharlist(&vsym->dimset,data,lastdimsize,fillsrc);
+    } else {
+	for(i=0;i<data->length;i++) {
+	    if(con->nc_type != NC_COMPOUND) {
+		semerror(srcline(src),"Malformed Character datalist");
+		continue;
+	    }
+            canon = canonbuildcanonicalcharlist(&vsym->dimset,
+						data->data[i]->value.compoundv,
+                                                lastdimsize,fillsrc);
+	}
+
+    }
+    return i;
+}
+

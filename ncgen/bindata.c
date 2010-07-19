@@ -50,6 +50,9 @@ bindata_array(Symbol* vsym,
     int lastdim = (index == (rank - 1)); /* last dimension*/
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
+    int isunlimited = (odom->declsize[index] == 0);
+    int pushed = 0;
+
     ASSERT(index >= 0 && index < rank);
 
     /* Assume that src is already at the index of
@@ -57,18 +60,25 @@ bindata_array(Symbol* vsym,
 
     count = odom->count[index];
 
+    if(isunlimited && issublist(src)) {
+	srcpush(src);
+	pushed = 1;
+    }
+   
     if(lastdim) {
         for(i=0;i<count;i++) {
             bindata_basetype(basetype,src,memory,fillsrc);
 	}
-	goto done;
+
     } else {
         /* walk count elements and generate recursively */
         for(i=0;i<count;i++) {
 	    bindata_array(vsym,memory,src,odom,index+1,fillsrc);
 	}
     }
-done:
+
+    if(isunlimited && pushed) srcpop(src);
+
     return;
 }
 

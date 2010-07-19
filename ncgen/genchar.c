@@ -30,6 +30,7 @@ static void gen_chararraysuffix(Symbol* vsym,
 	      int);
 
 static int stringexplode(Datasrc* src, size_t chunksize);
+static int stringpad(Datasrc* src, size_t chunksize);
 static int fillstring(size_t declsize, int len, Bytebuffer* databuf);
 
 void
@@ -82,6 +83,7 @@ gen_chararray(Symbol* vsym,
     int firstdim = (index == 0);
     int isunlimited = (odom->declsize[index] == NC_UNLIMITED);
     int exploded = 0;
+    int padded = 0;
     Constant* con;
 
     if(lastdim) {
@@ -103,25 +105,32 @@ gen_chararray(Symbol* vsym,
 	    srcpush(src); /* enter the unlimited data */
 	}
 	con=srcpeek(src);
-        /* Break up the constant if it is too large */
+        /* Break up the constant if it is too large; pad if too small */
 	slicesize = odomsubarray(odom,index+1);
 	if(con != NULL && con->value.stringv.len > slicesize) {
 	    /* Constant is larger than just our slice */
 	    /* Explode the constant into subchunks */
 	    exploded = stringexplode(src,slicesize);
 	}
+#ifdef IGNORE
+	else if(con != NULL && con->value.stringv.len < slicesize) {
+	    /* Constant is smaller than  our slice */
+	    /* pad */
+	    padded = stringpad(src,slicesize);
+	}
+#endif
 	while((con=srcpeek(src))!=NULL) {
 	    gen_chararray(vsym,databuf,src,odom,index+1);
 	    odom->index[index]++;
 	}
 	odom->unlimitedsize[index] = odom->index[index];
-	if(exploded) srcpop(src);
+	if(exploded || padded) srcpop(src);
 	if(!firstdim) srcpop(src);
     } else { /* !isunlimited*/
 	size_t slicesize;
 	con = srcpeek(src);
 	ASSERT(!lastdim);
-	/* Break up the constant if it is too large */
+	/* fix up the constant if it is too large or too small */
 	slicesize = odomsubarray(odom,index+1);
 	if(con != NULL && con->value.stringv.len > slicesize) {
 	    /* Constant is larger than just our slice */
@@ -288,7 +297,7 @@ done:
 /**************************************************/
 
 static Datalist*
-buildstringlist(char* s, size_t chunksize, int lineno)
+dividestringlist(char* s, size_t chunksize, int lineno)
 {
     size_t slen,div,rem;
     Datalist* charlist;
@@ -342,7 +351,47 @@ stringexplode(Datasrc* src, size_t chunksize)
 
     if(!isstring(src)) return 0;
     con = srcnext(src);
-    charlist = buildstringlist(con->value.stringv.stringv,chunksize,srcline(src));
+    charlist = dividestringlist(con->value.stringv.stringv,chunksize,srcline(src));
+    srcpushlist(src,charlist);
+    return 1;
+}
+
+static Datalist*
+padstringlist(char* s, size_t chunksize, int lineno)
+{
+    size_t slen;
+    Datalist* charlist;
+    Constant* chars;
+
+    if(s == NULL) s = "";
+    slen = strlen(s);
+    ASSERT(chunksize > 0);
+    ASSERT(chunksize >= slen);
+
+    charlist = builddatalist(1);
+    if(!charlist) return NULL;
+    charlist->readonly = 0;
+    charlist->length = 1;
+    chars=charlist->data;
+    chars->nctype = NC_STRING;
+    chars->lineno = lineno;
+    chars->value.stringv.len = chunksize;
+    chars->value.stringv.stringv = emalloc(chunksize+1);
+    if(chars->value.stringv.stringv == NULL) return NULL;
+    memset((void*)chars->value.stringv.stringv,0,chunksize+1);
+    strcpy(chars->value.stringv.stringv,s);
+    return charlist;
+}
+
+static int
+stringpad(Datasrc* src, size_t chunksize)
+{
+    Constant* con;
+    Datalist* charlist;
+
+    if(!isstring(src)) return 0;
+    con = srcnext(src);
+    charlist = padstringlist(con->value.stringv.stringv,chunksize,srcline(src));
     srcpushlist(src,charlist);
     return 1;
 }

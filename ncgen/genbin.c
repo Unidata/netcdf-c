@@ -507,6 +507,7 @@ static void
 genbin_write(Symbol* vsym, Bytebuffer* memory, Odometer* odom, int scalar)
 {
     int stat = NC_NOERR;
+
 if(!scalar && debug > 0) {
     int i;
     fprintf(stderr,"startset = [");
