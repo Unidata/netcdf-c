@@ -3505,8 +3505,8 @@ nc4_convert_type(const void *src, void *dest,
             case NC_INT64:
                for (ulip = (unsigned long long *)src, lip = dest; count < len; count++)
                {
-                  /*if (*ulip > X_INT64_MAX)
-                    (*range_error)++;*/
+                  if (*ulip > X_INT64_MAX)
+                    (*range_error)++;
                   *lip++ = *ulip++;
                }
                break;
@@ -3594,16 +3594,16 @@ nc4_convert_type(const void *src, void *dest,
             case NC_INT64:
                for (fp = (float *)src, lip = dest; count < len; count++)
                {
-                  /*if (*fp > X_INT64_MAX)
-                    (*range_error)++;*/
+                  if (*fp > X_INT64_MAX || *fp <X_INT64_MIN)
+                    (*range_error)++;
                   *lip++ = *fp++;
                }
                break;
             case NC_UINT64:
                for (fp = (float *)src, lip = dest; count < len; count++)
                {
-                  /*if (*fp > X_INT64_MAX)
-                    (*range_error)++;*/
+                  if (*fp > X_INT64_MAX || *fp < 0)
+                    (*range_error)++;
                   *lip++ = *fp++;
                }
                break;
@@ -3687,16 +3687,16 @@ nc4_convert_type(const void *src, void *dest,
             case NC_INT64:
                for (dp = (double *)src, lip = dest; count < len; count++)
                {
-                  /*if (*dp > X_INT64_MAX)
-                    (*range_error)++;*/
+                  if (*dp > X_INT64_MAX || *dp < X_INT64_MIN)
+                    (*range_error)++;
                   *lip++ = *dp++;
                }
                break;
             case NC_UINT64:
                for (dp = (double *)src, lip = dest; count < len; count++)
                {
-                  /*if (*dp > X_INT64_MAX)
-                    (*range_error)++;*/
+                  if (*dp > X_UINT64_MAX)
+                    (*range_error)++;
                   *lip++ = *dp++;
                }
                break;

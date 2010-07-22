@@ -79,8 +79,11 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       for (t = 0; t < NUM_TYPES_TO_CHECK; t++)
       {
-	 if (nc_get_var_longlong(ncid, varid[t], &data_in)) ERR;
-	 if (data_in != fill_value[t]) ERR;
+	 int err = nc_get_var_longlong(ncid, varid[t], &data_in);
+	 if(err && err != NC_ERANGE)
+	   ERR;
+	 if (data_in != fill_value[t])
+	   ERR;
       }
       if (nc_close(ncid)) ERR;
    }

@@ -220,7 +220,7 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
             localmem = (char*)ocmalloc(readsize);
 	    MEMCHECK(localmem,OC_ENOMEM);
 	}
-	if(!xdr_opaque(xdrs,(char*)localmem,readsize)) return xdrerror();
+	if(!xdr_opaque(xdrs,(char*)localmem,readsize)) goto shortxdr;
 	memcpy((void*)memory,(void*)(localmem+start),count);
 	if(readsize > LOCALMEMMAX) ocfree(localmem);
 	if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
@@ -238,7 +238,7 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
         localmem = (char*)ocmalloc(xdrsize);
 	startmem = localmem+(2*start*BYTES_PER_XDR_UNIT);
 	MEMCHECK(localmem,OC_ENOMEM);
-	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) return xdrerror();
+	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) goto shortxdr;
 	if(!oc_network_order) {
 	    for(p=(unsigned int*)startmem,i=0;i<2*count;i++,p++) {
 		unsigned int swap = *p;
@@ -251,7 +251,7 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
         localmem = (char*)ocmalloc(xdrsize);
 	MEMCHECK(localmem,OC_ENOMEM);
 	startmem = localmem+(start*BYTES_PER_XDR_UNIT);
-	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) return xdrerror();
+	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) goto shortxdr;
 	if(!oc_network_order) {
 	    for(p=(unsigned int*)startmem,i=0;i<count;i++,p++) {
 		unsigned int swap = *p;
@@ -304,22 +304,29 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
 	/* First skip to the starting string */
 	for(i=0;i<start;i++) {
 	    s = NULL; /* make xdr_string alloc the space */
-            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) return xdrerror();
+            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) goto shortxdr;
 	    ocfree(s);
         }
 	/* Read count strings */
 	for(i=0;i<count;i++) {
 	    s = NULL; /* make xdr_string alloc the space */	
-            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) return xdrerror();
+            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) goto shortxdr;
 	    pmem[i] = s;
 	}
 	} break;
 
     default: return THROW(OC_EINVAL);
     }
+
+done:
     ocfree(localmem);
     if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
     return THROW(stat);
+
+shortxdr:
+    oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
+    stat = OC_EDATADDS;
+    goto done;    
 }
 
 int
