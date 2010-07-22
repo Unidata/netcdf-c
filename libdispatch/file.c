@@ -105,6 +105,8 @@ NC_create(const char *path, int cmode,
     /* Need three pieces of information for now */
     int model = 0; /* 3 vs 4 dispatch table */
     int dap = 0;   /* dap vs !dap */
+    int xcmode = 0; /* for implied cmode flags */
+    extern int default_create_format;
 
     if(!nc_initialized)
 	{stat = NC_initialize(); if(stat) return stat; nc_initialized = 1;}
@@ -116,14 +118,40 @@ NC_create(const char *path, int cmode,
 	if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = 4;
     }
 
-    if(model == 0) model = 3; /* final default */
+    if(model == 0) {
+	/* Check default format */
+	int format = default_create_format;
+	switch (format) {
+#ifdef USE_NETCDF4
+	case NC_FORMAT_NETCDF4:
+	    xcmode |= NC_NETCDF4;
+	    model = 4;
+	    break;
+	case NC_FORMAT_NETCDF4_CLASSIC:
+	    xcmode |= NC_CLASSIC_MODEL;
+	    model = 4;
+	    break;
+#endif
+	case NC_FORMAT_64BIT:
+	    xcmode |= NC_64BIT_OFFSET;
+	    /* fall thru */
+	case NC_FORMAT_CLASSIC:
+	default:
 
+	    model = 3;
+	    break;
+	}
+    }
     /* Force flag consistentcy */
     if(model == 4)
-	cmode |= NC_NETCDF4;
+	    cmode |= NC_NETCDF4;
     else if(model == 3) {
 	cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /* must be netcdf-3 */
     }
+
+    /* Add inferred flags */
+    cmode |= xcmode;
+
 
 #ifdef USE_NETCDF4
     if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
@@ -203,6 +231,7 @@ NC_open(const char *path, int cmode,
     int dap = 0;   /* dap vs !dap */
     int cdfversion = 0;
     int hdfversion = 0;
+    extern int default_create_format;
 
     if(!nc_initialized)
 	{stat = NC_initialize(); if(stat) return stat; nc_initialized = 1;}
