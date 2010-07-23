@@ -435,17 +435,17 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     content->packed = packed;
 
     /* Make sure we are at the proper offset: ie at count if !scalar */
-    if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror();
+    if(!xdr_setpos(xdrs,content->xdrpos.offset)) goto shortxdr;
 
     if(!isscalar) {
         /* Collect the dimension count from the xdr data packet*/
-        if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
+        if(!xdr_u_int(xdrs,&xdrcount)) goto shortxdr;
         if(xdrcount < start) return THROW(OC_EINVALCOORDS);
         if(xdrcount < start+count) return THROW(OC_EINVALCOORDS);
         /* pull out redundant second count*/
         /* (note that String/URL do not have redundant count)*/
         if(etype != OC_String && etype != OC_URL) {
-            if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
+            if(!xdr_u_int(xdrs,&xdrcount)) goto shortxdr;
         }
     }
     /* Extract the data */
@@ -456,6 +456,9 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror(); /* restore location*/
 done:
     return THROW(stat);
+shortxdr:
+    oc_log(LOGERR,"DAP DATADDS appears to be too short");
+    return OC_EDATADDS;
 }
 
 static int

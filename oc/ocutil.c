@@ -435,7 +435,9 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 	    }
 	    oc_log(LOGERR,"DATADDS failure, possible message: '%s'",
 			chunk+i);
-	    return;
+	    goto done;
 	}
     }
+done:
+    return;
 }

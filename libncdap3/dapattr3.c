@@ -128,6 +128,8 @@ dapmerge3(NCDRNO* drno, CDFnode* ddsroot, OCobject dasroot)
     NClist* varnodes = nclistnew();
     NClist* allddsnodes = ddsroot->tree->nodes;
 
+    if(ddsroot == NULL || dasroot == NULL) return NC_NOERR;
+
     nobjects = oc_inq_nobjects(conn,dasroot);
     dasobjects = oc_inq_objects(conn,dasroot);
     

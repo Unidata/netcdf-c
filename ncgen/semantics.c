@@ -900,7 +900,6 @@ processdatalists(void)
 static size_t
 processdatalist(Symbol* sym)
 {
-    Datasrc* src;
     size_t total = 0;
     total = walkdata(sym);
     return total;

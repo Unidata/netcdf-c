@@ -1321,7 +1321,11 @@ fetchtemplatemetadata3(NCDRNO* drno)
 	oc_root_free(drno->dap.conn,drno->dap.ocdasroot);
     drno->dap.ocdasroot = OCNULL;
     ocstat = dap_oc_fetch(drno,drno->dap.conn,ce,OCDAS,&drno->dap.ocdasroot);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+    if(ocstat != OC_NOERR) {
+	/* Ignore but complain */
+	oc_log(OCLOGERR,nc_strerror(NC_EDAS));
+        drno->dap.ocdasroot = OCNULL;	
+    }
 
     /* Construct our parallel dds tree */
     ncstat = buildcdftree34(drno,ocroot,OCDDS,&ddsroot);
