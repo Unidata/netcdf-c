@@ -3,6 +3,12 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
+4.1.2-beta2    2010-08-??
+
+	        Use hashing to speedup lookups by name for files with
+		lots of dimensions and variables (thanks to Greg
+		Sjaardema).
+
 4.1.2-beta1    2010-07-09
 
 		Fix "ncdump -c" bug identifying coordinate variables in groups.
