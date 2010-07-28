@@ -65,6 +65,7 @@ new_x_NC_var(
 	(void) memset(varp, 0, sz);
 	varp->name = strp;
 	varp->ndims = ndims;
+ 	varp->hash = hash_fast(strp->cp, strlen(strp->cp));
 
 	if(ndims != 0)
 	{
@@ -321,7 +322,7 @@ int
 NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 {
 	NC_var **loc;
-	size_t slen;
+ 	uint32_t shash;
 	int varid;
 	char *name;
 
@@ -336,12 +337,12 @@ NC_findvar(const NC_vararray *ncap, const char *uname, NC_var **varpp)
 	name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NC_ENOMEM;
-	slen = strlen(name);
+ 	shash = hash_fast(name, strlen(name));
 
 	for(varid = 0; (size_t) varid < ncap->nelems; varid++, loc++)
 	{
-		if(strlen((*loc)->name->cp) == slen &&
-			strncmp((*loc)->name->cp, name, slen) == 0)
+		if((*loc)->hash == shash &&
+		   strncmp((*loc)->name->cp, name, strlen(name)) == 0)
 		{
 			if(varpp != NULL)
 				*varpp = *loc;
@@ -714,12 +715,14 @@ NC3_rename_var(int ncid, int varid, const char *unewname)
 		if(newStr == NULL)
 			return(-1);
 		varp->name = newStr;
+		varp->hash = hash_fast(newStr->cp, strlen(newStr->cp));
 		free_NC_string(old);
 		return NC_NOERR;
 	}
 
 	/* else, not in define mode */
 	status = set_NC_string(varp->name, newname);
+	varp->hash = hash_fast(newname, strlen(newname));
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
