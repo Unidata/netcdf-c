@@ -148,6 +148,39 @@ ocinternalinitialize(void)
         }
     }
 
+    /* compile the .dodsrc, if any */
+    {
+        char* path = NULL;
+        char* homepath = NULL;
+	FILE* f = NULL;
+        /* locate the configuration files: . first, then $HOME */
+        path = (char*)malloc(strlen(".")+1+strlen(DODSRC)+1);
+        strcpy(path,"./");
+        strcat(path,DODSRC);
+	/* see if file is readable */
+	f = fopen(path,"r");
+	if(f == NULL) {
+	    /* try $HOME */
+            homepath = getenv("HOME");
+            if (homepath!= NULL) {
+	       path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
+	       strcpy(path,homepath);
+	       strcat(path,"/");
+	       strcat(path,DODSRC);
+	       f = fopen(path,"r");
+            }
+        }
+        if(f == NULL) {
+	    oc_log(LOGWARN,"Cannot find runtime .dodsrc configuration file");
+	} else {
+       	    fclose(f);
+            if(ocdebug > 1)
+		fprintf(stderr, "DODS RC file: %s\n", path);
+            if(ocdodsrc_read(path) == 0)
+	        oc_log(LOGERR, "Error parsing %s\n",path);
+        }
+        if(path != NULL) {free(path) ; path = NULL;}
+    }
     return THROW(stat);
 }
 
@@ -507,42 +540,12 @@ ocsetcurlproperties(OCstate* state)
     CURL* curl = state->curl;
     CURLcode cstat = CURLE_OK;
     int stat = OC_NOERR;
-    char *homepath = NULL;
-    char* path = NULL;
-    FILE* f = NULL;
 
-    /* Load dodsrc file */
-    /* locate the configuration files: . first, then $HOME */
-    path = (char*)malloc(strlen(".")+1+strlen(DODSRC)+1);
-    strcpy(path,"./");
-    strcat(path,DODSRC);
-    /* see if file is readable */
-    f = fopen(path,"r");
-    if(f == NULL) {
-	/* try $HOME */
-        homepath = getenv("HOME");
-        if (homepath!= NULL) {
-	    path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
-	    strcpy(path,homepath);
-	    strcat(path,"/");
-	    strcat(path,DODSRC);
-	    f = fopen(path,"r");
-        }
-    }
-    if(f != NULL) {
-	fclose(f);
-        if (ocdebug > 1)
-           fprintf(stderr, "DODS RC file: %s\n", path);
-        if(ocread_dodsrc(path,state) != OC_NOERR) {
-	    oc_log(LOGERR, "Error parsing %s\n",path);
-	    goto fail;
-	}
-    } else {/*complain*/
-	oc_log(LOGWARN,"Cannot find runtime .dodsrc configuration file");
+    /* process the triple store wrt to this state */
+    if(ocdodsrc_process(state) != OC_NOERR) {
+	oc_log(LOGERR,"Malformed .dodsrc");
 	goto fail;
     }
-    if(path != NULL) {free(path) ; path = NULL;}
-
     /* Set username+password from .dodsrc */
     stat=ocset_user_password(curl,state->creds.username,
                                   state->creds.password);
@@ -578,7 +581,6 @@ ocsetcurlproperties(OCstate* state)
     return;
 
 fail:
-    if(path != NULL) free(path);
     if(cstat != CURLE_OK)
 	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return;

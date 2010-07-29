@@ -604,30 +604,26 @@ the variable
 Specifying datalists for variables in the `data:` section can be somewhat
 complicated. There are some rules that must be followed
 to ensure that datalists are parsed correctly by ncgen.
-.HP
-1. The top level is automatically assumed to be a list of items,
-   so it should not be inside {...}.
-.HP
-2. Instances of UNLIMITED dimensions (other than the first dimension)
-   must be surrounded by {...} in order to specify the size.
-.HP
-3. Instances of vlens must be surrounded by {...} in order to
-   specify the size.
-.HP
-4. Compound instances must be embedded in {...}
-.HP
-5. Non-scalar fields of compound instances must be embedded in {...}.
-.HP
-6. Datalists associated with attributes are implicitly a vector
-(i.e., a list) of values of the type of the attribute and the above
-rules must apply with that in mind.
-.HP
-7. No other use of braces is allowed.
+.IP 1. 3
+The top level is automatically assumed to be a list of items, so it should not be inside {...}.
+.IP 2. 3
+Instances of UNLIMITED dimensions (other than the first dimension) must be surrounded by {...} in order to specify the size.
+.IP 3. 3
+Instances of vlens must be surrounded by {...} in order to specify the size.
+.IP 4. 3
+Compound instances must be embedded in {...}
+.IP 5. 3
+Non-scalar fields of compound instances must be embedded in {...}.
+.IP 6. 3
+Datalists associated with attributes are implicitly a vector (i.e., a list) of values of the type of the attribute and the above rules must apply with that in mind.
+.IP 7. 3
+No other use of braces is allowed.
 .LP
 Note that one consequence of these rules is that
 arrays of values cannot have subarrays within braces.
-Thus, given, for example, int var(d1)(d2)...(dn),
-a datalist for this variable must be a single list of integers,
+Consider, for example, int var(d1)(d2)...(dn),
+where none of d2...dn are unlimited.
+A datalist for this variable must be a single list of integers,
 where the number of integers is no more than D=d1*d2*...dn values;
 note that the list can be less than D, in which case fill values
 will be used to pad the list.
@@ -636,6 +632,102 @@ Rule 6 about attribute datalist has the following consequence.
 If the type of the attribute is a compound (or vlen) type, and if
 the number of entries in the list is one, then the compound instances
 must be enclosed in braces.
+.LP
+.SS "Specifying Character Datalists"
+.LP
+Specifying datalists for variables of type char also has some
+complications. consider, for example
+.RS
+.nf
+dimensions: u=UNLIMITED; d1=1; d2=2; d3=3;
+            d4=4; d5=5; u2=UNLIMITED;
+variables: char var(d3,d4);
+datalist: var="1", "two", "three";
+.fi
+.RE
+.LP
+We have twenty elements of var to fill (d5 X d4)
+and we have three strings of length 1, 3, 5.
+How do we assign the characters in the strings to the
+twenty elements?
+.LP
+The basic rule is "greedy" plus "right dimension rules".
+By this we mean the following.
+.IP 1. 3
+Use the size of the rightmost dimension (d4=4)
+and modify the constant list so that every string is less
+than or equal to this dimension size. Longer strings are decomposed.
+For our example, we get this.
+.in +5
+datalist: var= "1", "two", "thre", "e";
+.in -5
+
+.IP 2. 3
+Pad any short strings to the length of the right dimension.
+This produces the following.
+.in +5
+datalist: var= "1\\0\\0\\0", "two\\0", "thre", "e\\0\\0\\0";
+.in -5
+
+.IP 3. 3
+Move the the next to the rightmost dimension (d5 in this case)
+and add fill values as needed, producing this.
+.in +5
+datalist: var= "1\\0\\0\\0", "two\\0", "thre", "e\\0\\0\\0", "\\0\\0\\0\\0";
+.in -5
+
+4. Repeat step 3 for successively more left dimensions until the
+first dimension is reached. If the first dimension is UNLIMITED,
+and has not had any previous value assigned to it, then
+do not pad, but instead use the length at that point
+as the unlimited length. In all other cases, pad to the
+specified length.
+.LP
+Note that the term "greedy" is used because the above algorithm
+causes the strings to be assigned to the "front" of the variable
+and fill values to the end.
+.LP
+There are several additional edge cases that must be dealt with.
+.IP 1. 3
+Suppose we have only an unlimited dimension such as this case.
+.in +5
+.nf
+variables: char var(u);
+datalist: var="1", "two", "three";
+.fi
+.in -5
+In this case, we treat it like it was defined as this.
+.in +5
+.nf
+variables: char var(u,d1);
+datalist: var="1","t","w","o","t","h","r","e","e";
+.fi
+.in -5
+This means that u will have the length of nine.
+.IP 2. 3
+In netcdf-4, dimensions other than the first can be unlimited.
+Of course by the rules above, the interior unlimited instances
+must be delimited by {...}. For example.
+.in +5
+.nf
+variables: char var(u,u2);
+datalist: var={"1", "two"}, {"three"};
+.fi
+.in -5
+
+In this case u will have the effective length of two.
+Within each instance of u2, the rules above will apply, leading
+to this.
+.in +5
+datalist: var={"1","t","w","o"}, {"t","h","r","e","e"};
+.in -5
+
+The effective size of u2 will be the max of the two instance lengths
+(five in this case)
+and the shorter will be padded to produce this.
+.in +5
+datalist: var={"1","t","w","o","\\0"}, {"t","h","r","e","e"};
+.in -5
 
 .SH BUGS
 .LP

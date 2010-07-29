@@ -111,6 +111,11 @@ ocset_ssl(CURL* curl, OCstate* state)
             if(cstat != CURLE_OK) goto fail;
 	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
         }
+        if(ssl->keypasswd) {
+            cstat = curl_easy_setopt(curl, CURLOPT_KEYPASSWD, ssl->keypasswd);
+            if(cstat != CURLE_OK) goto fail;
+	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
+        }
         if(ssl->cainfo) {
             cstat = curl_easy_setopt(curl, CURLOPT_CAINFO, ssl->cainfo);
             if(cstat != CURLE_OK) goto fail;

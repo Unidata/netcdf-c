@@ -908,9 +908,6 @@ genc_defineattr(Symbol* asym)
     if(typecode == NC_CHAR) {
 	/* revise the length count */
 	len = bbLength(code);
-#ifdef IGNORE
-	if(len == 0) {bbAppend(code,'\0'); len++;}
-#endif
 	cquotestring(code);
 	bbNull(code);
     } else {
@@ -1072,31 +1069,35 @@ genc_definevardata(Symbol* vsym)
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
-    src = datalist2src(vsym->data);
-    fillsrc = vsym->var.special._Fillvalue;
-
-    /* Handle special cases first*/
-    if(isscalar) {
-	cdata_basetype(vsym->typ.basetype,src,code,fillsrc);
-	commify(code);
-	genc_write(vsym,code,NULL,1);
-    } else { /* Non-scalar*/
-        /* Create an iterator to generate blocks of data */
-        nc_get_iter(vsym,nciterbuffersize,&iter);
-        /* Fill in the local odometer instance */
+    if(!isscalar && chartype) {
+        gen_chararray(vsym,code,fillsrc);
+	/* generate a corresponding odometer */
         odom = newodometer(&vsym->typ.dimset,NULL,NULL);
-        for(;;) {
-	    nelems=nc_next_iter(&iter,odom->start,odom->count);
-	    if(nelems == 0) break;
-            if(chartype) {/* Handle character case separately */
-                gen_chararray(vsym,code,src,odom,0);
-    	    } else {
+	/* patch the odometer to use the right counts */
+        genc_write(vsym,code,odom,0);
+    } else { /* not character constant */
+        src = datalist2src(vsym->data);
+        fillsrc = vsym->var.special._Fillvalue;
+        /* Handle special cases first*/
+        if(isscalar) {
+            cdata_basetype(vsym->typ.basetype,src,code,fillsrc);
+            commify(code);
+            genc_write(vsym,code,NULL,1);
+        } else { /* Non-scalar*/
+            /* Create an iterator to generate blocks of data */
+            nc_get_iter(vsym,nciterbuffersize,&iter);
+            /* Fill in the local odometer instance */
+            odom = newodometer(&vsym->typ.dimset,NULL,NULL);
+            for(;;) {
+                nelems=nc_next_iter(&iter,odom->start,odom->count);
+                if(nelems == 0) break;
                 cdata_array(vsym,code,src,odom,/*index=*/0,fillsrc);
-	    }
-	    genc_write(vsym,code,odom,0);
-	}
+		commify(code);
+                genc_write(vsym,code,odom,0);
+            }
+        }
     }
-    odometerfree(odom);
+    if(odom != NULL) odometerfree(odom);
     bbFree(code);
 }
 
@@ -1127,23 +1128,31 @@ genc_write(Symbol* vsym, Bytebuffer* code, Odometer* odom, int isscalar)
 	codelined(1,"}");
     } else {
 	int i;
-        size_t count = 1;
-        /* generate constants for data*/
-        for(i=0;i<dimset->ndims;i++) count *= odom->count[i];
+        size_t count = 0;
+        if(chartype)
+	    count = bbLength(code);
+	else
+            count = odometertotal(odom,0);
 	/* define a block to avoid name clashes*/
 	bbprintf0(stmt,"%s{\n",indented(1));
+	/* generate data constant */
 	bbprintf(stmt,"%s%s %s_data[%lu] = ",
 			indented(1),
 			ctypename(basetype),
 			cname(vsym),
 			(unsigned long)count);
 	codedump(stmt);
-
-	/* C requires an outer set of braces on datalist constants */
-	codepartial("{");
-	if(chartype) {cquotestring(code);} else {commify(code);}
-	codedump(code);
-	codeline("} ;");
+	
+	if(chartype) {
+	    cquotestring(code);
+	    codedump(code);
+	    codeline(" ;");
+	} else {
+    	    /* C requires an outer set of braces on datalist constants */
+	    codepartial("{");
+	    codedump(code);
+	    codeline("} ;");
+	}
 	
 	/* generate constants for startset, countset*/
 	bbprintf0(stmt,"%ssize_t %s_startset[%lu] = {",

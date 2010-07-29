@@ -102,7 +102,6 @@ typedef struct Diminfo {
     int   isconstant; /* separate constant from named dimension*/
     size_t  unlimitedsize; /* if unlimited */
     size_t  declsize; /* 0 => unlimited/unspecified*/
-/*    size_t  unlimitedsize; *//* computed unlimited size  */
 } Diminfo;
 
 typedef struct Attrinfo {
