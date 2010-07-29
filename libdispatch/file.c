@@ -152,7 +152,6 @@ NC_create(const char *path, int cmode,
     /* Add inferred flags */
     cmode |= xcmode;
 
-
 #ifdef USE_NETCDF4
     if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
 	return  NC_EINVAL;

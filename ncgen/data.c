@@ -17,7 +17,6 @@ extern int lvsnprintf(char*, size_t, const char*, va_list);
 
 Constant nullconstant;
 Constant fillconstant;
-Constant nullstringconstant;
 
 Bytebuffer* codebuffer;
 Bytebuffer* codetmp;
@@ -121,6 +120,18 @@ list2const(Datalist* list)
     con.lineno = list->data[0].lineno;
     con.value.compoundv = list;
     return con;
+}
+
+Datalist*
+const2list(Constant* con)
+{
+    Datalist* list;
+    ASSERT(con != NULL);
+    list = builddatalist(1);
+    if(list != NULL) {
+        dlappend(list,con);
+    }
+    return list;
 }
 
 Constant*
@@ -335,6 +346,13 @@ datalistreplace(Datalist* dl, unsigned int index, Constant* con)
     ASSERT(con != NULL);
     dl->data[index] = *con;
     return dl;
+}
+
+int
+datalistline(Datalist* ds)
+{
+    if(ds == NULL || ds->length == 0) return 0;
+    return ds->data[0].lineno;
 }
 
 
@@ -620,3 +638,23 @@ codeprintf(const char *fmt, ...)
     vbbprintf(codebuffer,fmt,argv);
 }
 
+Constant*
+emptycompoundconst(int lineno, Constant* c)
+{
+    ASSERT(c != NULL);
+    c->lineno = lineno;
+    c->nctype = NC_COMPOUND;
+    c->value.compoundv = builddatalist(0);
+    return c;    
+}
+
+Constant*
+emptystringconst(int lineno, Constant* c)
+{
+    ASSERT(c != NULL);
+    c->lineno = lineno;
+    c->nctype = NC_STRING;
+    c->value.stringv.len = 0;
+    c->value.stringv.stringv = NULL;
+    return c;    
+}

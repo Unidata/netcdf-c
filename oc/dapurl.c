@@ -87,7 +87,7 @@ dapurlparse(const char* url0, DAPURL* dapurl)
         strcat(dapurl->params,"]");
     }
 
-    if(ocdebug) {
+    if(ocdebug > 0) {
         fprintf(stderr,"dapurl: params=|%s| base=|%s| projection=|%s| selection=|%s|\n",
 		dapurl->params, dapurl->base, dapurl->projection, dapurl->selection);
 

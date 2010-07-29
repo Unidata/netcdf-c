@@ -9,6 +9,7 @@
 
 #define ENVFLAG "OCLOGFILE"
 
+static int ocloginit = 0;
 static int oclogging = 0;
 static char* oclogfile = NULL;
 static FILE* oclogstream = NULL;
@@ -16,6 +17,7 @@ static FILE* oclogstream = NULL;
 void
 oc_loginit(void)
 {
+    ocloginit = 1;
     oc_setlogging(0);
     oclogfile = NULL;
     oclogstream = NULL;
@@ -31,12 +33,14 @@ oc_loginit(void)
 void
 oc_setlogging(int tf)
 {
+    if(!ocloginit) oc_loginit();
     oclogging = tf;
 }
 
 void
 oc_logopen(const char* file)
 {
+    if(!ocloginit) oc_loginit();
     if(oclogfile != NULL) {
 	fclose(oclogstream);
 	free(oclogfile);

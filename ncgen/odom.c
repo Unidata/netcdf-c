@@ -22,6 +22,7 @@ initodometer(Odometer* odom, Dimset* dimset, size_t* startp, size_t* countp)
 	odom->unlimitedsize[i] = dimset->dimsyms[i]->dim.unlimitedsize;
 	odom->start[i] = 0;
 	odom->count[i] = odom->declsize[i];
+	if(odom->unlimitedsize[i] > 0)odom->count[i] = odom->unlimitedsize[i];
 	if(startp != NULL) {
 	    odom->start[i] = startp[i];
 	    odom->count[i] = countp[i];
