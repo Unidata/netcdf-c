@@ -51,7 +51,8 @@ emalloc (size_t size)
 
     p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
     if (p == 0) {
-	fprintf(stderr,"Out of memory\n");
+	fprintf(stderr,"Out of memory!\n");
+	exit(1);
     }
     return p;
 }
@@ -99,7 +100,7 @@ static int
 inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     int stat = NC_NOERR;
     int ndims;
-    size_t chunksizes[NC_MAX_DIMS];
+    size_t *chunksizes;
     int dim;
     int contig = 1;
     nc_type vartype;
@@ -114,6 +115,7 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     prod = value_size;
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
+    chunksizes = (size_t *) emalloc(ndims * sizeof(size_t));
     if(ndims > 0) {
 	stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
 	CHECK(stat, nc_inq_var_chunking);
@@ -129,6 +131,7 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
 	prod *= chunksizes[dim];
     }
     *chunksizep = prod;
+    free(chunksizes);
     return stat;
 }
 
@@ -1028,9 +1031,6 @@ main(int argc, char**argv)
 	    {
 		struct Kvalues* kvalue;
 		char *kind_name = (char *) emalloc(strlen(optarg)+1);
-		if (! kind_name) {
-		    return 2;
-		}
 		(void)strcpy(kind_name, optarg);
 	        for(kvalue=legalkinds;kvalue->name;kvalue++) {
 		    if(strcmp(kind_name,kvalue->name) == 0) {

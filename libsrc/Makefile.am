@@ -34,7 +34,7 @@ netcdf.3: $(top_srcdir)/man4/netcdf.m4
 libnetcdf3_la_SOURCES = nc.h error3.c libvers.c string.c v1hpg.c fbits.h ncio.h	\
 onstack.h rnd.h utf8proc.c utf8proc.h utf8proc_data.h nclistmgr.c	\
 putget.m4 attr.m4 nc3dispatch.c nc3dispatch.h nc.c var.c dim.c ncx.m4	\
-ncx.h lookup3.c
+ncx.h lookup3.c pstdint.h
 
 # Does the user want to use ffio or posixio?
 if USE_FFIO

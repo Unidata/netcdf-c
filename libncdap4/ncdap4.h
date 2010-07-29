@@ -21,7 +21,7 @@
 #include "constraints3.h"
 #include "constraints4.h"
 
-extern ptrdiff_t dapsinglestride4[NC_MAX_DIMS];
+extern ptrdiff_t dapsinglestride4[NC_MAX_VAR_DIMS];
 
 extern int lnc4_redef(int ncid);
 extern int lnc4_enddef(int ncid);

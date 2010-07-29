@@ -32,6 +32,20 @@ check(int err, const char* fcn, const char* file, const int line)
     exit(1);
 }
 
+/* Check error return from malloc, and allow malloc(0) with subsequent free */
+static void *
+emalloc (size_t size)
+{
+    void   *p;
+
+    p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
+    if (p == 0) {
+	fprintf(stderr,"Out of memory!\n");
+	exit(1);
+    }
+    return p;
+}
+
 /* Initialize iteration for a variable.  Just a wrapper for
  * nc_blkio_init() that makes the netCDF calls needed to initialize
  * lower-level iterator. */
@@ -39,15 +53,15 @@ int
 nc_get_iter(int ncid,
 	     int varid,
 	     size_t bufsize,   /* size in bytes of memory buffer */
-	     nciter_t *iterp    /* returned opaque iteration state */) 
+	     nciter_t *iterp   /* returned opaque iteration state */) 
 {
     int stat = NC_NOERR;
     nc_type vartype;
     size_t value_size;      /* size in bytes of each variable element */
     int ndims;		    /* number of dimensions for variable */
-    int dimids[NC_MAX_DIMS];
-    size_t dimsizes[NC_MAX_VAR_DIMS]; /* variable dimension sizes */
-    size_t chunksizes[NC_MAX_VAR_DIMS]; /* corresponding chunk sizes */
+    int *dimids;
+    size_t *dimsizes;		/* variable dimension sizes */
+    size_t *chunksizes;		/* corresponding chunk sizes */
     long long nvalues = 1;
     int dim;
     int chunked = 0;
@@ -56,6 +70,10 @@ nc_get_iter(int ncid,
 
     stat = nc_inq_varndims(ncid, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
+    dimids = (int *) emalloc(ndims * sizeof(size_t));
+    dimsizes = (size_t *) emalloc(ndims * sizeof(size_t));
+    chunksizes = (size_t *) emalloc(ndims * sizeof(size_t));
+
     stat = nc_inq_vardimid (ncid, varid, dimids);
     CHECK(stat, nc_inq_vardimid);
     for(dim = 0; dim < ndims; dim++) {
@@ -87,6 +105,9 @@ nc_get_iter(int ncid,
 			 chunked, chunksizes, iterp);
     CHECK(stat, nc_blkio_init);
     iterp->to_get = 0;
+    free(dimids);
+    free(dimsizes);
+    free(chunksizes);
     return stat;
 }
 
