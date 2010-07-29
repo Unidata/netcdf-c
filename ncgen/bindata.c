@@ -17,7 +17,8 @@
 
 /* Forward */
 static void bindata_primdata(Symbol*,Datasrc*,Bytebuffer*,Datalist*);
-static void bindata_fieldarray(Symbol*,Datasrc*,Odometer*,int,Bytebuffer*);
+static void bindata_fieldarray(Symbol*, Datasrc*, Odometer*, Bytebuffer*, Datalist* fillsrc);
+static void bindata_fieldarrayr(Symbol*,Datasrc*,Odometer*,int,Bytebuffer*,Datalist*);
 
 /* Specialty wrappers for attributes and variables */
 void
@@ -126,7 +127,7 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
         Constant* con;
         nc_vlen_t ptr;
 	if(!isfillvalue(datasrc) && !issublist(datasrc)) {/* fail on no compound*/
-	    semerror(con->lineno,"Vlen data must be enclosed in {..}");
+	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
 	if(con->nctype == NC_FILLVALUE) {
@@ -149,8 +150,7 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
 	if(usecmpd) srcpush(datasrc);
 	if(tsym->typ.dimset.ndims > 0) {
 	    Odometer* fullodom = newodometer(&tsym->typ.dimset,NULL,NULL);
-            bindata_fieldarray(tsym->typ.basetype,datasrc,fullodom,0,memory);
-	    odometerfree(fullodom);
+            bindata_fieldarray(tsym->typ.basetype,datasrc,fullodom,memory,fillsrc);
 	} else {
 	    bindata_basetype(tsym->typ.basetype,datasrc,memory,NULL);
 	}
@@ -163,30 +163,36 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
 
 /* Used only for structure field arrays*/
 static void
-bindata_fieldarray(Symbol* basetype, Datasrc* src, Odometer* odom, int index,
-		Bytebuffer* memory)
+bindata_fieldarrayr(Symbol* basetype, Datasrc* src, Odometer* odom, int index,
+   		    Bytebuffer* memory, Datalist* fillsrc)
 {
     int i;
     int rank = odom->rank;
     unsigned int size = odom->declsize[index];
     int lastdim = (index == (rank - 1)); /* last dimension*/
-    int chartype = (basetype->typ.typecode == NC_CHAR);
 
-    if(chartype) {
+    ASSERT(size != 0);
+    for(i=0;i<size;i++) {
+        if(lastdim) {
+            bindata_basetype(basetype,src,memory,fillsrc);
+        } else { /* !lastdim*/
+	    bindata_fieldarrayr(basetype,src,odom,index+1,memory,fillsrc);
+	}
+    }
+}
+
+static void
+bindata_fieldarray(Symbol* basetype, Datasrc* src, Odometer* odom,
+		   Bytebuffer* memory, Datalist* fillsrc)
+{
+    if(basetype->typ.typecode == NC_CHAR) {
 	/* Collect the char field in a separate buffer */
 	Bytebuffer* fieldbuf = bbNew();
-        gen_charfield(src,odom,index,fieldbuf);
+        gen_charfield(src,odom,fieldbuf);
         bbAppendn(memory,bbContents(fieldbuf),bbLength(fieldbuf));
 	bbFree(fieldbuf);
     } else {
-        ASSERT(size != 0);
-        for(i=0;i<size;i++) {
-            if(lastdim) {
-	        bindata_basetype(basetype,src,memory,NULL);
-            } else { /* !lastdim*/
-	        bindata_fieldarray(basetype,src,odom,index+1,memory);
-	    }
-	}
+        bindata_fieldarrayr(basetype,src,odom,0,memory,fillsrc);
     }
 }
 

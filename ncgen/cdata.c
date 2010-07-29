@@ -16,7 +16,7 @@
 
 /* Forward*/
 static void cdata_primdata(Symbol*, Datasrc*, Bytebuffer*, Datalist*);
-static void cdata_fieldarray(Symbol*, Datasrc*, Odometer*, int, Bytebuffer*);
+static void cdata_fieldarray(Symbol*, Datasrc*, Odometer*, int, Bytebuffer*, Datalist* fillsrc);
 
 /* Specialty wrappers for cdata_data */
 void
@@ -125,7 +125,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
     case NC_VLEN: {
         Constant* con;
 	if(!isfillvalue(datasrc) && !issublist(datasrc)) {/* fail on no compound*/
-	    semerror(con->lineno,"Vlen data must be enclosed in {..}");
+	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
 	if(con->nctype == NC_FILLVALUE) {
@@ -149,7 +149,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 	if(usecmpd) srcpush(datasrc);
 	if(tsym->typ.dimset.ndims > 0) {
 	    Odometer* fullodom = newodometer(&tsym->typ.dimset,NULL,NULL);
-            cdata_fieldarray(tsym->typ.basetype,datasrc,fullodom,0,codebuf);
+            cdata_fieldarray(tsym->typ.basetype,datasrc,fullodom,0,codebuf,fillsrc);
 	    odometerfree(fullodom);
 	} else {
 	    cdata_basetype(tsym->typ.basetype,datasrc,codebuf,NULL);
@@ -164,7 +164,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 /* Used only for structure field arrays*/
 static void
 cdata_fieldarray(Symbol* basetype, Datasrc* src, Odometer* odom, int index,
-		Bytebuffer* codebuf)
+		 Bytebuffer* codebuf, Datalist* fillsrc)
 {
     int i;
     int rank = odom->rank;
@@ -175,7 +175,7 @@ cdata_fieldarray(Symbol* basetype, Datasrc* src, Odometer* odom, int index,
     if(chartype) {
 	/* Collect the char field in a separate buffer */
 	Bytebuffer* fieldbuf = bbNew();
-        gen_charfield(src,odom,index,fieldbuf);
+        gen_charfield(src,odom,fieldbuf);	
 	/* Add to the existing data buf as a single constant */
 	cquotestring(fieldbuf);
 	bbCat(codebuf," ");
@@ -188,7 +188,7 @@ cdata_fieldarray(Symbol* basetype, Datasrc* src, Odometer* odom, int index,
 	        bbAppend(codebuf,' ');
 	        cdata_basetype(basetype,src,codebuf,NULL);
             } else { /* !lastdim*/
-	        cdata_fieldarray(basetype,src,odom,index+1,codebuf);
+	        cdata_fieldarray(basetype,src,odom,index+1,codebuf,fillsrc);
 	    }
 	}
     }

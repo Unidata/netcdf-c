@@ -152,10 +152,6 @@ NC_create(const char *path, int cmode,
     /* Add inferred flags */
     cmode |= xcmode;
 
-fprintf(stderr,"CCC: format=%d model=%d xcmode=%d cmode=%d path=%s\n",
-	default_create_format,model,xcmode,cmode,path);
-
-
 #ifdef USE_NETCDF4
     if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
 	return  NC_EINVAL;
@@ -269,9 +265,6 @@ NC_open(const char *path, int cmode,
 	cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /* must be netcdf-3 */
 	if(cdfversion == 2) cmode |= NC_64BIT_OFFSET;
     }
-
-fprintf(stderr,"OOO: format=%d model=%d cmode=%d path=%s\n",
-	default_create_format,model,cmode,path);
 
     if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
 	return  NC_EINVAL;

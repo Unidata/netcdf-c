@@ -19,20 +19,22 @@ static void processattributes(void);
 static void processspecials(void);
 
 static void processdatalists(void);
-static size_t processdatalist(Symbol*);
+static void processdatalist(Symbol*);
 
 static void inferattributetype(Symbol* asym);
 static void checkconsistency(void);
 static void validate(void);
 static int tagvlentypes(Symbol* tsym);
 
-static size_t walkdata(Symbol*);
-static size_t walkarray(Symbol*, Datasrc*, int, Datalist*);
-static size_t walktype(Symbol*, Datasrc*, Datalist*);
+static void walkdata(Symbol*);
+static void walkarray(Symbol*, Datasrc*, int, Datalist*);
+static void walktype(Symbol*, Datasrc*, Datalist*);
 static void walkfieldarray(Symbol*, Datasrc*, Dimset*, int);
-static int lastunlimited(Dimset* dimset, int from);
 
-static size_t walkchararray(Symbol*,Datasrc*,Datalist*);
+static void walkchararray(Symbol*,Datalist*);
+static void walkchararrayr(Dimset* dimset, Datalist** datap, int lastunlim, int index, int fillchar);
+static void walkcharfieldarray(Constant*, Dimset*, Datalist*);
+static void walkcharvlen(Constant*);
 
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
 
@@ -592,7 +594,8 @@ processattributes(void)
 	/* If the attribute has a zero length, then default it */
 	if(asym->data == NULL || asym->data->length == 0) {
 	    asym->data = builddatalist(1);
-	    dlappend(asym->data,&nullstringconstant);		
+	    dlappend(asym->data,NULL);
+	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
 	    /* force type to be NC_CHAR */
 	    asym->typ.basetype = primsymbols[NC_CHAR];
 	}
@@ -606,7 +609,8 @@ processattributes(void)
 	/* If the attribute has a zero length, then default it */
 	if(asym->data == NULL || asym->data->length == 0) {
 	    asym->data = builddatalist(1);
-	    dlappend(asym->data,&nullstringconstant);		
+	    dlappend(asym->data,NULL);
+	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
 	    /* force type to be NC_CHAR */
 	    asym->typ.basetype = primsymbols[NC_CHAR];
 	}
@@ -850,7 +854,7 @@ Do any pre-processing of datalists.
 2. Compute the length of attribute lists
 3. Collect the VLEN constants
 4. add fills as needed to get lengths correct
-5. make interior unlimited instances all have same length
+5. comput max of interior unlimited instances
 */
 
 void
@@ -866,7 +870,7 @@ processdatalists(void)
     for(i=0;i<listlength(gattdefs);i++) {
 	Symbol* asym = (Symbol*)listget(gattdefs,i);
 	if(asym->data != NULL)
-            asym->data->nelems = processdatalist(asym);
+            processdatalist(asym);
         if(debug > 0 && asym->data != NULL) {
 	    fdebug(":%s.datalist: ",asym->name);
 	    dumpdatalist(asym->data,"");
@@ -877,7 +881,7 @@ processdatalists(void)
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* asym = (Symbol*)listget(attdefs,i);
 	if(asym->data != NULL)
-	    asym->data->nelems = processdatalist(asym);
+	    processdatalist(asym);
         if(debug > 0 && asym->data != NULL) {
 	    fdebug("%s:%s.datalist: ",asym->att.var->name,asym->name);
 	    dumpdatalist(asym->data,"");
@@ -888,7 +892,7 @@ processdatalists(void)
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* vsym = (Symbol*)listget(vardefs,i);
 	if(vsym->data != NULL)
-            vsym->data->nelems = processdatalist(vsym);
+	    processdatalist(vsym);
         if(debug > 0 && vsym->data != NULL) {
 	    fdebug("%s.datalist: ",vsym->name);
 	    dumpdatalist(vsym->data,"");
@@ -897,12 +901,10 @@ processdatalists(void)
     }
 }
 
-static size_t
+static void
 processdatalist(Symbol* sym)
 {
-    size_t total = 0;
-    total = walkdata(sym);
-    return total;
+    walkdata(sym);
 }
 
 /*
@@ -917,7 +919,7 @@ canonical way to simultaneously walk a variable
 and a datalist.
 */
 
-static size_t
+static void
 walkdata(Symbol* sym)
 {
     int rank = sym->typ.dimset.ndims;
@@ -927,16 +929,16 @@ walkdata(Symbol* sym)
     int ischartype = (sym->typ.basetype->typ.typecode == NC_CHAR);
 
     /* special case */
-    if(sym->objectclass == NC_VAR && ischartype) {
-	total = walkchararray(Symbol* vsym, Datalist* fillsrc)
+    if(sym->objectclass == NC_VAR && ischartype && rank > 0) {
+	walkchararray(sym, fillsrc);
     } else {
         src = datalist2src(sym->data);
         switch (sym->objectclass) {
         case NC_VAR:
 	    if(rank == 0) /*scalar*/
-	        total = walktype(sym->typ.basetype,src,fillsrc);
+	        walktype(sym->typ.basetype,src,fillsrc);
 	    else
-	        total = walkarray(sym,src,0,fillsrc);
+	        walkarray(sym,src,0,fillsrc);
 	    break;
         case NC_ATT:
 	    for(total=0;srcpeek(src) != NULL;total++)
@@ -948,11 +950,10 @@ walkdata(Symbol* sym)
         }
         if(src) freedatasrc(src);
     }
-    return total;
 }
 
 /* Walk non-character arrays */
-static size_t
+static void
 walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
 {
     int i;
@@ -962,8 +963,6 @@ walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
     int firstdim = (dimindex == 0);
     Symbol* dim = dimset->dimsyms[dimindex];
     int isunlimited = (dim->dim.declsize == NC_UNLIMITED);
-    int islastunlimited = lastunlimited(dimset,dimindex+1);
-    size_t total = 1;
     size_t count = 0;
 
     ASSERT(rank > 0);
@@ -982,7 +981,7 @@ walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
             if(lastdim)
                 walktype(vsym->typ.basetype,src,fillsrc);
 	    else
-	        total *= walkarray(vsym,src,dimindex+1,fillsrc);
+	        walkarray(vsym,src,dimindex+1,fillsrc);
 	}
         /* compute unlimited max */
 	dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
@@ -993,13 +992,12 @@ walkarray(Symbol* vsym, Datasrc* src, int dimindex, Datalist* fillsrc)
             if(lastdim)
                 walktype(vsym->typ.basetype,src,fillsrc);
 	    else
-	        total *= walkarray(vsym,src,dimindex+1,fillsrc);
+	        walkarray(vsym,src,dimindex+1,fillsrc);
 	}
     }
-    return total;    
 }
 
-static size_t
+static void
 walktype(Symbol* tsym, Datasrc* src, Datalist* fillsrc)
 {
     int i;
@@ -1035,7 +1033,6 @@ walktype(Symbol* tsym, Datasrc* src, Datalist* fillsrc)
 	    walktype(field,src,NULL);
 	}
         srcpop(src);
-	dl->nelems = count;
 	break;
 
     case NC_VLEN:
@@ -1043,40 +1040,43 @@ walktype(Symbol* tsym, Datasrc* src, Datalist* fillsrc)
            semerror(srcline(src),"Vlen constants must be enclosed in {..}");
         }
 	con = srcnext(src);
-	if(con->nctype == NC_FILLVALUE) {
-	    dl = getfiller(tsym,fillsrc);
-	    ASSERT(dl->length == 1);
-	    con = &dl->data[0];
-	    if(con->nctype != NC_COMPOUND) {
-	        semerror(srcline(src),"Vlen fill constants must be enclosed in {..}");
-	    }
-	}
+        if(con->nctype == NC_FILLVALUE) {
+            dl = getfiller(tsym,fillsrc);
+            ASSERT(dl->length == 1);
+            con = &dl->data[0];
+            if(con->nctype != NC_COMPOUND) {
+                semerror(srcline(src),"Vlen fill constants must be enclosed in {..}");
+            }
+        }
         if(!listcontains(vlenconstants,(elem_t)con)) {
             dl = con->value.compoundv;
-	    /* Process list only if new */
-	    srcpushlist(src,dl); /* enter the sublist*/
-	    for(count = 0;srcmore(src);count++) {
+            /* Process list only if new */
+            srcpushlist(src,dl); /* enter the sublist*/
+	    if(tsym->typ.basetype->typ.typecode == NC_CHAR) {
+	        walkcharvlen(con);
+            } else for(count = 0;srcmore(src);count++) {
                 walktype(tsym->typ.basetype,src,NULL);
             }
             srcpop(src);
-     	    dl->nelems = count;
-	    dl->vlen.count = count;	
-	    dl->vlen.uid = listlength(vlenconstants);
-	    dl->vlen.schema = tsym;
- 	    listpush(vlenconstants,(elem_t)con);
-	}
+            dl->vlen.count = count;     
+            dl->vlen.uid = listlength(vlenconstants);
+            dl->vlen.schema = tsym;
+            listpush(vlenconstants,(elem_t)con);
+        }
 	break;
-
-    case NC_FIELD:
+     case NC_FIELD:
         if(tsym->typ.dimset.ndims > 0) {
-	    walkfieldarray(tsym->typ.basetype,src,&tsym->typ.dimset,0);
+   	    if(tsym->typ.basetype->typ.typecode == NC_CHAR) {
+		Constant* con = srcnext(src);
+		walkcharfieldarray(con,&tsym->typ.dimset,fillsrc);
+	    } else
+		walkfieldarray(tsym->typ.basetype,src,&tsym->typ.dimset,0);
 	} else
 	    walktype(tsym->typ.basetype,src,NULL);
 	break;
 
     default: PANIC1("processdatalist: unexpected subclass %d",tsym->subclass);
     }
-    return 1;
 }
 
 /* Used only for structure field arrays*/
@@ -1101,94 +1101,238 @@ walkfieldarray(Symbol* basetype, Datasrc* src, Dimset* dimset, int index)
 }
 
 /* Return 1 if the set of dimensions from..rank-1 are not unlimited */
-static int
-lastunlimited(Dimset* dimset, int from)
+int
+nounlimited(Dimset* dimset, int from)
 {
-    int i;
-    for(i=from;i<dimset->ndims;i++) {
+    int index;
+    index = lastunlimited(dimset);
+    return (index <= from ? 1: 0);
+}
+
+/* Return index of the rightmost unlimited dimension; -1 => no unlimiteds  */
+int
+lastunlimited(Dimset* dimset)
+{
+    int i,index;
+    for(index=-1,i=0;i<dimset->ndims;i++) {
         Symbol* dim = dimset->dimsyms[i];
-        if(dim->dim.declsize == NC_UNLIMITED) return 0;
+        if(dim->dim.declsize == NC_UNLIMITED) index = i;
     }
-    return 1;
+    return index;
 }
-static char*
-buildcanonicalcharlist(Dimset* dimset, Datalist* list, size_t size,
-                       Datalist* fillsrc)
+
+/*  Field is an array and basetype is character.
+    The constant should be of the form { <stringable>, <stringable>...}.
+    Make each stringable be a multiple of the size of the last
+    dimension of the field array. Then concat all of them
+    together into one long string. Then pad that string to be
+    as long as the product of the array dimensions. Finally,
+    modify the constant to hold that long string.
+*/
+static void
+walkcharfieldarray(Constant* con, Dimset* dimset, Datalist* fillsrc)
 {
-    int i,padding;
-    Bytebuffer* buf = bbNew();
-
-    ASSERT(size > 0);
-
-    for(i=0;i<list->length;i++) {
-	Constant* con = list->data[i];
-	switch(con->nc_type)
-	case NC_CHAR:
-	    bbAppend(buf,con->value.charv);
-	    padding = (size - 1);
-	    break;
-	case NC_STRING:
-	    bbAppendn(buf,con->value.stringv.stringv,con->value.stringv.len);
-	    padding = (size - (con->value.stringv.len % size));
-	    break;
-	default:
-	    semerror(srcline(src),"Malformed Character datalist");
-	    break;		
-	}
-
-
-
-    /* Compute the subslice size */
-    subsize = subarraylength(dimset,dimindex+1);
-
-    /* test and collect the complete string (with padding)*/
-for(;;) {
-Constant* con = srcnext(src);
-if(con == NULL) break;
-if(!isstringable(con->nctype)) {
-semerror(srcline(src),"Illegal string constant");
-} else {
-slen = collectstring(con,0,buf);
-/* pad the string */
-for(i=slen;i<subsize;i++) bbAppend(buf,'\0');
-}
-}
-src->index = checkpoint;
-/* Compute the presumed size of this unlimited. */
-slen = bbLength(buf);
-count = slen / subsize;
-/* compute unlimited max */
-dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
-bbFree(buf);
-}
-
-static size_t
-walkchararray(Symbol* vsym, Datalist* fillsrc)
-{
-    /* does this symbol have any interior unlimiteds */
-    int simpleunlim = lastunlimited(dimset,1)); /* 1=>no interior unlimiteds*/
-    Constant* con;
-    int i;
     int rank = dimset->ndims;
     Symbol* lastdim = dimset->dimsyms[rank-1];
-    size_t lastdimsize lastdim->dim.declsize;
-    Datalist* data = vsym->data;
-    char* canon;
-
-    if(simpleunlim) {
-        canon = buildcanonicalcharlist(&vsym->dimset,data,lastdimsize,fillsrc);
-    } else {
-	for(i=0;i<data->length;i++) {
-	    if(con->nc_type != NC_COMPOUND) {
-		semerror(srcline(src),"Malformed Character datalist");
-		continue;
-	    }
-            canon = canonbuildcanonicalcharlist(&vsym->dimset,
-						data->data[i]->value.compoundv,
-                                                lastdimsize,fillsrc);
-	}
-
+    size_t lastdimsize = lastdim->dim.declsize;
+    size_t slabsize = subarraylength(dimset,0);
+    int fillchar = getfillchar(fillsrc);
+    Datalist* data;
+    Constant newcon;
+    
+    /* By data constant rules, con should be a compound object */
+    if(con->nctype != NC_COMPOUND) {
+        semerror(con->lineno,"Malformed character field array");
+	return;
     }
-    return i;
+    data = con->value.compoundv;
+    /* canonicalize the strings in con and then pad to slabsize */
+    if(!buildcanonicalcharlist(data,lastdimsize,fillchar,&newcon))
+	return;
+    /* pad to slabsize */
+    padstring(&newcon,slabsize,fillchar);
+    /* Now, since we have a compound containing a single string,
+       optimize by replacing the compound with the string.
+    */    
+    *con = newcon;
+}
+
+/*  Vsym is an array variable whose basetype is character.
+    The vsym->data list should be a set of strings
+    possibly enclosed in one or more nested sets of braces.
+	{<stringlist>}, {<stringlist>}...
+    There are several cases to consider.    
+    1. the variable's dimension set has no unlimiteds
+	Actions:
+	1. for each stringable in the data list,
+               pad it up to a multiple of the size of the
+               last dimension.
+	2. concat all of the stringables
+	3. pad the concat to the size of the product of
+               the dimension sizes.
+    2. the dimension set has one or more unlimiteds.
+       This means that we have to recursively deal with
+       nested compound instances.
+
+       The last (rightmost) unlimited will correspond
+       to a sequence of stringables.
+       This has two special subcases
+       2a. the last dimension IS NOT unlimited
+	   Actions:
+	   1. for each stringable in the data list,
+              pad it up to a multiple of the size of the
+              last dimension.
+	   2. concat all of the stringables
+	   3. Use the length of the concat plus the
+	      product of the dimensions from just
+              after the last unlimited to the last dimension
+              to inform the size of the unlimited.
+       2b. the last dimension IS unlimited
+	   Actions:
+	   1. concat all of the stringables with no padding
+	   2. Use the length of the concat to inform the size
+              of the unlimited.
+ 
+       Each unlimited dimension to the left of the last unlimited
+       will introduce another nesting of braces.
+
+    3. For each dimension to the left of the last
+       unlimited, there are two cases.
+       3a. dimension is NOT unlimited
+	   ACTION: 
+	   1. The set of items from the right are padded to
+              the length of the dimension size
+       3b. dimension IS unlimited
+	   ACTION: 
+	   1. no action
+	
+    Finally, modify the variable's data list to contain these
+    modified stringlists.
+*/
+static void
+walkchararray(Symbol* vsym, Datalist* fillsrc)
+{
+    Dimset* dimset = &vsym->typ.dimset;
+    int lastunlimindex;
+    int simpleunlim;
+    int rank = dimset->ndims;
+    Symbol* lastdim = dimset->dimsyms[rank-1];
+    size_t lastdimsize = lastdim->dim.declsize;
+    Constant newcon = nullconstant;
+    int fillchar = getfillchar(fillsrc);
+
+    lastunlimindex = lastunlimited(dimset);
+    simpleunlim = (lastunlimindex == 0);
+    /* If the unlimited is also the last dimension, then do no padding */
+    if(lastdimsize == 0) lastdimsize = 1;
+
+    if(lastunlimindex < 0) {
+        /* If it turns out that there are no unlimiteds, then canonicalize
+           the string and then pad to the dim product
+        */
+	size_t slabsize = arraylength(dimset);
+        if(!buildcanonicalcharlist(vsym->data,lastdimsize,fillchar,&newcon))
+	    return;
+	/* pad to slabsize */
+	padstring(&newcon,slabsize,fillchar);
+	/* replace vsym->data */
+	vsym->data = const2list(&newcon);
+#ifdef IGNORE
+    } else if(simpleunlim) {
+	/* First dimension is the only unlimited */
+	/* canonicalize but do not attempt to pad because
+           we do not yet know the final size of the unlimited dimension
+	*/
+        size_t count, subslabsize;
+	Symbol* dim0 = dimset->dimsyms[0];
+	ASSERT(dim0->dim.declsize == NC_UNLIMITED);
+        if(!buildcanonicalcharlist(vsym->data,lastdimsize,fillchar,&newcon))
+	    return;
+	/* track consistency with the unlimited dimension */
+	/* Compute the size of the subslab below this dimension */
+	subslabsize = subarraylength(dimset,lastunlimindex+1);
+	/* divide stringv.len by subslabsize and use as the unlim count*/
+	count = newcon.value.stringv.len / subslabsize;
+	dim0->dim.unlimitedsize = MAX(count,dim0->dim.unlimitedsize);
+	/* replace vsym->data */
+	vsym->data = const2list(&newcon);
+#endif
+    } else {/* 1 or more unlimiteds */
+	walkchararrayr(&vsym->typ.dimset, &vsym->data, lastunlimindex, 0, fillchar);
+    }
+}
+
+/* Handle case 3:
+   this will recursively walk down the
+   compound nesting to apply actions.
+*/
+
+static void
+walkchararrayr(Dimset* dimset, Datalist** datap, int lastunlimited, int index, int fillchar)
+{
+    int i;
+    Symbol* dim = dimset->dimsyms[index];
+    int rank = dimset->ndims;
+    int isunlimited = (dim->dim.declsize == NC_UNLIMITED);
+    Datalist* data = *datap;
+
+    /* Split on islastunlimited or not */
+    if(index == lastunlimited) {
+        size_t subslabsize,count;
+        Symbol* lastdim = dimset->dimsyms[rank-1];
+        size_t lastdimsize = (lastdim->dim.declsize==NC_UNLIMITED?1:lastdim->dim.declsize);
+        Constant newcon = nullconstant;
+        /* The datalist should contain just stringables; concat them with padding */
+        if(!buildcanonicalcharlist(data,lastdimsize,fillchar,&newcon))
+            return;
+        /* track consistency with the unlimited dimension */
+        /* Compute the size of the subslab below this dimension */
+        subslabsize = subarraylength(dimset,index+1);
+        /* divide stringv.len by subslabsize and use as the unlim count*/
+        count = newcon.value.stringv.len / subslabsize;
+        dim->dim.unlimitedsize = MAX(count,dim->dim.unlimitedsize);
+	/* replace parent compound */
+        *datap = const2list(&newcon);     
+    } else {/* dimension to left of last unlimited */	
+	/* data should be a set of compounds */
+	size_t expected = (isunlimited ? data->length : dim->dim.declsize );
+	for(i=0;i<expected;i++) {
+            Constant* con;
+	    if(i >= data->length) {/* extend data */
+		Constant cmpd;
+		emptycompoundconst(datalistline(data),&cmpd);
+		dlappend(data,&cmpd);
+	    }
+	    con = data->data+i;
+            if(con->nctype != NC_COMPOUND) {
+                semerror(datalistline(data),"Malformed Character datalist");
+                continue;
+            }
+            /* recurse */
+            walkchararrayr(dimset,&con->value.compoundv,lastunlimited,index+1,fillchar);
+
+	    if(isunlimited) /* set unlim count */
+                dim->dim.unlimitedsize = MAX(data->length,dim->dim.unlimitedsize);
+        }
+    }
+}
+
+static void
+walkcharvlen(Constant* src)
+{
+    Datalist* data;
+    Constant  newcon;
+    
+    /* By data constant rules, src should be a compound object */
+    if(src->nctype != NC_COMPOUND) {
+        semerror(src->lineno,"Malformed character vlen");
+	return;
+    }
+    data = src->value.compoundv;
+    /* canonicalize the strings in src */
+    if(!buildcanonicalcharlist(data,1,NC_FILL_CHAR,&newcon))
+	return;
+    /* replace src */
+    *src = newcon;
 }
 

@@ -11,7 +11,6 @@
 /* nmemonic*/
 #define TOPLEVEL 1
 
-/* Define a structure to hold*/
 /* any one possible value*/
 typedef union Constvalue {
     struct Datalist* compoundv; /* NC_COMPOUND*/
@@ -51,17 +50,13 @@ typedef struct Datalist {
     struct Datalist* next; /* chain of all known datalists*/
     int           readonly; /* data field is shared with another Datalist*/
     size_t  length; /* |data| */
-    size_t  nelems; /* # of elements in the datalist;
-                             should only differ from length when using
-                             certain complex structures with scalar fields
-                             (see datalist constant rules in ncgen man page */
     size_t  alloc;  /* track total allocated space for data field*/
     Constant*     data; /* actual list of constants constituting the datalist*/
     /* Track various values associated with the datalist*/
     /* (used to be in Constvalue.compoundv)*/
     struct Vlen {
-    struct Symbol* schema; /* type/var that defines structure of this*/
-	unsigned int count; /* # of vlen basetype instances*/
+        struct Symbol* schema; /* type/var that defines structure of this*/
+        unsigned int count; /* # of vlen basetype instances*/
 	unsigned int uid;       /* unique id for NC_VLEN*/
     } vlen;
 } Datalist;
@@ -149,10 +144,15 @@ int stringimplode(Constant* con);
 Constant cloneconstant(Constant* con); /* shallow clone*/
 Constant gen_stringall(unsigned long size, Datasrc* src, unsigned long);
 
+Constant* emptycompoundconst(int,Constant*);
+Constant* emptystringconst(int,Constant*);
+
 Datasrc* datalist2src(Datalist* list);
 Datasrc* const2src(Constant*);
 Constant list2const(Datalist*);
+Datalist* const2list(Constant* con);
 void freedatasrc(Datasrc* src);
+
 void srcpush(Datasrc*);
 void srcpushlist(Datasrc* src, Datalist* cmpd);
 void srcpop(Datasrc*);
@@ -164,6 +164,7 @@ Datalist* datalistclone(Datalist* dl);
 Datalist* datalistconcat(Datalist* dl1, Datalist* dl2);
 Datalist* datalistappend(Datalist* dl, Constant* con);
 Datalist* datalistreplace(Datalist* dl, unsigned int index, Constant* con);
+int datalistline(Datalist*);
 
 Constant* srcnext(Datasrc*);
 int srclast(Datasrc*); /* are we at the last entry ? */
@@ -204,13 +205,15 @@ Constant* srcpeek(Datasrc*);
 
 extern Constant nullconstant;
 extern Constant fillconstant;
-extern Constant nullstringconstant;
 
 /* From genchar.c */
 void gen_charattr(struct Symbol* asym, Bytebuffer* databuf);
-void gen_chararray(struct Symbol*, Bytebuffer*, Datasrc*, struct Odometer*, int);
-void gen_charfield(Datasrc* src, struct Odometer*, int index, Bytebuffer* databuf);
+void gen_chararray(struct Symbol* vsym, Bytebuffer* databuf, Datalist* fillsrc);
+void gen_charfield(Datasrc* src, Odometer*, Bytebuffer* databuf);
 void gen_charvlen(Datasrc*, Bytebuffer*);
-int collectstring(struct Constant* con, size_t declsize, Bytebuffer* databuf);
+int collectstring(struct Constant*, size_t, Bytebuffer*, int);
+int getfillchar(Datalist* fillsrc);
+int buildcanonicalcharlist(Datalist*, size_t, int, Constant*);
+void padstring(Constant* con, size_t desiredlength, int fillchar);
 
 #endif /*DATA_H*/

@@ -30,7 +30,8 @@ nc_sync \
 ref_tst_small \
 small2 \
 tst_ncml
-n3time"
+n3time \
+ref_tst_chardata"
 
 NONCLASSIC3="\
 test0 \
@@ -44,7 +45,8 @@ ref_nctst_64bit_offset \
 ref_ctest1_nc4 \
 ref_ctest1_nc4c \
 ref_nctst_netcdf4 \
-ref_nctst_netcdf4_classic"
+ref_nctst_netcdf4_classic \
+ref_tst_unlim2"
 
 if test "${CLASSIC}" = "1" ; then
 TESTS3="${CLASSIC3}"
@@ -75,7 +77,7 @@ SPECIALTESTS3="ref_tst_special_atts3"
 
 SPECIALTESTS="ref_tst_special_atts ${SPECIALTESTS3}"
 
-XFAILTESTS="ref_const_test"
+XFAILTESTS="ref_const_test ref_tst_unlim2"
 
 # Following are generally not run
 # Because of the size of their output

@@ -558,32 +558,33 @@ genj_definevardata(Symbol* vsym)
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
-    src = datalist2src(vsym->data);
-    fillsrc = vsym->var.special._Fillvalue;
-
-    /* Handle special cases first*/
-    if(isscalar) {
-	jdata_basetype(vsym->typ.basetype,src,code,fillsrc);
-	commify(code);
-	genj_write(vsym,code,NULL,1,0);
-     } else { /* Non-scalar*/
-	int index;
-        /* Create an iterator to generate blocks of data */
-        nc_get_iter(vsym,nciterbuffersize,&iter);
-        /* Fill in the local odometer instance */
-        odom = newodometer(&vsym->typ.dimset,NULL,NULL);
-        for(index=0;;index++) {
-	    nelems=nc_next_iter(&iter,odom->start,odom->count);
-	    if(nelems == 0) break;
-            if(chartype) {/* Handle character case separately */
-                gen_chararray(vsym,code,src,odom,0);
-    	    } else {
+    if(!isscalar && chartype) {
+        gen_chararray(vsym,code,fillsrc);
+        genj_write(vsym,code,NULL,0,0);
+    } else { /* not character constant */
+        src = datalist2src(vsym->data);
+        fillsrc = vsym->var.special._Fillvalue;
+    
+        /* Handle special cases first*/
+        if(isscalar) {
+            jdata_basetype(vsym->typ.basetype,src,code,fillsrc);
+            commify(code);
+            genj_write(vsym,code,NULL,1,0);
+         } else { /* Non-scalar*/
+            int index;
+            /* Create an iterator to generate blocks of data */
+            nc_get_iter(vsym,nciterbuffersize,&iter);
+            /* Fill in the local odometer instance */
+            odom = newodometer(&vsym->typ.dimset,NULL,NULL);
+            for(index=0;;index++) {
+                nelems=nc_next_iter(&iter,odom->start,odom->count);
+                if(nelems == 0) break;
                 jdata_array(vsym,code,src,odom,/*index=*/0,fillsrc);
-	    }
-	    genj_write(vsym,code,odom,0,index);
-	}
+                genj_write(vsym,code,odom,0,index);
+            }
+        }
+        odometerfree(odom);
     }
-    odometerfree(odom);
     bbFree(code);
 }
 
