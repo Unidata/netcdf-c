@@ -370,7 +370,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
   NC_GRP_INFO_T *grp;
   NC_FILE_INFO_T *nc;
   NC_HDF5_FILE_INFO_T *h5;
-  int num_unlim = 0, unlimid;
+  int num_unlim = 0;
   int retval;
 
   LOG((2, "nc_inq_unlimdims: ncid 0x%x", ncid));
