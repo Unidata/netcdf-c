@@ -1255,16 +1255,6 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
-AC_MSG_CHECKING([if API dispatch is enabled])
-AC_ARG_ENABLE([dispatch],
-              [AS_HELP_STRING([--enable-dispatch],
-                              [enable experimental dispatch support])])
-test "x$enable_dispatch" = xno || enable_dispatch=yes
-AC_MSG_RESULT($enable_dispatch)
-if test "x$enable_dispatch" = xyes ; then
-AC_DEFINE([USE_DISPATCH], [1], [if true, include experimental API dispatch code])
-fi
-
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
 AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
@@ -1509,7 +1499,6 @@ AC_MSG_NOTICE(CFLAGS for External libraries: ${EXTERN_CFLAGS})
 AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
-
 # Uncomment this to keep a copy of autoconf defines at this point, for
 # debugging purposes.
 # cp confdefs.h my_config.h

@@ -62,4 +62,6 @@ EXTRA_DIST = attr.c ncx.c putget.c $(man_MANS) stub3.c
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
 
-
+.PHONY: visualstudio
+visualstudio:
+	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libnetcdf3_la_SOURCES}"

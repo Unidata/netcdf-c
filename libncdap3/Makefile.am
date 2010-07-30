@@ -99,11 +99,11 @@ endif # BUILD_DAP
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-#cetab.c cetab.h: ${top_srcdir}/oc/ce.y
-#	bison -d -t -p ce ${top_srcdir}/oc/ce.y
-#	rm -f cetab.c cetab.h
-#	mv ce.tab.c cetab.c
-#	mv ce.tab.h cetab.h
+makece::
+	bison -d -t -p ce ce.y
+	rm -f cetab.c cetab.h
+	mv ce.tab.c cetab.c
+	mv ce.tab.h cetab.h
 
 # One last thing
 BUILT_SOURCES = .dodsrc

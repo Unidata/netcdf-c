@@ -36,6 +36,7 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = v2i.c
 endif # BUILD_V2
 
-
-
+.PHONY: visualstudio
+visualstudio:
+	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libdispatch_la_SOURCES}"
 

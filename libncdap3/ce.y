@@ -28,10 +28,14 @@ constraints:
 	;
 
 /* %type NClist<NCprojection*> */
-projections: projectionlist {$$=$1;}
+projections:
+	projectionlist {$$=$1;}
+	;
 
 /* %type NClist<NCselection*> */
-selections:  selectionlist {$$=$1;}
+selections:
+	selectionlist {$$=$1;}
+	;
 
 /* %type NClist<NCprojection*> */
 projectionlist:
