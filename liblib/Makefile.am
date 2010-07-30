@@ -50,4 +50,7 @@ endif #BUILD_F77
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c 
 
+.PHONY: visualstudio
+visualstudio:
+	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libnetcdf_la_SOURCES}"
 

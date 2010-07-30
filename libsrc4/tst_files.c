@@ -51,13 +51,13 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-#ifndef USE_DISPATCH
+#ifdef FIX
       /* Make sure bad mode causes failure in nc_open. */
       if (nc_open(FILE_NAME, NC_CLASSIC_MODEL, &ncid) != NC_EINVAL) ERR;
 #endif
       if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
 
-#ifndef USE_DISPATCH
+#ifdef FIX
       /* Make sure bad mode causes failure for nc_create. */
       if (nc_create(FILE_NAME, NC_WRITE, &ncid) != NC_EINVAL) ERR;
 #endif
