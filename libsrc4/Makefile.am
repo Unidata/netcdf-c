@@ -18,7 +18,7 @@ AM_CPPFLAGS += -I${top_srcdir}/oc
 endif
 
 # Netcdf-4 source.
-NC4SOURCES = nc4internal.h error4.c netcdf4l.h nctolnc4.h	\
+NC4SOURCES = nc4internal.h error4.c \
 nc4dispatch.c nc4dispatch.h nc4attr.c nc4dim.c	\
 nc4file.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c nc4hdf.c
 
