@@ -384,10 +384,7 @@ init_netcdf(void) /* initialize global counts, flags */
     memset((void*)&nullconstant,0,sizeof(Constant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;
-    nullstringconstant = nullconstant;
-    nullstringconstant.nctype = NC_STRING;
-    nullstringconstant.value.stringv.len = 0;
-    nullstringconstant.value.stringv.stringv = nulldup("");
+
     codebuffer = bbNew();
     stmt = bbNew();
 }

@@ -108,6 +108,7 @@ typedef struct OCstate
 	int   validate;
         char* certificate;
 	char* key;
+	char* keypasswd;;
         char* cainfo; /* certificate authority */
 	char* capath; 
     } ssl;

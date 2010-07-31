@@ -1054,13 +1054,13 @@ jputvara(struct Putvar* closure, Odometer* odom, Bytebuffer* databuf)
 {
     int i;
     int stat = NC_NOERR;
-    size_t startset[NC_MAX_DIMS];
-    size_t countset[NC_MAX_DIMS];
+    size_t startset[NC_MAX_VAR_DIMS];
+    size_t countset[NC_MAX_VAR_DIMS];
     Symbol* vsym = closure->var;
     Symbol* basetype = vsym->typ.basetype;
     Dimset* dimset = &vsym->typ.dimset;
     Bytebuffer* code = closure->code;
-    char dimstring[NC_MAX_DIMS*2+1];
+    char dimstring[NC_MAX_VAR_DIMS*2+1];
     size_t count;
     nc_type typecode = basetype->typ.typecode;
 

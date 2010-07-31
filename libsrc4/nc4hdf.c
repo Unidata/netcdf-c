@@ -15,9 +15,6 @@
 
 #include "config.h"
 #include "nc4internal.h"
-#ifndef USE_DISPATCH
-#include "rename4.h"
-#endif
 #include <H5DSpublic.h>
 #include <math.h>
 

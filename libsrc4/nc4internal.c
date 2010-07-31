@@ -17,9 +17,6 @@ $Id: nc4internal.c,v 1.121 2010/05/26 21:43:35 dmh Exp $
 
 #include "config.h"
 #include "nc4internal.h"
-#ifndef USE_DISPATCH
-#include "rename4.h"
-#endif
 #include "nc.h" /* from libsrc */
 #include <utf8proc.h>
 

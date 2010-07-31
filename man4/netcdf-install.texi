@@ -42,7 +42,7 @@ This document describes how to build and install the netCDF library,
 version @value{VERSION} on Unix and Windows systems. This document was
 last updated on @value{UPDATED}.
 
-The current stable release of netCDF, version 4.0, can be obtained
+The current stable release of netCDF, version 4.1.2, can be obtained
 from the netCDF web page at @uref{@value{netcdf-url}}. Instructions
 for installing the current stable release version of netCDF can be
 found at @uref{@value{docs-url}}.
@@ -369,8 +369,7 @@ For more information about HDF5 see the HDF5 web site at
 web site at @uref{@value{zlib-url}}.
 
 To use the DAP features you will also need to have a version of
-libcurl (version 7.18.0 or later)
-installed.
+libcurl (version 7.18.0 or later) installed.
 Depending on how this library
 was built, you may also need zib (version 1.2.3 or later).
 Information about libcurl may be obtained at

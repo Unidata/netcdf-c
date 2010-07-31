@@ -1,18 +1,16 @@
 THISDIR=../oc
-OCDIR=./oc
-OCSVN=http://scm.opendap.org/svn/trunk/oc
+OCDIR=/home/dmh/nc/oc
 
 all::
 
 makeoc::
-	rm -fr ${OCDIR}
-	svn co ${OCSVN}
 	rm -f ${THISDIR}/*.[chy]
 	for f in ${OCDIR}/*.[chy] ; do \
 	        base=`basename $$f` ; \
-		cat $$f | tr -d '' >${THISDIR}/$$base; done
+		cat $$f | tr -d '' >${THISDIR}/$$base; \
+	done
 	rm -f ce.y ceparse.c celex.c ceparselex.h
-	rm -f octest.c
+	rm -f octest.c config.h
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h

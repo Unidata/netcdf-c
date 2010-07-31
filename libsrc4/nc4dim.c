@@ -42,8 +42,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!h5)
-      return nc3_inq_unlimdim(nc->int_ncid, unlimdimidp);
+   assert(h5);
 
    /* According to netcdf-3 manual, return -1 if there is no unlimited
       dimension. */
@@ -90,8 +89,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!h5)
-      return nc3_def_dim(nc->int_ncid, name, len, idp);
+   assert(h5);
 
    assert(h5 && nc && grp);
 
@@ -180,8 +178,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!h5)
-      return nc3_inq_dimid(nc->int_ncid, name, idp);
+   assert(h5);
 
    assert(nc && grp);
 
@@ -234,8 +231,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!h5)
-      return nc3_inq_dim(nc->int_ncid, dimid, name, lenp);   
+   assert(h5);
    
    assert(nc && grp);
 
@@ -305,8 +301,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 cases. */
-   if (!h5)
-      return nc3_rename_dim(nc->int_ncid, dimid, name);
+   assert(h5);
    assert(h5 && grp);
 
    /* Trying to write to a read-only file? No way, Jose! */
@@ -375,7 +370,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
   NC_GRP_INFO_T *grp;
   NC_FILE_INFO_T *nc;
   NC_HDF5_FILE_INFO_T *h5;
-  int num_unlim = 0, unlimid;
+  int num_unlim = 0;
   int retval;
 
   LOG((2, "nc_inq_unlimdims: ncid 0x%x", ncid));
@@ -385,18 +380,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
       return retval;
 
    /* Get our dim info. */
-   if (!h5) /* netcdf-3 file */
-   {
-      if ((retval = nc3_inq_unlimdim(nc->int_ncid, &unlimid)))
-	 return retval;
-      if (unlimid != -1)
-      {
-	 num_unlim = 1;
-	 if (unlimdimidsp)
-	    unlimdimidsp[0] = unlimid;
-      }
-   } 
-   else  /* netcdf-4 file */
+   assert(h5);
    {
       for (dim=grp->dim; dim; dim=dim->next)
       {

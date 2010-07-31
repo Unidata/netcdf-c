@@ -14,6 +14,7 @@ $Id: ncfunc.c,v 1.51 2010/05/26 20:13:32 dmh Exp $
 */
 
 #include "nc4internal.h"
+#include "nc3dispatch.h"
 
 /* Keep a linked list of file info objects. */
 extern NC_FILE_INFO_T *nc_file;
@@ -26,13 +27,13 @@ extern NC_FILE_INFO_T *nc_file;
 int
 nc_delete(const char *path)
 {
-   return nc3_delete_mp(path, 0);
+   return NC3_delete_mp(path, 0);
 }
 
 int
 nc_delete_mp(const char *path, int basepe)
 {
-   return nc3_delete_mp(path, basepe);
+   return NC3_delete_mp(path, basepe);
 }
 #endif
 
@@ -50,7 +51,7 @@ NC4_set_base_pe(int ncid, int pe)
       return NC_EBADID;
    if (nc->nc4_info)
       return NC_ENOTNC3;
-   return nc3_set_base_pe(nc->int_ncid,  pe);
+   return NC3_set_base_pe(nc->int_ncid,  pe);
 }
 
 /* This function only does anything for netcdf-3 files. */
@@ -62,7 +63,7 @@ NC4_inq_base_pe(int ncid, int *pe)
       return NC_EBADID;
    if (nc->nc4_info)
       return NC_ENOTNC3;
-   return nc3_inq_base_pe(nc->int_ncid, pe);
+   return NC3_inq_base_pe(nc->int_ncid, pe);
 }
 
 /* Get the format (i.e. classic, 64-bit-offset, or netcdf-4) of an
@@ -84,7 +85,7 @@ NC4_inq_format(int ncid, int *formatp)
    /* If this isn't a netcdf-4 file, pass this call on to the netcdf-3
     * library. */
    if (!nc->nc4_info)
-      return nc3_inq_format(nc->int_ncid, formatp);
+      return NC3_inq_format(nc->int_ncid, formatp);
    
    /* Otherwise, this is a netcdf-4 file. Check if classic NC3 rules
     * are in effect for this file. */
