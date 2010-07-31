@@ -50,10 +50,10 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	stat = nc_inq_att(hdr->ncid,NC_GLOBAL,att->name,&nctype,&nvalues);
         CHECK(stat);
 	att->etype = nctypetodap(nctype);
+	typesize = nctypesizeof(att->etype);
 	fprintf(stdout,"\t[%d]: name=%s type=%s values(%lu)=",
 			i,att->name,nctypetostring(octypetonc(att->etype)),
                         (unsigned long)nvalues);
-	typesize = nctypesizeof(att->etype);
 	if(nctype == NC_CHAR) {
 	    size_t len = typesize*nvalues;
 	    char* values = (char*)emalloc(len+1);/* for null terminate*/

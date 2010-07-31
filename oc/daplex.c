@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "dapparselex.h"
+#include <strings.h>
 
 #define URLCVT
 #define NONSTDCVT
