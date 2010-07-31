@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <strings.h>
 #include <stdarg.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -108,7 +109,7 @@ typedef struct OCstate
 	int   validate;
         char* certificate;
 	char* key;
-	char* keypasswd;;
+	char* keypasswd;
         char* cainfo; /* certificate authority */
 	char* capath; 
     } ssl;

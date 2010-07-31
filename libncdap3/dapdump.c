@@ -53,6 +53,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"\t[%d]: name=%s type=%s values(%lu)=",
 			i,att->name,nctypetostring(octypetonc(att->etype)),
                         (unsigned long)nvalues);
+	typesize = nctypesizeof(att->etype);
 	if(nctype == NC_CHAR) {
 	    size_t len = typesize*nvalues;
 	    char* values = (char*)emalloc(len+1);/* for null terminate*/
