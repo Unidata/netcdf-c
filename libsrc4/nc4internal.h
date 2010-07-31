@@ -18,7 +18,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
-#include "netcdf3.h"
 #include <hdf5.h>
 #include <nc_logging.h>
 

@@ -105,8 +105,8 @@ findbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
     content = ocbytescontents(buffer);
     for(i=0;i<len;i++) {
 	if((i+tlen) <= len 
-	   && (strncmp(content+i,DDSdatamark,tlen)==0)
-	       || strncmp(content+i,DDSdatamarkR,tlen)==0) {
+	   && (strncmp(content+i,DDSdatamark,tlen)==0
+	       || strncmp(content+i,DDSdatamarkR,tlen)==0)) {
 	    *ddslenp = i;
 	    i += tlen;
 	    if(i < len && content[i] == '\r') i++;

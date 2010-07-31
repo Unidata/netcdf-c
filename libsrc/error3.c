@@ -12,9 +12,6 @@
 #include <stdlib.h>
 
 #include "netcdf.h"
-#ifndef USE_DISPATCH
-#include "rename.h"
-#endif
 
 #ifdef HAVE_STRERROR
 #include <string.h> /* contains prototype for ansi libc function strerror() */

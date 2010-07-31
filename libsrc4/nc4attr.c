@@ -480,8 +480,7 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_inq_att(nc->int_ncid, varid, name, xtypep, lenp);
+   assert(nc->nc4_info);
 
    /* Handle netcdf-4 files. */
    return nc4_get_att(ncid, nc, varid, name, xtypep, NC_UBYTE, lenp, NULL, 0, NULL);
@@ -506,8 +505,7 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_inq_attid(nc->int_ncid, varid, name, attnump);
+   assert(nc->nc4_info);
 
    /* Handle netcdf-4 files. */
    return nc4_get_att(ncid, nc, varid, name, NULL, NC_UBYTE, 
@@ -537,8 +535,7 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_inq_attname(nc->int_ncid, varid, attnum, name);
+   assert(nc->nc4_info);
 
    /* Handle netcdf-4 files. */
    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
@@ -587,8 +584,7 @@ NC4_rename_att(int ncid, int varid, const char *name,
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!h5)
-      return nc3_rename_att(nc->int_ncid, varid, name, newname);
+   assert(h5);
 
    /* If the file is read-only, return an error. */
    if (h5->no_write)
@@ -694,8 +690,7 @@ NC4_del_att(int ncid, int varid, const char *name)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!h5)
-      return nc3_del_att(nc->int_ncid, varid, name);   
+   assert(h5);
 
    assert(h5 && grp);
 
@@ -825,41 +820,7 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-   {
-      if (mem_type == NC_UBYTE)
-	 mem_type = NC_BYTE;
-      switch(mem_type)
-      {
-	 case NC_NAT:
-	    return nc3_put_att(nc->int_ncid, varid, name, file_type, 
-			      len, op);
-	 case NC_BYTE:
-	    return nc3_put_att_schar(nc->int_ncid, varid, name, 
-				     file_type, len, op);
-	 case NC_CHAR:
-	    return nc3_put_att_text(nc->int_ncid, varid, name, 
-				    len, op);
-	 case NC_SHORT:
-	    return nc3_put_att_short(nc->int_ncid, varid, name, 
-				     file_type, len, op);
-	 case NC_INT:
-	    if (mem_type_is_long)
-	       return nc3_put_att_long(nc->int_ncid, varid, name, 
-				       file_type, len, op);
-	    else
-	       return nc3_put_att_int(nc->int_ncid, varid, name, 
-				      file_type, len, op);
-	 case NC_FLOAT:
-	    return nc3_put_att_float(nc->int_ncid, varid, name, 
-				     file_type, len, op);
-	 case NC_DOUBLE:
-	    return nc3_put_att_double(nc->int_ncid, varid, name, 
-				      file_type, len, op);
-	 default:
-	    return NC_EBADTYPE;
-      }
-   }
+   assert(nc->nc4_info);
 
    /* Otherwise, handle things the netcdf-4 way. */
    return nc4_put_att(ncid, nc, varid, name, file_type, mem_type, len, 
@@ -912,35 +873,7 @@ nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-   {
-      /* NetCDF-3 doesn't know UBYTE from a hole in the ground. It
-       * only knows about BYTE. */
-      if (mem_type == NC_UBYTE)
-	 mem_type = NC_BYTE;
-      switch(mem_type)
-      {
-	 case NC_NAT:
-	    return nc3_get_att(nc->int_ncid, varid, name, ip);
-	 case NC_BYTE:
-	    return nc3_get_att_schar(nc->int_ncid, varid, name, ip);
-	 case NC_CHAR:
-	    return nc3_get_att_text(nc->int_ncid, varid, name, ip);
-	 case NC_SHORT:
-	    return nc3_get_att_short(nc->int_ncid, varid, name, ip);
-	 case NC_INT:
-	    if (mem_type_is_long)
-	       return nc3_get_att_long(nc->int_ncid, varid, name, ip);
-	    else
-	       return nc3_get_att_int(nc->int_ncid, varid, name, ip);
-	 case NC_FLOAT:
-	    return nc3_get_att_float(nc->int_ncid, varid, name, ip);
-	 case NC_DOUBLE:
-	    return nc3_get_att_double(nc->int_ncid, varid, name, ip);
-	 default:
-	    return NC_EBADTYPE;
-      }
-   }
+   assert(nc->nc4_info);
 
    return nc4_get_att(ncid, nc, varid, name, NULL, mem_type, 
 		      NULL, NULL, mem_type_is_long, ip);
