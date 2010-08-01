@@ -53,7 +53,7 @@ int
 nc_get_iter(int ncid,
 	     int varid,
 	     size_t bufsize,   /* size in bytes of memory buffer */
-	     nciter_t *iterp   /* returned opaque iteration state */) 
+	     nciter_t *iterp   /* returns opaque iteration state */) 
 {
     int stat = NC_NOERR;
     nc_type vartype;

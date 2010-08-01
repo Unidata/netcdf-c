@@ -1104,7 +1104,7 @@ print_ud_type(int ncid, nc_type typeid) {
 	    char field_type_name[NC_MAX_NAME + 1];
 	    size_t field_offset;
 	    nc_type field_type;
-	    int field_ndims, field_dim_sizes[NC_MAX_DIMS];
+	    int field_ndims;
 	    int d;
 	    
 	    indent_out();
@@ -1115,8 +1115,8 @@ print_ud_type(int ncid, nc_type typeid) {
 	    for (f = 0; f < type_nfields; f++)
 		{
 		    NC_CHECK( nc_inq_compound_field(ncid, typeid, f, field_name, 
-						    &field_offset, &field_type, &field_ndims,
-						    field_dim_sizes) );
+						    &field_offset, &field_type, 
+						    &field_ndims, NULL) );
 		    /* TODO: don't bother if field_type_name not needed here */
 		    get_type_name(ncid, field_type, field_type_name);
 		    indent_out();
@@ -1126,10 +1126,15 @@ print_ud_type(int ncid, nc_type typeid) {
 		    printf(" ");
 		    print_name(field_name);
 		    if (field_ndims > 0) {
+			int *field_dim_sizes = (int *) emalloc(field_ndims * sizeof(int));
+			NC_CHECK( nc_inq_compound_field(ncid, typeid, f, NULL, 
+							NULL, NULL, NULL, 
+							field_dim_sizes) );
 			printf("(");
 			for (d = 0; d < field_ndims-1; d++)
 			    printf("%d, ", field_dim_sizes[d]);
 			printf("%d)", field_dim_sizes[field_ndims-1]);
+			free(field_dim_sizes);
 		    }
 		    printf(" ;\n");
 		}
