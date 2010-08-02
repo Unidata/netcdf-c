@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;C:\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;_CURLUSEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -64,7 +64,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="hdf5_hldll.lib hdf5dll.lib zlib1.lib"
+					
+				
 				OutputFile="$(OutDir)/netcdf.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
@@ -123,8 +124,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_;_CURLUSEDLL_"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
@@ -143,7 +144,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="hdf5_hldll.lib hdf5dll.lib zlib1.lib"
+				
+				
 				OutputFile="$(OutDir)/netcdf.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
@@ -183,236 +185,49 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
-			>
-			<File
-				RelativePath="..\..\..\libsrc\attr.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\dim.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\error.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\fbits.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-attio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-control.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-dim.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-genatt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-geninq.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-genvar.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-lib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-misc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-v2compat.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-var1io.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-varaio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-vario.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-varmio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-varsio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\libvers.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\nc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4attr.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4dim.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4file.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4grp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4hdf.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4internal.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4type.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4var.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\ncfunc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\ncx.c"
-				>
-			</File>
-			<File
-				RelativePath=".\netcdf.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\posixio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\putget.c"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\string.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\utf8proc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\v1hpg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\v2i.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\var.c"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\..\fortran\cfortran.h"
-				>
-			</File>
-			<File
-				RelativePath="..\config.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\error.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\fort-lib.h"
-				>
-			</File>
-			<File
-				RelativePath="..\inttypes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\nc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\nc4internal.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\fortran\ncfortran.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\ncx.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\netcdf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc4\netcdf3.h"
-				>
-			</File>
-			<File
-				RelativePath="..\fortran\nfconfig.inc"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\onstack.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\rnd.h"
-				>
-			</File>
-			<File
-				RelativePath="..\stdint.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\libsrc\utf8proc.h"
-				>
-			</File>
+<File RelativePath="..\..\\home\dmh\nc\xvs\include\netcdf.h"></File>
+<File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_logging.h"></File>
+<File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_tests.h"></File>
+<File RelativePath="..\..\..\dispatch.h"></File>
+<File RelativePath="..\..\..\nc.h"></File>
+<File RelativePath="..\..\..\fbits.h"></File>
+<File RelativePath="..\..\..\ncio.h"></File>
+<File RelativePath="..\..\..\onstack.h"></File>
+<File RelativePath="..\..\..\rnd.h"></File>
+<File RelativePath="..\..\..\utf8proc.h"></File>
+<File RelativePath="..\..\..\utf8proc_data.h"></File>
+<File RelativePath="..\..\..\nc3dispatch.h"></File>
+<File RelativePath="..\..\..\ncx.h"></File>
+
+		</Filter>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
+<File RelativePath="..\..\..\parallel.c"></File>
+<File RelativePath="..\..\..\copy.c"></File>
+<File RelativePath="..\..\..\file.c"></File>
+<File RelativePath="..\..\..\dim.c"></File>
+<File RelativePath="..\..\..\att.c"></File>
+<File RelativePath="..\..\..\error.c"></File>
+<File RelativePath="..\..\..\var.c"></File>
+<File RelativePath="..\..\..\dispatch.c"></File>
+<File RelativePath="..\..\..\error3.c"></File>
+<File RelativePath="..\..\..\libvers.c"></File>
+<File RelativePath="..\..\..\string.c"></File>
+<File RelativePath="..\..\..\v1hpg.c"></File>
+<File RelativePath="..\..\..\utf8proc.c"></File>
+<File RelativePath="..\..\..\nclistmgr.c"></File>
+<File RelativePath="..\..\..\nc3dispatch.c"></File>
+<File RelativePath="..\..\..\nc.c"></File>
+<File RelativePath="..\..\..\posixio.c"></File>
+<File RelativePath="..\..\..\stub.c"></File>
+
 		</Filter>
 		<Filter
 			Name="Resource Files"

@@ -22,6 +22,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdump", "ncdump\ncdump.vcp
 		{1544CEA3-1365-4482-A719-FF5C14BBAE29} = {1544CEA3-1365-4482-A719-FF5C14BBAE29}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nccopy", "ncdump\nccopy.vcproj", "{DA7A6115-385C-44AC-B436-E94E95DDCEAC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1544CEA3-1365-4482-A719-FF5C14BBAE29} = {1544CEA3-1365-4482-A719-FF5C14BBAE29}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncgen", "ncgen\ncgen.vcproj", "{81623E8F-4575-429E-9EA1-BFFAC1E253F7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DA7A6115-385C-44AC-B436-E94E95DDCEAC} = {DA7A6115-385C-44AC-B436-E94E95DDCEAC}

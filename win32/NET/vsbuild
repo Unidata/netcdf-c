@@ -1,0 +1,140 @@
+#!/bin/sh
+
+sub extractfiles;
+sub processfile;
+sub generate;
+
+my $parampattern = "(.*)@([a-zA-Z0-9_]+)@(.*)";
+
+sub build {
+    my $m;
+    my %noduplicates; # Temp to remove duplicate file names
+    my @ghfiles; # global .h files
+    my @gcfiles; # global .c files
+    my @hfiles;
+    my @cfiles;
+
+    # The "global" module filelist contains files
+    # that should be included everywhere
+    @ghfiles=();
+    @gcfiles=();
+    if(-e "$vsdir/global.filelist") {
+        extractfiles "global", \@ghfiles, \@gfiles;
+        if($debug > 0) {
+            print "global hfiles=@ghfiles\n";
+            print "global cfiles=@gcfiles\n";
+	}
+    }
+
+    foreach $m (@modules) {
+        @hfiles=();
+        @cfiles=();
+        if(! -e "$vsdir/$m.filelist") {next};
+	extractfiles $m, \@hfiles, \@cfiles;
+        if($debug > 0) {
+	    print "$m.hfiles=@hfiles\n";
+            print "$m.cfiles=@cfiles\n";
+	}
+	# Prepend global lists
+	@hfiles = (@ghfiles,@hfiles);
+	@cfiles = (@gcfiles,@cfiles);
+
+	# create the .vcproj for each module
+	generate $m, \@hfiles, \@cfiles;
+    }
+}
+
+sub extractfiles {
+    ($module, $href, $cref) = @_;
+    @{$href}=();
+    @{$cref}=();
+    open MODFILE, "$vsdir/$module.filelist" or die "$module.filelist does not exist";
+    while(<MODFILE>) {
+	processfile $_, $href, $cref;
+    }
+    close MODFILE;
+    # Remove duplicates
+    @{$href} = uniq(@{$href});
+    @{$cref} = uniq(@{$cref});
+}
+
+sub processfile {
+    ($line, $href, $cref) = @_;
+    # remove any trailing newline
+    $line =~ s/[\r\n]//g;
+    if($debug > 1) {print "line=|$line|\n";}
+    # separate out .h from .c files
+    my $ext=$line;
+    $ext=~s/^.*(\..*)/$1/;
+    if ("$ext" eq ".h") {
+	push(@{$href},"$line");
+    } elsif ("$ext" eq ".c") {
+	push(@{$cref},"$line");
+    } else {print "unknown file extension: |$ext| in |$line|\n";}
+}
+
+sub generate {
+    ($module, $href, $cref) = @_;
+    my @hfiles=@{$href};
+    my @cfiles=@{$cref};
+
+    # use template to produce $module.vcproj
+    open VCPROJ,  ">$vsdir/$module.vcproj" || die "";
+    open TEMPLATE,  "<$vsdir/vcproj.template" || die "";
+    while(<TEMPLATE>) {
+	my $line=$_;
+	# remove newlines and returns
+	$line =~ s/[\r\n]+//g;
+	if ($line =~ m/.*@[a-zA-Z0-9_]+@.*/) {
+	    # Break the line around the parameter
+	    # (must be better way to do this)
+	    my $param = $line;
+	    my $prefix = $line;
+	    my $suffix = $line;
+	    $param =~ s/$parampattern/$2/;
+	    $prefix =~ s/$parampattern/$1/;
+	    $suffix =~ s/$parampattern/$3/;
+
+	    if($debug > 1) {
+		print "param=|$param|\n";
+		print "prefix=|$prefix|\n";
+		print "suffix=|$suffix|\n";
+	    }
+	    print VCPROJ "$prefix";
+	    if($param eq "module") {
+		print VCPROJ "$module";
+	    } elsif($param eq "hdf5libs") {
+		if($usenetcdf4 == 1) {
+		   print VCPROJ "AdditionalDependencies=\"$hdf5libs\"";
+		}
+	    } elsif($param eq "curllibs") {
+		if($usedap == 1) {
+		   print VCPROJ "AdditionalDependencies=\"$curllibs\"";
+		}
+	    } elsif($param eq "hfiles") {
+	        foreach (@hfiles) {
+	            # convert / -> \
+	  	    my $winfile=$_;
+	            $winfile=~s|/|\\|g;
+		    print VCPROJ "<File RelativePath=\"..\\..\\$winfile\"></File>\n";
+	        }
+	    } elsif($param eq "cfiles") {
+	        foreach (@cfiles) {
+	            # convert / -> \
+	  	    my $winfile=$_;
+	            $winfile=~s|/|\\|g;
+		    print VCPROJ "<File RelativePath=\"..\\..\\$winfile\"></File>\n";
+	        }
+	    } else {
+		print "unexpected template parameter: $param\n";
+	    }
+	    print VCPROJ "$suffix\n";
+	} else {
+	    # pass the line thru
+	    print VCPROJ "$line\n";
+	}	
+    }
+    close VCPROJ;
+    close TEMPLATE;
+}
+1;

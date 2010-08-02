@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ncdump"
+	Name="@module@"
 	ProjectGUID="{1544CEA3-1365-4482-A719-FF5C14BBAE29}"
 	RootNamespace="netcdf"
 	Keyword="Win32Proj"
@@ -64,8 +64,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-					
-				
+				@hdf5libs@	
+				@curllibs@
 				OutputFile="$(OutDir)/netcdf.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
@@ -144,8 +144,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				
-				
+				@hdf5libs@
+				@curllibs@
 				OutputFile="$(OutDir)/netcdf.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
@@ -189,29 +189,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-<File RelativePath="..\..\\home\dmh\nc\xvs\include\netcdf.h"></File>
-<File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_logging.h"></File>
-<File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_tests.h"></File>
-<File RelativePath="..\..\..\ncdump.h"></File>
-<File RelativePath="..\..\..\vardata.h"></File>
-<File RelativePath="..\..\..\dumplib.h"></File>
-<File RelativePath="..\..\..\indent.h"></File>
-<File RelativePath="..\..\..\isnan.h"></File>
-<File RelativePath="..\..\..\nctime.h"></File>
-<File RelativePath="..\..\..\cdl.h"></File>
-
+@hfiles@
 		</Filter>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\..\ncdump.c"></File>
-<File RelativePath="..\..\..\vardata.c"></File>
-<File RelativePath="..\..\..\dumplib.c"></File>
-<File RelativePath="..\..\..\indent.c"></File>
-<File RelativePath="..\..\..\nctime.c"></File>
-
+@cfiles@
 		</Filter>
 		<Filter
 			Name="Resource Files"

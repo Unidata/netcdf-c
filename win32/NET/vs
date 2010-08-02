@@ -1,0 +1,113 @@
+#!/usr/bin/perl
+
+# Initialize
+use strict;
+use File::Copy;
+
+our $debug=1;
+
+# Establish environment
+# vsdir is dir in which the vs files must execute
+our $vsdir=$0;
+$vsdir=~s|(.*)/[^/][^/]*|$1|;
+if ($debug > 0) {print "vsdir=$vsdir\n";}
+
+#Load utilities
+require "$vsdir/vsutil";
+require "$vsdir/vsbuild";
+
+our $cmd="";
+our $module="";
+our $reldir="";
+our $sources="";
+our @srclist=();
+our $usenetcdf4=0;
+our $usedap=0;
+
+# Constants
+our $hdf5libs="hdf5_hldll.lib hdf5dll.lib zlib1.lib";
+our $curllibs="?";
+
+# Known modules
+# Mapping of modules to specific win32/NET directories
+our %modulemap=(
+"netcdf"            => "libsrc",
+"ncgen"             => "ncgen",
+"ncgen3"            => "ncgen3",
+"ncdump"            => "ncdump",
+"nccopy"            => "ncdump",
+"nctest"            => "nctest",
+"nc_test"           => "nc_test",
+"tst_netcdf"        => "examples",
+"quick_large_files" => "nc_test",
+"large_files"       => "nc_test"
+);
+
+# Define known modules (i.e. instances of $module.vcproj) by extraction from modulemap
+our @modules=keys %modulemap;
+
+#define arguments
+$cmd=$ARGV[0];
+if($cmd eq "add") {
+    $module=$ARGV[1];
+    $reldir=$ARGV[2];
+    $sources=$ARGV[3];
+} elsif($cmd eq "build") {
+    $usenetcdf4=$ARGV[1];   
+    $usedap=$ARGV[2];
+}
+
+#fixups
+if ($reldir eq  "") {$reldir=".";}
+$sources=trim($sources);
+@srclist=split(/[\t ]+/, $sources);
+
+if($debug > 0 && $cmd eq "start") {
+    my $key;
+    print "modules=@modules\n";
+    print "modulemap:\n";
+    foreach $key (@modules) {
+	print "\t$key => " . $modulemap{$key} . "\n";
+    }
+}
+if ($debug > 1) {
+    print "cmd=$cmd\n";
+    print "module=$module\n";
+    print "reldir=$reldir\n";
+    print "srclist=@srclist\n";
+    print "usenetcdf4=$usenetcdf4\n";
+    print "usedap=$usedap\n";
+}
+
+# MAIN
+if($cmd eq "start") {
+    my $m;
+    foreach $m (@modules) {
+	my $file="$vsdir/$m.filelist";
+	if($debug > 1) {print "file=$file\n";}
+	# delete module files
+	unlink "$file" || next;
+    }
+} elsif($cmd eq "add") {
+    if(! -e "$vsdir/$module.filelist" ) {
+        open MODFILE, "+>$vsdir/$module.filelist" or die $!;
+    } else {
+        open MODFILE, ">>$vsdir/$module.filelist" or die $!;
+    }
+    # convert sources to an array
+    foreach (@srclist) {
+	my $basename=trim($_);
+	print MODFILE "$reldir/$basename\n";
+    }
+    close MODFILE ;
+} elsif($cmd eq "build") {
+    build();
+#    install();
+#    clean();
+} elsif($cmd eq "clean") {
+    clean();
+} elsif($cmd eq "install") {
+    install();
+} else {print "unknown command: $cmd\n";}
+
+exit

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ncdump"
+	Name="nccopy"
 	ProjectGUID="{1544CEA3-1365-4482-A719-FF5C14BBAE29}"
 	RootNamespace="netcdf"
 	Keyword="Win32Proj"
@@ -192,13 +192,7 @@
 <File RelativePath="..\..\\home\dmh\nc\xvs\include\netcdf.h"></File>
 <File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_logging.h"></File>
 <File RelativePath="..\..\\home\dmh\nc\xvs\include\nc_tests.h"></File>
-<File RelativePath="..\..\..\ncdump.h"></File>
-<File RelativePath="..\..\..\vardata.h"></File>
-<File RelativePath="..\..\..\dumplib.h"></File>
-<File RelativePath="..\..\..\indent.h"></File>
-<File RelativePath="..\..\..\isnan.h"></File>
-<File RelativePath="..\..\..\nctime.h"></File>
-<File RelativePath="..\..\..\cdl.h"></File>
+<File RelativePath="..\..\..\nciter.h"></File>
 
 		</Filter>
 		<Filter
@@ -206,11 +200,8 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\..\ncdump.c"></File>
-<File RelativePath="..\..\..\vardata.c"></File>
-<File RelativePath="..\..\..\dumplib.c"></File>
-<File RelativePath="..\..\..\indent.c"></File>
-<File RelativePath="..\..\..\nctime.c"></File>
+<File RelativePath="..\..\..\nccopy.c"></File>
+<File RelativePath="..\..\..\nciter.c"></File>
 
 		</Filter>
 		<Filter
