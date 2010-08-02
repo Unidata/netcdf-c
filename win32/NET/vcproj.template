@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="@module@"
-	ProjectGUID="{1544CEA3-1365-4482-A719-FF5C14BBAE29}"
+	Name="@project@"
+	ProjectGUID="{@projectuid@}"
 	RootNamespace="netcdf"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
@@ -48,7 +48,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
+				ProgramDataBaseFileName="$(IntDir)/vc70_@project@.pdb"
 				WarningLevel="1"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
@@ -61,20 +61,6 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				@hdf5libs@	
-				@curllibs@
-				OutputFile="$(OutDir)/netcdf.dll"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\WINDOWS\system32"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/netcdf.pdb"
-				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -96,7 +82,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\debug\netcdf.dll ..\vb_wrapper"
+				CommandLine="copy ..\debug\@project@.dll ..\vb_wrapper"
 			/>
 		</Configuration>
 		<Configuration
@@ -128,7 +114,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_;_CURLUSEDLL_"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
+				ProgramDataBaseFileName="$(IntDir)/vc70_@project@.pdb"
 				WarningLevel="1"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
@@ -146,7 +132,8 @@
 				Name="VCLinkerTool"
 				@hdf5libs@
 				@curllibs@
-				OutputFile="$(OutDir)/netcdf.dll"
+				@netcdflib@
+				OutputFile="$(OutDir)/@project@.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
 				GenerateDebugInformation="false"

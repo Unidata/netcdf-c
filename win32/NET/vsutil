@@ -62,11 +62,11 @@ sub uniq {
 }
 
 sub clean {
-    foreach $module (@modules) {
-	print "deleting: $module.filelist\n";
-        unlink "$vsdir/$module.filelist";
-	print "deleting: $module.vcproj\n";
-        unlink "$vsdir/$module.vcproj";
+    foreach $project (@projects) {
+	print "deleting: $project.filelist\n";
+        unlink "$vsdir/$project.filelist";
+	print "deleting: $project.vcproj\n";
+        unlink "$vsdir/$project.vcproj";
     }
     # also remove
     print "deleting: global.filelist\n";
@@ -74,11 +74,11 @@ sub clean {
 }
 
 sub install {
-    foreach $module (@modules) {
-	my $target = $modulemap{$module};
-	if(-e "$vsdir/$module.vcproj") {
-   	    print "installing: $vsdir/$module.vcproj => $vsdir/$target/$module.vcproj\n";
-	    copy("$vsdir/$module.vcproj","$vsdir/$target/$module.vcproj");
+    foreach $project (@projects) {
+	my $target = $projectmap{$project};
+	if(-e "$vsdir/$project.vcproj") {
+   	    print "installing: $vsdir/$project.vcproj => $vsdir/$target/$project.vcproj\n";
+	    copy("$vsdir/$project.vcproj","$vsdir/$target/$project.vcproj");
 	}
     }
 }

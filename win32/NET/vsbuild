@@ -14,7 +14,7 @@ sub build {
     my @hfiles;
     my @cfiles;
 
-    # The "global" module filelist contains files
+    # The "global" project filelist contains files
     # that should be included everywhere
     @ghfiles=();
     @gcfiles=();
@@ -26,7 +26,7 @@ sub build {
 	}
     }
 
-    foreach $m (@modules) {
+    foreach $m (@projects) {
         @hfiles=();
         @cfiles=();
         if(! -e "$vsdir/$m.filelist") {next};
@@ -39,16 +39,16 @@ sub build {
 	@hfiles = (@ghfiles,@hfiles);
 	@cfiles = (@gcfiles,@cfiles);
 
-	# create the .vcproj for each module
+	# create the .vcproj for each project
 	generate $m, \@hfiles, \@cfiles;
     }
 }
 
 sub extractfiles {
-    ($module, $href, $cref) = @_;
+    ($project, $href, $cref) = @_;
     @{$href}=();
     @{$cref}=();
-    open MODFILE, "$vsdir/$module.filelist" or die "$module.filelist does not exist";
+    open MODFILE, "$vsdir/$project.filelist" or die "$project.filelist does not exist";
     while(<MODFILE>) {
 	processfile $_, $href, $cref;
     }
@@ -74,12 +74,12 @@ sub processfile {
 }
 
 sub generate {
-    ($module, $href, $cref) = @_;
+    ($project, $href, $cref) = @_;
     my @hfiles=@{$href};
     my @cfiles=@{$cref};
 
-    # use template to produce $module.vcproj
-    open VCPROJ,  ">$vsdir/$module.vcproj" || die "";
+    # use template to produce $project.vcproj
+    open VCPROJ,  ">$vsdir/$project.vcproj" || die "";
     open TEMPLATE,  "<$vsdir/vcproj.template" || die "";
     while(<TEMPLATE>) {
 	my $line=$_;
@@ -101,8 +101,11 @@ sub generate {
 		print "suffix=|$suffix|\n";
 	    }
 	    print VCPROJ "$prefix";
-	    if($param eq "module") {
-		print VCPROJ "$module";
+	    if($param eq "project") {
+		print VCPROJ "$project";
+	    } elsif($param eq "projectuid") {
+		my $uid = $uidmap{"$project"} || die "no uid: $project\n";
+		print VCPROJ $uid;
 	    } elsif($param eq "hdf5libs") {
 		if($usenetcdf4 == 1) {
 		   print VCPROJ "AdditionalDependencies=\"$hdf5libs\"";
@@ -110,6 +113,10 @@ sub generate {
 	    } elsif($param eq "curllibs") {
 		if($usedap == 1) {
 		   print VCPROJ "AdditionalDependencies=\"$curllibs\"";
+		}
+	    } elsif($param eq "netcdflib") {
+		if($project ne "netcdf") {
+		   print VCPROJ "AdditionalDependencies=\"netcdf.lib\"";
 		}
 	    } elsif($param eq "hfiles") {
 	        foreach (@hfiles) {

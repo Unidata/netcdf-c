@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="netcdf"
-	ProjectGUID="{1544CEA3-1365-4482-A719-FF5C14BBAE29}"
+	Name="nccopy"
+	ProjectGUID="{5CDC0F9C-DCC3-4BD3-878C-F71B5FD57F5F}"
 	RootNamespace="netcdf"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
@@ -48,7 +48,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
+				ProgramDataBaseFileName="$(IntDir)/vc70_nccopy.pdb"
 				WarningLevel="1"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
@@ -82,7 +82,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\debug\netcdf.dll ..\vb_wrapper"
+				CommandLine="copy ..\debug\nccopy.dll ..\vb_wrapper"
 			/>
 		</Configuration>
 		<Configuration
@@ -114,7 +114,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_;_CURLUSEDLL_"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
+				ProgramDataBaseFileName="$(IntDir)/vc70_nccopy.pdb"
 				WarningLevel="1"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
@@ -132,8 +132,8 @@
 				Name="VCLinkerTool"
 				
 				
-				
-				OutputFile="$(OutDir)/netcdf.dll"
+				AdditionalDependencies="netcdf.lib"
+				OutputFile="$(OutDir)/nccopy.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
 				GenerateDebugInformation="false"
@@ -176,16 +176,7 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-<File RelativePath="..\..\libdispatch\dispatch.h"></File>
-<File RelativePath="..\..\libsrc\nc.h"></File>
-<File RelativePath="..\..\libsrc\fbits.h"></File>
-<File RelativePath="..\..\libsrc\ncio.h"></File>
-<File RelativePath="..\..\libsrc\onstack.h"></File>
-<File RelativePath="..\..\libsrc\rnd.h"></File>
-<File RelativePath="..\..\libsrc\utf8proc.h"></File>
-<File RelativePath="..\..\libsrc\utf8proc_data.h"></File>
-<File RelativePath="..\..\libsrc\nc3dispatch.h"></File>
-<File RelativePath="..\..\libsrc\ncx.h"></File>
+<File RelativePath="..\..\ncdump\nciter.h"></File>
 
 		</Filter>
 		<Filter
@@ -193,26 +184,8 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\libdispatch\parallel.c"></File>
-<File RelativePath="..\..\libdispatch\copy.c"></File>
-<File RelativePath="..\..\libdispatch\file.c"></File>
-<File RelativePath="..\..\libdispatch\dim.c"></File>
-<File RelativePath="..\..\libdispatch\att.c"></File>
-<File RelativePath="..\..\libdispatch\error.c"></File>
-<File RelativePath="..\..\libdispatch\var.c"></File>
-<File RelativePath="..\..\libdispatch\dispatch.c"></File>
-<File RelativePath="..\..\libsrc\error3.c"></File>
-<File RelativePath="..\..\libsrc\libvers.c"></File>
-<File RelativePath="..\..\libsrc\string.c"></File>
-<File RelativePath="..\..\libsrc\v1hpg.c"></File>
-<File RelativePath="..\..\libsrc\utf8proc.c"></File>
-<File RelativePath="..\..\libsrc\nclistmgr.c"></File>
-<File RelativePath="..\..\libsrc\nc3dispatch.c"></File>
-<File RelativePath="..\..\libsrc\nc.c"></File>
-<File RelativePath="..\..\libsrc\var.c"></File>
-<File RelativePath="..\..\libsrc\dim.c"></File>
-<File RelativePath="..\..\libsrc\posixio.c"></File>
-<File RelativePath="..\..\liblib\stub.c"></File>
+<File RelativePath="..\..\ncdump\nccopy.c"></File>
+<File RelativePath="..\..\ncdump\nciter.c"></File>
 
 		</Filter>
 		<Filter
