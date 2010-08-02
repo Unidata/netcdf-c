@@ -767,7 +767,7 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     int ovarid;
     size_t *start;
     size_t *count;
-    nciter_t iter;		/* opaque structure for iteration status */
+    nciter_t *iterp;		/* opaque structure for iteration status */
     int do_realloc = 0;
     size_t chunksize;
 
@@ -811,15 +811,15 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     }
 
     /* initialize variable iteration */
-    stat = nc_get_iter(igrp, varid, copybuf_size, &iter);
+    stat = nc_get_iter(igrp, varid, copybuf_size, &iterp);
     CHECK(stat, nc_get_iter);
 
-    start = (size_t *) emalloc(iter.rank * sizeof(size_t));
-    count = (size_t *) emalloc(iter.rank * sizeof(size_t));
+    start = (size_t *) emalloc(iterp->rank * sizeof(size_t));
+    count = (size_t *) emalloc(iterp->rank * sizeof(size_t));
     /* nc_next_iter() initializes start and count on first call,
      * changes start and count to iterate through whole variable on
      * subsequent calls. */
-    while((ntoget = nc_next_iter(&iter, start, count)) > 0) {
+    while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	stat = nc_get_vara(igrp, varid, start, count, buf);
 	CHECK(stat, nc_get_vara);
 	stat = nc_put_vara(ogrp, ovarid, start, count, buf);
@@ -850,6 +850,8 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     } /* end main iteration loop */
     free(start);
     free(count);
+    stat = nc_free_iter(iterp);
+    CHECK(stat, nc_free_iter);
     return stat;
 }
 
@@ -897,7 +899,7 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 
 
 /* copy infile to outfile using netCDF API, kind specifies which
- * netCDF format for output: 0 -> same as input, 1 -> classic, 2 ->
+ * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
  * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model */
 static int
 copy(char* infile, char* outfile, int kind, size_t copybuf_size)
