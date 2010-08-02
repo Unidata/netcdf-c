@@ -15,5 +15,5 @@ noinst_HEADERS = nc_logging.h nc_tests.h
 
 .PHONY: visualstudio
 visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add global ${abs_srcdir} "${include_HEADERS} ${noinst_HEADERS}"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add include ${abs_srcdir} ${top_srcdir} "${include_HEADERS} ${noinst_HEADERS}"
 

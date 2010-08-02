@@ -105,6 +105,10 @@ endif
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump and cxx, because their tests
 # depend on it. nf_test depends upon ncgen as well.
+# If not using dispatch then NC3DAPDIR must be
+# built right before LIBSRC_DIR and NC4DAPDIR must be 
+# built right before LIBSRC4_DIR.
+# If using dispatch, then the order is different
 if BUILD_SEPARATE_FORTRAN
 SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
 $(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
@@ -211,10 +215,7 @@ install-data-hook:
 	@echo ''
 
 
-# Define the set of subdirs that
-# contain sources for visual studio
-
-# track libraries
+# Provide parameters for vs
 if USE_NETCDF4
 USENETCDF4=1
 else
@@ -226,11 +227,12 @@ else
 USEDAP=0
 endif
 
+# Define the set of subdirs that
+# contain sources for visual studio
 VSTUDIODIRS=include $(DISPATCHDIR) $(LIBSRC_DIR) ${ASSEMBLEDIR} \
 	    ${NCGEN} ${NCDUMP}
-
 .PHONY: visualstudio
 visualstudio:
 	perl -w ${abs_top_srcdir}/win32/NET/vs start
 	for dir in $(VSTUDIODIRS); do $(MAKE) -C $$dir visualstudio ; done
-	perl -w ${abs_top_srcdir}/win32/NET/vs build ${USENETCDF4} ${USEDAP}
+	perl -w ${abs_top_srcdir}/win32/NET/vs build $USENETCDF4 $USEDAP

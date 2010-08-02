@@ -38,5 +38,5 @@ endif # BUILD_V2
 
 .PHONY: visualstudio
 visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libdispatch_la_SOURCES} ${libnetcdf2_la_SOURCES"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${abs_srcdir} ${top_srcdir} "${libdispatch_la_SOURCES}"
 

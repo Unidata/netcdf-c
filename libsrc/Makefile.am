@@ -64,4 +64,4 @@ EXTRA_DIST = attr.c ncx.c putget.c $(man_MANS) stub3.c
 
 .PHONY: visualstudio
 visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libnetcdf3_la_SOURCES}"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${abs_srcdir} ${top_srcdir} "${libnetcdf3_la_SOURCES}"

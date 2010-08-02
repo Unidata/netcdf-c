@@ -113,7 +113,3 @@ DISTCLEANFILES += .dodsrc
 
 test: check
 
-.PHONY: visualstudio
-visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libncdap3_la_SOURCES}"
-

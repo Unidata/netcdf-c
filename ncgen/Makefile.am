@@ -58,4 +58,4 @@ makencgentab:
 
 .PHONY: visualstudio
 visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add ncgen ${top_srcdir} "${ncgen_SOURCES}"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add ncgen ${abs_srcdir} ${top_srcdir} "${ncgen_SOURCES}"

@@ -110,4 +110,4 @@ tst_interops2.h4 tst_interops4.nc AMSR_E_* MYD29.A2*
 
 .PHONY: visualstudio
 visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libnetcdf4_la_SOURCES}"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${abs_srcdir} ${top_srcdir} "${libnetcdf4_la_SOURCES}"
