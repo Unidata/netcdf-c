@@ -235,4 +235,4 @@ VSTUDIODIRS=include $(DISPATCHDIR) $(LIBSRC_DIR) ${ASSEMBLEDIR} \
 visualstudio:
 	perl -w ${abs_top_srcdir}/win32/NET/vs start
 	for dir in $(VSTUDIODIRS); do $(MAKE) -C $$dir visualstudio ; done
-	perl -w ${abs_top_srcdir}/win32/NET/vs build $USENETCDF4 $USEDAP
+	perl -w ${abs_top_srcdir}/win32/NET/vs build ${USENETCDF4} ${USEDAP}
