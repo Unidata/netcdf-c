@@ -77,4 +77,6 @@ endif # BUILD_DAP
 
 test: check
 
-
+.PHONY: visualstudio
+visualstudio:
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libncdap4_la_SOURCES}"

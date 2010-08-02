@@ -108,4 +108,6 @@ endif # USE_VALGRIND_TESTS
 CLEANFILES = tst_nc_converts.nc tst_h_*.h5 tst_*.nc tst_interops*.h5	\
 tst_interops2.h4 tst_interops4.nc AMSR_E_* MYD29.A2* 
 
-
+.PHONY: visualstudio
+visualstudio:
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libnetcdf4_la_SOURCES}"

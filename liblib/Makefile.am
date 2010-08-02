@@ -52,5 +52,5 @@ libnetcdf_la_SOURCES = stub.c
 
 .PHONY: visualstudio
 visualstudio:
-	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libnetcdf_la_SOURCES}"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add netcdf ${top_srcdir} "${libnetcdf_la_SOURCES}"
 
