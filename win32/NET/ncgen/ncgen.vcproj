@@ -176,20 +176,20 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-<File RelativePath="..\..\ncgen\data.h"></File>
-<File RelativePath="..\..\ncgen\debug.h"></File>
-<File RelativePath="..\..\ncgen\generr.h"></File>
-<File RelativePath="..\..\ncgen\genlib.h"></File>
-<File RelativePath="..\..\ncgen\includes.h"></File>
-<File RelativePath="..\..\ncgen\ncgen.h"></File>
-<File RelativePath="..\..\ncgen\odom.h"></File>
-<File RelativePath="..\..\ncgen\offsets.h"></File>
-<File RelativePath="..\..\ncgen\dump.h"></File>
-<File RelativePath="..\..\ncgen\util.h"></File>
-<File RelativePath="..\..\ncgen\bytebuffer.h"></File>
-<File RelativePath="..\..\ncgen\list.h"></File>
-<File RelativePath="..\..\ncgen\nciter.h"></File>
-<File RelativePath="..\..\ncgen\ConvertUTF.h"></File>
+<File RelativePath="..\..\..\ncgen\data.h"></File>
+<File RelativePath="..\..\..\ncgen\debug.h"></File>
+<File RelativePath="..\..\..\ncgen\generr.h"></File>
+<File RelativePath="..\..\..\ncgen\genlib.h"></File>
+<File RelativePath="..\..\..\ncgen\includes.h"></File>
+<File RelativePath="..\..\..\ncgen\ncgen.h"></File>
+<File RelativePath="..\..\..\ncgen\odom.h"></File>
+<File RelativePath="..\..\..\ncgen\offsets.h"></File>
+<File RelativePath="..\..\..\ncgen\dump.h"></File>
+<File RelativePath="..\..\..\ncgen\util.h"></File>
+<File RelativePath="..\..\..\ncgen\bytebuffer.h"></File>
+<File RelativePath="..\..\..\ncgen\list.h"></File>
+<File RelativePath="..\..\..\ncgen\nciter.h"></File>
+<File RelativePath="..\..\..\ncgen\ConvertUTF.h"></File>
 
 		</Filter>
 		<Filter
@@ -197,33 +197,33 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\ncgen\main.c"></File>
-<File RelativePath="..\..\ncgen\cdata.c"></File>
-<File RelativePath="..\..\ncgen\bindata.c"></File>
-<File RelativePath="..\..\ncgen\genchar.c"></File>
-<File RelativePath="..\..\ncgen\cvt.c"></File>
-<File RelativePath="..\..\ncgen\data.c"></File>
-<File RelativePath="..\..\ncgen\debug.c"></File>
-<File RelativePath="..\..\ncgen\escapes.c"></File>
-<File RelativePath="..\..\ncgen\genc.c"></File>
-<File RelativePath="..\..\ncgen\genbin.c"></File>
-<File RelativePath="..\..\ncgen\generr.c"></File>
-<File RelativePath="..\..\ncgen\genlib.c"></File>
-<File RelativePath="..\..\ncgen\getfill.c"></File>
-<File RelativePath="..\..\ncgen\odom.c"></File>
-<File RelativePath="..\..\ncgen\offsets.c"></File>
-<File RelativePath="..\..\ncgen\semantics.c"></File>
-<File RelativePath="..\..\ncgen\ncgentab.c"></File>
-<File RelativePath="..\..\ncgen\dump.c"></File>
-<File RelativePath="..\..\ncgen\util.c"></File>
-<File RelativePath="..\..\ncgen\bytebuffer.c"></File>
-<File RelativePath="..\..\ncgen\list.c"></File>
-<File RelativePath="..\..\ncgen\genf77.c"></File>
-<File RelativePath="..\..\ncgen\f77data.c"></File>
-<File RelativePath="..\..\ncgen\genj.c"></File>
-<File RelativePath="..\..\ncgen\jdata.c"></File>
-<File RelativePath="..\..\ncgen\nciter.c"></File>
-<File RelativePath="..\..\ncgen\ConvertUTF.c"></File>
+<File RelativePath="..\..\..\ncgen\main.c"></File>
+<File RelativePath="..\..\..\ncgen\cdata.c"></File>
+<File RelativePath="..\..\..\ncgen\bindata.c"></File>
+<File RelativePath="..\..\..\ncgen\genchar.c"></File>
+<File RelativePath="..\..\..\ncgen\cvt.c"></File>
+<File RelativePath="..\..\..\ncgen\data.c"></File>
+<File RelativePath="..\..\..\ncgen\debug.c"></File>
+<File RelativePath="..\..\..\ncgen\escapes.c"></File>
+<File RelativePath="..\..\..\ncgen\genc.c"></File>
+<File RelativePath="..\..\..\ncgen\genbin.c"></File>
+<File RelativePath="..\..\..\ncgen\generr.c"></File>
+<File RelativePath="..\..\..\ncgen\genlib.c"></File>
+<File RelativePath="..\..\..\ncgen\getfill.c"></File>
+<File RelativePath="..\..\..\ncgen\odom.c"></File>
+<File RelativePath="..\..\..\ncgen\offsets.c"></File>
+<File RelativePath="..\..\..\ncgen\semantics.c"></File>
+<File RelativePath="..\..\..\ncgen\ncgentab.c"></File>
+<File RelativePath="..\..\..\ncgen\dump.c"></File>
+<File RelativePath="..\..\..\ncgen\util.c"></File>
+<File RelativePath="..\..\..\ncgen\bytebuffer.c"></File>
+<File RelativePath="..\..\..\ncgen\list.c"></File>
+<File RelativePath="..\..\..\ncgen\genf77.c"></File>
+<File RelativePath="..\..\..\ncgen\f77data.c"></File>
+<File RelativePath="..\..\..\ncgen\genj.c"></File>
+<File RelativePath="..\..\..\ncgen\jdata.c"></File>
+<File RelativePath="..\..\..\ncgen\nciter.c"></File>
+<File RelativePath="..\..\..\ncgen\ConvertUTF.c"></File>
 
 		</Filter>
 		<Filter

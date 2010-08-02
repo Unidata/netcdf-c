@@ -123,14 +123,14 @@ sub generate {
 	            # convert / -> \
 	  	    my $winfile=$_;
 	            $winfile=~s|/|\\|g;
-		    print VCPROJ "<File RelativePath=\"..\\..\\$winfile\"></File>\n";
+		    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
 	        }
 	    } elsif($param eq "cfiles") {
 	        foreach (@cfiles) {
 	            # convert / -> \
 	  	    my $winfile=$_;
 	            $winfile=~s|/|\\|g;
-		    print VCPROJ "<File RelativePath=\"..\\..\\$winfile\"></File>\n";
+		    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
 	        }
 	    } else {
 		print "unexpected template parameter: $param\n";

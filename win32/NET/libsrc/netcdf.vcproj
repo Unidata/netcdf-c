@@ -176,16 +176,16 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-<File RelativePath="..\..\libdispatch\dispatch.h"></File>
-<File RelativePath="..\..\libsrc\nc.h"></File>
-<File RelativePath="..\..\libsrc\fbits.h"></File>
-<File RelativePath="..\..\libsrc\ncio.h"></File>
-<File RelativePath="..\..\libsrc\onstack.h"></File>
-<File RelativePath="..\..\libsrc\rnd.h"></File>
-<File RelativePath="..\..\libsrc\utf8proc.h"></File>
-<File RelativePath="..\..\libsrc\utf8proc_data.h"></File>
-<File RelativePath="..\..\libsrc\nc3dispatch.h"></File>
-<File RelativePath="..\..\libsrc\ncx.h"></File>
+<File RelativePath="..\..\..\libdispatch\dispatch.h"></File>
+<File RelativePath="..\..\..\libsrc\nc.h"></File>
+<File RelativePath="..\..\..\libsrc\fbits.h"></File>
+<File RelativePath="..\..\..\libsrc\ncio.h"></File>
+<File RelativePath="..\..\..\libsrc\onstack.h"></File>
+<File RelativePath="..\..\..\libsrc\rnd.h"></File>
+<File RelativePath="..\..\..\libsrc\utf8proc.h"></File>
+<File RelativePath="..\..\..\libsrc\utf8proc_data.h"></File>
+<File RelativePath="..\..\..\libsrc\nc3dispatch.h"></File>
+<File RelativePath="..\..\..\libsrc\ncx.h"></File>
 
 		</Filter>
 		<Filter
@@ -193,26 +193,26 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\libdispatch\parallel.c"></File>
-<File RelativePath="..\..\libdispatch\copy.c"></File>
-<File RelativePath="..\..\libdispatch\file.c"></File>
-<File RelativePath="..\..\libdispatch\dim.c"></File>
-<File RelativePath="..\..\libdispatch\att.c"></File>
-<File RelativePath="..\..\libdispatch\error.c"></File>
-<File RelativePath="..\..\libdispatch\var.c"></File>
-<File RelativePath="..\..\libdispatch\dispatch.c"></File>
-<File RelativePath="..\..\libsrc\error3.c"></File>
-<File RelativePath="..\..\libsrc\libvers.c"></File>
-<File RelativePath="..\..\libsrc\string.c"></File>
-<File RelativePath="..\..\libsrc\v1hpg.c"></File>
-<File RelativePath="..\..\libsrc\utf8proc.c"></File>
-<File RelativePath="..\..\libsrc\nclistmgr.c"></File>
-<File RelativePath="..\..\libsrc\nc3dispatch.c"></File>
-<File RelativePath="..\..\libsrc\nc.c"></File>
-<File RelativePath="..\..\libsrc\var.c"></File>
-<File RelativePath="..\..\libsrc\dim.c"></File>
-<File RelativePath="..\..\libsrc\posixio.c"></File>
-<File RelativePath="..\..\liblib\stub.c"></File>
+<File RelativePath="..\..\..\libdispatch\parallel.c"></File>
+<File RelativePath="..\..\..\libdispatch\copy.c"></File>
+<File RelativePath="..\..\..\libdispatch\file.c"></File>
+<File RelativePath="..\..\..\libdispatch\dim.c"></File>
+<File RelativePath="..\..\..\libdispatch\att.c"></File>
+<File RelativePath="..\..\..\libdispatch\error.c"></File>
+<File RelativePath="..\..\..\libdispatch\var.c"></File>
+<File RelativePath="..\..\..\libdispatch\dispatch.c"></File>
+<File RelativePath="..\..\..\libsrc\error3.c"></File>
+<File RelativePath="..\..\..\libsrc\libvers.c"></File>
+<File RelativePath="..\..\..\libsrc\string.c"></File>
+<File RelativePath="..\..\..\libsrc\v1hpg.c"></File>
+<File RelativePath="..\..\..\libsrc\utf8proc.c"></File>
+<File RelativePath="..\..\..\libsrc\nclistmgr.c"></File>
+<File RelativePath="..\..\..\libsrc\nc3dispatch.c"></File>
+<File RelativePath="..\..\..\libsrc\nc.c"></File>
+<File RelativePath="..\..\..\libsrc\var.c"></File>
+<File RelativePath="..\..\..\libsrc\dim.c"></File>
+<File RelativePath="..\..\..\libsrc\posixio.c"></File>
+<File RelativePath="..\..\..\liblib\stub.c"></File>
 
 		</Filter>
 		<Filter
