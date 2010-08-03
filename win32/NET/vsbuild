@@ -4,8 +4,6 @@ sub extractfiles;
 sub processfile;
 sub generate;
 
-my $parampattern = "(.*)@([a-zA-Z0-9_]+)@(.*)";
-
 sub build {
     my $m;
     my %noduplicates; # Temp to remove duplicate file names
@@ -20,7 +18,7 @@ sub build {
     @gcfiles=();
     if(-e "$vsdir/global.filelist") {
         extractfiles "global", \@ghfiles, \@gfiles;
-        if($debug > 0) {
+        if($debug > 1) {
             print "global hfiles=@ghfiles\n";
             print "global cfiles=@gcfiles\n";
 	}
@@ -31,7 +29,7 @@ sub build {
         @cfiles=();
         if(! -e "$vsdir/$m.filelist") {next};
 	extractfiles $m, \@hfiles, \@cfiles;
-        if($debug > 0) {
+        if($debug > 1) {
 	    print "$m.hfiles=@hfiles\n";
             print "$m.cfiles=@cfiles\n";
 	}
@@ -62,14 +60,18 @@ sub processfile {
     ($line, $href, $cref) = @_;
     # remove any trailing newline
     $line =~ s/[\r\n]//g;
-    if($debug > 1) {print "line=|$line|\n";}
-    # separate out .h from .c files
+    if($debug > 2) {print "line=|$line|\n";}
+    # separate out .h from .c files; convert .m4 to .c
     my $ext=$line;
     $ext=~s/^.*(\..*)/$1/;
     if ("$ext" eq ".h") {
 	push(@{$href},"$line");
     } elsif ("$ext" eq ".c") {
 	push(@{$cref},"$line");
+    } elsif ("$ext" eq ".m4") {
+	my $m4toc = $line;
+	$m4toc =~ s/.m4/.c/;
+	push(@{$cref},"$m4toc");
     } else {print "unknown file extension: |$ext| in |$line|\n";}
 }
 
@@ -77,71 +79,41 @@ sub generate {
     ($project, $href, $cref) = @_;
     my @hfiles=@{$href};
     my @cfiles=@{$cref};
+    my $projectdir=$projectmap{$project} || die "no projectdir";
 
-    # use template to produce $project.vcproj
-    open VCPROJ,  ">$vsdir/$project.vcproj" || die "";
-    open TEMPLATE,  "<$vsdir/vcproj.template" || die "";
+    # use $project.template to produce $project.vcproj
+    open TEMPLATE,  "<$vsdir/$projectdir/$project.template" || die "no template";
+    open VCPROJ,  "+>$vsdir/$projectdir/$project.vcproj" || die "vcproj not writable";
+print "processing $vsdir/$projectdir/$project.template =>$vsdir/$projectdir/$project.vcproj\n";
     while(<TEMPLATE>) {
 	my $line=$_;
 	# remove newlines and returns
 	$line =~ s/[\r\n]+//g;
-	if ($line =~ m/.*@[a-zA-Z0-9_]+@.*/) {
-	    # Break the line around the parameter
-	    # (must be better way to do this)
-	    my $param = $line;
-	    my $prefix = $line;
-	    my $suffix = $line;
-	    $param =~ s/$parampattern/$2/;
-	    $prefix =~ s/$parampattern/$1/;
-	    $suffix =~ s/$parampattern/$3/;
-
-	    if($debug > 1) {
-		print "param=|$param|\n";
-		print "prefix=|$prefix|\n";
-		print "suffix=|$suffix|\n";
-	    }
-	    print VCPROJ "$prefix";
-	    if($param eq "project") {
-		print VCPROJ "$project";
-	    } elsif($param eq "projectuid") {
-		my $uid = $uidmap{"$project"} || die "no uid: $project\n";
-		print VCPROJ $uid;
-	    } elsif($param eq "hdf5libs") {
-		if($usenetcdf4 == 1) {
-		   print VCPROJ "AdditionalDependencies=\"$hdf5libs\"";
-		}
-	    } elsif($param eq "curllibs") {
-		if($usedap == 1) {
-		   print VCPROJ "AdditionalDependencies=\"$curllibs\"";
-		}
-	    } elsif($param eq "netcdflib") {
-		if($project ne "netcdf") {
-		   print VCPROJ "AdditionalDependencies=\"netcdf.lib\"";
-		}
-	    } elsif($param eq "hfiles") {
-	        foreach (@hfiles) {
-	            # convert / -> \
-	  	    my $winfile=$_;
-	            $winfile=~s|/|\\|g;
-		    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
-	        }
-	    } elsif($param eq "cfiles") {
-	        foreach (@cfiles) {
-	            # convert / -> \
-	  	    my $winfile=$_;
-	            $winfile=~s|/|\\|g;
-		    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
-	        }
-	    } else {
-		print "unexpected template parameter: $param\n";
-	    }
-	    print VCPROJ "$suffix\n";
-	} else {
+        if($line =~ m/^@[a-zA-Z0-9_]+@.*/ ) {
+            my $param = $line;
+            $param =~ s/^@([a-zA-Z0-9_]+)@/$1/;
+            if($param eq "hfiles") {
+                foreach (@hfiles) {
+                    # convert / -> \
+                    my $winfile=$_;
+                    $winfile=~s|/|\\|g;
+                    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
+                }
+            } elsif($param eq "cfiles") {
+                foreach (@cfiles) {
+                    # convert / -> \
+                    my $winfile=$_;
+                    $winfile=~s|/|\\|g;
+                    print VCPROJ "<File RelativePath=\"..\\..\\..\\$winfile\"></File>\n";
+                }
+	    } else {die "Unknown parameter tag: $param";}
+        } else {
 	    # pass the line thru
 	    print VCPROJ "$line\n";
-	}	
+        }
     }
     close VCPROJ;
     close TEMPLATE;
 }
+
 1;

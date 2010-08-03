@@ -65,8 +65,6 @@ sub clean {
     foreach $project (@projects) {
 	print "deleting: $project.filelist\n";
         unlink "$vsdir/$project.filelist";
-	print "deleting: $project.vcproj\n";
-        unlink "$vsdir/$project.vcproj";
     }
     # also remove
     print "deleting: global.filelist\n";

@@ -4,7 +4,6 @@
 	Version="9.00"
 	Name="ncdump"
 	ProjectGUID="{DA7A6115-385C-44AC-B436-E94E95DDCEAC}"
-	RootNamespace="netcdf"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -20,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
@@ -42,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;_CURLUSEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT"
+				AdditionalIncludeDirectories="$(SolutionDir);..\..\..\libsrc4;..\..\..\libsrc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -61,6 +60,19 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="netcdf.lib"
+				OutputFile="$(OutDir)/ncdump.exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\Debug"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/ncdump.pdb"
+				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -82,14 +94,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\debug\ncdump.dll ..\vb_wrapper"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
@@ -110,8 +121,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_;_CURLUSEDLL_"
+				AdditionalIncludeDirectories="$(SolutionDir);..\..\..\libsrc4;..\..\..\libsrc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)/vc70_ncdump.pdb"
@@ -130,19 +141,16 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				
-				
 				AdditionalDependencies="netcdf.lib"
-				OutputFile="$(OutDir)/ncdump.dll"
+				OutputFile="$(OutDir)/ncdump.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\WINDOWS\system32"
+				AdditionalLibraryDirectories="..\Release"
 				GenerateDebugInformation="false"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -172,6 +180,17 @@
 	</References>
 	<Files>
 		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
+<File RelativePath="..\..\..\ncdump\ncdump.c"></File>
+<File RelativePath="..\..\..\ncdump\vardata.c"></File>
+<File RelativePath="..\..\..\ncdump\dumplib.c"></File>
+<File RelativePath="..\..\..\ncdump\indent.c"></File>
+<File RelativePath="..\..\..\ncdump\nctime.c"></File>
+		</Filter>
+		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
@@ -183,19 +202,6 @@
 <File RelativePath="..\..\..\ncdump\isnan.h"></File>
 <File RelativePath="..\..\..\ncdump\nctime.h"></File>
 <File RelativePath="..\..\..\ncdump\cdl.h"></File>
-
-		</Filter>
-		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
-			>
-<File RelativePath="..\..\..\ncdump\ncdump.c"></File>
-<File RelativePath="..\..\..\ncdump\vardata.c"></File>
-<File RelativePath="..\..\..\ncdump\dumplib.c"></File>
-<File RelativePath="..\..\..\ncdump\indent.c"></File>
-<File RelativePath="..\..\..\ncdump\nctime.c"></File>
-
 		</Filter>
 		<Filter
 			Name="Resource Files"

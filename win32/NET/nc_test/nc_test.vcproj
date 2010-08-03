@@ -187,52 +187,21 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\..\nc_test\error.c"
-				>
-			</File>
-			<File
-				RelativePath="..\getopt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\nc_test.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\test_get.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\test_put.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\test_read.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\test_write.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\util.c"
-				>
-			</File>
+<File RelativePath="..\..\..\nc_test\nc_test.c"></File>
+<File RelativePath="..\..\..\nc_test\error.c"></File>
+<File RelativePath="..\..\..\nc_test\test_get.c"></File>
+<File RelativePath="..\..\..\nc_test\test_put.c"></File>
+<File RelativePath="..\..\..\nc_test\test_read.c"></File>
+<File RelativePath="..\..\..\nc_test\test_write.c"></File>
+<File RelativePath="..\..\..\nc_test\util.c"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\..\nc_test\error.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\nc_test\tests.h"
-				>
-			</File>
+<File RelativePath="..\..\..\nc_test\error.h"></File>
+<File RelativePath="..\..\..\nc_test\tests.h"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

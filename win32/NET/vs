@@ -22,18 +22,19 @@ if ($debug > 0) {print "topdir=$topdir\n";}
 require "$vsdir/vsutil";
 require "$vsdir/vsbuild";
 
-our $cmd="";
-our $project="";
-our $absdir="";
-our $reldir="";
-our $sources="";
-our @srclist=();
-our $usenetcdf4=0;
-our $usedap=0;
+####################
+# Constants
 
 # Constants
 our $hdf5libs="hdf5_hldll.lib hdf5dll.lib zlib1.lib";
 our $curllibs="?";
+
+# Define known projects (i.e. instances of $project.vcproj)
+# Note that examples, fortran, and netcdf_vd
+# are not included because they never change.
+
+our @projects=("netcdf","ncgen","ncgen3","ncdump","nccopy",
+               "nctest","nc_test","quick_large_files","large_files");
 
 # Known projects
 # Mapping of projects to specific win32/NET directories
@@ -42,29 +43,23 @@ our %projectmap=(
 "ncgen"             => "ncgen",
 "ncgen3"            => "ncgen3",
 "ncdump"            => "ncdump",
-"nccopy"            => "nccopy",
+"nccopy"            => "ncdump",
 "nctest"            => "nctest",
 "nc_test"           => "nc_test",
-"tst_netcdf"        => "examples",
 "quick_large_files" => "nc_test",
 "large_files"       => "nc_test"
 );
 
-# Define known projects (i.e. instances of $project.vcproj) by extraction from projectmap
-our @projects=keys %projectmap;
+####################
 
-# Mapping of projects to UIDS (from netcdf.sln)
-our %uidmap=(
-"netcdf"           => "1544CEA3-1365-4482-A719-FF5C14BBAE29",
-"nctest"            => "16F8E55F-8CFB-412F-80F0-DEBDEAE068A4",
-"nc_test"           => "849B73F3-0E32-49AA-993E-01AB112F5BF2",
-"ncdump"            => "DA7A6115-385C-44AC-B436-E94E95DDCEAC",
-"nccopy"            => "5CDC0F9C-DCC3-4BD3-878C-F71B5FD57F5F",
-"ncgen"             => "81623E8F-4575-429E-9EA1-BFFAC1E253F7",
-"tst_netcdf"        => "E1F00190-5DE7-4333-9AB9-E4EBB9EB6139",
-"large_files"       => "9CF427FE-618D-4E27-9610-937A7E0A7524",
-"quick_large_files" => "797D6E0A-0320-41DE-A092-BD562CB88176"
-);
+our $cmd="";
+our $project="";
+our $absdir="";
+our $reldir="";
+our $sources="";
+our @srclist=();
+our $usenetcdf4=0;
+our $usedap=0;
 
 #define arguments
 $cmd=$ARGV[0];
@@ -89,7 +84,7 @@ if($debug > 0 && $cmd eq "start") {
     print "projects=@projects\n";
     print "projectmap:\n";
     foreach $key (@projects) {
-	print "\t$key => " . $projectmap{$key} . "\n";
+	print "\t$key => " . $projectmap{$key} . "\n" || die "$key";
     }
 }
 if ($debug > 1) {

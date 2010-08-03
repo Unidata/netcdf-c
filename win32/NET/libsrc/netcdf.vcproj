@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;_CURLUSEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;C:\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -61,6 +61,19 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="hdf5_hldll.lib hdf5dll.lib zlib1.lib"
+				OutputFile="$(OutDir)/netcdf.dll"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="C:\WINDOWS\system32"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/netcdf.pdb"
+				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -110,8 +123,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;..\..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_;_CURLUSEDLL_"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;NC_DLL_EXPORT;_HDF5USEDLL_"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)/vc70_netcdf.pdb"
@@ -130,9 +143,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				
-				
-				
+				AdditionalDependencies="hdf5_hldll.lib hdf5dll.lib zlib1.lib"
 				OutputFile="$(OutDir)/netcdf.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WINDOWS\system32"
@@ -172,25 +183,8 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-<File RelativePath="..\..\..\libdispatch\dispatch.h"></File>
-<File RelativePath="..\..\..\libsrc\nc.h"></File>
-<File RelativePath="..\..\..\libsrc\fbits.h"></File>
-<File RelativePath="..\..\..\libsrc\ncio.h"></File>
-<File RelativePath="..\..\..\libsrc\onstack.h"></File>
-<File RelativePath="..\..\..\libsrc\rnd.h"></File>
-<File RelativePath="..\..\..\libsrc\utf8proc.h"></File>
-<File RelativePath="..\..\..\libsrc\utf8proc_data.h"></File>
-<File RelativePath="..\..\..\libsrc\nc3dispatch.h"></File>
-<File RelativePath="..\..\..\libsrc\ncx.h"></File>
-
-		</Filter>
-		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 <File RelativePath="..\..\..\libdispatch\parallel.c"></File>
@@ -207,13 +201,31 @@
 <File RelativePath="..\..\..\libsrc\v1hpg.c"></File>
 <File RelativePath="..\..\..\libsrc\utf8proc.c"></File>
 <File RelativePath="..\..\..\libsrc\nclistmgr.c"></File>
+<File RelativePath="..\..\..\libsrc\putget.c"></File>
+<File RelativePath="..\..\..\libsrc\attr.c"></File>
 <File RelativePath="..\..\..\libsrc\nc3dispatch.c"></File>
 <File RelativePath="..\..\..\libsrc\nc.c"></File>
 <File RelativePath="..\..\..\libsrc\var.c"></File>
 <File RelativePath="..\..\..\libsrc\dim.c"></File>
+<File RelativePath="..\..\..\libsrc\ncx.c"></File>
 <File RelativePath="..\..\..\libsrc\posixio.c"></File>
 <File RelativePath="..\..\..\liblib\stub.c"></File>
-
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+<File RelativePath="..\..\..\libdispatch\dispatch.h"></File>
+<File RelativePath="..\..\..\libsrc\nc.h"></File>
+<File RelativePath="..\..\..\libsrc\fbits.h"></File>
+<File RelativePath="..\..\..\libsrc\ncio.h"></File>
+<File RelativePath="..\..\..\libsrc\onstack.h"></File>
+<File RelativePath="..\..\..\libsrc\rnd.h"></File>
+<File RelativePath="..\..\..\libsrc\utf8proc.h"></File>
+<File RelativePath="..\..\..\libsrc\utf8proc_data.h"></File>
+<File RelativePath="..\..\..\libsrc\nc3dispatch.h"></File>
+<File RelativePath="..\..\..\libsrc\ncx.h"></File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
