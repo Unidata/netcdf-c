@@ -230,7 +230,7 @@ endif
 # Define the set of subdirs that
 # contain sources for visual studio
 VSTUDIODIRS=include $(DISPATCHDIR) $(LIBSRC_DIR) ${ASSEMBLEDIR} \
-	    ${NCGEN} ${NCDUMP}
+	    ${NCGEN} ${NCDUMP} ${V2_TEST} ${NC_TEST_DIR}
 .PHONY: visualstudio
 visualstudio:
 	perl -w ${abs_top_srcdir}/win32/NET/vs start
