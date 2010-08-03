@@ -5,6 +5,12 @@ VERSION         COMMENTS
 -------         --------
 4.1.2-beta2    2010-08-??
 
+	        Eliminate use of NC_MAX_DIMS and NC_MAX_VARS in ncdump
+	        and nccopy, allocating memory as needed and reducing
+	        their memory footprint.
+
+		Add documentation for nc_inq_path() function.
+
 	        Use hashing to speedup lookups by name for files with
 		lots of dimensions and variables (thanks to Greg
 		Sjaardema).
