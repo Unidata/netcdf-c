@@ -373,9 +373,10 @@ vardata(
     size_t nrows;
     int vrank = vp->ndims;
 
-    cor = (size_t *) emalloc(vrank * sizeof(size_t));
-    edg = (size_t *) emalloc(vrank * sizeof(size_t));
-    add = (size_t *) emalloc(vrank * sizeof(size_t));
+    /* (1 + vrank) because cor and edg are used below even for scalars */
+    cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
 
     nels = 1;
     if(vrank == 0) { /*scalar*/
