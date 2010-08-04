@@ -186,10 +186,7 @@
 				RelativePath="..\getopt.c"
 				>
 			</File>
-			<File
-				RelativePath="..\..\..\nc_test\large_files.c"
-				>
-			</File>
+<File RelativePath="..\..\..\nc_test\large_files.c"></File>
 		</Filter>
 		<Filter
 			Name="Header Files"

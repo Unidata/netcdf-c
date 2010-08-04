@@ -18,7 +18,7 @@ sub build {
     @gcfiles=();
     if(-e "$vsdir/global.filelist") {
         extractfiles "global", \@ghfiles, \@gfiles;
-        if($debug > 1) {
+        if($debug > 0) {
             print "global hfiles=@ghfiles\n";
             print "global cfiles=@gcfiles\n";
 	}
@@ -29,13 +29,13 @@ sub build {
         @cfiles=();
         if(! -e "$vsdir/$m.filelist") {next};
 	extractfiles $m, \@hfiles, \@cfiles;
-        if($debug > 1) {
-	    print "$m.hfiles=@hfiles\n";
-            print "$m.cfiles=@cfiles\n";
-	}
 	# Prepend global lists
 	@hfiles = (@ghfiles,@hfiles);
 	@cfiles = (@gcfiles,@cfiles);
+        if($debug > 0) {
+	    print "$m.hfiles=@hfiles\n";
+            print "$m.cfiles=@cfiles\n";
+	}
 
 	# create the .vcproj for each project
 	generate $m, \@hfiles, \@cfiles;

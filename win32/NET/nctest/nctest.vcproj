@@ -213,6 +213,9 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+<File RelativePath="..\..\..\include\netcdf.h"></File>
+<File RelativePath="..\..\..\include\nc_logging.h"></File>
+<File RelativePath="..\..\..\include\nc_tests.h"></File>
 <File RelativePath="..\..\..\nctest\add.h"></File>
 <File RelativePath="..\..\..\nctest\emalloc.h"></File>
 <File RelativePath="..\..\..\nctest\error.h"></File>

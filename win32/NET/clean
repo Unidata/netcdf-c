@@ -1,5 +1,5 @@
 #!/bin/sh
-DIRS=". libsrc nccopy ncdump ncgen ncgen3 nctest nc_test"
+DIRS=". libsrc ncdump ncgen ncgen3 nctest nc_test"
 
 if test -f netcdf.sln.save ; then
   rm -f netcdf.sln
@@ -12,6 +12,7 @@ thisdir=`pwd`
 for d in $DIRS; do
     cd $d;
     rm -fr Debug
+    rm -f *.filelist
     rm -f *.XML
     rm -f *.vcproj
     rm -f *.vcxproj
