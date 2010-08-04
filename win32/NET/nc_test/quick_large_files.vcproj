@@ -186,7 +186,10 @@
 				RelativePath="..\getopt.c"
 				>
 			</File>
-<File RelativePath="..\..\..\nc_test\quick_large_files.c"></File>
+			<File
+				RelativePath="..\..\..\nc_test\quick_large_files.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

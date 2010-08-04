@@ -184,27 +184,56 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-<File RelativePath="..\..\..\ncdump\ncdump.c"></File>
-<File RelativePath="..\..\..\ncdump\vardata.c"></File>
-<File RelativePath="..\..\..\ncdump\dumplib.c"></File>
-<File RelativePath="..\..\..\ncdump\indent.c"></File>
-<File RelativePath="..\..\..\ncdump\nctime.c"></File>
+			<File
+				RelativePath="..\..\..\ncdump\dumplib.c"
+				>
+			</File>
+			<File
+				RelativePath="..\getopt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\indent.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\ncdump.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\nctime.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\vardata.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-<File RelativePath="..\..\..\include\netcdf.h"></File>
-<File RelativePath="..\..\..\include\nc_logging.h"></File>
-<File RelativePath="..\..\..\include\nc_tests.h"></File>
-<File RelativePath="..\..\..\ncdump\ncdump.h"></File>
-<File RelativePath="..\..\..\ncdump\vardata.h"></File>
-<File RelativePath="..\..\..\ncdump\dumplib.h"></File>
-<File RelativePath="..\..\..\ncdump\indent.h"></File>
-<File RelativePath="..\..\..\ncdump\isnan.h"></File>
-<File RelativePath="..\..\..\ncdump\nctime.h"></File>
-<File RelativePath="..\..\..\ncdump\cdl.h"></File>
+			<File
+				RelativePath="..\config.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\dumplib.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\indent.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\ncdump.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\ncdump\vardata.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

@@ -46,16 +46,12 @@ endif
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-makencgenyy:: 
-	flex -Pncg -8 ncgen.l
-	rm -f ncgenyy.c
-	mv lex.ncg.c ncgenyy.c
-
-makencgentab: 
-	bison -pncg -t ncgen.y
-	rm -f ncgentab.c
-	mv ncgen.tab.c ncgentab.c
-
-.PHONY: visualstudio
-visualstudio:
-	perl -w ${abs_top_srcdir}/win32/NET/vs add ncgen ${abs_srcdir} ${top_srcdir} "${ncgen_SOURCES}"
+#ncgenyy.c: ncgen.l
+#	flex -Pncg -8 ncgen.l
+#	rm -f ncgenyy.c
+#	mv lex.ncg.c ncgenyy.c
+#
+#ncgentab.c: ncgen.y ncgenyy.c
+#	bison -pncg -t ncgen.y
+#	rm -f ncgentab.c
+#	mv ncgen.tab.c ncgentab.c
