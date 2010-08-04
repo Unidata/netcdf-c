@@ -7,7 +7,7 @@
  "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 static int nc_initialized = 0;
 

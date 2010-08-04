@@ -10,7 +10,7 @@
 
 #include "nc.h"
 #include "ncdap3.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 #include "ncd3dispatch.h"
 
 static int

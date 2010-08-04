@@ -1,4 +1,4 @@
-#include "dispatch.h"
+#include "ncdispatch.h"
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
 /*

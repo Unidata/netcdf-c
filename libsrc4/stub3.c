@@ -1,6 +1,6 @@
 #include "config.h"
 #include "netcdf.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 extern NC_Dispatch* NC3_dispatch_table;
 

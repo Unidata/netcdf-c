@@ -1198,7 +1198,7 @@ dnl 	 fi
 #   else
 #      AC_MSG_RESULT([without parallel])         
       # Modify netcdf.h to include defs for missing parallel stuff.
-      # WARNING: the similar defs in libdispatch/dispatch.h must match this
+      # WARNING: the similar defs in libdispatch/ncdispatch.h must match this
 # When doing distcheck, this cmd will fail because of
 # the permissions set on $top_builddir.
 # So, we forcibly reset the permissions

@@ -12,7 +12,7 @@
 #include "nc.h"
 #include <H5DSpublic.h>
 #include "nc4dispatch.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 #ifdef USE_HDF4
 #include <mfhdf.h>
