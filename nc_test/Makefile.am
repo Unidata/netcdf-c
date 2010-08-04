@@ -49,5 +49,5 @@ MAINTAINERCLEANFILES = test_get.c test_put.c
 .PHONY: visualstudio
 visualstudio:
 	perl -w ${abs_top_srcdir}/win32/NET/vs add nc_test ${abs_srcdir} ${top_srcdir} "${nc_test_SOURCES}"
-	perl -w ${abs_top_srcdir}/win32/NET/vs add large_file ${abs_srcdir} ${top_srcdir} "large_files.c"
-	perl -w ${abs_top_srcdir}/win32/NET/vs add quick_large_file ${abs_srcdir} ${top_srcdir} "quick_large_files.c"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add large_files ${abs_srcdir} ${top_srcdir} "large_files.c"
+	perl -w ${abs_top_srcdir}/win32/NET/vs add quick_large_files ${abs_srcdir} ${top_srcdir} "quick_large_files.c"
