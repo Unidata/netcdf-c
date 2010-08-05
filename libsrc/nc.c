@@ -16,7 +16,7 @@
 #endif
 
 #include "nc.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 #include "rnd.h"
 #include "ncx.h"
 

@@ -7,7 +7,7 @@
   "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 static nc_type longtype = (sizeof(long) == sizeof(int) ? NC_INT : NC_INT64);
 

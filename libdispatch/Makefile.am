@@ -16,7 +16,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/lib
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
-libdispatch_la_SOURCES = dispatch.h parallel.c copy.c file.c dim.c	\
+libdispatch_la_SOURCES = ncdispatch.h parallel.c copy.c file.c dim.c	\
 att.c error.c var.c dispatch.c
 
 # Add functions only found in netCDF-4.

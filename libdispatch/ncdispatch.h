@@ -3,8 +3,8 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-/* $Id: dispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libdispatch/dispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
+/* $Id: ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
+/* $Header: /upc/share/CVS/netcdf-3/libdispatch/ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
 
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
