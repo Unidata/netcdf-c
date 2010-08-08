@@ -23,7 +23,7 @@
 #include "ncdap.h"
 #include "getvara.h"
 #include "constraints3.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 
 #ifndef USE_NETCDF4

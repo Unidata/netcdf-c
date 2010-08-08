@@ -9,7 +9,7 @@
  "$Id: netcdf.m4,v 1.16 2010/06/01 15:34:50 ed Exp $" 
 */
 
-#include "dispatch.h"
+#include "ncdispatch.h"
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);

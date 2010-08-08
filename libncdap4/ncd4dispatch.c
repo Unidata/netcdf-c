@@ -11,7 +11,7 @@
 #include "ncdap4.h"
 #include "nc.h"
 #include "ncd4dispatch.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 static int
 NCD4_create(const char *path, int cmode,
