@@ -466,14 +466,9 @@ main(int ac, char *av[])
 	ret = nc__open(fname,NC_NOWRITE, &chunksz, &id);
 	if(ret != NC_NOERR)
 	{
-#ifdef USE_NETCDF4
-		(void) printf("Could not open %s: %s\n", fname,
-			nc3_strerror(ret));
-#else
-		(void) printf("Could not open %s: %s\n", fname,
+   	    (void) printf("Could not open %s: %s\n", fname,
 			nc_strerror(ret));
-#endif
-		exit(1);
+   	    exit(1);
 	}
 	(void) printf("reopen id = %d for filename %s\n",
 		id, fname);
