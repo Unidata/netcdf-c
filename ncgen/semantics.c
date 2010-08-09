@@ -1231,6 +1231,8 @@ walkchararray(Symbol* vsym, Datalist* fillsrc)
            the string and then pad to the dim product
         */
 	size_t slabsize = arraylength(dimset);
+	/* If rank is 1, then dont' pad the string */
+	if(rank == 1) lastdimsize = 1;
         if(!buildcanonicalcharlist(vsym->data,lastdimsize,fillchar,&newcon))
 	    return;
 	/* pad to slabsize */
