@@ -814,8 +814,8 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     stat = nc_get_iter(igrp, varid, copybuf_size, &iterp);
     CHECK(stat, nc_get_iter);
 
-    start = (size_t *) emalloc(iterp->rank * sizeof(size_t));
-    count = (size_t *) emalloc(iterp->rank * sizeof(size_t));
+    start = (size_t *) emalloc((1 + iterp->rank) * sizeof(size_t));
+    count = (size_t *) emalloc((1 + iterp->rank) * sizeof(size_t));
     /* nc_next_iter() initializes start and count on first call,
      * changes start and count to iterate through whole variable on
      * subsequent calls. */

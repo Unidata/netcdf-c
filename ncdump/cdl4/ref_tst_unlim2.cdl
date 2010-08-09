@@ -9,5 +9,4 @@ variables:
  char cuu(Dr,D2,U);
 data:
  cuu = {{"a","def"}}, {{"xy"}};
-
 }

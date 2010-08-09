@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e
 RESULTSDIR="./results"
 #SHOWXFAILS=1
 
@@ -77,7 +78,7 @@ SPECIALTESTS3="ref_tst_special_atts3"
 
 SPECIALTESTS="ref_tst_special_atts ${SPECIALTESTS3}"
 
-XFAILTESTS="ref_const_test ref_tst_unlim2"
+XFAILTESTS="ref_const_test ref_tst_unlim2 ref_tst_chardata"
 
 # Following are generally not run
 # Because of the size of their output
