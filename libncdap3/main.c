@@ -179,11 +179,7 @@ check_err(int stat)
 {
     if(stat == NC_NOERR) return;
     fprintf(stderr,"error status returned: (%d) %s\n",stat,
-#ifdef USE_NETCDF4
-	nc3_strerror(stat)
-#else
 	nc_strerror(stat)
-#endif
 	);
     fail();
 }

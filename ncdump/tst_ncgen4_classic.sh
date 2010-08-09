@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 verbose=0
 
 if test "x$builddir" = "x"; then builddir=`pwd`; fi
@@ -21,5 +23,6 @@ export builddir
 KFLAG=1 ; export KFLAG
 sh  ${srcdir}/tst_ncgen4_diff.sh
 sh  ${srcdir}/tst_ncgen4_cycle.sh
-exit
+exit 0
+
 
