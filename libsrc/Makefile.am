@@ -31,7 +31,7 @@ netcdf.3: $(top_srcdir)/man4/netcdf.m4
 	m4 $(M4FLAGS) $(ARGS_MANPAGE) $? >$@  || rm $@
 
 # These files are part of the netCDF-3 library.
-libnetcdf3_la_SOURCES = nc.h error3.c libvers.c string.c v1hpg.c fbits.h ncio.h	\
+libnetcdf3_la_SOURCES = nc.h string.c v1hpg.c fbits.h ncio.h	\
 onstack.h rnd.h utf8proc.c utf8proc.h utf8proc_data.h nclistmgr.c	\
 putget.m4 attr.m4 nc3dispatch.c nc3dispatch.h nc.c var.c dim.c ncx.m4	\
 ncx.h lookup3.c pstdint.h
