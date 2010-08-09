@@ -19,12 +19,3 @@ NC_initialize(void)
     NCD3_initialize();
     return NC_NOERR;
 }
-
-#ifdef USE_NETCDF4
-extern const char* nc3_strerror(int);
-const char*
-nc_strerror(int err)
-{
-    return nc3_strerror(err);
-}
-#endif

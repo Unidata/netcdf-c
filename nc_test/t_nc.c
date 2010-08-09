@@ -68,10 +68,6 @@ union getret
 };
 
 
-#ifdef USE_NETCDF4
-const char *nc3_strerror(int ncerr);
-#endif
-
 static void
 chkgot(nc_type type, union getret got, double check)
 {
