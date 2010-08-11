@@ -2,11 +2,16 @@
 -------------------------------------------------------------------------------
 lookup3.c, by Bob Jenkins, May 2006, Public Domain.
 Original: http://burtleburtle.net/bob/c/lookup3.c
-Superficially modified by Russ Rew for adaption in netCDF.
+Modified by Russ Rew for adaption in netCDF.
 - Make use of Paul Hsieh's pstdint.h, if stdint.h not available.
 - Declare unused functions static to keep global namespace clean.
 - Provide function hash_fast() that uses either hashlittle() or
   hashbig(), depending on endianness.
+- Because portability is more important than speed for netCDF use, 
+  we define VALGRIND to skip "#ifndef VALGRIND" code, so reads of
+  strings don't access extra bytes after end of string.  This may 
+  slow it down enough to justify a simpler hash, but blame me, not 
+  original author!
 
 These are functions for producing 32-bit hashes for hash table lookup.
 hashword(), hashlittle(), hashlittle2(), hashbig(), mix(), and final() 
@@ -53,6 +58,8 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 #ifdef linux
 # include <endian.h>    /* attempt to define endianness */
 #endif
+
+#define VALGRIND   /* added by Russ Rew, for portability over speed */
 
 #ifndef WORDS_BIGENDIAN		/* from config.h */
 #define HASH_LITTLE_ENDIAN 1
