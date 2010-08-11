@@ -115,7 +115,7 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     prod = value_size;
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
-    chunksizes = (size_t *) emalloc(ndims * sizeof(size_t));
+    chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     if(ndims > 0) {
 	stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
 	CHECK(stat, nc_inq_var_chunking);
@@ -262,7 +262,7 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
 	    CHECK(stat, nc_insert_compound);	    
 	} else {		/* field is array type */
 	    int *fdimsizes;
-	    fdimsizes = (int *) emalloc(fndims * sizeof(int));
+	    fdimsizes = (int *) emalloc((fndims + 1) * sizeof(int));
 	    stat = nc_inq_compound_field(igrp, itype, fid, NULL, NULL, NULL, 
 					 NULL, fdimsizes);
 	    stat = nc_insert_array_compound(ogrp, otype, fname, foff, 
@@ -343,7 +343,7 @@ copy_groups(int igrp, int ogrp)
     
     /* Copy any subgroups */
     stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc(sizeof(int) * numgrps);
+    grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
     stat = nc_inq_grps(igrp, &numgrps, grpids);
     CHECK(stat, nc_inq_grps);
 
@@ -515,13 +515,13 @@ copy_dims(int igrp, int ogrp)
     * may be defined in various groups, and we are only looking at one
     * group at a time. */
     /* Find the dimension ids in this group, don't include parents. */
-    dimids = (int *) emalloc(ndims * sizeof(int));
+    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
     stat = nc_inq_dimids(igrp, NULL, dimids, 0);
     CHECK(stat, nc_inq_dimids);
     /* Find the number of unlimited dimensions and get their IDs */
     stat = nc_inq_unlimdims(igrp, &nunlims, NULL);
     CHECK(stat, nc_inq_unlimdims);
-    unlimids = (int *) emalloc(nunlims * sizeof(int));
+    unlimids = (int *) emalloc((nunlims + 1) * sizeof(int));
     stat = nc_inq_unlimdims(igrp, NULL, unlimids);
     CHECK(stat, nc_inq_unlimdims);
 #else
@@ -612,7 +612,7 @@ copy_var(int igrp, int varid, int ogrp)
 
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
-    idimids = (int *) emalloc(ndims * sizeof(int));
+    idimids = (int *) emalloc((ndims + 1) * sizeof(int));
     stat = nc_inq_var(igrp, varid, name, &typeid, NULL, idimids, &natts);
     CHECK(stat, nc_inq_var);
     o_typeid = typeid;
@@ -630,7 +630,7 @@ copy_var(int igrp, int varid, int ogrp)
 #endif	/* USE_NETCDF4 */
 
     /* get the corresponding dimids in the output file */
-    odimids = (int *) emalloc(ndims * sizeof(int));
+    odimids = (int *) emalloc((ndims + 1) * sizeof(int));
     for(i = 0; i < ndims; i++) {
 	char dimname[NC_MAX_NAME];
 	stat = nc_inq_dimname(igrp, idimids[i], dimname);
@@ -711,7 +711,7 @@ copy_schema(int igrp, int ogrp)
 	int *grpids;
 	/* Copy schema from subgroups */
 	stat = nc_inq_grps(igrp, &numgrps, NULL);
-	grpids = (int *)emalloc(sizeof(int) * numgrps);
+	grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
 	stat = nc_inq_grps(igrp, &numgrps, grpids);
 	CHECK(stat, nc_inq_grps);
 	
@@ -738,7 +738,7 @@ inq_nvals(int igrp, int varid, long long *nvalsp) {
 
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
-    dimids = (int *) emalloc(ndims * sizeof(int));
+    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
     stat = nc_inq_vardimid (igrp, varid, dimids);
     CHECK(stat, nc_inq_vardimid);
     for(dim = 0; dim < ndims; dim++) {
@@ -814,8 +814,8 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     stat = nc_get_iter(igrp, varid, copybuf_size, &iterp);
     CHECK(stat, nc_get_iter);
 
-    start = (size_t *) emalloc((1 + iterp->rank) * sizeof(size_t));
-    count = (size_t *) emalloc((1 + iterp->rank) * sizeof(size_t));
+    start = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
+    count = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
     /* nc_next_iter() initializes start and count on first call,
      * changes start and count to iterate through whole variable on
      * subsequent calls. */
@@ -884,7 +884,7 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 #ifdef USE_NETCDF4
     /* Copy data from subgroups */
     stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc(sizeof(int) * numgrps);
+    grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
     stat = nc_inq_grps(igrp, &numgrps, grpids);
     CHECK(stat, nc_inq_grps);
 

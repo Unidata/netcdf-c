@@ -644,17 +644,17 @@ pr_att(
 	  case NC_VLEN:
 	      /* because size returned for vlen is base type size, but we
 	       * need space to read array of vlen structs into ... */
-	     data = emalloc(att.len * sizeof(nc_vlen_t));
+	      data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
 	     break;
 	  case NC_OPAQUE:
-	      data = emalloc(att.len * type_size);
+	      data = emalloc((att.len + 1) * type_size);
 	     break;
 	  case NC_ENUM:
 	      /* a long long is ample for all base types */
-	     data = emalloc(att.len * sizeof(int64_t));
+	      data = emalloc((att.len + 1) * sizeof(int64_t));
 	     break;
 	  case NC_COMPOUND:
-	      data = emalloc(att.len * type_size);
+	      data = emalloc((att.len + 1) * type_size);
 	     break;
 	  default:
 	     error("unrecognized class of user defined type: %d", class);
@@ -793,7 +793,7 @@ pr_att_specials(
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"chunked\" ;\n");
-	    chunkp = (size_t *) emalloc(sizeof(size_t) * varp->ndims + 1 );
+	    chunkp = (size_t *) emalloc(sizeof(size_t) * (varp->ndims + 1) );
 	    NC_CHECK( nc_inq_var_chunking(ncid, varid, NULL, chunkp) );
 	    /* print chunking, even if it is default */
 	    pr_att_name(ncid, varp->name, NC_ATT_CHUNKING);
@@ -970,7 +970,7 @@ pr_shape(ncvar_t* varp, ncdim_t *dims)
     for (id = 0; id < varp->ndims; id++) {
 	shapelen += strlen(dims[varp->dims[id]].name) + 1;
     }
-    shape = (char *) emalloc(shapelen);
+    shape = (char *) emalloc(shapelen + 1);
     shape[0] = '\0';
     for (id = 0; id < varp->ndims; id++) {
 	/* TODO: XML-ish escapes for special chars in dim names */
@@ -1126,7 +1126,7 @@ print_ud_type(int ncid, nc_type typeid) {
 		    printf(" ");
 		    print_name(field_name);
 		    if (field_ndims > 0) {
-			int *field_dim_sizes = (int *) emalloc(field_ndims * sizeof(int));
+			int *field_dim_sizes = (int *) emalloc((field_ndims + 1) * sizeof(int));
 			NC_CHECK( nc_inq_compound_field(ncid, typeid, f, NULL, 
 							NULL, NULL, NULL, 
 							field_dim_sizes) );
@@ -1161,7 +1161,7 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 	    
     /* get _FillValue attribute */
     nc_status = nc_inq_att(ncid,varid,_FillValue,&att.type,&att.len);
-    fillvalp = emalloc(vp->tinfo->size);
+    fillvalp = emalloc(vp->tinfo->size + 1);
     if(nc_status == NC_NOERR &&
        att.type == vp->type && att.len == 1) {
 	NC_CHECK(nc_get_att(ncid, varid, _FillValue, fillvalp));
@@ -1362,7 +1362,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    {
       int t;
 
-      typeids = emalloc(ntypes * sizeof(int));
+      typeids = emalloc((ntypes + 1) * sizeof(int));
       NC_CHECK( nc_inq_typeids(ncid, &ntypes, typeids) );
       indent_out();
       printf("types:\n");

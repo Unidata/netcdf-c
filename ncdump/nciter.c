@@ -70,9 +70,9 @@ nc_get_iter(int ncid,
 
     stat = nc_inq_varndims(ncid, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
-    dimids = (int *) emalloc(ndims * sizeof(size_t));
-    iterp->dimsizes = (size_t *) emalloc(ndims * sizeof(size_t));
-    iterp->chunksizes = (size_t *) emalloc(ndims * sizeof(size_t));
+    dimids = (int *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
 
     stat = nc_inq_vardimid (ncid, varid, dimids);
     CHECK(stat, nc_inq_vardimid);
