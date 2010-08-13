@@ -1180,7 +1180,7 @@ The names of dimensions, variables and attributes (and, in netCDF-4
 files, groups, user-defined types, compound member names, and
 enumeration symbols) consist of arbitrary sequences of alphanumeric
 characters, underscore '_', period '.', plus '+', hyphen '-', or at
-sign '@@', but beginning with a letter or underscore.  However names
+sign '@@', but beginning with an alphanumeric character or underscore.  However names
 commencing with underscore are reserved for system use.  Case is
 significant in netCDF names. A zero-length name is not allowed.  Some
 widely used conventions restrict names to only alphanumeric characters
