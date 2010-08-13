@@ -373,9 +373,9 @@ vardata(
     size_t nrows;
     int vrank = vp->ndims;
 
-    cor = (size_t *) emalloc(vrank * sizeof(size_t));
-    edg = (size_t *) emalloc(vrank * sizeof(size_t));
-    add = (size_t *) emalloc(vrank * sizeof(size_t));
+    cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
 
     nels = 1;
     if(vrank == 0) { /*scalar*/
@@ -638,9 +638,9 @@ vardatax(
     size_t nrows;
     int vrank = vp->ndims;
 
-    cor = (size_t *) emalloc(vrank * sizeof(size_t));
-    edg = (size_t *) emalloc(vrank * sizeof(size_t));
-    add = (size_t *) emalloc(vrank * sizeof(size_t));
+    cor = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    edg = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    add = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
 
     nels = 1;
     for (id = 0; id < vrank; id++) {
