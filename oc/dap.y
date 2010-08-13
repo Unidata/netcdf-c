@@ -44,13 +44,28 @@
 %%
 
 start:
-	  SCAN_DATASET datasetbody
-	| SCAN_DATASET datasetbody SCAN_DATA
-	| SCAN_ATTR dassetup attributebody
-	| SCAN_ERROR errorbody
-        | error
-            {$$=dap_unrecognizedresponse(parsestate); YYABORT; }
+	  dataset datasetbody
+	| dataset datasetbody SCAN_DATA
+	| attr attributebody
+	| err errorbody
+        | error {dap_unrecognizedresponse(parsestate);}
 	;
+
+dataset:
+	SCAN_DATASET
+	    {dap_tagparse(parsestate,SCAN_DATASET);}
+	;
+attr:
+	SCAN_ATTR
+	    {dap_tagparse(parsestate,SCAN_ATTR);}
+	;
+err:
+	SCAN_ERROR
+	    {dap_tagparse(parsestate,SCAN_ERROR);}
+	;
+
+
+
 
 datasetbody:
 	  '{' declarations '}' datasetname ';'
@@ -111,8 +126,6 @@ datasetname:
 	;
 
 var_name: name {$$=$1;};
-
-dassetup: {dap_dassetup(parsestate);}
 
 attributebody:
 	  '{' attr_list '}' {dap_attributebody(parsestate,$2);}
@@ -212,7 +225,7 @@ alias:
 
 errorbody:
 	'{' errorcode errormsg errorptype errorprog '}' ';'
-		{$$=dap_errorbody(parsestate,$2,$3,$4,$5);}
+		{dap_errorbody(parsestate,$2,$3,$4,$5);}
 	;
 
 errorcode:  /*empty*/ {$$=null;} | SCAN_CODE    '=' SCAN_WORD ';' {$$=$3;}

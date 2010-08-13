@@ -408,7 +408,7 @@ oc_inq_ith(OCconnection conn,
     OCDEREF(OCnode*,node,node0);
 
     nsubnodes = oclistlength(node->subnodes);
-    if(nsubnodes >= 0 && index < nsubnodes) {
+    if(nsubnodes > 0 &&  index < nsubnodes) {
         subnodeid = (OCobject)oclistget(node->subnodes,index);
     } else
 	return OC_EINVAL;
@@ -429,7 +429,7 @@ oc_inq_dimset(OCconnection conn, OCobject node0, OCobject** dimids)
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
-    if(node->array.rank >= 0) {
+    if(node->array.rank > 0) {
 	unsigned int i;
 	dims = (OCobject*)occalloc(sizeof(OCobject),node->array.rank+1);
 	for(i=0;i<node->array.rank;i++) {
@@ -454,7 +454,7 @@ oc_inq_ithdim(OCconnection conn, OCobject node0, unsigned int index, OCobject* d
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
-    if(node->array.rank >= 0 && index < node->array.rank) {
+    if(node->array.rank > 0 && index < node->array.rank) {
         dimid = (OCobject)oclistget(node->array.dimensions,index);
     } else
 	return OC_EINVAL;

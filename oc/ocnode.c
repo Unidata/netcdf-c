@@ -160,9 +160,11 @@ converttype(OCtype etype, char* value, char* memory)
     unsigned long uiv;
     double dv;
     char c[1];
+    int outofrange = 0;
+#ifdef HAVE_LONG_LONG_INT
     long long llv;
     unsigned long long ullv;
-    int outofrange = 0;
+#endif
 
     switch (etype) {
     case OC_Char:
@@ -185,7 +187,7 @@ converttype(OCtype etype, char* value, char* memory)
 	*((signed short*)memory) = (signed short)iv;
 	break;
     case OC_UInt16:
-	if(sscanf(value,"%ld",&uiv) != 1) goto fail;
+	if(sscanf(value,"%lu",&uiv) != 1) goto fail;
         else if(uiv > OC_UINT16_MAX) {uiv = OC_UINT16_MAX; outofrange = 1;}
 	*((unsigned short*)memory) = (unsigned short)uiv;
 	break;
@@ -195,10 +197,11 @@ converttype(OCtype etype, char* value, char* memory)
 	*((signed int*)memory) = (signed int)iv;
 	break;
     case OC_UInt32:
-	if(sscanf(value,"%ld",&uiv) != 1) goto fail;
+	if(sscanf(value,"%lu",&uiv) != 1) goto fail;
         else if(uiv > OC_UINT32_MAX) {uiv = OC_UINT32_MAX; outofrange = 1;}
 	*((unsigned char*)memory) = (unsigned int)uiv;
 	break;
+#ifdef HAVE_LONG_LONG_INT
     case OC_Int64:
 	if(sscanf(value,"%lld",&llv) != 1) goto fail;
         /*else if(iv > OC_INT64_MAX || iv < OC_INT64_MIN) goto fail;*/
@@ -208,6 +211,7 @@ converttype(OCtype etype, char* value, char* memory)
 	if(sscanf(value,"%llu",&ullv) != 1) goto fail;
 	*((unsigned long long*)memory) = (unsigned long long)ullv;
 	break;
+#endif
     case OC_Float32:
 	if(sscanf(value,"%lf",&dv) != 1) goto fail;
 	*((float*)memory) = (float)dv;

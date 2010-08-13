@@ -330,10 +330,12 @@ instancesize(OCtype etype)
     case OC_UInt16:	return sizeof(unsigned short);
     case OC_Int32:	return sizeof(int);
     case OC_UInt32:	return sizeof(unsigned int);
-    case OC_Int64:	return sizeof(long long);
-    case OC_UInt64:	return sizeof(unsigned long long);
     case OC_Float32:	return sizeof(float);
     case OC_Float64:	return sizeof(double);
+#ifdef HAVE_LONG_LONG_INT
+    case OC_Int64:	return sizeof(long long);
+    case OC_UInt64:	return sizeof(unsigned long long);
+#endif
     case OC_String:	return sizeof(char*);
     case OC_URL:	return sizeof(char*);
     /* Non-primitives*/

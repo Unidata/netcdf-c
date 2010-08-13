@@ -9,6 +9,12 @@
 
 #include "rc.h"
 
+/* Condition on libcurl version */
+#ifndef HAVE_CURLOPT_KEYPASSWD
+/* Set up an alias */
+#define CURLOPT_KEYPASSWD CUROPT_SSLKEYPASSWD
+#endif
+
 static char* combinecredentials(const char* user, const char* pwd);
 
 
