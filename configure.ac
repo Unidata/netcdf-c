@@ -414,6 +414,34 @@ else
   curl_dir=
 fi
 
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+havekeypasswd=0
+
+if test -n "$with_curl_config" ; then
+  curlver=`curl-config --version`
+  curlver=`echo $curlver|cut -d ' ' -f2`
+  curlmajor=`echo $curlver|cut -d '.' -f1`
+  curlminor=`echo $curlver|cut -d '.' -f2`
+  curlpatch=`echo $curlver|cut -d '.' -f3`
+  if test "x$curlpatch" = "x"; then curlpatch=0 ; fi
+
+  if test $curlmajor -gt 7 ; then
+    havekeypasswd=1
+  elif test $curlmajor -eq 7 ; then
+    if test $curlminor -gt 16 ; then
+      havekeypasswd=1
+    elif test $curlminor -eq 16 ; then
+      if test $curlpatch -ge 4 ; then
+        havekeypasswd=1
+      fi
+    fi
+  fi
+fi #with-curl_config
+
+if test $havekeypasswd -eq 1; then
+AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
+fi
+
 else #!enable_dap
 
 curl_cflags=""
