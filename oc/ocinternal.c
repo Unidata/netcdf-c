@@ -435,7 +435,7 @@ ocextractdds(OCstate* state, OCtree* tree)
     fseek(tree->data.file,tree->data.bod,SEEK_SET);
 #else
     /* If the data part is not on an 8 byte boundary, make it so */
-    if(tree->data.bod % sizeof(unsigned long long) != 0) {
+    if(tree->data.bod % 8 != 0) {
         unsigned long count = tree->data.datasize - tree->data.bod;
 	char* dst = ocbytescontents(state->packet);
 	char* src = dst + tree->data.bod;
