@@ -12,6 +12,7 @@ static OCtype octypefor(Object etype);
 static char* scopeduplicates(OClist* list);
 static int check_int32(char* val, long* value);
 
+
 /****************************************************/
 
 /* Switch to DAS parsing SCAN_WORD definition */
@@ -74,11 +75,15 @@ dap_unrecognizedresponse(DAPparsestate* state)
 {
     /* see if this is an HTTP error */
     unsigned int httperr = 0;
-    char i[32];
+    int i;
+    char iv[32];
     sscanf(state->lexstate->input,"%u ",&httperr);
-    sprintf(i,"%u",httperr);
+    sprintf(iv,"%u",httperr);
     state->lexstate->next = state->lexstate->input;
-    dap_errorbody(state,i,state->lexstate->input,NULL,NULL);
+    /* Limit the amount of input to prevent runaway */
+    for(i=0;i<4096;i++) {if(state->lexstate->input[i] == '\0') break;}
+    state->lexstate->input[i] = '\0';
+    dap_errorbody(state,iv,state->lexstate->input,NULL,NULL);
 }
 
 Object

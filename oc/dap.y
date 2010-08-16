@@ -48,7 +48,7 @@ start:
 	| dataset datasetbody SCAN_DATA
 	| attr attributebody
 	| err errorbody
-        | error {dap_unrecognizedresponse(parsestate);}
+        | error {dap_unrecognizedresponse(parsestate); YYABORT;}
 	;
 
 dataset:
