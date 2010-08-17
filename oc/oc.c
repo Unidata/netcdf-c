@@ -12,9 +12,11 @@
 #undef TRACK
 
 /**************************************************/
-/* Track legal ids */
 
-static OClist* ocmap = NULL;
+static int ocinitialized = 0;
+
+/**************************************************/
+/* Track legal ids */
 
 #ifdef OC_FASTCONSISTENCY
 
@@ -24,6 +26,8 @@ static OClist* ocmap = NULL;
 #define ocassignall(list)
 
 #else /*!OC_FASTCONSISTENCY*/
+
+static OClist* ocmap = NULL;
 
 static int
 ocverify(unsigned long object)
@@ -78,15 +82,27 @@ fprintf(stderr,"assign: %lu\n",(unsigned long)object); fflush(stderr);
 
 /**************************************************/
 
+static int
+oc_initialize(void)
+{
+    int status = OC_NOERR;
+#ifndef OC_FASTCONSISTENCY
+    ocmap = oclistnew();    
+    oclistsetalloc(ocmap,1024);
+#endif
+    status = ocinternalinitialize();
+    ocinitialized = 1;
+    return status;
+}
+
+/**************************************************/
+
 OCerror
 oc_open(const char* url, OCconnection* connp)
 {
     OCerror ocerr;
     OCstate* state;
-    if(ocmap == NULL) {
-	ocmap = oclistnew();    
-        oclistsetalloc(ocmap,1024);
-    }
+    if(!ocinitialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && connp) {
 	*connp = (OCconnection)ocassign(state);
@@ -392,7 +408,7 @@ oc_inq_ith(OCconnection conn,
     OCDEREF(OCnode*,node,node0);
 
     nsubnodes = oclistlength(node->subnodes);
-    if(nsubnodes >= 0 && index < nsubnodes) {
+    if(nsubnodes > 0 &&  index < nsubnodes) {
         subnodeid = (OCobject)oclistget(node->subnodes,index);
     } else
 	return OC_EINVAL;
@@ -413,7 +429,7 @@ oc_inq_dimset(OCconnection conn, OCobject node0, OCobject** dimids)
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
-    if(node->array.rank >= 0) {
+    if(node->array.rank > 0) {
 	unsigned int i;
 	dims = (OCobject*)occalloc(sizeof(OCobject),node->array.rank+1);
 	for(i=0;i<node->array.rank;i++) {
@@ -438,7 +454,7 @@ oc_inq_ithdim(OCconnection conn, OCobject node0, unsigned int index, OCobject* d
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
-    if(node->array.rank >= 0 && index < node->array.rank) {
+    if(node->array.rank > 0 && index < node->array.rank) {
         dimid = (OCobject)oclistget(node->array.dimensions,index);
     } else
 	return OC_EINVAL;

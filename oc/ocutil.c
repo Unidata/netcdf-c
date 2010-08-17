@@ -10,8 +10,8 @@
 #define snprintf _snprintf
 #endif
 
-/* Null terminate; element 0 is preferred form.*/
-static char* DDSdatamarks[] = {"Data:\n", "Data:\r\n",(char*)0};
+static char* DDSdatamark = "Data:";
+static char* DDSdatamarkR = "Data:\r";
 
 /* Not all systems have strndup, so provide one*/
 char*
@@ -100,19 +100,23 @@ findbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
     unsigned int i;
     char* content;
     size_t len = ocbyteslength(buffer);
+    int tlen = strlen(DDSdatamark);
 
     content = ocbytescontents(buffer);
     for(i=0;i<len;i++) {
-	char** tagp;
-	for(tagp=DDSdatamarks;*tagp;tagp++) {
-	    int tlen = strlen(*tagp);
-	    if((i+tlen) <= len && strncmp(content+i,*tagp,tlen)==0) {
-		*ddslenp = i;
-	        *bodp = (i+tlen);
-	        return 1;
-	    }
+	if((i+tlen) <= len 
+	   && (strncmp(content+i,DDSdatamark,tlen)==0
+	       || strncmp(content+i,DDSdatamarkR,tlen)==0)) {
+	    *ddslenp = i;
+	    i += tlen;
+	    if(i < len && content[i] == '\r') i++;
+	    if(i < len && content[i] == '\n') i++;
+	    *bodp = i;
+	    return 1;
 	}
     }
+    *ddslenp = 0;
+    *bodp = 0;
     return 0; /* tag not found; not necessarily an error*/
 }
 
@@ -154,10 +158,12 @@ octypesize(OCtype etype)
     case OC_UInt16:	return sizeof(unsigned short);
     case OC_Int32:	return sizeof(int);
     case OC_UInt32:	return sizeof(unsigned int);
-    case OC_Int64:	return sizeof(long long);
-    case OC_UInt64:	return sizeof(unsigned long long);
     case OC_Float32:	return sizeof(float);
     case OC_Float64:	return sizeof(double);
+#ifdef HAVE_LONG_LONG_INT
+    case OC_Int64:	return sizeof(long long);
+    case OC_UInt64:	return sizeof(unsigned long long);
+#endif
     case OC_String:	return sizeof(char*);
     case OC_URL:	return sizeof(char*);
 		  /* Ignore all others */
@@ -244,18 +250,20 @@ octypeprint(OCtype etype, char* buf, size_t bufsize, void* value)
     case OC_UInt32:
 	snprintf(buf,bufsize,"%u",*(unsigned int*)value);
 	break;
-    case OC_Int64:
-	snprintf(buf,bufsize,"%lld",*(long long*)value);
-	break;
-    case OC_UInt64:
-	snprintf(buf,bufsize,"%llu",*(unsigned long long*)value);
-	break;
     case OC_Float32:
 	snprintf(buf,bufsize,"%g",*(float*)value);
 	break;
     case OC_Float64:
 	snprintf(buf,bufsize,"%g",*(double*)value);
 	break;
+#ifdef HAVE_LONG_LONG_INT
+    case OC_Int64:
+	snprintf(buf,bufsize,"%lld",*(long long*)value);
+	break;
+    case OC_UInt64:
+	snprintf(buf,bufsize,"%llu",*(unsigned long long*)value);
+	break;
+#endif
     case OC_String:
     case OC_URL: {
 	char* s = *(char**)value;
@@ -381,6 +389,8 @@ ocerrstring(int err)
 	    return "OC_EDDS: Malformed or unreadable DDS";
 	case OC_EDATADDS:
 	    return "OC_EDATADDS: Malformed or unreadable DATADDS";
+	case OC_ERCFILE:
+	    return "OC_ERCFILE: Malformed or unreadable run-time configuration file";
 	default: break;
     }
     return "<unknown error code>";
@@ -429,7 +439,9 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 	    }
 	    oc_log(LOGERR,"DATADDS failure, possible message: '%s'",
 			chunk+i);
-	    return;
+	    goto done;
 	}
     }
+done:
+    return;
 }

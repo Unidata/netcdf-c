@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include "nc.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 #include "nc4dispatch.h"
 
 NC_Dispatch NC4_dispatcher = {

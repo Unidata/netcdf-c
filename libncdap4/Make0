@@ -27,7 +27,7 @@ GFLAGS=-g
 #############################################
 
 LIBS=${NCLIB} ${CURLLIB} ${HDFLIBS} ${ZLIB} ${OTHERLIBS} ${RPCLIB}
-INCL=-I. -I.. ${OCINCL} ${NCINCL} ${CURLINCL}
+INCL=-I. -I.. -I../include ${OCINCL} ${NCINCL} ${CURLINCL}
 
 TESTLIBS=${LIBS}
 TESTINCL=${INCL}

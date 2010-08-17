@@ -360,9 +360,9 @@ vardata(
      const fspec_t *fsp	        /* formatting specs */
      )
 {
-    size_t cor[NC_MAX_DIMS];	/* corner coordinates */
-    size_t edg[NC_MAX_DIMS];	/* edges of hypercube */
-    size_t add[NC_MAX_DIMS];	/* "odometer" increment to next "row"  */
+    size_t *cor;	     /* corner coordinates */
+    size_t *edg;	     /* edges of hypercube */
+    size_t *add;	     /* "odometer" increment to next "row"  */
     size_t gulp;
     void *vals;
 
@@ -372,6 +372,10 @@ vardata(
     size_t ncols;
     size_t nrows;
     int vrank = vp->ndims;
+
+    cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
 
     nels = 1;
     if(vrank == 0) { /*scalar*/
@@ -486,6 +490,10 @@ vardata(
     }
 
     free(vals);
+    free(cor);
+    free(edg);
+    free(add);
+
     return 0;
 }
 
@@ -617,9 +625,9 @@ vardatax(
      const fspec_t *fsp	        /* formatting specs */
      )
 {
-    size_t cor[NC_MAX_DIMS];	/* corner coordinates */
-    size_t edg[NC_MAX_DIMS];	/* edges of hypercube */
-    size_t add[NC_MAX_DIMS];	/* "odometer" increment to next "row"  */
+    size_t *cor;	     /* corner coordinates */
+    size_t *edg;	     /* edges of hypercube */
+    size_t *add;	     /* "odometer" increment to next "row"  */
     size_t gulp;
     void *vals;
 
@@ -629,6 +637,10 @@ vardatax(
     size_t ncols;
     size_t nrows;
     int vrank = vp->ndims;
+
+    cor = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    edg = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    add = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
 
     nels = 1;
     for (id = 0; id < vrank; id++) {
@@ -695,5 +707,8 @@ vardatax(
     }
     printf(" </values>\n");
     free(vals);
+    free(cor);
+    free(edg);
+    free(add);
     return 0;
 }

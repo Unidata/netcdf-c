@@ -403,8 +403,9 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * variables which may be contiguous. */
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	var->ndims, var->name));
-   if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
-      return NC_ENOMEM;
+   if (var->ndims)
+      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+	 return NC_ENOMEM;
 
    if ((retval = nc4_find_default_chunksizes(var)))
       return retval;
@@ -1020,8 +1021,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
       return retval;
    
    /* Handle netcdf-3. */
-   if (!h5)
-      return nc3_inq_varid(nc->int_ncid, name, varidp);
+   assert(h5);
    
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -1065,8 +1065,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!h5)
-      return nc3_rename_var(nc->int_ncid, varid, name);
+   assert(h5);
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)
@@ -1375,33 +1374,7 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
 #endif /* USE_PNETCDF */   
    
    /* Handle netCDF-3 cases. */
-   if (!nc->nc4_info)
-   {
-      switch(mem_type)
-      {
-         case NC_NAT:
-            return nc3_get_vara(nc->int_ncid, varid, startp, countp, ip);
-         case NC_BYTE:
-            return nc3_get_vara_schar(nc->int_ncid, varid, startp, countp, ip);
-         case NC_UBYTE:
-            return nc3_get_vara_uchar(nc->int_ncid, varid, startp, countp, ip);
-         case NC_CHAR:
-            return nc3_get_vara_text(nc->int_ncid, varid, startp, countp, ip);
-         case NC_SHORT:
-            return nc3_get_vara_short(nc->int_ncid, varid, startp, countp, ip);
-         case NC_INT:
-            if (mem_type_is_long)
-               return nc3_get_vara_long(nc->int_ncid, varid, startp, countp, ip);
-            else
-               return nc3_get_vara_int(nc->int_ncid, varid, startp, countp, ip);
-         case NC_FLOAT:
-            return nc3_get_vara_float(nc->int_ncid, varid, startp, countp, ip);
-         case NC_DOUBLE:
-            return nc3_get_vara_double(nc->int_ncid, varid, startp, countp, ip);
-         default:
-            return NC_EBADTYPE;
-      }
-   }
+   assert(nc->nc4_info);
 
    /* Handle HDF4 cases. */
    if (nc->nc4_info->hdf4)

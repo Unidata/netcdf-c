@@ -164,7 +164,7 @@ C           /* tests using scratch file */
         err = nf_def_dim(ncid, 'abc', 8, dimid)
         if (err .ne. 0)
      +      call errore('nf_def_dim: ', err)
-        err = nf_def_var(ncid, 'abc', NF_INT, 0, (/0/), vid)
+        err = nf_def_var(ncid, 'abc', NF_INT, 0, 0, vid)
         if (err .ne. 0)
      +      call errore('nf_def_var: ', err)
         err = nf_put_att_text(ncid, NF_GLOBAL, 'title', len(title), 
@@ -194,7 +194,7 @@ C           /* check scratch file written as expected */
      +      call errori('Unexpected dim name in netCDF ', ncid)
         if (length .ne. 8) 
      +      call errori('Unexpected dim length: ', length)
-        err = nf_get_var1_double(ncid, vid, (/0/), var)
+        err = nf_get_var1_double(ncid, vid, 0, var)
         if (err .ne. 0)
      +      call errore('nf_get_var1_double: ', err)
         if (var .ne. 1.0)

@@ -17,7 +17,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2-beta1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -412,6 +412,34 @@ else
   curl_cflags=-lcurl
   curl_libs=
   curl_dir=
+fi
+
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+havekeypasswd=0
+
+if test -n "$with_curl_config" ; then
+  curlver=`curl-config --version`
+  curlver=`echo $curlver|cut -d ' ' -f2`
+  curlmajor=`echo $curlver|cut -d '.' -f1`
+  curlminor=`echo $curlver|cut -d '.' -f2`
+  curlpatch=`echo $curlver|cut -d '.' -f3`
+  if test "x$curlpatch" = "x"; then curlpatch=0 ; fi
+
+  if test $curlmajor -gt 7 ; then
+    havekeypasswd=1
+  elif test $curlmajor -eq 7 ; then
+    if test $curlminor -gt 16 ; then
+      havekeypasswd=1
+    elif test $curlminor -eq 16 ; then
+      if test $curlpatch -ge 4 ; then
+        havekeypasswd=1
+      fi
+    fi
+  fi
+fi #with-curl_config
+
+if test $havekeypasswd -eq 1; then
+AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
 fi
 
 else #!enable_dap
@@ -1198,7 +1226,7 @@ dnl 	 fi
 #   else
 #      AC_MSG_RESULT([without parallel])         
       # Modify netcdf.h to include defs for missing parallel stuff.
-      # WARNING: the similar defs in libdispatch/dispatch.h must match this
+      # WARNING: the similar defs in libdispatch/ncdispatch.h must match this
 # When doing distcheck, this cmd will fail because of
 # the permissions set on $top_builddir.
 # So, we forcibly reset the permissions
@@ -1253,16 +1281,6 @@ if test "x$enable_netcdf_4" = xno; then
 fi
 if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
-fi
-
-AC_MSG_CHECKING([if API dispatch is enabled])
-AC_ARG_ENABLE([dispatch],
-              [AS_HELP_STRING([--enable-dispatch],
-                              [enable experimental dispatch support])])
-test "x$enable_dispatch" = xno || enable_dispatch=yes
-AC_MSG_RESULT($enable_dispatch)
-if test "x$enable_dispatch" = xyes ; then
-AC_DEFINE([USE_DISPATCH], [1], [if true, include experimental API dispatch code])
 fi
 
 # Automake conditionals need to be called, whether the answer is yes
@@ -1509,7 +1527,6 @@ AC_MSG_NOTICE(CFLAGS for External libraries: ${EXTERN_CFLAGS})
 AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
-
 # Uncomment this to keep a copy of autoconf defines at this point, for
 # debugging purposes.
 # cp confdefs.h my_config.h

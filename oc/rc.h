@@ -8,31 +8,29 @@
 #ifndef RC_H_
 #define RC_H_
 
-struct OCproxy {
-	char *host;
-	int port;
-	char *user;
-	char *password;
-};
+/* Max .dodsrc line size */
+#define MAXRCLINESIZE 2048
 
-extern int dods_compress;
-extern int dods_verify;
-extern struct OCproxy *pstructProxy;
-extern char *cook;
-extern char *userName;
-extern char *password;
+/* Max number of triples in a .dodsrc */
+#define MAXRCLINES 2048
 
-extern int credentials_in_url(const char *url);
-extern int extract_credentials(const char *url, char **name, char **pw, char **result_url);
-extern int set_credentials(const char *name, const char *pw);
-extern int read_dodsrc(char *in_file_name);
-extern int write_dodsrc(char *out_file_name);
+/* Create a triple store for (url,key,value) and sorted by url */
 
-extern int set_user_password(CURL* curl, const char *userC,
-		const char *passwordC);
-extern int set_proxy(CURL* curl, struct OCproxy *pstructProxy);
-extern int set_cookies(CURL* curl, const char *cook);
-extern int set_verify(CURL* curl);
-extern int set_compression(CURL* curl);
+/* Actual triple store */
+extern struct OCTriplestore {
+    int ntriples;
+    struct OCTriple {
+        char url[MAXRCLINESIZE];
+        char key[MAXRCLINESIZE];
+        char value[MAXRCLINESIZE];
+   } triples[MAXRCLINES];
+} *ocdodsrc;
+
+extern int ocdodsrc_read(char *in_file_name);
+extern int ocdodsrc_process(OCstate* state);
+extern char* ocdodsrc_lookup(char* key, char* url);
+
+extern int occredentials_in_url(const char *url);
+extern int ocextract_credentials(const char *url, char **name, char **pw, char **result_url);
 
 #endif /* RC_H_ */

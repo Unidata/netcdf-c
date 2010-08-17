@@ -197,6 +197,9 @@ for i in $WHICHTESTS ; do
   esac
 
 cd ${RESULTSDIR}
+rm -f ./.dodsrc
+echo '#DODSRC' >./.dodsrc
+
 for t in ${TESTSET} ; do
   # see if we are using constraints
   if test "x$constrained" = "x0" ; then # No constraint
@@ -255,6 +258,9 @@ for t in ${TESTSET} ; do
   esac
 
 done
+
+rm -f ./.dodsrc
+
 cd ..
 
 done

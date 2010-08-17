@@ -324,18 +324,6 @@ AC_SEARCH_LIBS([floor], [m])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 
-##################################################
-# Include dispatch stuff from netcdf/configure.ac
-AC_MSG_CHECKING([if API dispatch is enabled])
-AC_ARG_ENABLE([dispatch],
-              [AS_HELP_STRING([--enable-dispatch],
-                              [enable experimental dispatch support])])
-test "x$enable_dispatch" = xno || enable_dispatch=yes
-AC_MSG_RESULT($enable_dispatch)
-if test "x$enable_dispatch" = xyes ; then
-AC_DEFINE([USE_DISPATCH], [1], [if true, include experimental API dispatch code])
-fi
-AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 
 # The following flags are defined
 # Define the -L flags and libs for external libraries

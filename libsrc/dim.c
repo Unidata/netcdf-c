@@ -37,6 +37,7 @@ new_x_NC_dim(NC_string *name)
 		return NULL;
 
 	dimp->name = name;
+ 	dimp->hash = hash_fast(name->cp, strlen(name->cp));
 	dimp->size = 0;
 
 	return(dimp);
@@ -126,7 +127,7 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
 {
 
    int dimid;
-   size_t slen;
+   uint32_t shash;
    NC_dim ** loc;
    char *name;
 
@@ -142,11 +143,11 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
       name = (char *)utf8proc_NFC((const unsigned char *)uname);
       if(name == NULL)
 	 return NC_ENOMEM;
-      slen = strlen(name);
+      shash = hash_fast(name, strlen(name));
 
       for(; (size_t) dimid < ncap->nelems
-	     && (strlen((*loc)->name->cp) != slen
-		 || strncmp((*loc)->name->cp, name, slen) != 0);
+	     && ((*loc)->hash != shash
+		 || strncmp((*loc)->name->cp, name, strlen(name)) != 0);
 	  dimid++, loc++)
       {
 	 /*EMPTY*/
@@ -469,6 +470,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 		if(newStr == NULL)
 			return NC_ENOMEM;
 		dimp->name = newStr;
+		dimp->hash = hash_fast(newStr->cp, strlen(newStr->cp));
 		free_NC_string(old);
 		return NC_NOERR;
 	}

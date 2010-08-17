@@ -12,17 +12,30 @@ static OCtype octypefor(Object etype);
 static char* scopeduplicates(OClist* list);
 static int check_int32(char* val, long* value);
 
+
 /****************************************************/
 
 /* Switch to DAS parsing SCAN_WORD definition */
+
+/* Use the initial keyword to indicate what we are parsing */
 void
-dassetup(DAPparsestate* state)
+dap_tagparse(DAPparsestate* state, int kind)
 {
-    setwordchars(state->lexstate,1);
+    switch (kind) {
+    case SCAN_DATASET:
+    case SCAN_ERROR:
+	break;
+    case SCAN_ATTR:
+	dapsetwordchars(state->lexstate,1);
+        break;
+    default:
+        fprintf(stderr,"tagparse: Unknown tag argument: %d\n",kind);
+    }
 }
 
+
 Object
-datasetbody(DAPparsestate* state, Object name, Object decls)
+dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
     OCnode* node = newocnode((char*)name,OC_Dataset,state);
     node->subnodes = (OClist*)decls;
@@ -35,7 +48,7 @@ datasetbody(DAPparsestate* state, Object name, Object decls)
 }
 
 Object
-attributebody(DAPparsestate* state, Object attrlist)
+dap_attributebody(DAPparsestate* state, Object attrlist)
 {
     OCnode* node = newocnode(NULL,OC_Attributeset,state);
     OCASSERT((state->root == NULL));
@@ -47,25 +60,34 @@ attributebody(DAPparsestate* state, Object attrlist)
     return NULL;
 }
 
-Object
-errorbody(DAPparsestate* state,
+void
+dap_errorbody(DAPparsestate* state,
 	  Object code, Object msg, Object ptype, Object prog)
 {
     state->svcerror = 1;
     state->code     = (code != NULL?strdup((char*)code):NULL);
     state->message  = (msg != NULL?strdup((char*)msg):NULL);
     /* Ignore ptype and prog for now */
-    return NULL;
 }
 
-Object
-unrecognizedresponse(DAPparsestate* state)
+void
+dap_unrecognizedresponse(DAPparsestate* state)
 {
-    return errorbody(state,"0",state->lexstate->input,NULL,NULL);
+    /* see if this is an HTTP error */
+    unsigned int httperr = 0;
+    int i;
+    char iv[32];
+    sscanf(state->lexstate->input,"%u ",&httperr);
+    sprintf(iv,"%u",httperr);
+    state->lexstate->next = state->lexstate->input;
+    /* Limit the amount of input to prevent runaway */
+    for(i=0;i<4096;i++) {if(state->lexstate->input[i] == '\0') break;}
+    state->lexstate->input[i] = '\0';
+    dap_errorbody(state,iv,state->lexstate->input,NULL,NULL);
 }
 
 Object
-declarations(DAPparsestate* state, Object decls, Object decl)
+dap_declarations(DAPparsestate* state, Object decls, Object decl)
 {
     OClist* alist = (OClist*)decls;
     if(alist == NULL)
@@ -76,7 +98,7 @@ declarations(DAPparsestate* state, Object decls, Object decl)
 }
 
 Object
-arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
+dap_arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
 {
     OClist* alist = (OClist*)arraydecls;
     if(alist == NULL)
@@ -87,7 +109,7 @@ arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
 }
 
 Object
-arraydecl(DAPparsestate* state, Object name, Object size)
+dap_arraydecl(DAPparsestate* state, Object name, Object size)
 {
     long value;
     OCnode* dim;
@@ -102,7 +124,7 @@ arraydecl(DAPparsestate* state, Object name, Object size)
 }
 
 Object
-attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
+dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 {
     OClist* alist = (OClist*)attrlist;
     if(alist == NULL)
@@ -122,7 +144,7 @@ attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 }
 
 Object
-attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
+dap_attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
 {
     OClist* alist = (OClist*)valuelist;
     if(alist == NULL) alist = oclistnew();
@@ -133,7 +155,7 @@ attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype)
 }
 
 Object
-attribute(DAPparsestate* state, Object name, Object values, Object etype)
+dap_attribute(DAPparsestate* state, Object name, Object values, Object etype)
 {
     OCnode* att;
     att = newocnode((char*)name,OC_Attribute,state);
@@ -143,7 +165,7 @@ attribute(DAPparsestate* state, Object name, Object values, Object etype)
 }
 
 Object
-attrset(DAPparsestate* state, Object name, Object attributes)
+dap_attrset(DAPparsestate* state, Object name, Object attributes)
 {
     OCnode* attset;
     attset = newocnode((char*)name,OC_Attributeset,state);
@@ -204,7 +226,7 @@ dimnameanon(char* basename, unsigned int index)
 }
 
 Object
-makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
+dap_makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
 {
     OCnode* node;
     node = newocnode((char*)name,OC_Primitive,state);
@@ -214,7 +236,7 @@ makebase(DAPparsestate* state, Object name, Object etype, Object dimensions)
 }
 
 Object
-makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
+dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
 {
     OCnode* node;
     char* dupname;    
@@ -230,7 +252,7 @@ makestructure(DAPparsestate* state, Object name, Object dimensions, Object field
 }
 
 Object
-makesequence(DAPparsestate* state, Object name, Object members)
+dap_makesequence(DAPparsestate* state, Object name, Object members)
 {
     OCnode* node;
     char* dupname;    
@@ -245,7 +267,7 @@ makesequence(DAPparsestate* state, Object name, Object members)
 }
 
 Object
-makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecls)
+dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecls)
 {
     OCnode* node;
     /* Check for duplicate map names */
@@ -284,8 +306,8 @@ flatten(char* s, char* tmp, int tlen)
 {
     int c;
     char* p,*q;
-    snprintf(tmp,tlen,"%s",s);
-    tmp[tlen-1] = '\0';
+    strncpy(tmp,s,tlen);
+    tmp[tlen] = '\0';
     p = (q = tmp);
     while((c=*p++)) {
 	switch (c) {
@@ -313,10 +335,8 @@ dap_parse_error(DAPparsestate* state, const char *fmt, ...)
     prefixlen = (len - suffixlen);
     tmp = (char*)ocmalloc(len+1);
     flatten(state->lexstate->input,tmp,prefixlen);
-    tmp[prefixlen] = '\0';
     (void) fprintf(stderr,"context: %s",tmp);
     flatten(state->lexstate->next,tmp,suffixlen);
-    tmp[suffixlen] = '\0';
     (void) fprintf(stderr,"^%s\n",tmp);
     (void) fflush(stderr);	/* to ensure log files are current */
     ocfree(tmp);

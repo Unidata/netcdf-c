@@ -6,9 +6,6 @@
 
 #include "config.h"
 #include "nc.h"
-#ifndef USE_DISPATCH
-#include "rename.h"
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

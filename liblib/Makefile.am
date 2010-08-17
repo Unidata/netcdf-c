@@ -28,6 +28,9 @@ ${top_builddir}/libsrc/libnetcdf3.la
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libncdap3 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libncdap3/libncdap3.la
+if INTERNAL_OCLIB
+libnetcdf_la_LIBADD += ${top_builddir}/oc/liboc.la
+endif # INTERNAL_OCLIB
 endif # USE_DAP
 
 # NetCDF-4 ...
@@ -50,4 +53,7 @@ endif #BUILD_F77
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c 
 
+.PHONY: visualstudio
+visualstudio:
+	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libnetcdf_la_SOURCES}"
 

@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "dapparselex.h"
+#include <strings.h>
 
 #define URLCVT
 #define NONSTDCVT
@@ -248,7 +249,7 @@ Simple lexer
 */
 
 void
-setwordchars(DAPlexstate* lexstate, int kind)
+dapsetwordchars(DAPlexstate* lexstate, int kind)
 {
     switch (kind) {
     case 0:
@@ -281,7 +282,7 @@ daplexinit(char* input, DAPlexstate** lexstatep)
     lexstate->next = lexstate->input;
     lexstate->yytext = ocbytesnew();
     lexstate->reclaim = oclistnew();
-    setwordchars(lexstate,0); /* Assume DDS */
+    dapsetwordchars(lexstate,0); /* Assume DDS */
 }
 
 void

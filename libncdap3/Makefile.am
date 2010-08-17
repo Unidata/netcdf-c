@@ -12,11 +12,7 @@ DISTCLEANFILES =
 CLEANFILES =
 LDADD=
 
-#CURL_CFLAGS = @CURL_CFLAGS@
-#AM_CPPFLAGS = ${CURL_CFLAGS}
-#AM_LDFLAGS = $(CURL_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = 
 
 # DRNO Sources
 SRC=\
@@ -73,13 +69,17 @@ endif
 
 if INTERNAL_OCLIB
   AM_CPPFLAGS += -I${top_srcdir}/oc
-  libncdap3_la_LIBADD += ${top_builddir}/oc/liboc.la
 endif # INTERNAL_OCLIB
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
-AM_LDFLAGS += @EXTERN_LDFLAGS@
 
-LDADD +=  ${top_builddir}/libncdap3/libncdap3.la ${AM_LDFLAGS}
+LDADD +=  ${top_builddir}/libncdap3/libncdap3.la
+
+if INTERNAL_OCLIB
+  LDADD += ${top_builddir}/oc/liboc.la
+endif # INTERNAL_OCLIB
+
+LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
@@ -99,11 +99,17 @@ endif # BUILD_DAP
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-#cetab.c cetab.h: ${top_srcdir}/oc/ce.y
-#	bison -d -t -p ce ${top_srcdir}/oc/ce.y
-#	rm -f cetab.c cetab.h
-#	mv ce.tab.c cetab.c
-#	mv ce.tab.h cetab.h
+makece::
+	bison -d -t -p ce ce.y
+	rm -f cetab.c cetab.h
+	mv ce.tab.c cetab.c
+	mv ce.tab.h cetab.h
+
+# One last thing
+BUILT_SOURCES = .dodsrc
+.dodsrc:
+	echo "#DODSRC" >.dodsrc
+DISTCLEANFILES += .dodsrc
 
 test: check
 

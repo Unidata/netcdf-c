@@ -133,7 +133,7 @@ emalloc (			/* check return from malloc */
 {
     void   *p;
 
-    p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
+    p = (void *) malloc (size==0 ? 1 : size); /* malloc(0) not portable */
     if (p == 0) {
 	error ("out of memory\n");
     }
@@ -553,7 +553,7 @@ count_udtypes(int ncid) {
 	/* Get number of types in this group */
 	NC_CHECK( nc_inq_typeids(ncid, &ntypes, NULL) ) ;
 	NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) ) ;
-	ncids = (int *) emalloc(sizeof(int) * numgrps);
+	ncids = (int *) emalloc(sizeof(int) * (numgrps + 1));
 	NC_CHECK( nc_inq_grps(ncid, NULL, ncids) ) ;
 	/* Add number of types in each subgroup, if any */
 	for (i=0; i < numgrps; i++) {
@@ -1656,7 +1656,7 @@ init_types(int ncid) {
    if (ntypes)
    {
       int t;
-      int *typeids = emalloc(ntypes * sizeof(int));
+      int *typeids = emalloc((ntypes + 1) * sizeof(int));
       NC_CHECK( nc_inq_typeids(ncid, NULL, typeids) );
       for (t = 0; t < ntypes; t++) {
 	  nctype_t *tinfo;	/* details about the type */
@@ -1691,15 +1691,15 @@ init_types(int ncid) {
 	  case NC_COMPOUND:
 	      tinfo->val_equals = (val_equals_func) nccomp_val_equals;
 	      tinfo->typ_tostring = (typ_tostring_func) nccomp_typ_tostring;
-	      tinfo->fids = (nc_type *) emalloc(tinfo->nfields 
+	      tinfo->fids = (nc_type *) emalloc((tinfo->nfields + 1)
 						  * sizeof(nc_type));
-	      tinfo->offsets = (size_t *) emalloc(tinfo->nfields 
+	      tinfo->offsets = (size_t *) emalloc((tinfo->nfields + 1)
 						  * sizeof(size_t));
-	      tinfo->ranks = (int *) emalloc(tinfo->nfields 
+	      tinfo->ranks = (int *) emalloc((tinfo->nfields + 1)
 					     * sizeof(int));
-	      tinfo->sides = (int **) emalloc(tinfo->nfields 
+	      tinfo->sides = (int **) emalloc((tinfo->nfields + 1)
 						 * sizeof(int *));
-	      tinfo->nvals = (int *) emalloc(tinfo->nfields 
+	      tinfo->nvals = (int *) emalloc((tinfo->nfields + 1)
 					     * sizeof(int));
 	      for (fidx = 0; fidx < tinfo->nfields; fidx++) {
 		  size_t offset;
@@ -1777,17 +1777,39 @@ init_types(int ncid) {
 int
 iscoordvar(int ncid, int varid)
 {
-    int ndims;
+    int ndims, ndims1;
     int dimid;
-    ncdim_t *dims;
+    int* dimids = 0;
+    ncdim_t *dims = 0;
+    int include_parents = 1;
     int is_coord = 0;		/* true if variable is a coordinate variable */
     char varname[NC_MAX_NAME];
     int varndims;
 
-    NC_CHECK( nc_inq_ndims(ncid, &ndims) );
-    dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+    do {	  /* be safe in case someone is currently adding
+		   * dimensions */
+	NC_CHECK( nc_inq_ndims(ncid, &ndims) );
+	if (dims)
+	    free(dims);
+	dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+	if (dimids)
+	    free(dimids);
+	dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+#ifdef USE_NETCDF4
+	NC_CHECK( nc_inq_dimids(ncid, &ndims1, dimids, include_parents ) );
+#else
+	{
+	    int i;
+	    for(i = 0; i < ndims; i++) {
+		dimids[i] = i;	/* for netCDF-3, dimids are 0, 1, ..., ndims-1 */
+	    }
+	    NC_CHECK( nc_inq_ndims(ncid, &ndims1) );
+	}
+#endif	/* USE_NETCDF4 */
+    } while (ndims != ndims1);
+
     for (dimid = 0; dimid < ndims; dimid++) {
-	NC_CHECK( nc_inq_dimname(ncid, dimid, dims[dimid].name) );
+	NC_CHECK( nc_inq_dimname(ncid, dimids[dimid], dims[dimid].name) );
     }
     NC_CHECK( nc_inq_varname(ncid, varid, varname) );
     NC_CHECK( nc_inq_varndims(ncid, varid, &varndims) );
@@ -1798,7 +1820,10 @@ iscoordvar(int ncid, int varid)
 	    break;
 	}
     }
-    free(dims);
+    if(dims)
+	free(dims);
+    if(dimids)
+	free(dimids);
     return is_coord;
 }
 

@@ -11,10 +11,6 @@ LDADD=
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
-#CURL_CFLAGS = @CURL_CFLAGS@
-#AM_CPPFLAGS = ${CURL_CFLAGS}
-#AM_LDFLAGS = $(CURL_LIBS)
-
 # DRNO Sources
 SRC=\
 cdf4.c \
@@ -40,23 +36,26 @@ AM_CPPFLAGS += -I$(top_srcdir)/libncdap3 \
 
 if INTERNAL_OCLIB
   AM_CPPFLAGS += -I${top_srcdir}/oc
-  libncdap4_la_LIBADD = ${top_builddir}/oc/liboc.la
 endif # INTERNAL_OCLIB
 
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
-AM_LDFLAGS += @EXTERN_LDFLAGS@
-AM_LDFLAGS += ${top_builddir}/libncdap3/libncdap3.la \
+
+# Define the load libraries for stub3
+LDADD += ${top_builddir}/libncdap4/libncdap4.la \
+         ${top_builddir}/libncdap3/libncdap3.la \
          ${top_builddir}/libsrc4/libnetcdf4.la \
          ${top_builddir}/libsrc/libnetcdf3.la \
          ${top_builddir}/libdispatch/libdispatch.la
 
 if BUILD_V2
-AM_LDFLAGS += ${top_builddir}/libdispatch/libnetcdf2.la 
+LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
 
-AM_LDFLAGS += @EXTERN_LDFLAGS@
+if INTERNAL_OCLIB
+  LDADD += ${top_builddir}/oc/liboc.la
+endif # INTERNAL_OCLIB
 
-LDADD += ${top_builddir}/libncdap4/libncdap4.la ${AM_LDFLAGS}
+LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
@@ -65,6 +64,14 @@ t_dap_SOURCES = t_dap.c stubdap4.c
 CLEANFILES += t_dap
 
 endif # USE_NETCDF4
+
+
+# One last thing
+BUILT_SOURCES = .dodsrc
+.dodsrc:
+	echo "#DODSRC" >.dodsrc
+DISTCLEANFILES += .dodsrc
+
 endif # BUILD_DAP
 
 test: check

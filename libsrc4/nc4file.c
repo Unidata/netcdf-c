@@ -12,7 +12,7 @@
 #include "nc.h"
 #include <H5DSpublic.h>
 #include "nc4dispatch.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 #ifdef USE_HDF4
 #include <mfhdf.h>
@@ -390,8 +390,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 #endif /* USE_PNETCDF */
    else 
    {
-      res = nc3__create_mp(path, cmode, initialsz, basepe, 
-			   chunksizehintp, &(nc_file->int_ncid));
+      assert(0);
    }
    
    /* Delete this file list entry if there was a failure. */
@@ -2335,8 +2334,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PNETCDF */
    else /* netcdf */
    {
-      res = nc3__open_mp(path, mode, basepe, chunksizehintp, 
-			 &(nc_file->int_ncid));
+      assert(0);
    }
 
    /* If it succeeds, pass back the new ncid. Otherwise, remove this
@@ -2369,8 +2367,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
       return NC_EBADID;
 
    /* Is this a netcdf-3 file? */
-   if (!nc->nc4_info)
-      return nc3_set_fill(nc->int_ncid, fillmode, old_modep);
+   assert(nc->nc4_info);
 
    /* Trying to set fill on a read-only file? You sicken me! */
    if (nc->nc4_info->no_write)
@@ -2409,8 +2406,7 @@ NC4_redef(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_redef(nc->int_ncid);
+   assert(nc->nc4_info);
 
    /* If we're already in define mode, return an error. */
    if (nc->nc4_info->flags & NC_INDEF)
@@ -2442,10 +2438,8 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
       return NC_EBADID;
 
    /* Deal with netcdf-3 files one way, netcdf-4 another way.  */
-   if (!nc->nc4_info)
-      return nc3__enddef(nc->int_ncid, h_minfree, v_align, v_minfree, r_align);
-   else
-      return NC4_enddef(ncid);
+   assert(nc->nc4_info);
+   return NC4_enddef(ncid);
 }
 
 /* Take the file out of define mode. This is called automatically for
@@ -2465,8 +2459,7 @@ static int NC4_enddef(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_enddef(nc->int_ncid);
+   assert(nc->nc4_info);
 
    return nc4_enddef_netcdf4_file(nc->nc4_info);
 }
@@ -2539,8 +2532,7 @@ NC4_sync(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!nc->nc4_info)
-      return nc3_sync(nc->int_ncid);
+   assert(nc->nc4_info);
 
    /* If we're in define mode, we can't sync. */
    if (nc->nc4_info && nc->nc4_info->flags & NC_INDEF)
@@ -2643,8 +2635,7 @@ NC4_abort(int ncid)
 #endif /* USE_PNETCDF */
 
    /* If this is a netcdf-3 file, let the netcdf-3 library handle it. */
-   if (!nc->nc4_info)
-      return nc3_abort(nc->int_ncid);
+   assert(nc->nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc->nc4_info->flags & NC_INDEF && !nc->nc4_info->redef)
@@ -2690,12 +2681,7 @@ NC4_close(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Call either the nc4 or nc3 close. */
-   if (!h5)
-   {
-      if ((retval = nc3_close(nc->int_ncid)))
-	 return retval;
-   }
-   else
+   assert(h5);
    {
       nc = grp->file;
       assert(nc);
@@ -2748,8 +2734,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   if (!h5)
-      return nc3_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimdimidp);
+   assert(h5);
 
    /* Count the number of dims, vars, and global atts. */
    assert(h5 && grp && nc);

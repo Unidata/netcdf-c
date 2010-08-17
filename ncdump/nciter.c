@@ -14,8 +14,7 @@
 
 /* forward declarations */
 static int nc_blkio_init(size_t bufsize, size_t value_size, int rank, 
-			  const size_t *dims, int chunked, size_t *chunksizes, 
-			  nciter_t *iter);
+			  int chunked, nciter_t *iter);
 static int up_start(int ndims, const size_t *dims, int incdim, size_t inc, 
 		    size_t* odom);
 static int up_start_by_chunks(int ndims, const size_t *dims, 
@@ -32,6 +31,20 @@ check(int err, const char* fcn, const char* file, const int line)
     exit(1);
 }
 
+/* Check error return from malloc, and allow malloc(0) with subsequent free */
+static void *
+emalloc (size_t size)
+{
+    void   *p;
+
+    p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
+    if (p == 0) {
+	fprintf(stderr,"Out of memory!\n");
+	exit(1);
+    }
+    return p;
+}
+
 /* Initialize iteration for a variable.  Just a wrapper for
  * nc_blkio_init() that makes the netCDF calls needed to initialize
  * lower-level iterator. */
@@ -39,23 +52,28 @@ int
 nc_get_iter(int ncid,
 	     int varid,
 	     size_t bufsize,   /* size in bytes of memory buffer */
-	     nciter_t *iterp    /* returned opaque iteration state */) 
+	     nciter_t **iterpp /* returned opaque iteration state */) 
 {
     int stat = NC_NOERR;
+    nciter_t *iterp;
     nc_type vartype;
     size_t value_size;      /* size in bytes of each variable element */
     int ndims;		    /* number of dimensions for variable */
-    int dimids[NC_MAX_DIMS];
-    size_t dimsizes[NC_MAX_VAR_DIMS]; /* variable dimension sizes */
-    size_t chunksizes[NC_MAX_VAR_DIMS]; /* corresponding chunk sizes */
+    int *dimids;
     long long nvalues = 1;
     int dim;
     int chunked = 0;
 
+    /* Caller should free this by calling nc_free_iter(iterp) */
+    iterp = (nciter_t *) emalloc(sizeof(nciter_t));
     memset((void*)iterp,0,sizeof(nciter_t)); /* make sure it is initialized */
 
     stat = nc_inq_varndims(ncid, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
+    dimids = (int *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+
     stat = nc_inq_vardimid (ncid, varid, dimids);
     CHECK(stat, nc_inq_vardimid);
     for(dim = 0; dim < ndims; dim++) {
@@ -63,7 +81,7 @@ nc_get_iter(int ncid,
 	stat = nc_inq_dimlen(ncid, dimids[dim], &len);
 	CHECK(stat, nc_inq_dimlen);
 	nvalues *= len;
-	dimsizes[dim] = len;
+	iterp->dimsizes[dim] = len;
     }
     stat = nc_inq_vartype(ncid, varid, &vartype);
     CHECK(stat, nc_inq_vartype);
@@ -77,16 +95,17 @@ nc_get_iter(int ncid,
 	    CHECK(stat, nc_inq_var_chunking);
 	}
 	if(contig == 0) {	/* chunked */
-	    stat = nc_inq_var_chunking(ncid, varid, &contig, chunksizes);
+	    stat = nc_inq_var_chunking(ncid, varid, &contig, iterp->chunksizes);
 	    CHECK(stat, nc_inq_var_chunking);
 	    chunked = 1;
 	}
     }
 #endif	/* USE_NETCDF4 */
-    stat = nc_blkio_init(bufsize, value_size, ndims, dimsizes, 
-			 chunked, chunksizes, iterp);
+    stat = nc_blkio_init(bufsize, value_size, ndims, chunked, iterp);
     CHECK(stat, nc_blkio_init);
     iterp->to_get = 0;
+    free(dimids);
+    *iterpp = iterp;
     return stat;
 }
 
@@ -163,6 +182,17 @@ nc_next_iter(nciter_t *iter,	/* returned opaque iteration state */
     return iter->more == 0 ? 0 : iter->to_get ;
 }
 
+/* Free iterator and its internally allocated memory */
+int
+nc_free_iter(nciter_t *iterp) {
+    if(iterp->dimsizes)
+	free(iterp->dimsizes);
+    if(iterp->chunksizes)
+	free(iterp->chunksizes);
+    if(iterp)
+	free(iterp);
+    return NC_NOERR;
+}
 
 /* Initialize block iteration for variables, including those that
  * won't fit in the copy buffer all at once.  Returns error if
@@ -172,21 +202,18 @@ static int
 nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
 	      size_t value_size, /* size in bytes of each variable element */
 	      int rank,		 /* number of dimensions for variable */
-	      const size_t *dims, /* variable dimension sizes */
 	      int chunked,	  /* 1 if variable is chunked, 0 otherwise */
-	      size_t *chunksizes, /* if chunked, variable chunk sizes */
 	      nciter_t *iter /* returned iteration state, don't mess with it */
     ) {
     int stat = NC_NOERR;
     int i;
     long long prod;
+    size_t *dims = iter->dimsizes;
 
     iter->rank = rank;
     iter->first = 1;
     iter->more = 1;
     iter->chunked = chunked;
-    for(i = 0; i < rank; i++)
-	iter->dimsizes[i] = dims[i];
     prod = value_size;
     if(iter->chunked == 0) {	/* contiguous */
 	iter->right_dim = rank - 1;
@@ -214,8 +241,7 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
     } 
     /* else, handle chunked case */
     for(i = 0; i < rank; i++) {
-	iter->chunksizes[i] = chunksizes[i];
-	prod *= chunksizes[i];
+	prod *= iter->chunksizes[i];
     }
     if(prod > bufsize) {
 	stat = NC_ENOMEM;

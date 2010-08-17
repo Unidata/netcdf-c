@@ -1422,7 +1422,9 @@ ncio_new(const char *path, int ioflags)
 #ifndef NCIO_MINBLOCKSIZE
 #define NCIO_MINBLOCKSIZE 256
 #endif
+#ifndef NCIO_MAXBLOCKSIZE
 #define NCIO_MAXBLOCKSIZE 268435456 /* sanity check, about X_SIZE_T_MAX/8 */
+#endif
 
 #ifdef S_IRUSR
 #define NC_DEFAULT_CREAT_MODE \
@@ -1494,10 +1496,15 @@ ncio_create(const char *path, int ioflags,
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
 
-	if(*sizehintp < NCIO_MINBLOCKSIZE || *sizehintp > NCIO_MAXBLOCKSIZE)
+	if(*sizehintp < NCIO_MINBLOCKSIZE)
 	{
 		/* Use default */
 		*sizehintp = blksize(fd);
+	}
+	else if(*sizehintp >= NCIO_MAXBLOCKSIZE)
+	{
+		/* Use maximum allowed value */
+		*sizehintp = NCIO_MAXBLOCKSIZE;
 	}
 	else
 	{
@@ -1618,10 +1625,15 @@ ncio_open(const char *path,
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
 
-	if(*sizehintp < NCIO_MINBLOCKSIZE || *sizehintp > NCIO_MAXBLOCKSIZE)
+	if(*sizehintp < NCIO_MINBLOCKSIZE)
 	{
 		/* Use default */
 		*sizehintp = blksize(fd);
+	}
+	else if(*sizehintp >= NCIO_MAXBLOCKSIZE)
+	{
+		/* Use maximum allowed value */
+		*sizehintp = NCIO_MAXBLOCKSIZE;
 	}
 	else
 	{

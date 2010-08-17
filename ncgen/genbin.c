@@ -448,36 +448,43 @@ genbin_definevardata(Symbol* vsym)
     int varid, grpid;
     int rank;
     Bytebuffer* memory;
-    Datasrc* src;
-    int chartype = (vsym->typ.basetype->typ.typecode == NC_CHAR);
     nciter_t iter;
     Odometer* odom = NULL;
     size_t nelems;
+    int chartype = (vsym->typ.basetype->typ.typecode == NC_CHAR);
     Datalist* fillsrc = vsym->var.special._Fillvalue;
+    int isscalar = (vsym->typ.dimset.ndims == 0);
 
     grpid = vsym->container->ncid,
     varid = vsym->ncid;
     rank = vsym->typ.dimset.ndims;
 
     memory = bbNew();
-
     /* give the buffer a running start to be large enough*/
     bbSetalloc(memory, nciterbuffersize);
 
     if(vsym->data == NULL) return;
-    src = datalist2src(vsym->data);
-    if(vsym->typ.dimset.ndims == 0) { /*scalar */
-	bindata_basetype(vsym->typ.basetype,src,memory,fillsrc); /*scalar*/
-        if(bbLength(memory) > 0)
-	    genbin_write(vsym,memory,odom,1);
-    } else { /* This is the heavy lifing */
-        /* Create an iterator to generate blocks of data */
-        nc_get_iter(vsym,nciterbuffersize,&iter);
-        /* Fill in the local odometer instance */
+
+    /* Generate character constants separately */    
+    if(!isscalar && chartype) {
+        gen_chararray(vsym,memory,fillsrc);
+	/* generate a corresponding odometer */
         odom = newodometer(&vsym->typ.dimset,NULL,NULL);
-        for(;;) {
-	    nelems=nc_next_iter(&iter,odom->start,odom->count);
-	    if(nelems == 0) break;
+        genbin_write(vsym,memory,odom,0);
+    } else { /* not character constant */
+        Datasrc* src = datalist2src(vsym->data);
+        if(isscalar) { /*scalar */
+            bindata_basetype(vsym->typ.basetype,src,memory,fillsrc); /*scalar*/
+            if(bbLength(memory) > 0)
+                genbin_write(vsym,memory,odom,1);
+        } else { /* This is the heavy lifing */
+            /* Create an iterator to generate blocks of data */
+            nc_get_iter(vsym,nciterbuffersize,&iter);
+            /* Fill in the local odometer instance */
+            odom = newodometer(&vsym->typ.dimset,NULL,NULL);
+            for(;;) {
+                nelems=nc_next_iter(&iter,odom->start,odom->count);
+                if(nelems == 0) break;
 if(debug > 0) {/*dump the iteration info*/
 int i;
 fprintf(stderr,"iter: %s->start[",vsym->name);
@@ -488,16 +495,14 @@ for(i=0;i<odom->rank;i++)
 fprintf(stderr,"%s%lu",(i==0?"":","),(unsigned long)odom->count[i]);
 fprintf(stderr,"]\n");
 }
-            if(chartype) {/* Handle character case separately */
-                gen_chararray(vsym,memory,src,odom,0);
-    	    } else
                 bindata_array(vsym,memory,src,odom,/*index=*/0,fillsrc);
-   	    /* Dump this chunk of (non-scalar) memory */
-	    genbin_write(vsym,memory,odom,0);
-	}
-        /* Write any residual data */
-        if(bbLength(memory) > 0)
-	    genbin_write(vsym,memory,odom,0);
+                /* Dump this chunk of (non-scalar) memory */
+                genbin_write(vsym,memory,odom,0);
+            }
+            /* Write any residual data */
+            if(bbLength(memory) > 0)
+                genbin_write(vsym,memory,odom,0);
+        }
     }
     odometerfree(odom);
     bbFree(memory);
@@ -507,6 +512,7 @@ static void
 genbin_write(Symbol* vsym, Bytebuffer* memory, Odometer* odom, int scalar)
 {
     int stat = NC_NOERR;
+
 if(!scalar && debug > 0) {
     int i;
     fprintf(stderr,"startset = [");

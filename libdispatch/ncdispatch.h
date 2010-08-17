@@ -3,8 +3,8 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-/* $Id: dispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libdispatch/dispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
+/* $Id: ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
+/* $Header: /upc/share/CVS/netcdf-3/libdispatch/ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
 
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
@@ -155,7 +155,9 @@ struct NC;
 #define MPI_Comm int
 #define MPI_Info int
 #define MPI_COMM_WORLD 0
+#ifndef MPI_INFO_NULL
 #define MPI_INFO_NULL 0
+#endif
 #endif
 #endif
 

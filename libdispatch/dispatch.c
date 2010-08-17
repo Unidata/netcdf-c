@@ -1,8 +1,10 @@
-#include "dispatch.h"
+#include "ncdispatch.h"
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
+/*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
-/*static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);*/
+static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
+*/
 
 NC_Dispatch* NC3_dispatch_table = NULL;
 

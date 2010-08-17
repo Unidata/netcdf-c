@@ -51,13 +51,13 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-#ifndef USE_DISPATCH
+#ifdef FIX
       /* Make sure bad mode causes failure in nc_open. */
       if (nc_open(FILE_NAME, NC_CLASSIC_MODEL, &ncid) != NC_EINVAL) ERR;
 #endif
       if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
 
-#ifndef USE_DISPATCH
+#ifdef FIX
       /* Make sure bad mode causes failure for nc_create. */
       if (nc_create(FILE_NAME, NC_WRITE, &ncid) != NC_EINVAL) ERR;
 #endif
@@ -309,7 +309,7 @@ main(int argc, char **argv)
       int dimid;
       size_t count[NDIMS], index[NDIMS] = {0};
       const char ttext[TEXT_LEN + 1] = "20051224.150000";
-      const char ttext_in[TEXT_LEN + 1];
+      char ttext_in[TEXT_LEN + 1];
       char file_name[NC_MAX_NAME + 1];
       size_t chunks[NDIMS] = {TEXT_LEN + 1};
       int f;
@@ -456,9 +456,6 @@ test_redef(int format)
 	    ERR;
 	}
    }
-//   if ((format != NC_FORMAT_NETCDF4 && ret != NC_ENOTINDEFINE) ||
-//       (format == NC_FORMAT_NETCDF4 && ret != NC_EPERM)) ERR;
-
    /* This will fail. */
    if (!nc_put_att_uchar(ncid, NC_GLOBAL, REDEF_ATT3_NAME, NC_CHAR, 1, &uchar_out)) ERR;
    if (nc_close(ncid)) ERR;      

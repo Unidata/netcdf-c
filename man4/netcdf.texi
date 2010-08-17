@@ -1180,7 +1180,7 @@ The names of dimensions, variables and attributes (and, in netCDF-4
 files, groups, user-defined types, compound member names, and
 enumeration symbols) consist of arbitrary sequences of alphanumeric
 characters, underscore '_', period '.', plus '+', hyphen '-', or at
-sign '@@', but beginning with a letter or underscore.  However names
+sign '@@', but beginning with an alphanumeric character or underscore.  However names
 commencing with underscore are reserved for system use.  Case is
 significant in netCDF names. A zero-length name is not allowed.  Some
 widely used conventions restrict names to only alphanumeric characters
@@ -3879,6 +3879,36 @@ Also, if you are accessing data over an NFS mount,
 you may see some .nfsxxxxx files; those can be ignored
 as well.
 
+@subsection ESG SSL Support
+Limited support for SSL is provided via parameters in the
+``.dodsrc'' configuration file as provided by the oc library
+(see @uref{http://opendap.org/download/oc.html}), which
+is included as part of the standard netCDF distribution.
+Note that the SSL support was added at the
+request of the Earth System Grid (ESG) and as such
+it provides the minimum needed for accessing ESG data.
+
+The .dodsrc parameters needed to access SSL
+are the following:
+
+@itemize
+@item CURL.SSL.VALIDATE
+@item CURL.COOKIEJAR
+@item CURL.SSL.CERTIFICATE
+@item CURL.SSL.KEY
+@item CURL.SSL.CAPATH
+@end itemize
+
+For ESG, the CURL.SSL.CERTIFICATE and CURL.SSL.KEY entries
+should have same value,
+which is the file path for the certificate produced by MyProxyLogon.
+The CURL.SSL.CAPATH entry should be the path to the "certificates"
+directory produced by MyProxyLogon.
+
+Support for other SSL servers can be added by sending a request
+to support-netcdf@@unidata.ucar.edu.
+
+
 @node NetCDF Utilities, Units, Structure, Top
 @chapter NetCDF Utilities
 @cindex utilities
@@ -5888,7 +5918,7 @@ Currently, the following four dispatch tables are supported.
 The dispatch table represents a distillation of the
 netcdf API down to a minimal set of internal operations. The
 format of the dispatch table is defined in the file
-libdispatch/dispatch.h.  Every new dispatch table must
+libdispatch/ncdispatch.h.  Every new dispatch table must
 define this minimal set of operations.
 
 @unnumberedsec Adding a New Dispatch Table
@@ -5908,7 +5938,7 @@ used for non-static procedures to be entered into the
 dispatch table and ncm for all other non-static procedures.
 
 @unnumberedsec Step 3.
-Modify file libdispatch/dispatch.h as follows.
+Modify file libdispatch/ncdispatch.h as follows.
 @itemize
 @item Add a index for this implementation: 
 @example
@@ -5965,12 +5995,10 @@ Assuming that the in-memory library does not require any
 external libraries, then the Makefile.am will look something
 like this.
 @example
-if USE_DISPATCH
 NCM_SOURCES = ncmdispatch.c ncmdispatch.h ...
 AM_CPPFLAGS +=  -I$(top_srcdir)/libsrc -I$(top_srcdir)/libdispatch
 libnetcdfm_la_SOURCES = $(NCM_SOURCES)
 noinst_LTLIBRARIES = libnetcdfm.la
-endif #USE_DISPATCH
 @end example
 
 @unnumberedsec Step 6.
@@ -6175,14 +6203,6 @@ create a number of stub definitions so that the library will
 compile and load with the test cases. The file
 libsrc/stub3.c shows a typical stub file.
 
-@item
-In order avoid adding massive numbers of #ifdef
-USE_DISPATCH conditionals, I have duplicated certain files
-in libsrc, libsrc4, libncdap3 and libncdap4.  The files for
-use with dispatch are prefixed with "d_". Thus for
-libsrc4/nc4file.c, there is a corresponding
-libsrc4/d_nc4file.c If you make changes to one file, you
-should see if they need to also be made to the other file.
 @end enumerate
 
 @node Combined Index,  , Internal Dispatch Table, Top

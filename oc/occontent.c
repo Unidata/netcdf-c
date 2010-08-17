@@ -435,17 +435,17 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     content->packed = packed;
 
     /* Make sure we are at the proper offset: ie at count if !scalar */
-    if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror();
+    if(!xdr_setpos(xdrs,content->xdrpos.offset)) goto shortxdr;
 
     if(!isscalar) {
         /* Collect the dimension count from the xdr data packet*/
-        if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
+        if(!xdr_u_int(xdrs,&xdrcount)) goto shortxdr;
         if(xdrcount < start) return THROW(OC_EINVALCOORDS);
         if(xdrcount < start+count) return THROW(OC_EINVALCOORDS);
         /* pull out redundant second count*/
         /* (note that String/URL do not have redundant count)*/
         if(etype != OC_String && etype != OC_URL) {
-            if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
+            if(!xdr_u_int(xdrs,&xdrcount)) goto shortxdr;
         }
     }
     /* Extract the data */
@@ -456,6 +456,9 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror(); /* restore location*/
 done:
     return THROW(stat);
+shortxdr:
+    oc_log(LOGERR,"DAP DATADDS appears to be too short");
+    return OC_EDATADDS;
 }
 
 static int
@@ -465,7 +468,9 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     OCmemdata* md = content->memdata;
     unsigned short* d16;
     unsigned int* d32;
+#ifdef HAVE_LONG_LONG_INT
     unsigned long long* d64;
+#endif
     char* dchar;
     char** dstring;
     size_t totalsize;
@@ -492,10 +497,12 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
 	d32 = (unsigned int*)md->data.data;
 	memcpy((void*)memory,(void*)(d32+start),totalsize);
 	break;
+#ifdef HAVE_LONG_LONG_INT
     case OC_Int64: case OC_UInt64: case OC_Float64:
 	d64 = (unsigned long long*)md->data.data;
 	memcpy((void*)memory,(void*)(d64+start),totalsize);	    
 	break;
+#endif
     case OC_String: case OC_URL: {
 	unsigned int i;
 	char** memstrings = (char**)memory;

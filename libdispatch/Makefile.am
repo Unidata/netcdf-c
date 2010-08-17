@@ -16,7 +16,7 @@ AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/liblib -I${top_srcdir}/lib
 noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
-libdispatch_la_SOURCES = dispatch.h parallel.c copy.c file.c dim.c	\
+libdispatch_la_SOURCES = ncdispatch.h parallel.c copy.c file.c dim.c	\
 att.c error.c var.c dispatch.c
 
 # Add functions only found in netCDF-4.
@@ -36,6 +36,7 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = v2i.c
 endif # BUILD_V2
 
-
-
+.PHONY: visualstudio
+visualstudio:
+	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libdispatch_la_SOURCES}"
 
