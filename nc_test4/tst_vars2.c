@@ -741,7 +741,7 @@ main(int argc, char **argv)
       int data[DIM6_LEN], data_in[DIM6_LEN];
       size_t chunksize_in[NDIMS6];
       int storage_in;
-      int i, d;
+      int i;
 
       for (i = 0; i < DIM6_LEN; i++)
          data[i] = i;
