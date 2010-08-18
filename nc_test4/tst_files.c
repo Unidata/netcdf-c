@@ -37,8 +37,8 @@ main(int argc, char **argv)
 
       /* Test with netCDF-4 create. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_inq_path(ncid, &path_len, path_in)) ERR;
-      if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;
+/*      if (nc_inq_path(ncid, &path_len, path_in)) ERR;
+	if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;*/
       if (nc_close(ncid)) ERR;
       strcpy(path_in, "");
 
