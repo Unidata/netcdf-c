@@ -2795,6 +2795,11 @@ NC4_inq_path(int ncid, size_t *pathlen, char *path)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
+   if (pathlen)
+      *pathlen = strlen(h5->path);
+   if (path)
+      strcpy(path, h5->path);
+
    return NC_NOERR;
 }
 
