@@ -617,11 +617,6 @@ nc4_file_list_add(NC_FILE_INFO_T** ncp)
 void
 nc4_file_list_del(NC_FILE_INFO_T *nc)
 {
-   /* Delete the memory for the path, if it's been allocated. */
-   if (nc->nc4_info)
-      if (nc->nc4_info->path)
-	 free(nc->nc4_info->path);
-
    /* Remove file from master list. */
    del_from_NCList((NC *)nc);
    free(nc);
@@ -975,6 +970,11 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       if (var->type_info->close_hdf_typeid || var->xtype == NC_STRING)
 	 if ((H5Tclose(var->type_info->hdf_typeid)) < 0)
 	    return NC_EHDFERR;
+
+      /* Free the name. */
+      if (var->type_info->name)
+	 free(var->type_info->name);
+
       free(var->type_info);
    }
    

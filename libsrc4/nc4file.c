@@ -2603,6 +2603,10 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	return NC_EHDFERR;	 */
    }
 
+   /* Delete the memory for the path, if it's been allocated. */
+   if (h5->path)
+      free(h5->path);
+
    /* Free the nc4_info struct. */
    free(h5);
    return NC_NOERR;

@@ -318,8 +318,7 @@ nc_inq_path(int ncid, size_t *pathlen, char *path)
 
    if ((stat = NC_check_id(ncid, &ncp)))
       return stat;
-
-   return NC_NOERR;
+   return ncp->dispatch->inq_path(ncid, pathlen, path);
 }
 
 int
