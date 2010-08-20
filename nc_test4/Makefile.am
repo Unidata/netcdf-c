@@ -15,7 +15,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
 
 # Our test programs and sources. (tst_h_vl2 must come after tst_vl.)
 NC4_TEST_PROGS = t_type cdm_sea_soundings tst_camrun tst_vl tst_atts	\
-tst_atts2 tst_vars2 tst_files
+tst_atts2 tst_vars2 tst_files tst_files2
 cdm_sea_soundings_SOURCES = cdm_sea_soundings.c tests.h
 tst_camrun_SOURCES = tst_camrun.c tests.h
 

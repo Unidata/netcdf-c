@@ -43,8 +43,8 @@ free_NC(NC *ncp)
 {
 	if(ncp == NULL)
 		return;
-/*	if (ncp->path)
-	free(ncp->path);*/
+	if (ncp->path)
+	   free(ncp->path);
 	free_NC_dimarrayV(&ncp->dims);
 	free_NC_attrarrayV(&ncp->attrs);
 	free_NC_vararrayV(&ncp->vars);
@@ -890,12 +890,12 @@ NC3_create(const char *path, int ioflags,
 	if(ncp == NULL)
 		return NC_ENOMEM;
 
-/* 	if (path) */
-/* 	{ */
-/* 	   if (!(ncp->path = malloc(strlen(path)))) */
-/* 	      return NC_ENOMEM; */
-/* 	   strcpy(ncp->path, path); */
-/* 	} */
+	if (path)
+	{
+	   if (!(ncp->path = malloc(strlen(path) + 1)))
+	      return NC_ENOMEM;
+	   strcpy(ncp->path, path);
+	}
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(ncp, basepe)) {
@@ -1017,12 +1017,12 @@ NC3_open(const char * path, int ioflags,
 		return NC_ENOMEM;
 
 	/* Keep a copy of the path. */
-/* 	if (path) */
-/* 	{ */
-/* 	   if (!(ncp->path = malloc(strlen(path)))) */
-/* 	      return NC_ENOMEM; */
-/* 	   strcpy(ncp->path, path); */
-/* 	} */
+	if (path)
+	{
+	   if (!(ncp->path = malloc(strlen(path) + 1)))
+	      return NC_ENOMEM;
+	   strcpy(ncp->path, path);
+	}
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(ncp, basepe)) {
@@ -1516,16 +1516,16 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 int
 NC3_inq_path(int ncid, size_t *pathlen, char *path)
 {
-/*    int status; */
-/*    NC *ncp; */
+   int status;
+   NC *ncp;
 
-/*    if ((status = NC_check_id(ncid, &ncp))) */
-/*       return status; */
+   if ((status = NC_check_id(ncid, &ncp)))
+      return status;
 
-/*    if (pathlen) */
-/*       *pathlen = strlen(ncp->path); */
-/*    if (path) */
-/*       strcpy(path, ncp->path); */
+   if (pathlen)
+      *pathlen = strlen(ncp->path);
+   if (path)
+      strcpy(path, ncp->path);
    
    return NC_NOERR;
 }

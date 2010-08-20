@@ -21,19 +21,20 @@ main(int argc, char **argv)
       size_t path_len;
       char path_in[NC_MAX_NAME + 1] = "";
 
-/*       /\* Test with classic file create. *\/ */
-/*       if (nc_create(FILE_NAME, 0, &ncid)) ERR; */
-/*       if (nc_inq_path(ncid, &path_len, path_in)) ERR; */
-/*       /\*if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;*\/ */
-/*       if (nc_close(ncid)) ERR; */
-/*       strcpy(path_in, ""); */
+      /* Test with classic file create. */
+      if (nc_create(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_inq_path(ncid, &path_len, path_in)) ERR;
+      if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;
+      if (nc_close(ncid)) ERR;
+      strcpy(path_in, "");
+      path_len = 0;
 
-/*       /\* Test with classic file open. *\/ */
-/*       if (nc_open(FILE_NAME, 0, &ncid)) ERR; */
-/*       if (nc_inq_path(ncid, &path_len, path_in)) ERR; */
-/*       /\*if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;*\/ */
-/*       if (nc_close(ncid)) ERR; */
-/*       strcpy(path_in, ""); */
+      /* Test with classic file open. */
+      if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+      if (nc_inq_path(ncid, &path_len, path_in)) ERR;
+      if (path_len != strlen(FILE_NAME) || strcmp(path_in, FILE_NAME)) ERR;
+      if (nc_close(ncid)) ERR;
+      strcpy(path_in, "");
 
       /* Test with netCDF-4 create. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -51,7 +52,7 @@ main(int argc, char **argv)
       strcpy(path_in, "");
       path_len = 0;
 
-/* #ifdef USE_DAP       */
+/* #ifdef USE_DAP */
 /*       /\* Test with URL. *\/ */
 /*       if (nc_open(URL, 0, &ncid)) ERR; */
 /*       if (nc_inq_path(ncid, &path_len, path_in)) ERR; */
