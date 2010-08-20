@@ -11,6 +11,7 @@
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
+#include <netcdf.h>
 
 /* Use these with nc_var_par_access(). */
 #define NC_INDEPENDENT 0
