@@ -306,6 +306,8 @@ struct NC {
 	 */
 	ushmem_t lock[LOCKNUMREC_DIM];
 #endif
+        /* Save the path name. */
+        char *path;
 };
 
 #define NC_readonly(ncp) \

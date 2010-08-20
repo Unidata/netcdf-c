@@ -2603,6 +2603,10 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	return NC_EHDFERR;	 */
    }
 
+   /* Delete the memory for the path, if it's been allocated. */
+   if (h5->path)
+      free(h5->path);
+
    /* Free the nc4_info struct. */
    free(h5);
    return NC_NOERR;
@@ -2733,11 +2737,10 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
       return ncmpi_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimdimidp);
 #endif /* USE_PNETCDF */
 
-   /* Take care of netcdf-3 files. */
-   assert(h5);
+   /* Netcdf-3 files are already taken care of. */
+   assert(h5 && grp && nc);
 
    /* Count the number of dims, vars, and global atts. */
-   assert(h5 && grp && nc);
    if (ndimsp)
    {
       *ndimsp = 0;
@@ -2777,6 +2780,27 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    }
 
    return NC_NOERR;   
+}
+
+/* Learn the path used to open/create the file. */
+int
+NC4_inq_path(int ncid, size_t *pathlen, char *path)
+{
+   NC_FILE_INFO_T *nc;
+   NC_HDF5_FILE_INFO_T *h5;
+   NC_GRP_INFO_T *grp;
+   int retval;
+
+   /* Find file metadata. */
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+      return retval;
+
+   if (pathlen)
+      *pathlen = strlen(h5->path);
+   if (path)
+      strcpy(path, h5->path);
+
+   return NC_NOERR;
 }
 
 /* This function will do the enddef stuff for a netcdf-4 file. */
