@@ -94,6 +94,7 @@ NC3_set_base_pe,
 NC3_inq_format,
 
 NC3_inq,
+NC3_inq_path,
 NC3_inq_type,
 
 NC3_def_dim,

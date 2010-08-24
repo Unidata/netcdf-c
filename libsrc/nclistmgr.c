@@ -1,8 +1,6 @@
 /*********************************************************************
    Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for
    copying and redistribution conditions.
-
-   $Id: nclistmgr.c,v 2.3 2010/05/26 11:11:26 ed Exp $
  *********************************************************************/
 
 #include <config.h>
@@ -66,7 +64,7 @@ del_from_NCList(NC* ncp)
    numfiles--;
 }
 
-NC*
+NC *
 find_in_NCList(int ext_ncid)
 {
    NC* f = NULL;

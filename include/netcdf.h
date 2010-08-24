@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-2009 University Corporation for Atmospheric Research/Unidata
+ * Copyright 1993-2010 University Corporation for Atmospheric Research/Unidata
  * 
  * Portions of this software were developed by the Unidata Program at the 
  * University Corporation for Atmospheric Research.
@@ -37,7 +37,8 @@
 
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <errno.h>  /* netcdf functions sometimes return system errors */
-/* These defs added by netCDF configure because parallel HDF5 is not present. */
+
+/* The nc_type type is just an int. */
 typedef int nc_type;
 
 #if defined(__cplusplus)
@@ -381,10 +382,16 @@ nc__open(const char *path, int mode,
 EXTERNL int
 nc_open(const char *path, int mode, int *ncidp);
 
+/* Learn the path used to open/create the file. */
+EXTERNL int
+nc_inq_path(int ncid, size_t *pathlen, char *path);
+
 /* Use these with nc_var_par_access(). */
 #define NC_INDEPENDENT 0
 #define NC_COLLECTIVE 1
 
+/* Set parallel access for a variable to independent (the default) or
+ * collective. */
 EXTERNL int
 nc_var_par_access(int ncid, int varid, int par_access);
 
@@ -1622,10 +1629,10 @@ nc__open_mp(const char *path, int mode, int basepe,
 	size_t *chunksizehintp, int *ncidp);
 
 EXTERNL int
-nc_delete(const char * path);
+nc_delete(const char *path);
 
 EXTERNL int
-nc_delete_mp(const char * path, int basepe);
+nc_delete_mp(const char *path, int basepe);
 
 EXTERNL int
 nc_set_base_pe(int ncid, int pe);
