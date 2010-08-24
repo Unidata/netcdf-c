@@ -1,0 +1,12 @@
+netcdf t {
+variables:
+int variables;
+int dimensions;
+int data;
+int group;
+data:
+variables=0;
+dimensions=0;
+data=0;
+group=0;
+}

@@ -46,12 +46,10 @@ endif
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
-#ncgenyy.c: ncgen.l
-#	flex -Pncg -8 ncgen.l
-#	rm -f ncgenyy.c
-#	mv lex.ncg.c ncgenyy.c
-#
-#ncgentab.c: ncgen.y ncgenyy.c
-#	bison -pncg -t ncgen.y
-#	rm -f ncgentab.c
-#	mv ncgen.tab.c ncgentab.c
+makeparser::
+	flex -Pncg -8 ncgen.l
+	rm -f ncgenyy.c
+	mv lex.ncg.c ncgenyy.c
+	bison -v -pncg -t ncgen.y
+	rm -f ncgentab.c
+	mv ncgen.tab.c ncgentab.c
