@@ -212,11 +212,12 @@ double|DOUBLE		{return lexdebug(DOUBLE_K);}
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 
-group:|GROUP:		{return lexdebug(GROUP);}
-types:|TYPES:		{return lexdebug(TYPES);}
-dimensions:|DIMENSIONS:	{return lexdebug(DIMENSIONS);}
-variables:|VARIABLES:	{return lexdebug(VARIABLES);}
-data:|DATA:		{return lexdebug(DATA);}
+types:			{return lexdebug(TYPES);}
+dimensions:		{return lexdebug(DIMENSIONS);}
+variables:		{return lexdebug(VARIABLES);}
+data:			{return lexdebug(DATA);}
+group:			{return lexdebug(GROUP);}
+
 (netcdf|NETCDF|netCDF)  {BEGIN(TEXT);return lexdebug(NETCDF);}
 
 DoubleInf|NaN|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
