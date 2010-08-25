@@ -194,14 +194,18 @@ A CDL description consists of five optional parts:
 \fIvariables\fP,
 \fIdata\fP,
 beginning with the keyword
-.BR types: ,
-.BR dimensions: ,
-.BR variables: ,
+.BR `types:' ,
+.BR `dimensions:' ,
+.BR `variables:' ,
 and
-.BR data ,
+.BR `data:',
 respectively.
-The variable part may contain \fIvariable
-declarations\fP and \fIattribute assignments\fP.
+Note several things:
+(1) the keyword includes the trailing colon, so there must not be any space before the colon character,
+and (2) the keywords are required to be lower case.
+.LP
+The \fBvariables:\fP section may contain \fIvariable declarations\fP
+and \fIattribute assignments\fP.
 All sections may contain global attribute assignments.
 .LP
 In addition, after the \fBdata:\fP section, the user
@@ -209,7 +213,7 @@ may define a series of groups (see the example above).
 Groups themselves can contain types, dimensions, variables,
 data, and other (nested) groups.
 .LP
-The netCDF \fBtype\fP section declares the user defined types.
+The netCDF \fBtypes:\fP section declares the user defined types.
 These may be constructed using any of the following types:
 \fBenum\fP, \fBvlen\fP, \fBopaque\fP, or \fBcompound\fP.
 .LP
@@ -267,11 +271,41 @@ values are assigned to non-character attributes by separating the
 values with commas.  All values assigned to an attribute must be of
 the same type.
 .LP
-The names for CDL dimensions, variables, and attributes must begin with an
-alphabetic character or `_', and subsequent characters may be alphanumeric
-or `_' or `-'.
+The names for CDL dimensions, variables, attributes, types, and groups
+may contain any non-control utf-8 character
+except the forward slash character (`/').
+However, certain characters must escaped if they are used in a name,
+where the escape character is the backward slash `\\'.
+In particular, if the leading character off the name is a digit (0-9),
+then it must be preceded by the escape character.
+In addition, the characters ` !"#$%&()*,:;<=>?[]^`\'{}|~\\'
+must be escaped if they occur anywhere in a name.
 .LP
-The optional \fIdata\fP section of a CDL specification is where
+Note also that the words
+`variable',
+`dimension',
+`data',
+`group',
+and `types'
+are legal CDL names, but be careful that there is a space
+between them and any following colon character.
+This is mostly an issue with attribute declarations.
+For example, consider this.
+.HP
+.RS
+.nf
+netcdf ... {
+...
+variables:
+    int dimensions;
+        dimensions: attribute=0 ; // this will cause an error
+        dimensions : attribute=0 ; // this is ok.
+...
+}
+.fi
+.RE
+.LP
+The optional \fBdata:\fP section of a CDL specification is where
 netCDF variables may be initialized.  The syntax of an initialization
 is simple: a variable name, an equals sign, and a
 comma-delimited list of constants (possibly separated by spaces, tabs
