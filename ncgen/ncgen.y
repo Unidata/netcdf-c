@@ -64,7 +64,6 @@ char* primtypenames[PRIMNO] = {
 /*Defined in ncgen.l*/
 extern int lineno;              /* line number for error messages */
 extern char* lextext;           /* name or string with escapes removed */
-extern char keywordtext[];
 
 extern double double_val;       /* last double value read */
 extern float float_val;         /* last float value read */
@@ -116,7 +115,6 @@ static void yyerror(fmt,va_alist) const char* fmt; va_dcl;
 
 /* Extern */
 extern int lex_init(void);
-extern Symbol* makepath(char* text);
 
 %}
 
@@ -183,7 +181,7 @@ Constant       constant;
 %type <sym> typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
 %type <sym> typeref
-%type <sym> varname varref
+%type <sym> varref
 %type <sym> type_var_ref
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
@@ -502,7 +500,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(elem_t)$3);}
             ;
 
-varspec:        varname dimspec
+varspec:        IDENT dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -528,18 +526,6 @@ varspec:        varname dimspec
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		    }
                 ;
-
-/* Allow some keywords as variable names;
-   make sure this list conforms to the list in ncgen.l
-   (look for calls to keywordcapture).
-*/
-varname:
-	  IDENT {$$=$1;}
-	| VARIABLES {$$=makepath(keywordtext);}
-	| DIMENSIONS {$$=makepath(keywordtext);}
-	| DATA {$$=makepath(keywordtext);}
-	| GROUP {$$=makepath(keywordtext);}
-	;
 
 dimspec:        /* empty */ {$$=listlength(stack);}
                 | '(' dimlist ')' {$$=$2;}

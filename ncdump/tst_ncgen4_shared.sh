@@ -32,8 +32,7 @@ ref_tst_small \
 small2 \
 tst_ncml
 n3time \
-ref_tst_chardata \
-ref_keywordtest"
+ref_tst_chardata"
 
 NONCLASSIC3="\
 test0 \

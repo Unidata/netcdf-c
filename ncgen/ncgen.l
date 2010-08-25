@@ -39,7 +39,6 @@ char errstr[100];		/* for short error messages */
 
 int lineno;              /* line number for error messages */
 char* lextext;           /* name or string with escapes removed */
-char keywordtext[1+4*NC_MAX_NAME];
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
 				   statement warnings from flex output, 
@@ -58,8 +57,8 @@ char char_val;                 /* last char value read */
 signed char byte_val;                 /* last byte value read */
 unsigned char ubyte_val;       /* last byte value read */
 
+static Symbol* makepath(char* text);
 static int lexdebug(int);
-static void keywordcapture(char* text, int leng);
 
 static struct Specialtoken {
     char* name;
@@ -213,13 +212,12 @@ double|DOUBLE		{return lexdebug(DOUBLE_K);}
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 
+group:|GROUP:		{return lexdebug(GROUP);}
+types:|TYPES:		{return lexdebug(TYPES);}
+dimensions:|DIMENSIONS:	{return lexdebug(DIMENSIONS);}
+variables:|VARIABLES:	{return lexdebug(VARIABLES);}
+data:|DATA:		{return lexdebug(DATA);}
 (netcdf|NETCDF|netCDF)  {BEGIN(TEXT);return lexdebug(NETCDF);}
-
-group:|GROUP:		{keywordcapture(yytext,yyleng);return lexdebug(GROUP);}
-types:|TYPES:		{keywordcapture(yytext,yyleng);return lexdebug(TYPES);}
-dimensions:|DIMENSIONS:	{keywordcapture(yytext,yyleng);return lexdebug(DIMENSIONS);}
-variables:|VARIABLES:	{keywordcapture(yytext,yyleng);return lexdebug(VARIABLES);}
-data:|DATA:		{keywordcapture(yytext,yyleng); return lexdebug(DATA);}
 
 DoubleInf|NaN|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
@@ -532,7 +530,7 @@ lex_init(void)
     return 0;
 }
 
-Symbol*
+static Symbol*
 makepath(char* text0)
 {
     /* Convert path to a sequence of symbols */
@@ -589,12 +587,4 @@ makepath(char* text0)
 	free(text);
     }
     return sym;
-}
-
-static void
-keywordcapture(char* text, int len)
-{
-    if(len >= sizeof(keywordtext)) len = (sizeof(keywordtext)-1);
-    strncpy(keywordtext,text,len); /* include null */
-    keywordtext[len] = '\0';
 }
