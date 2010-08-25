@@ -217,12 +217,13 @@ groupbody:
 
 subgrouplist: /*empty*/ | subgrouplist namedgroup;
 
-namedgroup: GROUP IDENT '{'
+namedgroup: GROUP optcolon IDENT '{'
             {
+		Symbol* id = $3;
                 if(usingclassic) {verror("Group specification");}
-		if(creategroup($2) == NULL) 
+		if(creategroup(id) == NULL) 
                     yyerror("duplicate group declaration within parent group for %s",
-                                $2->name);
+                                id->name);
             }
             groupbody
             subgrouplist
@@ -231,6 +232,8 @@ namedgroup: GROUP IDENT '{'
 	    attrdecllist
 	    ;
       
+optcolon: ':' | /*empty*/ ;
+
 typesection:    /* empty */
                 | TYPES {}
 		| TYPES typedecls {if(usingclassic)verror("Type specification");}

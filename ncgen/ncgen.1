@@ -170,11 +170,11 @@ netcdf foo {  // an example netCDF specification in CDL
 \fBdata\fP:
 	lat   = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90;
 	lon   = -140, -118, -96, -84, -52;
-\fBgroup\fP g {
+\fBgroup\fP: g {
 \fBtypes\fP:
     \fIcompound\fP cmpd_t { \fIvlen_t\fP f1; \fIenum_t\fP f2;};
 } // group g
-\fBgroup\fP h {
+\fBgroup\fP: h {
 \fBvariables\fP:
 	/g/\fIcmpd_t\fP  compoundvar;
 \fBdata\fP:
@@ -285,7 +285,6 @@ Note also that the words
 `variable',
 `dimension',
 `data',
-`group',
 and `types'
 are legal CDL names, but be careful that there is a space
 between them and any following colon character.
