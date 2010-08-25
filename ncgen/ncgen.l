@@ -216,8 +216,7 @@ types:			{return lexdebug(TYPES);}
 dimensions:		{return lexdebug(DIMENSIONS);}
 variables:		{return lexdebug(VARIABLES);}
 data:			{return lexdebug(DATA);}
-
-group			{return lexdebug(GROUP);}
+group:			{return lexdebug(GROUP);}
 
 (netcdf|NETCDF|netCDF)  {BEGIN(TEXT);return lexdebug(NETCDF);}
 
