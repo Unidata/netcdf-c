@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 2009, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   "$Id$"
+ *   "$Header: /upc/share/CVS/netcdf-3/ncdump/nciter.c,v 1.8 2010/04/04 19:57:57 dmh Exp $"
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */

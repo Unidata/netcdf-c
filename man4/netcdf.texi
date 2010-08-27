@@ -1564,7 +1564,7 @@ The extended CDL syntax for the enhanced
 data model supported by netCDF-4 allows optional type specifications,
 including user-defined types, for
 attributes of user-defined types.  See ncdump output or the reference
-documentation for ncgen for details of the extended CDL systax.
+documentation for ncgen4 for details of the extended CDL systax.
 
 In the netCDF example (@pxref{Data Model}), units is an attribute for
 the variable lat that has a 13-character array value
@@ -3929,9 +3929,9 @@ netCDF software distribution:
 reads a netCDF dataset and prints a textual representation of
 the information in the dataset
 
-@item ncgen
+@item ncgen/ncgen4
 reads a textual representation of a netCDF dataset and generates
-the corresponding binary netCDF file or a program to
+the corresponding binary netCDF file or a C or FORTRAN program to
 create the netCDF dataset
 
 @item nccopy
@@ -3947,8 +3947,8 @@ software that can access or manipulate netCDF data, see the NetCDF
 Software list,
 @uref{@value{netcdf-url}/software.html}.
 
-This chapter describes the ncgen and ncdump utilities.
-These tools
+This chapter describes the ncgen, ncgen4, and ncdump utilities.
+These three tools
 convert between binary netCDF datasets and a text representation of
 netCDF datasets. The output of ncdump and the input to ncgen is a text
 description of a netCDF dataset in a tiny language known as CDL
