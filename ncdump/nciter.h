@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 2009, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   "$Id: nciter.h,v 1.4 2010/02/01 21:44:04 russ Exp $"
+ *   "$Id$"
  *********************************************************************/
 
 #ifndef _NCITER_
