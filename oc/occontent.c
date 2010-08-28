@@ -468,7 +468,9 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     OCmemdata* md = content->memdata;
     unsigned short* d16;
     unsigned int* d32;
+#ifdef HAVE_LONG_LONG_INT
     unsigned long long* d64;
+#endif
     char* dchar;
     char** dstring;
     size_t totalsize;
@@ -495,10 +497,12 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
 	d32 = (unsigned int*)md->data.data;
 	memcpy((void*)memory,(void*)(d32+start),totalsize);
 	break;
+#ifdef HAVE_LONG_LONG_INT
     case OC_Int64: case OC_UInt64: case OC_Float64:
 	d64 = (unsigned long long*)md->data.data;
 	memcpy((void*)memory,(void*)(d64+start),totalsize);	    
 	break;
+#endif
     case OC_String: case OC_URL: {
 	unsigned int i;
 	char** memstrings = (char**)memory;

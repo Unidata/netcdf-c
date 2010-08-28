@@ -12,14 +12,27 @@ static OCtype octypefor(Object etype);
 static char* scopeduplicates(OClist* list);
 static int check_int32(char* val, long* value);
 
+
 /****************************************************/
 
 /* Switch to DAS parsing SCAN_WORD definition */
+
+/* Use the initial keyword to indicate what we are parsing */
 void
-dap_dassetup(DAPparsestate* state)
+dap_tagparse(DAPparsestate* state, int kind)
 {
-    dapsetwordchars(state->lexstate,1);
+    switch (kind) {
+    case SCAN_DATASET:
+    case SCAN_ERROR:
+	break;
+    case SCAN_ATTR:
+	dapsetwordchars(state->lexstate,1);
+        break;
+    default:
+        fprintf(stderr,"tagparse: Unknown tag argument: %d\n",kind);
+    }
 }
+
 
 Object
 dap_datasetbody(DAPparsestate* state, Object name, Object decls)
@@ -47,7 +60,7 @@ dap_attributebody(DAPparsestate* state, Object attrlist)
     return NULL;
 }
 
-Object
+void
 dap_errorbody(DAPparsestate* state,
 	  Object code, Object msg, Object ptype, Object prog)
 {
@@ -55,19 +68,22 @@ dap_errorbody(DAPparsestate* state,
     state->code     = (code != NULL?strdup((char*)code):NULL);
     state->message  = (msg != NULL?strdup((char*)msg):NULL);
     /* Ignore ptype and prog for now */
-    return NULL;
 }
 
-Object
+void
 dap_unrecognizedresponse(DAPparsestate* state)
 {
     /* see if this is an HTTP error */
     unsigned int httperr = 0;
-    char i[32];
+    int i;
+    char iv[32];
     sscanf(state->lexstate->input,"%u ",&httperr);
-    sprintf(i,"%u",httperr);
+    sprintf(iv,"%u",httperr);
     state->lexstate->next = state->lexstate->input;
-    return dap_errorbody(state,i,state->lexstate->input,NULL,NULL);
+    /* Limit the amount of input to prevent runaway */
+    for(i=0;i<4096;i++) {if(state->lexstate->input[i] == '\0') break;}
+    state->lexstate->input[i] = '\0';
+    dap_errorbody(state,iv,state->lexstate->input,NULL,NULL);
 }
 
 Object

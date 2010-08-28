@@ -127,17 +127,26 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
    int* ids = NULL;
 
    /* Get all types in grp ncid2 */
-   if(tid2) *tid2 = 0;
-   ret = nc_inq_typeids(ncid2,&nids,NULL);
-   if(ret) return ret;
-   ids = (int*)malloc(nids*sizeof(int));
-   if(ids == NULL) return NC_ENOMEM;
-   ret = nc_inq_typeids(ncid2,&nids,ids);
-   if(ret) return ret;
-   for(i=0;i<nids;i++) {
+   if(tid2) 
+      *tid2 = 0;
+   if ((ret = nc_inq_typeids(ncid2, &nids, NULL)))
+      return ret;
+   if (!(ids = (int *)malloc(nids * sizeof(int))))
+      return NC_ENOMEM;
+   if ((ret = nc_inq_typeids(ncid2, &nids, ids)))
+      return ret;
+   for(i = 0; i < nids; i++) 
+   {
       int equal = 0;
-      ret = NC_compare_nc_types(ncid1,tid1,ncid2,ids[i],&equal);
-      if(equal) {if(tid2) *tid2 = ids[i]; return NC_NOERR;}
+      if ((ret = NC_compare_nc_types(ncid1, tid1, ncid2, ids[i], &equal)))
+	 return ret;
+      if(equal) 
+      {
+	 if(tid2) 
+	    *tid2 = ids[i]; 
+	 free(ids);
+	 return NC_NOERR;
+      }
    }
    free(ids);
 

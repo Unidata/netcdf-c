@@ -9,11 +9,11 @@ echo ""
 echo "Testing programs with valgrind..."
 
 # These are my test programs.
-list='tst_v2 '\
-'tst_vars2 tst_atts tst_atts2 tst_h_vl2'
+list='tst_v2 tst_vars2 tst_atts '\
+'tst_atts2 tst_files2 tst_files'
 
 # These don't work yet: tst_h_vars3 
-# tst_h_strings tst_h_atts3 tst_h_vars2 tst_vars tst_fills tst_chunks
+# tst_h_vl2 tst_h_strings tst_h_atts3 tst_h_vars2 tst_vars tst_fills tst_chunks
 # tst_coords tst_xplatform2
 
 for tst in $list; do

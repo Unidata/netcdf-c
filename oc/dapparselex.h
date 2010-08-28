@@ -80,8 +80,10 @@ extern Object dap_makestructure(DAPparsestate*,Object name, Object dimensions, O
 extern Object dap_makesequence(DAPparsestate*,Object name, Object members);
 extern Object dap_makegrid(DAPparsestate*,Object name, Object arraydecl, Object mapdecls);
 
-extern Object dap_errorbody(DAPparsestate*, Object, Object, Object, Object);
-extern Object dap_unrecognizedresponse(DAPparsestate*);
+extern void dap_errorbody(DAPparsestate*, Object, Object, Object, Object);
+extern void dap_unrecognizedresponse(DAPparsestate*);
+
+extern void dap_tagparse(DAPparsestate*,int);
 
 /* Lexer entry points */
 extern int daplex(YYSTYPE*, DAPparsestate*);

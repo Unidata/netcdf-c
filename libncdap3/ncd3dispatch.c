@@ -55,6 +55,7 @@ NULL, /*set_base_pe*/
 NULL, /*inq_format*/
 
 NULL, /*inq*/
+NULL, /*inq_path*/
 NULL, /*inq_type*/
 
 NULL, /*def_dim*/
