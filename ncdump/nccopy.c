@@ -683,9 +683,10 @@ copy_var(int igrp, int varid, int ogrp)
 		 * chunking, endianness, deflation, checksumming, fill, etc. */
 		stat = copy_var_specials(igrp, varid, ogrp, o_varid);
 		CHECK(stat, copy_var_specials);
-	    } else { /* TODO: eliminate need for this branch and previous test */
-		stat = set_var_compressed(igrp, varid, ogrp, o_varid);
-		CHECK(stat, set_var_compressed);
+	    } 
+	    else {
+	    	stat = set_var_compressed(igrp, varid, ogrp, o_varid);
+	    	CHECK(stat, set_var_compressed);
 	    }
 	}
     }
@@ -925,7 +926,11 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 
 /* copy infile to outfile using netCDF API, kind specifies which
  * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
- * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model */
+ * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model.
+ * However, if compression or shuffling was specified and kind was -1,
+ * kind is changed to format that supports compression for input of
+ * type 1 or 2.
+ */
 static int
 copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 {
@@ -939,8 +944,17 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     stat = nc_inq_format(igrp, &inkind);
     CHECK(stat,nc_inq_format);
 
-    outkind = (kind == SAME_AS_INPUT) ? inkind : kind;
-
+    if (kind == SAME_AS_INPUT) {	/* default, kind not specified */
+	outkind = inkind;
+	/* allow kind to be deduced in this case, instead of returning error */
+	if ((inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) &&
+	    (compress_level > 0 || shuffle_vars == NC_SHUFFLE) ) { 
+	    kind = NC_FORMAT_NETCDF4_CLASSIC;
+	    outkind = kind;
+	}
+    } else {
+	outkind = kind;
+    }
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	stat = nc_create(outfile,NC_CLOBBER,&ogrp);
@@ -1097,8 +1111,12 @@ main(int argc, char**argv)
 	    break;
 	case 'd':		/* non-default compression level specified */
 	    compress_level = strtol(optarg, NULL, 10);
+	    if(compress_level < 0 || compress_level > 9) {
+		fprintf(stderr, "invalid deflation level: %d\n", compress_level);
+		return 1;
+	    }
 	    break;
-	case 's':		/* add shuffling, may improve compression */
+	case 's':		/* shuffling, may improve compression */
 	    shuffle_vars = NC_SHUFFLE;
 	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */

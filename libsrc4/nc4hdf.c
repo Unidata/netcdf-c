@@ -3708,8 +3708,8 @@ nc4_convert_type(const void *src, void *dest,
             case NC_DOUBLE:
                for (dp = (double *)src, dp1 = dest; count < len; count++)
                {
-                  if (*dp > X_DOUBLE_MAX || *dp < X_DOUBLE_MIN)
-                     (*range_error)++;
+		   /* if (*dp > X_DOUBLE_MAX || *dp < X_DOUBLE_MIN) */
+		   /*    (*range_error)++; */
                   *dp1++ = *dp++;
                }
                break;
