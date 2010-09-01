@@ -1,0 +1,25 @@
+netcdf firstFile {
+types:
+  compound compoundType_3 {
+    short member1 ;
+    double member3(10) ;
+    int member2(3) ;
+  }; // compoundType_3
+dimensions:
+	dim3 = UNLIMITED ; // (1 currently)
+variables:
+	compoundType_3 var_3(dim3) ;
+		var_3:_Storage = "chunked" ;
+		var_3:_ChunkSizes = 1 ;
+		var_3:_DeflateLevel = 1 ;
+		var_3:_Shuffle = "true" ;
+		var_3:_Fletcher32 = "true" ;
+		var_3:_NoFill = "true" ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+data:
+
+ var_3 = 
+    {-1237, {1, 2, 5, 10, 17, 26, 37, 50, 65, 82}, {-1077054672, 1073781037, 1073848256}} ;
+}

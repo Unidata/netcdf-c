@@ -1,0 +1,37 @@
+Implemented with 4 files:
+
+ f90aux.m4  auxiliary m4 macro definitions used by nves.m4 and nvea.m4
+ nves.m4    to generate netcdf_vars_expand_single variations
+ nvea.m4    to generate netcdf_vars_expand_arrays variations
+ gen.m4     defines top-level NVES and NVEA macros and invokes them to
+            generate all variations 
+
+To generate all the 6*2 nves functions and 7*6*2 nvea functions:
+
+ m4 gen.m4 > netcdf_expanded.f90
+
+m4 uses common names for some built-in macros, e.g. "index", so
+f90aux.m4 renames a few of these to avoid clashes with source
+variables and functions.
+
+All the invocations of the "dnl" macro (delete to new line) in
+f90aux.m4 are just to avoid gratuitous blank lines in the output.
+
+m4 may be used for generating parameterized documentation and
+comments also.
+
+Another approach to generating all the f90 functions other than the
+definition and invocation of the top-level NVES and NVEA macros in
+gen.m4 would be to just invoke m4 for each function generation,
+something like:
+
+ m4 -D NUMDIMS=2 -D KINDVALUE=FourByteReal -D PUTORGET=put f90aux.m4 nvea.m4
+
+for the array functions, or
+
+ m4 -D NUMDIMS=0 -D KINDVALUE=FourByteReal -D PUTORGET=put f90aux.m4 nves.m4
+
+for the single value functions.
+
+
+

@@ -1,0 +1,788 @@
+#include <exception>
+#include <string>
+#include <typeinfo>
+#include <map>
+#include <vector>
+#include "netcdf.h"
+#include "ncVarAtt.h"
+#include "ncGroup.h"
+
+#ifndef NcVarClass
+#define NcVarClass
+
+namespace netCDF
+{
+  //  class NcGroup;  // forward declaration.
+  class NcDim;    // forward declaration.
+  //  class NcVarAtt; // forward declaration.
+  class NcType;   // forward declaration.
+
+  //! Class represents a netCDF variable.
+  class NcVar
+  {
+  public:
+    
+    //! Enumeration type used for chunking specification.
+    enum ChunkMode
+      {
+	nc_CONTIGUOUS = NC_CONTIGUOUS,  //!< Nc_CONTIGUOUS
+	nc_CHUNKED    = NC_CHUNKED      //!< Nc_CHUNKED
+      };
+
+    //! Enumeration type used for endian specification.
+    enum EndianMode
+      {
+	nc_ENDIAN_NATIVE = NC_ENDIAN_NATIVE,
+	nc_ENDIAN_LITTLE = NC_ENDIAN_LITTLE,
+	nc_ENDIAN_BIG    = NC_ENDIAN_BIG
+      };
+
+    //! Enumeration type used for checksum specification.
+    enum ChecksumMode
+      {
+	nc_NOCHECKSUM = NC_NOCHECKSUM,
+	nc_FLETCHER32 = NC_FLETCHER32
+      };
+
+    //! destructor
+    ~NcVar(){};
+      
+    //! Constructor generates a \ref isNull "null object".
+    NcVar ();
+
+    //! Constructor for a variable
+    /*!
+      The variable must already exist in the netCDF file. New netCDF variables can be added using NcGroup::addNcVar();
+      \param grp    Parent NcGroup object.
+      \param varId  Id of the is NcVar object.
+    */
+    NcVar (const NcGroup& grp, const int& varId);
+
+    //! assignment operator 
+    NcVar& operator =(const NcVar& rhs);
+      
+    //! equivalence operator
+    bool operator==(const NcVar& rhs) const;     
+      
+    //!  != operator
+    bool operator!=(const NcVar& rhs) const;     
+
+    //! The copy constructor.
+    NcVar(const NcVar& ncVar);
+      
+    //! Name of this NcVar object.
+    const std::string getName() const;
+
+    //! Gets parent group.
+    const NcGroup  getParentGroup() const;
+
+    //! Returns the variable type.
+    const NcType& getNcType() const;              
+      
+      
+    //! Rename the variable.
+    void rename( const std::string& newname ) const;
+      
+
+    //! Get the variable id.
+    int  getId() const;
+    
+    //! Returns true if this object variable is not defined.
+    bool isNull() const  {return nullObject;}
+
+    //! comparator operator 
+    friend bool operator<(const NcVar& lhs,const NcVar& rhs);
+    
+    //! comparator operator 
+    friend bool operator>(const NcVar& lhs,const NcVar& rhs);
+    
+    /////////////////
+      
+    // Information about Dimensions
+      
+    /////////////////
+      
+    // The the number of dimensions.
+    int getDimCount() const ;
+
+    //! Gets the i'th NcDim object.
+    const NcDim& getDim(int i) const;
+
+    //! Gets the set of NcDim objects.
+    const std::vector<NcDim> getDims() const;
+
+    /////////////////
+      
+    // Information about Attributes
+      
+    /////////////////
+      
+    //! Gets the number of attributes.
+    int getAttCount() const;
+      
+    //! Gets attribute by name
+    const NcVarAtt& getAtt(const std::string& name) const;
+
+    // Gets the set of attributes.
+    const std::map<std::string,NcVarAtt> getAtts() const;
+
+    //! Add a new NetCDF variable attribute.
+    /*!
+      \param name        Name of attribute.
+      \param typeName    Type name; must be a type known the the current group.
+      \param len        The length of the attribute (number of Nctype repeats).
+      \param dataValues  Data Values to put into the new attribute.
+    */
+    template<class T> NcVarAtt addAtt(const std::string& name, const std::string& typeName, size_t len, const T& dataValues) const {
+      // Create an NcType object with the given name.
+      NcType tmpType(getParentGroup().getType(typeName));
+      nc_type xtype = tmpType.getId();
+      if(typeid(T) == *type_a)
+	ncCheck(nc_put_att_text(groupId,myId,name.c_str(),len,&dataValues),__FILE__,__LINE__,__FUNCTION__); 
+      else if(typeid(T) == *type_b)
+	ncCheck(nc_put_att_uchar(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_c)
+	ncCheck(nc_put_att_schar(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_d)
+	ncCheck(nc_put_att_short(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_e)
+	ncCheck(nc_put_att_int(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_f)
+	ncCheck(nc_put_att_long(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_g)
+	ncCheck(nc_put_att_float(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_h)
+	ncCheck(nc_put_att_double(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_i)
+	ncCheck(nc_put_att_ushort(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_j)
+	ncCheck(nc_put_att_uint(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_k)
+	ncCheck(nc_put_att_longlong(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_l)
+	ncCheck(nc_put_att_ulonglong(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_m)
+	ncCheck(nc_put_att_string(groupId,myId,name.c_str(),len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_n) {
+	ncCheck(nc_put_att(groupId,myId,name.c_str(),xtype,len,&dataValues),__FILE__,__LINE__,__FUNCTION__);
+      }
+      else 
+	throw NcException("Unrecognised container type for getting attribute data",__FILE__,__LINE__,__FUNCTION__);
+      
+      // finally instantiate this attribute and return
+      return getAtt(name);
+      
+    }
+    
+    ////////////////////
+      
+    // Chunking details
+      
+    ////////////////////
+      
+    //! Sets chunking parameters.
+    /*!
+      \param chunkMode   Enumeration type. Allowable parameters are: "nc_CONTIGUOUS", "nc_CHUNKED"
+      \param chunksizes  Shape of chunking, used if ChunkMode=nc_CHUNKED.
+    */
+    void setChunking(ChunkMode chunkMode, std::vector<size_t>& chunksizes);
+      
+    //! Gets the chunking parameters
+    /*!
+      \param chunkMode   On return contains either: "nc_CONTIGUOUS" or "nc_CHUNKED"
+      \param chunksizes  On return contains shape of chunking, used if ChunkMode=nc_CHUNKED.
+    */
+    void getChunkingParameters(ChunkMode& chunkMode, std::vector<size_t>& chunkSizes);
+      
+      
+      
+    ////////////////////
+      
+    // Fill details
+      
+    ////////////////////
+      
+      
+    //! Sets the fill parameters
+    /*!
+      \param fillMode   Setting to true, turns on fill mode.
+      \param fillValue  A pointer to a value which will be used as the fill value for the variable. 
+      Must be the same type as the variable. Ignored if fillMode=.false.
+    */
+    void setFill(bool fillMode,void* fillValues=NULL);
+      
+      
+    //! Gets the fill parameters
+    /*!
+      \param On return set to true  if fill mode is enabled.
+      \param On return  pointer is set to fill values.
+    */
+    void getFillModeParameters(bool& fillMode, void* fillValues=NULL);
+      
+      
+    ////////////////////
+      
+    // Compression details
+      
+    ////////////////////
+      
+      
+    //! Sets the compression parameters
+    /*!
+      \param enableShuffleFilter Set to true to turn on shuffle filter.
+      \param enableDeflateFilter Set to true to turn on deflate filter.
+      \param deflateLevel        The deflate level, must be 0 and 9.
+    */
+    void setCompression(bool enableShuffleFilter, bool enableDeflateFilter, int deflateLevel);
+      
+    //! Gets the compression parameters
+    /*!
+      \param enableShuffleFilter  On return set to true if the shuffle filter is enabled.
+      \param enableDeflateFilter  On return set to true if the deflate filter is enabled.
+      \param deflateLevel         On return set to the deflate level.
+    */
+    void getCompressionParameters(bool& shuffleFilterEnabled, bool& deflateFilterEnabled, int& deflateLevel);
+      
+      
+      
+    ////////////////////
+      
+    // Endianness details
+      
+    ////////////////////
+      
+      
+    //! Sets the endianness of the variable.
+    /*!
+      \param Endianness enumeration type. Allowable parameters are: "nc_ENDIAN_NATIVE" (the default), "nc_ENDIAN_LITTLE", "nc_ENDIAN_BIG"
+    */
+    void setEndianness(EndianMode endianMode);
+      
+    //! Gets the endianness of the variable.
+    /*!
+      \return Endianness enumeration type. Allowable parameters are: "nc_ENDIAN_NATIVE" (the default), "nc_ENDIAN_LITTLE", "nc_ENDIAN_BIG"
+    */
+    EndianMode getEndianness();
+      
+      
+      
+    ////////////////////
+      
+    // Checksum details
+      
+    ////////////////////
+      
+      
+    //! Sets the checksum parameters of a variable.
+    /*!
+      \param ChecksumMode enumeration type. Allowable parameters are: "nc_NOCHECKSUM", "nc_FLETCHER32".
+    */
+    void setChecksum(ChecksumMode checksumMode);
+      
+    //! Gets the checksum parameters of the variable.
+    /*!
+      \return ChecksumMode enumeration type. Allowable parameters are: "nc_NOCHECKSUM", "nc_FLETCHER32".
+    */
+    ChecksumMode getChecksum();
+    
+    
+    
+    ////////////////////
+    
+    //  data  reading
+    
+    ////////////////////
+      
+      
+
+    //! Reads the entire data into the netCDF variable.
+    /*!
+      \param dataValues The data values.
+    */
+    template <class T> void get_var(T& dataValues)
+      {
+	if(typeid(T) == *type_a)
+	  ncCheck(nc_get_var_text(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_b)
+	  ncCheck(nc_get_var_uchar(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_c)
+	  ncCheck(nc_get_var_schar(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_d)
+	  ncCheck(nc_get_var_short(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_e)
+	  ncCheck(nc_get_var_int(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_f)
+	  ncCheck(nc_get_var_long(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_g)
+	  ncCheck(nc_get_var_float(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_h)
+	  ncCheck(nc_get_var_double(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_i)
+	  ncCheck(nc_get_var_ushort(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_j)
+	  ncCheck(nc_get_var_uint(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_k)
+	  ncCheck(nc_get_var_longlong(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_l)
+	  ncCheck(nc_get_var_ulonglong(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_m)
+	  ncCheck(nc_get_var_string(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_n){
+	  ncCheck(nc_get_var(groupId, myId,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	}
+	else 
+	  throw NcException("Unrecognised container type for getting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    
+      }  
+
+    //! Reads a single datum value into the netCDF variable.
+    /*!
+      \param index       Vector specifying the index where the data values will be written.
+      \param datumValue The datum values.
+    */
+    template <class T> void get_var(const std::vector<size_t>& index, T& datumValue)
+      {
+	if(typeid(T) == *type_a)
+	  ncCheck(nc_get_var1_text(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_b)
+	  ncCheck(nc_get_var1_uchar(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_c)
+	  ncCheck(nc_get_var1_schar(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_d)
+	  ncCheck(nc_get_var1_short(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_e)
+	  ncCheck(nc_get_var1_int(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_f)
+	  ncCheck(nc_get_var1_long(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_g)
+	  ncCheck(nc_get_var1_float(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_h)
+	  ncCheck(nc_get_var1_double(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_i)
+	  ncCheck(nc_get_var1_ushort(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_j)
+	  ncCheck(nc_get_var1_uint(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_k)
+	  ncCheck(nc_get_var1_longlong(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_l)
+	  ncCheck(nc_get_var1_ulonglong(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_m)
+	  ncCheck(nc_get_var1_string(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_n){
+	  ncCheck(nc_get_var1(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+	}
+	else 
+	  throw NcException("Unrecognised container type for getting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+      }  
+
+
+    //! Reads data for an array of values into the netCDF variable.
+    /*!
+      \param startp  Vector specifying the index where the first data values will be written.
+      \param countp  Vector specifying the number of indices along each dimension.
+      \param dataValues The data values.
+    */
+    template <class T> void get_var(const std::vector<size_t>& startp, const std::vector<size_t>& countp, T& dataValues)
+      {
+	if(typeid(T) == *type_a)
+	  ncCheck(nc_get_vara_text(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_b)
+	  ncCheck(nc_get_vara_uchar(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_c)
+	  ncCheck(nc_get_vara_schar(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_d)
+	  ncCheck(nc_get_vara_short(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_e)
+	  ncCheck(nc_get_vara_int(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_f)
+	  ncCheck(nc_get_vara_long(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_g)
+	  ncCheck(nc_get_vara_float(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_h)
+	  ncCheck(nc_get_vara_double(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_i)
+	  ncCheck(nc_get_vara_ushort(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_j)
+	  ncCheck(nc_get_vara_uint(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_k)
+	  ncCheck(nc_get_vara_longlong(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_l)
+	  ncCheck(nc_get_vara_ulonglong(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_m)
+	  ncCheck(nc_get_vara_string(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_n){
+	  ncCheck(nc_get_vara(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	}
+	else 
+	  throw NcException("Unrecognised container type for getting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+      }  
+
+
+
+
+
+    //! Reads data for a set of subsampled array values into the netCDF variable.
+    /*!
+      \param startp  Vector specifying the index where the first data values will be written.
+      \param countp  Vector specifying the number of indices along each dimension.
+      \param stridep Vector specifying the sampling interval along each dimension of the netCDF variable.
+      \param dataValues The data values.
+    */
+    template <class T> void get_var(const std::vector<size_t>& startp, const std::vector<size_t>& countp, const std::vector<ptrdiff_t>& stridep, T& dataValues)
+      {
+	if(typeid(T) == *type_a)
+	  ncCheck(nc_get_vars_text(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_b)
+	  ncCheck(nc_get_vars_uchar(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_c)
+	  ncCheck(nc_get_vars_schar(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_d)
+	  ncCheck(nc_get_vars_short(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_e)
+	  ncCheck(nc_get_vars_int(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_f)
+	  ncCheck(nc_get_vars_long(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_g)
+	  ncCheck(nc_get_vars_float(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_h)
+	  ncCheck(nc_get_vars_double(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_i)
+	  ncCheck(nc_get_vars_ushort(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_j)
+	  ncCheck(nc_get_vars_uint(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_k)
+	  ncCheck(nc_get_vars_longlong(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_l)
+	  ncCheck(nc_get_vars_ulonglong(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_m)
+	  ncCheck(nc_get_vars_string(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_n){
+	  ncCheck(nc_get_vars(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	}
+	else 
+	  throw NcException("Unrecognised container type for getting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+      }  
+
+
+
+    //! Reads data for a set of mapped values into the netCDF variable.
+    /*!
+      \param startp  Vector specifying the index where the first data values will be written.
+      \param countp  Vector specifying the number of indices along each dimension.
+      \param stridep Vector specifying the sampling interval along each dimension of the netCDF variable.
+      \param imapp   Vector specifying the mapping  between the dimensions of a netCDF variables and the in-memory strucutre of the internal data array.
+      \param dataValues The data values.
+    */
+    template <class T> void get_var(const std::vector<size_t>& startp, const std::vector<size_t>& countp, const std::vector<ptrdiff_t>& stridep , const std::vector<ptrdiff_t>& imapp, T& dataValues)
+      {
+	if(typeid(T) == *type_a)
+	  ncCheck(nc_get_varm_text(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_b)
+	  ncCheck(nc_get_varm_uchar(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_c)
+	  ncCheck(nc_get_varm_schar(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_d)
+	  ncCheck(nc_get_varm_short(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_e)
+	  ncCheck(nc_get_varm_int(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_f)
+	  ncCheck(nc_get_varm_long(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_g)
+	  ncCheck(nc_get_varm_float(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_h)
+	  ncCheck(nc_get_varm_double(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_i)
+	  ncCheck(nc_get_varm_ushort(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_j)
+	  ncCheck(nc_get_varm_uint(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_k)
+	  ncCheck(nc_get_varm_longlong(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_l)
+	  ncCheck(nc_get_varm_ulonglong(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_m)
+	  ncCheck(nc_get_varm_string(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	else if(typeid(T) == *type_n){
+	  ncCheck(nc_get_varm(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+	}
+	else 
+	  throw NcException("Unrecognised container type for getting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    
+      }  
+
+
+   
+    ////////////////////
+
+    //  data writing
+
+    ////////////////////
+   
+   
+    //! Writes the entire data into the netCDF variable.
+    /*!
+	This is the simplest interface to use for writing a value in a scalar variable 
+	or whenever all the values of a multidimensional variable can all be 
+	written at once. The values to be written are associated with the 
+	netCDF variable by assuming that the last dimension of the netCDF 
+	variable varies fastest in the C interface. The values are converted 
+	to the external data type of the variable, if necessary.
+	
+	Take care when using the simplest forms of this interface with 
+	record variables when you don't specify how many records are to be 
+	written. If you try to write all the values of a record variable 
+	into a netCDF file that has no record data yet (hence has 0 records), 
+	nothing will be written. Similarly, if you try to write all of a record 
+	variable but there are more records in the file than you assume, more data 
+	may be written to the file than you supply, which may result in a 
+	segmentation violation.
+	\param dataValues The data values.
+    */
+    void putVar(const long long* dataValues);
+    /*! \overload
+     */ 
+    void putVar(const char** dataValues);
+    /*!  \overload
+    */
+    void putVar(const char* dataValues);
+    /*!  \overload
+    */
+    void putVar(const unsigned char* dataValues);
+    /*!  \overload
+    */
+    void putVar(const signed char* dataValues);
+    /*!  \overload
+    */
+    void putVar(const short* dataValues);
+    /*!  \overload
+    */
+    void putVar(const int* dataValues);
+    /*!  \overload
+    */
+    void putVar(const long* dataValues);
+    /*!  \overload
+    */
+    void putVar(const float* dataValues);
+    /*!  \overload
+    */
+    void putVar(const double* dataValues);
+    /*!  \overload
+    */
+    void putVar(const unsigned short* dataValues);
+    /*!  \overload
+    */
+    void putVar(const unsigned int* dataValues);
+    /*!  \overload
+    */
+    void putVar(const unsigned long long* dataValues);
+    //! Writes the entire data into the netCDF variable.
+    /*!
+      \param dataValues The data values.
+    */
+    void putVar(const void* dataValues);
+
+
+
+
+      
+    //! Writes a single datum value into the netCDF variable.
+    /*!
+      \param index      Vector specifying the index where the data values will be written.
+      \param datumValue The datum values.
+    */
+    template <class T> void putVar(const std::vector<size_t>& index, const T& datumValue) {
+      if(typeid(T) == *type_a)
+	ncCheck(nc_put_var1_text(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_b)
+	ncCheck(nc_put_var1_uchar(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_c)
+	ncCheck(nc_put_var1_schar(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_d)
+	ncCheck(nc_put_var1_short(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_e)
+	ncCheck(nc_put_var1_int(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_f)
+	ncCheck(nc_put_var1_long(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_g)
+	ncCheck(nc_put_var1_float(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_h)
+	ncCheck(nc_put_var1_double(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_i)
+	ncCheck(nc_put_var1_ushort(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_j)
+	ncCheck(nc_put_var1_uint(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_k)
+	ncCheck(nc_put_var1_longlong(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_l)
+	ncCheck(nc_put_var1_ulonglong(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_m)
+	ncCheck(nc_put_var1_string(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_n){
+	ncCheck(nc_put_var1(groupId, myId,index,datumValue),__FILE__,__LINE__,__FUNCTION__);
+      }
+      else 
+	throw NcException("Unrecognised container type for putting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    }  
+
+      
+    //! Writes data for an array of values into the netCDF variable.
+    /*!
+      \param startp  Vector specifying the index where the first data values will be written.
+      \param countp  Vector specifying the number of indices along each dimension.
+      \param dataValues The data values.
+    */
+    template <class T> void putVar(const std::vector<size_t>& startp, const std::vector<size_t>& countp, const T& dataValues) {
+      if(typeid(T) == *type_a)
+	ncCheck(nc_put_vara_text(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_b)
+	ncCheck(nc_put_vara_uchar(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_c)
+	ncCheck(nc_put_vara_schar(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_d)
+	ncCheck(nc_put_vara_short(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_e)
+	ncCheck(nc_put_vara_int(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_f)
+	ncCheck(nc_put_vara_long(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_g)
+	ncCheck(nc_put_vara_float(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_h)
+	ncCheck(nc_put_vara_double(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_i)
+	ncCheck(nc_put_vara_ushort(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_j)
+	ncCheck(nc_put_vara_uint(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_k)
+	ncCheck(nc_put_vara_longlong(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_l)
+	ncCheck(nc_put_vara_ulonglong(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_m)
+	ncCheck(nc_put_vara_string(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_n){
+	ncCheck(nc_put_vara(groupId, myId,startp,countp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      }
+      else 
+	throw NcException("Unrecognised container type for putting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    }  
+
+      
+      
+    //! Writes data for a set of subsampled array values into the netCDF variable.
+    /*!
+      \param startp  Vector specifying the index where the first data values will be written.
+      \param countp  Vector specifying the number of indices along each dimension.
+      \param stridep Vector specifying the sampling interval along each dimension of the netCDF variable.
+      \param dataValues The data values.
+    */
+    template <class T> void putVar(const std::vector<size_t>& startp, const std::vector<size_t>& countp, const std::vector<ptrdiff_t>& stridep, const T& dataValues) {
+            
+      if(typeid(T) == *type_a)
+	ncCheck(nc_put_vars_text(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_b)
+	ncCheck(nc_put_vars_uchar(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_c)
+	ncCheck(nc_put_vars_schar(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_d)
+	ncCheck(nc_put_vars_short(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_e)
+	ncCheck(nc_put_vars_int(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_f)
+	ncCheck(nc_put_vars_long(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_g)
+	ncCheck(nc_put_vars_float(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_h)
+	ncCheck(nc_put_vars_double(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_i)
+	ncCheck(nc_put_vars_ushort(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_j)
+	ncCheck(nc_put_vars_uint(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_k)
+	ncCheck(nc_put_vars_longlong(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_l)
+	ncCheck(nc_put_vars_ulonglong(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_m)
+	ncCheck(nc_put_vars_string(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_n){
+	ncCheck(nc_put_vars(groupId, myId,startp,countp,stridep,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      }
+      else 
+	throw NcException("Unrecognised container type for putting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    }  
+      
+      
+      
+      
+
+      
+    //! Writes data for a set of mapped values into the netCDF variable.
+    /*!
+      \param startp     Vector specifying the index where the first data values will be written.
+      \param countp     Vector specifying the number of indices along each dimension.
+      \param stridep    Vector specifying the sampling interval along each dimension of the netCDF variable.
+      \param imapp      Vector specifying the mapping  between the dimensions of a netCDF variables and the in-memory strucutre of the internal data array.
+      \param dataValues The data values.
+    */
+    template <class T> void putVar(const std::vector<size_t>& startp, const std::vector<size_t>& countp, const std::vector<ptrdiff_t>& stridep , const std::vector<ptrdiff_t>& imapp, const T& dataValues) {
+            
+      if(typeid(T) == *type_a)
+	ncCheck(nc_put_varm_text(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_b)
+	ncCheck(nc_put_varm_uchar(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_c)
+	ncCheck(nc_put_varm_schar(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_d)
+	ncCheck(nc_put_varm_short(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_e)
+	ncCheck(nc_put_varm_int(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_f)
+	ncCheck(nc_put_varm_long(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_g)
+	ncCheck(nc_put_varm_float(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_h)
+	ncCheck(nc_put_varm_double(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_i)
+	ncCheck(nc_put_varm_ushort(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_j)
+	ncCheck(nc_put_varm_uint(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_k)
+	ncCheck(nc_put_varm_longlong(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_l)
+	ncCheck(nc_put_varm_ulonglong(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_m)
+	ncCheck(nc_put_varm_string(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      else if(typeid(T) == *type_n){
+	ncCheck(nc_put_varm(groupId, myId,startp,countp,stridep, imapp,dataValues),__FILE__,__LINE__,__FUNCTION__);
+      }
+      else 
+	throw NcException("Unrecognised container type for putting ncVar data",__FILE__,__LINE__,__FUNCTION__);
+    }  
+
+      
+  private:
+      
+    int myId;	
+
+    int groupId;
+       
+    bool nullObject;
+
+    // The following hold the typeid for different variable types
+    const std::type_info* type_a;
+    const std::type_info* type_b;
+    const std::type_info* type_c;
+    const std::type_info* type_d;
+    const std::type_info* type_e;
+    const std::type_info* type_f;
+    const std::type_info* type_g;
+    const std::type_info* type_h;
+    const std::type_info* type_i;
+    const std::type_info* type_j;
+    const std::type_info* type_k;
+    const std::type_info* type_l;
+    const std::type_info* type_m;
+    const std::type_info* type_n;
+      
+  };
+
+}
+
+#endif
