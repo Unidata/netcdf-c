@@ -58,10 +58,10 @@ endif # INTERNAL_OCLIB
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap
-TESTS = t_dap
-t_dap_SOURCES = t_dap.c stubdap4.c
-CLEANFILES += t_dap
+#check_PROGRAMS = t_dap
+#TESTS = t_dap
+#t_dap_SOURCES = t_dap.c stubdap4.c
+#CLEANFILES += t_dap
 
 endif # USE_NETCDF4
 
