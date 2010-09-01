@@ -22,6 +22,8 @@ for i in $TESTFILES ; do
     diff copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
+echo "*** Create deflatable file for testing ..."
+./tst_compress
 echo "*** Test nccopy -d1 can compress a file ..."
 ./nccopy -d1 tst_inflated.nc tst_deflated.nc
 if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
