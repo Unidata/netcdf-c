@@ -470,9 +470,8 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     return stat;
 }
 
-/* TODO: delete need for this, make copy_var_specials work for classic files */
 static int
-set_var_compressed(int igrp, int varid, int ogrp, int o_varid)
+set_var_compressed(int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
     if (option_deflate_level > 0)
@@ -683,9 +682,10 @@ copy_var(int igrp, int varid, int ogrp)
 		 * chunking, endianness, deflation, checksumming, fill, etc. */
 		stat = copy_var_specials(igrp, varid, ogrp, o_varid);
 		CHECK(stat, copy_var_specials);
-	    } 
-	    else {
-	    	stat = set_var_compressed(igrp, varid, ogrp, o_varid);
+	    }
+	    else {	     /* classic or 64-bit offset input file */
+		/* Just set compression as specified on command line option */
+	    	stat = set_var_compressed(ogrp, o_varid);
 	    	CHECK(stat, set_var_compressed);
 	    }
 	}
