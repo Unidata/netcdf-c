@@ -18,7 +18,7 @@ if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
-tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress
+tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug
 
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\

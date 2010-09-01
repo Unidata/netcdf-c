@@ -30,7 +30,7 @@ if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
     exit 1
 fi
 echo "*** Test nccopy -d1 -s can compress even more ..."
-./nccopy -d1 tst_inflated.nc tmp.nc
+./nccopy -d1 -s tst_inflated.nc tmp.nc
 if test `wc -c < tmp.nc` -ge  `wc -c < tst_inflated.nc`; then
     exit 1
 fi
