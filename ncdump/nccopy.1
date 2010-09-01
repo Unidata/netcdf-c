@@ -88,10 +88,12 @@ dimensions in the output.
 .IP "\fB-m \fIbufsize\fP"
 Specifies the size, in bytes, of the copy buffer used to
 to copy large variables, by copying them in smaller pieces, each no
-larger than \fIcopy_bufer_size\fP.  The default is 5,000,000 bytes,
+larger than \fIcopy_bufer_size\fP.  A suffix of k, m, or g multiplies
+the copy buffer size by one thousand, million, or billion, respectively.
+The default is 5000000 bytes,
 but will be increased if necessary to hold at least one chunk of
-netCDF-4 chunked variables.  You may want to make
-it larger than the default for OPeNDAP copies of large files over high
+netCDF-4 chunked variables in the input file.  You may want to specify
+a value larger than the default for OPeNDAP copies of large files over high
 latency networks. 
 .SH EXAMPLES
 .LP

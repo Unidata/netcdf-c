@@ -33,9 +33,9 @@ extern char *optarg;
 
 /* Global variables for command-line requests */
 static char *progname;	       /* for error messages */
-static int compress_level = -1;	/* default, compress output only if input compressed */
-static int shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
-static int convert_ulim_dims = 0; /* default, preserve unlimited dimensions */
+static int option_deflate_level = -1;	/* default, compress output only if input compressed */
+static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
+static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
 
 static void
 check(int err, const char* fcn, const char* file, const int line)
@@ -439,9 +439,9 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	stat = nc_inq_var_deflate(igrp, varid, 
 				  &shuffle, &deflate, &deflate_level);
 	CHECK(stat, nc_inq_var_deflate);
-	if(compress_level >= 0) { /* change output compression, if requested */
-	  deflate	= (compress_level <= 0 ? 0 : 1);
-	  deflate_level = (compress_level <= 0 ? 0 : compress_level);
+	if(option_deflate_level >= 0) { /* change output compression, if requested */
+	  deflate	= (option_deflate_level <= 0 ? 0 : 1);
+	  deflate_level = (option_deflate_level <= 0 ? 0 : option_deflate_level);
 	}
 	if(deflate != 0 || shuffle != 0) {
 	    stat = nc_def_var_deflate(ogrp, o_varid, 
@@ -475,12 +475,12 @@ static int
 set_var_compressed(int igrp, int varid, int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
-    if (compress_level > 0)
+    if (option_deflate_level > 0)
     {				/* handle compression parameters */
 	int shuffle, deflate, deflate_level;
 	deflate	= 1;
-	deflate_level = compress_level;
-	shuffle = shuffle_vars;
+	deflate_level = option_deflate_level;
+	shuffle = option_shuffle_vars;
 	stat = nc_def_var_deflate(ogrp, o_varid, 
 				      shuffle, deflate, deflate_level);
 	CHECK(stat, nc_def_var_deflate);
@@ -582,7 +582,7 @@ copy_dims(int igrp, int ogrp)
 		    name);
 	}	
 	CHECK(stat, nc_inq_dim);
-	if(is_unlim && !convert_ulim_dims) {
+	if(is_unlim && !option_fix_unlimdims) {
 	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, NULL);
 	} else {
 	    stat = nc_def_dim(ogrp, name, length, NULL);
@@ -948,7 +948,7 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 	outkind = inkind;
 	/* allow kind to be deduced in this case, instead of returning error */
 	if ((inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) &&
-	    (compress_level > 0 || shuffle_vars == NC_SHUFFLE) ) { 
+	    (option_deflate_level > 0 || option_shuffle_vars == NC_SHUFFLE) ) { 
 	    kind = NC_FORMAT_NETCDF4_CLASSIC;
 	    outkind = kind;
 	}
@@ -1110,21 +1110,43 @@ main(int argc, char**argv)
 	    }
 	    break;
 	case 'd':		/* non-default compression level specified */
-	    compress_level = strtol(optarg, NULL, 10);
-	    if(compress_level < 0 || compress_level > 9) {
-		fprintf(stderr, "invalid deflation level: %d\n", compress_level);
+	    option_deflate_level = strtol(optarg, NULL, 10);
+	    if(option_deflate_level < 0 || option_deflate_level > 9) {
+		fprintf(stderr, "invalid deflation level: %d\n", 
+			option_deflate_level);
 		return 1;
 	    }
 	    break;
 	case 's':		/* shuffling, may improve compression */
-	    shuffle_vars = NC_SHUFFLE;
+	    option_shuffle_vars = NC_SHUFFLE;
 	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */
-	    convert_ulim_dims = 1;
-		break;
-	case 'm':		/* non-default size of data copy buffer */
-	    copybuf_size = strtoll(optarg, NULL, 10);
+	    option_fix_unlimdims = 1;
 	    break;
+	case 'm':		/* non-default size of data copy buffer */
+	{
+	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
+	    copybuf_size = strtoll(optarg, &suffix, 10);
+	    switch (suffix[0]) {
+	    case 'k':
+	    case 'K':
+		copybuf_size *= 1000;
+		break;
+	    case 'm':
+	    case 'M':
+		copybuf_size *= 1000000;
+		break;
+	    case 'g':
+	    case 'G':
+		copybuf_size *= 1000000000;
+		break;
+	    default:
+		fprintf(stderr,"Suffix for '-m' option value not k, m, or g: %c",
+		    suffix[0]);
+		exit(1);
+	    }		
+	    break;
+	}
 	default: 
 	    usage();
 	    exit(1);
