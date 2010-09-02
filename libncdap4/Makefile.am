@@ -59,6 +59,7 @@ LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
+TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
 t_dap_SOURCES = t_dap.c stubdap4.c
 CLEANFILES += t_dap
