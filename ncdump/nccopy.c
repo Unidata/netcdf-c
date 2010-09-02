@@ -435,13 +435,13 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	}
     }
     {				/* handle compression parameters */
-	int shuffle=NC_NOSHUFFLE, deflate=0, deflate_level=0;
+	int shuffle, deflate, deflate_level;
 	stat = nc_inq_var_deflate(igrp, varid, 
 				  &shuffle, &deflate, &deflate_level);
 	CHECK(stat, nc_inq_var_deflate);
 	if(option_deflate_level >= 0) { /* change output compression, if requested */
-	  deflate	= (option_deflate_level <= 0 ? 0 : 1);
-	  deflate_level = (option_deflate_level <= 0 ? 0 : option_deflate_level);
+	  deflate	= (option_deflate_level > 0);
+	  deflate_level = option_deflate_level;
 	}
 	if(deflate != 0 || shuffle != 0) {
 	    stat = nc_def_var_deflate(ogrp, o_varid, 
@@ -470,18 +470,15 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     return stat;
 }
 
+/* set variable to compression specified on command line */
 static int
 set_var_compressed(int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
-    if (option_deflate_level > 0)
-    {				/* handle compression parameters */
-	int shuffle, deflate, deflate_level;
-	deflate	= 1;
-	deflate_level = option_deflate_level;
-	shuffle = option_shuffle_vars;
-	stat = nc_def_var_deflate(ogrp, o_varid, 
-				      shuffle, deflate, deflate_level);
+    if (option_deflate_level >= 0) {
+	int deflate = 1;
+	stat = nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, 
+				  deflate, option_deflate_level);
 	CHECK(stat, nc_def_var_deflate);
     }
     return stat;
@@ -684,7 +681,7 @@ copy_var(int igrp, int varid, int ogrp)
 		CHECK(stat, copy_var_specials);
 	    }
 	    else {	     /* classic or 64-bit offset input file */
-		/* Just set compression as specified on command line option */
+		/* Set compression if specified on command line option */
 	    	stat = set_var_compressed(ogrp, o_varid);
 	    	CHECK(stat, set_var_compressed);
 	    }
