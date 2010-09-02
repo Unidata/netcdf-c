@@ -11,28 +11,25 @@ LDADD = -lm ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
-tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh
+tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
+tst_nccopy3.sh
 
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
-tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug
+tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress
 
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
-tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh 
+tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh 
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
 endif # EXTRA_TESTS
 
 tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
-
-else #!USE_NETCDF4
-
-TESTS += tst_nccopy3.sh
 
 endif #!USE_NETCDF4
 
@@ -49,7 +46,8 @@ tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
 tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
 tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
 tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
-tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl
+tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
+tst_deflated.nc
 
 
 # This is the program we're building, and it's sources.
@@ -80,7 +78,7 @@ ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
-ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl
+ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl
 
 BUILT_SOURCES = ctest.c ctest64.c
 

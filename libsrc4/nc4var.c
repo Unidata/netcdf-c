@@ -695,9 +695,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->options_mask)
             return NC_EINVAL;
 
-      /* Must not be a scalar. */
+      /* For scalars, just ignore attempt to deflate. */
       if (!var->ndims)
-            return NC_EINVAL;
+            return NC_NOERR;
 
       /* Well, if we couldn't find any errors, I guess we have to take
        * the users settings. Darn! */

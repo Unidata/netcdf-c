@@ -7,17 +7,39 @@ echo ""
 # These files are actually in $srcdir in distcheck builds, so they
 # need to be handled differently.
 # ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4 
-TESTFILES='c0 c0tmp ctest0 ctest0_64 small small2 test0 test1
-  tst_calendars tst_comp tst_comp2 tst_enum_data tst_fillbug
-  tst_group_data tst_mslp tst_mslp_64 tst_nans tst_ncml
-  tst_opaque_data tst_small tst_solar_1 tst_solar_2 tst_solar_cmp
-  tst_special_atts tst_string_data tst_unicode tst_utf8 tst_vlen_data
-  utf8'
+TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug 
+ tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
+ tst_solar_cmp tst_special_atts tst_string_data tst_unicode
+ tst_vlen_data'
 
-echo "*** Testing nccopy on ncdump/*.nc files"
+echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** copy $i.nc to copy_of_$i.nc ..."
     ./nccopy $i.nc copy_of_$i.nc
+    ./ncdump -n copy_of_$i $i.nc > tmp.cdl
+    ./ncdump copy_of_$i.nc > copy_of_$i.cdl
+    echo "*** compare " with copy_of_$i.cdl
+    diff copy_of_$i.cdl tmp.cdl
+    rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
+done
+echo "*** Create deflatable file for testing ..."
+./tst_compress
+echo "*** Test nccopy -d1 can compress a file ..."
+./nccopy -d1 tst_inflated.nc tst_deflated.nc
+if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
+    exit 1
+fi
+echo "*** Test nccopy -d1 -s can compress even more ..."
+./nccopy -d1 -s tst_inflated.nc tmp.nc
+if test `wc -c < tmp.nc` -ge  `wc -c < tst_inflated.nc`; then
+    exit 1
+fi
+rm tst_deflated.nc tst_inflated.nc tmp.nc 
+
+echo "*** Testing nccopy -d1 -s on ncdump/*.nc files"
+for i in $TESTFILES ; do
+    echo "*** nccopy -d1 -s $i.nc copy_of_$i.nc ..."
+    ./nccopy -d1 -s $i.nc copy_of_$i.nc
     ./ncdump -n copy_of_$i $i.nc > tmp.cdl
     ./ncdump copy_of_$i.nc > copy_of_$i.cdl
     echo "*** compare " with copy_of_$i.cdl
