@@ -83,12 +83,11 @@ LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
+TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
 t_dap_SOURCES = t_dap.c stubdap3.c
 t_dap_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
 ${top_builddir}/libdispatch/libdispatch.la
-
-
 CLEANFILES += t_dap
 
 EXTRA_DIST = ce.y

@@ -466,6 +466,10 @@ fi
 
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+fi
+if test "x$enable_dap_remote_tests" = xyes; then
+   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
 
 # Default is now to always do the short remote tests
@@ -478,6 +482,7 @@ if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
+
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
 AC_ARG_ENABLE([dap-long-tests],
