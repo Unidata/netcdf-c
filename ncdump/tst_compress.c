@@ -7,6 +7,7 @@
    $Id$
 */
 
+#include <config.h>
 #include <nc_tests.h>
 #include <stdlib.h>
 #include <netcdf.h>
