@@ -15,6 +15,7 @@ main(int argc, char **argv)
 {
    printf("\n*** Testing netcdf file functions some more.\n");
 #ifdef USE_DAP
+#ifdef ENABLE_DAP_REMOTE_TESTS
    printf("*** testing simple opendap open/close...");
    {
       int ncid;
@@ -24,6 +25,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#endif /*ENABLE_DAP_REMOTE_TESTS*/
 #endif /* USE_DAP */
    FINAL_RESULTS;
 }

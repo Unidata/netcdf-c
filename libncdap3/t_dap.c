@@ -109,13 +109,33 @@ int main()
 {
     int ncid, varid, ncstat, i, j;
     char* url;
+    char* topsrcdir;
+    size_t len;
 
-    /* location of our target url*/
+    /* location of our target url: use file// to avoid remote
+	server downtime issues
+     */
+    
+    /* Assume that TESTS_ENVIRONMENT was set */
+    topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir == NULL) {
+        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
+        exit(1);
+    }    
+    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
 #ifdef DEBUG
-    url = "[log][show=fetch]http://test.opendap.org:8080/dods/dts/test.02";
-#else
-    url = "http://test.opendap.org:8080/dods/dts/test.02";
+    len += strlen("[log][show=fetch]");
 #endif
+    url = (char*)malloc(len);
+    url[0] = '\0';
+
+#ifdef DEBUG
+    strcat(url,"[log][show=fetch]");
+#endif
+
+    strcat(url,"file://");
+    strcat(url,topsrcdir);
+    strcat(url,"/ncdap_test/testdata3/test.02");
 
     printf("*** Test: var conversions on URL: %s\n",url);
 
