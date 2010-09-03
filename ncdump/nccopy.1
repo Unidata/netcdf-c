@@ -1,13 +1,18 @@
-.\" $Header: /upc/share/CVS/netcdf-3/ncdump/nccopy.1,v 1.7 2009/12/09 13:49:31 russ Exp $
-.TH NCCOPY 1 "$Date: 2009/12/09 13:49:31 $" "Printed: \n(yr-\n(mo-\n(dy" "UNIDATA UTILITIES"
+.\" $Id: nccopy.1 400 2010-08-27 21:02:52Z russ $
+.TH NCCOPY 1 "$Date$" "Printed: \n(yr-\n(mo-\n(dy" "UNIDATA UTILITIES"
 .SH NAME
-nccopy \- Copy a netCDF file to specified variant of netCDF format
+nccopy \- Copy a netCDF file to specified variant of netCDF format,
+optionally compressing data in the output copy.
 .SH SYNOPSIS
 .ft B
 .HP
 nccopy
 .nh
-\%[-k n]
+\%[-k kind]
+\%[-d n]
+\%[-s]
+\%[-u]
+\%[-m bufsize]
 \%\fIinfile\fP
 \%\fIoutfile\fP
 .hy
@@ -21,10 +26,8 @@ may be copied to a netCDF 64-bit offset file, permitting larger
 variables.
 If built with the netCDF-4 library, a netCDF classic file may be
 copied to a netCDF-4 file or to a netCDF-4 classic 
-model file as well, permitting later efficient schema changes, larger
-variable sizes, adding variables that use compressed or chunked
-storage, and use of other netCDF-4 features in case the output uses
-the enhanced netCDF model.
+model file as well, permitting data compression, later efficient schema changes, larger variable sizes, and use of other netCDF-4
+features in case the output uses the enhanced netCDF model.
 .LP
 \fBnccopy\fP also serves as an example of a generic netCDF-4 program,
 with its ability to read any valid netCDF file and handle nested
@@ -37,8 +40,9 @@ As of NetCDF version 4.1, and if DAP support was enabled when \fBnccopy\fP
 was built, the file name may specify a DAP URL. This allows \fBnccopy\fP
 to convert data on DAP servers to local netCDF files.
 .SH OPTIONS
-.IP "\fB-k \fRfile_format\fP"
-Specifies the kind of file to be created and, by inference,
+.IP "\fB-k \fIkind\fP"
+Specifies the kind of file to be created that is, the format variant)
+and, by inference, 
 the data model (i.e. netcdf-3 (classic) versus
 netcdf-4 (enhanced)).
 The possible arguments are as follows.
@@ -51,18 +55,45 @@ The possible arguments are as follows.
 .RE
 .RE
 If no value for -k is specified, then the output will use the same
-format as the input.  Note that attempting some kinds of format
+format as the input (except if the input is classic or 64-bit offset
+and  a compression level is specified with
+the -d option, in which case the outputt will be netCDF-4 classic
+model).  
+Note that attempting some kinds of format
 conversion will result in an error, if the conversion is not
 possible.  For example, an attempt to copy a netCDF-4 file that uses
 features of the enhanced model to any of the other kinds of netCDF
 formats that use the classic model will result an error.
-.IP "\fB-m \fIcopy_buffer_size\fP"
+.IP "\fB-d \fIn\fP"
+Specify deflation level (level of compression) for variable data in
+output.  0 corresponds to no compression and 9 to maximum compression,
+with higher levels of compression requiring marginally more time to
+compress or uncompress than lower levels.  Compression achieved may
+also depend on chunking parameters, which cannot currently be set to
+anything except default chunking in the current nccopy
+implementation.  If this option is specified for a classic format or
+64-bit offset format input file, it is not necessary to also specify
+that the output should be netCDF-4 classic model, as that will
+be the default.  If this option is not specified and the input file
+has compressed variables, the compression will still be preserved
+in the output.
+.IP "\fB-s\fP"
+Specify shuffling of variable data bytes before compression or after
+decompression.  This option is ignored unless a non-zero deflation
+level is specified.  Turning shuffling on sometimes improves
+compression. 
+.IP "\fB-u\fP"
+Convert any unlimited size dimensions in the input to fixed size
+dimensions in the output.
+.IP "\fB-m \fIbufsize\fP"
 Specifies the size, in bytes, of the copy buffer used to
 to copy large variables, by copying them in smaller pieces, each no
-larger than \fIcopy_bufer_size\fP.  The default is 5,000,000 bytes,
+larger than \fIcopy_bufer_size\fP.  A suffix of k, m, or g multiplies
+the copy buffer size by one thousand, million, or billion, respectively.
+The default is 5000000 bytes,
 but will be increased if necessary to hold at least one chunk of
-netCDF-4 chunked variables.  You may want to make
-it larger than the default for OPeNDAP copies of large files over high
+netCDF-4 chunked variables in the input file.  You may want to specify
+a value larger than the default for OPeNDAP copies of large files over high
 latency networks. 
 .SH EXAMPLES
 .LP
@@ -73,8 +104,9 @@ netCDF file of the same type:
 nccopy foo1.nc foo2.nc
 .RE
 Note that the above copy will not be as fast as use of a
-simple copy utility, because the file is copied structurally, using only the netCDF
-API.  This means, for example, that if the input file has extra bytes
+simple copy utility, because the file is copied using
+only the netCDF
+API.  If the input file has extra bytes
 after the end of the
 netCDF data, those will not be copied, because they are not accessible
 through the netCDF interface.  If the original file was generated in
@@ -98,6 +130,28 @@ nccopy 'http://test.opendap.org/opendap/data/nc/sst.mnmean.nc.gz?time_bnds' tb.n
 Note that URLs that name specific variables as command-line arguments
 should generally be quoted, to avoid the shell interpreting special
 characters such as `?'.
+.LP
+Compress all the variables in the input file foo.nc, a netCDF file of any
+type, to the output file bar.nc:
+.RS
+.HP
+nccopy -d1 foo.nc bar.nc
+.RE
+If foo.nc was a classic or 64-bit offset netCDF file, bar.nc will be a
+netCDF-4 classic model netCDF file, because the classic and 64-bit
+ofset format variants don't support compression.  If foo.nc was a
+netCDF-4 file with some variables compressed using various deflation
+levels, the output will also be a netCDF-4 file of the samme type, but
+all the variables, including any uncompressed variables in the input,
+will now use deflation level 1.
+.LP
+Uncompress all the variables in the input file nc4.nc, a netCDF-4
+classic model file, and copy to a classic netCDF file,
+classic.nc:
+.RS
+.HP
+nccopy -d0 -k1 nc4.nc classic.nc
+.RE
 .SH "SEE ALSO"
 .LP
 .BR ncdump(1), ncgen (1),

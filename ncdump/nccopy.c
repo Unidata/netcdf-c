@@ -1,7 +1,9 @@
 /*********************************************************************
- *   Copyright 2008, University Corporation for Atmospheric Research
+ *   Copyright 2010, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   $ID$
+ *   Thanks to Philippe Poilbarbe and Antonio S. Cofiño for 
+ *   compression additions.
+ *   $Id: nccopy.c 400 2010-08-27 21:02:52Z russ $
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
@@ -21,7 +23,7 @@
 #define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
 
 #ifndef USE_NETCDF4
-#define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model when used with NC_NETCDF4. */
+#define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
 #endif
 
 /* These are in unistd.h; for use with getopt() */
@@ -29,9 +31,11 @@ extern int optind;
 extern int opterr;
 extern char *optarg;
 
-static char *progname; 		/* for error messages */
-static int nofill_flag = 1; /* default is not to fill, because fill
-			     * values will be copied anyway */
+/* Global variables for command-line requests */
+static char *progname;	       /* for error messages */
+static int option_deflate_level = -1;	/* default, compress output only if input compressed */
+static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
+static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
 
 static void
 check(int err, const char* fcn, const char* file, const int line)
@@ -51,16 +55,11 @@ emalloc (size_t size)
 
     p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
     if (p == 0) {
-	fprintf(stderr,"Out of memory!\n");
+	fprintf(stderr,"%s: out of memory\n", progname);
 	exit(1);
     }
     return p;
 }
-
-/* Forward declaration, because copy_type, copy_vlen_type call each other */
-#ifdef USE_NETCDF4
-static int copy_type(int igrp, nc_type typeid, int ogrp);
-#endif
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -135,6 +134,8 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     return stat;
 }
 
+/* Forward declaration, because copy_type, copy_vlen_type call each other */
+static int copy_type(int igrp, nc_type typeid, int ogrp);
 
 /* 
  * copy a user-defined variable length type in the group igrp to the
@@ -434,10 +435,14 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	}
     }
     {				/* handle compression parameters */
-	int shuffle=NC_NOSHUFFLE, deflate=0, deflate_level=0;
+	int shuffle, deflate, deflate_level;
 	stat = nc_inq_var_deflate(igrp, varid, 
 				  &shuffle, &deflate, &deflate_level);
 	CHECK(stat, nc_inq_var_deflate);
+	if(option_deflate_level >= 0) { /* change output compression, if requested */
+	  deflate	= (option_deflate_level > 0);
+	  deflate_level = option_deflate_level;
+	}
 	if(deflate != 0 || shuffle != 0) {
 	    stat = nc_def_var_deflate(ogrp, o_varid, 
 				      shuffle, deflate, deflate_level);
@@ -461,6 +466,20 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	    stat = nc_def_var_endian(ogrp, o_varid, endianness);
 	    CHECK(stat, nc_def_var_endian);
 	}
+    }
+    return stat;
+}
+
+/* set variable to compression specified on command line */
+static int
+set_var_compressed(int ogrp, int o_varid)
+{
+    int stat = NC_NOERR;
+    if (option_deflate_level >= 0) {
+	int deflate = 1;
+	stat = nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, 
+				  deflate, option_deflate_level);
+	CHECK(stat, nc_def_var_deflate);
     }
     return stat;
 }
@@ -559,7 +578,7 @@ copy_dims(int igrp, int ogrp)
 		    name);
 	}	
 	CHECK(stat, nc_inq_dim);
-	if(is_unlim) {
+	if(is_unlim && !option_fix_unlimdims) {
 	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, NULL);
 	} else {
 	    stat = nc_def_dim(ogrp, name, length, NULL);
@@ -654,12 +673,18 @@ copy_var(int igrp, int varid, int ogrp)
 	CHECK(stat,nc_inq_format);
 	stat = nc_inq_format(ogrp, &outkind);
 	CHECK(stat,nc_inq_format);
-	if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC) &&
-	   (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC)) {
-	    /* Copy all netCDF-4 specific variable properties such as
-	     * chunking, endianness, deflation, checksumming, fill, etc. */
-	    stat = copy_var_specials(igrp, varid, ogrp, o_varid);
-	    CHECK(stat, copy_var_specials);
+	if(outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC) {
+	    if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC)) {
+		/* Copy all netCDF-4 specific variable properties such as
+		 * chunking, endianness, deflation, checksumming, fill, etc. */
+		stat = copy_var_specials(igrp, varid, ogrp, o_varid);
+		CHECK(stat, copy_var_specials);
+	    }
+	    else {	     /* classic or 64-bit offset input file */
+		/* Set compression if specified on command line option */
+	    	stat = set_var_compressed(ogrp, o_varid);
+	    	CHECK(stat, set_var_compressed);
+	    }
 	}
     }
 #endif	/* USE_NETCDF4 */
@@ -725,9 +750,7 @@ copy_schema(int igrp, int ogrp)
     return stat;    
 }
 
-/* Return number of values for a variable varid in a group igrp, as
- * well as array of dimension sizes, assumed to be preallocated to
- * hold one value for each dimension of variable */
+/* Return number of values for a variable varid in a group igrp */
 static int
 inq_nvals(int igrp, int varid, long long *nvalsp) {
     int stat = NC_NOERR;
@@ -900,7 +923,11 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 
 /* copy infile to outfile using netCDF API, kind specifies which
  * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
- * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model */
+ * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model.
+ * However, if compression or shuffling was specified and kind was -1,
+ * kind is changed to format that supports compression for input of
+ * type 1 or 2.
+ */
 static int
 copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 {
@@ -914,8 +941,17 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     stat = nc_inq_format(igrp, &inkind);
     CHECK(stat,nc_inq_format);
 
-    outkind = (kind == SAME_AS_INPUT) ? inkind : kind;
-
+    if (kind == SAME_AS_INPUT) {	/* default, kind not specified */
+	outkind = inkind;
+	/* allow kind to be deduced in this case, instead of returning error */
+	if ((inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) &&
+	    (option_deflate_level > 0 || option_shuffle_vars == NC_SHUFFLE) ) { 
+	    kind = NC_FORMAT_NETCDF4_CLASSIC;
+	    outkind = kind;
+	}
+    } else {
+	outkind = kind;
+    }
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	stat = nc_create(outfile,NC_CLOBBER,&ogrp);
@@ -943,10 +979,8 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 	exit(1);
     }
     CHECK(stat,nc_create);
-    if(nofill_flag) {
-	stat = nc_set_fill(ogrp,NC_NOFILL,NULL);
-        CHECK(stat,nc_set_fill);
-    }
+    stat = nc_set_fill(ogrp, NC_NOFILL, NULL); /* will just copy fill values, if any */
+    CHECK(stat,nc_set_fill);
 
 #ifdef USE_NETCDF4
     /* Because types in one group may depend on types in a different
@@ -979,12 +1013,15 @@ usage(void)
 #define USAGE   "\
   [-k n]    kind of netCDF format for output file, default same as input\n\
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
-  [-m n]    size in bytes of copy buffer\n\
+  [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
+  [-s]      adds shuffle option to deflation compression\n\
+  [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
+  [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
     (void) fprintf(stderr,
-		   "%s [-k n] [-m n] infile outfile\n%s",
+		   "%s [-k n] [-d n] [-s] [-u] [-m n] infile outfile\n%s",
 		   progname,
 		   USAGE);
 }
@@ -1038,7 +1075,7 @@ main(int argc, char**argv)
        return 1;
     }
 
-    while ((c = getopt(argc, argv, "k:m:")) != EOF) {
+    while ((c = getopt(argc, argv, "k:d:sum:")) != EOF) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1069,9 +1106,44 @@ main(int argc, char**argv)
 		}
 	    }
 	    break;
-	case 'm':		/* non-default size of data copy buffer */
-	    copybuf_size = strtoll(optarg, NULL, 10);
+	case 'd':		/* non-default compression level specified */
+	    option_deflate_level = strtol(optarg, NULL, 10);
+	    if(option_deflate_level < 0 || option_deflate_level > 9) {
+		fprintf(stderr, "invalid deflation level: %d\n", 
+			option_deflate_level);
+		return 1;
+	    }
 	    break;
+	case 's':		/* shuffling, may improve compression */
+	    option_shuffle_vars = NC_SHUFFLE;
+	    break;
+	case 'u':		/* convert unlimited dimensions to fixed size */
+	    option_fix_unlimdims = 1;
+	    break;
+	case 'm':		/* non-default size of data copy buffer */
+	{
+	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
+	    copybuf_size = strtoll(optarg, &suffix, 10);
+	    switch (suffix[0]) {
+	    case 'k':
+	    case 'K':
+		copybuf_size *= 1000;
+		break;
+	    case 'm':
+	    case 'M':
+		copybuf_size *= 1000000;
+		break;
+	    case 'g':
+	    case 'G':
+		copybuf_size *= 1000000000;
+		break;
+	    default:
+		fprintf(stderr,"Suffix for '-m' option value not k, m, or g: %c",
+		    suffix[0]);
+		exit(1);
+	    }		
+	    break;
+	}
 	default: 
 	    usage();
 	    exit(1);
@@ -1087,10 +1159,6 @@ main(int argc, char**argv)
     }
     inputfile = argv[0];
     outputfile = argv[1];
-
-    /* set nofill mode to speed up creation of output file, because we
-     * will copy fill values from input anyway */
-    nofill_flag = 1;
 
     if(strcmp(inputfile, outputfile) == 0) {
 	fprintf(stderr,"output would overwrite input\n");

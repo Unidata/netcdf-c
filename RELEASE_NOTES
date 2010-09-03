@@ -17,6 +17,10 @@ VERSION         COMMENTS
 	        Use hashing to speedup lookups by name for files with
 		lots of dimensions and variables (thanks to Greg
 		Sjaardema).
+		
+		Add options to nccopy to support uniform compression
+		of variables in output, shuffling, and fixing
+		unlimited dimensions.  Documented in nccopy.1.
 
 4.1.2-beta1    2010-07-09
 
