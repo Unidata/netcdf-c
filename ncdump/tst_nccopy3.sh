@@ -19,7 +19,7 @@ for i in $TESTFILES ; do
 done
 echo "*** Test nccopy -u"
 echo "*** creating tst_brecs.nc from tst_brecs.cdl..."
-../ncgen/ncgen -b tst_brecs.cdl
+../ncgen/ncgen -b $srcdir/tst_brecs.cdl
 # convert record dimension to fixed-size dimension
 ./nccopy -u tst_brecs.nc copy_of_tst_brecs.nc
 ./ncdump -n copy_of_tst_brecs tst_brecs.nc | sed '/ = UNLIMITED ;/s/\(.*\) = UNLIMITED ; \/\/ (\(.*\) currently)/\1 = \2 ;/' > tmp.cdl
