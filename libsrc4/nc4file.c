@@ -2702,8 +2702,8 @@ NC4_close(int ncid)
    {      
       /* If all files have been closed, close he HDF5 library. This will
        * clean up some stuff that HDF5 is leaving open. */
-      if ((retval = H5close()) < 0)
-	 return NC_EHDFERR;
+/*      if ((retval = H5close()) < 0)
+	return NC_EHDFERR;*/
 
       /* Reset the ncid numbers. */
       nc4_file_list_free();
