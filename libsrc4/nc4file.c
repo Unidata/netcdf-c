@@ -1680,9 +1680,9 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
    return retval;
 }
 
-/* Given index, get the HDF5 name of an object. This function will try
- * to use creation ordering, but if that fails (which causes a HDF5
- * error message to be printed) then it will use default
+/* Given index, get the HDF5 name of an object and the class of the
+ * object (group, type, dataset, etc.). This function will try to use
+ * creation ordering, but if that fails it will use default
  * (i.e. alphabetical) ordering. (This is necessary to read existing
  * HDF5 archives without creation ordering). */
 static int
@@ -1697,7 +1697,7 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
    /* These HDF5 macros prevent an HDF5 error message when a
     * non-creation-ordered HDF5 file is opened. */
    H5E_BEGIN_TRY {
-      res = H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+      res = H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 			       i, &obj_info, H5P_DEFAULT);
    } H5E_END_TRY;
    
@@ -1706,23 +1706,23 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
     * read by netCDF-4. */
    if (res < 0)
    {
-      if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_NAME, H5_ITER_INC, 
-			     i, &obj_info, H5P_DEFAULT) < 0) 
+      if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_NAME, H5_ITER_INC,
+			     i, &obj_info, H5P_DEFAULT) < 0)
 	 return NC_EHDFERR;
       if (!h5->no_write)
 	 return NC_ECANTWRITE;
       h5->ignore_creationorder = 1;
-      idx_field = H5_INDEX_NAME;	 
+      idx_field = H5_INDEX_NAME;
    }
 
    *obj_class = obj_info.type;
    if ((size = H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i,
-				  NULL, 0, H5P_DEFAULT)) < 0) 
+				  NULL, 0, H5P_DEFAULT)) < 0)
       return NC_EHDFERR;
    if (size > NC_MAX_NAME)
       return NC_EMAXNAME;
    if (H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i,
-			  obj_name, size+1, H5P_DEFAULT) < 0) 
+			  obj_name, size+1, H5P_DEFAULT) < 0)
       return NC_EHDFERR;
 
    LOG((4, "get_name_by_idx: encountered HDF5 object obj_name %s", obj_name));
@@ -1730,15 +1730,63 @@ get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
    return NC_NOERR;
 }
 
+/* This struct is used to pass information back from the callback
+ * function used with H5Literate. */
+struct nc_hdf5_link_info 
+{
+   char name[NC_MAX_NAME + 1];
+   H5I_type_t obj_type;   
+};   
+
+/* This is a callback function for H5Literate(). 
+
+The parameters of this callback function have the following values or
+meanings:
+
+g_id Group that serves as root of the iteration; same value as the
+H5Lvisit group_id parameter
+
+name Name of link, relative to g_id, being examined at current step of
+the iteration
+
+info H5L_info_t struct containing information regarding that link
+
+op_data User-defined pointer to data required by the application in
+processing the link; a pass-through of the op_data pointer provided
+with the H5Lvisit function call
+
+*/
+herr_t
+visit_link(hid_t g_id, const char *name, const H5L_info_t *info, 
+	   void *op_data)  
+{
+   hid_t id;
+
+   /* Get the name, truncating at NC_MAX_NAME. */
+   strncpy(((struct nc_hdf5_link_info *)op_data)->name, name, 
+	   NC_MAX_NAME);
+   
+   /* Get the locid. */
+   if ((id = H5Oopen_by_addr(g_id, info->u.address)) < 0) 
+      return NC_EHDFERR;
+   
+   /* Is it group, type, data, attribute, or what? */
+   if ((((struct nc_hdf5_link_info *)op_data)->obj_type = H5Iget_type(id)) < 0)
+      return NC_EHDFERR;
+   
+   return 1;
+}
+
 /* Recursively open groups and read types. */
 int
 nc4_rec_read_types(NC_GRP_INFO_T *grp)
 {
    hsize_t num_obj, i;
-   int obj_class;
-   char obj_name[NC_MAX_HDF5_NAME + 1];
    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
    NC_GRP_INFO_T *child_grp;
+   hsize_t idx = 0;
+   struct nc_hdf5_link_info link_info;
+   herr_t res;
    int retval = NC_NOERR;
 
    assert(grp && grp->name);
@@ -1770,23 +1818,36 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
    /* For each object in the group... */
    for (i = 0; i < num_obj; i++)
    {
-      if ((retval = get_name_by_idx(h5, grp->hdf_grpid, i, &obj_class, obj_name)))
-	 return retval;
+      /* These HDF5 macros prevent an HDF5 error message when a
+       * non-creation-ordered HDF5 file is opened. */
+      H5E_BEGIN_TRY {
+	 res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			  &idx, visit_link, (void *)&link_info);
+      } H5E_END_TRY;
+
+      if (res != 1)
+      {
+	 if (H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
+			&idx, visit_link, (void *)&link_info) != 1)
+	    return NC_EHDFERR;
+	 if (!h5->no_write)
+	    return NC_ECANTWRITE;
+      }
 
       /* Deal with groups and types; ignore the rest. */
-      if (obj_class == H5O_TYPE_GROUP)
+      if (link_info.obj_type == H5I_GROUP)
       {
-	 LOG((3, "found group %s", obj_name));
+	 LOG((3, "found group %s", link_info.name));
 	 if ((retval = nc4_grp_list_add(&(grp->children), h5->next_nc_grpid++, 
-					grp, grp->file, obj_name, &child_grp)))
+					grp, grp->file, link_info.name, &child_grp)))
 	    return retval;
 	 if ((retval =  nc4_rec_read_types(child_grp)))
 	    return retval;
       }
-      else if (obj_class == H5O_TYPE_NAMED_DATATYPE)
+      else if (link_info.obj_type == H5I_DATATYPE)
       {
-	 LOG((3, "found datatype %s", obj_name));
-	 if ((retval = read_type(grp, obj_name)))
+	 LOG((3, "found datatype %s", link_info.name));
+	 if ((retval = read_type(grp, link_info.name)))
 	    return retval;
       }
    }
@@ -1801,10 +1862,11 @@ int
 nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 {
    hsize_t num_obj, i;
-   int obj_class;
-   char obj_name[NC_MAX_HDF5_NAME + 1];
    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
    NC_GRP_INFO_T *child_grp;
+   struct nc_hdf5_link_info link_info;
+   hsize_t idx = 0;
+   herr_t res;
    int retval = NC_NOERR;
 
    assert(grp && grp->name && grp->hdf_grpid > 0);
@@ -1817,18 +1879,31 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
    /* For each object in the group... */
    for (i = 0; i < num_obj; i++)
    {
-      if ((retval = get_name_by_idx(h5, grp->hdf_grpid, i, &obj_class, obj_name)))
-	 return retval;
+      /* These HDF5 macros prevent an HDF5 error message when a
+       * non-creation-ordered HDF5 file is opened. */
+      H5E_BEGIN_TRY {
+	 res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			  &idx, visit_link, (void *)&link_info);
+      } H5E_END_TRY;
+
+      if (res != 1)
+      {
+	 if (H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
+			&idx, visit_link, (void *)&link_info) != 1)
+	    return NC_EHDFERR;
+	 if (!h5->no_write)
+	    return NC_ECANTWRITE;
+      }
 
       /* Deal with datasets. */
-      switch(obj_class)
+      switch(link_info.obj_type)
       {
-         case H5O_TYPE_GROUP:
-	    LOG((3, "re-encountering group %s", obj_name));
+         case H5I_GROUP:
+	    LOG((3, "re-encountering group %s", link_info.name));
 
 	    /* The NC_GROUP_INFO_T for this group already exists. Find it. */
 	    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
-	       if (!strcmp(child_grp->name, obj_name))
+	       if (!strcmp(child_grp->name, link_info.name))
 		  break;
 	    if (!child_grp)
 	       return NC_EHDFERR;
@@ -1837,25 +1912,20 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
             if ((retval =  nc4_rec_read_vars(child_grp)))
                return retval;
             break;
-         case H5O_TYPE_DATASET:
-	    LOG((3, "found dataset %s", obj_name));
+         case H5I_DATASET:
+	    LOG((3, "found dataset %s", link_info.name));
 
             /* Learn all about this dataset, which may be a dimscale
              * (i.e. dimension metadata), or real data. */
-            if ((retval = read_dataset(grp, obj_name)))
+            if ((retval = read_dataset(grp, link_info.name)))
 	       return retval;
             break;
-         case H5O_TYPE_NAMED_DATATYPE:
-	    LOG((3, "already handled type %s", obj_name));
-            break;
-         case H5G_LINK:
-            /* Since I don't know what to do with linkes, I'll just
-             * ignore them. */
-            LOG((3, "This is a link object. Have a nice day."));
+         case H5I_DATATYPE:
+	    LOG((3, "already handled type %s", link_info.name));
             break;
          default:
             LOG((0, "Unknown object class %d in nc4_rec_read_vars!", 
-                 obj_class));
+                 link_info.obj_type));
       }
    }
 
