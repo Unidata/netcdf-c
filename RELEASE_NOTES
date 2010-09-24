@@ -5,6 +5,9 @@ VERSION         COMMENTS
 -------         --------
 4.1.2-beta2    2010-08-08
 
+	        Refactor of HDF5 file metadata scan for large speedup
+	        in opening files, especially large files.
+
 		Complete rewrite of the handling of character datalist
 		constants. The heuristics are documented in ncgen.1.
 

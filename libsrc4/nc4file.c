@@ -1685,50 +1685,50 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
  * creation ordering, but if that fails it will use default
  * (i.e. alphabetical) ordering. (This is necessary to read existing
  * HDF5 archives without creation ordering). */
-static int
-get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i,
-		int *obj_class, char *obj_name)
-{
-   H5O_info_t obj_info;
-   H5_index_t idx_field = H5_INDEX_CRT_ORDER;
-   ssize_t size;
-   herr_t res;
+/* static int */
+/* get_name_by_idx(NC_HDF5_FILE_INFO_T *h5, hid_t hdf_grpid, int i, */
+/* 		int *obj_class, char *obj_name) */
+/* { */
+/*    H5O_info_t obj_info; */
+/*    H5_index_t idx_field = H5_INDEX_CRT_ORDER; */
+/*    ssize_t size; */
+/*    herr_t res; */
 
-   /* These HDF5 macros prevent an HDF5 error message when a
-    * non-creation-ordered HDF5 file is opened. */
-   H5E_BEGIN_TRY {
-      res = H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
-			       i, &obj_info, H5P_DEFAULT);
-   } H5E_END_TRY;
+/*    /\* These HDF5 macros prevent an HDF5 error message when a */
+/*     * non-creation-ordered HDF5 file is opened. *\/ */
+/*    H5E_BEGIN_TRY { */
+/*       res = H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, */
+/* 			       i, &obj_info, H5P_DEFAULT); */
+/*    } H5E_END_TRY; */
    
-   /* Creation ordering not available, so make sure this file is
-    * opened for read-only access. This is a plain old HDF5 file being
-    * read by netCDF-4. */
-   if (res < 0)
-   {
-      if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_NAME, H5_ITER_INC,
-			     i, &obj_info, H5P_DEFAULT) < 0)
-	 return NC_EHDFERR;
-      if (!h5->no_write)
-	 return NC_ECANTWRITE;
-      h5->ignore_creationorder = 1;
-      idx_field = H5_INDEX_NAME;
-   }
+/*    /\* Creation ordering not available, so make sure this file is */
+/*     * opened for read-only access. This is a plain old HDF5 file being */
+/*     * read by netCDF-4. *\/ */
+/*    if (res < 0) */
+/*    { */
+/*       if (H5Oget_info_by_idx(hdf_grpid, ".", H5_INDEX_NAME, H5_ITER_INC, */
+/* 			     i, &obj_info, H5P_DEFAULT) < 0) */
+/* 	 return NC_EHDFERR; */
+/*       if (!h5->no_write) */
+/* 	 return NC_ECANTWRITE; */
+/*       h5->ignore_creationorder = 1; */
+/*       idx_field = H5_INDEX_NAME; */
+/*    } */
 
-   *obj_class = obj_info.type;
-   if ((size = H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i,
-				  NULL, 0, H5P_DEFAULT)) < 0)
-      return NC_EHDFERR;
-   if (size > NC_MAX_NAME)
-      return NC_EMAXNAME;
-   if (H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i,
-			  obj_name, size+1, H5P_DEFAULT) < 0)
-      return NC_EHDFERR;
+/*    *obj_class = obj_info.type; */
+/*    if ((size = H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i, */
+/* 				  NULL, 0, H5P_DEFAULT)) < 0) */
+/*       return NC_EHDFERR; */
+/*    if (size > NC_MAX_NAME) */
+/*       return NC_EMAXNAME; */
+/*    if (H5Lget_name_by_idx(hdf_grpid, ".", idx_field, H5_ITER_INC, i, */
+/* 			  obj_name, size+1, H5P_DEFAULT) < 0) */
+/*       return NC_EHDFERR; */
 
-   LOG((4, "get_name_by_idx: encountered HDF5 object obj_name %s", obj_name));
+/*    LOG((4, "get_name_by_idx: encountered HDF5 object obj_name %s", obj_name)); */
 
-   return NC_NOERR;
-}
+/*    return NC_NOERR; */
+/* } */
 
 /* This struct is used to pass information back from the callback
  * function used with H5Literate. */
@@ -1756,25 +1756,70 @@ processing the link; a pass-through of the op_data pointer provided
 with the H5Lvisit function call
 
 */
-herr_t
+static herr_t
 visit_link(hid_t g_id, const char *name, const H5L_info_t *info, 
 	   void *op_data)  
 {
+   /* A positive return value causes the visit iterator to immediately
+    * return that positive value, indicating short-circuit
+    * success. The iterator can be restarted at the next group
+    * member. */
+   int ret = 1;
    hid_t id;
 
    /* Get the name, truncating at NC_MAX_NAME. */
    strncpy(((struct nc_hdf5_link_info *)op_data)->name, name, 
 	   NC_MAX_NAME);
    
-   /* Get the locid. */
+   /* Open this critter. */
    if ((id = H5Oopen_by_addr(g_id, info->u.address)) < 0) 
       return NC_EHDFERR;
    
-   /* Is it group, type, data, attribute, or what? */
+   /* Is this critter a group, type, data, attribute, or what? */
    if ((((struct nc_hdf5_link_info *)op_data)->obj_type = H5Iget_type(id)) < 0)
+      ret = NC_EHDFERR;
+
+   /* Close the critter to release resouces. */
+   if (H5Oclose(id) < 0)
       return NC_EHDFERR;
    
-   return 1;
+   return ret;
+}
+
+/* Iterate over one link in the group at a time, returning
+ * link_info. The creation_ordering and idx pointers keep track of
+ * whether creation ordering works and the most recently examined
+ * link. */
+static int
+nc4_iterate_link(int *ordering_checked, int *creation_ordering, 
+		 hid_t grpid, hsize_t *idx, struct nc_hdf5_link_info *link_info)
+{
+   int res = 0;
+
+   if (*creation_ordering)
+   {
+      /* These HDF5 macros prevent an HDF5 error message when a
+       * non-creation-ordered HDF5 file is opened. */
+      H5E_BEGIN_TRY {
+	 res = H5Literate(grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			  idx, visit_link, (void *)link_info);
+	 if (res < 0 && *ordering_checked)
+	    return NC_EHDFERR;
+      } H5E_END_TRY;
+   }
+
+   if (!*creation_ordering || res < 0)
+   {
+      if (H5Literate(grpid, H5_INDEX_NAME, H5_ITER_INC, idx, 
+		     visit_link, link_info) != 1)
+	 return NC_EHDFERR;
+      /* If it didn't work with creation ordering, but did without,
+       * then we don't have creation ordering. */
+      *creation_ordering = 0;
+   }
+   
+   *ordering_checked = 1;
+   return NC_NOERR;
 }
 
 /* Recursively open groups and read types. */
@@ -1786,7 +1831,8 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
    NC_GRP_INFO_T *child_grp;
    hsize_t idx = 0;
    struct nc_hdf5_link_info link_info;
-   herr_t res;
+   int ordering_checked = 0;
+   int creation_ordering = 1; /* Assume we have it. */
    int retval = NC_NOERR;
 
    assert(grp && grp->name);
@@ -1818,21 +1864,13 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
    /* For each object in the group... */
    for (i = 0; i < num_obj; i++)
    {
-      /* These HDF5 macros prevent an HDF5 error message when a
-       * non-creation-ordered HDF5 file is opened. */
-      H5E_BEGIN_TRY {
-	 res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
-			  &idx, visit_link, (void *)&link_info);
-      } H5E_END_TRY;
+      if ((retval = nc4_iterate_link(&ordering_checked, &creation_ordering, 
+				     grp->hdf_grpid, &idx, &link_info)))
+	 return retval;
 
-      if (res != 1)
-      {
-	 if (H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
-			&idx, visit_link, (void *)&link_info) != 1)
-	    return NC_EHDFERR;
-	 if (!h5->no_write)
-	    return NC_ECANTWRITE;
-      }
+      /* Without creation ordering, file must be read-only. */
+      if (!i && !creation_ordering && !h5->no_write)
+	 return NC_ECANTWRITE;
 
       /* Deal with groups and types; ignore the rest. */
       if (link_info.obj_type == H5I_GROUP)
@@ -1862,11 +1900,11 @@ int
 nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 {
    hsize_t num_obj, i;
-   NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
    NC_GRP_INFO_T *child_grp;
    struct nc_hdf5_link_info link_info;
    hsize_t idx = 0;
-   herr_t res;
+   int ordering_checked = 0;
+   int creation_ordering = 1; /* Assume we have it. */
    int retval = NC_NOERR;
 
    assert(grp && grp->name && grp->hdf_grpid > 0);
@@ -1879,22 +1917,10 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
    /* For each object in the group... */
    for (i = 0; i < num_obj; i++)
    {
-      /* These HDF5 macros prevent an HDF5 error message when a
-       * non-creation-ordered HDF5 file is opened. */
-      H5E_BEGIN_TRY {
-	 res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
-			  &idx, visit_link, (void *)&link_info);
-      } H5E_END_TRY;
-
-      if (res != 1)
-      {
-	 if (H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
-			&idx, visit_link, (void *)&link_info) != 1)
-	    return NC_EHDFERR;
-	 if (!h5->no_write)
-	    return NC_ECANTWRITE;
-      }
-
+      if ((retval = nc4_iterate_link(&ordering_checked, &creation_ordering, 
+				     grp->hdf_grpid, &idx, &link_info)))
+	 return retval;
+      
       /* Deal with datasets. */
       switch(link_info.obj_type)
       {
@@ -1999,9 +2025,6 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 	nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL */
    
-   /*if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) 
-     BAIL(NC_EHDFERR);*/
-
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
       is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
@@ -2768,16 +2791,9 @@ NC4_close(int ncid)
       nc4_file_list_del(nc);
    }
 
+   /* Reset the ncid numbers if there are no more files open. */
    if(count_NCList() == 0)
-   {      
-      /* If all files have been closed, close he HDF5 library. This will
-       * clean up some stuff that HDF5 is leaving open. */
-/*      if ((retval = H5close()) < 0)
-	return NC_EHDFERR;*/
-
-      /* Reset the ncid numbers. */
       nc4_file_list_free();
-   }
 
    return NC_NOERR;
 }

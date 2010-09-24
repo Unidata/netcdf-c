@@ -19,7 +19,8 @@
 /*#define FILE_NAME "/machine/downloads/T159_1978110112.nc4"*/
 
 herr_t
-obj_iter(hid_t o_id, const char *name, const H5O_info_t *object_info, void *op_data) 
+obj_iter(hid_t o_id, const char *name, const H5O_info_t *object_info, 
+	 void *op_data) 
 {
    *(int *)op_data = object_info->type;
    return 1;
@@ -59,6 +60,9 @@ op_func (hid_t g_id, const char *name, const H5L_info_t *info,
 /* 		(void *)&obj_class) != 1) ERR; */
 
    if ((obj_type = H5Iget_type(id)) < 0) ERR;
+   if (H5Oclose(id) < 0) ERR;
+
+/* Turn this on to learn what type of object you've opened. */
 /*    switch (obj_type) */
 /*    { */
 /*       case H5I_GROUP: */
@@ -91,8 +95,8 @@ main()
       
       /* Set latest_format in access propertly list. This ensures that
        * the latest, greatest, HDF5 versions are used in the file. */ 
-      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, 
-			       H5F_LIBVER_LATEST) < 0) ERR;
+/*      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, 
+	H5F_LIBVER_LATEST) < 0) ERR;*/
 
       /* Set H5P_CRT_ORDER_TRACKED in the creation property list. This
        * turns on HDF5 creation ordering in the file. */
