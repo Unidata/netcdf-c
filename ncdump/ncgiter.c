@@ -168,6 +168,43 @@ nc_rel_giter(ncgiter_t *iterp)
     gs_free(iterp);
 }
 
+/* 
+ * Get total number of groups (including the top-level group and all
+ * descendant groups, recursively) and all descendant subgroup ids
+ * (including the input rootid of the start group) for a group and
+ * all its descendants, in preorder.
+ *
+ * If grpids or numgrps is NULL, it will be ignored.  So typical use
+ * is to call with grpids NULL to get numgrps, allocate enough space
+ * for the group ids, then call again to get them.
+ */
+int
+nc_inq_grps_full(int rootid, size_t *numgrps, int *grpids) 
+{
+    int stat = NC_NOERR;
+    ncgiter_t *giter;		/* pointer to group iterator */
+    int grpid;
+    size_t count;
+
+    stat = nc_get_giter(rootid, &giter);
+    CHECK(stat, nc_get_giter);
+    
+    count = 0;
+    stat = nc_next_giter(giter, &grpid);
+    CHECK(stat, nc_next_giter);
+    while(grpid != 0) {
+	if(grpids)
+	    grpids[count] = grpid;
+	count++;
+	stat = nc_next_giter(giter, &grpid);
+	CHECK(stat, nc_next_iter);
+    }
+    if(numgrps)
+	*numgrps = count;
+    nc_rel_giter(giter);
+    return stat;
+}
+
 /* Test on input file by printing all group names in iteration order */
 int 
 main(int argc, char *argv[])
@@ -200,5 +237,27 @@ main(int argc, char *argv[])
     }
     
     nc_rel_giter(giter);
+
+    /* Now try the simpler API */
+    {
+	size_t ngrps0, ngrps;
+	int *grpids;
+	int i;
+
+	printf("Same thing with simpler API\n");
+	stat = nc_inq_grps_full(ncid, &ngrps0, NULL);
+	CHECK(stat, nc_inq_grps_full);
+	grpids = emalloc(ngrps0 * sizeof(int));
+	stat = nc_inq_grps_full(ncid, &ngrps, grpids);
+	CHECK(stat, nc_inq_grps_full);
+	assert(ngrps0 == ngrps);
+	for(i = 0; i < ngrps; i++) {
+	    /* get group name from group id */
+	    stat = nc_inq_grpname(grpids[i], grpname);
+	    CHECK(stat, nc_inq_grpname);
+	    printf("%d %s\n", grpids[i], grpname);
+	}
+    }
+
     return 0;
 }
