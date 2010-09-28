@@ -223,61 +223,6 @@ main()
 	 ERR;
    }
    SUMMARIZE_ERR;
-
-   printf("*** Creating HDF5 file in the canonical netCDF-4 way...");
-   {
-      hid_t fapl_id, fcpl_id, fileid, grpid, fileid2;
-      hsize_t num_obj;
-
-      /* Create file access and create property lists. */
-      if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-      if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
-      
-      /* Set latest_format in access propertly list. This ensures that
-       * the latest, greatest, HDF5 versions are used in the file. */ 
-      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-
-      /* Set H5P_CRT_ORDER_TRACKED in the creation property list. This
-       * turns on HDF5 creation ordering in the file. */
-      if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
-					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
-      if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
-					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
-
-      /* Set close degree. */
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
-
-      /* Create the file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-
-      /* Open the root group. */
-      if ((grpid = H5Gopen2(fileid, "/", H5P_DEFAULT)) < 0) ERR;
-
-      /* Close up. */
-      if (H5Pclose(fapl_id) < 0 ||
-	  H5Pclose(fcpl_id) < 0 ||
-	  H5Gclose(grpid) < 0 ||
-	  H5Fclose(fileid) < 0)
-	 ERR;
-
-      /* Reopen the file and check it. */
-      if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
-
-      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, fapl_id)) < 0) ERR;
-      if (H5Gget_num_objs(fileid, &num_obj) < 0) ERR;
-      if (num_obj) ERR;
-
-      /* Open another copy of the same file. Must use the same file
-       * access degree or HDF5 will not open the file. */
-      if ((fileid2 = H5Fopen(FILE_NAME, H5F_ACC_RDWR, fapl_id)) < 0) ERR;
-
-      if (H5Fclose(fileid) < 0) ERR;
-      if (H5Fclose(fileid2) < 0) ERR;
-      if (H5Pclose(fapl_id) < 0) ERR;
-   }
-   SUMMARIZE_ERR;
-
 #ifdef LARGE_FILE_TESTS
 
 #define NDIMS2 2

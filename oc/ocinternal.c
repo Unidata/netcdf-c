@@ -22,11 +22,12 @@
 
 /* Note: TMPPATH must end in '/' */
 #ifdef __CYGWIN__
-/*#define TMPPATH "c:/temp/"*/
+#define TMPPATH1 "c:/temp/"
+#define TMPPATH2 "./"
 #else
-/*#define TMPPATH "/tmp/"*/
+#define TMPPATH1 "/tmp/"
+#define TMPPATH2 "./"
 #endif
-#define TMPPATH "./"
 
 /* Define default rc files */
 #define DODSRC ".dodsrc"
@@ -36,6 +37,7 @@ static int ocextractdds(OCstate*,OCtree*);
 static char* constraintescape(const char* url);
 #ifdef OC_DISK_STORAGE
 static OCerror createtempfile(OCstate*,OCtree*);
+static int createtempfile1(char*,char*);
 #endif
 
 static void ocsetcurlproperties(OCstate*);
@@ -455,12 +457,36 @@ ocextractdds(OCstate* state, OCtree* tree)
 static OCerror
 createtempfile(OCstate* state, OCtree* tree)
 {
-    int fd,c,slen = strlen(TMPPATH) + strlen("datadds") + strlen("XXXXXX");
-    char* name = (char*)ocmalloc(slen+1);
-    char* p;
+    int fd,slen;
+    char* name;
+    slen = strlen(TMPPATH1);
+    if(slen < strlen(TMPPATH2)) slen = strlen(TMPPATH2);
+    slen += strlen("datadds") + strlen("XXXXXX");
+    name = (char*)ocmalloc(slen+1);
     MEMCHECK(name,OC_ENOMEM);
-    strcpy(name,TMPPATH);
-    strcpy(name,"datadds");
+    fd = createtempfile1(name, TMPPATH1);
+    if(fd < 0)
+        fd = createtempfile1(name, TMPPATH2);
+    if(fd < 0) {
+        oc_log(LOGERR,"oc_open: attempt to open tmp file %s failed",name);
+        return errno;
+    }
+    oc_log(LOGNOTE,"oc_open: using tmp file: %s",name);
+    tree->data.filename = name; /* remember our tmp file name */
+    tree->data.file = fdopen(fd,"w+");
+    if(tree->data.file == NULL) return OC_EOPEN;
+    /* unlink the temp file so it will automatically be reclaimed */
+    if(ocdebug == 0) unlink(tree->data.filename);
+    return OC_NOERR;
+}
+
+int
+createtempfile1(char* name, char* tmppath)
+{
+    char* p;
+    int c,fd;
+    strcpy(name,tmppath);
+    strcat(name,"datadds");
     strcat(name,"XXXXXX");
     p = name + strlen("datadds");
     /* \', and '/' to '_' and '.' to '-'*/
@@ -471,16 +497,7 @@ createtempfile(OCstate* state, OCtree* tree)
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     fd = mkstemp(name);
-    if(fd < 0) {
-        oc_log(LOGERR,"oc_open: attempt to open tmp file %s failed",name);
-        return errno;
-    }
-    tree->data.filename = name; /* remember our tmp file name */
-    tree->data.file = fdopen(fd,"w+");
-    if(tree->data.file == NULL) return OC_EOPEN;
-    /* unlink the temp file so it will automatically be reclaimed */
-    if(ocdebug == 0) unlink(tree->data.filename);
-    return OC_NOERR;
+    return fd;
 }
 #endif /*OC_DISK_STORAGE*/
 

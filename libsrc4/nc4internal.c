@@ -227,7 +227,7 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 
    /* If we can't find it, the grp id part of ncid is bad. */
    if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;
+      return NC_EBADID;
    return NC_NOERR;
 }
 
@@ -243,7 +243,7 @@ nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_HDF5_FILE_INFO_T **h5)
         assert(f->nc4_info->root_grp);
         /* If we can't find it, the grp id part of ncid is bad. */
 	if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
-  	    return NC_EBADGRPID;
+  	    return NC_EBADID;
 	*h5 = (*grp)->file->nc4_info;
 	assert(*h5);
     } else {
@@ -264,7 +264,7 @@ nc4_find_nc_grp_h5(int ncid, NC_FILE_INFO_T **nc, NC_GRP_INFO_T **grp,
 	assert(f->nc4_info->root_grp);
 	/* If we can't find it, the grp id part of ncid is bad. */
 	if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
-	       return NC_EBADGRPID;
+	       return NC_EBADID;
 
 	*h5 = (*grp)->file->nc4_info;
 	assert(*h5);
