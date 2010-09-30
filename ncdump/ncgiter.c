@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 2010, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   "$Header: /upc/share/CVS/netcdf-3/ncdump/ncgiter.c,v 1.8 2010/04/04 19:57:57 dmh Exp $"
+ *   "$Id"
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
@@ -71,7 +71,7 @@ gs_empty(ncgiter_t *s)
 static void
 gs_push(ncgiter_t *s, int grpid)
 {
-    grpnode_t *node = emalloc(sizeof(node));
+    grpnode_t *node = emalloc(sizeof(grpnode_t));
  
     node->grpid = grpid;
     node->next = gs_empty(s) ? NULL : s->top;
@@ -89,6 +89,7 @@ gs_pop(ncgiter_t *s)
 	grpnode_t *top = s->top;
 	int value = top->grpid;
 	s->top = top->next;
+	/* TODO: first call to free gets seg fault with libumem */
 	free(top);
 	s->ngrps--;
 	return value;
@@ -179,7 +180,7 @@ nc_rel_giter(ncgiter_t *iterp)
  * for the group ids, then call again to get them.
  */
 int
-nc_inq_grps_full(int rootid, size_t *numgrps, int *grpids) 
+nc_inq_grps_full(int rootid, int *numgrps, int *grpids) 
 {
     int stat = NC_NOERR;
     ncgiter_t *giter;		/* pointer to group iterator */
@@ -205,6 +206,7 @@ nc_inq_grps_full(int rootid, size_t *numgrps, int *grpids)
     return stat;
 }
 
+#ifdef TEST_GITER_MAIN
 /* Test on input file by printing all group names in iteration order */
 int 
 main(int argc, char *argv[])
@@ -261,3 +263,4 @@ main(int argc, char *argv[])
 
     return 0;
 }
+#endif	/* TEST_GITER_MAIN */

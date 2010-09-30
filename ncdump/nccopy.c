@@ -15,6 +15,7 @@
 #include <string.h>
 #include <netcdf.h>
 #include "nciter.h"
+#include "ncgiter.h"
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
@@ -93,6 +94,30 @@ get_grpid(int igrp, int parid, int *ogrpp) {
 
 
 #ifdef USE_NETCDF4
+/* Get parent id needed to define a new group from its full name in an
+ * open file identified by ncid.  Assumes all intermediate groups are
+ * already defined.  */
+static int
+nc_inq_parid(int ncid, const char *fullname, int *locidp) {
+    int stat = NC_NOERR;
+    char *parent = strdup(fullname);
+    char *slash = "/";		/* groupname separator */
+    char *last_slash;
+    if(parent == NULL)
+	CHECK(NC_ENOMEM, strdup);
+    last_slash = strrchr(parent, '/');
+    if(last_slash == parent) {	/* parent is root */
+	free(parent);
+	parent = strdup(slash);
+    } else {
+	*last_slash = '\0';	/* truncate to get parent name */
+    }
+    stat = nc_inq_grp_full_ncid(ncid, parent, locidp);
+    CHECK(stat, nc_inq_grp_full_ncid);
+    free(parent);
+    return stat;
+}
+
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
  * layout is contiguous */
 static int
@@ -121,15 +146,14 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     }
     if(contig == 1) {
 	*chunksizep = 0;
-	return stat;
+    } else {
+	stat = nc_inq_var_chunking(igrp, varid, &contig, chunksizes);
+	CHECK(stat, nc_inq_var_chunking);
+	for(dim = 0; dim < ndims; dim++) {
+	    prod *= chunksizes[dim];
+	}
+	*chunksizep = prod;
     }
-    /* else chunked */
-    stat = nc_inq_var_chunking(igrp, varid, &contig, chunksizes);
-    CHECK(stat, nc_inq_var_chunking);
-    for(dim = 0; dim < ndims; dim++) {
-	prod *= chunksizes[dim];
-    }
-    *chunksizep = prod;
     free(chunksizes);
     return stat;
 }
@@ -312,45 +336,48 @@ copy_type(int igrp, nc_type typeid, int ogrp)
     return stat;
 }
 
-/* Copy a group and all its subgroups, recursively, from group igrp in
- * input to parent group ogrp in destination.  This just creates all
- * the groups in the destination, but doesn't copy anything that's in
- * the groups. */
+/* Copy a group and all its subgroups, recursively, from iroot to
+ * oroot, the ncids of input file and output file.  This just creates
+ * all the groups in the destination, but doesn't copy anything that's
+ * in the groups yet. */
 static int
-copy_groups(int igrp, int ogrp)
+copy_groups(int iroot, int oroot)
 {
     int stat = NC_NOERR;
-    int inparid;
-    int ogid;			/* like igrp but in output file */
     int numgrps;
-    int *grpids;
+    int *grpids, ogrpid;
     int i;
 
-    /* if not root group, create corresponding new group in ogrp */
-    stat = nc_inq_grp_parent(igrp, &inparid);
-    if(stat == NC_NOERR) {
-	/* create new subgroup */
-	char grpname[NC_MAX_NAME + 1];
-	stat = nc_inq_grpname(igrp, grpname);
+    /* get total number of groups and their ids, including all descendants */
+    stat = nc_inq_grps_full(iroot, &numgrps, NULL);
+    CHECK(stat, nc_inq_grps_full);
+    grpids = emalloc(numgrps * sizeof(int));
+    stat = nc_inq_grps_full(iroot, NULL, grpids);
+    CHECK(stat, nc_inq_grps_full);
+    /* create corresponding new groups in ogrp, except for root group */
+    for(i = 1; i < numgrps; i++) {
+	char *grpname_full;
+	char grpname[NC_MAX_NAME];
+	size_t len_name;
+	int ogid, oparid;
+	/* get full group name of input group */
+	stat = nc_inq_grpname_full(grpids[i], &len_name, NULL);
 	CHECK(stat, nc_inq_grpname);
-	stat = nc_def_grp(ogrp, grpname, &ogid);
+	grpname_full = emalloc(len_name + 1);
+	stat = nc_inq_grpname_full(grpids[i], &len_name, grpname_full);
+	CHECK(stat, nc_inq_grpname_full);
+	/* get id of parent group of corresponding group in output.
+	 * Note that this exists, because nc_inq_groups returned
+	 * grpids in preorder, so parents are always copied before
+	 * their subgroups */
+	stat = nc_inq_parid(oroot, grpname_full, &oparid);
+	CHECK(stat, get_oparid);
+	stat = nc_inq_grpname(grpids[i], grpname);
+	CHECK(stat, nc_inq_grpname);
+	/* define corresponding group in output */
+	stat = nc_def_grp(oparid, grpname, &ogid);
 	CHECK(stat, nc_def_grp);
-    } else if(stat == NC_ENOGRP) {
-	ogid = ogrp;
-	stat = NC_NOERR;
-    } else {
-	CHECK(stat, nc_inq_grp_parent);
-    }
-    
-    /* Copy any subgroups */
-    stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
-    stat = nc_inq_grps(igrp, &numgrps, grpids);
-    CHECK(stat, nc_inq_grps);
-
-    for(i = 0; i < numgrps; i++) {
-	stat = copy_groups(grpids[i], ogid);
-	CHECK(stat, copy_group);
+	free(grpname_full);
     }
     free(grpids);
     return stat;    
@@ -925,7 +952,7 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
  * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
  * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model.
  * However, if compression or shuffling was specified and kind was -1,
- * kind is changed to format that supports compression for input of
+ * kind is changed to format 4 that supports compression for input of
  * type 1 or 2.
  */
 static int

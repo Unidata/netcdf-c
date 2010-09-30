@@ -33,15 +33,16 @@ typedef struct {
  */
 
 /* 
- * Get total number of groups (including all descendant groups,
- * recursively) and all descendant subgroup ids for start group and
- * all its descendants, in preorder.
+ * Simplest interface: get total number of groups (including all
+ * descendant groups, recursively) and all descendant subgroup ids for
+ * start group and all its descendants, in preorder.
  */
 extern int
-nc_inq_grps_full(int ncid, size_t *numgrps, int *ncids);
+nc_inq_grps_full(int ncid, int *numgrps, int *ncids);
 
 /* 
- * Get group iterator for start group ncid and all its descendant groups.
+ * More complex iterator interface: get group iterator for start group
+ * ncid and all its descendant groups.
  */
 extern int
 nc_get_giter(int ncid, ncgiter_t **iterp);
