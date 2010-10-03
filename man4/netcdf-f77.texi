@@ -2889,7 +2889,8 @@ INTEGER FUNCTION NF_DEF_GRP(INTEGER PARENT_NCID, CHARACTER*(*) NAME,
 The group id of the parent group.
 
 @item NAME
-The name of the new group.
+The name of the new group, which must be different from the name of
+any variable within the same parent group.
 
 @item NEW_NCID
 The ncid of the new group will be placed there.
