@@ -263,6 +263,27 @@ gs_top(ncgiter_t *s)
     }
 }
 
+/* Like netCDF-4 function nc_inq_grps(), but can be called from
+ * netCDF-3 only code as well.  Maybe this is what nc_inq_grps()
+ * should do if built without netCDF-4 data model support. */
+static int
+nc_inq_grps2(int ncid, int *numgrps, int *grpids)
+{
+    int stat;
+
+    /* just check if ncid is valid id of open netCDF file */
+    stat = nc_inq(ncid, NULL, NULL, NULL, NULL);
+    CHECK(stat, nc_inq);
+
+#ifdef USE_NETCDF4
+    stat = nc_inq_grps(ncid, numgrps, grpids);
+    CHECK(stat, nc_inq_grps);
+#else
+    *numgrps = 0;
+#endif
+    return stat;
+}
+
 /* Begin public interfaces */
 
 /* Initialize iteration for a variable.  Just a wrapper for
@@ -423,7 +444,7 @@ nc_get_giter(int grpid,	       /* start group id */
 {
     int stat = NC_NOERR;
 
-    stat = nc_inq_grpname(grpid, NULL); /* check if grpid is valid */
+    stat = nc_inq(grpid, NULL, NULL, NULL, NULL); /* check if grpid is valid */
     if(stat != NC_EBADGRPID && stat != NC_EBADID) {
 	*iterp = gs_init();
 	gs_push(*iterp, grpid);
@@ -448,12 +469,12 @@ nc_next_giter(ncgiter_t *iterp, int *grpidp) {
 	*grpidp = 0;		/* not a group, signals iterator is done */
     } else {
 	*grpidp = gs_pop(iterp);
-	stat = nc_inq_grps(*grpidp, &numgrps, NULL);
-	CHECK(stat, nc_inq_grps);
+	stat = nc_inq_grps2(*grpidp, &numgrps, NULL);
+	CHECK(stat, nc_inq_grps2);
 	if(numgrps > 0) {
 	    grpids = (int *)emalloc(sizeof(int) * numgrps);
-	    stat = nc_inq_grps(*grpidp, &numgrps, grpids);
-	    CHECK(stat, nc_inq_grps);
+	    stat = nc_inq_grps2(*grpidp, &numgrps, grpids);
+	    CHECK(stat, nc_inq_grps2);
 	    for(i = numgrps - 1; i >= 0; i--) { /* push ids on stack in reverse order */
 		gs_push(iterp, grpids[i]);
 	    }
