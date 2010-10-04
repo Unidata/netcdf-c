@@ -131,38 +131,49 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
       *tid2 = 0;
    if ((ret = nc_inq_typeids(ncid2, &nids, NULL)))
       return ret;
-   if (!(ids = (int *)malloc(nids * sizeof(int))))
-      return NC_ENOMEM;
-   if ((ret = nc_inq_typeids(ncid2, &nids, ids)))
-      return ret;
-   for(i = 0; i < nids; i++) 
+   if (nids)
    {
-      int equal = 0;
-      if ((ret = NC_compare_nc_types(ncid1, tid1, ncid2, ids[i], &equal)))
+      if (!(ids = (int *)malloc(nids * sizeof(int))))
+	 return NC_ENOMEM;
+      if ((ret = nc_inq_typeids(ncid2, &nids, ids)))
 	 return ret;
-      if(equal) 
+      for(i = 0; i < nids; i++) 
       {
-	 if(tid2) 
-	    *tid2 = ids[i]; 
-	 free(ids);
-	 return NC_NOERR;
+	 int equal = 0;
+	 if ((ret = NC_compare_nc_types(ncid1, tid1, ncid2, ids[i], &equal)))
+	    return ret;
+	 if(equal) 
+	 {
+	    if(tid2) 
+	       *tid2 = ids[i]; 
+	    free(ids);
+	    return NC_NOERR;
+	 }
       }
+      free(ids);
    }
-   free(ids);
 
    /* recurse */
-   ret = nc_inq_grps(ncid1,&nids,NULL);
-   if(ret) return ret;
-   ids = (int*)malloc(nids*sizeof(int));
-   if(ids == NULL) return NC_ENOMEM;
-   ret = nc_inq_grps(ncid1,&nids,ids);
-   if(ret) return ret;
-   for(i=0;i<nids;i++) {
-      ret = NC_rec_find_nc_type(ncid1, tid1, ids[i], tid2);
-      if(ret && ret != NC_EBADTYPE) break;
-      if(tid2 && *tid2 != 0) break; /* found */
+   if ((ret = nc_inq_grps(ncid1, &nids, NULL)))
+      return ret;
+   if (nids)
+   {
+      if (!(ids = (int*)malloc(nids*sizeof(int))))
+	 return NC_ENOMEM;
+      if ((ret = nc_inq_grps(ncid1,&nids,ids)))
+	 return ret;
+      for(i = 0; i < nids; i++) 
+      {
+	 ret = NC_rec_find_nc_type(ncid1, tid1, ids[i], tid2);
+	 if(ret && ret != NC_EBADTYPE) break;
+	 if(tid2 && *tid2 != 0) /* found */
+	 {
+	    free(ids);
+	    return NC_NOERR;
+	 }
+      }
+      free(ids);
    }
-   free(ids);
    return NC_EBADTYPE; /* not found */
 }
 
