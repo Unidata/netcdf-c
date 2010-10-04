@@ -58,7 +58,7 @@ ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h
 # Another utility program that copies any netCDF file using only the
 # netCDF API
 bin_PROGRAMS += nccopy
-nccopy_SOURCES = nccopy.c nciter.c nciter.h ncgiter.c ncgiter.h
+nccopy_SOURCES = nccopy.c nciter.c nciter.h
 
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1

@@ -15,7 +15,6 @@
 #include <string.h>
 #include <netcdf.h>
 #include "nciter.h"
-#include "ncgiter.h"
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
