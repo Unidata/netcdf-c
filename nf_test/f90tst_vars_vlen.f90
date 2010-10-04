@@ -80,21 +80,21 @@ program f90tst_vars_vlen
 !   if (retval .ne. nf_noerr) call handle_err(retval)
 !   if (num_types .ne. max_types) stop 2
 
-!   ! Use nf_inq_user_type to confirm this is an vlen type, with base
-!   ! size 4, base type NF_INT.
+!   ! Use nf_inq_user_type to confirm this is an vlen type, with vlen
+!   ! size 16, base type NF_INT.
 !   retval = nf_inq_user_type(ncid, typeids(1), type_name, type_size, &
 !        base_type, nfields, class)
 !   if (retval .ne. nf_noerr) call handle_err(retval)
 !   if (type_name(1:len(vlen_type_name)) .ne. vlen_type_name .or. &
-!         type_size .ne. 4 .or. base_type .ne. nf_int .or. &
-!         nfields .ne. 0 .or. class .ne. nf_vlen) stop 2
+!         type_size .ne. 16 .or. base_type .ne. nf_int .or. &
+!         nfields .ne. 0 .or. class .ne. nf_vlen) stop 3
 
 !   ! Use nf_inq_vlen and make sure we get the same answers as we did
 !   ! with nf_inq_user_type.
 !   retval = nf_inq_vlen(ncid, typeids(1), type_name, base_size, base_type)
 !   if (retval .ne. nf_noerr) call handle_err(retval)
 !   if (type_name(1:len(vlen_type_name)) .ne. vlen_type_name .or. &
-!        base_type .ne. nf_int .or. base_size .ne. 4) stop 2
+!        base_type .ne. nf_int .or. base_size .ne. 16) stop 4
 
 !   ! Read the vlen attribute.
 !   retval = nf_get_att(ncid, NF_GLOBAL, 'att1', vlen_in)
@@ -104,29 +104,29 @@ program f90tst_vars_vlen
 !   retval = nf_get_vlen_element(ncid, vlen_typeid, vlen_in, &
 !        vlen_len_in, data1_in)
 !   if (retval .ne. nf_noerr) call handle_err(retval)
-!   if (vlen_len_in .ne. vlen_len) stop 2
+!   if (vlen_len_in .ne. vlen_len) stop 5
 
 !   ! Check the data
 !   do x = 1, vlen_len
-!      if (data1(x) .ne. data1_in(x)) stop 2
+!      if (data1(x) .ne. data1_in(x)) stop 6
 !   end do
 
 !   ! Close the file. 
 !   retval = nf_close(ncid)
 !   if (retval .ne. nf_noerr) call handle_err(retval)
 
-  print *,'*** SUCCESS!'
-contains
-!     This subroutine handles errors by printing an error message and
-!     exiting with a non-zero status.
-  subroutine handle_err(errcode)
-    use netcdf
-    implicit none
-    integer, intent(in) :: errcode
+!   print *,'*** SUCCESS!'
+! contains
+! !     This subroutine handles errors by printing an error message and
+! !     exiting with a non-zero status.
+!   subroutine handle_err(errcode)
+!     use netcdf
+!     implicit none
+!     integer, intent(in) :: errcode
     
-    if(errcode /= nf90_noerr) then
-       print *, 'Error: ', trim(nf90_strerror(errcode))
-       stop 2
-    endif
-  end subroutine handle_err
+!     if(errcode /= nf90_noerr) then
+!        print *, 'Error: ', trim(nf90_strerror(errcode))
+!        stop 1
+!     endif
+!   end subroutine handle_err
 end program f90tst_vars_vlen
