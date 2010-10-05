@@ -3127,7 +3127,7 @@ nc4_convert_type(const void *src, void *dest,
                case NC_USHORT:
                   for (lp = (long *)src, usp = dest; count < len; count++)
                   {
-                     if (*lp > X_SHORT_MAX || *lp < X_SHORT_MIN)
+                     if (*lp > X_USHORT_MAX || *lp < 0)
                         (*range_error)++;
                      *usp++ = *lp++;
                   }
@@ -3213,7 +3213,7 @@ nc4_convert_type(const void *src, void *dest,
                case NC_USHORT:
                   for (ip = (int *)src, usp = dest; count < len; count++)
                   {
-                     if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
+                     if (*ip > X_USHORT_MAX || *ip < 0)
                         (*range_error)++;
                      *usp++ = *ip++;
                   }
@@ -3559,7 +3559,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_USHORT:
                for (fp = (float *)src, usp = dest; count < len; count++)
                {
-                  if (*fp > X_SHORT_MAX || *fp < X_SHORT_MIN)
+                  if (*fp > X_USHORT_MAX || *fp < 0)
                      (*range_error)++;
                   *usp++ = *fp++;
                }
@@ -3652,7 +3652,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_USHORT:
                for (dp = (double *)src, usp = dest; count < len; count++)
                {
-                  if (*dp > X_SHORT_MAX || *dp < X_SHORT_MIN)
+                  if (*dp > X_USHORT_MAX || *dp < 0)
                      (*range_error)++;
                   *usp++ = *dp++;
                }
