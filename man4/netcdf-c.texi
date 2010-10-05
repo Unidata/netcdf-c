@@ -3519,7 +3519,8 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid);
 The group id of the parent group.
 
 @item name
-The name of the new group.
+The name of the new group.  A group cannot have the same name as a
+variable within the same parent group.
 
 @item new_ncid
 A pointer to an int. The ncid of the new group will be placed there.
@@ -3569,15 +3570,11 @@ Not in define mode.
 @heading Example
 
 @example
-      int root_ncid, a1_ncid;
+      int ncid, a1_ncid;
       char grpname[] = "assimilation1";
 
-      /* Get the ncid of the root group. */
-      if ((res = nc_inq_ncid(root_ncid, NULL, &root_ncid)))
-         return res;
-
       /* Create a group. */
-      if ((res = nc_def_grp(root_ncid, grpname, &a1_ncid)))
+      if ((res = nc_def_grp(ncid, grpname, &a1_ncid)))
          return res;
 @end example
 
