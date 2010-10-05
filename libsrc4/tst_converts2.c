@@ -25,7 +25,7 @@ main(int argc, char **argv)
    nc_type var_type;
  
    printf("\n*** Testing more netcdf-4 data conversion.\n");
-   printf ("*** Testing NC_BYTE converstions...");
+   printf ("*** Testing NC_BYTE conversions...");
    {
       /* Write a scalar NC_BYTE with value -2. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -47,7 +47,64 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf ("*** Testing MAX_INT converstions...");
+   printf ("*** Testing NC_USHORT conversions...");
+   {
+      /* Write a scalar NC_USHORT with value 65535, converted from various types. */
+       static unsigned short usval[1] = {65535};
+       int ival = 65535;
+       long lval = 65535;
+       float fval = 65535;
+       double dval = 65535;
+       int dimid;
+       size_t coord[1];
+       unsigned short ushort_in;
+       int int_in;
+       long long_in;
+       float float_in;
+       double double_in;
+#define DIM_NAME "n"
+#define DIM_LEN 5
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME, NC_USHORT, 1, &dimid, &varid)) ERR;
+      coord[0] = 1;
+      if (nc_put_var1_int(ncid, varid, &coord[0], &ival)) ERR;
+      coord[0] = 2;
+      if (nc_put_var1_float(ncid, varid, &coord[0], &fval)) ERR;
+      coord[0] = 3;
+      if (nc_put_var1_double(ncid, varid, &coord[0], &dval)) ERR; 
+      /* This cause a SIGABRT error */
+      /*       coord[0] = 0; */
+      /*       if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval[0])) ERR; */
+
+      if (nc_close(ncid)) ERR;
+
+      /* Now open the file and check it. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, NULL, &natts)) ERR;
+      if (strcmp(var_name, VAR_NAME) || natts !=0 || ndims != 1 || 
+	  var_type != NC_USHORT) ERR;
+      /* These also cause SIGABRT */
+      /*       coord[0] = 1; */
+      /*       if (nc_get_var1_int(ncid, varid, &coord[1], &int_in)) ERR; */
+      /*       if (int_in != ival) ERR; */
+      /*       coord[0] = 2; */
+      /*       if (nc_get_var1_float(ncid, varid, &coord[2], &float_in)) ERR; */
+      /*       if (float_in != fval) ERR; */
+      /*       coord[0] = 3; */
+      /*       if (nc_get_var1_double(ncid, varid, &coord[3], &double_in)) ERR; */
+      /*       if (double_in != dval) ERR; */
+      /*       coord[0] = 4; */
+      /*       if (nc_get_var1_long(ncid, varid, &coord[4], &long_in)) ERR; */
+      /*       if (long_in != lval) ERR; */
+      /*       coord[0] = 0; */
+      /*       if (nc_get_var1_ushort(ncid, varid, &coord[0], &ushort_in)) ERR; */
+      /*       if (ushort_in != usval[0]) ERR; */
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf ("*** Testing MAX_INT conversions...");
    {
       int ivalue = X_INT_MAX, ivalue_in;
       unsigned char uchar_in;
