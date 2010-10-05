@@ -13,6 +13,8 @@
 
 #define FILE_NAME "tst_converts2.nc"
 #define VAR_NAME "Monkey"
+#define DIM_NAME "n"
+#define DIM_LEN 5
 
 int
 main(int argc, char **argv)
@@ -50,7 +52,7 @@ main(int argc, char **argv)
    printf ("*** Testing NC_USHORT conversions...");
    {
       /* Write a scalar NC_USHORT with value 65535, converted from various types. */
-       static unsigned short usval[1] = {65535};
+       unsigned short usval = 65535;
        int ival = 65535;
        long lval = 65535;
        float fval = 65535;
@@ -62,8 +64,6 @@ main(int argc, char **argv)
        long long_in;
        float float_in;
        double double_in;
-#define DIM_NAME "n"
-#define DIM_LEN 5
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, VAR_NAME, NC_USHORT, 1, &dimid, &varid)) ERR;
@@ -75,7 +75,7 @@ main(int argc, char **argv)
       if (nc_put_var1_double(ncid, varid, &coord[0], &dval)) ERR; 
       /* This cause a SIGABRT error */
       /*       coord[0] = 0; */
-      /*       if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval[0])) ERR; */
+      /*       if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval)) ERR; */
 
       if (nc_close(ncid)) ERR;
 
