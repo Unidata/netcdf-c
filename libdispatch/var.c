@@ -1144,7 +1144,7 @@ nc_put_var1_ushort(int ncid, int varid, const size_t *coord, const unsigned shor
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    INITCOORD1;
-   return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_USHORT);
 }
 
 int

@@ -152,7 +152,7 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
       }
       free(ids);
    }
-
+   
    /* recurse */
    if ((ret = nc_inq_grps(ncid1, &nids, NULL)))
       return ret;

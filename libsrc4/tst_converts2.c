@@ -64,6 +64,7 @@ main(int argc, char **argv)
        long long_in;
        float float_in;
        double double_in;
+
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, VAR_NAME, NC_USHORT, 1, &dimid, &varid)) ERR;
@@ -73,9 +74,8 @@ main(int argc, char **argv)
       if (nc_put_var1_float(ncid, varid, &coord[0], &fval)) ERR;
       coord[0] = 3;
       if (nc_put_var1_double(ncid, varid, &coord[0], &dval)) ERR; 
-      /* This cause a SIGABRT error */
-      /*       coord[0] = 0; */
-      /*       if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval)) ERR; */
+      coord[0] = 0;
+      if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval)) ERR;
 
       if (nc_close(ncid)) ERR;
 
@@ -84,22 +84,26 @@ main(int argc, char **argv)
       if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, NULL, &natts)) ERR;
       if (strcmp(var_name, VAR_NAME) || natts !=0 || ndims != 1 || 
 	  var_type != NC_USHORT) ERR;
-      /* These also cause SIGABRT */
-      /*       coord[0] = 1; */
-      /*       if (nc_get_var1_int(ncid, varid, &coord[1], &int_in)) ERR; */
-      /*       if (int_in != ival) ERR; */
-      /*       coord[0] = 2; */
-      /*       if (nc_get_var1_float(ncid, varid, &coord[2], &float_in)) ERR; */
-      /*       if (float_in != fval) ERR; */
-      /*       coord[0] = 3; */
-      /*       if (nc_get_var1_double(ncid, varid, &coord[3], &double_in)) ERR; */
-      /*       if (double_in != dval) ERR; */
-      /*       coord[0] = 4; */
-      /*       if (nc_get_var1_long(ncid, varid, &coord[4], &long_in)) ERR; */
-      /*       if (long_in != lval) ERR; */
-      /*       coord[0] = 0; */
-      /*       if (nc_get_var1_ushort(ncid, varid, &coord[0], &ushort_in)) ERR; */
-      /*       if (ushort_in != usval[0]) ERR; */
+      coord[0] = 1;
+      if (nc_get_var1_int(ncid, varid, &coord[0], &int_in)) ERR;
+      if (int_in != ival) ERR;
+      coord[0] = 2;
+      if (nc_get_var1_float(ncid, varid, &coord[0], &float_in)) ERR;
+      if (float_in != fval) ERR;
+      coord[0] = 3;
+      if (nc_get_var1_double(ncid, varid, &coord[0], &double_in)) ERR;
+      if (double_in != dval) ERR;
+      coord[0] = 4;
+      if (nc_get_var1_long(ncid, varid, &coord[0], &long_in)) ERR;
+      if (long_in != lval) ERR;
+      coord[0] = 0;
+      if (nc_get_var1_ushort(ncid, varid, &coord[0], &ushort_in)) ERR;
+      if (ushort_in != usval) ERR;
+
+      /* This should fail. */
+      coord[3] = 100;
+      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+			     &ushort_in) != NC_EINVALCOORDS) ERR;
 
       if (nc_close(ncid)) ERR;
    }
