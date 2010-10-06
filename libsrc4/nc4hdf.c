@@ -924,7 +924,7 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
    
    /* A little quirk: if any of the count values are zero, don't
     * read. */
-   for (d2=0; d2<var->ndims; d2++)
+   for (d2 = 0; d2 < var->ndims; d2++)
       if (count[d2] == 0)
          no_read++;
    
@@ -971,7 +971,7 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
          /* We must convert - allocate a buffer. */
          need_to_convert++;
          if (var->ndims)
-            for (d2=0; d2<var->ndims; d2++)
+            for (d2 = 0; d2 < var->ndims; d2++)
                len *= countp[d2];
          LOG((4, "converting data for var %s type=%d len=%d", var->name, 
               var->xtype, len));
@@ -1097,25 +1097,36 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
   exit:
 /**   if (var->xtype == NC_CHAR && mem_typeid > 0 && H5Tclose(mem_typeid) < 0)
       BAIL2(NC_EHDFERR);*/
-   if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
-      BAIL2(NC_EHDFERR);
+   if (file_spaceid > 0)
+   {
+      if (H5Sclose(file_spaceid) < 0)
+	 BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
-   num_spaces--;
+      num_spaces--;
 #endif
-   if (mem_spaceid > 0 && H5Sclose(mem_spaceid) < 0)
-      BAIL2(NC_EHDFERR);
+   }
+   if (mem_spaceid > 0)
+   {
+      if (H5Sclose(mem_spaceid) < 0)
+	 BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
-   num_spaces--;
+      num_spaces--;
 #endif
-   if (H5Pclose(xfer_plistid) < 0)
-      BAIL2(NC_EHDFERR);
+   }
+   if (xfer_plistid > 0)
+   {
+      if (H5Pclose(xfer_plistid) < 0)
+	 BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
       num_plists--;
 #endif
+   }
 #ifndef HDF5_CONVERT
-   if (need_to_convert) free(bufr);
+   if (need_to_convert) 
+      free(bufr);
 #endif
-   if (xtend_size) free(xtend_size);
+   if (xtend_size) 
+      free(xtend_size);
    if (fillvalue) 
    {
       if (var->xtype == NC_STRING)
@@ -3127,7 +3138,7 @@ nc4_convert_type(const void *src, void *dest,
                case NC_USHORT:
                   for (lp = (long *)src, usp = dest; count < len; count++)
                   {
-                     if (*lp > X_SHORT_MAX || *lp < X_SHORT_MIN)
+                     if (*lp > X_USHORT_MAX || *lp < 0)
                         (*range_error)++;
                      *usp++ = *lp++;
                   }
@@ -3213,7 +3224,7 @@ nc4_convert_type(const void *src, void *dest,
                case NC_USHORT:
                   for (ip = (int *)src, usp = dest; count < len; count++)
                   {
-                     if (*ip > X_SHORT_MAX || *ip < X_SHORT_MIN)
+                     if (*ip > X_USHORT_MAX || *ip < 0)
                         (*range_error)++;
                      *usp++ = *ip++;
                   }
@@ -3559,7 +3570,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_USHORT:
                for (fp = (float *)src, usp = dest; count < len; count++)
                {
-                  if (*fp > X_SHORT_MAX || *fp < X_SHORT_MIN)
+                  if (*fp > X_USHORT_MAX || *fp < 0)
                      (*range_error)++;
                   *usp++ = *fp++;
                }
@@ -3652,7 +3663,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_USHORT:
                for (dp = (double *)src, usp = dest; count < len; count++)
                {
-                  if (*dp > X_SHORT_MAX || *dp < X_SHORT_MIN)
+                  if (*dp > X_USHORT_MAX || *dp < 0)
                      (*range_error)++;
                   *usp++ = *dp++;
                }

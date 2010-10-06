@@ -576,7 +576,7 @@ AC_MSG_RESULT([$enable_compiler_recover])
 AC_MSG_CHECKING([whether only the C library is desired])
 AC_ARG_ENABLE([c-only],
               [AS_HELP_STRING([--enable-c-only],
-                              [build only the netCDF-3 C library; same as \
+                              [build only the netCDF C library; same as \
                               --disable-f77 --disable-cxx --disable-v2 --disable-examples \
                               --disable-utilities])])
 test "x$enable_c_only" = xyes || enable_c_only=no
@@ -705,11 +705,11 @@ if test "x$nc_build_v2" = xno; then
    AC_DEFINE_UNQUOTED(NO_NETCDF_2, 1, [do not build the netCDF version 2 API])
 fi
 
-# Does the user want to disable ncgen/ncdump?
-AC_MSG_CHECKING([whether the ncgen/ncdump should be built])
+# Does the user want to disable ncgen/ncdump/nccopy?
+AC_MSG_CHECKING([whether the ncgen/ncdump/nccopy should be built])
 AC_ARG_ENABLE([utilities],
               [AS_HELP_STRING([--disable-utilities],
-                              [don't build netCDF utilities ncgen and ncdump])])
+                              [don't build netCDF utilities ncgen, ncdump, and nccopy])])
 test "x$nc_build_c" = xno && enable_utilities=no
 test "x$enable_utilities" = xno && nc_build_utilities=no
 AC_MSG_RESULT($nc_build_utilities)
