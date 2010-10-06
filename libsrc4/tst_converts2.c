@@ -51,7 +51,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf ("*** Testing NC_USHORT conversions...");
    {
-      /* Write a scalar NC_USHORT with value 65535, converted from various types. */
+      /* Write a scalar NC_USHORT, converted from various types, testing a bug fix. */
        unsigned short usval = 65535;
        int ival = 65535;
        long lval = 65535;
@@ -68,14 +68,16 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, VAR_NAME, NC_USHORT, 1, &dimid, &varid)) ERR;
-      coord[0] = 1;
-      if (nc_put_var1_int(ncid, varid, &coord[0], &ival)) ERR;
-      coord[0] = 2;
-      if (nc_put_var1_float(ncid, varid, &coord[0], &fval)) ERR;
-      coord[0] = 3;
-      if (nc_put_var1_double(ncid, varid, &coord[0], &dval)) ERR; 
       coord[0] = 0;
-      if (nc_put_var1_ushort(ncid, varid, &coord[0], &usval)) ERR;
+      if (nc_put_var1_ushort(ncid, varid, coord, &usval)) ERR;
+      coord[0] = 1;
+      if (nc_put_var1_int(ncid, varid, coord, &ival)) ERR;
+      coord[0] = 2;
+      if (nc_put_var1_float(ncid, varid, coord, &fval)) ERR;
+      coord[0] = 3;
+      if (nc_put_var1_double(ncid, varid, coord, &dval)) ERR; 
+      coord[0] = 4;
+      if (nc_put_var1_long(ncid, varid, coord, &lval)) ERR; 
 
       if (nc_close(ncid)) ERR;
 
@@ -84,21 +86,81 @@ main(int argc, char **argv)
       if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, NULL, &natts)) ERR;
       if (strcmp(var_name, VAR_NAME) || natts !=0 || ndims != 1 || 
 	  var_type != NC_USHORT) ERR;
+      coord[0] = 0;
+      if (nc_get_var1_ushort(ncid, varid, coord, &ushort_in)) ERR;
+      if (ushort_in != usval) ERR;
       coord[0] = 1;
-      if (nc_get_var1_int(ncid, varid, &coord[0], &int_in)) ERR;
+      if (nc_get_var1_int(ncid, varid, coord, &int_in)) ERR;
       if (int_in != ival) ERR;
       coord[0] = 2;
-      if (nc_get_var1_float(ncid, varid, &coord[0], &float_in)) ERR;
+      if (nc_get_var1_float(ncid, varid, coord, &float_in)) ERR;
       if (float_in != fval) ERR;
       coord[0] = 3;
-      if (nc_get_var1_double(ncid, varid, &coord[0], &double_in)) ERR;
+      if (nc_get_var1_double(ncid, varid, coord, &double_in)) ERR;
       if (double_in != dval) ERR;
       coord[0] = 4;
-      if (nc_get_var1_long(ncid, varid, &coord[0], &long_in)) ERR;
+      if (nc_get_var1_long(ncid, varid, coord, &long_in)) ERR;
       if (long_in != lval) ERR;
+
+      /* This should fail. */
+      coord[3] = 100;
+      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+			     &ushort_in) != NC_EINVALCOORDS) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   {
+      /* Write a scalar NC_USHORT that's not default fill value,
+       * converted from various types. */
+       unsigned short usval = 65534;
+       int ival = 65534;
+       long lval = 65534;
+       float fval = 65534;
+       double dval = 65534;
+       int dimid;
+       size_t coord[1];
+       unsigned short ushort_in;
+       int int_in;
+       long long_in;
+       float float_in;
+       double double_in;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
+      if (nc_def_var(ncid, VAR_NAME, NC_USHORT, 1, &dimid, &varid)) ERR;
       coord[0] = 0;
-      if (nc_get_var1_ushort(ncid, varid, &coord[0], &ushort_in)) ERR;
+      if (nc_put_var1_ushort(ncid, varid, coord, &usval)) ERR;
+      coord[0] = 1;
+      if (nc_put_var1_int(ncid, varid, coord, &ival)) ERR;
+      coord[0] = 2;
+      if (nc_put_var1_float(ncid, varid, coord, &fval)) ERR;
+      coord[0] = 3;
+      if (nc_put_var1_double(ncid, varid, coord, &dval)) ERR; 
+      coord[0] = 4;
+      if (nc_put_var1_long(ncid, varid, coord, &lval)) ERR; 
+
+      if (nc_close(ncid)) ERR;
+
+      /* Now open the file and check it. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_var(ncid, 0, var_name, &var_type, &ndims, NULL, &natts)) ERR;
+      if (strcmp(var_name, VAR_NAME) || natts !=0 || ndims != 1 || 
+	  var_type != NC_USHORT) ERR;
+      coord[0] = 0;
+      if (nc_get_var1_ushort(ncid, varid, coord, &ushort_in)) ERR;
       if (ushort_in != usval) ERR;
+      coord[0] = 1;
+      if (nc_get_var1_int(ncid, varid, coord, &int_in)) ERR;
+      if (int_in != ival) ERR;
+      coord[0] = 2;
+      if (nc_get_var1_float(ncid, varid, coord, &float_in)) ERR;
+      if (float_in != fval) ERR;
+      coord[0] = 3;
+      if (nc_get_var1_double(ncid, varid, coord, &double_in)) ERR;
+      if (double_in != dval) ERR;
+      coord[0] = 4;
+      if (nc_get_var1_long(ncid, varid, coord, &long_in)) ERR;
+      if (long_in != lval) ERR;
 
       /* This should fail. */
       coord[3] = 100;
