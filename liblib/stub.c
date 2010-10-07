@@ -7,7 +7,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/liblib/stub.c,v 1.8 2010/05/25 13:53:02 ed Exp $ */
 
 #include "config.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 extern int NC3_initialize(void);
 #ifdef USE_NETCDF4

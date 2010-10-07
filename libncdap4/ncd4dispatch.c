@@ -11,7 +11,7 @@
 #include "ncdap4.h"
 #include "nc.h"
 #include "ncd4dispatch.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 static int
 NCD4_create(const char *path, int cmode,
@@ -48,6 +48,7 @@ NULL, /*set_base_pe*/
 NULL, /*inq_format*/
 
 NULL, /*inq*/
+NULL, /*inq_path*/
 NULL, /*inq_type*/
 
 NULL, /*def_dim*/

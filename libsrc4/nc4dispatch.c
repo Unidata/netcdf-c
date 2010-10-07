@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include "nc.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 #include "nc4dispatch.h"
 
 NC_Dispatch NC4_dispatcher = {
@@ -27,6 +27,7 @@ NC4_set_base_pe,
 NC4_inq_format,
 
 NC4_inq,
+NC4_inq_path,
 NC4_inq_type,
 
 NC4_def_dim,

@@ -219,10 +219,11 @@ subgrouplist: /*empty*/ | subgrouplist namedgroup;
 
 namedgroup: GROUP IDENT '{'
             {
+		Symbol* id = $2;
                 if(usingclassic) {verror("Group specification");}
-		if(creategroup($2) == NULL) 
+		if(creategroup(id) == NULL) 
                     yyerror("duplicate group declaration within parent group for %s",
-                                $2->name);
+                                id->name);
             }
             groupbody
             subgrouplist

@@ -1180,7 +1180,7 @@ The names of dimensions, variables and attributes (and, in netCDF-4
 files, groups, user-defined types, compound member names, and
 enumeration symbols) consist of arbitrary sequences of alphanumeric
 characters, underscore '_', period '.', plus '+', hyphen '-', or at
-sign '@@', but beginning with a letter or underscore.  However names
+sign '@@', but beginning with an alphanumeric character or underscore.  However names
 commencing with underscore are reserved for system use.  Case is
 significant in netCDF names. A zero-length name is not allowed.  Some
 widely used conventions restrict names to only alphanumeric characters
@@ -1564,7 +1564,7 @@ The extended CDL syntax for the enhanced
 data model supported by netCDF-4 allows optional type specifications,
 including user-defined types, for
 attributes of user-defined types.  See ncdump output or the reference
-documentation for ncgen4 for details of the extended CDL systax.
+documentation for ncgen for details of the extended CDL systax.
 
 In the netCDF example (@pxref{Data Model}), units is an attribute for
 the variable lat that has a 13-character array value
@@ -3929,9 +3929,9 @@ netCDF software distribution:
 reads a netCDF dataset and prints a textual representation of
 the information in the dataset
 
-@item ncgen/ncgen4
+@item ncgen
 reads a textual representation of a netCDF dataset and generates
-the corresponding binary netCDF file or a C or FORTRAN program to
+the corresponding binary netCDF file or a program to
 create the netCDF dataset
 
 @item nccopy
@@ -3947,8 +3947,8 @@ software that can access or manipulate netCDF data, see the NetCDF
 Software list,
 @uref{@value{netcdf-url}/software.html}.
 
-This chapter describes the ncgen, ncgen4, and ncdump utilities.
-These three tools
+This chapter describes the ncgen and ncdump utilities.
+These tools
 convert between binary netCDF datasets and a text representation of
 netCDF datasets. The output of ncdump and the input to ncgen is a text
 description of a netCDF dataset in a tiny language known as CDL
@@ -5918,7 +5918,7 @@ Currently, the following four dispatch tables are supported.
 The dispatch table represents a distillation of the
 netcdf API down to a minimal set of internal operations. The
 format of the dispatch table is defined in the file
-libdispatch/dispatch.h.  Every new dispatch table must
+libdispatch/ncdispatch.h.  Every new dispatch table must
 define this minimal set of operations.
 
 @unnumberedsec Adding a New Dispatch Table
@@ -5938,7 +5938,7 @@ used for non-static procedures to be entered into the
 dispatch table and ncm for all other non-static procedures.
 
 @unnumberedsec Step 3.
-Modify file libdispatch/dispatch.h as follows.
+Modify file libdispatch/ncdispatch.h as follows.
 @itemize
 @item Add a index for this implementation: 
 @example

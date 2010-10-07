@@ -695,9 +695,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->options_mask)
             return NC_EINVAL;
 
-      /* Must not be a scalar. */
+      /* For scalars, just ignore attempt to deflate. */
       if (!var->ndims)
-            return NC_EINVAL;
+            return NC_NOERR;
 
       /* Well, if we couldn't find any errors, I guess we have to take
        * the users settings. Darn! */
@@ -924,12 +924,13 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                            NULL, NULL, NULL, NULL);
 
    /* Copy to size_t array. */
-   for (i = 0; i < var->ndims; i++)
-   {
-      chunksizesp[i] = cs[i];
-      if (cs[i] > NC_MAX_INT)
-	 retval = NC_ERANGE;
-   }
+   if (*contiguousp == NC_CHUNKED)
+      for (i = 0; i < var->ndims; i++)
+      {
+	 chunksizesp[i] = cs[i];
+	 if (cs[i] > NC_MAX_INT)
+	    retval = NC_ERANGE;
+      }
 
    if (var->ndims)
       free(cs);

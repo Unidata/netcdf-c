@@ -200,6 +200,7 @@ main()
       dims[0] = DIM1_LEN;
       if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
+      if (H5Pset_chunk(propid, 1, dims)) ERR;
       if (H5Pset_deflate(propid, DEFLATE_LEVEL)) ERR;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
       if ((datasetid = H5Dcreate(grpid, VAR_BOOL_NAME, H5T_NATIVE_HBOOL, 
@@ -258,6 +259,7 @@ main()
       dims[0] = DIM1_LEN;
       if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
+      if (H5Pset_chunk(propid, 1, dims)) ERR;
       if (H5Pset_shuffle(propid)) ERR;
       if (H5Pset_deflate(propid, DEFLATE_LEVEL)) ERR;
       if (H5Pset_fletcher32(propid)) ERR;

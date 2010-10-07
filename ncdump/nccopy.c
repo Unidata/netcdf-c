@@ -1,7 +1,9 @@
 /*********************************************************************
- *   Copyright 2008, University Corporation for Atmospheric Research
+ *   Copyright 2010, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
- *   $ID$
+ *   Thanks to Philippe Poilbarbe and Antonio S. Cofiño for 
+ *   compression additions.
+ *   $Id: nccopy.c 400 2010-08-27 21:02:52Z russ $
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
@@ -21,7 +23,7 @@
 #define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
 
 #ifndef USE_NETCDF4
-#define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model when used with NC_NETCDF4. */
+#define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
 #endif
 
 /* These are in unistd.h; for use with getopt() */
@@ -29,9 +31,11 @@ extern int optind;
 extern int opterr;
 extern char *optarg;
 
-static char *progname; 		/* for error messages */
-static int nofill_flag = 1; /* default is not to fill, because fill
-			     * values will be copied anyway */
+/* Global variables for command-line requests */
+static char *progname;	       /* for error messages */
+static int option_deflate_level = -1;	/* default, compress output only if input compressed */
+static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
+static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
 
 static void
 check(int err, const char* fcn, const char* file, const int line)
@@ -51,15 +55,11 @@ emalloc (size_t size)
 
     p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
     if (p == 0) {
-	fprintf(stderr,"Out of memory\n");
+	fprintf(stderr,"%s: out of memory\n", progname);
+	exit(1);
     }
     return p;
 }
-
-/* Forward declaration, because copy_type, copy_vlen_type call each other */
-#ifdef USE_NETCDF4
-static int copy_type(int igrp, nc_type typeid, int ogrp);
-#endif
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -93,13 +93,37 @@ get_grpid(int igrp, int parid, int *ogrpp) {
 
 
 #ifdef USE_NETCDF4
+/* Get parent id needed to define a new group from its full name in an
+ * open file identified by ncid.  Assumes all intermediate groups are
+ * already defined.  */
+static int
+nc_inq_parid(int ncid, const char *fullname, int *locidp) {
+    int stat = NC_NOERR;
+    char *parent = strdup(fullname);
+    char *slash = "/";		/* groupname separator */
+    char *last_slash;
+    if(parent == NULL)
+	CHECK(NC_ENOMEM, strdup);
+    last_slash = strrchr(parent, '/');
+    if(last_slash == parent) {	/* parent is root */
+	free(parent);
+	parent = strdup(slash);
+    } else {
+	*last_slash = '\0';	/* truncate to get parent name */
+    }
+    stat = nc_inq_grp_full_ncid(ncid, parent, locidp);
+    CHECK(stat, nc_inq_grp_full_ncid);
+    free(parent);
+    return stat;
+}
+
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
  * layout is contiguous */
 static int
 inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     int stat = NC_NOERR;
     int ndims;
-    size_t chunksizes[NC_MAX_DIMS];
+    size_t *chunksizes;
     int dim;
     int contig = 1;
     nc_type vartype;
@@ -114,24 +138,27 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     prod = value_size;
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
+    chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     if(ndims > 0) {
 	stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
 	CHECK(stat, nc_inq_var_chunking);
     }
     if(contig == 1) {
 	*chunksizep = 0;
-	return stat;
+    } else {
+	stat = nc_inq_var_chunking(igrp, varid, &contig, chunksizes);
+	CHECK(stat, nc_inq_var_chunking);
+	for(dim = 0; dim < ndims; dim++) {
+	    prod *= chunksizes[dim];
+	}
+	*chunksizep = prod;
     }
-    /* else chunked */
-    stat = nc_inq_var_chunking(igrp, varid, &contig, chunksizes);
-    CHECK(stat, nc_inq_var_chunking);
-    for(dim = 0; dim < ndims; dim++) {
-	prod *= chunksizes[dim];
-    }
-    *chunksizep = prod;
+    free(chunksizes);
     return stat;
 }
 
+/* Forward declaration, because copy_type, copy_vlen_type call each other */
+static int copy_type(int igrp, nc_type typeid, int ogrp);
 
 /* 
  * copy a user-defined variable length type in the group igrp to the
@@ -242,10 +269,10 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
 	char ftypename[NC_MAX_NAME];
 	size_t foff;
 	nc_type iftype, oftype;
-	int fndims, fdimsizes[NC_MAX_DIMS];
+	int fndims;
 
 	stat = nc_inq_compound_field(igrp, itype, fid, fname, &foff, &iftype, 
-				     &fndims, fdimsizes);
+				     &fndims, NULL);
 	CHECK(stat, nc_inq_compound_field);
 	/* type ids in source don't necessarily correspond to same
 	 * typeids in destination, so look up destination typeid by using
@@ -258,9 +285,14 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
 	    stat = nc_insert_compound(ogrp, otype, fname, foff, oftype);
 	    CHECK(stat, nc_insert_compound);	    
 	} else {		/* field is array type */
+	    int *fdimsizes;
+	    fdimsizes = (int *) emalloc((fndims + 1) * sizeof(int));
+	    stat = nc_inq_compound_field(igrp, itype, fid, NULL, NULL, NULL, 
+					 NULL, fdimsizes);
 	    stat = nc_insert_array_compound(ogrp, otype, fname, foff, 
 					    oftype, fndims, fdimsizes);
 	    CHECK(stat, nc_insert_array_compound);
+	    free(fdimsizes);
 	}
     }
     return stat;
@@ -303,45 +335,48 @@ copy_type(int igrp, nc_type typeid, int ogrp)
     return stat;
 }
 
-/* Copy a group and all its subgroups, recursively, from group igrp in
- * input to parent group ogrp in destination.  This just creates all
- * the groups in the destination, but doesn't copy anything that's in
- * the groups. */
+/* Copy a group and all its subgroups, recursively, from iroot to
+ * oroot, the ncids of input file and output file.  This just creates
+ * all the groups in the destination, but doesn't copy anything that's
+ * in the groups yet. */
 static int
-copy_groups(int igrp, int ogrp)
+copy_groups(int iroot, int oroot)
 {
     int stat = NC_NOERR;
-    int inparid;
-    int ogid;			/* like igrp but in output file */
     int numgrps;
-    int *grpids;
+    int *grpids, ogrpid;
     int i;
 
-    /* if not root group, create corresponding new group in ogrp */
-    stat = nc_inq_grp_parent(igrp, &inparid);
-    if(stat == NC_NOERR) {
-	/* create new subgroup */
-	char grpname[NC_MAX_NAME + 1];
-	stat = nc_inq_grpname(igrp, grpname);
+    /* get total number of groups and their ids, including all descendants */
+    stat = nc_inq_grps_full(iroot, &numgrps, NULL);
+    CHECK(stat, nc_inq_grps_full);
+    grpids = emalloc(numgrps * sizeof(int));
+    stat = nc_inq_grps_full(iroot, NULL, grpids);
+    CHECK(stat, nc_inq_grps_full);
+    /* create corresponding new groups in ogrp, except for root group */
+    for(i = 1; i < numgrps; i++) {
+	char *grpname_full;
+	char grpname[NC_MAX_NAME];
+	size_t len_name;
+	int ogid, oparid;
+	/* get full group name of input group */
+	stat = nc_inq_grpname_full(grpids[i], &len_name, NULL);
 	CHECK(stat, nc_inq_grpname);
-	stat = nc_def_grp(ogrp, grpname, &ogid);
+	grpname_full = emalloc(len_name + 1);
+	stat = nc_inq_grpname_full(grpids[i], &len_name, grpname_full);
+	CHECK(stat, nc_inq_grpname_full);
+	/* get id of parent group of corresponding group in output.
+	 * Note that this exists, because nc_inq_groups returned
+	 * grpids in preorder, so parents are always copied before
+	 * their subgroups */
+	stat = nc_inq_parid(oroot, grpname_full, &oparid);
+	CHECK(stat, get_oparid);
+	stat = nc_inq_grpname(grpids[i], grpname);
+	CHECK(stat, nc_inq_grpname);
+	/* define corresponding group in output */
+	stat = nc_def_grp(oparid, grpname, &ogid);
 	CHECK(stat, nc_def_grp);
-    } else if(stat == NC_ENOGRP) {
-	ogid = ogrp;
-	stat = NC_NOERR;
-    } else {
-	CHECK(stat, nc_inq_grp_parent);
-    }
-    
-    /* Copy any subgroups */
-    stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc(sizeof(int) * (numgrps + 1));
-    stat = nc_inq_grps(igrp, &numgrps, grpids);
-    CHECK(stat, nc_inq_grps);
-
-    for(i = 0; i < numgrps; i++) {
-	stat = copy_groups(grpids[i], ogid);
-	CHECK(stat, copy_group);
+	free(grpname_full);
     }
     free(grpids);
     return stat;    
@@ -379,7 +414,7 @@ copy_types(int igrp, int ogrp)
     stat = nc_inq_grps(igrp, &numgrps, NULL);
     CHECK(stat, nc_inq_grps);
     if(numgrps > 0) {
-	grpids = (int *)emalloc(sizeof(int) * (numgrps + 1));
+	grpids = (int *)emalloc(sizeof(int) * numgrps);
 	stat = nc_inq_grps(igrp, &numgrps, grpids);
 	CHECK(stat, nc_inq_grps);
 	for(i = 0; i < numgrps; i++) {
@@ -415,20 +450,25 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 		stat = nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL);
 		CHECK(stat, nc_def_var_chunking);
 	    } else {
-		size_t chunkp[NC_MAX_DIMS];
+		size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
 		stat = nc_inq_var_chunking(igrp, varid, NULL, chunkp);
 		CHECK(stat, nc_inq_var_chunking);
 		/* explicitly set chunking, even if default */
 		stat = nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp);
 		CHECK(stat, nc_def_var_chunking);
+		free(chunkp);
 	    }
 	}
     }
     {				/* handle compression parameters */
-	int shuffle=NC_NOSHUFFLE, deflate=0, deflate_level=0;
+	int shuffle, deflate, deflate_level;
 	stat = nc_inq_var_deflate(igrp, varid, 
 				  &shuffle, &deflate, &deflate_level);
 	CHECK(stat, nc_inq_var_deflate);
+	if(option_deflate_level >= 0) { /* change output compression, if requested */
+	  deflate	= (option_deflate_level > 0);
+	  deflate_level = option_deflate_level;
+	}
 	if(deflate != 0 || shuffle != 0) {
 	    stat = nc_def_var_deflate(ogrp, o_varid, 
 				      shuffle, deflate, deflate_level);
@@ -452,6 +492,20 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	    stat = nc_def_var_endian(ogrp, o_varid, endianness);
 	    CHECK(stat, nc_def_var_endian);
 	}
+    }
+    return stat;
+}
+
+/* set variable to compression specified on command line */
+static int
+set_var_compressed(int ogrp, int o_varid)
+{
+    int stat = NC_NOERR;
+    if (option_deflate_level >= 0) {
+	int deflate = 1;
+	stat = nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, 
+				  deflate, option_deflate_level);
+	CHECK(stat, nc_def_var_deflate);
     }
     return stat;
 }
@@ -492,8 +546,8 @@ copy_dims(int igrp, int ogrp)
     int nunlims;
     int dgrp;
 #ifdef USE_NETCDF4
-    int dimids[NC_MAX_DIMS];
-    int unlimids[NC_MAX_DIMS];
+    int *dimids;
+    int *unlimids;
 #else
     int unlimid;
 #endif /* USE_NETCDF4 */    
@@ -506,10 +560,14 @@ copy_dims(int igrp, int ogrp)
     * may be defined in various groups, and we are only looking at one
     * group at a time. */
     /* Find the dimension ids in this group, don't include parents. */
+    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
     stat = nc_inq_dimids(igrp, NULL, dimids, 0);
     CHECK(stat, nc_inq_dimids);
     /* Find the number of unlimited dimensions and get their IDs */
-    stat = nc_inq_unlimdims(igrp, &nunlims, unlimids);
+    stat = nc_inq_unlimdims(igrp, &nunlims, NULL);
+    CHECK(stat, nc_inq_unlimdims);
+    unlimids = (int *) emalloc((nunlims + 1) * sizeof(int));
+    stat = nc_inq_unlimdims(igrp, NULL, unlimids);
     CHECK(stat, nc_inq_unlimdims);
 #else
     stat = nc_inq_unlimdim(igrp, &unlimid);
@@ -546,13 +604,17 @@ copy_dims(int igrp, int ogrp)
 		    name);
 	}	
 	CHECK(stat, nc_inq_dim);
-	if(is_unlim) {
+	if(is_unlim && !option_fix_unlimdims) {
 	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, NULL);
 	} else {
 	    stat = nc_def_dim(ogrp, name, length, NULL);
 	}
 	CHECK(stat, nc_def_dim);	
     }
+#ifdef USE_NETCDF4
+    free(dimids);
+    free(unlimids);
+#endif /* USE_NETCDF4 */    
     return stat;
 }
 
@@ -585,8 +647,8 @@ copy_var(int igrp, int varid, int ogrp)
 {
     int stat = NC_NOERR;
     int ndims;
-    int idimids[NC_MAX_DIMS];	/* ids of dims for input variable */
-    int odimids[NC_MAX_DIMS];	/* ids of dims for output variable */
+    int *idimids;		/* ids of dims for input variable */
+    int *odimids;		/* ids of dims for output variable */
     char name[NC_MAX_NAME];
     nc_type typeid, o_typeid;
     int natts;
@@ -595,7 +657,8 @@ copy_var(int igrp, int varid, int ogrp)
 
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
-    stat = nc_inq_var(igrp, varid, name, &typeid, &ndims, idimids, &natts);
+    idimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    stat = nc_inq_var(igrp, varid, name, &typeid, NULL, idimids, &natts);
     CHECK(stat, nc_inq_var);
     o_typeid = typeid;
 #ifdef USE_NETCDF4
@@ -612,6 +675,7 @@ copy_var(int igrp, int varid, int ogrp)
 #endif	/* USE_NETCDF4 */
 
     /* get the corresponding dimids in the output file */
+    odimids = (int *) emalloc((ndims + 1) * sizeof(int));
     for(i = 0; i < ndims; i++) {
 	char dimname[NC_MAX_NAME];
 	stat = nc_inq_dimname(igrp, idimids[i], dimname);
@@ -635,15 +699,23 @@ copy_var(int igrp, int varid, int ogrp)
 	CHECK(stat,nc_inq_format);
 	stat = nc_inq_format(ogrp, &outkind);
 	CHECK(stat,nc_inq_format);
-	if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC) &&
-	   (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC)) {
-	    /* Copy all netCDF-4 specific variable properties such as
-	     * chunking, endianness, deflation, checksumming, fill, etc. */
-	    stat = copy_var_specials(igrp, varid, ogrp, o_varid);
-	    CHECK(stat, copy_var_specials);
+	if(outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC) {
+	    if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC)) {
+		/* Copy all netCDF-4 specific variable properties such as
+		 * chunking, endianness, deflation, checksumming, fill, etc. */
+		stat = copy_var_specials(igrp, varid, ogrp, o_varid);
+		CHECK(stat, copy_var_specials);
+	    }
+	    else {	     /* classic or 64-bit offset input file */
+		/* Set compression if specified on command line option */
+	    	stat = set_var_compressed(ogrp, o_varid);
+	    	CHECK(stat, set_var_compressed);
+	    }
 	}
     }
 #endif	/* USE_NETCDF4 */
+    free(idimids);
+    free(odimids);
     return stat;
 }
 
@@ -690,7 +762,7 @@ copy_schema(int igrp, int ogrp)
 	int *grpids;
 	/* Copy schema from subgroups */
 	stat = nc_inq_grps(igrp, &numgrps, NULL);
-	grpids = (int *)emalloc(sizeof(int) * (numgrps + 1));
+	grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
 	stat = nc_inq_grps(igrp, &numgrps, grpids);
 	CHECK(stat, nc_inq_grps);
 	
@@ -704,20 +776,18 @@ copy_schema(int igrp, int ogrp)
     return stat;    
 }
 
-/* Return number of values for a variable varid in a group igrp, as
- * well as array of dimension sizes, assumed to be preallocated to
- * hold one value for each dimension of variable */
+/* Return number of values for a variable varid in a group igrp */
 static int
-inq_nvals(int igrp, int varid, 
-	  size_t *dimsizes, long long *nvalsp) {
+inq_nvals(int igrp, int varid, long long *nvalsp) {
     int stat = NC_NOERR;
     int ndims;
-    int dimids[NC_MAX_DIMS];
+    int *dimids;
     int dim;
     long long nvals = 1;
 
     stat = nc_inq_varndims(igrp, varid, &ndims);
     CHECK(stat, nc_inq_varndims);
+    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
     stat = nc_inq_vardimid (igrp, varid, dimids);
     CHECK(stat, nc_inq_vardimid);
     for(dim = 0; dim < ndims; dim++) {
@@ -725,11 +795,10 @@ inq_nvals(int igrp, int varid,
 	stat = nc_inq_dimlen(igrp, dimids[dim], &len);
 	CHECK(stat, nc_inq_dimlen);
 	nvals *= len;
-	if(dimsizes)
-	    dimsizes[dim] = len;
     }
     if(nvalsp)
 	*nvalsp = nvals;
+    free(dimids);
     return stat;
 }
 
@@ -745,13 +814,13 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     static void *buf = 0;	/* buffer for the variable values */
     char varname[NC_MAX_NAME];
     int ovarid;
-    size_t start[NC_MAX_DIMS];
-    size_t count[NC_MAX_DIMS];
-    nciter_t iter;		/* opaque structure for iteration status */
+    size_t *start;
+    size_t *count;
+    nciter_t *iterp;		/* opaque structure for iteration status */
     int do_realloc = 0;
     size_t chunksize;
 
-    stat = inq_nvals(igrp, varid, count, &nvalues);
+    stat = inq_nvals(igrp, varid, &nvalues);
     CHECK(stat, inq_nvals);
     if(nvalues == 0)
 	return stat;
@@ -791,11 +860,15 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     }
 
     /* initialize variable iteration */
-    stat = nc_get_iter(igrp, varid, copybuf_size, &iter);
+    stat = nc_get_iter(igrp, varid, copybuf_size, &iterp);
     CHECK(stat, nc_get_iter);
 
-    /* Change start and count to iterate through whole variable. */
-    while((ntoget = nc_next_iter(&iter, start, count)) > 0) {
+    start = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
+    count = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
+    /* nc_next_iter() initializes start and count on first call,
+     * changes start and count to iterate through whole variable on
+     * subsequent calls. */
+    while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	stat = nc_get_vara(igrp, varid, start, count, buf);
 	CHECK(stat, nc_get_vara);
 	stat = nc_put_vara(ogrp, ovarid, start, count, buf);
@@ -824,6 +897,10 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
 	CHECK(stat, free_var_chunk_cache);
 #endif	/* USE_NETCDF4 */
     } /* end main iteration loop */
+    free(start);
+    free(count);
+    stat = nc_free_iter(iterp);
+    CHECK(stat, nc_free_iter);
     return stat;
 }
 
@@ -856,7 +933,7 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 #ifdef USE_NETCDF4
     /* Copy data from subgroups */
     stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc(sizeof(int) * (numgrps + 1));
+    grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
     stat = nc_inq_grps(igrp, &numgrps, grpids);
     CHECK(stat, nc_inq_grps);
 
@@ -871,8 +948,12 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 
 
 /* copy infile to outfile using netCDF API, kind specifies which
- * netCDF format for output: 0 -> same as input, 1 -> classic, 2 ->
- * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model */
+ * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
+ * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model.
+ * However, if compression or shuffling was specified and kind was -1,
+ * kind is changed to format 4 that supports compression for input of
+ * type 1 or 2.
+ */
 static int
 copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 {
@@ -886,8 +967,17 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     stat = nc_inq_format(igrp, &inkind);
     CHECK(stat,nc_inq_format);
 
-    outkind = (kind == SAME_AS_INPUT) ? inkind : kind;
-
+    if (kind == SAME_AS_INPUT) {	/* default, kind not specified */
+	outkind = inkind;
+	/* allow kind to be deduced in this case, instead of returning error */
+	if ((inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) &&
+	    (option_deflate_level > 0 || option_shuffle_vars == NC_SHUFFLE) ) { 
+	    kind = NC_FORMAT_NETCDF4_CLASSIC;
+	    outkind = kind;
+	}
+    } else {
+	outkind = kind;
+    }
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	stat = nc_create(outfile,NC_CLOBBER,&ogrp);
@@ -915,10 +1005,8 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 	exit(1);
     }
     CHECK(stat,nc_create);
-    if(nofill_flag) {
-	stat = nc_set_fill(ogrp,NC_NOFILL,NULL);
-        CHECK(stat,nc_set_fill);
-    }
+    stat = nc_set_fill(ogrp, NC_NOFILL, NULL); /* will just copy fill values, if any */
+    CHECK(stat,nc_set_fill);
 
 #ifdef USE_NETCDF4
     /* Because types in one group may depend on types in a different
@@ -951,12 +1039,15 @@ usage(void)
 #define USAGE   "\
   [-k n]    kind of netCDF format for output file, default same as input\n\
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
-  [-m n]    size in bytes of copy buffer\n\
+  [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
+  [-s]      adds shuffle option to deflation compression\n\
+  [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
+  [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
     (void) fprintf(stderr,
-		   "%s [-k n] [-m n] infile outfile\n%s",
+		   "%s [-k n] [-d n] [-s] [-u] [-m n] infile outfile\n%s",
 		   progname,
 		   USAGE);
 }
@@ -1010,7 +1101,7 @@ main(int argc, char**argv)
        return 1;
     }
 
-    while ((c = getopt(argc, argv, "k:m:")) != EOF) {
+    while ((c = getopt(argc, argv, "k:d:sum:")) != EOF) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1028,9 +1119,6 @@ main(int argc, char**argv)
 	    {
 		struct Kvalues* kvalue;
 		char *kind_name = (char *) emalloc(strlen(optarg)+1);
-		if (! kind_name) {
-		    return 2;
-		}
 		(void)strcpy(kind_name, optarg);
 	        for(kvalue=legalkinds;kvalue->name;kvalue++) {
 		    if(strcmp(kind_name,kvalue->name) == 0) {
@@ -1044,9 +1132,44 @@ main(int argc, char**argv)
 		}
 	    }
 	    break;
-	case 'm':		/* non-default size of data copy buffer */
-	    copybuf_size = strtoll(optarg, NULL, 10);
+	case 'd':		/* non-default compression level specified */
+	    option_deflate_level = strtol(optarg, NULL, 10);
+	    if(option_deflate_level < 0 || option_deflate_level > 9) {
+		fprintf(stderr, "invalid deflation level: %d\n", 
+			option_deflate_level);
+		return 1;
+	    }
 	    break;
+	case 's':		/* shuffling, may improve compression */
+	    option_shuffle_vars = NC_SHUFFLE;
+	    break;
+	case 'u':		/* convert unlimited dimensions to fixed size */
+	    option_fix_unlimdims = 1;
+	    break;
+	case 'm':		/* non-default size of data copy buffer */
+	{
+	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
+	    copybuf_size = strtoll(optarg, &suffix, 10);
+	    switch (suffix[0]) {
+	    case 'k':
+	    case 'K':
+		copybuf_size *= 1000;
+		break;
+	    case 'm':
+	    case 'M':
+		copybuf_size *= 1000000;
+		break;
+	    case 'g':
+	    case 'G':
+		copybuf_size *= 1000000000;
+		break;
+	    default:
+		fprintf(stderr,"Suffix for '-m' option value not k, m, or g: %c",
+		    suffix[0]);
+		exit(1);
+	    }		
+	    break;
+	}
 	default: 
 	    usage();
 	    exit(1);
@@ -1062,10 +1185,6 @@ main(int argc, char**argv)
     }
     inputfile = argv[0];
     outputfile = argv[1];
-
-    /* set nofill mode to speed up creation of output file, because we
-     * will copy fill values from input anyway */
-    nofill_flag = 1;
 
     if(strcmp(inputfile, outputfile) == 0) {
 	fprintf(stderr,"output would overwrite input\n");

@@ -11,6 +11,11 @@
  */
 #include <config.h>
 #include <stddef.h>	/* size_t */
+#ifndef HAVE_STDINT_H
+#  include "pstdint.h"	/* attempts to define uint32_t etc portably */
+#else
+#  include <stdint.h>
+#endif /* HAVE_STDINT_H */
 #include <sys/types.h>	/* off_t */
 #ifdef USE_PARALLEL
 #include <netcdf_par.h>
@@ -80,6 +85,7 @@ set_NC_string(NC_string *ncstrp, const char *str);
 typedef struct {
 	/* all xdr'd */
 	NC_string *name;
+ 	uint32_t hash;
 	size_t size;
 } NC_dim;
 
@@ -178,6 +184,7 @@ typedef struct NC_var {
 	off_t *dsizes; /* compiled info: the right to left product of shape */
 	/* below gets xdr'd */
 	NC_string *name;
+ 	uint32_t hash;
 	/* next two: formerly NC_iarray *assoc */ /* user definition */
 	size_t ndims;	/* assoc->count */
 	int *dimids;	/* assoc->value */
@@ -194,6 +201,13 @@ typedef struct NC_vararray {
 	size_t nelems;		/* length of the array */
 	NC_var **value;
 } NC_vararray;
+
+/* Begin defined in lookup3.c */
+
+extern uint32_t
+hash_fast(const void *key, size_t length);
+
+/* End defined in lookup3.c */
 
 /* Begin defined in var.c */
 
@@ -292,6 +306,8 @@ struct NC {
 	 */
 	ushmem_t lock[LOCKNUMREC_DIM];
 #endif
+        /* Save the path name. */
+        char *path;
 };
 
 #define NC_readonly(ncp) \

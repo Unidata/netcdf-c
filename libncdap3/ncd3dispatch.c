@@ -10,7 +10,7 @@
 
 #include "nc.h"
 #include "ncdap3.h"
-#include "dispatch.h"
+#include "ncdispatch.h"
 #include "ncd3dispatch.h"
 
 static int
@@ -55,6 +55,7 @@ NULL, /*set_base_pe*/
 NULL, /*inq_format*/
 
 NULL, /*inq*/
+NULL, /*inq_path*/
 NULL, /*inq_type*/
 
 NULL, /*def_dim*/

@@ -2133,11 +2133,16 @@ if (status != NC_NOERR) handle_error(status);
 @findex nc_inq_natts
 @findex nc_inq_unlimdim
 @findex nc_inq_format
+@findex nc_inq_path
 @cindex attributes, number of
 @cindex variables, number of
 @cindex dimensions, number of
 @cindex format version
 @cindex version, format
+@cindex path
+@cindex file path
+@cindex file name
+@cindex URL
 @cindex nc_inq Family, example
 
 Members of the nc_inq family of functions return information about an
@@ -2146,12 +2151,14 @@ may be called from either define mode or data mode. The first
 function, nc_inq, returns values for the number of dimensions, the
 number of variables, the number of global attributes, and the
 dimension ID of the dimension defined with unlimited length, if
-any. The other functions in the family each return just one of these
+any. Most of the other functions in the family each return just one of these
 items of information.
 
 For C, these functions include nc_inq, nc_inq_ndims, nc_inq_nvars,
 nc_inq_natts, and nc_inq_unlimdim.  An additional function,
-nc_inq_format, returns the (rarely needed) format version.
+nc_inq_format, returns the (rarely needed) format version.  Another
+function, nc_inq_path, returns the file name or URL with which a
+file was opened or created.
 
 No I/O is performed when these functions are called, since the
 required information is available in memory for each open netCDF
@@ -2166,6 +2173,7 @@ int nc_inq_nvars    (int ncid, int *nvarsp);
 int nc_inq_natts    (int ncid, int *ngattsp);
 int nc_inq_unlimdim (int ncid, int *unlimdimidp);
 int nc_inq_format   (int ncid, int *formatp);
+int nc_inq_path     (int ncid, size_t *pathlenp, char *path);
 @end example
 
 @table @code
@@ -2193,6 +2201,18 @@ has been defined, -1 is returned.
 Pointer to location for returned format version, one of 
 NC_FORMAT_CLASSIC, NC_FORMAT_64BIT, NC_FORMAT_NETCDF4,
 NC_FORMAT_NETCDF4_CLASSIC.
+
+@item pathlenp
+Pointer to location for returned length of the string specifying the
+path with which a file was opened or created.  For data on remote
+servers, this is the length of the URL string provided to open a
+connection to the data.  If NULL, this argument is ignored.
+returned.
+
+@item path
+Pointer to string large enough to contain the returned path with which
+the specified open netCDF dataset was opened or created.  If NULL,
+this argument is ignored.
 @end table
 
 @heading Errors 
@@ -3499,7 +3519,8 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid);
 The group id of the parent group.
 
 @item name
-The name of the new group.
+The name of the new group.  A group cannot have the same name as a
+variable within the same parent group.
 
 @item new_ncid
 A pointer to an int. The ncid of the new group will be placed there.
@@ -3549,15 +3570,11 @@ Not in define mode.
 @heading Example
 
 @example
-      int root_ncid, a1_ncid;
+      int ncid, a1_ncid;
       char grpname[] = "assimilation1";
 
-      /* Get the ncid of the root group. */
-      if ((res = nc_inq_ncid(root_ncid, NULL, &root_ncid)))
-         return res;
-
       /* Create a group. */
-      if ((res = nc_def_grp(root_ncid, grpname, &a1_ncid)))
+      if ((res = nc_def_grp(ncid, grpname, &a1_ncid)))
          return res;
 @end example
 

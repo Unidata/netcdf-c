@@ -7,7 +7,7 @@
   "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
-#include "dispatch.h"
+#include "ncdispatch.h"
 
 #if defined(__cplusplus)
 /* C++ consts default to internal linkage and must be initialized */
@@ -1144,7 +1144,7 @@ nc_put_var1_ushort(int ncid, int varid, const size_t *coord, const unsigned shor
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    INITCOORD1;
-   return NC_put_var1(ncid,varid,coord,(void*)value, NC_SHORT);
+   return NC_put_var1(ncid,varid,coord,(void*)value, NC_USHORT);
 }
 
 int

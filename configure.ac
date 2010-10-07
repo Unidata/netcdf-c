@@ -17,7 +17,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2-beta1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2-beta2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -414,6 +414,34 @@ else
   curl_dir=
 fi
 
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+havekeypasswd=0
+
+if test -n "$with_curl_config" ; then
+  curlver=`curl-config --version`
+  curlver=`echo $curlver|cut -d ' ' -f2`
+  curlmajor=`echo $curlver|cut -d '.' -f1`
+  curlminor=`echo $curlver|cut -d '.' -f2`
+  curlpatch=`echo $curlver|cut -d '.' -f3`
+  if test "x$curlpatch" = "x"; then curlpatch=0 ; fi
+
+  if test $curlmajor -gt 7 ; then
+    havekeypasswd=1
+  elif test $curlmajor -eq 7 ; then
+    if test $curlminor -gt 16 ; then
+      havekeypasswd=1
+    elif test $curlminor -eq 16 ; then
+      if test $curlpatch -ge 4 ; then
+        havekeypasswd=1
+      fi
+    fi
+  fi
+fi #with-curl_config
+
+if test $havekeypasswd -eq 1; then
+AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
+fi
+
 else #!enable_dap
 
 curl_cflags=""
@@ -438,6 +466,10 @@ fi
 
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+fi
+if test "x$enable_dap_remote_tests" = xyes; then
+   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
 
 # Default is now to always do the short remote tests
@@ -450,6 +482,7 @@ if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
+
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
 AC_ARG_ENABLE([dap-long-tests],
@@ -543,7 +576,7 @@ AC_MSG_RESULT([$enable_compiler_recover])
 AC_MSG_CHECKING([whether only the C library is desired])
 AC_ARG_ENABLE([c-only],
               [AS_HELP_STRING([--enable-c-only],
-                              [build only the netCDF-3 C library; same as \
+                              [build only the netCDF C library; same as \
                               --disable-f77 --disable-cxx --disable-v2 --disable-examples \
                               --disable-utilities])])
 test "x$enable_c_only" = xyes || enable_c_only=no
@@ -672,11 +705,11 @@ if test "x$nc_build_v2" = xno; then
    AC_DEFINE_UNQUOTED(NO_NETCDF_2, 1, [do not build the netCDF version 2 API])
 fi
 
-# Does the user want to disable ncgen/ncdump?
-AC_MSG_CHECKING([whether the ncgen/ncdump should be built])
+# Does the user want to disable ncgen/ncdump/nccopy?
+AC_MSG_CHECKING([whether the ncgen/ncdump/nccopy should be built])
 AC_ARG_ENABLE([utilities],
               [AS_HELP_STRING([--disable-utilities],
-                              [don't build netCDF utilities ncgen and ncdump])])
+                              [don't build netCDF utilities ncgen, ncdump, and nccopy])])
 test "x$nc_build_c" = xno && enable_utilities=no
 test "x$enable_utilities" = xno && nc_build_utilities=no
 AC_MSG_RESULT($nc_build_utilities)
@@ -1198,7 +1231,7 @@ dnl 	 fi
 #   else
 #      AC_MSG_RESULT([without parallel])         
       # Modify netcdf.h to include defs for missing parallel stuff.
-      # WARNING: the similar defs in libdispatch/dispatch.h must match this
+      # WARNING: the similar defs in libdispatch/ncdispatch.h must match this
 # When doing distcheck, this cmd will fail because of
 # the permissions set on $top_builddir.
 # So, we forcibly reset the permissions

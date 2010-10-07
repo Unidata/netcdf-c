@@ -12,11 +12,7 @@ DISTCLEANFILES =
 CLEANFILES =
 LDADD=
 
-#CURL_CFLAGS = @CURL_CFLAGS@
-#AM_CPPFLAGS = ${CURL_CFLAGS}
-#AM_LDFLAGS = $(CURL_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = 
 
 # DRNO Sources
 SRC=\
@@ -73,22 +69,25 @@ endif
 
 if INTERNAL_OCLIB
   AM_CPPFLAGS += -I${top_srcdir}/oc
-  libncdap3_la_LIBADD += ${top_builddir}/oc/liboc.la
 endif # INTERNAL_OCLIB
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
-AM_LDFLAGS += @EXTERN_LDFLAGS@
 
-LDADD +=  ${top_builddir}/libncdap3/libncdap3.la ${AM_LDFLAGS}
+LDADD +=  ${top_builddir}/libncdap3/libncdap3.la
+
+if INTERNAL_OCLIB
+  LDADD += ${top_builddir}/oc/liboc.la
+endif # INTERNAL_OCLIB
+
+LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_dap
+TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
 t_dap_SOURCES = t_dap.c stubdap3.c
 t_dap_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
 ${top_builddir}/libdispatch/libdispatch.la
-
-
 CLEANFILES += t_dap
 
 EXTRA_DIST = ce.y
