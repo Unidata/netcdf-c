@@ -42,7 +42,6 @@ typedef struct NChdr {
 extern int dumpmetadata(int ncid, NChdr**);
 extern void dumpdata1(nc_type nctype, size_t index, char* data);
 
-
 extern char* dumpprojection1(struct NCprojection* projections);
 extern char* dumpprojections(NClist* projections);
 extern char* dumpselections(NClist* selections);

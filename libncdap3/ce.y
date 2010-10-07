@@ -21,105 +21,38 @@
 %%
 
 constraints:
-	  projections {projections(parsestate,$1);}
-	| selections  {selections(parsestate,$1);}
-	| projections selections
-	    {projections(parsestate,$1); selections(parsestate,$2);}
+	  optquestionmark projections
+	| optquestionmark selections
+	| optquestionmark projections selections
+	| /*empty*/
 	;
+
+optquestionmark: '?' | /*empty*/ ;
 
 /* %type NClist<NCprojection*> */
 projections:
-	projectionlist {$$=$1;}
+	projectionlist {projections(parsestate,$1);}
 	;
 
 /* %type NClist<NCselection*> */
 selections:
-	selectionlist {$$=$1;}
+	clauselist {selections(parsestate,$1);}
 	;
 
 /* %type NClist<NCprojection*> */
-projectionlist:
+projectionlist: //==expr.projection
 	  projection
-	    {$$=projectionlist(parsestate,null,$1);}
+	    {$$=projectionlist(parsestate,(Object)null,$1);}
 	| projectionlist ',' projection
 	    {$$=projectionlist(parsestate,$1,$3);}
 	;
 
 /* %type NCprojection* */
-projection:
+projection: //==expr.proj_clause
 	  segmentlist
 	    {$$=projection(parsestate,$1);}
-	;
-
-/* %type NClist<NCsegment> */
-segmentlist:
-	  segment
-	    {$$=segmentlist(parsestate,null,$1);}
-	| segmentlist '.' segment
-	    {$$=segmentlist(parsestate,$1,$3);}
-	;
-
-/* %type NCsegment */
-segment:
-	  word
-	    {$$=segment(parsestate,$1,null);}
-	| word array_indices
-	    {$$=segment(parsestate,$1,$2);}
-	;
-
-/* %type NClist<NCslice*> */
-array_indices: /* appends indices to state->segment */
-	  array_index
-	    {$$=array_indices(parsestate,null,$1);}
-        | array_indices array_index
-	    {$$=array_indices(parsestate,$1,$2);}
-	;
-
-/* %type NCslice* */
-array_index:
-	range {$$=$1;}
-	;
-
-/* %type NCslice* */
-range:
-	  range1
-	    {$$=range(parsestate,$1,null,null);}
-	| '[' index ':' index ']'
-	    {$$=range(parsestate,$2,null,$4);}
-	| '[' index ':' index ':' index ']'
-	    {$$=range(parsestate,$2,$4,$6);}
-	;
-
-range1: '[' index ']' {$$=$2;}
-
-/* %type NClist<NCselection*> */
-selectionlist:
-	  '&' sel_clause
-	    {$$=selectionlist(parsestate,null,$2);}
-	| selectionlist sel_clause
-	    {$$=selectionlist(parsestate,$1,$2);}
-	;
-
-/* %type NCselection* */
-sel_clause:
-	  selectionvar rel_op '{' value_list '}'
-	    {$$=sel_clause(parsestate,1,$1,$2,$4);} /*1,2 distinguish cases*/
-	| selectionvar rel_op value
-	    {$$=sel_clause(parsestate,2,$1,$2,$3);}
 	| function
-        ;
-
-/* %type NClist<NCselection*> */
-selectionvar:
-	selectionpath
 	    {$$=$1;}
-	;
-/* %type NClist<NCselection*> */
-selectionpath:
-	  arrayelement
-	    {$1=selectionpath(parsestate,null,$1);}
-	| segment '.' arrayelement
-	    {$$=selectionpath(parsestate,$1,$3);}
 	;
 
 function:
@@ -129,59 +62,144 @@ function:
 	    {$$=function(parsestate,$1,$3);}
 	;
 
-arg_list:
+/* %type NClist<OCsegment> */
+segmentlist: //==expr.proj_variable
+	  segment
+	    {$$=segmentlist(parsestate,null,$1);}
+	| segmentlist '.' segment
+	    {$$=segmentlist(parsestate,$1,$3);}
+	;
+
+/* %type OCsegment */
+segment: //==expr.component
+	  word
+	    {$$=segment(parsestate,$1,null);}
+	| word rangelist
+	    {$$=segment(parsestate,$1,$2);}
+	;
+
+/* %type NClist<NCslice*> */
+rangelist: 
+	  range
+	    {$$=rangelist(parsestate,null,$1);}
+        | rangelist range
+	    {$$=rangelist(parsestate,$1,$2);}
+	;
+
+/* %type NCslice* */
+range:
+	  range1
+	    {$$=range(parsestate,$1,null,null);}
+	| '[' number ':' number ']'
+	    {$$=range(parsestate,$2,null,$4);}
+	| '[' number ':' number ':' number ']'
+	    {$$=range(parsestate,$2,$4,$6);}
+	;
+
+range1: '[' number ']'
+	    {$$ = range1(parsestate,$2);}
+	;
+
+
+/* %type NClist<NCselection*> */
+clauselist: //==expr.selection
+	  sel_clause
+	    {$$=clauselist(parsestate,null,$1);}
+	| clauselist sel_clause
+	    {$$=clauselist(parsestate,$1,$2);}
+	;
+
+/* %type NCselection* */
+sel_clause: //==expr.clause
+	  '&' value rel_op '{' value_list '}'
+	    {$$=sel_clause(parsestate,1,$2,$3,$5);} /*1,2 distinguish cases*/
+	| '&' value rel_op value
+	    {$$=sel_clause(parsestate,2,$2,$3,$4);}
+	| '&' boolfunction
+	    {$$=$1;}
+        ;
+
+value_list:
+	  value
+	    {$$=value_list(parsestate,null,$1);}
+	| value_list ',' value
+	    {$$=value_list(parsestate,$1,$3);}
+	;
+
+value:
+	  var /* can be variable ref or a function */
+	    {$$=value(parsestate,$1);}
+	| function
+	    {$$=value(parsestate,$1);}
+	| constant
+	    {$$=value(parsestate,$1);}
+	;
+
+constant:
+	  number
+	    {$$=constant(parsestate,$1,SCAN_NUMBERCONST);}
+	| string
+	    {$$=constant(parsestate,$1,SCAN_STRINGCONST);}
+	;
+
+var:
+	indexpath
+	    {$$=var(parsestate,$1);}
+	;
+
+
+
+
+/* %type NClist<NCselection*> */
+indexpath:
+	  index
+	    {$$=indexpath(parsestate,null,$1);}
+	| indexpath '.' index
+	    {$$=indexpath(parsestate,$1,$3);}
+	;
+
+index:
+	  word
+	    {$$=index(parsestate,$1,null);}
+	| word array_indices
+	    {$$=index(parsestate,$1,$2);}
+	;
+
+/* %type NClist<NCslice*> */
+array_indices:
+	  range1
+	    {$$=array_indices(parsestate,null,$1);}
+        | array_indices range1
+	    {$$=array_indices(parsestate,$1,$2);}
+	;
+
+boolfunction:
+	  ident '(' ')'
+	    {$$=function(parsestate,$1,null);}
+	| ident '(' arg_list ')'
+	    {$$=function(parsestate,$1,$3);}
+	;
+
+arg_list: //==expr.arg_list
 	  value
 	    {$$=arg_list(parsestate,null,$1);}
 	| value_list ',' value
 	    {$$=arg_list(parsestate,$1,$3);}
 	;
 
-value_list:
-	  value
-	    {$$=value_list(parsestate,null,$1);}
-	| value_list '|' value
-	    {$$=value_list(parsestate,$1,$3);}
-	;
-
-value:
-	  selectionpath /* can be variable or an integer */
-	    {$$=value(parsestate,$1,SCAN_WORD);}
-	| number
-	    {$$=value(parsestate,$1,SCAN_NUMBERCONST);}
-	| string
-	    {$$=value(parsestate,$1,SCAN_STRINGCONST);}
-	;
-
 /* %type SelectionTag */
 rel_op:
-	  '='     {$$=(Object)ST_EQ;}
-	| '>'     {$$=(Object)ST_GT;}
-	| '<'     {$$=(Object)ST_LT;}
-	| '!' '=' {$$=(Object)ST_NEQ;}
-	| '=' '~' {$$=(Object)ST_RE;}
-	| '>' '=' {$$=(Object)ST_GE;}
-	| '<' '=' {$$=(Object)ST_LE;}
-	;
-
-/* type NCsegment* */
-arrayelement:
-	  word
-	    {$$=arrayelement(parsestate,$1,null);}
-	| word range1
-	    {$$=arrayelement(parsestate,$1,$2);}
+	  '='     {$$=newinteger(EQUAL);}
+	| '>'     {$$=newinteger(GREATER);}
+	| '<'     {$$=newinteger(LESS);}
+	| '!' '=' {$$=newinteger(NOT_EQUAL);}
+	| '>' '=' {$$=newinteger(GREATER_EQL);}
+	| '<' '=' {$$=newinteger(LESS_EQL);}
+	| '=' '~' {$$=newinteger(REGEXP);}
 	;
 
 ident:  word
 	    {$$ = $1;}
-	;
-
-index:  number
-	    { unsigned long tmp = 0;
-		if(sscanf((char*)$1,"%lu",&tmp) != 1) {
-		    yyerror(parsestate,"Index is not an integer");
-		}
-		$$ = $1;
-	    }
 	;
 
 word:  SCAN_WORD
