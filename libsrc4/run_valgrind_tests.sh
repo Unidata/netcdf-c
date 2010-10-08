@@ -14,15 +14,13 @@ list='tst_h_dimscales tst_h_files '\
 'tst_h_grps tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl tst_h_atts '\
 'tst_h_dimscales3 tst_h_files2 tst_h_compounds '\
 'tst_h_vars tst_h_opaques tst_h_compounds2 '\
-'tst_compounds '\
+'tst_h_vars2 tst_h_vars3 tst_h_strings tst_compounds '\
 'tst_files tst_utf8 tst_fillbug '\
 'tst_vars3 tst_xplatform tst_dims '\
 'tst_dims2 tst_dims3 tst_varms tst_unlim_vars '\
-'tst_endian_fill tst_compounds2'
+'tst_endian_fill tst_compounds2 tst_chunks tst_coords tst_vars'
 
-# These don't work yet: tst_h_vars3 
-# tst_h_strings tst_h_atts3 tst_h_vars2 tst_vars tst_fills tst_chunks
-# tst_coords tst_xplatform2
+# These don't work yet: tst_h_atts3 tst_fills tst_xplatform2
 
 for tst in $list; do
     echo ""

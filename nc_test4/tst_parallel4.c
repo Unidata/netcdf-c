@@ -171,7 +171,7 @@ main(int argc, char **argv)
     if ((ret = nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid))) 
     {
        printf("ret = %d\n", ret);
-       ERR;
+       ERR_RET;
     }
     if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
     if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 || 
