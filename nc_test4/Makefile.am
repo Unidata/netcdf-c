@@ -16,8 +16,6 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
 # Our test programs and sources. (tst_h_vl2 must come after tst_vl.)
 NC4_TEST_PROGS = t_type cdm_sea_soundings tst_camrun tst_vl tst_atts	\
 tst_atts2 tst_vars2 tst_files tst_files2
-cdm_sea_soundings_SOURCES = cdm_sea_soundings.c tests.h
-tst_camrun_SOURCES = tst_camrun.c tests.h
 
 check_PROGRAMS = $(NC4_TEST_PROGS)
 TESTS = $(NC4_TEST_PROGS)
@@ -28,16 +26,11 @@ TESTS += tst_v2
 endif # BUILD_V2
 
 if LARGE_FILE_TESTS
-tst_large_SOURCES = tst_large.c tests.h
 check_PROGRAMS += tst_large
 TESTS += tst_large
 endif # LARGE_FILE_TESTS
 
 if BUILD_BENCHMARKS
-bm_file_SOURCES = bm_file.c tests.h
-tst_create_files_SOURCES = tst_create_files.c tests.h
-tst_ar4_SOURCES = tst_ar4.c tests.h
-tst_chunks_SOURCES = tst_chunks.c tests.h
 check_PROGRAMS += tst_create_files bm_file tst_chunks tst_ar4	\
 tst_ar4_3d tst_ar4_4d
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
