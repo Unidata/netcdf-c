@@ -29,6 +29,11 @@ int total_err = 0, err = 0;
 char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4", 
 		       "netCDF-4 classic model"};
 
+#define BAIL(e) do { \
+printf ("Bailing out in file %s, line %d, error:%s.\n", __FILE__, __LINE__, nc_strerror(e)); \
+return -1; \
+} while (0) 
+
 /* This macro prints an error message with line number and name of
  * test program. */
 #define ERR do { \

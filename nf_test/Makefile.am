@@ -149,13 +149,12 @@ endif #BUILD_BENCHMARKS
 # Test parallel I/O.
 if TEST_PARALLEL
 check_PROGRAMS += f90tst_parallel f90tst_parallel2 f90tst_parallel3	\
-f90tst_nc4_par f90tst_nc4_par1
+f90tst_nc4_par
 #f90tst_parallel_fill
 f90tst_parallel_SOURCES = f90tst_parallel.f90
 f90tst_parallel2_SOURCES = f90tst_parallel2.f90
 f90tst_parallel3_SOURCES = f90tst_parallel3.f90
 f90tst_nc4_par_SOURCES = f90tst_nc4_par.f90
-f90tst_nc4_par1_SOURCES = f90tst_nc4_par1.f90
 #f90tst_parallel_fill_SOURCES = f90tst_parallel_fill.f90
 TESTS += run_f90_par_test.sh
 CLEANFILES += f90tst_parallel*.nc

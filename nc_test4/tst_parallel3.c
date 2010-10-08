@@ -18,7 +18,7 @@
  *
  */
 
-#include "tests.h"
+#include <nc_tests.h>
 
 #define FILE_NAME "tst_parallel3.nc"
 

@@ -9,7 +9,7 @@
  * clog2TOslog2) and then used in the analysis program jumpshot. */
 /*#define USE_MPE 1*/
 
-#include "tests.h"
+#include <nc_tests.h>
 #include <mpi.h>
 #ifdef USE_MPE
 #include <mpe.h>
