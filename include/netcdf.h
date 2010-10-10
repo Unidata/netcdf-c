@@ -63,6 +63,8 @@ extern "C" {
 #define	NC_UINT64 	11	/* unsigned 8-byte int */
 #define	NC_STRING 	12	/* string */
 
+#define NC_MAX_ATOMIC_TYPE NC_STRING
+
 /* The following are use internally in support of user-defines
  * types. They are also the class returned by nc_inq_user_type. */
 #define	NC_VLEN 	13	/* used internally for vlen types */

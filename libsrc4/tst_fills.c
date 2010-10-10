@@ -61,17 +61,18 @@ main(int argc, char **argv)
 	 if (strcmp(data_in[i], "")) ERR;
       if (strcmp(data_in[DATA_START], data_out[0])) ERR;
 
-      /* Close everything up. */
+      /* Close everything up. Don't forget to free the string! */
+      if (nc_free_string(DATA_START + 1, data_in)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Now re-open file, read data, and check values again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-      if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
+     if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
       if (nc_get_att_string(ncid, varid_in, "_FillValue", (char **)missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in[0])) ERR;
-      if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
+      /*if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in[0])) ERR;*/
       if (nc_close(ncid)) ERR;
-      free(data_in);
+       free(data_in); 
    }
 
    SUMMARIZE_ERR;
