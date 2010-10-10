@@ -4546,8 +4546,8 @@ Create an opaque type. Provide a size and a name.
 @heading Usage 
 
 @example
-INTEGER FUNCTION NF_DEF_OPAQUE(INTEGER NCID, CHARACTER*(*) NAME, 
-        INTEGER SIZE, INTEGER TYPEIDP)
+INTEGER FUNCTION NF_DEF_OPAQUE(INTEGER NCID, INTEGER SIZE, 
+        CHARACTER*(*) NAME, INTEGER TYPEIDP)
 @end example
 
 @table @code
@@ -4556,11 +4556,11 @@ INTEGER FUNCTION NF_DEF_OPAQUE(INTEGER NCID, CHARACTER*(*) NAME,
 The groupid where the type will be created. The type may be used
 anywhere in the file, no matter what group it is in.
 
-@item NAME
-The name for this type. Must be shorter than NF_MAX_NAME.
-
 @item SIZE
 The size of each opaque object.
+
+@item NAME
+The name for this type. Must be shorter than NF_MAX_NAME.
 
 @item TYPEIDP
 Pointer where the new typeid for this type is returned. Use this

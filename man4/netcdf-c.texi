@@ -5732,7 +5732,7 @@ Create an opaque type. Provide a size and a name.
 @heading Usage 
 
 @example
-nc_def_opaque(int ncid, const char *name, size_t size, nc_type *typeidp);
+nc_def_opaque(int ncid, size_t size, const char *name, nc_type *typeidp);
 @end example
 
 @table @code
@@ -5741,11 +5741,11 @@ nc_def_opaque(int ncid, const char *name, size_t size, nc_type *typeidp);
 The groupid where the type will be created. The type may be used
 anywhere in the file, no matter what group it is in.
 
-@item name
-The name for this type. Must be shorter than NC_MAX_NAME.
-
 @item size
 The size of each opaque object.
+
+@item name
+The name for this type. Must be shorter than NC_MAX_NAME.
 
 @item typeidp
 Pointer where the new typeid for this type is returned. Use this
