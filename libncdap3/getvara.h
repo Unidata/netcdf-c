@@ -51,6 +51,8 @@ struct NCMEMORY {
     char* next; /* where to store the next chunk of data*/
 }; 
 
+/* Hold a projection segment */
+
 typedef struct NCsegment {
     char* name;
     struct CDFnode* node;
@@ -60,49 +62,31 @@ typedef struct NCsegment {
     NCslice slices[NC_MAX_VAR_DIMS];        
 } NCsegment;
 
-
-/* Hold a projection segment */
-
-typedef enum SelectionTag {
-ST_NIL=0,
-ST_EQ=1,ST_NEQ=2,ST_GE=3,ST_GT=4,ST_LT=5,ST_LE=6,ST_RE=7,
-ST_STR=8,ST_INT=9,ST_FLOAT=10,ST_VAR=11,ST_FCN,ST_CONST
-} SelectionTag;
-
-
-
-typedef struct NCfcn {
-    SelectionTag kind;
-    char* name;
-    NClist* args;
-} NCfcn;
-
-typedef struct NCvar {
-    SelectionTag kind;
-    NClist* segments;
-    struct CDFnode* node;
-} NCvar;
-
 typedef struct NCprojection {
-    SelectionTag kind;
-    NCvar* var;
-    NCfcn* fcn;
+    NClist* segments;
     /* Following duplicate info inferrable from the segments */
     struct CDFnode* leaf;
 } NCprojection;
 
-typedef struct NCconst {
-    SelectionTag kind;
-    char* text;
-    long long intvalue;
-    double floatvalue;
-} NCconst;
+/* Hold a selection instance */
+
+typedef enum SelectionTag {
+ST_NIL=0,
+ST_EQ=1,ST_NEQ=2,ST_GE=3,ST_GT=4,ST_LT=5,ST_LE=6,ST_RE=7,
+ST_STR=8,ST_INT=9,ST_FLOAT=10,ST_VAR=11,ST_FCN
+} SelectionTag;
 
 typedef struct NCvalue {
     SelectionTag kind;
-    NCconst* constant;
-    NCvar* var;
-    NCfcn* fcn;
+    union {
+        char* text;
+	long long intvalue;
+	double floatvalue;
+	struct {
+	    NClist* segments;
+	    struct CDFnode* node;
+	} var;
+    } value;
 } NCvalue;
 
 typedef struct NCselection {
@@ -112,7 +96,6 @@ typedef struct NCselection {
     struct CDFnode* leaf;
     char* fcn;
 } NCselection;
-
 
 typedef int nc_tactic;
 #define tactic_null	0

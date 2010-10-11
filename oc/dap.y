@@ -260,8 +260,6 @@ name:
 	| SCAN_URL       {$$=strdup("url");}
 	| SCAN_CODE      {$$=strdup("code");}
 	| SCAN_MESSAGE   {$$=strdup("message");}
-	| SCAN_PROG      {$$=strdup("program");}
-	| SCAN_PTYPE     {$$=strdup("program_type");}
 	;
 
 %%

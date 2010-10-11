@@ -39,15 +39,10 @@ projectionlist(CEparsestate* state, Object list0, Object decl)
 }
 
 Object
-projection(CEparsestate* state, Object varorfcn)
+projection(CEparsestate* state, Object segmentlist)
 {
     NCprojection* p = createncprojection();
-    SelectionTag tag = *(SelectionTag*)varorfcn;
-    if(tag == ST_FCN)
-	p->fcn = varorfcn;
-    else
-	p->var = varorfcn;
-    p->kind = tag;
+    p->segments = (NClist*)segmentlist;    
 #ifdef DEBUG
 fprintf(stderr,"	ce.projection: %s\n",
 	dumpprojection1(p));
@@ -56,17 +51,9 @@ fprintf(stderr,"	ce.projection: %s\n",
 }
 
 Object
-segmentlist(CEparsestate* state, Object var0, Object decl)
+segmentlist(CEparsestate* state, Object list0, Object decl)
 {
-    // watch out: this is non-standard
-    NClist* list;
-    NCvar* v = (NCvar*)var0;
-    if(v==NULL) v = createncvar();
-    list = v->segments;
-    if(list == NULL) list = nclistnew();
-    nclistpush(list,(ncelem)decl);
-    v->segments = list;
-    return v;
+    return collectlist(list0,decl);
 }
 
 Object
@@ -94,9 +81,8 @@ fprintf(stderr,"	ce.segment: %s\n",
     return segment;
 }
 
-
 Object
-rangelist(CEparsestate* state, Object list0, Object decl)
+array_indices(CEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
@@ -120,7 +106,7 @@ range(CEparsestate* state, Object sfirst, Object sstride, Object slast)
 	stride = 1; /* default */
 
     if(stride == 0)
-    	ceerror(state,"Illegal index for range stride");
+	ceerror(state,"Illegal index for range stride");
     if(last < first)
 	ceerror(state,"Illegal index for range last index");
     slice->first  = first;
@@ -135,79 +121,64 @@ fprintf(stderr,"	ce.slice: %s\n",
     return slice;
 }
 
-Object
-range1(Ceparsestate* state, Object rangenumber)
-{
-    int range = -1;
-    sscanf((char*)rangenumber,"%u",&range);
-    if(range < 0) {
-    	ceerror(state,"Illegal range index");
-    }
-    return rangenumber;
-}
+/* Selection Procedures */
 
 Object
-clauselist(CEparsestate* state, Object list0, Object decl)
+selectionlist(CEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 Object
 sel_clause(CEparsestate* state, int selcase,
-	   Object lhs, Object relop0, Object values)
+	   Object path0, Object relop0, Object values)
 {
     NCselection* sel = createncselection();
     sel->operator = (SelectionTag)relop0;
-    sel->lhs = (NCValue*)lhs;
-    if(selcase == 2) {//singleton value
-	sel->rhs = nclistnew();
-	nclistpush(sel->rhs,(ncelem)values);
-    } else
-        sel->rhs = (NClist*)values;
+    sel->segments = (NClist*)path0;
+    sel->values = (NClist*)values;
     sel->leaf = NULL;
     return sel;
 }
 
 Object
-indexpath(Ceparsestate* state, Object list0, Object index)
+selectionpath(CEparsestate* state, Object list0, Object segment)
 {
-    return collectlist(list0,index);
+    ASSERT(segment != NULL);
+    return collectlist(list0,segment);
 }
 
 Object
-array_indices(CEparsestate* state, Object list0, Object indexno)
+arrayelement(CEparsestate* state, Object name, Object index)
 {
-    long long start = -1;
-    NClist* list = (NClist*)list0;
-    if(list == NULL) list = nclistnew();
-    sscanf((char*)indexno,"%lld",&start);
-    if(start < 0) {
-    	ceerror(state,"Illegal array index");
-	start = 1;
+    NCsegment* segment = createncsegment();
+    segment->name = (char*)name;
+    if(index != null) {/* create a simple slice */
+	/* Make sure this is a number */
+	NCslice* slice = &segment->slices[0];
+	unsigned long ul;
+	if(sscanf((char*)index,"%lu",&ul) != 1)
+	    ceerror(state,"Illegal index for selection variable");
+	slice->first = (size_t)ul;
+	slice->count = 1;
+	slice->length = 1;
+	slice->stride = 1;
+	slice->stop = slice->first+1;
+	slice->declsize = 0;
+	segment->slicerank = 1;
+	segment->slicesdefined = 1;	
     }    
-    NCslice* slice = createncslice();
-    slice->first = start;
-    slice->stride = 1;
-    slice->last = start;
-    nclistpush(list,(ncelem)slice);
-    return list;
+    return segment;
 }
 
-Object index(CEparsestate* state, Object name, Object indices)
-{
-    NCsegment* seg = createncsegment();
-    seg->name = strdup((char*)name);
-    seg->slices = (NClist*)indices;
-    return seg;    
-}
 
 Object
 function(CEparsestate* state, Object fcnname, Object args)
 {
-    NCfcn* fcn = createncfcn();
-    fcn->name = nulldup((char*)fcnname);
-    fcn->args = args;
-    return fcn;
+    NCselection* sel = createncselection();
+    sel->operator = ST_FCN;
+    sel->fcn = nulldup((char*)fcnname);
+    return sel;
 }
 
 Object
@@ -216,7 +187,6 @@ arg_list(CEparsestate* state, Object list0, Object decl)
     return collectlist(list0,decl);
 }
 
-
 Object
 value_list(CEparsestate* state, Object list0, Object decl)
 {
@@ -224,32 +194,9 @@ value_list(CEparsestate* state, Object list0, Object decl)
 }
 
 Object
-value(CEparsestate* state, Object val)
+value(CEparsestate* state, Object text, int tag)
 {
     NCvalue* value = createncvalue();
-    SelectionTag tag = *(SelectionTag*)val;
-    switch (tag) {
-    case ST_VAR: value.var = val; break;
-    case ST_FCN: value.fcn = val; break;
-    case ST_CONST: value.constant = val; break;
-    default: abort(); break;
-    }
-    value->kind = tag;
-    return value;
-}
-
-Object
-var(CEparsestate* state, Object indexpath)
-{
-    NCvar* v = createncvar();
-    v->segments = (NClist*)indexpath;        
-    return v;
-}
-
-Object
-constant(CEparsestate* state, Object val, int tag)
-{
-    NCconst* con = createncconst();
     switch (tag) {
     case SCAN_STRINGCONST:
 	value->kind = ST_STR;
@@ -265,7 +212,12 @@ constant(CEparsestate* state, Object val, int tag)
 	    value->kind = ST_FLOAT;
 	}
 	break;
-    default: abort(); break;
+    case SCAN_WORD:
+    default:
+	/* In this case, text is actually a path list */
+	value->kind = ST_VAR;
+	value->value.var.segments = (NClist*)text; /* fill-in cdfnode later */
+        break;
     }
     return value;
 }
@@ -346,31 +298,3 @@ fprintf(stderr,"ncceparse: selections=%s\n",dumpselections(state->selections));
     }
     return errcode;
 }
-
-Object
-constant(Ceparsestate* state, Object path, int tag)
-{
-    ASTconstant value = new ASTconstant();
-        switch (tag) {
-        case SCAN_STRINGCONST:
-            value.text = (String) path;
-            value.tag = STRINGCONST;
-            break;
-        case SCAN_NUMBERCONST:
-            try {
-                value.intvalue = Long.parseLong((String) path);
-                value.tag = INTCONST;
-            } catch (NumberFormatException nfe) {
-                try {
-                    value.floatvalue = Float.parseFloat((String) path);
-                    value.tag = FLOATCONST;
-                } catch (NumberFormatException nfe2) {
-                    throw new ParseException("Illegal integer constant");
-                }
-            }
-            break;
-        default:
-            assert(false);
-        }
-        return value;
-    }

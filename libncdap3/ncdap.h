@@ -139,7 +139,11 @@ typedef struct NCDAP {
     char* urltext; /* as given to nc3d_open*/
     DAPURL url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
+    NCconstraint constraint; /* merge of dap and nc constraints */
     NCconstraint dapconstraint; /* from url */
+#ifdef NCCONSTRAINTS
+    NCconstraint netcdfconstraint; /* netcdf constraints */
+#endif
 } NCDAP;
 
 typedef struct NCCDF {
@@ -346,7 +350,6 @@ extern char* makeconstraintstring34(NCconstraint*);
 extern void freencprojections(NClist* plist);
 extern void freencprojection1(struct NCprojection* p);
 extern void freencselections(NClist* slist);
-
 extern size_t estimatedataddssize34(CDFnode* datadds);
 
 extern NClist* CEparse(char* input);

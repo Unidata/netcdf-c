@@ -198,7 +198,6 @@ extern int ocdebug; ocdebug = 2;
     ncstat = fetchtemplatemetadata3(drno);
     if(ncstat != NC_NOERR) goto fail;
 
-#ifdef IGNORE
     /* Processing the constraints is a multi-step action.
        1. retrieve the dds
        2. convert the nc constraint names to be dap constraint
@@ -207,7 +206,6 @@ extern int ocdebug; ocdebug = 2;
     */
     ncstat = buildconstraints3(drno);
     if(ncstat != NC_NOERR) goto fail;
-#endif
 
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(drno);

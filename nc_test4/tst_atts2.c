@@ -18,6 +18,70 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netcdf-4 attribute copies.\n");
+   printf("*** testing compound attribute copy to different type of same name...");
+   {
+#define CMP_NAME1 "Ireland"
+#define I1_NAME "Cork"
+#define I2_NAME "Dublin"
+#define DIM_LEN 3
+#define ATT_NAME3 "Rain"
+#define NUM_FILES 2
+
+      int ncid[NUM_FILES], typeid;
+      char file_name[NUM_FILES][NC_MAX_NAME + 1] = {FILE_NAME1, FILE_NAME2};
+      int i;
+      struct s1 
+      {
+	    int i1;
+	    int i2;
+      };
+      struct s1 data[DIM_LEN];
+      struct s2
+      {
+	    short i1;
+	    int i2;
+      };
+
+      /* Create some phony data. */   
+      for (i = 0; i < DIM_LEN; i++)
+      {
+	 data[i].i1 = 32768;
+	 data[i].i2 = 32767;
+      }
+
+      /* Create two files with different compound types of the same name. */
+      for (i = 0; i < NUM_FILES; i++)
+	 if (nc_create(file_name[i], NC_NETCDF4, &ncid[i])) ERR;
+
+      /* Define s1 in file 1. */
+      if (nc_def_compound(ncid[0], sizeof(struct s1), CMP_NAME1, &typeid)) ERR;
+      if (nc_insert_compound(ncid[0], typeid, I1_NAME, 
+			     NC_COMPOUND_OFFSET(struct s1, i1), NC_INT)) ERR;
+      if (nc_insert_compound(ncid[0], typeid, I2_NAME, 
+			     NC_COMPOUND_OFFSET(struct s1, i2), NC_INT)) ERR;
+
+      /* Define s2 in file 2, but named the same as s1. */
+      if (nc_def_compound(ncid[1], sizeof(struct s2), CMP_NAME1, &typeid)) ERR;
+      if (nc_insert_compound(ncid[1], typeid, I1_NAME, 
+			     NC_COMPOUND_OFFSET(struct s2, i1), NC_SHORT)) ERR;
+      if (nc_insert_compound(ncid[1], typeid, I2_NAME, 
+			     NC_COMPOUND_OFFSET(struct s2, i2), NC_INT)) ERR;
+
+
+      /* Write an att in one file. */
+      if (nc_put_att(ncid[0], NC_GLOBAL, ATT_NAME3, typeid, DIM_LEN, 
+		     data)) ERR;
+
+      /* Try to copy. It must fail, because the two types are not the
+       * same. */
+      if (nc_copy_att(ncid[0], NC_GLOBAL, ATT_NAME3, ncid[1], 
+		      NC_GLOBAL) != NC_EBADTYPE) ERR;
+
+      /* Close the files. */
+      for (i = 0; i < NUM_FILES; i++)
+	 if (nc_close(ncid[i])) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** testing string attribute copy...");
    {
 #define ATT_NAME "Irish_Leader"
@@ -136,70 +200,6 @@ main(int argc, char **argv)
       for (i=0; i<DIM_LEN; i++)
 	 if (data[i].i1 != data_in[i].i1 || data[i].i2 != data_in[i].i2) ERR;
       if (nc_close(ncid[1])) ERR;
-   }
-   SUMMARIZE_ERR;
-   printf("*** testing compound attribute copy to different type of same name...");
-   {
-#define CMP_NAME1 "Ireland"
-#define I1_NAME "Cork"
-#define I2_NAME "Dublin"
-#define DIM_LEN 3
-#define ATT_NAME3 "Rain"
-#define NUM_FILES 2
-
-      int ncid[NUM_FILES], typeid;
-      char file_name[NUM_FILES][NC_MAX_NAME + 1] = {FILE_NAME1, FILE_NAME2};
-      int i;
-      struct s1 
-      {
-	    int i1;
-	    int i2;
-      };
-      struct s1 data[DIM_LEN];
-      struct s2
-      {
-	    short i1;
-	    int i2;
-      };
-
-      /* Create some phony data. */   
-      for (i = 0; i < DIM_LEN; i++)
-      {
-	 data[i].i1 = 32768;
-	 data[i].i2 = 32767;
-      }
-
-      /* Create two files with different compound types of the same name. */
-      for (i = 0; i < NUM_FILES; i++)
-	 if (nc_create(file_name[i], NC_NETCDF4, &ncid[i])) ERR;
-
-      /* Define s1 in file 1. */
-      if (nc_def_compound(ncid[0], sizeof(struct s1), CMP_NAME1, &typeid)) ERR;
-      if (nc_insert_compound(ncid[0], typeid, I1_NAME, 
-			     NC_COMPOUND_OFFSET(struct s1, i1), NC_INT)) ERR;
-      if (nc_insert_compound(ncid[0], typeid, I2_NAME, 
-			     NC_COMPOUND_OFFSET(struct s1, i2), NC_INT)) ERR;
-
-      /* Define s2 in file 2, but named the same as s1. */
-      if (nc_def_compound(ncid[1], sizeof(struct s2), CMP_NAME1, &typeid)) ERR;
-      if (nc_insert_compound(ncid[1], typeid, I1_NAME, 
-			     NC_COMPOUND_OFFSET(struct s2, i1), NC_SHORT)) ERR;
-      if (nc_insert_compound(ncid[1], typeid, I2_NAME, 
-			     NC_COMPOUND_OFFSET(struct s2, i2), NC_INT)) ERR;
-
-
-      /* Write an att in one file. */
-      if (nc_put_att(ncid[0], NC_GLOBAL, ATT_NAME3, typeid, DIM_LEN, 
-		     data)) ERR;
-
-      /* Try to copy. It must fail, because the two types are not the
-       * same. */
-      if (nc_copy_att(ncid[0], NC_GLOBAL, ATT_NAME3, ncid[1], 
-		      NC_GLOBAL) != NC_EBADTYPE) ERR;
-
-      /* Close the files. */
-      for (i = 0; i < NUM_FILES; i++)
-	 if (nc_close(ncid[i])) ERR;
    }
    SUMMARIZE_ERR;
    printf("*** testing simple enum attribute copy...");

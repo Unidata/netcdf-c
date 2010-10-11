@@ -13,22 +13,28 @@
 /* Compare two netcdf types for equality. Must have the ncids as well,
    to find user-defined types. */
 static int
-NC_compare_nc_types(int ncid1, int typeid1,
-		    int ncid2, int typeid2, int *equalp)
+NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, 
+		    int *equalp)
 {
    int ret = NC_NOERR;
-   if(equalp == NULL) return NC_NOERR;
+
+   /* If you don't care about the answer, neither do I! */
+   if(equalp == NULL) 
+      return NC_NOERR;
 
    /* Assume the types are not equal. If we find any inequality, then
       exit with NC_NOERR and we're done. */
    *equalp = 0;
 
    /* Atomic types are so easy! */
-   if (typeid1 <= ATOMICTYPEMAX) {
-      if (typeid2 != typeid1) return NC_NOERR;
+   if (typeid1 <= NC_MAX_ATOMIC_TYPE) 
+   {
+      if (typeid2 != typeid1) 
+	 return NC_NOERR;
       *equalp = 1;
    }
-   else {
+   else 
+   {
       int i, ret, equal1;
       char name1[NC_MAX_NAME];
       char name2[NC_MAX_NAME];
@@ -44,69 +50,81 @@ NC_compare_nc_types(int ncid1, int typeid1,
       int dimsizes1[NC_MAX_VAR_DIMS];
       int dimsizes2[NC_MAX_VAR_DIMS];
 
-      ret = nc_inq_user_type(ncid1,typeid1,name1,&size1,&base1,&nelems1,&class1);
-      if(ret) return ret;      
-      ret = nc_inq_user_type(ncid2,typeid2,name2,&size2,&base2,&nelems2,&class2);
-      if(ret) return ret;      
+      /* Find out about the two types. */
+      if ((ret = nc_inq_user_type(ncid1, typeid1, name1, &size1,
+				  &base1, &nelems1, &class1)))
+	 return ret;      
+      if ((ret = nc_inq_user_type(ncid2, typeid2, name2, &size2,
+				  &base2, &nelems2, &class2)))
+	 return ret;      
 
       /* Check the obvious. */
       if(size1 != size2 || class1 != class2 || strcmp(name1,name2))
 	 return NC_NOERR;
 
       /* Check user-defined types in detail. */
-      switch(class1) {
+      switch(class1) 
+      {
 	 case NC_VLEN:
-	    if(base1 <= NC_STRING) {
-	       if(base1 != base2) return NC_NOERR;
-	    } else {
-	       /* User defined type in VLEN! */
-	       if((ret = NC_compare_nc_types(ncid1,base1,ncid2,base1,&equal1)))
-		  return ret;
-	       if(!equal1) return NC_NOERR;
-	    }
+	    if((ret = NC_compare_nc_types(ncid1, base1, ncid2,
+					  base1, &equal1)))
+	       return ret;
+	    if(!equal1) 
+	       return NC_NOERR;
 	    break;
 	 case NC_OPAQUE:
 	    /* Already checked size above. */
 	    break;
 	 case NC_ENUM:
 	    if(base1 != base2 || nelems1 != nelems2) return NC_NOERR;
-	    value1 = malloc(size1);
-	    value2 = malloc(size2);
-	    for(i=0;i<nelems1;i++) {
-	       ret = nc_inq_enum_member(ncid1,typeid1,i,name1,value1);
-	       if(ret) return ret;
-	       ret = nc_inq_enum_member(ncid2,typeid2,i,name2,value2);
-	       if(ret) goto enumdone;
-	       if(strcmp(name1,name2) != 0
-		  || memcmp(value1,value2,size1) != 0)
-		  return NC_NOERR;
+
+	    if (!(value1 = malloc(size1)))
+	       return NC_ENOMEM;
+	    if (!(value2 = malloc(size2)))
+	       return NC_ENOMEM;
+
+	    for(i = 0; i < nelems1; i++) 
+	    {
+	       if ((ret = nc_inq_enum_member(ncid1, typeid1, i, name1,
+					     value1)) ||
+		   (ret = nc_inq_enum_member(ncid2, typeid2, i, name2,
+					     value2)) ||
+		   strcmp(name1, name2) || memcmp(value1, value2, size1))
+	       {
+		  free(value1); 
+		  free(value2);
+		  return ret;
+	       }
 	    }
-	 enumdone:
-	    free(value1); free(value2);
+	    free(value1); 
+	    free(value2);
 	    break;
 	 case NC_COMPOUND:
-	    if(nelems1 != nelems2) return NC_NOERR;
+	    if(nelems1 != nelems2) 
+	       return NC_NOERR;
+
 	    /* Compare each field. Each must be equal! */
-	    for(i=0;i<nelems1;i++) {
+	    for(i = 0; i < nelems1; i++) 
+	    {
 	       int j;
-	       ret = nc_inq_compound_field(ncid1,typeid1,i,name1,&offset1,&ftype1,&ndims1,dimsizes1);
-	       if(ret) return ret;
-	       ret = nc_inq_compound_field(ncid2,typeid2,i,name2,&offset2,&ftype2,&ndims2,dimsizes2);
-	       if(ret) return ret;
-	       if(ndims1 != ndims2) return NC_NOERR;
-	       for(j=0;j<ndims1;j++) {
-		  if(dimsizes1[j] != dimsizes2[j]) return NC_NOERR;
-	       }		
-	       /* Handle atomic types. */
-	       if(ftype1 <= NC_STRING) {
-		  if(ftype1 != ftype2) return NC_NOERR;
-	       } else { /* Dang! *More* user-defined types!
-			   Look up the field types in each file. */
-		  /* Compare user-defined field types. */
-		  if((ret = NC_compare_nc_types(ncid1,ftype1,ncid2,ftype2,&equal1)))
-		     return ret;
-		  if(!equal1) return NC_NOERR;
-	       }
+	       if ((ret = nc_inq_compound_field(ncid1, typeid1, i, name1, &offset1, 
+						&ftype1, &ndims1, dimsizes1)))
+		  return ret;
+	       if ((ret = nc_inq_compound_field(ncid2, typeid2, i, name2, &offset2,
+						&ftype2, &ndims2, dimsizes2)))
+		  return ret;
+	       if(ndims1 != ndims2) 
+		  return NC_NOERR;
+	       for(j = 0; j < ndims1;j++) 
+		  if(dimsizes1[j] != dimsizes2[j]) 
+		     return NC_NOERR;
+
+	       /* Compare user-defined field types. */
+	       if((ret = NC_compare_nc_types(ncid1, ftype1, ncid2, ftype2,
+					     &equal1)))
+		  return ret;
+	       if(!equal1) 
+		  return NC_NOERR;
 	    }
 	    break;
 	 default:
@@ -158,15 +176,19 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
       return ret;
    if (nids)
    {
-      if (!(ids = (int*)malloc(nids*sizeof(int))))
+      if (!(ids = (int *)malloc(nids * sizeof(int))))
 	 return NC_ENOMEM;
-      if ((ret = nc_inq_grps(ncid1,&nids,ids)))
+      if ((ret = nc_inq_grps(ncid1, &nids, ids)))
+      {
+	 free(ids);
 	 return ret;
-      for(i = 0; i < nids; i++) 
+      }
+      for (i = 0; i < nids; i++) 
       {
 	 ret = NC_rec_find_nc_type(ncid1, tid1, ids[i], tid2);
-	 if(ret && ret != NC_EBADTYPE) break;
-	 if(tid2 && *tid2 != 0) /* found */
+	 if (ret && ret != NC_EBADTYPE) 
+	    break;
+	 if (tid2 && *tid2 != 0) /* found */
 	 {
 	    free(ids);
 	    return NC_NOERR;
@@ -183,11 +205,16 @@ static int
 NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
 {
    int ret = NC_NOERR;
+
    /* Check input */
-   if(xtype1 <= NC_NAT) return NC_EINVAL;
+   if(xtype1 <= NC_NAT) 
+      return NC_EINVAL;
+
    /* Handle atomic types. */
-   if (xtype1 <= ATOMICTYPEMAX) {
-      if(xtype2) *xtype2 = xtype1;
+   if (xtype1 <= NC_MAX_ATOMIC_TYPE) 
+   {
+      if(xtype2) 
+	 *xtype2 = xtype1;
       return NC_NOERR;
    }
 
@@ -438,28 +465,26 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
    size_t len;
    void *data=NULL;
    int res;
-
-#ifdef USE_NETCDF4
+   
    LOG((2, "nc_copy_att: ncid_in 0x%x varid_in %d name %s", 
 	ncid_in, varid_in, name));
-#endif
-
+   
    /* Find out about the attribute and allocate memory for the
       data. */
    if ((res = nc_inq_att(ncid_in, varid_in, name, &xtype, &len)))
       return res;
-
+   
    /* Can't copy to same var in same file. */
    if (ncid_in == ncid_out && varid_in == varid_out)
       return NC_NOERR;
    
-#ifndef USE_NETCDF4
-   if (xtype <= NC_DOUBLE) {
+   if (xtype < NC_STRING) 
+   {
       /* Handle atomic types. */
-      if (len) {
+      if (len) 
 	 if (!(data = malloc(len * NC_atomictypelen(xtype))))
 	    return NC_ENOMEM;
-      }
+
       res = nc_get_att(ncid_in, varid_in, name, data);
       if (!res)
 	 res = nc_put_att(ncid_out, varid_out, name, xtype, 
@@ -467,20 +492,9 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
       if (len)
 	 free(data);
    }
-#else /*!USE_NETCDF4*/
-   if(xtype < NC_STRING) {
-      /* Handle atomic types. */
-      if (len)
-	 if (!(data = malloc(len * NC_atomictypelen(xtype))))
-	    return NC_ENOMEM;
-
-      res = nc_get_att(ncid_in, varid_in, name, data);
-      if (!res)
-	 res = nc_put_att(ncid_out, varid_out, name, xtype, 
-			  len, data);
-      if (len)
-	 free(data);
-   } else if (xtype == NC_STRING) {
+#ifdef USE_NETCDF4
+   else if (xtype == NC_STRING) 
+   {
       /* Copy string attributes. */
       char **str_data;
       if (!(str_data = malloc(sizeof(char *) * len)))
@@ -491,7 +505,9 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
 				 (const char **)str_data);
       nc_free_string(len, str_data);
       free(str_data);
-   } else/*x*/ {
+   } 
+   else 
+   {
       /* Copy user-defined type attributes. */
       int class;
       size_t size;
@@ -503,33 +519,35 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
 	 which we had to "duplicate" here */
       if ((res = NC_find_equal_type(ncid_in, xtype, ncid_out, &xtype_out)))
 	 return res;
-      if(xtype_out != 0) {
+      if (xtype_out) 
+      {
 	 /* We found an equal type! */
-	 if((res = nc_inq_user_type(ncid_in, xtype, NULL, &size, 
+	 if ((res = nc_inq_user_type(ncid_in, xtype, NULL, &size, 
 				    NULL, NULL, &class)))
 	    return res;
-	 if(class == NC_VLEN) { /* VLENs are different... */
+	 if (class == NC_VLEN) /* VLENs are different... */
+	 { 
 	    nc_vlen_t *vldata;
 	    int i;
-	    if(!(vldata = malloc(sizeof(nc_vlen_t) * len)))
+	    if (!(vldata = malloc(sizeof(nc_vlen_t) * len)))
 	       return NC_ENOMEM;
-	    if((res = nc_get_att(ncid_in, varid_in, name, vldata)))
+	    if ((res = nc_get_att(ncid_in, varid_in, name, vldata)))
 	       return res;
-	    if((res = nc_put_att(ncid_out, varid_out, name, xtype_out, 
+	    if ((res = nc_put_att(ncid_out, varid_out, name, xtype_out, 
 				 len, vldata)))
 	       return res;
-	    for(i=0;i<len;i++) {
-	       if((res = nc_free_vlen(&vldata[i]))) return res;
-	    }
+	    for (i = 0; i < len; i++) 
+	       if((res = nc_free_vlen(&vldata[i]))) 
+		  return res;
 	    free(vldata);
-         } else {/* not VLEN */
-	    if(!(data = malloc(size * len)))
+         } 
+	 else /* not VLEN */
+	 {
+	    if (!(data = malloc(size * len)))
 	       return NC_ENOMEM;
-	    if((res = nc_get_att(ncid_in, varid_in, name, data)))
-	       return res;
-	    if((res = nc_put_att(ncid_out, varid_out, name, xtype_out, 
-				 len, data)))
-	       return res;
+	    res = nc_get_att(ncid_in, varid_in, name, data);
+	    if (!res)
+	       res = nc_put_att(ncid_out, varid_out, name, xtype_out, len, data);
 	    free(data);
          }
       }
