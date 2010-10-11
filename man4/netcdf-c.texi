@@ -3601,7 +3601,7 @@ dimension can have the unlimited length, which means variables using
 this dimension can grow along this dimension. In a netCDF-4 file
 multiple unlimited dimensions are supported.
 
-There is a suggested limit (100) to the number of dimensions that can
+There is a suggested limit (1024) to the number of dimensions that can
 be defined in a single netCDF dataset. The limit is the value of the
 predefined macro NC_MAX_DIMS. The purpose of the limit is to make
 writing generic applications simpler. They need only provide an array

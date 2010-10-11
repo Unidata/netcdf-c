@@ -2497,7 +2497,7 @@ and a length. At most one dimension in a netCDF dataset can have the
 unlimited length, which means variables using this dimension can grow
 along this dimension.
 
-There is a suggested limit (512) to the number of dimensions that can
+There is a suggested limit (1024) to the number of dimensions that can
 be defined in a single netCDF dataset. The limit is the value of the
 constant NF90_MAX_DIMS. The purpose of the limit is to make writing
 generic applications simpler. They need only provide an array of
