@@ -174,7 +174,6 @@ main()
       /* Close the typeids. */
       for (i = 0; i < NUM_OBJ; i++)
       {
-	 printf(" free types %d ", i);
 	 if (H5Tclose(file_typeid1[i]) < 0) ERR;
 	 if (H5Tclose(native_typeid1[i]) < 0) ERR;
       }
@@ -189,6 +188,129 @@ main()
       for (i = 0; i < ATT_LEN; i++)
 	 for (j = 0; j < NUM_VL; j++)
 	    free(cvc_out[i].data[j].p);
+   }
+   SUMMARIZE_ERR;
+   printf("*** Checking vlen of compound file...");
+   {
+#define NUM_OBJ_2 2
+#define ATT_NAME "Poseidon"
+      hid_t fapl_id, fcpl_id;
+      size_t chunk_cache_size = MY_CHUNK_CACHE_SIZE;
+      size_t chunk_cache_nelems = CHUNK_CACHE_NELEMS;
+      float chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
+      hid_t fileid, grpid, attid, spaceid;
+      hid_t s1_typeid, vlen_typeid;
+      hid_t file_typeid1[NUM_OBJ_2], native_typeid1[NUM_OBJ_2];
+      hid_t file_typeid2, native_typeid2;
+      hsize_t num_obj;
+      H5O_info_t obj_info;
+      char obj_name[NC_MAX_NAME + 1];
+      hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
+
+      /* vc stands for "Vlen of Compound." */
+      nc_vlen_t vc_out[ATT_LEN];
+      int i, k;
+
+      /* Create some output data: an array of vlen (length ATT_LEN) of
+       * int. */
+      for (i = 0; i < ATT_LEN; i++)
+      {
+	 vc_out[i].len = i + 1; 
+	 if (!(vc_out[i].p = malloc(sizeof(int) * vc_out[i].len)))
+	    return NC_ENOMEM;
+	 for (k = 0; k < vc_out[i].len; k++)
+	    ((int *)vc_out[i].p)[k] = 42;
+      }
+      
+      /* Create the HDF5 file, with cache control, creation order, and
+       * all the timmings. */
+      if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+      if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+      if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED | 
+					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
+      if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED | 
+					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
+      if (H5Pclose(fapl_id) < 0) ERR;
+      if (H5Pclose(fcpl_id) < 0) ERR;
+      
+      /* Open the root group. */
+      if ((grpid = H5Gopen2(fileid, "/", H5P_DEFAULT)) < 0) ERR;
+      
+      /* Create a vlen type. Its a vlen of int. */
+      if ((vlen_typeid = H5Tvlen_create(H5T_NATIVE_INT)) < 0) ERR;
+      if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
+      
+      /* Create an attribute of this new type. */
+      if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
+      if ((attid = H5Acreate(grpid, ATT_NAME, vlen_typeid, spaceid, 
+			     H5P_DEFAULT)) < 0) ERR;
+      if (H5Awrite(attid, vlen_typeid, vc_out) < 0) ERR;
+      
+      /* Close the type. */
+      if (H5Tclose(vlen_typeid) < 0) ERR;
+	  
+      /* Close the att. */
+      if (H5Aclose(attid) < 0) ERR;
+      
+      /* Close the space. */
+      if (H5Sclose(spaceid) < 0) ERR;
+
+      /* Close the group and file. */
+      if (H5Gclose(grpid) < 0 ||
+	  H5Fclose(fileid) < 0) ERR;
+
+/*       /\* Reopen the file. *\/ */
+/*       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR; */
+/*       if ((grpid = H5Gopen(fileid, "/")) < 0) ERR; */
+
+/*       /\* How many objects in this group? (There should be 2, the */
+/*        * types. Atts don't count as objects to HDF5.) *\/ */
+/*       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR; */
+/*       if (num_obj != NUM_OBJ_2) ERR; */
+
+/*       /\* For each object in the group... *\/ */
+/*       for (i = 0; i < num_obj; i++) */
+/*       { */
+/* 	 /\* Get the name, and make sure this is a type. *\/ */
+/* 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, */
+/* 				i, &obj_info, H5P_DEFAULT) < 0) ERR; */
+/* 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i, */
+/* 				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR; */
+/* 	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR; */
+
+/* 	 /\* Get the typeid and native typeid. *\/ */
+/* 	 if ((file_typeid1[i] = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR; */
+/* 	 if ((native_typeid1[i] = H5Tget_native_type(file_typeid1[i], */
+/* 						     H5T_DIR_DEFAULT)) < 0) ERR; */
+/*       } */
+
+/*       /\* There is one att: open it by index. *\/ */
+/*       if ((attid = H5Aopen_idx(grpid, 0)) < 0) ERR; */
+
+/*       /\* Get file and native typeids of the att. *\/ */
+/*       if ((file_typeid2 = H5Aget_type(attid)) < 0) ERR; */
+/*       if ((native_typeid2 = H5Tget_native_type(file_typeid2, H5T_DIR_DEFAULT)) < 0) ERR; */
+
+/*       /\* Close the attribute. *\/ */
+/*       if (H5Aclose(attid) < 0) ERR; */
+
+/*       /\* Close the typeids. *\/ */
+/*       for (i = 0; i < NUM_OBJ_2; i++) */
+/*       { */
+/* 	 if (H5Tclose(file_typeid1[i]) < 0) ERR; */
+/* 	 if (H5Tclose(native_typeid1[i]) < 0) ERR; */
+/*       } */
+/*       if (H5Tclose(file_typeid2) < 0) ERR; */
+/*       if (H5Tclose(native_typeid2) < 0) ERR; */
+
+/*       /\* Close the group and file. *\/ */
+/*       if (H5Gclose(grpid) < 0 || */
+/* 	  H5Fclose(fileid) < 0) ERR */;
+
+      /* Deallocate our vlens. */
+      for (i = 0; i < ATT_LEN; i++)
+	 free(vc_out[i].p);
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
