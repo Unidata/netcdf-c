@@ -67,7 +67,7 @@ main()
       for (i = 0; i < ATT_LEN; i++)
       {
 	 vc_out[i].len = i + 1; 
-	 if (!(vc_out[i].p = malloc(sizeof(struct s1) * vc_out[i].len)))
+	 if (!(vc_out[i].p = calloc(sizeof(struct s1), vc_out[i].len)))
 	    return NC_ENOMEM;
 	 for (k = 0; k < vc_out[i].len; k++)
 	 {

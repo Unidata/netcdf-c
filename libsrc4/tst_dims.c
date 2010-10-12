@@ -41,7 +41,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing netcdf-4 dimensions.\n");
-   printf("*** Checking that netcdf-4 dimids inq works on netcdf-3 file...");
+   printf("*** Testing that netcdf-4 dimids inq works on netcdf-3 file...");
    {
       int ncid, dimid;
       int ndims_in, dimids_in[MAX_DIMS];
@@ -62,7 +62,7 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-   printf("*** Checking that netcdf-4 dimids inq works on more complex netcdf-3 file...");
+   printf("*** Testing that netcdf-4 dimids inq works on more complex netcdf-3 file...");
    {
       int ncid, dimid;
       int lon_dimid;
@@ -895,7 +895,7 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-   printf("*** Checking file with dims and only some coordinate vars...");
+   printf("*** Testing file with dims and only some coordinate vars...");
 #define NDIMS_EX 4
 #define NLAT 6
 #define NLON 12
