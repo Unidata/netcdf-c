@@ -32,6 +32,7 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
     CElexstate* lexstate = state->lexstate;
     int token;
     int c;
+    int len;
     char* p=lexstate->next;
     token = 0;
     ncbytesclear(lexstate->yytext);
@@ -115,11 +116,15 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
 	} else {
 	    /* we have a single char token */
 	    token = c;
+	    ceaddyytext(lexstate,c);
 	    p++;
 	}
     }
     lexstate->next = p;
-    strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),MAX_TOKEN_LENGTH);
+    len = ncbyteslength(lexstate->yytext);
+    if(len > MAX_TOKEN_LENGTH) len = MAX_TOKEN_LENGTH;
+    strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),len);
+    lexstate->lasttokentext[len] = '\0';
     lexstate->lasttoken = token;
     if(cedebug) dumptoken(lexstate);
 

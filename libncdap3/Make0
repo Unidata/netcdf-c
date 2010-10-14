@@ -24,8 +24,8 @@ OTHERLIBS=-lm
 
 # Might want to specify a particular C compiler with flags
 CC=cc
-#CFLAGS=-Wall -DHAVE_CONFIG_H
-CFLAGS=-DHAVE_CONFIG_H
+CFLAGS=-g -O0 -Wall -DHAVE_CONFIG_H
+#CFLAGS=-DHAVE_CONFIG_H
 
 GFLAGS=-g3 -O0
 #############################################

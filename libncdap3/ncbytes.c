@@ -178,3 +178,13 @@ ncbytessetcontents(NCbytes* bb, char* contents, unsigned int alloc)
     bb->nonextendible = 1;
     return 1;
 }
+
+/* Null terminate the byte string without extending its length */
+/* For debugging */
+int
+ncbytesnull(NCbytes* bb)
+{
+    ncbytesappend(bb,'\0');
+    bb->length--;
+}
+
