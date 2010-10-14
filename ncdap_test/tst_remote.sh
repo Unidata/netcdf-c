@@ -236,7 +236,7 @@ for t in ${TESTSET} ; do
 
   if ${TIMECMD} ${VALGRIND} ${NCDUMP} "${url}" > ${name}.dmp ; then status=$status; else status=1; fi
   # compare with expected
-  if diff -wBb ${EXPECTED}/${name}.dmp ${name}.dmp
+  if diff -w ${EXPECTED}/${name}.dmp ${name}.dmp
     then status=$status; else status=1; fi
   if test "x$status" = "x1" ; then
     if test "x$isxfail" = "x1" ; then status=2; fi  # xfail
