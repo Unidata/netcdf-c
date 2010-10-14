@@ -108,7 +108,7 @@ test.07;4;types[0:2:10].f32"
 REMOTEURLC2="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC"
 REMOTETESTSC2="\
 GLOBEC_cetaceans;1;number&number>6 \
-GLOBEC_cetaceans;2;lat,lon,&lat>42.0&lat<=42.5 \
+GLOBEC_cetaceans;2;lat,lon&lat>42.0&lat<=42.5 \
 "
 
 # Constrained long tests
