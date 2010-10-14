@@ -42,7 +42,7 @@ endif # USE_VALGRIND_TESTS
 
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.c test_put.c run_valgrind_testss.sh
+EXTRA_DIST = test_get.c test_put.c run_valgrind_tests.sh
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.
