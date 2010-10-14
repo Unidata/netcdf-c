@@ -6,20 +6,11 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#undef XX
+#undef DEBUG
+#undef PARSEDEBUG
 
 #include <stdarg.h>
 #include <assert.h>
-
-#undef DBG
-#undef DEBUG
-#ifdef XX
-#define DBG
-#define DEBUG
-#endif
-
-#undef DD
-#undef SHOWDDX
 
 /* Warning: setting CATCHERROR has significant performance impact */
 #undef CATCHERROR

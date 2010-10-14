@@ -15,7 +15,7 @@ extern int iscached(struct NCDRNO*, struct CDFnode*, struct NCcachenode**);
 
 extern char* makeprojectionstring3(NClist* projections);
 extern char* makeselectionstring3(NClist* selections);
-extern char* makeconstraintstring3(NCconstraint* con);
+extern char* makeconstraintstring3(NClist* projections, char* selectionstring);
 extern char* simplepathstring(NClist* segments, char* separator);
 extern void makesegmentstring3(NClist* segments, NCbytes* buf, char* separator);
 

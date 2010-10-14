@@ -647,7 +647,7 @@ dumpcachenode(NCcachenode* node)
 		node->prefetch?"*":"",
 		(unsigned long)node,
 		(unsigned long)node->xdrsize,
-		makeconstraintstring3(&node->constraint));
+		makeconstraintstring3(node->constraint.projections,NULL));
     ncbytescat(buf,tmp);
     if(nclistlength(node->vars)==0)
 	ncbytescat(buf,"null");
