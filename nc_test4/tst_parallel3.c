@@ -19,6 +19,7 @@
  */
 
 #include <nc_tests.h>
+#include <nc_logging.h> /* for BAIL macro */
 
 #define FILE_NAME "tst_parallel3.nc"
 

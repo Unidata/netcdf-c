@@ -28,8 +28,12 @@ main(int argc, char **argv)
 	 "dissatisfied then that thou must live only so many years and not more; "
 	 "for as thou art satisfied with the amount of substance which has "
 	 "been assigned to thee, so be content with the time.";
+      char *data1;
       char *empty = "";
       char *data_in2, name_in[NC_MAX_NAME + 1];
+
+      if (!(data1 = calloc(strlen(data) + 1, 1))) ERR;
+      strcpy(data1, data);
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -37,7 +41,8 @@ main(int argc, char **argv)
       
       /* Set latest_format in access propertly list. This ensures that
        * the latest, greatest, HDF5 versions are used in the file. */
-      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, 
+			       H5F_LIBVER_LATEST) < 0) ERR;
 
       /* Set H5P_CRT_ORDER_TRACKED in the creation property list. This
        * turns on HDF5 creation ordering in the file. */
@@ -52,7 +57,7 @@ main(int argc, char **argv)
       
       /* Create string type. */
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
-      if (H5Tset_size(typeid, strlen(data) + 1) < 0) ERR;
+      if (H5Tset_size(typeid, strlen(data1) + 1) < 0) ERR;
       
       /* Create a scalar space. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
@@ -60,19 +65,21 @@ main(int argc, char **argv)
       /* Write an scalar dataset of this type. */
       if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_fill_value(plistid, typeid, &empty) < 0) ERR;
-      if ((datasetid = H5Dcreate1(grpid, VAR_NAME, typeid,
-				  spaceid, plistid)) < 0) ERR;
+      if ((datasetid = H5Dcreate2(grpid, VAR_NAME, typeid, spaceid, 
+				  H5P_DEFAULT, plistid, H5P_DEFAULT)) < 0) ERR;
       if (H5Dwrite(datasetid, typeid, spaceid, spaceid,
-		   H5P_DEFAULT, data) < 0) ERR;
+		   H5P_DEFAULT, data1) < 0) ERR;
 
       /* Close up. */
-      if (H5Dclose(datasetid) < 0) ERR;
+      if (H5Dclose(datasetid) < 0) ERR; 
+      if (H5Pclose(plistid) < 0) ERR;
       if (H5Pclose(fapl_id) < 0) ERR;
       if (H5Pclose(fcpl_id) < 0) ERR;
-      if (H5Pclose(plistid) < 0) ERR;
       if (H5Tclose(typeid) < 0) ERR;
       if (H5Gclose(grpid) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
+
+      free(data1);
 
       /* Read the file with netCDF-4. */
 /*       nc_set_log_level(6); */
