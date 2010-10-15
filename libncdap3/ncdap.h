@@ -110,7 +110,7 @@ struct NCsegment;
 
 typedef struct NCconstraint {
     NClist* projections;
-    NClist*  selections;
+    NClist* selections;
 } NCconstraint;
 
 /* Detail information about each cache item */

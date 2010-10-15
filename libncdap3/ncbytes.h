@@ -38,8 +38,12 @@ EXTERNC int ncbytesappend(NCbytes*,char); /* Add at Tail */
 /* Append n bytes */
 EXTERNC int ncbytesappendn(NCbytes*,void*,unsigned int); /* Add at Tail */
 
+/* Null terminate the byte string without extending its length (for debugging) */
+EXTERNC int ncbytesnull(NCbytes*);
+
 /* Concatenate a null-terminated string to the end of the buffer */
 EXTERNC int ncbytescat(NCbytes*,char*);
+
 /* Set the contents of the buffer; mark the buffer as non-extendible */
 EXTERNC int ncbytessetcontents(NCbytes*, char*, unsigned int);
 

@@ -34,9 +34,15 @@ endif # LARGE_FILE_TESTS
 check_PROGRAMS = $(TESTPROGRAMS) 
 TESTS = $(TESTPROGRAMS)
 
+# This will run a bunch of the test programs with valgrind, the memory
+# checking tool. (Valgrind must be present for this to work.)
+if USE_VALGRIND_TESTS
+TESTS += run_valgrind_tests.sh
+endif # USE_VALGRIND_TESTS
+
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.c test_put.c
+EXTRA_DIST = test_get.c test_put.c run_valgrind_tests.sh
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.

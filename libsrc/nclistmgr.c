@@ -62,6 +62,10 @@ del_from_NCList(NC* ncp)
    if(nc_filelist[ncid] != ncp) return;
    nc_filelist[ncid] = NULL;
    numfiles--;
+
+   /* If all files have been closed, release the filelist memory. */
+   if (numfiles == 0)
+      free_NCList();
 }
 
 NC *

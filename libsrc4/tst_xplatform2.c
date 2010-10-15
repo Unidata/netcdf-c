@@ -295,6 +295,7 @@ main(int argc, char **argv)
    nc_vlen_t vlen_of_comp_out[DIM1_LEN];
    struct s2 comp_array_of_comp_out[DIM2_LEN];
    struct s3 comp_array_of_vlen_of_comp_out[DIM3_LEN];
+   char zero = 0;
 
    printf("\nTesting nested types across platforms.\n");
 
@@ -346,16 +347,16 @@ main(int argc, char **argv)
       /* Create a simple compound type which has different sizes on
        * different platforms - our old friend struct s1. */
       if (nc_def_compound(ncid, sizeof(struct s1), S1_TYPE_NAME, &s1_typeid)) ERR;
-      if (nc_insert_compound(ncid, s1_typeid, X_NAME, 
+      if (nc_insert_compound(ncid, s1_typeid, X_NAME,
 			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
-      if (nc_insert_compound(ncid, s1_typeid, Y_NAME, 
+      if (nc_insert_compound(ncid, s1_typeid, Y_NAME,
 			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
 
       /* Now make a new type: a vlen of our compound type. */
       if (nc_def_vlen(ncid, VLEN_NAME, s1_typeid, &vlen_typeid)) ERR;
 
       /* Write the output data as an attribute. */
-      if (nc_put_att(ncid, NC_GLOBAL, VLEN_ATT_NAME, vlen_typeid, 
+      if (nc_put_att(ncid, NC_GLOBAL, VLEN_ATT_NAME, vlen_typeid,
 		     DIM1_LEN, vlen_of_comp_out)) ERR;
 
       /* How does it look? */
@@ -379,7 +380,7 @@ main(int argc, char **argv)
       {
 	 strcat(file_in, getenv("srcdir"));
 	 strcat(file_in, "/");
-      } 
+      }
       strcat(file_in, REF_FILE_NAME_1);
 
       /* Check out the same file, generated on buddy and included with
@@ -438,7 +439,7 @@ main(int argc, char **argv)
       {
 	 strcat(file_in, getenv("srcdir"));
 	 strcat(file_in, "/");
-      } 
+      }
       strcat(file_in, REF_FILE_NAME_2);
 
       /* Check out the same file, generated on buddy and included with

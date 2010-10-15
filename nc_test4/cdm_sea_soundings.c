@@ -7,7 +7,7 @@
 
    $Id: cdm_sea_soundings.c,v 1.5 2010/05/25 13:53:04 ed Exp $
 */
-#include <tests.h>
+#include <nc_tests.h>
 
 #define FILE_NAME "cdm_sea_soundings.nc"
 #define DIM_NAME "Sounding"

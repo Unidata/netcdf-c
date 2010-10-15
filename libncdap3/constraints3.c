@@ -26,9 +26,13 @@ static void freesegments(NClist* path);
 static int treecontains3(CDFnode* var, CDFnode* root);
 
 /*
+Merge the dap constraints with the nc constraints
 Processing the constraints is a multi-step action.
        1. retrieve the dds
-       2. make all dap constraint names be fully qualified
+       2. convert the nc constraint names to be dap constraint
+          names
+       3. make all dap constraint names be fully qualified
+       4. merge the dap and nc constraints
 */
 NCerror
 buildconstraints3(NCDRNO* drno)
@@ -66,7 +70,6 @@ buildconstraints3(NCDRNO* drno)
 	dapconstraint.selections = nclistnew();
     }
 
-
 #ifdef DEBUG
 fprintf(stderr,"buildconstraint: url:%s\n",drno->dap.url.url);
 fprintf(stderr,"buildconstraint.projections: %s\n",
@@ -90,9 +93,10 @@ fprintf(stderr,"buildconstraint.selections: %s\n",
     } else {
 	smerge = cloneselections(drno->dap.dapconstraint.selections);
     }
-    clearncconstraint(&drno->dap.dapconstraint);
-    drno->dap.dapconstraint.projections = pmerge;
-    drno->dap.dapconstraint.selections = smerge;
+
+    clearncconstraint(&drno->dap.constraint);
+    drno->dap.constraint.projections = pmerge;
+    drno->dap.constraint.selections = smerge;
 
 #ifdef DEBUG
 fprintf(stderr,"buildconstraints3: merge = %s\n",
@@ -103,6 +107,9 @@ done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(ncstat) {
 	clearncconstraint(&dapconstraint);
+#ifdef NCCONSTRAINTS
+	clearncconstraint(&ncconstraint);
+#endif
     }
     return THROW(ncstat);
 }
@@ -131,7 +138,11 @@ convertdapconstraint3(NCDRNO* drno, CDFnode* root,
 	freencprojections(dapprojections);
 	dapprojections = nclistnew();
     }
+#ifdef DEBUG
+fprintf(stderr,"projections: %s",dumpprojections(dapprojections));
+#endif
 
+#ifdef IGNORE
     errcode = ncceparse(dapselectionstring,0,NULL,&dapselections,&errmsg);
     if(errcode) {
 	oc_log(OCLOGWARN,"DAP selection parse failure: %s",errmsg);
@@ -139,14 +150,16 @@ convertdapconstraint3(NCDRNO* drno, CDFnode* root,
 	freencselections(dapselections);
 	dapselections = nclistnew();
     }
+#ifdef DEBUG
+fprintf(stderr,"selections: %s",dumpselections(dapselections));
+#endif
+#endif
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dapprojections);i++) {
 	NCprojection* proj = (NCprojection*)nclistget(dapprojections,i);
-	if(proj->kind == ST_VAR) {
-	    ncstat = matchpartialname3(nodes,proj->var->segments,&proj->leaf);
-	    if(ncstat) goto done;
-	}
+	ncstat = matchpartialname3(nodes,proj->segments,&proj->leaf);
+	if(ncstat) goto done;
     }
 
     /* Convert the selection paths to leaves in the dds tree */
@@ -163,7 +176,7 @@ convertdapconstraint3(NCDRNO* drno, CDFnode* root,
 	for(j=0;j<nclistlength(sel->values);j++) {
 	    NCvalue* value = (NCvalue*)nclistget(sel->values,j);
 	    if(value->kind == ST_VAR) {
-	        ncstat = matchpartialname3(nodes,value->var->segments,&value->var->node);
+	        ncstat = matchpartialname3(nodes,value->value.var.segments,&value->value.var.node);
 		if(ncstat) goto done;
 	    }
 	}
@@ -183,7 +196,6 @@ done:
     }
     return THROW(ncstat);
 }
-
 
 /* Fill in:
     1. projection segments
@@ -290,6 +302,71 @@ qualifyprojectionsizes3(NCDRNO* drno, NCprojection* proj)
     return NC_NOERR;
 }
 
+#ifdef NCCONSTRAINTS
+/* For netcdf projections, the slices are
+   all at the end, so re-assign them
+   to the segments so as to properly
+   mimic a dap constraint.
+*/
+static NCerror
+assignslices3(NCDRNO* drno, NClist* projections)
+{
+    int i,j;
+    NCerror ncstat = NC_NOERR;
+    for(i=0;i<nclistlength(projections);i++) {
+	NCprojection* p = (NCprojection*)nclistget(projections,i);
+	NCsegment* seg0 = (NCsegment*)nclistget(p->segments,0);
+	unsigned int index;
+        unsigned int rank0;
+	NCslice slices0[NC_MAX_VAR_DIMS];
+
+	if(nclistlength(p->segments) == 0) continue;
+
+	seg0 = (NCsegment*)nclistget(p->segments,0);
+	/* capture a copy of the slices */
+	rank0 = seg0->slicerank;
+	memcpy((void*)slices0,seg0->slices,sizeof(seg0->slices));
+	/* walk the set of segments */
+	for(index=0,j=0;j<nclistlength(p->segments);j++) {
+	    NCsegment* segment = (NCsegment*)nclistget(p->segments,j);
+	    ASSERT((index < rank0));
+	    ASSERT((segment->node != NULL));
+	    switch (segment->node->nctype) {
+	    case NC_Sequence: /* Consumes 1 slice */
+		segment->slicerank = 1;
+		segment->slices[0] = slices0[index];
+		index++;
+		break;				
+	    case NC_Structure:
+	    case NC_Primitive:
+		segment->slicerank = nclistlength(segment->node->array.dimensions);
+		if(segment->slicerank > 0) {
+		    memcpy((void*)segment->slices,(void*)&slices0[index],
+			    sizeof(NCslice)*segment->slicerank);
+		}
+		index += segment->slicerank;
+		break;
+	    default: break;
+	    }
+	}
+	/* It is possible that there is a string slice; check
+           for consistency and otherwise ignore
+	*/
+	if(p->leaf->nctype == NC_Primitive
+	   && p->leaf->etype == NC_CHAR
+	   && index+1 != rank0) {
+	        oc_log(OCLOGERR,"Netcdf projection has too few indices: %s",
+				p->leaf->name);
+	    ncstat = NC_EINVALCOORDS;
+	} else if (index != rank0) {
+	    oc_log(OCLOGERR,"Netcdf projection has too many indices: %s",
+				p->leaf->name);
+	    ncstat = NC_EINVALCOORDS;
+	}
+    }
+    return ncstat;    
+}
+#endif
    
 #ifdef UNUSED
 /* Modify projection segments to make their rank
@@ -704,7 +781,7 @@ iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
         if(cachenodep) *cachenodep = cachenode;
     }
 done:
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"iscached: search: %s\n",makesimplepathstring3(target));
 if(found)
    fprintf(stderr,"iscached: found: %s\n",dumpcachenode(cachenode));
@@ -1317,23 +1394,19 @@ makeselectionstring3(NClist* selections)
 }
 
 char*
-makeconstraintstring3(NCconstraint* con)
+makeconstraintstring3(NClist* projections, char* selectionstring)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
-    if(nclistlength(con->projections)==0 && nclistlength(con->selections)==0)
-	goto done;
-    if(nclistlength(con->projections) > 0)  {
-	char* pstring = makeprojectionstring3(con->projections);
+    if(nclistlength(projections) > 0)  {
+	char* pstring = makeprojectionstring3(projections);
         ncbytescat(buf,pstring);
 	efree(pstring);
     }
-    if(nclistlength(con->selections) > 0) {
-	char* sstring = makeselectionstring3(con->selections);
-        ncbytescat(buf,sstring);
-	efree(sstring);
+    if(selectionstring != NULL && strlen(selectionstring) > 0) {
+        ncbytescat(buf,selectionstring);
     }
-done:
+
     result = ncbytesdup(buf);
     ncbytesfree(buf);
     return result;
@@ -1456,33 +1529,6 @@ createncvalue(void)
     NCvalue* mem = (NCvalue*)emalloc(sizeof(NCvalue));
     memset((void*)mem,0,sizeof(NCvalue));
     mem->kind = ST_NIL;
-    return mem;
-}
-
-NCconst*
-createncconst(void)
-{
-    NCconst* mem = (NCconst*)emalloc(sizeof(NCconst));
-    memset((void*)mem,0,sizeof(NCconst));
-    mem->kind = ST_NIL;
-    return mem;
-}
-
-NCvar*
-createncvar(void)
-{
-    NCvar* mem = (NCvar*)emalloc(sizeof(NCvar));
-    memset((void*)mem,0,sizeof(NCvar));
-    mem->kind = ST_VAR;
-    return mem;
-}
-
-NCfcn*
-createncfcn(void)
-{
-    NCfcn* mem = (NCfcn*)emalloc(sizeof(NCfcn));
-    memset((void*)mem,0,sizeof(NCfcn));
-    mem->kind = ST_FCN;
     return mem;
 }
 
@@ -1768,7 +1814,8 @@ buildcachenode3(NCDRNO* drno,
     if(FLAGSET(drno,NCF_UNCONSTRAINABLE))
         ce = NULL;
     else
-        ce = makeconstraintstring3(constraint);
+        ce = makeconstraintstring3(constraint->projections,
+				   drno->dap.url.selection);
 
     ocstat = dap_oc_fetch(drno,conn,ce,OCDATADDS,&ocroot);
     efree(ce);
@@ -1815,7 +1862,7 @@ buildcachenode3(NCDRNO* drno,
 	/* remove cache nodes to get below the max cache size */
 	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit) {
 	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
@@ -1825,7 +1872,7 @@ fprintf(stderr,"buildcachenode: purge cache node: %s\n",
 	/* remove cache nodes to get below the max cache count */
 	while(nclistlength(cache->nodes) >= cache->cachecount) {
 	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
@@ -1836,7 +1883,7 @@ fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
         cache->cachesize += cachenode->xdrsize;
     }
 
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: %s\n",dumpcachenode(cachenode));
 #endif
 
@@ -1970,4 +2017,3 @@ makewholesegment3(NCsegment* seg, CDFnode* node)
     seg->slicerank = rank;
     seg->slicesdefined = 1;
 }
-

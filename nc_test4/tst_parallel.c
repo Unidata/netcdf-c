@@ -13,7 +13,7 @@ $Id: tst_parallel.c,v 1.7 2009/08/19 15:58:57 ed Exp $
  * clog2TOslog2) and then used in the analysis program jumpshot. */
 /*#define USE_MPE 1*/
 
-#include "tests.h"
+#include <nc_tests.h>
 #include <mpi.h>
 #ifdef USE_MPE
 #include <mpe.h>

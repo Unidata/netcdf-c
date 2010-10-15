@@ -9,7 +9,7 @@ Dennis Nadeau.
 $Id: tst_nc4perf.c,v 1.4 2009/08/19 15:58:57 ed Exp $
 */
 
-#include "tests.h"
+#include "nc_tests.h"
 
 #define FILENAME "tst_nc4perf.nc"
 #define NDIMS1 2

@@ -58,8 +58,11 @@ main(int argc, char **argv)
 	 short i;
 	 long long j;
       };
-      struct s1_packed data[DIM_LEN];
-      struct s1 data_in[DIM_LEN];
+      struct s1_packed *data;
+      struct s1 *data_in;
+
+      if (!(data = calloc(sizeof(struct s1_packed), DIM_LEN))) ERR;
+      if (!(data_in = calloc(sizeof(struct s1), DIM_LEN))) ERR;
 
       /* Create some phony data. */
       for (i = 0; i < DIM_LEN; i++)
@@ -106,6 +109,9 @@ main(int argc, char **argv)
       for (i = 0; i < DIM_LEN; i++)
 	 if (data[i].i != data_in[i].i || data[i].j != data_in[i].j) ERR;
       if (nc_close(ncid)) ERR;
+
+      free(data);
+      free(data_in);
    }
    SUMMARIZE_ERR;
    printf("*** testing compound attribute with Dennis...");
@@ -121,8 +127,11 @@ main(int argc, char **argv)
       int g1_c_t_typ, g2_d_t_typ, type1id, type2id;
       char name_in[NC_MAX_NAME + 1], full_name[NC_MAX_NAME + 1];
       size_t size_in;
-      g2_d_t a1_att[ATT_LEN], a1_att_in[ATT_LEN];
+      g2_d_t *a1_att, *a1_att_in;
       int i;
+
+      if (!(a1_att = calloc(sizeof(g2_d_t), ATT_LEN))) ERR;
+      if (!(a1_att_in = calloc(sizeof(g2_d_t), ATT_LEN))) ERR;
 
       for (i = 0; i < ATT_LEN; i++)
       {
@@ -180,6 +189,8 @@ main(int argc, char **argv)
 
       /* We are done! */
       if (nc_close(root_grp)) ERR;
+      free(a1_att);
+      free(a1_att_in);
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;

@@ -74,11 +74,12 @@ dapurlparse(const char* url0, DAPURL* dapurl)
     }
 
     /* assemble the component pieces*/
-    dapurl->url = strdup(url0);
-    dapurl->base = strdup(baseurl);
-    dapurl->protocol = strdup(protocol);
+    dapurl->url = nulldup(url0);
+    dapurl->base = nulldup(baseurl);
+    dapurl->protocol = nulldup(protocol);
     /* remove trailing ':' */
     dapurl->protocol[strlen(protocol)-1] = '\0';
+    dapurl->constraints = nulldup(constraints);
     dapurlsetconstraints(dapurl,constraints);
     if(params != NULL) {
         dapurl->params = (char*)ocmalloc(1+2+strlen(params));
@@ -107,6 +108,7 @@ dapurlclear(DAPURL* dapurl)
     if(dapurl->url != NULL) {free(dapurl->url);}
     if(dapurl->base != NULL) {free(dapurl->base);}
     if(dapurl->protocol != NULL) {free(dapurl->protocol);}
+    if(dapurl->constraints != NULL) {free(dapurl->constraints);}
     if(dapurl->projection != NULL) {free(dapurl->projection);}
     if(dapurl->selection != NULL) {free(dapurl->selection);}
     if(dapurl->params != NULL) {free(dapurl->params);}

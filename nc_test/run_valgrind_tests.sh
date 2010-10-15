@@ -9,13 +9,15 @@ echo ""
 echo "Testing programs with valgrind..."
 
 # These are my test programs.
-list='t_type tst_camrun tst_vl tst_v2 tst_vars2 tst_atts '\
-'tst_atts2 tst_files2 tst_files'
+list='t_nc tst_norm tst_names '
+
+# These don't work yet: tst_fills tst_xplatform2 tst_interops6 tst_strings 
 
 for tst in $list; do
     echo ""
-    echo "Memory testing with $tst:"
-    valgrind -q --error-exitcode=2 --leak-check=full ./$tst
+    cmd1="valgrind -q --error-exitcode=2 --leak-check=full ./$tst"
+    echo "$cmd1:"
+    $cmd1
 done
 
 echo "SUCCESS!!!"

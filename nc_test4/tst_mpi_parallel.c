@@ -7,7 +7,7 @@
    $Id: tst_mpi_parallel.c,v 1.2 2009/08/19 15:58:57 ed Exp $
 */
 
-#include "tests.h"
+#include <nc_tests.h>
 #include <mpi.h>
 
 #define FILE "tst_mpi_parallel.bin"

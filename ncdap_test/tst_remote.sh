@@ -49,7 +49,7 @@ fi
 if test -n "$longtests"; then
 WHICHTESTS="L1 LC1"
 else
-WHICHTESTS="S1 C1"
+WHICHTESTS="S1 C1 C2"
 fi
 
 # For special testing
@@ -103,6 +103,13 @@ test.06;1;ThreeD \
 test.07;1;person.age \
 test.07;3;person \
 test.07;4;types[0:2:10].f32"
+
+# Following tests are to check selection handling
+REMOTEURLC2="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC"
+REMOTETESTSC2="\
+GLOBEC_cetaceans;1;number&number>6 \
+GLOBEC_cetaceans;2;lat,lon&lat>42.0&lat<=42.5 \
+"
 
 # Constrained long tests
 REMOTEURLLC1="http://test.opendap.org:8080/dods/dts"
@@ -185,15 +192,15 @@ status=0
 
 for i in $WHICHTESTS ; do
   constrained=0
-  ncconstrained=0
   case "$i" in
   S1) TESTURL="$REMOTEURLS1" ; TESTSET="$REMOTETESTSS1" ;;
   S2) TESTURL="$REMOTEURLS2" ; TESTSET="$REMOTETESTSS2" ;;
   L1) TESTURL="$REMOTEURLL1" ; TESTSET="$REMOTETESTSL1" ;;
   L2) TESTURL="$REMOTEURLL2" ; TESTSET="$REMOTETESTSL2" ;;
-  C1) TESTURL="$REMOTEURLC1" ; TESTSET="$REMOTETESTSC1" ; constrained=1 ;ncconstrained=0 ;;
-  LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;ncconstrained=0 ;;
-  X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ; ncconstrained=0 ;;
+  C1) TESTURL="$REMOTEURLC1" ; TESTSET="$REMOTETESTSC1" ; constrained=1 ;;
+  C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
+  LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
+  X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
   esac
 
 cd ${RESULTSDIR}
@@ -209,20 +216,13 @@ for t in ${TESTSET} ; do
     testname=`echo $t | cut -d ';' -f1`
     testno=`echo $t | cut -d ';' -f2`
     ce=`echo $t | cut -d ';' -f3-`
-    if test "x$ncconstrained" = "x1" ; then
-      ce=`echo $ce | tr '[]' '()'`
-    fi
   fi
   if test "x$constrained" = "x0" ; then
     name="${testname}"
     url="${PARAMS}${TESTURL}/$testname"
   else
     name="${testname}.${testno}"
-    if test "x$ncconstrained" = "x0" ; then
-      url="${PARAMS}${TESTURL}/$testname?${ce}"
-    else
-      url="[ce=${ce}]${PARAMS}${TESTURL}/$testname"
-    fi
+    url="${PARAMS}${TESTURL}/$testname?${ce}"
   fi
   if test "x$quiet" = "x0" ; then echo "*** Testing: ${name}"; fi
   if test "x$quiet" = "x0" ; then echo "*** URL: ${url}"; fi

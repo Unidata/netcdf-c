@@ -13,6 +13,7 @@ typedef struct DAPURL {
     char* url;        /* as passed by the caller */
     char* base;	      /*!< without constraints*/
     char* protocol;
+    char* constraints;
     char* projection; /*!< without leading '?'*/
     char* selection;  /*!< with leading '&'*/
     char* params;
