@@ -95,8 +95,9 @@ NCD3_open(const char * path, int mode,
 
     if(!nc3dinitialized) nc3dinitialize();
 
-#ifdef DEBUG
+#ifdef PARSEDEBUG
 extern int ocdebug; ocdebug = 2;
+extern int cedebug; cedebug = 1;
 #endif
 
     if(!dapurlparse(path,&tmpurl)) PANIC("libncdap3: non-url path");
@@ -1358,7 +1359,8 @@ fetchconstrainedmetadata3(NCDRNO* drno)
     if(FLAGSET(drno,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = makeconstraintstring3(&drno->dap.constraint);
+        ce = makeconstraintstring3(drno->dap.constraint.projections,
+				   drno->dap.url.selection);
 
     if(ce == NULL || strlen(ce) == 0) {
 	/* no need to get the dds again; just imprint on self */

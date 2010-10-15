@@ -110,7 +110,7 @@ struct NCsegment;
 
 typedef struct NCconstraint {
     NClist* projections;
-    NClist*  selections;
+    NClist* selections;
 } NCconstraint;
 
 /* Detail information about each cache item */
@@ -141,9 +141,6 @@ typedef struct NCDAP {
     OCobject ocdasroot;
     NCconstraint constraint; /* merge of dap and nc constraints */
     NCconstraint dapconstraint; /* from url */
-#ifdef NCCONSTRAINTS
-    NCconstraint netcdfconstraint; /* netcdf constraints */
-#endif
 } NCDAP;
 
 typedef struct NCCDF {
