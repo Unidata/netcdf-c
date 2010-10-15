@@ -19,7 +19,6 @@
  */
 
 #include <nc_tests.h>
-#include <nc_logging.h> /* for BAIL macro */
 
 #define FILE_NAME "tst_parallel3.nc"
 
@@ -161,7 +160,6 @@ int test_pio(int flag)
 {
    /* MPI stuff. */
    int mpi_size, mpi_rank;
-   int res = NC_NOERR;
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
 
@@ -197,23 +195,18 @@ int test_pio(int flag)
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
    /* Create a parallel netcdf-4 file. */
-   if ((res = nc_create_par(file_name, facc_type, comm, info, &ncid)))
-      BAIL(res);
+   if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
 
    /* The first case is two dimensional variables, no unlimited dimension */
 
    /* Create two dimensions. */
-   if ((res = nc_def_dim(ncid, "d1", DIMSIZE2, dimids)))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])))
-      BAIL(res);
+   if (nc_def_dim(ncid, "d1", DIMSIZE2, dimids)) ERR;
+   if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
 
    /* Create one var. */
-   if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)))
-      BAIL(res);
+   if (nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)) ERR;
 
-   if ((res = nc_enddef(ncid)))
-      BAIL(res);
+   if (nc_enddef(ncid)) ERR;
 
    /* Set up slab for this process. */
    start[0] = 0;
@@ -222,47 +215,35 @@ int test_pio(int flag)
    count[1] = DIMSIZE/mpi_size;
 
    /* start parallel netcdf4 */
-   if ((res = nc_var_par_access(ncid, nvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, nvid, flag)) ERR;
 
-   data = malloc(sizeof(int)*count[1]*count[0]);
+   if (!(data = malloc(sizeof(int)*count[1]*count[0]))) ERR;
    tempdata = data;
-   for (j=0; j<count[0];j++){
-      for (i=0; i<count[1]; i++)
+   for (j = 0; j < count[0]; j++){
+      for (i = 0; i < count[1]; i++)
       {
-	 *tempdata = mpi_rank*(j+1);
+	 *tempdata = mpi_rank * (j + 1);
 	 tempdata++;
       }
    }
 
    /* Write two dimensional integer data */
-   if ((res = nc_put_vara_int(ncid, nvid, start, count, 
-			      data))){
-      free(data);
-      BAIL(res);
-   }
-
+   if (nc_put_vara_int(ncid, nvid, start, count, data)) ERR;
    free(data);
 
    /* Case 2: create four dimensional integer data,
       one dimension is unlimited. */
 
    /* Create four dimensions. */
-   if ((res = nc_def_dim(ncid, "ud1", NC_UNLIMITED, dimuids)))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "ud2", DIMSIZE3, &dimuids[1])))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "ud3", DIMSIZE2, &dimuids[2])))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "ud4", DIMSIZE, &dimuids[3])))
-      BAIL(res);
+   if (nc_def_dim(ncid, "ud1", NC_UNLIMITED, dimuids)) ERR;
+   if (nc_def_dim(ncid, "ud2", DIMSIZE3, &dimuids[1])) ERR;
+   if (nc_def_dim(ncid, "ud3", DIMSIZE2, &dimuids[2])) ERR;
+   if (nc_def_dim(ncid, "ud4", DIMSIZE, &dimuids[3])) ERR;
 
    /* Create one var. */
-   if ((res = nc_def_var(ncid, "uv1", NC_INT, NDIMS2, dimuids, &uvid)))
-      BAIL(res);
+   if (nc_def_var(ncid, "uv1", NC_INT, NDIMS2, dimuids, &uvid)) ERR;
 
-   if ((res = nc_enddef(ncid)))
-      BAIL(res);
+   if (nc_enddef(ncid)) ERR;
  
    /* Set up selection parameters */
    ustart[0] = 0;
@@ -275,11 +256,10 @@ int test_pio(int flag)
    ucount[3] = DIMSIZE/mpi_size;
 
    /* Access parallel */
-   if ((res = nc_var_par_access(ncid, uvid, flag))) 
-      BAIL(res);
+   if (nc_var_par_access(ncid, uvid, flag)) ERR;
     
    /* Create phony data. */
-   udata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int));
+   if (!(udata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int)))) ERR;
    tempudata = udata;
    for( m=0; m<ucount[0];m++)
       for( k=0; k<ucount[1];k++)
@@ -291,19 +271,13 @@ int test_pio(int flag)
 	    }
 
    /* Write slabs of phoney data. */
-   if ((res = nc_put_vara_int(ncid, uvid, ustart, ucount, 
-			      udata))){
-      free(udata);
-      BAIL(res);
-   }
+   if (nc_put_vara_int(ncid, uvid, ustart, ucount, udata)) ERR;
    free(udata);
 
    /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+   if (nc_close(ncid)) ERR;
 
-   if ((res = nc_open_par(file_name, facc_type_open, comm, info, &ncid)))
-      BAIL(res);
+   if (nc_open_par(file_name, facc_type_open, comm, info, &ncid)) ERR;
 
    /* Case 1: read two-dimensional variables, no unlimited dimension */
    /* Set up slab for this process. */
@@ -312,36 +286,25 @@ int test_pio(int flag)
    count[0] = DIMSIZE2;
    count[1] = DIMSIZE/mpi_size;
 
-   if ((res = nc_inq_varid(ncid, "v1", &rvid)))
-      BAIL(res);
+   if (nc_inq_varid(ncid, "v1", &rvid)) ERR;
 
-   if ((res = nc_var_par_access(ncid, rvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, rvid, flag)) ERR;
     
-   rdata = malloc(sizeof(int)*count[1]*count[0]);
-   if ((res = nc_get_vara_int(ncid, rvid, start, count, rdata)))
-   {
-      free(rdata);
-      BAIL(res);
-   }
+   if (!(rdata = malloc(sizeof(int)*count[1]*count[0]))) ERR;
+   if (nc_get_vara_int(ncid, rvid, start, count, rdata)) ERR;
 
    temprdata = rdata;
    for (j=0; j<count[0];j++){
       for (i=0; i<count[1]; i++){
 	 if(*temprdata != mpi_rank*(j+1)) 
 	 {
-	    res = -1;
+	    ERR_RET;
 	    break;
 	 }
 	 temprdata++;
       }
    }
-
    free(rdata);
-
-   /* If reading wrong value, 
-      return with an error message */
-   if(res == -1) BAIL(res);
 
    /* Case 2: read four dimensional data, one dimension is unlimited. */
 
@@ -356,41 +319,31 @@ int test_pio(int flag)
    ucount[3] = DIMSIZE/mpi_size;
  
    /* Inquiry the data */
-   if ((res = nc_inq_varid(ncid, "uv1", &rvid)))
-      BAIL(res);
+   if (nc_inq_varid(ncid, "uv1", &rvid)) ERR;
     
    /* Access the parallel */
-   if ((res = nc_var_par_access(ncid, rvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, rvid, flag)) ERR;
 
-   rudata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int));
+   if (!(rudata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int)))) ERR;
    temprudata = rudata;
 
    /* Read data */
-   if ((res = nc_get_vara_int(ncid, rvid, ustart, ucount, rudata)))
-   {
-      free(rudata);
-      BAIL(res);
-   }
+   if (nc_get_vara_int(ncid, rvid, ustart, ucount, rudata)) ERR;
 
-   for( m=0; m<ucount[0];m++)
-      for( k=0; k<ucount[1];k++)
-	 for (j=0; j<ucount[2];j++)
-	    for (i=0; i<ucount[3]; i++){
-	       if(*temprudata != (1+mpi_rank)*2*(j+1)*(k+1)*(m+1)){
-		  res = -1;
-		  break;
-	       }
+   for(m = 0; m < ucount[0]; m++)
+      for(k = 0; k < ucount[1]; k++)
+	 for(j = 0; j < ucount[2]; j++)
+	    for(i = 0; i < ucount[3]; i++)
+	    {
+	       if(*temprudata != (1+mpi_rank)*2*(j+1)*(k+1)*(m+1))
+		  ERR_RET;
 	       temprudata++;
 	    }
 
    free(rudata);
-   if(res == -1) BAIL(res);
-
 
    /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+   if (nc_close(ncid)) ERR;
 
    return 0;
 }
@@ -402,7 +355,6 @@ int test_pio_attr(int flag)
 {
    /* MPI stuff. */
    int mpi_size, mpi_rank;
-   int res = NC_NOERR;
    MPI_Comm comm = MPI_COMM_WORLD;
    MPI_Info info = MPI_INFO_NULL;
 
@@ -434,20 +386,14 @@ int test_pio_attr(int flag)
 /*    nc_set_log_level(NC_TURN_OFF_LOGGING); */
    /*    nc_set_log_level(3);*/
 
-   if ((res = nc_create_par(file_name, facc_type, comm, 
-			    info, &ncid)))
-      BAIL(res);
-
+   if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
 
    /* Create a 2-D variable so that an attribute can be added. */
-   if ((res = nc_def_dim(ncid, "d1", DIMSIZE2, dimids)))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])))
-      BAIL(res);
+   if (nc_def_dim(ncid, "d1", DIMSIZE2, dimids)) ERR;
+   if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
 
    /* Create one var. */
-   if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)))
-      BAIL(res);
+   if (nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)) ERR;
 
    orivr_len = 2;
    rh_range[0] = 1.0;
@@ -455,61 +401,46 @@ int test_pio_attr(int flag)
 
    /* Write attributes of a variable */
 
-   if ((res = nc_put_att_double (ncid, nvid, "valid_range",
-                                 NC_DOUBLE, orivr_len, rh_range)))
-      BAIL(res);
+   if (nc_put_att_double (ncid, nvid, "valid_range", NC_DOUBLE, 
+			  orivr_len, rh_range)) ERR;
 
-   if ((res = nc_put_att_text (ncid, nvid, "title",
-			       strlen(title), title)))
-      BAIL(res);
+   if (nc_put_att_text (ncid, nvid, "title", strlen(title), 
+			title)) ERR;
 
    /* Write global attributes */
-   if ((res = nc_put_att_double (ncid, NC_GLOBAL, "g_valid_range",
-                                 NC_DOUBLE, orivr_len, rh_range)))
-      BAIL(res);
+   if (nc_put_att_double (ncid, NC_GLOBAL, "g_valid_range", NC_DOUBLE, 
+			  orivr_len, rh_range)) ERR;
+   if (nc_put_att_text (ncid, NC_GLOBAL, "g_title", strlen(title), title)) ERR;
 
-   if ((res = nc_put_att_text (ncid, NC_GLOBAL, "g_title",
-			       strlen(title), title)))
-      BAIL(res);
-
-   if ((res = nc_enddef(ncid)))
-      BAIL(res);
-
+   if (nc_enddef(ncid)) ERR;
 
    /* Set up slab for this process. */
    start[0] = 0;
    start[1] = mpi_rank * DIMSIZE/mpi_size;
    count[0] = DIMSIZE2;
    count[1] = DIMSIZE/mpi_size;
-
+   
    /* Access parallel */
-   if ((res = nc_var_par_access(ncid, nvid, flag)))
-      BAIL(res);
-
+   if (nc_var_par_access(ncid, nvid, flag)) ERR;
+   
    /* Allocating data */
    data      = malloc(sizeof(int)*count[1]*count[0]);
    tempdata  = data;
-   for (j=0; j<count[0];j++){
-      for (i=0; i<count[1]; i++){
-	 *tempdata = mpi_rank*(j+1);
-	 tempdata ++;
+   for(j = 0; j < count[0]; j++)
+      for (i = 0; i < count[1]; i++)
+      {
+	 *tempdata = mpi_rank * (j + 1);
+	 tempdata++;
       }
-   }
-   if ((res = nc_put_vara_int(ncid, nvid, start, count, 
-			      data))){
-      free(data);
-      BAIL(res);
-   }
 
+   if (nc_put_vara_int(ncid, nvid, start, count, data)) ERR;
    free(data);
-   /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
 
+   /* Close the netcdf file. */
+if (nc_close(ncid)) ERR;
 
    /* Read attributes */
-   if ((res = nc_open_par(file_name, facc_type_open, comm, info, &ncid)))
-      BAIL(res);
+if (nc_open_par(file_name, facc_type_open, comm, info, &ncid)) ERR;
 
    /* Set up slab for this process. */
    start[0] = 0;
@@ -518,124 +449,92 @@ int test_pio_attr(int flag)
    count[1] = DIMSIZE/mpi_size;
 
    /* Inquiry variable */
-   if ((res = nc_inq_varid(ncid, "v1", &nvid)))
-      BAIL(res);
+   if (nc_inq_varid(ncid, "v1", &nvid)) ERR;
 
    /* Access parallel */
-   if ((res = nc_var_par_access(ncid, nvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, nvid, flag)) ERR;
 
    /* Inquiry attribute */
-   if ((res = nc_inq_att (ncid, nvid, "valid_range", &vr_type, &vr_len)))
-      BAIL(res);
+   if (nc_inq_att (ncid, nvid, "valid_range", &vr_type, &vr_len)) ERR;
 
-   /* check variable attribute type */
-   if(vr_type != NC_DOUBLE) BAIL(-1);
-
-   /*check variable attribute length */
-   if(vr_len != orivr_len) BAIL(-1);
+   /* check stuff */
+   if(vr_type != NC_DOUBLE || vr_len != orivr_len) ERR;
 
    vr_val = (double *) malloc(vr_len * sizeof(double));
      
    /* Get variable attribute values */
-   if ((res = nc_get_att_double(ncid, nvid, "valid_range", vr_val))){
-      free(vr_val);
-      BAIL(res);
-   }
+   if (nc_get_att_double(ncid, nvid, "valid_range", vr_val)) ERR;
 
    /* Check variable attribute value */
-   for( i = 0; i <vr_len; i++){
-      if (vr_val[i] != rh_range[i]) BAIL(-1);
-   }
+   for(i = 0; i < vr_len; i++)
+      if (vr_val[i] != rh_range[i]) 
+	 ERR_RET;
    free(vr_val);
  
-
    /* Inquiry global attribute */
-   if ((res = nc_inq_att (ncid, NC_GLOBAL, "g_valid_range", &vr_type, &vr_len)))
-      BAIL(res);
+   if (nc_inq_att (ncid, NC_GLOBAL, "g_valid_range", &vr_type, &vr_len)) ERR;
 
-   /* Check global attribute type */
-   if(vr_type != NC_DOUBLE) BAIL(-1);
-    
-   /* Check global attribute length */
-   if(vr_len != orivr_len) BAIL(-1);
+   /* Check stuff. */
+   if(vr_type != NC_DOUBLE || vr_len != orivr_len) ERR;
     
    /* Obtain global attribute value */
    vr_val = (double *) malloc(vr_len * sizeof(double));
-   if ((res = nc_get_att_double(ncid, NC_GLOBAL, "g_valid_range", vr_val))){
-      free(vr_val);
-      BAIL(res);
-   }
+   if (nc_get_att_double(ncid, NC_GLOBAL, "g_valid_range", vr_val)) ERR;
 
    /* Check global attribute value */
-   for( i = 0; i <vr_len; i++){
-      if (vr_val[i] != rh_range[i]) BAIL(-1);
-   }
-
+   for(i = 0; i < vr_len; i++)
+      if (vr_val[i] != rh_range[i]) ERR_RET;
    free(vr_val);
 
    /* Inquiry string attribute of a variable */
-   if ((res = nc_inq_att (ncid, nvid, "title", &st_type, &st_len)))
-      BAIL(res);
+   if (nc_inq_att (ncid, nvid, "title", &st_type, &st_len)) ERR;
 
- 
    /* check string attribute length */
-   if(st_len != strlen(title)) BAIL(-1);
+   if(st_len != strlen(title)) ERR_RET;
 
    /* Check string attribute type */
-   if(st_type != NC_CHAR) BAIL(-1);
+   if(st_type != NC_CHAR) ERR_RET;
 
    /* Allocate meory for string attribute */
    st_val = (char *) malloc(st_len * (sizeof(char)));
  
    /* Obtain variable string attribute value */
-   if ((res = nc_get_att_text(ncid, nvid,"title", st_val))){
-      free(st_val);
-      BAIL(res);
-   }
+   if (nc_get_att_text(ncid, nvid,"title", st_val)) ERR;
 
    /*check string value */
    if(strncmp(st_val,title,st_len)) {
       free(st_val);
-      BAIL(-1);
+      ERR_RET;
    }
    free(st_val);
 
    /*Inquiry global attribute */
-   if ((res = nc_inq_att (ncid, NC_GLOBAL, "g_title", &st_type, &st_len)))
-      BAIL(res);
+   if (nc_inq_att (ncid, NC_GLOBAL, "g_title", &st_type, &st_len)) ERR;
 
    /* check attribute length*/
-   if(st_len != strlen(title)) BAIL(-1);
+   if(st_len != strlen(title)) ERR_RET;
 
    /*check attribute type*/
-   if(st_type != NC_CHAR) BAIL(-1);
+   if(st_type != NC_CHAR) ERR_RET;
 
    /* obtain global string attribute value */
    st_val = (char*)malloc(st_len*sizeof(char));
-   if ((res = nc_get_att_text(ncid, NC_GLOBAL,"g_title", st_val))){
-      free(st_val);
-      BAIL(res);
-   }
+   if (nc_get_att_text(ncid, NC_GLOBAL,"g_title", st_val)) ERR;
 
    /* check attribute value */
    if(strncmp(st_val,title,st_len)){
       free(st_val);
-      BAIL(-1);
+      ERR_RET;
    }
    free(st_val);
 
    /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+   if (nc_close(ncid)) ERR;
 
    return 0;
-    
 }
 
-
 /* test different hyperslab settings */
-
 int test_pio_hyper(int flag){
   
    /* MPI stuff. */
@@ -670,25 +569,18 @@ int test_pio_hyper(int flag){
 /*      nc_set_log_level(NC_TURN_OFF_LOGGING); */
 /*      nc_set_log_level(4);*/
 
-   if ((res = nc_create_par(file_name, facc_type, comm, 
-			    info, &ncid)))
-      BAIL(res);
-
+   if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
 
    /* The case is two dimensional variables, no unlimited dimension */
 
    /* Create two dimensions. */
-   if ((res = nc_def_dim(ncid, "d1", DIMSIZE2, dimids)))
-      BAIL(res);
-   if ((res = nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])))
-      BAIL(res);
+   if (nc_def_dim(ncid, "d1", DIMSIZE2, dimids)) ERR;
+   if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
 
    /* Create one var. */
-   if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)))
-      BAIL(res);
+   if (nc_def_var(ncid, "v1", NC_INT, NDIMS1, dimids, &nvid)) ERR;
 
-   if ((res = nc_enddef(ncid)))
-      BAIL(res);
+   if (nc_enddef(ncid)) ERR;
 
 
    /* hyperslab illustration for 3-processor case 
@@ -735,8 +627,7 @@ int test_pio_hyper(int flag){
       }  
    }
 
-   if ((res = nc_var_par_access(ncid, nvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, nvid, flag)) ERR;
    data      = malloc(sizeof(int)*count[1]*count[0]);
    tempdata  = data;
    for (j=0; j<count[0];j++){
@@ -747,35 +638,22 @@ int test_pio_hyper(int flag){
    }
 
 
-   if ((res = nc_put_vara_int(ncid, nvid, start, count, 
-			      data))){
-      free(data);
-      BAIL(res);
-
-   }
+   if (nc_put_vara_int(ncid, nvid, start, count, data)) ERR;
    free(data);
 
    /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+   if (nc_close(ncid)) ERR;
 
-   if ((res = nc_open_par(file_name, facc_type_open, comm, info, &ncid)))
-      BAIL(res);
+   if (nc_open_par(file_name, facc_type_open, comm, info, &ncid)) ERR;
   
    /* Inquiry the variable */
-   if ((res = nc_inq_varid(ncid, "v1", &rvid)))
-      BAIL(res);
+   if (nc_inq_varid(ncid, "v1", &rvid)) ERR;
 
-   if ((res = nc_var_par_access(ncid, rvid, flag)))
-      BAIL(res);
+   if (nc_var_par_access(ncid, rvid, flag)) ERR;
     
    rdata      = malloc(sizeof(int)*count[1]*count[0]);
    /* Read the data with the same slab settings */
-   if ((res = nc_get_vara_int(ncid, rvid, start, count, 
-			      rdata))){
-      free(rdata);
-      BAIL(res);
-   }
+   if (nc_get_vara_int(ncid, rvid, start, count, rdata)) ERR;
 
    temprdata = rdata;
    for (j=0; j<count[0];j++){
@@ -790,11 +668,10 @@ int test_pio_hyper(int flag){
    }
 
    free(rdata);
-   if(res == -1) BAIL(res);
+   if(res == -1) ERR_RET;
 
    /* Close the netcdf file. */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+   if (nc_close(ncid)) ERR;
     
    return 0;
 }
