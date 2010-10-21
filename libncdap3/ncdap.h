@@ -117,14 +117,11 @@ typedef struct NCDAP {
 } NCDAP;
 
 typedef struct NCCDF {
-    struct CDFnode* ddsroot; /* unconstrained dds */
+    struct CDFnode* ddsroot; /* template (unconstrained) dds */
     /* Collected sets of useful nodes (in unconstrainted tree space) */
     NClist*  varnodes; /* nodes which can represent netcdf variables */
     NClist*  seqnodes; /* sequence nodes; */
     NClist*  gridnodes; /* grid nodes */
-#ifdef IGNORE
-    struct Getvara* vara; /* current vara() arguments */
-#endif
     unsigned int defaultstringlength;
     unsigned int defaultsequencelimit; /* global sequence limit;0=>no limit */
     struct NCcache* cache;
@@ -180,9 +177,6 @@ typedef struct CDFdim {
     CDFdimflags    dimflags;
     struct CDFnode* basedim; /* for duplicate dimensions*/
     struct CDFnode* array; /* parent array node */
-#ifdef IGNORE
-    unsigned int arrayindex;
-#endif
     size_t declsize;	    /* from constrained DDS*/
     size_t declsize0;	    /* from unconstrained DDS*/
 } CDFdim;
@@ -346,13 +340,6 @@ extern char* nulldup(const char*);
    configure(.ac) to test for the presence of thiscode.
 */
 extern int nc__opendap(void);
-
-#ifdef IGNORE
-/* allow access dapurlparse and params without exposing dapurl.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-#endif
 
 extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
 extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
