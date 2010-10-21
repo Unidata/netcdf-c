@@ -160,9 +160,9 @@ indexpath:
 
 index:
 	  word
-	    {$$=index(parsestate,$1,null);}
+	    {$$=indexer(parsestate,$1,null);}
 	| word array_indices
-	    {$$=index(parsestate,$1,$2);}
+	    {$$=indexer(parsestate,$1,$2);}
 	;
 
 /* %type NClist<NCslice*> */
@@ -187,15 +187,15 @@ arg_list: //==expr.arg_list
 	    {$$=arg_list(parsestate,$1,$3);}
 	;
 
-/* %type SelectionTag */
+/* %type NCsort */
 rel_op:
-	  '='     {$$=newinteger(EQUAL);}
-	| '>'     {$$=newinteger(GREATER);}
-	| '<'     {$$=newinteger(LESS);}
-	| '!' '=' {$$=newinteger(NOT_EQUAL);}
-	| '>' '=' {$$=newinteger(GREATER_EQL);}
-	| '<' '=' {$$=newinteger(LESS_EQL);}
-	| '=' '~' {$$=newinteger(REGEXP);}
+	  '='     {$$=makeselectiontag(NS_EQ);}
+	| '>'     {$$=makeselectiontag(NS_GT);}
+	| '<'     {$$=makeselectiontag(NS_LT);}
+	| '!' '=' {$$=makeselectiontag(NS_NEQ);}
+	| '>' '=' {$$=makeselectiontag(NS_GE);}
+	| '<' '=' {$$=makeselectiontag(NS_LE);}
+	| '=' '~' {$$=makeselectiontag(NS_RE);}
 	;
 
 ident:  word

@@ -1642,14 +1642,14 @@ yyreduce:
 
 /* Line 1464 of yacc.c  */
 #line 163 "ce.y"
-    {(yyval)=index(parsestate,(yyvsp[(1) - (1)]),null);;}
+    {(yyval)=indexer(parsestate,(yyvsp[(1) - (1)]),null);;}
     break;
 
   case 42:
 
 /* Line 1464 of yacc.c  */
 #line 165 "ce.y"
-    {(yyval)=index(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
+    {(yyval)=indexer(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 43:
@@ -1698,49 +1698,49 @@ yyreduce:
 
 /* Line 1464 of yacc.c  */
 #line 192 "ce.y"
-    {(yyval)=new Integer(EQUAL);;}
+    {(yyval)=makeselectiontag(NS_EQ);;}
     break;
 
   case 50:
 
 /* Line 1464 of yacc.c  */
 #line 193 "ce.y"
-    {(yyval)=new Integer(GREATER);;}
+    {(yyval)=makeselectiontag(NS_GT);;}
     break;
 
   case 51:
 
 /* Line 1464 of yacc.c  */
 #line 194 "ce.y"
-    {(yyval)=new Integer(LESS);;}
+    {(yyval)=makeselectiontag(NS_LT);;}
     break;
 
   case 52:
 
 /* Line 1464 of yacc.c  */
 #line 195 "ce.y"
-    {(yyval)=new Integer(NOT_EQUAL);;}
+    {(yyval)=makeselectiontag(NS_NEQ);;}
     break;
 
   case 53:
 
 /* Line 1464 of yacc.c  */
 #line 196 "ce.y"
-    {(yyval)=new Integer(GREATER_EQL);;}
+    {(yyval)=makeselectiontag(NS_GE);;}
     break;
 
   case 54:
 
 /* Line 1464 of yacc.c  */
 #line 197 "ce.y"
-    {(yyval)=new Integer(LESS_EQL);;}
+    {(yyval)=makeselectiontag(NS_LE);;}
     break;
 
   case 55:
 
 /* Line 1464 of yacc.c  */
 #line 198 "ce.y"
-    {(yyval)=new Integer(REGEXP);;}
+    {(yyval)=makeselectiontag(NS_RE);;}
     break;
 
   case 56:

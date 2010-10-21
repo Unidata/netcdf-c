@@ -89,6 +89,7 @@ typedef unsigned int NCFLAGS;
 /* Currently, defalt is on */
 #define DFALTCACHEFLAG (0)
 
+
 typedef struct NCCONTROLS {
     NCFLAGS  flags;
 } NCCONTROLS;
@@ -103,35 +104,8 @@ struct NCTMODEL {
 struct NCprojection;
 struct NCselection;
 struct Getvara;
-struct NCcachenode;
-struct NCcache;
 struct NCslice;
 struct NCsegment;
-
-typedef struct NCconstraint {
-    NClist* projections;
-    NClist* selections;
-} NCconstraint;
-
-/* Detail information about each cache item */
-typedef struct NCcachenode {
-    int prefetch; /* is this the prefetch cache entry? */
-    size_t xdrsize;
-    NCconstraint constraint; /* as used to create this node */
-    NClist* vars; /* vars potentially covered by this cache node */
-    struct CDFnode* datadds;
-    OCobject ocroot;
-    OCdata content;
-} NCcachenode;
-
-/* All cache info */
-typedef struct NCcache {
-    size_t cachelimit; /* max total size for all cached entries */
-    size_t cachesize; /* current size */
-    size_t cachecount; /* max # nodes in cache */
-    NCcachenode* prefetch;
-    NClist* nodes; /* cache nodes other than prefetch */
-} NCcache;
 
 /* The DAP packet info*/
 typedef struct NCDAP {
@@ -139,7 +113,7 @@ typedef struct NCDAP {
     char* urltext; /* as given to nc3d_open*/
     DAPURL url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
-    NCconstraint dapconstraint; /* from url */
+    struct NCconstraint* dapconstraint; /* from url */
 } NCDAP;
 
 typedef struct NCCDF {
@@ -153,7 +127,7 @@ typedef struct NCCDF {
 #endif
     unsigned int defaultstringlength;
     unsigned int defaultsequencelimit; /* global sequence limit;0=>no limit */
-    NCcache  cache;
+    struct NCcache* cache;
     size_t fetchlimit;
     size_t smallsizelimit; /* what constitutes a small object? */
     size_t totalestimatedsize;
@@ -341,11 +315,6 @@ extern int nodematch34(CDFnode* node1, CDFnode* node2);
 extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
 extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
 extern int constrainable34(DAPURL*);
-extern NCconstraint clonencconstraint34(NCconstraint*);
-extern char* makeconstraintstring34(NCconstraint*);
-extern void freencprojections(NClist* plist);
-extern void freencprojection1(struct NCprojection* p);
-extern void freencselections(NClist* slist);
 
 extern size_t estimatedataddssize34(CDFnode* datadds);
 

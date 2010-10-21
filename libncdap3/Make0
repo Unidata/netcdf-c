@@ -259,3 +259,9 @@ v::
 	cc -g -c ${T}.c ${INCL}
 	cc -g -o v ${T}.o ${LIBS}
 
+##################################################
+E=-e 's/SelectionTag/NCsort/g' -e 's/ST_/NS_/g'
+
+fix::
+	if ! test -e ./ckp ; then mkdir ckp; cp *.[chy] ckp; fi
+	for f in *.[chy] ; do sed $(E) <ckp/$$f >./$$f ; done

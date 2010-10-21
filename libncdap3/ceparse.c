@@ -42,12 +42,12 @@ Object
 projection(CEparsestate* state, Object varorfcn)
 {
     NCprojection* p = createncprojection();
-    SelectionTag tag = *(SelectionTag*)varorfcn;
-    if(tag == ST_FCN)
+    NCsort tag = *(NCsort*)varorfcn;
+    if(tag == NS_FCN)
 	p->fcn = varorfcn;
     else
 	p->var = varorfcn;
-    p->kind = tag;
+    p->discrim = tag;
 #ifdef DEBUG
 fprintf(stderr,"	ce.projection: %s\n",
 	dumpprojection1(p));
@@ -136,7 +136,7 @@ fprintf(stderr,"	ce.slice: %s\n",
 }
 
 Object
-range1(Ceparsestate* state, Object rangenumber)
+range1(CEparsestate* state, Object rangenumber)
 {
     int range = -1;
     sscanf((char*)rangenumber,"%u",&range);
@@ -157,19 +157,18 @@ sel_clause(CEparsestate* state, int selcase,
 	   Object lhs, Object relop0, Object values)
 {
     NCselection* sel = createncselection();
-    sel->operator = (SelectionTag)relop0;
-    sel->lhs = (NCValue*)lhs;
+    sel->operator = (NCsort)relop0;
+    sel->lhs = (NCvalue*)lhs;
     if(selcase == 2) {//singleton value
 	sel->rhs = nclistnew();
 	nclistpush(sel->rhs,(ncelem)values);
     } else
         sel->rhs = (NClist*)values;
-    sel->leaf = NULL;
     return sel;
 }
 
 Object
-indexpath(Ceparsestate* state, Object list0, Object index)
+indexpath(CEparsestate* state, Object list0, Object index)
 {
     return collectlist(list0,index);
 }
@@ -188,16 +187,26 @@ array_indices(CEparsestate* state, Object list0, Object indexno)
     NCslice* slice = createncslice();
     slice->first = start;
     slice->stride = 1;
-    slice->last = start;
+    slice->count = 1;
+    slice->length = 1;
+    slice->stop = start+1;
     nclistpush(list,(ncelem)slice);
     return list;
 }
 
-Object index(CEparsestate* state, Object name, Object indices)
+Object
+indexer(CEparsestate* state, Object name, Object indices)
 {
+    int i;
+    NClist* list = (NClist*)indices;
     NCsegment* seg = createncsegment();
     seg->name = strdup((char*)name);
-    seg->slices = (NClist*)indices;
+    for(i=0;i<nclistlength(list);i++) {
+	NCslice* slice = (NCslice*)nclistget(list,i);
+        seg->slices[i] = *slice;
+	freencslice(slice);
+	nclistfree(list);
+    }
     return seg;    
 }
 
@@ -227,14 +236,14 @@ Object
 value(CEparsestate* state, Object val)
 {
     NCvalue* value = createncvalue();
-    SelectionTag tag = *(SelectionTag*)val;
+    NCsort tag = *(NCsort*)val;
     switch (tag) {
-    case ST_VAR: value.var = val; break;
-    case ST_FCN: value.fcn = val; break;
-    case ST_CONST: value.constant = val; break;
+    case NS_VAR: value->var = (NCvar*)val; break;
+    case NS_FCN: value->fcn = (NCfcn*)val; break;
+    case NS_CONST: value->constant = (NCconstant*)val; break;
     default: abort(); break;
     }
-    value->kind = tag;
+    value->discrim = tag;
     return value;
 }
 
@@ -249,20 +258,21 @@ var(CEparsestate* state, Object indexpath)
 Object
 constant(CEparsestate* state, Object val, int tag)
 {
-    NCconst* con = createncconst();
+    NCconstant* con = createncconstant();
+    char* text = (char*)val;
     switch (tag) {
     case SCAN_STRINGCONST:
-	value->kind = ST_STR;
-	value->value.text = text;
+	con->discrim = NS_STR;
+	con->text = nulldup(text);
 	break;
     case SCAN_NUMBERCONST:
-	if(sscanf(text,"%lld",&value->value.intvalue)==1)
-	    value->kind = ST_INT;
-	else if(sscanf(text,"%lg",&value->value.floatvalue)==1)
-	    value->kind = ST_FLOAT;
+	if(sscanf(text,"%lld",&con->intvalue)==1)
+	    con->discrim = NS_INT;
+	else if(sscanf(text,"%lg",&con->floatvalue)==1)
+	    con->discrim = NS_FLOAT;
 	else {
-	    sscanf(text,"%lG",&value->value.floatvalue);
-	    value->kind = ST_FLOAT;
+	    sscanf(text,"%lG",&con->floatvalue);
+	    con->discrim = NS_FLOAT;
 	}
 	break;
     default: abort(); break;
@@ -277,6 +287,12 @@ collectlist(Object list0, Object decl)
     if(list == NULL) list = nclistnew();
     nclistpush(list,(ncelem)decl);
     return list;
+}
+
+Object
+makeselectiontag(NCsort tag)
+{
+    return (Object) tag;
 }
 
 int
@@ -346,31 +362,3 @@ fprintf(stderr,"ncceparse: selections=%s\n",dumpselections(state->selections));
     }
     return errcode;
 }
-
-Object
-constant(Ceparsestate* state, Object path, int tag)
-{
-    ASTconstant value = new ASTconstant();
-        switch (tag) {
-        case SCAN_STRINGCONST:
-            value.text = (String) path;
-            value.tag = STRINGCONST;
-            break;
-        case SCAN_NUMBERCONST:
-            try {
-                value.intvalue = Long.parseLong((String) path);
-                value.tag = INTCONST;
-            } catch (NumberFormatException nfe) {
-                try {
-                    value.floatvalue = Float.parseFloat((String) path);
-                    value.tag = FLOATCONST;
-                } catch (NumberFormatException nfe2) {
-                    throw new ParseException("Illegal integer constant");
-                }
-            }
-            break;
-        default:
-            assert(false);
-        }
-        return value;
-    }

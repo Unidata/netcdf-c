@@ -21,9 +21,10 @@
 #include "dapnc.h"
 
 #include "ncdap.h"
-#include "getvara.h"
 #include "ncdispatch.h"
+#include "cache3.h"
 #include "constraints3.h"
+#include "getvara.h"
 
 #ifndef USE_NETCDF4
 #define NC_MAX_BYTE 127

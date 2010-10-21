@@ -554,10 +554,10 @@ applyclientparams34(NCDRNO* drno)
     OCconnection conn = drno->dap.conn;
     unsigned long limit;
 
-    drno->cdf.cache.cachelimit = DFALTCACHELIMIT;
+    drno->cdf.cache->cachelimit = DFALTCACHELIMIT;
     value = oc_clientparam_get(conn,"cachelimit");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachelimit = limit;
+    if(limit > 0) drno->cdf.cache->cachelimit = limit;
 
     drno->cdf.fetchlimit = DFALTFETCHLIMIT;
     value = oc_clientparam_get(conn,"fetchlimit");
@@ -569,10 +569,10 @@ applyclientparams34(NCDRNO* drno)
     limit = getlimitnumber(value);
     if(limit > 0) drno->cdf.smallsizelimit = limit;
 
-    drno->cdf.cache.cachecount = DFALTCACHECOUNT;
+    drno->cdf.cache->cachecount = DFALTCACHECOUNT;
     value = oc_clientparam_get(conn,"cachecount");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache.cachecount = limit;
+    if(limit > 0) drno->cdf.cache->cachecount = limit;
 
     if(oc_clientparam_get(conn,"nolimit") != NULL)
 	dfaltseqlim = 0;
