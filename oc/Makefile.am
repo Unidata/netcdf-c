@@ -46,7 +46,7 @@ daptab.c: dap.y
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
 
-daptab.h: dap.y
+daptab.h: dap.y daptab.c
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
