@@ -58,7 +58,7 @@ The possible arguments are as follows.
 If no value for -k is specified, then the output will use the same
 format as the input (except if the input is classic or 64-bit offset
 and  a compression level is specified with
-the -d option, in which case the outputt will be netCDF-4 classic
+the -d option, in which case the output will be netCDF-4 classic
 model).  
 Note that attempting some kinds of format
 conversion will result in an error, if the conversion is not
@@ -140,9 +140,9 @@ nccopy -d1 foo.nc bar.nc
 .RE
 If foo.nc was a classic or 64-bit offset netCDF file, bar.nc will be a
 netCDF-4 classic model netCDF file, because the classic and 64-bit
-ofset format variants don't support compression.  If foo.nc was a
+offset format variants don't support compression.  If foo.nc was a
 netCDF-4 file with some variables compressed using various deflation
-levels, the output will also be a netCDF-4 file of the samme type, but
+levels, the output will also be a netCDF-4 file of the same type, but
 all the variables, including any uncompressed variables in the input,
 will now use deflation level 1.
 .LP
