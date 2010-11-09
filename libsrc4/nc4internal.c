@@ -18,6 +18,7 @@ $Id: nc4internal.c,v 1.121 2010/05/26 21:43:35 dmh Exp $
 #include "config.h"
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
+#include "ncdispatch.h" /* from libdispatch */
 #include <utf8proc.h>
 
 #define MEGABYTE 1048576
@@ -584,15 +585,27 @@ nc4_file_list_free(void)
     free_NCList();
 }
 
+
 int
-nc4_file_list_add(NC_FILE_INFO_T** ncp)
+NC4_new_nc(NC** ncpp)
+{
+    NC_FILE_INFO_T** ncp;
+    /* Allocate memory for this info. */
+    if (!(ncp = calloc(1, sizeof(NC_FILE_INFO_T)))) 
+       return NC_ENOMEM;
+    if(ncpp) *ncpp = (NC*)ncp;
+    return NC_NOERR;
+}
+
+int
+nc4_file_list_add(NC_FILE_INFO_T** ncp, NC_Dispatch* dispatch)
 {
     NC_FILE_INFO_T *nc;
     int status = NC_NOERR;
 
-    /* Allocate memory for this info. */
-    if (!(nc = calloc(1, sizeof(NC_FILE_INFO_T)))) 
-       return NC_ENOMEM;
+    /* Allocate memory for this info; use the dispatcher to do this */
+    status = dispatch->new_nc((NC**)&nc);
+    if(status) return status;
 
     /* Add this file to the list. */
     if ((status = add_to_NCList((NC *)nc)))

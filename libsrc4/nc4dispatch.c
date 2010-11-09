@@ -13,6 +13,8 @@ NC_Dispatch NC4_dispatcher = {
 
 NC_DISPATCH_NC4,
 
+NC4_new_nc,
+
 NC4_create,
 NC4_open,
 
@@ -27,7 +29,6 @@ NC4_set_base_pe,
 NC4_inq_format,
 
 NC4_inq,
-NC4_inq_path,
 NC4_inq_type,
 
 NC4_def_dim,

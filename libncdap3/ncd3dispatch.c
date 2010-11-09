@@ -41,6 +41,8 @@ NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NCD3,
 
+NCD3_new_nc,
+
 NCD3_create,
 NCD3_open,
 
@@ -55,7 +57,6 @@ NULL, /*set_base_pe*/
 NULL, /*inq_format*/
 
 NULL, /*inq*/
-NULL, /*inq_path*/
 NULL, /*inq_type*/
 
 NULL, /*def_dim*/

@@ -16,7 +16,7 @@ against the relevant nodes in which the ultimate target
 is contained.
 */
 NCerror
-buildvaraprojection4(NCDRNO* drno, Getvara* getvar,
+buildvaraprojection4(NCDAP4* drno, Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     NCprojection** projectionp)
 {
@@ -63,12 +63,12 @@ buildvaraprojection4(NCDRNO* drno, Getvara* getvar,
 
 /* Compute the set of prefetched data */
 NCerror
-prefetchdata4(NCDRNO* drno)
+prefetchdata4(NCDAP4* drno)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    NClist* allvars = drno->cdf.varnodes;
-    NCconstraint* constraint = &drno->dap.constraint;
+    NClist* allvars = drno->dap.cdf.varnodes;
+    NCconstraint* constraint = &drno->dap.oc.constraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
     NCconstraint newconstraint;
@@ -76,8 +76,8 @@ prefetchdata4(NCDRNO* drno)
     /* If caching is off, and we can do constraints, then
        don't even do prefetch
     */
-    if(!FLAGSET(drno,NCF_CACHE) && !FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
-	drno->cdf.cache.prefetch = NULL;
+    if(!FLAGSET(drno->dap.controls,NCF_CACHE) && !FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
+	drno->dap.cdf.cache.prefetch = NULL;
 	goto done;
     }
 
@@ -90,28 +90,28 @@ prefetchdata4(NCDRNO* drno)
 	    nelems *= dim->dim.declsize;
 	}
 	/* If we cannot constrain, then pull in everything */
-	if(FLAGSET(drno,NCF_UNCONSTRAINABLE)
-           || nelems <= drno->cdf.smallsizelimit)
+	if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)
+           || nelems <= drno->dap.cdf.smallsizelimit)
 	    nclistpush(vars,(ncelem)var);
     }
 
     /* If we cannot constrain, then pull in everything */
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 	newconstraint.projections = NULL;
 	newconstraint.selections= NULL;
     } else { /* Construct the projections for this set of vars */
         /* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
         newconstraint.projections = cloneprojections(constraint->projections);
-        restrictprojection3(drno,vars,newconstraint.projections);
+        restrictprojection34(&drno->dap,vars,newconstraint.projections);
         /* similar for selections */
         newconstraint.selections = cloneselections(constraint->selections);
     }
 
-    ncstat = buildcachenode3(drno,&newconstraint,vars,&cache,0);
+    ncstat = buildcachenode34(&drno->dap,&newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
-if(FLAGSET(drno,NCF_SHOWFETCH)) {
+if(FLAGSET(drno->dap.controls,NCF_SHOWFETCH)) {
 /* Log the set of prefetch variables */
 NCbytes* buf = ncbytesnew();
 ncbytescat(buf,"prefetch.vars: ");
@@ -127,7 +127,7 @@ ncbytesfree(buf);
 
 done:
     if(ncstat) {
-	freenccachenode(drno,cache);
+	freenccachenode(&drno->dap,cache);
     }
     return THROW(ncstat);
 }
@@ -135,12 +135,12 @@ done:
 #ifdef IGNORE
 /* Based on the tactic, determine the set of variables to add */
 static void
-computevarset4(NCDRNO* drno, Getvara* getvar, NClist* varlist)
+computevarset4(NCDAP4* drno, Getvara* getvar, NClist* varlist)
 {
     int i;
     nclistclear(varlist);
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(drno->dap.cdf.varnodes,i);
 #ifdef IGNORE
 	int ok = 1;
 	for(j=0;j<nclistlength(var->array.ncdimensions);j++) {
@@ -154,7 +154,7 @@ computevarset4(NCDRNO* drno, Getvara* getvar, NClist* varlist)
 	    nclistpush(varlist,(ncelem)var);
 	    break;	    
         case tactic_partial: /* add only small variables + target */
-	    if(var->estimatedsize < drno->cdf.smallsizelimit
+	    if(var->estimatedsize < drno->dap.cdf.smallsizelimit
 	       || getvar->target == var) {
 		nclistpush(varlist,(ncelem)var);
 	    }

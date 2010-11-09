@@ -13,13 +13,45 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "ncbytes.h"
+#include "nclist.h"
+#include "nchashmap.h"
+
+#include "oc.h"
+#include "dapurl.h"
+
 #include "nc4internal.h"
 #include "nc.h"
 #include "netcdf.h"
-#include "ncdap.h"
+
+#include "nccommon.h"
+#include "ncdap3.h"
+
+#include "dapdebug.h"
+#include "daputil.h"
+
+
+/**************************************************/
+/* The NCDAP4 structure is subtype of NC_INFO_TYPE_T (libsrc4) */
+/* It also contains some of the NCDAP3 info */
+
+/* Warning: fields from BEGIN DAP COMMON to END DAP COMMON must be same for:
+	1. NCDAP3 (libncdap3/ncdap3.h)
+	2. NCDAP4 (libncdap4/ncdap4.h)
+*/
+
+typedef struct NCDAP4 {
+    NC_FILE_INFO_T info;
+    NCDAPCOMMON    dap;
+} NCDAP4;
+
+/**************************************************/
+
 #include "getvara.h"
 #include "constraints3.h"
 #include "constraints4.h"
+
+/**************************************************/
 
 extern ptrdiff_t dapsinglestride4[NC_MAX_VAR_DIMS];
 
@@ -48,14 +80,14 @@ extern int drno_delta_numfiles(int);
 /**********************************************************/
 extern int ncceparse(char*, int, NClist**, NClist**, char**);
 
-extern NCerror computecdfnodesets4(NCDRNO* drno);
-extern NCerror fixgrids4(NCDRNO* drno);
-extern NCerror computecdfdimnames4(NCDRNO* drno);
-extern NCerror computetypenames4(NCDRNO* drno, CDFnode* tnode);
-extern NCerror computeusertypes4(NCDRNO* drno);
+extern NCerror computecdfnodesets4(NCDAP4* drno);
+extern NCerror fixgrids4(NCDAP4* drno);
+extern NCerror computecdfdimnames4(NCDAP4* drno);
+extern NCerror computetypenames4(NCDAP4* drno, CDFnode* tnode);
+extern NCerror computeusertypes4(NCDAP4* drno);
 extern int singletonsequence(CDFnode* node);
 extern CDFnode* getsingletonfield(NClist* list);
-extern void setvarbasetype(NCDRNO* drno, CDFnode* field);
-extern NCerror shortentypenames4(NCDRNO* drno);
+extern void setvarbasetype(NCDAP4* drno, CDFnode* field);
+extern NCerror shortentypenames4(NCDAP4* drno);
 
 #endif /*NCDAP4_H*/

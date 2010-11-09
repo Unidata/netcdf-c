@@ -60,6 +60,8 @@ extern "C" {
 
 # define EXTERNL extern MSC_EXTRA
 
+EXTERNL int
+NCD3_new_nc(struct NC**);
 
 /* WARNING: this signature differs from external nc_open API*/
 EXTERNL int

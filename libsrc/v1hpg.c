@@ -1083,7 +1083,6 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 /* End NC_var */
 /* Begin NC */
 
-
 /*
  * Recompute the shapes of all variables
  * Sets ncp->begin_var to start of first variable.
@@ -1159,7 +1158,6 @@ NC_computeshapes(NC *ncp)
 	
 	return(ENOERR);
 }
-
 
 /* How much space in the header is required for the NC data structure? */
 size_t

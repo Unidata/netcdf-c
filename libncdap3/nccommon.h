@@ -1,22 +1,13 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/ncdap.h,v 1.47 2010/05/27 21:34:09 dmh Exp $
- *********************************************************************/
-#ifndef NCDAP_H
-#define NCDAP_H 1
+  *   Copyright 1993, UCAR/Unidata
+  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+  *   $Header: /upc/share/CVS/netcdf-3/libnccommon/nccommon.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
+  *********************************************************************/
+#ifndef NCCOMMON_H
+#define NCCOMMON_H 1
 
-#include "oc.h"
-#include "dapurl.h"
-
-#include "ncbytes.h"
-#include "nclist.h"
-#include "nchashmap.h"
-
-#include "dapdebug.h"
-#include "daputil.h"
-
-#undef OCCOMPILEBYDEFAULT
+/* It is important to track error status as coming from nc or oc*/
+typedef int NCerror; /* OCerror is already defined*/
 
 #ifndef BOOL
 #define BOOL int
@@ -24,24 +15,6 @@
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
-#endif
-
-#define PSEUDOFILE
-
-#define DEFAULTSTRINGLENGTH 64
-/* The sequence limit default is zero because
-   most servers do not implement projections
-   on sequences.
-*/
-#define DEFAULTSEQLIMIT 0
-
-#ifndef USE_NETCDF4
-#define	NC_UBYTE 	7	/* unsigned 1 byte int */
-#define	NC_USHORT 	8	/* unsigned 2-byte int */
-#define	NC_UINT 	9	/* unsigned 4-byte int */
-#define	NC_INT64 	10	/* signed 8-byte int */
-#define	NC_UINT64 	11	/* unsigned 8-byte int */
-#define	NC_STRING 	12	/* string */
 #endif
 
 /* Use an extended version of the netCDF-4 type system */
@@ -55,15 +28,37 @@
 #define NC_Dimension	56
 #define NC_Primitive	57
 
+#undef OCCOMPILEBYDEFAULT
+
+#define DEFAULTSTRINGLENGTH 64
+/* The sequence limit default is zero because
+   most servers do not implement projections
+   on sequences.
+*/
+#define DEFAULTSEQLIMIT 0
+
+/**************************************************/
+/* sigh, do the forwards */
+struct NCDAP3;
+struct NCDAPCOMMON;
+struct NCprojection;
+struct NCselection;
+struct Getvara;
+struct NCcachenode;
+struct NCcache;
+struct NCslice;
+struct NCsegment;
+struct Getvara;
+/**************************************************/
 /*
 Collect single bit flags that
 affect the operation of the system.
 */
 
 typedef unsigned int NCFLAGS;
-#  define SETFLAG(drno,flag) ((drno)->controls.flags |= (flag))
-#  define CLRFLAG(drno,flag) ((drno)->controls.flags &= ~(flag))
-#  define FLAGSET(drno,flag) (((drno)->controls.flags & (flag)) != 0)
+#  define SETFLAG(controls,flag) ((controls.flags) |= (flag))
+#  define CLRFLAG(controls,flag) ((controls.flags) &= ~(flag))
+#  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
 
 /* Base translations */
 #define NCF_NC3      (0x01)    /* DAP->netcdf-3 */
@@ -85,7 +80,6 @@ typedef unsigned int NCFLAGS;
 #define NCF_UNCONSTRAINABLE (0x100) /* Not a constrainable URL */
 #define NCF_SHOWFETCH       (0x200) /* show fetch calls */
 
-
 /* Currently, defalt is on */
 #define DFALTCACHEFLAG (0)
 
@@ -98,15 +92,6 @@ struct NCTMODEL {
     char* model;
     unsigned int flags;
 };
-
-/* sigh, do the forwards */
-struct NCprojection;
-struct NCselection;
-struct Getvara;
-struct NCcachenode;
-struct NCcache;
-struct NCslice;
-struct NCsegment;
 
 typedef struct NCconstraint {
     NClist* projections;
@@ -133,15 +118,16 @@ typedef struct NCcache {
     NClist* nodes; /* cache nodes other than prefetch */
 } NCcache;
 
-/* The DAP packet info*/
-typedef struct NCDAP {
+/**************************************************/
+/* The DAP packet info from OC */
+typedef struct NCOC {
     OCconnection conn;
     char* urltext; /* as given to nc3d_open*/
     DAPURL url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
     NCconstraint constraint; /* merge of dap and nc constraints */
     NCconstraint dapconstraint; /* from url */
-} NCDAP;
+} NCOC;
 
 typedef struct NCCDF {
     struct CDFnode* ddsroot; /* unconstrained dds */
@@ -166,16 +152,16 @@ typedef struct NCCDF {
     NClist*  usertypes; /* nodes which will represent netcdf types */
 } NCCDF;
 
-typedef struct NCDRNO {
-    void*  controller;   /* cross link to controlling structure (e.g. NC*) */
-    NCCDF cdf;
-    NCDAP dap;
-    /* Control flags and parameters */
-    NCCONTROLS controls;
-    char* nciofile;  /* used to fake out ncio */
-    int   nciofd;
-} NCDRNO;
+/* Define a structure holding common info for NCDAP{3,4} */
 
+typedef struct NCDAPCOMMON {
+    NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
+    NCCDF cdf;
+    NCOC  oc;
+    NCCONTROLS controls; /* Control flags and parameters */
+} NCDAPCOMMON;
+
+/**************************************************/
 /* Create our own node tree to mimic ocnode trees*/
 
 /* Each root CDFnode contains info about the whole tree */
@@ -184,7 +170,7 @@ typedef struct CDFtree {
     OCdxd occlass;
     NClist* nodes; /* all nodes in tree*/
     struct CDFnode* root; /* cross link */
-    NCDRNO*          owner;
+    struct NCDAPCOMMON*          owner;
     /* Classification flags */
     int regridded; /* Was this tree passed thru regrid3? */
 } CDFtree;
@@ -290,50 +276,46 @@ typedef struct CDFnode {
     unsigned long    estimatedsize; /* > 0 Only for var nodes */
 } CDFnode;
 
-/* It is important to track error status as coming from nc or oc*/
-typedef int NCerror; /* OCerror is already defined*/
+/**************************************************/
+/* Give PSEUDOFILE a value */
+#define PSEUDOFILE "/tmp/pseudofileXXXXXX"
+
+/* Replacement for strdup (in libsrc) */
+#ifdef HAVE_STRDUP
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+extern char* nulldup(const char*);
+#endif
+
+#define nulllen(s) (s==NULL?0:strlen(s))
+#define nullstring(s) (s==NULL?"(null)":s)
 
 /**************************************************/
+/* Shared procedures */
 
-extern struct NCTMODEL nctmodels[];
+/* From ncdap3.c*/
+extern NCerror cleanNCDAP3(struct NCDAP3* drno);
+extern NCerror cleanNCDAPCOMMON(struct NCDAPCOMMON*);
+extern NCerror fetchtemplatemetadata3(NCDAPCOMMON* drno);
 
-/**************************************************/
-
-/* From: ncdap3.c*/
-extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
-extern int nc3d_close(int ncid);
-extern NCerror freeNCDRNO3(NCDRNO* state);
-extern int nc3dinitialize(void);
-extern NCerror fetchtemplatemetadata3(NCDRNO* drno);
-extern NCerror fetchconstrainedmetadata3(NCDRNO* drno);
-extern NCerror regrid3(CDFnode* ddsroot, CDFnode* template, NClist*);
-extern NCerror imprint3(CDFnode* dstroot, CDFnode* srcroot);
-extern void unimprint3(CDFnode* root);
-extern NCerror imprintself3(CDFnode* root);
-extern void setvisible(CDFnode* root, int visible);
-
-/* From: dapcvt.c*/
-extern NCerror dapconvert3(nc_type, nc_type, char*, char*, size_t);
-extern int dapcvtattrval3(nc_type, void*, NClist*);
-
-/* error.c*/
+/* From error.c*/
 extern NCerror ocerrtoncerr(OCerror);
 
 /* From: common34.c */
-extern NCerror fixgrid34(NCDRNO* drno, CDFnode* grid);
-extern NCerror computecdfinfo34(NCDRNO*, NClist*);
+extern NCerror fixgrid34(struct NCDAPCOMMON* drno, CDFnode* grid);
+extern NCerror computecdfinfo34(struct NCDAPCOMMON*, NClist*);
 extern char* cdfname34(char* basename);
-extern NCerror augmentddstree34(NCDRNO*, NClist*);
-extern NCerror clonecdfdims34(NCDRNO*);
-extern NCerror computecdfdimnames34(NCDRNO*);
-extern NCerror buildcdftree34(NCDRNO*, OCobject, OCdxd, CDFnode**);
-extern CDFnode* makecdfnode34(NCDRNO*, char* nm, OCtype,
+extern NCerror augmentddstree34(struct NCDAPCOMMON*, NClist*);
+extern NCerror clonecdfdims34(struct NCDAPCOMMON*);
+extern NCerror computecdfdimnames34(struct NCDAPCOMMON*);
+extern NCerror buildcdftree34(struct NCDAPCOMMON*, OCobject, OCdxd, CDFnode**);
+extern CDFnode* makecdfnode34(struct NCDAPCOMMON*, char* nm, OCtype,
 			    /*optional*/ OCobject ocnode, CDFnode* container);
 extern void freecdfroot34(CDFnode*);
 
-extern NCerror findnodedds34(NCDRNO* drno, CDFnode* ddssrc);
-extern NCerror makegetvar34(struct NCDRNO*, struct CDFnode*, void*, nc_type, struct Getvara**);
-extern NCerror applyclientparams34(NCDRNO* drno);
+extern NCerror findnodedds34(struct NCDAPCOMMON* drno, CDFnode* ddssrc);
+extern NCerror makegetvar34(struct NCDAPCOMMON*, struct CDFnode*, void*, nc_type, struct Getvara**);
+extern NCerror applyclientparams34(struct NCDAPCOMMON* drno);
 extern NCerror attach34(CDFnode* xroot, CDFnode* ddstarget);
 extern NCerror attachall34(CDFnode* xroot, CDFnode* ddsroot);
 extern NCerror attachsubset34(CDFnode*, CDFnode*);
@@ -348,46 +330,13 @@ extern void freencprojections(NClist* plist);
 extern void freencprojection1(struct NCprojection* p);
 extern void freencselections(NClist* slist);
 extern size_t estimatedataddssize34(CDFnode* datadds);
+extern void restrictprojection34(struct NCDAPCOMMON* drno, NClist*, NClist*);
 
 extern NClist* CEparse(char* input);
 
-/* From constraints3.c */
-extern void makewholesegment3(struct NCsegment*,struct CDFnode*);
-extern void makewholeslice3(struct NCslice* slice, struct CDFnode* dim);
-
-/* Give PSEUDOFILE a value */
-#ifdef PSEUDOFILE
-#undef PSEUDOFILE
-#define PSEUDOFILE "/tmp/pseudofileXXXXXX"
-#endif
-
-/* Replacement for strdup (in libsrc) */
-#ifdef HAVE_STRDUP
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char* nulldup(const char*);
-#endif
-
-#define nulllen(s) (s==NULL?0:strlen(s))
-#define nullstring(s) (s==NULL?"(null)":s)
-
-
-/**************************************************/
 /* Add an extra function whose sole purpose is to allow
    configure(.ac) to test for the presence of thiscode.
 */
 extern int nc__opendap(void);
 
-#ifdef IGNORE
-/* allow access dapurlparse and params without exposing dapurl.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-#endif
-
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-
-
-#endif /*NCDAP_H*/
+#endif /*NCCOMMON_H*/

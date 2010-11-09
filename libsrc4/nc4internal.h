@@ -290,8 +290,11 @@ typedef struct
     * netcdf-4 files. The ext_ncid contains the ncid for the root
     * group (i.e. group zero). */
 
-/* Warning: fields down to END COMMON must be same
-   for NC (libsrc/nc.h) and NC_FILE_INFO (libsrc4/nc4internal.h)
+/* Warning: fields from BEGIN COMMON to END COMMON must be same for:
+	1. NC (libsrc/nc.h)
+	2. NC_FILE_INFO (libsrc4/nc4internal.h)
+	3. NCDAP3 (libncdap3/ncdap3.h)
+	4. NCDAP4 (libncdap4/ncdap4.h)
 */
 typedef struct NC_FILE_INFO
 {
@@ -299,8 +302,8 @@ typedef struct NC_FILE_INFO
    int ext_ncid;
    int int_ncid;
    struct NC_Dispatch* dispatch;	
-   struct NCDRNO* drno;
    struct NC_Dispatch4* dapdispatch;
+   char* path;
 /*END COMMON*/
 
 #ifdef USE_PNETCDF
@@ -384,7 +387,7 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 /*int var_info_nc(NC_PG_T pg, hid_t dataset, NC_VAR_INFO_T *var_info);*/
 
 /* These list functions add and delete vars, atts, and files. */
-int nc4_file_list_add(NC_FILE_INFO_T**);
+int nc4_file_list_add(NC_FILE_INFO_T**, struct NC_Dispatch*);
 void nc4_file_list_free(void);
 
 int nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode);

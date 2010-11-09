@@ -22,33 +22,46 @@
 #define DFALTMODELFLAGS (NCF_NC3|NCF_NCDAP)
 
 /* Mnemonic */
-#define getgrpid(nfi) ((nfi)->ext_ncid)
-#define getncid(drno) (((NC_FILE_INFO_T*)((drno)->controller))->ext_ncid)
+//#define getgrpid(nfi) ((nfi)->ext_ncid)
+#define getncid(drno) (((NC*)drno)->ext_ncid)
 
 ptrdiff_t dapsinglestride4[NC_MAX_VAR_DIMS];
 
 extern NC_FILE_INFO_T* nc_file;
 
-extern NCerror freeNCDRNO4(NCDRNO* drno);
+extern NCerror cleanNCDAP44(NCDAP4* drno);
 
 static void nc4dinitialize(void);
-static NCerror buildnc4(NC_FILE_INFO_T* nfi);
-static NCerror builddims4(NCDRNO*);
-static NCerror buildtypes4(NCDRNO*);
-static NCerror buildtypes4r(NCDRNO* drno, CDFnode* tnode);
-static NCerror buildvars4(NCDRNO*);
-static NCerror buildglobalattrs4(NCDRNO*, int, CDFnode* root);
-static NCerror buildattribute4a(NCDRNO* drno, NCattribute* att, int varid, int ncid);
-static NCerror showprojection4(NCDRNO* drno, CDFnode* var);
-static size_t estimatesizes4r(NCDRNO* drno, CDFnode* node);
-static void estimatesizes4(NCDRNO* drno);
-static NCerror fixzerodims4(NCDRNO* drno);
-static NCerror fixzerodims4r(NCDRNO* drno, CDFnode* node);
-static NCerror cvtunlimiteddim(NCDRNO* drno, CDFnode* dim);
-static void applyclientparamcontrols4(NCDRNO* drno);
+static NCerror buildnc4(NCDAP4* drno);
+static NCerror builddims4(NCDAP4*);
+static NCerror buildtypes4(NCDAP4*);
+static NCerror buildtypes4r(NCDAP4* drno, CDFnode* tnode);
+static NCerror buildvars4(NCDAP4*);
+static NCerror buildglobalattrs4(NCDAP4*, int, CDFnode* root);
+static NCerror buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid);
+static NCerror showprojection4(NCDAP4* drno, CDFnode* var);
+static size_t estimatesizes4r(NCDAP4* drno, CDFnode* node);
+static void estimatesizes4(NCDAP4* drno);
+static NCerror fixzerodims4(NCDAP4* drno);
+static NCerror fixzerodims4r(NCDAP4* drno, CDFnode* node);
+static NCerror cvtunlimiteddim(NCDAP4* drno, CDFnode* dim);
+static void applyclientparamcontrols4(NCDAP4* drno);
 
 static int nc4dinitialized = 0;
 
+/**************************************************/
+int
+NCD4_new_nc(NC** ncpp)
+{
+    NCDAP4* ncp;
+    /* Allocate memory for this info. */
+    if (!(ncp = calloc(1, sizeof(struct NCDAP4)))) 
+       return NC_ENOMEM;
+    if(ncpp) *ncpp = (NC*)ncp;
+    return NC_NOERR;
+}
+
+/**************************************************/
 /* See ncd4dispatch.c for other version */
 int
 NCD4_open(const char * path, int mode,
@@ -59,19 +72,14 @@ NCD4_open(const char * path, int mode,
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     DAPURL tmpurl;
-    NCDRNO* drno = NULL; /* reuse the ncdap3 structure*/
+    NCDAP4* drno = NULL; /* reuse the ncdap3 structure*/
     NC_HDF5_FILE_INFO_T* h5 = NULL;
-    NC_FILE_INFO_T* nc = NULL;
     NC_GRP_INFO_T *grp = NULL;
     int ncid = -1;
     char* modifiedpath = NULL;
     const char* value;
-#ifdef PSEUDOFILE
     int fd;
     char* tmpname = NULL;
-#else
-    short fileid;
-#endif
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
@@ -103,39 +111,14 @@ ocdebug = 1;
     modifiedpath = nulldup(path);
 #endif
 
-    /* Setup tentative DRNO state*/
-    drno = (NCDRNO*)emalloc(sizeof(NCDRNO));
-    MEMCHECK(drno,NC_ENOMEM);
-    drno->dap.urltext = modifiedpath;
-    drno->cdf.separator = ".";
-    dapurlparse(drno->dap.urltext,&drno->dap.url);
-    if(!constrainable34(&drno->dap.url))
-	SETFLAG(drno,NCF_UNCONSTRAINABLE);
-    drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    drno->cdf.cache.cachelimit = DFALTCACHELIMIT;
-    drno->cdf.cache.cachesize = 0;
-    drno->cdf.cache.nodes = nclistnew();
-    drno->cdf.cache.cachecount = DFALTCACHECOUNT;
-#ifdef HAVE_GETRLIMIT
-    { struct rlimit rl;
-      if(getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-	drno->cdf.cache.cachecount = (size_t)(rl.rlim_cur / 2);
-      }
-    }
-#endif
-
-    /* Re-scan the client parameters */
-    applyclientparamcontrols4(drno);
-
-#ifdef PSEUDOFILE
+    /* Use NC4 code to establish a pseudo file */
     tmpname = nulldup(PSEUDOFILE);
     fd = mkstemp(tmpname);
     if(fd < 0) {THROWCHK(errno); goto fail;}
     /* Now, use the file to create the hdf5 file */
     ncstat = NC4_create(tmpname,NC_NETCDF4|NC_CLOBBER,
-			0,0,NULL,0,NULL,dispatch,(NC**)&nc);
-    ncid = nc->ext_ncid;
+			0,0,NULL,0,NULL,dispatch,(NC**)&drno);
+    ncid = drno->info.ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
     efree(tmpname);
@@ -144,46 +127,45 @@ ocdebug = 1;
     if(ncstat)
 	{THROWCHK(ncstat); goto fail;}
     /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5);
+    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat)
 	{THROWCHK(ncstat); goto fail;}
-#else /*!PSEUDOFILE*/
-    /* Allocate the storage for this file info struct, and fill it with zeros*/
-    /* WARNING: this stores struct ptr at front of global list "nc_file" */
-    fileid = drno_delta_file_id(1);
-    if((ncstat = nc4_file_list_add(fileid << ID_SHIFT)))
-	goto fail;
-    nc = nc_file;
 
-    nc->int_ncid = nc->ext_ncid;
-    ncid = nc->int_ncid;
-
-    /* Add necessary structs to hold netcdf-4 file data. */
-    if((ncstat = nc4_nc4f_list_add(nc, path, mode)))
-	{THROWCHK(ncstat); goto fail;}
-    ASSERT((nc->nc4_info && nc->nc4_info->root_grp));
-
-    /* get the h5 structure*/
-    h5 = nc->nc4_info;
-
-    /* Mark as indef state and writable */
-    h5->flags |= NC_INDEF;
-    h5->no_write = 0;
+    /* Setup tentative DRNO state*/
+    drno->dap.controller = (NC*)drno;
+    drno->dap.oc.urltext = modifiedpath;
+    drno->dap.cdf.separator = ".";
+    dapurlparse(drno->dap.oc.urltext,&drno->dap.oc.url);
+    if(!constrainable34(&drno->dap.oc.url))
+	SETFLAG(drno->dap.controls,NCF_UNCONSTRAINABLE);
+    drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
+    drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
+    drno->dap.cdf.cache.cachelimit = DFALTCACHELIMIT;
+    drno->dap.cdf.cache.cachesize = 0;
+    drno->dap.cdf.cache.nodes = nclistnew();
+    drno->dap.cdf.cache.cachecount = DFALTCACHECOUNT;
+#ifdef HAVE_GETRLIMIT
+    { struct rlimit rl;
+      if(getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+	drno->dap.cdf.cache.cachecount = (size_t)(rl.rlim_cur / 2);
+      }
+    }
 #endif
+    drno->info.dispatch = dispatch;
 
-    nc->drno = drno;
-    drno->controller = (void*)nc; /* cross link*/
-    nc->dispatch = dispatch;
-    if(ncpp) *ncpp = (NC*)nc;
+    /* Re-scan the client parameters */
+    applyclientparamcontrols4(drno);
 
-    ocstat = oc_open(drno->dap.urltext,&drno->dap.conn);
+    if(ncpp) *ncpp = (NC*)drno;
+
+    ocstat = oc_open(drno->dap.oc.urltext,&drno->dap.oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
 
-    if(paramcheck34(drno,"show","fetch"))
-	drno->controls.flags |= NCF_SHOWFETCH;
+    if(paramcheck34(&drno->dap,"show","fetch"))
+	SETFLAG(drno->dap.controls,NCF_SHOWFETCH);
 
     /* Turn on logging */
-    value = oc_clientparam_get(drno->dap.conn,"log");
+    value = oc_clientparam_get(drno->dap.oc.conn,"log");
     if(value != NULL) {
 	oc_loginit();
         oc_setlogging(1);
@@ -191,7 +173,7 @@ ocdebug = 1;
     }
 
     /* fetch and build the unconstrained DDS */
-    ncstat = fetchtemplatemetadata3(drno);
+    ncstat = fetchtemplatemetadata3(&drno->dap);
     if(ncstat != NC_NOERR) goto fail;
 
     /* Processing the constraints is a multi-step action.
@@ -200,11 +182,11 @@ ocdebug = 1;
           names
        3. parse and merge the dap and nc constraints
     */
-    ncstat = buildconstraints3(drno);
+    ncstat = buildconstraints3(&drno->dap);
     if(ncstat != NC_NOERR) goto fail;
 
     /* fetch and build the constrained DDS */
-    ncstat = fetchconstrainedmetadata3(drno);
+    ncstat = fetchconstrainedmetadata3(&drno->dap);
     if(ncstat != NC_NOERR) goto fail;
 
     /* The following actions are WRT to the
@@ -219,7 +201,7 @@ ocdebug = 1;
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
-    ncstat = applyclientparams34(drno);
+    ncstat = applyclientparams34(&drno->dap);
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Accumulate the nodes representing user types*/
@@ -231,7 +213,7 @@ ocdebug = 1;
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Re-compute the dimension names*/
-    ncstat = computecdfdimnames34(drno);
+    ncstat = computecdfdimnames34(&drno->dap);
     if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* deal with zero-size dimensions */
@@ -241,11 +223,11 @@ ocdebug = 1;
     /* Estimate the variable sizes */
     estimatesizes4(drno);
 
-    ncstat = buildnc4(nc);
+    ncstat = buildnc4(drno);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Do any necessary data prefetch */
-    ncstat = prefetchdata3(drno);
+    ncstat = prefetchdata3(&drno->dap);
     if(ncstat != NC_NOERR)
 	{THROWCHK(ncstat); goto fail;}
 
@@ -256,14 +238,8 @@ ocdebug = 1;
     return ncstat;
 
 fail:
-#ifdef PSEUDOFILE
-    if(nc != NULL) NC4_abort(nc->ext_ncid);
-#else
-    if(nc != NULL) {
-        nc4_file_list_del(nc);
-    }
-#endif
-    freeNCDRNO4(drno);
+    cleanNCDAP44(drno);
+    NC4_abort(drno->info.ext_ncid);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
@@ -271,41 +247,25 @@ fail:
 int
 NCD4_close(int ncid)
 {
-    NC_FILE_INFO_T *nc;
     NC_GRP_INFO_T *grp;
     NC_HDF5_FILE_INFO_T *h5;
-    NCDRNO* drno;
+    NCDAP4* drno = NULL;
     int ncstat = NC_NOERR;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
     /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5);
+    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
-    nc = grp->file;
-    ASSERT((nc));
-      
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
     oc_logclose();
 
-    /* Destroy/close the NCDRNO state */
-    drno = nc->drno;
-    freeNCDRNO4(drno);
-    nc->drno = NULL;
-
-#ifdef PSEUDOFILE
+    /* Destroy/close the NCDAP4 state */
+    cleanNCDAP44(drno);
     NC4_abort(ncid);
-#else    
-    /* Invoke the relevant parts of close_netcdf4_file() */
-    nc4_rec_grp_del(&h5->root_grp, h5->root_grp);
-    /* Free the nc4_info struct. */
-    nc_free(h5);
-    /* Delete this entry from our list of open files. */
-    nc4_file_list_del(nc);
-    drno_delta_numfiles(-1);
-#endif
+
     return THROW(ncstat);
 }
 
@@ -321,9 +281,9 @@ nc4dinitialize()
 }
 
 NCerror
-freeNCDRNO4(NCDRNO* drno)
+cleanNCDAP44(NCDAP4* drno)
 {
-    return freeNCDRNO3(drno);
+    return cleanNCDAPCOMMON(&drno->dap);
 }
 
 /*
@@ -331,12 +291,10 @@ Note: never use any of the libncdap3 code to call
 netcdf API functions because it will use the netcdf-3 API.
 */
 static NCerror
-buildnc4(NC_FILE_INFO_T* nfi)
+buildnc4(NCDAP4* drno)
 {
     NCerror ncstat = NC_NOERR;
-    NCDRNO* drno = nfi->drno;
-    CDFnode* dds = drno->cdf.ddsroot;
-
+    CDFnode* dds = drno->dap.cdf.ddsroot;
     ncstat = buildglobalattrs4(drno,getncid(drno),dds);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     ncstat = builddims4(drno);
@@ -351,21 +309,20 @@ fail:
 
 /* Define dim info for top-level dims */
 static NCerror
-builddims4(NCDRNO* drno)
+builddims4(NCDAP4* drno)
 {
     unsigned int i,j;
     NCerror ncstat = NC_NOERR;
     int dimid;
-    NC_FILE_INFO_T* nfi = (NC_FILE_INFO_T*)drno->controller;
-    int ncid = getgrpid(nfi);
+    int ncid = getncid(drno);
     NClist* dimset = nclistnew();
 
     /* collect all dimensions from variables,
        including duplicates; note we use array.dimensions
        not array.ncdimensions.
     */
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(drno->dap.cdf.varnodes,i);
         if(!var->visible) continue;
 	nclistextend(dimset,nclistlength(var->array.dimensions));
         for(j=0;j<nclistlength(var->array.dimensions);j++) {
@@ -408,14 +365,14 @@ fail:
 }
 
 static NCerror
-buildtypes4(NCDRNO* drno)
+buildtypes4(NCDAP4* drno)
 {
     unsigned int i;
     NCerror ncstat = NC_NOERR;
 
     /* Define user types in postorder */
-    for(i=0;i<nclistlength(drno->cdf.usertypes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(drno->cdf.usertypes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.usertypes);i++) {
+	CDFnode* node = (CDFnode*)nclistget(drno->dap.cdf.usertypes,i);
 	if(!node->visible) continue;
 	ncstat = buildtypes4r(drno,node);
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
@@ -425,7 +382,7 @@ fail:
 }
 
 static NCerror
-buildtypes4r(NCDRNO* drno, CDFnode* tnode)
+buildtypes4r(NCDAP4* drno, CDFnode* tnode)
 {
     unsigned int i,j;
     int typeid;
@@ -504,18 +461,17 @@ done:
 
 /* Simultaneously build any associated attributes */
 static NCerror
-buildvars4(NCDRNO* drno)
+buildvars4(NCDAP4* drno)
 {
     /* Variables (in this translation) are (mostly)
        the direct fields of the Dataset*/
     unsigned int i,j;
     NCerror ncstat = NC_NOERR;
     int varid;
-    NC_FILE_INFO_T* nfi = (NC_FILE_INFO_T*)drno->controller;
-    int ncid = getgrpid(nfi);
+    int ncid = getncid(drno);
 
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(drno->dap.cdf.varnodes,i);
 	NClist* vardims = var->array.dimensions;
 	int dimids[NC_MAX_VAR_DIMS];
 	int ncrank,dimindex=0;
@@ -547,7 +503,7 @@ buildvars4(NCDRNO* drno)
 	    }
 	}
 	/* Tag the variable with its DAP path */
-	if(paramcheck34(drno,"show","projection"))
+	if(paramcheck34(&drno->dap,"show","projection"))
 	    showprojection4(drno,var);
     }
     
@@ -556,7 +512,7 @@ fail:
 }
 
 static NCerror
-buildglobalattrs4(NCDRNO* drno, int ncid, CDFnode* root)
+buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
 {
     int i;
     const char* txt;
@@ -575,21 +531,21 @@ buildglobalattrs4(NCDRNO* drno, int ncid, CDFnode* root)
        on show= clientparams*/
     /* Ignore failures*/
 
-    if(paramcheck34(drno,"show","translate")) {
+    if(paramcheck34(&drno->dap,"show","translate")) {
         /* Add a global attribute to show the translation */
         ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_translate",
 	           strlen("netcdf-4"),"netcdf-4");
     }
 
-    if(paramcheck34(drno,"show","url")) {
-	if(drno->dap.urltext != NULL)
+    if(paramcheck34(&drno->dap,"show","url")) {
+	if(drno->dap.oc.urltext != NULL)
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_url",
-				       strlen(drno->dap.urltext),drno->dap.urltext);
+				       strlen(drno->dap.oc.urltext),drno->dap.oc.urltext);
     }
-    if(paramcheck34(drno,"show","dds")) {
+    if(paramcheck34(&drno->dap,"show","dds")) {
 	txt = NULL;
-	if(drno->cdf.ddsroot != NULL)
-  	    txt = oc_inq_text(drno->dap.conn,drno->cdf.ddsroot->dds);
+	if(drno->dap.cdf.ddsroot != NULL)
+  	    txt = oc_inq_text(drno->dap.oc.conn,drno->dap.cdf.ddsroot->dds);
 	if(txt != NULL) {
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
@@ -598,10 +554,10 @@ buildglobalattrs4(NCDRNO* drno, int ncid, CDFnode* root)
 	    efree(nltxt);
 	}
     }
-    if(paramcheck34(drno,"show","das")) {
+    if(paramcheck34(&drno->dap,"show","das")) {
 	txt = NULL;
-	if(drno->dap.ocdasroot != OCNULL)
-  	    txt = oc_inq_text(drno->dap.conn,drno->dap.ocdasroot);
+	if(drno->dap.oc.ocdasroot != OCNULL)
+  	    txt = oc_inq_text(drno->dap.oc.conn,drno->dap.oc.ocdasroot);
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
@@ -615,7 +571,7 @@ fail:
 }
 
 static NCerror
-buildattribute4a(NCDRNO* drno, NCattribute* att, int varid, int ncid)
+buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid)
 {
     NCerror ncstat = NC_NOERR;
     char* cname = cdflegalname3(att->name);
@@ -635,7 +591,7 @@ buildattribute4a(NCDRNO* drno, NCattribute* att, int varid, int ncid)
 }
 
 static NCerror
-showprojection4(NCDRNO* drno, CDFnode* var)
+showprojection4(NCDAP4* drno, CDFnode* var)
 {
     int i,rank;
     NCerror ncstat = NC_NOERR;
@@ -686,7 +642,7 @@ cdftotalsize4(NClist* dimensions)
 }
 
 static size_t
-estimatesizes4r(NCDRNO* drno, CDFnode* node)
+estimatesizes4r(NCDAP4* drno, CDFnode* node)
 {
     int i;
     size_t size = 0;
@@ -733,10 +689,10 @@ fprintf(stderr,"estimatedsize: %s%s/%u = %lu (= %lu = %lu * %lu)\n",
 
 
 static void
-estimatesizes4(NCDRNO* drno)
+estimatesizes4(NCDAP4* drno)
 {
     size_t totalsize;
-    CDFnode* root = drno->cdf.ddsroot;
+    CDFnode* root = drno->dap.cdf.ddsroot;
     /* Recursively compute the sizes of each node */
     totalsize = estimatesizes4r(drno,root);
 }
@@ -746,19 +702,19 @@ For variables which have a zero size dimension,
 either use unlimited, or make them invisible.
 */
 static NCerror
-fixzerodims4(NCDRNO* drno)
+fixzerodims4(NCDAP4* drno)
 {
     int i;
     NCerror ncstat = NC_NOERR;
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(drno->dap.cdf.varnodes,i);
 	ncstat = fixzerodims4r(drno,var);
     }
     return ncstat;
 }
 
 static NCerror
-fixzerodims4r(NCDRNO* drno, CDFnode* node)
+fixzerodims4r(NCDAP4* drno, CDFnode* node)
 {
     int i;
     NCerror ncstat = NC_NOERR;
@@ -785,33 +741,33 @@ fixzerodims4r(NCDRNO* drno, CDFnode* node)
 
 /* Convert a dimension to unlimited */
 static NCerror
-cvtunlimiteddim(NCDRNO* drno, CDFnode* dim)
+cvtunlimiteddim(NCDAP4* drno, CDFnode* dim)
 {
     DIMFLAGSET(dim,CDFDIMUNLIM);
-    drno->cdf.unlimited = dim;
+    drno->dap.cdf.unlimited = dim;
     return NC_NOERR;
 }
 
 static void
-applyclientparamcontrols4(NCDRNO* drno)
+applyclientparamcontrols4(NCDAP4* drno)
 {
     NClist* params = NULL;
     const char* value;
 
     /* Get client parameters */
-    params = dapparamdecode(drno->dap.url.params);
+    params = dapparamdecode(drno->dap.oc.url.params);
 
     /* enable/disable caching */
     value = dapparamlookup(params,"cache");    
     if(value == NULL)
-	drno->controls.flags |= DFALTCACHEFLAG;
+	SETFLAG(drno->dap.controls,DFALTCACHEFLAG);
     else if(strlen(value) == 0)
-	drno->controls.flags |= NCF_CACHE;
+	SETFLAG(drno->dap.controls,NCF_CACHE);
     else if(strcmp(value,"1")==0 || value[0] == 'y')
-	drno->controls.flags |= NCF_CACHE;
+	SETFLAG(drno->dap.controls,NCF_CACHE);
 
     /* Set the translation base  */
-    drno->controls.flags |= (NCF_NC4);
+    SETFLAG(drno->dap.controls,NCF_NC4);
 
     /* No longer need params */
     dapparamfree(params);

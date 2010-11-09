@@ -186,5 +186,6 @@ ncbytesnull(NCbytes* bb)
 {
     ncbytesappend(bb,'\0');
     bb->length--;
+    return 1;
 }
 

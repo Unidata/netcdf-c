@@ -251,7 +251,15 @@ typename: IDENT
 
 type_or_attr_decl: typedecl {} | attrdecl ';' {} ;
 
-typedecl: enumdecl ';' | compounddecl ';' | vlendecl ';' | opaquedecl ';' ;
+typedecl:
+	  enumdecl optsemicolon
+	| compounddecl optsemicolon
+	| vlendecl optsemicolon
+	| opaquedecl optsemicolon
+	;
+
+optsemicolon: /*empty*/ | ';' ;
+
 
 enumdecl: primtype ENUM typename
           '{' enumidlist '}'
@@ -974,9 +982,12 @@ makeconstdata(nc_type nctype)
         case NC_BYTE: con.value.int8v = byte_val; break;
         case NC_SHORT: con.value.int16v = int16_val; break;
         case NC_INT: con.value.int32v = int32_val; break;
-        case NC_FLOAT: con.value.floatv = float_val; break;
-        case NC_DOUBLE: con.value.doublev = double_val; break;
-
+        case NC_FLOAT:
+	    con.value.floatv = float_val;
+	    break;
+        case NC_DOUBLE:
+	    con.value.doublev = double_val;
+	    break;
         case NC_STRING: { /* convert to a set of chars*/
 	    int len;
 	    len = strlen(lextext);

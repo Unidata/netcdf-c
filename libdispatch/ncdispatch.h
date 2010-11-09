@@ -178,7 +178,12 @@ struct NC_Dispatch {
 
 int model; /* one of the NC_DISPATCH #'s above */
 
-/* Warning: these two will create appropriate NC instances */
+int (*new_nc)(struct NC**); /* Create an nc instance;free is not needed,
+				because it can be done by close and abort*/
+
+/* Warning: these two will create appropriate NC instances
+   using new_nc dispatch function
+*/
 int (*create)(const char *path, int cmode,
 	  size_t initialsz, int basepe, size_t *chunksizehintp, 
 	  int use_parallel, void* parameters,
@@ -199,7 +204,6 @@ int (*set_base_pe)(int,int);
 int (*inq_format)(int,int*);
 
 int (*inq)(int,int*,int*,int*,int*);
-int (*inq_path)(int, size_t *, char*);
 int (*inq_type)(int, nc_type, char*, size_t*);
 
 int (*def_dim)(int, const char*, size_t, int*);

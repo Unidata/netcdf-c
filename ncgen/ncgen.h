@@ -37,6 +37,16 @@
 /* Extend nc types with generic fill value*/
 #define NC_FILLVALUE    31
 
+/* Must be a better way to do this */
+#ifndef INFINITE
+#define NANF (0.0f/0.0f)
+#define NAN (0.0/0.0)
+#define INFINITEF (1.0f/0.0f)
+#define NEGINFINITEF (-INFINITEF)
+#define INFINITE (1.0/0.0)
+#define NEGINFINITE (-INFINITEF)
+#endif
+
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
 */

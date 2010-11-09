@@ -34,9 +34,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libncdap3 \
 	      -I$(top_srcdir)/libsrc4 \
 	      -I$(top_srcdir)/libsrc
 
-if INTERNAL_OCLIB
-  AM_CPPFLAGS += -I${top_srcdir}/oc
-endif # INTERNAL_OCLIB
+AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
 
@@ -51,9 +49,7 @@ if BUILD_V2
 LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
 
-if INTERNAL_OCLIB
-  LDADD += ${top_builddir}/oc/liboc.la
-endif # INTERNAL_OCLIB
+LDADD += ${top_builddir}/oc/liboc.la
 
 LDADD += @EXTERN_LDFLAGS@
 
