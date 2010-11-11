@@ -34,7 +34,7 @@
  Installing the C++ interface requires the additional flag --enable-netcdf-4 to be used during the 
  configure stage of the installation, ie example enter
 \verbatim
- ./configure --enable-netcdf-4 [plus other options]
+ ./configure --enable-cxx-4 [plus other options]
 \endverbatim
  To build the C++ interface guide, change to the cxx4 directory of the netCDF distribution and enter 
 \verbatim
