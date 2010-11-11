@@ -356,7 +356,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* Allocate the storage for this file info struct, and fill it with
       zeros. This add the file metadata to the front of the global
       nc_file list. */
-   if ((res = nc4_file_list_add(&nc_file)))
+   if ((res = nc4_file_list_add(&nc_file,dispatch)))
       return res;
 
    /* Apply default create format. */
@@ -2387,7 +2387,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Allocate the storage for this file info struct, and fill it with
       zeros. */
-   if ((res = nc4_file_list_add(&nc_file)))
+   if ((res = nc4_file_list_add(&nc_file,dispatch)))
       return res;
 
    /* Depending on the type of file, open it. */
@@ -2739,6 +2739,7 @@ NC4_abort(int ncid)
    {
       delete_file++;
       strcpy(path, nc->nc4_info->path);
+      /*strcpy(path, nc->path);*/
    }
 
    /* Free any resources the netcdf-4 library has for this file's
@@ -2868,26 +2869,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    return NC_NOERR;   
 }
 
-/* Learn the path used to open/create the file. */
-int
-NC4_inq_path(int ncid, size_t *pathlen, char *path)
-{
-   NC_FILE_INFO_T *nc;
-   NC_HDF5_FILE_INFO_T *h5;
-   NC_GRP_INFO_T *grp;
-   int retval;
-
-   /* Find file metadata. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-
-   if (pathlen)
-      *pathlen = strlen(h5->path);
-   if (path)
-      strcpy(path, h5->path);
-
-   return NC_NOERR;
-}
 
 /* This function will do the enddef stuff for a netcdf-4 file. */
 int

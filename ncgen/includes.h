@@ -52,4 +52,6 @@
 extern char* nulldup(const char*);
 #endif
 
+extern int specialconstants;
+
 #endif /* NCGEN_INCLUDES_H */

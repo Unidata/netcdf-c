@@ -11,7 +11,7 @@
 /* Forward */
 static NCerror buildattribute(char*,nc_type,NClist*,NCattribute**);
 static int mergedas1(OCconnection, CDFnode* dds, OCobject das);
-static NCerror dodsextra3(NCDRNO*, CDFnode*, NClist*);
+static NCerror dodsextra3(NCDAPCOMMON*, CDFnode*, NClist*);
 static int isglobalname3(char* name);
 
 #ifdef IGNORE
@@ -20,7 +20,7 @@ static int isglobalname3(char* name);
 */
 
 NCerror
-dapmerge3(NCDRNO* drno, CDFnode* node)
+dapmerge3(NCDAPCOMMON* nccomm, CDFnode* node)
 {
     unsigned int i;
     char* aname;
@@ -32,11 +32,11 @@ dapmerge3(NCDRNO* drno, CDFnode* node)
     NCattribute* att;
 
     if(node->dds == OCNULL) goto done;
-    OCHECK(oc_inq_nattr(drno->dap.conn,node->dds,&nattrs));
+    OCHECK(oc_inq_nattr(nccomm->conn,node->dds,&nattrs));
     if(nattrs == 0) goto done;
     if(node->attributes == NULL) node->attributes = nclistnew();
     for(i=0;i<nattrs;i++) {
-	ocstat = oc_inq_attr(drno->dap.conn,node->dds,i,
+	ocstat = oc_inq_attr(nccomm->conn,node->dds,i,
 			           &aname,
 			           &atype,
                                    &nvalues,
@@ -114,12 +114,12 @@ modify to capture such things as "strlen" and "dimname".
 */
 
 int
-dapmerge3(NCDRNO* drno, CDFnode* ddsroot, OCobject dasroot)
+dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCobject dasroot)
 {
     unsigned int i,j;
     NCerror ncerr = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = nccomm->oc.conn;
     unsigned int nsubnodes, nobjects;
     OCobject* dasobjects = NULL;
     NClist* dasglobals = nclistnew();
@@ -234,7 +234,7 @@ loop:
     }
 
     /* process DOD_EXTRA */
-    if(nclistlength(dodsextra) > 0) dodsextra3(drno,ddsroot,dodsextra);    
+    if(nclistlength(dodsextra) > 0) dodsextra3(nccomm,ddsroot,dodsextra);    
 
 done: /* cleanup*/
     efree(dasobjects);
@@ -333,13 +333,13 @@ done:
 }
 
 static NCerror
-dodsextra3(NCDRNO* drno, CDFnode* root, NClist* dodsextra)
+dodsextra3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* dodsextra)
 {
     int i,j;
     OCtype octype;
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = nccomm->oc.conn;
 
     for(i=0;i<nclistlength(dodsextra);i++) {
  	OCobject das = (OCobject)nclistget(dodsextra,i);
@@ -361,7 +361,7 @@ dodsextra3(NCDRNO* drno, CDFnode* root, NClist* dodsextra)
 	    OCHECK(oc_inq_dasattr_nvalues(conn,extranode,&ocnvalues));
 	    if(strcmp(dodsname,"Unlimited_Dimension")==0 && ocnvalues > 0) {
 	        OCHECK(oc_inq_dasattr(conn,extranode,0,NULL,&stringval));
-		drno->cdf.recorddim = stringval;
+		nccomm->cdf.recorddim = stringval;
 	    }
 	    efree(dodsname);
 	}

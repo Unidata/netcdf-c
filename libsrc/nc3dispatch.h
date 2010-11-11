@@ -78,6 +78,9 @@ NC3_open(const char *path, int mode,
          NC_Dispatch*, NC** ncp);
 
 EXTERNL int
+NC3_new_nc(NC**);
+
+EXTERNL int
 NC3_redef(int ncid);
 
 EXTERNL int
@@ -107,9 +110,6 @@ NC3_inq_format(int ncid, int *formatp);
 
 EXTERNL int
 NC3_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp);
-
-EXTERNL int
-NC3_inq_path(int, size_t *, char *);
 
 EXTERNL int
 NC3_inq_type(int, nc_type, char *, size_t *);

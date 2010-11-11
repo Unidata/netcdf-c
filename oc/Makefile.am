@@ -41,7 +41,12 @@ endif
 EXTRA_DIST = ${GRAMFILES}
 
 #Normally not invoked unless after maintainer-clean or deliberate deletion
-daptab.c daptab.h: dap.y
+daptab.c: dap.y
+	rm -f dap.tab.c dap.tab.h
+	bison --debug -d -p dap dap.y
+	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
+
+daptab.h: dap.y daptab.c
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h

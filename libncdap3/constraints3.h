@@ -6,12 +6,8 @@
 #ifndef CONSTRAINTS3_H
 #define CONSTRAINTS3_H 1
 
-extern NCerror buildvaraprojection3(NCDRNO*, Getvara*,
-		     const size_t*, const size_t*, const ptrdiff_t*,
-		     NCprojection**);
-
-extern NCerror buildconstraints3(NCDRNO* drno);
-extern int iscached(struct NCDRNO*, struct CDFnode*, struct NCcachenode**);
+extern NCerror buildconstraints3(struct NCDAPCOMMON* drno);
+extern int iscached(struct NCDAPCOMMON*, struct CDFnode*, struct NCcachenode**);
 
 extern char* makeprojectionstring3(NClist* projections);
 extern char* makeselectionstring3(NClist* selections);
@@ -39,15 +35,14 @@ extern void clearncconstraint(NCconstraint* con);
 extern void freegetvara(struct Getvara* vara);
 
 extern NCerror slicemerge3(NCslice* dst, NCslice* src);
-extern void restrictprojection3(NCDRNO* drno, NClist*, NClist*);
 
-extern NCerror prefetchdata3(NCDRNO*);
-extern NCerror buildcachenode3(NCDRNO*, NCconstraint*, NClist*, NCcachenode**, int);
+extern NCerror prefetchdata3(struct NCDAPCOMMON*);
+extern NCerror buildcachenode34(struct NCDAPCOMMON*, NCconstraint*, NClist*, NCcachenode**, int);
 extern NCcachenode* createnccachenode(void);
-extern void clearnccache(NCDRNO*,NCcache*);
-extern void freenccachenode(NCDRNO*, NCcachenode*);
+extern void clearnccache(struct NCDAPCOMMON*,NCcache*);
+extern void freenccachenode(struct NCDAPCOMMON*, NCcachenode*);
 
-extern NCerror mergeprojections3(NCDRNO*, NClist*, NClist*);
+extern NCerror mergeprojections3(struct NCDAPCOMMON*, NClist*, NClist*);
 
 extern int iswholeslice(struct NCslice*, struct CDFnode* dim);
 extern int iswholesegment(struct NCsegment*);

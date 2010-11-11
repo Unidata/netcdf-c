@@ -7,7 +7,7 @@
 #include "dapodom.h"
 #include "dapdump.h"
 
-static NCerror mergeprojection31(NCDRNO*, NCprojection*, NCprojection*);
+static NCerror mergeprojection31(NCDAPCOMMON*, NCprojection*, NCprojection*);
 
 static NCerror matchpartialname3(NClist*, NClist*, CDFnode**);
 static void collectsegmentnames3(NClist* segments, NClist* path);
@@ -16,14 +16,12 @@ static void makeslicestring3(NCslice*, unsigned int, NCbytes*);
 static NClist* clonesegments3(NClist* segments);
 static void completesegments3(NClist* fullpath, NClist* segments);
 
-static NCerror convertdapconstraint3(NCDRNO*, CDFnode*, char*, char*, NCconstraint*);
-static NCerror qualifyconstraints3(NCDRNO*, NCconstraint*);
-static NCerror qualifyprojectionnames3(NCDRNO*, NCprojection*);
-static NCerror qualifyprojectionsizes3(NCDRNO*, NCprojection*);
-static NCerror qualifyselectionnames3(NCDRNO*, NCselection*);
-static NClist* unifyprojectionnodes3(NCDRNO* drno, NClist* varlist);
+static NCerror convertdapconstraint3(NCDAPCOMMON*, CDFnode*, char*, char*, NCconstraint*);
+static NCerror qualifyconstraints3(NCDAPCOMMON*, NCconstraint*);
+static NCerror qualifyprojectionnames3(NCDAPCOMMON*, NCprojection*);
+static NCerror qualifyprojectionsizes3(NCDAPCOMMON*, NCprojection*);
+static NCerror qualifyselectionnames3(NCDAPCOMMON*, NCselection*);
 static void freesegments(NClist* path);
-static int treecontains3(CDFnode* var, CDFnode* root);
 
 /*
 Merge the dap constraints with the nc constraints
@@ -35,7 +33,7 @@ Processing the constraints is a multi-step action.
        4. merge the dap and nc constraints
 */
 NCerror
-buildconstraints3(NCDRNO* drno)
+buildconstraints3(NCDAPCOMMON* nccomm)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -43,27 +41,27 @@ buildconstraints3(NCDRNO* drno)
     NCconstraint nullconstraint = {NULL,NULL};
     char* dapprojectionstring = NULL;
     char* dapselectionstring  = NULL;
-    CDFnode* ddsroot = drno->cdf.ddsroot;
+    CDFnode* ddsroot = nccomm->cdf.ddsroot;
     NClist* pmerge = NULL;
     NClist* smerge = NULL;
 
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
 	/* ignore all constraints */
-        drno->dap.dapconstraint = nullconstraint;
+        nccomm->oc.dapconstraint = nullconstraint;
 	goto done;
     }
 
     /* Modify the dap projections */
-    dapprojectionstring = drno->dap.url.projection;
-    dapselectionstring = drno->dap.url.selection;
+    dapprojectionstring = nccomm->oc.url.projection;
+    dapselectionstring = nccomm->oc.url.selection;
     if(dapprojectionstring != NULL || dapselectionstring != NULL) {
-        ncstat = convertdapconstraint3(drno,
+        ncstat = convertdapconstraint3(nccomm,
 				 ddsroot,
 				 dapprojectionstring,
 				 dapselectionstring,
 				 &dapconstraint);
         if(ncstat != NC_NOERR) goto done;
-        ncstat = qualifyconstraints3(drno, &dapconstraint);
+        ncstat = qualifyconstraints3(nccomm, &dapconstraint);
         if(ncstat != NC_NOERR) goto done;
     } else {
 	dapconstraint.projections = nclistnew();
@@ -71,7 +69,7 @@ buildconstraints3(NCDRNO* drno)
     }
 
 #ifdef DEBUG
-fprintf(stderr,"buildconstraint: url:%s\n",drno->dap.url.url);
+fprintf(stderr,"buildconstraint: url:%s\n",nccomm->oc.url.url);
 fprintf(stderr,"buildconstraint.projections: %s\n",
 		dumpprojections(dapconstraint.projections));
 fprintf(stderr,"buildconstraint.selections: %s\n",
@@ -79,37 +77,34 @@ fprintf(stderr,"buildconstraint.selections: %s\n",
 #endif
 
     /* Save the constraints */
-    drno->dap.dapconstraint = dapconstraint;
+    nccomm->oc.dapconstraint = dapconstraint;
     dapconstraint = nullconstraint;    
 
     /* Now, merge the (dap+netcdf) projections and
        (dap+netcdf) selections
     */
-    pmerge = cloneprojections(drno->dap.dapconstraint.projections);
+    pmerge = cloneprojections(nccomm->oc.dapconstraint.projections);
 
     /* combine selections */
-    if(drno->dap.dapconstraint.selections == NULL) {
+    if(nccomm->oc.dapconstraint.selections == NULL) {
 	smerge = nclistnew();
     } else {
-	smerge = cloneselections(drno->dap.dapconstraint.selections);
+	smerge = cloneselections(nccomm->oc.dapconstraint.selections);
     }
 
-    clearncconstraint(&drno->dap.constraint);
-    drno->dap.constraint.projections = pmerge;
-    drno->dap.constraint.selections = smerge;
+    clearncconstraint(&nccomm->oc.constraint);
+    nccomm->oc.constraint.projections = pmerge;
+    nccomm->oc.constraint.selections = smerge;
 
 #ifdef DEBUG
 fprintf(stderr,"buildconstraints3: merge = %s\n",
-	dumpconstraint(&drno->dap.constraint));
+	dumpconstraint(&nccomm->oc.constraint));
 #endif
 
 done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(ncstat) {
 	clearncconstraint(&dapconstraint);
-#ifdef NCCONSTRAINTS
-	clearncconstraint(&ncconstraint);
-#endif
     }
     return THROW(ncstat);
 }
@@ -119,7 +114,7 @@ done:
 */
 
 static NCerror
-convertdapconstraint3(NCDRNO* drno, CDFnode* root,
+convertdapconstraint3(NCDAPCOMMON* nccomm, CDFnode* root,
 		      char* dapprojectionstring, char* dapselectionstring,
 		      NCconstraint* dapconstraintp)
 {
@@ -203,19 +198,19 @@ done:
     3. selection path
 */
 static NCerror
-qualifyconstraints3(NCDRNO* drno, NCconstraint* constraint)
+qualifyconstraints3(NCDAPCOMMON* nccomm, NCconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     int i;
     if(constraint != NULL) {
         for(i=0;i<nclistlength(constraint->projections);i++) {  
             NCprojection* p = (NCprojection*)nclistget(constraint->projections,i);
-            ncstat = qualifyprojectionnames3(drno,p);
-            ncstat = qualifyprojectionsizes3(drno,p);
+            ncstat = qualifyprojectionnames3(nccomm,p);
+            ncstat = qualifyprojectionsizes3(nccomm,p);
         }
         for(i=0;i<nclistlength(constraint->selections);i++) {   
             NCselection* s = (NCselection*)nclistget(constraint->selections,i);
-            ncstat = qualifyselectionnames3(drno,s);
+            ncstat = qualifyselectionnames3(nccomm,s);
         }
     }
     return ncstat;
@@ -258,7 +253,7 @@ completesegments3(NClist* fullpath, NClist* segments)
    by adding prefix segment objects. Also verify ranks
 */
 static NCerror
-qualifyprojectionnames3(NCDRNO* drno, NCprojection* proj)
+qualifyprojectionnames3(NCDAPCOMMON* nccomm, NCprojection* proj)
 {
     NCerror ncstat = NC_NOERR;
     NClist* fullpath = nclistnew();
@@ -282,7 +277,7 @@ fprintf(stderr,"%s\n",
 
 /* Make sure that the slice declsizes are all defined for this projection */
 static NCerror
-qualifyprojectionsizes3(NCDRNO* drno, NCprojection* proj)
+qualifyprojectionsizes3(NCDAPCOMMON* nccomm, NCprojection* proj)
 {
     int i,j;
     for(i=0;i<nclistlength(proj->segments);i++) {
@@ -302,90 +297,25 @@ qualifyprojectionsizes3(NCDRNO* drno, NCprojection* proj)
     return NC_NOERR;
 }
 
-#ifdef NCCONSTRAINTS
-/* For netcdf projections, the slices are
-   all at the end, so re-assign them
-   to the segments so as to properly
-   mimic a dap constraint.
-*/
-static NCerror
-assignslices3(NCDRNO* drno, NClist* projections)
-{
-    int i,j;
-    NCerror ncstat = NC_NOERR;
-    for(i=0;i<nclistlength(projections);i++) {
-	NCprojection* p = (NCprojection*)nclistget(projections,i);
-	NCsegment* seg0 = (NCsegment*)nclistget(p->segments,0);
-	unsigned int index;
-        unsigned int rank0;
-	NCslice slices0[NC_MAX_VAR_DIMS];
-
-	if(nclistlength(p->segments) == 0) continue;
-
-	seg0 = (NCsegment*)nclistget(p->segments,0);
-	/* capture a copy of the slices */
-	rank0 = seg0->slicerank;
-	memcpy((void*)slices0,seg0->slices,sizeof(seg0->slices));
-	/* walk the set of segments */
-	for(index=0,j=0;j<nclistlength(p->segments);j++) {
-	    NCsegment* segment = (NCsegment*)nclistget(p->segments,j);
-	    ASSERT((index < rank0));
-	    ASSERT((segment->node != NULL));
-	    switch (segment->node->nctype) {
-	    case NC_Sequence: /* Consumes 1 slice */
-		segment->slicerank = 1;
-		segment->slices[0] = slices0[index];
-		index++;
-		break;				
-	    case NC_Structure:
-	    case NC_Primitive:
-		segment->slicerank = nclistlength(segment->node->array.dimensions);
-		if(segment->slicerank > 0) {
-		    memcpy((void*)segment->slices,(void*)&slices0[index],
-			    sizeof(NCslice)*segment->slicerank);
-		}
-		index += segment->slicerank;
-		break;
-	    default: break;
-	    }
-	}
-	/* It is possible that there is a string slice; check
-           for consistency and otherwise ignore
-	*/
-	if(p->leaf->nctype == NC_Primitive
-	   && p->leaf->etype == NC_CHAR
-	   && index+1 != rank0) {
-	        oc_log(OCLOGERR,"Netcdf projection has too few indices: %s",
-				p->leaf->name);
-	    ncstat = NC_EINVALCOORDS;
-	} else if (index != rank0) {
-	    oc_log(OCLOGERR,"Netcdf projection has too many indices: %s",
-				p->leaf->name);
-	    ncstat = NC_EINVALCOORDS;
-	}
-    }
-    return ncstat;    
-}
-#endif
    
 #ifdef UNUSED
 /* Modify projection segments to make their rank
    match the node's true rank (! |ncdimension|)
 */
 static NCerror
-completeslicing3(NCDRNO* drno, NClist* projections)
+completeslicing3(NCDAPCOMMON* nccomm, NClist* projections)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     for(i=0;i<nclistlength(projections);i++) {
 	NCprojection* p = (NCprojection*)nclistget(projections,i);
-	completeslicing31(drno,p);
+	completeslicing31(nccomm,p);
     }
     return ncstat;    
 }
 
 static NCerror
-completeslicing31(NCDRNO* drno, NCprojection* proj)
+completeslicing31(NCDAPCOMMON* nccomm, NCprojection* proj)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
@@ -409,7 +339,7 @@ fprintf(stderr,"completion: %s\n",dumpprojection1(proj));
 }
 
 static NCerror
-makesimpleprojection(NCDRNO* drno, NCprojection* proj)
+makesimpleprojection(NCDAPCOMMON* nccomm, NCprojection* proj)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
@@ -435,7 +365,7 @@ fprintf(stderr,"simpleprojection: %s\n",dumpprojection1(proj));
 
 /* convert all names in selections to be fully qualified */
 static NCerror
-qualifyselectionnames3(NCDRNO* drno, NCselection* sel)
+qualifyselectionnames3(NCDAPCOMMON* nccomm, NCselection* sel)
 {
     NCerror ncstat = NC_NOERR;
     int i;
@@ -618,8 +548,8 @@ subpathmatch(NClist* path, CDFnode* node, int depth)
     CDFnode* leaf = NULL;
     int matches;
 
-    /* invariant: segments 0..depth-1 have already matched */
-    if(depth >= nclistlength(path)) return node; /* => 0..|path|-1 match */
+    /* invariant: segments 0.depth-1 have already matched */
+    if(depth >= nclistlength(path)) return node; /* => 0.|path|-1 match */
     name = (char*)nclistget(path,depth);
     matches = 0;
     for(i=0;i<nclistlength(node->subnodes);i++) {
@@ -736,7 +666,7 @@ This routine returns (in getvar argument) two results:
    a whole variable, then match is false.
 */
 int
-iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
+iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 {
     int i,j,found,index;
     NCcache* cache;
@@ -745,12 +675,12 @@ iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
     found = 0;
     if(target == NULL) goto done;
 
-    if(!FLAGSET(drno,NCF_CACHE)) goto done;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)) goto done;
 
     /* match the target variable against elements in the cache */
 
     index = 0;
-    cache = &drno->cdf.cache;
+    cache = &nccomm->cdf.cache;
     cachenode = cache->prefetch;
 
     /* always check prefetch (if it exists) */
@@ -789,204 +719,6 @@ else
    fprintf(stderr,"iscached: notfound\n");
 #endif
     return found;
-}
-
-/*
-The original URL projections
-will define the maximum set of
-variables that will be retrieved.
-However, our tactic may restrict that
-set further, so we modify the projection
-set to remove projections not
-referring to the specified variables.
-Additionally, try to merge projections
-into larger projections when possible.
-We also need to watch out for one projection
-enlarging on another (e.g. types.i32 vs types).
-The larger one must be removed to avoid
-changing the DDS metadata in a way that is
-inconsistent with the DDS metadata.
-*/
-void
-restrictprojection3(NCDRNO* drno, NClist* varlist, NClist* projections)
-{
-    int i,j,len;
-
-#ifdef DEBUG
-fprintf(stderr,"restriction.before=|%s|\n",
-		dumpprojections(projections));
-#endif
-
-    if(nclistlength(varlist) == 0) goto done; /* nothing to add or remove */
-
-    /* If the projection list is empty, then add
-       a projection for every variable in varlist
-    */
-    if(nclistlength(projections) == 0) {
-        NClist* path = nclistnew();
-	NClist* nodeset = NULL;
-	/* Attempt to unify the vars into larger units
-	   (like a complete grid) */
-	nodeset = unifyprojectionnodes3(drno,varlist);	
-        for(i=0;i<nclistlength(nodeset);i++) {
-	    CDFnode* var = (CDFnode*)nclistget(nodeset,i);
-	    NCprojection* newp = createncprojection();
-	    newp->leaf = var;
-	    nclistclear(path);
-	    collectnodepath3(var,path,!WITHDATASET);
-	    newp->segments = nclistnew();
-	    for(j=0;j<nclistlength(path);j++) {
-	        CDFnode* node = (CDFnode*)nclistget(path,j);
-	        NCsegment* newseg = createncsegment();
-	        newseg->name = nulldup(node->name);
-	        newseg->slicesdefined = 1; /* treat as simple projections */
-	        newseg->node = node;
-	        makewholesegment3(newseg,node);
-	        nclistpush(newp->segments,(ncelem)newseg);
-	    }
-	    nclistpush(projections,(ncelem)newp);
-	}
-	nclistfree(path);
-	nclistfree(nodeset);
-    } else {
-       /* Otherwise, walk all the projections and see if they
-	   intersect any of the variables. If not,
-	   then remove from the projection list.
-	*/
-	len = nclistlength(projections);
-	for(i=len-1;i>=0;i--) {/* Walk backward to facilitate removal*/
-	    int intersect = 0;
-	    NCprojection* proj = (NCprojection*)nclistget(projections,i);
-	    for(j=0;j<nclistlength(varlist);j++) {
-		CDFnode* var = (CDFnode*)nclistget(varlist,j);
-		/* Note that intersection could go either way */
-		if(treecontains3(var,proj->leaf)
-		   || treecontains3(proj->leaf,var)) {intersect = 1; break;}
-	    }	    
-	    if(!intersect) {
-		/* suppress this projection */
-		NCprojection* p = (NCprojection*)nclistremove(projections,i);
-		freencprojection1(p);
-	    }
-	}
-	/* Now looks for containment between projections and only keep
-           the more restrictive. Is this algorithm stable against reordering?.
-	*/
-	for(;;) {
-	    int removed = 0;
-	    for(i=0;i<nclistlength(projections);i++) {
-	        NCprojection* pi = (NCprojection*)nclistget(projections,i);
-	        for(j=0;j<i;j++) {
-	            NCprojection* pj = (NCprojection*)nclistget(projections,j);
-		    if(treecontains3(pi->leaf,pj->leaf)) {
-		        NCprojection* p = (NCprojection*)nclistremove(projections,j);
-			freencprojection1(p);
-			removed = 1;
-			break;
-		    } else if(treecontains3(pj->leaf,pi->leaf)) {
-		        NCprojection* p = (NCprojection*)nclistremove(projections,i);
-			freencprojection1(p);
-			removed = 1;
-			break;
-		    }
-		}
-	    }
-	    if(!removed) break;
-	}
-    }
-    
-done:
-#ifdef DEBUG
-fprintf(stderr,"restriction.after=|%s|\n",
-		dumpprojections(projections));
-#endif
-    return;
-}
-
-/* Return 1 if the specified var is in
-the projection's leaf's subtree and is
-visible
-*/
-
-static int
-treecontains3(CDFnode* var, CDFnode* root)
-{
-    int i;
-
-    if(root->visible == 0) return 0;
-    if(var == root) return 1;
-    for(i=0;i<nclistlength(root->subnodes);i++) {
-        CDFnode* subnode = (CDFnode*)nclistget(root->subnodes,i);
-	if(treecontains3(var,subnode)) return 1;
-    }
-    return 0; 
-}
-
-/* See if we can unify sets of nodes to be projected
-   into larger units.
-*/
-static NClist*
-unifyprojectionnodes3(NCDRNO* drno, NClist* varlist)
-{
-    int i;
-    NClist* nodeset = nclistnew();
-    NClist* containerset = nclistnew();
-    NClist* containernodes = nclistnew();
-
-    nclistsetalloc(nodeset,nclistlength(varlist));
-    nclistsetalloc(containerset,nclistlength(varlist));
-    /* Duplicate the varlist so we can modify it;
-       simultaneously collect unique container set.
-    */
-    for(i=0;i<nclistlength(varlist);i++) {
-	CDFnode* var = (CDFnode*)nclistget(varlist,i);
-	CDFnode* container = var->container;
-	nclistpush(nodeset,(ncelem)var);
-	switch (container->nctype) {
-	case NC_Sequence: case NC_Structure: case NC_Grid: case NC_Dataset:
-	    /* add (uniquely) to container set */
-	    if(!nclistcontains(containerset,(ncelem)container)) 
-	        nclistpush(containerset,(ncelem)container);
-	    break;
-	default: break;
-	}
-    }
-
-    /* Now, try to find containers whose subnodes are all in the
-	varlist; repeat until no more changes */
-    for(;;) {
-	int changed = 0;
-        for(i=0;i<nclistlength(containerset);i++) {
-            int j, allfound;
-            CDFnode* container = (CDFnode*)nclistget(containerset,i);
-	    if(container == NULL) continue;
-            nclistclear(containernodes);
-            for(allfound=1,j=0;j<nclistlength(container->subnodes);j++) {
-                CDFnode* subnode = (CDFnode*)nclistget(container->subnodes,j);
-                if(!nclistcontains(varlist,(ncelem)subnode)) {allfound=0;break;}
-                nclistpush(containernodes,(ncelem)subnode);
-            }
-            if(allfound) {
-                nclistpush(nodeset,(ncelem)container);
-                nclistset(containerset,i,(ncelem)NULL); /* remove */
-                for(j=nclistlength(nodeset)-1;j>=0;j--) { /* walk backwards */
-                    CDFnode* testnode = (CDFnode*)nclistget(nodeset,j);
-                    if(nclistcontains(containernodes,(ncelem)testnode))
-                        nclistremove(nodeset,j);/* remove */
-                }
-		changed = 1;
-            }
-        }
-	if(!changed) break; /* apparently we have reached a stable situation */
-    }
-    /* If there is only the dataset left as a projection, then remove it */
-    if(nclistlength(nodeset) == 1) {
-	CDFnode* thenode = (CDFnode*)nclistget(nodeset,0);
-	if(thenode->nctype == NC_Dataset) nclistclear(nodeset);
-    }
-    nclistfree(containerset);
-    nclistfree(containernodes);
-    return nodeset;
 }
 
 static NClist*
@@ -1173,7 +905,7 @@ overlapping projections into acct.
 Assume that name qualification has occured.
 */
 NCerror
-mergeprojections3(NCDRNO* drno,
+mergeprojections3(NCDAPCOMMON* nccomm,
 		 NClist* dst,
 		 NClist* src)
 {
@@ -1211,7 +943,7 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
 	    if(p2 == NULL || target->leaf != p2->leaf)
 		continue;
 	    /* This entry matches our current target; merge  */
-	    ncstat = mergeprojection31(drno,target,p2);
+	    ncstat = mergeprojection31(nccomm,target,p2);
 	    /* null out this merged entry and release it */
 	    nclistset(cat,i,(ncelem)NULL);	    
 	    freencprojection1(p2);	    
@@ -1224,7 +956,7 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
 }
 
 static NCerror
-mergeprojection31(NCDRNO* drno, NCprojection* dst, NCprojection* src)
+mergeprojection31(NCDAPCOMMON* nccomm, NCprojection* dst, NCprojection* src)
 {
     NCerror ncstat = NC_NOERR;
     int i,j;
@@ -1253,12 +985,12 @@ src into dst taking
 overlapping projections into acct.
 */
 static NCerror
-mergesingleprojection3(NCDRNO* drno,NClist* dst,NCprojection* src)
+mergesingleprojection3(NCDAPCOMMON* nccomm,NClist* dst,NCprojection* src)
 {
     NCerror stat;
     NClist* tmp = nclistnew();
     nclistpush(tmp,(ncelem)src);
-    stat = mergeprojections3(drno,dst,tmp);
+    stat = mergeprojections3(nccomm,dst,tmp);
     nclistfree(tmp);
     return stat;
 }    
@@ -1644,7 +1376,7 @@ done:
 }
 
 NCerror
-buildvaraprojection3(NCDRNO* drno, Getvara* getvar,
+buildvaraprojection3(NCDAPCOMMON* nccomm, Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     NCprojection** projectionp)
 {
@@ -1719,12 +1451,12 @@ buildvaraprojection3(NCDRNO* drno, Getvara* getvar,
 
 /* Compute the set of prefetched data */
 NCerror
-prefetchdata3(NCDRNO* drno)
+prefetchdata3(NCDAPCOMMON* nccomm)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    NClist* allvars = drno->cdf.varnodes;
-    NCconstraint* constraint = &drno->dap.constraint;
+    NClist* allvars = nccomm->cdf.varnodes;
+    NCconstraint* constraint = &nccomm->oc.constraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
     NCconstraint newconstraint = {NULL,NULL};
@@ -1732,8 +1464,9 @@ prefetchdata3(NCDRNO* drno)
     /* If caching is off, and we can do constraints, then
        don't even do prefetch
     */
-    if(!FLAGSET(drno,NCF_CACHE) && !FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
-	drno->cdf.cache.prefetch = NULL;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)
+	&& !FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+	nccomm->cdf.cache.prefetch = NULL;
 	goto done;
     }
 
@@ -1746,34 +1479,34 @@ prefetchdata3(NCDRNO* drno)
 	    nelems *= dim->dim.declsize;
 	}
 	/* If we cannot constrain, then pull in everything */
-	if(FLAGSET(drno,NCF_UNCONSTRAINABLE)
-           ||nelems <= drno->cdf.smallsizelimit)
+	if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)
+           ||nelems <= nccomm->cdf.smallsizelimit)
 	    nclistpush(vars,(ncelem)var);
     }
     /* If we cannot constrain, then pull in everything */
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE) || nclistlength(vars) == 0) {
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE) || nclistlength(vars) == 0) {
 	newconstraint.projections = NULL;
 	newconstraint.selections= NULL;
     } else {/* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
         newconstraint.projections = cloneprojections(constraint->projections);
-        restrictprojection3(drno,vars,newconstraint.projections);
+        restrictprojection34(nccomm,vars,newconstraint.projections);
         /* similar for selections */
         newconstraint.selections = cloneselections(constraint->selections);
     }
 
-if(FLAGSET(drno,NCF_SHOWFETCH)) {
+if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 oc_log(OCLOGNOTE,"prefetch.");
 }
 
     if(nclistlength(vars) == 0)
         cache = NULL;
     else {
-        ncstat = buildcachenode3(drno,&newconstraint,vars,&cache,1);
+        ncstat = buildcachenode34(nccomm,&newconstraint,vars,&cache,1);
         if(ncstat) goto done;
     }
     /* Make cache node be the prefetch node */
-    drno->cdf.cache.prefetch = cache;
+    nccomm->cdf.cache.prefetch = cache;
 
 #ifdef DEBUG
 /* Log the set of prefetch variables */
@@ -1792,12 +1525,12 @@ ncbytesfree(buf);
 done:
     nclistfree(vars);
     clearncconstraint(&newconstraint);    
-    if(ncstat) freenccachenode(drno,cache);
+    if(ncstat) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
 
 NCerror
-buildcachenode3(NCDRNO* drno,
+buildcachenode34(NCDAPCOMMON* nccomm,
 	        NCconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
@@ -1805,28 +1538,28 @@ buildcachenode3(NCDRNO* drno,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = nccomm->oc.conn;
     OCobject ocroot = OCNULL;
     CDFnode* dxdroot = NULL;
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
 
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE))
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
         ce = NULL;
     else
         ce = makeconstraintstring3(constraint->projections,
-				   drno->dap.url.selection);
+				   nccomm->oc.url.selection);
 
-    ocstat = dap_oc_fetch(drno,conn,ce,OCDATADDS,&ocroot);
+    ocstat = dap_oc_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     efree(ce);
     if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
 
-    ncstat = buildcdftree34(drno,ocroot,OCDATA,&dxdroot);
+    ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* regrid */
-    if(!FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
-        ncstat = regrid3(dxdroot,drno->cdf.ddsroot,constraint->projections);
+    if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+        ncstat = regrid3(dxdroot,nccomm->cdf.ddsroot,constraint->projections);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
@@ -1851,13 +1584,13 @@ buildcachenode3(NCDRNO* drno,
 
     /* Insert into the cache */
 
-    if(!FLAGSET(drno,NCF_CACHE)) goto done;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)) goto done;
 
     if(isprefetch) {
         cachenode->prefetch = 1;
-	drno->cdf.cache.prefetch = cachenode;
+	nccomm->cdf.cache.prefetch = cachenode;
     } else {
-	NCcache* cache = &drno->cdf.cache;
+	NCcache* cache = &nccomm->cdf.cache;
 	if(cache->nodes == NULL) cache->nodes = nclistnew();
 	/* remove cache nodes to get below the max cache size */
 	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit) {
@@ -1867,7 +1600,7 @@ fprintf(stderr,"buildcachenode: purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
 	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(drno,node);
+	    freenccachenode(nccomm,node);
 	}
 	/* remove cache nodes to get below the max cache count */
 	while(nclistlength(cache->nodes) >= cache->cachecount) {
@@ -1877,9 +1610,9 @@ fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
 	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(drno,node);
+	    freenccachenode(nccomm,node);
         }
-        nclistpush(drno->cdf.cache.nodes,(ncelem)cachenode);
+        nclistpush(nccomm->cdf.cache.nodes,(ncelem)cachenode);
         cache->cachesize += cachenode->xdrsize;
     }
 
@@ -1892,7 +1625,7 @@ done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(ncstat) {
 	freecdfroot34(dxdroot);
-	freenccachenode(drno,cachenode);
+	freenccachenode(nccomm,cachenode);
     }
     return THROW(ncstat);
 }
@@ -1906,11 +1639,11 @@ createnccachenode(void)
 }
 
 void
-freenccachenode(NCDRNO* drno, NCcachenode* node)
+freenccachenode(NCDAPCOMMON* nccomm, NCcachenode* node)
 {
     if(node == NULL) return;
-    oc_data_free(drno->dap.conn,node->content);
-    oc_data_free(drno->dap.conn,node->content);
+    oc_data_free(nccomm->oc.conn,node->content);
+    oc_data_free(nccomm->oc.conn,node->content);
     clearncconstraint(&node->constraint);
     freecdfroot34(node->datadds);
     nclistfree(node->vars);
@@ -1918,13 +1651,13 @@ freenccachenode(NCDRNO* drno, NCcachenode* node)
 }
 
 void
-clearnccache(NCDRNO* drno, NCcache* cache)
+clearnccache(NCDAPCOMMON* nccomm, NCcache* cache)
 {
     int i;
     if(cache == NULL) return;
-    freenccachenode(drno,cache->prefetch);
+    freenccachenode(nccomm,cache->prefetch);
     for(i=0;i<nclistlength(cache->nodes);i++) {
-	freenccachenode(drno,(NCcachenode*)nclistget(cache->nodes,i));
+	freenccachenode(nccomm,(NCcachenode*)nclistget(cache->nodes,i));
     }
 }
 

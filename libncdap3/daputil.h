@@ -9,9 +9,9 @@
 /* sigh!, Forwards */
 struct CDFnode;
 struct NCTMODEL;
-struct NCDRNO;
+struct NCDAPCOMMON;
 
-extern nc_type nctypeconvert(struct NCDRNO*, nc_type);
+extern nc_type nctypeconvert(struct NCDAPCOMMON*, nc_type);
 extern nc_type octypetonc(OCtype);
 extern OCtype nctypetodap(nc_type);
 extern size_t nctypesizeof(nc_type);
@@ -30,7 +30,7 @@ extern void clonenodenamepath3(struct CDFnode*, NClist*, int);
 extern char* cdflegalname3(char* dapname);
 
 /* Given a param string; check for a given substring */
-extern int paramcheck34(struct NCDRNO* drno, const char* param, const char* substring);
+extern int paramcheck34(struct NCDAPCOMMON* drno, const char* param, const char* substring);
 
 extern int nclistconcat(NClist* l1, NClist* l2);
 extern int nclistminus(NClist* l1, NClist* l2);
@@ -65,6 +65,6 @@ extern size_t dimproduct3(NClist* dimensions);
 extern int nc__testurl(const char* path, char** basename);
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
-extern OCerror dap_oc_fetch(struct NCDRNO*,OCconnection,const char*,OCdxd,OCobject*);
+extern OCerror dap_oc_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
 
 #endif /*DAPUTIL_H*/

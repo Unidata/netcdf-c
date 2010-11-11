@@ -45,6 +45,7 @@ char* lextext;           /* name or string with escapes removed */
                                    but make sure every action ends with
                                    "return" or "break"! */
 
+int specialconstants;		/* 1 if nan, nanf, infinity, etc is used */
 double double_val;             /* last double value read */
 float float_val;               /* last float value read */
 long long int64_val;           /* last int64 value read */
@@ -220,20 +221,33 @@ group:			{return lexdebug(GROUP);}
 
 (netcdf|NETCDF|netCDF)  {BEGIN(TEXT);return lexdebug(NETCDF);}
 
-DoubleInf|NaN|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
+DoubleInf|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
-		    double_val = -NC_FILL_DOUBLE;
+		    double_val = NEGINFINITE;
                 } else {
-		    double_val = NC_FILL_DOUBLE;
+		    double_val = INFINITE;
                 }
+		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
 		}
-FloatInf|NaNf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
+NaN|nan { /* missing value (pre-2.4 backward compatibility) */
+		double_val = NAN;
+		specialconstants = 1;
+		return lexdebug(DOUBLE_CONST);
+		}
+
+FloatInf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
                 if (yytext[0] == '-') {
-		    float_val = -NC_FILL_FLOAT;
+		    float_val = NEGINFINITEF;
                 } else {
-		    float_val = NC_FILL_FLOAT;
+		    float_val = INFINITEF;
                 }
+		specialconstants = 1;
+		return lexdebug(FLOAT_CONST);
+		}
+NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
+		float_val = NANF;
+		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
 		}
 
@@ -516,7 +530,8 @@ FloatInf|NaNf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibili
 static int
 lexdebug(int token)
 {
-    if(debug >= 2) {
+    if(debug >= 2)
+    {
         fprintf(stderr,"Token=%d |%s|\n",token,yytext);
     }
     return token;

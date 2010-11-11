@@ -9,6 +9,9 @@
 
 #ifdef ENABLE_C
 
+#include	<math.h>
+
+
 /**************************************************/
 /* Code for generating C language data lists*/
 /**************************************************/
@@ -321,10 +324,18 @@ cdata_const(Constant* ci)
 	bbprintf(codetmp,"%d",ci->value.int32v);
 	break;
     case NC_FLOAT:
-	bbprintf(codetmp,"%f",ci->value.floatv);
+	/* Special case for nanf */
+	if(isnan(ci->value.floatv))
+	    bbprintf(codetmp,"nanf");
+	else
+	    bbprintf(codetmp,"%f",ci->value.floatv);
 	break;
     case NC_DOUBLE:
-	bbprintf(codetmp,"%lf",ci->value.doublev);
+	/* Special case for nanf */
+	if(isnan(ci->value.doublev))
+	    bbprintf(codetmp,"nan");
+	else
+	    bbprintf(codetmp,"%lf",ci->value.doublev);
 	break;
     case NC_UBYTE:
 	    bbprintf(codetmp,"%hhu",ci->value.uint8v);

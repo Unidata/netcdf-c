@@ -60,6 +60,22 @@ gen_ncc(const char *filename)
     codeline("");
     codeflush();
 
+    if(specialconstants) {
+	/* If the input referenced e.g. nan, inf, etc;
+	   then provide definitions for them */
+        codeline("");
+	codeline("#define nanf (0.0f/0.0f)");
+	codeline("#define nan  (0.0/0.0)");
+	codeline("#define inff (1.0f/0.0f)");
+	codeline("#define inf  (1.0/0.0)");
+	codeline("#define infinityf inff");
+	codeline("#define infinity  inf");
+        codeline("");
+        codeflush();
+    }
+    codeline("");
+    codeflush();
+
 #ifdef USE_NETCDF4
 
     /* Construct C type definitions*/
@@ -1181,7 +1197,6 @@ genc_write(Symbol* vsym, Bytebuffer* code, Odometer* odom, int isscalar)
 			cname(vsym),
 			cname(vsym),
 			cname(vsym));
-			codedump(stmt);
 	codedump(stmt);
 	codelined(1,"check_err(stat,__LINE__,__FILE__);");
 	

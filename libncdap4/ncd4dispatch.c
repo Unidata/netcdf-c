@@ -34,6 +34,8 @@ NC_Dispatch NCD4_dispatch_base = {
 
 NC_DISPATCH_NCD4,
 
+NCD4_new_nc,
+
 NCD4_create,
 NCD4_open,
 
@@ -48,7 +50,6 @@ NULL, /*set_base_pe*/
 NULL, /*inq_format*/
 
 NULL, /*inq*/
-NULL, /*inq_path*/
 NULL, /*inq_type*/
 
 NULL, /*def_dim*/

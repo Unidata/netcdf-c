@@ -30,12 +30,12 @@ dapattr3.c \
 cetab.c \
 ceparse.c \
 celex.c \
-ncd3dispatch.c ncdap3.c getvara3.c \
+ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
 nchashmap.c nclist.c ncbytes.c
 
 HDRS=\
+nccommon.h \
 constraints3.h \
-ncdap.h \
 ncd3dispatch.h \
 ncdap3.h \
 dapalign.h \
@@ -67,17 +67,13 @@ else
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 endif
 
-if INTERNAL_OCLIB
-  AM_CPPFLAGS += -I${top_srcdir}/oc
-endif # INTERNAL_OCLIB
+AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
 LDADD +=  ${top_builddir}/libncdap3/libncdap3.la
 
-if INTERNAL_OCLIB
-  LDADD += ${top_builddir}/oc/liboc.la
-endif # INTERNAL_OCLIB
+LDADD += ${top_builddir}/oc/liboc.la
 
 LDADD += @EXTERN_LDFLAGS@
 

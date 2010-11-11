@@ -11,39 +11,39 @@
 #include "dapdump.h"
 
 /* Forward*/
-static NCerror computevarnodes4(NCDRNO*, NClist*);
-static NCerror computeusertypes4r(NCDRNO*, CDFnode* tnode, NClist* usertypes);
-static NCerror computetypesizes4(NCDRNO* drno, CDFnode* tnode);
+static NCerror computevarnodes4(NCDAP4*, NClist*);
+static NCerror computeusertypes4r(NCDAP4*, CDFnode* tnode, NClist* usertypes);
+static NCerror computetypesizes4(NCDAP4* drno, CDFnode* tnode);
 static unsigned long cdftotalsize(NClist* dimensions);
 static int getpadding(int offset, int alignment);
 
 /* Accumulate useful node sets  */
 NCerror
-computecdfnodesets4(NCDRNO* drno)
+computecdfnodesets4(NCDAP4* drno)
 {
     unsigned int i;
     NClist* varnodes = nclistnew(); 
-    NClist* allnodes = drno->cdf.ddsroot->tree->nodes;
+    NClist* allnodes = drno->dap.cdf.ddsroot->tree->nodes;
 
-    if(drno->cdf.seqnodes == NULL) drno->cdf.seqnodes = nclistnew();
-    if(drno->cdf.gridnodes == NULL) drno->cdf.gridnodes = nclistnew();
-    nclistclear(drno->cdf.seqnodes);
-    nclistclear(drno->cdf.gridnodes);
+    if(drno->dap.cdf.seqnodes == NULL) drno->dap.cdf.seqnodes = nclistnew();
+    if(drno->dap.cdf.gridnodes == NULL) drno->dap.cdf.gridnodes = nclistnew();
+    nclistclear(drno->dap.cdf.seqnodes);
+    nclistclear(drno->dap.cdf.gridnodes);
 
     /* Separately define the variable nodes */
     computevarnodes4(drno,varnodes);
-    nclistfree(drno->cdf.varnodes);
-    drno->cdf.varnodes = varnodes;
+    nclistfree(drno->dap.cdf.varnodes);
+    drno->dap.cdf.varnodes = varnodes;
 
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
 	if(!node->visible) continue;
 	switch (node->nctype) {
 	case NC_Sequence:
-	    nclistpush(drno->cdf.seqnodes,(ncelem)node);
+	    nclistpush(drno->dap.cdf.seqnodes,(ncelem)node);
 	    break;
 	case NC_Grid:
-	    nclistpush(drno->cdf.gridnodes,(ncelem)node);
+	    nclistpush(drno->dap.cdf.gridnodes,(ncelem)node);
 	    break;
 	default: break;
 	}
@@ -64,10 +64,10 @@ the sequence node.
 */
 
 static NCerror
-computevarnodes4(NCDRNO* drno, NClist* varnodes)
+computevarnodes4(NCDAP4* drno, NClist* varnodes)
 {
     unsigned int i;
-    NClist* toplevel = drno->cdf.ddsroot->subnodes;
+    NClist* toplevel = drno->dap.cdf.ddsroot->subnodes;
 
     for(i=0;i<nclistlength(toplevel);i++) {
 	CDFnode* var = (CDFnode*)nclistget(toplevel,i);
@@ -81,17 +81,17 @@ computevarnodes4(NCDRNO* drno, NClist* varnodes)
 }
 
 NCerror
-fixgrids4(NCDRNO* drno)
+fixgrids4(NCDAP4* drno)
 {
     unsigned int i;
     NClist* topgrids = nclistnew();
-    NClist* gridnodes = drno->cdf.gridnodes;
+    NClist* gridnodes = drno->dap.cdf.gridnodes;
 
     /* fix the dimensions of all grids (also collect top-level grids)*/
     for(i=0;i<nclistlength(gridnodes);i++) {
         CDFnode* grid = (CDFnode*)nclistget(gridnodes,i);
         if(daptoplevel(grid)) nclistpush(topgrids,(ncelem)grid);	    
-	(void)fixgrid34(drno,grid); /* Ignore mal-formed grids */
+	(void)fixgrid34(&drno->dap,grid); /* Ignore mal-formed grids */
     }
 
 #ifdef IGNORE
@@ -144,7 +144,7 @@ fixgrids4(NCDRNO* drno)
 
 #ifdef IGNORE
 NCerror
-computecdfdimnames4(NCDRNO* drno)
+computecdfdimnames4(NCDAP4* drno)
 {
     int i,j;
     NClist* topdims = nclistnew();
@@ -154,8 +154,8 @@ computecdfdimnames4(NCDRNO* drno)
        top-level variables; these are the only dimensions
        that need to be defined under the current translation.
     */    
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(drno->dap.cdf.varnodes,i);
 	if(nclistlength(var->array.dimensions) == 0) continue;
 	for(j=0;j<nclistlength(var->array.dimensions);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);
@@ -171,7 +171,7 @@ computecdfdimnames4(NCDRNO* drno)
 #endif
 
 NCerror
-computetypenames4(NCDRNO* drno, CDFnode* tnode)
+computetypenames4(NCDAP4* drno, CDFnode* tnode)
 {
     char* basename;
     char* tname;
@@ -183,7 +183,7 @@ computetypenames4(NCDRNO* drno, CDFnode* tnode)
 	return NC_NOERR;
     }
     /* Otherwise: non-primitive */
-    basename = makecdfpathstring3(tnode,drno->cdf.separator);
+    basename = makecdfpathstring3(tnode,drno->dap.cdf.separator);
     /* Use special naming for Sequences */
     if(tnode->nctype != NC_Sequence) {
         tname = (char*)emalloc(strlen(basename)+strlen("_t")+1);
@@ -212,7 +212,7 @@ computetypenames4(NCDRNO* drno, CDFnode* tnode)
 }
 
 void
-setvarbasetype(NCDRNO* drno, CDFnode* field)
+setvarbasetype(NCDAP4* drno, CDFnode* field)
 {
     switch (field->nctype) {
     case NC_Primitive: {
@@ -228,7 +228,7 @@ setvarbasetype(NCDRNO* drno, CDFnode* field)
 }
 
 static NCerror
-computetypesizes4(NCDRNO* drno, CDFnode* tnode)
+computetypesizes4(NCDAP4* drno, CDFnode* tnode)
 {
     unsigned int i;
     CDFnode* field;
@@ -359,22 +359,22 @@ getpadding(int offset, int alignment)
 
 
 NCerror
-computeusertypes4(NCDRNO* drno)
+computeusertypes4(NCDAP4* drno)
 {
-    NClist* toplevel = drno->cdf.ddsroot->subnodes;
+    NClist* toplevel = drno->dap.cdf.ddsroot->subnodes;
     unsigned int i;
 
-    drno->cdf.usertypes = nclistnew();
+    drno->dap.cdf.usertypes = nclistnew();
     for(i=0;i<nclistlength(toplevel);i++) {
 	CDFnode* node = (CDFnode*)nclistget(toplevel,i);
 	if(!node->visible) continue;
-        computeusertypes4r(drno,node,drno->cdf.usertypes);
+        computeusertypes4r(drno,node,drno->dap.cdf.usertypes);
     }
     return NC_NOERR;
 }
 
 static NCerror
-computeusertypes4r(NCDRNO* drno, CDFnode* tnode, NClist* usertypes)
+computeusertypes4r(NCDAP4* drno, CDFnode* tnode, NClist* usertypes)
 {
     unsigned int i;
     unsigned int fieldcount;
@@ -473,7 +473,7 @@ reversepathstring(unsigned int count, NClist* path, NCbytes* name,
 }
 
 NCerror
-shortentypenames4(NCDRNO* drno)
+shortentypenames4(NCDAP4* drno)
 {
     unsigned int i,j,len,depth;
     NClist* containers = nclistnew();
@@ -482,8 +482,8 @@ shortentypenames4(NCDRNO* drno)
     NCbytes* name = ncbytesnew();
 
     /* Collect the reverse paths for all the container user types */
-    for(i=0;i<nclistlength(drno->cdf.usertypes);i++) {
-	CDFnode* tnode = (CDFnode*)nclistget(drno->cdf.usertypes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.usertypes);i++) {
+	CDFnode* tnode = (CDFnode*)nclistget(drno->dap.cdf.usertypes,i);
 	switch (tnode->nctype) {
 	case NC_Structure: case NC_Sequence: case NC_Grid:
 	    nclistpush(containers,(ncelem)tnode);
@@ -504,7 +504,7 @@ shortentypenames4(NCDRNO* drno)
 	for(i=0;i<len;i++) {
 	    CDFnode* container = (CDFnode*)nclistget(containers,i);
 	    reversepath(container,rpath);
-	    reversepathstring(depth,rpath,name,drno->cdf.separator);
+	    reversepathstring(depth,rpath,name,drno->dap.cdf.separator);
 	    efree(container->ncfullname);
 	    container->ncfullname = ncbytesdup(name);
 	}
@@ -528,8 +528,8 @@ shortentypenames4(NCDRNO* drno)
 	nclistminus(containers,unique);
     } while(nclistlength(containers) > 0);
     /* Now, go thru and rename all the user types */
-    for(i=0;i<nclistlength(drno->cdf.usertypes);i++) {
-	CDFnode* tnode = (CDFnode*)nclistget(drno->cdf.usertypes,i);
+    for(i=0;i<nclistlength(drno->dap.cdf.usertypes);i++) {
+	CDFnode* tnode = (CDFnode*)nclistget(drno->dap.cdf.usertypes,i);
 	switch (tnode->nctype) {
 	case NC_Structure: case NC_Grid:
 	    efree(tnode->typename);

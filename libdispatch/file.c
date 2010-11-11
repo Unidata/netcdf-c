@@ -190,6 +190,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if(stat == NC_NOERR) {
       ncp->dispatch = dispatcher;
       if(ncidp) *ncidp = ncp->ext_ncid;
+      ncp->path = strdup(path);
+      if(path == NULL) stat = NC_ENOMEM;	
    }
    return stat;
 }
@@ -304,6 +306,8 @@ NC_open(const char *path, int cmode,
    if(stat == NC_NOERR) {
       ncp->dispatch = dispatcher;
       if(ncidp) *ncidp = ncp->ext_ncid;
+      ncp->path = strdup(path);
+      if(path == NULL) stat = NC_ENOMEM;	
    }
    return stat;
 }
@@ -314,11 +318,17 @@ int
 nc_inq_path(int ncid, size_t *pathlen, char *path)
 {
    NC* ncp;
-   int stat;
-
+   int stat = NC_NOERR;
    if ((stat = NC_check_id(ncid, &ncp)))
       return stat;
-   return ncp->dispatch->inq_path(ncid, pathlen, path);
+   if(ncp->path == NULL) {
+	if(pathlen) *pathlen = 0;
+	if(path) path[0] = '\0';
+   } else {
+       if (pathlen) *pathlen = strlen(ncp->path);
+       if (path) strcpy(path, ncp->path);
+   }
+   return stat;
 }
 
 int
@@ -358,12 +368,21 @@ nc_sync(int ncid)
    return ncp->dispatch->sync(ncid);
 }
 
+static void
+NC_reclaim(NC* ncp)
+{
+   /* reclaim the path */
+   if(ncp->path != NULL) free(ncp->path);
+   ncp->path = NULL;   
+}
+
 int
 nc_abort(int ncid)
 {
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+   NC_reclaim(ncp);
    return ncp->dispatch->abort(ncid);
 }
 

@@ -85,7 +85,7 @@ hence cannot contain blanks or other white space characters unless
 escaped.  The named
 variables must be valid netCDF variables in the input-file.  A variable
 within a group in a netCDF-4 file may be specified with an absolute
-pathname, such as `/GroupA/GroupA2/var'.  Use of a relative pathname
+path name, such as `/GroupA/GroupA2/var'.  Use of a relative path name
 such as `var' or `grp/var' specifies all matching
 variable names in the file.
 The default,
@@ -119,11 +119,11 @@ non-character data values.
 .IP "\fB-n\fP \fIname\fP"
 CDL requires a name for a netCDF data set, for use by \fBncgen -b\fP in
 generating a default netCDF file name.  By default, \fIncdump\fP constructs
-this name from the last component of the pathname of the input netCDF file
+this name from the last component of the path name of the input netCDF file
 by stripping off any extension it has.  Use the \fB-n\fP option to specify a
 different name.  Although the output file name used by \fBncgen -b\fP can be
 specified, it may be wise to have \fIncdump\fP change the default name to
-avoid inadvertantly overwriting a valuable netCDF file when using
+avoid inadvertently overwriting a valuable netCDF file when using
 \fBncdump\fP, editing the resulting CDL file, and using \fBncgen -b\fP to
 generate a new netCDF file from the edited CDL file.
 .IP "\fB-p\fP \fIfloat_digits[,double_digits]\fP"
@@ -138,7 +138,7 @@ significant digits.  In the absence of any
 \fB-p\fP specifications, floating-point and double-precision data are
 displayed with 7 and 15 significant digits respectively.  CDL files can be
 made smaller if less precision is required.  If both floating-point and
-double-presision precisions are specified, the two values must appear
+double-precision precisions are specified, the two values must appear
 separated by a comma (no blanks) as a single argument to the command.
 If you really want every last bit of precision from the netCDF file
 represented in the CDL file for all possible floating-point values, you will

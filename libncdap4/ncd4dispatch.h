@@ -62,6 +62,9 @@ extern "C" {
 
 /**/
 
+EXTERNL int
+NCD4_new_nc(NC**);
+
 /* WARNING: this signature differs from external nc_open API*/
 EXTERNL int
 NCD4_open(const char *path, int mode,
