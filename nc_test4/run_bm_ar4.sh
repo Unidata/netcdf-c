@@ -57,7 +57,7 @@ do
 		else
 		    cmd="./bm_file $h -f 3 -c 6:${d}:${s}:${c0}:${c1}:${c2} -o ${file_out} ${pr_ar4_sample}"
 		    echo "cmd=$cmd"
- 	            bash ./clear_cache.sh
+# 	            bash ./clear_cache.sh
  		    if ! ($cmd >> $out); then
  			exit 1;
  		    fi
@@ -73,20 +73,20 @@ done
 echo $out_files
 
 # Do the horizonatal runs.
-bash ./clear_cache.sh
+#bash ./clear_cache.sh
 ./tst_ar4 -h $pr_ar4_sample
 for f1 in $out_files
 do
-    bash ./clear_cache.sh
+#    bash ./clear_cache.sh
     ./tst_ar4 ${f1}
 done
 
 # Do the timeseries runs.
-bash ./clear_cache.sh
+#bash ./clear_cache.sh
 ./tst_ar4 -t -h $pr_ar4_sample
 for f1 in $out_files
 do
-    bash ./clear_cache.sh
+#    bash ./clear_cache.sh
     ./tst_ar4 -t ${f1}
 done
 
