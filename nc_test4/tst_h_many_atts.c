@@ -75,18 +75,18 @@ main()
       /* Open the root group. */
       if ((grpid = H5Gopen2(hdfid, "/", H5P_DEFAULT)) < 0) ERR;
 
+      if (gettimeofday(&start_time, NULL)) ERR;
       /* Write an attribute. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       for (i = 0; i < NUM_ATTS; i++)
       {
-	 if (gettimeofday(&start_time, NULL)) ERR;
 	 sprintf(name, "att_%d", i);
 	 if ((attid1 = H5Acreate2(grpid, name, H5T_NATIVE_INT, spaceid, 
 				  H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid1, H5T_NATIVE_INT, &one) < 0) ERR;
 /*	 if (H5Aclose(attid1) < 0) ERR;*/
 	 if(i % 1000 == 0) 
-	 {		/* only print every 100th attribute name */
+	 {		/* only print every 1000th attribute name */
 	    if (gettimeofday(&end_time, NULL)) ERR;
 	    if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
 	    sec = diff_time.tv_sec + 1.0e-6 * diff_time.tv_usec;
