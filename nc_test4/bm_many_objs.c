@@ -58,10 +58,9 @@ int main(int argc, char **argv)
     int g, grp, numgrp;
     char gname[16];
     int v, var, numvar, vn, vleft, nvars;
-    int a, numatt, an, aleft, natts;
     
     if(argc > 2) { 	/* Usage */
-	printf("NetCDF performance test, writing many groups, variables, and attributes.\n");
+	printf("NetCDF performance test, writing many groups and variables.\n");
 	printf("Usage:\t%s [N]\n", argv[0]);
 	printf("\tN: number of objects\n");
 	return(0);
@@ -120,37 +119,6 @@ int main(int argc, char **argv)
 		printf("%s/%s\t%.3g sec\n", gname, vname, sec);
 	    }
 	    v++;
-	}
-    }
-    nc_close(ncid);
-    
-    /*  create new file */
-    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    /* create N group/global attributes, printing time after every 1000.
-     * Because only NC_MAX_ATTRS are permitted per group, create the
-     * necessary number of groups to hold nitem attributes. */
-    numatt = nitem;
-    a = 1;
-    numgrp = (numatt - 1) / NC_MAX_ATTRS + 1;
-    aleft = numatt - (NC_MAX_ATTRS * (numgrp - 1));
-    if (gettimeofday(&start_time, NULL))
-	ERR;
-
-    for(g = 1; g < numgrp + 1; g++) {
-	sprintf(gname, "group%d", g);
-	if (nc_def_grp(ncid, gname, &grp)) ERR;
-	natts = g < numgrp ? NC_MAX_ATTRS : aleft; /* leftovers on last time through */
-	for(an = 1; an < natts + 1; an++) {
-	    char aname[20];
-	    sprintf(aname, "attribute%d", a);
-	    if (nc_put_att_int(grp, NC_GLOBAL, aname, NC_INT, 1, data)) ERR;
-	    if(a%1000 == 0) {		/* only print every 1000th attribute name */
-		if (gettimeofday(&end_time, NULL)) ERR;
-		if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-		sec = diff_time.tv_sec + 1.0e-6 * diff_time.tv_usec;
-		printf("%s/%s\t%.3g sec\n", gname, aname, sec);
-	    }
-	    a++;
 	}
     }
     nc_close(ncid);
