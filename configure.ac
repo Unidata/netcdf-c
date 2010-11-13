@@ -1055,6 +1055,7 @@ AC_HEADER_STDBOOL
 
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup strcasecmp])
+AC_CHECK_FUNCS([strtod strtoll])
 AC_CHECK_FUNCS([getrlimit])
 AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([fsync])

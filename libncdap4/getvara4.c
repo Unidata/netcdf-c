@@ -103,7 +103,7 @@ fprintf(stderr,"\n");
     nccomm->vara = varainfo;
 #endif
 
-    ncstat = buildvaraprojection4(drno,varainfo,
+    ncstat = buildvaraprojection4(varainfo,
 				  startp,countp,dapsinglestride3,
 			          &varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
@@ -112,39 +112,40 @@ fprintf(stderr,"\n");
 #ifdef DEBUG
 fprintf(stderr,"Unconstrained: reusing prefetch\n");
 #endif
-	cachenode = nccomm->cdf.cache.prefetch;	
+	cachenode = nccomm->cdf.cache->prefetch;
 	ASSERT((cachenode != NULL));
-    } else if(iscached(&drno->dap,varaprojection->leaf,&cachenode)) {
+    } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
 #ifdef DEBUG
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
 	dumpconstraint(&cachenode->constraint));
 #endif
     } else { /* Load with constraints */
 	NClist* vars = nclistnew();
-	NCconstraint constraint;
+	NCconstraint* constraint;
 	nclistpush(vars,(ncelem)varainfo->target);
 
-        constraint.projections = cloneprojections(nccomm->oc.constraint.projections);
+	constraint = createncconstraint();
+        constraint->projections = clonencprojections(nccomm->oc.dapconstraint->projections);
         if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
-	    NCprojection* clone = cloneprojection1(varaprojection);
+	    NCprojection* clone = clonencprojection(varaprojection);
 	    nclistpush(tmp,(ncelem)clone);
-            ncstat = mergeprojections3(nccomm,constraint.projections,tmp);
+            ncstat = mergeprojections3(constraint->projections,tmp);
 	    nclistfree(tmp);
-	    freencprojection1(clone);
+	    freencprojection(clone);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"vara merge: %s\n",
-	dumpprojections(constraint.projections));
+	dumpprojections(constraint->projections));
 #endif
         }
 
-        restrictprojection34(nccomm,vars,constraint.projections);
-        constraint.selections = cloneselections(nccomm->oc.constraint.selections);
+        restrictprojection34(vars,constraint->projections);
+        constraint->selections = clonencselections(nccomm->oc.dapconstraint->selections);
 
 	/* buildcachenode3 will also fetch the corresponding datadds */
-        ncstat = buildcachenode34(nccomm,&constraint,vars,&cachenode,0);
+        ncstat = buildcachenode34(nccomm,constraint,vars,&cachenode,0);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
@@ -181,7 +182,7 @@ ok:
 	freenccachenode(nccomm,cachenode);
     efree(constraint);
     freegetvara(varainfo);
-    freencprojection1(varaprojection);
+    freencprojection(varaprojection);
     return THROW(ncstat);
 }
 
@@ -286,15 +287,15 @@ fprintf(stderr,"getcontent4: |%s| = %lu\n",tnode->name,alloc);
     } else if(tnode->nctype == NC_Primitive) {
 	/* Stride the dimensions and get the instances */
 	NCsegment* segment = NULL;
-        ASSERT((nclistlength(xgetvar->varaprojection->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->segments,0);
+        ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
+	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
         ASSERT((fieldcontent != OCNULL));
 	ncstat = getcontent4prim(drno,xgetvar,tnode,segment,fieldcontent,memory);
     } else if(nclistlength(tnode->array.dimensions) > 0) {
 	/* Stride the dimensions and get the instances */
 	NCsegment* segment = NULL;
-	ASSERT((nclistlength(xgetvar->varaprojection->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->segments,0);
+	ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
+	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
 	if(caching || unconstrainable) {
             odom = newdapodometer(segment->slices,0,segment->slicerank);
 	} else { /*Since vara was projected out, build a simple odometer*/

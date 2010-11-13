@@ -26,15 +26,14 @@ void
 freegetvara(Getvara* vara)
 {
     if(vara == NULL) return;
-    freencprojection1(vara->varaprojection);
+    freencprojection(vara->varaprojection);
     efree(vara);
 }
 
 NCerror
 cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
 {
-    clearnccache(nccomm,&nccomm->cdf.cache);
-    nclistfree(nccomm->cdf.cache.nodes);
+    freenccache(nccomm,nccomm->cdf.cache);
     nclistfree(nccomm->cdf.varnodes);
     nclistfree(nccomm->cdf.seqnodes);
     nclistfree(nccomm->cdf.gridnodes);
@@ -48,8 +47,7 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     dapurlclear(&nccomm->oc.url);
     efree(nccomm->oc.urltext);
 
-    clearncconstraint(&nccomm->oc.constraint);
-    clearncconstraint(&nccomm->oc.dapconstraint);
+    freencconstraint(nccomm->oc.dapconstraint);
     return NC_NOERR;
 }
 
@@ -652,8 +650,7 @@ fetchconstrainedmetadata3(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = makeconstraintstring3(nccomm->oc.constraint.projections,
-				   nccomm->oc.url.selection);
+        ce = buildconstraintstring3(nccomm->oc.dapconstraint);
 
     if(ce == NULL || strlen(ce) == 0) {
 	/* no need to get the dds again; just imprint on self */
@@ -669,7 +666,7 @@ fetchconstrainedmetadata3(NCDAPCOMMON* nccomm)
 
         if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
             /* fix DAP server problem by adding back any missing grid nodes */
-            ncstat = regrid3(ddsroot,nccomm->cdf.ddsroot,nccomm->oc.constraint.projections);    
+            ncstat = regrid3(ddsroot,nccomm->cdf.ddsroot,nccomm->oc.dapconstraint->projections);    
             if(ncstat) goto fail;
 	}
 

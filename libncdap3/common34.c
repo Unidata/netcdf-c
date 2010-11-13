@@ -17,9 +17,6 @@ static void free1cdfnode34(CDFnode* node);
 static CDFnode* clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var);
 static int getcompletedimset3(CDFnode*, NClist*);
 
-static NClist* unifyprojectionnodes34(NClist* varlist);
-static int treecontains34(CDFnode* var, CDFnode* root);
-
 /* Define Procedures that are common to both
    libncdap3 and libncdap4
 */
@@ -557,10 +554,10 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     OCconnection conn = nccomm->oc.conn;
     unsigned long limit;
 
-    nccomm->cdf.cache.cachelimit = DFALTCACHELIMIT;
+    nccomm->cdf.cache->cachelimit = DFALTCACHELIMIT;
     value = oc_clientparam_get(conn,"cachelimit");
     limit = getlimitnumber(value);
-    if(limit > 0) nccomm->cdf.cache.cachelimit = limit;
+    if(limit > 0) nccomm->cdf.cache->cachelimit = limit;
 
     nccomm->cdf.fetchlimit = DFALTFETCHLIMIT;
     value = oc_clientparam_get(conn,"fetchlimit");
@@ -572,10 +569,10 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.smallsizelimit = limit;
 
-    nccomm->cdf.cache.cachecount = DFALTCACHECOUNT;
+    nccomm->cdf.cache->cachecount = DFALTCACHECOUNT;
     value = oc_clientparam_get(conn,"cachecount");
     limit = getlimitnumber(value);
-    if(limit > 0) nccomm->cdf.cache.cachecount = limit;
+    if(limit > 0) nccomm->cdf.cache->cachecount = limit;
 
     if(oc_clientparam_get(conn,"nolimit") != NULL)
 	dfaltseqlim = 0;
@@ -1006,204 +1003,5 @@ attachsubset34r(CDFnode* dstnode, CDFnode* srcnode)
     }
 done:
     return THROW(ncstat);
-}
-
-/*
-The original URL projections
-will define the maximum set of
-variables that will be retrieved.
-However, our tactic may restrict that
-set further, so we modify the projection
-set to remove projections not
-referring to the specified variables.
-Additionally, try to merge projections
-into larger projections when possible.
-We also need to watch out for one projection
-enlarging on another (e.g. types.i32 vs types).
-The larger one must be removed to avoid
-changing the DDS metadata in a way that is
-inconsistent with the DDS metadata.
-*/
-void
-restrictprojection34(NCDAPCOMMON* nccomm, NClist* varlist, NClist* projections)
-{
-    int i,j,len;
-
-#ifdef DEBUG
-fprintf(stderr,"restriction.before=|%s|\n",
-		dumpprojections(projections));
-#endif
-
-    if(nclistlength(varlist) == 0) goto done; /* nothing to add or remove */
-
-    /* If the projection list is empty, then add
-       a projection for every variable in varlist
-    */
-    if(nclistlength(projections) == 0) {
-        NClist* path = nclistnew();
-	NClist* nodeset = NULL;
-	/* Attempt to unify the vars into larger units
-	   (like a complete grid) */
-	nodeset = unifyprojectionnodes34(varlist);	
-        for(i=0;i<nclistlength(nodeset);i++) {
-	    CDFnode* var = (CDFnode*)nclistget(nodeset,i);
-	    NCprojection* newp = createncprojection();
-	    newp->leaf = var;
-	    nclistclear(path);
-	    collectnodepath3(var,path,!WITHDATASET);
-	    newp->segments = nclistnew();
-	    for(j=0;j<nclistlength(path);j++) {
-	        CDFnode* node = (CDFnode*)nclistget(path,j);
-	        NCsegment* newseg = createncsegment();
-	        newseg->name = nulldup(node->name);
-	        newseg->slicesdefined = 1; /* treat as simple projections */
-	        newseg->node = node;
-	        makewholesegment3(newseg,node);
-	        nclistpush(newp->segments,(ncelem)newseg);
-	    }
-	    nclistpush(projections,(ncelem)newp);
-	}
-	nclistfree(path);
-	nclistfree(nodeset);
-    } else {
-       /* Otherwise, walk all the projections and see if they
-	   intersect any of the variables. If not,
-	   then remove from the projection list.
-	*/
-	len = nclistlength(projections);
-	for(i=len-1;i>=0;i--) {/* Walk backward to facilitate removal*/
-	    int intersect = 0;
-	    NCprojection* proj = (NCprojection*)nclistget(projections,i);
-	    for(j=0;j<nclistlength(varlist);j++) {
-		CDFnode* var = (CDFnode*)nclistget(varlist,j);
-		/* Note that intersection could go either way */
-		if(treecontains34(var,proj->leaf)
-		   || treecontains34(proj->leaf,var)) {intersect = 1; break;}
-	    }	    
-	    if(!intersect) {
-		/* suppress this projection */
-		NCprojection* p = (NCprojection*)nclistremove(projections,i);
-		freencprojection1(p);
-	    }
-	}
-	/* Now looks for containment between projections and only keep
-           the more restrictive. Is this algorithm stable against reordering?.
-	*/
-	for(;;) {
-	    int removed = 0;
-	    for(i=0;i<nclistlength(projections);i++) {
-	        NCprojection* pi = (NCprojection*)nclistget(projections,i);
-	        for(j=0;j<i;j++) {
-	            NCprojection* pj = (NCprojection*)nclistget(projections,j);
-		    if(treecontains34(pi->leaf,pj->leaf)) {
-		        NCprojection* p = (NCprojection*)nclistremove(projections,j);
-			freencprojection1(p);
-			removed = 1;
-			break;
-		    } else if(treecontains34(pj->leaf,pi->leaf)) {
-		        NCprojection* p = (NCprojection*)nclistremove(projections,i);
-			freencprojection1(p);
-			removed = 1;
-			break;
-		    }
-		}
-	    }
-	    if(!removed) break;
-	}
-    }
-    
-done:
-#ifdef DEBUG
-fprintf(stderr,"restriction.after=|%s|\n",
-		dumpprojections(projections));
-#endif
-    return;
-}
-
-
-/* Return 1 if the specified var is in
-the projection's leaf's subtree and is
-visible
-*/
-
-static int
-treecontains34(CDFnode* var, CDFnode* root)
-{
-    int i;
-
-    if(root->visible == 0) return 0;
-    if(var == root) return 1;
-    for(i=0;i<nclistlength(root->subnodes);i++) {
-        CDFnode* subnode = (CDFnode*)nclistget(root->subnodes,i);
-	if(treecontains34(var,subnode)) return 1;
-    }
-    return 0; 
-}
-
-/* See if we can unify sets of nodes to be projected
-   into larger units.
-*/
-static NClist*
-unifyprojectionnodes34(NClist* varlist)
-{
-    int i;
-    NClist* nodeset = nclistnew();
-    NClist* containerset = nclistnew();
-    NClist* containernodes = nclistnew();
-
-    nclistsetalloc(nodeset,nclistlength(varlist));
-    nclistsetalloc(containerset,nclistlength(varlist));
-    /* Duplicate the varlist so we can modify it;
-       simultaneously collect unique container set.
-    */
-    for(i=0;i<nclistlength(varlist);i++) {
-	CDFnode* var = (CDFnode*)nclistget(varlist,i);
-	CDFnode* container = var->container;
-	nclistpush(nodeset,(ncelem)var);
-	switch (container->nctype) {
-	case NC_Sequence: case NC_Structure: case NC_Grid: case NC_Dataset:
-	    /* add (uniquely) to container set */
-	    if(!nclistcontains(containerset,(ncelem)container)) 
-	        nclistpush(containerset,(ncelem)container);
-	    break;
-	default: break;
-	}
-    }
-
-    /* Now, try to find containers whose subnodes are all in the
-	varlist; repeat until no more changes */
-    for(;;) {
-	int changed = 0;
-        for(i=0;i<nclistlength(containerset);i++) {
-            int j, allfound;
-            CDFnode* container = (CDFnode*)nclistget(containerset,i);
-	    if(container == NULL) continue;
-            nclistclear(containernodes);
-            for(allfound=1,j=0;j<nclistlength(container->subnodes);j++) {
-                CDFnode* subnode = (CDFnode*)nclistget(container->subnodes,j);
-                if(!nclistcontains(varlist,(ncelem)subnode)) {allfound=0;break;}
-                nclistpush(containernodes,(ncelem)subnode);
-            }
-            if(allfound) {
-                nclistpush(nodeset,(ncelem)container);
-                nclistset(containerset,i,(ncelem)NULL); /* remove */
-                for(j=nclistlength(nodeset)-1;j>=0;j--) { /* walk backwards */
-                    CDFnode* testnode = (CDFnode*)nclistget(nodeset,j);
-                    if(nclistcontains(containernodes,(ncelem)testnode))
-                        nclistremove(nodeset,j);/* remove */
-                }
-		changed = 1;
-            }
-        }
-	if(!changed) break; /* apparently we have reached a stable situation */
-    }
-    /* If there is only the dataset left as a projection, then remove it */
-    if(nclistlength(nodeset) == 1) {
-	CDFnode* thenode = (CDFnode*)nclistget(nodeset,0);
-	if(thenode->nctype == NC_Dataset) nclistclear(nodeset);
-    }
-    nclistfree(containerset);
-    nclistfree(containernodes);
-    return nodeset;
 }
 

@@ -24,6 +24,7 @@ typedef void* Object;
 
 #define MAX_TOKEN_LENGTH 1024
 
+
 /*! Specifies CElexstate. */
 typedef struct CElexstate {
     char* input;
@@ -81,7 +82,15 @@ extern Object arrayelement(CEparsestate* state, Object name, Object index);
 extern Object function(CEparsestate* state, Object fcnname, Object args);
 extern Object arg_list(CEparsestate* state, Object list0, Object decl);
 extern Object value_list(CEparsestate* state, Object list0, Object decl);
-extern Object value(CEparsestate* state, Object text, int tag);
+extern Object value(CEparsestate* state, Object value);
+extern Object makeselectiontag(NCsort);
+extern Object indexer(CEparsestate* state, Object name, Object indices);
+extern Object indexpath(CEparsestate* state, Object list0, Object index);
+extern Object var(CEparsestate* state, Object indexpath);
+extern Object constant(CEparsestate* state, Object val, int tag);
+extern Object clauselist(CEparsestate* state, Object list0, Object decl);
+extern Object range1(CEparsestate* state, Object rangenumber);
+extern Object rangelist(CEparsestate* state, Object list0, Object decl);
 
 /* lexer interface */
 extern int celex(YYSTYPE*, CEparsestate*);
@@ -89,6 +98,13 @@ extern void celexinit(char* input, CElexstate** lexstatep);
 extern void celexcleanup(CElexstate** lexstatep);
 
 extern int cedebug;
+
+#ifdef PARSEDEBUG
+extern Object debugobject(Object);
+#define checkobject(x) debugobject(x)
+#else
+#define checkobject(x) (x)
+#endif
 
 #endif /*CEPARSELEX_H*/
 
