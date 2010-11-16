@@ -51,7 +51,7 @@ int
 main()
 {
    printf("\n*** Checking many attributes in HDF5 file.\n");
-   printf("*** Checking some more simple atts...");
+   printf("*** Checking some more simple atts...\n");
    {
 #define NUM_ATTS 10000
       hid_t fcpl_id, hdfid, grpid;
@@ -85,12 +85,12 @@ main()
 				  H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid1, H5T_NATIVE_INT, &one) < 0) ERR;
 /*	 if (H5Aclose(attid1) < 0) ERR;*/
-	 if(i % 1000 == 0) 
+	 if((i + 1) % 1000 == 0) 
 	 {		/* only print every 1000th attribute name */
 	    if (gettimeofday(&end_time, NULL)) ERR;
 	    if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
 	    sec = diff_time.tv_sec + 1.0e-6 * diff_time.tv_usec;
-	    printf("%i\t%.3g sec\n", i, sec);
+	    printf("%i\t%.3g sec\n", i + 1, sec);
 	 }
       }
 

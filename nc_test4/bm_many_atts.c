@@ -1,4 +1,3 @@
-
 /*
 Copyright 2010, UCAR/Unidata
 See COPYRIGHT file for copying and redistribution conditions.
