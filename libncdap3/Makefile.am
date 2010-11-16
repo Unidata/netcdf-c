@@ -24,6 +24,7 @@ dapodom.c \
 daputil.c \
 ncdaperr.c \
 cdf3.c \
+cache.c \
 dapdump.c \
 dapdebug.c \
 dapattr3.c \

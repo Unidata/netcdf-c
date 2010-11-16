@@ -80,14 +80,14 @@ extern int drno_delta_numfiles(int);
 /**********************************************************/
 extern int ncceparse(char*, int, NClist**, NClist**, char**);
 
-extern NCerror computecdfnodesets4(NCDAP4* drno);
-extern NCerror fixgrids4(NCDAP4* drno);
-extern NCerror computecdfdimnames4(NCDAP4* drno);
-extern NCerror computetypenames4(NCDAP4* drno, CDFnode* tnode);
-extern NCerror computeusertypes4(NCDAP4* drno);
+extern NCerror computecdfnodesets4(NCDAPCOMMON*);
+extern NCerror fixgrids4(NCDAPCOMMON*);
+extern NCerror computecdfdimnames4(NCDAPCOMMON*);
+extern NCerror computetypenames4(NCDAPCOMMON*, CDFnode* tnode);
+extern NCerror computeusertypes4(NCDAPCOMMON*);
 extern int singletonsequence(CDFnode* node);
 extern CDFnode* getsingletonfield(NClist* list);
-extern void setvarbasetype(NCDAP4* drno, CDFnode* field);
-extern NCerror shortentypenames4(NCDAP4* drno);
+extern void setvarbasetype(NCDAPCOMMON*, CDFnode* field);
+extern NCerror shortentypenames4(NCDAPCOMMON*);
 
 #endif /*NCDAP4_H*/

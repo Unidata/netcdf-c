@@ -1,3 +1,4 @@
+
 #!/bin/sh
 
 #set -x
@@ -54,7 +55,10 @@ fi
 
 # For special testing
 REMOTEURLX="http://test.opendap.org:8080/dods/dts"
-REMOTETESTSX="test.67"
+REMOTETESTSX="test.03"
+
+REMOTEURLXC="http://test.opendap.org:8080/dods/dts"
+REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
 REMOTEURLS1="http://test.opendap.org:8080/dods/dts"
@@ -102,7 +106,7 @@ test.05;1;types.floats.f32 \
 test.06;1;ThreeD \
 test.07;1;person.age \
 test.07;3;person \
-test.07;4;types[0:2:10].f32"
+test.07;4;types.f32"
 
 # Following tests are to check selection handling
 REMOTEURLC2="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC"
@@ -201,6 +205,7 @@ for i in $WHICHTESTS ; do
   C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
   LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
   X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
+  XC) TESTURL="$REMOTEURLXC" ; TESTSET="$REMOTETESTSXC" ; constrained=1 ;;
   esac
 
 cd ${RESULTSDIR}

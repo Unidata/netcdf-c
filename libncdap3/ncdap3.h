@@ -123,7 +123,7 @@ extern void dereference3(NCconstraint* constraint);
 extern NCerror rereference3(NCconstraint*, NClist*);
 */
 
-extern NCerror buildvaraprojection3(struct NCDAPCOMMON*, struct Getvara*,
+extern NCerror buildvaraprojection3(struct Getvara*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     struct NCprojection** projectionlist);
 

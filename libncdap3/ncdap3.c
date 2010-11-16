@@ -107,7 +107,7 @@ extern int cedebug; cedebug = 1;
     /* Use libsrc code to establish initial NC(alias NCDRNO) structure */
     tmpname = nulldup(PSEUDOFILE);
     fd = mkstemp(tmpname);
-    if(fd < 0) {THROWCHK(errno); goto fail;}
+    if(fd < 0) {THROWCHK(errno); goto done;}
     /* Now, use the file to create the netcdf file */
     if(sizeof(size_t) == sizeof(unsigned int))
         ncstat = NC3_create(tmpname,NC_CLOBBER,0,0,NULL,0,NULL,
@@ -131,14 +131,17 @@ extern int cedebug; cedebug = 1;
 	SETFLAG(drno->dap.controls,NCF_UNCONSTRAINABLE);
     drno->dap.cdf.separator = ".";
     drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
-    drno->dap.cdf.cache.cachelimit = DFALTCACHELIMIT;
-    drno->dap.cdf.cache.cachesize = 0;
-    drno->dap.cdf.cache.nodes = nclistnew();
-    drno->dap.cdf.cache.cachecount = DFALTCACHECOUNT;
+    drno->dap.cdf.cache = createnccache();
+#ifdef IGNORE
+    drno->dap.cdf.cache->cachelimit = DFALTCACHELIMIT;
+    drno->dap.cdf.cache->cachesize = 0;
+    drno->dap.cdf.cache->nodes = nclistnew();
+    drno->dap.cdf.cache->cachecount = DFALTCACHECOUNT;
+#endif
 #ifdef HAVE_GETRLIMIT
     { struct rlimit rl;
       if(getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-	drno->dap.cdf.cache.cachecount = (size_t)(rl.rlim_cur / 2);
+	drno->dap.cdf.cache->cachecount = (size_t)(rl.rlim_cur / 2);
       }
     }
 #endif
@@ -147,9 +150,31 @@ extern int cedebug; cedebug = 1;
     /* process control client parameters */
     applyclientparamcontrols3(&drno->dap);
 
-    /* Presume a DAP URL*/
+    drno->dap.oc.dapconstraint = createncconstraint();
+
+    /* Check to see if we are unconstrainable */
+    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
+	if(drno->dap.oc.url.constraint != NULL
+	   && strlen(drno->dap.oc.url.constraint) > 0) {
+	    oc_log(OCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
+		   drno->dap.oc.url.constraint);
+	}
+	/* ignore all constraints */
+        drno->dap.oc.dapconstraint->projections = NULL;
+        drno->dap.oc.dapconstraint->selections = NULL;
+    } else {
+        /* Parse constraints to make sure that they are syntactically correct */
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    }
+#ifdef DEBUG
+fprintf(stderr,"parsed constraint: %s\n",
+	dumpconstraint(drno->dap.oc.dapconstraint));
+#endif
+
+    /* Pass to OC */
     ocstat = oc_open(drno->dap.oc.urltext,&drno->dap.oc.conn);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
     if(paramcheck34(&drno->dap,"show","fetch"))
 	SETFLAG(drno->dap.controls,NCF_SHOWFETCH);
@@ -165,68 +190,63 @@ extern int cedebug; cedebug = 1;
     /* fetch and build the (almost) unconstrained DDS for use as
        template */
     ncstat = fetchtemplatemetadata3(&drno->dap);
-    if(ncstat != NC_NOERR) goto fail;
+    if(ncstat != NC_NOERR) goto done;
 
-    /* Processing the constraints is a multi-step action.
-       1. retrieve the dds
-       2. convert the nc constraint names to be dap constraint
-          names
-       3. parse and merge the dap and nc constraints
-    */
-    ncstat = buildconstraints3(&drno->dap);
-    if(ncstat != NC_NOERR) goto fail;
+    /* Process the constraints to map the CDF tree */
+    ncstat = mapconstraints3(&drno->dap);
+    if(ncstat != NC_NOERR) goto done;
 
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(&drno->dap);
-    if(ncstat != NC_NOERR) goto fail;
+    if(ncstat != NC_NOERR) goto done;
 
     /* The following actions are WRT to the
 	constrained tree */
 
     /* Accumulate useful nodes sets  */
     ncstat = computecdfnodesets3(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Fix grids */
     ncstat = fixgrids3(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Locate and mark usable sequences */
     ncstat = sequencecheck3(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Conditionally suppress variables not in usable
        sequences */
     if(FLAGSET(drno->dap.controls,NCF_NOUNLIM)) {
         ncstat = suppressunusablevars3(&drno->dap);
-        if(ncstat) {THROWCHK(ncstat); goto fail;}
+        if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
     ncstat = applyclientparams34(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Add (as needed) string dimensions*/
     ncstat = addstringdims(drno);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     if(nclistlength(drno->dap.cdf.seqnodes) > 0) {
 	/* Build the sequence related dimensions */
         ncstat = defseqdims(drno);
-        if(ncstat) {THROWCHK(ncstat); goto fail;}
+        if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* Build a cloned set of dimensions for every variable */
     ncstat = clonecdfdims34(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the dimension names*/
     ncstat = computecdfdimnames34(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Deal with zero size dimensions */
     ncstat = fixzerodims3(&drno->dap);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     if(nclistlength(drno->dap.cdf.seqnodes) == 0
        && drno->dap.cdf.recorddim != NULL) {
@@ -235,29 +255,29 @@ extern int cedebug; cedebug = 1;
            in a sequence free DDS.
         */
         ncstat = defrecorddim3(drno);
-        if(ncstat) {THROWCHK(ncstat); goto fail;}
+        if(ncstat) {THROWCHK(ncstat); goto done;}
    }
 
     /* Re-compute the var names*/
     ncstat = computecdfvarnames3(&drno->dap,drno->dap.cdf.ddsroot,drno->dap.cdf.varnodes);
-    if(ncstat) {THROWCHK(ncstat); goto fail;}
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Estimate the variable sizes */
     estimatevarsizes3(&drno->dap);
 
+    /* Build the meta data */
     ncstat = buildncstructures(drno);
-
 
     if(ncstat != NC_NOERR) {
         del_from_NCList((NC*)drno); /* undefine here */
-	{THROWCHK(ncstat); goto fail;}
+	{THROWCHK(ncstat); goto done;}
     }
 
     /* Do any necessary data prefetch */
     ncstat = prefetchdata3(&drno->dap);
     if(ncstat != NC_NOERR) {
         del_from_NCList((NC*)drno); /* undefine here */
-	{THROWCHK(ncstat); goto fail;}
+	{THROWCHK(ncstat); goto done;}
     }
 
     /* Mark as no longer indef */
@@ -269,10 +289,11 @@ extern int cedebug; cedebug = 1;
 
     return THROW(NC_NOERR);
 
-fail:
+done:
     if(drno != NULL) {
+	int ncid = drno->nc.ext_ncid;
 	cleanNCDAP3(drno);
-	NC3_abort(drno->nc.ext_ncid);
+	NC3_abort(ncid);
     }
     if(ce) efree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
@@ -304,12 +325,12 @@ buildncstructures(NCDAP3* drno)
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = drno->dap.cdf.ddsroot;
     ncstat = buildglobalattrs3(drno,getncid(drno),dds);
-    if(ncstat != NC_NOERR) goto fail;
+    if(ncstat != NC_NOERR) goto done;
     ncstat = builddims(drno);
-    if(ncstat != NC_NOERR) goto fail;
+    if(ncstat != NC_NOERR) goto done;
     ncstat = buildvars(drno);
-    if(ncstat != NC_NOERR) goto fail;
-fail:
+    if(ncstat != NC_NOERR) goto done;
+done:
     return THROW(ncstat);
 }
 
@@ -357,7 +378,7 @@ builddims(NCDAP3* drno)
 			unlimited->name,
 			NC_UNLIMITED,
 			&unlimited->ncid);
-        if(ncstat != NC_NOERR) goto fail;
+        if(ncstat != NC_NOERR) goto done;
         if(DIMFLAG(unlimited,CDFDIMRECORD)) {
 	    /* This dimension was defined as unlimited by DODS_EXTRA */
 	    unlimsize = unlimited->dim.declsize;
@@ -373,7 +394,7 @@ builddims(NCDAP3* drno)
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         if(dim->dim.basedim != NULL) continue; /* handle below */
         ncstat = nc_def_dim(ncid,dim->ncfullname,dim->dim.declsize,&dimid);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         dim->ncid = dimid;
     }
 
@@ -385,7 +406,7 @@ builddims(NCDAP3* drno)
 	    dim->ncid = dim->dim.basedim->ncid;
 	}
     }
-fail:
+done:
     nclistfree(dimset);
     return THROW(ncstat);
 }
@@ -425,20 +446,20 @@ buildvars(NCDAP3* drno)
                         ncrank,
                         (ncrank==0?NULL:dimids),
                         &varid);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         var->ncid = varid;
 	if(var->attributes != NULL) {
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
 		ncstat = buildattribute3a(drno,att,var->etype,varid,ncid);
-        	if(ncstat != NC_NOERR) goto fail;
+        	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
 	/* Tag the variable with its DAP path */
 	if(paramcheck34(&drno->dap,"show","projection"))
 	    showprojection3(drno,var);
     }    
-fail:
+done:
     return THROW(ncstat);
 }
 
@@ -457,7 +478,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
 	    ncstat = buildattribute3a(drno,att,NC_NAT,NC_GLOBAL,ncid);
-            if(ncstat != NC_NOERR) goto fail;
+            if(ncstat != NC_NOERR) goto done;
 	}
     }
 
@@ -519,7 +540,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
 	}
     }
 
-fail:
+done:
     ncbytesfree(buf);
     return THROW(ncstat);
 }

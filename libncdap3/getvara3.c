@@ -45,7 +45,7 @@ nc3d_getvarx(int ncid, int varid,
     NCcachenode* cachenode = NULL;
     size_t localcount[NC_MAX_VAR_DIMS];
     NClist* vars = nclistnew();
-    NCconstraint constraint = {NULL,NULL};
+    NCconstraint* constraint = NULL;
 
     ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) goto fail;
@@ -124,49 +124,53 @@ fprintf(stderr,"\n");
     drno->dap.cdf.vara = varainfo;
 #endif
 
-    ncstat = buildvaraprojection3(&drno->dap,varainfo,startp,countp,stridep,&varaprojection);
+    ncstat = buildvaraprojection3(varainfo,startp,countp,stridep,&varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 #ifdef DEBUG
 fprintf(stderr,"Unconstrained: reusing prefetch\n");
 #endif
-	cachenode = drno->dap.cdf.cache.prefetch;	
+	cachenode = drno->dap.cdf.cache->prefetch;	
 	ASSERT((cachenode != NULL));
-    } else if(iscached(&drno->dap,varaprojection->leaf,&cachenode)) {
+    } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
 #ifdef DEBUG
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
-	dumpconstraint(&cachenode->constraint));
+	dumpconstraint(cachenode->constraint));
 #endif
     } else { /* load with constraints */
 	nclistpush(vars,(ncelem)varainfo->target);
-        constraint.projections = cloneprojections(drno->dap.oc.constraint.projections);
+	constraint = createncconstraint();
+        constraint->projections = clonencprojections(drno->dap.oc.dapconstraint->projections);
+	if(constraint->projections == NULL)
+	    constraint->projections = nclistnew();
         if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
-	    NCprojection* clone = cloneprojection1(varaprojection);
+	    NCprojection* clone = clonencprojection(varaprojection);
 	    /* We need to modify the clone to remove
                pseudo dimensions (i.e. string and sequence dimensions)
                because the server will not recognize them
 	    */
-
 	    removepseudodims3(clone);
 	    nclistpush(tmp,(ncelem)clone);
-            ncstat = mergeprojections3(&drno->dap,constraint.projections,tmp);
-	    freencprojection1(clone);
+            ncstat = mergeprojections3(constraint->projections,tmp);
+	    freencprojection(clone);
 	    nclistfree(tmp);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"vara merge: %s\n",
-	dumpprojections(constraint.projections));
+	dumpprojections(constraint->projections));
 #endif
         }
 
-        restrictprojection34(&drno->dap,vars,constraint.projections);
-        constraint.selections = cloneselections(drno->dap.oc.constraint.selections);
+        restrictprojection34(vars,constraint->projections);
+        constraint->selections = clonencselections(drno->dap.oc.dapconstraint->selections);
+	if(constraint->selections == NULL)
+	    constraint->selections = nclistnew();
 
 	/* buildcachenode3 will also fetch the corresponding datadds */
-        ncstat = buildcachenode34(&drno->dap,&constraint,vars,&cachenode,0);
+        ncstat = buildcachenode34(&drno->dap,constraint,vars,&cachenode,0);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
 #ifdef DEBUG
@@ -200,9 +204,9 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     goto ok;
 fail:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    freencprojection1(varaprojection);
+    freencprojection(varaprojection);
 ok:
-    clearncconstraint(&constraint);
+    freencconstraint(constraint);
     nclistfree(vars);
     if(!FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE) && !FLAGSET(drno->dap.controls,NCF_CACHE))
 	freenccachenode(&drno->dap,cachenode);
@@ -233,7 +237,7 @@ moveto(NCDAPCOMMON* nccomm, Getvara* xgetvar, CDFnode* xrootnode, void* memory)
     collectnodepath3(xgetvar->target,path,WITHDATASET);
     ncstat = movetor(nccomm,xrootcontent,
                      path,0,xgetvar,0,&memstate,
-                     xgetvar->varaprojection->segments);
+                     xgetvar->varaprojection->var->segments);
 
 fail:
     nclistfree(path);
@@ -637,12 +641,12 @@ removepseudodims3(NCprojection* clone)
     NCsegment* seg;
 
     ASSERT((clone != NULL));
-    nsegs = nclistlength(clone->segments);
+    nsegs = nclistlength(clone->var->segments);
 
     /* 1. scan for sequences and remove
 	  any index projections. */
     for(i=0;i<nsegs;i++) {
-	seg = (NCsegment*)nclistget(clone->segments,i);
+	seg = (NCsegment*)nclistget(clone->var->segments,i);
 	if(seg->node->nctype != NC_Sequence) continue; /* not a sequence */
 	seg->slicerank = 0;
     }
@@ -650,7 +654,7 @@ removepseudodims3(NCprojection* clone)
     /* 2. Check the terminal segment to see if it is a String primitive,
           and if so, then remove the string dimension */
     ASSERT((nsegs > 0));
-    seg = (NCsegment*)nclistget(clone->segments,nsegs-1);
+    seg = (NCsegment*)nclistget(clone->var->segments,nsegs-1);
     /* See if the node has a string dimension */
     if(seg->node->nctype == NC_Primitive
        && seg->node->array.stringdim != NULL) {

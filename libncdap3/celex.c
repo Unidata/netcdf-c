@@ -36,6 +36,7 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
     char* p=lexstate->next;
     token = 0;
     ncbytesclear(lexstate->yytext);
+    ncbytesnull(lexstate->yytext);
     p=lexstate->next;
     while(token == 0 && (c=*p)) {
 	if(c <= ' ' || c >= '\177') {p++; continue;}
@@ -81,18 +82,25 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
 	    int isnumber = 0;
 	    double number;
 	    char* yytext;
+	    char* endpoint;
 	    ceaddyytext(lexstate,c);
 	    for(p++;(c=*p);p++) {
 		if(strchr(numcharsn,c) == NULL) break;
 	        ceaddyytext(lexstate,c);
 	    }
 	    /* See if this is a number */
+	    ncbytesnull(lexstate->yytext);
 	    yytext = ncbytescontents(lexstate->yytext);
-	    if(sscanf(yytext,"%lg",&number) == 1
-	       || sscanf(yytext,"%lG",&number) == 1)
-		isnumber = 1; /* maybe */
+	    (void)strtoll(yytext,&endpoint,10);
+	    if(*yytext != '\0' && *endpoint == '\0')
+	        isnumber = 1;
+	    else {
+	        (void)strtod(yytext,&endpoint);
+	        if(*yytext != '\0' && *endpoint == '\0')
+	            isnumber = 1; /* maybe */
+	    }
 	    /* A number followed by an id char is assumed to just be
-		a funny id */	       
+	       a funny id */	       
 	    if(isnumber && (*p == '\0' || strchr(wordcharsn,*p) == NULL))  {
 	        token = SCAN_NUMBERCONST;
 	    } else {

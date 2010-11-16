@@ -203,7 +203,7 @@ dumpprojections(NClist* projections)
     for(i=0;i<nclistlength(projections);i++) {
 	NCprojection* p = (NCprojection*)nclistget(projections,i);
         if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,dumpprojection1(p));
+	ncbytescat(buf,dumpprojection(p));
     }
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -211,15 +211,16 @@ dumpprojections(NClist* projections)
 }
 
 char*
-dumpprojection1(NCprojection* p)
+dumpprojection(NCprojection* p)
 {
     int i;
     NCbytes* buf;
     char* pstring;
     if(p == NULL) return nulldup("");
+    if(p->discrim == NS_FCN) return nulldup("?fcn()");
     buf = ncbytesnew();
-    for(i=0;i<nclistlength(p->segments);i++) {
-        NCsegment* segment = (NCsegment*)nclistget(p->segments,i);
+    for(i=0;i<nclistlength(p->var->segments);i++) {
+        NCsegment* segment = (NCsegment*)nclistget(p->var->segments,i);
 	char tmp[1024];
         snprintf(tmp,sizeof(tmp),"%s%s/%lu",
 	         (i > 0?".":""),
@@ -233,7 +234,7 @@ dumpprojection1(NCprojection* p)
     }
     if(iswholeprojection(p)) ncbytescat(buf,"*");
     ncbytescat(buf,"(");
-    if(p->leaf != NULL) ncbytescat(buf,p->leaf->name);
+    if(p->var->leaf != NULL) ncbytescat(buf,p->var->leaf->name);
     ncbytescat(buf,")");
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -253,7 +254,7 @@ dumpselections(NClist* selections)
     if(nclistlength(selections) == 0) return nulldup("");
     for(i=0;i<nclistlength(selections);i++) {
 	NCselection* sel = (NCselection*)nclistget(selections,i);
-	ncbytescat(buf,dumpselection1(sel));
+	ncbytescat(buf,dumpselection(sel));
     }
     sstring = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -261,7 +262,7 @@ dumpselections(NClist* selections)
 }
 
 char*
-dumpselection1(NCselection* sel)
+dumpselection(NCselection* sel)
 {
     NCbytes* buf = ncbytesnew();
     NCbytes* segbuf = ncbytesnew();
@@ -270,35 +271,41 @@ dumpselection1(NCselection* sel)
     int j;
 
     if(sel == NULL) return nulldup("");
-    segments = sel->segments;
+    segments = sel->lhs->var->segments;
     ncbytescat(buf,"&");
-    makesegmentstring3(segments,segbuf,".");
+    tostringncsegments(segments,segbuf);
     ncbytescat(buf,ncbytescontents(segbuf));
     ncbytescat(buf,opstrings[sel->operator]);
     ncbytescat(buf,"{");
-    for(j=0;j<nclistlength(sel->values);j++) {
-        NCvalue* value = (NCvalue*)nclistget(sel->values,j);
+    for(j=0;j<nclistlength(sel->rhs);j++) {
+        NCvalue* value = (NCvalue*)nclistget(sel->rhs,j);
+        NCconstant* con = value->constant;
         char tmp[64];
         if(j > 0) ncbytescat(buf,",");
-        switch (value->kind) {
-        case ST_STR:
-            ncbytescat(buf,value->value.text);
+        switch (value->discrim) {
+        case NS_STR:
+            ncbytescat(buf,con->text);
             break;          
-        case ST_INT:
-            snprintf(tmp,sizeof(tmp),"%lld",value->value.intvalue);
-            ncbytescat(buf,tmp);
-            break;
-        case ST_FLOAT:
-            snprintf(tmp,sizeof(tmp),"%g",value->value.floatvalue);
-            ncbytescat(buf,tmp);
-            break;
-        case ST_VAR:
-            segments = value->value.var.segments;
+	case NS_CONST:
+            switch (con->discrim) {	    
+            case NS_INT:
+                snprintf(tmp,sizeof(tmp),"%lld",con->intvalue);
+                ncbytescat(buf,tmp);
+                break;
+            case NS_FLOAT:
+                snprintf(tmp,sizeof(tmp),"%g",con->floatvalue);
+                ncbytescat(buf,tmp);
+                break;
+            default: PANIC1("unexpected discriminator %d",(int)con->discrim);
+	    }
+	    break;
+        case NS_VAR:
+            segments = value->var->segments;
 	    ncbytesclear(segbuf);
-            makesegmentstring3(segments,segbuf,".");
+	    tostringncsegments(segments,segbuf);
             ncbytescat(buf,ncbytescontents(segbuf));
             break;
-        default: PANIC1("unexpected tag: %d",(int)value->kind);
+        default: PANIC1("unexpected discriminator %d",(int)value->discrim);
         }
     }
     ncbytescat(buf,"}");
@@ -592,26 +599,6 @@ dumpnode(CDFnode* node)
         snprintf(tmp,sizeof(tmp),"    }\n");
         ncbytescat(buf,tmp);
     }
-#ifdef IGNORE
-    for(i=0;i<nclistlength(node->array.ncdimensions);i++) {
-	CDFnode* dim = (CDFnode*)nclistget(node->array.ncdimensions,i);
-        snprintf(tmp,sizeof(tmp),"ncdims[%d]={\n",i);
-        ncbytescat(buf,tmp);
-	snprintf(tmp,sizeof(tmp),"    name=%s\n",dim->name);
-	ncbytescat(buf,tmp);
-	snprintf(tmp,sizeof(tmp),"    dimflags=%u\n",
-			(unsigned int)dim->dim.dimflags);
-        ncbytescat(buf,tmp);
-	snprintf(tmp,sizeof(tmp),"    declsize=%lu\n",
-		    (unsigned long)dim->dim.declsize);
-        ncbytescat(buf,tmp);
-	snprintf(tmp,sizeof(tmp),"    declsize0=%lu\n",
-		    (unsigned long)dim->dim.declsize0);
-        ncbytescat(buf,tmp);
-        snprintf(tmp,sizeof(tmp),"    }\n");
-        ncbytescat(buf,tmp);
-    }
-#endif
 
     result = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -647,7 +634,7 @@ dumpcachenode(NCcachenode* node)
 		node->prefetch?"*":"",
 		(unsigned long)node,
 		(unsigned long)node->xdrsize,
-		makeconstraintstring3(node->constraint.projections,NULL));
+		buildconstraintstring3(node->constraint));
     ncbytescat(buf,tmp);
     if(nclistlength(node->vars)==0)
 	ncbytescat(buf,"null");

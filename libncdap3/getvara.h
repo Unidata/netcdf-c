@@ -27,22 +27,6 @@ and the per-retrieval maximum size
 /* Max number of cache nodes */
 #define DFALTCACHECOUNT (100)
 
-/*
-Store the relevant parameters for accessing
-data for a particular variable
-Break up the startp, countp, stridep into slices
-to facilitate the odometer walk
-*/
-
-typedef struct NCslice {
-    size_t first;
-    size_t count;
-    size_t length; /* count*stride */
-    size_t stride;
-    size_t stop; /* == first + count*/
-    size_t declsize;  /* from defining dimension, if any.*/
-} NCslice;
-
 /* Define a tracker for memory to support*/
 /* the concatenation*/
 
@@ -50,52 +34,6 @@ struct NCMEMORY {
     void* memory;
     char* next; /* where to store the next chunk of data*/
 }; 
-
-/* Hold a projection segment */
-
-typedef struct NCsegment {
-    char* name;
-    struct CDFnode* node;
-    int slicesdefined; /* do we know yet if this has defined slices */
-    unsigned int slicerank; /* Note: this is the rank as shown in the
-                               projection; may be less than node->array.rank */
-    NCslice slices[NC_MAX_VAR_DIMS];        
-} NCsegment;
-
-typedef struct NCprojection {
-    NClist* segments;
-    /* Following duplicate info inferrable from the segments */
-    struct CDFnode* leaf;
-} NCprojection;
-
-/* Hold a selection instance */
-
-typedef enum SelectionTag {
-ST_NIL=0,
-ST_EQ=1,ST_NEQ=2,ST_GE=3,ST_GT=4,ST_LT=5,ST_LE=6,ST_RE=7,
-ST_STR=8,ST_INT=9,ST_FLOAT=10,ST_VAR=11,ST_FCN
-} SelectionTag;
-
-typedef struct NCvalue {
-    SelectionTag kind;
-    union {
-        char* text;
-	long long intvalue;
-	double floatvalue;
-	struct {
-	    NClist* segments;
-	    struct CDFnode* node;
-	} var;
-    } value;
-} NCvalue;
-
-typedef struct NCselection {
-    SelectionTag operator;
-    NClist* segments;
-    NClist* values;
-    struct CDFnode* leaf;
-    char* fcn;
-} NCselection;
 
 typedef int nc_tactic;
 #define tactic_null	0
@@ -107,8 +45,8 @@ typedef int nc_tactic;
 typedef struct Getvara {
     int projected; /* Were projections applied when retrieving data */
     void* memory; /* where result is put*/
-    NCcachenode* cache;
-    NCprojection* varaprojection;
+    struct NCcachenode* cache;
+    struct NCprojection* varaprojection;
     /* associated variable*/
     OCtype dsttype;
     CDFnode* target;

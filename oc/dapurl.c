@@ -32,7 +32,7 @@ dapurlparse(const char* url0, DAPURL* dapurl)
     char* protocol = NULL;
     char* params = NULL;
     char* baseurl = NULL;
-    char* constraints = NULL;
+    char* constraint = NULL;
     char* stop;
 
     memset((void*)dapurl,0,sizeof(DAPURL));
@@ -68,18 +68,19 @@ dapurlparse(const char* url0, DAPURL* dapurl)
     baseurl = p;
 
     /* Look for '?' */
-    constraints = strchr(p,'?');
-    if(constraints) {
-	*constraints++ = '\0';
+    constraint = strchr(p,'?');
+    if(constraint) {
+	*constraint++ = '\0';
     }
 
     /* assemble the component pieces*/
-    dapurl->url = strdup(url0);
-    dapurl->base = strdup(baseurl);
-    dapurl->protocol = strdup(protocol);
+    dapurl->url = nulldup(url0);
+    dapurl->base = nulldup(baseurl);
+    dapurl->protocol = nulldup(protocol);
     /* remove trailing ':' */
     dapurl->protocol[strlen(protocol)-1] = '\0';
-    dapurlsetconstraints(dapurl,constraints);
+    dapurl->constraint = nulldup(constraint);
+    dapurlsetconstraints(dapurl,constraint);
     if(params != NULL) {
         dapurl->params = (char*)ocmalloc(1+2+strlen(params));
         strcpy(dapurl->params,"[");
@@ -107,6 +108,7 @@ dapurlclear(DAPURL* dapurl)
     if(dapurl->url != NULL) {free(dapurl->url);}
     if(dapurl->base != NULL) {free(dapurl->base);}
     if(dapurl->protocol != NULL) {free(dapurl->protocol);}
+    if(dapurl->constraint != NULL) {free(dapurl->constraint);}
     if(dapurl->projection != NULL) {free(dapurl->projection);}
     if(dapurl->selection != NULL) {free(dapurl->selection);}
     if(dapurl->params != NULL) {free(dapurl->params);}
@@ -142,9 +144,9 @@ dapurlsetconstraints(DAPURL* durl,const char* constraints)
 	    memcpy((void*)proj,p,plen);
 	    proj[plen] = '\0';
 	}
-	select = strdup(select);
+	select = nulldup(select);
     } else {
-	proj = strdup(proj);
+	proj = nulldup(proj);
 	select = NULL;
     }
     durl->projection = proj;

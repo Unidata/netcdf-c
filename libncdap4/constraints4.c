@@ -16,7 +16,7 @@ against the relevant nodes in which the ultimate target
 is contained.
 */
 NCerror
-buildvaraprojection4(NCDAP4* drno, Getvara* getvar,
+buildvaraprojection4(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     NCprojection** projectionp)
 {
@@ -37,8 +37,10 @@ buildvaraprojection4(NCDAP4* drno, Getvara* getvar,
     nclistpush(segments,(ncelem)segment);
 
     projection = createncprojection();
-    projection->leaf = var;
-    projection->segments = segments;
+    projection->discrim = NS_VAR;
+    projection->var = createncvar();
+    projection->var->leaf = var;
+    projection->var->segments = segments;
 
     /* All slices are assigned to the first (and only segment) */
     dimset = var->array.dimensions;
@@ -57,7 +59,7 @@ buildvaraprojection4(NCDAP4* drno, Getvara* getvar,
     segment->slicesdefined = 1;
 
     if(projectionp) *projectionp = projection;
-    if(ncstat) freencprojection1(projection);
+    if(ncstat) freencprojection(projection);
     return ncstat;
 }
 
@@ -68,16 +70,16 @@ prefetchdata4(NCDAP4* drno)
     int i,j;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = drno->dap.cdf.varnodes;
-    NCconstraint* constraint = &drno->dap.oc.constraint;
+    NCconstraint* constraint = drno->dap.oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
-    NCconstraint newconstraint;
+    NCconstraint* newconstraint;
 
     /* If caching is off, and we can do constraints, then
        don't even do prefetch
     */
     if(!FLAGSET(drno->dap.controls,NCF_CACHE) && !FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	drno->dap.cdf.cache.prefetch = NULL;
+	drno->dap.cdf.cache->prefetch = NULL;
 	goto done;
     }
 
@@ -96,19 +98,20 @@ prefetchdata4(NCDAP4* drno)
     }
 
     /* If we cannot constrain, then pull in everything */
+    newconstraint = createncconstraint();
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	newconstraint.projections = NULL;
-	newconstraint.selections= NULL;
+	newconstraint->projections = NULL;
+	newconstraint->selections= NULL;
     } else { /* Construct the projections for this set of vars */
         /* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
-        newconstraint.projections = cloneprojections(constraint->projections);
-        restrictprojection34(&drno->dap,vars,newconstraint.projections);
+        newconstraint->projections = clonencprojections(constraint->projections);
+        restrictprojection34(vars,newconstraint->projections);
         /* similar for selections */
-        newconstraint.selections = cloneselections(constraint->selections);
+        newconstraint->selections = clonencselections(constraint->selections);
     }
 
-    ncstat = buildcachenode34(&drno->dap,&newconstraint,vars,&cache,0);
+    ncstat = buildcachenode34(&drno->dap,newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
 if(FLAGSET(drno->dap.controls,NCF_SHOWFETCH)) {

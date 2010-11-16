@@ -19,7 +19,7 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS = 
 TESTS = 
-TESTS += tst_ncdap3.sh
+#TESTS += tst_ncdap3.sh
 
 if USE_NETCDF4
 TESTS += tst_ncdap4.sh
@@ -51,7 +51,7 @@ test_cvt4_SOURCES = test_cvt.c
 test_varm3_SOURCES = test_varm3.c
 check_PROGRAMS += test_cvt3 test_varm3 test_cvt4
 
-TESTS += test_cvt3 test_varm3
+#TESTS += test_cvt3 test_varm3
 
 if USE_NETCDF4
 TESTS += test_cvt4
