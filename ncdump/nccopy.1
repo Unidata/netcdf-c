@@ -37,12 +37,12 @@ nested compound types, variable-length types, and data of any valid
 netCDF-4 type.  Other generic utility programs can make use of parts
 of \fBnccopy\fP for more complex operations on netCDF data.
 .LP
-As of NetCDF version 4.1, and if DAP support was enabled when \fBnccopy\fP
+As of netCDF version 4.1, and if DAP support was enabled when \fBnccopy\fP
 was built, the file name may specify a DAP URL. This allows \fBnccopy\fP
 to convert data on DAP servers to local netCDF files.
 .SH OPTIONS
 .IP "\fB-k \fIkind\fP"
-Specifies the kind of file to be created that is, the format variant)
+Specifies the kind of file to be created (that is, the format variant)
 and, by inference, 
 the data model (i.e. netcdf-3 (classic) versus
 netcdf-4 (enhanced)).
@@ -70,14 +70,13 @@ Specify deflation level (level of compression) for variable data in
 output.  0 corresponds to no compression and 9 to maximum compression,
 with higher levels of compression requiring marginally more time to
 compress or uncompress than lower levels.  Compression achieved may
-also depend on chunking parameters, which cannot currently be set to
-anything except default chunking in the current nccopy
+also depend on chunking parameters, which will use default chunking in the current nccopy
 implementation.  If this option is specified for a classic format or
 64-bit offset format input file, it is not necessary to also specify
 that the output should be netCDF-4 classic model, as that will
 be the default.  If this option is not specified and the input file
 has compressed variables, the compression will still be preserved
-in the output.
+in the output, using the same chunking as in the input.
 .IP "\fB-s\fP"
 Specify shuffling of variable data bytes before compression or after
 decompression.  This option is ignored unless a non-zero deflation
@@ -89,7 +88,7 @@ dimensions in the output.
 .IP "\fB-m \fIbufsize\fP"
 Specifies the size, in bytes, of the copy buffer used to
 to copy large variables, by copying them in smaller pieces, each no
-larger than \fIcopy_bufer_size\fP.  A suffix of k, m, or g multiplies
+larger than \fIbufsize\fP.  A suffix of k, m, or g multiplies
 the copy buffer size by one thousand, million, or billion, respectively.
 The default is 5000000 bytes,
 but will be increased if necessary to hold at least one chunk of
@@ -145,14 +144,6 @@ netCDF-4 file with some variables compressed using various deflation
 levels, the output will also be a netCDF-4 file of the same type, but
 all the variables, including any uncompressed variables in the input,
 will now use deflation level 1.
-.LP
-Uncompress all the variables in the input file nc4.nc, a netCDF-4
-classic model file, and copy to a classic netCDF file,
-classic.nc:
-.RS
-.HP
-nccopy -d0 -k1 nc4.nc classic.nc
-.RE
 .SH "SEE ALSO"
 .LP
 .BR ncdump(1), ncgen (1),
