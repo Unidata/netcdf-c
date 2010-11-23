@@ -478,6 +478,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	/* else, not in define mode */
 
 	status = set_NC_string(dimp->name, newname);
+	dimp->hash = hash_fast(newname, strlen(newname));
 	free(newname);
 	if(status != NC_NOERR)
 		return status;
