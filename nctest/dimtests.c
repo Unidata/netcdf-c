@@ -363,7 +363,7 @@ test_ncdimrename(path)
     test.dims[pp_dim].name = (char *) erealloc((void *)test.dims[pp_dim].name,
 					      strlen(newname)+1);
     (void) strcpy(test.dims[pp_dim].name, newname); /* keep test consistent */
-    /* try to rename second dimension same as first, should fail */
+    /* try to rename first dimension same as second, should fail */
     if (ncdimrename(cdfid, pp_dim, qq.name) != -1) {
 	error("%s: ncdimrename should have failed with used name", pname);
 	ncclose(cdfid); return ++nerrs;
