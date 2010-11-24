@@ -1,7 +1,7 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
-#ifndef NCLINS_H
-#define NCLINS_H 1
+#ifndef NCLIST_H
+#define NCLIST_H 1
 
 /* Define the type of the elements in the list*/
 
@@ -56,5 +56,6 @@ EXTERNC NClist* nclistclone(NClist*);
 #define nclistcontents(l) ((l)->content)
 #define nclistlength(l)  ((l)?(l)->length:0U)
 
-#endif /*NCLINS_H*/
+#endif /*NCLIST_H*/
+
 

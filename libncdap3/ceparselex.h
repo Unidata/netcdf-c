@@ -99,5 +99,12 @@ extern void celexcleanup(CElexstate** lexstatep);
 
 extern int cedebug;
 
+#ifdef PARSEDEBUG
+extern Object debugobject(Object);
+#define checkobject(x) debugobject(x)
+#else
+#define checkobject(x) (x)
+#endif
+
 #endif /*CEPARSELEX_H*/
 

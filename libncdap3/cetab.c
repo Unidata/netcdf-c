@@ -1754,21 +1754,21 @@ yyreduce:
 
 /* Line 1464 of yacc.c  */
 #line 206 "ce.y"
-    {(yyval) = (yyvsp[(1) - (1)]);;}
+    {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
   case 58:
 
 /* Line 1464 of yacc.c  */
 #line 210 "ce.y"
-    {(yyval) = (yyvsp[(1) - (1)]);;}
+    {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
   case 59:
 
 /* Line 1464 of yacc.c  */
 #line 214 "ce.y"
-    {(yyval) = (yyvsp[(1) - (1)]);;}
+    {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
 

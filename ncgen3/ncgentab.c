@@ -1,24 +1,22 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+/* A Bison parser, made by GNU Bison 2.4.3.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+   2009, 2010 Free Software Foundation, Inc.
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,7 +27,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -47,7 +45,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.3"
+#define YYBISON_VERSION "2.4.3"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -55,77 +53,32 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
+/* Push parsers.  */
+#define YYPUSH 0
+
+/* Pull parsers.  */
+#define YYPULL 1
+
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
-#define yyparse ncgparse
-#define yylex   ncglex
-#define yyerror ncgerror
-#define yylval  ncglval
-#define yychar  ncgchar
-#define yydebug ncgdebug
-#define yynerrs ncgnerrs
-
-
-/* Tokens.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     NC_UNLIMITED_K = 258,
-     BYTE_K = 259,
-     CHAR_K = 260,
-     SHORT_K = 261,
-     INT_K = 262,
-     FLOAT_K = 263,
-     DOUBLE_K = 264,
-     IDENT = 265,
-     TERMSTRING = 266,
-     BYTE_CONST = 267,
-     CHAR_CONST = 268,
-     SHORT_CONST = 269,
-     INT_CONST = 270,
-     FLOAT_CONST = 271,
-     DOUBLE_CONST = 272,
-     DIMENSIONS = 273,
-     VARIABLES = 274,
-     NETCDF = 275,
-     DATA = 276,
-     FILLVALUE = 277
-   };
-#endif
-/* Tokens.  */
-#define NC_UNLIMITED_K 258
-#define BYTE_K 259
-#define CHAR_K 260
-#define SHORT_K 261
-#define INT_K 262
-#define FLOAT_K 263
-#define DOUBLE_K 264
-#define IDENT 265
-#define TERMSTRING 266
-#define BYTE_CONST 267
-#define CHAR_CONST 268
-#define SHORT_CONST 269
-#define INT_CONST 270
-#define FLOAT_CONST 271
-#define DOUBLE_CONST 272
-#define DIMENSIONS 273
-#define VARIABLES 274
-#define NETCDF 275
-#define DATA 276
-#define FILLVALUE 277
-
-
+#define yyparse         ncgparse
+#define yylex           ncglex
+#define yyerror         ncgerror
+#define yylval          ncglval
+#define yychar          ncgchar
+#define yydebug         ncgdebug
+#define yynerrs         ncgnerrs
 
 
 /* Copy the first part of user declarations.  */
+
+/* Line 189 of yacc.c  */
 #line 9 "ncgen.y"
 
 #ifdef sccs
-static char SccsId[] = "$Id: ncgentab.c,v 1.43 2010/04/01 20:01:38 dmh Exp $";
+static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
 #endif
 #include        <config.h>
 #include        <string.h>
@@ -196,6 +149,9 @@ int yyerror(char*);
 #endif
 
 
+/* Line 189 of yacc.c  */
+#line 154 "ncgen.tab.c"
+
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -214,20 +170,51 @@ int yyerror(char*);
 # define YYTOKEN_TABLE 0
 #endif
 
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
-# define yystype YYSTYPE /* obsolescent; will be withdrawn */
-# define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
+
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     NC_UNLIMITED_K = 258,
+     BYTE_K = 259,
+     CHAR_K = 260,
+     SHORT_K = 261,
+     INT_K = 262,
+     FLOAT_K = 263,
+     DOUBLE_K = 264,
+     IDENT = 265,
+     TERMSTRING = 266,
+     BYTE_CONST = 267,
+     CHAR_CONST = 268,
+     SHORT_CONST = 269,
+     INT_CONST = 270,
+     FLOAT_CONST = 271,
+     DOUBLE_CONST = 272,
+     DIMENSIONS = 273,
+     VARIABLES = 274,
+     NETCDF = 275,
+     DATA = 276,
+     FILLVALUE = 277
+   };
 #endif
 
+
+
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef int YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+#endif
 
 
 /* Copy the second part of user declarations.  */
 
 
-/* Line 216 of yacc.c.  */
-#line 231 "ncgen.tab.c"
+/* Line 264 of yacc.c  */
+#line 218 "ncgen.tab.c"
 
 #ifdef short
 # undef short
@@ -277,7 +264,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if YYENABLE_NLS
+# if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -302,14 +289,14 @@ typedef short int yytype_int16;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int i)
+YYID (int yyi)
 #else
 static int
-YYID (i)
-    int i;
+YYID (yyi)
+    int yyi;
 #endif
 {
-  return i;
+  return yyi;
 }
 #endif
 
@@ -390,9 +377,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss;
-  YYSTYPE yyvs;
-  };
+  yytype_int16 yyss_alloc;
+  YYSTYPE yyvs_alloc;
+};
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -426,12 +413,12 @@ union yyalloc
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack)					\
+# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack, Stack, yysize);				\
-	Stack = &yyptr->Stack;						\
+	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
+	Stack = &yyptr->Stack_alloc;					\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
@@ -558,12 +545,12 @@ static const char *const yytname[] =
   "BYTE_CONST", "CHAR_CONST", "SHORT_CONST", "INT_CONST", "FLOAT_CONST",
   "DOUBLE_CONST", "DIMENSIONS", "VARIABLES", "NETCDF", "DATA", "FILLVALUE",
   "'{'", "'}'", "';'", "','", "'='", "'('", "')'", "':'", "$accept",
-  "ncdesc", "@1", "@2", "dimsection", "dimdecls", "dimdecline", "dimdecl",
-  "dimd", "dim", "vasection", "vadecls", "vadecl", "gattdecls", "vardecl",
-  "type", "varlist", "varspec", "@3", "var", "dimspec", "dimlist", "vdim",
-  "attdecl", "@4", "gattdecl", "@5", "att", "gatt", "avar", "attr",
-  "attvallist", "aconst", "attconst", "datasection", "datadecls",
-  "datadecl", "@6", "constlist", "dconst", "@7", "const", 0
+  "ncdesc", "$@1", "$@2", "dimsection", "dimdecls", "dimdecline",
+  "dimdecl", "dimd", "dim", "vasection", "vadecls", "vadecl", "gattdecls",
+  "vardecl", "type", "varlist", "varspec", "$@3", "var", "dimspec",
+  "dimlist", "vdim", "attdecl", "$@4", "gattdecl", "$@5", "att", "gatt",
+  "avar", "attr", "attvallist", "aconst", "attconst", "datasection",
+  "datadecls", "datadecl", "$@6", "constlist", "dconst", "$@7", "const", 0
 };
 #endif
 
@@ -722,9 +709,18 @@ static const yytype_uint8 yystos[] =
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
-   Once GCC version 2 has supplanted version 1, this can go.  */
+   Once GCC version 2 has supplanted version 1, this can go.  However,
+   YYFAIL appears to be in use.  Nevertheless, it is formally deprecated
+   in Bison 2.4.2's NEWS entry, where a plan to phase it out is
+   discussed.  */
 
 #define YYFAIL		goto yyerrlab
+#if defined YYFAIL
+  /* This is here to suppress warnings from the GCC cpp's
+     -Wunused-macros.  Normally we don't worry about that warning, but
+     some users do, and we want to make it easy for users to remove
+     YYFAIL uses, which will produce warnings from Bison 2.5.  */
+#endif
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
@@ -781,7 +777,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if YYLTYPE_IS_TRIVIAL
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -892,17 +888,20 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
+yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
 #else
 static void
-yy_stack_print (bottom, top)
-    yytype_int16 *bottom;
-    yytype_int16 *top;
+yy_stack_print (yybottom, yytop)
+    yytype_int16 *yybottom;
+    yytype_int16 *yytop;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; bottom <= top; ++bottom)
-    YYFPRINTF (stderr, " %d", *bottom);
+  for (; yybottom <= yytop; yybottom++)
+    {
+      int yybot = *yybottom;
+      YYFPRINTF (stderr, " %d", yybot);
+    }
   YYFPRINTF (stderr, "\n");
 }
 
@@ -936,11 +935,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      fprintf (stderr, "   $%d = ", yyi + 1);
+      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      fprintf (stderr, "\n");
+      YYFPRINTF (stderr, "\n");
     }
 }
 
@@ -1220,10 +1219,8 @@ yydestruct (yymsg, yytype, yyvaluep)
 	break;
     }
 }
-
 
 /* Prevent warnings from -Wmissing-prototypes.  */
-
 #ifdef YYPARSE_PARAM
 #if defined __STDC__ || defined __cplusplus
 int yyparse (void *YYPARSE_PARAM);
@@ -1239,11 +1236,10 @@ int yyparse ();
 #endif /* ! YYPARSE_PARAM */
 
 
-
-/* The look-ahead symbol.  */
+/* The lookahead symbol.  */
 int yychar;
 
-/* The semantic value of the look-ahead symbol.  */
+/* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
@@ -1251,9 +1247,9 @@ int yynerrs;
 
 
 
-/*----------.
-| yyparse.  |
-`----------*/
+/*-------------------------.
+| yyparse or yypush_parse.  |
+`-------------------------*/
 
 #ifdef YYPARSE_PARAM
 #if (defined __STDC__ || defined __C99__FUNC__ \
@@ -1277,14 +1273,39 @@ yyparse ()
 #endif
 #endif
 {
-  
-  int yystate;
+
+
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
+
+    /* The stacks and their tools:
+       `yyss': related to states.
+       `yyvs': related to semantic values.
+
+       Refer to the stacks thru separate pointers, to allow yyoverflow
+       to reallocate them elsewhere.  */
+
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
+    yytype_int16 *yyss;
+    yytype_int16 *yyssp;
+
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
+    YYSTYPE *yyvs;
+    YYSTYPE *yyvsp;
+
+    YYSIZE_T yystacksize;
+
   int yyn;
   int yyresult;
-  /* Number of tokens to shift before error messages enabled.  */
-  int yyerrstatus;
-  /* Look-ahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  /* Lookahead token as an internal (translated) token number.  */
+  int yytoken;
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1292,51 +1313,28 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
-  /* Three stacks and their tools:
-     `yyss': related to states,
-     `yyvs': related to semantic values,
-     `yyls': related to locations.
-
-     Refer to the stacks thru separate pointers, to allow yyoverflow
-     to reallocate them elsewhere.  */
-
-  /* The state stack.  */
-  yytype_int16 yyssa[YYINITDEPTH];
-  yytype_int16 *yyss = yyssa;
-  yytype_int16 *yyssp;
-
-  /* The semantic value stack.  */
-  YYSTYPE yyvsa[YYINITDEPTH];
-  YYSTYPE *yyvs = yyvsa;
-  YYSTYPE *yyvsp;
-
-
-
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
-
-  YYSIZE_T yystacksize = YYINITDEPTH;
-
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
+
+  yytoken = 0;
+  yyss = yyssa;
+  yyvs = yyvsa;
+  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY;		/* Cause a token to be read.  */
+  yychar = YYEMPTY; /* Cause a token to be read.  */
 
   /* Initialize stack pointers.
      Waste one element of value and location stack
      so that they stay on the same level as the state stack.
      The wasted elements are never initialized.  */
-
   yyssp = yyss;
   yyvsp = yyvs;
 
@@ -1366,7 +1364,6 @@ yyparse ()
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
-
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -1374,7 +1371,6 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
-
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -1397,9 +1393,8 @@ yyparse ()
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss);
-	YYSTACK_RELOCATE (yyvs);
-
+	YYSTACK_RELOCATE (yyss_alloc, yyss);
+	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1410,7 +1405,6 @@ yyparse ()
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
-
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -1420,6 +1414,9 @@ yyparse ()
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
+  if (yystate == YYFINAL)
+    YYACCEPT;
+
   goto yybackup;
 
 /*-----------.
@@ -1428,16 +1425,16 @@ yyparse ()
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     look-ahead token if we need one and don't already have one.  */
+     lookahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to look-ahead token.  */
+  /* First try to decide what to do without reference to lookahead token.  */
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a look-ahead token if don't already have one.  */
+  /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1469,20 +1466,16 @@ yybackup:
       goto yyreduce;
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the look-ahead token.  */
+  /* Shift the lookahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token unless it is eof.  */
-  if (yychar != YYEOF)
-    yychar = YYEMPTY;
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
 
   yystate = yyn;
   *++yyvsp = yylval;
@@ -1522,11 +1515,15 @@ yyreduce:
   switch (yyn)
     {
         case 2:
+
+/* Line 1464 of yacc.c  */
 #line 114 "ncgen.y"
     { init_netcdf(); ;}
     break;
 
   case 3:
+
+/* Line 1464 of yacc.c  */
 #line 117 "ncgen.y"
     {
 		       if (derror_count == 0)
@@ -1537,6 +1534,8 @@ yyreduce:
     break;
 
   case 4:
+
+/* Line 1464 of yacc.c  */
 #line 125 "ncgen.y"
     {
 		       if (derror_count == 0)
@@ -1545,6 +1544,8 @@ yyreduce:
     break;
 
   case 11:
+
+/* Line 1464 of yacc.c  */
 #line 140 "ncgen.y"
     { if (int_val <= 0)
 			 derror("dimension length must be positive");
@@ -1554,6 +1555,8 @@ yyreduce:
     break;
 
   case 12:
+
+/* Line 1464 of yacc.c  */
 #line 146 "ncgen.y"
     { /* for rare case where 2^31 < dimsize < 2^32 */
 		       if (double_val <= 0)
@@ -1568,6 +1571,8 @@ yyreduce:
     break;
 
   case 13:
+
+/* Line 1464 of yacc.c  */
 #line 157 "ncgen.y"
     {  if (rec_dim != -1)
 			 derror("only one NC_UNLIMITED dimension allowed");
@@ -1578,6 +1583,8 @@ yyreduce:
     break;
 
   case 14:
+
+/* Line 1464 of yacc.c  */
 #line 165 "ncgen.y"
     { 
 		    if ((yyvsp[(1) - (1)])->is_dim == 1) {
@@ -1597,36 +1604,50 @@ yyreduce:
     break;
 
   case 27:
+
+/* Line 1464 of yacc.c  */
 #line 197 "ncgen.y"
     { type_code = NC_BYTE; ;}
     break;
 
   case 28:
+
+/* Line 1464 of yacc.c  */
 #line 198 "ncgen.y"
     { type_code = NC_CHAR; ;}
     break;
 
   case 29:
+
+/* Line 1464 of yacc.c  */
 #line 199 "ncgen.y"
     { type_code = NC_SHORT; ;}
     break;
 
   case 30:
+
+/* Line 1464 of yacc.c  */
 #line 200 "ncgen.y"
     { type_code = NC_INT; ;}
     break;
 
   case 31:
+
+/* Line 1464 of yacc.c  */
 #line 201 "ncgen.y"
     { type_code = NC_FLOAT; ;}
     break;
 
   case 32:
+
+/* Line 1464 of yacc.c  */
 #line 202 "ncgen.y"
     { type_code = NC_DOUBLE; ;}
     break;
 
   case 35:
+
+/* Line 1464 of yacc.c  */
 #line 208 "ncgen.y"
     {
 		    static struct vars dummyvar;
@@ -1663,6 +1684,8 @@ yyreduce:
     break;
 
   case 36:
+
+/* Line 1464 of yacc.c  */
 #line 241 "ncgen.y"
     {
 		    vars[nvars].ndims = nvdims;
@@ -1671,6 +1694,8 @@ yyreduce:
     break;
 
   case 42:
+
+/* Line 1464 of yacc.c  */
 #line 255 "ncgen.y"
     {
 		    if (nvdims >= NC_MAX_VAR_DIMS) {
@@ -1694,6 +1719,8 @@ yyreduce:
     break;
 
   case 43:
+
+/* Line 1464 of yacc.c  */
 #line 276 "ncgen.y"
     {
                    defatt();
@@ -1701,6 +1728,8 @@ yyreduce:
     break;
 
   case 44:
+
+/* Line 1464 of yacc.c  */
 #line 280 "ncgen.y"
     {
                    equalatt();
@@ -1708,6 +1737,8 @@ yyreduce:
     break;
 
   case 45:
+
+/* Line 1464 of yacc.c  */
 #line 285 "ncgen.y"
     {
                    defatt();
@@ -1715,6 +1746,8 @@ yyreduce:
     break;
 
   case 46:
+
+/* Line 1464 of yacc.c  */
 #line 289 "ncgen.y"
     {
                    equalatt();
@@ -1722,6 +1755,8 @@ yyreduce:
     break;
 
   case 48:
+
+/* Line 1464 of yacc.c  */
 #line 297 "ncgen.y"
     {
 		    varnum = NC_GLOBAL;  /* handle of "global" attribute */
@@ -1729,6 +1764,8 @@ yyreduce:
     break;
 
   case 49:
+
+/* Line 1464 of yacc.c  */
 #line 303 "ncgen.y"
     { if ((yyvsp[(1) - (1)])->is_var == 1)
 		       varnum = (yyvsp[(1) - (1)])->vnum;
@@ -1741,6 +1778,8 @@ yyreduce:
     break;
 
   case 50:
+
+/* Line 1464 of yacc.c  */
 #line 313 "ncgen.y"
     {
 		       /* make sure atts array will hold attributes */
@@ -1754,6 +1793,8 @@ yyreduce:
     break;
 
   case 53:
+
+/* Line 1464 of yacc.c  */
 #line 327 "ncgen.y"
     {
 		    if (valtype == NC_UNSPECIFIED)
@@ -1764,6 +1805,8 @@ yyreduce:
     break;
 
   case 54:
+
+/* Line 1464 of yacc.c  */
 #line 336 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
@@ -1773,6 +1816,8 @@ yyreduce:
     break;
 
   case 55:
+
+/* Line 1464 of yacc.c  */
 #line 342 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
@@ -1789,6 +1834,8 @@ yyreduce:
     break;
 
   case 56:
+
+/* Line 1464 of yacc.c  */
 #line 355 "ncgen.y"
     {
 		       atype_code = NC_BYTE;
@@ -1798,6 +1845,8 @@ yyreduce:
     break;
 
   case 57:
+
+/* Line 1464 of yacc.c  */
 #line 361 "ncgen.y"
     {
 		       atype_code = NC_SHORT;
@@ -1807,6 +1856,8 @@ yyreduce:
     break;
 
   case 58:
+
+/* Line 1464 of yacc.c  */
 #line 367 "ncgen.y"
     {
 		       atype_code = NC_INT;
@@ -1816,6 +1867,8 @@ yyreduce:
     break;
 
   case 59:
+
+/* Line 1464 of yacc.c  */
 #line 373 "ncgen.y"
     {
 		       atype_code = NC_FLOAT;
@@ -1825,6 +1878,8 @@ yyreduce:
     break;
 
   case 60:
+
+/* Line 1464 of yacc.c  */
 #line 379 "ncgen.y"
     {
 		       atype_code = NC_DOUBLE;
@@ -1834,6 +1889,8 @@ yyreduce:
     break;
 
   case 66:
+
+/* Line 1464 of yacc.c  */
 #line 395 "ncgen.y"
     {
 		       valtype = vars[varnum].type; /* variable type */
@@ -1888,6 +1945,8 @@ yyreduce:
     break;
 
   case 67:
+
+/* Line 1464 of yacc.c  */
 #line 446 "ncgen.y"
     {
 		       if (valnum < var_len) { /* leftovers */
@@ -1906,6 +1965,8 @@ yyreduce:
     break;
 
   case 70:
+
+/* Line 1464 of yacc.c  */
 #line 465 "ncgen.y"
     {
 		       if(valnum >= var_len) {
@@ -1934,6 +1995,8 @@ yyreduce:
     break;
 
   case 71:
+
+/* Line 1464 of yacc.c  */
 #line 490 "ncgen.y"
     {
 		       if (not_a_string) {
@@ -1963,6 +2026,8 @@ yyreduce:
     break;
 
   case 72:
+
+/* Line 1464 of yacc.c  */
 #line 518 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
@@ -1992,6 +2057,8 @@ yyreduce:
     break;
 
   case 73:
+
+/* Line 1464 of yacc.c  */
 #line 544 "ncgen.y"
     {
 		       not_a_string = 0;
@@ -2050,6 +2117,8 @@ yyreduce:
     break;
 
   case 74:
+
+/* Line 1464 of yacc.c  */
 #line 599 "ncgen.y"
     {
 		       atype_code = NC_BYTE;
@@ -2079,6 +2148,8 @@ yyreduce:
     break;
 
   case 75:
+
+/* Line 1464 of yacc.c  */
 #line 625 "ncgen.y"
     {
 		       atype_code = NC_SHORT;
@@ -2108,6 +2179,8 @@ yyreduce:
     break;
 
   case 76:
+
+/* Line 1464 of yacc.c  */
 #line 651 "ncgen.y"
     {
 		       atype_code = NC_INT;
@@ -2137,6 +2210,8 @@ yyreduce:
     break;
 
   case 77:
+
+/* Line 1464 of yacc.c  */
 #line 677 "ncgen.y"
     {
 		       atype_code = NC_FLOAT;
@@ -2166,6 +2241,8 @@ yyreduce:
     break;
 
   case 78:
+
+/* Line 1464 of yacc.c  */
 #line 703 "ncgen.y"
     {
 		       atype_code = NC_DOUBLE;
@@ -2198,6 +2275,8 @@ yyreduce:
     break;
 
   case 79:
+
+/* Line 1464 of yacc.c  */
 #line 732 "ncgen.y"
     {
 		       /* store fill_value */
@@ -2233,8 +2312,9 @@ yyreduce:
     break;
 
 
-/* Line 1267 of yacc.c.  */
-#line 2238 "ncgen.tab.c"
+
+/* Line 1464 of yacc.c  */
+#line 2318 "ncgen.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2244,7 +2324,6 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
-
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -2310,7 +2389,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse look-ahead token after an
+      /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -2327,7 +2406,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse look-ahead token after shifting the error
+  /* Else will try to reuse lookahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -2384,9 +2463,6 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   *++yyvsp = yylval;
 
 
@@ -2411,7 +2487,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#ifndef yyoverflow
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2422,7 +2498,7 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEOF && yychar != YYEMPTY)
+  if (yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
 		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
@@ -2448,6 +2524,8 @@ yyreturn:
 }
 
 
+
+/* Line 1684 of yacc.c  */
 #line 767 "ncgen.y"
 
 

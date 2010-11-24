@@ -30,6 +30,12 @@ NC4_open(const char *path, int mode,
 	 NC_Dispatch*, NC**);
 
 extern int
+NC4_new_nc(NC**);
+
+extern int
+NC4_free_nc(NC*);
+
+extern int
 NC4_redef(int ncid);
 
 extern int
@@ -59,9 +65,6 @@ NC4_inq_format(int ncid, int *formatp);
 
 extern int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp);
-
-extern int
-NC4_inq_path(int, size_t *, char *);
 
 extern int
 NC4_inq_type(int, nc_type, char *, size_t *);

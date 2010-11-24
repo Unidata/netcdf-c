@@ -4,8 +4,6 @@
 # This file builds and runs the nctest program, which tests the netCDF
 # version 2 interface.
 
-# $Id: Makefile.am,v 1.34 2010/05/29 00:42:44 dmh Exp $
-
 # One of the tests needs the math library for some reason. 
 LDADD = -lm
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/liblib @EXTERN_CPPFLAGS@
@@ -25,7 +23,7 @@ nctest_netcdf4.nc test2.nc temp.tmp
 
 # Run nctest and the script that compares the output with the
 # reference file.
-TESTPROGRAMS = nctest
+TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 
@@ -35,4 +33,3 @@ emalloc.c emalloc.h error.c error.h misctest.c rec.c slabs.c testcdf.h	\
 tests.h val.c val.h vardef.c varget.c vargetg.c varput.c varputg.c	\
 vartests.c vputget.c vputgetg.c
 
-# For those who can't remember to type make check instead of make test.

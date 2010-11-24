@@ -50,7 +50,7 @@ projection(CEparsestate* state, Object varorfcn)
     p->discrim = tag;
 #ifdef DEBUG
 fprintf(stderr,"	ce.projection: %s\n",
-	dumpprojection1(p));
+	dumpprojection(p));
 #endif
     return p;
 }
@@ -235,16 +235,16 @@ value_list(CEparsestate* state, Object list0, Object decl)
 Object
 value(CEparsestate* state, Object val)
 {
-    NCvalue* value = createncvalue();
+    NCvalue* ncvalue = createncvalue();
     NCsort tag = *(NCsort*)val;
     switch (tag) {
-    case NS_VAR: value->var = (NCvar*)val; break;
-    case NS_FCN: value->fcn = (NCfcn*)val; break;
-    case NS_CONST: value->constant = (NCconstant*)val; break;
+    case NS_VAR: ncvalue->var = (NCvar*)val; break;
+    case NS_FCN: ncvalue->fcn = (NCfcn*)val; break;
+    case NS_CONST: ncvalue->constant = (NCconstant*)val; break;
     default: abort(); break;
     }
-    value->discrim = tag;
-    return value;
+    ncvalue->discrim = tag;
+    return ncvalue;
 }
 
 Object
@@ -260,24 +260,26 @@ constant(CEparsestate* state, Object val, int tag)
 {
     NCconstant* con = createncconstant();
     char* text = (char*)val;
+    char* endpoint = NULL;
     switch (tag) {
     case SCAN_STRINGCONST:
 	con->discrim = NS_STR;
 	con->text = nulldup(text);
 	break;
     case SCAN_NUMBERCONST:
-	if(sscanf(text,"%lld",&con->intvalue)==1)
+	con->intvalue = strtoll(text,&endpoint,10);
+	if(*text != '\0' && *endpoint == '\0') {
 	    con->discrim = NS_INT;
-	else if(sscanf(text,"%lg",&con->floatvalue)==1)
-	    con->discrim = NS_FLOAT;
-	else {
-	    sscanf(text,"%lG",&con->floatvalue);
-	    con->discrim = NS_FLOAT;
+	} else {
+	    con->floatvalue = strtod(text,&endpoint);
+	    if(*text != '\0' && *endpoint == '\0')
+	        con->discrim = NS_FLOAT;
+	    else abort();
 	}
 	break;
     default: abort(); break;
     }
-    return value;
+    return con;
 }
 
 static Object
@@ -362,3 +364,11 @@ fprintf(stderr,"ncceparse: selections=%s\n",dumpselections(state->selections));
     }
     return errcode;
 }
+
+#ifdef PARSEDEBUG
+Object
+debugobject(Object o)
+{
+    return o;
+}
+#endif

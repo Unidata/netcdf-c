@@ -75,7 +75,7 @@ For installation and porting information, see @ref{Top,
 * Dataset Components::          What's in a NetCDF File?
 * Data::                        How to Store Data
 * Structure::                   Behind the Scenes
-* NetCDF Utilities::            Ncdump and ncgen and ncgen3
+* NetCDF Utilities::            Ncdump, ncgen, and nccopy
 * Units::                       Using UDUNITS
 * Attribute Conventions::       Creating Human-Readable Files
 * File Format::                 Description of NetCDF Binary Formats
@@ -151,6 +151,7 @@ NetCDF Utilities
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
+* nccopy::                      Copying, Converting, and Compressing Data Files 
 * ncgen3::                      Turning CDL into Classic Data Files
 
 File Format Specification
@@ -808,7 +809,7 @@ multidimensional arrays, simplified the interface, and included
 OpenDAP (known previously as DODS) remote access, as well as remote
 netCDF access via HTTP contributed by Don Denbo.
 
-In March 2001, NetCDF 3.5.0 was released. This release fully
+In March 2001, netCDF 3.5.0 was released. This release fully
 integrated the new Fortran 90 interface, enhanced portability,
 improved the C++ interface, and added a few new tuning functions.
 
@@ -865,6 +866,31 @@ netcdf, and introduces many new features including groups and
 user-defined types. The 3.6.3/4.0 releases also introduced handling of
 UTF8-encoded Unicode names.
 
+NetCDF-4.1.1 was released in April, 2010, provided built-in client
+support for the DAP protocol for accessing data from remote OPeNDAP
+servers, full support for the enhanced netCDF-4 data model in the
+ncgen utility, a new nccopy utility for copying and conversion among
+netCDF format variants, ability to read some HDF4/HDF5 data archives
+through the netCDF C or Fortran interfaces, support for parallel I/O
+on netCDF classic and 64-bit offset files using the parallel-netcdf
+(formerly pnetcdf) library from Argonne/Northwestern, a new nc-config
+utility to help compile and link programs that use netCDF, inclusion
+of the UDUNITS library for hadling ``units'' attributes, and inclusion
+of libcf to assist in creating data compliant with the Climate and
+Forecast (CF) metadata conventions.
+
+In September, 2010, the Netcdf-Java/CDM (Common Data Model) version
+4.2 library was declared stable and made available to users.  This
+100%-Java implementation provides a read-write interface to netCDF-3
+classic and 64-bit offset data, as well as a read-onlt interface to
+netCDF-4 enhanced model data and many other formats of scientific data
+through a common (CDM) interface.  The NetCDF-Java library also
+implements NcML, which allows you to add metadata to CDM datasets, as
+well as to create virtual datasets through aggregation.  A ToolsUI
+application is also included that provides a graphical user interface
+to capabilities similar to the C-based ncdump and ncgen utilities, as
+well as CF-compliance checking and many other features.
+
 @node Whats New, Limitations, Background, Introduction
 @section What's New Since the Previous Release?
 @cindex new netCDF features in 4.0
@@ -911,7 +937,7 @@ page @uref{@value{netcdf-4-url}}.
 @cindex GiBytes
 @cindex GBytes
 
-The netCDF data model is widely applicable to data that can be
+The netCDF classic data model is widely applicable to data that can be
 organized into a collection of named array variables with named
 attributes, but there are some important limitations to the model and
 its implementation in software. Some of these limitations have been
@@ -921,25 +947,22 @@ classic and netCDF 64-bit offset files.
 Currently, netCDF classic and 64-bit offset formats offer a limited
 number of external numeric data types: 8-, 16-, 32-bit integers, or
 32- or 64-bit floating-point numbers. (The netCDF-4 format adds 64-bit
-integer types and unsigned integer types.) This limited set of sizes
-may use file space inefficiently compared to packing data in bit
-fields. For example, arrays of 9-bit values must be stored in 16-bit
-short integers. Storing arrays of 1- or 2-bit values in 8-bit values
-is even less optimal.
+integer types and unsigned integer types.)
 
 With the netCDF-4/HDF5 format, new unsigned integers (of various
-sizes), 64-bit integers, and the string type allow greater expression
-of scientific data. The new VLEN and COMPOUND types allow users to
-organize data in new ways.
+sizes), 64-bit integers, and the string type allow improved expression
+of meaning in scientific data. The new VLEN (variable length) and
+COMPOUND types allow users to organize data in new ways.
 
 With the classic netCDF file format, there are constraints that limit
-how a dataset is structured to store more than 2 @dfn{GiBytes} (2^30
+how a dataset is structured to store more than 2 @dfn{GiBytes} (a
+GiByte is 2^30
 or 1,073,741,824 bytes, as compared to a @dfn{Gbyte}, which is
 1,000,000,000 bytes.)  of data in a single netCDF
 dataset. (@pxref{Classic Limitations}).  This limitation
 is a result of 32-bit offsets used for storing relative offsets within
 a classic netCDF format file. Since one of the goals of netCDF is
-portable data and some computing platforms still can't deal with files
+portable data, and some file systems still can't deal with files
 larger than 2 GiB, it is best to keep files that must be portable
 below this limit. Nevertheless, it is possible to create and access
 netCDF files larger than 2 GiB on platforms that provide support for
@@ -953,7 +976,7 @@ read the 64-bit offset files until they are upgraded to at least
 version 3.6.0 of netCDF (i.e. the version in which 64-bit offset
 format was introduced).
 
-With the netCDF-4/HDF5 format size limitations are further relaxed,
+With the netCDF-4/HDF5 format, size limitations are further relaxed,
 and files can be as large as the underlying file system
 supports. NetCDF-4/HDF5 files are unreadable to the netCDF library
 before version 4.0.
@@ -993,9 +1016,9 @@ kinds of data). A data model tailored to capture the shared context
 among researchers within one discipline may not be appropriate for
 sharing or combining data from multiple disciplines.
 
-The classic netCDF data model does not support nested data structures
-such as trees, nested arrays, or other recursive structures. (This
-limitation also applies to 64-bit offset files.) Through use of
+The classic netCDF data model (which is used for classic-format and
+64-bit offset format data) does not support nested data structures
+such as trees, nested arrays, or other recursive structures.  Through use of
 indirection and conventions it is possible to represent some kinds of
 nested structures, but the result may fall short of the netCDF goal of
 self-describing data.
@@ -1003,9 +1026,9 @@ self-describing data.
 In netCDF-4/HDF5 format files, the introduction of the compound type
 allows the creation of complex data types, involving any combination
 of types. The VLEN type allows efficient storage of ragged arrays, and
-the introduction of hierarchical groups allows users to organize data.
+the introduction of hierarchical groups allows users new ways to organize data.
 
-Finally, for classic and 64-bit offset files, concurrent access to a
+Finally, using the netCDF-3 programming interfaces, concurrent access to a
 netCDF dataset is limited. One writer and multiple readers may access
 data in a single dataset simultaneously, but there is no support for
 multiple concurrent writers.
@@ -1027,7 +1050,7 @@ For more information about parallel-netcdf, see their web site:
 @cindex netCDF 5.0
 @cindex pong
 
-Future versions of NetCDF will include the following features:
+Future versions of netCDF will include the following features:
 
 @enumerate
 
@@ -1142,9 +1165,9 @@ dataset. The netCDF library allows simultaneous access to multiple
 netCDF datasets which are identified by dataset ID numbers, in
 addition to ordinary file names.
 
-@subsection Expanded Model in NetCDF-4 Files
+@subsection Enhanced Model in NetCDF-4 Files
 
-Files created with the netCDF-4 format have access to an expanded data
+Files created with the netCDF-4 format have access to an enhanced data
 model, which includes named groups. Groups, like directories in a Unix
 file system, are hierarchically organized, to arbitrary depth. They
 can be used to organize large numbers of variables.
@@ -1153,7 +1176,7 @@ Each group acts as an entire netCDF dataset in the classic model. That
 is, each group may have attributes, dimensions, and variables, as well
 as other groups. 
 
-The default root is the root group, which allows the classic netCDF
+The default group is the root group, which allows the classic netCDF
 data model to fit neatly into the new model.
 
 Dimensions are scoped such that they can be seen in all descendant
@@ -1162,16 +1185,16 @@ different groups, if they are defined in a parent group.
 
 In netCDF-4 files, the user may also define a type. For example a
 compound type may hold information from an array of C structures, or a
-variable length array allows the user to read and write arrays of
-variable length arrays.
+variable length type allows the user to read and write arrays of
+variable length values.
 
 Variables, groups, and types share a namespace. Within the same group,
-a variable, groups, and types must have unique names. (That is, a type
+variables, groups, and types must have unique names. (That is, a type
 and variable may not have the same name within the same group, and
 similarly for sub-groups of that group.)
 
-Groups and user defined types are only available in files created in
-the NetCDF-4/HDF5 format. They are not available for classic or 64-bit
+Groups and user-defined types are only available in files created in
+the netCDF-4/HDF5 format. They are not available for classic or 64-bit
 offset format files.
 
 @subsection Naming Conventions
@@ -1193,13 +1216,15 @@ not permitted.
 @subsection Network Common Data Form Language (CDL)
 
 We will use a small netCDF example to illustrate the concepts of the
-netCDF data model. This includes dimensions, variables, and
+netCDF classic data model. This includes dimensions, variables, and
 attributes. The notation used to describe this simple netCDF object is
 called CDL (network Common Data form Language), which provides a
 convenient way of describing netCDF datasets. The netCDF system
 includes the ncdump utility for producing human-oriented CDL text
-files from binary netCDF datasets and vice versa.  (The ncdump utility
-has recently been enhanced to accommodate netCDF-4 features in the CDL
+files from binary netCDF datasets and vice versa using the ncgen
+utility.  
+(The ncdump utility
+accommodates netCDF-4 features in the CDL
 output, but the example here is restricted to netCDF-3 CDL.)
 
 @example
@@ -1274,7 +1299,7 @@ keyword.
 The ncgen utility provides a command line option which indicates the
 desired output format. Limitations are enforced for the selected
 format - that is, some CDL files may be expressible only in 64-bit
-offset or NetCDF-4 format. 
+offset or netCDF-4 format. 
 
 For example, trying to create a file with very large variables in
 classic format may result in an error because size limits are
@@ -2485,7 +2510,7 @@ dimension ids.
 XDR is a standard for describing and encoding data and a library of
 functions for external data representation, allowing programmers to
 encode data structures in a machine-independent way. Classic or 64-bit
-offset NetCDF employs an extended form of XDR for representing
+offset netCDF employs an extended form of XDR for representing
 information in the header part and the data parts. This extended XDR
 is used to write portable data that can be read on any other machine
 for which the library has been implemented.
@@ -3114,7 +3139,7 @@ and then verify them in HDF5. (And vice versa).
 @section DAP Support
 @cindex DAP support
 
-Beginning with NetCDF version 4.1,
+Beginning with netCDF version 4.1,
 optional support is provided for accessing data through
 OPeNDAP servers using the DAP protocol.
 
@@ -3914,6 +3939,7 @@ to support-netcdf@@unidata.ucar.edu.
 @cindex utilities
 @cindex ncgen and ncgen3, overview
 @cindex ncdump, overview
+@cindex nccopy, overview
 @cindex software list
 @cindex applications, generic, reasons for netCDF
 
@@ -3936,23 +3962,24 @@ create the netCDF dataset
 
 @item nccopy
 reads a netCDF dataset using the netCDF programming interface and
-copies it, optionally to a different kind of netCDF dataset
+copies it, optionally to a different kind of netCDF dataset, and
+optionally with compression
 
 @end table
 
 Users have contributed other netCDF utilities, and various
 visualization and analysis packages are available that access netCDF
 data. For an up-to-date list of freely-available and commercial
-software that can access or manipulate netCDF data, see the NetCDF
+software that can access or manipulate netCDF data, see the netCDF
 Software list,
 @uref{@value{netcdf-url}/software.html}.
 
-This chapter describes the ncgen and ncdump utilities.
-These tools
-convert between binary netCDF datasets and a text representation of
-netCDF datasets. The output of ncdump and the input to ncgen is a text
-description of a netCDF dataset in a tiny language known as CDL
-(network Common data form Description Language).
+This chapter describes the ncgen, ncdump, and nccopy utilities.  These
+tools convert between binary netCDF datasets and a text representation
+of netCDF datasets, or between netCDF data format variants. The output
+of ncdump and the input to ncgen is a text description of a netCDF
+dataset in a tiny language known as CDL (network Common data form
+Description Language).
 
 @menu
 * CDL Syntax::                  Creating a File without Code
@@ -3960,6 +3987,7 @@ description of a netCDF dataset in a tiny language known as CDL
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
+* nccopy::                      Copying, Converting, and Compressing Data Files
 * ncgen3::                      Turning CDL into Classic Data Files
 @end menu
 
@@ -4364,7 +4392,7 @@ The arguments to the -k flag can be as follows.
 -- Produce a netcdf-4 format file.
 @item 4, hdf5-nc3, 'netCDF-4 classic model', enhanced-nc3
 -- Produce a netcdf-4 file format, but restricted to
-netcdf-3 classic CDL intput.
+netcdf-3 classic CDL input.
 @end itemize
 Note that the -v flag is a deprecated alias for -k.
 
@@ -4415,8 +4443,7 @@ dataset:
 @example
 ncgen -c foo.cdl > foo.c
 @end example
-
-@node ncdump, ncgen3, ncgen, NetCDF Utilities
+@node ncdump, nccopy, ncgen, NetCDF Utilities
 @section ncdump
 @cindex ncdump
 
@@ -4427,8 +4454,8 @@ acceptable as input to ncgen. Thus ncdump and ncgen can be used as
 inverses to transform data representation between binary and text
 representations.
 
-As of NetCDF version 4.1, ncdump can also access DAP data sources
-if DAP support is enabled in the underlying NetCDF library.
+As of netCDF version 4.1, ncdump can also access DAP data sources
+if DAP support is enabled in the underlying netCDF library.
 Instead of specifying a file name as argument to ncdump, the user
 specifies a URL to a DAP source.
 
@@ -4449,7 +4476,7 @@ variable attribute:
 Z:C_format = "%.3g"
 @end example
 
-ncdump uses '_' to represent data values that are equal to the
+Ncdump uses '_' to represent data values that are equal to the
 _FillValue attribute for a variable, intended to represent data that
 has not yet been written. If a variable has no _FillValue attribute,
 the default fill value for the variable type is used unless the
@@ -4559,6 +4586,17 @@ attribute ``_Format'' and the variable attributes ``_Fletcher32'',
 ``_Storage'', and ``_NoFill''.  The ncgen utility recognizes these
 attributes and supports them appropriately.
 
+@item -t
+Controls display of time data, if stored in a variable that uses a
+udunits compliant time representation such as ``days since
+1970-01-01'' or ``seconds since 2009-03-15 12:01:17''.  If this option
+is specified, time values are displayed as human-readable date-time
+strings rather than numerical values, interpreted in terms of a
+``calendar'' variable attribute, if specified.  Calendar attribute
+values interpreted with this option include the CF Conventions values
+``gregorian'' or ``standard'', ``proleptic_gregorian'', ``noleap'' or
+``365_day'', ``all_leap'' or ``366_day'', ``360_day'', and ``julian''.
+
 @end table
 
 @heading Examples
@@ -4589,7 +4627,169 @@ Examine the translated DDS for the DAP source from the specified URL.
 
 ncdump -h http://test.opendap.org:8080/dods/dts/test.01
 
-@node ncgen3,  , ncdump, NetCDF Utilities
+@node nccopy, ncgen3, ncdump, NetCDF Utilities
+@section nccopy
+@cindex nccopy
+
+The nccopy utility copies an input netCDF file to an output netCDF
+file, in any of the four format variants, if possible.  For example,
+if built with the netCDF-3 library, a netCDF classic file may be
+copied to a netCDF 64-bit offset file, permitting larger variables.
+If built with the netCDF-4 library, a netCDF classic file may be
+copied to a netCDF-4 file or to a netCDF-4 classic model file as well,
+permitting data compression, later efficient schema changes, larger
+variable sizes, and use of other netCDF-4 features in case the output
+uses the enhanced netCDF model.
+
+The nccopy source also serves as an example of a @dfn{generic}
+netCDF-4 program, with its ability to read any valid netCDF file and
+handle strings, arbitrarily nested groups, any user-defined types,
+(including arbitrarily nested compound types and variable-length
+types), and data of any valid netCDF-4 type.  Functions from an
+fragments of the nccopy source may be useful to other developers for
+writing generic programs that handle or write arbitrary netCDF data.
+
+As of netCDF version 4.1, and if DAP support was enabled when nccopy
+was built, the input file name on which nccopy is invoked may specify
+a DAP URL. This allows nccopy to convert data on DAP servers to local
+netCDF files.
+
+UNIX syntax for invoking nccopy:
+
+@example
+nccopy  [ -k kind]  [ -d n]  [ -s ]  [ -u ]  [ -m bufsize]  input  output
+@end example
+
+where:
+
+@table @code
+@item -k kind 
+Specifies the kind of file to be created
+and, by inference, 
+the data model (i.e. netcdf-3 (classic) versus
+netcdf-4 (enhanced)).
+The possible arguments are as follows.
+@itemize
+@item ``1'' or ``classic''
+write a netCDF classic file format file
+@item ``2'', ``64-bit-offset'', or ``64-bit offset''
+write a netCDF 64 bit classic file format file
+@item ``3'', ``hdf5'', ``netCDF-4'', or ``enhanced''
+write a netCDF-4 format file
+@item ``4'', ``hdf5-nc3'', ``netCDF-4 classic model'', or ``enhanced-nc3''
+write a netCDF-4 classic model file format, which is restricted to
+netCDF-3 classic data model but may use netCDF-4/HDF5 features such as
+compression and chunking.
+@end itemize
+If no value for -k is specified, then the output will use the same
+format as the input, except that if the input is classic or 64-bit
+offset and a compression level is specified with the -d option, then
+the output will be netCDF-4 classic model.  Note that attempting some
+kinds of format conversion will result in an error, if the conversion
+is not possible.  For example, an attempt to copy a netCDF-4 file that
+uses features of the enhanced model to any of the other kinds of
+netCDF formats that use the classic model will result an error.
+
+@item -d n
+Specify deflation level (level of compression) for variable data in
+output.  0 corresponds to no compression and 9 to maximum compression,
+with higher levels of compression requiring marginally more time to
+compress or uncompress than lower levels.  Compression achieved may
+also depend on chunking parameters, which will use default chunking in
+the current nccopy implementation.  If this option is specified for a
+classic format or 64-bit offset format input file, it is not necessary
+to also specify that the output should be netCDF-4 classic model, as
+that will be the default.  If this option is not specified and the
+input file has compressed variables, the compression will still be
+preserved in the output, using the same chunking as in the input.
+
+@item -s
+Specify shuffling of variable data bytes before compression or after
+decompression.  This option is ignored unless a non-zero deflation
+level is specified.  Turning shuffling on sometimes improves
+compression. 
+
+@item -u
+Convert any unlimited size dimensions in the input to fixed size
+dimensions in the output.
+
+@item -m bufsize
+Specifies the size, in bytes, of the copy buffer used to
+to copy large variables, by copying them in smaller pieces, each no
+larger than @dfn{bufsize}.  A suffix of k, m, or g multiplies
+the copy buffer size by one thousand, million, or billion, respectively.
+The default is 5 million bytes,
+but will be increased if necessary to hold at least one chunk of
+netCDF-4 chunked variables in the input file.  You may want to specify
+a value larger than the default for OPeNDAP copies of large files over high
+latency networks. 
+@end table
+
+@heading Examples
+
+@subsubheading Simple copy, check for corruption or truncation
+
+Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a
+netCDF file of the same type:
+
+@example
+nccopy foo1.nc foo2.nc
+@end example
+
+This also can be used to check foo1.nc for corruption of metadata
+or for truncation, because such problems will usually be detected in
+trying to parse and read through the data.
+
+Note that the above copy will not be as fast as use of a simple copy
+utility, because the file is copied using only the netCDF API.  If the
+input file has extra bytes after the end of the netCDF data, those
+will not be copied, because they are not accessible through the netCDF
+interface.  If the original file was generated in `No fill' mode so
+that fill values are not stored for padding for data alignment, the
+output file may have different padding bytes.
+
+@subsubheading Uncompress and convert to classic format
+
+Convert a netCDF-4 classic model file that uses compression (compressed.nc)
+to a netCDF-3 file (classic.nc):
+
+@example
+nccopy -k classic compressed.nc classic.nc
+@end example
+
+Note that ``1'' could be used instead of ``classic''.
+
+@subsubheading Copy a subset of data on an OPeNDAP server to a netCDF file
+
+Download the variable `time_bnds' and it's associated attributes from
+an OPeNDAP server and copy the result to a netCDF file named `tb.nc':
+
+@example
+nccopy 'http://test.opendap.org/opendap/data/nc/sst.mnmean.nc.gz?time_bnds' tb.nc
+@end example
+
+Note that URLs that name specific variables as command-line arguments
+should generally be quoted, to avoid the shell interpreting special
+characters in OPeNDAP syntax, such as `?'.
+
+@subsubheading Apply compression to a netCDF file
+
+Compress all the variables in the input file foo.nc, a netCDF file of any
+type, to the output file bar.nc:
+
+@example
+nccopy -d1 foo.nc bar.nc
+@end example
+
+If foo.nc was a classic or 64-bit offset netCDF file, bar.nc will be a
+netCDF-4 classic model netCDF file, because the classic and 64-bit
+offset format variants don't support compression.  If foo.nc was a
+netCDF-4 file with some variables compressed using various deflation
+levels, the output will also be a netCDF-4 file of the same type, but
+all the variables, including any uncompressed variables in the input,
+will now use deflation level 1.
+
+@node ncgen3,  , nccopy, NetCDF Utilities
 @section ncgen3
 @cindex ncgen3
 @cindex C code via ncgen3, generating
@@ -5777,7 +5977,7 @@ stripped from the name for the netCDF API.
 
 @subsection Attributes
 
-Attributes in HDF5 and NetCDF-4 correspond very closely. Each
+Attributes in HDF5 and netCDF-4 correspond very closely. Each
 attribute in an HDF5 file is represented as an attribute in the netCDF-4
 file, with the exception of the attributes below, which are ignored by
 the netCDF-4 API.

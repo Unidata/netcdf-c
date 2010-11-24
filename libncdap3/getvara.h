@@ -46,7 +46,7 @@ typedef struct Getvara {
     int projected; /* Were projections applied when retrieving data */
     void* memory; /* where result is put*/
     struct NCcachenode* cache;
-    NCprojection* varaprojection;
+    struct NCprojection* varaprojection;
     /* associated variable*/
     OCtype dsttype;
     CDFnode* target;

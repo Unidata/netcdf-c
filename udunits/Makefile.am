@@ -20,7 +20,7 @@ AM_MAKEINFOHTMLFLAGS = --no-split
 RSYNC_FLAGS	= --rsh=ssh --rsync-path=/opt/bin/rsync
 distName = $(PACKAGE)-$(VERSION)
 distArchive = $(distName).tar.gz
-DISTCLEANFILES	= *.log $(distArchive)
+DISTCLEANFILES	= *.log $(distArchive) $(udunits2_TEXINFOS)
 
 success.texi:	test/results.tab
 	sleep 2	# to accomodate broken HP-UX B.11.00 make(1)

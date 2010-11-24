@@ -3,7 +3,17 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.1.2-beta2    2010-08-08
+4.1.2-beta2    2010-11-??
+	        Rewrite netCDF-4 attribute put code for a large
+		speedup when writing lots of attributes.
+
+		Fix nc-config --libs when static dependent libraries
+		are not installed in the same directory as netCDF
+		libraries (thanks to Jeff Whitaker).
+
+		Build shared libraries by default, requiring separate
+		Fortran library.  Static libraries now built only with
+		--disable-shared.
 
 	        Refactor of HDF5 file metadata scan for large speedup
 	        in opening files, especially large files.
@@ -15,7 +25,7 @@ VERSION         COMMENTS
 	        and nccopy, allocating memory as needed and reducing
 	        their memory footprint.
 
-		Add documentation for nc_inq_path() function.
+		Add documentation for new nc_inq_path() function.
 
 	        Use hashing to speedup lookups by name for files with
 		lots of dimensions and variables (thanks to Greg
@@ -23,7 +33,8 @@ VERSION         COMMENTS
 		
 		Add options to nccopy to support uniform compression
 		of variables in output, shuffling, and fixing
-		unlimited dimensions.  Documented in nccopy.1.
+		unlimited dimensions.  Documented in nccopy.1 man page
+		and User's Guide.
 
 4.1.2-beta1    2010-07-09
 

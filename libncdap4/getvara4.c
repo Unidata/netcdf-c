@@ -6,9 +6,9 @@
 #endif
 #include "ncd3dispatch.h"
 
-static NCerror getcontent4(NCDRNO*, Getvara*, CDFnode* rootnode, void* data);
-static NCerror getcontent4r(NCDRNO*, Getvara*, CDFnode* tnode, OCdata, NCbytes*);
-static NCerror getcontent4prim(NCDRNO* drno, Getvara*, CDFnode* tnode, NCsegment*,
+static NCerror getcontent4(NCDAP4*, Getvara*, CDFnode* rootnode, void* data);
+static NCerror getcontent4r(NCDAP4*, Getvara*, CDFnode* tnode, OCdata, NCbytes*);
+static NCerror getcontent4prim(NCDAP4* drno, Getvara*, CDFnode* tnode, NCsegment*,
 		               OCdata currentcontent, NCbytes* memory);
 static int findfield(CDFnode* node, CDFnode* subnode);
 static int contiguousdims(Dapodometer* odom);
@@ -27,7 +27,8 @@ NCD4_get_vara(int ncid, int varid,
     NC_GRP_INFO_T *grp; 
     NC_HDF5_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
-    NCDRNO* drno;
+    NCDAP4* drno;
+    NCDAPCOMMON* nccomm;
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
     Getvara* varainfo = NULL;
@@ -37,17 +38,13 @@ NCD4_get_vara(int ncid, int varid,
     NCprojection* varaprojection = NULL;
     NCcachenode* cachenode = NULL;
     nc_type externaltype = externaltype0;
-    NC_FILE_INFO_T* nc;
-
 
     LOG((2, "nc_get_vara: ncid 0x%x varid %d", ncid, varid));
 
-    if((ncstat = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+    if((ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5)))
 	{THROWCHK(ncstat); goto fail;}
+    nccomm = &drno->dap;
 
-    drno = nc->drno;
-    if(drno == NULL) PANIC("nc4d_getvara: drno field is null");
-    
     /* Find the netcdf-4 var structure */
     for(var=grp->var;var!=NULL;var=var->next) {
 	if (var->varid == varid) break;
@@ -55,7 +52,7 @@ NCD4_get_vara(int ncid, int varid,
     if(var == NULL) {ncstat = NC_ENOTVAR; goto fail;}
 
     /* Find cdfnode corresponding to the var.*/
-    varnodes = drno->cdf.varnodes;
+    varnodes = nccomm->cdf.varnodes;
     cdfvar = NULL;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
@@ -99,55 +96,56 @@ fprintf(stderr,"\n");
 	}
     }
 
-    ncstat = makegetvar34(drno,cdfvar,data,externaltype,&varainfo);
+    ncstat = makegetvar34(nccomm,cdfvar,data,externaltype,&varainfo);
     if(ncstat) {THROWCHK(NC_ENOMEM); goto fail;}
 #ifdef IGNORE
-    freegetvara(drno->cdf.vara);
-    drno->cdf.vara = varainfo;
+    freegetvara(nccomm->vara);
+    nccomm->vara = varainfo;
 #endif
 
-    ncstat = buildvaraprojection4(drno,varainfo,
+    ncstat = buildvaraprojection4(varainfo,
 				  startp,countp,dapsinglestride3,
 			          &varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 #ifdef DEBUG
 fprintf(stderr,"Unconstrained: reusing prefetch\n");
 #endif
-	cachenode = drno->cdf.cache.prefetch;	
+	cachenode = nccomm->cdf.cache->prefetch;
 	ASSERT((cachenode != NULL));
-    } else if(iscached(drno,varaprojection->leaf,&cachenode)) {
+    } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
 #ifdef DEBUG
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
 	dumpconstraint(&cachenode->constraint));
 #endif
     } else { /* Load with constraints */
 	NClist* vars = nclistnew();
-	NCconstraint constraint;
+	NCconstraint* constraint;
 	nclistpush(vars,(ncelem)varainfo->target);
 
-        constraint.projections = cloneprojections(drno->dap.constraint.projections);
-        if(!FLAGSET(drno,NCF_CACHE)) {
+	constraint = createncconstraint();
+        constraint->projections = clonencprojections(nccomm->oc.dapconstraint->projections);
+        if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
-	    NCprojection* clone = cloneprojection1(varaprojection);
+	    NCprojection* clone = clonencprojection(varaprojection);
 	    nclistpush(tmp,(ncelem)clone);
-            ncstat = mergeprojections3(drno,constraint.projections,tmp);
+            ncstat = mergeprojections3(constraint->projections,tmp);
 	    nclistfree(tmp);
-	    freencprojection1(clone);
+	    freencprojection(clone);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"vara merge: %s\n",
-	dumpprojections(constraint.projections));
+	dumpprojections(constraint->projections));
 #endif
         }
 
-        restrictprojection3(drno,vars,constraint.projections);
-        constraint.selections = cloneselections(drno->dap.constraint.selections);
+        restrictprojection34(vars,constraint->projections);
+        constraint->selections = clonencselections(nccomm->oc.dapconstraint->selections);
 
 	/* buildcachenode3 will also fetch the corresponding datadds */
-        ncstat = buildcachenode3(drno,&constraint,vars,&cachenode,0);
+        ncstat = buildcachenode34(nccomm,constraint,vars,&cachenode,0);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
@@ -155,8 +153,8 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     }
 
     /* attach DATADDS to DDS */
-    unattach34(drno->cdf.ddsroot);
-    ncstat = attachsubset34(cachenode->datadds,drno->cdf.ddsroot);
+    unattach34(nccomm->cdf.ddsroot);
+    ncstat = attachsubset34(cachenode->datadds,nccomm->cdf.ddsroot);
     if(ncstat) goto fail;	
 
     /* Fix up varainfo to use the cache */
@@ -180,16 +178,16 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 fail:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
 ok:
-    if(!FLAGSET(drno,NCF_UNCONSTRAINABLE) && !FLAGSET(drno,NCF_CACHE))
-	freenccachenode(drno,cachenode);
+    if(!FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE) && !FLAGSET(drno->dap.controls,NCF_CACHE))
+	freenccachenode(nccomm,cachenode);
     efree(constraint);
     freegetvara(varainfo);
-    freencprojection1(varaprojection);
+    freencprojection(varaprojection);
     return THROW(ncstat);
 }
 
 static NCerror
-getcontent4(NCDRNO* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
+getcontent4(NCDAP4* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -197,7 +195,7 @@ getcontent4(NCDRNO* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
     size_t alloc;
     int fieldindex;
     CDFnode* tnode = xgetvar->target;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = drno->dap.oc.conn;
     OCdata rootcontent = OCNULL;
     OCdata fieldcontent = OCNULL;
     OCdata dimcontent = OCNULL;
@@ -205,8 +203,8 @@ getcontent4(NCDRNO* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
     OCdata gridcontent = OCNULL;
     Dapodometer* odom = NULL;
     OCobject ocroot = OCNULL;
-    int caching = FLAGSET(drno,NCF_CACHE);
-    int unconstrainable = FLAGSET(drno,NCF_UNCONSTRAINABLE);
+    int caching = FLAGSET(drno->dap.controls,NCF_CACHE);
+    int unconstrainable = FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE);
     nc_type externaltype = xgetvar->dsttype;
 
     /* is var from a toplevel grid? */
@@ -289,15 +287,15 @@ fprintf(stderr,"getcontent4: |%s| = %lu\n",tnode->name,alloc);
     } else if(tnode->nctype == NC_Primitive) {
 	/* Stride the dimensions and get the instances */
 	NCsegment* segment = NULL;
-        ASSERT((nclistlength(xgetvar->varaprojection->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->segments,0);
+        ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
+	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
         ASSERT((fieldcontent != OCNULL));
 	ncstat = getcontent4prim(drno,xgetvar,tnode,segment,fieldcontent,memory);
     } else if(nclistlength(tnode->array.dimensions) > 0) {
 	/* Stride the dimensions and get the instances */
 	NCsegment* segment = NULL;
-	ASSERT((nclistlength(xgetvar->varaprojection->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->segments,0);
+	ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
+	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
 	if(caching || unconstrainable) {
             odom = newdapodometer(segment->slices,0,segment->slicerank);
 	} else { /*Since vara was projected out, build a simple odometer*/
@@ -331,7 +329,7 @@ fail:
 
 /* Recursive walker part of getcontent */
 static NCerror
-getcontent4r(NCDRNO* drno,
+getcontent4r(NCDAP4* drno,
 	     Getvara* xgetvar,
 	     CDFnode* tnode, /* type definition */
              OCdata currentcontent,
@@ -342,15 +340,15 @@ getcontent4r(NCDRNO* drno,
     NCerror ncstat = NC_NOERR;
     size_t rank;
     OCmode mode;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = drno->dap.oc.conn;
     OCdata reccontent = OCNULL;
     OCdata fieldcontent = OCNULL;
     OCdata dimcontent = OCNULL;
     Dapodometer* odom = NULL;
     NCbytes* vlenmemory = NULL;
     nc_vlen_t vlenref = {0,NULL};
-    int caching = FLAGSET(drno,NCF_CACHE);
-    int unconstrainable = FLAGSET(drno,NCF_UNCONSTRAINABLE);
+    int caching = FLAGSET(drno->dap.controls,NCF_CACHE);
+    int unconstrainable = FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE);
 
     rank = nclistlength(tnode->array.dimensions);
     oc_data_mode(conn,currentcontent,&mode);
@@ -457,7 +455,7 @@ fail:
 }
 
 static NCerror
-getcontent4prim(NCDRNO* drno,
+getcontent4prim(NCDAP4* drno,
 	        Getvara* xgetvar,
                 CDFnode* tnode,
                 NCsegment* segment,
@@ -467,12 +465,12 @@ getcontent4prim(NCDRNO* drno,
     OCerror ocstat = OC_NOERR;
     NCerror ncstat = NC_NOERR;
     unsigned int rank;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = drno->dap.oc.conn;
     Dapodometer* odom = NULL;
     unsigned int memoffset;
     NCslice* slices = segment->slices;
-    int caching = FLAGSET(drno,NCF_CACHE);
-    int unconstrainable = FLAGSET(drno,NCF_UNCONSTRAINABLE);
+    int caching = FLAGSET(drno->dap.controls,NCF_CACHE);
+    int unconstrainable = FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE);
     size_t internaltypesize, externaltypesize;
     nc_type internaltype = segment->node->etype;
     nc_type externaltype = xgetvar->dsttype;
@@ -710,7 +708,7 @@ against the relevant nodes in which the ultimate target
 is contained.
 */
 static NCerror
-buildvarprojection4(NCDRNO* drno, Getvara* getvar, NCbytes* buf)
+buildvarprojection4(NCDAP4* drno, Getvara* getvar, NCbytes* buf)
 {
     int i, dimdex;
     CDFnode* node;

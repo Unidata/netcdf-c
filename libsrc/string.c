@@ -274,10 +274,9 @@ set_NC_string(NC_string *ncstrp, const char *str)
 	if(ncstrp->nchars < slen)
 		return NC_ENOTINDEFINE;
 
-	(void) memcpy(ncstrp->cp, str, slen);
-	diff = ncstrp->nchars - slen;
-	if(diff != 0)
-		(void) memset(ncstrp->cp + slen, 0, diff);
+	strncpy(ncstrp->cp, str, ncstrp->nchars);
+	/* Don't adjust ncstrp->nchars, it includes extra space in the
+	 * header for potential later expansion of string. */
 
 	return NC_NOERR;
 }

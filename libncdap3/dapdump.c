@@ -203,7 +203,7 @@ dumpprojections(NClist* projections)
     for(i=0;i<nclistlength(projections);i++) {
 	NCprojection* p = (NCprojection*)nclistget(projections,i);
         if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,dumpprojection1(p));
+	ncbytescat(buf,dumpprojection(p));
     }
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -211,7 +211,7 @@ dumpprojections(NClist* projections)
 }
 
 char*
-dumpprojection1(NCprojection* p)
+dumpprojection(NCprojection* p)
 {
     int i;
     NCbytes* buf;
@@ -254,7 +254,7 @@ dumpselections(NClist* selections)
     if(nclistlength(selections) == 0) return nulldup("");
     for(i=0;i<nclistlength(selections);i++) {
 	NCselection* sel = (NCselection*)nclistget(selections,i);
-	ncbytescat(buf,dumpselection1(sel));
+	ncbytescat(buf,dumpselection(sel));
     }
     sstring = ncbytesdup(buf);
     ncbytesfree(buf);
@@ -262,7 +262,7 @@ dumpselections(NClist* selections)
 }
 
 char*
-dumpselection1(NCselection* sel)
+dumpselection(NCselection* sel)
 {
     NCbytes* buf = ncbytesnew();
     NCbytes* segbuf = ncbytesnew();
@@ -279,20 +279,26 @@ dumpselection1(NCselection* sel)
     ncbytescat(buf,"{");
     for(j=0;j<nclistlength(sel->rhs);j++) {
         NCvalue* value = (NCvalue*)nclistget(sel->rhs,j);
+        NCconstant* con = value->constant;
         char tmp[64];
         if(j > 0) ncbytescat(buf,",");
         switch (value->discrim) {
         case NS_STR:
-            ncbytescat(buf,value->constant->text);
+            ncbytescat(buf,con->text);
             break;          
-        case NS_INT:
-            snprintf(tmp,sizeof(tmp),"%lld",value->constant->intvalue);
-            ncbytescat(buf,tmp);
-            break;
-        case NS_FLOAT:
-            snprintf(tmp,sizeof(tmp),"%g",value->constant->floatvalue);
-            ncbytescat(buf,tmp);
-            break;
+	case NS_CONST:
+            switch (con->discrim) {	    
+            case NS_INT:
+                snprintf(tmp,sizeof(tmp),"%lld",con->intvalue);
+                ncbytescat(buf,tmp);
+                break;
+            case NS_FLOAT:
+                snprintf(tmp,sizeof(tmp),"%g",con->floatvalue);
+                ncbytescat(buf,tmp);
+                break;
+            default: PANIC1("unexpected discriminator %d",(int)con->discrim);
+	    }
+	    break;
         case NS_VAR:
             segments = value->var->segments;
 	    ncbytesclear(segbuf);

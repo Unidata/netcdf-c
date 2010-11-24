@@ -143,7 +143,7 @@ urlescape(char* s0)
    For netcdf-4, we can do proper type conversion.
 */
 nc_type
-nctypeconvert(NCDRNO* drno, nc_type nctype)
+nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
 {
     nc_type upgrade = NC_NAT;
     if(drno->controls.flags & NCF_NC3) {
@@ -395,13 +395,13 @@ static char* checkseps = "+,:;";
    check if param is defined.
 */
 int
-paramcheck34(NCDRNO* drno, const char* param, const char* substring)
+paramcheck34(NCDAPCOMMON* nccomm, const char* param, const char* substring)
 {
     const char* value;
     const char* sh;
     unsigned int splen;
-    if(drno == NULL || param == NULL) return 0;
-    value = oc_clientparam_get(drno->dap.conn,param);
+    if(nccomm == NULL || param == NULL) return 0;
+    value = oc_clientparam_get(nccomm->oc.conn,param);
     if(value == NULL) return 0;
     if(substring == NULL) return 1;
     splen = strlen(substring);
@@ -943,7 +943,7 @@ deltatime()
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
 OCerror
-dap_oc_fetch(NCDRNO* drno, OCconnection conn, const char* ce,
+dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
              OCdxd dxd, OCobject* rootp)
 {
     OCerror ocstat;
@@ -951,17 +951,17 @@ dap_oc_fetch(NCDRNO* drno, OCconnection conn, const char* ce,
     if(dxd == OCDDS) ext = "dds";
     else if(dxd == OCDAS) ext = "das";
     else ext = "dods";
-    if(FLAGSET(drno,NCF_SHOWFETCH)) {
+    if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	if(ce == NULL)
-	    oc_log(OCLOGNOTE,"fetch: %s.%s",drno->dap.url.base,ext);
+	    oc_log(OCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);
 	else
-	    oc_log(OCLOGNOTE,"fetch: %s.%s?%s",drno->dap.url.base,ext,ce);
+	    oc_log(OCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url.base,ext,ce);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
     }
     ocstat = oc_fetch(conn,ce,dxd,rootp);
-    if(FLAGSET(drno,NCF_SHOWFETCH)) {
+    if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 #ifdef HAVE_GETTIMEOFDAY
         double secs;
 	gettimeofday(&time1,NULL);

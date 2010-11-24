@@ -14,7 +14,7 @@
    a whole variable, then match is false.
 */
 int
-iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
+iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 {
     int i,j,found,index;
     NCcache* cache;
@@ -23,12 +23,12 @@ iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
     found = 0;
     if(target == NULL) goto done;
 
-    if(!FLAGSET(drno,NCF_CACHE)) goto done;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)) goto done;
 
     /* match the target variable against elements in the cache */
 
     index = 0;
-    cache = drno->cdf.cache;
+    cache = nccomm->cdf.cache;
     cachenode = cache->prefetch;
 
     /* always check prefetch (if it exists) */
@@ -59,7 +59,7 @@ iscached(NCDRNO* drno, CDFnode* target, NCcachenode** cachenodep)
         if(cachenodep) *cachenodep = cachenode;
     }
 done:
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"iscached: search: %s\n",makesimplepathstring3(target));
 if(found)
    fprintf(stderr,"iscached: found: %s\n",dumpcachenode(cachenode));
@@ -71,12 +71,12 @@ else
 
 /* Compute the set of prefetched data */
 NCerror
-prefetchdata3(NCDRNO* drno)
+prefetchdata3(NCDAPCOMMON* nccomm)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    NClist* allvars = drno->cdf.varnodes;
-    NCconstraint* constraint = drno->dap.dapconstraint;
+    NClist* allvars = nccomm->cdf.varnodes;
+    NCconstraint* constraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
     NCconstraint* newconstraint = NULL;
@@ -84,8 +84,9 @@ prefetchdata3(NCDRNO* drno)
     /* If caching is off, and we can do constraints, then
        don't even do prefetch
     */
-    if(!FLAGSET(drno,NCF_CACHE) && !FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
-	drno->cdf.cache->prefetch = NULL;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)
+	&& !FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+	nccomm->cdf.cache->prefetch = NULL;
 	goto done;
     }
 
@@ -98,35 +99,35 @@ prefetchdata3(NCDRNO* drno)
 	    nelems *= dim->dim.declsize;
 	}
 	/* If we cannot constrain, then pull in everything */
-	if(FLAGSET(drno,NCF_UNCONSTRAINABLE)
-           ||nelems <= drno->cdf.smallsizelimit)
+	if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)
+           ||nelems <= nccomm->cdf.smallsizelimit)
 	    nclistpush(vars,(ncelem)var);
     }
     /* If we cannot constrain, then pull in everything */
     newconstraint = createncconstraint();
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE) || nclistlength(vars) == 0) {
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE) || nclistlength(vars) == 0) {
 	newconstraint->projections = NULL;
 	newconstraint->selections= NULL;
     } else {/* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
         newconstraint->projections = clonencprojections(constraint->projections);
-        restrictprojection3(drno,vars,newconstraint->projections);
+        restrictprojection34(vars,newconstraint->projections);
         /* similar for selections */
         newconstraint->selections = clonencselections(constraint->selections);
     }
 
-if(FLAGSET(drno,NCF_SHOWFETCH)) {
+if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 oc_log(OCLOGNOTE,"prefetch.");
 }
 
     if(nclistlength(vars) == 0)
         cache = NULL;
     else {
-        ncstat = buildcachenode3(drno,newconstraint,vars,&cache,1);
+        ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,1);
         if(ncstat) goto done;
     }
     /* Make cache node be the prefetch node */
-    drno->cdf.cache->prefetch = cache;
+    nccomm->cdf.cache->prefetch = cache;
 
 #ifdef DEBUG
 /* Log the set of prefetch variables */
@@ -145,12 +146,12 @@ ncbytesfree(buf);
 done:
     nclistfree(vars);
     freencconstraint(newconstraint);    
-    if(ncstat) freenccachenode(drno,cache);
+    if(ncstat) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
 
 NCerror
-buildcachenode3(NCDRNO* drno,
+buildcachenode34(NCDAPCOMMON* nccomm,
 	        NCconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
@@ -158,27 +159,27 @@ buildcachenode3(NCDRNO* drno,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = nccomm->oc.conn;
     OCobject ocroot = OCNULL;
     CDFnode* dxdroot = NULL;
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
 
-    if(FLAGSET(drno,NCF_UNCONSTRAINABLE))
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
         ce = NULL;
     else
         ce = buildconstraintstring3(constraint);
 
-    ocstat = dap_oc_fetch(drno,conn,ce,OCDATADDS,&ocroot);
+    ocstat = dap_oc_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     efree(ce);
     if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
 
-    ncstat = buildcdftree34(drno,ocroot,OCDATA,&dxdroot);
+    ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* regrid */
-    if(!FLAGSET(drno,NCF_UNCONSTRAINABLE)) {
-        ncstat = regrid3(dxdroot,drno->cdf.ddsroot,constraint->projections);
+    if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+        ncstat = regrid3(dxdroot,nccomm->cdf.ddsroot,constraint->projections);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
@@ -187,6 +188,7 @@ buildcachenode3(NCDRNO* drno,
     cachenode->prefetch = isprefetch;
     cachenode->vars = nclistclone(varlist);
     cachenode->datadds = dxdroot;
+    cachenode->constraint = createncconstraint();
     *cachenode->constraint = *constraint;
     constraint->projections = NULL;
     constraint->selections = NULL;
@@ -203,39 +205,39 @@ buildcachenode3(NCDRNO* drno,
 
     /* Insert into the cache */
 
-    if(!FLAGSET(drno,NCF_CACHE)) goto done;
+    if(!FLAGSET(nccomm->controls,NCF_CACHE)) goto done;
 
     if(isprefetch) {
         cachenode->prefetch = 1;
-	drno->cdf.cache->prefetch = cachenode;
+	nccomm->cdf.cache->prefetch = cachenode;
     } else {
-	NCcache* cache = drno->cdf.cache;
+	NCcache* cache = nccomm->cdf.cache;
 	if(cache->nodes == NULL) cache->nodes = nclistnew();
 	/* remove cache nodes to get below the max cache size */
 	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit) {
 	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
 	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(drno,node);
+	    freenccachenode(nccomm,node);
 	}
 	/* remove cache nodes to get below the max cache count */
 	while(nclistlength(cache->nodes) >= cache->cachecount) {
 	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
 	dumpcachenode(cachenode));
 #endif
 	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(drno,node);
+	    freenccachenode(nccomm,node);
         }
-        nclistpush(drno->cdf.cache->nodes,(ncelem)cachenode);
+        nclistpush(nccomm->cdf.cache->nodes,(ncelem)cachenode);
         cache->cachesize += cachenode->xdrsize;
     }
 
-#ifdef DBG
+#ifdef DEBUG
 fprintf(stderr,"buildcachenode: %s\n",dumpcachenode(cachenode));
 #endif
 
@@ -244,7 +246,7 @@ done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(ncstat) {
 	freecdfroot34(dxdroot);
-	freenccachenode(drno,cachenode);
+	freenccachenode(nccomm,cachenode);
     }
     return THROW(ncstat);
 }
@@ -258,20 +260,32 @@ createnccachenode(void)
 }
 
 void
-freenccachenode(NCDRNO* drno, NCcachenode* node)
+freenccachenode(NCDAPCOMMON* nccomm, NCcachenode* node)
 {
     if(node == NULL) return;
-    oc_data_free(drno->dap.conn,node->content);
-    oc_data_free(drno->dap.conn,node->content);
+    oc_data_free(nccomm->oc.conn,node->content);
+    oc_data_free(nccomm->oc.conn,node->content);
     freencconstraint(node->constraint);
     freecdfroot34(node->datadds);
     nclistfree(node->vars);
     efree(node);
 }
 
+void
+freenccache(NCDAPCOMMON* nccomm, NCcache* cache)
+{
+    int i;
+    if(cache == NULL) return;
+    freenccachenode(nccomm,cache->prefetch);
+    for(i=0;i<nclistlength(cache->nodes);i++) {
+	freenccachenode(nccomm,(NCcachenode*)nclistget(cache->nodes,i));
+    }
+    nclistfree(cache->nodes);
+    efree(cache);
+}
 
 NCcache*
-createnccache()
+createnccache(void)
 {
     NCcache* c = (NCcache*)emalloc(sizeof(NCcache));
     memset((void*)c,0,sizeof(NCcache));
@@ -280,16 +294,4 @@ createnccache()
     c->nodes = nclistnew();
     c->cachecount = DFALTCACHECOUNT;
     return c;
-}
-
-void
-freenccache(NCDRNO* drno, NCcache* cache)
-{
-    int i;
-    if(cache == NULL) return;
-    freenccachenode(drno,cache->prefetch);
-    for(i=0;i<nclistlength(cache->nodes);i++) {
-	freenccachenode(drno,(NCcachenode*)nclistget(cache->nodes,i));
-    }
-    efree(cache);
 }

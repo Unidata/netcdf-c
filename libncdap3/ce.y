@@ -203,15 +203,15 @@ ident:  word
 	;
 
 word:  SCAN_WORD
-	    {$$ = $1;}
+	    {$$ = checkobject($1);}
 	;
 
 number:  SCAN_NUMBERCONST
-	    {$$ = $1;}
+	    {$$ = checkobject($1);}
 	;
 
 string: SCAN_STRINGCONST
-	    {$$ = $1;}
+	    {$$ = checkobject($1);}
 	;
 
 %%

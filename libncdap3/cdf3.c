@@ -34,20 +34,20 @@ static void projectall3(NClist* nodes);
 
 /* Accumulate useful node sets  */
 NCerror
-computecdfnodesets3(NCDRNO* drno)
+computecdfnodesets3(NCDAPCOMMON* nccomm)
 {
     unsigned int i;
     NClist* varnodes = nclistnew(); 
-    NClist* allnodes = drno->cdf.ddsroot->tree->nodes;
+    NClist* allnodes = nccomm->cdf.ddsroot->tree->nodes;
 
-    if(drno->cdf.seqnodes == NULL) drno->cdf.seqnodes = nclistnew();
-    if(drno->cdf.gridnodes == NULL) drno->cdf.gridnodes = nclistnew();
-    nclistclear(drno->cdf.seqnodes);
-    nclistclear(drno->cdf.gridnodes);
+    if(nccomm->cdf.seqnodes == NULL) nccomm->cdf.seqnodes = nclistnew();
+    if(nccomm->cdf.gridnodes == NULL) nccomm->cdf.gridnodes = nclistnew();
+    nclistclear(nccomm->cdf.seqnodes);
+    nclistclear(nccomm->cdf.gridnodes);
 
-    computevarnodes3(drno,allnodes,varnodes);
-    nclistfree(drno->cdf.varnodes);
-    drno->cdf.varnodes = varnodes;
+    computevarnodes3(nccomm,allnodes,varnodes);
+    nclistfree(nccomm->cdf.varnodes);
+    nccomm->cdf.varnodes = varnodes;
 
     /* Now compute other sets of interest */
     for(i=0;i<nclistlength(allnodes);i++) {
@@ -55,10 +55,10 @@ computecdfnodesets3(NCDRNO* drno)
 	if(!node->visible) continue;
 	switch (node->nctype) {
 	case NC_Sequence:
-	    nclistpush(drno->cdf.seqnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.seqnodes,(ncelem)node);
 	    break;
 	case NC_Grid:
-	    nclistpush(drno->cdf.gridnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.gridnodes,(ncelem)node);
 	    break;
 	default: break;
 	}
@@ -67,7 +67,7 @@ computecdfnodesets3(NCDRNO* drno)
 }
 
 NCerror
-computevarnodes3(NCDRNO* drno, NClist* allnodes, NClist* varnodes)
+computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 {
     unsigned int i,len;
     NClist* allvarnodes = nclistnew();
@@ -99,7 +99,7 @@ computevarnodes3(NCDRNO* drno, NClist* allnodes, NClist* varnodes)
 	    nclistpush(varnodes,(ncelem)node);
 	    nclistset(allvarnodes,i,(ncelem)NULL);
         } else if(dapgridmap(node)) {
-	    if(!FLAGSET(drno,NCF_NCDAP))
+	    if(!FLAGSET(nccomm->controls,NCF_NCDAP))
 		nclistpush(varnodes,(ncelem)node);
 	    nclistset(allvarnodes,i,(ncelem)NULL);
 	}
@@ -128,14 +128,14 @@ computecdfattributes(CDFnode* node)
 #endif
 
 NCerror
-fixgrids3(NCDRNO* drno)
+fixgrids3(NCDAPCOMMON* nccomm)
 {
     unsigned int i;
-    NClist* gridnodes = drno->cdf.gridnodes;
+    NClist* gridnodes = nccomm->cdf.gridnodes;
 
     for(i=0;i<nclistlength(gridnodes);i++) {
         CDFnode* grid = (CDFnode*)nclistget(gridnodes,i);
-        (void)fixgrid34(drno,grid);
+        (void)fixgrid34(nccomm,grid);
 	/* Ignore mal-formed grids */
     }
     return NC_NOERR;
@@ -145,7 +145,7 @@ fixgrids3(NCDRNO* drno)
 Figure out the names for variables.
 */
 NCerror
-computecdfvarnames3(NCDRNO* drno, CDFnode* root, NClist* varnodes)
+computecdfvarnames3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* varnodes)
 {
     unsigned int i,j,d;
 
@@ -162,10 +162,10 @@ computecdfvarnames3(NCDRNO* drno, CDFnode* root, NClist* varnodes)
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(varnodes,i);
 	efree(var->ncfullname);
-	var->ncfullname = makecdfpathstring3(var,drno->cdf.separator);
+	var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
     }
     /*  unify all variables with same fullname and dimensions. */
-    if(drno->controls.flags & (NCF_NC3)) {
+    if(FLAGSET(nccomm->controls,NCF_NC3)) {
         for(i=0;i<nclistlength(varnodes);i++) {
 	    int match;
 	    CDFnode* var = (CDFnode*)nclistget(varnodes,i);
@@ -215,7 +215,7 @@ computecdfvarnames3(NCDRNO* drno, CDFnode* root, NClist* varnodes)
 
 #ifdef IGNORE
 static NClist*
-hoist(NCDRNO* drno, CDFnode* container)
+hoist(NCDAPCOMMON* nccomm, CDFnode* container)
 {
     int i,j;
     NClist* containers = nclistnew();
@@ -240,12 +240,12 @@ hoist(NCDRNO* drno, CDFnode* container)
     /* Tentatively hoist each container in turn*/
     while(nclistlength(containers) > 0) {
 	CDFnode* subcontainer = (CDFnode*)nclistremove(containers,0);	
-	NClist* vars = hoist(drno,subcontainer);
+	NClist* vars = hoist(nccomm,subcontainer);
 	int match;
 	/* compute path names without this container*/
 	subcontainer->elided = 1;
 	if(ncdap3debug > 1) fprintf(stderr,"eliding: %s\n",subcontainer->name);
-	makevarnames(drno,vars);
+	makevarnames(nccomm,vars);
 	/* look for duplicates in the unique list*/
 	match = 0;
         for(i=0;i<nclistlength(unique);i++) {
@@ -265,7 +265,7 @@ hoist(NCDRNO* drno, CDFnode* container)
             /* match => we have a collision, so restore the path name of the vars*/
 	    /* to include their container*/
 	    subcontainer->elided = 0;
-	    makevarnames(drno,vars);
+	    makevarnames(nccomm,vars);
 	}
 	/* Add the subcontainer vars to our list of uniquely named vars*/
         for(i=0;i<nclistlength(vars);i++) {
@@ -281,13 +281,13 @@ hoist(NCDRNO* drno, CDFnode* container)
 
 #ifdef UNUSED
 static void
-makevarnames(NCDRNO* drno, NClist* vars)
+makevarnames(NCDAPCOMMON* nccomm, NClist* vars)
 {
     int i;
     for(i=0;i<nclistlength(vars);i++) {
 	CDFnode* var = (CDFnode*)nclistget(vars,i);
 	efree(var->ncfullname);
-        var->ncfullname = makecdfpathstring3(var,drno->cdf.separator);
+        var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
 if(var==v4node && var->ncfullname[0] != 'Q')dappanic("");
 	if(ncdap3debug > 1)
 	    fprintf(stderr,"makevarname: %s->ncfullname=%s\n",var->name,var->ncfullname);
@@ -297,9 +297,9 @@ if(var==v4node && var->ncfullname[0] != 'Q')dappanic("");
 
 /* locate and connect usable sequences and vars*/
 NCerror
-sequencecheck3(NCDRNO* drno)
+sequencecheck3(NCDAPCOMMON* nccomm)
 {
-    (void)sequencecheck3r(drno->cdf.ddsroot,drno->cdf.varnodes,NULL);    
+    (void)sequencecheck3r(nccomm->cdf.ddsroot,nccomm->cdf.varnodes,NULL);    
     return NC_NOERR;
 }
 
@@ -397,7 +397,7 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
         projectall3(template->tree->nodes);
     } else for(i=0;i<nclistlength(projections);i++) {
 	NCprojection* proj = (NCprojection*)nclistget(projections,i);
-	ASSERT(proj->discrim == NS_VAR);
+        ASSERT(proj->discrim == NS_VAR);
         projection3r(proj->var->leaf);
     }
 

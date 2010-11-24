@@ -5754,7 +5754,7 @@ all the values at the last time.
  !Read the values at the last time by passing an array section 
  status = nf90_get_var(ncid, rhVarId, rhValues(:, :, 3), &
                        start = (/ 1, 1, numTimes /),     &
-                       count = (/ numLats, numLons, 1 /))
+                       count = (/ numLons, numLats, 1 /))
  if(status /= nf90_NoErr) call handle_err(status)
 @end example
 

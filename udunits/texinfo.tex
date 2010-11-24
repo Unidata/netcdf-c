@@ -1,9 +1,9 @@
 % texinfo.tex -- TeX macros to handle Texinfo files.
-%
+% 
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2009-05-16.16}
+\def\texinfoversion{2009-08-14.15}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1332,13 +1332,16 @@ output) for that.)}
 
 \ifpdf
   %
-  % Color manipulation macros based on pdfcolor.tex.
-  \def\cmykDarkRed{0.28 1 1 0.35}
-  \def\cmykBlack{0 0 0 1}
+  % Color manipulation macros based on pdfcolor.tex,
+  % except using rgb instead of cmyk; the latter is said to render as a
+  % very dark gray on-screen and a very dark halftone in print, instead
+  % of actual black.
+  \def\rgbDarkRed{0.50 0.09 0.12}
+  \def\rgbBlack{0 0 0}
   %
   % k sets the color for filling (usual text, etc.);
   % K sets the color for stroking (thin rules, e.g., normal _'s).
-  \def\pdfsetcolor#1{\pdfliteral{#1 k  #1 K}}
+  \def\pdfsetcolor#1{\pdfliteral{#1 rg  #1 RG}}
   %
   % Set color, and create a mark which defines \thiscolor accordingly,
   % so that \makeheadline knows which color to restore.
@@ -1348,7 +1351,7 @@ output) for that.)}
     \pdfsetcolor{#1}%
   }
   %
-  \def\maincolor{\cmykBlack}
+  \def\maincolor{\rgbBlack}
   \pdfsetcolor{\maincolor}
   \edef\thiscolor{\maincolor}
   \def\lastcolordefs{}
@@ -1443,8 +1446,8 @@ output) for that.)}
   %
   % by default, use a color that is dark enough to print on paper as
   % nearly black, but still distinguishable for online viewing.
-  \def\urlcolor{\cmykDarkRed}
-  \def\linkcolor{\cmykDarkRed}
+  \def\urlcolor{\rgbDarkRed}
+  \def\linkcolor{\rgbDarkRed}
   \def\endlink{\setcolor{\maincolor}\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
@@ -4322,6 +4325,7 @@ end
   \definedummyword\code
   \definedummyword\command
   \definedummyword\dfn
+  \definedummyword\email
   \definedummyword\emph
   \definedummyword\env
   \definedummyword\file
@@ -9272,12 +9276,8 @@ directory should work if nowhere else does.}
 @markupsetuplqdefault
 @markupsetuprqdefault
 
-@c Gnulib now utterly and painfully insists on no trailing whitespace.
-@c So we have to nuke it.
-
 @c Local variables:
 @c eval: (add-hook 'write-file-hooks 'time-stamp)
-@c eval: (add-hook 'write-file-hooks 'nuke-trailing-whitespace)
 @c page-delimiter: "^\\\\message"
 @c time-stamp-start: "def\\\\texinfoversion{"
 @c time-stamp-format: "%:y-%02m-%02d.%02H"

@@ -491,29 +491,7 @@ if test "x$enable_dap_remote_tests" = "xno" ; then
 fi
 AC_MSG_RESULT([$enable_dap_long_tests])
 
-# Did user must specify a location for liboc?
-AC_MSG_CHECKING([whether a location for liboc was specified])
-AC_ARG_WITH([oclib], [AS_HELP_STRING([--with-oclib=<directory>],
-            [Specify location of liboc. Configure will expect to find subdirs include and lib. This is required for opendap; if not specified, then the internal version will be used.])])
-if test -n "$with_oclib" ; then
-  AC_MSG_RESULT([$with_oclib])
-else
-  AC_MSG_RESULT([no])
-fi
-oclibdir="$with_oclib"
-
-# -loc is required if BUILD_DAP is true
-if test -n "${oclibdir}" ; then
-  AC_MSG_NOTICE([external oclib library not specified; using internal version])
-  oclib_cflags=
-  oclib_libs=
-else
-  oclib_cflags="-I${oclibdir}/include"
-  oclib_libs="-L${oclibdir}/lib -loc"
-fi
-AC_SUBST([OCLIB_CFLAGS],[${oclib_cflags}])
-AC_SUBST([OCLIB_LIBS],[${oclib_libs}])
-AM_CONDITIONAL(INTERNAL_OCLIB,[test "x${with_oclib}" = "x"])
+AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
 # Does the user want to do some extra tests?
 AC_MSG_CHECKING([whether netCDF extra tests should be run (developers only)])
@@ -979,8 +957,8 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2.2])
-#LT_INIT(win32-dll)
-AC_PROG_LIBTOOL
+LT_INIT(win32-dll)
+#AC_PROG_LIBTOOL
 
 AC_MSG_NOTICE([finding other utilities])
 
@@ -1077,6 +1055,7 @@ AC_HEADER_STDBOOL
 
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup strcasecmp])
+AC_CHECK_FUNCS([strtod strtoll])
 AC_CHECK_FUNCS([getrlimit])
 AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([fsync])
@@ -1494,12 +1473,6 @@ if test "x$enable_dap" = xyes ; then
   if test "x$curl_libs" != x ; then
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
     EXTERN_CFLAGS="${EXTERN_CFLAGS} $curl_cflags"
-  fi
-  # If we are building with dap support check to see if we need to add
-  # external oc library
-  if test "x$with_oclib" != x ; then
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$OCLIBDIR/lib -loc"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$OCLIBDIR/include"
   fi
 fi
 

@@ -1,9 +1,10 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2006, 2009-2010 Free Software
-   Foundation, Inc.
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +46,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.4.2"
+#define YYBISON_VERSION "2.4.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -179,7 +180,7 @@ uterror(
 
 
 /* Line 189 of yacc.c  */
-#line 183 "parser.c"
+#line 184 "parser.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -252,7 +253,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 256 "parser.c"
+#line 257 "parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -264,7 +265,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 268 "parser.c"
+#line 269 "parser.c"
 
 #ifdef short
 # undef short
@@ -314,7 +315,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if defined YYENABLE_NLS && YYENABLE_NLS
+# if YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -685,18 +686,9 @@ static const yytype_uint8 yystos[] =
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
-   Once GCC version 2 has supplanted version 1, this can go.  However,
-   YYFAIL appears to be in use.  Nevertheless, it is formally deprecated
-   in Bison 2.4.2's NEWS entry, where a plan to phase it out is
-   discussed.  */
+   Once GCC version 2 has supplanted version 1, this can go.  */
 
 #define YYFAIL		goto yyerrlab
-#if defined YYFAIL
-  /* This is here to suppress warnings from the GCC cpp's
-     -Wunused-macros.  Normally we don't worry about that warning, but
-     some users do, and we want to make it easy for users to remove
-     YYFAIL uses, which will produce warnings from Bison 2.5.  */
-#endif
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
@@ -753,7 +745,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -1492,7 +1484,7 @@ yyreduce:
     {
         case 2:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 133 "parser.y"
     {
 		    _finalUnit = ut_get_dimensionless_unit_one(_unitSystem);
@@ -1502,7 +1494,7 @@ yyreduce:
 
   case 3:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 137 "parser.y"
     {
 		    _finalUnit = (yyvsp[(1) - (1)].unit);
@@ -1512,7 +1504,7 @@ yyreduce:
 
   case 4:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 141 "parser.y"
     {
 		    ut_set_status(UT_SYNTAX);
@@ -1522,7 +1514,7 @@ yyreduce:
 
   case 5:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 147 "parser.y"
     {
 		    (yyval.unit) = (yyvsp[(1) - (1)].unit);
@@ -1531,7 +1523,7 @@ yyreduce:
 
   case 6:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 150 "parser.y"
     {
 		    (yyval.unit) = ut_offset((yyvsp[(1) - (3)].unit), (yyvsp[(3) - (3)].rval));
@@ -1545,7 +1537,7 @@ yyreduce:
 
   case 7:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 158 "parser.y"
     {
 		    (yyval.unit) = ut_offset((yyvsp[(1) - (3)].unit), (yyvsp[(3) - (3)].ival));
@@ -1559,7 +1551,7 @@ yyreduce:
 
   case 8:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 166 "parser.y"
     {
 		    (yyval.unit) = ut_offset_by_time((yyvsp[(1) - (3)].unit), (yyvsp[(3) - (3)].rval));
@@ -1573,7 +1565,7 @@ yyreduce:
 
   case 9:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 176 "parser.y"
     {
 		    (yyval.unit) = (yyvsp[(1) - (1)].unit);
@@ -1582,7 +1574,7 @@ yyreduce:
 
   case 10:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 179 "parser.y"
     {
 		    (yyval.unit) = ut_multiply((yyvsp[(1) - (2)].unit), (yyvsp[(2) - (2)].unit));
@@ -1597,7 +1589,7 @@ yyreduce:
 
   case 11:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 188 "parser.y"
     {
 		     (yyval.unit) = ut_multiply((yyvsp[(1) - (3)].unit), (yyvsp[(3) - (3)].unit));
@@ -1612,7 +1604,7 @@ yyreduce:
 
   case 12:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 197 "parser.y"
     {
 		     (yyval.unit) = ut_divide((yyvsp[(1) - (3)].unit), (yyvsp[(3) - (3)].unit));
@@ -1627,7 +1619,7 @@ yyreduce:
 
   case 13:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 208 "parser.y"
     {
 		    (yyval.unit) = (yyvsp[(1) - (1)].unit);
@@ -1636,7 +1628,7 @@ yyreduce:
 
   case 14:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 211 "parser.y"
     {
 		    (yyval.unit) = ut_raise((yyvsp[(1) - (2)].unit), (yyvsp[(2) - (2)].ival));
@@ -1650,7 +1642,7 @@ yyreduce:
 
   case 15:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 219 "parser.y"
     {
 		    (yyval.unit) = ut_raise((yyvsp[(1) - (2)].unit), (yyvsp[(2) - (2)].ival));
@@ -1664,7 +1656,7 @@ yyreduce:
 
   case 16:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 229 "parser.y"
     {
 		    double	prefix = 1;
@@ -1718,7 +1710,7 @@ yyreduce:
 
   case 17:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 277 "parser.y"
     {
 		    (yyval.unit) = (yyvsp[(2) - (3)].unit);
@@ -1727,7 +1719,7 @@ yyreduce:
 
   case 18:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 280 "parser.y"
     {
 		    (yyval.unit) = ut_log((yyvsp[(1) - (3)].rval), (yyvsp[(2) - (3)].unit));
@@ -1741,7 +1733,7 @@ yyreduce:
 
   case 19:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 288 "parser.y"
     {
 		    (yyval.unit) = ut_scale((yyvsp[(1) - (1)].rval),
@@ -1751,7 +1743,7 @@ yyreduce:
 
   case 20:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 294 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (1)].ival);
@@ -1760,7 +1752,7 @@ yyreduce:
 
   case 21:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 297 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (1)].rval);
@@ -1769,7 +1761,7 @@ yyreduce:
 
   case 22:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 302 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (1)].rval);
@@ -1778,7 +1770,7 @@ yyreduce:
 
   case 23:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 305 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (2)].rval) + (yyvsp[(2) - (2)].rval);
@@ -1787,7 +1779,7 @@ yyreduce:
 
   case 24:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 308 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (3)].rval) + ((yyvsp[(2) - (3)].rval) - (yyvsp[(3) - (3)].rval));
@@ -1796,7 +1788,7 @@ yyreduce:
 
   case 25:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 311 "parser.y"
     {
 		    int	mag = (yyvsp[(3) - (3)].ival) >= 0 ? (yyvsp[(3) - (3)].ival) : -(yyvsp[(3) - (3)].ival);
@@ -1815,7 +1807,7 @@ yyreduce:
 
   case 26:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 324 "parser.y"
     {
 		    int	error = 0;
@@ -1840,7 +1832,7 @@ yyreduce:
 
   case 27:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 343 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (1)].rval);
@@ -1849,7 +1841,7 @@ yyreduce:
 
   case 28:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 346 "parser.y"
     {
 		    (yyval.rval) = (yyvsp[(1) - (2)].rval) - (yyvsp[(2) - (2)].rval);
@@ -1858,7 +1850,7 @@ yyreduce:
 
   case 29:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 349 "parser.y"
     {
 		    int	mag = (yyvsp[(2) - (2)].ival) >= 0 ? (yyvsp[(2) - (2)].ival) : -(yyvsp[(2) - (2)].ival);
@@ -1877,7 +1869,7 @@ yyreduce:
 
   case 30:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 362 "parser.y"
     {
 		    int	error = 0;
@@ -1902,8 +1894,8 @@ yyreduce:
 
 
 
-/* Line 1464 of yacc.c  */
-#line 1907 "parser.c"
+/* Line 1455 of yacc.c  */
+#line 1899 "parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2114,7 +2106,7 @@ yyreturn:
 
 
 
-/* Line 1684 of yacc.c  */
+/* Line 1675 of yacc.c  */
 #line 383 "parser.y"
 
 

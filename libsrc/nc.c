@@ -17,6 +17,7 @@
 
 #include "nc.h"
 #include "ncdispatch.h"
+#include "nc3dispatch.h"
 #include "rnd.h"
 #include "ncx.h"
 
@@ -38,13 +39,11 @@ NC_check_id(int ncid, NC **ncpp)
     return NC_NOERR;
 }
 
-void
+static void
 free_NC(NC *ncp)
 {
 	if(ncp == NULL)
 		return;
-	if (ncp->path)
-	   free(ncp->path);
 	free_NC_dimarrayV(&ncp->dims);
 	free_NC_attrarrayV(&ncp->attrs);
 	free_NC_vararrayV(&ncp->vars);
@@ -55,25 +54,15 @@ free_NC(NC *ncp)
 #endif /* _CRAYMPP && LOCKNUMREC */
 }
 
-NC *
-new_NC(const size_t *chunkp)
+static NC *
+new_NC(const size_t *chunkp, NC_Dispatch* dispatch)
 {
 	NC *ncp;
-
-#if _CRAYMPP && defined(LOCKNUMREC)
-	ncp = (NC *) shmalloc(sizeof(NC));
-#else
-	ncp = (NC *) malloc(sizeof(NC));
-#endif /* _CRAYMPP && LOCKNUMREC */
-	if(ncp == NULL)
-		return NULL;
-	(void) memset(ncp, 0, sizeof(NC));
-
+	int stat = dispatch->new_nc(&ncp);
+	if(stat) return NULL;
 	ncp->xsz = MIN_NC_XSZ;
 	assert(ncp->xsz == ncx_len_NC(ncp,0));
-	
-	ncp->chunk = chunkp != NULL ? *chunkp : NC_SIZEHINT_DEFAULT;
-
+        ncp->chunk = chunkp != NULL ? *chunkp : NC_SIZEHINT_DEFAULT;
 	return ncp;
 }
 
@@ -81,15 +70,10 @@ static NC *
 dup_NC(const NC *ref)
 {
 	NC *ncp;
-
-#if _CRAYMPP && defined(LOCKNUMREC)
-	ncp = (NC *) shmalloc(sizeof(NC));
-#else
-	ncp = (NC *) malloc(sizeof(NC));
-#endif /* _CRAYMPP && LOCKNUMREC */
+	int stat = ref->dispatch->new_nc(&ncp);
+	if(stat) return NULL;
 	if(ncp == NULL)
 		return NULL;
-	(void) memset(ncp, 0, sizeof(NC));
 
 	if(dup_NC_dimarrayV(&ncp->dims, &ref->dims) != NC_NOERR)
 		goto err;
@@ -863,11 +847,26 @@ NC_calcsize(const NC *ncp, off_t *calcsizep)
 
 /* Public */
 
-/* Expose a couple of extra functions */
+int NC3_new_nc(NC** ncpp)
+{
+	NC *ncp;
 
-NC* dispatch_new_NC(const size_t *chunkp) {return new_NC(chunkp);}
+#if _CRAYMPP && defined(LOCKNUMREC)
+	ncp = (NC *) shmalloc(sizeof(NC));
+#else
+	ncp = (NC *) malloc(sizeof(NC));
+#endif /* _CRAYMPP && LOCKNUMREC */
+	if(ncp == NULL)
+		return NC_ENOMEM;
+	(void) memset(ncp, 0, sizeof(NC));
 
-void dispatch_free_NC(NC *ncp) {free_NC(ncp);}
+	ncp->xsz = MIN_NC_XSZ;
+	assert(ncp->xsz == ncx_len_NC(ncp,0));
+	
+        if(ncpp) *ncpp = ncp;
+        return NC_NOERR;
+
+}
 
 /* WARNING: SIGNATURE CHANGE */
 int
@@ -886,16 +885,9 @@ NC3_create(const char *path, int ioflags,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-	ncp = new_NC(chunksizehintp);
+	ncp = new_NC(chunksizehintp,dispatch);
 	if(ncp == NULL)
 		return NC_ENOMEM;
-
-	if (path)
-	{
-	   if (!(ncp->path = malloc(strlen(path) + 1)))
-	      return NC_ENOMEM;
-	   strcpy(ncp->path, path);
-	}
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(ncp, basepe)) {
@@ -1012,17 +1004,9 @@ NC3_open(const char * path, int ioflags,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-	ncp = new_NC(chunksizehintp);
+	ncp = new_NC(chunksizehintp,dispatch);
 	if(ncp == NULL)
 		return NC_ENOMEM;
-
-	/* Keep a copy of the path. */
-	if (path)
-	{
-	   if (!(ncp->path = malloc(strlen(path) + 1)))
-	      return NC_ENOMEM;
-	   strcpy(ncp->path, path);
-	}
 
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(ncp, basepe)) {
@@ -1511,25 +1495,6 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
    return NC_NOERR;
 }
 
-/* If you wanted to know the path, why don't you just remember it in
- * your program? */
-int
-NC3_inq_path(int ncid, size_t *pathlen, char *path)
-{
-   int status;
-   NC *ncp;
-
-   if ((status = NC_check_id(ncid, &ncp)))
-      return status;
-
-   if (pathlen)
-      *pathlen = strlen(ncp->path);
-   if (path)
-      strcpy(path, ncp->path);
-   
-   return NC_NOERR;
-}
-
 int
 nc_delete_mp(const char * path, int basepe)
 {
@@ -1537,9 +1502,9 @@ nc_delete_mp(const char * path, int basepe)
 	int status;
 	size_t chunk = 512;
 
-	ncp = new_NC(&chunk);
-	if(ncp == NULL)
-		return NC_ENOMEM;
+	status = NC3_new_nc(&ncp);
+        if(status) return status;
+        ncp->chunk = chunk;
 	
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
 	if (status = NC_init_pe(ncp, basepe)) {

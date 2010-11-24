@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */
+#include <nc4internal.h>
 #include <H5DSpublic.h>
 
 #define MAX_LEN 30

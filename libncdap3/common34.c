@@ -10,11 +10,11 @@ extern CDFnode* v4node;
 
 /* Define the set of protocols known to be constrainable */
 static char* constrainableprotocols[] = {"http", "https",NULL};
-static NCerror buildcdftree34r(NCDRNO*,OCobject,CDFnode*,CDFtree*,CDFnode**);
-static void dupdimensions(OCobject, CDFnode*, NCDRNO*, CDFtree*);
+static NCerror buildcdftree34r(NCDAPCOMMON*,OCobject,CDFnode*,CDFtree*,CDFnode**);
+static void dupdimensions(OCobject, CDFnode*, NCDAPCOMMON*, CDFtree*);
 static NCerror  attachsubset34r(CDFnode*, CDFnode*);
 static void free1cdfnode34(CDFnode* node);
-static CDFnode* clonedim(NCDRNO* drno, CDFnode* dim, CDFnode* var);
+static CDFnode* clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var);
 static int getcompletedimset3(CDFnode*, NClist*);
 
 /* Define Procedures that are common to both
@@ -24,7 +24,7 @@ static int getcompletedimset3(CDFnode*, NClist*);
 /* Ensure every node has an initial base name defined and fullname */
 /* Exceptions: anonymous dimensions. */
 static NCerror
-fix1node34(NCDRNO* drno, CDFnode* node)
+fix1node34(NCDAPCOMMON* nccomm, CDFnode* node)
 {
     if(node->nctype == NC_Dimension && node->name == NULL) return NC_NOERR;
     ASSERT((node->name != NULL));
@@ -32,22 +32,22 @@ fix1node34(NCDRNO* drno, CDFnode* node)
     node->ncbasename = cdflegalname3(node->name);
     if(node->ncbasename == NULL) return NC_ENOMEM;
     efree(node->ncfullname);
-    node->ncfullname = makecdfpathstring3(node,drno->cdf.separator);
+    node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
     if(node->ncfullname == NULL) return NC_ENOMEM;
     if(node->nctype == NC_Primitive)
-        node->externaltype = nctypeconvert(drno,node->etype);
+        node->externaltype = nctypeconvert(nccomm,node->etype);
     if(node->nctype == NC_Dimension)
-        node->maxstringlength = drno->cdf.defaultstringlength;
+        node->maxstringlength = nccomm->cdf.defaultstringlength;
     return NC_NOERR;
 }
 
 NCerror
-fixnodes34(NCDRNO* drno, NClist* cdfnodes)
+fixnodes34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
 {
     int i;
     for(i=0;i<nclistlength(cdfnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
-	NCerror err = fix1node34(drno,node);
+	NCerror err = fix1node34(nccomm,node);
 	if(err) return err;
     }
     return NC_NOERR;
@@ -55,7 +55,7 @@ fixnodes34(NCDRNO* drno, NClist* cdfnodes)
 
 #ifdef IGNORE
 NCerror
-computecdfinfo34(NCDRNO* drno, NClist* cdfnodes)
+computecdfinfo34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
 {
     int i;
     /* Ensure every node has an initial base name defined and fullname */
@@ -67,7 +67,7 @@ computecdfinfo34(NCDRNO* drno, NClist* cdfnodes)
         efree(node->ncbasename);
         node->ncbasename = cdflegalname3(node->name);
         efree(node->ncfullname);
-	node->ncfullname = makecdfpathstring3(node,drno->cdf.separator);
+	node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
 if(node==v4node && node->ncfullname[0] != 'Q')dappanic("");
     }
     for(i=0;i<nclistlength(cdfnodes);i++) {
@@ -78,21 +78,21 @@ if(node==v4node && node->ncfullname[0] != 'Q')dappanic("");
     for(i=0;i<nclistlength(cdfnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
 	if(node->nctype != NC_Dimension) continue;
-	node->maxstringlength = drno->cdf.defaultstringlength;
+	node->maxstringlength = nccomm->cdf.defaultstringlength;
     }
     return NC_NOERR;
 }
 #endif
 
 NCerror
-fixgrid34(NCDRNO* drno, CDFnode* grid)
+fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 {
     unsigned int i,glen;
     CDFnode* array;
 
     glen = nclistlength(grid->subnodes);
     array = (CDFnode*)nclistget(grid->subnodes,0);	        
-    if(drno->controls.flags & (NCF_NC3)) {
+    if(nccomm->controls.flags & (NCF_NC3)) {
         /* Rename grid Array: variable, but leave its oc base name alone */
         efree(array->ncbasename);
         array->ncbasename = nulldup(grid->ncbasename);
@@ -134,11 +134,11 @@ fixgrid34(NCDRNO* drno, CDFnode* grid)
 	    if(!arraydim->ncbasename) return NC_ENOMEM;
 	    DIMFLAGCLR(arraydim,CDFDIMANON);
 	}
-        if(FLAGSET(drno,(NCF_NCDAP|NCF_NC3))) {
+        if(FLAGSET(nccomm->controls,(NCF_NCDAP|NCF_NC3))) {
 	    char tmp[3*NC_MAX_NAME];
             /* Add the grid name to the basename of the map */
 	    snprintf(tmp,sizeof(tmp),"%s%s%s",map->container->ncbasename,
-					  drno->cdf.separator,
+					  nccomm->cdf.separator,
 					  map->ncbasename);
 	    efree(map->ncbasename);
             map->ncbasename = nulldup(tmp);
@@ -168,10 +168,10 @@ computedimindex3(CDFnode* var, CDFnode* dim)
 }
 
 static CDFnode*
-clonedim(NCDRNO* drno, CDFnode* dim, CDFnode* var)
+clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)
 {
     CDFnode* clone;
-    clone = makecdfnode34(drno,dim->name,OC_Dimension,
+    clone = makecdfnode34(nccomm,dim->name,OC_Dimension,
 			  OCNULL,dim->container);
     /* Record its existence */
     nclistpush(dim->container->root->tree->nodes,(ncelem)clone);
@@ -183,10 +183,10 @@ clonedim(NCDRNO* drno, CDFnode* dim, CDFnode* var)
 
 /* Give each dimensioned object a unique set of inherited dimensions */
 NCerror
-clonecdfdims34(NCDRNO* drno)
+clonecdfdims34(NCDAPCOMMON* nccomm)
 {
     int i,j;
-    NClist* vars = drno->cdf.varnodes;
+    NClist* vars = nccomm->cdf.varnodes;
 
     for(i=0;i<nclistlength(vars);i++) {
 	CDFnode* node = (CDFnode*)nclistget(vars,i);
@@ -200,12 +200,12 @@ clonecdfdims34(NCDRNO* drno)
             for(j=0;j<rank;j++) {
 	        CDFnode* dim = (CDFnode*)nclistget(dims,j);
 	        CDFnode* clone = dim;
-	        if(j<ninherit) clone = clonedim(drno,dim,node);
+	        if(j<ninherit) clone = clonedim(nccomm,dim,node);
 	        nclistpush(clonedims,(ncelem)clone);
 	    }
 	    nclistfree(dims);
 	    if(node->array.stringdim != NULL) {
-	        nclistpush(clonedims,(ncelem)clonedim(drno,node->array.stringdim,node));
+	        nclistpush(clonedims,(ncelem)clonedim(nccomm,node->array.stringdim,node));
 	    }
 	    node->array.dimensions = clonedims;
 	}
@@ -253,12 +253,12 @@ getcompletedimset3(CDFnode* var, NClist* dimset)
 
 /* Provide short and/or unified names for dimensions. */
 NCerror
-computecdfdimnames34(NCDRNO* drno)
+computecdfdimnames34(NCDAPCOMMON* nccomm)
 {
     int i,j;
     char tmp[NC_MAX_NAME*2];
     NClist* conflicts = nclistnew();
-    NClist* vars = drno->cdf.varnodes;
+    NClist* vars = nccomm->cdf.varnodes;
     NClist* alldims = nclistnew();
 
     /* Start by assigning ncbasenames and ncfullnames to dimensions */
@@ -299,7 +299,7 @@ computecdfdimnames34(NCDRNO* drno)
         int match = 0;
 	CDFnode* dupdim = NULL;
 	CDFnode* basedim = (CDFnode*)nclistget(alldims,i);
-	if(basedim == drno->cdf.unlimited && DIMFLAG(basedim,CDFDIMRECORD))
+	if(basedim == nccomm->cdf.unlimited && DIMFLAG(basedim,CDFDIMRECORD))
 	    continue;
 	if(basedim->dim.basedim != NULL) continue; /* already processed*/
 	for(j=i+1;j<nclistlength(alldims);j++) {
@@ -314,8 +314,8 @@ computecdfdimnames34(NCDRNO* drno)
     }
 
     /* Process record dim */
-    if(drno->cdf.unlimited != NULL && DIMFLAG(drno->cdf.unlimited,CDFDIMRECORD)) {
-	CDFnode* recdim = drno->cdf.unlimited;
+    if(nccomm->cdf.unlimited != NULL && DIMFLAG(nccomm->cdf.unlimited,CDFDIMRECORD)) {
+	CDFnode* recdim = nccomm->cdf.unlimited;
 	for(i=0;i<nclistlength(alldims);i++) {
 	    int match;
 	    CDFnode* dupdim = (CDFnode*)nclistget(alldims,i);
@@ -371,7 +371,7 @@ computecdfdimnames34(NCDRNO* drno)
 }
 
 NCerror
-makegetvar34(NCDRNO* drno, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
+makegetvar34(NCDAPCOMMON* nccomm, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
 {
     Getvara* getvar;
     NCerror ncstat = NC_NOERR;
@@ -401,11 +401,11 @@ constrainable34(DAPURL* durl)
 }
 
 CDFnode*
-makecdfnode34(NCDRNO* drno, char* name, OCtype octype,
+makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
              /*optional*/ OCobject ocnode, CDFnode* container)
 {
     CDFnode* node;
-    assert(drno != NULL);
+    assert(nccomm != NULL);
     node = (CDFnode*)emalloc(sizeof(CDFnode));
     if(node == NULL) return (CDFnode*)NULL;
     memset((void*)node,0,sizeof(CDFnode));
@@ -429,7 +429,7 @@ makecdfnode34(NCDRNO* drno, char* name, OCtype octype,
     node->array.dimensions = node->array.dimensions0;
     node->container = container;
     if(ocnode != OCNULL) {
-	oc_inq_primtype(drno->dap.conn,ocnode,&octype);
+	oc_inq_primtype(nccomm->oc.conn,ocnode,&octype);
         node->etype = octypetonc(octype);
     }
     return node;
@@ -439,7 +439,7 @@ makecdfnode34(NCDRNO* drno, char* name, OCtype octype,
    Add DAS attributes if DAS is available
 */
 NCerror
-buildcdftree34(NCDRNO* drno, OCobject ocroot, OCdxd occlass, CDFnode** cdfrootp)
+buildcdftree34(NCDAPCOMMON* nccomm, OCobject ocroot, OCdxd occlass, CDFnode** cdfrootp)
 {
     CDFnode* root = NULL;
     CDFtree* tree = (CDFtree*)emalloc(sizeof(CDFtree));
@@ -447,19 +447,19 @@ buildcdftree34(NCDRNO* drno, OCobject ocroot, OCdxd occlass, CDFnode** cdfrootp)
     tree->ocroot = ocroot;
     tree->nodes = nclistnew();
     tree->occlass = occlass;
-    tree->owner = drno;
-    
-    err = buildcdftree34r(drno,ocroot,NULL,tree,&root);
+    tree->owner = nccomm;
+
+    err = buildcdftree34r(nccomm,ocroot,NULL,tree,&root);
     if(!err) {
 	if(occlass != OCDAS)
-	    fixnodes34(drno,tree->nodes);
+	    fixnodes34(nccomm,tree->nodes);
 	if(cdfrootp) *cdfrootp = root;
     }
     return err;
 }        
 
 static NCerror
-buildcdftree34r(NCDRNO* drno, OCobject ocnode, CDFnode* container,
+buildcdftree34r(NCDAPCOMMON* nccomm, OCobject ocnode, CDFnode* container,
                 CDFtree* tree, CDFnode** cdfnodep)
 {
     unsigned int i,ocrank,ocnsubnodes;
@@ -468,10 +468,10 @@ buildcdftree34r(NCDRNO* drno, OCobject ocnode, CDFnode* container,
     NCerror ncerr = NC_NOERR;
     CDFnode* cdfnode;
 
-    oc_inq_class(drno->dap.conn,ocnode,&octype);
-    oc_inq_name(drno->dap.conn,ocnode,&ocname);
-    oc_inq_rank(drno->dap.conn,ocnode,&ocrank);
-    oc_inq_nsubnodes(drno->dap.conn,ocnode,&ocnsubnodes);
+    oc_inq_class(nccomm->oc.conn,ocnode,&octype);
+    oc_inq_name(nccomm->oc.conn,ocnode,&ocname);
+    oc_inq_rank(nccomm->oc.conn,ocnode,&ocrank);
+    oc_inq_nsubnodes(nccomm->oc.conn,ocnode,&ocnsubnodes);
 
     switch (octype) {
     case OC_Dataset:
@@ -479,7 +479,7 @@ buildcdftree34r(NCDRNO* drno, OCobject ocnode, CDFnode* container,
     case OC_Structure:
     case OC_Sequence:
     case OC_Primitive:
-	cdfnode = makecdfnode34(drno,ocname,octype,ocnode,container);
+	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
 	nclistpush(tree->nodes,(ncelem)cdfnode);
 	if(tree->root == NULL) {
 	    tree->root = cdfnode;
@@ -494,12 +494,12 @@ buildcdftree34r(NCDRNO* drno, OCobject ocnode, CDFnode* container,
     /* cross link */
     cdfnode->root = tree->root;
 
-    if(ocrank > 0) dupdimensions(ocnode,cdfnode,drno,tree);
+    if(ocrank > 0) dupdimensions(ocnode,cdfnode,nccomm,tree);
     for(i=0;i<ocnsubnodes;i++) {
 	OCobject ocsubnode;
 	CDFnode* subnode;
-	oc_inq_ith(drno->dap.conn,ocnode,i,&ocsubnode);
-	ncerr = buildcdftree34r(drno,ocsubnode,cdfnode,tree,&subnode);
+	oc_inq_ith(nccomm->oc.conn,ocnode,i,&ocsubnode);
+	ncerr = buildcdftree34r(nccomm,ocsubnode,cdfnode,tree,&subnode);
 	if(ncerr) return ncerr;
 	nclistpush(cdfnode->subnodes,(ncelem)subnode);
     }
@@ -509,11 +509,11 @@ buildcdftree34r(NCDRNO* drno, OCobject ocnode, CDFnode* container,
 }
 
 static void
-dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDRNO* drno, CDFtree* tree)
+dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* tree)
 {
     unsigned int i,ocrank;
  
-    oc_inq_rank(drno->dap.conn,ocnode,&ocrank);
+    oc_inq_rank(nccomm->oc.conn,ocnode,&ocrank);
     assert(ocrank > 0);
     for(i=0;i<ocrank;i++) {
 	CDFnode* cdfdim;
@@ -521,10 +521,10 @@ dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDRNO* drno, CDFtree* tree)
 	char* ocname;
 	size_t declsize;
 
-	oc_inq_ithdim(drno->dap.conn,ocnode,i,&ocdim);
-	oc_inq_dim(drno->dap.conn,ocdim,&declsize,&ocname);
+	oc_inq_ithdim(nccomm->oc.conn,ocnode,i,&ocdim);
+	oc_inq_dim(nccomm->oc.conn,ocdim,&declsize,&ocname);
 
-	cdfdim = makecdfnode34(drno,ocname,OC_Dimension,
+	cdfdim = makecdfnode34(nccomm,ocname,OC_Dimension,
                               ocdim,cdfnode->container);
 	if(ocname == NULL) DIMFLAGSET(cdfdim,CDFDIMANON);
 	efree(ocname);
@@ -543,7 +543,7 @@ dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDRNO* drno, CDFtree* tree)
 */
 
 NCerror
-applyclientparams34(NCDRNO* drno)
+applyclientparams34(NCDAPCOMMON* nccomm)
 {
     int i,len;
     int dfaltstrlen = DEFAULTSTRINGLENGTH;
@@ -551,28 +551,28 @@ applyclientparams34(NCDRNO* drno)
     const char* value;
     char tmpname[NC_MAX_NAME+32];
     char* pathstr;
-    OCconnection conn = drno->dap.conn;
+    OCconnection conn = nccomm->oc.conn;
     unsigned long limit;
 
-    drno->cdf.cache->cachelimit = DFALTCACHELIMIT;
+    nccomm->cdf.cache->cachelimit = DFALTCACHELIMIT;
     value = oc_clientparam_get(conn,"cachelimit");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache->cachelimit = limit;
+    if(limit > 0) nccomm->cdf.cache->cachelimit = limit;
 
-    drno->cdf.fetchlimit = DFALTFETCHLIMIT;
+    nccomm->cdf.fetchlimit = DFALTFETCHLIMIT;
     value = oc_clientparam_get(conn,"fetchlimit");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.fetchlimit = limit;
+    if(limit > 0) nccomm->cdf.fetchlimit = limit;
 
-    drno->cdf.smallsizelimit = DFALTSMALLLIMIT;
+    nccomm->cdf.smallsizelimit = DFALTSMALLLIMIT;
     value = oc_clientparam_get(conn,"smallsizelimit");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.smallsizelimit = limit;
+    if(limit > 0) nccomm->cdf.smallsizelimit = limit;
 
-    drno->cdf.cache->cachecount = DFALTCACHECOUNT;
+    nccomm->cdf.cache->cachecount = DFALTCACHECOUNT;
     value = oc_clientparam_get(conn,"cachecount");
     limit = getlimitnumber(value);
-    if(limit > 0) drno->cdf.cache->cachecount = limit;
+    if(limit > 0) nccomm->cdf.cache->cachecount = limit;
 
     if(oc_clientparam_get(conn,"nolimit") != NULL)
 	dfaltseqlim = 0;
@@ -580,18 +580,18 @@ applyclientparams34(NCDRNO* drno)
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltseqlim = len;
     }
-    drno->cdf.defaultsequencelimit = dfaltseqlim;
+    nccomm->cdf.defaultsequencelimit = dfaltseqlim;
 
     /* allow embedded _ */
     value = oc_clientparam_get(conn,"stringlength");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
     }
-    drno->cdf.defaultstringlength = dfaltstrlen;
+    nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
-    for(i=0;i<nclistlength(drno->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.varnodes,i);
+    for(i=0;i<nclistlength(nccomm->cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.varnodes,i);
 	/* Define the client param stringlength for this variable*/
 	var->maxstringlength = dfaltstrlen; /* unless otherwise stated*/
 	strcpy(tmpname,"stringlength_");
@@ -604,8 +604,8 @@ applyclientparams34(NCDRNO* drno)
 	}
     }
     /* Sequence limits apply to sequences */
-    for(i=0;i<nclistlength(drno->cdf.ddsroot->tree->nodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(drno->cdf.ddsroot->tree->nodes,i);
+    for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->nodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->nodes,i);
 	if(var->nctype != NC_Sequence) continue;
 	var->sequencelimit = dfaltseqlim;
 	strcpy(tmpname,"nolimit_");
@@ -630,13 +630,13 @@ freecdfroot34(CDFnode* root)
 {
     int i;
     CDFtree* tree;
-    NCDRNO* drno;
+    NCDAPCOMMON* nccomm;
     if(root == NULL) return;
     tree = root->tree;
     ASSERT((tree != NULL));
     /* Explicitly FREE the ocroot */
-    drno = tree->owner;
-    oc_root_free(drno->dap.conn,tree->ocroot);
+    nccomm = tree->owner;
+    oc_root_free(nccomm->oc.conn,tree->ocroot);
     tree->ocroot = OCNULL;
     for(i=0;i<nclistlength(tree->nodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(tree->nodes,i);

@@ -86,7 +86,7 @@ one-dimensional arrays of @code{float}s or @code{double}s.
 @item @strong{Improved API:}  Due to the above changes, it was not
 possible to keep the application programming interface (API) of the original
 @code{UDUNITS} package.  The new interface, however, is easily
-understood and easy to use.  To support backward comptibility,
+understood and easy to use.  To support backward compatibility,
 the package does contain a version 1 C API, which uses the version 2
 library.
 
@@ -106,7 +106,7 @@ One thing that has not changed is that almost all unit string specifications
 understood by the original @code{UDUNITS} package are also
 understood by the new @code{UDUNITS-2} package.  The one exception is
 the symbol @code{g}, which in the original package was associated with
-standard free fall (a unit of accelleration) but which is associated
+standard free fall (a unit of acceleration) but which is associated
 with gram in the new package.
 
 @node Obtain, Install, Differences, Top
@@ -127,14 +127,14 @@ gunzip -c udunits-@value{VERSION}.tar.gz | pax -r
 @cindex installing this package
 
 @menu
-* Short::        Short intallation instructions
+* Short::        Short installation instructions
 * Long::         Long installation instructions
 * What::         What gets installed
 @end menu
 
 @node Short, Long, , Install
 @section Short Installation Instructions
-Not all development enviroments can build and install this package.
+Not all development environments can build and install this package.
 See the long instructions in the next section for details.
 
 The following assumes that you are familiar with autoconf-based
