@@ -18,7 +18,9 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
+#ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
+#endif
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
 
