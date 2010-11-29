@@ -340,7 +340,6 @@ int nc4_convert_type(const void *src, void *dest,
 		     int dest_long);
 
 /* These functions do HDF5 things. */
-int nc4_delete_hdf5_att(hid_t loc, const char *name);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int pg_var(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, nc_type xtype, int is_long, 
 	   void *ip);

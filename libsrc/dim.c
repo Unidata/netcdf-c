@@ -422,7 +422,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 			dimp->name->nchars);
 		name[dimp->name->nchars] = 0;
 	}
-	if(sizep != 0)
+	if(sizep != NULL)
 	{
 		if(dimp->size == NC_UNLIMITED)
 			*sizep = NC_get_numrecs(ncp);

@@ -389,7 +389,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       NC_GRP_INFO_T *dim_grp;
       if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, &dim_grp)))
          return retval;
-      if (strcmp(dim->name, norm_name) == 0 && dim_grp == grp)
+      if (strcmp(dim->name, norm_name) == 0 && dim_grp == grp && d == 0)
       {
          var->dimscale++;
          dim->coord_var = var;
@@ -416,29 +416,22 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       return retval;
 
    /* If the user names this variable the same as a dimension, but
-    * doesn't use that dimension in its list of dimension ids, is not
-    * a coordinate variable. I need to change its HDF5 name, because
-    * the dimension will cause a HDF5 dataset to be created, and this
-    * var has the same name. */
+    * doesn't use that dimension first in its list of dimension ids,
+    * is not a coordinate variable. I need to change its HDF5 name,
+    * because the dimension will cause a HDF5 dataset to be created,
+    * and this var has the same name. */
    for (dim = grp->dim; dim; dim = dim->next)
-      if (!strcmp(dim->name, norm_name))
+      if (!strcmp(dim->name, norm_name) && dimidsp[0] != dim->dimid)
       {
-	 int d2;
-	 for (d2 = 0; d2 < ndims; d2++)
-	    if (dimidsp[d2] == dim->dimid)
-	       break;
-	 if (d2 == ndims)
-	 {
-	    /* Set a different hdf5 name for this variable to avoid
-	     * name clash. */
-	    if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
-	       return NC_EMAXNAME;
-	    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) + 
-					   strlen(norm_name) + 1) * sizeof(char))))
-	       return NC_ENOMEM;
-
-	    sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
-	 }
+	 /* Set a different hdf5 name for this variable to avoid name
+	  * clash. */
+	 if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
+	    return NC_EMAXNAME;
+	 if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) + 
+					strlen(norm_name) + 1) * sizeof(char))))
+	    return NC_ENOMEM;
+	 
+	 sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
       }
 
    /* If this is a coordinate var, it is marked as a HDF5 dimension

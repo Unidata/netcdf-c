@@ -3,8 +3,6 @@
   Research/Unidata. See COPYRIGHT file for more info.
 
   This file defines the file create and open functions.
-
-  "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
 #include "ncdispatch.h"
@@ -12,8 +10,8 @@
 static int nc_initialized = 0;
 
 static int
-NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
-		   int *cdf, int* hdf)
+NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
+		   int *cdf, int *hdf)
 {
    char magic[MAGIC_NUMBER_LEN];
     
@@ -22,19 +20,23 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL_MPIO
-   if (use_parallel) {
+   if (use_parallel) 
+   {
       MPI_File fh;
       MPI_Status status;
       int retval;
       MPI_Comm comm = 0;
       MPI_Info info = 0;
+
       if(mpi_info != NULL) {
 	 comm = ((NC_MPI_INFO*)mpi_info)->comm;
 	 info = ((NC_MPI_INFO*)mpi_info)->info;
       }
-      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, &fh)) != MPI_SUCCESS)
+      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, 
+				 &fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
-      if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,&status)) != MPI_SUCCESS)
+      if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
+				 &status)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
@@ -43,13 +45,13 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    {
       FILE *fp;
       int i;
-      fp = fopen(path, "r");
-      if(fp == NULL)
+
+      if (!(fp = fopen(path, "r")))
 	 return errno;
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
+      fclose(fp);
       if(i != 1)
 	 return errno;
-      fclose(fp);
    }
     
    /* Ignore the first byte for HDF */
@@ -58,9 +60,12 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    else if(magic[0] == '\016' && magic[1] == '\003'
 	   && magic[2] == '\023' && magic[3] == '\001')
       *hdf = 4;
-   else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
-      if(magic[3] == '\001') *cdf = 1;
-      else if(magic[3] == '\002') *cdf = 2;
+   else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
+   {
+      if(magic[3] == '\001') 
+	 *cdf = 1;
+      else if(magic[3] == '\002') 
+	 *cdf = 2;
    }
     
    return NC_NOERR;

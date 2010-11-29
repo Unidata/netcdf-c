@@ -105,6 +105,11 @@ test_ncopen(path)
       {NC_GLOBAL, "title", NC_CHAR, LEN_OF (title_val), (void *) title_val};
     FILE *temp;
     char dummy_data[DATA_LEN];
+    int i;
+
+    /* Initialize to keep valgrind happy. */
+    for (i = 0; i < DATA_LEN; i++)
+       dummy_data[i] = 0;
 
     (void) fprintf(stderr, "*** Testing %s ...\t\t", &pname[5]);
 
@@ -402,6 +407,8 @@ test_ncendef(path)
     else
       (void) fprintf(stderr,"ok ***\n");
 
+    free(bb.dims);
+
     return nerrs;
 }
 
@@ -572,6 +579,7 @@ test_ncinquire(path)
 	    ncclose(ncid); return ++nerrs;
 	}
 	add_att(&test, cc_id, &cc_units);
+	free(cc[iv].dims);
     }
     /* try calling from define mode, compare returned values to expected */
     if (ncinquire(ncid, &ndims, &nvars, &ngatts, &xdimid) == -1) {
@@ -742,7 +750,7 @@ test_ncsync(path)
 		    error("%s: ncclose failed", pname);
 		    nerrs++;
 		}
-	    }
+	}
     }
     if (ncclose (ncid0) == -1) {
 	error("%s: ncclose failed", pname);
@@ -756,6 +764,9 @@ test_ncsync(path)
       (void) fprintf(stderr,"FAILED! ***\n");
     else
       (void) fprintf(stderr,"ok ***\n");
+
+    /* Free resources. */
+    free(dd.dims);
 
     return nerrs;
 }
