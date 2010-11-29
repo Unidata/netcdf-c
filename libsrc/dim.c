@@ -396,7 +396,8 @@ NC3_inq_dimid(int ncid, const char *name, int *dimid_ptr)
 	if(dimid == -1)
 		return NC_EBADDIM;
 
-	*dimid_ptr = dimid;
+	if (dimid_ptr)
+	   *dimid_ptr = dimid;
 	return NC_NOERR;
 }
 
