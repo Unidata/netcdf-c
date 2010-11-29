@@ -249,7 +249,6 @@ getseqdimsize(NCDAPCOMMON* nccomm, CDFnode* seq, size_t* sizep)
 
     /* Read the minimal amount of data in order to get the count */
     /* If the url is unconstrainable, then get the whole thing */
-    ncbytescat(minconstraints,"?");
     computeminconstraints3(nccomm,seq,minconstraints);
 #ifdef DEBUG
 fprintf(stderr,"minconstraints: %s\n",ncbytescontents(minconstraints));

@@ -98,36 +98,28 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	    CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);
 	    nelems *= dim->dim.declsize;
 	}
-	/* If we cannot constrain, then pull in everything */
+	/* If we cannot constrain, then pull in everything of sufficiently small size */
 	if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)
            ||nelems <= nccomm->cdf.smallsizelimit)
 	    nclistpush(vars,(ncelem)var);
     }
-    /* If we cannot constrain, then pull in everything */
-    newconstraint = createncconstraint();
-    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE) || nclistlength(vars) == 0) {
-	newconstraint->projections = NULL;
-	newconstraint->selections= NULL;
-    } else {/* Construct the projections for this set of vars */
-        /* Initially, the constraints are same as the merged constraints */
-        newconstraint->projections = clonencprojections(constraint->projections);
-        restrictprojection34(vars,newconstraint->projections);
-        /* similar for selections */
-        newconstraint->selections = clonencselections(constraint->selections);
+    /* If there are no vars, then do nothing */
+    if(nclistlength(vars) == 0) {
+	nccomm->cdf.cache->prefetch = NULL;
+	goto done;
     }
+
+    newconstraint = createncconstraint();
+    /* Construct the projections for this set of vars */
+    /* Initially, the constraints are same as the merged constraints */
+    newconstraint->projections = clonencprojections(constraint->projections);
+    restrictprojection34(vars,newconstraint->projections);
+    /* similar for selections */
+    newconstraint->selections = clonencselections(constraint->selections);
 
 if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 oc_log(OCLOGNOTE,"prefetch.");
 }
-
-    if(nclistlength(vars) == 0)
-        cache = NULL;
-    else {
-        ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,1);
-        if(ncstat) goto done;
-    }
-    /* Make cache node be the prefetch node */
-    nccomm->cdf.cache->prefetch = cache;
 
 #ifdef DEBUG
 /* Log the set of prefetch variables */
@@ -142,6 +134,15 @@ ncbytescat(buf,"\n");
 oc_log(OCLOGNOTE,"%s",ncbytescontents(buf));
 ncbytesfree(buf);
 #endif
+
+    if(nclistlength(vars) == 0)
+        cache = NULL;
+    else {
+        ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,1);
+        if(ncstat) goto done;
+    }
+    /* Make cache node be the prefetch node */
+    nccomm->cdf.cache->prefetch = cache;
 
 done:
     nclistfree(vars);

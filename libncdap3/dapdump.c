@@ -320,6 +320,7 @@ dumpconstraint(NCconstraint* con)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
+    if(con == NULL) {ncbytescat(buf,"null"); goto done;}
     if(nclistlength(con->projections)==0 && nclistlength(con->selections)==0)
 	goto done;
     if(nclistlength(con->projections) > 0)  {

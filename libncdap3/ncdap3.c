@@ -87,10 +87,6 @@ NCD3_open(const char * path, int mode,
 
     if(!nc3dinitialized) nc3dinitialize();
 
-#ifdef PARSEDEBUG
-extern int ocdebug; ocdebug = 2;
-extern int cedebug; cedebug = 1;
-#endif
 
     if(!dapurlparse(path,&tmpurl)) PANIC("libncdap3: non-url path");
     dapurlclear(&tmpurl); /* no longer needed */
@@ -164,7 +160,7 @@ extern int cedebug; cedebug = 1;
         drno->dap.oc.dapconstraint->selections = NULL;
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,&drno->dap.oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 #ifdef DEBUG

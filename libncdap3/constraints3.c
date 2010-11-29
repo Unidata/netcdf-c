@@ -27,10 +27,12 @@ static void tostringncunknown(NCbytes* buf);
 /* Parse incoming url constraints, if any,
    to check for syntactic correctness */ 
 NCerror
-parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints, NCconstraint* dapconstraint)
+parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints,
+		    NCconstraint** dapconstraintp)
 {
     NCerror ncstat = NC_NOERR;
     char* errmsg;
+    NCconstraint* dapconstraint = *dapconstraintp;
 
     dapconstraint->projections = NULL;
     dapconstraint->selections = NULL;
@@ -42,7 +44,7 @@ parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints, NCconstraint* dapcon
 	oc_log(OCLOGWARN,"DAP constraint parse failure: %s",errmsg);
 	efree(errmsg);
 	freencconstraint(dapconstraint);
-        dapconstraint = NULL;
+	*dapconstraintp = NULL;
     }
 #ifdef DEBUG
 fprintf(stderr,"constraint: %s",dumpconstraint(dapconstraint));

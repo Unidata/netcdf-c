@@ -1,9 +1,13 @@
 set PARMS=""; set ARGS=""; set CON="" ; set CE=""; set OCON=""
 set PARMS="[log]"
 
+
+set F="http://test.opendap.org:8080/dods/dts/test.01"
+if (1 == 0) then
+set F="http://dapper.pmel.noaa.gov/dapper/argo/argo_all.cdp"
+#set CON="&location.LATITUDE<1&location.LATITUDE>-1"
 set F="http://test.opendap.org:8080/dods/dts/test.03"
 #set CON="s0,s1"
-if (1 == 0) then
 set F="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_cetaceans"
 set CON="lat,lon&lat>42.0&lat<=42.5"
 set CON="number&number>6"
@@ -22,8 +26,8 @@ set PARMS="${PARMS}[cache]"
 set PARMS="${PARMS}[show=fetch]"
 #set PARMS="${PARMS}[compile]"
 if ( "x$CE" != "x" ) set PARMS="${PARMS}[ce=${CE}]"
-#set PROG="./ncd"
-set PROG="../ncdump/ncdump"
+set PROG="./ncd"
+#set PROG="../ncdump/ncdump"
 set U="${PARMS}$F"
 if ( "x$CON" != "x" ) set U="${PARMS}$F?$CON"
 set UALL="${PARMS}$F"
