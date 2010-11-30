@@ -16,8 +16,10 @@ $Id: ncfunc.c,v 1.51 2010/05/26 20:13:32 dmh Exp $
 #include "nc4internal.h"
 #include "nc3dispatch.h"
 
+#ifdef IGNORE
 /* Keep a linked list of file info objects. */
 extern NC_FILE_INFO_T *nc_file;
+#endif
 
 #ifdef IGNORE
 /* This function deletes a member of parliment. Be careful! Last time

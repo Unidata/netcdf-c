@@ -41,9 +41,11 @@ extern int num_spaces;
 
 static int NC4_enddef(int ncid);
 
+#ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
  * netCDF files. */
 extern NC_FILE_INFO_T *nc_file;
+#endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */

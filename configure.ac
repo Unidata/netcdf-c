@@ -957,8 +957,8 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2.2])
-#LT_INIT(win32-dll)
-AC_PROG_LIBTOOL
+LT_INIT(win32-dll)
+#AC_PROG_LIBTOOL
 
 AC_MSG_NOTICE([finding other utilities])
 

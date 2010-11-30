@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <netcdf>
-#include <ncException.h>
 using namespace std;
 using namespace netCDF;
 using namespace netCDF::exceptions;

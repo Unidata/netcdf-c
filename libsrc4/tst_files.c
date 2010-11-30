@@ -11,7 +11,9 @@
 #include "netcdf.h"
 #include <nc_tests.h>
 
+#ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
+#endif
 void test_redef(int format);
 
 #define FILE_NAME "tst_files.nc"
