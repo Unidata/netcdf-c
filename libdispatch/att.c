@@ -226,16 +226,16 @@ nc_get_att_longlong(int ncid, int varid, const char *name, long long *value)
 int
 nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *value)
 {
-   NC* ncp;
+   NC *ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->get_att(ncid, varid, name, (void *)value, NC_UINT64);
 }
 
 int
-nc_get_att_string(int ncid, int varid, const char *name, char* *value)
+nc_get_att_string(int ncid, int varid, const char *name, char **value)
 {
-    NC* ncp;
+    NC *ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->get_att(ncid,varid,name,(void*)value, NC_STRING);
@@ -245,7 +245,7 @@ int
 nc_put_att_schar(int ncid, int varid, const char *name,
 		 nc_type type, size_t nelems, const signed char *value)
 {
-   NC* ncp;
+   NC *ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->put_att(ncid, varid, name, type, nelems, 

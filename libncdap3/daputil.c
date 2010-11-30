@@ -951,6 +951,7 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
     if(dxd == OCDDS) ext = "dds";
     else if(dxd == OCDAS) ext = "das";
     else ext = "dods";
+    if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	if(ce == NULL)
 	    oc_log(OCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);

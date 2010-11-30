@@ -103,7 +103,7 @@ fi
 AC_MSG_CHECKING([whether extra valgrind tests should be run])	
 AC_ARG_ENABLE([valgrind-tests],
               [AS_HELP_STRING([--enable-valgrind-tests],
-                              [build with valgrind-tests (valgrind is required)])])
+                              [build with valgrind-tests (valgrind is required, static builds only)])])
 test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
 AC_MSG_RESULT($enable_valgrind_tests)
 
@@ -956,9 +956,18 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
-LT_PREREQ([2.2.2])
-LT_INIT(win32-dll)
-#AC_PROG_LIBTOOL
+LT_PREREQ([2.2])
+#LT_INIT
+#LT_INIT(win32-dll)
+AC_PROG_LIBTOOL
+
+# Valgrind tests don't work with shared builds because of some libtool
+# weirdness.
+if test "x$enable_shared" = xyes; then
+   if test $enable_valgrind_tests = yes; then
+      AC_MSG_ERROR([No valgrind tests with shared libraries])
+   fi
+fi
 
 AC_MSG_NOTICE([finding other utilities])
 

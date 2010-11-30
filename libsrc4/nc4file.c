@@ -2780,19 +2780,18 @@ NC4_close(int ncid)
       return ncmpi_close(nc->int_ncid);
 #endif /* USE_PNETCDF */
 
-   /* Call either the nc4 or nc3 close. */
-   assert(h5);
-   {
-      nc = grp->file;
-      assert(nc);
-      /* This must be the root group. */
-      if (grp->parent)
-	 return NC_EBADGRPID;
-      if ((retval = close_netcdf4_file(grp->file->nc4_info, 0)))
-	 return retval;
-      /* Delete this entry from our list of open files. */
-      nc4_file_list_del(nc);
-   }
+   assert(h5 && nc);
+
+   /* This must be the root group. */
+   if (grp->parent)
+      return NC_EBADGRPID;
+
+   /* Call the nc4 close. */
+   if ((retval = close_netcdf4_file(grp->file->nc4_info, 0)))
+      return retval;
+
+   /* Delete this entry from our list of open files. */
+   nc4_file_list_del(nc);
 
    /* Reset the ncid numbers if there are no more files open. */
    if(count_NCList() == 0)

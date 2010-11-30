@@ -57,7 +57,7 @@ char testfile[NC_MAX_NAME];
 char scratch[] = "scratch.nc";  /* writable scratch file */
 
 #define NC_TEST(func) \
-    print( "*** Testing " #func " ... ");\
+    print( "*** testing " #func " ... ");\
     nfails = 0;\
     test_ ## func();\
     nfailsTotal += nfails;\

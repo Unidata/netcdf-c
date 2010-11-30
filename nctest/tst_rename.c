@@ -206,15 +206,13 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing v3/v4 API versions of some v2 tests.\n");
-#ifdef EXTRA_TESTS   
    printf("*** testing simple dim rename...");
    {
 #define PP1 "pp"
 #define PP1_SIZE 7
 #define P1_NAME "p"
 
-      int ncid, pp_dimid, qq_dimid, dimid_in;
-      char name_in[NC_MAX_NAME + 1];
+      int ncid, pp_dimid, dimid_in;
 
       /* Create a file with one dimension. */
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
@@ -228,40 +226,40 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
-/*    printf("*** testing dim rename from nctest..."); */
-/*    { */
-/* #define PP "pp" */
-/* #define PP_SIZE 7 */
-/* #define QQ "qq" */
-/* #define QQ_SIZE 10 */
-/* #define NEW_NAME "new_name" */
-/* #define ANOTHER_NAME "another_name" */
-/* #define P_NAME "p" */
+   printf("*** testing dim rename from nctest...");
+   {
+#define PP "pp"
+#define PP_SIZE 7
+#define QQ "qq"
+#define QQ_SIZE 10
+#define NEW_NAME "new_name"
+#define ANOTHER_NAME "another_name"
+#define P_NAME "p"
 
-/*       int ncid, pp_dimid, qq_dimid, dimid_in; */
-/*       char name_in[NC_MAX_NAME + 1]; */
+      int ncid, pp_dimid, qq_dimid, dimid_in;
+      char name_in[NC_MAX_NAME + 1];
 
-/*       /\* Create the same file as nctest.c does. *\/ */
-/*       if (create_file()) ERR; */
+      /* Create the same file as nctest.c does. */
+      if (create_file()) ERR;
 
-/*       /\* Open it and test renames of dimensions. *\/ */
-/*       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-/*       if (nc_redef(ncid)) ERR; */
-/*       if (nc_def_dim(ncid, PP, PP_SIZE, &pp_dimid)) ERR; */
-/*       if (nc_def_dim(ncid, QQ, QQ_SIZE, &qq_dimid)) ERR; */
-/*       if (nc_rename_dim(ncid, pp_dimid, NEW_NAME)) ERR; */
-/*       if (nc_inq_dimname(ncid, pp_dimid, name_in)) ERR; */
-/*       if (strcmp(NEW_NAME, name_in)) ERR; */
-/*       if (nc_rename_dim(ncid, pp_dimid, QQ) != NC_ENAMEINUSE) ERR; */
-/*       if (nc_rename_dim(ncid, -1, ANOTHER_NAME) != NC_EBADDIM) ERR; */
-/*       if (nc_rename_dim(ncid, 12, ANOTHER_NAME) != NC_EBADDIM) ERR; */
-/*       if (nc_enddef(ncid)) ERR; */
-/*       if (nc_rename_dim(ncid, pp_dimid, P_NAME)) ERR; */
-/*       if (nc_inq_dimid(ncid, P_NAME, dimid_in)) ERR; */
-/*       if (dimid_in != pp_dimid) ERR; */
-/*       if (nc_close(ncid)) ERR; */
-/*    } */
-/*    SUMMARIZE_ERR; */
+      /* Open it and test renames of dimensions. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_redef(ncid)) ERR;
+      if (nc_def_dim(ncid, PP, PP_SIZE, &pp_dimid)) ERR;
+      if (nc_def_dim(ncid, QQ, QQ_SIZE, &qq_dimid)) ERR;
+      if (nc_rename_dim(ncid, pp_dimid, NEW_NAME)) ERR;
+      if (nc_inq_dimname(ncid, pp_dimid, name_in)) ERR;
+      if (strcmp(NEW_NAME, name_in)) ERR;
+      if (nc_rename_dim(ncid, pp_dimid, QQ) != NC_ENAMEINUSE) ERR;
+      if (nc_rename_dim(ncid, -1, ANOTHER_NAME) != NC_EBADDIM) ERR;
+      if (nc_rename_dim(ncid, 12, ANOTHER_NAME) != NC_EBADDIM) ERR;
+      if (nc_enddef(ncid)) ERR;
+      if (nc_rename_dim(ncid, pp_dimid, P_NAME)) ERR;
+      if (nc_inq_dimid(ncid, P_NAME, &dimid_in)) ERR;
+      if (dimid_in != pp_dimid) ERR;
+      if (nc_inq_dimid(ncid, P_NAME, NULL)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

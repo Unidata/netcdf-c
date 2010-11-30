@@ -29,6 +29,10 @@ main(int argc, char **argv)
       FILE *file;
       int i;
 
+      /* Appease valgrind by initializing our data. */
+      for (i = 0; i < DATA_LEN; i++)
+	 dummy_data[i] = i;
+
       for (i = DATA_LEN; i >= 0; i--)
       {
 	 /* Create a small file which is not a netCDF file. */

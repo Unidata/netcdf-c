@@ -174,7 +174,7 @@ ocdebug = 1;
         drno->dap.oc.dapconstraint->selections = NULL;
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,&drno->dap.oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 

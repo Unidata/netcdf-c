@@ -331,6 +331,9 @@ ce_parse_init(char* input, int ncconstraint)
     return state;
 }
 
+#ifdef PARSEDEBUG
+extern int cedebug;
+#endif
 
 /* Wrapper for ceparse */
 int
@@ -339,6 +342,10 @@ ncceparse(char* input, int ncconstraint,
 {
     CEparsestate* state;
     int errcode = 0;
+
+#ifdef PARSEDEBUG
+cedebug = 1;
+#endif
 
     if(input != NULL) {
 #ifdef DEBUG

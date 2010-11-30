@@ -148,13 +148,11 @@ nc4_get_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
       }
       else if (att->stdata)
       {
-	 char **stdata = (char **)data;
 	 for (i = 0; i < att->len; i++)
 	 {
-	    if (!(*stdata = malloc(strlen(att->stdata[i]) + 1)))
+	    if (!(((char **)data)[i] = malloc(strlen(att->stdata[i]) + 1)))
 	       BAIL(NC_ENOMEM);
-	    strcpy(*stdata, att->stdata[i]);
-	    stdata++;
+	    strcpy(((char **)data)[i], att->stdata[i]);
 	 }
       }
       else
@@ -257,7 +255,7 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
    else
    {
       /* For an existing att, if we're not in define mode, the len
-	 must not be greater than the existing len. */
+	 must not be greater than the existing len for classic model. */
       if (!(h5->flags & NC_INDEF) && 
 	  len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->xtype))
       {
@@ -303,6 +301,8 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
    /* Now fill in the metadata. */
    att->dirty++;
+   if (att->name)
+      free(att->name);
    if (!(att->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(att->name, norm_name);
@@ -354,10 +354,11 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
       if (type_info && type_info->class == NC_VLEN)
 	 size = sizeof(hvl_t);
       else if (var->xtype == NC_STRING)
-	 size = strlen(*(char **)data) + 1;
+	 size = sizeof(char *);
       else
 	 size = type_size;
 
+      /* 	 size = strlen(*(char **)data) + 1; */
       if (!(var->fill_value = malloc(size)))
 	 return NC_ENOMEM;
 
@@ -372,7 +373,11 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 	 memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
       }
       else if (var->xtype == NC_STRING)
-	 strcpy((char *)(var->fill_value), *(char **)data);
+      {
+	 if (!(*(char **)var->fill_value = malloc(strlen(*(char **)data) + 1)))
+	    return NC_ENOMEM;
+	 strcpy(*(char **)(var->fill_value), *(char **)data);
+      }
       else
 	 memcpy(var->fill_value, data, type_size);
 
@@ -634,16 +639,17 @@ NC4_rename_att(int ncid, int varid, const char *name,
    {
       if (varid == NC_GLOBAL)
       {
-	 retval = nc4_delete_hdf5_att(grp->hdf_grpid, att->name);
+         if (H5Adelete(grp->hdf_grpid, att->name) < 0)
+	    return NC_EHDFERR;
       }
       else
       {
 	 if ((retval = nc4_open_var_grp2(grp, varid, &datasetid)))
 	    return retval;
-	 retval = nc4_delete_hdf5_att(datasetid, att->name);
-	 if (retval)
-	    return retval;
+         if (H5Adelete(datasetid, att->name) < 0)
+	    return NC_EHDFERR;
       }
+      att->created = 0;
    }
 
    /* Copy the new name into our metadata. */
