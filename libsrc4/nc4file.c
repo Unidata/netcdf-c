@@ -2791,6 +2791,8 @@ NC4_close(int ncid)
       return retval;
 
    /* Delete this entry from our list of open files. */
+   if (nc->path)
+      free(nc->path);
    nc4_file_list_del(nc);
 
    /* Reset the ncid numbers if there are no more files open. */
