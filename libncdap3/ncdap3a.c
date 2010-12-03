@@ -48,6 +48,8 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     efree(nccomm->oc.urltext);
 
     freencconstraint(nccomm->oc.dapconstraint);
+    nccomm->oc.dapconstraint = NULL;
+
     return NC_NOERR;
 }
 
@@ -268,6 +270,9 @@ fprintf(stderr,"minconstraints: %s\n",ncbytescontents(minconstraints));
     xseq = seq->attachment;
     ncstat = countsequence(nccomm,xseq,&seqsize);
     if(ncstat) goto fail;
+#ifdef DEBUG
+fprintf(stderr,"sequencesize: %s = %lu\n",seq->name,(unsigned long)seqsize);
+#endif
     /* throw away the fetch'd trees */
     unattach34(nccomm->cdf.ddsroot);
     freecdfroot34(dxdroot);
@@ -705,6 +710,9 @@ suppressunusablevars3(NCDAPCOMMON* nccomm)
 		CDFnode* node = (CDFnode*)nclistget(path,j);
 		if(node->nctype == NC_Sequence
 		   && !node->usesequence) {
+#ifdef DEBUG
+fprintf(stderr,"suppressing sequence var: %s\n",node->ncfullname);
+#endif
 		    nclistremove(nccomm->cdf.varnodes,i);
 		    found = 1;
 		    break;

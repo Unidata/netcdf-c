@@ -38,19 +38,6 @@
 #include	"ncfortran.h"	/* netCDF FORTRAN-calling-C interface */
 #include	"fort-lib.h"
 
-#ifndef USE_NETCDF4
-#define NC_CLASSIC_MODEL 0
-#else
-/* There is a dependency error here;
-NC_CLASSIC_MODEL will not be defined
-if ../libsrc4/netcdf.h does not exist yet
-(which it won't after a maintainer-clean).
-So, define it here if not already defined.
-*/
-#ifndef NC_CLASSIC_MODEL
-#define NC_CLASSIC_MODEL 0x0100
-#endif
-#endif
 
 /*
  * Additional Fortran-calling-C interface types specific to the version 2

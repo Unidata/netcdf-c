@@ -9,6 +9,7 @@
 /* It is important to track error status as coming from nc or oc*/
 typedef int NCerror; /* OCerror is already defined*/
 
+/* Mnemonics */
 #ifndef BOOL
 #define BOOL int
 #endif
@@ -16,6 +17,9 @@ typedef int NCerror; /* OCerror is already defined*/
 #define TRUE 1
 #define FALSE 0
 #endif
+
+#define FILLCONSTRAINT TRUE
+
 
 /* Use an extended version of the netCDF-4 type system */
 #define NC_URL		50
@@ -48,7 +52,7 @@ struct NCcachenode;
 struct NCcache;
 struct NCslice;
 struct NCsegment;
-struct Getvara;
+
 /**************************************************/
 /*
 Collect single bit flags that
@@ -73,10 +77,8 @@ typedef unsigned int NCFLAGS;
 #define NCF_CACHE    (0x20) /* Cache enabled/disabled */
 
 /*  Misc control flags */
-#define NCF_NOUNLIM         (0x40) /* suppress bad sequences 
-                                     (vs convert to unlimited) */
+#define NCF_NOUNLIM         (0x40) /* suppress bad sequences  */
 #define NCF_UPGRADE         (0x80) /* Do proper type upgrades */
-
 #define NCF_UNCONSTRAINABLE (0x100) /* Not a constrainable URL */
 #define NCF_SHOWFETCH       (0x200) /* show fetch calls */
 
@@ -283,9 +285,6 @@ typedef struct CDFdim {
     CDFdimflags    dimflags;
     struct CDFnode* basedim; /* for duplicate dimensions*/
     struct CDFnode* array; /* parent array node */
-#ifdef IGNORE
-    unsigned int arrayindex;
-#endif
     size_t declsize;	    /* from constrained DDS*/
     size_t declsize0;	    /* from unconstrained DDS*/
 } CDFdim;

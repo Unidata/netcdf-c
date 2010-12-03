@@ -1,8 +1,8 @@
 set PARMS=""; set ARGS=""; set CON="" ; set CE=""; set OCON=""
 set PARMS="[log]"
 
-
-set F="http://test.opendap.org:8080/dods/dts/test.01"
+set F="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_cetaceans"
+set CON="number&number>6"
 if (1 == 0) then
 set F="http://dapper.pmel.noaa.gov/dapper/argo/argo_all.cdp"
 #set CON="&location.LATITUDE<1&location.LATITUDE>-1"
@@ -22,7 +22,7 @@ set CON="wind_dir[1:10][0:0][0:0]"
 endif
 
 #set PARMS="${PARMS}[netcdf4]"
-set PARMS="${PARMS}[cache]"
+#set PARMS="${PARMS}[cache]"
 set PARMS="${PARMS}[show=fetch]"
 #set PARMS="${PARMS}[compile]"
 if ( "x$CE" != "x" ) set PARMS="${PARMS}[ce=${CE}]"
@@ -34,7 +34,7 @@ set UALL="${PARMS}$F"
 #set ARGS="-h $ARGS"
 #set ARGS="-w $ARGS"
 #set ARGS="-c $ARGS"
-set VARGS="--num-callers=100 --leak-check=full"
+set VARGS="--leak-check=full"
 alias qq "gdb --args $PROG $ARGS '$U'"
 alias qv "valgrind $VARGS PROG $ARGS '$U'"
 alias q0 "$PROG $ARGS '$U'"

@@ -63,58 +63,64 @@ buildvaraprojection4(Getvara* getvar,
     return ncstat;
 }
 
-/* Compute the set of prefetched data */
+/* Compute the set of prefetched data;
+   note that even if caching is off, we will
+   still prefetch the small variables.
+*/
 NCerror
-prefetchdata4(NCDAP4* drno)
+prefetchdata4(NCDAPCOMMON* nccomm)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    NClist* allvars = drno->dap.cdf.varnodes;
-    NCconstraint* constraint = drno->dap.oc.dapconstraint;
+    NClist* allvars = nccomm->cdf.varnodes;
+    NCconstraint* constraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
-    NCconstraint* newconstraint;
+    NCconstraint* newconstraint = NULL;
 
-    /* If caching is off, and we can do constraints, then
-       don't even do prefetch
-    */
-    if(!FLAGSET(drno->dap.controls,NCF_CACHE) && !FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	drno->dap.cdf.cache->prefetch = NULL;
+    /* Check if we can do constraints */
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) { /*cannot constrain*/
+        /* If we cannot constrain, then pull in everything */
+	for(i=0;i<nclistlength(allvars);i++) {
+	    nclistpush(vars,nclistget(allvars,i));
+	}
+    } else { /* can do constraints */
+        /* pull in those variables of sufficiently small size */
+        for(i=0;i<nclistlength(allvars);i++) {
+            CDFnode* var = (CDFnode*)nclistget(allvars,i);
+            size_t nelems = 1;
+    
+            /* Compute the # of elements in the variable */
+            for(j=0;j<nclistlength(var->array.dimensions);j++) {
+                CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);
+                nelems *= dim->dim.declsize;
+            }
+            if(nelems <= nccomm->cdf.smallsizelimit)
+                nclistpush(vars,(ncelem)var);
+        }
+    }
+    
+    /* If there are no vars, then do nothing */
+    if(nclistlength(vars) == 0) {
+	nccomm->cdf.cache->prefetch = NULL;
 	goto done;
     }
 
-    for(i=0;i<nclistlength(allvars);i++) {
-	CDFnode* var = (CDFnode*)nclistget(allvars,i);
-	size_t nelems = 1;
-	/* Compute the # of elements in the variable */
-	for(j=0;j<nclistlength(var->array.dimensions);j++) {
-	    CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);
-	    nelems *= dim->dim.declsize;
-	}
-	/* If we cannot constrain, then pull in everything */
-	if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)
-           || nelems <= drno->dap.cdf.smallsizelimit)
-	    nclistpush(vars,(ncelem)var);
-    }
-
-    /* If we cannot constrain, then pull in everything */
+    /* Construct the projections for this set of vars */
     newconstraint = createncconstraint();
-    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	newconstraint->projections = NULL;
-	newconstraint->selections= NULL;
-    } else { /* Construct the projections for this set of vars */
-        /* Construct the projections for this set of vars */
-        /* Initially, the constraints are same as the merged constraints */
-        newconstraint->projections = clonencprojections(constraint->projections);
-        restrictprojection34(vars,newconstraint->projections);
-        /* similar for selections */
-        newconstraint->selections = clonencselections(constraint->selections);
-    }
-
-    ncstat = buildcachenode34(&drno->dap,newconstraint,vars,&cache,0);
+    /* Initially, the constraints are same as the merged constraints */
+    newconstraint->projections = clonencprojections(constraint->projections);
+    restrictprojection34(vars,newconstraint->projections);
+    /* similar for selections */
+    newconstraint->selections = clonencselections(constraint->selections);
+ 
+    ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
-if(FLAGSET(drno->dap.controls,NCF_SHOWFETCH)) {
+    /* Make cache node be the prefetch node */
+    nccomm->cdf.cache->prefetch = cache;
+
+if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 /* Log the set of prefetch variables */
 NCbytes* buf = ncbytesnew();
 ncbytescat(buf,"prefetch.vars: ");
@@ -130,7 +136,7 @@ ncbytesfree(buf);
 
 done:
     if(ncstat) {
-	freenccachenode(&drno->dap,cache);
+	freenccachenode(nccomm,cache);
     }
     return THROW(ncstat);
 }

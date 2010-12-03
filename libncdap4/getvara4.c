@@ -117,7 +117,7 @@ fprintf(stderr,"Unconstrained: reusing prefetch\n");
     } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
 #ifdef DEBUG
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
-	dumpconstraint(&cachenode->constraint));
+	dumpconstraint(cachenode->constraint));
 #endif
     } else { /* Load with constraints */
 	NClist* vars = nclistnew();
@@ -178,8 +178,6 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 fail:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
 ok:
-    if(!FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE) && !FLAGSET(drno->dap.controls,NCF_CACHE))
-	freenccachenode(nccomm,cachenode);
     efree(constraint);
     freegetvara(varainfo);
     freencprojection(varaprojection);

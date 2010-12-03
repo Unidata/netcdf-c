@@ -14,20 +14,28 @@ static Object collectlist(Object list0, Object decl);
 void
 projections(CEparsestate* state, Object list0)
 {
-    state->projections = (NClist*)list0;
+    NClist* list = (NClist*)list0;
+    if(list != NULL) {
+        nclistfree(state->constraint->projections);
+        state->constraint->projections = list;
+    }
 #ifdef DEBUG
 fprintf(stderr,"	ce.projections: %s\n",
-	dumpprojections(state->projections));
+	dumpprojections(state->constraint->projections));
 #endif
 }
 
 void
 selections(CEparsestate* state, Object list0)
 {
-    state->selections = (NClist*)list0;
+    NClist* list = (NClist*)list0;
+    if(list != NULL) {
+        nclistfree(state->constraint->selections);
+        state->constraint->selections = list;
+    }
 #ifdef DEBUG
 fprintf(stderr,"	ce.selections: %s\n",
-	dumpselections(state->selections));
+	dumpselections(state->constraint->selections));
 #endif
 }
 
@@ -312,7 +320,7 @@ ce_parse_cleanup(CEparsestate* state)
 }
 
 static CEparsestate*
-ce_parse_init(char* input, int ncconstraint)
+ce_parse_init(char* input, int ncconstraint, NCconstraint* constraint)
 {
     CEparsestate* state = NULL;
     if(input==NULL) {
@@ -324,8 +332,7 @@ ce_parse_init(char* input, int ncconstraint)
         state->errorbuf[0] = '\0';
         state->errorcode = 0;
         celexinit(input,&state->lexstate);
-	state->projections = NULL;
-	state->selections = NULL;
+	state->constraint = constraint;
 	state->ncconstraint = ncconstraint;
     }
     return state;
@@ -337,8 +344,7 @@ extern int cedebug;
 
 /* Wrapper for ceparse */
 int
-ncceparse(char* input, int ncconstraint,
-	  NClist** projectionsp, NClist** selectionsp, char** errmsgp)
+ncceparse(char* input, int ncconstraint, NCconstraint* constraint, char** errmsgp)
 {
     CEparsestate* state;
     int errcode = 0;
@@ -351,18 +357,18 @@ cedebug = 1;
 #ifdef DEBUG
 fprintf(stderr,"ncceparse: input=%s\n",input);
 #endif
-        state = ce_parse_init(input,ncconstraint);
+        state = ce_parse_init(input,ncconstraint,constraint);
         if(ceparse(state) == 0) {
 #ifdef DEBUG
-if(state->projections)
-fprintf(stderr,"ncceparse: projections=%s\n",dumpprojections(state->projections));
+if(nclistlength(constraint->projections) > 0)
+fprintf(stderr,"ncceparse: projections=%s\n",
+        dumpprojections(constraint->projections));
 #endif
-	    if(projectionsp) *projectionsp = state->projections;
 #ifdef DEBUG
-if(state->selections)
-fprintf(stderr,"ncceparse: selections=%s\n",dumpselections(state->selections));
+if(nclistlength(constraint->selections)  > 0)
+fprintf(stderr,"ncceparse: selections=%s\n",
+	dumpselections(constraint->selections));
 #endif
-	    if(selectionsp) *selectionsp = state->selections;
 	} else {
 	    if(errmsgp) *errmsgp = nulldup(state->errorbuf);
 	}

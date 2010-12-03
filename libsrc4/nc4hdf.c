@@ -1191,9 +1191,6 @@ static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
    hid_t dimid_spaceid, dimid_attid;
-   hid_t att = 0;
-   char att_name[NC_MAX_HDF5_NAME + 1];
-   int a, num, found_it = 0;
 
    /* Create the space. */
    if ((dimid_spaceid = H5Screate(H5S_SCALAR)) < 0) 
@@ -1203,33 +1200,19 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
 
    /* Does the attribute already exist? If so, don't try to create it. */
+   H5E_BEGIN_TRY { 
+      dimid_attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME, 
+				    H5P_DEFAULT, H5P_DEFAULT);
+   } H5E_END_TRY;
   
-   if ((num = H5Aget_num_attrs(datasetid)) < 0)
-      return NC_EHDFERR;
-   for (a = 0; a < num && !found_it; a++) 
-   {
-      if ((att = H5Aopen_idx(datasetid, (unsigned int)a)) < 0)
-         return NC_EHDFERR;
-      if (H5Aget_name(att, NC_MAX_HDF5_NAME, att_name) < 0)
-         return NC_EHDFERR;
-      if (!strcmp(att_name, NC_DIMID_ATT_NAME))
-      {
-         LOG((4, "write_netcdf4_dimid: found existing att %s", att_name));
-         found_it++;
-	 dimid_attid = att;
-	 break;
-      }
-      if (att > 0 && H5Aclose(att) < 0)
-         return NC_EHDFERR;
-   }
-
    /* Create the attribute if needed. */
-   if (!found_it)
+   if (dimid_attid < 0)
       if ((dimid_attid = H5Acreate(datasetid, NC_DIMID_ATT_NAME, 
 				   H5T_NATIVE_INT, dimid_spaceid, H5P_DEFAULT)) < 0)
 	 return NC_EHDFERR;
 
    /* Write it. */
+   LOG((4, "write_netcdf4_dimid: writting secret dimid %d", dimid));
    if (H5Awrite(dimid_attid, H5T_NATIVE_INT, &dimid) < 0)
       return NC_EHDFERR;
 
@@ -1241,8 +1224,6 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
    if (H5Aclose(dimid_attid) < 0)
       return NC_EHDFERR;
-   LOG((4, "write_netcdf4_dimid: wrote secret dimid attribute with value %d", 
-	dimid));
 
    return NC_NOERR;
 }

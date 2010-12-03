@@ -80,7 +80,6 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
 	} else if(strchr(numchars1,c) != NULL) {
 	    /* we might have a SCAN_NUMBERCONST */
 	    int isnumber = 0;
-	    double number;
 	    char* yytext;
 	    char* endpoint;
 	    ceaddyytext(lexstate,c);

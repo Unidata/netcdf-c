@@ -12,11 +12,6 @@
 #include "ocdrno.h"
 #include "dapdump.h"
 
-#ifdef HAVE_GETRLIMIT
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
 static NCerror buildncstructures(NCDAP3*);
 static NCerror builddims(NCDAP3*);
 static NCerror buildvars(NCDAP3*);
@@ -128,25 +123,14 @@ NCD3_open(const char * path, int mode,
     drno->dap.cdf.separator = ".";
     drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
     drno->dap.cdf.cache = createnccache();
-#ifdef IGNORE
-    drno->dap.cdf.cache->cachelimit = DFALTCACHELIMIT;
-    drno->dap.cdf.cache->cachesize = 0;
-    drno->dap.cdf.cache->nodes = nclistnew();
-    drno->dap.cdf.cache->cachecount = DFALTCACHECOUNT;
-#endif
-#ifdef HAVE_GETRLIMIT
-    { struct rlimit rl;
-      if(getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-	drno->dap.cdf.cache->cachecount = (size_t)(rl.rlim_cur / 2);
-      }
-    }
-#endif
     drno->nc.dispatch = dispatch;
 
     /* process control client parameters */
     applyclientparamcontrols3(&drno->dap);
 
     drno->dap.oc.dapconstraint = createncconstraint();
+    drno->dap.oc.dapconstraint->projections = nclistnew();
+    drno->dap.oc.dapconstraint->selections = nclistnew();
 
     /* Check to see if we are unconstrainable */
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
@@ -156,11 +140,9 @@ NCD3_open(const char * path, int mode,
 		   drno->dap.oc.url.constraint);
 	}
 	/* ignore all constraints */
-        drno->dap.oc.dapconstraint->projections = NULL;
-        drno->dap.oc.dapconstraint->selections = NULL;
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,&drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 #ifdef DEBUG
