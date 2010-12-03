@@ -7,7 +7,7 @@
 #define CONSTRAINTS3_H 1
 
 
-extern NCerror parsedapconstraints(NCDAPCOMMON*, char*, NCconstraint**);
+extern NCerror parsedapconstraints(NCDAPCOMMON*, char*, NCconstraint*);
 extern NCerror mapconstraints3(NCDAPCOMMON*);
 
 extern char* simplepathstring(NClist* segments, char* separator);
@@ -25,7 +25,7 @@ extern NCerror slicemerge3(NCslice* dst, NCslice* src);
 extern int iswholeslice(struct NCslice*, struct CDFnode* dim);
 extern int iswholesegment(struct NCsegment*);
 
-extern int ncceparse(char*, int, NClist**, NClist**, char**);
+extern int ncceparse(char*, int, NCconstraint*, char**);
 
 extern char* buildprojectionstring3(NClist* projections);
 extern char* buildselectionstring3(NClist* selections);

@@ -118,9 +118,9 @@ nc_strerror(int ncerr1)
       case NC_EDATADDS:
 	 return "NetCDF: Malformed or inaccessible DAP DATADDS";
       case NC_EDAPURL:
-	 return "NetCDF: Malformed DAP URL";
+	 return "NetCDF: Malformed URL";
       case NC_EDAPCONSTRAINT:
-	 return "NetCDF: Malformed DAP Constraint";
+	 return "NetCDF: Malformed Constraint";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

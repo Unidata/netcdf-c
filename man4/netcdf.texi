@@ -3592,7 +3592,8 @@ Note that for example S1.SQ1.f1_0
 is not actually used because it has been folded
 into the unlimited dimension.
 
-Note that there is a performance cost
+Note that for sequences without a leading unlimited dimension,
+there is a performance cost
 because the translation code has to walk the data to determine
 how many records are associated with the sequence.
 Since libnc-dap did essentially the same thing, it can be assumed that

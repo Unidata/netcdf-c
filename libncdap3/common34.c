@@ -6,6 +6,11 @@
 #include "config.h"
 #include "ncdap3.h"
 
+#ifdef HAVE_GETRLIMIT
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 extern CDFnode* v4node;
 
 /* Define the set of protocols known to be constrainable */
@@ -570,9 +575,19 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     if(limit > 0) nccomm->cdf.smallsizelimit = limit;
 
     nccomm->cdf.cache->cachecount = DFALTCACHECOUNT;
+#ifdef HAVE_GETRLIMIT
+    { struct rlimit rl;
+      if(getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+	nccomm->cdf.cache->cachecount = (size_t)(rl.rlim_cur / 2);
+      }
+    }
+#endif
     value = oc_clientparam_get(conn,"cachecount");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.cache->cachecount = limit;
+    /* Ignore limit if not caching */
+    if(!FLAGSET(nccomm->controls,NCF_CACHE))
+        nccomm->cdf.cache->cachecount = 0;
 
     if(oc_clientparam_get(conn,"nolimit") != NULL)
 	dfaltseqlim = 0;

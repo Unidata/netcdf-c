@@ -653,6 +653,17 @@ getvaraprint(void* arg)
 
 /* Define a number of location tests */
 
+/* Is node contained (transitively) in a sequence ? */
+BOOL
+dapinsequence(CDFnode* node)
+{
+    if(node == NULL || node->container == NULL) return TRUE;
+    for(node=node->container;node->nctype != NC_Dataset;node=node->container) {
+       if(node->nctype == NC_Sequence) return TRUE;
+    }
+    return FALSE;
+}
+
 /* Is node a map field of a grid? */
 BOOL
 dapgridmap(CDFnode* node)

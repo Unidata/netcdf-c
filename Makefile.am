@@ -213,14 +213,3 @@ install-data-hook:
 	@echo '| http://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
-
-
-# Define the set of subdirs that
-# contain sources for visual studio
-VSTUDIODIRS=include $(DISPATCHDIR) $(LIBSRC_DIR) ${ASSEMBLEDIR}
-.PHONY: visualstudio
-visualstudio:
-	sh ${abs_top_srcdir}/visualbuild start
-	for dir in $(VSTUDIODIRS); do $(MAKE) -C $$dir visualstudio ; done
-	sh ${abs_top_srcdir}/visualbuild build
-

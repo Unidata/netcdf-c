@@ -78,7 +78,7 @@ extern short drno_delta_file_id(short);
 extern int drno_delta_numfiles(int);
 
 /**********************************************************/
-extern int ncceparse(char*, int, NClist**, NClist**, char**);
+extern int ncceparse(char*, int, NCconstraint*, char**);
 
 extern NCerror computecdfnodesets4(NCDAPCOMMON*);
 extern NCerror fixgrids4(NCDAPCOMMON*);

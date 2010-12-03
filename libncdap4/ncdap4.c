@@ -161,6 +161,8 @@ ocdebug = 1;
     if(ncpp) *ncpp = (NC*)drno;
 
     drno->dap.oc.dapconstraint = createncconstraint();
+    drno->dap.oc.dapconstraint->projections = nclistnew();
+    drno->dap.oc.dapconstraint->selections = nclistnew();
 
     /* Check to see if we are unconstrainable */
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
@@ -170,11 +172,9 @@ ocdebug = 1;
 		   drno->dap.oc.url.constraint);
 	}
 	/* ignore all constraints */
-        drno->dap.oc.dapconstraint->projections = NULL;
-        drno->dap.oc.dapconstraint->selections = NULL;
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,&drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 
