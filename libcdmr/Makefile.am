@@ -11,30 +11,20 @@ LDADD=
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
-# DRNO Sources
+# CDMREMORE Sources
 SRC=\
-cdf4.c \
-constraints4.c \
-ncd4dispatch.c ncdap4.c getvara4.c
 
 HDRS=\
-constraints4.h \
-ncd4dispatch.h ncdap4.h
 
-if USE_DAP
+if BUILD_CDMREMOTE
 
-if USE_NETCDF4
-
-noinst_LTLIBRARIES = libncdap4.la
+noinst_LTLIBRARIES = libnccr.la
 
 # Build convenience library
-libncdap4_la_SOURCES = $(SRC) $(HDRS)
+libnccr_la_SOURCES = $(SRC) $(HDRS)
 
-AM_CPPFLAGS += -I$(top_srcdir)/libncdap3 \
-	      -I$(top_srcdir)/libsrc4 \
+AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 \
 	      -I$(top_srcdir)/libsrc
-
-AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
 
@@ -60,16 +50,13 @@ TESTS = t_dap
 t_dap_SOURCES = t_dap.c stubdap4.c
 CLEANFILES += t_dap
 
-endif # USE_NETCDF4
-
-
 # One last thing
 BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 DISTCLEANFILES += .dodsrc
 
-endif # BUILD_DAP
+endif # BUILD_CDMREMOTE
 
 test: check
 

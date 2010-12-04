@@ -27,22 +27,22 @@ static void tostringncunknown(NCbytes* buf);
 /* Parse incoming url constraints, if any,
    to check for syntactic correctness */ 
 NCerror
-parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints, NCconstraint* dapconstraint)
+parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints,
+		    NCconstraint* dapconstraint)
 {
     NCerror ncstat = NC_NOERR;
     char* errmsg;
 
-    dapconstraint->projections = NULL;
-    dapconstraint->selections = NULL;
-    ncstat = ncceparse(constraints,0,
-		       &dapconstraint->projections,
-		       &dapconstraint->selections,
-		       &errmsg);
+    ASSERT(dapconstraint != NULL);
+    nclistclear(dapconstraint->projections);
+    nclistclear(dapconstraint->selections);
+
+    ncstat = ncceparse(constraints,0,dapconstraint,&errmsg);
     if(ncstat) {
 	oc_log(OCLOGWARN,"DAP constraint parse failure: %s",errmsg);
 	efree(errmsg);
-	freencconstraint(dapconstraint);
-        dapconstraint = NULL;
+        nclistclear(dapconstraint->projections);
+        nclistclear(dapconstraint->selections);
     }
 #ifdef DEBUG
 fprintf(stderr,"constraint: %s",dumpconstraint(dapconstraint));
@@ -1186,8 +1186,6 @@ createncconstraint(void)
     NCconstraint* con = (NCconstraint*)emalloc(sizeof(NCconstraint));
     memset((void*)con,0,sizeof(NCconstraint));
     con->sort = NS_CONSTRAINT;
-    con->projections = NULL;
-    con->selections = NULL;
     return con;
 }
 
@@ -1723,5 +1721,3 @@ ceallnodesr(NCany* node, NClist* allnodes, NCsort which)
 	break;
     }
 }
-
-

@@ -338,6 +338,12 @@ extern "C" {
  * mistake of having chunksizes be first ints, then size_t. Doh! */
 #define NC_HAVE_NEW_CHUNKING_API 1
 
+
+/*Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
+#define NC_EURL		(NC_EDAPURL)   /* Malformed URL */
+#define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /* Malformed Constraint*/
+
+
 /*
  * The Interface
  */

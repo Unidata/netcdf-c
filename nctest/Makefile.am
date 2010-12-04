@@ -19,13 +19,19 @@ EXTRA_DIST = ref_nctest_classic.nc ref_nctest_64bit_offset.nc	\
 compare_test_files.sh
 
 CLEANFILES = nctest_classic.nc nctest_64bit_offset.nc	\
-nctest_netcdf4.nc test2.nc temp.tmp
+nctest_netcdf4.nc test2.nc temp.tmp tst_*.nc
 
 # Run nctest and the script that compares the output with the
 # reference file.
 TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
+
+# This will the test program with valgrind, the memory checking
+# tool. (Valgrind must be present for this to work.)
+if USE_VALGRIND_TESTS
+TESTS += run_valgrind_tests.sh
+endif # USE_VALGRIND_TESTS
 
 # These are the source files for the nctest program.
 nctest_SOURCES = add.c add.h atttests.c cdftests.c dimtests.c driver.c	\

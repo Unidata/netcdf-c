@@ -966,13 +966,19 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
     * type_info is freed. */
    if (var->fill_value)
    {
-      if (var->hdf_datasetid && var->type_info->class == NC_VLEN)
-	 nc_free_vlen((nc_vlen_t *)var->fill_value);
+      if (var->hdf_datasetid)
+      {
+	 if (var->type_info->class == NC_VLEN)
+	    nc_free_vlen((nc_vlen_t *)var->fill_value);
+	 else if (var->type_info->nc_typeid == NC_STRING)
+	    free(*(char **)var->fill_value);
+      }
       free(var->fill_value);
    }
 
    /* For atomic types we have allocated space for type information. */
-   if (var->hdf_datasetid && var->xtype <= NC_STRING)
+/*   if (var->hdf_datasetid && var->xtype <= NC_STRING)*/
+   if (var->xtype <= NC_STRING)
    {
       if ((H5Tclose(var->type_info->native_typeid)) < 0)
 	 return NC_EHDFERR;

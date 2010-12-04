@@ -39,8 +39,7 @@ typedef struct CElexstate {
 
 /*! Specifies CEparsestate. */
 typedef struct CEparsestate {
-    NClist* projections;
-    NClist* selections;
+    NCconstraint* constraint;
     char errorbuf[1024];
     int errorcode;
     CElexstate* lexstate;

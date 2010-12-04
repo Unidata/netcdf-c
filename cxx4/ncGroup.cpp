@@ -221,7 +221,7 @@ multimap<std::string,NcGroup> NcGroup::getGroups(NcGroup::GroupLocation location
     map<string,NcGroup>::iterator it;
     multimap<string,NcGroup> groups(getGroups(ChildrenGrps));
     for (it=groups.begin();it!=groups.end();it++) {
-      multimap<string,NcGroup> childGroups(it->second.getGroups(ChildrenGrps));
+      multimap<string,NcGroup> childGroups(it->second.getGroups(AllChildrenGrps));
       ncGroups.insert(childGroups.begin(),childGroups.end());
     }
   }

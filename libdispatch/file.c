@@ -3,8 +3,6 @@
   Research/Unidata. See COPYRIGHT file for more info.
 
   This file defines the file create and open functions.
-
-  "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
 #include "ncdispatch.h"
@@ -12,8 +10,8 @@
 static int nc_initialized = 0;
 
 static int
-NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
-		   int *cdf, int* hdf)
+NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
+		   int *cdf, int *hdf)
 {
    char magic[MAGIC_NUMBER_LEN];
     
@@ -22,19 +20,23 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL_MPIO
-   if (use_parallel) {
+   if (use_parallel) 
+   {
       MPI_File fh;
       MPI_Status status;
       int retval;
       MPI_Comm comm = 0;
       MPI_Info info = 0;
+
       if(mpi_info != NULL) {
 	 comm = ((NC_MPI_INFO*)mpi_info)->comm;
 	 info = ((NC_MPI_INFO*)mpi_info)->info;
       }
-      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, &fh)) != MPI_SUCCESS)
+      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, 
+				 &fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
-      if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,&status)) != MPI_SUCCESS)
+      if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
+				 &status)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
@@ -43,13 +45,13 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    {
       FILE *fp;
       int i;
-      fp = fopen(path, "r");
-      if(fp == NULL)
+
+      if (!(fp = fopen(path, "r")))
 	 return errno;
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
+      fclose(fp);
       if(i != 1)
 	 return errno;
-      fclose(fp);
    }
     
    /* Ignore the first byte for HDF */
@@ -58,9 +60,12 @@ NC_check_file_type(const char *path, int use_parallel, void* mpi_info,
    else if(magic[0] == '\016' && magic[1] == '\003'
 	   && magic[2] == '\023' && magic[3] == '\001')
       *hdf = 4;
-   else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
-      if(magic[3] == '\001') *cdf = 1;
-      else if(magic[3] == '\002') *cdf = 2;
+   else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
+   {
+      if(magic[3] == '\001') 
+	 *cdf = 1;
+      else if(magic[3] == '\002') 
+	 *cdf = 2;
    }
     
    return NC_NOERR;
@@ -105,14 +110,14 @@ NC_create(const char *path, int cmode, size_t initialsz,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    /* Need three pieces of information for now */
-   int model = 0; /* 3 vs 4 dispatch table */
-   int dap = 0;   /* dap vs !dap */
+   int model = 0; /* one of the NC_DISPATCH_XXX values */
+   int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
    extern int default_create_format;
 
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
-    * (with/without netCDF-4, DAP). */
+    * (with/without netCDF-4, DAP, CDMREMOTE). */
    if(!nc_initialized)
    {
       if ((stat = NC_initialize()))
@@ -120,11 +125,13 @@ NC_create(const char *path, int cmode, size_t initialsz,
       nc_initialized = 1;
    }
 
-   if((dap = NC_testurl(path))) model = NC_urlmodel(path);
+   if((isurl = NC_testurl(path)))
+	model = NC_urlmodel(path);
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = 4;
+      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL)
+	model = NC_DISPATCH_NC4;
    }
 
    if(model == 0) {
@@ -134,11 +141,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #ifdef USE_NETCDF4
 	 case NC_FORMAT_NETCDF4:
 	    xcmode |= NC_NETCDF4;
-	    model = 4;
+	    model = NC_DISPATCH_NC4;
 	    break;
 	 case NC_FORMAT_NETCDF4_CLASSIC:
 	    xcmode |= NC_CLASSIC_MODEL;
-	    model = 4;
+	    model = NC_DISPATCH_NC4;
 	    break;
 #endif
 	 case NC_FORMAT_64BIT:
@@ -146,15 +153,15 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	    /* fall thru */
 	 case NC_FORMAT_CLASSIC:
 	 default:
-
-	    model = 3;
+	    model = NC_DISPATCH_NC3;
 	    break;
       }
    }
+   
    /* Force flag consistentcy */
-   if(model == 4)
+   if(model & NC_DISPATCH_NC4)
       cmode |= NC_NETCDF4;
-   else if(model == 3) {
+   else if(model & NC_DISPATCH_NC3) {
       cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /* must be netcdf-3 */
    }
 
@@ -170,19 +177,22 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
-   dispatcher = NC3_dispatch_table; /* default */
-#ifdef USE_DAP
-   if(dap) dispatcher = NCD3_dispatch_table; /* default */
-#endif
-
-#ifdef USE_NETCDF4
-   if(model == 4) {
-      dispatcher = NC4_dispatch_table;
-#ifdef USE_DAP
-      if(dap) dispatcher = NCD4_dispatch_table;
-#endif
-   }
-#endif
+   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
+	dispatcher = NCCR_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCD))
+	dispatcher = NCD4_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC4))
+	dispatcher = NC4_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
+	dispatcher = NCD3_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC3))
+	dispatcher = NC3_dispatch_table;
+   else
+      return  NC_ENOTNC;
 
   havetable:
    stat = dispatcher->create(path,cmode,initialsz,basepe,chunksizehintp,
@@ -238,8 +248,8 @@ NC_open(const char *path, int cmode,
    NC* ncp = NULL;
    NC_Dispatch* dispatcher = NULL;
    /* Need two pieces of information for now */
-   int model = 0; /* 3 vs 4 dispatch table */
-   int dap = 0;   /* dap vs !dap */
+   int model = 0;
+   int isurl = 0; 
    int cdfversion = 0;
    int hdfversion = 0;
    extern int default_create_format;
@@ -247,17 +257,17 @@ NC_open(const char *path, int cmode,
    if(!nc_initialized)
    {stat = NC_initialize(); if(stat) return stat; nc_initialized = 1;}
 
-   if((dap = NC_testurl(path)))
+   if((isurl = NC_testurl(path)))
       model = NC_urlmodel(path);
 
-   if(dap == 0) {
+   if(isurl == 0) {
       /* Look at the file if it exists */
       stat = NC_check_file_type(path,useparallel,mpi_info,&cdfversion,&hdfversion);
       if(stat == NC_NOERR) {
 	 if(hdfversion != 0) {
-	    model = 4;
+	    model = NC_DISPATCH_NC4;
 	 } else if(cdfversion != 0) {
-	    model = 3;
+	    model = NC_DISPATCH_NC3;
 	 }
       } 
       /* else ignore the file */
@@ -265,15 +275,17 @@ NC_open(const char *path, int cmode,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = 4;
+      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = NC_DISPATCH_NC4;
    }
 
-   if(model == 0) model = 3; /* final default */
+   if(model == 0) model = NC_DISPATCH_NC3; /* final default */
+
+   if(isurl) model |= NC_DISPATCH_NCD; /* dap or not */
 
    /* Force flag consistentcy */
-   if(model == 4)
+   if(model & NC_DISPATCH_NC4)
       cmode |= NC_NETCDF4;
-   else if(model == 3) {
+   else if(model & NC_DISPATCH_NC3) {
       cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /* must be netcdf-3 */
       if(cdfversion == 2) cmode |= NC_64BIT_OFFSET;
    }
@@ -286,19 +298,22 @@ NC_open(const char *path, int cmode,
    if(dispatcher != NULL) goto havetable;
 
    /* Figure out what dispatcher to use */
-   dispatcher = NC3_dispatch_table; /* default */
-#ifdef USE_DAP
-   if(dap) dispatcher = NCD3_dispatch_table; /* default */
-#endif
-
-#ifdef USE_NETCDF4
-   if(model == 4) {
-      dispatcher = NC4_dispatch_table;
-#ifdef USE_DAP
-      if(dap) dispatcher = NCD4_dispatch_table;
-#endif
-   }
-#endif
+   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
+	dispatcher = NCCR_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCD))
+	dispatcher = NCD4_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC4))
+	dispatcher = NC4_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
+	dispatcher = NCD3_dispatch_table;
+   else
+   if(model == (NC_DISPATCH_NC3))
+	dispatcher = NC3_dispatch_table;
+   else
+      return  NC_ENOTNC;
 
   havetable:
    stat = dispatcher->open(path, cmode, basepe, chunksizehintp,

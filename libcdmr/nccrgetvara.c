@@ -6,9 +6,9 @@
 #endif
 #include "ncd3dispatch.h"
 
-static NCerror getcontent4(NCDAP4*, Getvara*, CDFnode* rootnode, void* data);
-static NCerror getcontent4r(NCDAP4*, Getvara*, CDFnode* tnode, OCdata, NCbytes*);
-static NCerror getcontent4prim(NCDAP4* drno, Getvara*, CDFnode* tnode, NCsegment*,
+static NCerror getcontent4(NCCR*, Getvara*, CDFnode* rootnode, void* data);
+static NCerror getcontent4r(NCCR*, Getvara*, CDFnode* tnode, OCdata, NCbytes*);
+static NCerror getcontent4prim(NCCR* drno, Getvara*, CDFnode* tnode, NCsegment*,
 		               OCdata currentcontent, NCbytes* memory);
 static int findfield(CDFnode* node, CDFnode* subnode);
 static int contiguousdims(Dapodometer* odom);
@@ -27,7 +27,7 @@ NCD4_get_vara(int ncid, int varid,
     NC_GRP_INFO_T *grp; 
     NC_HDF5_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
-    NCDAP4* drno;
+    NCCR* drno;
     NCDAPCOMMON* nccomm;
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
@@ -187,7 +187,7 @@ ok:
 }
 
 static NCerror
-getcontent4(NCDAP4* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
+getcontent4(NCCR* drno, Getvara* xgetvar, CDFnode* xroot, void* data)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -329,7 +329,7 @@ fail:
 
 /* Recursive walker part of getcontent */
 static NCerror
-getcontent4r(NCDAP4* drno,
+getcontent4r(NCCR* drno,
 	     Getvara* xgetvar,
 	     CDFnode* tnode, /* type definition */
              OCdata currentcontent,
@@ -455,7 +455,7 @@ fail:
 }
 
 static NCerror
-getcontent4prim(NCDAP4* drno,
+getcontent4prim(NCCR* drno,
 	        Getvara* xgetvar,
                 CDFnode* tnode,
                 NCsegment* segment,
@@ -708,7 +708,7 @@ against the relevant nodes in which the ultimate target
 is contained.
 */
 static NCerror
-buildvarprojection4(NCDAP4* drno, Getvara* getvar, NCbytes* buf)
+buildvarprojection4(NCCR* drno, Getvara* getvar, NCbytes* buf)
 {
     int i, dimdex;
     CDFnode* node;

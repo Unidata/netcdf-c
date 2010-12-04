@@ -41,6 +41,7 @@ extern int collectocpath(OCconnection,OCobject,NClist*);
 
 extern char* getvaraprint(void* gv);
 
+extern int dapinsequence(struct CDFnode* node);
 extern int daptopgrid(struct CDFnode* node);
 extern int daptopseq(struct CDFnode* node);
 extern int daptoplevel(struct CDFnode* node);

@@ -65,7 +65,7 @@ buildvaraprojection4(Getvara* getvar,
 
 /* Compute the set of prefetched data */
 NCerror
-prefetchdata4(NCDAP4* drno)
+prefetchdata4(NCCR* drno)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
@@ -138,7 +138,7 @@ done:
 #ifdef IGNORE
 /* Based on the tactic, determine the set of variables to add */
 static void
-computevarset4(NCDAP4* drno, Getvara* getvar, NClist* varlist)
+computevarset4(NCCR* drno, Getvara* getvar, NClist* varlist)
 {
     int i;
     nclistclear(varlist);

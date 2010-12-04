@@ -392,6 +392,7 @@ test_ncdimrename(path)
     if (pp_dim != ncdimid(cdfid, "p")) {
 	error("%s: lookup by name in data mode failed after ncdimrename",
 	      pname);	
+	return ++nerrs;
     }
     /* in data mode, restore old name */
     if (ncdimrename(cdfid, pp_dim, pp.name) == -1) {

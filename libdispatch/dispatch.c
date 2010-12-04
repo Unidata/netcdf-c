@@ -20,6 +20,10 @@ NC_Dispatch* NCD3_dispatch_table = NULL;
 NC_Dispatch* NCD4_dispatch_table = NULL;
 #endif
 
+#if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
+NC_Dispatch* NCCR_dispatch_table = NULL;
+#endif
+
 int
 NC_testurl(const char* path)
 {

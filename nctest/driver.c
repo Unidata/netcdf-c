@@ -11,8 +11,10 @@
  *********************************************************************/
 
 #include <config.h>
+#include <stdlib.h>
 #include <netcdf.h>
 #include <stdio.h>
+#include "testcdf.h"		/* defines in-memory test netcdf structure */
 #include "tests.h"
 
 /* Test everything for classic and 64-bit offsetfiles. If netcdf-4 is
@@ -96,6 +98,24 @@ main(int argc, char **argv)
        nerrs += test_ncattrename(testfile);
        nerrs += test_ncattdel(testfile);
        nerrs += test_nctypelen();
+
+       /* Clean up in-memory struct. */
+       {
+	  int i, j;
+
+	  for (i = 0; i < test.ndims; i++)
+	     free(test.dims[i].name);
+
+	  for (i = 0; i < test.nvars; i++)
+	  {
+	     free(test.vars[i].name);
+	     free(test.vars[i].dims);
+	  }
+
+	  for (i = 0; i < test.natts; i++)
+	     free(test.atts[i].name);
+
+       }
     }
     
     fprintf(stderr, "\nTotal number of failures: %d\n", nerrs);

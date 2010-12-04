@@ -100,6 +100,12 @@ if BUILD_LIBCF
 LIBCF=libcf
 endif
 
+# Build libcdmr
+if BUILD_CDMREMOTE
+LIBCMDR=libcdmr
+OCLIB=oc
+endif
+
 #WIN32=win32
 
 # This is the list of subdirs for which Makefiles will be constructed
@@ -111,13 +117,13 @@ endif
 # If using dispatch, then the order is different
 if BUILD_SEPARATE_FORTRAN
 SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
-$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) $(LIBCDMR)	\
 ${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
 ${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
 $(EXAMPLES) $(WIN32) $(LIBCF)
 else
 SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
-$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)		\
+$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) $(LIBCDMR	\
 ${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
 ${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
 $(EXAMPLES) $(WIN32) $(LIBCF)
@@ -213,14 +219,3 @@ install-data-hook:
 	@echo '| http://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
-
-
-# Define the set of subdirs that
-# contain sources for visual studio
-VSTUDIODIRS=include $(DISPATCHDIR) $(LIBSRC_DIR) ${ASSEMBLEDIR}
-.PHONY: visualstudio
-visualstudio:
-	sh ${abs_top_srcdir}/visualbuild start
-	for dir in $(VSTUDIODIRS); do $(MAKE) -C $$dir visualstudio ; done
-	sh ${abs_top_srcdir}/visualbuild build
-

@@ -265,3 +265,5 @@ v::
 	cc -g -c ${T}.c ${INCL}
 	cc -g -o v ${T}.o ${LIBS}
 
+do::
+	pushd ..; make; popd ; $(MAKE) -f Make0 ncd

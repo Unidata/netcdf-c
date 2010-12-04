@@ -662,12 +662,12 @@ while test \( -f tmpdir_$i \) -o \( -d tmpdir_$i \) ; do
 done
 mkdir tmpdir_$i
 cd tmpdir_$i
-AC_COMPILE_IFELSE([module conftest_module
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([module conftest_module
    contains
    subroutine conftest_routine
    write(*,'(a)') 'gotcha!'
    end subroutine conftest_routine
-   end module conftest_module
+   end module conftest_module])
   ],[],[])
 cd ..
 ax_cv_f90_modflag="not found"
@@ -675,10 +675,10 @@ for ax_flag in "-I" "-M" "-p"; do
   if test "$ax_cv_f90_modflag" = "not found" ; then
     ax_save_FCFLAGS="$FCFLAGS"
     FCFLAGS="$ax_save_FCFLAGS ${ax_flag}tmpdir_$i"
-    AC_COMPILE_IFELSE([program conftest_program
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([program conftest_program
        use conftest_module
        call conftest_routine
-       end program conftest_program
+       end program conftest_program])
       ],[ax_cv_f90_modflag="$ax_flag"],[])
     FCFLAGS="$ax_save_FCFLAGS"
   fi

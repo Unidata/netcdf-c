@@ -138,12 +138,10 @@ fprintf(stderr,"Unconstrained: reusing prefetch\n");
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
 	dumpconstraint(cachenode->constraint));
 #endif
-    } else { /* load with constraints */
+    } else { /*not cached: load using constraints */
 	nclistpush(vars,(ncelem)varainfo->target);
 	constraint = createncconstraint();
         constraint->projections = clonencprojections(drno->dap.oc.dapconstraint->projections);
-	if(constraint->projections == NULL)
-	    constraint->projections = nclistnew();
         if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
@@ -166,10 +164,9 @@ fprintf(stderr,"vara merge: %s\n",
 
         restrictprojection34(vars,constraint->projections);
         constraint->selections = clonencselections(drno->dap.oc.dapconstraint->selections);
-	if(constraint->selections == NULL)
-	    constraint->selections = nclistnew();
 
-	/* buildcachenode3 will also fetch the corresponding datadds */
+	/* buildcachenode3 will create a new cachenode and
+           will also fetch the corresponding datadds */
         ncstat = buildcachenode34(&drno->dap,constraint,vars,&cachenode,0);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
@@ -208,8 +205,6 @@ fail:
 ok:
     freencconstraint(constraint);
     nclistfree(vars);
-    if(!FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE) && !FLAGSET(drno->dap.controls,NCF_CACHE))
-	freenccachenode(&drno->dap,cachenode);
     freegetvara(varainfo);
     return THROW(ncstat);
 }

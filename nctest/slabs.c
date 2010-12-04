@@ -167,6 +167,7 @@ test_slabs(cdfid)
 	    ncclose(cdfid); return 1;
 	}
 	add_var(&test, &va[iv]); /* keep in-memory netcdf in sync */
+	free(va[iv].dims);
     }
 
     if (ncendef (cdfid) == -1) {

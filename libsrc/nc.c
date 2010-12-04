@@ -47,6 +47,8 @@ free_NC(NC *ncp)
 	free_NC_dimarrayV(&ncp->dims);
 	free_NC_attrarrayV(&ncp->attrs);
 	free_NC_vararrayV(&ncp->vars);
+	if (ncp->path)
+	   free(ncp->path);
 #if _CRAYMPP && defined(LOCKNUMREC)
 	shfree(ncp);
 #else

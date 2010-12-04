@@ -90,6 +90,8 @@ test_ncvarid(path)
       (void) fprintf(stderr,"FAILED! ***\n");
     else
       (void) fprintf(stderr,"ok ***\n");
+
+    free(xx.dims);
     return nerrs;
 }
 
@@ -666,6 +668,8 @@ test_ncvarrename(path)
 	error("%s: ncvarrename failed to report bad netcdf handle ", pname);
 	nerrs++;
     }
+    free(yy.dims);
+    free(zz.dims);
     free(var.name);
     free(var.dims);
     if (nerrs > 0)

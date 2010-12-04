@@ -1,4 +1,4 @@
-#include "ncdap4.h"
+#include "nccr.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -12,32 +12,28 @@
 #include "dapalign.h"
 
 #include "netcdf.h"
-#include "nc4dispatch.h"
+#include "nccrdispatch.h"
 #include "ncd4dispatch.h"
 
 #ifdef DEBUG
 #include "dapdump.h"
 #endif
 
-#define DFALTMODELFLAGS (NCF_NC3|NCF_NCDAP)
-
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
-ptrdiff_t dapsinglestride4[NC_MAX_VAR_DIMS];
-
 extern NC_FILE_INFO_T* nc_file;
 
-extern NCerror cleanNCDAP4(NCDAP4* drno);
+extern NCerror cleanNCCR(NCDAP4* drno);
 
-static void nc4dinitialize(void);
-static NCerror buildnc4(NCDAP4* drno);
-static NCerror builddims4(NCDAP4*);
-static NCerror buildtypes4(NCDAP4*);
-static NCerror buildtypes4r(NCDAP4* drno, CDFnode* tnode);
-static NCerror buildvars4(NCDAP4*);
-static NCerror buildglobalattrs4(NCDAP4*, int, CDFnode* root);
-static NCerror buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid);
+static void nccrdinitialize(void);
+static NCerror buildnccr(NCCR* drno);
+static NCerror builddims4(NCCR*);
+static NCerror buildtypes4(NCCR*);
+static NCerror buildtypes4r(NCCR* drno, CDFnode* tnode);
+static NCerror buildvars4(NCCR*);
+static NCerror buildglobalattrs4(NCCR*, int, CDFnode* root);
+static NCerror buildattribute4a(NCCR* drno, NCattribute* att, int varid, int ncid);
 static NCerror showprojection4(NCDAPCOMMON* nccomm, CDFnode* var);
 static size_t estimatesizes4r(NCDAPCOMMON* nccomm, CDFnode* node);
 static void estimatesizes4(NCDAPCOMMON* nccomm);
@@ -46,15 +42,15 @@ static NCerror fixzerodims4r(NCDAPCOMMON* nccomm, CDFnode* node);
 static NCerror cvtunlimiteddim(NCDAPCOMMON* nccomm, CDFnode* dim);
 static void applyclientparamcontrols4(NCDAPCOMMON* nccomm);
 
-static int nc4dinitialized = 0;
+static int nccrdinitialized = 0;
 
 /**************************************************/
 int
 NCD4_new_nc(NC** ncpp)
 {
-    NCDAP4* ncp;
+    NCCR* ncp;
     /* Allocate memory for this info. */
-    if (!(ncp = calloc(1, sizeof(struct NCDAP4)))) 
+    if (!(ncp = calloc(1, sizeof(struct NCCR)))) 
        return NC_ENOMEM;
     if(ncpp) *ncpp = (NC*)ncp;
     return NC_NOERR;
@@ -71,7 +67,7 @@ NCD4_open(const char * path, int mode,
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     DAPURL tmpurl;
-    NCDAP4* drno = NULL; /* reuse the ncdap3 structure*/
+    NCCR* drno = NULL; /* reuse the ncdap3 structure*/
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
     int ncid = -1;
@@ -82,7 +78,7 @@ NCD4_open(const char * path, int mode,
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
-    if(!nc4dinitialized) nc4dinitialize();
+    if(!nccrdinitialized) nccrdinitialize();
 
     if(!dapurlparse(path,&tmpurl)) PANIC("libncdap4: non-url path");
     dapurlclear(&tmpurl); /* no longer needed */
@@ -110,12 +106,12 @@ ocdebug = 1;
     modifiedpath = nulldup(path);
 #endif
 
-    /* Use NC4 code to establish a pseudo file */
+    /* Use NCCR code to establish a pseudo file */
     tmpname = nulldup(PSEUDOFILE);
     fd = mkstemp(tmpname);
     if(fd < 0) {THROWCHK(errno); goto done;}
     /* Now, use the file to create the hdf5 file */
-    ncstat = NC4_create(tmpname,NC_NETCDF4|NC_CLOBBER,
+    ncstat = NCCR_create(tmpname,NC_NETCDF4|NC_CLOBBER,
 			0,0,NULL,0,NULL,dispatch,(NC**)&drno);
     ncid = drno->info.ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
@@ -126,7 +122,7 @@ ocdebug = 1;
     if(ncstat)
 	{THROWCHK(ncstat); goto done;}
     /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
+    ncstat = nccr_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat)
 	{THROWCHK(ncstat); goto done;}
 
@@ -237,7 +233,7 @@ ocdebug = 1;
     /* Estimate the variable sizes */
     estimatesizes4(&drno->dap);
 
-    ncstat = buildnc4(drno);
+    ncstat = buildnccr(drno);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Do any necessary data prefetch */
@@ -254,8 +250,8 @@ ocdebug = 1;
 done:
     if(drno != NULL) {
 	int ncid = drno->info.ext_ncid;
-        cleanNCDAP4(drno);
-        NC4_abort(ncid);
+        cleanNCCR(drno);
+        NCCR_abort(ncid);
     }
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
@@ -266,12 +262,12 @@ NCD4_close(int ncid)
 {
     NC_GRP_INFO_T *grp;
     NC_HDF5_FILE_INFO_T *h5;
-    NCDAP4* drno = NULL;
+    NCCR* drno = NULL;
     int ncstat = NC_NOERR;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
     /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
+    ncstat = nccr_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
     /* This must be the root group. */
@@ -279,9 +275,9 @@ NCD4_close(int ncid)
 
     oc_logclose();
 
-    /* Destroy/close the NCDAP4 state */
-    cleanNCDAP4(drno);
-    NC4_abort(ncid);
+    /* Destroy/close the NCCR state */
+    cleanNCCR(drno);
+    NCCR_abort(ncid);
 
     return THROW(ncstat);
 }
@@ -291,14 +287,14 @@ NCD4_close(int ncid)
 /**************************************************/
 
 static void
-nc4dinitialize()
+nccrdinitialize()
 {
     nc3dinitialize();
-    nc4dinitialized = 1;
+    nccrdinitialized = 1;
 }
 
 NCerror
-cleanNCDAP4(NCDAP4* drno)
+cleanNCCR(NCDAP4* drno)
 {
     return cleanNCDAPCOMMON(&drno->dap);
 }
@@ -308,7 +304,7 @@ Note: never use any of the libncdap3 code to call
 netcdf API functions because it will use the netcdf-3 API.
 */
 static NCerror
-buildnc4(NCDAP4* drno)
+buildnccr(NCCR* drno)
 {
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = drno->dap.cdf.ddsroot;
@@ -326,7 +322,7 @@ done:
 
 /* Define dim info for top-level dims */
 static NCerror
-builddims4(NCDAP4* drno)
+builddims4(NCCR* drno)
 {
     unsigned int i,j;
     NCerror ncstat = NC_NOERR;
@@ -382,7 +378,7 @@ done:
 }
 
 static NCerror
-buildtypes4(NCDAP4* drno)
+buildtypes4(NCCR* drno)
 {
     unsigned int i;
     NCerror ncstat = NC_NOERR;
@@ -399,7 +395,7 @@ done:
 }
 
 static NCerror
-buildtypes4r(NCDAP4* drno, CDFnode* tnode)
+buildtypes4r(NCCR* drno, CDFnode* tnode)
 {
     unsigned int i,j;
     int typeid;
@@ -478,7 +474,7 @@ done:
 
 /* Simultaneously build any associated attributes */
 static NCerror
-buildvars4(NCDAP4* drno)
+buildvars4(NCCR* drno)
 {
     /* Variables (in this translation) are (mostly)
        the direct fields of the Dataset*/
@@ -529,7 +525,7 @@ done:
 }
 
 static NCerror
-buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
+buildglobalattrs4(NCCR* drno, int ncid, CDFnode* root)
 {
     int i;
     const char* txt;
@@ -588,7 +584,7 @@ done:
 }
 
 static NCerror
-buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid)
+buildattribute4a(NCCR* drno, NCattribute* att, int varid, int ncid)
 {
     NCerror ncstat = NC_NOERR;
     char* cname = cdflegalname3(att->name);
@@ -784,7 +780,7 @@ applyclientparamcontrols4(NCDAPCOMMON* nccomm)
 	SETFLAG(nccomm->controls,NCF_CACHE);
 
     /* Set the translation base  */
-    SETFLAG(nccomm->controls,NCF_NC4);
+    SETFLAG(nccomm->controls,NCF_NCCR);
 
     /* No longer need params */
     dapparamfree(params);

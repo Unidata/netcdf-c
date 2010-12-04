@@ -41,9 +41,11 @@ extern int num_spaces;
 
 static int NC4_enddef(int ncid);
 
+#ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
  * netCDF files. */
 extern NC_FILE_INFO_T *nc_file;
+#endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -431,28 +433,18 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    grp->dim->dimid = grp->file->nc4_info->next_dimid++;
    grp->ndims++;
 
-   /* Does this dataset have a hidden attribute that tells us its dimid? */
-   if ((natts = H5Aget_num_attrs(datasetid)) < 0)
-      return NC_EHDFERR;
-   for (a = 0; a < natts; a++)
-   {
-      int found_it = 0;
-      /* Open the att and get its name. */
-      if ((attid = H5Aopen_idx(datasetid, (unsigned int)a)) < 0)
-	 return NC_EHDFERR;
-      if (H5Aget_name(attid, NC_MAX_HDF5_NAME, att_name) < 0)
-	 return NC_EHDFERR;
-      if (!strcmp(att_name, NC_DIMID_ATT_NAME))
+   /* Does this dataset have a hidden attribute that tells us its
+    * dimid? If so, read it. */
+   H5E_BEGIN_TRY { 
+      if ((attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME, 
+				   H5P_DEFAULT, H5P_DEFAULT)) > 0)
       {
 	 if (H5Aread(attid, H5T_NATIVE_INT, &grp->dim->dimid) < 0)
 	    return NC_EHDFERR;
-	 found_it++;
+	 if (H5Aclose(attid) < 0)
+	    return NC_EHDFERR;
       }
-      if (H5Aclose(attid) < 0)
-	 return NC_EHDFERR;
-      if (found_it)
-	 break;
-   }
+   } H5E_END_TRY;
 
    max_len = strlen(obj_name) > NC_MAX_NAME ? NC_MAX_NAME : strlen(obj_name);
    if (!(grp->dim->name = malloc((max_len + 1) * sizeof(char))))
@@ -2778,19 +2770,20 @@ NC4_close(int ncid)
       return ncmpi_close(nc->int_ncid);
 #endif /* USE_PNETCDF */
 
-   /* Call either the nc4 or nc3 close. */
-   assert(h5);
-   {
-      nc = grp->file;
-      assert(nc);
-      /* This must be the root group. */
-      if (grp->parent)
-	 return NC_EBADGRPID;
-      if ((retval = close_netcdf4_file(grp->file->nc4_info, 0)))
-	 return retval;
-      /* Delete this entry from our list of open files. */
-      nc4_file_list_del(nc);
-   }
+   assert(h5 && nc);
+
+   /* This must be the root group. */
+   if (grp->parent)
+      return NC_EBADGRPID;
+
+   /* Call the nc4 close. */
+   if ((retval = close_netcdf4_file(grp->file->nc4_info, 0)))
+      return retval;
+
+   /* Delete this entry from our list of open files. */
+   if (nc->path)
+      free(nc->path);
+   nc4_file_list_del(nc);
 
    /* Reset the ncid numbers if there are no more files open. */
    if(count_NCList() == 0)

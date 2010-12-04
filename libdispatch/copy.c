@@ -445,20 +445,8 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    return retval;
 }
 
-/* Copy an attribute from one open file to another.
-
-   Special programming challenge: this function must work even if one
-   of the other of the files is a netcdf version 1.0 file (i.e. not
-   HDF5). So only use top level netcdf api functions. 
-
-   From the netcdf-3 docs: The output netCDF dataset should be in
-   define mode if the attribute to be copied does not already exist
-   for the target variable, or if it would cause an existing target
-   attribute to grow.
-*/
-
-int
-nc_copy_att(int ncid_in, int varid_in, const char *name, 
+static int
+NC_copy_att(int ncid_in, int varid_in, const char *name, 
 	    int ncid_out, int varid_out)
 {
    nc_type xtype;
@@ -469,18 +457,13 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
    LOG((2, "nc_copy_att: ncid_in 0x%x varid_in %d name %s", 
 	ncid_in, varid_in, name));
    
-   /* Find out about the attribute and allocate memory for the
-      data. */
+   /* Find out about the attribute to be copied. */
    if ((res = nc_inq_att(ncid_in, varid_in, name, &xtype, &len)))
       return res;
    
-   /* Can't copy to same var in same file. */
-   if (ncid_in == ncid_out && varid_in == varid_out)
-      return NC_NOERR;
-   
    if (xtype < NC_STRING) 
    {
-      /* Handle atomic types. */
+      /* Handle non-string atomic types. */
       if (len) 
 	 if (!(data = malloc(len * NC_atomictypelen(xtype))))
 	    return NC_ENOMEM;
@@ -555,4 +538,82 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
 #endif /*!USE_NETCDF4*/
    return res;
 }
+
+/* Copy an attribute from one open file to another.
+
+   Special programming challenge: this function must work even if one
+   of the other of the files is a netcdf version 1.0 file (i.e. not
+   HDF5). So only use top level netcdf api functions. 
+
+   From the netcdf-3 docs: The output netCDF dataset should be in
+   define mode if the attribute to be copied does not already exist
+   for the target variable, or if it would cause an existing target
+   attribute to grow.
+*/
+int
+nc_copy_att(int ncid_in, int varid_in, const char *name, 
+	    int ncid_out, int varid_out)
+{
+   int format, target_natts, target_attid, attid;
+   char att_name[NC_MAX_NAME + 1];
+   int a, retval;
+
+   /* What is the destination format? */
+   if ((retval = nc_inq_format(ncid_out, &format)))
+      return retval;
+   
+   /* Can't copy to same var in same file. */
+   if (ncid_in == ncid_out && varid_in == varid_out)
+      return NC_NOERR;
+   
+   /* For classic model netCDF-4 files, order of attributes must be
+    * maintained during copies. We MUST MAINTAIN ORDER! */
+   if (format == NC_FORMAT_NETCDF4_CLASSIC)
+   {
+      /* Does this attribute already exist in the target file? */
+      retval = nc_inq_attid(ncid_out, varid_out, name, &target_attid);
+      if (retval == NC_ENOTATT)
+      {
+	 /* Attribute does not exist. No order to be preserved. */
+	 return NC_copy_att(ncid_in, varid_in, name, ncid_out, varid_out);
+      }
+      else if (retval == NC_NOERR)
+      {
+	 /* How many atts for this var? */
+	 if ((retval = nc_inq_varnatts(ncid_out, varid_out, &target_natts)))
+	    return retval;
+
+	 /* If this is the last attribute in the target file, we are
+	  * off the hook. */
+	 if (target_attid == target_natts - 1)
+	    return NC_copy_att(ncid_in, varid_in, name, ncid_out, varid_out);
+	 
+	 /* Order MUST BE MAINTAINED! Copy all existing atts in the target
+	  * file, stopping at our target att. */
+	 for (a = 0; a < target_natts; a++)
+	 {
+	    if (a == target_attid)
+	    {
+	       if ((retval = NC_copy_att(ncid_in, varid_in, name, ncid_out, varid_out)))
+		  return retval;
+	    } 
+	    else
+	    {
+	       if ((retval = nc_inq_attname(ncid_out, varid_out, a, &att_name)))
+		  return retval;
+	       if ((retval = NC_copy_att(ncid_out, varid_out, att_name, 
+					 ncid_out, varid_out)))
+		  return retval;
+	    }
+	 }
+      }
+      else
+	 return retval; /* Some other error occured. */
+   }
+   else
+      return NC_copy_att(ncid_in, varid_in, name, ncid_out, varid_out);
+
+   return NC_NOERR;
+}
+
 

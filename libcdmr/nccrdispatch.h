@@ -30,10 +30,10 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* "$Id: ncd4dispatch.h,v 1.3 2010/05/27 21:34:11 dmh Exp $" */
+/* "$Id: NCCRdispatch.h,v 1.3 2010/05/27 21:34:11 dmh Exp $" */
 
-#ifndef _NCD4DISPATCH_H
-#define _NCD4DISPATCH_H
+#ifndef _NCCRDISPATCH_H
+#define _NCCRDISPATCH_H
 
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include "netcdf.h"
@@ -63,39 +63,35 @@ extern "C" {
 /**/
 
 EXTERNL int
-NCD4_new_nc(NC**);
+NCCR_new_nc(NC**);
 
 /* WARNING: this signature differs from external nc_open API*/
 EXTERNL int
-NCD4_open(const char *path, int mode,
+NCCR_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
          int use_parallel, void* mpidata,
          struct NC_Dispatch* dispatch, NC** ncp);
 
 EXTERNL int
-NCD4_close(int ncid);
+NCCR_close(int ncid);
 
 EXTERNL int
-NCD4_get_vara(int ncid, int varid,
+NCCR_get_vara(int ncid, int varid,
 	      const size_t* startp,
 	      const size_t* countp,
 	      void* data,
 	      nc_type externaltype0);
 
-extern int NCD4_close(int ncid);
-extern int NCD4_sync(int ncid);
-extern int NCD4_abort(int ncid);
+EXTERNL int NCCR_close(int ncid);
+EXTERNL int NCCR_sync(int ncid);
+EXTERNL int NCCR_abort(int ncid);
 
 /* End _var */
 
-extern int NCD4_initialize(void);
-
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
+EXTERNL int NCCR_initialize(void);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /*_NCD4DISPATCH_H*/
+#endif /*_NCCRDISPATCH_H*/

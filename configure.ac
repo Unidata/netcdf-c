@@ -103,7 +103,7 @@ fi
 AC_MSG_CHECKING([whether extra valgrind tests should be run])	
 AC_ARG_ENABLE([valgrind-tests],
               [AS_HELP_STRING([--enable-valgrind-tests],
-                              [build with valgrind-tests (valgrind is required)])])
+                              [build with valgrind-tests (valgrind is required, static builds only)])])
 test "x$enable_valgrind_tests" = xyes || enable_valgrind_tests=no
 AC_MSG_RESULT($enable_valgrind_tests)
 
@@ -317,15 +317,16 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
-# Figure out if DAP support should be enabled.
+# Figure out if curl support should be enabled.
 # The primary goal is to first locate curl-config
 # or the curl library location
 # The rules we implement are applied in order:
 # 1. no:  if --disable-dap is set
 # 2. no:  if curl library cannot be located
-# 3. yes: if --enable-dap is set
+# 3. yes: if --enable-dap || --enable-cdmremote is set
 # 4. yes: if neither --enable-dap nor --disable-dap is specified
 #         and the curl library can be located
+# Note that for now, cdmremote must be explicitly enabled
 
 # Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
@@ -335,8 +336,24 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# If --disable-dap, then make no attempt to locate curl
-if test "$enable_dap" = yes ; then
+# Capture the state of the --enable-cdmremote flag
+AC_MSG_CHECKING([whether cdmremote client is to be built])
+AC_ARG_ENABLE([cdmremote],
+                 [AS_HELP_STRING([--enable-cdmremote],
+                                 [build with cdmremote client support.])])
+test "x$enable_cdmremote" = xyes || enable_cdmremote=no
+# CDMREMOTE requires netCDF-4
+if test "x$enable_netcdf_4" = "x" ; then enable_cdmremote = no ; fi
+AC_MSG_RESULT($enable_cdmremote)
+
+# If --disable-dap && cdmremote , then make no attempt to locate curl
+if test "$enable_dap" = yes -o $enable_cdmremote" = yes ; then
+require_curl=yes
+else
+require_curl=no
+fi
+
+if test "$require_curl" = yes ; then
 
 # Try to locate curl
 curlsrc=
@@ -439,13 +456,13 @@ if test $havekeypasswd -eq 1; then
 AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
 fi
 
-else #!enable_dap
+else #!require_curl
 
 curl_cflags=""
 curl_libs=""
 curl_dir=""
 
-fi #enable_dap
+fi #require_curl
 
 AC_SUBST([CURL_CFLAGS],[${curl_cflags}])
 AC_SUBST([CURL_FCFLAGS],[${curl_cflags}])
@@ -453,20 +470,13 @@ AC_SUBST([CURL_FFLAGS],[${curl_cflags}])
 AC_SUBST([CURL_LIBS],[${curl_libs}])
 AC_SUBST([CURLDIR],[${curl_dir}])
 
-# If enable_dap is true but there is no curl, then complain
+# If curl is required but there is no curl, then complain
 if test -z "$curlsrc" ; then
-  if test "x$enable_dap" = "xyes" ; then
-     AC_MSG_NOTICE("--enable-dap requires curl library; disabling dap support")
+  if test "x$require_curl" = "xyes" ; then
+     AC_MSG_NOTICE("libcurl not found; disabling dap and cdmremote support")
   fi
   enable_dap=no
-fi
-
-if test "x$enable_dap" = xyes; then
-   AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
-   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
-fi
-if test "x$enable_dap_remote_tests" = xyes; then
-   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+  enable_cdmremote=no
 fi
 
 # Default is now to always do the short remote tests
@@ -480,6 +490,19 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+# Set the config.h flags
+if test "x$enable_dap" = xyes; then
+   AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+fi
+
+if test "x$enable_dap_remote_tests" = xyes; then
+   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+fi
+
+if test "x$enable_cdmremote" = xyes; then
+   AC_DEFINE([ENABLE_CDMREMOTE], [1], [if true, build CDMREMOTE Client])
+fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
 AC_ARG_ENABLE([dap-long-tests],
@@ -783,6 +806,7 @@ if test "x$nc_build_c" = xno -a x$enable_separate_fortran != xyes; then
    AC_MSG_ERROR([If the C API is disabled, you must use --enable-separate-fortran.])
 fi
 
+
 ## Does the user want to allow UTF8 characters
 #AC_MSG_CHECKING([whether UTF8 is allowed in identifiers])
 #AC_ARG_ENABLE([utf8],
@@ -956,9 +980,18 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
-LT_PREREQ([2.2.2])
-LT_INIT(win32-dll)
-#AC_PROG_LIBTOOL
+LT_PREREQ([2.4])
+#LT_INIT
+#LT_INIT(win32-dll)
+AC_PROG_LIBTOOL
+
+# Valgrind tests don't work with shared builds because of some libtool
+# weirdness.
+if test "x$enable_shared" = xyes; then
+   if test $enable_valgrind_tests = yes; then
+      AC_MSG_ERROR([No valgrind tests with shared libraries])
+   fi
+fi
 
 AC_MSG_NOTICE([finding other utilities])
 
@@ -1250,11 +1283,6 @@ LDFLAGS=${OLD_LDFLAGS}
 LIBS=${OLD_LIBS}
 CPPFLAGS=${OLD_CPPFLAGS}
 
-# Do Renaming if netcdf4 or dap support is enabled
-if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
-   AC_DEFINE([USE_RENAMEV3], [1], [if true, build libsrc code with renamed API functions])
-fi
-
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
    enable_logging=no
@@ -1290,6 +1318,7 @@ AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
+AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!

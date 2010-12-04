@@ -1,17 +1,20 @@
+#STDDIR = /opt/csw
+#STDDIR = /machine/local
+STDDIR = /upc/share/stdinstall/local/spock
 #NCLIB=../libsrc4/.libs/libnetcdf.a
 NCLIB=../liblib/.libs/libnetcdf.a
-#HDF5DIR = /upc/share/stdinstall/local/spock
-HDF5DIR = /machine/local
-HDFLIBS=${HDF5DIR}/lib/libhdf5_hl.a ${HDF5DIR}/lib/libhdf5.a
+HDF5DIR = ${STDDIR}
+#HDFLIBS=-L${HDF5DIR}/lib -lhdf5_hl -lhdf5
+HDFLIBS=${HDF5DIR}/lib/libhdf5_hl.a ${HDF5DIR}/lib/libhdf5.a 
 NCINCL=-I../libsrc4 -I${HDF5DIR}/include -I${NCDAP3DIR}
-#CURLLIB=-L/opt/csw/lib -lcurl
-CURLLIB=-L/opt/csw/lib -lcurl -lidn -lssl -lcrypto -llber -lldap -lnsl
-CURLINCL=-I/opt/csw/include
-RPCLIB=-lnsl
-ZLIB=-L/opt/csw/lib -lz
+CURLDIR=${STDDIR}
+#CURLLIB=-L${CURLDIR}/lib -lcurl
+CURLLIB = -L${CURLDIR}/lib -lcurl -lssl -lcrypto -llber -lldap -lnsl 
+CURLINCL =-I${STDDIR}/include
+RPCLIB = -lnsl
+ZLIB = -L${STDDIR} -lz
 TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
 VALGRIND=valgrind --leak-check=full
-
 
 OCLIB=../libncdap3/oc/.libs/liboc.a
 OCINCL=-I../libncdap3/oc
@@ -82,12 +85,8 @@ NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
 
 #${NCDUMPC} ${NCDUMPH} ${NCLIB}
 ncd:: 
-	cd ../libncdap3; make 
-	cd ../libsrc; make 
-	cd ../libncdap4; make 
-	cd ../libsrc4; make 
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${NCDUMPC}
-	${CC} -o ncd ${GFLAGS} ${NCDUMPOBJ} ${NCLIB} ${CURLLIB} ${HDFLIBS} ${OTHERLIBS}
+	${CC} -o ncd ${GFLAGS} ${NCDUMPOBJ} ${LIBS}
 
 ##################################################
 ALLTESTS=
@@ -163,3 +162,6 @@ v::
 i::
 	cc -fPIC -g -c -I/tmp/install/${HOST}/include test_cvt.c
 	cc -g -o v test_cvt.o -L/tmp/install/${HOST}/lib -lnetcdf -R/tmp/install/${HOST}/lib
+
+do::
+	pushd .. ; make ; popd ; ${MAKE} -f Make0 ncd

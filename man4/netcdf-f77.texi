@@ -9165,7 +9165,7 @@ below.
 
 @section Function Naming Conventions
 
-The netCDF-3 C library employs a new naming convention, intended to
+The netCDF-3 Fortran 77 library employs a naming convention intended to
 make netCDF programs more readable. For example, the name of the
 function to rename a variable is now NF_RENAME_VAR instead of the
 previous NCVREN.

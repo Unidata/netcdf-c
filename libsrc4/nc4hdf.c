@@ -18,7 +18,9 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
+#ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
+#endif
 
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
 
@@ -243,9 +245,6 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
     * one. */
    if (var->xtype == NC_STRING)
    {
-      if (var->fill_value)
-         size = strlen((char *)var->fill_value) + 1;
-      else
          size = 1;
    }
    
@@ -276,6 +275,9 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       }
       else if (var->xtype == NC_STRING)
       {
+         if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
+					sizeof(char))))
+	    return NC_ENOMEM;
          strcpy(*(char **)fillp, (char *)var->fill_value);
       }
       else
@@ -542,7 +544,8 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
    LOG((3, "nc4_put_vara: var->name %s mem_nc_type %d is_long %d", 
         var->name, mem_nc_type, is_long));
 
-   /* Check some stuff about the type and the file. */
+   /* Check some stuff about the type and the file. If the file must
+    * be switched from define mode, it happens here. */
    if ((retval = check_for_vara(&mem_nc_type, var, h5)))
       return retval;
 
@@ -896,7 +899,7 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
                      BAIL(retval);
                   
                   /* Check for out of bound requests. */
-                  if (start[d2] >= (hssize_t)ulen)
+                  if (start[d2] >= (hssize_t)ulen && count[d2])
                      BAIL_QUIET(NC_EINVALCOORDS);
                   if (start[d2] + count[d2] > ulen)
                      BAIL_QUIET(NC_EEDGE);
@@ -1188,9 +1191,6 @@ static int
 write_netcdf4_dimid(hid_t datasetid, int dimid)
 {
    hid_t dimid_spaceid, dimid_attid;
-   hid_t att = 0;
-   char att_name[NC_MAX_HDF5_NAME + 1];
-   int a, num, found_it = 0;
 
    /* Create the space. */
    if ((dimid_spaceid = H5Screate(H5S_SCALAR)) < 0) 
@@ -1200,33 +1200,19 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
 
    /* Does the attribute already exist? If so, don't try to create it. */
+   H5E_BEGIN_TRY { 
+      dimid_attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME, 
+				    H5P_DEFAULT, H5P_DEFAULT);
+   } H5E_END_TRY;
   
-   if ((num = H5Aget_num_attrs(datasetid)) < 0)
-      return NC_EHDFERR;
-   for (a = 0; a < num && !found_it; a++) 
-   {
-      if ((att = H5Aopen_idx(datasetid, (unsigned int)a)) < 0)
-         return NC_EHDFERR;
-      if (H5Aget_name(att, NC_MAX_HDF5_NAME, att_name) < 0)
-         return NC_EHDFERR;
-      if (!strcmp(att_name, NC_DIMID_ATT_NAME))
-      {
-         LOG((4, "write_netcdf4_dimid: found existing att %s", att_name));
-         found_it++;
-	 dimid_attid = att;
-	 break;
-      }
-      if (att > 0 && H5Aclose(att) < 0)
-         return NC_EHDFERR;
-   }
-
    /* Create the attribute if needed. */
-   if (!found_it)
+   if (dimid_attid < 0)
       if ((dimid_attid = H5Acreate(datasetid, NC_DIMID_ATT_NAME, 
 				   H5T_NATIVE_INT, dimid_spaceid, H5P_DEFAULT)) < 0)
 	 return NC_EHDFERR;
 
    /* Write it. */
+   LOG((4, "write_netcdf4_dimid: writting secret dimid %d", dimid));
    if (H5Awrite(dimid_attid, H5T_NATIVE_INT, &dimid) < 0)
       return NC_EHDFERR;
 
@@ -1238,8 +1224,6 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
 #endif
    if (H5Aclose(dimid_attid) < 0)
       return NC_EHDFERR;
-   LOG((4, "write_netcdf4_dimid: wrote secret dimid attribute with value %d", 
-	dimid));
 
    return NC_NOERR;
 }
@@ -1581,9 +1565,10 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
    }
 
    /* Delete the att if it exists already. */
-   if ((retval = nc4_delete_hdf5_att(locid, att->name)))
-      BAIL(retval);
-
+   H5E_BEGIN_TRY {
+      H5Adelete(locid, att->name);
+   } H5E_END_TRY;
+      
    /* Get the length ready, and find the HDF type we'll be
     * writing. */
    dims[0] = att->len;
@@ -1671,41 +1656,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
-   return retval;
-}
-
-/* This will delete HDF5 attribute name from loc, if it exists. If the
-   att doesn't exists, nothing will happen (and the function will
-   return NC_NOERR). */
-int
-nc4_delete_hdf5_att(hid_t loc, const char *name)
-{
-   hid_t att = 0;
-   char att_name[NC_MAX_HDF5_NAME + 1];
-   int a, num, finished = 0;
-   int retval = NC_NOERR;
-
-   if ((num = H5Aget_num_attrs(loc)) < 0)
-      return NC_EHDFERR;
-
-   for (a = 0; a < num && !finished; a++) 
-   {
-      if ((att = H5Aopen_idx(loc, (unsigned int)a)) < 0)
-         BAIL(NC_EHDFERR);
-      if (H5Aget_name(att, NC_MAX_HDF5_NAME, att_name) < 0)
-         BAIL(NC_EHDFERR);
-      if (!strcmp(att_name, name))
-      {
-         LOG((4, "nc4_delete_hdf5_att: deleting HDF5 att %s", name));
-         if (H5Adelete(loc, name) < 0)
-            BAIL(NC_EHDFERR);
-         finished++;
-      }
-      if (att > 0 && H5Aclose(att) < 0)
-         BAIL(NC_EHDFERR);
-   }
-   
-  exit:
    return retval;
 }
 
@@ -2199,7 +2149,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
          dims[0] = dim->len;
          max_dims[0] = dim->len;
          if (dim->unlimited) 
-         {
+	 {
             max_dims[0] = H5S_UNLIMITED;
             if (H5Pset_chunk(create_propid, 1, chunk_dims) < 0)
                BAIL(NC_EHDFERR);

@@ -9,7 +9,7 @@ echo ""
 echo "Testing programs with valgrind..."
 
 # These are my test programs.
-list='t_nc tst_atts tst_norm tst_names tst_misc nc_test'
+list='nctest tst_rename'
 
 # These don't work yet: tst_fills tst_xplatform2 tst_interops6 tst_strings 
 

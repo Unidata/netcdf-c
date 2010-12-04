@@ -31,7 +31,7 @@ main(int argc, char **argv)
    int class_in;
 
    printf("\n*** Testing netcdf-4 enum type.\n");
-   printf("*** creating enum type...");
+   printf("*** testing creation of enum type...");
    {
       int value_in;
       /* Can't use the same name twice! */

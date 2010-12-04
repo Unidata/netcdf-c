@@ -11,9 +11,3 @@ include_HEADERS += netcdf_par.h
 endif 
 
 noinst_HEADERS = nc_logging.h nc_tests.h 
-
-
-.PHONY: visualstudio
-visualstudio:
-	sh ${top_srcdir}/visualbuild add ${abs_srcdir} "${include_HEADERS} ${noinst_HEADERS}"
-

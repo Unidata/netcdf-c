@@ -3,7 +3,7 @@
 
 # This Makefile assembles the correct libnetcdf based on various
 # configure flags. It is assumed that all the relevant convenience
-# libraries have been built (e.g. libsrc, libsrc4, libncdap3,
+# libraries have been built (e.g. libsrc, libsrc4, libncdap3, libcdmr,
 # libncdap4, fortran).
 
 AM_LDFLAGS = @EXTERN_LDFLAGS@
@@ -42,6 +42,13 @@ libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
 endif # USE_DAP
 endif #USE_NETCDF4
 
+# netcdf4+cdmremote
+if BUILD_CDMREMOTE
+libnetcdf_la_LIBADD += ${top_builddir}/libcdmr/libnccr.la
+endif # BUILD_CDMREMOTE
+
+endif #USE_NETCDF4
+
 if BUILD_F77
 if ! BUILD_SEPARATE_FORTRAN
 libnetcdf_la_LIBADD += ${top_builddir}/fortran/libnetcdff.la
@@ -50,8 +57,3 @@ endif #BUILD_F77
 
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c 
-
-.PHONY: visualstudio
-visualstudio:
-	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libnetcdf_la_SOURCES}"
-
