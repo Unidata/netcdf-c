@@ -21,8 +21,33 @@
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
 
+typedef struct NCCURLSTATE NCCURLSTATE;
+
 typedef struct NCCDMR {
     NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
+    char* urltext; /* as given to nc3d_open*/
+    Curl* curl;
+    /* Store curl state  info */
+    struct NCCURLSTATE {
+        int curlflags;
+	int compress;
+	int verbose;
+	int followlocation;
+	int maxredirs;
+	char* useragent;
+	char* cookiejar;
+	char* cookiefile;
+	int   validate;
+        char* certificate;
+	char* key;
+	char* keypasswd;
+        char* cainfo; /* certificate authority */
+	char* capath; 
+	char *host;
+	int port;
+	char *username;
+	char *password;
+    } curl;
 } NCCDMR
 
 typedef struct NCCR {

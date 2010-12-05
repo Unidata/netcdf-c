@@ -27,35 +27,35 @@ NC_Dispatch* NCCR_dispatch_table = NULL;
 int
 NC_testurl(const char* path)
 {
-#ifdef USE_DAP
     void* tmpurl = NULL;
-    if(NCDAP_urlparse(path,&tmpurl) == NC_NOERR) {
-	NCDAP_urlfree(tmpurl);
+    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+	nc_urlfree(tmpurl);
 	return 1;
     }
-#endif
     return 0;
 }
 
+/* Return the OR of some of the NC_DISPATCH flags */
 int
 NC_urlmodel(const char* path)
 {
     int model = 0;
-#ifdef USE_DAP
-    void* tmpurl = NULL;
-    if(NCDAP_urlparse(path,&tmpurl) == NC_NOERR) {
-	if(NCDAP_urllookup(tmpurl,"netcdf4")
-	   || NCDAP_urllookup(tmpurl,"netcdf-4")) {
-	    model = 4;
-	} else if(NCDAP_urllookup(tmpurl,"netcdf3")
-	   || NCDAP_urllookup(tmpurl,"netcdf-3")) {
-	    model = 3;
+    NC_URL* tmpurl = NULL;
+    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+	if(nc_urllookup(tmpurl,"netcdf4")
+	   || nc_urllookup(tmpurl,"netcdf-4")) {
+	    model = (NC_DISPATCH_NC4 | NC_DISPATCH_NCD);
+	} else if(nc_urllookup(tmpurl,"netcdf3")
+	   || nc_urllookup(tmpurl,"netcdf-3")) {
+	    model = (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
+	} else if(nc_urllookup(tmpurl,"cdmremote")
+	   || nc_urllookup(tmpurl,"cdmr")) {
+	    model = (NC_DISPATCH_NC4 | NC_DISPATCH_NCR);
 	} else {
 	    model = 0;
 	}
-	NCDAP_urlfree(tmpurl);
+	nc_urlfree(tmpurl);
     }
-#endif
     return model;
 }
 

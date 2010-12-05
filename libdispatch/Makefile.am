@@ -17,7 +17,7 @@ noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
 libdispatch_la_SOURCES = ncdispatch.h parallel.c copy.c file.c dim.c	\
-att.c error.c var.c dispatch.c
+att.c error.c var.c dispatch.c parseurl.c parseurl.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
