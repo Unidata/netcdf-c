@@ -980,8 +980,9 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 /*   if (var->hdf_datasetid && var->xtype <= NC_STRING)*/
    if (var->xtype <= NC_STRING)
    {
-      if ((H5Tclose(var->type_info->native_typeid)) < 0)
-	 return NC_EHDFERR;
+      if (var->type_info->native_typeid)
+	 if ((H5Tclose(var->type_info->native_typeid)) < 0)
+	    return NC_EHDFERR;
 
       /* Only need to close the hdf_typeid when it was obtained with
        * H5Dget_type (which happens when reading a file, but not when
