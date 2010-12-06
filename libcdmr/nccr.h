@@ -12,11 +12,15 @@
 
 #include "ncbytes.h"
 #include "nclist.h"
-#include "nchashmap.h"
 
 #include "nc4internal.h"
 #include "nc.h"
 #include "netcdf.h"
+
+#include "crdebug.h"
+
+/* Forward */
+struct Curl;
 
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
@@ -26,9 +30,9 @@ typedef struct NCCURLSTATE NCCURLSTATE;
 typedef struct NCCDMR {
     NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
     char* urltext; /* as given to nc3d_open*/
-    Curl* curl;
     /* Store curl state  info */
     struct NCCURLSTATE {
+        struct Curl* curl;
         int curlflags;
 	int compress;
 	int verbose;
@@ -48,7 +52,7 @@ typedef struct NCCDMR {
 	char *username;
 	char *password;
     } curl;
-} NCCDMR
+} NCCDMR;
 
 typedef struct NCCR {
     NC_FILE_INFO_T info;

@@ -35,10 +35,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "ocinternal.h"
-#include "ocdebug.h"
-#include "http.h"
-#include "rc.h"
+
+#include <curl/curl.h>
+
+#include "nccr.h"
+#include "curlwrap.h"
 
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);

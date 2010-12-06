@@ -44,7 +44,7 @@ NC_initialize(void)
     if((stat = NCD4_initialize())) return stat;
 #endif
 
-# cdmremote => netcdf4
+/* cdmremote => netcdf4 */
 #if defined(BUILD_CDMREMOTE)
     if((stat = NCCR_initialize())) return stat;
 #endif

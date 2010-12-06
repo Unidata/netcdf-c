@@ -19,9 +19,6 @@
 #endif
 #include "netcdf.h"
 #include "nc.h"
-#ifdef USE_DAP
-#include "dapurl.h"
-#endif
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
@@ -327,6 +324,17 @@ extern int NC_urlmodel(const char* path);
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
+
+/* Misc */
+/* Replacement for strdup (in libsrc) */
+#ifdef HAVE_STRDUP
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+extern char* nulldup(const char*);
+#endif
+
+#define nulllen(s) (s==NULL?0:strlen(s))
+#define nullstring(s) (s==NULL?"(null)":s)
 
 #endif /* _DISPATCH_H */
 

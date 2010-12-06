@@ -33,6 +33,7 @@ endif # USE_DAP
 
 # NetCDF-4 ...
 if USE_NETCDF4
+
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
@@ -40,7 +41,6 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 if USE_DAP
 libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
 endif # USE_DAP
-endif #USE_NETCDF4
 
 # netcdf4+cdmremote
 if BUILD_CDMREMOTE

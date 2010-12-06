@@ -343,11 +343,11 @@ AC_ARG_ENABLE([cdmremote],
                                  [build with cdmremote client support.])])
 test "x$enable_cdmremote" = xyes || enable_cdmremote=no
 # CDMREMOTE requires netCDF-4
-if test "x$enable_netcdf_4" = "x" ; then enable_cdmremote = no ; fi
+if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
 AC_MSG_RESULT($enable_cdmremote)
 
 # If --disable-dap && cdmremote , then make no attempt to locate curl
-if test "$enable_dap" = yes -o $enable_cdmremote" = yes ; then
+if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
@@ -473,11 +473,12 @@ AC_SUBST([CURLDIR],[${curl_dir}])
 # If curl is required but there is no curl, then complain
 if test -z "$curlsrc" ; then
   if test "x$require_curl" = "xyes" ; then
-     AC_MSG_NOTICE("libcurl not found; disabling dap and cdmremote support")
+     AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
   fi
   enable_dap=no
   enable_cdmremote=no
 fi
+
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
@@ -501,7 +502,7 @@ if test "x$enable_dap_remote_tests" = xyes; then
 fi
 
 if test "x$enable_cdmremote" = xyes; then
-   AC_DEFINE([ENABLE_CDMREMOTE], [1], [if true, build CDMREMOTE Client])
+   AC_DEFINE([USE_CDMREMOTE], [1], [if true, build CDMREMOTE Client])
 fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
@@ -1578,6 +1579,7 @@ AC_CONFIG_FILES([Makefile
                   oc/Makefile
                   libncdap3/Makefile
                   libncdap4/Makefile
+                  libcdmr/Makefile
                   libdispatch/Makefile
                   liblib/Makefile
                   ncdap_test/Makefile

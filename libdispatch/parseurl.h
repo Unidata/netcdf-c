@@ -1,11 +1,14 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *********************************************************************/
+/* $Id$ */
+/* $Header$ */
 
 #ifndef PARSEURL_H
 #define PARSEURL_H
 
-/* Forward */
-struct NClist;
+#include "nclist.h"
 
 /*! This is an open structure meaning
 	it is ok to directly access its fields*/
@@ -17,10 +20,10 @@ typedef struct NC_URL {
     char* projection; /*!< without leading '?'*/
     char* selection;  /*!< with leading '&'*/
     char* params;
-    struct NClist* paramlist;
+    NClist* paramlist;
 } NC_URL;
 
-extern int nc_urlparse(const char* s, NC_URL* nc_url);
+extern int nc_urlparse(const char* s, NC_URL**);
 extern void nc_urlfree(NC_URL* nc_url);
 
 /* Replace the constraints */

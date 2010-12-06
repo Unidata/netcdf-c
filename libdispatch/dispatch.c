@@ -1,4 +1,6 @@
 #include "ncdispatch.h"
+#include "parseurl.h"
+
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
 /*
@@ -27,7 +29,7 @@ NC_Dispatch* NCCR_dispatch_table = NULL;
 int
 NC_testurl(const char* path)
 {
-    void* tmpurl = NULL;
+    NC_URL* tmpurl = NULL;
     if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
 	nc_urlfree(tmpurl);
 	return 1;
