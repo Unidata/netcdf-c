@@ -5,8 +5,8 @@
 /* $Id$ */
 /* $Header$ */
 
-#ifndef PARSEURL_H
-#define PARSEURL_H
+#ifndef NC_URL_H
+#define NC_URL_H
 
 #include "nclist.h"
 
@@ -38,4 +38,4 @@ extern int nc_urldecodeparams(NC_URL* nc_url);
     Empty value should be represented as a zero length string */
 extern const char* nc_urllookup(NC_URL*, const char* clientparam);
 
-#endif /*PARSEURL_H*/
+#endif /*NC_URL_H*/

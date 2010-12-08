@@ -1,5 +1,5 @@
 #include "ncdispatch.h"
-#include "parseurl.h"
+#include "nc_url.h"
 
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
@@ -42,8 +42,13 @@ int
 NC_urlmodel(const char* path)
 {
     int model = 0;
+    int protolen = 0;
     NC_URL* tmpurl = NULL;
-    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+    if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
+    protolen = strlen(tmpurl->protocol);
+    /* First, look at the protocol */
+    if(strncmp(tmpurl->protocol,"http",4) {
+	/* Look at any prefixed parameters */
 	if(nc_urllookup(tmpurl,"netcdf4")
 	   || nc_urllookup(tmpurl,"netcdf-4")) {
 	    model = (NC_DISPATCH_NC4 | NC_DISPATCH_NCD);
@@ -56,8 +61,12 @@ NC_urlmodel(const char* path)
 	} else {
 	    model = 0;
 	}
-	nc_urlfree(tmpurl);
+    } else if(strcmp(tmpurl->protocol,"dods,4") {
+	
+    } else if(strcmp(tmpurl->protocol,"cdmr,4") {
     }
+done:
+    nc_urlfree(tmpurl);
     return model;
 }
 

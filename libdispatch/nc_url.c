@@ -4,7 +4,7 @@
  *********************************************************************/
 
 #include "ncdispatch.h"
-#include "parseurl.h"
+#include "nc_url.h"
 
 #define LBRACKET '['
 #define RBRACKET ']'

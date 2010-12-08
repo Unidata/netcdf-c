@@ -17,8 +17,16 @@ noinst_LTLIBRARIES = libdispatch.la
 
 # The source files.
 libdispatch_la_SOURCES = ncdispatch.h parallel.c copy.c file.c dim.c	\
-att.c error.c var.c dispatch.c parseurl.c parseurl.h \
-nclist.c nclist.h ncbytes.c ncbytes.h
+att.c error.c var.c dispatch.c
+
+# Provide our own version of the oc/dapurl code so we can
+# handle new url-based protocols like cdmremote.
+libdispatch_la_SOURCES += nc_url.c nc_url.h
+
+# These really contain common utility code used by more
+# than one later library.
+# TODO: move logging code here so it can be used anywhere.
+libdispatch_la_SOURCES += nclist.c nclist.h ncbytes.c ncbytes.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
