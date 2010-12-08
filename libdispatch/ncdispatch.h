@@ -19,6 +19,7 @@
 #endif
 #include "netcdf.h"
 #include "nc.h"
+#include "nc_url.h"
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
@@ -105,6 +106,9 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #else
 #define ATOMICTYPEMAX NC_DOUBLE
 #endif
+
+/* Define an alias for int to indicate an error return */
+typedef int NCerror;
 
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It

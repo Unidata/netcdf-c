@@ -155,38 +155,49 @@ nc_urldecodeparams(NC_URL* ncurl)
 {
     int ok = 0;
     if(ncurl->paramlist == NULL && ncurl->params != NULL) {
-	NClist* list = nc_urlparamdecode(ncurl->params);
-	ncurl->paramlist = list;
+	NClist* map = nc_urlparamdecode(ncurl->params);
+	ncurl->paramlist = map;
 	ok = 1;
     }
     return ok;
 }
 
 /*! NULL result => entry not found.
-    Empty value should be represented as a zero length string */
-const char*
+    Empty value should be represented as a zero length list */
+NClist*
 nc_urllookup(NC_URL* durl, const char* clientparam)
 {
-    /* make sure that durl->paramlist exists */
-    if(durl->paramlist == NULL) nc_urldecodeparams(durl);
-    return nc_urlparamlookup(durl->paramlist,clientparam);    
+    /* make sure that durl->parammap exists */
+    if(durl->parammap == NULL) nc_urldecodeparams(durl);
+    return nc_urlparamlookup(durl->parammap,clientparam);    
 }
 
-/**************************************************/
+/* Convenience: search a list for a given string; NULL if not found */
+const char*
+nc_urllookupvalue(NClist* list, const char* value)
+{
+    int i;
+    if(list == NULL || value == NULL) return NULL;
+    for(i=0;i<nclistlength(list);i++) {
+	char* s = (char*)nclistget(list,i);
+	if(s == NULL) continue;
+	if(strcmp(value,s) == 0) return s;
+    }
+    return NULL;
+}
 
+
+/**************************************************/
 /*
-Client parameters are assumed to be
-one or more instances of bracketed pairs:
-e.g "[...][...]...".
-The bracket content in turn is assumed to be a
-comma separated list of <name>=<value> pairs.
-e.g. x=y,z=,a=b.
-If the same parameter is specifed more than once,
-then the first occurrence is used; this is so that
-is possible to forcibly override user specified
-parameters by prefixing.
-IMPORTANT: client parameter string is assumed to
-have blanks compress out.
+
+Client parameters are assumed to be one or more instances of
+bracketed pairs: e.g "[...][...]...".  The bracket content
+in turn is assumed to be a comma separated list of
+<name>=<value> pairs.  e.g. x=y,z=,a=b.
+The resulting parse is stored in a list where the
+ith element is the name of the parameter
+and the i+1'th element is a list
+of all the occurrences kept in the original order.
 */
 
 static NClist*
@@ -197,83 +208,125 @@ nc_urlparamdecode(char* params0)
     int c;
     int i;
     int nparams;
-    NClist* plist = nclistnew();
+    NClist* map = nclistnew();
     char* params;
-    char* params1;
+    char* tmp;
 
     if(params0 == NULL) return plist;
 
-    /* Pass 1 to replace beginning '[' and ending ']' */
-    if(params0[0] == '[') 
-	params = strdup(params0+1);
-    else
-	params = strdup(params0);	
+    /* Pass 1 is to remove all blanks */
+    params = strdup(params0);
+    cp=params; cq = cp;
+    while((c=*cp++)) {
+	if(c == ' ') cp++; else *cq++ = c;
+    }
+    *cq = '\0';
 
+    /* Pass 2 to replace beginning '[' and ending ']' */
+    if(params[0] == '[') 
+	strcpy(params,params+1);
     if(params[strlen(params)-1] == ']')
 	params[strlen(params)-1] = '\0';
 
-    /* Pass 2 to replace "][" pairs with ','*/
-    params1 = strdup(params);
-    cp=params; cq = params1;
+    /* Pass 3 to replace "][" pairs with ','*/
+    tmp = strdup(params);
+    cp=params; cq = cp;;
     while((c=*cp++)) {
 	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
 	*cq++ = c;
     }
     *cq = '\0';
     free(params);
-    params = params1;
+    params = tmp;
 
-    /* Pass 3 to break string into pieces and count # of pairs */
+    /* Pass 4 to break string into pieces and count # of pairs */
     nparams=0;
     for(cp=params;(c=*cp);cp++) {
 	if(c == ',') {*cp = '\0'; nparams++;}
     }
     nparams++; /* for last one */
 
-    /* Pass 4 to break up each pass into a (name,value) pair*/
-    /* and insert into the param list */
+    /* Pass 5 to break up each pass into a (name,value) pair*/
+    /* and insert into the param map */
     /* parameters of the form name name= are converted to name=""*/
     cp = params;
     for(i=0;i<nparams;i++) {
+	int j;
 	char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
 	char* vp;
+	NClist* values;
 	/*break up the ith param*/
 	vp = strchr(cp,'=');
 	if(vp != NULL) {*vp = '\0'; vp++;} else {vp = "";}
-	if(!nclistcontains(plist,(ncelem)cp)) {
-	    nclistpush(plist,(ncelem)strdup(cp));
-	    nclistpush(plist,(ncelem)strdup(vp));
+	/* Locate any previous name match and get/create the value list*/
+        for(values=NULL,j=0;j<nclistlength(map);j+=2) {
+	    if(strcmp(cp,(char*)nclistget(map,j))==0) {
+		values = nclistget(map,j+1);
+		break;
+	    }	
 	}
+	if(values == NULL) {
+	    /*add at end */
+	    values = nclistnew();
+	    nclistpush(map,(ncelem)nulldup(cp));
+	    nclistpush(map,(ncelem)values);
+	}
+	/* Add the value (may result in duplicates */
+	nclistpush(values,(ncelem)nulldup(vp));
 	cp = next;
     }
     free(params);
-    return plist;
+    return map;
 }
 
-static const char*
-nc_urlparamlookup(NClist* params, const char* clientparam)
+/*
+Lookup the param, if value is non-null, then see
+if it occurs in the value list
+*/
+
+static NClist*
+nc_urlparamlookup(NClist* params, const char* pname)
 {
-    int i;
-    if(params == NULL || clientparam == NULL) return NULL;
+    int i,j
+    if(params == NULL || pname == NULL) return NULL;
     for(i=0;i<nclistlength(params);i+=2) {
 	char* name = (char*)nclistget(params,i);
-	if(strcmp(clientparam,name)==0)
-	    return (char*)nclistget(params,i+1);
+	if(strcmp(pname,name)==0) {
+	    return (NClist*)nclistget(params,i+1);
+	}
     }
     return NULL;
 }
 
+
+
 static void
 nc_urlparamfree(NClist* params)
 {
-    int i;
+    int i,j;
     if(params == NULL) return;
-    for(i=0;i<nclistlength(params);i++) {
+    for(i=0;i<nclistlength(params);i+=2) {
 	char* s = (char*)nclistget(params,i);
 	if(s != NULL) free((void*)s);
+	NClist* values = (NClist*)nclistget(params,i+1);
+	for(j=0;j<nclistlength(values);j++) {
+	    s = (char*)nclistget(values,j);	    
+	    if(s != NULL) free((void*)s);
+	}
+        nclistfree(values);
     }
     nclistfree(params);
 }
+
+void
+nc_urlsetprotocol(NC_URL* ncurl,const char* newprotocol)
+{
+    if(ncurl != NULL) {
+	if(ncurl->protocol != NULL) free(ncurl->protocol);
+	ncurl->protocol = nulldup(newprotocol);
+    }
+}
+
 
 #ifdef IGNORE
 /*

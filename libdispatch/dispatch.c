@@ -42,28 +42,39 @@ int
 NC_urlmodel(const char* path)
 {
     int model = 0;
-    int protolen = 0;
     NC_URL* tmpurl = NULL;
+
     if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
-    protolen = strlen(tmpurl->protocol);
-    /* First, look at the protocol */
-    if(strncmp(tmpurl->protocol,"http",4) {
-	/* Look at any prefixed parameters */
-	if(nc_urllookup(tmpurl,"netcdf4")
-	   || nc_urllookup(tmpurl,"netcdf-4")) {
-	    model = (NC_DISPATCH_NC4 | NC_DISPATCH_NCD);
-	} else if(nc_urllookup(tmpurl,"netcdf3")
-	   || nc_urllookup(tmpurl,"netcdf-3")) {
-	    model = (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
-	} else if(nc_urllookup(tmpurl,"cdmremote")
-	   || nc_urllookup(tmpurl,"cdmr")) {
-	    model = (NC_DISPATCH_NC4 | NC_DISPATCH_NCR);
-	} else {
-	    model = 0;
-	}
-    } else if(strcmp(tmpurl->protocol,"dods,4") {
-	
-    } else if(strcmp(tmpurl->protocol,"cdmr,4") {
+
+    /* Look at any prefixed parameters */
+    if(nc_urllookup(tmpurl,"netcdf4")
+       || nc_urllookup(tmpurl,"netcdf-4")) {
+	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
+    } else if(nc_urllookup(tmpurl,"netcdf3")
+              || nc_urllookup(tmpurl,"netcdf-3")) {
+	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
+    } else if(nc_urllookup(tmpurl,"cdmremote")
+	      || nc_urllookup(tmpurl,"cdmr")) {
+	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
+    }
+
+    /* Now look at the protocol */
+    if(strncmp(tmpurl->protocol,"http",4)) {
+	/* Nothing to do */
+	model = model;
+    } else if(strncmp(tmpurl->protocol,"dods",4)) {
+	if(strcmp(tmpurl->protocol,"dodss"))
+	    nc_urlsetprotocol(tmpurl,"https");
+	else
+	    nc_urlsetprotocol(tmpurl,"http");
+	model |= NC_DISPATCH_NCD; /* to make sure */
+    } else if(strncmp(tmpurl->protocol,"cdmr",4)) {
+        int protolen = strlen(tmpurl->protocol);
+	if(tmpurl->protocol[protolen-1] == 's')
+	    nc_urlsetprotocol(tmpurl,"https");
+	else
+	    nc_urlsetprotocol(tmpurl,"http");
+	model |= (NC_DISPATCH_NCR|NC_DISPATCH_NC4); /* to make sure */
     }
 done:
     nc_urlfree(tmpurl);
