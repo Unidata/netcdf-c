@@ -36,8 +36,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <curl/curl.h>
-
 #include "nccr.h"
 #include "curlwrap.h"
 
@@ -110,7 +108,7 @@ nc_fetchurl_file(CURL* curl, char* url, FILE* stream,
     return THROW(stat);
 
 fail:
-    nc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
     return THROW(NC_ECURL);
 }
 
@@ -119,7 +117,6 @@ nc_fetchurl(CURL* curl, char* url, NCbytes* buf, long* filetime)
 {
     int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
-    size_t len;
 
     /* Set the URL */
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
@@ -139,8 +136,8 @@ nc_fetchurl(CURL* curl, char* url, NCbytes* buf, long* filetime)
     cstat = curl_easy_perform(curl);
     if(cstat == CURLE_PARTIAL_FILE) {
         /* Log it but otherwise ignore */
-        nc_log(LOGWARN, "curl error: %s; ignored",
-           curl_easy_strerror(cstat));
+        LOG((LOGWARN, "curl error: %s; ignored",
+           curl_easy_strerror(cstat)));
         cstat = CURLE_OK;
     }
     if(cstat != CURLE_OK) goto fail;
@@ -151,12 +148,12 @@ nc_fetchurl(CURL* curl, char* url, NCbytes* buf, long* filetime)
     if(cstat != CURLE_OK) goto fail;
 
     /* Null terminate the buffer*/
-    NCbytesnull(buf);
+    ncbytesnull(buf);
 
     return THROW(stat);
 
 fail:
-    nc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
     return THROW(NC_ECURL);
 }
 
@@ -171,7 +168,7 @@ WriteFileCallback(void* ptr, size_t size, size_t nmemb,    void* data)
         fetchdata->size += (count * size);
     }
 #ifdef DEBUG
-    nc_log(LOGNOTE,"callback: %lu bytes",(unsigned long)(size*nmemb));
+    LOG((LOGNOTE,"callback: %lu bytes",(unsigned long)(size*nmemb))));
 #endif
     return count;
 }
@@ -182,13 +179,13 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
     size_t realsize = size * nmemb;
     NCbytes* buf = (NCbytes*) data;
     if(realsize == 0)
-        nc_log(LOGWARN,"WriteMemoryCallback: zero sized chunk");
+        LOG((LOGWARN,"WriteMemoryCallback: zero sized chunk"));
     /* Optimize for reading potentially large dods datasets */
-    if(!NCbytesavail(buf,realsize)) {
+    if(!ncbytesavail(buf,realsize)) {
         /* double the size of the packet */
-        NCbytessetalloc(buf,2*NCbytesalloc(buf));
+        ncbytessetalloc(buf,2*ncbytesalloc(buf));
     }
-    NCbytesappendn(buf, ptr, realsize);
+    ncbytesappendn(buf, ptr, realsize);
     return realsize;
 }
 
@@ -246,7 +243,7 @@ nc_fetchlastmodified(CURL* curl, char* url, long* filetime)
     return THROW(stat);
 
 fail:
-    nc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
     return THROW(NC_ECURL);
 }
 
@@ -257,40 +254,52 @@ int
 nc_set_curl_flags(CURL* curl,  NCCDMR* nccr)
 {
     CURLcode cstat = CURLE_OK;
-    NCCURLSTATE* state = &state->curl;
+    NCCURLSTATE* state = &nccr->curl;
 
 #ifdef CURLOPT_ENCODING
     if (state->compress) {
         cstat = curl_easy_setopt(curl, CURLOPT_ENCODING, 'deflate, gzip');
         if(cstat != CURLE_OK) goto fail;
-        DEBUG(1,"CURLOP_ENCODING=deflat, gzip");
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOP_ENCODING=deflat, gzip"));
+#endif
     }
 #endif
 
     if (state->cookiejar || state->cookiefile) {
         cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
         if (cstat != CURLE_OK) goto fail;
-        DEBUG(1,"CURLOP_COOKIESESSION=1");
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOP_COOKIESESSION=1"));
+#endif
     }
     if (state->cookiejar) {
         cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, state->cookiejar);
         if (cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOP_COOKIEJAR=%s",state->cookiejar);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOP_COOKIEJAR=%s",state->cookiejar);
+#endif
     }
     if (state->cookiefile) {
         cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, state->cookiefile);
         if (cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_COOKIEFILE=%s",state->cookiefile);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_COOKIEFILE=%s",state->cookiefile);
+#endif
     }
     if (state->verbose) {
         cstat = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         if (cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_VERBOSE=%ld",1L);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_VERBOSE=%ld",1L);
+#endif
     }
 
     /* Following are always set */
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    DEBUG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_FOLLOWLOCATION=%ld",1L);
+#endif
     return NC_NOERR;
 
 fail:
@@ -305,11 +314,15 @@ nc_set_proxy(CURL* curl, NCCDMR* nccr)
 
     cstat = curl_easy_setopt(curl, CURLOPT_PROXY, state->host);
     if (cstat != CURLE_OK) return NC_ECURL;
-    DEBUG1(1,"CURLOPT_PROXY=%s",state->host);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_PROXY=%s",state->host);
+#endif
 
     cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, state->port);
     if (cstat != CURLE_OK) return NC_ECURL;
-    DEBUG1(1,"CURLOPT_PROXYPORT=%d",state->port);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_PROXYPORT=%d",state->port);
+#endif
 
     if (state->username) {
         char *combined = combinecredentials(state->username,state->password);
@@ -317,11 +330,15 @@ nc_set_proxy(CURL* curl, NCCDMR* nccr)
         cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, combined);
         free(combined);
         if (cstat != CURLE_OK) return NC_ECURL;
-        DEBUG1(1,"CURLOPT_PROXYUSERPWD=%s",combined);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_PROXYUSERPWD=%s",combined);
+#endif
 #ifdef CURLOPT_PROXYAUTH
         cstat = curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
         if(cstat != CURLE_OK) goto fail;
-       DEBUG1(1,"CURLOPT_PROXYAUTH=%ld",(long)CURLAUTH_ANY);
+#ifdef DEBUG
+       LOG((LOGNOTE,"CURLOPT_PROXYAUTH=%ld",(long)CURLAUTH_ANY);
+#endif
 #endif
     }
     return NC_NOERR;
@@ -335,35 +352,49 @@ nc_set_ssl(CURL* curl, NCCDMR* nccr)
     long verify = (state->validate?1L:0L);
     cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verify);
     if (cstat != CURLE_OK) goto fail;
-    DEBUG1(1,"CURLOPT_SSL_VERIFYPEER=%ld",verify);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_SSL_VERIFYPEER=%ld",verify);
+#endif
     cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
     if (cstat != CURLE_OK) goto fail;
-    DEBUG1(1,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
+#endif
     {
         if(state->certificate) {
             cstat = curl_easy_setopt(curl, CURLOPT_SSLCERT, state->certificate);
             if(cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_SSLCERT=%s",state->certificate);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_SSLCERT=%s",state->certificate);
+#endif
         }
         if(state->key) {
             cstat = curl_easy_setopt(curl, CURLOPT_SSLKEY, state->key);
             if(cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_SSLKEY=%s",state->key);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_SSLKEY=%s",state->key);
+#endif
         }
         if(state->keypasswd) {
             cstat = curl_easy_setopt(curl, CURLOPT_KEYPASSWD, state->keypasswd);
             if(cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_SSLKEY=%s",state->key);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_SSLKEY=%s",state->key);
+#endif
         }
         if(state->cainfo) {
             cstat = curl_easy_setopt(curl, CURLOPT_CAINFO, state->cainfo);
             if(cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_CAINFO=%s",state->cainfo);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_CAINFO=%s",state->cainfo);
+#endif
         }
         if(state->capath) {
             cstat = curl_easy_setopt(curl, CURLOPT_CAPATH, state->capath);
             if(cstat != CURLE_OK) goto fail;
-        DEBUG1(1,"CURLOPT_CAPATH=%s",state->capath);
+#ifdef DEBUG
+        LOG((LOGNOTE,"CURLOPT_CAPATH=%s",state->capath);
+#endif
         }
     }    
     return NC_NOERR;
@@ -390,10 +421,14 @@ nc_set_user_password(CURL* curl, const char *userC, const char *passwordC)
     if (!combined) return NC_ENOMEM;
     cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, combined);
     if (cstat != CURLE_OK) goto done;
-    DEBUG1(1,"CURLOPT_USERPWD=%s",combined);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_USERPWD=%s",combined);
+#endif
     cstat = curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long) CURLAUTH_ANY);
     if (cstat != CURLE_OK) goto done;
-    DEBUG1(1,"CURLOPT_HTTPAUTH=%ld",(long)CURLAUTH_ANY);
+#ifdef DEBUG
+    LOG((LOGNOTE,"CURLOPT_HTTPAUTH=%ld",(long)CURLAUTH_ANY);
+#endif
 
 done:
     if(combined != NULL) free(combined);
@@ -407,7 +442,7 @@ combinecredentials(const char* user, const char* pwd)
     int userPassSize = strlen(user) + strlen(pwd) + 2;
     char *userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
-        oc_log(LOGERR,"Out of Memory\n");
+        LOG((LOGERR,"Out of Memory\n"));
         return NULL;
     }
     strcpy(userPassword, user);

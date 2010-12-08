@@ -32,13 +32,24 @@
  */
 /* "$Id$" */
 
-extern long nc_fetchhttpcode(CURL*);
-extern int nc_fetchurl_file(CURL*, char* url, FILE* stream, unsigned long* sizep, long* filetime);
-extern int nc_fetchurl(CURL*, char* url, NCbytes* buf, long* filetime);
+#ifndef CURLWRAP_H
+#define CURLWRAP_H
+
+#include <curl/curl.h>
+
 extern int nc_curlopen(CURL**);
 extern void nc_curlclose(CURL*);
-extern int nc_fetchlastmodified(CURL*, char* url, long* filetime);
+
 extern int nc_set_curl_flags(CURL*, NCCDMR*);
 extern int nc_set_proxy(CURL*, NCCDMR*);
 extern int nc_set_ssl(CURL*, NCCDMR*);
 extern int nc_set_user_password(CURL*, const char *userC, const char *passwordC);
+
+#ifdef IGNORE
+extern long nc_fetchhttpcode(CURL*);
+extern int nc_fetchurl_file(CURL*, char* url, FILE* stream, unsigned long* sizep, long* filetime);
+extern int nc_fetchurl(CURL*, char* url, NCbytes* buf, long* filetime);
+extern int nc_fetchlastmodified(CURL*, char* url, long* filetime);
+#endif
+
+#endif /*CURLWRAP_H*/

@@ -8,25 +8,20 @@
 #include <unistd.h>
 #endif
 
-#include "dapdebug.h"
-#include "dapalign.h"
-
-#include "netcdf.h"
+#include "nccr.h"
 #include "nccrdispatch.h"
-#include "ncd4dispatch.h"
-
-#ifdef DEBUG
-#include "dapdump.h"
-#endif
+#include "nc4dispatch.h"
+#include "crdebug.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
 
-extern NCerror cleanNCCR(NCDAP4* drno);
+extern NCerror cleanNCCR(NCCDMR* drno);
 
 static void nccrdinitialize(void);
+#ifdef IGNORE
 static NCerror buildnccr(NCCR* drno);
 static NCerror builddims4(NCCR*);
 static NCerror buildtypes4(NCCR*);
@@ -41,6 +36,7 @@ static NCerror fixzerodims4(NCDAPCOMMON* nccomm);
 static NCerror fixzerodims4r(NCDAPCOMMON* nccomm, CDFnode* node);
 static NCerror cvtunlimiteddim(NCDAPCOMMON* nccomm, CDFnode* dim);
 static void applyclientparamcontrols4(NCDAPCOMMON* nccomm);
+#endif
 
 static int nccrdinitialized = 0;
 
@@ -65,8 +61,7 @@ NCD4_open(const char * path, int mode,
                NC_Dispatch* dispatch, NC** ncpp)
 {
     NCerror ncstat = NC_NOERR;
-    OCerror ocstat = OC_NOERR;
-    NCCRURL* tmpurl;
+    NC_URL* tmpurl;
     NCCR* nccr = NULL; /* reuse the ncdap3 structure*/
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
@@ -79,8 +74,8 @@ NCD4_open(const char * path, int mode,
 
     if(!nccrdinitialized) nccrdinitialize();
 
-    if(!nccrurlparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
-    freenccrurl(tmpurl); /* no longer needed */
+    if(!nc_urlparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
+    nc_urlfree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
     if((mode & NC_WRITE) != 0) ncstat = NC_EINVAL;
@@ -97,41 +92,35 @@ NCD4_open(const char * path, int mode,
     if(fd < 0) {THROWCHK(errno); goto done;}
     /* Now, use the file to create the hdf5 file */
     ncstat = NC4_create(tmpname,NC_NETCDF4|NC_CLOBBER,
-			0,0,NULL,0,NULL,dispatch,(NC**)&cdmr);
+			0,0,NULL,0,NULL,dispatch,(NC**)&nccr);
     ncid = nccr->info.ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
-    efree(tmpname);
+    free(tmpname);
     /* Avoid fill */
     dispatch->set_fill(ncid,NC_NOFILL,NULL);
     if(ncstat)
 	{THROWCHK(ncstat); goto done;}
     /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&cdmr, &grp, &h5);
+    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
     if(ncstat)
 	{THROWCHK(ncstat); goto done;}
 
     /* Setup tentative NCCR state*/
-    nccr->cdmr->controller = (NC*)cdmr;
-    nccr->cdmr->oc.urltext = modifiedpath;
-    nccr->cdmr->cdf.separator = ".";
-    nccrurlparse(nccr->cdmr->urltext,&cdmr->cdmr->url);
-    cdmr->info.dispatch = dispatch;
+    nccr->cdmr->controller = (NC*)nccr;
+    nccr->cdmr->urltext = nulldup(path);
+    nc_urlparse(nccr->cdmr->urltext,&nccr->cdmr->url);
+    nccr->info.dispatch = dispatch;
 
-    cdmr->cdmr->oc.dapconstraint = createncconstraint();
-
-    /* Open the curl connection */
-
-
-
-    ocstat = oc_open(cdmr->cdmr->oc.urltext,&cdmr->cdmr->oc.conn);
+    /* Create the curl connection */
+    ncstat = nc_curlopen(nccr->cdmr->curl.curl);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
-    if(paramcheck34(&cdmr->dap,"show","fetch"))
-	SETFLAG(cdmr->cdmr->controls,NCF_SHOWFETCH);
+ X   if(nc_urllookup(nccr->cdmr->url,"show","fetch"))
+	SETFLAG(nccr->cdmr->controls,NCF_SHOWFETCH);
 
     /* Turn on logging */
-    value = oc_clientparam_get(cdmr->cdmr->oc.conn,"log");
+    value = oc_clientparam_get(nccr->cdmr->oc.conn,"log");
     if(value != NULL) {
 	oc_loginit();
         oc_setlogging(1);
@@ -139,55 +128,55 @@ NCD4_open(const char * path, int mode,
     }
 
     /* fetch and build the unconstrained DDS */
-    ncstat = fetchtemplatemetadata3(&cdmr->dap);
+    ncstat = fetchtemplatemetadata3(&nccr->dap);
     if(ncstat != NC_NOERR) goto done;
 
     /* Process the constraints to map the CDF tree */
-    ncstat = mapconstraints3(&cdmr->dap);
+    ncstat = mapconstraints3(&nccr->dap);
     if(ncstat != NC_NOERR) goto done;
 
     /* fetch and build the constrained DDS */
-    ncstat = fetchconstrainedmetadata3(&cdmr->dap);
+    ncstat = fetchconstrainedmetadata3(&nccr->dap);
     if(ncstat != NC_NOERR) goto done;
 
     /* The following actions are WRT to the constrained tree */
 
     /* Accumulate useful nodes sets  */
-    ncstat = computecdfnodesets4(&cdmr->dap);
+    ncstat = computecdfnodesets4(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Fix grids */
-    ncstat = fixgrids4(&cdmr->dap);
+    ncstat = fixgrids4(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
-    ncstat = applyclientparams34(&cdmr->dap);
+    ncstat = applyclientparams34(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Accumulate the nodes representing user types*/
-    ncstat = computeusertypes4(&cdmr->dap);
+    ncstat = computeusertypes4(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the type names*/
-    ncstat = shortentypenames4(&cdmr->dap);
+    ncstat = shortentypenames4(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the dimension names*/
-    ncstat = computecdfdimnames34(&cdmr->dap);
+    ncstat = computecdfdimnames34(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* deal with zero-size dimensions */
-    ncstat = fixzerodims4(&cdmr->dap);
+    ncstat = fixzerodims4(&nccr->dap);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Estimate the variable sizes */
-    estimatesizes4(&cdmr->dap);
+    estimatesizes4(&nccr->dap);
 
     ncstat = buildnccr(cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Do any necessary data prefetch */
-    ncstat = prefetchdata3(&cdmr->dap);
+    ncstat = prefetchdata3(&nccr->dap);
     if(ncstat != NC_NOERR)
 	{THROWCHK(ncstat); goto done;}
 
@@ -219,7 +208,7 @@ NCD4_close(int ncid)
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
     /* Find our metadata for this file. */
-    ncstat = nccr_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&cdmr, &grp, &h5);
+    ncstat = nccr_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
     /* This must be the root group. */
@@ -246,9 +235,9 @@ nccrdinitialize()
 }
 
 NCerror
-cleanNCCR(NCDAP4* cdmr)
+cleanNCCR(NCCDMR* cdmr)
 {
-    return cleanNCDAPCOMMON(&cdmr->dap);
+    return cleanNCDAPCOMMON(&nccr->dap);
 }
 
 /*
@@ -259,7 +248,7 @@ static NCerror
 buildnccr(NCCR* cdmr)
 {
     NCerror ncstat = NC_NOERR;
-    CDFnode* dds = cdmr->cdmr->cdf.ddsroot;
+    CDFnode* dds = nccr->cdmr->cdf.ddsroot;
     ncstat = buildglobalattrs4(cdmr,getncid(cdmr),dds);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     ncstat = builddims4(cdmr);
@@ -286,8 +275,8 @@ builddims4(NCCR* cdmr)
        including duplicates; note we use array.dimensions
        not array.ncdimensions.
     */
-    for(i=0;i<nclistlength(cdmr->cdmr->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(cdmr->cdmr->cdf.varnodes,i);
+    for(i=0;i<nclistlength(nccr->cdmr->cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccr->cdmr->cdf.varnodes,i);
         if(!var->visible) continue;
 	nclistextend(dimset,nclistlength(var->array.dimensions));
         for(j=0;j<nclistlength(var->array.dimensions);j++) {
@@ -336,8 +325,8 @@ buildtypes4(NCCR* cdmr)
     NCerror ncstat = NC_NOERR;
 
     /* Define user types in postorder */
-    for(i=0;i<nclistlength(cdmr->cdmr->cdf.usertypes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(cdmr->cdmr->cdf.usertypes,i);
+    for(i=0;i<nclistlength(nccr->cdmr->cdf.usertypes);i++) {
+	CDFnode* node = (CDFnode*)nclistget(nccr->cdmr->cdf.usertypes,i);
 	if(!node->visible) continue;
 	ncstat = buildtypes4r(cdmr,node);
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -435,8 +424,8 @@ buildvars4(NCCR* cdmr)
     int varid;
     int ncid = getncid(cdmr);
 
-    for(i=0;i<nclistlength(cdmr->cdmr->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(cdmr->cdmr->cdf.varnodes,i);
+    for(i=0;i<nclistlength(nccr->cdmr->cdf.varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccr->cdmr->cdf.varnodes,i);
 	NClist* vardims = var->array.dimensions;
 	int dimids[NC_MAX_VAR_DIMS];
 	int ncrank,dimindex=0;
@@ -451,7 +440,7 @@ buildvars4(NCCR* cdmr)
                 dimids[dimindex++] = dim->ncid;
  	    }
         }   
-	setvarbasetype(&cdmr->dap,var);
+	setvarbasetype(&nccr->dap,var);
 	ASSERT((var->typeid > 0));
         ncstat = nc_def_var(getncid(cdmr),var->ncfullname,
 			    var->typeid,
@@ -468,8 +457,8 @@ buildvars4(NCCR* cdmr)
 	    }
 	}
 	/* Tag the variable with its DAP path */
-	if(paramcheck34(&cdmr->dap,"show","projection"))
-	    showprojection4(&cdmr->dap,var);
+	if(paramcheck34(&nccr->dap,"show","projection"))
+	    showprojection4(&nccr->dap,var);
     }
     
 done:
@@ -496,21 +485,21 @@ buildglobalattrs4(NCCR* cdmr, int ncid, CDFnode* root)
        on show= clientparams*/
     /* Ignore doneures*/
 
-    if(paramcheck34(&cdmr->dap,"show","translate")) {
+    if(paramcheck34(&nccr->dap,"show","translate")) {
         /* Add a global attribute to show the translation */
         ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_translate",
 	           strlen("netcdf-4"),"netcdf-4");
     }
 
-    if(paramcheck34(&cdmr->dap,"show","url")) {
-	if(cdmr->cdmr->oc.urltext != NULL)
+    if(paramcheck34(&nccr->dap,"show","url")) {
+	if(nccr->cdmr->oc.urltext != NULL)
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_url",
-				       strlen(cdmr->cdmr->oc.urltext),cdmr->cdmr->oc.urltext);
+				       strlen(nccr->cdmr->oc.urltext),nccr->cdmr->oc.urltext);
     }
-    if(paramcheck34(&cdmr->dap,"show","dds")) {
+    if(paramcheck34(&nccr->dap,"show","dds")) {
 	txt = NULL;
-	if(cdmr->cdmr->cdf.ddsroot != NULL)
-  	    txt = oc_inq_text(cdmr->cdmr->oc.conn,cdmr->cdmr->cdf.ddsroot->dds);
+	if(nccr->cdmr->cdf.ddsroot != NULL)
+  	    txt = oc_inq_text(nccr->cdmr->oc.conn,nccr->cdmr->cdf.ddsroot->dds);
 	if(txt != NULL) {
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
@@ -519,10 +508,10 @@ buildglobalattrs4(NCCR* cdmr, int ncid, CDFnode* root)
 	    efree(nltxt);
 	}
     }
-    if(paramcheck34(&cdmr->dap,"show","das")) {
+    if(paramcheck34(&nccr->dap,"show","das")) {
 	txt = NULL;
-	if(cdmr->cdmr->oc.ocdasroot != OCNULL)
-  	    txt = oc_inq_text(cdmr->cdmr->oc.conn,cdmr->cdmr->oc.ocdasroot);
+	if(nccr->cdmr->oc.ocdasroot != OCNULL)
+  	    txt = oc_inq_text(nccr->cdmr->oc.conn,nccr->cdmr->oc.ocdasroot);
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};

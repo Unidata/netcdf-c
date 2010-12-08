@@ -27,8 +27,7 @@ libdispatch_la_SOURCES += nc_url.c nc_url.h
 # than one later library.
 # TODO: move logging code here so it can be used anywhere.
 libdispatch_la_SOURCES += nclist.c nclist.h \
-                          ncbytes.c ncbytes.h \
-                          nchashmap.c nchashmap.h
+                          ncbytes.c ncbytes.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4

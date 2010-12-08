@@ -13,11 +13,13 @@
 #include "ncbytes.h"
 #include "nclist.h"
 
+#include "netcdf.h"
+#include "ncdispatch.h"
 #include "nc4internal.h"
 #include "nc.h"
-#include "netcdf.h"
 
 #include "crdebug.h"
+#include "crutil.h"
 
 /* Forward */
 struct Curl;
@@ -25,11 +27,10 @@ struct Curl;
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
 
-typedef struct NCCURLSTATE NCCURLSTATE;
-
 typedef struct NCCDMR {
     NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
-    char* urltext; /* as given to nc3d_open*/
+    char* urltext; /* as given to open()*/
+    NC_URL* url;
     /* Store curl state  info */
     struct NCCURLSTATE {
         struct Curl* curl;
@@ -53,6 +54,8 @@ typedef struct NCCDMR {
 	char *password;
     } curl;
 } NCCDMR;
+
+typedef struct NCCURLSTATE NCCURLSTATE;
 
 typedef struct NCCR {
     NC_FILE_INFO_T info;

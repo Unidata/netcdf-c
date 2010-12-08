@@ -13,7 +13,7 @@ AM_LDFLAGS =
 
 # CDMREMORE Sources
 SRC=curlwrap.c nccr.c nccrconstraints.c nccrdispatch.c nccrgetvara.c \
-nccrstub.c crdebug.c
+nccrstub.c crdebug.c crutil.c
 
 HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h crdebug.h
 

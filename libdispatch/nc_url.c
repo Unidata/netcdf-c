@@ -10,7 +10,7 @@
 #define RBRACKET ']'
 
 static NClist* nc_urlparamdecode(char* params0);
-static const char* nc_urlparamlookup(NClist* params, const char* clientparam);
+static NClist* nc_urlparamlookup(NClist* params, const char* clientparam);
 static void nc_urlparamfree(NClist* params);
 
 
@@ -108,7 +108,7 @@ nc_urlfree(NC_URL* ncurl)
     if(ncurl->projection != NULL) {free(ncurl->projection);}
     if(ncurl->selection != NULL) {free(ncurl->selection);}
     if(ncurl->params != NULL) {free(ncurl->params);}
-    if(ncurl->paramlist != NULL) nc_urlparamfree(ncurl->paramlist);
+    if(ncurl->parammap != NULL) nc_urlparamfree(ncurl->parammap);
     free(ncurl);
 }
 
@@ -154,9 +154,9 @@ int
 nc_urldecodeparams(NC_URL* ncurl)
 {
     int ok = 0;
-    if(ncurl->paramlist == NULL && ncurl->params != NULL) {
+    if(ncurl->parammap == NULL && ncurl->params != NULL) {
 	NClist* map = nc_urlparamdecode(ncurl->params);
-	ncurl->paramlist = map;
+	ncurl->parammap = map;
 	ok = 1;
     }
     return ok;
@@ -212,7 +212,7 @@ nc_urlparamdecode(char* params0)
     char* params;
     char* tmp;
 
-    if(params0 == NULL) return plist;
+    if(params0 == NULL) return map;
 
     /* Pass 1 is to remove all blanks */
     params = strdup(params0);
@@ -261,7 +261,7 @@ nc_urlparamdecode(char* params0)
 	/* Locate any previous name match and get/create the value list*/
         for(values=NULL,j=0;j<nclistlength(map);j+=2) {
 	    if(strcmp(cp,(char*)nclistget(map,j))==0) {
-		values = nclistget(map,j+1);
+		values = (NClist*)nclistget(map,j+1);
 		break;
 	    }	
 	}
@@ -287,7 +287,7 @@ if it occurs in the value list
 static NClist*
 nc_urlparamlookup(NClist* params, const char* pname)
 {
-    int i,j
+    int i;
     if(params == NULL || pname == NULL) return NULL;
     for(i=0;i<nclistlength(params);i+=2) {
 	char* name = (char*)nclistget(params,i);

@@ -30,13 +30,14 @@ noinst_LTLIBRARIES = libncdap4.la
 # Build convenience library
 libncdap4_la_SOURCES = $(SRC) $(HDRS)
 
-AM_CPPFLAGS += -I$(top_srcdir)/libncdap3 \
-	      -I$(top_srcdir)/libsrc4 \
-	      -I$(top_srcdir)/libsrc
+AM_CPPFLAGS += -I${top_srcdir}/libdispatch \
+	       -I$(top_srcdir)/libncdap3 \
+	       -I$(top_srcdir)/libsrc4 \
+	       -I$(top_srcdir)/libsrc
 
 AM_CPPFLAGS += -I${top_srcdir}/oc
 
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
+AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
 # Define the load libraries for stub3
 LDADD += ${top_builddir}/libncdap4/libncdap4.la \

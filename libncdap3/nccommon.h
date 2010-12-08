@@ -6,9 +6,6 @@
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 
-/* It is important to track error status as coming from nc or oc*/
-typedef int NCerror; /* OCerror is already defined*/
-
 /* Mnemonics */
 #ifndef BOOL
 #define BOOL int

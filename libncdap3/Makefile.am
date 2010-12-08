@@ -49,7 +49,7 @@ dapdump.h \
 netcdf3l.h \
 ceparselex.h \
 cetab.h \
-nchashmap.h
+nchashmap.c
 
 if BUILD_DAP
 
