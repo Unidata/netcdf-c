@@ -21,5 +21,6 @@ NC_initialize(void)
     NCD3_initialize();
     NC4_initialize();
     NCD4_initialize();
+    NCCR_initialize();
     return NC_NOERR;
 }

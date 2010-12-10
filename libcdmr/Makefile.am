@@ -12,8 +12,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
 # CDMREMORE Sources
-SRC=curlwrap.c nccr.c nccrconstraints.c nccrdispatch.c nccrgetvara.c \
-nccrstub.c crdebug.c crutil.c
+SRC=curlwrap.c nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
+crdebug.c crutil.c
 
 HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h crdebug.h
 
@@ -44,16 +44,10 @@ LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_cdmr
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_cdmr
-t_cdmr_SOURCES = t_cdmr.c stubcdmr.c
+TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
+t_cdmr_SOURCES = t_cdmr.c nccrstub.c
 CLEANFILES += t_cdmr
-
-# One last thing
-BUILT_SOURCES = .dodsrc
-.dodsrc:
-	echo "#DODSRC" >.dodsrc
-DISTCLEANFILES += .dodsrc
 
 endif # BUILD_CDMREMOTE
 

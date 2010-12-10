@@ -35,8 +35,6 @@
 #ifndef CURLWRAP_H
 #define CURLWRAP_H
 
-#include <curl/curl.h>
-
 extern int nc_curlopen(CURL**);
 extern void nc_curlclose(CURL*);
 

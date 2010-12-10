@@ -8,9 +8,9 @@
 #include <string.h>
 
 #include "config.h"
-#include "nccr.h"
-#include "nc.h"
 #include "ncdispatch.h"
+#include "nc.h"
+#include "nccr.h"
 #include "nccrdispatch.h"
 
 static int
@@ -28,7 +28,7 @@ static int NCCR_put_vara(int ncid, int varid,
 
 NC_Dispatch NCCR_dispatch_base = {
 
-NC_DISPATCH_NCCR,
+NC_DISPATCH_NCR,
 
 NCCR_new_nc,
 
@@ -117,13 +117,10 @@ NC_Dispatch NCCR_dispatcher;
 int
 NCCR_initialize(void)
 {
-    int i;
     /* Create our dispatch table as the merge of NC4 table
        plus some overrides */
     NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
     NCCR_dispatch_table = &NCCR_dispatcher;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++)
-	{dapzerostart3[i] = 0; dapsinglecount3[i] = 1; dapsinglestride3[i] = 1;}
     return NC_NOERR;
 }
 

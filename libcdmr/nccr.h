@@ -1,3 +1,10 @@
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   $Id$
+ *   $Header$
+ *********************************************************************/
+
 #ifndef NCCR_H
 #define NCCR_H
 
@@ -10,6 +17,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <curl/curl.h>
+
 #include "ncbytes.h"
 #include "nclist.h"
 
@@ -21,9 +30,6 @@
 #include "crdebug.h"
 #include "crutil.h"
 
-/* Forward */
-struct Curl;
-
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
 
@@ -31,14 +37,20 @@ typedef struct NCCDMR {
     NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
     char* urltext; /* as given to open()*/
     NC_URL* url;
+    /* Track some flags */
+    int controls;
     /* Store curl state  info */
     struct NCCURLSTATE {
-        struct Curl* curl;
+        CURL* curl;
         int curlflags;
 	int compress;
 	int verbose;
 	int followlocation;
 	int maxredirs;
+	char *host;
+	int port;
+	char *username;
+	char *password;
 	char* useragent;
 	char* cookiejar;
 	char* cookiefile;
@@ -48,10 +60,6 @@ typedef struct NCCDMR {
 	char* keypasswd;
         char* cainfo; /* certificate authority */
 	char* capath; 
-	char *host;
-	int port;
-	char *username;
-	char *password;
     } curl;
 } NCCDMR;
 
@@ -63,6 +71,10 @@ typedef struct NCCR {
 } NCCR;
 
 /**************************************************/
+/* Define various flags (powers of 2)*/
+#define SHOWFETCH (0x1)
+
+
 /**************************************************/
 /* Give PSEUDOFILE a value */
 #define PSEUDOFILE "/tmp/pseudofileXXXXXX"
@@ -82,6 +94,8 @@ extern char* nulldup(const char*);
 /**********************************************************/
 
 extern int nccrceparse(char*, int, NClist**, NClist**, char**);
+
+extern NCerror crbuildnc(NCCR*);
 
 /**********************************************************/
 
