@@ -116,7 +116,6 @@ array_decl:
 	   '[' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,null,$2);}
 	 | '[' '=' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,null,$3);}
 	 | '[' name '=' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,$2,$4);}
-	 | '[' '=' SCAN_WORD ']' {$$=dap_arraydecl(parsestate,null,$3);}
 	 | error
 	    {daperror(parsestate,"Illegal dimension declaration"); YYABORT;}
 	;
