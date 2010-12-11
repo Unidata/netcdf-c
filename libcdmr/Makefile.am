@@ -15,7 +15,8 @@ AM_LDFLAGS =
 SRC=curlwrap.c nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
 crdebug.c crutil.c
 
-HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h crdebug.h
+HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h \
+crdebug.h crutil.h
 
 if BUILD_CDMREMOTE
 
