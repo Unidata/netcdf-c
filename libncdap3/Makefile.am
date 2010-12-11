@@ -49,7 +49,7 @@ dapdump.h \
 netcdf3l.h \
 ceparselex.h \
 cetab.h \
-nchashmap.c
+nchashmap.h
 
 if BUILD_DAP
 
@@ -72,9 +72,9 @@ AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
-LDADD +=  ${top_builddir}/libncdap3/libncdap3.la
-
-LDADD += ${top_builddir}/oc/liboc.la
+LDADD +=  ${top_builddir}/libncdap3/libncdap3.la \
+	  ${top_builddir}/oc/liboc.la \
+	  ${top_builddir}/libdispatch/libdispatch.la
 
 LDADD += @EXTERN_LDFLAGS@
 
@@ -82,7 +82,7 @@ LDADD += @EXTERN_LDFLAGS@
 check_PROGRAMS = t_dap
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
-t_dap_SOURCES = t_dap.c stubdap3.c
+t_dap_SOURCES = t_dap3.c stubdap3.c
 t_dap_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
 ${top_builddir}/libdispatch/libdispatch.la
 CLEANFILES += t_dap

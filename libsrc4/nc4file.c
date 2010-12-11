@@ -65,6 +65,9 @@ static int virgin = 1;
 #define NUM_TYPES 12
 static hid_t native_type_constant[NUM_TYPES];
 
+static char nc_type_name[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short", "int", "float",
+							"double", "ubyte", "ushort", "uint", 
+							"int64", "uint64", "string"};
 int nc4_free_global_hdf_string_typeid();
 
 /* Set chunk cache size. Only affects files opened/created *after* it
@@ -419,9 +422,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
 {
    /*char *start_of_len;*/
    char dimscale_name_att[NC_MAX_NAME + 1] = "";
-   int natts, a;
    hid_t attid = 0;
-   char att_name[NC_MAX_HDF5_NAME + 1];
    int max_len;
    int retval;
 
@@ -675,9 +676,6 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    nc_type nc_type_constant[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT,
 					  NC_DOUBLE, NC_UBYTE, NC_USHORT, NC_UINT,
 					  NC_INT64, NC_UINT64, NC_STRING};
-   char type_name[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short", "int", "float",
-						 "double", "ubyte", "ushort", "uint", 
-						 "int64", "uint64", "string"};
    int type_size[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short), 
 			       sizeof(int), sizeof(float), sizeof(double),
 			       sizeof(unsigned char), sizeof(unsigned short), 
@@ -768,9 +766,9 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       *xtype = nc_type_constant[t];
       (*type_info)->nc_typeid = nc_type_constant[t];
       (*type_info)->size = type_size[t];
-      if (!((*type_info)->name = malloc((strlen(type_name[t]) + 1) * sizeof(char))))
+      if (!((*type_info)->name = malloc((strlen(nc_type_name[t]) + 1) * sizeof(char))))
 	 return NC_ENOMEM;
-      strcpy((*type_info)->name, type_name[t]);
+      strcpy((*type_info)->name, nc_type_name[t]);
       (*type_info)->class = class;
       (*type_info)->hdf_typeid = hdf_typeid;
       (*type_info)->native_typeid = native_typeid;
@@ -2070,45 +2068,72 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 #ifdef USE_HDF4   
 static int
 get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid, 
-			  nc_type *xtype)
+			  nc_type *xtype, NC_TYPE_INFO_T *type_info)
 {
-
+   int t;
    assert(h5 && xtype);
 
    switch(hdf4_typeid)
    {
       case DFNT_CHAR:
 	 *xtype = NC_CHAR;
+	 t = 0;
 	 break;
       case DFNT_UCHAR:
       case DFNT_UINT8:
 	 *xtype = NC_UBYTE;
+	 t = 6;
 	 break;
       case DFNT_INT8:
 	 *xtype = NC_BYTE;
+	 t = 1;
 	 break;
       case DFNT_INT16:
 	 *xtype = NC_SHORT;
+	 t = 2;
 	 break;
       case DFNT_UINT16:
 	 *xtype = NC_USHORT;
+	 t = 7;
 	 break;
       case DFNT_INT32:
 	 *xtype = NC_INT;
+	 t = 3;
 	 break;
       case DFNT_UINT32:
 	 *xtype = NC_UINT;
+	 t = 8;
 	 break;
       case DFNT_FLOAT32:
 	 *xtype = NC_FLOAT;
+	 t = 4;
 	 break;
       case DFNT_FLOAT64:
 	 *xtype = NC_DOUBLE;
+	 t = 5;
 	 break;
       default:
 	 *xtype = NC_NAT;
 	 return NC_EBADTYPID;
    }
+
+   if (type_info)
+   {
+      if (hdf4_typeid == DFNT_FLOAT32 || hdf4_typeid == DFNT_FLOAT64)
+	 type_info->class = H5T_FLOAT;
+      else if (hdf4_typeid == DFNT_CHAR)
+	 type_info->class = H5T_STRING;
+      else
+	 type_info->class = H5T_INTEGER;
+      type_info->endianness = NC_ENDIAN_BIG;
+      type_info->nc_typeid = *xtype;
+      if (type_info->name)
+	 free(type_info->name);
+      if (!(type_info->name = malloc((strlen(nc_type_name[t]) + 1) * sizeof(char))))
+	 return NC_ENOMEM;
+      strcpy(type_info->name, nc_type_name[t]);      
+   }
+
    return NC_NOERR;
 }
 #endif /* USE_HDF4 */
@@ -2172,7 +2197,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
       if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count)) 
 	 return NC_EATTMETA;
       if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-					      &att->xtype)))
+					      &att->xtype, NULL)))
 	 return retval;
       att->len = att_count;
 
@@ -2213,14 +2238,19 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	 return NC_EVARMETA;
       var->ndims = rank;
       var->hdf4_data_type = data_type;
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype)))
+
+      /* Fill special type_info struct for variable type information. */
+      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
+	 return NC_ENOMEM;
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info)))
 	 return retval;
+      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size)))
+	 return retval;
+      var->type_info->size = var_type_size;
       LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->name, 
 	   rank, var->xtype));
 
       /* Get the fill value. */
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size)))
-	 return retval;
       if (!(var->fill_value = malloc(var_type_size)))
 	 return NC_ENOMEM;
       if (SDgetfillvalue(var->sdsid, var->fill_value))
@@ -2303,7 +2333,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) 
 	    return NC_EATTMETA;
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-						 &att->xtype)))
+						 &att->xtype, NULL)))
 	    return retval;
 	 att->len = att_count;
 

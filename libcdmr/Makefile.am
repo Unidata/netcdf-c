@@ -31,7 +31,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 \
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
 
 # Define the load libraries for stub3
-LDADD += ${top_builddir}/libncdap4/libnccr.la \
+LDADD += ${top_builddir}/libcdmr/libnccr.la \
 	 ${top_builddir}/libsrc4/libnetcdf4.la \
          ${top_builddir}/libsrc/libnetcdf3.la \
          ${top_builddir}/libdispatch/libdispatch.la

@@ -36,7 +36,6 @@
 #define	NC_STRING 	12	/* string */
 #endif
 
-
 #define CHECK(expr) check(expr,__FILE__,__LINE__);
 
 #define COMMA (i==0?"":",")
@@ -46,6 +45,8 @@
 static int fail = 0;
 
 static void compare(nc_type,nc_type,void*,void*,char*,char*,int);
+
+static int generate();
 
 static void
 report(const int i, const char* var, const int line)
@@ -119,11 +120,13 @@ static char* string4[DIMSIZE];
 static char string3[DIMSIZE][STRLEN];
 #endif
 
+
+char* topsrcdir = NULL;
+
 int main()
 {
     int ncid, varid, ncstat;
     char* url;
-    char* topsrcdir;
     size_t len;
 
 #ifndef USE_NETCDF4
@@ -137,7 +140,7 @@ int main()
     /* Assume that TESTS_ENVIRONMENT was set */
     topsrcdir = getenv("TOPSRCDIR");
     if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
+        fprintf(stderr,"*** FAIL: $TOPSRCDIR not defined: location= %s:%d\n",__FILE__,__LINE__);
         exit(1);
     }    
     len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
@@ -164,27 +167,13 @@ int main()
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
 #endif
     
-    /* extract the string case for netcdf-3*/
+#ifdef GENERATE
+    return generate();
+#else
+
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));
     CHECK(nc_get_var_text(ncid,varid,(char*)string3));
-#ifdef GENERATE
-    printf("static %s string3_data[DIMSIZE][STRLEN]={","char");
-    for(i=0;i<DIMSIZE;i++) {
-	int j;
-	/* Do simple escape */
-	for(j=0;j<STRLEN;j++) {
-	    if(string3[i][j] > 0
-	       && string3[i][j] != '\n'
-	       && string3[i][j] != '\r'
-	       && string3[i][j] != '\t'
-	       &&(string3[i][j] < ' ' || string3[i][j] >= '\177'))
-		string3[i][j] = '?';
-	}
-	printf("%s\"%s\"",COMMA,string3[i]);
-    }
-    printf("};\n");
-#else
  	fprintf(stdout,"*** testing: %s\n","string3");
 	for(i=0;i<DIMSIZE;i++) {
    	    for(j=0;j<STRLEN;j++) {
@@ -192,229 +181,97 @@ int main()
 	    }
 	}
 #endif
-#endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_text(ncid,varid,ch));
-#ifdef GENERATE
-    printf("static %s ch_data[DIMSIZE]={","char");
-    for(i=0;i<DIMSIZE;i++) printf("%s'\\%03hho'",COMMA,ch[i]);
-    printf("};\n");
-#else
     COMPARE(NC_CHAR,NC_CHAR,ch,ch_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_schar(ncid,varid,int8));
-#ifdef GENERATE
-    printf("static %s int8_data[DIMSIZE]={","signed char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8[i]);
-    printf("};\n");
-#else
     COMPARE(NC_BYTE,NC_BYTE,int8,int8_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_uchar(ncid,varid,uint8));
-#ifdef GENERATE
-    printf("static %s uint8_data[DIMSIZE]={","unsigned char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
-    printf("};\n");
-#else
     COMPARE(NC_UBYTE,NC_UBYTE,uint8,uint8_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_int(ncid,varid,int32));
-#ifdef GENERATE
-    printf("static %s int8toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_BYTE,NC_INT,int32,int8toint32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_float(ncid,varid,float32));
-#ifdef GENERATE
-    printf("static %s int82float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_FLOAT,NC_FLOAT,float32,int82float32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
     CHECK(nc_get_var_short(ncid,varid,int16));
-#ifdef GENERATE
-    printf("static %s int16_data[DIMSIZE]={","short");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16[i]);
-    printf("};\n");
-#else
     COMPARE(NC_SHORT,NC_SHORT,int16,int16_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
     CHECK(nc_get_var_int(ncid,varid,int32));
-#ifdef GENERATE
-    printf("static %s int16toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_SHORT,NC_INT,int32,int16toint32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
     CHECK(nc_get_var_float(ncid,varid,float32));
-#ifdef GENERATE
-    printf("static %s int162float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_SHORT,NC_FLOAT,float32,int162float32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
     CHECK(nc_get_var_int(ncid,varid,int32));
-#ifdef GENERATE
-    printf("static %s int32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_INT,NC_INT,int32,int32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
     CHECK(nc_get_var_float(ncid,varid,float32));
-#ifdef GENERATE
-    printf("static %s int32tofloat32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_INT,NC_FLOAT,float32,int32tofloat32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
     CHECK(nc_get_var_long(ncid,varid,ilong));
-#ifdef GENERATE
-    printf("static %s int32toilong_data[DIMSIZE]={","long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%ld",COMMA,ilong[i]);
-    printf("};\n");
-#else
     COMPARE(NC_INT,NC_NAT,ilong,int32toilong_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "f32", &varid));
     CHECK(nc_get_var_float(ncid,varid,float32));
-#ifdef GENERATE
-    printf("static %s float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_FLOAT,NC_FLOAT,float32,float32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "f64", &varid));
     CHECK(nc_get_var_double(ncid,varid,float64));
-#ifdef GENERATE
-    printf("static %s float64_data[DIMSIZE]={","double");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64[i]);
-    printf("};\n");
-#else
     COMPARE(NC_DOUBLE,NC_DOUBLE,float64,float64_data);
-#endif
 
 #ifdef USE_NETCDF4
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
     CHECK(nc_get_var_uchar(ncid,varid,uint8));
-#ifdef GENERATE
-    printf("static %s ubyte_data[DIMSIZE]={","unsigned char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
-    printf("};\n");
-#else
     COMPARE(NC_UBYTE,NC_UBYTE,uint8,ubyte_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "ui16", &varid));
     CHECK(nc_get_var_ushort(ncid,varid,uint16));
-#ifdef GENERATE
-    printf("static %s uint16_data[DIMSIZE]={","unsigned short");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hu",COMMA,uint16[i]);
-    printf("};\n");
-#else
     COMPARE(NC_USHORT,NC_USHORT,uint16,uint16_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "ui32", &varid));
     CHECK(nc_get_var_uint(ncid,varid,uint32));
-#ifdef GENERATE
-    printf("static %s uint32_data[DIMSIZE]={","unsigned int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%u",COMMA,uint32[i]);
-    printf("};\n");
-#else
     COMPARE(NC_UINT,NC_UINT,uint32,uint32_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
     CHECK(nc_get_var_longlong(ncid,varid,int64));
-#ifdef GENERATE
-    printf("static %s int32toint64_data[DIMSIZE]={","long long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%lld",COMMA,int64[i]);
-    printf("};\n");
-#else
     COMPARE(NC_INT,NC_INT64,int64,int32toint64_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid)); /* deliberate */
     CHECK(nc_get_var_ulonglong(ncid,varid,uint64));
-#ifdef GENERATE
-    printf("static %s int32touint64_data[DIMSIZE]={","unsigned long long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%llu",COMMA,uint64[i]);
-    printf("};\n");
-#else
     COMPARE(NC_INT,NC_UINT64,uint64,int32touint64_data);
-#endif
 
     CHECK(nc_inq_varid(ncid, "s", &varid)); /* deliberate */
     CHECK(nc_get_var_string(ncid,varid,string4));
-#ifdef GENERATE
-    printf("static %s string4_data[DIMSIZE]={","char*");
-    for(i=0;i<DIMSIZE;i++) printf("%s\"%s\"",COMMA,string4[i]);
-    printf("};\n");
-#else
     COMPARE(NC_STRING,NC_STRING,string4,string4_data);
-#ifdef IGNORE
-    fprintf(stdout,"*** testing: %s\n","string4");
-    for(i=0;i<DIMSIZE;i++) {
-	if(strcmp(string4[i],string4_data[i])!=0)
-	    {report(i,"string3",__LINE__); break;}
-    }
-#endif
-#endif
  
     CHECK(nc_inq_varid(ncid, "b", &varid)); /* deliberate */
     CHECK(nc_get_var_string(ncid,varid,string4));
-#ifdef GENERATE
-    printf("static %s chartostring4_data[DIMSIZE+1]={","char");
-    for(i=0;i<DIMSIZE+1;i++) printf("%s'\\%03o'",COMMA,string4[0][i]);
-    printf("};\n");
-#else
     COMPARE(NC_CHAR,NC_STRING,string4,chartostring4_data);
-#ifdef IGNORE
-    fprintf(stdout,"*** testing: %s\n","chartostring4");
-    if(memcmp((void*)string4[0],(void*)chartostring4_data,DIMSIZE+1)!=0)
-        {report(0,"chartostring4",__LINE__);}
-#endif
-#endif
 
-#endif
+#endif /* USE_NETCDF4*/
 
     if(fail) {
         printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
         exit(1);
     }
     return 0;
+#endif /*GENERATE*/
 }
 
 static char ch_data[DIMSIZE]={'\000','\001','\002','\003','\004','\005','\006','\007','\010','\011','\012','\013','\014','\015','\016','\017','\020','\021','\022','\023','\024','\025','\026','\027','\030'};
@@ -581,5 +438,220 @@ case CASE(NC_CHAR,NC_STRING):{
 } break;
 
     } /*switch*/
+}
+
+/*==================================================*/
+
+static int generate()
+{
+    int i, ncid, varid, ncstat;
+    char* url;
+    size_t len;
+
+#ifndef USE_NETCDF4
+    int j;
+#endif
+
+    /* location of our target url: use file// to avoid remote
+	server downtime issues
+     */
+    
+    /* Assume that TESTS_ENVIRONMENT was set */
+    topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir == NULL) {
+        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
+        exit(1);
+    }    
+    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
+#ifdef DEBUG
+    len += strlen("[log][show=fetch]");
+#endif
+    url = (char*)malloc(len);
+    url[0] = '\0';
+
+#ifdef DEBUG
+    strcat(url,"[log][show=fetch]");
+#endif
+
+    strcat(url,"file://");
+    strcat(url,topsrcdir);
+    strcat(url,"/ncdap_test/testdata3/test.02");
+
+    printf("*** Generate for URL: %s\n",url);
+
+    /* open file, get varid */
+#ifdef USE_NETCDF4
+    CHECK(nc_open(url, NC_NOWRITE|NC_NETCDF4, &ncid));
+#else
+    CHECK(nc_open(url, NC_NOWRITE, &ncid));
+#endif
+    
+    /* extract the string case for netcdf-3*/
+#ifndef USE_NETCDF4
+    CHECK(nc_inq_varid(ncid, "s", &varid));
+    CHECK(nc_get_var_text(ncid,varid,(char*)string3));
+    printf("static %s string3_data[DIMSIZE][STRLEN]={","char");
+    for(i=0;i<DIMSIZE;i++) {
+	int j;
+	/* Do simple escape */
+	for(j=0;j<STRLEN;j++) {
+	    if(string3[i][j] > 0
+	       && string3[i][j] != '\n'
+	       && string3[i][j] != '\r'
+	       && string3[i][j] != '\t'
+	       &&(string3[i][j] < ' ' || string3[i][j] >= '\177'))
+		string3[i][j] = '?';
+	}
+	printf("%s\"%s\"",COMMA,string3[i]);
+    }
+    printf("};\n");
+#endif
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_text(ncid,varid,ch));
+    printf("static %s ch_data[DIMSIZE]={","char");
+    for(i=0;i<DIMSIZE;i++) printf("%s'\\%03hho'",COMMA,ch[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_schar(ncid,varid,int8));
+    printf("static %s int8_data[DIMSIZE]={","signed char");
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_uchar(ncid,varid,uint8));
+    printf("static %s uint8_data[DIMSIZE]={","unsigned char");
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_int(ncid,varid,int32));
+
+    printf("static %s int8toint32_data[DIMSIZE]={","int");
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_float(ncid,varid,float32));
+
+    printf("static %s int82float32_data[DIMSIZE]={","float");
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i16", &varid));
+    CHECK(nc_get_var_short(ncid,varid,int16));
+
+    printf("static %s int16_data[DIMSIZE]={","short");
+    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i16", &varid));
+    CHECK(nc_get_var_int(ncid,varid,int32));
+
+    printf("static %s int16toint32_data[DIMSIZE]={","int");
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i16", &varid));
+    CHECK(nc_get_var_float(ncid,varid,float32));
+
+    printf("static %s int162float32_data[DIMSIZE]={","float");
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i32", &varid));
+    CHECK(nc_get_var_int(ncid,varid,int32));
+
+    printf("static %s int32_data[DIMSIZE]={","int");
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i32", &varid));
+    CHECK(nc_get_var_float(ncid,varid,float32));
+
+    printf("static %s int32tofloat32_data[DIMSIZE]={","float");
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i32", &varid));
+    CHECK(nc_get_var_long(ncid,varid,ilong));
+
+    printf("static %s int32toilong_data[DIMSIZE]={","long");
+    for(i=0;i<DIMSIZE;i++) printf("%s%ld",COMMA,ilong[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "f32", &varid));
+    CHECK(nc_get_var_float(ncid,varid,float32));
+
+    printf("static %s float32_data[DIMSIZE]={","float");
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "f64", &varid));
+    CHECK(nc_get_var_double(ncid,varid,float64));
+
+    printf("static %s float64_data[DIMSIZE]={","double");
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64[i]);
+    printf("};\n");
+
+#ifdef USE_NETCDF4
+
+    CHECK(nc_inq_varid(ncid, "b", &varid));
+    CHECK(nc_get_var_uchar(ncid,varid,uint8));
+
+    printf("static %s ubyte_data[DIMSIZE]={","unsigned char");
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "ui16", &varid));
+    CHECK(nc_get_var_ushort(ncid,varid,uint16));
+
+    printf("static %s uint16_data[DIMSIZE]={","unsigned short");
+    for(i=0;i<DIMSIZE;i++) printf("%s%hu",COMMA,uint16[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "ui32", &varid));
+    CHECK(nc_get_var_uint(ncid,varid,uint32));
+
+    printf("static %s uint32_data[DIMSIZE]={","unsigned int");
+    for(i=0;i<DIMSIZE;i++) printf("%s%u",COMMA,uint32[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i32", &varid));
+    CHECK(nc_get_var_longlong(ncid,varid,int64));
+
+    printf("static %s int32toint64_data[DIMSIZE]={","long long");
+    for(i=0;i<DIMSIZE;i++) printf("%s%lld",COMMA,int64[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "i32", &varid)); /* deliberate */
+    CHECK(nc_get_var_ulonglong(ncid,varid,uint64));
+
+    printf("static %s int32touint64_data[DIMSIZE]={","unsigned long long");
+    for(i=0;i<DIMSIZE;i++) printf("%s%llu",COMMA,uint64[i]);
+    printf("};\n");
+
+    CHECK(nc_inq_varid(ncid, "s", &varid)); /* deliberate */
+    CHECK(nc_get_var_string(ncid,varid,string4));
+
+    printf("static %s string4_data[DIMSIZE]={","char*");
+    for(i=0;i<DIMSIZE;i++) printf("%s\"%s\"",COMMA,string4[i]);
+    printf("};\n");
+ 
+    CHECK(nc_inq_varid(ncid, "b", &varid)); /* deliberate */
+    CHECK(nc_get_var_string(ncid,varid,string4));
+
+    printf("static %s chartostring4_data[DIMSIZE+1]={","char");
+    for(i=0;i<DIMSIZE+1;i++) printf("%s'\\%03o'",COMMA,string4[0][i]);
+    printf("};\n");
+
+#endif
+
+    if(fail) {
+        printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
+        exit(1);
+    }
+    return 0;
 }
 

@@ -78,11 +78,11 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 
 /**************************************************/
 /* Define the known classes of dispatchers */
-/* Flags may be or'd */
+/* Flags may be or'd => powers of 2*/
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD    3
-#define NC_DISPATCH_NCR    4
+#define NC_DISPATCH_NCD    4
+#define NC_DISPATCH_NCR    8
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */

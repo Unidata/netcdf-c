@@ -150,7 +150,7 @@ NCCR_close(int ncid)
     if (grp->parent) ncstat = NC_EBADGRPID;
 
     /* Destroy/close the NCCR state */
-    freeNCCR(nccr->cdmr);
+    freeNCCDMR(nccr->cdmr);
 
     /* Destroy/close the NC_FILE_INFO_T state */
     NCCR_abort(ncid);

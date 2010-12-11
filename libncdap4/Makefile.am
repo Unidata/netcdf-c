@@ -39,7 +39,7 @@ AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
-# Define the load libraries for stub3
+# Define the load libraries for stub
 LDADD += ${top_builddir}/libncdap4/libncdap4.la \
          ${top_builddir}/libncdap3/libncdap3.la \
          ${top_builddir}/libsrc4/libnetcdf4.la \
@@ -58,7 +58,7 @@ LDADD += @EXTERN_LDFLAGS@
 check_PROGRAMS = t_dap
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
-t_dap_SOURCES = t_dap.c stubdap4.c
+t_dap_SOURCES = ../libncdap3/t_dap.c stubdap4.c
 CLEANFILES += t_dap
 
 endif # USE_NETCDF4

@@ -7,20 +7,23 @@
 
 #include "nccr.h"
 
+#ifdef IGNORE
 static NCerror crbuilddims(NCCR*);
 static NCerror crbuildtypes(NCCR*);
 static NCerror crbuildtypesr(NCCR*);
 static NCerror crbuildvars(NCCR*);
 static NCerror crbuildglobalattrs(NCCR*);
 static NCerror crbuildattribute(NCCR*, int varid, int ncid);
+#endif
 
 /*
 Fetch the metadata and define in the temporary netcdf-4 file
 */
-static NCerror
+NCerror
 crbuildnc(NCCR* nccr)
 {
     NCerror ncstat = NC_NOERR;
+#ifdef IGNORE
     CDFnode* dds = nccr->cdmr->cdf.ddsroot;
     ncstat = crbuildglobalattrs(cdmr,getncid(cdmr),dds);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -31,9 +34,11 @@ crbuildnc(NCCR* nccr)
     ncstat = crbuildvars(cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 done:
+#endif
     return THROW(ncstat);
 }
 
+#ifdef IGNORE
 /* Define dim info for top-level dims */
 static crNCerror
 builddims(NCCR* nccr)
@@ -317,3 +322,4 @@ crbuildattribute(NCCR* nccr, NCattribute* att, int varid, int ncid)
     return THROW(ncstat);
 }
 
+#endif

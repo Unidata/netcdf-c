@@ -13,7 +13,6 @@ static NClist* nc_urlparamdecode(char* params0);
 static NClist* nc_urlparamlookup(NClist* params, const char* clientparam);
 static void nc_urlparamfree(NClist* params);
 
-
 /* Do a simple url parse*/
 int
 nc_urlparse(const char* url0, NC_URL** ncurlp)
@@ -33,10 +32,12 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 
     /* copy url and remove all whitespace*/
     url = strdup(url0);
+    if(url == NULL) return NC_ENOMEM;
 
     p = url;
     p1 = url;
     while((c=*p1++)) {if(c != ' ' && c != '\t') *p++ = c;}
+    *p1 = '\0';
 
     p = url;
     stop = p + strlen(p);
@@ -46,16 +47,19 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 	params = p+1;
 	/* find end of the clientparams*/
         for(;*p;p++) {if(p[0] == RBRACKET && p[1] != LBRACKET) break;}
-	if(*p == 0) goto fail; /* malformed client params*/
+	if(*p == 0) return NC_EINVAL; /* malformed client params*/
 	*p = '\0'; /* leave off the trailing rbracket for now */
 	p++; /* move past the params*/
     }
 
-    /* Note that we dont care what the protocol is */
-    protocol = p;
-
     baseurl = p;
 
+    /* Note that we dont care what the protocol is ; just collect it */
+    /* find the end of the protocol */
+    p1 = strchr(p,':');
+    if(p1 == NULL || p1 == p) return NC_EINVAL; /* missing protocol*/
+    protocol = strndup(p,(p1-p));
+    if(protocol == NULL) return NC_ENOMEM;
     /* Look for '?' */
     constraint = strchr(p,'?');
     if(constraint) {
@@ -68,15 +72,16 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     memset((void*)ncurl,0,sizeof(NC_URL));
 
     ncurl->url = nulldup(url0);
+    if(ncurl->url == NULL) return NC_ENOMEM;
     ncurl->base = nulldup(baseurl);
-    ncurl->protocol = nulldup(protocol);
-    /* remove trailing ':' */
-    ncurl->protocol[strlen(protocol)-1] = '\0';
+    if(ncurl->base == NULL) return NC_ENOMEM;
+    ncurl->protocol = protocol;
     ncurl->constraint = nulldup(constraint);
+    if(constraint != NULL && ncurl->constraint == NULL) return NC_ENOMEM;
     nc_urlsetconstraints(ncurl,constraint);
     if(params != NULL) {
         ncurl->params = (char*)malloc(1+2+strlen(params));
-	if(ncurl->params == NULL) return 0;
+	if(ncurl->params == NULL) return NC_ENOMEM;
         strcpy(ncurl->params,"[");
         strcat(ncurl->params,params);
         strcat(ncurl->params,"]");
@@ -89,11 +94,8 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 #endif
 
     free(url);
-    return 1;
+    return NC_NOERR;
 
-fail:
-    if(url != NULL) free(url);
-    return 0;
 }
 
 /* Call must free the actual url instance.*/

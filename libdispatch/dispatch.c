@@ -3,6 +3,24 @@
 
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
+/* Define the known protocols and their manipulations */
+static struct NCPROTOCOLLIST {
+    char* protocol;
+    char* substitute;
+    int   modelflags;
+} ncprotolist[] = {
+    {"http",NULL,0},
+    {"https",NULL,0},
+    {"file",NULL,NC_DISPATCH_NCD},
+    {"dods","http",NC_DISPATCH_NCD},
+    {"dodss","https",NC_DISPATCH_NCD},
+    {"cdmr","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmrs","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmremote","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmremotes","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {NULL,NULL,0} /* Terminate search */
+};
+
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
 static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
@@ -26,6 +44,7 @@ NC_Dispatch* NCD4_dispatch_table = NULL;
 NC_Dispatch* NCCR_dispatch_table = NULL;
 #endif
 
+/* return 1 if path looks like a url; 0 otherwise */
 int
 NC_testurl(const char* path)
 {
@@ -37,12 +56,17 @@ NC_testurl(const char* path)
     return 0;
 }
 
-/* Return the OR of some of the NC_DISPATCH flags */
+/*
+Return the OR of some of the NC_DISPATCH flags
+Assumes that the path is known to be a url
+*/
+
 int
 NC_urlmodel(const char* path)
 {
     int model = 0;
     NC_URL* tmpurl = NULL;
+    struct NCPROTOCOLLIST* protolist;
 
     if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
 
@@ -59,23 +83,18 @@ NC_urlmodel(const char* path)
     }
 
     /* Now look at the protocol */
-    if(strncmp(tmpurl->protocol,"http",4)) {
-	/* Nothing to do */
-	model = model;
-    } else if(strncmp(tmpurl->protocol,"dods",4)) {
-	if(strcmp(tmpurl->protocol,"dodss"))
-	    nc_urlsetprotocol(tmpurl,"https");
-	else
-	    nc_urlsetprotocol(tmpurl,"http");
-	model |= NC_DISPATCH_NCD; /* to make sure */
-    } else if(strncmp(tmpurl->protocol,"cdmr",4)) {
-        int protolen = strlen(tmpurl->protocol);
-	if(tmpurl->protocol[protolen-1] == 's')
-	    nc_urlsetprotocol(tmpurl,"https");
-	else
-	    nc_urlsetprotocol(tmpurl,"http");
-	model |= (NC_DISPATCH_NCR|NC_DISPATCH_NC4); /* to make sure */
-    }
+    for(protolist=ncprotolist;protolist->protocol;protolist++) {
+	if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
+	    model |= protolist->modelflags;
+	    if(protolist->substitute)
+	        nc_urlsetprotocol(tmpurl,protolist->substitute);	
+	    break;	    
+	}
+    }	
+    /* Force NC_DISPATCH_NC3 if necessary */
+    if((model & NC_DISPATCH_NC4) == 0)
+	model |= NC_DISPATCH_NC3;
+
 done:
     nc_urlfree(tmpurl);
     return model;

@@ -407,25 +407,17 @@ if test "x$curlsrc" = "x" ; then
   fi
 fi
 
-# compute curl values
-if test -n "$with_curl_config" -a -z "$with_curl" ; then
-    # pretend that --with-curl-config was specified
-    with_curl=`$with_curl_config --prefix`
-fi
-
 # Compute the curl flags and libs
 if test -n "$with_curl_config" ; then
   curl_cflags=`$with_curl_config --cflags`
   curl_libs=`$with_curl_config --libs`
-  curl_dir="$with_curl"
+  curl_dir=`$with_curl_config --prefix`
 elif test -n "$with_curl" ; then
   curl_libs="-L$with_curl/lib -lcurl"
   curl_cflags="-I$with_curl/include"
   curl_dir="$with_curl"
 else
-  curl_cflags=-lcurl
-  curl_libs=
-  curl_dir=
+  AC_MSG_ERROR([Cannot locate neither curl-config or a curl directory])
 fi
 
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
@@ -1462,26 +1454,26 @@ AC_CONFIG_SUBDIRS([udunits libcf])
 # Define the -L flags and libs for external libraries
 EXTERN_LDFLAGS=""
 # Define the -I flags for external libraries
-EXTERN_CFLAGS=""
+EXTERN_CPPFLAGS=""
 
 # Add all libraries even if shared is enabled
 if test "x$enable_netcdf_4" = xyes ; then 
   if test "x$HDF5DIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF5DIR/lib"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$HDF5DIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF5DIR/include"
   fi         
   EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lhdf5_hl -lhdf5"
   if test "x$enable_hdf4" = xyes; then
     if test "x$HDF4DIR" != x ; then 
       EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF4DIR/lib"
-      EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$HDF4DIR/include"
+      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF4DIR/include"
     fi      
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lmfhdf -ldf"
   fi
   if test "x$enable_pnetcdf" = xyes; then
     if test "x$PNETCDFDIR" != x ; then 
       EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$PNETCDFDIR/lib"
-      EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$PNETCDFDIR/include"
+      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$PNETCDFDIR/include"
     fi      
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lpnetcdf"
   fi
@@ -1490,19 +1482,19 @@ fi # netcdf-4
 if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
   if test "x$ZLIBDIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$ZLIBDIR/lib"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$ZLIBDIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$ZLIBDIR/include"
   fi
   EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
   if test "x$SZLIBDIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$SZLIBDIR/lib -lsz"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$SZLIBDIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$SZLIBDIR/include"
   fi
 fi
 
 if test "x$enable_dap" = xyes ; then 
   if test "x$curl_libs" != x ; then
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} $curl_cflags"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
   fi
 fi
 
@@ -1523,11 +1515,13 @@ xsolaris*)
   ;;
 *);;
 esac
-AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
+# Alias
+EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
+AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])
 AC_SUBST(EXTERN_LDFLAGS,[$EXTERN_LDFLAGS])
-AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CFLAGS])
+AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
 
-AC_MSG_NOTICE(CFLAGS for External libraries: ${EXTERN_CFLAGS})
+AC_MSG_NOTICE(CPPFLAGS for External libraries: ${EXTERN_CPPFLAGS})
 AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
