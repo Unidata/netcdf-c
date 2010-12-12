@@ -37,7 +37,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     p = url;
     p1 = url;
     while((c=*p1++)) {if(c != ' ' && c != '\t') *p++ = c;}
-    *p1 = '\0';
+    *p = '\0';
 
     p = url;
     stop = p + strlen(p);
