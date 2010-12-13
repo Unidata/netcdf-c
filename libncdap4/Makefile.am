@@ -71,8 +71,8 @@ BUILT_SOURCES = .dodsrc t_dap4.c
 	echo "#DODSRC" >.dodsrc
 DISTCLEANFILES += .dodsrc
 
-t_dap4.c: ../libncdap3/t_dap.c
-	cp ../libncdap3/t_dap.c ./t_dap4.c
+t_dap4.c: $(top_srcdir)/libncdap3/t_dap.c
+	cp $(top_srcdir)/libncdap3/t_dap.c $(top_srcdir)/libncdap4/t_dap4.c
 
 
 test: check
