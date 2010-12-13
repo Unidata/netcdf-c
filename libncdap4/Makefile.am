@@ -55,14 +55,15 @@ LDADD += ${top_builddir}/oc/liboc.la
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap
+check_PROGRAMS = t_dap4
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap
-t_dap4_SOURCES = t_dap.c stubdap4.c
-CLEANFILES += t_dap
+TESTS = t_dap4
+t_dap4_SOURCES = t_dap4.c stubdap4.c
+CLEANFILES += t_dap4
 
 endif # USE_NETCDF4
 
+endif # BUILD_DAP
 
 # One last thing
 BUILT_SOURCES = .dodsrc t_dap4.c
@@ -70,10 +71,9 @@ BUILT_SOURCES = .dodsrc t_dap4.c
 	echo "#DODSRC" >.dodsrc
 DISTCLEANFILES += .dodsrc
 
-t_dap.c: ../libncdap3/t_dap.c
-	cp ../libncdap3/t_dap.c .
+t_dap4.c: ../libncdap3/t_dap.c
+	cp ../libncdap3/t_dap.c ./t_dap4.c
 
-endif # BUILD_DAP
 
 test: check
 
