@@ -58,17 +58,20 @@ LDADD += @EXTERN_LDFLAGS@
 check_PROGRAMS = t_dap
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap
-t_dap_SOURCES = ../libncdap3/t_dap.c stubdap4.c
+t_dap4_SOURCES = t_dap.c stubdap4.c
 CLEANFILES += t_dap
 
 endif # USE_NETCDF4
 
 
 # One last thing
-BUILT_SOURCES = .dodsrc
+BUILT_SOURCES = .dodsrc t_dap4.c
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 DISTCLEANFILES += .dodsrc
+
+t_dap.c: ../libncdap3/t_dap.c
+	cp ../libncdap3/t_dap.c .
 
 endif # BUILD_DAP
 
