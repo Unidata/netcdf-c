@@ -231,15 +231,12 @@ nc_urlparamdecode(char* params0)
 	params[strlen(params)-1] = '\0';
 
     /* Pass 3 to replace "][" pairs with ','*/
-    tmp = strdup(params);
     cp=params; cq = cp;;
     while((c=*cp++)) {
 	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
 	*cq++ = c;
     }
     *cq = '\0';
-    free(params);
-    params = tmp;
 
     /* Pass 4 to break string into pieces and count # of pairs */
     nparams=0;

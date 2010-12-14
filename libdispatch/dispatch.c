@@ -93,7 +93,7 @@ NC_urlmodel(const char* path)
     }	
     /* Force NC_DISPATCH_NC3 if necessary */
     if((model & NC_DISPATCH_NC4) == 0)
-	model |= NC_DISPATCH_NC3;
+	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
 
 done:
     nc_urlfree(tmpurl);

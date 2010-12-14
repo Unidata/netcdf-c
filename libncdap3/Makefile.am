@@ -9,6 +9,7 @@
 
 # We may have to add to these later.
 DISTCLEANFILES =
+MAINTAINERCLEANFILES =
 CLEANFILES =
 LDADD=
 
@@ -79,15 +80,15 @@ LDADD +=  ${top_builddir}/libncdap3/libncdap3.la \
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap
+check_PROGRAMS = t_dap3
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap
-t_dap_SOURCES = t_dap3.c stubdap3.c
-t_dap_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
+TESTS = t_dap3
+t_dap3_SOURCES = t_dap3.c stubdap3.c
+t_dap3_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la	\
 ${top_builddir}/libdispatch/libdispatch.la
-CLEANFILES += t_dap
+CLEANFILES += t_dap3
 
-EXTRA_DIST = ce.y
+EXTRA_DIST = ce.y t_dap.c
 
 endif # BUILD_DAP
 
@@ -102,10 +103,18 @@ makece::
 	mv ce.tab.h cetab.h
 
 # One last thing
-BUILT_SOURCES = .dodsrc
+BUILT_SOURCES = .dodsrc t_dap3.c
+
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+
 DISTCLEANFILES += .dodsrc
+
+t_dap3.c: t_dap.c
+	echo "#define NETCDF3ONLY" > t_dap3.c
+	cat t_dap.c >> t_dap3.c
+
+MAINTAINERCLEANFILES += t_dap3.c
 
 test: check
 

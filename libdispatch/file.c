@@ -288,8 +288,6 @@ NC_open(const char *path, int cmode,
 
    if(model == 0) model = NC_DISPATCH_NC3; /* final default */
 
-   if(isurl) model |= NC_DISPATCH_NCD; /* dap or not */
-
    /* Force flag consistentcy */
    if(model & NC_DISPATCH_NC4)
       cmode |= NC_NETCDF4;

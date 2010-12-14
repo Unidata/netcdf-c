@@ -6,6 +6,7 @@
 # $Id: Makefile.am,v 1.18 2010/05/29 18:45:47 dmh Exp $
 
 DISTCLEANFILES =
+MAINTAINERCLEANFILES =
 CLEANFILES =
 LDADD=
 AM_CPPFLAGS = -I$(top_srcdir)/include
@@ -67,13 +68,16 @@ endif # BUILD_DAP
 
 # One last thing
 BUILT_SOURCES = .dodsrc t_dap4.c
+
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+
 DISTCLEANFILES += .dodsrc
 
 t_dap4.c: $(top_srcdir)/libncdap3/t_dap.c
-	cp $(top_srcdir)/libncdap3/t_dap.c $(top_srcdir)/libncdap4/t_dap4.c
+	cat $(top_srcdir)/libncdap3/t_dap.c >>$(top_srcdir)/libncdap4/t_dap4.c
 
+MAINTAINERCLEANFILES += t_dap4.c
 
 test: check
 

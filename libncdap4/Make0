@@ -1,6 +1,6 @@
 #STDDIR = /opt/csw
 #STDDIR = /machine/local
-STDDIR = /upc/share/stdinstall/local/spock
+STDDIR = /upc/share/ed/local/spock
 #NCLIB=../libsrc4/.libs/libnetcdf.a
 NCLIB=../liblib/.libs/libnetcdf.a
 HDF5DIR = ${STDDIR}
