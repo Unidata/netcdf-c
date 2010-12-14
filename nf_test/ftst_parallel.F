@@ -32,14 +32,11 @@
       call MPI_Init(ierr)
       call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
       call MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-      print*, my_rank, p
 
       if (my_rank .eq. 0) then
          print *, ' '
          print *, '*** Testing netCDF-4 parallel I/O from Fortran 77.'
       endif
-
-      print*, my_rank
 
 !     There must be 4 procs for this test.
       if (p .ne. 4) then
