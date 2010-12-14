@@ -58,8 +58,10 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     /* find the end of the protocol */
     p1 = strchr(p,':');
     if(p1 == NULL || p1 == p) return NC_EINVAL; /* missing protocol*/
-    protocol = strndup(p,(p1-p));
+    /* Simulate strndup */
+    protocol = malloc((size_t)(p1-p));
     if(protocol == NULL) return NC_ENOMEM;
+    strncpy(protocol,p,(p1-p));
     /* Look for '?' */
     constraint = strchr(p,'?');
     if(constraint) {
