@@ -8,42 +8,38 @@
 #include <string.h>
 
 #include "config.h"
-#include "ncdap4.h"
-#include "nc.h"
-#include "ncd4dispatch.h"
 #include "ncdispatch.h"
+#include "nc.h"
+#include "nccr.h"
+#include "nccrdispatch.h"
 
 static int
-NCD4_create(const char *path, int cmode,
+NCCR_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int use_parallel, void* mpidata,
            NC_Dispatch*,NC** ncp);
 
-static int NCD4_redef(int ncid);
-static int NCD4__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
-static int NCD4_put_vara(int ncid, int varid,
+static int NCCR_redef(int ncid);
+static int NCCR__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
+static int NCCR_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
             const void *value0,
 	    nc_type memtype);
 
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
+NC_Dispatch NCCR_dispatch_base = {
 
-NC_Dispatch NCD4_dispatch_base = {
+NC_DISPATCH_NCR,
 
-NC_DISPATCH_NC4|NC_DISPATCH_NCD,
+NCCR_new_nc,
 
-NCD4_new_nc,
+NCCR_create,
+NCCR_open,
 
-NCD4_create,
-NCD4_open,
-
-NCD4_redef,
-NCD4__enddef,
-NCD4_sync,
-NCD4_abort,
-NCD4_close,
+NCCR_redef,
+NCCR__enddef,
+NCCR_sync,
+NCCR_abort,
+NCCR_close,
 NULL, /*set_fill*/
 NULL, /*inq_base_pe*/
 NULL, /*set_base_pe*/
@@ -69,8 +65,8 @@ NULL, /*put_att*/
 NULL, /*def_var*/
 NULL, /*inq_varid*/
 NULL, /*rename_var*/
-NCD4_get_vara,
-NCD4_put_vara,
+NCCR_get_vara,
+NCCR_put_vara,
 NULL, /*inq_var_all*/
 
 #ifdef USE_NETCDF4
@@ -116,23 +112,20 @@ NULL, /*get_var_chunk_cache*/
 
 };
 
-NC_Dispatch NCD4_dispatcher;
+NC_Dispatch NCCR_dispatcher;
 
 int
-NCD4_initialize(void)
+NCCR_initialize(void)
 {
-    int i;
     /* Create our dispatch table as the merge of NC4 table
        plus some overrides */
-    NC_dispatch_overlay(&NCD4_dispatch_base, NC4_dispatch_table, &NCD4_dispatcher);    
-    NCD4_dispatch_table = &NCD4_dispatcher;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++)
-	{dapzerostart3[i] = 0; dapsinglecount3[i] = 1; dapsinglestride3[i] = 1;}
+    NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
+    NCCR_dispatch_table = &NCCR_dispatcher;
     return NC_NOERR;
 }
 
 static int
-NCD4_create(const char *path, int cmode,
+NCCR_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int use_parallel, void* mpidata,
            NC_Dispatch* dispatch, NC** ncp)
@@ -141,7 +134,7 @@ NCD4_create(const char *path, int cmode,
 }
 
 static int
-NCD4_put_vara(int ncid, int varid,
+NCCR_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
             const void *value0,
 	    nc_type memtype)
@@ -150,29 +143,29 @@ NCD4_put_vara(int ncid, int varid,
 }
 
 static int
-NCD4_redef(int ncid)
+NCCR_redef(int ncid)
 {
     return (NC_EPERM);
 }
 
 static int
-NCD4__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align)
+NCCR__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align)
 {
     return (NC_EPERM);
 }
 
 int
-NCD4_sync(int ncid)
+NCCR_sync(int ncid)
 {
     LOG((1, "nc_sync: ncid 0x%x", ncid));
     return NC_NOERR;
 }
 
 int
-NCD4_abort(int ncid)
+NCCR_abort(int ncid)
 {
     LOG((1, "nc_abort: ncid 0x%x", ncid));
     /* Turn into close */
-    return NCD4_close(ncid);
+    return NCCR_close(ncid);
 }
 

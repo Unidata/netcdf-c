@@ -39,7 +39,7 @@ size_t dapsinglecount3[NC_MAX_VAR_DIMS];
 
 NC_Dispatch NCD3_dispatch_base = {
 
-NC_DISPATCH_NCD3,
+NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
 
 NCD3_new_nc,
 

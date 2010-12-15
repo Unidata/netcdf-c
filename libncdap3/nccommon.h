@@ -6,9 +6,6 @@
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 
-/* It is important to track error status as coming from nc or oc*/
-typedef int NCerror; /* OCerror is already defined*/
-
 /* Mnemonics */
 #ifndef BOOL
 #define BOOL int
@@ -368,16 +365,6 @@ typedef struct CDFnode {
 /**************************************************/
 /* Give PSEUDOFILE a value */
 #define PSEUDOFILE "/tmp/pseudofileXXXXXX"
-
-/* Replacement for strdup (in libsrc) */
-#ifdef HAVE_STRDUP
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char* nulldup(const char*);
-#endif
-
-#define nulllen(s) (s==NULL?0:strlen(s))
-#define nullstring(s) (s==NULL?"(null)":s)
 
 /**************************************************/
 /* Shared procedures */

@@ -6,6 +6,7 @@
 # $Id: Makefile.am,v 1.18 2010/05/29 18:45:47 dmh Exp $
 
 DISTCLEANFILES =
+MAINTAINERCLEANFILES =
 CLEANFILES =
 LDADD=
 AM_CPPFLAGS = -I$(top_srcdir)/include
@@ -30,15 +31,16 @@ noinst_LTLIBRARIES = libncdap4.la
 # Build convenience library
 libncdap4_la_SOURCES = $(SRC) $(HDRS)
 
-AM_CPPFLAGS += -I$(top_srcdir)/libncdap3 \
-	      -I$(top_srcdir)/libsrc4 \
-	      -I$(top_srcdir)/libsrc
+AM_CPPFLAGS += -I${top_srcdir}/libdispatch \
+	       -I$(top_srcdir)/libncdap3 \
+	       -I$(top_srcdir)/libsrc4 \
+	       -I$(top_srcdir)/libsrc
 
 AM_CPPFLAGS += -I${top_srcdir}/oc
 
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
+AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
-# Define the load libraries for stub3
+# Define the load libraries for stub
 LDADD += ${top_builddir}/libncdap4/libncdap4.la \
          ${top_builddir}/libncdap3/libncdap3.la \
          ${top_builddir}/libsrc4/libnetcdf4.la \
@@ -54,22 +56,28 @@ LDADD += ${top_builddir}/oc/liboc.la
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap
+check_PROGRAMS = t_dap4
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap
-t_dap_SOURCES = t_dap.c stubdap4.c
-CLEANFILES += t_dap
+TESTS = t_dap4
+t_dap4_SOURCES = t_dap4.c stubdap4.c
+CLEANFILES += t_dap4
 
 endif # USE_NETCDF4
 
+endif # BUILD_DAP
 
 # One last thing
-BUILT_SOURCES = .dodsrc
+BUILT_SOURCES = .dodsrc t_dap4.c
+
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+
 DISTCLEANFILES += .dodsrc
 
-endif # BUILD_DAP
+t_dap4.c: $(top_srcdir)/libncdap3/t_dap.c
+	cat $(top_srcdir)/libncdap3/t_dap.c >>$(top_srcdir)/libncdap4/t_dap4.c
+
+MAINTAINERCLEANFILES += t_dap4.c
 
 test: check
 

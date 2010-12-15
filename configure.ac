@@ -317,15 +317,16 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
-# Figure out if DAP support should be enabled.
+# Figure out if curl support should be enabled.
 # The primary goal is to first locate curl-config
 # or the curl library location
 # The rules we implement are applied in order:
 # 1. no:  if --disable-dap is set
 # 2. no:  if curl library cannot be located
-# 3. yes: if --enable-dap is set
+# 3. yes: if --enable-dap || --enable-cdmremote is set
 # 4. yes: if neither --enable-dap nor --disable-dap is specified
 #         and the curl library can be located
+# Note that for now, cdmremote must be explicitly enabled
 
 # Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
@@ -335,8 +336,24 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# If --disable-dap, then make no attempt to locate curl
-if test "$enable_dap" = yes ; then
+# Capture the state of the --enable-cdmremote flag
+AC_MSG_CHECKING([whether cdmremote client is to be built])
+AC_ARG_ENABLE([cdmremote],
+                 [AS_HELP_STRING([--enable-cdmremote],
+                                 [build with cdmremote client support.])])
+test "x$enable_cdmremote" = xyes || enable_cdmremote=no
+# CDMREMOTE requires netCDF-4
+if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
+AC_MSG_RESULT($enable_cdmremote)
+
+# If --disable-dap && cdmremote , then make no attempt to locate curl
+if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
+require_curl=yes
+else
+require_curl=no
+fi
+
+if test "$require_curl" = yes ; then
 
 # Try to locate curl
 curlsrc=
@@ -390,25 +407,17 @@ if test "x$curlsrc" = "x" ; then
   fi
 fi
 
-# compute curl values
-if test -n "$with_curl_config" -a -z "$with_curl" ; then
-    # pretend that --with-curl-config was specified
-    with_curl=`$with_curl_config --prefix`
-fi
-
 # Compute the curl flags and libs
 if test -n "$with_curl_config" ; then
   curl_cflags=`$with_curl_config --cflags`
   curl_libs=`$with_curl_config --libs`
-  curl_dir="$with_curl"
+  curl_dir=`$with_curl_config --prefix`
 elif test -n "$with_curl" ; then
   curl_libs="-L$with_curl/lib -lcurl"
   curl_cflags="-I$with_curl/include"
   curl_dir="$with_curl"
 else
-  curl_cflags=-lcurl
-  curl_libs=
-  curl_dir=
+  AC_MSG_ERROR([Cannot locate neither curl-config or a curl directory])
 fi
 
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
@@ -439,13 +448,13 @@ if test $havekeypasswd -eq 1; then
 AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
 fi
 
-else #!enable_dap
+else #!require_curl
 
 curl_cflags=""
 curl_libs=""
 curl_dir=""
 
-fi #enable_dap
+fi #require_curl
 
 AC_SUBST([CURL_CFLAGS],[${curl_cflags}])
 AC_SUBST([CURL_FCFLAGS],[${curl_cflags}])
@@ -453,21 +462,15 @@ AC_SUBST([CURL_FFLAGS],[${curl_cflags}])
 AC_SUBST([CURL_LIBS],[${curl_libs}])
 AC_SUBST([CURLDIR],[${curl_dir}])
 
-# If enable_dap is true but there is no curl, then complain
+# If curl is required but there is no curl, then complain
 if test -z "$curlsrc" ; then
-  if test "x$enable_dap" = "xyes" ; then
-     AC_MSG_NOTICE("--enable-dap requires curl library; disabling dap support")
+  if test "x$require_curl" = "xyes" ; then
+     AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
   fi
   enable_dap=no
+  enable_cdmremote=no
 fi
 
-if test "x$enable_dap" = xyes; then
-   AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
-   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
-fi
-if test "x$enable_dap_remote_tests" = xyes; then
-   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
-fi
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
@@ -480,6 +483,19 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+# Set the config.h flags
+if test "x$enable_dap" = xyes; then
+   AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+fi
+
+if test "x$enable_dap_remote_tests" = xyes; then
+   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+fi
+
+if test "x$enable_cdmremote" = xyes; then
+   AC_DEFINE([USE_CDMREMOTE], [1], [if true, build CDMREMOTE Client])
+fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
 AC_ARG_ENABLE([dap-long-tests],
@@ -782,6 +798,7 @@ AM_CONDITIONAL(BUILD_SEPARATE_FORTRAN, [test x$enable_separate_fortran = xyes])
 if test "x$nc_build_c" = xno -a x$enable_separate_fortran != xyes; then
    AC_MSG_ERROR([If the C API is disabled, you must use --enable-separate-fortran.])
 fi
+
 
 ## Does the user want to allow UTF8 characters
 #AC_MSG_CHECKING([whether UTF8 is allowed in identifiers])
@@ -1259,11 +1276,6 @@ LDFLAGS=${OLD_LDFLAGS}
 LIBS=${OLD_LIBS}
 CPPFLAGS=${OLD_CPPFLAGS}
 
-# Do Renaming if netcdf4 or dap support is enabled
-if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
-   AC_DEFINE([USE_RENAMEV3], [1], [if true, build libsrc code with renamed API functions])
-fi
-
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
    enable_logging=no
@@ -1299,6 +1311,7 @@ AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
+AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1441,26 +1454,26 @@ AC_CONFIG_SUBDIRS([udunits libcf])
 # Define the -L flags and libs for external libraries
 EXTERN_LDFLAGS=""
 # Define the -I flags for external libraries
-EXTERN_CFLAGS=""
+EXTERN_CPPFLAGS=""
 
 # Add all libraries even if shared is enabled
 if test "x$enable_netcdf_4" = xyes ; then 
   if test "x$HDF5DIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF5DIR/lib"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$HDF5DIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF5DIR/include"
   fi         
   EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lhdf5_hl -lhdf5"
   if test "x$enable_hdf4" = xyes; then
     if test "x$HDF4DIR" != x ; then 
       EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF4DIR/lib"
-      EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$HDF4DIR/include"
+      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF4DIR/include"
     fi      
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lmfhdf -ldf"
   fi
   if test "x$enable_pnetcdf" = xyes; then
     if test "x$PNETCDFDIR" != x ; then 
       EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$PNETCDFDIR/lib"
-      EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$PNETCDFDIR/include"
+      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$PNETCDFDIR/include"
     fi      
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lpnetcdf"
   fi
@@ -1469,19 +1482,19 @@ fi # netcdf-4
 if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
   if test "x$ZLIBDIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$ZLIBDIR/lib"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$ZLIBDIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$ZLIBDIR/include"
   fi
   EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
   if test "x$SZLIBDIR" != x ; then 
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$SZLIBDIR/lib -lsz"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} -I$SZLIBDIR/include"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$SZLIBDIR/include"
   fi
 fi
 
 if test "x$enable_dap" = xyes ; then 
   if test "x$curl_libs" != x ; then
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
-    EXTERN_CFLAGS="${EXTERN_CFLAGS} $curl_cflags"
+    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
   fi
 fi
 
@@ -1502,11 +1515,13 @@ xsolaris*)
   ;;
 *);;
 esac
-AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
+# Alias
+EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
+AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])
 AC_SUBST(EXTERN_LDFLAGS,[$EXTERN_LDFLAGS])
-AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CFLAGS])
+AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
 
-AC_MSG_NOTICE(CFLAGS for External libraries: ${EXTERN_CFLAGS})
+AC_MSG_NOTICE(CPPFLAGS for External libraries: ${EXTERN_CPPFLAGS})
 AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
@@ -1558,6 +1573,7 @@ AC_CONFIG_FILES([Makefile
                   oc/Makefile
                   libncdap3/Makefile
                   libncdap4/Makefile
+                  libcdmr/Makefile
                   libdispatch/Makefile
                   liblib/Makefile
                   ncdap_test/Makefile

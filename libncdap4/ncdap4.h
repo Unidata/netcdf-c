@@ -17,12 +17,14 @@
 #include "nclist.h"
 #include "nchashmap.h"
 
+#include "netcdf.h"
+#include "ncdispatch.h"
+#include "nc4internal.h"
+#include "nc.h"
+
 #include "oc.h"
 #include "dapurl.h"
 
-#include "nc4internal.h"
-#include "nc.h"
-#include "netcdf.h"
 
 #include "nccommon.h"
 #include "ncdap3.h"

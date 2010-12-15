@@ -19,7 +19,9 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS = 
 TESTS = 
-#TESTS += tst_ncdap3.sh
+TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
+
+TESTS += tst_ncdap3.sh
 
 if USE_NETCDF4
 TESTS += tst_ncdap4.sh
@@ -46,15 +48,16 @@ endif #REMOTE_TESTS
 if ENABLE_DAP_REMOTE_TESTS
 
 # Conversion tests
-test_cvt3_SOURCES = test_cvt.c
-test_cvt4_SOURCES = test_cvt.c
-test_varm3_SOURCES = test_varm3.c
-check_PROGRAMS += test_cvt3 test_varm3 test_cvt4
-
-#TESTS += test_cvt3 test_varm3
 
 if USE_NETCDF4
+test_cvt4_SOURCES = test_cvt.c
+check_PROGRAMS += test_cvt4
 TESTS += test_cvt4
+else
+test_cvt3_SOURCES = test_cvt.c
+test_varm3_SOURCES = test_varm3.c
+check_PROGRAMS += test_cvt3 test_varm3
+TESTS += test_cvt3 test_varm3
 endif
 
 endif ENABLE_DAP_REMOTE_TESTS
@@ -72,8 +75,6 @@ CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds data
 if USE_NETCDF4
 CLEANFILES += test_cvt4
 endif
-
-test: check
 
 endif # BUILD_DAP
 

@@ -554,7 +554,7 @@ int
 nc_copy_att(int ncid_in, int varid_in, const char *name, 
 	    int ncid_out, int varid_out)
 {
-   int format, target_natts, target_attid, attid;
+   int format, target_natts, target_attid;
    char att_name[NC_MAX_NAME + 1];
    int a, retval;
 
@@ -599,7 +599,7 @@ nc_copy_att(int ncid_in, int varid_in, const char *name,
 	    } 
 	    else
 	    {
-	       if ((retval = nc_inq_attname(ncid_out, varid_out, a, &att_name)))
+	       if ((retval = nc_inq_attname(ncid_out, varid_out, a, att_name)))
 		  return retval;
 	       if ((retval = NC_copy_att(ncid_out, varid_out, att_name, 
 					 ncid_out, varid_out)))

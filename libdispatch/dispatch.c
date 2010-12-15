@@ -1,5 +1,25 @@
 #include "ncdispatch.h"
+#include "nc_url.h"
+
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
+
+/* Define the known protocols and their manipulations */
+static struct NCPROTOCOLLIST {
+    char* protocol;
+    char* substitute;
+    int   modelflags;
+} ncprotolist[] = {
+    {"http",NULL,0},
+    {"https",NULL,0},
+    {"file",NULL,NC_DISPATCH_NCD},
+    {"dods","http",NC_DISPATCH_NCD},
+    {"dodss","https",NC_DISPATCH_NCD},
+    {"cdmr","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmrs","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmremote","http",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {"cdmremotes","https",NC_DISPATCH_NCR|NC_DISPATCH_NC4},
+    {NULL,NULL,0} /* Terminate search */
+};
 
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
@@ -20,38 +40,63 @@ NC_Dispatch* NCD3_dispatch_table = NULL;
 NC_Dispatch* NCD4_dispatch_table = NULL;
 #endif
 
+#if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
+NC_Dispatch* NCCR_dispatch_table = NULL;
+#endif
+
+/* return 1 if path looks like a url; 0 otherwise */
 int
 NC_testurl(const char* path)
 {
-#ifdef USE_DAP
-    void* tmpurl = NULL;
-    if(NCDAP_urlparse(path,&tmpurl) == NC_NOERR) {
-	NCDAP_urlfree(tmpurl);
+    NC_URL* tmpurl = NULL;
+    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+	nc_urlfree(tmpurl);
 	return 1;
     }
-#endif
     return 0;
 }
+
+/*
+Return the OR of some of the NC_DISPATCH flags
+Assumes that the path is known to be a url
+*/
 
 int
 NC_urlmodel(const char* path)
 {
     int model = 0;
-#ifdef USE_DAP
-    void* tmpurl = NULL;
-    if(NCDAP_urlparse(path,&tmpurl) == NC_NOERR) {
-	if(NCDAP_urllookup(tmpurl,"netcdf4")
-	   || NCDAP_urllookup(tmpurl,"netcdf-4")) {
-	    model = 4;
-	} else if(NCDAP_urllookup(tmpurl,"netcdf3")
-	   || NCDAP_urllookup(tmpurl,"netcdf-3")) {
-	    model = 3;
-	} else {
-	    model = 0;
-	}
-	NCDAP_urlfree(tmpurl);
+    NC_URL* tmpurl = NULL;
+    struct NCPROTOCOLLIST* protolist;
+
+    if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
+
+    /* Look at any prefixed parameters */
+    if(nc_urllookup(tmpurl,"netcdf4")
+       || nc_urllookup(tmpurl,"netcdf-4")) {
+	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
+    } else if(nc_urllookup(tmpurl,"netcdf3")
+              || nc_urllookup(tmpurl,"netcdf-3")) {
+	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
+    } else if(nc_urllookup(tmpurl,"cdmremote")
+	      || nc_urllookup(tmpurl,"cdmr")) {
+	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
     }
-#endif
+
+    /* Now look at the protocol */
+    for(protolist=ncprotolist;protolist->protocol;protolist++) {
+	if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
+	    model |= protolist->modelflags;
+	    if(protolist->substitute)
+	        nc_urlsetprotocol(tmpurl,protolist->substitute);	
+	    break;	    
+	}
+    }	
+    /* Force NC_DISPATCH_NC3 if necessary */
+    if((model & NC_DISPATCH_NC4) == 0)
+	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
+
+done:
+    nc_urlfree(tmpurl);
     return model;
 }
 

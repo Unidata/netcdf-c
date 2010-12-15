@@ -19,9 +19,7 @@
 #endif
 #include "netcdf.h"
 #include "nc.h"
-#ifdef USE_DAP
-#include "dapurl.h"
-#endif
+#include "nc_url.h"
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
@@ -80,11 +78,11 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 
 /**************************************************/
 /* Define the known classes of dispatchers */
-
+/* Flags may be or'd => powers of 2*/
 #define NC_DISPATCH_NC3    1
 #define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD3   3
-#define NC_DISPATCH_NCD4   4
+#define NC_DISPATCH_NCD    4
+#define NC_DISPATCH_NCR    8
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -108,6 +106,9 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #else
 #define ATOMICTYPEMAX NC_DOUBLE
 #endif
+
+/* Define an alias for int to indicate an error return */
+typedef int NCerror;
 
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It
@@ -135,6 +136,10 @@ extern NC_Dispatch* NCD3_dispatch_table;
 
 #if defined(USE_DAP) && defined(USE_NETCDF4)
 extern NC_Dispatch* NCD4_dispatch_table;
+#endif
+
+#if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
+extern NC_Dispatch* NCCR_dispatch_table;
 #endif
 
 /**************************************************/
@@ -323,6 +328,17 @@ extern int NC_urlmodel(const char* path);
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
+
+/* Misc */
+/* Replacement for strdup (in libsrc) */
+#ifdef HAVE_STRDUP
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+extern char* nulldup(const char*);
+#endif
+
+#define nulllen(s) (s==NULL?0:strlen(s))
+#define nullstring(s) (s==NULL?"(null)":s)
 
 #endif /* _DISPATCH_H */
 

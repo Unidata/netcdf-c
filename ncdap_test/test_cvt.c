@@ -4,6 +4,7 @@
 #include <string.h>
 #include "netcdf.h"
 
+
 #undef GENERATE
 
 #undef DEBUG
@@ -91,15 +92,6 @@ static double float64_data[DIMSIZE];
 #ifndef USE_NETCDF4
 static char string3_data[DIMSIZE][STRLEN];
 #endif
-#ifdef USE_NETCDF4
-static unsigned char ubyte_data[DIMSIZE];
-static unsigned short uint16_data[DIMSIZE];
-static unsigned int uint32_data[DIMSIZE];
-static long long int32toint64_data[DIMSIZE];
-static unsigned long long int32touint64_data[DIMSIZE];
-static char* string4_data[DIMSIZE];
-static char chartostring4_data[DIMSIZE+1]; /* special case */
-#endif
 
 static char ch[DIMSIZE];
 static signed char int8[DIMSIZE];
@@ -108,40 +100,48 @@ static short int16[DIMSIZE];
 static int int32[DIMSIZE];
 static float float32[DIMSIZE];
 static double float64[DIMSIZE];
-static char string3[DIMSIZE][STRLEN];
 static long  ilong[DIMSIZE];
-#ifdef USE_NETCDF4
-static unsigned short uint16[DIMSIZE];
-static unsigned int uint32[DIMSIZE];
-static long long int64[DIMSIZE];
-static unsigned long long uint64[DIMSIZE];
-static char* string4[DIMSIZE];
+#ifndef USE_NETCDF4
+static char string3[DIMSIZE][STRLEN];
 #endif
 
 int main()
 {
-    int ncid, varid, ncstat;
+    int ncid, varid, i, j;
+    int ncstat = NC_NOERR;
     char* url;
-#ifndef USE_NETCDF4
-    int j;
-    int i;
+    char* topsrcdir;
+    size_t len;
+
+    /* location of our target url: use file// to avoid remote
+	server downtime issues
+     */
+    
+    /* Assume that TESTS_ENVIRONMENT was set */
+    topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir == NULL) {
+        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
+        exit(1);
+    }    
+    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
+#ifdef DEBUG
+    len += strlen("[log][show=fetch]");
+#endif
+    url = (char*)malloc(len);
+    url[0] = '\0';
+
+#ifdef DEBUG
+    strcat(url,"[log][show=fetch]");
 #endif
 
-    /* location of our target url*/
-#ifdef DEBUG
-    url = "[log][show=fetch]http://test.opendap.org:8080/dods/dts/test.02";
-#else
-    url = "http://test.opendap.org:8080/dods/dts/test.02";
-#endif
+    strcat(url,"file://");
+    strcat(url,topsrcdir);
+    strcat(url,"/ncdap_test/testdata3/test.02");
 
     printf("*** Test: var conversions on URL: %s\n",url);
 
     /* open file, get varid */
-#ifdef USE_NETCDF4
-    CHECK(nc_open(url, NC_NOWRITE|NC_NETCDF4, &ncid));
-#else
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
-#endif
     
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
@@ -303,92 +303,6 @@ int main()
     COMPARE(NC_DOUBLE,NC_DOUBLE,float64,float64_data);
 #endif
 
-#ifdef USE_NETCDF4
-
-    CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_uchar(ncid,varid,uint8));
-#ifdef GENERATE
-    printf("static %s ubyte_data[DIMSIZE]={","unsigned char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_UBYTE,NC_UBYTE,uint8,ubyte_data);
-#endif
-
-    CHECK(nc_inq_varid(ncid, "ui16", &varid));
-    CHECK(nc_get_var_ushort(ncid,varid,uint16));
-#ifdef GENERATE
-    printf("static %s uint16_data[DIMSIZE]={","unsigned short");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hu",COMMA,uint16[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_USHORT,NC_USHORT,uint16,uint16_data);
-#endif
-
-    CHECK(nc_inq_varid(ncid, "ui32", &varid));
-    CHECK(nc_get_var_uint(ncid,varid,uint32));
-#ifdef GENERATE
-    printf("static %s uint32_data[DIMSIZE]={","unsigned int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%u",COMMA,uint32[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_UINT,NC_UINT,uint32,uint32_data);
-#endif
-
-    CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_longlong(ncid,varid,int64));
-#ifdef GENERATE
-    printf("static %s int32toint64_data[DIMSIZE]={","long long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%lld",COMMA,int64[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_INT,NC_INT64,int64,int32toint64_data);
-#endif
-
-    CHECK(nc_inq_varid(ncid, "i32", &varid)); /* deliberate */
-    CHECK(nc_get_var_ulonglong(ncid,varid,uint64));
-#ifdef GENERATE
-    printf("static %s int32touint64_data[DIMSIZE]={","unsigned long long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%llu",COMMA,uint64[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_INT,NC_UINT64,uint64,int32touint64_data);
-#endif
-
-    CHECK(nc_inq_varid(ncid, "s", &varid)); /* deliberate */
-    CHECK(nc_get_var_string(ncid,varid,string4));
-#ifdef GENERATE
-    printf("static %s string4_data[DIMSIZE]={","char*");
-    for(i=0;i<DIMSIZE;i++) printf("%s\"%s\"",COMMA,string4[i]);
-    printf("};\n");
-#else
-    COMPARE(NC_STRING,NC_STRING,string4,string4_data);
-#ifdef IGNORE
-    fprintf(stdout,"*** testing: %s\n","string4");
-    for(i=0;i<DIMSIZE;i++) {
-	if(strcmp(string4[i],string4_data[i])!=0)
-	    {report(i,"string3",__LINE__); break;}
-    }
-#endif
-#endif
- 
-    CHECK(nc_inq_varid(ncid, "b", &varid)); /* deliberate */
-    CHECK(nc_get_var_string(ncid,varid,string4));
-#ifdef GENERATE
-    printf("static %s chartostring4_data[DIMSIZE+1]={","char");
-    for(i=0;i<DIMSIZE+1;i++) printf("%s'\\%03o'",COMMA,string4[0][i]);
-    printf("};\n");
-#else
-    COMPARE(NC_CHAR,NC_STRING,string4,chartostring4_data);
-#ifdef IGNORE
-    fprintf(stdout,"*** testing: %s\n","chartostring4");
-    if(memcmp((void*)string4[0],(void*)chartostring4_data,DIMSIZE+1)!=0)
-        {report(0,"chartostring4",__LINE__);}
-#endif
-#endif
-
-#endif
-
     if(fail) {
         printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
         exit(1);
@@ -409,17 +323,6 @@ static float int32tofloat32_data[DIMSIZE]={0.000,2048.000,4096.000,6144.000,8192
 static long int32toilong_data[DIMSIZE]={0,2048,4096,6144,8192,10240,12288,14336,16384,18432,20480,22528,24576,26624,28672,30720,32768,34816,36864,38912,40960,43008,45056,47104,49152};
 static float float32_data[DIMSIZE]={0.000,0.010,0.020,0.030,0.040,0.050,0.060,0.070,0.080,0.090,0.100,0.110,0.120,0.130,0.140,0.149,0.159,0.169,0.179,0.189,0.199,0.208,0.218,0.228,0.238};
 static double float64_data[DIMSIZE]={1.000,1.000,1.000,1.000,0.999,0.999,0.998,0.998,0.997,0.996,0.995,0.994,0.993,0.992,0.990,0.989,0.987,0.986,0.984,0.982,0.980,0.978,0.976,0.974,0.971};
-
-#ifdef USE_NETCDF4
-static unsigned char ubyte_data[DIMSIZE]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
-static unsigned short uint16_data[DIMSIZE]={0,1024,2048,3072,4096,5120,6144,7168,8192,9216,10240,11264,12288,13312,14336,15360,16384,17408,18432,19456,20480,21504,22528,23552,24576};
-static unsigned int uint32_data[DIMSIZE]={0,4096,8192,12288,16384,20480,24576,28672,32768,36864,40960,45056,49152,53248,57344,61440,65536,69632,73728,77824,81920,86016,90112,94208,98304};
-static long long int32toint64_data[DIMSIZE]={0,2048,4096,6144,8192,10240,12288,14336,16384,18432,20480,22528,24576,26624,28672,30720,32768,34816,36864,38912,40960,43008,45056,47104,49152};
-static unsigned long long int32touint64_data[DIMSIZE]={0,2048,4096,6144,8192,10240,12288,14336,16384,18432,20480,22528,24576,26624,28672,30720,32768,34816,36864,38912,40960,43008,45056,47104,49152};
-static char* string4_data[DIMSIZE]={"This is a data test string (pass 0).","This is a data test string (pass 1).","This is a data test string (pass 2).","This is a data test string (pass 3).","This is a data test string (pass 4).","This is a data test string (pass 5).","This is a data test string (pass 6).","This is a data test string (pass 7).","This is a data test string (pass 8).","This is a data test string (pass 9).","This is a data test string (pass 10).","This is a data test string (pass 11).","This is a data test string (pass 12).","This is a data test string (pass 13).","This is a data test string (pass 14).","This is a data test string (pass 15).","This is a data test string (pass 16).","This is a data test string (pass 17).","This is a data test string (pass 18).","This is a data test string (pass 19).","This is a data test string (pass 20).","This is a data test string (pass 21).","This is a data test string (pass 22).","This is a data test string (pass 23).","This is a data test string (pass 24)."};
-
-static char chartostring4_data[DIMSIZE+1]={'\000','\001','\002','\003','\004','\005','\006','\007','\010','\011','\012','\013','\014','\015','\016','\017','\020','\021','\022','\023','\024','\025','\026','\027','\030','\000'};
-#endif
 
 #ifndef USE_NETCDF4
 static char string3_data[DIMSIZE][STRLEN]={"This is a data test string (pass 0).","This is a data test string (pass 1).","This is a data test string (pass 2).","This is a data test string (pass 3).","This is a data test string (pass 4).","This is a data test string (pass 5).","This is a data test string (pass 6).","This is a data test string (pass 7).","This is a data test string (pass 8).","This is a data test string (pass 9).","This is a data test string (pass 10).","This is a data test string (pass 11).","This is a data test string (pass 12).","This is a data test string (pass 13).","This is a data test string (pass 14).","This is a data test string (pass 15).","This is a data test string (pass 16).","This is a data test string (pass 17).","This is a data test string (pass 18).","This is a data test string (pass 19).","This is a data test string (pass 20).","This is a data test string (pass 21).","This is a data test string (pass 22).","This is a data test string (pass 23).","This is a data test string (pass 24)."};

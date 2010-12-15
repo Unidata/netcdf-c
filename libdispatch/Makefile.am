@@ -19,24 +19,23 @@ noinst_LTLIBRARIES = libdispatch.la
 libdispatch_la_SOURCES = ncdispatch.h parallel.c copy.c file.c dim.c	\
 att.c error.c var.c dispatch.c
 
+# Provide our own version of the oc/dapurl code so we can
+# handle new url-based protocols like cdmremote.
+libdispatch_la_SOURCES += nc_url.c nc_url.h
+
+# These really contain common utility code used by more
+# than one later library.
+# TODO: move logging code here so it can be used anywhere.
+libdispatch_la_SOURCES += nclist.c nclist.h \
+                          ncbytes.c ncbytes.h
+
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += nc4.c
 endif # USE_NETCDF4
-
-# Add functions needed by opendap client.
-if USE_DAP
-libdispatch_la_SOURCES += dap.c
-AM_CPPFLAGS += -I${top_srcdir}/oc
-endif # USE_DAP
 
 # Add V2 API convenience library if needed.
 if BUILD_V2
 noinst_LTLIBRARIES += libnetcdf2.la 
 libnetcdf2_la_SOURCES = v2i.c
 endif # BUILD_V2
-
-.PHONY: visualstudio
-visualstudio:
-	sh ${abs_top_srcdir}/visualbuild add ${abs_srcdir} "${libdispatch_la_SOURCES}"
-
