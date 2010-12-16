@@ -14,8 +14,11 @@ CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
 tst_*.nc t_nc.nc large_files.nc quick_large_files.nc 
 
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_atts tst_small nc_test tst_misc tst_norm	\
-tst_names
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names
+
+if USE_NETCDF4
+TESTPROGRAMS += tst_atts
+endif
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
