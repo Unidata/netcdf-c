@@ -64,7 +64,7 @@ check(int status, char* file, int line)
 {
     if(status == 0) return;
     fprintf(stderr,"error: %s at %s:%d\n",nc_strerror(status),file,line);
-    exit(0); /* treat like xfail */
+    exit(1);
 }
 
 int
@@ -234,11 +234,11 @@ main()
     }
     printf("*** %s: stride case 3\n",(fail?"Fail":"Pass"));
 
-    return 0;
+    return fail;
 
 ncfail:
     printf("*** nc function failure: %d %s\n",err,nc_strerror(err));
-    return 0; /* treat like xfail */
+    return 1;
 }
 
 

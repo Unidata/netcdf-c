@@ -156,7 +156,8 @@ ocinternalinitialize(void)
         char* homepath = NULL;
 	FILE* f = NULL;
         /* locate the configuration files: . first, then $HOME */
-        path = (char*)malloc(strlen(".")+1+strlen(DODSRC)+1);
+        path = (char*)malloc(strlen("./")+strlen(DODSRC)+1);
+	if(path == NULL) return OC_ENOMEM;
         strcpy(path,"./");
         strcat(path,DODSRC);
 	/* see if file is readable */
@@ -165,7 +166,9 @@ ocinternalinitialize(void)
 	    /* try $HOME */
             homepath = getenv("HOME");
             if (homepath!= NULL) {
+	       if(path != NULL) free(path);
 	       path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
+	       if(path == NULL) return OC_ENOMEM;
 	       strcpy(path,homepath);
 	       strcat(path,"/");
 	       strcat(path,DODSRC);
@@ -242,6 +245,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCnode** rootp)
     MEMCHECK(tree,OC_ENOMEM);
     memset((void*)tree,0,sizeof(OCtree));
     tree->dxdclass = kind;
+    tree->state = state;
     tree->constraint = constraintescape(constraint);
     if(tree->constraint == NULL)
 	tree->constraint = nulldup(constraint);
@@ -360,6 +364,9 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCnode** rootp)
     }
 #endif
 
+    /* Put root into the state->trees list */
+    oclistpush(state->trees,(ocelem)root);
+
     if(rootp) *rootp = root;
     return stat;
 
@@ -374,6 +381,8 @@ occlose(OCstate* state)
     unsigned int i;
     if(state == NULL) return;
 
+    /* Warning: ocfreeroot will attempt to remove the root from state->trees */
+    /* Ok in this case because we are popping the root out of state->trees */
     for(i=0;i<oclistlength(state->trees);i++) {
 	OCnode* root = (OCnode*)oclistpop(state->trees);
 	ocfreeroot(root);

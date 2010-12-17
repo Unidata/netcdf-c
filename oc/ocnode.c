@@ -326,8 +326,20 @@ void
 ocfreeroot(OCnode* root)
 {
     OCtree* tree;
+    OCstate* state;
+    int i;
+
     if(root == NULL || root->tree == NULL) return;
+
     tree = root->tree;
+    /* Remove the root from the state->trees list */
+    state = tree->state;
+    for(i=0;i<oclistlength(state->trees);i++) {
+	OCnode* node = (OCnode*)oclistget(state->trees,i);
+	if(root == node)
+	    oclistremove(state->trees,i);
+    }
+    /* Note: it is ok if state->trees does not contain this root */    
     ocfreetree(tree);
 }
 

@@ -9,8 +9,12 @@ echo ""
 echo "Testing programs with valgrind..."
 
 # These are my test programs.
-list='t_type tst_camrun tst_vl tst_v2 tst_vars2 tst_atts '\
-'tst_atts2 tst_files2 tst_files'
+list="t_type tst_camrun tst_vl tst_v2 tst_vars2 \
+tst_atts2 tst_files2 tst_files"
+# If we are running with netcdf4, then add tst_atts
+if test "x$USE_NETCDF4" = "x1" ; then
+list="$list tst_atts"
+fi
 
 for tst in $list; do
     echo ""
