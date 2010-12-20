@@ -20,7 +20,7 @@ NCINCL=-I ../liblib
 #OCLIB=liboc.a
 #OCINCL=-I./oc
 
-LFLAG=-L/upc/share/stdinstall/local/${HOST}/lib
+LFLAG=-L/upc/share/ed/local/${HOST}/lib
 
 CURLLIB=-lcurl
 #HDF5LIB=-lhdf5_hl -lhdf5

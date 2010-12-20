@@ -43,6 +43,9 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     /* free the trees */
     freecdfroot34(nccomm->cdf.ddsroot);
     nccomm->cdf.ddsroot = NULL;
+    if(nccomm->oc.ocdasroot != NULL)
+        oc_root_free(nccomm->oc.conn,nccomm->oc.ocdasroot);
+    nccomm->oc.ocdasroot = NULL;
     oc_close(nccomm->oc.conn); /* also reclaims remaining OC trees */
     dapurlclear(&nccomm->oc.url);
     efree(nccomm->oc.urltext);

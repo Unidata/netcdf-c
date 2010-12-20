@@ -3,7 +3,7 @@
 
 # This Makefile assembles the correct libnetcdf based on various
 # configure flags. It is assumed that all the relevant convenience
-# libraries have been built (e.g. libsrc, libsrc4, libncdap3,
+# libraries have been built (e.g. libsrc, libsrc4, libncdap3, libcdmr,
 # libncdap4, fortran).
 
 AM_LDFLAGS = @EXTERN_LDFLAGS@
@@ -33,6 +33,7 @@ endif # USE_DAP
 
 # NetCDF-4 ...
 if USE_NETCDF4
+
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
@@ -40,6 +41,12 @@ libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 if USE_DAP
 libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
 endif # USE_DAP
+
+# netcdf4+cdmremote
+if BUILD_CDMREMOTE
+libnetcdf_la_LIBADD += ${top_builddir}/libcdmr/libnccr.la
+endif # BUILD_CDMREMOTE
+
 endif #USE_NETCDF4
 
 if BUILD_F77

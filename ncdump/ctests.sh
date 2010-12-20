@@ -227,13 +227,13 @@ if test 1 = 1; then
   if diff -w ${expected}/${x}.dmp results/${x}.dmp
     then ok=1; else ok=0; fi
   if test "$ok" = "1" ; then
-    echo "SUCCEED: ${x}"
+    echo "*** PASS: ${x}"
     passcount=`expr $passcount + 1`
   elif test $isxfail = 1 ; then
-    echo "XFAIL: ${x}"
+    echo "*** XFAIL: ${x}"
     xfailcount=`expr $xfailcount + 1`
   else
-    echo "FAIL: ${x}"
+    echo "*** FAIL: ${x}"
     failcount=`expr $failcount + 1`
   fi
 fi

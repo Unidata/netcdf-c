@@ -21,6 +21,10 @@ extern int NCD4_initialize(void);
 #endif
 #endif
 
+#ifdef BUILD_CDMREMOTE
+extern int NCCR_initialize(void);
+#endif
+
 int
 NC_initialize(void)
 {
@@ -38,6 +42,11 @@ NC_initialize(void)
 
 #if defined(USE_DAP) && defined(USE_NETCDF4)
     if((stat = NCD4_initialize())) return stat;
+#endif
+
+/* cdmremote => netcdf4 */
+#if defined(BUILD_CDMREMOTE)
+    if((stat = NCCR_initialize())) return stat;
 #endif
 
     return NC_NOERR;

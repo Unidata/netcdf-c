@@ -3859,11 +3859,11 @@ Specify translation to netCDF-4.
 Turn on logging and send the log output to the specified file.
 If no file is specified, then output to standard error.
 @item  "[show=...]" das|dds|url
-This causes information to appear as specific global attributes.  The
-tags may be combined using comma with no spaces
-(e.g. "show=dds,url").  The currently recognized tags are "dds" to
+This causes information to appear as specific global attributes.
+The currently recognized tags are "dds" to
 display the underlying DDS, "das" similarly, and "url" to display
 the url used to retrieve the data.
+This parameter may be specified multiple times (e.g. ``[show=dds][show=url]'').
 @item  "[show=fetch]"
 This parameter causes the netCDF code to log a copy of the complete
 url for every HTTP get request. If logging is enabled, then

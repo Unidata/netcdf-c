@@ -265,7 +265,6 @@ int
 set_NC_string(NC_string *ncstrp, const char *str)
 {
 	size_t slen;
-	size_t diff;
 
 	assert(str != NULL && *str != 0);
 

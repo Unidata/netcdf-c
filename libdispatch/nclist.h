@@ -45,8 +45,10 @@ EXTERNC ncelem* nclistdup(NClist*);
 
 /* Look for value match */
 EXTERNC int nclistcontains(NClist*, ncelem);
+
 /* remove duplicates */
 EXTERNC int nclistunique(NClist*);
+
 /* Create a clone of a list */
 EXTERNC NClist* nclistclone(NClist*);
 
