@@ -36,7 +36,7 @@ fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
 err++; \
 fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
 	__FILE__, __LINE__);				    \
-abort(); \
+return 2;                                                   \
 } while (0)
 
 /* This macro prints an error message with line number and name of
