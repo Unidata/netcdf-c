@@ -21,7 +21,7 @@
 #define ATT_NAME "Atom"
 #define MAX_LEN 7   
 
-static void
+static int
 test_small_atts(const char *testfile)
 {
    int ncid;
@@ -58,6 +58,7 @@ test_small_atts(const char *testfile)
 	 if (nc_close(ncid)) ERR; 
       }
    }
+   return 0;
 }
 
 #define DIM1_NAME "Time"
@@ -73,7 +74,7 @@ test_small_atts(const char *testfile)
  * write a NULL terminator for my attributes and text strings, but
  * this reproduces a bug that a fortran user sent us. So string data
  * are written to the file without null terminators. - Ed */
-static void
+static int
 test_small_unlim(const char *testfile)
 {
    int ncid, dimids[NDIMS], varid;
@@ -114,10 +115,11 @@ test_small_unlim(const char *testfile)
    for (i = 0; i < NUM_VALS; i++)
       if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
    if (nc_close(ncid)) ERR; 
+   return 0;
 }
 
 /* Test a small file with a fixed dimension. */
-static void
+static int
 test_small_fixed(const char *testfile)
 {
    int ncid, dimids[NDIMS], varid;
@@ -158,10 +160,11 @@ test_small_fixed(const char *testfile)
    for (i = 0; i < NUM_VALS; i++)
       if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
    if (nc_close(ncid)) ERR; 
+   return 0;
 }
 
 /* Test a small file with one var. */
-static void
+static int
 test_small_one(const char *testfile)
 {
    int ncid, dimid, varid;
@@ -190,13 +193,14 @@ test_small_one(const char *testfile)
    if (nc_get_var_text(ncid, varid, &data_in)) ERR;
    if (data_in != data) ERR;
    if (nc_close(ncid)) ERR; 
+   return 0;
 }
 
 #define ONE_DIM 1
 #define MAX_RECS 10
 
 /* Test a small file with one record var, which grows. */
-static void
+static int
 test_one_growing(const char *testfile)
 {
    int ncid, dimid, varid;
@@ -239,6 +243,7 @@ test_one_growing(const char *testfile)
 	 if (nc_close(ncid)) ERR; 
       } /* Next record. */
    }
+   return 0;
 }
 
 #define ONE_DIM 1
@@ -246,7 +251,7 @@ test_one_growing(const char *testfile)
 
 /* Test a small file with one record var, which grows, and has
  * attributes. */
-static void
+static int
 test_one_growing_with_att(const char *testfile)
 {
    int ncid, dimid, varid;
@@ -291,6 +296,7 @@ test_one_growing_with_att(const char *testfile)
       if (data_in != data[r]) ERR;
       if (nc_close(ncid)) ERR; 
    } /* Next record. */
+   return 0;
 }
 
 #define VAR_NAME2 "var2"
@@ -298,7 +304,7 @@ test_one_growing_with_att(const char *testfile)
 
 /* Test a small file with two record vars, which grow, and has
  * attributes added. */
-static void
+static int
 test_two_growing_with_att(const char *testfile)
 {
    int ncid, dimid, varid[NUM_VARS];
@@ -349,10 +355,11 @@ test_two_growing_with_att(const char *testfile)
       }
       if (nc_close(ncid)) ERR; 
    } /* Next record. */
+   return 0;
 }
 
 /* Test a small file with one var and one att. */
-static void
+static int
 test_one_with_att(const char *testfile)
 {
    int ncid, dimid, varid;
@@ -384,6 +391,7 @@ test_one_with_att(const char *testfile)
    if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in));
    if (data_in != data) ERR;
    if (nc_close(ncid)) ERR; 
+   return 0;
 }
 
 int
