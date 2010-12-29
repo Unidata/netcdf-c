@@ -3372,7 +3372,8 @@ An error was reported by the HDF5 layer.
 @section Find a Group by Name: nc_inq_grp_ncid
 @findex nc_inq_grp_parent
 
-Given a group name an an ncid, find the ncid of the group id. 
+Given a group location id and the name of an immediate subgroup, find
+the location id of the named subgroup. 
 
 @heading Usage 
 
@@ -3383,13 +3384,13 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid);
 @table @code
 
 @item ncid
-The group id to look in.
+The location id of the group in which to look.
 
 @item grp_name
-The name of the group that should be found.
+The name of a subgroup.
 
 @item grp_ncid
-A pointer to int which will get the group id, if it is found.
+A pointer to int which will get the group id of the named subgroup, if it is found.
 
 @end table
 
@@ -3409,7 +3410,7 @@ Bad group id.
 No name provided or name longer than NC_MAX_NAME.
 
 @item NC_ENOGRP
-Named group not found.
+Named subgroup not found.
 
 @item NC_ENOTNC4
 Attempting a netCDF-4 operation on a netCDF-3 file. NetCDF-4
