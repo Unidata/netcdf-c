@@ -540,7 +540,7 @@ free_var_chunk_cache(int igrp, int varid)
 
 /* Copy dimensions from group igrp to group ogrp */
 static int
-copy_dims(int igrp, int ogrp)
+copy_dims(int igrp, int ogrp, int *dimmap)
 {
     int stat = NC_NOERR;
     int ndims;
@@ -581,36 +581,38 @@ copy_dims(int igrp, int ogrp)
 	size_t length;
 	int is_unlim;
 	int uld;
-	int dimid;
+	int idimid, odimid;
 
 	is_unlim = 0;
 #ifdef USE_NETCDF4
-	dimid = dimids[dgrp];
+	idimid = dimids[dgrp];
 	for (uld = 0; uld < nunlims; uld++) {
-	    if(dimid == unlimids[uld]) {
+	    if(idimid == unlimids[uld]) {
 		is_unlim = 1;
 		break;
 	    }	  
 	}
 #else
-	dimid = dgrp;
-	if(unlimid != -1 && (dimid == unlimid)) {
+	idimid = dgrp;
+	if(unlimid != -1 && (idimid == unlimid)) {
 	    is_unlim = 1;
 	}
 #endif /* USE_NETCDF4 */
 
-	stat = nc_inq_dim(igrp, dimid, name, &length);
+	stat = nc_inq_dim(igrp, idimid, name, &length);
 	if (stat == NC_EDIMSIZE && sizeof(size_t) < 8) {
 	    fprintf(stderr, "dimension \"%s\" requires 64-bit platform\n", 
 		    name);
 	}	
 	CHECK(stat, nc_inq_dim);
 	if(is_unlim && !option_fix_unlimdims) {
-	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, NULL);
+	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, &odimid);
 	} else {
-	    stat = nc_def_dim(ogrp, name, length, NULL);
+	    stat = nc_def_dim(ogrp, name, length, &odimid);
 	}
-	CHECK(stat, nc_def_dim);	
+	CHECK(stat, nc_def_dim);
+	/* Store (idimid, odimid) mapping for later use */
+	dimmap[idimid] = odimid;
     }
 #ifdef USE_NETCDF4
     free(dimids);
@@ -644,7 +646,7 @@ copy_atts(int igrp, int ivar, int ogrp, int ovar)
 
 /* copy the schema for a single variable in group igrp to group ogrp */
 static int
-copy_var(int igrp, int varid, int ogrp)
+copy_var(int igrp, int varid, int ogrp, int *dimmap)
 {
     int stat = NC_NOERR;
     int ndims;
@@ -678,11 +680,7 @@ copy_var(int igrp, int varid, int ogrp)
     /* get the corresponding dimids in the output file */
     odimids = (int *) emalloc((ndims + 1) * sizeof(int));
     for(i = 0; i < ndims; i++) {
-	char dimname[NC_MAX_NAME];
-	stat = nc_inq_dimname(igrp, idimids[i], dimname);
-	CHECK(stat, nc_inq_dimname);
-	stat = nc_inq_dimid(ogrp, dimname, &odimids[i]);
-	CHECK(stat, nc_inq_dimid);
+	odimids[i] = dimmap[idimids[i]];
     }
 
     /* define the output variable */
@@ -722,7 +720,7 @@ copy_var(int igrp, int varid, int ogrp)
 
 /* copy the schema for all the variables in group igrp to group ogrp */
 static int
-copy_vars(int igrp, int ogrp)
+copy_vars(int igrp, int ogrp, int *dimmap)
 {
     int stat = NC_NOERR;
     int nvars;
@@ -731,16 +729,17 @@ copy_vars(int igrp, int ogrp)
     stat = nc_inq_nvars(igrp, &nvars);
     CHECK(stat, nc_inq_nvars);
     for (varid = 0; varid < nvars; varid++) {
-	stat = copy_var(igrp, varid, ogrp);
+	stat = copy_var(igrp, varid, ogrp, dimmap);
 	CHECK(stat, copy_var);
     }
     return stat;
 }
 
 /* Copy the schema in a group and all its subgroups, recursively, from
- * group igrp in input to parent group ogrp in destination. */
+ * group igrp in input to parent group ogrp in destination.  Use
+ * dimmap array to map input dimids to output dimids. */
 static int
-copy_schema(int igrp, int ogrp) 
+copy_schema(int igrp, int ogrp, int *dimmap) 
 {
     int stat = NC_NOERR;
     int ogid;			/* like igrp but in output file */
@@ -751,11 +750,11 @@ copy_schema(int igrp, int ogrp)
     stat = get_grpid(igrp, ogrp, &ogid);
     CHECK(stat, get_grpid);
 
-    stat = copy_dims(igrp, ogid);
+    stat = copy_dims(igrp, ogid, dimmap);
     CHECK(stat, copy_dims);
     stat = copy_atts(igrp, NC_GLOBAL, ogid, NC_GLOBAL);
     CHECK(stat, copy_atts);
-    stat = copy_vars(igrp, ogid);
+    stat = copy_vars(igrp, ogid, dimmap);
     CHECK(stat, copy_vars);
 #ifdef USE_NETCDF4    
     {
@@ -768,7 +767,7 @@ copy_schema(int igrp, int ogrp)
 	CHECK(stat, nc_inq_grps);
 	
 	for(i = 0; i < numgrps; i++) {
-	    stat = copy_schema(grpids[i], ogid);
+	    stat = copy_schema(grpids[i], ogid, dimmap);
 	    CHECK(stat, copy_schema);
 	}
 	free(grpids);
@@ -947,6 +946,30 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
     return stat;
 }
 
+/* Allocate an int array for mapping input dimids to output dimids, to
+ * be filled in and used later, with odimid = dimmap[idimid]. */
+void
+dimmap_init(int ncid, int** dimmap_p) {
+    int stat = NC_NOERR;
+    int numgrps;
+    int *grpids;
+    int igrp, idim;
+    int ndims=0;
+    /* get total number of groups and their ids, including all descendants */
+    stat = nc_inq_grps_full(ncid, &numgrps, NULL);
+    CHECK(stat, nc_inq_grps_full);
+    grpids = emalloc(numgrps * sizeof(int));
+    stat = nc_inq_grps_full(ncid, NULL, grpids);
+    CHECK(stat, nc_inq_grps_full);
+    for(igrp = 0; igrp < numgrps; igrp++) {
+	int ndims_local;
+	nc_inq_ndims(grpids[igrp], &ndims_local);
+	ndims += ndims_local;
+    }
+    *dimmap_p = (int *) emalloc(ndims * sizeof(int));
+    free(grpids); 
+}
+
 
 /* copy infile to outfile using netCDF API, kind specifies which
  * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
@@ -961,6 +984,7 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     int stat = NC_NOERR;
     int igrp, ogrp;
     int inkind, outkind;
+    int *dimmap;		/* array for mapping dimids from input to output */
 
     stat = nc_open(infile,NC_NOWRITE,&igrp);
     CHECK(stat,nc_open);
@@ -1020,8 +1044,10 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     }
 #endif	/* USE_NETCDF4 */
 
-    stat = copy_schema(igrp, ogrp);
+    dimmap_init(igrp, &dimmap);	/* alloc and initialize dimid mapping from igrp to ogrp */
+    stat = copy_schema(igrp, ogrp, dimmap);
     CHECK(stat,copy_schema);
+    free(dimmap);
     stat = nc_enddef(ogrp);
     CHECK(stat, nc_enddef);
     stat = copy_data(igrp, ogrp, copybuf_size);
@@ -1042,13 +1068,14 @@ usage(void)
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
   [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      adds shuffle option to deflation compression\n\
+  [-c chunkspec] specifies chunking for dimensions like \"dim1/N1,dim2/N2,...\"\n\
   [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
   [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
     (void) fprintf(stderr,
-		   "%s [-k n] [-d n] [-s] [-u] [-m n] infile outfile\n%s",
+		   "%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] infile outfile\n%s",
 		   progname,
 		   USAGE);
 }
@@ -1143,6 +1170,11 @@ main(int argc, char**argv)
 	    break;
 	case 's':		/* shuffling, may improve compression */
 	    option_shuffle_vars = NC_SHUFFLE;
+	    break;
+	case 'c':               /* optional chunking spec for each dimension in list */
+	{
+	    /* parse chunkspec string into (dimid, chunklen) structure */
+	}
 	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */
 	    option_fix_unlimdims = 1;

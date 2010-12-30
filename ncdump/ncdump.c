@@ -1500,10 +1500,44 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
       if (var.ndims > 0)
 	 printf ("(");
       for (id = 0; id < var.ndims; id++) {
-/* 	 printf ("%s%s", dims[var.dims[id]].name, id < var.ndims-1 ? ", " : ")"); */
 	 /* This dim may be in a parent group, so let's look up the
 	  * name. */
 	 NC_CHECK( nc_inq_dimname(ncid, var.dims[id], dim_name) );
+	 /* Subtlety: The following code block is needed because
+	  * nc_inq_dimname() currently returns only a simple dimension
+	  * name, without a prefix identifying the group it came from.
+	  * That's OK unless the dimid identifies a dimension in an
+	  * ancestor group that has the same simple name as a
+	  * dimension in the current group (or some intermediate
+	  * group), in which case the simple name is ambiguous.  This
+	  * code tests for that case and provides an absolute dimname
+	  * only in the case where a simple name would be
+	  * ambiguous. */
+	 {
+	     int dimid_test;	/* to see if dimname is ambiguous */
+	     int locid;		/* group id where dimension is defined */
+	     NC_CHECK( nc_inq_dimid(ncid, dim_name, &dimid_test) );
+	     locid = ncid;
+	     while(var.dims[id] != dimid_test) { /* not in locid, try ancestors */
+		 int parent_id;
+		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id); );
+		 locid = parent_id;
+		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
+	     }
+	     /* dimid is in group locid, prefix dimname with group name if needed */
+	     if(locid != ncid) {
+		 size_t len;
+		 char *locname;	/* the group name */
+		 NC_CHECK( nc_inq_grpname_full(locid, &len, NULL) );
+		 locname = emalloc(len);
+		 NC_CHECK( nc_inq_grpname_full(locid, &len, locname) );
+		 print_name (locname);
+		 if(strcmp("/", locname) != 0) { /* not the root group */
+		     printf("/");		 /* ensure a trailing slash */
+		 }
+		 free(locname);
+	     }
+	 }
 	 print_name (dim_name);
 	 printf ("%s", id < var.ndims-1 ? ", " : ")");
       }
@@ -1569,8 +1603,6 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	 no_data = 0;
 	 for (id = 0; id < var.ndims; id++) {
 	     size_t len;
-	     /* bug, wrong length value returned if dimension
-	      * inherited from ancestor group */
 	     NC_CHECK( nc_inq_dimlen(ncid, var.dims[id], &len) );
 	     if(len == 0) {
 		 no_data = 1;
