@@ -22,8 +22,8 @@
 #define VAR2_NAME "var2"
 
 
-void check_file(int format, unsigned char *uchar_out);
-void create_file(int format, unsigned char *uchar_out);
+int check_file(int format, unsigned char *uchar_out);
+int create_file(int format, unsigned char *uchar_out);
 
 int
 main(int argc, char **argv)
@@ -45,7 +45,7 @@ main(int argc, char **argv)
 }
 
 /* Create a test file with one var of type NC_BYTE. */
-void
+int
 create_file(int format, unsigned char *uchar_out)
 {
    int ncid, varid, cflags=0, dimids[1];
@@ -68,9 +68,10 @@ create_file(int format, unsigned char *uchar_out)
    if ((format != NC_FORMAT_NETCDF4) && retval) ERR;
    if ((format == NC_FORMAT_NETCDF4) && (retval != NC_ERANGE)) ERR;
    if (nc_close(ncid)) ERR;
+   return NC_NOERR;
 }
 
-void
+int
 check_file(int format, unsigned char *uchar_out)
 {
 

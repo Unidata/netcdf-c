@@ -14,7 +14,7 @@
 #ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
 #endif
-void test_redef(int format);
+int test_redef(int format);
 
 #define FILE_NAME "tst_files.nc"
 #define ATT1_NAME "MoneyOwned"
@@ -359,7 +359,7 @@ main(int argc, char **argv)
 #define NEW_CACHE_NELEMS 2000
 #define NEW_CACHE_PREEMPTION .75
 
-void
+int
 test_redef(int format)   
 {
    int ncid, varid, dimids[REDEF_NDIMS], dimids_in[REDEF_NDIMS];
@@ -527,6 +527,7 @@ test_redef(int format)
 	 
    if (uchar_in != uchar_out) ERR;
    if (nc_close(ncid)) ERR;      
+   return NC_NOERR;
 }
 
 
