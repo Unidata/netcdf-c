@@ -1068,7 +1068,6 @@ usage(void)
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
   [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      adds shuffle option to deflation compression\n\
-  [-c chunkspec] specifies chunking for dimensions like \"dim1/N1,dim2/N2,...\"\n\
   [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
   [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
@@ -1170,11 +1169,6 @@ main(int argc, char**argv)
 	    break;
 	case 's':		/* shuffling, may improve compression */
 	    option_shuffle_vars = NC_SHUFFLE;
-	    break;
-	case 'c':               /* optional chunking spec for each dimension in list */
-	{
-	    /* parse chunkspec string into (dimid, chunklen) structure */
-	}
 	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */
 	    option_fix_unlimdims = 1;
