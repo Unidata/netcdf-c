@@ -1503,6 +1503,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	 /* This dim may be in a parent group, so let's look up the
 	  * name. */
 	 NC_CHECK( nc_inq_dimname(ncid, var.dims[id], dim_name) );
+#ifdef USE_NETCDF4
 	 /* Subtlety: The following code block is needed because
 	  * nc_inq_dimname() currently returns only a simple dimension
 	  * name, without a prefix identifying the group it came from.
@@ -1538,6 +1539,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 		 free(locname);
 	     }
 	 }
+#endif	/* USE_NETCDF4 */
 	 print_name (dim_name);
 	 printf ("%s", id < var.ndims-1 ? ", " : ")");
       }
