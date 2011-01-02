@@ -1530,7 +1530,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 		 size_t len;
 		 char *locname;	/* the group name */
 		 NC_CHECK( nc_inq_grpname_full(locid, &len, NULL) );
-		 locname = emalloc(len);
+		 locname = emalloc(len + 1);
 		 NC_CHECK( nc_inq_grpname_full(locid, &len, locname) );
 		 print_name (locname);
 		 if(strcmp("/", locname) != 0) { /* not the root group */
