@@ -33,7 +33,7 @@
  * creating a variable for which the product of dimensions is exactly
  * 2**32.  Check that this bug has been fixed. 
  */
-static void
+static int
 test_big_var(const char *testfile) {
     int ncid, varid, dimids[NUMDIMS];
     int cflag = NC_CLOBBER;
@@ -63,9 +63,10 @@ test_big_var(const char *testfile) {
     if (nval != nval_in)
 	ERR;
     if (nc_close(ncid)) ERR;
+    return 0;
 }
 
-static void
+static int
 test_large_byte_var(const char *testfile) {
     int ncid, varid, dimids[NUMDIMS];
     size_t index[NUMDIMS] = {0, 0};
@@ -102,9 +103,10 @@ test_large_byte_var(const char *testfile) {
     if (char_val_in != 99)	/* see above, the value written when start[0]==0, j==0 */
 	ERR;
     if (nc_close(ncid)) ERR;
+    return 0;
 }
 
-static void
+static int
 test_large_short_var(const char *testfile) {
     int ncid, varid, dimids[NUMDIMS];
     int int_val_in, int_val_out = 99;
@@ -133,6 +135,7 @@ test_large_short_var(const char *testfile) {
 	ERR;
 #endif
     if (nc_close(ncid)) ERR;
+    return 0;
 }
 
 #define FILE_NAME "tst_large.nc"
