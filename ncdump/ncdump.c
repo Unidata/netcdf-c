@@ -1522,7 +1522,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	     locid = ncid;
 	     while(var.dims[id] != dimid_test) { /* not in locid, try ancestors */
 		 int parent_id;
-		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id); );
+		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id) );
 		 locid = parent_id;
 		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
 	     }

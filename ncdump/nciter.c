@@ -8,33 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 #include "nciter.h"
-
-#define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
-
-static void
-check(int err, const char* fcn, const char* file, const int line)
-{
-    fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: function %s; file %s; line %d\n",
-	    fcn,file,line);
-    fflush(stderr); fflush(stdout);
-    exit(1);
-}
-
-/* Check error return from malloc */
-static void *
-emalloc (size_t size)
-{
-    void   *p;
-
-    p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
-    if (p == 0) {
-	fprintf(stderr,"Out of memory!\n");
-	exit(1);
-    }
-    return p;
-}
 
 /* Initialize block iteration for variables, including those that
  * won't fit in the copy buffer all at once.  Returns error if
@@ -101,8 +76,7 @@ inq_value_size(int igrp, nc_type vartype, size_t *value_sizep) {
     int stat = NC_NOERR;
     
 #ifdef USE_NETCDF4
-    stat = nc_inq_type(igrp, vartype, NULL, value_sizep);
-    CHECK(stat, nc_inq_type);
+    NC_CHECK(nc_inq_type(igrp, vartype, NULL, value_sizep));
 #else
     switch(vartype) {
     case NC_BYTE:
@@ -124,8 +98,7 @@ inq_value_size(int igrp, nc_type vartype, size_t *value_sizep) {
 	*value_sizep = sizeof(double);
 	break;
     default:
-	stat = NC_EBADTYPE;
-	CHECK(stat, inq_value_size);
+	NC_CHECK(NC_EBADTYPE);
 	break;
     }
 #endif	/* USE_NETCDF4 */
@@ -270,15 +243,13 @@ gs_top(ncgiter_t *s)
 static int
 nc_inq_grps2(int ncid, int *numgrps, int *grpids)
 {
-    int stat;
+    int stat = NC_NOERR;
 
     /* just check if ncid is valid id of open netCDF file */
-    stat = nc_inq(ncid, NULL, NULL, NULL, NULL);
-    CHECK(stat, nc_inq);
+    NC_CHECK(nc_inq(ncid, NULL, NULL, NULL, NULL));
 
 #ifdef USE_NETCDF4
-    stat = nc_inq_grps(ncid, numgrps, grpids);
-    CHECK(stat, nc_inq_grps);
+    NC_CHECK(nc_inq_grps(ncid, numgrps, grpids));
 #else
     *numgrps = 0;
 #endif
@@ -310,41 +281,33 @@ nc_get_iter(int ncid,
     iterp = (nciter_t *) emalloc(sizeof(nciter_t));
     memset((void*)iterp,0,sizeof(nciter_t)); /* make sure it is initialized */
 
-    stat = nc_inq_varndims(ncid, varid, &ndims);
-    CHECK(stat, nc_inq_varndims);
+    NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
     dimids = (int *) emalloc((ndims + 1) * sizeof(size_t));
     iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
 
-    stat = nc_inq_vardimid (ncid, varid, dimids);
-    CHECK(stat, nc_inq_vardimid);
+    NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
     for(dim = 0; dim < ndims; dim++) {
 	size_t len;
-	stat = nc_inq_dimlen(ncid, dimids[dim], &len);
-	CHECK(stat, nc_inq_dimlen);
+	NC_CHECK(nc_inq_dimlen(ncid, dimids[dim], &len));
 	nvalues *= len;
 	iterp->dimsizes[dim] = len;
     }
-    stat = nc_inq_vartype(ncid, varid, &vartype);
-    CHECK(stat, nc_inq_vartype);
-    stat = inq_value_size(ncid, vartype, &value_size);
-    CHECK(stat, inq_value_size);
+    NC_CHECK(nc_inq_vartype(ncid, varid, &vartype));
+    NC_CHECK(inq_value_size(ncid, vartype, &value_size));
 #ifdef USE_NETCDF4    
     {
 	int contig = 1;
 	if(ndims > 0) {
-	    stat = nc_inq_var_chunking(ncid, varid, &contig, NULL);
-	    CHECK(stat, nc_inq_var_chunking);
+	    NC_CHECK(nc_inq_var_chunking(ncid, varid, &contig, NULL));
 	}
 	if(contig == 0) {	/* chunked */
-	    stat = nc_inq_var_chunking(ncid, varid, &contig, iterp->chunksizes);
-	    CHECK(stat, nc_inq_var_chunking);
+	    NC_CHECK(nc_inq_var_chunking(ncid, varid, &contig, iterp->chunksizes));
 	    chunked = 1;
 	}
     }
 #endif	/* USE_NETCDF4 */
-    stat = nc_blkio_init(bufsize, value_size, ndims, chunked, iterp);
-    CHECK(stat, nc_blkio_init);
+    NC_CHECK(nc_blkio_init(bufsize, value_size, ndims, chunked, iterp));
     iterp->to_get = 0;
     free(dimids);
     *iterpp = iterp;
@@ -470,12 +433,10 @@ nc_next_giter(ncgiter_t *iterp, int *grpidp) {
 	*grpidp = 0;		/* not a group, signals iterator is done */
     } else {
 	*grpidp = gs_pop(iterp);
-	stat = nc_inq_grps2(*grpidp, &numgrps, NULL);
-	CHECK(stat, nc_inq_grps2);
+	NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, NULL));
 	if(numgrps > 0) {
 	    grpids = (int *)emalloc(sizeof(int) * numgrps);
-	    stat = nc_inq_grps2(*grpidp, &numgrps, grpids);
-	    CHECK(stat, nc_inq_grps2);
+	    NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, grpids));
 	    for(i = numgrps - 1; i >= 0; i--) { /* push ids on stack in reverse order */
 		gs_push(iterp, grpids[i]);
 	    }
@@ -512,18 +473,15 @@ nc_inq_grps_full(int rootid, int *numgrps, int *grpids)
     int grpid;
     size_t count;
 
-    stat = nc_get_giter(rootid, &giter);
-    CHECK(stat, nc_get_giter);
+    NC_CHECK(nc_get_giter(rootid, &giter));
     
     count = 0;
-    stat = nc_next_giter(giter, &grpid);
-    CHECK(stat, nc_next_giter);
+    NC_CHECK(nc_next_giter(giter, &grpid));
     while(grpid != 0) {
 	if(grpids)
 	    grpids[count] = grpid;
 	count++;
-	stat = nc_next_giter(giter, &grpid);
-	CHECK(stat, nc_next_iter);
+	NC_CHECK(nc_next_giter(giter, &grpid));
     }
     if(numgrps)
 	*numgrps = count;

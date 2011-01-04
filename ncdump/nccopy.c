@@ -51,15 +51,13 @@ get_grpid(int igrp, int parid, int *ogrpp) {
     stat = nc_inq_grp_parent(igrp, &inparid);
     if(stat == NC_NOERR) {	/* not root group */
 	char grpname[NC_MAX_NAME + 1];
-	stat = nc_inq_grpname(igrp, grpname);
-	CHECK(stat, nc_inq_grpname);
-	stat = nc_inq_grp_ncid(parid, grpname, &ogid);
-	CHECK(stat, nc_inq_grp_ncid);
+	NC_CHECK(nc_inq_grpname(igrp, grpname));
+	NC_CHECK(nc_inq_grp_ncid(parid, grpname, &ogid));
     } else if(stat == NC_ENOGRP) { /* root group */
 	ogid = parid;
 	stat = NC_NOERR;
     } else {
-	CHECK(stat, nc_inq_grp_parent);
+	NC_CHECK(stat);
     }
 #else
     ogid = parid;
@@ -80,7 +78,7 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     char *slash = "/";		/* groupname separator */
     char *last_slash;
     if(parent == NULL) {
-	CHECK(NC_ENOMEM, strdup);
+	NC_CHECK(NC_ENOMEM);
     }
     last_slash = strrchr(parent, '/');
     if(last_slash == parent) {	/* parent is root */
@@ -89,9 +87,8 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     } else {
 	*last_slash = '\0';	/* truncate to get parent name */
     }
-    stat = nc_inq_grp_full_ncid(ncid, parent, locidp);
-    CHECK(stat, nc_inq_grp_full_ncid);
-    free(parent);
+    NC_CHECK(nc_inq_grp_full_ncid(ncid, parent, locidp));
+       free(parent);
     return stat;
 }
 
@@ -108,24 +105,19 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     size_t value_size;
     size_t prod;
 
-    stat = nc_inq_vartype(igrp, varid, &vartype);
-    CHECK(stat, nc_inq_vartype);
+    NC_CHECK(nc_inq_vartype(igrp, varid, &vartype));
     /* from type, get size in memory needed for each value */
-    stat = nc_inq_type(igrp, vartype, NULL, &value_size);
-    CHECK(stat, nc_inq_type);
+    NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
     prod = value_size;
-    stat = nc_inq_varndims(igrp, varid, &ndims);
-    CHECK(stat, nc_inq_varndims);
+    NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
     chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     if(ndims > 0) {
-	stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
-	CHECK(stat, nc_inq_var_chunking);
+	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
     }
     if(contig == 1) {
 	*chunksizep = 0;
     } else {
-	stat = nc_inq_var_chunking(igrp, varid, &contig, chunksizes);
-	CHECK(stat, nc_inq_var_chunking);
+	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, chunksizes));
 	for(dim = 0; dim < ndims; dim++) {
 	    prod *= chunksizes[dim];
 	}
@@ -154,24 +146,20 @@ copy_vlen_type(int igrp, nc_type itype, int ogrp)
     size_t basesize;
     nc_type vlen_type;
 
-    stat = nc_inq_vlen(igrp, itype, name, &size, &ibasetype);
-    CHECK(stat, nc_inq_vlen);
+    NC_CHECK(nc_inq_vlen(igrp, itype, name, &size, &ibasetype));
     /* to get base type id in target group, use name of base type in
      * source group */
-    stat = nc_inq_type(igrp, ibasetype, basename, &basesize);
-    CHECK(stat, nc_inq_type);
+    NC_CHECK(nc_inq_type(igrp, ibasetype, basename, &basesize));
     stat = nc_inq_typeid(ogrp, basename, &obasetype);
     /* if no such type, create it now */
     if(stat == NC_EBADTYPE) {
-	copy_type(igrp, ibasetype, ogrp);
-	CHECK(stat, copy_type);
+	NC_CHECK(copy_type(igrp, ibasetype, ogrp));
 	stat = nc_inq_typeid(ogrp, basename, &obasetype);
     }
-    CHECK(stat, nc_inq_typeid);
+    NC_CHECK(stat);
 
     /* Now we know base type exists in output and we know its type id */
-    stat = nc_def_vlen(ogrp, name, obasetype, &vlen_type);
-    CHECK(stat, nc_copy_vlen_type);
+    NC_CHECK(nc_def_vlen(ogrp, name, obasetype, &vlen_type));
 
     return stat;
 }
@@ -187,10 +175,8 @@ copy_opaque_type(int igrp, nc_type itype, int ogrp)
     char name[NC_MAX_NAME];
     size_t size;
 
-    stat = nc_inq_opaque(igrp, itype, name, &size);
-    CHECK(stat, nc_inq_opaque_type);
-    stat = nc_def_opaque(ogrp, size, name, &otype);
-    CHECK(stat, copy_opaque_type);
+    NC_CHECK(nc_inq_opaque(igrp, itype, name, &size));
+    NC_CHECK(nc_def_opaque(ogrp, size, name, &otype));
 
     return stat;
 }
@@ -209,17 +195,13 @@ copy_enum_type(int igrp, nc_type itype, int ogrp)
     char name[NC_MAX_NAME];
     int i;
 
-    stat = nc_inq_enum(igrp, itype, name, &basetype, &basesize, &nmembers);
-    CHECK(stat, nc_inq_enum);
-    stat = nc_def_enum(ogrp, basetype, name, &otype);
-    CHECK(stat, nc_def_enum);
+    NC_CHECK(nc_inq_enum(igrp, itype, name, &basetype, &basesize, &nmembers));
+    NC_CHECK(nc_def_enum(ogrp, basetype, name, &otype));
     for(i = 0; i < nmembers; i++) { /* insert enum members */
 	char ename[NC_MAX_NAME];
 	long long val;		/* large enough to hold any integer type */
-	stat = nc_inq_enum_member(igrp, itype, i, ename, &val);
-	CHECK(stat, nc_inq_enum_member);
-	stat = nc_insert_enum(ogrp, otype, ename, &val);
-	CHECK(stat, nc_insert_enum);
+	NC_CHECK(nc_inq_enum_member(igrp, itype, i, ename, &val));
+	NC_CHECK(nc_insert_enum(ogrp, otype, ename, &val));
     }
     return stat;
 }
@@ -237,10 +219,8 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
     nc_type otype;
     int fid;
 
-    stat = nc_inq_compound(igrp, itype, name, &size, &nfields);
-    CHECK(stat, nc_inq_compound);
-    stat = nc_def_compound(ogrp, size, name, &otype);
-    CHECK(stat, nc_def_compound);
+    NC_CHECK(nc_inq_compound(igrp, itype, name, &size, &nfields));
+    NC_CHECK(nc_def_compound(ogrp, size, name, &otype));
 
     for (fid = 0; fid < nfields; fid++) {
 	char fname[NC_MAX_NAME];
@@ -249,27 +229,20 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
 	nc_type iftype, oftype;
 	int fndims;
 
-	stat = nc_inq_compound_field(igrp, itype, fid, fname, &foff, &iftype, 
-				     &fndims, NULL);
-	CHECK(stat, nc_inq_compound_field);
+	NC_CHECK(nc_inq_compound_field(igrp, itype, fid, fname, &foff, &iftype, &fndims, NULL));
 	/* type ids in source don't necessarily correspond to same
 	 * typeids in destination, so look up destination typeid by using
 	 * field type name */
-	stat = nc_inq_type(igrp, iftype, ftypename, NULL);
-	CHECK(stat, nc_inq_type);
-	stat = nc_inq_typeid(ogrp, ftypename, &oftype);
-	CHECK(stat, nc_inq_typeid);
+	NC_CHECK(nc_inq_type(igrp, iftype, ftypename, NULL));
+	NC_CHECK(nc_inq_typeid(ogrp, ftypename, &oftype));
 	if(fndims == 0) {
-	    stat = nc_insert_compound(ogrp, otype, fname, foff, oftype);
-	    CHECK(stat, nc_insert_compound);	    
+	    NC_CHECK(nc_insert_compound(ogrp, otype, fname, foff, oftype));
 	} else {		/* field is array type */
 	    int *fdimsizes;
 	    fdimsizes = (int *) emalloc((fndims + 1) * sizeof(int));
 	    stat = nc_inq_compound_field(igrp, itype, fid, NULL, NULL, NULL, 
 					 NULL, fdimsizes);
-	    stat = nc_insert_array_compound(ogrp, otype, fname, foff, 
-					    oftype, fndims, fdimsizes);
-	    CHECK(stat, nc_insert_array_compound);
+	    NC_CHECK(nc_insert_array_compound(ogrp, otype, fname, foff, oftype, fndims, fdimsizes));
 	    free(fdimsizes);
 	}
     }
@@ -286,29 +259,23 @@ copy_type(int igrp, nc_type typeid, int ogrp)
     int stat = NC_NOERR; 
     nc_type type_class;
 
-    stat = nc_inq_user_type(igrp, typeid, NULL, NULL, NULL, NULL, &type_class); 
-    CHECK(stat, nc_inq_user_type);
+    NC_CHECK(nc_inq_user_type(igrp, typeid, NULL, NULL, NULL, NULL, &type_class));
 
     switch(type_class) {
     case NC_VLEN:
-	stat = copy_vlen_type(igrp, typeid, ogrp);
-	CHECK(stat, copy_vlen_type);
+	NC_CHECK(copy_vlen_type(igrp, typeid, ogrp));
 	break;
     case NC_OPAQUE:
-	stat = copy_opaque_type(igrp, typeid, ogrp);
-	CHECK(stat, copy_opaque_type);
+	NC_CHECK(copy_opaque_type(igrp, typeid, ogrp));
 	break;
     case NC_ENUM:
-	stat = copy_enum_type(igrp, typeid, ogrp);
-	CHECK(stat, copy_enum_type);
+	NC_CHECK(copy_enum_type(igrp, typeid, ogrp));
 	break;
     case NC_COMPOUND:
-	stat = copy_compound_type(igrp, typeid, ogrp);
-	CHECK(stat, copy_compound_type);
+	NC_CHECK(copy_compound_type(igrp, typeid, ogrp));
 	break;
     default:
-	stat = NC_EBADTYPE;
-	CHECK(stat, copy_type);
+	NC_CHECK(NC_EBADTYPE);
     }
     return stat;
 }
@@ -326,11 +293,9 @@ copy_groups(int iroot, int oroot)
     int i;
 
     /* get total number of groups and their ids, including all descendants */
-    stat = nc_inq_grps_full(iroot, &numgrps, NULL);
-    CHECK(stat, nc_inq_grps_full);
+    NC_CHECK(nc_inq_grps_full(iroot, &numgrps, NULL));
     grpids = emalloc(numgrps * sizeof(int));
-    stat = nc_inq_grps_full(iroot, NULL, grpids);
-    CHECK(stat, nc_inq_grps_full);
+    NC_CHECK(nc_inq_grps_full(iroot, NULL, grpids));
     /* create corresponding new groups in ogrp, except for root group */
     for(i = 1; i < numgrps; i++) {
 	char *grpname_full;
@@ -338,22 +303,17 @@ copy_groups(int iroot, int oroot)
 	size_t len_name;
 	int ogid, oparid;
 	/* get full group name of input group */
-	stat = nc_inq_grpname_full(grpids[i], &len_name, NULL);
-	CHECK(stat, nc_inq_grpname);
+	NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
 	grpname_full = emalloc(len_name + 1);
-	stat = nc_inq_grpname_full(grpids[i], &len_name, grpname_full);
-	CHECK(stat, nc_inq_grpname_full);
+	NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
 	/* get id of parent group of corresponding group in output.
 	 * Note that this exists, because nc_inq_groups returned
 	 * grpids in preorder, so parents are always copied before
 	 * their subgroups */
-	stat = nc_inq_parid(oroot, grpname_full, &oparid);
-	CHECK(stat, get_oparid);
-	stat = nc_inq_grpname(grpids[i], grpname);
-	CHECK(stat, nc_inq_grpname);
+	NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
+	NC_CHECK(nc_inq_grpname(grpids[i], grpname));
 	/* define corresponding group in output */
-	stat = nc_def_grp(oparid, grpname, &ogid);
-	CHECK(stat, nc_def_grp);
+	NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
 	free(grpname_full);
     }
     free(grpids);
@@ -374,36 +334,29 @@ copy_types(int igrp, int ogrp)
     int *grpids = NULL;
     int i;
 
-    stat = nc_inq_typeids(igrp, &ntypes, NULL);
-    CHECK(stat, nc_inq_typeids);
+    NC_CHECK(nc_inq_typeids(igrp, &ntypes, NULL));
 
     if(ntypes > 0) {
 	types = (nc_type *) emalloc(ntypes * sizeof(nc_type));
-	stat = nc_inq_typeids(igrp, &ntypes, types);
-	CHECK(stat, nc_inq_typeids);
+	NC_CHECK(nc_inq_typeids(igrp, &ntypes, types));
 	for (i = 0; i < ntypes; i++) {
-	    stat = copy_type(igrp, types[i], ogrp);
-	    CHECK(stat, copy_type);
+	    NC_CHECK(copy_type(igrp, types[i], ogrp));
 	}
 	free(types);
     }
 
     /* Copy types from subgroups */
-    stat = nc_inq_grps(igrp, &numgrps, NULL);
-    CHECK(stat, nc_inq_grps);
+    NC_CHECK(nc_inq_grps(igrp, &numgrps, NULL));
     if(numgrps > 0) {
 	grpids = (int *)emalloc(sizeof(int) * numgrps);
-	stat = nc_inq_grps(igrp, &numgrps, grpids);
-	CHECK(stat, nc_inq_grps);
+	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	for(i = 0; i < numgrps; i++) {
 	    int ogid;
 	    /* get groupid in output corresponding to grpids[i] in
 	     * input, given parent group (or root group) ogrp in
 	     * output */
-	    stat = get_grpid(grpids[i], ogrp, &ogid);
-	    CHECK(stat, get_grpid);
-	    stat = copy_types(grpids[i], ogid);
-	    CHECK(stat, copy_types);
+	    NC_CHECK(get_grpid(grpids[i], ogrp, &ogid));
+	    NC_CHECK(copy_types(grpids[i], ogid));
 	}
 	free(grpids);
     }
@@ -418,57 +371,44 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     int stat = NC_NOERR;
     {				/* handle chunking parameters */
 	int ndims;
-	stat = nc_inq_varndims(igrp, varid, &ndims);
-	CHECK(stat, nc_inq_varndims);
+	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
 	if (ndims > 0) {		/* no chunking for scalar variables */
 	    int contig = 0;
-	    stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
-	    CHECK(stat, nc_inq_var_chunking);
+	    NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
 	    if(contig == 1) {
-		stat = nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL);
-		CHECK(stat, nc_def_var_chunking);
+		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
 	    } else {
 		size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
-		stat = nc_inq_var_chunking(igrp, varid, NULL, chunkp);
-		CHECK(stat, nc_inq_var_chunking);
+		NC_CHECK(nc_inq_var_chunking(igrp, varid, NULL, chunkp));
 		/* explicitly set chunking, even if default */
-		stat = nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp);
-		CHECK(stat, nc_def_var_chunking);
+		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
 		free(chunkp);
 	    }
 	}
     }
     {				/* handle compression parameters */
 	int shuffle, deflate, deflate_level;
-	stat = nc_inq_var_deflate(igrp, varid, 
-				  &shuffle, &deflate, &deflate_level);
-	CHECK(stat, nc_inq_var_deflate);
+	NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle, &deflate, &deflate_level));
 	if(option_deflate_level >= 0) { /* change output compression, if requested */
 	  deflate	= (option_deflate_level > 0);
 	  deflate_level = option_deflate_level;
 	}
 	if(deflate != 0 || shuffle != 0) {
-	    stat = nc_def_var_deflate(ogrp, o_varid, 
-				      shuffle, deflate, deflate_level);
-	    CHECK(stat, nc_def_var_deflate);
+	    NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle, deflate, deflate_level));
 	}
     }
     {				/* handle checksum parameters */
 	int fletcher32 = 0;
-	stat = nc_inq_var_fletcher32(igrp, varid, &fletcher32);
-	CHECK(stat, nc_inq_var_fletcher32);
+	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
 	if(fletcher32 != 0) {
-	    stat = nc_def_var_fletcher32(ogrp, o_varid, fletcher32);
-	    CHECK(stat, nc_def_var_fletcher32);
+	    NC_CHECK(nc_def_var_fletcher32(ogrp, o_varid, fletcher32));
 	}
     }
     {				/* handle endianness */
 	int endianness = 0;
-	stat = nc_inq_var_endian(igrp, varid, &endianness);
-	CHECK(stat, nc_inq_var_endian);
+	NC_CHECK(nc_inq_var_endian(igrp, varid, &endianness));
 	if(endianness != NC_ENDIAN_NATIVE) { /* native is the default */
-	    stat = nc_def_var_endian(ogrp, o_varid, endianness);
-	    CHECK(stat, nc_def_var_endian);
+	    NC_CHECK(nc_def_var_endian(ogrp, o_varid, endianness));
 	}
     }
     return stat;
@@ -481,9 +421,7 @@ set_var_compressed(int ogrp, int o_varid)
     int stat = NC_NOERR;
     if (option_deflate_level >= 0) {
 	int deflate = 1;
-	stat = nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, 
-				  deflate, option_deflate_level);
-	CHECK(stat, nc_def_var_deflate);
+	NC_CHECK(nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, deflate, option_deflate_level));
     }
     return stat;
 }
@@ -499,16 +437,12 @@ free_var_chunk_cache(int igrp, int varid)
     size_t cache_nelems = 1;
     float cache_preemp = 0;
     int inkind;
-    stat = nc_inq_format(igrp, &inkind);
-    CHECK(stat,nc_inq_format);
+    NC_CHECK(nc_inq_format(igrp, &inkind));
     if(inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC) {
 	int contig = 1;
-	stat = nc_inq_var_chunking(igrp, varid, &contig, NULL);
-	CHECK(stat, nc_inq_var_chunking);
+	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
 	if(contig == 0) {	/* chunked */
-	    stat = nc_set_var_chunk_cache(igrp, varid, chunk_cache_size, 
-					  cache_nelems, cache_preemp); 
-	    CHECK(stat, nc_set_var_chunk_cache);
+	    NC_CHECK(nc_set_var_chunk_cache(igrp, varid, chunk_cache_size, cache_nelems, cache_preemp));
 	}
     }
     return stat;
@@ -530,8 +464,7 @@ copy_dims(int igrp, int ogrp, int *dimmap)
     int unlimid;
 #endif /* USE_NETCDF4 */    
 
-    stat = nc_inq_ndims(igrp, &ndims);
-    CHECK(stat, nc_inq_ndims);
+    NC_CHECK(nc_inq_ndims(igrp, &ndims));
 
 #ifdef USE_NETCDF4
    /* In netCDF-4 files, dimids may not be sequential because they
@@ -539,17 +472,13 @@ copy_dims(int igrp, int ogrp, int *dimmap)
     * group at a time. */
     /* Find the dimension ids in this group, don't include parents. */
     dimids = (int *) emalloc((ndims + 1) * sizeof(int));
-    stat = nc_inq_dimids(igrp, NULL, dimids, 0);
-    CHECK(stat, nc_inq_dimids);
+    NC_CHECK(nc_inq_dimids(igrp, NULL, dimids, 0));
     /* Find the number of unlimited dimensions and get their IDs */
-    stat = nc_inq_unlimdims(igrp, &nunlims, NULL);
-    CHECK(stat, nc_inq_unlimdims);
+    NC_CHECK(nc_inq_unlimdims(igrp, &nunlims, NULL));
     unlimids = (int *) emalloc((nunlims + 1) * sizeof(int));
-    stat = nc_inq_unlimdims(igrp, NULL, unlimids);
-    CHECK(stat, nc_inq_unlimdims);
+    NC_CHECK(nc_inq_unlimdims(igrp, NULL, unlimids));
 #else
-    stat = nc_inq_unlimdim(igrp, &unlimid);
-    CHECK(stat, nc_inq_unlimdim);
+    NC_CHECK(nc_inq_unlimdim(igrp, &unlimid));
 #endif /* USE_NETCDF4 */
 
     /* Copy each dimension to output, including unlimited dimension(s) */
@@ -581,13 +510,12 @@ copy_dims(int igrp, int ogrp, int *dimmap)
 	    fprintf(stderr, "dimension \"%s\" requires 64-bit platform\n", 
 		    name);
 	}	
-	CHECK(stat, nc_inq_dim);
+	NC_CHECK(stat);
 	if(is_unlim && !option_fix_unlimdims) {
-	    stat = nc_def_dim(ogrp, name, NC_UNLIMITED, &odimid);
+	    NC_CHECK(nc_def_dim(ogrp, name, NC_UNLIMITED, &odimid));
 	} else {
-	    stat = nc_def_dim(ogrp, name, length, &odimid);
+	    NC_CHECK(nc_def_dim(ogrp, name, length, &odimid));
 	}
-	CHECK(stat, nc_def_dim);
 	/* Store (idimid, odimid) mapping for later use */
 	dimmap[idimid] = odimid;
     }
@@ -608,15 +536,12 @@ copy_atts(int igrp, int ivar, int ogrp, int ovar)
     int iatt;
     int stat = NC_NOERR;
 
-    stat = nc_inq_varnatts(igrp, ivar, &natts);
-    CHECK(stat, nc_inq_varnatts);
+    NC_CHECK(nc_inq_varnatts(igrp, ivar, &natts));
     
     for(iatt = 0; iatt < natts; iatt++) {
 	char name[NC_MAX_NAME];
-	stat = nc_inq_attname(igrp, ivar, iatt, name);
-	CHECK(stat, nc_inq_attname);
-	stat = nc_copy_att(igrp, ivar, name, ogrp, ovar);
-	CHECK(stat, nc_copy_att);
+	NC_CHECK(nc_inq_attname(igrp, ivar, iatt, name));
+	NC_CHECK(nc_copy_att(igrp, ivar, name, ogrp, ovar));
     }
     return stat;
 }
@@ -635,11 +560,9 @@ copy_var(int igrp, int varid, int ogrp, int *dimmap)
     int i;
     int o_varid;
 
-    stat = nc_inq_varndims(igrp, varid, &ndims);
-    CHECK(stat, nc_inq_varndims);
+    NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
     idimids = (int *) emalloc((ndims + 1) * sizeof(int));
-    stat = nc_inq_var(igrp, varid, name, &typeid, NULL, idimids, &natts);
-    CHECK(stat, nc_inq_var);
+    NC_CHECK(nc_inq_var(igrp, varid, name, &typeid, NULL, idimids, &natts));
     o_typeid = typeid;
 #ifdef USE_NETCDF4
     if (typeid > NC_STRING) {	/* user-defined type */
@@ -647,10 +570,8 @@ copy_var(int igrp, int varid, int ogrp, int *dimmap)
 	 * typeids in destination, so look up destination typeid by
 	 * using type name */
 	char type_name[NC_MAX_NAME];
-	stat = nc_inq_type(igrp, typeid, type_name, NULL);
-	CHECK(stat, nc_inq_type);
-	stat = nc_inq_typeid(ogrp, type_name, &o_typeid);
-	CHECK(stat, nc_inq_typeid);
+	NC_CHECK(nc_inq_type(igrp, typeid, type_name, NULL));
+	NC_CHECK(nc_inq_typeid(ogrp, type_name, &o_typeid));
     }
 #endif	/* USE_NETCDF4 */
 
@@ -661,31 +582,25 @@ copy_var(int igrp, int varid, int ogrp, int *dimmap)
     }
 
     /* define the output variable */
-    stat = nc_def_var(ogrp, name, o_typeid, ndims, odimids, &o_varid);
-    CHECK(stat, nc_def_var);
+    NC_CHECK(nc_def_var(ogrp, name, o_typeid, ndims, odimids, &o_varid));
 
     /* attach the variable attributes to the output variable */
-    stat = copy_atts(igrp, varid, ogrp, o_varid);
-    CHECK(stat, copy_atts);
+    NC_CHECK(copy_atts(igrp, varid, ogrp, o_varid));
 #ifdef USE_NETCDF4    
     {
 	int inkind;
 	int outkind;
-	stat = nc_inq_format(igrp, &inkind);
-	CHECK(stat,nc_inq_format);
-	stat = nc_inq_format(ogrp, &outkind);
-	CHECK(stat,nc_inq_format);
+	NC_CHECK(nc_inq_format(igrp, &inkind));
+	NC_CHECK(nc_inq_format(ogrp, &outkind));
 	if(outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC) {
 	    if((inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC)) {
 		/* Copy all netCDF-4 specific variable properties such as
 		 * chunking, endianness, deflation, checksumming, fill, etc. */
-		stat = copy_var_specials(igrp, varid, ogrp, o_varid);
-		CHECK(stat, copy_var_specials);
+		NC_CHECK(copy_var_specials(igrp, varid, ogrp, o_varid));
 	    }
 	    else {	     /* classic or 64-bit offset input file */
 		/* Set compression if specified on command line option */
-	    	stat = set_var_compressed(ogrp, o_varid);
-	    	CHECK(stat, set_var_compressed);
+	    	NC_CHECK(set_var_compressed(ogrp, o_varid));
 	    }
 	}
     }
@@ -703,11 +618,9 @@ copy_vars(int igrp, int ogrp, int *dimmap)
     int nvars;
     int varid;
     
-    stat = nc_inq_nvars(igrp, &nvars);
-    CHECK(stat, nc_inq_nvars);
+    NC_CHECK(nc_inq_nvars(igrp, &nvars));
     for (varid = 0; varid < nvars; varid++) {
-	stat = copy_var(igrp, varid, ogrp, dimmap);
-	CHECK(stat, copy_var);
+	NC_CHECK(copy_var(igrp, varid, ogrp, dimmap));
     }
     return stat;
 }
@@ -724,15 +637,11 @@ copy_schema(int igrp, int ogrp, int *dimmap)
 
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
-    stat = get_grpid(igrp, ogrp, &ogid);
-    CHECK(stat, get_grpid);
+    NC_CHECK(get_grpid(igrp, ogrp, &ogid));
 
-    stat = copy_dims(igrp, ogid, dimmap);
-    CHECK(stat, copy_dims);
-    stat = copy_atts(igrp, NC_GLOBAL, ogid, NC_GLOBAL);
-    CHECK(stat, copy_atts);
-    stat = copy_vars(igrp, ogid, dimmap);
-    CHECK(stat, copy_vars);
+    NC_CHECK(copy_dims(igrp, ogid, dimmap));
+    NC_CHECK(copy_atts(igrp, NC_GLOBAL, ogid, NC_GLOBAL));
+    NC_CHECK(copy_vars(igrp, ogid, dimmap));
 #ifdef USE_NETCDF4    
     {
 	int numgrps;
@@ -740,12 +649,10 @@ copy_schema(int igrp, int ogrp, int *dimmap)
 	/* Copy schema from subgroups */
 	stat = nc_inq_grps(igrp, &numgrps, NULL);
 	grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
-	stat = nc_inq_grps(igrp, &numgrps, grpids);
-	CHECK(stat, nc_inq_grps);
+	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	
 	for(i = 0; i < numgrps; i++) {
-	    stat = copy_schema(grpids[i], ogid, dimmap);
-	    CHECK(stat, copy_schema);
+	    NC_CHECK(copy_schema(grpids[i], ogid, dimmap));
 	}
 	free(grpids);
     }
@@ -762,15 +669,12 @@ inq_nvals(int igrp, int varid, long long *nvalsp) {
     int dim;
     long long nvals = 1;
 
-    stat = nc_inq_varndims(igrp, varid, &ndims);
-    CHECK(stat, nc_inq_varndims);
+    NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
     dimids = (int *) emalloc((ndims + 1) * sizeof(int));
-    stat = nc_inq_vardimid (igrp, varid, dimids);
-    CHECK(stat, nc_inq_vardimid);
+    NC_CHECK(nc_inq_vardimid (igrp, varid, dimids));
     for(dim = 0; dim < ndims; dim++) {
 	size_t len;
-	stat = nc_inq_dimlen(igrp, dimids[dim], &len);
-	CHECK(stat, nc_inq_dimlen);
+	NC_CHECK(nc_inq_dimlen(igrp, dimids[dim], &len));
 	nvals *= len;
     }
     if(nvalsp)
@@ -797,20 +701,15 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     int do_realloc = 0;
     size_t chunksize;
 
-    stat = inq_nvals(igrp, varid, &nvalues);
-    CHECK(stat, inq_nvals);
+    NC_CHECK(inq_nvals(igrp, varid, &nvalues));
     if(nvalues == 0)
 	return stat;
     /* get corresponding output variable */
-    stat = nc_inq_varname(igrp, varid, varname);
-    CHECK(stat, nc_inq_varname);
-    stat = nc_inq_varid(ogrp, varname, &ovarid);
-    CHECK(stat, nc_inq_varid);
-    stat = nc_inq_vartype(igrp, varid, &vartype);
-    CHECK(stat, nc_inq_vartype);
+    NC_CHECK(nc_inq_varname(igrp, varid, varname));
+    NC_CHECK(nc_inq_varid(ogrp, varname, &ovarid));
+    NC_CHECK(nc_inq_vartype(igrp, varid, &vartype));
     /* from type, get size in memory needed for each value */
-    stat = nc_inq_type(igrp, vartype, NULL, &value_size);
-    CHECK(stat, nc_inq_type);
+    NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
     if(value_size > copybuf_size) {
 	copybuf_size = value_size;
 	do_realloc = 1;
@@ -819,8 +718,7 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     /* For chunked variables, copy_buf must also be at least as large as
      * size of a chunk in input */
     {
-	stat = inq_var_chunksize(igrp, varid, &chunksize);
-	CHECK(stat, inq_var_chunksize);
+	NC_CHECK(inq_var_chunksize(igrp, varid, &chunksize));
 	if(chunksize > copybuf_size) {
 	    copybuf_size = chunksize;
 	    do_realloc = 1;
@@ -837,8 +735,7 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     }
 
     /* initialize variable iteration */
-    stat = nc_get_iter(igrp, varid, copybuf_size, &iterp);
-    CHECK(stat, nc_get_iter);
+    NC_CHECK(nc_get_iter(igrp, varid, copybuf_size, &iterp));
 
     start = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
     count = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
@@ -846,38 +743,29 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
      * changes start and count to iterate through whole variable on
      * subsequent calls. */
     while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
-	stat = nc_get_vara(igrp, varid, start, count, buf);
-	CHECK(stat, nc_get_vara);
-	stat = nc_put_vara(ogrp, ovarid, start, count, buf);
-	CHECK(stat, nc_put_vara);
+	NC_CHECK(nc_get_vara(igrp, varid, start, count, buf));
+	NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
 #ifdef USE_NETCDF4
 	/* we have to explicitly free values for strings and vlens */
 	if(vartype == NC_STRING) {
-	    stat = nc_free_string(ntoget, (char **)buf);
-	    CHECK(stat, nc_free_string);
+	    NC_CHECK(nc_free_string(ntoget, (char **)buf));
 	} else if(vartype > NC_STRING) { /* user-defined type */
 	    nc_type vclass;
-	    stat = nc_inq_user_type(igrp, vartype, NULL, NULL, NULL, 
-				    NULL, &vclass); 
-	    CHECK(stat, nc_inq_user_type);
+	    NC_CHECK(nc_inq_user_type(igrp, vartype, NULL, NULL, NULL, NULL, &vclass));
 	    if(vclass == NC_VLEN) {
-		stat = nc_free_vlens(ntoget, (nc_vlen_t *)buf);
-		CHECK(stat, nc_free_vlens);
+		NC_CHECK(nc_free_vlens(ntoget, (nc_vlen_t *)buf));
 	    }
 	}
 	/* We're all done with this input and output variable, so if
 	 * either variable is chunked, we might as well free up its
 	 * variable chunk cache */
-	stat = free_var_chunk_cache(igrp, varid);
-	CHECK(stat, free_var_chunk_cache);
-	stat = free_var_chunk_cache(ogrp, ovarid);
-	CHECK(stat, free_var_chunk_cache);
+	NC_CHECK(free_var_chunk_cache(igrp, varid));
+	NC_CHECK(free_var_chunk_cache(ogrp, ovarid));
 #endif	/* USE_NETCDF4 */
     } /* end main iteration loop */
     free(start);
     free(count);
-    stat = nc_free_iter(iterp);
-    CHECK(stat, nc_free_iter);
+    NC_CHECK(nc_free_iter(iterp));
     return stat;
 }
 
@@ -897,26 +785,21 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
 
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
-    stat = get_grpid(igrp, ogrp, &ogid);
-    CHECK(stat, get_grpid);
+    NC_CHECK(get_grpid(igrp, ogrp, &ogid));
     
     /* Copy data from this group */
-    stat = nc_inq_nvars(igrp, &nvars);
-    CHECK(stat, nc_inq_nvars);
+    NC_CHECK(nc_inq_nvars(igrp, &nvars));
     for (varid = 0; varid < nvars; varid++) {
-	stat = copy_var_data(igrp, varid, ogid, copybuf_size);
-	CHECK(stat, copy_var_data);
+	NC_CHECK(copy_var_data(igrp, varid, ogid, copybuf_size));
     }
 #ifdef USE_NETCDF4
     /* Copy data from subgroups */
     stat = nc_inq_grps(igrp, &numgrps, NULL);
     grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
-    stat = nc_inq_grps(igrp, &numgrps, grpids);
-    CHECK(stat, nc_inq_grps);
+    NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
     for(i = 0; i < numgrps; i++) {
-	stat = copy_data(grpids[i], ogid, copybuf_size);
-	CHECK(stat, copy_data);
+	NC_CHECK(copy_data(grpids[i], ogid, copybuf_size));
     }
     free(grpids);
 #endif	/* USE_NETCDF4 */
@@ -927,17 +810,14 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
  * be filled in and used later, with odimid = dimmap[idimid]. */
 void
 dimmap_init(int ncid, int** dimmap_p) {
-    int stat = NC_NOERR;
     int numgrps;
     int *grpids;
     int igrp;
     int ndims=0;
     /* get total number of groups and their ids, including all descendants */
-    stat = nc_inq_grps_full(ncid, &numgrps, NULL);
-    CHECK(stat, nc_inq_grps_full);
+    NC_CHECK(nc_inq_grps_full(ncid, &numgrps, NULL));
     grpids = emalloc(numgrps * sizeof(int));
-    stat = nc_inq_grps_full(ncid, NULL, grpids);
-    CHECK(stat, nc_inq_grps_full);
+    NC_CHECK(nc_inq_grps_full(ncid, NULL, grpids));
     for(igrp = 0; igrp < numgrps; igrp++) {
 	int ndims_local;
 	nc_inq_ndims(grpids[igrp], &ndims_local);
@@ -966,11 +846,9 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size, char* chunkspec
     chunkspec_t chunkspec;	/* chunking specifications parsed from command line arg */
 #endif
 
-    stat = nc_open(infile,NC_NOWRITE,&igrp);
-    CHECK(stat,nc_open);
+    NC_CHECK(nc_open(infile,NC_NOWRITE,&igrp));
 
-    stat = nc_inq_format(igrp, &inkind);
-    CHECK(stat,nc_inq_format);
+    NC_CHECK(nc_inq_format(igrp, &inkind));
 
     if (kind == SAME_AS_INPUT) {	/* default, kind not specified */
 	outkind = inkind;
@@ -989,66 +867,54 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size, char* chunkspec
 	/* Now that input is open, can parse chunkspec_s into binary
 	 * structure.  Map input dimids to output dimids through
 	 * dimmap later, when needed. */
-	stat = chunkspec_parse(igrp, chunkspec_s, &chunkspec);
-	CHECK(stat, chunkspec_parse);
+	NC_CHECK(chunkspec_parse(igrp, chunkspec_s, &chunkspec));
     }
 #endif	/* USE_NETCDF4 */
 
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
-	stat = nc_create(outfile,NC_CLOBBER,&ogrp);
+	NC_CHECK(nc_create(outfile,NC_CLOBBER,&ogrp));
 	break;
     case NC_FORMAT_64BIT:
-	stat = nc_create(outfile,NC_CLOBBER|NC_64BIT_OFFSET,&ogrp);
+	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_64BIT_OFFSET,&ogrp));
 	break;
 #ifdef USE_NETCDF4
     case NC_FORMAT_NETCDF4:
-	stat = nc_create(outfile,NC_CLOBBER|NC_NETCDF4,&ogrp);
+	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_NETCDF4,&ogrp));
 	break;
     case NC_FORMAT_NETCDF4_CLASSIC:
-	stat = nc_create(outfile,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ogrp);
+	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ogrp));
 	break;
 #else
     case NC_FORMAT_NETCDF4:
     case NC_FORMAT_NETCDF4_CLASSIC:
-	fprintf(stderr, 
-		"%s built without ability to create netCDF-4 files\n", 
-		progname);
-	exit(1);
+	error("built without ability to create netCDF-4 files");
+	break;
 #endif	/* USE_NETCDF4 */
     default:
-	fprintf(stderr,"%s: bad value (%d) for -k option\n", progname, kind);
-	exit(1);
+	error("bad value (%d) for -k option\n", kind);
+	break;
     }
-    CHECK(stat,nc_create);
-    stat = nc_set_fill(ogrp, NC_NOFILL, NULL); /* will just copy fill values, if any */
-    CHECK(stat,nc_set_fill);
+    NC_CHECK(nc_set_fill(ogrp, NC_NOFILL, NULL));
 
 #ifdef USE_NETCDF4
     /* Because types in one group may depend on types in a different
      * group, need to create all groups before defining types */
     if(inkind == NC_FORMAT_NETCDF4) {
-	stat = copy_groups(igrp, ogrp);
-	CHECK(stat,copy_groups);
-	stat = copy_types(igrp, ogrp);
-	CHECK(stat,copy_types);
+	NC_CHECK(copy_groups(igrp, ogrp));
+	NC_CHECK(copy_types(igrp, ogrp));
     }
 #endif	/* USE_NETCDF4 */
 
     dimmap_init(igrp, &dimmap);	/* alloc and initialize dimid mapping from igrp to ogrp */
     /* TODO: pass in &chunkspec separately or combine with dimmap? */
-    stat = copy_schema(igrp, ogrp, dimmap);
-    CHECK(stat,copy_schema);
+    NC_CHECK(copy_schema(igrp, ogrp, dimmap));
     free(dimmap);
-    stat = nc_enddef(ogrp);
-    CHECK(stat, nc_enddef);
-    stat = copy_data(igrp, ogrp, copybuf_size);
-    CHECK(stat,copy_data);
+    NC_CHECK(nc_enddef(ogrp));
+    NC_CHECK(copy_data(igrp, ogrp, copybuf_size));
 
-    stat = nc_close(igrp);
-    CHECK(stat,nc_close);
-    stat = nc_close(ogrp);
-    CHECK(stat,nc_close);
+    NC_CHECK(nc_close(igrp));
+    NC_CHECK(nc_close(ogrp));
     return stat;
 }
 

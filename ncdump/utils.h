@@ -16,7 +16,7 @@ extern char *progname;		/* for error messages */
 extern "C" {
 #endif
 
-#define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
+#define NC_CHECK(fncall) {int statnc=fncall;if(statnc!=NC_NOERR)check(statnc,__FILE__,__LINE__);}
 
 /* Print error message to stderr and exit */
 extern void	error ( const char *fmt, ... );
@@ -25,7 +25,7 @@ extern void	error ( const char *fmt, ... );
 extern void*    emalloc ( size_t size );
 
 /* Check error return.  If bad, print error message and exit. */
-extern void check(int err, const char* fcn, const char* file, const int line);
+extern void check(int err, const char* file, const int line);
 
 /* Return malloced name with chars special to CDL escaped. */
 char* escaped_name(const char* cp);

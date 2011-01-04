@@ -47,11 +47,10 @@ emalloc (			/* check return from malloc */
 
 
 void
-check(int err, const char* fcn, const char* file, const int line)
+check(int err, const char* file, const int line)
 {
     fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: function %s; file %s; line %d\n",
-	    fcn,file,line);
+    fprintf(stderr,"Location: file %s; line %d\n", file,line);
     fflush(stderr); fflush(stdout);
     exit(1);
 }
