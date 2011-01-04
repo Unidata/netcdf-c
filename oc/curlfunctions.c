@@ -118,7 +118,12 @@ ocset_ssl(CURL* curl, OCstate* state)
 	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
         }
         if(ssl->keypasswd) {
+            // libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD'
+#if HAVE_CURLOPT_KEYPASSWD
             cstat = curl_easy_setopt(curl, CURLOPT_KEYPASSWD, ssl->keypasswd);
+#else
+            cstat = curl_easy_setopt(curl, CURLOPT_SSLKEYPASSWD, ssl->keypasswd);
+#endif
             if(cstat != CURLE_OK) goto fail;
 	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
         }

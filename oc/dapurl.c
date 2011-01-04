@@ -124,15 +124,20 @@ dapurlsetconstraints(DAPURL* durl,const char* constraints)
     char* select = NULL;
     const char* p;
 
+    if(durl->constraint == NULL) ocfree(durl->constraint);
     if(durl->projection != NULL) ocfree(durl->projection);
     if(durl->selection != NULL) ocfree(durl->selection);
+    durl->constraint = NULL;	
     durl->projection = NULL;	
     durl->selection = NULL;
 
     if(constraints == NULL || strlen(constraints)==0) return;
 
-    p = constraints;
-    if(p[0] == '?') p++;
+    durl->constraint = strdup(constraints);
+    if(*durl->constraint == '?')
+	strcpy(durl->constraint,durl->constraint+1);
+
+    p = durl->constraint;
     proj = (char*) p;
     select = strchr(proj,'&');
     if(select != NULL) {
@@ -153,13 +158,15 @@ dapurlsetconstraints(DAPURL* durl,const char* constraints)
     durl->selection = select;
 }
 
+
 /* Construct a complete DAP URL without the client params
    and optionally with the constraints;
    caller frees returned string
 */
+
 char*
 dapurlgeturl(DAPURL* durl, const char* prefix, const char* suffix,
-             int withconstraints)
+             int withconstraints, int withparams)
 {
     size_t len = 0;
     char* newurl;
@@ -167,11 +174,12 @@ dapurlgeturl(DAPURL* durl, const char* prefix, const char* suffix,
     len += strlen(durl->base);
     if(prefix != NULL) len += strlen(prefix);
     if(suffix != NULL) len += strlen(suffix);
+    if(withparams && durl->params != NULL && strlen(durl->params) > 0)
+	len += strlen(durl->params);
     if(withconstraints
-	&& (durl->projection != NULL || durl->selection != NULL)) {
+	&& durl->constraint != NULL  && strlen(durl->constraint)> 0) {
 	len += 1; /* leading '?' */
-	if(durl->projection != NULL) len += strlen(durl->projection);
-	if(durl->selection != NULL) len += strlen(durl->selection);
+	len += strlen(durl->constraint);
     }
     len += 1; /* null terminator */
     
@@ -179,13 +187,14 @@ dapurlgeturl(DAPURL* durl, const char* prefix, const char* suffix,
     if(!newurl) return NULL;
     newurl[0] = '\0';
     if(prefix != NULL) strcat(newurl,prefix);
+    if(withparams && durl->params != NULL && strlen(durl->params) > 0)
+	strcat(newurl,durl->params);
     strcat(newurl,durl->base);
     if(suffix != NULL) strcat(newurl,suffix);
     if(withconstraints
-	&& (durl->projection != NULL || durl->selection != NULL)) {
+	&& durl->constraint != NULL  && strlen(durl->constraint)> 0) {
 	strcat(newurl,"?");
-	if(durl->projection != NULL) strcat(newurl,durl->projection);
-	if(durl->selection != NULL) strcat(newurl,durl->selection);
+	strcat(newurl,durl->constraint);
     }
     return newurl;
 }
