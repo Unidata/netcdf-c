@@ -7,11 +7,7 @@
 #define _NCDUMP_H_
 
 /* error checking macro */
-#define NC_CHECK(status)    {\
-	    int nc_status = status;\
-	    if(nc_status != NC_NOERR)\
-	        error(nc_strerror(nc_status));\
-	}
+#define NC_CHECK(fncall) {int statnc=fncall;if(statnc!=NC_NOERR)error(nc_strerror(statnc));}
 
 typedef int boolean;
 enum {false=0, true=1};

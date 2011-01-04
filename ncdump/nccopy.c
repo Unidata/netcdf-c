@@ -15,12 +15,13 @@
 #include <string.h>
 #include <netcdf.h>
 #include "nciter.h"
+#include "chunkspec.h"
+#include "utils.h"
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
-#define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -32,34 +33,10 @@ extern int opterr;
 extern char *optarg;
 
 /* Global variables for command-line requests */
-static char *progname;	       /* for error messages */
+char *progname;	       /* for error messages */
 static int option_deflate_level = -1;	/* default, compress output only if input compressed */
 static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
-
-static void
-check(int err, const char* fcn, const char* file, const int line)
-{
-    fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: function %s; file %s; line %d\n",
-	    fcn,file,line);
-    fflush(stderr); fflush(stdout);
-    exit(1);
-}
-
-/* Check error return from malloc, and allow malloc(0) with subsequent free */
-static void *
-emalloc (size_t size)
-{
-    void   *p;
-
-    p = (void *) malloc (size==0 ? 1 : size); /* don't malloc(0) */
-    if (p == 0) {
-	fprintf(stderr,"%s: out of memory\n", progname);
-	exit(1);
-    }
-    return p;
-}
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -345,7 +322,7 @@ copy_groups(int iroot, int oroot)
 {
     int stat = NC_NOERR;
     int numgrps;
-    int *grpids, ogrpid;
+    int *grpids;
     int i;
 
     /* get total number of groups and their ids, including all descendants */
@@ -521,7 +498,7 @@ free_var_chunk_cache(int igrp, int varid)
     size_t chunk_cache_size = 1;
     size_t cache_nelems = 1;
     float cache_preemp = 0;
-    int inkind, outkind;
+    int inkind;
     stat = nc_inq_format(igrp, &inkind);
     CHECK(stat,nc_inq_format);
     if(inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC) {
@@ -538,7 +515,7 @@ free_var_chunk_cache(int igrp, int varid)
 }
 #endif /* USE_NETCDF4 */
 
-/* Copy dimensions from group igrp to group ogrp */
+/* Copy dimensions from group igrp to group ogrp, also fill in dimmap */
 static int
 copy_dims(int igrp, int ogrp, int *dimmap)
 {
@@ -953,7 +930,7 @@ dimmap_init(int ncid, int** dimmap_p) {
     int stat = NC_NOERR;
     int numgrps;
     int *grpids;
-    int igrp, idim;
+    int igrp;
     int ndims=0;
     /* get total number of groups and their ids, including all descendants */
     stat = nc_inq_grps_full(ncid, &numgrps, NULL);
@@ -979,12 +956,15 @@ dimmap_init(int ncid, int** dimmap_p) {
  * type 1 or 2.
  */
 static int
-copy(char* infile, char* outfile, int kind, size_t copybuf_size)
+copy(char* infile, char* outfile, int kind, size_t copybuf_size, char* chunkspec_s)
 {
     int stat = NC_NOERR;
     int igrp, ogrp;
     int inkind, outkind;
     int *dimmap;		/* array for mapping dimids from input to output */
+#ifdef USE_NETCDF4
+    chunkspec_t chunkspec;	/* chunking specifications parsed from command line arg */
+#endif
 
     stat = nc_open(infile,NC_NOWRITE,&igrp);
     CHECK(stat,nc_open);
@@ -1003,6 +983,17 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
     } else {
 	outkind = kind;
     }
+
+#ifdef USE_NETCDF4
+    if(chunkspec_s) {
+	/* Now that input is open, can parse chunkspec_s into binary
+	 * structure.  Map input dimids to output dimids through
+	 * dimmap later, when needed. */
+	stat = chunkspec_parse(igrp, chunkspec_s, &chunkspec);
+	CHECK(stat, chunkspec_parse);
+    }
+#endif	/* USE_NETCDF4 */
+
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	stat = nc_create(outfile,NC_CLOBBER,&ogrp);
@@ -1045,6 +1036,7 @@ copy(char* infile, char* outfile, int kind, size_t copybuf_size)
 #endif	/* USE_NETCDF4 */
 
     dimmap_init(igrp, &dimmap);	/* alloc and initialize dimid mapping from igrp to ogrp */
+    /* TODO: pass in &chunkspec separately or combine with dimmap? */
     stat = copy_schema(igrp, ogrp, dimmap);
     CHECK(stat,copy_schema);
     free(dimmap);
@@ -1068,6 +1060,7 @@ usage(void)
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
   [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      adds shuffle option to deflation compression\n\
+  [-c chunkspec] specifies chunking for dimensions like \"dim1/N1,dim2/N2,...\"\n\
   [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
   [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
@@ -1087,6 +1080,7 @@ main(int argc, char**argv)
     int kind = SAME_AS_INPUT; /* default, output same format as input */
     int c;
     size_t copybuf_size = COPY_BUFFER_SIZE; /* default */
+    char* chunkspec = 0;
 
 /* table of formats for legal -k values */
     struct Kvalues {
@@ -1170,6 +1164,12 @@ main(int argc, char**argv)
 	case 's':		/* shuffling, may improve compression */
 	    option_shuffle_vars = NC_SHUFFLE;
 	    break;
+	case 'c':               /* optional chunking spec for each dimension in list */
+	{
+	    /* save chunkspec string for parsingg later, once we know input ncid */
+	    chunkspec = strdup(optarg);
+	}
+	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */
 	    option_fix_unlimdims = 1;
 	    break;
@@ -1218,7 +1218,7 @@ main(int argc, char**argv)
 	exit(1);
     }
 
-    if(copy(inputfile, outputfile, kind, copybuf_size) != NC_NOERR)
+    if(copy(inputfile, outputfile, kind, copybuf_size, chunkspec) != NC_NOERR)
         exit(1);
     return 0;
 }

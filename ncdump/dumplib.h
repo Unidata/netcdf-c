@@ -42,12 +42,6 @@ extern char double_att_fmt[];
 extern "C" {
 #endif
 
-/* Print error message to stderr and exit */
-extern void	error ( const char *fmt, ... );
-
-/* Check error on malloc and exit with message if out of memory */
-extern void*    emalloc ( size_t size );
-
 #ifndef HAVE_STRLCAT
 /* Append src to dst of size siz */
 extern size_t strlcat(char *dst, const char *src, size_t siz);

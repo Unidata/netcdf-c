@@ -250,7 +250,8 @@ gs_pop(ncgiter_t *s)
     }
 }
 
-/* return top value on stack without popping stack */
+/* Return top value on stack without popping stack.  Defined for
+ * completeness but not used (here). */
 static int 
 gs_top(ncgiter_t *s)
 {

@@ -128,7 +128,7 @@ main(int argc, char **argv) {
 		   for (k=0; k<K_LEN; k++) {
 		       var1[j][k] = n;
 		       n++;
-		       n %= 255;
+		       n %= 256;
 		   }
 	       }
 	       var1_start[1] = i;
@@ -171,7 +171,7 @@ main(int argc, char **argv) {
 			   return 1;
 		       }
 		       n++;
-		       n %= 255;
+		       n %= 256;
 		   }
 	       }
 	   }
