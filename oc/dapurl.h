@@ -13,10 +13,10 @@ typedef struct DAPURL {
     char* url;        /* as passed by the caller */
     char* base;	      /*!< without constraints*/
     char* protocol;
-    char* constraint;
+    char* constraint; /* projection+selection */
     char* projection; /*!< without leading '?'*/
     char* selection;  /*!< with leading '&'*/
-    char* params;
+    char* params;     /* all params */
     struct OClist* paramlist;
 } DAPURL;
 
@@ -29,7 +29,7 @@ extern void dapurlclear(DAPURL* dapurl);/*!<Release strings associated
 extern void dapurlsetconstraints(DAPURL*,const char* constraints);
 
 /* Construct a complete DAP URL; caller frees returned string */
-extern char* dapurlgeturl(DAPURL*,const char* prefix, const char* suffix, int withconstraints);
+extern char* dapurlgeturl(DAPURL*,const char* prefix, const char* suffix, int withconstraints, int withparams);
 
 extern int dapurldecodeparams(DAPURL* dapurl);
 
