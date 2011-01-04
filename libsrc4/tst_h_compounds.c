@@ -44,6 +44,10 @@ main()
       return NC_ENOMEM; 
    memcpy((void *)data2, (void *)dummy, sizeof(struct s2) * DIM1_LEN); 
    free(dummy); 
+   if (!(dummy = calloc(sizeof(struct s1), DIM1_LEN))) 
+      return NC_ENOMEM; 
+   memcpy((void *)data2, (void *)dummy, sizeof(struct s1) * DIM1_LEN); 
+   free(dummy); 
 
    for (i=0; i<DIM1_LEN; i++)
    {

@@ -41,7 +41,7 @@
  * applies to record variables with more than 2**32 values per record
  * as well, but that's not tested here.
  */
-static void
+static int
 test_big_var(const char *testfile) 
 {
     int ncid, varid, dimids[NUMDIMS];
@@ -92,6 +92,7 @@ test_big_var(const char *testfile)
 	}
     }
     if (nc_close(ncid)) ERR;
+    return NC_NOERR;
 }
 
 int
@@ -105,7 +106,7 @@ main(int argc, char **argv) {
     {
        printf("*** testing format %d file with short variable with > 2**32 values...", i);
        nc_set_default_format(i, NULL);
-       test_big_var(testfile);
+       if (test_big_var(testfile)) ERR_RET;
        (void) remove(testfile);
        SUMMARIZE_ERR;
    }
