@@ -8,7 +8,6 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
-#include <stdio.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -507,8 +506,7 @@ copy_dims(int igrp, int ogrp, int *dimmap)
 
 	stat = nc_inq_dim(igrp, idimid, name, &length);
 	if (stat == NC_EDIMSIZE && sizeof(size_t) < 8) {
-	    fprintf(stderr, "dimension \"%s\" requires 64-bit platform\n", 
-		    name);
+	    error("dimension \"%s\" requires 64-bit platform", name);
 	}	
 	NC_CHECK(stat);
 	if(is_unlim && !option_fix_unlimdims) {
@@ -836,7 +834,11 @@ dimmap_init(int ncid, int** dimmap_p) {
  * type 1 or 2.
  */
 static int
-copy(char* infile, char* outfile, int kind, size_t copybuf_size, char* chunkspec_s)
+copy(char* infile, char* outfile, 
+     int kind, 			/* kind of output file requested */
+     size_t copybuf_size, 	/* size of buffer used for copying data */
+     const char* chunkspec_s	/* unparsed chunkspec string, from command line */
+    )
 {
     int stat = NC_NOERR;
     int igrp, ogrp;
@@ -932,10 +934,8 @@ usage(void)
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
-    (void) fprintf(stderr,
-		   "%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] infile outfile\n%s",
-		   progname,
-		   USAGE);
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] infile outfile\n%s",
+	  progname, USAGE);
 }
 
 int
@@ -985,10 +985,9 @@ main(int argc, char**argv)
     if (argc <= 1)
     {
        usage();
-       return 1;
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:")) != EOF) {
+    while ((c = getopt(argc, argv, "k:d:sum:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1014,17 +1013,14 @@ main(int argc, char**argv)
 		    }
 		}
 		if(kvalue->name == NULL) {
-		    fprintf(stderr, "invalid format: %s\n", kind_name);
-		    return 1;
+		    error("invalid format: %s", kind_name);
 		}
 	    }
 	    break;
 	case 'd':		/* non-default compression level specified */
 	    option_deflate_level = strtol(optarg, NULL, 10);
 	    if(option_deflate_level < 0 || option_deflate_level > 9) {
-		fprintf(stderr, "invalid deflation level: %d\n", 
-			option_deflate_level);
-		return 1;
+		error("invalid deflation level: %d", option_deflate_level);
 	    }
 	    break;
 	case 's':		/* shuffling, may improve compression */
@@ -1057,31 +1053,25 @@ main(int argc, char**argv)
 		copybuf_size *= 1000000000;
 		break;
 	    default:
-		fprintf(stderr,"Suffix for '-m' option value not k, m, or g: %c",
-		    suffix[0]);
-		exit(1);
+		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
 	    }		
 	    break;
 	}
 	default: 
 	    usage();
-	    exit(1);
-	    break;
         }
     }
     argc -= optind;
     argv += optind;
 
     if (argc != 2) {
-	fprintf(stderr,"one input file and one output file required\n");
-	exit(1);
+	error("one input file and one output file required");
     }
     inputfile = argv[0];
     outputfile = argv[1];
 
     if(strcmp(inputfile, outputfile) == 0) {
-	fprintf(stderr,"output would overwrite input\n");
-	exit(1);
+	error("output would overwrite input");
     }
 
     if(copy(inputfile, outputfile, kind, copybuf_size, chunkspec) != NC_NOERR)
