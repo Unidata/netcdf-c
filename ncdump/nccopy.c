@@ -637,7 +637,7 @@ copy_schema(int igrp, int ogrp, int *dimmap)
      * given parent group (or root group) ogrp in output */
     NC_CHECK(get_grpid(igrp, ogrp, &ogid));
 
-    NC_CHECK(copy_dims(igrp, ogid, dimmap));
+    NC_CHECK(copy_dims(igrp, ogid, dimmap)); /* also fills in part of dimmap */
     NC_CHECK(copy_atts(igrp, NC_GLOBAL, ogid, NC_GLOBAL));
     NC_CHECK(copy_vars(igrp, ogid, dimmap));
 #ifdef USE_NETCDF4    
