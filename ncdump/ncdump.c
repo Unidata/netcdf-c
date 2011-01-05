@@ -25,6 +25,7 @@
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+#include "utils.h"
 
 #define int64_t long long
 #define uint64_t unsigned long long
@@ -1521,7 +1522,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	     locid = ncid;
 	     while(var.dims[id] != dimid_test) { /* not in locid, try ancestors */
 		 int parent_id;
-		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id); );
+		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id) );
 		 locid = parent_id;
 		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
 	     }
@@ -1651,7 +1652,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
       char group_name[NC_MAX_NAME + 1];
 
       /* See how many groups there are. */
-      NC_CHECK( nc_status = nc_inq_grps(ncid, &numgrps, NULL) );
+      NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
       
       /* Allocate memory to hold the list of group ids. */
       ncids = emalloc((numgrps + 1) * sizeof(int));
@@ -1948,7 +1949,7 @@ nc_inq_varname_count(int ncid, char *varname) {
 
 #ifdef USE_NETCDF4
     /* if this group has subgroups, call recursively on each of them */
-    NC_CHECK( nc_status = nc_inq_grps(ncid, &numgrps, NULL) );
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
 	 
     /* Allocate memory to hold the list of group ids. */
     ncids = emalloc((numgrps + 1) * sizeof(int));

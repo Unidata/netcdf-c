@@ -53,12 +53,13 @@ tst_deflated.nc
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump 
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime.c	\
-ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h
+ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h \
+utils.h utils.c
 
 # Another utility program that copies any netCDF file using only the
 # netCDF API
 bin_PROGRAMS += nccopy
-nccopy_SOURCES = nccopy.c nciter.c nciter.h
+nccopy_SOURCES = nccopy.c nciter.c nciter.h utils.h utils.c
 
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
@@ -88,10 +89,10 @@ if CROSS_COMPILING
 	cp ref_ctest64.c ctest64.c
 else
 ctest.c:
-	$(top_builddir)/ncgen/ncgen -c -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
+	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
 
 ctest64.c:
-	$(top_builddir)/ncgen/ncgen -v2 -c -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
+	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
 endif # CROSS_COMPILING
 
 # NCGEN4 additions
