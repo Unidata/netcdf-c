@@ -44,14 +44,6 @@ typedef unsigned char uchar;
 #define CRAYFLOAT 1 /* CRAY Floating point */
 #endif
 
-
-#if defined(DLL_NETCDF) /* define when library is a DLL */
-#include <io.h>
-#define lseek _lseeki64
-#define off_t __int64
-#define _OFF_T_DEFINED
-#endif	/* defined(DLL_NETCDF) */
-
 /*
  * The integer return code for the conversion routines
  * is 0 (ENOERR) when no error occured, or NC_ERANGE as appropriate

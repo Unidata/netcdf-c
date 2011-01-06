@@ -916,7 +916,6 @@ copy(char* infile, char* outfile,
 #endif	/* USE_NETCDF4 */
 
     dimmap_init(igrp, &dimmap);	/* alloc and initialize dimid mapping from igrp to ogrp */
-    /* TODO: pass in &chunkspec separately or combine with dimmap? */
     NC_CHECK(copy_schema(igrp, ogrp, dimmap));
     free(dimmap);
     NC_CHECK(nc_enddef(ogrp));

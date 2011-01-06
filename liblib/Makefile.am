@@ -15,6 +15,10 @@ lib_LTLIBRARIES = libnetcdf.la
 
 libnetcdf_la_LIBADD = 
 
+if BUILD_DLL
+libnetcdf_la_LDFLAGS = -no-undefined
+endif # BUILD_DLL
+
 # The v2 API...
 if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la
