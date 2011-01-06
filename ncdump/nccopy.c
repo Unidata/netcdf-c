@@ -994,7 +994,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1033,12 +1033,6 @@ main(int argc, char**argv)
 	case 's':		/* shuffling, may improve compression */
 	    option_shuffle_vars = NC_SHUFFLE;
 	    break;
-	case 'c':               /* optional chunking spec for each dimension in list */
-	{
-	    /* save chunkspec string for parsingg later, once we know input ncid */
-	    chunkspec = strdup(optarg);
-	}
-	    break;
 	case 'u':		/* convert unlimited dimensions to fixed size */
 	    option_fix_unlimdims = 1;
 	    break;
@@ -1062,6 +1056,12 @@ main(int argc, char**argv)
 	    default:
 		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
 	    }		
+	    break;
+	}
+	case 'c':               /* optional chunking spec for each dimension in list */
+	{
+	    /* save chunkspec string for parsingg later, once we know input ncid */
+	    chunkspec = strdup(optarg);
 	    break;
 	}
 	default: 
