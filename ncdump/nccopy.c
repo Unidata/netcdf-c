@@ -14,6 +14,7 @@
 #include <string.h>
 #include <netcdf.h>
 #include "nciter.h"
+#include "chunkspec.h"
 #include "utils.h"
 
 /* default bytes of memory we are willing to allocate for variable
@@ -377,9 +378,20 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
 	    } else {
 		size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
+		int *dimids = (int *) emalloc(ndims * sizeof(int));
+		int idim;
 		NC_CHECK(nc_inq_var_chunking(igrp, varid, NULL, chunkp));
+		NC_CHECK(nc_inq_vardimid(igrp, varid, dimids));
+		for(idim = 0; idim < ndims; idim++) {
+		    int dimid = dimids[idim];
+		    size_t chunksize = chunkspec_size(dimid);
+		    if(chunkspec_size(dimid) > 0) { /* found in chunkspec */
+			chunkp[idim] = chunksize;
+		    }
+		}
 		/* explicitly set chunking, even if default */
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
+		free(dimids);
 		free(chunkp);
 	    }
 	}
@@ -835,7 +847,8 @@ dimmap_init(int ncid, int** dimmap_p) {
 static int
 copy(char* infile, char* outfile, 
      int kind, 			/* kind of output file requested */
-     size_t copybuf_size 	/* size of buffer used for copying data */
+     size_t copybuf_size, 	/* size of buffer used for copying data */
+     const char* chunkspec_s	/* unparsed chunkspec string, from command line */
     )
 {
     int stat = NC_NOERR;
@@ -858,6 +871,14 @@ copy(char* infile, char* outfile,
     } else {
 	outkind = kind;
     }
+
+#ifdef USE_NETCDF4
+    if(chunkspec_s) {
+	/* Now that input is open, can parse chunkspec_s into binary
+	 * structure. */
+	NC_CHECK(chunkspec_parse(igrp, chunkspec_s));
+    }
+#endif	/* USE_NETCDF4 */
 
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
@@ -913,12 +934,13 @@ usage(void)
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
   [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      adds shuffle option to deflation compression\n\
+  [-c chunkspec] specifies chunking for dimensions like \"dim1/N1,dim2/N2,...\"\n\
   [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
   [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
-    error("%s [-k n] [-d n] [-s] [-u] [-m n] infile outfile\n%s",
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] infile outfile\n%s",
 	  progname, USAGE);
 }
 
@@ -930,6 +952,7 @@ main(int argc, char**argv)
     int kind = SAME_AS_INPUT; /* default, output same format as input */
     int c;
     size_t copybuf_size = COPY_BUFFER_SIZE; /* default */
+    char* chunkspec = 0;
 
 /* table of formats for legal -k values */
     struct Kvalues {
@@ -970,7 +993,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1034,6 +1057,12 @@ main(int argc, char**argv)
 	    }		
 	    break;
 	}
+	case 'c':               /* optional chunking spec for each dimension in list */
+	{
+	    /* save chunkspec string for parsingg later, once we know input ncid */
+	    chunkspec = strdup(optarg);
+	    break;
+	}
 	default: 
 	    usage();
         }
@@ -1051,7 +1080,7 @@ main(int argc, char**argv)
 	error("output would overwrite input");
     }
 
-    if(copy(inputfile, outputfile, kind, copybuf_size) != NC_NOERR)
+    if(copy(inputfile, outputfile, kind, copybuf_size, chunkspec) != NC_NOERR)
         exit(1);
     return 0;
 }

@@ -34,6 +34,11 @@ char* escaped_name(const char* cp);
  * symbol with escaped special chars */
 void print_name(const char *name);
 
+/* Get dimid from a full dimension path name that may include group
+ * names */
+extern int 
+nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
+
 #ifdef __cplusplus
 }
 #endif

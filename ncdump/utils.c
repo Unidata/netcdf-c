@@ -142,3 +142,32 @@ print_name(const char* name) {
     fputs(ename, stdout);
     free(ename);
 }
+
+/* Missing functionality that should be in nc_inq_dimid(), to get
+ * dimid from a full dimension path name that may include group
+ * names */
+int 
+nc_inq_dimid2(int ncid, const char *dimname, int *dimidp) {
+    int ret = NC_NOERR;
+    /* If '/' doesn't occur in dimname, just return id found by
+     * nc_inq_dimid() */
+    char *sp = strrchr(dimname, '/');
+    if(!sp) { /* No '/' in dimname, so return nc_inq_dimid() result */
+	ret = nc_inq_dimid(ncid, dimname, dimidp);
+    } 
+#ifdef USE_NETCDF4
+    else {  /* Parse group name out and get dimid using that */
+	size_t grp_namelen = sp - dimname;
+	char *grpname = emalloc(grp_namelen + 1);
+	int grpid;
+	strncpy(grpname, dimname, grp_namelen);
+	grpname[grp_namelen] = '\0';
+	ret = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
+	if(ret == NC_NOERR) {
+	    ret = nc_inq_dimid(grpid, dimname, dimidp);
+	}
+	free(grpname);
+    }	
+#endif	/* USE_NETCDF4 */
+    return ret;
+}
