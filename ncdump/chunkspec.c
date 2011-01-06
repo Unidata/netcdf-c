@@ -42,7 +42,6 @@ chunkspec_parse(int ncid, const char *spec) {
     size_t ndims = 1;
     int idim;
     int ret;
-    int i;		/* for debugging */
 
     if (!spec || *spec == '\0')
 	return NC_NOERR; 
@@ -119,17 +118,6 @@ chunkspec_parse(int ncid, const char *spec) {
 	}
 	pp = cp;
     };
-    /* for debugging */
-    for(i = 0; i < ndims; i++) {
-	char name[NC_MAX_NAME];
-	NC_CHECK(nc_inq_dimname(ncid, i, name));
-	printf("\t%d\t%s\n", i, name);
-    }
-    printf("chunkspec string: %s\n", spec);
-    printf(" chunkspec.ndims: %ld\n dimids\tchunksizes\n", chunkspecs.ndims);
-    for(i=0; i < 27; i++) {
-	printf("\t%d\t%ld\n", chunkspecs.dimids[i], chunkspecs.chunksizes[i]);
-    }
     return NC_NOERR;
 }
 
