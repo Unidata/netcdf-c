@@ -60,7 +60,7 @@ utils.h utils.c
 # netCDF API
 bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
-utils.h utils.c
+utils.h utils.c dimmap.h dimmap.c
 
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1

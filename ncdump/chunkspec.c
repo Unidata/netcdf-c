@@ -39,10 +39,11 @@ chunkspec_parse(int ncid, const char *spec) {
     const char *cp;	   /* character cursor */
     const char *pp = spec; /* previous char cursor for detecting escapes */
     const char *np;	   /* beginning of current dimension name */
-    size_t ndims = 1;
+    size_t ndims = 0;
     int idim;
     int ret;
 
+    chunkspecs.ndims = 0;
     if (!spec || *spec == '\0')
 	return NC_NOERR; 
     /* Count unescaped commas, handle consecutive unescaped commas as error */
@@ -59,6 +60,7 @@ chunkspec_parse(int ncid, const char *spec) {
 	}
 	pp = cp;
     }
+    ndims++;
     chunkspecs.ndims = ndims;
     chunkspecs.dimids = (int *) emalloc(ndims * sizeof(int));
     chunkspecs.chunksizes = (size_t *) emalloc(ndims * sizeof(size_t));
@@ -132,4 +134,13 @@ chunkspec_size(int dimid) {
     }
     return 0;
 }
+
+/* Return number of dimensions for which chunking was specified in
+ * chunkspec string on command line, 0 if no chunkspec string was
+ * specified. */
+int
+chunkspec_ndims(void) {
+    return chunkspecs.ndims;
+}
+
 
