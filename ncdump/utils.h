@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <netcdf.h>
 
 extern char *progname;		/* for error messages */
 
