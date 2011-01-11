@@ -1514,6 +1514,10 @@ xsolaris*)
   ;;
 *);;
 esac
+
+# Finally, add -lz always
+EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
+
 # Alias
 EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
 AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])

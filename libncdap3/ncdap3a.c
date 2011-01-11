@@ -613,7 +613,21 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
 
     /* Get selection constrained DDS */
     ocstat = dap_oc_fetch(nccomm,nccomm->oc.conn,ce,OCDDS,&ocroot);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+    if(ocstat != OC_NOERR) {
+	/* Special Hack. If the protocol is file, then see if
+           we can get the dds from the .dods file
+        */
+	if(strcmp(nccomm->oc.url.protocol,"file") != 0) {
+	    THROWCHK(ocstat); goto done;
+	}
+	/* Fetch the data dds */
+        ocstat = dap_oc_fetch(nccomm,nccomm->oc.conn,ce,OCDATADDS,&ocroot);
+        if(ocstat != OC_NOERR) {
+	    THROWCHK(ocstat); goto done;
+	}
+	/* Note what we did */
+	oc_log(OCLOGWARN,"Cannot locate .dds file, using .dods file");
+    }
 
     /* Get selection constrained DAS */
     if(nccomm->oc.ocdasroot != OCNULL)
@@ -622,8 +636,9 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
     ocstat = dap_oc_fetch(nccomm,nccomm->oc.conn,ce,OCDAS,&nccomm->oc.ocdasroot);
     if(ocstat != OC_NOERR) {
 	/* Ignore but complain */
-	oc_log(OCLOGERR,nc_strerror(NC_EDAS));
+	oc_log(OCLOGWARN,"Could not read DAS; ignored");
         nccomm->oc.ocdasroot = OCNULL;	
+	ocstat = OC_NOERR;
     }
 
     /* Construct our parallel dds tree */
