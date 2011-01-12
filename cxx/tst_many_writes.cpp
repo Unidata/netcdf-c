@@ -36,10 +36,11 @@ int main(int argc, char** argv)
    int fileId, dimId, varId[NUMVARS];
    string filename("tst_many_writes.nc");
    
+   cout << "\n*** Testing netCDF-4 file with user-provided test (thanks Marica!)\n";
+
    try{
       //create the netcdf-4 file
       handle_error ( nc_create(filename.c_str(), NC_NETCDF4, &fileId) );
-      //cout << "Netcdf file " << filename << " successfully created..." << endl;
 
       //define the unlimited dimension "rec"
       handle_error ( nc_def_dim(fileId, "rec", NC_UNLIMITED, &dimId) ); //--> Segmentation Fault
@@ -57,8 +58,6 @@ int main(int argc, char** argv)
       }
       handle_error ( nc_enddef(fileId) );
       
-      cout << "Variables successfully defined." << endl;
-      
       //write data to the NUMVARS variables using nc_put_var1_double
       double data = 100;
       size_t index[1] ;
@@ -67,26 +66,22 @@ int main(int argc, char** argv)
       for (int v=0; v<NUMVARS; v++)
       {
       	 handle_error ( nc_inq_varname(fileId, varId[v], charName ) );
-      	 cout << "Writing data to variable <" << charName << ">" << endl;
 	 
       	 for (size_t i = 0; i< NUMREC  ; i++)
       	 {
-      	    if( ( i% 2000 )==0)
-      	       cout << "Record n." << i << endl;
       	    index[0] = i;
       	    handle_error ( nc_put_var1_double(fileId, varId[v], index, &data ) );
       	 }
       }
+
       //close file
       handle_error ( nc_close(fileId) );
-      
+      cout << "*** nctst SUCCESS!\n";      
    }
    catch(exception &ex) //exception handling
    {
       cerr << "Exception caught: " << ex.what() << endl;
+      cout << "*** nctst FAILURE!\n";
       return -1;
    }
-   
-   cout << "Test passed: file " << filename << " successfully written." << endl;
-   
 }
