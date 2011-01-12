@@ -17,7 +17,7 @@ AM_LDFLAGS =
 
 CLEANFILES = nctst_classic.nc nctst_64bit_offset.nc nctst_netcdf4.nc	\
 nctst_netcdf4_classic.nc nctst_classic.cdl nctst_64bit_offset.cdl	\
-tst_failure.nc
+tst_*.nc 
 
 EXTRA_DIST = ref_nctst.cdl ref_nctst_64bit_offset.cdl			\
 ref_nctst_netcdf4.cdl ref_nctst_netcdf4_classic.cdl run_nc_tests.sh	\
@@ -27,7 +27,8 @@ run_nc4_tests.sh
 # create CDL files, which are compared with some reference files
 # shipped with the code. tst_failure is a program that is intended to
 # fail.
-TESTFILES = nctst$(EXEEXT) tst_failure$(EXEEXT)
+TESTFILES = nctst$(EXEEXT) tst_failure$(EXEEXT) tst_many_writes$(EXEEXT)
+tst_many_writes_SOURCES = tst_many_writes.cpp
 nctst_SOURCES = nctst.cpp
 tst_failure_SOURCES = tst_failure.cpp
 XFAIL_TESTS = tst_failure$(EXEEXT)
@@ -53,6 +54,4 @@ lib_LTLIBRARIES = libnetcdf_c++.la
 
 # Library source.
 libnetcdf_c___la_SOURCES = netcdf.cpp ncvalues.cpp
-
-test: check
 
