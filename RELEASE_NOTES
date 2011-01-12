@@ -3,7 +3,7 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.1.2-beta2    2010-11-??
+4.1.2-beta2    2011-01-11
 	        Rewrite netCDF-4 attribute put code for a large
 		speedup when writing lots of attributes.
 

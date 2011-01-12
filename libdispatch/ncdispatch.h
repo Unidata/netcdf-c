@@ -155,7 +155,7 @@ struct nc_vlen_t;
 struct NC;
 
 /* WARNING: this must match libsrc4/netcdf.h */
-#ifndef MPI_INCLUDED
+#ifndef USE_PARALLEL
 #ifndef MPI_Comm
 #define MPI_Comm int
 #define MPI_Info int
