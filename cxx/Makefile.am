@@ -38,7 +38,7 @@ if USE_NETCDF4
 TESTS_ENVIRONMENT=USE_NETCDF4=1
 # This is a netCDF-4 test.
 TESTFILES += tst_many_writes$(EXEEXT)
-tst_many_writes_SOURCES = tst_many_writes.cpp
+#tst_many_writes_SOURCES = tst_many_writes.cpp
 endif # USE_NETCDF4
 
 # Build and run these tests.
