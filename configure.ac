@@ -372,7 +372,7 @@ else
   fi  
   #verify
   if $with_curl_config --prefix >/dev/null 2>&1 ; then ignore=1; else
-    AC_MSG_ERROR([Erroneous --with-curl-config value])
+    AC_MSG_ERROR([Erroneous --with-curl-config value: ${with_curl_config}])
   fi
 fi
 
@@ -421,32 +421,22 @@ else
 fi
 
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-havekeypasswd=0
 
-if test -n "$with_curl_config" ; then
-  curlver=`curl-config --version`
-  curlver=`echo $curlver|cut -d ' ' -f2`
-  curlmajor=`echo $curlver|cut -d '.' -f1`
-  curlminor=`echo $curlver|cut -d '.' -f2`
-  curlpatch=`echo $curlver|cut -d '.' -f3`
-  if test "x$curlpatch" = "x"; then curlpatch=0 ; fi
-
-  if test $curlmajor -gt 7 ; then
-    havekeypasswd=1
-  elif test $curlmajor -eq 7 ; then
-    if test $curlminor -gt 16 ; then
-      havekeypasswd=1
-    elif test $curlminor -eq 16 ; then
-      if test $curlpatch -ge 4 ; then
-        havekeypasswd=1
-      fi
-    fi
-  fi
-fi #with-curl_config
-
-if test $havekeypasswd -eq 1; then
+# Save/restore CFLAGS
+SAVECFLAGS="$CFLAGS"
+CFLAGS="${curl_cflags}"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_KEYPASSWD;]])],
+                   [havekeypassword=yes],
+                   [havekeypassword=no])
+CFLAGS="$SAVECFLAGS"
+AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_RESULT([${havekeypassword}])
+if test "x$havekeypasswd" = "xyes"; then
 AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
 fi
+
 
 else #!require_curl
 
@@ -1514,6 +1504,10 @@ xsolaris*)
   ;;
 *);;
 esac
+
+# Finally, add -lz always
+EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
+
 # Alias
 EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
 AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])

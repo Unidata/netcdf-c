@@ -8267,8 +8267,8 @@ IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)
 @cindex NF_VAR_PAR_ACCESS, example
 
 The function NF_VAR_PAR_ACCESS changes whether read/write operations
-on a parallel file system are performed collectively (the default) or
-independently on the variable. This function can only be called if the
+on a parallel file system are performed collectively or
+independently (the default) on the variable. This function can only be called if the
 file was created with NF_CREATE_PAR (see @ref{NF_CREATE_PAR}) or opened
 with NF_OPEN_PAR (see @ref{NF_OPEN_PAR}).
 
@@ -8279,8 +8279,8 @@ linked (like HDF5) to MPI libraries.
 Calling this function affects only the open file - information about
 whether a variable is to be accessed collectively or independently is
 not written to the data file. Every time you open a file on a parallel
-file system, all variables default to collective operations. The change
-a variable to independent lasts only as long as that file is open.
+file system, all variables default to independent operations. The change
+a variable to collective lasts only as long as that file is open.
 
 The variable can be changed from collective to independent, and back,
 as often as desired.

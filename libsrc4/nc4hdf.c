@@ -730,6 +730,8 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
          LOG((4, "extending dataset"));
          if (H5Dextend(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
+	 if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+	    BAIL2(NC_EHDFERR);
          if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0) 
             BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
