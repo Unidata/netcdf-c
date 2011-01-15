@@ -317,6 +317,16 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
+# Capture the state of the --enable-cdmremote flag
+AC_MSG_CHECKING([whether cdmremote client is to be built])
+AC_ARG_ENABLE([cdmremote],
+                 [AS_HELP_STRING([--enable-cdmremote],
+                                 [build with cdmremote client support.])])
+test "x$enable_cdmremote" = xyes || enable_cdmremote=no
+# CDMREMOTE requires netCDF-4
+if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
+AC_MSG_RESULT($enable_cdmremote)
+
 # Figure out if curl support should be enabled.
 # The primary goal is to first locate curl-config
 # or the curl library location
@@ -328,6 +338,8 @@ AC_MSG_RESULT([$enable_logging])
 #         and the curl library can be located
 # Note that for now, cdmremote must be explicitly enabled
 
+# First capture all the info unconditionally
+
 # Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
 AC_ARG_ENABLE([dap],
@@ -336,79 +348,92 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# Capture the state of the --enable-cdmremote flag
-AC_MSG_CHECKING([whether cdmremote client is to be built])
-AC_ARG_ENABLE([cdmremote],
-                 [AS_HELP_STRING([--enable-cdmremote],
-                                 [build with cdmremote client support.])])
-test "x$enable_cdmremote" = xyes || enable_cdmremote=no
-# CDMREMOTE requires netCDF-4
-if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
-AC_MSG_RESULT($enable_cdmremote)
-
-# If --disable-dap && cdmremote , then make no attempt to locate curl
+# If --disable-dap && cdmremote , then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
 fi
 
-# Try to locate curl
-curlsrc=
+
+# Try to locate curl-config
+#
 AC_ARG_WITH([curl-config], [AS_HELP_STRING([--with-curl-config=<path>],
             [Specify path (or the containing directory) of the curl-config program; libcurl is required for opendap.])],
-            [curlsrc="withconfig"],[])
-if test "$require_curl" = yes ; then
-  AC_MSG_CHECKING([whether a path for curl-config was specified])
-  if test "x$curlsrc" = "x" ; then
-    AC_MSG_RESULT([no])
-  else
-    AC_MSG_RESULT([$with_curl_config])
-    # Perhaps the user specified the containing directory
-    if test -f $with_curl_config/curl-config ; then
-      with_curl_config="$with_curl_config/curl-config"
-      curlsrc="withconfig"    
-    fi  
-    #verify
-    if $with_curl_config --prefix >/dev/null 2>&1 ; then ignore=1; else
-      if test "$require_curl" = yes ; then
-        AC_MSG_ERROR([Erroneous --with-curl-config value: ${with_curl_config}])
-      fi
-    fi
-  fi
+            [],[])
+
+AC_MSG_CHECKING([whether a path for curl-config was specified])
+if test "x$with_curl_config" = "x" ; then
+  AC_MSG_RESULT([no])
+else
+  AC_MSG_RESULT([$with_curl_config])
 fi
 
 # Alternatively, allow specification of the curl installation directory
+AC_MSG_CHECKING([whether a location for curl installation was specified])
 AC_ARG_WITH([curl], [AS_HELP_STRING([--with-curl=<directory>.],
             [Specify location of CURL library; libcurl is required for opendap. Configure will expect to find subdirs bin, include and lib.])],
-            [curlsrc="with"],[])
+            [],[])
+if test "x$with_curl" = "x" ; then
+  AC_MSG_RESULT([no])
+else
+  AC_MSG_RESULT([$with_curl])
+fi
 
+# Remaining computations are only invoked if curl is required.
 if test "$require_curl" = yes ; then
-  AC_MSG_CHECKING([whether a location for curl installation was specified])
-  if test "x$curlsrc" = "xwith" ; then
-    AC_MSG_RESULT([$with_curl])
-    # look for curl-config
+
+  # Tag to indicate where curl info came from
+  curlsrc=
+
+  if test "x$with_curl_config" != "x" ; then
+    curlsrc="withconfig"
+  elif test "x$with_curl" != "x" ; then
+    curlsrc="withcurl"
+  else
+    curlsrc=""
+  fi  
+
+  # if curl source was --with-curl
+  # then try to locate curl-config
+
+  if test "x$curlsrc" = "xwithcurl" ; then
+    # look for curl-config in --with-curl directory
     if $with_curl/bin/curl-config --version >/dev/null 2>&1 ; then
-      # pretend that --with-curl-config was specified
-      curlsrc="withconfig"
+      # Pretend that --with-curl-config was specified
       with_curl_config="$with_curl/bin/curl-config"
-      AC_MSG_NOTICE([checking for curl-config using --with-curl... yes])
+      curlsrc="withconfig"
+    fi
+  elif test "x$curlsrc" = "xwithconfig" ; then  
+    # look for curl-config using --with-curl-config,
+    # allow for some errors in specifying.
+    if $with_curl_config --version >/dev/null 2>&1 ; then
+      # User specified curl-config directly
+      with_curl_config="$with_curl_config"
+    elif $with_curl_config/curl-config --version >/dev/null 2>&1 ; then
+      # User specified curl-config parent directory
+      with_curl_config="$with_curl_config/curl-config"
+    elif $with_curl_config/bin/curl-config --version >/dev/null 2>&1 ; then
+      # User specified same dir as --with-curl
+      with_curl_config="$with_curl_config/bin/curl-config"
     else
-      AC_MSG_NOTICE([checking for curl-config using --with-curl... no])
+      AC_MSG_ERROR([Erroneous --with-curl-config value: ${with_curl_config}])
+      with_curl_config="" # not found
     fi
   else
-    AC_MSG_RESULT([no])
-  fi
-
-  if test "x$curlsrc" = "x" ; then
     # look for curl-config in the path
     if curl-config --version >/dev/null 2>&1 ; then
       with_curl_config="curl-config"
       curlsrc="withconfig"
-      AC_MSG_NOTICE([checking whether a location for curl-config is in PATH... yes])
-    else
-      AC_MSG_NOTICE([checking whether a location for curl-config is in PATH... no])
     fi
+  fi
+
+  # report on finding of curl-config
+  AC_MSG_CHECKING([checking whether a location for curl-config found])
+  if test "x$with_curl_config" = "x" ; then
+    AC_MSG_RESULT([no])
+  else
+    AC_MSG_RESULT([${with_curl_config}])
   fi
 
   # Compute the curl flags and libs
@@ -439,7 +464,7 @@ AC_SUBST([CURL_LIBS],[${curl_libs}])
 AC_SUBST([CURLDIR],[${curl_dir}])
 
 # If curl is required but there is no curl, then complain
-if test -z "$curlsrc" ; then
+if test "x$curlsrc" = "x" ; then
   if test "x$require_curl" = "xyes" ; then
      AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
   fi
