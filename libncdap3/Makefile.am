@@ -110,9 +110,9 @@ BUILT_SOURCES = .dodsrc t_dap3.c
 
 DISTCLEANFILES += .dodsrc
 
-t_dap3.c: t_dap.c
-	echo "#define NETCDF3ONLY" > t_dap3.c
-	cat t_dap.c >> t_dap3.c
+t_dap3.c: ${srcdir}/t_dap.c
+	echo "#define NETCDF3ONLY" > ${srcdir}/t_dap3.c
+	cat ${srcdir}/t_dap.c >> ${srcdir}/t_dap3.c
 
 MAINTAINERCLEANFILES += t_dap3.c
 
