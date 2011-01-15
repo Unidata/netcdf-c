@@ -235,7 +235,7 @@ NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
 
 #${NCDUMPC} ${NCDUMPH} ${NCLIB}
 ncd:: 
-	cd ../libsrc; make 
+	cd ..; make 
 	${CC} -I.. ${CFLAGS} ${GFLAGS} -c ${INCL} ${NCDUMPC}
 	${CC} -o ncd ${NCDUMPOBJ} ${LIBS}
 
