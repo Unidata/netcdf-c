@@ -22,6 +22,7 @@
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
+#define CHUNK_THRESHOLD (1024)	/* variables with fewer bytes don't get chunked */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -427,13 +428,14 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 
 /* Set output variable o_varid (in group ogrp) to use chunking
  * specified on command line, only called for classic format input and
- * netCDF-4 format output, so no chunking to override. */
+ * netCDF-4 format output, so no existing chunk lengths to override. */
 static int
 set_var_chunked(int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
     int ndims;
     int odim;
+    size_t chunk_threshold = CHUNK_THRESHOLD;
 
     if(chunkspec_ndims() == 0) 	/* no chunking specified on command line */
 	return stat;
@@ -442,17 +444,27 @@ set_var_chunked(int ogrp, int o_varid)
     if (ndims > 0) {		/* no chunking for scalar variables */
 	int chunked = 0;
 	int *dimids = (int *) emalloc(ndims * sizeof(int));
-	/* TODO: Probably shouldn't chunk small variables that don't
-	 * use unlimited dimension. */
+	size_t varsize;
+	nc_type vartype;
+	size_t value_size;
+	int is_unlimited = 0;
+
 	NC_CHECK(nc_inq_vardimid (ogrp, o_varid, dimids));
+	NC_CHECK(nc_inq_vartype(ogrp, o_varid, &vartype));
+	/* from type, get size in memory needed for each value */
+	NC_CHECK(nc_inq_type(ogrp, vartype, NULL, &value_size));
+	varsize = value_size;
+
 	/* Determine if this variable should be chunked.  A variable
 	 * should be chunked if any of its dims are in command-line
 	 * chunk spec and if corresponding chunk size is smaller than
-	 * dimension length. It should also be chunked if any of its
+	 * dimension length. It will also be chunked if any of its
 	 * dims are unlimited. */
 	for(odim = 0; odim < ndims; odim++) {
 	    int odimid = dimids[odim];
-	    int idimid = dimmap_idimid(odimid);
+	    int idimid = dimmap_idimid(odimid); /* corresponding dimid in input file */
+	    if(dimmap_ounlim(odimid))
+		is_unlimited = 1;
 	    if(idimid != -1) {
 		size_t chunksize = chunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;
@@ -460,10 +472,16 @@ set_var_chunked(int ogrp, int o_varid)
 		if( (chunksize > 0 && chunksize < dimlen) || dimmap_ounlim(odimid)) {
 		    chunked = 1;		    
 		}
+		varsize *= dimlen;
 	    }
 	}
+	/* Don't chunk small variables that don't use an unlimited
+	 * dimension. */
+	if(varsize < chunk_threshold && !is_unlimited)
+	    chunked = 0;
+
 	if(chunked) {
-	    /* Allocate chunksizes and set defaults to 1 for any
+	    /* Allocate chunksizes and set defaults to dimsize for any
 	     * dimensions not mentioned in chunkspec. */
 	    size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
 	    for(odim = 0; odim < ndims; odim++) {
@@ -473,7 +491,7 @@ set_var_chunked(int ogrp, int o_varid)
 		if(chunksize > 0) {
 		    chunkp[odim] = chunksize;
 		} else {
-		    chunkp[odim] = 1;
+		    NC_CHECK(nc_inq_dimlen(ogrp, odimid, &chunkp[odim]));
 		}
 	    }
 	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
@@ -521,7 +539,7 @@ free_var_chunk_cache(int igrp, int varid)
 
 /* Copy dimensions from group igrp to group ogrp, also associate input
  * dimids with output dimids (they need not match, because the input
- * dimensions may have been defined in a different order tan we define
+ * dimensions may have been defined in a different order than we define
  * the output dimensions here. */
 static int
 copy_dims(int igrp, int ogrp)
@@ -796,7 +814,7 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     }
 #ifdef USE_NETCDF4    
     /* For chunked variables, copy_buf must also be at least as large as
-     * size of a chunk in input */
+     * size of a chunk in input, otherwise resize it. */
     {
 	NC_CHECK(inq_var_chunksize(igrp, varid, &chunksize));
 	if(chunksize > copybuf_size) {
@@ -1024,13 +1042,13 @@ static void
 usage(void)
 {
 #define USAGE   "\
-  [-k n]    kind of netCDF format for output file, default same as input\n\
+  [-k n]    specify kind of netCDF format for output file, default same as input\n\
 	    1 classic, 2 64-bit offset, 3 netCDF-4, 4 netCDF-4 classic model\n\
-  [-d n]    deflation compression level, default same as input (0=none 9=max)\n\
-  [-s]      adds shuffle option to deflation compression\n\
-  [-c chunkspec] specifies chunking for dimensions like \"dim1/N1,dim2/N2,...\"\n\
-  [-u]      converts unlimited dimensions to fixed-size dimensions in output copy\n\
-  [-m n]    size in bytes of copy buffer, default is 5000000 bytes\n\
+  [-d n]    set deflation compression level, default same as input (0=none 9=max)\n\
+  [-s]      add shuffle option to deflation compression\n\
+  [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
+  [-u]      convert unlimited dimensions to fixed-size dimensions in output copy\n\
+  [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
@@ -1153,7 +1171,7 @@ main(int argc, char**argv)
 	}
 	case 'c':               /* optional chunking spec for each dimension in list */
 	{
-	    /* save chunkspec string for parsingg later, once we know input ncid */
+	    /* save chunkspec string for parsing later, once we know input ncid */
 	    chunkspec = strdup(optarg);
 	    break;
 	}

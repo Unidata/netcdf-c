@@ -18,12 +18,13 @@ if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
-tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress
+tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress \
+tst_chunking
 
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
-tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh 
+tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -47,7 +48,7 @@ tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
 tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
 tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
 tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
-tst_deflated.nc
+tst_deflated.nc tst_chunking.nc tmp*.nc
 
 
 # This is the program we're building, and it's sources.
