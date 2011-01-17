@@ -151,7 +151,7 @@ NetCDF Utilities
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
-* nccopy::                      Copying, Converting, and Compressing Data Files 
+* nccopy::                      Copying, Converting, Compressing, and Chunking Data Files 
 * ncgen3::                      Turning CDL into Classic Data Files
 
 File Format Specification
@@ -3964,7 +3964,7 @@ create the netCDF dataset
 @item nccopy
 reads a netCDF dataset using the netCDF programming interface and
 copies it, optionally to a different kind of netCDF dataset, and
-optionally with compression
+optionally with compression or chunking
 
 @end table
 
@@ -3988,7 +3988,7 @@ Description Language).
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
-* nccopy::                      Copying, Converting, and Compressing Data Files
+* nccopy::                      Copying, Converting, Compressing, and Chunking Data Files
 * ncgen3::                      Turning CDL into Classic Data Files
 @end menu
 
@@ -4638,7 +4638,7 @@ if built with the netCDF-3 library, a netCDF classic file may be
 copied to a netCDF 64-bit offset file, permitting larger variables.
 If built with the netCDF-4 library, a netCDF classic file may be
 copied to a netCDF-4 file or to a netCDF-4 classic model file as well,
-permitting data compression, later efficient schema changes, larger
+permitting data compression, data chunking, efficient schema changes, larger
 variable sizes, and use of other netCDF-4 features in case the output
 uses the enhanced netCDF model.
 
@@ -4646,7 +4646,7 @@ The nccopy source also serves as an example of a @dfn{generic}
 netCDF-4 program, with its ability to read any valid netCDF file and
 handle strings, arbitrarily nested groups, any user-defined types,
 (including arbitrarily nested compound types and variable-length
-types), and data of any valid netCDF-4 type.  Functions from an
+types), and data of any valid netCDF-4 type.  Functions from and
 fragments of the nccopy source may be useful to other developers for
 writing generic programs that handle or write arbitrary netCDF data.
 
@@ -4658,7 +4658,8 @@ netCDF files.
 UNIX syntax for invoking nccopy:
 
 @example
-nccopy  [ -k kind]  [ -d n]  [ -s ]  [ -u ]  [ -m bufsize]  input  output
+nccopy  [ -k kind]  [ -d n]  [ -s ]  [ -u ]  [ -c chunkspec ]
+        [ -m bufsize] input  output
 @end example
 
 where:
@@ -4683,13 +4684,14 @@ netCDF-3 classic data model but may use netCDF-4/HDF5 features such as
 compression and chunking.
 @end itemize
 If no value for -k is specified, then the output will use the same
-format as the input, except that if the input is classic or 64-bit
-offset and a compression level is specified with the -d option, then
-the output will be netCDF-4 classic model.  Note that attempting some
+format as the input.  However, if the input is classic or 64-bit
+offset and a compression level is specified with the -d option or
+chunking is specified with the -c option, then
+the output will be netCDF-4 classic model format.  Note that attempting some
 kinds of format conversion will result in an error, if the conversion
 is not possible.  For example, an attempt to copy a netCDF-4 file that
 uses features of the enhanced model to any of the other kinds of
-netCDF formats that use the classic model will result an error.
+netCDF formats that use the classic model will result in an error.
 
 @item -d n
 Specify deflation level (level of compression) for variable data in
@@ -4702,7 +4704,8 @@ classic format or 64-bit offset format input file, it is not necessary
 to also specify that the output should be netCDF-4 classic model, as
 that will be the default.  If this option is not specified and the
 input file has compressed variables, the compression will still be
-preserved in the output, using the same chunking as in the input.
+preserved in the output, using the same chunking as in the input
+unless the -c option is used to specify different chunking.
 
 @item -s
 Specify shuffling of variable data bytes before compression or after
@@ -4713,6 +4716,27 @@ compression.
 @item -u
 Convert any unlimited size dimensions in the input to fixed size
 dimensions in the output.
+
+@item -c chunkspec
+Specify chunking (multidimensional tiling) for variable data in the
+output, useful to specify the units of disk access, compression, or
+other filters such as checksums.  The chunkspec argument is a string
+of comma-separated associations, each specifying a dimension name, a
+`/' character, and optionally the corresponding chunk length for that
+dimension.  No blanks should appear in the chunkspec string, except
+possibly escaped blanks that are part of a dimension name.  A
+chunkspec must name at least one dimension, and may omit dimensions
+which are not to be chunked or for which the default chunk length is
+desired.  If a dimension name is followed by a `/' character but no
+subsequent chunk length, the actual dimension length is assumed.  If
+copying a classic model file to a netCDF-4 output file and not naming
+all dimensions in the chunkspec, unnamed dimensions will also use the
+actual dimension length for the chunk length.  An example of a
+chunkspec for variables that use the `m' and `n' dimensions might be
+`m/100,n/200' to specify 100 by 200 chunks.  To see the chunking
+resulting from copying with a chunkspec, use ncdump with the `-s'
+option (and typically with the `-h' option) on the output file.
+
 
 @item -m bufsize
 Specifies the size, in bytes, of the copy buffer used to
