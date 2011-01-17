@@ -410,6 +410,10 @@ buildvars(NCDAP3* drno)
 	if(!var->visible) continue;
 	if(var->array.basevar != NULL) continue;
 
+#ifdef DEBUG
+fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
+#endif
+
 	vardims = var->array.dimensions;
 	ncrank = nclistlength(vardims);
 	if(ncrank > 0) {

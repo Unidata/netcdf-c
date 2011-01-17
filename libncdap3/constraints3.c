@@ -474,7 +474,11 @@ fprintf(stderr,"restriction.before=|%s|\n",
 	nodeset = unifyprojectionnodes3(varlist);	
         for(i=0;i<nclistlength(nodeset);i++) {
 	    CDFnode* var = (CDFnode*)nclistget(nodeset,i);
+#ifdef DEBUG
+fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
+#endif
 	    NCprojection* newp = createncprojection();
+
 	    newp->discrim = NS_VAR;
 	    newp->var = createncvar();
 	    newp->var->leaf = var;
