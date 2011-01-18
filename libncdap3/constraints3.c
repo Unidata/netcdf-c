@@ -1077,6 +1077,23 @@ iswholeprojection(NCprojection* proj)
     return whole;
 }
 
+int
+iswholeconstraint(NCconstraint* con)
+{
+    int i;
+    if(con == NULL) return 1;
+    if(con->projections != NULL) {
+	for(i=0;i<nclistlength(con->projections);i++) {
+	 if(!iswholeprojection((NCprojection*)nclistget(con->projections,i)))
+	    return 0;
+	}
+    }
+    if(con->selections != NULL)
+	return 0;
+    return 1;
+}
+
+
 void
 makewholeslice3(NCslice* slice, CDFnode* dim)
 {

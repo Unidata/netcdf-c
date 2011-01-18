@@ -25,6 +25,8 @@ extern NCerror slicemerge3(NCslice* dst, NCslice* src);
 extern int iswholeslice(struct NCslice*, struct CDFnode* dim);
 extern int iswholesegment(struct NCsegment*);
 
+extern int iswholeconstraint(NCconstraint* con);
+
 extern int ncceparse(char*, int, NCconstraint*, char**);
 
 extern char* buildprojectionstring3(NClist* projections);

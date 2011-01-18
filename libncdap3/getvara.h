@@ -43,7 +43,6 @@ typedef int nc_tactic;
 #define tactic_var	8
 
 typedef struct Getvara {
-    int projected; /* Were projections applied when retrieving data */
     void* memory; /* where result is put*/
     struct NCcachenode* cache;
     struct NCprojection* varaprojection;

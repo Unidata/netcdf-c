@@ -441,6 +441,9 @@ NC_get_varm(int ncid, int varid, const size_t *start,
       for (;;)
       {
 	 /* TODO: */
+if(mystart[0] == 11) {
+int x = 1;
+}
 	 int lstatus = NC_get_vara(ncid, varid, mystart, iocount,
 				   value, memtype);
 	 if (lstatus != NC_NOERR) {

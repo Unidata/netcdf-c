@@ -58,8 +58,6 @@ test_cvt3_SOURCES = test_cvt.c
 test_varm3_SOURCES = test_varm3.c
 check_PROGRAMS += test_cvt3 test_varm3
 TESTS += test_cvt3 test_varm3
-# Failing for some reason
-XFAIL_TESTS = test_varm3
 endif
 
 endif ENABLE_DAP_REMOTE_TESTS

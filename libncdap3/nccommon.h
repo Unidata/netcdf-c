@@ -193,6 +193,7 @@ typedef struct NCconstraint {
 
 /* Detail information about each cache item */
 typedef struct NCcachenode {
+    int wholevariable; /* Is this cache entry constrained? */
     int prefetch; /* is this the prefetch cache entry? */
     size_t xdrsize;
     struct NCconstraint* constraint; /* as used to create this node */
