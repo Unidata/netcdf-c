@@ -66,6 +66,31 @@ conversion will result in an error, if the conversion is not
 possible.  For example, an attempt to copy a netCDF-4 file that uses
 features of the enhanced model to any of the other kinds of netCDF
 formats that use the classic model will result in an error.
+.IP "\fB -d \fP \fI n \fP"
+Specify deflation level (level of compression) for variable data in
+output.  0 corresponds to no compression and 9 to maximum compression,
+with higher levels of compression requiring marginally more time to
+compress or uncompress than lower levels.  Compression achieved may
+also depend on chunking parameters, which will use default chunking in the current nccopy
+implementation.  If this option is specified for a classic format or
+64-bit offset format input file, it is not necessary to also specify
+that the output should be netCDF-4 classic model, as that will
+be the default.  If this option is not specified and the input file
+has compressed variables, the compression will still be preserved
+in the output, using the same chunking as in the input.
+.P
+Note that \fB nccopy \fP requires all variables to be compressed using
+the same compression level, but the API has no such restriction.  With
+a program you can customize compression for each variable independently.
+
+.IP "\fB -s \fP"
+Specify shuffling of variable data bytes before compression or after
+decompression.  This option is ignored unless a non-zero deflation
+level is specified.  Turning shuffling on sometimes improves
+compression. 
+.IP "\fB -u \fP"
+Convert any unlimited size dimensions in the input to fixed size
+dimensions in the output.
 .IP "\fB -c \fP \fI chunkspec \fP"
 Specify chunking (multidimensional tiling) for variable data in
 the output, useful to specify the units of disk access, compression, or
@@ -87,26 +112,6 @@ for variables that use the `m' and `n' dimensions might be
 `m/100,n/200' to specify 100 by 200 chunks.  To see the chunking
 resulting from copying with a chunkspec, use the `-s'
 option of ncdump on the output file.
-.IP "\fB -d \fP \fI n \fP"
-Specify deflation level (level of compression) for variable data in
-output.  0 corresponds to no compression and 9 to maximum compression,
-with higher levels of compression requiring marginally more time to
-compress or uncompress than lower levels.  Compression achieved may
-also depend on chunking parameters, which will use default chunking in the current nccopy
-implementation.  If this option is specified for a classic format or
-64-bit offset format input file, it is not necessary to also specify
-that the output should be netCDF-4 classic model, as that will
-be the default.  If this option is not specified and the input file
-has compressed variables, the compression will still be preserved
-in the output, using the same chunking as in the input.
-.IP "\fB -s \fP"
-Specify shuffling of variable data bytes before compression or after
-decompression.  This option is ignored unless a non-zero deflation
-level is specified.  Turning shuffling on sometimes improves
-compression. 
-.IP "\fB -u \fP"
-Convert any unlimited size dimensions in the input to fixed size
-dimensions in the output.
 .IP "\fB -m \fP \fI bufsize \fP"
 Specifies the size, in bytes, of the copy buffer used to
 to copy large variables, by copying them in smaller pieces, each no
@@ -116,7 +121,12 @@ The default is 5000000 bytes,
 but will be increased if necessary to hold at least one chunk of
 netCDF-4 chunked variables in the input file.  You may want to specify
 a value larger than the default for OPeNDAP copies of large files over high
-latency networks. 
+latency networks.
+.P
+Note that \fB nccopy \fP requires variables that share a dimension to
+also share the chunk size associated with that dimension, but the API
+has no such restriction.  With a program you can customize chunking
+for each variable independently.
 .SH EXAMPLES
 .LP
 Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a
