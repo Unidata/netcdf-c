@@ -38,7 +38,7 @@ nc3d_getvarx(int ncid, int varid,
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
     nc_type dsttype;
-    Getvara* varainfo = NULL;
+    Getvara* varinfo = NULL;
     CDFnode* xtarget = NULL; /* target in DATADDS */
     CDFnode* target = NULL; /* target in constrained DDS */
     NCprojection* varaprojection = NULL;
@@ -117,14 +117,14 @@ fprintf(stderr,"\n");
 	}
     }
 
-    ncstat = makegetvar34(&drno->dap,cdfvar,data,dsttype,&varainfo);
+    ncstat = makegetvar34(&drno->dap,cdfvar,data,dsttype,&varinfo);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef IGNORE
     freegetvara(drno->dap.cdf.vara);
-    drno->dap.cdf.vara = varainfo;
+    drno->dap.cdf.vara = varinfo;
 #endif
 
-    ncstat = buildvaraprojection3(varainfo,startp,countp,stridep,&varaprojection);
+    ncstat = buildvaraprojection3(varinfo,startp,countp,stridep,&varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
@@ -134,12 +134,12 @@ fprintf(stderr,"Unconstrained: reusing prefetch\n");
 	cachenode = drno->dap.cdf.cache->prefetch;	
 	ASSERT((cachenode != NULL));
     } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
+	/* If it is cached, then it is a whole variable */
 #ifdef DEBUG
-fprintf(stderr,"Reusing cached fetch constraint: %s\n",
-	dumpconstraint(cachenode->constraint));
+fprintf(stderr,"Reusing cache\n");
 #endif
     } else { /*not cached: load using constraints */
-	nclistpush(vars,(ncelem)varainfo->target);
+	nclistpush(vars,(ncelem)varinfo->target);
 	constraint = createncconstraint();
         constraint->projections = clonencprojections(drno->dap.oc.dapconstraint->projections);
         if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
@@ -180,23 +180,23 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     ncstat = attachsubset34(cachenode->datadds,drno->dap.cdf.ddsroot);
     if(ncstat) goto fail;	
 
-    /* Fix up varainfo to use the cache */
-    varainfo->cache = cachenode;
+    /* Fix up varinfo to use the cache */
+    varinfo->cache = cachenode;
     /* However use this current vara projection */
-    varainfo->varaprojection = varaprojection;
+    varinfo->varaprojection = varaprojection;
     varaprojection = NULL;
 
     /* Now, walk to the relevant instance */
 
     /* Get the var correlate from the datadds */
-    target = varainfo->target;
+    target = varinfo->target;
     xtarget = target->attachment;
     if(xtarget == NULL) 
 	{THROWCHK(ncstat=NC_ENODATA); goto fail;}
 
     /* Switch to datadds tree space*/
-    varainfo->target = xtarget;
-    ncstat = moveto(&drno->dap,varainfo,cachenode->datadds,data);
+    varinfo->target = xtarget;
+    ncstat = moveto(&drno->dap,varinfo,cachenode->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     goto ok;
 fail:
@@ -205,7 +205,7 @@ fail:
 ok:
     freencconstraint(constraint);
     nclistfree(vars);
-    freegetvara(varainfo);
+    freegetvara(varinfo);
     return THROW(ncstat);
 }
 
@@ -295,7 +295,7 @@ movetor(NCDAPCOMMON* nccomm,
 
     case CASE(NC_Dataset,OCFIELDMODE):
     case CASE(NC_Grid,OCFIELDMODE):
-    case CASE(NC_Structure,OCFIELDMODE):
+    case CASE(NC_Structure,OCFIELDMODE): /* fall thru */
     case CASE(NC_Sequence,OCFIELDMODE):
 	/* Since these are never dimensioned, we can go directly to
 	   the appropriate field; locate the field index for the next
@@ -417,12 +417,8 @@ movetor(NCDAPCOMMON* nccomm,
 
         rank = segment->slicerank;
 
-        /* whole variable is assumed to always be available
-	   (because currently we do not attempt to fold get_vars parameters
-            into the fetch projections)
-	*/
-		
-	if(caching || unconstrainable) {	
+	ASSERT(xgetvar->cache != NULL);
+	if(xgetvar->cache->wholevariable) {
             if(hasstringdim) {
 	        /* Get the string dimension */
 	        stringslice = segment->slices[rank-1];
@@ -432,7 +428,7 @@ movetor(NCDAPCOMMON* nccomm,
 	    } else {
                 odom = newdapodometer(segment->slices,0,rank);
 	    }
-	} else {/* ! caching */
+	} else { /*!xgetvar->cache->wholevariable*/
             if(hasstringdim) {
 	        /* Get the string dimension */
 	        stringslice = segment->slices[rank-1];
