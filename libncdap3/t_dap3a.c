@@ -1,3 +1,4 @@
+#define NETCDF3ONLY
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +45,7 @@
 
 #define COMPARE(t1,t2,v1,v2) compare(t1,t2,(void*)v1,(void*)v2,#v2,__FILE__,__LINE__)
 
-static int failure = 0;
+static int fail = 0;
 
 static void compare(nc_type,nc_type,void*,void*,char*,char*,int);
 
@@ -52,7 +53,7 @@ static void
 report(const int i, const char* var, const int line)
 {
     fprintf(stdout,"%s mismatch: [%d] file: %s line: %d\n",var,i,__FILE__,line);
-    failure = 1;
+    fail = 1;
 }
 
 static void
@@ -107,14 +108,11 @@ static char string3[DIMSIZE][STRLEN];
 
 int main()
 {
-    int ncid, varid;
+    int ncid, varid, i, j;
     int ncstat = NC_NOERR;
     char* url;
     char* topsrcdir;
     size_t len;
-#ifndef USE_NETCDF4
-    int i,j;
-#endif
 
     /* location of our target url: use file:// to avoid remote
 	server downtime issues
@@ -306,7 +304,7 @@ int main()
     COMPARE(NC_DOUBLE,NC_DOUBLE,float64,float64_data);
 #endif
 
-    if(failure) {
+    if(fail) {
         printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
         exit(1);
     }

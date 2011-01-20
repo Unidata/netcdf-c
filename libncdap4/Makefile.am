@@ -62,23 +62,19 @@ TESTS = t_dap4
 t_dap4_SOURCES = t_dap4.c stubdap4.c
 CLEANFILES += t_dap4
 
+# This rule are used if someone wants to rebuild t_dap4.c
+# Otherwise never invoked, but records how to do it.
+t_dap4.c: ../libncdap3/t_dap.c
+	cat ../libncdap3/t_dap.c >> ./t_dap4.c
+
 endif # USE_NETCDF4
 
 endif # BUILD_DAP
 
 # One last thing
-BUILT_SOURCES = .dodsrc t_dap4.c
+BUILT_SOURCES = .dodsrc
 
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 
 DISTCLEANFILES += .dodsrc
-
-t_dap4.c: $(top_srcdir)/libncdap3/t_dap.c
-	cat $(top_srcdir)/libncdap3/t_dap.c >>$(top_srcdir)/libncdap4/t_dap4.c
-
-MAINTAINERCLEANFILES += t_dap4.c
-
-test: check
-
-

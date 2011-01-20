@@ -48,10 +48,31 @@ NC_Dispatch* NCCR_dispatch_table = NULL;
 int
 NC_testurl(const char* path)
 {
+    int isurl = 0;
     NC_URL* tmpurl = NULL;
+    char* p;
+
+    if(path == NULL) return 0;
+
+    /* find leading non-blank */
+    for(p=path;*p;p++) {if(*p != ' ') break;}
+
+    /* Do some initial checking to see if this looks like a file path */
+    if(*p == '/') return 0; /* probably an absolute file path */
+
+    /* Ok, try to parse as a url */
     if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+	/* Do some extra testing to make sure this really is a url */
+        /* Look for a knownprotocol */
+        struct NCPROTOCOLLIST* protolist;
+        for(protolist=ncprotolist;protolist->protocol;protolist++) {
+	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
+	        isurl=1;
+		break;
+	    }		
+	}
 	nc_urlfree(tmpurl);
-	return 1;
+	return isurl;
     }
     return 0;
 }
