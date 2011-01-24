@@ -56,8 +56,9 @@ TESTS += test_cvt4
 else
 test_cvt3_SOURCES = test_cvt.c
 test_varm3_SOURCES = test_varm3.c
-check_PROGRAMS += test_cvt3 test_varm3
-TESTS += test_cvt3 test_varm3
+test_vara_SOURCES = test_vara.c
+check_PROGRAMS += test_cvt3 test_varm3 test_vara
+TESTS += test_cvt3 test_varm3 test_vara
 endif
 
 endif ENABLE_DAP_REMOTE_TESTS
