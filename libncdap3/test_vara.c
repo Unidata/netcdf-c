@@ -21,7 +21,7 @@ variables:
 */
 
 /* Use the ThreeD variable */
-#define VAR "ThreeD"
+#define NCVAR "ThreeD"
 
 #define X 10
 #define Y 10
@@ -34,6 +34,8 @@ variables:
 
 #undef DEBUG
 
+#define DELTA 0.005
+
 /* Setup an odometer */
 typedef struct Odom {
     int rank;
@@ -43,8 +45,8 @@ typedef struct Odom {
     size_t* count;
 } Odom;
 
-static float threeD_data[X][Y][Z];
-static float threeD[X][Y][Z];
+static float target_data[X][Y][Z];
+static float target[X][Y][Z];
 static dims[RANK] = {X,Y,Z};
 
 static Odom* odom_create(int rank);
@@ -63,8 +65,8 @@ static size_t count0[RANK] = {X,Y,Z};
 static int floateq(float f1, float f2)
 {
     float diff = f1 - f2;
-    if(diff > 0 && diff < 0.005) return 1;
-    if(diff < 0 && diff > -0.005) return 1;
+    if(diff >= 0 && diff < DELTA) return 1;
+    if(diff <= 0 && diff > -DELTA) return 1;
     return 0;
 }
 
@@ -76,28 +78,39 @@ main()
     size_t start[RANK];
     size_t count[RANK];
     
-    memset((void*)threeD,0,sizeof(threeD));
+    memset((void*)target,0,sizeof(target));
 
     if((retval = nc_open(URL, NC_NOWRITE, &ncid)))
        ERR(retval);
 
-    if((retval = nc_inq_varid(ncid, VAR, &varid)))
+    if((retval = nc_inq_varid(ncid, NCVAR, &varid)))
        ERR(retval);
 
-    /* test 1: Read the whole variable */
+    printf("test 1: Read the whole variable\n");
     memcpy(start,start0,sizeof(start0));
     memcpy(count,count0,sizeof(count0));
 
-    if((retval = nc_get_vara_float(ncid,varid,start,count,(float*)threeD)))
+    if((retval = nc_get_vara_float(ncid,varid,start,count,(float*)target)))
        ERR(retval);
     if(!check(start,count)) goto fail;
 
-    /* test 2: Read the slice with X=0 */
+    printf("test 2: Read the top half\n");
     memcpy(start,start0,sizeof(start0));
     memcpy(count,count0,sizeof(count0));
+    start[0] += count0[0]/2;
+    count[0] = count0[0] - start[0];
+
+    if((retval = nc_get_vara_float(ncid,varid,start,count,(float*)target)))
+       ERR(retval);
+    if(!check(start,count)) goto fail;
+
+    printf("test 3: Read the slice with X=1\n");
+    memcpy(start,start0,sizeof(start0));
+    memcpy(count,count0,sizeof(count0));
+    start[0] = 1;
     count[0] = 1;
 
-    if((retval = nc_get_vara_float(ncid,varid,start,count,(float*)threeD)))
+    if((retval = nc_get_vara_float(ncid,varid,start,count,(float*)target)))
        ERR(retval);
     if(!check(start,count)) goto fail;
 
@@ -111,21 +124,22 @@ fail:
     return 1;
 }
 
-static int check(size_t* start, size_t* count)
+static int
+check(size_t* start, size_t* count)
 {
     int ok = 1;
+    int index = 0;
     Odom* odom = odom_create(RANK);
     odom_set(odom,start,count);
-    float* result = (float*)threeD;
-    float* expected = (float*)threeD;
-    while(odom_more(odom)) {
+    float* result = (float*)target;
+    float* expected = (float*)target_data;
+    for(index=0;odom_more(odom);odom_incr(odom),index++) {
 	size_t offset = odom_count(odom);
-	if(floateq(result[offset],expected[offset])) {
+	if(!floateq(result[index],expected[offset])) {
 	    fprintf(stderr,"fail: result[%lu] = %f ; expected[%lu] = %f\n",
-		offset,result[offset],offset,expected[offset]);
+		index,result[index],offset,expected[offset]);
 	    ok=0;
 	}
-        odom_incr(odom);
     }
     odom_reclaim(odom);
     return ok;
@@ -197,7 +211,7 @@ static size_t odom_count(Odom* odom)
     return offset;
 }
 
-static float threeD_data[X][Y][Z] = {
+static float target_data[X][Y][Z] = {
   1, 0.999950000416665, 0.999800006666578, 0.999550033748988, 
     0.999200106660978, 0.998750260394966, 0.998200539935204, 
     0.99755100025328, 0.996801706302619, 0.995952733011994,

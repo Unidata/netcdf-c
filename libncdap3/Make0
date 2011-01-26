@@ -9,8 +9,6 @@
 #ZLIB=-L/opt/csw/lib -lz
 #TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
 VALGRIND=valgrind --leak-check=full
-#HDF5=/upc/share/stdinstall/local/${HOST}/lib/libhdf5_hl.a \
-#/upc/share/stdinstall/local/${HOST}/lib/libhdf5.a
 
 #NCLIB=/tmp/install/lib/libnetcdf.a
 
@@ -23,13 +21,15 @@ NCINCL=-I ../liblib
 LFLAG=-L/upc/share/ed/local/${HOST}/lib
 
 CURLLIB=-lcurl
-#HDF5LIB=-lhdf5_hl -lhdf5
 ZLIB=-lz
+#HDF5LIB=-lhdf5_hl -lhdf5
+HDF5LIB=/upc/share/stdinstall/local/${HOST}/lib/libhdf5_hl.a /upc/share/stdinstall/local/${HOST}/lib/libhdf5.a
 
 OTHERLIBS=-lm
 
 LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
 INCL=-I. -I.. -I../include ${NCINCL} ${CURLINCL}
+RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags
 CC=cc
@@ -265,7 +265,7 @@ T=test_vara
 
 v::
 	cc -g -c ${T}.c ${INCL}
-	cc -g -o v ${T}.o ${LIBS}
+	cc -g -o v ${T}.o ${LIBS} ${RPATH}
 
 do::
 	pushd ..; make; popd ; $(MAKE) -f Make0 ncd

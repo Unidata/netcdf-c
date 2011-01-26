@@ -48,6 +48,7 @@ bindata_array(Symbol* vsym,
 {
     int i;
     int rank = odom->rank;
+    int firstdim = (index == 0); /* first dimension*/
     int lastdim = (index == (rank - 1)); /* last dimension*/
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
@@ -61,7 +62,8 @@ bindata_array(Symbol* vsym,
 
     count = odom->count[index];
 
-    if(isunlimited && issublist(src)) {
+    /* Unpack the nested unlimited (unless first dimension)*/
+    if(!firstdim && isunlimited && issublist(src)) {
 	srcpush(src);
 	pushed = 1;
     }
@@ -103,11 +105,12 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
     case NC_COMPOUND: {
 	int i;
         Constant* con;
+
 	if(!isfillvalue(datasrc) && !issublist(datasrc)) {/* fail on no compound*/
 	    semerror(srcline(datasrc),"Compound data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];
@@ -130,7 +133,7 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
 	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];

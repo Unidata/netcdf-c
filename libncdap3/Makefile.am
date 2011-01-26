@@ -80,18 +80,13 @@ LDADD +=  ${top_builddir}/libncdap3/libncdap3.la \
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap3a t_dap3b test_vara
-CLEANFILES += t_dap3a t_dap3b test_vara
+check_PROGRAMS = t_dap3a
+CLEANFILES += t_dap3a
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap3a t_dap3b test_vara
+TESTS = t_dap3a
 t_dap3a_SOURCES = t_dap3a.c stubdap3.c
-t_dap3b_SOURCES = t_dap3b.c stubdap3.c
-test_vara_SOURCES = test_vara.c stubdap3.c
 # Set ldflags
-TESTFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
-t_dap3a_LDFLAGS = ${TESTFLAGS}
-t_dap3b_LDFLAGS = ${TESTFLAGS}
-test_vara_LDFLAGS = ${TESTFLAGS}
+t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
 
 EXTRA_DIST = ce.y t_dap.c
 
