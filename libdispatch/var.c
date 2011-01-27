@@ -312,22 +312,10 @@ NC_get_varm(int ncid, int varid, const size_t *start,
       size_t varshape[NC_MAX_VAR_DIMS];
       int isrecvar;
       size_t numrecs;
-      int noop = 0;
 
       /* Compute some dimension related values */
       isrecvar = is_recvar(ncid,varid,&numrecs);
       getshape(ncid,varid,varndims,varshape);	
-
-      /*
-       * See if the imap is a no-op
-       */
-      if(imapp != NULL) {
-	 noop = 1;
-	 for(idim=maxidim;idim>=0;--idim){/*walk backwards*/
-	    if(imapp[maxidim] != 1) {noop = 0; break;}
-	    else if(imapp[idim] != (imapp[idim+1]*varshape[idim+1])) {noop=0; break;}
-	 }
-      }
 
       /*
        * Verify stride argument; also see if stride is all ones
@@ -344,10 +332,10 @@ NC_get_varm(int ncid, int varid, const size_t *start,
             }
 	    if(stride[idim] != 1) stride1 = 0;
 	 }
-         /* If stride1 is true, and there is no imap or imap is a noop,
+         /* If stride1 is true, and there is no imap 
             then call get_vara directly.
          */
-         if(stride1 && (imapp == NULL || noop)) {
+         if(stride1 && imapp == NULL) {
 	     return NC_get_vara(ncid, varid, start, edges, value, memtype);
 	 }
       }
