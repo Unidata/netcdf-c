@@ -18,7 +18,7 @@ int
 main(int argc, char **argv)
 {
    printf("\n*** Testing HDF4/NetCDF-4 interoperability...\n");
-   printf("*** Creating a HDF4 file...");
+   printf("*** testing that netCDF can read a HDF4 file with some ints...");
    {
 #define PRES_NAME "pres"
 #define LAT_LEN 3
@@ -32,6 +32,8 @@ main(int argc, char **argv)
       size_t len_in;
       int data_out[LAT_LEN][LON_LEN], data_in[LAT_LEN][LON_LEN];
       size_t nstart[DIMS_2] = {0, 0}, ncount[DIMS_2] = {LAT_LEN, LON_LEN};
+      size_t nindex[DIMS_2] = {0, 0};
+      int scalar_data_in = 0;
       int i, j;
 
       /* Create some data. */
@@ -55,11 +57,46 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
       if (len_in != LON_LEN) ERR;
       
-      /* Read the data through the netCDF API. */
+      /* Read the data through a vara function from the netCDF API. */
       if (nc_get_vara(ncid, 0, nstart, ncount, data_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
 	 for (j = 0; j < LON_LEN; j++)
 	    if (data_in[i][j] != data_out[i][j]) ERR;
+
+      /* Reset for next test. */
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    data_in[i][j] = -88;
+
+      /* Read the data through a vara_int function from the netCDF API. */
+      if (nc_get_vara_int(ncid, 0, nstart, ncount, data_in)) ERR;
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    if (data_in[i][j] != data_out[i][j]) ERR;
+
+      /* Reset for next test. */
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    data_in[i][j] = -88;
+
+      /* Read the data through a var_int function from the netCDF API. */
+      if (nc_get_var_int(ncid, 0, data_in)) ERR;
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    if (data_in[i][j] != data_out[i][j]) ERR;
+
+      /* Read the data through a var1 function from the netCDF API. */
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	 {
+	    nindex[0] = i;
+	    nindex[1] = j;
+	    if (nc_get_var1(ncid, 0, nindex, &scalar_data_in)) ERR;
+	    if (scalar_data_in != data_out[i][j]) ERR;
+	    scalar_data_in = -88; /* reset */
+	    if (nc_get_var1_int(ncid, 0, nindex, &scalar_data_in)) ERR;
+	    if (scalar_data_in != data_out[i][j]) ERR;
+	 }
 
       if (nc_close(ncid)) ERR; 
    }
