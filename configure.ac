@@ -165,6 +165,7 @@ if test "x$PNETCDFDIR" = "x" ; then
 AC_MSG_RESULT([no])
 else
 AC_MSG_RESULT([$PNETCDFDIR])
+enable_pnetcdf=yes
 fi
 AC_SUBST(PNETCDFDIR, [$PNETCDFDIR])
 
