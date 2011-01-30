@@ -5533,9 +5533,10 @@ It also means that the numrecs field in the header will not be updated
 as records are added to the file.  [This feature is not yet
 implemented].
 
-Note on padding:  In the special case of only a single record variable
-of character, byte, or short type, no padding is used between data
-values.
+Note on padding: In the special case when there is only one record
+variable and it is of type character, byte, or short, no padding
+is used between record slabs, so records do not necessarily start on
+four-byte boundaries.
 
 Note on byte data: It is possible to interpret byte data as either
 signed (-128 to 127) or unsigned (0 to 255). When reading byte data
