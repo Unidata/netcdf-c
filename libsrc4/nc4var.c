@@ -469,9 +469,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
 
-   /* Netcdf-3 cases handled by dispatch layer. */
-   assert(nc->nc4_info);
-
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc->pnetcdf_file)
@@ -482,9 +479,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 			  dimidsp, varidp);
       nc->pnetcdf_ndims[*varidp] = ndims;
       return ret;
-
    }
 #endif /* USE_PNETCDF */
+
+   /* Netcdf-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
 
    /* Handle netcdf-4 cases. */
    return nc_def_var_nc4(ncid, name, xtype, ndims, dimidsp, varidp);

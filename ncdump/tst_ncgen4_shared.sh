@@ -72,7 +72,8 @@ ref_tst_solar_1 \
 ref_tst_solar_2 \
 ref_tst_enum_data \
 ref_tst_special_atts \
-ref_tst_nans"
+ref_tst_nans \
+ref_solar"
 
 SPECIALTESTS3="ref_tst_special_atts3"
 

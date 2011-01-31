@@ -21,7 +21,7 @@ tst_*.nc
 
 EXTRA_DIST = ref_nctst.cdl ref_nctst_64bit_offset.cdl			\
 ref_nctst_netcdf4.cdl ref_nctst_netcdf4_classic.cdl run_nc_tests.sh	\
-run_nc4_tests.sh
+run_nc4_tests.sh run_valgrind_tests.sh
 
 # nctst creates a simple data file in each format, then uses ncdump to
 # create CDL files, which are compared with some reference files

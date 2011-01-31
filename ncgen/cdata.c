@@ -106,7 +106,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 	    semerror(srcline(datasrc),"Compound data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];
@@ -131,7 +131,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];

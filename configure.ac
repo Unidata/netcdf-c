@@ -131,10 +131,22 @@ test "x$with_libcf" = xyes || with_libcf=no
 AC_MSG_RESULT($with_libcf)
 
 # Does the user want to turn on HDF4 read ability?
-AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
 test "x$enable_hdf4" = xyes || enable_hdf4=no
+
+# Did the user specify a location for the HDF4 library?
+AC_MSG_CHECKING([whether a location for the HDF4 library was specified])
+AC_ARG_WITH([hdf4],
+              [AS_HELP_STRING([--with-hdf4=<directory>],
+                              [Specify location of HDF4 library. Configure will \
+			      expect to find subdirs include and lib.])],
+            [HDF4DIR=$with_hdf4])
+AC_MSG_RESULT([$HDF4DIR])
+AC_SUBST(HDF4DIR, [$HDF4DIR])
+test "x$with_hdf4" = "x" || enable_hdf4=yes
+
+AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_MSG_RESULT($enable_hdf4)
 
 # Does the user want to turn on extra HDF4 file tests?
@@ -165,6 +177,7 @@ if test "x$PNETCDFDIR" = "x" ; then
 AC_MSG_RESULT([no])
 else
 AC_MSG_RESULT([$PNETCDFDIR])
+enable_pnetcdf=yes
 fi
 AC_SUBST(PNETCDFDIR, [$PNETCDFDIR])
 
@@ -242,16 +255,6 @@ AC_ARG_WITH([szlib],
             [SZLIBDIR=$with_szlib])
 AC_MSG_RESULT([$SZLIBDIR])
 AC_SUBST(SZLIBDIR, [$SZLIBDIR])
-
-# Did the user specify a location for the HDF4 library?
-AC_MSG_CHECKING([whether a location for the HDF4 library was specified])
-AC_ARG_WITH([hdf4],
-              [AS_HELP_STRING([--with-hdf4=<directory>],
-                              [Specify location of HDF4 library. Configure will \
-			      expect to find subdirs include and lib.])],
-            [HDF4DIR=$with_hdf4])
-AC_MSG_RESULT([$HDF4DIR])
-AC_SUBST(HDF4DIR, [$HDF4DIR])
 
 # Did the user specify a default chunk size?
 AC_MSG_CHECKING([whether a default chunk size in bytes was specified])

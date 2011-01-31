@@ -66,6 +66,12 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 	ncstat = NC_EINVAL; /* missing protocol*/
         goto done;
     }
+    /* Check that the : is followed by "//" */
+    if(p1[1] != '/' || p1[2] != '/') {
+	ncstat = NC_EINVAL;
+	goto done;
+    }
+
     /* Simulate strndup */
     protolen = (size_t)(p1-p);
     protocol = malloc(1+protolen);
