@@ -78,7 +78,7 @@ if USE_HDF4
 LDADD += -lmfhdf -ldf -ljpeg
 endif # USE_HDF4
 
-LDADD += -lhdf5_hl -lhdf5 -lz 
+LDADD += -lhdf5_hl -lhdf5 -lz -lm
 
 if USE_PNETCDF
 LDADD += -lpnetcdf
