@@ -237,6 +237,8 @@ nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
       {
 	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
 				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %d type_size %d "
+	      "chunksize %d", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
 	 if (var->chunksizes[d] > var->dim[d]->len)
 	    var->chunksizes[d] = var->dim[d]->len;
       }
