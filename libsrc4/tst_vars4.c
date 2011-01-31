@@ -30,7 +30,6 @@ main(int argc, char **argv)
       nc_type type_in;
       size_t len_in;
 
-      nc_set_log_level(3);
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
       if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
       if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;
@@ -59,6 +58,52 @@ main(int argc, char **argv)
       if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR;
       if (strcmp(name_in, Y_NAME)) ERR;
       if (len_in != YDIM_LEN) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing default chunksizes...");
+   {
+#define NDIMS3 3
+#define NUM_VARS 1
+#define Y_NAME "y"
+#define X_NAME "x"
+#define Z_NAME "z"
+#define VAR_NAME "joe"
+#define XDIM_LEN 2
+#define YDIM_LEN 5
+#define ZDIM_LEN 3000
+
+      int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
+      int ndims, nvars, ngatts, unlimdimid, natts;
+      char name_in[NC_MAX_NAME + 1];
+      nc_type type_in;
+      size_t len_in;
+      int storage = 0;
+      size_t chunksizes[NDIMS3];
+
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
+      if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;
+      if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dims[2])) ERR;
+      if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIMS3, dims, &varid)) ERR;
+      if (nc_def_var_chunking(ncid, 0, NC_CHUNKED, NULL)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != NUM_VARS || ndims != NDIMS3 || ngatts != 0 || unlimdimid != -1) ERR;
+      if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
+      if (strcmp(name_in, VAR_NAME) || type_in != NC_FLOAT || ndims != NDIMS3 ||
+	  dims_in[0] != dims[0] || dims_in[1] != dims[1] || dims_in[2] != dims[2] || natts != 0) ERR;
+      if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+      if (strcmp(name_in, X_NAME) || len_in != XDIM_LEN) ERR;
+      if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR;
+      if (strcmp(name_in, Y_NAME) || len_in != YDIM_LEN) ERR;
+      if (nc_inq_dim(ncid, 2, name_in, &len_in)) ERR;
+      if (strcmp(name_in, Z_NAME) || len_in != ZDIM_LEN) ERR;
+      if (nc_inq_var_chunking(ncid, 0, &storage, chunksizes)) ERR;
+      if (storage != NC_CHUNKED) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
