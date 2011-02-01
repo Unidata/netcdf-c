@@ -1363,7 +1363,7 @@ AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 UD_FTPBINDIR
 
 ##################################################
-# DRNO and OC configuration
+# OC configuration
 
 # Require some version of xdr/rpc
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
@@ -1382,6 +1382,7 @@ else
     # Add to library list
     AC_CHECK_LIB($dap_xdrlib,xdr_void)
   fi
+fi
 # Fix to get working on OS X (thanks to Fedor Baart)
 AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
@@ -1389,7 +1390,6 @@ AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      ], [], [[#ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h>
 #endif]])
-fi
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
