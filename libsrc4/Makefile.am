@@ -51,8 +51,8 @@ tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps tst_grps2	\
 tst_compounds tst_compounds2 tst_compounds3 tst_opaques tst_strings	\
 tst_strings2 tst_interops tst_interops4 tst_interops5 tst_interops6	\
 tst_enums tst_coords tst_coords2 tst_coords3 tst_vars3 tst_vars4	\
-tst_chunks tst_utf8 tst_fills tst_fills2 tst_fillbug tst_xplatform	\
-tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts
+tst_chunks tst_chunks2 tst_utf8 tst_fills tst_fills2 tst_fillbug	\
+tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts
 
 check_PROGRAMS = $(NC4_TESTS)
 if LARGE_FILE_TESTS

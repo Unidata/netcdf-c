@@ -7,9 +7,8 @@
 */
 
 #include <nc_tests.h>
-#include "netcdf.h"
 
-#define FILE_NAME "tst_vars3.nc"
+#define FILE_NAME "tst_chunks.nc"
 #define NDIMS1 1
 #define D_SMALL "small_dim"
 #define D_SMALL_LEN 16
@@ -25,7 +24,7 @@ int
 main(int argc, char **argv)
 {
 
-   printf("\n*** Testing netcdf-4 variable functions, some more.\n");
+   printf("\n*** Testing netcdf-4 variable chunking.\n");
    printf("**** testing that fixed vars with filter end up being chunked, with good sizes...");
    {
 

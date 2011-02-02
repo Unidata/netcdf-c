@@ -206,13 +206,45 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
    return NC_NOERR;
 }
 
+/* Check a set of chunksizes to see if they add up to a chunk that is too big. */
+static int
+check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, size_t *chunksizes)
+{
+   NC_TYPE_INFO_T *type_info;
+   long long total;
+   size_t type_len;
+   int d;
+   int retval;
+   
+   if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, var->xtype, 0, &type_len)))
+      return retval;
+   if ((retval = nc4_find_type(grp->file->nc4_info, var->xtype, &type_info)))
+      return retval;
+   if (type_info && type_info->class == NC_VLEN)
+      total = sizeof(hvl_t);
+   else
+      total = type_len;
+   for (d = 0; d < var->ndims; d++)
+   {
+      if (chunksizes[d] < 1)
+	 return NC_EINVAL;
+      total *= chunksizes[d];
+   }
+   
+   if (total > NC_MAX_UINT)
+      return NC_EBADCHUNK;
+
+   return NC_NOERR;
+}
+
 /* Find the default chunk nelems (i.e. length of chunk along each
  * dimension). */
 static int 
-nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
+nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int d;
    size_t type_size, num_values = 1, num_unlim = 0;
+   int retval;
 
    if (var->type_info->nc_typeid == NC_STRING)
       type_size = sizeof(char *);
@@ -242,6 +274,20 @@ nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
 	 if (var->chunksizes[d] > var->dim[d]->len)
 	    var->chunksizes[d] = var->dim[d]->len;
       }
+
+   /* But did this add up to a chunk that is too big? */
+   retval = check_chunksizes(grp, var, var->chunksizes);
+   if (retval)
+   {
+      /* Other error? */
+      if (retval != NC_EBADCHUNK)
+	 return retval;
+
+      /* Chunk is too big! Reduce each dimension by half and try again. */
+      for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
+    	 for (d = 0; d < var->ndims; d++)
+	    var->chunksizes[d] /= 2;
+   }
 
    return NC_NOERR;
 }
@@ -409,7 +455,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
 	 return NC_ENOMEM;
 
-   if ((retval = nc4_find_default_chunksizes(var)))
+   if ((retval = nc4_find_default_chunksizes(grp, var)))
       return retval;
 
    /* Is this a variable with a chunksize greater than the current
@@ -764,28 +810,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
        * big, and that their total size of chunk is less than 4 GB. */
       if (chunksizes)
       {
-	 NC_TYPE_INFO_T *type_info;
-	 long long total;
-	 size_t type_len;
-	 
-	 if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, var->xtype, 
-					   0, &type_len)))
+
+	 if ((retval = check_chunksizes(grp, var, chunksizes)))
 	    return retval;
-	 if ((retval = nc4_find_type(grp->file->nc4_info, var->xtype, &type_info)))
-	    return retval;
-	 if (type_info && type_info->class == NC_VLEN)
-	    total = sizeof(hvl_t);
-	 else
-	    total = type_len;
-	 for (d = 0; d < var->ndims; d++)
-	 {
-	    if (chunksizes[d] < 1)
-	       return NC_EBADCHUNK;
-	    total *= chunksizes[d];
-	 }
-         
-	 if (total > NC_MAX_UINT)
-	    return NC_EBADCHUNK;
 
 	 /* Set the chunksizes for this variable. */
 	 for (d = 0; d < var->ndims; d++)
@@ -799,7 +826,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    {
       /* Determine default chunksizes for this variable. */
       if (!var->chunksizes[0])
-	 if ((retval = nc4_find_default_chunksizes(var)))
+	 if ((retval = nc4_find_default_chunksizes(grp, var)))
 	    return retval;
 
       /* Adjust the cache. */
