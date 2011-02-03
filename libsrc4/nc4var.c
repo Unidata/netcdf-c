@@ -208,7 +208,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
 
 /* Check a set of chunksizes to see if they add up to a chunk that is too big. */
 static int
-check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, size_t *chunksizes)
+check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
 {
    NC_TYPE_INFO_T *type_info;
    long long total;
@@ -259,6 +259,7 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 num_values *= var->dim[d]->len;
       else
 	 num_unlim++;
+      LOG((4, "d = %d num_values=%ld", d, num_values));
    }
 
    /* Pick a chunk length for each dimension. */
@@ -269,8 +270,15 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       {
 	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
 				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %d type_size %d "
-	      "chunksize %d", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %ld type_size %d "
+	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+	 LOG((4, "nc_def_var_nc4: (double)DEFAULT_CHUNK_SIZE/(num_values * type_size) %g ", 
+	      (double)DEFAULT_CHUNK_SIZE/(num_values * type_size)));
+	 LOG((4, "nc_def_var_nc4: pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 1/(double)(var->ndims - num_unlim)) %g", 
+	      pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 1/(double)(var->ndims - num_unlim))));
+	 LOG((4, "nc_def_var_nc4: var->dim[d]->len %d ", var->dim[d]->len));
+	 if (!var->chunksizes[d])
+	    var->chunksizes[d] = 1; /* Bad choice, but legal. */
 	 if (var->chunksizes[d] > var->dim[d]->len)
 	    var->chunksizes[d] = var->dim[d]->len;
       }
@@ -452,7 +460,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	var->ndims, var->name));
    if (var->ndims)
-      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+      if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
 	 return NC_ENOMEM;
 
    if ((retval = nc4_find_default_chunksizes(grp, var)))
