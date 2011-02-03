@@ -15,7 +15,7 @@ static int
 calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 {
    int d;
-   size_t chunked = 1, unchunked = 1;
+   float chunked = 1, unchunked = 1;
    size_t *num_chunks;
 
    assert(waste && dimlen && chunksize && ndims);
@@ -25,7 +25,7 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    /* Caclulate the total space taken up by the chunked data. */
    for (d = 0; d < ndims; d++)
    {
-      /* How many chunks along this dimension are required? */
+      /* How many chunks along this dimension are required to hold all the data? */
       for (num_chunks[d] = 0; (num_chunks[d] * chunksize[d]) < (dimlen[d] ? dimlen[d] : 1); 
 	   num_chunks[d]++)
 	 ;
@@ -37,15 +37,15 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    for (d = 0; d < ndims; d++)
       unchunked *= (dimlen[d] ? dimlen[d] : 1);
 
-   printf("size for unchunked %d size for chunked %d\n", unchunked, chunked);
+   printf("size for unchunked %f size for chunked %f\n", unchunked, chunked);
 
    /* Percent of the chunked file that is wasted space. */
    *waste = ((float)(chunked - unchunked) / (float)chunked) * 100.0;
 
    printf("\ndimlen\tchunksize\tnum_chunks\n");
    for (d = 0; d < ndims; d++)
-      printf("%d\t%d\t\t%d\n", dimlen[d], chunksize[d], num_chunks[d]);
-   printf("wasted space: %2.2f%\n", *waste);
+      printf("%ld\t%ld\t\t%ld\n", dimlen[d], chunksize[d], num_chunks[d]);
+   printf("wasted space: %2.2f\%\n", *waste);
    
    free(num_chunks);
    return 0;
@@ -126,17 +126,13 @@ main(int argc, char **argv)
 #define NDIMS3 3
 #define VAR_NAME "op-amp"
 
-      int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
+      int varid, ncid;
       int dimids[NDIMS3];
       size_t dim_len[NDIMS3] = {1, 11, 152750};
 				  
-      int ndims, nvars, ngatts, unlimdimid, natts;
-      char name_in[NC_MAX_NAME + 1];
-      nc_type type_in;
-      size_t len_in;
       int storage = 0;
       size_t chunksizes[NDIMS3];
-      int d, i, j, k;
+      int d;
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
@@ -170,17 +166,13 @@ main(int argc, char **argv)
    {
 #define NDIMS3 3
 
-      int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
+      int varid, ncid;
       int dimids[NDIMS3];
       size_t dim_len[NDIMS3] = {1804289383, 846930886, 1681692777};
 				  
-      int ndims, nvars, ngatts, unlimdimid, natts;
-      char name_in[NC_MAX_NAME + 1];
-      nc_type type_in;
-      size_t len_in;
       int storage = 0;
       size_t chunksizes[NDIMS3];
-      int d, i, j, k;
+      int d;
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
@@ -213,15 +205,11 @@ main(int argc, char **argv)
    printf("**** testing default chunksizes some randomly sized 3D vars...");
    {
 #define NDIMS3 3
-#define NUM_TESTS 3
+#define NUM_TESTS 30
 
-      int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
+      int varid, ncid;
       int dimids[NDIMS3];
       size_t dim_len[NDIMS3];
-      int ndims, nvars, ngatts, unlimdimid, natts;
-      char name_in[NC_MAX_NAME + 1];
-      nc_type type_in;
-      size_t len_in;
       int storage = 0;
       size_t chunksizes[NDIMS3];
       int d, t;
@@ -248,7 +236,7 @@ main(int argc, char **argv)
 	 if (nc_inq_var_chunking(ncid, varid, &storage, chunksizes)) ERR;
 	 if (storage != NC_CHUNKED) ERR;
 	 if (calculate_waste(NDIMS3, dim_len, chunksizes, &waste)) ERR;
-/*      if (waste > MAX_WASTE) ERR;*/
+	 if (waste > MAX_WASTE) ERR;
 
 	 if (nc_close(ncid)) ERR;
       }
