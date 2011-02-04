@@ -358,7 +358,6 @@ else
 require_curl=no
 fi
 
-
 # Try to locate curl-config
 #
 AC_ARG_WITH([curl-config], [AS_HELP_STRING([--with-curl-config=<path>],
@@ -474,23 +473,6 @@ if test "x$curlsrc" = "x" ; then
   enable_dap=no
   enable_cdmremote=no
 fi
-
-# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-
-# Save/restore CFLAGS
-SAVECFLAGS="$CFLAGS"
-CFLAGS="${curl_cflags}"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_KEYPASSWD;]])],
-                   [havekeypassword=yes],
-                   [havekeypassword=no])
-AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
-AC_MSG_RESULT([${havekeypassword}])
-if test $havekeypassword = yes; then
-  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
-fi
-CFLAGS="$SAVECFLAGS"
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
@@ -843,6 +825,23 @@ AC_MSG_NOTICE([finding C compiler])
 AC_PROG_CC(xlc cc c89 acc gcc)
 AM_PROG_CC_C_O
 AC_C_CONST
+
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+
+# Save/restore CFLAGS
+SAVECFLAGS="$CFLAGS"
+CFLAGS="${curl_cflags}"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_KEYPASSWD;]])],
+                   [havekeypassword=yes],
+                   [havekeypassword=no])
+AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_RESULT([${havekeypassword}])
+if test $havekeypassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
+fi
+CFLAGS="$SAVECFLAGS"
 
 # If the user set environment var FC, but not F77, then set F77=FC
 if test "x${FC+set}" = xset -a "x${F77+set}" != xset; then
