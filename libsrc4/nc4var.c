@@ -242,8 +242,8 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
 static int 
 nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-   int d;
-   size_t type_size;
+   int d, max_dim;
+   size_t type_size, max_len = 0;
    float num_values = 1, num_unlim = 0;
    int retval;
 
@@ -252,7 +252,8 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    else
       type_size = var->type_info->size;
 
-   /* How many values in the non-unlimited dimensions? */
+   /* How many values in the non-unlimited dimensions, and which is
+    * the largest dimension? */
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
@@ -260,28 +261,41 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 num_values *= (float)var->dim[d]->len;
       else
 	 num_unlim++;
+      
+      if (var->dim[d]->len > max_len)
+      {
+	 max_len = var->dim[d]->len;
+	 max_dim = d;
+      }
       LOG((4, "d = %d num_values=%f", d, num_values));
    }
 
-   /* Pick a chunk length for each dimension. */
+   /* If a dim is several orders of magnitude smaller than the max
+    * dimension, set it's chunk size to the full extend of the smaller
+    * dimension. */
+#define NC_DIM_MULTIPLIER 1000
+   for (d = 0; d < var->ndims; d++)
+      if (var->dim[d]->len * NC_DIM_MULTIPLIER < max_dim)
+	 var->chunksizes[d] = var->dim[d]->len;
+   
+   /* Pick a chunk length for each dimension, if one has not already
+    * been picked above. */
    for (d = 0; d < var->ndims; d++)
       if (var->dim[d]->unlimited)
 	 var->chunksizes[d] = 1;
       else
       {
-	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
-				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-	 LOG((4, "nc_def_var_nc4: (double)DEFAULT_CHUNK_SIZE/(num_values * type_size) %g ", 
-	      (double)DEFAULT_CHUNK_SIZE/(num_values * type_size)));
-	 LOG((4, "nc_def_var_nc4: pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 1/(double)(var->ndims - num_unlim)) %g", 
-	      pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 1/(double)(var->ndims - num_unlim))));
-	 LOG((4, "nc_def_var_nc4: var->dim[d]->len %d ", var->dim[d]->len));
 	 if (!var->chunksizes[d])
-	    var->chunksizes[d] = 1; /* Bad choice, but legal. */
-	 if (var->chunksizes[d] > var->dim[d]->len)
-	    var->chunksizes[d] = var->dim[d]->len;
+	 {
+	    size_t suggested_size;
+	    suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
+				  1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
+	    if (suggested_size > var->dim[d]->len)
+	       suggested_size = var->dim[d]->len;
+	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	    LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+		 "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+	 }
       }
 
    /* But did this add up to a chunk that is too big? */
