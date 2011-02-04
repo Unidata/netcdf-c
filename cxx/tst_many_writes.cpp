@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 {
    int NUMVARS = 1;
    size_t NUMREC=10000;
-   int fileId, dimId, varId[NUMVARS];
+   int fileId, dimId, varId[1];
    string filename("tst_many_writes.nc");
    
    cout << "\n*** Testing netCDF-4 file with user-provided test (thanks Marica!)\n";
