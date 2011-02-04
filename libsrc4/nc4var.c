@@ -243,7 +243,8 @@ static int
 nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int d;
-   size_t type_size, num_values = 1, num_unlim = 0;
+   size_t type_size;
+   float num_values = 1, num_unlim = 0;
    int retval;
 
    if (var->type_info->nc_typeid == NC_STRING)
@@ -256,10 +257,10 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    {
       assert(var->dim[d]);
       if (var->dim[d]->len) 
-	 num_values *= var->dim[d]->len;
+	 num_values *= (float)var->dim[d]->len;
       else
 	 num_unlim++;
-      LOG((4, "d = %d num_values=%ld", d, num_values));
+      LOG((4, "d = %d num_values=%f", d, num_values));
    }
 
    /* Pick a chunk length for each dimension. */
@@ -270,7 +271,7 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       {
 	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
 				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %ld type_size %d "
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
 	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
 	 LOG((4, "nc_def_var_nc4: (double)DEFAULT_CHUNK_SIZE/(num_values * type_size) %g ", 
 	      (double)DEFAULT_CHUNK_SIZE/(num_values * type_size)));

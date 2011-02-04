@@ -45,7 +45,7 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    printf("\ndimlen\tchunksize\tnum_chunks\n");
    for (d = 0; d < ndims; d++)
       printf("%ld\t%ld\t\t%ld\n", dimlen[d], chunksize[d], num_chunks[d]);
-   printf("wasted space: %2.2f\%\n", *waste);
+   printf("wasted space: %2.2f percent\n", *waste);
    
    free(num_chunks);
    return 0;
