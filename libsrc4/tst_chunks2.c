@@ -72,7 +72,7 @@ main(int argc, char **argv)
 #define XDIM_LEN 2
 #define YDIM_LEN 5
 #define ZDIM_LEN 3000
-#define MAX_WASTE 0.1
+#define MAX_WASTE 10.0
 
       int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
       int ndims, nvars, ngatts, unlimdimid, natts;
