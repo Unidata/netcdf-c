@@ -275,7 +275,7 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     * dimension. */
 #define NC_DIM_MULTIPLIER 1000
    for (d = 0; d < var->ndims; d++)
-      if (var->dim[d]->len * NC_DIM_MULTIPLIER < max_dim)
+      if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_dim)
 	 var->chunksizes[d] = var->dim[d]->len;
    
    /* Pick a chunk length for each dimension, if one has not already
