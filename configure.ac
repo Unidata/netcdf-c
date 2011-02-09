@@ -1194,6 +1194,14 @@ fi
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
 AC_MSG_RESULT([$enable_netcdf_4])
 
+if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
+   AC_CHECK_LIB([z], [deflate], [], [nc_z_lib_missing=yes])
+   if test "x$nc_z_lib_missing" = xyes; then
+      AC_MSG_ERROR([Can't find or link to the z library. Configure with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
+   fi
+fi
+
+
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
