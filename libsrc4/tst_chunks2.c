@@ -8,6 +8,9 @@
 #include <nc_tests.h>
 
 #define FILE_NAME "tst_chunks2.nc"
+#define MAX_WASTE 25.0
+#define NUM_RANDOM_TESTS 3
+#define NDIMS3 3
 
 /* Calculate the waste of the chunking. A waste of 10% means the
  * chunked data is 10% larget then the unchunked data. */
@@ -72,7 +75,6 @@ main(int argc, char **argv)
 #define XDIM_LEN 2
 #define YDIM_LEN 5
 #define ZDIM_LEN 3000
-#define MAX_WASTE 10.0
 
       int varid, ncid, dims[NDIMS3], dims_in[NDIMS3];
       int ndims, nvars, ngatts, unlimdimid, natts;
@@ -168,6 +170,47 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing default chunksizes some more for a 3D var...");
+   {
+#define NDIMS3 3
+#define VAR_NAME "op-amp"
+
+      int varid, ncid;
+      int dimids[NDIMS3];
+      size_t dim_len[NDIMS3] = {1967513926, 1365180540, 426};
+				  
+      int storage = 0;
+      size_t chunksizes[NDIMS3];
+      int d;
+      char dim_name[NC_MAX_NAME + 1];
+      float waste;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+
+      /* Create a few dimensions. */
+      for (d = 0; d < NDIMS3; d++)
+      {
+	 sprintf(dim_name, "dim_%d", d);
+	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
+      }
+      
+      /* Define a var with these dimensions, and turn on chunking. */
+      if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIMS3, dimids, &varid)) ERR;
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+      /* Check how default chunking worked. */
+      if (nc_inq_var_chunking(ncid, varid, &storage, chunksizes)) ERR;
+      if (storage != NC_CHUNKED) ERR;
+      if (calculate_waste(NDIMS3, dim_len, chunksizes, &waste)) ERR;
+/*      if (waste > MAX_WASTE) ERR;*/
+
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("**** testing default chunksizes for very large 3D var...");
    {
 #define NDIMS3 3
@@ -211,7 +254,6 @@ main(int argc, char **argv)
    printf("**** testing default chunksizes some randomly sized 3D vars...");
    {
 #define NDIMS3 3
-#define NUM_TESTS 5
 
       int varid, ncid;
       int dimids[NDIMS3];
@@ -222,7 +264,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      for (t = 0; t < NUM_TESTS; t++)
+      for (t = 0; t < NUM_RANDOM_TESTS; t++)
       {
 	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
@@ -250,9 +292,6 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("**** testing default chunksizes some randomly sized 3D vars, with one small dimension...");
    {
-#define NDIMS3 3
-#define NUM_TESTS1 1
-
       int varid, ncid;
       int dimids[NDIMS3];
       size_t dim_len[NDIMS3];
@@ -262,12 +301,51 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      for (t = 0; t < NUM_TESTS1; t++)
+      for (t = 0; t < NUM_RANDOM_TESTS; t++)
       {
 	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
 	 dim_len[0] = rand();
 	 dim_len[1] = rand();
+	 dim_len[2] = rand() % 1000;
+	 /* Create a few dimensions. */
+	 for (d = 0; d < NDIMS3; d++)
+	 {
+	    sprintf(dim_name, "dim_%d", d);
+	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
+	 }
+      
+	 /* Define a var with these dimensions, and turn on chunking. */
+	 if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIMS3, dimids, &varid)) ERR;
+	 if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+	 /* Check how well default chunking worked. */
+	 if (nc_inq_var_chunking(ncid, varid, &storage, chunksizes)) ERR;
+	 if (storage != NC_CHUNKED) ERR;
+	 if (calculate_waste(NDIMS3, dim_len, chunksizes, &waste)) ERR;
+	 if (waste > MAX_WASTE) ERR;
+
+	 if (nc_close(ncid)) ERR;
+      }
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing default chunksizes some randomly sized 3D vars, with two small dimensions...");
+   {
+      int varid, ncid;
+      int dimids[NDIMS3];
+      size_t dim_len[NDIMS3];
+      int storage = 0;
+      size_t chunksizes[NDIMS3];
+      int d, t;
+      char dim_name[NC_MAX_NAME + 1];
+      float waste;
+
+      for (t = 0; t < NUM_RANDOM_TESTS; t++)
+      {
+	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+
+	 dim_len[0] = rand();
+	 dim_len[1] = rand() % 1000;
 	 dim_len[2] = rand() % 1000;
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)

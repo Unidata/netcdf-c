@@ -244,7 +244,8 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int d, max_dim;
    size_t type_size, max_len = 0;
-   float num_values = 1, num_unlim = 0;
+   float num_values = 1, num_set = 0;
+   float total_chunk_size;
    int retval;
 
    if (var->type_info->nc_typeid == NC_STRING)
@@ -252,52 +253,60 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    else
       type_size = var->type_info->size;
 
-   /* How many values in the non-unlimited dimensions, and which is
-    * the largest dimension? */
+   /* Later this will become the total number of bytes in the default
+    * chunk. */
+   total_chunk_size = type_size;
+
+   /* How many values in the variable (or one record, if there are
+    * unlimited dimensions); which is the largest dimension, and how
+    * long is it? */
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
       if (var->dim[d]->len) 
 	 num_values *= (float)var->dim[d]->len;
       else
-	 num_unlim++;
+	 num_set++;
       
       if (var->dim[d]->len > max_len)
       {
 	 max_len = var->dim[d]->len;
 	 max_dim = d;
       }
-      LOG((4, "d = %d num_values=%f", d, num_values));
+      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
+	   num_values));
    }
 
    /* If a dim is several orders of magnitude smaller than the max
-    * dimension, set it's chunk size to the full extend of the smaller
+    * dimension, set it's chunk size to the full extent of the smaller
     * dimension. */
 #define NC_DIM_MULTIPLIER 1000
    for (d = 0; d < var->ndims; d++)
-      if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_dim)
+      if (var->dim[d]->unlimited)
+	 var->chunksizes[d] = 1;
+      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
+      {
 	 var->chunksizes[d] = var->dim[d]->len;
+	 num_set++; 
+      }
    
    /* Pick a chunk length for each dimension, if one has not already
     * been picked above. */
    for (d = 0; d < var->ndims; d++)
-      if (var->dim[d]->unlimited)
-	 var->chunksizes[d] = 1;
-      else
+      if (!var->chunksizes[d])
       {
-	 if (!var->chunksizes[d])
-	 {
-	    size_t suggested_size;
-	    suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
-				  1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	    if (suggested_size > var->dim[d]->len)
-	       suggested_size = var->dim[d]->len;
-	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
-	    LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-		 "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-	 }
+	 size_t suggested_size;
+	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
+			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
+	 if (suggested_size > var->dim[d]->len)
+	    suggested_size = var->dim[d]->len;
+	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	 total_chunk_size *= var->chunksizes[d];
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
-
+   LOG((4, "total_chunk_size %f", total_chunk_size));
+   
    /* But did this add up to a chunk that is too big? */
    retval = check_chunksizes(grp, var, var->chunksizes);
    if (retval)
@@ -445,9 +454,9 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    /* Allocate space for dimension information. */
    if (ndims)
    {
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
+      if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
 	 return NC_ENOMEM;
-      if (!(var->dimids = malloc(sizeof(int) * ndims)))
+      if (!(var->dimids = calloc(ndims, sizeof(int))))
 	 return NC_ENOMEM;
    }
 
