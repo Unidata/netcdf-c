@@ -1197,7 +1197,8 @@ AC_MSG_RESULT([$enable_netcdf_4])
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_CHECK_LIB([z], [deflate], [], [nc_z_lib_missing=yes])
    if test "x$nc_z_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the z library. Configure with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
    fi
 fi
 
@@ -1209,13 +1210,15 @@ if test "x$enable_netcdf_4" = xyes; then
    # Check for the main hdf5 library.
    AC_CHECK_LIB([hdf5], [H5Fflush], [], [nc_hdf5_lib_missing=yes])
    if test "x$nc_hdf5_h_missing" = xyes || test "x$nc_hdf5_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # We also require the HDF5 High Level library.
    AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [nc_hdf5_hl_lib_missing=yes])
    if test "x$nc_hdf5_hl_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # The user may have parallel HDF5 based on MPI POSIX.
