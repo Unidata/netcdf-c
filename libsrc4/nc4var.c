@@ -324,6 +324,74 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    return NC_NOERR;
 }
 
+/* Find the default chunk nelems (i.e. length of chunk along each
+ * dimension). */
+static int 
+nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   int d;
+   size_t type_size;
+   float num_values = 1, num_set = 0;
+   float total_chunk_size;
+   int retval;
+
+   if (var->type_info->nc_typeid == NC_STRING)
+      type_size = sizeof(char *);
+   else
+      type_size = var->type_info->size;
+
+   /* Later this will become the total number of bytes in the default
+    * chunk. */
+   total_chunk_size = type_size;
+
+   /* How many values in the variable (or one record, if there are
+    * unlimited dimensions); which is the largest dimension, and how
+    * long is it? */
+   for (d = 0; d < var->ndims; d++)
+   {
+      assert(var->dim[d]);
+      if (var->dim[d]->len) 
+	 num_values *= (float)var->dim[d]->len;
+      else
+	 num_set++;
+      
+      LOG((4, "d %d num_values %f", d, num_values));
+   }
+
+   /* Pick a chunk length for each dimension, if one has not already
+    * been picked above. */
+   for (d = 0; d < var->ndims; d++)
+      if (!var->chunksizes[d])
+      {
+	 size_t suggested_size;
+	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
+			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
+	 if (suggested_size > var->dim[d]->len)
+	    suggested_size = var->dim[d]->len;
+	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	 total_chunk_size *= var->chunksizes[d];
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+      }
+   LOG((4, "total_chunk_size %f", total_chunk_size));
+   
+   /* But did this add up to a chunk that is too big? */
+   retval = check_chunksizes(grp, var, var->chunksizes);
+   if (retval)
+   {
+      /* Other error? */
+      if (retval != NC_EBADCHUNK)
+	 return retval;
+
+      /* Chunk is too big! Reduce each dimension by half and try again. */
+      for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
+    	 for (d = 0; d < var->ndims; d++)
+	    var->chunksizes[d] = var->chunksizes[d]/2 ? var->chunksizes[d]/2 : 1;
+   }
+
+   return NC_NOERR;
+}
+
 /* This is called when a new netCDF-4 variable is defined. Break it
  * down! */
 static int 
@@ -487,7 +555,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
 	 return NC_ENOMEM;
 
-   if ((retval = nc4_find_default_chunksizes(grp, var)))
+   if ((retval = nc4_find_default_chunksizes2(grp, var)))
       return retval;
 
    /* Is this a variable with a chunksize greater than the current
@@ -858,7 +926,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    {
       /* Determine default chunksizes for this variable. */
       if (!var->chunksizes[0])
-	 if ((retval = nc4_find_default_chunksizes(grp, var)))
+	 if ((retval = nc4_find_default_chunksizes2(grp, var)))
 	    return retval;
 
       /* Adjust the cache. */
