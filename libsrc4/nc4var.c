@@ -329,8 +329,8 @@ nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 static int 
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-   int d;
-   size_t type_size;
+   int d, max_dim;
+   size_t type_size, max_len = 0;
    float num_values = 1, num_set = 0;
    float total_chunk_size;
    int retval;
@@ -355,9 +355,28 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       else
 	 num_set++;
       
-      LOG((4, "d %d num_values %f", d, num_values));
+      if (var->dim[d]->len > max_len)
+      {
+	 max_len = var->dim[d]->len;
+	 max_dim = d;
+      }
+      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
+	   num_values));
    }
 
+   /* If a dim is several orders of magnitude smaller than the max
+    * dimension, set it's chunk size to the full extent of the smaller
+    * dimension. */
+#define NC_DIM_MULTIPLIER 1000
+   for (d = 0; d < var->ndims; d++)
+      if (var->dim[d]->unlimited)
+	 var->chunksizes[d] = 1;
+      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
+      {
+	 var->chunksizes[d] = var->dim[d]->len;
+	 num_set++; 
+      }
+   
    /* Pick a chunk length for each dimension, if one has not already
     * been picked above. */
    for (d = 0; d < var->ndims; d++)
@@ -388,6 +407,14 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     	 for (d = 0; d < var->ndims; d++)
 	    var->chunksizes[d] = var->chunksizes[d]/2 ? var->chunksizes[d]/2 : 1;
    }
+
+   /* Do we have any big data overhangs? They can be dangerous to
+    * babies, the elderly, or confused campers who have had too much
+    * beer. */
+#define NC_ALLOWED_OVERHANG .1
+   for (d = 0; d < var->ndims; d++)
+      for ( ; var->dim[d]->len % var->chunksizes[d] > var->dim[d]->len * NC_ALLOWED_OVERHANG; )
+	 var->chunksizes[d] -= var->dim[d]->len * NC_ALLOWED_OVERHANG;
 
    return NC_NOERR;
 }
