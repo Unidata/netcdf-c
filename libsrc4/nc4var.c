@@ -237,7 +237,7 @@ nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
       {
 	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
 				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	 if (var->chunksizes[d] > var->dim[d]->len)
+ 	 if (var->chunksizes[d] > var->dim[d]->len)
 	    var->chunksizes[d] = var->dim[d]->len;
       }
 
