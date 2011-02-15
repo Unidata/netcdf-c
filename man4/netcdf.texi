@@ -5491,17 +5491,19 @@ FILL_FLOAT   = \x7C \xF0 \x00 \x00       // (float) 9.9692099683868690e+36
 FILL_DOUBLE  = \x47 \x9E \x00 \x00 \x00 \x00 //(double)9.9692099683868690e+36
 @end example
 
-Note on vsize: This number is the product of the dimension lengths
+Note on @code{vsize}: This number is the product of the dimension lengths
 (omitting the record dimension) and the number of bytes per value
 (determined from the type), increased to the next multiple of 4, for
 each variable.  If a record variable, this is the amount of space per
-record.  The netCDF ``record size'' is calculated as the sum of the
-vsize's of all the record variables.
+record (except that, for backward compatibility, it always includes
+padding to the next multiple of 4 bytes, even in the exceptional case
+noted below under ``Note on padding'').  The netCDF ``record size'' is
+calculated as the sum of the @code{vsize}'s of all the record variables.
 
-The vsize field is actually redundant, because its value may be
-computed from other information in the header. The 32-bit vsize field
+The @code{vsize} field is actually redundant, because its value may be
+computed from other information in the header. The 32-bit @code{vsize} field
 is not large enough to contain the size of variables that require more
-than @math{2^32 - 4} bytes, so @math{2^32 - 1} is used in the vsize field for such
+than @math{2^32 - 4} bytes, so @math{2^32 - 1} is used in the @code{vsize} field for such
 variables.
 
 Note on names: Earlier versions of the netCDF C-library reference
@@ -5534,9 +5536,13 @@ as records are added to the file.  [This feature is not yet
 implemented].
 
 Note on padding: In the special case when there is only one record
-variable and it is of type character, byte, or short, no padding
-is used between record slabs, so records do not necessarily start on
-four-byte boundaries.
+variable and it is of type character, byte, or short, no padding is
+used between record slabs, so records do not necessarily start on
+four-byte boundaries.  However, as noted above under ``Note on
+@code{vsize}'', the @code{vsize} field is computed to include padding to the next
+multiple of 4 bytes.  In this case, readers should ignore @code{vsize} and
+assume no padding.  Writers should store @code{vsize} as if padding were
+included.
 
 Note on byte data: It is possible to interpret byte data as either
 signed (-128 to 127) or unsigned (0 to 255). When reading byte data
@@ -5580,12 +5586,20 @@ value desired.
 The external size in bytes of one data value for each possible
 netCDF type, denoted @code{extsize} below, is:
 
-NC_BYTE         1
-NC_CHAR         1
-NC_SHORT        2
-NC_INT          4
-NC_FLOAT        4
-NC_DOUBLE       8
+@multitable @columnfractions .01 .10
+@item @code{NC_BYTE}
+@tab 1
+@item @code{NC_CHAR}
+@tab 1
+@item @code{NC_SHORT}
+@tab 2
+@item @code{NC_INT}
+@tab 4
+@item @code{NC_FLOAT}
+@tab 4
+@item @code{NC_DOUBLE}
+@tab 8
+@end multitable
 
 The record size, denoted by @code{recsize} below, is the sum of the @code{vsize}
 fields of record variables (variables that use the unlimited
