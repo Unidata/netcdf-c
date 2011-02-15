@@ -358,7 +358,6 @@ else
 require_curl=no
 fi
 
-
 # Try to locate curl-config
 #
 AC_ARG_WITH([curl-config], [AS_HELP_STRING([--with-curl-config=<path>],
@@ -474,23 +473,6 @@ if test "x$curlsrc" = "x" ; then
   enable_dap=no
   enable_cdmremote=no
 fi
-
-# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-
-# Save/restore CFLAGS
-SAVECFLAGS="$CFLAGS"
-CFLAGS="${curl_cflags}"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_KEYPASSWD;]])],
-                   [havekeypassword=yes],
-                   [havekeypassword=no])
-AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
-AC_MSG_RESULT([${havekeypassword}])
-if test $havekeypassword = yes; then
-  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
-fi
-CFLAGS="$SAVECFLAGS"
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
@@ -844,6 +826,23 @@ AC_PROG_CC(xlc cc c89 acc gcc)
 AM_PROG_CC_C_O
 AC_C_CONST
 
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+
+# Save/restore CFLAGS
+SAVECFLAGS="$CFLAGS"
+CFLAGS="${curl_cflags}"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_KEYPASSWD;]])],
+                   [havekeypassword=yes],
+                   [havekeypassword=no])
+AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_RESULT([${havekeypassword}])
+if test $havekeypassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
+fi
+CFLAGS="$SAVECFLAGS"
+
 # If the user set environment var FC, but not F77, then set F77=FC
 if test "x${FC+set}" = xset -a "x${F77+set}" != xset; then
    F77=${FC}
@@ -996,6 +995,7 @@ AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.4])
 LT_INIT(win32-dll)
 #AC_PROG_LIBTOOL
+lt_cv_ld_force_load=no
 
 # Valgrind tests don't work with shared builds because of some libtool
 # weirdness.
@@ -1194,6 +1194,15 @@ fi
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
 AC_MSG_RESULT([$enable_netcdf_4])
 
+if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
+   AC_CHECK_LIB([z], [deflate], [], [nc_z_lib_missing=yes])
+   if test "x$nc_z_lib_missing" = xyes; then
+      AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
+   fi
+fi
+
+
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
@@ -1201,13 +1210,15 @@ if test "x$enable_netcdf_4" = xyes; then
    # Check for the main hdf5 library.
    AC_CHECK_LIB([hdf5], [H5Fflush], [], [nc_hdf5_lib_missing=yes])
    if test "x$nc_hdf5_h_missing" = xyes || test "x$nc_hdf5_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # We also require the HDF5 High Level library.
    AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [nc_hdf5_hl_lib_missing=yes])
    if test "x$nc_hdf5_hl_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # The user may have parallel HDF5 based on MPI POSIX.
@@ -1362,7 +1373,7 @@ AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 UD_FTPBINDIR
 
 ##################################################
-# DRNO and OC configuration
+# OC configuration
 
 # Require some version of xdr/rpc
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
@@ -1381,6 +1392,7 @@ else
     # Add to library list
     AC_CHECK_LIB($dap_xdrlib,xdr_void)
   fi
+fi
 # Fix to get working on OS X (thanks to Fedor Baart)
 AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
@@ -1388,7 +1400,6 @@ AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      ], [], [[#ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h>
 #endif]])
-fi
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
