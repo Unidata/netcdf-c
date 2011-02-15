@@ -211,7 +211,7 @@ static int
 check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
 {
    NC_TYPE_INFO_T *type_info;
-   long long total;
+   float total;
    size_t type_len;
    int d;
    int retval;
@@ -367,7 +367,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* If a dim is several orders of magnitude smaller than the max
     * dimension, set it's chunk size to the full extent of the smaller
     * dimension. */
-#define NC_DIM_MULTIPLIER 1000
+#define NC_DIM_MULTIPLIER 10000
    for (d = 0; d < var->ndims; d++)
       if (var->dim[d]->unlimited)
 	 var->chunksizes[d] = 1;
@@ -388,11 +388,16 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 if (suggested_size > var->dim[d]->len)
 	    suggested_size = var->dim[d]->len;
 	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
-	 total_chunk_size *= var->chunksizes[d];
 	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
 	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
+
+   /* Find total chunk size. */
+#ifdef LOGGING   
+   for (d = 0; d < var->ndims; d++)
+      total_chunk_size *= var->chunksizes[d];
    LOG((4, "total_chunk_size %f", total_chunk_size));
+#endif
    
    /* But did this add up to a chunk that is too big? */
    retval = check_chunksizes(grp, var, var->chunksizes);
