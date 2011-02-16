@@ -1018,7 +1018,7 @@ walktype(Symbol* tsym, Datasrc* src, Datalist* fillsrc)
            semerror(srcline(src),"Compound constants must be enclosed in {..}");
         }
         con = srcnext(src);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    dl = getfiller(tsym,fillsrc);
 	    ASSERT(dl->length == 1);
 	    con = &dl->data[0];
@@ -1040,7 +1040,7 @@ walktype(Symbol* tsym, Datasrc* src, Datalist* fillsrc)
            semerror(srcline(src),"Vlen constants must be enclosed in {..}");
         }
 	con = srcnext(src);
-        if(con->nctype == NC_FILLVALUE) {
+        if(con == NULL || con->nctype == NC_FILLVALUE) {
             dl = getfiller(tsym,fillsrc);
             ASSERT(dl->length == 1);
             con = &dl->data[0];
