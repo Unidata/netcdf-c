@@ -138,7 +138,7 @@ files (e.g., @code{/usr/local/include}).
 
 Linking:
 @example
-c89 ... -L @emph{libdir} -l udunits2 ... -l m
+c89 ... -L@emph{libdir} -ludunits2 -lexpat ... -lm
 @end example
 
 Where @emph{libdir} is the installation-directory for object code
@@ -1045,6 +1045,8 @@ ways for which it was not designed (such as converting dates in a
 calendar whose year is exactly 365 days long).
 Such activities are much better handled by a dedicated calendar package.
 Please be careful about using timestamp-units.
+See also the section on @ref{Time, The Handling of Time}.
+
 @end deftypefun
 
 @anchor{ut_invert()}
@@ -1284,9 +1286,11 @@ This function returns @code{@ref{ut_status,UT_SUCCESS}} on and only on success.
 @section Binary Unit Operations
 @cindex binary unit operations
 
-Binary unit operations act on two units.  The functions
+Binary unit operations act on two units.
+
+@strong{NOTE:} The functions
 @code{@ref{ut_are_convertible()}} and @code{@ref{ut_get_converter()}} are also
-binary unit operations but they are documented elsewhere.
+binary unit operations but are documented elsewhere.
 
 @anchor{ut_multiply()}
 @deftypefun @code{ut_unit*} ut_multiply @code{(const ut_unit* @var{unit1}, const ut_unit* @var{unit2})}
@@ -1515,6 +1519,15 @@ Success.
 @chapter The Handling of Time
 @cindex time, handling of
 
+You should use a true calendar package rather than the UDUNITS-2 package 
+to handle time.  Having said that, many people use the time-handling
+capabilities of the UDUNITS-2 package because it supports "units" like
+"@code{seconds since 1970-01-01}".  You should be aware, however, that the
+hybrid Gregorian/Julian calendar used by the UDUNITS-2 package @emph{cannot be
+changed}.  Dates on or after 1582-10-15 are assumed to be Gregorian dates;
+dates before that are assumed to be Julian dates.  In particular,
+the year 1 BCE is immediately followed by the year 1 CE.
+
 In general, the UDUNITS-2 package handles time by encoding it as
 double-precision value, which can then be acted upon arithmetically.
 
@@ -1531,6 +1544,9 @@ This convenience function is equivalent to
 @deftypefun @code{double} ut_encode_date @code{(int @var{year}, int @var{month}, int @var{day})}
 Encodes a date as a double-precision value.
 You probably won't use this function.
+Dates on or after 1582-10-15 are assumed to be Gregorian dates;
+dates before that are assumed to be Julian dates.  In particular,
+the year 1 BCE is immediately followed by the year 1 CE.
 @end deftypefun
 
 @anchor{ut_encode_clock()}

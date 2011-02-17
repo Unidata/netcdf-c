@@ -20,7 +20,7 @@ static ut_unit*		encodedTimeUnit = NULL;
 static ut_unit*		second = NULL;
 static char*		buffer;
 static int		buflen = 80;
-static void*		ut_units = NULL;
+static void*		unit2s = NULL;
 
 /*
  * Initialize the units(3) package.
@@ -31,6 +31,7 @@ utInit(
 {
     int status;
 
+    (void)ut_set_error_message_handler(ut_ignore);
     if (unitSystem != NULL) {
 	ut_free_system(unitSystem);
 	unitSystem = NULL;
@@ -74,36 +75,45 @@ compare(
     return key1 < key2 ? -1 : key1 == key2 ? 0 : 1;
 }
 
-void
-utFree(
-    utUnit* const	unit)
-{
-    if (tdelete(unit->ut_unit, &ut_units, compare) != NULL) {
-	ut_free(unit->ut_unit);
-    }
-    unit->ut_unit = NULL;
-}
-
 static void
 freeIfAllocated(
     utUnit* const	unit)
 {
-    utFree(unit);
+    if (tdelete(unit->unit2, &unit2s, compare) != NULL) {
+	ut_free(unit->unit2);
+    }
+    unit->unit2 = NULL;
+}
+
+void
+utFree(
+    utUnit* const	unit)
+{
+    freeIfAllocated(unit);
+}
+
+void
+utIni(
+    utUnit* const	unit)
+{
+    if (unit != NULL) {
+	unit->unit2 = NULL;
+    }
 }
 
 static int
 setUnit(
     utUnit* const	unit,
-    ut_unit* const	ut_unit)
+    ut_unit* const	unit2)
 {
     int	status;
 
-    if (tsearch(ut_unit, &ut_units, compare) == NULL) {
+    if (tsearch(unit2, &unit2s, compare) == NULL) {
 	status = UT_EALLOC;
     }
     else {
 	freeIfAllocated(unit);
-	unit->ut_unit = ut_unit;
+	unit->unit2 = unit2;
 	status = 0;
     }
     return status;
@@ -165,7 +175,7 @@ utCalendar(
 {
     int		status = 0;	/* success */
 
-    cv_converter* converter = ut_get_converter(unit->ut_unit, encodedTimeUnit);
+    cv_converter* converter = ut_get_converter(unit->unit2, encodedTimeUnit);
     if (converter == NULL) {
 	status = encodedTimeUnit == NULL ? UT_ENOINIT : UT_EINVALID;
     }
@@ -198,7 +208,7 @@ utInvCalendar(
 {
     int		status = 0;	/* success */
 
-    cv_converter* converter = ut_get_converter(encodedTimeUnit, unit->ut_unit);
+    cv_converter* converter = ut_get_converter(encodedTimeUnit, unit->unit2);
     if (converter == NULL) {
 	status = encodedTimeUnit == NULL ? UT_ENOINIT : UT_EINVALID;
     }
@@ -290,7 +300,7 @@ utIsTime(
     visitor.visit_galilean = isTimeVisitGalilean;
     visitor.visit_timestamp = isTimeVisitTimestamp;
     visitor.visit_logarithmic = isTimeVisitLogarithmic;
-    return ut_accept_visitor(up->ut_unit, &visitor, NULL);
+    return ut_accept_visitor(up->unit2, &visitor, NULL);
 }
 
 static ut_status
@@ -356,19 +366,19 @@ utHasOrigin(
     visitor.visit_galilean = hasOriginVisitGalilean;
     visitor.visit_timestamp = hasOriginVisitTimestamp;
     visitor.visit_logarithmic = hasOriginVisitLogarithmic;
-    return ut_accept_visitor(up->ut_unit, &visitor, NULL);
+    return ut_accept_visitor(up->unit2, &visitor, NULL);
 }
 
 static utUnit*
 resultingUnit(
     utUnit*		result,
-    ut_unit* const	unit)
+    ut_unit* const	unit2)
 {
-    if (unit == NULL) {
+    if (unit2 == NULL) {
 	result = NULL;
     }
     else if (result != NULL) {
-	if (setUnit(result, unit) != 0) {
+	if (setUnit(result, unit2) != 0) {
 	    result == NULL;
 	}
     }
@@ -393,7 +403,11 @@ utCopy(
     const utUnit	*source,
     utUnit		*dest)
 {
-    return source == NULL ? NULL : resultingUnit(dest, ut_clone(source->ut_unit));
+    return source == NULL
+	? NULL
+	: dest == NULL
+	    ? NULL
+	    : resultingUnit(dest, ut_clone(source->unit2));
 }
 
 /*
@@ -407,7 +421,7 @@ utMultiply(
 {
     return term1 == NULL || term2 == NULL
 	? NULL
-	: resultingUnit(result, ut_multiply(term1->ut_unit, term2->ut_unit));
+	: resultingUnit(result, ut_multiply(term1->unit2, term2->unit2));
 }
 
 /*
@@ -421,7 +435,7 @@ utDivide(
 {
     return numer == NULL || denom == NULL
 	? NULL
-	: resultingUnit(result, ut_divide(numer->ut_unit, denom->ut_unit));
+	: resultingUnit(result, ut_divide(numer->unit2, denom->unit2));
 }
 
 /*
@@ -432,7 +446,7 @@ utInvert(
     const utUnit	*unit,
     utUnit		*result)
 {
-    return unit == NULL ? NULL : resultingUnit(result, ut_invert(unit->ut_unit));
+    return unit == NULL ? NULL : resultingUnit(result, ut_invert(unit->unit2));
 }
 
 /*
@@ -446,7 +460,7 @@ utRaise(
 {
     return unit == NULL
 	? NULL
-	: resultingUnit(result, ut_raise(unit->ut_unit, power));
+	: resultingUnit(result, ut_raise(unit->unit2, power));
 }
 
 /*
@@ -460,7 +474,7 @@ utShift(
 {
     return unit == NULL
 	? NULL
-	: resultingUnit(result, ut_offset(unit->ut_unit, amount));
+	: resultingUnit(result, ut_offset(unit->unit2, amount));
 }
 
 /*
@@ -474,7 +488,7 @@ utScale(
 {
     return unit == NULL
 	? NULL
-	: resultingUnit(result, ut_scale(factor, unit->ut_unit));
+	: resultingUnit(result, ut_scale(factor, unit->unit2));
 }
 
 /*
@@ -488,7 +502,7 @@ utConvert(
     double		*intercept)
 {
     int			status;
-    cv_converter*	converter = ut_get_converter(from->ut_unit, to->ut_unit);
+    cv_converter*	converter = ut_get_converter(from->unit2, to->unit2);
 
     if (converter == NULL) {
 	status = ut_get_status();
@@ -525,7 +539,7 @@ utPrint(
     int	status;
 
     for (;;) {
-	int	len = ut_format(unit->ut_unit, buffer, buflen, UT_ASCII);
+	int	len = ut_format(unit->unit2, buffer, buflen, UT_ASCII);
 	if (len == -1) {
 	    status = ut_get_status();
 
@@ -566,10 +580,10 @@ utAdd(
     int			hasPlural,
     const utUnit	*unit)
 {
-    int	status = ut_map_name_to_unit(name, UT_ASCII, unit->ut_unit);
+    int	status = ut_map_name_to_unit(name, UT_ASCII, unit->unit2);
 
     if (status == UT_SUCCESS) {
-	status = ut_map_unit_to_name(unit->ut_unit, name, UT_ASCII);
+	status = ut_map_unit_to_name(unit->unit2, name, UT_ASCII);
 	if (status == UT_SUCCESS) {
 	    if (!hasPlural) {
 		status = UT_SUCCESS;
@@ -578,10 +592,10 @@ utAdd(
 		extern const char*	ut_form_plural(const char*);
 		const char*	plural = ut_form_plural(name);
 
-		status = ut_map_name_to_unit(plural, UT_ASCII, unit->ut_unit);
+		status = ut_map_name_to_unit(plural, UT_ASCII, unit->unit2);
 	    }				/* unit has plural name */
 	    if (status != UT_SUCCESS) {
-		(void)ut_unmap_unit_to_name(unit->ut_unit, UT_ASCII);
+		(void)ut_unmap_unit_to_name(unit->unit2, UT_ASCII);
 	    }
 	}				/* unit mapped to name */
 	if (status != UT_SUCCESS) {
@@ -635,10 +649,10 @@ utFind(
 void
 utTerm()
 {
-    ut_free_system(unitSystem);
-    unitSystem = NULL;
     ut_free(second);
     second = NULL;
     ut_free(encodedTimeUnit);
     encodedTimeUnit = NULL;
+    ut_free_system(unitSystem);
+    unitSystem = NULL;
 }

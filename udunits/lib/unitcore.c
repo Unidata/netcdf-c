@@ -205,8 +205,6 @@ static ut_unit*		productRoot(
     const ut_unit* const	unit,
     const int			root);
 
-static long		juldayOrigin = 0;
-
 
 /*
  * The following two functions convert between Julian day number and
@@ -343,6 +341,24 @@ gregorianDateToJulianDay(year, month, day)
     return julday;
 }
 
+/*
+ * Returns the Julian day number that is the origin of all things temporal in
+ * this module.
+ *
+ * Returns:
+ *      The Julian day number that is the origin for time in this module.
+ */
+static long
+getJuldayOrigin()
+{
+    static long juldayOrigin;
+
+    if (juldayOrigin == 0)
+	juldayOrigin = gregorianDateToJulianDay(2001, 1, 1);
+
+    return juldayOrigin;
+}
+
 
 /*
  * Encodes a time as a double-precision value.
@@ -424,11 +440,8 @@ ut_encode_date(
     int		month,
     int		day)
 {
-    if (juldayOrigin == 0)
-	juldayOrigin = gregorianDateToJulianDay(2001, 1, 1);
-
     return 86400.0 *
-	(gregorianDateToJulianDay(year, month, day) - juldayOrigin);
+	(gregorianDateToJulianDay(year, month, day) - getJuldayOrigin());
 }
 
 
@@ -505,7 +518,7 @@ ut_decode_time(
 	}	    ind;
     } Basis;
     Basis		counts;
-    static Basis	basis = {86400, 43200, 3600, 600, 60, 10, 1};
+    static const Basis	basis = {86400, 43200, 3600, 600, 60, 10, 1};
 
     uncer = ldexp(value < 0 ? -value : value, -DBL_MANT_DIG);
 
@@ -536,7 +549,7 @@ ut_decode_time(
     *hour = hours;
     *resolution = uncer;
 
-    julianDayToGregorianDate(juldayOrigin + days, year, month, day);
+    julianDayToGregorianDate(getJuldayOrigin() + days, year, month, day);
 }
 
 
@@ -671,6 +684,7 @@ basicFree(
     if (unit != NULL) {
 	assert(IS_BASIC(unit));
 	productFree((ut_unit*)unit->basic.product);
+	unit->basic.product = NULL;
 	free(unit);
     }
 }
@@ -1027,6 +1041,11 @@ productReallyFree(
     if (unit != NULL) {
 	assert(IS_PRODUCT(unit));
 	free(unit->product.indexes);
+	unit->product.indexes = NULL;
+	cv_free(unit->common.toProduct);
+	unit->common.toProduct = NULL;
+	cv_free(unit->common.fromProduct);
+	unit->common.fromProduct = NULL;
 	free(unit);
     }
 }
@@ -1455,7 +1474,7 @@ productRelationship(
 
 static ut_status
 productAcceptVisitor(
-    const ut_unit* const		unit,
+    const ut_unit* const	unit,
     const ut_visitor* const	visitor,
     void* const			arg)
 {
@@ -1495,11 +1514,10 @@ productAcceptVisitor(
 		(const ut_unit**)basicUnits, powers, arg));
 
 	    free(powers);
-	}
+	}				/* "powers" allocated */
 
-	if (count > 0)
-	    free(basicUnits);
-    }
+	free(basicUnits);
+    }					/* "basicUnits" allocated */
 
     return ut_get_status();
 }
@@ -1707,6 +1725,10 @@ galileanFree(
     if (unit != NULL) {
 	assert(IS_GALILEAN(unit));
 	FREE(unit->galilean.unit);
+	cv_free(unit->common.toProduct);
+	unit->common.toProduct = NULL;
+	cv_free(unit->common.fromProduct);
+	unit->common.fromProduct = NULL;
 	free((void*)unit);
     }
 }
@@ -2013,8 +2035,8 @@ timestampNewOrigin(
     const ut_unit*	unit,
     const double	origin)
 {
-    ut_unit*		newUnit = NULL;	/* failure */
-    ut_unit*	secondUnit;
+    ut_unit*    newUnit = NULL;         /* failure */
+    ut_unit*    secondUnit;
 
     assert(unit != NULL);
     assert(!IS_TIMESTAMP(unit));
@@ -2156,6 +2178,11 @@ timestampFree(
     if (unit != NULL) {
 	assert(IS_TIMESTAMP(unit));
 	FREE(unit->timestamp.unit);
+	unit->timestamp.unit = NULL;
+	cv_free(unit->common.toProduct);
+	unit->common.toProduct = NULL;
+	cv_free(unit->common.fromProduct);
+	unit->common.fromProduct = NULL;
 	free((void*)unit);
     }
 }
@@ -2437,6 +2464,11 @@ logFree(
     if (unit != NULL) {
 	assert(IS_LOG(unit));
 	FREE(unit->log.reference);
+	unit->log.reference = NULL;
+	cv_free(unit->common.toProduct);
+	unit->common.toProduct = NULL;
+	cv_free(unit->common.fromProduct);
+	unit->common.fromProduct = NULL;
 	free((void*)unit);
     }
 }

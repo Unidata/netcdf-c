@@ -53,6 +53,7 @@ SI prefixes
         <name>micro</name>
         <symbol>&#xB5;</symbol>         <!-- MICRO SIGN -->
         <symbol>&#x3BC;</symbol>	<!-- Greek small letter "mu" -->
+        <symbol>u</symbol>
     </prefix>
     <prefix>
         <value>1e-9</value> <name>nano</name>	<symbol>n</symbol>

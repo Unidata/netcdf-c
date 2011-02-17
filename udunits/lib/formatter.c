@@ -670,9 +670,7 @@ latin1PrintProduct(
     else {
 	int		positiveCount;
 	int		negativeCount;
-	static int*	order = NULL;
-
-	order = realloc(order, count);
+	int*		order = malloc(count*sizeof(int));
 
 	if (order == NULL) {
 	    nchar = -1;
@@ -712,7 +710,9 @@ latin1PrintProduct(
 		    }			/* solidus appended */
 		}			/* positive exponents printed */
 	    }				/* "buf" initialized */
-	}				/* "order" re-allocated */
+
+	    (void)free(order);
+	}				/* "order" allocated */
     }					/* using Latin-1 encoding */
 
     return nchar;

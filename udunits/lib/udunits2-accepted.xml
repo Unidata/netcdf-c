@@ -58,7 +58,7 @@ Units accepted for use with the SI
         </unit>
         <unit>
             <def>'/60</def>
-            <name><singular>arc_second</singular>></name>
+            <name><singular>arc_second</singular></name>
             <symbol>"</symbol>
             <symbol>&#x2033;</symbol>           <!-- DOUBLE PRIME -->
             <aliases>

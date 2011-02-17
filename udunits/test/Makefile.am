@@ -5,12 +5,10 @@
 # redistribution conditions.
 #
 ## Process this file with automake to produce Makefile.in
-EXTRA_DIST = \
-    results.tab \
-    redo-results
-distName = $(PACKAGE)-$(VERSION)
-distArchive = $(top_srcdir)/$(distName).tar.gz
-topTmpDir = /tmp/$(distName)
+EXTRA_DIST	= results.tab redo-results
+distName	= $(PACKAGE)-$(VERSION)
+distArchive	= $(top_srcdir)/$(distName).tar.gz
+topTmpDir	= /tmp/$(distName)
 
 # The following rule is executed on the remote system.  Setting
 # MAKEFILES to the empty string on the make(1) invocation line appears
@@ -33,12 +31,42 @@ hostcheck: $(distArchive)
 	    exit $$status; \
 	fi
 
-# The following rule starts multiple, concurrent, asynchronous builds.
+# The following rule starts a single synchronous build process on a remote
+# system.
+singleCheck:
+	ssh $(host) $(shell) "'cd $$PWD && $(make) MAKE=\"$(make)\" CC=\"$(cc)\" SHARED_OPT=$(sharedOpt) hostcheck'" </dev/null
+
+# The following rule starts multiple, synchronous build processes on a remote
+# system.
+.host.results:
+	rm -f $*.results $*.log
+	IFS=':' read uname shell <$<; \
+	sed -n '2,$$p' $< | \
+	while IFS=':' read make cc; do \
+	    if $(MAKE) host="$*" shell="$$shell" make="$$make" \
+		    cc="$$cc" sharedOpt='' singleCheck >>$*.log 2>&1 ; then \
+		echo "$$make:$$cc::1" >>$*.results; \
+	    else \
+		echo $$make:$$cc::0 >>$*.results; \
+	    fi; \
+	    if $(MAKE) host="$*" shell="$$shell" make="$$make" \
+		    cc="$$cc" sharedOpt=--disable-shared singleCheck \
+			>>$*.log 2>&1; then \
+		echo $$make:$$cc:--disable-shared:1 >>$*.results; \
+	    else \
+		echo $$make:$$cc:--disable-shared:0 >>$*.results; \
+	    fi; \
+	done
+	touch redo-results
+
+# The following rule starts multiple, concurrent, asynchronous builds on 
+# remote systems.
 hostchecks:	$(distArchive)
-	-rm -f $@
+	rm -f $@
 	hosts=`ls *.host | sed 's/.host//'`; \
 	for host in $$hosts; do \
-	    $(MAKE) -s $$host.check >$$host.log 2>&1 & pid="$$!"; \
+	    rm -f $$host.results; \
+	    $(MAKE) -s $$host.results >/dev/null & pid="$$!"; \
 	    echo $$host $$pid >>$@; \
 	    echo "Building on $$host"; \
 	done; \
@@ -56,33 +84,6 @@ hostchecks:	$(distArchive)
 	done <$@; \
 	echo "Done waiting"; \
 	exit $$status
-
-# The following rule starts a single synchronous build process on a remote
-# system.
-singleCheck:
-	ssh $(host) $(shell) "'cd $$PWD && $(make) MAKE=\"$(make)\" CC=\"$(cc)\" SHARED_OPT=$(sharedOpt) hostcheck'" </dev/null
-
-# The following rule starts multiple, synchronous build processes on a remote
-# system.
-.host.check:
-	rm -f $*.results
-	IFS=':' read uname shell <$<; \
-	sed -n '2,$$p' $< | \
-	while IFS=':' read make cc; do \
-	    if $(MAKE) host="$*" shell="$$shell" make="$$make" \
-		    cc="$$cc" sharedOpt='' singleCheck; then \
-		echo "$$make:$$cc::1" >>$*.results; \
-	    else \
-		echo $$make:$$cc::0 >>$*.results; \
-	    fi; \
-	    if $(MAKE) host="$*" shell="$$shell" make="$$make" \
-		    cc="$$cc" sharedOpt=--disable-shared singleCheck; then \
-		echo $$make:$$cc:--disable-shared:1 >>$*.results; \
-	    else \
-		echo $$make:$$cc:--disable-shared:0 >>$*.results; \
-	    fi; \
-	done
-	touch redo-results
 
 # hostname:os:make:cc:config_opts:exit_status
 results.tab:	redo-results

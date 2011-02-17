@@ -50,6 +50,10 @@ elements appear only within <aliases>.
             <aliases> <name> <singular>candle</singular> </name> </aliases>
         </unit>
         <unit>
+            <def>mole</def>
+            <aliases> <name> <singular>einstein</singular> </name> </aliases>
+        </unit>
+        <unit>
             <def>Hz</def>
             <aliases>
                 <name> <singular>baud</singular> </name>
@@ -94,6 +98,14 @@ elements appear only within <aliases>.
             <aliases>
                 <name><singular>avogadro_constant</singular></name>
                 <noplural/>
+            </aliases>
+        </unit>
+        <unit>
+            <def>0.01</def>
+            <aliases>
+                <name><singular>percent</singular></name>
+                <noplural/>
+                <symbol>%</symbol>
             </aliases>
         </unit>
 
@@ -334,7 +346,7 @@ elements appear only within <aliases>.
             </aliases>
         </unit>
         <unit>
-            <def>(1200/3937) m></def>
+            <def>(1200/3937) m</def>
             <aliases>
                 <name>
                     <singular>US_survey_foot</singular>
@@ -1346,7 +1358,7 @@ elements appear only within <aliases>.
             <aliases> <name> <singular>abvolt</singular> </name> </aliases>
         </unit>
         <unit>
-            <def>1.60217733-19 C</def>
+            <def>1.602176487e-19 C</def>
             <aliases> <symbol>e</symbol> </aliases>
         </unit>
         <unit>
@@ -1481,6 +1493,7 @@ elements appear only within <aliases>.
             <aliases>
                 <symbol>&#xB0;F</symbol>    <!-- DEGREE SIGN -->
                 <symbol>&#x2109;</symbol>   <!-- DEGREE FAHRENHEIT -->
+                <name> <singular>fahrenheit</singular> </name>
                 <name>
                     <singular>degree_fahrenheit</singular>
                     <plural>degrees_fahrenheit</plural>
@@ -1581,6 +1594,19 @@ elements appear only within <aliases>.
             <def>work_year/12</def>			<!-- exact -->
             <aliases>
                 <name> <singular>work_month</singular> </name>
+            </aliases>
+        </unit>
+        <unit>
+            <def>1e-6 m^2 s^-1 K kg^-1</def>		<!-- exact -->
+            <aliases>
+                <name> <singular>potential_vorticity_unit</singular> </name>
+                <symbol>PVU</symbol>
+            </aliases>
+        </unit>
+        <unit>
+            <def>1</def>
+            <aliases>
+                <name> <singular>count</singular> </name>
             </aliases>
         </unit>
 </unit-system>

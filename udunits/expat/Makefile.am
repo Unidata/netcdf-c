@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 AM_CPPFLAGS = -DHAVE_EXPAT_CONFIG_H
-noinst_LTLIBRARIES = libexpat.la
+lib_LTLIBRARIES = libexpat.la
 libexpat_la_SOURCES = \
     ascii.h \
     asciitab.h \

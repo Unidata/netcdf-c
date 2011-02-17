@@ -5,22 +5,26 @@
 # redistribution conditions.
 #
 ## Process this file with automake to produce Makefile.in
-ACLOCAL_AMFLAGS = -I m4
-SUBDIRS	= expat lib prog test
-info_TEXINFOS = udunits2.texi
-udunits2_TEXINFOS = success.texi failure.texi make.texi
+if COND_EXPAT
+    SUBDIRS		= expat lib prog
+else
+    SUBDIRS		= lib prog
+endif
+DIST_SUBDIRS		= expat lib prog test
+info_TEXINFOS		= udunits2.texi
+udunits2_TEXINFOS	= success.texi failure.texi make.texi
 EXTRA_DIST = \
     ANNOUNCEMENT \
     udunits2.html \
     udunits2.pdf \
     CHANGE_LOG \
-    LICENSE
+    LICENSE \
+    texinfo.tex
 AM_MAKEINFOHTMLFLAGS = --no-split
-# DISTCHECK_CONFIGURE_FLAGS = 
 RSYNC_FLAGS	= --rsh=ssh --rsync-path=/opt/bin/rsync
 distName = $(PACKAGE)-$(VERSION)
 distArchive = $(distName).tar.gz
-DISTCLEANFILES	= *.log $(distArchive) $(udunits2_TEXINFOS)
+DISTCLEANFILES	= *.log $(distArchive)
 
 success.texi:	test/results.tab
 	sleep 2	# to accomodate broken HP-UX B.11.00 make(1)
@@ -73,10 +77,13 @@ make.texi:	test/results.tab
 	    }' >$@
 	sleep 2	# to accomodate broken HP-UX B.11.00 make(1)
 
-remote-checks:	distcheck
+remote-checks:	dist
 	cd test && $(MAKE) $(AM_MAKEFLAGS) $@
+	$(MAKE) udunits2.html
 
 ftp:	dist
+	git status -a | grep -F -q 'nothing to commit'
+	git tag -f v$(VERSION)
 	scp $(distArchive) conan:/web/ftp/pub/$(PACKAGE)/
 	mailx -s '$(distName) now available' -a CHANGE_LOG \
 	    ed@unidata.ucar.edu </dev/null
@@ -86,7 +93,7 @@ web-update:	install install-html
 	&& rsync $(RSYNC_FLAGS) -aCu --delete --delete-excluded \
 	    *.html \
 	    conan:/content/software/$(PACKAGE)/$(distName)
-	cd $(pkgdatarootdir) \
+	cd $(pkgdatadir) \
 	&& rsync $(RSYNC_FLAGS) -aCu --delete \
 	    *.xml \
 	    conan:/content/software/$(PACKAGE)/$(distName)
@@ -111,9 +118,9 @@ available:	ftp web-update download-update
 .PHONY:	hostchecks hostcheck remote-checks web-update ftp \
 	download-update available
 
-udunits2.info:	success.texi failure.texi make.texi LICENSE
-udunits2.html:	success.texi failure.texi make.texi LICENSE
-udunits2.pdf:	success.texi failure.texi make.texi LICENSE
+udunits2.info:	version.texi success.texi failure.texi make.texi LICENSE
+udunits2.html:	version.texi success.texi failure.texi make.texi LICENSE
+udunits2.pdf:	version.texi success.texi failure.texi make.texi LICENSE
 
 $(srcdir)/version.texi:  $(srcdir)/stamp-vti
 	@cp $(srcdir)/stamp-vti $@

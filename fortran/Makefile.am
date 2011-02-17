@@ -75,6 +75,7 @@ endif
 # library.
 if BUILD_SEPARATE_FORTRAN
 lib_LTLIBRARIES = libnetcdff.la
+libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) -version-number 5:1:0 
 else
 noinst_LTLIBRARIES = libnetcdff.la
 endif

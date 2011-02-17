@@ -68,4 +68,4 @@ lib_LTLIBRARIES = libnetcdf_c++.la
 
 # Library source.
 libnetcdf_c___la_SOURCES = netcdf.cpp ncvalues.cpp
-
+libnetcdf_c___la_LDFLAGS = -version-number 4:1:0
