@@ -49,6 +49,7 @@ f77data_array(Symbol* vsym,
 {
     int i;
     int rank = odom->rank;
+    int firstdim = (index == 0); /* last dimension*/
     int lastdim = (index == (rank - 1)); /* last dimension*/
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
@@ -59,7 +60,7 @@ f77data_array(Symbol* vsym,
 
     count = odom->count[index];
 
-    if(isunlimited && issublist(src)) {
+    if(!firstdim && isunlimited && issublist(src)) {
 	srcpush(src);
 	pushed = 1;
     }

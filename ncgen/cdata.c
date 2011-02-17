@@ -54,13 +54,14 @@ cdata_array(Symbol* vsym,
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
     int lastdim = (index == (rank - 1)); /* last dimension*/
+    int firstdim = (index == 0); /* first dimension*/
     int isunlimited = (odom->declsize[index] == 0);
 
     ASSERT(index >= 0 && index < rank);
 
     count = odom->count[index];
 
-    if(isunlimited && issublist(src)) {
+    if(!firstdim && isunlimited && issublist(src)) {
 	srcpush(src);
 	pushed = 1;
     }
