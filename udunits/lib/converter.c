@@ -1143,7 +1143,7 @@ cv_get_pow(
 
 /*
  * Returns a converter corresponding to the sequential application of two
- * other converters.  The returned converter should be passed to cfFree() when
+ * other converters.  The returned converter should be passed to cv_free() when
  * it is no longer needed.
  *
  * Arguments:
@@ -1274,7 +1274,9 @@ void
 cv_free(
     cv_converter* const	conv)
 {
-    conv->ops->free((cv_converter*)conv);
+    if (conv != NULL) {
+	conv->ops->free((cv_converter*)conv);
+    }
 }
 
 

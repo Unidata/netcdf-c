@@ -7,7 +7,7 @@
  * redistribution conditions.
  */
 /*
- * yacc(1)-based parser for decoding formatted unit specifications.
+ * bison(1)-based parser for decoding formatted unit specifications.
  *
  * This module is thread-compatible but not thread-safe.  Multi-threaded
  * access must be externally synchronized.
@@ -139,7 +139,6 @@ unit_spec:      /* nothing */ {
 		    YYACCEPT;
 		} |
 		error {
-		    ut_set_status(UT_SYNTAX);
 		    YYABORT;
 		}
 		;
@@ -149,27 +148,27 @@ shift_exp:	product_exp {
 		} |
 		product_exp SHIFT REAL {
 		    $$ = ut_offset($1, $3);
-
 		    ut_free($1);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
 		} |
 		product_exp SHIFT INT {
 		    $$ = ut_offset($1, $3);
-
 		    ut_free($1);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
 		} |
 		product_exp SHIFT timestamp {
 		    $$ = ut_offset_by_time($1, $3);
-
 		    ut_free($1);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		product_exp SHIFT error {
+		    ut_status	prev = ut_get_status();
+		    ut_free($1);
+		    ut_set_status(prev);
+		    YYERROR;
 		}
 		;
 
@@ -178,30 +177,42 @@ product_exp:	power_exp {
 		} |
 		product_exp power_exp	{
 		    $$ = ut_multiply($1, $2);
-
 		    ut_free($1);
 		    ut_free($2);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		product_exp error	{
+		    ut_status	prev = ut_get_status();
+		    ut_free($1);
+		    ut_set_status(prev);
+		    YYERROR;
 		} |
 		product_exp MULTIPLY power_exp	{
-		     $$ = ut_multiply($1, $3);
-
+		    $$ = ut_multiply($1, $3);
 		    ut_free($1);
 		    ut_free($3);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		product_exp MULTIPLY error	{
+		    ut_status	prev = ut_get_status();
+		    ut_free($1);
+		    ut_set_status(prev);
+		    YYERROR;
 		} |
 		product_exp DIVIDE power_exp	{
-		     $$ = ut_divide($1, $3);
-
+		    $$ = ut_divide($1, $3);
 		    ut_free($1);
 		    ut_free($3);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		product_exp DIVIDE error	{
+		    ut_status	prev = ut_get_status();
+		    ut_free($1);
+		    ut_set_status(prev);
+		    YYERROR;
 		}
 		;
 
@@ -210,19 +221,21 @@ power_exp:	basic_exp {
 		} |
 		basic_exp INT {
 		    $$ = ut_raise($1, $2);
-
 		    ut_free($1);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
 		} |
 		basic_exp EXPONENT {
 		    $$ = ut_raise($1, $2);
-
 		    ut_free($1);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		basic_exp error {
+		    ut_status	prev = ut_get_status();
+		    ut_free($1);
+		    ut_set_status(prev);
+		    YYERROR;
 		}
 		;
 
@@ -247,24 +260,29 @@ basic_exp:	ID {
 			    break;
 
 			if (utGetPrefixByName(_unitSystem, cp, &value, &nchar)
-				!= UT_SUCCESS) {
-			    if (symbolPrefixSeen ||
-				    utGetPrefixBySymbol(_unitSystem, cp, &value,
-					&nchar) != UT_SUCCESS)
-				break;
-
-			    symbolPrefixSeen = 1;
+				== UT_SUCCESS) {
+			    prefix *= value;
+			    cp += nchar;
 			}
-
-			prefix *= value;
-			cp += nchar;
+			else {
+			    if (!symbolPrefixSeen &&
+				    utGetPrefixBySymbol(_unitSystem, cp, &value,
+					&nchar) == UT_SUCCESS) {
+				symbolPrefixSeen = 1;
+				prefix *= value;
+				cp += nchar;
+			    }
+			    else {
+				break;
+			    }
+			}
 		    }
 
 		    free($1);
 
 		    if (unit == NULL) {
 			ut_set_status(UT_UNKNOWN);
-			YYABORT;
+			YYERROR;
 		    }
 
 		    $$ = ut_scale(prefix, unit);
@@ -272,18 +290,28 @@ basic_exp:	ID {
 		    ut_free(unit);
 
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
 		} |
 		'(' shift_exp ')' {
 		    $$ = $2;
 		} |
+		'(' shift_exp error {
+		    ut_status	status = ut_get_status();
+		    ut_free($2);
+		    ut_set_status(status);
+		    YYERROR;
+		} |
 		LOGREF product_exp ')' {
 		    $$ = ut_log($1, $2);
-
 		    ut_free($2);
-
 		    if ($$ == NULL)
-			YYABORT;
+			YYERROR;
+		} |
+		LOGREF product_exp error {
+		    ut_status	status = ut_get_status();
+		    ut_free($2);
+		    ut_set_status(status);
+		    YYERROR;
 		} |
 		number {
 		    $$ = ut_scale($1,
@@ -318,7 +346,7 @@ timestamp:	DATE {
 		    }
 		    else {
 			ut_set_status(UT_SYNTAX);
-			YYABORT;
+			YYERROR;
 		    }
 		} |
 		DATE CLOCK ID {
@@ -337,7 +365,7 @@ timestamp:	DATE {
 			$$ = $1 + $2;
 		    }
 		    else {
-			YYABORT;
+			YYERROR;
 		    }
 		} |
 		TIMESTAMP {
@@ -356,7 +384,7 @@ timestamp:	DATE {
 		    }
 		    else {
 			ut_set_status(UT_SYNTAX);
-			YYABORT;
+			YYERROR;
 		    }
 		} |
 		TIMESTAMP ID {
@@ -375,7 +403,7 @@ timestamp:	DATE {
 			$$ = $1;
 		    }
 		    else {
-			YYABORT;
+			YYERROR;
 		    }
 		}
 		;
@@ -518,8 +546,6 @@ ut_parse(
     else {
         const char*     utf8String;
 
-	utrestart((FILE*)NULL);
-
         if (encoding != UT_LATIN1) {
             utf8String = string;
         }
@@ -546,17 +572,22 @@ ut_parse(
             _finalUnit = NULL;
 
             if (utparse() == 0) {
+                int     status;
                 int	n = yy_c_buf_p  - buf->yy_ch_buf;
 
                 if (n >= strlen(utf8String)) {
                     unit = _finalUnit;	/* success */
+                    status = UT_SUCCESS;
                 }
                 else {
                     /*
                      * Parsing terminated before the end of the string.
                      */
                     ut_free(_finalUnit);
+                    status = UT_SYNTAX;
                 }
+
+                ut_set_status(status);
             }
 
             ut_delete_buffer(buf);

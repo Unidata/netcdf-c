@@ -98,10 +98,12 @@ test_unitSystem(void)
     unit = ut_new_base_unit(system);
     CU_ASSERT_PTR_NOT_NULL(unit);
     CU_ASSERT_EQUAL(ut_map_unit_to_name(unit, "name", UT_ASCII), UT_SUCCESS);
+    ut_free(unit);
     unit = ut_get_dimensionless_unit_one(system);
     CU_ASSERT_PTR_NOT_NULL_FATAL(unit);
     CU_ASSERT_EQUAL(ut_format(unit, buf, sizeof(buf)-1, asciiSymbolDef), 1);
     CU_ASSERT_STRING_EQUAL(buf, "1");
+    ut_free(unit);
     ut_free_system(system);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
 }
@@ -184,6 +186,7 @@ test_utGetUnitByName(void)
 
     CU_ASSERT_PTR_NOT_NULL(altMeter);
     CU_ASSERT_EQUAL(ut_compare(altMeter, meter), 0);
+    ut_free(altMeter);
 
     CU_ASSERT_PTR_NULL(ut_get_unit_by_name(unitSystem, NULL));
     CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
@@ -200,6 +203,7 @@ test_utGetUnitBySymbol(void)
 
     CU_ASSERT_PTR_NOT_NULL(altMeter);
     CU_ASSERT_EQUAL(ut_compare(altMeter, meter), 0);
+    ut_free(altMeter);
 
     CU_ASSERT_PTR_NULL(ut_get_unit_by_symbol(unitSystem, NULL));
     CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
@@ -430,6 +434,7 @@ test_utOffset(void)
     CU_ASSERT_PTR_NOT_NULL(dupKelvin);
     CU_ASSERT_EQUAL(ut_get_system(kelvin), ut_get_system(dupKelvin));
     CU_ASSERT_EQUAL(ut_compare(kelvin, dupKelvin), 0);
+    ut_free(dupKelvin);
 
     dupKelvin = ut_offset(celsius, -273.15);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
@@ -585,6 +590,7 @@ test_utInvert(void)
     ut_unit*	inverseCelsius;
     ut_unit*	inverseRadian;
     ut_unit*	inverseMeterSecond;
+    ut_unit*	unit;
     char	buf[80];
     int		nchar;
 
@@ -624,7 +630,9 @@ test_utInvert(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "K-1");
 
-    inverseMeterSecond = ut_invert(ut_multiply(meter, second));
+    unit = ut_multiply(meter, second);
+    inverseMeterSecond = ut_invert(unit);
+    ut_free(unit);
     CU_ASSERT_PTR_NOT_NULL(inverseMeterSecond);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(inverseMeterSecond, buf, sizeof(buf)-1, asciiSymbolDef);
@@ -648,7 +656,9 @@ test_utInvert(void)
     CU_ASSERT_EQUAL(ut_map_unit_to_symbol(hertz, "Hz", UT_ASCII), UT_SUCCESS);
     CU_ASSERT_EQUAL(ut_map_symbol_to_unit("Hz", UT_ASCII, hertz), UT_SUCCESS);
 
-    megahertz = ut_scale(1e6, ut_invert(second));
+    unit = ut_invert(second);
+    megahertz = ut_scale(1e6, unit);
+    ut_free(unit);
     CU_ASSERT_PTR_NOT_NULL(megahertz);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
 }
@@ -661,6 +671,9 @@ test_utDivide(void)
     ut_unit*	kilometerPerMinute;
     ut_unit*	celsiusPerMeter;
     ut_unit*	meterPerCelsius;
+    ut_unit*	unit;
+    ut_unit*	unit2;
+    ut_unit*	unit3;
     char	buf[80];
     int		nchar;
 
@@ -700,7 +713,9 @@ test_utDivide(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "m.K-1");
 
-    meterPerSecondSquared = ut_divide(meter, ut_raise(second, 2));
+    unit = ut_raise(second, 2);
+    meterPerSecondSquared = ut_divide(meter, unit);
+    ut_free(unit);
     CU_ASSERT_PTR_NOT_NULL(meterPerSecondSquared);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(meterPerSecondSquared, buf, sizeof(buf)-1,
@@ -710,7 +725,9 @@ test_utDivide(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "m.s-2");
 
-    meterSquaredPerSecondSquared = ut_raise(ut_divide(meter, second), 2);
+    unit = ut_divide(meter, second);
+    meterSquaredPerSecondSquared = ut_raise(unit, 2);
+    ut_free(unit);
     CU_ASSERT_PTR_NOT_NULL(meterSquaredPerSecondSquared);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(meterSquaredPerSecondSquared, buf, sizeof(buf)-1,
@@ -720,8 +737,13 @@ test_utDivide(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "m2.s-2");
 
-    joulePerKilogram = ut_divide(ut_multiply(kilogram, ut_raise(ut_divide(
-	meter, second), 2)), kilogram);
+    unit = ut_divide(meter, second);
+    unit2 = ut_raise(unit, 2);
+    ut_free(unit);
+    unit3 = ut_multiply(kilogram, unit2);
+    ut_free(unit2);
+    joulePerKilogram = ut_divide(unit3, kilogram);
+    ut_free(unit3);
     CU_ASSERT_PTR_NOT_NULL(joulePerKilogram);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(joulePerKilogram, buf, sizeof(buf)-1, asciiSymbolDef);
@@ -730,8 +752,13 @@ test_utDivide(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "m2.s-2");
 
-    watt = ut_divide(ut_multiply(kilogram, ut_raise(ut_divide(meter, second),
-	2)), second);
+    unit = ut_divide(meter, second);
+    unit2 = ut_raise(unit, 2);
+    ut_free(unit);
+    unit3 = ut_multiply(kilogram, unit2);
+    ut_free(unit2);
+    watt = ut_divide(unit3, second);
+    ut_free(unit3);
     CU_ASSERT_PTR_NOT_NULL(watt);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(watt, buf, sizeof(buf)-1, asciiSymbolDef);
@@ -755,6 +782,7 @@ test_utRaise(void)
 {
     ut_unit*	perCubicMeter;
     ut_unit*	celsiusCubed;
+    ut_unit*	minutesPerKilometer;
     ut_unit*	kilometersSquaredPerMinuteSquared;
     ut_unit*	unit;
     char	buf[80];
@@ -787,8 +815,9 @@ test_utRaise(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "K3");
 
-    kilometersSquaredPerMinuteSquared =
-	ut_raise(ut_divide(minute, kilometer), -2);
+    minutesPerKilometer = ut_divide(minute, kilometer);
+    kilometersSquaredPerMinuteSquared = ut_raise(minutesPerKilometer, -2);
+    ut_free(minutesPerKilometer);
     CU_ASSERT_PTR_NOT_NULL(kilometersSquaredPerMinuteSquared);
     CU_ASSERT_EQUAL(ut_get_status(), UT_SUCCESS);
     nchar = ut_format(kilometersSquaredPerMinuteSquared, buf,
@@ -825,21 +854,38 @@ static void
 test_utRoot(void)
 {
     ut_unit*	unit;
+    ut_unit*	unit2;
 
     CU_ASSERT_PTR_NULL(ut_root(watt, -1));
     CU_ASSERT_PTR_NULL(ut_root(watt, 0));
-    CU_ASSERT_EQUAL(ut_compare(watt, ut_root(watt, 1)), 0);
+    unit = ut_root(watt, 1);
+    CU_ASSERT_EQUAL(ut_compare(watt, unit), 0);
+    ut_free(unit);
 
     unit = ut_get_dimensionless_unit_one(unitSystem);
     CU_ASSERT_EQUAL(ut_compare(unit, ut_root(unit, 1)), 0);
-    CU_ASSERT_EQUAL(ut_compare(watt, ut_root(watt, 1)), 0);
+    ut_free(unit);
+    unit = ut_root(watt, 1);
+    CU_ASSERT_EQUAL(ut_compare(watt, unit), 0);
+    ut_free(unit);
 
-    CU_ASSERT_EQUAL(ut_compare(watt, ut_root(ut_raise(watt, 2), 2)), 0);
+    unit = ut_raise(watt, 2);
+    unit2 = ut_root(unit, 2);
+    ut_free(unit);
+    CU_ASSERT_EQUAL(ut_compare(watt, unit2), 0);
+    ut_free(unit2);
 
-    CU_ASSERT_EQUAL(ut_compare(kelvin, ut_root(ut_raise(celsius, 2), 2)), 0);
+    unit = ut_raise(celsius, 2);
+    unit2 = ut_root(unit, 2);
+    ut_free(unit);
+    CU_ASSERT_EQUAL(ut_compare(kelvin, unit2), 0);
+    ut_free(unit2);
 
-    CU_ASSERT_EQUAL(ut_compare(second, ut_root(ut_raise(secondsSinceTheEpoch,
-        2), 2)), 0);
+    unit = ut_raise(secondsSinceTheEpoch, 2);
+    unit2 = ut_root(unit, 2);
+    ut_free(unit);
+    CU_ASSERT_EQUAL(ut_compare(second, unit2), 0);
+    ut_free(unit2);
 
     CU_ASSERT_PTR_NULL(ut_root(BZ, 2));
 }
@@ -848,7 +894,8 @@ test_utRoot(void)
 static void
 test_utLog(void)
 {
-    ut_unit*	bel_1_mW = ut_log(10, ut_scale(0.001, watt));
+    ut_unit*	milliwatt = ut_scale(0.001, watt);
+    ut_unit*	bel_1_mW = ut_log(10, milliwatt);
     ut_unit*	decibel_1_mW;
     ut_unit*	unit;
     char	buf[80];
@@ -871,12 +918,14 @@ test_utLog(void)
     buf[nchar] = 0;
     CU_ASSERT_STRING_EQUAL(buf, "0.1 lg(re 0.001 kg.m2.s-3)");
 
-    unit = ut_log(-10, ut_scale(0.001, watt));
+    unit = ut_log(-10, milliwatt);
     CU_ASSERT_PTR_NULL(unit);
     CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
 
     cubicMeter = ut_raise(meter, 3);
-    cubicMicron = ut_raise(ut_scale(1e-6, meter), 3);
+    unit = ut_scale(1e-6, meter);
+    cubicMicron = ut_raise(unit, 3);
+    ut_free(unit);
     CU_ASSERT_PTR_NOT_NULL(cubicMicron);
 
     BZ = ut_log(10, cubicMicron);
@@ -904,11 +953,12 @@ test_utLog(void)
 	CU_ASSERT_EQUAL(ut_compare(unit, dBZ), 0);
 
 	CU_ASSERT_PTR_NULL(ut_get_unit_by_symbol(unitSystem, "DBZ"));
+	ut_free(unit);
     }
 
+    ut_free(milliwatt);
     ut_free(bel_1_mW);
     ut_free(decibel_1_mW);
-    ut_free(unit);
 
     CU_ASSERT_PTR_NULL(ut_log(2, NULL));
     CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
@@ -1507,6 +1557,33 @@ test_utOffsetByTime(void)
 }
 
 
+static void
+test_ut_decode_time(void)
+{
+    double      timeval = ut_encode_time(2001, 1, 1, 0, 0, 0);
+    int         year1, month1, day1, hour1, minute1;
+    int         year2, month2, day2, hour2, minute2;
+    double      second1, resolution1;
+    double      second2, resolution2;
+    ut_unit*    unit;
+
+    ut_decode_time(timeval, &year1, &month1, &day1, &hour1, &minute1,
+        &second1, &resolution1);
+    unit = ut_parse(unitSystem, "second since 2010-01-11T09:08:10Z", UT_ASCII);
+    CU_ASSERT_PTR_NOT_NULL(unit);
+    ut_free(unit);
+    ut_decode_time(timeval, &year2, &month2, &day2, &hour2, &minute2,
+        &second2, &resolution2);
+    CU_ASSERT_EQUAL(year1, year2);
+    CU_ASSERT_EQUAL(month1, month2);
+    CU_ASSERT_EQUAL(day1, day2);
+    CU_ASSERT_EQUAL(hour1, hour2);
+    CU_ASSERT_EQUAL(minute1, minute2);
+    CU_ASSERT_EQUAL(second1, second2);
+    CU_ASSERT_EQUAL(resolution1, resolution2);
+}
+
+
 
 static void
 test_utSetEncoding(void)
@@ -1576,6 +1653,24 @@ test_parsing(void)
 {
     ut_unit*	unit;
     char*	spec;
+
+    spec = "34 quatloos";
+    unit = ut_parse(unitSystem, spec, UT_ASCII);
+    CU_ASSERT_PTR_NULL(unit);
+    CU_ASSERT_EQUAL(ut_get_status(), UT_UNKNOWN);
+
+    spec = "$&/^";
+    unit = ut_parse(unitSystem, spec, UT_ASCII);
+    CU_ASSERT_PTR_NULL(unit);
+    CU_ASSERT_EQUAL(ut_get_status(), UT_UNKNOWN);
+
+    unit = ut_parse(unitSystem, NULL, UT_ASCII);
+    CU_ASSERT_PTR_NULL(unit);
+    CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
+
+    unit = ut_parse(NULL, "kg", UT_ASCII);
+    CU_ASSERT_PTR_NULL(unit);
+    CU_ASSERT_EQUAL(ut_get_status(), UT_BAD_ARG);
 
     spec = "m";
     unit = ut_parse(unitSystem, spec, UT_ASCII);
@@ -1800,6 +1895,11 @@ test_parsing(void)
     CU_ASSERT_PTR_NOT_NULL(unit);
     CU_ASSERT_EQUAL(ut_compare(unit, hertz), 0);
     ut_free(unit);
+
+    spec = "meter @ 100 @ 10";
+    unit = ut_parse(unitSystem, spec, UT_LATIN1);
+    CU_ASSERT_PTR_NULL(unit);
+    CU_ASSERT_EQUAL(ut_get_status(), UT_SYNTAX);
 }
 
 
@@ -2043,7 +2143,6 @@ test_xml(void)
     ut_free_system(xmlSystem);
 }
 
-
 int
 main(
     const int		argc,
@@ -2067,6 +2166,7 @@ main(
 	    CU_ADD_TEST(testSuite, test_utScale);
 	    CU_ADD_TEST(testSuite, test_utOffset);
 	    CU_ADD_TEST(testSuite, test_utOffsetByTime);
+	    CU_ADD_TEST(testSuite, test_ut_decode_time);
 	    CU_ADD_TEST(testSuite, test_utMultiply);
 	    CU_ADD_TEST(testSuite, test_utInvert);
 	    CU_ADD_TEST(testSuite, test_utDivide);
