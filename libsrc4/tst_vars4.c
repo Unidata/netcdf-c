@@ -30,7 +30,6 @@ main(int argc, char **argv)
       nc_type type_in;
       size_t len_in;
 
-      nc_set_log_level(3);
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
       if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
       if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;

@@ -9,8 +9,6 @@
 #ZLIB=-L/opt/csw/lib -lz
 #TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
 VALGRIND=valgrind --leak-check=full
-#HDF5=/upc/share/stdinstall/local/${HOST}/lib/libhdf5_hl.a \
-#/upc/share/stdinstall/local/${HOST}/lib/libhdf5.a
 
 #NCLIB=/tmp/install/lib/libnetcdf.a
 
@@ -23,13 +21,15 @@ NCINCL=-I ../liblib
 LFLAG=-L/upc/share/ed/local/${HOST}/lib
 
 CURLLIB=-lcurl
-#HDF5LIB=-lhdf5_hl -lhdf5
 ZLIB=-lz
+#HDF5LIB=-lhdf5_hl -lhdf5
+HDF5LIB=/upc/share/stdinstall/local/${HOST}/lib/libhdf5_hl.a /upc/share/stdinstall/local/${HOST}/lib/libhdf5.a
 
 OTHERLIBS=-lm
 
 LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
 INCL=-I. -I.. -I../include ${NCINCL} ${CURLINCL}
+RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags
 CC=cc
@@ -229,13 +229,13 @@ cpp::
 
 ##################################################
 # ncd
-NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime.c ../ncdump/vardata.c
-NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime.h ../ncdump/vardata.h
+NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime.c ../ncdump/vardata.c ../ncdump/utils.c
+NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime.h ../ncdump/vardata.h ../ncdump/utils.h
 NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
 
 #${NCDUMPC} ${NCDUMPH} ${NCLIB}
 ncd:: 
-	cd ../libsrc; make 
+	cd ..; make 
 	${CC} -I.. ${CFLAGS} ${GFLAGS} -c ${INCL} ${NCDUMPC}
 	${CC} -o ncd ${NCDUMPOBJ} ${LIBS}
 
@@ -259,11 +259,13 @@ vpt::
 	date; ./vpt.exe "[compile]http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_vpt" vpt.year; date
 
 ##################################################
-T=tst_varm6
+#T=test_varm3
+#T=t_dap3b
+T=test_vara
 
 v::
 	cc -g -c ${T}.c ${INCL}
-	cc -g -o v ${T}.o ${LIBS}
+	cc -g -o v ${T}.o ${LIBS} ${RPATH}
 
 do::
 	pushd ..; make; popd ; $(MAKE) -f Make0 ncd

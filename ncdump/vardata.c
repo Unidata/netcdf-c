@@ -14,6 +14,7 @@
 #include "dumplib.h"
 #include "indent.h"
 #include "vardata.h"
+#include "utils.h"
 
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100

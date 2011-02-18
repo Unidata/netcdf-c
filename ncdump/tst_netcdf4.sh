@@ -40,7 +40,7 @@ echo "*** testing -v option with absolute name and groups..."
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data_v23.cdl..."
 diff tst_group_data.cdl $srcdir/ref_tst_group_data_v23.cdl
 echo "*** testing -v option with relative name and groups..."
-./ncdump -v var tst_group_data.nc > tst_group_data.cdl
+./ncdump -v var,var2 tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
 diff tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 echo "*** dumping tst_enum_data.nc to tst_enum_data.cdl..."

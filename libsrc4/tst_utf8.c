@@ -34,7 +34,7 @@ struct comp {
 
 /* Given an ncid, check the file to make sure it has all the objects I
  * expect. */
-void
+int
 check_nc4_file(int ncid)
 {
    int varid, dimid, attnum, grpid, grpid2, grpid3, numgrps;
@@ -117,11 +117,12 @@ check_nc4_file(int ncid)
    name_in[0] = 0;
    if (nc_inq_compound_fieldname(grpid3, comp_typeid, 0, name_in)) ERR;
    if (strncmp(norm_utf8, name_in, sizeof(norm_utf8))) ERR;
+   return NC_NOERR;
 }
 
 /* Given an ncid, check the file to make sure it has all the objects I
  * expect. */
-void
+int
 check_classic_file(int ncid)
 {
    int varid, dimid, attnum;
@@ -161,6 +162,7 @@ check_classic_file(int ncid)
    if (att_type != NC_CHAR || att_len != sizeof(name_utf8)) ERR;
    if (nc_get_att_text(ncid, varid, norm_utf8, strings_in)) ERR;
    if (strncmp(name_utf8, strings_in, sizeof(name_utf8))) ERR;
+   return NC_NOERR;
 }
 
 int

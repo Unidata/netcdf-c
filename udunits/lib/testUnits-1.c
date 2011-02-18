@@ -56,12 +56,15 @@ test_utScan(void)
 {
     utUnit	unit;
 
+    utIni(&kilogram);
     CU_ASSERT_EQUAL(utScan("kg", &kilogram), 0);
+    utIni(&watt);
     CU_ASSERT_EQUAL(utScan("WATT", &watt), 0);
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("seconds since 1994-12-15 12:30:00 10", &unit), 0);
     CU_ASSERT_EQUAL(utScan("Celsius @ 100", &unit), 0);
     CU_ASSERT_EQUAL(utScan("34 quatloos", &unit), UT_EUNKNOWN);
-    CU_ASSERT_EQUAL(utScan("$&/^", &unit), UT_ESYNTAX);
+    CU_ASSERT_EQUAL(utScan("$&/^", &unit), UT_EUNKNOWN);
     CU_ASSERT_EQUAL(utScan(NULL, &unit), UT_EINVALID);
     CU_ASSERT_EQUAL(utScan("kg", NULL), UT_EINVALID);
 }
@@ -74,6 +77,7 @@ test_utCalendar(void)
     int		year, month, day, hour, minute;
     float	second;
 
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("seconds since 1994-12-15 2:29:60.0000 UTC", &unit),
 	0);
     CU_ASSERT_EQUAL(
@@ -102,6 +106,7 @@ test_utInvCalendar(void)
     utUnit	unit;
     double	value;
 
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("seconds since 1994-12-15 2:29:60.0000 UTC", &unit),
 	0);
     CU_ASSERT_EQUAL(utInvCalendar(1994, 12, 15, 2, 30, 1.0, &unit, &value), 0);
@@ -117,6 +122,7 @@ test_utIsTime(void)
 {
     utUnit	unit;
 
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("seconds", &unit), 0);
     CU_ASSERT_TRUE(utIsTime(&unit));
     CU_ASSERT_EQUAL(utScan("seconds since 1925-01-01 00:00:00", &unit), 0);
@@ -135,6 +141,7 @@ test_utHasOrigin(void)
 {
     utUnit	unit;
 
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("seconds", &unit), 0);
     CU_ASSERT_FALSE(utHasOrigin(&unit));
     CU_ASSERT_EQUAL(utScan("seconds since 1925-01-01 00:00:00", &unit), 0);
@@ -155,6 +162,8 @@ test_utClear(void)
     utUnit	unit;
     double	slope, intercept;
 
+    utIni(&one);
+    utIni(&unit);
     CU_ASSERT_EQUAL(utScan("1", &one), 0);
     CU_ASSERT_EQUAL(utScan("seconds", &unit), 0);
     CU_ASSERT_EQUAL(utConvert(&one, &unit, &slope, &intercept), UT_ECONVERT);
@@ -173,6 +182,8 @@ test_utCopy(void)
     utUnit	unit2;
     double	slope, intercept;
 
+    utIni(&unit1);
+    utIni(&unit2);
     CU_ASSERT_EQUAL(utScan("seconds", &unit1), 0);
     CU_ASSERT_PTR_NOT_NULL(utCopy(&unit1, &unit2));
     CU_ASSERT_EQUAL(utConvert(&unit1, &unit2, &slope, &intercept), 0);
@@ -189,6 +200,10 @@ test_utMultiply(void)
     utUnit	m, s, result, expect;
     double	slope, intercept;
 
+    utIni(&m);
+    utIni(&s);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("m", &m), 0);
     CU_ASSERT_EQUAL(utScan("s", &s), 0);
     CU_ASSERT_PTR_NOT_NULL(utMultiply(&m, &s, &result));
@@ -207,6 +222,10 @@ test_utDivide(void)
     utUnit	m, s, result, expect;
     double	slope, intercept;
 
+    utIni(&m);
+    utIni(&s);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("m", &m), 0);
     CU_ASSERT_EQUAL(utScan("s", &s), 0);
     CU_ASSERT_PTR_NOT_NULL(utDivide(&m, &s, &result));
@@ -225,6 +244,9 @@ test_utInvert(void)
     utUnit	unit, result, expect;
     double	slope, intercept;
 
+    utIni(&unit);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("m", &unit), 0);
     CU_ASSERT_PTR_NOT_NULL(utInvert(&unit, &result));
     CU_ASSERT_EQUAL(utScan("1/m", &expect), 0);
@@ -241,6 +263,9 @@ test_utRaise(void)
     utUnit	unit, result, expect;
     double	slope, intercept;
 
+    utIni(&unit);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("watt", &unit), 0);
     CU_ASSERT_PTR_NOT_NULL(utRaise(&unit, 2, &result));
     CU_ASSERT_EQUAL(utScan("watt^2", &expect), 0);
@@ -257,6 +282,9 @@ test_utShift(void)
     utUnit	unit, result, expect;
     double	slope, intercept;
 
+    utIni(&unit);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("kelvin", &unit), 0);
     CU_ASSERT_PTR_NOT_NULL(utShift(&unit, 273.15, &result));
     CU_ASSERT_EQUAL(utScan("celsius", &expect), 0);
@@ -273,6 +301,9 @@ test_utScale(void)
     utUnit	unit, result, expect;
     double	slope, intercept;
 
+    utIni(&unit);
+    utIni(&result);
+    utIni(&expect);
     CU_ASSERT_EQUAL(utScan("meter", &unit), 0);
     CU_ASSERT_PTR_NOT_NULL(utScale(&unit, 1000, &result));
     CU_ASSERT_EQUAL(utScan("kilometer", &expect), 0);
@@ -290,6 +321,8 @@ test_utPrint(void)
     char*	string;
     double	slope, intercept;
 
+    utIni(&unit1);
+    utIni(&unit2);
     CU_ASSERT_EQUAL(utScan("seconds since 1994-12-15 12:30:00 10", &unit1), 0);
     CU_ASSERT_EQUAL(utPrint(&unit1, &string), 0);
     CU_ASSERT_EQUAL(utScan(string, &unit2), 0);
@@ -337,6 +370,11 @@ test_utAdd(void)
     utUnit	actual;
     double	slope, intercept;
 
+    utIni(&kilogram);
+    utIni(&watt);
+    utIni(&unit);
+    utIni(&actual);
+
     CU_ASSERT_EQUAL_FATAL(utScan("kg", &kilogram), 0);
     CU_ASSERT_EQUAL_FATAL(utScan("watt", &watt), 0);
     CU_ASSERT_PTR_NOT_NULL_FATAL(utMultiply(&kilogram, &watt, &unit));
@@ -357,6 +395,9 @@ test_utFind(void)
 {
     utUnit	unit1, unit2;
     double	slope, intercept;
+
+    utIni(&unit1);
+    utIni(&unit2);
 
     CU_ASSERT_EQUAL(utFind("watt", &unit1), 0);
     CU_ASSERT_EQUAL_FATAL(utScan("watt", &unit2), 0);

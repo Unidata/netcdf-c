@@ -41,6 +41,7 @@ and value-conversion utility.
 * Obtain::              Obtaining this package
 * Install::             Installing this package
 * Support::             Support for this package
+* Database::            The unit database
 * Complete Index::      Complete index
 @end menu
 
@@ -86,7 +87,7 @@ one-dimensional arrays of @code{float}s or @code{double}s.
 @item @strong{Improved API:}  Due to the above changes, it was not
 possible to keep the application programming interface (API) of the original
 @code{UDUNITS} package.  The new interface, however, is easily
-understood and easy to use.  To support backward compatibility,
+understood and easy to use.  To support backward comptibility,
 the package does contain a version 1 C API, which uses the version 2
 library.
 
@@ -106,7 +107,7 @@ One thing that has not changed is that almost all unit string specifications
 understood by the original @code{UDUNITS} package are also
 understood by the new @code{UDUNITS-2} package.  The one exception is
 the symbol @code{g}, which in the original package was associated with
-standard free fall (a unit of acceleration) but which is associated
+standard free fall (a unit of accelleration) but which is associated
 with gram in the new package.
 
 @node Obtain, Install, Differences, Top
@@ -122,19 +123,19 @@ cd /usr/local/src
 gunzip -c udunits-@value{VERSION}.tar.gz | pax -r
 @end example
 
-@node Install, Support, Obtain, Top
+@node Install, Database, Obtain, Top
 @chapter Installing this Package
 @cindex installing this package
 
 @menu
-* Short::        Short installation instructions
+* Short::        Short intallation instructions
 * Long::         Long installation instructions
 * What::         What gets installed
 @end menu
 
 @node Short, Long, , Install
 @section Short Installation Instructions
-Not all development environments can build and install this package.
+Not all development enviroments can build and install this package.
 See the long instructions in the next section for details.
 
 The following assumes that you are familiar with autoconf-based
@@ -145,9 +146,9 @@ next section.
 @example
 ./configure [--prefix=@var{root}] [--disable-shared] [CC=@var{path}]
 make
-make check    # optional; requires CUNIT installation
-make install
-make install-info install-html install-pdf
+make check                      # optional; requires CUNIT installation
+make install                    # also installs INFO documentation
+make install-html install-pdf   # optional
 make clean
 @end example
 
@@ -240,7 +241,8 @@ package.
 
 @item
 Install the @ref{Top, , library, udunits2lib}, 
-@ref{Top, , utility, udunits2prog}, header-files, and units-database by making 
+@ref{Top, , utility, udunits2prog}, header-files, units-database, and
+INFO documentation files by making 
 the @code{install} target using the @var{make} utility from
 step 2:
 @example
@@ -248,11 +250,11 @@ step 2:
 @end example
 
 @item
-If desired, install the documentation by making 
+If desired, install the HTML and PDF documentation files by making 
 one or more of the following targets 
 using the @var{make} utility from step 2:
 @example
-@var{make} install-info install-html install-pdf
+@var{make} install-html install-pdf
 @end example
 
 @item
@@ -266,8 +268,7 @@ from step 2:
 @node What, , Long, Install
 @section What Gets Installed
 
-By default, the following files are created or installed under the
-installation directory:
+The following files are created or installed under the installation directory:
 
 @example
 bin/:
@@ -315,7 +316,22 @@ udunits2-derived.xml    # Derived units of the SI
 udunits2-prefixes.xml   # SI unit prefixes
 @end example
 
-@node Support, Complete Index, Install, Top
+@node Database, Support, Install, Top
+@chapter The Units Database
+@cindex database
+
+The database for the UDUNITS-2 package comprises one XML file containing
+unit prefixes and four XML files containing unit definitions:
+
+@itemize
+@item @uref{../../udunits/udunits2-prefixes.xml,SI unit prefixes}
+@item @uref{../../udunits/udunits2-base.xml,SI base units}
+@item @uref{../../udunits/udunits2-derived.xml,SI derived units}
+@item @uref{../../udunits/udunits2-accepted.xml,Units accepted for use with the SI}
+@item @uref{../../udunits/udunits2-common.xml,Non-SI units}
+@end itemize
+
+@node Support, Complete Index, Database, Top
 @chapter Support for this Package
 @cindex support
 @cindex package, support

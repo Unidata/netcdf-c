@@ -15,7 +15,7 @@ AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 LDADD += $(top_builddir)/cxx4/libnetcdf_c++4.la 
 
 # See comments in libsrc/Makefile.am about the version number.
-libnetcdf_c__4_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 
+libnetcdf_c__4_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:1:0 
 
 # These headers will be installed in the users header directory.
 include_HEADERS = netcdf \

@@ -1416,6 +1416,13 @@ endName(
                         }
                     }
                 }                       /* <noplural/> not specified */
+                if (strcmp(currFile->singular, "second") == 0) {
+                    if (ut_set_second(currFile->unit) != UT_SUCCESS) {
+                        ut_handle_error_message(
+                            "Couldn't set \"second\" unit in unit-system");
+                        XML_StopParser(currFile->parser, 0);
+                    }
+                }                       /* unit was 'second' unit */
             }                           /* unit mapped to singular name */
         }                               /* singular name specified */
 
@@ -2139,18 +2146,6 @@ ut_read_xml(
         if (status == UT_OPEN_ARG) {
             status = openError;
         }
-        else if (status == UT_SUCCESS) {
-            ut_unit*	second = ut_get_unit_by_name(unitSystem, "second");
-
-            if (second != NULL) {
-                if (ut_set_second(second) != UT_SUCCESS)
-                    ut_handle_error_message(
-                        "Couldn't set \"second\" unit in unit-system");
-
-                ut_free(second);
-            }                   /* second != NULL */
-        }                       /* XML successfully read */
-
         if (status != UT_SUCCESS) {
             ut_free_system(unitSystem);
             unitSystem = NULL;

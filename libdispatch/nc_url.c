@@ -17,11 +17,13 @@ static void nc_urlparamfree(NClist* params);
 int
 nc_urlparse(const char* url0, NC_URL** ncurlp)
 {
-    char* url;
+    NCerror ncstat = NC_NOERR;
+    char* url = NULL;
     char* p;
     char* p1;
     int c;
     NC_URL* ncurl;
+    size_t protolen;
 
     /* accumulate parse points*/
     char* protocol = NULL;
@@ -47,7 +49,10 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 	params = p+1;
 	/* find end of the clientparams*/
         for(;*p;p++) {if(p[0] == RBRACKET && p[1] != LBRACKET) break;}
-	if(*p == 0) return NC_EINVAL; /* malformed client params*/
+	if(*p == 0) {
+	    ncstat = NC_EINVAL; /* malformed client params*/
+	    goto done;
+	}
 	*p = '\0'; /* leave off the trailing rbracket for now */
 	p++; /* move past the params*/
     }
@@ -57,11 +62,22 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     /* Note that we dont care what the protocol is ; just collect it */
     /* find the end of the protocol */
     p1 = strchr(p,':');
-    if(p1 == NULL || p1 == p) return NC_EINVAL; /* missing protocol*/
+    if(p1 == NULL || p1 == p) {
+	ncstat = NC_EINVAL; /* missing protocol*/
+        goto done;
+    }
+    /* Check that the : is followed by "//" */
+    if(p1[1] != '/' || p1[2] != '/') {
+	ncstat = NC_EINVAL;
+	goto done;
+    }
+
     /* Simulate strndup */
-    protocol = malloc((size_t)(p1-p));
+    protolen = (size_t)(p1-p);
+    protocol = malloc(1+protolen);
     if(protocol == NULL) return NC_ENOMEM;
-    strncpy(protocol,p,(p1-p));
+    strncpy(protocol,p,protolen);
+    protocol[protolen] = '\0';
     /* Look for '?' */
     constraint = strchr(p,'?');
     if(constraint) {
@@ -95,8 +111,9 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 		ncurl->params, ncurl->base, ncurl->projection, ncurl->selection);
 #endif
 
-    free(url);
-    return NC_NOERR;
+done:
+    if(url != NULL) free(url);
+    return ncstat;
 
 }
 

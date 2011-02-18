@@ -91,11 +91,6 @@ TOOBIG="parserBug0001 test.satimage Sat_Images test.06 test.32"
 # Following contain %XX escapes which I cannot handle yet
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
-REMOTEURLA="http://test.opendap.org/dap/data/nc"
-REMOTETESTSA="\
-test.nc\
-"
-
 # Following tests are to check constraint handling
 REMOTEURLC1="http://test.opendap.org:8080/dods/dts"
 REMOTETESTSC1="\
@@ -139,7 +134,7 @@ SVCFAILTESTS3="GLOBEC_cetaceans.1 GLOBEC_cetaceans.2"
 SVCFAILTESTS4="$SVCFAILTESTS3"
 
 # Misc tests not currently used
-REMOTEURL0="http://test.opendap.org/dap/netcdf/examples"
+REMOTEURL0="http://test.opendap.org/opendap/netcdf/examples"
 REMOTETESTS0="\
 cami_0000-09-01_64x128_L26_c030918.nc \
 ECMWF_ERA-40_subset.nc \

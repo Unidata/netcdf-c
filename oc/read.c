@@ -63,14 +63,14 @@ readpacket(CURL* curl,DAPURL* url,OCbytes* packet,OCdxd dxd,long* lastmodified)
    int fileprotocol = 0;
    char* suffix = ocdxdextension[dxd];
 
-   fileprotocol = (strncmp(url->base,"file:",5)==0);
+   fileprotocol = (strncmp(url->base,"file",4)==0);
 
    if(fileprotocol && !oc_curl_file_supported) {
         /* Short circuit file://... urls*/
 	/* We do this because the test code always needs to read files*/
 	stat = readfile(url->base,suffix,packet);
     } else {
-        char* fetchurl = dapurlgeturl(url,NULL,suffix,!fileprotocol);
+        char* fetchurl = dapurlgeturl(url,NULL,suffix,!fileprotocol,0);
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
@@ -97,14 +97,14 @@ readDATADDS(OCstate* state, OCtree* tree)
    DAPURL* url = &state->url;
    int fileprotocol = 0;
 
-   fileprotocol = (strncmp(url->base,"file:",5)==0);
+   fileprotocol = (strncmp(url->base,"file",4)==0);
 
     if(fileprotocol && !oc_curl_file_supported) {
 	stat = readfiletofile(url->base, ".dods", tree->data.file, &tree->data.datasize);
     } else {
         char* fetchurl;
         dapurlsetconstraints(url,tree->constraint);
-        fetchurl = dapurlgeturl(url,NULL,".dods",!fileprotocol);
+        fetchurl = dapurlgeturl(url,NULL,".dods",!fileprotocol,0);
         MEMCHECK(fetchurl,OC_ENOMEM);
 	if (ocdebug > 0) 
 	    {fprintf(stderr, "fetch url=%s\n", fetchurl);fflush(stderr);}

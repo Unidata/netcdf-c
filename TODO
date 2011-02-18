@@ -1,5 +1,0 @@
-This branch is being used to:
-1. support dods:/dap:/cdmremote:/cdmr:  prefixes
-2. add cdmremote
-3. move logging into libdispatch so it can be used
-   everywhere

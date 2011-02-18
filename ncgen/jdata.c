@@ -23,6 +23,7 @@ jdata_array(Symbol* vsym,
 {
     int i;
     int rank = odom->rank;
+    int firstdim = (index == 0); /* first dimension*/
     int lastdim = (index == (rank - 1)); /* last dimension*/
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
@@ -33,7 +34,8 @@ jdata_array(Symbol* vsym,
 
     count = odom->count[index];
 
-    if(isunlimited && issublist(src)) {
+    /* Unpack the nested unlimited (unless first dimension)*/
+    if(!firstdim && isunlimited && issublist(src)) {
 	srcpush(src);
 	pushed = 1;
     }

@@ -54,13 +54,14 @@ cdata_array(Symbol* vsym,
     size_t count;
     Symbol* basetype = vsym->typ.basetype;
     int lastdim = (index == (rank - 1)); /* last dimension*/
+    int firstdim = (index == 0); /* first dimension*/
     int isunlimited = (odom->declsize[index] == 0);
 
     ASSERT(index >= 0 && index < rank);
 
     count = odom->count[index];
 
-    if(isunlimited && issublist(src)) {
+    if(!firstdim && isunlimited && issublist(src)) {
 	srcpush(src);
 	pushed = 1;
     }
@@ -106,7 +107,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 	    semerror(srcline(datasrc),"Compound data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];
@@ -131,7 +132,7 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         con = srcnext(datasrc);
-	if(con->nctype == NC_FILLVALUE) {
+	if(con == NULL || con->nctype == NC_FILLVALUE) {
 	    Datalist* filler = getfiller(tsym,fillsrc);
 	    ASSERT(filler->length == 1);
 	    con = &filler->data[0];

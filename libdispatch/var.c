@@ -318,9 +318,10 @@ NC_get_varm(int ncid, int varid, const size_t *start,
       getshape(ncid,varid,varndims,varshape);	
 
       /*
-       * Verify stride argument.
+       * Verify stride argument; also see if stride is all ones
        */
-      if(stride != NULL)
+      if(stride != NULL) {
+	 int stride1 = 1;
 	 for (idim = 0; idim <= maxidim; ++idim)
 	 {
             if (stride[idim] == 0
@@ -329,7 +330,15 @@ NC_get_varm(int ncid, int varid, const size_t *start,
             {
 	       return NC_ESTRIDE;
             }
+	    if(stride[idim] != 1) stride1 = 0;
 	 }
+         /* If stride1 is true, and there is no imap 
+            then call get_vara directly.
+         */
+         if(stride1 && imapp == NULL) {
+	     return NC_get_vara(ncid, varid, start, edges, value, memtype);
+	 }
+      }
 
       /* assert(sizeof(ptrdiff_t) >= sizeof(size_t)); */
       /* Allocate space for mystart,mystride,mymap etc.all at once */
@@ -562,15 +571,13 @@ NC_put_varm(
       size_t varshape[NC_MAX_VAR_DIMS];
       int isrecvar;
       size_t numrecs;
-
-      /* Compute some dimension related values */
-      isrecvar = is_recvar(ncid,varid,&numrecs);
-      getshape(ncid,varid,varndims,varshape);	
+      int stride1; /* is stride all ones? */
 
       /*
        * Verify stride argument.
        */
       if(stride != NULL)
+	 stride1 = 1;
 	 for (idim = 0; idim <= maxidim; ++idim)
 	 {
             if ((stride[idim] == 0)
@@ -579,7 +586,19 @@ NC_put_varm(
             {
 	       return NC_ESTRIDE;
             }
+	    if(stride[idim] != 1) stride1 = 0;
 	 }
+
+      /* If stride1 is true, and there is no imap, then call get_vara
+         directly
+      */
+      if(stride1 && imapp == NULL) {
+	 return NC_put_vara(ncid, varid, start, edges, value, memtype);
+      }
+
+      /* Compute some dimension related values */
+      isrecvar = is_recvar(ncid,varid,&numrecs);
+      getshape(ncid,varid,varndims,varshape);	
 
       /* assert(sizeof(ptrdiff_t) >= sizeof(size_t)); */
       mystart = (size_t *)calloc(varndims * 7, sizeof(ptrdiff_t));
@@ -700,7 +719,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const ptrdiff_t *stride, void *value,
 	    nc_type memtype)
 {
-   return NC_get_varm(ncid, varid, start, edges, stride, 0, 
+   return NC_get_varm(ncid, varid, start, edges, stride, NULL,
 		      value, memtype);
 }
 
@@ -710,7 +729,7 @@ NC_put_vars(int ncid, int varid, const size_t *start,
 	    const void *value, nc_type memtype)
 {
    return NC_put_varm(ncid, varid, start, edges,
-		      stride, 0, value, memtype);
+		      stride, NULL, value, memtype);
 }
 
 /* Ok to use NC pointers because

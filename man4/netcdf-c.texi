@@ -1387,7 +1387,7 @@ and attributes.
 If the NC_NETCDF4 flag is used, the HDF5 library is used for parallel
 I/O. If not, the parallel-netcdf library is used.
 
-When a file is created for parallel access, collective operations are
+When a file is created for parallel access, independent operations are
 the default. To use independent access on a variable,
 @xref{nc_var_par_access}.
 
@@ -1677,7 +1677,7 @@ opens the file using either MPI-IO or MPI-POSIX.
 
 DAP access is not allowed with parallel I/O.
 
-When netCDF opens a file for parallel access, collective operations
+When netCDF opens a file for parallel access, independent operations
 are the default. To use independent access on a variable,
 @xref{nc_var_par_access}.
 
@@ -3372,7 +3372,8 @@ An error was reported by the HDF5 layer.
 @section Find a Group by Name: nc_inq_grp_ncid
 @findex nc_inq_grp_parent
 
-Given a group name an an ncid, find the ncid of the group id. 
+Given a group location id and the name of an immediate subgroup, find
+the location id of the named subgroup. 
 
 @heading Usage 
 
@@ -3383,13 +3384,13 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid);
 @table @code
 
 @item ncid
-The group id to look in.
+The location id of the group in which to look.
 
 @item grp_name
-The name of the group that should be found.
+The name of a subgroup.
 
 @item grp_ncid
-A pointer to int which will get the group id, if it is found.
+A pointer to int which will get the group id of the named subgroup, if it is found.
 
 @end table
 
@@ -3409,7 +3410,7 @@ Bad group id.
 No name provided or name longer than NC_MAX_NAME.
 
 @item NC_ENOGRP
-Named group not found.
+Named subgroup not found.
 
 @item NC_ENOTNC4
 Attempting a netCDF-4 operation on a netCDF-3 file. NetCDF-4
@@ -10332,16 +10333,17 @@ One or more values out of range.
 @cindex nc_var_par_access, example
 
 The function nc_var_par_access changes whether read/write operations
-on a parallel file system are performed collectively (the default) or
-independently on the variable. This function can only be called if the
-file was created with nc_create_par (see @ref{nc_create_par}) or opened
-with nc_open_par (see @ref{nc_open_par}).
+on a parallel file system are performed collectively or independently
+(the default) on the variable. This function can only be called if the
+file was created with nc_create_par (see @ref{nc_create_par}) or
+opened with nc_open_par (see @ref{nc_open_par}).
 
 Calling this function affects only the open file - information about
 whether a variable is to be accessed collectively or independently is
 not written to the data file. Every time you open a file on a parallel
-file system, all variables default to collective operations. The change
-a variable to independent lasts only as long as that file is open.
+file system, all variables default to independent operations. The
+change a variable to collective I/O lasts only as long as that file is
+open.
 
 The variable can be changed from collective to independent, and back,
 as often as desired.

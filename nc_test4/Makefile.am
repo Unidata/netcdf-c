@@ -63,6 +63,11 @@ endif # USE_HDF4
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
+if USE_NETCDF4
+TESTS_ENVIRONMENT=USE_NETCDF4=1
+else
+TESTS_ENVIRONMENT=USE_NETCDF4=0
+endif
 TESTS += run_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
 

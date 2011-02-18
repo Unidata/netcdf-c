@@ -32,7 +32,8 @@ ref_tst_small \
 small2 \
 tst_ncml
 n3time \
-ref_tst_chardata"
+ref_tst_chardata \
+unlimtest1"
 
 NONCLASSIC3="\
 test0 \
@@ -72,7 +73,9 @@ ref_tst_solar_1 \
 ref_tst_solar_2 \
 ref_tst_enum_data \
 ref_tst_special_atts \
-ref_tst_nans"
+ref_tst_nans \
+ref_solar \
+unlimtest2"
 
 SPECIALTESTS3="ref_tst_special_atts3"
 

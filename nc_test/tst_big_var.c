@@ -34,7 +34,7 @@
  * when creating a byte variable for which the product of dimensions
  * is greater than 2**32.  Check that this bug has been fixed.
  */
-static void
+static int
 test_big_var(const char *testfile) 
 {
     int ncid, varid, dimids[NUMDIMS];
@@ -60,6 +60,7 @@ test_big_var(const char *testfile)
     if (nc_get_var1_int(ncid, varid, index, &nval_in)) ERR;
     if (nval != nval_in) ERR;
     if (nc_close(ncid)) ERR;
+    return 0;
 }
 
 int

@@ -361,7 +361,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* Allocate the storage for this file info struct, and fill it with
       zeros. This add the file metadata to the front of the global
       nc_file list. */
-   if ((res = nc4_file_list_add(&nc_file,dispatch)))
+   if ((res = nc4_file_list_add(&nc_file, dispatch)))
       return res;
 
    /* Apply default create format. */
@@ -387,10 +387,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    else if (cmode & NC_PNETCDF)
    {
       nc_file->pnetcdf_file++;
-      res = ncmpi_create(comm, path, cmode, info, 
-			 &(nc_file->int_ncid));      
-      if (!res)
-	 res = ncmpi_begin_indep_data(nc_file->int_ncid);
+      res = ncmpi_create(comm, path, cmode, info, &(nc_file->int_ncid));      
    }
 #endif /* USE_PNETCDF */
    else 
@@ -2552,8 +2549,6 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
 
-   /* Deal with netcdf-3 files one way, netcdf-4 another way.  */
-   assert(nc->nc4_info);
    return NC4_enddef(ncid);
 }
 
@@ -2570,7 +2565,16 @@ static int NC4_enddef(int ncid)
 
 #ifdef USE_PNETCDF
    if (nc->pnetcdf_file)
-      return ncmpi_enddef(nc->int_ncid);
+   {
+      int res;
+      res = ncmpi_enddef(nc->int_ncid);
+      if (!res)
+      {
+	 if (nc->pnetcdf_access_mode == NC_INDEPENDENT)
+	    res = ncmpi_begin_indep_data(nc->int_ncid);
+      }
+      return res;
+   }
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */

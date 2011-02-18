@@ -38,6 +38,7 @@ group: g2 {
     variables:
     	float var(dim) ;
     		var:units = "mm/msec" ;
+    	float var2(/dim, /g2/dim, dim) ;
 
     // group attributes:
     		:title = "in third group" ;

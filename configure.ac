@@ -17,7 +17,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2-beta2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2-beta3], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -131,10 +131,22 @@ test "x$with_libcf" = xyes || with_libcf=no
 AC_MSG_RESULT($with_libcf)
 
 # Does the user want to turn on HDF4 read ability?
-AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
 test "x$enable_hdf4" = xyes || enable_hdf4=no
+
+# Did the user specify a location for the HDF4 library?
+AC_MSG_CHECKING([whether a location for the HDF4 library was specified])
+AC_ARG_WITH([hdf4],
+              [AS_HELP_STRING([--with-hdf4=<directory>],
+                              [Specify location of HDF4 library. Configure will \
+			      expect to find subdirs include and lib.])],
+            [HDF4DIR=$with_hdf4])
+AC_MSG_RESULT([$HDF4DIR])
+AC_SUBST(HDF4DIR, [$HDF4DIR])
+test "x$with_hdf4" = "x" || enable_hdf4=yes
+
+AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_MSG_RESULT($enable_hdf4)
 
 # Does the user want to turn on extra HDF4 file tests?
@@ -165,6 +177,7 @@ if test "x$PNETCDFDIR" = "x" ; then
 AC_MSG_RESULT([no])
 else
 AC_MSG_RESULT([$PNETCDFDIR])
+enable_pnetcdf=yes
 fi
 AC_SUBST(PNETCDFDIR, [$PNETCDFDIR])
 
@@ -243,16 +256,6 @@ AC_ARG_WITH([szlib],
 AC_MSG_RESULT([$SZLIBDIR])
 AC_SUBST(SZLIBDIR, [$SZLIBDIR])
 
-# Did the user specify a location for the HDF4 library?
-AC_MSG_CHECKING([whether a location for the HDF4 library was specified])
-AC_ARG_WITH([hdf4],
-              [AS_HELP_STRING([--with-hdf4=<directory>],
-                              [Specify location of HDF4 library. Configure will \
-			      expect to find subdirs include and lib.])],
-            [HDF4DIR=$with_hdf4])
-AC_MSG_RESULT([$HDF4DIR])
-AC_SUBST(HDF4DIR, [$HDF4DIR])
-
 # Did the user specify a default chunk size?
 AC_MSG_CHECKING([whether a default chunk size in bytes was specified])
 AC_ARG_WITH([default-chunk-size],
@@ -317,6 +320,16 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
+# Capture the state of the --enable-cdmremote flag
+AC_MSG_CHECKING([whether cdmremote client is to be built])
+AC_ARG_ENABLE([cdmremote],
+                 [AS_HELP_STRING([--enable-cdmremote],
+                                 [build with cdmremote client support.])])
+test "x$enable_cdmremote" = xyes || enable_cdmremote=no
+# CDMREMOTE requires netCDF-4
+if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
+AC_MSG_RESULT($enable_cdmremote)
+
 # Figure out if curl support should be enabled.
 # The primary goal is to first locate curl-config
 # or the curl library location
@@ -328,6 +341,8 @@ AC_MSG_RESULT([$enable_logging])
 #         and the curl library can be located
 # Note that for now, cdmremote must be explicitly enabled
 
+# First capture all the info unconditionally
+
 # Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
 AC_ARG_ENABLE([dap],
@@ -336,117 +351,105 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# Capture the state of the --enable-cdmremote flag
-AC_MSG_CHECKING([whether cdmremote client is to be built])
-AC_ARG_ENABLE([cdmremote],
-                 [AS_HELP_STRING([--enable-cdmremote],
-                                 [build with cdmremote client support.])])
-test "x$enable_cdmremote" = xyes || enable_cdmremote=no
-# CDMREMOTE requires netCDF-4
-if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
-AC_MSG_RESULT($enable_cdmremote)
-
-# If --disable-dap && cdmremote , then make no attempt to locate curl
+# If --disable-dap && cdmremote , then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
 fi
 
-if test "$require_curl" = yes ; then
-
-# Try to locate curl
-curlsrc=
-AC_MSG_CHECKING([whether a path for curl-config was specified])
+# Try to locate curl-config
+#
 AC_ARG_WITH([curl-config], [AS_HELP_STRING([--with-curl-config=<path>],
             [Specify path (or the containing directory) of the curl-config program; libcurl is required for opendap.])],
-            [curlsrc="withconfig"],[])
-if test "x$curlsrc" = "x" ; then
+            [],[])
+
+AC_MSG_CHECKING([whether a path for curl-config was specified])
+if test "x$with_curl_config" = "x" ; then
   AC_MSG_RESULT([no])
 else
   AC_MSG_RESULT([$with_curl_config])
-  # Perhaps the user specified the containing directory
-  if test -f $with_curl_config/curl-config ; then
-    with_curl_config="$with_curl_config/curl-config"
-    curlsrc="withconfig"    
-  fi  
-  #verify
-  if $with_curl_config --prefix >/dev/null 2>&1 ; then ignore=1; else
-    AC_MSG_ERROR([Erroneous --with-curl-config value])
-  fi
 fi
 
 # Alternatively, allow specification of the curl installation directory
 AC_MSG_CHECKING([whether a location for curl installation was specified])
 AC_ARG_WITH([curl], [AS_HELP_STRING([--with-curl=<directory>.],
             [Specify location of CURL library; libcurl is required for opendap. Configure will expect to find subdirs bin, include and lib.])],
-            [curlsrc="with"],[])
-if test "x$curlsrc" = "xwith" ; then
-  AC_MSG_RESULT([$with_curl])
-  # look for curl-config
-  if $with_curl/bin/curl-config --version >/dev/null 2>&1 ; then
-    # pretend that --with-curl-config was specified
-    curlsrc="withconfig"
-    with_curl_config="$with_curl/bin/curl-config"
-    AC_MSG_NOTICE([checking for curl-config using --with-curl... yes])
-  else
-    AC_MSG_NOTICE([checking for curl-config using --with-curl... no])
-  fi
-else
+            [],[])
+if test "x$with_curl" = "x" ; then
   AC_MSG_RESULT([no])
-fi
-
-if test "x$curlsrc" = "x" ; then
-  # look for curl-config in the path
-  if curl-config --version >/dev/null 2>&1 ; then
-    with_curl_config="curl-config"
-    curlsrc="withconfig"
-    AC_MSG_NOTICE([checking whether a location for curl-config is in PATH... yes])
-  else
-    AC_MSG_NOTICE([checking whether a location for curl-config is in PATH... no])
-  fi
-fi
-
-# Compute the curl flags and libs
-if test -n "$with_curl_config" ; then
-  curl_cflags=`$with_curl_config --cflags`
-  curl_libs=`$with_curl_config --libs`
-  curl_dir=`$with_curl_config --prefix`
-elif test -n "$with_curl" ; then
-  curl_libs="-L$with_curl/lib -lcurl"
-  curl_cflags="-I$with_curl/include"
-  curl_dir="$with_curl"
 else
-  AC_MSG_ERROR([Cannot locate neither curl-config or a curl directory])
+  AC_MSG_RESULT([$with_curl])
 fi
 
-# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-havekeypasswd=0
+# Remaining computations are only invoked if curl is required.
+if test "$require_curl" = yes ; then
 
-if test -n "$with_curl_config" ; then
-  curlver=`curl-config --version`
-  curlver=`echo $curlver|cut -d ' ' -f2`
-  curlmajor=`echo $curlver|cut -d '.' -f1`
-  curlminor=`echo $curlver|cut -d '.' -f2`
-  curlpatch=`echo $curlver|cut -d '.' -f3`
-  if test "x$curlpatch" = "x"; then curlpatch=0 ; fi
+  # Tag to indicate where curl info came from
+  curlsrc=
 
-  if test $curlmajor -gt 7 ; then
-    havekeypasswd=1
-  elif test $curlmajor -eq 7 ; then
-    if test $curlminor -gt 16 ; then
-      havekeypasswd=1
-    elif test $curlminor -eq 16 ; then
-      if test $curlpatch -ge 4 ; then
-        havekeypasswd=1
-      fi
+  if test "x$with_curl_config" != "x" ; then
+    curlsrc="withconfig"
+  elif test "x$with_curl" != "x" ; then
+    curlsrc="withcurl"
+  else
+    curlsrc=""
+  fi  
+
+  # if curl source was --with-curl
+  # then try to locate curl-config
+
+  if test "x$curlsrc" = "xwithcurl" ; then
+    # look for curl-config in --with-curl directory
+    if $with_curl/bin/curl-config --version >/dev/null 2>&1 ; then
+      # Pretend that --with-curl-config was specified
+      with_curl_config="$with_curl/bin/curl-config"
+      curlsrc="withconfig"
+    fi
+  elif test "x$curlsrc" = "xwithconfig" ; then  
+    # look for curl-config using --with-curl-config,
+    # allow for some errors in specifying.
+    if $with_curl_config --version >/dev/null 2>&1 ; then
+      # User specified curl-config directly
+      with_curl_config="$with_curl_config"
+    elif $with_curl_config/curl-config --version >/dev/null 2>&1 ; then
+      # User specified curl-config parent directory
+      with_curl_config="$with_curl_config/curl-config"
+    elif $with_curl_config/bin/curl-config --version >/dev/null 2>&1 ; then
+      # User specified same dir as --with-curl
+      with_curl_config="$with_curl_config/bin/curl-config"
+    else
+      AC_MSG_ERROR([Erroneous --with-curl-config value: ${with_curl_config}])
+      with_curl_config="" # not found
+    fi
+  else
+    # look for curl-config in the path
+    if curl-config --version >/dev/null 2>&1 ; then
+      with_curl_config="curl-config"
+      curlsrc="withconfig"
     fi
   fi
-fi #with-curl_config
 
-if test $havekeypasswd -eq 1; then
-AC_DEFINE([HAVE_CURLOPT_KEYPASSWD], [1], [CURLOPT_KEYPASSWD is defined])
-fi
+  # report on finding of curl-config
+  AC_MSG_CHECKING([checking whether a location for curl-config found])
+  if test "x$with_curl_config" = "x" ; then
+    AC_MSG_RESULT([no])
+  else
+    AC_MSG_RESULT([${with_curl_config}])
+  fi
+
+  # Compute the curl flags and libs
+  if test "x$with_curl_config" != "x" ; then
+    curl_cflags=`$with_curl_config --cflags`
+    curl_libs=`$with_curl_config --libs`
+    curl_dir=`$with_curl_config --prefix`
+  elif test "x$with_curl" != "x" ; then
+    curl_libs="-L$with_curl/lib -lcurl"
+    curl_cflags="-I$with_curl/include"
+    curl_dir="$with_curl"
+  else
+    AC_MSG_ERROR([Cannot locate neither curl-config or a curl directory])
+  fi
 
 else #!require_curl
 
@@ -463,14 +466,13 @@ AC_SUBST([CURL_LIBS],[${curl_libs}])
 AC_SUBST([CURLDIR],[${curl_dir}])
 
 # If curl is required but there is no curl, then complain
-if test -z "$curlsrc" ; then
+if test "x$curlsrc" = "x" ; then
   if test "x$require_curl" = "xyes" ; then
      AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
   fi
   enable_dap=no
   enable_cdmremote=no
 fi
-
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
@@ -824,6 +826,23 @@ AC_PROG_CC(xlc cc c89 acc gcc)
 AM_PROG_CC_C_O
 AC_C_CONST
 
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+
+# Save/restore CFLAGS
+SAVECFLAGS="$CFLAGS"
+CFLAGS="${curl_cflags}"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_KEYPASSWD;]])],
+                   [havekeypassword=yes],
+                   [havekeypassword=no])
+AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_RESULT([${havekeypassword}])
+if test $havekeypassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
+fi
+CFLAGS="$SAVECFLAGS"
+
 # If the user set environment var FC, but not F77, then set F77=FC
 if test "x${FC+set}" = xset -a "x${F77+set}" != xset; then
    F77=${FC}
@@ -974,9 +993,9 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.4])
-#LT_INIT
-#LT_INIT(win32-dll)
-AC_PROG_LIBTOOL
+LT_INIT(win32-dll)
+#AC_PROG_LIBTOOL
+lt_cv_ld_force_load=no
 
 # Valgrind tests don't work with shared builds because of some libtool
 # weirdness.
@@ -1175,6 +1194,15 @@ fi
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
 AC_MSG_RESULT([$enable_netcdf_4])
 
+if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
+   AC_CHECK_LIB([z], [deflate], [], [nc_z_lib_missing=yes])
+   if test "x$nc_z_lib_missing" = xyes; then
+      AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
+   fi
+fi
+
+
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
@@ -1182,13 +1210,15 @@ if test "x$enable_netcdf_4" = xyes; then
    # Check for the main hdf5 library.
    AC_CHECK_LIB([hdf5], [H5Fflush], [], [nc_hdf5_lib_missing=yes])
    if test "x$nc_hdf5_h_missing" = xyes || test "x$nc_hdf5_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # We also require the HDF5 High Level library.
    AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [nc_hdf5_hl_lib_missing=yes])
    if test "x$nc_hdf5_hl_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --disable-netcdf-4 or see config.log for errors.])
+      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])
    fi
    
    # The user may have parallel HDF5 based on MPI POSIX.
@@ -1343,7 +1373,7 @@ AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 UD_FTPBINDIR
 
 ##################################################
-# DRNO and OC configuration
+# OC configuration
 
 # Require some version of xdr/rpc
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
@@ -1362,6 +1392,7 @@ else
     # Add to library list
     AC_CHECK_LIB($dap_xdrlib,xdr_void)
   fi
+fi
 # Fix to get working on OS X (thanks to Fedor Baart)
 AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
@@ -1369,7 +1400,6 @@ AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
      ], [], [[#ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h>
 #endif]])
-fi
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
@@ -1515,6 +1545,10 @@ xsolaris*)
   ;;
 *);;
 esac
+
+# Finally, add -lz always
+#EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
+
 # Alias
 EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
 AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])

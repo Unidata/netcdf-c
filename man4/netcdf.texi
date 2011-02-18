@@ -151,7 +151,7 @@ NetCDF Utilities
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
-* nccopy::                      Copying, Converting, and Compressing Data Files 
+* nccopy::                      Copying, Converting, Compressing, and Chunking Data Files 
 * ncgen3::                      Turning CDL into Classic Data Files
 
 File Format Specification
@@ -3964,7 +3964,7 @@ create the netCDF dataset
 @item nccopy
 reads a netCDF dataset using the netCDF programming interface and
 copies it, optionally to a different kind of netCDF dataset, and
-optionally with compression
+optionally with compression or chunking
 
 @end table
 
@@ -3988,7 +3988,7 @@ Description Language).
 * CDL Constants::               Constant Values in CDL
 * ncgen::                       Turning CDL into Classic or Enhanced Data Files
 * ncdump::                      Turning Data Files into CDL (or XML)
-* nccopy::                      Copying, Converting, and Compressing Data Files
+* nccopy::                      Copying, Converting, Compressing, and Chunking Data Files
 * ncgen3::                      Turning CDL into Classic Data Files
 @end menu
 
@@ -4638,7 +4638,7 @@ if built with the netCDF-3 library, a netCDF classic file may be
 copied to a netCDF 64-bit offset file, permitting larger variables.
 If built with the netCDF-4 library, a netCDF classic file may be
 copied to a netCDF-4 file or to a netCDF-4 classic model file as well,
-permitting data compression, later efficient schema changes, larger
+permitting data compression, data chunking, efficient schema changes, larger
 variable sizes, and use of other netCDF-4 features in case the output
 uses the enhanced netCDF model.
 
@@ -4646,7 +4646,7 @@ The nccopy source also serves as an example of a @dfn{generic}
 netCDF-4 program, with its ability to read any valid netCDF file and
 handle strings, arbitrarily nested groups, any user-defined types,
 (including arbitrarily nested compound types and variable-length
-types), and data of any valid netCDF-4 type.  Functions from an
+types), and data of any valid netCDF-4 type.  Functions from and
 fragments of the nccopy source may be useful to other developers for
 writing generic programs that handle or write arbitrary netCDF data.
 
@@ -4658,7 +4658,8 @@ netCDF files.
 UNIX syntax for invoking nccopy:
 
 @example
-nccopy  [ -k kind]  [ -d n]  [ -s ]  [ -u ]  [ -m bufsize]  input  output
+nccopy  [ -k kind]  [ -d n]  [ -s ]  [ -u ]  [ -c chunkspec ]
+        [ -m bufsize] input  output
 @end example
 
 where:
@@ -4683,13 +4684,14 @@ netCDF-3 classic data model but may use netCDF-4/HDF5 features such as
 compression and chunking.
 @end itemize
 If no value for -k is specified, then the output will use the same
-format as the input, except that if the input is classic or 64-bit
-offset and a compression level is specified with the -d option, then
-the output will be netCDF-4 classic model.  Note that attempting some
+format as the input.  However, if the input is classic or 64-bit
+offset and a compression level is specified with the -d option or
+chunking is specified with the -c option, then
+the output will be netCDF-4 classic model format.  Note that attempting some
 kinds of format conversion will result in an error, if the conversion
 is not possible.  For example, an attempt to copy a netCDF-4 file that
 uses features of the enhanced model to any of the other kinds of
-netCDF formats that use the classic model will result an error.
+netCDF formats that use the classic model will result in an error.
 
 @item -d n
 Specify deflation level (level of compression) for variable data in
@@ -4702,7 +4704,12 @@ classic format or 64-bit offset format input file, it is not necessary
 to also specify that the output should be netCDF-4 classic model, as
 that will be the default.  If this option is not specified and the
 input file has compressed variables, the compression will still be
-preserved in the output, using the same chunking as in the input.
+preserved in the output, using the same chunking as in the input
+unless the -c option is used to specify different chunking.
+
+Note that nccopy requires all variables to be compressed using
+the same compression level, but the API has no such restriction.  With
+a program you can customize compression for each variable independently.
 
 @item -s
 Specify shuffling of variable data bytes before compression or after
@@ -4713,6 +4720,37 @@ compression.
 @item -u
 Convert any unlimited size dimensions in the input to fixed size
 dimensions in the output.
+
+@item -c chunkspec
+Specify chunking (multidimensional tiling) for variable data in the
+output, useful to specify the units of disk access, compression, or
+other filters such as checksums.  The chunkspec argument is a string
+of comma-separated associations, each specifying a dimension name, a
+`/' character, and optionally the corresponding chunk length for that
+dimension.  No blanks should appear in the chunkspec string, except
+possibly escaped blanks that are part of a dimension name.  A
+chunkspec must name at least one dimension, and may omit dimensions
+which are not to be chunked or for which the default chunk length is
+desired.  If a dimension name is followed by a `/' character but no
+subsequent chunk length, the actual dimension length is assumed.  If
+copying a classic model file to a netCDF-4 output file and not naming
+all dimensions in the chunkspec, unnamed dimensions will also use the
+actual dimension length for the chunk length.
+
+By default, fixed-size variables smaller than 1024 bytes of data will
+not be chunked even if they use dimensions mentioned in the chunkspec
+string.
+
+An example of a chunkspec for variables that use the `m' and `n'
+dimensions might be `m/100,n/200' to specify 100 by 200 chunks.  To
+see the chunking resulting from copying with a chunkspec, use ncdump
+with the `-s' option (and typically with the `-h' option) on the
+output file.
+
+Note that nccopy requires variables that share a dimension to
+also share the chunk size associated with that dimension, but the API
+has no such restriction.  With a program you can customize chunking
+for each variable independently.
 
 @item -m bufsize
 Specifies the size, in bytes, of the copy buffer used to
@@ -5467,17 +5505,19 @@ FILL_FLOAT   = \x7C \xF0 \x00 \x00       // (float) 9.9692099683868690e+36
 FILL_DOUBLE  = \x47 \x9E \x00 \x00 \x00 \x00 //(double)9.9692099683868690e+36
 @end example
 
-Note on vsize: This number is the product of the dimension lengths
+Note on @code{vsize}: This number is the product of the dimension lengths
 (omitting the record dimension) and the number of bytes per value
 (determined from the type), increased to the next multiple of 4, for
 each variable.  If a record variable, this is the amount of space per
-record.  The netCDF ``record size'' is calculated as the sum of the
-vsize's of all the record variables.
+record (except that, for backward compatibility, it always includes
+padding to the next multiple of 4 bytes, even in the exceptional case
+noted below under ``Note on padding'').  The netCDF ``record size'' is
+calculated as the sum of the @code{vsize}'s of all the record variables.
 
-The vsize field is actually redundant, because its value may be
-computed from other information in the header. The 32-bit vsize field
+The @code{vsize} field is actually redundant, because its value may be
+computed from other information in the header. The 32-bit @code{vsize} field
 is not large enough to contain the size of variables that require more
-than @math{2^32 - 4} bytes, so @math{2^32 - 1} is used in the vsize field for such
+than @math{2^32 - 4} bytes, so @math{2^32 - 1} is used in the @code{vsize} field for such
 variables.
 
 Note on names: Earlier versions of the netCDF C-library reference
@@ -5509,9 +5549,14 @@ It also means that the numrecs field in the header will not be updated
 as records are added to the file.  [This feature is not yet
 implemented].
 
-Note on padding:  In the special case of only a single record variable
-of character, byte, or short type, no padding is used between data
-values.
+Note on padding: In the special case when there is only one record
+variable and it is of type character, byte, or short, no padding is
+used between record slabs, so records after the first record do not
+necessarily start on four-byte boundaries.  However, as noted above
+under ``Note on @code{vsize}'', the @code{vsize} field is computed to
+include padding to the next multiple of 4 bytes.  In this case,
+readers should ignore @code{vsize} and assume no padding.  Writers
+should store @code{vsize} as if padding were included.
 
 Note on byte data: It is possible to interpret byte data as either
 signed (-128 to 127) or unsigned (0 to 255). When reading byte data
@@ -5555,12 +5600,20 @@ value desired.
 The external size in bytes of one data value for each possible
 netCDF type, denoted @code{extsize} below, is:
 
-NC_BYTE         1
-NC_CHAR         1
-NC_SHORT        2
-NC_INT          4
-NC_FLOAT        4
-NC_DOUBLE       8
+@multitable @columnfractions .01 .10
+@item @code{NC_BYTE}
+@tab 1
+@item @code{NC_CHAR}
+@tab 1
+@item @code{NC_SHORT}
+@tab 2
+@item @code{NC_INT}
+@tab 4
+@item @code{NC_FLOAT}
+@tab 4
+@item @code{NC_DOUBLE}
+@tab 8
+@end multitable
 
 The record size, denoted by @code{recsize} below, is the sum of the @code{vsize}
 fields of record variables (variables that use the unlimited

@@ -206,40 +206,220 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
    return NC_NOERR;
 }
 
+/* Check a set of chunksizes to see if they add up to a chunk that is too big. */
+static int
+check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
+{
+   NC_TYPE_INFO_T *type_info;
+   float total;
+   size_t type_len;
+   int d;
+   int retval;
+   
+   if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, var->xtype, 0, &type_len)))
+      return retval;
+   if ((retval = nc4_find_type(grp->file->nc4_info, var->xtype, &type_info)))
+      return retval;
+   if (type_info && type_info->class == NC_VLEN)
+      total = sizeof(hvl_t);
+   else
+      total = type_len;
+   for (d = 0; d < var->ndims; d++)
+   {
+      if (chunksizes[d] < 1)
+	 return NC_EINVAL;
+      total *= chunksizes[d];
+   }
+   
+   if (total > NC_MAX_UINT)
+      return NC_EBADCHUNK;
+
+   return NC_NOERR;
+}
+
 /* Find the default chunk nelems (i.e. length of chunk along each
  * dimension). */
 static int 
-nc4_find_default_chunksizes(NC_VAR_INFO_T *var)
+nc4_find_default_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-   int d;
-   size_t type_size, num_values = 1, num_unlim = 0;
+   int d, max_dim;
+   size_t type_size, max_len = 0;
+   float num_values = 1, num_set = 0;
+   float total_chunk_size;
+   int retval;
 
    if (var->type_info->nc_typeid == NC_STRING)
       type_size = sizeof(char *);
    else
       type_size = var->type_info->size;
 
-   /* How many values in the non-unlimited dimensions? */
+   /* Later this will become the total number of bytes in the default
+    * chunk. */
+   total_chunk_size = type_size;
+
+   /* How many values in the variable (or one record, if there are
+    * unlimited dimensions); which is the largest dimension, and how
+    * long is it? */
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
       if (var->dim[d]->len) 
-	 num_values *= var->dim[d]->len;
+	 num_values *= (float)var->dim[d]->len;
       else
-	 num_unlim++;
+	 num_set++;
+      
+      if (var->dim[d]->len > max_len)
+      {
+	 max_len = var->dim[d]->len;
+	 max_dim = d;
+      }
+      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
+	   num_values));
    }
 
-   /* Pick a chunk length for each dimension. */
+   /* If a dim is several orders of magnitude smaller than the max
+    * dimension, set it's chunk size to the full extent of the smaller
+    * dimension. */
+#define NC_DIM_MULTIPLIER 1000
    for (d = 0; d < var->ndims; d++)
       if (var->dim[d]->unlimited)
 	 var->chunksizes[d] = 1;
-      else
+      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
       {
-	 var->chunksizes[d] = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
-				   1/(double)(var->ndims - num_unlim)) * var->dim[d]->len + .5);
-	 if (var->chunksizes[d] > var->dim[d]->len)
-	    var->chunksizes[d] = var->dim[d]->len;
+	 var->chunksizes[d] = var->dim[d]->len;
+	 num_set++; 
       }
+   
+   /* Pick a chunk length for each dimension, if one has not already
+    * been picked above. */
+   for (d = 0; d < var->ndims; d++)
+      if (!var->chunksizes[d])
+      {
+	 size_t suggested_size;
+	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
+			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
+	 if (suggested_size > var->dim[d]->len)
+	    suggested_size = var->dim[d]->len;
+	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	 total_chunk_size *= var->chunksizes[d];
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+      }
+   LOG((4, "total_chunk_size %f", total_chunk_size));
+   
+   /* But did this add up to a chunk that is too big? */
+   retval = check_chunksizes(grp, var, var->chunksizes);
+   if (retval)
+   {
+      /* Other error? */
+      if (retval != NC_EBADCHUNK)
+	 return retval;
+
+      /* Chunk is too big! Reduce each dimension by half and try again. */
+      for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
+    	 for (d = 0; d < var->ndims; d++)
+	    var->chunksizes[d] /= 2;
+   }
+
+   return NC_NOERR;
+}
+
+/* Find the default chunk nelems (i.e. length of chunk along each
+ * dimension). */
+static int 
+nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+{
+   int d, max_dim;
+   size_t type_size, max_len = 0;
+   float num_values = 1, num_set = 0;
+   float total_chunk_size;
+   int retval;
+
+   if (var->type_info->nc_typeid == NC_STRING)
+      type_size = sizeof(char *);
+   else
+      type_size = var->type_info->size;
+
+   /* Later this will become the total number of bytes in the default
+    * chunk. */
+   total_chunk_size = type_size;
+
+   /* How many values in the variable (or one record, if there are
+    * unlimited dimensions); which is the largest dimension, and how
+    * long is it? */
+   for (d = 0; d < var->ndims; d++)
+   {
+      assert(var->dim[d]);
+      if (var->dim[d]->len) 
+	 num_values *= (float)var->dim[d]->len;
+      else
+	 num_set++;
+      
+      if (var->dim[d]->len > max_len)
+      {
+	 max_len = var->dim[d]->len;
+	 max_dim = d;
+      }
+      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
+	   num_values));
+   }
+
+   /* If a dim is several orders of magnitude smaller than the max
+    * dimension, set it's chunk size to the full extent of the smaller
+    * dimension. */
+#define NC_DIM_MULTIPLIER 10000
+   for (d = 0; d < var->ndims; d++)
+      if (var->dim[d]->unlimited)
+	 var->chunksizes[d] = 1;
+      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
+      {
+	 var->chunksizes[d] = var->dim[d]->len;
+	 num_set++; 
+      }
+   
+   /* Pick a chunk length for each dimension, if one has not already
+    * been picked above. */
+   for (d = 0; d < var->ndims; d++)
+      if (!var->chunksizes[d])
+      {
+	 size_t suggested_size;
+	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
+			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
+	 if (suggested_size > var->dim[d]->len)
+	    suggested_size = var->dim[d]->len;
+	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+      }
+
+   /* Find total chunk size. */
+#ifdef LOGGING   
+   for (d = 0; d < var->ndims; d++)
+      total_chunk_size *= var->chunksizes[d];
+   LOG((4, "total_chunk_size %f", total_chunk_size));
+#endif
+   
+   /* But did this add up to a chunk that is too big? */
+   retval = check_chunksizes(grp, var, var->chunksizes);
+   if (retval)
+   {
+      /* Other error? */
+      if (retval != NC_EBADCHUNK)
+	 return retval;
+
+      /* Chunk is too big! Reduce each dimension by half and try again. */
+      for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
+    	 for (d = 0; d < var->ndims; d++)
+	    var->chunksizes[d] = var->chunksizes[d]/2 ? var->chunksizes[d]/2 : 1;
+   }
+
+   /* Do we have any big data overhangs? They can be dangerous to
+    * babies, the elderly, or confused campers who have had too much
+    * beer. */
+#define NC_ALLOWED_OVERHANG .1
+   for (d = 0; d < var->ndims; d++)
+      for ( ; var->dim[d]->len % var->chunksizes[d] > var->dim[d]->len * NC_ALLOWED_OVERHANG; )
+	 var->chunksizes[d] -= var->dim[d]->len * NC_ALLOWED_OVERHANG;
 
    return NC_NOERR;
 }
@@ -374,9 +554,9 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    /* Allocate space for dimension information. */
    if (ndims)
    {
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * ndims)))
+      if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
 	 return NC_ENOMEM;
-      if (!(var->dimids = malloc(sizeof(int) * ndims)))
+      if (!(var->dimids = calloc(ndims, sizeof(int))))
 	 return NC_ENOMEM;
    }
 
@@ -404,10 +584,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	var->ndims, var->name));
    if (var->ndims)
-      if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+      if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
 	 return NC_ENOMEM;
 
-   if ((retval = nc4_find_default_chunksizes(var)))
+   if ((retval = nc4_find_default_chunksizes2(grp, var)))
       return retval;
 
    /* Is this a variable with a chunksize greater than the current
@@ -469,9 +649,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
 
-   /* Netcdf-3 cases handled by dispatch layer. */
-   assert(nc->nc4_info);
-
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc->pnetcdf_file)
@@ -482,9 +659,11 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 			  dimidsp, varidp);
       nc->pnetcdf_ndims[*varidp] = ndims;
       return ret;
-
    }
 #endif /* USE_PNETCDF */
+
+   /* Netcdf-3 cases handled by dispatch layer. */
+   assert(nc->nc4_info);
 
    /* Handle netcdf-4 cases. */
    return nc_def_var_nc4(ncid, name, xtype, ndims, dimidsp, varidp);
@@ -625,7 +804,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    change the prototype of this functions without changing the API. */
 static int
 nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate, 
-		 int *deflate_level, int *fletcher32, int contiguous, 
+		 int *deflate_level, int *fletcher32, int *contiguous, 
 		 const size_t *chunksizes, int *no_fill, 
                  const void *fill_value, int *endianness, 
 		 int *options_mask, int *pixels_per_block)
@@ -662,10 +841,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_ENOTVAR;
 
    /* Can't turn on contiguous and deflate/fletcher32/szip. */
-   if ((contiguous != NC_CHUNKED && deflate) || 
-       (contiguous != NC_CHUNKED && fletcher32) ||
-       (contiguous != NC_CHUNKED && options_mask))
-      return NC_EINVAL;
+   if (contiguous)
+      if ((*contiguous != NC_CHUNKED && deflate) || 
+	  (*contiguous != NC_CHUNKED && fletcher32) ||
+	  (*contiguous != NC_CHUNKED && options_mask))
+	 return NC_EINVAL;
 
    /* If the HDF5 dataset has already been created, then it is too
     * late to set all the extra stuff. */
@@ -737,7 +917,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    /* Does the user want a contiguous dataset? Not so fast! Make sure
     * that there are no unlimited dimensions, and no filters in use
     * for this data. */
-   if (contiguous)
+   if (contiguous && *contiguous)
    {
       if (var->deflate || var->fletcher32 || var->shuffle || var->options_mask)
 	 return NC_EINVAL;
@@ -750,53 +930,35 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 	    return NC_EINVAL;
       }
 
-      var->contiguous++;
+      var->contiguous = NC_CONTIGUOUS;
    }
 
    /* Chunksizes anyone? */
-   if (contiguous == NC_CHUNKED && chunksizes)
+   if (contiguous && *contiguous == NC_CHUNKED)
    {
       var->contiguous = 0;
 
-      /* Check that they are not too big, and that their total size
-       * of chunk is less than 4 GB. */
+      /* If the user provided chunksizes, check that they are not too
+       * big, and that their total size of chunk is less than 4 GB. */
+      if (chunksizes)
       {
-            NC_TYPE_INFO_T *type_info;
-            long long total;
-            size_t type_len;
 
-            if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, var->xtype, 
-                                              0, &type_len)))
-               return retval;
-            if ((retval = nc4_find_type(grp->file->nc4_info, var->xtype, &type_info)))
-               return retval;
-            if (type_info && type_info->class == NC_VLEN)
-               total = sizeof(hvl_t);
-            else
-               total = type_len;
-            for (d = 0; d < var->ndims; d++)
-            {
-               if (chunksizes[d] < 1)
-                  return NC_EBADCHUNK;
-               total *= chunksizes[d];
-            }
-            
-            if (total > NC_MAX_UINT)
-               return NC_EBADCHUNK;
+	 if ((retval = check_chunksizes(grp, var, chunksizes)))
+	    return retval;
+
+	 /* Set the chunksizes for this variable. */
+	 for (d = 0; d < var->ndims; d++)
+	    var->chunksizes[d] = chunksizes[d];
       }
-
-      /* Set the chunksizes for this variable. */
-      for (d = 0; d < var->ndims; d++)
-         var->chunksizes[d] = chunksizes[d];
    }
 
    /* Is this a variable with a chunksize greater than the current
     * cache size? */
-   if (contiguous == NC_CHUNKED && (chunksizes || deflate))
+   if (var->contiguous == NC_CHUNKED && (chunksizes || deflate || contiguous))
    {
       /* Determine default chunksizes for this variable. */
       if (!var->chunksizes[0])
-	 if ((retval = nc4_find_default_chunksizes(var)))
+	 if ((retval = nc4_find_default_chunksizes2(grp, var)))
 	    return retval;
 
       /* Adjust the cache. */
@@ -853,7 +1015,7 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                    int deflate_level)
 {
    return nc_def_var_extra(ncid, varid, &shuffle, &deflate, 
-                           &deflate_level, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL);
+                           &deflate_level, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* Set checksum for a var. This must be called after the nc_def_var
@@ -862,7 +1024,7 @@ int
 NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, &fletcher32, 
-                           0, NULL, NULL, NULL, NULL, NULL, NULL);
+                           NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
    
 /* Define chunking stuff for a var. This must be done after nc_def_var
@@ -878,7 +1040,7 @@ int
 NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
 {
    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, 
-                           contiguous, chunksizesp, NULL, NULL, NULL, NULL, NULL);
+                           &contiguous, chunksizesp, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* Inquire about chunking stuff for a var. This is a private,
@@ -967,7 +1129,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
       cs[i] = chunksizesp[i];
 
    retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, 
-                             contiguous, cs, NULL, NULL, NULL, NULL, NULL);
+                             &contiguous, cs, NULL, NULL, NULL, NULL, NULL);
 
    if (var->ndims)
       free(cs);
@@ -979,7 +1141,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 int
 NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
-   return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, 0, 
+   return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL, 
                            NULL, &no_fill, fill_value, NULL, NULL, NULL);
 }
 
@@ -988,7 +1150,7 @@ NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 int
 NC4_def_var_endian(int ncid, int varid, int endianness)
 {
-   return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, 0,
+   return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                            NULL, NULL, NULL, &endianness, NULL, NULL);
 }
 

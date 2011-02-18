@@ -18,12 +18,13 @@ if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
-tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress
+tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress \
+tst_chunking
 
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
-tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh 
+tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -47,18 +48,20 @@ tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl			\
 tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
 tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
 tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
-tst_deflated.nc
+tst_deflated.nc tst_chunking.nc tmp*.nc
 
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump 
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime.c	\
-ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h
+ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h \
+utils.h utils.c
 
 # Another utility program that copies any netCDF file using only the
 # netCDF API
 bin_PROGRAMS += nccopy
-nccopy_SOURCES = nccopy.c nciter.c nciter.h
+nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
+utils.h utils.c dimmap.h dimmap.c
 
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
@@ -88,10 +91,10 @@ if CROSS_COMPILING
 	cp ref_ctest64.c ctest64.c
 else
 ctest.c:
-	$(top_builddir)/ncgen/ncgen -c -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
+	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
 
 ctest64.c:
-	$(top_builddir)/ncgen/ncgen -v2 -c -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
+	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
 endif # CROSS_COMPILING
 
 # NCGEN4 additions

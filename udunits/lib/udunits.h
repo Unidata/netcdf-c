@@ -12,7 +12,7 @@
 #ifndef UT_UNITS_H_INCLUDED
 #define UT_UNITS_H_INCLUDED
 
-#include <udunits2.h>
+#include "udunits2.h"
 
 #define UT_NAMELEN              32      /* maximum length of a unit string
 					 * (including all prefixes and EOS) */
@@ -54,7 +54,7 @@ typedef double	UtFactor;       /* conversion-factor datatype */
  *  Unit-structure.  Don't rely on or mess with the members!
  */
 typedef struct utUnit {
-    ut_unit*		ut_unit;
+    ut_unit*		unit2;
 } utUnit;
 
 #ifdef __cplusplus
@@ -71,7 +71,13 @@ extern int	utInit		PROTO((
 /*
  * Indicate if the units(3) package has been initialized.
  */
-extern int	utIsInit	PROTO((
+extern int	utIsInit	PROTO((void));
+
+/*
+ * Initialize a unit-structure.
+ */
+extern void	utIni		PROTO((
+    utUnit* const	unit
 ));
 
 /*
@@ -223,7 +229,6 @@ extern int	utAdd		PROTO((
 
 /*
  *  Return the unit-structure corresponding to a unit-specification.
- *
  */
 extern int	utFind		PROTO((
     char	*spec,
@@ -231,9 +236,16 @@ extern int	utFind		PROTO((
 ));
 
 /*
+ * Free the resources of a unit-structure.
+ */
+extern void	utFree		PROTO((
+    utUnit* const	unit
+));
+
+/*
  *	Terminate use of this package.
  */
-extern void	utTerm		PROTO(());
+extern void	utTerm		PROTO((void));
 
 #ifdef __cplusplus
 }

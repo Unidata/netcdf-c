@@ -10,7 +10,7 @@
 /* Return 1 if we can reuse cached data to address
    the current get_vara request; return 0 otherwise.
    Target is in the constrained tree space.
-   Currently, if the target matches a cache not that is not
+   Currently, if the target matches a cache that is not
    a whole variable, then match is false.
 */
 int
@@ -23,7 +23,8 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
     found = 0;
     if(target == NULL) goto done;
 
-    /* match the target variable against the prefetch, if any */
+    /* Match the target variable against the prefetch, if any */
+    /* Note that prefetches are always whole variable */
     cache = nccomm->cdf.cache;
     cachenode = cache->prefetch;
     if(cachenode!= NULL) {
@@ -41,6 +42,10 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
     index = 0;
     for(i=nclistlength(cache->nodes)-1;i>=0;i--) {
         cachenode = (NCcachenode*)nclistget(cache->nodes,i);
+	/* We currently do not try to match constraints;
+           If the cachenode is constrained, then skip it
+        */
+	if(!cachenode->wholevariable) continue;
         for(found=0,j=0;j<nclistlength(cachenode->vars);j++) {
             CDFnode* var = (CDFnode*)nclistget(cachenode->vars,j);
             if(var == target) {found=1;index=i;break;}
@@ -125,6 +130,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,1);
     if(ncstat) goto done;
+    cache->wholevariable = 1; /* All prefetches are whole variable */
 
 if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 oc_log(OCLOGNOTE,"prefetch.");
@@ -193,6 +199,7 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     cachenode->vars = nclistclone(varlist);
     cachenode->datadds = dxdroot;
     cachenode->constraint = clonencconstraint(constraint);
+    cachenode->wholevariable = iswholeconstraint(cachenode->constraint);
 
     /* save the root content*/
     cachenode->ocroot = ocroot;

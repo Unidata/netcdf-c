@@ -34,7 +34,6 @@ static const char*	_xmlPath;
 static ut_system*	_unitSystem;
 static char		_haveUnitSpec[_POSIX_MAX_INPUT+1];
 static char		_wantSpec[_POSIX_MAX_INPUT+1];
-static double           _haveNumber;
 static ut_unit*		_haveUnit;
 static ut_unit*		_wantUnit;
 static int		_wantDefinition;
@@ -310,19 +309,7 @@ getInputValue(void)
 	    break;
 
 	if (nbytes > 0) {
-	    int		nchar;
-            int         n = sscanf(buf, "%lg %n", &_haveNumber, &nchar);
-
-	    if (n == 0) {
-		_haveNumber = 1;
-		nchar = 0;
-	    }
-
-	    (void)strcpy(_haveUnitSpec, buf+nchar);
-
-	    if (_haveUnitSpec[0] == 0) {
-		(void)strcpy(_haveUnitSpec, "1");
-	    }
+	    (void)strcpy(_haveUnitSpec, buf);
 
 	    ut_free(_haveUnit);
 	    _haveUnit = ut_parse(_unitSystem, _haveUnitSpec, _encoding);
@@ -389,26 +376,17 @@ handleRequest(void)
 	if (getOutputRequest()) {
 	    if (_wantDefinition) {
                 char	buf[256];
-                int	nbytes;
-                ut_unit* scaledUnit = ut_scale(_haveNumber, _haveUnit);
+                int	nbytes = ut_format(_haveUnit, buf, sizeof(buf),
+                    _formattingOptions);
 
-                if (scaledUnit == NULL) {
-                    (void)fprintf(stderr, "%s: Couldn't compute %g \"%s\"\n",
-                        _progname, _haveNumber, _haveUnitSpec);
+                if (nbytes >= sizeof(buf)) {
+                    (void)fprintf(stderr, "%s: Resulting unit "
+                        "specification is too long\n", _progname);
                 }
-                else {
-                    nbytes = ut_format(scaledUnit, buf, sizeof(buf),
-                        _formattingOptions);
+                else if (nbytes >= 0) {
+                    buf[nbytes] = 0;
 
-                    if (nbytes >= sizeof(buf)) {
-                        (void)fprintf(stderr, "%s: Resulting unit "
-                            "specification is too long\n", _progname);
-                    }
-                    else if (nbytes >= 0) {
-                        buf[nbytes] = 0;
-
-                        (void)printf("    %s\n", buf);
-                    }
+                    (void)printf("    %s\n", buf);
                 }
 	    }
 	    else if (!ut_are_convertible(_wantUnit, _haveUnit)) {
@@ -432,10 +410,10 @@ handleRequest(void)
 
 		    (void)printf(
 			needsParens
-			    ? "    %g %s = %g (%s)\n"
-			    : "    %g %s = %g %s\n",
-			_haveNumber, _haveUnitSpec,
-			cv_convert_double(conv, _haveNumber), _wantSpec);
+			    ? "    %s = %g (%s)\n"
+			    : "    %s = %g %s\n",
+			_haveUnitSpec,
+			cv_convert_double(conv, 1.0), _wantSpec);
 
                     (void)sprintf(haveExp,
                         strpbrk(_haveUnitSpec, whiteSpace) ||

@@ -2496,7 +2496,7 @@ main(int argc, char **argv)
        * A1_NAME. Then copy the global att called A1_NAME, overwriting
        * the one we just changed. */
       if (nc_inq_nvars(ncid, &nvars)) ERR;
-      if (nvars != 1) ERR;
+      if (nvars != 1) ERR_RET;
       if (nc_inq_varnatts(ncid, 0, &natts)) ERR;
       if (natts != 2) ERR;
       if (nc_copy_att(ncid, NC_GLOBAL, A1_NAME, ncid, 0)) ERR;
@@ -2505,14 +2505,14 @@ main(int argc, char **argv)
       /* Reopen the file and check it. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq_nvars(ncid, &nvars)) ERR;
-      if (nvars != 1) ERR;
+      if (nvars != 1) ERR_RET;
       for (v = 0; v < nvars; v++)
       {
-      	 if (nc_inq_varnatts(ncid, v, &natts)) ERR;
+      	 if (nc_inq_varnatts(ncid, v, &natts)) ERR_RET;
       	 if (natts)
       	 {
-      	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR;
-      	    if (strcmp(name_in, A1_NAME)) ERR;
+      	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR_RET;
+      	    if (strcmp(name_in, A1_NAME)) ERR_RET;
       	 }
       }
       if (nc_close(ncid)) ERR;
@@ -2542,15 +2542,15 @@ main(int argc, char **argv)
        * A_NAME. Then copy the global att called A_NAME, overwriting
        * the one we just changed. */
       if (nc_inq_nvars(ncid, &nvars)) ERR;
-      if (nvars != NVARS) ERR;
+      if (nvars != NVARS) ERR_RET;
       for (v = 0; v < nvars; v++)
       {
-	 if (nc_inq_varnatts(ncid, v, &natts)) ERR;
+	 if (nc_inq_varnatts(ncid, v, &natts)) ERR_RET;
 	 if (natts)
 	 {
-	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR;
-	    if (nc_rename_att(ncid, v, name_in, A_NAME)) ERR;
-	    if (nc_copy_att(ncid, NC_GLOBAL, A_NAME, ncid, v)) ERR;
+	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR_RET;
+	    if (nc_rename_att(ncid, v, name_in, A_NAME)) ERR_RET;
+	    if (nc_copy_att(ncid, NC_GLOBAL, A_NAME, ncid, v)) ERR_RET;
 	 }
       }
       if (nc_close(ncid)) ERR;
@@ -2558,14 +2558,14 @@ main(int argc, char **argv)
       /* Reopen the file and check it. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_inq_nvars(ncid, &nvars)) ERR;
-      if (nvars != NVARS) ERR;
+      if (nvars != NVARS) ERR_RET;
       for (v = 0; v < nvars; v++)
       {
-	 if (nc_inq_varnatts(ncid, v, &natts)) ERR;
+	 if (nc_inq_varnatts(ncid, v, &natts)) ERR_RET;
 	 if (natts)
 	 {
-	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR;
-	    if (strcmp(name_in, A_NAME)) ERR;
+	    if (nc_inq_attname(ncid, v, 0, name_in)) ERR_RET;
+	    if (strcmp(name_in, A_NAME)) ERR_RET;
 	 }
       }
       if (nc_close(ncid)) ERR;

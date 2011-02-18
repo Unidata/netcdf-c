@@ -1,18 +1,96 @@
+2.1.21  2010-01-24
+        Eliminate expectation and use of leading scale factor in the "have"
+        unit of udunits2(1).
+
+        Add verification of commit status to "make ftp".
+
+        Add dependency of documentation on version.
+
+        Add "force" flag to tagging rule in makefile.
+
+2.1.20  2010-12-20
+        Added "fahrenheit" as an alias for "degrees fahrenheit".
+
+        Added hyperlinks from HTML documentation to XML files of the units
+        database.
+
+2.1.19  2010-08-17
+        Moved ut_set_error_message_handler(ut_ignore) call in version 2.1.18
+        to eliminate more messages.
+
+2.1.18  2010-08-13
+        Made the UDUNIT-1 function utInit() call 
+        ut_set_error_message_handler(ut_ignore) to make use of the UDUNITS-1
+        API more backward compatible.
+
+2.1.17  2010-06-23
+        Added tagging of version in repository to "make ftp".
+
+        Moved call to ut_set_second() in XML parser from after the XML file is
+        read to as soon as the "second" unit is encountered.
+
+2.1.16  2010-06-21
+        Corrected and updated definition of "e" -- the charge of an electron.
+
+2.1.15  2010-05-27
+        Corrected return value of ut_get_status() when ut_parse() fails due to
+        a syntax error.
+
+        Added missing "void" parameter to declarations of UDUNITS-1 functions
+        utIsInit() and utTerm().
+
+        Added commentary about the hybrid Gregorian/Julian calendar to the
+        library documentation.
+
+        Added the following units:
+            "potential_vorticity_unit" (1e-6 m2 s-1 K kg-1)
+            "einstein" (mole)
+
+        Added "u" as a symbol for "micro".
+
+2.1.14  2010-01-29
+        Modified the build procedure.  It now
+            1) Builds the Expat (XML parsing) library that's bundled with the
+               UDUNITS-2 package if and only if the host system doesn't have
+               one; and
+            2) Installs the bundled Expat library if that library is built.
+
+        Documented the need for linking against an Expat library.
+
+2.1.13  2010-01-21
+        Modified the build procedure slightly.  It now
+            1) Supports cross-compilation; and
+            2) Installs the info(1) documentation files by default.
+
+2.1.12  2010-01-11
+        Corrected initialization of time-origin to prevent inconsistent results
+        from ut_decode_time().  Thanks to David Pierce at the Scripps
+        Institution of Oceanography.
+
+2.1.11	2009-10-23
+	Added missing percent (%) unit.
+
+2.1.10	2009-10-21
+	Fixed memory-related problems reported by valgrind(1).
+
+        Changed $(pkgdatarootdir) to $(pkgdatadir) in the top-level Makefile.
+
+	Corrected the syntax in the definition of the US survey foot.
+
 2.1.9	2009-09-09
-	Fixed bug in ut_are_convertible() that caused it to return true
-	for m2.s-2 and m.s-2.
+        Fixed bug in ut_are_convertible() that caused it to return true for
+        m2.s-2 and m.s-2.
 
-	Changed installation directory for units database files from
-	$(datadir) (default: /usr/local/share) to $(pkgdatadir)
-	(default: /usr/local/share/udunits).
+        Changed installation directory for units database files from $(datadir)
+        (default: /usr/local/share) to $(pkgdatadir) (default:
+        /usr/local/share/udunits).
 
-	Changed name of "ut_unit*" member in the UDUNITS-1 "utUnit"
-	backward-compatibility structure from "ut_unit" to "unit2"
-	because, unlike C, the g++ compiler doesn't allow a member to
-	have the same name as a typedef.
+        Changed name of "ut_unit*" member in the UDUNITS-1 "utUnit"
+        backward-compatibility structure from "ut_unit" to "unit2" because,
+        unlike C, the g++ compiler doesn't allow a member to have the same name
+        as a typedef.
 
-	Added version specification to the top-level UDUNITS-2
-	documentation.
+        Added version specification to the top-level UDUNITS-2 documentation.
 
 2.1.8	2009-06-19
 	Corrected definition of "lbf": was "2000 force_pounds"; is now
