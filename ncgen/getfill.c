@@ -73,7 +73,10 @@ fill(Symbol* tvsym, Datalist* filler)
 	sublist = builddatalist(listlength(tvsym->subnodes));
         for(i=0;i<listlength(tvsym->subnodes);i++) {
 	    Symbol* field = (Symbol*)listget(tvsym->subnodes,i);
-	    filllist(field->typ.basetype,sublist);
+	    if(field->typ.dimset.ndims > 0) {	
+                fillarray(field->typ.basetype,&field->typ.dimset,0,filler);
+	    } else
+		filllist(field->typ.basetype,sublist);
         }	  
 	con = builddatasublist(sublist);
 	break;
