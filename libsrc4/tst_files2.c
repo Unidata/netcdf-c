@@ -54,7 +54,7 @@ size SZ approximate amount of swap space that would be required if
         the process were to dirty all writable pages and then be
         swapped out. This number is very rough!
 */
-void
+int
 get_mem_used1(int *mem_used)
 {
    char cmd[NC_MAX_NAME + 1];
@@ -73,6 +73,7 @@ get_mem_used1(int *mem_used)
    sscanf(blob, "%d", mem_used);
    fclose(fp);
    unlink(TMP_FILE_NAME);
+   return NC_NOERR;
 }
 
 void
@@ -258,7 +259,7 @@ main(int argc, char **argv)
 	 if (!(ncid_in = malloc(num_files[t] * sizeof(int)))) ERR;
 
 	 /* How much memory is in use now? */
- 	 get_mem_used1(&mem_used);
+ 	 if (get_mem_used1(&mem_used)) ERR;
 /* 	 get_mem_used2(&mem_used);
 	 get_mem_used3(&mem_used);*/
 	 
@@ -277,7 +278,7 @@ main(int argc, char **argv)
 	 open_us = ((int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec);
 
 	 /* How much memory is in use by this process now? */
- 	 get_mem_used1(&mem_used2);
+ 	 if (get_mem_used1(&mem_used2)) ERR;
 
 	 /* Close all netcdf files. */
 	 if (gettimeofday(&close_start_time, NULL)) ERR;
@@ -325,7 +326,7 @@ main(int argc, char **argv)
   SUMMARIZE_ERR;
    printf("Test for memory consumption...\n");
    {
-#define NUM_TRIES 100
+#define NUM_TRIES_100 100
       int ncid, i;
       int mem_used, mem_used1, mem_used2;
 
@@ -336,7 +337,7 @@ main(int argc, char **argv)
 	     mem_used2);
 
       printf("bef_open\taft_open\taft_close\tused_open\tused_closed\n");
-      for (i=0; i < NUM_TRIES; i++)
+      for (i=0; i < NUM_TRIES_100; i++)
       {
 	 /* Open the file. NC_NOWRITE tells netCDF we want read-only access
 	  * to the file.*/
@@ -349,9 +350,6 @@ main(int argc, char **argv)
 	 /* Close the file, freeing all resources.   ????  */
 	 if (nc_close(ncid)) ERR;
 
-#ifdef EXTRA_TESTS
-	 if (nc_exit()) ERR_RET;
-#endif /* EXTRA_TESTS */
 	 get_mem_used2(&mem_used2);
 
 	 if (mem_used2 - mem_used)

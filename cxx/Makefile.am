@@ -34,11 +34,13 @@ tst_failure_SOURCES = tst_failure.cpp
 XFAIL_TESTS = tst_failure$(EXEEXT)
 
 if USE_NETCDF4
+if BUILD_BENCHMARKS	
 # This is for valgrind script.
 TESTS_ENVIRONMENT=USE_NETCDF4=1
 # This is a netCDF-4 test.
 TESTFILES += tst_many_writes$(EXEEXT)
 #tst_many_writes_SOURCES = tst_many_writes.cpp
+endif # BUILD_BENCHMARKS
 endif # USE_NETCDF4
 
 # Build and run these tests.
