@@ -130,7 +130,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL || cmode & NC_PNETCDF)
+      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
 	model = NC_DISPATCH_NC4;
    }
 
@@ -158,13 +158,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
       }
    }
    
-   /* Force flag consistentcy */
-   /* if(model & NC_DISPATCH_NC4) */
-   /*    cmode |= NC_NETCDF4; */
-   /* else if(model & NC_DISPATCH_NC3) { */
-   /*    cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /\* must be netcdf-3 *\/ */
-   /* } */
-
    /* Add inferred flags */
    cmode |= xcmode;
 
@@ -283,7 +276,7 @@ NC_open(const char *path, int cmode,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_CLASSIC_MODEL) model = NC_DISPATCH_NC4;
+      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF) model = NC_DISPATCH_NC4;
    }
 
    if(model == 0) model = NC_DISPATCH_NC3; /* final default */
@@ -292,7 +285,7 @@ NC_open(const char *path, int cmode,
    if(model & NC_DISPATCH_NC4)
       cmode |= NC_NETCDF4;
    else if(model & NC_DISPATCH_NC3) {
-      cmode &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL); /* must be netcdf-3 */
+      cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
       if(cdfversion == 2) cmode |= NC_64BIT_OFFSET;
    }
 

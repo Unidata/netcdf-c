@@ -392,7 +392,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 #endif /* USE_PNETCDF */
    else 
    {
-      assert(0);
+      return NC_EINVAL;
    }
    
    /* Delete this file list entry if there was a failure. */
