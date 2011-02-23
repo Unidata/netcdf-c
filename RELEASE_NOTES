@@ -5,6 +5,9 @@ VERSION         COMMENTS
 -------         --------
 4.1.2-beta3    2011-02-11
 
+		Fixed opendap performance bug for nc_get_vars; required
+                adding nc_get_var{s,m} to the dispatch table.
+
 	        Now check for libz in configure.ac.
 
 	        Fixed some bugs and some performance problems with
