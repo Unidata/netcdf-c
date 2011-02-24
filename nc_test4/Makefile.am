@@ -96,7 +96,7 @@ EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh run_bm_test2.sh	\
 run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh run_par_bm_test.sh	\
 run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh	\
 run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
-run_get_hdf4_files.sh run_valgrind_tests.sh
+run_get_hdf4_files.sh run_valgrind_tests.sh run_bm_ar4.sh
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\

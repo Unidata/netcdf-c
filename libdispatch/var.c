@@ -23,6 +23,8 @@ static size_t coord_one[NC_MAX_VAR_DIMS];
 
 static nc_type longtype = (sizeof(long) == sizeof(int) ? NC_INT : NC_INT64);
 
+#define MINVARSSPACE 1024;
+
 static int
 getshape(int ncid, int varid, int ndims, size_t* shape)
 {
@@ -129,7 +131,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
 				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
-int
+static int
 NC_put_vara(int ncid, int varid, const size_t *start, 
 	    const size_t *edges, const void *value, nc_type memtype)
 {
@@ -171,7 +173,7 @@ NC_get_vara(int ncid, int varid,
       return ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
 }
 
-int
+static int
 NC_get_var(int ncid, int varid, void *value, nc_type memtype)
 {
    int ndims;
@@ -183,7 +185,7 @@ NC_get_var(int ncid, int varid, void *value, nc_type memtype)
    return NC_get_vara(ncid, varid, coord_zero, shape, value, memtype);
 }
 
-int
+static int
 NC_put_var(int ncid, int varid, const void *value, nc_type memtype)
 {
    int ndims;
@@ -195,7 +197,7 @@ NC_put_var(int ncid, int varid, const void *value, nc_type memtype)
    return NC_put_vara(ncid, varid, coord_zero, shape, value, memtype);
 }
 
-int
+static int
 NC_get_var1(int ncid, int varid, const size_t *coord, void* value, 
 	    nc_type memtype)
 {
@@ -203,7 +205,7 @@ NC_get_var1(int ncid, int varid, const size_t *coord, void* value,
    return NC_get_vara(ncid, varid, coord, coord_one, value, memtype);
 }
 
-int
+static int
 NC_put_var1(int ncid, int varid, const size_t *coord, const void* value, 
 	    nc_type memtype)
 {
@@ -231,8 +233,33 @@ is_recvar(int ncid, int varid, size_t* nrecs)
    return (dimset[0] == unlimid ? 1: 0);
 }
 
-static int
-NC_get_varm(int ncid, int varid, const size_t *start,
+/* Most dispatch tables will use the default procedures */
+int
+NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
+	    const size_t * edges, const ptrdiff_t * stride,
+	    void *value, nc_type memtype)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,NULL,value,memtype);
+}
+
+int
+NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
+	    const size_t * edges, const ptrdiff_t * stride,
+	    const void *value, nc_type memtype)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,NULL,value,memtype);
+}
+
+int
+NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const ptrdiff_t *stride,
 	    const ptrdiff_t *imapp, void *value0, nc_type memtype)
 {
@@ -253,6 +280,9 @@ NC_get_varm(int ncid, int varid, const size_t *start,
 
    status = nc_inq_vartype(ncid, varid, &vartype); 
    if(status != NC_NOERR) return status;
+   /* Check that this is an atomic type */
+   if(vartype >= NC_MAX_ATOMIC_TYPE)
+	return NC_EMAPTYPE;
 
    status = nc_inq_varndims(ncid, varid, &varndims); 
    if(status != NC_NOERR) return status;
@@ -482,8 +512,8 @@ NC_get_varm(int ncid, int varid, const size_t *start,
 }
 
 
-static int
-NC_put_varm(
+int
+NCDEFAULT_put_varm(
    int ncid,
    int varid,
    const size_t * start,
@@ -512,6 +542,9 @@ NC_put_varm(
    /* mid body */
    status = nc_inq_vartype(ncid, varid, &vartype); 
    if(status != NC_NOERR) return status;
+   /* Check that this is an atomic type */
+   if(vartype >= NC_MAX_ATOMIC_TYPE)
+	return NC_EMAPTYPE;
 
    status = nc_inq_varndims(ncid, varid, &varndims); 
    if(status != NC_NOERR) return status;
@@ -714,22 +747,66 @@ NC_put_varm(
    return status;
 }
 
-int
+/* Called by externally visible nc_get_vars_xxx routines */
+static int
 NC_get_vars(int ncid, int varid, const size_t *start, 
 	    const size_t *edges, const ptrdiff_t *stride, void *value,
 	    nc_type memtype)
 {
-   return NC_get_varm(ncid, varid, start, edges, stride, NULL,
-		      value, memtype);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+#ifdef USE_NETCDF4
+   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
+#endif
+   return ncp->dispatch->get_vars(ncid,varid,start,edges,stride,value,memtype);
 }
 
-int
+static int
 NC_put_vars(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const ptrdiff_t *stride,
 	    const void *value, nc_type memtype)
 {
-   return NC_put_varm(ncid, varid, start, edges,
-		      stride, NULL, value, memtype);
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+#ifdef USE_NETCDF4
+   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
+#endif
+   return ncp->dispatch->put_vars(ncid,varid,start,edges,stride,value,memtype);
+}
+
+/* Called by externally visible nc_get_vars_xxx routines */
+static int
+NC_get_varm(int ncid, int varid, const size_t *start, 
+	    const size_t *edges, const ptrdiff_t *stride, const ptrdiff_t* map,
+	    void *value, nc_type memtype)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+#ifdef USE_NETCDF4
+   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
+#endif
+   return ncp->dispatch->get_varm(ncid,varid,start,edges,stride,map,value,memtype);
+}
+
+static int
+NC_put_varm(int ncid, int varid, const size_t *start, 
+	    const size_t *edges, const ptrdiff_t *stride, const ptrdiff_t* map,
+	    const void *value, nc_type memtype)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+
+   if(stat != NC_NOERR) return stat;
+#ifdef USE_NETCDF4
+   if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
+#endif
+   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,map,value,memtype);
 }
 
 /* Ok to use NC pointers because
@@ -892,7 +969,12 @@ nc_get_varm(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
 	    const ptrdiff_t * imapp, void *value)
 {
-   return NC_get_varm(ncid, varid, start, edges, stride, imapp,
+   NC* ncp;
+   int stat;
+
+   if ((stat = NC_check_id(ncid, &ncp)))
+       return stat;
+   return ncp->dispatch->get_varm(ncid, varid, start, edges, stride, imapp,
 		      value, NC_NAT);
 }
 
@@ -901,17 +983,27 @@ nc_put_varm (int ncid, int varid, const size_t * start,
 	     const size_t * edges, const ptrdiff_t * stride,
 	     const ptrdiff_t * imapp, const void *value)
 {
-   return NC_put_varm(ncid, varid, start, edges, stride, imapp,
+   NC* ncp;
+   int stat;
+
+   if ((stat = NC_check_id(ncid, &ncp)))
+       return stat;
+   return ncp->dispatch->put_varm(ncid, varid, start, edges, stride, imapp,
 		      value, NC_NAT);
 }
 
 int
-nc_get_vars(int ncid, int varid, const size_t * start,
-	    const size_t * edges, const ptrdiff_t * stride,
-	    void *value)
+nc_get_vars (int ncid, int varid, const size_t * start,
+	     const size_t * edges, const ptrdiff_t * stride,
+	     void *value)
 {
-   return nc_get_varm(ncid, varid, start, edges,
-		      stride, NULL, value);
+   NC* ncp;
+   int stat;
+
+   if ((stat = NC_check_id(ncid, &ncp)))
+       return stat;
+   return ncp->dispatch->get_vars(ncid, varid, start, edges, stride,
+		      value, NC_NAT);
 }
 
 int
@@ -919,9 +1011,15 @@ nc_put_vars (int ncid, int varid, const size_t * start,
 	     const size_t * edges, const ptrdiff_t * stride,
 	     const void *value)
 {
-   return nc_put_varm(ncid, varid, start, edges,
-		      stride, NULL, value);
+   NC* ncp;
+   int stat;
+
+   if ((stat = NC_check_id(ncid, &ncp)))
+       return stat;
+   return ncp->dispatch->put_vars(ncid, varid, start, edges, stride,
+		      value, NC_NAT);
 }
+
 int
 nc_get_var1_text(int ncid, int varid, const size_t *coord, char *value)
 {

@@ -229,17 +229,5 @@ int main(void)
       }
    }
    SUMMARIZE_ERR;
-   printf("*** testing a scalar coordinate dimension...");
-   {
-      int ncid, dimid, varid;
-      float data = 42.5;
-      
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR_RET;
-      if (nc_def_dim(ncid, "scalar", 0, &dimid)) ERR_RET;
-      if (nc_def_var(ncid, "scalar", NC_FLOAT, 0, &dimid, &varid)) ERR_RET;
-      if (nc_put_var_float(ncid, varid, &data)) ERR_RET;
-      if (nc_close(ncid)) ERR_RET;
-   }
-   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

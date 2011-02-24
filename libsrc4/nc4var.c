@@ -601,7 +601,8 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * because the dimension will cause a HDF5 dataset to be created,
     * and this var has the same name. */
    for (dim = grp->dim; dim; dim = dim->next)
-      if (!strcmp(dim->name, norm_name) && dimidsp[0] != dim->dimid)
+      if (!strcmp(dim->name, norm_name) && 
+	  (!var->ndims || dimidsp[0] != dim->dimid))
       {
 	 /* Set a different hdf5 name for this variable to avoid name
 	  * clash. */

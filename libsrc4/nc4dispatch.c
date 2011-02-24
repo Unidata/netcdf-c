@@ -50,6 +50,10 @@ NC4_inq_varid,
 NC4_rename_var,
 NC4_get_vara,
 NC4_put_vara,
+NCDEFAULT_get_vars,
+NCDEFAULT_put_vars,
+NCDEFAULT_get_varm,
+NCDEFAULT_put_varm,
 
 NC4_inq_var_all,
 

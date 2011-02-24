@@ -117,6 +117,11 @@ NC3_inq_varid,
 NC3_rename_var,
 NC3_get_vara,
 NC3_put_vara,
+NCDEFAULT_get_vars,
+NCDEFAULT_put_vars,
+NCDEFAULT_get_varm,
+NCDEFAULT_put_varm,
+
 NC3_inq_var_all,
 
 #ifdef USE_NETCDF4

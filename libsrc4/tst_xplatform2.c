@@ -189,7 +189,7 @@ check_file_3(int ncid, struct s3 *data_out)
 
    /* How does the vlen type look? */
    if (nc_inq_vlen(ncid, typeids_in[1], name_in, &size_in, &base_nc_type_in)) ERR;
-   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(struct s1) || 
+   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) || 
        base_nc_type_in != typeids_in[0]) ERR;
 
    /* How does the containing compound type look? */
@@ -253,7 +253,7 @@ check_file_4(int ncid, struct s3 *data_out)
 
    /* How does the vlen type look? */
    if (nc_inq_vlen(ncid, typeids_in[1], name_in, &size_in, &base_nc_type_in)) ERR;
-   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(struct s1) || 
+   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) || 
        base_nc_type_in != typeids_in[0]) ERR;
 
    /* How does the containing compound type look? */
