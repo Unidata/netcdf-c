@@ -5246,13 +5246,16 @@ interface. Data values are converted to the external type of the variable,
 if necessary.
 
 Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be
-written. If you try to write all the values of a record variable into
-a netCDF file that has no record data yet (hence has 0 records),
-nothing will be written. Similarly, if you try to write all of a
-record variable but there are more records in the file than you
-assume, more data may be written to the file than you supply, which
-may result in a segmentation violation.
+variables (variables that use the NF90_UNLIMITED dimension) when you
+don't specify how many records are to be written. If you try to write
+all the values of a record variable into a netCDF file that has no
+record data yet (hence has 0 records), nothing will be
+written. Similarly, if you try to write all the values of a record
+variable from an array but there are more records in the file than you
+assume, more in-memory data will be accessed than you expect, which may
+cause a segmentation violation.  To avoid such problems, it is better
+to specify start and count arguments for variables that use the
+NF90_UNLIMITED dimension.
 
 @heading Usage 
 @example
@@ -5549,10 +5552,13 @@ variable varies fastest in the Fortran 90 interface. Data values are
 converted from the external type of the variable, if necessary.
 
 Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be read. If
-you try to read all the values of a record variable into an array but
-there are more records in the file than you assume, more data will be
-read than you expect, which may cause a segmentation violation.
+variables (variables that use the NF90_UNLIMITED dimension) when you
+don't specify how many records are to be read. If you try to read all
+the values of a record variable into an array but there are more
+records in the file than you assume, more data will be read than you
+expect, which may cause a segmentation violation.  To avoid such
+problems, it is better to specify the optional start and count
+arguments for variables that use the NF90_UNLIMITED dimension.
 
 In netCDF classic model the maximum integer size is NF90_INT, the
 4-byte signed integer. Reading variables into an eight-byte integer
