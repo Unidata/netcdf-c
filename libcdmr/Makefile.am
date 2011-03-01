@@ -12,11 +12,18 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
 # CDMREMORE Sources
-SRC=curlwrap.c nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
-crdebug.c crutil.c
+SRC=nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
+crdebug.c crutil.c \
+nccrdump.c \
+ast_byteio.c ast_curl.c ast_debug.c ast_internal.c ast_runtime.c ast_util.c \
+ncstream.c
 
-HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h \
-crdebug.h crutil.h
+
+HDRS=nccrconstraints.h nccrdispatch.h nccr.h \
+crdebug.h crutil.h \
+nccrdump.h \
+ast_byteio.h ast_curl.h ast_debug.h ast_internal.h ast_runtime.h ast_util.h \
+ncstream.h
 
 if BUILD_CDMREMOTE
 
