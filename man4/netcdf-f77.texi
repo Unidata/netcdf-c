@@ -6591,17 +6591,12 @@ IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)
 @section Write a Single Data Value: NF_PUT_VAR1_  type 
 @findex NF_PUT_VAR1_  type 
 
-The functions NF_PUT_VAR1_  type put a single data value of the
-specified type into a variable of an open netCDF dataset that is in
-data mode. Inputs are the netCDF ID, the variable ID, an index that
-specifies which value to add or alter, and the data value. The value
-is converted to the external data type of the variable, if necessary.
-
-Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be read. If
-you try to read all the values of a record variable into an array but
-there are more records in the file than you assume, more data will be
-read than you expect, which may cause a segmentation violation.
+The functions NF_PUT_VAR1_type (for various types) put a single data
+value of the specified type into a variable of an open netCDF dataset
+that is in data mode. Inputs are the netCDF ID, the variable ID, an
+index that specifies which value to add or alter, and the data
+value. The value is converted to the external data type of the
+variable, if necessary.
 
 @heading Usage 
 @example
@@ -6714,13 +6709,16 @@ variable varies fastest in the C interface. The values are converted
 to the external data type of the variable, if necessary.
 
 Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be
-written. If you try to write all the values of a record variable into
-a netCDF file that has no record data yet (hence has 0 records),
-nothing will be written. Similarly, if you try to write all of a
-record variable but there are more records in the file than you
-assume, more data may be written to the file than you supply, which
-may result in a segmentation violation.
+variables (variables that use the NF_UNLIMITED dimension) when you
+don't specify how many records are to be written.  If you try to write
+all the values of a record variable into a netCDF file that has no
+record data yet (hence has 0 records), nothing will be written.
+Similarly, if you try to write all the values of a record variable
+from an array but there are more records in the file than you assume,
+more in-memory data will be accessed than you expect, which may cause
+a segmentation violation.  To avoid such problems, it is better to use
+the NF_PUT_VARA_type interfaces for variables that use the
+NF_UNLIMITED dimension.  @xref{NF_PUT_VARA_ type}.
 
 @heading Usage 
 @example
@@ -6795,16 +6793,16 @@ The specified netCDF ID does not refer to an open netCDF dataset.
 Here is an example using NF_PUT_VAR_DOUBLE to add or change all the
 values of the variable named rh to 0.5 in an existing netCDF dataset
 named foo.nc. For simplicity in this example, we assume that we know
-that rh is dimensioned with lon, lat, and time, and that there are ten
-lon values, five lat values, and three time values.
+that rh is dimensioned with lon and lat, and that there are ten
+lon values and five lat values.
 
 @example
 INCLUDE 'netcdf.inc'
    ... 
-PARAMETER (TIMES=3, LATS=5, LONS=10) ! dimension lengths
-INTEGER  STATUS, NCID, TIMES
+PARAMETER (LATS=5, LONS=10) ! dimension lengths
+INTEGER  STATUS, NCID
 INTEGER  RHID                        ! variable ID
-DOUBLE RHVALS(LONS, LATS, TIMES)
+DOUBLE RHVALS(LONS, LATS)
    ... 
 STATUS = NF_OPEN ('foo.nc', NF_WRITE, NCID)
 IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)
@@ -6813,8 +6811,7 @@ STATUS = NF_INQ_VARID (NCID, 'rh', RHID)
 IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)
 DO 10 ILON = 1, LONS
    DO 10 ILAT = 1, LATS
-      DO 10 ITIME = 1, TIMES
-         RHVALS(ILON, ILAT, ITIME) = 0.5
+         RHVALS(ILON, ILAT) = 0.5
 10 CONTINUE
 STATUS = NF_PUT_var_DOUBLE (NCID, RHID, RHVALS)
 IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)
@@ -7455,12 +7452,15 @@ or when all the values of a multidimensional variable can be read at
 once. The values are read into consecutive locations with the first
 dimension varying fastest. The netCDF dataset must be in data mode.
 
-Take care when using the simplest forms of this interface with
-record variables when you don't specify how many records are to be
-read. If you try to read all the values of a record variable into an
-array but there are more records in the file than you assume, more
-data will be read than you expect, which may cause a segmentation
-violation.
+Take care when using the simplest forms of this interface with record
+variables (variables that use the NF_UNLIMITED dimension) when you
+don't specify how many records are to be read. If you try to read all
+the values of a record variable into an array but there are more
+records in the file than you assume, more data will be read than you
+expect, which may cause a segmentation violation.  To avoid such
+problems, it is better to use the NF_GET_VARA_type interfaces for
+variables that use the NF_UNLIMITED dimension.  @xref{NF_GET_VARA_
+type}.
 
 @heading Usage 
 @example
@@ -7529,16 +7529,16 @@ The specified netCDF ID does not refer to an open netCDF dataset.
 Here is an example using NF_GET_VAR_DOUBLE to read all the values of
 the variable named rh from an existing netCDF dataset named
 foo.nc. For simplicity in this example, we assume that we know that rh
-is dimensioned with lon, lat, and time, and that there are ten lon
-values, five lat values, and three time values.
+is dimensioned with lon and lat, and that there are ten lon
+values and five lat values.
 
 @example
 INCLUDE 'netcdf.inc'
    ... 
-PARAMETER (TIMES=3, LATS=5, LONS=10) ! dimension lengths
+PARAMETER (LATS=5, LONS=10) ! dimension lengths
 INTEGER STATUS, NCID
 INTEGER RHID                         ! variable ID
-DOUBLE RHVALS(LONS, LATS, TIMES)
+DOUBLE RHVALS(LONS, LATS)
    ... 
 STATUS = NF_OPEN ('foo.nc', NF_NOWRITE, NCID)
 IF (STATUS .NE. NF_NOERR) CALL HANDLE_ERR(STATUS)

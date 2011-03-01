@@ -8106,13 +8106,16 @@ variable varies fastest in the C interface. The values are converted
 to the external data type of the variable, if necessary.
 
 Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be
-written. If you try to write all the values of a record variable into
-a netCDF file that has no record data yet (hence has 0 records),
-nothing will be written. Similarly, if you try to write all of a
-record variable but there are more records in the file than you
-assume, more data may be written to the file than you supply, which
-may result in a segmentation violation.
+variables (variables that use the NC_UNLIMITED dimension) when you
+don't specify how many records are to be written. If you try to write
+all the values of a record variable into a netCDF file that has no
+record data yet (hence has 0 records), nothing will be
+written. Similarly, if you try to write all the values of a record
+variable but there are more records in the file than you assume, more
+in-memory data will be accessed than you supply, which may result in a
+segmentation violation.  To avoid such problems, it is better to use
+the nc_put_vara interfaces for variables that use the
+NC_UNLIMITED dimension.  @xref{nc_put_vara_ type}.
 
 The functions for types ubyte, ushort, uint, longlong, ulonglong, and
 string are only available for netCDF-4/HDF5 files.
@@ -8195,19 +8198,18 @@ Bad variable ID.
 Here is an example using nc_put_var_double to add or change all the
 values of the variable named rh to 0.5 in an existing netCDF dataset
 named foo.nc. For simplicity in this example, we assume that we know
-that rh is dimensioned with time, lat, and lon, and that there are
-three time values, five lat values, and ten lon values.
+that rh is dimensioned with lat and lon, and that there are
+five lat values and ten lon values.
 
 @example
 #include <netcdf.h>
    ... 
-#define TIMES 3
 #define LATS  5
 #define LONS  10
 int  status;                       /* error status */
 int  ncid;                         /* netCDF ID */
 int  rh_id;                        /* variable ID */
-double rh_vals[TIMES*LATS*LONS];   /* array to hold values */
+double rh_vals[LATS*LONS];         /* array to hold values */
 int i;
    ... 
 status = nc_open("foo.nc", NC_WRITE, &ncid);
@@ -8216,7 +8218,7 @@ if (status != NC_NOERR) handle_error(status);
 status = nc_inq_varid (ncid, "rh", &rh_id);
 if (status != NC_NOERR) handle_error(status);
    ... 
-for (i = 0; i < TIMES*LATS*LONS; i++)
+for (i = 0; i < LATS*LONS; i++)
     rh_vals[i] = 0.5;
 /* write values into netCDF variable */
 status = nc_put_var_double(ncid, rh_id, rh_vals);
@@ -9122,10 +9124,14 @@ once. The values are read into consecutive locations with the last
 dimension varying fastest. The netCDF dataset must be in data mode.
 
 Take care when using the simplest forms of this interface with record
-variables when you don't specify how many records are to be read. If
-you try to read all the values of a record variable into an array but
-there are more records in the file than you assume, more data will be
-read than you expect, which may cause a segmentation violation.
+variables (variables that use the NC_UNLIMITED dimension) when you
+don't specify how many records are to be read. If you try to read all
+the values of a record variable into an array but there are more
+records in the file than you assume, more data will be read than you
+expect, which may cause a segmentation violation. To avoid such
+problems, it is better to use the nc_get_vara interfaces for
+variables that use the NC_UNLIMITED dimension.  @xref{nc_get_vara_
+type}. 
 
 The functions for types ubyte, ushort, uint, longlong, ulonglong, and
 string are only available for netCDF-4/HDF5 files.
@@ -9224,19 +9230,18 @@ Out of memory.
 Here is an example using nc_get_var_double to read all the values of
 the variable named rh from an existing netCDF dataset named
 foo.nc. For simplicity in this example, we assume that we know that rh
-is dimensioned with time, lat, and lon, and that there are three time
-values, five lat values, and ten lon values.
+is dimensioned with lat and lon, and that there are five lat values
+and ten lon values.
 
 @example
 #include <netcdf.h>
    ... 
-#define TIMES 3
 #define LATS 5
 #define LONS 10
 int  status;                       /* error status */
 int ncid;                          /* netCDF ID */
 int rh_id;                         /* variable ID */
-double rh_vals[TIMES*LATS*LONS];   /* array to hold values */
+double rh_vals[LATS*LONS];         /* array to hold values */
    ... 
 status = nc_open("foo.nc", NC_NOWRITE, &ncid);
 if (status != NC_NOERR) handle_error(status);

@@ -23,6 +23,7 @@ static int NCD3_redef(int ncid);
 static int NCD3__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
 static int NCD3_sync(int ncid);
 static int NCD3_abort(int ncid);
+
 static int NCD3_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
             const void *value0,
@@ -32,6 +33,14 @@ static int NCD3_get_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges,
             void *value,
 	    nc_type memtype);
+
+static int NCD3_put_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            const void *value0, nc_type memtype);
+
+static int NCD3_get_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            void *value, nc_type memtype);
 
 ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
 size_t dapzerostart3[NC_MAX_VAR_DIMS];
@@ -78,6 +87,11 @@ NULL, /*inq_varid*/
 NULL, /*rename_var*/
 NCD3_get_vara,
 NCD3_put_vara,
+NCD3_get_vars,
+NCD3_put_vars,
+NULL, /*get_varm*/
+NULL, /*put_varm*/
+
 NULL, /*inq_var_all*/
 
 #ifdef USE_NETCDF4
@@ -173,8 +187,8 @@ NCD3_create(const char *path, int cmode,
 
 static int
 NCD3_put_vara(int ncid, int varid,
-	    const size_t *start, const size_t *edges0,
-            const void *value0,
+	    const size_t *start, const size_t *edges,
+            const void *value,
 	    nc_type memtype)
 {
     return NC_EPERM;
@@ -187,5 +201,22 @@ NCD3_get_vara(int ncid, int varid,
 	    nc_type memtype)
 {
     int stat = nc3d_getvarx(ncid, varid, start, edges, dapsinglestride3,value,memtype);
+    return stat;
+}
+
+static int
+NCD3_put_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            const void *value0, nc_type memtype)
+{
+    return NC_EPERM;
+}
+
+static int
+NCD3_get_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            void *value, nc_type memtype)
+{
+    int stat = nc3d_getvarx(ncid, varid, start, edges, stride, value, memtype);
     return stat;
 }

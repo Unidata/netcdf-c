@@ -76,5 +76,24 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing a scalar coordinate dimension...");
+   {
+      int ncid, dimid, varid;
+      float data = 42.5;
+      
+      /* Create a scalar coordinate dimension. The only reason that
+       * the user can ever possibly have for doing this is just
+       * because they like to make life difficult for poor, poor
+       * netCDF programmers, trapped in this horrible place, in a
+       * Rocky Mountain valley, drenched in sunlight, with a stream
+       * quietly gurgling, deer feeding on the grasses, and all those
+       * damn birds chirping! */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR_RET;
+      if (nc_def_dim(ncid, "scalar", 0, &dimid)) ERR_RET;
+      if (nc_def_var(ncid, "scalar", NC_FLOAT, 0, &dimid, &varid)) ERR_RET;
+      if (nc_put_var_float(ncid, varid, &data)) ERR_RET;
+      if (nc_close(ncid)) ERR_RET;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

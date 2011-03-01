@@ -285,10 +285,28 @@ main(int argc, char **argv)
       if (format != NC_FORMAT_64BIT) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Create a netcdf-3 file. */
+      /* Create a netcdf-4 file. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
       if (nc_inq_format(ncid, &format)) ERR;
       if (format != NC_FORMAT_NETCDF4) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing CLASSIC_MODEL flag with classic formats...");
+   {
+      int ncid;
+      int format;
+
+      /* Create a netcdf-3 file. */
+      if (nc_create(FILE_NAME, NC_CLOBBER|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_inq_format(ncid, &format)) ERR;
+      if (format != NC_FORMAT_CLASSIC) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Create a netcdf-3 64-bit offset file. */
+      if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CLOBBER|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_inq_format(ncid, &format)) ERR;
+      if (format != NC_FORMAT_64BIT) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

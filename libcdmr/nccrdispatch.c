@@ -67,6 +67,11 @@ NULL, /*inq_varid*/
 NULL, /*rename_var*/
 NCCR_get_vara,
 NCCR_put_vara,
+NULL, /*get_vars*/
+NULL, /*put_vars*/
+NULL, /*get_varm*/
+NULL, /*put_varm*/
+
 NULL, /*inq_var_all*/
 
 #ifdef USE_NETCDF4
