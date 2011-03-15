@@ -20,7 +20,7 @@
 LDADD =
 AM_LDFLAGS = 
 AM_CFLAGS =
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_FFLAGS =
 AM_FCFLAGS =
 TESTS =

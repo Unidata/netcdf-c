@@ -11,7 +11,7 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "netcdf.h"
-#include <nc4internal.h>
+#include <hdf5.h>
 #include <H5DSpublic.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */

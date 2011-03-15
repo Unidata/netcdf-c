@@ -3,11 +3,10 @@
   Research/Unidata. See COPYRIGHT file for more info.
 
   This file defines the variable functions.
-
-  "$Id: nc4.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
 */
 
 #include "ncdispatch.h"
+#include "netcdf_f.h"
 
 #if defined(__cplusplus)
 /* C++ consts default to internal linkage and must be initialized */

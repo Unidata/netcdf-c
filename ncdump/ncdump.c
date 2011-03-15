@@ -2002,9 +2002,9 @@ void adapt_url_for_cache(char **pathp) {
 int
 main(int argc, char *argv[])
 {
-    extern int optind;
-    extern int opterr;
-    extern char *optarg;
+    MSC_EXTRA extern int optind;
+    MSC_EXTRA extern int opterr;
+    MSC_EXTRA extern char *optarg;
     static fspec_t fspec =	/* defaults, overridden on command line */
       {
 	  0,			/* construct netcdf name from file name */

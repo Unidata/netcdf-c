@@ -29,9 +29,9 @@
 #endif
 
 /* These are in unistd.h; for use with getopt() */
-extern int optind;
-extern int opterr;
-extern char *optarg;
+MSC_EXTRA extern int optind;
+MSC_EXTRA extern int opterr;
+MSC_EXTRA extern char *optarg;
 
 /* Global variables for command-line requests */
 char *progname;	       /* for error messages */

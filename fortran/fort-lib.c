@@ -21,7 +21,7 @@ $Id: fort-lib.c,v 1.15 2009/02/13 15:58:00 ed Exp $
 /*
  * Convert a C dimension-ID vector into a FORTRAN dimension-ID vector.
  */
-NF_INTEGER*
+EXTERNL NF_INTEGER *
 c2f_dimids(int ncid, int varid, const int* cdimids, NF_INTEGER* fdimids)
 {
     int	i;
@@ -40,7 +40,7 @@ c2f_dimids(int ncid, int varid, const int* cdimids, NF_INTEGER* fdimids)
 /*
  * Convert a FORTRAN dimension-ID vector into a C dimension-ID vector.
  */
-int*
+EXTERNL int *
 f2c_dimids(int ndims, const NF_INTEGER* fdimids, int* cdimids)
 {
     int	i;
@@ -52,7 +52,7 @@ f2c_dimids(int ndims, const NF_INTEGER* fdimids, int* cdimids)
 }
 
 /* Convert a C dimension-ID vector into a FORTRAN dimension-ID vector. */
-NF_INTEGER *
+EXTERNL NF_INTEGER *
 c2f_chunksizes(int ncid, int varid, const int *cchunksizes, NF_INTEGER *fchunksizes)
 {
     int	i;
@@ -68,7 +68,7 @@ c2f_chunksizes(int ncid, int varid, const int *cchunksizes, NF_INTEGER *fchunksi
 }
 
 /* Convert a FORTRAN dimension-ID vector into a C dimension-ID vector. */
-int *
+EXTERNL int *
 f2c_chunksizes(int ncid, int varid, const NF_INTEGER *fchunksizes, int *cchunksizes)
 {
     int	i;
@@ -86,9 +86,9 @@ f2c_chunksizes(int ncid, int varid, const NF_INTEGER *fchunksizes, int *cchunksi
 /*
  * Convert FORTRAN co-ordinates into C co-ordinates.
  */
-size_t*
+EXTERNL size_t *
 f2c_coords(int ncid, int varid, const NF_INTEGER* fcoords,
-    size_t* ccoords)
+	   size_t *ccoords)
 {
     int	i;
     int	ndims;
@@ -106,7 +106,7 @@ f2c_coords(int ncid, int varid, const NF_INTEGER* fcoords,
 /*
  * Convert FORTRAN counts into C counts.
  */
-size_t*
+EXTERNL size_t *
 f2c_counts(int ncid, int varid, const NF_INTEGER* fcounts,
     size_t* ccounts)
 {
@@ -128,7 +128,7 @@ f2c_counts(int ncid, int varid, const NF_INTEGER* fcounts,
  *
  * Helper function.
  */
-ptrdiff_t*
+EXTERNL ptrdiff_t *
 f2c_strides(int ncid, int varid, const NF_INTEGER* fstrides,
     ptrdiff_t* cstrides)
 {
@@ -148,7 +148,7 @@ f2c_strides(int ncid, int varid, const NF_INTEGER* fstrides,
 /*
  * Convert a FORTRAN mapping vector into a C mapping vector.
  */
-ptrdiff_t*
+EXTERNL ptrdiff_t *
 f2c_maps(int ncid, int varid, const NF_INTEGER* fmaps, ptrdiff_t* cmaps)
 {
     return f2c_strides(ncid, varid, fmaps, cmaps);
@@ -159,7 +159,7 @@ f2c_maps(int ncid, int varid, const NF_INTEGER* fmaps, ptrdiff_t* cmaps)
 
 /* Get the varids for a fortran function (i.e. add 1 to each
  * varid.) */
-int
+EXTERNL int
 nc_inq_varids_f(int ncid, int *nvars, int *fvarids)
 {
    int *varids, nvars1;
@@ -187,7 +187,7 @@ nc_inq_varids_f(int ncid, int *nvars, int *fvarids)
 }
 /* Get the dimids for a fortran function (i.e. add 1 to each
  * dimid.) */
-int
+EXTERNL int
 nc_inq_dimids_f(int ncid, int *ndims, int *fdimids, int parent)
 {
    int *dimids, ndims1;
@@ -215,7 +215,7 @@ nc_inq_dimids_f(int ncid, int *ndims, int *fdimids, int parent)
 }
 
 /* Swap the dim sizes for fortran. */
-int
+EXTERNL int
 nc_insert_array_compound_f(int ncid, int typeid, char *name, 
 			 size_t offset, nc_type field_typeid,
 			 int ndims, int *dim_sizesp)
@@ -243,7 +243,7 @@ nc_insert_array_compound_f(int ncid, int typeid, char *name,
    return ret;
 }
 
-int
+EXTERNL int
 nc_inq_compound_field_f(int ncid, nc_type xtype, int fieldid, char *name, 
 			size_t *offsetp, nc_type *field_typeidp, int *ndimsp, 
 			int *dim_sizesp)

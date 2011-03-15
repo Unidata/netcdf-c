@@ -1650,6 +1650,10 @@ nc_inq_base_pe(int ncid, int *pe);
 
 /* #endif _CRAYMPP */
 
+/* This v2 function is used in the nc_test program. */
+EXTERNL int
+nctypelen(nc_type datatype);
+
 /* Begin v2.4 backward compatiblity */
 /*
  * defining NO_NETCDF_2 to the preprocessor
@@ -1702,9 +1706,6 @@ nc_advise(const char *cdf_routine_name, int err, const char *fmt,...);
  * This is the only thing in this file which architecture dependent.
  */
 typedef int nclong;
-
-EXTERNL int
-nctypelen(nc_type datatype);
 
 EXTERNL int
 nccreate(const char* path, int cmode);

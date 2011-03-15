@@ -28,7 +28,7 @@
 int
 main(int argc, char **argv)
 {
-    extern int ncopts;		/* netCDF error options */
+    MSC_EXTRA extern int ncopts;		/* netCDF error options */
     char *testfiles[] = {"nonesuch", "nctest_classic.nc", 
 			 "nctest_64bit_offset.nc", "nctest_netcdf4.nc"};
     char *testfile;
