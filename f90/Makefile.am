@@ -82,3 +82,6 @@ netcdf4_visibility.f90 netcdf4_constants.f90
 
 CLEANFILES = typesizes.mod netcdf.mod 
 
+# Turn of parallel builds in this directory.
+.NOTPARALLEL:
+
