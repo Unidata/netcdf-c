@@ -35,19 +35,17 @@
 #ifndef CURLWRAP_H
 #define CURLWRAP_H
 
-extern int nc_curlopen(CURL**);
-extern void nc_curlclose(CURL*);
+extern int nccr_curlopen(CURL**);
+extern void nccr_curlclose(CURL*);
 
-extern int nc_set_curl_flags(CURL*, NCCDMR*);
-extern int nc_set_proxy(CURL*, NCCDMR*);
-extern int nc_set_ssl(CURL*, NCCDMR*);
-extern int nc_set_user_password(CURL*, const char *userC, const char *passwordC);
+extern nccr_err nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime);
+extern long nccr_fetchhttpcode(CURL* curl);
+extern int nccr_fetchlastmodified(CURL* curl, char* url, long* filetime);
 
-#ifdef IGNORE
-extern long nc_fetchhttpcode(CURL*);
-extern int nc_fetchurl_file(CURL*, char* url, FILE* stream, unsigned long* sizep, long* filetime);
-extern int nc_fetchurl(CURL*, char* url, NCbytes* buf, long* filetime);
-extern int nc_fetchlastmodified(CURL*, char* url, long* filetime);
-#endif
+extern int nccr_set_curl_flags(CURL*, NCCDMR*);
+extern int nccr_set_proxy(CURL*, NCCDMR*);
+extern int nccr_set_ssl(CURL*, NCCDMR*);
+extern int nccr_set_user_password(CURL*, const char *userC, const char *passwordC);
+
 
 #endif /*CURLWRAP_H*/

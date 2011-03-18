@@ -42,23 +42,133 @@
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 
-static char* combinecredentials(const char* user, const char* pwd);
-
-struct Fetchdata {
-    FILE* stream;
-    size_t size;
-};
-
 /* Condition on libcurl version */
 #ifndef HAVE_CURLOPT_KEYPASSWD
 /* Set up an alias */
 #define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
 #endif
 
-/**************************************************/
+struct NCCR_CALLBACK_DATA {
+    size_t alloc;
+    size_t pos;
+    char* data;
+};
+
+static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
+
+nccr_err
+nccr_curlopen(CURL** curlp)
+{
+    nccr_err stat = NCCR_NOERR;
+    CURLcode cstat;
+    CURL* curl;
+    /* initialize curl*/
+    curl = curl_easy_init();
+    if(curl == NULL)
+        stat = NCCR_ECURL;
+    else {
+        cstat = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
+        if(cstat != CURLE_OK)
+            stat = NCCR_ECURL;
+        /*some servers don't like requests that are made without a user-agent*/
+        cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        if(cstat != CURLE_OK)
+            stat = NCCR_ECURL;
+    }
+    if(curlp)
+        *curlp = curl;
+    return stat;
+}
+
+nccr_err
+nccr_curlclose(CURL* curl)
+{
+    if(curl != NULL)
+        curl_easy_cleanup(curl);
+    return NCCR_NOERR;
+}
+
+nccr_err
+nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
+{
+    nccr_err stat = NCCR_NOERR;
+    CURLcode cstat = CURLE_OK;
+    struct NCCR_CALLBACK_DATA callback_data;
+
+    callback_data.alloc = 0;
+
+    /* Set the URL */
+    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
+    if(cstat != CURLE_OK)
+            goto fail;
+
+    /* send all data to this function  */
+    cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    if(cstat != CURLE_OK)
+            goto fail;
+
+    /* we pass our file to the callback function */
+    cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&callback_data);
+    if(cstat != CURLE_OK)
+            goto fail;
+
+    /* One last thing; always try to get the last modified time */
+    cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
+
+    /* fetch */
+    cstat = curl_easy_perform(curl);
+    if(cstat == CURLE_PARTIAL_FILE) {
+        /* Log it but otherwise ignore */
+        nccr_log("curl error: %s; ignored",
+               curl_easy_strerror(cstat));
+        cstat = CURLE_OK;
+    }
+    if(cstat != CURLE_OK) goto fail;
+
+    /* pull the data */
+    if(buf) {
+	buf->nbytes = callback_data.pos;
+	buf->bytes = callback_data.data;
+    }
+
+    /* Get the last modified time */
+    if(filetime != NULL)
+        cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
+    if(cstat != CURLE_OK) goto fail;
+    return stat;
+
+fail:
+    nccr_log("curl error: %s", curl_easy_strerror(cstat));
+    return NCCR_ECURL;
+}
+
+static size_t
+WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *cdata)
+{
+    size_t realsize = size * nmemb;
+    struct NCCR_CALLBACK_DATA* callback_data = (struct NCCR_CALLBACK_DATA*)cdata;
+
+    if(realsize == 0)
+       nccr_log("WriteMemoryCallback: zero sized chunk");
+
+    if(callback_data->alloc == 0) {
+	callback_data->data = (char*)malloc(realsize);
+	callback_data->alloc = realsize;
+	callback_data->pos = 0;
+    }
+
+    if(callback_data->alloc - callback_data->pos < realsize) {
+	callback_data->data = (char*)realloc(callback_data->data,
+					     callback_data->alloc+realsize);
+	callback_data->alloc += realsize;
+    }
+    memcpy(callback_data->data+callback_data->pos,ptr,realsize);
+    callback_data->pos += realsize;
+    return realsize;
+}
 
 long
-nc_fetchhttpcode(CURL* curl)
+nccr_fetchhttpcode(CURL* curl)
 {
     long httpcode;
     CURLcode cstat = CURLE_OK;
@@ -69,162 +179,15 @@ nc_fetchhttpcode(CURL* curl)
 }
 
 int
-nc_fetchurl_file(CURL* curl, char* url, FILE* stream,
-        unsigned long* sizep, long* filetime)
+nccr_fetchlastmodified(CURL* curl, char* url, long* filetime)
 {
-    int stat = NC_NOERR;
-    CURLcode cstat = CURLE_OK;
-    struct Fetchdata fetchdata;
-
-    /* Set the URL */
-    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* send all data to this function  */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFileCallback);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* we pass our file to the callback function */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&fetchdata);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* One last thing; always try to get the last modified time */
-    cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
-
-    fetchdata.stream = stream;
-    fetchdata.size = 0;
-    cstat = curl_easy_perform(curl);
-    if (cstat != CURLE_OK) goto fail;
-
-    if (stat == NC_NOERR) {
-        /* return the file size*/
-        if (sizep != NULL)
-            *sizep = fetchdata.size;
-        /* Get the last modified time */
-        if(filetime != NULL)
-	    cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-        if(cstat != CURLE_OK) goto fail;
-    }
-    return THROW(stat);
-
-fail:
-    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
-    return THROW(NC_ECURL);
-}
-
-int
-nc_fetchurl(CURL* curl, char* url, NCbytes* buf, long* filetime)
-{
-    int stat = NC_NOERR;
+    nccr_err stat = NCCR_NOERR;
     CURLcode cstat = CURLE_OK;
 
     /* Set the URL */
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* send all data to this function  */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* we pass our file to the callback function */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)buf);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* One last thing; always try to get the last modified time */
-    cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
-
-    cstat = curl_easy_perform(curl);
-    if(cstat == CURLE_PARTIAL_FILE) {
-        /* Log it but otherwise ignore */
-        LOG((LOGWARN, "curl error: %s; ignored",
-           curl_easy_strerror(cstat)));
-        cstat = CURLE_OK;
-    }
-    if(cstat != CURLE_OK) goto fail;
-
-    /* Get the last modified time */
-    if(filetime != NULL)
-        cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-    if(cstat != CURLE_OK) goto fail;
-
-    /* Null terminate the buffer*/
-    ncbytesnull(buf);
-
-    return THROW(stat);
-
-fail:
-    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
-    return THROW(NC_ECURL);
-}
-
-static size_t
-WriteFileCallback(void* ptr, size_t size, size_t nmemb,    void* data)
-{
-    size_t count;
-    struct Fetchdata* fetchdata;
-    fetchdata = (struct Fetchdata*) data;
-    count = fwrite(ptr, size, nmemb, fetchdata->stream);
-    if (count > 0) {
-        fetchdata->size += (count * size);
-    }
-#ifdef DEBUG
-    LOG((LOGNOTE,"callback: %lu bytes",(unsigned long)(size*nmemb))));
-#endif
-    return count;
-}
-
-static size_t
-WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
-{
-    size_t realsize = size * nmemb;
-    NCbytes* buf = (NCbytes*) data;
-    if(realsize == 0)
-        LOG((LOGWARN,"WriteMemoryCallback: zero sized chunk"));
-    /* Optimize for reading potentially large dods datasets */
-    if(!ncbytesavail(buf,realsize)) {
-        /* double the size of the packet */
-        ncbytessetalloc(buf,2*ncbytesalloc(buf));
-    }
-    ncbytesappendn(buf, ptr, realsize);
-    return realsize;
-}
-
-int
-nc_curlopen(CURL** curlp)
-{
-    int stat = NC_NOERR;
-    CURLcode cstat;
-    CURL* curl;
-    /* initialize curl*/
-    curl = curl_easy_init();
-    if (curl == NULL) stat = NC_ECURL;
-    else {
-        cstat = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-        if (cstat != CURLE_OK) stat = NC_ECURL;
-        /* some servers don't like requests that are made without a user-agent */
-        cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-        if (cstat != CURLE_OK) stat = NC_ECURL;
-    }
-    if (curlp) *curlp = curl;
-    return THROW(stat);
-}
-
-void
-nc_curlclose(CURL* curl)
-{
-    if (curl != NULL)
-        curl_easy_cleanup(curl);
-}
-
-int
-nc_fetchlastmodified(CURL* curl, char* url, long* filetime)
-{
-    int stat = NC_NOERR;
-    CURLcode cstat = CURLE_OK;
-
-    /* Set the URL */
-    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK) goto fail;
+    if(cstat != CURLE_OK)
+        goto fail;
 
     /* Ask for head */
     cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30); /* 30sec timeout*/
@@ -240,18 +203,18 @@ nc_fetchlastmodified(CURL* curl, char* url, long* filetime)
         cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
     if(cstat != CURLE_OK) goto fail;
 
-    return THROW(stat);
+    return stat;
 
 fail:
-    LOG((LOGERR, "curl error: %s", curl_easy_strerror(cstat)));
-    return THROW(NC_ECURL);
+    nccr_log("curl error: %s\n", curl_easy_strerror(cstat));
+    return NCCR_ECURL;
 }
 
 /**************************************************/
 
 /* Set various general curl flags */
 int
-nc_set_curl_flags(CURL* curl,  NCCDMR* nccr)
+nccr_set_curl_flags(CURL* curl,  NCCDMR* nccr)
 {
     CURLcode cstat = CURLE_OK;
     NCCURLSTATE* state = &nccr->curl;
@@ -307,7 +270,7 @@ fail:
 }
 
 int
-nc_set_proxy(CURL* curl, NCCDMR* nccr)
+nccr_set_proxy(CURL* curl, NCCDMR* nccr)
 {
     CURLcode cstat;
     struct NCCURLSTATE* state = &nccr->curl;
@@ -345,7 +308,7 @@ nc_set_proxy(CURL* curl, NCCDMR* nccr)
 }
 
 int
-nc_set_ssl(CURL* curl, NCCDMR* nccr)
+nccr_set_ssl(CURL* curl, NCCDMR* nccr)
 {
     CURLcode cstat = CURLE_OK;
     struct NCCURLSTATE* state = &nccr->curl;
@@ -408,7 +371,7 @@ fail:
  * we may have multiple password sources.
  */
 int
-nc_set_user_password(CURL* curl, const char *userC, const char *passwordC)
+nccr_set_user_password(CURL* curl, const char *userC, const char *passwordC)
 {
     CURLcode cstat;
     char* combined = NULL;

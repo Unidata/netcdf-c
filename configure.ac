@@ -994,7 +994,7 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.4])
 LT_INIT(win32-dll)
-#AC_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 lt_cv_ld_force_load=no
 
 # Valgrind tests don't work with shared builds because of some libtool

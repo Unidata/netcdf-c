@@ -1,3 +1,10 @@
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   $Id$
+ *   $Header$
+ *********************************************************************/
+
 #ifndef AST_BYTEIO_H
 #define AST_BYTEIO_H
 

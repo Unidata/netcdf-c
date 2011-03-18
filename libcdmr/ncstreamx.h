@@ -1,5 +1,5 @@
-#ifndef ncstream_H
-#define ncstream_H
+#ifndef NCSTREAMX_H
+#define NCSTREAMX_H
 
 
 
@@ -32,6 +32,7 @@ typedef enum Compress {
 } Compress;
 
 /* Forward definitions */
+typedef struct Annotation Annotation;
 typedef struct Attribute Attribute;
 typedef struct Dimension Dimension;
 typedef struct Variable Variable;
@@ -46,12 +47,22 @@ typedef struct Section Section;
 typedef struct StructureData StructureData;
 typedef struct Error Error;
 
+struct Annotation {
+};
+
+
+extern ast_err Annotation_write(ast_runtime*,Annotation*);
+extern ast_err Annotation_read(ast_runtime*,Annotation**);
+extern ast_err Annotation_reclaim(ast_runtime*,Annotation*);
+extern size_t Annotation_get_size(ast_runtime*,Annotation*);
+
 struct Attribute {
     char* name;
     DataType type;
     uint32_t len;
     struct {int defined; bytes_t value;} data;
     struct {size_t count; char** values;} sdata;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -66,6 +77,7 @@ struct Dimension {
     struct {int defined; bool_t value;} isUnlimited;
     struct {int defined; bool_t value;} isVlen;
     struct {int defined; bool_t value;} isPrivate;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -83,6 +95,7 @@ struct Variable {
     struct {int defined; bytes_t value;} data;
     struct {int defined; char* value;} enumType;
     struct {size_t count; uint32_t* values;} dimIndex;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -98,6 +111,7 @@ struct Structure {
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Variable** values;} vars;
     struct {size_t count; Structure** values;} structs;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -109,6 +123,7 @@ extern size_t Structure_get_size(ast_runtime*,Structure*);
 struct EnumTypedef {
     char* name;
     struct {size_t count; EnumType** values;} map;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -120,6 +135,7 @@ extern size_t EnumTypedef_get_size(ast_runtime*,EnumTypedef*);
 struct EnumType {
     uint32_t code;
     char* value;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -136,6 +152,7 @@ struct Group {
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Group** values;} groups;
     struct {size_t count; EnumTypedef** values;} enumTypes;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -150,6 +167,7 @@ struct Header {
     struct {int defined; char* value;} id;
     Group* root;
     struct {int defined; uint32_t value;} version;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -166,6 +184,7 @@ struct Data {
     struct {int defined; uint32_t value;} version;
     struct {int defined; Compress value;} compress;
     struct {int defined; uint32_t value;} crc32;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -178,6 +197,7 @@ struct Range {
     struct {int defined; uint64_t value;} start;
     uint64_t size;
     struct {int defined; uint64_t value;} stride;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -188,6 +208,7 @@ extern size_t Range_get_size(ast_runtime*,Range*);
 
 struct Section {
     struct {size_t count; Range** values;} range;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -202,6 +223,7 @@ struct StructureData {
     struct {size_t count; uint32_t* values;} heapCount;
     struct {size_t count; char** values;} sdata;
     struct {int defined; uint64_t value;} nrows;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -212,6 +234,7 @@ extern size_t StructureData_get_size(ast_runtime*,StructureData*);
 
 struct Error {
     char* message;
+    struct {int defined; Annotation* value;} annotation;
 };
 
 
@@ -220,4 +243,4 @@ extern ast_err Error_read(ast_runtime*,Error**);
 extern ast_err Error_reclaim(ast_runtime*,Error*);
 extern size_t Error_get_size(ast_runtime*,Error*);
 
-#endif /*ncstream_H*/
+#endif /*NCSTREAMX_H*/

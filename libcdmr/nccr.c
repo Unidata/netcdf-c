@@ -5,7 +5,7 @@
  *   $Header$
  *********************************************************************/
 
-#include "nccr.h"
+#include "includes.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -105,7 +105,7 @@ NCCR_open(const char * path, int mode,
     nccr->info.dispatch = dispatch;
 
     /* Create the curl connection (does not make the server connection)*/
-    ncstat = nc_curlopen(&nccr->cdmr->curl.curl);
+    ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     shows = nc_urllookup(nccr->cdmr->url,"show");
@@ -113,7 +113,7 @@ NCCR_open(const char * path, int mode,
 	nccr->cdmr->controls |= SHOWFETCH;
 
     /* fetch and build the meta data */
-    ncstat = crbuildnc(nccr);
+    ncstat = nccr_buildnc(nccr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Mark as no longer indef and no longer writable*/

@@ -15,14 +15,13 @@ typedef struct bytes_t{
 } bytes_t;
 
 /* Define error codes */
-typedef enum ast_err {
-AST_NOERR	=  0,
-AST_ENOMEM	= -1,
-AST_EFAIL	= -2, /*generic*/
-AST_EOF		= -3,
-AST_EIO		= -4,
-AST_ECURL	= -5
-} ast_err;
+typedef int ast_err;
+#define AST_NOERR NC_NOERR
+#define AST_EOF -1;
+#define AST_ENOMEM NC_ENOMEM
+#define AST_EFAIL NC_EFAIL /*generic*/
+#define AST_EIO NC_EIO
+#define AST_ECURL NC_ECURL
 
 /* Define primitive types enum */
 typedef enum ast_sort {

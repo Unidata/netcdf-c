@@ -30,6 +30,8 @@
 #include "crdebug.h"
 #include "crutil.h"
 
+#include "ast.h"
+
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
 
