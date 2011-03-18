@@ -77,14 +77,15 @@ if BUILD_SEPARATE_FORTRAN
 lib_LTLIBRARIES = libnetcdff.la
 libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) -version-number 5:1:0 
 # If we are building the dll (under MinGW) then set the correct flags.
+else
+noinst_LTLIBRARIES = libnetcdff.la
+endif # BUILD_SEPARATE_FORTRAN
+
+# Turn on some special flags for building DLL.
 if BUILD_DLL
 AM_CPPFLAGS += -DDLL_EXPORT
 libnetcdff_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdffdll.def
 endif # BUILD_DLL
-
-else
-noinst_LTLIBRARIES = libnetcdff.la
-endif # BUILD_SEPARATE_FORTRAN
 
 # If F90 is built, include it's convenience library.
 if BUILD_F90
