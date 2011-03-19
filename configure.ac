@@ -1108,6 +1108,8 @@ AC_CHECK_FUNCS([MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 #UD_CHECK_LIB_MATH
+AC_CHECK_LIB([m], [floor], [], [
+   AC_MSG_ERROR([Can't find or link to the math library.])])
 
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE

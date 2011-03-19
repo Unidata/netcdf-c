@@ -8,8 +8,9 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include 
 AM_LDFLAGS = #@EXTERN_LDFLAGS@
 
-# May need to set this.
+# May need to set these.
 libnetcdff_la_LIBADD = 
+libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) 
 
 # The F77 API man page.
 man_MANS = netcdf_f77.3
@@ -75,7 +76,7 @@ endif
 # library.
 if BUILD_SEPARATE_FORTRAN
 lib_LTLIBRARIES = libnetcdff.la
-libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) -version-number 5:1:0 
+libnetcdff_la_LDFLAGS += -version-number 5:1:0 
 # If we are building the dll (under MinGW) then set the correct flags.
 else
 noinst_LTLIBRARIES = libnetcdff.la
