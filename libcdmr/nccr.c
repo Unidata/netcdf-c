@@ -5,7 +5,7 @@
  *   $Header$
  *********************************************************************/
 
-#include "includes.h"
+#include "config.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -15,10 +15,18 @@
 #include <unistd.h>
 #endif
 
-#include "nccr.h"
-#include "nccrdispatch.h"
+#include <curl/curl.h>
+
+#include "netcdf.h"
+#include "nc.h"
+#include "ncdispatch.h"
+#include "nc4internal.h"
 #include "nc4dispatch.h"
+
+#include "nccr.h"
 #include "crdebug.h"
+#include "nccrdispatch.h"
+#include "ast.h"
 #include "curlwrap.h"
 
 /* Mnemonic */

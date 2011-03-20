@@ -5,21 +5,25 @@
  *   $Header$
  *********************************************************************/
 
-#include "nccr.h"
+#include "config.h"
 
-#ifdef IGNORE
-static NCerror crbuilddims(NCCR*);
-static NCerror crbuildtypes(NCCR*);
-static NCerror crbuildtypesr(NCCR*);
-static NCerror crbuildvars(NCCR*);
-static NCerror crbuildglobalattrs(NCCR*);
-static NCerror crbuildattribute(NCCR*, int varid, int ncid);
-#endif
+#include <curl/curl.h>
+
+#include "netcdf.h"
+#include "ncdispatch.h"
+#include "nc.h"
+#include "nc4internal.h"
+
+#include "nccr.h"
+#include "crdebug.h"
+#include "ast.h"
+#include "curlwrap.h"
+
+#include "ncstreamx.h"
 
 enum Dimcase {DC_UNKNOWN, DC_FIXED, DC_UNLIMITED, DC_VLEN, DC_PRIVATE};
 
 static int uid = 0;
-
 
 /*
 Fetch the metadata and define in the temporary netcdf-4 file
@@ -28,9 +32,15 @@ NCerror
 crbuildnc(NCCR* nccr, Header* hdr)
 {
     NCerror ncstat = NC_NOERR;
+    nc_id ncid = nccr->info.ext_ncid; /*root id*/
 
-    ncstat = cfillgroup(nccr, hdr->root, nccr->file.ext_id);
+    ncstat = crpredefinedtypes(nccr,ncid);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
+    ncstat = crfillgroup(nccr, hdr->root, ncid);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+#ifdef IGNORE
     ncstat = crbuilddims(cdmr,hdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     ncstat = crbuildtypes(cdmr);
@@ -39,12 +49,30 @@ crbuildnc(NCCR* nccr, Header* hdr)
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     ncstat = crbuildglobalattrs(cdmr,getncid(cdmr),dds);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+#endif
+
 done:
     return THROW(ncstat);
 }
 
+/* Define needed predefine types in root */
+static NCerror
+crpredefinedtypes(NCCR* nccr, nc_id ncid)
+{
+    NCerror ncstat = NC_NOERR;
+    nc_type tid;
+
+    /* NC_UINT8(*) bytes_t */
+    ncstat = nc_def_vlen(ncid,"bytes_t",NC_UINT8,&tid);
+    if(ncstat != NC_NOERR) goto done;
+
+done:
+    return ncstat;
+}
+
+
 /* Actual group is created by caller */
-NCerror
+static NCerror
 crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
 {
     NCerror ncstat = NC_NOERR;
@@ -63,7 +91,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
 	}
     }
 
-    /* Create the enums types */
+    /* Create the enum types */
     for(i=0;i<grp->enumTypes.count;i++) {
 	EnumTypeDef* en = grp->enumTypes.values[i];
 	int enid;
@@ -102,14 +130,45 @@ crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
 	    if(ncstat != NC_NOERR) goto done;	
 	}
 
+    /* Create the group global attributes */
+    for(i=0;i<grp->atts.count;i++) {
+	Attribute* att = grp->atts.values[i];
+
+	if(att->data.defined) {
+	    ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
+				cvtstreamtonc(v->dataType),
+				att->len,
+				att->data.value);
+	} else {
+	    switch (att->type) {
+	    case STRING: {
+	        ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
+				cvtstreamtonc(v->dataType),
+				att->sdata.count,
+				att->sdata.values);
+	    case OPAQUE:
+	    default: abort();
+	    }
+	}
+        if(ncstat != NC_NOERR) goto done;
+    }
 
 
-
-
-    struct {size_t count; Dimension** values;} shape;
-    struct {size_t count; Attribute** values;} atts;
+    /* Create the group non-struct variables */
     struct {size_t count; Variable** values;} vars;
+    for(i=0;i<grp->vars.count;i++) {
+        Variable* v = grp->vars.values[i];
+        ncstat = nc_def_var(grpid,v->name,cvtstreamtonc(v->dataType),
+			    ndims,
+			    dimids,
+			    varidp);
+
+        /* Create the group struct variables */
     struct {size_t count; Structure** values;} structs;
+
+
+
+
 
 
 

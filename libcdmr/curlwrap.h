@@ -38,7 +38,7 @@
 extern int nccr_curlopen(CURL**);
 extern void nccr_curlclose(CURL*);
 
-extern nccr_err nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime);
+extern int nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime);
 extern long nccr_fetchhttpcode(CURL* curl);
 extern int nccr_fetchlastmodified(CURL* curl, char* url, long* filetime);
 

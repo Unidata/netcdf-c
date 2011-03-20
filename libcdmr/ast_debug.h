@@ -1,21 +1,21 @@
 #ifndef AST_DEBUG_H
 #define AST_DEBUG_H
 
-#define DEBUG
+#define ASTDEBUG
 
-#ifdef DEBUG
+#ifdef ASTDEBUG
 extern int ast_catch(int);
 #endif
 
 /* Provide an error catcher */
-#ifdef DEBUG
-#define CATCH(status) ((status)?ast_catch(status):(status))
-#define THROW(status,go) {ast_catch(status);goto go;}
-#define ERR(status,err,go) {status=err;ast_catch(status);goto go;}
+#ifdef ASTDEBUG
+#define ACATCH(status) ((status)?ast_catch(status):(status))
+#define ATHROW(status,go) {ast_catch(status);goto go;}
+#define AERR(status,err,go) {status=err;ast_catch(status);goto go;}
 #else
-#define CATCH(status,status,go) (status)
-#define THROW(status,go) {goto go;}
-#define ERR(status,err,go) {goto go;}
+#define ACATCH(status,status,go) (status)
+#define ATHROW(status,go) {goto go;}
+#define AERR(status,err,go) {goto go;}
 #endif
 
 #endif /*AST_DEBUG_H*/

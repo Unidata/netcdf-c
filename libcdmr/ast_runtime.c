@@ -140,7 +140,7 @@ ast_read_tag(ast_runtime* rt, int* wiretypep, int* fieldnop)
 
     /* Extract the wiretype + index */
     status = ast_readvarint(rt,buffer,&count);
-    if(status != AST_NOERR) THROW(status,done);
+    if(status != AST_NOERR) ATHROW(status,done);
 
     /* convert from varint */
     key = uint32_decode(count,buffer);
@@ -154,7 +154,7 @@ ast_read_tag(ast_runtime* rt, int* wiretypep, int* fieldnop)
     if(wiretypep) *wiretypep = wiretype;
 
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 static ast_err
@@ -165,7 +165,7 @@ ast_read_primitive_data(ast_runtime* rt, const ast_sort sort, void* valuep)
     size_t count,len;
     uint32_t wiretype;
 
-    if(valuep == NULL) ERR(status,AST_EFAIL,done);
+    if(valuep == NULL) AERR(status,AST_EFAIL,done);
 
     /* compute the wiretype from the sort */
     wiretype = sort_wiretype_map[sort];
@@ -174,22 +174,22 @@ ast_read_primitive_data(ast_runtime* rt, const ast_sort sort, void* valuep)
     switch (wiretype) {
     case ast_varint:
         status = ast_readvarint(rt,buffer,&len);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
 	break;
     case ast_32bit:
 	len = 4;
-        if(ast_read(rt,len,buffer) != len) ERR(status,AST_EOF,done);
+        if(ast_read(rt,len,buffer) != len) AERR(status,AST_EOF,done);
 	break;
     case ast_64bit:
 	len = 8;
-        if(ast_read(rt,len,buffer) != len) ERR(status,AST_EOF,done);
+        if(ast_read(rt,len,buffer) != len) AERR(status,AST_EOF,done);
 	break;
     case ast_counted: /* get the count */
         status = ast_readvarint(rt,buffer,&len);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
 	count = (size_t)uint64_decode(len,buffer);	
 	break;
-    default: THROW(status,done);
+    default: ATHROW(status,done);
     }
 
     /* Now extract the value */
@@ -239,26 +239,26 @@ ast_read_primitive_data(ast_runtime* rt, const ast_sort sort, void* valuep)
     case ast_string: {
 	/* Count already holds the length of the string */
 	char* stringvalue = ast_alloc(rt,count+1);
-	if(stringvalue == NULL) ERR(status,AST_ENOMEM,done);
-	if(ast_read(rt,count,stringvalue) != count) ERR(status,AST_EOF,done);
+	if(stringvalue == NULL) AERR(status,AST_ENOMEM,done);
+	if(ast_read(rt,count,stringvalue) != count) AERR(status,AST_EOF,done);
 	stringvalue[count] = '\0';
 	*((char**)valuep) = stringvalue;
 	} break;
     case ast_bytes: {
 	/* Count already holds the length of the byte string */
 	uint8_t* bytestring = ast_alloc(rt,count);
-	if(bytestring == NULL) ERR(status,AST_ENOMEM,done);
-	if(ast_read(rt,count,bytestring) != count) ERR(status,AST_EOF,done);
+	if(bytestring == NULL) AERR(status,AST_ENOMEM,done);
+	if(ast_read(rt,count,bytestring) != count) AERR(status,AST_EOF,done);
 	((bytes_t*)valuep)->nbytes = count;
 	((bytes_t*)valuep)->bytes = bytestring;
 	} break;
     default:
-	THROW(status,done);
+	ATHROW(status,done);
 	break;
     }
 
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 ast_err
@@ -268,14 +268,14 @@ ast_read_primitive(ast_runtime* rt, const ast_sort sort,
     ast_err status = AST_NOERR;
     uint32_t wiretype;
 
-    if(valuep == NULL) ERR(status,AST_EFAIL,done);
+    if(valuep == NULL) AERR(status,AST_EFAIL,done);
 
     /* compute the wiretype from the sort */
     wiretype = sort_wiretype_map[sort];
     status = ast_read_primitive_data(rt,sort,valuep);
     if(status != AST_NOERR) goto done;
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 static ast_err
@@ -291,67 +291,67 @@ ast_write_primitive_data(ast_runtime* rt, const ast_sort sort,
     switch (sort) {
     case ast_int32:
 	count = int32_encode(*(int32_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done)};
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done)};
 	break;
     case ast_int64:
 	count = int64_encode(*(int64_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_uint32:
 	count = uint32_encode(*(uint32_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_uint64:
 	count = uint64_encode(*(uint64_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_sint32:
 	count = sint32_encode(*(int32_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_sint64:
 	count = sint64_encode(*(int64_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_bool:
 	count = boolean_encode(*(bool_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_enum:
 	count = int32_encode(*(int32_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_fixed32: /* fall thru */
     case ast_sfixed32: /* fall thru */
     case ast_float:
 	count = fixed32_encode(*(uint32_t*)valuep,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_fixed64:  /* fall thru */
     case ast_sfixed64: /* fall thru */
     case ast_double:
 	count = fixed64_encode(*(uint64_t*)valuep,buffer);
-        if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
+        if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_string: {
 	char* stringvalue = *(char**)valuep;
 	size_t len = strlen(stringvalue);
 	count = uint32_encode(len,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
-	if(ast_write(rt,len,stringvalue) != count) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
+	if(ast_write(rt,len,stringvalue) != count) {status = AST_EIO; ATHROW(status,done);}
 	} break;
     case ast_bytes: {
 	bytes_t* bytevalue = (bytes_t*)valuep;		
 	count = uint32_encode(bytevalue->nbytes,buffer);
-	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; THROW(status,done);}
-	if(ast_write(rt,bytevalue->nbytes,bytevalue->bytes) != bytevalue->nbytes) {status = AST_EIO; THROW(status,done);}
+	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
+	if(ast_write(rt,bytevalue->nbytes,bytevalue->bytes) != bytevalue->nbytes) {status = AST_EIO; ATHROW(status,done);}
 	} break;
     default:
-	THROW(status,done);
+	ATHROW(status,done);
 	break;
     }
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 static size_t
@@ -416,11 +416,11 @@ ast_read_count(ast_runtime* rt, size_t* countp)
     uint8_t buffer[VARINTMAX64];
     size_t len;
     ast_err status = ast_readvarint(rt,buffer,&len);
-    if(status != AST_NOERR) THROW(status,done);
+    if(status != AST_NOERR) ATHROW(status,done);
     count = uint64_decode(len,buffer);
     if(countp) *countp = (size_t)count;
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 /* Append + extend a REPEAT field */
@@ -434,10 +434,10 @@ ast_repeat_append(ast_runtime* rt, ast_sort sort,void* repeater0, void* value)
     if(repeater->count == 0 || repeater->values == NULL) {
 	repeater->count = 0;
 	repeater->values = ast_alloc(rt,sortsize);
-	if(repeater->values == NULL) return CATCH(AST_ENOMEM);
+	if(repeater->values == NULL) return ACATCH(AST_ENOMEM);
     } else {
 	repeater->values = ast_realloc(rt,repeater->values,(repeater->count+1)*sortsize);
-	if(repeater->values == NULL) return CATCH(AST_ENOMEM);
+	if(repeater->values == NULL) return ACATCH(AST_ENOMEM);
     }
     target = ((char*)repeater->values) + (repeater->count * sortsize);
     memcpy((void*)target,value,sortsize);
@@ -585,34 +585,34 @@ ast_skip_field(ast_runtime* rt, int wiretype, int fieldno)
     switch (wiretype) {
     case ast_varint:
         status = ast_readvarint(rt,buffer,&len);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
 	break;
     case ast_32bit:
 	len = 4;
         status = ast_read(rt,len,buffer);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
 	break;
     case ast_64bit:
 	len = 8;
         status = ast_read(rt,len,buffer);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
 	break;
     case ast_counted:
         status = ast_readvarint(rt,buffer,&len);
-        if(status != AST_NOERR) THROW(status,done);
+        if(status != AST_NOERR) ATHROW(status,done);
         /* get the count */
 	len = (size_t)uint64_decode(len,buffer);	
 	/* Now skip "count" bytes */
 	while(len > 0) {
 	    size_t n = (len > sizeof(buffer) ? sizeof(buffer) : len);
 	    size_t actual = ast_read(rt,n,buffer);
-	    if(actual < n) {status = rt->errno; THROW(status,done);}
+	    if(actual < n) {status = rt->errno; ATHROW(status,done);}
 	}
 	break;
     default: status = AST_EFAIL; break;
     }
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 ast_err
@@ -649,7 +649,7 @@ ast_write_primitive_packed(ast_runtime* rt, const ast_sort sort,
     }
 
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 ast_err
@@ -664,17 +664,17 @@ ast_read_primitive_packed(ast_runtime* rt, const ast_sort sort, const int fieldn
     uint8_t varintbuf[VARINTMAX64];
     uint8_t cbuffer[MAXCTYPESIZE];
 
-    if(valuep == NULL) return CATCH(AST_EFAIL);
+    if(valuep == NULL) return ACATCH(AST_EFAIL);
 
     /* wire type should always be ast_counted */
     status = ast_readvarint(rt,varintbuf,&len);
-    if(status != AST_NOERR) THROW(status,done);
+    if(status != AST_NOERR) ATHROW(status,done);
     /* extract the count */
     count = (size_t)uint64_decode(len,varintbuf);	
 
     /* mark the runtime */
     status = ast_mark(rt,count);
-    if(status != AST_NOERR) THROW(status,done);
+    if(status != AST_NOERR) ATHROW(status,done);
 
     /* Read until we hit the end of the mark */
     for(count=0,p=(char*)valuep;status == AST_NOERR;count++,p+=typesize) {
@@ -683,11 +683,11 @@ ast_read_primitive_packed(ast_runtime* rt, const ast_sort sort, const int fieldn
 	status = ast_repeat_append(rt,sort,(void*)repeater,(void*)cbuffer);
     }
     if(status == AST_EOF) status = AST_NOERR;
-    if(status != AST_NOERR) THROW(status,done);
+    if(status != AST_NOERR) ATHROW(status,done);
     status = ast_unmark(rt);
 
 done:
-    return CATCH(status);
+    return ACATCH(status);
 }
 
 ast_err

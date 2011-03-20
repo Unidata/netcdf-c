@@ -56,10 +56,10 @@ struct NCCR_CALLBACK_DATA {
 
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 
-nccr_err
+int
 nccr_curlopen(CURL** curlp)
 {
-    nccr_err stat = NCCR_NOERR;
+    int stat = NCCR_NOERR;
     CURLcode cstat;
     CURL* curl;
     /* initialize curl*/
@@ -80,7 +80,7 @@ nccr_curlopen(CURL** curlp)
     return stat;
 }
 
-nccr_err
+int
 nccr_curlclose(CURL* curl)
 {
     if(curl != NULL)
@@ -88,10 +88,10 @@ nccr_curlclose(CURL* curl)
     return NCCR_NOERR;
 }
 
-nccr_err
+int
 nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
 {
-    nccr_err stat = NCCR_NOERR;
+    int stat = NCCR_NOERR;
     CURLcode cstat = CURLE_OK;
     struct NCCR_CALLBACK_DATA callback_data;
 
@@ -181,7 +181,7 @@ nccr_fetchhttpcode(CURL* curl)
 int
 nccr_fetchlastmodified(CURL* curl, char* url, long* filetime)
 {
-    nccr_err stat = NCCR_NOERR;
+    int stat = NCCR_NOERR;
     CURLcode cstat = CURLE_OK;
 
     /* Set the URL */

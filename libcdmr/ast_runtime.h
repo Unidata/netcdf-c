@@ -74,7 +74,7 @@ typedef struct ast_runtime {
     ast_iomode mode; /* Write/Read/Free (WRF) */
     ast_runtime_ops* ops;
     void* stream; /* data representing stream */
-    int errno;
+    int err;
 } ast_runtime;
 
 struct ast_runtime_ops {

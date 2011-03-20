@@ -8,29 +8,6 @@
 #ifndef NCCR_H
 #define NCCR_H
 
-#include "config.h"
-
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <stdio.h>
-
-#include <curl/curl.h>
-
-#include "ncbytes.h"
-#include "nclist.h"
-
-#include "netcdf.h"
-#include "ncdispatch.h"
-#include "nc4internal.h"
-#include "nc.h"
-
-#include "crdebug.h"
-#include "crutil.h"
-
-#include "ast.h"
 
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
@@ -94,10 +71,12 @@ extern char* nulldup(const char*);
 /**************************************************/
 
 /**********************************************************/
+/* Forwards */
+struct Header;
 
 extern int nccrceparse(char*, int, NClist**, NClist**, char**);
 
-extern NCerror crbuildnc(NCCR*);
+extern NCerror crbuildnc(NCCR*, struct Header*);
 
 /**********************************************************/
 
