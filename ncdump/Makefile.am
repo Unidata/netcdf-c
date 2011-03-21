@@ -87,7 +87,10 @@ BUILT_SOURCES = ctest.c ctest64.c
 
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 if CROSS_COMPILING
+ctest.c:
 	cp ref_ctest.c ctest.c
+
+ctest64.c:
 	cp ref_ctest64.c ctest64.c
 else
 ctest.c:

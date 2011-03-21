@@ -6,14 +6,15 @@
 # libraries have been built (e.g. libsrc, libsrc4, libncdap3, libcdmr,
 # libncdap4, fortran).
 
-AM_CPPFLAGS = -I$(top_srcdir)/include 
-libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 # This is our output, the netcdf library the user will install.
 lib_LTLIBRARIES = libnetcdf.la
 
 # These linker flags specify libtool version info.
 libnetcdf_la_LDFLAGS = -version-number 7:0:1 
+libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD = 
 
 # Turn on some extra stuff when building a DLL for windows.

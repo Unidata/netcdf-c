@@ -6,6 +6,9 @@
 
 #include <config.h>
 #include <stdio.h>
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -2002,9 +2005,6 @@ void adapt_url_for_cache(char **pathp) {
 int
 main(int argc, char *argv[])
 {
-    MSC_EXTRA extern int optind;
-    MSC_EXTRA extern int opterr;
-    MSC_EXTRA extern char *optarg;
     static fspec_t fspec =	/* defaults, overridden on command line */
       {
 	  0,			/* construct netcdf name from file name */

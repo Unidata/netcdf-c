@@ -356,18 +356,21 @@ extern "C" {
 #  else
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
-/*#include <io.h>*/
+#include <io.h>
+#ifndef uint
+   typedef unsigned int uint;
+#endif
 /*#define lseek _lseeki64
   #define off_t __int64*/
 #else
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
-# define EXTERNL extern MSC_EXTRA
+# define EXTERNL MSC_EXTRA extern
 
 #if defined(DLL_NETCDF) /* define when library is a DLL */
-MSC_EXTRA int ncerr;
-MSC_EXTRA int ncopts;
+EXTERNL int ncerr;
+EXTERNL int ncopts;
 #endif
 
 EXTERNL const char *

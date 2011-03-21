@@ -42,3 +42,10 @@ endif
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc
 endif
+
+# This turns on declspec magic in netcdf.h for windows DLLs.
+if BUILD_DLL
+AM_CPPFLAGS += -DDLL_NETCDF
+endif
+
+

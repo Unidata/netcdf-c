@@ -49,20 +49,6 @@ extern "C" {
  * The Interface
  */
 
-/* Declaration modifiers for DLL support (MSC et al) */
-
-#if defined(DLL_NETCDF) /* define when library is a DLL */
-#  if defined(DLL_EXPORT) /* define when building the library */
-#   define MSC_EXTRA __declspec(dllexport)
-#  else
-#   define MSC_EXTRA __declspec(dllimport)
-#  endif
-#else
-#define MSC_EXTRA
-#endif	/* defined(DLL_NETCDF) */
-
-# define EXTERNL extern MSC_EXTRA
-
 /* WARNING: this signature differs from external nc_create API*/
 EXTERNL int
 NC3_create(const char *path, int cmode,

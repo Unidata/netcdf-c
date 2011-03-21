@@ -4,9 +4,12 @@
 
 # $Id: Makefile.am,v 1.54 2010/05/29 00:42:11 dmh Exp $
 
-AM_LDFLAGS = @EXTERN_LDFLAGS@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I${top_srcdir}/liblib -I${top_srcdir} @EXTERN_CFLAGS@
-LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
+#AM_LDFLAGS = @EXTERN_LDFLAGS@
+#AM_CPPFLAGS = -I$(top_srcdir)/include -I${top_srcdir}/liblib -I${top_srcdir} @EXTERN_CFLAGS@
+LDADD = ${top_builddir}/liblib/libnetcdf.la #@EXTERN_LDFLAGS@
 
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen3

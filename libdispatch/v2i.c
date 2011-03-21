@@ -8,7 +8,14 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "netcdf.h"
+
+/* The subroutines in error.c emit no messages unless NC_VERBOSE bit
+ * is on.  They call exit() when NC_FATAL bit is on. */
+int ncopts = (NC_FATAL | NC_VERBOSE) ;
+int ncerr = NC_NOERR ;
 
 #if SIZEOF_LONG == SIZEOF_SIZE_T
 /*
@@ -334,31 +341,6 @@ nc_get_rec(
     }    
     return 0;
 }
-
-
-/* Begin globals */
-
-/*
- * Error code
- */
-#if !DLL_NETCDF /* define when library is not a DLL */
-int ncerr = NC_NOERR ;
-
-
-/*
- * The subroutines in error.c emit no messages unless NC_VERBOSE bit is on.
- * They call exit() when NC_FATAL bit is on.
- */
-int ncopts = (NC_FATAL | NC_VERBOSE) ;
-#endif
-
-/* End globals */
-
-/* Begin error handling */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 
 /*
  */
