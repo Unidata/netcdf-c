@@ -1445,6 +1445,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
     * dataset. */
    if (var->dimscale)
    {
+      LOG((4, "var_create_dataset: marking %s, dataseit id 0x%x", var->name, 
+	   var->hdf_datasetid));
       if (H5DSset_scale(var->hdf_datasetid, var->name) < 0)
          BAIL(NC_EHDFERR);
       for (dim = grp->dim; dim; dim = dim->next)
