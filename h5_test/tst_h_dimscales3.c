@@ -8,7 +8,7 @@
 
    $Id: tst_h_dimscales3.c,v 1.2 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #include <hdf5.h>
@@ -21,6 +21,7 @@
 #define DIM1_LEN 3
 #define NAME_ATTRIBUTE "dimscale_name_attribute"
 #define DIMSCALE_LABEL "dimscale_label"
+#define STR_LEN 255
 
 /* typedef struct { */
 /*       unsigned long 	fileno;		/\*file number			*\/ */
@@ -30,13 +31,13 @@
 herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
 		     void *visitor_data)
 {
-   char name1[NC_MAX_NAME];
+   char name1[STR_LEN];
    H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* This should get "/var1", the name of the dataset that the scale
     * is attached to. */
-   if (H5Iget_name(did, name1, NC_MAX_NAME) < 0) ERR;
+   if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
    if (strcmp(&name1[1], VAR1_NAME)) ERR;
    
    /*printf("visiting did 0x%x dim %d dsid 0x%x name of did %s \n", 
@@ -59,11 +60,11 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
 
 herr_t alien_visitor2(hid_t did, unsigned dim, hid_t dsid, void *visitor_data)
 {
-   char name1[NC_MAX_NAME];
+   char name1[STR_LEN];
    H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
-   if (H5Iget_name(did, name1, NC_MAX_NAME) < 0) ERR;
+   if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
    /*printf("visiting did 0x%x dim %d dsid 0x%x name of did %s \n",  
      did, dim, dsid, name1); */
 
@@ -122,10 +123,10 @@ main()
 	 hid_t fileid, spaceid = 0, datasetid = 0;
 	 hsize_t num_obj, i;
 	 int obj_class;
-	 char obj_name[NC_MAX_NAME + 1];
-	 char dimscale_name[NC_MAX_NAME+1];
+	 char obj_name[STR_LEN + 1];
+	 char dimscale_name[STR_LEN+1];
 	 htri_t is_scale;
-	 char label[NC_MAX_NAME+1];
+	 char label[STR_LEN+1];
 	 int num_scales;
 	 hsize_t dims[1], maxdims[1];
 	 H5G_stat_t statbuf;
@@ -141,7 +142,7 @@ main()
 	    /* Get the type (i.e. group, dataset, etc.), and the name of
 	     * the object. */
 	    if ((obj_class = H5Gget_objtype_by_idx(fileid, i)) < 0) ERR;
-	    if (H5Gget_objname_by_idx(fileid, i, obj_name, NC_MAX_NAME) < 0) ERR;
+	    if (H5Gget_objname_by_idx(fileid, i, obj_name, STR_LEN) < 0) ERR;
 
 	    /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n",
 	      obj_class, obj_name);*/
@@ -167,7 +168,7 @@ main()
 		  {
 		     /* A dimscale comes with a NAME attribute, in
 		      * addition to its real name. */
-		     if (H5DSget_scale_name(datasetid, dimscale_name, NC_MAX_NAME) < 0) ERR;
+		     if (H5DSget_scale_name(datasetid, dimscale_name, STR_LEN) < 0) ERR;
 		     if (strcmp(dimscale_name, NAME_ATTRIBUTE)) ERR;
 
 		     /* fileno and objno uniquely identify an object and a
@@ -199,7 +200,7 @@ main()
 		     vars_dimscale_obj.objno[1] != dimscale_obj.objno[1]) ERR;
 		  
 		     /* There's also a label for dimension 0. */
-		     if (H5DSget_label(datasetid, 0, label, NC_MAX_NAME) < 0) ERR;
+		     if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 
 		     /*printf("found non-scale dataset %s, label %s\n", obj_name, label);*/
 		  }

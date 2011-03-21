@@ -6,10 +6,9 @@
    exhaustive tests, but they use HDF5 the same way that netCDF-4
    does, so if these tests don't work, than netCDF-4 won't work
    either.
-
-   $Id: tst_h_vars3.c,v 1.3 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 

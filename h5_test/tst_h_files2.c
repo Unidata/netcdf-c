@@ -5,12 +5,9 @@
    Test HDF5 file code. These are not intended to be exhaustive tests,
    but they use HDF5 the same way that netCDF-4 does, so if these
    tests don't work, than netCDF-4 won't work either.
-
-   $Id: tst_h_files2.c,v 1.4 2009/05/06 14:50:52 ed Exp $
 */
-#include <config.h>
-#include <nc_tests.h>
-#include "netcdf.h"
+
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 

@@ -3,10 +3,9 @@
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 compound types. 
-
-   $Id: tst_h_rd_cmp.c,v 1.7 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_wrt_cmp.h5"

@@ -6,10 +6,9 @@
 
    Here's a HDF5 sample programs:
    http://hdf.ncsa.uiuc.edu/training/other-ex5/sample-programs/strings.c
-
-   $Id: tst_h_strings.c,v 1.19 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_strings.h5"
@@ -64,8 +63,7 @@ main()
       
       /* Given this type id, how would we know this is a string
        * attribute? */
-      if ((class = H5Tget_class(typeid)) < 0)
-	 return NC_EHDFERR;
+      if ((class = H5Tget_class(typeid)) < 0) ERR;
       if (class != H5T_STRING) ERR;
       if (!(type_size = H5Tget_size(typeid))) ERR;
       if ((is_str = H5Tis_variable_str(typeid)) < 0) ERR;
@@ -133,8 +131,7 @@ main()
 
       /* Given this type id, how would we know this is a string
        * attribute? */
-      if ((class = H5Tget_class(typeid)) < 0)
-	 return NC_EHDFERR;
+      if ((class = H5Tget_class(typeid)) < 0) ERR;
       if (class != H5T_STRING) ERR;
 /*      if (!(type_size = H5Tget_size(typeid))) ERR;
 	if ((is_str = H5Tis_variable_str(typeid)) < 0) ERR;*/
@@ -219,8 +216,7 @@ main()
       
       /* Given this type id, how would we know this is a string
        * attribute? */
-      if ((class = H5Tget_class(typeid)) < 0)
-	 return NC_EHDFERR;
+      if ((class = H5Tget_class(typeid)) < 0) ERR;
       if (class != H5T_STRING) ERR;
 
       /* How many strings are in the array? */
@@ -303,8 +299,7 @@ main()
       
       /* Given this type id, how would we know this is a string
        * attribute? */
-      if ((class = H5Tget_class(typeid)) < 0)
-	 return NC_EHDFERR;
+      if ((class = H5Tget_class(typeid)) < 0) ERR;
       if (class != H5T_STRING) ERR;
 
       /* How many strings are in the array? */

@@ -10,11 +10,13 @@
 
    $Id: tst_h_compounds2.c,v 1.17 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_compounds2.h5"
 #define REF_FILE_IN "ref_tst_h_compounds2.h5"
+#define STR_LEN 255
 
 int
 main()
@@ -45,18 +47,17 @@ main()
       hid_t att_typeid, att_native_typeid;
       hsize_t dims[1];
       hsize_t num_obj, i_obj;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       H5O_info_t obj_info;
       hid_t fapl_id, fcpl_id;
       htri_t equal;
-      char file_in[NC_MAX_NAME * 2];
+      char file_in[STR_LEN * 2];
       char *dummy;
       int i;
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) ERR;
       memcpy((void *)data_out, (void *)dummy, sizeof(struct s2) * DIM_CMP_LEN); 
       free(dummy); 
 
@@ -133,7 +134,7 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
 				i_obj, &obj_info, H5P_DEFAULT) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
-				i_obj, obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				i_obj, obj_name, STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 
 	 /* Deal with groups and datasets. */
 	 if (obj_info.type == H5O_TYPE_NAMED_DATATYPE)
@@ -196,7 +197,7 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i_obj, &obj_info, 
 				H5P_DEFAULT) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i_obj, obj_name, 
-				NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 
 	 /* Deal with groups and datasets. */
 	 if (obj_info.type == H5O_TYPE_NAMED_DATATYPE)

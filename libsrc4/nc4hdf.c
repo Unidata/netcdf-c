@@ -721,7 +721,7 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
          {
             xtend_size[d2] = dim->len;
          }
-      }
+      } 
 
       /* If we need to extend it, we also need a new file_spaceid
          to reflect the new size of the space. */
@@ -734,9 +734,6 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
 	    BAIL2(NC_EHDFERR);
          if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0) 
             BAIL(NC_EHDFERR);
-#ifdef EXTRA_TESTS
-	 num_spaces++;
-#endif
          if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, 
                                  start, NULL, count, NULL) < 0)
             BAIL(NC_EHDFERR);

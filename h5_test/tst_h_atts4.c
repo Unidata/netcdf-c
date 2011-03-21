@@ -11,10 +11,12 @@
 
    $Id$
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define MY_CHUNK_CACHE_SIZE 32000000
+#define STR_LEN 255
 
 /* The file we create. */
 #define FILE_NAME "tst_h_atts4.h5"
@@ -48,7 +50,7 @@ main()
       hid_t file_typeid2, native_typeid2;
       hsize_t num_obj;
       H5O_info_t obj_info;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
       struct s1
       {
@@ -57,18 +59,16 @@ main()
       };
 
       /* vc stands for "Vlen of Compound." */
-      nc_vlen_t *vc_out;
+      hvl_t *vc_out;
       int i, k;
 
       /* Create some output data: an array of vlen (length ATT_LEN) of
        * struct s1. */
-      if (!(vc_out = calloc(sizeof(nc_vlen_t), ATT_LEN)))
-	 return NC_ENOMEM;
+      if (!(vc_out = calloc(sizeof(hvl_t), ATT_LEN))) ERR;
       for (i = 0; i < ATT_LEN; i++)
       {
 	 vc_out[i].len = i + 1; 
-	 if (!(vc_out[i].p = calloc(sizeof(struct s1), vc_out[i].len)))
-	    return NC_ENOMEM;
+	 if (!(vc_out[i].p = calloc(sizeof(struct s1), vc_out[i].len))) ERR;
 	 for (k = 0; k < vc_out[i].len; k++)
 	 {
 	    ((struct s1 *)vc_out[i].p)[k].x = 42.42;
@@ -142,7 +142,7 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i,
-				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				obj_name, STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR;
 
 	 /* Get the typeid and native typeid. */

@@ -6,7 +6,7 @@
 
    $Id: tst_h_enums.c,v 1.14 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_enums.h5"
@@ -15,6 +15,7 @@
 #define SIZE 9
 #define GRP_NAME "Browning"
 #define NUM_VALS 12
+#define STR_LEN 255
 
 /* This seems like a good sonnet for enumation:
 
@@ -48,7 +49,7 @@ main()
       short data_in[DIM1_LEN];
       int i;
       short val[NUM_VALS];
-      char love_how[NUM_VALS][NC_MAX_NAME + 1] = {"Depth", "Bredth", 
+      char love_how[NUM_VALS][STR_LEN + 1] = {"Depth", "Bredth", 
 						  "Height", "Level", 
 						  "Freely", "Purely", 
 						  "Passionately", "Lost", 
@@ -149,7 +150,7 @@ main()
       short data_in[DIM1_LEN];
       int i;
       short val[NUM_LANG];
-      char lang[NUM_LANG][NC_MAX_NAME + 1] = {"C", "Fortran", "C++", "MISSING"};
+      char lang[NUM_LANG][STR_LEN + 1] = {"C", "Fortran", "C++", "MISSING"};
       enum langs {CLANG=0, Fortran=1, CPP=2, MISSING=255};
       short the_value, fill_value = MISSING, data_point = CLANG;
       hsize_t start[1] = {1}, count[1] = {1};

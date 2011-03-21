@@ -8,22 +8,23 @@
 
    $Id: tst_h_dimscales.c,v 1.15 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 
 #define FILE_NAME "tst_h_dimscales.h5"
-
+#define STR_LEN 255
+#define MAX_DIMS 255
 
 herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
 		     void *visitor_data)
 {
-   char name1[NC_MAX_NAME], name2[NC_MAX_NAME];
+   char name1[STR_LEN], name2[STR_LEN];
    H5G_stat_t statbuf;
 
    (*(hid_t *)visitor_data) = dsid;
-   if (H5Iget_name(did, name1, NC_MAX_NAME) < 0) ERR;
-   if (H5Iget_name(dsid, name2, NC_MAX_NAME) < 0) ERR;
+   if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
+   if (H5Iget_name(dsid, name2, STR_LEN) < 0) ERR;
 /*    printf("visiting did 0x%x dim %d dsid 0x%x name of did %s \n",  */
 /* 	  did, dim, dsid, name1); */
 /*    printf("name of dsid: %s\n", name2); */
@@ -41,10 +42,10 @@ rec_scan_group(hid_t grpid)
    hid_t spaceid, datasetid = 0, child_grpid;
    hsize_t num_obj, i;
    int obj_class;
-   char obj_name[NC_MAX_NAME + 1];
+   char obj_name[STR_LEN + 1];
    htri_t is_scale;
    int num_scales;
-   hsize_t dims[NC_MAX_DIMS], max_dims[NC_MAX_DIMS];
+   hsize_t dims[MAX_DIMS], max_dims[MAX_DIMS];
    int ndims, d;
    
    /* Loop through datasets to find variables. */
@@ -54,7 +55,7 @@ rec_scan_group(hid_t grpid)
       /* Get the type (i.e. group, dataset, etc.), and the name of
        * the object. */
       if ((obj_class = H5Gget_objtype_by_idx(grpid, i)) < 0) ERR;
-      if (H5Gget_objname_by_idx(grpid, i, obj_name, NC_MAX_NAME) < 0) ERR;
+      if (H5Gget_objname_by_idx(grpid, i, obj_name, STR_LEN) < 0) ERR;
       /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n", 
 	obj_class, obj_name);*/
 
@@ -73,7 +74,7 @@ rec_scan_group(hid_t grpid)
 	    /* Get the dimensions of this dataset. */
 	    if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
 	    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0) ERR;
-	    if (ndims > NC_MAX_DIMS) ERR;
+	    if (ndims > MAX_DIMS) ERR;
 	    if (H5Sget_simple_extent_dims(spaceid, dims, max_dims) < 0) ERR;
 
 	    /* Is this a dimscale? */
@@ -191,7 +192,7 @@ main()
       hid_t fileid, grpid, datasetid = 0;
       hsize_t num_obj, i;
       int obj_class;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       htri_t is_scale;
       int num_scales;
 
@@ -208,7 +209,7 @@ main()
 	  * of a variable. This type might be better called "class" or
 	  * "type of type"  */
 	 if ((obj_class = H5Gget_objtype_by_idx(grpid, i)) < 0) ERR;
-	 if (H5Gget_objname_by_idx(grpid, i, obj_name, NC_MAX_NAME) < 0) ERR;
+	 if (H5Gget_objname_by_idx(grpid, i, obj_name, STR_LEN) < 0) ERR;
 	 /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n", obj_class, obj_name);*/
 
 	 /* Deal with groups and datasets. */
@@ -230,12 +231,12 @@ main()
 	       if (is_scale && strcmp(obj_name, DIMSCALE_NAME)) ERR;
 	       if (is_scale)
 	       {
-		  char nom_de_quincey[NC_MAX_NAME+1];
+		  char nom_de_quincey[STR_LEN+1];
 
 		  /* A dimscale comes with a NAME attribute, in
 		   * addition to its real name. */
 		  if (H5DSget_scale_name(datasetid, nom_de_quincey, 
-					 NC_MAX_NAME) < 0) ERR;
+					 STR_LEN) < 0) ERR;
 		  if (strcmp(nom_de_quincey, NAME_ATTRIBUTE)) ERR;
 
 		  /*printf("found scale %s, NAME %s\n", obj_name, nom_de_quincey);*/
@@ -243,7 +244,7 @@ main()
 	       }
 	       else
 	       {
-		  char label[NC_MAX_NAME+1];
+		  char label[STR_LEN+1];
 
 		  /* Here's how to get the number of scales attached
 		   * to the dataset. I would think that this would
@@ -258,7 +259,7 @@ main()
 		  /* There's also a label for dimension 0 of var1. */
 		  if (strcmp(obj_name, VAR1_NAME) == 0)
 		  {
-		     if (H5DSget_label(datasetid, 0, label, NC_MAX_NAME) < 0) ERR;
+		     if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 		     if (strcmp(label, FIFTIES_SONG)) ERR;
 		  }
 	       }
@@ -288,7 +289,7 @@ main()
       hid_t var1_datasetid[NUM_DATASETS];
       hsize_t dims[2] = {DIM1_LEN, DIM2_LEN};
       hsize_t dimscale_dims[1] = {DIM1_LEN};
-      char var_name[NC_MAX_NAME + 1];
+      char var_name[STR_LEN + 1];
       int v;
 
       /* Open file and create group. */
@@ -368,7 +369,7 @@ main()
       hid_t fileid, grpid, spaceid = 0, datasetid = 0;
       hsize_t num_obj, i;
       int obj_class;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       htri_t is_scale;
       int num_scales;
       hsize_t dims[1], maxdims[1];
@@ -384,7 +385,7 @@ main()
 	 /* Get the type (i.e. group, dataset, etc.), and the name of
 	  * the object. */
 	 if ((obj_class = H5Gget_objtype_by_idx(grpid, i)) < 0) ERR;
-	 if (H5Gget_objname_by_idx(grpid, i, obj_name, NC_MAX_NAME) < 0) ERR;
+	 if (H5Gget_objname_by_idx(grpid, i, obj_name, STR_LEN) < 0) ERR;
 	 /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n", obj_class, obj_name);*/
 
 	 /* Deal with groups and datasets. */
@@ -414,17 +415,17 @@ main()
 	       if (is_scale && strcmp(obj_name, DIMSCALE_NAME)) ERR;
 	       if (is_scale)
 	       {
-		  char nom_de_quincey[NC_MAX_NAME+1];
+		  char nom_de_quincey[STR_LEN+1];
 
 		  /* A dimscale comes with a NAME attribute, in
 		   * addition to its real name. */
-		  if (H5DSget_scale_name(datasetid, nom_de_quincey, NC_MAX_NAME) < 0) ERR;
+		  if (H5DSget_scale_name(datasetid, nom_de_quincey, STR_LEN) < 0) ERR;
 		  /*printf("found scale %s, NAME %s\n", obj_name, nom_de_quincey);*/
 
 	       }
 	       else
 	       {
-		  char label[NC_MAX_NAME+1];
+		  char label[STR_LEN+1];
 		  int visitor_data = 0;
 
 		  /* Here's how to get the number of scales attached
@@ -437,7 +438,7 @@ main()
 					 &visitor_data) < 0) ERR;
 		  
 		  /* There's also a label for dimension 0. */
-		  if (H5DSget_label(datasetid, 0, label, NC_MAX_NAME) < 0) ERR;
+		  if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 
 		  /*printf("found non-scale dataset %s, label %s\n", obj_name, label);*/
 	       }
@@ -559,7 +560,7 @@ main()
       hid_t fileid, grpid, spaceid = 0, datasetid = 0;
       hsize_t num_obj, i;
       int obj_class;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       htri_t is_scale;
       int num_scales;
       hsize_t dims[NDIMS], max_dims[NDIMS];
@@ -576,7 +577,7 @@ main()
 	 /* Get the type (i.e. group, dataset, etc.), and the name of
 	  * the object. */
 	 if ((obj_class = H5Gget_objtype_by_idx(grpid, i)) < 0) ERR;
-	 if (H5Gget_objname_by_idx(grpid, i, obj_name, NC_MAX_NAME) < 0) ERR;
+	 if (H5Gget_objname_by_idx(grpid, i, obj_name, STR_LEN) < 0) ERR;
 	 /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n", obj_class, obj_name);*/
 
 	 /* Deal with groups and datasets. */
@@ -597,12 +598,12 @@ main()
 	       if ((is_scale = H5DSis_scale(datasetid)) < 0) ERR;
 	       if (is_scale)
 	       {
-		  char nom_de_quincey[NC_MAX_NAME+1];
+		  char nom_de_quincey[STR_LEN+1];
 
 		  /* A dimscale comes with a NAME attribute, in
 		   * addition to its real name. */
 		  if (H5DSget_scale_name(datasetid, nom_de_quincey, 
-					 NC_MAX_NAME) < 0) ERR;
+					 STR_LEN) < 0) ERR;
 		  /*printf("found scale %s, NAME %s id 0x%x\n", obj_name, 
 		    nom_de_quincey, datasetid);*/
 
@@ -615,7 +616,7 @@ main()
 	       }
 	       else
 	       {
-		  char label[NC_MAX_NAME+1];
+		  char label[STR_LEN+1];
 		  int visitor_data = 0;
 		  
 		  /* SHould have these dimensions... */
@@ -637,11 +638,11 @@ main()
 		  /*printf("visitor_data: 0x%x\n", visitor_data);*/
 		  
 		  /* There's also a label for each dimension. */
-		  if (H5DSget_label(datasetid, 0, label, NC_MAX_NAME) < 0) ERR;
+		  if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 		  if (strcmp(label, TIME_NAME)) ERR;
-		  if (H5DSget_label(datasetid, 1, label, NC_MAX_NAME) < 0) ERR;
+		  if (H5DSget_label(datasetid, 1, label, STR_LEN) < 0) ERR;
 		  if (strcmp(label, LAT_NAME)) ERR;
-		  if (H5DSget_label(datasetid, 2, label, NC_MAX_NAME) < 0) ERR;
+		  if (H5DSget_label(datasetid, 2, label, STR_LEN) < 0) ERR;
 		  if (strcmp(label, LON_NAME)) ERR;
 	       }
 	       if (H5Dclose(datasetid) < 0) ERR;

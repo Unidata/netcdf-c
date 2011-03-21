@@ -70,6 +70,7 @@ lib_LTLIBRARIES = libnetcdf_c++.la
 libnetcdf_c___la_SOURCES = netcdf.cpp ncvalues.cpp
 libnetcdf_c___la_LDFLAGS = -version-number 4:1:0
 libnetcdf_c___la_CPPFLAGS = ${AM_CPPFLAGS}
+libnetcdf_c__4_la_LIBADD = $(top_builddir)/libsrc4/libnetcdf.la
 
 # If we are building the dll (under MinGW) then set the correct flags.
 if BUILD_DLL

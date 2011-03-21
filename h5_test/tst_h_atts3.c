@@ -8,13 +8,13 @@
 
    This file creates the same file as file tst_xplatform2_3 (created
    by tst_xplatform2.c).
-
-   $Id: tst_h_atts3.c,v 1.11 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define MY_CHUNK_CACHE_SIZE 32000000
+#define STR_LEN 255
 
 /* The file we create. */
 #define FILE_NAME "tst_h_atts3.h5"
@@ -47,7 +47,7 @@ main()
       hid_t file_typeid2, native_typeid2;
       hsize_t num_obj;
       H5O_info_t obj_info;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
       struct s1
       {
@@ -56,7 +56,7 @@ main()
       };
       struct s3
       {
-	 nc_vlen_t data[NUM_VL];
+	 hvl_t data[NUM_VL];
       };
       /* cvc stands for "Compound with Vlen of Compound." */
       struct s3 cvc_out[ATT_LEN];
@@ -68,8 +68,7 @@ main()
 	 for (j = 0; j < NUM_VL; j++)
 	 {
 	    cvc_out[i].data[j].len = i + 1; 
-	    if (!(cvc_out[i].data[j].p = calloc(sizeof(struct s1), cvc_out[i].data[j].len)))
-	       return NC_ENOMEM;
+	    if (!(cvc_out[i].data[j].p = calloc(sizeof(struct s1), cvc_out[i].data[j].len))) ERR;
 	    for (k = 0; k < cvc_out[i].data[j].len; k++)
 	    {
 	       ((struct s1 *)cvc_out[i].data[j].p)[k].x = 42.42;
@@ -152,7 +151,7 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i,
-				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				obj_name, STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR;
 
 	 /* Get the typeid and native typeid. */
@@ -201,11 +200,11 @@ main()
       hid_t file_typeid2, native_typeid2;
       hsize_t num_obj;
       H5O_info_t obj_info;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
 
       /* vc stands for "Vlen of Compound." */
-      nc_vlen_t vc_out[ATT_LEN];
+      hvl_t vc_out[ATT_LEN];
       int i, k;
 
       /* Create some output data: an array of vlen (length ATT_LEN) of
@@ -213,8 +212,7 @@ main()
       for (i = 0; i < ATT_LEN; i++)
       {
 	 vc_out[i].len = i + 1; 
-	 if (!(vc_out[i].p = calloc(sizeof(int), vc_out[i].len)))
-	    return NC_ENOMEM;
+	 if (!(vc_out[i].p = calloc(sizeof(int), vc_out[i].len))) ERR;
 	 for (k = 0; k < vc_out[i].len; k++)
 	    ((int *)vc_out[i].p)[k] = 42;
       }
@@ -272,7 +270,7 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i,
-				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR;
+				obj_name, STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR;
 
 	 /* Get the typeid and native typeid. */

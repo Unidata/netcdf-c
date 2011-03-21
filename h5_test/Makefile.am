@@ -7,7 +7,6 @@
 # only use HDF5; these tests don't use netCDF at all.
 #
 # If one of these tests fails, then netCDF-4 will not work correctly.
-#
 
 # Set AM_CPPFLAGS and AM_LDFLAGS based on user choices.
 include $(top_srcdir)/lib_flags.am
@@ -20,6 +19,11 @@ tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
 tst_h_opaques tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints	\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
 tst_h_enums
+
+# If benchmarks were turned on, build and run a bunch more tests.
+if BUILD_BENCHMARKS
+H5TESTS += tst_h_mem
+endif # BUILD_BENCHMARKS
 
 # List of tests to compile.
 check_PROGRAMS = $(H5TESTS)

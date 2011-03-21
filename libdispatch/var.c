@@ -142,11 +142,11 @@ NC_put_vara(int ncid, int varid, const size_t *start,
       int ndims;
       stat = nc_inq_varndims(ncid, varid, &ndims); 
       if(stat != NC_NOERR) return stat;
-      stat = getshape(ncid,varid,ndims,shape);
+      stat = getshape(ncid, varid, ndims, shape);
       if(stat != NC_NOERR) return stat;
-      return ncp->dispatch->put_vara(ncid,varid,start,shape,value,memtype);
+      return ncp->dispatch->put_vara(ncid, varid, start, shape, value, memtype);
    } else
-      return ncp->dispatch->put_vara(ncid,varid,start,edges,value,memtype);
+      return ncp->dispatch->put_vara(ncid, varid, start, edges, value, memtype);
 }
 
 int
@@ -1220,7 +1220,7 @@ nc_put_var1_long(int ncid, int varid, const size_t *coord, const long *value)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    INITCOORD1;
-   return NC_put_var1(ncid,varid,coord,(void*)value, longtype);
+   return NC_put_var1(ncid, varid, coord, (void*)value, longtype);
 }
 
 int
@@ -1230,7 +1230,7 @@ nc_put_var1_float(int ncid, int varid, const size_t *coord, const float *value)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    INITCOORD1;
-   return NC_put_var1(ncid,varid,coord,(void*)value, NC_FLOAT);
+   return NC_put_var1(ncid, varid, coord, (void*)value, NC_FLOAT);
 }
 
 int

@@ -6,10 +6,9 @@
 
    Here's a HDF5 sample programs:
    http://hdf.ncsa.uiuc.edu/training/other-ex5/sample-programs/strings.c
-
-   $Id: tst_h_strings1.c,v 1.3 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_strings1.h5"
@@ -159,8 +158,6 @@ main()
       hsize_t dims[NDIMS] = {NUM_STR}, max_dims[NDIMS] = {H5S_UNLIMITED};
       hsize_t chunk_dims[NDIMS] = {1};
       hsize_t xtend_size[NDIMS] = {2};
-      hsize_t start[NDIMS] = {0}, count[NDIMS] = {NUM_STR};
-/*      void *fillp;*/
       char *data[NUM_STR] = {
 	 "A man who carries a cat by the tail learns "
 	 "something he can learn in no other way."};

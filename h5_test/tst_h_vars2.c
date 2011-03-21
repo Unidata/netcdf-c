@@ -6,14 +6,14 @@
    exhaustive tests, but they use HDF5 the same way that netCDF-4
    does, so if these tests don't work, than netCDF-4 won't work
    either.
-
-   $Id: tst_h_vars2.c,v 1.26 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 
 #define FILE_NAME "tst_h_vars2.h5"
+#define STR_LEN 255
 
 int
 main()
@@ -431,7 +431,7 @@ main()
       obs_t m = {-99, -99, -99, -99, -99};
       hid_t fileid, grpid, attid, typeid, datasetid, native_typeid, propid;
       H5D_fill_value_t fill_status;
-      char file_in[NC_MAX_NAME * 2];
+      char file_in[STR_LEN * 2];
       size_t type_size;
 
       if (getenv("srcdir"))
@@ -486,7 +486,7 @@ main()
       hid_t datasetid[NUM_DATASETS];
       hid_t fileid, grpid, spaceid, plistid;
       hsize_t chunksize[NDIMS1], dimsize[NDIMS1], maxdimsize[NDIMS1];
-      char var_name[NC_MAX_NAME + 1];
+      char var_name[STR_LEN + 1];
       int v;
 
       /* Create file, setting latest_format in access propertly list

@@ -3,10 +3,9 @@
    See COPYRIGHT file for conditions of use.
 
    Check out HDF5 groups. 
-
-   $Id: tst_h_grps.c,v 1.10 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_grps.h5"

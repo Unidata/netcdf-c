@@ -3,10 +3,9 @@
    conditions of use.
 
    This program excersizes HDF5 variable length array code.
-
-   $Id: tst_h_opaques.c,v 1.8 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_opaques.h5"

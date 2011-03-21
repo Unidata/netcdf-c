@@ -5,16 +5,15 @@
    Test HDF5 file code. These are not intended to be exhaustive tests,
    but they use HDF5 the same way that netCDF-4 does, so if these
    tests don't work, than netCDF-4 won't work either.
-
-   $Id$
 */
-#include <config.h>
-#include <nc_tests.h>
-#include "netcdf.h"
+
+#include <err_macros.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>
 
 #define FILE_NAME "tst_h_files4.h5"
+#define STR_LEN 255
+
 /* Heavy duty test file...*/
 /*#define FILE_NAME "/machine/downloads/T159_1978110112.nc4"*/
 
@@ -142,7 +141,7 @@ main()
    {
       hid_t fapl_id, fileid, grpid;
       hsize_t idx = 0;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       hsize_t num_obj;
       int i;
 
@@ -173,7 +172,7 @@ main()
       H5O_info_t obj_info;
       hsize_t num_obj;
       ssize_t size;
-      char obj_name[NC_MAX_NAME + 1];
+      char obj_name[STR_LEN + 1];
       int i;
 
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;

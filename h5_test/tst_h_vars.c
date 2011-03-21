@@ -7,10 +7,9 @@
    tests don't work, than netCDF-4 won't work either.
 
    This files tests dataset creation and writing.
-
-   $Id: tst_h_vars.c,v 1.18 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_vars.h5"
@@ -18,6 +17,7 @@
 #define VAR_BOOL_NAME "Southhamptons_Battle_Record"
 #define GRP2_NAME "Some_3D_Met_Data"
 #define DIM1_LEN 3
+#define MAX_DIMS 255
 
 int
 main()
@@ -65,7 +65,7 @@ main()
       float float_data_out[LAT_LEN][LON_LEN];
       hsize_t dims[NDIMS], max_dims[NDIMS];
       hsize_t dims_in[NDIMS], max_dims_in[NDIMS];
-      hsize_t start[NC_MAX_DIMS], count[NC_MAX_DIMS];
+      hsize_t start[MAX_DIMS], count[MAX_DIMS];
       int lat, lon;
 
       /* Set up some phoney data, 1 record's worth. In C, first

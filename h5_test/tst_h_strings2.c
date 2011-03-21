@@ -6,10 +6,9 @@
 
    Here's a HDF5 sample programs:
    http://hdf.ncsa.uiuc.edu/training/other-ex5/sample-programs/strings.c
-
-   $Id$
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_strings2.h5"

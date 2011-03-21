@@ -3,10 +3,9 @@
    conditions of use.
 
    This program excersizes HDF5 variable length array code.
-
-   $Id: tst_h_vl.c,v 1.11 2010/06/01 15:34:52 ed Exp $
 */
-#include <nc_tests.h>
+
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_vl.h5"
@@ -31,8 +30,7 @@ main()
        * pointer to a variable length array of int. */
       for (i=0; i<DIM1_LEN; i++)
       {
-	  if (!(phoney = malloc(sizeof(int) * (i+1))))
-	    return NC_ENOMEM;
+	 if (!(phoney = malloc(sizeof(int) * (i+1)))) ERR;
 	 for (j=0; j<i+1; j++)
 	    phoney[j] = -99;
 	 data[i].p = phoney;
@@ -108,8 +106,7 @@ main()
 /*       /\* Create phoney data. *\/ */
 /*       for (i=0; i<DIM1_LEN; i++) */
 /*       { */
-/* 	  if (!(phoney = malloc(sizeof(float) * (i+1)))) */
-/* 	    return NC_ENOMEM; */
+/* 	  if (!(phoney = malloc(sizeof(float) * (i+1)))) ERR; */
 /* 	 for (j=0; j<i+1; j++) */
 /* 	    phoney[j] = 23.5 - j; */
 /* 	 data[i].temp_vl.p = phoney; */

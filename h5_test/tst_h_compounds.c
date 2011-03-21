@@ -10,7 +10,7 @@
 
    $Id: tst_h_compounds.c,v 1.25 2010/06/01 15:34:51 ed Exp $
 */
-#include <nc_tests.h>
+#include <err_macros.h>
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_compounds.h5"
@@ -22,6 +22,7 @@
 #define LIQUOR "The_Hard_Stuff"
 #define COMPOUND_NAME "Booze_Index"
 #define ARRAY_LEN 5
+#define STR_LEN 255
 
 int
 main()
@@ -40,12 +41,10 @@ main()
 
    /* REALLY initialize the data (even the gaps in the structs). This
     * is only needed to pass valgrind. */
-   if (!(dummy = calloc(sizeof(struct s2), DIM1_LEN))) 
-      return NC_ENOMEM; 
+   if (!(dummy = calloc(sizeof(struct s2), DIM1_LEN))) ERR;
    memcpy((void *)data2, (void *)dummy, sizeof(struct s2) * DIM1_LEN); 
    free(dummy); 
-   if (!(dummy = calloc(sizeof(struct s1), DIM1_LEN))) 
-      return NC_ENOMEM; 
+   if (!(dummy = calloc(sizeof(struct s1), DIM1_LEN))) ERR;
    memcpy((void *)data2, (void *)dummy, sizeof(struct s1) * DIM1_LEN); 
    free(dummy); 
 
@@ -100,7 +99,7 @@ main()
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
       if (H5Tget_nmembers(typeid) != 2) ERR;
       /* This doesn't work because all I have is a reference to the type! 
-         if (H5Iget_name(typeid, type_name, NC_MAX_NAME) < 0) ERR;
+         if (H5Iget_name(typeid, type_name, STR_LEN) < 0) ERR;
          if (strcmp(type_name, COMPOUND_NAME)) ERR;*/
 
       /* Release all resources. */
@@ -158,7 +157,7 @@ main()
       {
          hsize_t num_obj;
          int i, obj_type;
-         char name[NC_MAX_NAME + 1];
+         char name[STR_LEN + 1];
          htri_t equal;
 
 
@@ -168,7 +167,7 @@ main()
          if (H5Gget_num_objs(osmonds_grpid, &num_obj) < 0) ERR;
          for (i=0; i<num_obj; i++)
          {
-            if (H5Gget_objname_by_idx(osmonds_grpid, i, name, NC_MAX_NAME+1) < 0) ERR;
+            if (H5Gget_objname_by_idx(osmonds_grpid, i, name, STR_LEN+1) < 0) ERR;
             if ((obj_type = H5Gget_objtype_by_idx(osmonds_grpid, i)) < 0) ERR;
             switch(obj_type)
             {
@@ -254,7 +253,7 @@ main()
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
       if (H5Tget_nmembers(typeid) != 2) ERR;
       /* This doesn't work because all I have is a reference to the type! 
-         if (H5Iget_name(typeid, type_name, NC_MAX_NAME) < 0) ERR;
+         if (H5Iget_name(typeid, type_name, STR_LEN) < 0) ERR;
          if (strcmp(type_name, COMPOUND_NAME)) ERR;*/
 
       /* Release all resources. */
@@ -289,14 +288,13 @@ main()
       } obs_t ;
       obs_t obsdata[DIM6_LEN];
       obs_t obsdata_in[DIM6_LEN], obsdata2_in[DIM6_LEN];
-      char file_in[NC_MAX_NAME * 2];
+      char file_in[STR_LEN * 2];
       char *dummy;
       size_t size_in;
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct obs_t), DIM6_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct obs_t), DIM6_LEN))) ERR;
       memcpy((void *)obsdata, (void *)dummy, sizeof(struct obs_t) * DIM6_LEN); 
       free(dummy); 
 
@@ -431,7 +429,7 @@ main()
       {
             int starfleet_id;
             struct s1 svc_rec;
-            char name[NC_MAX_NAME + 1];
+            char name[STR_LEN + 1];
             float max_temp, min_temp; /* temperature range */
             double percent_transporter_errosion;
       };
@@ -444,8 +442,7 @@ main()
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct hr_rec), DIM1_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct hr_rec), DIM1_LEN))) ERR;
       memcpy((void *)hr_data_out, (void *)dummy, sizeof(struct hr_rec) * DIM1_LEN); 
       free(dummy); 
 
@@ -475,7 +472,7 @@ main()
       if (H5Tinsert(typeid, "starfleet_id", HOFFSET(struct hr_rec, starfleet_id), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, "svc_rec", HOFFSET(struct hr_rec, svc_rec), typeid_inner) < 0) ERR;
       if ((array1_tid = H5Tcopy(H5T_C_S1)) < 0) ERR;
-      if (H5Tset_size(array1_tid, NC_MAX_NAME + 1) < 0) ERR;
+      if (H5Tset_size(array1_tid, STR_LEN + 1) < 0) ERR;
       if (H5Tinsert(typeid, "name", HOFFSET(struct hr_rec, name), array1_tid) < 0) ERR;
       if (H5Tinsert(typeid, "max_temp", HOFFSET(struct hr_rec, max_temp), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, "min_temp", HOFFSET(struct hr_rec, min_temp), H5T_NATIVE_FLOAT) < 0) ERR;
@@ -544,7 +541,7 @@ main()
       {
             int starfleet_id;
             struct s1 svc_rec;
-            char name[NC_MAX_NAME + 1];
+            char name[STR_LEN + 1];
             float max_temp, min_temp; /* temperature range */
             double percent_transporter_errosion;
       };
@@ -579,7 +576,7 @@ main()
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct hr_rec))) < 0) ERR;
       if (H5Tinsert(typeid, "starfleet_id", HOFFSET(struct hr_rec, starfleet_id), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, "svc_rec", HOFFSET(struct hr_rec, svc_rec), typeid_inner) < 0) ERR;
-      dims[0] = NC_MAX_NAME + 1;
+      dims[0] = STR_LEN + 1;
       if ((str_tid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_strpad(str_tid, H5T_STR_NULLTERM) < 0) ERR;
       if ((array1_tid = H5Tarray_create2(str_tid, 1, dims)) < 0) ERR;
@@ -652,7 +649,7 @@ main()
       {
             int starfleet_id;
             struct s1 svc_rec;
-            char name[NC_MAX_NAME + 1];
+            char name[STR_LEN + 1];
             float max_temp, min_temp; /* temperature range */
             double percent_transporter_errosion;
       };
@@ -688,7 +685,7 @@ main()
       if (H5Tinsert(typeid, "starfleet_id", HOFFSET(struct hr_rec, starfleet_id), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, "svc_rec", HOFFSET(struct hr_rec, svc_rec), typeid_inner) < 0) ERR;
       if ((array1_tid = H5Tcopy(H5T_C_S1)) < 0) ERR;
-      if (H5Tset_size(array1_tid, NC_MAX_NAME + 1) < 0) ERR;
+      if (H5Tset_size(array1_tid, STR_LEN + 1) < 0) ERR;
       if (H5Tinsert(typeid, "name", HOFFSET(struct hr_rec, name), array1_tid) < 0) ERR;
       if (H5Tinsert(typeid, "max_temp", HOFFSET(struct hr_rec, max_temp), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, "min_temp", HOFFSET(struct hr_rec, min_temp), H5T_NATIVE_FLOAT) < 0) ERR;
@@ -747,13 +744,13 @@ main()
 #define DATASET_NAME "Enterprise"
       struct hr_rec
       {
-            char name[NC_MAX_NAME + 1];
+            char name[STR_LEN + 1];
             float max_temp;
       };
       struct hr_rec hr_data_out[DIM1_LEN], hr_data_in[DIM1_LEN];
 
       hid_t fileid, grpid, typeid, spaceid, array1_tid, datasetid, str_tid;
-      hsize_t dims[1] = {NC_MAX_NAME + 1};
+      hsize_t dims[1] = {STR_LEN + 1};
       int i;
 
       /* Create some phony data. */
@@ -825,20 +822,19 @@ main()
 #define ATT_NAME "HR_Records"
       struct hr_rec
       {
-            char name[NC_MAX_NAME + 1];
+            char name[STR_LEN + 1];
             float max_temp;
       };
       struct hr_rec hr_data_out[DIM2_LEN], hr_data_in[DIM2_LEN];
 
       hid_t fileid, grpid, typeid, spaceid, array1_tid, attid, str_tid;
-      hsize_t dims[1] = {NC_MAX_NAME + 1};
+      hsize_t dims[1] = {STR_LEN + 1};
       char *dummy;
       int i;
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct hr_rec), DIM2_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct hr_rec), DIM2_LEN))) ERR;
       memcpy((void *)hr_data_out, (void *)dummy, sizeof(struct hr_rec) * DIM2_LEN); 
       free(dummy); 
 
@@ -910,20 +906,20 @@ main()
 #define DISC_ATT_NAME "Discovery"
       struct s1
       {
-	    unsigned char x[NC_MAX_NAME + 1];
+	    unsigned char x[STR_LEN + 1];
 	    float y;
       };
       struct s1 data_out[DISC_DIM1_LEN], data_in[DISC_DIM1_LEN];
 
       hid_t fileid, grpid, typeid, spaceid, array1_tid, attid;
       hid_t fcpl_id, fapl_id;
-      hsize_t dims[1] = {NC_MAX_NAME + 1};
+      hsize_t dims[1] = {STR_LEN + 1};
       int i, j;
 
       /* Create some data. */
       for (i = 0; i < DISC_DIM1_LEN; i++)
       {
-	 for (j = 0; j < NC_MAX_NAME + 1; j++)
+	 for (j = 0; j < STR_LEN + 1; j++)
 	    data_out[i].x[j] = 4;
 	 data_out[i].y = 99.99;
       }
@@ -980,7 +976,7 @@ main()
       /* Check the data. */
       for (i = 0; i < DISC_DIM1_LEN; i++)
       {
-	 for (j = 0; j < NC_MAX_NAME + 1; j++)
+	 for (j = 0; j < STR_LEN + 1; j++)
 	    if (data_in[i].x[j] != data_out[i].x[j]) ERR_RET;
 	 if (data_in[i].y != data_out[i].y) ERR;
       }
@@ -1021,8 +1017,7 @@ main()
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) ERR;
       memcpy((void *)data_out, (void *)dummy, sizeof(struct s2) * DIM_CMP_LEN); 
       free(dummy); 
 
@@ -1124,8 +1119,7 @@ main()
 
       /* REALLY initialize the data (even the gaps in the structs). This
        * is only needed to pass valgrind. */
-      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) 
-	 return NC_ENOMEM; 
+      if (!(dummy = calloc(sizeof(struct s2), DIM_CMP_LEN))) ERR;
       memcpy((void *)data_out, (void *)dummy, sizeof(struct s2) * DIM_CMP_LEN); 
       free(dummy); 
 
