@@ -7,8 +7,6 @@
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise. 
 
-# $Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $
-
 ## This puts the cvs ID tag in the output configure script.
 AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
@@ -523,14 +521,6 @@ if test "x$enable_extra_tests" = xyes; then
 fi
 AM_CONDITIONAL(EXTRA_TESTS, [test x$enable_extra_tests = xyes])
 
-# Does the user want to test f90 compiler.
-AC_MSG_CHECKING([whether Fortran compiler(s) should be tested during configure])
-AC_ARG_ENABLE([fortran-compiler-check],
-              [AS_HELP_STRING([--disable-fortran-compiler-check],
-                              [disable check of F77/F90 compiler during configure])])
-test "x$enable_fortran_compiler_check" = xno || enable_fortran_compiler_check=yes
-AC_MSG_RESULT($enable_fortran_compiler_check)
-
 # Does the user want to use the ffio module?
 AC_MSG_CHECKING([whether FFIO will be used])
 AC_ARG_ENABLE([ffio],
@@ -932,33 +922,6 @@ if test "x$nc_build_f90" = xyes; then
    # Set the FCLIBS flag to help with shared libraries.
 #   AC_FC_LIBRARY_LDFLAGS
 #   AC_F77_LIBRARY_LDFLAGS      
-
-   # Check the fortran 90 compiler to make sure it can compile a
-   # little test file.
-   if test "x$enable_fortran_compiler_check" = xyes; then
-      AC_MSG_CHECKING([if Fortran compiler can handle Fortran-90])
-      cat <<EOF >conftest.f90
-      program foo
-      REAL, PARAMETER        :: A = 3.141592654
-      end program
-EOF
-      doit='$FC  ${FCFLAGS} ${FCFLAGS_f90} conftest.f90'
-      if AC_TRY_EVAL(doit); then
-         nc_ans=yes
-      else
-         nc_ans=no
-         if test "x$nc_build_f90" = xyes && test "x$enable_compiler_recover" = xno; then
-            AC_MSG_ERROR([Can't use F90 compiler, F90 API desired, and compiler recovery disabled.])
-         fi
-         unset F90
-         nc_build_f90=no
-      fi
-      rm -f conftest.*
-      AC_MSG_RESULT([$nc_ans])
-      if test "x$nc_ans" = xno; then
-         AC_MSG_WARN([No F90 compiler found. F90 API will not be built.])
-      fi
-   fi
 fi
 
 AC_MSG_NOTICE([finding C++ compiler (will not be used if C++ API is not desired)])
@@ -1087,38 +1050,30 @@ AC_MSG_NOTICE([checking types, headers, and functions])
 
 AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
 AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
-AC_CHECK_HEADERS([locale.h])
+#AC_CHECK_HEADERS([locale.h])
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
-AC_CHECK_HEADERS([stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/resource.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h \
+			   strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/resource.h])
 AC_FUNC_VPRINTF
 
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup strcasecmp])
-AC_CHECK_FUNCS([strtod strtoll])
-AC_CHECK_FUNCS([getrlimit])
-AC_CHECK_FUNCS([gettimeofday])
-AC_CHECK_FUNCS([fsync])
-AC_CHECK_FUNCS([MPI_Comm_f2c])
+AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \
+			strcasecmp strtod strtoll getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 #UD_CHECK_LIB_MATH
-AC_CHECK_LIB([m], [floor], [], [
-   AC_MSG_ERROR([Can't find or link to the math library.])])
-
+AC_CHECK_LIB([m], [floor], [], [AC_MSG_ERROR([Can't find or link to the math library.])])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong])
-#AC_CHECK_TYPE(ssize_t, int)
-#AC_CHECK_TYPE(ptrdiff_t, int)
-#AC_CHECK_TYPE(uchar, unsigned char)
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 AC_CHECK_SIZEOF(short)
