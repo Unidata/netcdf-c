@@ -50,6 +50,7 @@ if BUILD_SEPARATE_FORTRAN
 LDADD += ${top_builddir}/fortran/libnetcdff.la -lm
 endif
 LDADD += ${top_builddir}/liblib/libnetcdf.la 
+LDADD += @EXTERN_LDFLAGS@
 
 if BUILD_UTILITIES
 # The create_fills shell creates the file fills.nc, needed by later
