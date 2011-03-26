@@ -8,14 +8,20 @@
 #ifndef NCCR_H
 #define NCCR_H
 
+/**************************************************/
+/*Forwards*/
+struct NC;
+struct NC_URL;
+struct NClist;
+struct NChashmap;
 
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
 
 typedef struct NCCDMR {
-    NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
+    struct NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
     char* urltext; /* as given to open()*/
-    NC_URL* url;
+    struct NC_URL* url;
     /* Track some flags */
     int controls;
     /* Store curl state  info */
@@ -40,6 +46,9 @@ typedef struct NCCDMR {
         char* cainfo; /* certificate authority */
 	char* capath; 
     } curl;
+    /* provide a index and map for ncstream nodes*/
+    struct NClist* cdmnodes;
+    struct NChashmap* cdmmap;
 } NCCDMR;
 
 typedef struct NCCURLSTATE NCCURLSTATE;
@@ -73,10 +82,11 @@ extern char* nulldup(const char*);
 /**********************************************************/
 /* Forwards */
 struct Header;
+struct NClist;
 
-extern int nccrceparse(char*, int, NClist**, NClist**, char**);
+extern int nccrceparse(char*, int, struct NClist**, struct NClist**, char**);
 
-extern NCerror crbuildnc(NCCR*, struct Header*);
+extern int crbuildnc(NCCR*, struct Header*);
 
 /**********************************************************/
 

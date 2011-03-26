@@ -36,9 +36,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "nccr.h"
+#include <curl/curl.h>
 #include "curlwrap.h"
 
+#include "netcdf.h"
+#include "nc.h"
+#include "nc4internal.h"
+#include "nccr.h"
+#include "ast.h"
+
+static char* combinecredentials(const char* user, const char* pwd);
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 
@@ -59,21 +66,21 @@ static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 int
 nccr_curlopen(CURL** curlp)
 {
-    int stat = NCCR_NOERR;
+    int stat = NC_NOERR;
     CURLcode cstat;
     CURL* curl;
     /* initialize curl*/
     curl = curl_easy_init();
     if(curl == NULL)
-        stat = NCCR_ECURL;
+        stat = NC_ECURL;
     else {
         cstat = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
         if(cstat != CURLE_OK)
-            stat = NCCR_ECURL;
+            stat = NC_ECURL;
         /*some servers don't like requests that are made without a user-agent*/
         cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
         if(cstat != CURLE_OK)
-            stat = NCCR_ECURL;
+            stat = NC_ECURL;
     }
     if(curlp)
         *curlp = curl;
@@ -85,13 +92,13 @@ nccr_curlclose(CURL* curl)
 {
     if(curl != NULL)
         curl_easy_cleanup(curl);
-    return NCCR_NOERR;
+    return NC_NOERR;
 }
 
 int
 nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
 {
-    int stat = NCCR_NOERR;
+    int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     struct NCCR_CALLBACK_DATA callback_data;
 
@@ -139,7 +146,7 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
 
 fail:
     nccr_log("curl error: %s", curl_easy_strerror(cstat));
-    return NCCR_ECURL;
+    return NC_ECURL;
 }
 
 static size_t
@@ -181,7 +188,7 @@ nccr_fetchhttpcode(CURL* curl)
 int
 nccr_fetchlastmodified(CURL* curl, char* url, long* filetime)
 {
-    int stat = NCCR_NOERR;
+    int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
 
     /* Set the URL */
@@ -207,7 +214,7 @@ nccr_fetchlastmodified(CURL* curl, char* url, long* filetime)
 
 fail:
     nccr_log("curl error: %s\n", curl_easy_strerror(cstat));
-    return NCCR_ECURL;
+    return NC_ECURL;
 }
 
 /**************************************************/
@@ -397,7 +404,6 @@ done:
     if(combined != NULL) free(combined);
     return (cstat == CURLE_OK?NC_NOERR:NC_ECURL);
 }
-
 
 static char*
 combinecredentials(const char* user, const char* pwd)

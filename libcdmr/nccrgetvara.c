@@ -8,6 +8,7 @@
 #include "config.h"
 
 #include <curl/curl.h>
+#include "curlwrap.h"
 
 #include "netcdf.h"
 #include "ncdispatch.h"
@@ -17,7 +18,6 @@
 #include "nccr.h"
 #include "crdebug.h"
 #include "ast.h"
-#include "curlwrap.h"
 
 int 
 NCCR_get_vara(int ncid, int varid,

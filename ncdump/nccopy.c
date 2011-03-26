@@ -8,6 +8,9 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -27,11 +30,6 @@
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
 #endif
-
-/* These are in unistd.h; for use with getopt() */
-extern int optind;
-extern int opterr;
-extern char *optarg;
 
 /* Global variables for command-line requests */
 char *progname;	       /* for error messages */

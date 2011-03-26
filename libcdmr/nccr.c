@@ -16,6 +16,7 @@
 #endif
 
 #include <curl/curl.h>
+#include "curlwrap.h"
 
 #include "netcdf.h"
 #include "nc.h"
@@ -27,16 +28,11 @@
 #include "crdebug.h"
 #include "nccrdispatch.h"
 #include "ast.h"
-#include "curlwrap.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
-
-static void nccrdinitialize(void);
-
-static int nccrdinitialized = 0;
 
 static void freeNCCDMR(NCCDMR* cdmr);
 
@@ -71,8 +67,6 @@ NCCR_open(const char * path, int mode,
     NClist* shows;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
-
-    if(!nccrdinitialized) nccrdinitialize();
 
     if(!nc_urlparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
     nc_urlfree(tmpurl); /* no longer needed */
@@ -171,18 +165,12 @@ NCCR_close(int ncid)
 /**************************************************/
 
 static void
-nccrdinitialize()
-{
-    nccrdinitialized = 1;
-}
-
-static void
 freeNCCDMR(NCCDMR* cdmr)
 {
     if(cdmr == NULL) return;
     if(cdmr->urltext) free(cdmr->urltext);
     nc_urlfree(cdmr->url);
-    if(cdmr->curl.curl) nc_curlclose(cdmr->curl.curl);
+    if(cdmr->curl.curl) nccr_curlclose(cdmr->curl.curl);
     if(cdmr->curl.host) free(cdmr->curl.host);
     if(cdmr->curl.useragent) free(cdmr->curl.useragent);
     if(cdmr->curl.cookiefile) free(cdmr->curl.cookiefile);

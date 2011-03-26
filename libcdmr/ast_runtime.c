@@ -567,7 +567,7 @@ ast_readvarint(ast_runtime* rt, uint8_t* buffer, size_t* countp)
     uint8_t byte[1];
     while(i<VARINTMAX64) {
 	size_t count = ast_read(rt,1,byte);
-	if(count < 1) return rt->errno;
+	if(count < 1) return rt->err;
 	buffer[i++] = 0x7f & byte[0];
 	if((0x80 & byte[0]) == 0) break;
     }
@@ -606,7 +606,7 @@ ast_skip_field(ast_runtime* rt, int wiretype, int fieldno)
 	while(len > 0) {
 	    size_t n = (len > sizeof(buffer) ? sizeof(buffer) : len);
 	    size_t actual = ast_read(rt,n,buffer);
-	    if(actual < n) {status = rt->errno; ATHROW(status,done);}
+	    if(actual < n) {status = rt->err; ATHROW(status,done);}
 	}
 	break;
     default: status = AST_EFAIL; break;

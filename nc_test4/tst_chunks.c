@@ -1,604 +1,257 @@
-#include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/times.h>
-#include <sys/stat.h>
-#include <assert.h>
-#include <sys/time.h>
-#include <unistd.h>		/* for sysconf */
-#include <sys/resource.h>
-#include <nc_tests.h>		/* The ERR macro is here... */
-#include <netcdf.h>
+/* This is part of the netCDF package.
+   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   See COPYRIGHT file for conditions of use.
 
-#define FILENAME "tst_chunks.nc"
+   Test netcdf-4 variables. 
+   $Id: tst_chunks.c,v 1.3 2010/01/21 16:00:18 ed Exp $
+*/
 
-/*
- * The following timing macros can be used by including the necessary
- * declarations with
- *
- *     TIMING_DECLS(seconds)
- *
- * and surrounding sections of code to be timed with the "statements"
- *
- *     TIMING_START
- *     [code to be timed goes here]
- *     TIMING_END(seconds)
- *
- * The macros assume the user has stored a description of what is
- * being timed in a 100-char string time_mess, and has included
- * <sys/times.h> and <sys/resource.h>.  The timing message printed by
- * TIMING_END is not terminated by a new-line, to permit appending
- * additional text to that line, so user must at least printf("\n")
- * after that.
- */
+#include <nc_tests.h>
 
-#define TIMING_DECLS(seconds)						       \
-	long TMreps;		/* counts repetitions of timed code */ \
-	long TMrepeats;		/* repetitions needed to exceed 0.1 second */ \
-	long emic ; 		/* elapsed time in microseconds */ \
-	struct rusage ru; \
-	long inb, oub; \
-        char time_mess[100]; \
-        float seconds;
-      
-#define TIMING_START \
-	TMrepeats = 1; \
-	do { \
-	    if(getrusage(RUSAGE_SELF, &ru)) {			\
-		printf("getrusage failed, returned %d\n", errno);}	\
-	    emic = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec) \
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);     \
-	    inb = ru.ru_inblock; \
-            oub = ru.ru_oublock; \
-	    for(TMreps=0; TMreps < TMrepeats; TMreps++) {
-	
-#define TIMING_END(seconds)				\
-            } \
-	    if(getrusage(RUSAGE_SELF, &ru)) {			\
-		printf("getrusage failed, returned %d\n", errno);}	\
-	    emic = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec) \
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec) - emic; \
-	    inb = ru.ru_inblock - inb; \
-            oub = ru.ru_oublock - oub; \
-	    TMrepeats *= 2; \
-	} while (emic < 100000.0 ); \
-	seconds = emic / (1000000.0 * TMreps); \
-	printf("%-45.45s %7.2g sec", \
-	       time_mess, seconds);
+#define FILE_NAME "tst_chunks.nc"
+#define NDIMS1 1
+#define D_SMALL "small_dim"
+#define D_SMALL_LEN 16
+#define D_MEDIUM "medium_dim"
+#define D_MEDIUM_LEN 65546
+#define D_LARGE "large_dim"
+#define D_LARGE_LEN 1048586
+#define V_SMALL "small_var"
+#define V_MEDIUM "medium_var"
+#define V_LARGE "large_var"
 
-/* This macro prints an error message with line number and name of
- * test program. */
-#define ERR1(n) do {						  \
-fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
-fprintf(stderr, "Sorry! Unexpected result, %s, line: %d - %s\n", \
-	__FILE__, __LINE__, nc_strerror(n));			 \
-return n; \
-} while (0)
-
-#define NC_COMPRESSED 1
-
-void
-parse_args(int argc, char *argv[], /* from command-line invocation */
-	   int *deflate_levelp,	   /* returned: 0 uncompressed, 
-				      1-9 compression level */
-	   int *shufflep,	   /* returned: 1 if shuffle, otherwise 0 */
-	   size_t *dims,	   /* returned: dimension sizes */
-	   size_t *chunks,	   /* returned: chunk sizes */
-	   size_t *cache_sizep,	   /* returned: cache size (bytes) */
-	   size_t *cache_nelemsp,  /* returned: cache capacity (chunks) */
-	   float *cache_prep)	   /* returned: cache preemption policy (0-1) */
+int
+main(int argc, char **argv)
 {
 
-    if(argc > 1) {
-	*deflate_levelp = atol(argv[1]);
-	if (*deflate_levelp < 0) {
-	    *deflate_levelp = -*deflate_levelp;
-	    *shufflep = NC_SHUFFLE;
-	}
-    }
-    if(argc > 2)
-	dims[0] = atol(argv[2]);
-    if(argc > 3)
-	chunks[0] = atol(argv[3]);
-    else
-	chunks[0] = (dims[0]+7)/8;
-    if(argc > 4)
-	dims[1] = atol(argv[4]);
-    else
-	dims[1] = dims[0];
-    if(argc > 5)
-	chunks[1] = atol(argv[5]);
-    else 
-	chunks[1] = chunks[0];
-    if(argc > 6)
-	dims[2] = atol(argv[6]);
-    else
-	dims[2] = dims[1];
-    if(argc > 7)
-	chunks[2] = atol(argv[7]);
-    else
-	chunks[2] = chunks[1];
-    if(argc > 8)
-	*cache_sizep = atol(argv[8]);
-    if(argc > 9)
-	*cache_nelemsp = atol(argv[9]);
-    if(argc > 10)
-	*cache_prep = atof(argv[10]);
-    if(argc > 11) {
-	printf("Usage: %s [def_level] [dim1] [chunk1] [dim2] [chunk2] [dim3] [chunk3] [cache_size] [cache_nelems] [cache_pre]\n", 
-	       argv[0]);
-	exit(1);
-    } 
-    return;
+   printf("\n*** Testing netcdf-4 variable chunking.\n");
+   printf("**** testing that fixed vars with filter end up being chunked, with good sizes...");
+   {
+
+      int ncid;
+      int nvars, ndims, ngatts, unlimdimid;
+      int contig;
+      int ndims_in, natts_in, dimids_in;
+      int small_dimid, medium_dimid, large_dimid;
+      int small_varid, medium_varid, large_varid;
+      char var_name_in[NC_MAX_NAME + 1];
+      size_t chunksize_in[NDIMS1];
+      nc_type xtype_in;
+
+      /* Create a netcdf-4 file with three dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN, &small_dimid)) ERR;
+      if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN, &medium_dimid)) ERR;
+      if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN, &large_dimid)) ERR;
+
+      /* Add three vars, with filters to force chunking. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR;
+      if (nc_def_var_deflate(ncid, small_varid, 0, 1, 4)) ERR;
+      if (nc_def_var(ncid, V_MEDIUM, NC_INT64, NDIMS1, &medium_dimid, &medium_varid)) ERR;
+      if (nc_def_var_deflate(ncid, medium_varid, 1, 0, 0)) ERR;
+      if (nc_def_var(ncid, V_LARGE, NC_INT64, NDIMS1, &large_dimid, &large_varid)) ERR;
+      if (nc_def_var_fletcher32(ncid, large_varid, 1)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
+      if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
+      if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
+	  natts_in != 0) ERR;
+      
+      /* Make sure chunking sizes are what we expect. */
+      if (nc_inq_var_chunking(ncid, small_varid, &contig, chunksize_in)) ERR;
+      if (contig || chunksize_in[0] != D_SMALL_LEN) ERR;
+      if (nc_inq_var_chunking(ncid, medium_varid, &contig, chunksize_in)) ERR;
+      if (contig || chunksize_in[0] * sizeof(long long) > DEFAULT_CHUNK_SIZE) ERR;
+      if (nc_inq_var_chunking(ncid, large_varid, &contig, chunksize_in)) ERR;
+      if (contig || chunksize_in[0] * sizeof(long long) > DEFAULT_CHUNK_SIZE) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** printing table of default chunksizes...");
+   {
+      int nvars, ndims, ngatts, unlimdimid;
+      int contig;
+#define NUM_DIM 4
+#define NUM_TYPE 2
+      int ncid;
+      int dim_len[NUM_DIM] = {NC_UNLIMITED, 100, 1000, 2000};
+      size_t chunksize_in[NUM_DIM];
+      int type_id[NUM_TYPE] = {NC_BYTE, NC_INT};
+      int dimid[NUM_DIM], varid[NUM_TYPE];
+      char dim_name[NC_MAX_NAME + 1], var_name[NC_MAX_NAME + 1];
+      int d, t;
+
+      /* Create a netcdf-4 file with NUM_DIM dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      for (d = 0; d < NUM_DIM; d++)
+      {
+	 sprintf(dim_name, "dim_%d", dim_len[d]);
+	 printf("creating dim %s\n", dim_name);
+	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimid[d])) ERR;
+      }
+
+      for (t = 0; t < NUM_TYPE; t++)
+      {
+	 sprintf(var_name, "var_%d", type_id[t]);
+	 if (nc_def_var(ncid, var_name, type_id[t], NUM_DIM, dimid, &varid[t])) ERR;
+	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
+	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n", 
+		dim_len[0], dim_len[1], dim_len[2], dim_len[3], 
+		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2], 
+		(int)chunksize_in[3], 
+		(int)(chunksize_in[0] * chunksize_in[1] * chunksize_in[2] * chunksize_in[3]));
+      }
+
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != NUM_TYPE || ndims != NUM_DIM || ngatts != 0 || unlimdimid != 0) ERR;
+      
+      for (t = 0; t < NUM_TYPE; t++)
+      {
+	 sprintf(var_name, "var_%d", type_id[t]);
+	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
+	 if (contig) ERR;
+	 printf("chunksizes for %d x %d x %d x %d var: %d x %d x %d x %d (=%d)\n", 
+		dim_len[0], dim_len[1], dim_len[2], dim_len[3], 
+		(int)chunksize_in[0], (int)chunksize_in[1], (int)chunksize_in[2], 
+		(int)chunksize_in[3],
+		(int)(chunksize_in[0] * chunksize_in[1] * chunksize_in[2] * chunksize_in[3]));
+      }
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing that chunking works on classic mode files...");
+   {
+#define D_SMALL_LEN2 66
+      int ncid;
+      int nvars, ndims, ngatts, unlimdimid;
+      int contig;
+      int ndims_in, natts_in, dimids_in;
+      int small_dimid, medium_dimid, large_dimid;
+      int small_varid, medium_varid, large_varid;
+      char var_name_in[NC_MAX_NAME + 1];
+      size_t chunks[1], chunksize_in;
+      nc_type xtype_in;
+
+      /* Create a netcdf-4 file with three dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN2, &small_dimid)) ERR;
+      if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN, &medium_dimid)) ERR;
+      if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN, &large_dimid)) ERR;
+
+      /* Add three vars. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR;
+      if (nc_def_var_chunking(ncid, small_varid, 1, NULL)) ERR;
+
+      if (nc_def_var(ncid, V_MEDIUM, NC_INT64, NDIMS1, &medium_dimid, &medium_varid)) ERR;
+      chunks[0] = D_MEDIUM_LEN / 100;
+      if (nc_def_var_chunking(ncid, medium_varid, 0, chunks)) ERR;
+      if (nc_def_var_deflate(ncid, medium_varid, 1, 0, 0)) ERR;
+
+      if (nc_def_var(ncid, V_LARGE, NC_INT64, NDIMS1, &large_dimid, &large_varid)) ERR;
+      chunks[0] = D_LARGE_LEN / 1000;
+      if (nc_def_var_chunking(ncid, large_varid, 0, chunks)) ERR;
+      if (nc_def_var_fletcher32(ncid, large_varid, 1)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
+      if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
+      if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
+	  natts_in != 0) ERR;
+      
+      /* Make sure chunking settings are what we expect. */
+      if (nc_inq_var_chunking(ncid, small_varid, &contig, &chunksize_in)) ERR;
+      if (!contig) ERR;
+      if (nc_inq_var_chunking(ncid, medium_varid, &contig, &chunksize_in)) ERR;
+      if (contig || chunksize_in != D_MEDIUM_LEN / 100) ERR;
+      if (nc_inq_var_chunking(ncid, large_varid, &contig, &chunksize_in)) ERR;
+      if (contig || chunksize_in != D_LARGE_LEN / 1000) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing many chunking and contiguous variables...");
+   {
+#define NDIMS_3 3
+#define NUM_PLANS 30
+#define D_SNEAKINESS "sneakiness"
+#define D_SNEAKINESS_LEN 5
+#define D_CLEVERNESS "clevernesss"
+#define D_CLEVERNESS_LEN 3
+#define D_EFFECTIVENESS "effectiveness"
+#define D_EFFECTIVENESS_LEN 2
+
+      int ncid, dimids[NDIMS_3], varid[NUM_PLANS];
+      size_t chunksize[NDIMS_3] = {D_SNEAKINESS_LEN, D_CLEVERNESS_LEN, 
+				   D_EFFECTIVENESS_LEN};
+      char plan_name[NC_MAX_NAME + 1];
+      int contig;
+      size_t chunksize_in[NDIMS_3];
+      int i, j;
+
+      /* Create a netcdf-4 file with three dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, D_SNEAKINESS, D_SNEAKINESS_LEN, &dimids[0])) ERR;
+      if (nc_def_dim(ncid, D_CLEVERNESS, D_CLEVERNESS_LEN, &dimids[1])) ERR;
+      if (nc_def_dim(ncid, D_EFFECTIVENESS, D_EFFECTIVENESS_LEN, &dimids[2])) ERR;
+
+      /* Oh that tricky Cardinal Richelieu, he had many plans! */
+      for (i = 0; i < NUM_PLANS; i++)
+      {
+	 sprintf(plan_name, "Richelieu_sneaky_plan_%d", i);
+	 if (nc_def_var(ncid, plan_name, i % (NC_STRING - 1) + 1, NDIMS_3, 
+			dimids, &varid[i])) ERR;
+	 if (i % 2 && nc_def_var_chunking(ncid, varid[i], 0, chunksize)) ERR;
+      }
+      
+      /* Check the chunking. */
+      for (i = 0; i < NUM_PLANS; i++)
+      {
+	 if (nc_inq_var_chunking(ncid, varid[i], &contig, chunksize_in)) ERR;
+	 if (i % 2)
+	 {
+	    for (j = 0; j < NDIMS_3; j++)
+	       if (chunksize_in[j] != chunksize[j]) ERR;
+	 } 
+	 else
+	    if (!contig) ERR;
+      }
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      /* Check the chunking. */
+      for (i = 0; i < NUM_PLANS; i++)
+      {
+	 if (nc_inq_var_chunking(ncid, varid[i], &contig, chunksize_in)) ERR;
+	 if (i % 2)
+	 {
+	    for (j = 0; j < NDIMS_3; j++)
+	       if (chunksize_in[j] != chunksize[j]) ERR;
+	 } 
+	 else
+	    if (!contig) ERR;
+      }
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   FINAL_RESULTS;
 }
 
-void *
-emalloc(size_t bytes) {
-    size_t *memory;
-    memory = malloc(bytes);
-    if(memory == 0) {
-	printf("malloc failed\n");
-	exit(2);
-    }
-    return memory;
-}
 
 
-/* compare contiguous, chunked, and compressed performance */
-int
-main(int argc, char *argv[]) {
 
-    int  stat;  /* return status */
-    int  ncid;  /* netCDF id */
-    int i, j, k;
-    int dim1id, dim2id, dim3id;
-    int varid_g;		  /* varid for contiguous */
-    int varid_k;		  /* varid for chunked */
-    int varid_x;		  /* varid for compressed */
 
-    float *varxy, *varxz, *varyz;    /* 2D memory slabs used for I/O */
-    int mm;
-    size_t dims[] = {256, 256, 256}; /* default dim lengths */
-    size_t chunks[] = {32, 32, 32}; /* default chunk sizes */
-    size_t start[3], count[3];
-    float contig_time, chunked_time, compressed_time, ratio;
-    int deflate_level = 1;	/* default compression level, 9 is
-				 * better and slower.  If negative,
-				 * turn on shuffle filter also. */
-    int shuffle = NC_NOSHUFFLE;
-    size_t cache_size_def;
-    size_t cache_hash_def;
-    float cache_pre_def;
-    size_t cache_size = 0;	    /* use library default */
-    size_t cache_hash = 0;	    /* use library default */
-    float cache_pre = -1.0f;	    /* use library default */
 
-    /* rank (number of dimensions) for each variable */
-#   define RANK_var1 3
-
-    /* variable shapes */
-    int var_dims[RANK_var1];
-
-    TIMING_DECLS(TMsec) ;
-
-    /* From args, get parameters for timing, including variable and
-       chunk sizes.  Negative deflate level means also use shuffle
-       filter. */
-    parse_args(argc, argv, &deflate_level, &shuffle, dims, 
-	       chunks, &cache_size, &cache_hash, &cache_pre);
-
-    /* get cache defaults, then set cache parameters that are not default */
-    if((stat = nc_get_chunk_cache(&cache_size_def, &cache_hash_def, 
-				   &cache_pre_def)))
-	ERR1(stat);
-    if(cache_size == 0)
-	cache_size = cache_size_def;
-    if(cache_hash == 0)
-	cache_hash = cache_hash_def;
-    if(cache_pre == -1.0f)
-	cache_pre = cache_pre_def;
-    if((stat = nc_set_chunk_cache(cache_size, cache_hash, cache_pre)))
-	ERR1(stat);
-    printf("cache: %3.2f MBytes  %ld objs  %3.2f preempt, ", 
-	   cache_size/1.e6, cache_hash, cache_pre);
-
-    if(deflate_level == 0) {
-	printf("uncompressed        ");
-    } else {
-	printf("compression level %d", deflate_level);
-    }
-    if(shuffle == 1) {
-	printf(", shuffled");
-    }
-    printf("\n\n");
-
-    /* initialize 2D slabs for writing along each axis with phony data */
-    varyz = (float *) emalloc(sizeof(float) * 1 * dims[1] * dims[2]);
-    varxz = (float *) emalloc(sizeof(float) * dims[0] * 1 * dims[2]);
-    varxy = (float *) emalloc(sizeof(float) * dims[0] * dims[1] * 1);
-    mm = 0;
-    for(j = 0; j < dims[1]; j++) {
-	for(k = 0; k < dims[2]; k++) {
-	    varyz[mm++] = k + dims[2]*j;
-	}
-    }
-    mm = 0;
-    for(i = 0; i < dims[0]; i++) {
-	for(k = 0; k < dims[2]; k++) {
-	    varxz[mm++] = k + dims[2]*i;
-	}
-    }
-    mm = 0;
-    for(i = 0; i < dims[0]; i++) {
-	for(j = 0; j < dims[1]; j++) {
-	    varxy[mm++] = j + dims[1]*i;
-	}
-    }
-
-    if((stat = nc_create(FILENAME, NC_NETCDF4 | NC_CLASSIC_MODEL, &ncid)))
-	ERR1(stat);
-    
-    /* define dimensions */
-    if((stat = nc_def_dim(ncid, "dim1", dims[0], &dim1id)))
-	ERR1(stat);
-    if((stat = nc_def_dim(ncid, "dim2", dims[1], &dim2id)))
-	ERR1(stat);
-    if((stat = nc_def_dim(ncid, "dim3", dims[2], &dim3id)))
-	ERR1(stat);
-    
-    /* define variables */
-    var_dims[0] = dim1id;
-    var_dims[1] = dim2id;
-    var_dims[2] = dim3id;
-    if((stat = nc_def_var(ncid, "var_contiguous", NC_FLOAT, RANK_var1, 
-			   var_dims, &varid_g)))
-	ERR1(stat);
-    if((stat = nc_def_var(ncid, "var_chunked", NC_FLOAT, RANK_var1, 
-			   var_dims, &varid_k)))
-	ERR1(stat);
-    if((stat = nc_def_var(ncid, "var_compressed", NC_FLOAT, RANK_var1, 
-			   var_dims, &varid_x)))
-	ERR1(stat);
-
-    if((stat = nc_def_var_chunking(ncid, varid_g, NC_CONTIGUOUS, 0)))
-	ERR1(stat);
-
-    if((stat = nc_def_var_chunking(ncid, varid_k, NC_CHUNKED, chunks)))
-	ERR1(stat);
-
-    if((stat = nc_def_var_chunking(ncid, varid_x, NC_CHUNKED, chunks)))
-	ERR1(stat);
-
-    if (deflate_level != 0) {
-	if((stat = nc_def_var_deflate(ncid, varid_x, shuffle, 
-				       NC_COMPRESSED, deflate_level)))
-	    ERR1(stat);
-    }
-
-    /* leave define mode */
-    if((stat = nc_enddef (ncid)))
-	ERR1(stat);
-    
-    /* write each variable one yz slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = 1;
-    count[1] = dims[1];
-    count[2] = dims[2];
-
-    sprintf(time_mess,"  contiguous write %3ld %3ld %3ld", 
-	    1, dims[1], dims[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_put_vara(ncid, varid_g, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-
-    sprintf(time_mess,"  chunked    write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    1, dims[1], dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_put_vara(ncid, varid_k, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-
-    sprintf(time_mess,"  compressed write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    1, dims[1], dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_put_vara(ncid, varid_x, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    printf("\n");
-
-    /* write each variable one xz slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = dims[0];
-    count[1] = 1;
-    count[2] = dims[2];
-
-    sprintf(time_mess,"  contiguous write %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_put_vara(ncid, varid_g, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-
-    sprintf(time_mess,"  chunked    write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_put_vara(ncid, varid_k, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-
-    sprintf(time_mess,"  compressed write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_put_vara(ncid, varid_x, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    printf("\n");
-    
-    /* write each variable one xy slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = dims[0];
-    count[1] = dims[1];
-    count[2] = 1;
-
-    sprintf(time_mess,"  contiguous write %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_put_vara(ncid, varid_g, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-    
-    sprintf(time_mess,"  chunked    write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_put_vara(ncid, varid_k, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-
-    sprintf(time_mess,"  compressed write %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_put_vara(ncid, varid_x, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    printf("\n");
-
-    /* read each variable one yz slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = 1;
-    count[1] = dims[1];
-    count[2] = dims[2];
-
-    sprintf(time_mess,"  contiguous  read %3ld %3ld %3ld", 
-	    1, dims[1], dims[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_get_vara(ncid, varid_g, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-    
-    sprintf(time_mess,"  chunked     read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_get_vara(ncid, varid_k, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    
-    sprintf(time_mess,"  compressed  read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[0]; i++) {
-	start[0] = i;
-	if((stat = nc_get_vara(ncid, varid_x, start, count, &varyz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    printf("\n");
-
-    /* read each variable one xz slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = dims[0];
-    count[1] = 1;
-    count[2] = dims[2];
-
-    sprintf(time_mess,"  contiguous  read %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_get_vara(ncid, varid_g, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-    
-    sprintf(time_mess,"  chunked     read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_get_vara(ncid, varid_k, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    
-    sprintf(time_mess,"  compressed  read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[1]; i++) {
-	start[1] = i;
-	if((stat = nc_get_vara(ncid, varid_x, start, count, &varxz[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-    printf("\n");
-
-    /* read variable one xy slab at a time */
-    start[0] = 0;
-    start[1] = 0;
-    start[2] = 0;
-    count[0] = dims[0];
-    count[1] = dims[1];
-    count[2] = 1;
-
-    sprintf(time_mess,"  contiguous  read %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_get_vara(ncid, varid_g, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    printf("\n");
-    contig_time = TMsec;
-
-    sprintf(time_mess,"  chunked     read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_get_vara(ncid, varid_k, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    chunked_time = TMsec;
-    ratio = contig_time/chunked_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-
-    sprintf(time_mess,"  compressed  read %3ld %3ld %3ld  %3ld %3ld %3ld", 
-	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
-    TIMING_START ;
-    for(i = 0; i < dims[2]; i++) {
-	start[2] = i;
-	if((stat = nc_get_vara(ncid, varid_x, start, count, &varxy[0])))
-	    ERR1(stat);
-    }
-    TIMING_END(TMsec) ;
-    compressed_time = TMsec;
-    ratio = contig_time/compressed_time;
-    if(ratio >= 1.0)
-	printf(" %5.2g x faster\n", ratio);
-    else
-	printf(" %5.2g x slower\n", 1.0/ratio);
-
-    if((stat = nc_close(ncid)))
-	ERR1(stat);
-
-    return 0;
-}

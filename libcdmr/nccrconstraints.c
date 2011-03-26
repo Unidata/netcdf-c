@@ -15,13 +15,13 @@ we need to make sure to match the relevant dimensions
 against the relevant nodes in which the ultimate target
 is contained.
 */
-NCerror
+int
 buildvaraprojection4(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     NCprojection** projectionp)
 {
     int i;
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     NClist* dimset;
     CDFnode* var = getvar->target;
     NCprojection* projection = NULL;
@@ -64,11 +64,11 @@ buildvaraprojection4(Getvara* getvar,
 }
 
 /* Compute the set of prefetched data */
-NCerror
+int
 prefetchdata4(NCCR* drno)
 {
     int i,j;
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     NClist* allvars = drno->dap.cdf.varnodes;
     NCconstraint* constraint = drno->dap.oc.dapconstraint;
     NClist* vars = nclistnew();

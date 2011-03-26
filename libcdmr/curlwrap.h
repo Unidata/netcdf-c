@@ -35,16 +35,20 @@
 #ifndef CURLWRAP_H
 #define CURLWRAP_H
 
-extern int nccr_curlopen(CURL**);
-extern void nccr_curlclose(CURL*);
+/*Forward*/
+struct NCCDMR;
+struct bytes_t;
 
-extern int nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime);
+extern int nccr_curlopen(CURL**);
+extern int nccr_curlclose(CURL*);
+
+extern int nccr_fetchurl(CURL* curl, char* url, struct bytes_t* buf, long* filetime);
 extern long nccr_fetchhttpcode(CURL* curl);
 extern int nccr_fetchlastmodified(CURL* curl, char* url, long* filetime);
 
-extern int nccr_set_curl_flags(CURL*, NCCDMR*);
-extern int nccr_set_proxy(CURL*, NCCDMR*);
-extern int nccr_set_ssl(CURL*, NCCDMR*);
+extern int nccr_set_curl_flags(CURL*, struct NCCDMR*);
+extern int nccr_set_proxy(CURL*, struct NCCDMR*);
+extern int nccr_set_ssl(CURL*, struct NCCDMR*);
 extern int nccr_set_user_password(CURL*, const char *userC, const char *passwordC);
 
 

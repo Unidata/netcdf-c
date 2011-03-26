@@ -8,18 +8,36 @@
 #include "config.h"
 
 #include <curl/curl.h>
+#include "curlwrap.h"
 
 #include "netcdf.h"
-#include "ncdispatch.h"
 #include "nc.h"
 #include "nc4internal.h"
+#include "nclist.h"
+#include "ncaux.h"
 
 #include "nccr.h"
 #include "crdebug.h"
 #include "ast.h"
-#include "curlwrap.h"
 
 #include "ncstreamx.h"
+
+/*Forward*/
+static int crpredefinedtypes(NCCR*,nc_type);
+static char* crtypename(char*);
+static int crbbasetype(nc_type, char*, nc_type, int ndims, Dimension**, nc_type*);
+static int crdeffieldvar(nc_type, int tag, Variable*);
+static int crdeffieldstruct(nc_type, int tag, Structure*);
+static int crfillgroup(NCCR*, Group*, nc_type);
+static nc_type cvtstreamtonc(DataType);
+static enum Dimcase classifydim(Dimension*);
+static int dimsize(Dimension*);
+static int dimsizes(int ndims, Dimension**, int sizes[NC_MAX_VAR_DIMS]);
+static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
+static int buildfield(int ncid,void* cmpd,char*,nc_type,int ndims,Dimension**);
+static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index,nc_type* vidp);
+static int locateleftvlen(int ndims, Dimension**, int index);
+
 
 enum Dimcase {DC_UNKNOWN, DC_FIXED, DC_UNLIMITED, DC_VLEN, DC_PRIVATE};
 
@@ -28,11 +46,11 @@ static int uid = 0;
 /*
 Fetch the metadata and define in the temporary netcdf-4 file
 */
-NCerror
-crbuildnc(NCCR* nccr, Header* hdr)
+int
+nccr_buildnc(NCCR* nccr, Header* hdr)
 {
-    NCerror ncstat = NC_NOERR;
-    nc_id ncid = nccr->info.ext_ncid; /*root id*/
+    int ncstat = NC_NOERR;
+    nc_type ncid = nccr->info.ext_ncid; /*root id*/
 
     ncstat = crpredefinedtypes(nccr,ncid);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -56,51 +74,164 @@ done:
 }
 
 /* Define needed predefine types in root */
-static NCerror
-crpredefinedtypes(NCCR* nccr, nc_id ncid)
+static int
+crpredefinedtypes(NCCR* nccr, nc_type ncid)
 {
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     nc_type tid;
 
-    /* NC_UINT8(*) bytes_t */
-    ncstat = nc_def_vlen(ncid,"bytes_t",NC_UINT8,&tid);
+    /* NC_UBYTE(*) bytes_t */
+    ncstat = nc_def_vlen(ncid,"bytes_t",NC_UBYTE,&tid);
     if(ncstat != NC_NOERR) goto done;
 
 done:
     return ncstat;
 }
 
+static char*
+crtypename(char* name)
+{
+    static char tname[NC_MAX_NAME];
+    strncpy(tname,name,NC_MAX_NAME-2);
+    strncat(tname,"_t",NC_MAX_NAME-2);
+    tname[NC_MAX_NAME-1] = '\0';
+    return tname; /* Naughty Naughty */
+}
+
+
+/* Use for var fields or top level vars.
+   Returns the basetype to use for defining
+   field or var. Assumes v's dimensions have been
+   validated.
+*/
+static int
+crbbasetype(nc_type grpid, char* name, nc_type basetype,
+		int ndims, Dimension** dims,
+		nc_type* newbasetype)
+{
+    int ncstat = NC_NOERR;
+    int dimsize[NC_MAX_VAR_DIMS];	        		
+    int index;
+	
+    *newbasetype = basetype;
+
+    if(ndims == 0) goto done;
+
+    /* Locate the first * dimension */
+    index = locateleftvlen(ndims,dims,0);
+
+    if(index > 0) {
+	/* Ok, we have to build up the vlen/struct chain to handle * dimensions */
+	ncstat = buildvlenchain(grpid,name,basetype,ndims,dims,index,newbasetype);
+	if(ncstat != NC_NOERR) goto done;	
+    }
+
+done:
+    return ncstat;
+}
+
+static int
+crdeffieldvar(nc_type grpid, int tag, Variable* v)
+{
+    int ncstat = NC_NOERR;
+    nc_type basetype = nctypefor(v->dataType);
+    int index,i;
+    int ndims = v->shape.count;
+    Dimension** dims = v->shape.values;
+
+    if(ndims == 0) {
+        ncstat = nc_add_field(tag,v->name,basetype,0,NULL);
+        if(ncstat != NC_NOERR) goto done;	
+    } else {
+	int dimsizes[NC_MAX_VAR_DIMS];
+	/* Validate the set of dimensions for a field */
+	if(!validate_dimensions(ndims,dims,1))
+	    {ncstat = NC_EBADDIM; goto done;}
+
+	/* Locate the first * dimension */
+        index = locateleftvlen(ndims,dims,0);
+	if(index > 0) {
+	    /* Get the true basetype */
+	    ncstat = crbbasetype(grpid, v->name, basetype,ndims,dims,&basetype);
+            if(ncstat != NC_NOERR) goto done;
+	}
+        for(i=0;i<index;i++) {
+	    dimsizes[i] = dimsize(dims[i]);
+        }
+        ncstat = nc_add_field(tag,v->name,basetype,index,dimsizes);	
+        if(ncstat != NC_NOERR) goto done;	
+    }
+
+done:
+    return ncstat;
+}
+
+static int
+crdeffieldstruct(nc_type grpid, int tag, Structure* s)
+{
+    int ncstat = NC_NOERR;
+    nc_type basetype = s->notes.ncid;
+    int index,i;
+    int ndims = s->shape.count;
+    Dimension** dims = s->shape.values;
+
+    if(ndims == 0) {
+        ncstat = nc_add_field(tag,s->name,basetype,0,NULL);
+        if(ncstat != NC_NOERR) goto done;	
+    } else {
+	int dimsizes[NC_MAX_VAR_DIMS];
+	/* Validate the set of dimensions for a field */
+	if(!validate_dimensions(ndims,s->shape.values,1))
+	    {ncstat = NC_EBADDIM; goto done;}
+
+	/* Locate the first * dimension */
+	index = locateleftvlen(ndims,dims,0);
+	if(index > 0) {
+	    /* Get the true basetype */
+	    ncstat = crbbasetype(grpid, s->name, basetype, ndims, dims, &basetype);
+	    if(ncstat != NC_NOERR) goto done;	
+	}
+	/* Now define the simple case for the non-star leading dimensions */
+        for(i=0;i<index;i++) {
+	    dimsizes[i] = dimsize(dims[i]);
+        }
+        ncstat = nc_add_field(tag,s->name,basetype,index,dimsizes);	
+        if(ncstat != NC_NOERR) goto done;	
+    }
+
+done:
+    return ncstat;
+}
 
 /* Actual group is created by caller */
-static NCerror
-crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
+static int
+crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 {
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     size_t i,j,k;
     
     /* Create the dimensions */
     for(i=0;i<grp->dims.count;i++) {
 	Dimension* dim = grp->dims.values[i];
 	if(dim->name.defined) {
-	    int dimid;
 	    size_t length = (dim->length.defined?dim->length.value:1);
 	    if(dim->isUnlimited.defined && dim->isUnlimited.value != 0)
 		length = NC_UNLIMITED;
-	    ncstat = nc_def_dim(grpd,dim->name.value, length, &dimid);
+	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->notes.ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
     }
 
     /* Create the enum types */
     for(i=0;i<grp->enumTypes.count;i++) {
-	EnumTypeDef* en = grp->enumTypes.values[i];
+	EnumTypedef* en = grp->enumTypes.values[i];
 	int enid;
 	if(en->map.count == 0) continue;
-	ncstat = nc_def_enum(grpid,typeid,en->name,&enid);
+	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->notes.ncid);
 	if(ncstat != NC_NOERR) goto done;
         for(j=0;j<en->map.count;i++) {
-	    EnumType* econst = en->map.values[i];	
-	    ncstat = nc_insert_enum(grpid,NC_UINT,econst->value,&econst->code);
+	    EnumType* econst = en->map.values[i];
+	    ncstat = nc_insert_enum(grpid,en->notes.ncid,econst->value,&econst->code);
    	    if(ncstat != NC_NOERR) goto done;	
 	}
     }
@@ -108,44 +239,41 @@ crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
     /* Create the structs (compound) types */
     /* Note: structs here are also variables */
     for(i=0;i<grp->structs.count;i++) {
-	int strucid;
+	int tag;
 	Structure* struc = grp->structs.values[i];
-	ncstat = nc_def_compound(grpid,size,struc->name,&strucid)1
+	ncstat = nc_begin_compound(grpid,crtypename(struc->name),&tag);
 	if(ncstat != NC_NOERR) goto done;	
-	for(j=0;j<struc->var.count;j++) {
-	    Variable* v = struc->var.values[i];
-	    if(v->shape.count == 0) {
-	        ncstat = nc_insert_compound(grpid,strucid,v->name,
-					    offset, nctypefor(v->dataType));
-	    } else {
-		int dimsize[NC_MAX_VAR_DIMS];	        		
-		for(k=0;k<v->shape.count;k++) {
-		    Dimension* dim = v->shape.values[k];
-		    dimsize[k] = (dim->length.defined?) dim->length.value:1);
-		}
-	        ncstat = nc_insert_array_compound(grpid,strucid,v->name,
-					    offset, nctypefor(v->dataType),
-					    v->shape.count, dimsizes);
-	    }
+	/* Define the non-structure type fields */
+	for(j=0;j<struc->vars.count;j++) {
+	    Variable* v = struc->vars.values[i];
+	    ncstat = crdeffieldvar(grpid,tag,v);
 	    if(ncstat != NC_NOERR) goto done;	
 	}
+	/* Define the structure type fields */
+	for(j=0;j<struc->structs.count;j++) {
+	    Structure* s = struc->structs.values[i];
+	    ncstat = crdeffieldstruct(grpid,tag,s);
+	    if(ncstat != NC_NOERR) goto done;	
+	}
+	ncstat = nc_end_compound(tag,&struc->notes.ncid);
+    }
 
     /* Create the group global attributes */
     for(i=0;i<grp->atts.count;i++) {
 	Attribute* att = grp->atts.values[i];
-
 	if(att->data.defined) {
 	    ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
-				cvtstreamtonc(v->dataType),
+				cvtstreamtonc(att->type),
 				att->len,
-				att->data.value);
+				att->data.value.bytes);
 	} else {
 	    switch (att->type) {
 	    case STRING: {
 	        ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
-				cvtstreamtonc(v->dataType),
+				cvtstreamtonc(att->type),
 				att->sdata.count,
 				att->sdata.values);
+		} break;
 	    case OPAQUE:
 	    default: abort();
 	    }
@@ -153,81 +281,84 @@ crfillgroup(NCCR* nccr, Group* grp, nc_id grpid)
         if(ncstat != NC_NOERR) goto done;
     }
 
-
     /* Create the group non-struct variables */
-    struct {size_t count; Variable** values;} vars;
     for(i=0;i<grp->vars.count;i++) {
         Variable* v = grp->vars.values[i];
-        ncstat = nc_def_var(grpid,v->name,cvtstreamtonc(v->dataType),
-			    ndims,
-			    dimids,
-			    varidp);
+	int ndims = v->shape.count;
+	Dimension** dims = v->shape.values;
+	nc_type basetype = cvtstreamtonc(v->dataType);
 
-        /* Create the group struct variables */
-    struct {size_t count; Structure** values;} structs;
+	/* Validate as non-field */
+	if(!validate_dimensions(ndims,dims,0))
+	    {ncstat = NC_EBADDIM; goto done;}
 
-
-
-
-
-
-
+	if(ndims == 0) {
+            ncstat = nc_def_var(grpid,v->name,basetype,0,NULL,&v->notes.ncid);
+	} else {
+	    nc_type dimids[NC_MAX_VAR_DIMS];
+	    int index;
+	    /* Get the proper basetype */
+	    index = locateleftvlen(ndims,dims,0);
+	    if(index > 0) {
+	        ncstat = crbbasetype(grpid, v->name, basetype, ndims,
+				dims,&basetype);
+	        if(ncstat != NC_NOERR) goto done;	
+	    }
+	    for(j=0;j<index;j++) dimids[j] = dims[j]->notes.ncid;
+            ncstat = nc_def_var(grpid,v->name,basetype,index,dimids,&v->notes.ncid);
+	}
     }
 
-}
+    /* Create the group struct variables */
+    for(i=0;i<grp->structs.count;i++) {
+        Structure* s = grp->structs.values[i];
+	int ndims = s->shape.count;
+	Dimension** dims = s->shape.values;
+	nc_type basetype = s->notes.ncid;
 
+	/* Validate as non-field */
+	if(!validate_dimensions(ndims,dims,0))
+	    {ncstat = NC_EBADDIM; goto done;}
 
-static int
-crbuildstructure(int grpid, Structure* struc)
-{
-    int ncstatus = NC_NOERR;
-    int strucid;
-    int i,j;
-
-    ncstat = nc_def_compound(grpid,size,struc->name,&strucid)1
-    if(ncstat != NC_NOERR) goto done;       
-    for(i=0;i<struc->var.count;i++) {
-        Variable* v = struc->var.values[i];
-        if(v->shape.count == 0) {
-            ncstat = nc_insert_compound(grpid,strucid,v->name,
-                                        offset, nctypefor(v->dataType));
-        } else {
-            int dimsize[NC_MAX_VAR_DIMS];                           
-            for(k=0;k<v->shape.count;k++) {
-                Dimension* dim = v->shape.values[k];
-                dimsize[k] = (dim->length.defined?) dim->length.value:1);
-            }
-            ncstat = nc_insert_array_compound(grpid,strucid,v->name,
-                                        offset, nctypefor(v->dataType),
-                                        v->shape.count, dimsizes);
-        }
-        if(ncstat != NC_NOERR) goto done;   
+	if(ndims == 0) {
+            ncstat = nc_def_var(grpid,s->name,basetype,0,NULL,&s->notes.ncid);
+	} else {
+	    nc_type dimids[NC_MAX_VAR_DIMS];
+	    int index;
+	    /* Get the proper basetype */
+	    index = locateleftvlen(ndims,dims,0);
+	    if(index > 0) {
+	        ncstat = crbbasetype(grpid, s->name, basetype, s->shape.count,
+				s->shape.values,&basetype);
+	        if(ncstat != NC_NOERR) goto done;	
+	    }
+	    for(j=0;j<index;j++) dimids[j] = dims[j]->notes.ncid;
+            ncstat = nc_def_var(grpid,s->name,basetype,index,dimids,&s->notes.ncid);
+	}
     }
 
 done:
-    return ncstatus;
+    return ncstat;
 }
 
 /***************************************************/
 
 /* Map ncstream primitive datatypes to netcdf primitive datatypes */
 static nc_type
-cvtstreamtonc(Datatype datatype)
+cvtstreamtonc(DataType datatype)
 {
     switch (datatype) {
     case CHAR: return NC_CHAR;
     case BYTE: return NC_BYTE;
     case SHORT: return NC_SHORT;
     case INT: return NC_INT;
-    case LONG: return NC_INT;
+    case INT64: return NC_INT64;
     case FLOAT: return NC_FLOAT;
     case DOUBLE: return NC_DOUBLE;
     case STRING: return NC_STRING;
-    case UCHAR: return NC_UCHAR;
     case UBYTE: return NC_UBYTE;
     case USHORT: return NC_USHORT;
     case UINT: return NC_UINT;
-    case INT64: return NC_INT64;
     case UINT64: return NC_UINT64;
     }
     return NC_NAT;
@@ -239,14 +370,14 @@ static enum Dimcase
 classifydim(Dimension* dim)
 {
     int len=0, unlim=0, vlen=0, priv=0;
-    if(dim->length.isdefined) len=(dim->length.value?1:0);
-    if(dim->isUnlimited.isdefined) unlim=(dim->isUnlimited.value?1:0);
-    if(dim->isVlen.isdefined) vlen=(dim->isVlen.value?1:0);
-    if(dim->isPrivate.isdefined) priv=(dim->isPrivate.value?1:0);
+    if(dim->length.defined) len=(dim->length.value?1:0);
+    if(dim->isUnlimited.defined) unlim=(dim->isUnlimited.value?1:0);
+    if(dim->isVlen.defined) vlen=(dim->isVlen.value?1:0);
+    if(dim->isPrivate.defined) priv=(dim->isPrivate.value?1:0);
 
     if(len+unlim+vlen+priv > 1) goto fail;
     if(len) return DC_FIXED;
-    if(unlim) return DC_UNLIMITED
+    if(unlim) return DC_UNLIMITED;
     if(vlen) return DC_VLEN;
     if(priv) return DC_PRIVATE;
 
@@ -281,7 +412,7 @@ dimsizes(int ndims, Dimension** dims, int sizes[NC_MAX_VAR_DIMS])
 
 /* Validate that the set of dimensions can be translated */
 static int
-validate_dimensions(size_t ndims, int nounlim, Dimension** dims)
+validate_dimensions(size_t ndims, Dimension** dims, int nounlim)
 {
     int i,j;
 
@@ -296,23 +427,23 @@ validate_dimensions(size_t ndims, int nounlim, Dimension** dims)
 
     /* Look for untranslatable dimensions */
     for(i=0;i<ndims;i++) {
-        Dimension dim = dims[i];
+        Dimension* dim = dims[i];
 	enum Dimcase dc = classify(dim);
 	switch (dc) {
 	case DC_FIXED: break;
 	case DC_VLEN: break;
-	case DC_UNLIMITED: if(nounlim) {goto untranslatable; else break;}
+	case DC_UNLIMITED: if(nounlim) goto untranslatable; else break;
 	default: goto untranslatable;
 	}
     }
 
     /* Look for unlimited after vlen */
     for(i=0;i<ndims;i++) {
-        Dimension dim0 = dims[i];
-	enum Dimcase dc = classify(dim);
+        Dimension* dim0 = dims[i];
+	enum Dimcase dc = classify(dim0);
 	if(dc != DC_VLEN) continue;
         for(j=i+1;j<ndims;j++) {
-            Dimension dim1 = dims[j];
+            Dimension* dim1 = dims[j];
 	    dc = classify(dim1);	
 	    if(dc == DC_UNLIMITED) goto untranslatable;
 	}	   
@@ -323,50 +454,6 @@ untranslatable:
     return NC_ETRANSLATION;
 }
 
-/*
-In order to define a structure, we have to define
-a potentially large number of types to support it;
-vlens for example
-*/
-static int
-definetypes(NCCRtype* struc)
-{
-    int i,j,imin,imax;
-    int status = NC_NOERR;
-    size_t ndims;
-    Dimension** dims;
-    int dimset[NC_MAX_VAR_DIMS];
-    enum Dimcase dc;
-
-    ndims = struc->shape.ndims;
-    dims = struc->shape.values;
-
-    status = verify_dimensions(ndims, dims);
-    if(status != NC_NOERR) goto done;
-
-    /* Working backward, find the last unprocessed vlen (star) dimension */
-    imin = ndims;
-    imax = ndims;
-    for(i=imin-1;i>=0;i--) {
-	Dimension* dim = dims[i];
-	dc = classifydim(dim);
-	if(dc == DC_VLEN) break;
-    }
-    if(dc == VLEN) {
-	/* We can use the whole dimension set as is */
-	if(ndims > NC_MAX_VAR_DIMS) /*provided there are not too many */
-	    {status = NC_ETRANSLATION; goto done;}
-    } else {
-	
-
-    }
-    
-
-
-
-done:
-    return status;
-}
 
 /**
 Given a variable of the form
@@ -406,6 +493,7 @@ buildfield(int ncid,
 	if(pos == 0) {
             status = ncaux_add_field(cmpd,name,vlenid,0,NULL);
 	} else { /* pos > 0 */
+	    int i;
 	    int dimsizes[NC_MAX_VAR_DIMS];
 	    for(i=0;i<pos;i++)
 		dimsizes[i] = dimsize(dims[i]);
@@ -418,7 +506,6 @@ done:
     return status;
 }
 
-
 static int
 buildvlenchain(int ncid,
 		char* name,
@@ -430,7 +517,7 @@ buildvlenchain(int ncid,
 {
     int i, pos;
     int status = NC_NOERR;
-    nc_type* vlenid = basetypeid;
+    nc_type vlenid = basetype;
     char suid[4];
     char typename[NC_MAX_NAME+3+1];
     void* tag;
@@ -448,14 +535,14 @@ buildvlenchain(int ncid,
 	status = ncaux_begin_compound(ncid,typename,NCAUX_ALIGN_C,&tag);
 	if(status != NC_NOERR) goto done;
 	/* Create a single field */
-	nidims = (ndims - index)
+	nidims = (ndims - index);
 	for(i=index;i<ndims;i++)
 	    idims[i] = dimsize(dims[i]);
 	status = ncaux_add_field(tag,name,basetype,nidims,idims);
 	if(status != NC_NOERR) goto done;
 	status = ncaux_end_compound(tag,vidp);
 	if(status != NC_NOERR) goto done;		
-    } else if(pos == (ndims - 1) {
+    } else if(pos == (ndims - 1)) {
 	/* Create a terminal vlen
 	strcpy(typename,name);
 	snprintf(suid,sizeof(suid),"%3d",index);
@@ -474,7 +561,7 @@ buildvlenchain(int ncid,
 	    status = ncaux_begin_compound(ncid,typename,NCAUX_ALIGN_C,&tag);
 	    if(status != NC_NOERR) goto done;
 	    /* Create a single field */
-	    nidims = (ndims - index)
+	    nidims = (ndims - index);
 	    for(i=index;i<ndims;i++)
 	        idims[i] = dimsize(dims[i]);
 	    status = ncaux_add_field(tag,name,basetype,nidims,idims);
@@ -506,126 +593,5 @@ locateleftvlen(int ndims, Dimension** dims, int index)
         if(dc == DC_VLEN) return i;
     }
     return -1; /* no vlen located */
-}
-
-/* Given a structure,
-   recursively convert into a set
-   of netcdf-4 types as represented
-   by NCCRType
-*/
-
-typedef struct NCCRType {
-    Structure* struc;
-    nc_type subclass; /* VLEN, etc */
-    char* name;
-    int ncid; /* of the parent group */
-    int typeid; /* from nc_def_XXX */
-    nclist* fieldtypes; /* the struc fields only */
-    NCCRDimset dimset;
-} NCCRType;
-
-/* utility free function */
-static void
-cleartypes(nclist* crtypes)
-{
-    int i,j;
-    for(i=0;i<nclistlength(crtypes);i++) {
-	NCCRType* t = (NCCRType*)nclistpop(crtypes);
-	if(t == NULL) continue;
-	if(t->name) free(t->name);
-	if(fieldtypes != NULL) cleartypes(fieldtypes);
-	free(t);
-    }
-}
-
-static int
-buildstructure(int ncid, Structure* struc)
-{
-    int dmin, dmax;
-    int status = NC_NOERR;
-    nclist* definedtypes = nclistnew();
-
-    if(definedtypes == NULL || dimsubsets == NULL) return NC_ENOMEM;
-
-    status = validate_dimensions(struc->shape.count,struc->shape.values);
-    if(status != NC_NOERR) goto done;
-
-    status = buildbasetype(ncid,struc,definedtypes);
-    if(status != NC_NOERR) goto done;
-
-done:
-    return status;
-}
-
-
-static int
-buildbasetype(int ncid, Structure struc, nclist* definedtypes, int* basetypeidp)
-{
-    int i;
-    int status = NC_NOERR;
-    NCCRType* crtype = NULL;
-    nclist* dimsubsets = nclistnew();
-    void* tag;
-    nc_type cmpdid;
-
-    crtype = (NCCRType*)calloc(1,sizeof(NCCRType));
-    if(crtype == NULL) return NC_ENOMEM;
-
-    crtype->struc = struc;
-    crtype->ncid = ncid;
-    crtype->subclass = NC_COMPOUND;
-    crtype->name = strdup(struc->name);
-    crtype->nfields = struc->structs.count;
-    if(struc->structs.count > 0) {
-	crtype->fieldtypes = (NCCRTYPE**)malloc(crtype->nfields*sizeof(NCCRType*));
-    }
-
-    /* Build the field types for the struct fields */
-    for(i=0;i<struc->structs.count;i++) {
-	NCCRType* t;
-	status = buildbasetype(ncid,struc->structs.values[i],definedtypes,&t);
-	if(status != NC_NOERR) goto done;
-	crtyp->fields[crtype->nfields] = t;
-	crtype->nfields++;
-    }
-
-    /* Define this compound type */
-    status = ncaux_begin_compound(ncid,crtype->name,NCAUX_ALIGN_C,&tag);
-    if(status != NC_NOERR) goto done;
-
-    /* define the non-struct fields */
-    for(i=0;i<struc->vars.count;i++) {
-	Variable* v = struc->vars.values[i];
-	int ndims = v->shape.count;
-	Dimension** dims = v->shape.values;
-	/* Validate the dimensions: unlimited disallowed */
-	status = validate_dimensions(ndims,dims);
-	if(status != NC_NOERR) goto done;
-	/* Generate a field */
-	status =  buildfield(ncid,tag,v->name,cvtstreamtonc(v->dataType),ndims,dims);
-        if(status != NC_NOERR) goto done;
-    }
-
-    /* define the struct fields */
-    for(i=0;i<struc->structs.count;i++) {
-	Structure* s = struc->structs.values[i];
-	int ndims = s->shape.count;
-	Dimension** dims = s->shape.values;
-        int vlenid;
-	status = validate_dimensions(ndims,dims);
-	if(status != NC_NOERR) goto done;
-	status =  buildfield(ncid,tag,s->name,crtype->fields[i].typeid,ndims,dims);
-        if(status != NC_NOERR) goto done;
-    }
-
-    /* Finish defining the compound */
-    status = ncaux_end_compound(tag,&cmpdid);
-
-done:
-    if(status != NC_NOERR) {
-	if(crtype) free(crtype);
-	nclistfree(dimsubsets);
-    }
-    return status;
 }
 

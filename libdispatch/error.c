@@ -121,6 +121,8 @@ nc_strerror(int ncerr1)
 	 return "NetCDF: Malformed URL";
       case NC_EDAPCONSTRAINT:
 	 return "NetCDF: Malformed Constraint";
+      case NC_ETRANSLATION:
+	 return "NetCDF: Untranslatable construct";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

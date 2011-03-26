@@ -58,7 +58,9 @@ extern "C" {
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
+#ifndef EXTERNL
 # define EXTERNL extern MSC_EXTRA
+#endif
 
 /**/
 

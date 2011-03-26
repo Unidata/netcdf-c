@@ -7,13 +7,13 @@
  
 #include <curl/curl.h>
 
-#include <ast_runtime.h>
-#include <ast_internal.h>
-#include <ast_byteio.h>
-#include <ast_curl.h>
+#include <ast.h>
 
-#include "ncStream.h"
+#include "netcdf.h"
+#include "nc.h"
+#include "nc4internal.h"
 #include "nccr.h"
+#include "ncstreamx.h"
 
 #define LINESIZE 72
 
@@ -214,7 +214,7 @@ nccr_dump_typeref(DataType datatype)
     case BYTE: return "BYTE";
     case SHORT: return "SHORT";
     case INT: return "INT";
-    case LONG: return "LONG";
+    case INT64: return "INT64";
     case FLOAT: return "FLOAT";
     case DOUBLE: return "DOUBLE";
     case STRING: return "STRING";
@@ -224,11 +224,10 @@ nccr_dump_typeref(DataType datatype)
     case ENUM2: return "ENUM2";
     case ENUM4: return "ENUM4";
     case OPAQUE: return "OPAQUE";
-    case UCHAR: return "UCHAR";
     case UBYTE: return "UBYTE";
     case USHORT: return "USHORT";
     case UINT: return "UINT";
-    case ULONG: return "ULONG";
+    case UINT64: return "UINT64";
     }
     return NULL;
 }
@@ -282,7 +281,6 @@ data_typesize(DataType datatype)
     switch (datatype) {
     case CHAR:
     case BYTE:
-    case UCHAR:
     case UBYTE: return 1;
 
     case SHORT:
@@ -291,8 +289,8 @@ data_typesize(DataType datatype)
     case INT:
     case UINT: return 4;
 
-    case LONG:
-    case ULONG: return 8;
+    case INT64:
+    case UINT64: return 8;
 
     case FLOAT: return 4;
     case DOUBLE: return 8;
@@ -313,7 +311,6 @@ data_dumpelement(DataType datatype, bytes_t* data, size_t offset, char* buffer)
     case CHAR: {char x = (char) pos[0]; sprintf(buffer,"%c",x);} break;
     case BYTE: {char x = (char) pos[0]; sprintf(buffer,"%hhd",x);} break;
 
-    case UCHAR:
     case UBYTE: {unsigned char x = (unsigned char) pos[0]; sprintf(buffer,"%hhu",x);} break;
 
     case SHORT: {short x = *(short*)pos; sprintf(buffer,"%hd",x);} break;
@@ -322,8 +319,8 @@ data_dumpelement(DataType datatype, bytes_t* data, size_t offset, char* buffer)
     case INT: {int x = *(int*)pos; sprintf(buffer,"%d",x);} break;
     case UINT: {unsigned int x = *(unsigned int*)pos; sprintf(buffer,"%u",x);} break;
 
-    case LONG: {long long x = *(long long*)pos; sprintf(buffer,"%lld",x);} break;
-    case ULONG: {unsigned long long x = *(unsigned long long*)pos; sprintf(buffer,"%llu",x);} break;
+    case INT64: {long long x = *(long long*)pos; sprintf(buffer,"%lld",x);} break;
+    case UINT64: {unsigned long long x = *(unsigned long long*)pos; sprintf(buffer,"%llu",x);} break;
 
     case FLOAT: {float x = *(float*)pos; sprintf(buffer,"%f",x);} break;
     case DOUBLE: {double x = *(double*)pos; sprintf(buffer,"%lf",x);} break;
@@ -336,11 +333,11 @@ static DataType
 mark_signedness(DataType datatype, int isunsigned)
 {
     switch (datatype) {
-    case CHAR: datatype = UCHAR; break;
+    case CHAR: datatype = UBYTE; break;
     case BYTE: datatype = UBYTE; break;
     case SHORT: datatype = USHORT; break;
     case INT: datatype = UINT; break;
-    case LONG: datatype = ULONG; break;
+    case INT64: datatype = UINT64; break;
     default: break;
     }
     return datatype;

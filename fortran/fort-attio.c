@@ -3,6 +3,7 @@
 #include <errno.h>
 
 #include "netcdf.h"
+#include "netcdf_f.h"
 #include "nfconfig.inc"
 #include "ncfortran.h"
 

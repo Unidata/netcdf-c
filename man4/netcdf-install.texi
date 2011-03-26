@@ -188,9 +188,9 @@ done!
 @section Building NetCDF With HDF5
 
 If you want to use the HDF5 storage format, you must have the HDF5
-1.8.4-patch1 release. You must also have the zlib compression library,
-version 1.2.3 (or better). Both of these packages are available from
-the netCDF-4 ftp site at @uref{@value{netcdf4-ftp-site}}.
+1.8.6 release. You must also have the zlib compression library,
+version 1.2.5. Both of these packages are available from the netCDF-4
+ftp site at @uref{@value{netcdf4-ftp-site}}.
 
 Make sure you run ``make check'' for the HDF5 and zlib
 distributions. They are very well-behaved distributions, but sometimes
@@ -282,7 +282,7 @@ For example, one user reports that she can build other applications
 with netCDF-4 by setting the LIBS envoronment variable:
 
 @example
-LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.4/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
+LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
 @end example
 
 The nc-config command can be used to learn what options are needed for
@@ -358,8 +358,8 @@ Unlike the output from other netCDF test programs, each large test
 program deletes its output before successfully exiting.
 
 To use the netCDF-4 features you will also need to have a
-HDF5-1.8.4-patch1 release installed. HDF5, in turn, must have been
-built with zlib, version 1.2.3 (or better).
+HDF5-1.8.6 release installed. HDF5, in turn, must have been
+built with zlib, version 1.2.5.
 
 A tested version of HDF5 and zlib can be found at the netCDF-4 ftp
 site at @uref{@value{netcdf4-ftp-site}}.
@@ -369,11 +369,9 @@ For more information about HDF5 see the HDF5 web site at
 web site at @uref{@value{zlib-url}}.
 
 To use the DAP features you will also need to have a version of
-libcurl (version 7.18.0 or later) installed.
-Depending on how this library
-was built, you may also need zib (version 1.2.3 or later).
-Information about libcurl may be obtained at
-@uref{@value{curl-url}}.
+libcurl (version 7.18.0 or later) installed.  Depending on how this
+library was built, you may also need zib (version 1.2.5 or later).
+Information about libcurl may be obtained at @uref{@value{curl-url}}.
 
 @node Environment, 64 Bit, Requirements, Building on Unix
 @section Specifying the Environment for Building
@@ -615,8 +613,8 @@ The above would cause the netCDF libraries to be installed in
 /whatever/you/decided/man.
 
 The --with-hdf5 option tells configure the location of the HDF5 and
-zlib libraries. HDF5 must be version 1.8.4-patch1 or better, and the
-HDF5 library must have been built with zlib, version 1.2.3 or better.
+zlib libraries. HDF5 must be version 1.8.6, and the HDF5 library must
+have been built with zlib, version 1.2.5.
 
 If the configure script finds HDF5 in the system directories, it will
 (attempt to) build the netCDF-4 enhanced features. To turn this off

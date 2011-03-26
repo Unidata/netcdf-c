@@ -32,8 +32,7 @@ dapattr3.c \
 cetab.c \
 ceparse.c \
 celex.c \
-ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
-nchashmap.c
+ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c
 
 HDRS=\
 nccommon.h \
@@ -49,8 +48,7 @@ dapdebug.h \
 dapdump.h \
 netcdf3l.h \
 ceparselex.h \
-cetab.h \
-nchashmap.h
+cetab.h
 
 if BUILD_DAP
 

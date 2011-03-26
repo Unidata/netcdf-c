@@ -8,7 +8,7 @@ typedef enum DataType {
     BYTE=1,
     SHORT=2,
     INT=3,
-    LONG=4,
+    INT64=4,
     FLOAT=5,
     DOUBLE=6,
     STRING=7,
@@ -18,11 +18,10 @@ typedef enum DataType {
     ENUM2=11,
     ENUM4=12,
     OPAQUE=13,
-    UCHAR=14,
-    UBYTE=15,
-    USHORT=16,
-    UINT=17,
-    ULONG=18
+    UBYTE=14,
+    USHORT=15,
+    UINT=16,
+    UINT64=17
 } DataType;
 
 

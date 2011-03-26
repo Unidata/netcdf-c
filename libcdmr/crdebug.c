@@ -7,8 +7,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "nccr.h"
-
 #ifdef CATCHERROR
 
 /* Place breakpoint here to catch errors close to where they occur*/

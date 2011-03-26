@@ -15,12 +15,11 @@
 # The tst_f90 and f90tst_vars programs, which tests the netCDF fortran
 # 90 interface. (Unless F90 API is disabled).
 
-# $Id: Makefile.am,v 1.98 2010/05/29 00:44:28 dmh Exp $
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 LDADD =
-AM_LDFLAGS = 
 AM_CFLAGS =
-AM_CPPFLAGS = -I$(top_srcdir)
 AM_FFLAGS =
 AM_FCFLAGS =
 TESTS =
@@ -50,7 +49,8 @@ AM_FCFLAGS +=  ${AM_CPPFLAGS}
 if BUILD_SEPARATE_FORTRAN
 LDADD += ${top_builddir}/fortran/libnetcdff.la -lm
 endif
-LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+LDADD += ${top_builddir}/liblib/libnetcdf.la 
+LDADD += @EXTERN_LDFLAGS@
 
 if BUILD_UTILITIES
 # The create_fills shell creates the file fills.nc, needed by later

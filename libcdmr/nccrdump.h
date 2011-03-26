@@ -1,5 +1,5 @@
-#ifndef NCCR_H
-#define NCCR_H 1
+#ifndef NCCRDUMP_H
+#define NCCRDUMP_H 1
 
 #define MAGIC_START  "\x43\x44\x46\x53"
 #define MAGIC_END    "\xed\xed\xde\xde"
@@ -11,4 +11,4 @@ extern ast_err nccr_dumpheader(Header*);
 
 extern ast_err nccr_data_dump(Data*, Variable*, int bigendian, bytes_t* data);
 
-#endif /*NCCR_H*/
+#endif /*NCCRDUMP_H*/

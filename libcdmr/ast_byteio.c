@@ -82,11 +82,11 @@ ast_byteio_read(ast_runtime* rt, size_t len, char* data)
     if(len == 0 || data == NULL) return AST_NOERR;
     stream = (struct _ast_bytestream*)rt->stream;    
     if(stream->pos+len > stream->stack.maxpos) {
-	rt->errno = AST_EOF;
+	rt->err = AST_EOF;
 	len = 0;
 	stream->pos = stream->stack.maxpos;
     } else if(stream->pos+len > stream->alloc) {
-	rt->errno = AST_EOF;
+	rt->err = AST_EOF;
 	len = 0;
 	stream->pos = stream->alloc;
     } else {

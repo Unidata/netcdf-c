@@ -12,7 +12,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL test_prog.c	\
-test_prog.F test_prog.f90
+test_prog.F test_prog.f90 lib_flags.am
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
@@ -61,6 +61,7 @@ endif
 
 # Is the user building netCDF-4?
 if USE_NETCDF4
+H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
 endif
@@ -105,8 +106,6 @@ if BUILD_CDMREMOTE
 LIBCDMR=libcdmr
 endif
 
-#WIN32=win32
-
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump and cxx, because their tests
 # depend on it. nf_test depends upon ncgen as well.
@@ -115,17 +114,17 @@ endif
 # built right before LIBSRC4_DIR.
 # If using dispatch, then the order is different
 if BUILD_SEPARATE_FORTRAN
-SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
-$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) $(LIBCDMR)	\
-${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
-${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
-$(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
+$(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) $(LIBCDMR)		\
+${ASSEMBLEDIR} $(V2_TEST) $(NC_TEST_DIR) $(F90_DIR) $(F77_DIR)		\
+$(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST) ${CXX_DIR} $(CXX4)		\
+$(NC_TEST4) $(NCDAPTESTDIR) man4 $(EXAMPLES) $(LIBCF)
 else
-SUBDIRS = include $(UDUNITS) $(DISPATCHDIR) $(OCLIB) $(F90_DIR)		\
-$(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4) $(LIBCDMR)	\
-${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
-${CXX_DIR} $(CXX4) $(NC_TEST_DIR) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
-$(EXAMPLES) $(WIN32) $(LIBCF)
+SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
+$(F90_DIR) $(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(NCDAP3) $(NCDAP4)	\
+$(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP)	\
+$(F77_TEST) ${CXX_DIR} $(CXX4) $(NC_TEST4) $(NC_TEST_DIR)		\
+$(NCDAPTESTDIR) man4 $(EXAMPLES) $(LIBCF)
 endif
 
 # Remove these generated files, for a distclean.
@@ -165,6 +164,14 @@ if BUILD_CXX
 BINFILES += include/netcdf.hh include/ncvalues.h  include/netcdfcpp.h lib/libnetcdf_c++.a 
 endif
 
+if BUILD_DLL
+BINFILES += liblib/.libs/cygnetcdf-7.dll liblib/.libs/libnetcdf.dll.a	\
+liblib/.libs/libnetcdf.a liblib/.libs/libnetcdf.la
+if BUILD_F77
+BINFILES += 
+endif # BUILD_F77
+endif # BUILD_DLL
+
 # At Unidata, package up binaries.
 ftpbin: install
 	echo "Getting binaries from ${prefix}"
@@ -174,7 +181,7 @@ ftpbin: install
 	echo "CFLAGS=$(CFLAGS) CXXFLAGS=$(CXXFLAGS)" >> ${prefix}/README_BINARIES.txt
 	echo "FCFLAGS=$(FCFLAGS) F77FLAGS=$(F77FLAGS) $F90FLAGS=$(F90FLAGS)" >> ${prefix}/README_BINARIES.txt
 	which tar
-	echo "PATH: $PATH"
+	echo "PATH: $(PATH)"
 	tar cf @BINFILE_NAME@ -C ${prefix} ${BINFILES}
 	gzip -f @BINFILE_NAME@
 

@@ -12,18 +12,17 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
 # CDMREMORE Sources
-SRC=nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
+SRC=nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c nccrproto.c \
 crdebug.c crutil.c \
 nccrdump.c \
 ast_byteio.c ast_curl.c ast_debug.c ast_internal.c ast_runtime.c ast_util.c \
-ncstreamx.c
+ncstream.c curlwrap.c
 
-
-HDRS=nccrconstraints.h nccrdispatch.h nccr.h \
+HDRS=nccrconstraints.h nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
 nccrdump.h \
 ast.h ast_byteio.h ast_curl.h ast_debug.h ast_internal.h ast_runtime.h ast_util.h \
-ncstreamx.h
+ncstream.h curlwrap.h
 
 if BUILD_CDMREMOTE
 
@@ -56,6 +55,18 @@ TESTS = t_cdmr
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 t_cdmr_SOURCES = t_cdmr.c nccrstub.c
 CLEANFILES += t_cdmr
+
+##################################################
+# Generate the augmented ncstream structures
+
+ncstreamx.h: ncstream.h augmenth.sed
+	rm -f ncstreamx.h
+	sed -f augmenth.sed <ncstream.h >ncstreamx.h
+
+ncstreamx.c: ncstream.c augmentc.sed
+	rm -f ncstreamx.c
+	sed -f augmentc.sed <ncstream.c >ncstreamx.c
+
 
 endif # BUILD_CDMREMOTE
 
