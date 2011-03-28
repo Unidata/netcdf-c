@@ -152,8 +152,11 @@ ocxdrstdio_getlong(xdrs, lp)
 	XDR *xdrs;
 	register unsigned int *lp;
 {
+#ifdef IGNORE
 FILE* f = (FILE*)xdrs->x_private;
-ftell(f);
+long fpos = ftell(f);
+#endif
+
 if(fread((caddr_t)lp,sizeof(unsigned int),1,(FILE *)(xdrs->x_private)) != 1)
 		return (FALSE);
 #ifndef mc68000

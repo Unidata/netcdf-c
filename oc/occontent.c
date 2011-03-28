@@ -552,6 +552,7 @@ ocarraycount(OCstate* state, OCcontent* content)
 
     /* Otherwise verify against xdr */
     xdrs = content->tree->data.xdrs;
+
     OCASSERT((xdrs != NULL));
 
     /* checkpoint current location */

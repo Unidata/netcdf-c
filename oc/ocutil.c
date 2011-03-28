@@ -10,8 +10,8 @@
 #define snprintf _snprintf
 #endif
 
-static char* DDSdatamark = "Data:";
-static char* DDSdatamarkR = "Data:\r";
+/* Order is important: longest first */
+static char* DDSdatamarks[3] = {"Data:\r\n","Data:\n",(char*)NULL};
 
 /* Not all systems have strndup, so provide one*/
 char*
@@ -100,19 +100,21 @@ findbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
     unsigned int i;
     char* content;
     size_t len = ocbyteslength(buffer);
-    int tlen = strlen(DDSdatamark);
-
+    char** marks;
+    
     content = ocbytescontents(buffer);
-    for(i=0;i<len;i++) {
-	if((i+tlen) <= len 
-	   && (strncmp(content+i,DDSdatamark,tlen)==0
-	       || strncmp(content+i,DDSdatamarkR,tlen)==0)) {
-	    *ddslenp = i;
-	    i += tlen;
-	    if(i < len && content[i] == '\r') i++;
-	    if(i < len && content[i] == '\n') i++;
-	    *bodp = i;
-	    return 1;
+
+    for(marks = DDSdatamarks;*marks;marks++) {
+	char* mark = *marks;
+        int tlen = strlen(mark);
+        for(i=0;i<len;i++) {
+	    if((i+tlen) <= len 
+	        && (strncmp(content+i,mark,tlen)==0)) {
+	       *ddslenp = i;
+	        i += tlen;
+	        *bodp = i;
+	        return 1;
+	    }
 	}
     }
     *ddslenp = 0;
