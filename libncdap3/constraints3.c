@@ -39,7 +39,7 @@ parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints,
 
     ncstat = ncceparse(constraints,0,dapconstraint,&errmsg);
     if(ncstat) {
-	oc_log(OCLOGWARN,"DAP constraint parse failure: %s",errmsg);
+	nclog(NCLOGWARN,"DAP constraint parse failure: %s",errmsg);
 	efree(errmsg);
         nclistclear(dapconstraint->projections);
         nclistclear(dapconstraint->selections);
@@ -318,7 +318,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 	nclistpush(namematches,(ncelem)node);
     }    
     if(nclistlength(namematches)==0) {
-        oc_log(OCLOGERR,"No match for projection name: %s",lastseg->name);
+        nclog(NCLOGERR,"No match for projection name: %s",lastseg->name);
         ncstat = NC_EDDS;
 	goto done;
     }
@@ -343,7 +343,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
     /* |matches|==0 => no match; |matches|>1 => ambiguity */
     switch (nclistlength(matches)) {
     case 0:
-        oc_log(OCLOGERR,"No match for projection name: %s",lastseg->name);
+        nclog(NCLOGERR,"No match for projection name: %s",lastseg->name);
         ncstat = NC_EDDS;
 	break;
     case 1:
@@ -372,7 +372,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 	    }
 	} /*for*/
 	if(minnode == NULL || nmin > 1) {	
-	    oc_log(OCLOGERR,"Ambiguous match for projection name: %s",
+	    nclog(NCLOGERR,"Ambiguous match for projection name: %s",
 			lastseg->name);
             ncstat = NC_EDDS;
 	} else if(nodep)

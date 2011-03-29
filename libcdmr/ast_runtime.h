@@ -14,6 +14,9 @@ typedef struct bytes_t{
     uint8_t* bytes;
 } bytes_t;
 
+/* Define a null value for bytes_t */
+extern bytes_t bytes_t_null;
+
 /* Define error codes */
 typedef int ast_err;
 #define AST_NOERR 0

@@ -46,7 +46,6 @@ dapnc.h \
 daputil.h \
 dapdebug.h \
 dapdump.h \
-netcdf3l.h \
 ceparselex.h \
 cetab.h
 

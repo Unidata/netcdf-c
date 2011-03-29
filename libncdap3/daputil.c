@@ -965,9 +965,9 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
     if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	if(ce == NULL)
-	    oc_log(OCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);
+	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);
 	else
-	    oc_log(OCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url.base,ext,ce);
+	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url.base,ext,ce);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
@@ -978,9 +978,9 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
         double secs;
 	gettimeofday(&time1,NULL);
 	secs = deltatime();
-	oc_log(OCLOGNOTE,"fetch complete: %0.3f secs",secs);
+	nclog(NCLOGNOTE,"fetch complete: %0.3f secs",secs);
 #else
-	oc_log(OCLOGNOTE,"fetch complete.");
+	nclog(NCLOGNOTE,"fetch complete.");
 #endif
     }
     return ocstat;

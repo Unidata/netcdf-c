@@ -286,7 +286,7 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->name,(unsigned long)seqsize);
 	long httperr;
 	oc_svcerrordata(nccomm->oc.conn,&code,&msg,&httperr);
 	if(code != NULL) {
-	    oc_log(OCLOGERR,"oc_fetch_datadds failed: %s %s %l",
+	    nclog(NCLOGERR,"oc_fetch_datadds failed: %s %s %l",
 			code,msg,httperr);
 	}
 	ocstat = OC_NOERR;
@@ -626,7 +626,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
 	    THROWCHK(ocstat); goto done;
 	}
 	/* Note what we did */
-	oc_log(OCLOGWARN,"Cannot locate .dds file, using .dods file");
+	nclog(NCLOGWARN,"Cannot locate .dds file, using .dods file");
     }
 
     /* Get selection constrained DAS */
@@ -636,7 +636,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
     ocstat = dap_oc_fetch(nccomm,nccomm->oc.conn,ce,OCDAS,&nccomm->oc.ocdasroot);
     if(ocstat != OC_NOERR) {
 	/* Ignore but complain */
-	oc_log(OCLOGWARN,"Could not read DAS; ignored");
+	nclog(NCLOGWARN,"Could not read DAS; ignored");
         nccomm->oc.ocdasroot = OCNULL;	
 	ocstat = OC_NOERR;
     }
@@ -793,7 +793,7 @@ applyclientparamcontrols3(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
 	SETFLAG(nccomm->controls,NCF_CACHE);
 
-    oc_log(OCLOGNOTE,"Caching=%d",FLAGSET(nccomm->controls,NCF_CACHE));
+    nclog(NCLOGNOTE,"Caching=%d",FLAGSET(nccomm->controls,NCF_CACHE));
 
     SETFLAG(nccomm->controls,(NCF_NC3|NCF_NCDAP));
 

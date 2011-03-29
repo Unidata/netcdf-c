@@ -28,6 +28,7 @@
 #include "crdebug.h"
 #include "nccrdispatch.h"
 #include "ast.h"
+#include "ncstreamx.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
@@ -65,10 +66,15 @@ NCCR_open(const char * path, int mode,
     int fd;
     char* tmpname = NULL;
     NClist* shows;
+    bytes_t buf;
+    long filetime;
+    ast_runtime* rt = NULL;
+    ast_err aststat = AST_NOERR;
+    Header* hdr = NULL;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
-    if(!nc_urlparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
+    if(nc_urlparse(path,&tmpurl) != NC_NOERR) PANIC("libcdmr: non-url path");
     nc_urlfree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
@@ -101,10 +107,12 @@ NCCR_open(const char * path, int mode,
 	{THROWCHK(ncstat); goto done;}
 
     /* Setup tentative NCCR state*/
+    nccr->info.dispatch = dispatch;
+    nccr->cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
+    if(nccr->cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}
     nccr->cdmr->controller = (NC*)nccr;
     nccr->cdmr->urltext = nulldup(path);
     nc_urlparse(nccr->cdmr->urltext,&nccr->cdmr->url);
-    nccr->info.dispatch = dispatch;
 
     /* Create the curl connection (does not make the server connection)*/
     ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
@@ -114,8 +122,20 @@ NCCR_open(const char * path, int mode,
     if(nc_urllookupvalue(shows,"fetch"))
 	nccr->cdmr->controls |= SHOWFETCH;
 
-    /* fetch and build the meta data */
-    ncstat = nccr_buildnc(nccr);
+    /* fetch meta data */
+    buf = bytes_t_null;
+    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,nccr->cdmr->url->url,
+			   &buf,&filetime);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Parse the meta data */
+    aststat = ast_byteio_new(AST_READ,buf.bytes,buf.nbytes,&rt);
+    if(aststat != AST_NOERR) goto done;    
+    aststat = Header_read(rt,&hdr);
+    if(aststat != AST_NOERR) goto done;    
+
+    /* build the meta data */
+    ncstat = nccr_buildnc(nccr,hdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Mark as no longer indef and no longer writable*/
@@ -123,6 +143,7 @@ NCCR_open(const char * path, int mode,
     h5->no_write = 1;
 
 done:
+    if(aststat != AST_NOERR) {ncstat = nccr_cvtasterr(aststat);}
     if(ncstat) {
         if(nccr != NULL) {
 	    int ncid = nccr->info.ext_ncid;

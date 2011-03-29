@@ -9,7 +9,7 @@ extern void ocdumpnode(OCnode* node);
 extern void ocdumpslice(OCslice* slice);
 extern void ocdumpclause(OCprojectionclause* ref);
 
-extern void ocdumpmemory(char* memory, int len);
+extern void ocdumpmemory(char* memory, int len, int bod);
 extern void ocdumppacket(char* memory, int len, int bod);
 
 extern void ocdumpfile(FILE* file, int datastart);

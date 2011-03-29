@@ -136,7 +136,7 @@ NCD3_open(const char * path, int mode,
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 	if(drno->dap.oc.url.constraint != NULL
 	   && strlen(drno->dap.oc.url.constraint) > 0) {
-	    oc_log(OCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
+	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   drno->dap.oc.url.constraint);
 	}
 	/* ignore all constraints */
@@ -160,6 +160,9 @@ fprintf(stderr,"parsed constraint: %s\n",
     /* Turn on logging; only do this after oc_open*/
     value = oc_clientparam_get(drno->dap.oc.conn,"log");
     if(value != NULL) {
+	ncloginit();
+        ncsetlogging(1);
+        nclogopen(value);
 	oc_loginit();
         oc_setlogging(1);
         oc_logopen(value);
@@ -287,6 +290,7 @@ NCD3_close(int ncid)
     ncstatus = NC_check_id(ncid, (NC**)&drno); 
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
 
+    nclogclose();
     oc_logclose();
 
     cleanNCDAP3(drno);

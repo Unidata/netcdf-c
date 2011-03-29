@@ -184,7 +184,6 @@ struct Header {
     struct {int defined; uint32_t value;} version;
 };
 
-
 extern ast_err Header_write(ast_runtime*,Header*);
 extern ast_err Header_read(ast_runtime*,Header**);
 extern ast_err Header_reclaim(ast_runtime*,Header*);

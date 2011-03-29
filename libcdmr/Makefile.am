@@ -15,14 +15,16 @@ AM_LDFLAGS =
 SRC=nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c nccrproto.c \
 crdebug.c crutil.c \
 nccrdump.c \
-ast_byteio.c ast_curl.c ast_debug.c ast_internal.c ast_runtime.c ast_util.c \
-ncstream.c curlwrap.c
+ncstreamx.c curlwrap.c ncaux.c \
+ast_byteio.c ast_curl.c ast_internal.c \
+ast_runtime.c ast_util.c ast_debug.c
 
 HDRS=nccrconstraints.h nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
 nccrdump.h \
-ast.h ast_byteio.h ast_curl.h ast_debug.h ast_internal.h ast_runtime.h ast_util.h \
-ncstream.h curlwrap.h
+ncstreamx.h curlwrap.h ncaux.h \
+ast.h ast_byteio.h ast_curl.h ast_internal.h \
+ast_runtime.h ast_util.h ast_debug.h
 
 if BUILD_CDMREMOTE
 
@@ -58,6 +60,7 @@ CLEANFILES += t_cdmr
 
 ##################################################
 # Generate the augmented ncstream structures
+EXTRA_DIST=ncstream.h ncstreamc augmenth.sed augmentc.sed
 
 ncstreamx.h: ncstream.h augmenth.sed
 	rm -f ncstreamx.h

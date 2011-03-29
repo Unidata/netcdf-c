@@ -17,6 +17,7 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nchashmap.h"
+#include "nclog.h"
 
 #include "oc.h"
 #include "dapurl.h"

@@ -39,6 +39,8 @@
 #include <curl/curl.h>
 #include "curlwrap.h"
 
+#include "nclog.h"
+
 #include "netcdf.h"
 #include "nc.h"
 #include "nc4internal.h"
@@ -126,7 +128,7 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     cstat = curl_easy_perform(curl);
     if(cstat == CURLE_PARTIAL_FILE) {
         /* Log it but otherwise ignore */
-        nccr_log("curl error: %s; ignored",
+        nclog(NCLOGERR,"curl error: %s; ignored",
                curl_easy_strerror(cstat));
         cstat = CURLE_OK;
     }
@@ -145,7 +147,7 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     return stat;
 
 fail:
-    nccr_log("curl error: %s", curl_easy_strerror(cstat));
+    nclog(NCLOGERR,"curl error: %s", curl_easy_strerror(cstat));
     return NC_ECURL;
 }
 
@@ -156,7 +158,7 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *cdata)
     struct NCCR_CALLBACK_DATA* callback_data = (struct NCCR_CALLBACK_DATA*)cdata;
 
     if(realsize == 0)
-       nccr_log("WriteMemoryCallback: zero sized chunk");
+       nclog(NCLOGERR,"WriteMemoryCallback: zero sized chunk");
 
     if(callback_data->alloc == 0) {
 	callback_data->data = (char*)malloc(realsize);
@@ -213,7 +215,7 @@ nccr_fetchlastmodified(CURL* curl, char* url, long* filetime)
     return stat;
 
 fail:
-    nccr_log("curl error: %s\n", curl_easy_strerror(cstat));
+    nclog(NCLOGERR,"curl error: %s\n", curl_easy_strerror(cstat));
     return NC_ECURL;
 }
 
@@ -411,7 +413,7 @@ combinecredentials(const char* user, const char* pwd)
     int userPassSize = strlen(user) + strlen(pwd) + 2;
     char *userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
-        LOG((LOGERR,"Out of Memory\n"));
+        nclog(NCLOGERR,"Out of Memory");
         return NULL;
     }
     strcpy(userPassword, user);

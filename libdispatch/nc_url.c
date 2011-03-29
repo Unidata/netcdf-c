@@ -29,6 +29,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     char* protocol = NULL;
     char* params = NULL;
     char* baseurl = NULL;
+    char* trueurl = NULL;
     char* constraint = NULL;
     char* stop;
 
@@ -57,6 +58,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 	p++; /* move past the params*/
     }
 
+    trueurl = nulldup(p);
     baseurl = p;
 
     /* Note that we dont care what the protocol is ; just collect it */
@@ -89,7 +91,9 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     if(ncurl == NULL) return NC_ENOMEM;
     memset((void*)ncurl,0,sizeof(NC_URL));
 
-    ncurl->url = nulldup(url0);
+    ncurl->wholeurl = nulldup(url0);
+    if(ncurl->wholeurl == NULL) return NC_ENOMEM;
+    ncurl->url = trueurl;
     if(ncurl->url == NULL) return NC_ENOMEM;
     ncurl->base = nulldup(baseurl);
     if(ncurl->base == NULL) return NC_ENOMEM;
@@ -122,6 +126,7 @@ void
 nc_urlfree(NC_URL* ncurl)
 {
     if(ncurl == NULL) return;
+    if(ncurl->wholeurl != NULL) {free(ncurl->wholeurl);}
     if(ncurl->url != NULL) {free(ncurl->url);}
     if(ncurl->base != NULL) {free(ncurl->base);}
     if(ncurl->protocol != NULL) {free(ncurl->protocol);}

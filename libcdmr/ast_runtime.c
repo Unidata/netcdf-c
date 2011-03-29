@@ -5,6 +5,7 @@
 #include "config.h"
 #include <ast_runtime.h>
 #include <ast_internal.h>
+#include <ast_debug.h>
 
 /**
  * Define MAXWIRELEN to be at least big enough
@@ -71,6 +72,9 @@ size32,     /*ast_bool*/
 size32,     /*ast_enum*/
 };
 #endif
+
+/* Define a null value for bytes_t */
+bytes_t bytes_t_null = {0,NULL};
 
 static int ast_readvarint(ast_runtime* rt, uint8_t* buffer, size_t* countp);
 

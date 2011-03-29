@@ -168,7 +168,7 @@ ocdebug = 1;
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 	if(drno->dap.oc.url.constraint != NULL
 	   && strlen(drno->dap.oc.url.constraint) > 0) {
-	    oc_log(OCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
+	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   drno->dap.oc.url.constraint);
 	}
 	/* ignore all constraints */
@@ -187,6 +187,9 @@ ocdebug = 1;
     /* Turn on logging */
     value = oc_clientparam_get(drno->dap.oc.conn,"log");
     if(value != NULL) {
+	ncloginit();
+        ncsetlogging(1);
+        nclogopen(value);
 	oc_loginit();
         oc_setlogging(1);
         oc_logopen(value);
@@ -277,6 +280,7 @@ NCD4_close(int ncid)
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
+    nclogclose();
     oc_logclose();
 
     /* Destroy/close the NCDAP4 state */

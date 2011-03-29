@@ -269,3 +269,10 @@ v::
 
 do::
 	pushd ..; make; popd ; $(MAKE) -f Make0 ncd
+##################################################
+FF=cache constraints3 dapattr3 dapdebug daputil ncdap3 ncdap3a
+fix::
+	for f in ${FF} ; do \
+	rm -f ./$${f}.c ;\
+	sed -e 's/oc_log/nclog/g' -e 's/OCLOG/NCLOG/g' <ckp1/$${f}.c >./$${f}.c ; \
+	done

@@ -18,7 +18,7 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
 var.c dispatch.c nc_url.c nclist.c ncbytes.c ncbytes.h \
 nchashmap.c nchashmap.h \
-nc_logging.c
+nclog.c nclog.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4

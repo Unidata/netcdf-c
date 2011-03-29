@@ -7,10 +7,8 @@
 #include <ast_internal.h>
 #include <ast_debug.h>
 
-#ifdef DEBUG
 int
 ast_catch(int code)
 {
     return code;
 }
-#endif

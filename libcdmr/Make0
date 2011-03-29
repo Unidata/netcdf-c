@@ -45,7 +45,7 @@ HDRS=${H:%.h=../ncdump/%.h}
 OBJ=${S:%.c=%.o}
 
 ncd:: 
-	cd ../liblib ; make
+	cd .. ; make
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}
 	${CC} -o ncd ${GFLAGS} ${OBJ} ${NCLIB} ${CURLLIB} ${HDFLIBS} ${OTHERLIBS}
 

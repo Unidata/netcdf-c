@@ -133,7 +133,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     cache->wholevariable = 1; /* All prefetches are whole variable */
 
 if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
-oc_log(OCLOGNOTE,"prefetch.");
+nclog(NCLOGNOTE,"prefetch.");
 }
 
 #ifdef DEBUG
@@ -146,7 +146,7 @@ ncbytescat(buf," ");
 ncbytescat(buf,makesimplepathstring3(var));
 }
 ncbytescat(buf,"\n");
-oc_log(OCLOGNOTE,"%s",ncbytescontents(buf));
+nclog(NCLOGNOTE,"%s",ncbytescontents(buf));
 ncbytesfree(buf);
 #endif
 

@@ -102,7 +102,7 @@ cvttype(nc_type etype, char** srcp, char** dstp)
     }
     return NC_NOERR;
 fail:
-    oc_log(OCLOGERR,"cvttype bad value: %s",oc_typetostring(etype));
+    nclog(NCLOGERR,"cvttype bad value: %s",oc_typetostring(etype));
     return NC_EINVAL;
 }
 #endif
@@ -182,7 +182,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCobject dasroot)
 		if(ocname2 == NULL || ocname == NULL) goto loop;
 		if(strcmp(ocname2,"DODS")==0) goto loop;
 	        if(strcmp(ocname,ocname2)==0)
-		        oc_log(OCLOGWARN,"nc_mergedas: potentially ambiguous DAS name: %s",ocname2);
+		        nclog(NCLOGWARN,"nc_mergedas: potentially ambiguous DAS name: %s",ocname2);
 loop:
 		efree(ocname2);
 	    }

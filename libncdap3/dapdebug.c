@@ -4,10 +4,12 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdebug.c,v 1.9 2009/09/23 22:26:00 dmh Exp $
  *********************************************************************/
 #include "config.h"
-#include "oc.h"
-#include "dapdebug.h"
 #include <stdarg.h>
 #include <stdio.h>
+
+#include "nclog.h"
+#include "oc.h"
+#include "dapdebug.h"
 
 int ncdap3debug = 0;
 
@@ -24,7 +26,7 @@ dapmalloc(size_t size)
 {
     void* memory = calloc(size,1); /* use calloc to zero memory*/
     if(memory == NULL) {
-	oc_log(OCLOGERR,"malloc:out of memory");
+	nclog(NCLOGERR,"malloc:out of memory");
     }
     return memory;
 }
