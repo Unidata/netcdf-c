@@ -17,7 +17,7 @@ extern void nclogclose(void);
 
 /* The tag value is an arbitrary integer */
 extern void nclog(int tag,const char* fmt, ...);
-extern void nclogtext(int tag, const char* text);
+extern void nclogtext(int tag, const char* text, size_t count);
 
 extern void nclogsettags(char** tagset, char* dfalt);
 

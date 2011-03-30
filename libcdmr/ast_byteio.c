@@ -112,7 +112,7 @@ ast_byteio_mark(ast_runtime* rt, size_t count)
     stream->stack.maxpos = stream->pos+count;
     /* stream maxpos must be <= alloc */
     if(stream->stack.maxpos > stream->alloc)
-	abort();
+	assert(0);
 /*        stream->stack.maxpos = stream->alloc; */
     return AST_NOERR;
 }
@@ -129,7 +129,7 @@ ast_byteio_unmark(ast_runtime* rt)
     node = stream->stack.stack;
     stream->stack.maxpos = node->maxpos;
     if(stream->stack.maxpos > stream->alloc)
-	abort();
+	assert(0);
     stream->stack.stack = node->stack;
     ast_free(rt,node);
     return AST_NOERR;

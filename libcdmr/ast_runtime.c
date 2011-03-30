@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "config.h"
 #include <ast_runtime.h>
@@ -475,7 +476,7 @@ ast_ctypesize(ast_runtime* rt, ast_sort sort)
 
     case ast_message:return sizeof(void*);
 
-    default: abort();
+    default: assert(0);
     }
     return 0;
 }

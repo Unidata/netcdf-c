@@ -25,5 +25,5 @@ typedef struct Notes {\
     nc_type ncid; \
 } Notes;\
 
-/^struct[ ][ ]*[a-zA-Z0-9_$][a-zA-Z0-9_$]*[ ]*[{]/a\
+/^[}][;]/i\
     Notes notes;

@@ -103,6 +103,7 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     struct NCCR_CALLBACK_DATA callback_data;
+    int index;
 
     callback_data.alloc = 0;
 
@@ -138,12 +139,31 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     if(buf) {
 	buf->nbytes = callback_data.pos;
 	buf->bytes = callback_data.data;
+	callback_data.data = NULL;
     }
 
     /* Get the last modified time */
     if(filetime != NULL)
         cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
     if(cstat != CURLE_OK) goto fail;
+
+    /* Check for potential html return */
+    index = strncmp(buf->bytes,"<html>",6);
+    if(index == 0) {
+	int index,found;
+	int taglen = 7; /*sizeof("</html>")-1*/
+	/* Search for </html> */
+	for(found=0,index=0;index<(buf->nbytes-taglen);index++) {
+	    if(strncmp(buf->bytes,"</html>",taglen) == 0) {
+		found = 1;
+		break;
+	    }
+	}
+	if(found) index += taglen; else index = buf->nbytes-1;
+        nclog(NCLOGWARN,"Probable Server error");
+	buf->bytes[index] = '\0';
+	nclogtext(NCLOGWARN,buf->bytes,index);
+    }
     return stat;
 
 fail:

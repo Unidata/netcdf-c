@@ -60,7 +60,7 @@ CLEANFILES += t_cdmr
 
 ##################################################
 # Generate the augmented ncstream structures
-EXTRA_DIST=ncstream.h ncstreamc augmenth.sed augmentc.sed
+EXTRA_DIST=ncStream.proto ncstream.h ncstreamc augmenth.sed augmentc.sed
 
 ncstreamx.h: ncstream.h augmenth.sed
 	rm -f ncstreamx.h
@@ -70,6 +70,12 @@ ncstreamx.c: ncstream.c augmentc.sed
 	rm -f ncstreamx.c
 	sed -f augmentc.sed <ncstream.c >ncstreamx.c
 
+ncstream.c ncstream.h: ncStream.proto
+	java -jar ast.jar -I. ncStream.proto
+
+ncStream.proto ast.jar:
+	cp f:/IdeaProjects/ast/src/compiler/ncStream.proto .
+	cp f:/IdeaProjects/ast/src/compiler/ast.jar .
 
 endif # BUILD_CDMREMOTE
 

@@ -3,7 +3,7 @@
 
 #include <ast_runtime.h>
 
-#include "ncstream.h"
+#include "ncStream.h"
 
 ast_err
 Attribute_write(ast_runtime* rt, Attribute* attribute_v)

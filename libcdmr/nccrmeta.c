@@ -276,7 +276,8 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 				att->sdata.values);
 		} break;
 	    case OPAQUE:
-	    default: abort();
+	    default:
+		assert(0);
 	    }
 	}
         if(ncstat != NC_NOERR) goto done;

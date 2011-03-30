@@ -122,25 +122,28 @@ nclog(int tag, const char* fmt, ...)
 }
 
 void
-nclogtext(int tag, const char* text)
+nclogtext(int tag, const char* text, size_t count)
 {
     char line[1024];
     size_t delta = 0;
     const char* eol = text;
+    size_t i,pos;
 
     if(!nclogging || nclogstream == NULL) return;
 
-    while(*text) {
-	eol = strchr(text,'\n');
-	if(eol == NULL)
-	    delta = strlen(text);
-	else
-	    delta = (eol - text);
-	if(delta > 0) memcpy(line,text,delta);
-	line[delta] = '\0';
-	fprintf(nclogstream,"        %s\n",line);
-	text = eol+1;
+#ifdef IGNORE
+    for(pos=0,i=0;i<count;i++) {
+	if(text[i] == '\n') {	
+	    fprintf(nclogstream,"\t");
+	    fwrite(text+pos,1,(i-pos)+1,nclogstream);
+	    fprintf(nclogstream,"\n");
+	    pos = i+1;
+	}
     }
+#else
+    fwrite(text,1,count,nclogstream);
+#endif
+    fflush(nclogstream);
 }
 
 /* The tagset is null terminated */

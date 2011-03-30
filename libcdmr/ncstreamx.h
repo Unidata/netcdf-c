@@ -71,12 +71,12 @@ typedef struct StructureData StructureData;
 typedef struct Error Error;
 
 struct Attribute {
-    Notes notes;
     char* name;
     DataType type;
     uint32_t len;
     struct {int defined; bytes_t value;} data;
     struct {size_t count; char** values;} sdata;
+    Notes notes;
 };
 
 
@@ -86,12 +86,12 @@ extern ast_err Attribute_reclaim(ast_runtime*,Attribute*);
 extern size_t Attribute_get_size(ast_runtime*,Attribute*);
 
 struct Dimension {
-    Notes notes;
     struct {int defined; char* value;} name;
     struct {int defined; uint64_t value;} length;
     struct {int defined; bool_t value;} isUnlimited;
     struct {int defined; bool_t value;} isVlen;
     struct {int defined; bool_t value;} isPrivate;
+    Notes notes;
 };
 
 
@@ -101,7 +101,6 @@ extern ast_err Dimension_reclaim(ast_runtime*,Dimension*);
 extern size_t Dimension_get_size(ast_runtime*,Dimension*);
 
 struct Variable {
-    Notes notes;
     char* name;
     DataType dataType;
     struct {size_t count; Dimension** values;} shape;
@@ -110,6 +109,7 @@ struct Variable {
     struct {int defined; bytes_t value;} data;
     struct {int defined; char* value;} enumType;
     struct {size_t count; uint32_t* values;} dimIndex;
+    Notes notes;
 };
 
 
@@ -119,13 +119,13 @@ extern ast_err Variable_reclaim(ast_runtime*,Variable*);
 extern size_t Variable_get_size(ast_runtime*,Variable*);
 
 struct Structure {
-    Notes notes;
     char* name;
     DataType dataType;
     struct {size_t count; Dimension** values;} shape;
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Variable** values;} vars;
     struct {size_t count; Structure** values;} structs;
+    Notes notes;
 };
 
 
@@ -135,9 +135,9 @@ extern ast_err Structure_reclaim(ast_runtime*,Structure*);
 extern size_t Structure_get_size(ast_runtime*,Structure*);
 
 struct EnumTypedef {
-    Notes notes;
     char* name;
     struct {size_t count; EnumType** values;} map;
+    Notes notes;
 };
 
 
@@ -147,9 +147,9 @@ extern ast_err EnumTypedef_reclaim(ast_runtime*,EnumTypedef*);
 extern size_t EnumTypedef_get_size(ast_runtime*,EnumTypedef*);
 
 struct EnumType {
-    Notes notes;
     uint32_t code;
     char* value;
+    Notes notes;
 };
 
 
@@ -159,7 +159,6 @@ extern ast_err EnumType_reclaim(ast_runtime*,EnumType*);
 extern size_t EnumType_get_size(ast_runtime*,EnumType*);
 
 struct Group {
-    Notes notes;
     char* name;
     struct {size_t count; Dimension** values;} dims;
     struct {size_t count; Variable** values;} vars;
@@ -167,6 +166,7 @@ struct Group {
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Group** values;} groups;
     struct {size_t count; EnumTypedef** values;} enumTypes;
+    Notes notes;
 };
 
 
@@ -176,13 +176,14 @@ extern ast_err Group_reclaim(ast_runtime*,Group*);
 extern size_t Group_get_size(ast_runtime*,Group*);
 
 struct Header {
-    Notes notes;
     struct {int defined; char* value;} location;
     struct {int defined; char* value;} title;
     struct {int defined; char* value;} id;
     Group* root;
     struct {int defined; uint32_t value;} version;
+    Notes notes;
 };
+
 
 extern ast_err Header_write(ast_runtime*,Header*);
 extern ast_err Header_read(ast_runtime*,Header**);
@@ -190,7 +191,6 @@ extern ast_err Header_reclaim(ast_runtime*,Header*);
 extern size_t Header_get_size(ast_runtime*,Header*);
 
 struct Data {
-    Notes notes;
     char* varName;
     DataType dataType;
     struct {int defined; Section* value;} section;
@@ -198,6 +198,7 @@ struct Data {
     struct {int defined; uint32_t value;} version;
     struct {int defined; Compress value;} compress;
     struct {int defined; uint32_t value;} crc32;
+    Notes notes;
 };
 
 
@@ -207,10 +208,10 @@ extern ast_err Data_reclaim(ast_runtime*,Data*);
 extern size_t Data_get_size(ast_runtime*,Data*);
 
 struct Range {
-    Notes notes;
     struct {int defined; uint64_t value;} start;
     uint64_t size;
     struct {int defined; uint64_t value;} stride;
+    Notes notes;
 };
 
 
@@ -220,8 +221,8 @@ extern ast_err Range_reclaim(ast_runtime*,Range*);
 extern size_t Range_get_size(ast_runtime*,Range*);
 
 struct Section {
-    Notes notes;
     struct {size_t count; Range** values;} range;
+    Notes notes;
 };
 
 
@@ -231,12 +232,12 @@ extern ast_err Section_reclaim(ast_runtime*,Section*);
 extern size_t Section_get_size(ast_runtime*,Section*);
 
 struct StructureData {
-    Notes notes;
     struct {size_t count; uint32_t* values;} member;
     bytes_t data;
     struct {size_t count; uint32_t* values;} heapCount;
     struct {size_t count; char** values;} sdata;
     struct {int defined; uint64_t value;} nrows;
+    Notes notes;
 };
 
 
@@ -246,8 +247,8 @@ extern ast_err StructureData_reclaim(ast_runtime*,StructureData*);
 extern size_t StructureData_get_size(ast_runtime*,StructureData*);
 
 struct Error {
-    Notes notes;
     char* message;
+    Notes notes;
 };
 
 

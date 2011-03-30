@@ -29,12 +29,15 @@
 #include "nccrdispatch.h"
 #include "ast.h"
 #include "ncstreamx.h"
+#include "ncbytes.h"
+#include "nclog.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
 
+static NCerror skiptoheader(bytes_t* packet, size_t* offsetp);
 static void freeNCCDMR(NCCDMR* cdmr);
 
 /**************************************************/
@@ -71,6 +74,7 @@ NCCR_open(const char * path, int mode,
     ast_runtime* rt = NULL;
     ast_err aststat = AST_NOERR;
     Header* hdr = NULL;
+    size_t offset;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
@@ -124,15 +128,27 @@ NCCR_open(const char * path, int mode,
 
     /* fetch meta data */
     buf = bytes_t_null;
-    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,nccr->cdmr->url->url,
+    NCbytes* completeurl = ncbytesnew();
+    ncbytescat(completeurl,nccr->cdmr->url->url);
+    ncbytescat(completeurl,"?req=header");
+    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,ncbytescontents(completeurl),
 			   &buf,&filetime);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Parse the meta data */
-    aststat = ast_byteio_new(AST_READ,buf.bytes,buf.nbytes,&rt);
+    ncstat = skiptoheader(&buf,&offset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    aststat = ast_byteio_new(AST_READ,buf.bytes+offset,buf.nbytes-offset,&rt);
     if(aststat != AST_NOERR) goto done;    
-    aststat = Header_read(rt,&hdr);
+    { Header* h = NULL;
+    aststat = Header_read(rt,&h);
+    hdr = h;
+    }
     if(aststat != AST_NOERR) goto done;    
+    aststat = ast_reclaim(rt);
+    if(aststat != AST_NOERR) goto done;
+    if(buf.bytes != NULL) free(buf.bytes);
 
     /* build the meta data */
     ncstat = nccr_buildnc(nccr,hdr);
@@ -184,6 +200,39 @@ NCCR_close(int ncid)
 /**************************************************/
 /* Auxilliary routines                            */
 /**************************************************/
+
+static NCerror
+skiptoheader(bytes_t* packet, size_t* offsetp)
+{
+    NCerror status = NC_NOERR;
+    unsigned long long vlen;
+    size_t size,offset;
+
+    /* Check the structure of the resulting data */
+    if(packet->nbytes < (strlen(MAGIC_HEADER) + strlen(MAGIC_HEADER))) {
+	nclog(NCLOGERR,"Curl data too short: %d\n",packet->nbytes);
+	status = NC_ECURL;
+	goto done;
+    }
+    if(memcmp(packet->bytes,MAGIC_HEADER,strlen(MAGIC_HEADER)) != 0) {
+	nclog(NCLOGERR,"MAGIC_HEADER missing\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    offset = strlen(MAGIC_HEADER);
+    /* Extract the proposed count as a varint */
+    vlen = varint_decode(10,packet->bytes+offset,&size);
+    offset += size;
+    if(vlen != (packet->nbytes-offset)) {
+	nclog(NCLOGERR,"Curl data size mismatch\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    if(offsetp) *offsetp = offset;
+
+done:
+    return status;    
+}
 
 static void
 freeNCCDMR(NCCDMR* cdmr)
