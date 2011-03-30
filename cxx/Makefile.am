@@ -54,8 +54,10 @@ TESTS += run_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
 
 # If the utilities have been built, run these extra tests.
+if !BUILD_DLL
 if BUILD_UTILITIES
 TESTS += run_nc_tests.sh
+endif
 endif
 
 AM_CPPFLAGS += -I${top_srcdir}/liblib
