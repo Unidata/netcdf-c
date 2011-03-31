@@ -4,8 +4,8 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genbin.c,v 1.4 2010/05/27 21:34:17 dmh Exp $
  *********************************************************************/
 
-#include <ctype.h>	/* for isprint() */
 #include "includes.h"
+#include <ctype.h>	/* for isprint() */
 #include "nciter.h"
 #include "offsets.h"
 
