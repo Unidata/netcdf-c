@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/constraints3.c,v 1.40 2010/05/27 21:34:07 dmh Exp $
  *********************************************************************/
+
 #include "ncdap3.h"
 #include "dapodom.h"
 #include "dapdebug.h"

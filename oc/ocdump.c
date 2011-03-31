@@ -3,6 +3,7 @@
 
 #define CRUDE
 
+#include "config.h"
 #include <sys/stat.h>
 
 #ifdef NETINET_IN_H

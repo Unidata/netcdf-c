@@ -1,3 +1,7 @@
+/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+   See the COPYRIGHT file for more information. */
+
+#include "config.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>

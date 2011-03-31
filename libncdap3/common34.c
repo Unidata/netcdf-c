@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/common34.c,v 1.29 2010/05/25 13:53:02 ed Exp $
  *********************************************************************/
-#include "config.h"
+
 #include "ncdap3.h"
 
 #ifdef HAVE_GETRLIMIT

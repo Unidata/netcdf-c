@@ -3,12 +3,14 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/daputil.c,v 1.47 2010/05/21 23:24:15 dmh Exp $
  *********************************************************************/
+
+#include "config.h"
+
 #include <sys/time.h>
 
 #include "oc.h"
 extern int oc_dumpnode(OClink, OCobject);
 
-#include "config.h"
 #include "ncdap3.h"
 #include "dapalign.h"
 #include "dapodom.h"

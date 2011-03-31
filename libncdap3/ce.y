@@ -8,7 +8,10 @@
 %pure-parser
 %lex-param {CEparsestate* parsestate}
 %parse-param {CEparsestate* parsestate}
-%{#include "ceparselex.h"%}
+%{
+#include "config.h"
+#include "ceparselex.h"
+%}
 
 /*DO NOT DELETE THIS LINE*/
 

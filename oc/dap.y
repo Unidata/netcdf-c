@@ -8,7 +8,10 @@
 %pure-parser
 %lex-param {DAPparsestate* parsestate}
 %parse-param {DAPparsestate* parsestate}
-%{#include "dapparselex.h"%}
+%{
+#include "config.h"
+#include "dapparselex.h"
+%}
 
 /*DO NOT DELETE THIS LINE*/
 

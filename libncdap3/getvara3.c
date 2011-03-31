@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/getvara3.c,v 1.44 2010/05/27 21:34:08 dmh Exp $
  *********************************************************************/
+
 #include "ncdap3.h"
 #include "dapodom.h"
 #include "dapdump.h"

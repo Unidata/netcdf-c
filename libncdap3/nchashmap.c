@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/nchashmap.c,v 1.4 2009/09/23 22:26:08 dmh Exp $
  *********************************************************************/
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
