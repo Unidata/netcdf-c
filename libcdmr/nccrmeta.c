@@ -23,7 +23,6 @@
 #include "ncstreamx.h"
 
 /*Forward*/
-static int crpredefinedtypes(NCCR*,nc_type);
 static char* crtypename(char*);
 static int crbbasetype(nc_type, char*, nc_type, int ndims, Dimension**, nc_type*);
 static int crdeffieldvar(nc_type, void* tag, Variable*);
@@ -37,6 +36,7 @@ static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
 static int buildfield(int ncid,void* cmpd,char*,nc_type,int ndims,Dimension**);
 static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index,nc_type* vidp);
 static int locateleftvlen(int ndims, Dimension**, int index);
+static int crdefattribute(Attribute* att, nc_type parentid, nc_type scope);
 
 
 enum Dimcase {DC_UNKNOWN, DC_FIXED, DC_UNLIMITED, DC_VLEN, DC_PRIVATE};
@@ -51,9 +51,6 @@ nccr_buildnc(NCCR* nccr, Header* hdr)
 {
     int ncstat = NC_NOERR;
     nc_type ncid = nccr->info.ext_ncid; /*root id*/
-
-    ncstat = crpredefinedtypes(nccr,ncid);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     ncstat = crfillgroup(nccr, hdr->root, ncid);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -71,21 +68,6 @@ nccr_buildnc(NCCR* nccr, Header* hdr)
 
 done:
     return THROW(ncstat);
-}
-
-/* Define needed predefine types in root */
-static int
-crpredefinedtypes(NCCR* nccr, nc_type ncid)
-{
-    int ncstat = NC_NOERR;
-    nc_type tid;
-
-    /* NC_UBYTE(*) bytes_t */
-    ncstat = nc_def_vlen(ncid,"bytes_t",NC_UBYTE,&tid);
-    if(ncstat != NC_NOERR) goto done;
-
-done:
-    return ncstat;
 }
 
 static char*
@@ -120,7 +102,7 @@ crbbasetype(nc_type grpid, char* name, nc_type basetype,
     /* Locate the first * dimension */
     index = locateleftvlen(ndims,dims,0);
 
-    if(index > 0) {
+    if(index >= 0) {
 	/* Ok, we have to build up the vlen/struct chain to handle * dimensions */
 	ncstat = buildvlenchain(grpid,name,basetype,ndims,dims,index,newbasetype);
 	if(ncstat != NC_NOERR) goto done;	
@@ -150,7 +132,7 @@ crdeffieldvar(nc_type grpid, void* tag, Variable* v)
 
 	/* Locate the first * dimension */
         index = locateleftvlen(ndims,dims,0);
-	if(index > 0) {
+	if(index >= 0) {
 	    /* Get the true basetype */
 	    ncstat = crbbasetype(grpid, v->name, basetype,ndims,dims,&basetype);
             if(ncstat != NC_NOERR) goto done;
@@ -186,7 +168,7 @@ crdeffieldstruct(nc_type grpid, void* tag, Structure* s)
 
 	/* Locate the first * dimension */
 	index = locateleftvlen(ndims,dims,0);
-	if(index > 0) {
+	if(index >= 0) {
 	    /* Get the true basetype */
 	    ncstat = crbbasetype(grpid, s->name, basetype, ndims, dims, &basetype);
 	    if(ncstat != NC_NOERR) goto done;	
@@ -208,15 +190,13 @@ static int
 crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 {
     int ncstat = NC_NOERR;
-    size_t i,j,k;
+    int i,j,k;
     
     /* Create the dimensions */
     for(i=0;i<grp->dims.count;i++) {
 	Dimension* dim = grp->dims.values[i];
 	if(dim->name.defined) {
-	    size_t length = (dim->length.defined?dim->length.value:1);
-	    if(dim->isUnlimited.defined && dim->isUnlimited.value != 0)
-		length = NC_UNLIMITED;
+	    size_t length = dimsize(dim);
 	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->notes.ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
@@ -262,24 +242,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
     /* Create the group global attributes */
     for(i=0;i<grp->atts.count;i++) {
 	Attribute* att = grp->atts.values[i];
-	if(att->data.defined) {
-	    ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
-				cvtstreamtonc(att->type),
-				att->len,
-				att->data.value.bytes);
-	} else {
-	    switch (att->type) {
-	    case STRING: {
-	        ncstat = nc_put_att(grpid,NC_GLOBAL,att->name,
-				cvtstreamtonc(att->type),
-				att->sdata.count,
-				att->sdata.values);
-		} break;
-	    case OPAQUE:
-	    default:
-		assert(0);
-	    }
-	}
+	ncstat = crdefattribute(att,grpid,NC_GLOBAL);
         if(ncstat != NC_NOERR) goto done;
     }
 
@@ -301,13 +264,20 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    int index;
 	    /* Get the proper basetype */
 	    index = locateleftvlen(ndims,dims,0);
-	    if(index > 0) {
+	    if(index >= 0) {
 	        ncstat = crbbasetype(grpid, v->name, basetype, ndims,
 				dims,&basetype);
 	        if(ncstat != NC_NOERR) goto done;	
 	    }
-	    for(j=0;j<index;j++) dimids[j] = dims[j]->notes.ncid;
-            ncstat = nc_def_var(grpid,v->name,basetype,index,dimids,&v->notes.ncid);
+	    for(j=0;j<index;j++)
+		dimids[j] = dims[j]->notes.ncid;
+            ncstat = nc_def_var(grpid,v->name,basetype,index+1,dimids,&v->notes.ncid);
+	    /* Define any var attributes */
+	    for(i=0;i<v->atts.count;i++) {
+		Attribute* att = v->atts.values[i];
+		ncstat = crdefattribute(att,grpid,v->notes.ncid);
+	        if(ncstat != NC_NOERR) goto done;
+	    }
 	}
     }
 
@@ -329,17 +299,63 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    int index;
 	    /* Get the proper basetype */
 	    index = locateleftvlen(ndims,dims,0);
-	    if(index > 0) {
+	    if(index >= 0) {
 	        ncstat = crbbasetype(grpid, s->name, basetype, s->shape.count,
 				s->shape.values,&basetype);
 	        if(ncstat != NC_NOERR) goto done;	
 	    }
 	    for(j=0;j<index;j++) dimids[j] = dims[j]->notes.ncid;
-            ncstat = nc_def_var(grpid,s->name,basetype,index,dimids,&s->notes.ncid);
+            ncstat = nc_def_var(grpid,s->name,basetype,index+1,dimids,&s->notes.ncid);
+	}
+	/* Define any var attributes */
+	for(i=0;i<s->atts.count;i++) {
+	    Attribute* att = s->atts.values[i];
+	    ncstat = crdefattribute(att,grpid,s->notes.ncid);
+	    if(ncstat != NC_NOERR) goto done;
 	}
     }
 
 done:
+    return ncstat;
+}
+
+static int
+crdefattribute(Attribute* att, nc_type parentid, nc_type scope)
+{
+    int ncstat = NC_NOERR;
+    if(att->data.defined) {
+        ncstat = nc_put_att(parentid,scope,att->name,
+                            cvtstreamtonc(att->type),
+                            att->len,
+                            att->data.value.bytes);
+    } else if(att->sdata.count > 0) {
+        switch (att->type) {
+        case OPAQUE: case CHAR: {
+            /* Concat all the elements; note this really does not work right*/
+            int i;
+            size_t slen, pos;
+            unsigned char* attval;
+            for(slen=0,i=0;i<att->sdata.count;i++)
+                slen += strlen(att->sdata.values[i]);
+            attval = (char*)malloc(slen+1);
+            attval[0] = '\0';
+            for(i=0;i<att->sdata.count;i++)
+                strcat(attval,att->sdata.values[i]);
+            ncstat = nc_put_att(parentid,scope,att->name,
+                            (att->type == OPAQUE?NC_UBYTE:NC_CHAR),
+                            slen,
+                            attval);
+            } break;
+        case STRING: {
+            ncstat = nc_put_att(parentid,scope,att->name,
+                            NC_STRING,
+                            att->sdata.count,
+                            att->sdata.values);
+            } break;
+        default:
+            assert(0);
+        }
+    }
     return ncstat;
 }
 
@@ -492,9 +508,9 @@ buildfield(int ncid,
 	pos = locateleftvlen(ndims,dims,0);
 	status = buildvlenchain(ncid,name,basetype,ndims,dims,pos+1,&vlenid);
         if(status != NC_NOERR) goto done;
-	if(pos == 0) {
+	if(pos < 0) {
             status = ncaux_add_field(cmpd,name,vlenid,0,NULL);
-	} else { /* pos > 0 */
+	} else { /* pos >= 0 */
 	    int i;
 	    int dimsizes[NC_MAX_VAR_DIMS];
 	    for(i=0;i<pos;i++)
