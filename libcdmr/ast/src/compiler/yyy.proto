@@ -1,0 +1,10 @@
+
+import "xxx.proto" [option include="xxx.proto"];
+
+message Annotation {[declare=true]};
+
+extend m1
+{
+    optional Annotation f2 = 2;
+};
+

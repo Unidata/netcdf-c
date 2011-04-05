@@ -1,0 +1,14 @@
+package Msgtests;
+
+// Goal is to test msg typed fields (and nesting)
+
+message Msgtest {
+    message Submsg {
+        required int32 f_int32 = 1;
+    }
+    required Submsg rmsg = 1;
+    optional Submsg omsg = 2;
+    repeated Submsg pmsg = 3;
+}
+
+

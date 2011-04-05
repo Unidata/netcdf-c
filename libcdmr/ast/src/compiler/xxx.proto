@@ -1,0 +1,5 @@
+
+message m1 {
+    required int32 f1 = 1;
+    extensions 2 to 10;
+};
