@@ -1,19 +1,16 @@
 W=-Wd
-D=-Dinclude=config.h
-
-PREFIX=/tmp
+D=-Dconfig_h=true
 
 CURLCONFIG=curl-config
 
 TESTS=Primtests.proto Bytetests.proto Msgtests.proto Enumtests.proto
 
 RTSRC=ast_runtime.c ast_internal.c ast_byteio.c ast_debug.c ast_util.c
+
 TESTC=${TESTS:%.proto=%.c}
 TESTH=${TESTS:%.proto=%.h}
 TESTSRC=testast.c ${TESTC}
 CRSRC=testcr.c ast_curl.c ncStream.c nccr.c
-
-TOPDIR=d:/IdeaProjects/ast/src/compiler
 
 PARSER=ProtobufParser.java
 
@@ -54,7 +51,6 @@ gen:
 
 jar ${JAR}: ${CLASSES} ${MF}
 	jar -cmf ${MF} ${JAR} ${PACKAGES:%=-C ${BUILDDIR} %}
-	cp ${JAR} ${PREFIX}
 	
 ${MF}:
 	echo 'Manifest-Version: 1.0' > ${MF}
@@ -82,9 +78,6 @@ clean::
 	rm -f testast testast.exe testcr testcr.exe
 	rm -f *.pb.cc *.pb.h
 
-# The sed operations are to fix some bugs in the generated java code
-#	bison -v -t -L Java $(GRAMMAR) -o ./tmp
-#	sed -e "s/(null,\ null)/(new Position())/" -e "s/public class Location/static public class Location/" <./tmp >$(PARSER)	
 
 fix::
 	for f in $(SRC) ; do \
@@ -102,10 +95,6 @@ INCL=`${CURLCONFIG} --cflags`
 c:
 	gcc -static ${CFLAGS} -o testast -I. ${RTSRC} ${TESTSRC}
 
-t::
-	java -jar ${JAR} ${W} -I. xxx.proto
-	java -jar ${JAR} ${W} -I. yyy.proto
-
 cr:
 	java -jar ${JAR} ${W} -I. ncStreamx.proto
 
@@ -116,7 +105,14 @@ ASTSRC=ast_byteio.c ast_byteio.h ast_curl.c ast_curl.h \
 ast_debug.c ast_debug.h ast_internal.c ast_internal.h \
 ast_runtime.c ast_runtime.h ast_util.c ast_util.h
 
+diffast::
+	for a in ${ASTSRC} ; do \
+	    diff --brief -wBb $$a ../../../$$a ; \
+	done
+
 sync synch::
-	'cp' -f ${ASTSRC} ${PREFIX}
+	for a in ${ASTSRC} ; do \
+	    'cp' -f ../../../$$a . ; \
+	done
 
 

@@ -62,19 +62,15 @@ CLEANFILES += t_cdmr
 # Generate the augmented ncstream structures
 EXTRA_DIST=ncStream.proto ncStream.h ncStreamc augmenth.sed augmentc.sed
 
-ASTJAR=/tmp/ast.jar
+ASTDIR=./ast/src/compiler
+
+ASTJAR=${ASTDIR}/ast.jar
 
 ncStreamx.c ncStreamx.h: ncStreamx.proto ncStream.proto ${ASTJAR}
 	java -jar ${ASTJAR} -I. ncStreamx.proto
 
+jar ${ASTJAR}::
+	cd ${ASTDIR}; make -f Make0 jar
 
-#ncStreamx.h: ncStream.h augmenth.sed
-#	rm -f ncStreamx.h
-#	sed -f augmenth.sed <ncStream.h >ncStreamx.h
-#
-#ncStreamx.c: ncStream.c augmentc.sed
-#	rm -f ncStreamx.c
-#	sed -f augmentc.sed <ncStream.c >ncStreamx.c
-#
 
 endif # BUILD_CDMREMOTE
