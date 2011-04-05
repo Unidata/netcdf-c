@@ -3,27 +3,6 @@
 
 #include <ast_debug.h>
 
-/* These may already be defined */
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#else
-typedef unsigned char        uint8_t;
-typedef unsigned short       uint16_t;
-typedef unsigned int         uint32_t;
-typedef unsigned long long   uint64_t;
-typedef char        int8_t;
-typedef short       int16_t;
-typedef int         int32_t;
-typedef long long   int64_t;
-#endif
-
-#ifndef HAVE_STDBOOL_H
-#define true 1
-#define false 0
-#define TRUE 1
-#define FALSE 1
-#endif
-
 typedef struct ast_optional_field {
     int exists;
     void* value;

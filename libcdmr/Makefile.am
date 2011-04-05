@@ -15,14 +15,14 @@ AM_LDFLAGS =
 SRC=nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c nccrproto.c \
 crdebug.c crutil.c \
 nccrdump.c \
-ncstreamx.c curlwrap.c ncaux.c \
+ncStreamx.c curlwrap.c ncaux.c \
 ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c
 
 HDRS=nccrconstraints.h nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
 nccrdump.h \
-ncstreamx.h curlwrap.h ncaux.h \
+ncStreamx.h curlwrap.h ncaux.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
 ast_runtime.h ast_util.h ast_debug.h
 
@@ -60,23 +60,21 @@ CLEANFILES += t_cdmr
 
 ##################################################
 # Generate the augmented ncstream structures
-EXTRA_DIST=ncStream.proto ncstream.h ncstreamc augmenth.sed augmentc.sed
+EXTRA_DIST=ncStream.proto ncStream.h ncStreamc augmenth.sed augmentc.sed
 
-ncstreamx.h: ncstream.h augmenth.sed
-	rm -f ncstreamx.h
-	sed -f augmenth.sed <ncstream.h >ncstreamx.h
+ASTJAR=/tmp/ast.jar
 
-ncstreamx.c: ncstream.c augmentc.sed
-	rm -f ncstreamx.c
-	sed -f augmentc.sed <ncstream.c >ncstreamx.c
+ncStreamx.c ncStreamx.h: ncStreamx.proto ncStream.proto ${ASTJAR}
+	java -jar ${ASTJAR} -I. ncStreamx.proto
 
-ncstream.c ncstream.h: ncStream.proto
-	java -jar ast.jar -I. ncStream.proto
 
-ncStream.proto ast.jar:
-	cp f:/IdeaProjects/ast/src/compiler/ncStream.proto .
-	cp f:/IdeaProjects/ast/src/compiler/ast.jar .
+#ncStreamx.h: ncStream.h augmenth.sed
+#	rm -f ncStreamx.h
+#	sed -f augmenth.sed <ncStream.h >ncStreamx.h
+#
+#ncStreamx.c: ncStream.c augmentc.sed
+#	rm -f ncStreamx.c
+#	sed -f augmentc.sed <ncStream.c >ncStreamx.c
+#
 
 endif # BUILD_CDMREMOTE
-
-

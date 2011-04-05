@@ -257,13 +257,13 @@ Dimension_read(ast_runtime* rt, Dimension** dimension_vp)
         dimension_v->length.value = 0;
     }
     if(!dimension_v->isUnlimited.defined) {
-        dimension_v->isUnlimited.value = 0;
+        dimension_v->isUnlimited.value = 1;
     }
     if(!dimension_v->isVlen.defined) {
-        dimension_v->isVlen.value = 0;
+        dimension_v->isVlen.value = 1;
     }
     if(!dimension_v->isPrivate.defined) {
-        dimension_v->isPrivate.value = 0;
+        dimension_v->isPrivate.value = 1;
     }
     if(status != AST_NOERR) {goto done;}
     if(dimension_vp) *dimension_vp = dimension_v;
@@ -483,7 +483,7 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
         }; /*switch*/
     };/*while*/
     if(!variable_v->unsigned_.defined) {
-        variable_v->unsigned_.value = 0;
+        variable_v->unsigned_.value = 1;
     }
     if(!variable_v->data.defined) {
         variable_v->data.value.nbytes = 0;
@@ -1889,7 +1889,7 @@ Range_read(ast_runtime* rt, Range** range_vp)
         range_v->start.value = 0;
     }
     if(!range_v->stride.defined) {
-        range_v->stride.value = 1;
+        range_v->stride.value = 0;
     }
     if(status != AST_NOERR) {goto done;}
     if(range_vp) *range_vp = range_v;
@@ -2135,7 +2135,7 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
         }; /*switch*/
     };/*while*/
     if(!structuredata_v->nrows.defined) {
-        structuredata_v->nrows.value = 1;
+        structuredata_v->nrows.value = 0;
     }
     if(status != AST_NOERR) {goto done;}
     if(structuredata_vp) *structuredata_vp = structuredata_v;

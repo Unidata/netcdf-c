@@ -9,7 +9,7 @@
 #define NCCRPROTO_H
 
 extern int nccr_cvtasterr(ast_err err);
-extern int nccr_decodeheaderdata(bytes_t* packet, Header** hdrp);
-extern int nccr_walk_Header(Header* node, ncrlist* nodes, ncrhashmap* map);
+extern int nccr_decodeheader(bytes_t* packet, size_t offset, Header** hdrp);
+extern int nccr_walk_Header(Header* node, nclist* nodes, nchashmap* map);
 
 #endif /*NCCRPROTO_H*/

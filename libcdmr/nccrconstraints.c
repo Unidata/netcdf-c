@@ -16,7 +16,7 @@ against the relevant nodes in which the ultimate target
 is contained.
 */
 int
-buildvaraprojection4(Getvara* getvar,
+crbuildvaraprojection(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     NCprojection** projectionp)
 {
@@ -65,7 +65,7 @@ buildvaraprojection4(Getvara* getvar,
 
 /* Compute the set of prefetched data */
 int
-prefetchdata4(NCCR* drno)
+crprefetchdata(NCCR* drno)
 {
     int i,j;
     int ncstat = NC_NOERR;
@@ -106,12 +106,12 @@ prefetchdata4(NCCR* drno)
         /* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
         newconstraint->projections = clonencprojections(constraint->projections);
-        restrictprojection34(vars,newconstraint->projections);
+        crrestrictprojection3(vars,newconstraint->projections);
         /* similar for selections */
         newconstraint->selections = clonencselections(constraint->selections);
     }
 
-    ncstat = buildcachenode34(&drno->dap,newconstraint,vars,&cache,0);
+    ncstat = crbuildcachenode3(&drno->dap,newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
 if(FLAGSET(drno->dap.controls,NCF_SHOWFETCH)) {
@@ -138,7 +138,7 @@ done:
 #ifdef IGNORE
 /* Based on the tactic, determine the set of variables to add */
 static void
-computevarset4(NCCR* drno, Getvara* getvar, NClist* varlist)
+crcomputevarset(NCCR* drno, Getvara* getvar, NClist* varlist)
 {
     int i;
     nclistclear(varlist);

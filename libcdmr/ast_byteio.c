@@ -31,22 +31,26 @@ struct _ast_bytestream {
     } stack;
 };
 
-static size_t ast_byteio_write(ast_runtime* rt, size_t len, char* data);
-static size_t ast_byteio_read(ast_runtime* rt, size_t len, char* data);
+static size_t ast_byteio_write(ast_runtime* rt, size_t len, uint8_t* data);
+static size_t ast_byteio_read(ast_runtime* rt, size_t len, uint8_t* data);
 static int ast_byteio_mark(ast_runtime* rt, size_t count);
 static int ast_byteio_unmark(ast_runtime* rt);
 static int ast_byteio_reclaim(ast_runtime* rt);
+static void* ast_byteio_alloc(ast_runtime* rt, size_t len);
+static void ast_byteio_free(ast_runtime* rt, void* mem);
 
 static ast_runtime_ops byteops = {
 ast_byteio_write,
 ast_byteio_read,
 ast_byteio_mark,
 ast_byteio_unmark,
-ast_byteio_reclaim
+ast_byteio_reclaim,
+ast_byteio_alloc,
+ast_byteio_free
 };
 
 static size_t
-ast_byteio_write(ast_runtime* rt, size_t len, char* data)
+ast_byteio_write(ast_runtime* rt, size_t len, uint8_t* data)
 {
     if(rt == NULL || rt->uid != BYTEIO_UID || rt->mode != AST_WRITE)
 	return AST_EFAIL;
@@ -74,7 +78,7 @@ ast_byteio_write(ast_runtime* rt, size_t len, char* data)
 }
 
 static size_t
-ast_byteio_read(ast_runtime* rt, size_t len, char* data)
+ast_byteio_read(ast_runtime* rt, size_t len, uint8_t* data)
 {
     struct _ast_bytestream*  stream = NULL;
     if(rt == NULL || rt->uid != BYTEIO_UID || rt->mode != AST_READ)
@@ -238,4 +242,20 @@ fail:
     if(stream != NULL) free(stream);
     if(stream->buffer != buf && mode == AST_WRITE) free(stream->buffer);
     return status;
+}
+
+
+/* Wrap malloc and free */
+static void*
+ast_byteio_alloc(ast_runtime* rt, size_t len)
+{
+    if(len == 0) return NULL;
+    return malloc(len);
+}
+
+static void
+ast_byteio_free(ast_runtime* rt, void* mem)
+{
+    if(mem != NULL)
+	free(mem);
 }

@@ -28,7 +28,7 @@
 #include "crdebug.h"
 #include "nccrdispatch.h"
 #include "ast.h"
-#include "ncstreamx.h"
+#include "ncStreamx.h"
 #include "ncbytes.h"
 #include "nclog.h"
 
@@ -63,6 +63,7 @@ NCCR_open(const char * path, int mode,
     NCerror ncstat = NC_NOERR;
     NC_URL* tmpurl;
     NCCR* nccr = NULL; /* reuse the ncdap3 structure*/
+    NCCDMR* cdmr = NULL;
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
     int ncid = -1;
@@ -112,8 +113,9 @@ NCCR_open(const char * path, int mode,
 
     /* Setup tentative NCCR state*/
     nccr->info.dispatch = dispatch;
-    nccr->cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
-    if(nccr->cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}
+    cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
+    if(cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}
+    nccr->cdmr = cdmr;
     nccr->cdmr->controller = (NC*)nccr;
     nccr->cdmr->urltext = nulldup(path);
     nc_urlparse(nccr->cdmr->urltext,&nccr->cdmr->url);
@@ -139,16 +141,15 @@ NCCR_open(const char * path, int mode,
     ncstat = skiptoheader(&buf,&offset);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    aststat = ast_byteio_new(AST_READ,buf.bytes+offset,buf.nbytes-offset,&rt);
-    if(aststat != AST_NOERR) goto done;    
-    { Header* h = NULL;
-    aststat = Header_read(rt,&h);
-    hdr = h;
-    }
-    if(aststat != AST_NOERR) goto done;    
-    aststat = ast_reclaim(rt);
-    if(aststat != AST_NOERR) goto done;
+    ncstat = nccr_decodeheader(&buf,offset,&hdr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
     if(buf.bytes != NULL) free(buf.bytes);
+
+    /* Collect the nodes of the tree */
+    cdmr->nodeset = nclistnew();
+    ncstat = nccr_walk_Header(hdr,cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* build the meta data */
     ncstat = nccr_buildnc(nccr,hdr);
@@ -179,8 +180,14 @@ NCCR_close(int ncid)
     NC_HDF5_FILE_INFO_T *h5;
     NCCR* nccr = NULL;
     int ncstat = NC_NOERR;
+    NC* nc;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
+
+    /* Avoid repeated close  */
+    ncstat = NC_check_id(ncid, (NC**)&nccr); 
+    if(ncstat != NC_NOERR) return THROW(ncstat);
+
     /* Find our metadata for this file. */
     ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
@@ -188,11 +195,10 @@ NCCR_close(int ncid)
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
-    /* Destroy/close the NCCR state */
     freeNCCDMR(nccr->cdmr);
 
     /* Destroy/close the NC_FILE_INFO_T state */
-    NCCR_abort(ncid);
+    NC4_abort(ncid);
 
     return THROW(ncstat);
 }
@@ -254,3 +260,11 @@ freeNCCDMR(NCCDMR* cdmr)
     free(cdmr);
 }
 
+
+/* Collect a pre-order non-duplicate list of all nodes in the ncStream tree */
+static NCerror
+collectnodes(NCCDMR* cdmr, Header* hdr)
+{
+    
+
+}

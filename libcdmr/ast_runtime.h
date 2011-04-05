@@ -1,17 +1,32 @@
 #ifndef AST_RUNTIME_H
 #define AST_RUNTIME_H
 
-#if SIZEOF_SIZE_T == 64
-typedef uint64_t ast_size_t;
+/* These may already be defined */
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
 #else
-typedef uint32_t ast_size_t;
+typedef unsigned char        uint8_t;
+typedef unsigned short       uint16_t;
+typedef unsigned int         uint32_t;
+typedef unsigned long long   uint64_t;
+typedef char        int8_t;
+typedef short       int16_t;
+typedef int         int32_t;
+typedef long long   int64_t;
+#endif
+
+#ifndef HAVE_STDBOOL_H
+#define true 1
+#define false 0
+#define TRUE 1
+#define FALSE 1
 #endif
 
 typedef unsigned int bool_t;
 
 typedef struct bytes_t{
     size_t nbytes;
-    uint8_t* bytes;
+    unsigned char* bytes;
 } bytes_t;
 
 /* Define a null value for bytes_t */
@@ -73,7 +88,7 @@ typedef enum ast_iomode {AST_READ, AST_WRITE, AST_FREE} ast_iomode;
 typedef struct ast_runtime_ops ast_runtime_ops;
 
 typedef struct ast_runtime {
-    uint64_t uid; /* unique number identifying who created runtime object: e.g. bytesio */
+    unsigned long long uid; /* unique number identifying who created runtime object: e.g. bytesio */
     ast_iomode mode; /* Write/Read/Free (WRF) */
     ast_runtime_ops* ops;
     void* stream; /* data representing stream */
@@ -81,20 +96,19 @@ typedef struct ast_runtime {
 } ast_runtime;
 
 struct ast_runtime_ops {
-    size_t (*write)(ast_runtime*,size_t,char*); /* writes stream n bytes at a time */
-    size_t (*read)(ast_runtime*,size_t,char*); /* reads stream n bytes at a time */
+    size_t (*write)(ast_runtime*,size_t,uint8_t*); /* writes stream n bytes at a time */
+    size_t (*read)(ast_runtime*,size_t,uint8_t*); /* reads stream n bytes at a time */
     ast_err (*mark)(ast_runtime*,size_t); /* limit reads to n bytes */
     ast_err (*unmark)(ast_runtime*); /* restore previous markn limit */
-    ast_err (*reclaim)(ast_runtime*); /* reclaim (free) this runtime instance */
+    ast_err (*reclaim)(ast_runtime*); /* reclaim this runtime instance */
+    void*   (*alloc)(ast_runtime*,size_t); /* allocate memory chunk */
+    void    (*free)(ast_runtime*,void*); /* free allocated memory */
 };
 
 /* Wrappers for rt->mark and unmark */
 extern ast_err ast_mark(ast_runtime* rt, size_t avail);
 extern ast_err ast_unmark(ast_runtime* rt);
-
-/* Replacements for malloc, realloc and free */
 extern void* ast_alloc(ast_runtime*,size_t); /* allocated zero'd memory */
-extern void* ast_realloc(ast_runtime*,void*,size_t);
 extern void ast_free(ast_runtime*,void*);
 
 extern size_t ast_ctypesize(ast_runtime* rt, ast_sort sort);
@@ -113,7 +127,7 @@ extern ast_err ast_write_primitive_packed(ast_runtime*, const ast_sort, const in
 extern ast_err ast_repeat_append(ast_runtime*,ast_sort,void*,void*);
 
 /* Procedure to write out tag */
-extern ast_err ast_write_tag(ast_runtime*, const uint32_t, const uint32_t);
+extern ast_err ast_write_tag(ast_runtime*, const unsigned int, const unsigned int);
 
 /* Procedure to write out count */
 extern ast_err ast_write_count(ast_runtime*, const size_t);
@@ -147,9 +161,13 @@ extern const char* ast_strerror(ast_err err);
 extern void ast_logset(int tf);
 extern void ast_log(const char* fmt, ...);
 
+
 /**************************************************/
 /* IO */
 /**************************************************/
+
+extern ast_runtime_ops ast_runtime_getopts(ast_runtime*);
+extern ast_err ast_runtime_setopts(ast_runtime*, ast_runtime_ops*);
 
 /* Create a runtime readers and writers backed by a byte buffer */
 extern ast_err ast_runtime_bytes(void* buffer, size_t bufferlen, ast_iomode, ast_runtime** astp);

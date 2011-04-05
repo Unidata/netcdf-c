@@ -22,8 +22,11 @@ _Error		= 13\
 typedef struct Notes {\
     int uid; \
     Sort sort; \
-    nc_type ncid; \
+    int ncid; \
 } Notes;\
 
-/^[}][;]/i\
+/^struct[ ][ ]*[a-zA-Z0-9_$]*[ ]*[{]/a\
     Notes notes;
+
+#/^[}][;]/i\
+#    Notes notes;

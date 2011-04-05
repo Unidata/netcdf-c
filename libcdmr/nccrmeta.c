@@ -20,7 +20,7 @@
 #include "crdebug.h"
 #include "ast.h"
 
-#include "ncstreamx.h"
+#include "ncStreamx.h"
 
 /*Forward*/
 static char* crtypename(char*);
@@ -136,7 +136,7 @@ crdeffieldvar(nc_type grpid, void* tag, Variable* v)
 	    /* Get the true basetype */
 	    ncstat = crbbasetype(grpid, v->name, basetype,ndims,dims,&basetype);
             if(ncstat != NC_NOERR) goto done;
-	}
+	} else index = ndims;
         for(i=0;i<index;i++) {
 	    dimsizes[i] = dimsize(dims[i]);
         }
@@ -152,7 +152,7 @@ static int
 crdeffieldstruct(nc_type grpid, void* tag, Structure* s)
 {
     int ncstat = NC_NOERR;
-    nc_type basetype = s->notes.ncid;
+    nc_type basetype = s->notes.value->ncid;
     int index,i;
     int ndims = s->shape.count;
     Dimension** dims = s->shape.values;
@@ -172,7 +172,7 @@ crdeffieldstruct(nc_type grpid, void* tag, Structure* s)
 	    /* Get the true basetype */
 	    ncstat = crbbasetype(grpid, s->name, basetype, ndims, dims, &basetype);
 	    if(ncstat != NC_NOERR) goto done;	
-	}
+	} else index = ndims;
 	/* Now define the simple case for the non-star leading dimensions */
         for(i=0;i<index;i++) {
 	    dimsizes[i] = dimsize(dims[i]);
@@ -197,7 +197,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	Dimension* dim = grp->dims.values[i];
 	if(dim->name.defined) {
 	    size_t length = dimsize(dim);
-	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->notes.ncid);
+	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->notes.value->ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -207,11 +207,11 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	EnumTypedef* en = grp->enumTypes.values[i];
 	int enid;
 	if(en->map.count == 0) continue;
-	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->notes.ncid);
+	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->notes.value->ncid);
 	if(ncstat != NC_NOERR) goto done;
         for(j=0;j<en->map.count;i++) {
 	    EnumType* econst = en->map.values[i];
-	    ncstat = nc_insert_enum(grpid,en->notes.ncid,econst->value,&econst->code);
+	    ncstat = nc_insert_enum(grpid,en->notes.value->ncid,econst->value,&econst->code);
    	    if(ncstat != NC_NOERR) goto done;	
 	}
     }
@@ -236,7 +236,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    ncstat = crdeffieldstruct(grpid,tag,s);
 	    if(ncstat != NC_NOERR) goto done;	
 	}
-	ncstat = ncaux_end_compound(tag,&struc->notes.ncid);
+	ncstat = ncaux_end_compound(tag,&struc->notes.value->ncid);
     }
 
     /* Create the group global attributes */
@@ -258,7 +258,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    {ncstat = NC_EBADDIM; goto done;}
 
 	if(ndims == 0) {
-            ncstat = nc_def_var(grpid,v->name,basetype,0,NULL,&v->notes.ncid);
+            ncstat = nc_def_var(grpid,v->name,basetype,0,NULL,&v->notes.value->ncid);
 	} else {
 	    nc_type dimids[NC_MAX_VAR_DIMS];
 	    int index;
@@ -268,14 +268,18 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	        ncstat = crbbasetype(grpid, v->name, basetype, ndims,
 				dims,&basetype);
 	        if(ncstat != NC_NOERR) goto done;	
-	    }
+		index++; /* to get ndims count right */
+	    } else index = ndims;
 	    for(j=0;j<index;j++)
-		dimids[j] = dims[j]->notes.ncid;
-            ncstat = nc_def_var(grpid,v->name,basetype,index+1,dimids,&v->notes.ncid);
+		dimids[j] = dims[j]->notes.value->ncid;
+            ncstat = nc_def_var(grpid,v->name,basetype,
+				index,
+				dimids,
+				&v->notes.value->ncid);
 	    /* Define any var attributes */
-	    for(i=0;i<v->atts.count;i++) {
-		Attribute* att = v->atts.values[i];
-		ncstat = crdefattribute(att,grpid,v->notes.ncid);
+	    for(j=0;j<v->atts.count;j++) {
+		Attribute* att = v->atts.values[j];
+		ncstat = crdefattribute(att,grpid,v->notes.value->ncid);
 	        if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -286,14 +290,14 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
         Structure* s = grp->structs.values[i];
 	int ndims = s->shape.count;
 	Dimension** dims = s->shape.values;
-	nc_type basetype = s->notes.ncid;
+	nc_type basetype = s->notes.value->ncid;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))
 	    {ncstat = NC_EBADDIM; goto done;}
 
 	if(ndims == 0) {
-            ncstat = nc_def_var(grpid,s->name,basetype,0,NULL,&s->notes.ncid);
+            ncstat = nc_def_var(grpid,s->name,basetype,0,NULL,&s->notes.value->ncid);
 	} else {
 	    nc_type dimids[NC_MAX_VAR_DIMS];
 	    int index;
@@ -303,14 +307,16 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	        ncstat = crbbasetype(grpid, s->name, basetype, s->shape.count,
 				s->shape.values,&basetype);
 	        if(ncstat != NC_NOERR) goto done;	
-	    }
-	    for(j=0;j<index;j++) dimids[j] = dims[j]->notes.ncid;
-            ncstat = nc_def_var(grpid,s->name,basetype,index+1,dimids,&s->notes.ncid);
+		index++;
+	    } else index = ndims;
+	    for(j=0;j<index;j++)
+		dimids[j] = dims[j]->notes.value->ncid;
+            ncstat = nc_def_var(grpid,s->name,basetype,index,dimids,&s->notes.value->ncid);
 	}
 	/* Define any var attributes */
-	for(i=0;i<s->atts.count;i++) {
-	    Attribute* att = s->atts.values[i];
-	    ncstat = crdefattribute(att,grpid,s->notes.ncid);
+	for(j=0;j<s->atts.count;j++) {
+	    Attribute* att = s->atts.values[j];
+	    ncstat = crdefattribute(att,grpid,s->notes.value->ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
     }

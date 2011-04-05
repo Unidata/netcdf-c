@@ -177,7 +177,15 @@ NCCR_sync(int ncid)
 int
 NCCR_abort(int ncid)
 {
+    int ncstat;
+    NC* nc;
+
     LOG((1, "nc_abort: ncid 0x%x", ncid));
+
+    /* Avoid repeated abort */
+    ncstat = NC_check_id(ncid, (NC**)&nc); 
+    if(ncstat != NC_NOERR) return ncstat;
+
     /* Turn into close */
     return NCCR_close(ncid);
 }

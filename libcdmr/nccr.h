@@ -46,9 +46,8 @@ typedef struct NCCDMR {
         char* cainfo; /* certificate authority */
 	char* capath; 
     } curl;
-    /* provide a index and map for ncstream nodes*/
-    struct NClist* cdmnodes;
-    struct NChashmap* cdmmap;
+    /* provide a index for ncstream nodes*/
+    NClist* nodeset;
 } NCCDMR;
 
 typedef struct NCCURLSTATE NCCURLSTATE;

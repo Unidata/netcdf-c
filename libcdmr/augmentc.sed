@@ -1,4 +1,6 @@
-/[#]include[ ]*"ncstream.h"/i\
+1i\
+#include "config.h"
+/[#]include[ ]*"ncStream.h"/i\
 #include "netcdf.h"
-s/[#]include[ ]*["]ncstream.h["]/#include "ncstreamx.h"/
+s/[#]include[ ]*["]ncStream.h["]/#include "ncStreamx.h"/
 

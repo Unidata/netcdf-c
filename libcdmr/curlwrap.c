@@ -39,6 +39,7 @@
 #include <curl/curl.h>
 #include "curlwrap.h"
 
+#include "nclist.h"
 #include "nclog.h"
 
 #include "netcdf.h"

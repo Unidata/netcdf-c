@@ -9,11 +9,13 @@
 
 #include <ast.h>
 
+#include "nclist.h"
+
 #include "netcdf.h"
 #include "nc.h"
 #include "nc4internal.h"
 #include "nccr.h"
-#include "ncstreamx.h"
+#include "ncStreamx.h"
 
 #define LINESIZE 72
 
@@ -94,6 +96,10 @@ nccr_dump_dimkind(Dimension* dim)
     char* skind;
     static char buffer[1024];
 
+    if(dim->isUnlimited.defined + dim->isVlen.defined
+       + dim->isPrivate.defined + dim->length.defined != 1)
+	fprintf(stderr,"malformed shape for dimension: %s\n",dim->name.value);
+
     if(dim->isUnlimited.defined && dim->isUnlimited.value != 0)
 	dimkind = UNLIMITED;
     else if(dim->isVlen.defined && dim->isVlen.value != 0)
@@ -104,9 +110,9 @@ nccr_dump_dimkind(Dimension* dim)
     switch (dimkind) {
     case VLEN: skind = "*"; break;    
     case PRIVATE: skind = "<PRIVATE>"; break;    
-    case UNDEF: skind = ""; break;    
     case LENGTH: skind = ""; break;
-    case UNLIMITED: skind = ""; break;
+    case UNLIMITED: skind = "UNLIMITED"; break;
+    case UNDEF: skind = ""; break;    
     }
     snprintf(buffer,sizeof(buffer),"%s(%llu)",
 		skind,
@@ -191,10 +197,10 @@ nccr_dump_structure(Structure* stype, int depth)
 }
 
 static ast_err
-nccr_dump_shape(size_t count, Dimension** dimset)
+nccr_dump_shape(size_t ndims, Dimension** dimset)
 {
     int i;
-    for(i=0;i<count;i++) {
+    for(i=0;i<ndims;i++) {
 	char* skind;
 	Dimension* dim = dimset[i];
 	if(dim->name.defined)
@@ -322,8 +328,8 @@ data_dumpelement(DataType datatype, bytes_t* data, size_t offset, char* buffer)
     case INT64: {long long x = *(long long*)pos; sprintf(buffer,"%lld",x);} break;
     case UINT64: {unsigned long long x = *(unsigned long long*)pos; sprintf(buffer,"%llu",x);} break;
 
-    case FLOAT: {float x = *(float*)pos; sprintf(buffer,"%f",x);} break;
-    case DOUBLE: {double x = *(double*)pos; sprintf(buffer,"%lf",x);} break;
+    case FLOAT: {float x = *(float*)pos; sprintf(buffer,"%g",x);} break;
+    case DOUBLE: {double x = *(double*)pos; sprintf(buffer,"%g",x);} break;
 
     default: break;
     }

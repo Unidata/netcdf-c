@@ -1,19 +1,28 @@
+
+PREFIX=/tmp
+
 NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I../include -I${HDF5DIR}/include
-HDF5DIR = /usr
+
+#HDF5DIR=/local
+HDF5DIR=/share/ed/local/${HOST}
+CURLDIR=/usr/local
+CURLDIR=${HDF5DIR}
+
 HDFLIBS=-L${HDF5DIR}/lib -lhdf5_hl -lhdf5
-CURLLIB=-L/usr/local/lib -lcurl -lz
-CURLINCL=-I/usr/local/include
+CURLLIB=-L${CURLDIR}/lib -lcurl -lz
+CURLINCL=-I${CURLDIR}/include
 #RPCLIB=-lnsl
 ZLIB=-L${HDF5DIR}/lib -lz
 TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
 VALGRIND=valgrind --leak-check=full
 
-
 OCLIB=../libncdap3/oc/.libs/liboc.a
 OCINCL=-I../libncdap3/oc
 
 OTHERLIBS=-lm
+
+RPATH=-Wl,-rpath,${HDF5DIR}/lib -Wl,-rpath,${CURLDIR}/lib
 
 # Might want to specify a particular C compiler with flags
 #CC=cc
@@ -24,7 +33,7 @@ GFLAGS=-g
 #############################################
 
 LIBS=${NCLIB} ${CURLLIB} ${HDFLIBS} ${ZLIB} ${OTHERLIBS} ${RPCLIB}
-INCL=-I. -I.. -I../include ${OCINCL} ${NCINCL} ${CURLINCL}
+INCL=-I. -I.. -I../include -I../ncdump ${OCINCL} ${NCINCL} ${CURLINCL}
 
 ##################################################
 
@@ -36,18 +45,25 @@ clean::
 	rm -f *.stackdump
 
 ##################################################
+
+ASTSRC=ast_byteio.c ast_byteio.h ast_curl.c ast_curl.h \
+ast_debug.c ast_debug.h ast_internal.c ast_internal.h \
+ast_runtime.c ast_runtime.h ast_util.c ast_util.h
+
+sync synch::
+	'cp' -f ${ASTSRC} .
+
+##################################################
 # ncd
 S=chunkspec.c dimmap.c dumplib.c indent.c ncdump.c nciter.c nctime.c utils.c vardata.c
-H=cdl.h chunkspec.h dimmap.h dumplib.h indent.h isnan.h ncdump.h nciter.h nctime.h utils.h vardata.h
 
 SRC=${S:%.c=../ncdump/%.c}
-HDRS=${H:%.h=../ncdump/%.h}
 OBJ=${S:%.c=%.o}
 
 ncd:: 
 	cd .. ; make
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}
-	${CC} -o ncd ${GFLAGS} ${OBJ} ${NCLIB} ${CURLLIB} ${HDFLIBS} ${OTHERLIBS}
+	${CC} -o ncd ${GFLAGS} ${OBJ} ${LIBS} ${RPATH}
 
 URL=[cdmremote]http://motherlode.ucar.edu:8080/thredds/cdmremote/nws/upperair/ncdecoded/files/Upperair_20110223_0000.nc
 
@@ -55,6 +71,8 @@ q0::
 	./ncd -h "${URL}"
 qq::
 	gdb --args ./ncd -h "${URL}"
+qv::
+	${VALGRIND} ./ncd -h "${URL}"
 
 
 

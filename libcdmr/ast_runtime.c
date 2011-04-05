@@ -82,13 +82,13 @@ static int ast_readvarint(ast_runtime* rt, uint8_t* buffer, size_t* countp);
 /* Invoke the ast_runtime operators */
 
 static size_t
-ast_write(ast_runtime* rt, size_t count, char* data)
+ast_write(ast_runtime* rt, size_t count, uint8_t* data)
 {
     return rt->ops->write(rt,count,data);
 }
 
 static size_t
-ast_read(ast_runtime* rt, size_t count, char* buffer)
+ast_read(ast_runtime* rt, size_t count, uint8_t* buffer)
 {
     return rt->ops->read(rt,count,buffer);
 }
@@ -115,22 +115,15 @@ void*
 ast_alloc(ast_runtime* rt, size_t len)
 {
     if(len == 0) return NULL;
-    return calloc(1,len);
-}
-
-void*
-ast_realloc(ast_runtime* rt, void* oldmem, size_t newlen)
-{
-    if(newlen == 0) return NULL;
-    return realloc(oldmem,newlen);
+    return rt->ops->alloc(rt,len);
 }
 
 void
 ast_free(ast_runtime* rt, void* mem)
 {
-    if(mem != NULL) free(mem);
+    if(mem == NULL) return;
+    return rt->ops->free(rt,mem);
 }
-
 
 /* Define the primitive W/R/F functions */
 
@@ -245,7 +238,7 @@ ast_read_primitive_data(ast_runtime* rt, const ast_sort sort, void* valuep)
 	/* Count already holds the length of the string */
 	char* stringvalue = ast_alloc(rt,count+1);
 	if(stringvalue == NULL) AERR(status,AST_ENOMEM,done);
-	if(ast_read(rt,count,stringvalue) != count) AERR(status,AST_EOF,done);
+	if(ast_read(rt,count,(uint8_t*)stringvalue) != count) AERR(status,AST_EOF,done);
 	stringvalue[count] = '\0';
 	*((char**)valuep) = stringvalue;
 	} break;
@@ -343,7 +336,7 @@ ast_write_primitive_data(ast_runtime* rt, const ast_sort sort,
 	size_t len = strlen(stringvalue);
 	count = uint32_encode(len,buffer);
 	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
-	if(ast_write(rt,len,stringvalue) != count) {status = AST_EIO; ATHROW(status,done);}
+	if(ast_write(rt,len,(uint8_t*)stringvalue) != count) {status = AST_EIO; ATHROW(status,done);}
 	} break;
     case ast_bytes: {
 	bytes_t* bytevalue = (bytes_t*)valuep;		
@@ -362,14 +355,14 @@ done:
 static size_t
 ast_encode_tag(ast_runtime* rt,
 		const uint32_t wiretype, const uint32_t fieldno,
-		char* buffer/*[MAXWIRELEN]*/)
+		uint8_t* buffer/*[MAXWIRELEN]*/)
 {
     int key;
     size_t count;
 
     key = (wiretype | (fieldno << 3));
     /* convert key to varint */
-    count = uint32_encode(key,buffer);
+    count = uint32_encode(key,(uint8_t*)buffer);
     return count;
 }
 
@@ -441,8 +434,10 @@ ast_repeat_append(ast_runtime* rt, ast_sort sort,void* repeater0, void* value)
 	repeater->values = ast_alloc(rt,sortsize);
 	if(repeater->values == NULL) return ACATCH(AST_ENOMEM);
     } else {
-	repeater->values = ast_realloc(rt,repeater->values,(repeater->count+1)*sortsize);
-	if(repeater->values == NULL) return ACATCH(AST_ENOMEM);
+	void* newmem = ast_alloc(rt,(repeater->count+1)*sortsize);
+	if(newmem == NULL) return ACATCH(AST_ENOMEM);
+	memcpy(newmem,repeater->values,(repeater->count)*sortsize);
+	repeater->values = newmem;
     }
     target = ((char*)repeater->values) + (repeater->count * sortsize);
     memcpy((void*)target,value,sortsize);
@@ -585,7 +580,7 @@ ast_err
 ast_skip_field(ast_runtime* rt, int wiretype, int fieldno)
 {
     ast_err status = AST_NOERR;
-    char buffer[MAXWIRELEN];
+    uint8_t buffer[MAXWIRELEN];
     size_t len;
     switch (wiretype) {
     case ast_varint:
@@ -707,4 +702,16 @@ ast_reclaim_bytes(ast_runtime* rt, bytes_t* value)
 {
     ast_free(rt,value->bytes);
     return AST_NOERR;
+}
+
+ast_runtime_ops*
+ast_byteio_getopts(ast_runtime* rt)
+{
+    return rt->ops;
+}
+
+ast_err
+ast_byteio_setopts(ast_runtime* rt, ast_runtime_ops* ops)
+{
+    rt->ops = ops;
 }
