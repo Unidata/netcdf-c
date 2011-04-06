@@ -38,6 +38,9 @@ NCD4_get_vara(int ncid, int varid,
     NCprojection* varaprojection = NULL;
     NCcachenode* cachenode = NULL;
     nc_type externaltype = externaltype0;
+    size_t localcount[NC_MAX_VAR_DIMS];
+    NClist* ncdims;
+    size_t ncrank;
 
     LOG((2, "nc_get_vara: ncid 0x%x varid %d", ncid, varid));
 
@@ -63,6 +66,33 @@ NCD4_get_vara(int ncid, int varid,
     }
     ASSERT((cdfvar != NULL));
     ASSERT((strcmp(cdfvar->ncfullname,var->name)==0));
+
+    /* Get the dimension info */
+    ncdims = cdfvar->array.dimensions;
+    ncrank = nclistlength(ncdims);
+
+    /* Fill in missing arguments */
+    if(startp == NULL)
+	startp = dapzerostart3;
+
+    if(countp == NULL) {
+        /* Accumulate the dimension sizes */
+        for(i=0;i<ncrank;i++) {
+	    CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	    localcount[i] = dim->dim.declsize;
+	}
+	countp = localcount;
+    }
+
+    /* Validate the dimension sizes */
+    for(i=0;i<ncrank;i++) {
+        CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	if(startp[i] > dim->dim.declsize
+	   || startp[i]+countp[i] > dim->dim.declsize) {
+	    ncstat = NC_EINVALCOORDS;
+	    goto fail;	    
+	}
+    }	     
 
 #ifdef DEBUG
 { NClist* dims = cdfvar->array.dimensions;

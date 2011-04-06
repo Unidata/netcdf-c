@@ -261,7 +261,7 @@ vpt::
 ##################################################
 #T=test_varm3
 #T=t_dap3b
-T=test_vara
+T=t_dap3c
 
 v::
 	cc -g -c ${T}.c ${INCL}

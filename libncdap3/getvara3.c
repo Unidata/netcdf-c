@@ -44,9 +44,11 @@ nc3d_getvarx(int ncid, int varid,
     CDFnode* target = NULL; /* target in constrained DDS */
     NCprojection* varaprojection = NULL;
     NCcachenode* cachenode = NULL;
-    size_t localcount[NC_MAX_VAR_DIMS];
     NClist* vars = nclistnew();
     NCconstraint* constraint = NULL;
+    size_t localcount[NC_MAX_VAR_DIMS];
+    NClist* ncdims;
+    size_t ncrank;
 
     ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) goto fail;
@@ -69,16 +71,35 @@ nc3d_getvarx(int ncid, int varid,
     ASSERT((cdfvar != NULL));
     ASSERT((strcmp(cdfvar->ncfullname,var->name->cp)==0));
 
+    /* Get the dimension info */
+    ncdims = cdfvar->array.dimensions;
+    ncrank = nclistlength(ncdims);
+
+    /* Fill in missing arguments */
+    if(startp == NULL)
+	startp = dapzerostart3;
+
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
-        NClist* ncdims = cdfvar->array.dimensions;
-        size_t ncrank = nclistlength(ncdims);
         for(i=0;i<ncrank;i++) {
 	    CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
 	    localcount[i] = dim->dim.declsize;
 	}
 	countp = localcount;
     }
+
+    if(stridep == NULL)
+	stridep = dapsinglestride3;
+
+    /* Validate the dimension sizes */
+    for(i=0;i<ncrank;i++) {
+        CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	if(startp[i] > dim->dim.declsize
+	   || startp[i]+countp[i] > dim->dim.declsize) {
+	    ncstat = NC_EINVALCOORDS;
+	    goto fail;	    
+	}
+    }	     
 
 #ifdef DEBUG
 { NClist* dims = cdfvar->array.dimensions;
@@ -708,7 +729,7 @@ nc3d_getvarmx(int ncid, int varid,
           called?) */
 	/* recurse with additional parameters */
         return THROW(nc3d_getvarx(ncid,varid,
-		 dapzerostart3,NULL,dapsinglestride3,
+		 NULL,NULL,NULL,
 		 data,dsttype0));
     }
          

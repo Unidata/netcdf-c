@@ -231,7 +231,6 @@ nc_urlparamdecode(char* params0)
     int nparams;
     NClist* map = nclistnew();
     char* params;
-    char* tmp;
 
     if(params0 == NULL) return map;
 
