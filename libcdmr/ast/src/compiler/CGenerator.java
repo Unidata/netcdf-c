@@ -418,11 +418,33 @@ generate_messagestruct(AST.Message msg, Printer printer) throws Exception
     // If the "declare" option is set, then do nothing
     if(AuxFcns.getbooleanvalue((String)msg.optionLookup("declare")))
 	return;
+    // See if a supertype is specified
+    String supername = (String)msg.optionLookup("extends");
+    AST.Type supertype = null;
+    String superfield = null;
+    if(supername != null && supername.trim().length() > 0) {
+	supername = supername.trim();
+	String[] pieces = supername.split(" ");
+	if(pieces.length > 1)
+	    superfield = pieces[1];
+	else
+	    superfield = supername.toLowerCase();
+        List<AST.Type> matches = AuxFcns.findtypebyname(pieces[0],msg);
+	if(matches.size() > 0) {
+	    supertype = matches.get(0);
+	    if(supertype.getSort() != AST.Sort.MESSAGE) supertype = null;
+	}	
+    }
 
     Annotation a = (Annotation)msg.getAnnotation();
     printer.blankline();
     printer.printf("struct %s {\n",converttocname(msg.getName()));
     printer.indent();
+    // generate the supertype as the first element in the struct
+    if(supertype != null)
+        printer.printf("%s %s;\n",
+		converttocname(supertype.getName()),
+		converttocname(superfield));
     // Generate the fields
     for(AST.Field field: msg.getFields()) {
 	String star = (isPrimitive(field) || isEnum(field) ? "" : "*");
@@ -468,7 +490,7 @@ generate_c(AST.File topfile, List<AST.File> files, Printer printer)
 
     // Special handling for config.h
     String configh = (String)topfile.optionLookup("config_h");
-    if(configh.equals("true")) {
+    if(configh != null && configh.equals("true")) {
         printer.println("#ifdef HAVE_CONFIG_H");
         printer.println("#include \"config.h\"");
         printer.println("#endif");

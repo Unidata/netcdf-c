@@ -158,5 +158,3 @@ nccr_walk_EnumType(EnumType* node, NClist* nodes)
     crnote(node,&node->notes.value,nodes);
 }
 
-
-

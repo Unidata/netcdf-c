@@ -1,109 +1,9 @@
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <ast_runtime.h>
 
 #include "ncStreamx.h"
-
-ast_err
-Notes_write(ast_runtime* rt, Notes* notes_v)
-{
-    ast_err status = AST_NOERR;
-
-    {
-        status = ast_write_primitive(rt,ast_uint32,1,&notes_v->uid);
-        if(status != AST_NOERR) {goto done;}
-    }
-    {
-        status = ast_write_primitive(rt,ast_enum,2,&notes_v->sort);
-        if(status != AST_NOERR) {goto done;}
-    }
-    {
-        status = ast_write_primitive(rt,ast_int32,3,&notes_v->ncid);
-        if(status != AST_NOERR) {goto done;}
-    }
-
-done:
-    return status;
-
-} /*Notes_write*/
-
-ast_err
-Notes_read(ast_runtime* rt, Notes** notes_vp)
-{
-    ast_err status = AST_NOERR;
-    uint32_t wiretype, fieldno;
-    Notes* notes_v;
-
-    notes_v = (Notes*)ast_alloc(rt,sizeof(Notes));
-    if(notes_v == NULL) return AST_ENOMEM;
-
-    while(status == AST_NOERR) {
-        status = ast_read_tag(rt,&wiretype,&fieldno);
-        if(status == AST_EOF) {status = AST_NOERR; break;}
-        if(status != AST_NOERR) break;
-        switch (fieldno) {
-        case 1: {
-            status = ast_read_primitive(rt,ast_uint32,1,&notes_v->uid);
-            } break;
-        case 2: {
-            status = ast_read_primitive(rt,ast_enum,2,&notes_v->sort);
-            } break;
-        case 3: {
-            status = ast_read_primitive(rt,ast_int32,3,&notes_v->ncid);
-            } break;
-        default:
-            status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
-        }; /*switch*/
-    };/*while*/
-    if(status != AST_NOERR) {goto done;}
-    if(notes_vp) *notes_vp = notes_v;
-done:
-    return status;
-} /*Notes_read*/
-
-ast_err
-Notes_reclaim(ast_runtime* rt, Notes* notes_v)
-{
-    ast_err status = AST_NOERR;
-
-    ast_free(rt,(void*)notes_v);
-    goto done;
-
-done:
-    return status;
-
-} /*Notes_reclaim*/
-
-size_t
-Notes_get_size(ast_runtime* rt, Notes* notes_v)
-{
-    size_t totalsize = 0;
-    size_t fieldsize = 0;
-
-    {
-        fieldsize += ast_get_tagsize(rt,ast_counted,1);
-        fieldsize += ast_get_size(rt,ast_uint32,&notes_v->uid);
-        totalsize += fieldsize;
-    }
-    {
-        fieldsize += ast_get_tagsize(rt,ast_counted,2);
-        fieldsize += ast_get_size(rt,ast_enum,&notes_v->sort);
-        totalsize += fieldsize;
-    }
-    {
-        fieldsize += ast_get_tagsize(rt,ast_counted,3);
-        fieldsize += ast_get_size(rt,ast_int32,&notes_v->ncid);
-        totalsize += fieldsize;
-    }
-    return totalsize;
-
-} /*Notes_get_size*/
 
 ast_err
 Attribute_write(ast_runtime* rt, Attribute* attribute_v)
@@ -132,18 +32,6 @@ Attribute_write(ast_runtime* rt, Attribute* attribute_v)
         int i = 0;
         for(i=0;i<attribute_v->sdata.count;i++) {
             status = ast_write_primitive(rt,ast_string,5,&attribute_v->sdata.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(attribute_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,attribute_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,attribute_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -190,20 +78,6 @@ Attribute_read(ast_runtime* rt, Attribute** attribute_vp)
             status = ast_repeat_append(rt,ast_string,&attribute_v->sdata,&tmp);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            attribute_v->notes.defined = 1;
-            attribute_v->notes.value = NULL;
-            status = Notes_read(rt,&attribute_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -241,12 +115,6 @@ Attribute_reclaim(ast_runtime* rt, Attribute* attribute_v)
             if(status != AST_NOERR) {goto done;}
         }
         ast_free(rt,attribute_v->sdata.values);
-    }
-    {
-        if(attribute_v->notes.defined) {
-            status = Notes_reclaim(rt,attribute_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)attribute_v);
     goto done;
@@ -292,14 +160,6 @@ Attribute_get_size(ast_runtime* rt, Attribute* attribute_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(attribute_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,attribute_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Attribute_get_size*/
@@ -336,18 +196,6 @@ Dimension_write(ast_runtime* rt, Dimension* dimension_v)
     {
         if(dimension_v->isPrivate.defined) {
             status = ast_write_primitive(rt,ast_bool,5,&dimension_v->isPrivate.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(dimension_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,dimension_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,dimension_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -397,20 +245,6 @@ Dimension_read(ast_runtime* rt, Dimension** dimension_vp)
             dimension_v->isPrivate.value = 0;
             status = ast_read_primitive(rt,ast_bool,5,&dimension_v->isPrivate.value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            dimension_v->notes.defined = 1;
-            dimension_v->notes.value = NULL;
-            status = Notes_read(rt,&dimension_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -445,12 +279,6 @@ Dimension_reclaim(ast_runtime* rt, Dimension* dimension_v)
     {
         if(dimension_v->name.defined) {
             status = ast_reclaim_string(rt,dimension_v->name.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        if(dimension_v->notes.defined) {
-            status = Notes_reclaim(rt,dimension_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -500,14 +328,6 @@ Dimension_get_size(ast_runtime* rt, Dimension* dimension_v)
         if(dimension_v->isPrivate.defined) {
             fieldsize += ast_get_tagsize(rt,ast_counted,5);
             fieldsize += ast_get_size(rt,ast_bool,&dimension_v->isPrivate.value);
-        }
-        totalsize += fieldsize;
-    }
-    {
-        if(dimension_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,dimension_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
         }
         totalsize += fieldsize;
     }
@@ -576,18 +396,6 @@ Variable_write(ast_runtime* rt, Variable* variable_v)
         int i = 0;
         for(i=0;i<variable_v->dimIndex.count;i++) {
             status = ast_write_primitive(rt,ast_uint32,8,&variable_v->dimIndex.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(variable_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,variable_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,variable_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -669,20 +477,6 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
             status = ast_repeat_append(rt,ast_uint32,&variable_v->dimIndex,&tmp);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            variable_v->notes.defined = 1;
-            variable_v->notes.value = NULL;
-            status = Notes_read(rt,&variable_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -738,12 +532,6 @@ Variable_reclaim(ast_runtime* rt, Variable* variable_v)
     {
         if(variable_v->enumType.defined) {
             status = ast_reclaim_string(rt,variable_v->enumType.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        if(variable_v->notes.defined) {
-            status = Notes_reclaim(rt,variable_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -818,14 +606,6 @@ Variable_get_size(ast_runtime* rt, Variable* variable_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(variable_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,variable_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Variable_get_size*/
@@ -892,18 +672,6 @@ Structure_write(ast_runtime* rt, Structure* structure_v)
             status = ast_write_count(rt,size);
             if(status != AST_NOERR) {goto done;}
             status = Structure_write(rt,structure_v->structs.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(structure_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,structure_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,structure_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -990,20 +758,6 @@ Structure_read(ast_runtime* rt, Structure** structure_vp)
             status = ast_unmark(rt);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            structure_v->notes.defined = 1;
-            structure_v->notes.value = NULL;
-            status = Notes_read(rt,&structure_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -1055,12 +809,6 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
             if(status != AST_NOERR) {goto done;}
         }
         ast_free(rt,structure_v->structs.values);
-    }
-    {
-        if(structure_v->notes.defined) {
-            status = Notes_reclaim(rt,structure_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)structure_v);
     goto done;
@@ -1122,14 +870,6 @@ Structure_get_size(ast_runtime* rt, Structure* structure_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(structure_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,structure_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Structure_get_size*/
@@ -1153,18 +893,6 @@ EnumTypedef_write(ast_runtime* rt, EnumTypedef* enumtypedef_v)
             status = ast_write_count(rt,size);
             if(status != AST_NOERR) {goto done;}
             status = EnumType_write(rt,enumtypedef_v->map.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(enumtypedef_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,enumtypedef_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,enumtypedef_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -1206,20 +934,6 @@ EnumTypedef_read(ast_runtime* rt, EnumTypedef** enumtypedef_vp)
             status = ast_unmark(rt);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            enumtypedef_v->notes.defined = 1;
-            enumtypedef_v->notes.value = NULL;
-            status = Notes_read(rt,&enumtypedef_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -1247,12 +961,6 @@ EnumTypedef_reclaim(ast_runtime* rt, EnumTypedef* enumtypedef_v)
             if(status != AST_NOERR) {goto done;}
         }
         ast_free(rt,enumtypedef_v->map.values);
-    }
-    {
-        if(enumtypedef_v->notes.defined) {
-            status = Notes_reclaim(rt,enumtypedef_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)enumtypedef_v);
     goto done;
@@ -1282,14 +990,6 @@ EnumTypedef_get_size(ast_runtime* rt, EnumTypedef* enumtypedef_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(enumtypedef_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,enumtypedef_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*EnumTypedef_get_size*/
@@ -1306,18 +1006,6 @@ EnumType_write(ast_runtime* rt, EnumType* enumtype_v)
     {
         status = ast_write_primitive(rt,ast_string,2,&enumtype_v->value);
         if(status != AST_NOERR) {goto done;}
-    }
-    {
-        size_t size;
-        if(enumtype_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,enumtype_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,enumtype_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
 
 done:
@@ -1346,20 +1034,6 @@ EnumType_read(ast_runtime* rt, EnumType** enumtype_vp)
         case 2: {
             status = ast_read_primitive(rt,ast_string,2,&enumtype_v->value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            enumtype_v->notes.defined = 1;
-            enumtype_v->notes.value = NULL;
-            status = Notes_read(rt,&enumtype_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -1379,12 +1053,6 @@ EnumType_reclaim(ast_runtime* rt, EnumType* enumtype_v)
     {
         status = ast_reclaim_string(rt,enumtype_v->value);
         if(status != AST_NOERR) {goto done;}
-    }
-    {
-        if(enumtype_v->notes.defined) {
-            status = Notes_reclaim(rt,enumtype_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)enumtype_v);
     goto done;
@@ -1408,14 +1076,6 @@ EnumType_get_size(ast_runtime* rt, EnumType* enumtype_v)
     {
         fieldsize += ast_get_tagsize(rt,ast_counted,2);
         fieldsize += ast_get_size(rt,ast_string,&enumtype_v->value);
-        totalsize += fieldsize;
-    }
-    {
-        if(enumtype_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,enumtype_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
         totalsize += fieldsize;
     }
     return totalsize;
@@ -1506,18 +1166,6 @@ Group_write(ast_runtime* rt, Group* group_v)
             status = ast_write_count(rt,size);
             if(status != AST_NOERR) {goto done;}
             status = EnumTypedef_write(rt,group_v->enumTypes.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(group_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,group_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,group_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -1629,20 +1277,6 @@ Group_read(ast_runtime* rt, Group** group_vp)
             status = ast_unmark(rt);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            group_v->notes.defined = 1;
-            group_v->notes.value = NULL;
-            status = Notes_read(rt,&group_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -1710,12 +1344,6 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
             if(status != AST_NOERR) {goto done;}
         }
         ast_free(rt,group_v->enumTypes.values);
-    }
-    {
-        if(group_v->notes.defined) {
-            status = Notes_reclaim(rt,group_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)group_v);
     goto done;
@@ -1790,14 +1418,6 @@ Group_get_size(ast_runtime* rt, Group* group_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(group_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,group_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Group_get_size*/
@@ -1838,18 +1458,6 @@ Header_write(ast_runtime* rt, Header* header_v)
     {
         if(header_v->version.defined) {
             status = ast_write_primitive(rt,ast_uint32,5,&header_v->version.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(header_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,header_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,header_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -1906,20 +1514,6 @@ Header_read(ast_runtime* rt, Header** header_vp)
             header_v->version.value = 0;
             status = ast_read_primitive(rt,ast_uint32,5,&header_v->version.value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            header_v->notes.defined = 1;
-            header_v->notes.value = NULL;
-            status = Notes_read(rt,&header_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -1970,12 +1564,6 @@ Header_reclaim(ast_runtime* rt, Header* header_v)
         status = Group_reclaim(rt,header_v->root);
         if(status != AST_NOERR) {goto done;}
     }
-    {
-        if(header_v->notes.defined) {
-            status = Notes_reclaim(rt,header_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
     ast_free(rt,(void*)header_v);
     goto done;
 
@@ -2021,14 +1609,6 @@ Header_get_size(ast_runtime* rt, Header* header_v)
         if(header_v->version.defined) {
             fieldsize += ast_get_tagsize(rt,ast_counted,5);
             fieldsize += ast_get_size(rt,ast_uint32,&header_v->version.value);
-        }
-        totalsize += fieldsize;
-    }
-    {
-        if(header_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,header_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
         }
         totalsize += fieldsize;
     }
@@ -2082,18 +1662,6 @@ Data_write(ast_runtime* rt, Data* data_v)
     {
         if(data_v->crc32.defined) {
             status = ast_write_primitive(rt,ast_fixed32,7,&data_v->crc32.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(data_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,data_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,data_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -2158,20 +1726,6 @@ Data_read(ast_runtime* rt, Data** data_vp)
             data_v->crc32.value = 0;
             status = ast_read_primitive(rt,ast_fixed32,7,&data_v->crc32.value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            data_v->notes.defined = 1;
-            data_v->notes.value = NULL;
-            status = Notes_read(rt,&data_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -2204,12 +1758,6 @@ Data_reclaim(ast_runtime* rt, Data* data_v)
     {
         if(data_v->section.defined) {
             status = Section_reclaim(rt,data_v->section.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        if(data_v->notes.defined) {
-            status = Notes_reclaim(rt,data_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -2273,14 +1821,6 @@ Data_get_size(ast_runtime* rt, Data* data_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(data_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,data_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Data_get_size*/
@@ -2303,18 +1843,6 @@ Range_write(ast_runtime* rt, Range* range_v)
     {
         if(range_v->stride.defined) {
             status = ast_write_primitive(rt,ast_uint64,3,&range_v->stride.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(range_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,range_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,range_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -2352,20 +1880,6 @@ Range_read(ast_runtime* rt, Range** range_vp)
             range_v->stride.value = 0;
             status = ast_read_primitive(rt,ast_uint64,3,&range_v->stride.value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            range_v->notes.defined = 1;
-            range_v->notes.value = NULL;
-            status = Notes_read(rt,&range_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -2388,12 +1902,6 @@ Range_reclaim(ast_runtime* rt, Range* range_v)
 {
     ast_err status = AST_NOERR;
 
-    {
-        if(range_v->notes.defined) {
-            status = Notes_reclaim(rt,range_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
     ast_free(rt,(void*)range_v);
     goto done;
 
@@ -2427,14 +1935,6 @@ Range_get_size(ast_runtime* rt, Range* range_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(range_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,range_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*Range_get_size*/
@@ -2454,18 +1954,6 @@ Section_write(ast_runtime* rt, Section* section_v)
             status = ast_write_count(rt,size);
             if(status != AST_NOERR) {goto done;}
             status = Range_write(rt,section_v->range.values[i]);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(section_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,section_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,section_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -2504,20 +1992,6 @@ Section_read(ast_runtime* rt, Section** section_vp)
             status = ast_unmark(rt);
             if(status != AST_NOERR) {goto done;}
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            section_v->notes.defined = 1;
-            section_v->notes.value = NULL;
-            status = Notes_read(rt,&section_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -2542,12 +2016,6 @@ Section_reclaim(ast_runtime* rt, Section* section_v)
         }
         ast_free(rt,section_v->range.values);
     }
-    {
-        if(section_v->notes.defined) {
-            status = Notes_reclaim(rt,section_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
     ast_free(rt,(void*)section_v);
     goto done;
 
@@ -2568,14 +2036,6 @@ Section_get_size(ast_runtime* rt, Section* section_v)
             fieldsize += Range_get_size(rt,section_v->range.values[i]);
             fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
             fieldsize += ast_get_tagsize(rt,ast_counted,1);
-        }
-        totalsize += fieldsize;
-    }
-    {
-        if(section_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,section_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
         }
         totalsize += fieldsize;
     }
@@ -2616,18 +2076,6 @@ StructureData_write(ast_runtime* rt, StructureData* structuredata_v)
     {
         if(structuredata_v->nrows.defined) {
             status = ast_write_primitive(rt,ast_uint64,5,&structuredata_v->nrows.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
-    {
-        size_t size;
-        if(structuredata_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,structuredata_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,structuredata_v->notes.value);
             if(status != AST_NOERR) {goto done;}
         }
     }
@@ -2681,20 +2129,6 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
             structuredata_v->nrows.value = 0;
             status = ast_read_primitive(rt,ast_uint64,5,&structuredata_v->nrows.value);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            structuredata_v->notes.defined = 1;
-            structuredata_v->notes.value = NULL;
-            status = Notes_read(rt,&structuredata_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -2725,12 +2159,6 @@ StructureData_reclaim(ast_runtime* rt, StructureData* structuredata_v)
             if(status != AST_NOERR) {goto done;}
         }
         ast_free(rt,structuredata_v->sdata.values);
-    }
-    {
-        if(structuredata_v->notes.defined) {
-            status = Notes_reclaim(rt,structuredata_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
     ast_free(rt,(void*)structuredata_v);
     goto done;
@@ -2782,14 +2210,6 @@ StructureData_get_size(ast_runtime* rt, StructureData* structuredata_v)
         }
         totalsize += fieldsize;
     }
-    {
-        if(structuredata_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,structuredata_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
-        totalsize += fieldsize;
-    }
     return totalsize;
 
 } /*StructureData_get_size*/
@@ -2802,18 +2222,6 @@ Error_write(ast_runtime* rt, Error* error_v)
     {
         status = ast_write_primitive(rt,ast_string,1,&error_v->message);
         if(status != AST_NOERR) {goto done;}
-    }
-    {
-        size_t size;
-        if(error_v->notes.defined) {
-            status = ast_write_tag(rt,ast_counted,1024);
-            if(status != AST_NOERR) {goto done;}
-            size = Notes_get_size(rt,error_v->notes.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
-            status = Notes_write(rt,error_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
     }
 
 done:
@@ -2839,20 +2247,6 @@ Error_read(ast_runtime* rt, Error** error_vp)
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&error_v->message);
             } break;
-        case 1024: {
-            size_t count;
-            if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
-            error_v->notes.defined = 1;
-            error_v->notes.value = NULL;
-            status = Notes_read(rt,&error_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
-            } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
             if(status != AST_NOERR) {goto done;}
@@ -2873,12 +2267,6 @@ Error_reclaim(ast_runtime* rt, Error* error_v)
         status = ast_reclaim_string(rt,error_v->message);
         if(status != AST_NOERR) {goto done;}
     }
-    {
-        if(error_v->notes.defined) {
-            status = Notes_reclaim(rt,error_v->notes.value);
-            if(status != AST_NOERR) {goto done;}
-        }
-    }
     ast_free(rt,(void*)error_v);
     goto done;
 
@@ -2896,14 +2284,6 @@ Error_get_size(ast_runtime* rt, Error* error_v)
     {
         fieldsize += ast_get_tagsize(rt,ast_counted,1);
         fieldsize += ast_get_size(rt,ast_string,&error_v->message);
-        totalsize += fieldsize;
-    }
-    {
-        if(error_v->notes.defined) {
-            fieldsize += Notes_get_size(rt,error_v->notes.value);
-            fieldsize += ast_get_size(rt,ast_uint32,&fieldsize);
-            fieldsize += ast_get_tagsize(rt,ast_counted,1024);
-        }
         totalsize += fieldsize;
     }
     return totalsize;

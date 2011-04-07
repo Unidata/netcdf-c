@@ -96,7 +96,7 @@ c:
 	gcc -static ${CFLAGS} -o testast -I. ${RTSRC} ${TESTSRC}
 
 cr:
-	java -jar ${JAR} ${W} -I. ncStreamx.proto
+	java -jar ${JAR} ${W} -I. test.proto
 
 #	gcc -static ${CFLAGS} -I. ${INCL} -o testcr ${CRSRC} ${RTSRC} ${LIBS}
 

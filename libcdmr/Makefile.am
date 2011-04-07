@@ -68,8 +68,11 @@ ASTDIR=./ast/src/compiler
 
 ASTJAR=${ASTDIR}/ast.jar
 
-ncStreamx.c ncStreamx.h: ncStreamx.proto ncStream.proto ${ASTJAR}
+ncStreamx.c ncStreamx.h: ncStreamx.proto
 	java -jar ${ASTJAR} -I. ncStreamx.proto
+
+ncStreamx.proto: ncStream.proto extends.sed
+	sed -f extends.sed <ncStream.proto >ncStreamx.proto
 
 .PHONEY: jar
 

@@ -3,24 +3,6 @@
 
 
 
-typedef enum Sort {
-    _Null=0,
-    _Attribute=1,
-    _Dimension=2,
-    _Variable=3,
-    _Structure=4,
-    _EnumTypedef=5,
-    _EnumType=6,
-    _Group=7,
-    _Header=8,
-    _Data=9,
-    _Range=10,
-    _Section=11,
-    _StructureData=12,
-    _Error=13
-} Sort;
-
-
 typedef enum DataType {
     CHAR=0,
     BYTE=1,
@@ -49,7 +31,6 @@ typedef enum Compress {
 } Compress;
 
 /* Forward definitions */
-typedef struct Notes Notes;
 typedef struct Attribute Attribute;
 typedef struct Dimension Dimension;
 typedef struct Variable Variable;
@@ -64,25 +45,12 @@ typedef struct Section Section;
 typedef struct StructureData StructureData;
 typedef struct Error Error;
 
-struct Notes {
-    uint32_t uid;
-    Sort sort;
-    int32_t ncid;
-};
-
-
-extern ast_err Notes_write(ast_runtime*,Notes*);
-extern ast_err Notes_read(ast_runtime*,Notes**);
-extern ast_err Notes_reclaim(ast_runtime*,Notes*);
-extern size_t Notes_get_size(ast_runtime*,Notes*);
-
 struct Attribute {
     char* name;
     DataType type;
     uint32_t len;
     struct {int defined; bytes_t value;} data;
     struct {size_t count; char** values;} sdata;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -97,7 +65,6 @@ struct Dimension {
     struct {int defined; bool_t value;} isUnlimited;
     struct {int defined; bool_t value;} isVlen;
     struct {int defined; bool_t value;} isPrivate;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -115,7 +82,6 @@ struct Variable {
     struct {int defined; bytes_t value;} data;
     struct {int defined; char* value;} enumType;
     struct {size_t count; uint32_t* values;} dimIndex;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -131,7 +97,6 @@ struct Structure {
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Variable** values;} vars;
     struct {size_t count; Structure** values;} structs;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -143,7 +108,6 @@ extern size_t Structure_get_size(ast_runtime*,Structure*);
 struct EnumTypedef {
     char* name;
     struct {size_t count; EnumType** values;} map;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -155,7 +119,6 @@ extern size_t EnumTypedef_get_size(ast_runtime*,EnumTypedef*);
 struct EnumType {
     uint32_t code;
     char* value;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -172,7 +135,6 @@ struct Group {
     struct {size_t count; Attribute** values;} atts;
     struct {size_t count; Group** values;} groups;
     struct {size_t count; EnumTypedef** values;} enumTypes;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -187,7 +149,6 @@ struct Header {
     struct {int defined; char* value;} id;
     Group* root;
     struct {int defined; uint32_t value;} version;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -204,7 +165,6 @@ struct Data {
     struct {int defined; uint32_t value;} version;
     struct {int defined; Compress value;} compress;
     struct {int defined; uint32_t value;} crc32;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -217,7 +177,6 @@ struct Range {
     struct {int defined; uint64_t value;} start;
     uint64_t size;
     struct {int defined; uint64_t value;} stride;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -228,7 +187,6 @@ extern size_t Range_get_size(ast_runtime*,Range*);
 
 struct Section {
     struct {size_t count; Range** values;} range;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -243,7 +201,6 @@ struct StructureData {
     struct {size_t count; uint32_t* values;} heapCount;
     struct {size_t count; char** values;} sdata;
     struct {int defined; uint64_t value;} nrows;
-    struct {int defined; Notes* value;} notes;
 };
 
 
@@ -254,7 +211,6 @@ extern size_t StructureData_get_size(ast_runtime*,StructureData*);
 
 struct Error {
     char* message;
-    struct {int defined; Notes* value;} notes;
 };
 
 

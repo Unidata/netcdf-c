@@ -112,7 +112,7 @@ NCCR_get_vara(int ncid, int varid,
 
     /* Find protobuf node corresponding to the var.*/
     varnodes = cdmr->nodeset;
-    cdfvar = NULL;
+    varnodes = NULL;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
 	if(node->ncid == varid) {

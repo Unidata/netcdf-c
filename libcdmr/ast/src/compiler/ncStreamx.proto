@@ -25,17 +25,16 @@ message Notes {
     required int32 ncid = 3;
 }
 
-extend Attribute {optional Notes notes = 1024;}
-extend Dimension {optional Notes notes = 1024;}
-extend Variable {optional Notes notes = 1024;}
-extend Structure {optional Notes notes = 1024;}
-extend EnumTypedef {optional Notes notes = 1024;}
-extend EnumType {optional Notes notes = 1024;}
-extend Group {optional Notes notes = 1024;}
-extend Header {optional Notes notes = 1024;}
-extend Data {optional Notes notes = 1024;}
-extend Range {optional Notes notes = 1024;}
-extend Section {optional Notes notes = 1024;}
-extend StructureData {optional Notes notes = 1024;}
-extend Error {optional Notes notes = 1024;}
-
+// extend Attribute {optional Notes notes = 1024;}
+// extend Dimension {optional Notes notes = 1024;}
+// extend Variable {optional Notes notes = 1024;}
+// extend Structure {optional Notes notes = 1024;}
+// extend EnumTypedef {optional Notes notes = 1024;}
+// extend EnumType {optional Notes notes = 1024;}
+// extend Group {optional Notes notes = 1024;}
+// extend Header {optional Notes notes = 1024;}
+// extend Data {optional Notes notes = 1024;}
+// extend Range {optional Notes notes = 1024;}
+// extend Section {optional Notes notes = 1024;}
+// extend StructureData {optional Notes notes = 1024;}
+// extend Error {optional Notes notes = 1024;}
