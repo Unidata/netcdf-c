@@ -17,14 +17,16 @@ crdebug.c crutil.c \
 nccrdump.c \
 ncStreamx.c curlwrap.c ncaux.c \
 ast_byteio.c ast_curl.c ast_internal.c \
-ast_runtime.c ast_util.c ast_debug.c
+ast_runtime.c ast_util.c ast_debug.c \
+crce.c
 
-HDRS=nccrconstraints.h nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
+HDRS=nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
 nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
-ast_runtime.h ast_util.h ast_debug.h
+ast_runtime.h ast_util.h ast_debug.h \
+crce.h
 
 if BUILD_CDMREMOTE
 
@@ -60,7 +62,7 @@ CLEANFILES += t_cdmr
 
 ##################################################
 # Generate the augmented ncstream structures
-EXTRA_DIST=ncStream.proto ncStream.h ncStreamc augmenth.sed augmentc.sed
+EXTRA_DIST=ncStream.proto ncStream.h ncStreamc
 
 ASTDIR=./ast/src/compiler
 
@@ -69,7 +71,9 @@ ASTJAR=${ASTDIR}/ast.jar
 ncStreamx.c ncStreamx.h: ncStreamx.proto ncStream.proto ${ASTJAR}
 	java -jar ${ASTJAR} -I. ncStreamx.proto
 
-jar ${ASTJAR}::
+.PHONEY: jar
+
+${ASTJAR}: 
 	cd ${ASTDIR}; make -f Make0 jar
 
 

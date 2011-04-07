@@ -3,6 +3,7 @@
 
 #define CRUDE
 
+#include "config.h"
 #include <sys/stat.h>
 
 #ifdef NETINET_IN_H
@@ -228,7 +229,6 @@ dumpmem2(char* s, char* accum, int align)
 static void
 dumpmem1(int index, unsigned int n, unsigned int n1)
 {
-    int i;
     char s[1024];
     char tmp[32];
     union {
@@ -237,10 +237,13 @@ dumpmem1(int index, unsigned int n, unsigned int n1)
 	unsigned char cv[4];
 	float fv;
     } form;
+#ifndef CRUDE
+    int i;
     union {
 	unsigned int uv[2];
 	double dv;
     } dform;
+#endif
     form.uv = n;
     s[0] = '\0';
 #ifndef CRUDE
@@ -282,8 +285,9 @@ dumpmemory0(char* memory, int len, int fromxdr, int bod)
 {
     unsigned int i,count,rem;
     int* imemory;
+#ifndef CRUDE
     char hdr[1024];
-
+#endif
     assert(memory[len] == 0);
 
 #ifndef CRUDE

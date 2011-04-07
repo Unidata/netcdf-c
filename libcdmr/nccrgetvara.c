@@ -23,11 +23,11 @@ int
 NCCR_get_vara(int ncid, int varid,
 	      const size_t* startp,
 	      const size_t* countp,
+	      const ptrdiff_t* stridep,
 	      void* data,
 	      nc_type externaltype0)
 {
     NCerror ncstat = NC_NOERR;
-#ifdef IGNORE
     OCerror ocstat = OC_NOERR;
     unsigned int i;
     NC_GRP_INFO_T *grp; 
@@ -42,6 +42,9 @@ NCCR_get_vara(int ncid, int varid,
     NCcachenode* cachenode = NULL;
     nc_type externaltype = externaltype0;
     NCCDMR* cdmr;
+    size_t localcount[NC_MAX_VAR_DIMS];
+    NClist* ncdims;
+    size_t ncrank;
 
     LOG((2, "nccr_get_vara: ncid 0x%x varid %d", ncid, varid));
 
@@ -51,41 +54,43 @@ NCCR_get_vara(int ncid, int varid,
     cdmr = nccr->cdmr;
 
     /* Find the netcdf-4 var structure for this varid */
-    for(i=0;i<
-
-    
-
     for(var=grp->var;var!=NULL;var=var->next) {
 	if (var->varid == varid) break;
     }
     if(var == NULL) {ncstat = NC_ENOTVAR; goto fail;}
 
-    /* Find cdfnode corresponding to the var.*/
-    varnodes = nccomm->cdf.varnodes;
-    cdfvar = NULL;
-    for(i=0;i<nclistlength(varnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
-	if(node->ncid == varid) {
-	    cdfvar = node;
-	    break;
-	}
-    }
     ASSERT((cdfvar != NULL));
     ASSERT((strcmp(cdfvar->ncfullname,var->name)==0));
 
-#ifdef DEBUG
-{ NClist* dims = cdfvar->array.dimensions;
-fprintf(stderr,"getvarx: %s/%d",cdfvar->ncfullname,(int)nclistlength(dims));
-if(nclistlength(dims) > 0) {int i;
-for(i=0;i<nclistlength(dims);i++) 
-fprintf(stderr,"[%lu:%lu]",(unsigned long)startp[i],(unsigned long)countp[i]);
-fprintf(stderr," -> ");
-for(i=0;i<nclistlength(dims);i++) 
-fprintf(stderr,"[%lu:%lu]",(unsigned long)startp[i],(unsigned long)((startp[i]+countp[i])-1));
-}
-fprintf(stderr,"\n");
-}
-#endif
+    /* Get the dimension info */
+    ncdims = cdfvar->array.dimensions;
+    ncrank = nclistlength(ncdims);
+
+    /* Fill in missing arguments */
+    if(startp == NULL)
+	startp = zerostart;
+
+    if(countp == NULL) {
+        /* Accumulate the dimension sizes */
+        for(i=0;i<ncrank;i++) {
+	    CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	    localcount[i] = dim->dim.declsize;
+	}
+	countp = localcount;
+    }
+
+    if(stridep == NULL)
+	stridep = singlestride;
+
+    /* Validate the dimension sizes */
+    for(i=0;i<ncrank;i++) {
+        CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	if(startp[i] > dim->dim.declsize
+	   || startp[i]+countp[i] > dim->dim.declsize) {
+	    ncstat = NC_EINVALCOORDS;
+	    goto fail;	    
+	}
+    }	     
 
     /* Default to using the var type */
     if(externaltype == NC_NAT) externaltype = cdfvar->externaltype;
@@ -102,6 +107,17 @@ fprintf(stderr,"\n");
 	default:
 	    THROWCHK(NC_ECHAR);
 	    goto fail;
+	}
+    }
+
+    /* Find protobuf node corresponding to the var.*/
+    varnodes = cdmr->nodeset;
+    cdfvar = NULL;
+    for(i=0;i<nclistlength(varnodes);i++) {
+	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
+	if(node->ncid == varid) {
+	    cdfvar = node;
+	    break;
 	}
     }
 
@@ -190,6 +206,29 @@ ok:
     efree(constraint);
     freegetvara(varainfo);
     freencprojection(varaprojection);
-#endif
     return THROW(ncstat);
 }
+
+
+/**************************************************/
+/* Duplicated from libncdap3/common34 */
+
+statioc NCerror
+makegetvar(NCCDMR* cdmr, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
+{
+    Getvara* getvar;
+    NCerror ncstat = NC_NOERR;
+
+    getvar = (Getvara*)emalloc(sizeof(Getvara));
+    MEMCHECK(getvar,NC_ENOMEM);
+    memset((void*)getvar,0,sizeof(Getvara));
+    if(getvarp) *getvarp = getvar;
+
+    getvar->target = var;
+    getvar->memory = data;
+    getvar->dsttype = dsttype;
+    getvar->target = var;
+    if(ncstat) efree(getvar);
+    return ncstat;
+}
+

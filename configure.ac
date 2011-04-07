@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2-rc2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -957,7 +957,7 @@ AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.4])
 LT_INIT(win32-dll)
-AC_PROG_LIBTOOL
+#AC_PROG_LIBTOOL
 lt_cv_ld_force_load=no
 
 # Valgrind tests don't work with shared builds because of some libtool

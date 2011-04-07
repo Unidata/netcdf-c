@@ -7,6 +7,7 @@
    they functions all just abort if called.
 */
 
+#include "config.h"
 #include "ceparselex.h"
 
 static Object collectlist(Object list0, Object decl);

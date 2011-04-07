@@ -236,7 +236,6 @@ nc_urlparamdecode(char* params0)
     int nparams;
     NClist* map = nclistnew();
     char* params;
-    char* tmp;
 
     if(params0 == NULL) return map;
 
@@ -249,8 +248,12 @@ nc_urlparamdecode(char* params0)
     *cq = '\0';
 
     /* Pass 2 to replace beginning '[' and ending ']' */
-    if(params[0] == '[') 
-	strcpy(params,params+1);
+    if(params[0] == '[') {
+	char* p = params;
+	char* q = params+1;
+	/*strcpy(params,params+1); valgrind complains about overlap */
+	while((*p++=*q++));
+    }
     if(params[strlen(params)-1] == ']')
 	params[strlen(params)-1] = '\0';
 

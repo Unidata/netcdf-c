@@ -18,13 +18,13 @@ is contained.
 int
 crbuildvaraprojection(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     NCprojection** projectionp)
+		     CRCprojection** projectionp)
 {
     int i;
     int ncstat = NC_NOERR;
     NClist* dimset;
     CDFnode* var = getvar->target;
-    NCprojection* projection = NULL;
+    CRCprojection* projection = NULL;
     NClist* segments = NULL;
     NCsegment* segment;
 
@@ -36,7 +36,7 @@ crbuildvaraprojection(Getvara* getvar,
     segments = nclistnew();
     nclistpush(segments,(ncelem)segment);
 
-    projection = createncprojection();
+    projection = createCRCprojection();
     projection->discrim = NS_VAR;
     projection->var = createncvar();
     projection->var->leaf = var;
@@ -59,7 +59,7 @@ crbuildvaraprojection(Getvara* getvar,
     segment->slicesdefined = 1;
 
     if(projectionp) *projectionp = projection;
-    if(ncstat) freencprojection(projection);
+    if(ncstat) freeCRCprojection(projection);
     return ncstat;
 }
 
@@ -105,7 +105,7 @@ crprefetchdata(NCCR* drno)
     } else { /* Construct the projections for this set of vars */
         /* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
-        newconstraint->projections = clonencprojections(constraint->projections);
+        newconstraint->projections = cloneCRCprojections(constraint->projections);
         crrestrictprojection3(vars,newconstraint->projections);
         /* similar for selections */
         newconstraint->selections = clonencselections(constraint->selections);

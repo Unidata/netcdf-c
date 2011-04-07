@@ -42,12 +42,7 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-/*
- * The Interface
- */
 
-
-/**/
 
 EXTERNL int
 NCD4_new_nc(NC**);

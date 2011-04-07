@@ -1,6 +1,7 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#include "config.h"
 #include "oclist.h"
 #include "ocinternal.h"
 #include "occlientparams.h"

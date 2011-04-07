@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/ncdap3.c,v 1.94 2010/05/28 01:05:34 dmh Exp $
  *********************************************************************/
-#include "config.h"
+
 #include "ncdap3.h"
 #include "nc3dispatch.h"
 #include "ncd3dispatch.h"
@@ -289,9 +289,6 @@ NCD3_close(int ncid)
 
     ncstatus = NC_check_id(ncid, (NC**)&drno); 
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
-
-    nclogclose();
-    oc_logclose();
 
     cleanNCDAP3(drno);
     NC3_abort(ncid);    

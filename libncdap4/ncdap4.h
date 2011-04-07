@@ -26,6 +26,7 @@
 #include "dapurl.h"
 
 
+#include "ncconstraints.h"
 #include "nccommon.h"
 #include "ncdap3.h"
 

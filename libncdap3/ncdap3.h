@@ -44,6 +44,7 @@ struct NCsegment;
 
 /**************************************************/
 
+#include "ncconstraints.h"
 #include "nccommon.h"
 #include "getvara.h"
 #include "constraints3.h"
@@ -131,7 +132,7 @@ extern NCerror buildvaraprojection3(struct Getvara*,
 extern NCerror nc3d_getvarx(int ncid, int varid,
 	    const size_t *startp,
 	    const size_t *countp,
-	    const ptrdiff_t* stridep,
+	    const ptrdiff_t *stridep,
 	    void *data,
 	    nc_type dsttype0);
 

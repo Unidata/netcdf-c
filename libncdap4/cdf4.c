@@ -5,7 +5,6 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap4/cdf4.c,v 1.16 2010/05/24 19:59:55 dmh Exp $
  *********************************************************************/
 
-#include "config.h"
 #include "ncdap4.h"
 #include "dapalign.h"
 #include "dapdump.h"

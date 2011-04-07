@@ -42,10 +42,6 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-/*
- * The Interface
- */
-
 
 EXTERNL int
 NCD3_new_nc(struct NC**);

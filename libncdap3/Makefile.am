@@ -36,6 +36,7 @@ ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c
 
 HDRS=\
 nccommon.h \
+ncconstraints.h \
 constraints3.h \
 ncd3dispatch.h \
 ncdap3.h \
@@ -77,14 +78,15 @@ LDADD +=  ${top_builddir}/libncdap3/libncdap3.la \
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap3a
-CLEANFILES += t_dap3a
+check_PROGRAMS = t_dap3a t_dap3c
+CLEANFILES += t_dap3a t_dap3c
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap3a
+TESTS = t_dap3a t_dap3c
 t_dap3a_SOURCES = t_dap3a.c stubdap3.c
+t_dap3c_SOURCES = t_dap3c.c stubdap3.c
 # Set ldflags
 t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
-
+t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
 EXTRA_DIST = ce.y t_dap.c
 
 endif # BUILD_DAP

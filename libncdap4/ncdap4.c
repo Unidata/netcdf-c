@@ -273,6 +273,11 @@ NCD4_close(int ncid)
     int ncstat = NC_NOERR;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
+
+    /* Avoid repeated close  */
+    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    if(ncstat != NC_NOERR) return THROW(ncstat);
+
     /* Find our metadata for this file. */
     ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
@@ -280,11 +285,9 @@ NCD4_close(int ncid)
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
-    nclogclose();
-    oc_logclose();
-
     /* Destroy/close the NCDAP4 state */
     cleanNCDAP4(drno);
+
     NC4_abort(ncid);
 
     return THROW(ncstat);

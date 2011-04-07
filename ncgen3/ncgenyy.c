@@ -874,7 +874,7 @@ char *ncgtext;
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id: ncgenyy.c,v 1.17 2010/03/31 18:18:45 dmh Exp $
+ *   $Id: ncgen.l,v 1.24 2009/12/29 18:42:36 dmh Exp $
  *********************************************************************/
 
 /* Problems:
@@ -1046,7 +1046,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO fwrite( ncgtext, ncgleng, 1, ncgout )
+#define ECHO do { if (fwrite( ncgtext, ncgleng, 1, ncgout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
