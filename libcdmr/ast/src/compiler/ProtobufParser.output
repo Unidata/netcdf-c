@@ -1,0 +1,2409 @@
+Terminals unused in grammar
+
+   NEGNAN
+   NEGINF
+
+
+Grammar
+
+    0 $accept: root $end
+
+    1 root: protobuffile
+
+    2 protobuffile: decllist ENDFILE
+
+    3 packagedecl: PACKAGE packagename ';'
+
+    4 importstmt: importprefix protobuffile
+
+    5 importprefix: IMPORT STRINGCONST ';'
+
+    6 decllist: /* empty */
+    7         | decllist decl
+
+    8 decl: message
+    9     | extend
+   10     | enumtype
+   11     | optionstmt
+   12     | service
+   13     | packagedecl
+   14     | importstmt
+   15     | ';'
+
+   16 optionstmt: OPTION option ';'
+
+   17 option: name '=' constant
+   18       | '(' name ')' '=' constant
+
+   19 message: MESSAGE name messagebody
+
+   20 extend: EXTEND path '{' fieldlist '}'
+
+   21 fieldlist: /* empty */
+   22          | fieldlist field
+   23          | fieldlist ';'
+
+   24 enumtype: ENUM name '{' enumlist '}'
+
+   25 enumlist: /* empty */
+   26         | enumlist optionstmt
+   27         | enumlist enumvalue
+   28         | enumlist ';'
+
+   29 enumvalue: name '=' intconst
+   30          | name '=' intconst '[' enumoptionlist ']'
+
+   31 enumoptionlist: option
+   32               | enumoptionlist ',' option
+
+   33 service: SERVICE name '{' servicecaselist '}'
+
+   34 servicecaselist: /* empty */
+   35                | servicecaselist servicecase
+
+   36 servicecase: optionstmt
+   37            | rpc
+   38            | ';'
+
+   39 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' ';'
+   40    | RPC name '(' usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+   41 optionstmtlist: /* empty */
+   42               | optionstmtlist optionstmt
+
+   43 messagebody: '{' messageelementlist '}'
+
+   44 messageelementlist: /* empty */
+   45                   | messageelementlist messageelement
+
+   46 messageelement: field
+   47               | enumtype
+   48               | message
+   49               | extend
+   50               | extensions
+   51               | optionstmt
+   52               | ';'
+
+   53 field: cardinality type name '=' intconst ';'
+   54      | cardinality type name '=' intconst '[' fieldoptionlist ']' ';'
+   55      | cardinality type name '=' intconst messagebody
+
+   56 fieldoptionlist: fieldoption
+   57                | fieldoptionlist ',' fieldoption
+
+   58 fieldoption: option
+
+   59 extensions: EXTENSIONS extensionlist ';'
+
+   60 extensionlist: extensionrange
+   61              | extensionlist ',' extensionrange
+
+   62 extensionrange: INTCONST
+   63               | INTCONST TO INTCONST
+   64               | INTCONST TO MAX
+
+   65 cardinality: REQUIRED
+   66            | OPTIONAL
+   67            | REPEATED
+
+   68 type: DOUBLE
+   69     | FLOAT
+   70     | INT32
+   71     | INT64
+   72     | UINT32
+   73     | UINT64
+   74     | SINT32
+   75     | SINT64
+   76     | FIXED32
+   77     | FIXED64
+   78     | SFIXED32
+   79     | SFIXED64
+   80     | BOOL
+   81     | STRING
+   82     | BYTES
+   83     | usertype
+
+   84 usertype: path
+
+   85 packagename: path
+
+   86 constant: path
+   87         | compound
+   88         | intconst
+   89         | floatconst
+   90         | STRINGCONST
+   91         | TRUE
+   92         | FALSE
+   93         | POSNAN
+   94         | POSINF
+   95         | '-' POSNAN
+   96         | '-' POSINF
+
+   97 intconst: INTCONST
+   98         | '+' INTCONST
+   99         | '-' INTCONST
+
+  100 floatconst: FLOATCONST
+  101           | '+' FLOATCONST
+  102           | '-' FLOATCONST
+
+  103 path: relpath
+  104     | '.' relpath
+
+  105 relpath: name
+  106        | relpath '.' name
+
+  107 compound: '{' pairlist '}'
+
+  108 pairlist: pair
+  109         | pairlist pair
+
+  110 pair: name ':' constant
+
+  111 name: text
+
+  112 text: NAME
+  113     | IMPORT
+  114     | PACKAGE
+  115     | OPTION
+  116     | MESSAGE
+  117     | EXTEND
+  118     | EXTENSIONS
+  119     | ENUM
+  120     | SERVICE
+  121     | RPC
+  122     | RETURNS
+  123     | TO
+  124     | MAX
+  125     | REQUIRED
+  126     | OPTIONAL
+  127     | REPEATED
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 18 39 40
+')' (41) 18 39 40
+'+' (43) 98 101
+',' (44) 32 57 61
+'-' (45) 95 96 99 102
+'.' (46) 104 106
+':' (58) 110
+';' (59) 3 5 15 16 23 28 38 39 52 53 54 59
+'=' (61) 17 18 29 30 53 54 55
+'[' (91) 30 54
+']' (93) 30 54
+'{' (123) 20 24 33 40 43 107
+'}' (125) 20 24 33 40 43 107
+error (256)
+IMPORT (258) 5 113
+PACKAGE (259) 3 114
+OPTION (260) 16 115
+MESSAGE (261) 19 116
+EXTEND (262) 20 117
+EXTENSIONS (263) 59 118
+ENUM (264) 24 119
+SERVICE (265) 33 120
+RPC (266) 39 40 121
+RETURNS (267) 39 40 122
+TO (268) 63 64 123
+MAX (269) 64 124
+REQUIRED (270) 65 125
+OPTIONAL (271) 66 126
+REPEATED (272) 67 127
+DOUBLE (273) 68
+FLOAT (274) 69
+INT32 (275) 70
+INT64 (276) 71
+UINT32 (277) 72
+UINT64 (278) 73
+SINT32 (279) 74
+SINT64 (280) 75
+FIXED32 (281) 76
+FIXED64 (282) 77
+SFIXED32 (283) 78
+SFIXED64 (284) 79
+BOOL (285) 80
+STRING (286) 81
+BYTES (287) 82
+ENDFILE (288) 2
+INTCONST (289) 62 63 64 97 98 99
+FLOATCONST (290) 100 101 102
+STRINGCONST (291) 5 90
+TRUE (292) 91
+FALSE (293) 92
+POSNAN (294) 93 95
+POSINF (295) 94 96
+NEGNAN (296)
+NEGINF (297)
+NAME (298) 112
+
+
+Nonterminals, with rules where they appear
+
+$accept (57)
+    on left: 0
+root (58)
+    on left: 1, on right: 0
+protobuffile (59)
+    on left: 2, on right: 1 4
+packagedecl (60)
+    on left: 3, on right: 13
+importstmt (61)
+    on left: 4, on right: 14
+importprefix (62)
+    on left: 5, on right: 4
+decllist (63)
+    on left: 6 7, on right: 2 7
+decl (64)
+    on left: 8 9 10 11 12 13 14 15, on right: 7
+optionstmt (65)
+    on left: 16, on right: 11 26 36 42 51
+option (66)
+    on left: 17 18, on right: 16 31 32 58
+message (67)
+    on left: 19, on right: 8 48
+extend (68)
+    on left: 20, on right: 9 49
+fieldlist (69)
+    on left: 21 22 23, on right: 20 22 23
+enumtype (70)
+    on left: 24, on right: 10 47
+enumlist (71)
+    on left: 25 26 27 28, on right: 24 26 27 28
+enumvalue (72)
+    on left: 29 30, on right: 27
+enumoptionlist (73)
+    on left: 31 32, on right: 30 32
+service (74)
+    on left: 33, on right: 12
+servicecaselist (75)
+    on left: 34 35, on right: 33 35
+servicecase (76)
+    on left: 36 37 38, on right: 35
+rpc (77)
+    on left: 39 40, on right: 37
+optionstmtlist (78)
+    on left: 41 42, on right: 40 42
+messagebody (79)
+    on left: 43, on right: 19 55
+messageelementlist (80)
+    on left: 44 45, on right: 43 45
+messageelement (81)
+    on left: 46 47 48 49 50 51 52, on right: 45
+field (82)
+    on left: 53 54 55, on right: 22 46
+fieldoptionlist (83)
+    on left: 56 57, on right: 54 57
+fieldoption (84)
+    on left: 58, on right: 56 57
+extensions (85)
+    on left: 59, on right: 50
+extensionlist (86)
+    on left: 60 61, on right: 59 61
+extensionrange (87)
+    on left: 62 63 64, on right: 60 61
+cardinality (88)
+    on left: 65 66 67, on right: 53 54 55
+type (89)
+    on left: 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83, on right:
+    53 54 55
+usertype (90)
+    on left: 84, on right: 39 40 83
+packagename (91)
+    on left: 85, on right: 3
+constant (92)
+    on left: 86 87 88 89 90 91 92 93 94 95 96, on right: 17 18 110
+intconst (93)
+    on left: 97 98 99, on right: 29 30 53 54 55 88
+floatconst (94)
+    on left: 100 101 102, on right: 89
+path (95)
+    on left: 103 104, on right: 20 84 85 86
+relpath (96)
+    on left: 105 106, on right: 103 104 106
+compound (97)
+    on left: 107, on right: 87
+pairlist (98)
+    on left: 108 109, on right: 107 109
+pair (99)
+    on left: 110, on right: 108 109
+name (100)
+    on left: 111, on right: 17 18 19 24 29 30 33 39 40 53 54 55 105
+    106 110
+text (101)
+    on left: 112 113 114 115 116 117 118 119 120 121 122 123 124 125
+    126 127, on right: 111
+
+
+state 0
+
+    0 $accept: . root $end
+
+    $default  reduce using rule 6 (decllist)
+
+    root          go to state 1
+    protobuffile  go to state 2
+    decllist      go to state 3
+
+
+state 1
+
+    0 $accept: root . $end
+
+    $end  shift, and go to state 4
+
+
+state 2
+
+    1 root: protobuffile .
+
+    $default  reduce using rule 1 (root)
+
+
+state 3
+
+    2 protobuffile: decllist . ENDFILE
+    7 decllist: decllist . decl
+
+    IMPORT   shift, and go to state 5
+    PACKAGE  shift, and go to state 6
+    OPTION   shift, and go to state 7
+    MESSAGE  shift, and go to state 8
+    EXTEND   shift, and go to state 9
+    ENUM     shift, and go to state 10
+    SERVICE  shift, and go to state 11
+    ENDFILE  shift, and go to state 12
+    ';'      shift, and go to state 13
+
+    packagedecl   go to state 14
+    importstmt    go to state 15
+    importprefix  go to state 16
+    decl          go to state 17
+    optionstmt    go to state 18
+    message       go to state 19
+    extend        go to state 20
+    enumtype      go to state 21
+    service       go to state 22
+
+
+state 4
+
+    0 $accept: root $end .
+
+    $default  accept
+
+
+state 5
+
+    5 importprefix: IMPORT . STRINGCONST ';'
+
+    STRINGCONST  shift, and go to state 23
+
+
+state 6
+
+    3 packagedecl: PACKAGE . packagename ';'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '.'         shift, and go to state 40
+
+    packagename  go to state 41
+    path         go to state 42
+    relpath      go to state 43
+    name         go to state 44
+    text         go to state 45
+
+
+state 7
+
+   16 optionstmt: OPTION . option ';'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    option  go to state 47
+    name    go to state 48
+    text    go to state 45
+
+
+state 8
+
+   19 message: MESSAGE . name messagebody
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 49
+    text  go to state 45
+
+
+state 9
+
+   20 extend: EXTEND . path '{' fieldlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '.'         shift, and go to state 40
+
+    path     go to state 50
+    relpath  go to state 43
+    name     go to state 44
+    text     go to state 45
+
+
+state 10
+
+   24 enumtype: ENUM . name '{' enumlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 51
+    text  go to state 45
+
+
+state 11
+
+   33 service: SERVICE . name '{' servicecaselist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 52
+    text  go to state 45
+
+
+state 12
+
+    2 protobuffile: decllist ENDFILE .
+
+    $default  reduce using rule 2 (protobuffile)
+
+
+state 13
+
+   15 decl: ';' .
+
+    $default  reduce using rule 15 (decl)
+
+
+state 14
+
+   13 decl: packagedecl .
+
+    $default  reduce using rule 13 (decl)
+
+
+state 15
+
+   14 decl: importstmt .
+
+    $default  reduce using rule 14 (decl)
+
+
+state 16
+
+    4 importstmt: importprefix . protobuffile
+
+    $default  reduce using rule 6 (decllist)
+
+    protobuffile  go to state 53
+    decllist      go to state 3
+
+
+state 17
+
+    7 decllist: decllist decl .
+
+    $default  reduce using rule 7 (decllist)
+
+
+state 18
+
+   11 decl: optionstmt .
+
+    $default  reduce using rule 11 (decl)
+
+
+state 19
+
+    8 decl: message .
+
+    $default  reduce using rule 8 (decl)
+
+
+state 20
+
+    9 decl: extend .
+
+    $default  reduce using rule 9 (decl)
+
+
+state 21
+
+   10 decl: enumtype .
+
+    $default  reduce using rule 10 (decl)
+
+
+state 22
+
+   12 decl: service .
+
+    $default  reduce using rule 12 (decl)
+
+
+state 23
+
+    5 importprefix: IMPORT STRINGCONST . ';'
+
+    ';'  shift, and go to state 54
+
+
+state 24
+
+  113 text: IMPORT .
+
+    $default  reduce using rule 113 (text)
+
+
+state 25
+
+  114 text: PACKAGE .
+
+    $default  reduce using rule 114 (text)
+
+
+state 26
+
+  115 text: OPTION .
+
+    $default  reduce using rule 115 (text)
+
+
+state 27
+
+  116 text: MESSAGE .
+
+    $default  reduce using rule 116 (text)
+
+
+state 28
+
+  117 text: EXTEND .
+
+    $default  reduce using rule 117 (text)
+
+
+state 29
+
+  118 text: EXTENSIONS .
+
+    $default  reduce using rule 118 (text)
+
+
+state 30
+
+  119 text: ENUM .
+
+    $default  reduce using rule 119 (text)
+
+
+state 31
+
+  120 text: SERVICE .
+
+    $default  reduce using rule 120 (text)
+
+
+state 32
+
+  121 text: RPC .
+
+    $default  reduce using rule 121 (text)
+
+
+state 33
+
+  122 text: RETURNS .
+
+    $default  reduce using rule 122 (text)
+
+
+state 34
+
+  123 text: TO .
+
+    $default  reduce using rule 123 (text)
+
+
+state 35
+
+  124 text: MAX .
+
+    $default  reduce using rule 124 (text)
+
+
+state 36
+
+  125 text: REQUIRED .
+
+    $default  reduce using rule 125 (text)
+
+
+state 37
+
+  126 text: OPTIONAL .
+
+    $default  reduce using rule 126 (text)
+
+
+state 38
+
+  127 text: REPEATED .
+
+    $default  reduce using rule 127 (text)
+
+
+state 39
+
+  112 text: NAME .
+
+    $default  reduce using rule 112 (text)
+
+
+state 40
+
+  104 path: '.' . relpath
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    relpath  go to state 55
+    name     go to state 44
+    text     go to state 45
+
+
+state 41
+
+    3 packagedecl: PACKAGE packagename . ';'
+
+    ';'  shift, and go to state 56
+
+
+state 42
+
+   85 packagename: path .
+
+    $default  reduce using rule 85 (packagename)
+
+
+state 43
+
+  103 path: relpath .
+  106 relpath: relpath . '.' name
+
+    '.'  shift, and go to state 57
+
+    $default  reduce using rule 103 (path)
+
+
+state 44
+
+  105 relpath: name .
+
+    $default  reduce using rule 105 (relpath)
+
+
+state 45
+
+  111 name: text .
+
+    $default  reduce using rule 111 (name)
+
+
+state 46
+
+   18 option: '(' . name ')' '=' constant
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 58
+    text  go to state 45
+
+
+state 47
+
+   16 optionstmt: OPTION option . ';'
+
+    ';'  shift, and go to state 59
+
+
+state 48
+
+   17 option: name . '=' constant
+
+    '='  shift, and go to state 60
+
+
+state 49
+
+   19 message: MESSAGE name . messagebody
+
+    '{'  shift, and go to state 61
+
+    messagebody  go to state 62
+
+
+state 50
+
+   20 extend: EXTEND path . '{' fieldlist '}'
+
+    '{'  shift, and go to state 63
+
+
+state 51
+
+   24 enumtype: ENUM name . '{' enumlist '}'
+
+    '{'  shift, and go to state 64
+
+
+state 52
+
+   33 service: SERVICE name . '{' servicecaselist '}'
+
+    '{'  shift, and go to state 65
+
+
+state 53
+
+    4 importstmt: importprefix protobuffile .
+
+    $default  reduce using rule 4 (importstmt)
+
+
+state 54
+
+    5 importprefix: IMPORT STRINGCONST ';' .
+
+    $default  reduce using rule 5 (importprefix)
+
+
+state 55
+
+  104 path: '.' relpath .
+  106 relpath: relpath . '.' name
+
+    '.'  shift, and go to state 57
+
+    $default  reduce using rule 104 (path)
+
+
+state 56
+
+    3 packagedecl: PACKAGE packagename ';' .
+
+    $default  reduce using rule 3 (packagedecl)
+
+
+state 57
+
+  106 relpath: relpath '.' . name
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 66
+    text  go to state 45
+
+
+state 58
+
+   18 option: '(' name . ')' '=' constant
+
+    ')'  shift, and go to state 67
+
+
+state 59
+
+   16 optionstmt: OPTION option ';' .
+
+    $default  reduce using rule 16 (optionstmt)
+
+
+state 60
+
+   17 option: name '=' . constant
+
+    IMPORT       shift, and go to state 24
+    PACKAGE      shift, and go to state 25
+    OPTION       shift, and go to state 26
+    MESSAGE      shift, and go to state 27
+    EXTEND       shift, and go to state 28
+    EXTENSIONS   shift, and go to state 29
+    ENUM         shift, and go to state 30
+    SERVICE      shift, and go to state 31
+    RPC          shift, and go to state 32
+    RETURNS      shift, and go to state 33
+    TO           shift, and go to state 34
+    MAX          shift, and go to state 35
+    REQUIRED     shift, and go to state 36
+    OPTIONAL     shift, and go to state 37
+    REPEATED     shift, and go to state 38
+    INTCONST     shift, and go to state 68
+    FLOATCONST   shift, and go to state 69
+    STRINGCONST  shift, and go to state 70
+    TRUE         shift, and go to state 71
+    FALSE        shift, and go to state 72
+    POSNAN       shift, and go to state 73
+    POSINF       shift, and go to state 74
+    NAME         shift, and go to state 39
+    '{'          shift, and go to state 75
+    '-'          shift, and go to state 76
+    '+'          shift, and go to state 77
+    '.'          shift, and go to state 40
+
+    constant    go to state 78
+    intconst    go to state 79
+    floatconst  go to state 80
+    path        go to state 81
+    relpath     go to state 43
+    compound    go to state 82
+    name        go to state 44
+    text        go to state 45
+
+
+state 61
+
+   43 messagebody: '{' . messageelementlist '}'
+
+    $default  reduce using rule 44 (messageelementlist)
+
+    messageelementlist  go to state 83
+
+
+state 62
+
+   19 message: MESSAGE name messagebody .
+
+    $default  reduce using rule 19 (message)
+
+
+state 63
+
+   20 extend: EXTEND path '{' . fieldlist '}'
+
+    $default  reduce using rule 21 (fieldlist)
+
+    fieldlist  go to state 84
+
+
+state 64
+
+   24 enumtype: ENUM name '{' . enumlist '}'
+
+    $default  reduce using rule 25 (enumlist)
+
+    enumlist  go to state 85
+
+
+state 65
+
+   33 service: SERVICE name '{' . servicecaselist '}'
+
+    $default  reduce using rule 34 (servicecaselist)
+
+    servicecaselist  go to state 86
+
+
+state 66
+
+  106 relpath: relpath '.' name .
+
+    $default  reduce using rule 106 (relpath)
+
+
+state 67
+
+   18 option: '(' name ')' . '=' constant
+
+    '='  shift, and go to state 87
+
+
+state 68
+
+   97 intconst: INTCONST .
+
+    $default  reduce using rule 97 (intconst)
+
+
+state 69
+
+  100 floatconst: FLOATCONST .
+
+    $default  reduce using rule 100 (floatconst)
+
+
+state 70
+
+   90 constant: STRINGCONST .
+
+    $default  reduce using rule 90 (constant)
+
+
+state 71
+
+   91 constant: TRUE .
+
+    $default  reduce using rule 91 (constant)
+
+
+state 72
+
+   92 constant: FALSE .
+
+    $default  reduce using rule 92 (constant)
+
+
+state 73
+
+   93 constant: POSNAN .
+
+    $default  reduce using rule 93 (constant)
+
+
+state 74
+
+   94 constant: POSINF .
+
+    $default  reduce using rule 94 (constant)
+
+
+state 75
+
+  107 compound: '{' . pairlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    pairlist  go to state 88
+    pair      go to state 89
+    name      go to state 90
+    text      go to state 45
+
+
+state 76
+
+   95 constant: '-' . POSNAN
+   96         | '-' . POSINF
+   99 intconst: '-' . INTCONST
+  102 floatconst: '-' . FLOATCONST
+
+    INTCONST    shift, and go to state 91
+    FLOATCONST  shift, and go to state 92
+    POSNAN      shift, and go to state 93
+    POSINF      shift, and go to state 94
+
+
+state 77
+
+   98 intconst: '+' . INTCONST
+  101 floatconst: '+' . FLOATCONST
+
+    INTCONST    shift, and go to state 95
+    FLOATCONST  shift, and go to state 96
+
+
+state 78
+
+   17 option: name '=' constant .
+
+    $default  reduce using rule 17 (option)
+
+
+state 79
+
+   88 constant: intconst .
+
+    $default  reduce using rule 88 (constant)
+
+
+state 80
+
+   89 constant: floatconst .
+
+    $default  reduce using rule 89 (constant)
+
+
+state 81
+
+   86 constant: path .
+
+    $default  reduce using rule 86 (constant)
+
+
+state 82
+
+   87 constant: compound .
+
+    $default  reduce using rule 87 (constant)
+
+
+state 83
+
+   43 messagebody: '{' messageelementlist . '}'
+   45 messageelementlist: messageelementlist . messageelement
+
+    OPTION      shift, and go to state 7
+    MESSAGE     shift, and go to state 8
+    EXTEND      shift, and go to state 9
+    EXTENSIONS  shift, and go to state 97
+    ENUM        shift, and go to state 10
+    REQUIRED    shift, and go to state 98
+    OPTIONAL    shift, and go to state 99
+    REPEATED    shift, and go to state 100
+    ';'         shift, and go to state 101
+    '}'         shift, and go to state 102
+
+    optionstmt      go to state 103
+    message         go to state 104
+    extend          go to state 105
+    enumtype        go to state 106
+    messageelement  go to state 107
+    field           go to state 108
+    extensions      go to state 109
+    cardinality     go to state 110
+
+
+state 84
+
+   20 extend: EXTEND path '{' fieldlist . '}'
+   22 fieldlist: fieldlist . field
+   23          | fieldlist . ';'
+
+    REQUIRED  shift, and go to state 98
+    OPTIONAL  shift, and go to state 99
+    REPEATED  shift, and go to state 100
+    ';'       shift, and go to state 111
+    '}'       shift, and go to state 112
+
+    field        go to state 113
+    cardinality  go to state 110
+
+
+state 85
+
+   24 enumtype: ENUM name '{' enumlist . '}'
+   26 enumlist: enumlist . optionstmt
+   27         | enumlist . enumvalue
+   28         | enumlist . ';'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 114
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    ';'         shift, and go to state 115
+    '}'         shift, and go to state 116
+
+    optionstmt  go to state 117
+    enumvalue   go to state 118
+    name        go to state 119
+    text        go to state 45
+
+
+state 86
+
+   33 service: SERVICE name '{' servicecaselist . '}'
+   35 servicecaselist: servicecaselist . servicecase
+
+    OPTION  shift, and go to state 7
+    RPC     shift, and go to state 120
+    ';'     shift, and go to state 121
+    '}'     shift, and go to state 122
+
+    optionstmt   go to state 123
+    servicecase  go to state 124
+    rpc          go to state 125
+
+
+state 87
+
+   18 option: '(' name ')' '=' . constant
+
+    IMPORT       shift, and go to state 24
+    PACKAGE      shift, and go to state 25
+    OPTION       shift, and go to state 26
+    MESSAGE      shift, and go to state 27
+    EXTEND       shift, and go to state 28
+    EXTENSIONS   shift, and go to state 29
+    ENUM         shift, and go to state 30
+    SERVICE      shift, and go to state 31
+    RPC          shift, and go to state 32
+    RETURNS      shift, and go to state 33
+    TO           shift, and go to state 34
+    MAX          shift, and go to state 35
+    REQUIRED     shift, and go to state 36
+    OPTIONAL     shift, and go to state 37
+    REPEATED     shift, and go to state 38
+    INTCONST     shift, and go to state 68
+    FLOATCONST   shift, and go to state 69
+    STRINGCONST  shift, and go to state 70
+    TRUE         shift, and go to state 71
+    FALSE        shift, and go to state 72
+    POSNAN       shift, and go to state 73
+    POSINF       shift, and go to state 74
+    NAME         shift, and go to state 39
+    '{'          shift, and go to state 75
+    '-'          shift, and go to state 76
+    '+'          shift, and go to state 77
+    '.'          shift, and go to state 40
+
+    constant    go to state 126
+    intconst    go to state 79
+    floatconst  go to state 80
+    path        go to state 81
+    relpath     go to state 43
+    compound    go to state 82
+    name        go to state 44
+    text        go to state 45
+
+
+state 88
+
+  107 compound: '{' pairlist . '}'
+  109 pairlist: pairlist . pair
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '}'         shift, and go to state 127
+
+    pair  go to state 128
+    name  go to state 90
+    text  go to state 45
+
+
+state 89
+
+  108 pairlist: pair .
+
+    $default  reduce using rule 108 (pairlist)
+
+
+state 90
+
+  110 pair: name . ':' constant
+
+    ':'  shift, and go to state 129
+
+
+state 91
+
+   99 intconst: '-' INTCONST .
+
+    $default  reduce using rule 99 (intconst)
+
+
+state 92
+
+  102 floatconst: '-' FLOATCONST .
+
+    $default  reduce using rule 102 (floatconst)
+
+
+state 93
+
+   95 constant: '-' POSNAN .
+
+    $default  reduce using rule 95 (constant)
+
+
+state 94
+
+   96 constant: '-' POSINF .
+
+    $default  reduce using rule 96 (constant)
+
+
+state 95
+
+   98 intconst: '+' INTCONST .
+
+    $default  reduce using rule 98 (intconst)
+
+
+state 96
+
+  101 floatconst: '+' FLOATCONST .
+
+    $default  reduce using rule 101 (floatconst)
+
+
+state 97
+
+   59 extensions: EXTENSIONS . extensionlist ';'
+
+    INTCONST  shift, and go to state 130
+
+    extensionlist   go to state 131
+    extensionrange  go to state 132
+
+
+state 98
+
+   65 cardinality: REQUIRED .
+
+    $default  reduce using rule 65 (cardinality)
+
+
+state 99
+
+   66 cardinality: OPTIONAL .
+
+    $default  reduce using rule 66 (cardinality)
+
+
+state 100
+
+   67 cardinality: REPEATED .
+
+    $default  reduce using rule 67 (cardinality)
+
+
+state 101
+
+   52 messageelement: ';' .
+
+    $default  reduce using rule 52 (messageelement)
+
+
+state 102
+
+   43 messagebody: '{' messageelementlist '}' .
+
+    $default  reduce using rule 43 (messagebody)
+
+
+state 103
+
+   51 messageelement: optionstmt .
+
+    $default  reduce using rule 51 (messageelement)
+
+
+state 104
+
+   48 messageelement: message .
+
+    $default  reduce using rule 48 (messageelement)
+
+
+state 105
+
+   49 messageelement: extend .
+
+    $default  reduce using rule 49 (messageelement)
+
+
+state 106
+
+   47 messageelement: enumtype .
+
+    $default  reduce using rule 47 (messageelement)
+
+
+state 107
+
+   45 messageelementlist: messageelementlist messageelement .
+
+    $default  reduce using rule 45 (messageelementlist)
+
+
+state 108
+
+   46 messageelement: field .
+
+    $default  reduce using rule 46 (messageelement)
+
+
+state 109
+
+   50 messageelement: extensions .
+
+    $default  reduce using rule 50 (messageelement)
+
+
+state 110
+
+   53 field: cardinality . type name '=' intconst ';'
+   54      | cardinality . type name '=' intconst '[' fieldoptionlist ']' ';'
+   55      | cardinality . type name '=' intconst messagebody
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    DOUBLE      shift, and go to state 133
+    FLOAT       shift, and go to state 134
+    INT32       shift, and go to state 135
+    INT64       shift, and go to state 136
+    UINT32      shift, and go to state 137
+    UINT64      shift, and go to state 138
+    SINT32      shift, and go to state 139
+    SINT64      shift, and go to state 140
+    FIXED32     shift, and go to state 141
+    FIXED64     shift, and go to state 142
+    SFIXED32    shift, and go to state 143
+    SFIXED64    shift, and go to state 144
+    BOOL        shift, and go to state 145
+    STRING      shift, and go to state 146
+    BYTES       shift, and go to state 147
+    NAME        shift, and go to state 39
+    '.'         shift, and go to state 40
+
+    type      go to state 148
+    usertype  go to state 149
+    path      go to state 150
+    relpath   go to state 43
+    name      go to state 44
+    text      go to state 45
+
+
+state 111
+
+   23 fieldlist: fieldlist ';' .
+
+    $default  reduce using rule 23 (fieldlist)
+
+
+state 112
+
+   20 extend: EXTEND path '{' fieldlist '}' .
+
+    $default  reduce using rule 20 (extend)
+
+
+state 113
+
+   22 fieldlist: fieldlist field .
+
+    $default  reduce using rule 22 (fieldlist)
+
+
+state 114
+
+   16 optionstmt: OPTION . option ';'
+  115 text: OPTION .
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    $default  reduce using rule 115 (text)
+
+    option  go to state 47
+    name    go to state 48
+    text    go to state 45
+
+
+state 115
+
+   28 enumlist: enumlist ';' .
+
+    $default  reduce using rule 28 (enumlist)
+
+
+state 116
+
+   24 enumtype: ENUM name '{' enumlist '}' .
+
+    $default  reduce using rule 24 (enumtype)
+
+
+state 117
+
+   26 enumlist: enumlist optionstmt .
+
+    $default  reduce using rule 26 (enumlist)
+
+
+state 118
+
+   27 enumlist: enumlist enumvalue .
+
+    $default  reduce using rule 27 (enumlist)
+
+
+state 119
+
+   29 enumvalue: name . '=' intconst
+   30          | name . '=' intconst '[' enumoptionlist ']'
+
+    '='  shift, and go to state 151
+
+
+state 120
+
+   39 rpc: RPC . name '(' usertype ')' RETURNS '(' usertype ')' ';'
+   40    | RPC . name '(' usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 152
+    text  go to state 45
+
+
+state 121
+
+   38 servicecase: ';' .
+
+    $default  reduce using rule 38 (servicecase)
+
+
+state 122
+
+   33 service: SERVICE name '{' servicecaselist '}' .
+
+    $default  reduce using rule 33 (service)
+
+
+state 123
+
+   36 servicecase: optionstmt .
+
+    $default  reduce using rule 36 (servicecase)
+
+
+state 124
+
+   35 servicecaselist: servicecaselist servicecase .
+
+    $default  reduce using rule 35 (servicecaselist)
+
+
+state 125
+
+   37 servicecase: rpc .
+
+    $default  reduce using rule 37 (servicecase)
+
+
+state 126
+
+   18 option: '(' name ')' '=' constant .
+
+    $default  reduce using rule 18 (option)
+
+
+state 127
+
+  107 compound: '{' pairlist '}' .
+
+    $default  reduce using rule 107 (compound)
+
+
+state 128
+
+  109 pairlist: pairlist pair .
+
+    $default  reduce using rule 109 (pairlist)
+
+
+state 129
+
+  110 pair: name ':' . constant
+
+    IMPORT       shift, and go to state 24
+    PACKAGE      shift, and go to state 25
+    OPTION       shift, and go to state 26
+    MESSAGE      shift, and go to state 27
+    EXTEND       shift, and go to state 28
+    EXTENSIONS   shift, and go to state 29
+    ENUM         shift, and go to state 30
+    SERVICE      shift, and go to state 31
+    RPC          shift, and go to state 32
+    RETURNS      shift, and go to state 33
+    TO           shift, and go to state 34
+    MAX          shift, and go to state 35
+    REQUIRED     shift, and go to state 36
+    OPTIONAL     shift, and go to state 37
+    REPEATED     shift, and go to state 38
+    INTCONST     shift, and go to state 68
+    FLOATCONST   shift, and go to state 69
+    STRINGCONST  shift, and go to state 70
+    TRUE         shift, and go to state 71
+    FALSE        shift, and go to state 72
+    POSNAN       shift, and go to state 73
+    POSINF       shift, and go to state 74
+    NAME         shift, and go to state 39
+    '{'          shift, and go to state 75
+    '-'          shift, and go to state 76
+    '+'          shift, and go to state 77
+    '.'          shift, and go to state 40
+
+    constant    go to state 153
+    intconst    go to state 79
+    floatconst  go to state 80
+    path        go to state 81
+    relpath     go to state 43
+    compound    go to state 82
+    name        go to state 44
+    text        go to state 45
+
+
+state 130
+
+   62 extensionrange: INTCONST .
+   63               | INTCONST . TO INTCONST
+   64               | INTCONST . TO MAX
+
+    TO  shift, and go to state 154
+
+    $default  reduce using rule 62 (extensionrange)
+
+
+state 131
+
+   59 extensions: EXTENSIONS extensionlist . ';'
+   61 extensionlist: extensionlist . ',' extensionrange
+
+    ';'  shift, and go to state 155
+    ','  shift, and go to state 156
+
+
+state 132
+
+   60 extensionlist: extensionrange .
+
+    $default  reduce using rule 60 (extensionlist)
+
+
+state 133
+
+   68 type: DOUBLE .
+
+    $default  reduce using rule 68 (type)
+
+
+state 134
+
+   69 type: FLOAT .
+
+    $default  reduce using rule 69 (type)
+
+
+state 135
+
+   70 type: INT32 .
+
+    $default  reduce using rule 70 (type)
+
+
+state 136
+
+   71 type: INT64 .
+
+    $default  reduce using rule 71 (type)
+
+
+state 137
+
+   72 type: UINT32 .
+
+    $default  reduce using rule 72 (type)
+
+
+state 138
+
+   73 type: UINT64 .
+
+    $default  reduce using rule 73 (type)
+
+
+state 139
+
+   74 type: SINT32 .
+
+    $default  reduce using rule 74 (type)
+
+
+state 140
+
+   75 type: SINT64 .
+
+    $default  reduce using rule 75 (type)
+
+
+state 141
+
+   76 type: FIXED32 .
+
+    $default  reduce using rule 76 (type)
+
+
+state 142
+
+   77 type: FIXED64 .
+
+    $default  reduce using rule 77 (type)
+
+
+state 143
+
+   78 type: SFIXED32 .
+
+    $default  reduce using rule 78 (type)
+
+
+state 144
+
+   79 type: SFIXED64 .
+
+    $default  reduce using rule 79 (type)
+
+
+state 145
+
+   80 type: BOOL .
+
+    $default  reduce using rule 80 (type)
+
+
+state 146
+
+   81 type: STRING .
+
+    $default  reduce using rule 81 (type)
+
+
+state 147
+
+   82 type: BYTES .
+
+    $default  reduce using rule 82 (type)
+
+
+state 148
+
+   53 field: cardinality type . name '=' intconst ';'
+   54      | cardinality type . name '=' intconst '[' fieldoptionlist ']' ';'
+   55      | cardinality type . name '=' intconst messagebody
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+
+    name  go to state 157
+    text  go to state 45
+
+
+state 149
+
+   83 type: usertype .
+
+    $default  reduce using rule 83 (type)
+
+
+state 150
+
+   84 usertype: path .
+
+    $default  reduce using rule 84 (usertype)
+
+
+state 151
+
+   29 enumvalue: name '=' . intconst
+   30          | name '=' . intconst '[' enumoptionlist ']'
+
+    INTCONST  shift, and go to state 68
+    '-'       shift, and go to state 158
+    '+'       shift, and go to state 159
+
+    intconst  go to state 160
+
+
+state 152
+
+   39 rpc: RPC name . '(' usertype ')' RETURNS '(' usertype ')' ';'
+   40    | RPC name . '(' usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+    '('  shift, and go to state 161
+
+
+state 153
+
+  110 pair: name ':' constant .
+
+    $default  reduce using rule 110 (pair)
+
+
+state 154
+
+   63 extensionrange: INTCONST TO . INTCONST
+   64               | INTCONST TO . MAX
+
+    MAX       shift, and go to state 162
+    INTCONST  shift, and go to state 163
+
+
+state 155
+
+   59 extensions: EXTENSIONS extensionlist ';' .
+
+    $default  reduce using rule 59 (extensions)
+
+
+state 156
+
+   61 extensionlist: extensionlist ',' . extensionrange
+
+    INTCONST  shift, and go to state 130
+
+    extensionrange  go to state 164
+
+
+state 157
+
+   53 field: cardinality type name . '=' intconst ';'
+   54      | cardinality type name . '=' intconst '[' fieldoptionlist ']' ';'
+   55      | cardinality type name . '=' intconst messagebody
+
+    '='  shift, and go to state 165
+
+
+state 158
+
+   99 intconst: '-' . INTCONST
+
+    INTCONST  shift, and go to state 91
+
+
+state 159
+
+   98 intconst: '+' . INTCONST
+
+    INTCONST  shift, and go to state 95
+
+
+state 160
+
+   29 enumvalue: name '=' intconst .
+   30          | name '=' intconst . '[' enumoptionlist ']'
+
+    '['  shift, and go to state 166
+
+    $default  reduce using rule 29 (enumvalue)
+
+
+state 161
+
+   39 rpc: RPC name '(' . usertype ')' RETURNS '(' usertype ')' ';'
+   40    | RPC name '(' . usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '.'         shift, and go to state 40
+
+    usertype  go to state 167
+    path      go to state 150
+    relpath   go to state 43
+    name      go to state 44
+    text      go to state 45
+
+
+state 162
+
+   64 extensionrange: INTCONST TO MAX .
+
+    $default  reduce using rule 64 (extensionrange)
+
+
+state 163
+
+   63 extensionrange: INTCONST TO INTCONST .
+
+    $default  reduce using rule 63 (extensionrange)
+
+
+state 164
+
+   61 extensionlist: extensionlist ',' extensionrange .
+
+    $default  reduce using rule 61 (extensionlist)
+
+
+state 165
+
+   53 field: cardinality type name '=' . intconst ';'
+   54      | cardinality type name '=' . intconst '[' fieldoptionlist ']' ';'
+   55      | cardinality type name '=' . intconst messagebody
+
+    INTCONST  shift, and go to state 68
+    '-'       shift, and go to state 158
+    '+'       shift, and go to state 159
+
+    intconst  go to state 168
+
+
+state 166
+
+   30 enumvalue: name '=' intconst '[' . enumoptionlist ']'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    option          go to state 169
+    enumoptionlist  go to state 170
+    name            go to state 48
+    text            go to state 45
+
+
+state 167
+
+   39 rpc: RPC name '(' usertype . ')' RETURNS '(' usertype ')' ';'
+   40    | RPC name '(' usertype . ')' RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+    ')'  shift, and go to state 171
+
+
+state 168
+
+   53 field: cardinality type name '=' intconst . ';'
+   54      | cardinality type name '=' intconst . '[' fieldoptionlist ']' ';'
+   55      | cardinality type name '=' intconst . messagebody
+
+    ';'  shift, and go to state 172
+    '{'  shift, and go to state 61
+    '['  shift, and go to state 173
+
+    messagebody  go to state 174
+
+
+state 169
+
+   31 enumoptionlist: option .
+
+    $default  reduce using rule 31 (enumoptionlist)
+
+
+state 170
+
+   30 enumvalue: name '=' intconst '[' enumoptionlist . ']'
+   32 enumoptionlist: enumoptionlist . ',' option
+
+    ']'  shift, and go to state 175
+    ','  shift, and go to state 176
+
+
+state 171
+
+   39 rpc: RPC name '(' usertype ')' . RETURNS '(' usertype ')' ';'
+   40    | RPC name '(' usertype ')' . RETURNS '(' usertype ')' '{' optionstmtlist '}'
+
+    RETURNS  shift, and go to state 177
+
+
+state 172
+
+   53 field: cardinality type name '=' intconst ';' .
+
+    $default  reduce using rule 53 (field)
+
+
+state 173
+
+   54 field: cardinality type name '=' intconst '[' . fieldoptionlist ']' ';'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    option           go to state 178
+    fieldoptionlist  go to state 179
+    fieldoption      go to state 180
+    name             go to state 48
+    text             go to state 45
+
+
+state 174
+
+   55 field: cardinality type name '=' intconst messagebody .
+
+    $default  reduce using rule 55 (field)
+
+
+state 175
+
+   30 enumvalue: name '=' intconst '[' enumoptionlist ']' .
+
+    $default  reduce using rule 30 (enumvalue)
+
+
+state 176
+
+   32 enumoptionlist: enumoptionlist ',' . option
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    option  go to state 181
+    name    go to state 48
+    text    go to state 45
+
+
+state 177
+
+   39 rpc: RPC name '(' usertype ')' RETURNS . '(' usertype ')' ';'
+   40    | RPC name '(' usertype ')' RETURNS . '(' usertype ')' '{' optionstmtlist '}'
+
+    '('  shift, and go to state 182
+
+
+state 178
+
+   58 fieldoption: option .
+
+    $default  reduce using rule 58 (fieldoption)
+
+
+state 179
+
+   54 field: cardinality type name '=' intconst '[' fieldoptionlist . ']' ';'
+   57 fieldoptionlist: fieldoptionlist . ',' fieldoption
+
+    ']'  shift, and go to state 183
+    ','  shift, and go to state 184
+
+
+state 180
+
+   56 fieldoptionlist: fieldoption .
+
+    $default  reduce using rule 56 (fieldoptionlist)
+
+
+state 181
+
+   32 enumoptionlist: enumoptionlist ',' option .
+
+    $default  reduce using rule 32 (enumoptionlist)
+
+
+state 182
+
+   39 rpc: RPC name '(' usertype ')' RETURNS '(' . usertype ')' ';'
+   40    | RPC name '(' usertype ')' RETURNS '(' . usertype ')' '{' optionstmtlist '}'
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '.'         shift, and go to state 40
+
+    usertype  go to state 185
+    path      go to state 150
+    relpath   go to state 43
+    name      go to state 44
+    text      go to state 45
+
+
+state 183
+
+   54 field: cardinality type name '=' intconst '[' fieldoptionlist ']' . ';'
+
+    ';'  shift, and go to state 186
+
+
+state 184
+
+   57 fieldoptionlist: fieldoptionlist ',' . fieldoption
+
+    IMPORT      shift, and go to state 24
+    PACKAGE     shift, and go to state 25
+    OPTION      shift, and go to state 26
+    MESSAGE     shift, and go to state 27
+    EXTEND      shift, and go to state 28
+    EXTENSIONS  shift, and go to state 29
+    ENUM        shift, and go to state 30
+    SERVICE     shift, and go to state 31
+    RPC         shift, and go to state 32
+    RETURNS     shift, and go to state 33
+    TO          shift, and go to state 34
+    MAX         shift, and go to state 35
+    REQUIRED    shift, and go to state 36
+    OPTIONAL    shift, and go to state 37
+    REPEATED    shift, and go to state 38
+    NAME        shift, and go to state 39
+    '('         shift, and go to state 46
+
+    option       go to state 178
+    fieldoption  go to state 187
+    name         go to state 48
+    text         go to state 45
+
+
+state 185
+
+   39 rpc: RPC name '(' usertype ')' RETURNS '(' usertype . ')' ';'
+   40    | RPC name '(' usertype ')' RETURNS '(' usertype . ')' '{' optionstmtlist '}'
+
+    ')'  shift, and go to state 188
+
+
+state 186
+
+   54 field: cardinality type name '=' intconst '[' fieldoptionlist ']' ';' .
+
+    $default  reduce using rule 54 (field)
+
+
+state 187
+
+   57 fieldoptionlist: fieldoptionlist ',' fieldoption .
+
+    $default  reduce using rule 57 (fieldoptionlist)
+
+
+state 188
+
+   39 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' . ';'
+   40    | RPC name '(' usertype ')' RETURNS '(' usertype ')' . '{' optionstmtlist '}'
+
+    ';'  shift, and go to state 189
+    '{'  shift, and go to state 190
+
+
+state 189
+
+   39 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' ';' .
+
+    $default  reduce using rule 39 (rpc)
+
+
+state 190
+
+   40 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' '{' . optionstmtlist '}'
+
+    $default  reduce using rule 41 (optionstmtlist)
+
+    optionstmtlist  go to state 191
+
+
+state 191
+
+   40 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist . '}'
+   42 optionstmtlist: optionstmtlist . optionstmt
+
+    OPTION  shift, and go to state 7
+    '}'     shift, and go to state 192
+
+    optionstmt  go to state 193
+
+
+state 192
+
+   40 rpc: RPC name '(' usertype ')' RETURNS '(' usertype ')' '{' optionstmtlist '}' .
+
+    $default  reduce using rule 40 (rpc)
+
+
+state 193
+
+   42 optionstmtlist: optionstmtlist optionstmt .
+
+    $default  reduce using rule 42 (optionstmtlist)
