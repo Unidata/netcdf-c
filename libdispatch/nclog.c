@@ -1,20 +1,26 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   $Header$
+ *********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "nclog.h"
 
 #define PREFIXLEN 8
-
 #define MAXTAGS 256
-
 #define NCTAGDFALT "Log";
 
-static int ncinit = 0;
+static int ncinitlog = 0;
 static int nclogging = 0;
 static char* nclogfile = NULL;
 static FILE* nclogstream = NULL;
@@ -23,13 +29,12 @@ static int nctagsize = 0;
 static char** nctagset = NULL;
 static char* nctagdfalt = NULL;
 static char* nctagsetdfalt[] = {"Warning","Error","Note","Debug"};
-
 static char* nctagname(int tag);
 
 void
 ncloginit(void)
 {
-    ncinit = 1;
+    ncinitlog = 1;
     ncsetlogging(0);
     nclogfile = NULL;
     nclogstream = NULL;
@@ -47,14 +52,14 @@ ncloginit(void)
 void
 ncsetlogging(int tf)
 {
-    if(!ncinit) ncloginit();
+    if(!ncinitlog) ncloginit();
     nclogging = tf;
 }
 
 void
 nclogopen(const char* file)
 {
-    if(!ncinit) ncloginit();
+    if(!ncinitlog) ncloginit();
     if(nclogfile != NULL) {
 	fclose(nclogstream);
 	free(nclogfile);
@@ -119,8 +124,38 @@ nclog(int tag, const char* fmt, ...)
     fflush(nclogstream);
 }
 
+#ifdef IGNORE
 void
-nclogtext(int tag, const char* text, size_t count)
+nclogtext(int tag, const char* text)
+{
+    char line[1024];
+    size_t delta = 0;
+    const char* eol = text;
+
+    if(!nclogging || nclogstream == NULL) return;
+
+    while(*text) {
+	eol = strchr(text,'\n');
+	if(eol == NULL)
+	    delta = strlen(text);
+	else
+	    delta = (eol - text);
+	if(delta > 0) memcpy(line,text,delta);
+	line[delta] = '\0';
+	fprintf(nclogstream,"        %s\n",line);
+	text = eol+1;
+    }
+}
+#endif
+
+void
+nclogtext(int tag, const char* text)
+{
+    nclogtextn(tag,text,strlen(text));
+}
+
+void
+nclogtextn(int tag, const char* text, size_t count)
 {
     char line[1024];
     size_t delta = 0;
@@ -128,19 +163,7 @@ nclogtext(int tag, const char* text, size_t count)
     size_t i,pos;
 
     if(!nclogging || nclogstream == NULL) return;
-
-#ifdef IGNORE
-    for(pos=0,i=0;i<count;i++) {
-	if(text[i] == '\n') {	
-	    fprintf(nclogstream,"\t");
-	    fwrite(text+pos,1,(i-pos)+1,nclogstream);
-	    fprintf(nclogstream,"\n");
-	    pos = i+1;
-	}
-    }
-#else
     fwrite(text,1,count,nclogstream);
-#endif
     fflush(nclogstream);
 }
 

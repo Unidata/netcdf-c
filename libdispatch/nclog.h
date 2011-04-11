@@ -1,5 +1,8 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, INC.
-   See the COPYRIGHT file for more information. */
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   $Header$
+ *********************************************************************/
 
 #ifndef NCLOG_H
 #define NCLOG_H
@@ -18,9 +21,11 @@ extern void nclogopen(const char* file);
 extern void nclogclose(void);
 
 /* The tag value is an arbitrary integer */
-extern void nclog(int tag,const char* fmt, ...);
-extern void nclogtext(int tag, const char* text, size_t count);
+extern void nclog(int tag, const char* fmt, ...);
+extern void nclogtext(int tag, const char* text);
+extern void nclogtextn(int tag, const char* text, size_t count);
 
+/* Provide printable names for tags */
 extern void nclogsettags(char** tagset, char* dfalt);
 
 #endif /*NCLOG_H*/
