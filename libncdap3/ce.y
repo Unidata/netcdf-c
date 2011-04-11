@@ -43,7 +43,7 @@ selections:
 	;
 
 /* %type NClist<NCprojection*> */
-projectionlist: //==expr.projection
+projectionlist: /*==expr.projection*/
 	  projection
 	    {$$=projectionlist(parsestate,(Object)null,$1);}
 	| projectionlist ',' projection
@@ -51,7 +51,7 @@ projectionlist: //==expr.projection
 	;
 
 /* %type NCprojection* */
-projection: //==expr.proj_clause
+projection: /*==expr.proj_clause*/
 	  segmentlist
 	    {$$=projection(parsestate,$1);}
 	| function
@@ -66,7 +66,7 @@ function:
 	;
 
 /* %type NClist<OCsegment> */
-segmentlist: //==expr.proj_variable
+segmentlist: /*==expr.proj_variable*/
 	  segment
 	    {$$=segmentlist(parsestate,null,$1);}
 	| segmentlist '.' segment
@@ -74,7 +74,7 @@ segmentlist: //==expr.proj_variable
 	;
 
 /* %type OCsegment */
-segment: //==expr.component
+segment: /*==expr.component*/
 	  word
 	    {$$=segment(parsestate,$1,null);}
 	| word rangelist
@@ -105,7 +105,7 @@ range1: '[' number ']'
 
 
 /* %type NClist<NCselection*> */
-clauselist: //==expr.selection
+clauselist: /*==expr.selection*/
 	  sel_clause
 	    {$$=clauselist(parsestate,null,$1);}
 	| clauselist sel_clause
@@ -113,7 +113,7 @@ clauselist: //==expr.selection
 	;
 
 /* %type NCselection* */
-sel_clause: //==expr.clause
+sel_clause: /*==expr.clause*/
 	  '&' value rel_op '{' value_list '}'
 	    {$$=sel_clause(parsestate,1,$2,$3,$5);} /*1,2 distinguish cases*/
 	| '&' value rel_op value
@@ -183,7 +183,7 @@ boolfunction:
 	    {$$=function(parsestate,$1,$3);}
 	;
 
-arg_list: //==expr.arg_list
+arg_list: /*==expr.arg_list*/
 	  value
 	    {$$=arg_list(parsestate,null,$1);}
 	| value_list ',' value

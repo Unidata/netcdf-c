@@ -1,4 +1,7 @@
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -698,40 +701,40 @@ PrimOptional_read(ast_runtime* rt, PrimOptional** primoptional_vp)
         }; /*switch*/
     };/*while*/
     if(!primoptional_v->f_int32.defined) {
-        primoptional_v->f_int32.value = 0;
+        primoptional_v->f_int32.value = 1;
     }
     if(!primoptional_v->f_int64.defined) {
-        primoptional_v->f_int64.value = 0;
+        primoptional_v->f_int64.value = 2;
     }
     if(!primoptional_v->f_uint32.defined) {
-        primoptional_v->f_uint32.value = 0;
+        primoptional_v->f_uint32.value = 3;
     }
     if(!primoptional_v->f_uint64.defined) {
-        primoptional_v->f_uint64.value = 0;
+        primoptional_v->f_uint64.value = 4;
     }
     if(!primoptional_v->f_sint32.defined) {
-        primoptional_v->f_sint32.value = 0;
+        primoptional_v->f_sint32.value = 5;
     }
     if(!primoptional_v->f_sint64.defined) {
-        primoptional_v->f_sint64.value = 0;
+        primoptional_v->f_sint64.value = 6;
     }
     if(!primoptional_v->f_fixed32.defined) {
-        primoptional_v->f_fixed32.value = 0;
+        primoptional_v->f_fixed32.value = 7;
     }
     if(!primoptional_v->f_fixed64.defined) {
-        primoptional_v->f_fixed64.value = 0;
+        primoptional_v->f_fixed64.value = 8;
     }
     if(!primoptional_v->f_sfixed32.defined) {
-        primoptional_v->f_sfixed32.value = 0;
+        primoptional_v->f_sfixed32.value = 9;
     }
     if(!primoptional_v->f_sfixed64.defined) {
-        primoptional_v->f_sfixed64.value = 0;
+        primoptional_v->f_sfixed64.value = 10;
     }
     if(!primoptional_v->f_double.defined) {
-        primoptional_v->f_double.value = 0;
+        primoptional_v->f_double.value = 11;
     }
     if(!primoptional_v->f_float.defined) {
-        primoptional_v->f_float.value = 0;
+        primoptional_v->f_float.value = 12;
     }
     if(status != AST_NOERR) {goto done;}
     if(primoptional_vp) *primoptional_vp = primoptional_v;

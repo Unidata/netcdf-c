@@ -1,5 +1,8 @@
 package ncstream;
 
+option config_h="true"; 
+option include="nccrnode.h";
+
 option java_package = "ucar.nc2.stream";
 option java_outer_classname = "NcStreamProto";
 
@@ -25,7 +28,7 @@ enum DataType {
 }
 
 message Attribute {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string name = 1;
   required DataType type = 2;
   required uint32 len = 3;
@@ -34,7 +37,7 @@ message Attribute {
 }
 
 message Dimension {
-    option extends="Notes notes";
+    option extends="CRnode node";
   optional string name = 1; // optional when private
   optional uint64 length = 2; // optional when vlen
   optional bool isUnlimited = 3 [default = false];
@@ -43,7 +46,7 @@ message Dimension {
 }
 
 message Variable {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string name = 1; // short name
   required DataType dataType = 2;
   repeated Dimension shape = 3;  // actual dimension instead of reference
@@ -55,7 +58,7 @@ message Variable {
 }
 
 message Structure {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string name = 1;   // short name
   required DataType dataType = 2;  // struct or seq
   repeated Dimension shape = 3; // actual dimension instead of reference
@@ -65,7 +68,7 @@ message Structure {
 }
 
 message EnumTypedef {
-    option extends="Notes notes";
+    option extends="CRnode node";
   message EnumType {
     required uint32 code = 1;
     required string value = 2;
@@ -75,7 +78,7 @@ message EnumTypedef {
 }
 
 message Group {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string name = 1;
   repeated Dimension dims = 2;
   repeated Variable vars = 3;
@@ -86,7 +89,7 @@ message Group {
 }
 
 message Header {
-    option extends="Notes notes";
+    option extends="CRnode node";
   optional string location = 1;
   optional string title = 2;
   optional string id = 3;
@@ -102,7 +105,7 @@ enum Compress {
 }
 
 message Data {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string varName = 1; // change to hash or index to save space ??
   required DataType dataType = 2;
   optional Section section = 3; // not required for Sequence
@@ -113,19 +116,19 @@ message Data {
 }
 
 message Range {
-    option extends="Notes notes";
+    option extends="CRnode node";
   optional uint64 start = 1 [default = 0];
   required uint64 size = 2;
   optional uint64 stride = 3 [default = 1];
 }
 
 message Section {
-    option extends="Notes notes";
+    option extends="CRnode node";
   repeated Range range = 1;
 }
 
 message StructureData {
-    option extends="Notes notes";
+    option extends="CRnode node";
   repeated uint32 member = 1; // optional list of members present
   required bytes data = 2; // fixed length data
   repeated uint32 heapCount = 3; // heap String count
@@ -136,6 +139,6 @@ message StructureData {
 //////////////////////////////////
 
 message Error {
-    option extends="Notes notes";
+    option extends="CRnode node";
   required string message = 1;
 }

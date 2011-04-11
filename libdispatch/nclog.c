@@ -10,8 +10,6 @@
 
 #define PREFIXLEN 8
 
-#define ENVFLAG "NCLOGFILE"
-
 #define MAXTAGS 256
 
 #define NCTAGDFALT "Log";

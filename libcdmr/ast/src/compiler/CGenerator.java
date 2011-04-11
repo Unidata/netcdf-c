@@ -419,21 +419,17 @@ generate_messagestruct(AST.Message msg, Printer printer) throws Exception
     if(AuxFcns.getbooleanvalue((String)msg.optionLookup("declare")))
 	return;
     // See if a supertype is specified
-    String supername = (String)msg.optionLookup("extends");
-    AST.Type supertype = null;
+    String optextends = (String)msg.optionLookup("extends");
+    String supertype = null;
     String superfield = null;
-    if(supername != null && supername.trim().length() > 0) {
-	supername = supername.trim();
-	String[] pieces = supername.split(" ");
+    if(optextends != null && optextends.trim().length() > 0) {
+	optextends = optextends.trim();
+	String[] pieces = optextends.split("[ \t]+");
+	supertype = pieces[0];
 	if(pieces.length > 1)
 	    superfield = pieces[1];
 	else
-	    superfield = supername.toLowerCase();
-        List<AST.Type> matches = AuxFcns.findtypebyname(pieces[0],msg);
-	if(matches.size() > 0) {
-	    supertype = matches.get(0);
-	    if(supertype.getSort() != AST.Sort.MESSAGE) supertype = null;
-	}	
+	    superfield = supertype.toLowerCase();
     }
 
     Annotation a = (Annotation)msg.getAnnotation();
@@ -443,7 +439,7 @@ generate_messagestruct(AST.Message msg, Printer printer) throws Exception
     // generate the supertype as the first element in the struct
     if(supertype != null)
         printer.printf("%s %s;\n",
-		converttocname(supertype.getName()),
+		converttocname(supertype),
 		converttocname(superfield));
     // Generate the fields
     for(AST.Field field: msg.getFields()) {

@@ -15,6 +15,7 @@
 #include "nc.h"
 #include "nc4internal.h"
 #include "nccr.h"
+#include "nccrnode.h"
 #include "ncStreamx.h"
 
 #define LINESIZE 72

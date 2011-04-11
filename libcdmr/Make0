@@ -26,7 +26,7 @@ RPATH=-Wl,-rpath,${HDF5DIR}/lib -Wl,-rpath,${CURLDIR}/lib
 
 # Might want to specify a particular C compiler with flags
 #CC=cc
-CFLAGS=-Wall -DHAVE_CONFIG_H
+CFLAGS=-g -O0 -Wall -DHAVE_CONFIG_H
 #CFLAGS=-DHAVE_CONFIG_H
 
 GFLAGS=-g
@@ -63,7 +63,7 @@ OBJ=${S:%.c=%.o}
 ncd:: 
 	cd .. ; make
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}
-	${CC} -o ncd ${GFLAGS} ${OBJ} ${LIBS} ${RPATH}
+	${CC} -g -O0 -o ncd ${GFLAGS} ${OBJ} ${LIBS} ${RPATH}
 
 ncdonly:: 
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}

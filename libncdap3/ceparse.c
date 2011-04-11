@@ -67,7 +67,7 @@ fprintf(stderr,"	ce.projection: %s\n",
 Object
 segmentlist(CEparsestate* state, Object var0, Object decl)
 {
-    // watch out: this is non-standard
+    /* watch out: this is non-standard */
     NClist* list;
     NCvar* v = (NCvar*)var0;
     if(v==NULL) v = createncvar();
@@ -168,7 +168,7 @@ sel_clause(CEparsestate* state, int selcase,
     NCselection* sel = createncselection();
     sel->operator = (NCsort)relop0;
     sel->lhs = (NCvalue*)lhs;
-    if(selcase == 2) {//singleton value
+    if(selcase == 2) {/*singleton value*/
 	sel->rhs = nclistnew();
 	nclistpush(sel->rhs,(ncelem)values);
     } else
@@ -185,6 +185,7 @@ indexpath(CEparsestate* state, Object list0, Object index)
 Object
 array_indices(CEparsestate* state, Object list0, Object indexno)
 {
+    NCslice* slice;
     long long start = -1;
     NClist* list = (NClist*)list0;
     if(list == NULL) list = nclistnew();
@@ -193,7 +194,7 @@ array_indices(CEparsestate* state, Object list0, Object indexno)
     	ceerror(state,"Illegal array index");
 	start = 1;
     }    
-    NCslice* slice = createncslice();
+    slice = createncslice();
     slice->first = start;
     slice->stride = 1;
     slice->count = 1;

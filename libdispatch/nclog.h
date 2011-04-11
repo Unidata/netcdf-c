@@ -4,6 +4,8 @@
 #ifndef NCLOG_H
 #define NCLOG_H
 
+#define ENVFLAG "NCLOGFILE"
+
 /* Suggested tag values */
 #define NCLOGNOTE 0
 #define NCLOGWARN 1

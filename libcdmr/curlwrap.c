@@ -32,6 +32,8 @@
  */
 /* "$Id$" */
 
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -47,6 +49,7 @@
 #include "nc4internal.h"
 #include "nccr.h"
 #include "ast.h"
+#include "crutil.h"
 
 static char* combinecredentials(const char* user, const char* pwd);
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
@@ -104,7 +107,7 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     struct NCCR_CALLBACK_DATA callback_data;
-    int index;
+    int index, first;
 
     callback_data.alloc = 0;
 
@@ -149,21 +152,21 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
     if(cstat != CURLE_OK) goto fail;
 
     /* Check for potential html return */
-    index = strncmp(buf->bytes,"<html>",6);
-    if(index == 0) {
-	int index,found;
-	int taglen = 7; /*sizeof("</html>")-1*/
+    /* skip leading whitespace */
+    for(first=0;first<buf->nbytes;first++) {
+	char* p = strchr(" \t\r\n",buf->bytes[first]);
+	if(p == NULL)
+	    break;
+    }
+    index = crstrindex(buf->bytes,"<html");
+    if(index >= 0) {
+	int endex;
 	/* Search for </html> */
-	for(found=0,index=0;index<(buf->nbytes-taglen);index++) {
-	    if(strncmp(buf->bytes,"</html>",taglen) == 0) {
-		found = 1;
-		break;
-	    }
-	}
-	if(found) index += taglen; else index = buf->nbytes-1;
+	endex = crstrindex(buf->bytes,"</html>");	
+	if(endex >= 0) endex += 7; else endex = buf->nbytes-1;
         nclog(NCLOGWARN,"Probable Server error");
-	buf->bytes[index] = '\0';
-	nclogtext(NCLOGWARN,buf->bytes,index);
+	nclogtext(NCLOGWARN,buf->bytes+first,endex-first);
+	nclogtext(NCLOGWARN,"\n",1);
     }
     return stat;
 

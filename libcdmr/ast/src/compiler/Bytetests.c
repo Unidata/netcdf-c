@@ -1,4 +1,7 @@
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -153,7 +156,7 @@ BytesOptional_read(ast_runtime* rt, BytesOptional** bytesoptional_vp)
         }; /*switch*/
     };/*while*/
     if(!bytesoptional_v->f_string.defined) {
-        bytesoptional_v->f_string.value = NULL;
+        bytesoptional_v->f_string.value = "hello";
     }
     if(!bytesoptional_v->f_bytes.defined) {
         bytesoptional_v->f_bytes.value.nbytes = 0;

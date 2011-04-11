@@ -245,12 +245,12 @@ fail:
 }
 
 
-/* Wrap malloc and free */
+/* Wrap calloc and free */
 static void*
 ast_byteio_alloc(ast_runtime* rt, size_t len)
 {
     if(len == 0) return NULL;
-    return malloc(len);
+    return calloc(1,len);
 }
 
 static void

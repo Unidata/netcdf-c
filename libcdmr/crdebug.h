@@ -6,7 +6,7 @@
 #ifndef CRDEBUG_H
 #define CRDEBUG_H
 
-#undef DEBUG
+#define DEBUG
 
 #include <stdarg.h>
 #include <assert.h>

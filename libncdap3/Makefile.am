@@ -91,15 +91,6 @@ EXTRA_DIST = ce.y t_dap.c
 
 endif # BUILD_DAP
 
-# These rule are used if someone wants to rebuild the grammar files.
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
-makece::
-	bison -d -t -p ce ce.y
-	rm -f cetab.c cetab.h
-	mv ce.tab.c cetab.c
-	mv ce.tab.h cetab.h
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.

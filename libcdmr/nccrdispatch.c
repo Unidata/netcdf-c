@@ -131,9 +131,7 @@ NCCR_initialize(void)
        plus some overrides */
     NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
     NCCR_dispatch_table = &NCCR_dispatcher;
-#ifdef LOGGING
     ncloginit();
-#endif
     return NC_NOERR;
 }
 

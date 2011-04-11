@@ -18,7 +18,8 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
 var.c dispatch.c nc_url.c nclist.c ncbytes.c ncbytes.h \
 nchashmap.c nchashmap.h \
-nclog.c nclog.h
+nclog.c nclog.h \
+ncconstraints.c ncconstraints.h cetab.c cetab.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
@@ -36,3 +37,13 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = v2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
+
+# These rule are used if someone wants to rebuild the grammar files.
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
+makece::
+	bison -v -d -t -p ce ce.y
+	rm -f cetab.c cetab.h
+	mv ce.tab.c cetab.c
+	mv ce.tab.h cetab.h

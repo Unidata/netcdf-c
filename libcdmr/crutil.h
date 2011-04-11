@@ -8,4 +8,6 @@
 #ifndef CRUTIL_H
 #define CRUTIL_H
 
+extern int crstrindex(char* s, char* match);
+
 #endif /*CRUTIL_H*/

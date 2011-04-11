@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "crdebug.h"
+
 #ifdef CATCHERROR
 
 /* Place breakpoint here to catch errors close to where they occur*/
@@ -17,7 +19,7 @@ int
 nccrthrow(int err)
 {
     if(err == 0) return err;
-    return dapbreakpoint(err);
+    return nccrbreakpoint(err);
 }
 #endif
 

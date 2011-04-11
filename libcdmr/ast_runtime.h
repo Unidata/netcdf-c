@@ -101,7 +101,7 @@ struct ast_runtime_ops {
     ast_err (*mark)(ast_runtime*,size_t); /* limit reads to n bytes */
     ast_err (*unmark)(ast_runtime*); /* restore previous markn limit */
     ast_err (*reclaim)(ast_runtime*); /* reclaim this runtime instance */
-    void*   (*alloc)(ast_runtime*,size_t); /* allocate memory chunk */
+    void*   (*alloc)(ast_runtime*,size_t); /* allocate & clear memory chunk */
     void    (*free)(ast_runtime*,void*); /* free allocated memory */
 };
 

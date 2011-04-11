@@ -46,6 +46,7 @@ typedef struct StructureData StructureData;
 typedef struct Error Error;
 
 struct Attribute {
+    CRnode node;
     char* name;
     DataType type;
     uint32_t len;
@@ -60,6 +61,7 @@ extern ast_err Attribute_reclaim(ast_runtime*,Attribute*);
 extern size_t Attribute_get_size(ast_runtime*,Attribute*);
 
 struct Dimension {
+    CRnode node;
     struct {int defined; char* value;} name;
     struct {int defined; uint64_t value;} length;
     struct {int defined; bool_t value;} isUnlimited;
@@ -74,6 +76,7 @@ extern ast_err Dimension_reclaim(ast_runtime*,Dimension*);
 extern size_t Dimension_get_size(ast_runtime*,Dimension*);
 
 struct Variable {
+    CRnode node;
     char* name;
     DataType dataType;
     struct {size_t count; Dimension** values;} shape;
@@ -91,6 +94,7 @@ extern ast_err Variable_reclaim(ast_runtime*,Variable*);
 extern size_t Variable_get_size(ast_runtime*,Variable*);
 
 struct Structure {
+    CRnode node;
     char* name;
     DataType dataType;
     struct {size_t count; Dimension** values;} shape;
@@ -106,6 +110,7 @@ extern ast_err Structure_reclaim(ast_runtime*,Structure*);
 extern size_t Structure_get_size(ast_runtime*,Structure*);
 
 struct EnumTypedef {
+    CRnode node;
     char* name;
     struct {size_t count; EnumType** values;} map;
 };
@@ -128,6 +133,7 @@ extern ast_err EnumType_reclaim(ast_runtime*,EnumType*);
 extern size_t EnumType_get_size(ast_runtime*,EnumType*);
 
 struct Group {
+    CRnode node;
     char* name;
     struct {size_t count; Dimension** values;} dims;
     struct {size_t count; Variable** values;} vars;
@@ -144,6 +150,7 @@ extern ast_err Group_reclaim(ast_runtime*,Group*);
 extern size_t Group_get_size(ast_runtime*,Group*);
 
 struct Header {
+    CRnode node;
     struct {int defined; char* value;} location;
     struct {int defined; char* value;} title;
     struct {int defined; char* value;} id;
@@ -158,6 +165,7 @@ extern ast_err Header_reclaim(ast_runtime*,Header*);
 extern size_t Header_get_size(ast_runtime*,Header*);
 
 struct Data {
+    CRnode node;
     char* varName;
     DataType dataType;
     struct {int defined; Section* value;} section;
@@ -174,6 +182,7 @@ extern ast_err Data_reclaim(ast_runtime*,Data*);
 extern size_t Data_get_size(ast_runtime*,Data*);
 
 struct Range {
+    CRnode node;
     struct {int defined; uint64_t value;} start;
     uint64_t size;
     struct {int defined; uint64_t value;} stride;
@@ -186,6 +195,7 @@ extern ast_err Range_reclaim(ast_runtime*,Range*);
 extern size_t Range_get_size(ast_runtime*,Range*);
 
 struct Section {
+    CRnode node;
     struct {size_t count; Range** values;} range;
 };
 
@@ -196,6 +206,7 @@ extern ast_err Section_reclaim(ast_runtime*,Section*);
 extern size_t Section_get_size(ast_runtime*,Section*);
 
 struct StructureData {
+    CRnode node;
     struct {size_t count; uint32_t* values;} member;
     bytes_t data;
     struct {size_t count; uint32_t* values;} heapCount;
@@ -210,6 +221,7 @@ extern ast_err StructureData_reclaim(ast_runtime*,StructureData*);
 extern size_t StructureData_get_size(ast_runtime*,StructureData*);
 
 struct Error {
+    CRnode node;
     char* message;
 };
 

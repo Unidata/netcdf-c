@@ -18,6 +18,9 @@
 #include <curl/curl.h>
 #include "curlwrap.h"
 
+#include "ncbytes.h"
+#include "nclog.h"
+
 #include "netcdf.h"
 #include "nc.h"
 #include "ncdispatch.h"
@@ -28,9 +31,9 @@
 #include "crdebug.h"
 #include "nccrdispatch.h"
 #include "ast.h"
+#include "nccrnode.h"
 #include "ncStreamx.h"
-#include "ncbytes.h"
-#include "nclog.h"
+#include "nccrproto.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
@@ -75,7 +78,6 @@ NCCR_open(const char * path, int mode,
     ast_runtime* rt = NULL;
     ast_err aststat = AST_NOERR;
     Header* hdr = NULL;
-    size_t offset;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
@@ -128,6 +130,10 @@ NCCR_open(const char * path, int mode,
     if(nc_urllookupvalue(shows,"fetch"))
 	nccr->cdmr->controls |= SHOWFETCH;
 
+    /* Parse the projection */
+    
+
+
     /* fetch meta data */
     buf = bytes_t_null;
     NCbytes* completeurl = ncbytesnew();
@@ -138,17 +144,31 @@ NCCR_open(const char * path, int mode,
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Parse the meta data */
-    ncstat = skiptoheader(&buf,&offset);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-
-    ncstat = nccr_decodeheader(&buf,offset,&hdr);
+    ncstat = nccr_decodeheader(&buf,&hdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     if(buf.bytes != NULL) free(buf.bytes);
 
-    /* Collect the nodes of the tree */
+    /* Compute various things about the Header tree */
+
+    /* Collect all nodes and fill in the CRnode part*/
     cdmr->nodeset = nclistnew();
     ncstat = nccr_walk_Header(hdr,cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Compute the pathnames */
+    ncstat = nccr_compute_pathnames(cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Map dimension references to matching declaration */
+    ncstat = nccr_map_dimensions(cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Replace dimension references with matching declaration */
+    nccr_deref_dimensions(cdmr->nodeset);
+
+    /* Elide any variables not in the url projection */
+    ncstat = nccr_elide_vars(cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* build the meta data */
@@ -164,7 +184,6 @@ done:
     if(ncstat) {
         if(nccr != NULL) {
 	    int ncid = nccr->info.ext_ncid;
-            freeNCCDMR(nccr->cdmr);
             NCCR_abort(ncid);
         }
     } else {
@@ -175,7 +194,7 @@ done:
 
 int
 NCCR_close(int ncid)
-	{
+{
     NC_GRP_INFO_T *grp;
     NC_HDF5_FILE_INFO_T *h5;
     NCCR* nccr = NULL;

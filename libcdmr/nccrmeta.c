@@ -20,7 +20,9 @@
 #include "crdebug.h"
 #include "ast.h"
 
+#include "nccrnode.h"
 #include "ncStreamx.h"
+#include "nccrmeta.h"
 
 /*Forward*/
 static char* crtypename(char*);
@@ -29,8 +31,6 @@ static int crdeffieldvar(nc_type, void* tag, Variable*);
 static int crdeffieldstruct(nc_type, void* tag, Structure*);
 static int crfillgroup(NCCR*, Group*, nc_type);
 static nc_type cvtstreamtonc(DataType);
-static enum Dimcase classifydim(Dimension*);
-static int dimsize(Dimension*);
 static int dimsizes(int ndims, Dimension**, int sizes[NC_MAX_VAR_DIMS]);
 static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
 static int buildfield(int ncid,void* cmpd,char*,nc_type,int ndims,Dimension**);
@@ -38,8 +38,6 @@ static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index
 static int locateleftvlen(int ndims, Dimension**, int index);
 static int crdefattribute(Attribute* att, nc_type parentid, nc_type scope);
 
-
-enum Dimcase {DC_UNKNOWN, DC_FIXED, DC_UNLIMITED, DC_VLEN, DC_PRIVATE};
 
 static int uid = 0;
 
@@ -54,17 +52,6 @@ nccr_buildnc(NCCR* nccr, Header* hdr)
 
     ncstat = crfillgroup(nccr, hdr->root, ncid);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-
-#ifdef IGNORE
-    ncstat = crbuilddims(cdmr,hdr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    ncstat = crbuildtypes(cdmr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    ncstat = crbuildvars(cdmr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    ncstat = crbuildglobalattrs(cdmr,getncid(cdmr),dds);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-#endif
 
 done:
     return THROW(ncstat);
@@ -152,7 +139,7 @@ static int
 crdeffieldstruct(nc_type grpid, void* tag, Structure* s)
 {
     int ncstat = NC_NOERR;
-    nc_type basetype = s->notes.value->ncid;
+    nc_type basetype = s->node.ncid;
     int index,i;
     int ndims = s->shape.count;
     Dimension** dims = s->shape.values;
@@ -197,7 +184,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	Dimension* dim = grp->dims.values[i];
 	if(dim->name.defined) {
 	    size_t length = dimsize(dim);
-	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->notes.value->ncid);
+	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->node.ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -207,11 +194,11 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	EnumTypedef* en = grp->enumTypes.values[i];
 	int enid;
 	if(en->map.count == 0) continue;
-	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->notes.value->ncid);
+	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->node.ncid);
 	if(ncstat != NC_NOERR) goto done;
         for(j=0;j<en->map.count;i++) {
 	    EnumType* econst = en->map.values[i];
-	    ncstat = nc_insert_enum(grpid,en->notes.value->ncid,econst->value,&econst->code);
+	    ncstat = nc_insert_enum(grpid,en->node.ncid,econst->value,&econst->code);
    	    if(ncstat != NC_NOERR) goto done;	
 	}
     }
@@ -236,7 +223,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    ncstat = crdeffieldstruct(grpid,tag,s);
 	    if(ncstat != NC_NOERR) goto done;	
 	}
-	ncstat = ncaux_end_compound(tag,&struc->notes.value->ncid);
+	ncstat = ncaux_end_compound(tag,&struc->node.ncid);
     }
 
     /* Create the group global attributes */
@@ -258,7 +245,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	    {ncstat = NC_EBADDIM; goto done;}
 
 	if(ndims == 0) {
-            ncstat = nc_def_var(grpid,v->name,basetype,0,NULL,&v->notes.value->ncid);
+            ncstat = nc_def_var(grpid,v->name,basetype,0,NULL,&v->node.ncid);
 	} else {
 	    nc_type dimids[NC_MAX_VAR_DIMS];
 	    int index;
@@ -271,15 +258,15 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 		index++; /* to get ndims count right */
 	    } else index = ndims;
 	    for(j=0;j<index;j++)
-		dimids[j] = dims[j]->notes.value->ncid;
+		dimids[j] = dims[j]->node.ncid;
             ncstat = nc_def_var(grpid,v->name,basetype,
 				index,
 				dimids,
-				&v->notes.value->ncid);
+				&v->node.ncid);
 	    /* Define any var attributes */
 	    for(j=0;j<v->atts.count;j++) {
 		Attribute* att = v->atts.values[j];
-		ncstat = crdefattribute(att,grpid,v->notes.value->ncid);
+		ncstat = crdefattribute(att,grpid,v->node.ncid);
 	        if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -290,14 +277,14 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
         Structure* s = grp->structs.values[i];
 	int ndims = s->shape.count;
 	Dimension** dims = s->shape.values;
-	nc_type basetype = s->notes.value->ncid;
+	nc_type basetype = s->node.ncid;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))
 	    {ncstat = NC_EBADDIM; goto done;}
 
 	if(ndims == 0) {
-            ncstat = nc_def_var(grpid,s->name,basetype,0,NULL,&s->notes.value->ncid);
+            ncstat = nc_def_var(grpid,s->name,basetype,0,NULL,&s->node.ncid);
 	} else {
 	    nc_type dimids[NC_MAX_VAR_DIMS];
 	    int index;
@@ -310,13 +297,13 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 		index++;
 	    } else index = ndims;
 	    for(j=0;j<index;j++)
-		dimids[j] = dims[j]->notes.value->ncid;
-            ncstat = nc_def_var(grpid,s->name,basetype,index,dimids,&s->notes.value->ncid);
+		dimids[j] = dims[j]->node.ncid;
+            ncstat = nc_def_var(grpid,s->name,basetype,index,dimids,&s->node.ncid);
 	}
 	/* Define any var attributes */
 	for(j=0;j<s->atts.count;j++) {
 	    Attribute* att = s->atts.values[j];
-	    ncstat = crdefattribute(att,grpid,s->notes.value->ncid);
+	    ncstat = crdefattribute(att,grpid,s->node.ncid);
 	    if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -390,7 +377,7 @@ cvtstreamtonc(DataType datatype)
 
 
 /* Classify a dimension */
-static enum Dimcase
+enum Dimcase
 classifydim(Dimension* dim)
 {
     int len=0, unlim=0, vlen=0, priv=0;
@@ -410,7 +397,7 @@ fail:
 }
 
 
-static int
+int
 dimsize(Dimension* dim)
 {
     if(dim->isUnlimited.defined && dim->isUnlimited.value)
@@ -618,4 +605,3 @@ locateleftvlen(int ndims, Dimension** dims, int index)
     }
     return -1; /* no vlen located */
 }
-

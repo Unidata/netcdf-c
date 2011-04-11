@@ -16,6 +16,7 @@
 #include "nc4internal.h"
 
 #include "nccr.h"
+#include "nccrnode.h"
 #include "crdebug.h"
 #include "ast.h"
 
@@ -28,13 +29,13 @@ NCCR_get_vara(int ncid, int varid,
 	      nc_type externaltype0)
 {
     NCerror ncstat = NC_NOERR;
-    OCerror ocstat = OC_NOERR;
+#ifdef IGNORE
     unsigned int i;
     NC_GRP_INFO_T *grp; 
     NC_HDF5_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
     NCCR* nccr;
-    CDFnode* cdfvar; /* cdf node mapping to var*/
+    CRnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
     CRGetvara* varainfo = NULL;
     char* constraint = NULL;
@@ -73,7 +74,7 @@ NCCR_get_vara(int ncid, int varid,
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
         for(i=0;i<ncrank;i++) {
-	    CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	    CRnode* dim = (CRnode*)nclistget(ncdims,i);
 	    localcount[i] = dim->dim.declsize;
 	}
 	countp = localcount;
@@ -84,7 +85,7 @@ NCCR_get_vara(int ncid, int varid,
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
-        CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+        CRnode* dim = (CRnode*)nclistget(ncdims,i);
 	if(startp[i] > dim->dim.declsize
 	   || startp[i]+countp[i] > dim->dim.declsize) {
 	    ncstat = NC_EINVALCOORDS;
@@ -114,7 +115,7 @@ NCCR_get_vara(int ncid, int varid,
     varnodes = cdmr->nodeset;
     varnodes = NULL;
     for(i=0;i<nclistlength(varnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
+	CRnode* node = (CRnode*)nclistget(varnodes,i);
 	if(node->ncid == varid) {
 	    cdfvar = node;
 	    break;
@@ -206,15 +207,16 @@ ok:
     efree(constraint);
     freegetvara(varainfo);
     freencprojection(varaprojection);
+#endif
     return THROW(ncstat);
 }
 
-
+#ifdef IGNORE
 /**************************************************/
 /* Duplicated from libncdap3/common34 */
 
-statioc NCerror
-makegetvar(NCCDMR* cdmr, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
+statio NCerror
+makegetvar(NCCDMR* cdmr, CRnode* var, void* data, nc_type dsttype, Getvara** getvarp)
 {
     Getvara* getvar;
     NCerror ncstat = NC_NOERR;
@@ -232,3 +234,4 @@ makegetvar(NCCDMR* cdmr, CDFnode* var, void* data, nc_type dsttype, Getvara** ge
     return ncstat;
 }
 
+#endif /*IGNORE*/
