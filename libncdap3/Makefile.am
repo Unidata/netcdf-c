@@ -36,7 +36,6 @@ ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c
 
 HDRS=\
 nccommon.h \
-ncconstraints.h \
 constraints3.h \
 ncd3dispatch.h \
 ncdap3.h \

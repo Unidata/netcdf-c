@@ -7,6 +7,10 @@
 #ifndef NCCONSTRAINTS_H
 #define NCCONSTRAINTS_H 1
 
+#ifndef NC_MAX_VAR_DIMS
+#define NC_MAX_VAR_DIMS 1024
+#endif
+
 typedef enum NCCops {
 NO_NIL=0,NO_EQ=1,NO_NEQ=2,NO_GE=3,NO_GT=4,NO_LT=5,NO_LE=6,NO_RE=7
 } NCCops;
@@ -113,8 +117,8 @@ typedef struct NCCconstraint {
 
 
 extern int ncparseconstraints(char* constraints, NCCconstraint* ncconstraint);
-extern int slicemerge(NCCslice* dst, NCCslice* src);
-extern int mergeprojections(NClist* dst, NClist* src);
+extern int nccslicemerge(NCCslice* dst, NCCslice* src);
+extern int nccmergeprojections(NClist* dst, NClist* src);
 
 extern char* buildprojectionstring(NClist* projections);
 extern char* buildselectionstring(NClist* selections);
@@ -126,8 +130,10 @@ extern NClist* ncc_clonelist(NClist* list);
 extern void nccfree(NCCnode* node);
 extern void ncc_freelist(NClist* list);
 
-extern void ncctostring(NCCnode* node, NCbytes* buf);
-extern void ncc_listtostring(NClist* list, NCbytes* buf);
+extern char* ncctostring(NCCnode* node);
+extern char* ncc_listtostring(NClist* list);
+extern void ncctobuffer(NCCnode* node, NCbytes* buf);
+extern void ncc_listtobuffer(NClist* list, NCbytes* buf);
 
 extern NClist* ceallnodes(NCCnode* node, NCCsort which);
 

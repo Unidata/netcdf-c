@@ -31,9 +31,6 @@
 
 static char* opstrings[] = OPSTRINGS ;
 
-
-static int qualifyconstraints(NCCconstraint* constraint);
-static void collectsegmentnames(NClist* segments, NClist* path);
 static int mergeprojection(NCCprojection* dst, NCCprojection* src);
 static void ceallnodesr(NCCnode* node, NClist* allnodes, NCCsort which);
 
@@ -50,54 +47,18 @@ ncparseconstraints(char* constraints, NCCconstraint* ncconstraint)
     nclistclear(ncconstraint->projections);
     nclistclear(ncconstraint->selections);
 
-    ncstat = ncceparse(constraints,0,ncconstraint,&errmsg);
+    ncstat = ncceparse(constraints,ncconstraint,&errmsg);
     if(ncstat) {
 	nclog(NCLOGWARN,"DAP constraint parse failure: %s",errmsg);
-	efree(errmsg);
+	if(errmsg) free(errmsg);
         nclistclear(ncconstraint->projections);
         nclistclear(ncconstraint->selections);
     }
 
 #ifdef DEBUG
-fprintf(stderr,"constraint: %s",dumpconstraint(ncconstraint));
+fprintf(stderr,"constraint: %s",ncctostring((NCCnode*)ncconstraint));
 #endif
     return ncstat;
-}
-
-
-/* Fill in:
-    1. projection segments
-    2. projection segment slices declsize
-    3. selection path
-*/
-static int
-qualifyconstraints(NCCconstraint* constraint)
-{
-    int ncstat = NC_NOERR;
-    int i;
-    if(constraint != NULL) {
-        for(i=0;i<nclistlength(constraint->projections);i++) {  
-            NCCprojection* p = (NCCprojection*)nclistget(constraint->projections,i);
-            ncstat = qualifyprojectionnames(p);
-            ncstat = qualifyprojectionsizes(p);
-        }
-        for(i=0;i<nclistlength(constraint->selections);i++) {   
-            NCCselection* s = (NCCselection*)nclistget(constraint->selections,i);
-            ncstat = qualifyselectionnames(s);
-        }
-    }
-    return ncstat;
-}
-
-static void
-collectsegmentnames(NClist* segments, NClist* path)
-{
-    int i;
-    ncbytesclear(path);
-    for(i=0;i<nclistlength(segments);i++) {
-	NCCsegment* segment = (NCCsegment*)nclistget(segments,i);
-	nclistpush(path,(ncelem)segment->node.name);
-    }
 }
 
 /* Worksheet
@@ -169,7 +130,7 @@ l = 2 * 1 + 1 = 3
 /* Merge slice src into slice dst; dst != src */
 
 int
-slicemerge(NCCslice* dst, NCCslice* src)
+nccslicemerge(NCCslice* dst, NCCslice* src)
 {
     int err = NC_NOERR;
     NCCslice tmp;
@@ -196,15 +157,15 @@ overlapping projections into acct.
 Assume that fullnames have been computed.
 */
 int
-mergeprojections(NClist* dst, NClist* src)
+nccmergeprojections(NClist* dst, NClist* src)
 {
     int i;
     NClist* cat = nclistnew();
     int ncstat = NC_NOERR;
 
 #ifdef DEBUG
-fprintf(stderr,"mergeprojection: dst = %s\n",dumpprojections(dst));
-fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
+fprintf(stderr,"nccmergeprojection: dst = %s\n",ncctostring((NCCnode*)dst));
+fprintf(stderr,"nccmergeprojection: src = %s\n",ncctostring((NCCnode*)src));
 #endif
 
     /* get dst concat clone(src) */
@@ -215,7 +176,7 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
     }    
     for(i=0;i<nclistlength(src);i++) {
 	NCCprojection* p = (NCCprojection*)nclistget(src,i);
-	nclistpush(cat,(ncelem)clonencprojection(p));
+	nclistpush(cat,(ncelem)nccclone((NCCnode*)p));
     }    
 
     nclistclear(dst);
@@ -234,10 +195,10 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
 	    if(p2->discrim != NS_VAR) continue;
 	    if(strcmp(target->node.fullname,p2->node.fullname)!=0) continue;
 	    /* This entry matches our current target; merge  */
-	    ncstat = mergeprojection31(target,p2);
+	    ncstat = mergeprojection(target,p2);
 	    /* null out this merged entry and release it */
 	    nclistset(cat,i,(ncelem)NULL);	    
-	    freencprojection(p2);	    
+	    nccfree((NCCnode*)p2);	    
 	}		    
 	/* Capture the clone */
 	nclistpush(dst,(ncelem)target);
@@ -262,7 +223,7 @@ mergeprojection(NCCprojection* dst, NCCprojection* src)
 	NCCsegment* dstseg = (NCCsegment*)nclistget(dst->var->segments,i);
 	NCCsegment* srcseg = (NCCsegment*)nclistget(src->var->segments,i);
 	for(j=0;j<dstseg->slicerank;j++) {
-	    slicemerge(&dstseg->slices[j],&srcseg->slices[j]);
+	    nccslicemerge(&dstseg->slices[j],&srcseg->slices[j]);
 	}
     }
     return ncstat;
@@ -277,7 +238,7 @@ buildprojectionstring(NClist* projections)
 {
     char* pstring;
     NCbytes* buf = ncbytesnew();
-    tostringncprojections(projections,buf);
+    ncc_listtobuffer(projections,buf);
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return pstring;
@@ -288,7 +249,7 @@ buildselectionstring(NClist* selections)
 {
     NCbytes* buf = ncbytesnew();
     char* sstring;
-    tostringncselections(selections,buf);
+    ncc_listtobuffer(selections,buf);
     sstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return sstring;
@@ -299,7 +260,7 @@ buildconstraintstring(NCCconstraint* constraints)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
-    tostringncconstraint(constraints,buf);
+    ncctobuffer((NCCnode*)constraints,buf);
     result = ncbytesdup(buf);
     ncbytesfree(buf);
     return result;
@@ -483,7 +444,7 @@ nccfree(NCCnode* node)
     case NS_CONSTRAINT: {
 	NCCconstraint* target = (NCCconstraint*)node;
 	ncc_freelist(target->projections);
-	nccfreelist(target->selections);
+	ncc_freelist(target->selections);
     } break;
 
     case NS_SEGMENT:
@@ -510,9 +471,19 @@ ncc_freelist(NClist* list)
     nclistfree(list);
 }
 
+char*
+ncctostring(NCCnode* node)
+{
+    char* s;
+    NCbytes* buf = ncbytesnew();
+    ncctobuffer(node,buf);
+    s = ncbytesextract(buf);
+    ncbytesfree(buf);
+    return s;
+}
 
 void
-ncctostring(NCCnode* node, NCbytes* buf)
+ncctobuffer(NCCnode* node, NCbytes* buf)
 {
     int i;
     char tmp[1024];
@@ -525,7 +496,7 @@ ncctostring(NCCnode* node, NCbytes* buf)
     case NS_SLICE: {
 	NCCslice* slice = (NCCslice*)node;
 	unsigned long last = (slice->first+slice->length)-1;
-	ASSERT(slice->declsize > 0);
+	assert(slice->declsize > 0);
 	if(last > slice->declsize && slice->declsize > 0)
 	    last = slice->declsize - 1;
         if(slice->count == 1) {
@@ -551,20 +522,20 @@ ncctostring(NCCnode* node, NCbytes* buf)
 	for(i=0;i<rank;i++) {
 	    NCCslice* slice = (segment->slices+i);
 	    if(i > 0) ncbytescat(buf,",");
-	    ncctostring((NCCnode*)slice,buf);
+	    ncctobuffer((NCCnode*)slice,buf);
 	}
     } break;
 
     case NS_VAR: {
 	NCCvar* var = (NCCvar*)node;
-	ncc_listtostring(var->segments,buf);
+	ncc_listtobuffer(var->segments,buf);
     } break;
 
     case NS_FCN: {
 	NCCfcn* fcn = (NCCfcn*)node;
         ncbytescat(buf,fcn->node.name);
         ncbytescat(buf,"(");
-	ncc_listtostring(fcn->args,buf);
+	ncc_listtobuffer(fcn->args,buf);
         ncbytescat(buf,")");
     } break;
 
@@ -590,13 +561,13 @@ ncctostring(NCCnode* node, NCbytes* buf)
 	NCCvalue* value = (NCCvalue*)node;
         switch (value->discrim) {
         case NS_CONST:
-    	    ncctostring((NCCnode*)value->constant,buf);
+    	    ncctobuffer((NCCnode*)value->constant,buf);
       	    break;		
         case NS_VAR:
-    	    ncctostring((NCCnode*)value->var,buf);
+    	    ncctobuffer((NCCnode*)value->var,buf);
     	    break;
         case NS_FCN:
-    	    ncctostring((NCCnode*)value->fcn,buf);
+    	    ncctobuffer((NCCnode*)value->fcn,buf);
     	    break;
         default: assert(0);
         }
@@ -605,20 +576,20 @@ ncctostring(NCCnode* node, NCbytes* buf)
     case NS_PROJECT: {
 	NCCprojection* target = (NCCprojection*)node;
 	switch (target->discrim) {
-	case NS_VAR: ncctostring((NCCnode*)target->var,buf); break;
-	case NS_FCN: ncctostring((NCCnode*)target->fcn,buf); break;
+	case NS_VAR: ncctobuffer((NCCnode*)target->var,buf); break;
+	case NS_FCN: ncctobuffer((NCCnode*)target->fcn,buf); break;
 	default: assert(0);
 	}
     } break;
 
     case NS_SELECT: {
 	NCCselection* sel = (NCCselection*)node;
-	ncctostring((NCCnode*)sel->rhs,buf);
+	ncctobuffer((NCCnode*)sel->rhs,buf);
         if(sel->operator == NS_NIL) break;
         ncbytescat(buf,opstrings[(int)sel->operator]);
         if(nclistlength(sel->rhs) > 1)
             ncbytescat(buf,"{");
-	ncc_listtostring(sel->rhs,buf);
+	ncc_listtobuffer(sel->rhs,buf);
         if(nclistlength(sel->rhs) > 1)
 	    ncbytescat(buf,"}");
     } break;
@@ -626,10 +597,10 @@ ncctostring(NCCnode* node, NCbytes* buf)
     case NS_CONSTRAINT: {
 	NCCconstraint* con = (NCCconstraint*)node;
 	if(con->projections != NULL)
-            ncc_listtostring(con->projections,buf);
+            ncc_listtobuffer(con->projections,buf);
         if(con->selections != NULL) {
 	    ncbytescat(buf,"?");
-            ncc_listtostring(con->selections,buf);
+            ncc_listtobuffer(con->selections,buf);
 	}
     } break;
 
@@ -641,15 +612,26 @@ ncctostring(NCCnode* node, NCbytes* buf)
     free(node);
 }
 
+char*
+ncc_listtostring(NClist* list)
+{
+    char* s;
+    NCbytes* buf = ncbytesnew();
+    ncc_listtobuffer(list,buf);
+    s = ncbytesextract(buf);
+    ncbytesfree(buf);
+    return s;
+}
+
 void
-ncc_listtostring(NClist* list, NCbytes* buf)
+ncc_listtobuffer(NClist* list, NCbytes* buf)
 {
     int i;
     if(list == NULL || buf == NULL) return;
     for(i=0;i<nclistlength(list);i++) {
 	NCCnode* node = (NCCnode*)nclistget(list,i);
 	if(i>0) ncbytescat(buf,",");
-	ncctostring((NCCnode*)node,buf);
+	ncctobuffer((NCCnode*)node,buf);
     }
 }
 

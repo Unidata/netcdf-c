@@ -97,7 +97,7 @@ typedef struct NCcachenode {
     int wholevariable; /* Is this cache entry constrained? */
     int prefetch; /* is this the prefetch cache entry? */
     size_t xdrsize;
-    struct NCconstraint* constraint; /* as used to create this node */
+    NCCconstraint* constraint; /* as used to create this node */
     NClist* vars; /* vars potentially covered by this cache node */
     struct CDFnode* datadds;
     OCobject ocroot;
@@ -120,7 +120,7 @@ typedef struct NCOC {
     char* urltext; /* as given to nc3d_open*/
     DAPURL url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
-    struct NCconstraint* dapconstraint; /* from url */
+    NCCconstraint* dapconstraint; /* from url */
 } NCOC;
 
 typedef struct NCCDF {
@@ -302,11 +302,7 @@ extern int nodematch34(CDFnode* node1, CDFnode* node2);
 extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
 extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
 extern int constrainable34(DAPURL*);
-extern NCconstraint clonencconstraint34(NCconstraint*);
-extern char* makeconstraintstring34(NCconstraint*);
-extern void freencprojections(NClist* plist);
-extern void freencprojection(struct NCprojection* p);
-extern void freencselections(NClist* slist);
+extern char* makeconstraintstring34(NCCconstraint*);
 extern size_t estimatedataddssize34(CDFnode* datadds);
 extern void restrictprojection34(NClist*, NClist*);
 
@@ -317,7 +313,7 @@ extern NClist* CEparse(char* input);
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);
 extern NCerror prefetchdata3(NCDAPCOMMON*);
 extern NCerror buildcachenode34(NCDAPCOMMON*,
-	        NCconstraint* constraint,
+	        NCCconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
 		int isprefetch);
@@ -325,7 +321,6 @@ extern NCcachenode* createnccachenode(void);
 extern void freenccachenode(NCDAPCOMMON*, NCcachenode* node);
 extern NCcache* createnccache(void);
 extern void freenccache(NCDAPCOMMON*, NCcache* cache);
-
 
 /* Add an extra function whose sole purpose is to allow
    configure(.ac) to test for the presence of thiscode.
