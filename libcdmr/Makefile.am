@@ -20,7 +20,7 @@ ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c \
 crce.c
 
-HDRS=nccrdispatch.h nccr.h mccrmeta.h nccrproto.h \
+HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
 nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \

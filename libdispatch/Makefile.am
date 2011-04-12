@@ -16,8 +16,8 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # The source files.
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
-var.c dispatch.c nc_url.c nclist.c ncbytes.c ncbytes.h \
-nchashmap.c nchashmap.h \
+var.c dispatch.c nc_url.c nclist.c ncbytes.c \
+nchashmap.c \
 nclog.c nclog.h \
 ncconstraints.c ncconstraints.h \
 cetab.c cetab.h ceparse.c ceparse.h celex.c ceparselex.h
