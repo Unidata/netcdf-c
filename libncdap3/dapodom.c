@@ -11,22 +11,24 @@
 /* Define methods for a dimension dapodometer*/
 
 Dapodometer*
-newdapodometer(NCslice* slices, unsigned int first, unsigned int rank)
+newdapodometer(NCCslice* slices, unsigned int first, unsigned int rank)
 {
     int i;
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
-    odom->rank = rank;
+    ASSERT(nclistlength(slices) == rank);
+    odom->rank = nclistlength(slices);
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
-	odom->slices[i] = slices[first+i];
+	NCCslice* slice = slices+(first+i);
+	odom->slices[i] = *slice;
 	odom->index[i] = odom->slices[i].first;
     }    
     return odom;
 }
 
 Dapodometer*
-newsimpledapodometer(NCsegment* segment, unsigned int rank)
+newsimpledapodometer(NCCsegment* segment, unsigned int rank)
 {
     int i;
     Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
@@ -34,8 +36,8 @@ newsimpledapodometer(NCsegment* segment, unsigned int rank)
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
-	NCslice* odslice = &odom->slices[i];
-	NCslice* segslice = &segment->slices[i];
+	NCCslice* odslice = &odom->slices[i];
+	NCCslice* segslice = &segment->slices[i];
 	odslice->first = 0;
 	odslice->stride = 1;
 	odslice->declsize = segslice->count;
@@ -128,7 +130,7 @@ dapodometerspace(Dapodometer* odom, unsigned int wheel)
 {
     unsigned int i,rank = odom->rank;
     size_t count = 1;
-    NCslice* slice;
+    NCCslice* slice;
     ASSERT((wheel < rank));
     slice = odom->slices+wheel;
     for(i=wheel;i<rank;i++,slice++) {
@@ -148,7 +150,7 @@ dapodometerpoints(Dapodometer* odom)
 {
     unsigned int i,rank = odom->rank;
     size_t count = 1;
-    NCslice* slice = odom->slices;
+    NCCslice* slice = odom->slices;
     for(i=0;i<rank;i++,slice++) {
 	size_t slicecount = (slice->length/slice->stride);
 	count *= slicecount;
@@ -186,7 +188,7 @@ int
 dapodometerincrith(Dapodometer* odom, int wheel)
 {
     int i; /* do not make unsigned */
-    NCslice* slice;
+    NCCslice* slice;
     if(odom->rank == 0) return 0; 
     if(wheel < 0) wheel = (odom->rank - 1);
     for(slice=odom->slices+(wheel),i=wheel;i>=0;i--,slice--) {

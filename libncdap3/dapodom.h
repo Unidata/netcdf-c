@@ -11,14 +11,14 @@
 
 typedef struct Dapodometer {
     int            rank;
-    NCslice        slices[NC_MAX_VAR_DIMS];
+    NCCslice       slices[NC_MAX_VAR_DIMS];
     size_t         index[NC_MAX_VAR_DIMS];
 } Dapodometer;
 
 /* Odometer operators*/
-extern Dapodometer* newdapodometer(NCslice* slices, unsigned int first, unsigned int count);
+extern Dapodometer* newdapodometer(NCCslice* slices, unsigned int first, unsigned int count);
 
-extern Dapodometer* newsimpledapodometer(struct NCsegment*,unsigned int);
+extern Dapodometer* newsimpledapodometer(struct NCCsegment*,unsigned int);
 
 extern Dapodometer* newdapodometer1(unsigned int count);
 extern Dapodometer* newdapodometer2(const size_t*, const size_t*,

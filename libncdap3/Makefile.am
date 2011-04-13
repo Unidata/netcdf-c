@@ -29,10 +29,10 @@ cache.c \
 dapdump.c \
 dapdebug.c \
 dapattr3.c \
-cetab.c \
-ceparse.c \
-celex.c \
-ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c
+ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
+ncconstraints.h ncconstraints.c \
+cetab.c cetab.h ceparse.c ceparse.h celex.c ceparselex.h
+
 
 HDRS=\
 nccommon.h \
@@ -45,9 +45,7 @@ getvara.h \
 dapnc.h \
 daputil.h \
 dapdebug.h \
-dapdump.h \
-ceparselex.h \
-cetab.h
+dapdump.h
 
 if BUILD_DAP
 
@@ -86,7 +84,7 @@ t_dap3c_SOURCES = t_dap3c.c stubdap3.c
 # Set ldflags
 t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
 t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-EXTRA_DIST = ce.y t_dap.c
+EXTRA_DIST = t_dap.c
 
 endif # BUILD_DAP
 
@@ -105,4 +103,15 @@ BUILT_SOURCES = .dodsrc
 
 DISTCLEANFILES += .dodsrc
 
+# These rule are used if someone wants to rebuild the grammar files.
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
 
+EXTRA_DIST = ce.y
+
+makece::
+	bison -v -d -t -p ce ce.y
+	rm -f cetab.c cetab.h
+	mv ce.tab.c cetab.c
+	mv ce.tab.h cetab.h

@@ -2,6 +2,17 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+
+#include "netcdf.h"
+
+#include "nclist.h"
+#include "ncbytes.h"
+#include "ncconstraints.h"
+
 #include "ceparselex.h"
 
 /* Forward */

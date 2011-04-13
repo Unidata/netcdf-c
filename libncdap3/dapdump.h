@@ -42,17 +42,6 @@ typedef struct NChdr {
 extern int dumpmetadata(int ncid, NChdr**);
 extern void dumpdata1(nc_type nctype, size_t index, char* data);
 
-
-extern char* dumpprojection(struct NCprojection* projections);
-extern char* dumpprojections(NClist* projections);
-extern char* dumpselections(NClist* selections);
-extern char* dumpselection(NCselection* sel);
-extern char* dumpconstraint(NCconstraint* con);
-extern char* dumpsegments(NClist* segments);
-extern char* dumpsegment(NCsegment*);
-extern char* dumpslices(NCslice* slice, unsigned int rank);
-extern char* dumpslice(NCslice* slice);
-
 extern char* dumppath(struct CDFnode* node);
 extern char* dumptree(CDFnode* root);
 extern char* dumpvisible(CDFnode* root);
@@ -64,4 +53,17 @@ extern char* dumpcachenode(NCcachenode* node);
 extern char* dumpcache(NCcache* cache);
 
 
+extern int dumpmetadata(int ncid, NChdr** hdrp);
+extern void dumpdata1(nc_type nctype, size_t index, char* data);
+extern char* dumpprojections(NClist* projections);
+extern char* dumpprojection(NCCprojection* proj);
+extern char* dumpselections(NClist* selections);
+extern char* dumpselection(NCCselection* sel);
+extern char* dumpconstraint(NCCconstraint* con);
+extern char* dumpsegments(NClist* segments);
+extern char* dumpslice(NCCslice* slice);
+extern char* dumpslices(NCCslice* slice, unsigned int rank);
+
+
 #endif /*DUMP_H*/
+

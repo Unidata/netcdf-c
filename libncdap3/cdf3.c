@@ -396,9 +396,9 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
     if(nclistlength(projections) == 0) {
         projectall3(template->tree->nodes);
     } else for(i=0;i<nclistlength(projections);i++) {
-	NCprojection* proj = (NCprojection*)nclistget(projections,i);
+	NCCprojection* proj = (NCCprojection*)nclistget(projections,i);
         ASSERT(proj->discrim == NS_VAR);
-        projection3r(proj->var->leaf);
+        projection3r(GETNOTES(proj->var)->leaf);
     }
 
     if(simplenodematch34(ddsroot,template)) {

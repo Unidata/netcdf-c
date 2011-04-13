@@ -1,31 +1,39 @@
 /*********************************************************************
   *   Copyright 1993, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
-  *   $Header: /upc/share/CVS/netcdf-3/libncconstraints/ncconstraints.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
+/* $Header$ */
+
 #ifndef NCCONSTRAINTS_H
 #define NCCONSTRAINTS_H 1
 
-typedef enum NCsort {
+#ifndef NC_MAX_VAR_DIMS
+#define NC_MAX_VAR_DIMS 1024
+#endif
+
+typedef enum NCCops {
+NO_NIL=0,NO_EQ=1,NO_NEQ=2,NO_GE=3,NO_GT=4,NO_LT=5,NO_LE=6,NO_RE=7
+} NCCops;
+
+/* Must match NCCops */
+#define OPSTRINGS {"?","=","!=",">=",">","<=","<","=~"}
+
+typedef enum NCCsort {
 NS_NIL=0,
-NS_EQ=1,NS_NEQ=2,NS_GE=3,NS_GT=4,NS_LT=5,NS_LE=6,NS_RE=7,
 NS_STR=8,NS_INT=9,NS_FLOAT=10,
 NS_VAR=11,NS_FCN=12,NS_CONST=13,
 NS_SELECT=14, NS_PROJECT=15,
-NS_SEGMENT=16, NS_SLICE=17,
-NS_CONSTRAINT=18,
-NS_VALUE=19
-} NCsort;
+NS_SEGMENT=16, NS_CONSTRAINT=17,
+NS_VALUE=18, NS_SLICE=19
+} NCCsort;
 
-/* Must match NCsort */
-#define OPSTRINGS \
-{"?","=","!=",">=",">","<=","<","=~","?","?","?","?","?","?","?","?","?","?","?"}
-
-
-/* Provide a universal cast type */
-typedef struct NCany {
-    NCsort sort;    
-} NCany;
+/* Provide a universal cast type containing (mostly) common fields */
+typedef struct NCCnode {
+    NCCsort sort;    
+    void* notes; /* user defined annotations */
+    char* name; 
+    char* fullname;
+} NCCnode;
 
 /*
 Store the relevant parameters for accessing
@@ -34,75 +42,101 @@ Break up the startp, countp, stridep into slices
 to facilitate the odometer walk
 */
 
-typedef struct NCslice {
-    NCsort sort;    
+typedef enum NCCform {
+NCF_DAP=0,
+NCF_CDMREMOTE=1
+} NCCform;
+
+typedef struct NCCslice {
+    NCCnode node;
+    NCCform form;
     size_t first;
     size_t count;
     size_t length; /* count*stride */
     size_t stride;
     size_t stop; /* == first + count*/
     size_t declsize;  /* from defining dimension, if any.*/
-} NCslice;
+} NCCslice;
 
+typedef struct NCCsegment {
+    NCCnode node;
+    int slicesdefined;      /* do we know yet if this has defined slices */
+    size_t rank;
+    NCCslice slices[NC_MAX_VAR_DIMS];    
+} NCCsegment;
 
-typedef struct NCsegment {
-    NCsort sort;
-    char* name;
-    struct CDFnode* node;
-    int slicesdefined; /* do we know yet if this has defined slices */
-    unsigned int slicerank; /* Note: this is the rank as shown in the
-                               projection; may be less than node->array.rank */
-    NCslice slices[NC_MAX_VAR_DIMS];        
-} NCsegment;
-
-typedef struct NCfcn {
-    NCsort sort;
-    char* name;
+typedef struct NCCfcn {
+    NCCnode node;
     NClist* args;
-} NCfcn;
+} NCCfcn;
 
-typedef struct NCvar {
-    NCsort sort;
+typedef struct NCCvar {
+    NCCnode node;
     NClist* segments;
-    struct CDFnode* node;
-    /* Following duplicate info inferrable from the segments */
-    struct CDFnode* leaf;
-} NCvar;
+} NCCvar;
 
-typedef struct NCconstant {
-    NCsort sort;
-    NCsort discrim;
+typedef struct NCCconstant {
+    NCCnode node;
+    NCCsort discrim;
     char* text;
     long long intvalue;
     double floatvalue;
-} NCconstant;
+} NCCconstant;
 
-typedef struct NCvalue {
-    NCsort sort;
-    NCsort discrim;
-    NCconstant* constant;
-    NCvar* var;
-    NCfcn* fcn;
-} NCvalue;
+typedef struct NCCvalue {
+    NCCnode node;
+    NCCsort discrim;
+    /* Do not bother with a union */
+    NCCconstant* constant;
+    NCCvar* var;
+    NCCfcn* fcn;
+} NCCvalue;
 
-typedef struct NCselection {
-    NCsort sort;
-    NCsort operator;
-    NCvalue* lhs;
+typedef struct NCCselection {
+    NCCnode node;
+    NCCsort operator;
+    NCCvalue* lhs;
     NClist* rhs;
-} NCselection;
+} NCCselection;
 
-typedef struct NCprojection {
-    NCsort sort;
-    NCsort discrim;
-    NCvar* var;
-    NCfcn* fcn;
-} NCprojection;
+typedef struct NCCprojection {
+    NCCnode node;
+    NCCsort discrim;
+    /* Do not bother with a union */
+    NCCvar* var;
+    NCCfcn* fcn;
+} NCCprojection;
 
-typedef struct NCconstraint {
-    NCsort sort;
+typedef struct NCCconstraint {
+    NCCnode node;
     NClist* projections;
     NClist* selections;
-} NCconstraint;
+} NCCconstraint;
+
+
+extern int ncparseconstraints(char* constraints, NCCconstraint* ncconstraint);
+extern int nccslicemerge(NCCslice* dst, NCCslice* src);
+extern int nccmergeprojections(NClist* dst, NClist* src);
+
+extern char* buildprojectionstring(NClist* projections);
+extern char* buildselectionstring(NClist* selections);
+extern char* buildconstraintstring(NCCconstraint* constraints);
+
+extern NCCnode* nccclone(NCCnode* node);
+extern NClist* ncc_clonelist(NClist* list);
+
+extern void nccfree(NCCnode* node);
+extern void ncc_freelist(NClist* list);
+
+extern char* ncctostring(NCCnode* node);
+extern char* ncc_listtostring(NClist* list,char*);
+extern void ncctobuffer(NCCnode* node, NCbytes* buf);
+extern void ncc_listtobuffer(NClist* list, NCbytes* buf,char*);
+
+extern NClist* nccallnodes(NCCnode* node, NCCsort which);
+
+extern NCCnode* ncccreate(NCCsort sort);
+
+extern void nccmakewholeslice(NCCslice* slice, size_t declsize);
 
 #endif /*NCCONSTRAINTS_H*/

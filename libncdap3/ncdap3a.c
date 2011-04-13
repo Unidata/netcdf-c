@@ -26,7 +26,7 @@ void
 freegetvara(Getvara* vara)
 {
     if(vara == NULL) return;
-    freencprojection(vara->varaprojection);
+    nccfree((NCCnode*)vara->varaprojection);
     efree(vara);
 }
 
@@ -50,7 +50,7 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     dapurlclear(&nccomm->oc.url);
     efree(nccomm->oc.urltext);
 
-    freencconstraint(nccomm->oc.dapconstraint);
+    nccfree((NCCnode*)nccomm->oc.dapconstraint);
     nccomm->oc.dapconstraint = NULL;
 
     return NC_NOERR;

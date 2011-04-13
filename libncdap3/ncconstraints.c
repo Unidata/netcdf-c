@@ -222,8 +222,9 @@ mergeprojection(NCCprojection* dst, NCCprojection* src)
     for(i=0;i<nclistlength(dst->var->segments);i++) {
 	NCCsegment* dstseg = (NCCsegment*)nclistget(dst->var->segments,i);
 	NCCsegment* srcseg = (NCCsegment*)nclistget(src->var->segments,i);
-	for(j=0;j<dstseg->slicerank;j++) {
-	    nccslicemerge(&dstseg->slices[j],&srcseg->slices[j]);
+	for(j=0;j<dstseg->rank;j++) {
+	    nccslicemerge(dstseg->slices+j,
+			  srcseg->slices+j);
 	}
     }
     return ncstat;
@@ -238,7 +239,7 @@ buildprojectionstring(NClist* projections)
 {
     char* pstring;
     NCbytes* buf = ncbytesnew();
-    ncc_listtobuffer(projections,buf);
+    ncc_listtobuffer(projections,buf,",");
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return pstring;
@@ -249,7 +250,7 @@ buildselectionstring(NClist* selections)
 {
     NCbytes* buf = ncbytesnew();
     char* sstring;
-    ncc_listtobuffer(selections,buf);
+    ncc_listtobuffer(selections,buf,",");
     sstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return sstring;
@@ -289,13 +290,8 @@ nccclone(NCCnode* node)
 	NCCsegment* clone = (NCCsegment*)result;
 	NCCsegment* orig = (NCCsegment*)node;
 	*clone = *orig;	
-        for(i=0;i<clone->slicerank;i++) {
-	    NCCslice* slicep = (NCCslice*)nccclone((NCCnode*)orig->slices+i);
-	    /* special case handling */
-	    if(slicep != NULL)
-	        clone->slices[i] = *slicep;
-	    nccfree((NCCnode*)slicep);
-	}
+	if(orig->rank > 0)
+	    memcpy(clone->slices,orig->slices,orig->rank*sizeof(NCCslice));
     } break;
 
     case NS_VAR: {
@@ -447,9 +443,13 @@ nccfree(NCCnode* node)
 	ncc_freelist(target->selections);
     } break;
 
-    case NS_SEGMENT:
-    case NS_SLICE:
-	break;
+    case NS_SEGMENT: {
+	NCCsegment* target = (NCCsegment*)node;
+	target->rank = 0;
+    } break;
+
+    case NS_SLICE: {
+    } break;
 
     default:
 	assert(0);
@@ -494,48 +494,48 @@ ncctobuffer(NCCnode* node, NCbytes* buf)
     switch (node->sort) {
 
     case NS_SLICE: {
-	NCCslice* slice = (NCCslice*)node;
-	unsigned long last = (slice->first+slice->length)-1;
-	assert(slice->declsize > 0);
-	if(last > slice->declsize && slice->declsize > 0)
-	    last = slice->declsize - 1;
-        if(slice->count == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu]",
-	        (unsigned long)slice->first);
-        } else if(slice->stride == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
-	        (unsigned long)slice->first,
-	        (unsigned long)last);
-        } else {
-	    snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
+	    NCCslice* slice = (NCCslice*)node;
+	    size_t last = (slice->first+slice->length)-1;
+	    assert(slice->declsize > 0);
+	    if(last > slice->declsize && slice->declsize > 0)
+	        last = slice->declsize - 1;
+            if(slice->count == 1) {
+                snprintf(tmp,sizeof(tmp),"[%lu]",
+	            (unsigned long)slice->first);
+            } else if(slice->stride == 1) {
+                snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
+	            (unsigned long)slice->first,
+	            (unsigned long)last);
+            } else {
+	        snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
 		    (unsigned long)slice->first,
 		    (unsigned long)slice->stride,
 		    (unsigned long)last);
-	}
-        ncbytescat(buf,tmp);
+	    }
+            ncbytescat(buf,tmp);
     } break;
 
     case NS_SEGMENT: {
 	NCCsegment* segment = (NCCsegment*)node;
-        int rank = segment->slicerank;
+        int rank = segment->rank;
 	ncbytescat(buf,(segment->node.name?segment->node.name:"<unknown>"));
 	for(i=0;i<rank;i++) {
-	    NCCslice* slice = (segment->slices+i);
+	    NCCslice* slice = segment->slices+i;
 	    if(i > 0) ncbytescat(buf,",");
-	    ncctobuffer((NCCnode*)slice,buf);
+            ncctobuffer((NCCnode*)slice,buf);
 	}
     } break;
 
     case NS_VAR: {
 	NCCvar* var = (NCCvar*)node;
-	ncc_listtobuffer(var->segments,buf);
+	ncc_listtobuffer(var->segments,buf,".");
     } break;
 
     case NS_FCN: {
 	NCCfcn* fcn = (NCCfcn*)node;
         ncbytescat(buf,fcn->node.name);
         ncbytescat(buf,"(");
-	ncc_listtobuffer(fcn->args,buf);
+	ncc_listtobuffer(fcn->args,buf,",");
         ncbytescat(buf,")");
     } break;
 
@@ -589,7 +589,7 @@ ncctobuffer(NCCnode* node, NCbytes* buf)
         ncbytescat(buf,opstrings[(int)sel->operator]);
         if(nclistlength(sel->rhs) > 1)
             ncbytescat(buf,"{");
-	ncc_listtobuffer(sel->rhs,buf);
+	ncc_listtobuffer(sel->rhs,buf,",");
         if(nclistlength(sel->rhs) > 1)
 	    ncbytescat(buf,"}");
     } break;
@@ -597,40 +597,42 @@ ncctobuffer(NCCnode* node, NCbytes* buf)
     case NS_CONSTRAINT: {
 	NCCconstraint* con = (NCCconstraint*)node;
 	if(con->projections != NULL)
-            ncc_listtobuffer(con->projections,buf);
+            ncc_listtobuffer(con->projections,buf,",");
         if(con->selections != NULL) {
 	    ncbytescat(buf,"?");
-            ncc_listtobuffer(con->selections,buf);
+            ncc_listtobuffer(con->selections,buf,"&");
 	}
+    } break;
+
+    case NS_NIL: {
+	ncbytescat(buf,"<nil>");
     } break;
 
     default:
 	assert(0);
     }
-
-    /* final action */
-    free(node);
 }
 
 char*
-ncc_listtostring(NClist* list)
+ncc_listtostring(NClist* list, char* sep)
 {
     char* s;
     NCbytes* buf = ncbytesnew();
-    ncc_listtobuffer(list,buf);
+    ncc_listtobuffer(list,buf,sep);
     s = ncbytesextract(buf);
     ncbytesfree(buf);
     return s;
 }
 
 void
-ncc_listtobuffer(NClist* list, NCbytes* buf)
+ncc_listtobuffer(NClist* list, NCbytes* buf, char* sep)
 {
     int i;
     if(list == NULL || buf == NULL) return;
+    if(sep == NULL) sep = ",";
     for(i=0;i<nclistlength(list);i++) {
 	NCCnode* node = (NCCnode*)nclistget(list,i);
-	if(i>0) ncbytescat(buf,",");
+	if(i>0) ncbytescat(buf,sep);
 	ncctobuffer((NCCnode*)node,buf);
     }
 }
@@ -638,7 +640,7 @@ ncc_listtobuffer(NClist* list, NCbytes* buf)
 /* Collect all nodes within a specified constraint tree */
 /* Caller frees result */
 NClist*
-ceallnodes(NCCnode* node, NCCsort which)
+nccallnodes(NCCnode* node, NCCsort which)
 {
     NClist* allnodes = nclistnew();
     ceallnodesr(node,allnodes,which);
@@ -710,7 +712,7 @@ ncccreate(NCCsort sort)
     switch (sort) {
 
     case NS_SLICE: {
-	NCCsegment* target = (NCCsegment*)calloc(1,sizeof(NCCsegment));
+	NCCslice* target = (NCCslice*)calloc(1,sizeof(NCCslice));
 	if(target == NULL) return NULL;
 	node = (NCCnode*)target;
     } break;
@@ -773,5 +775,16 @@ ncccreate(NCCsort sort)
     /* final action */
     node->sort = sort;
     return node;
+}
+
+void
+nccmakewholeslice(NCCslice* slice, size_t declsize)
+{
+    slice->first = 0;
+    slice->stride = 1;
+    slice->length = declsize;
+    slice->stop = declsize;
+    slice->declsize = declsize;
+    slice->count = declsize;
 }
 

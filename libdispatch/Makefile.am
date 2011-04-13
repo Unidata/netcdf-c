@@ -18,9 +18,7 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
 var.c dispatch.c nc_url.c nclist.c ncbytes.c \
 nchashmap.c \
-nclog.c nclog.h \
-ncconstraints.c ncconstraints.h \
-cetab.c cetab.h ceparse.c ceparse.h celex.c ceparselex.h
+nclog.c nclog.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
@@ -38,28 +36,4 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = v2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
-
-# These rule are used if someone wants to rebuild the grammar files.
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
-
-EXTRA_DIST = ce.y
-
-makece::
-	bison -v -d -t -p ce ce.y
-	rm -f cetab.c cetab.h
-	mv ce.tab.c cetab.c
-	mv ce.tab.h cetab.h
-
-# Add a trivial test case to check for undefined references
-check_PROGRAMS = defcheck
-TESTS = defcheck
-CLEANFILES = defcheck
-defcheck_SOURCES = defcheck.c stubdef.c
-defcheck_LDFLAGS=\
-	${top_builddir}/libdispatch/libdispatch.la\
-	${top_builddir}/libsrc/libnetcdf3.la
-
-#	${top_builddir}/libncdap3/libncdap3.la
 

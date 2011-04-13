@@ -8,7 +8,26 @@
 */
 
 #include "config.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+
+#include "netcdf.h"
+
+#include "nclist.h"
+#include "ncbytes.h"
+#include "ncconstraints.h"
+
 #include "ceparselex.h"
+#include "ceparse.h"
+
+#ifndef nulldup
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#endif
+#ifndef nullfree
+#define nullfree(s) if((s)!=NULL) {free(s);} else {}
+#endif
 
 static Object collectlist(Object list0, Object decl);
 
@@ -22,7 +41,7 @@ projections(CEparsestate* state, Object list0)
     }
 #ifdef DEBUG
 fprintf(stderr,"	ce.projections: %s\n",
-	dumpprojections(state->constraint->projections));
+	ncctostring((NCCnode*)state->constraint->projections));
 #endif
 }
 
@@ -36,7 +55,7 @@ selections(CEparsestate* state, Object list0)
     }
 #ifdef DEBUG
 fprintf(stderr,"	ce.selections: %s\n",
-	dumpselections(state->constraint->selections));
+	ncctostring((NCCnode*)state->constraint->selections));
 #endif
 }
 
@@ -50,8 +69,8 @@ projectionlist(CEparsestate* state, Object list0, Object decl)
 Object
 projection(CEparsestate* state, Object varorfcn)
 {
-    NCprojection* p = createncprojection();
-    NCsort tag = *(NCsort*)varorfcn;
+    NCCprojection* p = (NCCprojection*)ncccreate(NS_PROJECT);
+    NCCsort tag = *(NCCsort*)varorfcn;
     if(tag == NS_FCN)
 	p->fcn = varorfcn;
     else
@@ -59,7 +78,7 @@ projection(CEparsestate* state, Object varorfcn)
     p->discrim = tag;
 #ifdef DEBUG
 fprintf(stderr,"	ce.projection: %s\n",
-	dumpprojection(p));
+	ncctostring((NCCnode*)p));
 #endif
     return p;
 }
@@ -69,8 +88,8 @@ segmentlist(CEparsestate* state, Object var0, Object decl)
 {
     /* watch out: this is non-standard */
     NClist* list;
-    NCvar* v = (NCvar*)var0;
-    if(v==NULL) v = createncvar();
+    NCCvar* v = (NCCvar*)var0;
+    if(v==NULL) v = (NCCvar*)ncccreate(NS_VAR);
     list = v->segments;
     if(list == NULL) list = nclistnew();
     nclistpush(list,(ncelem)decl);
@@ -81,19 +100,18 @@ segmentlist(CEparsestate* state, Object var0, Object decl)
 Object
 segment(CEparsestate* state, Object name, Object slices0)
 {
-    NCsegment* segment = createncsegment();
+    int i;
+    NCCsegment* segment = (NCCsegment*)ncccreate(NS_SEGMENT);
     NClist* slices = (NClist*)slices0;
-    segment->name = strdup((char*)name);
-    segment->slicerank = nclistlength(slices);
+    segment->node.name = strdup((char*)name);
     if(slices != NULL) {
-	int i;
-	ASSERT(nclistlength(slices) > 0);
+        segment->slicesdefined = 1;
 	for(i=0;i<nclistlength(slices);i++) {
-	    NCslice* slice = (NCslice*)nclistget(slices,i);
+	    NCCslice* slice = (NCCslice*)nclistget(slices,i);
 	    segment->slices[i] = *slice;
 	    free(slice);
 	}
-        segment->slicesdefined = 1;
+	nclistfree(slices);
     } else
         segment->slicesdefined = 0;
 #ifdef DEBUG
@@ -113,7 +131,7 @@ rangelist(CEparsestate* state, Object list0, Object decl)
 Object
 range(CEparsestate* state, Object sfirst, Object sstride, Object slast)
 {
-    NCslice* slice = createncslice();
+    NCCslice* slice = (NCCslice*)ncccreate(NS_SLICE);
     unsigned long first,stride,last;
 
     /* Note: that incoming arguments are strings; we must convert to size_t;
@@ -165,9 +183,9 @@ Object
 sel_clause(CEparsestate* state, int selcase,
 	   Object lhs, Object relop0, Object values)
 {
-    NCselection* sel = createncselection();
-    sel->operator = (NCsort)relop0;
-    sel->lhs = (NCvalue*)lhs;
+    NCCselection* sel = (NCCselection*)ncccreate(NS_SELECT);
+    sel->operator = (NCCsort)relop0;
+    sel->lhs = (NCCvalue*)lhs;
     if(selcase == 2) {/*singleton value*/
 	sel->rhs = nclistnew();
 	nclistpush(sel->rhs,(ncelem)values);
@@ -185,7 +203,7 @@ indexpath(CEparsestate* state, Object list0, Object index)
 Object
 array_indices(CEparsestate* state, Object list0, Object indexno)
 {
-    NCslice* slice;
+    NCCslice* slice;
     long long start = -1;
     NClist* list = (NClist*)list0;
     if(list == NULL) list = nclistnew();
@@ -194,7 +212,7 @@ array_indices(CEparsestate* state, Object list0, Object indexno)
     	ceerror(state,"Illegal array index");
 	start = 1;
     }    
-    slice = createncslice();
+    slice = (NCCslice*)ncccreate(NS_SLICE);
     slice->first = start;
     slice->stride = 1;
     slice->count = 1;
@@ -209,22 +227,22 @@ indexer(CEparsestate* state, Object name, Object indices)
 {
     int i;
     NClist* list = (NClist*)indices;
-    NCsegment* seg = createncsegment();
-    seg->name = strdup((char*)name);
-    for(i=0;i<nclistlength(list);i++) {
-	NCslice* slice = (NCslice*)nclistget(list,i);
+    NCCsegment* seg = (NCCsegment*)ncccreate(NS_SEGMENT);
+    seg->node.name = strdup((char*)name);
+    for(i=0;i<nclistlength(list);i++) {    
+	NCCslice* slice = (NCCslice*)nclistget(list,i);
         seg->slices[i] = *slice;
-	freencslice(slice);
-	nclistfree(list);
+	free(slice);
     }
+    nclistfree(indices);
     return seg;    
 }
 
 Object
 function(CEparsestate* state, Object fcnname, Object args)
 {
-    NCfcn* fcn = createncfcn();
-    fcn->name = nulldup((char*)fcnname);
+    NCCfcn* fcn = (NCCfcn*)ncccreate(NS_FCN);
+    fcn->node.name = nulldup((char*)fcnname);
     fcn->args = args;
     return fcn;
 }
@@ -245,12 +263,12 @@ value_list(CEparsestate* state, Object list0, Object decl)
 Object
 value(CEparsestate* state, Object val)
 {
-    NCvalue* ncvalue = createncvalue();
-    NCsort tag = *(NCsort*)val;
+    NCCvalue* ncvalue = (NCCvalue*)ncccreate(NS_VALUE);
+    NCCsort tag = *(NCCsort*)val;
     switch (tag) {
-    case NS_VAR: ncvalue->var = (NCvar*)val; break;
-    case NS_FCN: ncvalue->fcn = (NCfcn*)val; break;
-    case NS_CONST: ncvalue->constant = (NCconstant*)val; break;
+    case NS_VAR: ncvalue->var = (NCCvar*)val; break;
+    case NS_FCN: ncvalue->fcn = (NCCfcn*)val; break;
+    case NS_CONST: ncvalue->constant = (NCCconstant*)val; break;
     default: abort(); break;
     }
     ncvalue->discrim = tag;
@@ -260,7 +278,7 @@ value(CEparsestate* state, Object val)
 Object
 var(CEparsestate* state, Object indexpath)
 {
-    NCvar* v = createncvar();
+    NCCvar* v = (NCCvar*)ncccreate(NS_VAR);
     v->segments = (NClist*)indexpath;        
     return v;
 }
@@ -268,7 +286,7 @@ var(CEparsestate* state, Object indexpath)
 Object
 constant(CEparsestate* state, Object val, int tag)
 {
-    NCconstant* con = createncconstant();
+    NCCconstant* con = (NCCconstant*)ncccreate(NS_CONST);
     char* text = (char*)val;
     char* endpoint = NULL;
     switch (tag) {
@@ -302,7 +320,7 @@ collectlist(Object list0, Object decl)
 }
 
 Object
-makeselectiontag(NCsort tag)
+makeselectiontag(NCCsort tag)
 {
     return (Object) tag;
 }
@@ -322,20 +340,18 @@ ce_parse_cleanup(CEparsestate* state)
 }
 
 static CEparsestate*
-ce_parse_init(char* input, int ncconstraint, NCconstraint* constraint)
+ce_parse_init(char* input, NCCconstraint* constraint)
 {
     CEparsestate* state = NULL;
     if(input==NULL) {
         ceerror(state,"ce_parse_init: no input buffer");
     } else {
-        state = (CEparsestate*)emalloc(sizeof(CEparsestate));
-        MEMCHECK(state,(CEparsestate*)NULL);
-        memset((void*)state,0,sizeof(CEparsestate)); /* Zero memory*/
+        state = (CEparsestate*)calloc(1,sizeof(CEparsestate));
+        if(state==NULL) return (CEparsestate*)NULL;
         state->errorbuf[0] = '\0';
         state->errorcode = 0;
         celexinit(input,&state->lexstate);
 	state->constraint = constraint;
-	state->ncconstraint = ncconstraint;
     }
     return state;
 }
@@ -346,7 +362,7 @@ extern int cedebug;
 
 /* Wrapper for ceparse */
 int
-ncceparse(char* input, int ncconstraint, NCconstraint* constraint, char** errmsgp)
+ncceparse(char* input, NCCconstraint* constraint, char** errmsgp)
 {
     CEparsestate* state;
     int errcode = 0;
@@ -359,12 +375,12 @@ cedebug = 1;
 #ifdef DEBUG
 fprintf(stderr,"ncceparse: input=%s\n",input);
 #endif
-        state = ce_parse_init(input,ncconstraint,constraint);
+        state = ce_parse_init(input,constraint);
         if(ceparse(state) == 0) {
 #ifdef DEBUG
 if(nclistlength(constraint->projections) > 0)
 fprintf(stderr,"ncceparse: projections=%s\n",
-        dumpprojections(constraint->projections));
+        ncctostring((NCCnode*)constraint->projections));
 #endif
 #ifdef DEBUG
 if(nclistlength(constraint->selections)  > 0)

@@ -5,10 +5,7 @@
 #define CEPARSELEX_H
 
 #include "config.h"
-#include "ncdap3.h"
 #include "cetab.h"
-#include "dapdebug.h"
-#include "dapdump.h"
 
 #ifdef WIN32
 #define strcasecmp stricmp
@@ -16,14 +13,15 @@
 #endif
 
 /* For consistency with Java parser */
+#ifndef null
 #define null NULL
+#endif
 
 typedef void* Object;
 
 #define YYSTYPE Object
 
 #define MAX_TOKEN_LENGTH 1024
-
 
 /*! Specifies CElexstate. */
 typedef struct CElexstate {
@@ -39,11 +37,10 @@ typedef struct CElexstate {
 
 /*! Specifies CEparsestate. */
 typedef struct CEparsestate {
-    NCconstraint* constraint;
+    NCCconstraint* constraint;
     char errorbuf[1024];
     int errorcode;
     CElexstate* lexstate;
-    int ncconstraint;
 } CEparsestate;
 
 /* Define a generic object carrier; this serves
@@ -82,7 +79,7 @@ extern Object function(CEparsestate* state, Object fcnname, Object args);
 extern Object arg_list(CEparsestate* state, Object list0, Object decl);
 extern Object value_list(CEparsestate* state, Object list0, Object decl);
 extern Object value(CEparsestate* state, Object value);
-extern Object makeselectiontag(NCsort);
+extern Object makeselectiontag(NCCsort);
 extern Object indexer(CEparsestate* state, Object name, Object indices);
 extern Object indexpath(CEparsestate* state, Object list0, Object index);
 extern Object var(CEparsestate* state, Object indexpath);

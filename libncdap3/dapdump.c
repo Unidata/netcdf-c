@@ -197,177 +197,37 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 char*
 dumpprojections(NClist* projections)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* pstring;
-    for(i=0;i<nclistlength(projections);i++) {
-	NCprojection* p = (NCprojection*)nclistget(projections,i);
-        if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,dumpprojection(p));
-    }
-    pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
+    return ncc_listtostring(projections,",");
 }
 
 char*
-dumpprojection(NCprojection* p)
+dumpprojection(NCCprojection* proj)
 {
-    int i;
-    NCbytes* buf;
-    char* pstring;
-    if(p == NULL) return nulldup("");
-    if(p->discrim == NS_FCN) return nulldup("?fcn()");
-    buf = ncbytesnew();
-    for(i=0;i<nclistlength(p->var->segments);i++) {
-        NCsegment* segment = (NCsegment*)nclistget(p->var->segments,i);
-	char tmp[1024];
-        snprintf(tmp,sizeof(tmp),"%s%s/%lu",
-	         (i > 0?".":""),
-	         (segment->name?segment->name:"<unknown>"),
-		 (unsigned long)segment->slicerank);
-	ncbytescat(buf,tmp);
-	if(segment->slicesdefined)
-	    ncbytescat(buf,dumpslices(segment->slices,segment->slicerank));
-	else
-	    ncbytescat(buf,"[-]");
-    }
-    if(iswholeprojection(p)) ncbytescat(buf,"*");
-    ncbytescat(buf,"(");
-    if(p->var->leaf != NULL) ncbytescat(buf,p->var->leaf->name);
-    ncbytescat(buf,")");
-    pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
+    return ncctostring((NCCnode*)proj);
 }
-
-
-static char* opstrings[] =
-{"?","=","!=",">=",">","<=","<","=~","?","?","?","?"};
 
 char*
 dumpselections(NClist* selections)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    if(nclistlength(selections) == 0) return nulldup("");
-    for(i=0;i<nclistlength(selections);i++) {
-	NCselection* sel = (NCselection*)nclistget(selections,i);
-	ncbytescat(buf,dumpselection(sel));
-    }
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
+    return ncc_listtostring(selections,"&");
 }
 
 char*
-dumpselection(NCselection* sel)
+dumpselection(NCCselection* sel)
 {
-    NCbytes* buf = ncbytesnew();
-    NCbytes* segbuf = ncbytesnew();
-    char* sstring;
-    NClist* segments = NULL;
-    int j;
-
-    if(sel == NULL) return nulldup("");
-    segments = sel->lhs->var->segments;
-    ncbytescat(buf,"&");
-    tostringncsegments(segments,segbuf);
-    ncbytescat(buf,ncbytescontents(segbuf));
-    ncbytescat(buf,opstrings[sel->operator]);
-    ncbytescat(buf,"{");
-    for(j=0;j<nclistlength(sel->rhs);j++) {
-        NCvalue* value = (NCvalue*)nclistget(sel->rhs,j);
-        NCconstant* con = value->constant;
-        char tmp[64];
-        if(j > 0) ncbytescat(buf,",");
-        switch (value->discrim) {
-        case NS_STR:
-            ncbytescat(buf,con->text);
-            break;          
-	case NS_CONST:
-            switch (con->discrim) {	    
-            case NS_INT:
-                snprintf(tmp,sizeof(tmp),"%lld",con->intvalue);
-                ncbytescat(buf,tmp);
-                break;
-            case NS_FLOAT:
-                snprintf(tmp,sizeof(tmp),"%g",con->floatvalue);
-                ncbytescat(buf,tmp);
-                break;
-            default: PANIC1("unexpected discriminator %d",(int)con->discrim);
-	    }
-	    break;
-        case NS_VAR:
-            segments = value->var->segments;
-	    ncbytesclear(segbuf);
-	    tostringncsegments(segments,segbuf);
-            ncbytescat(buf,ncbytescontents(segbuf));
-            break;
-        default: PANIC1("unexpected discriminator %d",(int)value->discrim);
-        }
-    }
-    ncbytescat(buf,"}");
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    ncbytesfree(segbuf);
-    return sstring;
+    return ncctostring((NCCnode*)sel);
 }
 
 char*
-dumpconstraint(NCconstraint* con)
+dumpconstraint(NCCconstraint* con)
 {
-    NCbytes* buf = ncbytesnew();
-    char* result = NULL;
-    if(con == NULL) {ncbytescat(buf,"null"); goto done;}
-    if(nclistlength(con->projections)==0 && nclistlength(con->selections)==0)
-	goto done;
-    if(nclistlength(con->projections) > 0)  {
-	char* pstring = dumpprojections(con->projections);
-        ncbytescat(buf,pstring);
-	efree(pstring);
-    }
-    if(nclistlength(con->selections) > 0) {
-	char* sstring = dumpselections(con->selections);
-        ncbytescat(buf,sstring);
-	efree(sstring);
-    }
-done:
-    result = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return result;
+    return ncctostring((NCCnode*)con);
 }
 
 char*
 dumpsegments(NClist* segments)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    if(nclistlength(segments) == 0) return nulldup("");
-    for(i=0;i<nclistlength(segments);i++) {
-	NCsegment* seg = (NCsegment*)nclistget(segments,i);
-	ncbytescat(buf,dumpsegment(seg));
-    }
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
-}
-
-char*
-dumpsegment(NCsegment* segment)
-{
-    NCbytes* buf;
-    char* result;
-    if(segment == NULL) return nulldup("(nullsegment)");
-    buf = ncbytesnew();
-    ncbytescat(buf,(segment->name?segment->name:"(null)"));
-    if(!segment->slicesdefined)
-	ncbytescat(buf,dumpslices(segment->slices,segment->slicerank));
-    result = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return result;
+    return ncc_listtostring(segments,".");
 }
 
 char*
@@ -685,27 +545,13 @@ dumpcache(NCcache* cache)
 
 /* This should be consistent with makeslicestring3 in constraints3.c */
 char*
-dumpslice(NCslice* slice)
+dumpslice(NCCslice* slice)
 {
-    static char tmp[1024];
-    if(slice->count== 1) {
-        snprintf(tmp,sizeof(tmp),"[%lu]",
-	        (unsigned long)slice->first);
-    } else if(slice->stride == 1) {
-        snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
-	        (unsigned long)slice->first,
-	        (unsigned long)((slice->first+slice->length)-1));
-    } else {
-	snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
-		    (unsigned long)slice->first,
-		    (unsigned long)slice->stride,
-		    (unsigned long)((slice->first+slice->length)-1));
-    }
-    return tmp;
+    return ncctostring((NCCnode*)slice);
 }
 
 char*
-dumpslices(NCslice* slice, unsigned int rank)
+dumpslices(NCCslice* slice, unsigned int rank)
 {
     int i;
     NCbytes* buf;

@@ -84,10 +84,10 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     int i,j;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.varnodes;
-    NCconstraint* constraint = nccomm->oc.dapconstraint;
+    NCCconstraint* constraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
-    NCconstraint* newconstraint = NULL;
+    NCCconstraint* newconstraint = NULL;
 
     /* Check if we can do constraints */
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) { /*cannot constrain*/
@@ -120,13 +120,12 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	goto done;
     }
 
-    newconstraint = createncconstraint();
+    newconstraint = (NCCconstraint*)nccclone((NCCnode*)constraint);
     /* Construct the projections for this set of vars */
     /* Initially, the constraints are same as the merged constraints */
-    newconstraint->projections = clonencprojections(constraint->projections);
     restrictprojection34(vars,newconstraint->projections);
     /* similar for selections */
-    newconstraint->selections = clonencselections(constraint->selections);
+    /* Currently do nothing */
 
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,1);
     if(ncstat) goto done;
@@ -155,14 +154,14 @@ ncbytesfree(buf);
 
 done:
     nclistfree(vars);
-    freencconstraint(newconstraint);    
+    nccfree((NCCnode*)newconstraint);    
     if(ncstat) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
 
 NCerror
 buildcachenode34(NCDAPCOMMON* nccomm,
-	        NCconstraint* constraint,
+	        NCCconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
 		int isprefetch)
@@ -198,7 +197,7 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     cachenode->prefetch = isprefetch;
     cachenode->vars = nclistclone(varlist);
     cachenode->datadds = dxdroot;
-    cachenode->constraint = clonencconstraint(constraint);
+    cachenode->constraint = (NCCconstraint*)nccclone((NCCnode*)constraint);
     cachenode->wholevariable = iswholeconstraint(cachenode->constraint);
 
     /* save the root content*/
@@ -274,7 +273,7 @@ freenccachenode(NCDAPCOMMON* nccomm, NCcachenode* node)
     if(node == NULL) return;
     oc_data_free(nccomm->oc.conn,node->content);
     oc_data_free(nccomm->oc.conn,node->content);
-    freencconstraint(node->constraint);
+    nccfree((NCCnode*)node->constraint);
     freecdfroot34(node->datadds);
     nclistfree(node->vars);
     efree(node);

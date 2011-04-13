@@ -18,6 +18,7 @@
 #include "nclist.h"
 #include "nchashmap.h"
 #include "nclog.h"
+#include "ncconstraints.h"
 
 #include "oc.h"
 #include "dapurl.h"
@@ -25,7 +26,6 @@
 #include "nc.h"
 #include "netcdf.h"
 #include "ncdispatch.h"
-
  /* netcdf overrides*/
 #include "dapnc.h"
 
@@ -127,7 +127,7 @@ extern NCerror rereference3(NCconstraint*, NClist*);
 
 extern NCerror buildvaraprojection3(struct Getvara*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     struct NCprojection** projectionlist);
+		     struct NCCprojection** projectionlist);
 
 extern NCerror nc3d_getvarx(int ncid, int varid,
 	    const size_t *startp,
@@ -165,10 +165,6 @@ extern NCerror showprojection3(NCDAP3*, CDFnode* var);
 /* From: dapcvt.c*/
 extern NCerror dapconvert3(nc_type, nc_type, char*, char*, size_t);
 extern int dapcvtattrval3(nc_type, void*, NClist*);
-/* From constraints3.c */
-extern void makewholesegment3(struct NCsegment*,struct CDFnode*);
-extern void makewholeslice3(struct NCslice* slice, struct CDFnode* dim);
-
 
 #ifdef IGNORE
 /* allow access dapurlparse and params without exposing dapurl.h */
