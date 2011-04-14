@@ -110,7 +110,7 @@ NCD3_open(const char * path, int mode,
     close(fd);
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
-    efree(tmpname);
+    nullfree(tmpname);
     /* Avoid fill */
     NC3_set_fill(ncid,NC_NOFILL,NULL);
 
@@ -128,7 +128,7 @@ NCD3_open(const char * path, int mode,
     /* process control client parameters */
     applyclientparamcontrols3(&drno->dap);
 
-    drno->dap.oc.dapconstraint = (NCCconstraint*)ncccreate(NS_CONSTRAINT);
+    drno->dap.oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     drno->dap.oc.dapconstraint->projections = nclistnew();
     drno->dap.oc.dapconstraint->selections = nclistnew();
 
@@ -276,7 +276,7 @@ done:
 	cleanNCDAP3(drno);
 	NC3_abort(ncid);
     }
-    if(ce) efree(ce);
+    if(ce) nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
@@ -476,7 +476,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
 	        char* cname = cdflegalname3(dim->name);
 	        if(ncbyteslength(buf) > 0) ncbytescat(buf,", ");
 	        ncbytescat(buf,cname);
-	        efree(cname);
+	        nullfree(cname);
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
@@ -508,7 +508,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
     if(paramcheck34(&drno->dap,"show","das")) {
@@ -519,7 +519,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
 
@@ -548,7 +548,7 @@ buildattribute3a(NCDAP3* drno, NCattribute* att, nc_type vartype, int varid, int
 	    char* s = (char*)nclistget(att->values,i);
 	    newlen += (1+strlen(s));
 	}
-	newstring = (char*)emalloc(newlen);
+	newstring = (char*)malloc(newlen);
         MEMCHECK(newstring,NC_ENOMEM);
 	newstring[0] = '\0';
 	for(i=0;i<nvalues;i++) {
@@ -578,10 +578,10 @@ buildattribute3a(NCDAP3* drno, NCattribute* att, nc_type vartype, int varid, int
 	else
 	    atype = nctypeconvert(&drno->dap,att->etype);
 	typesize = nctypesizeof(atype);
-	mem = emalloc(typesize * nvalues);
+	mem = malloc(typesize * nvalues);
         ncstat = dapcvtattrval3(atype,mem,att->values);
         ncstat = nc_put_att(ncid,varid,cname,atype,nvalues,mem);
-	efree(mem);
+	nullfree(mem);
     }
     free(cname);
     return THROW(ncstat);

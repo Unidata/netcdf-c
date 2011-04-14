@@ -52,17 +52,16 @@ extern char* dumpalign(struct NCalignment*);
 extern char* dumpcachenode(NCcachenode* node);
 extern char* dumpcache(NCcache* cache);
 
-
 extern int dumpmetadata(int ncid, NChdr** hdrp);
 extern void dumpdata1(nc_type nctype, size_t index, char* data);
 extern char* dumpprojections(NClist* projections);
-extern char* dumpprojection(NCCprojection* proj);
+extern char* dumpprojection(DCEprojection* proj);
 extern char* dumpselections(NClist* selections);
-extern char* dumpselection(NCCselection* sel);
-extern char* dumpconstraint(NCCconstraint* con);
+extern char* dumpselection(DCEselection* sel);
+extern char* dumpconstraint(DCEconstraint* con);
 extern char* dumpsegments(NClist* segments);
-extern char* dumpslice(NCCslice* slice);
-extern char* dumpslices(NCCslice* slice, unsigned int rank);
+extern char* dumpslice(DCEslice* slice);
+extern char* dumpslices(DCEslice* slice, unsigned int rank);
 
 
 #endif /*DUMP_H*/

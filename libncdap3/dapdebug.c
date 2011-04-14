@@ -13,30 +13,6 @@
 
 int ncdap3debug = 0;
 
-/* Support debugging of memory*/
-/* Also guarantee that calloc zeros memory*/
-void*
-dapcalloc(size_t size, size_t nelems)
-{
-    return dapmalloc(size*nelems);
-}
-
-void*
-dapmalloc(size_t size)
-{
-    void* memory = calloc(size,1); /* use calloc to zero memory*/
-    if(memory == NULL) {
-	nclog(NCLOGERR,"malloc:out of memory");
-    }
-    return memory;
-}
-
-void
-dapfree(void* mem)
-{
-    if(mem != NULL) free(mem);
-}
-
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
 int

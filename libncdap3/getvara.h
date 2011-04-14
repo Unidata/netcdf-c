@@ -45,7 +45,7 @@ typedef int nc_tactic;
 typedef struct Getvara {
     void* memory; /* where result is put*/
     struct NCcachenode* cache;
-    struct NCCprojection* varaprojection;
+    struct DCEprojection* varaprojection;
     /* associated variable*/
     OCtype dsttype;
     CDFnode* target;

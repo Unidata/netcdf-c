@@ -18,7 +18,7 @@
 #include "nclist.h"
 #include "nchashmap.h"
 #include "nclog.h"
-#include "ncconstraints.h"
+#include "dceconstraints.h"
 
 #include "oc.h"
 #include "dapurl.h"
@@ -44,7 +44,6 @@ struct NCsegment;
 
 /**************************************************/
 
-#include "ncconstraints.h"
 #include "nccommon.h"
 #include "getvara.h"
 #include "constraints3.h"
@@ -127,7 +126,7 @@ extern NCerror rereference3(NCconstraint*, NClist*);
 
 extern NCerror buildvaraprojection3(struct Getvara*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     struct NCCprojection** projectionlist);
+		     struct DCEprojection** projectionlist);
 
 extern NCerror nc3d_getvarx(int ncid, int varid,
 	    const size_t *startp,

@@ -11,14 +11,13 @@
 
 #include "nclist.h"
 #include "ncbytes.h"
-#include "ncconstraints.h"
-
-#include "ceparselex.h"
+#include "dceconstraints.h"
+#include "dceparselex.h"
 
 /* Forward */
-static void dumptoken(CElexstate* lexstate);
+static void dumptoken(DCElexstate* lexstate);
 static int tohex(int c);
-static void ceaddyytext(CElexstate* lex, int c);
+static void ceaddyytext(DCElexstate* lex, int c);
 
 /****************************************************/
 #ifdef UNUSED
@@ -39,9 +38,9 @@ static char* numcharsn="Ee.+-0123456789";
 /**************************************************/
 
 int
-celex(YYSTYPE* lvalp, CEparsestate* state)
+dcelex(YYSTYPE* lvalp, DCEparsestate* state)
 {
-    CElexstate* lexstate = state->lexstate;
+    DCElexstate* lexstate = state->lexstate;
     int token;
     int c;
     int len;
@@ -71,11 +70,11 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
 			++p;
 		        d1 = tohex(*p++);
 			if(d1 < 0) {
-			    ceerror(state,"Illegal \\xDD in SCAN_STRING");
+			    dceerror(state,"Illegal \\xDD in SCAN_STRING");
 			} else {
 			    d2 = tohex(*p++);
 			    if(d2 < 0) {
-			        ceerror(state,"Illegal \\xDD in SCAN_STRING");
+			        dceerror(state,"Illegal \\xDD in SCAN_STRING");
 			    } else {
 				c=(((unsigned int)d1)<<4) | (unsigned int)d2;
 			    }
@@ -145,7 +144,7 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
     strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),len);
     lexstate->lasttokentext[len] = '\0';
     lexstate->lasttoken = token;
-    if(cedebug) dumptoken(lexstate);
+    if(dcedebug) dumptoken(lexstate);
 
     /*Put return value onto Bison stack*/
 
@@ -160,7 +159,7 @@ celex(YYSTYPE* lvalp, CEparsestate* state)
 }
 
 static void
-ceaddyytext(CElexstate* lex, int c)
+ceaddyytext(DCElexstate* lex, int c)
 {
     ncbytesappend(lex->yytext,(char)c);
 }
@@ -175,7 +174,7 @@ tohex(int c)
 }
 
 static void
-dumptoken(CElexstate* lexstate)
+dumptoken(DCElexstate* lexstate)
 {
     switch (lexstate->lasttoken) {
     case SCAN_STRINGCONST:
@@ -190,12 +189,12 @@ dumptoken(CElexstate* lexstate)
 }
 
 void
-celexinit(char* input, CElexstate** lexstatep)
+dcelexinit(char* input, DCElexstate** lexstatep)
 {
-    CElexstate* lexstate = (CElexstate*)malloc(sizeof(CElexstate));
+    DCElexstate* lexstate = (DCElexstate*)malloc(sizeof(DCElexstate));
     if(lexstatep) *lexstatep = lexstate;
     if(lexstate == NULL) return;
-    memset((void*)lexstate,0,sizeof(CElexstate));
+    memset((void*)lexstate,0,sizeof(DCElexstate));
     lexstate->input = strdup(input);
     lexstate->next = lexstate->input;
     lexstate->yytext = ncbytesnew();
@@ -203,9 +202,9 @@ celexinit(char* input, CElexstate** lexstatep)
 }
 
 void
-celexcleanup(CElexstate** lexstatep)
+dcelexcleanup(DCElexstate** lexstatep)
 {
-    CElexstate* lexstate = *lexstatep;
+    DCElexstate* lexstate = *lexstatep;
     if(lexstate == NULL) return;
     if(lexstate->input != NULL) free(lexstate->input);
     if(lexstate->reclaim != NULL) {

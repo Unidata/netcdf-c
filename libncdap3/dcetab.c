@@ -63,19 +63,19 @@
 #define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
-#define yyparse         ceparse
-#define yylex           celex
-#define yyerror         ceerror
-#define yylval          celval
-#define yychar          cechar
-#define yydebug         cedebug
-#define yynerrs         cenerrs
+#define yyparse         dceparse
+#define yylex           dcelex
+#define yyerror         dceerror
+#define yylval          dcelval
+#define yychar          dcechar
+#define yydebug         dcedebug
+#define yynerrs         dcenerrs
 
 
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 11 "ce.y"
+#line 11 "dce.y"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -84,12 +84,12 @@
 #include "netcdf.h"
 #include "ncbytes.h"
 #include "nclist.h"
-#include "ncconstraints.h"
-#include "ceparselex.h"
+#include "dceconstraints.h"
+#include "dceparselex.h"
 
 
 /* Line 189 of yacc.c  */
-#line 93 "ce.tab.c"
+#line 93 "dce.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -136,7 +136,7 @@ typedef int YYSTYPE;
 
 
 /* Line 264 of yacc.c  */
-#line 140 "ce.tab.c"
+#line 140 "dce.tab.c"
 
 #ifdef short
 # undef short
@@ -440,12 +440,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    34,    34,    35,    36,    37,    40,    40,    44,    49,
-      54,    56,    62,    64,    69,    71,    77,    79,    85,    87,
-      93,    95,   101,   103,   105,   109,   116,   118,   124,   126,
-     128,   133,   135,   140,   142,   144,   149,   151,   156,   165,
-     167,   172,   174,   180,   182,   187,   189,   194,   196,   202,
-     203,   204,   205,   206,   207,   208,   211,   215,   219,   223
+       0,    34,    34,    35,    36,    37,    40,    40,    43,    47,
+      51,    53,    58,    60,    65,    67,    72,    74,    79,    81,
+      86,    88,    93,    95,    97,   101,   107,   109,   114,   116,
+     118,   123,   125,   130,   132,   134,   139,   141,   146,   151,
+     153,   158,   160,   165,   167,   172,   174,   179,   181,   186,
+     187,   188,   189,   190,   191,   192,   195,   199,   203,   207
 };
 #endif
 
@@ -726,14 +726,14 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, CEparsestate* parsestate)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, DCEparsestate* parsestate)
 #else
 static void
 yy_symbol_value_print (yyoutput, yytype, yyvaluep, parsestate)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
-    CEparsestate* parsestate;
+    DCEparsestate* parsestate;
 #endif
 {
   if (!yyvaluep)
@@ -760,14 +760,14 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, parsestate)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, CEparsestate* parsestate)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, DCEparsestate* parsestate)
 #else
 static void
 yy_symbol_print (yyoutput, yytype, yyvaluep, parsestate)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
-    CEparsestate* parsestate;
+    DCEparsestate* parsestate;
 #endif
 {
   if (yytype < YYNTOKENS)
@@ -818,13 +818,13 @@ do {								\
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (YYSTYPE *yyvsp, int yyrule, CEparsestate* parsestate)
+yy_reduce_print (YYSTYPE *yyvsp, int yyrule, DCEparsestate* parsestate)
 #else
 static void
 yy_reduce_print (yyvsp, yyrule, parsestate)
     YYSTYPE *yyvsp;
     int yyrule;
-    CEparsestate* parsestate;
+    DCEparsestate* parsestate;
 #endif
 {
   int yynrhs = yyr2[yyrule];
@@ -1097,14 +1097,14 @@ yysyntax_error (char *yyresult, int yystate, int yychar)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, CEparsestate* parsestate)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, DCEparsestate* parsestate)
 #else
 static void
 yydestruct (yymsg, yytype, yyvaluep, parsestate)
     const char *yymsg;
     int yytype;
     YYSTYPE *yyvaluep;
-    CEparsestate* parsestate;
+    DCEparsestate* parsestate;
 #endif
 {
   YYUSE (yyvaluep);
@@ -1131,7 +1131,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (CEparsestate* parsestate);
+int yyparse (DCEparsestate* parsestate);
 #else
 int yyparse ();
 #endif
@@ -1159,11 +1159,11 @@ yyparse (YYPARSE_PARAM)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 int
-yyparse (CEparsestate* parsestate)
+yyparse (DCEparsestate* parsestate)
 #else
 int
 yyparse (parsestate)
-    CEparsestate* parsestate;
+    DCEparsestate* parsestate;
 #endif
 #endif
 {
@@ -1418,371 +1418,371 @@ yyreduce:
         case 8:
 
 /* Line 1464 of yacc.c  */
-#line 44 "ce.y"
+#line 43 "dce.y"
     {projections(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 9:
 
 /* Line 1464 of yacc.c  */
-#line 49 "ce.y"
+#line 47 "dce.y"
     {selections(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 10:
 
 /* Line 1464 of yacc.c  */
-#line 55 "ce.y"
+#line 52 "dce.y"
     {(yyval)=projectionlist(parsestate,(Object)null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 11:
 
 /* Line 1464 of yacc.c  */
-#line 57 "ce.y"
+#line 54 "dce.y"
     {(yyval)=projectionlist(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 12:
 
 /* Line 1464 of yacc.c  */
-#line 63 "ce.y"
+#line 59 "dce.y"
     {(yyval)=projection(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 13:
 
 /* Line 1464 of yacc.c  */
-#line 65 "ce.y"
+#line 61 "dce.y"
     {(yyval)=(yyvsp[(1) - (1)]);;}
     break;
 
   case 14:
 
 /* Line 1464 of yacc.c  */
-#line 70 "ce.y"
+#line 66 "dce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (3)]),null);;}
     break;
 
   case 15:
 
 /* Line 1464 of yacc.c  */
-#line 72 "ce.y"
+#line 68 "dce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (4)]),(yyvsp[(3) - (4)]));;}
     break;
 
   case 16:
 
 /* Line 1464 of yacc.c  */
-#line 78 "ce.y"
+#line 73 "dce.y"
     {(yyval)=segmentlist(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 17:
 
 /* Line 1464 of yacc.c  */
-#line 80 "ce.y"
+#line 75 "dce.y"
     {(yyval)=segmentlist(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 18:
 
 /* Line 1464 of yacc.c  */
-#line 86 "ce.y"
+#line 80 "dce.y"
     {(yyval)=segment(parsestate,(yyvsp[(1) - (1)]),null);;}
     break;
 
   case 19:
 
 /* Line 1464 of yacc.c  */
-#line 88 "ce.y"
+#line 82 "dce.y"
     {(yyval)=segment(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 20:
 
 /* Line 1464 of yacc.c  */
-#line 94 "ce.y"
+#line 87 "dce.y"
     {(yyval)=rangelist(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 21:
 
 /* Line 1464 of yacc.c  */
-#line 96 "ce.y"
+#line 89 "dce.y"
     {(yyval)=rangelist(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 22:
 
 /* Line 1464 of yacc.c  */
-#line 102 "ce.y"
+#line 94 "dce.y"
     {(yyval)=range(parsestate,(yyvsp[(2) - (3)]),null,null);;}
     break;
 
   case 23:
 
 /* Line 1464 of yacc.c  */
-#line 104 "ce.y"
+#line 96 "dce.y"
     {(yyval)=range(parsestate,(yyvsp[(2) - (5)]),null,(yyvsp[(4) - (5)]));;}
     break;
 
   case 24:
 
 /* Line 1464 of yacc.c  */
-#line 106 "ce.y"
+#line 98 "dce.y"
     {(yyval)=range(parsestate,(yyvsp[(2) - (7)]),(yyvsp[(4) - (7)]),(yyvsp[(6) - (7)]));;}
     break;
 
   case 25:
 
 /* Line 1464 of yacc.c  */
-#line 110 "ce.y"
+#line 102 "dce.y"
     {(yyval) = range1(parsestate,(yyvsp[(2) - (3)]));;}
     break;
 
   case 26:
 
 /* Line 1464 of yacc.c  */
-#line 117 "ce.y"
+#line 108 "dce.y"
     {(yyval)=clauselist(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 27:
 
 /* Line 1464 of yacc.c  */
-#line 119 "ce.y"
+#line 110 "dce.y"
     {(yyval)=clauselist(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 28:
 
 /* Line 1464 of yacc.c  */
-#line 125 "ce.y"
+#line 115 "dce.y"
     {(yyval)=sel_clause(parsestate,1,(yyvsp[(2) - (6)]),(yyvsp[(3) - (6)]),(yyvsp[(5) - (6)]));;}
     break;
 
   case 29:
 
 /* Line 1464 of yacc.c  */
-#line 127 "ce.y"
+#line 117 "dce.y"
     {(yyval)=sel_clause(parsestate,2,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(yyvsp[(4) - (4)]));;}
     break;
 
   case 30:
 
 /* Line 1464 of yacc.c  */
-#line 129 "ce.y"
+#line 119 "dce.y"
     {(yyval)=(yyvsp[(1) - (2)]);;}
     break;
 
   case 31:
 
 /* Line 1464 of yacc.c  */
-#line 134 "ce.y"
+#line 124 "dce.y"
     {(yyval)=value_list(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 32:
 
 /* Line 1464 of yacc.c  */
-#line 136 "ce.y"
+#line 126 "dce.y"
     {(yyval)=value_list(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 33:
 
 /* Line 1464 of yacc.c  */
-#line 141 "ce.y"
+#line 131 "dce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 34:
 
 /* Line 1464 of yacc.c  */
-#line 143 "ce.y"
+#line 133 "dce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 35:
 
 /* Line 1464 of yacc.c  */
-#line 145 "ce.y"
+#line 135 "dce.y"
     {(yyval)=value(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 36:
 
 /* Line 1464 of yacc.c  */
-#line 150 "ce.y"
+#line 140 "dce.y"
     {(yyval)=constant(parsestate,(yyvsp[(1) - (1)]),SCAN_NUMBERCONST);;}
     break;
 
   case 37:
 
 /* Line 1464 of yacc.c  */
-#line 152 "ce.y"
+#line 142 "dce.y"
     {(yyval)=constant(parsestate,(yyvsp[(1) - (1)]),SCAN_STRINGCONST);;}
     break;
 
   case 38:
 
 /* Line 1464 of yacc.c  */
-#line 157 "ce.y"
+#line 147 "dce.y"
     {(yyval)=var(parsestate,(yyvsp[(1) - (1)]));;}
     break;
 
   case 39:
 
 /* Line 1464 of yacc.c  */
-#line 166 "ce.y"
+#line 152 "dce.y"
     {(yyval)=indexpath(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 40:
 
 /* Line 1464 of yacc.c  */
-#line 168 "ce.y"
+#line 154 "dce.y"
     {(yyval)=indexpath(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 41:
 
 /* Line 1464 of yacc.c  */
-#line 173 "ce.y"
+#line 159 "dce.y"
     {(yyval)=indexer(parsestate,(yyvsp[(1) - (1)]),null);;}
     break;
 
   case 42:
 
 /* Line 1464 of yacc.c  */
-#line 175 "ce.y"
+#line 161 "dce.y"
     {(yyval)=indexer(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 43:
 
 /* Line 1464 of yacc.c  */
-#line 181 "ce.y"
+#line 166 "dce.y"
     {(yyval)=array_indices(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 44:
 
 /* Line 1464 of yacc.c  */
-#line 183 "ce.y"
+#line 168 "dce.y"
     {(yyval)=array_indices(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));;}
     break;
 
   case 45:
 
 /* Line 1464 of yacc.c  */
-#line 188 "ce.y"
+#line 173 "dce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (3)]),null);;}
     break;
 
   case 46:
 
 /* Line 1464 of yacc.c  */
-#line 190 "ce.y"
+#line 175 "dce.y"
     {(yyval)=function(parsestate,(yyvsp[(1) - (4)]),(yyvsp[(3) - (4)]));;}
     break;
 
   case 47:
 
 /* Line 1464 of yacc.c  */
-#line 195 "ce.y"
+#line 180 "dce.y"
     {(yyval)=arg_list(parsestate,null,(yyvsp[(1) - (1)]));;}
     break;
 
   case 48:
 
 /* Line 1464 of yacc.c  */
-#line 197 "ce.y"
+#line 182 "dce.y"
     {(yyval)=arg_list(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]));;}
     break;
 
   case 49:
 
 /* Line 1464 of yacc.c  */
-#line 202 "ce.y"
-    {(yyval)=makeselectiontag(NO_EQ);;}
+#line 186 "dce.y"
+    {(yyval)=makeselectiontag(CEO_EQ);;}
     break;
 
   case 50:
 
 /* Line 1464 of yacc.c  */
-#line 203 "ce.y"
-    {(yyval)=makeselectiontag(NO_GT);;}
+#line 187 "dce.y"
+    {(yyval)=makeselectiontag(CEO_GT);;}
     break;
 
   case 51:
 
 /* Line 1464 of yacc.c  */
-#line 204 "ce.y"
-    {(yyval)=makeselectiontag(NO_LT);;}
+#line 188 "dce.y"
+    {(yyval)=makeselectiontag(CEO_LT);;}
     break;
 
   case 52:
 
 /* Line 1464 of yacc.c  */
-#line 205 "ce.y"
-    {(yyval)=makeselectiontag(NO_NEQ);;}
+#line 189 "dce.y"
+    {(yyval)=makeselectiontag(CEO_NEQ);;}
     break;
 
   case 53:
 
 /* Line 1464 of yacc.c  */
-#line 206 "ce.y"
-    {(yyval)=makeselectiontag(NO_GE);;}
+#line 190 "dce.y"
+    {(yyval)=makeselectiontag(CEO_GE);;}
     break;
 
   case 54:
 
 /* Line 1464 of yacc.c  */
-#line 207 "ce.y"
-    {(yyval)=makeselectiontag(NO_LE);;}
+#line 191 "dce.y"
+    {(yyval)=makeselectiontag(CEO_LE);;}
     break;
 
   case 55:
 
 /* Line 1464 of yacc.c  */
-#line 208 "ce.y"
-    {(yyval)=makeselectiontag(NO_RE);;}
+#line 192 "dce.y"
+    {(yyval)=makeselectiontag(CEO_RE);;}
     break;
 
   case 56:
 
 /* Line 1464 of yacc.c  */
-#line 212 "ce.y"
+#line 196 "dce.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
   case 57:
 
 /* Line 1464 of yacc.c  */
-#line 216 "ce.y"
+#line 200 "dce.y"
     {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
   case 58:
 
 /* Line 1464 of yacc.c  */
-#line 220 "ce.y"
+#line 204 "dce.y"
     {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
   case 59:
 
 /* Line 1464 of yacc.c  */
-#line 224 "ce.y"
+#line 208 "dce.y"
     {(yyval) = checkobject((yyvsp[(1) - (1)]));;}
     break;
 
 
 
 /* Line 1464 of yacc.c  */
-#line 1786 "ce.tab.c"
+#line 1786 "dce.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1994,6 +1994,6 @@ yyreturn:
 
 
 /* Line 1684 of yacc.c  */
-#line 227 "ce.y"
+#line 211 "dce.y"
 
 

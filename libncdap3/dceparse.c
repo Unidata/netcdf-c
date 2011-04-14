@@ -17,10 +17,8 @@
 
 #include "nclist.h"
 #include "ncbytes.h"
-#include "ncconstraints.h"
-
-#include "ceparselex.h"
-#include "ceparse.h"
+#include "dceconstraints.h"
+#include "dceparselex.h"
 
 #ifndef nulldup
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
@@ -32,7 +30,7 @@
 static Object collectlist(Object list0, Object decl);
 
 void
-projections(CEparsestate* state, Object list0)
+projections(DCEparsestate* state, Object list0)
 {
     NClist* list = (NClist*)list0;
     if(list != NULL) {
@@ -41,12 +39,12 @@ projections(CEparsestate* state, Object list0)
     }
 #ifdef DEBUG
 fprintf(stderr,"	ce.projections: %s\n",
-	ncctostring((NCCnode*)state->constraint->projections));
+	dcetostring((DCEnode*)state->constraint->projections));
 #endif
 }
 
 void
-selections(CEparsestate* state, Object list0)
+selections(DCEparsestate* state, Object list0)
 {
     NClist* list = (NClist*)list0;
     if(list != NULL) {
@@ -55,41 +53,41 @@ selections(CEparsestate* state, Object list0)
     }
 #ifdef DEBUG
 fprintf(stderr,"	ce.selections: %s\n",
-	ncctostring((NCCnode*)state->constraint->selections));
+	dcetostring((DCEnode*)state->constraint->selections));
 #endif
 }
 
 
 Object
-projectionlist(CEparsestate* state, Object list0, Object decl)
+projectionlist(DCEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 Object
-projection(CEparsestate* state, Object varorfcn)
+projection(DCEparsestate* state, Object varorfcn)
 {
-    NCCprojection* p = (NCCprojection*)ncccreate(NS_PROJECT);
-    NCCsort tag = *(NCCsort*)varorfcn;
-    if(tag == NS_FCN)
+    DCEprojection* p = (DCEprojection*)dcecreate(CES_PROJECT);
+    CEsort tag = *(CEsort*)varorfcn;
+    if(tag == CES_FCN)
 	p->fcn = varorfcn;
     else
 	p->var = varorfcn;
     p->discrim = tag;
 #ifdef DEBUG
 fprintf(stderr,"	ce.projection: %s\n",
-	ncctostring((NCCnode*)p));
+	dcetostring((DCEnode*)p));
 #endif
     return p;
 }
 
 Object
-segmentlist(CEparsestate* state, Object var0, Object decl)
+segmentlist(DCEparsestate* state, Object var0, Object decl)
 {
     /* watch out: this is non-standard */
     NClist* list;
-    NCCvar* v = (NCCvar*)var0;
-    if(v==NULL) v = (NCCvar*)ncccreate(NS_VAR);
+    DCEvar* v = (DCEvar*)var0;
+    if(v==NULL) v = (DCEvar*)dcecreate(CES_VAR);
     list = v->segments;
     if(list == NULL) list = nclistnew();
     nclistpush(list,(ncelem)decl);
@@ -98,16 +96,16 @@ segmentlist(CEparsestate* state, Object var0, Object decl)
 }
 
 Object
-segment(CEparsestate* state, Object name, Object slices0)
+segment(DCEparsestate* state, Object name, Object slices0)
 {
     int i;
-    NCCsegment* segment = (NCCsegment*)ncccreate(NS_SEGMENT);
+    DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
     NClist* slices = (NClist*)slices0;
-    segment->node.name = strdup((char*)name);
+    segment->name = strdup((char*)name);
     if(slices != NULL) {
         segment->slicesdefined = 1;
 	for(i=0;i<nclistlength(slices);i++) {
-	    NCCslice* slice = (NCCslice*)nclistget(slices,i);
+	    DCEslice* slice = (DCEslice*)nclistget(slices,i);
 	    segment->slices[i] = *slice;
 	    free(slice);
 	}
@@ -123,15 +121,15 @@ fprintf(stderr,"	ce.segment: %s\n",
 
 
 Object
-rangelist(CEparsestate* state, Object list0, Object decl)
+rangelist(DCEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 Object
-range(CEparsestate* state, Object sfirst, Object sstride, Object slast)
+range(DCEparsestate* state, Object sfirst, Object sstride, Object slast)
 {
-    NCCslice* slice = (NCCslice*)ncccreate(NS_SLICE);
+    DCEslice* slice = (DCEslice*)dcecreate(CES_SLICE);
     unsigned long first,stride,last;
 
     /* Note: that incoming arguments are strings; we must convert to size_t;
@@ -147,9 +145,9 @@ range(CEparsestate* state, Object sfirst, Object sstride, Object slast)
 	stride = 1; /* default */
 
     if(stride == 0)
-    	ceerror(state,"Illegal index for range stride");
+    	dceerror(state,"Illegal index for range stride");
     if(last < first)
-	ceerror(state,"Illegal index for range last index");
+	dceerror(state,"Illegal index for range last index");
     slice->first  = first;
     slice->stride = stride;
     slice->stop   = last + 1;
@@ -163,29 +161,29 @@ fprintf(stderr,"	ce.slice: %s\n",
 }
 
 Object
-range1(CEparsestate* state, Object rangenumber)
+range1(DCEparsestate* state, Object rangenumber)
 {
     int range = -1;
     sscanf((char*)rangenumber,"%u",&range);
     if(range < 0) {
-    	ceerror(state,"Illegal range index");
+    	dceerror(state,"Illegal range index");
     }
     return rangenumber;
 }
 
 Object
-clauselist(CEparsestate* state, Object list0, Object decl)
+clauselist(DCEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 Object
-sel_clause(CEparsestate* state, int selcase,
+sel_clause(DCEparsestate* state, int selcase,
 	   Object lhs, Object relop0, Object values)
 {
-    NCCselection* sel = (NCCselection*)ncccreate(NS_SELECT);
-    sel->operator = (NCCsort)relop0;
-    sel->lhs = (NCCvalue*)lhs;
+    DCEselection* sel = (DCEselection*)dcecreate(CES_SELECT);
+    sel->operator = (CEsort)relop0;
+    sel->lhs = (DCEvalue*)lhs;
     if(selcase == 2) {/*singleton value*/
 	sel->rhs = nclistnew();
 	nclistpush(sel->rhs,(ncelem)values);
@@ -195,24 +193,24 @@ sel_clause(CEparsestate* state, int selcase,
 }
 
 Object
-indexpath(CEparsestate* state, Object list0, Object index)
+indexpath(DCEparsestate* state, Object list0, Object index)
 {
     return collectlist(list0,index);
 }
 
 Object
-array_indices(CEparsestate* state, Object list0, Object indexno)
+array_indices(DCEparsestate* state, Object list0, Object indexno)
 {
-    NCCslice* slice;
+    DCEslice* slice;
     long long start = -1;
     NClist* list = (NClist*)list0;
     if(list == NULL) list = nclistnew();
     sscanf((char*)indexno,"%lld",&start);
     if(start < 0) {
-    	ceerror(state,"Illegal array index");
+    	dceerror(state,"Illegal array index");
 	start = 1;
     }    
-    slice = (NCCslice*)ncccreate(NS_SLICE);
+    slice = (DCEslice*)dcecreate(CES_SLICE);
     slice->first = start;
     slice->stride = 1;
     slice->count = 1;
@@ -223,14 +221,14 @@ array_indices(CEparsestate* state, Object list0, Object indexno)
 }
 
 Object
-indexer(CEparsestate* state, Object name, Object indices)
+indexer(DCEparsestate* state, Object name, Object indices)
 {
     int i;
     NClist* list = (NClist*)indices;
-    NCCsegment* seg = (NCCsegment*)ncccreate(NS_SEGMENT);
-    seg->node.name = strdup((char*)name);
+    DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
+    seg->name = strdup((char*)name);
     for(i=0;i<nclistlength(list);i++) {    
-	NCCslice* slice = (NCCslice*)nclistget(list,i);
+	DCEslice* slice = (DCEslice*)nclistget(list,i);
         seg->slices[i] = *slice;
 	free(slice);
     }
@@ -239,36 +237,36 @@ indexer(CEparsestate* state, Object name, Object indices)
 }
 
 Object
-function(CEparsestate* state, Object fcnname, Object args)
+function(DCEparsestate* state, Object fcnname, Object args)
 {
-    NCCfcn* fcn = (NCCfcn*)ncccreate(NS_FCN);
-    fcn->node.name = nulldup((char*)fcnname);
+    DCEfcn* fcn = (DCEfcn*)dcecreate(CES_FCN);
+    fcn->name = nulldup((char*)fcnname);
     fcn->args = args;
     return fcn;
 }
 
 Object
-arg_list(CEparsestate* state, Object list0, Object decl)
+arg_list(DCEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 
 Object
-value_list(CEparsestate* state, Object list0, Object decl)
+value_list(DCEparsestate* state, Object list0, Object decl)
 {
     return collectlist(list0,decl);
 }
 
 Object
-value(CEparsestate* state, Object val)
+value(DCEparsestate* state, Object val)
 {
-    NCCvalue* ncvalue = (NCCvalue*)ncccreate(NS_VALUE);
-    NCCsort tag = *(NCCsort*)val;
+    DCEvalue* ncvalue = (DCEvalue*)dcecreate(CES_VALUE);
+    CEsort tag = *(CEsort*)val;
     switch (tag) {
-    case NS_VAR: ncvalue->var = (NCCvar*)val; break;
-    case NS_FCN: ncvalue->fcn = (NCCfcn*)val; break;
-    case NS_CONST: ncvalue->constant = (NCCconstant*)val; break;
+    case CES_VAR: ncvalue->var = (DCEvar*)val; break;
+    case CES_FCN: ncvalue->fcn = (DCEfcn*)val; break;
+    case CES_CONST: ncvalue->constant = (DCEconstant*)val; break;
     default: abort(); break;
     }
     ncvalue->discrim = tag;
@@ -276,32 +274,32 @@ value(CEparsestate* state, Object val)
 }
 
 Object
-var(CEparsestate* state, Object indexpath)
+var(DCEparsestate* state, Object indexpath)
 {
-    NCCvar* v = (NCCvar*)ncccreate(NS_VAR);
+    DCEvar* v = (DCEvar*)dcecreate(CES_VAR);
     v->segments = (NClist*)indexpath;        
     return v;
 }
 
 Object
-constant(CEparsestate* state, Object val, int tag)
+constant(DCEparsestate* state, Object val, int tag)
 {
-    NCCconstant* con = (NCCconstant*)ncccreate(NS_CONST);
+    DCEconstant* con = (DCEconstant*)dcecreate(CES_CONST);
     char* text = (char*)val;
     char* endpoint = NULL;
     switch (tag) {
     case SCAN_STRINGCONST:
-	con->discrim = NS_STR;
+	con->discrim = CES_STR;
 	con->text = nulldup(text);
 	break;
     case SCAN_NUMBERCONST:
 	con->intvalue = strtoll(text,&endpoint,10);
 	if(*text != '\0' && *endpoint == '\0') {
-	    con->discrim = NS_INT;
+	    con->discrim = CES_INT;
 	} else {
 	    con->floatvalue = strtod(text,&endpoint);
 	    if(*text != '\0' && *endpoint == '\0')
-	        con->discrim = NS_FLOAT;
+	        con->discrim = CES_FLOAT;
 	    else abort();
 	}
 	break;
@@ -320,13 +318,13 @@ collectlist(Object list0, Object decl)
 }
 
 Object
-makeselectiontag(NCCsort tag)
+makeselectiontag(CEsort tag)
 {
     return (Object) tag;
 }
 
 int
-ceerror(CEparsestate* state, char* msg)
+dceerror(DCEparsestate* state, char* msg)
 {
     strcpy(state->errorbuf,msg);
     state->errorcode=1;
@@ -334,64 +332,64 @@ ceerror(CEparsestate* state, char* msg)
 }
 
 static void
-ce_parse_cleanup(CEparsestate* state)
+dce_parse_cleanup(DCEparsestate* state)
 {
-    celexcleanup(&state->lexstate); /* will free */
+    dcelexcleanup(&state->lexstate); /* will free */
 }
 
-static CEparsestate*
-ce_parse_init(char* input, NCCconstraint* constraint)
+static DCEparsestate*
+ce_parse_init(char* input, DCEconstraint* constraint)
 {
-    CEparsestate* state = NULL;
+    DCEparsestate* state = NULL;
     if(input==NULL) {
-        ceerror(state,"ce_parse_init: no input buffer");
+        dceerror(state,"ce_parse_init: no input buffer");
     } else {
-        state = (CEparsestate*)calloc(1,sizeof(CEparsestate));
-        if(state==NULL) return (CEparsestate*)NULL;
+        state = (DCEparsestate*)calloc(1,sizeof(DCEparsestate));
+        if(state==NULL) return (DCEparsestate*)NULL;
         state->errorbuf[0] = '\0';
         state->errorcode = 0;
-        celexinit(input,&state->lexstate);
+        dcelexinit(input,&state->lexstate);
 	state->constraint = constraint;
     }
     return state;
 }
 
 #ifdef PARSEDEBUG
-extern int cedebug;
+extern int dcedebug;
 #endif
 
 /* Wrapper for ceparse */
 int
-ncceparse(char* input, NCCconstraint* constraint, char** errmsgp)
+dapceparse(char* input, DCEconstraint* constraint, char** errmsgp)
 {
-    CEparsestate* state;
+    DCEparsestate* state;
     int errcode = 0;
 
 #ifdef PARSEDEBUG
-cedebug = 1;
+dcedebug = 1;
 #endif
 
     if(input != NULL) {
 #ifdef DEBUG
-fprintf(stderr,"ncceparse: input=%s\n",input);
+fprintf(stderr,"dceeparse: input=%s\n",input);
 #endif
         state = ce_parse_init(input,constraint);
-        if(ceparse(state) == 0) {
+        if(dceparse(state) == 0) {
 #ifdef DEBUG
 if(nclistlength(constraint->projections) > 0)
-fprintf(stderr,"ncceparse: projections=%s\n",
-        ncctostring((NCCnode*)constraint->projections));
+fprintf(stderr,"dceeparse: projections=%s\n",
+        dcetostring((DCEnode*)constraint->projections));
 #endif
 #ifdef DEBUG
 if(nclistlength(constraint->selections)  > 0)
-fprintf(stderr,"ncceparse: selections=%s\n",
+fprintf(stderr,"dceeparse: selections=%s\n",
 	dumpselections(constraint->selections));
 #endif
 	} else {
 	    if(errmsgp) *errmsgp = nulldup(state->errorbuf);
 	}
 	errcode = state->errorcode;
-        ce_parse_cleanup(state);
+        dce_parse_cleanup(state);
     }
     return errcode;
 }

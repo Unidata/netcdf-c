@@ -15,6 +15,11 @@
 #define FALSE 0
 #endif
 
+#ifndef nullfree
+#define nullfree(m) if((m)!=NULL) {free(m);} else {}
+#endif
+
+
 #define FILLCONSTRAINT TRUE
 
 
@@ -97,7 +102,7 @@ typedef struct NCcachenode {
     int wholevariable; /* Is this cache entry constrained? */
     int prefetch; /* is this the prefetch cache entry? */
     size_t xdrsize;
-    NCCconstraint* constraint; /* as used to create this node */
+    DCEconstraint* constraint; /* as used to create this node */
     NClist* vars; /* vars potentially covered by this cache node */
     struct CDFnode* datadds;
     OCobject ocroot;
@@ -120,7 +125,7 @@ typedef struct NCOC {
     char* urltext; /* as given to nc3d_open*/
     DAPURL url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
-    NCCconstraint* dapconstraint; /* from url */
+    DCEconstraint* dapconstraint; /* from url */
 } NCOC;
 
 typedef struct NCCDF {
@@ -302,7 +307,7 @@ extern int nodematch34(CDFnode* node1, CDFnode* node2);
 extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
 extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
 extern int constrainable34(DAPURL*);
-extern char* makeconstraintstring34(NCCconstraint*);
+extern char* makeconstraintstring34(DCEconstraint*);
 extern size_t estimatedataddssize34(CDFnode* datadds);
 extern void restrictprojection34(NClist*, NClist*);
 
@@ -313,7 +318,7 @@ extern NClist* CEparse(char* input);
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);
 extern NCerror prefetchdata3(NCDAPCOMMON*);
 extern NCerror buildcachenode34(NCDAPCOMMON*,
-	        NCCconstraint* constraint,
+	        DCEconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
 		int isprefetch);

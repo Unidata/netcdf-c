@@ -481,7 +481,7 @@ makecdfpathstring3(CDFnode* var, const char* separator)
     }
     slen += ((len-2)); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
-    pathname = (char*)emalloc(slen);
+    pathname = (char*)malloc(slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
@@ -515,7 +515,7 @@ makesimplepathstring3(CDFnode* var)
     }
     slen += (len-1); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
-    pathname = (char*)emalloc(slen);
+    pathname = (char*)malloc(slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
@@ -549,11 +549,11 @@ makeocpathstring3(OCconnection conn, OCobject var, const char* separator)
 	oc_inq_name(conn,o,&name);
 	if(name == NULL) name = nulldup("");
 	slen += strlen(name);
-	efree(name);
+	nullfree(name);
     }
     slen += ((len-1)); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
-    pathname = (char*)emalloc(slen);
+    pathname = (char*)malloc(slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
@@ -562,7 +562,7 @@ makeocpathstring3(OCconnection conn, OCobject var, const char* separator)
 	if(name == NULL) name = nulldup("");
 	if(!first) strcat(pathname,separator);
         strcat(pathname,name);
-	efree(name);
+	nullfree(name);
 	first = 0;
     }
 
@@ -611,7 +611,7 @@ simplepathstring3(NClist* names,  char* separator)
 	len += strlen(separator);
     }
     len++; /* null terminator */
-    result = (char*)emalloc(len);
+    result = (char*)malloc(len);
     result[0] = '\0';
     for(i=0;i<nclistlength(names);i++) {
 	char* segment = (char*)nclistget(names,i);
@@ -818,7 +818,7 @@ dapparamfree(NClist* params)
     int i;
     if(params == NULL) return;
     for(i=0;i<nclistlength(params);i++) {
-	efree((void*)nclistget(params,i));
+	nullfree((void*)nclistget(params,i));
     }
     nclistfree(params);
 }

@@ -1,7 +1,7 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/constraints3.c,v 1.40 2010/05/27 21:34:07 dmh Exp $
+ *   $Header: /upc/share/CVS/netcdf-3/libncdce3/constraints3.c,v 1.40 2010/05/27 21:34:07 dmh Exp $
  *********************************************************************/
 
 #include "ncdap3.h"
@@ -9,64 +9,48 @@
 #include "dapdebug.h"
 #include "dapdump.h"
 
-#define GETNOTES(n) ((NCDnotes*)((NCCnode*)(n))->notes)
-
-static NCerror mergeprojection31(NCCprojection*, NCCprojection*);
+static NCerror mergeprojection31(DCEprojection*, DCEprojection*);
 
 static NCerror matchpartialname3(NClist*, NClist*, CDFnode**);
 static void collectsegmentnames3(NClist* segments, NClist* path);
 static void completesegments3(NClist* fullpath, NClist* segments);
 
-static NCerror qualifyconstraints3(NCCconstraint*);
-static NCerror qualifyprojectionnames3(NCCprojection*);
-static NCerror qualifyprojectionsizes3(NCCprojection*);
-static NCerror qualifyselectionnames3(NCCselection*);
+static NCerror qualifyconstraints3(DCEconstraint*);
+static NCerror qualifyprojectionnames3(DCEprojection*);
+static NCerror qualifyprojectionsizes3(DCEprojection*);
+static NCerror qualifyselectionnames3(DCEselection*);
 static NClist* unifyprojectionnodes3(NClist* varlist);
 static int treecontains3(CDFnode* var, CDFnode* root);
-
-/* Override create for NCCvar and NCCsegment */
-static NCCvar* createvar(void);
-static NCCsegment* createsegment(void);
 
 /* Parse incoming url constraints, if any,
    to check for syntactic correctness */ 
 NCerror
-parsedapconstraints(NCDAPCOMMON* nccomm, char* constraints,
-		    NCCconstraint* dapconstraint)
+parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
+		    DCEconstraint* dceconstraint)
 {
     NCerror ncstat = NC_NOERR;
     char* errmsg;
 
-    ASSERT(dapconstraint != NULL);
-    nclistclear(dapconstraint->projections);
-    nclistclear(dapconstraint->selections);
+    ASSERT(dceconstraint != NULL);
+    nclistclear(dceconstraint->projections);
+    nclistclear(dceconstraint->selections);
 
-    ncstat = ncceparse(constraints,dapconstraint,&errmsg);
+    ncstat = dapceparse(constraints,dceconstraint,&errmsg);
     if(ncstat) {
-	nclog(NCLOGWARN,"DAP constraint parse failure: %s",errmsg);
-	efree(errmsg);
-        nclistclear(dapconstraint->projections);
-        nclistclear(dapconstraint->selections);
+	nclog(NCLOGWARN,"DCE constraint parse failure: %s",errmsg);
+	nullfree(errmsg);
+        nclistclear(dceconstraint->projections);
+        nclistclear(dceconstraint->selections);
     } else {
 	int i;
 	NClist* allnodes;
 #ifdef DEBUG
-fprintf(stderr,"constraint: %s",dumpconstraint(dapconstraint));
+fprintf(stderr,"constraint: %s",dumpconstraint(dceconstraint));
 #endif
         /* Go thru each node and add annotation */
-        allnodes = nccallnodes((NCCnode*)dapconstraint,NS_NIL);    
+        allnodes = dceallnodes((DCEnode*)dceconstraint,CES_NIL);    
 	for(i=0;i<nclistlength(allnodes);i++) {
-	    NCDnotes* notes;
-	    NCCnode* node = (NCCnode*)nclistget(allnodes,i);
-	    switch (node->sort) {
-	    case NS_VAR:
-	    case NS_SEGMENT:
-	        notes = (NCDnotes*)calloc(1,sizeof(NCDnotes));
-		node->notes = (void*)notes;
-		break;
-	    default:
-		break;
-	    }
+	    DCEnode* node = (DCEnode*)nclistget(allnodes,i);
 	}
     }
     return ncstat;
@@ -77,55 +61,55 @@ fprintf(stderr,"constraint: %s",dumpconstraint(dapconstraint));
 */
 
 NCerror
-mapconstraints3(NCDAPCOMMON* nccomm)
+mapconstraints3(NCDAPCOMMON* dapcomm)
 {
     int i;
     NCerror ncstat = NC_NOERR;
-    CDFnode* root = nccomm->cdf.ddsroot;
+    CDFnode* root = dapcomm->cdf.ddsroot;
     NClist* nodes = root->tree->nodes;
-    NClist* dapprojections;
-    NClist* dapselections;
+    NClist* dceprojections;
+    NClist* dceselections;
 
-    dapprojections = nccomm->oc.dapconstraint->projections;
-    dapselections = nccomm->oc.dapconstraint->selections;
+    dceprojections = dapcomm->oc.dapconstraint->projections;
+    dceselections = dapcomm->oc.dapconstraint->selections;
 
     /* Convert the projection paths to leaves in the dds tree */
-    for(i=0;i<nclistlength(dapprojections);i++) {
-	NCCprojection* proj = (NCCprojection*)nclistget(dapprojections,i);
-	if(proj->discrim != NS_VAR) continue;
+    for(i=0;i<nclistlength(dceprojections);i++) {
+	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
+	if(proj->discrim != CES_VAR) continue;
 	ncstat = matchpartialname3(nodes,proj->var->segments,
-				   &GETNOTES(proj->var)->leaf);
+				   &proj->var->cdfleaf);
 	if(ncstat) goto done;
     }
 
     /* Convert the selection paths to leaves in the dds tree */
-    for(i=0;i<nclistlength(dapselections);i++) {
-	NCCselection* sel = (NCCselection*)nclistget(dapselections,i);
-	if(sel->lhs->discrim != NS_VAR) continue;
-	ncstat = matchpartialname3(nodes,sel->lhs->var->segments,&GETNOTES(sel->lhs->var)->leaf);
+    for(i=0;i<nclistlength(dceselections);i++) {
+	DCEselection* sel = (DCEselection*)nclistget(dceselections,i);
+	if(sel->lhs->discrim != CES_VAR) continue;
+	ncstat = matchpartialname3(nodes,sel->lhs->var->segments,&sel->lhs->var->cdfleaf);
 	if(ncstat) goto done;
     }
    
     /* Convert the selection path values to leaves in the dds tree */
-    for(i=0;i<nclistlength(dapselections);i++) {
+    for(i=0;i<nclistlength(dceselections);i++) {
 	int j;
-	NCCselection* sel = (NCCselection*)nclistget(dapselections,i);
+	DCEselection* sel = (DCEselection*)nclistget(dceselections,i);
 	for(j=0;j<nclistlength(sel->rhs);j++) {
-	    NCCvalue* value = (NCCvalue*)nclistget(sel->rhs,j);
-	    if(value->discrim != NS_VAR) continue;
-	    ncstat = matchpartialname3(nodes,value->var->segments,&GETNOTES(value->var)->node);
+	    DCEvalue* value = (DCEvalue*)nclistget(sel->rhs,j);
+	    if(value->discrim != CES_VAR) continue;
+	    ncstat = matchpartialname3(nodes,value->var->segments,&value->var->cdfnode);
 	    if(ncstat) goto done;
 	}
     }
     /* Fill in segment information */
-    ncstat = qualifyconstraints3(nccomm->oc.dapconstraint);
+    ncstat = qualifyconstraints3(dapcomm->oc.dapconstraint);
     if(ncstat != NC_NOERR) goto done;
 
 #ifdef DEBUG
 fprintf(stderr,"mapconstraint.projections: %s\n",
-		dumpprojections(dapprojections));
+		dumpprojections(dceprojections));
 fprintf(stderr,"mapconstraint.selections: %s\n",
-		dumpselections(dapselections));
+		dumpselections(dceselections));
 #endif
 
 done:
@@ -138,18 +122,18 @@ done:
     3. selection path
 */
 static NCerror
-qualifyconstraints3(NCCconstraint* constraint)
+qualifyconstraints3(DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     int i;
     if(constraint != NULL) {
         for(i=0;i<nclistlength(constraint->projections);i++) {  
-            NCCprojection* p = (NCCprojection*)nclistget(constraint->projections,i);
+            DCEprojection* p = (DCEprojection*)nclistget(constraint->projections,i);
             ncstat = qualifyprojectionnames3(p);
             ncstat = qualifyprojectionsizes3(p);
         }
         for(i=0;i<nclistlength(constraint->selections);i++) {   
-            NCCselection* s = (NCCselection*)nclistget(constraint->selections,i);
+            DCEselection* s = (DCEselection*)nclistget(constraint->selections,i);
             ncstat = qualifyselectionnames3(s);
         }
     }
@@ -165,14 +149,14 @@ completesegments3(NClist* fullpath, NClist* segments)
     ASSERT((delta >= 0));
     for(i=0;i<delta;i++) {
 	int j;
-        NCCsegment* seg = createsegment();
+        DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
-        seg->node.name = nulldup(node->name);
-        GETNOTES(seg)->node = node;
+        seg->name = nulldup(node->name);
+        seg->cdfnode = node;
 	seg->rank = nclistlength(node->array.dimensions);
         for(j=0;j<seg->rank;j++) {
             CDFnode* dim = (CDFnode*)nclistget(node->array.dimensions0,j);
-            nccmakewholeslice(seg->slices+j,dim->dim.declsize);
+            dcemakewholeslice(seg->slices+j,dim->dim.declsize);
         }
         nclistinsert(segments,j,(ncelem)seg);
     }
@@ -180,9 +164,9 @@ completesegments3(NClist* fullpath, NClist* segments)
        and fill in the slices.
     */
     for(i=delta;i<nclistlength(segments);i++) {
-        NCCsegment* seg = (NCCsegment*)nclistget(segments,i);
+        DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
-	GETNOTES(seg)->node = node;
+	seg->cdfnode = node;
         if(!seg->slicesdefined) {
 	    makewholesegment3(seg,node);
 	}
@@ -193,13 +177,15 @@ completesegments3(NClist* fullpath, NClist* segments)
    by adding prefix segment objects. Also verify ranks
 */
 static NCerror
-qualifyprojectionnames3(NCCprojection* proj)
+qualifyprojectionnames3(DCEprojection* proj)
 {
     NCerror ncstat = NC_NOERR;
     NClist* fullpath = nclistnew();
 
-    ASSERT((proj->discrim == NS_VAR && GETNOTES(proj->var)->leaf != NULL && GETNOTES(proj->var)->leaf->dds != OCNULL));
-    collectnodepath3(GETNOTES(proj->var)->leaf,fullpath,!WITHDATASET);
+    ASSERT((proj->discrim == CES_VAR
+            && proj->var->cdfleaf != NULL
+            && proj->var->cdfleaf->dds != OCNULL));
+    collectnodepath3(proj->var->cdfleaf,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify: %s -> ",
 	dumpprojection(proj));
@@ -217,18 +203,18 @@ fprintf(stderr,"%s\n",
 
 /* Make sure that the slice declsizes are all defined for this projection */
 static NCerror
-qualifyprojectionsizes3(NCCprojection* proj)
+qualifyprojectionsizes3(DCEprojection* proj)
 {
     int i,j;
-    ASSERT(proj->discrim == NS_VAR);
+    ASSERT(proj->discrim == CES_VAR);
     for(i=0;i<nclistlength(proj->var->segments);i++) {
-        NCCsegment* seg = (NCCsegment*)nclistget(proj->var->segments,i);
+        DCEsegment* seg = (DCEsegment*)nclistget(proj->var->segments,i);
 	NClist* dimset = NULL;
 	int rank;
-	ASSERT(GETNOTES(seg)->node != NULL);
+	ASSERT(seg->cdfnode != NULL);
 	/* Must use dimensions0 (the original set) because
-           the segments are wrt the underlying dap DDS */
-        dimset = GETNOTES(seg)->node->array.dimensions0;
+           the segments are wrt the underlying dce DDS */
+        dimset = seg->cdfnode->array.dimensions0;
         rank = nclistlength(dimset);
         for(j=0;j<rank;j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(dimset,j);
@@ -241,15 +227,15 @@ qualifyprojectionsizes3(NCCprojection* proj)
    
 /* convert all names in selections to be fully qualified */
 static NCerror
-qualifyselectionnames3(NCCselection* sel)
+qualifyselectionnames3(DCEselection* sel)
 {
     NCerror ncstat = NC_NOERR;
     int i;
     NClist* segments = NULL;
     NClist* fullpath = nclistnew();
 
-    ASSERT(sel->lhs->discrim == NS_VAR);
-    collectnodepath3(GETNOTES(sel->lhs->var)->leaf,fullpath,!WITHDATASET);
+    ASSERT(sel->lhs->discrim == CES_VAR);
+    collectnodepath3(sel->lhs->var->cdfleaf,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify.sel: %s -> ",
 	dumpselection(sel));
@@ -257,10 +243,10 @@ fprintf(stderr,"qualify.sel: %s -> ",
     /* Now add path nodes to create full path */
     completesegments3(fullpath,sel->lhs->var->segments);
     for(i=0;i<nclistlength(sel->rhs);i++) {
-        NCCvalue* value = (NCCvalue*)nclistget(sel->rhs,i);
-        if(value->discrim != NS_VAR) continue;
+        DCEvalue* value = (DCEvalue*)nclistget(sel->rhs,i);
+        if(value->discrim != CES_VAR) continue;
         nclistclear(fullpath);
-        collectnodepath3(GETNOTES(value->var)->node,fullpath,!WITHDATASET);
+        collectnodepath3(value->var->cdfnode,fullpath,!WITHDATASET);
 	completesegments3(fullpath,value->var->segments);
     }
     nclistfree(segments);
@@ -270,9 +256,9 @@ fprintf(stderr,"qualify.sel: %s -> ",
 
 /*
 We are given a set of segments (in path)
-representing a partial path for a DAP variable.
+representing a partial path for a DCE variable.
 Our goal is to locate all matching
-DAP variables for which the path of that
+DCE variables for which the path of that
 variable has a suffix matching
 the given partial path.
 If one node matches exactly, then use that one;
@@ -298,12 +284,12 @@ matchsuffix3(NClist* matchpath, NClist* segments, int index0)
     int nsegs = nclistlength(segments);
     ASSERT(index0 >= 0 && (index0+nsegs) <= nclistlength(matchpath));
     for(i=0;i<nsegs;i++) {
-	NCCsegment* seg = (NCCsegment*)nclistget(segments,i);
+	DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
 	CDFnode* node = (CDFnode*)nclistget(matchpath,index0+i);
 	int match;
 	int rank = nclistlength(seg->slices);
 	/* Do the names match */
-	if(strcmp(seg->node.name,node->name) != 0) return 0; /* no match */
+	if(strcmp(seg->name,node->name) != 0) return 0; /* no match */
 	/* Do the ranks match (watch out for sequences) */
 	if(rank == 0) /* matches any set of dimensions */
 	    match = 1;
@@ -321,7 +307,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 {
     int i,j,nsegs;
     NCerror ncstat = NC_NOERR;
-    NCCsegment* lastseg = NULL;
+    DCEsegment* lastseg = NULL;
     NClist* namematches = nclistnew();
     NClist* matches = nclistnew();
     NClist* matchpath = nclistnew();
@@ -330,7 +316,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
        as the last element in the path
     */
     nsegs = nclistlength(segments);
-    lastseg = (NCCsegment*)nclistget(segments,nsegs-1);
+    lastseg = (DCEsegment*)nclistget(segments,nsegs-1);
     for(i=0;i<nclistlength(nodes);i++) {
         CDFnode* node = (CDFnode*)nclistget(nodes,i);
         if(node->nctype != NC_Sequence
@@ -338,11 +324,11 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
                && node->nctype != NC_Grid
                && node->nctype != NC_Primitive
         ) continue;
-        if(strcmp(node->name,lastseg->node.name) != 0) continue;
+        if(strcmp(node->name,lastseg->name) != 0) continue;
 	nclistpush(namematches,(ncelem)node);
     }    
     if(nclistlength(namematches)==0) {
-        nclog(NCLOGERR,"No match for projection name: %s",lastseg->node.name);
+        nclog(NCLOGERR,"No match for projection name: %s",lastseg->name);
         ncstat = NC_EDDS;
 	goto done;
     }
@@ -367,7 +353,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
     /* |matches|==0 => no match; |matches|>1 => ambiguity */
     switch (nclistlength(matches)) {
     case 0:
-        nclog(NCLOGERR,"No match for projection name: %s",lastseg->node.name);
+        nclog(NCLOGERR,"No match for projection name: %s",lastseg->name);
         ncstat = NC_EDDS;
 	break;
     case 1:
@@ -397,7 +383,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 	} /*for*/
 	if(minnode == NULL || nmin > 1) {	
 	    nclog(NCLOGERR,"Ambiguous match for projection name: %s",
-			lastseg->node.name);
+			lastseg->name);
             ncstat = NC_EDDS;
 	} else if(nodep)
 	    *nodep = minnode;
@@ -414,8 +400,8 @@ collectsegmentnames3(NClist* segments, NClist* path)
     int i;
     ncbytesclear(path);
     for(i=0;i<nclistlength(segments);i++) {
-	NCCsegment* segment = (NCCsegment*)nclistget(segments,i);
-	nclistpush(path,(ncelem)segment->node.name);
+	DCEsegment* segment = (DCEsegment*)nclistget(segments,i);
+	nclistpush(path,(ncelem)segment->name);
     }
 }
 
@@ -450,9 +436,9 @@ target is contained. Must take sequence-related dimensions
 and string pseudo-dimension into account.
 
 This routine returns (in getvar argument) two results:
-1. the set of NCCprojection instances that are to be used
+1. the set of DCEprojection instances that are to be used
    for retrieval (getvar->tactic.fetch).
-2. the set of NCCprojection instances that are to be used
+2. the set of DCEprojection instances that are to be used
    for walking the data (getvar->tactic.walk).
 
 */
@@ -501,21 +487,21 @@ fprintf(stderr,"restriction.before=|%s|\n",
 #ifdef DEBUG
 fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
 #endif
-	    NCCprojection* newp = (NCCprojection*)ncccreate(NS_PROJECT);
+	    DCEprojection* newp = (DCEprojection*)dcecreate(CES_PROJECT);
 
-	    newp->discrim = NS_VAR;
-	    newp->var = createvar();
+	    newp->discrim = CES_VAR;
+	    newp->var = (DCEvar*)dcecreate(CES_VAR);
 
-	    GETNOTES(newp->var)->leaf = var;
+	    newp->var->cdfleaf = var;
 	    nclistclear(path);
 	    collectnodepath3(var,path,!WITHDATASET);
 	    newp->var->segments = nclistnew();
 	    for(j=0;j<nclistlength(path);j++) {
 	        CDFnode* node = (CDFnode*)nclistget(path,j);
-	        NCCsegment* newseg = createsegment();
-	        newseg->node.name = nulldup(node->name);
+	        DCEsegment* newseg = (DCEsegment*)dcecreate(CES_SEGMENT);
+	        newseg->name = nulldup(node->name);
 	        newseg->slicesdefined = 1; /* treat as simple projections */
-	        GETNOTES(newseg)->node = node;
+	        newseg->cdfnode = node;
 	        makewholesegment3(newseg,node);
 	        nclistpush(newp->var->segments,(ncelem)newseg);
 	    }
@@ -531,18 +517,18 @@ fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
 	len = nclistlength(projections);
 	for(i=len-1;i>=0;i--) {/* Walk backward to facilitate removal*/
 	    int intersect = 0;
-	    NCCprojection* proj = (NCCprojection*)nclistget(projections,i);
-	    if(proj->discrim != NS_VAR) continue;
+	    DCEprojection* proj = (DCEprojection*)nclistget(projections,i);
+	    if(proj->discrim != CES_VAR) continue;
 	    for(j=0;j<nclistlength(varlist);j++) {
 		CDFnode* var = (CDFnode*)nclistget(varlist,j);
 		/* Note that intersection could go either way */
-		if(treecontains3(var,GETNOTES(proj->var)->leaf)
-		   || treecontains3(GETNOTES(proj->var)->leaf,var)) {intersect = 1; break;}
+		if(treecontains3(var,proj->var->cdfleaf)
+		   || treecontains3(proj->var->cdfleaf,var)) {intersect = 1; break;}
 	    }	    
 	    if(!intersect) {
 		/* suppress this projection */
-		NCCprojection* p = (NCCprojection*)nclistremove(projections,i);
-		nccfree((NCCnode*)p);
+		DCEprojection* p = (DCEprojection*)nclistremove(projections,i);
+		dcefree((DCEnode*)p);
 	    }
 	}
 	/* Now looks for containment between projections and only keep
@@ -551,19 +537,19 @@ fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
 	for(;;) {
 	    int removed = 0;
 	    for(i=0;i<nclistlength(projections);i++) {
-	        NCCprojection* pi = (NCCprojection*)nclistget(projections,i);
-	        if(pi->discrim != NS_VAR) continue;
+	        DCEprojection* pi = (DCEprojection*)nclistget(projections,i);
+	        if(pi->discrim != CES_VAR) continue;
 	        for(j=0;j<i;j++) {
-	            NCCprojection* pj = (NCCprojection*)nclistget(projections,j);
-	            if(pj->discrim != NS_VAR) continue;
-		    if(treecontains3(GETNOTES(pi->var)->leaf,GETNOTES(pj->var)->leaf)) {
-		        NCCprojection* p = (NCCprojection*)nclistremove(projections,j);
-			nccfree((NCCnode*)p);
+	            DCEprojection* pj = (DCEprojection*)nclistget(projections,j);
+	            if(pj->discrim != CES_VAR) continue;
+		    if(treecontains3(pi->var->cdfleaf,pj->var->cdfleaf)) {
+		        DCEprojection* p = (DCEprojection*)nclistremove(projections,j);
+			dcefree((DCEnode*)p);
 			removed = 1;
 			break;
-		    } else if(treecontains3(GETNOTES(pj->var)->leaf,GETNOTES(pi->var)->leaf)) {
-		        NCCprojection* p = (NCCprojection*)nclistremove(projections,i);
-			nccfree((NCCnode*)p);
+		    } else if(treecontains3(pj->var->cdfleaf,pi->var->cdfleaf)) {
+		        DCEprojection* p = (DCEprojection*)nclistremove(projections,i);
+			dcefree((DCEnode*)p);
 			removed = 1;
 			break;
 		    }
@@ -672,6 +658,7 @@ Given two projection lists, merge
 src into dst taking
 overlapping projections into acct.
 Assume that name qualification has occured.
+Dst will be modified.
 */
 NCerror
 mergeprojections3(NClist* dst, NClist* src)
@@ -685,15 +672,17 @@ fprintf(stderr,"mergeprojection: dst = %s\n",dumpprojections(dst));
 fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
 #endif
 
+    ASSERT(dst != NULL);
+
     /* get dst concat clone(src) */
     nclistsetalloc(cat,nclistlength(dst)+nclistlength(src));
     for(i=0;i<nclistlength(dst);i++) {
-	NCCprojection* p = (NCCprojection*)nclistget(dst,i);
+	DCEprojection* p = (DCEprojection*)nclistget(dst,i);
 	nclistpush(cat,(ncelem)p);
     }    
-    for(i=0;i<nclistlength(src);i++) {
-	NCCprojection* p = (NCCprojection*)nclistget(src,i);
-	nclistpush(cat,(ncelem)nccclone((NCCnode*)p));
+    if(src != NULL) for(i=0;i<nclistlength(src);i++) {
+	DCEprojection* p = (DCEprojection*)nclistget(src,i);
+	nclistpush(cat,(ncelem)dceclone((DCEnode*)p));
     }    
 
     nclistclear(dst);
@@ -703,19 +692,19 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
        the dst
     */
     while(nclistlength(cat) > 0) {
-	NCCprojection* target = (NCCprojection*)nclistremove(cat,0);
+	DCEprojection* target = (DCEprojection*)nclistremove(cat,0);
 	if(target == NULL) continue;
-        if(target->discrim != NS_VAR) continue;
+        if(target->discrim != CES_VAR) continue;
         for(i=0;i<nclistlength(cat);i++) {
-	    NCCprojection* p2 = (NCCprojection*)nclistget(cat,i);
+	    DCEprojection* p2 = (DCEprojection*)nclistget(cat,i);
 	    if(p2 == NULL) continue;
-	    if(p2->discrim != NS_VAR) continue;
-	    if(GETNOTES(target->var)->leaf != GETNOTES(p2->var)->leaf) continue;
+	    if(p2->discrim != CES_VAR) continue;
+	    if(target->var->cdfleaf != p2->var->cdfleaf) continue;
 	    /* This entry matches our current target; merge  */
 	    ncstat = mergeprojection31(target,p2);
 	    /* null out this merged entry and release it */
 	    nclistset(cat,i,(ncelem)NULL);	    
-	    nccfree((NCCnode*)p2);	    
+	    dcefree((DCEnode*)p2);	    
 	}		    
 	/* Capture the clone */
 	nclistpush(dst,(ncelem)target);
@@ -725,7 +714,7 @@ fprintf(stderr,"mergeprojection: src = %s\n",dumpprojections(src));
 }
 
 static NCerror
-mergeprojection31(NCCprojection* dst, NCCprojection* src)
+mergeprojection31(DCEprojection* dst, DCEprojection* src)
 {
     NCerror ncstat = NC_NOERR;
     int i,j;
@@ -734,20 +723,20 @@ mergeprojection31(NCCprojection* dst, NCCprojection* src)
        |dst->segments| == |src->segments|
        by construction
     */
-    ASSERT((dst->discrim == NS_VAR && src->discrim == NS_VAR));
+    ASSERT((dst->discrim == CES_VAR && src->discrim == CES_VAR));
     ASSERT((nclistlength(dst->var->segments) == nclistlength(src->var->segments)));    
     for(i=0;i<nclistlength(dst->var->segments);i++) {
-	NCCsegment* dstseg = (NCCsegment*)nclistget(dst->var->segments,i);
-	NCCsegment* srcseg = (NCCsegment*)nclistget(src->var->segments,i);
-	ASSERT((GETNOTES(dstseg)->node == GETNOTES(srcseg)->node)); /* by construction */
+	DCEsegment* dstseg = (DCEsegment*)nclistget(dst->var->segments,i);
+	DCEsegment* srcseg = (DCEsegment*)nclistget(src->var->segments,i);
+	ASSERT((dstseg->cdfnode == srcseg->cdfnode)); /* by construction */
 	for(j=0;j<nclistlength(dstseg->slices);j++) {
-	    nccslicemerge(&dstseg->slices[j],&srcseg->slices[j]);
+	    dceslicemerge(&dstseg->slices[j],&srcseg->slices[j]);
 	}
     }
     return ncstat;
 }
 
-/* Convert an NCCprojection instance into a string
+/* Convert an DCEprojection instance into a string
    that can be used with the url
 */
 
@@ -756,7 +745,7 @@ buildprojectionstring3(NClist* projections)
 {
     char* pstring;
     NCbytes* buf = ncbytesnew();
-    ncc_listtobuffer(projections,buf,",");
+    dcelisttobuffer(projections,buf,",");
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return pstring;
@@ -767,18 +756,18 @@ buildselectionstring3(NClist* selections)
 {
     NCbytes* buf = ncbytesnew();
     char* sstring;
-    ncc_listtobuffer(selections,buf,"&");
+    dcelisttobuffer(selections,buf,"&");
     sstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return sstring;
 }
 
 char*
-buildconstraintstring3(NCCconstraint* constraints)
+buildconstraintstring3(DCEconstraint* constraints)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
-    ncctobuffer((NCCnode*)constraints,buf);
+    dcetobuffer((DCEnode*)constraints,buf);
     result = ncbytesdup(buf);
     ncbytesfree(buf);
     return result;
@@ -786,19 +775,19 @@ buildconstraintstring3(NCCconstraint* constraints)
 
 /* Remove all CDFnode* references from constraint */
 void
-dereference3(NCCconstraint* constraint)
+dereference3(DCEconstraint* constraint)
 {
     int i;
-    NClist* allnodes = nccallnodes((NCCnode*)constraint,NS_NIL);
+    NClist* allnodes = dceallnodes((DCEnode*)constraint,CES_NIL);
     for(i=0;i<nclistlength(allnodes);i++) {
-	NCCnode* node = (NCCnode*)nclistget(allnodes,i);
+	DCEnode* node = (DCEnode*)nclistget(allnodes,i);
 	switch(node->sort) {
-	case NS_SEGMENT:
-	    GETNOTES(node)->node = NULL;
+	case CES_SEGMENT:
+	    ((DCEsegment*)node)->cdfnode = NULL;
 	    break;
-	case NS_VAR:
-	    GETNOTES(node)->node = NULL;
-	    GETNOTES(node)->leaf = NULL;
+	case CES_VAR:
+	    ((DCEvar*)node)->cdfnode = NULL;
+	    ((DCEvar*)node)->cdfleaf = NULL;
 	    break;
 	default: break; /* ignore */
 	}
@@ -807,29 +796,29 @@ dereference3(NCCconstraint* constraint)
 }
 
 static NCerror
-fillsegmentpath(NCCprojection* p, NClist* nodes)
+fillsegmentpath(DCEprojection* p, NClist* nodes)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     NClist* path = nclistnew();
 
-    ASSERT(p->discrim == NS_VAR);
+    ASSERT(p->discrim == CES_VAR);
     collectsegmentnames3(p->var->segments,path);
-    ncstat = matchpartialname3(nodes,path,&GETNOTES(p->var)->leaf);
+    ncstat = matchpartialname3(nodes,path,&p->var->cdfleaf);
     if(ncstat) goto done;
     /* Now complete the segment path */
     nclistclear(path);
-    collectnodepath3(GETNOTES(p->var)->leaf,path,!WITHDATASET);
+    collectnodepath3(p->var->cdfleaf,path,!WITHDATASET);
     if(nclistlength(path) != nclistlength(p->var->segments)) {
 	ncstat = NC_EINVAL;
 	goto done;
     }
     for(i=0;i<nclistlength(p->var->segments);i++) {
-        NCCsegment* seg = (NCCsegment*)nclistget(p->var->segments,i);
+        DCEsegment* seg = (DCEsegment*)nclistget(p->var->segments,i);
 	CDFnode* node = (CDFnode*)nclistget(path,i);
-	GETNOTES(seg)->node = node;
+	seg->cdfnode = node;
 #ifdef DEBUG
-fprintf(stderr,"reref: %s -> %s\n",seg->node.name,node->name);
+fprintf(stderr,"reref: %s -> %s\n",seg->name,node->name);
 #endif
     }
     
@@ -839,22 +828,22 @@ done:
 }
 
 static NCerror
-fillselectionpath(NCCselection* s, NClist* nodes)
+fillselectionpath(DCEselection* s, NClist* nodes)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     NClist* path = nclistnew();
-    NCCvar* var;
+    DCEvar* var;
 
-    ASSERT(s->lhs->discrim == NS_VAR);
+    ASSERT(s->lhs->discrim == CES_VAR);
     var = s->lhs->var;
-    ncstat = matchpartialname3(nodes,var->segments,&GETNOTES(var)->leaf);
+    ncstat = matchpartialname3(nodes,var->segments,&var->cdfleaf);
     if(ncstat) goto done;
     /* Now find the value paths */
     for(i=0;i<nclistlength(s->rhs);i++) {
-        NCCvalue* v = (NCCvalue*)nclistget(s->rhs,i);
-	if(v->discrim != NS_VAR) continue;
-        ncstat = matchpartialname3(nodes,v->var->segments,&GETNOTES(v->var)->node);
+        DCEvalue* v = (DCEvalue*)nclistget(s->rhs,i);
+	if(v->discrim != CES_VAR) continue;
+        ncstat = matchpartialname3(nodes,v->var->segments,&v->var->cdfnode);
         if(ncstat) goto done;
     }
     
@@ -870,17 +859,17 @@ done:
    with the constraint vars.
 */
 NCerror
-rereference3(NCCconstraint* constraint, NClist* nodeset)
+rereference3(DCEconstraint* constraint, NClist* nodeset)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     for(i=0;i<nclistlength(constraint->projections);i++) {
-        NCCprojection* p = (NCCprojection*)nclistget(constraint->projections,i);
+        DCEprojection* p = (DCEprojection*)nclistget(constraint->projections,i);
         ncstat = fillsegmentpath(p, nodeset);
 	if(!ncstat) goto done;
     }
     for(i=0;i<nclistlength(constraint->selections);i++) {
-        NCCselection* s = (NCCselection*)nclistget(constraint->selections,i);
+        DCEselection* s = (DCEselection*)nclistget(constraint->selections,i);
 	ncstat = fillselectionpath(s, nodeset);
 	if(!ncstat) goto done;
     }
@@ -891,14 +880,14 @@ done:
 NCerror
 buildvaraprojection3(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     NCCprojection** projectionp)
+		     DCEprojection** projectionp)
 {
     int i,j;
     int ncrank;
     NCerror ncstat = NC_NOERR;
     CDFnode* var = getvar->target;
     NClist* vardims = var->array.dimensions;
-    NCCprojection* projection = NULL;
+    DCEprojection* projection = NULL;
     NClist* path = nclistnew();
     NClist* segments = NULL;
     int dimindex;
@@ -913,31 +902,31 @@ buildvaraprojection3(Getvara* getvar,
     segments = nclistnew();
     nclistsetalloc(segments,nclistlength(path));
     for(i=0;i<nclistlength(path);i++) {
-	NCCsegment* segment = createsegment();
+	DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
 	CDFnode* n = (CDFnode*)nclistget(path,i);
-	GETNOTES(segment)->node = n;
-	ASSERT((GETNOTES(segment)->node != NULL));
-        segment->node.name = nulldup(GETNOTES(segment)->node->name);
+	segment->cdfnode = n;
+	ASSERT((segment->cdfnode != NULL));
+        segment->name = nulldup(n->name);
 	segment->slicesdefined = 0; /* temporary */
 	nclistpush(segments,(ncelem)segment);
     }
     
-    projection = (NCCprojection*)ncccreate(NS_PROJECT);
-    projection->discrim = NS_VAR;
-    projection->var = createvar();
-    GETNOTES(projection->var)->leaf = var;
+    projection = (DCEprojection*)dcecreate(CES_PROJECT);
+    projection->discrim = CES_VAR;
+    projection->var = (DCEvar*)dcecreate(CES_VAR);
+    projection->var->cdfleaf = var;
     projection->var->segments = segments;
 
     /* We need to assign slices to each segment */
     dimindex = 0; /* point to next subset of slices */
     for(i=0;i<nclistlength(segments);i++) {
-	NCCsegment* segment = (NCCsegment*)nclistget(segments,i);
-	int localrank = nclistlength(GETNOTES(segment)->node->array.dimensions0);
-        if(GETNOTES(segment)->node->array.stringdim != NULL) localrank++;
-        if(GETNOTES(segment)->node->array.seqdim != NULL) localrank++;
+	DCEsegment* segment = (DCEsegment*)nclistget(segments,i);
+	int localrank = nclistlength(segment->cdfnode->array.dimensions0);
+        if(segment->cdfnode->array.stringdim != NULL) localrank++;
+        if(segment->cdfnode->array.seqdim != NULL) localrank++;
         segment->rank = localrank;
         for(j=0;j<localrank;j++) {
-	    NCCslice* slice = &segment->slices[j];
+	    DCEslice* slice = &segment->slices[j];
 	    CDFnode* dim = (CDFnode*)nclistget(vardims,dimindex+j);
 	    slice->first = startp[dimindex+j];
 	    slice->stride = stridep[dimindex+j];
@@ -951,9 +940,6 @@ buildvaraprojection3(Getvara* getvar,
 	    slice->declsize = dim->dim.declsize;
 	}
 	segment->slicesdefined = 1;
-#ifdef DEBUG
-fprintf(stderr,"xxx: %s\n",ncctostring((NCCnode*)segment));
-#endif
 	dimindex += localrank;
 	ASSERT((dimindex <= ncrank));
     }
@@ -963,12 +949,12 @@ fprintf(stderr,"xxx: %s\n",ncctostring((NCCnode*)segment));
     if(projectionp) *projectionp = projection;
 
     nclistfree(path);
-    if(ncstat) nccfree((NCCnode*)projection);
+    if(ncstat) dcefree((DCEnode*)projection);
     return ncstat;
 }
 
 int
-iswholeslice(NCCslice* slice, CDFnode* dim)
+iswholeslice(DCEslice* slice, CDFnode* dim)
 {
     if(slice->first != 0 || slice->stride != 1) return 0;
     if(dim != NULL) {
@@ -981,15 +967,15 @@ iswholeslice(NCCslice* slice, CDFnode* dim)
 }
 
 int
-iswholesegment(NCCsegment* seg)
+iswholesegment(DCEsegment* seg)
 {
     int i,whole;
     NClist* dimset = NULL;
     unsigned int rank;
     
     if(!seg->slicesdefined) return 1;
-    if(GETNOTES(seg)->node == NULL) return 0;
-    dimset = GETNOTES(seg)->node->array.dimensions;
+    if(seg->cdfnode == NULL) return 0;
+    dimset = seg->cdfnode->array.dimensions;
     rank = nclistlength(dimset);
     whole = 1; /* assume so */
     for(i=0;i<rank;i++) {
@@ -1000,28 +986,28 @@ iswholesegment(NCCsegment* seg)
 }
 
 int
-iswholeprojection(NCCprojection* proj)
+iswholeprojection(DCEprojection* proj)
 {
     int i,whole;
     
-    ASSERT((proj->discrim == NS_VAR));
+    ASSERT((proj->discrim == CES_VAR));
 
     whole = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
-        NCCsegment* segment = (NCCsegment*)nclistget(proj->var->segments,i);
+        DCEsegment* segment = (DCEsegment*)nclistget(proj->var->segments,i);
 	if(!iswholesegment(segment)) {whole = 0; break;}	
     }
     return whole;
 }
 
 int
-iswholeconstraint(NCCconstraint* con)
+iswholeconstraint(DCEconstraint* con)
 {
     int i;
     if(con == NULL) return 1;
     if(con->projections != NULL) {
 	for(i=0;i<nclistlength(con->projections);i++) {
-	 if(!iswholeprojection((NCCprojection*)nclistget(con->projections,i)))
+	 if(!iswholeprojection((DCEprojection*)nclistget(con->projections,i)))
 	    return 0;
 	}
     }
@@ -1031,7 +1017,7 @@ iswholeconstraint(NCCconstraint* con)
 }
 
 void
-makewholesegment3(NCCsegment* seg, CDFnode* node)
+makewholesegment3(DCEsegment* seg, CDFnode* node)
 {
     int i;
     NClist* dimset = NULL;
@@ -1043,31 +1029,7 @@ makewholesegment3(NCCsegment* seg, CDFnode* node)
     seg->rank = rank;
     for(i=0;i<rank;i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	nccmakewholeslice(&seg->slices[i],dim->dim.declsize);
+	dcemakewholeslice(&seg->slices[i],dim->dim.declsize);
     }
     seg->slicesdefined = 1;
-}
-
-/* Override to create the associated notes */
-static NCCvar*
-createvar(void)
-{
-    NCCvar* var = (NCCvar*)ncccreate(NS_VAR);
-    if(var != NULL) {
-	var->node.notes = (NCDnotes*)calloc(1,sizeof(NCDnotes));
-	if(var->node.notes == NULL) var = NULL;
-    }
-    return var;    
-}
-
-
-static NCCsegment*
-createsegment(void)
-{
-    NCCsegment* segment = (NCCsegment*)ncccreate(NS_SEGMENT);
-    if(segment != NULL) {
-	segment->node.notes = (NCDnotes*)calloc(1,sizeof(NCDnotes));
-	if(segment->node.notes == NULL) segment = NULL;
-    }
-    return segment;    
 }

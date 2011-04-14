@@ -16,9 +16,8 @@ int
 dumpmetadata(int ncid, NChdr** hdrp)
 {
     int stat,i,j,k;
-    NChdr* hdr = (NChdr*)emalloc(sizeof(NChdr));
+    NChdr* hdr = (NChdr*)calloc(1,sizeof(NChdr));
     MEMCHECK(hdr,NC_ENOMEM);
-    memset((void*)hdr,0,sizeof(NChdr));
     hdr->ncid = ncid;
     hdr->content = ncbytesnew();
     if(hdrp) *hdrp = hdr;
@@ -33,7 +32,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
         fprintf(stdout,"ncid=%d ngatts=%d ndims=%d nvars=%d unlimid=%d\n",
 		hdr->ncid,hdr->ngatts,hdr->ndims,hdr->nvars,hdr->unlimid);
     }
-    hdr->gatts = (NCattribute*)emalloc(hdr->ngatts*sizeof(NCattribute));
+    hdr->gatts = (NCattribute*)calloc(1,hdr->ngatts*sizeof(NCattribute));
     MEMCHECK(hdr->gatts,NC_ENOMEM);
     if(hdr->ngatts > 0)
 	fprintf(stdout,"global attributes:\n");
@@ -56,7 +55,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
                         (unsigned long)nvalues);
 	if(nctype == NC_CHAR) {
 	    size_t len = typesize*nvalues;
-	    char* values = (char*)emalloc(len+1);/* for null terminate*/
+	    char* values = (char*)malloc(len+1);/* for null terminate*/
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,NC_GLOBAL,att->name,values);
             CHECK(stat);
@@ -64,7 +63,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," '%s'",values);
 	} else {
 	    size_t len = typesize*nvalues;
-	    char* values = (char*)emalloc(len);
+	    char* values = (char*)malloc(len);
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,NC_GLOBAL,att->name,values);
             CHECK(stat);
@@ -76,7 +75,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"\n");
     }
 
-    hdr->dims = (Dim*)emalloc(hdr->ndims*sizeof(Dim));
+    hdr->dims = (Dim*)malloc(hdr->ndims*sizeof(Dim));
     MEMCHECK(hdr->dims,NC_ENOMEM);
     for(i=0;i<hdr->ndims;i++) {
 	hdr->dims[i].dimid = i;
@@ -88,7 +87,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"dim[%d]: name=%s size=%lu\n",
 		i,hdr->dims[i].name,(unsigned long)hdr->dims[i].size);
     }    
-    hdr->vars = (Var*)emalloc(hdr->nvars*sizeof(Var));
+    hdr->vars = (Var*)malloc(hdr->nvars*sizeof(Var));
     MEMCHECK(hdr->vars,NC_ENOMEM);
     for(i=0;i<hdr->nvars;i++) {
 	Var* var = &hdr->vars[i];
@@ -113,7 +112,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," %d",var->dimids[j]);
 	}
 	fprintf(stdout,"}\n");
-	var->atts = (NCattribute*)emalloc(var->natts*sizeof(NCattribute));
+	var->atts = (NCattribute*)malloc(var->natts*sizeof(NCattribute));
         MEMCHECK(var->atts,NC_ENOMEM);
         for(j=0;j<var->natts;j++) {
 	    NCattribute* att = &var->atts[j];
@@ -129,7 +128,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    CHECK(stat);
 	    att->etype = nctypetodap(nctype);
 	    typesize = nctypesizeof(att->etype);
-	    values = (char*)emalloc(typesize*nvalues);
+	    values = (char*)malloc(typesize*nvalues);
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,var->varid,att->name,values);
             CHECK(stat);
@@ -197,37 +196,37 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 char*
 dumpprojections(NClist* projections)
 {
-    return ncc_listtostring(projections,",");
+    return dcelisttostring(projections,",");
 }
 
 char*
-dumpprojection(NCCprojection* proj)
+dumpprojection(DCEprojection* proj)
 {
-    return ncctostring((NCCnode*)proj);
+    return dcetostring((DCEnode*)proj);
 }
 
 char*
 dumpselections(NClist* selections)
 {
-    return ncc_listtostring(selections,"&");
+    return dcelisttostring(selections,"&");
 }
 
 char*
-dumpselection(NCCselection* sel)
+dumpselection(DCEselection* sel)
 {
-    return ncctostring((NCCnode*)sel);
+    return dcetostring((DCEnode*)sel);
 }
 
 char*
-dumpconstraint(NCCconstraint* con)
+dumpconstraint(DCEconstraint* con)
 {
-    return ncctostring((NCCnode*)con);
+    return dcetostring((DCEnode*)con);
 }
 
 char*
 dumpsegments(NClist* segments)
 {
-    return ncc_listtostring(segments,".");
+    return dcelisttostring(segments,".");
 }
 
 char*
@@ -545,13 +544,13 @@ dumpcache(NCcache* cache)
 
 /* This should be consistent with makeslicestring3 in constraints3.c */
 char*
-dumpslice(NCCslice* slice)
+dumpslice(DCEslice* slice)
 {
-    return ncctostring((NCCnode*)slice);
+    return dcetostring((DCEnode*)slice);
 }
 
 char*
-dumpslices(NCCslice* slice, unsigned int rank)
+dumpslices(DCEslice* slice, unsigned int rank)
 {
     int i;
     NCbytes* buf;

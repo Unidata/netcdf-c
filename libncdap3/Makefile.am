@@ -12,6 +12,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 CLEANFILES =
 LDADD=
+EXTRA_DIST =
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -30,8 +31,8 @@ dapdump.c \
 dapdebug.c \
 dapattr3.c \
 ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
-ncconstraints.h ncconstraints.c \
-cetab.c cetab.h ceparse.c ceparse.h celex.c ceparselex.h
+dceconstraints.c \
+dcetab.c dceparse.c dcelex.c
 
 
 HDRS=\
@@ -45,7 +46,9 @@ getvara.h \
 dapnc.h \
 daputil.h \
 dapdebug.h \
-dapdump.h
+dapdump.h \
+dceconstraints.h \
+dcetab.h dceparselex.h
 
 if BUILD_DAP
 
@@ -84,7 +87,7 @@ t_dap3c_SOURCES = t_dap3c.c stubdap3.c
 # Set ldflags
 t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
 t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-EXTRA_DIST = t_dap.c
+EXTRA_DIST += t_dap.c
 
 endif # BUILD_DAP
 
@@ -108,10 +111,10 @@ DISTCLEANFILES += .dodsrc
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
 
-EXTRA_DIST = ce.y
+EXTRA_DIST += dce.y
 
 makece::
-	bison -v -d -t -p ce ce.y
-	rm -f cetab.c cetab.h
-	mv ce.tab.c cetab.c
-	mv ce.tab.h cetab.h
+	bison -v -d -t -p dce dce.y
+	rm -f dcetab.c dcetab.h
+	mv dce.tab.c dcetab.c
+	mv dce.tab.h dcetab.h

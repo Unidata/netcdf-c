@@ -26,8 +26,8 @@ void
 freegetvara(Getvara* vara)
 {
     if(vara == NULL) return;
-    nccfree((NCCnode*)vara->varaprojection);
-    efree(vara);
+    dcefree((DCEnode*)vara->varaprojection);
+    nullfree(vara);
 }
 
 NCerror
@@ -38,7 +38,7 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     nclistfree(nccomm->cdf.seqnodes);
     nclistfree(nccomm->cdf.gridnodes);
     nclistfree(nccomm->cdf.usertypes);
-    efree(nccomm->cdf.recorddim);
+    nullfree(nccomm->cdf.recorddim);
 
     /* free the trees */
     freecdfroot34(nccomm->cdf.ddsroot);
@@ -48,9 +48,9 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     nccomm->oc.ocdasroot = NULL;
     oc_close(nccomm->oc.conn); /* also reclaims remaining OC trees */
     dapurlclear(&nccomm->oc.url);
-    efree(nccomm->oc.urltext);
+    nullfree(nccomm->oc.urltext);
 
-    nccfree((NCCnode*)nccomm->oc.dapconstraint);
+    dcefree((DCEnode*)nccomm->oc.dapconstraint);
     nccomm->oc.dapconstraint = NULL;
 
     return NC_NOERR;
@@ -124,8 +124,8 @@ addstringdims(NCDAP3* drno)
 	nclistpush(drno->dap.cdf.ddsroot->tree->nodes,(ncelem)sdim);
 	sdim->dim.dimflags |= CDFDIMSTRING;
 	sdim->dim.declsize = dimsize;
-	efree(sdim->ncbasename);
-	efree(sdim->ncfullname);
+	nullfree(sdim->ncbasename);
+	nullfree(sdim->ncfullname);
 	sdim->ncbasename = cdflegalname3(sdim->name);
 	sdim->ncfullname = nulldup(sdim->ncbasename);
 	/* tag the variable with its string dimension*/
@@ -191,8 +191,8 @@ defseqdims(NCDAP3* drno)
     if(!FLAGSET(drno->dap.controls,NCF_NOUNLIM)) {
         unlimited = makecdfnode34(&drno->dap,"unlimited",OC_Dimension,OCNULL,drno->dap.cdf.ddsroot);
         nclistpush(drno->dap.cdf.ddsroot->tree->nodes,(ncelem)unlimited);
-        efree(unlimited->ncbasename);
-        efree(unlimited->ncfullname);
+        nullfree(unlimited->ncbasename);
+        nullfree(unlimited->ncfullname);
         unlimited->ncbasename = cdflegalname3(unlimited->name);
         unlimited->ncfullname = nulldup(unlimited->ncbasename);
         DIMFLAGSET(unlimited,CDFDIMUNLIM);
@@ -311,8 +311,8 @@ makeseqdim(NCDAPCOMMON* nccomm, CDFnode* seq, size_t count, CDFnode** sqdimp)
     sqdim = makecdfnode34(nccomm,seq->name,OC_Dimension,OCNULL,root);
     if(sqdim == NULL) return THROW(NC_ENOMEM);
     nclistpush(tree->nodes,(ncelem)sqdim);
-    efree(sqdim->ncbasename);
-    efree(sqdim->ncfullname);
+    nullfree(sqdim->ncbasename);
+    nullfree(sqdim->ncfullname);
     sqdim->ncbasename = cdflegalname3(seq->name);
     sqdim->ncfullname = nulldup(sqdim->ncbasename);
     sqdim->dim.declsize = count;
@@ -536,7 +536,7 @@ computeminconstraints3(NCDAPCOMMON* nccomm, CDFnode* seq, NCbytes* minconstraint
     /* Finally, add in any selection from the original URL */
     if(nccomm->oc.url.selection != NULL)
         ncbytescat(minconstraints,nccomm->oc.url.selection);
-    efree(prefix);
+    nullfree(prefix);
     return NC_NOERR;
 }
 
@@ -655,7 +655,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
 done:
-    efree(ce);
+    nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
@@ -705,7 +705,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(ddsroot));
     }
 
 fail:
-    efree(ce);
+    nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
