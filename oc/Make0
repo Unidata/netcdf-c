@@ -20,7 +20,7 @@ diffoc::
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
-		diff -qw ${THISDIR}/$$x $$f ; \
+		diff --brief -wBb ${THISDIR}/$$x $$f ; \
 	    else \
 		echo "Only in ${OCDIR}: $$x"; \
 	    fi; \
@@ -28,8 +28,8 @@ diffoc::
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f|tr -d '' ` ; \
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
-		if ! diff -qw ${THISDIR}/$$x $$f > /dev/null ; then \
-		echo diff -w ${THISDIR}/$$x $$f ;\
+		if ! diff --brief -wBb ${THISDIR}/$$x $$f > /dev/null ; then \
+		echo diff -wBb ${THISDIR}/$$x $$f ;\
 		diff -w ${THISDIR}/$$x $$f ; \
 		fi; \
 	    fi; \

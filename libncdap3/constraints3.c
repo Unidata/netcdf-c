@@ -154,7 +154,7 @@ completesegments3(NClist* fullpath, NClist* segments)
         seg->name = nulldup(node->name);
         seg->cdfnode = node;
 	seg->rank = nclistlength(node->array.dimensions);
-        for(j=0;j<seg->rank;j++) {
+	for(j=0;j<seg->rank;j++) {
             CDFnode* dim = (CDFnode*)nclistget(node->array.dimensions0,j);
             dcemakewholeslice(seg->slices+j,dim->dim.declsize);
         }
@@ -500,9 +500,8 @@ fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
 	        CDFnode* node = (CDFnode*)nclistget(path,j);
 	        DCEsegment* newseg = (DCEsegment*)dcecreate(CES_SEGMENT);
 	        newseg->name = nulldup(node->name);
-	        newseg->slicesdefined = 1; /* treat as simple projections */
+	        makewholesegment3(newseg,node);/*treat as simple projections*/
 	        newseg->cdfnode = node;
-	        makewholesegment3(newseg,node);
 	        nclistpush(newp->var->segments,(ncelem)newseg);
 	    }
 	    nclistpush(projections,(ncelem)newp);
@@ -908,6 +907,7 @@ buildvaraprojection3(Getvara* getvar,
 	ASSERT((segment->cdfnode != NULL));
         segment->name = nulldup(n->name);
 	segment->slicesdefined = 0; /* temporary */
+	segment->slicesdeclized = 0; /* temporary */
 	nclistpush(segments,(ncelem)segment);
     }
     
@@ -940,6 +940,7 @@ buildvaraprojection3(Getvara* getvar,
 	    slice->declsize = dim->dim.declsize;
 	}
 	segment->slicesdefined = 1;
+	segment->slicesdeclized = 1;
 	dimindex += localrank;
 	ASSERT((dimindex <= ncrank));
     }
@@ -973,7 +974,7 @@ iswholesegment(DCEsegment* seg)
     NClist* dimset = NULL;
     unsigned int rank;
     
-    if(!seg->slicesdefined) return 1;
+    if(!seg->slicesdefined) return 0;
     if(seg->cdfnode == NULL) return 0;
     dimset = seg->cdfnode->array.dimensions;
     rank = nclistlength(dimset);
@@ -1031,5 +1032,6 @@ makewholesegment3(DCEsegment* seg, CDFnode* node)
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
 	dcemakewholeslice(&seg->slices[i],dim->dim.declsize);
     }
-    seg->slicesdefined = 1;
+    seg->slicesdefined  = 1;
+    seg->slicesdeclized = 1;
 }

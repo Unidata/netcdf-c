@@ -34,7 +34,6 @@ ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
 dceconstraints.c \
 dcetab.c dceparse.c dcelex.c
 
-
 HDRS=\
 nccommon.h \
 constraints3.h \
@@ -48,7 +47,8 @@ daputil.h \
 dapdebug.h \
 dapdump.h \
 dceconstraints.h \
-dcetab.h dceparselex.h
+dcetab.h dceparselex.h \
+ceconstraints.h
 
 if BUILD_DAP
 
@@ -88,6 +88,11 @@ t_dap3c_SOURCES = t_dap3c.c stubdap3.c
 t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
 t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
 EXTRA_DIST += t_dap.c
+
+#check_PROGRAMS += test_varm3
+#TESTS += test_varm3
+#test_varm3_SOURCES = test_varm3.c stubdap3.c
+#test_varm3_LDFLAGS = ${t_dap3a_LDFLAGS}
 
 endif # BUILD_DAP
 

@@ -34,7 +34,8 @@ typedef struct DCEslice {
 typedef struct DCEsegment {
     DCEnode node;
     char* name; 
-    int slicesdefined;      /* do we know yet if this has defined slices */
+    int slicesdefined; /*1=>slice counts defined, except declsize*/
+    int slicesdeclized; /*1=>slice declsize defined */
     size_t rank;
     DCEslice slices[NC_MAX_VAR_DIMS];    
     struct CDFnode* cdfnode;

@@ -34,6 +34,7 @@ newsimpledapodometer(DCEsegment* segment, unsigned int rank)
     MEMCHECK(odom,NULL);
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
+    assert(segment->slicesdefined && segment->slicesdeclized);
     for(i=0;i<odom->rank;i++) {
 	DCEslice* odslice = &odom->slices[i];
 	DCEslice* segslice = &segment->slices[i];
@@ -110,7 +111,6 @@ dapodometercount(Dapodometer* odom)
     int i;
     size_t offset = 0;
     for(i=0;i<odom->rank;i++) {
-	ASSERT((odom->slices[i].declsize > 0));
 	offset *= odom->slices[i].declsize;
 	offset += odom->index[i];
     } 

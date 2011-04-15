@@ -6,7 +6,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#define DEBUG
+#undef DEBUG
 #undef PARSEDEBUG
 
 #include <stdarg.h>

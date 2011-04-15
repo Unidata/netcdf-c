@@ -102,8 +102,8 @@ segment(DCEparsestate* state, Object name, Object slices0)
     DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
     NClist* slices = (NClist*)slices0;
     segment->name = strdup((char*)name);
-    if(slices != NULL) {
-        segment->slicesdefined = 1;
+    if(slices != NULL && nclistlength(slices) > 0) {
+        segment->slicesdefined = 1; /* but not declsizes */
 	for(i=0;i<nclistlength(slices);i++) {
 	    DCEslice* slice = (DCEslice*)nclistget(slices,i);
 	    segment->slices[i] = *slice;

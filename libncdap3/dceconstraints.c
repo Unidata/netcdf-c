@@ -495,7 +495,6 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
     case CES_SLICE: {
 	    DCEslice* slice = (DCEslice*)node;
 	    size_t last = (slice->first+slice->length)-1;
-	    assert(slice->declsize > 0);
 	    if(last > slice->declsize && slice->declsize > 0)
 	        last = slice->declsize - 1;
             if(slice->count == 1) {
@@ -522,7 +521,6 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
         if(!dceiswholesegment(segment)) {
 	    for(i=0;i<rank;i++) {
 	        DCEslice* slice = segment->slices+i;
-	        if(i > 0) ncbytescat(buf,",");
                 dcetobuffer((DCEnode*)slice,buf);
 	    }
 	}
@@ -588,7 +586,7 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
 
     case CES_SELECT: {
 	DCEselection* sel = (DCEselection*)node;
-	dcelisttobuffer((DCEnode*)sel->rhs,buf);
+	dcetobuffer((DCEnode*)sel->lhs,buf);
         if(sel->operator == CES_NIL) break;
         ncbytescat(buf,opstrings[(int)sel->operator]);
         if(nclistlength(sel->rhs) > 1)
@@ -600,9 +598,11 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
 
     case CES_CONSTRAINT: {
 	DCEconstraint* con = (DCEconstraint*)node;
-	if(con->projections != NULL)
+        if(con->projections != NULL && nclistlength(con->projections) > 0) {
             dcelisttobuffer(con->projections,buf,",");
-        if(con->selections != NULL) {
+	}
+        if(con->selections != NULL && nclistlength(con->selections) > 0) {
+	    ncbytescat(buf,"&"); /* because & is really a prefix */
             dcelisttobuffer(con->selections,buf,"&");
 	}
     } break;
@@ -799,8 +799,6 @@ int
 dceiswholeslice(DCEslice* slice)
 {
     if(slice->first != 0 || slice->stride != 1) return 0;
-    if(slice->declsize == 0
-       || slice->count != slice->declsize) return 0;
     return 1;
 }
 
@@ -811,7 +809,7 @@ dceiswholesegment(DCEsegment* seg)
     NClist* dimset = NULL;
     unsigned int rank;
     
-    if(!seg->slicesdefined) return 1;
+    if(!seg->slicesdefined) return 0; /* actually, we don't know */
     whole = 1; /* assume so */
     for(i=0;i<seg->rank;i++) {
 	if(!dceiswholeslice(&seg->slices[i])) {whole = 0; break;}	

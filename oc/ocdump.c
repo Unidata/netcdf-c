@@ -238,11 +238,11 @@ dumpmem1(int index, unsigned int n, unsigned int n1)
 	float fv;
     } form;
 #ifndef CRUDE
-    int i;
     union {
 	unsigned int uv[2];
 	double dv;
     } dform;
+    int i;
 #endif
     form.uv = n;
     s[0] = '\0';
@@ -288,6 +288,7 @@ dumpmemory0(char* memory, int len, int fromxdr, int bod)
 #ifndef CRUDE
     char hdr[1024];
 #endif
+
     assert(memory[len] == 0);
 
 #ifndef CRUDE
