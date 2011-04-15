@@ -101,7 +101,7 @@ fixgrids4(NCDAPCOMMON* nccomm)
 	if(grid == NULL || grid->nctype != NC_Grid) continue;
 	if(strcmp(grid->name,var->name)==0) {
 	    /* shorten the var name */
-	    efree(var->ncfullname);
+	    nullfree(var->ncfullname);
 	    var->ncfullname = nulldup(grid->ncbasename);
 	    MEMCHECK(var->ncfullname,NC_ENOMEM);
 	}
@@ -131,7 +131,7 @@ fixgrids4(NCDAPCOMMON* nccomm)
     for(i=0;i<nclistlength(vars);i++) {
         CDFnode* var = (CDFnode*)nclistget(vars,i);
 	if(nclistcontains(topgrids,(ncelem)var->container)) {
-	    efree(var->ncfullname);
+	    nullfree(var->ncfullname);
 	    var->ncfullname = nulldup(var->ncbasename);
 	    MEMCHECK(var,NC_ENOMEM);
 	}
@@ -177,7 +177,7 @@ computetypenames4(NCDAPCOMMON* nccomm, CDFnode* tnode)
     if(tnode->nctype == NC_Primitive) {
 	/* Use the field name directly as its type field name */
 	ASSERT((tnode->ncbasename != NULL));
-        if(tnode->typename != NULL) efree(tnode->typename);	
+        if(tnode->typename != NULL) nullfree(tnode->typename);	
 	tnode->typename = nulldup(tnode->ncbasename);
 	return NC_NOERR;
     }
@@ -185,28 +185,28 @@ computetypenames4(NCDAPCOMMON* nccomm, CDFnode* tnode)
     basename = makecdfpathstring3(tnode,nccomm->cdf.separator);
     /* Use special naming for Sequences */
     if(tnode->nctype != NC_Sequence) {
-        tname = (char*)emalloc(strlen(basename)+strlen("_t")+1);
+        tname = (char*)malloc(strlen(basename)+strlen("_t")+1);
 	MEMCHECK(tname,NC_ENOMEM);
         strcpy(tname,basename);
         strcat(tname,"_t");
-	efree(tnode->typename);
+	nullfree(tnode->typename);
         tnode->typename = tname;
     } else { /* Sequence */
-        tname = (char*)emalloc(strlen(basename)+strlen("_record")+1);
+        tname = (char*)malloc(strlen(basename)+strlen("_record")+1);
 	MEMCHECK(tname,NC_ENOMEM);
         strcpy(tname,basename);
         strcat(tname,"_record");
-	efree(tnode->typename);
+	nullfree(tnode->typename);
         tnode->typename = tname;
 	/* Also create the vlen name */
-        tname = (char*)emalloc(strlen(basename)+strlen("_seq_t")+1);
+        tname = (char*)malloc(strlen(basename)+strlen("_seq_t")+1);
 	MEMCHECK(tname,NC_ENOMEM);
         strcpy(tname,basename);
         strcat(tname,"_seq_t");
-        if(tnode->vlenname != NULL) efree(tnode->vlenname);
+        if(tnode->vlenname != NULL) nullfree(tnode->vlenname);
         tnode->vlenname = tname;
     }
-    efree(basename);
+    nullfree(basename);
     return NC_NOERR;
 }
 
@@ -504,7 +504,7 @@ shortentypenames4(NCDAPCOMMON* nccomm)
 	    CDFnode* container = (CDFnode*)nclistget(containers,i);
 	    reversepath(container,rpath);
 	    reversepathstring(depth,rpath,name,nccomm->cdf.separator);
-	    efree(container->ncfullname);
+	    nullfree(container->ncfullname);
 	    container->ncfullname = ncbytesdup(name);
 	}
 	/* Now, look for the unique elements */
@@ -531,22 +531,22 @@ shortentypenames4(NCDAPCOMMON* nccomm)
 	CDFnode* tnode = (CDFnode*)nclistget(nccomm->cdf.usertypes,i);
 	switch (tnode->nctype) {
 	case NC_Structure: case NC_Grid:
-	    efree(tnode->typename);
-	    tnode->typename = (char*)emalloc(strlen(tnode->ncfullname)
+	    nullfree(tnode->typename);
+	    tnode->typename = (char*)malloc(strlen(tnode->ncfullname)
 					     + strlen("_t")+1);
 	    MEMCHECK(tnode->typename,NC_ENOMEM);
 	    strcpy(tnode->typename,tnode->ncfullname);
 	    strcat(tnode->typename,"_t");
 	    break;
 	case NC_Sequence:
-	    efree(tnode->typename);
-	    tnode->typename = (char*)emalloc(strlen(tnode->ncfullname)
+	    nullfree(tnode->typename);
+	    tnode->typename = (char*)malloc(strlen(tnode->ncfullname)
 					     + strlen("_record_t")+1);
 	    MEMCHECK(tnode->typename,NC_ENOMEM);
 	    strcpy(tnode->typename,tnode->ncfullname);
 	    strcat(tnode->typename,"_record_t");
-	    efree(tnode->vlenname);
-	    tnode->vlenname = (char*)emalloc(strlen(tnode->ncfullname)
+	    nullfree(tnode->vlenname);
+	    tnode->vlenname = (char*)malloc(strlen(tnode->ncfullname)
 					         + strlen("_t")+1);
 	    MEMCHECK(tnode->vlenname,NC_ENOMEM);
 	    strcpy(tnode->vlenname,tnode->ncfullname);

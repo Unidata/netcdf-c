@@ -7,10 +7,10 @@
 #define CONSTRAINTS4_H 1
 
 extern NCerror choosetactic4(NCDAP4* drno, Getvara* getvar,
-		             NCprojection* varaprojection);
+		             DCEprojection* varaprojection);
 extern NCerror buildvaraprojection4(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     NCprojection** projectionp);
+		     DCEprojection** projectionp);
 
 #endif /*CONSTRAINTS4_H*/
 

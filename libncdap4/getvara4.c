@@ -8,7 +8,7 @@
 
 static NCerror getcontent4(NCDAP4*, Getvara*, CDFnode* rootnode, void* data);
 static NCerror getcontent4r(NCDAP4*, Getvara*, CDFnode* tnode, OCdata, NCbytes*);
-static NCerror getcontent4prim(NCDAP4* drno, Getvara*, CDFnode* tnode, NCsegment*,
+static NCerror getcontent4prim(NCDAP4* drno, Getvara*, CDFnode* tnode, DCEsegment*,
 		               OCdata currentcontent, NCbytes* memory);
 static int findfield(CDFnode* node, CDFnode* subnode);
 static int contiguousdims(Dapodometer* odom);
@@ -35,7 +35,7 @@ NCD4_get_vara(int ncid, int varid,
     char* constraint = NULL;
     CDFnode* xtarget = NULL;
     CDFnode* target = NULL;
-    NCprojection* varaprojection = NULL;
+    DCEprojection* varaprojection = NULL;
     NCcachenode* cachenode = NULL;
     nc_type externaltype = externaltype0;
     size_t localcount[NC_MAX_VAR_DIMS];
@@ -144,26 +144,26 @@ fprintf(stderr,"Unconstrained: reusing prefetch\n");
 #endif
 	cachenode = nccomm->cdf.cache->prefetch;
 	ASSERT((cachenode != NULL));
-    } else if(iscached(&drno->dap,varaprojection->var->leaf,&cachenode)) {
+    } else if(iscached(&drno->dap,varaprojection->var->cdfleaf,&cachenode)) {
 #ifdef DEBUG
 fprintf(stderr,"Reusing cached fetch constraint: %s\n",
 	dumpconstraint(cachenode->constraint));
 #endif
     } else { /* Load with constraints */
 	NClist* vars = nclistnew();
-	NCconstraint* constraint;
+	DCEconstraint* constraint;
 	nclistpush(vars,(ncelem)varainfo->target);
 
-	constraint = createncconstraint();
-        constraint->projections = clonencprojections(nccomm->oc.dapconstraint->projections);
+	constraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
+        constraint->projections = dceclonelist(nccomm->oc.dapconstraint->projections);
         if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
-	    NCprojection* clone = clonencprojection(varaprojection);
+	    DCEprojection* clone = (DCEprojection*)dceclone((DCEnode*)varaprojection);
 	    nclistpush(tmp,(ncelem)clone);
             ncstat = mergeprojections3(constraint->projections,tmp);
 	    nclistfree(tmp);
-	    freencprojection(clone);
+	    dcefree((DCEnode*)clone);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"vara merge: %s\n",
@@ -172,7 +172,7 @@ fprintf(stderr,"vara merge: %s\n",
         }
 
         restrictprojection34(vars,constraint->projections);
-        constraint->selections = clonencselections(nccomm->oc.dapconstraint->selections);
+        constraint->selections = dceclonelist(nccomm->oc.dapconstraint->selections);
 
 	/* buildcachenode3 will also fetch the corresponding datadds */
         ncstat = buildcachenode34(nccomm,constraint,vars,&cachenode,0);
@@ -208,9 +208,9 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 fail:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
 ok:
-    efree(constraint);
+    nullfree(constraint);
     freegetvara(varainfo);
-    freencprojection(varaprojection);
+    dcefree((DCEnode*)varaprojection);
     return THROW(ncstat);
 }
 
@@ -314,20 +314,20 @@ fprintf(stderr,"getcontent4: |%s| = %lu\n",tnode->name,alloc);
         ncstat=getcontent4r(drno,xgetvar,tnode,seqcontent,memory);
     } else if(tnode->nctype == NC_Primitive) {
 	/* Stride the dimensions and get the instances */
-	NCsegment* segment = NULL;
+	DCEsegment* segment = NULL;
         ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
+	segment = (DCEsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
         ASSERT((fieldcontent != OCNULL));
 	ncstat = getcontent4prim(drno,xgetvar,tnode,segment,fieldcontent,memory);
     } else if(nclistlength(tnode->array.dimensions) > 0) {
 	/* Stride the dimensions and get the instances */
-	NCsegment* segment = NULL;
+	DCEsegment* segment = NULL;
 	ASSERT((nclistlength(xgetvar->varaprojection->var->segments)==1));
-	segment = (NCsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
+	segment = (DCEsegment*)nclistget(xgetvar->varaprojection->var->segments,0);
 	if(caching || unconstrainable) {
-            odom = newdapodometer(segment->slices,0,segment->slicerank);
+            odom = newdapodometer(segment->slices,0,segment->rank);
 	} else { /*Since vara was projected out, build a simple odometer*/
-            odom = newsimpledapodometer(segment,segment->slicerank);
+            odom = newsimpledapodometer(segment,segment->rank);
 	}
         while(dapodometermore(odom)) {
             /* Compute which instance to move to*/
@@ -386,9 +386,9 @@ fprintf(stderr,"getcontent4r: rank=%lu mode=%d nctype=%s\n",
 #endif
 
     if(tnode->nctype == NC_Primitive) {
-	NCsegment seg; /* temporary */
+	DCEsegment seg; /* temporary */
 	seg.name = tnode->name;
-	seg.node = tnode;
+	seg.cdfnode = tnode;
 	makewholesegment3(&seg,tnode);
 	ncstat = getcontent4prim(drno,xgetvar,tnode,&seg,currentcontent,memory);
 	goto done;
@@ -402,10 +402,10 @@ abort();
     switch (mode) {
     case OCARRAYMODE: {
         unsigned int rank = nclistlength(tnode->array.dimensions);
-	NCsegment seg; /* temporary */
+	DCEsegment seg; /* temporary */
 	ASSERT((tnode->nctype == NC_Structure));
 	seg.name = tnode->name;
-	seg.node = tnode;
+	seg.cdfnode = tnode;
 	makewholesegment3(&seg,tnode);
 
         /* The goal here is to walk the indices (if any)
@@ -486,7 +486,7 @@ static NCerror
 getcontent4prim(NCDAP4* drno,
 	        Getvara* xgetvar,
                 CDFnode* tnode,
-                NCsegment* segment,
+                DCEsegment* segment,
 	        OCdata currentcontent,
                 NCbytes* memory)
 {
@@ -496,11 +496,11 @@ getcontent4prim(NCDAP4* drno,
     OCconnection conn = drno->dap.oc.conn;
     Dapodometer* odom = NULL;
     unsigned int memoffset;
-    NCslice* slices = segment->slices;
+    DCEslice* slices = segment->slices;
     int caching = FLAGSET(drno->dap.controls,NCF_CACHE);
     int unconstrainable = FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE);
     size_t internaltypesize, externaltypesize;
-    nc_type internaltype = segment->node->etype;
+    nc_type internaltype = segment->cdfnode->etype;
     nc_type externaltype = xgetvar->dsttype;
     int bit8type; /* is this an 8 bit type? */
 
@@ -515,7 +515,7 @@ getcontent4prim(NCDAP4* drno,
     }
 
     rank = nclistlength(tnode->array.dimensions);
-    ASSERT((rank == segment->slicerank));
+    ASSERT((rank == segment->rank));
 #ifdef READCHECK
 fprintf(stderr,"getcontent4prim: tnode=%s/%d segment=%s internaltype=%s externaltype=%s memory=%lx internaltypesize=%lu externaltypesize=%lu\n",
 	tnode->name,rank,dumpsegment(segment),
@@ -620,7 +620,7 @@ fflush(stdout);
 	    }
 	} else if(bit8type && externaltype == NC_STRING) {
 	    /* special case conversion */
-	    char* s = (char*)emalloc(requested+1); /* bytes will go into a single string */
+	    char* s = (char*)malloc(requested+1); /* bytes will go into a single string */
 	    char** sp = (char**)memdata;
 	    ocstat = oc_data_get(conn,currentcontent,s,requested,0,requested);
 	    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
@@ -712,7 +712,7 @@ case CASE(NC_URL,NC_CHAR):
 case CASE(NC_BYTE,NC_STRING):
 case CASE(NC_UBYTE,NC_STRING):
 case CASE(NC_CHAR,NC_STRING): {
-    char* s = (char*)emalloc(count+1);
+    char* s = (char*)malloc(count+1);
     char** smem = (char**)memory;
     memcpy((void*)s,value,count);
     s[count] = '\0';

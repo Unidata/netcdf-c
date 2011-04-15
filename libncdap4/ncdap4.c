@@ -120,7 +120,7 @@ ocdebug = 1;
     ncid = drno->info.ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
-    efree(tmpname);
+    nullfree(tmpname);
     /* Avoid fill */
     dispatch->set_fill(ncid,NC_NOFILL,NULL);
     if(ncstat)
@@ -160,7 +160,7 @@ ocdebug = 1;
 
     if(ncpp) *ncpp = (NC*)drno;
 
-    drno->dap.oc.dapconstraint = createncconstraint();
+    drno->dap.oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     drno->dap.oc.dapconstraint->projections = nclistnew();
     drno->dap.oc.dapconstraint->selections = nclistnew();
 
@@ -575,7 +575,7 @@ buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_DDS",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
     if(paramcheck34(&drno->dap,"show","das")) {
@@ -586,7 +586,7 @@ buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_DAS",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
 
@@ -601,15 +601,15 @@ buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid)
     char* cname = cdflegalname3(att->name);
     unsigned int nvalues = nclistlength(att->values);
     unsigned int typesize = nctypesizeof(att->etype);
-    void* mem = emalloc(typesize * nvalues);
+    void* mem = malloc(typesize * nvalues);
 
     ncstat = dapcvtattrval3(att->etype,mem,att->values);
     ncstat = nc_put_att(ncid,varid,cname,att->etype,nvalues,mem);
     if(att->etype == NC_STRING) {
 	int i;
-	for(i=0;i<nvalues;i++) efree(((char**)mem)[i]);
+	for(i=0;i<nvalues;i++) nullfree(((char**)mem)[i]);
     }
-    efree(mem);
+    nullfree(mem);
     free(cname);
     return THROW(ncstat);
 }
