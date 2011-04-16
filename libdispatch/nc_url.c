@@ -29,12 +29,13 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     char* protocol = NULL;
     char* params = NULL;
     char* baseurl = NULL;
+    char* trueurl = NULL;
     char* constraint = NULL;
     char* stop;
 
     /* copy url and remove all whitespace*/
     url = strdup(url0);
-    if(url == NULL) return NC_ENOMEM;
+    if(url == NULL) {ncstat=NC_ENOMEM; goto done;}
 
     p = url;
     p1 = url;
@@ -57,6 +58,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 	p++; /* move past the params*/
     }
 
+    trueurl = nulldup(p);
     baseurl = p;
 
     /* Note that we dont care what the protocol is ; just collect it */
@@ -75,7 +77,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     /* Simulate strndup */
     protolen = (size_t)(p1-p);
     protocol = malloc(1+protolen);
-    if(protocol == NULL) return NC_ENOMEM;
+    if(protocol == NULL) {ncstat=NC_ENOMEM; goto done;}
     strncpy(protocol,p,protolen);
     protocol[protolen] = '\0';
     /* Look for '?' */
@@ -85,17 +87,19 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     }
 
     /* assemble the component pieces*/
-    ncurl = malloc(sizeof(NC_URL));
-    if(ncurl == NULL) return NC_ENOMEM;
-    memset((void*)ncurl,0,sizeof(NC_URL));
+    ncurl = calloc(1,sizeof(NC_URL));
+    if(ncurl == NULL) {ncstat=NC_ENOMEM; goto done;}
 
-    ncurl->url = nulldup(url0);
-    if(ncurl->url == NULL) return NC_ENOMEM;
+    ncurl->wholeurl = nulldup(url0);
+    if(ncurl->wholeurl == NULL) {ncstat=NC_ENOMEM; goto done;}
+    ncurl->url = trueurl;
+    trueurl = NULL;
+    if(ncurl->url == NULL) {ncstat=NC_ENOMEM; goto done;}
     ncurl->base = nulldup(baseurl);
-    if(ncurl->base == NULL) return NC_ENOMEM;
+    if(ncurl->base == NULL) {ncstat=NC_ENOMEM; goto done;}
     ncurl->protocol = protocol;
     ncurl->constraint = nulldup(constraint);
-    if(constraint != NULL && ncurl->constraint == NULL) return NC_ENOMEM;
+    if(constraint != NULL && ncurl->constraint == NULL) {ncstat=NC_ENOMEM; goto done;}
     nc_urlsetconstraints(ncurl,constraint);
     if(params != NULL) {
         ncurl->params = (char*)malloc(1+2+strlen(params));
@@ -113,6 +117,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 
 done:
     if(url != NULL) free(url);
+    if(trueurl != NULL) free(trueurl);
     return ncstat;
 
 }
@@ -122,6 +127,7 @@ void
 nc_urlfree(NC_URL* ncurl)
 {
     if(ncurl == NULL) return;
+    if(ncurl->wholeurl != NULL) {free(ncurl->wholeurl);}
     if(ncurl->url != NULL) {free(ncurl->url);}
     if(ncurl->base != NULL) {free(ncurl->base);}
     if(ncurl->protocol != NULL) {free(ncurl->protocol);}
@@ -243,8 +249,12 @@ nc_urlparamdecode(char* params0)
     *cq = '\0';
 
     /* Pass 2 to replace beginning '[' and ending ']' */
-    if(params[0] == '[') 
-	strcpy(params,params+1);
+    if(params[0] == '[') {
+	char* p = params;
+	char* q = params+1;
+	/*strcpy(params,params+1); valgrind complains about overlap */
+	while((*p++=*q++));
+    }
     if(params[strlen(params)-1] == ']')
 	params[strlen(params)-1] = '\0';
 

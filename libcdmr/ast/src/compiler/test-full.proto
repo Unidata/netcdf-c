@@ -1,0 +1,204 @@
+package foo;
+
+message SubMess {
+  required int32 test = 4;
+};
+ 
+enum TestEnumSmall {
+  VALUE = 0;
+  OTHER_VALUE = 1;
+}
+
+// these number are specifically chosen to test the
+// boundaries of when an enum requires a certain number of bytes.
+// e.g. 16383 requires 3 bytes; 16383 requires 4.
+enum TestEnum {
+  VALUE0 = 0;
+  VALUE1 = 1;
+  VALUE127 = 127;
+  VALUE128 = 128;
+  VALUE16383 = 16383;
+  VALUE16384 = 16384;
+  VALUE2097151 = 2097151;
+  VALUE2097152 = 2097152;
+  VALUE268435455 = 268435455;
+  VALUE268435456 = 268435456;
+}
+enum TestEnumDupValues {
+  VALUE_A = 42;
+  VALUE_B = 42;
+  VALUE_C = 42;
+  VALUE_D = 666;
+  VALUE_E = 666;
+  VALUE_F = 1000;
+  VALUE_AA = 1000;
+  VALUE_BB = 1001;
+}
+
+message TestFieldNo15 {			// should use 1 byte header
+  required string test = 15;
+}
+message TestFieldNo16 {			// requires 2 byte header
+  required string test = 16;
+}
+message TestFieldNo2047 {               // should use 2 byte header
+  required string test = 2047;
+}
+message TestFieldNo2048 {               // requires 3 byte header
+  required string test = 2048;
+}
+message TestFieldNo262143 {             // should use 3 byte header
+  required string test = 262143;
+}
+message TestFieldNo262144 {             // requires 4 byte header
+  required string test = 262144;
+}
+message TestFieldNo33554431 {           // should use 4 byte header
+  required string test = 33554431;
+}
+message TestFieldNo33554432 {           // requires 5 byte header
+  required string test = 33554432;
+}
+
+message TestMess {
+  repeated int32 test_int32 = 1;
+  repeated sint32 test_sint32 = 2;
+  repeated sfixed32 test_sfixed32 = 3;
+  repeated int64 test_int64 = 4;
+  repeated sint64 test_sint64 = 5;
+  repeated sfixed64 test_sfixed64 = 6;
+  repeated uint32 test_uint32 = 7;
+  repeated fixed32 test_fixed32 = 8;
+  repeated uint64 test_uint64 = 9;
+  repeated fixed64 test_fixed64 = 10;
+  repeated float test_float = 11;
+  repeated double test_double = 12;
+  repeated bool test_boolean = 13;
+  repeated TestEnumSmall test_enum_small = 14;
+  repeated TestEnum test_enum = 15;
+  repeated string test_string = 16;
+  repeated bytes test_bytes = 17;
+  repeated SubMess test_message = 18;
+}
+message TestMessPacked {
+  repeated int32 test_int32 = 1 [packed=true];
+  repeated sint32 test_sint32 = 2 [packed=true];
+  repeated sfixed32 test_sfixed32 = 3 [packed=true];
+  repeated int64 test_int64 = 4 [packed=true];
+  repeated sint64 test_sint64 = 5 [packed=true];
+  repeated sfixed64 test_sfixed64 = 6 [packed=true];
+  repeated uint32 test_uint32 = 7 [packed=true];
+  repeated fixed32 test_fixed32 = 8 [packed=true];
+  repeated uint64 test_uint64 = 9 [packed=true];
+  repeated fixed64 test_fixed64 = 10 [packed=true];
+  repeated float test_float = 11 [packed=true];
+  repeated double test_double = 12 [packed=true];
+  repeated bool test_boolean = 13 [packed=true];
+  repeated TestEnumSmall test_enum_small = 14 [packed=true];
+  repeated TestEnum test_enum = 15 [packed=true];
+}
+
+message TestMessOptional {
+  optional int32 test_int32 = 1;
+  optional sint32 test_sint32 = 2;
+  optional sfixed32 test_sfixed32 = 3;
+  optional int64 test_int64 = 4;
+  optional sint64 test_sint64 = 5;
+  optional sfixed64 test_sfixed64 = 6;
+  optional uint32 test_uint32 = 7;
+  optional fixed32 test_fixed32 = 8;
+  optional uint64 test_uint64 = 9;
+  optional fixed64 test_fixed64 = 10;
+  optional float test_float = 11;
+  optional double test_double = 12;
+  optional bool test_boolean = 13;
+  optional TestEnumSmall test_enum_small = 14;
+  optional TestEnum test_enum = 15;
+  optional string test_string = 16;
+  optional bytes test_bytes = 17;
+  optional SubMess test_message = 18;
+}
+
+message TestMessRequiredInt32 {
+  required int32 test = 42;
+}
+message TestMessRequiredSInt32 {
+  required sint32 test = 43;
+}
+message TestMessRequiredSFixed32 {
+  required sfixed32 test = 100;
+}
+message TestMessRequiredInt64 {
+  required int64 test = 1;
+}
+message TestMessRequiredSInt64 {
+  required sint64 test = 11;
+}
+message TestMessRequiredSFixed64 {
+  required sfixed64 test = 12;
+}
+message TestMessRequiredUInt32 {
+  required uint32 test = 1;
+}
+message TestMessRequiredFixed32 {
+  required fixed32 test = 1;
+}
+message TestMessRequiredUInt64 {
+  required uint64 test = 1;
+}
+message TestMessRequiredFixed64 {
+  required fixed64 test = 1;
+}
+message TestMessRequiredFloat {
+  required float test = 1;
+}
+message TestMessRequiredDouble {
+  required double test = 1;
+}
+message TestMessRequiredBool {
+  required bool test = 1;
+}
+message TestMessRequiredEnum {
+  required TestEnum test = 1;
+}
+message TestMessRequiredEnumSmall {
+  required TestEnumSmall test = 1;
+}
+message TestMessRequiredString {
+  required string test = 1;
+}
+message TestMessRequiredBytes {
+  required bytes test = 1;
+}
+message TestMessRequiredMessage {
+  required SubMess test = 1;
+}
+message EmptyMess {
+}
+message DefaultRequiredValues {
+  required int32 v_int32   = 1 [default = -42];
+  required uint32 v_uint32 = 2 [default = 666];
+  required int32 v_int64   = 3 [default = 100000];
+  required uint32 v_uint64 = 4 [default = 100001];
+  required float v_float   = 5 [default = 2.5];
+  required double v_double = 6 [default = 4.5];
+  required string v_string = 7 [default = "hi mom\n"];
+  required bytes v_bytes   = 8 [default = "a \0 character"];
+}
+message DefaultOptionalValues {
+  optional int32 v_int32   = 1 [default = -42];
+  optional uint32 v_uint32 = 2 [default = 666];
+  optional int32 v_int64   = 3 [default = 100000];
+  optional uint32 v_uint64 = 4 [default = 100001];
+  optional float v_float   = 5 [default = 2.5];
+  optional double v_double = 6 [default = 4.5];
+  optional string v_string = 7 [default = "hi mom\n"];
+  optional bytes v_bytes   = 8 [default = "a \0 character"];
+}
+message AllocValues {
+  optional bytes o_bytes = 1;
+  repeated string r_string = 2;
+  required string a_string = 3;
+  required bytes a_bytes = 4;
+  required DefaultRequiredValues a_mess = 5;
+}

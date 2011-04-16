@@ -6,8 +6,7 @@
 #ifndef CRDEBUG_H
 #define CRDEBUG_H
 
-#undef DEBUG
-#undef PARSEDEBUG
+#define DEBUG
 
 #include <stdarg.h>
 #include <assert.h>
@@ -18,11 +17,6 @@
 #undef CATCHERROR
 #define CATCHERROR
 #endif
-
-/* Define the nc_log Levels */
-#define LOGNOTE 1
-#define LOGWARN 2
-#define LOGERR  3
 
 #define PANIC(msg) assert(nccrpanic(msg));
 #define PANIC1(msg,arg) assert(nccrpanic(msg,arg));

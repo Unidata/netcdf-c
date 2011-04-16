@@ -1,8 +1,7 @@
 set PARMS=""; set ARGS=""; set CON="" ; set CE=""; set OCON=""
 set PARMS="[log]"
 
-set F="http://nomads.ncdc.noaa.gov:80/dods/SEAWINDS/clm/uvclm95to05"
-set CON="time[1:2:11]"
+set F="file://${HOME}/dmh/ncdap_test/testdata3/synth3"
 if (1 == 0) then
 set F="file:///home/dmh/nc/oc/dataset-duacs-nrt-over30d-global-merged-madt-h"
 set F="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_cetaceans"

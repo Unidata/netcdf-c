@@ -4,36 +4,14 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdebug.c,v 1.9 2009/09/23 22:26:00 dmh Exp $
  *********************************************************************/
 #include "config.h"
-#include "oc.h"
-#include "dapdebug.h"
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "nclog.h"
+#include "oc.h"
+#include "dapdebug.h"
+
 int ncdap3debug = 0;
-
-/* Support debugging of memory*/
-/* Also guarantee that calloc zeros memory*/
-void*
-dapcalloc(size_t size, size_t nelems)
-{
-    return dapmalloc(size*nelems);
-}
-
-void*
-dapmalloc(size_t size)
-{
-    void* memory = calloc(size,1); /* use calloc to zero memory*/
-    if(memory == NULL) {
-	oc_log(OCLOGERR,"malloc:out of memory");
-    }
-    return memory;
-}
-
-void
-dapfree(void* mem)
-{
-    if(mem != NULL) free(mem);
-}
 
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/

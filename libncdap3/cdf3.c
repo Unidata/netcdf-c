@@ -161,7 +161,7 @@ computecdfvarnames3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* varnodes)
     */
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(varnodes,i);
-	efree(var->ncfullname);
+	nullfree(var->ncfullname);
 	var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
     }
     /*  unify all variables with same fullname and dimensions. */
@@ -286,7 +286,7 @@ makevarnames(NCDAPCOMMON* nccomm, NClist* vars)
     int i;
     for(i=0;i<nclistlength(vars);i++) {
 	CDFnode* var = (CDFnode*)nclistget(vars,i);
-	efree(var->ncfullname);
+	nullfree(var->ncfullname);
         var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
 if(var==v4node && var->ncfullname[0] != 'Q')dappanic("");
 	if(ncdap3debug > 1)
@@ -396,9 +396,9 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
     if(nclistlength(projections) == 0) {
         projectall3(template->tree->nodes);
     } else for(i=0;i<nclistlength(projections);i++) {
-	NCprojection* proj = (NCprojection*)nclistget(projections,i);
-        ASSERT(proj->discrim == NS_VAR);
-        projection3r(proj->var->leaf);
+	DCEprojection* proj = (DCEprojection*)nclistget(projections,i);
+        ASSERT(proj->discrim == CES_VAR);
+        projection3r(proj->var->cdfleaf);
     }
 
     if(simplenodematch34(ddsroot,template)) {
@@ -554,7 +554,7 @@ static CDFnode*
 makenewstruct3(CDFnode* node, CDFnode* template)
 {
     CDFnode* newstruct;
-    newstruct = (CDFnode*)emalloc(sizeof(CDFnode));
+    newstruct = (CDFnode*)calloc(1,sizeof(CDFnode));
     if(newstruct == NULL) return NULL;
     memset((void*)newstruct,0,sizeof(CDFnode));
     newstruct->virtual = 1;

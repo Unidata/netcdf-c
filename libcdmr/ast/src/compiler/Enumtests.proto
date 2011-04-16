@@ -1,0 +1,19 @@
+package Enumtests;
+
+// Goal is to test enum fields (and also nesting)
+
+message Enumtest {
+    enum Testenum {
+    ECON1 = 1;
+    ECON2 = 2;
+    ECON3 = 3;
+    ECON4 = 4;
+    ECON5 = 5;
+    ECON6 = 6;
+    }
+    required Testenum renum = 1;
+    optional Testenum oenum = 2;
+    repeated Testenum penum = 3;
+    repeated Testenum ppenum = 4 [packed=true];
+}
+

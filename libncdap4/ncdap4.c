@@ -120,7 +120,7 @@ ocdebug = 1;
     ncid = drno->info.ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
-    efree(tmpname);
+    nullfree(tmpname);
     /* Avoid fill */
     dispatch->set_fill(ncid,NC_NOFILL,NULL);
     if(ncstat)
@@ -160,7 +160,7 @@ ocdebug = 1;
 
     if(ncpp) *ncpp = (NC*)drno;
 
-    drno->dap.oc.dapconstraint = createncconstraint();
+    drno->dap.oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     drno->dap.oc.dapconstraint->projections = nclistnew();
     drno->dap.oc.dapconstraint->selections = nclistnew();
 
@@ -168,7 +168,7 @@ ocdebug = 1;
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
 	if(drno->dap.oc.url.constraint != NULL
 	   && strlen(drno->dap.oc.url.constraint) > 0) {
-	    oc_log(OCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
+	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   drno->dap.oc.url.constraint);
 	}
 	/* ignore all constraints */
@@ -187,6 +187,9 @@ ocdebug = 1;
     /* Turn on logging */
     value = oc_clientparam_get(drno->dap.oc.conn,"log");
     if(value != NULL) {
+	ncloginit();
+        ncsetlogging(1);
+        nclogopen(value);
 	oc_loginit();
         oc_setlogging(1);
         oc_logopen(value);
@@ -270,6 +273,11 @@ NCD4_close(int ncid)
     int ncstat = NC_NOERR;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
+
+    /* Avoid repeated close  */
+    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    if(ncstat != NC_NOERR) return THROW(ncstat);
+
     /* Find our metadata for this file. */
     ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&drno, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
@@ -277,10 +285,9 @@ NCD4_close(int ncid)
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
-    oc_logclose();
-
     /* Destroy/close the NCDAP4 state */
     cleanNCDAP4(drno);
+
     NC4_abort(ncid);
 
     return THROW(ncstat);
@@ -568,7 +575,7 @@ buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_DDS",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
     if(paramcheck34(&drno->dap,"show","das")) {
@@ -579,7 +586,7 @@ buildglobalattrs4(NCDAP4* drno, int ncid, CDFnode* root)
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
             ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_DAS",strlen(nltxt),nltxt);
-	    efree(nltxt);
+	    nullfree(nltxt);
 	}
     }
 
@@ -594,15 +601,15 @@ buildattribute4a(NCDAP4* drno, NCattribute* att, int varid, int ncid)
     char* cname = cdflegalname3(att->name);
     unsigned int nvalues = nclistlength(att->values);
     unsigned int typesize = nctypesizeof(att->etype);
-    void* mem = emalloc(typesize * nvalues);
+    void* mem = malloc(typesize * nvalues);
 
     ncstat = dapcvtattrval3(att->etype,mem,att->values);
     ncstat = nc_put_att(ncid,varid,cname,att->etype,nvalues,mem);
     if(att->etype == NC_STRING) {
 	int i;
-	for(i=0;i<nvalues;i++) efree(((char**)mem)[i]);
+	for(i=0;i<nvalues;i++) nullfree(((char**)mem)[i]);
     }
-    efree(mem);
+    nullfree(mem);
     free(cname);
     return THROW(ncstat);
 }

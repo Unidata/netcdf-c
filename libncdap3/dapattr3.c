@@ -48,7 +48,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* node)
 				      nvalues,values,&att);
 	if(ncstat == NC_NOERR)
             nclistpush(node->attributes,(ncelem)att);
-	efree(aname);
+	nullfree(aname);
 	oc_attr_reclaim(atype,nvalues,values);
     }
 done:
@@ -65,7 +65,7 @@ buildattribute(char* name, nc_type ptype,
     NCerror ncstat = NC_NOERR;
     NCattribute* att;
 
-    att = (NCattribute*)emalloc(sizeof(NCattribute));
+    att = (NCattribute*)calloc(1,sizeof(NCattribute));
     MEMCHECK(att,NC_ENOMEM);
     att->name = nulldup(name);
     att->etype = ptype;
@@ -102,7 +102,7 @@ cvttype(nc_type etype, char** srcp, char** dstp)
     }
     return NC_NOERR;
 fail:
-    oc_log(OCLOGERR,"cvttype bad value: %s",oc_typetostring(etype));
+    nclog(NCLOGERR,"cvttype bad value: %s",oc_typetostring(etype));
     return NC_EINVAL;
 }
 #endif
@@ -157,12 +157,12 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCobject dasroot)
 
 	if(ocname == NULL || isglobal) {
 	    nclistpush(dasglobals,(ncelem)das);
-	    efree(ocname);
+	    nullfree(ocname);
 	    continue;
 	}
 	if(ocname != NULL && strcmp(ocname,"DODS_EXTRA")==0) {
 	    nclistpush(dodsextra,(ncelem)das);
-	    efree(ocname);
+	    nullfree(ocname);
 	    continue;
 	}
 	OCHECK(oc_inq_subnodes(conn,das,&subnodes));
@@ -172,7 +172,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCobject dasroot)
             OCHECK(oc_inq_class(conn,subnode,&ocsubtype));
 	    if(ocsubtype == OC_Attribute) {hasattributes = 1; break;}
 	}
-	efree(subnodes);
+	nullfree(subnodes);
 	if(hasattributes) {
 	    /* Look for previously collected nodes with same name*/
             for(j=0;j<nclistlength(dasnodes);j++) {
@@ -182,13 +182,13 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCobject dasroot)
 		if(ocname2 == NULL || ocname == NULL) goto loop;
 		if(strcmp(ocname2,"DODS")==0) goto loop;
 	        if(strcmp(ocname,ocname2)==0)
-		        oc_log(OCLOGWARN,"nc_mergedas: potentially ambiguous DAS name: %s",ocname2);
+		        nclog(NCLOGWARN,"nc_mergedas: potentially ambiguous DAS name: %s",ocname2);
 loop:
-		efree(ocname2);
+		nullfree(ocname2);
 	    }
 	    nclistpush(dasnodes,(ncelem)das);
 	}
-	efree(ocname);
+	nullfree(ocname);
     }
 
     /* 2. collect all the leaf DDS nodes (of type NC_Primitive)*/
@@ -221,10 +221,10 @@ loop:
 		/* remove from dasnodes list*/
 		nclistset(dasnodes,i,(ncelem)NULL);
 	    }
-	    efree(ddsfullname);
+	    nullfree(ddsfullname);
 	}
-	efree(ocfullname);
-	efree(ocbasename);
+	nullfree(ocfullname);
+	nullfree(ocbasename);
     }
 
     /* 4. Assign globals*/
@@ -237,7 +237,7 @@ loop:
     if(nclistlength(dodsextra) > 0) dodsextra3(nccomm,ddsroot,dodsextra);    
 
 done: /* cleanup*/
-    efree(dasobjects);
+    nullfree(dasobjects);
     nclistfree(dasglobals);
     nclistfree(dasnodes);
     nclistfree(dodsextra);
@@ -304,7 +304,7 @@ mergedas1(OCconnection conn, CDFnode* dds, OCobject das)
 		    if(ocnvalues > 0) {
 		        OCHECK(oc_inq_dasattr(conn,dodsnode,0,NULL,&stringval));
 			if(0==sscanf(stringval,"%u",&maxstrlen)) maxstrlen = 0;
-			efree(stringval);
+			nullfree(stringval);
 		    }
 		    dds->dodsspecial.maxstrlen = maxstrlen;
 #ifdef DEBUG
@@ -319,15 +319,15 @@ fprintf(stderr,"%s.dimname=%s\n",dds->name,dds->dodsspecial.dimname);
 #endif
 		    } else dds->dodsspecial.dimname = NULL;
 		} /* else ignore */
-	        efree(dodsname);
+	        nullfree(dodsname);
 	    }
-	    efree(dodsnodes);
+	    nullfree(dodsnodes);
 	} /* else ignore */
-        efree(ocname);
+        nullfree(ocname);
     }
 
 done:
-    efree(subnodes);
+    nullfree(subnodes);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
@@ -363,9 +363,9 @@ dodsextra3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* dodsextra)
 	        OCHECK(oc_inq_dasattr(conn,extranode,0,NULL,&stringval));
 		nccomm->cdf.recorddim = stringval;
 	    }
-	    efree(dodsname);
+	    nullfree(dodsname);
 	}
-	efree(dodsnodes);
+	nullfree(dodsnodes);
     }
 done:
     return ncstat;

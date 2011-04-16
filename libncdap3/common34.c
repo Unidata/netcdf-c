@@ -33,10 +33,10 @@ fix1node34(NCDAPCOMMON* nccomm, CDFnode* node)
 {
     if(node->nctype == NC_Dimension && node->name == NULL) return NC_NOERR;
     ASSERT((node->name != NULL));
-    efree(node->ncbasename);
+    nullfree(node->ncbasename);
     node->ncbasename = cdflegalname3(node->name);
     if(node->ncbasename == NULL) return NC_ENOMEM;
-    efree(node->ncfullname);
+    nullfree(node->ncfullname);
     node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
     if(node->ncfullname == NULL) return NC_ENOMEM;
     if(node->nctype == NC_Primitive)
@@ -69,9 +69,9 @@ computecdfinfo34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
 	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
         if(node->nctype == NC_Dimension && node->name == NULL) continue;
 	ASSERT((node->name != NULL));
-        efree(node->ncbasename);
+        nullfree(node->ncbasename);
         node->ncbasename = cdflegalname3(node->name);
-        efree(node->ncfullname);
+        nullfree(node->ncfullname);
 	node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
 if(node==v4node && node->ncfullname[0] != 'Q')dappanic("");
     }
@@ -99,7 +99,7 @@ fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
     array = (CDFnode*)nclistget(grid->subnodes,0);	        
     if(nccomm->controls.flags & (NCF_NC3)) {
         /* Rename grid Array: variable, but leave its oc base name alone */
-        efree(array->ncbasename);
+        nullfree(array->ncbasename);
         array->ncbasename = nulldup(grid->ncbasename);
         if(!array->ncbasename) return NC_ENOMEM;
     }
@@ -122,8 +122,8 @@ fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 	/* Add appropriate names for the anonymous dimensions */
 	/* Do the map name first, so the array dim may inherit */
 	if(DIMFLAG(mapdim,CDFDIMANON)) {
-	    efree(mapdim->name);
-	    efree(mapdim->ncbasename);
+	    nullfree(mapdim->name);
+	    nullfree(mapdim->ncbasename);
 	    mapdim->name = nulldup(map->name);
 	    if(!mapdim->name) return NC_ENOMEM;
 	    mapdim->ncbasename = cdflegalname3(mapdim->name);
@@ -131,8 +131,8 @@ fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 	    DIMFLAGCLR(mapdim,CDFDIMANON);
 	}
 	if(DIMFLAG(arraydim,CDFDIMANON)) {
-	    efree(arraydim->name); /* just in case */
-	    efree(arraydim->ncbasename);
+	    nullfree(arraydim->name); /* just in case */
+	    nullfree(arraydim->ncbasename);
 	    arraydim->name = nulldup(map->name);
 	    if(!arraydim->name) return NC_ENOMEM;
 	    arraydim->ncbasename = cdflegalname3(arraydim->name);
@@ -145,7 +145,7 @@ fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 	    snprintf(tmp,sizeof(tmp),"%s%s%s",map->container->ncbasename,
 					  nccomm->cdf.separator,
 					  map->ncbasename);
-	    efree(map->ncbasename);
+	    nullfree(map->ncbasename);
             map->ncbasename = nulldup(tmp);
 	    if(!map->ncbasename) return NC_ENOMEM;
 	}
@@ -280,16 +280,16 @@ computecdfdimnames34(NCDAPCOMMON* nccomm)
 	        int index = computedimindex3(var,dim);
                 snprintf(tmp,sizeof(tmp),"%s_%d",
                             var->ncbasename,index);
-                efree(dim->ncbasename);
+                nullfree(dim->ncbasename);
                 dim->ncbasename = cdflegalname3(tmp);
                 snprintf(tmp,sizeof(tmp),"%s_%d",
                             var->ncfullname,index);
-                efree(dim->ncfullname);
+                nullfree(dim->ncfullname);
                 dim->ncfullname = cdflegalname3(tmp);
     	    } else { /* !anonymous */
-	        efree(dim->ncbasename);
+	        nullfree(dim->ncbasename);
 	        dim->ncbasename = cdflegalname3(dim->name);
-    	        efree(dim->ncfullname);
+    	        nullfree(dim->ncfullname);
 	        dim->ncfullname = nulldup(dim->ncbasename);
 	    }
 	}
@@ -352,7 +352,7 @@ computecdfdimnames34(NCDAPCOMMON* nccomm)
 	for(j=0;j<nclistlength(conflicts);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(conflicts,j);
 	    snprintf(tmp,sizeof(tmp),"%s%d",dim->ncfullname,j+1);
-	    efree(dim->ncfullname);
+	    nullfree(dim->ncfullname);
 	    dim->ncfullname = nulldup(tmp);
 	}
     }
@@ -381,16 +381,15 @@ makegetvar34(NCDAPCOMMON* nccomm, CDFnode* var, void* data, nc_type dsttype, Get
     Getvara* getvar;
     NCerror ncstat = NC_NOERR;
 
-    getvar = (Getvara*)emalloc(sizeof(Getvara));
+    getvar = (Getvara*)calloc(1,sizeof(Getvara));
     MEMCHECK(getvar,NC_ENOMEM);
-    memset((void*)getvar,0,sizeof(Getvara));
     if(getvarp) *getvarp = getvar;
 
     getvar->target = var;
     getvar->memory = data;
     getvar->dsttype = dsttype;
     getvar->target = var;
-    if(ncstat) efree(getvar);
+    if(ncstat) nullfree(getvar);
     return ncstat;
 }
 
@@ -411,15 +410,14 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
 {
     CDFnode* node;
     assert(nccomm != NULL);
-    node = (CDFnode*)emalloc(sizeof(CDFnode));
+    node = (CDFnode*)calloc(1,sizeof(CDFnode));
     if(node == NULL) return (CDFnode*)NULL;
-    memset((void*)node,0,sizeof(CDFnode));
 
     node->name = NULL;
     if(name) {
         size_t len = strlen(name);
         if(len >= NC_MAX_NAME) len = NC_MAX_NAME-1;
-        node->name = (char*)emalloc(len+1);
+        node->name = (char*)malloc(len+1);
 	if(node->name == NULL) return NULL;
 	memcpy(node->name,name,len);
 	node->name[len] = '\0';
@@ -447,7 +445,7 @@ NCerror
 buildcdftree34(NCDAPCOMMON* nccomm, OCobject ocroot, OCdxd occlass, CDFnode** cdfrootp)
 {
     CDFnode* root = NULL;
-    CDFtree* tree = (CDFtree*)emalloc(sizeof(CDFtree));
+    CDFtree* tree = (CDFtree*)calloc(1,sizeof(CDFtree));
     NCerror err = NC_NOERR;
     tree->ocroot = ocroot;
     tree->nodes = nclistnew();
@@ -508,7 +506,7 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCobject ocnode, CDFnode* container,
 	if(ncerr) return ncerr;
 	nclistpush(cdfnode->subnodes,(ncelem)subnode);
     }
-    efree(ocname);
+    nullfree(ocname);
     if(cdfnodep) *cdfnodep = cdfnode;
     return ncerr;
 }
@@ -532,7 +530,7 @@ dupdimensions(OCobject ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* t
 	cdfdim = makecdfnode34(nccomm,ocname,OC_Dimension,
                               ocdim,cdfnode->container);
 	if(ocname == NULL) DIMFLAGSET(cdfdim,CDFDIMANON);
-	efree(ocname);
+	nullfree(ocname);
 	nclistpush(tree->nodes,(ncelem)cdfdim);
 	/* Initially, constrained and unconstrained are same */
 	cdfdim->dim.declsize = declsize;
@@ -612,7 +610,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	strcpy(tmpname,"stringlength_");
 	pathstr = makeocpathstring3(conn,var->dds,".");
 	strcat(tmpname,pathstr);
-	efree(pathstr);
+	nullfree(pathstr);
 	value = oc_clientparam_get(conn,tmpname);	
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
@@ -635,7 +633,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
             if(sscanf(value,"%d",&len) && len > 0)
 		var->sequencelimit = len;
 	}
-	efree(pathstr);
+	nullfree(pathstr);
     }
     return NC_NOERR;
 }
@@ -658,7 +656,7 @@ freecdfroot34(CDFnode* root)
 	free1cdfnode34(node);
     }
     nclistfree(tree->nodes);
-    efree(tree);
+    nullfree(tree);
 }
 
 /* Free up a single node, but not any
@@ -669,20 +667,20 @@ free1cdfnode34(CDFnode* node)
 {
     unsigned int j,k;
     if(node == NULL) return;
-    efree(node->name);
-    efree(node->ncbasename);
-    efree(node->ncfullname);
+    nullfree(node->name);
+    nullfree(node->ncbasename);
+    nullfree(node->ncfullname);
     if(node->attributes != NULL) {
 	for(j=0;j<nclistlength(node->attributes);j++) {
 	    NCattribute* att = (NCattribute*)nclistget(node->attributes,j);
-	    efree(att->name);
+	    nullfree(att->name);
 	    for(k=0;k<nclistlength(att->values);k++)
-		efree((char*)nclistget(att->values,k));
+		nullfree((char*)nclistget(att->values,k));
 	    nclistfree(att->values);
-	    efree(att);
+	    nullfree(att);
 	}
     }
-    efree(node->dodsspecial.dimname);
+    nullfree(node->dodsspecial.dimname);
     nclistfree(node->subnodes);
     nclistfree(node->attributes);
     /* Check to see if we need to free both dimensions and dimensions0 */
@@ -691,9 +689,9 @@ free1cdfnode34(CDFnode* node)
     nclistfree(node->array.dimensions);
 
     /* Clean up the ncdap4 fields also */
-    efree(node->typename);
-    efree(node->vlenname);
-    efree(node);
+    nullfree(node->typename);
+    nullfree(node->vlenname);
+    nullfree(node);
 }
 
 /* Return true if node and node1 appear to refer to the same thing;

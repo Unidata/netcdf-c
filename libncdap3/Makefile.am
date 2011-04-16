@@ -12,6 +12,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 CLEANFILES =
 LDADD=
+EXTRA_DIST =
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -29,11 +30,9 @@ cache.c \
 dapdump.c \
 dapdebug.c \
 dapattr3.c \
-cetab.c \
-ceparse.c \
-celex.c \
 ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
-nchashmap.c
+dceconstraints.c \
+dcetab.c dceparse.c dcelex.c
 
 HDRS=\
 nccommon.h \
@@ -47,10 +46,9 @@ dapnc.h \
 daputil.h \
 dapdebug.h \
 dapdump.h \
-netcdf3l.h \
-ceparselex.h \
-cetab.h \
-nchashmap.h
+dceconstraints.h \
+dcetab.h dceparselex.h \
+ceconstraints.h
 
 if BUILD_DAP
 
@@ -89,19 +87,15 @@ t_dap3c_SOURCES = t_dap3c.c stubdap3.c
 # Set ldflags
 t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
 t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-EXTRA_DIST = ce.y t_dap.c
+EXTRA_DIST += t_dap.c
+
+#check_PROGRAMS += test_varm3
+#TESTS += test_varm3
+#test_varm3_SOURCES = test_varm3.c stubdap3.c
+#test_varm3_LDFLAGS = ${t_dap3a_LDFLAGS}
 
 endif # BUILD_DAP
 
-# These rule are used if someone wants to rebuild the grammar files.
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
-makece::
-	bison -d -t -p ce ce.y
-	rm -f cetab.c cetab.h
-	mv ce.tab.c cetab.c
-	mv ce.tab.h cetab.h
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.
@@ -117,4 +111,15 @@ BUILT_SOURCES = .dodsrc
 
 DISTCLEANFILES += .dodsrc
 
+# These rule are used if someone wants to rebuild the grammar files.
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
 
+EXTRA_DIST += dce.y
+
+makece::
+	bison -v -d -t -p dce dce.y
+	rm -f dcetab.c dcetab.h
+	mv dce.tab.c dcetab.c
+	mv dce.tab.h dcetab.h

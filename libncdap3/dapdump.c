@@ -16,9 +16,8 @@ int
 dumpmetadata(int ncid, NChdr** hdrp)
 {
     int stat,i,j,k;
-    NChdr* hdr = (NChdr*)emalloc(sizeof(NChdr));
+    NChdr* hdr = (NChdr*)calloc(1,sizeof(NChdr));
     MEMCHECK(hdr,NC_ENOMEM);
-    memset((void*)hdr,0,sizeof(NChdr));
     hdr->ncid = ncid;
     hdr->content = ncbytesnew();
     if(hdrp) *hdrp = hdr;
@@ -33,7 +32,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
         fprintf(stdout,"ncid=%d ngatts=%d ndims=%d nvars=%d unlimid=%d\n",
 		hdr->ncid,hdr->ngatts,hdr->ndims,hdr->nvars,hdr->unlimid);
     }
-    hdr->gatts = (NCattribute*)emalloc(hdr->ngatts*sizeof(NCattribute));
+    hdr->gatts = (NCattribute*)calloc(1,hdr->ngatts*sizeof(NCattribute));
     MEMCHECK(hdr->gatts,NC_ENOMEM);
     if(hdr->ngatts > 0)
 	fprintf(stdout,"global attributes:\n");
@@ -56,7 +55,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
                         (unsigned long)nvalues);
 	if(nctype == NC_CHAR) {
 	    size_t len = typesize*nvalues;
-	    char* values = (char*)emalloc(len+1);/* for null terminate*/
+	    char* values = (char*)malloc(len+1);/* for null terminate*/
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,NC_GLOBAL,att->name,values);
             CHECK(stat);
@@ -64,7 +63,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," '%s'",values);
 	} else {
 	    size_t len = typesize*nvalues;
-	    char* values = (char*)emalloc(len);
+	    char* values = (char*)malloc(len);
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,NC_GLOBAL,att->name,values);
             CHECK(stat);
@@ -76,7 +75,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"\n");
     }
 
-    hdr->dims = (Dim*)emalloc(hdr->ndims*sizeof(Dim));
+    hdr->dims = (Dim*)malloc(hdr->ndims*sizeof(Dim));
     MEMCHECK(hdr->dims,NC_ENOMEM);
     for(i=0;i<hdr->ndims;i++) {
 	hdr->dims[i].dimid = i;
@@ -88,7 +87,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"dim[%d]: name=%s size=%lu\n",
 		i,hdr->dims[i].name,(unsigned long)hdr->dims[i].size);
     }    
-    hdr->vars = (Var*)emalloc(hdr->nvars*sizeof(Var));
+    hdr->vars = (Var*)malloc(hdr->nvars*sizeof(Var));
     MEMCHECK(hdr->vars,NC_ENOMEM);
     for(i=0;i<hdr->nvars;i++) {
 	Var* var = &hdr->vars[i];
@@ -113,7 +112,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," %d",var->dimids[j]);
 	}
 	fprintf(stdout,"}\n");
-	var->atts = (NCattribute*)emalloc(var->natts*sizeof(NCattribute));
+	var->atts = (NCattribute*)malloc(var->natts*sizeof(NCattribute));
         MEMCHECK(var->atts,NC_ENOMEM);
         for(j=0;j<var->natts;j++) {
 	    NCattribute* att = &var->atts[j];
@@ -129,7 +128,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    CHECK(stat);
 	    att->etype = nctypetodap(nctype);
 	    typesize = nctypesizeof(att->etype);
-	    values = (char*)emalloc(typesize*nvalues);
+	    values = (char*)malloc(typesize*nvalues);
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,var->varid,att->name,values);
             CHECK(stat);
@@ -197,177 +196,37 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 char*
 dumpprojections(NClist* projections)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* pstring;
-    for(i=0;i<nclistlength(projections);i++) {
-	NCprojection* p = (NCprojection*)nclistget(projections,i);
-        if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,dumpprojection(p));
-    }
-    pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
+    return dcelisttostring(projections,",");
 }
 
 char*
-dumpprojection(NCprojection* p)
+dumpprojection(DCEprojection* proj)
 {
-    int i;
-    NCbytes* buf;
-    char* pstring;
-    if(p == NULL) return nulldup("");
-    if(p->discrim == NS_FCN) return nulldup("?fcn()");
-    buf = ncbytesnew();
-    for(i=0;i<nclistlength(p->var->segments);i++) {
-        NCsegment* segment = (NCsegment*)nclistget(p->var->segments,i);
-	char tmp[1024];
-        snprintf(tmp,sizeof(tmp),"%s%s/%lu",
-	         (i > 0?".":""),
-	         (segment->name?segment->name:"<unknown>"),
-		 (unsigned long)segment->slicerank);
-	ncbytescat(buf,tmp);
-	if(segment->slicesdefined)
-	    ncbytescat(buf,dumpslices(segment->slices,segment->slicerank));
-	else
-	    ncbytescat(buf,"[-]");
-    }
-    if(iswholeprojection(p)) ncbytescat(buf,"*");
-    ncbytescat(buf,"(");
-    if(p->var->leaf != NULL) ncbytescat(buf,p->var->leaf->name);
-    ncbytescat(buf,")");
-    pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
+    return dcetostring((DCEnode*)proj);
 }
-
-
-static char* opstrings[] =
-{"?","=","!=",">=",">","<=","<","=~","?","?","?","?"};
 
 char*
 dumpselections(NClist* selections)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    if(nclistlength(selections) == 0) return nulldup("");
-    for(i=0;i<nclistlength(selections);i++) {
-	NCselection* sel = (NCselection*)nclistget(selections,i);
-	ncbytescat(buf,dumpselection(sel));
-    }
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
+    return dcelisttostring(selections,"&");
 }
 
 char*
-dumpselection(NCselection* sel)
+dumpselection(DCEselection* sel)
 {
-    NCbytes* buf = ncbytesnew();
-    NCbytes* segbuf = ncbytesnew();
-    char* sstring;
-    NClist* segments = NULL;
-    int j;
-
-    if(sel == NULL) return nulldup("");
-    segments = sel->lhs->var->segments;
-    ncbytescat(buf,"&");
-    tostringncsegments(segments,segbuf);
-    ncbytescat(buf,ncbytescontents(segbuf));
-    ncbytescat(buf,opstrings[sel->operator]);
-    ncbytescat(buf,"{");
-    for(j=0;j<nclistlength(sel->rhs);j++) {
-        NCvalue* value = (NCvalue*)nclistget(sel->rhs,j);
-        NCconstant* con = value->constant;
-        char tmp[64];
-        if(j > 0) ncbytescat(buf,",");
-        switch (value->discrim) {
-        case NS_STR:
-            ncbytescat(buf,con->text);
-            break;          
-	case NS_CONST:
-            switch (con->discrim) {	    
-            case NS_INT:
-                snprintf(tmp,sizeof(tmp),"%lld",con->intvalue);
-                ncbytescat(buf,tmp);
-                break;
-            case NS_FLOAT:
-                snprintf(tmp,sizeof(tmp),"%g",con->floatvalue);
-                ncbytescat(buf,tmp);
-                break;
-            default: PANIC1("unexpected discriminator %d",(int)con->discrim);
-	    }
-	    break;
-        case NS_VAR:
-            segments = value->var->segments;
-	    ncbytesclear(segbuf);
-	    tostringncsegments(segments,segbuf);
-            ncbytescat(buf,ncbytescontents(segbuf));
-            break;
-        default: PANIC1("unexpected discriminator %d",(int)value->discrim);
-        }
-    }
-    ncbytescat(buf,"}");
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    ncbytesfree(segbuf);
-    return sstring;
+    return dcetostring((DCEnode*)sel);
 }
 
 char*
-dumpconstraint(NCconstraint* con)
+dumpconstraint(DCEconstraint* con)
 {
-    NCbytes* buf = ncbytesnew();
-    char* result = NULL;
-    if(con == NULL) {ncbytescat(buf,"null"); goto done;}
-    if(nclistlength(con->projections)==0 && nclistlength(con->selections)==0)
-	goto done;
-    if(nclistlength(con->projections) > 0)  {
-	char* pstring = dumpprojections(con->projections);
-        ncbytescat(buf,pstring);
-	efree(pstring);
-    }
-    if(nclistlength(con->selections) > 0) {
-	char* sstring = dumpselections(con->selections);
-        ncbytescat(buf,sstring);
-	efree(sstring);
-    }
-done:
-    result = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return result;
+    return dcetostring((DCEnode*)con);
 }
 
 char*
 dumpsegments(NClist* segments)
 {
-    int i;
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    if(nclistlength(segments) == 0) return nulldup("");
-    for(i=0;i<nclistlength(segments);i++) {
-	NCsegment* seg = (NCsegment*)nclistget(segments,i);
-	ncbytescat(buf,dumpsegment(seg));
-    }
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
-}
-
-char*
-dumpsegment(NCsegment* segment)
-{
-    NCbytes* buf;
-    char* result;
-    if(segment == NULL) return nulldup("(nullsegment)");
-    buf = ncbytesnew();
-    ncbytescat(buf,(segment->name?segment->name:"(null)"));
-    if(!segment->slicesdefined)
-	ncbytescat(buf,dumpslices(segment->slices,segment->slicerank));
-    result = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return result;
+    return dcelisttostring(segments,".");
 }
 
 char*
@@ -685,27 +544,13 @@ dumpcache(NCcache* cache)
 
 /* This should be consistent with makeslicestring3 in constraints3.c */
 char*
-dumpslice(NCslice* slice)
+dumpslice(DCEslice* slice)
 {
-    static char tmp[1024];
-    if(slice->count== 1) {
-        snprintf(tmp,sizeof(tmp),"[%lu]",
-	        (unsigned long)slice->first);
-    } else if(slice->stride == 1) {
-        snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
-	        (unsigned long)slice->first,
-	        (unsigned long)((slice->first+slice->length)-1));
-    } else {
-	snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
-		    (unsigned long)slice->first,
-		    (unsigned long)slice->stride,
-		    (unsigned long)((slice->first+slice->length)-1));
-    }
-    return tmp;
+    return dcetostring((DCEnode*)slice);
 }
 
 char*
-dumpslices(NCslice* slice, unsigned int rank)
+dumpslices(DCEslice* slice, unsigned int rank)
 {
     int i;
     NCbytes* buf;

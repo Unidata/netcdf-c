@@ -26,8 +26,8 @@ void
 freegetvara(Getvara* vara)
 {
     if(vara == NULL) return;
-    freencprojection(vara->varaprojection);
-    efree(vara);
+    dcefree((DCEnode*)vara->varaprojection);
+    nullfree(vara);
 }
 
 NCerror
@@ -38,7 +38,7 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     nclistfree(nccomm->cdf.seqnodes);
     nclistfree(nccomm->cdf.gridnodes);
     nclistfree(nccomm->cdf.usertypes);
-    efree(nccomm->cdf.recorddim);
+    nullfree(nccomm->cdf.recorddim);
 
     /* free the trees */
     freecdfroot34(nccomm->cdf.ddsroot);
@@ -48,9 +48,9 @@ cleanNCDAPCOMMON(NCDAPCOMMON* nccomm)
     nccomm->oc.ocdasroot = NULL;
     oc_close(nccomm->oc.conn); /* also reclaims remaining OC trees */
     dapurlclear(&nccomm->oc.url);
-    efree(nccomm->oc.urltext);
+    nullfree(nccomm->oc.urltext);
 
-    freencconstraint(nccomm->oc.dapconstraint);
+    dcefree((DCEnode*)nccomm->oc.dapconstraint);
     nccomm->oc.dapconstraint = NULL;
 
     return NC_NOERR;
@@ -124,8 +124,8 @@ addstringdims(NCDAP3* drno)
 	nclistpush(drno->dap.cdf.ddsroot->tree->nodes,(ncelem)sdim);
 	sdim->dim.dimflags |= CDFDIMSTRING;
 	sdim->dim.declsize = dimsize;
-	efree(sdim->ncbasename);
-	efree(sdim->ncfullname);
+	nullfree(sdim->ncbasename);
+	nullfree(sdim->ncfullname);
 	sdim->ncbasename = cdflegalname3(sdim->name);
 	sdim->ncfullname = nulldup(sdim->ncbasename);
 	/* tag the variable with its string dimension*/
@@ -191,8 +191,8 @@ defseqdims(NCDAP3* drno)
     if(!FLAGSET(drno->dap.controls,NCF_NOUNLIM)) {
         unlimited = makecdfnode34(&drno->dap,"unlimited",OC_Dimension,OCNULL,drno->dap.cdf.ddsroot);
         nclistpush(drno->dap.cdf.ddsroot->tree->nodes,(ncelem)unlimited);
-        efree(unlimited->ncbasename);
-        efree(unlimited->ncfullname);
+        nullfree(unlimited->ncbasename);
+        nullfree(unlimited->ncfullname);
         unlimited->ncbasename = cdflegalname3(unlimited->name);
         unlimited->ncfullname = nulldup(unlimited->ncbasename);
         DIMFLAGSET(unlimited,CDFDIMUNLIM);
@@ -286,7 +286,7 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->name,(unsigned long)seqsize);
 	long httperr;
 	oc_svcerrordata(nccomm->oc.conn,&code,&msg,&httperr);
 	if(code != NULL) {
-	    oc_log(OCLOGERR,"oc_fetch_datadds failed: %s %s %l",
+	    nclog(NCLOGERR,"oc_fetch_datadds failed: %s %s %l",
 			code,msg,httperr);
 	}
 	ocstat = OC_NOERR;
@@ -311,8 +311,8 @@ makeseqdim(NCDAPCOMMON* nccomm, CDFnode* seq, size_t count, CDFnode** sqdimp)
     sqdim = makecdfnode34(nccomm,seq->name,OC_Dimension,OCNULL,root);
     if(sqdim == NULL) return THROW(NC_ENOMEM);
     nclistpush(tree->nodes,(ncelem)sqdim);
-    efree(sqdim->ncbasename);
-    efree(sqdim->ncfullname);
+    nullfree(sqdim->ncbasename);
+    nullfree(sqdim->ncfullname);
     sqdim->ncbasename = cdflegalname3(seq->name);
     sqdim->ncfullname = nulldup(sqdim->ncbasename);
     sqdim->dim.declsize = count;
@@ -536,7 +536,7 @@ computeminconstraints3(NCDAPCOMMON* nccomm, CDFnode* seq, NCbytes* minconstraint
     /* Finally, add in any selection from the original URL */
     if(nccomm->oc.url.selection != NULL)
         ncbytescat(minconstraints,nccomm->oc.url.selection);
-    efree(prefix);
+    nullfree(prefix);
     return NC_NOERR;
 }
 
@@ -626,7 +626,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
 	    THROWCHK(ocstat); goto done;
 	}
 	/* Note what we did */
-	oc_log(OCLOGWARN,"Cannot locate .dds file, using .dods file");
+	nclog(NCLOGWARN,"Cannot locate .dds file, using .dods file");
     }
 
     /* Get selection constrained DAS */
@@ -636,7 +636,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
     ocstat = dap_oc_fetch(nccomm,nccomm->oc.conn,ce,OCDAS,&nccomm->oc.ocdasroot);
     if(ocstat != OC_NOERR) {
 	/* Ignore but complain */
-	oc_log(OCLOGWARN,"Could not read DAS; ignored");
+	nclog(NCLOGWARN,"Could not read DAS; ignored");
         nccomm->oc.ocdasroot = OCNULL;	
 	ocstat = OC_NOERR;
     }
@@ -655,7 +655,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* nccomm)
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
 done:
-    efree(ce);
+    nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
@@ -705,7 +705,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(ddsroot));
     }
 
 fail:
-    efree(ce);
+    nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
@@ -793,7 +793,7 @@ applyclientparamcontrols3(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
 	SETFLAG(nccomm->controls,NCF_CACHE);
 
-    oc_log(OCLOGNOTE,"Caching=%d",FLAGSET(nccomm->controls,NCF_CACHE));
+    nclog(NCLOGNOTE,"Caching=%d",FLAGSET(nccomm->controls,NCF_CACHE));
 
     SETFLAG(nccomm->controls,(NCF_NC3|NCF_NCDAP));
 

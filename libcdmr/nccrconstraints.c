@@ -15,16 +15,16 @@ we need to make sure to match the relevant dimensions
 against the relevant nodes in which the ultimate target
 is contained.
 */
-NCerror
-buildvaraprojection4(Getvara* getvar,
+int
+crbuildvaraprojection(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     NCprojection** projectionp)
+		     CRCprojection** projectionp)
 {
     int i;
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     NClist* dimset;
     CDFnode* var = getvar->target;
-    NCprojection* projection = NULL;
+    CRCprojection* projection = NULL;
     NClist* segments = NULL;
     NCsegment* segment;
 
@@ -36,7 +36,7 @@ buildvaraprojection4(Getvara* getvar,
     segments = nclistnew();
     nclistpush(segments,(ncelem)segment);
 
-    projection = createncprojection();
+    projection = createCRCprojection();
     projection->discrim = NS_VAR;
     projection->var = createncvar();
     projection->var->leaf = var;
@@ -59,16 +59,16 @@ buildvaraprojection4(Getvara* getvar,
     segment->slicesdefined = 1;
 
     if(projectionp) *projectionp = projection;
-    if(ncstat) freencprojection(projection);
+    if(ncstat) freeCRCprojection(projection);
     return ncstat;
 }
 
 /* Compute the set of prefetched data */
-NCerror
-prefetchdata4(NCCR* drno)
+int
+crprefetchdata(NCCR* drno)
 {
     int i,j;
-    NCerror ncstat = NC_NOERR;
+    int ncstat = NC_NOERR;
     NClist* allvars = drno->dap.cdf.varnodes;
     NCconstraint* constraint = drno->dap.oc.dapconstraint;
     NClist* vars = nclistnew();
@@ -105,13 +105,13 @@ prefetchdata4(NCCR* drno)
     } else { /* Construct the projections for this set of vars */
         /* Construct the projections for this set of vars */
         /* Initially, the constraints are same as the merged constraints */
-        newconstraint->projections = clonencprojections(constraint->projections);
-        restrictprojection34(vars,newconstraint->projections);
+        newconstraint->projections = cloneCRCprojections(constraint->projections);
+        crrestrictprojection3(vars,newconstraint->projections);
         /* similar for selections */
         newconstraint->selections = clonencselections(constraint->selections);
     }
 
-    ncstat = buildcachenode34(&drno->dap,newconstraint,vars,&cache,0);
+    ncstat = crbuildcachenode3(&drno->dap,newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
 if(FLAGSET(drno->dap.controls,NCF_SHOWFETCH)) {
@@ -138,7 +138,7 @@ done:
 #ifdef IGNORE
 /* Based on the tactic, determine the set of variables to add */
 static void
-computevarset4(NCCR* drno, Getvara* getvar, NClist* varlist)
+crcomputevarset(NCCR* drno, Getvara* getvar, NClist* varlist)
 {
     int i;
     nclistclear(varlist);

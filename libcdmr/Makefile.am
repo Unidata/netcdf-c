@@ -12,11 +12,21 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
 
 # CDMREMORE Sources
-SRC=curlwrap.c nccr.c nccrdispatch.c nccrgetvara.c nccrmeta.c \
-crdebug.c crutil.c
+SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvara.c \
+crdebug.c crutil.c \
+nccrdump.c \
+ncStreamx.c curlwrap.c ncaux.c \
+ast_byteio.c ast_curl.c ast_internal.c \
+ast_runtime.c ast_util.c ast_debug.c \
+crce.c
 
-HDRS=curlwrap.h nccrconstraints.h nccrdispatch.h nccr.h \
-crdebug.h crutil.h
+HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h \
+crdebug.h crutil.h \
+nccrdump.h \
+ncStreamx.h curlwrap.h ncaux.h \
+ast.h ast_byteio.h ast_curl.h ast_internal.h \
+ast_runtime.h ast_util.h ast_debug.h \
+crce.h nccrnode.h
 
 if BUILD_CDMREMOTE
 
@@ -50,6 +60,24 @@ TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 t_cdmr_SOURCES = t_cdmr.c nccrstub.c
 CLEANFILES += t_cdmr
 
+##################################################
+# Generate the augmented ncstream structures
+EXTRA_DIST=ncStream.proto ncStream.h ncStreamc
+
+ASTDIR=./ast/src/compiler
+
+ASTJAR=${ASTDIR}/ast.jar
+
+ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
+	java -jar ${ASTJAR} -I. ncStreamx.proto
+
+ncStreamx.proto: ncStream.proto extends.sed
+	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
+
+.PHONEY: jar
+
+${ASTJAR}: 
+	cd ${ASTDIR}; make -f Make0 jar
+
+
 endif # BUILD_CDMREMOTE
-
-

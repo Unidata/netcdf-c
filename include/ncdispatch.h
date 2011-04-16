@@ -21,6 +21,9 @@
 #include "nc.h"
 #include "nc_url.h"
 
+
+
+
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
 		  unsigned char* value);

@@ -18,35 +18,36 @@ is contained.
 NCerror
 buildvaraprojection4(Getvara* getvar,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     NCprojection** projectionp)
+		     DCEprojection** projectionp)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     NClist* dimset;
     CDFnode* var = getvar->target;
-    NCprojection* projection = NULL;
+    DCEprojection* projection = NULL;
     NClist* segments = NULL;
-    NCsegment* segment;
+    DCEsegment* segment;
 
-    segment = createncsegment();
-    segment->node = var;
-    ASSERT((segment->node != NULL));
-    segment->name = nulldup(segment->node->name);
+    segment = (DCEsegment*)dcecreate(CES_SEGMENT);
+    segment->cdfnode = var;
+    ASSERT((segment->cdfnode != NULL));
+    segment->name = nulldup(segment->cdfnode->name);
     segment->slicesdefined = 0; /* temporary */
+    segment->slicesdeclized = 0; /* temporary */
     segments = nclistnew();
     nclistpush(segments,(ncelem)segment);
 
-    projection = createncprojection();
-    projection->discrim = NS_VAR;
-    projection->var = createncvar();
-    projection->var->leaf = var;
+    projection = (DCEprojection*)dcecreate(CES_PROJECT);
+    projection->discrim = CES_VAR;
+    projection->var = (DCEvar*)dcecreate(CES_VAR);
+    projection->var->cdfleaf = var;
     projection->var->segments = segments;
 
     /* All slices are assigned to the first (and only segment) */
     dimset = var->array.dimensions;
-    segment->slicerank = nclistlength(var->array.dimensions);
-    for(i=0;i<segment->slicerank;i++) {
-        NCslice* slice = &segment->slices[i];
+    segment->rank = nclistlength(var->array.dimensions);
+    for(i=0;i<segment->rank;i++) { 
+        DCEslice* slice = &segment->slices[i];
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         slice->first = startp[i];
 	slice->stride = stridep[i];
@@ -57,9 +58,10 @@ buildvaraprojection4(Getvara* getvar,
     	slice->declsize = dim->dim.declsize;
     }
     segment->slicesdefined = 1;
+    segment->slicesdeclized = 1;
 
     if(projectionp) *projectionp = projection;
-    if(ncstat) freencprojection(projection);
+    if(ncstat) dcefree((DCEnode*)projection);
     return ncstat;
 }
 
@@ -73,10 +75,10 @@ prefetchdata4(NCDAPCOMMON* nccomm)
     int i,j;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.varnodes;
-    NCconstraint* constraint = nccomm->oc.dapconstraint;
+    DCEconstraint* constraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
-    NCconstraint* newconstraint = NULL;
+    DCEconstraint* newconstraint = NULL;
 
     /* Check if we can do constraints */
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) { /*cannot constrain*/
@@ -107,12 +109,12 @@ prefetchdata4(NCDAPCOMMON* nccomm)
     }
 
     /* Construct the projections for this set of vars */
-    newconstraint = createncconstraint();
+    newconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     /* Initially, the constraints are same as the merged constraints */
-    newconstraint->projections = clonencprojections(constraint->projections);
+    newconstraint->projections = dceclonelist(constraint->projections);
     restrictprojection34(vars,newconstraint->projections);
     /* similar for selections */
-    newconstraint->selections = clonencselections(constraint->selections);
+    newconstraint->selections = dceclonelist(constraint->selections);
  
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,0);
     if(ncstat) goto done;

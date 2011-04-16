@@ -13,8 +13,9 @@
 /*! This is an open structure meaning
 	it is ok to directly access its fields*/
 typedef struct NC_URL {
-    char* url;        /* as passed by the caller */
-    char* base;	      /*!< without constraints*/
+    char* wholeurl;   /* as passed by the caller */
+    char* url;      /* !< without bracketed parameters */
+    char* base;	      /*!<  without constraints*/
     char* protocol;
     char* constraint;
     char* projection; /*!< without leading '?'*/

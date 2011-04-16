@@ -1,10 +1,10 @@
- /*********************************************************************
+/*********************************************************************
   *   Copyright 1993, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
-  *   $Header: /upc/share/CVS/netcdf-3/libncdap4/constraints4.h,v 1.1 2009/10/01 18:50:17 dmh Exp $
+  *   $Header: /upc/share/CVS/netcdf-3/libncconstraints/ncconstraints.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
-#ifndef NCCRCONSTRAINTS_H
-#define NCCRCONSTRAINTS_H 1
+#ifndef NCCONSTRAINTS_H
+#define NCCONSTRAINTS_H 1
 
 typedef enum NCsort {
 NS_NIL=0,
@@ -105,11 +105,4 @@ typedef struct NCconstraint {
     NClist* selections;
 } NCconstraint;
 
-
-
-
-
-
-#endif /*NCCRCONSTRAINTS_H*/
-
-
+#endif /*NCCONSTRAINTS_H*/

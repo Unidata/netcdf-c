@@ -349,7 +349,7 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# If --disable-dap && cdmremote , then libcurl is not required
+# If --disable-dap && --disable cdmremote , then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
 else
@@ -1433,7 +1433,7 @@ if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
   fi
 fi
 
-if test "x$enable_dap" = xyes ; then 
+if test "x$enable_dap" = xyes -o "x$enable_cdmremote" = xyes ; then 
   if test "x$curl_libs" != x ; then
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
     EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
@@ -1457,9 +1457,6 @@ xsolaris*)
   ;;
 *);;
 esac
-
-# Finally, add -lz always
-#EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
 
 # Alias
 EXTERN_CFLAGS="$EXTERN_CPPFLAGS"

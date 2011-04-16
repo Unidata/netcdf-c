@@ -295,6 +295,7 @@ extern "C" {
 #define NC_EDATADDS	(-73)   /* Malformed or inaccessible DATADDS */
 #define NC_EDAPURL	(-74)   /* Malformed DAP URL */
 #define NC_EDAPCONSTRAINT (-75)   /* Malformed DAP Constraint*/
+#define NC_ETRANSLATION (-76)   /* Untranslatable construct */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if

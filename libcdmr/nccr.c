@@ -5,7 +5,7 @@
  *   $Header$
  *********************************************************************/
 
-#include "nccr.h"
+#include "config.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -15,21 +15,32 @@
 #include <unistd.h>
 #endif
 
-#include "nccr.h"
-#include "nccrdispatch.h"
-#include "nc4dispatch.h"
-#include "crdebug.h"
+#include <curl/curl.h>
 #include "curlwrap.h"
+
+#include "ncbytes.h"
+#include "nclog.h"
+
+#include "netcdf.h"
+#include "nc.h"
+#include "ncdispatch.h"
+#include "nc4internal.h"
+#include "nc4dispatch.h"
+
+#include "nccr.h"
+#include "crdebug.h"
+#include "nccrdispatch.h"
+#include "ast.h"
+#include "nccrnode.h"
+#include "ncStreamx.h"
+#include "nccrproto.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
 
-static void nccrdinitialize(void);
-
-static int nccrdinitialized = 0;
-
+static NCerror skiptoheader(bytes_t* packet, size_t* offsetp);
 static void freeNCCDMR(NCCDMR* cdmr);
 
 /**************************************************/
@@ -55,18 +66,22 @@ NCCR_open(const char * path, int mode,
     NCerror ncstat = NC_NOERR;
     NC_URL* tmpurl;
     NCCR* nccr = NULL; /* reuse the ncdap3 structure*/
+    NCCDMR* cdmr = NULL;
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
     int ncid = -1;
     int fd;
     char* tmpname = NULL;
     NClist* shows;
+    bytes_t buf;
+    long filetime;
+    ast_runtime* rt = NULL;
+    ast_err aststat = AST_NOERR;
+    Header* hdr = NULL;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
-    if(!nccrdinitialized) nccrdinitialize();
-
-    if(!nc_urlparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
+    if(nc_urlparse(path,&tmpurl) != NC_NOERR) PANIC("libcdmr: non-url path");
     nc_urlfree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
@@ -99,21 +114,65 @@ NCCR_open(const char * path, int mode,
 	{THROWCHK(ncstat); goto done;}
 
     /* Setup tentative NCCR state*/
+    nccr->info.dispatch = dispatch;
+    cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
+    if(cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}
+    nccr->cdmr = cdmr;
     nccr->cdmr->controller = (NC*)nccr;
     nccr->cdmr->urltext = nulldup(path);
     nc_urlparse(nccr->cdmr->urltext,&nccr->cdmr->url);
-    nccr->info.dispatch = dispatch;
 
     /* Create the curl connection (does not make the server connection)*/
-    ncstat = nc_curlopen(&nccr->cdmr->curl.curl);
+    ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     shows = nc_urllookup(nccr->cdmr->url,"show");
     if(nc_urllookupvalue(shows,"fetch"))
 	nccr->cdmr->controls |= SHOWFETCH;
 
-    /* fetch and build the meta data */
-    ncstat = crbuildnc(nccr);
+    /* Parse the projection */
+    
+
+
+    /* fetch meta data */
+    buf = bytes_t_null;
+    NCbytes* completeurl = ncbytesnew();
+    ncbytescat(completeurl,nccr->cdmr->url->url);
+    ncbytescat(completeurl,"?req=header");
+    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,ncbytescontents(completeurl),
+			   &buf,&filetime);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Parse the meta data */
+    ncstat = nccr_decodeheader(&buf,&hdr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    if(buf.bytes != NULL) free(buf.bytes);
+
+    /* Compute various things about the Header tree */
+
+    /* Collect all nodes and fill in the CRnode part*/
+    cdmr->nodeset = nclistnew();
+    ncstat = nccr_walk_Header(hdr,cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Compute the pathnames */
+    ncstat = nccr_compute_pathnames(cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Map dimension references to matching declaration */
+    ncstat = nccr_map_dimensions(cdmr->nodeset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Replace dimension references with matching declaration */
+    nccr_deref_dimensions(cdmr->nodeset);
+
+    /* Elide any variables not in the url projection */
+    ncstat = nccr_elide_vars(cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* build the meta data */
+    ncstat = nccr_buildnc(nccr,hdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Mark as no longer indef and no longer writable*/
@@ -121,10 +180,10 @@ NCCR_open(const char * path, int mode,
     h5->no_write = 1;
 
 done:
+    if(aststat != AST_NOERR) {ncstat = nccr_cvtasterr(aststat);}
     if(ncstat) {
         if(nccr != NULL) {
 	    int ncid = nccr->info.ext_ncid;
-            freeNCCDMR(nccr->cdmr);
             NCCR_abort(ncid);
         }
     } else {
@@ -135,13 +194,19 @@ done:
 
 int
 NCCR_close(int ncid)
-	{
+{
     NC_GRP_INFO_T *grp;
     NC_HDF5_FILE_INFO_T *h5;
     NCCR* nccr = NULL;
     int ncstat = NC_NOERR;
+    NC* nc;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
+
+    /* Avoid repeated close  */
+    ncstat = NC_check_id(ncid, (NC**)&nccr); 
+    if(ncstat != NC_NOERR) return THROW(ncstat);
+
     /* Find our metadata for this file. */
     ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
     if(ncstat != NC_NOERR) return THROW(ncstat);
@@ -149,11 +214,10 @@ NCCR_close(int ncid)
     /* This must be the root group. */
     if (grp->parent) ncstat = NC_EBADGRPID;
 
-    /* Destroy/close the NCCR state */
     freeNCCDMR(nccr->cdmr);
 
     /* Destroy/close the NC_FILE_INFO_T state */
-    NCCR_abort(ncid);
+    NC4_abort(ncid);
 
     return THROW(ncstat);
 }
@@ -162,10 +226,37 @@ NCCR_close(int ncid)
 /* Auxilliary routines                            */
 /**************************************************/
 
-static void
-nccrdinitialize()
+static NCerror
+skiptoheader(bytes_t* packet, size_t* offsetp)
 {
-    nccrdinitialized = 1;
+    NCerror status = NC_NOERR;
+    unsigned long long vlen;
+    size_t size,offset;
+
+    /* Check the structure of the resulting data */
+    if(packet->nbytes < (strlen(MAGIC_HEADER) + strlen(MAGIC_HEADER))) {
+	nclog(NCLOGERR,"Curl data too short: %d\n",packet->nbytes);
+	status = NC_ECURL;
+	goto done;
+    }
+    if(memcmp(packet->bytes,MAGIC_HEADER,strlen(MAGIC_HEADER)) != 0) {
+	nclog(NCLOGERR,"MAGIC_HEADER missing\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    offset = strlen(MAGIC_HEADER);
+    /* Extract the proposed count as a varint */
+    vlen = varint_decode(10,packet->bytes+offset,&size);
+    offset += size;
+    if(vlen != (packet->nbytes-offset)) {
+	nclog(NCLOGERR,"Curl data size mismatch\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    if(offsetp) *offsetp = offset;
+
+done:
+    return status;    
 }
 
 static void
@@ -174,7 +265,7 @@ freeNCCDMR(NCCDMR* cdmr)
     if(cdmr == NULL) return;
     if(cdmr->urltext) free(cdmr->urltext);
     nc_urlfree(cdmr->url);
-    if(cdmr->curl.curl) nc_curlclose(cdmr->curl.curl);
+    if(cdmr->curl.curl) nccr_curlclose(cdmr->curl.curl);
     if(cdmr->curl.host) free(cdmr->curl.host);
     if(cdmr->curl.useragent) free(cdmr->curl.useragent);
     if(cdmr->curl.cookiefile) free(cdmr->curl.cookiefile);
@@ -188,3 +279,11 @@ freeNCCDMR(NCCDMR* cdmr)
     free(cdmr);
 }
 
+
+/* Collect a pre-order non-duplicate list of all nodes in the ncStream tree */
+static NCerror
+collectnodes(NCCDMR* cdmr, Header* hdr)
+{
+    
+
+}

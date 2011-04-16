@@ -16,8 +16,9 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # The source files.
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
-var.c dispatch.c nc_url.c nclist.c ncbytes.c ncbytes.h
-
+var.c dispatch.c nc_url.c nclist.c ncbytes.c \
+nchashmap.c \
+nclog.c nclog.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
@@ -35,3 +36,4 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = v2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
+

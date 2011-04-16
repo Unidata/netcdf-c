@@ -11,31 +11,33 @@
 /* Define methods for a dimension dapodometer*/
 
 Dapodometer*
-newdapodometer(NCslice* slices, unsigned int first, unsigned int rank)
+newdapodometer(DCEslice* slices, unsigned int first, unsigned int rank)
 {
     int i;
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
-	odom->slices[i] = slices[first+i];
+	DCEslice* slice = slices+(first+i);
+	odom->slices[i] = *slice;
 	odom->index[i] = odom->slices[i].first;
     }    
     return odom;
 }
 
 Dapodometer*
-newsimpledapodometer(NCsegment* segment, unsigned int rank)
+newsimpledapodometer(DCEsegment* segment, unsigned int rank)
 {
     int i;
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
+    assert(segment->slicesdefined && segment->slicesdeclized);
     for(i=0;i<odom->rank;i++) {
-	NCslice* odslice = &odom->slices[i];
-	NCslice* segslice = &segment->slices[i];
+	DCEslice* odslice = &odom->slices[i];
+	DCEslice* segslice = &segment->slices[i];
 	odslice->first = 0;
 	odslice->stride = 1;
 	odslice->declsize = segslice->count;
@@ -50,7 +52,7 @@ newsimpledapodometer(NCsegment* segment, unsigned int rank)
 Dapodometer*
 newdapodometer1(unsigned int count)
 {
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = 1;
     odom->slices[0].first = 0;
@@ -109,7 +111,6 @@ dapodometercount(Dapodometer* odom)
     int i;
     size_t offset = 0;
     for(i=0;i<odom->rank;i++) {
-	ASSERT((odom->slices[i].declsize > 0));
 	offset *= odom->slices[i].declsize;
 	offset += odom->index[i];
     } 
@@ -128,7 +129,7 @@ dapodometerspace(Dapodometer* odom, unsigned int wheel)
 {
     unsigned int i,rank = odom->rank;
     size_t count = 1;
-    NCslice* slice;
+    DCEslice* slice;
     ASSERT((wheel < rank));
     slice = odom->slices+wheel;
     for(i=wheel;i<rank;i++,slice++) {
@@ -148,7 +149,7 @@ dapodometerpoints(Dapodometer* odom)
 {
     unsigned int i,rank = odom->rank;
     size_t count = 1;
-    NCslice* slice = odom->slices;
+    DCEslice* slice = odom->slices;
     for(i=0;i<rank;i++,slice++) {
 	size_t slicecount = (slice->length/slice->stride);
 	count *= slicecount;
@@ -166,7 +167,7 @@ Dapodometer*
 dapodometersplit(Dapodometer* odom, int tail)
 {
     int i;
-    Dapodometer* split = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* split = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(split,NULL);
     assert(odom->rank >= tail);
     split->rank = tail;
@@ -186,7 +187,7 @@ int
 dapodometerincrith(Dapodometer* odom, int wheel)
 {
     int i; /* do not make unsigned */
-    NCslice* slice;
+    DCEslice* slice;
     if(odom->rank == 0) return 0; 
     if(wheel < 0) wheel = (odom->rank - 1);
     for(slice=odom->slices+(wheel),i=wheel;i>=0;i--,slice--) {
@@ -229,7 +230,7 @@ newdapodometer2(const size_t* start, const size_t* count, const ptrdiff_t* strid
 	        unsigned int first, unsigned int rank)
 {
     int i;
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
@@ -249,7 +250,7 @@ Dapodometer*
 newdapodometer3(int rank, size_t* dimsizes)
 {
     int i;
-    Dapodometer* odom = (Dapodometer*)emalloc(sizeof(Dapodometer));
+    Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = rank;
     for(i=0;i<rank;i++) {
