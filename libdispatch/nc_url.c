@@ -35,7 +35,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 
     /* copy url and remove all whitespace*/
     url = strdup(url0);
-    if(url == NULL) return NC_ENOMEM;
+    if(url == NULL) {ncstat=NC_ENOMEM; goto done;}
 
     p = url;
     p1 = url;
@@ -77,7 +77,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     /* Simulate strndup */
     protolen = (size_t)(p1-p);
     protocol = malloc(1+protolen);
-    if(protocol == NULL) return NC_ENOMEM;
+    if(protocol == NULL) {ncstat=NC_ENOMEM; goto done;}
     strncpy(protocol,p,protolen);
     protocol[protolen] = '\0';
     /* Look for '?' */
@@ -87,19 +87,19 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
     }
 
     /* assemble the component pieces*/
-    ncurl = malloc(sizeof(NC_URL));
-    if(ncurl == NULL) return NC_ENOMEM;
-    memset((void*)ncurl,0,sizeof(NC_URL));
+    ncurl = calloc(1,sizeof(NC_URL));
+    if(ncurl == NULL) {ncstat=NC_ENOMEM; goto done;}
 
     ncurl->wholeurl = nulldup(url0);
-    if(ncurl->wholeurl == NULL) return NC_ENOMEM;
+    if(ncurl->wholeurl == NULL) {ncstat=NC_ENOMEM; goto done;}
     ncurl->url = trueurl;
-    if(ncurl->url == NULL) return NC_ENOMEM;
+    trueurl = NULL;
+    if(ncurl->url == NULL) {ncstat=NC_ENOMEM; goto done;}
     ncurl->base = nulldup(baseurl);
-    if(ncurl->base == NULL) return NC_ENOMEM;
+    if(ncurl->base == NULL) {ncstat=NC_ENOMEM; goto done;}
     ncurl->protocol = protocol;
     ncurl->constraint = nulldup(constraint);
-    if(constraint != NULL && ncurl->constraint == NULL) return NC_ENOMEM;
+    if(constraint != NULL && ncurl->constraint == NULL) {ncstat=NC_ENOMEM; goto done;}
     nc_urlsetconstraints(ncurl,constraint);
     if(params != NULL) {
         ncurl->params = (char*)malloc(1+2+strlen(params));
@@ -117,6 +117,7 @@ nc_urlparse(const char* url0, NC_URL** ncurlp)
 
 done:
     if(url != NULL) free(url);
+    if(trueurl != NULL) free(trueurl);
     return ncstat;
 
 }
