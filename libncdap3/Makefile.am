@@ -47,8 +47,7 @@ daputil.h \
 dapdebug.h \
 dapdump.h \
 dceconstraints.h \
-dcetab.h dceparselex.h \
-ceconstraints.h
+dcetab.h dceparselex.h
 
 if BUILD_DAP
 

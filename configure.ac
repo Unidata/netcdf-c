@@ -1515,8 +1515,7 @@ AC_CONFIG_FILES([Makefile
                  examples/F90/Makefile
                  examples/F77/Makefile
                   oc/Makefile
-                  libncdap3/Makefile
-                  libncdap4/Makefile
+                  libdap2/Makefile
                   libcdmr/Makefile
                   libdispatch/Makefile
                   liblib/Makefile

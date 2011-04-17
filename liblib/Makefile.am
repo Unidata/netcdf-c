@@ -34,8 +34,8 @@ ${top_builddir}/libsrc/libnetcdf3.la
 
 # netcdf3 + dap
 if USE_DAP
-AM_CPPFLAGS += -I${top_srcdir}/libncdap3 -I${top_srcdir}/oc
-libnetcdf_la_LIBADD += ${top_builddir}/libncdap3/libncdap3.la
+AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
+libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
 libnetcdf_la_LIBADD += ${top_builddir}/oc/liboc.la
 endif # USE_DAP
 
@@ -44,11 +44,6 @@ if USE_NETCDF4
 
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
-
-# netcdf4+dap
-if USE_DAP
-libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
-endif # USE_DAP
 
 # netcdf4+cdmremote
 if BUILD_CDMREMOTE

@@ -4,8 +4,8 @@
   *********************************************************************/
 /* $Header$ */
 
-#ifndef NCCONSTRAINTS_H
-#define NCCONSTRAINTS_H 1
+#ifndef CECONSTRAINTS_H
+#define CECONSTRAINTS_H
 
 #ifndef NC_MAX_VAR_DIMS
 #define NC_MAX_VAR_DIMS 1024
@@ -27,4 +27,5 @@ CES_SEGMENT=16, CES_CONSTRAINT=17,
 CES_VALUE=18, CES_SLICE=19
 } CEsort;
 
-#endif /*NCCONSTRAINTS_H*/
+#endif /*CECONSTRAINTS_H*/
+
