@@ -28,7 +28,6 @@ GRAMFILES=dap.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h
-BUILT_SOURCES = daptab.c daptab.h
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la

@@ -1,17 +1,15 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapodom.h,v 1.10 2010/05/27 21:34:08 dmh Exp $
+ *   $Header$
  *********************************************************************/
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
 
 #ifndef DAPODOM_H
 #define DAPODOM_H 1
 
 typedef struct Dapodometer {
     int            rank;
-    DCEslice       slices[NC_MAX_VAR_DIMS];
+    DCEslice        slices[NC_MAX_VAR_DIMS];
     size_t         index[NC_MAX_VAR_DIMS];
 } Dapodometer;
 

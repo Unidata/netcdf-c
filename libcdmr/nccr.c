@@ -40,8 +40,8 @@
 
 extern NC_FILE_INFO_T* nc_file;
 
-static NCerror skiptoheader(bytes_t* packet, size_t* offsetp);
 static void freeNCCDMR(NCCDMR* cdmr);
+static int nccr_elide_vars(NCCDMR* cdmr);
 
 /**************************************************/
 int
@@ -226,37 +226,11 @@ NCCR_close(int ncid)
 /* Auxilliary routines                            */
 /**************************************************/
 
-static NCerror
-skiptoheader(bytes_t* packet, size_t* offsetp)
+static int
+nccr_elide_vars(NCCDMR* cdmr)
 {
-    NCerror status = NC_NOERR;
-    unsigned long long vlen;
-    size_t size,offset;
-
-    /* Check the structure of the resulting data */
-    if(packet->nbytes < (strlen(MAGIC_HEADER) + strlen(MAGIC_HEADER))) {
-	nclog(NCLOGERR,"Curl data too short: %d\n",packet->nbytes);
-	status = NC_ECURL;
-	goto done;
-    }
-    if(memcmp(packet->bytes,MAGIC_HEADER,strlen(MAGIC_HEADER)) != 0) {
-	nclog(NCLOGERR,"MAGIC_HEADER missing\n");
-	status = NC_ECURL;
-	goto done;
-    }
-    offset = strlen(MAGIC_HEADER);
-    /* Extract the proposed count as a varint */
-    vlen = varint_decode(10,packet->bytes+offset,&size);
-    offset += size;
-    if(vlen != (packet->nbytes-offset)) {
-	nclog(NCLOGERR,"Curl data size mismatch\n");
-	status = NC_ECURL;
-	goto done;
-    }
-    if(offsetp) *offsetp = offset;
-
-done:
-    return status;    
+    int ncstat = NC_NOERR;
+    return ncstat;
 }
 
 static void

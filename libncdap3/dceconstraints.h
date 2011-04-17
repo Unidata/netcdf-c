@@ -9,18 +9,16 @@
 
 #include "ceconstraints.h"
 
-#ifndef NC_MAX_VAR_DIMS
-#define NC_MAX_VAR_DIMS 1024
-#endif
-
 /* Provide a universal cast type containing common fields */
 
 struct CDFnode; /* Forward */
 
+/* Define the common "supertype */
 typedef struct DCEnode {
     CEsort sort;    
 } DCEnode;
 
+/* The slice structure is assumed common to all uses */
 typedef struct DCEslice {
     DCEnode node;
     size_t first;

@@ -165,8 +165,8 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
 	endex = crstrindex(buf->bytes,"</html>");	
 	if(endex >= 0) endex += 7; else endex = buf->nbytes-1;
         nclog(NCLOGWARN,"Probable Server error");
-	nclogtext(NCLOGWARN,buf->bytes+first,endex-first);
-	nclogtext(NCLOGWARN,"\n",1);
+	nclogtextn(NCLOGWARN,buf->bytes+first,endex-first);
+	nclogtext(NCLOGWARN,"\n");
     }
     return stat;
 

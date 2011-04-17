@@ -13,6 +13,7 @@
 
 #include "nclist.h"
 #include "ncbytes.h"
+#include "nclog.h"
 
 #include "netcdf.h"
 #include "ast.h"
@@ -32,6 +33,17 @@ static void annotate(Group*, CRnode*, Sort, NClist*);
 
 static void computepathname(CRnode* leaf);
 static char* getname(CRnode* node);
+
+static int skiptoheader(bytes_t* packet, size_t* offsetp);
+
+/**************************************************/
+/* Define cdmremote magic numbers */
+
+#define MAGIC_START  "\x43\x44\x46\x53"
+#define MAGIC_END    "\xed\xed\xde\xde"
+#define MAGIC_HEADER "\xad\xec\xce\xda" 
+#define MAGIC_DATA   "\xab\xec\xce\xba"
+#define MAGIC_ERR    "\xab\xad\xba\xda"
 
 int
 nccr_cvtasterr(ast_err err)
@@ -407,4 +419,37 @@ nccr_deref_dimensions(NClist* nodes)
 	}
     }
     nclistfree(replaced);
+}
+
+static int
+skiptoheader(bytes_t* packet, size_t* offsetp)
+{
+    int status = NC_NOERR;
+    unsigned long long vlen;
+    size_t size,offset;
+
+    /* Check the structure of the resulting data */
+    if(packet->nbytes < (strlen(MAGIC_HEADER) + strlen(MAGIC_HEADER))) {
+	nclog(NCLOGERR,"Curl data too short: %d\n",packet->nbytes);
+	status = NC_ECURL;
+	goto done;
+    }
+    if(memcmp(packet->bytes,MAGIC_HEADER,strlen(MAGIC_HEADER)) != 0) {
+	nclog(NCLOGERR,"MAGIC_HEADER missing\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    offset = strlen(MAGIC_HEADER);
+    /* Extract the proposed count as a varint */
+    vlen = varint_decode(10,packet->bytes+offset,&size);
+    offset += size;
+    if(vlen != (packet->nbytes-offset)) {
+	nclog(NCLOGERR,"Curl data size mismatch\n");
+	status = NC_ECURL;
+	goto done;
+    }
+    if(offsetp) *offsetp = offset;
+
+done:
+    return status;    
 }
