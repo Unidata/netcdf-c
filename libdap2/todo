@@ -1,0 +1,4 @@
+1. preset alloc for vlen memory
+2. take tests from libsrc4 &/or nc_test4
+   to test get_var{a,s...}
+

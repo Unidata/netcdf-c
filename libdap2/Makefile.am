@@ -11,12 +11,12 @@
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 CLEANFILES =
-LDADD=
 EXTRA_DIST =
 
+LDADD=
+AM_LDFLAGS = 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-# DRNO Sources
 SRC=\
 constraints3.c \
 common34.c \
@@ -49,44 +49,67 @@ dapdump.h \
 dceconstraints.h \
 dcetab.h dceparselex.h
 
+if USE_NETCDF4
+SRC += cdf4.c constraints4.c ncd4dispatch.c ncdap4.c getvara4.c
+HDRS +=constraints4.h ncd4dispatch.h ncdap4.h
+endif
+
 if BUILD_DAP
 
-noinst_LTLIBRARIES = libncdap3.la
+noinst_LTLIBRARIES = libdap2.la
 
 # Build convenience library
-libncdap3_la_SOURCES = $(SRC) $(HDRS)
-libncdap3_la_CPPFLAGS = $(AM_CPPFLAGS)
-libncdap3_la_LIBADD =
+libdap2_la_SOURCES = $(SRC) $(HDRS)
+libdap2_la_CPPFLAGS = $(AM_CPPFLAGS)
+libdap2_la_LIBADD =
 
 AM_CPPFLAGS += -I${top_srcdir}/libdispatch
 
 if USE_NETCDF4
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libsrc
-else
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc
+AM_CPPFLAGS += -I$(top_srcdir)/libsrc4
 endif
 
+AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 AM_CPPFLAGS += -I${top_srcdir}/oc
 
 AM_CPPFLAGS += @EXTERN_CPPFLAGS@
 
-LDADD +=  ${top_builddir}/libncdap3/libncdap3.la \
-	  ${top_builddir}/oc/liboc.la \
-	  ${top_builddir}/libdispatch/libdispatch.la
+LDADD += libdap2.la
+
+if USE_NETCDF4
+LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
+endif
+
+LDADD += ${top_builddir}/libsrc/libnetcdf3.la \
+	 ${top_builddir}/oc/liboc.la \
+	 ${top_builddir}/libdispatch/libdispatch.la
+
+if BUILD_V2
+LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
+endif # BUILD_V2
 
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
+EXTRA_DIST += t_dap.c
+
 check_PROGRAMS = t_dap3a t_dap3c
 CLEANFILES += t_dap3a t_dap3c
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 TESTS = t_dap3a t_dap3c
 t_dap3a_SOURCES = t_dap3a.c stubdap3.c
 t_dap3c_SOURCES = t_dap3c.c stubdap3.c
+
+if USE_NETCDF4
+check_PROGRAMS += t_dap4a
+CLEANFILES += t_dap4a
+TESTS += t_dap4a
+t_dap4a_SOURCES = t_dap4a.c stubdap4.c
+endif
+
 # Set ldflags
-t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
-t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-EXTRA_DIST += t_dap.c
+#t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
+#t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
 
 #check_PROGRAMS += test_varm3
 #TESTS += test_varm3
@@ -95,12 +118,14 @@ EXTRA_DIST += t_dap.c
 
 endif # BUILD_DAP
 
-
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.
 t_dap3a.c: ${srcdir}/t_dap.c
 	echo "#define NETCDF3ONLY" > t_dap3a.c
 	cat t_dap.c >> t_dap3a.c
+
+t_dap4a.c: t_dap.c
+	cat t_dap.c >> ./t_dap4a.c
 
 # One last thing
 BUILT_SOURCES = .dodsrc

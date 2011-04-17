@@ -44,7 +44,7 @@ CLASSES=${SRC:%.java=${BUILDDIR}/${ASTPATH}/%.class}\
 
 .PHONEY: compiler gen jar
 
-all: jar gen c
+all: jar
 
 gen:
 	for t in ${TESTS} ; do java ${D} -jar ${JAR} ${W} $${t} ; done

@@ -7,6 +7,7 @@
 
 DISTCLEANFILES =
 CLEANFILES =
+EXTRA_DIST =
 LDADD=
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = 
@@ -18,7 +19,10 @@ nccrdump.c \
 ncStreamx.c curlwrap.c ncaux.c \
 ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c \
-crce.c
+crce.c \
+cceparse.c cceconstraints.c
+
+EXTRA_DIST += ccetab.c ccelex.c
 
 HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h \
 crdebug.h crutil.h \
@@ -26,7 +30,8 @@ nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
 ast_runtime.h ast_util.h ast_debug.h \
-crce.h nccrnode.h
+crce.h nccrnode.h \
+ccetab.h cceconstraints.h cceparselex.h
 
 if BUILD_CDMREMOTE
 
@@ -62,7 +67,7 @@ CLEANFILES += t_cdmr
 
 ##################################################
 # Generate the augmented ncstream structures
-EXTRA_DIST=ncStream.proto ncStream.h ncStreamc
+EXTRA_DIST+=ncStream.proto ncStream.h ncStreamc
 
 ASTDIR=./ast/src/compiler
 
@@ -74,10 +79,23 @@ ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
 ncStreamx.proto: ncStream.proto extends.sed
 	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
 
-.PHONEY: jar
+.PHONEY: jar bison
 
 ${ASTJAR}: 
 	cd ${ASTDIR}; make -f Make0 jar
+
+# These rule are used if someone wants to rebuild the grammar files.
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
+
+EXTRA_DIST += cce.y
+
+bison ccetab.c ccetab.h: cce.y
+	bison -v -d -t -p cce cce.y
+	rm -f ccetab.c ccetab.h
+	mv cce.tab.c ccetab.c
+	mv cce.tab.h ccetab.h
 
 
 endif # BUILD_CDMREMOTE
