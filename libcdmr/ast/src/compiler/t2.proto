@@ -1,0 +1,4 @@
+package t2;
+message m2 {
+required int32 field2 = 1;
+}

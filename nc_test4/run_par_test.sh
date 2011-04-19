@@ -20,7 +20,7 @@ mpiexec -n 2 ./tst_parallel4
 mpiexec -n 4 ./tst_parallel4
 mpiexec -n 8 ./tst_parallel4
 mpiexec -n 16 ./tst_parallel4
-mpiexec -n 32 ./tst_parallel4
+#mpiexec -n 32 ./tst_parallel4
 #mpiexec -n 64 ./tst_parallel4
 echo
 echo "Parallel Performance Test for NASA"

@@ -5,6 +5,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genlib.h,v 1.20 2010/05/17 23:26:45 dmh Exp $
  *********************************************************************/
+#include <config.h>
 #include <stdlib.h>
 #include <limits.h>
 #include "generr.h"

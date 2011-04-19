@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <hdf5.h>
+#include <ncdimscale.h>
 #include <nc_logging.h>
 
 #ifdef USE_PARALLEL
@@ -28,6 +29,7 @@
 #define MPI_Comm int
 #include <netcdf.h>
 #endif /* USE_PARALLEL */
+#include <netcdf_f.h>
 
 #ifdef USE_HDF4
 #include <mfhdf.h>
@@ -132,12 +134,6 @@ typedef struct NC_ATT_INFO
    char **stdata; /* only for string type. */
    int class;
 } NC_ATT_INFO_T;
-
-typedef struct hdf5_objid 
-{
-   unsigned long fileno[2]; /* file number */
-   haddr_t objno[2]; /* object number */
-} HDF5_OBJID_T; 
 
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO

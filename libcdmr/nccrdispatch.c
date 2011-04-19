@@ -4,12 +4,17 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap4/ncd4dispatch.c,v 1.8 2010/05/27 21:34:10 dmh Exp $
  *********************************************************************/
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "ncdispatch.h"
+#include <curl/curl.h>
+
+#include "netcdf.h"
 #include "nc.h"
+#include "ncdispatch.h"
+#include "nc4internal.h"
+
 #include "nccr.h"
 #include "nccrdispatch.h"
 
@@ -126,6 +131,7 @@ NCCR_initialize(void)
        plus some overrides */
     NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
     NCCR_dispatch_table = &NCCR_dispatcher;
+    ncloginit();
     return NC_NOERR;
 }
 
@@ -169,7 +175,15 @@ NCCR_sync(int ncid)
 int
 NCCR_abort(int ncid)
 {
+    int ncstat;
+    NC* nc;
+
     LOG((1, "nc_abort: ncid 0x%x", ncid));
+
+    /* Avoid repeated abort */
+    ncstat = NC_check_id(ncid, (NC**)&nc); 
+    if(ncstat != NC_NOERR) return ncstat;
+
     /* Turn into close */
     return NCCR_close(ncid);
 }

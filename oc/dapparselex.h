@@ -10,7 +10,7 @@
 /* To avoid "make distclean" wiping out dap.tab.h */
 #include "daptab.h"
 #else
-#include "dap.tab.h"
+#include "daptab.h"
 #endif
 
 #ifdef WIN32

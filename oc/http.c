@@ -1,6 +1,7 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
  See the COPYRIGHT file for more information. */
 
+#include "config.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -62,13 +63,16 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 	}
 
 	if (stat == OC_NOERR) {
-		/* return the file size*/
-		if (sizep != NULL)
-			*sizep = fetchdata.size;
-	        /* Get the last modified time */
-		if(filetime != NULL)
-                    cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-                if(cstat != CURLE_OK) goto fail;
+	    /* return the file size*/
+#ifdef OCDEBUG
+	    oc_log(LOGNOTE,"filesize: %lu bytes",fetchdata.size);
+#endif
+	    if (sizep != NULL)
+		*sizep = fetchdata.size;
+	    /* Get the last modified time */
+	    if(filetime != NULL)
+                cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
+            if(cstat != CURLE_OK) goto fail;
 	}
 	return THROW(stat);
 
@@ -119,6 +123,9 @@ ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
 	len = ocbyteslength(buf);
 	ocbytesappend(buf, '\0');
 	ocbytessetlength(buf, len); /* dont count null in buffer size*/
+#ifdef OCDEBUG
+	oc_log(LOGNOTE,"buffersize: %lu bytes",(unsigned long)ocbyteslength(buf));
+#endif
 
 	return THROW(stat);
 
@@ -130,15 +137,20 @@ fail:
 static size_t
 WriteFileCallback(void* ptr, size_t size, size_t nmemb,	void* data)
 {
+	size_t realsize = size * nmemb;
 	size_t count;
 	struct Fetchdata* fetchdata;
 	fetchdata = (struct Fetchdata*) data;
+        if(realsize == 0)
+	    oc_log(LOGWARN,"WriteFileCallback: zero sized chunk");
 	count = fwrite(ptr, size, nmemb, fetchdata->stream);
 	if (count > 0) {
 		fetchdata->size += (count * size);
+	} else {
+	    oc_log(LOGWARN,"WriteFileCallback: zero sized write");
 	}
 #ifdef OCPROGRESS
-        oc_log(LOGNOTE,"callback: %lu bytes",(unsigned long)(size*nmemb));
+        oc_log(LOGNOTE,"callback: %lu bytes",(unsigned long)realsize);
 #endif
 	return count;
 }
@@ -148,14 +160,17 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	size_t realsize = size * nmemb;
 	OCbytes* buf = (OCbytes*) data;
-if(realsize == 0)
-oc_log(LOGWARN,"WriteMemoryCallback: zero sized chunk");
+        if(realsize == 0)
+	    oc_log(LOGWARN,"WriteMemoryCallback: zero sized chunk");
 	/* Optimize for reading potentially large dods datasets */
 	if(!ocbytesavail(buf,realsize)) {
 	    /* double the size of the packet */
 	    ocbytessetalloc(buf,2*ocbytesalloc(buf));
 	}
 	ocbytesappendn(buf, ptr, realsize);
+#ifdef OCPROGRESS
+        oc_log(LOGNOTE,"callback: %lu bytes",(unsigned long)realsize);
+#endif
 	return realsize;
 }
 

@@ -1,6 +1,7 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#include "config.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -60,7 +61,7 @@ mktemp(tmpl); ret=open(tmpl,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IR
 #endif
 
 /* Global flags*/
-static int oc_big_endian;
+static int oc_big_endian; /* what is this machine? */
 int oc_network_order; /* network order is big endian */
 int oc_invert_xdr_double;
 int oc_curl_file_supported;
@@ -72,6 +73,7 @@ ocinternalinitialize(void)
     int stat = OC_NOERR;
 
     /* Compute if we are same as network order v-a-v xdr */
+    
 #ifdef XDRBYTEORDER
     {
         XDR xdrs;
@@ -90,8 +92,9 @@ ocinternalinitialize(void)
         int testint = 0x00000001;
         char *byte = (char *)&testint;
         oc_big_endian = (byte[0] == 0 ? 1 : 0);
-        oc_network_order = oc_big_endian;
+	oc_network_order = oc_big_endian;
     }
+
 #endif /*XDRBYTEORDER*/
     {
         /* It turns out that various machines
@@ -416,7 +419,7 @@ ocextractdds(OCstate* state, OCtree* tree)
     ocbytesclear(state->packet);
     rewind(tree->data.file);
     do {
-	char chunk[128];
+	char chunk[1024];
 	size_t count;
 	/* read chunks of the file until we find the separator*/
         count = fread(chunk,1,sizeof(chunk),tree->data.file);

@@ -1,7 +1,7 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
-
+#include "config.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ocdata.h"
@@ -118,7 +118,7 @@ ocset_ssl(CURL* curl, OCstate* state)
 	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
         }
         if(ssl->keypasswd) {
-            // libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD'
+            /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
             cstat = curl_easy_setopt(curl, CURLOPT_KEYPASSWD, ssl->keypasswd);
             if(cstat != CURLE_OK) goto fail;
 	    DEBUG1(1,"CURLOPT_SSLKEY=%s",ssl->key);

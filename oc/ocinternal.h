@@ -231,7 +231,7 @@ extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
 extern int ocinternalinitialize(void);
 
-/* Use my own ntohl an htonl */
+/* Use my own ntohl and htonl */
 #define ocntoh(i) (oc_network_order?(i):ocbyteswap((i)))
 #define ochton(i) ocntoh(i)
 

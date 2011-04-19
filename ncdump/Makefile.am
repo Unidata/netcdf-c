@@ -4,10 +4,26 @@
 
 # $Id: Makefile.am,v 1.147 2010/05/29 00:50:39 dmh Exp $
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/nc_test	\
--I${top_srcdir}/liblib @EXTERN_CPPFLAGS@
-LDADD = -lm ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 
+# This is the program we're building, and it's sources.
+bin_PROGRAMS = ncdump 
+ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime.c	\
+ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h \
+utils.h utils.c
+
+# Another utility program that copies any netCDF file using only the
+# netCDF API
+bin_PROGRAMS += nccopy
+nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
+utils.h utils.c dimmap.h dimmap.c
+
+# This is the man page.
+man_MANS = ncdump.1 nccopy.1
+
+if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
@@ -33,6 +49,7 @@ endif # EXTRA_TESTS
 tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
 
 endif #!USE_NETCDF4
+endif #!BUILD_DLL
 
 CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c	\
 ctest64.c ctest0.nc ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc	\
@@ -49,22 +66,6 @@ tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
 tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
 tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
 tst_deflated.nc tst_chunking.nc tmp*.nc
-
-
-# This is the program we're building, and it's sources.
-bin_PROGRAMS = ncdump 
-ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime.c	\
-ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h \
-utils.h utils.c
-
-# Another utility program that copies any netCDF file using only the
-# netCDF API
-bin_PROGRAMS += nccopy
-nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c \
-utils.h utils.c dimmap.h dimmap.c
-
-# This is the man page.
-man_MANS = ncdump.1 nccopy.1
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -83,11 +84,13 @@ ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl
 
-BUILT_SOURCES = ctest.c ctest64.c
-
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
+BUILT_SOURCES = ctest.c ctest64.c
 if CROSS_COMPILING
+ctest.c:
 	cp ref_ctest.c ctest.c
+
+ctest64.c:
 	cp ref_ctest64.c ctest64.c
 else
 ctest.c:
@@ -103,7 +106,9 @@ EXTRA_DIST += tst_ncgen4_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
 tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl
+if !BUILD_DLL
 TESTS += tst_ncgen4_classic.sh
 if USE_NETCDF4
 TESTS += tst_ncgen4.sh
+endif
 endif

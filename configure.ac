@@ -7,8 +7,6 @@
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
 # and to exp otherwise. 
 
-# $Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $
-
 ## This puts the cvs ID tag in the output configure script.
 AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 
@@ -17,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.2-beta3], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -351,7 +349,7 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# If --disable-dap && cdmremote , then libcurl is not required
+# If --disable-dap && --disable cdmremote , then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
 else
@@ -522,14 +520,6 @@ if test "x$enable_extra_tests" = xyes; then
    AC_DEFINE([EXTRA_TESTS], [1], [if true, run extra tests which may not work yet])
 fi
 AM_CONDITIONAL(EXTRA_TESTS, [test x$enable_extra_tests = xyes])
-
-# Does the user want to test f90 compiler.
-AC_MSG_CHECKING([whether Fortran compiler(s) should be tested during configure])
-AC_ARG_ENABLE([fortran-compiler-check],
-              [AS_HELP_STRING([--disable-fortran-compiler-check],
-                              [disable check of F77/F90 compiler during configure])])
-test "x$enable_fortran_compiler_check" = xno || enable_fortran_compiler_check=yes
-AC_MSG_RESULT($enable_fortran_compiler_check)
 
 # Does the user want to use the ffio module?
 AC_MSG_CHECKING([whether FFIO will be used])
@@ -932,33 +922,6 @@ if test "x$nc_build_f90" = xyes; then
    # Set the FCLIBS flag to help with shared libraries.
 #   AC_FC_LIBRARY_LDFLAGS
 #   AC_F77_LIBRARY_LDFLAGS      
-
-   # Check the fortran 90 compiler to make sure it can compile a
-   # little test file.
-   if test "x$enable_fortran_compiler_check" = xyes; then
-      AC_MSG_CHECKING([if Fortran compiler can handle Fortran-90])
-      cat <<EOF >conftest.f90
-      program foo
-      REAL, PARAMETER        :: A = 3.141592654
-      end program
-EOF
-      doit='$FC  ${FCFLAGS} ${FCFLAGS_f90} conftest.f90'
-      if AC_TRY_EVAL(doit); then
-         nc_ans=yes
-      else
-         nc_ans=no
-         if test "x$nc_build_f90" = xyes && test "x$enable_compiler_recover" = xno; then
-            AC_MSG_ERROR([Can't use F90 compiler, F90 API desired, and compiler recovery disabled.])
-         fi
-         unset F90
-         nc_build_f90=no
-      fi
-      rm -f conftest.*
-      AC_MSG_RESULT([$nc_ans])
-      if test "x$nc_ans" = xno; then
-         AC_MSG_WARN([No F90 compiler found. F90 API will not be built.])
-      fi
-   fi
 fi
 
 AC_MSG_NOTICE([finding C++ compiler (will not be used if C++ API is not desired)])
@@ -1087,36 +1050,30 @@ AC_MSG_NOTICE([checking types, headers, and functions])
 
 AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
 AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
-AC_CHECK_HEADERS([locale.h])
+#AC_CHECK_HEADERS([locale.h])
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
-AC_CHECK_HEADERS([stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/resource.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h errno.h ctype.h fcntl.h malloc.h stdlib.h string.h \
+			   strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/resource.h])
 AC_FUNC_VPRINTF
 
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup strcasecmp])
-AC_CHECK_FUNCS([strtod strtoll])
-AC_CHECK_FUNCS([getrlimit])
-AC_CHECK_FUNCS([gettimeofday])
-AC_CHECK_FUNCS([fsync])
-AC_CHECK_FUNCS([MPI_Comm_f2c])
+AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \
+			strcasecmp strtod strtoll getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 #UD_CHECK_LIB_MATH
-
+AC_CHECK_LIB([m], [floor], [], [AC_MSG_ERROR([Can't find or link to the math library.])])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
 AC_CHECK_TYPES([ssize_t, ptrdiff_t, uchar, longlong])
-#AC_CHECK_TYPE(ssize_t, int)
-#AC_CHECK_TYPE(ptrdiff_t, int)
-#AC_CHECK_TYPE(uchar, unsigned char)
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 AC_CHECK_SIZEOF(short)
@@ -1170,118 +1127,78 @@ if test ! "x$PNETCDFDIR" = x; then
    CPPFLAGS="${CPPFLAGS} -I${PNETCDFDIR}/include"
 fi
 
-# Check for the header.
-AC_CHECK_HEADERS([hdf5.h], [], [nc_hdf5_h_missing=yes])
-
-# If HDF5 is not found, error out if the user specifically asked for
-# netcdf-4, otherwise just turn netCDF-4 off.
-if test "x$nc_hdf5_h_missing" = xyes; then
-# I think this should only check the
-# enable_netcdf4 flag
-#   if test "x$enable_netcdf_4" = xyes -o "x$HDF5DIR" != x; then
-   if test "x$enable_netcdf_4" = xyes ; then
-      AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found. Try using \
-      the --with-hdf5 option to specify location of HDF5.])
-   else	  
-      enable_netcdf_4=no
-   fi
-else
-   if test ! "x$enable_netcdf_4" = xno; then
-      enable_netcdf_4=yes
-   fi
+# If the user specified a HDF5 directory, assume they want netcdf-4
+# turned on.
+if test "x$HDF5DIR" != x; then
+   enable_netcdf_4=yes
 fi
 
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
 AC_MSG_RESULT([$enable_netcdf_4])
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
-   AC_CHECK_LIB([z], [deflate], [], [nc_z_lib_missing=yes])
-   if test "x$nc_z_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
-      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])
-   fi
+   AC_CHECK_LIB([z], [deflate], [], [
+   AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+   opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
-
 
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
    # Check for the main hdf5 library.
-   AC_CHECK_LIB([hdf5], [H5Fflush], [], [nc_hdf5_lib_missing=yes])
-   if test "x$nc_hdf5_h_missing" = xyes || test "x$nc_hdf5_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --with-hdf5, or use \
-      --disable-netcdf-4, or see config.log for errors.])
-   fi
+   AC_CHECK_LIB([hdf5], [H5Fflush], [], [AC_MSG_ERROR([Can't find or link to the hdf5 library. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])])
    
    # We also require the HDF5 High Level library.
-   AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [nc_hdf5_hl_lib_missing=yes])
-   if test "x$nc_hdf5_hl_lib_missing" = xyes; then
-      AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --with-hdf5, or use \
-      --disable-netcdf-4, or see config.log for errors.])
-   fi
-   
+   AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Configure with --with-hdf5, or use \
+      --disable-netcdf-4, or see config.log for errors.])])
+
+   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found. Try using \
+      the --with-hdf5 option to specify location of HDF5.])])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_can_apply_szip])
+
    # The user may have parallel HDF5 based on MPI POSIX.
-   AC_CHECK_LIB([hdf5], [H5Pget_fapl_mpiposix], [enable_parallel_posix=yes], [])
-   if test "x$enable_parallel_posix" = xyes; then
+   if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       AC_DEFINE([USE_PARALLEL_POSIX], [1], [if true, compile in parallel netCDF-4 based on MPI/POSIX])
    fi
    
    # The user may have parallel HDF5 based on MPI mumble mumble.
-   AC_CHECK_LIB([hdf5], [H5Pget_fapl_mpio], [enable_parallel_mpio=yes], [])
-   if test "x$enable_parallel_mpio" = xyes; then
+   if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes; then
       AC_DEFINE([USE_PARALLEL_MPIO], [1], [if true, compile in parallel netCDF-4 based on MPI/IO])
    fi
 
    # If parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
    enable_parallel=no
-  # AC_MSG_CHECKING([how to modify netcdf.h to deal with parallel I/O])
-   if test "x$enable_parallel_mpio" = xyes -o "x$enable_parallel_posix" = xyes; then
+   if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       enable_parallel=yes
       AC_DEFINE([USE_PARALLEL], [1], [if true, parallel netCDF-4 is in use])
-      # Modify netcdf.h to include parallel stuff.
-# When doing distcheck, this cmd will fail because of
-# the permissions set on $top_builddir.
-# So, we forcibly reset the permissions
-#chmod u+w libsrc4/netcdf.h
-#      sed '/#include <errno.h>/{G;s/$/\/* mpi.h included by configure. *\//;G;s/$/#include <mpi.h>/;}' libsrc4/netcdf_base.h > libsrc4/netcdf.h
 
       # Using pnetcdf for classic parallel I/O?
       if test "x$enable_pnetcdf" = xyes; then
-         AC_CHECK_LIB([pnetcdf], [ncmpi_create], [nc4_have_pnetcdf_lib=yes])
-	 if test "x$nc4_have_pnetcdf_lib" != xyes; then
-            AC_MSG_ERROR([Cannot link to pnetcdf library, yet --enable-pnetcdf was used.])
-	 fi
+         AC_CHECK_LIB([pnetcdf], [ncmpi_create], [], 
+	 [AC_MSG_ERROR([Cannot link to pnetcdf library, yet --enable-pnetcdf was used.])])
+
 dnl          AC_CHECK_HEADERS([pnetcdf.h], [], [nc4_pnetcdf_h_missing=yes)	   
 dnl 	 if test ! "x$HAVE_PNETCDF" = x1; then
 dnl             AC_MSG_ERROR([Cannot find pnetcdf header, yet --enable-pnetcdf was used.])
 dnl 	 fi
          AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])      	 
       fi
-#      AC_MSG_RESULT([with parallel])         
-#   else
-#      AC_MSG_RESULT([without parallel])         
-      # Modify netcdf.h to include defs for missing parallel stuff.
-      # WARNING: the similar defs in libdispatch/ncdispatch.h must match this
-# When doing distcheck, this cmd will fail because of
-# the permissions set on $top_builddir.
-# So, we forcibly reset the permissions
-#chmod u+w libsrc4/netcdf.h
- #     sed '/#include <errno.h>/{G;s/$/\/* These defs added by netCDF configure because parallel HDF5 is not present. *\//;G;s/$/#ifndef MPI_INCLUDED/;G;s/$/#define MPI_Comm int/;G;s/$/#define MPI_Info int/;G;s/$/#define MPI_COMM_WORLD 0/;G;s/$/#define MPI_INFO_NULL 0/;G;s/$/#endif/;}' libsrc4/netcdf_base.h > libsrc4/netcdf.h
    fi
    
    AC_MSG_CHECKING([whether parallel I/O features are to be included])
    AC_MSG_RESULT([$enable_parallel])         
    
    # The user must have build HDF5 with the ZLIB library.
-   AC_CHECK_LIB([hdf5], [H5Pset_deflate], [enable_zlib=yes], [])
-   if test "x$enable_zlib" = xyes; then
+   #AC_CHECK_LIB([hdf5], [H5Pset_deflate], [enable_zlib=yes], [])
+   if test "x$ac_cv_func_H5Pset_deflate" = xyes; then
       AC_DEFINE([USE_ZLIB], [1], [if true, compile in zlib compression in netCDF-4 variables])
    fi
 
    # The user must have build HDF5 with the ZLIB library.
-   AC_CHECK_LIB([hdf5], [H5Z_can_apply_szip], [enable_szip=yes], [])
-   if test "x$enable_szip" = xyes; then
+   #   AC_CHECK_LIB([hdf5], [H5Z_can_apply_szip], [enable_szip=yes], [])
+   if test "x$ac_cv_func_H5Z_can_apply_szip" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
@@ -1294,11 +1211,6 @@ dnl 	 fi
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
-else
-# !netcdf-4
-   # Modify netcdf.h to include defs for missing parallel stuff.
-   #sed '/#include <errno.h>/{G;s/$/\/* These defs added by netCDF configure because parallel HDF5 is not present. *\//;G;s/$/#ifndef MPI_INCLUDED/;G;s/$/#define MPI_Comm int/;G;s/$/#define MPI_Info int/;G;s/$/#define MPI_COMM_WORLD 0/;G;s/$/#define MPI_INFO_NULL 0/;G;s/$/#endif/;}' libsrc4/netcdf_base.h > libsrc4/netcdf.h
- ignore=1;
 fi
 
 # Restore LDFLAGS to it's old value.
@@ -1521,7 +1433,7 @@ if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
   fi
 fi
 
-if test "x$enable_dap" = xyes ; then 
+if test "x$enable_dap" = xyes -o "x$enable_cdmremote" = xyes ; then 
   if test "x$curl_libs" != x ; then
     EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
     EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
@@ -1545,9 +1457,6 @@ xsolaris*)
   ;;
 *);;
 esac
-
-# Finally, add -lz always
-#EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
 
 # Alias
 EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
@@ -1583,6 +1492,7 @@ AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
                  include/Makefile
+                 h5_test/Makefile
                  man4/Makefile
                  fortran/Makefile
                  libsrc/Makefile
@@ -1605,8 +1515,7 @@ AC_CONFIG_FILES([Makefile
                  examples/F90/Makefile
                  examples/F77/Makefile
                   oc/Makefile
-                  libncdap3/Makefile
-                  libncdap4/Makefile
+                  libdap2/Makefile
                   libcdmr/Makefile
                   libdispatch/Makefile
                   liblib/Makefile

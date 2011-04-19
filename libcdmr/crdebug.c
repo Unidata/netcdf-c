@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "nccr.h"
+#include "crdebug.h"
 
 #ifdef CATCHERROR
 
@@ -19,7 +19,7 @@ int
 nccrthrow(int err)
 {
     if(err == 0) return err;
-    return dapbreakpoint(err);
+    return nccrbreakpoint(err);
 }
 #endif
 

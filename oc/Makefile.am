@@ -28,7 +28,6 @@ GRAMFILES=dap.y
 # autoconf persists in removing the bison output unless it is renamed
 GRAMC=daptab.c
 GRAMH=daptab.h
-BUILT_SOURCES = daptab.c daptab.h
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
@@ -40,15 +39,14 @@ endif
 
 EXTRA_DIST = ${GRAMFILES}
 
-#Normally not invoked unless after maintainer-clean or deliberate deletion
-daptab.c: dap.y
+# These rule are used if someone wants to rebuild the grammar files.
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
+
+.PHONEY: bison
+
+bison daptab.c daptab.h: dap.y
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
-
-daptab.h: dap.y daptab.c
-	rm -f dap.tab.c dap.tab.h
-	bison --debug -d -p dap dap.y
-	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
-
-

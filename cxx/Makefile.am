@@ -54,8 +54,10 @@ TESTS += run_valgrind_tests.sh
 endif # USE_VALGRIND_TESTS
 
 # If the utilities have been built, run these extra tests.
+if !BUILD_DLL
 if BUILD_UTILITIES
 TESTS += run_nc_tests.sh
+endif
 endif
 
 AM_CPPFLAGS += -I${top_srcdir}/liblib
@@ -67,7 +69,15 @@ include_HEADERS = netcdfcpp.h ncvalues.h netcdf.hh
 
 # This is our output library. 
 lib_LTLIBRARIES = libnetcdf_c++.la
-
-# Library source.
 libnetcdf_c___la_SOURCES = netcdf.cpp ncvalues.cpp
 libnetcdf_c___la_LDFLAGS = -version-number 4:1:0
+libnetcdf_c___la_CPPFLAGS = ${AM_CPPFLAGS}
+libnetcdf_c___la_LIBADD = $(top_builddir)/liblib/libnetcdf.la
+
+# If we are building the dll (under MinGW) then set the correct flags.
+if BUILD_DLL
+libnetcdf_c___la_CPPFLAGS += -DDLL_EXPORT
+libnetcdf_c___la_LDFLAGS += -no-undefined	\
+-Wl,--output-def,netcdf_c++dll.def
+endif
+

@@ -55,7 +55,7 @@ NC_testurl(const char* path)
     if(path == NULL) return 0;
 
     /* find leading non-blank */
-    for(p=path;*p;p++) {if(*p != ' ') break;}
+    for(p=(char*)path;*p;p++) {if(*p != ' ') break;}
 
     /* Do some initial checking to see if this looks like a file path */
     if(*p == '/') return 0; /* probably an absolute file path */

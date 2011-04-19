@@ -9,7 +9,6 @@
 
 #include <nc_tests.h>
 #include "netcdf.h"
-#include "nc4internal.h"
 
 #define FILE_NAME1 "tst_atts2.nc"
 #define FILE_NAME2 "tst_atts2_2.nc"

@@ -5,11 +5,12 @@
 
 # $Id: Makefile.am,v 1.60 2010/05/29 00:21:22 dmh Exp $
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/liblib @EXTERN_CFLAGS@
-AM_LDFLAGS = @EXTERN_LDFLAGS@
+AM_CPPFLAGS = -I$(top_srcdir)/include 
+AM_LDFLAGS = #@EXTERN_LDFLAGS@
 
-# May need to set this.
-libnetcdff_la_LIBADD = 
+# May need to set these.
+libnetcdff_la_LIBADD = $(top_builddir)/liblib/libnetcdf.la
+libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) 
 
 # The F77 API man page.
 man_MANS = netcdf_f77.3
@@ -75,20 +76,21 @@ endif
 # library.
 if BUILD_SEPARATE_FORTRAN
 lib_LTLIBRARIES = libnetcdff.la
-libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) -version-number 5:1:0 
+libnetcdff_la_LDFLAGS += -version-number 5:1:0 
 else
 noinst_LTLIBRARIES = libnetcdff.la
-endif
+endif # BUILD_SEPARATE_FORTRAN
+
+# Turn on some special flags for building DLL.
+if BUILD_DLL
+AM_CPPFLAGS += -DDLL_EXPORT
+libnetcdff_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdffdll.def
+endif # BUILD_DLL
 
 # If F90 is built, include it's convenience library.
 if BUILD_F90
 libnetcdff_la_LIBADD += ${top_builddir}/f90/libnetcdff90.la
 nodist_EXTRA_libnetcdff_la_SOURCES = dummy.f90
-endif
-
-# If we are building the dll (under MinGW) then set the correct flags.
-if BUILD_DLL
-AM_CPPFLAGS += -DNC_DLL_EXPORT
 endif
 
 # The nfconfig.in file is turned into nfconfig.inc by the configure

@@ -1,6 +1,9 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include "ocinternal.h"
 #include <stdio.h>
 #include <fcntl.h>

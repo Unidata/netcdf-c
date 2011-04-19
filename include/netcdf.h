@@ -295,6 +295,7 @@ extern "C" {
 #define NC_EDATADDS	(-73)   /* Malformed or inaccessible DATADDS */
 #define NC_EDAPURL	(-74)   /* Malformed DAP URL */
 #define NC_EDAPCONSTRAINT (-75)   /* Malformed DAP Constraint*/
+#define NC_ETRANSLATION (-76)   /* Untranslatable construct */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
@@ -356,18 +357,21 @@ extern "C" {
 #  else
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
-/*#include <io.h>*/
+#include <io.h>
+#ifndef uint
+   typedef unsigned int uint;
+#endif
 /*#define lseek _lseeki64
   #define off_t __int64*/
 #else
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
-# define EXTERNL extern MSC_EXTRA
+# define EXTERNL MSC_EXTRA extern
 
 #if defined(DLL_NETCDF) /* define when library is a DLL */
-MSC_EXTRA int ncerr;
-MSC_EXTRA int ncopts;
+EXTERNL int ncerr;
+EXTERNL int ncopts;
 #endif
 
 EXTERNL const char *
@@ -1650,6 +1654,10 @@ nc_inq_base_pe(int ncid, int *pe);
 
 /* #endif _CRAYMPP */
 
+/* This v2 function is used in the nc_test program. */
+EXTERNL int
+nctypelen(nc_type datatype);
+
 /* Begin v2.4 backward compatiblity */
 /*
  * defining NO_NETCDF_2 to the preprocessor
@@ -1702,9 +1710,6 @@ nc_advise(const char *cdf_routine_name, int err, const char *fmt,...);
  * This is the only thing in this file which architecture dependent.
  */
 typedef int nclong;
-
-EXTERNL int
-nctypelen(nc_type datatype);
 
 EXTERNL int
 nccreate(const char* path, int cmode);

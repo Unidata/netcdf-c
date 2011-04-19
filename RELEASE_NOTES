@@ -3,7 +3,21 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.1.2-beta3    2011-02-11
+4.X		2011-04-17
+
+		 Merged libncdap3 and libncdap4 into new libdap2 library.
+                 The suffix dap2 now refers to the dap protocol. This is
+                 in prep for adding dap4 protocol support.
+
+4.1.2-rc1      2011-03-17
+
+	        Changes in build system to support building dlls on
+	        cygwin/mingw32.
+
+		Changes to fix portability problems and get things
+		running on all test platforms.
+
+		Some minor documentation fixes.
 
 		Fixed opendap performance bug for nc_get_vars; required
                 adding nc_get_var{s,m} to the dispatch table.

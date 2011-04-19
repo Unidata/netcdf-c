@@ -52,7 +52,7 @@
 @set docs-url @value{netcdf-url}/docs
 @set docs4-url @value{netcdf-url}/netcdf-4/newdocs
 @set old-docs-url @value{netcdf-url}/old_docs
-@set v2-docs-url @value{netcdf-url}/guide_toc.html
+@set v2-docs-url @value{netcdf-url}/old_docs/really_old/guide_toc.html
 @set pre360-install-url @value{old-docs-url}/INSTALL_pre_360.html
 @set 360-install-url @value{old-docs-url}/docs_3_6_0/netcdf-install
 @set 361-install-url @value{old-docs-url}/docs_3_6_1/netcdf-install

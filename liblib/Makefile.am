@@ -6,19 +6,21 @@
 # libraries have been built (e.g. libsrc, libsrc4, libncdap3, libcdmr,
 # libncdap4, fortran).
 
-AM_LDFLAGS = @EXTERN_LDFLAGS@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I${top_srcdir}/libsrc	\
--I${top_srcdir}/libdispatch
-libnetcdf_la_LIBADD = 
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 # This is our output, the netcdf library the user will install.
 lib_LTLIBRARIES = libnetcdf.la
 
 # These linker flags specify libtool version info.
-libnetcdf_la_LDFLAGS = -version-number 7:0:1
+libnetcdf_la_LDFLAGS = -version-number 7:0:1 
+libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
+libnetcdf_la_LIBADD = 
 
+# Turn on some extra stuff when building a DLL for windows.
 if BUILD_DLL
-libnetcdf_la_LDFLAGS += -no-undefined
+libnetcdf_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdfdll.def
+libnetcdf_la_CPPFLAGS += -DDLL_EXPORT
 endif # BUILD_DLL
 
 # The v2 API...
@@ -32,8 +34,8 @@ ${top_builddir}/libsrc/libnetcdf3.la
 
 # netcdf3 + dap
 if USE_DAP
-AM_CPPFLAGS += -I${top_srcdir}/libncdap3 -I${top_srcdir}/oc
-libnetcdf_la_LIBADD += ${top_builddir}/libncdap3/libncdap3.la
+AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
+libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
 libnetcdf_la_LIBADD += ${top_builddir}/oc/liboc.la
 endif # USE_DAP
 
@@ -42,11 +44,6 @@ if USE_NETCDF4
 
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
-
-# netcdf4+dap
-if USE_DAP
-libnetcdf_la_LIBADD += ${top_builddir}/libncdap4/libncdap4.la
-endif # USE_DAP
 
 # netcdf4+cdmremote
 if BUILD_CDMREMOTE

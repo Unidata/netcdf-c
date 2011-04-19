@@ -323,7 +323,7 @@ NC_open(const char *path, int cmode,
       return  NC_ENOTNC;
 
   havetable:
-   stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
+  stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
 			   useparallel, mpi_info, dispatcher, &ncp);
    if(stat == NC_NOERR) {
       ncp->dispatch = dispatcher;

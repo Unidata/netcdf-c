@@ -1200,12 +1200,12 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     
     if(vsym != NULL) special = &vsym->var.special;
     if(tag == _FORMAT_FLAG) {
-	if(kflag_flag == 0) goto done;
-	/* Only use this tag if kflag is not set */
-	/* Use the table in main.c */
 	struct Kvalues* kvalue;
 	int found = 0;
         int modifier = 0;
+	if(kflag_flag == 0) goto done;
+	/* Only use this tag if kflag is not set */
+	/* Use the table in main.c */
         for(kvalue=legalkinds;kvalue->name;kvalue++) {
 	    if(strcmp(sdata,kvalue->name) == 0) {
 		modifier = kvalue->mode;

@@ -1,6 +1,9 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#define CRUDE
+
+#include "config.h"
 #include <sys/stat.h>
 
 #ifdef NETINET_IN_H
@@ -226,7 +229,6 @@ dumpmem2(char* s, char* accum, int align)
 static void
 dumpmem1(int index, unsigned int n, unsigned int n1)
 {
-    int i;
     char s[1024];
     char tmp[32];
     union {
@@ -235,16 +237,22 @@ dumpmem1(int index, unsigned int n, unsigned int n1)
 	unsigned char cv[4];
 	float fv;
     } form;
+#ifndef CRUDE
     union {
 	unsigned int uv[2];
 	double dv;
     } dform;
+    int i;
+#endif
     form.uv = n;
     s[0] = '\0';
+#ifndef CRUDE
     sprintf(tmp,"%6d",index);
     dumpmem2(tmp,s,5);
+#endif
     sprintf(tmp,"%08x",form.uv);
     dumpmem2(tmp,s,8);
+#ifndef CRUDE
     sprintf(tmp,"%12u",form.uv);
     dumpmem2(tmp,s,12);
     sprintf(tmp,"%12d",form.sv);
@@ -265,6 +273,9 @@ dumpmem1(int index, unsigned int n, unsigned int n1)
     dform.uv[0] = n1;
     sprintf(tmp,"%#g",dform.dv);
     dumpmem2(tmp,s,12);
+#else
+    tmp[0] = '\0';
+#endif
     strcat(s,"\n");
     fprintf(stderr,"%s",s);
 }
@@ -274,10 +285,13 @@ dumpmemory0(char* memory, int len, int fromxdr, int bod)
 {
     unsigned int i,count,rem;
     int* imemory;
+#ifndef CRUDE
     char hdr[1024];
+#endif
 
     assert(memory[len] == 0);
 
+#ifndef CRUDE
     /* build the header*/
     hdr[0] = '\0';
     dumpmem2("offset",hdr,6);
@@ -289,6 +303,7 @@ dumpmemory0(char* memory, int len, int fromxdr, int bod)
     dumpmem2("double",hdr,12);
     strcat(hdr,"\n");
     fprintf(stderr,"%s",hdr);
+#endif
 
     count = (len / sizeof(int));
     rem = (len % sizeof(int));
@@ -316,9 +331,9 @@ ocdumppacket(char* memory, int len, int bod)
 }
 
 void
-ocdumpmemory(char* memory, int len)
+ocdumpmemory(char* memory, int len, int bod)
 {
-    dumpmemory0(memory,len,0,0);
+    dumpmemory0(memory,len,0,bod);
 }
 
 void
@@ -479,7 +494,9 @@ ocdd(OCstate* state, OCnode* root)
 #ifdef OC_DISK_STORAGE
     ocdumpfile(root->tree->data.file,root->tree->data.bod);
 #else
-    ocdumpmemory(root->tree->data.xdrdata,root->tree->data.bod);
+    ocdumpmemory(root->tree->data.xdrdata,
+		 root->tree->data.datasize,
+		 root->tree->data.bod);
 #endif
 }
 

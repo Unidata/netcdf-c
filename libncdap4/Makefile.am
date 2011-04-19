@@ -56,16 +56,19 @@ LDADD += ${top_builddir}/oc/liboc.la
 LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
-check_PROGRAMS = t_dap4
+check_PROGRAMS = t_dap4 t_dap4c
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap4
+TESTS = t_dap4 t_dap4c
 t_dap4_SOURCES = t_dap4.c stubdap4.c
-CLEANFILES += t_dap4
+t_dap4c_SOURCES = t_dap4c.c stubdap4.c
+CLEANFILES += t_dap4 t_dap4c
 
 # This rule are used if someone wants to rebuild t_dap4.c
 # Otherwise never invoked, but records how to do it.
 t_dap4.c: ../libncdap3/t_dap.c
 	cat ../libncdap3/t_dap.c >> ./t_dap4.c
+t_dap4c.c: ../libncdap3/t_dap3c.c
+	cat ../libncdap3/t_dap3c.c >> ./t_dap4c.c
 
 endif # USE_NETCDF4
 
