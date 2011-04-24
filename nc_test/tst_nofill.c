@@ -5,9 +5,11 @@
   This is part of netCDF.
    
   This program tests for a bug discovered with nofill mode that failed
-  only on file systems with large block size.
+  only on file systems with large block size.  It succeeds when
+  invoked with the blksize argument 2093576 or smaller, and fails when
+  any larger blocksize argument is used.
 
-  $Id: tst_misc.c,v 1.6 2010/05/05 22:15:36 dmh Exp $
+  $Id: tst_nofill.c,v 1.6 2010/05/05 22:15:36 russ Exp $
 */
 
 #include <config.h>
@@ -673,13 +675,13 @@ main(int argc, char **argv)
     }
    printf("\n*** Testing nofill mode.\n");
    {
-       printf("*** Create file in fill mode, writing all values...");
-       if (create_file(FILE_NAME1, NC_FILL, &sizehint)) ERR;
+       printf("*** Create file in nofill mode, writing all values...");
+       if (create_file(FILE_NAME1, NC_NOFILL, &sizehint)) ERR;
        SUMMARIZE_ERR;
    }
    {
-       printf("*** Create file with same data in nofill mode, writing all values...");
-       if (create_file(FILE_NAME2, NC_NOFILL, &sizehint)) ERR;
+       printf("*** Create file with same data in fill mode, writing all values...");
+       if (create_file(FILE_NAME2, NC_FILL, &sizehint)) ERR;
        SUMMARIZE_ERR;
    }
    {
@@ -688,9 +690,9 @@ main(int argc, char **argv)
        int varid;
        int badvars;
 
-       printf("*** Compare values in fill mode and nofill mode files...");
-       /* compare data in two files created with fill mode and nofill
-	* mode, which should be identical if all the data was written */
+       printf("*** Compare values in nofill mode and fill mode files...");
+       /* compare data in two files created with nofill mode and fill
+	* mode, which should be identical if all the data were written */
        if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid1)) ERR;
        if (nc_open(FILE_NAME2, NC_NOWRITE, &ncid2)) ERR;
        if (nc_inq_nvars(ncid1, &nvars1)) ERR;
@@ -733,7 +735,7 @@ main(int argc, char **argv)
 		   if (data1[nn] != data2[nn]) {
 		       badvars++;
 		       fprintf(stderr, 
-			       "\tFrom   fill file, %s[%d] = %.15g\tFrom nofill file, %s[%d] = %.15g\n", 
+			       "\tFrom nofill file, %s[%d] = %.15g\tFrom fill file, %s[%d] = %.15g\n", 
 			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
 		       break;
 		   };
@@ -755,7 +757,7 @@ main(int argc, char **argv)
 		   if (data1[nn] != data2[nn]) {
 		       badvars++;
 		       fprintf(stderr, 
-			       "\tFrom   fill file, %s[%d] = %d\tFrom nofill file, %s[%d] = %d\n", 
+			       "\tFrom nofill file, %s[%d] = %d\tFrom fill file, %s[%d] = %d\n", 
 			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
 		       break;
 		   };
