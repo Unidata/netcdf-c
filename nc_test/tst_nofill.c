@@ -13,7 +13,9 @@
 #include <config.h>
 #include <nc_tests.h>
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <netcdf.h>
 
 #define FILE_NAME1 "tst_fill1.nc"
@@ -29,7 +31,7 @@ check_err(const int stat, const int line, const char *file) {
 }
 
 int
-create_file(char *file_name, int fill_mode) 
+create_file(char *file_name, int fill_mode, size_t* sizehintp) 
 {
    int i;
    int  stat;			/* return status */
@@ -133,9 +135,14 @@ create_file(char *file_name, int fill_mode)
    float zonal_wnd_missing_value[1];
 
    int old_fill_mode;
+   size_t default_initialsize = 0;
 
    /* enter define mode */
-   stat = nc_create(file_name, NC_CLOBBER, &ncid);
+   /* stat = nc_create(file_name, NC_CLOBBER, &ncid); */
+   /* Permit setting "chunksize hint" instead of using blksize from fstat or 8192 */
+   /* Note. may round up *sizehintp and return rounded up value */
+   
+   stat = nc__create(file_name, NC_CLOBBER, default_initialsize, sizehintp, &ncid);
    check_err(stat,__LINE__,__FILE__);
    stat = nc_set_fill(ncid, fill_mode, &old_fill_mode);
    check_err(stat,__LINE__,__FILE__);
@@ -647,15 +654,32 @@ create_file(char *file_name, int fill_mode)
 int
 main(int argc, char **argv)
 {
+    size_t sizehint = 2093578;	/* default if not set on command line, exposes bug */
+
+    if (argc > 1) {
+	char *endptr, *str = argv[1];
+	errno = 0;
+	sizehint = strtol(str, &endptr, 0);
+	/* check for various possible errors */
+	if ((errno == ERANGE && (sizehint == LONG_MAX || sizehint == LONG_MIN))
+                   || (errno != 0 && sizehint == 0)) {
+               perror("strtol");
+               exit(EXIT_FAILURE);
+	}
+	if (endptr == str) {
+	    fprintf(stderr, "No digits were found\n");
+	    exit(EXIT_FAILURE);
+	}
+    }
    printf("\n*** Testing nofill mode.\n");
    {
        printf("*** Create file in fill mode, writing all values...");
-       if (create_file(FILE_NAME1, NC_FILL)) ERR;
+       if (create_file(FILE_NAME1, NC_FILL, &sizehint)) ERR;
        SUMMARIZE_ERR;
    }
    {
        printf("*** Create file with same data in nofill mode, writing all values...");
-       if (create_file(FILE_NAME2, NC_NOFILL)) ERR;
+       if (create_file(FILE_NAME2, NC_NOFILL, &sizehint)) ERR;
        SUMMARIZE_ERR;
    }
    {
@@ -665,7 +689,8 @@ main(int argc, char **argv)
        int badvars;
 
        printf("*** Compare values in fill mode and nofill mode files...");
-       /* compare numerical data in two files, which should be identical */
+       /* compare data in two files created with fill mode and nofill
+	* mode, which should be identical if all the data was written */
        if (nc_open(FILE_NAME1, NC_NOWRITE, &ncid1)) ERR;
        if (nc_open(FILE_NAME2, NC_NOWRITE, &ncid2)) ERR;
        if (nc_inq_nvars(ncid1, &nvars1)) ERR;
@@ -673,24 +698,28 @@ main(int argc, char **argv)
        if (nvars1 != nvars2) ERR;
        badvars = 0;
        for(varid = 0; varid < nvars1; varid++) {
+	   size_t nvals, nn;
+	   int ndims, *dimids, dim;
 	   nc_type vtype;
+	   char varname1[NC_MAX_NAME];		   
+	   char varname2[NC_MAX_NAME];
+	   /* How many values in this variable to compare? */
+	   if (nc_inq_varndims(ncid1, varid, &ndims)) ERR;
+	   dimids = malloc((ndims + 1) * sizeof(int));
+	   if (!dimids) ERR;
+	   if (nc_inq_vardimid (ncid1, varid, dimids)) ERR;
+	   nvals = 1;
+	   for(dim = 0; dim < ndims; dim++) {
+	       size_t len;
+	       if (nc_inq_dimlen(ncid1, dimids[dim], &len)) ERR;
+	       nvals *= len;
+	   }
 	   if (nc_inq_vartype(ncid1, varid, &vtype)) ERR;
-	   if (vtype == NC_INT || vtype == NC_BYTE || vtype == NC_SHORT 
-	      || vtype == NC_FLOAT || vtype == NC_DOUBLE) { /* don't compare chars, for now */
-	       size_t nvals, nn;
+	   if (nc_inq_varname(ncid1, varid, varname1)) ERR;
+	   if (nc_inq_varname(ncid1, varid, varname2)) ERR;
+	   
+	   if (vtype != NC_CHAR) {  /* numeric data, just read in as doubles */
 	       double *data1, *data2;
-	       int ndims, *dimids, dim;
-	       /* How many values in this variable to compare? */
-	       if (nc_inq_varndims(ncid1, varid, &ndims)) ERR;
-	       dimids = malloc((ndims + 1) * sizeof(int));
-	       if (!dimids) ERR;
-	       if (nc_inq_vardimid (ncid1, varid, dimids)) ERR;
-	       nvals = 1;
-	       for(dim = 0; dim < ndims; dim++) {
-		   size_t len;
-		   if (nc_inq_dimlen(ncid1, dimids[dim], &len)) ERR;
-		   nvals *= len;
-	       }
 	       /* Allocate space to hold values in both files */
 	       data1 = malloc((nvals + 1) * sizeof(double));
 	       if (!data1) ERR;
@@ -701,22 +730,40 @@ main(int argc, char **argv)
 	       if (nc_get_var_double(ncid2, varid, data2)) ERR;
 	       /* Compare values */
 	       for(nn = 0; nn < nvals; nn++) {
-		   char varname1[NC_MAX_NAME];		   
-		   char varname2[NC_MAX_NAME];
 		   if (data1[nn] != data2[nn]) {
 		       badvars++;
-		       if (nc_inq_varname(ncid1, varid, varname1)) ERR;
-		       if (nc_inq_varname(ncid1, varid, varname2)) ERR;
 		       fprintf(stderr, 
-	       "\tFrom   fill file, %s[%d] = %.15g\tFrom nofill file, %s[%d] = %.15g\n", 
+			       "\tFrom   fill file, %s[%d] = %.15g\tFrom nofill file, %s[%d] = %.15g\n", 
 			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
 		       break;
 		   };
 	       }
 	       free(data1);
 	       free(data2);
-	       free(dimids);
+	   } else {		/* character data */
+	       char *data1, *data2;
+	       /* Allocate space to hold values in both files */
+	       data1 = malloc((nvals + 1) * sizeof(char));
+	       if (!data1) ERR;
+	       data2 = malloc((nvals + 1) * sizeof(char));
+	       if (!data2) ERR;
+	       /* Read in values */
+	       if (nc_get_var_text(ncid1, varid, data1)) ERR;
+	       if (nc_get_var_text(ncid2, varid, data2)) ERR;
+	       /* Compare values */
+	       for(nn = 0; nn < nvals; nn++) {
+		   if (data1[nn] != data2[nn]) {
+		       badvars++;
+		       fprintf(stderr, 
+			       "\tFrom   fill file, %s[%d] = %d\tFrom nofill file, %s[%d] = %d\n", 
+			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
+		       break;
+		   };
+	       }
+	       free(data1);
+	       free(data2);
 	   }
+	   free(dimids);
        }
        if(badvars > 0) ERR;
        if (nc_close(ncid1)) ERR;
