@@ -272,7 +272,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Set latest_format in access propertly list and
     * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
     * on HDF5 creation ordering. */
-   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
+   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_18, H5F_LIBVER_18) < 0)
       BAIL(NC_EHDFERR);
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
