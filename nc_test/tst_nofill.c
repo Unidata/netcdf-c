@@ -328,7 +328,11 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 int
 main(int argc, char **argv)
 {
-    size_t sizehint = 2093578;	/* default if not set on command line, exposes bug */
+    size_t sizehint = 2100000;	/* default if not set on command line,
+				 * exposes bug.  It turns out any
+				 * value between 2091953 and 2150032
+				 * exposes the bug, whereas all other
+				 * values work fine. */
 
     if (argc > 1) {
 	char *endptr, *str = argv[1];
