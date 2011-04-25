@@ -325,8 +325,8 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    
    {		      /* store zonal_wnd */
        /* Bug exposed when written in reverse order. */
-       /* for(i = LVL_LEN - 1; i>=0; i--) */
-       for(i = 0; i < LVL_LEN; i++)
+       for(i = LVL_LEN - 1; i>=0; i--)
+       /* for(i = 0; i < LVL_LEN; i++) */
        {
 	   int izw;
 	   for(izw = 0; izw < TIME_LEN * LAT_LEN * LON_LEN; izw++) {
