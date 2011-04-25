@@ -5,9 +5,9 @@
   This is part of netCDF.
    
   This program tests for a bug discovered with nofill mode that failed
-  only on file systems with large block size.  It succeeds when
-  invoked with the blksize argument 2093576 or smaller, and fails when
-  any larger blocksize argument is used.
+  only on file systems with block size in a particular range.  It fails
+  when invoked with the blksize argument between 2091953 and 2150032,
+  inclusive, and succeeds for other blksizes.
 
   $Id: tst_nofill.c,v 1.6 2010/05/05 22:15:36 russ Exp $
 */
@@ -32,6 +32,11 @@ check_err(const int stat, const int line, const char *file) {
     }
 }
 
+#define LON_LEN 240
+#define LAT_LEN 121
+#define LVL_LEN 31
+#define TIME_LEN 1
+
 int
 create_file(char *file_name, int fill_mode, size_t* sizehintp) 
 {
@@ -44,28 +49,18 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    int lat_dim;
    int lvl_dim;
    int time_dim;
-   int char_size_dim;
 
    /* dimension lengths */
-   size_t lon_len = 240;
-   size_t lat_len = 121;
-   size_t lvl_len = 31;
-   size_t time_len = NC_UNLIMITED;
-   size_t char_size_len = 4;
+   size_t lon_len = LON_LEN;
+   size_t lat_len = LAT_LEN;
+   size_t lvl_len = LVL_LEN;
+   size_t time_len = TIME_LEN;
 
    /* variable ids */
    int time_id;
-   int seg_type_id;
    int lat_id;
    int lon_id;
    int lvl_id;
-   int base_date_id;
-   int base_time_id;
-   int valid_date_id;
-   int valid_time_id;
-   int forc_hrs_id;
-   int wrtn_date_id;
-   int wrtn_time_id;
    int sfc_pres_id;
    int temp_scrn_id;
    int qsair_scrn_id;
@@ -76,17 +71,9 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
    /* rank (number of dimensions) for each variable */
 #  define RANK_time 1
-#  define RANK_seg_type 2
 #  define RANK_lat 1
 #  define RANK_lon 1
 #  define RANK_lvl 1
-#  define RANK_base_date 1
-#  define RANK_base_time 1
-#  define RANK_valid_date 1
-#  define RANK_valid_time 1
-#  define RANK_forc_hrs 1
-#  define RANK_wrtn_date 1
-#  define RANK_wrtn_time 1
 #  define RANK_sfc_pres 3
 #  define RANK_temp_scrn 3
 #  define RANK_qsair_scrn 3
@@ -97,17 +84,9 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
    /* variable shapes */
    int time_dims[RANK_time];
-   int seg_type_dims[RANK_seg_type];
    int lat_dims[RANK_lat];
    int lon_dims[RANK_lon];
    int lvl_dims[RANK_lvl];
-   int base_date_dims[RANK_base_date];
-   int base_time_dims[RANK_base_time];
-   int valid_date_dims[RANK_valid_date];
-   int valid_time_dims[RANK_valid_time];
-   int forc_hrs_dims[RANK_forc_hrs];
-   int wrtn_date_dims[RANK_wrtn_date];
-   int wrtn_time_dims[RANK_wrtn_time];
    int sfc_pres_dims[RANK_sfc_pres];
    int temp_scrn_dims[RANK_temp_scrn];
    int qsair_scrn_dims[RANK_qsair_scrn];
@@ -116,34 +95,13 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    int sfc_temp_dims[RANK_sfc_temp];
    int zonal_wnd_dims[RANK_zonal_wnd];
 
-   /* attribute vectors */
-   float lat_valid_min[1];
-   float lat_valid_max[1];
-   float lon_valid_min[1];
-   float lon_valid_max[1];
-   int sfc_pres_stash_code[1];
-   float sfc_pres_missing_value[1];
-   int temp_scrn_stash_code[1];
-   float temp_scrn_missing_value[1];
-   int qsair_scrn_stash_code[1];
-   float qsair_scrn_missing_value[1];
-   int topog_stash_code[1];
-   float topog_missing_value[1];
-   int mslp_stash_code[1];
-   float mslp_missing_value[1];
-   int sfc_temp_stash_code[1];
-   float sfc_temp_missing_value[1];
-   int zonal_wnd_stash_code[1];
-   float zonal_wnd_missing_value[1];
-
    int old_fill_mode;
    size_t default_initialsize = 0;
 
-   /* enter define mode */
-   /* stat = nc_create(file_name, NC_CLOBBER, &ncid); */
-   /* Permit setting "chunksize hint" instead of using blksize from fstat or 8192 */
-   /* Note. may round up *sizehintp and return rounded up value */
-   
+   /* To test bug on filesystem without large block size, we can get
+    * the same effect by providing the desired value as sizehint to
+    * nc__create() instead of calling nc_create() and getting the
+    * block size reported by fstat */
    stat = nc__create(file_name, NC_CLOBBER, default_initialsize, sizehintp, &ncid);
    check_err(stat,__LINE__,__FILE__);
    stat = nc_set_fill(ncid, fill_mode, &old_fill_mode);
@@ -158,18 +116,10 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    check_err(stat,__LINE__,__FILE__);
    stat = nc_def_dim(ncid, "time", time_len, &time_dim);
    check_err(stat,__LINE__,__FILE__);
-   stat = nc_def_dim(ncid, "char_size", char_size_len, &char_size_dim);
-   check_err(stat,__LINE__,__FILE__);
 
    /* define variables */
-
    time_dims[0] = time_dim;
    stat = nc_def_var(ncid, "time", NC_DOUBLE, RANK_time, time_dims, &time_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   seg_type_dims[0] = time_dim;
-   seg_type_dims[1] = char_size_dim;
-   stat = nc_def_var(ncid, "seg_type", NC_CHAR, RANK_seg_type, seg_type_dims, &seg_type_id);
    check_err(stat,__LINE__,__FILE__);
 
    lat_dims[0] = lat_dim;
@@ -182,34 +132,6 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
    lvl_dims[0] = lvl_dim;
    stat = nc_def_var(ncid, "lvl", NC_FLOAT, RANK_lvl, lvl_dims, &lvl_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   base_date_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "base_date", NC_INT, RANK_base_date, base_date_dims, &base_date_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   base_time_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "base_time", NC_INT, RANK_base_time, base_time_dims, &base_time_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   valid_date_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "valid_date", NC_INT, RANK_valid_date, valid_date_dims, &valid_date_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   valid_time_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "valid_time", NC_INT, RANK_valid_time, valid_time_dims, &valid_time_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   forc_hrs_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "forc_hrs", NC_FLOAT, RANK_forc_hrs, forc_hrs_dims, &forc_hrs_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   wrtn_date_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "wrtn_date", NC_INT, RANK_wrtn_date, wrtn_date_dims, &wrtn_date_id);
-   check_err(stat,__LINE__,__FILE__);
-
-   wrtn_time_dims[0] = time_dim;
-   stat = nc_def_var(ncid, "wrtn_time", NC_INT, RANK_wrtn_time, wrtn_time_dims, &wrtn_time_id);
    check_err(stat,__LINE__,__FILE__);
 
    sfc_pres_dims[0] = time_dim;
@@ -245,7 +167,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    sfc_temp_dims[0] = time_dim;
    sfc_temp_dims[1] = lat_dim;
    sfc_temp_dims[2] = lon_dim;
-   stat = nc_def_var(ncid, "sfc_temp", NC_FLOAT, RANK_sfc_temp, sfc_temp_dims, &sfc_temp_id);
+   stat = nc_def_var(ncid, "sfc_temp", NC_FLOAT, RANK_sfc_temp, sfc_temp_dims, &sfc_temp_id); 
    check_err(stat,__LINE__,__FILE__);
 
    zonal_wnd_dims[0] = time_dim;
@@ -255,208 +177,16 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    stat = nc_def_var(ncid, "zonal_wnd", NC_FLOAT, RANK_zonal_wnd, zonal_wnd_dims, &zonal_wnd_id);
    check_err(stat,__LINE__,__FILE__);
 
-   /* assign attributes */
-   stat = nc_put_att_text(ncid, time_id, "units", 40, "days since 2010-07-07 12:0:0.0 0.00     ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, seg_type_id, "long_name", 27, "segment of bmrc header type");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lat_id, "long_name", 9, "latitudes");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lat_id, "type", 8, "uniform ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lat_id, "units", 9, "degrees_N");
-   check_err(stat,__LINE__,__FILE__);
-   lat_valid_min[0] = -90;
-   stat = nc_put_att_float(ncid, lat_id, "valid_min", NC_FLOAT, 1, lat_valid_min);
-   check_err(stat,__LINE__,__FILE__);
-   lat_valid_max[0] = 90;
-   stat = nc_put_att_float(ncid, lat_id, "valid_max", NC_FLOAT, 1, lat_valid_max);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lon_id, "long_name", 10, "longitudes");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lon_id, "type", 7, "uniform");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lon_id, "units", 9, "degrees_E");
-   check_err(stat,__LINE__,__FILE__);
-   lon_valid_min[0] = -180;
-   stat = nc_put_att_float(ncid, lon_id, "valid_min", NC_FLOAT, 1, lon_valid_min);
-   check_err(stat,__LINE__,__FILE__);
-   lon_valid_max[0] = 360;
-   stat = nc_put_att_float(ncid, lon_id, "valid_max", NC_FLOAT, 1, lon_valid_max);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lvl_id, "long_name", 15, "vertical levels");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lvl_id, "type", 8, "pressure");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lvl_id, "units", 3, "hPa");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, lvl_id, "positive", 4, "down");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, base_date_id, "long_name", 36, "base date (YYYYMMDD) of archive file");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, base_date_id, "units", 8, "yyyymmdd");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, base_time_id, "long_name", 32, "base time (HHMM) of archive file");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, base_time_id, "units", 8, "hhmm UTC");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, valid_date_id, "long_name", 37, "valid date (YYYYMMDD) of this segment");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, valid_date_id, "units", 8, "yyyymmdd");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, valid_time_id, "long_name", 33, "valid time (HHMM) of this segment");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, valid_time_id, "units", 8, "hhmm UTC");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, forc_hrs_id, "long_name", 30, "forecast hours of this segment");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, forc_hrs_id, "units", 5, "hours");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, wrtn_date_id, "long_name", 45, "date (YYYYMMDD) that this segment was written");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, wrtn_time_id, "long_name", 41, "time (HHMM) that this segment was written");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_pres_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_pres_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_pres_id, "units", 2, "Pa");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_pres_id, "long_name", 16, "surface pressure");
-   check_err(stat,__LINE__,__FILE__);
-   sfc_pres_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, sfc_pres_id, "stash_code", NC_INT, 1, sfc_pres_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_pres_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   sfc_pres_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, sfc_pres_id, "missing_value", NC_FLOAT, 1, sfc_pres_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, temp_scrn_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, temp_scrn_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, temp_scrn_id, "units", 1, "K");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, temp_scrn_id, "long_name", 24, "screen-level temperature");
-   check_err(stat,__LINE__,__FILE__);
-   temp_scrn_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, temp_scrn_id, "stash_code", NC_INT, 1, temp_scrn_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, temp_scrn_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   temp_scrn_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, temp_scrn_id, "missing_value", NC_FLOAT, 1, temp_scrn_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, qsair_scrn_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, qsair_scrn_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, qsair_scrn_id, "units", 5, "kg/kg");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, qsair_scrn_id, "long_name", 10, "qsair_scrn");
-   check_err(stat,__LINE__,__FILE__);
-   qsair_scrn_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, qsair_scrn_id, "stash_code", NC_INT, 1, qsair_scrn_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, qsair_scrn_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   qsair_scrn_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, qsair_scrn_id, "missing_value", NC_FLOAT, 1, qsair_scrn_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, topog_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, topog_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, topog_id, "units", 1, "m");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, topog_id, "long_name", 10, "topography");
-   check_err(stat,__LINE__,__FILE__);
-   topog_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, topog_id, "stash_code", NC_INT, 1, topog_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, topog_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   topog_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, topog_id, "missing_value", NC_FLOAT, 1, topog_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, mslp_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, mslp_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, mslp_id, "units", 3, "hPa");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, mslp_id, "long_name", 23, "mean sea level pressure");
-   check_err(stat,__LINE__,__FILE__);
-   mslp_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, mslp_id, "stash_code", NC_INT, 1, mslp_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, mslp_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   mslp_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, mslp_id, "missing_value", NC_FLOAT, 1, mslp_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_temp_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_temp_id, "level_type", 8, "single  ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_temp_id, "units", 1, "K");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_temp_id, "long_name", 19, "surface temperature");
-   check_err(stat,__LINE__,__FILE__);
-   sfc_temp_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, sfc_temp_id, "stash_code", NC_INT, 1, sfc_temp_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, sfc_temp_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   sfc_temp_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, sfc_temp_id, "missing_value", NC_FLOAT, 1, sfc_temp_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, zonal_wnd_id, "grid_type", 7, "spatial");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, zonal_wnd_id, "level_type", 8, "multi   ");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, zonal_wnd_id, "units", 3, "m/s");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, zonal_wnd_id, "long_name", 10, "zonal wind");
-   check_err(stat,__LINE__,__FILE__);
-   zonal_wnd_stash_code[0] = 0;
-   stat = nc_put_att_int(ncid, zonal_wnd_id, "stash_code", NC_INT, 1, zonal_wnd_stash_code);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, zonal_wnd_id, "accum_type", 13, "instantaneous");
-   check_err(stat,__LINE__,__FILE__);
-   zonal_wnd_missing_value[0] = 9.9999996e+35;
-   stat = nc_put_att_float(ncid, zonal_wnd_id, "missing_value", NC_FLOAT, 1, zonal_wnd_missing_value);
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, NC_GLOBAL, "convention", 6, "COARDS");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, NC_GLOBAL, "source", 32, "Australian Bureau of Meteorology");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, NC_GLOBAL, "modl_vrsn", 8, "ACCESS-G");
-   check_err(stat,__LINE__,__FILE__);
-   stat = nc_put_att_text(ncid, NC_GLOBAL, "expt_id", 4, "0001");
-   check_err(stat,__LINE__,__FILE__);
-
    /* leave define mode */
    stat = nc_enddef (ncid);
    check_err(stat,__LINE__,__FILE__);
 
     static size_t time_start[RANK_time];
     static size_t time_count[RANK_time];
-    static double time[] = {0.};
-    time_len = 1;			/* number of records of time data */
+    static double time[] = {1.};
+    time_len = 1;
     time_start[0] = 0;
     time_count[0] = time_len;
-
-    static size_t seg_type_start[RANK_seg_type];
-    static size_t seg_type_count[RANK_seg_type];
-    static char seg_type[] = {"an  "};
-    time_len = 1;			/* number of records of seg_type data */
-    seg_type_start[0] = 0;
-    seg_type_start[1] = 0;
-    seg_type_count[0] = time_len;
-    seg_type_count[1] = char_size_len;
-
 
     static float lat[] = {90, 88.5, 87, 85.5, 84, 82.5, 81, 79.5, 78, 76.5, 75, 73.5, 72, 70.5, 69, 67.5, 66, 64.5, 63, 61.5, 60, 58.5, 57, 55.5, 54, 52.5, 51, 49.5, 48, 46.5, 45, 43.5, 42, 40.5, 39, 37.5, 36, 34.5, 33, 31.5, 30, 28.5, 27, 25.5, 24, 22.5, 21, 19.5, 18, 16.5, 15, 13.5, 12, 10.5, 9, 7.5, 6, 4.5, 3, 1.5, 0, -1.5, -3, -4.5, -6, -7.5, -9, -10.5, -12, -13.5, -15, -16.5, -18, -19.5, -21, -22.5, -24, -25.5, -27, -28.5, -30, -31.5, -33, -34.5, -36, -37.5, -39, -40.5, -42, -43.5, -45, -46.5, -48, -49.5, -51, -52.5, -54, -55.5, -57, -58.5, -60, -61.5, -63, -64.5, -66, -67.5, -69, -70.5, -72, -73.5, -75, -76.5, -78, -79.5, -81, -82.5, -84, -85.5, -87, -88.5, -90};
 
@@ -465,60 +195,10 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static float lvl[] = {1000, 995, 990, 985, 975, 950, 925, 900, 875, 850, 800, 750, 700, 600, 500, 450, 400, 350, 300, 275, 250, 225, 200, 175, 150, 100, 70, 50, 30, 20, 10};
 
-    static size_t base_date_start[RANK_base_date];
-    static size_t base_date_count[RANK_base_date];
-    static int base_date[] = {20100707};
-    time_len = 1;			/* number of records of base_date data */
-    base_date_start[0] = 0;
-    base_date_count[0] = time_len;
-
-    static size_t base_time_start[RANK_base_time];
-    static size_t base_time_count[RANK_base_time];
-    static int base_time[] = {1200};
-    time_len = 1;			/* number of records of base_time data */
-    base_time_start[0] = 0;
-    base_time_count[0] = time_len;
-
-    static size_t valid_date_start[RANK_valid_date];
-    static size_t valid_date_count[RANK_valid_date];
-    static int valid_date[] = {20100707};
-    time_len = 1;			/* number of records of valid_date data */
-    valid_date_start[0] = 0;
-    valid_date_count[0] = time_len;
-
-    static size_t valid_time_start[RANK_valid_time];
-    static size_t valid_time_count[RANK_valid_time];
-    static int valid_time[] = {1200};
-    time_len = 1;			/* number of records of valid_time data */
-    valid_time_start[0] = 0;
-    valid_time_count[0] = time_len;
-
-    static size_t forc_hrs_start[RANK_forc_hrs];
-    static size_t forc_hrs_count[RANK_forc_hrs];
-    static float forc_hrs[] = {0};
-    time_len = 1;			/* number of records of forc_hrs data */
-    forc_hrs_start[0] = 0;
-    forc_hrs_count[0] = time_len;
-
-    static size_t wrtn_date_start[RANK_wrtn_date];
-    static size_t wrtn_date_count[RANK_wrtn_date];
-    static int wrtn_date[] = {110216};
-    time_len = 1;			/* number of records of wrtn_date data */
-    wrtn_date_start[0] = 0;
-    wrtn_date_count[0] = time_len;
-
-    static size_t wrtn_time_start[RANK_wrtn_time];
-    static size_t wrtn_time_count[RANK_wrtn_time];
-    static int wrtn_time[] = {424};
-    time_len = 1;			/* number of records of wrtn_time data */
-    wrtn_time_start[0] = 0;
-    wrtn_time_count[0] = time_len;
-
     static size_t sfc_pres_start[RANK_sfc_pres];
     static size_t sfc_pres_count[RANK_sfc_pres];
-    static float sfc_pres[240*121]={0};
+    static float sfc_pres[LON_LEN*LAT_LEN];
 
-    time_len = 1;			/* number of records of sfc_pres data */
     sfc_pres_start[0] = 0;
     sfc_pres_start[1] = 0;
     sfc_pres_start[2] = 0;
@@ -528,10 +208,9 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t temp_scrn_start[RANK_temp_scrn];
     static size_t temp_scrn_count[RANK_temp_scrn];
-    static float temp_scrn[240*121]={0};
+    static float temp_scrn[LON_LEN*LAT_LEN];
 
 
-    time_len = 1;			/* number of records of temp_scrn data */
     temp_scrn_start[0] = 0;
     temp_scrn_start[1] = 0;
     temp_scrn_start[2] = 0;
@@ -541,9 +220,8 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t qsair_scrn_start[RANK_qsair_scrn];
     static size_t qsair_scrn_count[RANK_qsair_scrn];
-    static float qsair_scrn[240*121] = {0};
+    static float qsair_scrn[LON_LEN*LAT_LEN];
 
-    time_len = 1;			/* number of records of qsair_scrn data */
     qsair_scrn_start[0] = 0;
     qsair_scrn_start[1] = 0;
     qsair_scrn_start[2] = 0;
@@ -553,8 +231,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t topog_start[RANK_topog];
     static size_t topog_count[RANK_topog];
-    static float topog[240*121] = {0};
-    time_len = 1;			/* number of records of topog data */
+    static float topog[LON_LEN*LAT_LEN];
     topog_start[0] = 0;
     topog_start[1] = 0;
     topog_start[2] = 0;
@@ -564,8 +241,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t mslp_start[RANK_mslp];
     static size_t mslp_count[RANK_mslp];
-    static float mslp[240*121] = {0};
-    time_len = 1;			/* number of records of mslp data */
+    static float mslp[LON_LEN*LAT_LEN];
     mslp_start[0] = 0;
     mslp_start[1] = 0;
     mslp_start[2] = 0;
@@ -575,9 +251,8 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t sfc_temp_start[RANK_sfc_temp];
     static size_t sfc_temp_count[RANK_sfc_temp];
-    static float sfc_temp[240*121] = {0};
+    static float sfc_temp[LON_LEN*LAT_LEN];
 
-    time_len = 1;			/* number of records of sfc_temp data */
     sfc_temp_start[0] = 0;
     sfc_temp_start[1] = 0;
     sfc_temp_start[2] = 0;
@@ -587,15 +262,30 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
     static size_t zonal_wnd_start[RANK_zonal_wnd];
     static size_t zonal_wnd_count[RANK_zonal_wnd];
-    static float zonal_wnd[240*121*31] = {0};
+    static float zonal_wnd[LON_LEN*LAT_LEN*TIME_LEN];
 
-
+    int ilat, ilon, itime, j3, j2;
+    /* Put non-zero values in data variables, so can distinguish
+     * nofill from fill cases. */
+    j3 = 0;
+    j2 = 0;
+    for(ilat = 0; ilat < LAT_LEN; ilat++) {
+	for(ilon = 0; ilon < LON_LEN; ilon++) {
+	    for(itime = 0; itime < TIME_LEN; itime++) {
+		zonal_wnd[j3] = 42;
+		j3++;
+	    }
+	    temp_scrn[j2] = 11;
+	    qsair_scrn[j2] = 22;
+	    topog[j2] = 33;
+	    mslp[j2] = 44;
+	    sfc_temp[j2] = 55;
+	    j2++;
+	}
+    }
 
     stat = nc_put_vara_double(ncid, time_id, time_start, time_count, time);
     check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_vara_text(ncid, seg_type_id, seg_type_start, seg_type_count, seg_type);
-    check_err(stat,__LINE__,__FILE__);
-
     stat = nc_put_var_float(ncid, lat_id, lat);
     check_err(stat,__LINE__,__FILE__);
     stat = nc_put_var_float(ncid, lon_id, lon);
@@ -603,22 +293,6 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
     stat = nc_put_var_float(ncid, lvl_id, lvl);
     check_err(stat,__LINE__,__FILE__);
 
-    stat = nc_put_vara_int(ncid, base_date_id, base_date_start, base_date_count, base_date);
-    check_err(stat,__LINE__,__FILE__);
-
-    stat = nc_put_vara_int(ncid, base_time_id, base_time_start, base_time_count, base_time);
-    check_err(stat,__LINE__,__FILE__);
-
-    stat = nc_put_vara_int(ncid, valid_date_id, valid_date_start, valid_date_count, valid_date);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_vara_int(ncid, valid_time_id, valid_time_start, valid_time_count, valid_time);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_vara_float(ncid, forc_hrs_id, forc_hrs_start, forc_hrs_count, forc_hrs);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_vara_int(ncid, wrtn_date_id, wrtn_date_start, wrtn_date_count, wrtn_date);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_vara_int(ncid, wrtn_time_id, wrtn_time_start, wrtn_time_count, wrtn_time);
-    check_err(stat,__LINE__,__FILE__);
     stat = nc_put_vara_float(ncid, sfc_pres_id, sfc_pres_start, sfc_pres_count, sfc_pres);
     check_err(stat,__LINE__,__FILE__);
     stat = nc_put_vara_float(ncid, temp_scrn_id, temp_scrn_start, temp_scrn_count, temp_scrn);
@@ -632,9 +306,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
     stat = nc_put_vara_float(ncid, sfc_temp_id, sfc_temp_start, sfc_temp_count, sfc_temp);
     check_err(stat,__LINE__,__FILE__);
 
-    time_len = 1;			/* number of records of zonal_wnd data */
-    
-    for(i=30; i>=0; i--)
+    for(i = LVL_LEN - 1; i>=0; i--)
     {
         zonal_wnd_start[0] = 0;
         zonal_wnd_start[1] = i;
