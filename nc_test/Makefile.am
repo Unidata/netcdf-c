@@ -17,7 +17,7 @@ tst_*.nc t_nc.nc large_files.nc quick_large_files.nc
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names
 
 if EXTRA_TESTS
-TESTPROGRAMS += tst_nofill
+TESTPROGRAMS += tst_nofill tst_nofill2
 endif
 
 if USE_NETCDF4
