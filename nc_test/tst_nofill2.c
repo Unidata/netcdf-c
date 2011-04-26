@@ -23,29 +23,24 @@
 #define LAT_LEN 121
 #define LVL_LEN 31
 #define TIME_LEN 1
+#define NDIMS1 1
+#define NDIMS4 4
 
 int
 create_file(char *file_name, int fill_mode, size_t* sizehintp) 
 {
-   int ncid;
-   int lon_dim, lat_dim, lvl_dim, time_dim;
-   int time_id, zonal_wnd_id;
-   int i;
-
-   /* rank (number of dimensions) for each variable */
-#  define RANK_time 1
-#  define RANK_lat 1
-#  define RANK_lon 1
-#  define RANK_lvl 1
-#  define RANK_zonal_wnd 4
-
-   /* variable shapes */
-   int zonal_wnd_dims[RANK_zonal_wnd];
-   size_t zonal_wnd_start[RANK_zonal_wnd];
-   size_t zonal_wnd_count[RANK_zonal_wnd];
-   float zonal_wnd[LON_LEN*LAT_LEN*TIME_LEN];
+   int ncid, time_id, zonal_wnd_id;
+   int dimids[NDIMS4];
+   size_t start[NDIMS4] = {0, 0, 0, 0};
+   size_t count[NDIMS4] = {TIME_LEN, 1, LAT_LEN, LON_LEN};
+   float zonal_wnd[LON_LEN * LAT_LEN * TIME_LEN];
    size_t default_initialsize = 0;
    double time[TIME_LEN] = {1.};
+   int i;
+
+   /* Init data. */
+   for(i = 0; i < TIME_LEN * LAT_LEN * LON_LEN; i++) 
+      zonal_wnd[i] = 100 + i;
 
    /* To test bug on filesystem without large block size, we can get
     * the same effect by providing the desired value as sizehint to
@@ -55,39 +50,23 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    if (nc_set_fill(ncid, fill_mode, NULL)) ERR;
 
    /* define dimensions */
-   if (nc_def_dim(ncid, "lon", LON_LEN, &lon_dim)) ERR;
-   if (nc_def_dim(ncid, "lat", LAT_LEN, &lat_dim)) ERR;
-   if (nc_def_dim(ncid, "lvl", LVL_LEN, &lvl_dim)) ERR;
-   if (nc_def_dim(ncid, "time", TIME_LEN, &time_dim)) ERR;
+   if (nc_def_dim(ncid, "lon", LON_LEN, &dimids[3])) ERR;
+   if (nc_def_dim(ncid, "lat", LAT_LEN, &dimids[2])) ERR;
+   if (nc_def_dim(ncid, "lvl", LVL_LEN, &dimids[1])) ERR;
+   if (nc_def_dim(ncid, "time", TIME_LEN, &dimids[0])) ERR;
 
    /* define variables */
-   if (nc_def_var(ncid, "time", NC_DOUBLE, RANK_time, &time_dim, &time_id)) ERR;
-
-   zonal_wnd_dims[0] = time_dim;
-   zonal_wnd_dims[1] = lvl_dim;
-   zonal_wnd_dims[2] = lat_dim;
-   zonal_wnd_dims[3] = lon_dim;
-   if (nc_def_var(ncid, "zonal_wnd", NC_FLOAT, RANK_zonal_wnd, zonal_wnd_dims, &zonal_wnd_id)) ERR;
+   if (nc_def_var(ncid, "time", NC_DOUBLE, NDIMS1, &dimids[0], &time_id)) ERR;
+   if (nc_def_var(ncid, "zonal_wnd", NC_FLOAT, NDIMS4, dimids, &zonal_wnd_id)) ERR;
 
    if (nc_enddef (ncid)) ERR;
    if (nc_put_var_double(ncid, time_id, time)) ERR;
+
    /* Bug exposed when written in reverse order. */
    for(i = LVL_LEN - 1; i>=0; i--)
-      /* for(i = 0; i < LVL_LEN; i++) */
    {
-      int izw;
-      for(izw = 0; izw < TIME_LEN * LAT_LEN * LON_LEN; izw++) {
-	 zonal_wnd[izw] = 100 + i;
-      }
-      zonal_wnd_start[0] = 0;
-      zonal_wnd_start[1] = i;
-      zonal_wnd_start[2] = 0;
-      zonal_wnd_start[3] = 0;
-      zonal_wnd_count[0] = TIME_LEN;
-      zonal_wnd_count[1] = 1;
-      zonal_wnd_count[2] = LAT_LEN;
-      zonal_wnd_count[3] = LON_LEN;
-      if (nc_put_vara_float(ncid, zonal_wnd_id, zonal_wnd_start, zonal_wnd_count, zonal_wnd)) ERR;
+      start[1] = i;
+      if (nc_put_vara_float(ncid, zonal_wnd_id, start, count, zonal_wnd)) ERR;
    }
    if (nc_close(ncid)) ERR;
    return 0;
