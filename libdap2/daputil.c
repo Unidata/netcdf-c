@@ -26,18 +26,18 @@ extern int oc_dumpnode(OClink, OCobject);
 int
 nc__testurl(const char* path, char** basenamep)
 {
-    DAPURL url;
-    int ok = dapurlparse(path,&url);
+    OCURI* url;
+    int ok = ocuriparse(path,&url);
     if(ok) {
-	char* slash = strrchr(url.base, '/');
+	char* slash = strrchr(url->file, '/');
 	char* dot;
 	if(slash == NULL) slash = (char*)path; else slash++;
         slash = nulldup(slash);
 	dot = strrchr(slash, '.');
         if(dot != NULL &&  dot != slash) *dot = '\0';
 	if(basenamep) *basenamep=slash ; else free(slash);
+        ocurifree(url);
     }
-    dapurlclear(&url);
     return ok;
 }
 
@@ -722,107 +722,6 @@ daptoplevel(CDFnode* node)
     return TRUE;
 }
 
-
-/*
-Client parameters are assumed to be
-one or more instances of bracketed pairs:
-e.g "[...][...]...".
-The bracket content in turn is assumed to be a
-comma separated list of <name>=<value> pairs.
-e.g. x=y,z=,a=b.
-If the same parameter is specifed more than once,
-then the first occurrence is used; this is so that
-is possible to forcibly override user specified
-parameters by prefixing.
-IMPORTANT: client parameter string is assumed to
-have blanks compress out.
-*/
-
-NClist*
-dapparamdecode(char* params0)
-{
-    char* cp;
-    char* cq;
-    int c;
-    int i;
-    int nparams;
-    NClist* plist = nclistnew();
-    char* params;
-    char* params1;
-
-    if(params0 == NULL) return plist;
-
-    /* Kill the leading "[" and trailing "]" */
-    if(params0[0] == '[')
-      params = nulldup(params0+1);
-    else
-      params = nulldup(params0);
-
-    params[strlen(params)-1] = '\0';
-
-    params1 = nulldup(params);
-
-    /* Pass 1 to replace "][" pairs with ','*/
-    cp=params; cq = params1;
-    while((c=*cp++)) {
-	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
-	*cq++ = c;
-    }
-    *cq = '\0';
-    free(params);
-    params = params1;
-
-    /* Pass 2 to break string into pieces and count # of pairs */
-    nparams=0;
-    for(cp=params;(c=*cp);cp++) {
-	if(c == ',') {*cp = '\0'; nparams++;}
-    }
-    nparams++; /* for last one */
-
-    /* Pass 3 to break up each pass into a (name,value) pair*/
-    /* and insert into the param list */
-    /* parameters of the form name name= are converted to name=""*/
-    cp = params;
-    for(i=0;i<nparams;i++) {
-	char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
-	char* vp;
-	/*break up the ith param*/
-	vp = strchr(cp,'=');
-	if(vp != NULL) {*vp = '\0'; vp++;} else {vp = "";}
-	if(!nclistcontains(plist,(ncelem)cp)) {
-   	    nclistpush(plist,(ncelem)nulldup(cp));
-	    nclistpush(plist,(ncelem)nulldup(vp));
-	}
-	cp = next;
-    }
-    free(params);
-    return plist;
-}
-
-const char*
-dapparamlookup(NClist* params, const char* clientparam)
-{
-    int i;
-    if(params == NULL || clientparam == NULL) return NULL;
-    for(i=0;i<nclistlength(params);i+=2) {
-	char* name = (char*)nclistget(params,i);
-	if(strcmp(clientparam,name)==0)
-	    return (char*)nclistget(params,i+1);
-    }
-    return NULL;
-}
-
-void
-dapparamfree(NClist* params)
-{
-    int i;
-    if(params == NULL) return;
-    for(i=0;i<nclistlength(params);i++) {
-	nullfree((void*)nclistget(params,i));
-    }
-    nclistfree(params);
-}
-
 unsigned int
 modeldecode(int translation, const char* smodel,
             const struct NCTMODEL* models,
@@ -967,9 +866,9 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
     if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	if(ce == NULL)
-	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);
+	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.url->uri,ext);
 	else
-	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url.base,ext,ce);
+	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url->uri,ext,ce);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
@@ -986,4 +885,18 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 #endif
     }
     return ocstat;
+}
+
+/* Mark names that cause problems. e.g. "nm.dot" */
+static char* badchars = "./";
+int
+dap_badname(char* name)
+{
+    char* p;
+    if(name == NULL) return 0;
+    for(p=badchars;*p;p++) {
+	if(strchr(name,*p) != NULL)
+	    return 1;
+    }
+    return 0;
 }

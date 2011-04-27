@@ -8,6 +8,7 @@
 #include "dapodom.h"
 #include "dapdebug.h"
 #include "dapdump.h"
+#include "dceparselex.h"
 
 static NCerror mergeprojection31(DCEprojection*, DCEprojection*);
 
@@ -42,16 +43,19 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
         nclistclear(dceconstraint->projections);
         nclistclear(dceconstraint->selections);
     } else {
-	int i;
-	NClist* allnodes;
 #ifdef DEBUG
 fprintf(stderr,"constraint: %s",dumpconstraint(dceconstraint));
 #endif
+
+#ifdef FIX
+	int i;
+	NClist* allnodes;
         /* Go thru each node and add annotation */
         allnodes = dceallnodes((DCEnode*)dceconstraint,CES_NIL);    
 	for(i=0;i<nclistlength(allnodes);i++) {
 	    DCEnode* node = (DCEnode*)nclistget(allnodes,i);
 	}
+#endif
     }
     return ncstat;
 }
@@ -566,9 +570,8 @@ fprintf(stderr,"restriction.after=|%s|\n",
     return;
 }
 
-/* Return 1 if the specified var is in
-the projection's leaf's subtree and is
-visible
+/* Return 1 if the specified var is in the projection's
+leaf's subtree and is visible
 */
 
 static int

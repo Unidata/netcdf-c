@@ -16,7 +16,7 @@
 #endif
 
 #ifndef nullfree
-#define nullfree(m) if((m)!=NULL) {free(m);} else {}
+#define nullfree(M) {if((M)!=NULL) {free(M);}}
 #endif
 
 
@@ -123,7 +123,7 @@ typedef struct NCcache {
 typedef struct NCOC {
     OCconnection conn;
     char* urltext; /* as given to nc3d_open*/
-    DAPURL url; /* as given to nc3d_open and parsed*/
+    OCURI* url; /* as given to nc3d_open and parsed*/
     OCobject ocdasroot;
     DCEconstraint* dapconstraint; /* from url */
 } NCOC;
@@ -306,7 +306,7 @@ extern void unattach34(CDFnode*);
 extern int nodematch34(CDFnode* node1, CDFnode* node2);
 extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
 extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
-extern int constrainable34(DAPURL*);
+extern int constrainable34(OCURI*);
 extern char* makeconstraintstring34(DCEconstraint*);
 extern size_t estimatedataddssize34(CDFnode* datadds);
 extern void restrictprojection34(NClist*, NClist*);

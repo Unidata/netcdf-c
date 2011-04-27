@@ -25,11 +25,21 @@
 #define OCASSERT(expr) if(!(expr)) {OCPANIC((#expr));} else {}
 
 /* Need some syntactic trickery to make these macros work*/
-#define DEBUG(l,msg) if(ocdebug >= l) {oc_log(LOGDBG,msg);} else {}
-#define DEBUG1(l,msg,arg) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg);} else {}
-#define DEBUG2(l,msg,arg1,arg2) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg1,arg2);} else {}
-#define DEBUGTEXT(l,text) if(ocdebug >= l) {oc_logtext(LOGNOTE,text);} else {}
-#define DEBUGCODE(l,code) if(ocdebug >= l) {code;} else {}
+#ifdef OCDEBUG
+#define DEBUG(l,msg) {oc_log(LOGDBG,msg);}
+#define DEBUG1(l,msg,arg) {oc_log(LOGDBG,msg,arg);}
+#define DEBUG2(l,msg,arg1,arg2) {oc_log(LOGDBG,msg,arg1,arg2);}
+#define DEBUGTEXT(l,text) {oc_logtext(LOGNOTE,text);} else {}
+#define DEBUGCODE(l,code) {code;}
+
+#else
+#define DEBUG(l,msg)
+#define DEBUG1(l,msg,arg)
+#define DEBUG2(l,msg,arg1,arg2)
+#define DEBUGTEXT(l,text)
+#define DEBUGCODE(l,code)
+#endif
+
 
 /*
 OCPROGRESS attempts to provide some info

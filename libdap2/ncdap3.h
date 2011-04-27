@@ -21,7 +21,7 @@
 #include "dceconstraints.h"
 
 #include "oc.h"
-#include "dapurl.h"
+#include "ocuri.h"
 
 #include "nc.h"
 #include "netcdf.h"

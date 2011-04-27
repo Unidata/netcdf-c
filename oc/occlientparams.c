@@ -9,6 +9,7 @@
 #define RBRACKET ']'
 
 
+
 /*
 Client parameters are assumed to be
 one or more instances of bracketed pairs:
@@ -24,80 +25,31 @@ IMPORTANT: client parameter string is assumed to
 have blanks compress out.
 */
 
-OClist*
-ocparamdecode(char* params0)
+int
+ocparamdecode(OCstate* state)
 {
-    char* cp;
-    char* cq;
-    int c;
     int i;
-    int nparams;
-    OClist* plist = oclistnew();
-    char* params;
-    char* params1;
-
-    if(params0 == NULL) return plist;
-
-    /* Pass 1 to replace beginning '[' and ending ']' */
-    if(params0[0] == '[') 
-	params = strdup(params0+1);
-    else
-	params = strdup(params0);	
-
-    if(params[strlen(params)-1] == ']')
-	params[strlen(params)-1] = '\0';
-
-    /* Pass 2 to replace "][" pairs with ','*/
-    params1 = strdup(params);
-    cp=params; cq = params1;
-    while((c=*cp++)) {
-	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
-	*cq++ = c;
-    }
-    *cq = '\0';
-    free(params);
-    params = params1;
-
-    /* Pass 3 to break string into pieces and count # of pairs */
-    nparams=0;
-    for(cp=params;(c=*cp);cp++) {
-	if(c == ',') {*cp = '\0'; nparams++;}
-    }
-    nparams++; /* for last one */
-
-    /* Pass 4 to break up each pass into a (name,value) pair*/
-    /* and insert into the param list */
-    /* parameters of the form name name= are converted to name=""*/
-    cp = params;
-    for(i=0;i<nparams;i++) {
-	char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
-	char* vp;
-	/*break up the ith param*/
-	vp = strchr(cp,'=');
-	if(vp != NULL) {*vp = '\0'; vp++;} else {vp = "";}
-	if(!oclistcontains(plist,(ocelem)cp)) {
-	    oclistpush(plist,(ocelem)strdup(cp));
-	    oclistpush(plist,(ocelem)strdup(vp));
-	}
-	cp = next;
-    }
-    free(params);
-    return plist;
+    i = ocuridecodeparams(state->uri);
+    return i?OC_NOERR:OC_EBADURL;
 }
+
 
 const char*
-ocparamlookup(OClist* params, const char* clientparam)
+ocparamlookup(OCstate* state, const char* key)
 {
-    int i;
-    if(params == NULL || clientparam == NULL) return NULL;
-    for(i=0;i<oclistlength(params);i+=2) {
-	char* name = (char*)oclistget(params,i);
-	if(strcmp(clientparam,name)==0)
-	    return (char*)oclistget(params,i+1);
-    }
-    return NULL;
+    if(state == NULL || key == NULL || state->uri == NULL) return NULL;
+    return ocurilookup(state->uri,key);
 }
 
+int
+ocparamset(OCstate* state, const char* params)
+{
+    int i;
+    i = ocurisetparams(state->uri,params);
+    return i?OC_NOERR:OC_EBADURL;
+}
+
+#ifdef IGNORE
 void
 ocparamfree(OClist* params)
 {
@@ -173,3 +125,4 @@ ocparamreplace(OClist* params, const char* clientparam, const char* value)
     ocparaminsert(params,clientparam,value);
     return 0;
 }
+#endif

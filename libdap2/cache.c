@@ -104,6 +104,10 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	    /* If var is a sequence or under a sequence, then never prefetch */
 	    if(var->nctype == NC_Sequence || dapinsequence(var)) continue;
 
+	    /* If the var name is a bad name like "var_nm.dot" then
+               suppress it
+            */
+
             /* Compute the # of elements in the variable */
             for(j=0;j<nclistlength(var->array.dimensions);j++) {
                 CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);

@@ -178,12 +178,12 @@ NC_check_name(const char *name)
 
 	if(*name == 0		/* empty names disallowed */
 	   || strchr(cp, '/'))	/* '/' can't be in a name */
-		return NC_EBADNAME;
+	        goto fail;
 	
 	/* check validity of any UTF-8 */
 	utf8_stat = utf8proc_check((const unsigned char *)name);
 	if (utf8_stat < 0)
-	    return NC_EBADNAME;
+	        goto fail;
 
 	/* First char must be [a-z][A-Z][0-9]_ | UTF8 */
 	ch = (uchar)*cp;
@@ -192,11 +192,11 @@ NC_check_name(const char *name)
 	       && !('a' <= ch && ch <= 'z') 
 	       && !('0' <= ch && ch <= '9')
 	       && ch != '_' )
-		return NC_EBADNAME;
+	        goto fail;
 	    cp++;
 	} else {
 	    if((skip = nextUTF8(cp)) < 0) 
-		return NC_EBADNAME;
+	        goto fail;
 	    cp += skip;
 	}
 
@@ -205,18 +205,20 @@ NC_check_name(const char *name)
 	    /* handle simple 0x00-0x7f characters here */
 	    if(ch <= 0x7f) { 
                 if( ch < ' ' || ch > 0x7E) /* control char or DEL */
-		  return NC_EBADNAME;
+	          goto fail;
 		cp++;
 	    } else {
 		if((skip = nextUTF8(cp)) < 0) return NC_EBADNAME;
 		cp += skip;
 	    }
 	    if(cp - name > NC_MAX_NAME)
-		return NC_EMAXNAME;
+	        goto fail;
 	}
 	if(ch <= 0x7f && isspace(ch)) /* trailing spaces disallowed */
-	    return NC_EBADNAME;
+	    goto fail;
 	return NC_NOERR;
+fail:
+        return NC_EBADNAME;
 }
 
 

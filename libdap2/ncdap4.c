@@ -1,4 +1,10 @@
-#include "ncdap4.h"
+/*********************************************************************
+  *   Copyright 1993, UCAR/Unidata
+  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+  *   $Header: /upc/share/CVS/netcdf-3/libnccommon/nccommon.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
+  *********************************************************************/
+
+#include "config.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -14,6 +20,9 @@
 #include "netcdf.h"
 #include "nc4dispatch.h"
 #include "ncd4dispatch.h"
+
+#include "ncdap4.h"
+#include "oc.h"
 
 #ifdef DEBUG
 #include "dapdump.h"
@@ -70,7 +79,7 @@ NCD4_open(const char * path, int mode,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    DAPURL tmpurl;
+    OCURI* tmpurl;
     NCDAP4* drno = NULL; /* reuse the ncdap3 structure*/
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
@@ -84,8 +93,8 @@ NCD4_open(const char * path, int mode,
 
     if(!nc4dinitialized) nc4dinitialize();
 
-    if(!dapurlparse(path,&tmpurl)) PANIC("libncdap4: non-url path");
-    dapurlclear(&tmpurl); /* no longer needed */
+    if(!ocuriparse(path,&tmpurl)) PANIC("libncdap4: non-url path");
+    ocurifree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
     if((mode & NC_WRITE) != 0) ncstat = NC_EINVAL;
@@ -134,8 +143,8 @@ ocdebug = 1;
     drno->dap.controller = (NC*)drno;
     drno->dap.oc.urltext = modifiedpath;
     drno->dap.cdf.separator = ".";
-    dapurlparse(drno->dap.oc.urltext,&drno->dap.oc.url);
-    if(!constrainable34(&drno->dap.oc.url))
+    ocuriparse(drno->dap.oc.urltext,&drno->dap.oc.url);
+    if(!constrainable34(drno->dap.oc.url))
 	SETFLAG(drno->dap.controls,NCF_UNCONSTRAINABLE);
     drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
     drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
@@ -166,15 +175,15 @@ ocdebug = 1;
 
     /* Check to see if we are unconstrainable */
     if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	if(drno->dap.oc.url.constraint != NULL
-	   && strlen(drno->dap.oc.url.constraint) > 0) {
+	if(drno->dap.oc.url->constraint != NULL
+	   && strlen(drno->dap.oc.url->constraint) > 0) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   drno->dap.oc.url.constraint);
+		   drno->dap.oc.url->constraint);
 	}
 	/* ignore all constraints */
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url.constraint,drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.url->constraint,drno->dap.oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 
@@ -775,14 +784,10 @@ cvtunlimiteddim(NCDAPCOMMON* nccomm, CDFnode* dim)
 static void
 applyclientparamcontrols4(NCDAPCOMMON* nccomm)
 {
-    NClist* params = NULL;
     const char* value;
 
-    /* Get client parameters */
-    params = dapparamdecode(nccomm->oc.url.params);
-
     /* enable/disable caching */
-    value = dapparamlookup(params,"cache");    
+    value = oc_clientparam_get(nccomm->oc.conn,"cache");    
     if(value == NULL)
 	SETFLAG(nccomm->controls,DFALTCACHEFLAG);
     else if(strlen(value) == 0)
@@ -793,6 +798,4 @@ applyclientparamcontrols4(NCDAPCOMMON* nccomm)
     /* Set the translation base  */
     SETFLAG(nccomm->controls,NCF_NC4);
 
-    /* No longer need params */
-    dapparamfree(params);
 }

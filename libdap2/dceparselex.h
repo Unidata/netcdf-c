@@ -95,6 +95,7 @@ extern Object debugobject(Object);
 #endif
 
 extern int dapceparse(char* input, DCEconstraint*, char**);
+extern int dceerror(DCEparsestate* state, char* msg);
 
 #endif /*DCEPARSELEX_H*/
 

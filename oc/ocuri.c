@@ -12,9 +12,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "nc_url.h"
+#include "ocuri.h"
 
-#define NC_URLDEBUG
+#define OCURIDEBUG
 
 #define LBRACKET '['
 #define RBRACKET ']'
@@ -39,12 +39,15 @@ static char* legalprotocols[] = {
 NULL /* NULL terminate*/
 };
 
-/* Do a simple url parse*/
+static void ocparamfree(char** params);
+static int ocfind(char** params, const char* key);
+
+/* Do a simple uri parse: return 0 if fail, 1 otherwise*/
 int
-nc_urlparse(const char* url0, NC_URL** nc_urlp)
+ocuriparse(const char* uri0, OCURI** ocurip)
 {
-    NC_URL* nc_url = NULL;
-    char* url;
+    OCURI* ocuri = NULL;
+    char* uri;
     char** pp;
     char* p;
     char* p1;
@@ -61,21 +64,21 @@ nc_urlparse(const char* url0, NC_URL** nc_urlp)
     char* file = NULL;
     char* stop;
 
-    nc_url = (NC_URL*)calloc(1,sizeof(NC_URL));
-    if(nc_url == NULL) return 0;    
+    ocuri = (OCURI*)calloc(1,sizeof(OCURI));
+    if(ocuri == NULL) return 0;    
 
-    /* make local copy of url */
-    url = strdup(url0);
+    /* make local copy of uri */
+    uri = strdup(uri0);
 
     /* remove all whitespace*/
-    p = url;
-    p1 = url;
+    p = uri;
+    p1 = uri;
     while((c=*p1++)) {if(c != ' ' && c != '\t') *p++ = c;}
 
-    p = url;
+    p = uri;
     stop = p + strlen(p);
 
-    /* break up the url string into pieces*/
+    /* break up the uri string into pieces*/
 
     /* 1. leading bracketed parameters */
     if(*p == LBRACKET) {
@@ -87,7 +90,7 @@ nc_urlparse(const char* url0, NC_URL** nc_urlp)
 	p++; /* move past the params*/
     }
 
-    /* verify that the url starts with an acceptable protocol*/
+    /* verify that the uri starts with an acceptable protocol*/
     for(pp=legalprotocols;*pp;pp++) {
         if(strncmp(p,*pp,strlen(*pp))==0) break;
     }
@@ -134,99 +137,99 @@ nc_urlparse(const char* url0, NC_URL** nc_urlp)
     }
 
     /* assemble the component pieces*/
-    if(url0 && strlen(url0) > 0)
-        nc_url->url = strdup(url0);
+    if(uri0 && strlen(uri0) > 0)
+        ocuri->uri = strdup(uri0);
     if(protocol && strlen(protocol) > 0) {
-        nc_url->protocol = strdup(protocol);
+        ocuri->protocol = strdup(protocol);
         /* remove trailing ':' */
-        nc_url->protocol[strlen(protocol)-1] = '\0';
+        ocuri->protocol[strlen(protocol)-1] = '\0';
     }
     if(user && strlen(user) > 0)
-        nc_url->user = strdup(user);
+        ocuri->user = strdup(user);
     if(pwd && strlen(pwd) > 0)
-        nc_url->password = strdup(pwd);
+        ocuri->password = strdup(pwd);
     if(host && strlen(host) > 0)
-        nc_url->host = strdup(host);
+        ocuri->host = strdup(host);
     if(port && strlen(port) > 0)
-        nc_url->port = strdup(port);
+        ocuri->port = strdup(port);
     if(file && strlen(file) > 0) {
 	/* Add back the leading / */
-        nc_url->file = malloc(strlen(file)+2);
-	strcpy(nc_url->file,"/");
-        strcat(nc_url->file,file);
+        ocuri->file = malloc(strlen(file)+2);
+	strcpy(ocuri->file,"/");
+        strcat(ocuri->file,file);
     }
     if(constraint && strlen(constraint) > 0)
-        nc_url->constraint = strdup(constraint);
-    nc_urlsetconstraints(nc_url,constraint);
+        ocuri->constraint = strdup(constraint);
+    ocurisetconstraints(ocuri,constraint);
     if(params != NULL && strlen(params) > 0) {
-        nc_url->params = (char*)malloc(1+2+strlen(params));
-        strcpy(nc_url->params,"[");
-        strcat(nc_url->params,params);
-        strcat(nc_url->params,"]");
+        ocuri->params = (char*)malloc(1+2+strlen(params));
+        strcpy(ocuri->params,"[");
+        strcat(ocuri->params,params);
+        strcat(ocuri->params,"]");
     }
 
-#ifdef NC_XDEBUG
+#ifdef OCXDEBUG
 	{
-        fprintf(stderr,"nc_url:");
-        fprintf(stderr," params=|%s|",FIX(nc_url->params));
-        fprintf(stderr," protocol=|%s|",FIX(nc_url->protocol));
-        fprintf(stderr," host=|%s|",FIX(nc_url->host));
-        fprintf(stderr," port=|%s|",FIX(nc_url->port));
-        fprintf(stderr," file=|%s|",FIX(nc_url->file));
-        fprintf(stderr," constraint=|%s|",FIX(nc_url->constraint));
+        fprintf(stderr,"ocuri:");
+        fprintf(stderr," params=|%s|",FIX(ocuri->params));
+        fprintf(stderr," protocol=|%s|",FIX(ocuri->protocol));
+        fprintf(stderr," host=|%s|",FIX(ocuri->host));
+        fprintf(stderr," port=|%s|",FIX(ocuri->port));
+        fprintf(stderr," file=|%s|",FIX(ocuri->file));
+        fprintf(stderr," constraint=|%s|",FIX(ocuri->constraint));
         fprintf(stderr,"\n");
     }
 #endif
-    free(url);
-    if(nc_urlp != NULL) *nc_urlp = nc_url;
+    free(uri);
+    if(ocurip != NULL) *ocurip = ocuri;
     return 1;
 
 fail:
-    if(url != NULL) free(url);
+    if(uri != NULL) free(uri);
     return 0;
 }
 
 void
-nc_urlfree(NC_URL* nc_url)
+ocurifree(OCURI* ocuri)
 {
-    if(nc_url == NULL) return;
-    if(nc_url->url != NULL) {free(nc_url->url);}
-    if(nc_url->protocol != NULL) {free(nc_url->protocol);}
-    if(nc_url->user != NULL) {free(nc_url->user);}
-    if(nc_url->password != NULL) {free(nc_url->password);}
-    if(nc_url->host != NULL) {free(nc_url->host);}
-    if(nc_url->port != NULL) {free(nc_url->port);}
-    if(nc_url->file != NULL) {free(nc_url->file);}
-    if(nc_url->constraint != NULL) {free(nc_url->constraint);}
-    if(nc_url->projection != NULL) {free(nc_url->projection);}
-    if(nc_url->selection != NULL) {free(nc_url->selection);}
-    if(nc_url->params != NULL) {free(nc_url->params);}
-    if(nc_url->paramlist != NULL) nc_paramfree(nc_url->paramlist);
-    free(nc_url);
+    if(ocuri == NULL) return;
+    if(ocuri->uri != NULL) {free(ocuri->uri);}
+    if(ocuri->protocol != NULL) {free(ocuri->protocol);}
+    if(ocuri->user != NULL) {free(ocuri->user);}
+    if(ocuri->password != NULL) {free(ocuri->password);}
+    if(ocuri->host != NULL) {free(ocuri->host);}
+    if(ocuri->port != NULL) {free(ocuri->port);}
+    if(ocuri->file != NULL) {free(ocuri->file);}
+    if(ocuri->constraint != NULL) {free(ocuri->constraint);}
+    if(ocuri->projection != NULL) {free(ocuri->projection);}
+    if(ocuri->selection != NULL) {free(ocuri->selection);}
+    if(ocuri->params != NULL) {free(ocuri->params);}
+    if(ocuri->paramlist != NULL) ocparamfree(ocuri->paramlist);
+    free(ocuri);
 }
 
 /* Replace the constraints */
 void
-nc_urlsetconstraints(NC_URL* durl,const char* constraints)
+ocurisetconstraints(OCURI* duri,const char* constraints)
 {
     char* proj = NULL;
     char* select = NULL;
     const char* p;
 
-    if(durl->constraint == NULL) free(durl->constraint);
-    if(durl->projection != NULL) free(durl->projection);
-    if(durl->selection != NULL) free(durl->selection);
-    durl->constraint = NULL;	
-    durl->projection = NULL;	
-    durl->selection = NULL;
+    if(duri->constraint == NULL) free(duri->constraint);
+    if(duri->projection != NULL) free(duri->projection);
+    if(duri->selection != NULL) free(duri->selection);
+    duri->constraint = NULL;	
+    duri->projection = NULL;	
+    duri->selection = NULL;
 
     if(constraints == NULL || strlen(constraints)==0) return;
 
-    durl->constraint = strdup(constraints);
-    if(*durl->constraint == '?')
-	strcpy(durl->constraint,durl->constraint+1);
+    duri->constraint = strdup(constraints);
+    if(*duri->constraint == '?')
+	strcpy(duri->constraint,duri->constraint+1);
 
-    p = durl->constraint;
+    p = duri->constraint;
     proj = (char*) p;
     select = strchr(proj,'&');
     if(select != NULL) {
@@ -243,102 +246,80 @@ nc_urlsetconstraints(NC_URL* durl,const char* constraints)
 	proj = nulldup(proj);
 	select = NULL;
     }
-    durl->projection = proj;
-    durl->selection = select;
+    duri->projection = proj;
+    duri->selection = select;
 }
 
 
-/* Construct a complete NC_ URL without the client params
+/* Construct a complete OC URI without the client params
    and optionally with the constraints;
    caller frees returned string
 */
 
 char*
-nc_urlgeturl(NC_URL* durl, const char* prefix, const char* suffix, int pieces)
+ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int pieces)
 {
     size_t len = 0;
-    char* newurl;
-    int withparams = ((pieces&NC_URLPARAMS)
-			&& durl->params != NULL);
-    int withuserpwd = ((pieces&NC_URLUSERPWD)
-	               && durl->user != NULL && durl->password != NULL);
-    int withconstraints = ((pieces&NC_URLCONSTRAINTS)
-	                   && durl->constraint != NULL);
+    char* newuri;
+    int withparams = ((pieces&OCURIPARAMS)
+			&& duri->params != NULL);
+    int withuserpwd = ((pieces&OCURIUSERPWD)
+	               && duri->user != NULL && duri->password != NULL);
+    int withconstraints = ((pieces&OCURICONSTRAINTS)
+	                   && duri->constraint != NULL);
 
     if(prefix != NULL) len += NILLEN(prefix);
     if(withparams) {
 	len += NILLEN("[]");
-	len += NILLEN(durl->params);
+	len += NILLEN(duri->params);
     }
-    len += (NILLEN(durl->protocol)+NILLEN("://"));
+    len += (NILLEN(duri->protocol)+NILLEN("://"));
     if(withuserpwd) {
-	len += (NILLEN(durl->user)+NILLEN(durl->password)+NILLEN(":@"));
+	len += (NILLEN(duri->user)+NILLEN(duri->password)+NILLEN(":@"));
     }
-    len += (NILLEN(durl->host));
-    if(durl->port != NULL) {
-	len += (NILLEN(":")+NILLEN(durl->port));
+    len += (NILLEN(duri->host));
+    if(duri->port != NULL) {
+	len += (NILLEN(":")+NILLEN(duri->port));
     }
-    len += (NILLEN(durl->file));
+    len += (NILLEN(duri->file));
     if(suffix != NULL) len += NILLEN(suffix);
     if(withconstraints) {
-	len += (NILLEN("?")+NILLEN(durl->constraint));
+	len += (NILLEN("?")+NILLEN(duri->constraint));
     }
     len += 1; /* null terminator */
     
-    newurl = (char*)malloc(len);
-    if(!newurl) return NULL;
+    newuri = (char*)malloc(len);
+    if(!newuri) return NULL;
 
-    newurl[0] = '\0';
-    if(prefix != NULL) strcat(newurl,prefix);
+    newuri[0] = '\0';
+    if(prefix != NULL) strcat(newuri,prefix);
     if(withparams) {
-	strcat(newurl,"[");
-	strcat(newurl,durl->params);
-	strcat(newurl,"]");
+	strcat(newuri,"[");
+	strcat(newuri,duri->params);
+	strcat(newuri,"]");
     }
-    strcat(newurl,durl->protocol);
-    strcat(newurl,"://");
+    strcat(newuri,duri->protocol);
+    strcat(newuri,"://");
     if(withuserpwd) {
-        strcat(newurl,durl->user);
-        strcat(newurl,":");
-        strcat(newurl,durl->password);	
-        strcat(newurl,"@");
+        strcat(newuri,duri->user);
+        strcat(newuri,":");
+        strcat(newuri,duri->password);	
+        strcat(newuri,"@");
     }
-    if(durl->host != NULL) { /* may be null if using file: protocol */
-        strcat(newurl,durl->host);	
+    if(duri->host != NULL) { /* may be null if using file: protocol */
+        strcat(newuri,duri->host);	
     }
-    if(durl->port != NULL) {
-        strcat(newurl,":");
-        strcat(newurl,durl->port);
+    if(duri->port != NULL) {
+        strcat(newuri,":");
+        strcat(newuri,duri->port);
     }
-    strcat(newurl,durl->file);
-    if(suffix != NULL) strcat(newurl,suffix);
+    strcat(newuri,duri->file);
+    if(suffix != NULL) strcat(newuri,suffix);
     if(withconstraints) {
-	strcat(newurl,"?");
-	strcat(newurl,durl->constraint);
+	strcat(newuri,"?");
+	strcat(newuri,duri->constraint);
     }
-    return newurl;
-}
-
-int
-nc_urldecodeparams(NC_URL* nc_url)
-{
-    int ok = 0;
-    if(nc_url->paramlist == NULL && nc_url->params != NULL) {
-	char** list = nc_paramdecode(nc_url->params);
-	nc_url->paramlist = list;
-	ok = 1;
-    }
-    return ok;
-}
-
-/*! NULL result => entry not found.
-    Empty value should be represented as a zero length string */
-const char*
-nc_urllookup(NC_URL* durl, const char* clientparam)
-{
-    /* make sure that durl->paramlist exists */
-    if(durl->paramlist == NULL) nc_urldecodeparams(durl);
-    return nc_paramlookup(durl->paramlist,clientparam);    
+    return newuri;
 }
 
 /**************************************************/
@@ -357,21 +338,26 @@ is possible to forcibly override user specified
 parameters by prefixing.
 IMPORTANT: client parameter string is assumed to
 have blanks compress out.
+Returns 1 if parse suceeded, 0 otherwise;
 */
 
-char**
-nc_paramdecode(char* params0)
+int
+ocuridecodeparams(OCURI* ocuri)
 {
     char* cp;
     char* cq;
     int c;
     int i;
     int nparams;
-    char** plist;
+    char* params0;
     char* params;
     char* params1;
+    char** plist;
 
-    if(params0 == NULL) return NULL;
+    if(ocuri == NULL) return 0;
+    if(ocuri->params == NULL) return 1;
+
+    params0 = ocuri->params;
 
     /* Pass 1 to replace beginning '[' and ending ']' */
     if(params0[0] == '[') 
@@ -419,12 +405,41 @@ nc_paramdecode(char* params0)
     }
     plist[nparams] = NULL;
     free(params);
-    return plist;
+    if(ocuri->paramlist != NULL)
+	ocparamfree(ocuri->paramlist);
+    ocuri->paramlist = plist;
+    return 1;
+}
+
+const char*
+ocurilookup(OCURI* uri, const char* key)
+{
+    int i;
+    if(uri == NULL || key == NULL || uri->params == NULL) return NULL;
+    if(uri->paramlist == NULL) {
+	i = ocuridecodeparams(uri);
+	if(!i) return 0;
+    }
+    i = ocfind(uri->paramlist,key);
+    if(i >= 0)
+	return uri->paramlist[(2*i)+1];
+    return NULL;
+}
+
+int
+ocurisetparams(OCURI* uri, const char* newparams)
+{
+    if(uri == NULL) return 0;
+    if(uri->paramlist != NULL) ocparamfree(uri->paramlist);
+    uri->paramlist = NULL;
+    if(uri->params != NULL) free(uri->params);
+    uri->params = nulldup(newparams);
+    return 1;
 }
 
 /* Internal version of lookup; returns the paired index of the key */
 static int
-nc_find(char** params, const char* key)
+ocfind(char** params, const char* key)
 {
     int i;
     char** p;
@@ -434,20 +449,8 @@ nc_find(char** params, const char* key)
     return -1;
 }
 
-
-const char*
-nc_paramlookup(char** params, const char* key)
-{
-    int i;
-    if(params == NULL || key == NULL) return NULL;
-    i = nc_find(params,key);
-    if(i >= 0)
-	return params[(2*i)+1];
-    return NULL;
-}
-
-void
-nc_paramfree(char** params)
+static void
+ocparamfree(char** params)
 {
     char** p;
     if(params == NULL) return;
@@ -458,19 +461,20 @@ nc_paramfree(char** params)
     free(params);
 }
 
+#ifdef IGNORE
 /*
 Delete the entry.
 return value = 1 => found and deleted;
                0 => param not found
 */
 int
-nc_paramdelete(char** params, const char* key)
+ocparamdelete(char** params, const char* key)
 {
     int i;
     char** p;
     char** q;
     if(params == NULL || key == NULL) return 0;
-    i = nc_find(params,key);
+    i = ocfind(params,key);
     if(i < 0) return 0;
     p = params+(2*i);
     for(q=p+2;*q;) {	
@@ -481,7 +485,7 @@ nc_paramdelete(char** params, const char* key)
 }
 
 static int
-nc_length(char** params)
+oclength(char** params)
 {
     int i = 0;
     if(params != NULL) {
@@ -496,16 +500,16 @@ return value = 1 => not already defined
                0 => param already defined (no change)
 */
 char**
-nc_paraminsert(char** params, const char* key, const char* value)
+ocparaminsert(char** params, const char* key, const char* value)
 {
     int i;
     char** newp;
     size_t len;
     if(params == NULL || key == NULL) return 0;
-    i = nc_find(params,key);
+    i = ocfind(params,key);
     if(i >= 0) return 0;
     /* not found, append */
-    i = nc_length(params);
+    i = oclength(params);
     len = sizeof(char*)*((2*i)+1);
     newp = realloc(params,len+2*sizeof(char*));
     memcpy(newp,params,len);
@@ -520,13 +524,14 @@ return value = 1 => replacement performed
                0 => key not found (no change)
 */
 int
-nc_paramreplace(char** params, const char* key, const char* value)
+ocparamreplace(char** params, const char* key, const char* value)
 {
     int i;
     if(params == NULL || key == NULL) return 0;
-    i = nc_find(params,key);
+    i = ocfind(params,key);
     if(i < 0) return 0;
     if(params[2*i+1] != NULL) free(params[2*i+1]);
     params[2*i+1] = nulldup(value);
     return 1;
 }
+#endif

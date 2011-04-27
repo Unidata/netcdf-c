@@ -95,12 +95,12 @@ static char string3_data[DIMSIZE][STRLEN];
 #endif
 
 static char ch[DIMSIZE];
-static signed char int8[DIMSIZE];
-static unsigned char uint8[DIMSIZE];
-static short int16[DIMSIZE];
-static int int32[DIMSIZE];
-static float float32[DIMSIZE];
-static double float64[DIMSIZE];
+static signed char int8v[DIMSIZE];
+static unsigned char uint8v[DIMSIZE];
+static short int16v[DIMSIZE];
+static int int32v[DIMSIZE];
+static float float32v[DIMSIZE];
+static double float64v[DIMSIZE];
 static long  ilong[DIMSIZE];
 #ifndef USE_NETCDF4
 static char string3[DIMSIZE][STRLEN];
@@ -188,93 +188,93 @@ int main()
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_schar(ncid,varid,int8));
+    CHECK(nc_get_var_schar(ncid,varid,int8v));
 #ifdef GENERATE
     printf("static %s int8_data[DIMSIZE]={","signed char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_BYTE,NC_BYTE,int8,int8_data);
+    COMPARE(NC_BYTE,NC_BYTE,int8v,int8_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_uchar(ncid,varid,uint8));
+    CHECK(nc_get_var_uchar(ncid,varid,uint8v));
 #ifdef GENERATE
     printf("static %s uint8_data[DIMSIZE]={","unsigned char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_UBYTE,NC_UBYTE,uint8,uint8_data);
+    COMPARE(NC_UBYTE,NC_UBYTE,uint8v,uint8_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32v));
 #ifdef GENERATE
     printf("static %s int8toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_BYTE,NC_INT,int32,int8toint32_data);
+    COMPARE(NC_BYTE,NC_INT,int32v,int8toint32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32v));
 #ifdef GENERATE
     printf("static %s int82float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_FLOAT,NC_FLOAT,float32,int82float32_data);
+    COMPARE(NC_FLOAT,NC_FLOAT,float32v,int82float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_short(ncid,varid,int16));
+    CHECK(nc_get_var_short(ncid,varid,int16v));
 #ifdef GENERATE
     printf("static %s int16_data[DIMSIZE]={","short");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_SHORT,int16,int16_data);
+    COMPARE(NC_SHORT,NC_SHORT,int16v,int16_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32v));
 #ifdef GENERATE
     printf("static %s int16toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_INT,int32,int16toint32_data);
+    COMPARE(NC_SHORT,NC_INT,int32v,int16toint32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32v));
 #ifdef GENERATE
     printf("static %s int162float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_FLOAT,float32,int162float32_data);
+    COMPARE(NC_SHORT,NC_FLOAT,float32v,int162float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32v));
 #ifdef GENERATE
     printf("static %s int32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_INT,NC_INT,int32,int32_data);
+    COMPARE(NC_INT,NC_INT,int32v,int32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32v));
 #ifdef GENERATE
     printf("static %s int32tofloat32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_INT,NC_FLOAT,float32,int32tofloat32_data);
+    COMPARE(NC_INT,NC_FLOAT,float32v,int32tofloat32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
@@ -288,23 +288,23 @@ int main()
 #endif
 
     CHECK(nc_inq_varid(ncid, "f32", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32v));
 #ifdef GENERATE
     printf("static %s float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_FLOAT,NC_FLOAT,float32,float32_data);
+    COMPARE(NC_FLOAT,NC_FLOAT,float32v,float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "f64", &varid));
-    CHECK(nc_get_var_double(ncid,varid,float64));
+    CHECK(nc_get_var_double(ncid,varid,float64v));
 #ifdef GENERATE
     printf("static %s float64_data[DIMSIZE]={","double");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64v[i]);
     printf("};\n");
 #else
-    COMPARE(NC_DOUBLE,NC_DOUBLE,float64,float64_data);
+    COMPARE(NC_DOUBLE,NC_DOUBLE,float64v,float64_data);
 #endif
 
     if(failure) {

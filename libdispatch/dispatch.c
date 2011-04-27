@@ -61,7 +61,7 @@ NC_testurl(const char* path)
     if(*p == '/') return 0; /* probably an absolute file path */
 
     /* Ok, try to parse as a url */
-    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+    if(nc_urlparse(path,&tmpurl) == 1) {
 	/* Do some extra testing to make sure this really is a url */
         /* Look for a knownprotocol */
         struct NCPROTOCOLLIST* protolist;
@@ -89,7 +89,7 @@ NC_urlmodel(const char* path)
     NC_URL* tmpurl = NULL;
     struct NCPROTOCOLLIST* protolist;
 
-    if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
+    if(nc_urlparse(path,&tmpurl) == 0) goto done;
 
     /* Look at any prefixed parameters */
     if(nc_urllookup(tmpurl,"netcdf4")
@@ -107,8 +107,10 @@ NC_urlmodel(const char* path)
     for(protolist=ncprotolist;protolist->protocol;protolist++) {
 	if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
 	    model |= protolist->modelflags;
-	    if(protolist->substitute)
-	        nc_urlsetprotocol(tmpurl,protolist->substitute);	
+	    if(protolist->substitute) {
+		if(tmpurl->protocol != NULL) free(tmpurl->protocol);
+		tmpurl->protocol = protolist->substitute;
+	    }
 	    break;	    
 	}
     }	

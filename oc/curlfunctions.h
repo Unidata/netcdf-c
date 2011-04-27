@@ -8,10 +8,10 @@
 #ifndef _CURLFUNCTION_H_
 #define _CURLFUNCTION_H_
 
-extern int ocset_curl_flags(CURL*, OCstate*);
-extern int ocset_user_password(CURL*, const char *user, const char *pwd);
-extern int ocset_proxy(CURL*, OCstate*);
-extern int ocset_ssl(CURL*, OCstate*);
+extern int ocset_curl_flags(OCstate*);
+extern int ocset_user_password(OCstate*);
+extern int ocset_proxy(OCstate*);
+extern int ocset_ssl(OCstate*);
 
 #endif /*_CURLFUNCTION_H_*/
 

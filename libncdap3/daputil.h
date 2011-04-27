@@ -51,9 +51,9 @@ extern int dapgridelement(struct CDFnode* node);
 
 /* Provide alternate path to the url parameters;
    one that does not require that an OCconnection exist */
-extern NClist* dapparamdecode(char*);
-extern void dapparamfree(NClist*);
-extern const char* dapparamlookup(NClist*, const char*);
+extern char** dapparamdecode(char*);
+extern void dapparamfree(char**);
+extern const char* dapparamlookup(char**, const char*);
 extern unsigned int modeldecode(int, const char*, const struct NCTMODEL*, unsigned int);
 extern unsigned long getlimitnumber(const char* limit);
 
