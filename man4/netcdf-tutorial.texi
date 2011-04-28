@@ -372,7 +372,7 @@ netCDF variables. Variables are N-dimensional arrays of data, with a
 name and an associated set of netCDF dimensions.
 
 It is also customary to add one variable for each dimension, to hold
-the values along that axis. These variables are called ``coordinate
+the values along that axis. These variables are call ``coordinate
 variables.'' The latitude coordinate variable would be a
 one-dimensional variable (with latitude as its dimension), and it
 would hold the latitude values at each point along the axis.
@@ -432,7 +432,7 @@ Since each group functions as a complete netCDF classic dataset, it is
 possible to have variables with the same name in two or more different
 groups, within the same netCDF-4/HDF5 data file. 
 
-Dimensions have a special scope: they may be seen by all variables in
+Dimensions have a special scope: they may me seen my all variables in
 their group, and all descendant groups. This allows the user to define
 dimensions in a top-level group, and use them in many sub-groups.
 
@@ -534,11 +534,8 @@ Using attributes it is possible to capture metadata that would
 otherwise be separated from the data. Various conventions have been
 established. By using a set of conventions, a data producer is more
 likely to produce files that can be easily shared within the research
-community, and that contain enough details to be useful as a long-term
-archive.  Conventions also make it easier to develop software that
-interprets information represented in data, because a convention
-selects one conventional way to represent information when multiple
-equivalent representations are possible.
+community, and that contain enough details to be useful as a
+long-term archive.
 
 For more information on _FillValue and other attribute conventions,
 see @ref{Attribute Conventions,,, netcdf, @value{n-man}}.
@@ -561,8 +558,8 @@ files. Before writing your own program, check to see if any existing
 programs meet your needs.
 
 Two utilities come with the netCDF distribution: ncdump and
-ncgen. The ncdump command reads a netCDF file and outputs text in
-a format called CDL. The ncgen command reads a text file in CDL
+ncgen. The ncdump command reads a netCDF file and outputs ASCII in
+a format called CDL. The ncgen command reads an ASCII file in CDL
 format, and generates a netCDF data file. 
 
 One common use for ncdump is to examine the metadata of a netCDF file,

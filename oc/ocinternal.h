@@ -36,7 +36,6 @@
 
 #include "oclist.h"
 #include "ocbytes.h"
-#include "ocuri.h"
 
 #define OCCACHEPOS
 #ifdef OCCACHEPOS
@@ -47,10 +46,13 @@ extern void ocxdrstdio_create(XDR*,FILE*,enum xdr_op);
 
 #undef OC_DISK_STORAGE
 
+#include "config.h"
+
 #include "oc.h"
 #include "ocdatatypes.h"
 #include "constraints.h"
 #include "ocnode.h"
+#include "dapurl.h"
 #include "ocutil.h"
 #include "oclog.h"
 #include "ocdata.h"
@@ -81,7 +83,8 @@ typedef struct OCstate
     unsigned int magic; /* Mark each structure type */
     CURL* curl; /* curl handle*/
     OClist* trees; /* list<OCnode*> ; all root objects */
-    OCURI* uri; /* base URI*/
+    DAPURL url; /* base URL */
+    OClist* clientparams;
     OCbytes* packet; /* shared by all trees during construction */
     /* OCContent information */
     struct OCcontent* contentlist;

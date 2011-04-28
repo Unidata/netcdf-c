@@ -84,7 +84,7 @@ main(int argc, char **argv)
    printf("\n*** Testing nofill mode.\n");
    printf("*** Create file in nofill mode, writing all values...");
    {
-#define NUM_TRIES 1
+#define NUM_TRIES 4000
       int ncid;
       size_t idx[1] = {0};
       double data;

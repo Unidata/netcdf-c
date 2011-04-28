@@ -20,10 +20,9 @@ static char* combinecredentials(const char* user, const char* pwd);
 
 /* Set various general curl flags */
 int
-ocset_curl_flags(OCstate* state)
+ocset_curl_flags(CURL* curl,  OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
-    CURL* curl = state->curl;
     struct OCcurlflags* flags = &state->curlflags;
 #ifdef CURLOPT_ENCODING
     if (flags->compress) {
@@ -62,10 +61,9 @@ fail:
 }
 
 int
-ocset_proxy(OCstate* state)
+ocset_proxy(CURL* curl, OCstate* state)
 {
     CURLcode cstat;
-    CURL* curl = state->curl;
     struct OCproxy *proxy = &state->proxy;
     struct OCcredentials *creds = &state->creds;
 
@@ -81,6 +79,7 @@ ocset_proxy(OCstate* state)
         char *combined = combinecredentials(creds->username,creds->password);
         if (!combined) return OC_ENOMEM;
         cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, combined);
+        free(combined);
         if (cstat != CURLE_OK) return OC_ECURL;
 	DEBUG1(1,"CURLOPT_PROXYUSERPWD=%s",combined);
 #ifdef CURLOPT_PROXYAUTH
@@ -88,16 +87,14 @@ ocset_proxy(OCstate* state)
         if(cstat != CURLE_OK) goto fail;
 	DEBUG1(1,"CURLOPT_PROXYAUTH=%ld",(long)CURLAUTH_ANY);
 #endif
-        free(combined);
     }
     return OC_NOERR;
 }
 
 int
-ocset_ssl(OCstate* state)
+ocset_ssl(CURL* curl, OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
-    CURL* curl = state->curl;
     struct OCSSL* ssl = &state->ssl;
     long verify = (ssl->validate?1L:0L);
     cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verify);
@@ -148,15 +145,14 @@ fail:
  * we may have multiple password sources.
  */
 int
-ocset_user_password(OCstate* state)
+ocset_user_password(CURL* curl, const char *userC, const char *passwordC)
 {
     CURLcode cstat;
-    CURL* curl = state->curl;
     char* combined = NULL;
-    const char* userC = state->creds.username;
-    const char* passwordC = state->creds.password;
 
-    if(userC == NULL || passwordC == NULL) return OC_NOERR;
+    if(userC == NULL && passwordC == NULL) return OC_NOERR;
+    if(userC == NULL) userC = "";
+    if(passwordC == NULL) passwordC = "";
 
     combined = combinecredentials(userC,passwordC);
     if (!combined) return OC_ENOMEM;
