@@ -5,6 +5,13 @@ VERSION         COMMENTS
 -------         --------
 4.1.3		2011-04-25
 
+		 Fixed dreaded "nofill bug", lurking in netCDF classic
+		 since at least 1999.  Writing more than a disk
+		 block's worth of data that crossed disk block
+		 boundaries more than a disk block beyond the end of
+		 file in nofill mode could zero out recently written
+		 earlier data that hadn't yet been flushed to disk.
+
 		 Changed setting for H5Pset_libver_bounds to ensure
 		 that all netCDF-4 files can be read by HDF5 1.8.x.
 
