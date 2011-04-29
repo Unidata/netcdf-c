@@ -130,31 +130,44 @@ ZIPBINFILES += ${prefix}/bin/ncgen3$(EXEEXT) ${prefix}/bin/ncgen$(EXEEXT) ${pref
 ${prefix}/share/man/man1/ncgen.1 ${prefix}/share/man/man1/ncdump.1
 endif
 
-# if BUILD_F77
-# BINFILES += include/netcdf.inc share/man/man3/netcdf_f77.3 
-# BINFILES += lib/libnetcdff.a
-# endif
+if BUILD_F77
+BINFILES += include/netcdf.inc share/man/man3/netcdf_f77.3	\
+lib/libnetcdff.a
+ZIPBINFILES += ${prefix}/include/netcdf.inc ${prefix}/share/man/man3/netcdf_f77.3	\
+${prefix}/lib/libnetcdff.a
+endif
 
-# if BUILD_F90
-# if UPPER_CASE_MOD
-# BINFILES += include/NETCDF.mod include/TYPESIZES.mod
-# else
-# BINFILES += include/netcdf.mod include/typesizes.mod
-# endif
-# BINFILES += share/man/man3/netcdf_f90.3
-# endif
+if BUILD_F90
+if UPPER_CASE_MOD
+BINFILES += include/NETCDF.mod include/TYPESIZES.mod
+ZIPBINFILES += ${prefix}/include/NETCDF.mod ${prefix}/include/TYPESIZES.mod
+else
+BINFILES += include/netcdf.mod include/typesizes.mod
+ZIPBINFILES += ${prefix}/include/netcdf.mod ${prefix}/include/typesizes.mod
+endif
+BINFILES += share/man/man3/netcdf_f90.3
+ZIPBINFILES += ${prefix}/share/man/man3/netcdf_f90.3
+endif
 
-# if BUILD_CXX
-# BINFILES += include/netcdf.hh include/ncvalues.h  include/netcdfcpp.h lib/libnetcdf_c++.a 
-# endif
+if BUILD_CXX
+BINFILES += include/netcdf.hh include/ncvalues.h include/netcdfcpp.h	\
+lib/libnetcdf_c++.a
+ZIPBINFILES += ${prefix}/include/netcdf.hh			\
+${prefix}/include/ncvalues.h ${prefix}/include/netcdfcpp.h	\
+${prefix}/lib/libnetcdf_c++.a
+endif
 
 if BUILD_DLL
-BINFILES += bin/libnetcdf-7.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
+BINFILES += bin/libnetcdf-*.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
 lib/libnetcdf.la lib/netcdfdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
+ZIPBINFILES += ${prefix}/bin/libnetcdf-*.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
 ${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 if BUILD_F77
-BINFILES += 
+BINFILES += bin/libnetcdff-*.dll lib/libnetcdff.dll.a	\
+lib/libnetcdff.la lib/netcdffdll.def
+ZIPBINFILES += ${prefix}/bin/libnetcdff-*.dll			\
+${prefix}/lib/libnetcdff.dll.a ${prefix}/lib/libnetcdff.la	\
+${prefix}/lib/netcdffdll.def
 endif # BUILD_F77
 endif # BUILD_DLL
 
@@ -183,6 +196,7 @@ check_nc_config:
 install-data-hook:
 if BUILD_DLL
 	cp liblib/netcdfdll.def ${prefix}/lib
+	cp fortran/netcdffdll.def ${prefix}/lib
 endif
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
