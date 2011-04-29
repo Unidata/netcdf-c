@@ -917,14 +917,14 @@ dnl 	 fi
    AC_MSG_CHECKING([whether parallel I/O features are to be included])
    AC_MSG_RESULT([$enable_parallel])         
    
-   # The user must have build HDF5 with the ZLIB library.
+   # The user must have built HDF5 with the ZLIB library.
    if test "x$ac_cv_func_H5Pset_deflate" = xyes; then
       AC_DEFINE([USE_ZLIB], [1], [if true, compile in zlib compression in netCDF-4 variables])
    else		    
       AC_MSG_ERROR([HDF5 must be built with zlib for netCDF-4])
    fi
 
-   # The user may have build HDF5 with the SZLIB library.
+   # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Pset_szip" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
@@ -958,7 +958,7 @@ AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(BUILD_CXX4, [test x$enable_cxx_4 = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
-AM_CONDITIONAL(USE_SZIP, [test "x$enable_szip" = xyes])
+AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Pset_szip" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
