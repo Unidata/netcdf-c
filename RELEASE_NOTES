@@ -19,6 +19,10 @@ VERSION         COMMENTS
                  The suffix dap2 now refers to the dap protocol. This is
                  in prep for adding dap4 protocol support.
 
+		 Took out --with-hdf5 and related options due to high
+		 cost of maintaining this non-standard way of finding
+		 libraries.
+
 4.1.2          2011-03-29
 
 	        Changes in build system to support building dlls on
