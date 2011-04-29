@@ -883,7 +883,7 @@ if test "x$enable_netcdf_4" = xyes; then
       --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found.])])
-   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_can_apply_szip])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Pset_szip])
 
    # The user may have parallel HDF5 based on MPI POSIX.
    if test "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
@@ -918,14 +918,14 @@ dnl 	 fi
    AC_MSG_RESULT([$enable_parallel])         
    
    # The user must have build HDF5 with the ZLIB library.
-   #AC_CHECK_LIB([hdf5], [H5Pset_deflate], [enable_zlib=yes], [])
    if test "x$ac_cv_func_H5Pset_deflate" = xyes; then
       AC_DEFINE([USE_ZLIB], [1], [if true, compile in zlib compression in netCDF-4 variables])
+   else		    
+      AC_MSG_ERROR([HDF5 must be built with zlib for netCDF-4])
    fi
 
-   # The user must have build HDF5 with the ZLIB library.
-   #   AC_CHECK_LIB([hdf5], [H5Z_can_apply_szip], [enable_szip=yes], [])
-   if test "x$ac_cv_func_H5Z_can_apply_szip" = xyes; then
+   # The user may have build HDF5 with the SZLIB library.
+   if test "x$ac_cv_func_H5Pset_szip" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
@@ -958,10 +958,6 @@ AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(BUILD_CXX4, [test x$enable_cxx_4 = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
-AM_CONDITIONAL(USE_HDF5_DIR, [test ! "x$HDF5DIR" = x])
-AM_CONDITIONAL(USE_HDF4_DIR, [test ! "x$HDF4DIR" = x])
-AM_CONDITIONAL(USE_ZLIB_DIR, [test ! "x$ZLIBDIR" = x])
-AM_CONDITIONAL(USE_SZLIB_DIR, [test ! "x$SZLIBDIR" = x])
 AM_CONDITIONAL(USE_SZIP, [test "x$enable_szip" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])

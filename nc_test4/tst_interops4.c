@@ -1,11 +1,9 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2011, University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
+   for conditions of use.
 
    Test NetCDF-4 files with lots of attributes on big vs. little
    endian platforms.
-
-   $Id: tst_interops4.c,v 1.4 2010/02/26 12:52:30 ed Exp $
 */
 #include <config.h>
 #include <nc_tests.h>
