@@ -1,6 +1,9 @@
-/* This is a benchmarking program for netCDF-4 parallel I/O.
+/*   Copyright 2007-2011, UCAR/Unidata. See COPYRIGHT file for copying
+  and redistribution conditions.
 
-   $Id: tst_parallel4.c,v 1.5 2009/08/19 15:58:56 ed Exp $
+  This is part of the netCDF package.
+
+  This is a benchmarking program for netCDF-4 parallel I/O.
 */
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
