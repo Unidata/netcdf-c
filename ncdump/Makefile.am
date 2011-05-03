@@ -86,18 +86,18 @@ ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl
 
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 BUILT_SOURCES = ctest.c ctest64.c
-if CROSS_COMPILING
-ctest.c:
-	cp ref_ctest.c ctest.c
-
-ctest64.c:
-	cp ref_ctest64.c ctest64.c
-else
+if EXTRA_TESTS
 ctest.c:
 	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
 
 ctest64.c:
 	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
+else
+ctest.c:
+	cp ref_ctest.c ctest.c
+
+ctest64.c:
+	cp ref_ctest64.c ctest64.c
 endif # CROSS_COMPILING
 
 # NCGEN4 additions

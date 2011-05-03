@@ -4,12 +4,6 @@
 # This file controls the building of the fortran 90 API. All testing
 # of the F90 API is done in the nf_test directory.
 
-# The F90 library is always built as a convenience library. It is
-# included by the netCDF-4 library in libsrc4, or the netCDF-3 library
-# in libsrc, or the separate fortran library in fortran.
-
-# $Id: Makefile.am,v 1.51 2010/05/29 00:20:53 dmh Exp $
-
 AM_FCFLAGS =
 AM_LDFLAGS =
 

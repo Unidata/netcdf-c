@@ -1,10 +1,8 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2011, University
+   Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
+   for conditions of use.
 
    Test that HDF5 and NetCDF-4 can read and write the same file.
-
-   $Id: tst_interops5.c,v 1.2 2010/06/01 15:34:52 ed Exp $
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -177,6 +175,85 @@ main(int argc, char **argv)
       }
    }
    SUMMARIZE_ERR;
+#ifdef USE_SZIP
+   printf("*** testing HDF5 compatibility with szip...");
+   {
+
+#define DEFLATE_LEVEL 9
+#define MAX_NAME 100   
+#define NUM_CD_ELEM 10
+/* HDF5 defines this... */
+#define DEFLATE_NAME "deflate"
+#define DIM1_LEN 3000
+#define GRP_NAME "George_Washington"
+#define BATTLE_RECORD "Battle_Record"
+
+      hid_t fileid, grpid, spaceid, datasetid;
+      int data_out[DIM1_LEN], data_in[DIM1_LEN];
+      hsize_t dims[1] = {DIM1_LEN};
+      H5Z_filter_t filter;
+      int num_filters;
+      hid_t propid;
+      unsigned int flags, cd_values[NUM_CD_ELEM], filter_config;
+      size_t cd_nelems = NUM_CD_ELEM;
+      size_t namelen = MAX_NAME;
+      char name[MAX_NAME + 1], name_in[MAX_NAME + 1];
+      int ncid, ndims_in, nvars_in, ngatts_in, unlimdimid_in, ngrps_in;
+      int dimid_in[1], natts_in;
+
+      nc_type xtype_in;
+      int i;
+
+      for (i = 0; i < DIM1_LEN; i++)
+	 data_out[i] = i;
+      
+      /* Open file and create group. */
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+			      H5P_DEFAULT)) < 0) ERR;
+      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      
+      /* Write an array of bools, with szip compression. */
+      if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
+      if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
+      if (H5Pset_chunk(propid, 1, dims)) ERR;
+      if (H5Pset_szip(propid, H5_SZIP_EC_OPTION_MASK, 32)) ERR;
+      if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
+      if ((datasetid = H5Dcreate(grpid, BATTLE_RECORD, H5T_NATIVE_INT, 
+				 spaceid, propid)) < 0) ERR;
+      if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, 
+		   data_out) < 0) ERR;
+      if (H5Dclose(datasetid) < 0 ||
+	  H5Pclose(propid) < 0 ||
+	  H5Sclose(spaceid) < 0 ||
+	  H5Gclose(grpid) < 0 ||
+	  H5Fclose(fileid) < 0)
+	 ERR;
+
+      /* Open the file with netCDF and check it. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims_in, &nvars_in, &ngatts_in, &unlimdimid_in)) ERR;
+      if (ndims_in != 0 || nvars_in != 0 || ngatts_in != 0 || unlimdimid_in != -1) ERR;
+      if (nc_inq_grps(ncid, &ngrps_in, &grpid)) ERR;
+      if (ngrps_in != 1) ERR;
+      if (nc_inq(grpid, &ndims_in, &nvars_in, &ngatts_in, &unlimdimid_in)) ERR;
+      if (ndims_in != 1 || nvars_in != 1 || ngatts_in != 0 || unlimdimid_in != -1) ERR;
+
+      /* Check the variable. */
+      if (nc_inq_var(grpid, 0, name_in, &xtype_in, &ndims_in, dimid_in,
+      		     &natts_in)) ERR;
+      if (strcmp(name_in, BATTLE_RECORD) || xtype_in != NC_INT || ndims_in != 1 ||
+      	  dimid_in[0] != 0 || natts_in != 0) ERR;
+
+      /* Check the data. */
+      if (nc_get_var(grpid, 0, data_in)) ERR;
+      for (i = 0; i < DIM1_LEN; i++)
+	 if (data_in[i] != data_out[i]) ERR;
+      
+      if (nc_close(ncid)) ERR;
+
+   }
+   SUMMARIZE_ERR;
+#endif /* USE_SZIP */
    FINAL_RESULTS;
 }
 

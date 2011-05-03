@@ -3,8 +3,6 @@
 
 # This file builds F90 examples.
 
-# $Id: Makefile.am,v 1.36 2010/05/29 00:17:45 dmh Exp $
-
 # Some fortran compilers think your files should not have an .f90
 # extension! The value of FCFLAGS_f90 is set in the configure script,
 # based on the fortran compiler.
@@ -19,10 +17,7 @@ AM_LDFLAGS =
 AM_FCFLAGS +=  -I$(top_srcdir) -I$(top_srcdir)/fortran -I$(top_builddir)/f90 @MOD_FLAG@$(top_builddir)/f90
 AM_FFLAGS += ${AM_FCFLAGS}
 
-if BUILD_SEPARATE_FORTRAN
 AM_LDFLAGS += ${top_builddir}/fortran/libnetcdff.la
-endif #BUILD_SEPARATE_FORTRAN
-
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 
 # These are the example programs.

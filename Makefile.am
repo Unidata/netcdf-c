@@ -5,8 +5,6 @@
 # netcdf directories. Not all directories are built, depending on the
 # options selected during configure.
 
-# $Id: Makefile.am,v 1.137 2010/06/01 15:34:49 ed Exp $
-
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
@@ -30,9 +28,6 @@ if BUILD_F77
 F77_DIR = fortran
 F77_TEST = nf_test
 endif
-
-# Does the user want C API?
-if BUILD_C
 
 LIBSRC_DIR = libsrc
 NC_TEST_DIR = nc_test
@@ -68,8 +63,6 @@ endif
 
 DISPATCHDIR = libdispatch
 ASSEMBLEDIR = liblib
-
-endif # BUILD_C
 
 # Does the user want F90 API?
 if BUILD_F90
@@ -111,22 +104,13 @@ endif
 # and run. ncgen must come before ncdump and cxx, because their tests
 # depend on it. nf_test depends upon ncgen as well.
 # If not using dispatch then NC3DAPDIR must be
-# built right before LIBSRC_DIR and NC4DAPDIR must be 
+# built right before libsrc and NC4DAPDIR must be 
 # built right before LIBSRC4_DIR.
-# If using dispatch, then the order is different
-if BUILD_SEPARATE_FORTRAN
 SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
-$(LIBSRC_DIR) $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR)		\
-${ASSEMBLEDIR} $(V2_TEST) $(NC_TEST_DIR) $(F90_DIR) $(F77_DIR)		\
-$(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST) ${CXX_DIR} $(CXX4)		\
-$(NC_TEST4) $(NCDAPTESTDIR) man4 $(EXAMPLES) $(LIBCF)
-else
-SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
-$(F90_DIR) $(F77_DIR) $(LIBSRC_DIR) $(LIBSRC4_DIR) $(DAP2)	\
-$(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST) $(NCGEN3) $(NCGEN) $(NCDUMP)	\
-$(F77_TEST) ${CXX_DIR} $(CXX4) $(NC_TEST4) $(NC_TEST_DIR)		\
-$(NCDAPTESTDIR) man4 $(EXAMPLES) $(LIBCF)
-endif
+libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST)	\
+nc_test $(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+${CXX_DIR} $(CXX4) $(NC_TEST4) $(NCDAPTESTDIR) man4 $(EXAMPLES)		\
+$(LIBCF)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
@@ -136,40 +120,54 @@ bin_SCRIPTS = nc-config
 
 # What needs to go in the binrary dist?
 BINFILES = README_BINARIES.txt
-if BUILD_C
 BINFILES += include/netcdf.h share/man/man3/netcdf.3 lib/libnetcdf.a
-endif
+ZIPBINFILES = ${prefix}/include/netcdf.h ${prefix}/share/man/man3/netcdf.3 ${prefix}/lib/libnetcdf.a
 
 if BUILD_UTILITIES
 BINFILES += bin/ncgen3$(EXEEXT) bin/ncgen$(EXEEXT) bin/ncdump$(EXEEXT)	\
 share/man/man1/ncgen.1 share/man/man1/ncdump.1
+ZIPBINFILES += ${prefix}/bin/ncgen3$(EXEEXT) ${prefix}/bin/ncgen$(EXEEXT) ${prefix}/bin/ncdump$(EXEEXT)	\
+${prefix}/share/man/man1/ncgen.1 ${prefix}/share/man/man1/ncdump.1
 endif
 
 if BUILD_F77
-BINFILES += include/netcdf.inc share/man/man3/netcdf_f77.3 
-if BUILD_SEPARATE_FORTRAN
-BINFILES += lib/libnetcdff.a
-endif
+BINFILES += include/netcdf.inc share/man/man3/netcdf_f77.3	\
+lib/libnetcdff.a
+ZIPBINFILES += ${prefix}/include/netcdf.inc ${prefix}/share/man/man3/netcdf_f77.3	\
+${prefix}/lib/libnetcdff.a
 endif
 
 if BUILD_F90
 if UPPER_CASE_MOD
 BINFILES += include/NETCDF.mod include/TYPESIZES.mod
+ZIPBINFILES += ${prefix}/include/NETCDF.mod ${prefix}/include/TYPESIZES.mod
 else
 BINFILES += include/netcdf.mod include/typesizes.mod
+ZIPBINFILES += ${prefix}/include/netcdf.mod ${prefix}/include/typesizes.mod
 endif
 BINFILES += share/man/man3/netcdf_f90.3
+ZIPBINFILES += ${prefix}/share/man/man3/netcdf_f90.3
 endif
 
 if BUILD_CXX
-BINFILES += include/netcdf.hh include/ncvalues.h  include/netcdfcpp.h lib/libnetcdf_c++.a 
+BINFILES += include/netcdf.hh include/ncvalues.h include/netcdfcpp.h	\
+lib/libnetcdf_c++.a
+ZIPBINFILES += ${prefix}/include/netcdf.hh			\
+${prefix}/include/ncvalues.h ${prefix}/include/netcdfcpp.h	\
+${prefix}/lib/libnetcdf_c++.a
 endif
 
 if BUILD_DLL
-BINFILES += liblib/.libs/cygnetcdf-7.dll liblib/.libs/libnetcdf.dll.a	\
-liblib/.libs/libnetcdf.a liblib/.libs/libnetcdf.la
+BINFILES += bin/libnetcdf-*.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
+lib/libnetcdf.la lib/netcdfdll.def
+ZIPBINFILES += ${prefix}/bin/libnetcdf-*.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
+${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 if BUILD_F77
-BINFILES += 
+BINFILES += bin/libnetcdff-*.dll lib/libnetcdff.dll.a	\
+lib/libnetcdff.la lib/netcdffdll.def
+ZIPBINFILES += ${prefix}/bin/libnetcdff-*.dll			\
+${prefix}/lib/libnetcdff.dll.a ${prefix}/lib/libnetcdff.la	\
+${prefix}/lib/netcdffdll.def
 endif # BUILD_F77
 endif # BUILD_DLL
 
@@ -185,6 +183,7 @@ ftpbin: install
 	echo "PATH: $(PATH)"
 	tar cf @BINFILE_NAME@ -C ${prefix} ${BINFILES}
 	gzip -f @BINFILE_NAME@
+	zip -j netcdf_${VERSION}.zip ${ZIPBINFILES}
 
 check_nc_config:
 	$(CC) `./nc-config --cflags` test_prog.c -o test_prog `./nc-config --libs`
@@ -195,6 +194,10 @@ check_nc_config:
 	./test_prog
 
 install-data-hook:
+if BUILD_DLL
+	cp liblib/netcdfdll.def ${prefix}/lib
+	cp fortran/netcdffdll.def ${prefix}/lib
+endif
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
 	@echo '| Congratulations! You have successfully installed netCDF!    |'

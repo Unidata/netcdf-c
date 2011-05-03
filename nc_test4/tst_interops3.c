@@ -1,11 +1,11 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2005-2011, University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
+   for conditions of use.
 
-   Test that HDF5 and NetCDF-4 can read and write the same file.
-
-   $Id: tst_interops3.c,v 1.2 2009/07/15 15:16:05 ed Exp $
+   Test that NetCDF-4 can read a bunch of HDF4 files pulled in from
+   the FTP site.
 */
+
 #include <config.h>
 #include <nc_tests.h>
 #include <mfhdf.h>
