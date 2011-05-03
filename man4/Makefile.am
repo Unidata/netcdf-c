@@ -27,7 +27,8 @@ txt_docs= ${info_TEXINFOS:.texi=.txt}
 
 # These are html versions of the man pages.
 html_mans = ncdump-man-1.html ncgen-man-1.html netcdf_f77-man.html	\
-netcdf-man-3.html netcdf_f90-man.html ncgen3-man-1.html
+netcdf-man-3.html netcdf_f90-man.html ncgen3-man-1.html \
+nccopy-man-1.html
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 $(pdf_docs) $(html_mans) $(txt_docs) $(dvi_docs)	\
@@ -107,6 +108,10 @@ ncgen3-man-1.html: $(top_srcdir)/ncgen3/ncgen3.1
 ncdump-man-1.html: $(top_srcdir)/ncdump/ncdump.1
 	groff -man -Thtml $? > $@
 
+# Generate the HTML version of the nccopy man page.
+nccopy-man-1.html: $(top_srcdir)/ncdump/nccopy.1
+	groff -man -Thtml $? > $@
+
 # Copy C examples to this directory.
 ${c_examples}:
 	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/C/$@ > $@
@@ -178,6 +183,7 @@ web-tarball: $(pdf_docs) $(html_mans) $(txt_docs) $(dvi_docs) $(ps_docs) $(info_
 	zip netcdf_txt *.txt
 	cp $(top_srcdir)/ncdump/ncdump.1 .
 	cp $(top_srcdir)/ncgen/ncgen.1 .
+	cp $(top_srcdir)/ncdump/nccopy.1 .
 	cp $(top_srcdir)/ncgen3/ncgen3.1 .
 	cp $(top_srcdir)/libsrc/netcdf.3 .
 	cp $(top_srcdir)/fortran/netcdf_f77.3 .
@@ -193,5 +199,5 @@ MAINTAINERCLEANFILES = $(ps_docs) $(pdf_docs) $(txt_docs) $(info_docs)	\
 $(html_docs) $(man_MANS) ${c_examples} ${f77_examples} ${f90_examples}	\
 ${cxx_examples} ${cdl_examples} *.1 *.3 ncdump-man-1.html		\
 ncgen-man-1.html ncgen3-man-1.html netcdf_f77-man.html netcdf-man-3.html \
-netcdf_f90-man.html stamp-* version* netcdf_f77.3 
+netcdf_f90-man.html stamp-* version* netcdf_f77.3 nccopy-man-1.html
 
