@@ -158,14 +158,14 @@ ${prefix}/lib/libnetcdf_c++.a
 endif
 
 if BUILD_DLL
-BINFILES += bin/libnetcdf-*.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
+BINFILES += bin/libnetcdf-7.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
 lib/libnetcdf.la lib/netcdfdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdf-*.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
+ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
 ${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 if BUILD_F77
-BINFILES += bin/libnetcdff-*.dll lib/libnetcdff.dll.a	\
+BINFILES += bin/libnetcdff-5.dll lib/libnetcdff.dll.a	\
 lib/libnetcdff.la lib/netcdffdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdff-*.dll			\
+ZIPBINFILES += ${prefix}/bin/libnetcdff-5.dll			\
 ${prefix}/lib/libnetcdff.dll.a ${prefix}/lib/libnetcdff.la	\
 ${prefix}/lib/netcdffdll.def
 endif # BUILD_F77
@@ -196,8 +196,10 @@ check_nc_config:
 install-data-hook:
 if BUILD_DLL
 	cp liblib/netcdfdll.def ${prefix}/lib
+if BUILD_F77
 	cp fortran/netcdffdll.def ${prefix}/lib
-endif
+endif # BUILD_F77
+endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
 	@echo '| Congratulations! You have successfully installed netCDF!    |'
