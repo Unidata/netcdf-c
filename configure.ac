@@ -700,7 +700,27 @@ fi
 # right here.
 AC_MSG_NOTICE([finding Fortran compiler (will not be used if Fortran API is not desired)])
 AC_PROG_FC
+
+# If we couldn't find an F90 compiler, deal with it.
+if test "${FC+set}" = set && test "x$FC" = x; then
+   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f90" = xyes; then
+      AC_MSG_ERROR([Can't find F90 compiler, and compiler recovery disabled.])
+   fi
+   AC_MSG_WARN([No F90 compiler found. F90 API will not be built.])
+   nc_build_f90=no
+fi
+
 AC_PROG_F77($FC)
+
+# Handle missing f77 compiler.
+if test "${F77+set}" = set && test "x$F77" = x; then
+   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f77" = xyes; then
+      AC_MSG_ERROR([Can't find F77 compiler, and compiler recovery disabled.])
+   fi
+   AC_MSG_WARN([No F77 compiler found. F77 API will not be built.])
+   nc_build_f77=no
+   nc_build_f90=no
+fi
 
 # See if the fortran 90 build is desired. If so, set some stuff
 if test "x$nc_build_f90" = xyes; then
