@@ -1007,11 +1007,12 @@ UD_FTPBINDIR
 
 # Require some version of xdr/rpc
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
-AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
-		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
-if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
-  AC_MSG_ERROR(Cannot locate library containing xdr functions.)
-else
+if test "x$enable_dap" = xyes; then
+   AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
+   		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
+  if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
+    AC_MSG_ERROR(Cannot locate library containing xdr functions.)
+  else
   if test "$dap_xdrlib" = "lc" ; then
     AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
   elif test "$dap_xdrlib" = "none required" ; then
@@ -1022,14 +1023,15 @@ else
     # Add to library list
     AC_CHECK_LIB($dap_xdrlib,xdr_void)
   fi
+  # Fix to get working on OS X (thanks to Fedor Baart)
+  AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
+       AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
+       AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
+       ], [], [[#ifdef HAVE_RPC_TYPES_H
+  # include <rpc/types.h>
+  #endif]])
 fi
-# Fix to get working on OS X (thanks to Fedor Baart)
-AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
-     AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
-     AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
-     ], [], [[#ifdef HAVE_RPC_TYPES_H
-# include <rpc/types.h>
-#endif]])
+fi
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
