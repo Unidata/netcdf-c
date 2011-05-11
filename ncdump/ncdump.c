@@ -2189,3 +2189,4 @@ main(int argc, char *argv[])
     return EXIT_SUCCESS;
 #endif
 }
+END_OF_MAIN();

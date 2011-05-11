@@ -7,8 +7,6 @@
 
 include $(top_srcdir)/lib_flags.am
 
-# Initialize
-LDADD =
 libnetcdf4_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # Netcdf-4 source.

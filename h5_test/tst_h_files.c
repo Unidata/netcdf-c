@@ -34,6 +34,9 @@ main()
       H5T_class_t class;
       size_t type_size;
       int j, k;
+      hid_t tmp1;
+
+      H5open();
 
       /* Initialize some data. */
       for (j = 0; j < DIM_LEN; j++)
@@ -42,7 +45,8 @@ main()
 
       /* Set the access list so that closes will fail if something is
        * still open in the file. */
-      if ((access_plist = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+      tmp1 = H5P_FILE_ACCESS;
+      if ((access_plist = H5Pcreate(tmp1)) < 0) ERR;
       if (H5Pset_fclose_degree(access_plist, H5F_CLOSE_SEMI)) ERR;
 
       /* Create file. */
