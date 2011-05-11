@@ -7,7 +7,7 @@
 # One of the tests needs the math library for some reason. 
 LDADD = -lm
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/liblib @EXTERN_CPPFLAGS@
-AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la # @EXTERN_LDFLAGS@
 
 # Running nctest results in a file testfile.nc, which is then checked
 # to make sure it matches testfile_nc.sav, which was generated under

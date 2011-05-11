@@ -9,7 +9,7 @@
 include $(top_srcdir)/lib_flags.am
 
 # Link to our assembled library.
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la -lhdf5_hl -lhdf5 -lz
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la # -lhdf5_hl -lhdf5 -lz
 
 # These are netCDF-4 test programs.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars	\

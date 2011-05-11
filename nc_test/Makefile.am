@@ -26,7 +26,7 @@ endif
 nc_test_SOURCES = nc_test.c error.c test_get.m4 test_put.m4 \
 test_read.c test_write.c util.c error.h tests.h 
 
-LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+LDADD += ${top_builddir}/liblib/libnetcdf.la #@EXTERN_LDFLAGS@
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # If the user asked for large file tests, then add them.

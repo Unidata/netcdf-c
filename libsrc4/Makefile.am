@@ -34,7 +34,7 @@ libnetcdf4_la_LIBADD += -lpnetcdf
 endif # USE_PNETCDF
 
 # Always link to hdf5_hl, hdf5, and z.
-libnetcdf4_la_LIBADD += -lhdf5_hl -lhdf5 -lz
+#libnetcdf4_la_LIBADD += -lhdf5_hl -lhdf5 -lz
 
 # This turns on declspec magic in netcdf.h for windows DLLs.
 if BUILD_DLL
