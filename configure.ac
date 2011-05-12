@@ -885,39 +885,21 @@ AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
-   if test "x$enable_dll" = xyes; then
-     AC_CHECK_LIB([zlib1], [deflate], [], [
+   AC_SEARCH_LIBS([deflate], [zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
-   else
-     AC_CHECK_LIB([z], [deflate], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
-     opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
-   fi
 fi
 
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-   if test "x$enable_dll" = xyes; then
-     # Check for the main hdf5 library.
-     AC_CHECK_LIB([hdf5dll], [H5Fflush], [], [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use \
-        --disable-netcdf-4, or see config.log for errors.])])
-   
-     # We also require the HDF5 High Level library.
-     AC_CHECK_LIB([hdf5_hldll], [H5DSis_scale], [], [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use \
-        --disable-netcdf-4, or see config.log for errors.])])
-   else
-     # Check for the main hdf5 library.
-     AC_CHECK_LIB([hdf5], [H5Fflush], [], [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use \
-        --disable-netcdf-4, or see config.log for errors.])])
-   
-     # We also require the HDF5 High Level library.
-     AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use \
-        --disable-netcdf-4, or see config.log for errors.])])
-   fi
-
+   # Check for the main hdf5 and hdf5_hl library.
+   AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
+   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
+   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [], 
+   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
+	
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found.])])
    AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP])
 
@@ -963,6 +945,8 @@ dnl 	 fi
    # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
+      AC_SEARCH_LIBS([SZ_Compress], [szip], [], 
+      [AC_MSG_ERROR([Can't find or link to the szlib library. Use --disable-netcdf-4, or see config.log for errors.])])
    fi
 
    # If the user wants hdf4 built in, check it out.
