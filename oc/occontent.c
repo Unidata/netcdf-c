@@ -72,13 +72,13 @@ ocrootcontent(OCstate* state, OCnode* root, OCcontent* content)
 {
     OCtree* tree;
     if(state == NULL || root == NULL || content == NULL)
-	return THROW(OC_EINVAL);
-    if(root->tree == NULL) return THROW(OC_EINVAL);
+	return OCTHROW(OC_EINVAL);
+    if(root->tree == NULL) return OCTHROW(OC_EINVAL);
     tree = root->tree;
-    if(tree->dxdclass != OCDATADDS) return THROW(OC_ENODATA);
-    if(tree->nodes == NULL) return THROW(OC_EINVAL);
+    if(tree->dxdclass != OCDATADDS) return OCTHROW(OC_ENODATA);
+    if(tree->nodes == NULL) return OCTHROW(OC_EINVAL);
     if(tree->data.memdata == NULL  && tree->data.xdrs == NULL)
-	return THROW(OC_EXDR);
+	return OCTHROW(OC_EXDR);
     ocresetcontent(state,content);
     content->state = state; /* make sure*/
     content->mode = Fieldmode;
@@ -92,7 +92,7 @@ ocrootcontent(OCstate* state, OCnode* root, OCcontent* content)
 	content->memdata = tree->data.memdata;
         content->mode = tree->data.memdata->mode;
     }
-    return THROW(OC_NOERR);
+    return OCTHROW(OC_NOERR);
 }
 
 /* Remember: we are operating wrt the datadds count, not the dds count */
@@ -106,15 +106,15 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
     int packed;
     OCtype etype,octype;
 
-    if(state == NULL || content == NULL) return THROW(OC_EINVAL);
-    if(content->mode != Dimmode) return THROW(OC_EINVAL);
-    if(content->node->array.rank == 0) return THROW(OC_EINVAL);
+    if(state == NULL || content == NULL) return OCTHROW(OC_EINVAL);
+    if(content->mode != Dimmode) return OCTHROW(OC_EINVAL);
+    if(content->node->array.rank == 0) return OCTHROW(OC_EINVAL);
 
     etype = content->node->etype;
     octype = content->node->octype;
 
     if(content->maxindex > 0 && content->maxindex <= index)
-	return THROW(OC_EINVALCOORDS);
+	return OCTHROW(OC_EINVALCOORDS);
     content->index = index; /* Track our location in parent content */
 
     /* check if the data is packed*/
@@ -137,7 +137,7 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
 	if(octype != OC_Primitive) {
    	    OCmemdata* next;
 	    OCASSERT((octype == OC_Structure));
-  	    if(content->memdata->count <= index) return THROW(OC_ENODATA);
+  	    if(content->memdata->count <= index) return OCTHROW(OC_ENODATA);
    	    next = ((OCmemdata**)content->memdata->data.data)[index];
 	    newcontent->memdata = next;
 	} else
@@ -146,7 +146,7 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
     }
 
     xdrs = content->tree->data.xdrs;
-    if(xdrs == NULL) return THROW(OC_EXDR);
+    if(xdrs == NULL) return OCTHROW(OC_EXDR);
 
     /* checkpoint the beginning of this instance*/
     if(!content->xdrpos.valid) {
@@ -158,7 +158,7 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
 
     /* Collect the dimension count from the xdr data packet*/
     if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
-    if(xdrcount < index) return THROW(OC_ENODATA);
+    if(xdrcount < index) return OCTHROW(OC_ENODATA);
 
     /* pull out redundant second count*/
     /* (note that String/URL do not redundant count)*/
@@ -174,12 +174,12 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
         OCASSERT((newcontent->mode == Datamode));
         newcontent->index = index; /* record final destination in the packed data*/
         newcontent->packed = 1;
-        return THROW(OC_NOERR);
+        return OCTHROW(OC_NOERR);
     }
 
     for(i=0;i<index;i++) {
         stat = ocskipinstance(content->node,xdrs);
-        if(stat != OC_NOERR) return THROW(stat);
+        if(stat != OC_NOERR) return OCTHROW(stat);
     }
     /* Record the location of the newcontent */
     newcontent->xdrpos.offset = xdr_getpos(xdrs);
@@ -189,7 +189,7 @@ ocarraycontent(OCstate* state, OCcontent* content, OCcontent* newcontent, size_t
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror();
 
 done:
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 int
@@ -202,11 +202,11 @@ ocrecordcontent(OCstate* state,OCcontent* content, OCcontent* recordcontent, siz
     OCtype octype,etype;
     int packed;
 
-    if(state == NULL || content == NULL) return THROW(OC_EINVAL);
-    if(content->mode != Recordmode) return THROW(OC_EINVAL);
+    if(state == NULL || content == NULL) return OCTHROW(OC_EINVAL);
+    if(content->mode != Recordmode) return OCTHROW(OC_EINVAL);
 
     if(content->maxindex > 0 && content->maxindex <= index)
-	return THROW(OC_EINVALCOORDS);
+	return OCTHROW(OC_EINVALCOORDS);
     content->index = index; /* Track our location in parent content */
 
     octype = content->node->octype;
@@ -230,14 +230,14 @@ ocrecordcontent(OCstate* state,OCcontent* content, OCcontent* recordcontent, siz
 	OCmemdata* next;
         OCASSERT((content->memdata->mode == Recordmode));
 	if(content->memdata->count <= index)
-	    {THROWCHK(stat=OC_ENODATA); goto done;}
+	    {OCTHROWCHK(stat=OC_ENODATA); goto done;}
 	next = ((OCmemdata**)content->memdata->data.data)[index];
 	recordcontent->memdata = next;
 	goto done;
     }
 
     xdrs = content->tree->data.xdrs;
-    if(xdrs == NULL) return THROW(OC_EXDR);
+    if(xdrs == NULL) return OCTHROW(OC_EXDR);
 
     /* checkpoint the beginning of this instance*/
     if(!content->xdrpos.valid) {
@@ -265,12 +265,12 @@ ocrecordcontent(OCstate* state,OCcontent* content, OCcontent* recordcontent, siz
                 break;
             }
         }
-	if(stat != OC_NOERR) return THROW(stat);
+	if(stat != OC_NOERR) return OCTHROW(stat);
 
 	/* skip the sequence begin marker for the chosen record*/
 	/* so we are at its contents*/
         if(!xdr_opaque(xdrs,tmp,sizeof(tmp))) return xdrerror();
-        if(tmp[0] != StartOfoclist) return THROW(OC_EINVALCOORDS);
+        if(tmp[0] != StartOfoclist) return OCTHROW(OC_EINVALCOORDS);
 
 	/* Set contents of the output content*/
         recordcontent->xdrpos.offset = xdr_getpos(xdrs);
@@ -281,14 +281,14 @@ ocrecordcontent(OCstate* state,OCcontent* content, OCcontent* recordcontent, siz
     case OC_Structure:
     case OC_Grid:
     case OC_Primitive:
-    default: return THROW(OC_EINVAL);
+    default: return OCTHROW(OC_EINVAL);
     }
 
     /* move back to checkpoint position*/
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror();
 
 done:
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 /*
@@ -306,11 +306,11 @@ ocfieldcontent(OCstate* state, OCcontent* content, OCcontent* fieldcontent, size
     OCtype octype,etype;
     int packed;
 
-    if(state == NULL || content == NULL) return THROW(OC_EINVAL);
-    if(content->mode != Fieldmode) return THROW(OC_EINVAL);
+    if(state == NULL || content == NULL) return OCTHROW(OC_EINVAL);
+    if(content->mode != Fieldmode) return OCTHROW(OC_EINVAL);
 
     if(content->maxindex > 0 && content->maxindex <= index)
-	return THROW(OC_EINVALCOORDS);
+	return OCTHROW(OC_EINVALCOORDS);
 
     content->index = index; /* Track our location in parent content */
 
@@ -335,15 +335,15 @@ ocfieldcontent(OCstate* state, OCcontent* content, OCcontent* fieldcontent, size
 	OCmemdata* md = content->memdata;
 	OCmemdata* next;
         OCASSERT((md->mode == Fieldmode));
-	if(md->count <= index) {THROWCHK(stat=OC_ENODATA); goto done;}
+	if(md->count <= index) {OCTHROWCHK(stat=OC_ENODATA); goto done;}
 	next = ((OCmemdata**)md->data.data)[index];
-	if(next == NULL) {THROWCHK(stat=OC_ENODATA); goto done;}
+	if(next == NULL) {OCTHROWCHK(stat=OC_ENODATA); goto done;}
 	fieldcontent->memdata = next;
 	goto done;
     }
 
     xdrs = content->tree->data.xdrs;
-    if(xdrs == NULL) return THROW(OC_EXDR);
+    if(xdrs == NULL) return OCTHROW(OC_EXDR);
 
     /* checkpoint the beginning of this instance*/
     if(!content->xdrpos.valid) {
@@ -359,25 +359,25 @@ ocfieldcontent(OCstate* state, OCcontent* content, OCcontent* fieldcontent, size
     case OC_Sequence:
     case OC_Dataset:
     case OC_Structure:
-	if(index >= oclistlength(content->node->subnodes)) return THROW(OC_EINVALCOORDS);
+	if(index >= oclistlength(content->node->subnodes)) return OCTHROW(OC_EINVALCOORDS);
         for(i=0;i<index;i++) {
   	    OCnode* field = (OCnode*)oclistget(content->node->subnodes,i);
 	    stat = ocskip(field,xdrs);
-	    if(stat != OC_NOERR) return THROW(stat);
+	    if(stat != OC_NOERR) return OCTHROW(stat);
         }
         fieldcontent->xdrpos.offset = xdr_getpos(xdrs);
 	fieldcontent->xdrpos.valid = 1;
 	break;
 
     case OC_Primitive:
-    default: return THROW(OC_EINVAL);
+    default: return OCTHROW(OC_EINVAL);
     }
 
     /* move back to checkpoint position*/
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror();
 
 done:
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 /*
@@ -404,21 +404,21 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     unsigned int xdrcount;
 
     if(state == NULL || content == NULL || memory == NULL)
-	{THROWCHK(stat=OC_EINVAL); goto done;}
+	{OCTHROWCHK(stat=OC_EINVAL); goto done;}
     if(content->node->octype != OC_Primitive)
-	{THROWCHK(stat=OC_EINVAL); goto done;}
+	{OCTHROWCHK(stat=OC_EINVAL); goto done;}
     if(content->maxindex > 0 && content->maxindex < start+count)
-	return THROW(OC_ENODATA);
+	return OCTHROW(OC_ENODATA);
 
     etype = content->node->etype;
     isscalar = (content->node->array.rank == 0);
     if(isscalar && (start != 0 || count != 1))
-	{THROWCHK(stat=OC_EINVALCOORDS); goto done;}
+	{OCTHROWCHK(stat=OC_EINVALCOORDS); goto done;}
 
     /* validate memory space*/
     elemsize = octypesize(etype);
     totalsize = elemsize*count;
-    if(memsize < totalsize) return THROW(OC_EINVAL);
+    if(memsize < totalsize) return OCTHROW(OC_EINVAL);
 
     OCASSERT((occontentmode(state,content)==Dimmode || isscalar));
 
@@ -428,7 +428,7 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     }
     /* No memdata => use xdr */
     xdrs = content->tree->data.xdrs;
-    if(xdrs == NULL) return THROW(OC_EXDR);
+    if(xdrs == NULL) return OCTHROW(OC_EXDR);
 
     /* check if the data is packed*/
     packed = (!isscalar && (etype == OC_Byte || etype == OC_UByte || etype == OC_Char));
@@ -441,8 +441,8 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     if(!isscalar) {
         /* Collect the dimension count from the xdr data packet*/
         if(!xdr_u_int(xdrs,&xdrcount)) goto shortxdr;
-        if(xdrcount < start) return THROW(OC_EINVALCOORDS);
-        if(xdrcount < start+count) return THROW(OC_EINVALCOORDS);
+        if(xdrcount < start) return OCTHROW(OC_EINVALCOORDS);
+        if(xdrcount < start+count) return OCTHROW(OC_EINVALCOORDS);
         /* pull out redundant second count*/
         /* (note that String/URL do not have redundant count)*/
         if(etype != OC_String && etype != OC_URL) {
@@ -456,7 +456,7 @@ ocgetcontent(OCstate* state, OCcontent* content, void* memory, size_t memsize,
     stat = ocxdrread(xdrs,(char*)memory,memsize,packed,content->node->etype,start,count);
     if(!xdr_setpos(xdrs,content->xdrpos.offset)) return xdrerror(); /* restore location*/
 done:
-    return THROW(stat);
+    return OCTHROW(stat);
 shortxdr:
     oc_log(LOGERR,"DAP DATADDS appears to be too short");
     return OC_EDATADDS;
@@ -480,7 +480,7 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
 
     /* Validate the etypes */
     etype = content->node->etype;
-    if(etype != md->etype) return THROW(OC_EINVAL);
+    if(etype != md->etype) return OCTHROW(OC_EINVAL);
 
     elemsize = octypesize(etype);
     totalsize = elemsize*count;
@@ -509,12 +509,12 @@ ocgetmemdata(OCstate* state, OCcontent* content, void* memory, size_t memsize,
 	char** memstrings = (char**)memory;
 	dstring = (char**)md->data.data;
 	for(i=0;i<count;i++) {
-	    memstrings[i] = strdup(dstring[start+i]);
+	    memstrings[i] = nulldup(dstring[start+i]);
 	}
 	} break;
     default: OCPANIC1("unexpected etype: %d",content->node->etype);
     }
-    return THROW(OC_NOERR);
+    return OCTHROW(OC_NOERR);
 }
 
 size_t

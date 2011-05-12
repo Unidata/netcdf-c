@@ -64,6 +64,21 @@ verror(fmt,va_alist) const char* fmt; va_dcl
     vderror(newfmt,argv);
 }
 
+/* Capture potential version errors */
+static char* markcdf4_msg = NULL;
+void
+markcdf4(const char* msg)
+{
+    if(markcdf4_msg == NULL)
+        markcdf4_msg = (char*)msg;
+}
+
+char* 
+getmarkcdf4(void)
+{
+    return markcdf4_msg;
+}
+
 /**************************************************/
 /* Provide a version of snprintf that panics if*/
 /* the buffer is overrun*/

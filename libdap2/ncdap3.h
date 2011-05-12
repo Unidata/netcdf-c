@@ -21,7 +21,7 @@
 #include "dceconstraints.h"
 
 #include "oc.h"
-#include "dapurl.h"
+#include "ocuri.h"
 
 #include "nc.h"
 #include "netcdf.h"
@@ -166,7 +166,7 @@ extern NCerror dapconvert3(nc_type, nc_type, char*, char*, size_t);
 extern int dapcvtattrval3(nc_type, void*, NClist*);
 
 #ifdef IGNORE
-/* allow access dapurlparse and params without exposing dapurl.h */
+/* allow access url parse and params without exposing ocuri.h */
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);

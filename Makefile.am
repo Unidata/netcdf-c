@@ -37,6 +37,8 @@ if BUILD_V2
 V2_TEST = nctest
 endif
 
+LDADD = @EXTERN_LDFLAGS@
+
 # Does the user want C++ API?
 if BUILD_CXX
 CXX_DIR = cxx

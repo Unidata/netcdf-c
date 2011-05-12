@@ -20,6 +20,7 @@
 #include "netcdf.h"
 #include "dceconstraints.h"
 #include "dapdebug.h"
+#include "dceparselex.h"
 
 #define DEBUG
 
@@ -27,7 +28,7 @@
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
 #ifndef nullfree
-#define nullfree(s) if((s)!=NULL) {free(s);} else {}
+#define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
 #endif
 
 static char* opstrings[] = OPSTRINGS ;
@@ -271,7 +272,6 @@ buildconstraintstring(DCEconstraint* constraints)
 DCEnode*
 dceclone(DCEnode* node)
 {
-    int i;
     DCEnode* result = NULL;
 
     result = (DCEnode*)dcecreate(node->sort);
@@ -387,8 +387,6 @@ dceclonelist(NClist* list)
 void
 dcefree(DCEnode* node)
 {
-    int i;
-
     if(node == NULL) return;
 
     switch (node->sort) {
@@ -734,14 +732,14 @@ dcecreate(CEsort sort)
 	DCEconstant* target = (DCEconstant*)calloc(1,sizeof(DCEconstant));
 	if(target == NULL) return NULL;
 	node = (DCEnode*)target;
-	target->discrim == CES_NIL;
+	target->discrim = CES_NIL;
     } break;
 
     case CES_VALUE: {
 	DCEvalue* target = (DCEvalue*)calloc(1,sizeof(DCEvalue));
 	if(target == NULL) return NULL;
 	node = (DCEnode*)target;
-	target->discrim == CES_NIL;
+	target->discrim = CES_NIL;
     } break;
 
     case CES_VAR: {
@@ -806,8 +804,6 @@ int
 dceiswholesegment(DCEsegment* seg)
 {
     int i,whole;
-    NClist* dimset = NULL;
-    unsigned int rank;
     
     if(!seg->slicesdefined) return 0; /* actually, we don't know */
     whole = 1; /* assume so */

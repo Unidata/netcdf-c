@@ -27,6 +27,7 @@ ocstrndup(const char* s, size_t len)
     return dup;
 }
 
+
 void
 makedimlist(OClist* path, OClist* dims)
 {
@@ -323,7 +324,7 @@ xdr_skip_strings(XDR* xdrs, unsigned int n)
 	if(!xdr_u_int(xdrs,&slen)) return xdrerror();
 	if(xdr_skip(xdrs,RNDUP(slen))) return xdrerror();
     }
-    return THROW(OC_NOERR);
+    return OCTHROW(OC_NOERR);
 }
 
 unsigned int xdr_roundup(unsigned int n)
