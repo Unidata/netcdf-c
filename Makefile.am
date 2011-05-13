@@ -201,6 +201,9 @@ if BUILD_DLL
 if BUILD_F77
 	cp fortran/netcdffdll.def ${prefix}/lib
 endif # BUILD_F77
+if BUILD_CXX
+	cp cxx/netcdf_c++dll.def ${prefix}/lib
+endif # BUILD_CXX
 endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
