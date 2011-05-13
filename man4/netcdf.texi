@@ -3105,6 +3105,11 @@ variables) with no distinguished name.  The netCDF-4 data model
 requires that each variable, attribute, dimension, and group have a
 single distinguished name.
 
+@item
+HDF5 (like netCDF) supports scalar attributes, but netCDF-4 cannot
+read scalar HDF5 attributes (unless it is a string attribute). This
+limitation will be removed in a future release of netCDF.
+
 @end itemize
 
 These are fairly easy requirements to meet, but there is one relating
