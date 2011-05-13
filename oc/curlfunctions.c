@@ -53,6 +53,12 @@ ocset_curl_flags(OCstate* state)
 	OCDBG1(1,"CURLOPT_VERBOSE=%ld",1L);
     }
 
+    if (flags->timeout) {
+	cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)flags->timeout);
+	if (cstat != CURLE_OK) goto fail;
+	OCDBG1(1,"CURLOPT_TIMEOUT=%ld",1L);
+    }
+
     /* Following are always set */
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);

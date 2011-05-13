@@ -3910,35 +3910,177 @@ Also, if you are accessing data over an NFS mount,
 you may see some .nfsxxxxx files; those can be ignored
 as well.
 
-@subsection ESG SSL Support
-Limited support for SSL is provided via parameters in the
-``.dodsrc'' configuration file as provided by the oc library
-(see @uref{http://opendap.org/download/oc.html}), which
-is included as part of the standard netCDF distribution.
-Note that the SSL support was added at the
-request of the Earth System Grid (ESG) and as such
-it provides the minimum needed for accessing ESG data.
+@subsection HTTP Configuration.
 
-The .dodsrc parameters needed to access SSL
-are the following:
+Limited support for configuring the http connection
+is provided via parameters in the
+``.httprc'' configuration file. Although deprecated, the name
+``.dodsrc'' may also be used.
+The relevant .httprc file is located by first looking in the
+current working directory, and if not found, then looking in the
+directory specified by the ``$HOME'' environment variable.
 
+Entries in the .httprc file are of the form:
+@example
+['['<url>']']<key>=<value>
+@end example
+That is, it consists of a key name and value pair
+and optionally preceded by a url enclosed in square
+brackets.
+
+For given KEY and URL strings, the value chosen is as follows:
+@enumerate
+@item If URL is null, then look for the .dodsrc entry that has no url prefix and whose key is same as the KEY for which we are looking.
+
+@item If the URL is not null, then look for all the .dodsrc entries
+that have a url, URL1, say, and for which URL1 is a prefix (in the
+string sense) of URL. For example, if URL = http//x.y/a, then it will
+match entries of the form
+@example
+1. [http//x.y/a]KEY=VALUE
+2. [http//x.y/a/b]KEY=VALUE
+@end example
+It will not match an entry of the form
+@example
+[http//x.y/b]KEY=VALUE
+@end example
+because ``http://x.y/b'' is not a string prefix of ``http://x.y/a''.
+Finally from the set so constructed, choose the entry with the longest
+url prefix: ``http//x.y/a/b]KEY=VALUE'' in this case.
+@end enumerate
+
+Currently, the supported set of keys (with descriptions) are as follows. 
 @itemize
-@item CURL.SSL.VALIDATE
-@item CURL.COOKIEJAR
-@item CURL.SSL.CERTIFICATE
-@item CURL.SSL.KEY
-@item CURL.SSL.CAPATH
+@item HTTP.VERBOSE
+    @enumerate
+    @item Type: boolean ("1"/"0")
+    @item Description:
+Produce verbose output, especially using SSL.
+    @item Related CURL Flags: CURLOPT_VERBOSE
+    @end enumerate
+
+@item HTTP.DEFLATE
+    @enumerate
+    @item Type: boolean ("1"/"0")
+    @item Description:
+Allow use of compression by the server.
+    @item Related CURL Flags: CURLOPT_ENCODING
+    @end enumerate
+
+@item HTTP.COOKIEJAR
+    @enumerate
+    @item Type: String representing file path
+    @item Description:
+Specify the name of file into which to store cookies.
+Defaults to in-memory storage.
+    @item Related CURL Flags:CURLOPT_COOKIEJAR
+    @end enumerate
+
+@item HTTP.COOKIEFILE
+    @enumerate
+    @item Type: String representing file path
+    @item Description:
+Same as HTTP.COOKIEJAR.
+    @item Related CURL Flags: CURLOPT_COOKIEFILE
+    @end enumerate
+
+@item HTTP.CREDENTIALS.USER
+    @enumerate
+    @item Type: String representing user name
+    @item Description:
+Specify the user name for Digest and Basic authentication.
+    @item Related CURL Flags:
+    @end enumerate
+
+@item HTTP.CREDENTIALS.PASSWORD
+    @enumerate
+    @item Type: String representing password
+    @item Type: boolean ("1"/"0")
+    @item Description:
+Specify the password for Digest and Basic authentication.
+    @item Related CURL Flags:
+    @end enumerate
+
+@item HTTP.SSL.CERTIFICATE
+    @enumerate
+    @item Type: String representing file path
+    @item Description:
+Path to a file containing a PEM cerficate.
+    @item Related CURL Flags: CURLOPT_CERT
+    @end enumerate
+
+@item HTTP.SSL.KEY
+    @enumerate
+    @item Type: String representing file path
+    @item Description:
+Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.
+    @item Related CURL Flags: CURLOPT_SSLKEY
+    @end enumerate
+
+@item HTTP.SSL.KEYPASSWORD
+    @enumerate
+    @item Type: String representing password
+    @item Description:
+Password for accessing the HTTP.SSL.KEY/HTTP.SSL.CERTIFICATE
+    @item Related CURL Flags: CURLOPT_KEYPASSWORD
+    @end enumerate
+
+@item HTTP.SSL.CAPATH
+    @enumerate
+    @item Type: String representing directory
+    @item Description:
+Path to a directory containing trusted certificates for validating
+server sertificates.
+    @item Related CURL Flags: CURLOPT_CAPATH
+    @end enumerate
+
+@item HTTP.SSL.VALIDATE
+    @enumerate
+    @item Type: boolean ("1"/"0")
+    @item Description:
+Cause the client to verify the server's presented certificate.
+    @item Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST
+    @end enumerate
+
+@item HTTP.TIMEOUT
+    @enumerate
+    @item Type: String ("dddddd")
+    @item Description:
+Specify the maximum time in seconds that you allow the http
+transfer operation to take.
+    @item Related CURL Flags:
+CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL
+    @end enumerate
+
+@item HTTP.PROXY_SERVER
+    @enumerate
+    @item Type: String representing url to access the proxy:
+                (e.g.http://[username:password@@]host[:port])
+    @item Description:
+Specify the needed information for accessing a proxy.
+    @item Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD
+    @end enumerate
+
 @end itemize
 
-For ESG, the CURL.SSL.CERTIFICATE and CURL.SSL.KEY entries
-should have same value,
-which is the file path for the certificate produced by MyProxyLogon.
-The CURL.SSL.CAPATH entry should be the path to the "certificates"
-directory produced by MyProxyLogon.
+The related curl flags line indicates the curl flags modified
+by this key.  See the libcurl documentation of the curl_easy_setopt()
+function for more detail
+@uref{http://curl.haxx.se/libcurl/c/curl_easy_setopt.html}.
 
-Support for other SSL servers can be added by sending a request
-to support-netcdf@@unidata.ucar.edu.
-
+For ESG, the following entries must be specified:
+@itemize
+@item HTTP.SSL.VALIDATE
+@item HTTP.COOKIEJAR
+@item HTTP.SSL.CERTIFICATE
+@item HTTP.SSL.KEY
+@item HTTP.SSL.CAPATH 
+@end itemize
+Additionally, for ESG, the HTTP.SSL.CERTIFICATE and HTTP.SSL.KEY
+entries should have same value, which is the file path for the
+certificate produced by MyProxyLogon.  The HTTP.SSL.CAPATH entry
+should be the path to the "certificates" directory produced by
+MyProxyLogon.
 
 @node NetCDF Utilities, Units, Structure, Top
 @chapter NetCDF Utilities
