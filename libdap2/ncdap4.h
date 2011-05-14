@@ -25,7 +25,7 @@
 #include "nc.h"
 
 #include "oc.h"
-#include "dapurl.h"
+#include "ocuri.h"
 
 #include "nccommon.h"
 #include "ncdap3.h"

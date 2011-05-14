@@ -32,11 +32,16 @@ extern void derror ( const char *fmt, ... )
        __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
+
 extern void	verror ( const char *fmt, ... )
 #ifdef _GNUC_
        __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
+
+extern void markcdf4(const char *msg);
+extern char* getmarkcdf4(void);
+
 
 /*
 All external procedures in ncgen.h have been moved to this file.
@@ -146,7 +151,7 @@ extern void jflush(void);
 #endif
 
 /* from: main.c */
-extern int usingclassic;
+extern int usingclassic; /* 0=>false; 1=>true; */
 extern int allowspecial;
 
 /* Global data */

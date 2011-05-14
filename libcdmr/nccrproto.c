@@ -16,10 +16,16 @@
 #include "nclog.h"
 
 #include "netcdf.h"
+#include "nc.h"
+#include "nc4internal.h"
+
 #include "ast.h"
 #include "crdebug.h"
+#include "nccr.h"
 #include "nccrnode.h"
 #include "ncStreamx.h"
+#include "nccrmeta.h"
+
 
 /*Forward*/
 static int nccr_walk_Group(Group*, Group*, NClist*);
@@ -111,6 +117,7 @@ nccr_walk_Header(Header* hdr, NClist* nodes)
     int ncstat = NC_NOERR;
     annotate(NULL,(CRnode*)hdr,_Header,nodes);
     nccr_walk_Group(NULL,hdr->root,nodes);
+    return ncstat;
 }
 
 static int
@@ -286,8 +293,9 @@ computepathname(CRnode* leaf)
     accum = ncbytesnew();
     ncbytesnull(accum);
     for(i=0;i<nclistlength(path);i++) {
+	char* name;
 	node = (CRnode*)nclistget(path,i);
-	char* name = getname(node);
+	name = getname(node);
 	if(name == NULL) goto done; /* node has no meaningful name */
 	if(i > 0) ncbytescat(accum,".");
 	ncbytescat(accum,name);

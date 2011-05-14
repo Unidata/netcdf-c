@@ -10,6 +10,8 @@
 
 #include <curl/curl.h>
 
+#include "nclog.h"
+
 #include "netcdf.h"
 #include "nc.h"
 #include "ncdispatch.h"

@@ -54,7 +54,7 @@ extern void ce_parse_error(DCEparsestate*,const char *fmt, ...);
 /* bison parse entry point */
 extern int dceparse(DCEparsestate*);
 
-extern int yyerror(DCEparsestate* state, char* msg);
+extern int dceerror(DCEparsestate* state, char* msg);
 extern void projections(DCEparsestate* state, Object list0);
 extern void selections(DCEparsestate* state, Object list0);
 extern Object projectionlist(DCEparsestate* state, Object list0, Object decl);

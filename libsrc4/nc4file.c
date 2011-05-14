@@ -269,16 +269,19 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL */
    
-   /* Set latest_format in access propertly list and
-    * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
-    * on HDF5 creation ordering. */
-   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
+   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_18, H5F_LIBVER_18) < 0)
       BAIL(NC_EHDFERR);
+
+   /* Create the property list. */
    if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
    num_plists++;
 #endif
+
+   /* Set latest_format in access propertly list and
+    * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
+    * on HDF5 creation ordering. */
    if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
 					    H5P_CRT_ORDER_INDEXED)) < 0)
       BAIL(NC_EHDFERR);
@@ -2877,8 +2880,8 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (unlimdimidp)
    {
       /* Default, no unlimited dimension */
-      *unlimdimidp = -1;
       int found = 0;
+      *unlimdimidp = -1;
 
       /* If there's more than one unlimited dim, which was not possible
 	 with netcdf-3, then only the last unlimited one will be reported

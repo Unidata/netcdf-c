@@ -157,11 +157,6 @@ nclogtext(int tag, const char* text)
 void
 nclogtextn(int tag, const char* text, size_t count)
 {
-    char line[1024];
-    size_t delta = 0;
-    const char* eol = text;
-    size_t i,pos;
-
     if(!nclogging || nclogstream == NULL) return;
     fwrite(text,1,count,nclogstream);
     fflush(nclogstream);

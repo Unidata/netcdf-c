@@ -41,65 +41,24 @@ typedef struct CCEsegment {
     struct CDFnode* cdfnode;
 } CCEsegment;
 
-typedef struct CCEfcn {
-    CCEnode node;
-    char* name; 
-    NClist* args;
-} CCEfcn;
-
-typedef struct CCEvar {
-    CCEnode node;
-    NClist* segments;
-    struct CDFnode* cdfnode;
-    struct CDFnode* cdfleaf;
-} CCEvar;
-
-typedef struct CCEconstant {
-    CCEnode node;
-    CEsort discrim;
-    char* text;
-    long long intvalue;
-    double floatvalue;
-} CCEconstant;
-
-typedef struct CCEvalue {
-    CCEnode node;
-    CEsort discrim;
-    /* Do not bother with a union */
-    CCEconstant* constant;
-    CCEvar* var;
-    CCEfcn* fcn;
-} CCEvalue;
-
-typedef struct CCEselection {
-    CCEnode node;
-    CEsort operator;
-    CCEvalue* lhs;
-    NClist* rhs;
-} CCEselection;
-
 typedef struct CCEprojection {
     CCEnode node;
-    CEsort discrim;
-    /* Do not bother with a union */
-    CCEvar* var;
-    CCEfcn* fcn;
+    NClist* segments;
+    char* pathname;
+    struct CRnode* decl; /* maps to matching stream node */
 } CCEprojection;
 
 typedef struct CCEconstraint {
     CCEnode node;
     NClist* projections;
-    NClist* selections;
 } CCEconstraint;
 
 
-extern int cceparseconstraints(char* constraints, CCEconstraint* CCEonstraint);
+extern int cdmparseconstraint(char* constraints, CCEconstraint*);
 extern int cceslicemerge(CCEslice* dst, CCEslice* src);
 extern int ccemergeprojections(NClist* dst, NClist* src);
 
 extern char* ccebuildprojectionstring(NClist* projections);
-extern char* ccebuildselectionstring(NClist* selections);
-extern char* ccebuildconstraintstring(CCEconstraint* constraints);
 
 extern CCEnode* cceclone(CCEnode* node);
 extern NClist* cceclonelist(NClist* list);

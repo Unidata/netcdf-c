@@ -1257,6 +1257,7 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
+static int parseLL(char* text);
 
 static struct Specialtoken {
     char* name;
@@ -1317,7 +1318,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1321 "lex.ncg.c"
+#line 1322 "lex.ncg.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1501,9 +1502,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 159 "ncgen.l"
+#line 160 "ncgen.l"
 
-#line 1507 "lex.ncg.c"
+#line 1508 "lex.ncg.c"
 
 	if ( !(yy_init) )
 		{
@@ -1588,14 +1589,14 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 160 "ncgen.l"
+#line 161 "ncgen.l"
 { /* whitespace */ 
 		  break;        
 		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 164 "ncgen.l"
+#line 165 "ncgen.l"
 { /* comment */ 
                           break;
                         }
@@ -1603,7 +1604,7 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 168 "ncgen.l"
+#line 169 "ncgen.l"
 {
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
@@ -1622,7 +1623,7 @@ ncgtext[MAXTRST-1] = '\0';
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 184 "ncgen.l"
+#line 185 "ncgen.l"
 { /* drop leading 0x; pad to even number of chars */
 		char* p = ncgtext+2;
 		int len = ncgleng - 2;
@@ -1639,113 +1640,113 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 198 "ncgen.l"
+#line 199 "ncgen.l"
 {return lexdebug(COMPOUND);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 199 "ncgen.l"
+#line 200 "ncgen.l"
 {return lexdebug(ENUM);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 200 "ncgen.l"
+#line 201 "ncgen.l"
 {return lexdebug(OPAQUE);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 202 "ncgen.l"
+#line 203 "ncgen.l"
 {return lexdebug(FLOAT_K);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 203 "ncgen.l"
+#line 204 "ncgen.l"
 {return lexdebug(CHAR_K);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 204 "ncgen.l"
+#line 205 "ncgen.l"
 {return lexdebug(BYTE_K);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 205 "ncgen.l"
+#line 206 "ncgen.l"
 {return lexdebug(UBYTE_K);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 206 "ncgen.l"
+#line 207 "ncgen.l"
 {return lexdebug(SHORT_K);}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 207 "ncgen.l"
+#line 208 "ncgen.l"
 {return lexdebug(USHORT_K);}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 208 "ncgen.l"
+#line 209 "ncgen.l"
 {return lexdebug(INT_K);}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 209 "ncgen.l"
+#line 210 "ncgen.l"
 {return lexdebug(UINT_K);}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 210 "ncgen.l"
+#line 211 "ncgen.l"
 {return lexdebug(INT64_K);}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 211 "ncgen.l"
+#line 212 "ncgen.l"
 {return lexdebug(UINT64_K);}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 212 "ncgen.l"
+#line 213 "ncgen.l"
 {return lexdebug(DOUBLE_K);}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 213 "ncgen.l"
+#line 214 "ncgen.l"
 {int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 216 "ncgen.l"
+#line 217 "ncgen.l"
 {return lexdebug(TYPES);}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 217 "ncgen.l"
+#line 218 "ncgen.l"
 {return lexdebug(DIMENSIONS);}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 218 "ncgen.l"
+#line 219 "ncgen.l"
 {return lexdebug(VARIABLES);}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 219 "ncgen.l"
+#line 220 "ncgen.l"
 {return lexdebug(DATA);}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 220 "ncgen.l"
+#line 221 "ncgen.l"
 {return lexdebug(GROUP);}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 222 "ncgen.l"
+#line 223 "ncgen.l"
 {BEGIN(TEXT);return lexdebug(NETCDF);}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 224 "ncgen.l"
+#line 225 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (ncgtext[0] == '-') {
 		    double_val = NEGINFINITE;
@@ -1758,7 +1759,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 233 "ncgen.l"
+#line 234 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
 		double_val = NAN;
 		specialconstants = 1;
@@ -1767,7 +1768,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 239 "ncgen.l"
+#line 240 "ncgen.l"
 {/* missing value (pre-2.4 backward compatibility)*/
                 if (ncgtext[0] == '-') {
 		    float_val = NEGINFINITEF;
@@ -1780,7 +1781,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 248 "ncgen.l"
+#line 249 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
 		float_val = NANF;
 		specialconstants = 1;
@@ -1789,7 +1790,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 254 "ncgen.l"
+#line 255 "ncgen.l"
 {
 		lextext = emalloc(1+4*ncgleng); /* should be max needed */
 		strncpy(lextext,(char*)ncgtext,ncgleng+1); /* include null */
@@ -1800,7 +1801,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 263 "ncgen.l"
+#line 264 "ncgen.l"
 {struct Specialtoken* st;
 		lextext = emalloc(1+4*ncgleng); /* should be max needed */
 		strncpy(lextext,(char*)ncgtext,ncgleng+1); /* include null */
@@ -1813,7 +1814,7 @@ YY_RULE_SETUP
 case 32:
 /* rule 32 can match eol */
 YY_RULE_SETUP
-#line 272 "ncgen.l"
+#line 273 "ncgen.l"
 {
 		    int c;
 		    char* p; char* q;
@@ -1831,7 +1832,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 287 "ncgen.l"
+#line 288 "ncgen.l"
 {
 		    lextext = emalloc(1+4*ncgleng); /* should be max needed */
 		    strncpy(lextext,(char*)ncgtext,ncgleng+1); /* include null */
@@ -1843,12 +1844,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 296 "ncgen.l"
+#line 297 "ncgen.l"
 {
 		    /* We need to try to see what size of integer ((u)int). */
 		    /* Technically, the user should specify, but... */
-		    if(ncgtext[0] == '-') { /* assume signed */
-		        sscanf((char*)ncgtext, "%lld", &int64_val);
+		    /* If out of any integer range, then complain */
+		    switch (parseLL(ncgtext)) {
+		    case 0:
+			return lexdebug(INT64_CONST); /* meaningless */
+		    case -1:
 #ifdef USE_NETCDF4
 		        if(int64_val >= NC_MIN_INT) {
 			    int32_val = (int)int64_val;
@@ -1856,11 +1860,16 @@ YY_RULE_SETUP
 			} else
 		            return lexdebug(INT64_CONST);
 #else
-			int32_val = (int)int64_val;
-			return lexdebug(INT_CONST);		    
+			/* Convert to int32, unless overflow then complain  */
+			if(int64_val >=NC_MIN_INT) {
+			    int32_val = (int)int64_val;
+			} else {
+			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)ncgtext);
+			   yyerror(errstr);
+			}
+		        return lexdebug(INT_CONST);		    
 #endif
-		    } else {
-		        sscanf((char*)ncgtext, "%llu", &uint64_val);
+		    case 1:
 #ifdef USE_NETCDF4
  		        if(uint64_val <= NC_MAX_INT) {
 			    int32_val = (int)uint64_val;
@@ -1874,6 +1883,11 @@ YY_RULE_SETUP
 			} else
 		            return lexdebug(UINT64_CONST);
 #else
+			/* Convert to int32 but complain if overflow */
+			if(uint64_val > NC_MAX_INT) {
+			    sprintf(errstr,"32 bit integer constant out of range: %s",(char*)ncgtext);
+			    yyerror(errstr);
+			}
 			int32_val = (int)uint64_val;
 			return lexdebug(INT_CONST);
 #endif
@@ -1882,7 +1896,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 332 "ncgen.l"
+#line 346 "ncgen.l"
 { /* The number may be signed or unsigned (signed has priority) */
 		int slen = strlen(ncgtext);
 		int tag = ncgtext[slen-1];
@@ -1919,13 +1933,13 @@ YY_RULE_SETUP
 		    }
 		    break;
 		case 'L': case 'l':
-		    if (sscanf((char*)ncgtext, "%lld", &int64_val) == 1) {
-		        token = INT64_CONST;
-		    } else if (sscanf((char*)ncgtext, "%llu", &uint64_val) == 1) {
-			token = UINT64_CONST;
-		    } else {
+		    switch(parseLL(ncgtext)) {
+		    case 0:
 		        sprintf(errstr,"bad int64 constant: %s",(char*)ncgtext);
 		        yyerror(errstr);
+			break;
+		    case -1: token = INT64_CONST; break;
+		    case 1: token = UINT64_CONST; break;
 		    }
 		    break;
 		default:/*(optionally)signed string of digits; treat like int*/
@@ -1937,7 +1951,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 384 "ncgen.l"
+#line 398 "ncgen.l"
 {
 		int slen = strlen(ncgtext);
 		int tag = ncgtext[slen-1];
@@ -1980,7 +1994,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 423 "ncgen.l"
+#line 437 "ncgen.l"
 {
 		int c;
 		int token = 0;
@@ -2018,7 +2032,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 457 "ncgen.l"
+#line 471 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%le", &double_val) != 1) {
 		    sprintf(errstr,"bad long or double constant: %s",(char*)ncgtext);
@@ -2029,7 +2043,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 464 "ncgen.l"
+#line 478 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%e", &float_val) != 1) {
 		    sprintf(errstr,"bad float constant: %s",(char*)ncgtext);
@@ -2041,7 +2055,7 @@ YY_RULE_SETUP
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 471 "ncgen.l"
+#line 485 "ncgen.l"
 {
 	        (void) sscanf((char*)&ncgtext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
@@ -2049,7 +2063,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 475 "ncgen.l"
+#line 489 "ncgen.l"
 {
 		byte_val = (char) strtol((char*)&ncgtext[2], (char **) 0, 8);
 		return lexdebug(BYTE_CONST);
@@ -2057,7 +2071,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 479 "ncgen.l"
+#line 493 "ncgen.l"
 {
 		byte_val = (char) strtol((char*)&ncgtext[3], (char **) 0, 16);
 		return lexdebug(BYTE_CONST);
@@ -2065,7 +2079,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 483 "ncgen.l"
+#line 497 "ncgen.l"
 {
 	       switch ((char)ncgtext[2]) {
 	          case 'a': byte_val = '\007'; break; /* not everyone under-
@@ -2087,7 +2101,7 @@ YY_RULE_SETUP
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 501 "ncgen.l"
+#line 515 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -2095,7 +2109,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 506 "ncgen.l"
+#line 520 "ncgen.l"
 {/*initial*/
 	    BEGIN(ST_C_COMMENT);
 	    break;
@@ -2104,21 +2118,21 @@ YY_RULE_SETUP
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
-#line 511 "ncgen.l"
+#line 525 "ncgen.l"
 {/* continuation */
 				     break;
 				}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 515 "ncgen.l"
+#line 529 "ncgen.l"
 {/* final */
 			    BEGIN(INITIAL);
 			    break;
 			}
 	YY_BREAK
 case YY_STATE_EOF(ST_C_COMMENT):
-#line 520 "ncgen.l"
+#line 534 "ncgen.l"
 {/* final, error */
 			    fprintf(stderr,"unterminated /**/ comment");
 			    BEGIN(INITIAL);
@@ -2127,17 +2141,17 @@ case YY_STATE_EOF(ST_C_COMMENT):
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 526 "ncgen.l"
+#line 540 "ncgen.l"
 {/* Note: this next rule will not work for UTF8 characters */
 		return lexdebug(ncgtext[0]) ;
 		}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 529 "ncgen.l"
+#line 543 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2141 "lex.ncg.c"
+#line 2155 "lex.ncg.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -3136,7 +3150,7 @@ void ncgfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 529 "ncgen.l"
+#line 543 "ncgen.l"
 
 
 static int
@@ -3215,5 +3229,41 @@ makepath(char* text0)
 	free(text);
     }
     return sym;
+}
+
+static int
+parseLL(char* text)
+{
+    int result = 0;
+#if defined(HAVE_STRTOLL) && defined(HAVE_STRTOULL)
+    extern int errno;
+    char* endptr;
+    errno = 0; endptr = NULL;
+    if(text[0] == '-') {
+        int64_val = strtoll(text,&endptr,10);
+	result = -1; /* negative int64_val */	
+    } else {
+        uint64_val = strtoull(text,&endptr,10);
+	result = 1; /* positive uint64_val */	
+    }
+    if(result == 0) {
+	sprintf(errstr,"Unparseable 64 bit integer constant: %s",(char*)text);
+	yyerror(errstr);
+    } else if(errno == ERANGE) {
+	sprintf(errstr,"64 bit integer constant out of range: %s",(char*)text);
+	yyerror(errstr);
+	result = 0; /* out of range */
+    }			
+#else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    if(text[0] == '-') {
+        sscanf((char*)text, "%lld", &int64_val);
+	result = -1; /* negative int64_val */	
+    } else {
+	sscanf((char*)text, "%llu", &uint64_val);
+	result = 1; /* positive uint64_val */	
+    }
+    /* Have no useful way to detect out of range */
+#endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    return result;
 }
 

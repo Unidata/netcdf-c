@@ -72,14 +72,8 @@ if USE_NETCDF4
 libnetcdff_la_SOURCES += fort-nc4.c
 endif
 
-# The fortran-77 library may be build stand-alone, or as part of the C
-# library.
-if BUILD_SEPARATE_FORTRAN
 lib_LTLIBRARIES = libnetcdff.la
 libnetcdff_la_LDFLAGS += -version-number 5:1:0 
-else
-noinst_LTLIBRARIES = libnetcdff.la
-endif # BUILD_SEPARATE_FORTRAN
 
 # Turn on some special flags for building DLL.
 if BUILD_DLL

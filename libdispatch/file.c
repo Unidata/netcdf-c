@@ -5,6 +5,7 @@
   This file defines the file create and open functions.
 */
 
+#include "config.h"
 #include "ncdispatch.h"
 
 static int nc_initialized = 0;
@@ -258,10 +259,11 @@ NC_open(const char *path, int cmode,
    if(!nc_initialized)
    {stat = NC_initialize(); if(stat) return stat; nc_initialized = 1;}
 
-   if((isurl = NC_testurl(path)))
+   isurl = NC_testurl(path);
+   if(isurl)
       model = NC_urlmodel(path);
 
-   if(isurl == 0) {
+   if(!isurl) {
       /* Look at the file if it exists */
       stat = NC_check_file_type(path,useparallel,mpi_info,&cdfversion,&hdfversion);
       if(stat == NC_NOERR) {
@@ -480,5 +482,3 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
       return ncp->dispatch->inq_type(ncid,xtype,name,size);
    }
 }
-
-

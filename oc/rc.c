@@ -214,6 +214,7 @@ parseproxy(OCstate* state, char* v)
 #endif
          oc_log(LOGNOTE,"port number: %d", state->proxy.port);
     }
+    if(v) free(v);
     return OC_NOERR;
 }
 
@@ -354,7 +355,7 @@ int
 ocdodsrc_process(OCstate* state)
 {
     char* value;
-    char* url = state->url.base;
+    char* url = ocuribuild(state->uri,NULL,NULL,0);
     if(ocdodsrc == NULL) return 0;
     value = ocdodsrc_lookup("CURL.DEFLATE",url);
     if(value != NULL) {
@@ -374,13 +375,20 @@ ocdodsrc_process(OCstate* state)
         if(ocdebug > 0)
             oc_log(LOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
     }
-
     if((value = ocdodsrc_lookup("CURL.COOKIEJAR",url))
        || (value = ocdodsrc_lookup("CURL.COOKIE_JAR",url))) {
         state->curlflags.cookiejar = strdup(TRIM(value));
         if(!state->curlflags.cookiejar) return OC_ENOMEM;
         if(ocdebug > 0)
             oc_log(LOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
+    }
+
+    /* Some servers (e.g. thredds) appear to require a place
+       to put cookies in order for some security functions to work
+    */
+    if(state->curlflags.cookiejar == NULL
+       && state->curlflags.cookiefile == NULL) {
+	state->curlflags.cookiefile = strdup("");
     }
 
     if((value = ocdodsrc_lookup("CURL.PROXY_SERVER",url)) != NULL) {
@@ -443,6 +451,8 @@ ocdodsrc_process(OCstate* state)
         if(!state->creds.password) return OC_ENOMEM;
     }
     /* else ignore */    
+
+    free(url);
 
     return OC_NOERR;
 }

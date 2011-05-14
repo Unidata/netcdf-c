@@ -133,7 +133,7 @@ extern ast_err ast_write_tag(ast_runtime*, const unsigned int, const unsigned in
 extern ast_err ast_write_count(ast_runtime*, const size_t);
 
 /* Procedure to extract tags */
-extern ast_err ast_read_tag(ast_runtime* rt, int* wiretypep, int* fieldnop);
+extern ast_err ast_read_tag(ast_runtime* rt, uint32_t* wiretypep, uint32_t* fieldnop);
 
 /* Procedure to extract count */
 extern ast_err ast_read_count(ast_runtime* rt, size_t* countp);

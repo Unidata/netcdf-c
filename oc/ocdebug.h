@@ -1,8 +1,8 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
-#ifndef OCDEBUG_H
-#define OCDEBUG_H
+#ifndef OCOCDBG_H
+#define OCOCDBG_H
 
 #include <stdarg.h>
 #include "ocdump.h"
@@ -25,11 +25,21 @@
 #define OCASSERT(expr) if(!(expr)) {OCPANIC((#expr));} else {}
 
 /* Need some syntactic trickery to make these macros work*/
-#define DEBUG(l,msg) if(ocdebug >= l) {oc_log(LOGDBG,msg);} else {}
-#define DEBUG1(l,msg,arg) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg);} else {}
-#define DEBUG2(l,msg,arg1,arg2) if(ocdebug >= l) {oc_log(LOGDBG,msg,arg1,arg2);} else {}
-#define DEBUGTEXT(l,text) if(ocdebug >= l) {oc_logtext(LOGNOTE,text);} else {}
-#define DEBUGCODE(l,code) if(ocdebug >= l) {code;} else {}
+#ifdef OCDEBUG
+#define OCDBG(l,msg) {oc_log(LOGDBG,msg);}
+#define OCDBG1(l,msg,arg) {oc_log(LOGDBG,msg,arg);}
+#define OCDBG2(l,msg,arg1,arg2) {oc_log(LOGDBG,msg,arg1,arg2);}
+#define OCDBGTEXT(l,text) {oc_logtext(LOGNOTE,text);} else {}
+#define OCDBGCODE(l,code) {code;}
+
+#else
+#define OCDBG(l,msg)
+#define OCDBG1(l,msg,arg)
+#define OCDBG2(l,msg,arg1,arg2)
+#define OCDBGTEXT(l,text)
+#define OCDBGCODE(l,code)
+#endif
+
 
 /*
 OCPROGRESS attempts to provide some info
@@ -61,15 +71,15 @@ extern void  ocfree(void*);
 
 #ifdef OCCATCHERROR
 /* Place breakpoint on ocbreakpoint to catch errors close to where they occur*/
-#define THROW(e) octhrow(e)
-#define THROWCHK(e) (void)octhrow(e)
+#define OCTHROW(e) octhrow(e)
+#define OCTHROWCHK(e) (void)octhrow(e)
 extern int ocbreakpoint(int err);
 extern int octhrow(int err);
 #else
-#define THROW(e) (e)
-#define THROWCHK(e)
+#define OCTHROW(e) (e)
+#define OCTHROWCHK(e)
 #endif
 
 
-#endif /*OCDEBUG_H*/
+#endif /*OCOCDBG_H*/
 

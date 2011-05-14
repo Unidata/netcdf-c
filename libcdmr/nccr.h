@@ -11,7 +11,7 @@
 /**************************************************/
 /*Forwards*/
 struct NC;
-struct NC_URL;
+struct NC_URI;
 struct NClist;
 struct NChashmap;
 
@@ -21,10 +21,14 @@ struct NChashmap;
 typedef struct NCCDMR {
     struct NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
     char* urltext; /* as given to open()*/
-    struct NC_URL* url;
+    struct NC_URI* uri;
     /* Track some flags */
     int controls;
-    /* Store curl state  info */
+    struct CCEconstraint* urlconstraint; /* constraint from url */
+    struct NClist* variables; /* set of visible variables */
+    /* provide a collection of the  ncStream nodes*/
+    struct NClist* streamnodes;
+    /* Store curl state info */
     struct NCCURLSTATE {
         CURL* curl;
         int curlflags;
@@ -46,8 +50,6 @@ typedef struct NCCDMR {
         char* cainfo; /* certificate authority */
 	char* capath; 
     } curl;
-    /* provide a index for ncstream nodes*/
-    NClist* nodeset;
 } NCCDMR;
 
 typedef struct NCCURLSTATE NCCURLSTATE;

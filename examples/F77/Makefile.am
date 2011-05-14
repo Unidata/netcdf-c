@@ -3,14 +3,10 @@
 
 # This file builds F77 examples.
 
-# $Id: Makefile.am,v 1.28 2010/05/29 00:17:44 dmh Exp $
-
 AM_LDFLAGS = 
 AM_FFLAGS = 
 
-if BUILD_SEPARATE_FORTRAN
 AM_LDFLAGS += ${top_builddir}/fortran/libnetcdff.la
-endif #BUILD_SEPARATE_FORTRAN
 
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
 

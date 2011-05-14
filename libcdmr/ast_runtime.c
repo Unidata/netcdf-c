@@ -129,7 +129,7 @@ ast_free(ast_runtime* rt, void* mem)
 
 /* Read the tag and return the relevant info */
 ast_err
-ast_read_tag(ast_runtime* rt, int* wiretypep, int* fieldnop)
+ast_read_tag(ast_runtime* rt, uint32_t* wiretypep, uint32_t* fieldnop)
 {
     ast_err status = AST_NOERR;
     uint8_t buffer[MAXWIRELEN];
@@ -714,4 +714,5 @@ ast_err
 ast_byteio_setopts(ast_runtime* rt, ast_runtime_ops* ops)
 {
     rt->ops = ops;
+     return AST_NOERR;
 }

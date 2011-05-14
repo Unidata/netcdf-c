@@ -19,12 +19,13 @@
 #include "curlwrap.h"
 
 #include "ncbytes.h"
+#include "nclist.h"
 #include "nclog.h"
 
 #include "netcdf.h"
 #include "nc.h"
-#include "ncdispatch.h"
 #include "nc4internal.h"
+#include "ncdispatch.h"
 #include "nc4dispatch.h"
 
 #include "nccr.h"
@@ -34,6 +35,8 @@
 #include "nccrnode.h"
 #include "ncStreamx.h"
 #include "nccrproto.h"
+#include "cceconstraints.h"
+#include "nccrmeta.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
@@ -41,7 +44,8 @@
 extern NC_FILE_INFO_T* nc_file;
 
 static void freeNCCDMR(NCCDMR* cdmr);
-static int nccr_elide_vars(NCCDMR* cdmr);
+static int nccr_compute_projection_names(NCCDMR* cdmr);
+static int nccr_map_projections(NCCDMR* cdmr);
 
 /**************************************************/
 int
@@ -64,7 +68,7 @@ NCCR_open(const char * path, int mode,
                NC_Dispatch* dispatch, NC** ncpp)
 {
     NCerror ncstat = NC_NOERR;
-    NC_URL* tmpurl;
+    NC_URI* tmpurl;
     NCCR* nccr = NULL; /* reuse the ncdap3 structure*/
     NCCDMR* cdmr = NULL;
     NC_HDF5_FILE_INFO_T* h5 = NULL;
@@ -72,17 +76,17 @@ NCCR_open(const char * path, int mode,
     int ncid = -1;
     int fd;
     char* tmpname = NULL;
-    NClist* shows;
+    const char* lookups = NULL;
     bytes_t buf;
     long filetime;
-    ast_runtime* rt = NULL;
     ast_err aststat = AST_NOERR;
     Header* hdr = NULL;
+    NCbytes* completeurl;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
-    if(nc_urlparse(path,&tmpurl) != NC_NOERR) PANIC("libcdmr: non-url path");
-    nc_urlfree(tmpurl); /* no longer needed */
+    if(nc_uriparse(path,&tmpurl) != NC_NOERR) PANIC("libcdmr: non-url path");
+    nc_urifree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
     if((mode & NC_WRITE) != 0) ncstat = NC_EINVAL;
@@ -120,24 +124,35 @@ NCCR_open(const char * path, int mode,
     nccr->cdmr = cdmr;
     nccr->cdmr->controller = (NC*)nccr;
     nccr->cdmr->urltext = nulldup(path);
-    nc_urlparse(nccr->cdmr->urltext,&nccr->cdmr->url);
+    nc_uriparse(nccr->cdmr->urltext,&nccr->cdmr->uri);
 
     /* Create the curl connection (does not make the server connection)*/
     ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    shows = nc_urllookup(nccr->cdmr->url,"show");
-    if(nc_urllookupvalue(shows,"fetch"))
-	nccr->cdmr->controls |= SHOWFETCH;
+    /* Turn on logging; only do this after open*/
+    if((lookups=nc_urilookup(nccr->cdmr->uri,"log")) != NULL) {
+	ncloginit();
+        ncsetlogging(1);
+        nclogopen(lookups);
+    }
 
-    /* Parse the projection */
-    
+    lookups = nc_urilookup(nccr->cdmr->uri,"show");
+    if(lookups != NULL) {
+	int i;
+	for(i=0;i<strlen(lookups);i++) {
+	    if(lookups[i] ==  ',') continue;
+	    if(strcmp("fetch",lookups+i)==0) {
+	        nccr->cdmr->controls |= SHOWFETCH;
+		break;
+	    }
+	}
+    }
 
-
-    /* fetch meta data */
+    /* fetch (unconstrained) meta data */
     buf = bytes_t_null;
-    NCbytes* completeurl = ncbytesnew();
-    ncbytescat(completeurl,nccr->cdmr->url->url);
+    completeurl = ncbytesnew();
+    ncbytescat(completeurl,nccr->cdmr->uri->uri);
     ncbytescat(completeurl,"?req=header");
     ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,ncbytescontents(completeurl),
 			   &buf,&filetime);
@@ -152,26 +167,41 @@ NCCR_open(const char * path, int mode,
     /* Compute various things about the Header tree */
 
     /* Collect all nodes and fill in the CRnode part*/
-    cdmr->nodeset = nclistnew();
-    ncstat = nccr_walk_Header(hdr,cdmr->nodeset);
+    cdmr->streamnodes = nclistnew();
+    ncstat = nccr_walk_Header(hdr,cdmr->streamnodes);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    /* Compute the pathnames */
-    ncstat = nccr_compute_pathnames(cdmr->nodeset);
+    /* Compute the stream pathnames */
+    ncstat = nccr_compute_pathnames(cdmr->streamnodes);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Map dimension references to matching declaration */
-    ncstat = nccr_map_dimensions(cdmr->nodeset);
+    ncstat = nccr_map_dimensions(cdmr->streamnodes);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Replace dimension references with matching declaration */
-    nccr_deref_dimensions(cdmr->nodeset);
+    nccr_deref_dimensions(cdmr->streamnodes);
 
-    /* Elide any variables not in the url projection */
-    ncstat = nccr_elide_vars(cdmr);
+    /* Deal with any constraint in the URL */
+    nccr->cdmr->urlconstraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
+    /* Parse url constraint to test syntactically correctness */
+    ncstat = cdmparseconstraint(nccr->cdmr->uri->constraint,nccr->cdmr->urlconstraint);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+#ifdef DEBUG
+fprintf(stderr,"url constraint: %s\n",
+	ccetostring((CCEnode*)nccr->cdmr->urlconstraint));
+#endif
+
+    /* Compute the projection pathnames */
+    ncstat = nccr_compute_projection_names(nccr->cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    /* build the meta data */
+    /* map url projection variables to corresponding stream variable nodes,
+       and collect set of so mapped variables */
+    ncstat = nccr_map_projections(cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* build the netcdf-4 pseudo metadata */
     ncstat = nccr_buildnc(nccr,hdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
@@ -199,7 +229,6 @@ NCCR_close(int ncid)
     NC_HDF5_FILE_INFO_T *h5;
     NCCR* nccr = NULL;
     int ncstat = NC_NOERR;
-    NC* nc;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
 
@@ -226,19 +255,12 @@ NCCR_close(int ncid)
 /* Auxilliary routines                            */
 /**************************************************/
 
-static int
-nccr_elide_vars(NCCDMR* cdmr)
-{
-    int ncstat = NC_NOERR;
-    return ncstat;
-}
-
 static void
 freeNCCDMR(NCCDMR* cdmr)
 {
     if(cdmr == NULL) return;
     if(cdmr->urltext) free(cdmr->urltext);
-    nc_urlfree(cdmr->url);
+    nc_urifree(cdmr->uri);
     if(cdmr->curl.curl) nccr_curlclose(cdmr->curl.curl);
     if(cdmr->curl.host) free(cdmr->curl.host);
     if(cdmr->curl.useragent) free(cdmr->curl.useragent);
@@ -253,11 +275,53 @@ freeNCCDMR(NCCDMR* cdmr)
     free(cdmr);
 }
 
-
-/* Collect a pre-order non-duplicate list of all nodes in the ncStream tree */
-static NCerror
-collectnodes(NCCDMR* cdmr, Header* hdr)
+/* Compute the projection pathnames */
+static int
+nccr_compute_projection_names(NCCDMR* cdmr)
 {
-    
-
+    int i,j;
+    CCEconstraint* constraint = cdmr->urlconstraint;
+    NCbytes* pathname = ncbytesnew();
+    if(constraint == NULL) {
+	constraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
+	cdmr->urlconstraint = constraint;
+    }
+    if(constraint->projections == NULL)
+	constraint->projections = nclistnew();
+    for(i=0;i<nclistlength(constraint->projections);i++) {	
+	CCEprojection* p = (CCEprojection*)nclistget(constraint->projections,i);
+	ncbytesclear(pathname);
+	for(j=0;j<nclistlength(p->segments);j++) {
+	    CCEsegment* seg = (CCEsegment*)nclistget(p->segments,j);
+	    if(j > 0) ncbytescat(pathname,".");
+	    ncbytescat(pathname,seg->name);
+	}
+	p->pathname = ncbytesextract(pathname);
+    }
+    return NC_NOERR;
 }
+
+static int
+nccr_map_projections(NCCDMR* cdmr)
+{
+    int ncstat = NC_NOERR;
+    int i,j;
+    NClist* projections = cdmr->urlconstraint->projections;
+    cdmr->variables = nclistnew(); /* variables in the url constraint */
+    for(i=0;i<nclistlength(cdmr->streamnodes);i++) {
+	int found = 0;
+	CRnode* cdmnode = (CRnode*)nclistget(cdmr->streamnodes,i);
+        for(j=0;j<nclistlength(projections);j++) {	
+	    CCEprojection* p = (CCEprojection*)nclistget(projections,j);
+	    if(strcmp(p->pathname,cdmnode->pathname)==0) {
+		nclistpush(cdmr->variables,(ncelem)cdmnode);
+		found = 1;
+	    }
+	}
+	if(!found) {ncstat = NC_ENOTVAR; goto done;}
+    }
+
+done:
+    return ncstat;
+}
+

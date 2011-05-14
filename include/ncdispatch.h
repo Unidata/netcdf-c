@@ -19,7 +19,7 @@
 #endif
 #include "netcdf.h"
 #include "nc.h"
-#include "nc_url.h"
+#include "nc_uri.h"
 
 
 
@@ -99,8 +99,16 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #endif
 
 #ifndef HAVE_LONGLONG
+/* ignore
 #define longlong long long
 #define ulonglong unsigned long long
+*/
+typedef long long longlong;
+typedef unsigned long long ulonglong;
+#endif
+
+#ifndef HAVE_UINT
+typedef unsigned int uint;
 #endif
 
 /* Define the range of Atomic types */
@@ -347,17 +355,15 @@ extern int NC_testurl(const char* path);
 /* Return model (0 or 3 or 4) as specified by the url */
 extern int NC_urlmodel(const char* path);
 
-/* allow access dapurlparse and params without exposing dapurl.h */
+/* allow access url parse and params without exposing nc_url.h */
 extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
 /* Misc */
-/* Replacement for strdup (in libsrc) */
-#ifdef HAVE_STRDUP
+
+#ifndef nulldup
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char* nulldup(const char*);
 #endif
 
 #define nulllen(s) (s==NULL?0:strlen(s))

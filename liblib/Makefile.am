@@ -52,11 +52,5 @@ endif # BUILD_CDMREMOTE
 
 endif #USE_NETCDF4
 
-if BUILD_F77
-if ! BUILD_SEPARATE_FORTRAN
-libnetcdf_la_LIBADD += ${top_builddir}/fortran/libnetcdff.la
-endif #!BUILD_SEPARATE_FORTRAN
-endif #BUILD_F77
-
 # We need at least one source file
 libnetcdf_la_SOURCES = stub.c 

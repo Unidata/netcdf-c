@@ -52,10 +52,11 @@ ast_byteio_free
 static size_t
 ast_byteio_write(ast_runtime* rt, size_t len, uint8_t* data)
 {
+    struct _ast_bytestream*  stream = NULL;
     if(rt == NULL || rt->uid != BYTEIO_UID || rt->mode != AST_WRITE)
 	return AST_EFAIL;
     if(len == 0 || data == NULL) return AST_NOERR;
-    struct _ast_bytestream*  stream = (struct _ast_bytestream*)rt->stream;
+    stream = (struct _ast_bytestream*)rt->stream;
     while(stream->pos+len >= stream->alloc) {
 	if(stream->extendible) {
 	    char* newbuffer = NULL;
@@ -144,11 +145,12 @@ static int
 ast_byteio_reclaim(ast_runtime* rt)
 {
     struct _ast_bytestream* stream = NULL;
+    struct _ast_stack* curr = NULL;
     if(rt == NULL) return AST_NOERR;
     if(rt->uid != BYTEIO_UID) return AST_EFAIL;
     stream = (struct _ast_bytestream*)rt->stream;
     if(stream->extendible && stream->buffer != NULL) free(stream->buffer);
-    struct _ast_stack* curr =  stream->stack.stack;
+    curr =  stream->stack.stack;
     while(curr != NULL) {
         struct _ast_stack* next =  stream->stack.stack;
         ast_free(rt,curr);

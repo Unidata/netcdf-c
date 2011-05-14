@@ -26,18 +26,18 @@ extern int oc_dumpnode(OClink, OCobject);
 int
 nc__testurl(const char* path, char** basenamep)
 {
-    DAPURL url;
-    int ok = dapurlparse(path,&url);
+    OCURI* uri;
+    int ok = ocuriparse(path,&uri);
     if(ok) {
-	char* slash = strrchr(url.base, '/');
+	char* slash = strrchr(uri->file, '/');
 	char* dot;
 	if(slash == NULL) slash = (char*)path; else slash++;
         slash = nulldup(slash);
 	dot = strrchr(slash, '.');
         if(dot != NULL &&  dot != slash) *dot = '\0';
 	if(basenamep) *basenamep=slash ; else free(slash);
+        ocurifree(uri);
     }
-    dapurlclear(&url);
     return ok;
 }
 
@@ -722,7 +722,7 @@ daptoplevel(CDFnode* node)
     return TRUE;
 }
 
-
+#ifdef IGNORE
 /*
 Client parameters are assumed to be
 one or more instances of bracketed pairs:
@@ -822,6 +822,7 @@ dapparamfree(NClist* params)
     }
     nclistfree(params);
 }
+#endif
 
 unsigned int
 modeldecode(int translation, const char* smodel,
@@ -967,9 +968,9 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
     if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	if(ce == NULL)
-	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.url.base,ext);
+	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.uri->uri,ext);
 	else
-	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.url.base,ext,ce);
+	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.uri->uri,ext,ce);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
@@ -986,4 +987,19 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 #endif
     }
     return ocstat;
+}
+
+/* Check a name to see if it contains illegal dap characters */
+
+static char* badchars = "./";
+
+int
+dap_badname(char* name)
+{
+    char* p;
+    if(name == NULL) return 0;
+    for(p=badchars;*p;p++) {
+        if(strchr(name,*p) != NULL) return 1;
+    }
+    return 0;
 }

@@ -52,7 +52,6 @@
 #include "crutil.h"
 
 static char* combinecredentials(const char* user, const char* pwd);
-static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 
 /* Condition on libcurl version */
@@ -64,7 +63,7 @@ static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 struct NCCR_CALLBACK_DATA {
     size_t alloc;
     size_t pos;
-    char* data;
+    unsigned char* data;
 };
 
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
@@ -158,14 +157,14 @@ nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
 	if(p == NULL)
 	    break;
     }
-    index = crstrindex(buf->bytes,"<html");
+    index = crstrindex((char*)buf->bytes,"<html");
     if(index >= 0) {
 	int endex;
 	/* Search for </html> */
-	endex = crstrindex(buf->bytes,"</html>");	
+	endex = crstrindex((char*)buf->bytes,"</html>");	
 	if(endex >= 0) endex += 7; else endex = buf->nbytes-1;
         nclog(NCLOGWARN,"Probable Server error");
-	nclogtextn(NCLOGWARN,buf->bytes+first,endex-first);
+	nclogtextn(NCLOGWARN,(char*)buf->bytes+first,endex-first);
 	nclogtext(NCLOGWARN,"\n");
     }
     return stat;
@@ -185,13 +184,13 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *cdata)
        nclog(NCLOGERR,"WriteMemoryCallback: zero sized chunk");
 
     if(callback_data->alloc == 0) {
-	callback_data->data = (char*)malloc(realsize);
+	callback_data->data = (unsigned char*)malloc(realsize);
 	callback_data->alloc = realsize;
 	callback_data->pos = 0;
     }
 
     if(callback_data->alloc - callback_data->pos < realsize) {
-	callback_data->data = (char*)realloc(callback_data->data,
+	callback_data->data = (unsigned char*)realloc(callback_data->data,
 					     callback_data->alloc+realsize);
 	callback_data->alloc += realsize;
     }

@@ -52,7 +52,7 @@ computefullname(OCnode* node)
     collectpathtonode(node,path);
     tmp = pathtostring(path,PATHSEPARATOR,1);
     if(tmp == NULL) {
-        fullname = strdup(node->name);
+        fullname = nulldup(node->name);
     } else {
         fullname = tmp;
     }
@@ -102,7 +102,7 @@ makeocnode(char* name, OCtype ptype, OCnode* root)
     MEMCHECK(cdf,(OCnode*)NULL);
     memset((void*)cdf,0,sizeof(OCnode));
     cdf->magic = OCMAGIC;
-    cdf->name = (name?strdup(name):NULL);
+    cdf->name = (name?nulldup(name):NULL);
     cdf->octype = ptype;
     cdf->array.dimensions = NULL;
     cdf->root = root;
@@ -222,7 +222,7 @@ converttype(OCtype etype, char* value, char* memory)
 	*((double*)memory) = (double)dv;
 	break;
     case OC_String: case OC_URL:
-	*((char**)memory) = strdup(value);
+	*((char**)memory) = nulldup(value);
 	break;
     default:
 	goto fail;
@@ -426,10 +426,10 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
     unsigned int i,j;
 
     if(dasroot->tree == NULL || dasroot->tree->dxdclass != OCDAS)
-	return THROW(OC_EINVAL);
+	return OCTHROW(OC_EINVAL);
     if(ddsroot->tree == NULL || (ddsroot->tree->dxdclass != OCDDS
         && ddsroot->tree->dxdclass != OCDATADDS))
-	return THROW(OC_EINVAL);
+	return OCTHROW(OC_EINVAL);
 
     ddsnodes = ddsroot->tree->nodes;
 
@@ -506,7 +506,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
     oclistfree(dasglobals);
     oclistfree(dasnodes);
     oclistfree(varnodes);
-    return THROW(OC_NOERR);
+    return OCTHROW(OC_NOERR);
 }
 
 static int
@@ -526,7 +526,7 @@ mergedas1(OCnode* dds, OCnode* das)
             oclistpush(dds->attributes,(ocelem)att);
 	}
     }
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 
@@ -539,7 +539,7 @@ ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
     int i,j;
     int stat = OC_NOERR;
     OClist* globals = oclistnew();
-    if(dasroot == NULL) return THROW(stat);
+    if(dasroot == NULL) return OCTHROW(stat);
     /* Start by looking for global attributes*/
     for(i=0;i<oclistlength(dasroot->subnodes);i++) {
 	OCnode* node = (OCnode*)oclistget(dasroot->subnodes,i);
@@ -572,7 +572,7 @@ ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
         if(!match) {marklostattribute(das);}
     }
     if(stat == OC_NOERR) ddsroot->attributed = 1;
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 /* Merge das attributes into the dds node*/
@@ -608,7 +608,7 @@ mergedas1(OCnode* dds, OCnode* das)
 	}
         if(!match) {marklostattribute(dasnode);}
     }
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 #endif
 
@@ -631,17 +631,17 @@ occorrelater(OCnode* dds, OCnode* dxd)
     OCerror ocstat = OC_NOERR;
 
     if(dds->octype != dxd->octype) {
-	THROWCHK((ocstat = OC_EINVAL)); goto fail;
+	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
     if(dxd->name != NULL && dxd->name != NULL
        && strcmp(dxd->name,dds->name) != 0) {
-	THROWCHK((ocstat = OC_EINVAL)); goto fail;
+	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     } else if(dxd->name != dxd->name) { /* test NULL==NULL */
-	THROWCHK((ocstat = OC_EINVAL)); goto fail;
+	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
 
     if(dxd->array.rank != dds->array.rank) {
-	THROWCHK((ocstat = OC_EINVAL)); goto fail;
+	OCTHROWCHK((ocstat = OC_EINVAL)); goto fail;
     }
 
     dds->datadds = dxd;
@@ -658,7 +658,7 @@ occorrelater(OCnode* dds, OCnode* dxd)
 		OCnode* dds1 = (OCnode*)oclistget(dds->subnodes,j);
 		if(strcmp(dxd1->name,dds1->name) == 0) {
 		    ocstat = occorrelater(dds1,dxd1);
-		    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+		    if(ocstat != OC_NOERR) {OCTHROWCHK(ocstat); goto fail;}
 		    break;
 		}
 	    }
@@ -680,7 +680,7 @@ occorrelater(OCnode* dds, OCnode* dxd)
     }
 
 fail:
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 
 }
 
