@@ -54,7 +54,6 @@ void usage ( void );
 int main ( int argc, char** argv );
 
 /* Define tables vs modes for legal -k values*/
-#define NKVALUES 14
 struct Kvalues legalkinds[NKVALUES] = {
     {"1", 0},
     {"classic", 0},
@@ -68,6 +67,8 @@ struct Kvalues legalkinds[NKVALUES] = {
     {"3", NC_NETCDF4},
     {"hdf5", NC_NETCDF4},
     {"netCDF-4", NC_NETCDF4},
+    {"netcdf-4", NC_NETCDF4},
+    {"netcdf4", NC_NETCDF4},
     {"enhanced", NC_NETCDF4},
     /* NetCDF-4 HDF5 format, but using only nc3 data model */
     {"4", NC_NETCDF4 | NC_CLASSIC_MODEL},
@@ -367,6 +368,15 @@ main(
 	usingclassic = 1;
     }
 
+    /* Complain if still usingclassic =1 && a cdf4
+       construct was used
+    */
+    if(usingclassic && getmarkcdf4() != NULL) {
+	verror(getmarkcdf4());
+	return 1;
+    }
+
+
 #ifndef USE_NETCDF4
     allowspecial = 0;
 #endif
@@ -376,6 +386,7 @@ main(
 
     return 0;
 }
+END_OF_MAIN();
 
 void
 init_netcdf(void) /* initialize global counts, flags */

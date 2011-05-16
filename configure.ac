@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.3-beta1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.1.3-rc1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -700,7 +700,27 @@ fi
 # right here.
 AC_MSG_NOTICE([finding Fortran compiler (will not be used if Fortran API is not desired)])
 AC_PROG_FC
+
+# If we couldn't find an F90 compiler, deal with it.
+if test "${FC+set}" = set && test "x$FC" = x; then
+   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f90" = xyes; then
+      AC_MSG_ERROR([Can't find F90 compiler, and compiler recovery disabled.])
+   fi
+   AC_MSG_WARN([No F90 compiler found. F90 API will not be built.])
+   nc_build_f90=no
+fi
+
 AC_PROG_F77($FC)
+
+# Handle missing f77 compiler.
+if test "${F77+set}" = set && test "x$F77" = x; then
+   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f77" = xyes; then
+      AC_MSG_ERROR([Can't find F77 compiler, and compiler recovery disabled.])
+   fi
+   AC_MSG_WARN([No F77 compiler found. F77 API will not be built.])
+   nc_build_f77=no
+   nc_build_f90=no
+fi
 
 # See if the fortran 90 build is desired. If so, set some stuff
 if test "x$nc_build_f90" = xyes; then
@@ -845,7 +865,7 @@ AC_HEADER_STDBOOL
 
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \
-			strcasecmp strtod strtoll getrlimit gettimeofday fsync MPI_Comm_f2c])
+			strcasecmp strtod strtoll strtoull getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 AC_CHECK_LIB([m], [floor], [], [AC_MSG_ERROR([Can't find or link to the math library.])])
@@ -865,23 +885,21 @@ AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
-   AC_CHECK_LIB([z], [deflate], [], [
-   AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
-   opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
+   AC_SEARCH_LIBS([deflate], [zlib1 z], [], [
+     AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+     opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-   # Check for the main hdf5 library.
-   AC_CHECK_LIB([hdf5], [H5Fflush], [], [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use \
-      --disable-netcdf-4, or see config.log for errors.])])
-   
-   # We also require the HDF5 High Level library.
-   AC_CHECK_LIB([hdf5_hl], [H5DSis_scale], [], [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use \
-      --disable-netcdf-4, or see config.log for errors.])])
-
+   # Check for the main hdf5 and hdf5_hl library.
+   AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
+   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
+   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [], 
+   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
+	
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found.])])
    AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP])
 
@@ -927,6 +945,8 @@ dnl 	 fi
    # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
+      AC_SEARCH_LIBS([SZ_Compress], [szip], [], 
+      [AC_MSG_ERROR([Can't find or link to the szlib library. Use --disable-netcdf-4, or see config.log for errors.])])
    fi
 
    # If the user wants hdf4 built in, check it out.
@@ -1007,11 +1027,12 @@ UD_FTPBINDIR
 
 # Require some version of xdr/rpc
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
-AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
-		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
-if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
-  AC_MSG_ERROR(Cannot locate library containing xdr functions.)
-else
+if test "x$enable_dap" = xyes; then
+   AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
+   		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
+  if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
+    AC_MSG_ERROR(Cannot locate library containing xdr functions.)
+  else
   if test "$dap_xdrlib" = "lc" ; then
     AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
   elif test "$dap_xdrlib" = "none required" ; then
@@ -1022,14 +1043,15 @@ else
     # Add to library list
     AC_CHECK_LIB($dap_xdrlib,xdr_void)
   fi
+  # Fix to get working on OS X (thanks to Fedor Baart)
+  AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
+       AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
+       AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
+       ], [], [[#ifdef HAVE_RPC_TYPES_H
+  # include <rpc/types.h>
+  #endif]])
 fi
-# Fix to get working on OS X (thanks to Fedor Baart)
-AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
-     AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
-     AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
-     ], [], [[#ifdef HAVE_RPC_TYPES_H
-# include <rpc/types.h>
-#endif]])
+fi
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate

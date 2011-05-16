@@ -3,9 +3,16 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
+4.1.3-rc1	2011-05-06
+
+		 Stop looking for xdr if --disable-dap is used.
+
+		 Don't try to run (some) fortran configure tests on
+		 machines with no fortran.
+
 4.1.3-beta1	2011-04-29
 
-		 Fixed szlib bug.
+		 Fixed szlib not linking bug.
 
 		 Fixed dreaded "nofill bug", lurking in netCDF classic
 		 since at least 1999.  Writing more than a disk

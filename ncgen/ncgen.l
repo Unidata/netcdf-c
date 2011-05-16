@@ -60,6 +60,7 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
+static int parseLL(char* text);
 
 static struct Specialtoken {
     char* name;
@@ -296,8 +297,11 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 {SIMPLENUMBER}	{
 		    /* We need to try to see what size of integer ((u)int). */
 		    /* Technically, the user should specify, but... */
-		    if(yytext[0] == '-') { /* assume signed */
-		        sscanf((char*)yytext, "%lld", &int64_val);
+		    /* If out of any integer range, then complain */
+		    switch (parseLL(yytext)) {
+		    case 0:
+			return lexdebug(INT64_CONST); /* meaningless */
+		    case -1:
 #ifdef USE_NETCDF4
 		        if(int64_val >= NC_MIN_INT) {
 			    int32_val = (int)int64_val;
@@ -305,11 +309,16 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 			} else
 		            return lexdebug(INT64_CONST);
 #else
-			int32_val = (int)int64_val;
-			return lexdebug(INT_CONST);		    
+			/* Convert to int32, unless overflow then complain  */
+			if(int64_val >=NC_MIN_INT) {
+			    int32_val = (int)int64_val;
+			} else {
+			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
+			   yyerror(errstr);
+			}
+		        return lexdebug(INT_CONST);		    
 #endif
-		    } else {
-		        sscanf((char*)yytext, "%llu", &uint64_val);
+		    case 1:
 #ifdef USE_NETCDF4
  		        if(uint64_val <= NC_MAX_INT) {
 			    int32_val = (int)uint64_val;
@@ -323,6 +332,11 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 			} else
 		            return lexdebug(UINT64_CONST);
 #else
+			/* Convert to int32 but complain if overflow */
+			if(uint64_val > NC_MAX_INT) {
+			    sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
+			    yyerror(errstr);
+			}
 			int32_val = (int)uint64_val;
 			return lexdebug(INT_CONST);
 #endif
@@ -365,13 +379,13 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 		    }
 		    break;
 		case 'L': case 'l':
-		    if (sscanf((char*)yytext, "%lld", &int64_val) == 1) {
-		        token = INT64_CONST;
-		    } else if (sscanf((char*)yytext, "%llu", &uint64_val) == 1) {
-			token = UINT64_CONST;
-		    } else {
+		    switch(parseLL(yytext)) {
+		    case 0:
 		        sprintf(errstr,"bad int64 constant: %s",(char*)yytext);
 		        yyerror(errstr);
+			break;
+		    case -1: token = INT64_CONST; break;
+		    case 1: token = UINT64_CONST; break;
 		    }
 		    break;
 		default:/*(optionally)signed string of digits; treat like int*/
@@ -603,4 +617,40 @@ makepath(char* text0)
 	free(text);
     }
     return sym;
+}
+
+static int
+parseLL(char* text)
+{
+    int result = 0;
+#if defined(HAVE_STRTOLL) && defined(HAVE_STRTOULL)
+    extern int errno;
+    char* endptr;
+    errno = 0; endptr = NULL;
+    if(text[0] == '-') {
+        int64_val = strtoll(text,&endptr,10);
+	result = -1; /* negative int64_val */	
+    } else {
+        uint64_val = strtoull(text,&endptr,10);
+	result = 1; /* positive uint64_val */	
+    }
+    if(result == 0) {
+	sprintf(errstr,"Unparseable 64 bit integer constant: %s",(char*)text);
+	yyerror(errstr);
+    } else if(errno == ERANGE) {
+	sprintf(errstr,"64 bit integer constant out of range: %s",(char*)text);
+	yyerror(errstr);
+	result = 0; /* out of range */
+    }			
+#else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    if(text[0] == '-') {
+        sscanf((char*)text, "%lld", &int64_val);
+	result = -1; /* negative int64_val */	
+    } else {
+	sscanf((char*)text, "%llu", &uint64_val);
+	result = 1; /* positive uint64_val */	
+    }
+    /* Have no useful way to detect out of range */
+#endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    return result;
 }

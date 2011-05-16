@@ -134,7 +134,7 @@ NC_dispatch_overlay(const NC_Dispatch* overlay, const NC_Dispatch* base, NC_Disp
 
 #ifdef USE_DAP
 
-/* allow access dapurlparse and params while minimizing exposing dapurl.h */
+/* allow access to nc_urlparse and params while minimizing exposing nc.h */
 int
 NCDAP_urlparse(const char* s, void** dapurlp)
 {

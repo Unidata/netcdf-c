@@ -104,6 +104,7 @@ static Symbol* makeprimitivetype(nc_type i);
 static Symbol* makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst);
 static int containsfills(Datalist* list);
 static void datalistextend(Datalist* dl, Constant* con);
+static void vercheck(int ncid);
 
 int yylex(void);
 
@@ -220,7 +221,7 @@ subgrouplist: /*empty*/ | subgrouplist namedgroup;
 namedgroup: GROUP IDENT '{'
             {
 		Symbol* id = $2;
-                if(usingclassic) {verror("Group specification");}
+                markcdf4("Group specification");
 		if(creategroup(id) == NULL) 
                     yyerror("duplicate group declaration within parent group for %s",
                                 id->name);
@@ -234,7 +235,8 @@ namedgroup: GROUP IDENT '{'
       
 typesection:    /* empty */
                 | TYPES {}
-		| TYPES typedecls {if(usingclassic)verror("Type specification");}
+		| TYPES typedecls
+			{markcdf4("Type specification");}
                 ;
 
 typedecls: type_or_attr_decl | typedecls type_or_attr_decl ;
@@ -321,6 +323,7 @@ enumid: IDENT '=' constdata
 
 opaquedecl: OPAQUE '(' INT_CONST ')' typename
                 {
+		    vercheck(NC_OPAQUE);
                     addtogroup($5); /*sets prefix*/
                     $5->objectclass=NC_TYPE;
                     $5->subclass=NC_OPAQUE;
@@ -333,6 +336,7 @@ opaquedecl: OPAQUE '(' INT_CONST ')' typename
 vlendecl: typeref '(' '*' ')' typename
                 {
                     Symbol* basetype = $1;
+		    vercheck(NC_VLEN);
                     addtogroup($5); /*sets prefix*/
                     $5->objectclass=NC_TYPE;
                     $5->subclass=NC_VLEN;
@@ -346,6 +350,7 @@ vlendecl: typeref '(' '*' ')' typename
 compounddecl: COMPOUND typename '{' fields '}'
           {
 	    int i,j;
+	    vercheck(NC_COMPOUND);
             addtogroup($2);
 	    /* check for duplicate field names*/
 	    stackbase=$4;
@@ -399,11 +404,11 @@ primtype:         CHAR_K  { $$ = primsymbols[NC_CHAR]; }
                 | INT_K   { $$ = primsymbols[NC_INT]; }
                 | FLOAT_K { $$ = primsymbols[NC_FLOAT]; }
                 | DOUBLE_K{ $$ = primsymbols[NC_DOUBLE]; }
-                | UBYTE_K  { $$ = primsymbols[NC_UBYTE]; }
-                | USHORT_K { $$ = primsymbols[NC_USHORT]; }
-                | UINT_K   { $$ = primsymbols[NC_UINT]; }
-                | INT64_K   { $$ = primsymbols[NC_INT64]; }
-                | UINT64_K   { $$ = primsymbols[NC_UINT64]; }
+                | UBYTE_K  { vercheck(NC_UBYTE); $$ = primsymbols[NC_UBYTE]; }
+                | USHORT_K { vercheck(NC_USHORT); $$ = primsymbols[NC_USHORT]; }
+                | UINT_K   { vercheck(NC_UINT); $$ = primsymbols[NC_UINT]; }
+                | INT64_K   { vercheck(NC_INT64); $$ = primsymbols[NC_INT64]; }
+                | UINT64_K   { vercheck(NC_UINT64); $$ = primsymbols[NC_UINT64]; }
                 ;
 
 dimsection:     /* empty */
@@ -449,7 +454,7 @@ dimdecl:
                        if(usingclassic) {
 	  	         /* check for multiple UNLIMITED decls*/
                          if(getunlimiteddim() != NULL)
-			    verror("Type specification");
+			    markcdf4("Type specification");
 			 setunlimiteddim($1);
 		       }
 		       $1->dim.declsize = NC_UNLIMITED;
@@ -1037,7 +1042,7 @@ makeenumconst(Symbol* econst)
 {
     Constant con;
     if(usingclassic) {
-        verror("Illegal type: enum");
+        markcdf4("Enum type");
     } 
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
@@ -1201,8 +1206,10 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     if(vsym != NULL) special = &vsym->var.special;
     if(tag == _FORMAT_FLAG) {
 	struct Kvalues* kvalue;
-	int found = 0;
-        int modifier = 0;
+	int found;
+        int modifier;
+	found = 0;
+        modifier = 0;
 	if(kflag_flag == 0) goto done;
 	/* Only use this tag if kflag is not set */
 	/* Use the table in main.c */
@@ -1353,4 +1360,24 @@ static void
 datalistextend(Datalist* dl, Constant* con)
 {
     dlappend(dl,con);
+}
+
+static void
+vercheck(int ncid)
+{
+    char* tmsg = NULL;
+    switch (ncid) {
+    case NC_UBYTE: tmsg = "netCDF4 type: UBYTE"; break;
+    case NC_USHORT: tmsg = "netCDF4 type: USHORT"; break;
+    case NC_UINT: tmsg = "netCDF4 type: UINT"; break;
+    case NC_INT64: tmsg = "netCDF4 type: INT64"; break;
+    case NC_UINT64: tmsg = "netCDF4 type: UINT64"; break;
+    case NC_STRING: tmsg = "netCDF4 type: STRING"; break;
+    case NC_VLEN: tmsg = "netCDF4 type: VLEN"; break;
+    case NC_OPAQUE: tmsg = "netCDF4 type: OPAQUE"; break;
+    case NC_ENUM: tmsg = "netCDF4 type: ENUM"; break;
+    case NC_COMPOUND: tmsg = "netCDF4 type: COMPOUND"; break;
+    default: break;
+    }
+    if(tmsg != NULL) markcdf4(tmsg);
 }

@@ -55,9 +55,9 @@ ocskip(OCnode* node, XDR* xdrs)
                 for(j=0;j<oclistlength(node->subnodes);j++) {
                     OCnode* field = (OCnode*)oclistget(node->subnodes,j);
                     stat = ocskip(field,xdrs);
-                    if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
                 }
-                if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
 	    }
 	    break;
 
@@ -77,9 +77,9 @@ ocskip(OCnode* node, XDR* xdrs)
                     for(j=0;j<oclistlength(node->subnodes);j++) {
                         OCnode* field = (OCnode*)oclistget(node->subnodes,j);
                         stat = ocskip(field,xdrs);
-                        if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                        if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
                     }
-                    if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
                 }
 	    }
 	    break;
@@ -96,16 +96,16 @@ ocskip(OCnode* node, XDR* xdrs)
                     for(j=0;j<oclistlength(node->subnodes);j++) {
                         OCnode* member = (OCnode*)oclistget(node->subnodes,j);
                         stat = ocskip(member,xdrs);
-                        if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                        if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
                     }
                 } else if(tmp[0] == EndOfoclist) {
                     break; /* we are done with the this sequence instance*/
                 } else {
                     oc_log(LOGERR,"missing/invalid begin/end record marker\n");
                     stat = OC_EINVALCOORDS;
-                    {THROWCHK(stat); break;}
+                    {OCTHROWCHK(stat); break;}
                 }
-                if(stat != OC_NOERR) {THROWCHK(stat); break;}
+                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
             }
             break;
 
@@ -113,7 +113,7 @@ ocskip(OCnode* node, XDR* xdrs)
 	    OCPANIC1("oc_move: encountered unexpected node type: %x",node->octype);
 	    break;
     }
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 /* Skip arbitrary single instance; except for primitives
@@ -183,7 +183,7 @@ ocskipinstance(OCnode* node, XDR* xdrs)
         }
     }
 #endif
-    return THROW(stat);
+    return OCTHROW(stat);
 }
 
 /*
@@ -208,7 +208,7 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
 
     /* validate memory space*/
     totalsize = elemsize*count;
-    if(memsize < totalsize) return THROW(OC_EINVAL);
+    if(memsize < totalsize) return OCTHROW(OC_EINVAL);
 
     /* Handle packed data specially*/
     /* WARNING: assumes that the initial count has been read*/
@@ -225,7 +225,7 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
 	memcpy((void*)memory,(void*)(localmem+start),count);
 	if(readsize > LOCALMEMMAX) ocfree(localmem);
 	if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
-	return THROW(OC_NOERR);
+	return OCTHROW(OC_NOERR);
     }
 
     /* Not packed: extract count items; use xdr_opaque to speed up*/
@@ -316,13 +316,13 @@ ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, un
 	}
 	} break;
 
-    default: return THROW(OC_EINVAL);
+    default: return OCTHROW(OC_EINVAL);
     }
 
 done:
     ocfree(localmem);
     if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
-    return THROW(stat);
+    return OCTHROW(stat);
 
 shortxdr:
     oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
@@ -336,7 +336,7 @@ countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
     int stat = OC_NOERR;
     size_t nrecords = 0;
     unsigned int xdroffset;
-    if(node->octype != OC_Sequence) return THROW(OC_EINVAL);
+    if(node->octype != OC_Sequence) return OCTHROW(OC_EINVAL);
     /* checkpoint the xdr position*/
     xdroffset = xdr_getpos(xdrs);
     for(;;) { unsigned int i;
@@ -364,5 +364,5 @@ countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
     /* move to checkpoint position*/
     if(!xdr_setpos(xdrs,xdroffset)) return xdrerror();
     if(nrecordsp != NULL) *nrecordsp = nrecords;
-    return THROW(stat);
+    return OCTHROW(stat);
 }

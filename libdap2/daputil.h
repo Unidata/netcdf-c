@@ -49,11 +49,14 @@ extern int dapgridmap(struct CDFnode* node);
 extern int dapgridarray(struct CDFnode* node);
 extern int dapgridelement(struct CDFnode* node);
 
+#ifdef IGNORE
 /* Provide alternate path to the url parameters;
    one that does not require that an OCconnection exist */
 extern NClist* dapparamdecode(char*);
 extern void dapparamfree(NClist*);
 extern const char* dapparamlookup(NClist*, const char*);
+#endif
+
 extern unsigned int modeldecode(int, const char*, const struct NCTMODEL*, unsigned int);
 extern unsigned long getlimitnumber(const char* limit);
 
@@ -67,5 +70,7 @@ extern int nc__testurl(const char* path, char** basename);
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
 extern OCerror dap_oc_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
+
+extern int dap_badname(char* name);
 
 #endif /*DAPUTIL_H*/

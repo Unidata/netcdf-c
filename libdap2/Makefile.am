@@ -88,52 +88,7 @@ if BUILD_V2
 LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
 
-LDADD += @EXTERN_LDFLAGS@
-
-# Add a trivial test case to check for undefined references
-EXTRA_DIST += t_dap.c
-
-check_PROGRAMS = t_dap3a t_dap3c
-CLEANFILES += t_dap3a t_dap3c
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap3a t_dap3c
-t_dap3a_SOURCES = t_dap3a.c stubdap3.c
-t_dap3c_SOURCES = t_dap3c.c stubdap3.c
-
-if USE_NETCDF4
-check_PROGRAMS += t_dap4a
-CLEANFILES += t_dap4a
-TESTS += t_dap4a
-t_dap4a_SOURCES = t_dap4a.c stubdap4.c
-endif
-
-# Set ldflags
-#t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
-#t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-
-#check_PROGRAMS += test_varm3
-#TESTS += test_varm3
-#test_varm3_SOURCES = test_varm3.c stubdap3.c
-#test_varm3_LDFLAGS = ${t_dap3a_LDFLAGS}
-
 endif # BUILD_DAP
-
-# This rule are used if someone wants to rebuild t_dap3a.c
-# Otherwise never invoked, but records how to do it.
-t_dap3a.c: ${srcdir}/t_dap.c
-	echo "#define NETCDF3ONLY" > t_dap3a.c
-	cat t_dap.c >> t_dap3a.c
-
-t_dap4a.c: t_dap.c
-	cat t_dap.c >> ./t_dap4a.c
-
-# One last thing
-BUILT_SOURCES = .dodsrc
-
-.dodsrc:
-	echo "#DODSRC" >.dodsrc
-
-DISTCLEANFILES += .dodsrc
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

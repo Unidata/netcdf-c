@@ -84,7 +84,7 @@ char* name;
 int mode;
 };
 
-#define NKVALUES 14
+#define NKVALUES 16
 extern struct Kvalues legalkinds[NKVALUES];
 
 /* Note: non-variable specials (e.g. _Format) are not included in this struct*/

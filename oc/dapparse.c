@@ -66,8 +66,8 @@ dap_errorbody(DAPparsestate* state,
 	  Object code, Object msg, Object ptype, Object prog)
 {
     state->svcerror = 1;
-    state->code     = (code != NULL?strdup((char*)code):NULL);
-    state->message  = (msg != NULL?strdup((char*)msg):NULL);
+    state->code     = nulldup((char*)code);
+    state->message  = nulldup((char*)msg);
     /* Ignore ptype and prog for now */
 }
 

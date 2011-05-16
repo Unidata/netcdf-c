@@ -55,7 +55,8 @@ oc_logopen(const char* file)
 	oclogfile = NULL;
     } else {
 	int fd;
-	oclogfile = strdup(file);
+	oclogfile = (char*)malloc(strlen(file)+1);
+	strcpy(oclogfile,file);
 	oclogstream = NULL;
 	/* We need to deal with this file carefully
 	   to avoid unauthorized access*/

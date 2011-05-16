@@ -227,7 +227,7 @@ oc_inq_object(OCconnection conn,
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
-    if(namep) *namep = (node->name == NULL?NULL:strdup(node->name));
+    if(namep) *namep = nulldup(node->name);
     if(objecttypep) *objecttypep = node->octype;
     if(primitivetypep) *primitivetypep = node->etype;
     if(rankp) *rankp = node->array.rank;
@@ -478,7 +478,7 @@ oc_inq_dim(OCconnection conn, OCobject node0, size_t* sizep, char** namep)
 
     if(dim->octype != OC_Dimension) return OC_EINVAL;
     if(sizep) *sizep = dim->dim.declsize;
-    if(namep) *namep = (dim->name==NULL?NULL:strdup(dim->name));
+    if(namep) *namep = nulldup(dim->name);
     return OC_NOERR;
 }
 
@@ -641,7 +641,7 @@ oc_data_root(OCconnection conn, OCobject root0, OCdata content0)
     OCVERIFY(OCcontent*,content,content0);
     OCDEREF(OCcontent*,content,content0);
 
-    if(root->tree == NULL) {THROWCHK((ocerr=OC_EINVAL)); goto fail;}
+    if(root->tree == NULL) {OCTHROWCHK((ocerr=OC_EINVAL)); goto fail;}
     ocerr = ocrootcontent(state,root,content);
 
 fail:
@@ -693,7 +693,7 @@ oc_data_ith(OCconnection conn, OCdata parentdata, size_t index,OCdata subdata)
 	    ocerr = ocarraycontent(state,parent,child,index);
 	} else if(parent->node->octype == OC_Primitive) {
 	    ocerr = ocarraycontent(state,parent,child,index);
-	} else return THROW(OC_ENODATA);
+	} else return OCTHROW(OC_ENODATA);
 	break;
     case OC_Sequence:
 	ocerr = ocrecordcontent(state,parent,child,index);
@@ -851,9 +851,10 @@ oc_clientparam_get(OCconnection conn, const char* param)
     OCVERIFYX(OCstate*,state,conn,NULL);
     OCDEREF(OCstate*,state,conn);
 
-    return ocparamlookup(state->clientparams,param);
+    return ocparamlookup(state,param);
 }
 
+#ifdef IGNORE
 /* Delete client parameter
    return value:
 	OC_NOERR => defined; deletion performed
@@ -881,7 +882,8 @@ oc_clientparam_insert(OCconnection conn, const char* param, const char* value)
     OCVERIFY(OCstate*,state,conn);
     OCDEREF(OCstate*,state,conn);
 
-    return ocparaminsert(state->clientparams,param,value);
+    state->clientparams = dapparaminsert(state->clientparams,param,value);
+    return OC_NOERR;
 }
 
 /* Replace client parameter
@@ -896,8 +898,9 @@ oc_clientparam_replace(OCconnection conn, const char* param, const char* value)
     OCVERIFY(OCstate*,state,conn);
     OCDEREF(OCstate*,state,conn);
 
-    return ocparamreplace(state->clientparams,param,value);
+    return dapparamreplace(state->clientparams,param,value);
 }
+#endif
 
 OCerror
 oc_dd(OCconnection conn, OCobject root0)
@@ -1015,7 +1018,7 @@ oc_raw_xdrsize(OCconnection conn, OCobject root0, size_t* sizep)
 
     if(sizep == NULL) goto done;
     if(root->tree == NULL || root->tree->dxdclass != OCDATADDS)
-	{THROWCHK((ocerr=OC_EINVAL)); goto done;}
+	{OCTHROWCHK((ocerr=OC_EINVAL)); goto done;}
     if(sizep) *sizep = root->tree->data.datasize;
 
 done:
