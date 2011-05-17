@@ -13,7 +13,7 @@ tst_*.nc t_nc.nc large_files.nc quick_large_files.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2
+tst_nofill tst_nofill2 tst_nofill3
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts
