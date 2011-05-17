@@ -6,7 +6,6 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-LDADD = 
 AM_CFLAGS =
 AM_FFLAGS =
 AM_FCFLAGS =
@@ -27,13 +26,11 @@ AM_FCFLAGS += @MOD_FLAG@../f90
 
 endif #BUILD_F90
 
-AM_CPPFLAGS += -I$(top_builddir)/liblib @EXTERN_CPPFLAGS@
 AM_FFLAGS +=  ${AM_CPPFLAGS}
 AM_FCFLAGS +=  ${AM_CPPFLAGS}
 
-LDADD += ${top_builddir}/fortran/libnetcdff.la -lm
-LDADD += ${top_builddir}/liblib/libnetcdf.la 
-LDADD += @EXTERN_LDFLAGS@
+LDADD = ${top_builddir}/fortran/libnetcdff.la	\
+${top_builddir}/liblib/libnetcdf.la
 
 if BUILD_UTILITIES
 # The create_fills shell creates the file fills.nc, needed by later

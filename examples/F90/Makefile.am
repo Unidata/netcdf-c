@@ -14,11 +14,12 @@ AM_LDFLAGS =
 # Tell the compiler where to find the .mod files. The .mod file is
 # built, and therefore found in the build directory, not the source
 # directory.
-AM_FCFLAGS +=  -I$(top_srcdir) -I$(top_srcdir)/fortran -I$(top_builddir)/f90 @MOD_FLAG@$(top_builddir)/f90
+AM_FCFLAGS += -I$(top_srcdir) -I$(top_srcdir)/fortran	\
+-I$(top_builddir)/f90 @MOD_FLAG@$(top_builddir)/f90
 AM_FFLAGS += ${AM_FCFLAGS}
 
 AM_LDFLAGS += ${top_builddir}/fortran/libnetcdff.la
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 # These are the example programs.
 TESTPROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\

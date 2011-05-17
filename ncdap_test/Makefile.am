@@ -1,19 +1,12 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2011, see the COPYRIGHT file for more information.
 
-# This file builds and runs the nc_test program, which tests the
-# netCDF-3 API for all formats.
+# This file builds and runs DAP tests.
 
-# $Id: Makefile.am,v 1.36 2010/05/29 00:40:23 dmh Exp $
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
-LDADD = -lm
-
-# Link to the netCDF-4 and the HDF5 libraries.
-
-if BUILD_DAP
-
-LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+LDADD = ${top_builddir}/liblib/libnetcdf.la 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # Set up the tests; do the .sh first, then .c
@@ -82,9 +75,6 @@ CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds data
 if USE_NETCDF4
 CLEANFILES += test_cvt4 t_dap4
 endif
-
-endif # BUILD_DAP
-
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.

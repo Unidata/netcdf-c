@@ -102,9 +102,12 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                  var->dimids[d], var->name));
             if (var->created)
             {
-               if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
-                  return NC_EHDFERR;
-               var->dimscale_attached[d] = 0;
+	       if (var->dimscale_attached[d])
+	       {
+		  if (H5DSdetach_scale(var->hdf_datasetid, dimscaleid, d) < 0)
+		     return NC_EHDFERR;
+		  var->dimscale_attached[d] = 0;
+	       }
             }
          }
 

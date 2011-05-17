@@ -868,7 +868,6 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy st
 			strcasecmp strtod strtoll strtoull getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
-AC_CHECK_LIB([m], [floor], [], [AC_MSG_ERROR([Can't find or link to the math library.])])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_TYPE_SIZE_T
@@ -959,6 +958,10 @@ dnl 	 fi
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
+
+# We need the math library.
+AC_CHECK_LIB([m], [floor], [], 
+[AC_MSG_ERROR([Can't find or link to the math library.])])
 
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
@@ -1052,6 +1055,8 @@ if test "x$enable_dap" = xyes; then
   #endif]])
 fi
 fi
+AC_MSG_CHECKING([value of LIBS])
+AC_MSG_RESULT([$LIBS])
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
@@ -1062,33 +1067,8 @@ else
    NC_LIBS="$with_netcdf_c_lib"
 fi
 if test "x$enable_shared" != xyes; then
-   if test "x$enable_netcdf_4" = xyes ; then 
-      if test "x$HDF5DIR" != x ; then 
-      	 NC_LIBS="$NC_LIBS -L$HDF5DIR/lib"
-      fi	 
-      NC_LIBS="$NC_LIBS -lhdf5_hl -lhdf5 $SZLIB_LIBS"
-      if test "x$ZLIBDIR" != x ; then 
-         NC_LIBS="$NC_LIBS -L$ZLIBDIR/lib"
-      fi
-      NC_LIBS="$NC_LIBS -lz -lm $LIBS"
-      if test "x$SZLIBDIR" != x ; then 
-         NC_LIBS="$NC_LIBS -L$SZLIBDIR/lib"
-         NC_LIBS="$NC_LIBS -lsz $LIBS"
-      fi
-      if test "x$enable_hdf4" = xyes; then
-         if test "x$HDF4DIR" != x ; then 
-            NC_LIBS="$NC_LIBS -L$HDF4DIR/lib"
-         fi	 
-         NC_LIBS="$NC_LIBS -lmfhdf -ldf"
-      fi
-   fi
-   if test "x$enable_dap" = xyes ; then 
-       if test "x$with_daplib" != x ; then
-          NC_LIBS="$NC_LIBS -L$with_daplib/lib"
-       fi
-       NC_LIBS="$NC_LIBS $CURL_LIBS"
-   fi
-fi
+   NC_LIBS="$NC_LIBS $LIBS"
+fi	 
 
 case "x$target_os" in
 xsolaris*) 
@@ -1122,86 +1102,6 @@ AC_SUBST(HAS_CXX,[$nc_build_cxx])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
 
 AC_CONFIG_SUBDIRS([udunits libcf])
-
-##################################################
-# Remove redundant constructions of AM_CPPFLAGS, etc
-# from the subdir Makefile.am files.
-# Eventually merge with the nc-config construction above
-
-# The following flags are defined
-# Define the -L flags and libs for external libraries
-EXTERN_LDFLAGS=""
-# Define the -I flags for external libraries
-EXTERN_CPPFLAGS=""
-
-# Add all libraries even if shared is enabled
-if test "x$enable_netcdf_4" = xyes ; then 
-  if test "x$HDF5DIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF5DIR/lib"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF5DIR/include"
-  fi         
-  EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lhdf5_hl -lhdf5"
-  if test "x$enable_hdf4" = xyes; then
-    if test "x$HDF4DIR" != x ; then 
-      EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF4DIR/lib"
-      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF4DIR/include"
-    fi      
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lmfhdf -ldf"
-  fi
-  if test "x$enable_pnetcdf" = xyes; then
-    if test "x$PNETCDFDIR" != x ; then 
-      EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$PNETCDFDIR/lib"
-      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$PNETCDFDIR/include"
-    fi      
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lpnetcdf"
-  fi
-fi # netcdf-4
-# Do zlib and szlib if either dap or netcdf4 is enabled
-if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
-  if test "x$ZLIBDIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$ZLIBDIR/lib"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$ZLIBDIR/include"
-  fi
-  EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
-  if test "x$SZLIBDIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$SZLIBDIR/lib -lsz"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$SZLIBDIR/include"
-  fi
-fi
-
-if test "x$enable_dap" = xyes -o "x$enable_cdmremote" = xyes ; then 
-  if test "x$curl_libs" != x ; then
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
-  fi
-fi
-
-# If we are running on Solaris, then we need to add -R flags as well
-
-case "x$target_os" in
-xsolaris*) 
-  NEWLDFLAGS=""
-  for x in $EXTERN_LDFLAGS ; do
-    case "$x" in
-    -L*) r=`echo "$x" | sed -e 's|^-L|-R|'`
-	 NEWLDFLAGS="$NEWLDFLAGS $x $r"
-	 ;;
-    *)	 NEWLDFLAGS="$NEWLDFLAGS $x" ;;
-    esac
-  done
-  EXTERN_LDFLAGS="$NEWLDFLAGS"
-  ;;
-*);;
-esac
-
-# Alias
-EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
-AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])
-AC_SUBST(EXTERN_LDFLAGS,[$EXTERN_LDFLAGS])
-AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
-
-AC_MSG_NOTICE(CPPFLAGS for External libraries: ${EXTERN_CPPFLAGS})
-AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
 # Uncomment this to keep a copy of autoconf defines at this point, for
