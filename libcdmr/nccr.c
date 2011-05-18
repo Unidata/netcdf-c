@@ -81,11 +81,11 @@ NCCR_open(const char * path, int mode,
     long filetime;
     ast_err aststat = AST_NOERR;
     Header* hdr = NULL;
-    NCbytes* completeurl;
+    char* curlurl = NULL;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
 
-    if(nc_uriparse(path,&tmpurl) != NC_NOERR) PANIC("libcdmr: non-url path");
+    if(!nc_uriparse(path,&tmpurl)) PANIC("libcdmr: non-url path");
     nc_urifree(tmpurl); /* no longer needed */
 
     /* Check for legal mode flags */
@@ -131,14 +131,13 @@ NCCR_open(const char * path, int mode,
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Turn on logging; only do this after open*/
-    if((lookups=nc_urilookup(nccr->cdmr->uri,"log")) != NULL) {
+    if(nc_urilookup(nccr->cdmr->uri,"log",&lookups)) {
 	ncloginit();
         ncsetlogging(1);
         nclogopen(lookups);
     }
 
-    lookups = nc_urilookup(nccr->cdmr->uri,"show");
-    if(lookups != NULL) {
+    if(nc_urilookup(nccr->cdmr->uri,"show",&lookups)) {
 	int i;
 	for(i=0;i<strlen(lookups);i++) {
 	    if(lookups[i] ==  ',') continue;
@@ -151,11 +150,10 @@ NCCR_open(const char * path, int mode,
 
     /* fetch (unconstrained) meta data */
     buf = bytes_t_null;
-    completeurl = ncbytesnew();
-    ncbytescat(completeurl,nccr->cdmr->uri->uri);
-    ncbytescat(completeurl,"?req=header");
-    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,ncbytescontents(completeurl),
-			   &buf,&filetime);
+    curlurl = nc_uribuild(nccr->cdmr->uri,NULL,"?req=header",0);
+    if(curlurl == NULL) {ncstat=NC_ENOMEM; goto done;}
+    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,curlurl,&buf,&filetime);
+    free(curlurl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Parse the meta data */
@@ -308,17 +306,19 @@ nccr_map_projections(NCCDMR* cdmr)
     int i,j;
     NClist* projections = cdmr->urlconstraint->projections;
     cdmr->variables = nclistnew(); /* variables in the url constraint */
-    for(i=0;i<nclistlength(cdmr->streamnodes);i++) {
-	int found = 0;
-	CRnode* cdmnode = (CRnode*)nclistget(cdmr->streamnodes,i);
-        for(j=0;j<nclistlength(projections);j++) {	
-	    CCEprojection* p = (CCEprojection*)nclistget(projections,j);
-	    if(strcmp(p->pathname,cdmnode->pathname)==0) {
-		nclistpush(cdmr->variables,(ncelem)cdmnode);
-		found = 1;
+    if(nclistlength(projections) > 0) {
+        for(i=0;i<nclistlength(cdmr->streamnodes);i++) {
+	    int found = 0;
+	    CRnode* cdmnode = (CRnode*)nclistget(cdmr->streamnodes,i);
+            for(j=0;j<nclistlength(projections);j++) {	
+	        CCEprojection* p = (CCEprojection*)nclistget(projections,j);
+	        if(strcmp(p->pathname,cdmnode->pathname)==0) {
+		    nclistpush(cdmr->variables,(ncelem)cdmnode);
+		    found = 1;
+		}
 	    }
+	    if(!found) {ncstat = NC_ENOTVAR; goto done;}
 	}
-	if(!found) {ncstat = NC_ENOTVAR; goto done;}
     }
 
 done:

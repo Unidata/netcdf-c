@@ -30,9 +30,8 @@
 #define TMPPATH2 "./"
 #endif
 
-/* Define default rc files */
-#define DODSRC ".dodsrc"
-#define OPENDAPRC ".opendap.rc"
+/* Define default rc files and aliases*/
+static char* rcfilenames[3] = {".dodsrc",".httprc",NULL};
 
 static int ocextractdds(OCstate*,OCtree*);
 static char* constraintescape(const char* url);
@@ -157,34 +156,37 @@ ocinternalinitialize(void)
     {
         char* path = NULL;
         char* homepath = NULL;
+	char** alias;
 	FILE* f = NULL;
         /* locate the configuration files: . first, then $HOME */
-        path = (char*)malloc(strlen("./")+strlen(DODSRC)+1);
-	if(path == NULL) return OC_ENOMEM;
-        strcpy(path,"./");
-        strcat(path,DODSRC);
-	/* see if file is readable */
-	f = fopen(path,"r");
-	if(f == NULL) {
+	for(alias=rcfilenames;*alias;alias++) {
+            path = (char*)malloc(strlen("./")+strlen(*alias)+1);
+	    if(path == NULL) return OC_ENOMEM;
+            strcpy(path,"./");
+            strcat(path,*alias);
+  	    /* see if file is readable */
+	    f = fopen(path,"r");
+	    if(f != NULL) break;
 	    /* try $HOME */
             homepath = getenv("HOME");
             if (homepath!= NULL) {
-	       if(path != NULL) free(path);
-	       path = (char*)malloc(strlen(homepath)+1+strlen(DODSRC)+1);
-	       if(path == NULL) return OC_ENOMEM;
-	       strcpy(path,homepath);
-	       strcat(path,"/");
-	       strcat(path,DODSRC);
-	       f = fopen(path,"r");
+		if(path != NULL) free(path);
+	        path = (char*)malloc(strlen(homepath)+1+strlen(*alias)+1);
+	        if(path == NULL) return OC_ENOMEM;
+	        strcpy(path,homepath);
+	        strcat(path,"/");
+	        strcat(path,*alias);
+		f = fopen(path,"r");
+		if(f != NULL) break;
             }
-        }
+	}
         if(f == NULL) {
-	    oc_log(LOGWARN,"Cannot find runtime .dodsrc configuration file");
+            oc_log(LOGWARN,"Cannot find runtime configuration file");
 	} else {
        	    fclose(f);
             if(ocdebug > 1)
 		fprintf(stderr, "DODS RC file: %s\n", path);
-            if(ocdodsrc_read(path) == 0)
+            if(ocdodsrc_read(*alias,path) == 0)
 	        oc_log(LOGERR, "Error parsing %s\n",path);
         }
         if(path != NULL) {free(path) ; path = NULL;}
@@ -587,7 +589,7 @@ ocsetcurlproperties(OCstate* state)
 
     /* process the triple store wrt to this state */
     if(ocdodsrc_process(state) != OC_NOERR) {
-	oc_log(LOGERR,"Malformed .dodsrc");
+	oc_log(LOGERR,"Malformed .opendaprc configuration file");
 	goto fail;
     }
     if(state->creds.username == NULL && state->creds.password == NULL) {

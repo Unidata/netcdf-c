@@ -3,6 +3,7 @@
 
 HDF5=1
 #DAP=1
+CDMR=1
 
 #M32=1
 #M64=1
@@ -55,7 +56,7 @@ LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -L${stddir}/lib -lz $LDFLAGS"
 LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
-if test "x$DAP" = "x1" ; then
+if test "x$DAP" = "x1" -o "x$CDMR" = "x1" ; then
 if curl-config --version >/dev/null ; then
 TMP=`curl-config --cflags`
 CPPFLAGS="$TMP $CPPFLAGS"
@@ -105,8 +106,9 @@ if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 fi
-
+if test "x$CDMR" = "x1" ; then
 FLAGS="$FLAGS --enable-cdmremote"
+fi
 
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS

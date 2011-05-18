@@ -357,31 +357,32 @@ nccr_map_dimensions(NClist* nodes)
         CRnode* node = (CRnode*)nclistget(nodes,i);
 	switch (node->sort) {
 	case _Dimension:
+	    /* Map dimension references to the corresponding decl */
 	    dim = (Dimension*)node;
 	    for(j=0;j<nclistlength(dimdecls);j++) {
 	        Dimension* decl = (Dimension*)nclistget(dimdecls,j);
-		if(decl != dim
-		   && strcmp(decl->node.pathname,dim->node.pathname)==0) {
-		    /* Validate that these are really the same dimension */
-		    if(classifydim(decl) == classifydim(dim)
-		       && dimsize(decl) == dimsize(dim)) {
+		if(decl == dim) continue;
+		if(strcmp(decl->node.pathname,dim->node.pathname)!=0)
+		    continue;
+	        /* Validate that these are really the same dimension */
+		if(classifydim(decl) == classifydim(dim)) {
+		    if(dimsize(decl) == dimsize(dim)) {
 		        node->dimdecl = (Dimension*)decl;
-		    } else {/* Fail */
-			return THROW(NC_EINVALCOORDS);
-			goto done;
-		    }
-		}
+		    } else goto fail;
+		} else goto fail;
 	    }
-	    ASSERT(node->dimdecl != NULL);
+	    ASSERT(node->flags.isdecl || node->dimdecl != NULL);
 	    break;
 	default:
 	   break; /* ignore */
 	}
     }
 
-done:
     nclistfree(dimdecls);
     return ncstat;
+
+fail:
+    return THROW(NC_EINVALCOORDS);
 }
 
 /**************************************************/
@@ -412,10 +413,14 @@ nccr_deref_dimensions(NClist* nodes)
 	    break;
 	}
 
+	/* Do the replacement */
 	if(count > 0 && dimset != NULL) {
-	    for(j=0;j<count;j++)
-		nclistpush(replaced,(ncelem)dimset[j]);
-	        dimset[j] = dimset[j]->node.dimdecl;
+	    for(j=0;j<count;j++) {
+		if(!dimset[j]->node.flags.isdecl) {
+		    nclistpush(replaced,(ncelem)dimset[j]);
+	            dimset[j] = dimset[j]->node.dimdecl;
+		}
+	    }
 	}
     }
     /*Remove the replaced from the nodeset */

@@ -98,6 +98,7 @@ typedef struct OCstate
     struct OCcurlflags {
 	int compress;
 	int verbose;
+	int timeout;
 	int followlocation;
 	int maxredirs;
 	char* useragent;

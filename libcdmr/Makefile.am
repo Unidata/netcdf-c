@@ -5,12 +5,13 @@
 
 # $Id: Makefile.am,v 1.18 2010/05/29 18:45:47 dmh Exp $
 
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
 DISTCLEANFILES =
 CLEANFILES =
 EXTRA_DIST =
 LDADD=
-AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = 
 
 # CDMREMORE Sources
 SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvara.c \
@@ -43,7 +44,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 \
 	      -I$(top_srcdir)/libsrc \
 	      -I$(top_srcdir)/libdispatch
 
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
+AM_CPPFLAGS += -I${top_srcdir}/libdispatch
 
 # Define the load libraries for stub3
 LDADD += ${top_builddir}/libcdmr/libnccr.la \
@@ -54,8 +55,6 @@ LDADD += ${top_builddir}/libcdmr/libnccr.la \
 if BUILD_V2
 LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
-
-LDADD += @EXTERN_LDFLAGS@
 
 # Add a trivial test case to check for undefined references
 check_PROGRAMS = t_cdmr

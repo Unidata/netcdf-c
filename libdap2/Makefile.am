@@ -1,11 +1,11 @@
 ## This is a automake file, part of Unidata's netCDF package.
 # Copyright 2005, see the COPYRIGHT file for more information.
 
-# This automake file generates the Makefile to build netCDF-4. The
-# generated makefile is not run unless the user selected to build
-# netCDF-4.
+# This automake file generates the Makefile to libdap2. Whatever that
+# is!
 
-# $Id: Makefile.am,v 1.41 2010/05/29 18:45:47 dmh Exp $
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -14,40 +14,15 @@ CLEANFILES =
 EXTRA_DIST =
 
 LDADD=
-AM_LDFLAGS = 
-AM_CPPFLAGS = -I$(top_srcdir)/include
 
-SRC=\
-constraints3.c \
-common34.c \
-dapcvt.c \
-dapalign.c \
-dapodom.c \
-daputil.c \
-ncdaperr.c \
-cdf3.c \
-cache.c \
-dapdump.c \
-dapdebug.c \
-dapattr3.c \
-ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
-dceconstraints.c \
-dcetab.c dceparse.c dcelex.c
+SRC= constraints3.c common34.c dapcvt.c dapalign.c dapodom.c daputil.c	\
+ncdaperr.c cdf3.c cache.c dapdump.c dapdebug.c dapattr3.c		\
+ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c dceconstraints.c dcetab.c	\
+dceparse.c dcelex.c
 
-HDRS=\
-nccommon.h \
-constraints3.h \
-ncd3dispatch.h \
-ncdap3.h \
-dapalign.h \
-dapodom.h \
-getvara.h \
-dapnc.h \
-daputil.h \
-dapdebug.h \
-dapdump.h \
-dceconstraints.h \
-dcetab.h dceparselex.h
+HDRS= nccommon.h constraints3.h ncd3dispatch.h ncdap3.h dapalign.h	\
+dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
+dceconstraints.h dcetab.h dceparselex.h
 
 if USE_NETCDF4
 SRC += cdf4.c constraints4.c ncd4dispatch.c ncdap4.c getvara4.c
@@ -72,16 +47,14 @@ endif
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 AM_CPPFLAGS += -I${top_srcdir}/oc
 
-AM_CPPFLAGS += @EXTERN_CPPFLAGS@
-
 LDADD += libdap2.la
 
 if USE_NETCDF4
 LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
 endif
 
-LDADD += ${top_builddir}/libsrc/libnetcdf3.la \
-	 ${top_builddir}/oc/liboc.la \
+LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
+	 ${top_builddir}/oc/liboc.la			\
 	 ${top_builddir}/libdispatch/libdispatch.la
 
 if BUILD_V2

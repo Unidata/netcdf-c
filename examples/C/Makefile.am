@@ -21,7 +21,7 @@ simple_xy_nc4_rd
 endif #USE_NETCDF4
 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la # @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 check_PROGRAMS = $(TESTPROGRAMS)
 TESTS = $(TESTPROGRAMS)

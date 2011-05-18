@@ -61,7 +61,7 @@ endif
 endif
 
 AM_CPPFLAGS += -I${top_srcdir}/liblib
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la # @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = $(top_builddir)/cxx/libnetcdf_c++.la  ${AM_LDFLAGS}
 
 # These headers will be installed in the users header directory.
