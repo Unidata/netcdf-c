@@ -4,8 +4,6 @@
 
    This program does some benchmarking of netCDF files for the AR-5
    data.
-
-   $Id: tst_ar5.c,v 1.4 2010/01/11 19:27:11 ed Exp $
 */
 
 #include <nc_tests.h>
@@ -67,7 +65,6 @@ main(int argc, char **argv)
       /*int ndims, nvars, natts, unlimdimid;*/
       size_t cs[NDIMS_DATA] = {120, 4, 40, 32};
 
-/*       nc_set_log_level(4); */
 /*       /\* Open input. *\/ */
 /*       if (nc_open(THETAU_FILE, NC_NOWRITE, &ncid)) ERR; */
 

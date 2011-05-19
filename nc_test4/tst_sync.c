@@ -45,13 +45,10 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#ifdef EXTRA_TESTS
    printf("**** testing that sync works in netCDF-4, with test contributed by Jeff W....");
    {
       int ncid, var1_id, var2_id, var3_id, dimid;
 
-      nc_set_log_level(3);
-      
       /* Create a file with one dim and two variables. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME, 1, &dimid)) ERR;
@@ -64,7 +61,6 @@ main(int argc, char **argv)
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;
-      nc_set_log_level(0);
    }
    SUMMARIZE_ERR;
    printf("**** testing that sync works in netCDF-4, with test contributed by Jeff W....");
@@ -89,7 +85,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#endif /* EXTRA_TESTS */
    FINAL_RESULTS;
 }
 

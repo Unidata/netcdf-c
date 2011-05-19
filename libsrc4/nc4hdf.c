@@ -93,8 +93,16 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
       if ((retval = rec_detach_scales(child_grp, dimid, dimscaleid)))
          return retval;
 
-   /* Find any (already created) vars that use this dimension id. */
-   for (var = grp->var; var; var = var->next)
+   /* If there are no vars, we are done. */
+   if (!grp->var)
+      return NC_NOERR;
+
+   /* Find any (already created) vars that use this dimension id. Go
+    * through the list backwards to accomdate a HDF5 bug. */
+   for (var = grp->var; var->next; var = var->next)
+      ;
+
+   for ( ; var; var = var->prev)
       for (d = 0; d < var->ndims; d++)
          if (var->dimids[d] == dimid && !var->dimscale)
          {

@@ -99,7 +99,6 @@ int
 main()
 {
    printf("\n*** Checking HDF5 dimscales detach.\n");
-#ifdef EXTRA_TESTS
    printf("*** Creating a file with two vars with one dimension scale...");
    {
       hid_t fileid, grpid, spaceid, var1_id, var2_id, dimscaleid, cparmsid;
@@ -170,10 +169,10 @@ main()
       if (H5Sclose(spaceid) < 0) ERR;
       if (H5DSattach_scale(var2_id, dimscaleid, 0) < 0) ERR;
 
-      /* Now detach the scales and remove the dimscale. This works if
-       * I reverse the order of the statements. */
-      if (H5DSdetach_scale(var1_id, dimscaleid, 0) < 0) ERR;      
+      /* Now detach the scales and remove the dimscale. This doesn't
+       * work if I reverse the order of the statements. */
       if (H5DSdetach_scale(var2_id, dimscaleid, 0) < 0) ERR;     
+      if (H5DSdetach_scale(var1_id, dimscaleid, 0) < 0) ERR;      
 
       /* Fold up our tents. */
       if (H5Dclose(var1_id) < 0) ERR;
@@ -283,7 +282,6 @@ main()
       /*   }*/
    }
    SUMMARIZE_ERR;
-#endif
    FINAL_RESULTS;
 }
 
