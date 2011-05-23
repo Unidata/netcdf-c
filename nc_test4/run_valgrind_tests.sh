@@ -25,5 +25,4 @@ for tst in $list; do
 done
 
 echo "SUCCESS!!!"
-
 exit 0

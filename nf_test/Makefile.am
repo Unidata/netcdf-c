@@ -145,8 +145,9 @@ endif #BUILD_F90
 # Test parallel I/O for F77.
 if TEST_F77
 if TEST_PARALLEL
-check_PROGRAMS += ftst_parallel
+check_PROGRAMS += ftst_parallel ftst_parallel_nasa
 ftst_parallel_SOURCES = ftst_parallel.F
+ftst_parallel_nasa_SOURCES = ftst_parallel_nasa.F
 TESTS += run_f77_par_test.sh
 CLEANFILES += ftst_parallel.nc
 endif # TEST_PARALLEL
