@@ -774,7 +774,7 @@ AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlib1 z], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+     AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
