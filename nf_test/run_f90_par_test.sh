@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell runs some parallel I/O tests.
+# This shell runs some parallel I/O tests for the F90 API.
 
 set -e
 echo "Testing netCDF parallel I/O through the F90 API..."
