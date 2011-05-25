@@ -9,8 +9,6 @@ program f90tst_vars4
   use netcdf
   implicit none
 
-  include 'netcdf.inc'
-
   ! This is the name of the data file we will create.
   character (len = *), parameter :: FILE_NAME = "f90tst_vars4.nc"
 
@@ -29,7 +27,7 @@ program f90tst_vars4
   integer :: xtype_in, natts_in, dimids_in(MAX_DIMS), chunksizes_in(MAX_DIMS)
   logical :: contiguous_in, shuffle_in, fletcher32_in
   integer :: deflate_level_in, endianness_in
-  character (len = NF_MAX_NAME) :: name_in
+  character (len = NF90_MAX_NAME) :: name_in
 
 
   print *, ''
