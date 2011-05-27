@@ -13,7 +13,7 @@
 struct NC;
 struct NC_URI;
 struct NClist;
-struct NChashmap;
+struct Data;
 
 /**************************************************/
 /* The NCCR structure is subtype of NC_INFO_TYPE_T (libsrc4) */
@@ -25,6 +25,8 @@ typedef struct NCCDMR {
     /* Track some flags */
     int controls;
     struct CCEconstraint* urlconstraint; /* constraint from url */
+    struct Header* ncstreamhdr; /* Parsed result */
+    struct Data* datahdr; /* Parsed result */
     struct NClist* variables; /* set of visible variables */
     /* provide a collection of the  ncStream nodes*/
     struct NClist* streamnodes;
@@ -88,5 +90,4 @@ extern int nccrceparse(char*, int, struct NClist**, struct NClist**, char**);
 extern int crbuildnc(NCCR*, struct Header*);
 
 /**********************************************************/
-
 #endif /*NCCR_H*/

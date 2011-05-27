@@ -27,3 +27,52 @@ crstrindex(char* s, char* match)
     return -1;
 }
 
+/**************************************************/
+CRpath*
+crpathappend(CRpath* path, char* name)
+{
+    CRnode* newsegment = NULL;
+    newsegment = (CRpath*)malloc(sizeof(CRpath));
+    if(newsegment == NULL) return NULL;
+    newsegment->name = strdup(name);
+    newsegment->next = NULL;
+
+    if(path = NULL) {
+	path = newsegment;
+    } else {
+        /* Find last node */
+	CRnode* last = path;
+        while(last->next != NULL) last = last->next;
+	last->next = newsegment;
+    }	
+    return path;
+}
+
+
+void
+crpathfree(CRpath* path)
+{
+    while(path != NULL) {
+        CRpath* curr = path;
+	if(curr->name) free(curr->name);
+	path = curr->next;
+	free(curr);
+    }
+}
+
+int
+crpathmatch(CRpath* path1, CRpath* path2)
+{
+    while(path1 != NULL && path2 != NULL) {
+	if(strcmp(path1->name,path2->name)!=0) return 0;
+	path1 = path1->next;
+	path2 = path2->next;
+    }
+    if(path1 == NULL && path2 == NULL) return 1;
+    return 0;
+}
+
+void
+crcollectnodepath(CDFnode* node, NClist* path);
+{
+}

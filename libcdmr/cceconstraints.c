@@ -34,6 +34,8 @@
 static int mergeprojection(CCEprojection* dst, CCEprojection* src);
 static void ceallnodesr(CCEnode* node, NClist* allnodes, CEsort which);
 
+static NClist* crunifyprojectionnodes3(NClist* varlist);
+
 /* Parse incoming url constraints, if any,
    to check for syntactic correctness
 */ 
@@ -56,7 +58,7 @@ cdmparseconstraint(char* constraints, CCEconstraint* constraint)
     }
 
 #ifdef DEBUG
-fprintf(stderr,"constraint: %s",ccetostring((CCEnode*)constraint));
+fprintf(stderr,"constraint: %s\n",ccetostring((CCEnode*)constraint));
 #endif
     return ncstat;
 }
@@ -240,17 +242,6 @@ cdmbuildprojectionstring(NClist* projections)
     pstring = ncbytesdup(buf);
     ncbytesfree(buf);
     return pstring;
-}
-
-char*
-cdmbuildselectionstring(NClist* selections)
-{
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    ccelisttobuffer(selections,buf,",");
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
 }
 
 char*
@@ -608,4 +599,364 @@ ccesamepath(NClist* list1, NClist* list2)
 	if(strcmp(s1->name,s2->name) != 0) return 0;
     }
     return 1;
+}
+
+/*
+The original URL projections
+will define the maximum set of
+variables that will be retrieved.
+However, our tactic may restrict that
+set further, so we modify the projection
+set to remove projections not
+referring to the specified variables.
+Additionally, try to merge projections
+into larger projections when possible.
+We also need to watch out for one projection
+enlarging on another (e.g. types.i32 vs types).
+The larger one must be removed to avoid
+changing the DDS metadata in a way that is
+inconsistent with the DDS metadata.
+*/
+
+void
+ccerestrictprojection(NClist* varlist, NClist* projections)
+{
+    int i,j,len;
+
+#ifdef DEBUG
+fprintf(stderr,"restriction.before=|%s|\n",
+		dumpprojections(projections));
+#endif
+
+    if(nclistlength(varlist) == 0) goto done; /* nothing to add or remove */
+
+    /* If the projection list is empty, then add
+       a projection for every variable in varlist
+    */
+    if(nclistlength(projections) == 0) {
+        NClist* path = nclistnew();
+	NClist* nodeset = NULL;
+	/* Attempt to unify the vars into larger units
+	   (like a complete grid) */
+	nodeset = crunifyprojectionnodes(varlist);	
+        for(i=0;i<nclistlength(nodeset);i++) {
+	    CRnode* var = (CRnode*)nclistget(nodeset,i);
+#ifdef DEBUG
+fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
+#endif
+	    CCEprojection* newp = (CCEprojection*)ccecreate(CES_PROJECT);
+	    newp->node = var;
+	    nclistclear(path);
+	    collectnodepath3(var,path,!WITHDATASET);
+	    newp->var->segments = nclistnew();
+	    for(j=0;j<nclistlength(path);j++) {
+	        CRnode* node = (CRnode*)nclistget(path,j);
+	        DCEsegment* newseg = (DCEsegment*)dcecreate(CES_SEGMENT);
+	        newseg->name = nulldup(node->name);
+	        makewholesegment3(newseg,node);/*treat as simple projections*/
+	        newseg->CRnode = node;
+	        nclistpush(newp->var->segments,(ncelem)newseg);
+	    }
+	    nclistpush(projections,(ncelem)newp);
+	}
+	nclistfree(path);
+	nclistfree(nodeset);
+    } else {
+       /* Otherwise, walk all the projections and see if they
+	   intersect any of the variables. If not,
+	   then remove from the projection list.
+	*/
+	len = nclistlength(projections);
+	for(i=len-1;i>=0;i--) {/* Walk backward to facilitate removal*/
+	    int intersect = 0;
+	    DCEprojection* proj = (DCEprojection*)nclistget(projections,i);
+	    if(proj->discrim != CES_VAR) continue;
+	    for(j=0;j<nclistlength(varlist);j++) {
+		CRnode* var = (CRnode*)nclistget(varlist,j);
+		/* Note that intersection could go either way */
+		if(treecontains3(var,proj->var->cdfleaf)
+		   || treecontains3(proj->var->cdfleaf,var)) {intersect = 1; break;}
+	    }	    
+	    if(!intersect) {
+		/* suppress this projection */
+		DCEprojection* p = (DCEprojection*)nclistremove(projections,i);
+		dcefree((DCEnode*)p);
+	    }
+	}
+	/* Now looks for containment between projections and only keep
+           the more restrictive. Is this algorithm stable against reordering?.
+	*/
+	for(;;) {
+	    int removed = 0;
+	    for(i=0;i<nclistlength(projections);i++) {
+	        DCEprojection* pi = (DCEprojection*)nclistget(projections,i);
+	        if(pi->discrim != CES_VAR) continue;
+	        for(j=0;j<i;j++) {
+	            DCEprojection* pj = (DCEprojection*)nclistget(projections,j);
+	            if(pj->discrim != CES_VAR) continue;
+		    if(treecontains3(pi->var->cdfleaf,pj->var->cdfleaf)) {
+		        DCEprojection* p = (DCEprojection*)nclistremove(projections,j);
+			dcefree((DCEnode*)p);
+			removed = 1;
+			break;
+		    } else if(treecontains3(pj->var->cdfleaf,pi->var->cdfleaf)) {
+		        DCEprojection* p = (DCEprojection*)nclistremove(projections,i);
+			dcefree((DCEnode*)p);
+			removed = 1;
+			break;
+		    }
+		}
+	    }
+	    if(!removed) break;
+	}
+    }
+    
+done:
+#ifdef DEBUG
+fprintf(stderr,"restriction.after=|%s|\n",
+		dumpprojections(projections));
+#endif
+    return;
+}
+
+/* See if we can unify sets of nodes to be projected
+   into larger units.
+*/
+static NClist*
+crunifyprojectionnodes3(NClist* varlist)
+{
+    int i;
+    NClist* nodeset = nclistnew();
+    NClist* containerset = nclistnew();
+    NClist* containernodes = nclistnew();
+
+    nclistsetalloc(nodeset,nclistlength(varlist));
+    nclistsetalloc(containerset,nclistlength(varlist));
+    /* Duplicate the varlist so we can modify it;
+       simultaneously collect unique container set.
+    */
+    for(i=0;i<nclistlength(varlist);i++) {
+	CRnode* var = (CRnode*)nclistget(varlist,i);
+	CRnode* container = var->container;
+	nclistpush(nodeset,(ncelem)var);
+	switch (container->nctype) {
+	case NC_Sequence: case NC_Structure: case NC_Grid: case NC_Dataset:
+	    /* add (uniquely) to container set */
+	    if(!nclistcontains(containerset,(ncelem)container)) 
+	        nclistpush(containerset,(ncelem)container);
+	    break;
+	default: break;
+	}
+    }
+
+    /* Now, try to find containers whose subnodes are all in the
+	varlist; repeat until no more changes */
+    for(;;) {
+	int changed = 0;
+        for(i=0;i<nclistlength(containerset);i++) {
+            int j, allfound;
+            CRnode* container = (CRnode*)nclistget(containerset,i);
+	    if(container == NULL) continue;
+            nclistclear(containernodes);
+            for(allfound=1,j=0;j<nclistlength(container->subnodes);j++) {
+                CRnode* subnode = (CRnode*)nclistget(container->subnodes,j);
+                if(!nclistcontains(varlist,(ncelem)subnode)) {allfound=0;break;}
+                nclistpush(containernodes,(ncelem)subnode);
+            }
+            if(allfound) {
+                nclistpush(nodeset,(ncelem)container);
+                nclistset(containerset,i,(ncelem)NULL); /* remove */
+                for(j=nclistlength(nodeset)-1;j>=0;j--) { /* walk backwards */
+                    CRnode* testnode = (CRnode*)nclistget(nodeset,j);
+                    if(nclistcontains(containernodes,(ncelem)testnode))
+                        nclistremove(nodeset,j);/* remove */
+                }
+		changed = 1;
+            }
+        }
+	if(!changed) break; /* apparently we have reached a stable situation */
+    }
+    /* If there is only the dataset left as a projection, then remove it */
+    if(nclistlength(nodeset) == 1) {
+	CRnode* thenode = (CRnode*)nclistget(nodeset,0);
+	if(thenode->nctype == NC_Dataset) nclistclear(nodeset);
+    }
+    nclistfree(containerset);
+    nclistfree(containernodes);
+    return nodeset;
+}
+
+
+/**************************************************/
+/* Path X CCEsegment utilities */
+
+/* Pull a CRpath out of a list of segments */
+CRpath*
+crsegment2path(NClist* segments)
+{
+    CRpath* path = NULL;
+    if(segments != NULL) {
+	int i;
+        for(i=0;i<nclistlength(segments);i++) {
+	    CCEsegment* segment = (CCEsegment*)nclistget(segments,i);
+	    path = crpathappend(path,segment->name);
+	    path = path->next;
+	}
+    }
+    return path;    
+}
+
+int
+pathmatch(NClist* segments, CRpath* path)
+{
+    int i;
+    if(segments == NULL && path == NULL) return 1;
+    for(i=0;i<nclistlength(segments);i++) {
+	CCEsegment* segment = (CCEsegment*)nclistget(segments,i);
+	if(path == NULL) return 0;
+	if(strcmp(segment->name,path->name)!=0) return 0;
+	path = path->next;
+    }
+    if(path != NULL) return 0;
+    return 1;
+}
+
+CRnode*
+crlocatecrnode(CRnode* parent, char* target)
+{
+    int i;
+    CRnode* targetnode = NULL;    
+    switch (parent->sort) {
+    case _Header:
+	/* Retry WRT the root group */
+	targetnode = crlocatecrnode(((Header*)parent)->root,target);
+	break;
+
+    case _Group: {
+	/* Check all the possible items in this group */
+	Group* group = (Group*)node;
+	for(i=0;i<group->dims.count;i++) {
+	    if(group->dims.values[i]->name.defined
+		&& strcmp(target,group->dims.values[i]->name.value)==0) {
+	        targetnode = (CRnode*)group->dims.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;	
+	for(i=0;i<group->vars.count;i++) {
+	    if(strcmp(target,group->vars.values[i]->name)==0) {
+	        targetnode = (CRnode*)group->vars.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;	
+	for(i=0;i<group->atts.count;i++) {
+	    if(strcmp(target,group->atts.values[i]->name)==0) {
+	        targetnode = (CRnode*)group->atts.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;	
+	for(i=0;i<group->structs.count;i++) {
+	    if(strcmp(target,group->structs.values[i]->name)==0) {
+	        targetnode = (CRnode*)group->structs.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;	
+	for(i=0;i<group->groups.count;i++) {
+	    if(strcmp(target,group->groups.values[i]->name)==0) {
+	        targetnode = (CRnode*)group->groups.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;	
+	for(i=0;i<group->enumTypes.count;i++) {
+	    if(strcmp(target,group->enumTypes.values[i]->name)==0) {
+	        targetnode = (CRnode*)group->enumTypes.values[i];
+		break;
+	    }
+	}
+    } break;
+
+    case _Structure: {
+	Structure* structure = (Structure*)node;
+	/* Search the components of the structure */
+	for(i=0;i<structure->atts.count;i++) {
+	    if(strcmp(target,structure->atts.values[i]->name)==0) {
+	        targetnode = (CRnode*)structure->atts.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;
+	for(i=0;i<structure->vars.count;i++) {
+	    if(strcmp(target,structure->vars.values[i]->name)==0) {
+	        targetnode = (CRnode*)structure->vars.values[i];
+		break;
+	    }
+	}
+	if(targetnode != NULL) break;
+	for(i=0;i<structure->structs.count;i++) {
+	    if(strcmp(target,structure->structs.values[i]->name)==0) {
+	        targetnode = (CRnode*)structure->structs.values[i];
+		break;
+	    }
+	}
+    } break;
+
+    case _EnumType: {
+	EnumTypeDef* enumdef = (EnumTypeDef*)node;
+	/* Search the components of the enumTypeDef */
+	for(i=0;i<enumdef->map.count;i++) {
+	    if(strcmp(target,enumdef->map.values[i]->value)==0) {
+	        targetnode = (CRnode*)enumdef->map.values[i];
+		break;
+	    }
+	}
+    } break;
+
+    default: break;
+    }
+
+    return targetnode;
+}
+
+
+/* Map segment nodes to the corresponding CRnodes */
+int
+crmapsegments(NClist* segments, Header* streamhdr)
+{
+    int i;
+    int ncstat = NC_NOERR;
+    CRpath* prefix = NULL;
+    CRnode* current = streamhdr; /* starting point for search */
+    CRnode* next = NULL;
+    for(i=0;i<nclistlength(segments);i++) {
+	CCEsegment* segment = (CCEsegment*)nclistget(segments,i);
+	prefix = crappendpath(segment->name);
+        /* Try to locate matching CRnode */
+	next = locatecrnode(current,segment->name);
+	if(next == NULL) {
+	    ncstat = NC_ENOTVAR;
+	    break;
+	}
+	segment->crnode = next;
+	current = next;
+    }
+    return ncstat;
+}
+
+/* Fill in the leaf for a given projection */
+int
+crmapprojection(CCEprojection* proj, Header* streamhdr)
+{
+    int ncstat = NC_NOERR;
+    ncstat = crmapsegments(proj->segments);
+    if(ncstat == NC_NOERR && nclistlength(proj->segments > 0)) {
+	/* Locate the leaf */
+	CCEsegment* last = (CCEsegment*)nclistget(proj->segments,
+						  nclistlength(proj->segments)-1);
+	proj->decl = last->crnode;
+    }
+    return ncstat;
 }

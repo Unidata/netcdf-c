@@ -13,10 +13,9 @@
 #define NC_MAX_VAR_DIMS 1024
 #endif
 
-/* Provide a universal cast type containing common fields */
-
 struct CDFnode; /* Forward */
 
+/* Provide a universal cast type containing common fields */
 typedef struct CCEnode {
     CEsort sort;    
 } CCEnode;
@@ -38,13 +37,12 @@ typedef struct CCEsegment {
     int slicesdeclized; /*1=>slice declsize defined */
     size_t rank;
     CCEslice slices[NC_MAX_VAR_DIMS];    
-    struct CDFnode* cdfnode;
+    struct CRnode* crnode;
 } CCEsegment;
 
 typedef struct CCEprojection {
     CCEnode node;
     NClist* segments;
-    char* pathname;
     struct CRnode* decl; /* maps to matching stream node */
 } CCEprojection;
 
@@ -82,4 +80,7 @@ extern int cceiswholeslice(CCEslice*);
 extern int cceiswholeseglist(NClist*);
 extern int ccesamepath(NClist* list1, NClist* list2);
 
+extern void ccerestrictprojection(NClist* varlist, NClist* projections);
+
 #endif /*CCECONSTRAINTS_H*/
+

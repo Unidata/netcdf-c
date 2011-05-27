@@ -1,16 +1,16 @@
 netcdf test {
 dimensions:
-	Raster\ Image\ \#0__X = 5 ;
-	Raster\ Image\ \#0__Y = 6 ;
-	Raster\ Image\ \#1__X = 5 ;
-	Raster\ Image\ \#1__Y = 6 ;
-	Raster\ Image\ \#1__comps = 3 ;
+	Raster\%20Image\%20\%230__X = 5 ;
+	Raster\%20Image\%20\%230__Y = 6 ;
+	Raster\%20Image\%20\%231__X = 5 ;
+	Raster\%20Image\%20\%231__Y = 6 ;
+	Raster\%20Image\%20\%231__comps = 3 ;
 variables:
-	ubyte Raster\ Image\ \#0(Raster\ Image\ \#0__Y, Raster\ Image\ \#0__X) ;
-	ubyte Raster\ Image\ \#1(Raster\ Image\ \#1__comps, Raster\ Image\ \#1__Y, Raster\ Image\ \#1__X) ;
+	ubyte Raster\%20Image\%20\%230(Raster\%20Image\%20\%230__Y, Raster\%20Image\%20\%230__X) ;
+	ubyte Raster\%20Image\%20\%231(Raster\%20Image\%20\%231__comps, Raster\%20Image\%20\%231__Y, Raster\%20Image\%20\%231__X) ;
 data:
 
- Raster\ Image\ \#0 =
+ Raster\%20Image\%20\%230 =
   0, 1, 2, 3, 4,
   5, 6, 7, 8, 9,
   10, 11, 12, 13, 14,
@@ -18,7 +18,7 @@ data:
   20, 21, 22, 23, 24,
   25, 26, 27, 28, 29 ;
 
- Raster\ Image\ \#1 =
+ Raster\%20Image\%20\%231 =
   0, 1, 2, 3, 4,
   5, 6, 7, 8, 9,
   10, 11, 12, 13, 14,

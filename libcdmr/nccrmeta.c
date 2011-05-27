@@ -30,7 +30,6 @@ static int crbbasetype(nc_type, char*, nc_type, int ndims, Dimension**, nc_type*
 static int crdeffieldvar(nc_type, void* tag, Variable*);
 static int crdeffieldstruct(nc_type, void* tag, Structure*);
 static int crfillgroup(NCCR*, Group*, nc_type);
-static nc_type cvtstreamtonc(DataType);
 static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
 static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index,nc_type* vidp);
 static int locateleftvlen(int ndims, Dimension**, int index);
@@ -350,7 +349,7 @@ crdefattribute(Attribute* att, nc_type parentid, nc_type scope)
 /***************************************************/
 
 /* Map ncstream primitive datatypes to netcdf primitive datatypes */
-static nc_type
+nc_type
 cvtstreamtonc(DataType datatype)
 {
     switch (datatype) {
@@ -396,11 +395,17 @@ fail:
 int
 dimsize(Dimension* dim)
 {
-    if(dim->isUnlimited.defined && dim->isUnlimited.value)
-	return NC_UNLIMITED;
-    if(dim->isVlen.defined && dim->isVlen.value)
-	return -1;
-    if(dim->length.defined)
+    if(dim->isUnlimited.defined && dim->isUnlimited.value) {
+	if(dim->length.defined) {
+	    return dim->length.value;
+	} else
+	    return NC_UNLIMITED;
+    } else if(dim->isVlen.defined && dim->isVlen.value) {
+	if(dim->length.defined) {
+	    return dim->length.value;
+	} else
+	    return -1;
+    } else if(dim->length.defined)
 	return dim->length.value;
     return -1;
 }
@@ -602,4 +607,16 @@ locateleftvlen(int ndims, Dimension** dims, int index)
         if(dc == DC_VLEN) return i;
     }
     return -1; /* no vlen located */
+}
+
+int
+crextractshape(CRnode* src, CRshape* dst)
+{
+    if(src->sort == _Variable)   
+        memcpy((void*)dst,(void*)&((Variable*)src)->shape,sizeof(CRshape));
+    else if(src->sort == _Structure)   
+        memcpy((void*)dst,(void*)&((Structure*)src)->shape,sizeof(CRshape));
+    else
+	return 0;
+    return 1;
 }

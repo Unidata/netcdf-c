@@ -221,7 +221,6 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      nc_set_log_level(4);
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
@@ -246,7 +245,6 @@ main(int argc, char **argv)
       /* Open the file and check. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
-      nc_set_log_level(0);
    }
    SUMMARIZE_ERR;
    printf("**** testing default chunksizes some more for a 3D var...");

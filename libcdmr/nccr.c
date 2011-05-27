@@ -37,6 +37,7 @@
 #include "nccrproto.h"
 #include "cceconstraints.h"
 #include "nccrmeta.h"
+#include "crutil.h"
 
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
@@ -44,8 +45,10 @@
 extern NC_FILE_INFO_T* nc_file;
 
 static void freeNCCDMR(NCCDMR* cdmr);
-static int nccr_compute_projection_names(NCCDMR* cdmr);
 static int nccr_map_projections(NCCDMR* cdmr);
+static int nccr_process_projections(NCCDMR* cdmr);
+
+static int pathmatch(NClist* segments, CRpath* path);
 
 /**************************************************/
 int
@@ -80,7 +83,6 @@ NCCR_open(const char * path, int mode,
     bytes_t buf;
     long filetime;
     ast_err aststat = AST_NOERR;
-    Header* hdr = NULL;
     char* curlurl = NULL;
 
     LOG((1, "nc_open_file: path %s mode %d", path, mode));
@@ -157,7 +159,7 @@ NCCR_open(const char * path, int mode,
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Parse the meta data */
-    ncstat = nccr_decodeheader(&buf,&hdr);
+    ncstat = nccr_decodeheader(&buf,&cdmr->ncstreamhdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     if(buf.bytes != NULL) free(buf.bytes);
@@ -166,7 +168,7 @@ NCCR_open(const char * path, int mode,
 
     /* Collect all nodes and fill in the CRnode part*/
     cdmr->streamnodes = nclistnew();
-    ncstat = nccr_walk_Header(hdr,cdmr->streamnodes);
+    ncstat = nccr_walk_Header(cdmr->ncstreamhdr,cdmr->streamnodes);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Compute the stream pathnames */
@@ -191,7 +193,7 @@ fprintf(stderr,"url constraint: %s\n",
 #endif
 
     /* Compute the projection pathnames */
-    ncstat = nccr_compute_projection_names(nccr->cdmr);
+    ncstat = nccr_process_projections(nccr->cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* map url projection variables to corresponding stream variable nodes,
@@ -200,7 +202,7 @@ fprintf(stderr,"url constraint: %s\n",
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* build the netcdf-4 pseudo metadata */
-    ncstat = nccr_buildnc(nccr,hdr);
+    ncstat = nccr_buildnc(nccr,cdmr->ncstreamhdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Mark as no longer indef and no longer writable*/
@@ -275,20 +277,18 @@ freeNCCDMR(NCCDMR* cdmr)
 
 /* Compute the projection pathnames */
 static int
-nccr_compute_projection_names(NCCDMR* cdmr)
+nccr_process_projections(NCCDMR* cdmr)
 {
-    int i,j;
     CCEconstraint* constraint = cdmr->urlconstraint;
-    NCbytes* pathname = ncbytesnew();
     if(constraint == NULL) {
 	constraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
 	cdmr->urlconstraint = constraint;
     }
     if(constraint->projections == NULL)
 	constraint->projections = nclistnew();
+#ifdef IGNORE
     for(i=0;i<nclistlength(constraint->projections);i++) {	
 	CCEprojection* p = (CCEprojection*)nclistget(constraint->projections,i);
-	ncbytesclear(pathname);
 	for(j=0;j<nclistlength(p->segments);j++) {
 	    CCEsegment* seg = (CCEsegment*)nclistget(p->segments,j);
 	    if(j > 0) ncbytescat(pathname,".");
@@ -296,6 +296,7 @@ nccr_compute_projection_names(NCCDMR* cdmr)
 	}
 	p->pathname = ncbytesextract(pathname);
     }
+#endif /*IGNORE*/
     return NC_NOERR;
 }
 
@@ -312,7 +313,7 @@ nccr_map_projections(NCCDMR* cdmr)
 	    CRnode* cdmnode = (CRnode*)nclistget(cdmr->streamnodes,i);
             for(j=0;j<nclistlength(projections);j++) {	
 	        CCEprojection* p = (CCEprojection*)nclistget(projections,j);
-	        if(strcmp(p->pathname,cdmnode->pathname)==0) {
+	        if(pathmatch(p->segments,cdmnode->pathname)) {
 		    nclistpush(cdmr->variables,(ncelem)cdmnode);
 		    found = 1;
 		}

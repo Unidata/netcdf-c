@@ -25,6 +25,7 @@
 #include "nccrnode.h"
 #include "ncStreamx.h"
 #include "nccrmeta.h"
+#include "crutil.h"
 
 
 /*Forward*/
@@ -272,36 +273,23 @@ static void
 computepathname(CRnode* leaf)
 {
     int i;
-    NCbytes* accum = NULL;
-    NClist* path = NULL;
     CRnode* node;
+    NClist* path = nclistnew();
+    char* name;
 
-    /**
-     * This is a little tricky.
-     * In order to produce a pathname
-     * that matches what is send by the server,
-     * we need to not start the pathname with ".".
-     */
-    leaf->pathname = NULL;
-    path = nclistnew();
     for(node=leaf;;) {
 	if(node->flags.isroot) break;
         nclistinsert(path,0,(ncelem)node);
 	node = (CRnode*)node->group;
     }
 
-    accum = ncbytesnew();
-    ncbytesnull(accum);
+    leaf->pathname = NULL;
     for(i=0;i<nclistlength(path);i++) {
-	char* name;
 	node = (CRnode*)nclistget(path,i);
 	name = getname(node);
 	if(name == NULL) goto done; /* node has no meaningful name */
-	if(i > 0) ncbytescat(accum,".");
-	ncbytescat(accum,name);
+	leaf->pathname = crpathappend(leaf->pathname,name);
     }    
-    leaf->pathname = ncbytesextract(accum);
-    ncbytesfree(accum);
     nclistfree(path);
 done:
     return;
@@ -362,7 +350,7 @@ nccr_map_dimensions(NClist* nodes)
 	    for(j=0;j<nclistlength(dimdecls);j++) {
 	        Dimension* decl = (Dimension*)nclistget(dimdecls,j);
 		if(decl == dim) continue;
-		if(strcmp(decl->node.pathname,dim->node.pathname)!=0)
+		if(!crpathmatch(decl->node.pathname,dim->node.pathname))
 		    continue;
 	        /* Validate that these are really the same dimension */
 		if(classifydim(decl) == classifydim(dim)) {
@@ -465,4 +453,41 @@ skiptoheader(bytes_t* packet, size_t* offsetp)
 
 done:
     return status;    
+}
+
+int
+nccr_decodedataheader(bytes_t* buf, Data** datahdrp)
+{
+    int ncstat = NC_NOERR;    
+    ast_err status = AST_NOERR;
+    ast_runtime* rt = NULL;
+    Data* datahdr = NULL;
+    size_t offset;
+
+    /* Skip to the beginning of header */
+    ncstat = skiptoheader(buf,&offset);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    /* Now decode the buffer */
+    status = ast_byteio_new(AST_READ,buf->bytes+offset,buf->nbytes-offset,&rt);
+    if(status != AST_NOERR) goto done;
+
+    status = Data_read(rt,&datahdr);
+    if(status != AST_NOERR) goto done;
+
+    status = ast_reclaim(rt);
+    if(status != AST_NOERR) goto done;
+
+    if(datahdrp) *datahdrp = datahdr;
+
+done:
+    if(status) ncstat =  nccr_cvtasterr(status);
+    return ncstat;
+}
+
+int
+nccr_mapdataheader(NCCDMR* cdmr, Header* ncstreamhdr, Data* datahdr)
+{
+    int ncstat = NC_NOERR;
+    return ncstat;
 }

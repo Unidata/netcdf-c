@@ -417,7 +417,7 @@ nc_uridecodeparams(NC_URI* nc_uri)
 	plist[2*i+1] = strdup(vp);
 	cp = next;
     }
-    plist[nparams] = NULL;
+    plist[2*nparams] = NULL;
     free(params);
     if(nc_uri->paramlist != NULL)
 	nc_paramfree(nc_uri->paramlist);

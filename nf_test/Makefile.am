@@ -81,7 +81,8 @@ ftst_types3.nc ftst_groups.nc
 # Add these netCDF-4 f90 test programs.
 if BUILD_F90
 check_PROGRAMS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen	\
-tst_f90_nc4 f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3
+tst_f90_nc4 f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3		\
+f90tst_vars4
 tst_f90_nc4_SOURCES = tst_f90_nc4.f90
 f90tst_vars_SOURCES = f90tst_vars.f90
 tst_types_SOURCES = tst_types.f90
@@ -91,8 +92,9 @@ f90tst_grps_SOURCES = f90tst_grps.f90
 f90tst_fill_SOURCES = f90tst_fill.f90
 f90tst_fill2_SOURCES = f90tst_fill2.f90
 f90tst_vars3_SOURCES = f90tst_vars3.f90
+f90tst_vars4_SOURCES = f90tst_vars4.f90
 TESTS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen tst_f90_nc4	\
-f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3
+f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3 f90tst_vars4
 CLEANFILES += f90tst_*.nc tst_types.nc tst_types2.nc tst_f90_nc4.nc
 
 if USE_SZIP
@@ -145,8 +147,9 @@ endif #BUILD_F90
 # Test parallel I/O for F77.
 if TEST_F77
 if TEST_PARALLEL
-check_PROGRAMS += ftst_parallel
+check_PROGRAMS += ftst_parallel ftst_parallel_nasa
 ftst_parallel_SOURCES = ftst_parallel.F
+ftst_parallel_nasa_SOURCES = ftst_parallel_nasa.F
 TESTS += run_f77_par_test.sh
 CLEANFILES += ftst_parallel.nc
 endif # TEST_PARALLEL

@@ -14,7 +14,7 @@ EXTRA_DIST =
 LDADD=
 
 # CDMREMORE Sources
-SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvara.c \
+SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvarx.c \
 crdebug.c crutil.c \
 nccrdump.c \
 ncStreamx.c curlwrap.c ncaux.c \
@@ -24,7 +24,7 @@ cceparse.c cceconstraints.c
 
 EXTRA_DIST += ccetab.c ccelex.c
 
-HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h \
+HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h nccrgetvarx.h \
 crdebug.h crutil.h \
 nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \
@@ -102,3 +102,6 @@ jar::
 	cp ${ASTJAR} .
 
 endif # BUILD_CDMREMOTE
+
+# Changes to ncstream
+# 1. change Data.varName to be sequence to allow arbitrary name characters

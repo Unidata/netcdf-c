@@ -417,7 +417,7 @@ ocuridecodeparams(OCURI* ocuri)
 	plist[2*i+1] = strdup(vp);
 	cp = next;
     }
-    plist[nparams] = NULL;
+    plist[2*nparams] = NULL;
     free(params);
     if(ocuri->paramlist != NULL)
 	ocparamfree(ocuri->paramlist);

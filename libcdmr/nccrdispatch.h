@@ -62,10 +62,10 @@ NCCR_open(const char *path, int mode,
 EXTERNL int
 NCCR_close(int ncid);
 
-EXTERNL int
-NCCR_get_vara(int ncid, int varid,
+EXTERNL int NCCR_getvarx(int ncid, int varid,
 	      const size_t* startp,
 	      const size_t* countp,
+	      const ptrdiff_t* stridep,
 	      void* data,
 	      nc_type externaltype0);
 
@@ -76,6 +76,10 @@ EXTERNL int NCCR_abort(int ncid);
 /* End _var */
 
 EXTERNL int NCCR_initialize(void);
+
+extern ptrdiff_t nccrsinglestride[NC_MAX_VAR_DIMS];
+extern size_t nccrzerostart[NC_MAX_VAR_DIMS];
+extern size_t nccrsinglecount[NC_MAX_VAR_DIMS];
 
 #if defined(__cplusplus)
 }
