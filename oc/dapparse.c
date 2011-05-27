@@ -439,7 +439,8 @@ DAPparse(OCstate* conn, OCtree* tree, char* parsestring)
             conn->error.message = nulldup(state->message);
 	    tree->root = NULL;
 	    /* Attempt to further decipher the error code */
-	    if(strcmp(state->code,"404") == 0)
+	    if(strcmp(state->code,"404") == 0 /* tds returns 404 */
+		|| strcmp(state->code,"5") == 0) /* hyrax returns 5 */
 		ocerr = OC_ENOFILE;
 	    else
 	        ocerr = OC_EDAPSVC;

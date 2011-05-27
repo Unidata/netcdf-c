@@ -171,6 +171,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 		if(c == '%' && p[1] != 0 && p[2] != 0
 			    && strchr(hexdigits,p[1]) != NULL
                             && strchr(hexdigits,p[2]) != NULL) {
+#ifdef WRONG /* Should not unescape %xx occurrences */
 		    int d1,d2;
 		    d1 = tohex(p[1]);
 		    d2 = tohex(p[2]);
@@ -178,12 +179,12 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 			c=(((unsigned int)d1)<<4) | (unsigned int)d2;
 			p+=2;
 		    }
+#endif
 		} else {
 		    if(strchr(lexstate->wordcharsn,c) == NULL) {p--; break;}
 		}
 		dapaddyytext(lexstate,c);
 #else
-
 		if(strchr(lexstate->wordcharsn,c) == NULL) {p--; break;}
 		dapaddyytext(lexstate,c);
 #endif
