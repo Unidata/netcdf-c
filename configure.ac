@@ -778,6 +778,10 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
+# We need the math library.
+AC_CHECK_LIB([m], [floor], [], 
+[AC_MSG_ERROR([Can't find or link to the math library.])])
+
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
@@ -843,14 +847,11 @@ dnl 	 fi
       if test "x$nc_mfhdf_h_missing" = xyes; then
          AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
       fi		      
+      AC_CHECK_LIB([df], [Hclose], [], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
-
-# We need the math library.
-AC_CHECK_LIB([m], [floor], [], 
-[AC_MSG_ERROR([Can't find or link to the math library.])])
 
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
