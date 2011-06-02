@@ -10,9 +10,6 @@
 # Cause C preprocessor to search current and parent directory.
 AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/libsrc
 
-CURL_CFLAGS = @CURL_CFLAGS@
-CURL_LIBS = @CURL_LIBS@
-
 # OC Sources
 SRC= curlfunctions.c dapparse.c daplex.c ocuri.c http.c ocbytes.c	\
 oc.c occompile.c occontent.c ocdata.c ocdebug.c ocdrno.c ocdump.c	\
@@ -33,8 +30,7 @@ if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
 # Watch out; the gram files must be first
 liboc_la_SOURCES = ${GRAMC} ${GRAMH} $(SRC) $(HDRS) 
-liboc_la_CPPFLAGS = $(AM_CPPFLAGS) $(CURL_CFLAGS)
-liboc_la_LIBADD = $(CURL_LIBS)
+liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
 EXTRA_DIST = ${GRAMFILES}

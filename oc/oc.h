@@ -85,6 +85,7 @@ typedef int OCerror;
 #define OC_EDDS		(-22)
 #define OC_EDATADDS	(-23)
 #define OC_ERCFILE	(-24)
+#define OC_ENOFILE	(-25)
 
 typedef enum OCmode {
 OCFIELDMODE = OC_Structure,

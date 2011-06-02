@@ -13,7 +13,8 @@ LDADD =
 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_CXXFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS += ${top_builddir}/cxx/libnetcdf_c++.la ${top_builddir}/liblib/libnetcdf.la # @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/cxx/libnetcdf_c++.la	\
+${top_builddir}/liblib/libnetcdf.la
 
 # These are the example programs.
 TESTPROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\

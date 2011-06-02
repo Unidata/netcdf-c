@@ -37,8 +37,6 @@ if BUILD_V2
 V2_TEST = nctest
 endif
 
-LDADD = @EXTERN_LDFLAGS@
-
 # Does the user want C++ API?
 if BUILD_CXX
 CXX_DIR = cxx
@@ -78,36 +76,35 @@ endif
 
 # Build the opendap client?
 if BUILD_DAP
-OCLIB=oc
-NCDAP3=libncdap3
-NCDAP4=libncdap4
-DAP2=libdap2
+OCLIB = oc
+NCDAP3 = libncdap3
+NCDAP4 = libncdap4
+DAP2 = libdap2
 if BUILD_UTILITIES
-NCDAPTESTDIR=ncdap_test
+NCDAPTESTDIR = ncdap_test
 endif # BUILD_UTILITIES
 endif
 
 # Build UDUNITS?
 if BUILD_UDUNITS
-UDUNITS=udunits
+UDUNITS = udunits
 endif
 
 # Build libcf?
 if BUILD_LIBCF
-LIBCF=libcf
+LIBCF = libcf
 endif
 
 # Build libcdmr
 if BUILD_CDMREMOTE
-LIBCDMR=libcdmr
+LIBCDMR = libcdmr
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump and cxx, because their tests
-# depend on it. nf_test depends upon ncgen as well.
-# If not using dispatch then NC3DAPDIR must be
-# built right before libsrc and NC4DAPDIR must be 
-# built right before LIBSRC4_DIR.
+# depend on it. nf_test depends upon ncgen as well. If not using
+# dispatch then NC3DAPDIR must be built right before libsrc and
+# NC4DAPDIR must be built right before LIBSRC4_DIR.
 SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
 libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST)	\
 nc_test $(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\

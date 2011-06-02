@@ -6,7 +6,6 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-LDADD = 
 AM_CFLAGS =
 AM_FFLAGS =
 AM_FCFLAGS =
@@ -27,13 +26,11 @@ AM_FCFLAGS += @MOD_FLAG@../f90
 
 endif #BUILD_F90
 
-AM_CPPFLAGS += -I$(top_builddir)/liblib @EXTERN_CPPFLAGS@
 AM_FFLAGS +=  ${AM_CPPFLAGS}
 AM_FCFLAGS +=  ${AM_CPPFLAGS}
 
-LDADD += ${top_builddir}/fortran/libnetcdff.la -lm
-LDADD += ${top_builddir}/liblib/libnetcdf.la 
-LDADD += @EXTERN_LDFLAGS@
+LDADD = ${top_builddir}/fortran/libnetcdff.la	\
+${top_builddir}/liblib/libnetcdf.la
 
 if BUILD_UTILITIES
 # The create_fills shell creates the file fills.nc, needed by later
@@ -84,7 +81,8 @@ ftst_types3.nc ftst_groups.nc
 # Add these netCDF-4 f90 test programs.
 if BUILD_F90
 check_PROGRAMS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen	\
-tst_f90_nc4 f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3
+tst_f90_nc4 f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3		\
+f90tst_vars4
 tst_f90_nc4_SOURCES = tst_f90_nc4.f90
 f90tst_vars_SOURCES = f90tst_vars.f90
 tst_types_SOURCES = tst_types.f90
@@ -94,8 +92,9 @@ f90tst_grps_SOURCES = f90tst_grps.f90
 f90tst_fill_SOURCES = f90tst_fill.f90
 f90tst_fill2_SOURCES = f90tst_fill2.f90
 f90tst_vars3_SOURCES = f90tst_vars3.f90
+f90tst_vars4_SOURCES = f90tst_vars4.f90
 TESTS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen tst_f90_nc4	\
-f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3
+f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3 f90tst_vars4
 CLEANFILES += f90tst_*.nc tst_types.nc tst_types2.nc tst_f90_nc4.nc
 
 if USE_SZIP
@@ -148,8 +147,9 @@ endif #BUILD_F90
 # Test parallel I/O for F77.
 if TEST_F77
 if TEST_PARALLEL
-check_PROGRAMS += ftst_parallel
+check_PROGRAMS += ftst_parallel ftst_parallel_nasa
 ftst_parallel_SOURCES = ftst_parallel.F
+ftst_parallel_nasa_SOURCES = ftst_parallel_nasa.F
 TESTS += run_f77_par_test.sh
 CLEANFILES += ftst_parallel.nc
 endif # TEST_PARALLEL

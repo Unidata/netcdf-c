@@ -2,7 +2,6 @@
 
 # This shell runs some parallel I/O tests.
 
-mpd&
 set -e
 echo
 echo "Testing MPI parallel I/O without netCDF..."

@@ -23,7 +23,7 @@ LFLAG=-L/upc/share/ed/local/${HOST}/lib
 CURLLIB=-lcurl
 ZLIB=-lz
 #HDF5LIB=-lhdf5_hl -lhdf5
-HDF5LIB=/upc/share/stdinstall/local/${HOST}/lib/libhdf5_hl.a /upc/share/stdinstall/local/${HOST}/lib/libhdf5.a
+HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 OTHERLIBS=-lm
 

@@ -260,19 +260,6 @@ test "x$enable_cdmremote" = xyes || enable_cdmremote=no
 if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
 AC_MSG_RESULT($enable_cdmremote)
 
-# Figure out if curl support should be enabled.
-# The primary goal is to first locate curl-config
-# or the curl library location
-# The rules we implement are applied in order:
-# 1. no:  if --disable-dap is set
-# 2. no:  if curl library cannot be located
-# 3. yes: if --enable-dap || --enable-cdmremote is set
-# 4. yes: if neither --enable-dap nor --disable-dap is specified
-#         and the curl library can be located
-# Note that for now, cdmremote must be explicitly enabled
-
-# First capture all the info unconditionally
-
 # Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
 AC_ARG_ENABLE([dap],
@@ -281,6 +268,10 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
+# Curl support is required if these flags are set:
+# 1. --enable-dap
+# 2. --enable-cdmremote
+
 # If --disable-dap && --disable cdmremote , then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" ; then
 require_curl=yes
@@ -288,118 +279,16 @@ else
 require_curl=no
 fi
 
-# Try to locate curl-config
-#
-AC_ARG_WITH([curl-config], [AS_HELP_STRING([--with-curl-config=<path>],
-            [Specify path (or the containing directory) of the curl-config program; libcurl is required for opendap.])],
-            [],[])
-
-AC_MSG_CHECKING([whether a path for curl-config was specified])
-if test "x$with_curl_config" = "x" ; then
-  AC_MSG_RESULT([no])
-else
-  AC_MSG_RESULT([$with_curl_config])
+# Do a lib test for curl
+AC_CHECK_LIB([curl], [curl_easy_setopt])
+found_curl=no
+if test "x$ac_cv_lib_curl_curl_easy_setopt" = xyes ; then
+found_curl=yes
 fi
-
-# Alternatively, allow specification of the curl installation directory
-AC_MSG_CHECKING([whether a location for curl installation was specified])
-AC_ARG_WITH([curl], [AS_HELP_STRING([--with-curl=<directory>.],
-            [Specify location of CURL library; libcurl is required for opendap. Configure will expect to find subdirs bin, include and lib.])],
-            [],[])
-if test "x$with_curl" = "x" ; then
-  AC_MSG_RESULT([no])
-else
-  AC_MSG_RESULT([$with_curl])
-fi
-
-# Remaining computations are only invoked if curl is required.
-if test "$require_curl" = yes ; then
-
-  # Tag to indicate where curl info came from
-  curlsrc=
-
-  if test "x$with_curl_config" != "x" ; then
-    curlsrc="withconfig"
-  elif test "x$with_curl" != "x" ; then
-    curlsrc="withcurl"
-  else
-    curlsrc=""
-  fi  
-
-  # if curl source was --with-curl
-  # then try to locate curl-config
-
-  if test "x$curlsrc" = "xwithcurl" ; then
-    # look for curl-config in --with-curl directory
-    if $with_curl/bin/curl-config --version >/dev/null 2>&1 ; then
-      # Pretend that --with-curl-config was specified
-      with_curl_config="$with_curl/bin/curl-config"
-      curlsrc="withconfig"
-    fi
-  elif test "x$curlsrc" = "xwithconfig" ; then  
-    # look for curl-config using --with-curl-config,
-    # allow for some errors in specifying.
-    if $with_curl_config --version >/dev/null 2>&1 ; then
-      # User specified curl-config directly
-      with_curl_config="$with_curl_config"
-    elif $with_curl_config/curl-config --version >/dev/null 2>&1 ; then
-      # User specified curl-config parent directory
-      with_curl_config="$with_curl_config/curl-config"
-    elif $with_curl_config/bin/curl-config --version >/dev/null 2>&1 ; then
-      # User specified same dir as --with-curl
-      with_curl_config="$with_curl_config/bin/curl-config"
-    else
-      AC_MSG_ERROR([Erroneous --with-curl-config value: ${with_curl_config}])
-      with_curl_config="" # not found
-    fi
-  else
-    # look for curl-config in the path
-    if curl-config --version >/dev/null 2>&1 ; then
-      with_curl_config="curl-config"
-      curlsrc="withconfig"
-    fi
-  fi
-
-  # report on finding of curl-config
-  AC_MSG_CHECKING([checking whether a location for curl-config found])
-  if test "x$with_curl_config" = "x" ; then
-    AC_MSG_RESULT([no])
-  else
-    AC_MSG_RESULT([${with_curl_config}])
-  fi
-
-  # Compute the curl flags and libs
-  if test "x$with_curl_config" != "x" ; then
-    curl_cflags=`$with_curl_config --cflags`
-    curl_libs=`$with_curl_config --libs`
-    curl_dir=`$with_curl_config --prefix`
-  elif test "x$with_curl" != "x" ; then
-    curl_libs="-L$with_curl/lib -lcurl"
-    curl_cflags="-I$with_curl/include"
-    curl_dir="$with_curl"
-  else
-    AC_MSG_ERROR([Cannot locate neither curl-config or a curl directory])
-  fi
-
-else #!require_curl
-
-curl_cflags=""
-curl_libs=""
-curl_dir=""
-
-fi #require_curl
-
-AC_SUBST([CURL_CFLAGS],[${curl_cflags}])
-AC_SUBST([CURL_FCFLAGS],[${curl_cflags}])
-AC_SUBST([CURL_FFLAGS],[${curl_cflags}])
-AC_SUBST([CURL_LIBS],[${curl_libs}])
-AC_SUBST([CURLDIR],[${curl_dir}])
 
 # If curl is required but there is no curl, then complain
-if test "x$curlsrc" = "x" ; then
-  if test "x$require_curl" = "xyes" ; then
-     AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
-  fi
+if test $require_curl = yes -a $found_curl = no ; then
+  AC_MSG_NOTICE([libcurl not found; disabling dap and cdmremote support])
   enable_dap=no
   enable_cdmremote=no
 fi
@@ -868,7 +757,6 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy st
 			strcasecmp strtod strtoll strtoull getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
-AC_CHECK_LIB([m], [floor], [], [AC_MSG_ERROR([Can't find or link to the math library.])])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_TYPE_SIZE_T
@@ -886,9 +774,13 @@ AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlib1 z], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Configure with --with-zlib, or turn off netCDF-4 and \
+     AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
+
+# We need the math library.
+AC_CHECK_LIB([m], [floor], [], 
+[AC_MSG_ERROR([Can't find or link to the math library.])])
 
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
@@ -955,6 +847,7 @@ dnl 	 fi
       if test "x$nc_mfhdf_h_missing" = xyes; then
          AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
       fi		      
+      AC_CHECK_LIB([df], [Hclose], [], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
@@ -1023,9 +916,7 @@ AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 UD_FTPBINDIR
 
 ##################################################
-# OC configuration
-
-# Require some version of xdr/rpc
+# Require some version of xdr/rpc if --enable-dap is set.
 # See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
 if test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
@@ -1052,6 +943,8 @@ if test "x$enable_dap" = xyes; then
   #endif]])
 fi
 fi
+AC_MSG_CHECKING([value of LIBS])
+AC_MSG_RESULT([$LIBS])
 
 # Flags for nc-config script; by design $prefix, $includir, $libdir,
 # etc.  are left as shell variables in the script so as to facilitate
@@ -1062,33 +955,8 @@ else
    NC_LIBS="$with_netcdf_c_lib"
 fi
 if test "x$enable_shared" != xyes; then
-   if test "x$enable_netcdf_4" = xyes ; then 
-      if test "x$HDF5DIR" != x ; then 
-      	 NC_LIBS="$NC_LIBS -L$HDF5DIR/lib"
-      fi	 
-      NC_LIBS="$NC_LIBS -lhdf5_hl -lhdf5 $SZLIB_LIBS"
-      if test "x$ZLIBDIR" != x ; then 
-         NC_LIBS="$NC_LIBS -L$ZLIBDIR/lib"
-      fi
-      NC_LIBS="$NC_LIBS -lz -lm $LIBS"
-      if test "x$SZLIBDIR" != x ; then 
-         NC_LIBS="$NC_LIBS -L$SZLIBDIR/lib"
-         NC_LIBS="$NC_LIBS -lsz $LIBS"
-      fi
-      if test "x$enable_hdf4" = xyes; then
-         if test "x$HDF4DIR" != x ; then 
-            NC_LIBS="$NC_LIBS -L$HDF4DIR/lib"
-         fi	 
-         NC_LIBS="$NC_LIBS -lmfhdf -ldf"
-      fi
-   fi
-   if test "x$enable_dap" = xyes ; then 
-       if test "x$with_daplib" != x ; then
-          NC_LIBS="$NC_LIBS -L$with_daplib/lib"
-       fi
-       NC_LIBS="$NC_LIBS $CURL_LIBS"
-   fi
-fi
+   NC_LIBS="$NC_LIBS $LIBS"
+fi	 
 
 case "x$target_os" in
 xsolaris*) 
@@ -1122,86 +990,6 @@ AC_SUBST(HAS_CXX,[$nc_build_cxx])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
 
 AC_CONFIG_SUBDIRS([udunits libcf])
-
-##################################################
-# Remove redundant constructions of AM_CPPFLAGS, etc
-# from the subdir Makefile.am files.
-# Eventually merge with the nc-config construction above
-
-# The following flags are defined
-# Define the -L flags and libs for external libraries
-EXTERN_LDFLAGS=""
-# Define the -I flags for external libraries
-EXTERN_CPPFLAGS=""
-
-# Add all libraries even if shared is enabled
-if test "x$enable_netcdf_4" = xyes ; then 
-  if test "x$HDF5DIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF5DIR/lib"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF5DIR/include"
-  fi         
-  EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lhdf5_hl -lhdf5"
-  if test "x$enable_hdf4" = xyes; then
-    if test "x$HDF4DIR" != x ; then 
-      EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$HDF4DIR/lib"
-      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$HDF4DIR/include"
-    fi      
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lmfhdf -ldf"
-  fi
-  if test "x$enable_pnetcdf" = xyes; then
-    if test "x$PNETCDFDIR" != x ; then 
-      EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$PNETCDFDIR/lib"
-      EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$PNETCDFDIR/include"
-    fi      
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lpnetcdf"
-  fi
-fi # netcdf-4
-# Do zlib and szlib if either dap or netcdf4 is enabled
-if test "x$enable_netcdf_4" = xyes -o "x$enable_dap" = xyes ; then
-  if test "x$ZLIBDIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$ZLIBDIR/lib"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$ZLIBDIR/include"
-  fi
-  EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -lz"
-  if test "x$SZLIBDIR" != x ; then 
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} -L$SZLIBDIR/lib -lsz"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} -I$SZLIBDIR/include"
-  fi
-fi
-
-if test "x$enable_dap" = xyes -o "x$enable_cdmremote" = xyes ; then 
-  if test "x$curl_libs" != x ; then
-    EXTERN_LDFLAGS="${EXTERN_LDFLAGS} $curl_libs"
-    EXTERN_CPPFLAGS="${EXTERN_CPPFLAGS} $curl_cflags"
-  fi
-fi
-
-# If we are running on Solaris, then we need to add -R flags as well
-
-case "x$target_os" in
-xsolaris*) 
-  NEWLDFLAGS=""
-  for x in $EXTERN_LDFLAGS ; do
-    case "$x" in
-    -L*) r=`echo "$x" | sed -e 's|^-L|-R|'`
-	 NEWLDFLAGS="$NEWLDFLAGS $x $r"
-	 ;;
-    *)	 NEWLDFLAGS="$NEWLDFLAGS $x" ;;
-    esac
-  done
-  EXTERN_LDFLAGS="$NEWLDFLAGS"
-  ;;
-*);;
-esac
-
-# Alias
-EXTERN_CFLAGS="$EXTERN_CPPFLAGS"
-AC_SUBST(EXTERN_CPPFLAGS,[$EXTERN_CPPFLAGS])
-AC_SUBST(EXTERN_LDFLAGS,[$EXTERN_LDFLAGS])
-AC_SUBST(EXTERN_CFLAGS,[$EXTERN_CFLAGS])
-
-AC_MSG_NOTICE(CPPFLAGS for External libraries: ${EXTERN_CPPFLAGS})
-AC_MSG_NOTICE(LDFLAGS for External libraries: ${EXTERN_LDFLAGS})
 
 ##################################################
 # Uncomment this to keep a copy of autoconf defines at this point, for

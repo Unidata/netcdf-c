@@ -395,6 +395,8 @@ ocerrstring(int err)
 	    return "OC_EDATADDS: Malformed or unreadable DATADDS";
 	case OC_ERCFILE:
 	    return "OC_ERCFILE: Malformed or unreadable run-time configuration file";
+	case OC_ENOFILE:
+	    return "OC_ENOFILE: cannot read content of URL";
 	default: break;
     }
     return "<unknown error code>";
