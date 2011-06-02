@@ -12,7 +12,6 @@ program f90tst_vars4
   ! This is the name of the data file we will create.
   character (len = *), parameter :: FILE_NAME = "f90tst_vars4.nc"
 
-  ! We are writing 2D data, a 6 x 12 grid. 
   integer, parameter :: MAX_DIMS = 2
   integer, parameter :: NX = 40, NY = 4096
   integer :: data_out(NY, NX), data_in(NY, NX)

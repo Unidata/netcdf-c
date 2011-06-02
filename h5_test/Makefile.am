@@ -43,9 +43,6 @@ if USE_VALGRIND_TESTS
 TESTS += run_valgrind_tests.sh 
 endif # USE_VALGRIND_TESTS
 
-# These libraries need to be linked to our tests.
-#LDADD = -lhdf5_hl -lhdf5 -lz -lm
-
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh run_valgrind_tests.sh		\
 ref_tst_h_compounds.h5 ref_tst_h_compounds2.h5 run_par_tests.sh	\

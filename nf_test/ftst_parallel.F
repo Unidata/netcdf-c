@@ -101,6 +101,9 @@
       if (retval .ne. nf_noerr) stop 9
 
 !     Reopen the file.
+      retval = nf_open_par(FILE_NAME, nf_nowrite, 
+     $     MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
+      if (retval .ne. nf_einval) stop 7
       retval = nf_open_par(FILE_NAME, IOR(nf_nowrite, nf_mpiio), 
      $     MPI_COMM_WORLD, MPI_INFO_NULL, ncid)
       if (retval .ne. nf_noerr) stop 10
