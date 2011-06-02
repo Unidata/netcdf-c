@@ -14,7 +14,7 @@ program f90tst_vars4
 
   ! We are writing 2D data, a 6 x 12 grid. 
   integer, parameter :: MAX_DIMS = 2
-  integer, parameter :: NX = 4096, NY = 4096
+  integer, parameter :: NX = 40, NY = 4096
   integer :: data_out(NY, NX), data_in(NY, NX)
 
   ! We need these ids and other gunk for netcdf.
@@ -50,7 +50,7 @@ program f90tst_vars4
   dimids =  (/ y_dimid, x_dimid /)
 
   ! Define the variable. 
-  chunksizes = (/ 256, 256 /)
+  chunksizes = (/ 256, 10 /)
   call handle_err(nf90_def_var(ncid, 'data', NF90_INT, dimids, & 
        varid, chunksizes = chunksizes, deflate_level = 4))
 
@@ -69,7 +69,7 @@ program f90tst_vars4
   ! Check some stuff out.
   call handle_err(nf90_inquire(ncid, ndims, nvars, ngatts, unlimdimid, file_format))
   if (ndims /= 2 .or. nvars /= 1 .or. ngatts /= 0 .or. unlimdimid /= -1 .or. &
-       file_format /= nf90_format_netcdf4_classic) stop 2
+       file_format /= nf90_format_netcdf4_classic) stop 3
 
   call handle_err(nf90_inquire_variable(ncid, varid, name_in, xtype_in, ndims, dimids_in, &
        natts_in, contiguous_in, chunksizes_in, deflate_level_in, shuffle_in, fletcher32_in, &
@@ -79,7 +79,7 @@ program f90tst_vars4
        natts_in .ne. 0 .or. contiguous_in .neqv. .false. .or. &
        chunksizes_in(1) /= chunksizes(1) .or. chunksizes_in(2) /= chunksizes(2) .or. &
        deflate_level_in .ne. 4 .or. shuffle_in .neqv. .false. .or. fletcher32_in .neqv. .false.) &
-       stop 2
+       stop 4
 
   ! Check the data.
   call handle_err(nf90_get_var(ncid, varid, data_in))
