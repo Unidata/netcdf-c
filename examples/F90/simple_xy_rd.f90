@@ -37,7 +37,7 @@ program simple_xy_rd
 
   ! Open the file. NF90_NOWRITE tells netCDF we want read-only access to
   ! the file.
-  call check( nf90_open(FILE_NAME, NF90_NOWRITE, ncid) )
+  call check( nf90_open(FILE_NAME, IOR(NF90_NOWRITE, NF90_MPIIO), ncid) )
 
   ! Get the varid of the data variable, based on its name.
   call check( nf90_inq_varid(ncid, "data", varid) )
