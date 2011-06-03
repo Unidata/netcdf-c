@@ -22,6 +22,12 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm,
    NC_MPI_INFO data;
    MPI_Comm comm_c = 0;
    MPI_Info info_c = 0;
+   
+   /* One of these two parallel IO modes must be chosen by the user,
+    * or else pnetcdf must be in use. */
+   if (!(cmode & NC_MPIIO || cmode & NC_MPIPOSIX) &&
+       !(cmode & NC_PNETCDF))
+      return NC_EINVAL;
 
 #ifdef HAVE_MPI_COMM_F2C
    comm_c = MPI_Comm_f2c(comm);
@@ -46,6 +52,12 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
    return NC_ENOPAR;
 #else
    NC_MPI_INFO mpi_data;
+
+   /* One of these two parallel IO modes must be chosen by the user,
+    * or else pnetcdf must be in use. */
+   if (!(mode & NC_MPIIO || mode & NC_MPIPOSIX) &&
+       !(mode & NC_PNETCDF))
+      return NC_EINVAL;
 
    mpi_data.comm = comm;
    mpi_data.info = info;
