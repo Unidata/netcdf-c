@@ -1,7 +1,4 @@
-/* This is a benchmarking program for netCDF-4 parallel I/O.
-
-   $Id: tst_parallel2.c,v 1.6 2009/08/19 15:58:57 ed Exp $
-*/
+/* This is a benchmarking program for netCDF-4 parallel I/O. */
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
  * must also relink with -llmpe -lmpe). This causes clog2 output to be
@@ -170,7 +167,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Reopen the file and check it. */
-    if (nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)) ERR;
+    if (nc_open_par(file_name, NC_NOWRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
     if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
     if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 || 
         unlimdimid_in != -1) ERR;
