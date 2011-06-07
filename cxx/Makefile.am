@@ -2,18 +2,7 @@
 # Copyright 2005, see the COPYRIGHT file for more information.
 # This file builds the C++ interface.
 
-# $Id: Makefile.am,v 1.54 2010/05/29 18:45:45 dmh Exp $
-
-# Here's what the hand-crafted Makefile did to build cxx:
-# c++ -c -g -O2 -I../libsrc -I.   -Df2cFortran netcdf.cpp
-# c++ -c -g -O2 -I../libsrc -I.   -Df2cFortran ncvalues.cpp
-# ar cru libnetcdf_c++.a netcdf.o ncvalues.o
-# ranlib libnetcdf_c++.a
-# c++ -c -g -O2 -I../libsrc -I.   -Df2cFortran nctst.cpp
-# c++ -o nctst -g -O2  nctst.o libnetcdf_c++.a -L../libsrc -lnetcdf 
-
-AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS =
+include $(top_srcdir)/lib_flags.am
 
 CLEANFILES = nctst_classic.nc nctst_64bit_offset.nc nctst_netcdf4.nc	\
 nctst_netcdf4_classic.nc nctst_classic.cdl nctst_64bit_offset.cdl	\
