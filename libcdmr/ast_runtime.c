@@ -380,11 +380,11 @@ ast_write_tag(ast_runtime* rt, const uint32_t wiretype, const uint32_t fieldno)
 
 /* Procedure to write out count */
 ast_err
-ast_write_count(ast_runtime* rt, const size_t count)
+ast_write_size(ast_runtime* rt, const size_t size)
 {
     uint8_t buffer[VARINTMAX64];
-    /* write count as varint */
-    size_t len = uint64_encode((uint64_t)count,buffer);
+    /* write size as varint */
+    size_t len = uint64_encode((uint64_t)size,buffer);
     if(ast_write(rt,len,buffer) != len) return AST_EIO;
     return AST_NOERR;
 }
@@ -408,15 +408,15 @@ done:
 }
 
 ast_err
-ast_read_count(ast_runtime* rt, size_t* countp)
+ast_read_size(ast_runtime* rt, size_t* sizep)
 {
-    uint64_t count = 0;
+    uint64_t size = 0;
     uint8_t buffer[VARINTMAX64];
     size_t len;
     ast_err status = ast_readvarint(rt,buffer,&len);
     if(status != AST_NOERR) ATHROW(status,done);
-    count = uint64_decode(len,buffer);
-    if(countp) *countp = (size_t)count;
+    size = uint64_decode(len,buffer);
+    if(sizep) *sizep = (size_t)size;
 done:
     return ACATCH(status);
 }

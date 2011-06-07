@@ -81,6 +81,7 @@ import java.io.*;
 
 public class CGenerator extends Generator
 {
+
 //////////////////////////////////////////////////
 
 static final String LANGUAGE = "C";
@@ -508,6 +509,8 @@ generate_c(AST.File topfile, List<AST.File> files, Printer printer)
     printer.printf("#include <stdio.h>\n");
     printer.blankline();
     printer.printf("#include <ast_runtime.h>\n");
+    if(Main.debug)
+        printer.printf("#include <ast_debug.h>\n");
     printer.blankline();
 
     if(includes.size() > 0) {
@@ -585,17 +588,17 @@ generate_writefunction(AST.Message msg, Printer printer)
 		// Write the tag + count
 		printer.printf("status = ast_write_tag(rt,ast_counted,%d);\n",
 				field.getId());
-	        printer.println("if(status != AST_NOERR) {goto done;}");
+	        generate_check(printer);
 	        /* prefix msg serialization with encoded message size */
 		printer.printf("size = %s_get_size(rt,%s->%s);\n",
 			   cfcnname(field.getType()),cmsgvar(msg),cfieldvar(field));
-		printer.println("status = ast_write_count(rt,size);");
-		printer.println("if(status != AST_NOERR) {goto done;}");
+		printer.println("status = ast_write_size(rt,size);");
+	        generate_check(printer);
 		printer.printf("status = %s_write(rt,%s->%s);\n",
 			       cfcnname(field.getType()),
 			       cmsgvar(msg),cfieldvar(field));
 	    } else throw new Exception("unknown field type");
-	    printer.println("if(status != AST_NOERR) {goto done;}");
+	    generate_check(printer);
 	} else if(isOptional(field)) {
 	    printer.printf("if(%s->%s.defined) "+LBRACE+"\n",
 			    cmsgvar(msg),cfieldvar(field));
@@ -608,17 +611,17 @@ generate_writefunction(AST.Message msg, Printer printer)
 		/* precede msg serialization with the tag */
 		printer.printf("status = ast_write_tag(rt,ast_counted,%d);\n",
 				field.getId());
-	        printer.println("if(status != AST_NOERR) {goto done;}");
+	        generate_check(printer);
 	        /* prefix msg serialization with encoded message size */
 		printer.printf("size = %s_get_size(rt,%s->%s.value);\n",
 			   cfcnname(field.getType()),cmsgvar(msg),cfieldvar(field));
-		printer.println("status = ast_write_count(rt,size);");
-		printer.println("if(status != AST_NOERR) {goto done;}");
+		printer.println("status = ast_write_size(rt,size);");
+	        generate_check(printer);
 		printer.printf("status = %s_write(rt,%s->%s.value);\n",
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
 	    } else throw new Exception("unknown field type");
-	    printer.println("if(status != AST_NOERR) {goto done;}");
+	    generate_check(printer);
 	    printer.outdent();
 	    printer.printf(RBRACE+"\n");
 	} else { // field.getCardinality() == AST.Cardinality.REPEATED
@@ -637,7 +640,7 @@ generate_writefunction(AST.Message msg, Printer printer)
 		    printer.printf("status = ast_write_primitive(rt,%s,%d,&%s->%s.values[i]);\n",
 			       ctypesort(field.getType()), field.getId(),
 			       cmsgvar(msg),cfieldvar(field));
-	            printer.println("if(status != AST_NOERR) {goto done;}");
+	            generate_check(printer);
 	            printer.outdent();
 		    printer.println(RBRACE);
 		}
@@ -649,16 +652,16 @@ generate_writefunction(AST.Message msg, Printer printer)
                 /* precede msg serialization with the tag */
                 printer.printf("status = ast_write_tag(rt,ast_counted,%d);\n",
                                 field.getId());
-                printer.println("if(status != AST_NOERR) {goto done;}");
+	        generate_check(printer);
 	        /* prefix msg serialization with encoded message size */
 		printer.printf("size = %s_get_size(rt,%s->%s.values[i]);\n",
 			   cfcnname(field.getType()),cmsgvar(msg),cfieldvar(field));
-		printer.println("status = ast_write_count(rt,size);");
-		printer.println("if(status != AST_NOERR) {goto done;}");
+		printer.println("status = ast_write_size(rt,size);");
+	        generate_check(printer);
                 printer.printf("status = %s_write(rt,%s->%s.values[i]);\n",
                             cfcnname(field.getType()),
                             cmsgvar(msg),cfieldvar(field));
-                printer.println("if(status != AST_NOERR) {goto done;}");
+	        generate_check(printer);
                 printer.outdent();
                 printer.println(RBRACE);
 	    } else throw new Exception("unknown field type");
@@ -671,7 +674,7 @@ generate_writefunction(AST.Message msg, Printer printer)
     if(msg.getFields().size() > 0)
         printer.println("done:");
     printer.indent();
-    printer.println("return status;");
+    generate_return(printer);
     printer.outdent();
     printer.blankline();
     printer.printf(RBRACE+" /*%s_write*/\n",msg.getName());
@@ -689,6 +692,9 @@ generate_readfunction(AST.Message msg, Printer printer)
     printer.println("ast_err status = AST_NOERR;");
     printer.println("uint32_t wiretype, fieldno;");
     printer.printf("%s* %s;\n",ctypefor(msg),cmsgvar(msg));
+    if(Main.optionTrace) {
+	printer.println("unsigned long pos;");
+    }
 
     // Create the target instance
     printer.blankline();
@@ -699,9 +705,22 @@ generate_readfunction(AST.Message msg, Printer printer)
     printer.blankline();
     printer.println("while(status == AST_NOERR) {");
     printer.indent();
+    if(Main.optionTrace) {
+	printer.println("pos = (unsigned long)xpos(rt);");
+    }
     printer.println("status = ast_read_tag(rt,&wiretype,&fieldno);");
     printer.println("if(status == AST_EOF) {status = AST_NOERR; break;}");
     printer.println("if(status != AST_NOERR) break;");
+    if(Main.optionTrace) {
+        printer.println("{");
+	printer.print("fprintf(stderr,");
+	printer.pushIndent(0);
+	printer.printf("\"|%s|",msg.getName());
+        printer.printf(": before=%%lu fieldno=%%lu wiretype=%%lu after=%%lu\\n\",");
+	printer.println("pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));");    
+	printer.popIndent();
+        printer.println("}");
+    }
     // Generate the field de-serializations
     printer.println("switch (fieldno) {");
     for(AST.Field field: msg.getFields()) {
@@ -713,16 +732,15 @@ generate_readfunction(AST.Message msg, Printer printer)
 	    generate_read_enum(msg,field,field.isPacked(),printer);
 	} else {
 	    // Generate needed local variables
-	    if(!isPrimitive(field))
-	        printer.println("size_t count;");
+	    if(!isPrimitive(field)) {
+	        printer.println("size_t size;");
+	    }
 	    if(isRepeated(field))
 	        printer.printf("%s* tmp;\n",ctypefor(field.getType()));
 	    // Verify that the wiretype == ast_counted
 	    printer.println("if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}");
-	    //  get the encoded message size and mark input
-  	    generate_mark(printer);
+	    // Read an instance
 	    generate_read_message(msg,field,printer);
-	    generate_unmark(printer);
 	}
 	printer.println("} break;");
 	printer.outdent();
@@ -731,7 +749,7 @@ generate_readfunction(AST.Message msg, Printer printer)
     printer.println("default:");
     printer.indent();
     printer.println("status = ast_skip_field(rt,wiretype,fieldno);");
-    printer.println("if(status != AST_NOERR) {goto done;}");
+    generate_check(printer);
     printer.outdent();
     printer.println("}; /*switch*/"); // switch
     printer.outdent();
@@ -743,13 +761,13 @@ generate_readfunction(AST.Message msg, Printer printer)
 	    generate_read_default_primitive(msg,field,printer);
 	}
     }
-    printer.println("if(status != AST_NOERR) {goto done;}");
+    generate_check(printer);
     // return result
     printer.printf("if(%sp) *%sp = %s;\n",cmsgvar(msg),cmsgvar(msg),cmsgvar(msg));
     printer.outdent();
     printer.println("done:");
     printer.indent();
-    printer.println("return status;");
+    generate_return(printer);
     printer.outdent();
     printer.printf("} /*%s_read*/\n",msg.getName());
 }
@@ -758,17 +776,15 @@ void
 generate_mark(Printer printer) throws IOException
 {
     // Get the count and mark the input
-    printer.println("status = ast_read_count(rt,&count);");
-    printer.println("if(status != AST_NOERR) {goto done;}");
-    printer.println("status = ast_mark(rt,count);");
-    printer.println("if(status != AST_NOERR) {goto done;}");
+    printer.println("status = ast_read_size(rt,&size);");
+    generate_check(printer);
+    printer.println("ast_mark(rt,size);");
 }
 
 void
 generate_unmark(Printer printer) throws IOException
 {
-    printer.println("status = ast_unmark(rt);");
-    printer.println("if(status != AST_NOERR) {goto done;}");
+    printer.println("ast_unmark(rt);");
 }
 
 void
@@ -821,12 +837,12 @@ generate_read_primitive(AST.Message msg, AST.Field field, boolean ispacked, Prin
             printer.printf("%s tmp;\n",ctypefor(field.getType()));
             printer.printf("status = ast_read_primitive(rt,%s,%d,&tmp);\n",
                                 ctypesort(field.getType()),field.getId());
-            printer.println("if(status != AST_NOERR) {goto done;}");
+            generate_check(printer);
 	    printer.printf("status = ast_repeat_append(rt,%s,&%s->%s,&tmp);\n",
                             ctypesort(field.getType()),
                             cmsgvar(msg),cfieldvar(field));
 	}
-        printer.println("if(status != AST_NOERR) {goto done;}");
+	generate_check(printer);
         break;
     }
 }
@@ -864,12 +880,12 @@ generate_read_enum(AST.Message msg, AST.Field field, boolean ispacked, Printer p
             printer.printf("%s tmp;\n",ctypefor(field.getType()));
             printer.printf("status = ast_read_primitive(rt,%s,%d,&tmp);\n",
                                 ctypesort(field.getType()),field.getId());
-            printer.println("if(status != AST_NOERR) {goto done;}");
+	    generate_check(printer);
 	    printer.printf("status = ast_repeat_append(rt,%s,&%s->%s,&tmp);\n",
                             ctypesort(field.getType()),
                             cmsgvar(msg),cfieldvar(field));
 	}
-        printer.println("if(status != AST_NOERR) {goto done;}");
+        generate_check(printer);
         break;
     }
 }
@@ -878,12 +894,15 @@ void
 generate_read_message(AST.Message msg, AST.Field field, Printer printer)
     throws Exception
 {
+    // Pick up the prefixed length and mark rt
+    generate_mark(printer);
+
     switch (field.getCardinality()) {
     case REQUIRED:
         printer.printf("status = %s_read(rt,&%s->%s);\n",
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
-	printer.println("if(status != AST_NOERR) {goto done;}");
+	generate_check(printer);
 	break;
 
     case OPTIONAL:
@@ -894,16 +913,20 @@ generate_read_message(AST.Message msg, AST.Field field, Printer printer)
 	printer.printf("status = %s_read(rt,&%s->%s.value);\n",
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
-        printer.println("if(status != AST_NOERR) {goto done;}");
+	generate_check(printer);
         break;
 
     case REPEATED:
 	printer.printf("status = %s_read(rt,&tmp);\n",ctypefor(field.getType()));
+	generate_check(printer);
         printer.printf("status = ast_repeat_append(rt,%s,&%s->%s,&tmp);\n",
 				ctypesort(field.getType()),
 				cmsgvar(msg),cfieldvar(field));
-	printer.println("if(status != AST_NOERR) {goto done;}");
+	generate_check(printer);
     }
+
+    // Unmark
+    generate_unmark(printer);
 }
 
 void
@@ -941,6 +964,9 @@ generate_read_default_primitive(AST.Message msg, AST.Field field, Printer printe
     printer.printf("if(!%s->%s.defined) {\n",
                         cmsgvar(msg),cfieldvar(field));
     printer.indent();
+    if(field_default != null)
+        printer.printf("%s->%s.defined = 1;\n",
+                        cmsgvar(msg),cfieldvar(field));
     switch (psort) {
     case STRING:
         printer.printf("%s->%s.value = %s;\n",
@@ -1011,7 +1037,7 @@ void generate_reclaimfunction(AST.Message msg, Printer printer)
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
 	    } else throw new Exception("unknown field type");
-	    printer.println("if(status != AST_NOERR) {goto done;}");
+	    generate_check(printer);
 	} else if(isOptional(field)) {
 	    printer.printf("if(%s->%s.defined) {\n",
 			    cmsgvar(msg),cfieldvar(field));
@@ -1029,7 +1055,7 @@ void generate_reclaimfunction(AST.Message msg, Printer printer)
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
 	    } else throw new Exception("unknown field type");
-	    printer.println("if(status != AST_NOERR) {goto done;}");
+	    generate_check(printer);
 	    printer.outdent();
 	    printer.printf("}\n");
 	} else { // field.getCardinality() == AST.Cardinality.REPEATED
@@ -1050,7 +1076,7 @@ void generate_reclaimfunction(AST.Message msg, Printer printer)
 			    cfcnname(field.getType()),
 			    cmsgvar(msg),cfieldvar(field));
 	    } else throw new Exception("unknown field type");
-	    printer.println("if(status != AST_NOERR) {goto done;}");
+            generate_check(printer);
 	    printer.outdent();
 	    printer.printf("}\n");
 	    printer.printf("ast_free(rt,%s->%s.values);\n",
@@ -1066,7 +1092,7 @@ void generate_reclaimfunction(AST.Message msg, Printer printer)
     printer.blankline();
     printer.println("done:");
     printer.indent();
-    printer.println("return status;");
+    generate_return(printer);
     printer.outdent();
     printer.blankline();
     printer.printf("} /*%s_reclaim*/\n",msg.getName());
@@ -1327,5 +1353,24 @@ ctypesort(AST.Type asttype)
     }
     return null;
 }
+
+void
+generate_check(Printer printer) throws IOException
+{
+    if(Main.debug)
+        printer.println("if(status != AST_NOERR) {ACATCH(status); goto done;}");
+    else
+        printer.println("if(status != AST_NOERR) {ACATCH(status); goto done;}");
+}
+
+void
+generate_return(Printer printer) throws IOException
+{
+    if(Main.debug)
+        printer.println("return ACATCH(status);");
+    else
+        printer.println("return status;");
+}
+
 
 } // CGenerator

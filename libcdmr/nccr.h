@@ -27,6 +27,7 @@ typedef struct NCCDMR {
     struct CCEconstraint* urlconstraint; /* constraint from url */
     struct Header* ncstreamhdr; /* Parsed result */
     struct Data* datahdr; /* Parsed result */
+    struct NClist* allvariables; /* set of all variables */
     struct NClist* variables; /* set of visible variables */
     /* provide a collection of the  ncStream nodes*/
     struct NClist* streamnodes;
@@ -63,8 +64,9 @@ typedef struct NCCR {
 
 /**************************************************/
 /* Define various flags (powers of 2)*/
-#define SHOWFETCH (0x1)
-
+#define SHOWFETCH     (0x1)
+#define BIGENDIAN     (0x2)
+#define DATAVARS (0x4)
 
 /**************************************************/
 /* Give PSEUDOFILE a value */

@@ -10,6 +10,13 @@
 #ifdef WIN32
 #define strcasecmp stricmp
 #define snprintf _snprintf
+#define strtoll (long long)_strtoi64
+#define strtoull (unsigned long long)_strtou64
+/* Override config.h */
+#undef HAVE_STRTOLL
+#define HAVE_STRTOLL
+#undef HAVE_STRTOULL
+#define HAVE_STRTOULL
 #endif
 
 /* For consistency with Java parser */

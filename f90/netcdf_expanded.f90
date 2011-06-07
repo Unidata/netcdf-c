@@ -724,15 +724,16 @@
      if(present(count))  localCount (:size(count) )  = count(:)
      if(present(stride)) localStride(:size(stride)) = stride(:)
      if(present(map))  then
-       localMap   (:size(map))    = map(:)
-       nf90_put_var_2D_FourByteInt = &
-          nf_put_varm_int(ncid, varid, localStart, localCount, localStride, localMap, int(values))
+        localMap   (:size(map))    = map(:)
+        nf90_put_var_2D_FourByteInt = &
+             nf_put_varm_int(ncid, varid, localStart, localCount, localStride, localMap, int(values))
      else if(present(stride)) then
-       nf90_put_var_2D_FourByteInt = &
-          nf_put_vars_int(ncid, varid, localStart, localCount, localStride, int(values))
+        nf90_put_var_2D_FourByteInt = &
+             nf_put_vars_int(ncid, varid, localStart, localCount, localStride, int(values))
      else
-       nf90_put_var_2D_FourByteInt = &
-          nf_put_vara_int(ncid, varid, localStart, localCount, int(values))
+        print *, values(1, 1), values(1, 2), values(1, 3), values(1, 4)
+        nf90_put_var_2D_FourByteInt = &
+             nf_put_vara_int(ncid, varid, localStart, localCount, values)
      end if
    end function nf90_put_var_2D_FourByteInt
 

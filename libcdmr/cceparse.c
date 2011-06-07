@@ -7,16 +7,7 @@
    they functions all just abort if called.
 */
 
-#include "config.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
-#include "netcdf.h"
-
-#include "nclist.h"
-#include "ncbytes.h"
+#include "includes.h"
 #include "cceconstraints.h"
 #include "cceparselex.h"
 
@@ -95,7 +86,7 @@ segment(CCEparsestate* state, Object name, Object slices0)
         segment->slicesdefined = 0;
 #ifdef DEBUG
 fprintf(stderr,"	ce.segment: %s\n",
-	dumpsegment(segment));
+	ccetostring((CCEnode*)segment));
 #endif
     return segment;
 }
@@ -136,7 +127,7 @@ range(CCEparsestate* state, Object sfirst, Object sstride, Object slast)
     slice->count  = slice->length / slice->stride;
 #ifdef DEBUG
 fprintf(stderr,"	ce.slice: %s\n",
-	dumpslice(slice));
+	ccetostring((CCEnode*)slice));
 #endif
     return slice;
 }

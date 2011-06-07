@@ -14,7 +14,7 @@ EXTRA_DIST =
 LDADD=
 
 # CDMREMORE Sources
-SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvarx.c \
+SRC=nccrcvt.c nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvarx.c \
 crdebug.c crutil.c \
 nccrdump.c \
 ncStreamx.c curlwrap.c ncaux.c \
@@ -24,13 +24,15 @@ cceparse.c cceconstraints.c
 
 EXTRA_DIST += ccetab.c ccelex.c
 
-HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h nccrgetvarx.h \
-crdebug.h crutil.h \
+HDRS=includes.h \
+nccrdispatch.h nccr.h nccrmeta.h nccrproto.h nccrgetvarx.h \
+crpath.h crdebug.h crutil.h \
 nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
 ast_runtime.h ast_util.h ast_debug.h \
 nccrnode.h \
+nccrcvt.h \
 ccetab.h cceconstraints.h cceparselex.h
 
 if BUILD_CDMREMOTE
@@ -82,7 +84,7 @@ bison ccetab.c ccetab.h: cce.y
 ##################################################
 # Generate the augmented ncstream structures
 ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
-	java -jar ${ASTJAR} -I. ncStreamx.proto
+	java -jar ${ASTJAR} -WdT -I. ncStreamx.proto
 
 ncStreamx.proto: ncStream.proto extends.sed
 	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto

@@ -9,7 +9,7 @@
 include $(top_srcdir)/lib_flags.am
 
 # Link to our assembled library.
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la # -lhdf5_hl -lhdf5 -lz
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 # These are netCDF-4 test programs.
 NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars	\
@@ -73,8 +73,8 @@ if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
 TESTS += run_get_hdf4_files.sh tst_interops3
 endif # USE_HDF4_FILE_TESTS
-tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
--lhdf5 -lz
+#tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
+#-lhdf5 -lz
 endif # USE_HDF4
 
 # This will run a bunch of the test programs with valgrind, the memory
@@ -123,18 +123,6 @@ MYD29.A2002185.0000.005.2007160150627.hdf		\
 MOD29.A2000055.0005.005.2006267200024.hdf
 endif # HDF4_FILE_TESTS
 
-# These linker flags will be applied to all test program compiles.
-#LDADD = -lnetcdf
-
-# if USE_HDF4
-# LDADD += -lmfhdf -ldf -ljpeg
-# endif # USE_HDF4
-
-# LDADD += -lhdf5_hl -lhdf5 -lz -lm
-
-# if USE_PNETCDF
-# LDADD += -lpnetcdf
-# endif
 
 
 

@@ -8,7 +8,10 @@
 
 typedef struct NCCRgetvarx {
     CCEprojection* projection;
-    nc_type dsttype;
+    nc_type internaltype;
+    nc_type externaltype;
+    CRnode* target;
+    Data* data;
 } NCCRgetvarx;
 
 #endif /*NCCRGETVARX_H*/

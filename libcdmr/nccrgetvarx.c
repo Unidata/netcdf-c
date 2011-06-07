@@ -7,29 +7,9 @@
 
 #include "config.h"
 
-#include <curl/curl.h>
-
-#include "nclist.h"
-#include "ncbytes.h"
-
-#include "netcdf.h"
-#include "ncdispatch.h"
-#include "nc.h"
-#include "nc4internal.h"
-
-#include "ast.h"
-
-#include "nccr.h"
-#include "nccrdispatch.h"
-#include "nccrnode.h"
-#include "cceconstraints.h"
+#include "includes.h"
 #include "nccrgetvarx.h"
-#include "crdebug.h"
-#include "curlwrap.h"
-#include "ncStreamx.h"
-#include "nccrmeta.h"
-#include "nccrproto.h"
-#include "nccrgetvarx.h"
+#include "nccrcvt.h"
 
 
 #define DATAPREFIX "?req=data&var="
@@ -38,16 +18,16 @@
 /* Forward */
 static int makegetvar(NCCDMR*, CRnode*, void*, nc_type, NCCRgetvarx**);
 
-static int buildvarxprojection(NCCRgetvarx* varxinfo,
-		     const size_t* startp,
-                     const size_t* countp,
-		     const ptrdiff_t* stridep,
-		     CCEprojection** projectionp);
-
-
 static int crfetchdata(NCCDMR* cdmr, char* p, bytes_t* bufp, long* filetimep);
 
-static int nccr_getcontent(NCCCDMR* cdmr, NCCRgetvarx* varxinfo, void* data);
+static int nccr_getcontent(NCCDMR* cdmr, NCCRgetvarx* varxinfo, bytes_t, size_t, void* data);
+
+static void freegetvarx(NCCRgetvarx* varx);
+
+static CRnode* locatevar(NCCDMR* cdmr, Data* data);
+
+static char* urlconstraintstring(CCEprojection*);
+
 
 /**************************************************/
 int 
@@ -62,49 +42,44 @@ NCCR_getvarx(int ncid, int varid,
     unsigned int i;
     NC_GRP_INFO_T *grp; 
     NC_HDF5_FILE_INFO_T *h5;
-    NC_VAR_INFO_T *var;
     NCCR* nccr;
-    CRnode* cdfvar; /* cdf node mapping to var*/
-    NClist* varnodes;
     NCCRgetvarx* varxinfo = NULL;
-    char* constraintstring = NULL;
     CCEprojection* varxprojection = NULL;
     NCCDMR* cdmr;
     size_t localcount[NC_MAX_VAR_DIMS];
     NClist* vars = NULL;
-    CCEconstraint* constraint = NULL;
-    NClist* tmp = NULL;
-    CCEprojection* clone = NULL;
     DataType datatype;
     nc_type internaltype;
     nc_type externaltype = externaltype0;
     CRshape shape;
-    bytes_t buf;
+    bytes_t buf = bytes_t_null;
     char* projectionstring = NULL;
+    size_t offset;
+    CRnode* streamvar; /* stream node mapping to var*/
 
     LOG((2, "nccr_get_varx: ncid 0x%x varid %d", ncid, varid));
 
     if((ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5)))
-	{THROWCHK(ncstat); goto fail;}
+	{THROWCHK(ncstat); goto done;}
 
     cdmr = nccr->cdmr;
 
-    /* Find the netcdf-4 var structure for this varid */
-    for(var=grp->var;var!=NULL;var=var->next) {
-	if (var->varid == varid) break;
+    /* Find the CRnode instance for this ncid */
+    for(i=0;i<nclistlength(cdmr->variables);i++) {
+	streamvar = (CRnode*)nclistget(cdmr->variables,i);
+	if(streamvar->ncid == varid) break;
     }
-    if(var == NULL) {ncstat = NC_ENOTVAR; goto fail;}
+    if(streamvar == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
-    ASSERT((cdfvar != NULL));
-    ASSERT((cdfvar->sort == _Variable || cdfvar->sort == _Structure));
+    ASSERT((streamvar->sort == _Variable || streamvar->sort == _Structure));
 
     /* Get the dimension info and typing */
-    if(cdfvar->sort == _Variable) {
-        Variable* var = (Variable*)cdfvar;
+    if(streamvar->sort == _Variable) {
+        Variable* var = (Variable*)streamvar;
 	crextractshape((CRnode*)var,&shape);
 	datatype = var->dataType;
-    } else if(cdfvar->sort == _Structure) {
-        Structure* var = (Structure*)cdfvar;
+    } else if(streamvar->sort == _Structure) {
+        Structure* var = (Structure*)streamvar;
 	crextractshape((CRnode*)var,&shape);
 	datatype = var->dataType;
     }
@@ -131,7 +106,7 @@ NCCR_getvarx(int ncid, int varid,
 	if(startp[i] > dimsize(dim)
 	   || startp[i]+countp[i] > dimsize(dim)) {
 	    ncstat = NC_EINVALCOORDS;
-	    goto fail;	    
+	    goto done;	    
 	}
     }	     
 
@@ -149,53 +124,40 @@ NCCR_getvarx(int ncid, int varid,
 	    break;
 	default:
 	    THROWCHK(NC_ECHAR);
-	    goto fail;
+	    goto done;
 	}
     }
 
-    /* Find protobuf node corresponding to the var.*/
-    varnodes = cdmr->variables;
-    varnodes = NULL;
-    for(i=0;i<nclistlength(varnodes);i++) {
-	CRnode* node = (CRnode*)nclistget(varnodes,i);
-	if(node->ncid == varid) {
-	    cdfvar = node;
-	    break;
-	}
-    }
-
-    ncstat = makegetvar(cdmr,cdfvar,data,externaltype,&varxinfo);
-    if(ncstat) {THROWCHK(NC_ENOMEM); goto fail;}
-
-    ncstat = buildvarxprojection(varxinfo,
-				  startp,countp,nccrsinglestride,
-			          &varxprojection);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+    ncstat = makegetvar(cdmr,streamvar,data,externaltype,&varxinfo);
+    if(ncstat) {THROWCHK(NC_ENOMEM); goto done;}
 
     /* Load with constraints */
     vars = nclistnew();
     nclistpush(vars,(ncelem)varxinfo->target);
 
-    constraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
-    constraint->projections = cceclonelist(cdmr->urlconstraint->projections);
-    /* merge the getvarx projections */
-    tmp = nclistnew();
-    clone = (CCEprojection*)cceclone((CCEnode*)varxprojection);
-    nclistpush(tmp,(ncelem)clone);
-    ncstat = ccemergeprojections(constraint->projections,tmp);
-    nclistfree(tmp);
-    ccefree((CCEnode*)clone);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+    /* Find the relevant projection from the predefined projections */
+    for(i=0;i<nclistlength(cdmr->urlconstraint->projections);i++) {
+	CCEprojection* p = (CCEprojection*)nclistget(cdmr->urlconstraint->projections,i);
+	if(p->decl == streamvar) {varxinfo->projection = (CCEprojection*)cceclone((CCEnode*)p); break;}
+    }
+    ASSERT(varxinfo->projection != NULL); /* By construction */
+
+    /* merge the getvarx start/stride/stop into the existing projection (as cloned) */
+    ncstat = ccerestrictprojection(varxinfo->projection,shape.rank,startp,countp,stridep);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
 #ifdef DEBUG
 fprintf(stderr,"varx merge: %s\n",
-	ccelisttostring(constraint->projections,","));
+	ccetostring((CCEnode*)varxinfo->projection));
 #endif
-    ccerestrictprojection(vars,constraint->projections);
 
     /* Convert the projections into a string for use
        with crfetchdata*/
     
-    projectionstring = ccelisttostring(constraint->projections,",");
+    projectionstring = urlconstraintstring(varxinfo->projection);
+#ifdef DEBUG
+fprintf(stderr,"projectionstring: %s\n",projectionstring);
+#endif
 
     /* Fetch */
 
@@ -203,178 +165,59 @@ fprintf(stderr,"varx merge: %s\n",
     ncstat = crfetchdata(cdmr,projectionstring,&buf,NULL);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     
-    if(projectionstring) free(projectionstring);
+    if(projectionstring) free(projectionstring); /* no longer needed */  
 
     /* Parse the data header */
-    ncstat = nccr_decodedataheader(&buf,&cdmr->datahdr);
+    ncstat = nccr_decodedatamessage(&buf,&cdmr->datahdr,&offset);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    /* Map the variables in the data header to those in the ncstreamdata */
-    ncstat = nccr_mapdataheader(cdmr,cdmr->ncstreamhdr,cdmr->datahdr);
+    /* Verify the variable in the data header */
+    ASSERT((locatevar(cdmr,cdmr->datahdr) == streamvar));
+ 
+    /* move the data into user's memory; watch out buf is structure copy */
+    ncstat = nccr_getcontent(cdmr,varxinfo,buf,offset,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    
-    if(buf.bytes != NULL) free(buf.bytes);
-
-    /* Use this current varx projection */
-    varxinfo->projection = varxprojection;
-    varxprojection = NULL;
-
-    /* move the data into user's memory */
-    ncstat = nccr_getcontent(cdmr,varxinfo,data);
-    if(ncstat != OC_NOERR) {THROWCHK(ncstat); goto fail;}
-    goto ok;
 
 done:
-    efree(constraint);
-    freegetvarx(varxinfo);
+    if(buf.bytes != NULL) free(buf.bytes);
     ccefree((CCEnode*)varxprojection);
+    freegetvarx(varxinfo);
     return THROW(ncstat);
 }
 
-static int
-makegetvar(NCCDMR* cdmr, CRnode* var, void* data, nc_type dsttype, Getvarx** getvarp)
+static char*
+urlconstraintstring(CCEprojection* projection)
 {
-    Getvarx* getvar;
+    char* projectionstring = ccetostring((CCEnode*)projection);
+    return projectionstring;
+}
+
+static void
+freegetvarx(NCCRgetvarx* varx)
+{
+    if(varx == NULL) return;
+    ccefree((CCEnode*)varx->projection);
+    free(varx);
+}
+
+static int
+makegetvar(NCCDMR* cdmr, CRnode* var, void* data, nc_type externaltype, NCCRgetvarx** varxp)
+{
+    NCCRgetvarx* varx;
     int ncstat = NC_NOERR;
 
-    getvar = (Getvarx*)emalloc(sizeof(Getvarx));
-    MEMCHECK(getvar,NC_ENOMEM);
-    memset((void*)getvar,0,sizeof(Getvarx));
-    if(getvarp) *getvarp = getvar;
+    varx = (NCCRgetvarx*)calloc(1,sizeof(NCCRgetvarx));
+    MEMCHECK(varx,NC_ENOMEM);
+    if(varxp) *varxp = varx;
 
-    getvar->target = var;
-    getvar->memory = data;
-    getvar->dsttype = dsttype;
-    getvar->target = var;
-    if(ncstat) efree(getvar);
+    varx->target = var;
+    varx->externaltype = externaltype;
+    varx->internaltype = cvtstreamtonc(nccr_gettype(var));
+    varx->projection = NULL;
     return ncstat;
 }
 
-/* Convert an DCEprojection instance into a string
-   that can be used with the url
-*/
-
-static char*
-crprojectionstring(NClist* projections)
-{
-    char* pstring NULL;
-    NCbytes* buf = ncbytesnew();
-    ccelisttobuffer(projections,buf,",");
-    if(ncbyteslength(buf) > 0)
-        pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
-}
-
-static int
-crfetch(NCDAPCOMMON* nccomm,
-        CCEconstraint* constraint,
-	NClist* varlist)
-{
-    int ncstat = NC_NOERR;
-    char* ce = NULL;
-
-    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
-        ce = NULL;
-    else {
-        ce = crconstraintstring(constraint);
-    }
-
-    /* Fetch the relevant data */
-    if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
-	if(ce == NULL)
-	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.uri->uri,ext);
-	else
-	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.uri->uri,ext,ce);
-    }
-    ocstat = oc_fetch(conn,ce,dxd,rootp);
-    if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
-	nclog(NCLOGNOTE,"fetch complete.");
-    }
-    return ocstat;
-
-
-
-    ocstat = dap_oc_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
-    nullfree(ce);
-    if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
-
-    ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
-
-    /* regrid */
-    if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
-        ncstat = regrid3(dxdroot,nccomm->cdf.ddsroot,constraint->projections);
-        if(ncstat) {THROWCHK(ncstat); goto done;}
-    }
-
-    /* create the cache node */
-    cachenode = createnccachenode();
-    cachenode->prefetch = isprefetch;
-    cachenode->vars = nclistclone(varlist);
-    cachenode->datadds = dxdroot;
-    cachenode->constraint = constraint;
-    cachenode->wholevariable = iswholeconstraint(cachenode->constraint);
-
-    /* save the root content*/
-    cachenode->ocroot = ocroot;
-    cachenode->content = oc_data_new(conn);
-    ocstat = oc_data_root(conn,ocroot,cachenode->content);
-    if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
-
-    /* capture the packet size */
-    ocstat = oc_raw_xdrsize(conn,ocroot,&cachenode->xdrsize);
-    if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
-
-#ifdef DEBUG
-fprintf(stderr,"buildcachenode: new cache node: %s\n",
-	dumpcachenode(cachenode));
-#endif
-    /* Insert into the cache. If not caching, then
-       remove any previous cache node
-    */
-    if(!isprefetch) {
-	NCcache* cache = nccomm->cdf.cache;
-	if(cache->nodes == NULL) cache->nodes = nclistnew();
-	/* remove cache nodes to get below the max cache size */
-	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit) {
-	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DEBUG
-fprintf(stderr,"buildcachenode: purge cache node: %s\n",
-	dumpcachenode(cachenode));
-#endif
-	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(nccomm,node);
-	}
-	/* Remove cache nodes to get below the max cache count */
-	/* If not caching, then cachecount should be 0 */
-	while(nclistlength(cache->nodes) > cache->cachecount) {
-	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
-#ifdef DEBUG
-fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
-	dumpcachenode(node));
-#endif
-	    cache->cachesize -= node->xdrsize;
-	    freenccachenode(nccomm,node);
-        }
-        nclistpush(nccomm->cdf.cache->nodes,(ncelem)cachenode);
-        cache->cachesize += cachenode->xdrsize;
-    }
-
-#ifdef DEBUG
-fprintf(stderr,"buildcachenode: %s\n",dumpcachenode(cachenode));
-#endif
-
-done:
-    if(cachep) *cachep = cachenode;
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    if(ncstat) {
-	freecdfroot34(dxdroot);
-	freenccachenode(nccomm,cachenode);
-    }
-    return THROW(ncstat);
-}
-
+#ifdef IGNORE
 /* In order to construct the projection,
 we need to make sure to match the relevant dimensions
 against the relevant nodes in which the ultimate target
@@ -396,23 +239,22 @@ buildvarxprojection(NCCRgetvarx* varxinfo,
     CRshape shape;
 
     segment = (CCEsegment*)ccecreate(CES_SEGMENT);
-    segment->node = var;
-    ASSERT((segment->node != NULL));
-    segment->name = nulldup(segment->node->name);
+    segment->decl = var;
+    ASSERT((segment->decl != NULL));
+    segment->name = nulldup(nccr_getname(segment->decl));
     segment->slicesdefined = 0; /* temporary */
     segment->slicesdeclized = 0; /* temporary */
     segments = nclistnew();
     nclistpush(segments,(ncelem)segment);
 
     projection = (CCEprojection*)ccecreate(CES_PROJECT);
-    projection->decl = ?;
+    projection->decl = var;
+    projection->segments = segments;
 
-    /* All slices are assigned to the first (and only segment) */
-    
     crextractshape((CRnode*)var,&shape);
     segment->rank = shape.rank;
     for(i=0;i<segment->rank;i++) { 
-        DCEslice* slice = &segment->slices[i];
+        CCEslice* slice = &segment->slices[i];
 	Dimension* dim = shape.dims[i];
         slice->first = startp[i];
 	slice->stride = stridep[i];
@@ -426,9 +268,10 @@ buildvarxprojection(NCCRgetvarx* varxinfo,
     segment->slicesdeclized = 1;
 
     if(projectionp) *projectionp = projection;
-    if(ncstat) ccefree((DCEnode*)projection);
+    if(ncstat) ccefree((CCEnode*)projection);
     return ncstat;
 }
+#endif
 
 static int
 crfetchdata(NCCDMR* cdmr, char* projection, bytes_t* bufp, long* filetimep)
@@ -451,18 +294,71 @@ crfetchdata(NCCDMR* cdmr, char* projection, bytes_t* bufp, long* filetimep)
 
     /* fetch data */
     buf = bytes_t_null;
-    curlurl = nc_uribuild(cdmr->uri,NULLfullprojection",0);
+    curlurl = nc_uribuild(cdmr->uri,NULL,fullprojection,0);
     free(fullprojection);
     if(curlurl == NULL) {ncstat=NC_ENOMEM; goto done;}
-    ncstat = nccr_fetchurl(cdmr->curl.curl,curlurl,&buf,&filetime);
+    ncstat = nccr_fetchurl(cdmr,cdmr->curl.curl,curlurl,&buf,&filetime);
     free(curlurl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     if(filetimep) *filetimep = filetime;
     if(bufp) *bufp = buf;
     
+done:
     return ncstat;
 }
+
+/*
+Find the node in the Header* tree matching the var in Data tree.
+Note that this needs to eventually change because storing the
+variables's full path name introduces the possibility of ambiguity
+if the name uses non-standard characters. The solution is
+to replace the varName in struct Data with a vector of names
+(similar to CRpath).
+*/
+
+static CRnode*
+locatevar(NCCDMR* cdmr, Data* data)
+{
+    char segment[1024];
+    char* p;
+    CRnode* match = NULL;
+    int i;
+    CRpath* path = NULL;
+
+    /* Split the name at the dots and store the pieces */
+    p = data->varName;
+    for(;;) {
+	ptrdiff_t len;
+	char* dot = strchr(p,'.');
+	if(dot == NULL) break;	
+	len = (dot-p);
+	if(len >= sizeof(segment)) len = sizeof(segment-1);	
+	strncpy(segment,dot,len);
+	segment[len] = '\0';
+	path = crpathappend(path,segment);
+	p = dot+1;
+    }
+    /* do the last segment */
+    if(*p) {
+	path = crpathappend(path,p);
+    }	
+    
+    /* Now locate the matching variable */
+    for(i=0;i<nclistlength(cdmr->variables);i++) {
+	CRnode* test = (CRnode*)nclistget(cdmr->variables,i);
+	if(crpathmatch(test->pathname,path) == 1) {
+	    if(match != NULL) {
+		nclog(NCLOGERR,"Ambiguous name in Data object");
+	    } else match = test;
+	}
+    }
+    if(match == NULL) {
+	nclog(NCLOGERR,"Cannot locate variable in Data object");
+    }    
+    return match;
+}
+
 
 /*
 Assumptions:
@@ -473,15 +369,113 @@ Not-Assumed:
 
 
 static int
-nccr_getcontent(NCCCDMR* cdmr, NCCRgetvarx* varxinfo, void* data)
+nccr_getcontent(NCCDMR* cdmr, NCCRgetvarx* varxinfo, bytes_t data, size_t offset, void* memory)
 {
     int ncstat = NC_NOERR;
-    int i,j;
-    CCEprojection* proj = varxinfo->projection;
-    /* Match against the Data.varName */
-    	
-	CRnode* var = locatevar(proj,
-	
+    int i;
+    size_t count;
+    int localbig = ((cdmr->controls & BIGENDIAN)?1:0);
+    int databig = ((cdmr->datahdr->bigend.defined
+			   && cdmr->datahdr->bigend.value)?1:0);
+    int swap = (localbig == databig?0:1);
+    int internaltypesize = nctypelen(varxinfo->internaltype);
+
+    /* modify data */
+    data.nbytes -= offset;
+    data.bytes += offset;
+
+    /* First, check to see if any type conversion will be necessary */
+    if(varxinfo->internaltype == varxinfo->externaltype) {
+	/* We can short circuit the transfer and not do any type conversion */
+	/* Separate out the integer-like types from the string types */
+
+	switch(varxinfo->internaltype) {
+
+	default: { /* numeric types */
+	    /* Compute the amount to move */
+	    size_t vlen = 0;
+	    ncstat = nccr_decodedatacount(&data,&vlen,&count);
+	    if(ncstat) {goto done;}
+	    count = count/internaltypesize;
+	    /* swap and convert */
+	    ncstat = nccrconvert(varxinfo->internaltype,varxinfo->externaltype,
+				 data.bytes+vlen,memory,
+				 count,swap);
+	    if(ncstat) {goto done;}
+	} break;
+
+	case ENUM1:
+	case ENUM2:
+	case ENUM4:
+	    break;
+
+	/* Variable length types */
+	case OPAQUE:
+	case STRING: {
+	    /* Get count of the number of objects */
+	    size_t nobjects;
+	    size_t len;
+	    char** pp = (char**)memory;
+	    size_t localoffset = offset;
+	    ncstat = nccr_decodedatacount(&data,&localoffset,&nobjects);
+	    if(ncstat) {goto done;}
+	    for(i=0;i<nobjects;i++) {
+		char* p;
+		/* Get the length (|length|) */		
+	        ncstat = nccr_decodedatacount(&data,&localoffset,&len);
+ 		if(ncstat) {goto done;}
+	        p = (char*)malloc(len+1);
+		memcpy(p,data.bytes+localoffset,len);				
+		p[len] = '\0';
+		*pp++ = p;
+	    }
+	} break;
+
+	/* We should never see these */
+	case SEQUENCE:
+	case STRUCTURE:
+	    PANIC("unexpected internal type");
+	}
+    } else {/* Guess we have to do the conversions */
+	size_t vlen;
+	ncstat = nccr_decodedatacount(&data,&vlen,&count);
+	if(ncstat) {goto done;}
+
+	switch(varxinfo->internaltype) {
+
+	default: {
+	    ncstat = nccrconvert(varxinfo->internaltype,varxinfo->externaltype,
+			     data.bytes+vlen,memory,
+			     count,swap);
+	    if(ncstat) {goto done;}
+	} break;
+
+	/* Variable length types */
+	case OPAQUE:
+	case STRING: {
+	    /* Get count of the number of objects */
+	    size_t nobjects;
+	    size_t len, vlen;
+	    char** pp = (char**)memory;
+	    ncstat = nccr_decodedatacount(&data,&vlen,&nobjects);
+	    if(ncstat) {goto done;}
+	    for(i=0;i<nobjects;i++) {
+		char* p;
+		/* Get the length (|length|) */		
+	        ncstat = nccr_decodedatacount(&data,&vlen,&len);
+ 		if(ncstat) {goto done;}
+	        p = (char*)malloc(len+1);
+		memcpy(p,data.bytes+vlen,len);				
+		p[len] = '\0';
+		*pp++ = p;
+	    }
+	} break;
+
+	/* We should never see these */
+	case SEQUENCE:
+	case STRUCTURE:
+	    PANIC("unexpected internal type");
+	}
     }
     
 done:

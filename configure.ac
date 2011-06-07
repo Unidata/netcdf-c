@@ -407,7 +407,7 @@ AC_MSG_RESULT([$nc_build_f77])
 # Do we want to build the fortran 77 API? Check for --disable-fortran
 # for Russ, who can never remember --disable-f77..
 AC_MSG_CHECKING([whether any Fortran API is desired])
-AC_ARG_ENABLE([f77],
+AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran],
                               [don't try to build the netCDF Fortran 77 or \   
                               Fortran 90 APIs (same effect as --disable-f77)])])
@@ -415,7 +415,6 @@ test "x$enable_fortran" = "xno" && nc_build_f77=no
 AC_MSG_RESULT([$nc_build_f77])
 
 # Do we want to build the fortran 90 API?
-nc_build_f90=yes
 AC_MSG_CHECKING([whether F90 API is desired])
 AC_ARG_ENABLE([f90],
               [AS_HELP_STRING([--disable-f90],
@@ -778,6 +777,10 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
+# We need the math library.
+AC_CHECK_LIB([m], [floor], [], 
+[AC_MSG_ERROR([Can't find or link to the math library.])])
+
 if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
@@ -843,14 +846,11 @@ dnl 	 fi
       if test "x$nc_mfhdf_h_missing" = xyes; then
          AC_MSG_ERROR([Cannot find mfhdf.h, yet --enable-hdf4 was used.])
       fi		      
+      AC_CHECK_LIB([df], [Hclose], [], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
-
-# We need the math library.
-AC_CHECK_LIB([m], [floor], [], 
-[AC_MSG_ERROR([Can't find or link to the math library.])])
 
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then

@@ -4,8 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/common34.c,v 1.29 2010/05/25 13:53:02 ed Exp $
  *********************************************************************/
 
-#include <stdlib.h>
-#include <string.h>
+#include "includes.h"
 
 /* Define a local version of strindex */
 int
@@ -27,21 +26,36 @@ crstrindex(char* s, char* match)
     return -1;
 }
 
+
+/* Collect the set of parent group nodes of node */
+void
+crcollectnodepath(CRnode* node, NClist* path)
+{
+    Group* group;
+    if(node == NULL) return;
+    nclistpush(path,(ncelem)node);
+    group = node->group;
+    while(group != NULL) {
+	nclistinsert(path,0,(ncelem)group);
+	group = ((CRnode*)group)->group;
+    }
+}
+
 /**************************************************/
 CRpath*
 crpathappend(CRpath* path, char* name)
 {
-    CRnode* newsegment = NULL;
+    CRpath* newsegment = NULL;
     newsegment = (CRpath*)malloc(sizeof(CRpath));
     if(newsegment == NULL) return NULL;
     newsegment->name = strdup(name);
     newsegment->next = NULL;
 
-    if(path = NULL) {
+    if(path == NULL) {
 	path = newsegment;
     } else {
         /* Find last node */
-	CRnode* last = path;
+	CRpath* last = path;
         while(last->next != NULL) last = last->next;
 	last->next = newsegment;
     }	
@@ -72,7 +86,29 @@ crpathmatch(CRpath* path1, CRpath* path2)
     return 0;
 }
 
-void
-crcollectnodepath(CDFnode* node, NClist* path);
+/* For debugging; WARNING: the result is static and should not be freed */
+char*
+crpathstring(CRpath* path)
 {
+    static char tmp[2048];
+    int first = 1;
+    tmp[0] = '\0';
+    while(path != NULL) {
+	if(!first) strcat(tmp,".");
+	first = 0;
+	strcat(tmp,path->name);
+	path = path->next;
+    }
+    return tmp;
+}
+
+CRpath*
+crpathdup(CRpath* path)
+{
+    CRpath* newpath = NULL;
+    while(path != NULL) {
+	crpathappend(newpath,path->name);
+	path = path->next;
+    }
+    return newpath;
 }

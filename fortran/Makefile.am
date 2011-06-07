@@ -5,29 +5,24 @@
 
 # $Id: Makefile.am,v 1.60 2010/05/29 00:21:22 dmh Exp $
 
-AM_CPPFLAGS = -I$(top_srcdir)/include 
-AM_LDFLAGS = #@EXTERN_LDFLAGS@
+include $(top_srcdir)/lib_flags.am
 
-# May need to set these.
+# The library we are building.
+lib_LTLIBRARIES = libnetcdff.la
+libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) -version-number 5:1:0 
 libnetcdff_la_LIBADD = $(top_builddir)/liblib/libnetcdf.la
-libnetcdff_la_LDFLAGS = $(AM_LDFLAGS) 
 
-# The F77 API man page.
-man_MANS = netcdf_f77.3
+# Turn on some special flags for building DLL.
+if BUILD_DLL
+AM_CPPFLAGS += -DDLL_EXPORT
+libnetcdff_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdffdll.def
+endif # BUILD_DLL
 
-# This rule generates the F77 manpage.
-ARGS_MANPAGE = -DAPI=FORTRAN
-if USE_NETCDF4
-ARGS_MANPAGE += -DNETCDF4=TRUE
+# If F90 is built, include it's convenience library.
+if BUILD_F90
+libnetcdff_la_LIBADD += ${top_builddir}/f90/libnetcdff90.la
+nodist_EXTRA_libnetcdff_la_SOURCES = dummy.f90
 endif
-if BUILD_DAP
-ARGS_MANPAGE += -DDAP=TRUE
-endif
-if BUILD_PARALLEL
-ARGS_MANPAGE += -DPARALLEL_IO=TRUE
-endif
-netcdf_f77.3: $(top_srcdir)/man4/netcdf.m4
-	m4 $(M4FLAGS) $(ARGS_MANPAGE) $? >$@ || rm $@
 
 # These are the source files for the fortran library.
 libnetcdff_la_SOURCES = fort-attio.c fort-control.c fort-dim.c		\
@@ -70,21 +65,6 @@ libnetcdff_la_DEPENDENCIES = nfconfig.inc netcdf.inc
 if USE_NETCDF4
 # All netCDF-4 F77 functions are in one code file.
 libnetcdff_la_SOURCES += fort-nc4.c
-endif
-
-lib_LTLIBRARIES = libnetcdff.la
-libnetcdff_la_LDFLAGS += -version-number 5:1:0 
-
-# Turn on some special flags for building DLL.
-if BUILD_DLL
-AM_CPPFLAGS += -DDLL_EXPORT
-libnetcdff_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdffdll.def
-endif # BUILD_DLL
-
-# If F90 is built, include it's convenience library.
-if BUILD_F90
-libnetcdff_la_LIBADD += ${top_builddir}/f90/libnetcdff90.la
-nodist_EXTRA_libnetcdff_la_SOURCES = dummy.f90
 endif
 
 # The nfconfig.in file is turned into nfconfig.inc by the configure

@@ -176,7 +176,7 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
     /* Create the dimensions */
     for(i=0;i<grp->dims.count;i++) {
 	Dimension* dim = grp->dims.values[i];
-	if(dim->name.defined) {
+	if(((CRnode*)dim)->flags.visible && dim->name.defined) {
 	    size_t length = dimsize(dim);
 	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->node.ncid);
 	    if(ncstat != NC_NOERR) goto done;
@@ -201,6 +201,8 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
     for(i=0;i<grp->structs.count;i++) {
 	void* tag;
 	Structure* struc = grp->structs.values[i];
+	if(!((CRnode*)struc)->flags.visible)
+	    continue;
 	ncstat = ncaux_begin_compound(grpid,crtypename(struc->name),
 				NCAUX_ALIGN_C,&tag);
 	if(ncstat != NC_NOERR) goto done;	
@@ -232,6 +234,9 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	int ndims = v->shape.count;
 	Dimension** dims = v->shape.values;
 	nc_type basetype = cvtstreamtonc(v->dataType);
+
+	if(!((CRnode*)v)->flags.visible)
+	    continue;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))
@@ -271,6 +276,9 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	int ndims = s->shape.count;
 	Dimension** dims = s->shape.values;
 	nc_type basetype = s->node.ncid;
+
+	if(!((CRnode*)s)->flags.visible)
+	    continue;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))

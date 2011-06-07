@@ -101,12 +101,17 @@ nccr_curlclose(CURL* curl)
 }
 
 int
-nccr_fetchurl(CURL* curl, char* url, bytes_t* buf, long* filetime)
+nccr_fetchurl(NCCDMR* cdmr, CURL* curl, char* url, bytes_t* buf, long* filetime)
 {
     int stat = NC_NOERR;
     CURLcode cstat = CURLE_OK;
     struct NCCR_CALLBACK_DATA callback_data;
     int index, first;
+
+    /* If required, report the url */
+    if(cdmr->controls & SHOWFETCH) {
+	nclog(NCLOGNOTE,"fetch url: %s",url);
+    }
 
     callback_data.alloc = 0;
 

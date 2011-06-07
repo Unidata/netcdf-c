@@ -1,4 +1,4 @@
-W=-Wd
+W=-WdT
 D=-Dconfig_h=true
 
 CURLCONFIG=curl-config

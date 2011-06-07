@@ -5,7 +5,7 @@
  *   $Header$
  *********************************************************************/
 
-#include "config.h"
+#include "includes.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
@@ -15,40 +15,18 @@
 #include <unistd.h>
 #endif
 
-#include <curl/curl.h>
-#include "curlwrap.h"
-
-#include "ncbytes.h"
-#include "nclist.h"
-#include "nclog.h"
-
-#include "netcdf.h"
-#include "nc.h"
-#include "nc4internal.h"
-#include "ncdispatch.h"
-#include "nc4dispatch.h"
-
-#include "nccr.h"
-#include "crdebug.h"
-#include "nccrdispatch.h"
-#include "ast.h"
-#include "nccrnode.h"
-#include "ncStreamx.h"
-#include "nccrproto.h"
-#include "cceconstraints.h"
-#include "nccrmeta.h"
-#include "crutil.h"
-
 /* Mnemonic */
 #define getncid(drno) (((NC*)drno)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
 
 static void freeNCCDMR(NCCDMR* cdmr);
-static int nccr_map_projections(NCCDMR* cdmr);
 static int nccr_process_projections(NCCDMR* cdmr);
 
-static int pathmatch(NClist* segments, CRpath* path);
+static int nccr_collect_allvariables(NClist* streamnodes, NClist* varset);
+static int nccr_mark_segment_decls(CCEprojection* p, CRnode* leaf);
+static int nccr_collect_projection_variables(NCCDMR* cdmr);
+static int nccr_mark_visible(NCCDMR* cdmr);
 
 /**************************************************/
 int
@@ -128,6 +106,10 @@ NCCR_open(const char * path, int mode,
     nccr->cdmr->urltext = nulldup(path);
     nc_uriparse(nccr->cdmr->urltext,&nccr->cdmr->uri);
 
+#ifdef WORDS_BIGENDIAN
+    nccr->cdmr->controls |= BIGENDIAN;
+#endif
+
     /* Create the curl connection (does not make the server connection)*/
     ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -146,6 +128,9 @@ NCCR_open(const char * path, int mode,
 	    if(strcmp("fetch",lookups+i)==0) {
 	        nccr->cdmr->controls |= SHOWFETCH;
 		break;
+	    } else if(strcmp("datavars",lookups+i)==0) {
+	        nccr->cdmr->controls |= DATAVARS;
+		break;
 	    }
 	}
     }
@@ -154,12 +139,12 @@ NCCR_open(const char * path, int mode,
     buf = bytes_t_null;
     curlurl = nc_uribuild(nccr->cdmr->uri,NULL,"?req=header",0);
     if(curlurl == NULL) {ncstat=NC_ENOMEM; goto done;}
-    ncstat = nccr_fetchurl(nccr->cdmr->curl.curl,curlurl,&buf,&filetime);
+    ncstat = nccr_fetchurl(nccr->cdmr,nccr->cdmr->curl.curl,curlurl,&buf,&filetime);
     free(curlurl);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Parse the meta data */
-    ncstat = nccr_decodeheader(&buf,&cdmr->ncstreamhdr);
+    ncstat = nccr_decodeheadermessage(&buf,&cdmr->ncstreamhdr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     if(buf.bytes != NULL) free(buf.bytes);
@@ -182,23 +167,31 @@ NCCR_open(const char * path, int mode,
     /* Replace dimension references with matching declaration */
     nccr_deref_dimensions(cdmr->streamnodes);
 
+    /* Collect all potential variables */
+    cdmr->allvariables = nclistnew();
+    ncstat = nccr_collect_allvariables(cdmr->streamnodes,cdmr->allvariables);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
     /* Deal with any constraint in the URL */
     nccr->cdmr->urlconstraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
-    /* Parse url constraint to test syntactically correctness */
-    ncstat = cdmparseconstraint(nccr->cdmr->uri->constraint,nccr->cdmr->urlconstraint);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(nccr->cdmr->uri->constraint != NULL
+       && strlen(nccr->cdmr->uri->constraint) > 0) {
+        /* Parse url constraint to test syntactically correctness */
+        ncstat = cdmparseconstraint(nccr->cdmr->uri->constraint,nccr->cdmr->urlconstraint);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 #ifdef DEBUG
 fprintf(stderr,"url constraint: %s\n",
-	ccetostring((CCEnode*)nccr->cdmr->urlconstraint));
+	ccetostring((CCEnode*)nccr->cdmr->uri->constraint));
 #endif
+    }
 
-    /* Compute the projection pathnames */
     ncstat = nccr_process_projections(nccr->cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    /* map url projection variables to corresponding stream variable nodes,
-       and collect set of so mapped variables */
-    ncstat = nccr_map_projections(cdmr);
+    ncstat = nccr_collect_projection_variables(nccr->cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+    ncstat = nccr_mark_visible(nccr->cdmr);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* build the netcdf-4 pseudo metadata */
@@ -275,54 +268,263 @@ freeNCCDMR(NCCDMR* cdmr)
     free(cdmr);
 }
 
-/* Compute the projection pathnames */
+static int
+nccr_collect_allvariables(NClist* streamnodes, NClist* varset)
+{
+    int ncstat = NC_NOERR;
+    int i;
+	/* A node is a variable if
+	 * 1. its sort is _Variable or _Structure
+	 * 2. its parent is a group
+	*/
+    /* Walk the set of all groups */
+    for(i=0;i<nclistlength(streamnodes);i++) {
+        CRnode* node = (CRnode*)nclistget(streamnodes,i);	
+	if(node->sort == _Group) {
+	    int j;
+            Group* grp = (Group*)node;
+	    /* Walk the variables */
+	    for(j=0;j<grp->vars.count;j++) {
+		nclistpush(varset,(ncelem)grp->vars.values[j]);		
+	    }
+	    /* Walk the structures */
+	    for(j=0;j<grp->structs.count;j++) {
+		nclistpush(varset,(ncelem)grp->structs.values[j]);
+	    }
+	}
+    }
+
+    /* Mark as initially invisible */
+    for(i=0;i<nclistlength(varset);i++) {
+        CRnode* node = (CRnode*)nclistget(varset,i);	
+	node->flags.visible = 0;
+    }
+
+    return ncstat;
+}
+
+/*
+1. Compute the complete set of projections
+2. map projection variables to corresponding stream variable nodes
+*/
+
 static int
 nccr_process_projections(NCCDMR* cdmr)
 {
+    int i,j;
+    int ncstat = NC_NOERR;
     CCEconstraint* constraint = cdmr->urlconstraint;
-    if(constraint == NULL) {
-	constraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
-	cdmr->urlconstraint = constraint;
-    }
+    NClist* projections;
+    ASSERT((constraint != NULL));
+    /* Setup the constraint */
     if(constraint->projections == NULL)
 	constraint->projections = nclistnew();
-#ifdef IGNORE
-    for(i=0;i<nclistlength(constraint->projections);i++) {	
-	CCEprojection* p = (CCEprojection*)nclistget(constraint->projections,i);
-	for(j=0;j<nclistlength(p->segments);j++) {
-	    CCEsegment* seg = (CCEsegment*)nclistget(p->segments,j);
-	    if(j > 0) ncbytescat(pathname,".");
-	    ncbytescat(pathname,seg->name);
-	}
-	p->pathname = ncbytesextract(pathname);
-    }
-#endif /*IGNORE*/
-    return NC_NOERR;
-}
 
-static int
-nccr_map_projections(NCCDMR* cdmr)
-{
-    int ncstat = NC_NOERR;
-    int i,j;
-    NClist* projections = cdmr->urlconstraint->projections;
-    cdmr->variables = nclistnew(); /* variables in the url constraint */
-    if(nclistlength(projections) > 0) {
-        for(i=0;i<nclistlength(cdmr->streamnodes);i++) {
+    /* If there are no constraints, then we will
+       make every known variable be in the projection set */
+    if(nclistlength(constraint->projections) == 0) {
+        projections = constraint->projections;
+	ASSERT((projections != NULL));
+        for(i=0;i<nclistlength(cdmr->allvariables);i++) {/*Walk the set of known variables */
+	    CCEprojection* newp;
+	    CCEsegment* newseg;
+	    CRnode* var = (CRnode*)nclistget(cdmr->allvariables,i);
+
+	    ASSERT((var->sort == _Variable || var->sort == _Structure));
+
+	    /* Construct a corresponding projection for this variable */
+	    newp = (CCEprojection*)ccecreate(CES_PROJECT);
+	    newp->decl = var;
+	    newp->segments = nclistnew();
+	    newseg = (CCEsegment*)ccecreate(CES_SEGMENT);
+	    newseg->name = nulldup(nccr_getname(var));
+	    ccemakewholesegment(newseg,var);/*treat as simple projection*/
+            newseg->decl = var;
+	    /* Do we need to compute crpaths? */
+            nclistpush(newp->segments,(ncelem)newseg);
+	    nclistpush(projections,(ncelem)newp);
+	}
+    } else {/* nclistlength(projections) > 0 */
+        /* map projection variables to corresponding known stream variable */
+        projections = constraint->projections;
+        if(nclistlength(projections) > 0) {
 	    int found = 0;
-	    CRnode* cdmnode = (CRnode*)nclistget(cdmr->streamnodes,i);
-            for(j=0;j<nclistlength(projections);j++) {	
-	        CCEprojection* p = (CCEprojection*)nclistget(projections,j);
-	        if(pathmatch(p->segments,cdmnode->pathname)) {
-		    nclistpush(cdmr->variables,(ncelem)cdmnode);
-		    found = 1;
+            for(i=0;i<nclistlength(cdmr->allvariables) && !found;i++) {
+	        CRnode* cdmnode = (CRnode*)nclistget(cdmr->allvariables,i);
+                for(j=0;j<nclistlength(projections);j++) {	
+	            CCEprojection* p = (CCEprojection*)nclistget(projections,j);
+	            if(pathmatch(p->segments,cdmnode->pathname)) {
+			/* Mark the projection decl and the segment decls */
+			p->decl = cdmnode;
+			ncstat = nccr_mark_segment_decls(p,cdmnode);
+		        found = 1;
+		        break;
+		    }
 		}
 	    }
-	    if(!found) {ncstat = NC_ENOTVAR; goto done;}
+            if(!found) {ncstat = NC_ENOTVAR; goto done;}
 	}
     }
+#ifdef DEBUG
+{ int ix;
+/* Report projection variables */
+fprintf(stderr,"projections:");
+for(ix=0;ix<nclistlength(projections);ix++) {
+fprintf(stderr," %s",nccr_getname(((CCEprojection*)nclistget(projections,ix))->decl));
+}
+fprintf(stderr,"\n");
+}
+#endif
+
 
 done:
     return ncstat;
 }
 
+static int
+nccr_collect_projection_variables(NCCDMR* cdmr)
+{
+    int i;
+    /* Walk the set of projections to collect nodes as the variable set*/
+    ASSERT((cdmr->urlconstraint != NULL && cdmr->urlconstraint->projections != NULL));
+    if(cdmr->variables == NULL)
+	cdmr->variables = nclistnew();
+    nclistclear(cdmr->variables);
+    for(i=0;i<nclistlength(cdmr->urlconstraint->projections);i++) {
+	CCEprojection* p = (CCEprojection*)nclistget(cdmr->urlconstraint->projections,i);
+	ASSERT(p->decl != NULL);
+	nclistpush(cdmr->variables,(ncelem)p->decl);
+	/* Mark as visible */
+	p->decl->flags.visible = 1;
+    }
+#ifdef DEBUG
+{ int ix;
+fprintf(stderr,"visible:");
+for(ix=0;ix<nclistlength(cdmr->urlconstraint->projections);ix++) {
+fprintf(stderr," %s",nccr_getname(((CCEprojection*)nclistget(cdmr->urlconstraint->projections,ix))->decl));
+}
+fprintf(stderr,"\n");
+}
+#endif
+    return NC_NOERR;
+}
+
+static int
+nccr_mark_segment_decls(CCEprojection* p, CRnode* leaf)
+{
+    int i;
+    int ncstat = NC_NOERR;
+    NClist* path = nclistnew();
+    crcollectnodepath(leaf,path);    
+    /* # of path nodes must be same as number of segments */
+    if(nclistlength(path) != nclistlength(p->segments))
+	{THROW((ncstat = NC_EINVAL)); goto done;}
+    for(i=0;i<nclistlength(path);i++) {
+        CRnode* elem = (CRnode*)nclistget(path,i);
+	CCEsegment* seg = (CCEsegment*)nclistget(p->segments,i);
+	seg->decl = elem;
+    }
+
+done:
+    nclistfree(path);
+    return ncstat;
+}
+
+#ifdef IGNORE
+Given a new variable, say from nc_get_vara(),
+Use it to 
+static int
+nccr_projection_restrict(NClist* varlist, NClist* projections)
+{
+    int ncstat = NC_NOERR;
+    int i,j,len;
+
+#ifdef DEBUG
+fprintf(stderr,"collect_variables: projections=|%s|\n",
+		ccelisttostring(projections, ","));
+#endif
+
+    if(nclistlength(varlist) == 0) goto done; /* nothing to add or remove */
+
+    /* If the projection list is empty, then add
+       a projection for every variable in varlist
+    */
+    if(nclistlength(projections) == 0) {
+        NClist* path = nclistnew();
+	NClist* nodeset = NULL;
+
+        for(i=0;i<nclistlength(varlist);i++) {
+	    CCEprojection* newp;
+	    CRnode* var = (CRnode*)nclistget(varlist,i);
+#ifdef DEBUG
+fprintf(stderr,"restriction.candidate=|%s|\n",crpathstring(var->pathname));
+#endif
+	    newp = (CCEprojection*)ccecreate(CES_PROJECT);
+	    newp->decl = var;
+	    nclistclear(path);
+	    crcollectnodepath(var,path);
+	    newp->segments = nclistnew();
+	    for(j=0;j<nclistlength(path);j++) {
+	        CRnode* node = (CRnode*)nclistget(path,j);
+	        CCEsegment* newseg = (CCEsegment*)ccecreate(CES_SEGMENT);
+	        newseg->name = nulldup(nccr_getname(node));
+	        ccemakewholesegment(newseg,node);/*treat as simple projections*/
+	        newseg->decl = node;
+	        nclistpush(newp->segments,(ncelem)newseg);
+	    }
+	    nclistpush(projections,(ncelem)newp);
+	}
+	nclistfree(path);
+	nclistfree(nodeset);
+    } else {
+       /* Otherwise, walk all the projections remove duplicates,
+          (WARNING) where duplicate means same node but with possibly different
+          slices
+	*/
+	len = nclistlength(projections);
+	for(i=len-1;i>=0;i--) {/* Walk backward to facilitate removal*/
+	    CCEprojection* proj = (CCEprojection*)nclistget(projections,i);
+	    int found;
+	    for(j=0;j<nclistlength(varlist);j++) {
+		CRnode* var;
+		found = 0;
+		var = (CRnode*)nclistget(varlist,j);
+		if(var == proj->decl) {found = 1; break;}
+	    }	    
+	    if(found) {
+		/* suppress this projection */
+		CCEprojection* p = (CCEprojection*)nclistremove(projections,i);
+		ccefree((CCEnode*)p);
+	    }
+	}
+    }
+    
+done:
+#ifdef DEBUG
+fprintf(stderr,"restriction.after=|%s|\n",
+		ccelisttostring(projections,","));
+#endif
+    return;
+}
+#endif
+
+static int
+nccr_mark_visible(NCCDMR* cdmr)
+{
+    int ncstat = NC_NOERR;
+    int i,j;
+
+    /* Mark visible variables */
+    for(i=0;i<nclistlength(cdmr->variables);i++) {
+	CRnode* var = (CRnode*)nclistget(cdmr->variables,i);
+	CRshape shape;
+	var->flags.visible = 1;
+        /* For each variable, mark any dimensions it uses as also visible */
+	crextractshape(var,&shape);
+	for(j=0;j<shape.rank;j++) {
+	    Dimension* dim = shape.dims[j];
+	    ((CRnode*)dim)->flags.visible = 1;
+	}
+    }
+    return ncstat;
+}

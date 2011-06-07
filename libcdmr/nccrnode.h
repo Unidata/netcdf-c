@@ -41,7 +41,7 @@ typedef struct CRnode {
     struct {
 	int isroot; /* Mark root group */
 	int isdecl; /* Mark dimension decls */
-	int elided; /* Mark variables not in the projections */
+	int visible; /* Mark variables as invisible */
     } flags;
     struct Dimension* dimdecl; /*sort=_Dimension; maps dimension to
 				 dimension decl */

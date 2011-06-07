@@ -235,6 +235,7 @@ nccr_dump_typeref(DataType datatype)
     case USHORT: return "USHORT";
     case UINT: return "UINT";
     case UINT64: return "UINT64";
+    default: break;
     }
     return NULL;
 }
