@@ -708,7 +708,11 @@ values or selected cross-sections of values.
 @itemx NcBool put(const double* vals, long c0, long c1, long c2, long c3, long c4)
 
 Write scalar or 1 to 5-dimensional arrays by providing enough arguments.
-Arguments are edge lengths, and their number must not exceed variable's
+The @code{vals} argument points to a contiguous block of values in
+memory to be written.  This means if you allocate each row of an
+array with a ``new'' call for example, you must not write more than one row
+at a time, because the rows may not be contiguous in memory.
+Other arguments are edge lengths, and their number must not exceed variable's
 dimensionality.  Start corner is @code{[0,0,..., 0]} by default, but may
 be reset using the @code{set_cur()} member function for this variable.
 @code{FALSE} is returned if type of values does not match type for
@@ -728,6 +732,10 @@ form of the @code{put} member function.
 Write n-dimensional arrays, starting at @code{[0, 0, ..., 0]} by
 default, may be reset with @code{set_cur()}.  @code{FALSE} is returned
 if type of values does not match type for variable.
+The @code{vals} argument points to a contiguous block of values in
+memory to be written.  This means if you allocate each row of an
+array with a ``new'' call for example, you must not write more than one row
+at a time, because the rows may not be contiguous in memory.
 
 @findex get
 @findex NcVar::get
@@ -740,7 +748,11 @@ if type of values does not match type for variable.
 @itemx NcBool get(double* vals, long c0, long c1, long c2, long c3, long c4) const
 
 Get scalar or 1 to 5 dimensional arrays by providing enough arguments.
-Arguments are edge lengths, and their number must not exceed variable's
+The @code{vals} argument points to a contiguous block of values in
+memory into which values will be read.  This means if you allocate each row of an
+array with a ``new'' call for example, you must not read more than one row
+at a time, because the rows may not be contiguous in memory.
+Other arguments are edge lengths, and their number must not exceed variable's
 dimensionality.  Start corner is @code{[0,0,..., 0]} by default, but may
 be reset using the @code{set_cur()} member function.  @code{FALSE} is
 returned if type of values does not match type for variable.
@@ -757,6 +769,11 @@ returned if type of values does not match type for variable.
 Get n-dimensional arrays, starting at @code{[0, 0, ..., 0]} by default,
 may be reset with @code{set_cur()} member function.  @code{FALSE} is
 returned if type of values does not match type for variable.
+Get scalar or 1 to 5 dimensional arrays by providing enough arguments.
+The @code{vals} argument points to a contiguous block of values in
+memory into which values will be read.  This means if you allocate each row of an
+array with a ``new'' call for example, you must not read more than one row
+at a time, because the rows may not be contiguous in memory.
 
 @findex set_cur
 @findex NcVar::set_cur

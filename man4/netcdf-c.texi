@@ -8159,7 +8159,7 @@ Variable ID.
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to a block of data values to be written. The order in which
+Pointer to a block of contiguous data values to be written. The order in which
 the data will be written to the netCDF variable is with the last
 dimension of the specified variable varying fastest. If the type of
 data values differs from the netCDF variable type, type conversion
@@ -8335,7 +8335,7 @@ function to exit without error, and without doing anything.
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to a block of data values to be written. The order in which
+Pointer to a block of contiguous data values to be written. The order in which
 the data will be written to the netCDF variable is with the last
 dimension of the specified variable varying fastest. If the type of
 data values differs from the netCDF variable type, type conversion
@@ -8554,7 +8554,7 @@ etc.). A NULL stride argument is treated as (1, 1, ... , 1).
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to a block of data values to be written. The order in which
+Pointer to a block of contiguous data values to be written. The order in which
 the data will be written to the netCDF variable is with the last
 dimension of the specified variable varying fastest. If the type of
 data values differs from the netCDF variable type, type conversion
@@ -9175,7 +9175,7 @@ Variable ID.
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to the location into which the data value is read. If the type
+Pointer to a block of contiguous locations in memory into which the data values are read. If the type
 of data value differs from the netCDF variable type, type conversion
 will occur. @xref{Type Conversion,,, netcdf, @value{n-man}}.
 
@@ -9360,7 +9360,8 @@ function to exit without error, and without doing anything.
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to the location into which the data value is read. If the type
+Pointer to a block of contiguous locations in memory into which the data values are read.
+If the type
 of data value differs from the netCDF variable type, type conversion
 will occur. @xref{Type Conversion,,, netcdf, @value{n-man}}.
 
@@ -9558,7 +9559,8 @@ argument is treated as (1, 1, ... , 1).
 @itemx lp
 @itemx fp
 @itemx dp
-Pointer to the location into which the data value is read. If the type
+Pointer to a block of contiguous locations in memory into which the data values are read.
+If the type
 of data value differs from the netCDF variable type, type conversion
 will occur. @xref{Type Conversion,,, netcdf, @value{n-man}}.
 
