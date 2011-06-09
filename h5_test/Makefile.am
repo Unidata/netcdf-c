@@ -18,7 +18,7 @@ tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps	\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_rd_cmp tst_h_vl	\
 tst_h_opaques tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints	\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
-tst_h_enums
+tst_h_enums tst_h_dimscales4 #tst_h_filters
 
 # If benchmarks were turned on, build and run a bunch more tests.
 if BUILD_BENCHMARKS
@@ -42,9 +42,6 @@ endif
 if USE_VALGRIND_TESTS
 TESTS += run_valgrind_tests.sh 
 endif # USE_VALGRIND_TESTS
-
-# These libraries need to be linked to our tests.
-LDADD = -lhdf5_hl -lhdf5 -lz -lm
 
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh run_valgrind_tests.sh		\

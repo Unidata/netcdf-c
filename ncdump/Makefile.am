@@ -6,7 +6,7 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
-LDADD = ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+LDADD = ${top_builddir}/liblib/libnetcdf.la 
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump 

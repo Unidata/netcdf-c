@@ -76,36 +76,35 @@ endif
 
 # Build the opendap client?
 if BUILD_DAP
-OCLIB=oc
-NCDAP3=libncdap3
-NCDAP4=libncdap4
-DAP2=libdap2
+OCLIB = oc
+NCDAP3 = libncdap3
+NCDAP4 = libncdap4
+DAP2 = libdap2
 if BUILD_UTILITIES
-NCDAPTESTDIR=ncdap_test
+NCDAPTESTDIR = ncdap_test
 endif # BUILD_UTILITIES
 endif
 
 # Build UDUNITS?
 if BUILD_UDUNITS
-UDUNITS=udunits
+UDUNITS = udunits
 endif
 
 # Build libcf?
 if BUILD_LIBCF
-LIBCF=libcf
+LIBCF = libcf
 endif
 
 # Build libcdmr
 if BUILD_CDMREMOTE
-LIBCDMR=libcdmr
+LIBCDMR = libcdmr
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump and cxx, because their tests
-# depend on it. nf_test depends upon ncgen as well.
-# If not using dispatch then NC3DAPDIR must be
-# built right before libsrc and NC4DAPDIR must be 
-# built right before LIBSRC4_DIR.
+# depend on it. nf_test depends upon ncgen as well. If not using
+# dispatch then NC3DAPDIR must be built right before libsrc and
+# NC4DAPDIR must be built right before LIBSRC4_DIR.
 SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
 libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST)	\
 nc_test $(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
@@ -158,14 +157,14 @@ ${prefix}/lib/libnetcdf_c++.a
 endif
 
 if BUILD_DLL
-BINFILES += bin/libnetcdf-*.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
+BINFILES += bin/libnetcdf-7.dll lib/libnetcdf.dll.a lib/libnetcdf.a	\
 lib/libnetcdf.la lib/netcdfdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdf-*.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
+ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
 ${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 if BUILD_F77
-BINFILES += bin/libnetcdff-*.dll lib/libnetcdff.dll.a	\
+BINFILES += bin/libnetcdff-5.dll lib/libnetcdff.dll.a	\
 lib/libnetcdff.la lib/netcdffdll.def
-ZIPBINFILES += ${prefix}/bin/libnetcdff-*.dll			\
+ZIPBINFILES += ${prefix}/bin/libnetcdff-5.dll			\
 ${prefix}/lib/libnetcdff.dll.a ${prefix}/lib/libnetcdff.la	\
 ${prefix}/lib/netcdffdll.def
 endif # BUILD_F77
@@ -196,8 +195,13 @@ check_nc_config:
 install-data-hook:
 if BUILD_DLL
 	cp liblib/netcdfdll.def ${prefix}/lib
+if BUILD_F77
 	cp fortran/netcdffdll.def ${prefix}/lib
-endif
+endif # BUILD_F77
+if BUILD_CXX
+	cp cxx/netcdf_c++dll.def ${prefix}/lib
+endif # BUILD_CXX
+endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
 	@echo '| Congratulations! You have successfully installed netCDF!    |'

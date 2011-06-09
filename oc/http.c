@@ -64,7 +64,7 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 
 	if (stat == OC_NOERR) {
 	    /* return the file size*/
-#ifdef OCDEBUG
+#ifdef OCOCDBG
 	    oc_log(LOGNOTE,"filesize: %lu bytes",fetchdata.size);
 #endif
 	    if (sizep != NULL)
@@ -74,10 +74,10 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
                 cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
             if(cstat != CURLE_OK) goto fail;
 	}
-	return THROW(stat);
+	return OCTHROW(stat);
 
 fail: oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
-	return THROW(OC_ECURL);
+	return OCTHROW(OC_ECURL);
 }
 
 int
@@ -123,15 +123,15 @@ ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
 	len = ocbyteslength(buf);
 	ocbytesappend(buf, '\0');
 	ocbytessetlength(buf, len); /* dont count null in buffer size*/
-#ifdef OCDEBUG
+#ifdef OCOCDBG
 	oc_log(LOGNOTE,"buffersize: %lu bytes",(unsigned long)ocbyteslength(buf));
 #endif
 
-	return THROW(stat);
+	return OCTHROW(stat);
 
 fail:
 	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
-	return THROW(OC_ECURL);
+	return OCTHROW(OC_ECURL);
 }
 
 static size_t
@@ -241,7 +241,7 @@ occurlopen(CURL** curlp)
 	}
 	if (curlp)
 		*curlp = curl;
-	return THROW(stat);
+	return OCTHROW(stat);
 }
 
 void
@@ -276,9 +276,9 @@ ocfetchlastmodified(CURL* curl, char* url, long* filetime)
         cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
     if(cstat != CURLE_OK) goto fail;
 
-    return THROW(stat);
+    return OCTHROW(stat);
 
 fail:
     oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return THROW(OC_ECURL);
+    return OCTHROW(OC_ECURL);
 }

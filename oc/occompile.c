@@ -40,18 +40,18 @@ occompile(OCstate* state, OCnode* xroot)
     OCtree* xtree;
 
     if(state == NULL || xroot->tree == NULL)
-	return THROW(OC_ENODATA);
+	return OCTHROW(OC_ENODATA);
     xtree = xroot->tree;
-    if(xtree->dxdclass != OCDATADDS) return THROW(OC_EINVAL);
+    if(xtree->dxdclass != OCDATADDS) return OCTHROW(OC_EINVAL);
     /* See if the compiler has already been invoked */
     if(xtree->data.memdata != NULL)
 	return OC_NOERR;
     if(xtree->data.datasize > OCCOMPILELIMIT) {
-	return THROW(OC_ENOMEM);
+	return OCTHROW(OC_ENOMEM);
     }
 
     xdrs = xtree->data.xdrs;
-    if(xdrs == NULL) return THROW(OC_EXDR);
+    if(xdrs == NULL) return OCTHROW(OC_EXDR);
 
     ocstat = occompile1(state,xtree->root,&memdata,xdrs);
     if(ocstat == OC_NOERR) {
@@ -64,7 +64,7 @@ occompile(OCstate* state, OCnode* xroot)
     xtree->data.ddslen = 0;
 #endif
     }
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 }
 
 static int
@@ -92,7 +92,7 @@ occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 	} else { /* rank > 0 */
 	    /* Compute the actual index count after projections */
 	    nelements = totaldimsize(xnode);
-	    if(nelements == 0) return THROW(OC_ENODATA);
+	    if(nelements == 0) return OCTHROW(OC_ENODATA);
 	    memdata = makememdata(xnode->octype,OC_NAT,nelements);
 	    MEMCHECK(memdata,OC_ENOMEM);
 	    memdata->mode = Dimmode;
@@ -164,14 +164,14 @@ occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 
 /*ok:*/
     if(memdatap) *memdatap = memdata;
-    return THROW(ocstat);    
+    return OCTHROW(ocstat);    
 
 fail:
     if(records != NULL) for(i=0;i<oclistlength(records);i++)
 	freeocmemdata((OCmemdata*)oclistget(records,i));
     freeocmemdata(memdata);
     freeocmemdata(structdata);
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 }
 
 
@@ -196,12 +196,12 @@ occompilefields(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 	if(ocstat == OC_ENODATA) {
 	    fielddata = NULL;
 	} else if(ocstat != OC_NOERR) {
-	    freeocmemdata(structdata); return THROW(ocstat);
+	    freeocmemdata(structdata); return OCTHROW(ocstat);
 	}
 	qmem[i] = fielddata;		
     }
     if(memdatap) *memdatap = structdata;
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 }
 
 static int
@@ -313,11 +313,11 @@ occompileprim(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 
 /*ok:*/
     if(memdatap) *memdatap = memdata;
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 
 fail:
     freeocmemdata(memdata);
-    return THROW(ocstat);
+    return OCTHROW(ocstat);
 }
 
 static size_t

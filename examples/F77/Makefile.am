@@ -8,7 +8,7 @@ AM_FFLAGS =
 
 AM_LDFLAGS += ${top_builddir}/fortran/libnetcdff.la
 
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la 
 
 AM_FFLAGS += -I$(top_srcdir)/fortran -I$(top_builddir)/fortran
 

@@ -72,7 +72,7 @@
     nf90_max_attrs    = 8192,   &
     nf90_max_vars     = 8192,   &
     nf90_max_name     = 256,    &
-    nf90_max_var_dims = nf90_max_dims
+    nf90_max_var_dims = 1024
   
   !
   ! error codes:

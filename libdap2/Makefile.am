@@ -1,11 +1,11 @@
 ## This is a automake file, part of Unidata's netCDF package.
 # Copyright 2005, see the COPYRIGHT file for more information.
 
-# This automake file generates the Makefile to build netCDF-4. The
-# generated makefile is not run unless the user selected to build
-# netCDF-4.
+# This automake file generates the Makefile to libdap2. Whatever that
+# is!
 
-# $Id: Makefile.am,v 1.41 2010/05/29 18:45:47 dmh Exp $
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -14,40 +14,15 @@ CLEANFILES =
 EXTRA_DIST =
 
 LDADD=
-AM_LDFLAGS = 
-AM_CPPFLAGS = -I$(top_srcdir)/include
 
-SRC=\
-constraints3.c \
-common34.c \
-dapcvt.c \
-dapalign.c \
-dapodom.c \
-daputil.c \
-ncdaperr.c \
-cdf3.c \
-cache.c \
-dapdump.c \
-dapdebug.c \
-dapattr3.c \
-ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c \
-dceconstraints.c \
-dcetab.c dceparse.c dcelex.c
+SRC= constraints3.c common34.c dapcvt.c dapalign.c dapodom.c daputil.c	\
+ncdaperr.c cdf3.c cache.c dapdump.c dapdebug.c dapattr3.c		\
+ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c dceconstraints.c dcetab.c	\
+dceparse.c dcelex.c
 
-HDRS=\
-nccommon.h \
-constraints3.h \
-ncd3dispatch.h \
-ncdap3.h \
-dapalign.h \
-dapodom.h \
-getvara.h \
-dapnc.h \
-daputil.h \
-dapdebug.h \
-dapdump.h \
-dceconstraints.h \
-dcetab.h dceparselex.h
+HDRS= nccommon.h constraints3.h ncd3dispatch.h ncdap3.h dapalign.h	\
+dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
+dceconstraints.h dcetab.h dceparselex.h
 
 if USE_NETCDF4
 SRC += cdf4.c constraints4.c ncd4dispatch.c ncdap4.c getvara4.c
@@ -72,68 +47,21 @@ endif
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 AM_CPPFLAGS += -I${top_srcdir}/oc
 
-AM_CPPFLAGS += @EXTERN_CPPFLAGS@
-
 LDADD += libdap2.la
 
 if USE_NETCDF4
 LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
 endif
 
-LDADD += ${top_builddir}/libsrc/libnetcdf3.la \
-	 ${top_builddir}/oc/liboc.la \
+LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
+	 ${top_builddir}/oc/liboc.la			\
 	 ${top_builddir}/libdispatch/libdispatch.la
 
 if BUILD_V2
 LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
 endif # BUILD_V2
 
-LDADD += @EXTERN_LDFLAGS@
-
-# Add a trivial test case to check for undefined references
-EXTRA_DIST += t_dap.c
-
-check_PROGRAMS = t_dap3a t_dap3c
-CLEANFILES += t_dap3a t_dap3c
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-TESTS = t_dap3a t_dap3c
-t_dap3a_SOURCES = t_dap3a.c stubdap3.c
-t_dap3c_SOURCES = t_dap3c.c stubdap3.c
-
-if USE_NETCDF4
-check_PROGRAMS += t_dap4a
-CLEANFILES += t_dap4a
-TESTS += t_dap4a
-t_dap4a_SOURCES = t_dap4a.c stubdap4.c
-endif
-
-# Set ldflags
-#t_dap3a_LDFLAGS = ${top_builddir}/libsrc/libnetcdf3.la ${top_builddir}/libdispatch/libdispatch.la
-#t_dap3c_LDFLAGS = ${t_dap3a_LDFLAGS}
-
-#check_PROGRAMS += test_varm3
-#TESTS += test_varm3
-#test_varm3_SOURCES = test_varm3.c stubdap3.c
-#test_varm3_LDFLAGS = ${t_dap3a_LDFLAGS}
-
 endif # BUILD_DAP
-
-# This rule are used if someone wants to rebuild t_dap3a.c
-# Otherwise never invoked, but records how to do it.
-t_dap3a.c: ${srcdir}/t_dap.c
-	echo "#define NETCDF3ONLY" > t_dap3a.c
-	cat t_dap.c >> t_dap3a.c
-
-t_dap4a.c: t_dap.c
-	cat t_dap.c >> ./t_dap4a.c
-
-# One last thing
-BUILT_SOURCES = .dodsrc
-
-.dodsrc:
-	echo "#DODSRC" >.dodsrc
-
-DISTCLEANFILES += .dodsrc
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

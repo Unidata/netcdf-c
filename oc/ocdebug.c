@@ -25,7 +25,7 @@ int
 xdrerror(void)
 {
     oc_log(LOGERR,"xdr failure");
-    return THROW(OC_EDATADDS);
+    return OCTHROW(OC_EDATADDS);
 }
 
 

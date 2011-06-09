@@ -16,7 +16,7 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # The source files.
 libdispatch_la_SOURCES = parallel.c copy.c file.c dim.c att.c error.c	\
-var.c dispatch.c nc_url.c nclist.c ncbytes.c \
+var.c dispatch.c nc_uri.c nclist.c ncbytes.c \
 nchashmap.c \
 nclog.c nclog.h
 

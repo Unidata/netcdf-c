@@ -204,6 +204,8 @@
              else
                 nf90_def_var_ManyDims = nf_def_var_deflate(ncid, varid, 0, 1, deflate_level)       
              end if
+          else
+             nf90_def_var_ManyDims = nf_def_var_deflate(ncid, varid, 0, 1, deflate_level)       
           end if
        end if
     endif

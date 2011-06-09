@@ -2880,8 +2880,8 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (unlimdimidp)
    {
       /* Default, no unlimited dimension */
-      *unlimdimidp = -1;
       int found = 0;
+      *unlimdimidp = -1;
 
       /* If there's more than one unlimited dim, which was not possible
 	 with netcdf-3, then only the last unlimited one will be reported

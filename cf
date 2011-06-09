@@ -1,0 +1,121 @@
+#!/bin/bash
+#X="-x"
+
+HDF5=1
+DAP=1
+#CDMR=1
+
+#M32=1
+#M64=1
+
+#NB=1
+
+#cmds=""
+#cmds="all"
+#cmds="all check"
+#cmds="all dist"
+
+PREFIX="/tmp/install/${HOST}"
+stddir="/share/ed/local/${HOST}"
+
+CPPFLAGS=""
+LDFLAGS=""
+
+if test x$M32 = x1 ; then
+  PREFIX="/tmp/install32/${HOST}"
+  stddir="/share/ed/local/${HOST}_32"
+  CPPFLAGS="-m32 $CPPFLAGS"
+elif test x$M64 = x1 ; then
+  PREFIX="/tmp/install64/${HOST}"
+  stddir="/share/ed/local/${HOST}_64"
+  CPPFLAGS="-m64 $CPPFLAGS"
+fi
+
+CFLAGS="-g -O0 $CFLAGS"
+
+case "$HOST" in
+  mort)
+	CFLAGS="-std=c99 $CFLAGS"
+	;;
+  spock)
+	CFLAGS="-Wdeclaration-after-statement -Wall $CFLAGS"
+	;;
+  spike)
+	CFLAGS="-Wall $CFLAGS"
+	;;
+  *)
+	;;
+esac
+
+MAKE=make
+IGNORE="test 0 = 1"
+
+if test "x$HDF5" = "x1" ; then
+CPPFLAGS="-I${stddir}/include -I${stddir}/include $CPPFLAGS"
+LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -L${stddir}/lib -lz $LDFLAGS"
+LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
+fi
+
+if test "x$DAP" = "x1" -o "x$CDMR" = "x1" ; then
+if curl-config --version >/dev/null ; then
+TMP=`curl-config --cflags`
+CPPFLAGS="$TMP $CPPFLAGS"
+TMP=`curl-config --libs`
+LDFLAGS="$TMP $LDFLAGS"
+TMP=`curl-config --prefix`
+LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
+else
+  echo "Cannot find curl-config"
+  exit 1
+fi
+fi
+
+export CPPFLAGS
+export CFLAGS
+export LDFLAGS
+export LD_LIBRARY_PATH
+
+CXXFLAGS="$CPPFLAGS $CXXFLAGS" ; export CXXFLAGS
+
+if test -z "$NB" ; then
+${MAKE} maintainer-clean >/dev/null 2>&1
+if autoreconf -i --force ; then ok=1; else exit ; fi
+fi
+
+FLAGS="--prefix ${PREFIX}"
+FLAGS="$FLAGS --disable-f77 --disable-f90"
+FLAGS="$FLAGS --disable-cxx"
+FLAGS="$FLAGS --disable-examples"
+FLAGS="$FLAGS --disable-pnetcdf"
+#FLAGS="$FLAGS --disable-utilities"
+#FLAGS="$FLAGS --disable-large-file-tests"
+#FLAGS="$FLAGS --enable-valgrind-tests"
+#FLAGS="$FLAGS --enable-parallel-tests"
+#FLAGS="$FLAGS --enable-cxx-4"
+#FLAGS="$FLAGS --enable-dap-long-tests"
+#FLAGS="$FLAGS --with-udunits"
+#FLAGS="$FLAGS --with-libcf"
+
+FLAGS="$FLAGS --disable-shared"
+#FLAGS="$FLAGS --enable-shared"
+
+if test "x$HDF5" = "x" ; then
+FLAGS="$FLAGS --disable-netcdf-4"
+fi
+if test "x$DAP" = "x" ; then
+FLAGS="$FLAGS --disable-dap"
+#FLAGS="$FLAGS --disable-dap-remote-tests"
+fi
+if test "x$CDMR" = "x1" ; then
+FLAGS="$FLAGS --enable-cdmremote"
+fi
+
+DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
+export DISTCHECK_CONFIGURE_FLAGS
+
+if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+sh $X ./configure ${FLAGS}
+for c in $cmds; do
+  ${MAKE} $c
+done
+exit 0

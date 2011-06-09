@@ -171,7 +171,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Reopen the file and check it. */
-    if ((ret = nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid))) 
+    if ((ret = nc_open_par(file_name, NC_NOWRITE|NC_MPIIO, comm, info, &ncid))) 
     {
        printf("ret = %d\n", ret);
        ERR_RET;

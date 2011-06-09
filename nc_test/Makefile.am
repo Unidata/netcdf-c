@@ -4,10 +4,8 @@
 # This file builds and runs the nc_test program, which tests the
 # netCDF-3 API for all formats.
 
-# $Id: Makefile.am,v 1.65 2010/05/29 00:43:23 dmh Exp $
-
-LDADD = -lm
-AM_CPPFLAGS = -I$(top_srcdir)/include
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
@@ -15,7 +13,7 @@ tst_*.nc t_nc.nc large_files.nc quick_large_files.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2
+tst_nofill tst_nofill2 tst_nofill3
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts
@@ -26,7 +24,7 @@ endif
 nc_test_SOURCES = nc_test.c error.c test_get.m4 test_put.m4 \
 test_read.c test_write.c util.c error.h tests.h 
 
-LDADD += ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+LDADD = ${top_builddir}/liblib/libnetcdf.la 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # If the user asked for large file tests, then add them.

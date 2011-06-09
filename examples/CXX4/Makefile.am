@@ -12,12 +12,12 @@ AM_LDFLAGS=
 
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 AM_CXXFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS += ${top_builddir}/cxx4/libnetcdf_c++4.la ${top_builddir}/liblib/libnetcdf.la @EXTERN_LDFLAGS@
+AM_LDFLAGS += ${top_builddir}/cxx4/libnetcdf_c++4.la	\
+${top_builddir}/liblib/libnetcdf.la
 
 # These are the example programs.
-TESTPROGRAMS = simple_xy_wr  sfc_pres_temp_wr	\
- pres_temp_4D_wr pres_temp_4D_rd simple_xy_rd sfc_pres_temp_rd \
- simple_xy_wr_formats
+TESTPROGRAMS = simple_xy_wr sfc_pres_temp_wr pres_temp_4D_wr		\
+ pres_temp_4D_rd simple_xy_rd sfc_pres_temp_rd simple_xy_wr_formats
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # Ship also this script, which compares the output of these C++

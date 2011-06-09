@@ -54,6 +54,7 @@ program f90tst_parallel3
   integer :: x, y, v
   integer :: p, my_rank, ierr
   integer :: start(MAX_DIMS), count(MAX_DIMS)
+  integer :: ret
 
   call MPI_Init(ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
@@ -84,6 +85,12 @@ program f90tst_parallel3
      end do
   end do
 
+  ! THis should fail, because I have not set either mpiposix or mpiio.
+  ret = nf90_create(FILE_NAME, nf90_netcdf4, ncid, &
+       comm = MPI_COMM_WORLD, info = MPI_INFO_NULL, cache_size = CACHE_SIZE, &
+       cache_nelems = CACHE_NELEMS, cache_preemption = CACHE_PREEMPTION)
+  if (ret /= nf90_einval) stop 8
+  
   ! Create the netCDF file. 
   call check(nf90_create(FILE_NAME, IOR(nf90_netcdf4, nf90_mpiposix), ncid, &
        comm = MPI_COMM_WORLD, info = MPI_INFO_NULL, cache_size = CACHE_SIZE, &

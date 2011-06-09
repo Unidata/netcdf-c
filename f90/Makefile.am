@@ -4,11 +4,7 @@
 # This file controls the building of the fortran 90 API. All testing
 # of the F90 API is done in the nf_test directory.
 
-AM_FCFLAGS =
 AM_LDFLAGS =
-
-AM_FCFLAGS += @EXTERN_CFLAGS@
-AM_LDFLAGS += @EXTERN_LDFLAGS@
 
 # This is the F90 API man page.
 man_MANS = netcdf_f90.3

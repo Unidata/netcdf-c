@@ -1,5 +1,5 @@
 #include "ncdispatch.h"
-#include "nc_url.h"
+#include "nc_uri.h"
 
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
@@ -49,7 +49,7 @@ int
 NC_testurl(const char* path)
 {
     int isurl = 0;
-    NC_URL* tmpurl = NULL;
+    NC_URI* tmpurl = NULL;
     char* p;
 
     if(path == NULL) return 0;
@@ -61,7 +61,7 @@ NC_testurl(const char* path)
     if(*p == '/') return 0; /* probably an absolute file path */
 
     /* Ok, try to parse as a url */
-    if(nc_urlparse(path,&tmpurl) == NC_NOERR) {
+    if(nc_uriparse(path,&tmpurl)) {
 	/* Do some extra testing to make sure this really is a url */
         /* Look for a knownprotocol */
         struct NCPROTOCOLLIST* protolist;
@@ -71,7 +71,7 @@ NC_testurl(const char* path)
 		break;
 	    }		
 	}
-	nc_urlfree(tmpurl);
+	nc_urifree(tmpurl);
 	return isurl;
     }
     return 0;
@@ -86,20 +86,20 @@ int
 NC_urlmodel(const char* path)
 {
     int model = 0;
-    NC_URL* tmpurl = NULL;
+    NC_URI* tmpurl = NULL;
     struct NCPROTOCOLLIST* protolist;
 
-    if(nc_urlparse(path,&tmpurl) != NC_NOERR) goto done;
+    if(!nc_uriparse(path,&tmpurl)) goto done;
 
     /* Look at any prefixed parameters */
-    if(nc_urllookup(tmpurl,"netcdf4")
-       || nc_urllookup(tmpurl,"netcdf-4")) {
+    if(nc_urilookup(tmpurl,"netcdf4")
+       || nc_urilookup(tmpurl,"netcdf-4")) {
 	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
-    } else if(nc_urllookup(tmpurl,"netcdf3")
-              || nc_urllookup(tmpurl,"netcdf-3")) {
+    } else if(nc_urilookup(tmpurl,"netcdf3")
+              || nc_urilookup(tmpurl,"netcdf-3")) {
 	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
-    } else if(nc_urllookup(tmpurl,"cdmremote")
-	      || nc_urllookup(tmpurl,"cdmr")) {
+    } else if(nc_urilookup(tmpurl,"cdmremote")
+	      || nc_urilookup(tmpurl,"cdmr")) {
 	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
     }
 
@@ -107,8 +107,10 @@ NC_urlmodel(const char* path)
     for(protolist=ncprotolist;protolist->protocol;protolist++) {
 	if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
 	    model |= protolist->modelflags;
-	    if(protolist->substitute)
-	        nc_urlsetprotocol(tmpurl,protolist->substitute);	
+	    if(protolist->substitute) {
+	        if(tmpurl->protocol) free(tmpurl->protocol);
+		tmpurl->protocol = strdup(protolist->substitute);
+	    }
 	    break;	    
 	}
     }	
@@ -117,7 +119,7 @@ NC_urlmodel(const char* path)
 	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
 
 done:
-    nc_urlfree(tmpurl);
+    nc_urifree(tmpurl);
     return model;
 }
 

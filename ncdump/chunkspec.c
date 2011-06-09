@@ -74,7 +74,7 @@ chunkspec_parse(int ncid, const char *spec) {
 	    char* dimname = 0;
 	    char *dp;
 	    int dimid;
-	    size_t chunkmax, chunksize;
+	    size_t chunksize;
 	 
 	    for(; pp > np && *pp != '/'; pp--) { /* look backwards for "/" */
 		continue;
@@ -96,16 +96,16 @@ chunkspec_parse(int ncid, const char *spec) {
 	    chunkspecs.dimids[idim] = dimid;
 	    /* parse and assign corresponding chunksize */
 	    pp++; /* now points to first digit of chunksize, ',', or '\0' */
-	    /* max chunk size is length of dimension */
-	    ret = nc_inq_dimlen(ncid, dimid, &chunkmax);
-	    if(ret != NC_NOERR)
-		return(ret);
 	    if(*pp == ',' || *pp == '\0') { /* no size specified, use dim len */
-		chunksize = chunkmax;
+		size_t dimlen;
+		ret = nc_inq_dimlen(ncid, dimid, &dimlen);
+		if(ret != NC_NOERR)
+		    return(ret);
+		chunksize = dimlen;
 	    } else {	      /* convert nnn string to long integer */
 		char *ep;
 		long val = strtol(pp, &ep, 0);
-		if(ep == pp || errno == ERANGE || val < 1 || val > chunkmax)
+		if(ep == pp || errno == ERANGE || val < 1) /* allow chunksize bigger than dimlen */
 		    return (NC_EINVAL);
 		chunksize = val;
 	    }
