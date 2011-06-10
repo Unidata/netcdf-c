@@ -42,7 +42,7 @@ struct bytes_t;
 extern int nccr_curlopen(CURL**);
 extern int nccr_curlclose(CURL*);
 
-extern int nccr_fetchurl(CURL* curl, char* url, struct bytes_t* buf, long* filetime);
+extern int nccr_fetchurl(struct NCCDMR*, CURL*, char* url, struct bytes_t* buf, long* filetime);
 extern long nccr_fetchhttpcode(CURL* curl);
 extern int nccr_fetchlastmodified(CURL* curl, char* url, long* filetime);
 

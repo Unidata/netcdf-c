@@ -1,19 +1,19 @@
 /*********************************************************************
+
+
  *   Copyright 2010, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id$
  *   $Header$
  *********************************************************************/
 
-#ifndef CRUTIL_H
-#define CRUTIL_H
+#ifndef NCCRCVT_H
+#define NCCRCVT_H
 
-/*Forward*/
-struct CRnode;
+extern int nccrtypelen(nc_type);
 
+extern int nccrconvert(nc_type srctype, nc_type dsttype,
+                       void* value0, void* memory0,
+                       size_t count, int byteswap);
 
-extern int crstrindex(char* s, char* match);
-
-extern void crcollectnodepath(struct CRnode*, NClist* path);
-
-#endif /*CRUTIL_H*/
+#endif /*NCCRCVT_H*/

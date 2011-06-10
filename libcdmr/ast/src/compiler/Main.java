@@ -32,6 +32,7 @@ public class Main
     static boolean optionSemanticsDebug = false;
     static boolean optionSemanticStepsDebug = false;
     static boolean optionDuplicate = false;
+    static boolean optionTrace = false;
 
     static boolean debug = false;
 
@@ -64,6 +65,7 @@ public class Main
 		    case 't': optionSemanticStepsDebug = true; break;
 		    case 's': optionSemanticsDebug = true; break;
 		    case 'D': optionDuplicate = true; break;
+		    case 'T': optionTrace = true; break;
 		    default: break;
 		    }
 		}

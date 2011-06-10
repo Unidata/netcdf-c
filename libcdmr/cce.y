@@ -81,12 +81,20 @@ range:
 	    {$$=range(parsestate,$2,null,$4);}
 	| '[' number ':' number ':' number ']'
 	    {$$=range(parsestate,$2,$4,$6);}
+	|  '(' number ')'
+	    {$$=range(parsestate,$2,null,null);}
+	| '(' number ':' number ')'
+	    {$$=range(parsestate,$2,null,$4);}
+	| '(' number ':' number ':' number ')'
+	    {$$=range(parsestate,$2,$6,$4);}
 	;
 
 
-word:  SCAN_WORD
+word:
+	  SCAN_WORD
 	    {$$ = checkobject($1);}
 	;
+
 number:  SCAN_NUMBERCONST
 	    {$$ = checkobject($1);}
 	;

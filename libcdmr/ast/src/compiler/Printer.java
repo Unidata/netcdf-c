@@ -152,4 +152,16 @@ class Printer
 
     public int getIndent() {return deltaindent.length();}
 
+    // Provide an indent stack
+    Stack<Integer> indentstack = new Stack<Integer>();
+
+    public void pushIndent() {pushIndent(0);}
+    public void pushIndent(int n)
+	{indentstack.push(indentation.length()); indentTo(n);}
+    public void popIndent()
+    {
+	int n = (indentstack.empty()?0:indentstack.pop());
+	indentTo(n);
+    }
+
 } // class Printer

@@ -10,6 +10,8 @@
 
 #include <curl/curl.h>
 
+#include "nclog.h"
+
 #include "netcdf.h"
 #include "nc.h"
 #include "ncdispatch.h"
@@ -26,10 +28,24 @@ NCCR_create(const char *path, int cmode,
 
 static int NCCR_redef(int ncid);
 static int NCCR__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
+
 static int NCCR_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
             const void *value0,
 	    nc_type memtype);
+
+static int NCCR_get_vara(int ncid, int varid,
+	    const size_t *start, const size_t *edges,
+            void *value,
+	    nc_type memtype);
+
+static int NCCR_put_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            const void *value0, nc_type memtype);
+
+static int NCCR_get_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            void *value, nc_type memtype);
 
 NC_Dispatch NCCR_dispatch_base = {
 
@@ -72,8 +88,8 @@ NULL, /*inq_varid*/
 NULL, /*rename_var*/
 NCCR_get_vara,
 NCCR_put_vara,
-NULL, /*get_vars*/
-NULL, /*put_vars*/
+NCCR_get_vars,
+NCCR_put_vars,
 NULL, /*get_varm*/
 NULL, /*put_varm*/
 
@@ -124,14 +140,24 @@ NULL, /*get_var_chunk_cache*/
 
 NC_Dispatch NCCR_dispatcher;
 
+ptrdiff_t nccrsinglestride[NC_MAX_VAR_DIMS];
+size_t nccrzerostart[NC_MAX_VAR_DIMS];
+size_t nccrsinglecount[NC_MAX_VAR_DIMS];
+
 int
 NCCR_initialize(void)
 {
+    int i;
     /* Create our dispatch table as the merge of NC4 table
        plus some overrides */
     NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
     NCCR_dispatch_table = &NCCR_dispatcher;
     ncloginit();
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+        nccrzerostart[i] = 0;
+	nccrsinglecount[i] = 1;
+	nccrsinglestride[i] = 1;
+    }
     return NC_NOERR;
 }
 
@@ -142,15 +168,6 @@ NCCR_create(const char *path, int cmode,
            NC_Dispatch* dispatch, NC** ncp)
 {
    return NC_EPERM;
-}
-
-static int
-NCCR_put_vara(int ncid, int varid,
-	    const size_t *start, const size_t *edges0,
-            const void *value0,
-	    nc_type memtype)
-{
-    return NC_EPERM;
 }
 
 static int
@@ -188,3 +205,38 @@ NCCR_abort(int ncid)
     return NCCR_close(ncid);
 }
 
+static int
+NCCR_put_vara(int ncid, int varid,
+	    const size_t *start, const size_t *edges,
+            const void *value,
+	    nc_type memtype)
+{
+    return NC_EPERM;
+}
+
+static int
+NCCR_get_vara(int ncid, int varid,
+	    const size_t *start, const size_t *edges,
+            void *value,
+	    nc_type memtype)
+{
+    int stat = NCCR_getvarx(ncid, varid, start, edges, nccrsinglestride,value,memtype);
+    return stat;
+}
+
+static int
+NCCR_put_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            const void *value0, nc_type memtype)
+{
+    return NC_EPERM;
+}
+
+static int
+NCCR_get_vars(int ncid, int varid,
+	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
+            void *value, nc_type memtype)
+{
+    int stat = NCCR_getvarx(ncid, varid, start, edges, stride, value, memtype);
+    return stat;
+}

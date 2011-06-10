@@ -69,15 +69,21 @@ ncdonly::
 	${CC} ${CFLAGS} ${GFLAGS} -c ${INCL} ${SRC}
 	${CC} -o ncd ${GFLAGS} ${OBJ} ${LIBS} ${RPATH}
 
-URL=[cdmremote]http://motherlode.ucar.edu:8080/thredds/cdmremote/nws/upperair/ncdecoded/files/Upperair_20110223_0000.nc
+URL=[cdmremote]http://motherlode.ucar.edu/thredds/cdmremote/nws/upperair/ncdecoded/files/Upperair_20110517_0000.nc
+#?wmoStaNum
 
 q0::
-	./ncd -h "${URL}"
+	./ncd "${URL}"
 qq::
-	gdb --args ./ncd -h "${URL}"
+	gdb --args ./ncd "${URL}"
 qv::
+	${VALGRIND} ./ncd "${URL}"
+
+qh::
+	./ncd -h "${URL}"
+qqh::
+	gdb --args ./ncd -h "${URL}"
+qvh::
 	${VALGRIND} ./ncd -h "${URL}"
-
-
 
 

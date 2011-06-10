@@ -30,16 +30,11 @@ static int crbbasetype(nc_type, char*, nc_type, int ndims, Dimension**, nc_type*
 static int crdeffieldvar(nc_type, void* tag, Variable*);
 static int crdeffieldstruct(nc_type, void* tag, Structure*);
 static int crfillgroup(NCCR*, Group*, nc_type);
-static nc_type cvtstreamtonc(DataType);
-static int dimsizes(int ndims, Dimension**, int sizes[NC_MAX_VAR_DIMS]);
 static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
-static int buildfield(int ncid,void* cmpd,char*,nc_type,int ndims,Dimension**);
 static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index,nc_type* vidp);
 static int locateleftvlen(int ndims, Dimension**, int index);
 static int crdefattribute(Attribute* att, nc_type parentid, nc_type scope);
 
-
-static int uid = 0;
 
 /*
 Fetch the metadata and define in the temporary netcdf-4 file
@@ -79,7 +74,6 @@ crbbasetype(nc_type grpid, char* name, nc_type basetype,
 		nc_type* newbasetype)
 {
     int ncstat = NC_NOERR;
-    int dimsize[NC_MAX_VAR_DIMS];	        		
     int index;
 	
     *newbasetype = basetype;
@@ -177,12 +171,12 @@ static int
 crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 {
     int ncstat = NC_NOERR;
-    int i,j,k;
+    int i,j;
     
     /* Create the dimensions */
     for(i=0;i<grp->dims.count;i++) {
 	Dimension* dim = grp->dims.values[i];
-	if(dim->name.defined) {
+	if(((CRnode*)dim)->flags.visible && dim->name.defined) {
 	    size_t length = dimsize(dim);
 	    ncstat = nc_def_dim(grpid,dim->name.value, length, &dim->node.ncid);
 	    if(ncstat != NC_NOERR) goto done;
@@ -192,7 +186,6 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
     /* Create the enum types */
     for(i=0;i<grp->enumTypes.count;i++) {
 	EnumTypedef* en = grp->enumTypes.values[i];
-	int enid;
 	if(en->map.count == 0) continue;
 	ncstat = nc_def_enum(grpid,NC_INT,crtypename(en->name),&en->node.ncid);
 	if(ncstat != NC_NOERR) goto done;
@@ -208,6 +201,8 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
     for(i=0;i<grp->structs.count;i++) {
 	void* tag;
 	Structure* struc = grp->structs.values[i];
+	if(!((CRnode*)struc)->flags.visible)
+	    continue;
 	ncstat = ncaux_begin_compound(grpid,crtypename(struc->name),
 				NCAUX_ALIGN_C,&tag);
 	if(ncstat != NC_NOERR) goto done;	
@@ -239,6 +234,9 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	int ndims = v->shape.count;
 	Dimension** dims = v->shape.values;
 	nc_type basetype = cvtstreamtonc(v->dataType);
+
+	if(!((CRnode*)v)->flags.visible)
+	    continue;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))
@@ -278,6 +276,9 @@ crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
 	int ndims = s->shape.count;
 	Dimension** dims = s->shape.values;
 	nc_type basetype = s->node.ncid;
+
+	if(!((CRnode*)s)->flags.visible)
+	    continue;
 
 	/* Validate as non-field */
 	if(!validate_dimensions(ndims,dims,0))
@@ -325,15 +326,16 @@ crdefattribute(Attribute* att, nc_type parentid, nc_type scope)
         switch (att->type) {
         case OPAQUE: case CHAR: {
             /* Concat all the elements; note this really does not work right*/
-            int i;
-            size_t slen, pos;
-            unsigned char* attval;
+            size_t i;
+            size_t slen;
+            char* attval;
             for(slen=0,i=0;i<att->sdata.count;i++)
                 slen += strlen(att->sdata.values[i]);
             attval = (char*)malloc(slen+1);
+	    if(attval == NULL) return NC_ENOMEM;
             attval[0] = '\0';
             for(i=0;i<att->sdata.count;i++)
-                strcat(attval,att->sdata.values[i]);
+                strcpy(attval,att->sdata.values[i]);
             ncstat = nc_put_att(parentid,scope,att->name,
                             (att->type == OPAQUE?NC_UBYTE:NC_CHAR),
                             slen,
@@ -355,7 +357,7 @@ crdefattribute(Attribute* att, nc_type parentid, nc_type scope)
 /***************************************************/
 
 /* Map ncstream primitive datatypes to netcdf primitive datatypes */
-static nc_type
+nc_type
 cvtstreamtonc(DataType datatype)
 {
     switch (datatype) {
@@ -371,6 +373,7 @@ cvtstreamtonc(DataType datatype)
     case USHORT: return NC_USHORT;
     case UINT: return NC_UINT;
     case UINT64: return NC_UINT64;
+    default: break;
     }
     return NC_NAT;
 }
@@ -400,15 +403,22 @@ fail:
 int
 dimsize(Dimension* dim)
 {
-    if(dim->isUnlimited.defined && dim->isUnlimited.value)
-	return NC_UNLIMITED;
-    if(dim->isVlen.defined && dim->isVlen.value)
-	return -1;
-    if(dim->length.defined)
+    if(dim->isUnlimited.defined && dim->isUnlimited.value) {
+	if(dim->length.defined) {
+	    return dim->length.value;
+	} else
+	    return NC_UNLIMITED;
+    } else if(dim->isVlen.defined && dim->isVlen.value) {
+	if(dim->length.defined) {
+	    return dim->length.value;
+	} else
+	    return -1;
+    } else if(dim->length.defined)
 	return dim->length.value;
     return -1;
 }
 
+#ifdef IGNORe
 static int
 dimsizes(int ndims, Dimension** dims, int sizes[NC_MAX_VAR_DIMS])
 {
@@ -419,7 +429,7 @@ dimsizes(int ndims, Dimension** dims, int sizes[NC_MAX_VAR_DIMS])
     }
     return NC_NOERR;
 }
-
+#endif /*IGNORE*/
 
 /* Validate that the set of dimensions can be translated */
 static int
@@ -483,6 +493,7 @@ Handle special cases:
 
 */
 
+#ifdef IGNORE
 static int
 buildfield(int ncid,
 	   void* cmpd,
@@ -516,6 +527,7 @@ buildfield(int ncid,
 done:
     return status;
 }
+#endif
 
 static int
 buildvlenchain(int ncid,
@@ -528,7 +540,6 @@ buildvlenchain(int ncid,
 {
     int i, pos;
     int status = NC_NOERR;
-    nc_type vlenid = basetype;
     char suid[4];
     char typename[NC_MAX_NAME+3+1];
     void* tag;
@@ -554,7 +565,7 @@ buildvlenchain(int ncid,
 	status = ncaux_end_compound(tag,vidp);
 	if(status != NC_NOERR) goto done;		
     } else if(pos == (ndims - 1)) {
-	/* Create a terminal vlen
+	/* Create a terminal vlen */
 	strcpy(typename,name);
 	snprintf(suid,sizeof(suid),"%3d",index);
 	strcat(typename,suid);
@@ -604,4 +615,16 @@ locateleftvlen(int ndims, Dimension** dims, int index)
         if(dc == DC_VLEN) return i;
     }
     return -1; /* no vlen located */
+}
+
+int
+crextractshape(CRnode* src, CRshape* dst)
+{
+    if(src->sort == _Variable)   
+        memcpy((void*)dst,(void*)&((Variable*)src)->shape,sizeof(CRshape));
+    else if(src->sort == _Structure)   
+        memcpy((void*)dst,(void*)&((Structure*)src)->shape,sizeof(CRshape));
+    else
+	return 0;
+    return 1;
 }
