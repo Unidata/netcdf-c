@@ -1075,7 +1075,7 @@ named foo.nc for read-only, non-shared access:
  implicit none
  integer :: ncid, status
  ...
- status = nf90_open(path = "foo.nc", cmode = nf90_nowrite, ncid = ncid)
+ status = nf90_open(path = "foo.nc", mode = nf90_nowrite, ncid = ncid)
  if (status /= nf90_noerr) call handle_err(status)
 @end example
 
