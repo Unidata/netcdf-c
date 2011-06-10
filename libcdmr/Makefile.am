@@ -14,24 +14,25 @@ EXTRA_DIST =
 LDADD=
 
 # CDMREMORE Sources
-SRC=nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvara.c \
+SRC=nccrcvt.c nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvarx.c \
 crdebug.c crutil.c \
 nccrdump.c \
 ncStreamx.c curlwrap.c ncaux.c \
 ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c \
-crce.c \
 cceparse.c cceconstraints.c
 
 EXTRA_DIST += ccetab.c ccelex.c
 
-HDRS=nccrdispatch.h nccr.h nccrmeta.h nccrproto.h \
-crdebug.h crutil.h \
+HDRS=includes.h \
+nccrdispatch.h nccr.h nccrmeta.h nccrproto.h nccrgetvarx.h \
+crpath.h crdebug.h crutil.h \
 nccrdump.h \
 ncStreamx.h curlwrap.h ncaux.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
 ast_runtime.h ast_util.h ast_debug.h \
-crce.h nccrnode.h \
+nccrnode.h \
+nccrcvt.h \
 ccetab.h cceconstraints.h cceparselex.h
 
 if BUILD_CDMREMOTE
@@ -45,7 +46,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 \
 	      -I$(top_srcdir)/libsrc \
 	      -I$(top_srcdir)/libdispatch
 
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch @EXTERN_CPPFLAGS@
+AM_CPPFLAGS += -I${top_srcdir}/libdispatch
 
 # Define the load libraries for stub3
 LDADD += ${top_builddir}/libcdmr/libnccr.la \
@@ -65,28 +66,12 @@ t_cdmr_SOURCES = t_cdmr.c nccrstub.c
 CLEANFILES += t_cdmr
 
 ##################################################
-# Generate the augmented ncstream structures
-EXTRA_DIST+=ncStream.proto ncStream.h ncStreamc
-
-ASTDIR=./ast/src/compiler
-
-ASTJAR=${ASTDIR}/ast.jar
-
-ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
-	java -jar ${ASTJAR} -I. ncStreamx.proto
-
-ncStreamx.proto: ncStream.proto extends.sed
-	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
-
-.PHONEY: jar bison
-
-${ASTJAR}: 
-	cd ${ASTDIR}; make -f Make0 jar
-
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
+
+.PHONEY: bison
 
 EXTRA_DIST += cce.y
 
@@ -96,5 +81,29 @@ bison ccetab.c ccetab.h: cce.y
 	mv cce.tab.c ccetab.c
 	mv cce.tab.h ccetab.h
 
+##################################################
+# Generate the augmented ncstream structures
+ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
+	java -jar ${ASTJAR} -WdT -I. ncStreamx.proto
+
+ncStreamx.proto: ncStream.proto extends.sed
+	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
+
+EXTRA_DIST += ${ASTJAR} ncStream.proto ncStream.h ncStream.c extends.sed
+
+
+##################################################
+.PHONEY: jar
+
+ASTDIR=./ast/src/compiler
+
+ASTJAR=${ASTDIR}/ast.jar
+
+jar::
+	cd ${ASTDIR}; make -f Make0 jar
+	cp ${ASTJAR} .
 
 endif # BUILD_CDMREMOTE
+
+# Changes to ncstream
+# 1. change Data.varName to be sequence to allow arbitrary name characters

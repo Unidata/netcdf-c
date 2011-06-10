@@ -23,6 +23,9 @@ Author: D. Heimbigner 10/7/2008
 #include <assert.h>
 #include <netcdf.h>
 
+#include "ncaux.h"
+
+
 struct NCAUX_FIELD {
     char* name;
     nc_type fieldtype;

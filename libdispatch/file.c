@@ -278,7 +278,7 @@ NC_open(const char *path, int cmode,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF) model = NC_DISPATCH_NC4;
+      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF) model |= NC_DISPATCH_NC4;
    }
 
    if(model == 0) model = NC_DISPATCH_NC3; /* final default */

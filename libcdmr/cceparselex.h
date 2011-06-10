@@ -10,6 +10,13 @@
 #ifdef WIN32
 #define strcasecmp stricmp
 #define snprintf _snprintf
+#define strtoll (long long)_strtoi64
+#define strtoull (unsigned long long)_strtou64
+/* Override config.h */
+#undef HAVE_STRTOLL
+#define HAVE_STRTOLL
+#undef HAVE_STRTOULL
+#define HAVE_STRTOULL
 #endif
 
 /* For consistency with Java parser */
@@ -47,12 +54,13 @@ typedef struct CCEparsestate {
    declaration
 */
    
-#ifdef IGNORE
-extern int ceerror(CCEparsestate*,char*);
-extern void ce_parse_error(CCEparsestate*,const char *fmt, ...);
-
 /* bison parse entry point */
 extern int cceparse(CCEparsestate*);
+
+extern int cceerror(CCEparsestate*,char*);
+
+#ifdef IGNORE
+extern void ce_parse_error(CCEparsestate*,const char *fmt, ...);
 
 extern int yyerror(CCEparsestate* state, char* msg);
 extern void projections(CCEparsestate* state, Object list0);
@@ -74,7 +82,6 @@ extern void ccelexcleanup(CCElexstate** lexstatep);
 #endif
 
 extern int cdmceparse(char* input, CCEconstraint*, char**);
-
 
 #ifdef PARSEDEBUG
 extern int ccedebug;

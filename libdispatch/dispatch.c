@@ -92,28 +92,31 @@ NC_urlmodel(const char* path)
     if(!nc_uriparse(path,&tmpurl)) goto done;
 
     /* Look at any prefixed parameters */
-    if(nc_urilookup(tmpurl,"netcdf4")
-       || nc_urilookup(tmpurl,"netcdf-4")) {
+    if(nc_urilookup(tmpurl,"netcdf4",NULL)
+       || nc_urilookup(tmpurl,"netcdf-4",NULL)) {
 	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
-    } else if(nc_urilookup(tmpurl,"netcdf3")
-              || nc_urilookup(tmpurl,"netcdf-3")) {
+    } else if(nc_urilookup(tmpurl,"netcdf3",NULL)
+              || nc_urilookup(tmpurl,"netcdf-3",NULL)) {
 	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
-    } else if(nc_urilookup(tmpurl,"cdmremote")
-	      || nc_urilookup(tmpurl,"cdmr")) {
+    } else if(nc_urilookup(tmpurl,"cdmremote",NULL)
+	      || nc_urilookup(tmpurl,"cdmr",NULL)) {
 	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
     }
 
-    /* Now look at the protocol */
-    for(protolist=ncprotolist;protolist->protocol;protolist++) {
-	if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
-	    model |= protolist->modelflags;
-	    if(protolist->substitute) {
-	        if(tmpurl->protocol) free(tmpurl->protocol);
-		tmpurl->protocol = strdup(protolist->substitute);
+    if(model == 0) {
+        /* Now look at the protocol */
+        for(protolist=ncprotolist;protolist->protocol;protolist++) {
+	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
+    	        model |= protolist->modelflags;
+    	        if(protolist->substitute) {
+    	            if(tmpurl->protocol) free(tmpurl->protocol);
+    		    tmpurl->protocol = strdup(protolist->substitute);
+    	        }
+    	        break;	    
 	    }
-	    break;	    
 	}
     }	
+
     /* Force NC_DISPATCH_NC3 if necessary */
     if((model & NC_DISPATCH_NC4) == 0)
 	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);

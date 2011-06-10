@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <ast_runtime.h>
+#include <ast_debug.h>
 
 #include "nccrnode.h"
 #include "ncStreamx.h"
@@ -17,32 +18,32 @@ Attribute_write(ast_runtime* rt, Attribute* attribute_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&attribute_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_enum,2,&attribute_v->type);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_uint32,3,&attribute_v->len);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         if(attribute_v->data.defined) {
             status = ast_write_primitive(rt,ast_bytes,4,&attribute_v->data.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         int i = 0;
         for(i=0;i<attribute_v->sdata.count;i++) {
             status = ast_write_primitive(rt,ast_string,5,&attribute_v->sdata.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Attribute_write*/
 
@@ -79,23 +80,23 @@ Attribute_read(ast_runtime* rt, Attribute** attribute_vp)
         case 5: {
             char* tmp;
             status = ast_read_primitive(rt,ast_string,5,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_string,&attribute_v->sdata,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!attribute_v->data.defined) {
         attribute_v->data.value.nbytes = 0;
         attribute_v->data.value.bytes = NULL;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(attribute_vp) *attribute_vp = attribute_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Attribute_read*/
 
 ast_err
@@ -105,19 +106,19 @@ Attribute_reclaim(ast_runtime* rt, Attribute* attribute_v)
 
     {
         status = ast_reclaim_string(rt,attribute_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         if(attribute_v->data.defined) {
             status = ast_reclaim_bytes(rt,&attribute_v->data.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         int i;
         for(i=0;i<attribute_v->sdata.count;i++) {
             status = ast_reclaim_string(rt,attribute_v->sdata.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,attribute_v->sdata.values);
     }
@@ -125,7 +126,7 @@ Attribute_reclaim(ast_runtime* rt, Attribute* attribute_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Attribute_reclaim*/
 
@@ -177,36 +178,36 @@ Dimension_write(ast_runtime* rt, Dimension* dimension_v)
     {
         if(dimension_v->name.defined) {
             status = ast_write_primitive(rt,ast_string,1,&dimension_v->name.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(dimension_v->length.defined) {
             status = ast_write_primitive(rt,ast_uint64,2,&dimension_v->length.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(dimension_v->isUnlimited.defined) {
             status = ast_write_primitive(rt,ast_bool,3,&dimension_v->isUnlimited.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(dimension_v->isVlen.defined) {
             status = ast_write_primitive(rt,ast_bool,4,&dimension_v->isVlen.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(dimension_v->isPrivate.defined) {
             status = ast_write_primitive(rt,ast_bool,5,&dimension_v->isPrivate.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Dimension_write*/
 
@@ -252,28 +253,32 @@ Dimension_read(ast_runtime* rt, Dimension** dimension_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!dimension_v->name.defined) {
         dimension_v->name.value = NULL;
     }
     if(!dimension_v->length.defined) {
+        dimension_v->length.defined = 1;
         dimension_v->length.value = 0;
     }
     if(!dimension_v->isUnlimited.defined) {
+        dimension_v->isUnlimited.defined = 1;
         dimension_v->isUnlimited.value = 0;
     }
     if(!dimension_v->isVlen.defined) {
+        dimension_v->isVlen.defined = 1;
         dimension_v->isVlen.value = 0;
     }
     if(!dimension_v->isPrivate.defined) {
+        dimension_v->isPrivate.defined = 1;
         dimension_v->isPrivate.value = 0;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(dimension_vp) *dimension_vp = dimension_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Dimension_read*/
 
 ast_err
@@ -284,14 +289,14 @@ Dimension_reclaim(ast_runtime* rt, Dimension* dimension_v)
     {
         if(dimension_v->name.defined) {
             status = ast_reclaim_string(rt,dimension_v->name.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     ast_free(rt,(void*)dimension_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Dimension_reclaim*/
 
@@ -347,23 +352,23 @@ Variable_write(ast_runtime* rt, Variable* variable_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&variable_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_enum,2,&variable_v->dataType);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         size_t size;
         int i;
         for(i=0;i<variable_v->shape.count;i++) {
             status = ast_write_tag(rt,ast_counted,3);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Dimension_get_size(rt,variable_v->shape.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Dimension_write(rt,variable_v->shape.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -371,42 +376,42 @@ Variable_write(ast_runtime* rt, Variable* variable_v)
         int i;
         for(i=0;i<variable_v->atts.count;i++) {
             status = ast_write_tag(rt,ast_counted,4);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Attribute_get_size(rt,variable_v->atts.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Attribute_write(rt,variable_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(variable_v->unsigned_.defined) {
             status = ast_write_primitive(rt,ast_bool,5,&variable_v->unsigned_.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(variable_v->data.defined) {
             status = ast_write_primitive(rt,ast_bytes,6,&variable_v->data.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(variable_v->enumType.defined) {
             status = ast_write_primitive(rt,ast_string,7,&variable_v->enumType.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         int i = 0;
         for(i=0;i<variable_v->dimIndex.count;i++) {
             status = ast_write_primitive(rt,ast_uint32,8,&variable_v->dimIndex.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Variable_write*/
 
@@ -432,32 +437,30 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
             status = ast_read_primitive(rt,ast_enum,2,&variable_v->dataType);
             } break;
         case 3: {
-            size_t count;
+            size_t size;
             Dimension* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Dimension_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&variable_v->shape,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 4: {
-            size_t count;
+            size_t size;
             Attribute* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Attribute_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&variable_v->atts,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 5: {
             variable_v->unsigned_.defined = 1;
@@ -478,16 +481,17 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
         case 8: {
             uint32_t tmp;
             status = ast_read_primitive(rt,ast_uint32,8,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_uint32,&variable_v->dimIndex,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!variable_v->unsigned_.defined) {
+        variable_v->unsigned_.defined = 1;
         variable_v->unsigned_.value = 0;
     }
     if(!variable_v->data.defined) {
@@ -497,10 +501,10 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
     if(!variable_v->enumType.defined) {
         variable_v->enumType.value = NULL;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(variable_vp) *variable_vp = variable_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Variable_read*/
 
 ast_err
@@ -510,13 +514,13 @@ Variable_reclaim(ast_runtime* rt, Variable* variable_v)
 
     {
         status = ast_reclaim_string(rt,variable_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i;
         for(i=0;i<variable_v->shape.count;i++) {
             status = Dimension_reclaim(rt,variable_v->shape.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,variable_v->shape.values);
     }
@@ -524,27 +528,27 @@ Variable_reclaim(ast_runtime* rt, Variable* variable_v)
         int i;
         for(i=0;i<variable_v->atts.count;i++) {
             status = Attribute_reclaim(rt,variable_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,variable_v->atts.values);
     }
     {
         if(variable_v->data.defined) {
             status = ast_reclaim_bytes(rt,&variable_v->data.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(variable_v->enumType.defined) {
             status = ast_reclaim_string(rt,variable_v->enumType.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     ast_free(rt,(void*)variable_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Variable_reclaim*/
 
@@ -622,23 +626,23 @@ Structure_write(ast_runtime* rt, Structure* structure_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&structure_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_enum,2,&structure_v->dataType);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         size_t size;
         int i;
         for(i=0;i<structure_v->shape.count;i++) {
             status = ast_write_tag(rt,ast_counted,3);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Dimension_get_size(rt,structure_v->shape.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Dimension_write(rt,structure_v->shape.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -646,12 +650,12 @@ Structure_write(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->atts.count;i++) {
             status = ast_write_tag(rt,ast_counted,4);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Attribute_get_size(rt,structure_v->atts.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Attribute_write(rt,structure_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -659,12 +663,12 @@ Structure_write(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->vars.count;i++) {
             status = ast_write_tag(rt,ast_counted,5);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Variable_get_size(rt,structure_v->vars.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Variable_write(rt,structure_v->vars.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -672,17 +676,17 @@ Structure_write(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->structs.count;i++) {
             status = ast_write_tag(rt,ast_counted,6);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Structure_get_size(rt,structure_v->structs.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Structure_write(rt,structure_v->structs.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Structure_write*/
 
@@ -708,70 +712,66 @@ Structure_read(ast_runtime* rt, Structure** structure_vp)
             status = ast_read_primitive(rt,ast_enum,2,&structure_v->dataType);
             } break;
         case 3: {
-            size_t count;
+            size_t size;
             Dimension* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Dimension_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&structure_v->shape,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 4: {
-            size_t count;
+            size_t size;
             Attribute* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Attribute_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&structure_v->atts,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 5: {
-            size_t count;
+            size_t size;
             Variable* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Variable_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&structure_v->vars,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 6: {
-            size_t count;
+            size_t size;
             Structure* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Structure_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&structure_v->structs,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(structure_vp) *structure_vp = structure_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Structure_read*/
 
 ast_err
@@ -781,13 +781,13 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
 
     {
         status = ast_reclaim_string(rt,structure_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i;
         for(i=0;i<structure_v->shape.count;i++) {
             status = Dimension_reclaim(rt,structure_v->shape.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,structure_v->shape.values);
     }
@@ -795,7 +795,7 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->atts.count;i++) {
             status = Attribute_reclaim(rt,structure_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,structure_v->atts.values);
     }
@@ -803,7 +803,7 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->vars.count;i++) {
             status = Variable_reclaim(rt,structure_v->vars.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,structure_v->vars.values);
     }
@@ -811,7 +811,7 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
         int i;
         for(i=0;i<structure_v->structs.count;i++) {
             status = Structure_reclaim(rt,structure_v->structs.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,structure_v->structs.values);
     }
@@ -819,7 +819,7 @@ Structure_reclaim(ast_runtime* rt, Structure* structure_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Structure_reclaim*/
 
@@ -886,24 +886,24 @@ EnumTypedef_write(ast_runtime* rt, EnumTypedef* enumtypedef_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&enumtypedef_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         size_t size;
         int i;
         for(i=0;i<enumtypedef_v->map.count;i++) {
             status = ast_write_tag(rt,ast_counted,2);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = EnumType_get_size(rt,enumtypedef_v->map.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = EnumType_write(rt,enumtypedef_v->map.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*EnumTypedef_write*/
 
@@ -926,28 +926,27 @@ EnumTypedef_read(ast_runtime* rt, EnumTypedef** enumtypedef_vp)
             status = ast_read_primitive(rt,ast_string,1,&enumtypedef_v->name);
             } break;
         case 2: {
-            size_t count;
+            size_t size;
             EnumType* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = EnumType_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&enumtypedef_v->map,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(enumtypedef_vp) *enumtypedef_vp = enumtypedef_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*EnumTypedef_read*/
 
 ast_err
@@ -957,13 +956,13 @@ EnumTypedef_reclaim(ast_runtime* rt, EnumTypedef* enumtypedef_v)
 
     {
         status = ast_reclaim_string(rt,enumtypedef_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i;
         for(i=0;i<enumtypedef_v->map.count;i++) {
             status = EnumType_reclaim(rt,enumtypedef_v->map.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,enumtypedef_v->map.values);
     }
@@ -971,7 +970,7 @@ EnumTypedef_reclaim(ast_runtime* rt, EnumTypedef* enumtypedef_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*EnumTypedef_reclaim*/
 
@@ -1006,15 +1005,15 @@ EnumType_write(ast_runtime* rt, EnumType* enumtype_v)
 
     {
         status = ast_write_primitive(rt,ast_uint32,1,&enumtype_v->code);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_string,2,&enumtype_v->value);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*EnumType_write*/
 
@@ -1041,13 +1040,13 @@ EnumType_read(ast_runtime* rt, EnumType** enumtype_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(enumtype_vp) *enumtype_vp = enumtype_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*EnumType_read*/
 
 ast_err
@@ -1057,13 +1056,13 @@ EnumType_reclaim(ast_runtime* rt, EnumType* enumtype_v)
 
     {
         status = ast_reclaim_string(rt,enumtype_v->value);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     ast_free(rt,(void*)enumtype_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*EnumType_reclaim*/
 
@@ -1094,19 +1093,19 @@ Group_write(ast_runtime* rt, Group* group_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&group_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         size_t size;
         int i;
         for(i=0;i<group_v->dims.count;i++) {
             status = ast_write_tag(rt,ast_counted,2);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Dimension_get_size(rt,group_v->dims.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Dimension_write(rt,group_v->dims.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -1114,12 +1113,12 @@ Group_write(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->vars.count;i++) {
             status = ast_write_tag(rt,ast_counted,3);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Variable_get_size(rt,group_v->vars.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Variable_write(rt,group_v->vars.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -1127,12 +1126,12 @@ Group_write(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->structs.count;i++) {
             status = ast_write_tag(rt,ast_counted,4);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Structure_get_size(rt,group_v->structs.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Structure_write(rt,group_v->structs.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -1140,12 +1139,12 @@ Group_write(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->atts.count;i++) {
             status = ast_write_tag(rt,ast_counted,5);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Attribute_get_size(rt,group_v->atts.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Attribute_write(rt,group_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -1153,12 +1152,12 @@ Group_write(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->groups.count;i++) {
             status = ast_write_tag(rt,ast_counted,6);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Group_get_size(rt,group_v->groups.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Group_write(rt,group_v->groups.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
@@ -1166,17 +1165,17 @@ Group_write(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->enumTypes.count;i++) {
             status = ast_write_tag(rt,ast_counted,7);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = EnumTypedef_get_size(rt,group_v->enumTypes.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = EnumTypedef_write(rt,group_v->enumTypes.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Group_write*/
 
@@ -1199,98 +1198,92 @@ Group_read(ast_runtime* rt, Group** group_vp)
             status = ast_read_primitive(rt,ast_string,1,&group_v->name);
             } break;
         case 2: {
-            size_t count;
+            size_t size;
             Dimension* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Dimension_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->dims,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 3: {
-            size_t count;
+            size_t size;
             Variable* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Variable_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->vars,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 4: {
-            size_t count;
+            size_t size;
             Structure* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Structure_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->structs,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 5: {
-            size_t count;
+            size_t size;
             Attribute* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Attribute_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->atts,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 6: {
-            size_t count;
+            size_t size;
             Group* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Group_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->groups,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 7: {
-            size_t count;
+            size_t size;
             EnumTypedef* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = EnumTypedef_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&group_v->enumTypes,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(group_vp) *group_vp = group_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Group_read*/
 
 ast_err
@@ -1300,13 +1293,13 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
 
     {
         status = ast_reclaim_string(rt,group_v->name);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i;
         for(i=0;i<group_v->dims.count;i++) {
             status = Dimension_reclaim(rt,group_v->dims.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->dims.values);
     }
@@ -1314,7 +1307,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->vars.count;i++) {
             status = Variable_reclaim(rt,group_v->vars.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->vars.values);
     }
@@ -1322,7 +1315,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->structs.count;i++) {
             status = Structure_reclaim(rt,group_v->structs.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->structs.values);
     }
@@ -1330,7 +1323,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->atts.count;i++) {
             status = Attribute_reclaim(rt,group_v->atts.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->atts.values);
     }
@@ -1338,7 +1331,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->groups.count;i++) {
             status = Group_reclaim(rt,group_v->groups.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->groups.values);
     }
@@ -1346,7 +1339,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
         int i;
         for(i=0;i<group_v->enumTypes.count;i++) {
             status = EnumTypedef_reclaim(rt,group_v->enumTypes.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,group_v->enumTypes.values);
     }
@@ -1354,7 +1347,7 @@ Group_reclaim(ast_runtime* rt, Group* group_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Group_reclaim*/
 
@@ -1435,40 +1428,40 @@ Header_write(ast_runtime* rt, Header* header_v)
     {
         if(header_v->location.defined) {
             status = ast_write_primitive(rt,ast_string,1,&header_v->location.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(header_v->title.defined) {
             status = ast_write_primitive(rt,ast_string,2,&header_v->title.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(header_v->id.defined) {
             status = ast_write_primitive(rt,ast_string,3,&header_v->id.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         size_t size;
         status = ast_write_tag(rt,ast_counted,4);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
         size = Group_get_size(rt,header_v->root);
-        status = ast_write_count(rt,size);
-        if(status != AST_NOERR) {goto done;}
+        status = ast_write_size(rt,size);
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
         status = Group_write(rt,header_v->root);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         if(header_v->version.defined) {
             status = ast_write_primitive(rt,ast_uint32,5,&header_v->version.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Header_write*/
 
@@ -1503,16 +1496,14 @@ Header_read(ast_runtime* rt, Header** header_vp)
             status = ast_read_primitive(rt,ast_string,3,&header_v->id.value);
             } break;
         case 4: {
-            size_t count;
+            size_t size;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Group_read(rt,&header_v->root);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 5: {
             header_v->version.defined = 1;
@@ -1521,7 +1512,7 @@ Header_read(ast_runtime* rt, Header** header_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!header_v->location.defined) {
@@ -1534,12 +1525,13 @@ Header_read(ast_runtime* rt, Header** header_vp)
         header_v->id.value = NULL;
     }
     if(!header_v->version.defined) {
+        header_v->version.defined = 1;
         header_v->version.value = 0;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(header_vp) *header_vp = header_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Header_read*/
 
 ast_err
@@ -1550,30 +1542,30 @@ Header_reclaim(ast_runtime* rt, Header* header_v)
     {
         if(header_v->location.defined) {
             status = ast_reclaim_string(rt,header_v->location.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(header_v->title.defined) {
             status = ast_reclaim_string(rt,header_v->title.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(header_v->id.defined) {
             status = ast_reclaim_string(rt,header_v->id.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         status = Group_reclaim(rt,header_v->root);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     ast_free(rt,(void*)header_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Header_reclaim*/
 
@@ -1628,51 +1620,51 @@ Data_write(ast_runtime* rt, Data* data_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&data_v->varName);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         status = ast_write_primitive(rt,ast_enum,2,&data_v->dataType);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         size_t size;
         if(data_v->section.defined) {
             status = ast_write_tag(rt,ast_counted,3);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Section_get_size(rt,data_v->section.value);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Section_write(rt,data_v->section.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(data_v->bigend.defined) {
             status = ast_write_primitive(rt,ast_bool,4,&data_v->bigend.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(data_v->version.defined) {
             status = ast_write_primitive(rt,ast_uint32,5,&data_v->version.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(data_v->compress.defined) {
             status = ast_write_primitive(rt,ast_enum,6,&data_v->compress.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(data_v->crc32.defined) {
             status = ast_write_primitive(rt,ast_fixed32,7,&data_v->crc32.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Data_write*/
 
@@ -1698,18 +1690,16 @@ Data_read(ast_runtime* rt, Data** data_vp)
             status = ast_read_primitive(rt,ast_enum,2,&data_v->dataType);
             } break;
         case 3: {
-            size_t count;
+            size_t size;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             data_v->section.defined = 1;
             data_v->section.value = NULL;
             status = Section_read(rt,&data_v->section.value);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         case 4: {
             data_v->bigend.defined = 1;
@@ -1733,22 +1723,25 @@ Data_read(ast_runtime* rt, Data** data_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!data_v->bigend.defined) {
+        data_v->bigend.defined = 1;
         data_v->bigend.value = 1;
     }
     if(!data_v->version.defined) {
+        data_v->version.defined = 1;
         data_v->version.value = 0;
     }
     if(!data_v->crc32.defined) {
+        data_v->crc32.defined = 1;
         data_v->crc32.value = 0;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(data_vp) *data_vp = data_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Data_read*/
 
 ast_err
@@ -1758,19 +1751,19 @@ Data_reclaim(ast_runtime* rt, Data* data_v)
 
     {
         status = ast_reclaim_string(rt,data_v->varName);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         if(data_v->section.defined) {
             status = Section_reclaim(rt,data_v->section.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     ast_free(rt,(void*)data_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Data_reclaim*/
 
@@ -1838,22 +1831,22 @@ Range_write(ast_runtime* rt, Range* range_v)
     {
         if(range_v->start.defined) {
             status = ast_write_primitive(rt,ast_uint64,1,&range_v->start.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         status = ast_write_primitive(rt,ast_uint64,2,&range_v->size);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         if(range_v->stride.defined) {
             status = ast_write_primitive(rt,ast_uint64,3,&range_v->stride.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Range_write*/
 
@@ -1887,19 +1880,21 @@ Range_read(ast_runtime* rt, Range** range_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!range_v->start.defined) {
+        range_v->start.defined = 1;
         range_v->start.value = 0;
     }
     if(!range_v->stride.defined) {
+        range_v->stride.defined = 1;
         range_v->stride.value = 1;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(range_vp) *range_vp = range_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Range_read*/
 
 ast_err
@@ -1911,7 +1906,7 @@ Range_reclaim(ast_runtime* rt, Range* range_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Range_reclaim*/
 
@@ -1954,17 +1949,17 @@ Section_write(ast_runtime* rt, Section* section_v)
         int i;
         for(i=0;i<section_v->range.count;i++) {
             status = ast_write_tag(rt,ast_counted,1);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             size = Range_get_size(rt,section_v->range.values[i]);
-            status = ast_write_count(rt,size);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_write_size(rt,size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = Range_write(rt,section_v->range.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Section_write*/
 
@@ -1984,28 +1979,27 @@ Section_read(ast_runtime* rt, Section** section_vp)
         if(status != AST_NOERR) break;
         switch (fieldno) {
         case 1: {
-            size_t count;
+            size_t size;
             Range* tmp;
             if(wiretype != ast_counted) {status=AST_EFAIL; goto done;}
-            status = ast_read_count(rt,&count);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_mark(rt,count);
-            if(status != AST_NOERR) {goto done;}
+            status = ast_read_size(rt,&size);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_mark(rt,size);
             status = Range_read(rt,&tmp);
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_message,&section_v->range,&tmp);
-            if(status != AST_NOERR) {goto done;}
-            status = ast_unmark(rt);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
+            ast_unmark(rt);
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(section_vp) *section_vp = section_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Section_read*/
 
 ast_err
@@ -2017,7 +2011,7 @@ Section_reclaim(ast_runtime* rt, Section* section_v)
         int i;
         for(i=0;i<section_v->range.count;i++) {
             status = Range_reclaim(rt,section_v->range.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,section_v->range.values);
     }
@@ -2025,7 +2019,7 @@ Section_reclaim(ast_runtime* rt, Section* section_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Section_reclaim*/
 
@@ -2057,36 +2051,36 @@ StructureData_write(ast_runtime* rt, StructureData* structuredata_v)
         int i = 0;
         for(i=0;i<structuredata_v->member.count;i++) {
             status = ast_write_primitive(rt,ast_uint32,1,&structuredata_v->member.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         status = ast_write_primitive(rt,ast_bytes,2,&structuredata_v->data);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i = 0;
         for(i=0;i<structuredata_v->heapCount.count;i++) {
             status = ast_write_primitive(rt,ast_uint32,3,&structuredata_v->heapCount.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         int i = 0;
         for(i=0;i<structuredata_v->sdata.count;i++) {
             status = ast_write_primitive(rt,ast_string,4,&structuredata_v->sdata.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
     {
         if(structuredata_v->nrows.defined) {
             status = ast_write_primitive(rt,ast_uint64,5,&structuredata_v->nrows.value);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*StructureData_write*/
 
@@ -2108,9 +2102,9 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
         case 1: {
             uint32_t tmp;
             status = ast_read_primitive(rt,ast_uint32,1,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_uint32,&structuredata_v->member,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             } break;
         case 2: {
             status = ast_read_primitive(rt,ast_bytes,2,&structuredata_v->data);
@@ -2118,16 +2112,16 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
         case 3: {
             uint32_t tmp;
             status = ast_read_primitive(rt,ast_uint32,3,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_uint32,&structuredata_v->heapCount,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             } break;
         case 4: {
             char* tmp;
             status = ast_read_primitive(rt,ast_string,4,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             status = ast_repeat_append(rt,ast_string,&structuredata_v->sdata,&tmp);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
             } break;
         case 5: {
             structuredata_v->nrows.defined = 1;
@@ -2136,16 +2130,17 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
     if(!structuredata_v->nrows.defined) {
+        structuredata_v->nrows.defined = 1;
         structuredata_v->nrows.value = 1;
     }
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(structuredata_vp) *structuredata_vp = structuredata_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*StructureData_read*/
 
 ast_err
@@ -2155,13 +2150,13 @@ StructureData_reclaim(ast_runtime* rt, StructureData* structuredata_v)
 
     {
         status = ast_reclaim_bytes(rt,&structuredata_v->data);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     {
         int i;
         for(i=0;i<structuredata_v->sdata.count;i++) {
             status = ast_reclaim_string(rt,structuredata_v->sdata.values[i]);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }
         ast_free(rt,structuredata_v->sdata.values);
     }
@@ -2169,7 +2164,7 @@ StructureData_reclaim(ast_runtime* rt, StructureData* structuredata_v)
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*StructureData_reclaim*/
 
@@ -2226,11 +2221,11 @@ Error_write(ast_runtime* rt, Error* error_v)
 
     {
         status = ast_write_primitive(rt,ast_string,1,&error_v->message);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Error_write*/
 
@@ -2254,13 +2249,13 @@ Error_read(ast_runtime* rt, Error** error_vp)
             } break;
         default:
             status = ast_skip_field(rt,wiretype,fieldno);
-            if(status != AST_NOERR) {goto done;}
+            if(status != AST_NOERR) {ACATCH(status); goto done;}
         }; /*switch*/
     };/*while*/
-    if(status != AST_NOERR) {goto done;}
+    if(status != AST_NOERR) {ACATCH(status); goto done;}
     if(error_vp) *error_vp = error_v;
 done:
-    return status;
+    return ACATCH(status);
 } /*Error_read*/
 
 ast_err
@@ -2270,13 +2265,13 @@ Error_reclaim(ast_runtime* rt, Error* error_v)
 
     {
         status = ast_reclaim_string(rt,error_v->message);
-        if(status != AST_NOERR) {goto done;}
+        if(status != AST_NOERR) {ACATCH(status); goto done;}
     }
     ast_free(rt,(void*)error_v);
     goto done;
 
 done:
-    return status;
+    return ACATCH(status);
 
 } /*Error_reclaim*/
 
