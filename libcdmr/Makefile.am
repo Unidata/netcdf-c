@@ -83,20 +83,19 @@ bison ccetab.c ccetab.h: cce.y
 
 ##################################################
 # Generate the augmented ncstream structures
-ncStreamx.c ncStreamx.h: ncStreamx.proto ${ASTJAR}
-	java -jar ${ASTJAR} -WdT -I. ncStreamx.proto
+ncStreamx.c ncStreamx.h: ncStreamx.proto ast.jar
+	java -jar ast.jar -WdT -I. ncStreamx.proto
 
 ncStreamx.proto: ncStream.proto extends.sed
 	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
 
-EXTRA_DIST += ${ASTJAR} ncStream.proto ncStream.h ncStream.c extends.sed
+EXTRA_DIST += ast.jar ncStream.proto ncStream.h ncStream.c extends.sed
 
 
 ##################################################
 .PHONEY: jar
 
 ASTDIR=./ast/src/compiler
-
 ASTJAR=${ASTDIR}/ast.jar
 
 jar::
