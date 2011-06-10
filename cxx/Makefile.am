@@ -4,14 +4,6 @@
 
 include $(top_srcdir)/lib_flags.am
 
-CLEANFILES = nctst_classic.nc nctst_64bit_offset.nc nctst_netcdf4.nc	\
-nctst_netcdf4_classic.nc nctst_classic.cdl nctst_64bit_offset.cdl	\
-tst_*.nc 
-
-EXTRA_DIST = ref_nctst.cdl ref_nctst_64bit_offset.cdl			\
-ref_nctst_netcdf4.cdl ref_nctst_netcdf4_classic.cdl run_nc_tests.sh	\
-run_nc4_tests.sh run_valgrind_tests.sh
-
 # nctst creates a simple data file in each format, then uses ncdump to
 # create CDL files, which are compared with some reference files
 # shipped with the code. tst_failure is a program that is intended to
@@ -69,4 +61,12 @@ libnetcdf_c___la_CPPFLAGS += -DDLL_EXPORT
 libnetcdf_c___la_LDFLAGS += -no-undefined	\
 -Wl,--output-def,netcdf_c++dll.def
 endif
+
+CLEANFILES = nctst_classic.nc nctst_64bit_offset.nc nctst_netcdf4.nc	\
+nctst_netcdf4_classic.nc nctst_classic.cdl nctst_64bit_offset.cdl	\
+tst_*.nc 
+
+EXTRA_DIST = ref_nctst.cdl ref_nctst_64bit_offset.cdl			\
+ref_nctst_netcdf4.cdl ref_nctst_netcdf4_classic.cdl run_nc_tests.sh	\
+run_nc4_tests.sh run_valgrind_tests.sh
 
