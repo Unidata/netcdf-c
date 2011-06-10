@@ -3,8 +3,6 @@
 
 
 #include <iostream>
-#include <ncFile.h>
-#include <ncException.h>
 #include <iomanip>
 #include <netcdf>
 using namespace std;
