@@ -692,12 +692,10 @@ copy_var(int igrp, int varid, int ogrp)
 		 * chunking, endianness, deflation, checksumming, fill, etc. */
 		NC_CHECK(copy_var_specials(igrp, varid, ogrp, o_varid));
 	    }
-	    else {	     /* classic or 64-bit offset input file */
-		/* Set chunking if specified in command line option */
-		NC_CHECK(set_var_chunked(ogrp, o_varid));
-		/* Set compression if specified in command line option */
-	    	NC_CHECK(set_var_compressed(ogrp, o_varid));
-	    }
+	    /* Set chunking if specified in command line option */
+	    NC_CHECK(set_var_chunked(ogrp, o_varid));
+	    /* Set compression if specified in command line option */
+	    NC_CHECK(set_var_compressed(ogrp, o_varid));
 	}
     }
 #endif	/* USE_NETCDF4 */
