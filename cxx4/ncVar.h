@@ -848,7 +848,7 @@ namespace netCDF
     void putVar(const std::vector<size_t>& index, const char** datumValue) const;
     /*!  \overload
     */
-    void putVar(const std::vector<size_t>& index, const char* datumValue) const;
+    void putVar(const std::vector<size_t>& index, const std::string& datumValue) const;
     /*!  \overload
     */
     void putVar(const std::vector<size_t>& index, const unsigned char* datumValue) const;
@@ -1135,3 +1135,4 @@ namespace netCDF
 
 
 #endif
+

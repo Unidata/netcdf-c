@@ -1,20 +1,24 @@
 #include <ncException.h>
+#include <sstream>
 using namespace std;
 using namespace netCDF;
 using namespace netCDF::exceptions;
 
 
 // Default object thrown if a netCDF exception is encountered.
-NcException::NcException(const string& name,const string& complaint,const char* file,int line) :
-  message(complaint),
-  exceptionName(name),
-  fileName(file),
-  lnumber(line)
-{
-  if(complaint.length()==0) message = "A netCDF exception has occured";
-}
+NcException::NcException(const string& exceptionNameIn,const string& complaintIn,const char* fileNameIn,int lineNumberIn)
+  :exceptionName(exceptionNameIn), complaint(complaintIn),fileName(fileNameIn), lineNumber(lineNumberIn)
+{}
 
 NcException::~NcException()throw() {}
+
+const char* NcException::what() const throw()
+{
+  std::ostringstream oss;
+  oss << lineNumber;
+  string message(exceptionName+": "+complaint+"\nfile: "+fileName+"  line:"+oss.str());
+  return message.c_str();
+}
 
 
 // Thrown if the specified netCDF ID does not refer to an open netCDF dataset. 
@@ -229,3 +233,4 @@ NcNullType::NcNullType(const string& complaint,const char* file,int line) :
 // Thrown if an operation to set the deflation, chunking, endianness, fill, compression, or checksum of a NcVar object is issued after a call to NcVar::getVar or NcVar::putVar.
 NcElateDef::NcElateDef(const string& complaint,const char* file,int line) :
   NcException("NcElateDef",complaint,file,line) { }
+

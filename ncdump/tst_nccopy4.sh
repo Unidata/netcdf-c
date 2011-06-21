@@ -22,19 +22,29 @@ for i in $TESTFILES ; do
     diff copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
-echo "*** Create deflatable file for testing ..."
+echo "*** Create deflatable files for testing ..."
 ./tst_compress
-echo "*** Test nccopy -d1 can compress a file ..."
+echo "*** Test nccopy -d1 can compress a classic format file ..."
 ./nccopy -d1 tst_inflated.nc tst_deflated.nc
 if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
     exit 1
 fi
-echo "*** Test nccopy -d1 -s can compress even more ..."
+echo "*** Test nccopy -d1 can compress a netCDF-4 format file ..."
+./nccopy -d1 tst_inflated4.nc tst_deflated.nc
+if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated4.nc`; then
+    exit 1
+fi
+echo "*** Test nccopy -d1 -s can compress a classic model netCDF-4 file even more ..."
 ./nccopy -d1 -s tst_inflated.nc tmp.nc
 if test `wc -c < tmp.nc` -ge  `wc -c < tst_inflated.nc`; then
     exit 1
 fi
-rm tst_deflated.nc tst_inflated.nc tmp.nc 
+echo "*** Test nccopy -d1 -s can compress a netCDF-4 file even more ..."
+./nccopy -d1 -s tst_inflated4.nc tmp.nc
+if test `wc -c < tmp.nc` -ge  `wc -c < tst_inflated4.nc`; then
+    exit 1
+fi
+rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp.nc 
 
 echo "*** Testing nccopy -d1 -s on ncdump/*.nc files"
 for i in $TESTFILES ; do
