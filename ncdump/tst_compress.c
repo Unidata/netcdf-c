@@ -28,7 +28,7 @@ main(int argc, char **argv) { /* create a compressible file, for testing */
     int var1_data[DIM1_LEN];	/* data to write */
     int i;
 
-    printf("*** Creating compressible test files %s, %s...", FILENAME);
+    printf("*** Creating compressible test files %s, %s...", FILENAME, FILENAME2);
     if (nc_create(FILENAME, NC_CLOBBER, &ncid)) ERR;
     if (nc_def_dim(ncid, "dim1", DIM1_LEN, &dimid)) ERR;
     var1_dims[0] = dimid;
