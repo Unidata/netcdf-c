@@ -457,7 +457,7 @@ pr_att_valgs(
 	    break;
 	case NC_USHORT:
 	    us = ((unsigned short *) vals)[iel];
-	    printf ("%hdUS%s", us, delim);
+	    printf ("%uUS%s", us, delim);
 	    break;
 	case NC_UINT:
 	    ui = ((unsigned int *) vals)[iel];
