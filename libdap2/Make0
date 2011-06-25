@@ -261,7 +261,8 @@ vpt::
 ##################################################
 #T=test_varm3
 #T=t_dap3b
-T=t_dap3c
+#T=t_dap3c
+T=crash
 
 v::
 	cc -g -c ${T}.c ${INCL}
