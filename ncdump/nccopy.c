@@ -8,6 +8,7 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
+#include <stdio.h>		/* for debugging */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -24,8 +25,11 @@
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)
+#define COPY_CHUNKCACHE_SIZE (10000000) /* default raw chunk cache size */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
 #define CHUNK_THRESHOLD (1024)	/* variables with fewer bytes don't get chunked */
+#define CHUNK_PREEMPTION (1.0f)	/* for copying, can eject fully read chunks when done with them */
+#define CHUNK_NELEMS 50021	/* default number of items in chunk cache, TODO: make settable? */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -33,9 +37,12 @@
 
 /* Global variables for command-line requests */
 char *progname;	       /* for error messages */
+static int option_kind = SAME_AS_INPUT;
 static int option_deflate_level = -1;	/* default, compress output only if input compressed */
 static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
+static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
+static size_t option_chunk_cache_size = COPY_CHUNKCACHE_SIZE;
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -780,7 +787,7 @@ inq_nvals(int igrp, int varid, long long *nvalsp) {
 /* Copy data from variable varid in group igrp to corresponding group
  * ogrp. */
 static int
-copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
+copy_var_data(int igrp, int varid, int ogrp) {
     int stat = NC_NOERR;
     nc_type vartype;
     long long nvalues;		/* number of values for this variable */
@@ -804,17 +811,17 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
     NC_CHECK(nc_inq_vartype(igrp, varid, &vartype));
     /* from type, get size in memory needed for each value */
     NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
-    if(value_size > copybuf_size) {
-	copybuf_size = value_size;
+    if(value_size > option_copy_buffer_size) {
+	option_copy_buffer_size = value_size;
 	do_realloc = 1;
     }
 #ifdef USE_NETCDF4    
-    /* For chunked variables, copy_buf must also be at least as large as
+    /* For chunked variables, option_copy_buffer_size must also be at least as large as
      * size of a chunk in input, otherwise resize it. */
     {
 	NC_CHECK(inq_var_chunksize(igrp, varid, &chunksize));
-	if(chunksize > copybuf_size) {
-	    copybuf_size = chunksize;
+	if(chunksize > option_copy_buffer_size) {
+	    option_copy_buffer_size = chunksize;
 	    do_realloc = 1;
 	}
     }
@@ -824,12 +831,43 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
 	buf = 0;
     }
     if(buf == 0) {		/* first time or needs to grow */
-	buf = emalloc(copybuf_size);
-	memset((void*)buf,0,copybuf_size);
+	buf = emalloc(option_copy_buffer_size);
+	memset((void*)buf,0,option_copy_buffer_size);
+    }
+
+    {  /* for debugging */
+    	int okind;
+    	NC_CHECK(nc_inq_format(ogrp, &okind));
+	if(okind != NC_FORMAT_CLASSIC && okind != NC_FORMAT_64BIT) { /* netCDF-4 file, could use chunking */
+	    /* if this variable chunked, set variable chunk cache to size
+	     * specified by -h option, or default if -h not specified */ 
+	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size, 
+					    CHUNK_NELEMS, CHUNK_PREEMPTION)); 
+	}
+    /* 	if(okind > 2) { */
+    /* 	    NC_CHECK(inq_var_chunksize(ogrp, ovarid, &ochunksize)); */
+    /* 	    NC_CHECK(nc_get_var_chunk_cache(ogrp, ovarid, &ochunk_cache_size, &onelems, &opreemp)); */
+    /* 	    printf("varname, ochunksize, ochunk_cache_size, onelems, opreemp: %s %zu %zu %zu %10.2f\n", */
+    /* 		   varname,  ochunksize, ochunk_cache_size, onelems, opreemp); */
+    /* 	    if(ochunksize > 0) { */
+    /* 		int orank, odim; */
+    /* 		NC_CHECK(nc_inq_varndims(ogrp, ovarid, &orank)); */
+    /* 		size_t *ochunksizes = emalloc(orank * sizeof(size_t) + 1); */
+    /* 		NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, NULL, ochunksizes)); */
+    /* 		if(orank > 0) { */
+    /* 		    printf("chunk lengths: "); */
+    /* 		    for (odim = 0; odim < orank; odim++) { */
+    /* 			printf("%d ", ochunksizes[odim]); */
+    /* 		    } */
+    /* 		    printf("\n"); */
+    /* 		} */
+    /* 		free(ochunksizes); */
+    /* 	    } */
+    /* 	} */
     }
 
     /* initialize variable iteration */
-    NC_CHECK(nc_get_iter(igrp, varid, copybuf_size, &iterp));
+    NC_CHECK(nc_get_iter(igrp, varid, option_copy_buffer_size, &iterp));
 
     start = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
     count = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
@@ -850,13 +888,15 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
 		NC_CHECK(nc_free_vlens(ntoget, (nc_vlen_t *)buf));
 	    }
 	}
-	/* We're all done with this input and output variable, so if
-	 * either variable is chunked, we might as well free up its
-	 * variable chunk cache */
-	NC_CHECK(free_var_chunk_cache(igrp, varid));
-	NC_CHECK(free_var_chunk_cache(ogrp, ovarid));
 #endif	/* USE_NETCDF4 */
     } /* end main iteration loop */
+#ifdef USE_NETCDF4
+    /* We're all done with this input and output variable, so if
+     * either variable is chunked, we might as well free up its
+     * variable chunk cache */
+    NC_CHECK(free_var_chunk_cache(igrp, varid));
+    NC_CHECK(free_var_chunk_cache(ogrp, ovarid));
+#endif	/* USE_NETCDF4 */
     free(start);
     free(count);
     NC_CHECK(nc_free_iter(iterp));
@@ -867,7 +907,7 @@ copy_var_data(int igrp, int varid, int ogrp, size_t copybuf_size) {
  * corresponding group with parent ogrp, and all subgroups
  * recursively  */
 static int
-copy_data(int igrp, int ogrp, size_t copybuf_size)
+copy_data(int igrp, int ogrp)
 {
     int stat = NC_NOERR;
     int ogid;
@@ -883,8 +923,9 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
     
     /* Copy data from this group */
     NC_CHECK(nc_inq_nvars(igrp, &nvars));
+
     for (varid = 0; varid < nvars; varid++) {
-	NC_CHECK(copy_var_data(igrp, varid, ogid, copybuf_size));
+	NC_CHECK(copy_var_data(igrp, varid, ogid));
     }
 #ifdef USE_NETCDF4
     /* Copy data from subgroups */
@@ -893,7 +934,7 @@ copy_data(int igrp, int ogrp, size_t copybuf_size)
     NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
     for(i = 0; i < numgrps; i++) {
-	NC_CHECK(copy_data(grpids[i], ogid, copybuf_size));
+	NC_CHECK(copy_data(grpids[i], ogid));
     }
     free(grpids);
 #endif	/* USE_NETCDF4 */
@@ -952,9 +993,7 @@ count_dims(ncid) {
  */
 static int
 copy(char* infile, char* outfile, 
-     int kind, 			/* kind of output file requested */
-     size_t copybuf_size, 	/* size of buffer used for copying data */
-     const char* chunkspec_s	/* unparsed chunkspec string, from command line */
+     const char* chunkspec_s /* unparsed chunkspec string, from command line */
     )
 {
     int stat = NC_NOERR;
@@ -966,8 +1005,8 @@ copy(char* infile, char* outfile,
 
     NC_CHECK(nc_inq_format(igrp, &inkind));
 
-    outkind = kind;
-    if (kind == SAME_AS_INPUT) {	/* default, kind not specified */
+    outkind = option_kind;
+    if (option_kind == SAME_AS_INPUT) {	/* default, kind not specified */
 	outkind = inkind;
 	/* Deduce output kind if netCDF-4 features requested */
 	if (inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) { 
@@ -1009,7 +1048,7 @@ copy(char* infile, char* outfile,
 	break;
 #endif	/* USE_NETCDF4 */
     default:
-	error("bad value (%d) for -k option\n", kind);
+	error("bad value (%d) for -k option\n", option_kind);
 	break;
     }
     NC_CHECK(nc_set_fill(ogrp, NC_NOFILL, NULL));
@@ -1027,7 +1066,8 @@ copy(char* infile, char* outfile,
     NC_CHECK(dimmap_init(ndims));
     NC_CHECK(copy_schema(igrp, ogrp));
     NC_CHECK(nc_enddef(ogrp));
-    NC_CHECK(copy_data(igrp, ogrp, copybuf_size));
+    
+    NC_CHECK(copy_data(igrp, ogrp));
 
     NC_CHECK(nc_close(igrp));
     NC_CHECK(nc_close(ogrp));
@@ -1057,9 +1097,7 @@ main(int argc, char**argv)
 {
     char* inputfile = NULL;
     char* outputfile = NULL;
-    int kind = SAME_AS_INPUT; /* default, output same format as input */
     int c;
-    size_t copybuf_size = COPY_BUFFER_SIZE; /* default */
     char* chunkspec = 0;
 
 /* table of formats for legal -k values */
@@ -1101,7 +1139,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1122,7 +1160,7 @@ main(int argc, char**argv)
 		(void)strcpy(kind_name, optarg);
 	        for(kvalue=legalkinds;kvalue->name;kvalue++) {
 		    if(strcmp(kind_name,kvalue->name) == 0) {
-		        kind = kvalue->kind;
+		        option_kind = kvalue->kind;
 			break;
 		    }
 		}
@@ -1146,19 +1184,41 @@ main(int argc, char**argv)
 	case 'm':		/* non-default size of data copy buffer */
 	{
 	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
-	    copybuf_size = strtoll(optarg, &suffix, 10);
+	    option_copy_buffer_size = strtoll(optarg, &suffix, 10);
 	    switch (suffix[0]) {
 	    case 'k':
 	    case 'K':
-		copybuf_size *= 1000;
+		option_copy_buffer_size *= 1000;
 		break;
 	    case 'm':
 	    case 'M':
-		copybuf_size *= 1000000;
+		option_copy_buffer_size *= 1000000;
 		break;
 	    case 'g':
 	    case 'G':
-		copybuf_size *= 1000000000;
+		option_copy_buffer_size *= 1000000000;
+		break;
+	    default:
+		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
+	    }		
+	    break;
+	}
+	case 'h':		/* non-default size of chunk cache */
+	{
+	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
+	    option_chunk_cache_size = strtoll(optarg, &suffix, 10);
+	    switch (suffix[0]) {
+	    case 'k':
+	    case 'K':
+		option_chunk_cache_size *= 1000;
+		break;
+	    case 'm':
+	    case 'M':
+		option_chunk_cache_size *= 1000000;
+		break;
+	    case 'g':
+	    case 'G':
+		option_chunk_cache_size *= 1000000000;
 		break;
 	    default:
 		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
@@ -1188,7 +1248,7 @@ main(int argc, char**argv)
 	error("output would overwrite input");
     }
 
-    if(copy(inputfile, outputfile, kind, copybuf_size, chunkspec) != NC_NOERR)
+    if(copy(inputfile, outputfile, chunkspec) != NC_NOERR)
         exit(1);
     return 0;
 }
