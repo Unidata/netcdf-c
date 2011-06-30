@@ -785,6 +785,8 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
+   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+
    # Check for the main hdf5 and hdf5_hl library.
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
    [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
@@ -835,9 +837,7 @@ dnl 	 fi
 
    # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-      AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
-      AC_SEARCH_LIBS([SZ_Compress], [szip], [], 
-      [AC_MSG_ERROR([Can't find or link to the szlib library. Use --disable-netcdf-4, or see config.log for errors.])])
+     AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
    # If the user wants hdf4 built in, check it out.
