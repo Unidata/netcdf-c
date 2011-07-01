@@ -29,7 +29,8 @@
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
 #define CHUNK_THRESHOLD (1024)	/* variables with fewer bytes don't get chunked */
 #define CHUNK_PREEMPTION (1.0f)	/* for copying, can eject fully read chunks when done with them */
-#define CHUNK_NELEMS 50021	/* default number of items in chunk cache, TODO: make settable? */
+/* #define CHUNK_CACHE_NELEMS 50021	/\* default number of items in chunk cache *\/ */
+#define CHUNK_CACHE_NELEMS 5009	/* default number of items in chunk cache */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -43,6 +44,7 @@ static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compr
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
 static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
 static size_t option_chunk_cache_size = COPY_CHUNKCACHE_SIZE;
+static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -520,22 +522,22 @@ set_var_compressed(int ogrp, int o_varid)
 }
 
 /* Release the variable chunk cache allocated for variable varid in
- * group igrp  with it.  This is not necessary, but will save some
- * memory if processing one variable at a time.  */
+ * group grp.  This is not necessary, but will save some memory when
+ * processing one variable at a time.  */
 static int
-free_var_chunk_cache(int igrp, int varid)
+free_var_chunk_cache(int grp, int varid)
 {
     int stat = NC_NOERR;
     size_t chunk_cache_size = 1;
     size_t cache_nelems = 1;
     float cache_preemp = 0;
-    int inkind;
-    NC_CHECK(nc_inq_format(igrp, &inkind));
-    if(inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC) {
+    int kind;
+    NC_CHECK(nc_inq_format(grp, &kind));
+    if(kind == NC_FORMAT_NETCDF4 || kind == NC_FORMAT_NETCDF4_CLASSIC) {
 	int contig = 1;
-	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
+	NC_CHECK(nc_inq_var_chunking(grp, varid, &contig, NULL));
 	if(contig == 0) {	/* chunked */
-	    NC_CHECK(nc_set_var_chunk_cache(igrp, varid, chunk_cache_size, cache_nelems, cache_preemp));
+	    NC_CHECK(nc_set_var_chunk_cache(grp, varid, chunk_cache_size, cache_nelems, cache_preemp));
 	}
     }
     return stat;
@@ -801,6 +803,7 @@ copy_var_data(int igrp, int varid, int ogrp) {
     nciter_t *iterp;		/* opaque structure for iteration status */
     int do_realloc = 0;
     size_t chunksize;
+    int okind;
 
     NC_CHECK(inq_nvals(igrp, varid, &nvalues));
     if(nvalues == 0)
@@ -816,6 +819,16 @@ copy_var_data(int igrp, int varid, int ogrp) {
 	do_realloc = 1;
     }
 #ifdef USE_NETCDF4    
+    NC_CHECK(nc_inq_format(ogrp, &okind));
+    if(okind == NC_FORMAT_NETCDF4 || okind == NC_FORMAT_NETCDF4_CLASSIC) {
+	/* if this variable chunked, set variable chunk cache size */ 
+	int contig = 1;
+	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &contig, NULL));
+	if(contig == 0) {	/* chunked */
+	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size, 
+					    option_chunk_cache_nelems, CHUNK_PREEMPTION)); 
+	}
+    }
     /* For chunked variables, option_copy_buffer_size must also be at least as large as
      * size of a chunk in input, otherwise resize it. */
     {
@@ -833,37 +846,6 @@ copy_var_data(int igrp, int varid, int ogrp) {
     if(buf == 0) {		/* first time or needs to grow */
 	buf = emalloc(option_copy_buffer_size);
 	memset((void*)buf,0,option_copy_buffer_size);
-    }
-
-    {  /* for debugging */
-    	int okind;
-    	NC_CHECK(nc_inq_format(ogrp, &okind));
-	if(okind != NC_FORMAT_CLASSIC && okind != NC_FORMAT_64BIT) { /* netCDF-4 file, could use chunking */
-	    /* if this variable chunked, set variable chunk cache to size
-	     * specified by -h option, or default if -h not specified */ 
-	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size, 
-					    CHUNK_NELEMS, CHUNK_PREEMPTION)); 
-	}
-    /* 	if(okind > 2) { */
-    /* 	    NC_CHECK(inq_var_chunksize(ogrp, ovarid, &ochunksize)); */
-    /* 	    NC_CHECK(nc_get_var_chunk_cache(ogrp, ovarid, &ochunk_cache_size, &onelems, &opreemp)); */
-    /* 	    printf("varname, ochunksize, ochunk_cache_size, onelems, opreemp: %s %zu %zu %zu %10.2f\n", */
-    /* 		   varname,  ochunksize, ochunk_cache_size, onelems, opreemp); */
-    /* 	    if(ochunksize > 0) { */
-    /* 		int orank, odim; */
-    /* 		NC_CHECK(nc_inq_varndims(ogrp, ovarid, &orank)); */
-    /* 		size_t *ochunksizes = emalloc(orank * sizeof(size_t) + 1); */
-    /* 		NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, NULL, ochunksizes)); */
-    /* 		if(orank > 0) { */
-    /* 		    printf("chunk lengths: "); */
-    /* 		    for (odim = 0; odim < orank; odim++) { */
-    /* 			printf("%d ", ochunksizes[odim]); */
-    /* 		    } */
-    /* 		    printf("\n"); */
-    /* 		} */
-    /* 		free(ochunksizes); */
-    /* 	    } */
-    /* 	} */
     }
 
     /* initialize variable iteration */
@@ -892,8 +874,7 @@ copy_var_data(int igrp, int varid, int ogrp) {
     } /* end main iteration loop */
 #ifdef USE_NETCDF4
     /* We're all done with this input and output variable, so if
-     * either variable is chunked, we might as well free up its
-     * variable chunk cache */
+     * either variable is chunked, free up its variable chunk cache */
     NC_CHECK(free_var_chunk_cache(igrp, varid));
     NC_CHECK(free_var_chunk_cache(ogrp, ovarid));
 #endif	/* USE_NETCDF4 */
@@ -1085,10 +1066,12 @@ usage(void)
   [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
   [-u]      convert unlimited dimensions to fixed-size dimensions in output copy\n\
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
+  [-h n]    set size in bytes of chunk_cache for chunked variables\n\
+  [-e n]    set number of elements that chunk_cache can hold\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] infile outfile\n%s",
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] infile outfile\n%s",
 	  progname, USAGE);
 }
 
@@ -1139,7 +1122,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:h:")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1225,6 +1208,12 @@ main(int argc, char**argv)
 	    }		
 	    break;
 	}
+	case 'e':		/* number of elements chunk cache can hold */
+	    option_chunk_cache_nelems = strtol(optarg, NULL, 10);
+	    if(option_chunk_cache_nelems <= 0) {
+		error("invalid value for number of chunk cache elements: %d", option_chunk_cache_nelems);
+	    }
+	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
 	{
 	    /* save chunkspec string for parsing later, once we know input ncid */
