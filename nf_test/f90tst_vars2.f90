@@ -26,7 +26,6 @@ program f90tst_vars2
   integer :: x_dimid, y_dimid
   integer :: nvars, ngatts, ndims, unlimdimid, file_format
   integer :: x, y
-  integer, parameter :: CACHE_NELEMS = 10000, CACHE_SIZE = 1000000
   integer, parameter :: DEFLATE_LEVEL = 4
   integer (kind = 8), parameter :: TOE_SAN_VALUE = 2147483648_8
   character (len = *), parameter :: VAR1_NAME = "Chon-Ji"
@@ -34,7 +33,8 @@ program f90tst_vars2
   character (len = *), parameter :: VAR3_NAME = "Toe-San"
   character (len = *), parameter :: VAR4_NAME = "Won-Hyo"
   character (len = *), parameter :: VAR5_NAME = "Yul-Guk"
-  integer, parameter :: CACHE_SIZE = 8, CACHE_NELEMS = 571, CACHE_PREEMPTION = 66
+  integer, parameter :: CACHE_SIZE = 8, CACHE_NELEMS = 571
+  integer, parameter :: CACHE_PREEMPTION = 66
 
   ! Information read back from the file to check correctness.
   integer :: varid1_in, varid2_in, varid3_in, varid4_in, varid5_in
@@ -74,20 +74,7 @@ program f90tst_vars2
   call check(nf90_def_var(ncid, VAR2_NAME, NF90_INT, dimids, varid2, contiguous = .TRUE.))
   call check(nf90_def_var(ncid, VAR3_NAME, NF90_INT64, varid3))
   call check(nf90_def_var(ncid, VAR4_NAME, NF90_INT, x_dimid, varid4, contiguous = .TRUE.))
-  call check(nf90_def_var(ncid, VAR5_NAME, NF90_INT, dimids, varid5, chunksizes = chunksizes, &
-       option_mask = nf90_szip_ec_option_mask, bits_per_pixel = 16))
-
-  ! As a test, set and the check the chunk cache for one of these
-  ! variables. Really there is no need for this, since the 1 MB cache
-  ! that comes by default is plenty for the tiny size of our
-  ! variable. But for variables with larger chunksizes, a bigger
-  ! per-var chunk cache really helps performance.
-  call check(nf90_set_var_chunk_cache(ncid, varid1, CACHE_SIZE, &
-       CACHE_NELEMS, CACHE_PREEMPTION))
-  call check(nf90_inquire_variable(ncid, varid1_in, cache_size = cache_size_in, &
-       cache_nelems = cache_nelems_in, cache_preemption = cache_preemption_in))
-  if (cache_size_in .ne. CACHE_SIZE .or. cache_nelems_in .ne. &
-       CACHE_NELEMS .or. cache_preemption_in .ne. CACHE_PREEMPTION) stop 1
+  call check(nf90_def_var(ncid, VAR5_NAME, NF90_INT, dimids, varid5, chunksizes = chunksizes))
 
   ! Write the pretend data to the file.
   call check(nf90_put_var(ncid, varid1, data_out))

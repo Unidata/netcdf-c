@@ -1,36 +1,176 @@
-/*
- * Copyright 1993-2010 University Corporation for Atmospheric Research/Unidata
- * 
- * Portions of this software were developed by the Unidata Program at the 
- * University Corporation for Atmospheric Research.
- * 
- * Access and use of this software shall impose the following obligations
- * and understandings on the user. The user is granted the right, without
- * any fee or cost, to use, copy, modify, alter, enhance and distribute
- * this software, and any derivative works thereof, and its supporting
- * documentation for any purpose whatsoever, provided that this entire
- * notice appears in all copies of the software, derivative works and
- * supporting documentation.  Further, UCAR requests that the user credit
- * UCAR/Unidata in any publications that result from the use of this
- * software or in any product that includes this software. The names UCAR
- * and/or Unidata, however, may not be used in any advertising or publicity
- * to endorse or promote any products or commercial entity unless specific
- * written permission is obtained from UCAR/Unidata. The user also
- * understands that UCAR/Unidata is not obligated to provide the user with
- * any support, consulting, training or assistance of any kind with regard
- * to the use, operation and performance of this software nor to provide
- * the user with any updates, revisions, new versions or "bug fixes."
- * 
- * THIS SOFTWARE IS PROVIDED BY UCAR/UNIDATA "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL UCAR/UNIDATA BE LIABLE FOR ANY SPECIAL,
- * INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-/* "$Id: netcdf.h,v 1.1 2010/06/01 15:46:49 ed Exp $" */
+/*! \defgroup license License 
+
+NetCDF License
+
+Copyright 1993-2011 
+Unidata
+University Corporation for Atmospheric Research 
+
+Portions of this software were developed by the Unidata Program at the 
+University Corporation for Atmospheric Research.
+
+Access and use of this software shall impose the following obligations
+and understandings on the user. The user is granted the right, without
+any fee or cost, to use, copy, modify, alter, enhance and distribute
+this software, and any derivative works thereof, and its supporting
+documentation for any purpose whatsoever, provided that this entire
+notice appears in all copies of the software, derivative works and
+supporting documentation.  Further, UCAR requests that the user credit
+UCAR/Unidata in any publications that result from the use of this
+software or in any product that includes this software. The names UCAR
+and/or Unidata, however, may not be used in any advertising or publicity
+to endorse or promote any products or commercial entity unless specific
+written permission is obtained from UCAR/Unidata. The user also
+understands that UCAR/Unidata is not obligated to provide the user with
+any support, consulting, training or assistance of any kind with regard
+to the use, operation and performance of this software nor to provide
+the user with any updates, revisions, new versions or "bug fixes."
+
+THIS SOFTWARE IS PROVIDED BY UCAR/UNIDATA "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL UCAR/UNIDATA BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
+
+*/
+
+/*! \defgroup getting Getting NetCDF
+
+The easiest way to get netCDF is through a package management program,
+such as rpm, yum, adept, and others. NetCDF is available from many
+different repositories, including the default Red Hat and Ubuntu
+repositories.
+
+When getting netCDF from a software repository, you will wish to get
+the development version of the package ("netcdf-devel"). This includes
+the netcdf.h header file.
+
+\defgroup building Building NetCDF
+
+When building netCDF-4, you must first decide whether to support the
+use of HDF5 as a storage format. 
+
+@section Building NetCDF Without HDF5
+
+If you don't want netCDF-4/HDF5, then build like this:
+
+<code>
+./configure --prefix=/home/ed/local --disable-netcdf-4
+make check install
+</code>
+
+(Replace ``/home/ed/local'' with the name of the directory where
+netCDF is to be installed.) 
+
+If you get the message that netCDF installed correctly, then you are
+done!
+
+<h1>Building NetCDF With HDF5</h1>
+
+If you want to use the HDF5 storage format, you must have the HDF5
+1.8.6 release. You must also have the zlib compression library,
+version 1.2.5. Both of these packages are available from the <a
+href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
+site</a>.
+
+Make sure you run ``make check'' for the HDF5 and zlib
+distributions. They are very well-behaved distributions, but sometimes
+the build doesn't work (perhaps because of something subtly
+misconfigured on the target machine). If one of these libraries is not
+working, netCDF will have serious problems.
+
+Optionally, you can also build netCDF-4 with the szip 2.0 library
+(a.k.a. szlib). NetCDF cannot create szipped data files, but can read
+HDF5 data files that have used szip.
+
+There are license restrictions on the use of szip, see
+the <a href="http://www.hdfgroup.org/HDF5/">HDF5 web page</a>. These
+license restrictions seem to apply to commercial users who are writing
+data. (Data readers are not restricted.) But here at NetCDF World
+Headquarters, in Sunny Boulder, Colorado, there are no lawyers, only
+programmers, so please read the szip documents for the license
+agreement to see how it applies to your situation.
+
+If ``make check'' fails for either zlib or HDF5, the problem must be
+resolved before the netCDF-4 installation can continue. For HDF5
+problems, send email to the HDF5 help desk:
+help@hdfgroup.org.
+
+Build zlib like this:
+
+<code>
+./configure --prefix=/home/ed/local
+make check install
+</code>
+
+Then you build HDF5, specifying the location of the zlib library:
+
+<code>
+./configure --with-zlib=/home/ed/local --prefix=/home/ed/local 
+make check install
+</code>
+
+Note that for shared libraries, you may need to add the install
+directory to the LD_LIBRARY_PATH environment variable. See
+the <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#Shared%20Libraries">netCDF
+FAQ</a> for more details on using shared libraries.
+
+If you are building HDF5 with szip, then include the --with-szlib=
+option, with the directory holding the szip library.
+
+After HDF5 is done, build netcdf, specifying the location of the
+HDF5, zlib, and (if built into HDF5) the szip header files and
+libraries in the CPPFLAGS and LDFLAGS environment variables.
+
+<code>
+CPPFLAGS=-I/home/ed/local/include LDFLAGS=-L/home/ed/local/lib ./configure --prefix=/home/ed/local
+make check install
+</code>
+
+The configure script will try to find necessary tools in your
+path. When you run configure you may optionally use the --prefix
+argument to change the default installation directory. The above
+examples install the zlib, HDF5, and netCDF-4 libraries in
+/home/ed/local/lib, the header file in /home/ed/local/include, and the
+utilities in /home/ed/local/bin.
+
+The default install root is /usr/local (so there's no need to use the
+prefix argument if you want the software installed there).
+
+If HDF5 and zlib are found on your system, they will be used by netCDF
+in the build. To prevent this use the --disable-netcdf-4 argument to
+configure.
+
+For static build, to use netCDF-4 you must link to all the libraries,
+netCDF, HDF5, zlib, and (if used with HDF5 build) szip. This will mean
+-L options to your build for the locations of the libraries, and -l
+(lower-case L) for the names of the libraries.
+
+For example, one user reports that she can build other applications
+with netCDF-4 by setting the LIBS envoronment variable:
+
+<code>
+LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
+</code>
+
+For shared builds, only -lnetcdf is needed. All other libraries will
+be found automatically.
+
+The nc-config command can be used to learn what options are needed for
+the local netCDF installation.
+
+<h1>Building with HDF4 Support</h1>
+
+The netCDF-4 library can (since version 4.1) read HDF4 data files, if
+they were created with the SD (Scientific Data) API. To enable this
+feature, use the --enable-hdf4 option. The location for the HDF4
+header files and library must be set in the CPPFLAGS and LDFLAGS
+options.
+
+*/
 
 #ifndef _NETCDF_
 #define _NETCDF_
@@ -1831,3 +1971,6 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #endif
 
 #endif /* _NETCDF_ */
+
+
+

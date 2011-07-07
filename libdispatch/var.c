@@ -608,18 +608,18 @@ NCDEFAULT_put_varm(
       /*
        * Verify stride argument.
        */
-      if(stride != NULL)
-	 stride1 = 1;
-	 for (idim = 0; idim <= maxidim; ++idim)
-	 {
+      stride1 = 1; // assume ok;
+      if(stride != NULL) {
+	 for (idim = 0; idim <= maxidim; ++idim) {
             if ((stride[idim] == 0)
 		/* cast needed for braindead systems with signed size_t */
                 || ((unsigned long) stride[idim] >= X_INT_MAX))
-            {
+	    {
 	       return NC_ESTRIDE;
             }
 	    if(stride[idim] != 1) stride1 = 0;
 	 }
+      }
 
       /* If stride1 is true, and there is no imap, then call get_vara
          directly
