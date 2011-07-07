@@ -25,12 +25,9 @@
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)
-#define COPY_CHUNKCACHE_SIZE (10000000) /* default raw chunk cache size */
+#define COPY_CHUNKCACHE_PREEMPTION (1.0f) /* for copying, can eject fully read chunks */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
 #define CHUNK_THRESHOLD (1024)	/* variables with fewer bytes don't get chunked */
-#define CHUNK_PREEMPTION (1.0f)	/* for copying, can eject fully read chunks when done with them */
-/* #define CHUNK_CACHE_NELEMS 50021	/\* default number of items in chunk cache *\/ */
-#define CHUNK_CACHE_NELEMS 5009	/* default number of items in chunk cache */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -43,8 +40,9 @@ static int option_deflate_level = -1;	/* default, compress output only if input 
 static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
 static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
-static size_t option_chunk_cache_size = COPY_CHUNKCACHE_SIZE;
-static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
+static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config.h */
+static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
+static int option_global_chunk_cache = 1;		      /* default, use global chunk cache */
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -132,6 +130,82 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
 	*chunksizep = prod;
     }
     free(chunksizes);
+    return stat;
+}
+
+/* Return estimated number of elems required in chunk cache and
+ * estimated size of chunk cache adequate to efficiently copy input
+ * variable ivarid to output variable ovarid, which may have different
+ * chunk size and shape */
+static int
+inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
+			size_t* chunkcache_sizep,
+			size_t *chunkcache_nelemsp,
+                        float * chunkcache_preemptionp)
+{
+    int stat = NC_NOERR;
+    int ndims;
+    size_t *ichunksizes, *ochunksizes;
+    int dim;
+    int icontig = 1, ocontig = 1;
+    nc_type vartype;
+    size_t value_size;
+    size_t prod, iprod, oprod;
+    size_t nelems;
+    *chunkcache_nelemsp = CHUNK_CACHE_NELEMS;
+    *chunkcache_sizep = CHUNK_CACHE_SIZE;
+    *chunkcache_preemptionp = COPY_CHUNKCACHE_PREEMPTION;
+
+    NC_CHECK(nc_inq_varndims(igrp, ivarid, &ndims));
+    if(ndims > 0) {
+	NC_CHECK(nc_inq_var_chunking(igrp, ivarid, &icontig, NULL));
+	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, NULL));
+    }
+    if(icontig == 1 && ocontig == 1) { /* no chunking in input or output */
+	*chunkcache_nelemsp = 0;
+	*chunkcache_sizep = 0;
+	*chunkcache_preemptionp = 0;
+	return stat;
+    }
+
+    NC_CHECK(nc_inq_vartype(igrp, ivarid, &vartype));
+    NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
+    iprod = value_size;
+
+    if(icontig == 0 && ocontig == 1) { /* chunking only in input */
+	*chunkcache_nelemsp = 1;       /* read one input chunk at a time */
+	*chunkcache_sizep = iprod;
+	*chunkcache_preemptionp = 1.0f;
+	return stat;
+    }
+
+    ichunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    if(icontig == 1) { /* if input contiguous, treat as if chunked on
+			* first dimension */
+	ichunksizes[0] = 1;
+	for(dim = 1; dim < ndims; dim++) {
+	    ichunksizes[dim] = dim;
+	}
+    } else {
+	NC_CHECK(nc_inq_var_chunking(igrp, ivarid, &icontig, ichunksizes));
+    }
+
+    /* now can assume chunking in both input and output */
+    ochunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, ochunksizes));
+
+    nelems = 1;
+    oprod = value_size;
+    for(dim = 0; dim < ndims; dim++) {
+	nelems += 1 + (ichunksizes[dim] - 1) / ochunksizes[dim];
+	iprod *= ichunksizes[dim];
+	oprod *= ochunksizes[dim];
+    }
+    prod = iprod + oprod * (nelems - 1);
+    *chunkcache_nelemsp = nelems;
+    *chunkcache_sizep = prod;
+    free(ichunksizes);
+    free(ochunksizes);
     return stat;
 }
 
@@ -825,8 +899,30 @@ copy_var_data(int igrp, int varid, int ogrp) {
 	int contig = 1;
 	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &contig, NULL));
 	if(contig == 0) {	/* chunked */
-	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size, 
-					    option_chunk_cache_nelems, CHUNK_PREEMPTION)); 
+	    if(option_global_chunk_cache) { /* by default, use same
+					     * global chunk cache for
+					     * all chunked
+					     * variables */
+	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size,
+	    				    option_chunk_cache_nelems,
+	    				    COPY_CHUNKCACHE_PREEMPTION));
+	    } else {		/* if experimental "-x" option
+				 * specified, try to estimate
+				 * variable-specific chunk cache,
+				 * depending on specific size and
+				 * shape of this variable's chunks */
+		size_t chunkcache_size, chunkcache_nelems;
+		float chunkcache_preemption;
+		NC_CHECK(inq_var_chunking_params(igrp, varid, ogrp, ovarid,
+						 &chunkcache_size, 
+						 &chunkcache_nelems, 
+						 &chunkcache_preemption));
+		printf("%s chunkcache_size, chunkcache_nelems: %ld, %ld\n", 
+		       varname, chunkcache_size, chunkcache_nelems); /* for debugging */
+		NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, chunkcache_size, 
+						chunkcache_nelems, 
+						chunkcache_preemption)); 
+	    }
 	}
     }
     /* For chunked variables, option_copy_buffer_size must also be at least as large as
@@ -922,7 +1018,7 @@ copy_data(int igrp, int ogrp)
     return stat;
 }
 
-/* Count total number of dimensions in ncid and all is subgroups */
+/* Count total number of dimensions in ncid and all its subgroups */
 int
 count_dims(ncid) {
     int numgrps;
@@ -941,29 +1037,6 @@ count_dims(ncid) {
     free(grpids); 
     return ndims;
 }
-
-
-/* Allocate an int array for mapping input dimids to output dimids, to
- * be filled in and used later, with odimid = dimmap[idimid]. */
-/* void */
-/* dimmap_init(int ncid, int** dimmap_p) { */
-/*     int numgrps; */
-/*     int *grpids; */
-/*     int igrp; */
-/*     int ndims=0; */
-/*     /\* get total number of groups and their ids, including all descendants *\/ */
-/*     NC_CHECK(nc_inq_grps_full(ncid, &numgrps, NULL)); */
-/*     grpids = emalloc(numgrps * sizeof(int)); */
-/*     NC_CHECK(nc_inq_grps_full(ncid, NULL, grpids)); */
-/*     for(igrp = 0; igrp < numgrps; igrp++) { */
-/* 	int ndims_local; */
-/* 	nc_inq_ndims(grpids[igrp], &ndims_local); */
-/* 	ndims += ndims_local; */
-/*     } */
-/*     *dimmap_p = (int *) emalloc(ndims * sizeof(int)); */
-/*     free(grpids);  */
-/* } */
-
 
 /* copy infile to outfile using netCDF API, kind specifies which
  * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
@@ -1068,10 +1141,11 @@ usage(void)
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
+  [-x]      use experimental computed estimates for variable-specific chunk caches\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] infile outfile\n%s",
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] [-x] infile outfile\n%s",
 	  progname, USAGE);
 }
 
@@ -1122,7 +1196,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:x")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1166,53 +1240,66 @@ main(int argc, char**argv)
 	    break;
 	case 'm':		/* non-default size of data copy buffer */
 	{
-	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
-	    option_copy_buffer_size = strtoll(optarg, &suffix, 10);
-	    switch (suffix[0]) {
-	    case 'k':
-	    case 'K':
-		option_copy_buffer_size *= 1000;
-		break;
-	    case 'm':
-	    case 'M':
-		option_copy_buffer_size *= 1000000;
-		break;
-	    case 'g':
-	    case 'G':
-		option_copy_buffer_size *= 1000000000;
-		break;
-	    default:
-		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
-	    }		
+	    double dval;
+	    char *suffix = 0;	/* "K" for kilobytes. "M" for megabytes, ... */
+	    dval = strtod(optarg, &suffix);
+	    if(*suffix) {
+		switch (*suffix) {
+		case 'k': case 'K':
+		    dval *= 1000;
+		    break;
+		case 'm': case 'M':
+		    dval *= 1000000;
+		    break;
+		case 'g': case 'G':
+		    dval *= 1000000000;
+		    break;
+		case 't': case 'T':
+		    dval *= 1.0e12;
+		    break;
+		default:
+		    error("If suffix used for '-m' option value, it must be K, M, G, or T: %c", 
+			  *suffix);
+		}		
+	    }
+	    option_copy_buffer_size = dval;
 	    break;
 	}
 	case 'h':		/* non-default size of chunk cache */
 	{
-	    char *suffix = 0;	/* "k" for kilobytes or "m" for megabytes */
-	    option_chunk_cache_size = strtoll(optarg, &suffix, 10);
-	    switch (suffix[0]) {
-	    case 'k':
-	    case 'K':
-		option_chunk_cache_size *= 1000;
-		break;
-	    case 'm':
-	    case 'M':
-		option_chunk_cache_size *= 1000000;
-		break;
-	    case 'g':
-	    case 'G':
-		option_chunk_cache_size *= 1000000000;
-		break;
-	    default:
-		error("Suffix for '-m' option value not k, m, or g: %c", suffix[0]);
-	    }		
+	    double dval;
+	    char *suffix = 0;	/* "K" for kilobytes, "M" for megabytes, ... */
+	    dval = strtod(optarg, &suffix);
+	    if(*suffix) {
+		switch (*suffix) {
+		case 'k': case 'K':
+		    option_chunk_cache_size *= 1000;
+		    break;
+		case 'm': case 'M':
+		    option_chunk_cache_size *= 1000000;
+		    break;
+		case 'g': case 'G':
+		    option_chunk_cache_size *= 1000000000;
+		    break;
+		case 't': case 'T':
+		    option_chunk_cache_size *= 1.0e12;
+		    break;
+		default:
+		    error("If suffix used for '-h' option value, it must be K, M, G, or T: %c", 
+			  *suffix);
+		}		
+	    }
+	    option_chunk_cache_size = dval;
 	    break;
-	}
+	    }
 	case 'e':		/* number of elements chunk cache can hold */
 	    option_chunk_cache_nelems = strtol(optarg, NULL, 10);
 	    if(option_chunk_cache_nelems <= 0) {
 		error("invalid value for number of chunk cache elements: %d", option_chunk_cache_nelems);
 	    }
+	    break;
+	case 'x':		/* use experimental variable-specific chunk caches */
+	    option_global_chunk_cache = 0;
 	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
 	{
