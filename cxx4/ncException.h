@@ -16,26 +16,19 @@ namespace netCDF
   {
 
     /*! 
-      Default object thrown if a netCDF exception is encountered.
-      An unsatisfactory return from a call to one of the netCDF c-routines 
+      Base object is thrown if a netCDF exception is encountered.
+      An unsatisfactory return from a call to one of the netCDF C-routines 
       generates an exception using an object inheriting this class.  All other netCDF-related
       errors  including those originating in the C++ binding, generates an NcException.
     */
-    class NcException : public std::exception
-    {
+    class NcException : public std::exception {
     public:
-      NcException(const std::string& exceptionName,const std::string& complaint,const char* file,int line);
+      NcException(const std::string& exceptionName,const std::string& complaint,const char* fileName,int lineNumber);
       virtual ~NcException() throw();
-      void what()
-      {
-	//	std::cout<<fileName<<":"<<lnumber<<" "<<message<<std::endl;
-	std::cout<<fileName<<":"<<lnumber<<" thrown exception "<<exceptionName<<".\n"<<message<<std::endl;
-      }
+      const char* what() const throw();
     private:
-      std::string message;      //error mesasge
-      std::string exceptionName;//name of the exception
-      std::string fileName;     //file containing the error
-      int lnumber;              //line number where the error occurs
+      std::string exceptionName, complaint, fileName;
+      int lineNumber;
     };
 
 
@@ -436,3 +429,4 @@ namespace netCDF
 }
 
 #endif
+

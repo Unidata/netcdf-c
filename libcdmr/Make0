@@ -45,15 +45,6 @@ clean::
 	rm -f *.stackdump
 
 ##################################################
-
-ASTSRC=ast_byteio.c ast_byteio.h ast_curl.c ast_curl.h \
-ast_debug.c ast_debug.h ast_internal.c ast_internal.h \
-ast_runtime.c ast_runtime.h ast_util.c ast_util.h
-
-sync synch::
-	'cp' -f ${ASTSRC} .
-
-##################################################
 # ncd
 S=chunkspec.c dimmap.c dumplib.c indent.c ncdump.c nciter.c nctime.c utils.c vardata.c
 

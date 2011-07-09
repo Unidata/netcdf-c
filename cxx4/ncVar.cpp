@@ -775,12 +775,15 @@ void NcVar::putVar(const void* dataValues) const {
 
 ///////////////////
 // Writes a single datum value into the netCDF variable.
-void NcVar::putVar(const vector<size_t>& index, const char* datumValue) const {
+void NcVar::putVar(const vector<size_t>& index, const string& datumValue) const {
   NcType::ncType typeClass(getType().getTypeClass());
   if(typeClass == NcType::nc_VLEN | typeClass == NcType::nc_OPAQUE | typeClass == NcType::nc_ENUM | typeClass == NcType::nc_COMPOUND) 
     throw NcException("NcException","user-defined type must be of type void",__FILE__,__LINE__);
   else
-    ncCheck(nc_put_var1_text(groupId, myId,&index[0],datumValue),__FILE__,__LINE__);
+    {
+      const char* tmpPtr = datumValue.c_str();
+      ncCheck(nc_put_var1_string(groupId, myId,&index[0],&tmpPtr),__FILE__,__LINE__);
+    }
 }
 // Writes a single datum value into the netCDF variable.
 void NcVar::putVar(const vector<size_t>& index, const unsigned char* datumValue) const {
@@ -1785,4 +1788,5 @@ void NcVar::getVar(const vector<size_t>& startp, const vector<size_t>& countp, c
 void NcVar::getVar(const vector<size_t>& startp, const vector<size_t>& countp, const vector<ptrdiff_t>& stridep, const vector<ptrdiff_t>& imapp, void* dataValues) const {
     ncCheck(nc_get_varm(groupId, myId,&startp[0],&countp[0],&stridep[0],&imapp[0],dataValues),__FILE__,__LINE__);
 }
+
 

@@ -66,7 +66,7 @@ ftst_vars6 ftst_types ftst_types2 ftst_types3 ftst_groups
 if BUILD_F90
 check_PROGRAMS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen	\
 tst_f90_nc4 f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3		\
-f90tst_vars4
+f90tst_vars4 f90tst_vars2
 tst_f90_nc4_SOURCES = tst_f90_nc4.f90
 f90tst_vars_SOURCES = f90tst_vars.f90
 tst_types_SOURCES = tst_types.f90
@@ -75,16 +75,12 @@ f90tst_vars_vlen_SOURCES = f90tst_vars_vlen.f90
 f90tst_grps_SOURCES = f90tst_grps.f90
 f90tst_fill_SOURCES = f90tst_fill.f90
 f90tst_fill2_SOURCES = f90tst_fill2.f90
+f90tst_vars2_SOURCES = f90tst_vars2.f90
 f90tst_vars3_SOURCES = f90tst_vars3.f90
 f90tst_vars4_SOURCES = f90tst_vars4.f90
 TESTS += f90tst_vars tst_types tst_types2 f90tst_vars_vlen tst_f90_nc4	\
-f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3 f90tst_vars4
-
-if USE_SZIP
-check_PROGRAMS += f90tst_vars2 
-TESTS += f90tst_vars2
-f90tst_vars2_SOURCES = f90tst_vars2.f90
-endif
+f90tst_grps f90tst_fill f90tst_fill2 f90tst_vars3 f90tst_vars4		\
+f90tst_vars2
 
 # This is a netCDF-4 V2 test program.
 if BUILD_V2
@@ -134,7 +130,6 @@ endif # TEST_F77
 
 endif #USE_NETCDF4
 
-if BUILD_C
 # This is the fortran v2 test. It depends on the utilities being built
 # to generate it's input file.
 if BUILD_V2
@@ -144,7 +139,6 @@ ftest_SOURCES = ftest.F fortlib.c
 TESTS += ftest
 endif # BUILD_UTILITIES
 endif # BUILD_V2
-endif #BUILD_C
 
 if BUILD_F90
 check_PROGRAMS += tst_f90

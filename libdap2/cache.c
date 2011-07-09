@@ -222,7 +222,8 @@ fprintf(stderr,"buildcachenode: new cache node: %s\n",
 	NCcache* cache = nccomm->cdf.cache;
 	if(cache->nodes == NULL) cache->nodes = nclistnew();
 	/* remove cache nodes to get below the max cache size */
-	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit) {
+	while(cache->cachesize + cachenode->xdrsize > cache->cachelimit
+	      && nclistlength(cache->nodes) > 0) {
 	    NCcachenode* node = (NCcachenode*)nclistremove(cache->nodes,0);
 #ifdef DEBUG
 fprintf(stderr,"buildcachenode: purge cache node: %s\n",

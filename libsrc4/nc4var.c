@@ -329,10 +329,17 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Do we have any big data overhangs? They can be dangerous to
     * babies, the elderly, or confused campers who have had too much
     * beer. */
-#define NC_ALLOWED_OVERHANG .1
    for (d = 0; d < var->ndims; d++)
-      for ( ; var->dim[d]->len % var->chunksizes[d] > var->dim[d]->len * NC_ALLOWED_OVERHANG; )
-	 var->chunksizes[d] -= var->dim[d]->len * NC_ALLOWED_OVERHANG;
+   {
+       int num_chunks;
+       size_t overhang;
+       assert(var->chunksizes[d] > 0);
+       num_chunks = (var->dim[d]->len + var->chunksizes[d] - 1) / var->chunksizes[d];
+       if(num_chunks > 0) {
+	   overhang = (num_chunks * var->chunksizes[d]) - var->dim[d]->len;
+	   var->chunksizes[d] -= overhang / num_chunks;
+       }
+   }
 
    return NC_NOERR;
 }
