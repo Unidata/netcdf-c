@@ -1,0 +1,155 @@
+/*! \file
+Documentation for getting and building netCDF
+
+\page getting Getting NetCDF
+
+The easiest way to get netCDF is through a package management program,
+such as rpm, yum, adept, and others. NetCDF is available from many
+different repositories, including the default Red Hat and Ubuntu
+repositories.
+
+When getting netCDF from a software repository, you will wish to get
+the development version of the package ("netcdf-devel"). This includes
+the netcdf.h header file.
+
+Unfortunately, you may not be able to get a recent version of netCDF
+from a package management system, in which case you must build from
+source code. Get one of the distributions below.
+
+The <a href=ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz>source
+distribution for the latest full release</a> is the latest,
+fully-tested release.
+
+The <a
+href=ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz>daily
+snapshot</a> is generated nightly at the Unidata Program Center. It
+has passed all tests on our many Linux test machine, but not
+necessarily all platform compatibility tests. 
+
+\note The daily snapshot release contains bug-fixes and new features
+added since the last full release. It may also contain portability
+bugs.
+
+\page building Building NetCDF
+
+You must decide whether to support the use of HDF5 as a storage
+format.
+
+<h1>Building NetCDF Without HDF5</h1>
+
+If you don't want netCDF-4/HDF5, then build like this:
+
+<code>
+./configure --prefix=/home/ed/local --disable-netcdf-4
+make check install
+</code>
+
+(Replace ``/home/ed/local'' with the name of the directory where
+netCDF is to be installed.) 
+
+If you get the message that netCDF installed correctly, then you are
+done!
+
+<h1>Building NetCDF With HDF5</h1>
+
+If you want to use the HDF5 storage format, you must have the HDF5
+1.8.7 release. You must also have the zlib compression library,
+version 1.2.5. Both of these packages are available from the <a
+href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
+site</a>.
+
+Make sure you run ``make check'' for the HDF5 and zlib
+distributions. They are very well-behaved distributions, but sometimes
+the build doesn't work (perhaps because of something subtly
+misconfigured on the target machine). If one of these libraries is not
+working, netCDF will have serious problems.
+
+Optionally, you can also build netCDF-4 with the szip 2.0 library
+(a.k.a. szlib). NetCDF cannot create szipped data files, but can read
+HDF5 data files that have used szip.
+
+There are license restrictions on the use of szip, see
+the <a href="http://www.hdfgroup.org/HDF5/">HDF5 web page</a>. These
+license restrictions seem to apply to commercial users who are writing
+data. (Data readers are not restricted.) But here at NetCDF World
+Headquarters, in Sunny Boulder, Colorado, there are no lawyers, only
+programmers, so please read the szip documents for the license
+agreement to see how it applies to your situation.
+
+If ``make check'' fails for either zlib or HDF5, the problem must be
+resolved before the netCDF-4 installation can continue. For HDF5
+problems, send email to the HDF5 help desk:
+help@hdfgroup.org.
+
+Build zlib like this:
+
+<code>
+./configure --prefix=/home/ed/local
+make check install
+</code>
+
+Then you build HDF5, specifying the location of the zlib library:
+
+<code>
+./configure --with-zlib=/home/ed/local --prefix=/home/ed/local 
+make check install
+</code>
+
+Note that for shared libraries, you may need to add the install
+directory to the LD_LIBRARY_PATH environment variable. See
+the <a href="http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#Shared%20Libraries">netCDF
+FAQ</a> for more details on using shared libraries.
+
+If you are building HDF5 with szip, then include the --with-szlib=
+option, with the directory holding the szip library.
+
+After HDF5 is done, build netcdf, specifying the location of the
+HDF5, zlib, and (if built into HDF5) the szip header files and
+libraries in the CPPFLAGS and LDFLAGS environment variables.
+
+<code>
+CPPFLAGS=-I/home/ed/local/include LDFLAGS=-L/home/ed/local/lib ./configure --prefix=/home/ed/local
+make check install
+</code>
+
+The configure script will try to find necessary tools in your
+path. When you run configure you may optionally use the --prefix
+argument to change the default installation directory. The above
+examples install the zlib, HDF5, and netCDF-4 libraries in
+/home/ed/local/lib, the header file in /home/ed/local/include, and the
+utilities in /home/ed/local/bin.
+
+The default install root is /usr/local (so there's no need to use the
+prefix argument if you want the software installed there).
+
+If HDF5 and zlib are found on your system, they will be used by netCDF
+in the build. To prevent this use the --disable-netcdf-4 argument to
+configure.
+
+For static build, to use netCDF-4 you must link to all the libraries,
+netCDF, HDF5, zlib, and (if used with HDF5 build) szip. This will mean
+-L options to your build for the locations of the libraries, and -l
+(lower-case L) for the names of the libraries.
+
+For example, one user reports that she can build other applications
+with netCDF-4 by setting the LIBS envoronment variable:
+
+<code>
+LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
+</code>
+
+For shared builds, only -lnetcdf is needed. All other libraries will
+be found automatically.
+
+The nc-config command can be used to learn what options are needed for
+the local netCDF installation.
+
+<h1>Building with HDF4 Support</h1>
+
+The netCDF-4 library can (since version 4.1) read HDF4 data files, if
+they were created with the SD (Scientific Data) API. To enable this
+feature, use the --enable-hdf4 option. The location for the HDF4
+header files and library must be set in the CPPFLAGS and LDFLAGS
+options.
+
+*/

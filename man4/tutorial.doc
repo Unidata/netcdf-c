@@ -1,0 +1,221 @@
+/*! \file
+The tutorial document.
+
+\page tutorial Tutorial 
+
+\section What is NetCDF?
+
+NetCDF is a set of data formats, programming interfaces, and software
+libraries that help read and write scientific data files.
+
+NetCDF was developed and is maintained at Unidata, part of the
+University Corporation for Atmospheric Research (UCAR) Office of
+Programs (UOP). Unidata is funded primarily by the National Science
+Foundation.
+
+Unidata provides data and software tools for use in geoscience
+education and research. For more information see the web sites of <a
+href="http://www.unidata.ucar.edu">Unidata</a>, <a
+href="http://www.uop.ucar.edu">UOP</a>, and <a
+href="http://www.ucar.edu">UCAR</a>.
+
+This tutorial may serve as an introduction to netCDF. See the <a
+href="http://www.unidata.ucar.edu/software/netcdf/docs/">netCDF
+documentation page</a> for more information.
+
+\section classic_model The Classic Model
+
+The classic netCDF data model consists of variables, dimensions, and
+attributes. This way of thinking about data was introduced with the
+very first netCDF release, and is still the core of all netCDF files.
+
+(In version 4.0, the netCDF data model has been expanded. See Common
+Data Model.)
+
+<table>
+<tr><td>
+Variables
+</td><td>
+N-dimensional arrays of data. Variables in netCDF files can be one
+of six types (char, byte, short, int, float, double).
+</td></tr>
+
+<tr><td>
+Dimensions
+</td><td>
+describe the axes of the data arrays. A dimension has a name and a
+length. An unlimited dimension has a length that can be expanded at
+any time, as more data are written to it. NetCDF files can contain at
+most one unlimited dimension.
+</td></tr>
+
+<tr><td>
+Attributes
+</td><td>
+annotate variables or files with small notes or supplementary
+metadata. Attributes are always scalar values or 1D arrays, which can
+be associated with either a variable or the file as a whole. Although
+there is no enforced limit, the user is expected to keep attributes
+small.
+</td></tr>
+
+</table>
+
+\image html nc-classic-uml.png "NetCDF Classic Data Model"
+
+\section Meteorological Example
+
+NetCDF can be used to store many kinds of data, but it was originally
+developed for the Earth science community.
+
+NetCDF views the world of scientific data in the same way that an
+atmospheric scientist might: as sets of related arrays. There are
+various physical quantities (such as pressure and temperature) located
+at points at a particular latitude, longitude, vertical level, and
+time.
+
+A scientist might also like to store supporting information, such as
+the units, or some information about how the data were produced.
+
+The axis information (latitude, longitude, level, and time) would be
+stored as netCDF dimensions. Dimensions have a length and a name.
+
+The physical quantities (pressure, temperature) would be stored as
+netCDF variables. Variables are N-dimensional arrays of data, with a
+name and an associated set of netCDF dimensions.
+
+It is also customary to add one variable for each dimension, to hold
+the values along that axis. These variables are called “coordinate
+variables.” The latitude coordinate variable would be a
+one-dimensional variable (with latitude as its dimension), and it
+would hold the latitude values at each point along the axis.
+
+The additional bits of metadata would be stored as netCDF attributes.
+
+Attributes are always single values or one-dimensional arrays. (This
+works out well for a string, which is a one-dimensional array of ASCII
+characters.)
+
+The pres_temp_4D example in this tutorial shows how to write and read
+a file containing some four-dimensional pressure and temperature data,
+including all the metadata needed. 
+
+\section enhanced_model The Common Data Model and NetCDF-4
+
+With netCDF-4, the netCDF data model has been extended, in a backwards
+compatible way.
+
+The new data model, which is known as the “Common Data Model” is part
+of an effort here at Unidata to find a common engineering language for
+the development of scientific data solutions. It contains the
+variables, dimensions, and attributes of the classic data model, but
+adds:
+
+<ul>
+
+<li>groups - A way of hierarchically organizing data, similar to
+directories in a Unix file system.
+
+<li>user-defined types - The user can now define compound types 
+(like C structures), enumeration types, variable length arrays, and 
+opaque types.
+
+</ul>
+
+These features may only be used when working with a netCDF-4/HDF5
+file. Files created in classic or 64-bit offset format cannot support
+groups or user-defined types.
+
+\image html nc4-model.png
+
+With netCDF-4/HDF5 files, the user may define groups, which may
+contain variables, dimensions, and attributes. In this way, a group
+acts as a container for the classic netCDF dataset. But netCDF-4/HDF5
+files can have many groups, organized hierarchically.
+
+Each file begins with at least one group, the root group. The user may
+then add more groups, receiving a new ncid for each group created.
+
+Since each group functions as a complete netCDF classic dataset, it is
+possible to have variables with the same name in two or more different
+groups, within the same netCDF-4/HDF5 data file.
+
+Dimensions have a special scope: they may be seen by all variables in
+their group, and all descendant groups. This allows the user to define
+dimensions in a top-level group, and use them in many sub-groups.
+
+Since it may be necessary to write code which works with all types of
+netCDF data files, we also introduce the ability to create
+netCDF-4/HDF5 files which follow all the rules of the classic netCDF
+model. That is, these files are in HDF5, but will not support multiple
+unlimited dimensions, user-defined types, groups, etc. They act just
+like a classic netCDF file.
+
+\section NetCDF Error Handling
+
+Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
+0 on success, in the tradition of C. 
+
+When programming with netCDF in these languages, always check return
+values of every netCDF API call. The return code can be looked up in
+netcdf.h (for C programmers) or netcdf.inc (for Fortran programmers),
+or you can use the strerror function to print out an error
+message. (See nc_strerror/NF_STRERROR/NF90_STRERROR).
+
+In general, if a function returns an error code, you can assume it
+didn't do what you hoped it would. The exception is the NC_ERANGE
+error, which is returned by any of the reading or writing functions
+when one or more of the values read or written exceeded the range for
+the type. (For example if you were to try to read 1000 into an
+unsigned byte.)
+
+In the case of NC_ERANGE errors, the netCDF library completes the
+read/write operation, and then returns the error. The type conversion
+is handled like a C type conversion, whether or not it is within
+range. This may yield bad data, but the netCDF library just returns
+NC_ERANGE and leaves it up to the user to handle. (For more
+information about type conversion see Type Conversion).
+
+\section Unlimited Dimensions
+
+Sometimes you don't know the size of all dimensions when you create a
+file, or you would like to arbitrarily extend the file along one of
+the dimensions.
+
+For example, model output usually has a time dimension. Rather than
+specifying that there will be forty-two output times when creating the
+file, you might like to create it with one time, and then add data for
+additional times, until you wanted to stop.
+
+For this purpose netCDF provides the unlimited dimension. By
+specifying a length of “unlimited” when defining a dimension, you
+indicate to netCDF that the dimension may be extended, and its length
+may increase.
+
+In netCDF classic files, there can only be one unlimited dimension,
+and it must be declared first in the list of dimensions for a
+variable.
+
+For programmers, the unlimited dimension will correspond with the
+slowest-varying dimension. In C this is the first dimension of an
+array, in Fortran, the last.
+
+The third example in this tutorial, pres_temp_4D, demonstrates how to
+write and read data one time step at a time along an unlimited
+dimension in a classic netCDF file. See pres_temp_4D.
+
+In netCDF-4/HDF5 files, any number of unlimited dimensions may be
+used, and there is no restriction as to where they appear in a
+variable's list of dimension IDs.
+
+\example pres_temp_4D_wr.c
+\example pres_temp_4D_rd.c
+\example sfc_pres_temp_wr.c
+\example sfc_pres_temp_rd.c
+\example simple_xy_wr.c
+\example simple_xy_rd.c
+\example simple_nc4_wr.c
+\example simple_nc4_rd.c
+\example simple_xy_nc4_wr.c
+\example simple_xy_nc4_rd.c
+*/

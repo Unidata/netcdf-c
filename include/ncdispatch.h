@@ -21,8 +21,7 @@
 #include "nc.h"
 #include "nc_uri.h"
 
-
-
+static nc_type longtype = (sizeof(long) == sizeof(int) ? NC_INT : NC_INT64);
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,

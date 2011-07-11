@@ -1,9 +1,10 @@
-/* Copyright 2010 University Corporation for Atmospheric
-   Research/Unidata. See COPYRIGHT file for more info.
+/** \file
+Error messages and library version.
 
-   This file has the strerror function.
+These functions return the library version, and error messages.
 
-   "$Id: copy.c,v 1.1 2010/06/01 15:46:49 ed Exp $" 
+Copyright 2010 University Corporation for Atmospheric
+Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "ncdispatch.h"
@@ -11,13 +12,77 @@
 /* Tell the user the version of netCDF. */
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
+/** \defgroup lib_version Library Version 
+
+*/
+
+/**
+\ingroup lib_version
+Return the library version.
+
+\returns short string that contains the version information for the
+library.
+ */
 const char *
 nc_inq_libvers(void)
 {
    return nc_libvers;
 }
 
-/* Given an error number, return an error message. */
+/** \defgroup error Error Handling
+NetCDF functions non-zero status codes on error.
+
+Each netCDF function returns an integer status value. If the returned
+status value indicates an error, you may handle it in any way desired,
+from printing an associated error message and exiting to ignoring the
+error indication and proceeding (not recommended!). For simplicity,
+the examples in this guide check the error status and call a separate
+function, handle_err(), to handle any errors. One possible definition
+of handle_err() can be found within the documentation of
+nc_strerror().
+
+The nc_strerror() function is available to convert a returned integer
+error status into an error message string.
+
+Occasionally, low-level I/O errors may occur in a layer below the
+netCDF library. For example, if a write operation causes you to exceed
+disk quotas or to attempt to write to a device that is no longer
+available, you may get an error from a layer below the netCDF library,
+but the resulting write error will still be reflected in the returned
+status value.
+
+ */
+
+/**
+\ingroup error
+ Given an error number, return an error message. 
+
+This function returns a static reference to an error message string
+corresponding to an integer netCDF error status or to a system error
+number, presumably returned by a previous call to some other netCDF
+function. The error codes are defined in netcdf.h.
+
+\param ncerr1 error number
+
+\returns short string containing error message.
+
+\section Example
+
+Here is an example of a simple error handling function that uses
+nc_strerror to print the error message corresponding to the netCDF
+error status returned from any netCDF function call and then exit:
+
+\code
+     #include <netcdf.h>
+        ...
+     void handle_error(int status) {
+     if (status != NC_NOERR) {
+        fprintf(stderr, "%s\n", nc_strerror(status));
+        exit(-1);
+        }
+     }
+\endcode
+*/
 const char *
 nc_strerror(int ncerr1)
 {

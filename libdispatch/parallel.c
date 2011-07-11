@@ -1,10 +1,8 @@
-/*
- Copyright 2010 University Corporation for Atmospheric
- Research/Unidata. See COPYRIGHT file for more info.
+/** \file
+This file has the parallel I/O functions.
 
- This file has the parallel I/O functions.
-
- "$Id: parallel.c,v 1.1 2010/06/01 15:46:50 ed Exp $" 
+Copyright 2010 University Corporation for Atmospheric
+Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include <config.h>

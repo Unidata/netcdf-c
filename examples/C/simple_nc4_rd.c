@@ -1,20 +1,14 @@
-/* This is part of the netCDF package. Copyright 2006 University
-   Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
-   for conditions of use.
+/** \file
+Read a simple file, with some of the features of netCDF-4.
 
-   This is a very simple example which demonstrates some of the
-   new features of netCDF-4.0. 
+This is a very simple example which demonstrates some of the new
+features of netCDF-4.0.
 
-   This example reads a simple file created by simple_nc4_wr.c. This
-   is intended to illustrate the use of the netCDF-4 C API.
+This example reads a simple file created by simple_nc4_wr.c. This is
+intended to illustrate the use of the netCDF-4 C API.
 
-   This program is part of the netCDF tutorial:
-   http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial.html
-
-   Full documentation of the netCDF C API can be found at:
-   http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.html
-
-   $Id: simple_nc4_rd.c,v 1.3 2008/06/19 13:29:18 ed Exp $
+Full documentation for netCDF can be found at:
+http://www.unidata.ucar.edu/netcdf/docs
 */
 #include <stdlib.h>
 #include <stdio.h>
