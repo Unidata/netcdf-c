@@ -5,6 +5,8 @@ Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 
+#include "ncdispatch.h"
+
 /** \name Learning about Variables
 
 Functions to learn about the variables in a file. */
