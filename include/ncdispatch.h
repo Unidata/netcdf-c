@@ -21,6 +21,11 @@
 #include "nc.h"
 #include "nc_uri.h"
 
+/* Define uchar if it is not defined on this system. */
+#ifndef HAVE_UCHAR
+typedef unsigned char uchar;
+#endif
+
 static nc_type longtype = (sizeof(long) == sizeof(int) ? NC_INT : NC_INT64);
 
 extern int nc_get_vara_ubyte(int ncid, int varid,

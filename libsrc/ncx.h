@@ -30,12 +30,7 @@
 #include <stddef.h> /* size_t */
 #include <errno.h>
 #include <sys/types.h> /* off_t */
-
-/* Define uchar if it is not defined on this system. */
-#ifndef HAVE_UCHAR
-typedef unsigned char uchar;
-#endif
-
+#include <ncdispatch.h>
 #define longlong long long
 
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
