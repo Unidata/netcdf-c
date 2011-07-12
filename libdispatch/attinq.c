@@ -26,17 +26,17 @@ nc_create().
 for a global attribute.
 
 \param name Pointer to the location for the returned attribute \ref
-object_name. Ignored if NULL.
+object_name. \ref ignored_if_null.
 
 \param xtypep Pointer to location for returned attribute \ref
-data_type. Ignored if NULL.
+data_type. \ref ignored_if_null.
 
 \param lenp Pointer to location for returned number of values
 currently stored in the attribute. For attributes of type ::NC_CHAR,
 you should not assume that this includes a trailing zero byte; it
 doesn't if the attribute was stored without a trailing zero byte, for
 example from a FORTRAN program. Before using the value as a C string,
-make sure it is null-terminated. Ignored if NULL.
+make sure it is null-terminated. \ref ignored_if_null.
 
 \section Example
 
@@ -139,7 +139,7 @@ Find number of global attributes.
 nc_create().
 
 \param nattsp Pointer where number of global attributes will be
-written. Ignored if NULL.
+written. \ref ignored_if_null.
 */
 int
 nc_inq_natts(int ncid, int *nattsp)
@@ -188,7 +188,7 @@ for a global attribute.
 
 \param lenp Pointer to location for returned number of values
 currently stored in the attribute. Before using the value as a C
-string, make sure it is null-terminated. Ignored if NULL.  
+string, make sure it is null-terminated. \ref ignored_if_null.  
 */
 int
 nc_inq_attlen(int ncid, int varid, const char *name, size_t *lenp)

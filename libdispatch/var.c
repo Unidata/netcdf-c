@@ -163,7 +163,7 @@ element of the dimids array.
 \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
 \returns ::NC_EMAXVARS NC_MAX_VARS exceeded
 \returns ::NC_EBADTYPE Bad type.
-\returns ::NC_EINVAL Number of dimensions to large.
+\returns ::NC_EINVAL Invalid input.
 \returns ::NC_ENAMEINUSE Name already in use.
 \returns ::NC_EPERM Attempt to create object in read-only file. 
 
@@ -436,4 +436,76 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    return status;
 }
 
+#ifdef USE_NETCDF4
+/** \ingroup variables
 
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param size The total size of the raw data chunk cache, in bytes.
+
+\param nelems The number of chunk slots in the raw data chunk cache.
+
+\param preemption The preemption, a value between 0 and 1 inclusive
+that indicates how much chunks that have been fully read are favored
+for preemption. A value of zero means fully read chunks are treated no
+differently than other chunks (the preemption is strictly LRU) while a
+value of one means fully read chunks are always preempted before other
+chunks.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+\returns ::NC_EINVAL Invalid input
+ */
+int
+nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, 
+		       float preemption)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->set_var_chunk_cache(ncid, varid, size, 
+					      nelems, preemption);
+}
+
+/** \ingroup variables
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param sizep The total size of the raw data chunk cache, in bytes,
+will be put here. \ref ignored_if_null.
+
+\param nelemsp The number of chunk slots in the raw data chunk cache
+hash table will be put here. \ref ignored_if_null.
+
+\param preemptionp The preemption will be put here. The preemtion
+value is between 0 and 1 inclusive and indicates how much chunks that
+have been fully read are favored for preemption. A value of zero means
+fully read chunks are treated no differently than other chunks (the
+preemption is strictly LRU) while a value of one means fully read
+chunks are always preempted before other chunks. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+\returns ::NC_EINVAL Invalid input
+*/
+int
+nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp, 
+		       float *preemptionp)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
+					      nelemsp, preemptionp);
+}
+#endif /* USE_NETCDF4 */

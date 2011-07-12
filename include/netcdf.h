@@ -204,12 +204,14 @@ As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.
 #define NC_CONTIGUOUS 1
 /**@}*/
 
-/* In HDF5 files you can set check-summing for each variable.
- * Currently the only checksum available is Fletcher-32, which can be
- * set with the function nc_def_var_fletcher32.  These defines are used
- * there. */
+/** In HDF5 files you can set check-summing for each variable.
+Currently the only checksum available is Fletcher-32, which can be set
+with the function nc_def_var_fletcher32.  These defines are used
+there. */
+/**@{*/
 #define NC_NOCHECKSUM 0
 #define NC_FLETCHER32 1
+/**@}*/
 
 /**@{*/
 /** Control the HDF5 shuffle filter. In HDF5 files you can specify
@@ -761,7 +763,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value);
 
 /* Inq fill value setting for a var. */
 EXTERNL int
-nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_value);
+nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep);
 
 /* Define the endianness of a variable. */
 EXTERNL int

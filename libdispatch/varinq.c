@@ -24,10 +24,11 @@ nc_create().
 
 \param name Name of the variable.
 
-\param varidp Pointer to location for returned variable ID.
+\param varidp Pointer to location for returned variable ID.  \ref
+ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
 
 \section Example
 
@@ -65,23 +66,23 @@ nc_create().
 \param varid Variable ID
 
 \param name Returned variable name. The caller must allocate space for
-the returned name. The maximum length is \ref NC_MAX_NAME. Ignored if
-NULL.
+the returned name. The maximum length is ::NC_MAX_NAME. \ref
+ignored_if_null.
 
-\param xtypep Pointer where typeid will be stored. Ignored if NULL.
+\param xtypep Pointer where typeid will be stored. \ref ignored_if_null.
 
 \param ndimsp Pointer where number of dimensions will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
 \param dimidsp Pointer where array of dimension IDs will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
 \param nattsp Pointer where number of attributes will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
 
 \section Example
 
@@ -132,12 +133,12 @@ nc_create().
 \param varid Variable ID
 
 \param name Returned variable name. The caller must allocate space for
-the returned name. The maximum length is \ref NC_MAX_NAME. Ignored if
+the returned name. The maximum length is ::NC_MAX_NAME. Ignored if
 NULL.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
  */
 int 
 nc_inq_varname(int ncid, int varid, char *name)
@@ -154,11 +155,11 @@ nc_create().
 
 \param varid Variable ID
 
-\param typep Pointer where typeid will be stored. Ignored if NULL.
+\param typep Pointer where typeid will be stored. \ref ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
  */
 int 
 nc_inq_vartype(int ncid, int varid, nc_type *typep)
@@ -176,11 +177,11 @@ nc_create().
 \param varid Variable ID
 
 \param ndimsp Pointer where number of dimensions will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
  */
 int 
 nc_inq_varndims(int ncid, int varid, int *ndimsp)
@@ -197,11 +198,11 @@ nc_create().
 \param varid Variable ID
 
 \param dimidsp Pointer where array of dimension IDs will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
  */
 int 
 nc_inq_vardimid(int ncid, int varid, int *dimidsp)
@@ -219,11 +220,11 @@ nc_create().
 \param varid Variable ID
 
 \param nattsp Pointer where number of attributes will be
-stored. Ignored if NULL.
+stored. \ref ignored_if_null.
 
-\returns \ref NC_NOERR No error.
-\returns \ref NC_EBADID Bad ncid.
-\returns \ref NC_ENOTVAR Invalid variable ID.
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
  */
 int 
 nc_inq_varnatts(int ncid, int varid, int *nattsp)
@@ -235,4 +236,285 @@ nc_inq_varnatts(int ncid, int varid, int *nattsp)
 		     nattsp);
 }
 
+#ifdef USE_NETCDF4
+/** \ingroup variables
+Learn the storage and deflate settings for a variable.
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param shufflep A 1 will be written here if the shuffle filter is
+turned on for this variable, and a 0 otherwise. \ref ignored_if_null.
+
+\param deflatep If this pointer is non-NULL, the nc_inq_var_deflate
+function will write a 1 if the deflate filter is turned on for this
+variable, and a 0 otherwise. \ref ignored_if_null.
+
+\param deflate_levelp If the deflate filter is in use for this
+variable, the deflate_level will be writen here. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, 
+		   int *deflate_levelp)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      shufflep, /*shufflep*/
+      deflatep, /*deflatep*/
+      deflate_levelp, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      NULL, /*optionsmaskp*/
+      NULL /*pixelsp*/
+      );
+}
+
+/** \ingroup variables
+Learn the szip settings of a variable.
+
+This function returns the szip settings for a variable. NetCDF does
+not allow variables to be created with szip (due to license problems
+with the szip library), but we do enable read-only access of HDF5
+files with szip compression.
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param options_maskp The szip options mask will be copied to this
+pointer. \ref ignored_if_null.
+
+\param pixels_per_blockp The szip pixels per block will be copied
+here. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      options_maskp, /*optionsmaskp*/
+      pixels_per_blockp /*pixelsp*/
+      );
+}
+
+/** \ingroup variables
+Learn the checksum settings for a variable. 
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param fletcher32p Will be set to ::NC_FLETCHER32 if the fletcher32
+checksum filter is turned on for this variable, and ::NC_NOCHECKSUM if
+it is not. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      fletcher32p, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      NULL, /*optionsmaskp*/
+      NULL /*pixelsp*/
+      );
+}
+
+/** \ingroup variables
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param storagep Address of returned storage property, returned as
+::NC_CONTIGUOUS if this variable uses contiguous storage, or
+::NC_CHUNKED if it uses chunked storage. \ref ignored_if_null.
+
+\param chunksizesp The chunksizes will be copied here. \ref
+ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
+{
+   NC *ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, 
+				     NULL, NULL, NULL, NULL, NULL, storagep, 
+				     chunksizesp, NULL, NULL, NULL, NULL, NULL);
+}
+
+/** \ingroup variables
+Learn the fill mode of a variable.
+
+The fill mode of a variable is set by nc_def_var_fill().
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param no_fill Pointer to an integer which will get a 1 if no_fill
+mode is set for this variable. \ref ignored_if_null. 
+
+\param fill_valuep A pointer which will get the fill value for this
+variable. \ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      no_fill, /*nofillp*/
+      fill_valuep, /*fillvaluep*/
+      NULL, /*endianp*/
+      NULL, /*optionsmaskp*/
+      NULL /*pixelsp*/
+      );
+}
+
+/** \ingroup variables
+Find the endianness of a variable.
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+\param varid Variable ID
+
+\param endianp Storage which will get ::NC_ENDIAN_LITTLE if this
+variable is stored in little-endian format, ::NC_ENDIAN_BIG if it is
+stored in big-endian format, and ::NC_ENDIAN_NATIVE if the endianness
+is not set, and the variable is not created yet.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+*/
+int
+nc_inq_var_endian(int ncid, int varid, int *endianp)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      endianp, /*endianp*/
+      NULL, /*optionsmaskp*/
+      NULL /*pixelsp*/
+      );
+}
+#endif /* USE_NETCDF4 */
 /*! \} */  /* End of named group ...*/

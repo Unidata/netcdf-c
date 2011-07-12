@@ -46,6 +46,11 @@ if (nc_inq(ncid, &ndims, NULL, NULL, NULL))
    return SOME_ERROR;
 \endcode
 
+\section Allocating Storage for the Result
+
+User must allocate space for the result of an inq function before the
+function is called.
+
 \page specify_hyperslab Specify a Hyperslab
 
 The NetCDF allows specification of hyperslabs to be read or written
@@ -76,5 +81,38 @@ variable's dimensions.
 
 Setting any element of the count array to zero causes the function to
 exit without error, and without doing anything.
+
+\section stride_vector A Vector Specifying Stride for Each Dimension
+
+A vector of size_t integers specifying the interval between selected
+indices.
+
+A value of 1 accesses adjacent values of the netCDF variable in the
+corresponding dimension; a value of 2 accesses every other value of
+the netCDF variable in the corresponding dimension; and so on. 
+
+The elements of the stride vector correspond, in order, to the
+variable's dimensions.
+
+A NULL stride argument is treated as (1, 1, ... , 1).
+
+\section map_vector A Vector Specifying Mapping for Each Dimension
+
+A vector of integers that specifies the mapping between the dimensions
+of a netCDF variable and the in-memory structure of the internal data
+array.
+
+imap[0] gives the distance between elements of the internal array
+corresponding to the most slowly varying dimension of the netCDF
+variable. imap[n-1] (where n is the rank of the netCDF variable) gives
+the distance between elements of the internal array corresponding to
+the most rapidly varying dimension of the netCDF variable. Intervening
+imap elements correspond to other dimensions of the netCDF variable in
+the obvious way. Distances between elements are specified in
+type-independent units of elements.
+
+\note The distance between internal elements that occupy adjacent
+memory locations is 1 and not the element's byte-length as in netCDF
+2.
 
 */
