@@ -8,7 +8,6 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
-#include <stdio.h>		/* for debugging */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
