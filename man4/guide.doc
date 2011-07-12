@@ -1,0 +1,670 @@
+/*! \file 
+NetCDF Users Guide
+
+\page user_guide The NetCDF Users Guide
+
+\section Summary
+
+The purpose of the Network Common Data Form (netCDF) interface is to
+allow you to create, access, and share array-oriented data in a form
+that is self-describing and portable. "Self-describing" means that a
+dataset includes information defining the data it contains. "Portable"
+means that the data in a dataset is represented in a form that can be
+accessed by computers with different ways of storing integers,
+characters, and floating-point numbers. Using the netCDF interface for
+creating new datasets makes the data portable. Using the netCDF
+interface in software for data access, management, analysis, and
+display can make the software more generally useful.
+
+The netCDF software includes C, Fortran 77, Fortran 90, and C++
+interfaces for accessing netCDF data. These libraries are available
+for many common computing platforms.
+
+The community of netCDF users has contributed ports of the software to
+additional platforms and interfaces for other programming languages as
+well. Source code for netCDF software libraries is freely available to
+encourage the sharing of both array-oriented data and the software
+that makes the data useful.
+
+This User's Guide presents the netCDF data model. It explains how the
+netCDF data model uses dimensions, variables, and attributes to store
+data. Language specific programming guides are available for C (see
+The NetCDF C Interface Guide), C++ (see The NetCDF C++ Interface
+Guide), Fortran 77 (see The NetCDF Fortran 77 Interface Guide), and
+Fortran 90 (see The NetCDF Fortran 90 Interface Guide).
+
+Reference documentation for UNIX systems, in the form of UNIX 'man'
+pages for the C and FORTRAN interfaces is also available at the netCDF
+web site (http://www.unidata.ucar.edu/netcdf), and with the netCDF
+distribution.
+
+The latest version of this document, and the language specific guides,
+can be found at the netCDF web site,
+http://www.unidata.ucar.edu/netcdf/docs, along with extensive
+additional information about netCDF, including pointers to other
+software that works with netCDF data.
+
+Separate documentation of the Java netCDF library can be found at
+http://www.unidata.ucar.edu/software/netcdf-java.
+
+For installation and porting information See The NetCDF Installation
+and Porting Guide.
+
+\section netcdf_interface The NetCDF Interface
+
+The Network Common Data Form, or netCDF, is an interface to a library
+of data access functions for storing and retrieving data in the form
+of arrays. An array is an n-dimensional (where n is 0, 1, 2, ...)
+rectangular structure containing items which all have the same data
+type (e.g., 8-bit character, 32-bit integer). A scalar (simple single
+value) is a 0-dimensional array.
+
+NetCDF is an abstraction that supports a view of data as a collection
+of self-describing, portable objects that can be accessed through a
+simple interface. Array values may be accessed directly, without
+knowing details of how the data are stored. Auxiliary information
+about the data, such as what units are used, may be stored with the
+data. Generic utilities and application programs can access netCDF
+datasets and transform, combine, analyze, or display specified fields
+of the data. The development of such applications has led to improved
+accessibility of data and improved re-usability of software for
+array-oriented data management, analysis, and display.
+
+The netCDF software implements an abstract data type, which means that
+all operations to access and manipulate data in a netCDF dataset must
+use only the set of functions provided by the interface. The
+representation of the data is hidden from applications that use the
+interface, so that how the data are stored could be changed without
+affecting existing programs. The physical representation of netCDF
+data is designed to be independent of the computer on which the data
+were written.
+
+Unidata supports the netCDF interfaces for C, (see Top), FORTRAN 77
+(see Top), FORTRAN 90 (see Top), and C++ (see Top).
+
+The netCDF library is supported for various UNIX operating systems. A
+MS Windows port is also available. The software is also ported and
+tested on a few other operating systems, with assistance from users
+with access to these systems, before each major release. Unidata's
+netCDF software is freely available via FTP to encourage its
+widespread use. (ftp://ftp.unidata.ucar.edu/pub/netcdf).
+
+For detailed installation instructions, see the Porting and
+Installation Guide. See Top.
+
+\section netcdf_format The netCDF File Format
+
+Until version 3.6.0, all versions of netCDF employed only one binary
+data format, now referred to as netCDF classic format. NetCDF classic
+is the default format for all versions of netCDF.
+
+In version 3.6.0 a new binary format was introduced, 64-bit offset
+format. Nearly identical to netCDF classic format, it uses 64-bit
+offsets (hence the name), and allows users to create far larger
+datasets.
+
+In version 4.0.0 a third binary format was introduced: the HDF5
+format. Starting with this version, the netCDF library can use HDF5
+files as its base format. (Only HDF5 files created with netCDF-4 can
+be understood by netCDF-4).
+
+By default, netCDF uses the classic format. To use the 64-bit offset
+or netCDF-4/HDF5 format, set the appropriate constant when creating
+the file.
+
+To achieve network-transparency (machine-independence), netCDF classic
+and 64-bit offset formats are implemented in terms of an external
+representation much like XDR (eXternal Data Representation, see
+http://www.ietf.org/rfc/rfc1832.txt), a standard for describing and
+encoding data. This representation provides encoding of data into
+machine-independent sequences of bits. It has been implemented on a
+wide variety of computers, by assuming only that eight-bit bytes can
+be encoded and decoded in a consistent way. The IEEE 754
+floating-point standard is used for floating-point data
+representation.
+
+Descriptions of the overall structure of netCDF classic and 64-bit
+offset files are provided later in this manual. See Structure.
+
+The details of the classic and 64-bit offset formats are described in
+an appendix. See File Format. However, users are discouraged from
+using the format specification to develop independent low-level
+software for reading and writing netCDF files, because this could lead
+to compatibility problems if the format is ever modified.
+
+\subsection select_format How to Select the Format
+
+With three different base formats, care must be taken in creating data
+files to choose the correct base format.
+
+The format of a netCDF file is determined at create time.
+
+When opening an existing netCDF file the netCDF library will
+transparently detect its format and adjust accordingly. However,
+netCDF library versions earlier than 3.6.0 cannot read 64-bit offset
+format files, and library versions before 4.0 can't read netCDF-4/HDF5
+files. NetCDF classic format files (even if created by version 3.6.0
+or later) remain compatible with older versions of the netCDF library.
+
+Users are encouraged to use netCDF classic format to distribute data,
+for maximum portability.
+
+To select 64-bit offset or netCDF-4 format files, C programmers should
+use flag NC_64BIT_OFFSET or NC_NETCDF4 in function nc_create. See
+nc_create.
+
+In Fortran, use flag nf_64bit_offset or nf_format_netcdf4 in function
+NF_CREATE. See NF_CREATE.
+
+It is also possible to change the default creation format, to convert
+a large body of code without changing every create call. C programmers
+see nc_set_default_format. Fortran programs see NF_SET_DEFAULT_FORMAT.
+
+\subsection classic_format NetCDF Classic Format
+
+The original netCDF format is identified using four bytes in the file
+header. All files in this format have “CDF\001” at the beginning of
+the file. In this documentation this format is referred to as “netCDF
+classic format.”
+
+NetCDF classic format is identical to the format used by every
+previous version of netCDF. It has maximum portability, and is still
+the default netCDF format.
+
+For some users, the various 2 GiB format limitations of the classic
+format become a problem. (see Classic Limitations).  1.4.2 NetCDF
+64-bit Offset Format
+
+For these users, 64-bit offset format is a natural choice. It greatly
+eases the size restrictions of netCDF classic files (see 64 bit Offset
+Limitations).
+
+Files with the 64-bit offsets are identified with a “CDF\002” at the
+beginning of the file. In this documentation this format is called
+“64-bit offset format.”
+
+Since 64-bit offset format was introduced in version 3.6.0, earlier
+versions of the netCDF library can't read 64-bit offset files.  
+
+\subsection netcdf_4_format NetCDF-4 Format
+
+In version 4.0, netCDF included another new underlying format: HDF5.
+
+NetCDF-4 format files offer new features such as groups, compound
+types, variable length arrays, new unsigned integer types, parallel
+I/O access, etc. None of these new features can be used with classic
+or 64-bit offset files.
+
+NetCDF-4 files can't be created at all, unless the netCDF configure
+script is run with –enable-netcdf-4. This also requires version 1.8.0
+of HDF5.
+
+For the netCDF-4.0 release, netCDF-4 features are only available from
+the C and Fortran interfaces. We plan to bring netCDF-4 features to
+the CXX API in a future release of netCDF.
+
+NetCDF-4 files can't be read by any version of the netCDF library
+previous to 4.0. (But they can be read by HDF5, version 1.8.0 or
+better).
+
+For more discussion of format issues see The NetCDF Tutorial.
+
+\section performance What about Performance?
+
+One of the goals of netCDF is to support efficient access to small
+subsets of large datasets. To support this goal, netCDF uses direct
+access rather than sequential access. This can be much more efficient
+when the order in which data is read is different from the order in
+which it was written, or when it must be read in different orders for
+different applications.
+
+The amount of overhead for a portable external representation depends
+on many factors, including the data type, the type of computer, the
+granularity of data access, and how well the implementation has been
+tuned to the computer on which it is run. This overhead is typically
+small in comparison to the overall resources used by an
+application. In any case, the overhead of the external representation
+layer is usually a reasonable price to pay for portable data access.
+
+Although efficiency of data access has been an important concern in
+designing and implementing netCDF, it is still possible to use the
+netCDF interface to access data in inefficient ways: for example, by
+requesting a slice of data that requires a single value from each
+record. Advice on how to use the interface efficiently is provided in
+Structure.
+
+The use of HDF5 as a data format adds significant overhead in metadata
+operations, less so in data access operations. We continue to study
+the challenge of implementing netCDF-4/HDF5 format without
+compromising performance.
+
+\section creating_self Creating Self-Describing Data conforming to Conventions
+
+The mere use of netCDF is not sufficient to make data
+"self-describing" and meaningful to both humans and machines. The
+names of variables and dimensions should be meaningful and conform to
+any relevant conventions. Dimensions should have corresponding
+coordinate variables where sensible.
+
+Attributes play a vital role in providing ancillary information. It is
+important to use all the relevant standard attributes using the
+relevant conventions. For a description of reserved attributes (used
+by the netCDF library) and attribute conventions for generic
+application software, see Attribute Conventions.
+
+A number of groups have defined their own additional conventions and
+styles for netCDF data. Descriptions of these conventions, as well as
+examples incorporating them can be accessed from the netCDF
+Conventions site, http://www.unidata.ucar.edu/netcdf/conventions.html.
+
+These conventions should be used where suitable. Additional
+conventions are often needed for local use. These should be
+contributed to the above netCDF conventions site if likely to interest
+other users in similar areas.
+
+\section limitations Limitations of NetCDF
+
+The netCDF classic data model is widely applicable to data that can be
+organized into a collection of named array variables with named
+attributes, but there are some important limitations to the model and
+its implementation in software. Some of these limitations have been
+removed or relaxed in netCDF-4 files, but still apply to netCDF
+classic and netCDF 64-bit offset files.
+
+Currently, netCDF classic and 64-bit offset formats offer a limited
+number of external numeric data types: 8-, 16-, 32-bit integers, or
+32- or 64-bit floating-point numbers. (The netCDF-4 format adds 64-bit
+integer types and unsigned integer types.)
+
+With the netCDF-4/HDF5 format, new unsigned integers (of various
+sizes), 64-bit integers, and the string type allow improved expression
+of meaning in scientific data. The new VLEN (variable length) and
+COMPOUND types allow users to organize data in new ways.
+
+With the classic netCDF file format, there are constraints that limit
+how a dataset is structured to store more than 2 GiBytes (a GiByte is
+2^30 or 1,073,741,824 bytes, as compared to a Gbyte, which is
+1,000,000,000 bytes.) of data in a single netCDF dataset. (see Classic
+Limitations). This limitation is a result of 32-bit offsets used for
+storing relative offsets within a classic netCDF format file. Since
+one of the goals of netCDF is portable data, and some file systems
+still can't deal with files larger than 2 GiB, it is best to keep
+files that must be portable below this limit. Nevertheless, it is
+possible to create and access netCDF files larger than 2 GiB on
+platforms that provide support for such files (see Large File
+Support).
+
+The new 64-bit offset format allows large files, and makes it easy to
+create to create fixed variables of about 4 GiB, and record variables
+of about 4 GiB per record. (see 64 bit Offset Limitations). However,
+old netCDF applications will not be able to read the 64-bit offset
+files until they are upgraded to at least version 3.6.0 of netCDF
+(i.e. the version in which 64-bit offset format was introduced).
+
+With the netCDF-4/HDF5 format, size limitations are further relaxed,
+and files can be as large as the underlying file system
+supports. NetCDF-4/HDF5 files are unreadable to the netCDF library
+before version 4.0.
+
+Another limitation of the classic (and 64-bit offset) model is that
+only one unlimited (changeable) dimension is permitted for each netCDF
+data set. Multiple variables can share an unlimited dimension, but
+then they must all grow together. Hence the classic netCDF model does
+not permit variables with several unlimited dimensions or the use of
+multiple unlimited dimensions in different variables within the same
+dataset. Variables that have non-rectangular shapes (for example,
+ragged arrays) cannot be represented conveniently.
+
+In netCDF-4/HDF5 files, multiple unlimited dimensions are fully
+supported. Any variable can be defined with any combination of limited
+and unlimited dimensions.
+
+The extent to which data can be completely self-describing is limited:
+there is always some assumed context without which sharing and
+archiving data would be impractical. NetCDF permits storing meaningful
+names for variables, dimensions, and attributes; units of measure in a
+form that can be used in computations; text strings for attribute
+values that apply to an entire data set; and simple kinds of
+coordinate system information. But for more complex kinds of metadata
+(for example, the information necessary to provide accurate
+georeferencing of data on unusual grids or from satellite images), it
+is often necessary to develop conventions.
+
+Specific additions to the netCDF data model might make some of these
+conventions unnecessary or allow some forms of metadata to be
+represented in a uniform and compact way. For example, adding explicit
+georeferencing to the netCDF data model would simplify elaborate
+georeferencing conventions at the cost of complicating the model. The
+problem is finding an appropriate trade-off between the richness of
+the model and its generality (i.e., its ability to encompass many
+kinds of data). A data model tailored to capture the shared context
+among researchers within one discipline may not be appropriate for
+sharing or combining data from multiple disciplines.
+
+The classic netCDF data model (which is used for classic-format and
+64-bit offset format data) does not support nested data structures
+such as trees, nested arrays, or other recursive structures. Through
+use of indirection and conventions it is possible to represent some
+kinds of nested structures, but the result may fall short of the
+netCDF goal of self-describing data.
+
+In netCDF-4/HDF5 format files, the introduction of the compound type
+allows the creation of complex data types, involving any combination
+of types. The VLEN type allows efficient storage of ragged arrays, and
+the introduction of hierarchical groups allows users new ways to
+organize data.
+
+Finally, using the netCDF-3 programming interfaces, concurrent access
+to a netCDF dataset is limited. One writer and multiple readers may
+access data in a single dataset simultaneously, but there is no
+support for multiple concurrent writers.
+
+NetCDF-4 supports parallel read/write access to netCDF-4/HDF5 files,
+using the underlying HDF5 library and parallel read/write access to
+classic and 64-bit offset files using the parallel-netcdf library.
+
+For more information about HDF5, see the HDF5 web site:
+http://hdfgroup.org/HDF5/.
+
+For more information about parallel-netcdf, see their web site:
+http://www.mcs.anl.gov/parallel-netcdf.
+
+\page data_model The Data Model
+
+A netCDF dataset contains dimensions, variables, and attributes, which
+all have both a name and an ID number by which they are
+identified. These components can be used together to capture the
+meaning of data and relations among data fields in an array-oriented
+dataset. The netCDF library allows simultaneous access to multiple
+netCDF datasets which are identified by dataset ID numbers, in
+addition to ordinary file names.
+
+\section Enhanced Data Model in NetCDF-4/HDF5 Files
+
+Files created with the netCDF-4 format have access to an enhanced data
+model, which includes named groups. Groups, like directories in a Unix
+file system, are hierarchically organized, to arbitrary depth. They
+can be used to organize large numbers of variables.
+
+\image html nc4-model.png "Enhanced NetCDF Data Model"
+\image latex nc4-model.png "Enhanced NetCDF Data Model"
+\image rtf nc4-model.png "Enhanced NetCDF Data Model"
+
+Each group acts as an entire netCDF dataset in the classic model. That
+is, each group may have attributes, dimensions, and variables, as well
+as other groups.
+
+The default group is the root group, which allows the classic netCDF
+data model to fit neatly into the new model.
+
+Dimensions are scoped such that they can be seen in all descendant
+groups. That is, dimensions can be shared between variables in
+different groups, if they are defined in a parent group.
+
+In netCDF-4 files, the user may also define a type. For example a
+compound type may hold information from an array of C structures, or a
+variable length type allows the user to read and write arrays of
+variable length values.
+
+Variables, groups, and types share a namespace. Within the same group,
+variables, groups, and types must have unique names. (That is, a type
+and variable may not have the same name within the same group, and
+similarly for sub-groups of that group.)
+
+Groups and user-defined types are only available in files created in
+the netCDF-4/HDF5 format. They are not available for classic or 64-bit
+offset format files.
+
+\page object_name Name
+
+\section Permitted Characters in NetCDF Names
+
+The names of dimensions, variables and attributes (and, in netCDF-4
+files, groups, user-defined types, compound member names, and
+enumeration symbols) consist of arbitrary sequences of alphanumeric
+characters, underscore '_', period '.', plus '+', hyphen '-', or at
+sign '@', but beginning with an alphanumeric character or
+underscore. However names commencing with underscore are reserved for
+system use. 
+
+Beginning with versions 3.6.3 and 4.0, names may also include UTF-8
+encoded Unicode characters as well as other special characters, except
+for the character '/', which may not appear in a name.
+
+Names that have trailing space characters are also not permitted.
+
+Case is significant in netCDF names. 
+
+\section Name Length
+
+A zero-length name is not allowed.  
+
+Names longer than ::NC_MAX_NAME will not be accepted any netCDF define
+function. An error of ::NC_EMAXNAME will be returned.
+
+All netCDF inquiry functions will return names less than NC_MAX_NAME
+for netCDF files.
+
+\section Conventions
+
+Some widely used conventions restrict names to only alphanumeric
+characters or underscores. 
+
+\page attribute_conventions Attribute Conventions
+
+Attribute conventions are assumed by some netCDF generic applications,
+e.g., ‘units’ as the name for a string attribute that gives the units
+for a netCDF variable. 
+
+It is strongly recommended that applicable conventions be followed
+unless there are good reasons for not doing so. Below we list the
+names and meanings of recommended standard attributes that have proven
+useful. Note that some of these (e.g. units, valid_range,
+scale_factor) assume numeric data and should not be used with
+character data.
+
+\note Attribute names commencing with underscore ('_') are reserved
+for use by the netCDF library.
+
+\section units
+
+A character string that specifies the units used for the variable's
+data. Unidata has developed a freely-available library of routines to
+convert between character string and binary forms of unit
+specifications and to perform various useful operations on the binary
+forms. This library is used in some netCDF applications. Using the
+recommended units syntax permits data represented in conformable units
+to be automatically converted to common units for arithmetic
+operations. For more information see Units.
+
+\section long_name
+
+A long descriptive name. This could be used for labeling plots, for
+example. If a variable has no long_name attribute assigned, the
+variable name should be used as a default.
+
+\section _FillValue
+
+The _FillValue attribute specifies the fill value used to pre-fill
+disk space allocated to the variable. Such pre-fill occurs unless
+nofill mode is set using nc_set_fill(). The fill value is returned
+when reading values that were never written. If ::_FillValue is defined
+then it should be scalar and of the same type as the variable. If the
+variable is packed using scale_factor and add_offset attributes (see
+below), the _FillValue attribute should have the data type of the
+packed data.
+
+It is not necessary to define your own _FillValue attribute for a
+variable if the default fill value for the type of the variable is
+adequate. However, use of the default fill value for data type byte is
+not recommended. Note that if you change the value of this attribute,
+the changed value applies only to subsequent writes; previously
+written data are not changed.
+
+Generic applications often need to write a value to represent
+undefined or missing values. The fill value provides an appropriate
+value for this purpose because it is normally outside the valid range
+and therefore treated as missing when read by generic applications. It
+is legal (but not recommended) for the fill value to be within the
+valid range.
+
+\section missing_value
+
+This attribute is not treated in any special way by the library or
+conforming generic applications, but is often useful documentation and
+may be used by specific applications. The missing_value attribute can
+be a scalar or vector containing values indicating missing data. These
+values should all be outside the valid range so that generic
+applications will treat them as missing.
+
+When scale_factor and add_offset are used for packing, the value(s) of
+the missing_value attribute should be specified in the domain of the
+data in the file (the packed data), so that missing values can be
+detected before the scale_factor and add_offset are applied.
+valid_min A scalar specifying the minimum valid value for this
+variable.  valid_max A scalar specifying the maximum valid value for
+this variable.  valid_range A vector of two numbers specifying the
+minimum and maximum valid values for this variable, equivalent to
+specifying values for both valid_min and valid_max attributes. Any of
+these attributes define the valid range. The attribute valid_range
+must not be defined if either valid_min or valid_max is defined.
+
+Generic applications should treat values outside the valid range as
+missing. The type of each valid_range, valid_min and valid_max
+attribute should match the type of its variable (except that for byte
+data, these can be of a signed integral type to specify the intended
+range).
+
+If neither valid_min, valid_max nor valid_range is defined then
+generic applications should define a valid range as follows. If the
+data type is byte and _FillValue is not explicitly defined, then the
+valid range should include all possible values. Otherwise, the valid
+range should exclude the _FillValue (whether defined explicitly or by
+default) as follows. If the _FillValue is positive then it defines a
+valid maximum, otherwise it defines a valid minimum. For integer
+types, there should be a difference of 1 between the _FillValue and
+this valid minimum or maximum. For floating point types, the
+difference should be twice the minimum possible (1 in the least
+significant bit) to allow for rounding error.
+
+If the variable is packed using scale_factor and add_offset attributes
+(see below), the _FillValue, missing_value, valid_range, valid_min, or
+valid_max attributes should have the data type of the packed data.
+
+\section scale_factor
+
+If present for a variable, the data are to be multiplied by this
+factor after the data are read by the application that accesses the
+data.
+
+If valid values are specified using the valid_min, valid_max,
+valid_range, or _FillValue attributes, those values should be
+specified in the domain of the data in the file (the packed data), so
+that they can be interpreted before the scale_factor and add_offset
+are applied.  
+
+\section add_offset
+
+If present for a variable, this number is to be added to the data
+after it is read by the application that accesses the data. If both
+scale_factor and add_offset attributes are present, the data are first
+scaled before the offset is added. The attributes scale_factor and
+add_offset can be used together to provide simple data compression to
+store low-resolution floating-point data as small integers in a netCDF
+dataset. When scaled data are written, the application should first
+subtract the offset and then divide by the scale factor, rounding the
+result to the nearest integer to avoid a bias caused by truncation
+towards zero.
+
+When scale_factor and add_offset are used for packing, the associated
+variable (containing the packed data) is typically of type byte or
+short, whereas the unpacked values are intended to be of type float or
+double. The attributes scale_factor and add_offset should both be of
+the type intended for the unpacked data, e.g. float or double.
+
+\section signedness
+
+Deprecated attribute, originally designed to indicate whether byte
+values should be treated as signed or unsigned. The attributes
+valid_min and valid_max may be used for this purpose. For example, if
+you intend that a byte variable store only non-negative values, you
+can use valid_min = 0 and valid_max = 255. This attribute is ignored
+by the netCDF library.  
+
+\section C_format
+
+A character array providing the format that should be used by C
+applications to print values for this variable. For example, if you
+know a variable is only accurate to three significant digits, it would
+be appropriate to define the C_format attribute as "%.3g". The ncdump
+utility program uses this attribute for variables for which it is
+defined. The format applies to the scaled (internal) type and value,
+regardless of the presence of the scaling attributes scale_factor and
+add_offset.  
+
+\section FORTRAN_format
+
+A character array providing the format that should be used by FORTRAN
+applications to print values for this variable. For example, if you
+know a variable is only accurate to three significant digits, it would
+be appropriate to define the FORTRAN_format attribute as "(G10.3)".
+
+\section title
+
+A global attribute that is a character array providing a succinct
+description of what is in the dataset.  
+
+\section history
+
+A global attribute for an audit trail. This is a character array with
+a line for each invocation of a program that has modified the
+dataset. Well-behaved generic netCDF applications should append a line
+containing: date, time of day, user name, program name and command
+arguments.  
+
+\section Conventions
+
+If present, 'Conventions' is a global attribute that is a character
+array for the name of the conventions followed by the
+dataset. Originally, these conventions were named by a string that was
+interpreted as a directory name relative to the directory
+/pub/netcdf/Conventions/ on the host ftp.unidata.ucar.edu. The web
+page http://www.unidata.ucar.edu/netcdf/conventions.html is now the
+preferred and authoritative location for registering a URI reference
+to a set of conventions maintained elsewhere. The FTP site will be
+preserved for compatibility with existing references, but authors of
+new conventions should submit a request to
+support-netcdf@unidata.ucar.edu for listing on the Unidata conventions
+web page.
+
+It may be convenient for defining institutions and groups to use a
+hierarchical structure for general conventions and more specialized
+conventions. For example, if a group named NUWG agrees upon a set of
+conventions for dimension names, variable names, required attributes,
+and netCDF representations for certain discipline-specific data
+structures, they may store a document describing the agreed-upon
+conventions in a dataset in the NUWG/ subdirectory of the Conventions
+directory. Datasets that followed these conventions would contain a
+global Conventions attribute with value "NUWG".
+
+Later, if the group agrees upon some additional conventions for a
+specific subset of NUWG data, for example time series data, the
+description of the additional conventions might be stored in the
+NUWG/Time_series/ subdirectory, and datasets that adhered to these
+additional conventions would use the global Conventions attribute with
+value "NUWG/Time_series", implying that this dataset adheres to the
+NUWG conventions and also to the additional NUWG time-series
+conventions.
+
+It is possible for a netCDF file to adhere to more than one set of
+conventions, even when there is no inheritance relationship among the
+conventions. In this case, the value of the `Conventions' attribute
+may be a single text string containing a list of the convention names
+separated by blank space (recommended) or commas (if a convention name
+contains blanks).
+
+Typical conventions web sites will include references to documents in
+some form agreed upon by the community that supports the conventions
+and examples of netCDF file structures that follow the conventions.
+
+*/

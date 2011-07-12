@@ -8,6 +8,7 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
+#include <stdio.h>		/* for debugging */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -550,7 +551,6 @@ set_var_chunked(int ogrp, int o_varid)
 		size_t chunksize = chunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;
 		NC_CHECK(nc_inq_dimlen(ogrp, odimid, &dimlen));
-		/* if( (chunksize > 0 && chunksize <= dimlen) || dimmap_ounlim(odimid)) { */
 		if( (chunksize > 0) || dimmap_ounlim(odimid)) {
 		    chunked = 1;		    
 		}

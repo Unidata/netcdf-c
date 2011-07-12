@@ -1,0 +1,27 @@
+/** \file 
+This header file holds the documentation for the main page.
+
+\mainpage
+
+NetCDF is a set of software libraries and self-describing,
+machine-independent data formats that support the creation, access,
+and sharing of array-oriented scientific data.
+
+NetCDF was developed and is maintained at Unidata, part of the
+University Corporation for Atmospheric Research (UCAR) Office of
+Programs (UOP). Unidata is funded primarily by the National Science
+Foundation.
+
+\authors Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed
+Hartnett, and Dennis Heimbigner
+
+Unidata provides data and software tools for use in geoscience
+education and research. For more information see the web sites of <a
+href="http://www.unidata.ucar.edu">Unidata</a>, <a
+href="http://www.uop.ucar.edu">UOP</a>, and <a
+href="http://www.ucar.edu">UCAR</a>.
+
+\version This documentation applies to version 4.2 of the netCDF C
+library.
+
+*/

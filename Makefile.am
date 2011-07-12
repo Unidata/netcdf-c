@@ -61,9 +61,6 @@ LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
 endif
 
-DISPATCHDIR = libdispatch
-ASSEMBLEDIR = liblib
-
 # Does the user want F90 API?
 if BUILD_F90
 F90_DIR = f90
@@ -102,12 +99,10 @@ endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump and cxx, because their tests
-# depend on it. nf_test depends upon ncgen as well. If not using
-# dispatch then NC3DAPDIR must be built right before libsrc and
-# NC4DAPDIR must be built right before LIBSRC4_DIR.
-SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) $(DISPATCHDIR) $(OCLIB)	\
-libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) ${ASSEMBLEDIR} $(V2_TEST)	\
-nc_test $(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)	\
+# depend on it. nf_test depends upon ncgen as well.
+SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) libdispatch $(OCLIB)	\
+libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) liblib $(V2_TEST) nc_test	\
+$(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)		\
 ${CXX_DIR} $(CXX4) $(NC_TEST4) $(NCDAPTESTDIR) man4 $(EXAMPLES)		\
 $(LIBCF)
 
