@@ -238,7 +238,11 @@ open netCDF dataset. */
 #define	NC_EEXIST	(-35)	   /**< netcdf file exists && NC_NOCLOBBER */
 #define	NC_EINVAL	(-36)	   /**< Invalid Argument */
 #define	NC_EPERM	(-37)	   /**< Write to read only */
-#define NC_ENOTINDEFINE	(-38)	   /**< Operation not allowed in data mode */
+
+/** Operation not allowed in data mode. This is returned for netCDF
+classic or 64-bit offset files, or for netCDF-4 files, when they were
+been created with ::NC_CLASSIC_MODEL flag in nc_create(). */
+#define NC_ENOTINDEFINE	(-38)	   
 
 /** Operation not allowed in define mode.
 
@@ -262,9 +266,15 @@ larger than the corresponding dimension length will cause an error. */
 #define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
 #define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
 #define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
-#define	NC_EMAXVARS	(-48)	   /**< NC_MAX_VARS exceeded */
 
-/** Variable not found */
+/** NC_MAX_VARS exceeded. Max number of variables exceeded in a
+classic or 64-bit offset file, or an netCDF-4 file with
+::NC_CLASSIC_MODEL on. */
+#define	NC_EMAXVARS	(-48)	   
+
+/** Variable not found.
+
+The variable ID is invalid for the specified netCDF dataset. */
 #define NC_ENOTVAR	(-49)	   
 #define NC_EGLOBAL	(-50)	   /**< Action prohibited on NC_GLOBAL varid */
 #define NC_ENOTNC	(-51)	   /**< Not a netcdf file */
@@ -324,7 +334,9 @@ by the desired type. */
 #define NC_ENOCOMPOUND   (-109)    /**< Not a compound type. */
 #define NC_EATTEXISTS    (-110)    /**< Attribute already exists. */
 #define NC_ENOTNC4       (-111)    /**< Attempting netcdf-4 operation on netcdf-3 file. */  
-#define NC_ESTRICTNC3    (-112)    /**< Attempting netcdf-4 operation on strict nc3 netcdf-4 file. */  
+
+/** Attempting netcdf-4 operation on strict nc3 netcdf-4 file. */  
+#define NC_ESTRICTNC3    (-112)    
 #define NC_ENOTNC3       (-113)    /**< Attempting netcdf-3 operation on netcdf-4 file. */  
 #define NC_ENOPAR        (-114)    /**< Parallel operation on file opened for non-parallel access. */  
 #define NC_EPARINIT      (-115)    /**< Error initializing for parallel access. */  
@@ -1112,16 +1124,16 @@ nc_get_var1_string(int ncid, int varid, const size_t *indexp,
 /* Begin {put,get}_vara */
 
 EXTERNL int
-nc_put_vara_text(int ncid, int varid,
-	const size_t *startp, const size_t *countp, const char *op);
+nc_put_vara_text(int ncid, int varid, const size_t *startp, 
+		 const size_t *countp, const char *op);
 
 EXTERNL int
-nc_get_vara_text(int ncid, int varid,
-	const size_t *startp, const size_t *countp, char *ip);
+nc_get_vara_text(int ncid, int varid, const size_t *startp, 
+		 const size_t *countp, char *ip);
 
 EXTERNL int
-nc_put_vara_uchar(int ncid, int varid,
-	const size_t *startp, const size_t *countp, const unsigned char *op);
+nc_put_vara_uchar(int ncid, int varid, const size_t *startp, 
+		  const size_t *countp, const unsigned char *op);
 
 EXTERNL int
 nc_get_vara_uchar(int ncid, int varid, const size_t *startp, 

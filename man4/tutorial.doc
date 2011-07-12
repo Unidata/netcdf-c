@@ -23,7 +23,7 @@ This tutorial may serve as an introduction to netCDF. See the <a
 href="http://www.unidata.ucar.edu/software/netcdf/docs/">netCDF
 documentation page</a> for more information.
 
-\section classic_model The Classic Model
+\page classic_model The Classic Model
 
 The classic netCDF data model consists of variables, dimensions, and
 attributes. This way of thinking about data was introduced with the

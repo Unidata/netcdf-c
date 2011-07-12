@@ -368,5 +368,17 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 #define nulllen(s) (s==NULL?0:strlen(s))
 #define nullstring(s) (s==NULL?"(null)":s)
 
+#define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
+
+#if defined(__cplusplus)
+/* C++ consts default to internal linkage and must be initialized */
+const size_t coord_zero[NC_MAX_VAR_DIMS] = {0};
+const size_t coord_one[NC_MAX_VAR_DIMS] = {1};
+#else
+static const size_t coord_zero[NC_MAX_VAR_DIMS];
+/* initialized int put/get_var1 below */
+static size_t coord_one[NC_MAX_VAR_DIMS];
+#endif
+
 #endif /* _DISPATCH_H */
 
