@@ -54,7 +54,9 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 #else
 #  include <stdint.h>
 #endif /* HAVE_STDINT_H */
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>  /* attempt to define endianness */
+#endif /* HAVE_SYS_PARAM_H */
 #ifdef linux
 # include <endian.h>    /* attempt to define endianness */
 #endif
