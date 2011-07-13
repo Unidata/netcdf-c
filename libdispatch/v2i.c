@@ -1,8 +1,9 @@
-/*
- *	Copyright 1996, University Corporation for Atmospheric Research
- *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
+/** \file 
+The V2 API Funtions.
+
+Copyright 1996, University Corporation for Atmospheric Research
+See \ref copyright file for copying and redistribution conditions.
  */
-/* $Id: v2i.c,v 1.52 2009/02/20 22:00:46 dmh Exp $ */
 
 #ifndef NO_NETCDF_2
 
@@ -43,15 +44,14 @@ int ncerr = NC_NOERR ;
 static size_t
 nvdims(int ncid, int varid)
 {
-	NC *ncp;
-	if(NC_check_id(ncid, &ncp) != NC_NOERR)
-		return 0;
-	{
-		const NC_var *const varp = NC_lookupvar(ncp, varid);
-		if(varp == NULL)
-			return 0;
-		return varp->ndims;
-	}
+   int ndims, status;
+
+   if ((status = nc_inq_var_ndims(ncid, varid, &ndims)))
+   {
+      nc_advise("ncvdims", status, "ncid %d", ncid);
+      return -1;
+   }
+   return ndims;
 }
 
 #define NDIMS_DECL	const size_t ndims = nvdims(ncid, varid);
