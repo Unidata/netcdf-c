@@ -739,6 +739,7 @@ AC_MSG_NOTICE([checking types, headers, and functions])
 
 AC_CHECK_HEADER(stdlib.h, ,AC_DEFINE([NO_STDLIB_H], [], [no stdlib.h]))
 AC_CHECK_HEADER(sys/types.h, ,AC_DEFINE([NO_SYS_TYPES_H], [], [no sys_types.h]))
+AC_CHECK_HEADERS([sys/param.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_DIRENT
 AC_HEADER_STDC

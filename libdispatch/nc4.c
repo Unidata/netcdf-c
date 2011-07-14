@@ -6,54 +6,69 @@ Research/Unidata. See \ref COPYRIGHT file for more info. */
 
 #include "ncdispatch.h"
 
-/** \ingroup variables
-Free string space allocated by the library.
+/** \defgroup user_types User-Defined Types
 
-When you read string type the library will allocate the storage space
-for the data. This storage space must be freed, so pass the pointer
-back to this function, when you're done with the data, and it will
-free the string memory. 
+User defined types allow for more complex data structures.
 
-\param len The number of character arrays in the array. 
-\param data The pointer to the data array. 
+NetCDF-4 has added support for four different user defined data
+types. User defined type may only be used in files created with the
+::NC_NETCDF4 and without ::NC_CLASSIC_MODEL.
+- compound type: like a C struct, a compound type is a collection of
+types, including other user defined types, in one package.  
+- variable length array type: used to store ragged arrays.
+- opaque type: This type has only a size per element, and no other
+  type information.
+- enum type: Like an enumeration in C, this type lets you assign text
+  values to integer values, and store the integer values.
 
-\returns ::NC_NOERR No error.
+Users may construct user defined type with the various nc_def_*
+functions described in this section. They may learn about user defined
+types by using the nc_inq_ functions defined in this section.
+
+Once types are constructed, define variables of the new type with
+nc_def_var (see nc_def_var). Write to them with nc_put_var1,
+nc_put_var, nc_put_vara, or nc_put_vars. Read data of user-defined
+type with nc_get_var1, nc_get_var, nc_get_vara, or nc_get_vars (see
+\ref variables).
+
+Create attributes of the new type with nc_put_att (see nc_put_att_
+type). Read attributes of the new type with nc_get_att (see
+\ref attributes).
 */
-int
-nc_free_string(size_t len, char **data)
-{
-   int i;
-   for (i = 0; i < len; i++)
-      free(data[i]);
-   return NC_NOERR;
-}
+/** \{ */ 
 
-/* When you read VLEN type the library will actually allocate the
- * storage space for the data. This storage space must be freed, so
- * pass the pointer back to this function, when you're done with the
- * data, and it will free the vlen memory. */
-int
-nc_free_vlen(nc_vlen_t *vl)
-{
-   free(vl->p);
-   return NC_NOERR;
-}
+/** \} */ 
 
-/* Free an array of vlens given the number of elements and an
- * array. */ 
-int
-nc_free_vlens(size_t len, nc_vlen_t vlens[])
-{
-   int ret;
-   size_t i;
+/** \defgroup groups Groups
 
-   for(i = 0; i < len; i++) 
-      if ((ret = nc_free_vlen(&vlens[i])))
-	 return ret;
+NetCDF-4 added support for hierarchical groups within netCDF datasets.
 
-   return NC_NOERR;
-}
+Groups are identified with a ncid, which identifies both the open
+file, and the group within that file. When a file is opened with
+nc_open or nc_create, the ncid for the root group of that file is
+provided. Using that as a starting point, users can add new groups, or
+list and navigate existing groups.
 
+All netCDF calls take a ncid which determines where the call will take
+its action. For example, the nc_def_var function takes a ncid as its
+first parameter. It will create a variable in whichever group its ncid
+refers to. Use the root ncid provided by nc_create or nc_open to
+create a variable in the root group. Or use nc_def_grp to create a
+group and use its ncid to define a variable in the new group.
+
+Variable are only visible in the group in which they are defined. The
+same applies to attributes. “Global” attributes are associated with
+the group whose ncid is used.
+
+Dimensions are visible in their groups, and all child groups.
+
+Group operations are only permitted on netCDF-4 files - that is, files
+created with the HDF5 flag in nc_create(). Groups are not compatible
+with the netCDF classic data model, so files created with the
+::NC_CLASSIC_MODEL file cannot contain groups (except the root group).
+
+ */
+/** \{ */ 
 int
 nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
@@ -150,16 +165,6 @@ nc_inq_typeids(int ncid, int *ntypes, int *typeids)
 }
 
 int
-nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, 
-		  nc_type typeid2, int *equal)
-{
-    NC* ncp1;
-    int stat = NC_check_id(ncid1,&ncp1);
-    if(stat != NC_NOERR) return stat;
-    return ncp1->dispatch->inq_type_equal(ncid1,typeid1,ncid2,typeid2,equal);
-}
-
-int
 nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
     NC* ncp;
@@ -168,303 +173,7 @@ nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
     return ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
 }
 
-int
-nc_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_compound(ncid,size,name,typeidp);
-}
 
-int
-nc_insert_compound(int ncid, nc_type xtype, const char *name, size_t offset, nc_type field_typeid)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->insert_compound(ncid,xtype,name,offset,field_typeid);
-}
-
-int
-nc_insert_array_compound(int ncid, nc_type xtype, const char *name, size_t offset, nc_type field_typeid, int ndims, const int *dim_sizes)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->insert_array_compound(ncid,xtype,name,offset,field_typeid,ndims,dim_sizes);
-}
-
-int
-nc_inq_typeid(int ncid, const char *name, nc_type *typeidp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_typeid(ncid,name,typeidp);
-}
-
-int
-nc_inq_compound(int ncid, nc_type xtype, char *name, size_t *sizep, size_t *nfieldsp)
-{
-    int class = 0;
-    int stat = nc_inq_user_type(ncid,xtype,name,sizep,NULL,nfieldsp,&class);
-    if(stat != NC_NOERR) return stat;
-    if(class != NC_COMPOUND) stat = NC_EBADTYPE;
-    return stat;
-}
-
-int
-nc_inq_compound_name(int ncid, nc_type xtype, char *name)
-{
-    return nc_inq_compound(ncid,xtype,name,NULL,NULL);
-}
-
-int
-nc_inq_compound_size(int ncid, nc_type xtype, size_t *sizep)
-{
-    return nc_inq_compound(ncid,xtype,NULL,sizep,NULL);
-}
-
-int
-nc_inq_compound_nfields(int ncid, nc_type xtype, size_t *nfieldsp)
-{
-    return nc_inq_compound(ncid,xtype,NULL,NULL,nfieldsp);
-}
-
-int
-nc_inq_compound_field(int ncid, nc_type xtype, int fieldid, char *name, size_t *offsetp, nc_type *field_typeidp, int *ndimsp, int *dim_sizesp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,name,offsetp,field_typeidp,ndimsp,dim_sizesp);
-}
-
-int
-nc_inq_compound_fieldname(int ncid, nc_type xtype, int fieldid, 
-			  char *name)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,name,NULL,NULL,NULL,NULL);
-}
-
-int
-nc_inq_compound_fieldoffset(int ncid, nc_type xtype, int fieldid, 
-			    size_t *offsetp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,offsetp,NULL,NULL,NULL);
-}
-
-int
-nc_inq_compound_fieldtype(int ncid, nc_type xtype, int fieldid, 
-			  nc_type *field_typeidp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,field_typeidp,NULL,NULL);
-}
-
-int
-nc_inq_compound_fieldndims(int ncid, nc_type xtype, int fieldid, 
-			   int *ndimsp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,NULL,ndimsp,NULL);
-}
-
-int
-nc_inq_compound_fielddim_sizes(int ncid, nc_type xtype, int fieldid, 
-			       int *dim_sizes)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,NULL,NULL,dim_sizes);
-}
-
-int
-nc_inq_compound_fieldindex(int ncid, nc_type xtype, const char *name, 
-			   int *fieldidp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_compound_fieldindex(ncid,xtype,name,fieldidp);
-}
-
-int
-nc_def_vlen(int ncid, const char *name, nc_type base_typeid, nc_type *xtypep)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_vlen(ncid,name,base_typeid,xtypep);
-}
-
-int
-nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep, nc_type *base_nc_typep)
-{
-    int class = 0;
-    int stat = nc_inq_user_type(ncid,xtype,name,datum_sizep,base_nc_typep,NULL,&class);
-    if(stat != NC_NOERR) return stat;
-    if(class != NC_VLEN) stat = NC_EBADTYPE;
-    return stat;
-}
-
-int
-nc_put_vlen_element(int ncid, int typeid1, void *vlen_element, size_t len, const void *data)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->put_vlen_element(ncid,typeid1,vlen_element,len,data);
-}
-
-int
-nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element, size_t *len, void *data)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->get_vlen_element(ncid,typeid1,vlen_element,len,data);
-}
-
-int
-nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size, nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_user_type(ncid,xtype,name,size,base_nc_typep,nfieldsp,classp);
-}
-
-int
-nc_def_enum(int ncid, nc_type base_typeid, const char *name, nc_type *typeidp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_enum(ncid,base_typeid,name,typeidp);
-}
-
-int
-nc_insert_enum(int ncid, nc_type xtype, const char *name, const void *value)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->insert_enum(ncid,xtype,name,value);
-}
-
-int
-nc_inq_enum(int ncid, nc_type xtype, char *name, nc_type *base_nc_typep, size_t *base_sizep, size_t *num_membersp)
-{
-    int class = 0;
-    int stat = nc_inq_user_type(ncid,xtype,name,base_sizep,base_nc_typep,num_membersp,&class);
-    if(stat != NC_NOERR) return stat;
-    if(class != NC_ENUM) stat = NC_EBADTYPE;
-    return stat;
-}
-
-int
-nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name, void *value)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_enum_member(ncid,xtype,idx,name,value);
-}
-
-int
-nc_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_enum_ident(ncid,xtype,value,identifier);
-}
-
-int
-nc_def_opaque(int ncid, size_t size, const char *name, nc_type *xtypep)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_opaque(ncid,size,name,xtypep);
-}
-
-int
-nc_inq_opaque(int ncid, nc_type xtype, char *name, size_t *sizep)
-{
-    int class = 0;
-    int stat = nc_inq_user_type(ncid,xtype,name,sizep,NULL,NULL,&class);
-    if(stat != NC_NOERR) return stat;
-    if(class != NC_OPAQUE) stat = NC_EBADTYPE;
-    return stat;
-}
-
-int
-nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
-}
-
-int
-nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_fletcher32(ncid,varid,fletcher32);
-}
-
-int
-nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_chunking(ncid,varid,storage,chunksizesp);
-}
-
-int
-nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
-}
-
-int
-nc_def_var_endian(int ncid, int varid, int endian)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_endian(ncid,varid,endian);
-}
-
-int 
-nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_unlimdims(ncid,nunlimdimsp,unlimdimidsp);
-}
 
 int 
 nc_show_metadata(int ncid)
@@ -475,3 +184,4 @@ nc_show_metadata(int ncid)
     return ncp->dispatch->show_metadata(ncid);
 }
 
+/** \} */ 

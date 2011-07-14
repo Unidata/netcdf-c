@@ -325,7 +325,9 @@ by the desired type. */
    error codes < -100 so that errors can be added to netcdf-3 if
    needed. */
 #define NC4_FIRST_ERROR  (-100)
-#define NC_EHDFERR       (-101)    /**< Error at HDF5 layer. */
+
+/** Error at HDF5 layer. */
+#define NC_EHDFERR       (-101)    
 #define NC_ECANTREAD     (-102)    /**< Can't read. */
 #define NC_ECANTWRITE    (-103)    /**< Can't write. */
 #define NC_ECANTCREATE   (-104)    /**< Can't create. */

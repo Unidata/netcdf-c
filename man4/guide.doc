@@ -442,8 +442,10 @@ A zero-length name is not allowed.
 Names longer than ::NC_MAX_NAME will not be accepted any netCDF define
 function. An error of ::NC_EMAXNAME will be returned.
 
-All netCDF inquiry functions will return names less than NC_MAX_NAME
-for netCDF files.
+All netCDF inquiry functions will return names of maximum size
+::NC_MAX_NAME for netCDF files. Since this does not include the
+terminating NULL, space should be reserved for NC_MAX_NAME + 1
+characters.
 
 \section Conventions
 

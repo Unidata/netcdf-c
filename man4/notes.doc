@@ -115,4 +115,20 @@ type-independent units of elements.
 memory locations is 1 and not the element's byte-length as in netCDF
 2.
 
+\page ncid NetCDF ID
+
+Most netCDF function require the netCDF ID as a first parameter.
+
+In the netCDF classic model, the netCDF ID is associated with an open
+file. Each file, when opened by nc_open(), or created by nc_create(),
+is assigned an ncid, which it retains until nc_close() is called.
+
+In the netCDF enhanced model, the ncid refers to a group with a
+file. (Each file contains at least the root group, which is the ncid
+that is returned by nc_open() and nc_create().)
+
+For netCDF-4/HDF5 files, netCDF IDs can come not just from nc_open()
+and nc_create(), but also from nc_def_grp(), nc_inq_grps(),
+nc_inq_ncid(), nc_inq_grp_parent(), and nc_inq_grp_full_ncid().
+
 */
