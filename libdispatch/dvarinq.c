@@ -65,8 +65,7 @@ nc_create().
 
 \param varid Variable ID
 
-\param name Returned variable name. The caller must allocate space for
-the returned name. The maximum length is ::NC_MAX_NAME. \ref
+\param name Returned \ref object_name of variable. \ref
 ignored_if_null.
 
 \param xtypep Pointer where typeid will be stored. \ref ignored_if_null.
@@ -516,5 +515,46 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL /*pixelsp*/
       );
 }
+
+/** Return number and list of unlimited dimensions.
+
+In netCDF-4 files, it's possible to have multiple unlimited
+dimensions. This function returns a list of the unlimited dimension
+ids visible in a group.
+
+Dimensions are visible in a group if they have been defined in that
+group, or any ancestor group. 
+
+ncid
+    NetCDF group ID, from a previous call to nc_open, nc_create, nc_def_grp, etc.
+nunlimdimsp
+    A pointer to an int which will get the number of visible unlimited dimensions. Ignored if NULL.
+unlimdimidsp
+    A pointer to an already allocated array of int which will get the ids of all visible unlimited dimensions. Ignored if NULL. To allocate the correct length for this array, call nc_inq_unlimdims with a NULL for this parameter and use the nunlimdimsp parameter to get the number of visible unlimited dimensions. 
+
+Errors
+
+NC_NOERR
+    No error.
+NC_EBADID
+    Bad group id.
+NC_ENOTNC4
+    Attempting a netCDF-4 operation on a netCDF-3 file. NetCDF-4 operations can only be performed on files defined with a create mode which includes flag HDF5. (see nc_open).
+NC_ESTRICTNC3
+    This file was created with the strict netcdf-3 flag, therefore netcdf-4 operations are not allowed. (see nc_open).
+NC_EHDFERR
+    An error was reported by the HDF5 layer. 
+
+ */
+int
+nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp, 
+					unlimdimidsp);
+}
+
 #endif /* USE_NETCDF4 */
 /*! \} */  /* End of named group ...*/

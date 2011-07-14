@@ -574,15 +574,11 @@ examples/C/sfc_pres_temp_wr.c examples/C/sfc_pres_temp_rd.c \
 examples/C/pres_temp_4D_wr.c examples/C/pres_temp_4D_rd.c \
 examples/C/simple_nc4_wr.c examples/C/simple_nc4_rd.c \
 examples/C/simple_xy_nc4_wr.c examples/C/simple_xy_nc4_rd.c \
-libdispatch/file.c  libdispatch/dim.c \
-libdispatch/attget.c \
-libdispatch/attinq.c  libdispatch/attput.c \
-libdispatch/att.c \
-libdispatch/var.c \
-libdispatch/varinq.c \
-libdispatch/varput.c libdispatch/varget.c \
-libdispatch/error.c \
-libdispatch/nc4.c \
+libdispatch/dfile.c  libdispatch/ddim.c \
+libdispatch/dattget.c libdispatch/dattinq.c  libdispatch/dattput.c \
+libdispatch/datt.c libdispatch/dvar.c libdispatch/dvarinq.c \
+libdispatch/dvarput.c libdispatch/dvarget.c libdispatch/derror.c \
+libdispatch/nc4.c libdispatch/dtype.c libdispatch/dv2i.c \
 libsrc4/nc4file.c \
 man4/mainpage.doc man4/tutorial.doc COPYRIGHT man4/install.doc man4/dispatch.doc \
 man4/guide.doc man4/types.doc man4/notes.doc
