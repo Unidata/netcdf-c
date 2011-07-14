@@ -74,7 +74,7 @@ BRIEF_MEMBER_DESC      = YES
 # Note: if both HIDE_UNDOC_MEMBERS and BRIEF_MEMBER_DESC are set to NO, the
 # brief descriptions will be completely suppressed.
 
-REPEAT_BRIEF           = NO
+REPEAT_BRIEF           = YES
 
 # This tag implements a quasi-intelligent brief description abbreviator
 # that is used to form the text in various listings. Each string
@@ -578,8 +578,9 @@ libdispatch/dfile.c  libdispatch/ddim.c \
 libdispatch/dattget.c libdispatch/dattinq.c  libdispatch/dattput.c \
 libdispatch/datt.c libdispatch/dvar.c libdispatch/dvarinq.c \
 libdispatch/dvarput.c libdispatch/dvarget.c libdispatch/derror.c \
-libdispatch/nc4.c libdispatch/dtype.c libdispatch/dv2i.c \
-libsrc4/nc4file.c \
+libdispatch/nc4.c libdispatch/dcompound.c libdispatch/dv2i.c \
+libdispatch/dvlen.c libdispatch/denum.c libdispatch/dopaque.c \
+libdispatch/dtype.c libsrc4/nc4file.c \
 man4/mainpage.doc man4/tutorial.doc COPYRIGHT man4/install.doc man4/dispatch.doc \
 man4/guide.doc man4/types.doc man4/notes.doc
 

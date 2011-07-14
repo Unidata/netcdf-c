@@ -22,7 +22,8 @@ dnclog.c nclog.h dstring.c
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
-libdispatch_la_SOURCES += nc4.c dtype.c
+libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
+dopaque.c
 endif # USE_NETCDF4
 
 # Turn on pre-processor flag when building a DLL for windows.
