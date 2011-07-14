@@ -5,15 +5,15 @@
 /* $Id: string.c,v 1.76 2010/05/26 21:43:33 dmh Exp $ */
 
 #include "config.h"
-#include "ncdispatch.h"
-#include "nc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "utf8proc.h"
+#include "nc.h"
 #include "rnd.h"
+#include "utf8proc.h"
+
 
 /* There are 3 levels of UTF8 checking: 1=> (exact)validating 2=>relaxed
    and 3=>very relaxed
@@ -289,7 +289,7 @@ set_NC_string(NC_string *ncstrp, const char *str)
 
 #ifndef HAVE_STRDUP
 char*
-nulldup(const char* s)
+strdup(const char* s)
 {
     char* dup;
     if(s == NULL) return NULL;
