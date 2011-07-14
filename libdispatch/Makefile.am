@@ -18,12 +18,13 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c ddispatch.c nc_uri.c dnclist.c dncbytes.c dnchashmap.c	\
-dnclog.c nclog.h dstring.c
+dnclog.c dstring.c dutf8proc.c utf8proc_data.h
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
-libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
+libdispatch_la_SOURCES += nc4.c dvlen.c dcompound.c dtype.c denum.c	\
 dopaque.c
+# where is dgroup.c?
 endif # USE_NETCDF4
 
 # Turn on pre-processor flag when building a DLL for windows.
