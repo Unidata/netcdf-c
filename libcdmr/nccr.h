@@ -72,14 +72,6 @@ typedef struct NCCR {
 /* Give PSEUDOFILE a value */
 #define PSEUDOFILE "/tmp/pseudofileXXXXXX"
 
-/* Replacement for strdup (in libsrc) */
-#ifdef HAVE_STRDUP
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char* nulldup(const char*);
-#endif
-
-#define nulllen(s) (s==NULL?0:strlen(s))
 #define nullstring(s) (s==NULL?"(null)":s)
 
 /**********************************************************/

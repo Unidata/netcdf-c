@@ -991,6 +991,9 @@ AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
 
 AC_CONFIG_SUBDIRS([udunits libcf])
 
+# Access netcdf specific version of config.h
+AH_BOTTOM([#include "ncconfigure.h"])
+
 ##################################################
 # Uncomment this to keep a copy of autoconf defines at this point, for
 # debugging purposes.

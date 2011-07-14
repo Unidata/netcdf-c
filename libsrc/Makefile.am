@@ -14,7 +14,7 @@ libnetcdf3_la_CPPFLAGS += -DDLL_EXPORT
 endif # BUILD_DLL
 
 # These files comprise the netCDF-3 classic library code.
-libnetcdf3_la_SOURCES = v1hpg.c onstack.h utf8proc.c utf8proc_data.h	\
+libnetcdf3_la_SOURCES = v1hpg.c onstack.h                             	\
 nclistmgr.c putget.m4 attr.m4 nc3dispatch.c nc.c var.c dim.c ncx.m4	\
 ncx.h lookup3.c pstdint.h
 
