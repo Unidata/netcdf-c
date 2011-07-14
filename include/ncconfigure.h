@@ -29,6 +29,9 @@ extern char* strdup(const char*);
 #ifndef nulllen
 #define nulllen(s) ((s)==NULL?0:strlen(s))
 #endif
+#ifndef nullfree
+#define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
+#endif
 
 #ifndef HAVE_UCHAR
 typedef unsigned char uchar;

@@ -10,7 +10,9 @@
 #ifndef NCGEN_INCLUDES_H
 #define NCGEN_INCLUDES_H
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,12 +47,6 @@
 #include "genlib.h"
 #include "util.h"
 #include "debug.h"
-
-#ifdef HAVE_STRDUP
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char* nulldup(const char*);
-#endif
 
 extern int specialconstants;
 

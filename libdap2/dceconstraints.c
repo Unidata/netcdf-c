@@ -24,13 +24,6 @@
 
 #define DEBUG
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#endif
-#ifndef nullfree
-#define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
-#endif
-
 static char* opstrings[] = OPSTRINGS ;
 
 static int mergeprojection(DCEprojection* dst, DCEprojection* src);
