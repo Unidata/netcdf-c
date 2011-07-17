@@ -360,7 +360,7 @@ int
 ocdodsrc_process(OCstate* state)
 {
     char* value;
-    char* url = ocuribuild(state->uri,NULL,NULL,0);
+    char* url = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
     if(ocdodsrc == NULL) return 0;
     value = curllookup("DEFLATE",url);
     if(value != NULL) {

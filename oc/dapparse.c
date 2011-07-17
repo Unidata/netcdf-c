@@ -322,27 +322,6 @@ flatten(char* s, char* tmp, int tlen)
     return tmp;
 }
 
-void
-dap_parse_error(DAPparsestate* state, const char *fmt, ...)
-{
-    size_t len, suffixlen, prefixlen;
-    va_list argv;
-    char* tmp = NULL;
-    va_start(argv,fmt);
-    (void) vfprintf(stderr,fmt,argv) ;
-    (void) fputc('\n',stderr) ;
-    len = strlen(state->lexstate->input);
-    suffixlen = strlen(state->lexstate->next);
-    prefixlen = (len - suffixlen);
-    tmp = (char*)ocmalloc(len+1);
-    flatten(state->lexstate->input,tmp,prefixlen);
-    (void) fprintf(stderr,"context: %s",tmp);
-    flatten(state->lexstate->next,tmp,suffixlen);
-    (void) fprintf(stderr,"^%s\n",tmp);
-    (void) fflush(stderr);	/* to ensure log files are current */
-    ocfree(tmp);
-}
-
 /* Create an ocnode and capture in the state->ocnode list */
 static OCnode*
 newocnode(char* name, OCtype octype, DAPparsestate* state)
@@ -395,6 +374,27 @@ octypefor(Object etype)
     default: abort();
     }
     return OC_NAT;
+}
+
+void
+dap_parse_error(DAPparsestate* state, const char *fmt, ...)
+{
+    size_t len, suffixlen, prefixlen;
+    va_list argv;
+    char* tmp = NULL;
+    va_start(argv,fmt);
+    (void) vfprintf(stderr,fmt,argv) ;
+    (void) fputc('\n',stderr) ;
+    len = strlen(state->lexstate->input);
+    suffixlen = strlen(state->lexstate->next);
+    prefixlen = (len - suffixlen);
+    tmp = (char*)ocmalloc(len+1);
+    flatten(state->lexstate->input,tmp,prefixlen);
+    (void) fprintf(stderr,"context: %s",tmp);
+    flatten(state->lexstate->next,tmp,suffixlen);
+    (void) fprintf(stderr,"^%s\n",tmp);
+    (void) fflush(stderr);	/* to ensure log files are current */
+    ocfree(tmp);
 }
 
 static void

@@ -2,16 +2,18 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
-#include "dapparselex.h"
 #include <strings.h>
+#include "dapparselex.h"
 
-#define URLCVT
-#define NONSTDCVT
+#undef URLCVT /* NEVER turn this on */
+#define DAP2ENCODE
 
 /* Forward */
 static void dumptoken(DAPlexstate* lexstate);
-static int tohex(int c);
 static void dapaddyytext(DAPlexstate* lex, int c);
+#ifndef DAP2ENCODE
+static int tohex(int c);
+#endif
 
 /****************************************************/
 static char* ddsworddelims =
@@ -35,9 +37,6 @@ static char* wordchars1 = NULL;
 static char* wordcharsn = NULL;
 static char* worddelims = NULL;
 */
-
-/* Hex digits */
-static char hexdigits[] = "0123456789abcdefABCDEF";
 
 static char* keywords[] = {
 "alias",
@@ -118,9 +117,18 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	    token = c;
 	} else if(c == '"') {
 	    int more = 1;
-	    /* We have a string token; will be reported as SCAN_WORD */
+	    /* We have a string token; will be reported as WORD_STRING */
 	    while(more && (c=*(++p))) {
-#ifdef NONSTDCVT
+#ifdef DAP2ENCODE
+	        if(c == '"')
+		    more = 0;
+		else if(c == '\\') {
+		    /* Remove spec ambiguity by convering \c to c
+                       for any character c */
+		    c=*(++p);
+		    if(c == '\0') more = 0;
+		}
+#else /*Non-standard*/
 		switch (c) {
 		case '"': more=0; break;
 		case '\\':
@@ -151,27 +159,18 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 		    break;
 		default: break;
 		}
-#else /*!NONSTDCVT*/
-	        if(c == '"')
-		    more = 0;
-		else if(c == '\\') {
-		    c=*(++p);
-		    if(c == '\0') more = false;
-		    if(c != '"') {c = '\\'; --p;}
-		}
-#endif /*!NONSTDCVT*/
+#endif /*!DAP2ENCODE*/
 		if(more) dapaddyytext(lexstate,c);
 	    }
-	    token=SCAN_WORD;
+	    token=WORD_STRING;
 	} else if(strchr(lexstate->wordchars1,c) != NULL) {
-	    /* we have a SCAN_WORD */
+	    /* we have a WORD_WORD */
 	    dapaddyytext(lexstate,c);
 	    while((c=*(++p))) {
 #ifdef URLCVT
 		if(c == '%' && p[1] != 0 && p[2] != 0
 			    && strchr(hexdigits,p[1]) != NULL
                             && strchr(hexdigits,p[2]) != NULL) {
-#ifdef WRONG /* Should not unescape %xx occurrences */
 		    int d1,d2;
 		    d1 = tohex(p[1]);
 		    d2 = tohex(p[2]);
@@ -179,7 +178,6 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 			c=(((unsigned int)d1)<<4) | (unsigned int)d2;
 			p+=2;
 		    }
-#endif
 		} else {
 		    if(strchr(lexstate->wordcharsn,c) == NULL) {p--; break;}
 		}
@@ -196,7 +194,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 		token = SCAN_DATA;
 	    } else {
 	        /* check for keyword */
-	        token=SCAN_WORD; /* assume */
+	        token=WORD_WORD; /* assume */
 	        for(i=0;;i++) {
 		    if(keywords[i] == NULL) break;
 		    if(strcasecmp(keywords[i],tmp)==0) {
@@ -231,6 +229,7 @@ dapaddyytext(DAPlexstate* lex, int c)
     ocbytesappend(lex->yytext,(char)c);
 }
 
+#ifndef DAP2ENCODE
 static int
 tohex(int c)
 {
@@ -239,6 +238,7 @@ tohex(int c)
     if(c >= '0' && c <= '9') return (c - '0');
     return -1;
 }
+#endif
 
 static void
 dumptoken(DAPlexstate* lexstate)
@@ -303,4 +303,18 @@ daplexcleanup(DAPlexstate** lexstatep)
     ocbytesfree(lexstate->yytext);
     free(lexstate);
     *lexstatep = NULL;
+}
+
+/* Dap identifiers will come to use encoded,
+   so we must decode them; It turns out that we
+   can use ocuridecode because dap specifies
+   %xx encoding.
+*/
+char*
+dapdecode(DAPlexstate* lexstate, char* name)
+{
+    char* decoded;
+    decoded = ocuridecode(name);
+    oclistpush(lexstate->reclaim,(ocelem)decoded);
+    return decoded;
 }

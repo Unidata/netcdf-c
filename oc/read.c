@@ -3,7 +3,9 @@
 
 #include "config.h"
 #include <sys/stat.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <sys/types.h>
 #ifdef HAVE_NETINET_IN_H
@@ -86,6 +88,7 @@ readpacket(CURL* curl,OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodified)
     } else {
 	int flags = 0;
 	if(!fileprotocol) flags |= OCURICONSTRAINTS;
+	flags |= OCURIENCODE;
         fetchurl = ocuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
@@ -123,6 +126,7 @@ readDATADDS(OCstate* state, OCtree* tree)
     } else {
 	int flags = 0;
 	if(!fileprotocol) flags |= OCURICONSTRAINTS;
+	flags |= OCURIENCODE;
         ocurisetconstraints(url,tree->constraint);
         readurl = ocuribuild(url,NULL,".dods",flags);
         MEMCHECK(readurl,OC_ENOMEM);

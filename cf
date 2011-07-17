@@ -1,7 +1,7 @@
 #!/bin/bash
 #X="-x"
 
-HDF5=1
+#HDF5=1
 DAP=1
 #CDMR=1
 
@@ -14,7 +14,7 @@ DAP=1
 #cmds="all"
 #cmds="all check"
 #cmds="all dist"
-cmds="all distcheck"
+#cmds="all distcheck"
 
 PREFIX="/tmp/install/${HOST}"
 stddir="/share/ed/local/${HOST}"

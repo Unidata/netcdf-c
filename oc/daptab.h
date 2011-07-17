@@ -59,9 +59,10 @@
      SCAN_UINT16 = 276,
      SCAN_UINT32 = 277,
      SCAN_URL = 278,
-     SCAN_WORD = 279,
-     SCAN_PTYPE = 280,
-     SCAN_PROG = 281
+     SCAN_PTYPE = 279,
+     SCAN_PROG = 280,
+     WORD_WORD = 281,
+     WORD_STRING = 282
    };
 #endif
 
