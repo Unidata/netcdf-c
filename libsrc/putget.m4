@@ -519,7 +519,7 @@ NCcoordck(NC *ncp, const NC_var *varp, const size_t *coord)
 
 	if(IS_RECVAR(varp))
 	{
-		if(*coord > X_INT_MAX)
+		if(*coord > X_UINT_MAX) /* rkr: bug fix from previous X_INT_MAX */
 			return NC_EINVALCOORDS; /* sanity check */
 		if(NC_readonly(ncp) && *coord >= NC_get_numrecs(ncp))
 		{
