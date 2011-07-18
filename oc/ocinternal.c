@@ -37,7 +37,7 @@ static int ocextractdds(OCstate*,OCtree*);
 static char* constraintescape(const char* url);
 #ifdef OC_DISK_STORAGE
 static OCerror createtempfile(OCstate*,OCtree*);
-static int createtempfile1(char*,char*);
+static int createtempfile1(char*,char**);
 #endif
 
 static void ocsetcurlproperties(OCstate*);
@@ -48,15 +48,8 @@ extern OCnode* makeunlimiteddimension(void);
 #include <fcntl.h>
 #define _S_IREAD 256
 #define _S_IWRITE 128
-int mkstemp(char *tmpl)
-{
-   int ret=-1;
-
-mktemp(tmpl); ret=open(tmpl,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
-
-   return ret;
-}
-
+#else
+#include <sys/stat.h>
 #endif
 
 /* Global flags*/
@@ -485,18 +478,13 @@ ocextractdds(OCstate* state, OCtree* tree)
 static OCerror
 createtempfile(OCstate* state, OCtree* tree)
 {
-    int fd,slen;
-    char* name;
-    slen = strlen(TMPPATH1);
-    if(slen < strlen(TMPPATH2)) slen = strlen(TMPPATH2);
-    slen += strlen("datadds") + strlen("XXXXXX");
-    name = (char*)ocmalloc(slen+1);
-    MEMCHECK(name,OC_ENOMEM);
-    fd = createtempfile1(name, TMPPATH1);
+    int fd;
+    char* name = NULL;
+    fd = createtempfile1(TMPPATH1,&name);
     if(fd < 0)
-        fd = createtempfile1(name, TMPPATH2);
+        fd = createtempfile1(TMPPATH2,&name);
     if(fd < 0) {
-        oc_log(LOGERR,"oc_open: attempt to open tmp file %s failed",name);
+        oc_log(LOGERR,"oc_open: attempt to open tmp file failed: %s",name);
         return errno;
     }
     oc_log(LOGNOTE,"oc_open: using tmp file: %s",name);
@@ -509,22 +497,38 @@ createtempfile(OCstate* state, OCtree* tree)
 }
 
 int
-createtempfile1(char* name, char* tmppath)
+createtempfile1(char* tmppath, char** tmpnamep)
 {
-    char* p;
-    int c,fd;
-    strcpy(name,tmppath);
-    strcat(name,"datadds");
-    strcat(name,"XXXXXX");
-    p = name + strlen("datadds");
-    /* \', and '/' to '_' and '.' to '-'*/
-    for(;(c=*p);p++) {
-        if(c == '\\' || c == '/') {*p = '_';}
-        else if(c == '.') {*p = '-';}
+    int fd;
+    char* tmpname = NULL;
+#ifdef HAVE_MKSTEMP
+    {
+	char* p;
+	char c;
+	tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
+	if(tmpname == NULL) return -1;
+	strcpy(tmpname,tmppath);
+	strcat(tmpname,"dataddsXXXXXX");
+	p = tmpname + strlen("datadds");
+	/* \', and '/' to '_' and '.' to '-'*/
+	for(;(c=*p);p++) {
+	    if(c == '\\' || c == '/') {*p = '_';}
+	    else if(c == '.') {*p = '-';}
+	}
+        /* Note Potential problem: old versions of this function
+           leave the file in mode 0666 instead of 0600 */
+        fd = mkstemp(tmpname);
     }
-    /* Note Potential problem: old versions of this function
-       leave the file in mode 0666 instead of 0600 */
-    fd = mkstemp(name);
+# else
+    tmpname = tempnam(); /* Not a good idea */
+    if(tmpname == NULL) return -1;
+#ifdef WIN32
+    fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
+#else
+   fd=open(tmpl,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+#endif
+#endif
+    if(tmpnamep) *tmpnamep = tmpname;
     return fd;
 }
 #endif /*OC_DISK_STORAGE*/
@@ -570,7 +574,7 @@ ocupdatelastmodifieddata(OCstate* state)
     OCerror status = OC_NOERR;
     long lastmodified;
     char* base = NULL;
-    base = ocuribuild(state->uri,NULL,NULL,0);
+    base = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
     status = ocfetchlastmodified(state->curl, base, &lastmodified);
     free(base);
     if(status == OC_NOERR) {

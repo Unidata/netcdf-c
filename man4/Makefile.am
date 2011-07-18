@@ -9,11 +9,9 @@
 # The "install" target installs the documentation in a directory
 # called $(prefix)/doc/$(PACKAGE)-$(VERSION).
 
-# $Id: Makefile.am,v 1.35 2010/04/20 17:08:34 ed Exp $
-
 # These are the source files for all the netcdf manuals.
 info_TEXINFOS = netcdf.texi netcdf-install.texi netcdf-c.texi		\
-netcdf-f77.texi netcdf-f90.texi netcdf-cxx.texi netcdf-tutorial.texi	
+netcdf-f77.texi netcdf-f90.texi netcdf-cxx.texi netcdf-tutorial.texi
 #netcdf-cxx4.texi
 
 # Get lists of the coresponding ps, info, and pdf files.
@@ -201,3 +199,4 @@ ${cxx_examples} ${cdl_examples} *.1 *.3 ncdump-man-1.html		\
 ncgen-man-1.html ncgen3-man-1.html netcdf_f77-man.html netcdf-man-3.html \
 netcdf_f90-man.html stamp-* version* netcdf_f77.3 nccopy-man-1.html
 
+SUBDIRS = images

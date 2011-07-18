@@ -39,7 +39,7 @@ typedef struct DAPlexstate {
     char* wordchars1;
     char* wordcharsn;
     char* worddelims;
-    OClist* reclaim; /* reclaim SCAN_WORD instances */
+    OClist* reclaim; /* reclaim WORD_WORD instances */
 } DAPlexstate;
 
 /*! Specifies the DAPparsestate. */
@@ -90,5 +90,6 @@ extern int daplex(YYSTYPE*, DAPparsestate*);
 extern void daplexinit(char* input, DAPlexstate** lexstatep);
 extern void daplexcleanup(DAPlexstate** lexstatep);
 extern void dapsetwordchars(DAPlexstate* lexstate, int kind);
+extern char* dapdecode(DAPlexstate*,char*);
 
 #endif /*DAPPARSELEX_H*/

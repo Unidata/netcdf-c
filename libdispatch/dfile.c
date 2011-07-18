@@ -50,6 +50,19 @@ of the interfaces for these operations.
 */
 /**@{*/
 
+size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+size_t NC_coord_one[NC_MAX_VAR_DIMS];
+
+static void
+nc_local_initialize(void)
+{
+    int i;
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	NC_coord_one[i] = 1;
+	NC_coord_zero[i] = 0;
+    }
+}
+
 static int
 NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 		   int *cdf, int *hdf)
@@ -1274,6 +1287,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
    {
       if ((stat = NC_initialize()))
 	 return stat; 
+      /* Do local initialization */
+      nc_local_initialize();
       nc_initialized = 1;
    }
 
@@ -1390,8 +1405,13 @@ NC_open(const char *path, int cmode,
    int hdfversion = 0;
    extern int default_create_format;
 
-   if(!nc_initialized)
-   {stat = NC_initialize(); if(stat) return stat; nc_initialized = 1;}
+   if(!nc_initialized) {
+      stat = NC_initialize();
+      if(stat) return stat;
+      /* Do local initialization */
+      nc_local_initialize();
+      nc_initialized = 1;
+   }
 
    isurl = NC_testurl(path);
    if(isurl)

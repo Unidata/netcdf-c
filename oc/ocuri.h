@@ -31,8 +31,9 @@ extern void ocurisetconstraints(OCURI*,const char* constraints);
 
 /* Define flags to control what is included */
 #define OCURICONSTRAINTS 1
-#define OCURIUSERPWD	  2
-#define OCURIPARAMS	  4
+#define OCURIUSERPWD	 2
+#define OCURIPARAMS	 4
+#define OCURIENCODE	 8 /* If output should be encoded */
 
 extern char* ocuribuild(OCURI*,const char* prefix, const char* suffix, int flags);
 
@@ -44,5 +45,9 @@ extern int ocurisetparams(OCURI* ocuri,const char*);
 /*! NULL result => entry not found.
     Empty value should be represented as a zero length string */
 extern const char* ocurilookup(OCURI*, const char* param);
+
+extern char* ocuriencode(char* s, char* allowable);
+extern char* ocuridecode(char* s);
+
 
 #endif /*OCURI_H*/

@@ -20,13 +20,6 @@
 #include "dceconstraints.h"
 #include "dceparselex.h"
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#endif
-#ifndef nullfree
-#define nullfree(s) if((s)!=NULL) {free(s);} else {}
-#endif
-
 static Object collectlist(Object list0, Object decl);
 
 void

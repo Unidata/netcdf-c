@@ -52,6 +52,13 @@ static char* legalprotocols[] = {
 NULL /* NULL terminate*/
 };
 
+/* Allowable character sets for encode */
+static char* fileallow = 
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
+
+static char* queryallow = 
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
+
 static void ocparamfree(char** params);
 static int ocfind(char** params, const char* key);
 
@@ -267,20 +274,30 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
 
 /* Construct a complete OC URI without the client params
    and optionally with the constraints;
-   caller frees returned string
+   caller frees returned string.
+   Optionally encode the pieces.
 */
 
 char*
-ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int pieces)
+ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
 {
     size_t len = 0;
     char* newuri;
-    int withparams = ((pieces&OCURIPARAMS)
+    char* tmpfile;
+    char* tmpsuffix;
+    char* tmpquery;
+
+    int withparams = ((flags&OCURIPARAMS)
 			&& duri->params != NULL);
-    int withuserpwd = ((pieces&OCURIUSERPWD)
+    int withuserpwd = ((flags&OCURIUSERPWD)
 	               && duri->user != NULL && duri->password != NULL);
-    int withconstraints = ((pieces&OCURICONSTRAINTS)
+    int withconstraints = ((flags&OCURICONSTRAINTS)
 	                   && duri->constraint != NULL);
+#ifdef NEWESCAPE
+    int encode = (flags&OCURIENCODE);
+#else
+    int encode = 0;
+#endif
 
     if(prefix != NULL) len += NILLEN(prefix);
     if(withparams) {
@@ -295,11 +312,26 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int pieces)
     if(duri->port != NULL) {
 	len += (NILLEN(":")+NILLEN(duri->port));
     }
-    len += (NILLEN(duri->file));
-    if(suffix != NULL) len += NILLEN(suffix);
-    if(withconstraints) {
-	len += (NILLEN("?")+NILLEN(duri->constraint));
+    
+    tmpfile = duri->file;
+    if(encode)
+	tmpfile = ocuriencode(tmpfile,fileallow);
+    len += (NILLEN(tmpfile));
+
+    if(suffix != NULL) {
+        tmpsuffix = (char*)suffix;
+        if(encode)
+	    tmpsuffix = ocuriencode(tmpsuffix,fileallow);
+        len += (NILLEN(tmpsuffix));
     }
+
+    if(withconstraints) {
+	tmpquery = duri->constraint;
+        if(encode)
+	    tmpquery = ocuriencode(tmpquery,queryallow);
+        len += (NILLEN("?")+NILLEN(tmpquery));
+    }
+
     len += 1; /* null terminator */
     
     newuri = (char*)malloc(len);
@@ -327,11 +359,12 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int pieces)
         strcat(newuri,":");
         strcat(newuri,duri->port);
     }
-    strcat(newuri,duri->file);
-    if(suffix != NULL) strcat(newuri,suffix);
+
+    strcat(newuri,tmpfile);
+    if(suffix != NULL) strcat(newuri,tmpsuffix);
     if(withconstraints) {
 	strcat(newuri,"?");
-	strcat(newuri,duri->constraint);
+	strcat(newuri,tmpquery);
     }
     return newuri;
 }
@@ -549,3 +582,109 @@ ocparamreplace(char** params, const char* key, const char* value)
     return 1;
 }
 #endif
+
+
+/* Provide % encoders and decoders */
+
+
+static char* hexchars = "0123456789abcdef";
+
+static void
+toHex(unsigned int b, char hex[2])
+{
+    hex[0] = hexchars[(b >> 4) & 0xff];
+    hex[1] = hexchars[(b) & 0xff];
+}
+
+
+static unsigned int
+fromHex(int c)
+{
+    if(c >= '0' && c <= '9') return (c - '0');
+    if(c >= 'a' && c <= 'f') return (10 + (c - 'a'));
+    if(c >= 'A' && c <= 'F') return (10 + (c - 'A'));
+    return -1;
+}
+
+
+/* Return a string representing encoding of input; caller must free;
+   watch out: will encode whole string, so watch what you give it.
+   Allowable argument specifies characters that do not need escaping.
+ */
+
+char*
+ocuriencode(char* s, char* allowable)
+{
+    size_t slen;
+    char* encoded;
+    char* inptr;
+    char* outptr;
+
+    if(s == NULL) return NULL;
+
+    slen = strlen(s);
+    encoded = (char*)malloc((3*slen) + 1); /* max possible size */
+
+    for(inptr=s,outptr=encoded;*inptr;) {
+	int c = *inptr++;
+        if(c == ' ') {
+	    *outptr++ = '+';
+        } else {
+            // search allowable
+            int c2;
+	    char* a = allowable;
+	    while((c2=*a++)) {
+		if(c == c2) break;
+	    }
+            if(c2) {*outptr++ = c;}
+            else {
+		char hex[2];
+		toHex(c,hex);
+		*outptr++ = '%';
+		*outptr++ = hex[0];
+		*outptr++ = hex[1];
+            }
+        }
+    }
+    *outptr = '\0';
+    return encoded;
+}
+
+/* Return a string representing decoding of input; caller must free;*/
+char*
+ocuridecode(char* s)
+{
+    size_t slen;
+    char* decoded;
+    char* outptr;
+    char* inptr;
+    unsigned int c;
+    
+    if (s == NULL) return NULL;
+
+    slen = strlen(s);
+    decoded = (char*)malloc(slen+1); // Should be max we need
+
+    outptr = decoded;
+    inptr = s;
+    while((c = *inptr++)) {
+	if(c == '+')
+	    *outptr++ = ' ';
+	else if(c == '%') {
+            /* try to pull two more characters */
+	    int x0, x1;
+	    x0 = inptr[0];
+	    if(x0 != '\0') {
+		x1 = inptr[1];
+ 	        if(x0 != '\0') {
+		    c = (fromHex(x0) << 4) | (fromHex(x1));
+		    inptr += 2;
+                }
+            }
+        }
+        *outptr++ = c;
+    }
+    *outptr = '\0';
+    return decoded;
+}
+
