@@ -10,7 +10,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL test_prog.c		\
-test_prog.F test_prog.f90 lib_flags.am DoxygenLayout.xml Doxyfile
+test_prog.F test_prog.f90 lib_flags.am 
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc

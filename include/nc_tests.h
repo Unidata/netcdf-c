@@ -1,9 +1,11 @@
-/* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/** \internal
+\file
+Common includes, defines, etc., for test code in the libsrc4 and
+nc_test4 directories.
 
-   Common includes, defines, etc., for test code in the libsrc4 and
-   nc_test4 directories.
+This is part of the netCDF package. Copyright 2005 University
+Corporation for Atmospheric Research/Unidata. See \ref copyright file
+for conditions of use.
 */
 
 #ifndef _NC_TESTS_H

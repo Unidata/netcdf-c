@@ -661,6 +661,33 @@ fi
 
 AC_MSG_NOTICE([finding other utilities])
 
+# Is doxygen installed? If so, have configure construct the Doxyfile.
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN"; then 
+   AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+else
+   NETCDF_DOC_CODE_FILES="../include/netcdf.h \
+../examples/C/simple_xy_wr.c ../examples/C/simple_xy_rd.c \
+../examples/C/sfc_pres_temp_wr.c ../examples/C/sfc_pres_temp_rd.c \
+../examples/C/pres_temp_4D_wr.c ../examples/C/pres_temp_4D_rd.c \
+../examples/C/simple_nc4_wr.c ../examples/C/simple_nc4_rd.c \
+../examples/C/simple_xy_nc4_wr.c ../examples/C/simple_xy_nc4_rd.c \
+../libdispatch/dfile.c  ../libdispatch/ddim.c \
+../libdispatch/dattget.c ../libdispatch/dattinq.c  ../libdispatch/dattput.c \
+../libdispatch/datt.c ../libdispatch/dvar.c ../libdispatch/dvarinq.c \
+../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
+../libdispatch/nc4.c ../libdispatch/dcompound.c ../libdispatch/dv2i.c \
+../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
+../libdispatch/dtype.c ../libsrc4/nc4file.c \
+mainpage.doc tutorial.doc ../COPYRIGHT install.doc dispatch.doc \
+guide.doc types.doc notes.doc cdl.doc \
+../ncdump/ncdump.c"
+fi
+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([man4/Doxyfile])])
+AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})])
+
+# Find the install program.
 AC_PROG_INSTALL
 
 if test "x$nc_build_f77" = xyes; then

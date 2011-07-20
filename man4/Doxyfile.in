@@ -31,14 +31,14 @@ PROJECT_NAME           = netCDF
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         =
+PROJECT_NUMBER         = @PACKAGE_VERSION@
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = man4
+OUTPUT_DIRECTORY       = 
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -568,22 +568,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT = include/netcdf.h \
-examples/C/simple_xy_wr.c examples/C/simple_xy_rd.c \
-examples/C/sfc_pres_temp_wr.c examples/C/sfc_pres_temp_rd.c \
-examples/C/pres_temp_4D_wr.c examples/C/pres_temp_4D_rd.c \
-examples/C/simple_nc4_wr.c examples/C/simple_nc4_rd.c \
-examples/C/simple_xy_nc4_wr.c examples/C/simple_xy_nc4_rd.c \
-libdispatch/dfile.c  libdispatch/ddim.c \
-libdispatch/dattget.c libdispatch/dattinq.c  libdispatch/dattput.c \
-libdispatch/datt.c libdispatch/dvar.c libdispatch/dvarinq.c \
-libdispatch/dvarput.c libdispatch/dvarget.c libdispatch/derror.c \
-libdispatch/nc4.c libdispatch/dcompound.c libdispatch/dv2i.c \
-libdispatch/dvlen.c libdispatch/denum.c libdispatch/dopaque.c \
-libdispatch/dtype.c libsrc4/nc4file.c \
-man4/mainpage.doc man4/tutorial.doc COPYRIGHT man4/install.doc man4/dispatch.doc \
-man4/guide.doc man4/types.doc man4/notes.doc man4/cdl.doc \
-ncdump/ncdump.c
+INPUT = @NETCDF_DOC_CODE_FILES@
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -640,7 +625,7 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = examples/C
+EXAMPLE_PATH           = ../examples/C
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
@@ -660,7 +645,7 @@ EXAMPLE_RECURSIVE      = NO
 # directories that contain image that are included in the documentation (see
 # the \image command).
 
-IMAGE_PATH             = man4/images
+IMAGE_PATH             = images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -801,7 +786,7 @@ HTML_HEADER            =
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard footer.
 
-HTML_FOOTER            = man4/footer.html
+HTML_FOOTER            = footer.html
 
 # If the HTML_TIMESTAMP tag is set to YES then the generated HTML
 # documentation will contain the timesstamp.
