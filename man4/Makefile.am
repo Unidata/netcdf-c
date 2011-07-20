@@ -209,13 +209,13 @@ if HAVE_DOXYGEN
 # $(directory)/man_page_1.3: doxyfile.stamp
 # $(directory)/man_page_2.3: doxyfile.stamp
 
-doxyfile.stamp: @NETCDF_DOC_CODE_FILES@
-	$(DOXYGEN) Doxyfile
-	echo Timestamp > doxyfile.stamp
+# doxyfile.stamp: @NETCDF_DOC_CODE_FILES@
+# 	$(DOXYGEN) Doxyfile
+# 	echo Timestamp > doxyfile.stamp
 
-CLEANFILES = doxyfile.stamp
+# CLEANFILES = doxyfile.stamp
 
-all-local: doxyfile.stamp
-clean-local:
-	rm -rf $(top_srcdir)/man4/man
+# all-local: doxyfile.stamp
+# clean-local:
+# 	rm -rf $(top_srcdir)/man4/man
 endif 
