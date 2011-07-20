@@ -676,7 +676,7 @@ else
 ../libdispatch/dattget.c ../libdispatch/dattinq.c  ../libdispatch/dattput.c \
 ../libdispatch/datt.c ../libdispatch/dvar.c ../libdispatch/dvarinq.c \
 ../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
-../libdispatch/dnc4.c ../libdispatch/dcompound.c ../libdispatch/dv2i.c \
+../libdispatch/dcompound.c ../libdispatch/dv2i.c \
 ../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
 ../libdispatch/dtype.c ../libsrc4/nc4file.c \
 mainpage.doc tutorial.doc ../COPYRIGHT install.doc dispatch.doc \
