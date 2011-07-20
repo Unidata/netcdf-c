@@ -678,10 +678,10 @@ else
 ../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
 ../libdispatch/dcompound.c ../libdispatch/dv2i.c \
 ../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
-../libdispatch/dtype.c ../libsrc4/nc4file.c \
-mainpage.doc tutorial.doc ../COPYRIGHT install.doc dispatch.doc \
-guide.doc types.doc notes.doc cdl.doc \
-../ncdump/ncdump.c"
+../libdispatch/dtype.c ../libsrc4/nc4file.c"
+dnl mainpage.doc tutorial.doc ../COPYRIGHT install.doc dispatch.doc \
+dnl guide.doc types.doc notes.doc cdl.doc \
+dnl ../ncdump/ncdump.c"
 fi
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([man4/Doxyfile])])
