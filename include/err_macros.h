@@ -18,11 +18,11 @@
 /* Err is used to keep track of errors within each set of tests,
  * total_err is the number of errors in the entire test program, which
  * generally cosists of several sets of tests. */
-int total_err = 0, err = 0;
+static int total_err = 0, err = 0;
 
 /* This is handy for print statements. */
-char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4", 
-		       "netCDF-4 classic model"};
+static char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4", 
+			      "netCDF-4 classic model"};
 
 /* This macro prints an error message with line number and name of
  * test program. */

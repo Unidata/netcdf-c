@@ -46,11 +46,13 @@ endif # LARGE_FILE_TESTS
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem
+tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi
 
+tst_ar4_SOURCES = tst_ar4.c tst_utils.c
+tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh run_bm_ar4.sh tst_files2 tst_files3	\
-tst_ar5 tst_h_files3 tst_mem
+tst_ar5 tst_h_files3 tst_mem tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL
@@ -71,7 +73,7 @@ check_PROGRAMS += tst_interops2
 TESTS += tst_interops2
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh tst_interops3
+TESTS += run_get_hdf4_files.sh run_get_knmi_files.sh tst_interops3
 endif # USE_HDF4_FILE_TESTS
 #tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
 #-lhdf5 -lz
@@ -105,7 +107,7 @@ run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
 run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
-ref_tst_interops4.nc
+ref_tst_interops4.nc run_get_knmi_files.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
