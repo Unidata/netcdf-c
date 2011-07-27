@@ -107,7 +107,8 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     file = strchr(p,'/');
     if(file) {
 	*file++ = '\0'; /* warning: we just overwrote the leading / */
-    }
+    } else
+	goto fail; /* url only has host part, no path */
 
     /* 7. extract any user:pwd */
     p1 = strchr(p,'@');
