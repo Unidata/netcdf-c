@@ -130,7 +130,8 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     file = strchr(p,'/');
     if(file) {
 	*file++ = '\0'; /* warning: we just overwrote the leading / */
-    }
+    } else
+        goto fail;
 
     /* 7. extract any user:pwd */
     p1 = strchr(p,'@');
