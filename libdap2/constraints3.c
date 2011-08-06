@@ -931,6 +931,8 @@ buildvaraprojection3(Getvara* getvar,
         for(j=0;j<localrank;j++) {
 	    DCEslice* slice = &segment->slices[j];
 	    CDFnode* dim = (CDFnode*)nclistget(vardims,dimindex+j);
+	    /* make each slice represent the corresponding
+               start/count/stride */
 	    slice->first = startp[dimindex+j];
 	    slice->stride = stridep[dimindex+j];
 	    slice->count = countp[dimindex+j];
@@ -949,6 +951,11 @@ buildvaraprojection3(Getvara* getvar,
     }
 
     ASSERT((dimindex == ncrank));
+
+#ifdef DEBUG
+fprintf(stderr,"buildvaraprojection3: projection=%s\n",
+        dumpprojection(projection));
+#endif
 
     if(projectionp) *projectionp = projection;
 
