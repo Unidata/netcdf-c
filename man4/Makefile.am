@@ -10,9 +10,7 @@
 # called $(prefix)/doc/$(PACKAGE)-$(VERSION).
 
 # These are the source files for all the netcdf manuals.
-info_TEXINFOS = netcdf.texi netcdf-install.texi netcdf-c.texi		\
-netcdf-f77.texi netcdf-f90.texi netcdf-cxx.texi netcdf-tutorial.texi
-#netcdf-cxx4.texi
+info_TEXINFOS = netcdf-f77.texi netcdf-f90.texi 
 
 # Get lists of the coresponding ps, info, and pdf files.
 html_docs = ${info_TEXINFOS:.texi=.html} 
@@ -29,41 +27,17 @@ netcdf-man-3.html netcdf_f90-man.html ncgen3-man-1.html \
 nccopy-man-1.html
 
 # These files will be included with the dist.
-EXTRA_DIST = netcdf.m4 $(pdf_docs) $(html_mans) $(txt_docs)	\
-$(dvi_docs) $(ps_docs) $(info_docs) $(html_docs) netcdf_f77.3	\
-DoxygenLayout.xml Doxyfile.in
+EXTRA_DIST = netcdf.m4 $(pdf_docs) $(html_mans) $(txt_docs)		\
+$(dvi_docs) $(ps_docs) $(info_docs) $(html_docs) netcdf_f77.3		\
+DoxygenLayout.xml Doxyfile.in @NETCDF_DOC_ONLY_FILES@ footer.html
 
 #doc_DATA = $(pdf_docs) $(html_mans) $(txt_docs) $(ps_docs)	\
 #$(info_docs) $(html_docs)
 
-# These are lists of the source code which will be inserted into the
-# netCDF Tutorial. Note that the tutorial always contains info about
-# all 4 APIs, not just the ones that are installed.
-c_examples = simple_xy_wr.c simple_xy_rd.c sfc_pres_temp_wr.c		\
-sfc_pres_temp_rd.c pres_temp_4D_wr.c pres_temp_4D_rd.c simple_nc4_wr.c	\
-simple_nc4_rd.c simple_xy_nc4_wr.c simple_xy_nc4_rd.c
-f77_examples = simple_xy_wr.f simple_xy_rd.f sfc_pres_temp_wr.f	\
-sfc_pres_temp_rd.f pres_temp_4D_wr.f pres_temp_4D_rd.f		\
-simple_xy_nc4_wr.f simple_xy_nc4_rd.f
-f90_examples = simple_xy_wr.f90 simple_xy_rd.f90 sfc_pres_temp_wr.f90	\
-sfc_pres_temp_rd.f90 pres_temp_4D_wr.f90 pres_temp_4D_rd.f90		\
-simple_xy_nc4_wr.f90 simple_xy_nc4_rd.f90 simple_xy_par_wr.f90		\
-simple_xy_par_rd.f90
-cxx_examples = simple_xy_wr.cpp simple_xy_rd.cpp sfc_pres_temp_wr.cpp	\
-sfc_pres_temp_rd.cpp pres_temp_4D_wr.cpp pres_temp_4D_rd.cpp		
-cdl_examples = simple_xy.cdl sfc_pres_temp.cdl pres_temp_4D.cdl
-
 # All the documents depend on defines.texi for some common
 # definitions.
-netcdf_TEXINFOS = defines.texi
-netcdf_install_TEXINFOS = defines.texi
-netcdf_c_TEXINFOS = defines.texi
 netcdf_f77_TEXINFOS = defines.texi
 netcdf_f90_TEXINFOS = defines.texi
-netcdf_cxx_TEXINFOS = defines.texi
-#netcdf_cxx4_TEXINFOS = defines.texi
-netcdf_tutorial_TEXINFOS = defines.texi ${c_examples} ${f77_examples}	\
-${f90_examples} ${cxx_examples} ${cdl_examples}
 
 # Get texi2dvi to shut the hell up, and work better for parallel
 # builds. The --tidy option may be useful getting parallel builds to
@@ -111,57 +85,13 @@ ncdump-man-1.html: $(top_srcdir)/ncdump/ncdump.1
 nccopy-man-1.html: $(top_srcdir)/ncdump/nccopy.1
 	groff -man -Thtml $? > $@
 
-# Copy C examples to this directory.
-${c_examples}:
-	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/C/$@ > $@
-
-# Copy F77 examples to this directory.
-${f77_examples}:
-	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/F77/$@ > $@
-
-# Copy F90 examples to this directory.
-${f90_examples}:
-	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/F90/$@ > $@
-
-# Copy CXX examples to this directory.
-${cxx_examples}:
-	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/CXX/$@ > $@
-
-# Copy CDL examples to this directory.
-${cdl_examples}:
-	sed -e 's/{/@{/' -e 's/}/@}/' $(top_srcdir)/examples/CDL/$@ > $@
-
-netcdf.html:
-	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf.texi
-	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf.texi
-
-netcdf-install.html:
-	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-install.texi
-	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-install.texi
-
-netcdf-c.html:
-	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-c.texi
-	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-c.texi
-
 netcdf-f77.html:
 	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-f77.texi
 	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-f77.texi
 
-netcdf-cxx.html:
-	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-cxx.texi
-	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-cxx.texi
-
-# netcdf-cxx4.html:
-# 	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-cxx4.texi
-# 	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-cxx4.texi
-
 netcdf-f90.html:
 	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-f90.texi
 	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-f90.texi
-
-netcdf-tutorial.html:
-	$(MAKEINFO) --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-tutorial.texi
-	$(MAKEINFO) --no-split --html $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I$(srcdir) netcdf-tutorial.texi
 
 # This builds the docs from source, if necessary, and tars up
 # everything needed for the website. Run this and copy the resulting
@@ -203,19 +133,20 @@ netcdf_f90-man.html stamp-* version* netcdf_f77.3 nccopy-man-1.html
 SUBDIRS = images
 
 if HAVE_DOXYGEN
-# directory = $(top_srcdir)/docs/man/man3/
-
-# dist_man_MANS = $(directory)/man_page_1.3 $(directory)/man_page_2.3
+#directory = $(top_srcdir)/docs/man/man3/
+#dist_man_MANS = $(man4directory)/man_page_1.3 $(directory)/man_page_2.3
 # $(directory)/man_page_1.3: doxyfile.stamp
 # $(directory)/man_page_2.3: doxyfile.stamp
 
-# doxyfile.stamp: @NETCDF_DOC_CODE_FILES@
-# 	$(DOXYGEN) Doxyfile
-# 	echo Timestamp > doxyfile.stamp
+doxyfile.stamp: @NETCDF_DOC_CODE_FILES@ #@NETCDF_DOC_ONLY_FILES@ 
+	$(DOXYGEN) Doxyfile
+	echo Timestamp > doxyfile.stamp
 
-# CLEANFILES = doxyfile.stamp
+CLEANFILES = doxyfile.stamp html latex
 
-# all-local: doxyfile.stamp
-# clean-local:
-# 	rm -rf $(top_srcdir)/man4/man
+all-local: doxyfile.stamp
+clean-local:
+	rm -rf $(top_builddir)/man4/man
+	rm -rf $(top_builddir)/man4/html
+	rm -rf $(top_builddir)/man4/latex
 endif 

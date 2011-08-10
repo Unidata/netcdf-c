@@ -22,21 +22,10 @@ if BUILD_F90
 F90_DIR = F90
 endif
 
-# If the user is building the C++ API, build the CXX examples.
-if BUILD_CXX
-CXX_DIR = CXX
-endif
-
-# Build the new netCDF-4 C++ API.
-if BUILD_CXX4
-CXX4_DIR = CXX4
-endif
-
 # Build ncgen/ncdump.
 if BUILD_UTILITIES
 CDL_DIR = CDL
 endif
 
 # These are the subdirectories that will be built. 
-SUBDIRS = $(C_DIR) $(CDL_DIR) $(F77_DIR) $(F90_DIR) $(CXX_DIR)	\
-$(CXX4_DIR)
+SUBDIRS = $(C_DIR) $(CDL_DIR) $(F77_DIR) $(F90_DIR)

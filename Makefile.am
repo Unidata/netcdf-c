@@ -37,11 +37,6 @@ if BUILD_V2
 V2_TEST = nctest
 endif
 
-# Does the user want C++ API?
-if BUILD_CXX
-CXX_DIR = cxx
-endif
-
 # Does the user want to build ncgen/ncdump?
 if BUILD_UTILITIES
 NCGEN3 = ncgen3
@@ -66,11 +61,6 @@ if BUILD_F90
 F90_DIR = f90
 endif
 
-# Build the new netCDF-4 C++ API?
-if BUILD_CXX4
-CXX4 = cxx4
-endif
-
 # Build the opendap client?
 if BUILD_DAP
 OCLIB = oc
@@ -82,29 +72,18 @@ NCDAPTESTDIR = ncdap_test
 endif # BUILD_UTILITIES
 endif
 
-# Build UDUNITS?
-if BUILD_UDUNITS
-UDUNITS = udunits
-endif
-
-# Build libcf?
-if BUILD_LIBCF
-LIBCF = libcf
-endif
-
 # Build libcdmr
 if BUILD_CDMREMOTE
 LIBCDMR = libcdmr
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
-# and run. ncgen must come before ncdump and cxx, because their tests
+# and run. ncgen must come before ncdump, because their tests
 # depend on it. nf_test depends upon ncgen as well.
-SUBDIRS = include $(UDUNITS) $(H5_TEST_DIR) libdispatch $(OCLIB)	\
-libsrc $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) liblib $(V2_TEST) nc_test	\
-$(F90_DIR) $(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST)		\
-${CXX_DIR} $(CXX4) $(NC_TEST4) $(NCDAPTESTDIR) man4 $(EXAMPLES)		\
-$(LIBCF)
+SUBDIRS = include $(H5_TEST_DIR) libdispatch $(OCLIB) libsrc		\
+$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) liblib $(V2_TEST) nc_test $(F90_DIR)	\
+$(F77_DIR) $(NCGEN3) $(NCGEN) $(NCDUMP) $(F77_TEST) $(NC_TEST4)		\
+$(NCDAPTESTDIR) man4 $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
@@ -141,14 +120,6 @@ ZIPBINFILES += ${prefix}/include/netcdf.mod ${prefix}/include/typesizes.mod
 endif
 BINFILES += share/man/man3/netcdf_f90.3
 ZIPBINFILES += ${prefix}/share/man/man3/netcdf_f90.3
-endif
-
-if BUILD_CXX
-BINFILES += include/netcdf.hh include/ncvalues.h include/netcdfcpp.h	\
-lib/libnetcdf_c++.a
-ZIPBINFILES += ${prefix}/include/netcdf.hh			\
-${prefix}/include/ncvalues.h ${prefix}/include/netcdfcpp.h	\
-${prefix}/lib/libnetcdf_c++.a
 endif
 
 if BUILD_DLL
@@ -193,9 +164,6 @@ if BUILD_DLL
 if BUILD_F77
 	cp fortran/netcdffdll.def ${prefix}/lib
 endif # BUILD_F77
-if BUILD_CXX
-	cp cxx/netcdf_c++dll.def ${prefix}/lib
-endif # BUILD_CXX
 endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'

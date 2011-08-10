@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.3], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -40,7 +40,7 @@ AC_CONFIG_HEADERS([fortran/nfconfig1.inc:fortran/nfconfig.in],
    [sed '1d;s%^/\* \(.*\) \*/%\1%' fortran/nfconfig1.inc >conftest.tmp && mv conftest.tmp fortran/nfconfig.inc])
 
 # This call is required by automake.
-AM_INIT_AUTOMAKE([foreign dist-bzip2 dist-zip dist-tarZ subdir-objects])
+AM_INIT_AUTOMAKE([foreign dist-tarZ subdir-objects])
 
 # Check for the existance of this file before proceeding.
 AC_CONFIG_SRCDIR([libsrc/nc.c])
@@ -52,12 +52,6 @@ AC_MSG_NOTICE([checking user options])
 # --disable- option to configure. The autoconf manual suggests the
 # following to set a var if it's not already set:
 # test "${var+set}" = set || var={value}
-
-# Did the user set cxx to null?
-AC_MSG_CHECKING([whether CXX is set to ''])
-nc_null_cxx=no
-test "x${CXX+set}" = xset && test "x$CXX" = x && nc_null_cxx=yes
-AC_MSG_RESULT([$nc_null_cxx])
 
 # Did the user set fc to null?
 AC_MSG_CHECKING([whether FC is set to ''])
@@ -79,13 +73,6 @@ AC_ARG_WITH([minblocksize],
             [NCIO_MINBLOCKSIZE=$with_minblocksize], [NCIO_MINBLOCKSIZE=256])
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
-
-AC_MSG_CHECKING([whether udunits is to be built])
-AC_ARG_WITH([udunits],
-              [AS_HELP_STRING([--with-udunits],
-                              [Build udunits2 package.])])
-test "x$with_udunits" = xyes || with_udunits=no
-AC_MSG_RESULT($with_udunits)
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
@@ -122,16 +109,6 @@ else
   enable_netcdf4="$enable_netcdf_4"
 fi
 
-# Does the user want to also build the libcf library?
-AC_MSG_CHECKING([whether libcf is to be built])
-AC_ARG_WITH([libcf],
-              [AS_HELP_STRING([--with-libcf],
-                              [build and install libcf library, a library for \
-	      handling data in conformance with the Climate and \
-	      Forecast conventions. (Requires netCDF-4 and HDF5)])])
-test "x$with_libcf" = xyes || with_libcf=no
-AC_MSG_RESULT($with_libcf)
-
 # Does the user want to turn on HDF4 read ability?
 AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
@@ -155,17 +132,6 @@ AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
               [build netcdf-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf])])
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
-
-# Does the user want to build cxx-4?
-AC_MSG_CHECKING([whether new netCDF-4 C++ API is to be built])
-AC_ARG_ENABLE([cxx-4],
-              [AS_HELP_STRING([--enable-cxx-4],
-                              [build with new netcdf-4 C++ API])])
-test "x$enable_cxx_4" = xyes || enable_cxx_4=no
-if test "x$enable_netcdf_4" = xno; then
-   enable_cxx_4=no
-fi
-AC_MSG_RESULT($enable_cxx_4)
 
 # Does the user want to run extra example tests
 AC_MSG_CHECKING([whether extra example tests should be run])
@@ -379,7 +345,6 @@ AC_MSG_RESULT([$enable_compiler_recover])
 nc_build_c=yes
 nc_build_f77=yes
 nc_build_f90=yes
-nc_build_cxx=yes
 nc_build_v2=yes
 nc_build_utilities=yes
 nc_build_examples=yes
@@ -431,16 +396,6 @@ AC_ARG_ENABLE([fortran-type-check],
                               [cause the Fortran type sizes checks to be skipped])])
 test "x$enable_fortran_type_check" = xno || enable_fortran_type_check=yes
 AC_MSG_RESULT($enable_fortran_type_check)
-
-# Do we want to build the C++ API? Check for --disable-cxx as a
-# configure argument.
-AC_MSG_CHECKING([whether CXX API is desired])
-AC_ARG_ENABLE([cxx],
-              [AS_HELP_STRING([--disable-cxx],
-                              [don't try to build C++ API])])
-test "x$enable_cxx" = xno && nc_build_cxx=no
-test "x$nc_null_cxx" = xyes && nc_build_cxx=no
-AC_MSG_RESULT([$nc_build_cxx])
 
 # Does the user want to disable the V2 API?
 AC_MSG_CHECKING([whether v2 netCDF API should be built])
@@ -633,9 +588,6 @@ if test "x$nc_build_f90" = xyes; then
 #   AC_F77_LIBRARY_LDFLAGS      
 fi
 
-AC_MSG_NOTICE([finding C++ compiler (will not be used if C++ API is not desired)])
-AC_PROG_CXX
-
 # Set these conditionals for automake. For some reason, it can't keep
 # it's SUBDIR order straight if I use BUILD_F77 to attach the nf_test
 # directory, so also define an automake conditional TEST_F77 every
@@ -644,7 +596,6 @@ AM_CONDITIONAL(BUILD_C, [test "x$nc_build_c" = xyes])
 AM_CONDITIONAL(BUILD_F77, [test "x$nc_build_f77" = xyes])
 AM_CONDITIONAL(TEST_F77, [test "x$nc_build_f77" = xyes])
 AM_CONDITIONAL(BUILD_F90, [test "x$nc_build_f90" = xyes])
-AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
 
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
@@ -678,14 +629,15 @@ else
 ../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
 ../libdispatch/dcompound.c ../libdispatch/dv2i.c \
 ../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
-../libdispatch/dtype.c ../libsrc4/nc4file.c"
-dnl mainpage.doc tutorial.doc ../COPYRIGHT install.doc dispatch.doc \
-dnl guide.doc types.doc notes.doc cdl.doc \
-dnl ../ncdump/ncdump.c"
+../libdispatch/dtype.c ../libsrc4/nc4file.c ../ncdump/ncdump.c"
+   NETCDF_DOC_ONLY_FILES="mainpage.doc tutorial.doc \
+../COPYRIGHT install.doc dispatch.doc guide.doc types.doc \
+notes.doc cdl.doc architecture.doc"
 fi
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([man4/Doxyfile])])
 AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})])
+AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_ONLY_FILES, ${NETCDF_DOC_ONLY_FILES})])
 
 # Find the install program.
 AC_PROG_INSTALL
@@ -896,13 +848,10 @@ AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
-AM_CONDITIONAL(BUILD_CXX4, [test x$enable_cxx_4 = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
-AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
-AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
 AM_CONDITIONAL(USE_VALGRIND_TESTS, [test "x$enable_valgrind_tests" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
@@ -935,7 +884,6 @@ BINFILE_NAME=binary-netcdf-$PACKAGE_VERSION
 test "x$enable_netcdf_4" = xno && BINFILE_NAME=${BINFILE_NAME}_nc3
 test "x$nc_build_f77" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F77}
 test "x$nc_build_f90" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F90}
-test "x$nc_build_cxx" = xyes && BINFILE_NAME=${BINFILE_NAME}_${CXX}
 BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
@@ -1013,10 +961,7 @@ AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_F77,[$nc_build_f77])
 AC_SUBST(HAS_F90,[$nc_build_f90])
-AC_SUBST(HAS_CXX,[$nc_build_cxx])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
-
-AC_CONFIG_SUBDIRS([udunits libcf])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1044,14 +989,10 @@ AC_CONFIG_FILES([Makefile
                  ncgen3/Makefile
                  ncgen/Makefile
                  nf_test/Makefile
-                 cxx/Makefile
-                 cxx4/Makefile
                  f90/Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
-                 examples/CXX/Makefile
-                 examples/CXX4/Makefile
                  examples/F90/Makefile
                  examples/F77/Makefile
                   oc/Makefile

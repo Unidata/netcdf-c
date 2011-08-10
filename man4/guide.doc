@@ -92,7 +92,7 @@ widespread use. (ftp://ftp.unidata.ucar.edu/pub/netcdf).
 For detailed installation instructions, see the Porting and
 Installation Guide. See Top.
 
-\section netcdf_format The netCDF File Format
+\page netcdf_format The netCDF File Format
 
 Until version 3.6.0, all versions of netCDF employed only one binary
 data format, now referred to as netCDF classic format. NetCDF classic
@@ -132,7 +132,7 @@ using the format specification to develop independent low-level
 software for reading and writing netCDF files, because this could lead
 to compatibility problems if the format is ever modified.
 
-\subsection select_format How to Select the Format
+\section select_format How to Select the Format
 
 With three different base formats, care must be taken in creating data
 files to choose the correct base format.
@@ -668,5 +668,10 @@ contains blanks).
 Typical conventions web sites will include references to documents in
 some form agreed upon by the community that supports the conventions
 and examples of netCDF file structures that follow the conventions.
+
+\page remote_client The Remote Data Access Client
+
+Starting with version 4.1.1 the netCDF C libraries and utilities have
+supported remote data access.
 
 */

@@ -14,48 +14,41 @@ the netcdf.h header file.
 
 Unfortunately, you may not be able to get a recent version of netCDF
 from a package management system, in which case you must build from
-source code. Get one of the distributions below.
-
-The <a href=ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz>source
-distribution for the latest full release</a> is the latest,
+source code. Get the <a
+href=ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz>source
+distribution for the latest full release</a>. It is the latest,
 fully-tested release.
 
-The <a
+Alternatively, you may wish to try the <a
 href=ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz>daily
-snapshot</a> is generated nightly at the Unidata Program Center. It
-has passed all tests on our many Linux test machine, but not
-necessarily all platform compatibility tests. 
+snapshot</a>. It is generated nightly at the Unidata Program
+Center. It has passed all tests on our (Linux) test machine, but not
+necessarily all platform compatibility tests.
 
-\note The daily snapshot release contains bug-fixes and new features
+\warning The daily snapshot release contains bug-fixes and new features
 added since the last full release. It may also contain portability
 bugs.
 
+Once you have downloaded and unpacked the distribution, see \ref
+building.
+
 \page building Building NetCDF
 
-You must decide whether to support the use of HDF5 as a storage
-format.
+The netCDF-C library and utilities requires 3rd party libraries for
+full functionality. (See \ref architecture).
+- \ref build_default
+- \ref build_classic
+- \ref build_hdf4
+- \ref build_parallel
 
-<h1>Building NetCDF Without HDF5</h1>
+\page build_default Building with NetCDF-4 and the Remote Data Client
 
-If you don't want netCDF-4/HDF5, then build like this:
+The usual way of building netCDF requires the HDF5, zlib, and curl
+libraries. (And, optionally, the szlib library). 
 
-<code>
-./configure --prefix=/home/ed/local --disable-netcdf-4
-make check install
-</code>
-
-(Replace ``/home/ed/local'' with the name of the directory where
-netCDF is to be installed.) 
-
-If you get the message that netCDF installed correctly, then you are
-done!
-
-<h1>Building NetCDF With HDF5</h1>
-
-If you want to use the HDF5 storage format, you must have the HDF5
-1.8.7 release. You must also have the zlib compression library,
-version 1.2.5. Both of these packages are available from the <a
-href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
+Get the HDF5 1.8.7 release. You must also have the zlib compression
+library, version 1.2.5. Both of these packages are available from the
+<a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
 site</a>.
 
 Make sure you run ``make check'' for the HDF5 and zlib
@@ -119,12 +112,61 @@ examples install the zlib, HDF5, and netCDF-4 libraries in
 /home/ed/local/lib, the header file in /home/ed/local/include, and the
 utilities in /home/ed/local/bin.
 
-The default install root is /usr/local (so there's no need to use the
-prefix argument if you want the software installed there).
+\page build_classic Building NetCDF with Classic Library Only
 
-If HDF5 and zlib are found on your system, they will be used by netCDF
-in the build. To prevent this use the --disable-netcdf-4 argument to
-configure.
+It is possible to build the netCDF C libraries and utilities so that
+only the netCDF classic and 64-bit offset formats are support (see
+\ref netcdf_format), and the remote data access client is not built
+(see \ref remote_client).
+
+<code>
+./configure --prefix=/home/ed/local --disable-netcdf-4 --disable-dap
+make check install
+</code>
+
+(Replace ``/home/ed/local'' with the name of the directory where
+netCDF is to be installed.) 
+
+If you get the message that netCDF installed correctly, then you are
+done!
+
+\page build_hdf4 Building with HDF4 Support
+
+The netCDF-4 library can (since version 4.1) read HDF4 data files, if
+they were created with the SD (Scientific Data) API. To enable this
+feature, use the --enable-hdf4 option. The location for the HDF4
+header files and library must be set in the CPPFLAGS and LDFLAGS
+options.
+
+For HDF4 access to work, the library must be build with netCDF-4
+features.
+
+\page build_parallel Building with Parallel I/O Support
+
+For parallel I/O to work, HDF5 must be installed with
+–enable-parallel, and an MPI library (and related libraries) must be
+made available to the HDF5 configure. This can be accomplished with
+the mpicc wrapper script, in the case of MPICH2.
+
+The following works to build HDF5 with parallel I/O on our netCDF
+testing system:
+
+<code>
+     CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par && make check install
+</code>
+
+If the HDF5 used by netCDF has been built with parallel I/O, then
+netCDF will also be built with support for parallel I/O. This allows
+parallel I/O access to netCDF-4/HDF5 files (see /ref netcdf_formats).
+
+If parallel I/O access to netCDF classic and 64-bit offset files is
+also needed, the parallel-netcdf library should also be installed,
+(and the <a
+href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
+pnetcdf.h</a> must be used). Then configure netCDF with the
+--enable-pnetcdf flag.
+
+\page linking Linking to NetCDF
 
 For static build, to use netCDF-4 you must link to all the libraries,
 netCDF, HDF5, zlib, and (if used with HDF5 build) szip. This will mean
@@ -143,13 +185,5 @@ be found automatically.
 
 The nc-config command can be used to learn what options are needed for
 the local netCDF installation.
-
-<h1>Building with HDF4 Support</h1>
-
-The netCDF-4 library can (since version 4.1) read HDF4 data files, if
-they were created with the SD (Scientific Data) API. To enable this
-feature, use the --enable-hdf4 option. The location for the HDF4
-header files and library must be set in the CPPFLAGS and LDFLAGS
-options.
 
 */

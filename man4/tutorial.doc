@@ -3,7 +3,7 @@ The tutorial document.
 
 \page tutorial Tutorial 
 
-\section What is NetCDF?
+\section what_is_netcdf What is NetCDF?
 
 NetCDF is a set of data formats, programming interfaces, and software
 libraries that help read and write scientific data files.
@@ -23,7 +23,7 @@ This tutorial may serve as an introduction to netCDF. See the <a
 href="http://www.unidata.ucar.edu/software/netcdf/docs/">netCDF
 documentation page</a> for more information.
 
-\page classic_model The Classic Model
+\section classic_model The Classic Model
 
 The classic netCDF data model consists of variables, dimensions, and
 attributes. This way of thinking about data was introduced with the
@@ -63,7 +63,7 @@ small.
 
 \image html nc-classic-uml.png "NetCDF Classic Data Model"
 
-\section Meteorological Example
+\section met_example Meteorological Example
 
 NetCDF can be used to store many kinds of data, but it was originally
 developed for the Earth science community.
@@ -151,7 +151,7 @@ model. That is, these files are in HDF5, but will not support multiple
 unlimited dimensions, user-defined types, groups, etc. They act just
 like a classic netCDF file.
 
-\section NetCDF Error Handling
+\section error_handling NetCDF Error Handling
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
 0 on success, in the tradition of C. 
@@ -176,7 +176,7 @@ range. This may yield bad data, but the netCDF library just returns
 NC_ERANGE and leaves it up to the user to handle. (For more
 information about type conversion see Type Conversion).
 
-\section Unlimited Dimensions
+\section unlimited_dims Unlimited Dimensions
 
 Sometimes you don't know the size of all dimensions when you create a
 file, or you would like to arbitrarily extend the file along one of
