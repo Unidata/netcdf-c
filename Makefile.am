@@ -9,18 +9,11 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
-EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL test_prog.c		\
-test_prog.F test_prog.f90 lib_flags.am 
+EXTRA_DIST = README COPYRIGHT RELEASE_NOTES test_prog.c test_prog.F	\
+test_prog.f90 lib_flags.am
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
-
-# This will go to the man directory and build, if necessary, the
-# netcdf-install.txt file, which will be copied into the main
-# directory, renamed "INSTALL".
-INSTALL:
-	cd man4; make netcdf-install.info netcdf-install.txt
-	cp man4/netcdf-install.txt INSTALL
 
 # If the user wants the F77 API this will cause it to be built and
 # tested.
