@@ -264,8 +264,13 @@ main(
     if(java_flag) languages++;
     if(languages > 1) {
 	fprintf(stderr,"Please specify only one language\n");
-    } else if(languages == 0) {
-	syntax_only = 1;
+	return 1;
+    }
+
+    if(languages == 0) {
+	binary_flag = 1; /* default */
+        if(kflag_flag == 0)
+	    syntax_only = 1;
     }
 
     /* Compute/default the iterator buffer size */
