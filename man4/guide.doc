@@ -3,7 +3,17 @@ NetCDF Users Guide
 
 \page user_guide The NetCDF Users Guide
 
-\section Summary
+- \ref netcdf_summary
+- \ref netcdf_interface
+- \ref netcdf_format
+- \ref creating_self
+- \ref limitations
+- \ref data_model
+- \ref performance
+- \ref attribute_conventions
+- \ref remote_client
+
+\page netcdf_summary Summary
 
 The purpose of the Network Common Data Form (netCDF) interface is to
 allow you to create, access, and share array-oriented data in a form
@@ -50,7 +60,7 @@ http://www.unidata.ucar.edu/software/netcdf-java.
 For installation and porting information See The NetCDF Installation
 and Porting Guide.
 
-\section netcdf_interface The NetCDF Interface
+\page netcdf_interface The NetCDF Interface
 
 The Network Common Data Form, or netCDF, is an interface to a library
 of data access functions for storing and retrieving data in the form
@@ -209,7 +219,7 @@ better).
 
 For more discussion of format issues see The NetCDF Tutorial.
 
-\section performance What about Performance?
+\page performance What about Performance?
 
 One of the goals of netCDF is to support efficient access to small
 subsets of large datasets. To support this goal, netCDF uses direct
@@ -238,7 +248,7 @@ operations, less so in data access operations. We continue to study
 the challenge of implementing netCDF-4/HDF5 format without
 compromising performance.
 
-\section creating_self Creating Self-Describing Data conforming to Conventions
+\page creating_self Creating Self-Describing Data conforming to Conventions
 
 The mere use of netCDF is not sufficient to make data
 "self-describing" and meaningful to both humans and machines. The
@@ -262,7 +272,7 @@ conventions are often needed for local use. These should be
 contributed to the above netCDF conventions site if likely to interest
 other users in similar areas.
 
-\section limitations Limitations of NetCDF
+\page limitations Limitations of NetCDF
 
 The netCDF classic data model is widely applicable to data that can be
 organized into a collection of named array variables with named

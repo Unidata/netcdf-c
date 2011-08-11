@@ -2948,4 +2948,12 @@ nc_exit()
 }
 #endif /* EXTRA_TESTS */
 
+#ifdef USE_PARALLEL
+int
+nc_use_parallel_enabled()
+{
+   return 0;
+}
+#endif /* USE_PARALLEL */
+
 

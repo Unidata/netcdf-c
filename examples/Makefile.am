@@ -5,27 +5,10 @@
 # netcdf directories. Not all directories are built, depending on the
 # options selected during configure.
 
-# $Id: Makefile.am,v 1.9 2007/06/06 20:26:42 ed Exp $
-
-# If the user is building the C API, build the C examples.
-if BUILD_C
-C_DIR = C
-endif
-
-# If the user is building the F77 API, build the F77 examples.
-if BUILD_F77
-F77_DIR = F77
-endif
-
-# If the user is building the F90 API, build the F90 examples.
-if BUILD_F90
-F90_DIR = F90
-endif
-
 # Build ncgen/ncdump.
 if BUILD_UTILITIES
 CDL_DIR = CDL
 endif
 
 # These are the subdirectories that will be built. 
-SUBDIRS = $(C_DIR) $(CDL_DIR) $(F77_DIR) $(F90_DIR)
+SUBDIRS = C $(CDL_DIR)

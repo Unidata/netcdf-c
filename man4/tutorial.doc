@@ -3,27 +3,29 @@ The tutorial document.
 
 \page tutorial Tutorial 
 
-\section what_is_netcdf What is NetCDF?
+To learn more about netCDF:
+- \ref what_is_netcdf
+- \ref classic_model
+- \ref enhanced_model
+- \ref unlimited_dims
+- \ref error_handling
+- \ref examples1
+
+\page what_is_netcdf What is NetCDF?
 
 NetCDF is a set of data formats, programming interfaces, and software
 libraries that help read and write scientific data files.
 
-NetCDF was developed and is maintained at Unidata, part of the
-University Corporation for Atmospheric Research (UCAR) Office of
-Programs (UOP). Unidata is funded primarily by the National Science
-Foundation.
+NetCDF was developed and is maintained at <a
+href="http://www.unidata.ucar.edu">Unidata</a>. Unidata provides data
+and software tools for use in geoscience education and research.
 
-Unidata provides data and software tools for use in geoscience
-education and research. For more information see the web sites of <a
-href="http://www.unidata.ucar.edu">Unidata</a>, <a
-href="http://www.uop.ucar.edu">UOP</a>, and <a
-href="http://www.ucar.edu">UCAR</a>.
+Unidata is part of the University Corporation for Atmospheric Research
+(<a href="http://www.ucar.edu">UCAR</a>) Office of Programs (<a
+href="http://www.uop.ucar.edu">UOP</a>). Unidata is funded primarily
+by the National Science Foundation.
 
-This tutorial may serve as an introduction to netCDF. See the <a
-href="http://www.unidata.ucar.edu/software/netcdf/docs/">netCDF
-documentation page</a> for more information.
-
-\section classic_model The Classic Model
+\page classic_model The Classic Model
 
 The classic netCDF data model consists of variables, dimensions, and
 attributes. This way of thinking about data was introduced with the
@@ -61,6 +63,7 @@ small.
 
 </table>
 
+<p>
 \image html nc-classic-uml.png "NetCDF Classic Data Model"
 
 \section met_example Meteorological Example
@@ -96,11 +99,11 @@ Attributes are always single values or one-dimensional arrays. (This
 works out well for a string, which is a one-dimensional array of ASCII
 characters.)
 
-The pres_temp_4D example in this tutorial shows how to write and read
-a file containing some four-dimensional pressure and temperature data,
-including all the metadata needed. 
+The pres_temp_4D_wr.c/pres_temp_4D_rd.c examples show
+how to write and read a file containing some four-dimensional pressure
+and temperature data, including all the metadata needed.
 
-\section enhanced_model The Common Data Model and NetCDF-4
+\page enhanced_model The Enhanced Data Model
 
 With netCDF-4, the netCDF data model has been extended, in a backwards
 compatible way.
@@ -124,9 +127,9 @@ opaque types.
 
 These features may only be used when working with a netCDF-4/HDF5
 file. Files created in classic or 64-bit offset format cannot support
-groups or user-defined types.
+groups or user-defined types (see \ref netcdf_format).
 
-\image html nc4-model.png
+<p>\image html nc4-model.png
 
 With netCDF-4/HDF5 files, the user may define groups, which may
 contain variables, dimensions, and attributes. In this way, a group
@@ -151,7 +154,7 @@ model. That is, these files are in HDF5, but will not support multiple
 unlimited dimensions, user-defined types, groups, etc. They act just
 like a classic netCDF file.
 
-\section error_handling NetCDF Error Handling
+\page error_handling NetCDF Error Handling
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
 0 on success, in the tradition of C. 
@@ -176,7 +179,7 @@ range. This may yield bad data, but the netCDF library just returns
 NC_ERANGE and leaves it up to the user to handle. (For more
 information about type conversion see Type Conversion).
 
-\section unlimited_dims Unlimited Dimensions
+\page unlimited_dims Unlimited Dimensions
 
 Sometimes you don't know the size of all dimensions when you create a
 file, or you would like to arbitrarily extend the file along one of
@@ -208,12 +211,29 @@ In netCDF-4/HDF5 files, any number of unlimited dimensions may be
 used, and there is no restriction as to where they appear in a
 variable's list of dimension IDs.
 
-\example pres_temp_4D_wr.c
-\example pres_temp_4D_rd.c
-\example sfc_pres_temp_wr.c
-\example sfc_pres_temp_rd.c
+\page examples1 NetCDF Example Programs
+
+The following example programs illustrate the use of the netCDF
+library. 
+- simple_xy_wr.c
+- simple_xy_rd.c
+- sfc_pres_temp_wr.c
+- sfc_pres_temp_rd.c
+- pres_temp_4D_wr.c
+- pres_temp_4D_rd.c
+
+These are the netCDF-4 examples.
+- simple_nc4_wr.c
+- simple_nc4_rd.c
+- simple_xy_nc4_wr.c
+- simple_xy_nc4_rd.c
+
 \example simple_xy_wr.c
 \example simple_xy_rd.c
+\example sfc_pres_temp_wr.c
+\example sfc_pres_temp_rd.c
+\example pres_temp_4D_wr.c
+\example pres_temp_4D_rd.c
 \example simple_nc4_wr.c
 \example simple_nc4_rd.c
 \example simple_xy_nc4_wr.c

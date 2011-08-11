@@ -26,7 +26,7 @@ available, you may get an error from a layer below the netCDF library,
 but the resulting write error will still be reflected in the returned
 status value.  
 
-\section ignored_if_null Ignored if NULL
+\page ignored_if_null Ignored if NULL
 
 Many of the argurments of netCDF functions are pointers. For example,
 the nc_inq() functions takes four pointers:
