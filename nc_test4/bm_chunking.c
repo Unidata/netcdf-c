@@ -103,7 +103,7 @@ main(int argc, char **argv)
 	 {
 	    if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NUMDIMS, 
 			   dimids, &varid[i])) ERR;
-	    if (nc_def_var_chunking(ncid, i, NULL, chunksize, NULL)) ERR;
+	    if (nc_def_var_chunking(ncid, i, NC_CHUNKED, chunksize)) ERR;
 	 }
 	 if (nc_enddef(ncid)) ERR;
 	  
