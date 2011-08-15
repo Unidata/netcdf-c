@@ -46,8 +46,10 @@ endif # LARGE_FILE_TESTS
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi
+tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi	\
+bm_netcdf4_recs
 
+bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
 bm_many_atts_SOURCES = bm_many_atts.c tst_utils.c
 bm_many_objs_SOURCES = bm_many_objs.c tst_utils.c
 tst_ar4_3d_SOURCES = tst_ar4_3d.c tst_utils.c
