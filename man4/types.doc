@@ -3,7 +3,10 @@ Documentation of types.
 
 \page data_type Data Type
 
-\section External Data Types
+Data in a netCDF file may be one of the \ref external_types, or may be
+a user-defined data type (see \ref user_defined_types).
+
+\page external_types External Data Types
 
 The atomic external types supported by the netCDF interface are:
 - ::NC_BYTE 	8-bit signed integer
@@ -80,7 +83,7 @@ converted into other numeric types, it is interpreted as signed.
 For the correspondence between netCDF external data types and the data
 types of a language see \ref variables.
 
-\section Data Structures in Classic and 64-bit Offset Files
+\page classic_structures Data Structures in Classic and 64-bit Offset Files
 
 The only kind of data structure directly supported by the netCDF
 classic (and 64-bit offset) abstraction is a collection of named
@@ -121,7 +124,7 @@ attributes, or variables that refer to other attributes or variables,
 provides a flexible mechanism for representing some kinds of complex
 structures in netCDF datasets.
 
-\section NetCDF-4 User Defined Data Types
+\page user_defined_types NetCDF-4 User Defined Data Types
 
 NetCDF supported six data types through version 3.6.0 (char, byte,
 short, int, float, and double). Starting with version 4.0, many new
@@ -159,7 +162,7 @@ nc_put_var1()/nc_get_var1(), nc_put_vara()/nc_get_vara(), or
 nc_put_vars()/nc_get_vars() functons to access attribute and variable
 data of user defined type.
 
-\subsection Compound Types
+\section Compound Types
 
 Compound types allow the user to combine atomic and user-defined types
 into C-like structs. Since users defined types may be used within a
@@ -179,7 +182,7 @@ are portable.
 For more information on creating and using compound types, see
 Compound Types in The NetCDF C Interface Guide.
 
-\subsection VLEN Types
+\section VLEN Types
 
 Variable length arrays can be used to create a ragged array of data,
 in which one of the dimensions varies in size from point to point.
@@ -206,17 +209,80 @@ and pointers to the data, rather than the actual data.
 For more information on creating and using variable length arrays, see
 Variable Length Arrays in The NetCDF C Interface Guide.
 
-\subsection Opaque Types
+\section Opaque Types
 
 Opaque types allow the user to store arrays of data blobs of a fixed size.
 
 For more information on creating and using opaque types, see Opaque
 Type in The NetCDF C Interface Guide.
 
-\subsection Enum Types
+\section Enum Types
 
 Enum types allow the user to specify an enumeration.
 
 For more information on creating and using enum types, see Enum Type
 in The NetCDF C Interface Guide.  
+
+\page type_conversion Type Conversion
+
+Each netCDF variable has an external type, specified when the variable
+is first defined. This external type determines whether the data is
+intended for text or numeric values, and if numeric, the range and
+precision of numeric values.
+
+If the netCDF external type for a variable is char, only character
+data representing text strings can be written to or read from the
+variable. No automatic conversion of text data to a different
+representation is supported.
+
+If the type is numeric, however, the netCDF library allows you to
+access the variable data as a different type and provides automatic
+conversion between the numeric data in memory and the data in the
+netCDF variable. For example, if you write a program that deals with
+all numeric data as double-precision floating point values, you can
+read netCDF data into double-precision arrays without knowing or
+caring what the external type of the netCDF variables are. On reading
+netCDF data, integers of various sizes and single-precision
+floating-point values will all be converted to double-precision, if
+you use the data access interface for double-precision values. Of
+course, you can avoid automatic numeric conversion by using the netCDF
+interface for a value type that corresponds to the external data type
+of each netCDF variable, where such value types exist.
+
+The automatic numeric conversions performed by netCDF are easy to
+understand, because they behave just like assignment of data of one
+type to a variable of a different type. For example, if you read
+floating-point netCDF data as integers, the result is truncated
+towards zero, just as it would be if you assigned a floating-point
+value to an integer variable. Such truncation is an example of the
+loss of precision that can occur in numeric conversions.
+
+Converting from one numeric type to another may result in an error if
+the target type is not capable of representing the converted
+value. For example, an integer may not be able to hold data stored
+externally as an IEEE floating-point number. When accessing an array
+of values, a range error is returned if one or more values are out of
+the range of representable values, but other values are converted
+properly.
+
+Note that mere loss of precision in type conversion does not result in
+an error. For example, if you read double precision values into an
+integer, no error results unless the magnitude of the double precision
+value exceeds the representable range of integers on your
+platform. Similarly, if you read a large integer into a float
+incapable of representing all the bits of the integer in its mantissa,
+this loss of precision will not result in an error. If you want to
+avoid such precision loss, check the external types of the variables
+you access to make sure you use an internal type that has a compatible
+precision.
+
+Whether a range error occurs in writing a large floating-point value
+near the boundary of representable values may be depend on the
+platform. The largest floating-point value you can write to a netCDF
+float variable is the largest floating-point number representable on
+your system that is less than 2 to the 128th power. The largest double
+precision value you can write to a double variable is the largest
+double-precision number representable on your system that is less than
+2 to the 1024th power.
+
 */
