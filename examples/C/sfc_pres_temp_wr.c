@@ -1,4 +1,4 @@
-/*! /file
+/*! \file
 A simple example of writing a netCDF file.
 
 This example writes some surface pressure and temperatures. It is

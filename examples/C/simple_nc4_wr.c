@@ -6,8 +6,10 @@ some netCDF variables in different subgroups. The variables will
 include a compound and an enum type, as well as some of the new atomic
 types, like the unsigned 64-bit integer.
 
-Full documentation for netCDF can be found at:
-http://www.unidata.ucar.edu/netcdf/docs
+This is part of the netCDF package. Copyright 2006-2011 University
+Corporation for Atmospheric Research/Unidata. See COPYRIGHT file for
+conditions of use. Full documentation of the netCDF can be found at
+http://www.unidata.ucar.edu/software/netcdf/docs.
 */
 
 #include <stdlib.h>

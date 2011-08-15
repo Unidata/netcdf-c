@@ -1735,8 +1735,10 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 /*    return NC_NOERR; */
 /* } */
 
-/* This struct is used to pass information back from the callback
- * function used with H5Literate. */
+/** \internal 
+This struct is used to pass information back from the callback
+function used with H5Literate. 
+*/
 struct nc_hdf5_link_info 
 {
    char name[NC_MAX_NAME + 1];
@@ -2945,5 +2947,13 @@ nc_exit()
    return NC_NOERR;
 }
 #endif /* EXTRA_TESTS */
+
+#ifdef USE_PARALLEL
+int
+nc_use_parallel_enabled()
+{
+   return 0;
+}
+#endif /* USE_PARALLEL */
 
 

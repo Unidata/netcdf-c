@@ -3,7 +3,17 @@ NetCDF Users Guide
 
 \page user_guide The NetCDF Users Guide
 
-\section Summary
+- \ref netcdf_summary
+- \ref netcdf_interface
+- \ref netcdf_format
+- \ref creating_self
+- \ref limitations
+- \ref data_model
+- \ref performance
+- \ref attribute_conventions
+- \ref remote_client
+
+\page netcdf_summary Summary
 
 The purpose of the Network Common Data Form (netCDF) interface is to
 allow you to create, access, and share array-oriented data in a form
@@ -50,7 +60,7 @@ http://www.unidata.ucar.edu/software/netcdf-java.
 For installation and porting information See The NetCDF Installation
 and Porting Guide.
 
-\section netcdf_interface The NetCDF Interface
+\page netcdf_interface The NetCDF Interface
 
 The Network Common Data Form, or netCDF, is an interface to a library
 of data access functions for storing and retrieving data in the form
@@ -92,7 +102,7 @@ widespread use. (ftp://ftp.unidata.ucar.edu/pub/netcdf).
 For detailed installation instructions, see the Porting and
 Installation Guide. See Top.
 
-\section netcdf_format The netCDF File Format
+\page netcdf_format The netCDF File Format
 
 Until version 3.6.0, all versions of netCDF employed only one binary
 data format, now referred to as netCDF classic format. NetCDF classic
@@ -132,7 +142,7 @@ using the format specification to develop independent low-level
 software for reading and writing netCDF files, because this could lead
 to compatibility problems if the format is ever modified.
 
-\subsection select_format How to Select the Format
+\section select_format How to Select the Format
 
 With three different base formats, care must be taken in creating data
 files to choose the correct base format.
@@ -209,7 +219,7 @@ better).
 
 For more discussion of format issues see The NetCDF Tutorial.
 
-\section performance What about Performance?
+\page performance What about Performance?
 
 One of the goals of netCDF is to support efficient access to small
 subsets of large datasets. To support this goal, netCDF uses direct
@@ -238,7 +248,7 @@ operations, less so in data access operations. We continue to study
 the challenge of implementing netCDF-4/HDF5 format without
 compromising performance.
 
-\section creating_self Creating Self-Describing Data conforming to Conventions
+\page creating_self Creating Self-Describing Data conforming to Conventions
 
 The mere use of netCDF is not sufficient to make data
 "self-describing" and meaningful to both humans and machines. The
@@ -262,7 +272,7 @@ conventions are often needed for local use. These should be
 contributed to the above netCDF conventions site if likely to interest
 other users in similar areas.
 
-\section limitations Limitations of NetCDF
+\page limitations Limitations of NetCDF
 
 The netCDF classic data model is widely applicable to data that can be
 organized into a collection of named array variables with named
@@ -668,5 +678,10 @@ contains blanks).
 Typical conventions web sites will include references to documents in
 some form agreed upon by the community that supports the conventions
 and examples of netCDF file structures that follow the conventions.
+
+\page remote_client The Remote Data Access Client
+
+Starting with version 4.1.1 the netCDF C libraries and utilities have
+supported remote data access.
 
 */

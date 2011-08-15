@@ -550,12 +550,14 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 }
 
 int
-nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
+nc_def_var_chunking(int ncid, int varid, int storage, 
+		    const size_t *chunksizesp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
+    int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_chunking(ncid,varid,storage,chunksizesp);
+    return ncp->dispatch->def_var_chunking(ncid, varid, storage, 
+					   chunksizesp);
 }
 
 int

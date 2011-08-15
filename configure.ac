@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.1.3], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -33,14 +33,10 @@ AC_CANONICAL_HOST
 # Find out about the target we're building for.
 AC_CANONICAL_TARGET
 
-# We will output a config.h for the C library, and a fortran inc file,
-# nfconfig.inc.
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_HEADERS([fortran/nfconfig1.inc:fortran/nfconfig.in], 
-   [sed '1d;s%^/\* \(.*\) \*/%\1%' fortran/nfconfig1.inc >conftest.tmp && mv conftest.tmp fortran/nfconfig.inc])
 
 # This call is required by automake.
-AM_INIT_AUTOMAKE([foreign dist-bzip2 dist-zip dist-tarZ subdir-objects])
+AM_INIT_AUTOMAKE([foreign dist-tarZ subdir-objects])
 
 # Check for the existance of this file before proceeding.
 AC_CONFIG_SRCDIR([libsrc/nc.c])
@@ -52,12 +48,6 @@ AC_MSG_NOTICE([checking user options])
 # --disable- option to configure. The autoconf manual suggests the
 # following to set a var if it's not already set:
 # test "${var+set}" = set || var={value}
-
-# Did the user set cxx to null?
-AC_MSG_CHECKING([whether CXX is set to ''])
-nc_null_cxx=no
-test "x${CXX+set}" = xset && test "x$CXX" = x && nc_null_cxx=yes
-AC_MSG_RESULT([$nc_null_cxx])
 
 # Did the user set fc to null?
 AC_MSG_CHECKING([whether FC is set to ''])
@@ -79,13 +69,6 @@ AC_ARG_WITH([minblocksize],
             [NCIO_MINBLOCKSIZE=$with_minblocksize], [NCIO_MINBLOCKSIZE=256])
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
-
-AC_MSG_CHECKING([whether udunits is to be built])
-AC_ARG_WITH([udunits],
-              [AS_HELP_STRING([--with-udunits],
-                              [Build udunits2 package.])])
-test "x$with_udunits" = xyes || with_udunits=no
-AC_MSG_RESULT($with_udunits)
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
@@ -122,16 +105,6 @@ else
   enable_netcdf4="$enable_netcdf_4"
 fi
 
-# Does the user want to also build the libcf library?
-AC_MSG_CHECKING([whether libcf is to be built])
-AC_ARG_WITH([libcf],
-              [AS_HELP_STRING([--with-libcf],
-                              [build and install libcf library, a library for \
-	      handling data in conformance with the Climate and \
-	      Forecast conventions. (Requires netCDF-4 and HDF5)])])
-test "x$with_libcf" = xyes || with_libcf=no
-AC_MSG_RESULT($with_libcf)
-
 # Does the user want to turn on HDF4 read ability?
 AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
@@ -155,17 +128,6 @@ AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
               [build netcdf-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf])])
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
-
-# Does the user want to build cxx-4?
-AC_MSG_CHECKING([whether new netCDF-4 C++ API is to be built])
-AC_ARG_ENABLE([cxx-4],
-              [AS_HELP_STRING([--enable-cxx-4],
-                              [build with new netcdf-4 C++ API])])
-test "x$enable_cxx_4" = xyes || enable_cxx_4=no
-if test "x$enable_netcdf_4" = xno; then
-   enable_cxx_4=no
-fi
-AC_MSG_RESULT($enable_cxx_4)
 
 # Does the user want to run extra example tests
 AC_MSG_CHECKING([whether extra example tests should be run])
@@ -379,7 +341,6 @@ AC_MSG_RESULT([$enable_compiler_recover])
 nc_build_c=yes
 nc_build_f77=yes
 nc_build_f90=yes
-nc_build_cxx=yes
 nc_build_v2=yes
 nc_build_utilities=yes
 nc_build_examples=yes
@@ -393,54 +354,6 @@ AC_ARG_ENABLE([examples],
 test "x$enable_examples" = xno && nc_build_examples=no
 AC_MSG_RESULT($nc_build_examples)
 AM_CONDITIONAL(BUILD_EXAMPLES, [test x$nc_build_examples = xyes])
-
-# Do we want to build the fortran 77 API? Check for --disable-f77.
-AC_MSG_CHECKING([whether F77 API is desired])
-AC_ARG_ENABLE([f77],
-              [AS_HELP_STRING([--disable-f77],
-                              [don't try to build the netCDF Fortran 77 (or \   
-                              Fortran 90) API])])
-test "x$enable_f77" = "xno" && nc_build_f77=no
-test "x$nc_null_fc" = xyes && nc_build_f77=no
-AC_MSG_RESULT([$nc_build_f77])
-
-# Do we want to build the fortran 77 API? Check for --disable-fortran
-# for Russ, who can never remember --disable-f77..
-AC_MSG_CHECKING([whether any Fortran API is desired])
-AC_ARG_ENABLE([fortran],
-              [AS_HELP_STRING([--disable-fortran],
-                              [don't try to build the netCDF Fortran 77 or \   
-                              Fortran 90 APIs (same effect as --disable-f77)])])
-test "x$enable_fortran" = "xno" && nc_build_f77=no
-AC_MSG_RESULT([$nc_build_f77])
-
-# Do we want to build the fortran 90 API?
-AC_MSG_CHECKING([whether F90 API is desired])
-AC_ARG_ENABLE([f90],
-              [AS_HELP_STRING([--disable-f90],
-                              [don't try to build the netCDF Fortran 90 API])])
-test "x$enable_f90" = xno && nc_build_f90=no
-test "x$nc_null_fc" = xyes || test "x$nc_null_f90" = xyes || \
-     test "x$nc_build_f77" = xno && nc_build_f90=no
-AC_MSG_RESULT([$nc_build_f90])
-
-# Does the user want to check into fortran type information?
-AC_MSG_CHECKING([whether fortran type sizes should be checked])
-AC_ARG_ENABLE([fortran-type-check],
-              [AS_HELP_STRING([--disable-fortran-type-check],
-                              [cause the Fortran type sizes checks to be skipped])])
-test "x$enable_fortran_type_check" = xno || enable_fortran_type_check=yes
-AC_MSG_RESULT($enable_fortran_type_check)
-
-# Do we want to build the C++ API? Check for --disable-cxx as a
-# configure argument.
-AC_MSG_CHECKING([whether CXX API is desired])
-AC_ARG_ENABLE([cxx],
-              [AS_HELP_STRING([--disable-cxx],
-                              [don't try to build C++ API])])
-test "x$enable_cxx" = xno && nc_build_cxx=no
-test "x$nc_null_cxx" = xyes && nc_build_cxx=no
-AC_MSG_RESULT([$nc_build_cxx])
 
 # Does the user want to disable the V2 API?
 AC_MSG_CHECKING([whether v2 netCDF API should be built])
@@ -566,86 +479,6 @@ if test $havekeypassword = yes; then
 fi
 CFLAGS="$SAVECFLAGS"
 
-# If the user set environment var FC, but not F77, then set F77=FC
-if test "x${FC+set}" = xset -a "x${F77+set}" != xset; then
-   F77=${FC}
-fi
-
-# If F90 is set, and FC isn't, then set FC to whatever F90 was set to.
-if test "${F90+set}" = set -a "${FC+set}" != set; then
-   FC=$F90
-fi
-
-# If F77 is set, and FC (still) isn't, then set FC to whatever F77 was
-# set to.
-if test "${F77+set}" = set -a "${FC+set}" != set; then
-   FC=$F77
-fi
-
-# Find fortran compiler. If FC isn't set after AC_PROG_FC, we couldn't
-# find a fortran compiler. If the user requested the fortran API, and
-# has told us not to recover from a missing compiler, then bail out
-# right here.
-AC_MSG_NOTICE([finding Fortran compiler (will not be used if Fortran API is not desired)])
-AC_PROG_FC
-
-# If we couldn't find an F90 compiler, deal with it.
-if test "${FC+set}" = set && test "x$FC" = x; then
-   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f90" = xyes; then
-      AC_MSG_ERROR([Can't find F90 compiler, and compiler recovery disabled.])
-   fi
-   AC_MSG_WARN([No F90 compiler found. F90 API will not be built.])
-   nc_build_f90=no
-fi
-
-AC_PROG_F77($FC)
-
-# Handle missing f77 compiler.
-if test "${F77+set}" = set && test "x$F77" = x; then
-   if test "x$enable_compiler_recover" = xno && test "x$nc_build_f77" = xyes; then
-      AC_MSG_ERROR([Can't find F77 compiler, and compiler recovery disabled.])
-   fi
-   AC_MSG_WARN([No F77 compiler found. F77 API will not be built.])
-   nc_build_f77=no
-   nc_build_f90=no
-fi
-
-# See if the fortran 90 build is desired. If so, set some stuff
-if test "x$nc_build_f90" = xyes; then
-   AC_MSG_NOTICE([setting up Fortran 90])
-   if test "${F90+set}" != set; then 
-      F90=$FC 
-   fi
-   AC_MSG_CHECKING([what FC is set to])
-   AC_MSG_RESULT([$FC])   
-
-   # Some f90 compilers change the case of the mod file names. Others
-   # require special flags to be set to dea with .f90 files. Find out
-   # about this compiler.
-   AC_LANG_PUSH(Fortran)
-   AC_FC_SRCEXT(f90)
-   AC_LANG_POP(Fortran)
-   AX_F90_MODULE_FLAG
-   AC_SUBST(MOD_FLAG, ${ax_cv_f90_modflag})
-
-   # Set the FCLIBS flag to help with shared libraries.
-#   AC_FC_LIBRARY_LDFLAGS
-#   AC_F77_LIBRARY_LDFLAGS      
-fi
-
-AC_MSG_NOTICE([finding C++ compiler (will not be used if C++ API is not desired)])
-AC_PROG_CXX
-
-# Set these conditionals for automake. For some reason, it can't keep
-# it's SUBDIR order straight if I use BUILD_F77 to attach the nf_test
-# directory, so also define an automake conditional TEST_F77 every
-# time BUILD_F77 is defined, and set it to the same value.
-AM_CONDITIONAL(BUILD_C, [test "x$nc_build_c" = xyes])
-AM_CONDITIONAL(BUILD_F77, [test "x$nc_build_f77" = xyes])
-AM_CONDITIONAL(TEST_F77, [test "x$nc_build_f77" = xyes])
-AM_CONDITIONAL(BUILD_F90, [test "x$nc_build_f90" = xyes])
-AM_CONDITIONAL(BUILD_CXX, [test "x$nc_build_cxx" = xyes])
-
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
@@ -661,38 +494,35 @@ fi
 
 AC_MSG_NOTICE([finding other utilities])
 
-AC_PROG_INSTALL
+# Is doxygen installed? If so, have configure construct the Doxyfile.
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN"; then 
+   AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+else
+   NETCDF_DOC_CODE_FILES="../include/netcdf.h \
+../examples/C/simple_xy_wr.c ../examples/C/simple_xy_rd.c \
+../examples/C/sfc_pres_temp_wr.c ../examples/C/sfc_pres_temp_rd.c \
+../examples/C/pres_temp_4D_wr.c ../examples/C/pres_temp_4D_rd.c \
+../examples/C/simple_nc4_wr.c ../examples/C/simple_nc4_rd.c \
+../examples/C/simple_xy_nc4_wr.c ../examples/C/simple_xy_nc4_rd.c \
+../libdispatch/dfile.c  ../libdispatch/ddim.c \
+../libdispatch/dattget.c ../libdispatch/dattinq.c  ../libdispatch/dattput.c \
+../libdispatch/datt.c ../libdispatch/dvar.c ../libdispatch/dvarinq.c \
+../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
+../libdispatch/dcompound.c ../libdispatch/dv2i.c \
+../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
+../libdispatch/dtype.c ../libsrc4/nc4file.c ../ncdump/ncdump.c"
+   NETCDF_DOC_ONLY_FILES="mainpage.doc tutorial.doc \
+../COPYRIGHT install.doc dispatch.doc guide.doc types.doc \
+notes.doc cdl.doc architecture.doc"
+fi
+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([man4/Doxyfile])])
+AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})])
+AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_ONLY_FILES, ${NETCDF_DOC_ONLY_FILES})])
 
-if test "x$nc_build_f77" = xyes; then
-   AC_MSG_NOTICE([trying to set fortran flags for this platform])
-   # Set fortran flag if the user has not already set it in CPPFLAGS.
-   case "$CPPFLAGS" in
-    *pgiFortran*|*NAGf90Fortran*|*f2cFortran*|*hpuxFortran*|*apolloFortran*|*sunFortran*|*IBMR2Fortran*|*CRAYFortran*|*PATHSCALE_COMPILER*|*gFortran*|*mipsFortran*|*DECFortran*|*vmsFortran*|*CONVEXFortran*|*PowerStationFortran*|*AbsoftUNIXFortran*|*AbsoftProFortran*|*SXFortran*)
-       ;;
-      *)
-         case "$FC" in
-            pgf95|pgf90|pgf77|ifort*|lf90|lf95)
-               AC_DEFINE(pgiFortran, [1], [Turned on by netCDF configure.])
-               ;;
-             *gfortran) 
-                if (gfortran --version | grep '(GCC 4.1.' || gfortran --version | grep '(GCC 4.0.'); then
-                   AC_DEFINE(gFortran, [1], [Turned on by netCDF configure.])    
-                else
-                   AC_DEFINE(pgiFortran, [1], [Turned on by netCDF configure.])    
-                fi
-                ;;
-             *g77) 
-                AC_DEFINE(f2cFortran, [1], [Turned on by netCDF configure.])
-                ;;
-             *)
-                # If it's a gnu compiler, guess f2c.
-                if test "x$ac_cv_fc_compiler_gnu" = xyes; then
-                   AC_DEFINE(f2cFortran, [1], [Turned on by netCDF configure.])
-                fi
-                ;;
-         esac
-   esac
-fi 
+# Find the install program.
+AC_PROG_INSTALL
 
 # Check to see if any macros must be set to enable large (>2GB) files.
 AC_SYS_LARGEFILE
@@ -704,36 +534,7 @@ AC_MSG_NOTICE([displaying some results])
 UD_DISPLAY_RESULTS
 
 # For nightly build testing, output CC, FC, etc.
-echo "CPPFLAGS=$CPPFLAGS CC=$CC CFLAGS=$CFLAGS CXX=$CXX CXXFLAGS=$CXXFLAGS FC=$FC FCFLAGS=$FCFLAGS F77=$F77 FFLAGS=$FFLAGS LDFLAGS=$LDFLAGS LIBS=$LIBS FLIBS=$FLIBS F90LIBS=$F90LIBS" >> comps.txt
-
-ac_cv_prog_f90_uppercase_mod=no
-
-# This will test the f77 compiler, as well as check some fortran types.
-if test "x$nc_build_f77" = xyes; then
-
-   if test "$enable_fortran_type_check" = yes; then
-      UD_FORTRAN_TYPES
-      if test "x$ud_fc_failed" = xyes -a "x$enable_compiler_recover" = xno -a "x$nc_build_f77" = xyes; then
-         AC_MSG_ERROR([F77 compiler doesn't work, and compiler recovery disabled.])
-      fi
-   else
-      AC_DEFINE(NCBYTE_T, byte)
-      AC_DEFINE(NCSHORT_T, integer*2)
-      AC_DEFINE(NF_INT1_T, byte)
-      AC_DEFINE(NF_INT2_T, integer*2)
-      AC_DEFINE(NF_INT1_IS_C_SIGNED_CHAR, 1, [default])
-      AC_DEFINE(NF_INT2_IS_C_SHORT, 1, [default])
-      AC_DEFINE(NF_INT_IS_C_INT, 1, [default])
-      AC_DEFINE(NF_REAL_IS_C_FLOAT, 1, [default])
-      AC_DEFINE(NF_DOUBLEPRECISION_IS_C_DOUBLE, 1, [default])
-   fi
-
-   # Test whether F90 module names get capitalized.
-   if test "x$nc_build_f90" = xyes; then
-      AC_PROG_FC_UPPERCASE_MOD
-   fi
-fi
-AM_CONDITIONAL(UPPER_CASE_MOD, [test "x$ac_cv_prog_f90_uppercase_mod" = xyes])
+echo "CPPFLAGS=$CPPFLAGS CC=$CC CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS LIBS=$LIBS" >> comps.txt
 
 AC_MSG_NOTICE([checking types, headers, and functions])
 
@@ -869,13 +670,10 @@ AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
-AM_CONDITIONAL(BUILD_CXX4, [test x$enable_cxx_4 = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
-AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
-AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
 AM_CONDITIONAL(USE_VALGRIND_TESTS, [test "x$enable_valgrind_tests" = xyes])
 AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
@@ -908,7 +706,6 @@ BINFILE_NAME=binary-netcdf-$PACKAGE_VERSION
 test "x$enable_netcdf_4" = xno && BINFILE_NAME=${BINFILE_NAME}_nc3
 test "x$nc_build_f77" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F77}
 test "x$nc_build_f90" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F90}
-test "x$nc_build_cxx" = xyes && BINFILE_NAME=${BINFILE_NAME}_${CXX}
 BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
@@ -977,19 +774,13 @@ esac
 NC_FLIBS="-lnetcdff $NC_LIBS"
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
-AC_SUBST(NC_FLIBS,[$NC_FLIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
-AC_SUBST(HAS_F77,[$nc_build_f77])
-AC_SUBST(HAS_F90,[$nc_build_f90])
-AC_SUBST(HAS_CXX,[$nc_build_cxx])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
-
-AC_CONFIG_SUBDIRS([udunits libcf])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1007,7 +798,6 @@ AC_CONFIG_FILES([Makefile
                  h5_test/Makefile
                  man4/Makefile
                  man4/images/Makefile
-                 fortran/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  nctest/Makefile
@@ -1016,17 +806,9 @@ AC_CONFIG_FILES([Makefile
                  ncdump/Makefile
                  ncgen3/Makefile
                  ncgen/Makefile
-                 nf_test/Makefile
-                 cxx/Makefile
-                 cxx4/Makefile
-                 f90/Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
-                 examples/CXX/Makefile
-                 examples/CXX4/Makefile
-                 examples/F90/Makefile
-                 examples/F77/Makefile
                   oc/Makefile
                   libdap2/Makefile
                   libcdmr/Makefile

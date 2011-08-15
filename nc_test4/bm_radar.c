@@ -85,7 +85,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
       if (ndims != 1)
       {
 	 if (chunking)
-	    if (nc_def_var_chunking(ncid_out, v, NULL, chunking, NULL)) ERR;
+	    if (nc_def_var_chunking(ncid_out, v, NC_CHUNKED, chunking)) ERR;
 	 if (deflate)
 	    if (nc_def_var_deflate(ncid_out, v, NC_NOSHUFFLE, *deflate, *deflate)) ERR;
       }
