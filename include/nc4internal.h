@@ -1,13 +1,10 @@
-/*
-  This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-  HDF5 backend for netCDF, depending on your point of view.
-
+/** \file
   This header file contains the definitions of structs used to hold
   netCDF file metadata in memory.
 
-  Copyright 2005 University Corporation for Atmospheric Research/Unidata.
-
-  $Id: nc4internal.h,v 1.137 2010/06/01 15:34:51 ed Exp $ */
+  Copyright 2005-2011 University Corporation for Atmospheric
+  Research/Unidata.
+*/
 
 #ifndef _NC4INTERNAL_
 #define _NC4INTERNAL_
@@ -173,6 +170,8 @@ typedef struct NC_VAR_INFO
    /* Stuff below is for hdf4 files. */
    int sdsid;
    int hdf4_data_type;
+   /* Stuff below for diskless data files. */
+   void *diskless_data;
 } NC_VAR_INFO_T;
 
 typedef struct NC_FIELD_INFO

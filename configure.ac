@@ -799,6 +799,7 @@ AC_CONFIG_FILES([Makefile
                  man4/Makefile
                  man4/images/Makefile
                  libsrc/Makefile
+                 libdiskless/Makefile
                  libsrc4/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
