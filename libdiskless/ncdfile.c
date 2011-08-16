@@ -11,13 +11,6 @@ COPYRIGHT file for copying and redistribution conditions.
 #include "ncddispatch.h"
 #include "ncdispatch.h"
 
-/* This is to track opened HDF5 objects to make sure they are
- * closed. */
-#ifdef EXTRA_TESTS
-extern int num_plists;
-extern int num_spaces;
-#endif /* EXTRA_TESTS */
-
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
@@ -519,16 +512,6 @@ NCD_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    return NC_NOERR;   
 }
 
-#ifdef EXTRA_TESTS
-int
-nc_exit()
-{
-   if (num_plists || num_spaces)
-      return NC_EHDFERR;
-      
-   return NC_NOERR;
-}
-#endif /* EXTRA_TESTS */
 
 
 
