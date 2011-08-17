@@ -85,6 +85,7 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCR    8
+#define NC_DISPATCH_DISKLESS 16
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -122,6 +123,7 @@ typedef struct NC_MPI_INFO {
 typedef struct NC_Dispatch NC_Dispatch;
 
 extern NC_Dispatch* NC3_dispatch_table;
+extern NC_Dispatch* NCD_dispatch_table;
 
 #ifdef USE_NETCDF4
 extern NC_Dispatch* NC4_dispatch_table;

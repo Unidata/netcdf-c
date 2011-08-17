@@ -1297,6 +1297,12 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
+      if(cmode & NC_DISKLESS)
+	model = NC_DISPATCH_DISKLESS;
+   }
+
+   /* Look to the incoming cmode for hints */
+   if(model == 0) {
       if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
 	model = NC_DISPATCH_NC4;
    }
@@ -1333,45 +1339,48 @@ NC_create(const char *path, int cmode, size_t initialsz,
       return  NC_EINVAL;
 #endif
 
-   dispatcher = NC_get_dispatch_override();
-   if(dispatcher != NULL) goto havetable;
+   if (!(dispatcher = NC_get_dispatch_override()))
+   {
 
-   /* Figure out what dispatcher to use */
+      /* Figure out what dispatcher to use */
 #ifdef USE_NETCDF4
 #ifdef USE_CDMREMOTE
-   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
-	dispatcher = NCCR_dispatch_table;
-   else
+      if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
+	 dispatcher = NCCR_dispatch_table;
+      else
 #endif
 #ifdef USE_DAP
-   if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCD))
-	dispatcher = NCD4_dispatch_table;
-   else
+      if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCD))
+ 	dispatcher = NCD4_dispatch_table;
+      else
 #endif
-   if(model == (NC_DISPATCH_NC4))
-	dispatcher = NC4_dispatch_table;
-   else
+      if(model == (NC_DISPATCH_NC4))
+ 	dispatcher = NC4_dispatch_table;
+      else
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP
-   if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
+      if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
 	dispatcher = NCD3_dispatch_table;
-   else
+      else
 #endif
-   if(model == (NC_DISPATCH_NC3))
-	dispatcher = NC3_dispatch_table;
-   else
-      return  NC_ENOTNC;
-
-  havetable:
-   stat = dispatcher->create(path,cmode,initialsz,basepe,chunksizehintp,
-			     useparallel,mpi_info,dispatcher,&ncp);
-   if(stat == NC_NOERR) {
-      ncp->dispatch = dispatcher;
-      if(ncidp) *ncidp = ncp->ext_ncid;
-      ncp->path = strdup(path);
-      if(path == NULL) stat = NC_ENOMEM;	
+      if(model == (NC_DISPATCH_NC3))
+ 	dispatcher = NC3_dispatch_table;
+      else if(model == (NC_DISPATCH_DISKLESS))
+	 dispatcher = NCD_dispatch_table;
+      else
+	 return NC_ENOTNC;
    }
-   return stat;
+
+   if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
+				   useparallel, mpi_info, dispatcher, &ncp)))
+      return stat;
+
+   ncp->dispatch = dispatcher;
+   if(ncidp) 
+      *ncidp = ncp->ext_ncid;
+   if (!(ncp->path = strdup(path)))
+      return NC_ENOMEM;
+   return NC_NOERR;
 }
 
 /**

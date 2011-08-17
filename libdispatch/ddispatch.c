@@ -27,6 +27,7 @@ static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UIN
 */
 
 NC_Dispatch* NC3_dispatch_table = NULL;
+NC_Dispatch* NCD_dispatch_table = NULL;
 
 #ifdef USE_NETCDF4
 NC_Dispatch* NC4_dispatch_table = NULL;

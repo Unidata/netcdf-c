@@ -74,15 +74,15 @@ unlimited dimensions.
 
 \param idp Pointer where dimension ID will be stored.
 
-\retval \ref NC_NOERR No error.
-\returns \ref NC_EBADID Not a valid ID.
-\returns \ref NC_ENOTINDEFINE Not in define mode.
-\returns \ref NC_EDIMSIZE Invalid dimension size.
-\returns \ref NC_EUNLIMIT NC_UNLIMITED size already in use
-\returns \ref NC_EMAXDIMS NC_MAX_DIMS exceeded
-\returns \ref NC_ENAMEINUSE String match to name in use
-\returns \ref NC_ENOMEM Memory allocation (malloc) failure
-\returns \ref NC_EPERM Write to read only
+\retval ::NC_NOERR No error.
+\returns ::NC_EBADID Not a valid ID.
+\returns ::NC_ENOTINDEFINE Not in define mode.
+\returns ::NC_EDIMSIZE Invalid dimension size.
+\returns ::NC_EUNLIMIT NC_UNLIMITED size already in use
+\returns ::NC_EMAXDIMS NC_MAX_DIMS exceeded
+\returns ::NC_ENAMEINUSE String match to name in use
+\returns ::NC_ENOMEM Memory allocation (malloc) failure
+\returns ::NC_EPERM Write to read only
 
 \section Example
 
@@ -111,7 +111,7 @@ nc_def_dim(int ncid, const char *name, size_t len, int *idp)
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_dim(ncid,name,len,idp);
+    return ncp->dispatch->def_dim(ncid, name, len, idp);
 }
 
 /*!
@@ -129,9 +129,9 @@ nc_create().
 
 \param idp Pointer where dimension ID will be stored.
 
-\returns \ref NC_NOERR   No error.
-\returns \ref NC_EBADID  Not a valid ID.
-\returns \ref NC_EBADDIM Invalid dimension ID or name.
+\returns ::NC_NOERR   No error.
+\returns ::NC_EBADID  Not a valid ID.
+\returns ::NC_EBADDIM Invalid dimension ID or name.
  */
 int
 nc_inq_dimid(int ncid, const char *name, int *idp)
@@ -164,9 +164,9 @@ will be null-terminated.
 \param lenp Pointer to location for returned length of dimension. For
 the unlimited dimension, this is the number of records written so far.
 
-\returns \ref NC_NOERR   No error.
-\returns \ref NC_EBADID  Not a valid ID.
-\returns \ref NC_EBADDIM Invalid dimension ID or name.
+\returns ::NC_NOERR   No error.
+\returns ::NC_EBADID  Not a valid ID.
+\returns ::NC_EBADDIM Invalid dimension ID or name.
 
 \section Example
 
@@ -226,12 +226,12 @@ nc_def_dim().
 \param name New name for dimension. Must be a null-terminated string
 with length less than NC_MAX_NAME.
 
-\returns \ref NC_NOERR      No error.
-\returns \ref NC_EBADID     Not a valid ID.
-\returns \ref NC_EBADDIM    Invalid dimension ID or name.
-\returns \ref NC_ENAMEINUSE String match to name in use
-\returns \ref NC_ENOMEM     Memory allocation (malloc) failure
-\returns \ref NC_EPERM      Write to read only
+\returns ::NC_NOERR      No error.
+\returns ::NC_EBADID     Not a valid ID.
+\returns ::NC_EBADDIM    Invalid dimension ID or name.
+\returns ::NC_ENAMEINUSE String match to name in use
+\returns ::NC_ENOMEM     Memory allocation (malloc) failure
+\returns ::NC_EPERM      Write to read only
 \section Example
 
 Here is an example using nc_rename_dim to rename the dimension lat to
@@ -280,8 +280,8 @@ nc_create().
 \param ndimsp Pointer where number of dimensions will be
 written. Ignored if NULL.
 
-\returns \ref NC_NOERR  No error.
-\returns \ref NC_EBADID Not a valid ID.
+\returns ::NC_NOERR  No error.
+\returns ::NC_EBADID Not a valid ID.
 
  */
 int
@@ -309,8 +309,8 @@ nc_create().
 stored. If there is no unlimited dimension, -1 will be stored
 here. Ignored if NULL.
 
-\returns \ref NC_NOERR  No error.
-\returns \ref NC_EBADID Not a valid ID.
+\returns ::NC_NOERR  No error.
+\returns ::NC_EBADID Not a valid ID.
 
  */
 int
@@ -338,9 +338,9 @@ NC_MAX_NAME. (This doesn't include the null terminator, so declare
 your array to be size NC_MAX_NAME+1). The returned character array
 will be null-terminated. Ignored if NULL.
 
-\returns \ref NC_NOERR   No error.
-\returns \ref NC_EBADID  Not a valid ID.
-\returns \ref NC_EBADDIM Invalid dimension ID or name.
+\returns ::NC_NOERR   No error.
+\returns ::NC_EBADID  Not a valid ID.
+\returns ::NC_EBADDIM Invalid dimension ID or name.
 
 \section Example
 
@@ -394,9 +394,9 @@ nc_def_dim().
 
 \param lenp Pointer where the length will be stored.
 
-\returns \ref NC_NOERR   No error.
-\returns \ref NC_EBADID  Not a valid ID.
-\returns \ref NC_EBADDIM Invalid dimension ID or name.
+\returns ::NC_NOERR   No error.
+\returns ::NC_EBADID  Not a valid ID.
+\returns ::NC_EBADDIM Invalid dimension ID or name.
 
 \section Example
 

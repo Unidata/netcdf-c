@@ -65,8 +65,8 @@ main(int argc, char **argv)
    struct timeval start_time, end_time, diff_time;
 
    printf("\n*** Testing netcdf-4 vs. netcdf-3 performance.\n");
-   if (read_file(FILE_NAME_1)) ERR;
-   if (read_file(FILE_NAME_2)) ERR;
+   /* if (read_file(FILE_NAME_1)) ERR; */
+   /* if (read_file(FILE_NAME_2)) ERR; */
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;

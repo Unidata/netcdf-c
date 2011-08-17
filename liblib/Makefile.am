@@ -28,9 +28,11 @@ if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la
 endif # BUILD_V2
 
-# The output library will always include netcdf3 and dispatch libraries.
+# The output library will always include netcdf3, diskless, and
+# dispatch libraries.
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
-${top_builddir}/libsrc/libnetcdf3.la
+${top_builddir}/libsrc/libnetcdf3.la					\
+${top_builddir}/libdiskless/libdiskless.la
 
 # netcdf3 + dap
 if USE_DAP
