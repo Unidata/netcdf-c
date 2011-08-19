@@ -1710,17 +1710,11 @@ do_ncdump(int ncid, const char *path, fspec_t* specp)
     int *grpids;
     int igrp;
 
-#ifdef USE_NETCDF4
-    /* get total number of groups and their ids, including all descendants */
+    /* get total number of groups and their ids, including root group
+     * and all descendants, works OK if netCDF-3 only */
     NC_CHECK(nc_inq_grps_full(ncid, &numgrps, NULL));
     grpids = emalloc(numgrps * sizeof(int));
     NC_CHECK(nc_inq_grps_full(ncid, NULL, grpids));
-#else
-    /* only the root group for netCDF-3 */
-    numgrps = 1;
-    grpids = emalloc(numgrps * sizeof(int));
-    grpids[0] = ncid;
-#endif /* USE_NETCDF4 */
 
     /* output initial line */
     indent_init();
@@ -1741,6 +1735,8 @@ do_ncdump(int ncid, const char *path, fspec_t* specp)
     indent_out();
     printf ("}\n");
     NC_CHECK( nc_close(ncid) );
+    if(grpids)
+	free(grpids);
 }
 
 
