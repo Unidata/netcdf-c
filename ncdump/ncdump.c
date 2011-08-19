@@ -1314,7 +1314,7 @@ get_timeinfo(int ncid, int varid, ncvar_t *vp) {
  * is just a root group, so recursion will not take place.) 
  *
  * ncid: id of open file (first call) or group (subsequent recursive calls) 
- * path: file path name (first call) or NULL if called for a group
+ * path: file path name (first call)
  * specp: formatting spec
  */
 static void
@@ -1343,6 +1343,12 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    int nunlim;
 #else
    int dimid;			/* dimension id */
+#endif /* USE_NETCDF4 */
+   int is_root = 1;		/* true if ncid is root group or if netCDF-3 */
+
+#ifdef USE_NETCDF4
+   if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP)
+       is_root = 0;
 #endif /* USE_NETCDF4 */
 
    /*
@@ -1565,7 +1571,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    if (ngatts > 0 || specp->special_atts) {
       printf ("\n");
       indent_out();
-      if (path != NULL) 	/* top-level, root group */
+      if (is_root) 	/* top-level, root group */
 	  printf("// global attributes:\n");
       else
 	  printf("// group attributes:\n");
@@ -1573,7 +1579,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    for (ia = 0; ia < ngatts; ia++) { /* print ia-th global attribute */
        pr_att(ncid, kind, NC_GLOBAL, "", ia);
    }
-   if (path != NULL && specp->special_atts) { /* output special attribute
+   if (is_root && specp->special_atts) { /* output special attribute
 					   * for format variant */
        pr_att_global_format(ncid, kind);
    }
@@ -1726,10 +1732,7 @@ do_ncdump(int ncid, const char *path, fspec_t* specp)
     /* for(igrp = 0; igrp < numgrps; igrp ++) { */
     igrp = 0;
     for(igrp = 0; igrp < 1; igrp ++) {
-	if(igrp == 0)
 	    do_ncdump_rec(grpids[igrp], path, specp);
-	else
-	    do_ncdump_rec(grpids[igrp], NULL, specp);
     }
 
     indent_out();
