@@ -1,7 +1,4 @@
 /** \file
-Attribute functions
-
-These functions read and write attributes.
 
 Copyright 2008 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
@@ -30,6 +27,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
+#include "nciter.h"
 #include "utils.h"
 
 #define int64_t long long
@@ -1706,17 +1704,43 @@ done:
 static void
 do_ncdump(int ncid, const char *path, fspec_t* specp)
 {
-   char* esc_specname;
-   /* output initial line */
-   indent_init();
-   indent_out();
-   esc_specname=escaped_name(specp->name);
-   printf ("netcdf %s {\n", esc_specname);
-   free(esc_specname);
-   do_ncdump_rec(ncid, path, specp);
-   indent_out();
-   printf ("}\n");
-   NC_CHECK( nc_close(ncid) );
+    char* esc_specname;
+    int stat = NC_NOERR;
+    int numgrps = 1;
+    int *grpids;
+    int igrp;
+
+#ifdef USE_NETCDF4
+    /* get total number of groups and their ids, including all descendants */
+    NC_CHECK(nc_inq_grps_full(ncid, &numgrps, NULL));
+    grpids = emalloc(numgrps * sizeof(int));
+    NC_CHECK(nc_inq_grps_full(ncid, NULL, grpids));
+#else
+    /* only the root group for netCDF-3 */
+    numgrps = 1;
+    grpids = emalloc(numgrps * sizeof(int));
+    grpids[0] = ncid;
+#endif /* USE_NETCDF4 */
+
+    /* output initial line */
+    indent_init();
+    indent_out();
+    esc_specname=escaped_name(specp->name);
+    printf ("netcdf %s {\n", esc_specname);
+    free(esc_specname);
+
+    /* for(igrp = 0; igrp < numgrps; igrp ++) { */
+    igrp = 0;
+    for(igrp = 0; igrp < 1; igrp ++) {
+	if(igrp == 0)
+	    do_ncdump_rec(grpids[igrp], path, specp);
+	else
+	    do_ncdump_rec(grpids[igrp], NULL, specp);
+    }
+
+    indent_out();
+    printf ("}\n");
+    NC_CHECK( nc_close(ncid) );
 }
 
 
