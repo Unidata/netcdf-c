@@ -53,11 +53,8 @@ web-tarball:
 	cp $(top_srcdir)/ncdump/nccopy.1 .
 	cp $(top_srcdir)/ncgen3/ncgen3.1 .
 	cp $(top_srcdir)/libsrc/netcdf.3 .
-	cp $(top_srcdir)/fortran/netcdf_f77.3 .
-	cp $(top_srcdir)/f90/netcdf_f90.3 .
-	tar cf netcdf_man.tar netcdf.3 netcdf_f77.3 netcdf_f90.3 ncdump.1 ncgen.1 ncgen3.1
+	tar cf netcdf_man.tar netcdf.3 ncdump.1 ncgen.1 ncgen3.1 html/*
 	gzip -f netcdf_man.tar
-	zip netcdf_man netcdf.3 netcdf_f77.3 netcdf_f90.3 ncdump.1 ncgen.1 ncgen3.1
 
 # Clean up all the junk we created!
 MAINTAINERCLEANFILES = $(man_MANS) ${c_examples} ${cdl_examples} *.1	\

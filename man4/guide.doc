@@ -1,4 +1,5 @@
 /*! \file 
+
 NetCDF Users Guide
 
 \page user_guide The NetCDF Users Guide
@@ -4374,4 +4375,11 @@ straighforward manner.
 - DFNT_FLOAT32 = NC_FLOAT
 - DFNT_FLOAT64 = NC_DOUBLE 
 
+
+\htmlonly
+\page htmlonly_page html only page
+
+LA LA LA!
+
+\endhtmlonly
 */
