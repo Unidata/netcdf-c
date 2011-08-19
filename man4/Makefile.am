@@ -15,7 +15,7 @@ ncgen3-man-1.html nccopy-man-1.html
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in	\
-@NETCDF_DOC_ONLY_FILES@ footer.html
+@NETCDF_DOC_ONLY_FILES@ footer.html html/*
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -69,7 +69,7 @@ if HAVE_DOXYGEN
 # $(directory)/man_page_1.3: doxyfile.stamp
 # $(directory)/man_page_2.3: doxyfile.stamp
 
-doxyfile.stamp: @NETCDF_DOC_CODE_FILES@ #@NETCDF_DOC_ONLY_FILES@ 
+doxyfile.stamp: 
 	$(DOXYGEN) Doxyfile
 	echo Timestamp > doxyfile.stamp
 

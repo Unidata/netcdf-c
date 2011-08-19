@@ -499,7 +499,7 @@ AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN"; then 
    AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
 else
-   NETCDF_DOC_CODE_FILES="../include/netcdf.h \
+   NETCDF_DOC_CODE_FILES="${top_srcdir}/include/netcdf.h \
 ../examples/C/simple_xy_wr.c ../examples/C/simple_xy_rd.c \
 ../examples/C/sfc_pres_temp_wr.c ../examples/C/sfc_pres_temp_rd.c \
 ../examples/C/pres_temp_4D_wr.c ../examples/C/pres_temp_4D_rd.c \
