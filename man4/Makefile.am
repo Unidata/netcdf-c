@@ -16,8 +16,6 @@ SUBDIRS = images
 
 if BUILD_DOCS
 
-
-
 # Copy man pages.
 #directory = $(top_srcdir)/docs/man/man3/
 #dist_man_MANS = $(man4directory)/man_page_1.3 $(directory)/man_page_2.3
@@ -42,7 +40,7 @@ clean-local:
 # tarball to the /contents/netcdf/docs directory to update the on-line
 # docs.
 web-tarball: doxyfile.stamp
-	tar cf netcdf_man.tar html/*
-	gzip -f netcdf_man.tar
+	tar cf netcdf_docs.tar html/*
+	gzip -f netcdf_docs.tar
 
 endif 
