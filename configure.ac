@@ -43,24 +43,6 @@ AC_CONFIG_SRCDIR([libsrc/nc.c])
 
 AC_MSG_NOTICE([checking user options])
 
-# For backward compatibility, check to see if the user has set CXX,
-# FC, and/or F90 to null. If so, treat that as the equivilent
-# --disable- option to configure. The autoconf manual suggests the
-# following to set a var if it's not already set:
-# test "${var+set}" = set || var={value}
-
-# Did the user set fc to null?
-AC_MSG_CHECKING([whether FC is set to ''])
-nc_null_fc=no
-test "x${FC+set}" = xset && test "x$FC" = x && nc_null_fc=yes
-AC_MSG_RESULT([$nc_null_fc])
-
-# Did the user set f90 to null?
-AC_MSG_CHECKING([whether F90 is set to ''])
-nc_null_f90=no
-test "x${F90+set}" = xset && test "x$F90" = x && nc_null_f90=yes
-AC_MSG_RESULT([$nc_null_f90])
-
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
 AC_MSG_CHECKING([whether a NCIO_MINBLOCKSIZE was specified])
 AC_ARG_WITH([minblocksize],
@@ -69,6 +51,17 @@ AC_ARG_WITH([minblocksize],
             [NCIO_MINBLOCKSIZE=$with_minblocksize], [NCIO_MINBLOCKSIZE=256])
 AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
+
+AC_ARG_ENABLE([doxygen],
+  [AS_HELP_STRING([--disable-doxygen],
+    [Disable generation of documentation.])])
+AM_CONDITIONAL([BUILD_DOCS], [test "x$enable_doxygen" != xno]) 
+
+AC_ARG_ENABLE([internal-docs],
+  [AS_HELP_STRING([--enable-internal-docs],
+    [Include documentation of library internals. This is of interest only to those developing the netCDF library.])])
+test $enable_internal_docs = yes || enable_internal_docs=no
+AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs]) 
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
@@ -497,9 +490,9 @@ AC_MSG_NOTICE([finding other utilities])
 # Is doxygen installed? If so, have configure construct the Doxyfile.
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN"; then 
-   AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+   AC_MSG_WARN([Doxygen not found - documentation will not be built])
 else
-   NETCDF_DOC_CODE_FILES="../include/netcdf.h \
+   NETCDF_DOC_CODE_FILES='../include/netcdf.h \
 ../examples/C/simple_xy_wr.c ../examples/C/simple_xy_rd.c \
 ../examples/C/sfc_pres_temp_wr.c ../examples/C/sfc_pres_temp_rd.c \
 ../examples/C/pres_temp_4D_wr.c ../examples/C/pres_temp_4D_rd.c \
@@ -511,15 +504,20 @@ else
 ../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
 ../libdispatch/dcompound.c ../libdispatch/dv2i.c \
 ../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
-../libdispatch/dtype.c ../libsrc4/nc4file.c ../ncdump/ncdump.c"
+../libdispatch/dtype.c ../libsrc4/nc4file.c ../ncdump/ncdump.c'
    NETCDF_DOC_ONLY_FILES="mainpage.doc tutorial.doc \
 ../COPYRIGHT install.doc dispatch.doc guide.doc types.doc \
-notes.doc cdl.doc architecture.doc"
+notes.doc cdl.doc architecture.doc internal.doc"
 fi
-AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
-AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([man4/Doxyfile])])
-AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})])
-AM_COND_IF([HAVE_DOXYGEN], [AC_SUBST(NETCDF_DOC_ONLY_FILES, ${NETCDF_DOC_ONLY_FILES})])
+
+# If we have doxygen, and it's enabled, then process the file.
+if test "x$enable_doxygen" != xno; then
+   if test -n "$DOXYGEN"; then
+      AC_CONFIG_FILES([man4/Doxyfile])
+      AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})
+      AC_SUBST(NETCDF_DOC_ONLY_FILES, ${NETCDF_DOC_ONLY_FILES})
+   fi
+fi
 
 # Find the install program.
 AC_PROG_INSTALL
