@@ -456,7 +456,7 @@ pr_att_valgs(
 	    break;
 	case NC_USHORT:
 	    us = ((unsigned short *) vals)[iel];
-	    printf ("%uUS%s", us, delim);
+	    printf ("%huUS%s", us, delim);
 	    break;
 	case NC_UINT:
 	    ui = ((unsigned int *) vals)[iel];
@@ -1825,7 +1825,6 @@ do_ncdumpx(int ncid, const char *path, fspec_t* specp)
 	free(dims);
 }
 
-
 static void
 make_lvars(char *optarg, fspec_t* fspecp)
 {
@@ -1853,6 +1852,36 @@ make_lvars(char *optarg, fspec_t* fspecp)
 	cpp++;
     }
     fspecp->nlvars = nvars;
+}
+
+
+static void
+make_lgrps(char *optarg, fspec_t* fspecp)
+{
+    char *cp = optarg;
+    int ngrps = 1;
+    char ** cpp;
+
+    /* compute number of variable names in comma-delimited list */
+    fspecp->nlgrps = 1;
+    while (*cp++)
+      if (*cp == ',')
+ 	ngrps++;
+
+    fspecp->lgrps = (char **) emalloc(ngrps * sizeof(char*));
+
+    cpp = fspecp->lgrps;
+    /* copy variable names into list */
+    for (cp = strtok(optarg, ",");
+	 cp != NULL;
+	 cp = strtok((char *) NULL, ",")) {
+	size_t bufsiz = strlen(cp) + 1;
+	
+	*cpp = (char *) emalloc(bufsiz);
+	strncpy(*cpp, cp, bufsiz);
+	cpp++;
+    }
+    fspecp->nlgrps = ngrps;
 }
 
 
@@ -1985,6 +2014,65 @@ missing_vars(int ncid, fspec_t *specp) {
     for (iv=0; iv < specp->nlvars; iv++) {
 	if(nc_inq_varname_count(ncid, specp->lvars[iv]) == 0) {
 	    error("%s: No such variable", specp->lvars[iv]);
+	}
+    }
+    return 0;
+}
+
+/* Determine whether a group named grpname exists in any group in an
+ * open netCDF file with id ncid.  If so, return the count of how many
+ * matching groups were found, else return a count of 0.  */
+size_t
+nc_inq_grpname_count(int ncid, char *grpname) {
+    /* 
+       count = 0;
+       status = nc_inq_ncid(ncid, grpname, &grpid);
+       if (status == NC_NOERR)
+          count++;
+       for each subgroup gid {
+          count += nc_inq_grpname_count(gid, grpname);
+       }
+       return count;
+    */
+    size_t count = 0;
+#ifdef USE_NETCDF4
+    int numgrps;
+    int *ncids;
+    int g;
+    int grpid;
+
+    /* look in this group */
+    int status = nc_inq_ncid(ncid, grpname, &grpid);
+    if (status == NC_NOERR)
+	count++;
+    /* if this group has subgroups, call recursively on each of them */
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
+	 
+    /* Allocate memory to hold the list of group ids. */
+    ncids = emalloc((numgrps + 1) * sizeof(int));
+	
+    /* Get the list of group ids. */
+    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	
+    /* Call this function for each group. */
+    for (g = 0; g < numgrps; g++) {
+	count += nc_inq_grpname_count(ncids[g], grpname);
+    }
+    free(ncids);
+#endif /* USE_NETCDF4 */
+    return count;    
+   
+}
+
+/* Check if any group names specified with "-g grp1,...,grpn" are
+ * missing.  Returns 0 if no missing groups detected, otherwise
+ * exits. */
+static int
+missing_grps(int ncid, fspec_t *specp) {
+    int ig;
+    for (ig=0; ig < specp->nlgrps; ig++) {
+	if(nc_inq_grpname_count(ncid, specp->lgrps[ig]) == 0) {
+	    error("%s: No such group", specp->lgrps[ig]);
 	}
     }
     return 0;
@@ -2296,6 +2384,10 @@ main(int argc, char *argv[])
 	  /* make list of names of variables specified */
 	  make_lvars (optarg, &fspec);
 	  break;
+	case 'g':		/* group names */
+	  /* make list of names of groups specified */
+	  make_lgrps (optarg, &fspec);
+	  break;
 	case 'd':		/* specify precision for floats (deprecated, undocumented) */
 	  set_sigdigs(optarg);
 	  break;
@@ -2373,6 +2465,9 @@ main(int argc, char *argv[])
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
 		if(missing_vars(ncid, &fspec))
+		    return EXIT_FAILURE;
+		/* Check if any grps in -g don't exist */
+		if(missing_grps(ncid, &fspec))
 		    return EXIT_FAILURE;
 		if (xml_out) {
 		    do_ncdumpx(ncid, path, &fspec);
