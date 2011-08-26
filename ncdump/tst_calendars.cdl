@@ -43,6 +43,9 @@ variables:
   double t2_pg_days(time);
      t2_pg_days:calendar = "proleptic_gregorian" ;
      t2_pg_days:units = "days since 2000-06-15 12:00:00";
+  double t2_pgt_days(time);
+     t2_pgt_days:calendar = "proleptic_gregorian" ;
+     t2_pgt_days:units = "days since 2000-06-15T12:00:00";
   double t2_nl_days(time);
      t2_nl_days:calendar = "noleap" ;
      t2_nl_days:units = "days since 2000-06-15 12:00:00";
@@ -86,6 +89,7 @@ data:
 	t2_st_days = 3121.5;
 	t2_gr_days = 3121.5;
 	t2_pg_days = 3121.5;
+	t2_pgt_days = 3121.5;
 	t2_nl_days = 3119.5;
 	t2_365_days = 3119.5;
 	t2_366_days = 3127.5;

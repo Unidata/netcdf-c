@@ -1,7 +1,4 @@
-/** \file
-Attribute functions
-
-These functions read and write attributes.
+/*
 
 Copyright 2008 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
@@ -459,7 +456,7 @@ pr_att_valgs(
 	    break;
 	case NC_USHORT:
 	    us = ((unsigned short *) vals)[iel];
-	    printf ("%uUS%s", us, delim);
+	    printf ("%huUS%s", us, delim);
 	    break;
 	case NC_UINT:
 	    ui = ((unsigned int *) vals)[iel];
@@ -1316,7 +1313,7 @@ get_timeinfo(int ncid, int varid, ncvar_t *vp) {
  * is just a root group, so recursion will not take place.) 
  *
  * ncid: id of open file (first call) or group (subsequent recursive calls) 
- * path: file path name (first call) or NULL if called for a group
+ * path: file path name (first call)
  * specp: formatting spec
  */
 static void
@@ -1345,6 +1342,12 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    int nunlim;
 #else
    int dimid;			/* dimension id */
+#endif /* USE_NETCDF4 */
+   int is_root = 1;		/* true if ncid is root group or if netCDF-3 */
+
+#ifdef USE_NETCDF4
+   if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP)
+       is_root = 0;
 #endif /* USE_NETCDF4 */
 
    /*
@@ -1567,7 +1570,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    if (ngatts > 0 || specp->special_atts) {
       printf ("\n");
       indent_out();
-      if (path != NULL) 	/* top-level, root group */
+      if (is_root)
 	  printf("// global attributes:\n");
       else
 	  printf("// group attributes:\n");
@@ -1575,7 +1578,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    for (ia = 0; ia < ngatts; ia++) { /* print ia-th global attribute */
        pr_att(ncid, kind, NC_GLOBAL, "", ia);
    }
-   if (path != NULL && specp->special_atts) { /* output special attribute
+   if (is_root && specp->special_atts) { /* output special attribute
 					   * for format variant */
        pr_att_global_format(ncid, kind);
    }
@@ -1822,7 +1825,6 @@ do_ncdumpx(int ncid, const char *path, fspec_t* specp)
 	free(dims);
 }
 
-
 static void
 make_lvars(char *optarg, fspec_t* fspecp)
 {
@@ -1850,6 +1852,36 @@ make_lvars(char *optarg, fspec_t* fspecp)
 	cpp++;
     }
     fspecp->nlvars = nvars;
+}
+
+
+static void
+make_lgrps(char *optarg, fspec_t* fspecp)
+{
+    char *cp = optarg;
+    int ngrps = 1;
+    char ** cpp;
+
+    /* compute number of variable names in comma-delimited list */
+    fspecp->nlgrps = 1;
+    while (*cp++)
+      if (*cp == ',')
+ 	ngrps++;
+
+    fspecp->lgrps = (char **) emalloc(ngrps * sizeof(char*));
+
+    cpp = fspecp->lgrps;
+    /* copy variable names into list */
+    for (cp = strtok(optarg, ",");
+	 cp != NULL;
+	 cp = strtok((char *) NULL, ",")) {
+	size_t bufsiz = strlen(cp) + 1;
+	
+	*cpp = (char *) emalloc(bufsiz);
+	strncpy(*cpp, cp, bufsiz);
+	cpp++;
+    }
+    fspecp->nlgrps = ngrps;
 }
 
 
@@ -1987,6 +2019,65 @@ missing_vars(int ncid, fspec_t *specp) {
     return 0;
 }
 
+/* Determine whether a group named grpname exists in any group in an
+ * open netCDF file with id ncid.  If so, return the count of how many
+ * matching groups were found, else return a count of 0.  */
+size_t
+nc_inq_grpname_count(int ncid, char *grpname) {
+    /* 
+       count = 0;
+       status = nc_inq_ncid(ncid, grpname, &grpid);
+       if (status == NC_NOERR)
+          count++;
+       for each subgroup gid {
+          count += nc_inq_grpname_count(gid, grpname);
+       }
+       return count;
+    */
+    size_t count = 0;
+#ifdef USE_NETCDF4
+    int numgrps;
+    int *ncids;
+    int g;
+    int grpid;
+
+    /* look in this group */
+    int status = nc_inq_ncid(ncid, grpname, &grpid);
+    if (status == NC_NOERR)
+	count++;
+    /* if this group has subgroups, call recursively on each of them */
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
+	 
+    /* Allocate memory to hold the list of group ids. */
+    ncids = emalloc((numgrps + 1) * sizeof(int));
+	
+    /* Get the list of group ids. */
+    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	
+    /* Call this function for each group. */
+    for (g = 0; g < numgrps; g++) {
+	count += nc_inq_grpname_count(ncids[g], grpname);
+    }
+    free(ncids);
+#endif /* USE_NETCDF4 */
+    return count;    
+   
+}
+
+/* Check if any group names specified with "-g grp1,...,grpn" are
+ * missing.  Returns 0 if no missing groups detected, otherwise
+ * exits. */
+static int
+missing_grps(int ncid, fspec_t *specp) {
+    int ig;
+    for (ig=0; ig < specp->nlgrps; ig++) {
+	if(nc_inq_grpname_count(ncid, specp->lgrps[ig]) == 0) {
+	    error("%s: No such group", specp->lgrps[ig]);
+	}
+    }
+    return 0;
+}
+
 #define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
 /* replace path string with same string prefixed by
  * DAP_CLIENT_NCDUMP_DIRECTIVE */
@@ -2043,8 +2134,14 @@ variable is of byte type.
 UNIX syntax for invoking ncdump:
 
 \code
-     ncdump  [ -c | -h]  [-v var1,...]  [-b lang]  [-f lang]
-     [-l len]  [ -p fdig[,ddig]] [ -s ] [ -n name]  [input-file]
+     ncdump  [-c | -h]  [-v var1,...]  [-g grp1,...]  [-b lang]  [-f lang]
+     [-l len]  [-n name]  [-p fdig[,ddig]] [-x]  [-s] [-t]  input-file
+\endcode
+
+or
+
+\code
+     ncdump -k input-file
 \endcode
 
 where:
@@ -2053,7 +2150,7 @@ where:
  dimensions) as well as the declarations of all dimensions, variables,
  and attribute values. Data values of non-coordinate variables are not
  included in the output. This is often the most suitable option to use
- for a brief look at the structure and contents of a netCDF dataset.
+ for a brief look at the structure and contents of a netCDF file.
 
 -h Show only the header information in the output, that is, output
  only the declarations for the netCDF dimensions, variables, and
@@ -2072,6 +2169,17 @@ where:
  and in the absence of the '-c' or '-h' options, is to include data
  values for all variables in the output.
 
+-g grp1,... The output will include metadata and data values for the
+ specified groups, in addition to declarations of any needed
+ dimensions inherited from parent groups or any types defined in other
+ groups.  One or more groups must be specified by name in the
+ comma-delimited list following this option. The list must be a single
+ argument to the command, hence cannot contain blanks or other white
+ space characters. The named groups must be valid netCDF groups in the
+ input-file. The default, without this option and in the absence of
+ the '-c' or '-h' options, is to include data values for all variables
+ in the output.
+
 -b lang A brief annotation in the form of a CDL comment (text
  beginning with the characters '//') will be included in the data
  section of the output for each 'row' of data, to help identify data
@@ -2088,10 +2196,8 @@ where:
  beginning with the characters '//') for every data value (except
  individual characters in character arrays) will be included in the
  data section. If lang begins with 'C' or 'c', then C language
- conventions will be used (zero-based indices, last dimension varying
- fastest). If lang begins with 'F' or 'f', then FORTRAN language
- conventions will be used (one-based indices, first dimension varying
- fastest). In either case, the data will be presented in the same
+ conventions will be used. If lang begins with 'F' or 'f', then FORTRAN language
+ conventions will be used. In either case, the data will be presented in the same
  order; only the annotations will differ. This option may be useful
  for piping data into other filters, since each data value appears on
  a separate line, fully identified. (At most one of '-b' or '-f'
@@ -2148,21 +2254,21 @@ or “366_day”, “360_day”, and “julian”.
 
 \section Examples
 
-Look at the structure of the data in the netCDF dataset foo.nc:
+Look at the structure of the data in the netCDF file foo.nc:
 
 \code
 ncdump -c foo.nc
 \endcode
 
 Produce an annotated CDL version of the structure and data in the
-netCDF dataset foo.nc, using C-style indexing for the annotations:
+netCDF file foo.nc, using C-style indexing for the annotations:
 
 \code
 ncdump -b c foo.nc > foo.cdl
 \endcode
 
 Output data for only the variables uwind and vwind from the netCDF
-dataset foo.nc, and show the floating-point data with only three
+file foo.nc, and show the floating-point data with only three
 significant digits of precision:
 
 \code
@@ -2171,7 +2277,7 @@ ncdump -v uwind,vwind -p 3 foo.nc
 
 Produce a fully-annotated (one data value per line) listing of the
 data for the variable omega, using FORTRAN conventions for indices,
-and changing the netCDF dataset name in the resulting CDL file to
+and changing the netCDF file name in the resulting CDL file to
 omega:
 
 \code
@@ -2278,6 +2384,10 @@ main(int argc, char *argv[])
 	  /* make list of names of variables specified */
 	  make_lvars (optarg, &fspec);
 	  break;
+	case 'g':		/* group names */
+	  /* make list of names of groups specified */
+	  make_lgrps (optarg, &fspec);
+	  break;
 	case 'd':		/* specify precision for floats (deprecated, undocumented) */
 	  set_sigdigs(optarg);
 	  break;
@@ -2355,6 +2465,9 @@ main(int argc, char *argv[])
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
 		if(missing_vars(ncid, &fspec))
+		    return EXIT_FAILURE;
+		/* Check if any grps in -g don't exist */
+		if(missing_grps(ncid, &fspec))
 		    return EXIT_FAILURE;
 		if (xml_out) {
 		    do_ncdumpx(ncid, path, &fspec);
