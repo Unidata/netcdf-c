@@ -738,7 +738,7 @@ NCD_put_vara(int ncid, int varid, const size_t *startp,
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    void *copy_point = NULL;
-   size_t num_values = 1, num_values_to_start = 1;
+   size_t num_values = 1, num_values_to_start = 0;
    int d, retval;
 
    if (!(nc = nc4_find_nc_file(ncid)))
@@ -752,8 +752,12 @@ NCD_put_vara(int ncid, int varid, const size_t *startp,
    assert(grp && nc->nc4_info && var && var->name);
    
    /* Where do I start? */
-   for (d = 0; d < var->ndims; d++)
-      num_values_to_start *= (startp[d] * var->dim[d]->len);
+   if (var->ndims)
+   {
+      num_values_to_start = 1;
+      for (d = 0; d < var->ndims; d++)
+	 num_values_to_start *= (startp[d] * var->dim[d]->len);
+   }
    copy_point = (void *)((char *)var->diskless_data + 
 			 num_values_to_start * var->type_info->size);
 
@@ -769,7 +773,7 @@ NCD_put_vara(int ncid, int varid, const size_t *startp,
    return NC_NOERR;
 }
 
-/* Read an array of values. */
+/** \internal Read an array of values from a diskless file. */
 int
 NCD_get_vara(int ncid, int varid, const size_t *startp, 
             const size_t *countp, void *ip, int memtype)
@@ -778,7 +782,7 @@ NCD_get_vara(int ncid, int varid, const size_t *startp,
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    void *copy_point = NULL;
-   size_t num_values = 1, num_values_to_start = 1;
+   size_t num_values = 1, num_values_to_start = 0;
    int d, retval;
 
    if (!(nc = nc4_find_nc_file(ncid)))
@@ -791,8 +795,12 @@ NCD_get_vara(int ncid, int varid, const size_t *startp,
    assert(grp && nc->nc4_info && var && var->name);
    
    /* Where do I start reading this data? */
-   for (d = 0; d < var->ndims; d++)
-      num_values_to_start *= (startp[d] * var->dim[d]->len);
+   if (var->ndims)
+   {
+      num_values_to_start = 1;
+      for (d = 0; d < var->ndims; d++)
+	 num_values_to_start *= (startp[d] * var->dim[d]->len);
+   }
    copy_point = (void *)((char *)var->diskless_data + 
 			 num_values_to_start * var->type_info->size);
 
