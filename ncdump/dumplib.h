@@ -80,7 +80,7 @@ extern nctype_t *get_typeinfo ( int typeid );
     extern void get_type_name(int ncid, nc_type type, char *name);
 
 /* set tostring member function */
-extern void set_tostring_func ( ncvar_t *varp, fspec_t *specp );
+extern void set_tostring_func ( ncvar_t *varp);
 
 /* helper function for output of opaque attributes */
 extern int ncopaque_val_as_hex ( size_t size, char *buf, const void *valp );

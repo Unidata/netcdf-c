@@ -28,6 +28,8 @@
 static float float_eps;
 static double double_eps;
 
+extern fspec_t formatting_specs; /* set from command-line options */
+
 static float
 float_epsilon(void)
 {
@@ -1404,7 +1406,7 @@ static typ_tostring_func ts_funcs[] = {
 /* Set function pointer of function to convert a value to a string for
  * the variable pointed to by varp. */
 void
-set_tostring_func(ncvar_t *varp, fspec_t *specp) {
+set_tostring_func(ncvar_t *varp) {
     val_tostring_func tostring_funcs[] = {
 	ncbyte_val_tostring,
 	ncchar_val_tostring,
@@ -1422,7 +1424,7 @@ set_tostring_func(ncvar_t *varp, fspec_t *specp) {
 	ncstring_val_tostring
 #endif /* USE_NETCDF4 */
     };
-    if(varp->has_timeval && specp->iso_times) {
+    if(varp->has_timeval && formatting_specs.iso_times) {
 	varp->val_tostring = (val_tostring_func) nctime_val_tostring;
 	return;
     }
