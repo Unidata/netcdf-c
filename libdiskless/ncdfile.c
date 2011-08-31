@@ -62,6 +62,8 @@ NCD_create(const char* path, int cmode, size_t initialsz, int basepe,
    if (cmode & NC_MPIIO || cmode & NC_MPIPOSIX
        || cmode & NC_PNETCDF)
       return NC_EINVAL;
+   if (!(cmode & NC_NETCDF4) || !(cmode & NC_CLASSIC_MODEL))
+      return NC_EINVAL;
 
    /* Allocate the storage for this file info struct, and fill it with
       zeros. This adds the file metadata to the global list. */
@@ -87,6 +89,9 @@ NCD_create(const char* path, int cmode, size_t initialsz, int basepe,
    if ((res = nc4_nc4f_list_add(nc_file, path, (NC_WRITE | cmode))))
       return res;
    assert(nc_file->nc4_info && nc_file->nc4_info->root_grp);
+
+   /* Define mode gets turned on automatically on create. */
+   nc_file->nc4_info->flags |= NC_INDEF;
 
    *ncpp = (NC *)nc_file;
    return NC_NOERR;
