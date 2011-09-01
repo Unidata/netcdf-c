@@ -1,16 +1,17 @@
 #!/bin/bash
 #X="-x"
 
-#HDF5=1
+HDF5=1
 DAP=1
 #CDMR=1
+#RPC=1
 
 #M32=1
 #M64=1
 
 #NB=1
 
-#cmds=""
+cmds=""
 #cmds="all"
 #cmds="all check"
 #cmds="all dist"
@@ -57,7 +58,7 @@ LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -L${stddir}/lib -lz $LDFLAGS"
 LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
-if test "x$DAP" = "x1" -o "x$CDMR" = "x1" ; then
+if test "x$DAP" = "x1" -o "x$CDMR" = "x1" -o "x$RPC" = "x1" ; then
 if curl-config --version >/dev/null ; then
 TMP=`curl-config --cflags`
 CPPFLAGS="$TMP $CPPFLAGS"
@@ -84,8 +85,8 @@ if autoreconf -i --force ; then ok=1; else exit ; fi
 fi
 
 FLAGS="--prefix ${PREFIX}"
-FLAGS="$FLAGS --disable-f77 --disable-f90"
-FLAGS="$FLAGS --disable-cxx"
+#FLAGS="$FLAGS --disable-f77 --disable-f90"
+#FLAGS="$FLAGS --disable-cxx"
 FLAGS="$FLAGS --disable-examples"
 FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --disable-utilities"
@@ -109,6 +110,9 @@ FLAGS="$FLAGS --disable-dap"
 fi
 if test "x$CDMR" = "x1" ; then
 FLAGS="$FLAGS --enable-cdmremote"
+fi
+if test "x$RPC" = "x1" ; then
+FLAGS="$FLAGS --enable-rpc"
 fi
 
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
