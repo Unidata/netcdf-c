@@ -4,7 +4,6 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define URL "http://test.opendap.org:8080/dods/dts/test.02"
 #define VAR "i32"
 
 #define ERRCODE 2
@@ -21,8 +20,20 @@ main()
     size_t start[1];
     size_t count[1];
     int ok = 1;    
+    char* topsrcdir;
+    char url[4096];
 
-    if ((retval = nc_open(URL, 0, &ncid)))
+    /* Assume that TESTS_ENVIRONMENT was set */
+    topsrcdir = getenv("TOPSRCDIR");
+    if(topsrcdir == NULL) {
+        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
+        exit(1);
+    }    
+    strcpy(url,"file://");
+    strcat(url,topsrcdir);
+    strcat(url,"/ncdap_test/testdata3/test.02");
+
+    if ((retval = nc_open(url, 0, &ncid)))
        ERR(retval);
     if ((retval = nc_inq_varid(ncid, VAR, &varid)))
        ERR(retval);

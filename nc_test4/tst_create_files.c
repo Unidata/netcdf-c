@@ -58,7 +58,7 @@ main(int argc, char **argv)
        if (nc_def_dim(ncid, "d1", D1, &dimids[1])) ERR;
        if (nc_def_dim(ncid, "d2", D2, &dimids[2])) ERR;
        if (nc_def_var(ncid, LARGE_VAR_NAME, NC_FLOAT, NDIMS3, dimids, &varid)) ERR;
-       if (nc_def_var_chunking(ncid, varid, NULL, chunk_sizes, NULL)) ERR;
+       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunk_sizes)) ERR;
        if (nc_enddef(ncid)) ERR;
 
        /* Write the data one slice at a time. */

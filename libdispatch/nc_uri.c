@@ -27,22 +27,6 @@
 #define NILLEN(s) ((s)==NULL?0:strlen(s))
 #endif
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#endif
-
-#ifndef HAVE_STRDUP
-static char* nulldup(char* s)
-{
-    char* dup = NULL;
-    if(s != NULL) {
-	dup = (char*)malloc(strlen(s)+1);
-	if(dup != NULL)
-	    strcpy(dup,s);
-    }
-    return dup;
-}
-#endif
 
 static char* legalprotocols[] = {
 "file:",
@@ -123,7 +107,8 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     file = strchr(p,'/');
     if(file) {
 	*file++ = '\0'; /* warning: we just overwrote the leading / */
-    }
+    } else
+	goto fail; /* url only has host part, no path */
 
     /* 7. extract any user:pwd */
     p1 = strchr(p,'@');

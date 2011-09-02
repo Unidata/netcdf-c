@@ -18,9 +18,6 @@ extern void init_netcdf(void);
 extern void parse_init(void);
 extern int ncgparse(void);
 
-/* Default is netcdf-3 mode 1 */
-#define DFALTCMODE 0
-
 /* For error messages */
 char* progname;
 char* cdlname;
@@ -34,6 +31,7 @@ int binary_flag;
 int f77_flag;
 int cml_flag;
 int java_flag; /* 1=> use netcdf java interface (=>usingclassic)*/
+int syntax_only;
 
 size_t nciterbuffersize;
 
@@ -156,6 +154,7 @@ main(
     kflag_flag = 0;
     cmode_modifier = 0;
     nofill_flag = 0;
+    syntax_only = 0;
     mainname = "main";
     nciterbuffersize = 0;
 
@@ -258,15 +257,20 @@ main(
       }
 
     /* check for multiple or no language spec */
-    if(c_flag) languages++;
     if(binary_flag) languages++;
+    if(c_flag) languages++;
     if(f77_flag)languages++;
     if(cml_flag) languages++;
     if(java_flag) languages++;
     if(languages > 1) {
 	fprintf(stderr,"Please specify only one language\n");
-    } else if(languages == 0) {
-	binary_flag = 1; /* binary is default */
+	return 1;
+    }
+
+    if(languages == 0) {
+	binary_flag = 1; /* default */
+        if(kflag_flag == 0)
+	    syntax_only = 1;
     }
 
     /* Compute/default the iterator buffer size */
@@ -382,7 +386,8 @@ main(
 #endif
 
     processsemantics();
-    define_netcdf();
+    if(!syntax_only) 
+        define_netcdf();
 
     return 0;
 }

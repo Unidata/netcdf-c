@@ -8,7 +8,6 @@
 
 #include "config.h"		/* for USE_NETCDF4 macro */
 #include <stdlib.h>
-#include <stdio.h>		/* for debugging */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -39,10 +38,12 @@ static int option_kind = SAME_AS_INPUT;
 static int option_deflate_level = -1;	/* default, compress output only if input compressed */
 static int option_shuffle_vars = NC_NOSHUFFLE; /* default, no shuffling on compression */
 static int option_fix_unlimdims = 0; /* default, preserve unlimited dimensions */
+static char* option_chunkspec = 0;   /* default, no chunk specification */
 static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
 static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config.h */
 static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
-static int option_global_chunk_cache = 1;		      /* default, use global chunk cache */
+static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
+					    * chunk cache for each variable */
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -538,8 +539,7 @@ set_var_chunked(int ogrp, int o_varid)
 
 	/* Determine if this variable should be chunked.  A variable
 	 * should be chunked if any of its dims are in command-line
-	 * chunk spec and if corresponding chunk size is smaller than
-	 * dimension length. It will also be chunked if any of its
+	 * chunk spec. It will also be chunked if any of its
 	 * dims are unlimited. */
 	for(odim = 0; odim < ndims; odim++) {
 	    int odimid = dimids[odim];
@@ -550,7 +550,7 @@ set_var_chunked(int ogrp, int o_varid)
 		size_t chunksize = chunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;
 		NC_CHECK(nc_inq_dimlen(ogrp, odimid, &dimlen));
-		if( (chunksize > 0 && chunksize < dimlen) || dimmap_ounlim(odimid)) {
+		if( (chunksize > 0) || dimmap_ounlim(odimid)) {
 		    chunked = 1;		    
 		}
 		varsize *= dimlen;
@@ -899,29 +899,26 @@ copy_var_data(int igrp, int varid, int ogrp) {
 	int contig = 1;
 	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &contig, NULL));
 	if(contig == 0) {	/* chunked */
-	    if(option_global_chunk_cache) { /* by default, use same
-					     * global chunk cache for
-					     * all chunked
-					     * variables */
-	    NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, option_chunk_cache_size,
-	    				    option_chunk_cache_nelems,
-	    				    COPY_CHUNKCACHE_PREEMPTION));
-	    } else {		/* if experimental "-x" option
-				 * specified, try to estimate
-				 * variable-specific chunk cache,
-				 * depending on specific size and
-				 * shape of this variable's chunks */
+	    if(option_compute_chunkcaches) {
+		/* Try to estimate variable-specific chunk cache,
+		 * depending on specific size and shape of this
+		 * variable's chunks.  This doesn't work yet. */
 		size_t chunkcache_size, chunkcache_nelems;
 		float chunkcache_preemption;
 		NC_CHECK(inq_var_chunking_params(igrp, varid, ogrp, ovarid,
 						 &chunkcache_size, 
 						 &chunkcache_nelems, 
 						 &chunkcache_preemption));
-		printf("%s chunkcache_size, chunkcache_nelems: %ld, %ld\n", 
-		       varname, chunkcache_size, chunkcache_nelems); /* for debugging */
-		NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, chunkcache_size, 
+		NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, 
+						chunkcache_size, 
 						chunkcache_nelems, 
 						chunkcache_preemption)); 
+	    } else {		
+		/* by default, use same chunk cache for all chunked variables */
+		NC_CHECK(nc_set_var_chunk_cache(ogrp, ovarid, 
+						option_chunk_cache_size,
+						option_chunk_cache_nelems,
+						COPY_CHUNKCACHE_PREEMPTION));
 	    }
 	}
     }
@@ -971,8 +968,8 @@ copy_var_data(int igrp, int varid, int ogrp) {
 #ifdef USE_NETCDF4
     /* We're all done with this input and output variable, so if
      * either variable is chunked, free up its variable chunk cache */
-    NC_CHECK(free_var_chunk_cache(igrp, varid));
-    NC_CHECK(free_var_chunk_cache(ogrp, ovarid));
+    /* NC_CHECK(free_var_chunk_cache(igrp, varid)); */
+    /* NC_CHECK(free_var_chunk_cache(ogrp, ovarid)); */
 #endif	/* USE_NETCDF4 */
     free(start);
     free(count);
@@ -1046,9 +1043,7 @@ count_dims(ncid) {
  * type 1 or 2.
  */
 static int
-copy(char* infile, char* outfile, 
-     const char* chunkspec_s /* unparsed chunkspec string, from command line */
-    )
+copy(char* infile, char* outfile)
 {
     int stat = NC_NOERR;
     int igrp, ogrp;
@@ -1066,7 +1061,7 @@ copy(char* infile, char* outfile,
 	if (inkind == NC_FORMAT_CLASSIC || inkind == NC_FORMAT_64BIT) { 
 	    if (option_deflate_level > 0 || 
 		option_shuffle_vars == NC_SHUFFLE || 
-		chunkspec_s) 
+		option_chunkspec) 
 	    { 
 		outkind = NC_FORMAT_NETCDF4_CLASSIC;
 	    }
@@ -1074,10 +1069,10 @@ copy(char* infile, char* outfile,
     }
 
 #ifdef USE_NETCDF4
-    if(chunkspec_s) {
-	/* Now that input is open, can parse chunkspec_s into binary
+    if(option_chunkspec) {
+	/* Now that input is open, can parse option_chunkspec into binary
 	 * structure. */
-	NC_CHECK(chunkspec_parse(igrp, chunkspec_s));
+	NC_CHECK(chunkspec_parse(igrp, option_chunkspec));
     }
 #endif	/* USE_NETCDF4 */
 
@@ -1141,11 +1136,13 @@ usage(void)
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
-  [-x]      use experimental computed estimates for variable-specific chunk caches\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] [-x] infile outfile\n%s",
+    /* Don't document this flaky option until it works better */
+    /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
+
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] infile outfile\n%s",
 	  progname, USAGE);
 }
 
@@ -1155,7 +1152,6 @@ main(int argc, char**argv)
     char* inputfile = NULL;
     char* outputfile = NULL;
     int c;
-    char* chunkspec = 0;
 
 /* table of formats for legal -k values */
     struct Kvalues {
@@ -1273,16 +1269,16 @@ main(int argc, char**argv)
 	    if(*suffix) {
 		switch (*suffix) {
 		case 'k': case 'K':
-		    option_chunk_cache_size *= 1000;
+		    dval *= 1000;
 		    break;
 		case 'm': case 'M':
-		    option_chunk_cache_size *= 1000000;
+		    dval *= 1000000;
 		    break;
 		case 'g': case 'G':
-		    option_chunk_cache_size *= 1000000000;
+		    dval *= 1000000000;
 		    break;
 		case 't': case 'T':
-		    option_chunk_cache_size *= 1.0e12;
+		    dval *= 1.0e12;
 		    break;
 		default:
 		    error("If suffix used for '-h' option value, it must be K, M, G, or T: %c", 
@@ -1299,12 +1295,12 @@ main(int argc, char**argv)
 	    }
 	    break;
 	case 'x':		/* use experimental variable-specific chunk caches */
-	    option_global_chunk_cache = 0;
+	    option_compute_chunkcaches = 1;
 	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
 	{
 	    /* save chunkspec string for parsing later, once we know input ncid */
-	    chunkspec = strdup(optarg);
+	    option_chunkspec = strdup(optarg);
 	    break;
 	}
 	default: 
@@ -1324,7 +1320,7 @@ main(int argc, char**argv)
 	error("output would overwrite input");
     }
 
-    if(copy(inputfile, outputfile, chunkspec) != NC_NOERR)
+    if(copy(inputfile, outputfile) != NC_NOERR)
         exit(1);
     return 0;
 }

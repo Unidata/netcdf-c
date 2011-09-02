@@ -235,9 +235,6 @@ main()
 
     return fail;
 
-ncfail:
-    printf("*** nc function failure: %d %s\n",err,nc_strerror(err));
-    return 1;
 }
 
 

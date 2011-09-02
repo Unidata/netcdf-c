@@ -21,8 +21,7 @@
 #include "nc.h"
 #include "nc_uri.h"
 
-
-
+#define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
 extern int nc_get_vara_ubyte(int ncid, int varid,
                   const size_t* start, const size_t* count,
@@ -86,6 +85,7 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCR    8
+#define NC_DISPATCH_DISKLESS 16
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -96,19 +96,6 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #define	NC_INT64 	10	/* signed 8-byte int */
 #define	NC_UINT64 	11	/* unsigned 8-byte int */
 #define	NC_STRING 	12	/* char* */
-#endif
-
-#ifndef HAVE_LONGLONG
-/* ignore
-#define longlong long long
-#define ulonglong unsigned long long
-*/
-typedef long long longlong;
-typedef unsigned long long ulonglong;
-#endif
-
-#ifndef HAVE_UINT
-typedef unsigned int uint;
 #endif
 
 /* Define the range of Atomic types */
@@ -136,6 +123,7 @@ typedef struct NC_MPI_INFO {
 typedef struct NC_Dispatch NC_Dispatch;
 
 extern NC_Dispatch* NC3_dispatch_table;
+extern NC_Dispatch* NCD_dispatch_table;
 
 #ifdef USE_NETCDF4
 extern NC_Dispatch* NC4_dispatch_table;
@@ -362,12 +350,13 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
 /* Misc */
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#endif
+extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
+extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 
-#define nulllen(s) (s==NULL?0:strlen(s))
 #define nullstring(s) (s==NULL?"(null)":s)
+
+extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
 
 #endif /* _DISPATCH_H */
 

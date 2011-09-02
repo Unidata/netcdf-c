@@ -24,13 +24,6 @@
 
 #define DEBUG
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#endif
-#ifndef nullfree
-#define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
-#endif
-
 static char* opstrings[] = OPSTRINGS ;
 
 static int mergeprojection(DCEprojection* dst, DCEprojection* src);
@@ -796,7 +789,9 @@ dcemakewholeslice(DCEslice* slice, size_t declsize)
 int
 dceiswholeslice(DCEslice* slice)
 {
-    if(slice->first != 0 || slice->stride != 1) return 0;
+    if(slice->first != 0
+       || slice->stride != 1
+       || slice->stop != slice->declsize) return 0;
     return 1;
 }
 

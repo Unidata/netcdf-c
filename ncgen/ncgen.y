@@ -6,6 +6,8 @@
 
 /* yacc source for "ncgen", a netCDL parser and netCDF generator */
 
+%error-verbose
+
 %{
 /*
 static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
@@ -735,9 +737,7 @@ attrdecl:
 	| type_var_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)&$5,1);}
 	| ':' _FORMAT '=' conststring
-	    {
-$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&$4,1);
-}
+	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&$4,1);}
 	;
 
 path:
@@ -1210,7 +1210,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
         int modifier;
 	found = 0;
         modifier = 0;
-	if(kflag_flag == 0) goto done;
+	if(kflag_flag != 0) goto done;
 	/* Only use this tag if kflag is not set */
 	/* Use the table in main.c */
         for(kvalue=legalkinds;kvalue->name;kvalue++) {

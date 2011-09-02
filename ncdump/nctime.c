@@ -302,12 +302,24 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	char basetime_1[CD_MAX_CHARTIME];
 	char basetime_2[CD_MAX_CHARTIME];
 	char basetime[CD_MAX_CHARTIME];
-	int nconv;
+	int nconv1, nconv2, nconv;
+
 					     /* Parse the relunits */
-	nconv = sscanf(relunits,"%s since %s %s",charunits,basetime_1,basetime_2);
-	if(nconv==EOF || nconv==0){
+	/* Allow ISO-8601 "T" date-time separator as well as blank separator */
+	nconv1 = sscanf(relunits,"%s since %[^T]T%s",charunits,basetime_1,basetime_2);
+	if(nconv1==EOF || nconv1==0){
 		cdError("Error on relative units conversion, string = %s\n",relunits);
 		return 1;
+	}
+	nconv2 = sscanf(relunits,"%s since %s %s",charunits,basetime_1,basetime_2);
+	if(nconv2==EOF || nconv2==0){
+		cdError("Error on relative units conversion, string = %s\n",relunits);
+		return 1;
+	}
+	if(nconv1 < nconv2) {
+	    nconv = nconv2;
+	} else {
+	    nconv = sscanf(relunits,"%s since %[^T]T%s",charunits,basetime_1,basetime_2);
 	}
 
 					     /* Get the units */

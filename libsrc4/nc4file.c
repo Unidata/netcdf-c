@@ -1,11 +1,11 @@
-/*
-  This file is part of netcdf-4, a netCDF-like interface for HDF5, or
-  a HDF5 backend for netCDF, depending on your point of view.
+/** \file 
+The netCDF-4 file functions.
 
-  This file handles the nc4 file functions.
+This file is part of netcdf-4, a netCDF-like interface for HDF5, or
+a HDF5 backend for netCDF, depending on your point of view.
 
-  Copyright 2003, University Corporation for Atmospheric Research. See
-  COPYRIGHT file for copying and redistribution conditions.
+Copyright 2003, University Corporation for Atmospheric Research. See
+COPYRIGHT file for copying and redistribution conditions.  
 */
 
 #include "nc4internal.h"
@@ -317,6 +317,21 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    return retval;
 }
 
+/** \ingroup netcdf4
+Create a netCDF-4/HDF5 file.
+
+\param path The file name of the new file.
+\param cmode The creation mode flag.
+\param initialsz Ignored by this function.
+\param basepe Ignored by this function.
+\param chunksizehintp Ignored by this function.
+\param use_parallel 0 for sequential, non-zero for parallel I/O.
+\param mpidata pointer to struct holdind data for parallel I/O
+layer. Ignored if NULL.
+\param dispatch Pointer to the dispatch table for this file.
+\param ncpp Pointer to start of linked list of open files.
+\return NC_INVAL Invalid input (check cmode).
+*/
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe, 
 	   size_t *chunksizehintp, int use_parallel, void *mpidata,
@@ -1720,8 +1735,10 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 /*    return NC_NOERR; */
 /* } */
 
-/* This struct is used to pass information back from the callback
- * function used with H5Literate. */
+/** \internal 
+This struct is used to pass information back from the callback
+function used with H5Literate. 
+*/
 struct nc_hdf5_link_info 
 {
    char name[NC_MAX_NAME + 1];
@@ -2930,5 +2947,13 @@ nc_exit()
    return NC_NOERR;
 }
 #endif /* EXTRA_TESTS */
+
+#ifdef USE_PARALLEL
+int
+nc_use_parallel_enabled()
+{
+   return 0;
+}
+#endif /* USE_PARALLEL */
 
 

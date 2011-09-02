@@ -1,6 +1,5 @@
-/*
-This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
-HDF5 backend for netCDF, depending on your point of view.
+/** \file \internal
+Internal netcdf-4 functions.
 
 This file contains functions internal to the netcdf4 library. None of
 the functions in this file are exposed in the exetnal API. These
@@ -8,13 +7,11 @@ functions all relate to the manipulation of netcdf-4's in-memory
 buffer of metadata information, i.e. the linked list of NC_FILE_INFO_T
 structs.
 
-Copyright 2003-2005, University Corporation for Atmospheric
+Copyright 2003-2011, University Corporation for Atmospheric
 Research. See the COPYRIGHT file for copying and redistribution
 conditions.
 
-$Id: nc4internal.c,v 1.121 2010/05/26 21:43:35 dmh Exp $
 */
-
 #include "config.h"
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */

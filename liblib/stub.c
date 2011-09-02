@@ -3,9 +3,6 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-/* $Id: stub.c,v 1.8 2010/05/25 13:53:02 ed Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/liblib/stub.c,v 1.8 2010/05/25 13:53:02 ed Exp $ */
-
 #include "config.h"
 #include "ncdispatch.h"
 
@@ -33,6 +30,7 @@ NC_initialize(void)
     if((stat = NC3_initialize())) return stat;
 
 #ifdef USE_NETCDF4
+    if((stat = NCD_initialize())) return stat;
     if((stat = NC4_initialize())) return stat;
 #endif
 

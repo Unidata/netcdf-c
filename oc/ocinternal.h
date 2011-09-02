@@ -15,7 +15,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#ifndef WIN32
 #include <strings.h>
+#endif
 #include <stdarg.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

@@ -33,12 +33,12 @@ for x in ${TESTSET} ; do
   else
     rm -f ${x}.nc ${x}.dmp
     # step 1: use original cdl to build the .nc
-    ${builddir}/../ncgen/ncgen -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
+    ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
     # step 2: dump .nc file
     ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp
     # step 3: use ncdump output to (re-)build the .nc
     rm -f ${x}.nc
-    ${builddir}/../ncgen/ncgen -k${KFLAG} -o ${x}.nc ${x}.dmp
+    ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${x}.dmp
     # step 4: dump .nc file again
     ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp2
     # compare the two ncdump outputs

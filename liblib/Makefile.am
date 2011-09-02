@@ -28,9 +28,10 @@ if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la
 endif # BUILD_V2
 
-# The output library will always include netcdf3 and dispatch libraries.
+# The output library will always include netcdf3 and dispatch
+# libraries.
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
-${top_builddir}/libsrc/libnetcdf3.la
+${top_builddir}/libsrc/libnetcdf3.la					
 
 # netcdf3 + dap
 if USE_DAP
@@ -43,7 +44,8 @@ endif # USE_DAP
 if USE_NETCDF4
 
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
-libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
+libnetcdf_la_LIBADD += ${top_builddir}/libdiskless/libdiskless.la	\
+${top_builddir}/libsrc4/libnetcdf4.la
 
 # netcdf4+cdmremote
 if BUILD_CDMREMOTE

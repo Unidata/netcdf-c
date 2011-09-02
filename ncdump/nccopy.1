@@ -14,6 +14,8 @@ nccopy
 \%[-s]
 \%[-u]
 \%[-m \fI bufsize \fP]
+\%[-h \fI chunk_cache \fP]
+\%[-e \fI cache_elems \fP]
 \%\fI infile \fP
 \%\fI outfile \fP
 .hy
@@ -113,20 +115,44 @@ for variables that use the `m' and `n' dimensions might be
 resulting from copying with a chunkspec, use the `-s'
 option of ncdump on the output file.
 .IP "\fB -m \fP \fI bufsize \fP"
-Specifies the size, in bytes, of the copy buffer used to
-to copy large variables, by copying them in smaller pieces, each no
-larger than \fI bufsize \fP.  A suffix of k, m, or g multiplies
-the copy buffer size by one thousand, million, or billion, respectively.
-The default is 5000000 bytes,
+An integer or floating-point number that specifies the size, in bytes,
+of the copy buffer used
+to copy large variables.  A suffix of K, M, G, or T multiplies
+the copy buffer size by one thousand, million, billion, or trillion, respectively.
+The default is 5,000,000 bytes,
 but will be increased if necessary to hold at least one chunk of
 netCDF-4 chunked variables in the input file.  You may want to specify
-a value larger than the default for OPeNDAP copies of large files over high
+a value larger than the default for copying large files over high
 latency networks.
+.IP "\fB -h \fP \fI chunk_cache \fP"
+An integer or floating-point number that specifies the size in bytes
+of chunk cache for chunked variables.  This is
+not a property of the file, but merely a performance tuning parameter
+for avoiding compressing or decompressing the same data multiple times
+while copying and changing chunk shapes.  A suffix of K, M, G, or T multiplies
+the chunk cache size by one thousand, million, billion, or trillion, respectively.
+The default is 4,194,304 (or whatever was specified for the
+configure-time constant CHUNK_CACHE_SIZE when the netCDF library was
+built).  Ideally, the nccopy utility should accept only one memory
+buffer size and divide it optimally between a copy buffer and chunk
+cache, but no general algorithm for computing the optimum chunk cache
+size has been implemented yet.
+.IP "\fB -e \fP \fI cache_elems \fP"
+Specifies number of elements that the chunk cache can hold. This is
+not a property of the file, but merely a performance tuning parameter
+for avoiding compressing or decompressing the same data multiple times
+while copying and changing chunk shapes.  The default is 1009 (or
+whatever was specified for the configure-time constant
+CHUNK_CACHE_NELEMS when the netCDF library was built).  Ideally, the
+nccopy utility should determine an optimum value for this parameter,
+but no general algorithm for computing the optimum number of chunk
+cache elements has been implemented yet.
 .P
 Note that \fB nccopy \fP requires variables that share a dimension to
 also share the chunk size associated with that dimension, but the API
-has no such restriction.  With a program you can customize chunking
-for each variable independently.
+has no such restriction.  If you need to customize chunking
+for each variable independently, you will need to use the library API
+in a custom utility program.
 .SH EXAMPLES
 .LP
 Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a

@@ -159,6 +159,12 @@ typedef struct {			/* specification for how to format dump */
 
     char** lvars;		/* list of variable names specified with -v
 				 * option on command line */
+
+    int nlgrps;			/* Number of groups specified with -g
+				 * option on command line */
+
+    char** lgrps;		/* list of group names specified with -g
+				 * option on command line */
 } fspec_t;
 
 #endif	/*_NCDUMP_H_ */

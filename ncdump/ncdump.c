@@ -1,8 +1,7 @@
-/*********************************************************************
- *   Copyright 2008, University Corporation for Atmospheric Research
- *   See netcdf/README file for copying and redistribution conditions.
- *   $Id: ncdump.c 400 2010-08-27 21:02:52Z russ $
- *********************************************************************/
+/*
+
+Copyright 2011 University Corporation for Atmospheric
+Research/Unidata. See \ref copyright file for more info.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -35,7 +34,22 @@
 
 #define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 
+/* globals */
 char *progname;
+fspec_t formatting_specs =	/* defaults, overridden by command-line options */
+{
+    0,			/* construct netcdf name from file name */
+    false,		/* print header info only, no data? */
+    false,		/* just print coord vars? */
+    false,		/* brief  comments in data section? */
+    false,		/* full annotations in data section?  */
+    false,		/* human-readable output for date-time values */
+    false,		/* output special attributes, eg chunking? */
+    LANG_C,		/* language conventions for indices */
+    0,			/* if -v specified, number of variables */
+    false,	        /* for DAP URLs, client-side cache used */
+    0			/* if -v specified, list of variable names */
+};
 
 static void
 usage(void)
@@ -457,7 +471,7 @@ pr_att_valgs(
 	    break;
 	case NC_USHORT:
 	    us = ((unsigned short *) vals)[iel];
-	    printf ("%uUS%s", us, delim);
+	    printf ("%huUS%s", us, delim);
 	    break;
 	case NC_UINT:
 	    ui = ((unsigned int *) vals)[iel];
@@ -572,6 +586,198 @@ pr_att_valsx(
     }
 }
 
+/* Check for optional "calendar" attribute and return specified
+ * calendar type, if present. */
+cdCalenType
+calendar_type(int ncid, int varid) {
+    int ctype;
+    int stat;
+    ncatt_t catt;
+    static struct {
+	char* attname;
+	int type;
+    } calmap[] = {
+	{"gregorian", cdMixed},
+	{"standard", cdMixed}, /* synonym */
+	{"proleptic_gregorian", cdStandard},
+	{"noleap", cdNoLeap},
+	{"no_leap", cdNoLeap},
+	{"365_day", cdNoLeap},	/* synonym */
+	{"allleap", cd366},
+	{"all_leap", cd366},	/* synonym */
+	{"366_day", cd366},	/* synonym */
+	{"360_day", cd360},
+	{"julian", cdJulian},
+	{"none", cdClim}	/* TODO: test this */
+    };
+#define CF_CAL_ATT_NAME "calendar"
+    int ncals = (sizeof calmap)/(sizeof calmap[0]);
+    ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
+    stat = nc_inq_att(ncid, varid, CF_CAL_ATT_NAME, &catt.type, &catt.len);
+    if(stat == NC_NOERR && catt.type == NC_CHAR && catt.len > 0) {
+	char *calstr = (char *)emalloc(catt.len + 1);
+	int itype;
+	NC_CHECK(nc_get_att(ncid, varid, CF_CAL_ATT_NAME, calstr));	
+	calstr[catt.len] = '\0';
+	for(itype = 0; itype < ncals; itype++) {
+	    if(strncmp(calstr, calmap[itype].attname, catt.len) == 0) {
+		ctype = calmap[itype].type;
+		break;
+	    }
+	}
+	free(calstr);
+    }
+    return ctype;
+}
+
+static void
+get_timeinfo(int ncid, int varid, ncvar_t *vp) {
+    ncatt_t uatt;		/* units attribute */
+    int nc_status;		/* return from netcdf calls */
+    char *units;
+    
+    vp->has_timeval = false; /* by default, turn on if criteria met */
+    vp->timeinfo = 0;
+	    
+    /* time variables must have appropriate units attribute */
+    nc_status = nc_inq_att(ncid, varid, "units", &uatt.type, &uatt.len);
+    if(nc_status == NC_NOERR && uatt.type == NC_CHAR) { /* TODO: NC_STRING? */
+	units = emalloc(uatt.len + 1);
+	NC_CHECK(nc_get_att(ncid, varid, "units", units));
+	units[uatt.len] = '\0';
+	/* check for calendar attribute (not required even for time vars) */
+	vp->timeinfo = (timeinfo_t *)emalloc(sizeof(timeinfo_t));
+	memset((void*)vp->timeinfo,0,sizeof(timeinfo_t));
+	vp->timeinfo->calendar = calendar_type(ncid, varid);
+	/* Parse relative units, returning the unit and base component time. */
+ 	if(cdParseRelunits(vp->timeinfo->calendar, units, 
+			   &vp->timeinfo->unit, &vp->timeinfo->origin) != 0) {
+	    /* error parsing units so just treat as not a time variable */
+	    free(vp->timeinfo);
+	    free(units);
+	    vp->timeinfo = NULL;
+	    return;
+	}
+	/* Currently this gets reparsed for every value, need function
+	 * like cdRel2Comp that resuses parsed units? */
+	vp->timeinfo->units = strdup(units);
+	vp->has_timeval = true;
+	free(units);
+    }
+    return;
+}
+
+/* print_att_times 
+ * by Dave Allured, NOAA/PSD/CIRES.  
+ * This version supports only primitive attribute types; do not call
+ * for user defined types.  Print interpreted, human readable (ISO)
+ * time strings for an attribute of a CF-like time variable.
+ *
+ * Print strings as CDL comments, following the normal non-decoded
+ * numeric values, which were already printed by the calling function.
+ * In the following example, this function prints only the right hand
+ * side, starting at the two slashes:
+ *
+ *    time:actual_range = 51133., 76670. ; // "1940-01-01", "2009-12-01"
+ *
+ * This function may be called for ALL primitive attributes.
+ * This function qualifies the attribute for numeric type and
+ * inheriting valid time attributes (has_time).  If the attribute
+ * does not qualify, this function prints nothing and safely
+ * returns.
+ *
+ * This function interprets and formats time values with the SAME
+ * methods already used in ncdump -t for data variables.
+ *
+ * This version has special line wrapping rules:
+ *
+ * (1) If the attribute has one or two values, the time strings are
+ *     always printed on the same line.
+ *
+ * (2) If the attribute has three or more values, the time strings
+ *     are always printed on successive lines, with line wrapping
+ *     as needed.
+ *
+ * Assume: Preceeding call to pr_att_valgs has already screened
+ * this attribute for valid primitive types for the current netcdf
+ * model (netcdf 3 or 4).
+ */
+
+static void
+print_att_times(
+    int ncid,
+    int varid,			/* parent var ID */
+    ncatt_t att			/* attribute structure */
+    )
+{
+    nc_type type = att.type;	/* local copy */
+    boolean wrap;
+    boolean first_item;
+
+    ncvar_t var;		/* fake var structure for the att values; */
+				/* will add only the minimum necessary info */
+
+/* For common disqualifications, print nothing and return immediately. */
+
+    if (type == NC_CHAR || type == NC_STRING)	/* must be numeric */
+	return;
+
+    if (varid == NC_GLOBAL)	/* time units not defined for global atts */
+	return;
+
+    assert (att.len > 0);	/* should already be eliminated by caller */
+
+#ifdef USE_NETCDF4
+    assert ( type == NC_BYTE   || type == NC_SHORT  || type == NC_INT
+          || type == NC_FLOAT  || type == NC_DOUBLE || type == NC_UBYTE
+          || type == NC_USHORT || type == NC_UINT   || type == NC_INT64
+          || type == NC_UINT64 );
+#else   /* NETCDF3 */
+    assert ( type == NC_BYTE   || type == NC_SHORT  || type == NC_INT
+          || type == NC_FLOAT  || type == NC_DOUBLE );
+#endif
+
+/* Get time info from parent variable, and qualify. */
+
+    memset((void*)&var,0,sizeof(var));	/* clear the fake var structure */
+    get_timeinfo(ncid, varid, &var);	/* sets has_timeval, timeinfo members */
+    
+    if (var.has_timeval) {		/* no print unless time qualified */
+
+/* Convert each value to ISO date/time string, and print. */
+	
+	size_t iel;				     /* attrib index */
+	const char *valp = (const char *)att.valgp;  /* attrib value pointer */
+	safebuf_t *sb = sbuf_new();		/* allocate new string buffer */
+        int func;				/* line wrap control */
+        
+	var.type = att.type;		/* insert attrib type into fake var */
+
+	for (iel = 0; iel < att.len; iel++) {
+	    nctime_val_tostring(&var, sb, (void *)valp);  /* convert to str. */
+	    valp += att.tinfo->size;	/* increment value pointer, by type */
+	    if (iel < att.len - 1)	/* add comma, except for final value */
+		sbuf_cat(sb, ",");
+
+            first_item = (iel == 0);	/* identify start of list */
+            
+            wrap = (att.len > 2);	/* specify line wrap variations:     */
+					/* 1 or 2 values: keep on same line, */
+					/* more than 2: enable line wrap     */
+
+            lput2 (sbuf_str(sb), first_item, wrap);
+            				/* print string in CDL comment, */
+            				/* with auto newline            */
+	}
+
+        sbuf_free(sb);			/* clean up */
+
+	if(var.timeinfo->units)		/* clean up from get_timeinfo */
+	    free(var.timeinfo->units);
+	free(var.timeinfo);
+    }
+}
+
 /* 
  * Print a variable attribute
  */
@@ -623,7 +829,16 @@ pr_att(
 	NC_CHECK( nc_get_att(ncid, varid, att.name, att.valgp ) );
 	if(att.type == NC_CHAR)	/* null-terminate retrieved text att value */
 	    ((char *)att.valgp)[att.len] = '\0';
-	pr_att_valgs(kind, att.type, att.len, att.valgp);
+/* (1) Print normal list of attribute values. */
+        pr_att_valgs(kind, att.type, att.len, att.valgp);
+	printf (" ;");			/* terminator for normal list */
+/* (2) If -t option, add list of date/time strings as CDL comments. */
+	if(formatting_specs.iso_times) {
+	    /* Prints text after semicolon and before final newline.
+	     * Prints nothing if not qualified for time interpretation.
+	     * Will include line breaks for longer lists. */
+	    print_att_times(ncid, varid, att);
+	}
 #ifdef USE_NETCDF4
 	/* If NC_STRING, need to free all the strings also */
 	if(att.type == NC_STRING) {
@@ -728,10 +943,11 @@ pr_att(
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
+       printf (" ;");		/* terminator for user defined types */
     }
 #endif /* USE_NETCDF4 */
 
-    printf (" ;\n");
+    printf ("\n");		/* final newline for all attribute types */
 }
 
 /* Common code for printing attribute name */
@@ -1227,98 +1443,16 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 }
 
 
-/* Check for optional "calendar" attribute and return specified
- * calendar type, if present. */
-cdCalenType
-calendar_type(int ncid, int varid) {
-    int ctype;
-    int stat;
-    ncatt_t catt;
-    static struct {
-	char* attname;
-	int type;
-    } calmap[] = {
-	{"gregorian", cdMixed},
-	{"standard", cdMixed}, /* synonym */
-	{"proleptic_gregorian", cdStandard},
-	{"noleap", cdNoLeap},
-	{"no_leap", cdNoLeap},
-	{"365_day", cdNoLeap},	/* synonym */
-	{"allleap", cd366},
-	{"all_leap", cd366},	/* synonym */
-	{"366_day", cd366},	/* synonym */
-	{"360_day", cd360},
-	{"julian", cdJulian},
-	{"none", cdClim}	/* TODO: test this */
-    };
-#define CF_CAL_ATT_NAME "calendar"
-    int ncals = (sizeof calmap)/(sizeof calmap[0]);
-    ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
-    stat = nc_inq_att(ncid, varid, CF_CAL_ATT_NAME, &catt.type, &catt.len);
-    if(stat == NC_NOERR && catt.type == NC_CHAR && catt.len > 0) {
-	char *calstr = (char *)emalloc(catt.len + 1);
-	int itype;
-	NC_CHECK(nc_get_att(ncid, varid, CF_CAL_ATT_NAME, calstr));	
-	calstr[catt.len] = '\0';
-	for(itype = 0; itype < ncals; itype++) {
-	    if(strncmp(calstr, calmap[itype].attname, catt.len) == 0) {
-		ctype = calmap[itype].type;
-		break;
-	    }
-	}
-	free(calstr);
-    }
-    return ctype;
-}
-
-
-static void
-get_timeinfo(int ncid, int varid, ncvar_t *vp) {
-    ncatt_t uatt;		/* units attribute */
-    int nc_status;		/* return from netcdf calls */
-    char *units;
-    
-    vp->has_timeval = false; /* by default, turn on if criteria met */
-    vp->timeinfo = 0;
-	    
-    /* time variables must have appropriate units attribute */
-    nc_status = nc_inq_att(ncid, varid, "units", &uatt.type, &uatt.len);
-    if(nc_status == NC_NOERR && uatt.type == NC_CHAR) { /* TODO: NC_STRING? */
-	units = emalloc(uatt.len + 1);
-	NC_CHECK(nc_get_att(ncid, varid, "units", units));
-	units[uatt.len] = '\0';
-	/* check for calendar attribute (not required even for time vars) */
-	vp->timeinfo = (timeinfo_t *)emalloc(sizeof(timeinfo_t));
-	memset((void*)vp->timeinfo,0,sizeof(timeinfo_t));
-	vp->timeinfo->calendar = calendar_type(ncid, varid);
-	/* Parse relative units, returning the unit and base component time. */
- 	if(cdParseRelunits(vp->timeinfo->calendar, units, 
-			   &vp->timeinfo->unit, &vp->timeinfo->origin) != 0) {
-	    /* error parsing units so just treat as not a time variable */
-	    free(vp->timeinfo);
-	    free(units);
-	    vp->timeinfo = NULL;
-	    return;
-	}
-	/* Currently this gets reparsed for every value, need function
-	 * like cdRel2Comp that resuses parsed units? */
-	vp->timeinfo->units = strdup(units);
-	vp->has_timeval = true;
-	free(units);
-    }
-    return;
-}
-
 /* Recursively dump the contents of a group. (Recall that only
  * netcdf-4 format files can have groups. On all other formats, there
  * is just a root group, so recursion will not take place.) 
  *
  * ncid: id of open file (first call) or group (subsequent recursive calls) 
- * path: file path name (first call) or NULL if called for a group
+ * path: file path name (first call)
  * specp: formatting spec
  */
 static void
-do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
+do_ncdump_rec(int ncid, const char *path)
 {
    int ndims;			/* number of dimensions */
    int nvars;			/* number of variables */
@@ -1344,6 +1478,12 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 #else
    int dimid;			/* dimension id */
 #endif /* USE_NETCDF4 */
+   int is_root = 1;		/* true if ncid is root group or if netCDF-3 */
+
+#ifdef USE_NETCDF4
+   if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP)
+       is_root = 0;
+#endif /* USE_NETCDF4 */
 
    /*
     * If any vars were specified with -v option, get list of
@@ -1351,10 +1491,10 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
     * specified with syntax like "grp1/grp2/varname" or
     * "/grp1/grp2/varname" if they are in groups.
     */
-   if (specp->nlvars > 0) {
+   if (formatting_specs.nlvars > 0) {
       vlist = newvlist();	/* list for vars specified with -v option */
-      for (iv=0; iv < specp->nlvars; iv++) {
-	  if(nc_inq_gvarid(ncid, specp->lvars[iv], &varid) == NC_NOERR)
+      for (iv=0; iv < formatting_specs.nlvars; iv++) {
+	  if(nc_inq_gvarid(ncid, formatting_specs.lvars[iv], &varid) == NC_NOERR)
 	      varadd(vlist, varid);
       }
    }
@@ -1555,17 +1695,17 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
       }
 #ifdef USE_NETCDF4
       /* Print special (virtual) attributes, if option specified */
-      if (specp->special_atts) {
+      if (formatting_specs.special_atts) {
 	  pr_att_specials(ncid, kind, varid, &var);
       }
 #endif /* USE_NETCDF4 */
    }
 
    /* get global attributes */
-   if (ngatts > 0 || specp->special_atts) {
+   if (ngatts > 0 || formatting_specs.special_atts) {
       printf ("\n");
       indent_out();
-      if (path != NULL) 	/* top-level, root group */
+      if (is_root)
 	  printf("// global attributes:\n");
       else
 	  printf("// group attributes:\n");
@@ -1573,13 +1713,13 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
    for (ia = 0; ia < ngatts; ia++) { /* print ia-th global attribute */
        pr_att(ncid, kind, NC_GLOBAL, "", ia);
    }
-   if (path != NULL && specp->special_atts) { /* output special attribute
+   if (is_root && formatting_specs.special_atts) { /* output special attribute
 					   * for format variant */
        pr_att_global_format(ncid, kind);
    }
 
    /* output variable data */
-   if (! specp->header_only) {
+   if (! formatting_specs.header_only) {
       if (nvars > 0) {
 	  indent_out();
 	  printf ("data:\n");
@@ -1587,7 +1727,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
       for (varid = 0; varid < nvars; varid++) {
 	 int no_data;
 	 /* if var list specified, test for membership */
-	 if (specp->nlvars > 0 && ! varmember(vlist, varid))
+	 if (formatting_specs.nlvars > 0 && ! varmember(vlist, varid))
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
 	 if(var.dims != NULL) free(var.dims);
@@ -1597,7 +1737,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	 var.tinfo = get_typeinfo(var.type);
 	 /* If coords-only option specified, don't get data for
 	  * non-coordinate vars */
-	 if (specp->coord_vals && !iscoordvar(ncid,varid)) {
+	 if (formatting_specs.coord_vals && !iscoordvar(ncid,varid)) {
 	    continue;
 	 }
 	 /* Collect variable's dim sizes */
@@ -1632,8 +1772,8 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	 /* printf format used to print each value */
 	 var.fmt = get_fmt(ncid, varid, var.type);
 	 var.locid = ncid;
-	 set_tostring_func(&var, specp);
-	 if (vardata(&var, vdims, ncid, varid, specp) == -1) {
+	 set_tostring_func(&var);
+	 if (vardata(&var, vdims, ncid, varid) == -1) {
 	    error("can't output data for variable %s", var.name);
 	    NC_CHECK(
 	       nc_close(ncid) );
@@ -1674,7 +1814,7 @@ do_ncdump_rec(int ncid, const char *path, fspec_t* specp)
 	  print_name (group_name);
 	  printf (" {\n");
 	  indent_more();
-	  do_ncdump_rec(ncids[g], NULL, specp);
+	  do_ncdump_rec(ncids[g], NULL);
 	  indent_out();
 /* 	    printf ("} // group %s\n", group_name); */
 	  printf ("} // group ");
@@ -1702,16 +1842,16 @@ done:
 
 
 static void
-do_ncdump(int ncid, const char *path, fspec_t* specp)
+do_ncdump(int ncid, const char *path)
 {
    char* esc_specname;
    /* output initial line */
    indent_init();
    indent_out();
-   esc_specname=escaped_name(specp->name);
+   esc_specname=escaped_name(formatting_specs.name);
    printf ("netcdf %s {\n", esc_specname);
    free(esc_specname);
-   do_ncdump_rec(ncid, path, specp);
+   do_ncdump_rec(ncid, path);
    indent_out();
    printf ("}\n");
    NC_CHECK( nc_close(ncid) );
@@ -1719,7 +1859,7 @@ do_ncdump(int ncid, const char *path, fspec_t* specp)
 
 
 static void
-do_ncdumpx(int ncid, const char *path, fspec_t* specp)
+do_ncdumpx(int ncid, const char *path)
 {
     int ndims;			/* number of dimensions */
     int nvars;			/* number of variables */
@@ -1737,10 +1877,10 @@ do_ncdumpx(int ncid, const char *path, fspec_t* specp)
      * If any vars were specified with -v option, get list of associated
      * variable ids
      */
-    if (specp->nlvars > 0) {
+    if (formatting_specs.nlvars > 0) {
 	vlist = newvlist();	/* list for vars specified with -v option */
-	for (iv=0; iv < specp->nlvars; iv++) {
-	    NC_CHECK( nc_inq_varid(ncid, specp->lvars[iv], &varid) );
+	for (iv=0; iv < formatting_specs.nlvars; iv++) {
+	    NC_CHECK( nc_inq_varid(ncid, formatting_specs.lvars[iv], &varid) );
 	    varadd(vlist, varid);
 	}
     }
@@ -1788,11 +1928,11 @@ do_ncdumpx(int ncid, const char *path, fspec_t* specp)
 	if (var.natts == 0) {
 	    if (
 		/* header-only specified */
-		(specp->header_only) ||
+		(formatting_specs.header_only) ||
 		/* list of variables specified and this variable not in list */
-		(specp->nlvars > 0 && !varmember(vlist, varid))	||
+		(formatting_specs.nlvars > 0 && !varmember(vlist, varid))	||
 		/* coordinate vars only and this is not a coordinate variable */
-		(specp->coord_vals && !iscoordvar(ncid, varid)) ||
+		(formatting_specs.coord_vals && !iscoordvar(ncid, varid)) ||
 		/* this is a record variable, but no records have been written */
 		(isrecvar(ncid,varid) && dims[xdimid].size == 0)
 		) {
@@ -1820,23 +1960,22 @@ do_ncdumpx(int ncid, const char *path, fspec_t* specp)
 	free(dims);
 }
 
-
 static void
-make_lvars(char *optarg, fspec_t* fspecp)
+make_lvars(char *optarg)
 {
     char *cp = optarg;
     int nvars = 1;
     char ** cpp;
 
     /* compute number of variable names in comma-delimited list */
-    fspecp->nlvars = 1;
+    formatting_specs.nlvars = 1;
     while (*cp++)
       if (*cp == ',')
  	nvars++;
 
-    fspecp->lvars = (char **) emalloc(nvars * sizeof(char*));
+    formatting_specs.lvars = (char **) emalloc(nvars * sizeof(char*));
 
-    cpp = fspecp->lvars;
+    cpp = formatting_specs.lvars;
     /* copy variable names into list */
     for (cp = strtok(optarg, ",");
 	 cp != NULL;
@@ -1847,7 +1986,37 @@ make_lvars(char *optarg, fspec_t* fspecp)
 	strncpy(*cpp, cp, bufsiz);
 	cpp++;
     }
-    fspecp->nlvars = nvars;
+    formatting_specs.nlvars = nvars;
+}
+
+
+static void
+make_lgrps(char *optarg)
+{
+    char *cp = optarg;
+    int ngrps = 1;
+    char ** cpp;
+
+    /* compute number of variable names in comma-delimited list */
+    formatting_specs.nlgrps = 1;
+    while (*cp++)
+      if (*cp == ',')
+ 	ngrps++;
+
+    formatting_specs.lgrps = (char **) emalloc(ngrps * sizeof(char*));
+
+    cpp = formatting_specs.lgrps;
+    /* copy variable names into list */
+    for (cp = strtok(optarg, ",");
+	 cp != NULL;
+	 cp = strtok((char *) NULL, ",")) {
+	size_t bufsiz = strlen(cp) + 1;
+	
+	*cpp = (char *) emalloc(bufsiz);
+	strncpy(*cpp, cp, bufsiz);
+	cpp++;
+    }
+    formatting_specs.nlgrps = ngrps;
 }
 
 
@@ -1975,11 +2144,70 @@ nc_inq_varname_count(int ncid, char *varname) {
  * missing.  Returns 0 if no missing variables detected, otherwise
  * exits. */
 static int
-missing_vars(int ncid, fspec_t *specp) {
+missing_vars(int ncid) {
     int iv;
-    for (iv=0; iv < specp->nlvars; iv++) {
-	if(nc_inq_varname_count(ncid, specp->lvars[iv]) == 0) {
-	    error("%s: No such variable", specp->lvars[iv]);
+    for (iv=0; iv < formatting_specs.nlvars; iv++) {
+	if(nc_inq_varname_count(ncid, formatting_specs.lvars[iv]) == 0) {
+	    error("%s: No such variable", formatting_specs.lvars[iv]);
+	}
+    }
+    return 0;
+}
+
+/* Determine whether a group named grpname exists in any group in an
+ * open netCDF file with id ncid.  If so, return the count of how many
+ * matching groups were found, else return a count of 0.  */
+size_t
+nc_inq_grpname_count(int ncid, char *grpname) {
+    /* 
+       count = 0;
+       status = nc_inq_ncid(ncid, grpname, &grpid);
+       if (status == NC_NOERR)
+          count++;
+       for each subgroup gid {
+          count += nc_inq_grpname_count(gid, grpname);
+       }
+       return count;
+    */
+    size_t count = 0;
+#ifdef USE_NETCDF4
+    int numgrps;
+    int *ncids;
+    int g;
+    int grpid;
+
+    /* look in this group */
+    int status = nc_inq_ncid(ncid, grpname, &grpid);
+    if (status == NC_NOERR)
+	count++;
+    /* if this group has subgroups, call recursively on each of them */
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
+	 
+    /* Allocate memory to hold the list of group ids. */
+    ncids = emalloc((numgrps + 1) * sizeof(int));
+	
+    /* Get the list of group ids. */
+    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	
+    /* Call this function for each group. */
+    for (g = 0; g < numgrps; g++) {
+	count += nc_inq_grpname_count(ncids[g], grpname);
+    }
+    free(ncids);
+#endif /* USE_NETCDF4 */
+    return count;    
+   
+}
+
+/* Check if any group names specified with "-g grp1,...,grpn" are
+ * missing.  Returns 0 if no missing groups detected, otherwise
+ * exits. */
+static int
+missing_grps(int ncid) {
+    int ig;
+    for (ig=0; ig < formatting_specs.nlgrps; ig++) {
+	if(nc_inq_grpname_count(ncid, formatting_specs.lgrps[ig]) == 0) {
+	    error("%s: No such group", formatting_specs.lgrps[ig]);
 	}
     }
     return 0;
@@ -2002,23 +2230,204 @@ void adapt_url_for_cache(char **pathp) {
     return;
 }
 
+/**
+The ncdump tool generates the CDL text representation of a netCDF
+dataset on standard output, optionally excluding some or all of the
+variable data in the output. The output from ncdump is intended to be
+acceptable as input to ncgen. Thus ncdump and ncgen can be used as
+inverses to transform data representation between binary and text
+representations.
+
+As of netCDF version 4.1, ncdump can also access DAP data sources if
+DAP support is enabled in the underlying netCDF library. Instead of
+specifying a file name as argument to ncdump, the user specifies a URL
+to a DAP source.
+
+ncdump may also be used as a simple browser for netCDF datasets, to
+display the dimension names and lengths; variable names, types, and
+shapes; attribute names and values; and optionally, the values of data
+for all variables or selected variables in a netCDF dataset.
+
+ncdump defines a default format used for each type of netCDF variable
+data, but this can be overridden if a C_format attribute is defined
+for a netCDF variable. In this case, ncdump will use the C_format
+attribute to format values for that variable. For example, if
+floating-point data for the netCDF variable Z is known to be accurate
+to only three significant digits, it might be appropriate to use this
+variable attribute:
+
+\code
+     Z:C_format = "%.3g"
+\endcode
+
+Ncdump uses '_' to represent data values that are equal to the
+_FillValue attribute for a variable, intended to represent data that
+has not yet been written. If a variable has no _FillValue attribute,
+the default fill value for the variable type is used unless the
+variable is of byte type.
+
+UNIX syntax for invoking ncdump:
+
+\code
+     ncdump  [-c | -h]  [-v var1,...]  [-g grp1,...]  [-b lang]  [-f lang]
+     [-l len]  [-n name]  [-p fdig[,ddig]] [-x]  [-s] [-t]  input-file
+\endcode
+
+or
+
+\code
+     ncdump -k input-file
+\endcode
+
+where:
+
+-c Show the values of coordinate variables (variables that are also
+ dimensions) as well as the declarations of all dimensions, variables,
+ and attribute values. Data values of non-coordinate variables are not
+ included in the output. This is often the most suitable option to use
+ for a brief look at the structure and contents of a netCDF file.
+
+-h Show only the header information in the output, that is, output
+ only the declarations for the netCDF dimensions, variables, and
+ attributes of the input file, but no data values for any
+ variables. The output is identical to using the '-c' option except
+ that the values of coordinate variables are not included. (At most
+ one of '-c' or '-h' options may be present.)
+
+-v var1,... The output will include data values for the specified
+ variables, in addition to the declarations of all dimensions,
+ variables, and attributes. One or more variables must be specified by
+ name in the comma-delimited list following this option. The list must
+ be a single argument to the command, hence cannot contain blanks or
+ other white space characters. The named variables must be valid
+ netCDF variables in the input-file. The default, without this option
+ and in the absence of the '-c' or '-h' options, is to include data
+ values for all variables in the output.
+
+-g grp1,... The output will include metadata and data values for the
+ specified groups, in addition to declarations of any needed
+ dimensions inherited from parent groups or any types defined in other
+ groups.  One or more groups must be specified by name in the
+ comma-delimited list following this option. The list must be a single
+ argument to the command, hence cannot contain blanks or other white
+ space characters. The named groups must be valid netCDF groups in the
+ input-file. The default, without this option and in the absence of
+ the '-c' or '-h' options, is to include data values for all variables
+ in the output.
+
+-b lang A brief annotation in the form of a CDL comment (text
+ beginning with the characters '//') will be included in the data
+ section of the output for each 'row' of data, to help identify data
+ values for multidimensional variables. If lang begins with 'C' or
+ 'c', then C language conventions will be used (zero-based indices,
+ last dimension varying fastest). If lang begins with 'F' or 'f', then
+ FORTRAN language conventions will be used (one-based indices, first
+ dimension varying fastest). In either case, the data will be
+ presented in the same order; only the annotations will differ. This
+ option may be useful for browsing through large volumes of
+ multidimensional data.
+
+-f lang Full annotations in the form of trailing CDL comments (text
+ beginning with the characters '//') for every data value (except
+ individual characters in character arrays) will be included in the
+ data section. If lang begins with 'C' or 'c', then C language
+ conventions will be used. If lang begins with 'F' or 'f', then FORTRAN language
+ conventions will be used. In either case, the data will be presented in the same
+ order; only the annotations will differ. This option may be useful
+ for piping data into other filters, since each data value appears on
+ a separate line, fully identified. (At most one of '-b' or '-f'
+ options may be present.)
+
+-l len Changes the default maximum line length (80) used in formatting
+lists of non-character data values.
+
+-p float_digits[,double_digits] Specifies default precision (number of
+significant digits) to use in displaying floating-point or double
+precision data values for attributes and variables. If specified, this
+value overrides the value of the C_format attribute, if any, for a
+variable. Floating-point data will be displayed with float_digits
+significant digits. If double_digits is also specified,
+double-precision values will be displayed with that many significant
+digits. In the absence of any '-p' specifications, floating-point and
+double-precision data are displayed with 7 and 15 significant digits
+respectively. CDL files can be made smaller if less precision is
+required. If both floating-point and double precisions are specified,
+the two values must appear separated by a comma (no blanks) as a
+single argument to the command.
+
+-s Specifies that special virtual attributes should be output for the
+file format variant and for variable properties such as compression,
+chunking, and other properties specific to the format implementation
+that are primarily related to performance rather than the logical
+schema of the data. All the special virtual attributes begin with '_'
+followed by an upper-case letter. Currently they include the global
+attribute “_Format” and the variable attributes “_Fletcher32”,
+“_ChunkSizes”, “_Endianness”, “_DeflateLevel”, “_Shuffle”, “_Storage”,
+and “_NoFill”. The ncgen utility recognizes these attributes and
+supports them appropriately.
+
+-t Controls display of time data, if stored in a variable that uses a
+udunits compliant time representation such as “days since 1970-01-01”
+or “seconds since 2009-03-15 12:01:17”. If this option is specified,
+time values are displayed as human-readable date-time strings rather
+than numerical values, interpreted in terms of a “calendar” variable
+attribute, if specified. Calendar attribute values interpreted with
+this option include the CF Conventions values “gregorian” or
+“standard”, “proleptic_gregorian”, “noleap” or “365_day”, “all_leap”
+or “366_day”, “360_day”, and “julian”.
+
+-n name CDL requires a name for a netCDF file, for use by 'ncgen
+-b' in generating a default netCDF file name. By default, ncdump
+constructs this name from the last component of the file name of the
+input netCDF file by stripping off any extension it has. Use the
+'-n' option to specify a different name. Although the output file name
+used by 'ncgen -b' can be specified, it may be wise to have ncdump
+change the default name to avoid inadvertently overwriting a valuable
+netCDF file when using ncdump, editing the resulting CDL file, and
+using 'ncgen -b' to generate a new netCDF file from the edited CDL
+file.
+
+\section Examples
+
+Look at the structure of the data in the netCDF file foo.nc:
+
+\code
+ncdump -c foo.nc
+\endcode
+
+Produce an annotated CDL version of the structure and data in the
+netCDF file foo.nc, using C-style indexing for the annotations:
+
+\code
+ncdump -b c foo.nc > foo.cdl
+\endcode
+
+Output data for only the variables uwind and vwind from the netCDF
+file foo.nc, and show the floating-point data with only three
+significant digits of precision:
+
+\code
+ncdump -v uwind,vwind -p 3 foo.nc
+\endcode
+
+Produce a fully-annotated (one data value per line) listing of the
+data for the variable omega, using FORTRAN conventions for indices,
+and changing the netCDF file name in the resulting CDL file to
+omega:
+
+\code
+ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
+\endcode
+
+Examine the translated DDS for the DAP source from the specified URL.
+
+\code
+ncdump -h http://test.opendap.org:8080/dods/dts/test.01 
+\endcode
+ */
 int
 main(int argc, char *argv[])
 {
-    static fspec_t fspec =	/* defaults, overridden on command line */
-      {
-	  0,			/* construct netcdf name from file name */
-	  false,		/* print header info only, no data? */
-	  false,		/* just print coord vars? */
-	  false,		/* brief  comments in data section? */
-	  false,		/* full annotations in data section?  */
-	  false,		/* human-readable output for date-time values */
-	  false,		/* output special attributes, eg chunking? */
-	  LANG_C,		/* language conventions for indices */
-	  0,			/* if -v specified, number of variables */
-	  false,	        /* for DAP URLs, client-side cache used */
-	  0			/* if -v specified, list of variable names */
-	  };
     int c;
     int i;
     int max_len = 80;		/* default maximum line length */
@@ -2048,39 +2457,39 @@ main(int argc, char *argv[])
     while ((c = getopt(argc, argv, "b:cd:f:hjkl:n:p:stv:xw")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
-	  fspec.header_only = true;
+	  formatting_specs.header_only = true;
 	  break;
 	case 'c':		/* header, data only for coordinate dims */
-	  fspec.coord_vals = true;
+	  formatting_specs.coord_vals = true;
 	  break;
 	case 'n':		/*
 				 * provide different name than derived from
 				 * file name
 				 */
-	  fspec.name = optarg;
+	  formatting_specs.name = optarg;
 	  nameopt = 1;
 	  break;
 	case 'b':		/* brief comments in data section */
-	  fspec.brief_data_cmnts = true;
+	  formatting_specs.brief_data_cmnts = true;
 	  switch (tolower(optarg[0])) {
 	    case 'c':
-	      fspec.data_lang = LANG_C;
+	      formatting_specs.data_lang = LANG_C;
 	      break;
 	    case 'f':
-	      fspec.data_lang = LANG_F;
+	      formatting_specs.data_lang = LANG_F;
 	      break;
 	    default:
 	      error("invalid value for -b option: %s", optarg);
 	  }
 	  break;
 	case 'f':		/* full comments in data section */
-	  fspec.full_data_cmnts = true;
+	  formatting_specs.full_data_cmnts = true;
 	  switch (tolower(optarg[0])) {
 	    case 'c':
-	      fspec.data_lang = LANG_C;
+	      formatting_specs.data_lang = LANG_C;
 	      break;
 	    case 'f':
-	      fspec.data_lang = LANG_F;
+	      formatting_specs.data_lang = LANG_F;
 	      break;
 	    default:
 	      error("invalid value for -f option: %s", optarg);
@@ -2094,7 +2503,11 @@ main(int argc, char *argv[])
 	  break;
 	case 'v':		/* variable names */
 	  /* make list of names of variables specified */
-	  make_lvars (optarg, &fspec);
+	  make_lvars (optarg);
+	  break;
+	case 'g':		/* group names */
+	  /* make list of names of groups specified */
+	  make_lgrps (optarg);
 	  break;
 	case 'd':		/* specify precision for floats (deprecated, undocumented) */
 	  set_sigdigs(optarg);
@@ -2109,16 +2522,16 @@ main(int argc, char *argv[])
 	  kind_out = true;
 	  break;
 	case 't':		/* human-readable strings for time values */
-	  fspec.iso_times = true;
+	  formatting_specs.iso_times = true;
 	  break;
         case 's':	    /* output special (virtual) attributes for
 			     * netCDF-4 files and variables, including
 			     * _DeflateLevel, _Chunking, _Endianness,
 			     * _Format, _Checksum, _NoFill */
-	  fspec.special_atts = true;
+	  formatting_specs.special_atts = true;
 	  break;
         case 'w':		/* with client-side cache for DAP URLs */
-	  fspec.with_cache = true;
+	  formatting_specs.with_cache = true;
 	  break;
         case '?':
 	  usage();
@@ -2146,13 +2559,13 @@ main(int argc, char *argv[])
 	if(!path)
 	    error("out of memory copying argument %s", argv[i]);
         if (!nameopt) 
-	    fspec.name = name_path(path);
+	    formatting_specs.name = name_path(path);
 	if (argc > 0) {
 	    int ncid, nc_status;
 	    /* If path is a URL, prefix with client-side directive to
 	     * make ncdump reasonably efficient */
 #ifdef USE_DAP
-	    if(fspec.with_cache) /* by default, don't use cache directive */
+	    if(formatting_specs.with_cache) /* by default, don't use cache directive */
 	    {
 		extern int nc__testurl(const char*,char**);
 		/* See if this is a url */
@@ -2172,12 +2585,15 @@ main(int argc, char *argv[])
 		/* Initialize list of types. */
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
-		if(missing_vars(ncid, &fspec))
+		if(missing_vars(ncid))
+		    return EXIT_FAILURE;
+		/* Check if any grps in -g don't exist */
+		if(missing_grps(ncid))
 		    return EXIT_FAILURE;
 		if (xml_out) {
-		    do_ncdumpx(ncid, path, &fspec);
+		    do_ncdumpx(ncid, path);
 		} else {
-		    do_ncdump(ncid, path, &fspec);
+		    do_ncdump(ncid, path);
 		}
 	    }
 	}

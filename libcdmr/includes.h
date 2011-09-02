@@ -5,37 +5,23 @@
  *   $Header$
  *********************************************************************/
 
-#ifndef NCCRINCLUDES_H
-#define NCCRINCLUDES_H
+#ifndef RPC_INCLUDES_H
+#define RPC_INCLUDES_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <curl/curl.h>
-#include "curlwrap.h"
+#include "rpc_curlwrap.h"
 
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
 
-#include "netcdf.h"
-#include "nc.h"
-#include "nc4internal.h"
-#include "ncdispatch.h"
-#include "nc4dispatch.h"
-
 #include "ast.h"
 
-#include "crpath.h"
-#include "nccr.h"
-#include "nccrdispatch.h"
-#include "nccrnode.h"
-#include "ncStreamx.h"
-#include "nccrproto.h"
-#include "nccrmeta.h"
-#include "cceconstraints.h"
-#include "crutil.h"
-#include "crdebug.h"
+#include "netcdf.h"
+#include "nc.h"
 
-#endif /*NCCRINCLUDES_H*/
+#endif /*RPC_INCLUDES_H*/
