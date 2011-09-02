@@ -39,8 +39,7 @@ rpcutil.c
 
 if BUILD_RPC
 
-noinst_LTLIBRARIES = librpcclient.la
-#librcpserver.la
+noinst_LTLIBRARIES = librpcclient.la librcpserver.la
 
 # Build convenience library
 librpcclient_la_SOURCES = $(SRC) $(HDRS)
