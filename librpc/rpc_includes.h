@@ -13,15 +13,23 @@
 #endif
 
 #include <curl/curl.h>
-#include "rpc_curlwrap.h"
 
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
 
-#include "ast.h"
-
 #include "netcdf.h"
 #include "nc.h"
+#include "ncdispatch.h"
+
+#include "ast.h"
+#include "protorpc.h"
+
+#include "rpc.h"
+#include "rpcdispatch.h"
+#include "rpccurl.h"
+#include "rpcdebug.h"
+#include "rpcpath.h"
+#include "rpcutil.h"
 
 #endif /*RPC_INCLUDES_H*/

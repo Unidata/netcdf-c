@@ -32,25 +32,23 @@
  */
 /* "$Id$" */
 
-#ifndef CRCURLWRAP_H
-#define CRCURLWRAP_H
+#ifndef RPCCURL_H
+#define RPCCURL_H
 
 /*Forward*/
-struct NCCDMR;
+struct NCRPC;
 struct bytes_t;
 
-extern int nccr_curlopen(CURL**);
-extern int nccr_curlclose(CURL*);
+extern int rpc_curlopen(CURL**);
+extern int rpc_curlclose(CURL*);
 
-extern int nccr_fetchurl(struct NCCDMR*, CURL*, char* url, struct bytes_t* buf, long* filetime);
-extern long nccr_fetchhttpcode(CURL* curl);
-extern int nccr_fetchlastmodified(CURL* curl, char* url, long* filetime);
+extern int rpc_fetchurl(struct NCRPC*, CURL*, char* url, struct bytes_t* buf, long* filetime);
+extern long rpc_fetchhttpcode(CURL* curl);
+extern int rpc_fetchlastmodified(CURL* curl, char* url, long* filetime);
 
-extern int nccr_set_curl_flags(CURL*, struct NCCDMR*);
-extern int nccr_set_proxy(CURL*, struct NCCDMR*);
-extern int nccr_set_ssl(CURL*, struct NCCDMR*);
-extern int nccr_set_user_password(CURL*, const char *userC, const char *passwordC);
+extern int rpc_set_curl_flags(CURL*, struct NCRPC*);
+extern int rpc_set_proxy(CURL*, struct NCRPC*);
+extern int rpc_set_ssl(CURL*, struct NCRPC*);
+extern int rpc_set_user_password(CURL*, const char *userC, const char *passwordC);
 
-
-#endif /*CRCURLWRAP_H*/
-
+#endif /*RPCCURL_H*/

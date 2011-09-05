@@ -32,8 +32,8 @@
  */
 /* "$Id$" */
 
-#ifndef CRCURLWRAP_H
-#define CRCURLWRAP_H
+#ifndef CURLWRAP_H
+#define CURLWRAP_H
 
 /*Forward*/
 struct NCCDMR;
@@ -52,5 +52,4 @@ extern int nccr_set_ssl(CURL*, struct NCCDMR*);
 extern int nccr_set_user_password(CURL*, const char *userC, const char *passwordC);
 
 
-#endif /*CRCURLWRAP_H*/
-
+#endif /*CURLWRAP_H*/

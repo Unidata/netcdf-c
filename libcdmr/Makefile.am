@@ -13,11 +13,14 @@ CLEANFILES =
 EXTRA_DIST =
 LDADD=
 
+ASTDIR=./ast/src/compiler
+ASTJAR=${ASTDIR}/ast.jar
+
 # CDMREMORE Sources
-SRC=nccrcvt.c nccr.c nccrdispatch.c nccrmeta.c nccrproto.c nccrgetvarx.c \
+SRC=nccrcvt.c nccr.c nccrdispatch.c crmeta.c nccrproto.c nccrgetvarx.c \
 crdebug.c crutil.c \
 nccrdump.c \
-ncStreamx.c curlwrap.c ncaux.c \
+ncStreamx.c curlwrap.c \
 ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c \
 cceparse.c cceconstraints.c
@@ -25,10 +28,10 @@ cceparse.c cceconstraints.c
 EXTRA_DIST += ccetab.c ccelex.c
 
 HDRS=includes.h \
-nccrdispatch.h nccr.h nccrmeta.h nccrproto.h nccrgetvarx.h \
+nccrdispatch.h nccr.h crmeta.h nccrproto.h nccrgetvarx.h \
 crpath.h crdebug.h crutil.h \
 nccrdump.h \
-ncStreamx.h curlwrap.h ncaux.h \
+ncStreamx.h curlwrap.h \
 ast.h ast_byteio.h ast_curl.h ast_internal.h \
 ast_runtime.h ast_util.h ast_debug.h \
 nccrnode.h \
@@ -71,11 +74,9 @@ CLEANFILES += t_cdmr
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*
 
-.PHONEY: bison
-
 EXTRA_DIST += cce.y
 
-bison ccetab.c ccetab.h: cce.y
+parser ccetab.c ccetab.h: cce.y
 	bison -v -d -t -p cce cce.y
 	rm -f ccetab.c ccetab.h
 	mv cce.tab.c ccetab.c
@@ -83,20 +84,16 @@ bison ccetab.c ccetab.h: cce.y
 
 ##################################################
 # Generate the augmented ncstream structures
+
+EXTRA_DIST += ast.jar ncStream.proto ncStream.h ncStream.c extends.sed
+
 ncStreamx.c ncStreamx.h: ncStreamx.proto ast.jar
 	java -jar ast.jar -WdT -I. ncStreamx.proto
 
 ncStreamx.proto: ncStream.proto extends.sed
 	sed -f extends.sed <ncStream.proto |tr -d '\r' >ncStreamx.proto
 
-EXTRA_DIST += ast.jar ncStream.proto ncStream.h ncStream.c extends.sed
-
-
 ##################################################
-.PHONEY: jar
-
-ASTDIR=./ast/src/compiler
-ASTJAR=${ASTDIR}/ast.jar
 
 jar::
 	cd ${ASTDIR}; make -f Make0 jar
@@ -104,5 +101,3 @@ jar::
 
 endif # BUILD_CDMREMOTE
 
-# Changes to ncstream
-# 1. change Data.varName to be sequence to allow arbitrary name characters
