@@ -630,16 +630,90 @@ calendar_type(int ncid, int varid) {
     return ctype;
 }
 
+/* Return true only if this is a "bounds" attribute */
+static boolean
+is_bounds_att(ncatt_t *attp) {
+    if(attp->type == NC_CHAR && attp->valgp && STREQ((char *)attp->name, "bounds")) {
+	return true;
+    }
+#ifdef USE_NETCDF4
+    if(attp->type == NC_STRING && attp->valgp && STREQ((char *)attp->name, "bounds")) {
+	return true;
+    }
+#endif /* USE_NETCDF4 */
+    return false;
+}
+
+struct bounds_node{
+    int ncid;	  /* group (or file) in which variable with associated
+		   * bounds variable resides */
+    int varid; /* has "bounds" attribute naming its bounds variable */
+    char *bounds_name; /* the named variable, which stores bounds for varid */
+    struct bounds_node *next; /* next node on list or NULL ifn last list node */
+};
+
+typedef struct bounds_node bounds_node_t;
+
+static struct {
+    size_t nbnds;		/* number of bounds variables */
+    bounds_node_t *first;
+} bounds_list;
+
+void
+bounds_add(char *bounds_name, int ncid, int varid) {
+    bounds_node_t *bnode = emalloc(sizeof(bounds_node_t) + 1);
+    bounds_list.nbnds++;
+    bnode->ncid = ncid;
+    bnode->varid = varid;
+    bnode->bounds_name = strdup(bounds_name);
+    bnode->next = bounds_list.first;
+    bounds_list.first = bnode;
+}
+
+/* Insert info about a bounds attribute into bounds list, so we can
+ * later determine which variables are bounds variables for which
+ * other variables.  att must be a variable "bounds" attribute.  */
+void
+insert_bounds_info(int ncid, int varid, ncatt_t att) {
+    static boolean uninitialized = true;
+    if(uninitialized) {
+	bounds_list.nbnds = 0;
+	bounds_list.first = NULL;
+    }
+    assert(is_bounds_att(&att));
+    bounds_add(att.valgp, ncid, varid);
+}
+
+static boolean
+is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
+    bounds_node_t *bp = bounds_list.first;
+    for(; bp; bp = bp->next) {
+	if(STREQ(bp->bounds_name, varname)) {
+	    *pargrpidp = bp->ncid;
+	    *parvaridp = bp->varid;
+	    return true;
+	}
+    }
+    return false;
+} 
+
 static void
-get_timeinfo(int ncid, int varid, ncvar_t *vp) {
+get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
     ncatt_t uatt;		/* units attribute */
     int nc_status;		/* return from netcdf calls */
     char *units;
-    
+    int ncid = ncid1;
+    int varid = varid1;
+
     vp->has_timeval = false; /* by default, turn on if criteria met */
     vp->timeinfo = 0;
-	    
-    /* time variables must have appropriate units attribute */
+    vp->is_bounds_var = false;
+    /* for timeinfo, treat a bounds variable like its "parent" time variable */
+    if(is_bounds_var(vp->name, &ncid, &varid)) {
+	vp->is_bounds_var = true;
+    }
+
+    /* time variables must have appropriate units attribute or be a bounds variable */
     nc_status = nc_inq_att(ncid, varid, "units", &uatt.type, &uatt.len);
     if(nc_status == NC_NOERR && uatt.type == NC_CHAR) { /* TODO: NC_STRING? */
 	units = emalloc(uatt.len + 1);
@@ -838,6 +912,9 @@ pr_att(
 	     * Prints nothing if not qualified for time interpretation.
 	     * Will include line breaks for longer lists. */
 	    print_att_times(ncid, varid, att);
+	    if(is_bounds_att(&att)) {
+		insert_bounds_info(ncid, varid, att);
+	    }
 	}
 #ifdef USE_NETCDF4
 	/* If NC_STRING, need to free all the strings also */

@@ -80,6 +80,7 @@ typedef struct ncvar_t {	/* variable */
     void* fillvalp;	        /* pointer to the fill value, if any */
     boolean has_timeval;	/* has date-time values, for -t output option */
     struct timeinfo_t *timeinfo; /* if time values, units, calendar, and origin */
+    boolean is_bounds_var;      /* cell bounds variable, inherits timeinfo */
     const char *fmt;            /* overriding variable-specific format for
 				   printing values or base values, if any */
     int locid;			/* group id */
