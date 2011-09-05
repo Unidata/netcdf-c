@@ -78,6 +78,7 @@ variables:
     int t3(t3) ;
        t3:units = "days since 1804-1-1" ;
        t3:calendar = "gregorian" ;
+       t3:bounds = "t3_bnds" ;
        t3:time1 = 1 ;
        t3:time2 = 5, 6 ;
        t3:time3 = 7.125f, 8.75f ;
