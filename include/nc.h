@@ -266,8 +266,13 @@ struct NC {
 	int ext_ncid; /* uid << 16 */
 	int int_ncid; /* unspecified other id */
 	struct NC_Dispatch* dispatch;	
+#ifdef NOTUSED
         struct NC_Dispatch3* dapdispatch;
+#endif
 	char* path; /* as specified at open or create */
+	void* instance; /* per-instance data specific to netcdf3,4,dap,etc.
+                           Currently only used by librpc, will retrofit other
+                           dispatch kinds over time. */
 /*END COMMON*/
 	/* contains the previous NC during redef. */
 	struct NC *old;

@@ -297,7 +297,9 @@ typedef struct NC_FILE_INFO
    int ext_ncid;
    int int_ncid;
    struct NC_Dispatch* dispatch;	
+#ifdef NOTUSED
    struct NC_Dispatch4* dapdispatch;
+#endif
    char* path;
 /*END COMMON*/
 
