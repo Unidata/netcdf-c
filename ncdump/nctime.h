@@ -126,6 +126,6 @@ typedef struct timeinfo_t {
 extern void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
 extern void cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* reltime);
 extern void cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* comptime);
-extern void cdRel2Iso(cdCalenType timetype, char* relunits, double reltime, char* chartime);
+extern void cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime);
 extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTime* base_comptime);
 void cdRel2CompMixed(double reltime, cdUnitTime unit, cdCompTime basetime, cdCompTime *comptime);

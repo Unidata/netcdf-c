@@ -59,16 +59,16 @@ struct vnode
     struct vnode* next;
     int id;
 };
-typedef struct vnode vnode;
+typedef struct vnode vnode_t;
 
 /* Get new variable list */
-extern vnode*	newvlist ( void );
+extern vnode_t*	newvlist ( void );
 
 /* Add a variable id to variable list */
-extern void	varadd ( vnode* vlist, int varid );
+extern void	varadd ( vnode_t* vlist, int varid );
 
 /* Test if a variable id is in variable list */
-extern int	varmember ( const vnode* vlist, int varid );
+extern int	varmember ( const vnode_t* vlist, int varid );
 
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );

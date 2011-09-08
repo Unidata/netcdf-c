@@ -43,7 +43,8 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     false,		/* just print coord vars? */
     false,		/* brief  comments in data section? */
     false,		/* full annotations in data section?  */
-    false,		/* human-readable output for date-time values */
+    false,		/* human-readable output for date-time values? */
+    false,		/* use 'T' separator between date and time values as strings? */
     false,		/* output special attributes, eg chunking? */
     LANG_C,		/* language conventions for indices */
     0,			/* if -v specified, number of variables */
@@ -67,11 +68,12 @@ usage(void)
   [-x]             Output XML (NcML) instead of CDL\n\
   [-s]             Output special (virtual) attributes\n\
   [-t]             Output time data as date-time strings\n\
+  [-i]             Output time data as date-time strings with ISO-8601 'T' separator\n\
   [-w]             Without client-side caching of variables for DAP URLs\n\
   file             Name of netCDF file\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t] [-w] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-w] file\n%s",
 		   progname,
 		   USAGE);
     
@@ -824,6 +826,9 @@ print_att_times(
 	const char *valp = (const char *)att.valgp;  /* attrib value pointer */
 	safebuf_t *sb = sbuf_new();		/* allocate new string buffer */
         int func;				/* line wrap control */
+	int separator = ' ';			/* default between data and time */
+	if(formatting_specs.iso_separator)
+	    separator = 'T';
         
 	var.type = att.type;		/* insert attrib type into fake var */
 
@@ -1542,7 +1547,7 @@ do_ncdump_rec(int ncid, const char *path)
    int id;			/* dimension number per variable */
    int ia;			/* attribute number */
    int iv;			/* variable number */
-   vnode* vlist = 0;		/* list for vars specified with -v option */
+   vnode_t* vlist = 0;		/* list for vars specified with -v option */
    char type_name[NC_MAX_NAME + 1];
    int kind;		/* strings output differently for nc4 files */
    char dim_name[NC_MAX_NAME + 1];
@@ -1948,7 +1953,7 @@ do_ncdumpx(int ncid, const char *path)
     ncvar_t var;		/* variable */
     int ia;			/* attribute number */
     int iv;			/* variable number */
-    vnode* vlist = 0;		/* list for vars specified with -v option */
+    vnode_t* vlist = 0;		/* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of associated
@@ -2531,7 +2536,7 @@ main(int argc, char *argv[])
 #endif
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:hjkl:n:p:stv:xw")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:hijkl:n:p:stv:xw")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2598,8 +2603,13 @@ main(int argc, char *argv[])
         case 'k':	        /* just output what kind of netCDF file */
 	  kind_out = true;
 	  break;
-	case 't':		/* human-readable strings for time values */
+	case 't':		/* human-readable strings for date-time values */
 	  formatting_specs.iso_times = true;
+	  formatting_specs.iso_separator = false;
+	  break;
+	case 'i':		/* human-readable strings for data-time values with 'T' separator */
+	  formatting_specs.iso_times = true;
+	  formatting_specs.iso_separator = true;
 	  break;
         case 's':	    /* output special (virtual) attributes for
 			     * netCDF-4 files and variables, including

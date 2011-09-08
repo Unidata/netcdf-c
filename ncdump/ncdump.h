@@ -141,7 +141,12 @@ typedef struct {			/* specification for how to format dump */
     boolean iso_times;		/* if true, output date-time values as
 				 * human-readable strings.  */
 
-    boolean special_atts;		/* if true, output special attributes
+    boolean iso_separator;	/* if true, use 'T' separator between
+				 * date and time components of
+				 * human-readable strings, otherwise
+				 * use ' ' */
+
+    boolean special_atts;	/* if true, output special attributes
 				 * for optimization characteristics:
 				 * _Compression, _Chunking,
 				 * _Endianness, _Format, _Checksum,
