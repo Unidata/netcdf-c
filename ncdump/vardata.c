@@ -11,15 +11,15 @@
 #include <string.h>
 #include <assert.h>
 #include <netcdf.h>
+#include "utils.h"
+#include "nccomps.h"
 #include "ncdump.h"
 #include "dumplib.h"
 #include "indent.h"
 #include "vardata.h"
-#include "utils.h"
 
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
-#define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 
 #define LINEPIND	"    "	/* indent of continued lines */
 

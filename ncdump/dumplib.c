@@ -20,11 +20,13 @@
 #endif /* NO_FLOAT_H */
 #include <math.h>
 #include <netcdf.h>
+#include "utils.h"
+#include "nccomps.h"
 #include "ncdump.h"
 #include "dumplib.h"
 #include "isnan.h"
 #include "nctime.h"
-#include "utils.h"
+
 static float float_eps;
 static double double_eps;
 
