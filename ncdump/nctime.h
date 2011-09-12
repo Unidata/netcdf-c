@@ -4,6 +4,21 @@
  *   $Id: nctime.h,v 1.6 2010/03/18 19:24:26 russ Exp $
  *********************************************************************/
 
+struct bounds_node{
+    int ncid;	  /* group (or file) in which variable with associated
+		   * bounds variable resides */
+    int varid; /* has "bounds" attribute naming its bounds variable */
+    char *bounds_name; /* the named variable, which stores bounds for varid */
+    struct bounds_node *next; /* next node on list or NULL ifn last list node */
+};
+
+typedef struct bounds_node bounds_node_t;
+
+static struct {
+    size_t nbnds;		/* number of bounds variables */
+    bounds_node_t *first;
+} bounds_list;
+
 /* 
  * This code was extracted with permission from the CDMS time
  * conversion and arithmetic routines developed by Bob Drach, Lawrence
@@ -123,9 +138,8 @@ typedef struct timeinfo_t {
     cdCompTime origin;
 } timeinfo_t;
 
-extern void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
-extern void cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* reltime);
-extern void cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* comptime);
-extern void cdRel2Iso(cdCalenType timetype, char* relunits, double reltime, char* chartime);
-extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTime* base_comptime);
-void cdRel2CompMixed(double reltime, cdUnitTime unit, cdCompTime basetime, cdCompTime *comptime);
+extern void cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime);
+extern void insert_bounds_info(int ncid, int varid, ncatt_t att);
+extern boolean is_bounds_att(ncatt_t *attp);
+extern void get_timeinfo(int ncid, int varid, ncvar_t *vp);
+extern void print_att_times(int ncid, int varid, ncatt_t att);

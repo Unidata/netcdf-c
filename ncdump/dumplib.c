@@ -20,11 +20,13 @@
 #endif /* NO_FLOAT_H */
 #include <math.h>
 #include <netcdf.h>
+#include "utils.h"
+#include "nccomps.h"
 #include "ncdump.h"
 #include "dumplib.h"
 #include "isnan.h"
 #include "nctime.h"
-#include "utils.h"
+
 static float float_eps;
 static double double_eps;
 
@@ -101,7 +103,7 @@ init_epsilons(void)
 
 
 static char* has_c_format_att(int ncid, int varid);
-static vnode* newvnode(void);
+static vnode_t* newvnode(void);
 
 int float_precision_specified = 0; /* -p option specified float precision */
 int double_precision_specified = 0; /* -p option specified double precision */
@@ -417,10 +419,10 @@ get_fmt(
     return get_default_fmt(typeid);
 }
 
-static vnode*
+static vnode_t*
 newvnode(void)
 {
-    vnode *newvp = (vnode*) emalloc(sizeof(vnode));
+    vnode_t *newvp = (vnode_t*) emalloc(sizeof(vnode_t));
     return newvp;
 }
 
@@ -428,10 +430,10 @@ newvnode(void)
 /*
  * Get a new, empty variable list.
  */
-vnode*
+vnode_t*
 newvlist(void)
 {
-    vnode *vp = newvnode();
+    vnode_t *vp = newvnode();
 
     vp -> next = 0;
     vp -> id = -1;		/* bad id */
@@ -441,9 +443,9 @@ newvlist(void)
 
 
 void
-varadd(vnode* vlist, int varid)
+varadd(vnode_t* vlist, int varid)
 {
-    vnode *newvp = newvnode();
+    vnode_t *newvp = newvnode();
     
     newvp -> next = vlist -> next;
     newvp -> id = varid;
@@ -456,9 +458,9 @@ varadd(vnode* vlist, int varid)
  * list vlist points to.
  */
 int
-varmember(const vnode* vlist, int varid)
+varmember(const vnode_t* vlist, int varid)
 {
-    vnode *vp = vlist -> next;
+    vnode_t *vp = vlist -> next;
 
     for (; vp ; vp = vp->next)
       if (vp->id == varid)
@@ -1271,10 +1273,11 @@ int
 nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
     char sout[PRIM_LEN];
     double vv = to_double(varp, valp);
+    int separator = formatting_specs.iso_separator ? 'T' : ' ';
     if(isfinite(vv)) {
 	int res;
 	sout[0]='"';
-	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, vv, &sout[1]);
+	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1]);
 	res = strlen(sout);
 	sout[res++] = '"';
 	sout[res] = '\0';
@@ -1424,7 +1427,7 @@ set_tostring_func(ncvar_t *varp) {
 	ncstring_val_tostring
 #endif /* USE_NETCDF4 */
     };
-    if(varp->has_timeval && formatting_specs.iso_times) {
+    if(varp->has_timeval && formatting_specs.string_times) {
 	varp->val_tostring = (val_tostring_func) nctime_val_tostring;
 	return;
     }

@@ -20,6 +20,8 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <locale.h>
 #endif	/* HAVE_LOCALE_H */
 #include <netcdf.h>
+#include "utils.h"
+#include "nccomps.h"
 #include "nctime.h"		/* new iso time and calendar stuff */
 #include "ncdump.h"
 #include "dumplib.h"
@@ -27,12 +29,9 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "indent.h"
 #include "isnan.h"
 #include "cdl.h"
-#include "utils.h"
 
 #define int64_t long long
 #define uint64_t unsigned long long
-
-#define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 
 /* globals */
 char *progname;
@@ -43,7 +42,8 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     false,		/* just print coord vars? */
     false,		/* brief  comments in data section? */
     false,		/* full annotations in data section?  */
-    false,		/* human-readable output for date-time values */
+    false,		/* human-readable output for date-time values? */
+    false,		/* use 'T' separator between date and time values as strings? */
     false,		/* output special attributes, eg chunking? */
     LANG_C,		/* language conventions for indices */
     0,			/* if -v specified, number of variables */
@@ -67,11 +67,12 @@ usage(void)
   [-x]             Output XML (NcML) instead of CDL\n\
   [-s]             Output special (virtual) attributes\n\
   [-t]             Output time data as date-time strings\n\
+  [-i]             Output time data as date-time strings with ISO-8601 'T' separator\n\
   [-w]             Without client-side caching of variables for DAP URLs\n\
   file             Name of netCDF file\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t] [-w] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-w] file\n%s",
 		   progname,
 		   USAGE);
     
@@ -586,272 +587,6 @@ pr_att_valsx(
     }
 }
 
-/* Check for optional "calendar" attribute and return specified
- * calendar type, if present. */
-cdCalenType
-calendar_type(int ncid, int varid) {
-    int ctype;
-    int stat;
-    ncatt_t catt;
-    static struct {
-	char* attname;
-	int type;
-    } calmap[] = {
-	{"gregorian", cdMixed},
-	{"standard", cdMixed}, /* synonym */
-	{"proleptic_gregorian", cdStandard},
-	{"noleap", cdNoLeap},
-	{"no_leap", cdNoLeap},
-	{"365_day", cdNoLeap},	/* synonym */
-	{"allleap", cd366},
-	{"all_leap", cd366},	/* synonym */
-	{"366_day", cd366},	/* synonym */
-	{"360_day", cd360},
-	{"julian", cdJulian},
-	{"none", cdClim}	/* TODO: test this */
-    };
-#define CF_CAL_ATT_NAME "calendar"
-    int ncals = (sizeof calmap)/(sizeof calmap[0]);
-    ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
-    stat = nc_inq_att(ncid, varid, CF_CAL_ATT_NAME, &catt.type, &catt.len);
-    if(stat == NC_NOERR && catt.type == NC_CHAR && catt.len > 0) {
-	char *calstr = (char *)emalloc(catt.len + 1);
-	int itype;
-	NC_CHECK(nc_get_att(ncid, varid, CF_CAL_ATT_NAME, calstr));	
-	calstr[catt.len] = '\0';
-	for(itype = 0; itype < ncals; itype++) {
-	    if(strncmp(calstr, calmap[itype].attname, catt.len) == 0) {
-		ctype = calmap[itype].type;
-		break;
-	    }
-	}
-	free(calstr);
-    }
-    return ctype;
-}
-
-/* Return true only if this is a "bounds" attribute */
-static boolean
-is_bounds_att(ncatt_t *attp) {
-    if(attp->type == NC_CHAR && attp->valgp && STREQ((char *)attp->name, "bounds")) {
-	return true;
-    }
-#ifdef USE_NETCDF4
-    if(attp->type == NC_STRING && attp->valgp && STREQ((char *)attp->name, "bounds")) {
-	return true;
-    }
-#endif /* USE_NETCDF4 */
-    return false;
-}
-
-struct bounds_node{
-    int ncid;	  /* group (or file) in which variable with associated
-		   * bounds variable resides */
-    int varid; /* has "bounds" attribute naming its bounds variable */
-    char *bounds_name; /* the named variable, which stores bounds for varid */
-    struct bounds_node *next; /* next node on list or NULL ifn last list node */
-};
-
-typedef struct bounds_node bounds_node_t;
-
-static struct {
-    size_t nbnds;		/* number of bounds variables */
-    bounds_node_t *first;
-} bounds_list;
-
-void
-bounds_add(char *bounds_name, int ncid, int varid) {
-    bounds_node_t *bnode = emalloc(sizeof(bounds_node_t) + 1);
-    bounds_list.nbnds++;
-    bnode->ncid = ncid;
-    bnode->varid = varid;
-    bnode->bounds_name = strdup(bounds_name);
-    bnode->next = bounds_list.first;
-    bounds_list.first = bnode;
-}
-
-/* Insert info about a bounds attribute into bounds list, so we can
- * later determine which variables are bounds variables for which
- * other variables.  att must be a variable "bounds" attribute.  */
-void
-insert_bounds_info(int ncid, int varid, ncatt_t att) {
-    static boolean uninitialized = true;
-    if(uninitialized) {
-	bounds_list.nbnds = 0;
-	bounds_list.first = NULL;
-    }
-    assert(is_bounds_att(&att));
-    bounds_add(att.valgp, ncid, varid);
-}
-
-static boolean
-is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
-    bounds_node_t *bp = bounds_list.first;
-    for(; bp; bp = bp->next) {
-	if(STREQ(bp->bounds_name, varname)) {
-	    *pargrpidp = bp->ncid;
-	    *parvaridp = bp->varid;
-	    return true;
-	}
-    }
-    return false;
-} 
-
-static void
-get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
-    ncatt_t uatt;		/* units attribute */
-    int nc_status;		/* return from netcdf calls */
-    char *units;
-    int ncid = ncid1;
-    int varid = varid1;
-
-    vp->has_timeval = false; /* by default, turn on if criteria met */
-    vp->timeinfo = 0;
-    vp->is_bounds_var = false;
-    /* for timeinfo, treat a bounds variable like its "parent" time variable */
-    if(is_bounds_var(vp->name, &ncid, &varid)) {
-	vp->is_bounds_var = true;
-    }
-
-    /* time variables must have appropriate units attribute or be a bounds variable */
-    nc_status = nc_inq_att(ncid, varid, "units", &uatt.type, &uatt.len);
-    if(nc_status == NC_NOERR && uatt.type == NC_CHAR) { /* TODO: NC_STRING? */
-	units = emalloc(uatt.len + 1);
-	NC_CHECK(nc_get_att(ncid, varid, "units", units));
-	units[uatt.len] = '\0';
-	/* check for calendar attribute (not required even for time vars) */
-	vp->timeinfo = (timeinfo_t *)emalloc(sizeof(timeinfo_t));
-	memset((void*)vp->timeinfo,0,sizeof(timeinfo_t));
-	vp->timeinfo->calendar = calendar_type(ncid, varid);
-	/* Parse relative units, returning the unit and base component time. */
- 	if(cdParseRelunits(vp->timeinfo->calendar, units, 
-			   &vp->timeinfo->unit, &vp->timeinfo->origin) != 0) {
-	    /* error parsing units so just treat as not a time variable */
-	    free(vp->timeinfo);
-	    free(units);
-	    vp->timeinfo = NULL;
-	    return;
-	}
-	/* Currently this gets reparsed for every value, need function
-	 * like cdRel2Comp that resuses parsed units? */
-	vp->timeinfo->units = strdup(units);
-	vp->has_timeval = true;
-	free(units);
-    }
-    return;
-}
-
-/* print_att_times 
- * by Dave Allured, NOAA/PSD/CIRES.  
- * This version supports only primitive attribute types; do not call
- * for user defined types.  Print interpreted, human readable (ISO)
- * time strings for an attribute of a CF-like time variable.
- *
- * Print strings as CDL comments, following the normal non-decoded
- * numeric values, which were already printed by the calling function.
- * In the following example, this function prints only the right hand
- * side, starting at the two slashes:
- *
- *    time:actual_range = 51133., 76670. ; // "1940-01-01", "2009-12-01"
- *
- * This function may be called for ALL primitive attributes.
- * This function qualifies the attribute for numeric type and
- * inheriting valid time attributes (has_time).  If the attribute
- * does not qualify, this function prints nothing and safely
- * returns.
- *
- * This function interprets and formats time values with the SAME
- * methods already used in ncdump -t for data variables.
- *
- * This version has special line wrapping rules:
- *
- * (1) If the attribute has one or two values, the time strings are
- *     always printed on the same line.
- *
- * (2) If the attribute has three or more values, the time strings
- *     are always printed on successive lines, with line wrapping
- *     as needed.
- *
- * Assume: Preceeding call to pr_att_valgs has already screened
- * this attribute for valid primitive types for the current netcdf
- * model (netcdf 3 or 4).
- */
-
-static void
-print_att_times(
-    int ncid,
-    int varid,			/* parent var ID */
-    ncatt_t att			/* attribute structure */
-    )
-{
-    nc_type type = att.type;	/* local copy */
-    boolean wrap;
-    boolean first_item;
-
-    ncvar_t var;		/* fake var structure for the att values; */
-				/* will add only the minimum necessary info */
-
-/* For common disqualifications, print nothing and return immediately. */
-
-    if (type == NC_CHAR || type == NC_STRING)	/* must be numeric */
-	return;
-
-    if (varid == NC_GLOBAL)	/* time units not defined for global atts */
-	return;
-
-    assert (att.len > 0);	/* should already be eliminated by caller */
-
-#ifdef USE_NETCDF4
-    assert ( type == NC_BYTE   || type == NC_SHORT  || type == NC_INT
-          || type == NC_FLOAT  || type == NC_DOUBLE || type == NC_UBYTE
-          || type == NC_USHORT || type == NC_UINT   || type == NC_INT64
-          || type == NC_UINT64 );
-#else   /* NETCDF3 */
-    assert ( type == NC_BYTE   || type == NC_SHORT  || type == NC_INT
-          || type == NC_FLOAT  || type == NC_DOUBLE );
-#endif
-
-/* Get time info from parent variable, and qualify. */
-
-    memset((void*)&var,0,sizeof(var));	/* clear the fake var structure */
-    get_timeinfo(ncid, varid, &var);	/* sets has_timeval, timeinfo members */
-    
-    if (var.has_timeval) {		/* no print unless time qualified */
-
-/* Convert each value to ISO date/time string, and print. */
-	
-	size_t iel;				     /* attrib index */
-	const char *valp = (const char *)att.valgp;  /* attrib value pointer */
-	safebuf_t *sb = sbuf_new();		/* allocate new string buffer */
-        int func;				/* line wrap control */
-        
-	var.type = att.type;		/* insert attrib type into fake var */
-
-	for (iel = 0; iel < att.len; iel++) {
-	    nctime_val_tostring(&var, sb, (void *)valp);  /* convert to str. */
-	    valp += att.tinfo->size;	/* increment value pointer, by type */
-	    if (iel < att.len - 1)	/* add comma, except for final value */
-		sbuf_cat(sb, ",");
-
-            first_item = (iel == 0);	/* identify start of list */
-            
-            wrap = (att.len > 2);	/* specify line wrap variations:     */
-					/* 1 or 2 values: keep on same line, */
-					/* more than 2: enable line wrap     */
-
-            lput2 (sbuf_str(sb), first_item, wrap);
-            				/* print string in CDL comment, */
-            				/* with auto newline            */
-	}
-
-        sbuf_free(sb);			/* clean up */
-
-	if(var.timeinfo->units)		/* clean up from get_timeinfo */
-	    free(var.timeinfo->units);
-	free(var.timeinfo);
-    }
-}
-
 /* 
  * Print a variable attribute
  */
@@ -907,7 +642,7 @@ pr_att(
         pr_att_valgs(kind, att.type, att.len, att.valgp);
 	printf (" ;");			/* terminator for normal list */
 /* (2) If -t option, add list of date/time strings as CDL comments. */
-	if(formatting_specs.iso_times) {
+	if(formatting_specs.string_times) {
 	    /* Prints text after semicolon and before final newline.
 	     * Prints nothing if not qualified for time interpretation.
 	     * Will include line breaks for longer lists. */
@@ -1542,7 +1277,7 @@ do_ncdump_rec(int ncid, const char *path)
    int id;			/* dimension number per variable */
    int ia;			/* attribute number */
    int iv;			/* variable number */
-   vnode* vlist = 0;		/* list for vars specified with -v option */
+   vnode_t* vlist = 0;		/* list for vars specified with -v option */
    char type_name[NC_MAX_NAME + 1];
    int kind;		/* strings output differently for nc4 files */
    char dim_name[NC_MAX_NAME + 1];
@@ -1948,7 +1683,7 @@ do_ncdumpx(int ncid, const char *path)
     ncvar_t var;		/* variable */
     int ia;			/* attribute number */
     int iv;			/* variable number */
-    vnode* vlist = 0;		/* list for vars specified with -v option */
+    vnode_t* vlist = 0;		/* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of associated
@@ -2531,7 +2266,7 @@ main(int argc, char *argv[])
 #endif
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:hjkl:n:p:stv:xw")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:hijkl:n:p:stv:xw")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2598,8 +2333,13 @@ main(int argc, char *argv[])
         case 'k':	        /* just output what kind of netCDF file */
 	  kind_out = true;
 	  break;
-	case 't':		/* human-readable strings for time values */
-	  formatting_specs.iso_times = true;
+	case 't':		/* human-readable strings for date-time values */
+	  formatting_specs.string_times = true;
+	  formatting_specs.iso_separator = false;
+	  break;
+	case 'i':		/* human-readable strings for data-time values with 'T' separator */
+	  formatting_specs.string_times = true;
+	  formatting_specs.iso_separator = true;
 	  break;
         case 's':	    /* output special (virtual) attributes for
 			     * netCDF-4 files and variables, including

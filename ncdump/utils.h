@@ -7,6 +7,23 @@
 #include "config.h"
 #include <netcdf.h>
 
+#define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
+
+typedef int boolean;
+enum {false=0, true=1};
+
+struct safebuf_t;
+/* Buffer structure for implementing growable strings, used in
+ * preventing buffer overflows when the size needed for a character
+ * buffer cannot be easily predicted or limited to any specific
+ * maximum, such as when used in recursive function calls for nested
+ * vlens and nested compound types. */
+typedef struct safebuf_t {
+    size_t len;			/* current length of buffer */
+    size_t cl;			/* current length of string in buffer, < len-1 */
+    char *buf;
+} safebuf_t;
+
 extern char *progname;		/* for error messages */
 
 #ifndef NO_NETCDF_2
