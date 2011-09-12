@@ -12,7 +12,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 bin_PROGRAMS = ncdump 
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime.c	\
 ncdump.h vardata.h dumplib.h indent.h isnan.h nctime.h cdl.h \
-utils.h utils.c nciter.h nciter.c
+utils.h utils.c nciter.h nciter.c nccomps.h
 
 # Another utility program that copies any netCDF file using only the
 # netCDF API
