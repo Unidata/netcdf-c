@@ -31,7 +31,7 @@ typedef struct {			/* specification for how to format dump */
 				 * navigating through large
 				 * multi-dimensional data lists.  */
 
-    boolean iso_times;		/* if true, output date-time values as
+    boolean string_times;	/* if true, output date-time values as
 				 * human-readable strings.  */
 
     boolean iso_separator;	/* if true, use 'T' separator between

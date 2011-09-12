@@ -1427,7 +1427,7 @@ set_tostring_func(ncvar_t *varp) {
 	ncstring_val_tostring
 #endif /* USE_NETCDF4 */
     };
-    if(varp->has_timeval && formatting_specs.iso_times) {
+    if(varp->has_timeval && formatting_specs.string_times) {
 	varp->val_tostring = (val_tostring_func) nctime_val_tostring;
 	return;
     }

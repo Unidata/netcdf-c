@@ -642,7 +642,7 @@ pr_att(
         pr_att_valgs(kind, att.type, att.len, att.valgp);
 	printf (" ;");			/* terminator for normal list */
 /* (2) If -t option, add list of date/time strings as CDL comments. */
-	if(formatting_specs.iso_times) {
+	if(formatting_specs.string_times) {
 	    /* Prints text after semicolon and before final newline.
 	     * Prints nothing if not qualified for time interpretation.
 	     * Will include line breaks for longer lists. */
@@ -2334,11 +2334,11 @@ main(int argc, char *argv[])
 	  kind_out = true;
 	  break;
 	case 't':		/* human-readable strings for date-time values */
-	  formatting_specs.iso_times = true;
+	  formatting_specs.string_times = true;
 	  formatting_specs.iso_separator = false;
 	  break;
 	case 'i':		/* human-readable strings for data-time values with 'T' separator */
-	  formatting_specs.iso_times = true;
+	  formatting_specs.string_times = true;
 	  formatting_specs.iso_separator = true;
 	  break;
         case 's':	    /* output special (virtual) attributes for
