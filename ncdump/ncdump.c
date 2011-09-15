@@ -68,11 +68,12 @@ usage(void)
   [-s]             Output special (virtual) attributes\n\
   [-t]             Output time data as date-time strings\n\
   [-i]             Output time data as date-time strings with ISO-8601 'T' separator\n\
+  [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\
   [-w]             Without client-side caching of variables for DAP URLs\n\
   file             Name of netCDF file\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-w] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] file\n%s",
 		   progname,
 		   USAGE);
     
@@ -220,21 +221,6 @@ kind_string(int kind)
 	error("unrecognized file format: %d");
 	return "unrecognized";
     }
-}
-
-/* 
- * Emit kind of netCDF file
- */
-static void 
-do_nckind(int ncid, const char *path)
-{
-    int nc_kind;
-  
-   /*nc_set_log_level(3);*/
-    
-    NC_CHECK( nc_inq_format(ncid, &nc_kind) );
-    printf ("%s\n", kind_string(nc_kind));
-    NC_CHECK( nc_close(ncid) );
 }
 
 
@@ -1587,8 +1573,6 @@ do_ncdump_rec(int ncid, const char *path)
 	 set_tostring_func(&var);
 	 if (vardata(&var, vdims, ncid, varid) == -1) {
 	    error("can't output data for variable %s", var.name);
-	    NC_CHECK(
-	       nc_close(ncid) );
 	    goto done;
 	 }
       }
@@ -1666,7 +1650,6 @@ do_ncdump(int ncid, const char *path)
    do_ncdump_rec(ncid, path);
    indent_out();
    printf ("}\n");
-   NC_CHECK( nc_close(ncid) );
 }
 
 
@@ -1764,8 +1747,6 @@ do_ncdumpx(int ncid, const char *path)
     }
     
     printf ("</netcdf>\n");
-    NC_CHECK(
-	nc_close(ncid) );
     if (vlist)
 	free(vlist);
     if(dims)
@@ -1968,8 +1949,12 @@ missing_vars(int ncid) {
 
 /* Determine whether a group named grpname exists in any group in an
  * open netCDF file with id ncid.  If so, return the count of how many
- * matching groups were found, else return a count of 0.  */
-size_t
+ * matching groups were found, else return a count of 0.  If grpname
+ * begins with "/", it is interpreted as an absolute group name, in
+ * which case only 0 or 1 is returned.  Otherwise, grpname is a
+ * relative name, and the total number of occurrences within the
+ * file/group identified by ncid is returned.  */
+static size_t
 nc_inq_grpname_count(int ncid, char *grpname) {
     /* 
        count = 0;
@@ -1982,14 +1967,34 @@ nc_inq_grpname_count(int ncid, char *grpname) {
        return count;
     */
     size_t count = 0;
-#ifdef USE_NETCDF4
     int numgrps;
     int *ncids;
     int g;
     int grpid;
+    int status;
 
+    /* permit empty string to also designate root group */
+    if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
+	count = 1;
+	return count;
+    }
+#ifdef USE_NETCDF4
+    /* Handle absolute group names */
+    if(grpname[0] == '/') {
+	int grpid;
+	status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
+	if(status == NC_NOERR) {
+	    count = 1;
+	} else if(status == NC_ENOGRP) {
+	    count = 0;
+	} else {
+	    error("when looking up group %s: %s ", grpname, nc_strerror(status));
+	}
+	return count;
+    }
+    
     /* look in this group */
-    int status = nc_inq_ncid(ncid, grpname, &grpid);
+    status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
     if (status == NC_NOERR)
 	count++;
     /* if this group has subgroups, call recursively on each of them */
@@ -2008,18 +2013,22 @@ nc_inq_grpname_count(int ncid, char *grpname) {
     free(ncids);
 #endif /* USE_NETCDF4 */
     return count;    
-   
 }
 
 /* Check if any group names specified with "-g grp1,...,grpn" are
- * missing.  Returns 0 if no missing groups detected, otherwise
- * exits. */
+ * missing or duplicates.  Returns 0 if no missing or duplicate groups
+ * detected, otherwise exits. */
 static int
 missing_grps(int ncid) {
     int ig;
+
     for (ig=0; ig < formatting_specs.nlgrps; ig++) {
-	if(nc_inq_grpname_count(ncid, formatting_specs.lgrps[ig]) == 0) {
+	size_t count = nc_inq_grpname_count(ncid, formatting_specs.lgrps[ig]);
+	if(count == 0) {
 	    error("%s: No such group", formatting_specs.lgrps[ig]);
+	}
+	if(count > 1) {
+	    error("%s: Names multiple groups, specify absolute group name", formatting_specs.lgrps[ig]);
 	}
     }
     return 0;
@@ -2266,7 +2275,7 @@ main(int argc, char *argv[])
 #endif
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:hijkl:n:p:stv:xw")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hijkl:n:p:stv:xw")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2396,23 +2405,31 @@ main(int argc, char *argv[])
 	    if (nc_status != NC_NOERR) {
 		error("%s: %s", path, nc_strerror(nc_status));
 	    }
+	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
 	    if (kind_out) {
-		do_nckind(ncid, path);
+		printf ("%s\n", kind_string(formatting_specs.nc_kind));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
 		if(missing_vars(ncid))
 		    return EXIT_FAILURE;
-		/* Check if any grps in -g don't exist */
-		if(missing_grps(ncid))
-		    return EXIT_FAILURE;
+		if(formatting_specs.nlgrps > 0) {
+		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4) {
+			error("Group list (-g ...) only permitted for netCDF-4 file");
+			return EXIT_FAILURE;
+		    }
+		    /* Check if any grps in -g don't exist */
+		    if(missing_grps(ncid))
+			return EXIT_FAILURE;
+		}
 		if (xml_out) {
 		    do_ncdumpx(ncid, path);
 		} else {
 		    do_ncdump(ncid, path);
 		}
 	    }
+	    NC_CHECK( nc_close(ncid) );
 	}
 	free(path);
     }

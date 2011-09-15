@@ -64,6 +64,11 @@ typedef struct {			/* specification for how to format dump */
 
     char** lgrps;		/* list of group names specified with -g
 				 * option on command line */
+
+    int nc_kind;		/* kind of netCDF file named on
+				 * command line, 1 (classic), 2
+				 * (64-bit offset), 3 (netCDF-4), 4
+				 * (netCDF-4 classic model) */
 } fspec_t;
 
 #endif	/*_NCDUMP_H_ */
