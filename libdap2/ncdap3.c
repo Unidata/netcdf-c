@@ -173,16 +173,16 @@ fprintf(stderr,"parsed constraint: %s\n",
     ncstat = fetchtemplatemetadata3(&drno->dap);
     if(ncstat != NC_NOERR) goto done;
 
-    /* Process the constraints to map the CDF tree */
-    ncstat = mapconstraints3(&drno->dap);
-    if(ncstat != NC_NOERR) goto done;
-
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(&drno->dap);
     if(ncstat != NC_NOERR) goto done;
 
-    /* The following actions are WRT to the
+    /* The following actions are (mostly) WRT to the
 	constrained tree */
+
+    /* Process the constraints to map to the constrained CDF tree */
+    ncstat = mapconstraints3(drno->dap.oc.dapconstraint,drno->dap.cdf.ddsroot);
+    if(ncstat != NC_NOERR) goto done;
 
     /* Accumulate useful nodes sets  */
     ncstat = computecdfnodesets3(&drno->dap);

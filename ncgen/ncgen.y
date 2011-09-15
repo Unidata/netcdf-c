@@ -14,6 +14,11 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 */
 #include        "includes.h"
 #include        "offsets.h"
+#include        <time.h>
+#include        <math.h>
+
+#define TIMEFORMAT "%Y-%m-%d"
+extern char *strptime(const char *s, const char *format, struct tm *tm);
 
 /* parser controls */
 #define YY_NO_INPUT 1
@@ -92,6 +97,7 @@ List* tmp;
 
 /* Forward */
 static Constant makeconstdata(nc_type);
+static Constant evaluate(Symbol* fcn, Datalist* arglist);
 static Constant makeenumconst(Symbol*);
 static void addtogroup(Symbol*);
 static Symbol* getunlimiteddim(void);
@@ -189,7 +195,8 @@ Constant       constant;
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
-%type <datalist> datalist intlist datalist1 datalist0
+%type <constant> simpleconstant function
+%type <datalist> datalist intlist datalist1 datalist0 arglist
 
 
 %start  ncdesc /* start symbol for grammar */
@@ -789,6 +796,25 @@ dataitem:
 	;
 
 constdata:
+	  simpleconstant      {$$=$1;}
+	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
+	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
+	| path		{$$=makeenumconst($1);}
+	| function
+	;
+
+function:
+	IDENT '(' arglist ')' {$$=evaluate($1,$3);}
+	;
+
+arglist:
+	  simpleconstant
+	    {$$ = builddatalist(0); datalistextend($$,&($1));}
+	| arglist ',' simpleconstant
+	    {datalistextend($1,&($3)); $$=$1;}
+	;
+
+simpleconstant:
 	  CHAR_CONST	{$$=makeconstdata(NC_CHAR);} /* never used apparently*/
 	| BYTE_CONST	{$$=makeconstdata(NC_BYTE);}
 	| SHORT_CONST	{$$=makeconstdata(NC_SHORT);}
@@ -801,9 +827,6 @@ constdata:
 	| FLOAT_CONST	{$$=makeconstdata(NC_FLOAT);}
 	| DOUBLE_CONST	{$$=makeconstdata(NC_DOUBLE);}
 	| TERMSTRING	{$$=makeconstdata(NC_STRING);}
-	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
-	| path		{$$=makeenumconst($1);}
-	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
 	;
 
 intlist:
@@ -1381,3 +1404,85 @@ vercheck(int ncid)
     }
     if(tmsg != NULL) markcdf4(tmsg);
 }
+
+/*
+Since the arguments are all simple constant,
+we can evaluate the function immediately
+and return its value.
+*/
+
+static Constant
+evaluate(Symbol* fcn, Datalist* arglist)
+{
+    Constant result;
+
+    /* prepare the result */
+    result.lineno = fcn->lineno;
+    result.filled = 0;
+
+#if defined(HAVE_STRPTIME) && defined(HAVE_MKTIME)
+    if(strcasecmp(fcn->name,"time") == 0) {
+        result.nctype = NC_INT;
+        result.value.int32v = 0;
+	/* int time(string,string) */
+	if(arglist->length != 2
+	   || arglist->data[0].nctype != NC_STRING
+	   || arglist->data[1].nctype != NC_STRING) {
+	    derror("Expected function signature: time(string,string)");
+	    goto done;
+	} else {
+	    char* timekind = arglist->data[0].value.stringv.stringv;
+	    char* timevalue = arglist->data[1].value.stringv.stringv;
+	    if(strcasecmp(timekind,"timetest")==0) {
+		struct tm time;
+		memset(&time,0,sizeof(time));
+	        if(strptime(timevalue,TIMEFORMAT,&time) == NULL) {
+	            derror("Malformed time string: %s",timevalue);
+		    goto done;
+		} else {
+	            result.value.int32v = (int)mktime(&time);
+		}
+	    } else {
+	        derror("Time conversion '%s' not supported",timekind);
+	        goto done;
+	    }
+	}
+    } else if(strcasecmp(fcn->name,"math") == 0) {
+	/* int match(string,string) */
+	if(arglist->length != 2
+	   || arglist->data[0].nctype != NC_STRING
+	   || arglist->data[1].nctype != NC_STRING) {
+	    derror("Expected function signature: math(string,string)");
+	    goto done;
+	} else {
+	    char* fcn = arglist->data[0].value.stringv.stringv;
+	    char* arg = arglist->data[1].value.stringv.stringv;
+	    double matharg = 0.0;
+            result.nctype = NC_INT64;
+            result.value.int64v = 0;
+	    if(sscanf(arg,"%le",&matharg) != 1) {
+	        derror("Malformed math function value: %s",arg);
+		goto done;
+	    }
+	    if(strcasecmp(fcn,"sin")==0) {
+	        result.value.int64v = sin(matharg);
+	    } else if(strcasecmp(fcn,"cos")==0) {
+	        result.value.int64v = cos(matharg);
+	    } else if(strcasecmp(fcn,"tan")==0) {
+	        result.value.int64v = tan(matharg);
+	    } else {
+	        derror("Math function '%s' not supported",fcn);
+	        goto done;
+	    }
+	}
+    } else
+#endif
+    {	/* Unknown function */
+	derror("Unknown function name: %s",fcn->name);
+	goto done;
+    }
+
+done:
+    return result;
+}
+

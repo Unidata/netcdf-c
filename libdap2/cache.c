@@ -137,6 +137,7 @@ nclog(NCLOGNOTE,"prefetch.");
 }
 
 #ifdef DEBUG
+{
 /* Log the set of prefetch variables */
 NCbytes* buf = ncbytesnew();
 ncbytescat(buf,"prefetch.vars: ");
@@ -148,6 +149,7 @@ ncbytescat(buf,makesimplepathstring3(var));
 ncbytescat(buf,"\n");
 nclog(NCLOGNOTE,"%s",ncbytescontents(buf));
 ncbytesfree(buf);
+}
 #endif
 
     /* Make cache node be the prefetch node */

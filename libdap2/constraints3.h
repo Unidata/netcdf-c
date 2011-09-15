@@ -7,7 +7,7 @@
 #define CONSTRAINTS3_H 1
 
 extern NCerror parsedapconstraints(NCDAPCOMMON*, char*, DCEconstraint*);
-extern NCerror mapconstraints3(NCDAPCOMMON*);
+extern NCerror mapconstraints3(DCEconstraint*,CDFnode*);
 
 extern char* simplepathstring(NClist* segments, char* separator);
 extern void makesegmentstring3(NClist* segments, NCbytes* buf, char* separator);

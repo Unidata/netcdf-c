@@ -6,6 +6,8 @@
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 
+#define DDSNEW 1
+
 /* Mnemonics */
 #ifndef BOOL
 #define BOOL int
@@ -129,8 +131,13 @@ typedef struct NCOC {
 } NCOC;
 
 typedef struct NCCDF {
+#ifdef DDSNEW
+    struct CDFnode* ddsroot; /* constrained dds */
+    struct CDFnode* fullddsroot; /* unconstrained dds */
+#else
     struct CDFnode* ddsroot; /* unconstrained dds */
-    /* Collected sets of useful nodes (in unconstrainted tree space) */
+#endif
+    /* Collected sets of useful nodes (in ddsroot tree space) */
     NClist*  varnodes; /* nodes which can represent netcdf variables */
     NClist*  seqnodes; /* sequence nodes; */
     NClist*  gridnodes; /* grid nodes */
@@ -251,6 +258,9 @@ typedef struct CDFnode {
     unsigned long    sequencelimit; /* 0=>unlimited */
     BOOL	     usesequence; /* If this sequence is usable */
     BOOL             elided;  /* 1 => node does not partipate in naming*/
+#ifdef DDSNEW
+    struct CDFnode*  basenode; /* map from constrained tree to unconstrained */
+#endif
     BOOL	     visible; /* 1 => node is present in constrained tree;
                                  independent of elided flag */
     BOOL	     zerodim; /* 1 => node has a zero dimension */

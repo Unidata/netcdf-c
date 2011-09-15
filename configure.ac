@@ -60,7 +60,7 @@ AM_CONDITIONAL([BUILD_DOCS], [test "x$enable_doxygen" != xno])
 AC_ARG_ENABLE([internal-docs],
   [AS_HELP_STRING([--enable-internal-docs],
     [Include documentation of library internals. This is of interest only to those developing the netCDF library.])])
-test $enable_internal_docs = yes || enable_internal_docs=no
+test "x$enable_internal_docs" = xyes || enable_internal_docs=no
 AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs]) 
 
 AC_MSG_CHECKING([if fsync support is enabled])
@@ -565,6 +565,9 @@ AC_FUNC_VPRINTF
 
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
+
+AC_CHECK_FUNCS([mktime])
+AC_CHECK_FUNCS([strptime])
 
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \

@@ -59,22 +59,22 @@ fprintf(stderr,"constraint: %s",dumpconstraint(dceconstraint));
     return ncstat;
 }
 
-/* Map constrain paths to a CDFnode path; the difficulty
+/* Map constraint paths to CDFnode paths in specied tree; the difficulty
    is that suffix paths are legal.
 */
 
 NCerror
-mapconstraints3(NCDAPCOMMON* dapcomm)
+mapconstraints3(DCEconstraint* constraint,
+		CDFnode* root)
 {
     int i;
     NCerror ncstat = NC_NOERR;
-    CDFnode* root = dapcomm->cdf.ddsroot;
     NClist* nodes = root->tree->nodes;
     NClist* dceprojections;
     NClist* dceselections;
 
-    dceprojections = dapcomm->oc.dapconstraint->projections;
-    dceselections = dapcomm->oc.dapconstraint->selections;
+    dceprojections = constraint->projections;
+    dceselections = constraint->selections;
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceprojections);i++) {
@@ -105,7 +105,7 @@ mapconstraints3(NCDAPCOMMON* dapcomm)
 	}
     }
     /* Fill in segment information */
-    ncstat = qualifyconstraints3(dapcomm->oc.dapconstraint);
+    ncstat = qualifyconstraints3(constraint);
     if(ncstat != NC_NOERR) goto done;
 
 #ifdef DEBUG
@@ -290,7 +290,7 @@ matchsuffix3(NClist* matchpath, NClist* segments, int index0)
 	DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
 	CDFnode* node = (CDFnode*)nclistget(matchpath,index0+i);
 	int match;
-	int rank = nclistlength(seg->slices);
+	int rank = seg->rank;
 	/* Do the names match */
 	if(strcmp(seg->name,node->name) != 0) return 0; /* no match */
 	/* Do the ranks match (watch out for sequences) */
@@ -322,12 +322,13 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
     lastseg = (DCEsegment*)nclistget(segments,nsegs-1);
     for(i=0;i<nclistlength(nodes);i++) {
         CDFnode* node = (CDFnode*)nclistget(nodes,i);
+        if(strcmp(node->name,lastseg->name) != 0)
+	    continue;
         if(node->nctype != NC_Sequence
                && node->nctype != NC_Structure
                && node->nctype != NC_Grid
                && node->nctype != NC_Primitive
         ) continue;
-        if(strcmp(node->name,lastseg->name) != 0) continue;
 	nclistpush(namematches,(ncelem)node);
     }    
     if(nclistlength(namematches)==0) {
@@ -486,11 +487,12 @@ fprintf(stderr,"restriction.before=|%s|\n",
 	   (like a complete grid) */
 	nodeset = unifyprojectionnodes3(varlist);	
         for(i=0;i<nclistlength(nodeset);i++) {
+	    DCEprojection* newp;
 	    CDFnode* var = (CDFnode*)nclistget(nodeset,i);
 #ifdef DEBUG
 fprintf(stderr,"restriction.candidate=|%s|\n",var->ncfullname);
 #endif
-	    DCEprojection* newp = (DCEprojection*)dcecreate(CES_PROJECT);
+	    newp = (DCEprojection*)dcecreate(CES_PROJECT);
 
 	    newp->discrim = CES_VAR;
 	    newp->var = (DCEvar*)dcecreate(CES_VAR);
@@ -888,7 +890,6 @@ buildvaraprojection3(Getvara* getvar,
     int ncrank;
     NCerror ncstat = NC_NOERR;
     CDFnode* var = getvar->target;
-    NClist* vardims = var->array.dimensions;
     DCEprojection* projection = NULL;
     NClist* path = nclistnew();
     NClist* segments = NULL;
@@ -930,7 +931,7 @@ buildvaraprojection3(Getvara* getvar,
         segment->rank = localrank;
         for(j=0;j<localrank;j++) {
 	    DCEslice* slice = &segment->slices[j];
-	    CDFnode* dim = (CDFnode*)nclistget(vardims,dimindex+j);
+	    CDFnode* dim = (CDFnode*)nclistget(dimset,dimindex+j);
 	    /* make each slice represent the corresponding
                start/count/stride */
 	    slice->first = startp[dimindex+j];

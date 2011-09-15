@@ -2,8 +2,13 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
-F="http://ferret.pmel.noaa.gov/geoide/dodsC/ct_flux"
+
+F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"
+CON="absvprs[0:10][6:6][0:10][0:10]" 
 if test 1 = 0; then
+F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"
+CON="absvprs[0:1:64][6:1:6][0:1:360][0:1:719]" 
+F="http://ferret.pmel.noaa.gov/geoide/dodsC/ct_flux"
 F="http://motherlode.ucar.edu:9080/thredds/dodsC/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncx"
 F="file:///home/dmh/nc/oc/dataset-duacs-nrt-over30d-global-merged-madt-h"
 F="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_cetaceans"

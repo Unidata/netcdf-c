@@ -26,11 +26,16 @@ static NCerror testregrid3(CDFnode* node, CDFnode* template, NClist*);
 static CDFnode* makenewstruct3(CDFnode* node, CDFnode* template);
 static NCerror regridinsert(CDFnode* newgrid, CDFnode* node);
 static NCerror regridremove(CDFnode* newgrid, CDFnode* node);
-static NCerror imprint3r(CDFnode*, CDFnode*, int depth);
-static NCerror imprintdims3(CDFnode*, CDFnode*);
 static void projection3r(CDFnode*);
 static void unprojected3(NClist* nodes);
 static void projectall3(NClist* nodes);
+#ifdef DDSNEW
+static NCerror mapnodes3r(CDFnode*, CDFnode*, int depth);
+static NCerror mapdims3(CDFnode*, CDFnode*);
+#else
+static NCerror imprint3r(CDFnode*, CDFnode*, int depth);
+static NCerror imprintdims3(CDFnode*, CDFnode*);
+#endif
 
 /* Accumulate useful node sets  */
 NCerror
@@ -395,6 +400,9 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
        This includes containers and subnodes. If there are no
        projections then mark all nodes 
     */
+#ifdef DDSNEW
+        projectall3(template->tree->nodes);
+#else
     if(nclistlength(projections) == 0) {
         projectall3(template->tree->nodes);
     } else for(i=0;i<nclistlength(projections);i++) {
@@ -402,6 +410,7 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
         ASSERT(proj->discrim == CES_VAR);
         projection3r(proj->var->cdfleaf);
     }
+#endif
 
     if(simplenodematch34(ddsroot,template)) {
         ncstat = regrid3r(ddsroot,template,newstructs);
@@ -655,6 +664,95 @@ findddsnode0(CDFnode* node)
 }
 #endif
 
+#ifdef DDSNEW
+/**
+
+Make the constrained dds nodes (root)
+point to the corresponding unconstrained
+dds nodes (fullroot)
+ */
+
+NCerror
+mapnodes3(CDFnode* root, CDFnode* fullroot)
+{
+    NCerror ncstat = NC_NOERR;
+    ASSERT(root != NULL && fullroot != NULL);
+    if(!simplenodematch34(root,fullroot))
+	{THROWCHK(ncstat=NC_EINVAL); goto done;}
+    /* clear out old associations*/
+    unmap3(root);
+    ncstat = mapnodes3r(root,fullroot,0);
+done:
+    return ncstat;
+}
+
+static NCerror
+mapnodes3r(CDFnode* connode, CDFnode* fullnode, int depth)
+{
+    unsigned int i,j;
+    NCerror ncstat = NC_NOERR;
+
+    ASSERT((simplenodematch34(connode,fullnode)));
+    
+    /* Map node */
+    connode->basenode = fullnode;
+    connode->visible = 1;
+#ifdef DEBUG
+fprintf(stderr,"mapnode: %s\n",makecdfpathstring3(connode,"."));
+#endif
+
+    /* Do dimension imprinting */
+    ASSERT((nclistlength(connode->array.dimensions) == nclistlength(fullnode->array.dimensions)));
+    if(nclistlength(connode->array.dimensions) > 0) {
+	ncstat = mapdims3(connode,fullnode);
+	if(ncstat) goto done;
+    }
+
+    /* Try to match connode subnodes against fullnode subnodes */
+    ASSERT(nclistlength(connode->subnodes) <= nclistlength(fullnode->subnodes));
+
+    for(i=0;i<nclistlength(connode->subnodes);i++) {
+        CDFnode* consubnode = (CDFnode*)nclistget(connode->subnodes,i);
+	/* Search full subnodes for a matching subnode from con */
+        for(j=0;j<nclistlength(fullnode->subnodes);j++) {
+            CDFnode* fullsubnode = (CDFnode*)nclistget(fullnode->subnodes,j);
+            if(simplenodematch34(fullsubnode,consubnode)) {
+                ncstat = mapnodes3r(consubnode,fullsubnode,depth+1);
+   	        if(ncstat) goto done;
+	    }
+	}
+    }
+done:
+    return THROW(ncstat);
+}
+
+void
+unmap3(CDFnode* root)
+{
+    unsigned int i;
+    CDFtree* tree = root->tree;
+    for(i=0;i<nclistlength(tree->nodes);i++) {
+	CDFnode* node = (CDFnode*)nclistget(tree->nodes,i);
+	node->basenode = NULL;
+        node->visible = 0;
+    }
+}
+
+static NCerror
+mapdims3(CDFnode* connode, CDFnode* fullnode)
+{
+    unsigned int i;
+    for(i=0;i<nclistlength(connode->array.dimensions);i++) {
+	CDFnode* cdim = (CDFnode*)nclistget(connode->array.dimensions,i);
+	CDFnode* fdim = (CDFnode*)nclistget(fullnode->array.dimensions,i);
+	cdim->basenode = fdim;
+        cdim->visible = 1;
+    }
+    return NC_NOERR;
+}
+
+#else /*!DDSNEW*/
+
 /* 
 Move data from nodes in src tree to nodes in dst tree where
 the nodes match.  Src tree is typically a structural subset
@@ -741,6 +839,7 @@ unimprint3(CDFnode* root)
 	}
     }
 }
+#endif /*!DDSNEW*/
 
 void
 setvisible(CDFnode* root, int visible)

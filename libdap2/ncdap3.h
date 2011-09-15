@@ -142,10 +142,15 @@ extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
 extern int nc3dinitialize(void);
 extern NCerror regrid3(CDFnode* ddsroot, CDFnode* template, NClist*);
+extern void setvisible(CDFnode* root, int visible);
+#ifdef DDSNEW
+extern NCerror mapnodes3(CDFnode* dstroot, CDFnode* srcroot);
+extern void unmap3(CDFnode* root);
+#else
 extern NCerror imprint3(CDFnode* dstroot, CDFnode* srcroot);
 extern void unimprint3(CDFnode* root);
 extern NCerror imprintself3(CDFnode* root);
-extern void setvisible(CDFnode* root, int visible);
+#endif
 
 /* From: ncdap3a.c*/
 extern NCerror fetchtemplatemetadata3(NCDAPCOMMON* nccomm);
