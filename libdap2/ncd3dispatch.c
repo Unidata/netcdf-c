@@ -11,6 +11,7 @@
 #include "nc.h"
 #include "ncdap3.h"
 #include "ncdispatch.h"
+#include "nc3dispatch.h"
 #include "ncd3dispatch.h"
 
 static int
@@ -50,7 +51,8 @@ NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
 
-NCD3_new_nc,
+/* Note: we are using the standard libsrc struct NC creator */
+NC3_new_nc,
 
 NCD3_create,
 NCD3_open,

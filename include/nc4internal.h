@@ -286,10 +286,10 @@ typedef struct
     * group (i.e. group zero). */
 
 /* Warning: fields from BEGIN COMMON to END COMMON must be same for:
-	1. NC (libsrc/nc.h)
-	2. NC_FILE_INFO (libsrc4/nc4internal.h)
-	3. NCDAP3 (libncdap3/ncdap3.h)
-	4. NCDAP4 (libncdap4/ncdap4.h)
+	1. NCcommon (include/ncdispatch.h)
+	2. NC (libsrc/nc.h)
+	3. NC_FILE_INFO (libsrc4/nc4internal.h)
+	4. whatever libdiskless uses
 */
 typedef struct NC_FILE_INFO
 {
@@ -297,8 +297,9 @@ typedef struct NC_FILE_INFO
    int ext_ncid;
    int int_ncid;
    struct NC_Dispatch* dispatch;	
-   struct NC_Dispatch4* dapdispatch;
+   void* dispatchdata;
    char* path;
+   int substrate;
 /*END COMMON*/
 
 #ifdef USE_PNETCDF

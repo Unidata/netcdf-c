@@ -41,8 +41,6 @@ static int cuErrorOccurred = 0;		     /* True iff cdError was called */
 #define VALCMP(a,b) ((a)<(b)?-1:(b)<(a)?1:0)
 
 /* forward declarations */
-static void Cdh2e(CdTime *htime, double *etime);
-static void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
 static void cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* reltime);
 static void cdRel2CompMixed(double reltime, cdUnitTime unit, cdCompTime basetime, cdCompTime *comptime);
 static void cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* comptime);
@@ -624,7 +622,7 @@ cdToOldTimetype(cdCalenType newtype, CdTimeType* oldtype)
  * 
  * Derived from NRL Neons V3.6
  */
-static void
+void
 Cdh2e(CdTime *htime, double *etime)
 {
 	long 	ytemp, year;			/* temporary year holder */
@@ -682,7 +680,7 @@ cdValidateTime(cdCalenType timetype, cdCompTime comptime)
 	return 0;
 }
 
-static void
+void
 cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime)
 {
 	double sec;

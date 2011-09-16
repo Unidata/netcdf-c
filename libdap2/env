@@ -2,11 +2,35 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
+F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/synth1"
 
-F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"
-CON="absvprs[0:10][6:6][0:10][0:10]" 
+
+#PARMS="${PARMS}[netcdf4]"
+#PARMS="${PARMS}[cache]"
+PARMS="${PARMS}[show=fetch]"
+#PARMS="${PARMS}[compile]"
+if test "x$CE" != "x" ; then set PARMS="${PARMS}[ce=${CE}]" ; fi
+PROG="./ncd"
+#PROG="../ncdump/ncdump"
+U="${PARMS}$F"
+if test "x$CON" != "x" ; then U="${PARMS}$F?$CON"; fi
+UALL="${PARMS}$F"
+#ARGS="-h $ARGS"
+#ARGS="-w $ARGS"
+#ARGS="-c $ARGS"
+VARGS="--leak-check=full"
+alias qq="gdb --args $PROG $ARGS '$U'"
+alias qv="valgrind $VARGS PROG $ARGS '$U'"
+alias q0="$PROG $ARGS '$U'"
+alias qh="$PROG -h $ARGS '$U'"
+alias qqh="gdb --args $PROG -h $ARGS '$U'"
+alias qall="$PROG -h $ARGS '${UALL}'"
+alias qv="valgrind $VARGS $PROG $ARGS '$U'"
+
+
 if test 1 = 0; then
 F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"
+CON="absvprs[0:10][6:6][0:10][0:10]" 
 CON="absvprs[0:1:64][6:1:6][0:1:360][0:1:719]" 
 F="http://ferret.pmel.noaa.gov/geoide/dodsC/ct_flux"
 F="http://motherlode.ucar.edu:9080/thredds/dodsC/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncx"
@@ -30,24 +54,3 @@ F="http://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/46029/46029h9999.nc"
 CON="wind_dir[1:10][0:0][0:0]"
 fi
 
-#PARMS="${PARMS}[netcdf4]"
-#PARMS="${PARMS}[cache]"
-PARMS="${PARMS}[show=fetch]"
-#PARMS="${PARMS}[compile]"
-if test "x$CE" != "x" ; then set PARMS="${PARMS}[ce=${CE}]" ; fi
-PROG="./ncd"
-#PROG="../ncdump/ncdump"
-U="${PARMS}$F"
-if test "x$CON" != "x" ; then U="${PARMS}$F?$CON"; fi
-UALL="${PARMS}$F"
-#ARGS="-h $ARGS"
-#ARGS="-w $ARGS"
-#ARGS="-c $ARGS"
-VARGS="--leak-check=full"
-alias qq="gdb --args $PROG $ARGS '$U'"
-alias qv="valgrind $VARGS PROG $ARGS '$U'"
-alias q0="$PROG $ARGS '$U'"
-alias qh="$PROG -h $ARGS '$U'"
-alias qqh="gdb --args $PROG -h $ARGS '$U'"
-alias qall="$PROG -h $ARGS '${UALL}'"
-alias qv="valgrind $VARGS $PROG $ARGS '$U'"

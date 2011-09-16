@@ -26,6 +26,8 @@ static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
 static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
 */
 
+NC_Dispatch* NCSUBSTRATE_dispatch_table = NULL;
+
 NC_Dispatch* NC3_dispatch_table = NULL;
 NC_Dispatch* NCD_dispatch_table = NULL;
 

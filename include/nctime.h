@@ -140,6 +140,8 @@ typedef struct timeinfo_t {
 
 extern void cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime);
 extern void insert_bounds_info(int ncid, int varid, ncatt_t att);
-extern boolean is_bounds_att(ncatt_t *attp);
+extern int is_bounds_att(ncatt_t *attp);
 extern void get_timeinfo(int ncid, int varid, ncvar_t *vp);
 extern void print_att_times(int ncid, int varid, ncatt_t att);
+extern void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
+extern void Cdh2e(CdTime *htime, double *etime);

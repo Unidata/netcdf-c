@@ -11,6 +11,7 @@
 
 #include "ncdap4.h"
 #include "nc.h"
+#include "nc4dispatch.h"
 #include "ncd4dispatch.h"
 #include "ncdispatch.h"
 
@@ -35,7 +36,8 @@ NC_Dispatch NCD4_dispatch_base = {
 
 NC_DISPATCH_NC4|NC_DISPATCH_NCD,
 
-NCD4_new_nc,
+/* Use raw NC4 version */
+NC4_new_nc,
 
 NCD4_create,
 NCD4_open,

@@ -14,11 +14,12 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 */
 #include        "includes.h"
 #include        "offsets.h"
-#include        <time.h>
-#include        <math.h>
 
-#define TIMEFORMAT "%Y-%m-%d"
-extern char *strptime(const char *s, const char *format, struct tm *tm);
+/* Following are in ncdump (for now)*/
+/* Need some (unused) definitions to get it to compile */
+#define ncatt_t void*
+#define ncvar_t void
+#include        "nctime.h"
 
 /* parser controls */
 #define YY_NO_INPUT 1
@@ -1406,9 +1407,11 @@ vercheck(int ncid)
 }
 
 /*
-Since the arguments are all simple constant,
+Since the arguments are all simple constants,
 we can evaluate the function immediately
 and return its value.
+Note that currently, only a single value can
+be returned.
 */
 
 static Constant
@@ -1420,64 +1423,54 @@ evaluate(Symbol* fcn, Datalist* arglist)
     result.lineno = fcn->lineno;
     result.filled = 0;
 
-#if defined(HAVE_STRPTIME) && defined(HAVE_MKTIME)
     if(strcasecmp(fcn->name,"time") == 0) {
+        char* timekind = NULL;
+        char* timevalue = NULL;
         result.nctype = NC_INT;
         result.value.int32v = 0;
-	/* int time(string,string) */
-	if(arglist->length != 2
-	   || arglist->data[0].nctype != NC_STRING
-	   || arglist->data[1].nctype != NC_STRING) {
-	    derror("Expected function signature: time(string,string)");
-	    goto done;
-	} else {
-	    char* timekind = arglist->data[0].value.stringv.stringv;
-	    char* timevalue = arglist->data[1].value.stringv.stringv;
-	    if(strcasecmp(timekind,"timetest")==0) {
-		struct tm time;
-		memset(&time,0,sizeof(time));
-	        if(strptime(timevalue,TIMEFORMAT,&time) == NULL) {
-	            derror("Malformed time string: %s",timevalue);
-		    goto done;
-		} else {
-	            result.value.int32v = (int)mktime(&time);
-		}
-	    } else {
-	        derror("Time conversion '%s' not supported",timekind);
+	/* int time([string],string) */
+	switch (arglist->length) {
+	case 2:
+	    if(arglist->data[1].nctype != NC_STRING) {
+	        derror("Expected function signature: time([string,]string)");
 	        goto done;
 	    }
-	}
-    } else if(strcasecmp(fcn->name,"math") == 0) {
-	/* int match(string,string) */
-	if(arglist->length != 2
-	   || arglist->data[0].nctype != NC_STRING
-	   || arglist->data[1].nctype != NC_STRING) {
-	    derror("Expected function signature: math(string,string)");
-	    goto done;
-	} else {
-	    char* fcn = arglist->data[0].value.stringv.stringv;
-	    char* arg = arglist->data[1].value.stringv.stringv;
-	    double matharg = 0.0;
-            result.nctype = NC_INT64;
-            result.value.int64v = 0;
-	    if(sscanf(arg,"%le",&matharg) != 1) {
-	        derror("Malformed math function value: %s",arg);
-		goto done;
-	    }
-	    if(strcasecmp(fcn,"sin")==0) {
-	        result.value.int64v = sin(matharg);
-	    } else if(strcasecmp(fcn,"cos")==0) {
-	        result.value.int64v = cos(matharg);
-	    } else if(strcasecmp(fcn,"tan")==0) {
-	        result.value.int64v = tan(matharg);
-	    } else {
-	        derror("Math function '%s' not supported",fcn);
+	    /* fall thru */
+	case 1:
+	    if(arglist->data[0].nctype != NC_STRING) {
+	        derror("Expected function signature: time([string,]string)");
 	        goto done;
 	    }
+	    break;
+	case 0:
+	default: 
+	    derror("Expected function signature: time([string,]string)");
+	    goto done;
 	}
-    } else
-#endif
-    {	/* Unknown function */
+	if(arglist->length == 2) {
+	    timekind = arglist->data[0].value.stringv.stringv;
+            timevalue = arglist->data[1].value.stringv.stringv;
+	} else
+            timevalue = arglist->data[0].value.stringv.stringv;
+	if(timekind == NULL) { /* use cd time as the default */
+            cdCompTime comptime;
+	    CdTime cdtime;
+	    cdCalenType timetype = cdStandard;
+	    cdChar2Comp(timetype,timevalue,&comptime);
+	    /* convert comptime to cdTime */
+	    cdtime.year = comptime.year;	    
+	    cdtime.month = comptime.month;
+	    cdtime.day = comptime.day;    
+	    cdtime.hour = comptime.hour;
+	    cdtime.baseYear = 1970;
+	    cdtime.timeType = CdChron;
+	    /* convert to double value */
+	    Cdh2e(&cdtime,&result.value.doublev);
+        } else {
+	    derror("Time conversion '%s' not supported",timekind);
+	    goto done;
+	}
+    } else {	/* Unknown function */
 	derror("Unknown function name: %s",fcn->name);
 	goto done;
     }

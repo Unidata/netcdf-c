@@ -16,7 +16,7 @@
 #endif
 
 /* Mnemonic */
-#define getncid(drno) (((NC*)drno)->ext_ncid)
+#define getncid(nccr) (((NC*)(nccr->controller)->ext_ncid)
 
 extern NC_FILE_INFO_T* nc_file;
 
@@ -29,6 +29,7 @@ static int nccr_collect_projection_variables(NCCDMR* cdmr);
 static int nccr_mark_visible(NCCDMR* cdmr);
 
 /**************************************************/
+#ifdef NOTUSED
 int
 NCCR_new_nc(NC** ncpp)
 {
@@ -39,6 +40,7 @@ NCCR_new_nc(NC** ncpp)
     if(ncpp) *ncpp = (NC*)ncp;
     return NC_NOERR;
 }
+#endif
 
 /**************************************************/
 /* See ncd4dispatch.c for other version */
@@ -47,10 +49,9 @@ NCCR_open(const char * path, int mode,
                int basepe, size_t *chunksizehintp,
  	       int useparallel, void* mpidata,
                NC_Dispatch* dispatch, NC** ncpp)
-{
     NCerror ncstat = NC_NOERR;
     NC_URI* tmpurl;
-    NCCR* nccr = NULL; /* reuse the ncdap3 structure*/
+    NC_FILE_INFO_T* drno = NULL; /* reuse the nc4 structure*/ 
     NCCDMR* cdmr = NULL;
     NC_HDF5_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T *grp = NULL;
@@ -84,11 +85,12 @@ NCCR_open(const char * path, int mode,
     /* Now, use the file to create the hdf5 file */
     ncstat = NC4_create(tmpname,NC_NETCDF4|NC_CLOBBER,
 			0,0,NULL,0,NULL,dispatch,(NC**)&nccr);
-    ncid = nccr->info.ext_ncid;
+    ncid = nccr->ext_ncid;
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
     free(tmpname);
     /* Avoid fill */
+
     dispatch->set_fill(ncid,NC_NOFILL,NULL);
     if(ncstat)
 	{THROWCHK(ncstat); goto done;}
@@ -98,6 +100,7 @@ NCCR_open(const char * path, int mode,
 	{THROWCHK(ncstat); goto done;}
 
     /* Setup tentative NCCR state*/
+???    nccr->
     nccr->info.dispatch = dispatch;
     cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
     if(cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}

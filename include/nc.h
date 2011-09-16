@@ -256,18 +256,19 @@ typedef short int		 shmem_t;
 #endif
 
 /* Warning: fields from BEGIN COMMON to END COMMON must be same for:
-	1. NC (libsrc/nc.h)
-	2. NC_FILE_INFO (libsrc4/nc4internal.h)
-	3. NCDAP3 (libncdap3/ncdap3.h)
-	4. NCDAP4 (libncdap4/ncdap4.h)
+	1. NCcommon (include/ncdispatch.h)
+	2. NC (libsrc/nc.h)
+	3. NC_FILE_INFO (libsrc4/nc4internal.h)
+	4. whatever libdiskless uses
 */
 struct NC {
-/*BEGIN COMMON*/
-	int ext_ncid; /* uid << 16 */
-	int int_ncid; /* unspecified other id */
+/*BEGIN COMMON (see include/ncdispatch.h: struct NCcommon) */
+	int ext_ncid;
+	int int_ncid;
 	struct NC_Dispatch* dispatch;	
-        struct NC_Dispatch3* dapdispatch;
-	char* path; /* as specified at open or create */
+	void* dispatchdata;
+	char* path;
+	int substrate;
 /*END COMMON*/
 	/* contains the previous NC during redef. */
 	struct NC *old;

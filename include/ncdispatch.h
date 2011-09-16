@@ -318,9 +318,9 @@ typedef struct NCcommon {
 	int ext_ncid; /* uid << 16 */
 	int int_ncid; /* unspecified other id */
 	struct NC_Dispatch* dispatch;	
-#ifdef USE_DAP
-	struct NCDRNO* drno;
-#endif
+	void* dispatchdata; /* per-protocol instance data */
+	char* path; /* as specified at open or create */
+	int   substrate; /* ncid for another protocol on which to build */
 } NCcommon;
 
 extern int NC_atomictypelen(nc_type xtype);
