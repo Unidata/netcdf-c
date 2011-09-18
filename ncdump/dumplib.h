@@ -139,6 +139,7 @@ void print_name(const char *name);
  * Escape any special chars. */
 void print_type_name(int locid, int typeid);
 
+int nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp);
 #ifdef __cplusplus
 }
 #endif

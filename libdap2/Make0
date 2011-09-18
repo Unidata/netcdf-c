@@ -229,8 +229,9 @@ cpp::
 
 ##################################################
 # ncd
-NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime.c ../ncdump/vardata.c ../ncdump/utils.c
-NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime.h ../ncdump/vardata.h ../ncdump/utils.h
+NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime0.c ../ncdump/vardata.c ../ncdump/utils.c
+NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime0.h ../ncdump/vardata.h ../ncdump/utils.h
+
 NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
 
 #${NCDUMPC} ${NCDUMPH} ${NCLIB}

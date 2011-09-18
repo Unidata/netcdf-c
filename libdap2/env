@@ -4,8 +4,7 @@ PARMS="[log]"
 
 F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/synth1"
 
-
-#PARMS="${PARMS}[netcdf4]"
+PARMS="${PARMS}[netcdf4]"
 #PARMS="${PARMS}[cache]"
 PARMS="${PARMS}[show=fetch]"
 #PARMS="${PARMS}[compile]"

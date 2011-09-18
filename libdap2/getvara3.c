@@ -35,8 +35,8 @@ nc3d_getvarx(int ncid, int varid,
     OCerror ocstat = OC_NOERR;
     int i;
     NC* drno;
+    NC* substrate;
     NCDAPCOMMON* dapcomm;
-    NC_var* var;
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
     nc_type dsttype;
@@ -55,8 +55,8 @@ nc3d_getvarx(int ncid, int varid,
     if(ncstat != NC_NOERR) goto fail;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
     
-    var = NC_lookupvar((NC*)drno,varid);
-    if(var == NULL) {ncstat = NC_ENOTVAR; goto fail;}
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
     varnodes = dapcomm->cdf.varnodes;
@@ -71,7 +71,6 @@ nc3d_getvarx(int ncid, int varid,
     }
 
     ASSERT((cdfvar != NULL));
-    ASSERT((strcmp(cdfvar->ncfullname,var->name->cp)==0));
 
     /* Get the dimension info */
     ncdims = cdfvar->array.dimensions;
@@ -696,6 +695,7 @@ nc3d_getvarmx(int ncid, int varid,
     NCerror ncstat = NC_NOERR;
     int i;
     NC* drno;
+    NC* substrate;
     NCDAPCOMMON* dapcomm;
     NC_var* var;
     CDFnode* cdfvar; /* cdf node mapping to var*/
@@ -715,7 +715,9 @@ nc3d_getvarmx(int ncid, int varid,
     if(ncstat != NC_NOERR) goto done;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
-    var = NC_lookupvar((NC*)drno,varid);
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    if(ncstat != NC_NOERR) goto done;
+    var = NC_lookupvar(substrate,varid);
     if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
     /* Locate var node via varid */

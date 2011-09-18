@@ -12,18 +12,15 @@
 #include "ocdrno.h"
 #include "dapdump.h"
 
-static NCerror buildncstructures(NCDAPCOMMON*);
+static NCerror buildncstructures3(NCDAPCOMMON*);
 static NCerror builddims(NCDAPCOMMON*);
 static NCerror buildvars(NCDAPCOMMON*);
-static NCerror buildglobalattrs3(NCDAPCOMMON*, int ncid, CDFnode* root);
-static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute* att, nc_type, int varid, int ncid);
+static NCerror buildglobalattrs3(NCDAPCOMMON*,CDFnode* root);
+static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 
 extern CDFnode* v4node;
 int nc3dinitialized = 0;
-
-
-#define getncid(dapcomm) ((dapcomm)->metadata)
 
 /**************************************************/
 /* Add an extra function whose sole purpose is to allow
@@ -76,7 +73,6 @@ NCD3_open(const char * path, int mode,
     NCDAPCOMMON* dapcomm = NULL;
     char* modifiedpath;
     OCURI* tmpurl;
-    char* ce = NULL;
     int ncid = -1;
     const char* value;
     char* tmpname = NULL;
@@ -96,7 +92,7 @@ NCD3_open(const char * path, int mode,
 #endif
 
     /* Setup our NC and NCDAPCOMMON state*/
-    drno = (NC*)calloc(1,sizeof(NC*));
+    drno = (NC*)calloc(1,sizeof(NC));
     if(drno == NULL) {ncstat = NC_ENOMEM; goto done;}
     /* compute an ncid */
     ncstat = add_to_NCList(drno);
@@ -108,6 +104,7 @@ NCD3_open(const char * path, int mode,
 
     drno->dispatch = dispatch;
     drno->dispatchdata = dapcomm;
+
     dapcomm->controller = (NC*)drno;
     dapcomm->oc.urltext = modifiedpath;
     ocuriparse(dapcomm->oc.urltext,&dapcomm->oc.uri);
@@ -121,25 +118,25 @@ NCD3_open(const char * path, int mode,
     tmpname = nulldup(PSEUDOFILE);
     /* Now, use the file to create the netcdf file */
     if(sizeof(size_t) == sizeof(unsigned int))
-	ncstat = nc_create(tmpname,NC_CLOBBER,&dapcomm->metadata);
+	ncstat = nc_create(tmpname,NC_CLOBBER,&drno->substrate);
     else
-	ncstat = nc_create(tmpname,NC_CLOBBER|NC_64BIT_OFFSET,&dapcomm->metadata);
+	ncstat = nc_create(tmpname,NC_CLOBBER|NC_64BIT_OFFSET,&drno->substrate);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     /* free the filename so it will automatically go away*/
-    {
 #ifdef NOTUSED
+    {
         /* break the abstraction to get the fd */
 	NC* nc;
-        ncstat = NC_check_id(dapcomm->metadata, &nc);
+        ncstat = NC_check_id(drno->substrate, &nc);
 	close(nc->int_ncid);
-#endif
-        /* unlink the temp file so it will automatically be reclaimed */
-        unlink(tmpname);
-        nullfree(tmpname);
     }
+#endif
+    /* unlink the temp file so it will automatically be reclaimed */
+    unlink(tmpname);
+    nullfree(tmpname);
 
     /* Avoid fill */
-    NC3_set_fill(dapcomm->metadata,NC_NOFILL,NULL);
+    nc_set_fill(drno->ext_ncid,NC_NOFILL,NULL);
 
     /* process control client parameters */
     applyclientparamcontrols3(dapcomm);
@@ -193,8 +190,7 @@ fprintf(stderr,"parsed constraint: %s\n",
     ncstat = fetchconstrainedmetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
-    /* The following actions are (mostly) WRT to the
-	constrained tree */
+    /* The following actions are (mostly) WRT to the constrained tree */
 
     /* Process the constraints to map to the constrained CDF tree */
     ncstat = mapconstraints3(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
@@ -263,10 +259,9 @@ fprintf(stderr,"parsed constraint: %s\n",
     estimatevarsizes3(dapcomm);
 
     /* Build the meta data */
-    ncstat = buildncstructures(dapcomm);
+    ncstat = buildncstructures3(dapcomm);
 
     if(ncstat != NC_NOERR) {
-        del_from_NCList((NC*)drno); /* undefine here */
 	{THROWCHK(ncstat); goto done;}
     }
 
@@ -277,60 +272,65 @@ fprintf(stderr,"parsed constraint: %s\n",
 	{THROWCHK(ncstat); goto done;}
     }
 
-    /* Mark as no longer indef */
-    (void)nc_enddef(dapcomm->metadata);
-
     {
-        /* Mark as no longer writable; requires breaking abstraction  */
+        /* Mark as no longer writable and no longer indef;
+           requires breaking abstraction  */
 	NC* nc;
-        ncstat = NC_check_id(dapcomm->metadata, &nc);
+        ncstat = NC_check_id(drno->substrate, &nc);
+        /* Mark as no longer writeable */
         fClr(nc->nciop->ioflags, NC_WRITE);
+        /* Mark as no longer indef;
+           (do NOT use nc_enddef until diskless is working)*/
+	fSet(nc->flags, NC_INDEF);	
     }
 
     if(ncpp) *ncpp = (NC*)drno;
 
-    return THROW(NC_NOERR);
+    return ncstat;
 
 done:
-    if(drno != NULL) {
-	int ncid = drno->ext_ncid;
-	cleanNCDAPCOMMON(dapcomm);
-	NC3_abort(ncid);
-    }
-    if(ce) nullfree(ce);
+    if(drno != NULL) NCD3_abort(drno->ext_ncid);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD3_close(int ncid)
+NCD3_abort(int ncid)
 {
-    int ncstatus = NC_NOERR;
     NC* drno;
     NCDAPCOMMON* dapcomm;
+    int ncstatus = NC_NOERR;
 
     ncstatus = NC_check_id(ncid, (NC**)&drno); 
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
+
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
+    ncstatus = nc_abort(drno->substrate);
 
+    /* remove ourselves from NClist */
+    del_from_NCList(drno);
+    /* clean NC* */
     cleanNCDAPCOMMON(dapcomm);
-    NC3_abort(ncid);    
-
+    if(drno->path != NULL) free(drno->path);
+    free(drno);
     return THROW(ncstatus);
 }
 
 /**************************************************/
 static NCerror
-buildncstructures(NCDAPCOMMON* dapcomm)
-
+buildncstructures3(NCDAPCOMMON* dapcomm)
 {
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = dapcomm->cdf.ddsroot;
+    NC* ncsub;
+    NC_check_id(dapcomm->controller->substrate,&ncsub);
 
-    ncstat = buildglobalattrs3(dapcomm,getncid(dapcomm),dds);
+    ncstat = buildglobalattrs3(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
+
     ncstat = builddims(dapcomm);
     if(ncstat != NC_NOERR) goto done;
+
     ncstat = buildvars(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
@@ -344,10 +344,13 @@ builddims(NCDAPCOMMON* dapcomm)
     int i;
     NCerror ncstat = NC_NOERR;
     int dimid;
-    int ncid = getncid(dapcomm);
     int defunlimited = 0;
     NClist* dimset = NULL;
     NC* drno = dapcomm->controller;
+    NC* ncsub;
+
+    ncstat = NC_check_id(drno->substrate,&ncsub);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* collect all dimensions from variables */
     dimset = getalldims3(dapcomm->cdf.varnodes,1);
@@ -379,11 +382,11 @@ builddims(NCDAPCOMMON* dapcomm)
     if(defunlimited && dapcomm->cdf.unlimited != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.unlimited;
 	size_t unlimsize;
-        ncstat = nc_def_dim(ncid,
+        ncstat = nc_def_dim(drno->substrate,
 			unlimited->name,
 			NC_UNLIMITED,
 			&unlimited->ncid);
-        if(ncstat != NC_NOERR) goto done;
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         if(DIMFLAG(unlimited,CDFDIMRECORD)) {
 	    /* This dimension was defined as unlimited by DODS_EXTRA */
 	    unlimsize = unlimited->dim.declsize;
@@ -392,13 +395,13 @@ builddims(NCDAPCOMMON* dapcomm)
 	}
         /* Set the effective size of UNLIMITED;
            note that this cannot be done thru the normal API.*/
-        NC_set_numrecs((NC*)drno,unlimsize);
+        NC_set_numrecs(ncsub,unlimsize);
     }
 
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         if(dim->dim.basedim != NULL) continue; /* handle below */
-        ncstat = nc_def_dim(ncid,dim->ncfullname,dim->dim.declsize,&dimid);
+        ncstat = nc_def_dim(drno->substrate,dim->ncfullname,dim->dim.declsize,&dimid);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         dim->ncid = dimid;
     }
@@ -424,8 +427,8 @@ buildvars(NCDAPCOMMON* dapcomm)
     int i,j,dimindex;
     NCerror ncstat = NC_NOERR;
     int varid;
-    int ncid = getncid(dapcomm);
     NClist* varnodes = dapcomm->cdf.varnodes;
+    NC* drno = dapcomm->controller;
 
     ASSERT((varnodes != NULL));
     for(i=0;i<nclistlength(varnodes);i++) {
@@ -450,7 +453,7 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[dimindex++] = dim->ncid;
  	    }
         }   
-        ncstat = nc_def_var(ncid,var->ncfullname,
+        ncstat = nc_def_var(drno->substrate,var->ncfullname,
                         var->externaltype,
                         ncrank,
                         (ncrank==0?NULL:dimids),
@@ -460,7 +463,7 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
 	if(var->attributes != NULL) {
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
-		ncstat = buildattribute3a(dapcomm,att,var->etype,varid,ncid);
+		ncstat = buildattribute3a(dapcomm,att,var->etype,varid);
         	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -472,9 +475,8 @@ done:
     return THROW(ncstat);
 }
 
-
 static NCerror
-buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
+buildglobalattrs3(NCDAPCOMMON* dapcomm, CDFnode* root)
 {
     int i;
     NCerror ncstat = NC_NOERR;
@@ -482,11 +484,12 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
     char *nltxt, *p;
     NCbytes* buf = NULL;
     NClist* cdfnodes;
+    NC* drno = dapcomm->controller;
 
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
-	    ncstat = buildattribute3a(dapcomm,att,NC_NAT,NC_GLOBAL,ncid);
+	    ncstat = buildattribute3a(dapcomm,att,NC_NAT,NC_GLOBAL);
             if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -506,7 +509,7 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_sequence_dimensions",
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_sequence_dimensions",
 	           ncbyteslength(buf),ncbytescontents(buf));
 	}
     }
@@ -517,12 +520,12 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
 
     if(paramcheck34(dapcomm,"show","translate")) {
         /* Add a global attribute to show the translation */
-        ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_translate",
+        ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_translate",
 	           strlen("netcdf-3"),"netcdf-3");
     }
     if(paramcheck34(dapcomm,"show","url")) {
 	if(dapcomm->oc.urltext != NULL)
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_url",
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_url",
 				       strlen(dapcomm->oc.urltext),dapcomm->oc.urltext);
     }
     if(paramcheck34(dapcomm,"show","dds")) {
@@ -533,7 +536,7 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -544,7 +547,7 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, int ncid, CDFnode* root)
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -555,12 +558,13 @@ done:
 }
 
 static NCerror
-buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid, int ncid)
+buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     char* cname = cdflegalname3(att->name);
     unsigned int nvalues = nclistlength(att->values);
+    NC* drno = dapcomm->controller;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -584,9 +588,9 @@ buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int va
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(ncid,varid,cname,1,newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,cname,1,newstring);
 	else
-	    ncstat = nc_put_att_text(ncid,varid,cname,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,cname,strlen(newstring),newstring);
 	free(newstring);
     } else {
 	nc_type atype;
@@ -606,7 +610,7 @@ buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int va
 	typesize = nctypesizeof(atype);
 	mem = malloc(typesize * nvalues);
         ncstat = dapcvtattrval3(atype,mem,att->values);
-        ncstat = nc_put_att(ncid,varid,cname,atype,nvalues,mem);
+        ncstat = nc_put_att(drno->substrate,varid,cname,atype,nvalues,mem);
 	nullfree(mem);
     }
     free(cname);

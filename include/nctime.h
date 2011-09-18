@@ -14,11 +14,6 @@ struct bounds_node{
 
 typedef struct bounds_node bounds_node_t;
 
-static struct {
-    size_t nbnds;		/* number of bounds variables */
-    bounds_node_t *first;
-} bounds_list;
-
 /* 
  * This code was extracted with permission from the CDMS time
  * conversion and arithmetic routines developed by Bob Drach, Lawrence
@@ -139,9 +134,8 @@ typedef struct timeinfo_t {
 } timeinfo_t;
 
 extern void cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime);
-extern void insert_bounds_info(int ncid, int varid, ncatt_t att);
-extern int is_bounds_att(ncatt_t *attp);
-extern void get_timeinfo(int ncid, int varid, ncvar_t *vp);
-extern void print_att_times(int ncid, int varid, ncatt_t att);
 extern void cdChar2Comp(cdCalenType timetype, char* chartime, cdCompTime* comptime);
 extern void Cdh2e(CdTime *htime, double *etime);
+extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
+extern int cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTime* base_comptime);
+

@@ -11,7 +11,6 @@
 #include "nc.h"
 #include "ncdap3.h"
 #include "ncdispatch.h"
-#include "nc3dispatch.h"
 #include "ncd3dispatch.h"
 
 static int
@@ -23,7 +22,7 @@ NCD3_create(const char *path, int cmode,
 static int NCD3_redef(int ncid);
 static int NCD3__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
 static int NCD3_sync(int ncid);
-static int NCD3_abort(int ncid);
+static int NCD3_close(int ncid);
 
 static int NCD3_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
@@ -47,12 +46,14 @@ ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
 size_t dapzerostart3[NC_MAX_VAR_DIMS];
 size_t dapsinglecount3[NC_MAX_VAR_DIMS];
 
+NC_Dispatch* NCD3_dispatch_table = NULL;
+
 NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
 
-/* Note: we are using the standard libsrc struct NC creator */
-NC3_new_nc,
+/* Note: we are using the standard substrate struct NC creator */
+NULL,
 
 NCD3_create,
 NCD3_open,
@@ -91,8 +92,8 @@ NCD3_get_vara,
 NCD3_put_vara,
 NCD3_get_vars,
 NCD3_put_vars,
-NULL, /*get_varm*/
-NULL, /*put_varm*/
+NCDEFAULT_get_varm,
+NCDEFAULT_put_varm,
 
 NULL, /*inq_var_all*/
 
@@ -145,9 +146,9 @@ int
 NCD3_initialize(void)
 {
     int i;
-    /* Create our dispatch table as the merge of NC3 table
-       plus some overrides */
-    NC_dispatch_overlay(&NCD3_dispatch_base, NC3_dispatch_table, &NCD3_dispatcher);    
+    /* Create our dispatch table as the merge of NCD3 table and NCSUBSTRATE */
+    /* watch the order because we want NCD3 to overwrite NCSUBSTRATE */
+    NC_dispatch_overlay(&NCD3_dispatch_base, NCSUBSTRATE_dispatch_table, &NCD3_dispatcher);    
     NCD3_dispatch_table = &NCD3_dispatcher;
     for(i=0;i<NC_MAX_VAR_DIMS;i++)
 	{dapzerostart3[i] = 0; dapsinglecount3[i] = 1; dapsinglestride3[i] = 1;}
@@ -173,9 +174,9 @@ NCD3_sync(int ncid)
 }
 
 static int
-NCD3_abort(int ncid)
+NCD3_close(int ncid)
 {
-    return (NC_NOERR);
+    return NCD3_abort(ncid);
 }
 
 static int

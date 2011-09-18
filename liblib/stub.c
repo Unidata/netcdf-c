@@ -27,6 +27,11 @@ NC_initialize(void)
 {
     int stat = NC_NOERR;
 
+    /* Allow libdispatch to do initialization */
+    if((stat = NCDISPATCH_initialize())) return stat;
+
+    /* Initialize each active protocol */
+
     if((stat = NC3_initialize())) return stat;
 
 #ifdef USE_NETCDF4

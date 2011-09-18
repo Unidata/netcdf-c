@@ -11,7 +11,6 @@
 #define NCAUX_ALIGN_C 0
 #define NCAUX_ALIGN_UNIFORM 1
 
-#ifdef USE_NETCDF4
 extern int ncaux_begin_compound(int ncid, const char *name, int alignmode,
 				void** tag);
 
@@ -21,7 +20,6 @@ extern int ncaux_abort_compound(void* tag);
 
 extern int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes);
-#endif /*USE_NETCDF4*/
 
 #endif /*NCAUX_H*/
 

@@ -118,27 +118,39 @@ typedef struct NC_MPI_INFO {
 } NC_MPI_INFO;
 #endif
 
-/* Define known dispatch tables */
+/* Define known dispatch tables and initializers */
+
 /*Forward*/
 typedef struct NC_Dispatch NC_Dispatch;
 
+extern NC_Dispatch* NCSUBSTRATE_dispatch_table;
+extern int NCDISPATCH_initialize(void);
+
 extern NC_Dispatch* NC3_dispatch_table;
+extern int NC3_initialize(void);
+
+/* Diskless */
 extern NC_Dispatch* NCD_dispatch_table;
+extern int NCD_initialize(void);
 
 #ifdef USE_NETCDF4
 extern NC_Dispatch* NC4_dispatch_table;
+extern int NC4_initialize(void);
 #endif
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD3_dispatch_table;
+extern int NCD3_initialize(void);
 #endif
 
 #if defined(USE_DAP) && defined(USE_NETCDF4)
 extern NC_Dispatch* NCD4_dispatch_table;
+extern int NCD4_initialize(void);
 #endif
 
 #if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
 extern NC_Dispatch* NCCR_dispatch_table;
+extern int NCCR_initialize(void);
 #endif
 
 /**************************************************/

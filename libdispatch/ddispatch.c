@@ -1,6 +1,8 @@
 #include "ncdispatch.h"
 #include "nc_uri.h"
 
+extern int NCSUBSTRATE_intialize(void);
+
 #define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
 
 /* Define the known protocols and their manipulations */
@@ -27,7 +29,6 @@ static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UIN
 */
 
 NC_Dispatch* NCSUBSTRATE_dispatch_table = NULL;
-
 NC_Dispatch* NC3_dispatch_table = NULL;
 NC_Dispatch* NCD_dispatch_table = NULL;
 
@@ -35,6 +36,7 @@ NC_Dispatch* NCD_dispatch_table = NULL;
 NC_Dispatch* NC4_dispatch_table = NULL;
 #endif
 
+#ifdef IGNORE
 #ifdef USE_DAP
 NC_Dispatch* NCD3_dispatch_table = NULL;
 #endif
@@ -46,6 +48,16 @@ NC_Dispatch* NCD4_dispatch_table = NULL;
 #if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
 NC_Dispatch* NCCR_dispatch_table = NULL;
 #endif
+
+#endif /*IGNORE*/
+
+/* Allow dispatch to do initialization */
+int
+NCDISPATCH_initialize(void)
+{
+    NCSUBSTRATE_initialize();
+    return NC_NOERR;
+}
 
 /* return 1 if path looks like a url; 0 otherwise */
 int

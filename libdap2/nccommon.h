@@ -155,7 +155,6 @@ typedef struct NCDAPCOMMON {
     NCCDF cdf;
     NCOC  oc;
     NCCONTROLS controls; /* Control flags and parameters */
-    int   metadata;   /* Protocol instance used to store metadata */
 } NCDAPCOMMON;
 
 /**************************************************/

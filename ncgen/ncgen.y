@@ -1426,8 +1426,8 @@ evaluate(Symbol* fcn, Datalist* arglist)
     if(strcasecmp(fcn->name,"time") == 0) {
         char* timekind = NULL;
         char* timevalue = NULL;
-        result.nctype = NC_INT;
-        result.value.int32v = 0;
+        result.nctype = NC_DOUBLE;
+        result.value.doublev = 0;
 	/* int time([string],string) */
 	switch (arglist->length) {
 	case 2:

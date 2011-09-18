@@ -25,7 +25,7 @@
 #include "ncdump.h"
 #include "dumplib.h"
 #include "isnan.h"
-#include "nctime.h"
+#include "nctime0.h"
 
 static float float_eps;
 static double double_eps;
