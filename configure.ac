@@ -566,9 +566,6 @@ AC_FUNC_VPRINTF
 # Check for <stdbool.h> that conforms to C99 requirements
 AC_HEADER_STDBOOL
 
-AC_CHECK_FUNCS([mktime])
-AC_CHECK_FUNCS([strptime])
-
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \
 			strcasecmp strtod strtoll strtoull getrlimit gettimeofday fsync MPI_Comm_f2c])

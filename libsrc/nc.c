@@ -1549,7 +1549,5 @@ unwind_alloc:
 int
 nc_delete(const char * path)
 {
-	return nc_delete_mp(path, 0);
+        return nc_delete_mp(path, 0);
 }
-
-

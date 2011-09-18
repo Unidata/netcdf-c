@@ -26,16 +26,10 @@ static NCerror testregrid3(CDFnode* node, CDFnode* template, NClist*);
 static CDFnode* makenewstruct3(CDFnode* node, CDFnode* template);
 static NCerror regridinsert(CDFnode* newgrid, CDFnode* node);
 static NCerror regridremove(CDFnode* newgrid, CDFnode* node);
-static void projection3r(CDFnode*);
 static void unprojected3(NClist* nodes);
 static void projectall3(NClist* nodes);
-#ifdef DDSNEW
 static NCerror mapnodes3r(CDFnode*, CDFnode*, int depth);
 static NCerror mapdims3(CDFnode*, CDFnode*);
-#else
-static NCerror imprint3r(CDFnode*, CDFnode*, int depth);
-static NCerror imprintdims3(CDFnode*, CDFnode*);
-#endif
 
 /* Accumulate useful node sets  */
 NCerror
@@ -375,7 +369,6 @@ to produce (1) from (2).
 NCerror
 regrid3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
 {
-    int i;
     NCerror ncstat = NC_NOERR;
     NClist* newstructs = nclistnew();
 
@@ -400,17 +393,7 @@ fprintf(stderr,"regrid: template=%s\n",dumptree(template));
        This includes containers and subnodes. If there are no
        projections then mark all nodes 
     */
-#ifdef DDSNEW
         projectall3(template->tree->nodes);
-#else
-    if(nclistlength(projections) == 0) {
-        projectall3(template->tree->nodes);
-    } else for(i=0;i<nclistlength(projections);i++) {
-	DCEprojection* proj = (DCEprojection*)nclistget(projections,i);
-        ASSERT(proj->discrim == CES_VAR);
-        projection3r(proj->var->cdfleaf);
-    }
-#endif
 
     if(simplenodematch34(ddsroot,template)) {
         ncstat = regrid3r(ddsroot,template,newstructs);
@@ -441,6 +424,7 @@ projectall3(NClist* nodes)
     }
 }
 
+#ifdef NOTUSED
 static void
 projection3r(CDFnode* node)
 {
@@ -462,6 +446,7 @@ fprintf(stderr,"projection: %s\n",makesimplepathstring3(pathnode));
     }
     nclistfree(path);
 }
+#endif /*NOTUSED*/
 
 /*
 Add in virtual structure nodes so that
@@ -664,7 +649,6 @@ findddsnode0(CDFnode* node)
 }
 #endif
 
-#ifdef DDSNEW
 /**
 
 Make the constrained dds nodes (root)
@@ -751,7 +735,7 @@ mapdims3(CDFnode* connode, CDFnode* fullnode)
     return NC_NOERR;
 }
 
-#else /*!DDSNEW*/
+#ifdef NOTUSED
 
 /* 
 Move data from nodes in src tree to nodes in dst tree where
@@ -839,7 +823,7 @@ unimprint3(CDFnode* root)
 	}
     }
 }
-#endif /*!DDSNEW*/
+#endif /*NOTUSED*/
 
 void
 setvisible(CDFnode* root, int visible)

@@ -4,8 +4,8 @@
 # This automake file is in charge of building the libsrc directory,
 # which contains the classic library code.
 
-# We may have to add to these later.
-AM_CPPFLAGS = -I$(top_srcdir)/include 
+include $(top_srcdir)/lib_flags.am
+
 libnetcdf3_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # Turn on a pre-processor flag when building a DLL for windows.

@@ -54,7 +54,7 @@ NCD3_open(const char *path, int mode,
          struct NC_Dispatch* dispatch, NC** ncp);
 
 EXTERNL int
-NCD3_close(int ncid);
+NCD3_abort(int ncid);
 
 /* End _var */
 

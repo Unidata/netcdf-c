@@ -12,18 +12,15 @@
 #include "ocdrno.h"
 #include "dapdump.h"
 
-static NCerror buildncstructures(NCDAP3*);
-static NCerror builddims(NCDAP3*);
-static NCerror buildvars(NCDAP3*);
-static NCerror buildglobalattrs3(NCDAP3*, int ncid, CDFnode* root);
-static NCerror buildattribute3a(NCDAP3*, NCattribute* att, nc_type, int varid, int ncid);
+static NCerror buildncstructures3(NCDAPCOMMON*);
+static NCerror builddims(NCDAPCOMMON*);
+static NCerror buildvars(NCDAPCOMMON*);
+static NCerror buildglobalattrs3(NCDAPCOMMON*,CDFnode* root);
+static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 
 extern CDFnode* v4node;
 int nc3dinitialized = 0;
-
-
-#define getncid(drno) (((NC*)drno)->ext_ncid)
 
 /**************************************************/
 /* Add an extra function whose sole purpose is to allow
@@ -49,17 +46,18 @@ nc3dinitialize(void)
 }
 
 /**************************************************/
+#ifdef NOTUSED
 int
 NCD3_new_nc(NC** ncpp)
 {
-    NCDAP3* ncp;
+    NCDAPCOMMON* ncp;
     /* Allocate memory for this info. */
     if (!(ncp = calloc(1, sizeof(struct NCDAP3)))) 
        return NC_ENOMEM;
     if(ncpp) *ncpp = (NC*)ncp;
     return NC_NOERR;
 }
-
+#endif
 /**************************************************/
 
 /* See ncd3dispatch.c for other version */
@@ -71,17 +69,15 @@ NCD3_open(const char * path, int mode,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    NCDAP3* drno = NULL;
+    NC* drno = NULL;
+    NCDAPCOMMON* dapcomm = NULL;
     char* modifiedpath;
     OCURI* tmpurl;
-    char* ce = NULL;
     int ncid = -1;
     const char* value;
-    int fd;
     char* tmpname = NULL;
 
     if(!nc3dinitialized) nc3dinitialize();
-
 
     if(!ocuriparse(path,&tmpurl)) PANIC("libncdap3: non-url path");
     ocurifree(tmpurl); /* no longer needed */
@@ -95,70 +91,87 @@ NCD3_open(const char * path, int mode,
     modifiedpath = nulldup(path);
 #endif
 
-    /* Use libsrc code to establish initial NC(alias NCDRNO) structure */
+    /* Setup our NC and NCDAPCOMMON state*/
+    drno = (NC*)calloc(1,sizeof(NC));
+    if(drno == NULL) {ncstat = NC_ENOMEM; goto done;}
+    /* compute an ncid */
+    ncstat = add_to_NCList(drno);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncid = drno->ext_ncid;
+
+    dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
+    if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
+
+    drno->dispatch = dispatch;
+    drno->dispatchdata = dapcomm;
+
+    dapcomm->controller = (NC*)drno;
+    dapcomm->oc.urltext = modifiedpath;
+    ocuriparse(dapcomm->oc.urltext,&dapcomm->oc.uri);
+    if(!constrainable34(dapcomm->oc.uri))
+	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
+    dapcomm->cdf.separator = ".";
+    dapcomm->cdf.smallsizelimit = DFALTSMALLLIMIT;
+    dapcomm->cdf.cache = createnccache();
+
+    /* Use libsrc code for storing metadata */
     tmpname = nulldup(PSEUDOFILE);
-    fd = mkstemp(tmpname);
-    if(fd < 0) {THROWCHK(errno); goto done;}
     /* Now, use the file to create the netcdf file */
     if(sizeof(size_t) == sizeof(unsigned int))
-        ncstat = NC3_create(tmpname,NC_CLOBBER,0,0,NULL,0,NULL,
-                            dispatch,(NC**)&drno);
+	ncstat = nc_create(tmpname,NC_CLOBBER,&drno->substrate);
     else
-        ncstat = NC3_create(tmpname,NC_CLOBBER|NC_64BIT_OFFSET,0,0,NULL,0,NULL,
-                            dispatch,(NC**)&drno);
-    /* free the original fd */
-    close(fd);
+	ncstat = nc_create(tmpname,NC_CLOBBER|NC_64BIT_OFFSET,&drno->substrate);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    /* free the filename so it will automatically go away*/
+#ifdef NOTUSED
+    {
+        /* break the abstraction to get the fd */
+	NC* nc;
+        ncstat = NC_check_id(drno->substrate, &nc);
+	close(nc->int_ncid);
+    }
+#endif
     /* unlink the temp file so it will automatically be reclaimed */
     unlink(tmpname);
     nullfree(tmpname);
-    /* Avoid fill */
-    NC3_set_fill(ncid,NC_NOFILL,NULL);
 
-    /* Setup tentative DRNO state*/
-    drno->dap.controller = (NC*)drno;
-    drno->dap.oc.urltext = modifiedpath;
-    ocuriparse(drno->dap.oc.urltext,&drno->dap.oc.uri);
-    if(!constrainable34(drno->dap.oc.uri))
-	SETFLAG(drno->dap.controls,NCF_UNCONSTRAINABLE);
-    drno->dap.cdf.separator = ".";
-    drno->dap.cdf.smallsizelimit = DFALTSMALLLIMIT;
-    drno->dap.cdf.cache = createnccache();
-    drno->nc.dispatch = dispatch;
+    /* Avoid fill */
+    nc_set_fill(drno->ext_ncid,NC_NOFILL,NULL);
 
     /* process control client parameters */
-    applyclientparamcontrols3(&drno->dap);
+    applyclientparamcontrols3(dapcomm);
 
-    drno->dap.oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
-    drno->dap.oc.dapconstraint->projections = nclistnew();
-    drno->dap.oc.dapconstraint->selections = nclistnew();
+    dapcomm->oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
+    dapcomm->oc.dapconstraint->projections = nclistnew();
+    dapcomm->oc.dapconstraint->selections = nclistnew();
 
     /* Check to see if we are unconstrainable */
-    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
-	if(drno->dap.oc.uri->constraint != NULL
-	   && strlen(drno->dap.oc.uri->constraint) > 0) {
+    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
+	if(dapcomm->oc.uri->constraint != NULL
+	   && strlen(dapcomm->oc.uri->constraint) > 0) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   drno->dap.oc.uri->constraint);
+		   dapcomm->oc.uri->constraint);
 	}
 	/* ignore all constraints */
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
-        ncstat = parsedapconstraints(&drno->dap,drno->dap.oc.uri->constraint,drno->dap.oc.dapconstraint);
+        ncstat = parsedapconstraints(dapcomm,dapcomm->oc.uri->constraint,dapcomm->oc.dapconstraint);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 #ifdef DEBUG
 fprintf(stderr,"parsed constraint: %s\n",
-	dumpconstraint(drno->dap.oc.dapconstraint));
+	dumpconstraint(dapcomm->oc.dapconstraint));
 #endif
 
     /* Pass to OC */
-    ocstat = oc_open(drno->dap.oc.urltext,&drno->dap.oc.conn);
+    ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
-    if(paramcheck34(&drno->dap,"show","fetch"))
-	SETFLAG(drno->dap.controls,NCF_SHOWFETCH);
+    if(paramcheck34(dapcomm,"show","fetch"))
+	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
 
     /* Turn on logging; only do this after oc_open*/
-    value = oc_clientparam_get(drno->dap.oc.conn,"log");
+    value = oc_clientparam_get(dapcomm->oc.conn,"log");
     if(value != NULL) {
 	ncloginit();
         ncsetlogging(1);
@@ -170,161 +183,177 @@ fprintf(stderr,"parsed constraint: %s\n",
 
     /* fetch and build the (almost) unconstrained DDS for use as
        template */
-    ncstat = fetchtemplatemetadata3(&drno->dap);
+    ncstat = fetchtemplatemetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
     /* fetch and build the constrained DDS */
-    ncstat = fetchconstrainedmetadata3(&drno->dap);
+    ncstat = fetchconstrainedmetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
-    /* The following actions are (mostly) WRT to the
-	constrained tree */
+    /* The following actions are (mostly) WRT to the constrained tree */
 
     /* Process the constraints to map to the constrained CDF tree */
-    ncstat = mapconstraints3(drno->dap.oc.dapconstraint,drno->dap.cdf.ddsroot);
+    ncstat = mapconstraints3(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
     if(ncstat != NC_NOERR) goto done;
 
     /* Accumulate useful nodes sets  */
-    ncstat = computecdfnodesets3(&drno->dap);
+    ncstat = computecdfnodesets3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Fix grids */
-    ncstat = fixgrids3(&drno->dap);
+    ncstat = fixgrids3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Locate and mark usable sequences */
-    ncstat = sequencecheck3(&drno->dap);
+    ncstat = sequencecheck3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Conditionally suppress variables not in usable
        sequences */
-    if(FLAGSET(drno->dap.controls,NCF_NOUNLIM)) {
-        ncstat = suppressunusablevars3(&drno->dap);
+    if(FLAGSET(dapcomm->controls,NCF_NOUNLIM)) {
+        ncstat = suppressunusablevars3(dapcomm);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
-    ncstat = applyclientparams34(&drno->dap);
+    ncstat = applyclientparams34(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Add (as needed) string dimensions*/
-    ncstat = addstringdims(drno);
+    ncstat = addstringdims(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    if(nclistlength(drno->dap.cdf.seqnodes) > 0) {
+    if(nclistlength(dapcomm->cdf.seqnodes) > 0) {
 	/* Build the sequence related dimensions */
-        ncstat = defseqdims(drno);
+        ncstat = defseqdims(dapcomm);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* Build a cloned set of dimensions for every variable */
-    ncstat = clonecdfdims34(&drno->dap);
+    ncstat = clonecdfdims34(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the dimension names*/
-    ncstat = computecdfdimnames34(&drno->dap);
+    ncstat = computecdfdimnames34(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Deal with zero size dimensions */
-    ncstat = fixzerodims3(&drno->dap);
+    ncstat = fixzerodims3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    if(nclistlength(drno->dap.cdf.seqnodes) == 0
-       && drno->dap.cdf.recorddim != NULL) {
+    if(nclistlength(dapcomm->cdf.seqnodes) == 0
+       && dapcomm->cdf.recorddim != NULL) {
 	/* Attempt to use the DODS_EXTRA info to turn
            one of the dimensions into unlimited. Can only do it
            in a sequence free DDS.
         */
-        ncstat = defrecorddim3(drno);
+        ncstat = defrecorddim3(dapcomm);
         if(ncstat) {THROWCHK(ncstat); goto done;}
    }
 
     /* Re-compute the var names*/
-    ncstat = computecdfvarnames3(&drno->dap,drno->dap.cdf.ddsroot,drno->dap.cdf.varnodes);
+    ncstat = computecdfvarnames3(dapcomm,dapcomm->cdf.ddsroot,dapcomm->cdf.varnodes);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Estimate the variable sizes */
-    estimatevarsizes3(&drno->dap);
+    estimatevarsizes3(dapcomm);
 
     /* Build the meta data */
-    ncstat = buildncstructures(drno);
+    ncstat = buildncstructures3(dapcomm);
 
     if(ncstat != NC_NOERR) {
-        del_from_NCList((NC*)drno); /* undefine here */
 	{THROWCHK(ncstat); goto done;}
     }
 
     /* Do any necessary data prefetch */
-    ncstat = prefetchdata3(&drno->dap);
+    ncstat = prefetchdata3(dapcomm);
     if(ncstat != NC_NOERR) {
         del_from_NCList((NC*)drno); /* undefine here */
 	{THROWCHK(ncstat); goto done;}
     }
 
-    /* Mark as no longer indef */
-    fClr(drno->nc.flags, NC_INDEF);
-    /* Mark as no longer writable */
-    fClr(drno->nc.nciop->ioflags, NC_WRITE);
+    {
+        /* Mark as no longer writable and no longer indef;
+           requires breaking abstraction  */
+	NC* nc;
+        ncstat = NC_check_id(drno->substrate, &nc);
+        /* Mark as no longer writeable */
+        fClr(nc->nciop->ioflags, NC_WRITE);
+        /* Mark as no longer indef;
+           (do NOT use nc_enddef until diskless is working)*/
+	fSet(nc->flags, NC_INDEF);	
+    }
 
     if(ncpp) *ncpp = (NC*)drno;
 
-    return THROW(NC_NOERR);
+    return ncstat;
 
 done:
-    if(drno != NULL) {
-	int ncid = drno->nc.ext_ncid;
-	cleanNCDAP3(drno);
-	NC3_abort(ncid);
-    }
-    if(ce) nullfree(ce);
+    if(drno != NULL) NCD3_abort(drno->ext_ncid);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD3_close(int ncid)
+NCD3_abort(int ncid)
 {
+    NC* drno;
+    NCDAPCOMMON* dapcomm;
     int ncstatus = NC_NOERR;
-    NCDAP3* drno;
 
     ncstatus = NC_check_id(ncid, (NC**)&drno); 
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
 
-    cleanNCDAP3(drno);
-    NC3_abort(ncid);    
+    dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
+    ncstatus = nc_abort(drno->substrate);
 
+    /* remove ourselves from NClist */
+    del_from_NCList(drno);
+    /* clean NC* */
+    cleanNCDAPCOMMON(dapcomm);
+    if(drno->path != NULL) free(drno->path);
+    free(drno);
     return THROW(ncstatus);
 }
 
 /**************************************************/
 static NCerror
-buildncstructures(NCDAP3* drno)
-
+buildncstructures3(NCDAPCOMMON* dapcomm)
 {
     NCerror ncstat = NC_NOERR;
-    CDFnode* dds = drno->dap.cdf.ddsroot;
-    ncstat = buildglobalattrs3(drno,getncid(drno),dds);
+    CDFnode* dds = dapcomm->cdf.ddsroot;
+    NC* ncsub;
+    NC_check_id(dapcomm->controller->substrate,&ncsub);
+
+    ncstat = buildglobalattrs3(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
-    ncstat = builddims(drno);
+
+    ncstat = builddims(dapcomm);
     if(ncstat != NC_NOERR) goto done;
-    ncstat = buildvars(drno);
+
+    ncstat = buildvars(dapcomm);
     if(ncstat != NC_NOERR) goto done;
+
 done:
     return THROW(ncstat);
 }
 
 static NCerror
-builddims(NCDAP3* drno)
+builddims(NCDAPCOMMON* dapcomm)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     int dimid;
-    int ncid = getncid(drno);
     int defunlimited = 0;
     NClist* dimset = NULL;
+    NC* drno = dapcomm->controller;
+    NC* ncsub;
+
+    ncstat = NC_check_id(drno->substrate,&ncsub);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* collect all dimensions from variables */
-    dimset = getalldims3(drno->dap.cdf.varnodes,1);
+    dimset = getalldims3(dapcomm->cdf.varnodes,1);
     /* exclude unlimited */
     for(i=nclistlength(dimset)-1;i>=0;i--) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
@@ -350,14 +379,14 @@ builddims(NCDAP3* drno)
 	if(!swap) break;
     }
     /* Define unlimited only if needed */ 
-    if(defunlimited && drno->dap.cdf.unlimited != NULL) {
-	CDFnode* unlimited = drno->dap.cdf.unlimited;
+    if(defunlimited && dapcomm->cdf.unlimited != NULL) {
+	CDFnode* unlimited = dapcomm->cdf.unlimited;
 	size_t unlimsize;
-        ncstat = nc_def_dim(ncid,
+        ncstat = nc_def_dim(drno->substrate,
 			unlimited->name,
 			NC_UNLIMITED,
 			&unlimited->ncid);
-        if(ncstat != NC_NOERR) goto done;
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         if(DIMFLAG(unlimited,CDFDIMRECORD)) {
 	    /* This dimension was defined as unlimited by DODS_EXTRA */
 	    unlimsize = unlimited->dim.declsize;
@@ -366,13 +395,13 @@ builddims(NCDAP3* drno)
 	}
         /* Set the effective size of UNLIMITED;
            note that this cannot be done thru the normal API.*/
-        NC_set_numrecs((NC*)drno,unlimsize);
+        NC_set_numrecs(ncsub,unlimsize);
     }
 
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         if(dim->dim.basedim != NULL) continue; /* handle below */
-        ncstat = nc_def_dim(ncid,dim->ncfullname,dim->dim.declsize,&dimid);
+        ncstat = nc_def_dim(drno->substrate,dim->ncfullname,dim->dim.declsize,&dimid);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         dim->ncid = dimid;
     }
@@ -393,13 +422,13 @@ done:
 /* Simultaneously build any associated attributes*/
 /* and any necessary pseudo-dimensions for string types*/
 static NCerror
-buildvars(NCDAP3* drno)
+buildvars(NCDAPCOMMON* dapcomm)
 {
     int i,j,dimindex;
     NCerror ncstat = NC_NOERR;
     int varid;
-    int ncid = getncid(drno);
-    NClist* varnodes = drno->dap.cdf.varnodes;
+    NClist* varnodes = dapcomm->cdf.varnodes;
+    NC* drno = dapcomm->controller;
 
     ASSERT((varnodes != NULL));
     for(i=0;i<nclistlength(varnodes);i++) {
@@ -424,7 +453,7 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[dimindex++] = dim->ncid;
  	    }
         }   
-        ncstat = nc_def_var(ncid,var->ncfullname,
+        ncstat = nc_def_var(drno->substrate,var->ncfullname,
                         var->externaltype,
                         ncrank,
                         (ncrank==0?NULL:dimids),
@@ -434,21 +463,20 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
 	if(var->attributes != NULL) {
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
-		ncstat = buildattribute3a(drno,att,var->etype,varid,ncid);
+		ncstat = buildattribute3a(dapcomm,att,var->etype,varid);
         	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
 	/* Tag the variable with its DAP path */
-	if(paramcheck34(&drno->dap,"show","projection"))
-	    showprojection3(drno,var);
+	if(paramcheck34(dapcomm,"show","projection"))
+	    showprojection3(dapcomm,var);
     }    
 done:
     return THROW(ncstat);
 }
 
-
 static NCerror
-buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
+buildglobalattrs3(NCDAPCOMMON* dapcomm, CDFnode* root)
 {
     int i;
     NCerror ncstat = NC_NOERR;
@@ -456,19 +484,20 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
     char *nltxt, *p;
     NCbytes* buf = NULL;
     NClist* cdfnodes;
+    NC* drno = dapcomm->controller;
 
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
-	    ncstat = buildattribute3a(drno,att,NC_NAT,NC_GLOBAL,ncid);
+	    ncstat = buildattribute3a(dapcomm,att,NC_NAT,NC_GLOBAL);
             if(ncstat != NC_NOERR) goto done;
 	}
     }
 
     /* Add global attribute identifying the sequence dimensions */
-    if(paramcheck34(&drno->dap,"show","seqdims")) {
+    if(paramcheck34(dapcomm,"show","seqdims")) {
         buf = ncbytesnew();
-        cdfnodes = drno->dap.cdf.ddsroot->tree->nodes;
+        cdfnodes = dapcomm->cdf.ddsroot->tree->nodes;
         for(i=0;i<nclistlength(cdfnodes);i++) {
 	    CDFnode* dim = (CDFnode*)nclistget(cdfnodes,i);
 	    if(dim->nctype != NC_Dimension) continue;
@@ -480,7 +509,7 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_sequence_dimensions",
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_sequence_dimensions",
 	           ncbyteslength(buf),ncbytescontents(buf));
 	}
     }
@@ -489,36 +518,36 @@ buildglobalattrs3(NCDAP3* drno, int ncid, CDFnode* root)
        depending on show= clientparams*/
     /* Ignore failures*/
 
-    if(paramcheck34(&drno->dap,"show","translate")) {
+    if(paramcheck34(dapcomm,"show","translate")) {
         /* Add a global attribute to show the translation */
-        ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_translate",
+        ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_translate",
 	           strlen("netcdf-3"),"netcdf-3");
     }
-    if(paramcheck34(&drno->dap,"show","url")) {
-	if(drno->dap.oc.urltext != NULL)
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_url",
-				       strlen(drno->dap.oc.urltext),drno->dap.oc.urltext);
+    if(paramcheck34(dapcomm,"show","url")) {
+	if(dapcomm->oc.urltext != NULL)
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_url",
+				       strlen(dapcomm->oc.urltext),dapcomm->oc.urltext);
     }
-    if(paramcheck34(&drno->dap,"show","dds")) {
+    if(paramcheck34(dapcomm,"show","dds")) {
 	txt = NULL;
-	if(drno->dap.cdf.ddsroot != NULL)
-  	    txt = oc_inq_text(drno->dap.oc.conn,drno->dap.cdf.ddsroot->dds);
+	if(dapcomm->cdf.ddsroot != NULL)
+  	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->cdf.ddsroot->dds);
 	if(txt != NULL) {
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
-    if(paramcheck34(&drno->dap,"show","das")) {
+    if(paramcheck34(dapcomm,"show","das")) {
 	txt = NULL;
-	if(drno->dap.oc.ocdasroot != OCNULL)
-	    txt = oc_inq_text(drno->dap.oc.conn,drno->dap.oc.ocdasroot);
+	if(dapcomm->oc.ocdasroot != OCNULL)
+	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->oc.ocdasroot);
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(ncid,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(drno->substrate,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -529,12 +558,13 @@ done:
 }
 
 static NCerror
-buildattribute3a(NCDAP3* drno, NCattribute* att, nc_type vartype, int varid, int ncid)
+buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     char* cname = cdflegalname3(att->name);
     unsigned int nvalues = nclistlength(att->values);
+    NC* drno = dapcomm->controller;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -558,9 +588,9 @@ buildattribute3a(NCDAP3* drno, NCattribute* att, nc_type vartype, int varid, int
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(ncid,varid,cname,1,newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,cname,1,newstring);
 	else
-	    ncstat = nc_put_att_text(ncid,varid,cname,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,cname,strlen(newstring),newstring);
 	free(newstring);
     } else {
 	nc_type atype;
@@ -574,13 +604,13 @@ buildattribute3a(NCDAP3* drno, NCattribute* att, nc_type vartype, int varid, int
            is the same as that of the controlling variable.
 	*/
         if(varid != NC_GLOBAL && strcmp(att->name,"_FillValue")==0)
-	    atype = nctypeconvert(&drno->dap,vartype);
+	    atype = nctypeconvert(dapcomm,vartype);
 	else
-	    atype = nctypeconvert(&drno->dap,att->etype);
+	    atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	mem = malloc(typesize * nvalues);
         ncstat = dapcvtattrval3(atype,mem,att->values);
-        ncstat = nc_put_att(ncid,varid,cname,atype,nvalues,mem);
+        ncstat = nc_put_att(drno->substrate,varid,cname,atype,nvalues,mem);
 	nullfree(mem);
     }
     free(cname);

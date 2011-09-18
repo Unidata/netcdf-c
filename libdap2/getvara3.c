@@ -34,8 +34,9 @@ nc3d_getvarx(int ncid, int varid,
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     int i;
-    NCDAP3* drno;
-    NC_var* var;
+    NC* drno;
+    NC* substrate;
+    NCDAPCOMMON* dapcomm;
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
     nc_type dsttype;
@@ -52,12 +53,13 @@ nc3d_getvarx(int ncid, int varid,
 
     ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) goto fail;
+    dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
     
-    var = NC_lookupvar((NC*)drno,varid);
-    if(var == NULL) {ncstat = NC_ENOTVAR; goto fail;}
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
-    varnodes = drno->dap.cdf.varnodes;
+    varnodes = dapcomm->cdf.varnodes;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
 	if(node->array.basevar == NULL
@@ -69,7 +71,6 @@ nc3d_getvarx(int ncid, int varid,
     }
 
     ASSERT((cdfvar != NULL));
-    ASSERT((strcmp(cdfvar->ncfullname,var->name->cp)==0));
 
     /* Get the dimension info */
     ncdims = cdfvar->array.dimensions;
@@ -139,23 +140,23 @@ fprintf(stderr,"\n");
 	}
     }
 
-    ncstat = makegetvar34(&drno->dap,cdfvar,data,dsttype,&varinfo);
+    ncstat = makegetvar34(dapcomm,cdfvar,data,dsttype,&varinfo);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef IGNORE
-    freegetvara(drno->dap.cdf.vara);
-    drno->dap.cdf.vara = varinfo;
+    freegetvara(dapcomm->cdf.vara);
+    dapcomm->cdf.vara = varinfo;
 #endif
 
     ncstat = buildvaraprojection3(varinfo,startp,countp,stridep,&varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    if(FLAGSET(drno->dap.controls,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 #ifdef DEBUG
 fprintf(stderr,"Unconstrained: reusing prefetch\n");
 #endif
-	cachenode = drno->dap.cdf.cache->prefetch;	
+	cachenode = dapcomm->cdf.cache->prefetch;	
 	ASSERT((cachenode != NULL));
-    } else if(iscached(&drno->dap,varaprojection->var->cdfleaf,&cachenode)) {
+    } else if(iscached(dapcomm,varaprojection->var->cdfleaf,&cachenode)) {
 	/* If it is cached, then it is a whole variable */
 #ifdef DEBUG
 fprintf(stderr,"Reusing cache\n");
@@ -163,8 +164,8 @@ fprintf(stderr,"Reusing cache\n");
     } else { /*not cached: load using constraints */
 	nclistpush(vars,(ncelem)varinfo->target);
 	constraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
-        constraint->projections = dceclonelist(drno->dap.oc.dapconstraint->projections);
-        if(!FLAGSET(drno->dap.controls,NCF_CACHE)) {
+        constraint->projections = dceclonelist(dapcomm->oc.dapconstraint->projections);
+        if(!FLAGSET(dapcomm->controls,NCF_CACHE)) {
 	    /* If we are not caching, then merge the getvara projections */
 	    NClist* tmp = nclistnew();
 	    DCEprojection* clone = (DCEprojection*)dceclone((DCEnode*)varaprojection);
@@ -185,11 +186,11 @@ fprintf(stderr,"vara merge: %s\n",
         }
 
         restrictprojection34(vars,constraint->projections);
-        constraint->selections = dceclonelist(drno->dap.oc.dapconstraint->selections);
+        constraint->selections = dceclonelist(dapcomm->oc.dapconstraint->selections);
 
 	/* buildcachenode3 will create a new cachenode and
            will also fetch the corresponding datadds */
-        ncstat = buildcachenode34(&drno->dap,constraint,vars,&cachenode,0);
+        ncstat = buildcachenode34(dapcomm,constraint,vars,&cachenode,0);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	constraint = NULL; /* buildcachenode34 takes control of constraint */
 
@@ -199,8 +200,8 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     }
 
     /* attach DATADDS to DDS */
-    unattach34(drno->dap.cdf.ddsroot);
-    ncstat = attachsubset34(cachenode->datadds,drno->dap.cdf.ddsroot);
+    unattach34(dapcomm->cdf.ddsroot);
+    ncstat = attachsubset34(cachenode->datadds,dapcomm->cdf.ddsroot);
     if(ncstat) goto fail;	
 
     /* Fix up varinfo to use the cache */
@@ -219,7 +220,7 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 
     /* Switch to datadds tree space*/
     varinfo->target = xtarget;
-    ncstat = moveto(&drno->dap,varinfo,cachenode->datadds,data);
+    ncstat = moveto(dapcomm,varinfo,cachenode->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     goto ok;
 fail:
@@ -693,7 +694,9 @@ nc3d_getvarmx(int ncid, int varid,
 {
     NCerror ncstat = NC_NOERR;
     int i;
-    NCDAP3* drno;
+    NC* drno;
+    NC* substrate;
+    NCDAPCOMMON* dapcomm;
     NC_var* var;
     CDFnode* cdfvar; /* cdf node mapping to var*/
     NClist* varnodes;
@@ -710,12 +713,15 @@ nc3d_getvarmx(int ncid, int varid,
 
     ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) goto done;
+    dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
-    var = NC_lookupvar((NC*)drno,varid);
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    if(ncstat != NC_NOERR) goto done;
+    var = NC_lookupvar(substrate,varid);
     if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
     /* Locate var node via varid */
-    varnodes = drno->dap.cdf.varnodes;
+    varnodes = dapcomm->cdf.varnodes;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
 	if(node->array.basevar == NULL

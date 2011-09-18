@@ -19,7 +19,8 @@ libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c ddispatch.c                                                   \
 dnclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
-nc_uri.c nclist.c ncbytes.c nchashmap.c
+nc_uri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
+dsubstrate.c
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
