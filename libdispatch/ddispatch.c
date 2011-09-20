@@ -35,34 +35,6 @@ static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
 static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
 */
 
-#ifdef IGNORE /* move dispatch tables to individual protocol directories */
-/* Define the per-protocol dispatch tables */
-NC_Dispatch* NCSUBSTRATE_dispatch_table = NULL;
-NC_Dispatch* NC3_dispatch_table = NULL;
-NC_Dispatch* NCD_dispatch_table = NULL;
-
-#ifdef USE_NETCDF4
-NC_Dispatch* NC4_dispatch_table = NULL;
-#endif
-
-#ifdef USE_DAP
-NC_Dispatch* NCD3_dispatch_table = NULL;
-#endif
-
-#ifdef USE_NETCDF4
-
-#ifdef USE_DAP
-NC_Dispatch* NCD4_dispatch_table = NULL;
-#endif
-
-#ifdef USE_CDMREMOTE
-NC_Dispatch* NCCR_dispatch_table = NULL;
-#endif
-
-#endif /*USE_NETCDF4*/
-
-#endif /*IGNORE*/
-
 /* Allow dispatch to do initialization */
 int
 NCDISPATCH_initialize(void)
