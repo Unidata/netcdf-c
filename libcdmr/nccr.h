@@ -83,7 +83,5 @@ struct NClist;
 
 extern int nccrceparse(char*, int, struct NClist**, struct NClist**, char**);
 
-extern int crbuildnc(NCCDMR*, struct Header*);
-
 /**********************************************************/
 #endif /*NCCR_H*/

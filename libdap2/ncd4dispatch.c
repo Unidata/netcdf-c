@@ -27,12 +27,6 @@ static int NCD4_put_vara(int ncid, int varid,
             const void *value0,
 	    nc_type memtype);
 
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
-
-NC_Dispatch* NCD4_dispatch_table = NULL;
-
 NC_Dispatch NCD4_dispatch_base = {
 
 NC_DISPATCH_NC4|NC_DISPATCH_NCD,
@@ -125,7 +119,10 @@ NULL, /*get_var_chunk_cache*/
 
 };
 
-NC_Dispatch NCD4_dispatcher;
+NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
+
+NC_Dispatch NCD4_dispatcher; /* overlay result */
+
 
 int
 NCD4_initialize(void)
@@ -135,8 +132,6 @@ NCD4_initialize(void)
     /* watch the order because we want NCD4 to overwrite NCSUBSTRATE */
     NC_dispatch_overlay(&NCD4_dispatch_base, NCSUBSTRATE_dispatch_table, &NCD4_dispatcher);    
     NCD4_dispatch_table = &NCD4_dispatcher;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++)
-	{dapzerostart3[i] = 0; dapsinglecount3[i] = 1; dapsinglestride3[i] = 1;}
     return NC_NOERR;
 }
 

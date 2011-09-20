@@ -100,6 +100,8 @@ NC_Dispatch NCD_dispatcher =
 
 };
 
+NC_Dispatch* NCD_dispatch_table = NULL; /* Moved here from ddispatch.c */
+
 int
 NCD_initialize(void)
 {

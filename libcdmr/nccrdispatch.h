@@ -49,8 +49,9 @@ extern "C" {
 
 /**/
 
-EXTERNL int
-NCCR_new_nc(NC**);
+#ifdef NOTUSED
+EXTERNL int NCCR_new_nc(NC**);
+#endif
 
 /* WARNING: this signature differs from external nc_open API*/
 EXTERNL int
@@ -76,10 +77,6 @@ EXTERNL int NCCR_abort(int ncid);
 /* End _var */
 
 EXTERNL int NCCR_initialize(void);
-
-extern ptrdiff_t nccrsinglestride[NC_MAX_VAR_DIMS];
-extern size_t nccrzerostart[NC_MAX_VAR_DIMS];
-extern size_t nccrsinglecount[NC_MAX_VAR_DIMS];
 
 #if defined(__cplusplus)
 }

@@ -5,8 +5,6 @@
  *   $Header$
  *********************************************************************/
 
-#include "config.h"
-
 #include "includes.h"
 #include "nccrgetvarx.h"
 #include "nccrcvt.h"
@@ -40,11 +38,9 @@ NCCR_getvarx(int ncid, int varid,
 {
     int ncstat = NC_NOERR;
     unsigned int i;
-    NC_GRP_INFO_T *grp; 
-    NC_HDF5_FILE_INFO_T *h5;
-    NCCR* nccr;
     NCCRgetvarx* varxinfo = NULL;
     CCEprojection* varxprojection = NULL;
+    NC* drno;
     NCCDMR* cdmr;
     size_t localcount[NC_MAX_VAR_DIMS];
     NClist* vars = NULL;
@@ -59,10 +55,9 @@ NCCR_getvarx(int ncid, int varid,
 
     LOG((2, "nccr_get_varx: ncid 0x%x varid %d", ncid, varid));
 
-    if((ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5)))
-	{THROWCHK(ncstat); goto done;}
-
-    cdmr = nccr->cdmr;
+    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    if(ncstat != NC_NOERR) goto done;
+    cdmr = (NCCDMR*)drno->dispatchdata;
 
     /* Find the CRnode instance for this ncid */
     for(i=0;i<nclistlength(cdmr->variables);i++) {
@@ -86,7 +81,7 @@ NCCR_getvarx(int ncid, int varid,
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = nccrzerostart;
+	startp = nc_sizevector0;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -98,7 +93,7 @@ NCCR_getvarx(int ncid, int varid,
     }
 
     if(stridep == NULL)
-	stridep = nccrsinglestride;
+	stridep = nc_ptrdiffvector1;
 
     /* Validate the dimension sizes */
     for(i=0;i<shape.rank;i++) {

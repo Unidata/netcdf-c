@@ -911,3 +911,5 @@ NCSUB_get_var_chunk_cache
 #endif /*USE_NETCDF4*/
 
 };
+
+NC_Dispatch* NCSUBSTRATE_dispatch_table = NULL; /*Moved here from ddispatch.c*/

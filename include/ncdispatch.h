@@ -143,15 +143,24 @@ extern NC_Dispatch* NCD3_dispatch_table;
 extern int NCD3_initialize(void);
 #endif
 
-#if defined(USE_DAP) && defined(USE_NETCDF4)
+#ifdef USE_NETCDF4
+
+#ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 #endif
 
-#if defined(USE_CDMREMOTE) && defined(USE_NETCDF4)
+#ifdef USE_CDMREMOTE
 extern NC_Dispatch* NCCR_dispatch_table;
 extern int NCCR_initialize(void);
 #endif
+
+#endif /*USE_NETCDF4*/
+
+/* Vectors of ones and zeros */
+extern size_t nc_sizevector0[NC_MAX_DIMS];
+extern size_t nc_sizevector1[NC_MAX_DIMS];
+extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_DIMS];
 
 /**************************************************/
 /* Forward */

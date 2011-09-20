@@ -5,7 +5,7 @@ enum Dimcase {DC_UNKNOWN, DC_FIXED, DC_UNLIMITED, DC_VLEN, DC_PRIVATE};
 
 typedef struct CRshape {size_t rank; Dimension** dims;} CRshape;
 
-extern int nccr_buildnc(NCCR* nccr, Header* hdr);
+extern int nccr_buildnc(NCCDMR*,Header*);
 
 extern enum Dimcase classifydim(struct Dimension* dim);
 extern int dimsize(struct Dimension*);
