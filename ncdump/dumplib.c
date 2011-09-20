@@ -454,20 +454,38 @@ varadd(vnode_t* vlist, int varid)
 
 
 /* 
- * return 1 if variable identified by varid is member of variable
+ * return true if variable identified by varid is member of variable
  * list vlist points to.
  */
-int
+boolean
 varmember(const vnode_t* vlist, int varid)
 {
     vnode_t *vp = vlist -> next;
 
     for (; vp ; vp = vp->next)
       if (vp->id == varid)
-	return 1;
-    return 0;    
+	return true;
+    return false;    
 }
 
+/* 
+ * return true if group identified by grpid is member of group
+ * list specified on command line by -g.
+ */
+boolean
+group_wanted(int grpid)
+{
+    int igrp;
+
+    /* If -g not specified, all groups are wanted */
+    if(formatting_specs.nlgrps == 0)
+	return true;
+    /* if -g specified, look for match in group id list */
+    for (igrp = 0; igrp < formatting_specs.nlgrps ; igrp++)
+      if (formatting_specs.grpids[igrp] == grpid)
+	return true;
+    return false;    
+}
 
 /* Return primitive type name */
 static const char *
@@ -1495,9 +1513,6 @@ nc_inq_gvarid(int grpid, const char *varname, int *varidp) {
     */
     
 #ifdef USE_NETCDF4
-#ifdef UNUSED
-    const char *vp = varname;
-#endif
     char *vargroup;
     char *relname;
     char *groupname;
@@ -1723,9 +1738,6 @@ init_types(int ncid) {
     * recursively on each of them. */
    {
       int g, numgrps, *ncids;
-#ifdef UNUSED
-      int format;
-#endif
 
       /* See how many groups there are. */
       NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );

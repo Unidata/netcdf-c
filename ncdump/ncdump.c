@@ -46,9 +46,14 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     false,		/* use 'T' separator between date and time values as strings? */
     false,		/* output special attributes, eg chunking? */
     LANG_C,		/* language conventions for indices */
-    0,			/* if -v specified, number of variables */
     false,	        /* for DAP URLs, client-side cache used */
-    0			/* if -v specified, list of variable names */
+    0,			/* if -v specified, number of variables in list */
+    0,			/* if -v specified, list of variable names */
+    0,			/* if -g specified, number of groups names in list */
+    0,			/* if -g specified, list of group names */
+    0,			/* if -g specified, number of matching grpids */
+    0,			/* if -g specified, array of matching grpids */
+    0			/* kind of netCDF file */
 };
 
 static void
@@ -1241,13 +1246,12 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 }
 
 
-/* Recursively dump the contents of a group. (Recall that only
- * netcdf-4 format files can have groups. On all other formats, there
- * is just a root group, so recursion will not take place.) 
+/* Recursively dump the contents of a group. (Only netcdf-4 format
+ * files can have groups, so recursion will not take place for classic
+ * format files.)
  *
  * ncid: id of open file (first call) or group (subsequent recursive calls) 
  * path: file path name (first call)
- * specp: formatting spec
  */
 static void
 do_ncdump_rec(int ncid, const char *path)
@@ -1516,8 +1520,10 @@ do_ncdump_rec(int ncid, const char *path)
        pr_att_global_format(ncid, kind);
    }
 
-   /* output variable data */
-   if (! formatting_specs.header_only) {
+   /* output variable data, unless "-h" option specified header only
+    * or this group is not in list of groups specified by "-g"
+    * option  */
+   if (! formatting_specs.header_only && group_wanted(ncid) ) {
       if (nvars > 0) {
 	  indent_out();
 	  printf ("data:\n");
@@ -1765,23 +1771,15 @@ make_lvars(char *optarg)
     while (*cp++)
       if (*cp == ',')
  	nvars++;
-
+    formatting_specs.nlvars = nvars;
     formatting_specs.lvars = (char **) emalloc(nvars * sizeof(char*));
-
     cpp = formatting_specs.lvars;
     /* copy variable names into list */
-    for (cp = strtok(optarg, ",");
-	 cp != NULL;
-	 cp = strtok((char *) NULL, ",")) {
-	size_t bufsiz = strlen(cp) + 1;
-	
-	*cpp = (char *) emalloc(bufsiz);
-	strncpy(*cpp, cp, bufsiz);
+    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
+	*cpp = strdup(cp);
 	cpp++;
     }
-    formatting_specs.nlvars = nvars;
 }
-
 
 static void
 make_lgrps(char *optarg)
@@ -1790,26 +1788,18 @@ make_lgrps(char *optarg)
     int ngrps = 1;
     char ** cpp;
 
-    /* compute number of variable names in comma-delimited list */
-    formatting_specs.nlgrps = 1;
+    /* compute number of group names in comma-delimited list */
     while (*cp++)
       if (*cp == ',')
  	ngrps++;
-
+    formatting_specs.nlgrps = ngrps;
     formatting_specs.lgrps = (char **) emalloc(ngrps * sizeof(char*));
-
     cpp = formatting_specs.lgrps;
-    /* copy variable names into list */
-    for (cp = strtok(optarg, ",");
-	 cp != NULL;
-	 cp = strtok((char *) NULL, ",")) {
-	size_t bufsiz = strlen(cp) + 1;
-	
-	*cpp = (char *) emalloc(bufsiz);
-	strncpy(*cpp, cp, bufsiz);
+    /* copy group names into list */
+    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
+	*cpp = strdup(cp);
 	cpp++;
     }
-    formatting_specs.nlgrps = ngrps;
 }
 
 
@@ -1947,35 +1937,33 @@ missing_vars(int ncid) {
     return 0;
 }
 
-/* Determine whether a group named grpname exists in any group in an
- * open netCDF file with id ncid.  If so, return the count of how many
- * matching groups were found, else return a count of 0.  If grpname
- * begins with "/", it is interpreted as an absolute group name, in
- * which case only 0 or 1 is returned.  Otherwise, grpname is a
- * relative name, and the total number of occurrences within the
- * file/group identified by ncid is returned.  */
+/* Determine whether a group named formatting_specs.lgrps[igrp] exists
+ * in a netCDF file or group with id ncid.  If so, return the count of
+ * how many matching groups were found, else return a count of 0.  If
+ * the name begins with "/", it is interpreted as an absolute group
+ * name, in which case only 0 or 1 is returned.  Otherwise, interpret
+ * it as a relative name, and the total number of occurrences within
+ * the file/group identified by ncid is returned.  
+ *
+ * Also has side effect of updating the ngrpids and the associate
+ * grpids array that represent the group list specified by the -g
+ * option.  TODO: put this in its own function instead.
+ */
 static size_t
-nc_inq_grpname_count(int ncid, char *grpname) {
-    /* 
-       count = 0;
-       status = nc_inq_ncid(ncid, grpname, &grpid);
-       if (status == NC_NOERR)
-          count++;
-       for each subgroup gid {
-          count += nc_inq_grpname_count(gid, grpname);
-       }
-       return count;
-    */
+nc_inq_grpname_count(int ncid, int igrp) {
     size_t count = 0;
     int numgrps;
     int *ncids;
     int g;
     int grpid;
     int status;
+    char *grpname=formatting_specs.lgrps[igrp];
+    int *ngids = &formatting_specs.ngrpids;
 
     /* permit empty string to also designate root group */
     if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
 	count = 1;
+	formatting_specs.grpids[*ngids++] = ncid;
 	return count;
     }
 #ifdef USE_NETCDF4
@@ -1985,6 +1973,7 @@ nc_inq_grpname_count(int ncid, char *grpname) {
 	status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
 	if(status == NC_NOERR) {
 	    count = 1;
+	    formatting_specs.grpids[*ngids++] = grpid;
 	} else if(status == NC_ENOGRP) {
 	    count = 0;
 	} else {
@@ -1995,8 +1984,10 @@ nc_inq_grpname_count(int ncid, char *grpname) {
     
     /* look in this group */
     status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
-    if (status == NC_NOERR)
+    if (status == NC_NOERR) {
 	count++;
+	formatting_specs.grpids[*ngids++] = grpid;
+    }
     /* if this group has subgroups, call recursively on each of them */
     NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
 	 
@@ -2006,9 +1997,9 @@ nc_inq_grpname_count(int ncid, char *grpname) {
     /* Get the list of group ids. */
     NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
 	
-    /* Call this function for each group. */
+    /* Call this function recursively for each group. */
     for (g = 0; g < numgrps; g++) {
-	count += nc_inq_grpname_count(ncids[g], grpname);
+	count += nc_inq_grpname_count(ncids[g], igrp);
     }
     free(ncids);
 #endif /* USE_NETCDF4 */
@@ -2016,22 +2007,22 @@ nc_inq_grpname_count(int ncid, char *grpname) {
 }
 
 /* Check if any group names specified with "-g grp1,...,grpn" are
- * missing or duplicates.  Returns 0 if no missing or duplicate groups
- * detected, otherwise exits. */
+ * missing.  Returns total number of matching groups if no missing
+ * groups detected, otherwise exits. */
 static int
-missing_grps(int ncid) {
+grp_matches(int ncid) {
     int ig;
+    size_t total = 0;
 
     for (ig=0; ig < formatting_specs.nlgrps; ig++) {
-	size_t count = nc_inq_grpname_count(ncid, formatting_specs.lgrps[ig]);
+	size_t count = nc_inq_grpname_count(ncid, ig);
 	if(count == 0) {
 	    error("%s: No such group", formatting_specs.lgrps[ig]);
+	    return 0;
 	}
-	if(count > 1) {
-	    error("%s: Names multiple groups, specify absolute group name", formatting_specs.lgrps[ig]);
-	}
+	total += count;
     }
-    return 0;
+    return total;
 }
 
 #define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
@@ -2420,7 +2411,8 @@ main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		    }
 		    /* Check if any grps in -g don't exist */
-		    if(missing_grps(ncid))
+		    formatting_specs.ngrpids = grp_matches(ncid);
+		    if(formatting_specs.ngrpids == 0)
 			return EXIT_FAILURE;
 		}
 		if (xml_out) {

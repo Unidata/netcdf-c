@@ -68,7 +68,10 @@ extern vnode_t*	newvlist ( void );
 extern void	varadd ( vnode_t* vlist, int varid );
 
 /* Test if a variable id is in variable list */
-extern int	varmember ( const vnode_t* vlist, int varid );
+extern boolean	varmember ( const vnode_t* vlist, int varid );
+
+/* Test if a group id is in group list */
+extern boolean	group_wanted ( int grpid );
 
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );
@@ -77,7 +80,7 @@ extern void	typeadd ( nctype_t *typep );
 extern nctype_t *get_typeinfo ( int typeid );
 
 /* From type id, get type name */
-    extern void get_type_name(int ncid, nc_type type, char *name);
+extern void get_type_name(int ncid, nc_type type, char *name);
 
 /* set tostring member function */
 extern void set_tostring_func ( ncvar_t *varp);

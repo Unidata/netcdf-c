@@ -50,11 +50,11 @@ typedef struct {			/* specification for how to format dump */
 				 * column major) or LANG_F (Fortran,
 				 * 1-based, row major) */
 
-    int nlvars;			/* Number of variables specified with -v
-				 * option on command line */
-
     boolean with_cache;		/* For DAP URLs, get data with client-side
 				 * caching when each variable is first accessed */
+
+    int nlvars;			/* Number of variables specified with -v
+				 * option on command line */
 
     char** lvars;		/* list of variable names specified with -v
 				 * option on command line */
@@ -64,6 +64,10 @@ typedef struct {			/* specification for how to format dump */
 
     char** lgrps;		/* list of group names specified with -g
 				 * option on command line */
+    
+    int ngrpids;		/* Number of grpids matching list specified with -g option */
+
+    int *grpids;		/* Array of grpids matching list specified with -g option */
 
     int nc_kind;		/* kind of netCDF file named on
 				 * command line, 1 (classic), 2
