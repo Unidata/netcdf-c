@@ -129,21 +129,19 @@ extern int NCDISPATCH_initialize(void);
 extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 
-/* Diskless */
-extern NC_Dispatch* NCD_dispatch_table;
-extern int NCD_initialize(void);
-
-#ifdef USE_NETCDF4
-extern NC_Dispatch* NC4_dispatch_table;
-extern int NC4_initialize(void);
-#endif
-
 #ifdef USE_DAP
 extern NC_Dispatch* NCD3_dispatch_table;
 extern int NCD3_initialize(void);
 #endif
 
 #ifdef USE_NETCDF4
+
+extern NC_Dispatch* NC4_dispatch_table;
+extern int NC4_initialize(void);
+
+/* Diskless */
+extern NC_Dispatch* NCD_dispatch_table;
+extern int NCD_initialize(void);
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
@@ -153,6 +151,11 @@ extern int NCD4_initialize(void);
 #ifdef USE_CDMREMOTE
 extern NC_Dispatch* NCCR_dispatch_table;
 extern int NCCR_initialize(void);
+#endif
+
+#ifdef BUILD_RPC
+extern NC_Dispatch* NCRPC_dispatch_table;
+extern int NCRPC_initialize(void);
 #endif
 
 #endif /*USE_NETCDF4*/

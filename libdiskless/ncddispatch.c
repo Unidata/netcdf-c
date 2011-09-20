@@ -58,6 +58,7 @@ NC_Dispatch NCD_dispatcher =
 
    NCD_inq_var_all,
 
+#ifdef USE_NETCDF4
    NCD_show_metadata,
    NCD_inq_unlimdims,
 
@@ -97,7 +98,7 @@ NC_Dispatch NCD_dispatcher =
    NCD_def_var_endian,
    NCD_set_var_chunk_cache,
    NCD_get_var_chunk_cache,
-
+#endif /* USE_NETCDF4 */
 };
 
 NC_Dispatch* NCD_dispatch_table = NULL; /* Moved here from ddispatch.c */
