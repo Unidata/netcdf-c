@@ -23,8 +23,8 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "utils.h"
 #include "nccomps.h"
 #include "nctime.h"		/* new iso time and calendar stuff */
-#include "ncdump.h"
 #include "dumplib.h"
+#include "ncdump.h"
 #include "vardata.h"
 #include "indent.h"
 #include "isnan.h"
@@ -51,8 +51,7 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     0,			/* if -v specified, list of variable names */
     0,			/* if -g specified, number of groups names in list */
     0,			/* if -g specified, list of group names */
-    0,			/* if -g specified, number of matching grpids */
-    0,			/* if -g specified, array of matching grpids */
+    0,			/* if -g specified, list of matching grpids */
     0			/* kind of netCDF file */
 };
 
@@ -1267,7 +1266,7 @@ do_ncdump_rec(int ncid, const char *path)
    int id;			/* dimension number per variable */
    int ia;			/* attribute number */
    int iv;			/* variable number */
-   vnode_t* vlist = 0;		/* list for vars specified with -v option */
+   idnode_t* vlist = 0;		/* list for vars specified with -v option */
    char type_name[NC_MAX_NAME + 1];
    int kind;		/* strings output differently for nc4 files */
    char dim_name[NC_MAX_NAME + 1];
@@ -1294,10 +1293,10 @@ do_ncdump_rec(int ncid, const char *path)
     * "/grp1/grp2/varname" if they are in groups.
     */
    if (formatting_specs.nlvars > 0) {
-      vlist = newvlist();	/* list for vars specified with -v option */
+      vlist = newidlist();	/* list for vars specified with -v option */
       for (iv=0; iv < formatting_specs.nlvars; iv++) {
 	  if(nc_inq_gvarid(ncid, formatting_specs.lvars[iv], &varid) == NC_NOERR)
-	      varadd(vlist, varid);
+	      idadd(vlist, varid);
       }
    }
 
@@ -1531,7 +1530,7 @@ do_ncdump_rec(int ncid, const char *path)
       for (varid = 0; varid < nvars; varid++) {
 	 int no_data;
 	 /* if var list specified, test for membership */
-	 if (formatting_specs.nlvars > 0 && ! varmember(vlist, varid))
+	 if (formatting_specs.nlvars > 0 && ! idmember(vlist, varid))
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
 	 if(var.dims != NULL) free(var.dims);
@@ -1672,17 +1671,17 @@ do_ncdumpx(int ncid, const char *path)
     ncvar_t var;		/* variable */
     int ia;			/* attribute number */
     int iv;			/* variable number */
-    vnode_t* vlist = 0;		/* list for vars specified with -v option */
+    idnode_t* vlist = 0;		/* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of associated
      * variable ids
      */
     if (formatting_specs.nlvars > 0) {
-	vlist = newvlist();	/* list for vars specified with -v option */
+	vlist = newidlist();	/* list for vars specified with -v option */
 	for (iv=0; iv < formatting_specs.nlvars; iv++) {
 	    NC_CHECK( nc_inq_varid(ncid, formatting_specs.lvars[iv], &varid) );
-	    varadd(vlist, varid);
+	    idadd(vlist, varid);
 	}
     }
 
@@ -1731,7 +1730,7 @@ do_ncdumpx(int ncid, const char *path)
 		/* header-only specified */
 		(formatting_specs.header_only) ||
 		/* list of variables specified and this variable not in list */
-		(formatting_specs.nlvars > 0 && !varmember(vlist, varid))	||
+		(formatting_specs.nlvars > 0 && !idmember(vlist, varid))	||
 		/* coordinate vars only and this is not a coordinate variable */
 		(formatting_specs.coord_vals && !iscoordvar(ncid, varid)) ||
 		/* this is a record variable, but no records have been written */
@@ -1800,6 +1799,8 @@ make_lgrps(char *optarg)
 	*cpp = strdup(cp);
 	cpp++;
     }
+    /* make empty list of grpids, to be filled in after input file opened */
+    formatting_specs.grpids = newidlist();
 }
 
 
@@ -1958,12 +1959,11 @@ nc_inq_grpname_count(int ncid, int igrp) {
     int grpid;
     int status;
     char *grpname=formatting_specs.lgrps[igrp];
-    int *ngids = &formatting_specs.ngrpids;
 
     /* permit empty string to also designate root group */
     if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
 	count = 1;
-	formatting_specs.grpids[*ngids++] = ncid;
+	idadd(formatting_specs.grpids, ncid);
 	return count;
     }
 #ifdef USE_NETCDF4
@@ -1973,7 +1973,7 @@ nc_inq_grpname_count(int ncid, int igrp) {
 	status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
 	if(status == NC_NOERR) {
 	    count = 1;
-	    formatting_specs.grpids[*ngids++] = grpid;
+	    idadd(formatting_specs.grpids, grpid);
 	} else if(status == NC_ENOGRP) {
 	    count = 0;
 	} else {
@@ -1983,25 +1983,24 @@ nc_inq_grpname_count(int ncid, int igrp) {
     }
     
     /* look in this group */
-    status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
+    status = nc_inq_grp_ncid(ncid, grpname, &grpid);
     if (status == NC_NOERR) {
 	count++;
-	formatting_specs.grpids[*ngids++] = grpid;
+	idadd(formatting_specs.grpids, grpid);
     }
     /* if this group has subgroups, call recursively on each of them */
     NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
-	 
-    /* Allocate memory to hold the list of group ids. */
-    ncids = emalloc((numgrps + 1) * sizeof(int));
-	
-    /* Get the list of group ids. */
-    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
-	
-    /* Call this function recursively for each group. */
-    for (g = 0; g < numgrps; g++) {
-	count += nc_inq_grpname_count(ncids[g], igrp);
+    if(numgrps > 0) {
+	/* Allocate memory to hold the list of group ids. */
+	ncids = emalloc(numgrps * sizeof(int));
+	/* Get the list of group ids. */
+	NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	/* Call this function recursively for each group. */
+	for (g = 0; g < numgrps; g++) {
+	    count += nc_inq_grpname_count(ncids[g], igrp);
+	}
+	free(ncids);
     }
-    free(ncids);
 #endif /* USE_NETCDF4 */
     return count;    
 }
@@ -2411,8 +2410,7 @@ main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		    }
 		    /* Check if any grps in -g don't exist */
-		    formatting_specs.ngrpids = grp_matches(ncid);
-		    if(formatting_specs.ngrpids == 0)
+		    if(grp_matches(ncid) == 0)
 			return EXIT_FAILURE;
 		}
 		if (xml_out) {

@@ -13,8 +13,8 @@
 #include <netcdf.h>
 #include "utils.h"
 #include "nccomps.h"
-#include "ncdump.h"
 #include "dumplib.h"
+#include "ncdump.h"
 #include "indent.h"
 #include "vardata.h"
 

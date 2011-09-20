@@ -23,9 +23,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <netcdf.h>
 #include "utils.h"
 #include "nccomps.h"
-#include "dumplib.h"		/* for sbuf_... prototypes */
+#include "dumplib.h"
 #include "ncdump.h"		/* for fspec_t def */
 #include "nctime.h"
 

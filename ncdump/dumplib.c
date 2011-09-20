@@ -22,8 +22,8 @@
 #include <netcdf.h>
 #include "utils.h"
 #include "nccomps.h"
-#include "ncdump.h"
 #include "dumplib.h"
+#include "ncdump.h"
 #include "isnan.h"
 #include "nctime.h"
 
@@ -103,7 +103,7 @@ init_epsilons(void)
 
 
 static char* has_c_format_att(int ncid, int varid);
-static vnode_t* newvnode(void);
+static idnode_t* newidnode(void);
 
 int float_precision_specified = 0; /* -p option specified float precision */
 int double_precision_specified = 0; /* -p option specified double precision */
@@ -419,10 +419,10 @@ get_fmt(
     return get_default_fmt(typeid);
 }
 
-static vnode_t*
-newvnode(void)
+static idnode_t*
+newidnode(void)
 {
-    vnode_t *newvp = (vnode_t*) emalloc(sizeof(vnode_t));
+    idnode_t *newvp = (idnode_t*) emalloc(sizeof(idnode_t));
     return newvp;
 }
 
@@ -430,10 +430,10 @@ newvnode(void)
 /*
  * Get a new, empty variable list.
  */
-vnode_t*
-newvlist(void)
+idnode_t*
+newidlist(void)
 {
-    vnode_t *vp = newvnode();
+    idnode_t *vp = newidnode();
 
     vp -> next = 0;
     vp -> id = -1;		/* bad id */
@@ -443,9 +443,9 @@ newvlist(void)
 
 
 void
-varadd(vnode_t* vlist, int varid)
+idadd(idnode_t* vlist, int varid)
 {
-    vnode_t *newvp = newvnode();
+    idnode_t *newvp = newidnode();
     
     newvp -> next = vlist -> next;
     newvp -> id = varid;
@@ -454,16 +454,15 @@ varadd(vnode_t* vlist, int varid)
 
 
 /* 
- * return true if variable identified by varid is member of variable
- * list vlist points to.
+ * return true if id is member of list that vlist points to.
  */
 boolean
-varmember(const vnode_t* vlist, int varid)
+idmember(const idnode_t* idlist, int id)
 {
-    vnode_t *vp = vlist -> next;
+    idnode_t *vp = idlist -> next;
 
     for (; vp ; vp = vp->next)
-      if (vp->id == varid)
+      if (vp->id == id)
 	return true;
     return false;    
 }
@@ -481,10 +480,7 @@ group_wanted(int grpid)
     if(formatting_specs.nlgrps == 0)
 	return true;
     /* if -g specified, look for match in group id list */
-    for (igrp = 0; igrp < formatting_specs.nlgrps ; igrp++)
-      if (formatting_specs.grpids[igrp] == grpid)
-	return true;
-    return false;    
+    return idmember(formatting_specs.grpids, grpid);
 }
 
 /* Return primitive type name */
