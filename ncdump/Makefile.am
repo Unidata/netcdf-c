@@ -40,7 +40,8 @@ tst_chunking
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
-tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh
+tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
+tst_grp_spec.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -82,7 +83,8 @@ ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
-ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl
+ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
+tst_grp_spec.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh
 
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 BUILT_SOURCES = ctest.c ctest64.c
