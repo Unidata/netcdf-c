@@ -15,6 +15,12 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "includes.h"
 #include        "offsets.h"
 
+/* Following are in ncdump (for now)*/
+/* Need some (unused) definitions to get it to compile */
+#define ncatt_t void*
+#define ncvar_t void
+#include        "nctime.h"
+
 /* parser controls */
 #define YY_NO_INPUT 1
 
@@ -92,6 +98,7 @@ List* tmp;
 
 /* Forward */
 static Constant makeconstdata(nc_type);
+static Constant evaluate(Symbol* fcn, Datalist* arglist);
 static Constant makeenumconst(Symbol*);
 static void addtogroup(Symbol*);
 static Symbol* getunlimiteddim(void);
@@ -189,7 +196,8 @@ Constant       constant;
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
-%type <datalist> datalist intlist datalist1 datalist0
+%type <constant> simpleconstant function
+%type <datalist> datalist intlist datalist1 datalist0 arglist
 
 
 %start  ncdesc /* start symbol for grammar */
@@ -789,6 +797,25 @@ dataitem:
 	;
 
 constdata:
+	  simpleconstant      {$$=$1;}
+	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
+	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
+	| path		{$$=makeenumconst($1);}
+	| function
+	;
+
+function:
+	IDENT '(' arglist ')' {$$=evaluate($1,$3);}
+	;
+
+arglist:
+	  simpleconstant
+	    {$$ = builddatalist(0); datalistextend($$,&($1));}
+	| arglist ',' simpleconstant
+	    {datalistextend($1,&($3)); $$=$1;}
+	;
+
+simpleconstant:
 	  CHAR_CONST	{$$=makeconstdata(NC_CHAR);} /* never used apparently*/
 	| BYTE_CONST	{$$=makeconstdata(NC_BYTE);}
 	| SHORT_CONST	{$$=makeconstdata(NC_SHORT);}
@@ -801,9 +828,6 @@ constdata:
 	| FLOAT_CONST	{$$=makeconstdata(NC_FLOAT);}
 	| DOUBLE_CONST	{$$=makeconstdata(NC_DOUBLE);}
 	| TERMSTRING	{$$=makeconstdata(NC_STRING);}
-	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
-	| path		{$$=makeenumconst($1);}
-	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
 	;
 
 intlist:
@@ -1381,3 +1405,77 @@ vercheck(int ncid)
     }
     if(tmsg != NULL) markcdf4(tmsg);
 }
+
+/*
+Since the arguments are all simple constants,
+we can evaluate the function immediately
+and return its value.
+Note that currently, only a single value can
+be returned.
+*/
+
+static Constant
+evaluate(Symbol* fcn, Datalist* arglist)
+{
+    Constant result;
+
+    /* prepare the result */
+    result.lineno = fcn->lineno;
+    result.filled = 0;
+
+    if(strcasecmp(fcn->name,"time") == 0) {
+        char* timekind = NULL;
+        char* timevalue = NULL;
+        result.nctype = NC_DOUBLE;
+        result.value.doublev = 0;
+	/* int time([string],string) */
+	switch (arglist->length) {
+	case 2:
+	    if(arglist->data[1].nctype != NC_STRING) {
+	        derror("Expected function signature: time([string,]string)");
+	        goto done;
+	    }
+	    /* fall thru */
+	case 1:
+	    if(arglist->data[0].nctype != NC_STRING) {
+	        derror("Expected function signature: time([string,]string)");
+	        goto done;
+	    }
+	    break;
+	case 0:
+	default: 
+	    derror("Expected function signature: time([string,]string)");
+	    goto done;
+	}
+	if(arglist->length == 2) {
+	    timekind = arglist->data[0].value.stringv.stringv;
+            timevalue = arglist->data[1].value.stringv.stringv;
+	} else
+            timevalue = arglist->data[0].value.stringv.stringv;
+	if(timekind == NULL) { /* use cd time as the default */
+            cdCompTime comptime;
+	    CdTime cdtime;
+	    cdCalenType timetype = cdStandard;
+	    cdChar2Comp(timetype,timevalue,&comptime);
+	    /* convert comptime to cdTime */
+	    cdtime.year = comptime.year;	    
+	    cdtime.month = comptime.month;
+	    cdtime.day = comptime.day;    
+	    cdtime.hour = comptime.hour;
+	    cdtime.baseYear = 1970;
+	    cdtime.timeType = CdChron;
+	    /* convert to double value */
+	    Cdh2e(&cdtime,&result.value.doublev);
+        } else {
+	    derror("Time conversion '%s' not supported",timekind);
+	    goto done;
+	}
+    } else {	/* Unknown function */
+	derror("Unknown function name: %s",fcn->name);
+	goto done;
+    }
+
+done:
+    return result;
+}
+

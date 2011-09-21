@@ -4,7 +4,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define URL "http://test.opendap.org:8080/dods/dts/test.02"
+#define URL "http://motherlod.ucar.edu:8081/dods/dts/test.02"
 #define VAR "i32"
 
 #define ERRCODE 2

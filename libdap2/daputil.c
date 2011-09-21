@@ -962,15 +962,18 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 {
     OCerror ocstat;
     char* ext;
-    if(dxd == OCDDS) ext = "dds";
-    else if(dxd == OCDAS) ext = "das";
-    else ext = "dods";
+    if(dxd == OCDDS) ext = ".dds";
+    else if(dxd == OCDAS) ext = ".das";
+    else ext = ".dods";
     if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
+	/* Build uri string minus the constraint */
+	char* baseuri = ocuribuild(nccomm->oc.uri,NULL,ext,0);
 	if(ce == NULL)
-	    nclog(NCLOGNOTE,"fetch: %s.%s",nccomm->oc.uri->uri,ext);
-	else
-	    nclog(NCLOGNOTE,"fetch: %s.%s?%s",nccomm->oc.uri->uri,ext,ce);
+            nclog(NCLOGNOTE,"fetch: %s",baseuri);
+	else	
+            nclog(NCLOGNOTE,"fetch: %s?%s",baseuri,ce);
+	nullfree(baseuri);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif

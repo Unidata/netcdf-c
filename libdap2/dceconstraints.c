@@ -130,6 +130,7 @@ dceslicemerge(DCEslice* dst, DCEslice* src)
     int err = NC_NOERR;
     DCEslice tmp;
 
+    tmp.node.sort = CES_SLICE;
     tmp.stride   = (dst->stride * src->stride);
     tmp.first    = (dst->first+((src->first)*(dst->stride)));
     tmp.length   = (((src->length - 1) / src->stride) * tmp.stride) + 1;

@@ -45,7 +45,6 @@
 
 /**************************************************/
 /* sigh, do the forwards */
-struct NCDAP3;
 struct NCDAPCOMMON;
 struct NCprojection;
 struct NCselection;
@@ -129,8 +128,9 @@ typedef struct NCOC {
 } NCOC;
 
 typedef struct NCCDF {
-    struct CDFnode* ddsroot; /* unconstrained dds */
-    /* Collected sets of useful nodes (in unconstrainted tree space) */
+    struct CDFnode* ddsroot; /* constrained dds */
+    struct CDFnode* fullddsroot; /* unconstrained dds */
+    /* Collected sets of useful nodes (in ddsroot tree space) */
     NClist*  varnodes; /* nodes which can represent netcdf variables */
     NClist*  seqnodes; /* sequence nodes; */
     NClist*  gridnodes; /* grid nodes */
@@ -151,7 +151,7 @@ typedef struct NCCDF {
 /* Define a structure holding common info for NCDAP{3,4} */
 
 typedef struct NCDAPCOMMON {
-    NC*   controller; /* Parent instance of NCDAP3 or NCDAP4 */
+    NC*   controller; /* Parent instance of NCDAPCOMMON */
     NCCDF cdf;
     NCOC  oc;
     NCCONTROLS controls; /* Control flags and parameters */
@@ -251,6 +251,7 @@ typedef struct CDFnode {
     unsigned long    sequencelimit; /* 0=>unlimited */
     BOOL	     usesequence; /* If this sequence is usable */
     BOOL             elided;  /* 1 => node does not partipate in naming*/
+    struct CDFnode*  basenode; /* map from constrained tree to unconstrained */
     BOOL	     visible; /* 1 => node is present in constrained tree;
                                  independent of elided flag */
     BOOL	     zerodim; /* 1 => node has a zero dimension */
@@ -277,9 +278,8 @@ typedef struct CDFnode {
 /* Shared procedures */
 
 /* From ncdap3.c*/
-extern NCerror cleanNCDAP3(struct NCDAP3* drno);
 extern NCerror cleanNCDAPCOMMON(struct NCDAPCOMMON*);
-extern NCerror fetchtemplatemetadata3(NCDAPCOMMON* drno);
+extern NCerror fetchtemplatemetadata3(NCDAPCOMMON*);
 
 /* From error.c*/
 extern NCerror ocerrtoncerr(OCerror);
