@@ -2248,7 +2248,7 @@ An error was reported by the HDF5 layer.
 @section Find a Group by Name: NF90_INQ_GRP_NCID
 @findex NF90_INQ_GRP_PARENT
 
-Given a group name an an ncid, find the ncid of the group id. 
+Given a group name and an ncid, find the ncid of the group id. 
 
 @heading Usage 
 
@@ -2323,7 +2323,7 @@ This example is from test program nf_test/f90tst_grps.f90.
 @section Find a Group by its Fully-qualified Name: NF90_INQ_GRP_FULL_NCID
 @findex NF90_INQ_GRP_PARENT
 
-Given a fully qualified group name an an ncid, find the ncid of the
+Given a fully qualified group name and an ncid, find the ncid of the
 group id.
 
 @heading Usage 
