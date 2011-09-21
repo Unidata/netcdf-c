@@ -3,6 +3,8 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/dumplib.h,v 1.28 2009/08/13 21:06:13 russ Exp $
  *********************************************************************/
+#ifndef _DUMPLIB_H_
+#define _DUMPLIB_H_
 
 #include "config.h"
 
@@ -53,22 +55,25 @@ extern void	set_formats ( int flt_digs, int dbl_digs );
 /* Determine print format to use for each value for this variable. */
 const char *	get_fmt ( int ncid, int varid, nc_type typeid );
 
-/* structure for list of variables specified with -v option */
-struct vnode
+/* structure for list of ids, such as varids or grpids specified with -v or -g option */
+struct idnode
 {
-    struct vnode* next;
+    struct idnode* next;
     int id;
 };
-typedef struct vnode vnode_t;
+typedef struct idnode idnode_t;
 
-/* Get new variable list */
-extern vnode_t*	newvlist ( void );
+/* Get new id list */
+extern idnode_t*	newidlist ( void );
 
-/* Add a variable id to variable list */
-extern void	varadd ( vnode_t* vlist, int varid );
+/* Add an id to id list */
+extern void	idadd ( idnode_t* idlist, int id );
 
 /* Test if a variable id is in variable list */
-extern int	varmember ( const vnode_t* vlist, int varid );
+extern boolean	idmember ( const idnode_t* idlist, int id );
+
+/* Test if a group id is in group list */
+extern boolean	group_wanted ( int grpid );
 
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );
@@ -77,7 +82,7 @@ extern void	typeadd ( nctype_t *typep );
 extern nctype_t *get_typeinfo ( int typeid );
 
 /* From type id, get type name */
-    extern void get_type_name(int ncid, nc_type type, char *name);
+extern void get_type_name(int ncid, nc_type type, char *name);
 
 /* set tostring member function */
 extern void set_tostring_func ( ncvar_t *varp);
@@ -143,3 +148,5 @@ int nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp);
 #ifdef __cplusplus
 }
 #endif
+
+#endif	/*_DUMPLIB_H_ */

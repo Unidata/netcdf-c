@@ -5,7 +5,6 @@
  *********************************************************************/
 
 #include "config.h"
-#include <netcdf.h>
 
 #define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 

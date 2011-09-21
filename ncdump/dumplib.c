@@ -22,8 +22,8 @@
 #include <netcdf.h>
 #include "utils.h"
 #include "nccomps.h"
-#include "ncdump.h"
 #include "dumplib.h"
+#include "ncdump.h"
 #include "isnan.h"
 #include "nctime0.h"
 
@@ -103,7 +103,7 @@ init_epsilons(void)
 
 
 static char* has_c_format_att(int ncid, int varid);
-static vnode_t* newvnode(void);
+static idnode_t* newidnode(void);
 
 int float_precision_specified = 0; /* -p option specified float precision */
 int double_precision_specified = 0; /* -p option specified double precision */
@@ -419,10 +419,10 @@ get_fmt(
     return get_default_fmt(typeid);
 }
 
-static vnode_t*
-newvnode(void)
+static idnode_t*
+newidnode(void)
 {
-    vnode_t *newvp = (vnode_t*) emalloc(sizeof(vnode_t));
+    idnode_t *newvp = (idnode_t*) emalloc(sizeof(idnode_t));
     return newvp;
 }
 
@@ -430,10 +430,10 @@ newvnode(void)
 /*
  * Get a new, empty variable list.
  */
-vnode_t*
-newvlist(void)
+idnode_t*
+newidlist(void)
 {
-    vnode_t *vp = newvnode();
+    idnode_t *vp = newidnode();
 
     vp -> next = 0;
     vp -> id = -1;		/* bad id */
@@ -443,9 +443,9 @@ newvlist(void)
 
 
 void
-varadd(vnode_t* vlist, int varid)
+idadd(idnode_t* vlist, int varid)
 {
-    vnode_t *newvp = newvnode();
+    idnode_t *newvp = newidnode();
     
     newvp -> next = vlist -> next;
     newvp -> id = varid;
@@ -454,20 +454,34 @@ varadd(vnode_t* vlist, int varid)
 
 
 /* 
- * return 1 if variable identified by varid is member of variable
- * list vlist points to.
+ * return true if id is member of list that vlist points to.
  */
-int
-varmember(const vnode_t* vlist, int varid)
+boolean
+idmember(const idnode_t* idlist, int id)
 {
-    vnode_t *vp = vlist -> next;
+    idnode_t *vp = idlist -> next;
 
     for (; vp ; vp = vp->next)
-      if (vp->id == varid)
-	return 1;
-    return 0;    
+      if (vp->id == id)
+	return true;
+    return false;    
 }
 
+/* 
+ * return true if group identified by grpid is member of group
+ * list specified on command line by -g.
+ */
+boolean
+group_wanted(int grpid)
+{
+    int igrp;
+
+    /* If -g not specified, all groups are wanted */
+    if(formatting_specs.nlgrps == 0)
+	return true;
+    /* if -g specified, look for match in group id list */
+    return idmember(formatting_specs.grpids, grpid);
+}
 
 /* Return primitive type name */
 static const char *
@@ -1495,9 +1509,6 @@ nc_inq_gvarid(int grpid, const char *varname, int *varidp) {
     */
     
 #ifdef USE_NETCDF4
-#ifdef UNUSED
-    const char *vp = varname;
-#endif
     char *vargroup;
     char *relname;
     char *groupname;
@@ -1723,9 +1734,6 @@ init_types(int ncid) {
     * recursively on each of them. */
    {
       int g, numgrps, *ncids;
-#ifdef UNUSED
-      int format;
-#endif
 
       /* See how many groups there are. */
       NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );

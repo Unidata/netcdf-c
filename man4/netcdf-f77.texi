@@ -2741,7 +2741,7 @@ C     Check the parent ncid.
 @section Find a Group by Name: NF_INQ_GRP_NCID
 @findex NF_INQ_GRP_PARENT
 
-Given a group name an an ncid, find the ncid of the group id. 
+Given a group name and an ncid, find the ncid of the group id. 
 
 @heading Usage 
 
@@ -2807,7 +2807,7 @@ C     Go to a child group and find the id of our type.
 @section Find a Group by its Fully-qualified Name: NF_INQ_GRP_FULL_NCID
 @findex NF_INQ_GRP_PARENT
 
-Given a fully qualified group name an an ncid, find the ncid of the
+Given a fully qualified group name and an ncid, find the ncid of the
 group id.
 
 @heading Usage 

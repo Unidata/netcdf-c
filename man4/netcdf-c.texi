@@ -3439,7 +3439,7 @@ This example is from test program libsrc4/tst_grps.c.
 @section Find a Group by its Fully-qualified Name: nc_inq_grp_full_ncid
 @findex nc_inq_grp_parent
 
-Given a fully qualified group name an an ncid, find the ncid of the
+Given a fully qualified group name and an ncid, find the ncid of the
 group id.
 
 @heading Usage 
