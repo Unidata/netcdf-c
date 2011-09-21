@@ -22,7 +22,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <netcdf.h>
 #include "utils.h"
 #include "nccomps.h"
-#include "nctime.h"		/* new iso time and calendar stuff */
+#include "nctime0.h"		/* new iso time and calendar stuff */
 #include "dumplib.h"
 #include "ncdump.h"
 #include "vardata.h"
