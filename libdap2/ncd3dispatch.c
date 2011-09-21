@@ -42,12 +42,6 @@ static int NCD3_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
-ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-size_t dapzerostart3[NC_MAX_VAR_DIMS];
-size_t dapsinglecount3[NC_MAX_VAR_DIMS];
-
-NC_Dispatch* NCD3_dispatch_table = NULL;
-
 NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
@@ -140,7 +134,9 @@ NULL, /*get_var_chunk_cache*/
 
 };
 
-NC_Dispatch NCD3_dispatcher;
+NC_Dispatch* NCD3_dispatch_table = NULL; /* moved here from ddispatch.c */
+
+NC_Dispatch NCD3_dispatcher; /* overlay result */
 
 int
 NCD3_initialize(void)
@@ -150,8 +146,6 @@ NCD3_initialize(void)
     /* watch the order because we want NCD3 to overwrite NCSUBSTRATE */
     NC_dispatch_overlay(&NCD3_dispatch_base, NCSUBSTRATE_dispatch_table, &NCD3_dispatcher);    
     NCD3_dispatch_table = &NCD3_dispatcher;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++)
-	{dapzerostart3[i] = 0; dapsinglecount3[i] = 1; dapsinglestride3[i] = 1;}
     return NC_NOERR;
 }
 
@@ -203,7 +197,7 @@ NCD3_get_vara(int ncid, int varid,
             void *value,
 	    nc_type memtype)
 {
-    int stat = nc3d_getvarx(ncid, varid, start, edges, dapsinglestride3,value,memtype);
+    int stat = nc3d_getvarx(ncid, varid, start, edges, nc_ptrdiffvector1, value,memtype);
     return stat;
 }
 

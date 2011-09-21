@@ -3,14 +3,14 @@
 
 \page nc_dispatch Internal Dispatch Table Architecture
 
-This document describes the architecture and details of the new netCDF
+This document describes the architecture and details of the netCDF
 internal dispatch mechanism. The idea is that when a user opens or
-creates a netcdf file, that a specific dispatch table is
+creates a netcdf file, a specific dispatch table is
 chosen. Subsequent netcdf API calls are then channeled through that
 dispatch table to the appropriate function for implementing that API
 call.
 
-Currently, the following four dispatch tables are supported.
+At least the following dispatch tables are supported.
 - netcdf classic files (netcdf-3)
 - netcdf enhanced files (netcdf-4)
 - OPeNDAP to netcdf-3

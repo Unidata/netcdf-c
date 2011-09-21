@@ -63,7 +63,7 @@ NCD4_get_vara(int ncid, int varid,
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = dapzerostart3;
+	startp = nc_sizevector0;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -124,7 +124,7 @@ fprintf(stderr,"\n");
 #endif
 
     ncstat = buildvaraprojection4(varainfo,
-				  startp,countp,dapsinglestride3,
+				  startp,countp,nc_ptrdiffvector1,
 			          &varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 

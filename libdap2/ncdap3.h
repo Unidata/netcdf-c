@@ -173,8 +173,4 @@ extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 #endif
 
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-
 #endif /*NCDAP3_H*/

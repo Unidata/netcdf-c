@@ -72,10 +72,6 @@ extern int NCD4_abort(int ncid);
 
 extern int NCD4_initialize(void);
 
-extern ptrdiff_t dapsinglestride3[NC_MAX_VAR_DIMS];
-extern size_t dapzerostart3[NC_MAX_VAR_DIMS];
-extern size_t dapsinglecount3[NC_MAX_VAR_DIMS];
-
 #if defined(__cplusplus)
 }
 #endif

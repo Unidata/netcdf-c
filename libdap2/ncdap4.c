@@ -21,9 +21,6 @@
 
 #define DFALTMODELFLAGS (NCF_NC3|NCF_NCDAP)
 
-
-ptrdiff_t dapsinglestride4[NC_MAX_VAR_DIMS];
-
 extern NC_FILE_INFO_T* nc_file;
 
 extern NCerror cleanNCDAP4(NCDAP4*);
@@ -88,7 +85,7 @@ NCD4_open(const char * path, int mode,
     /* Check for legal mode flags */
     if((mode & NC_WRITE) != 0) ncstat = NC_EINVAL;
     else if(mode & (NC_WRITE|NC_CLOBBER)) ncstat = NC_EPERM;
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     mode = (mode & ~(NC_MPIIO | NC_MPIPOSIX));
     /* Despite the above check, we want the file to be initially writable */
@@ -110,14 +107,14 @@ ocdebug = 1;
 
     /* Setup our NC and NCDAPCOMMON state*/
     drno = (NC*)calloc(1,sizeof(NC));
-    if(drno == NULL) {ncstat = NC_ENOMEM; goto done;}
+    if(drno == NULL) {ncstat = NC_ENOMEM; goto fail;}
     /* compute an ncid */
     ncstat = add_to_NCList(drno);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     ncid = drno->ext_ncid;
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
-    if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
+    if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto fail;}
 
     drno->dispatch = dispatch;
     drno->dispatchdata = dapcomm;
@@ -148,14 +145,14 @@ ocdebug = 1;
     tmpname = nulldup(PSEUDOFILE);
     /* Now, use the file to create the netcdf file */
     ncstat = nc_create(tmpname,NC_CLOBBER|NC_NETCDF4,&drno->substrate);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* free the filename so it will automatically go away*/
     unlink(tmpname);
     nullfree(tmpname);
 
     /* Avoid fill */
-    nc_set_fill(drno->ext_ncid,NC_NOFILL,NULL);
+    nc_set_fill(drno->substrate,NC_NOFILL,NULL);
 
     /* Re-scan the client parameters */
     applyclientparamcontrols4(dapcomm);
@@ -175,11 +172,11 @@ ocdebug = 1;
     } else {
         /* Parse constraints to make sure that they are syntactically correct */
         ncstat = parsedapconstraints(dapcomm,dapcomm->oc.uri->constraint,dapcomm->oc.dapconstraint);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     }
 
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
 
     if(paramcheck34(dapcomm,"show","fetch"))
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
@@ -197,58 +194,57 @@ ocdebug = 1;
 
     /* fetch and build the (almost) unconstrained DDS */
     ncstat = fetchtemplatemetadata3(dapcomm);
-    if(ncstat != NC_NOERR) goto done;
+    if(ncstat != NC_NOERR) goto fail;
 
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(dapcomm);
-    if(ncstat != NC_NOERR) goto done;
+    if(ncstat != NC_NOERR) goto fail;
 
     /* The following actions are WRT to the constrained tree */
 
     /* Process the constraints to map the CDF tree */
     ncstat = mapconstraints3(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
-    if(ncstat != NC_NOERR) goto done;
+    if(ncstat != NC_NOERR) goto fail;
 
     /* Accumulate useful nodes sets  */
     ncstat = computecdfnodesets4(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Fix grids */
     ncstat = fixgrids4(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* apply client parameters (after computcdfinfo and computecdfvars)*/
     ncstat = applyclientparams34(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Accumulate the nodes representing user types*/
     ncstat = computeusertypes4(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Re-compute the type names*/
     ncstat = shortentypenames4(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Re-compute the dimension names*/
     ncstat = computecdfdimnames34(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* deal with zero-size dimensions */
     ncstat = fixzerodims4(dapcomm);
-    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(ncstat) {THROWCHK(ncstat); goto fail;}
 
     /* Estimate the variable sizes */
     estimatesizes4(dapcomm);
 
     ncstat = buildncstructures4(dapcomm);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Do any necessary data prefetch */
     ncstat = prefetchdata3(dapcomm);
     if(ncstat != NC_NOERR)
-	{THROWCHK(ncstat); goto done;}
+	{THROWCHK(ncstat); goto fail;}
 
-    /* Mark as no longer indef and no longer writable*/
     {
         /* Mark as no longer writable and no longer indef;
            requires breaking abstraction  */
@@ -259,7 +255,7 @@ ocdebug = 1;
         ncstat = NC_check_id(drno->substrate, &nc);
         /* Find our metadata for this file. */
         ncstat = nc4_find_nc_grp_h5(drno->substrate, &nfit, &grp, &h5);
-        if(ncstat) {THROWCHK(ncstat); goto done;}
+        if(ncstat) {THROWCHK(ncstat); goto fail;}
         /* Mark as no longer indef (do NOT use nc_enddef until diskless is working)*/
         h5->flags &= ~(NC_INDEF);
         /* Mark as no longer writeable */
@@ -270,7 +266,7 @@ ocdebug = 1;
 
     return ncstat;
 
-done:
+fail:
     if(drno != NULL) NCD4_abort(drno->ext_ncid);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
@@ -289,7 +285,8 @@ NCD4_abort(int ncid)
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
-    ncstat = nc_abort(drno->substrate);
+
+    nc_abort(drno->substrate);
 
     /* remove ourselves from NClist */
     del_from_NCList(drno);

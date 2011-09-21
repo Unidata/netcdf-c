@@ -15,7 +15,7 @@ endif # BUILD_DLL
 
 # These files comprise the netCDF-3 classic library code.
 libnetcdf3_la_SOURCES = v1hpg.c onstack.h                             	\
-nclistmgr.c putget.m4 attr.m4 nc3dispatch.c nc.c var.c dim.c ncx.m4	\
+nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
 ncx.h lookup3.c pstdint.h
 
 # Does the user want to use ffio, a replacement for posixio for Cray
@@ -31,7 +31,7 @@ noinst_LTLIBRARIES = libnetcdf3.la
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.
 MAINTAINERCLEANFILES = attr.c ncx.c putget.c $(man_MANS) attrx.c putgetx.c
-EXTRA_DIST = attr.c ncx.c putget.c $(man_MANS) 
+EXTRA_DIST = attr.m4 ncx.m4 putget.m4 $(man_MANS) 
 
 # This tells make how to turn .m4 files into .c files.
 .m4.c:

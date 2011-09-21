@@ -78,7 +78,7 @@ nc3d_getvarx(int ncid, int varid,
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = dapzerostart3;
+	startp = nc_sizevector0;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -90,7 +90,7 @@ nc3d_getvarx(int ncid, int varid,
     }
 
     if(stridep == NULL)
-	stridep = dapsinglestride3;
+	stridep = nc_ptrdiffvector1;
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {

@@ -6,19 +6,13 @@
  *********************************************************************/
 
 #include "includes.h"
+#include "nccrdispatch.h"
+#include "nc4internal.h"
 
 #ifdef HAVE_GETRLIMIT
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-/* Mnemonic */
-#define getncid(nccr) (((NC*)(nccr->controller)->ext_ncid)
-
-extern NC_FILE_INFO_T* nc_file;
 
 static void freeNCCDMR(NCCDMR* cdmr);
 static int nccr_process_projections(NCCDMR* cdmr);
@@ -34,6 +28,7 @@ int
 NCCR_new_nc(NC** ncpp)
 {
     NCCR* ncp;
+
     /* Allocate memory for this info. */
     if (!(ncp = calloc(1, sizeof(struct NCCR)))) 
        return NC_ENOMEM;
@@ -49,14 +44,11 @@ NCCR_open(const char * path, int mode,
                int basepe, size_t *chunksizehintp,
  	       int useparallel, void* mpidata,
                NC_Dispatch* dispatch, NC** ncpp)
-    NCerror ncstat = NC_NOERR;
+{
+    int ncstat = NC_NOERR;
     NC_URI* tmpurl;
-    NC_FILE_INFO_T* drno = NULL; /* reuse the nc4 structure*/ 
+    NC* drno = NULL;
     NCCDMR* cdmr = NULL;
-    NC_HDF5_FILE_INFO_T* h5 = NULL;
-    NC_GRP_INFO_T *grp = NULL;
-    int ncid = -1;
-    int fd;
     char* tmpname = NULL;
     const char* lookups = NULL;
     bytes_t buf;
@@ -72,83 +64,82 @@ NCCR_open(const char * path, int mode,
     /* Check for legal mode flags */
     if((mode & NC_WRITE) != 0) ncstat = NC_EINVAL;
     else if(mode & (NC_WRITE|NC_CLOBBER)) ncstat = NC_EPERM;
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     mode = (mode & ~(NC_MPIIO | NC_MPIPOSIX));
     /* Despite the above check, we want the file to be initially writable */
     mode |= (NC_WRITE|NC_CLOBBER);
 
-    /* Use NCCR code to establish a pseudo file */
-    tmpname = nulldup(PSEUDOFILE);
-    fd = mkstemp(tmpname);
-    if(fd < 0) {THROWCHK(errno); goto done;}
-    /* Now, use the file to create the hdf5 file */
-    ncstat = NC4_create(tmpname,NC_NETCDF4|NC_CLOBBER,
-			0,0,NULL,0,NULL,dispatch,(NC**)&nccr);
-    ncid = nccr->ext_ncid;
-    /* unlink the temp file so it will automatically be reclaimed */
-    unlink(tmpname);
-    free(tmpname);
-    /* Avoid fill */
+    /* Setup our NC and NCCDMR state*/
+    drno = (NC*)calloc(1,sizeof(NC));
+    if(drno == NULL) {ncstat = NC_ENOMEM; goto fail;}
+    /* compute an ncid */
+    ncstat = add_to_NCList(drno);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    dispatch->set_fill(ncid,NC_NOFILL,NULL);
-    if(ncstat)
-	{THROWCHK(ncstat); goto done;}
-    /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
-    if(ncstat)
-	{THROWCHK(ncstat); goto done;}
-
-    /* Setup tentative NCCR state*/
-???    nccr->
-    nccr->info.dispatch = dispatch;
     cdmr = (NCCDMR*)calloc(1,sizeof(NCCDMR));
-    if(cdmr == NULL) {ncstat = NC_ENOMEM; goto done;}
-    nccr->cdmr = cdmr;
-    nccr->cdmr->controller = (NC*)nccr;
-    nccr->cdmr->urltext = nulldup(path);
-    nc_uriparse(nccr->cdmr->urltext,&nccr->cdmr->uri);
+    if(cdmr == NULL) {ncstat = NC_ENOMEM; goto fail;}
+
+    drno->dispatch = dispatch;
+    drno->dispatchdata = cdmr;
+
+    cdmr->controller = drno;
+    cdmr->urltext = nulldup(path);
+    nc_uriparse(cdmr->urltext,&cdmr->uri);
 
 #ifdef WORDS_BIGENDIAN
-    nccr->cdmr->controls |= BIGENDIAN;
+    cdmr->controls |= BIGENDIAN;
 #endif
 
+    /* Use libsrc4 code for storing metadata */
+    tmpname = nulldup(PSEUDOFILE);
+    /* Now, use the file to create the netcdf file */
+    ncstat = nc_create(tmpname,NC_CLOBBER|NC_NETCDF4,&drno->substrate);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+
+    /* free the filename so it will automatically go away*/
+    unlink(tmpname);
+    nullfree(tmpname);
+
+    /* Avoid fill */
+    nc_set_fill(drno->substrate,NC_NOFILL,NULL);
+
     /* Create the curl connection (does not make the server connection)*/
-    ncstat = nccr_curlopen(&nccr->cdmr->curl.curl);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncstat = nccr_curlopen(&cdmr->curl.curl);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Turn on logging; only do this after open*/
-    if(nc_urilookup(nccr->cdmr->uri,"log",&lookups)) {
+    if(nc_urilookup(cdmr->uri,"log",&lookups)) {
 	ncloginit();
         ncsetlogging(1);
         nclogopen(lookups);
     }
 
-    if(nc_urilookup(nccr->cdmr->uri,"show",&lookups)) {
+    if(nc_urilookup(cdmr->uri,"show",&lookups)) {
 	int i;
 	for(i=0;i<strlen(lookups);i++) {
 	    if(lookups[i] ==  ',') continue;
 	    if(strcmp("fetch",lookups+i)==0) {
-	        nccr->cdmr->controls |= SHOWFETCH;
+	        cdmr->controls |= SHOWFETCH;
 		break;
 	    } else if(strcmp("datavars",lookups+i)==0) {
-	        nccr->cdmr->controls |= DATAVARS;
+	        cdmr->controls |= DATAVARS;
 		break;
 	    }
 	}
     }
 
-    /* fetch (unconstrained) meta data */
+    /* fetch unconstrained meta data */
     buf = bytes_t_null;
-    curlurl = nc_uribuild(nccr->cdmr->uri,NULL,"?req=header",0);
-    if(curlurl == NULL) {ncstat=NC_ENOMEM; goto done;}
-    ncstat = nccr_fetchurl(nccr->cdmr,nccr->cdmr->curl.curl,curlurl,&buf,&filetime);
+    curlurl = nc_uribuild(cdmr->uri,NULL,"?req=header",0);
+    if(curlurl == NULL) {ncstat=NC_ENOMEM; goto fail;}
+    ncstat = nccr_fetchurl(cdmr,cdmr->curl.curl,curlurl,&buf,&filetime);
     free(curlurl);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Parse the meta data */
     ncstat = nccr_decodeheadermessage(&buf,&cdmr->ncstreamhdr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     if(buf.bytes != NULL) free(buf.bytes);
 
@@ -157,15 +148,15 @@ NCCR_open(const char * path, int mode,
     /* Collect all nodes and fill in the CRnode part*/
     cdmr->streamnodes = nclistnew();
     ncstat = nccr_walk_Header(cdmr->ncstreamhdr,cdmr->streamnodes);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Compute the stream pathnames */
     ncstat = nccr_compute_pathnames(cdmr->streamnodes);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Map dimension references to matching declaration */
     ncstat = nccr_map_dimensions(cdmr->streamnodes);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Replace dimension references with matching declaration */
     nccr_deref_dimensions(cdmr->streamnodes);
@@ -173,77 +164,82 @@ NCCR_open(const char * path, int mode,
     /* Collect all potential variables */
     cdmr->allvariables = nclistnew();
     ncstat = nccr_collect_allvariables(cdmr->streamnodes,cdmr->allvariables);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Deal with any constraint in the URL */
-    nccr->cdmr->urlconstraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
-    if(nccr->cdmr->uri->constraint != NULL
-       && strlen(nccr->cdmr->uri->constraint) > 0) {
+    cdmr->urlconstraint = (CCEconstraint*)ccecreate(CES_CONSTRAINT);
+    if(cdmr->uri->constraint != NULL
+       && strlen(cdmr->uri->constraint) > 0) {
         /* Parse url constraint to test syntactically correctness */
-        ncstat = cdmparseconstraint(nccr->cdmr->uri->constraint,nccr->cdmr->urlconstraint);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+        ncstat = cdmparseconstraint(cdmr->uri->constraint,cdmr->urlconstraint);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 #ifdef DEBUG
 fprintf(stderr,"url constraint: %s\n",
-	ccetostring((CCEnode*)nccr->cdmr->uri->constraint));
+	ccetostring((CCEnode*)cdmr->uri->constraint));
 #endif
     }
 
-    ncstat = nccr_process_projections(nccr->cdmr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncstat = nccr_process_projections(cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    ncstat = nccr_collect_projection_variables(nccr->cdmr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncstat = nccr_collect_projection_variables(cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    ncstat = nccr_mark_visible(nccr->cdmr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncstat = nccr_mark_visible(cdmr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* build the netcdf-4 pseudo metadata */
-    ncstat = nccr_buildnc(nccr,cdmr->ncstreamhdr);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    ncstat = nccr_buildnc(cdmr,cdmr->ncstreamhdr);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    /* Mark as no longer indef and no longer writable*/
-    h5->flags &= ~(NC_INDEF);
-    h5->no_write = 1;
-
-done:
-    if(aststat != AST_NOERR) {ncstat = nccr_cvtasterr(aststat);}
-    if(ncstat) {
-        if(nccr != NULL) {
-	    int ncid = nccr->info.ext_ncid;
-            NCCR_abort(ncid);
-        }
-    } else {
-        if(ncpp) *ncpp = (NC*)nccr;
+    {
+        /* Mark as no longer writable and no longer indef;
+           requires breaking abstraction  */
+	NC* nc;
+        NC_FILE_INFO_T* nfit = NULL;
+        NC_HDF5_FILE_INFO_T* h5 = NULL;
+        NC_GRP_INFO_T *grp = NULL;
+        ncstat = NC_check_id(drno->substrate, &nc);
+        /* Find our metadata for this file. */
+        ncstat = nc4_find_nc_grp_h5(drno->substrate, &nfit, &grp, &h5);
+        if(ncstat) {THROWCHK(ncstat); goto fail;}
+        /* Mark as no longer indef (do NOT use nc_enddef until diskless is working)*/
+        h5->flags &= ~(NC_INDEF);
+        /* Mark as no longer writeable */
+        h5->no_write = 1;
     }
+
+    if(ncpp) *ncpp = (NC*)drno;
+    return ncstat;
+
+fail:
+    if(drno != NULL) NCCR_close(drno->ext_ncid);
+    if(aststat != AST_NOERR) {ncstat = nccr_cvtasterr(aststat);}
     return THROW(ncstat);
 }
 
 int
 NCCR_close(int ncid)
 {
-    NC_GRP_INFO_T *grp;
-    NC_HDF5_FILE_INFO_T *h5;
-    NCCR* nccr = NULL;
+    NC* drno;
+    NCCDMR* cdmr;
     int ncstat = NC_NOERR;
 
     LOG((1, "nc_close: ncid 0x%x", ncid));
 
-    /* Avoid repeated close  */
-    ncstat = NC_check_id(ncid, (NC**)&nccr); 
+    ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
-    /* Find our metadata for this file. */
-    ncstat = nc4_find_nc_grp_h5(ncid, (NC_FILE_INFO_T**)&nccr, &grp, &h5);
-    if(ncstat != NC_NOERR) return THROW(ncstat);
+    cdmr = (NCCDMR*)drno->dispatchdata;
 
-    /* This must be the root group. */
-    if (grp->parent) ncstat = NC_EBADGRPID;
+    nc_abort(drno->substrate);
 
-    freeNCCDMR(nccr->cdmr);
-
-    /* Destroy/close the NC_FILE_INFO_T state */
-    NC4_abort(ncid);
-
+    /* remove ourselves from NClist */
+    del_from_NCList(drno);
+    /* clean NC* */
+    freeNCCDMR(cdmr);
+    if(drno->path != NULL) free(drno->path);
+    free(drno);
     return THROW(ncstat);
 }
 

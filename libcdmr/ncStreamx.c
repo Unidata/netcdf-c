@@ -53,14 +53,19 @@ Attribute_read(ast_runtime* rt, Attribute** attribute_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Attribute* attribute_v;
+    unsigned long pos;
 
     attribute_v = (Attribute*)ast_alloc(rt,sizeof(Attribute));
     if(attribute_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Attribute|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&attribute_v->name);
@@ -217,14 +222,19 @@ Dimension_read(ast_runtime* rt, Dimension** dimension_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Dimension* dimension_v;
+    unsigned long pos;
 
     dimension_v = (Dimension*)ast_alloc(rt,sizeof(Dimension));
     if(dimension_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Dimension|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             dimension_v->name.defined = 1;
@@ -421,14 +431,19 @@ Variable_read(ast_runtime* rt, Variable** variable_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Variable* variable_v;
+    unsigned long pos;
 
     variable_v = (Variable*)ast_alloc(rt,sizeof(Variable));
     if(variable_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Variable|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&variable_v->name);
@@ -696,14 +711,19 @@ Structure_read(ast_runtime* rt, Structure** structure_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Structure* structure_v;
+    unsigned long pos;
 
     structure_v = (Structure*)ast_alloc(rt,sizeof(Structure));
     if(structure_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Structure|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&structure_v->name);
@@ -913,14 +933,19 @@ EnumTypedef_read(ast_runtime* rt, EnumTypedef** enumtypedef_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     EnumTypedef* enumtypedef_v;
+    unsigned long pos;
 
     enumtypedef_v = (EnumTypedef*)ast_alloc(rt,sizeof(EnumTypedef));
     if(enumtypedef_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|EnumTypedef|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&enumtypedef_v->name);
@@ -1023,14 +1048,19 @@ EnumType_read(ast_runtime* rt, EnumType** enumtype_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     EnumType* enumtype_v;
+    unsigned long pos;
 
     enumtype_v = (EnumType*)ast_alloc(rt,sizeof(EnumType));
     if(enumtype_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|EnumType|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_uint32,1,&enumtype_v->code);
@@ -1185,14 +1215,19 @@ Group_read(ast_runtime* rt, Group** group_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Group* group_v;
+    unsigned long pos;
 
     group_v = (Group*)ast_alloc(rt,sizeof(Group));
     if(group_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Group|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&group_v->name);
@@ -1471,14 +1506,19 @@ Header_read(ast_runtime* rt, Header** header_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Header* header_v;
+    unsigned long pos;
 
     header_v = (Header*)ast_alloc(rt,sizeof(Header));
     if(header_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Header|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             header_v->location.defined = 1;
@@ -1674,14 +1714,19 @@ Data_read(ast_runtime* rt, Data** data_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Data* data_v;
+    unsigned long pos;
 
     data_v = (Data*)ast_alloc(rt,sizeof(Data));
     if(data_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Data|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&data_v->varName);
@@ -1856,14 +1901,19 @@ Range_read(ast_runtime* rt, Range** range_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Range* range_v;
+    unsigned long pos;
 
     range_v = (Range*)ast_alloc(rt,sizeof(Range));
     if(range_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Range|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             range_v->start.defined = 1;
@@ -1969,14 +2019,19 @@ Section_read(ast_runtime* rt, Section** section_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Section* section_v;
+    unsigned long pos;
 
     section_v = (Section*)ast_alloc(rt,sizeof(Section));
     if(section_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Section|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             size_t size;
@@ -2090,14 +2145,19 @@ StructureData_read(ast_runtime* rt, StructureData** structuredata_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     StructureData* structuredata_v;
+    unsigned long pos;
 
     structuredata_v = (StructureData*)ast_alloc(rt,sizeof(StructureData));
     if(structuredata_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|StructureData|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             uint32_t tmp;
@@ -2235,14 +2295,19 @@ Error_read(ast_runtime* rt, Error** error_vp)
     ast_err status = AST_NOERR;
     uint32_t wiretype, fieldno;
     Error* error_v;
+    unsigned long pos;
 
     error_v = (Error*)ast_alloc(rt,sizeof(Error));
     if(error_v == NULL) return AST_ENOMEM;
 
     while(status == AST_NOERR) {
+        pos = (unsigned long)xpos(rt);
         status = ast_read_tag(rt,&wiretype,&fieldno);
         if(status == AST_EOF) {status = AST_NOERR; break;}
         if(status != AST_NOERR) break;
+        {
+        fprintf(stderr,"|Error|: before=%lu fieldno=%lu wiretype=%lu after=%lu\n",pos,(unsigned long)fieldno,(unsigned long)wiretype,(unsigned long)xpos(rt));
+        }
         switch (fieldno) {
         case 1: {
             status = ast_read_primitive(rt,ast_string,1,&error_v->message);

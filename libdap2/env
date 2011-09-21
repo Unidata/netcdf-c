@@ -2,7 +2,10 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
-F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/synth1"
+F="http://localhost:8080/thredds/dodsC/testCdmUnitTest/normal/NAM_Alaska_22km_20100504_0000.grib1"
+CON="time,time1_bounds,time1,Polar_Stereographic,y,x,height_above_ground,height_above_ground1,layer_between_two_heights_above_ground,layer_between_two_heights_above_ground_bounds,layer_between_two_isobaric,layer_between_two_isobaric_bounds,layer_between_two_pressure_difference_from_ground,layer_between_two_pressure_difference_from_ground_bounds,layer_between_two_pressure_difference_from_ground1,layer_between_two_pressure_difference_from_ground1_bounds"
+#CON="Unknown-C7-S0-V2:34_layer_between_two_pressure_difference_from_ground[0:1:20][0:1:0][0:1:212][0:1:276]"
+
 
 PARMS="${PARMS}[netcdf4]"
 #PARMS="${PARMS}[cache]"
