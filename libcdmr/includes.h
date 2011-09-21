@@ -5,15 +5,21 @@
  *   $Header$
  *********************************************************************/
 
-#ifndef RPC_INCLUDES_H
-#define RPC_INCLUDES_H
+#ifndef INCLUDES_H
+#define INCLUDES_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+
 #include <curl/curl.h>
-#include "rpc_curlwrap.h"
+#include "curlwrap.h"
 
 #include "ncbytes.h"
 #include "nclist.h"
@@ -23,5 +29,19 @@
 
 #include "netcdf.h"
 #include "nc.h"
+#include "ncdispatch.h"
+#include "nclog.h"
+#include "nc_logging.h"
 
-#endif /*RPC_INCLUDES_H*/
+#include "nccrnode.h"
+#include "ncStreamx.h"
+#include "nccrproto.h"
+
+#include "nccr.h"
+#include "crmeta.h"
+#include "crdebug.h"
+#include "crpath.h"
+#include "crutil.h"
+#include "cceconstraints.h"
+
+#endif /*INCLUDES_H*/

@@ -29,7 +29,7 @@ static char* crtypename(char*);
 static int crbbasetype(nc_type, char*, nc_type, int ndims, Dimension**, nc_type*);
 static int crdeffieldvar(nc_type, void* tag, Variable*);
 static int crdeffieldstruct(nc_type, void* tag, Structure*);
-static int crfillgroup(NCCR*, Group*, nc_type);
+static int crfillgroup(NCCDMR*, Group*, nc_type);
 static int validate_dimensions(size_t ndims, Dimension**, int nounlim);
 static int buildvlenchain(int ncid,char*,nc_type,int ndims,Dimension**,int index,nc_type* vidp);
 static int locateleftvlen(int ndims, Dimension**, int index);
@@ -40,12 +40,12 @@ static int crdefattribute(Attribute* att, nc_type parentid, nc_type scope);
 Fetch the metadata and define in the temporary netcdf-4 file
 */
 int
-nccr_buildnc(NCCR* nccr, Header* hdr)
+nccr_buildnc(NCCDMR* cdmr, Header* hdr)
 {
     int ncstat = NC_NOERR;
-    nc_type ncid = nccr->info.ext_ncid; /*root id*/
+    NC* drno = cdmr->controller;
 
-    ncstat = crfillgroup(nccr, hdr->root, ncid);
+    ncstat = crfillgroup(cdmr, hdr->root, drno->substrate);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
 done:
@@ -168,10 +168,11 @@ done:
 
 /* Actual group is created by caller */
 static int
-crfillgroup(NCCR* nccr, Group* grp, nc_type grpid)
+crfillgroup(NCCDMR* cdmr, Group* grp, nc_type grpid)
 {
     int ncstat = NC_NOERR;
     int i,j;
+    NC* drno = cdmr->controller;
     
     /* Create the dimensions */
     for(i=0;i<grp->dims.count;i++) {

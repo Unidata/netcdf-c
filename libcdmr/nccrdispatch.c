@@ -51,7 +51,7 @@ NC_Dispatch NCCR_dispatch_base = {
 
 NC_DISPATCH_NCR,
 
-NCCR_new_nc,
+NULL,  /*new_nc*/
 
 NCCR_create,
 NCCR_open,
@@ -138,26 +138,18 @@ NULL, /*get_var_chunk_cache*/
 
 };
 
-NC_Dispatch NCCR_dispatcher;
+NC_Dispatch* NCCR_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-ptrdiff_t nccrsinglestride[NC_MAX_VAR_DIMS];
-size_t nccrzerostart[NC_MAX_VAR_DIMS];
-size_t nccrsinglecount[NC_MAX_VAR_DIMS];
+NC_Dispatch NCCR_dispatcher; /*overlay result */
 
 int
 NCCR_initialize(void)
 {
-    int i;
-    /* Create our dispatch table as the merge of NC4 table
-       plus some overrides */
-    NC_dispatch_overlay(&NCCR_dispatch_base, NC4_dispatch_table, &NCCR_dispatcher);    
+    /* Create our dispatch table as the merge of NCCR table and NCSUBSTRATE */
+    /* watch the order because we want NCCR to overwrite NCSUBSTRATE */
+    NC_dispatch_overlay(&NCCR_dispatch_base, NCSUBSTRATE_dispatch_table, &NCCR_dispatcher);    
     NCCR_dispatch_table = &NCCR_dispatcher;
     ncloginit();
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-        nccrzerostart[i] = 0;
-	nccrsinglecount[i] = 1;
-	nccrsinglestride[i] = 1;
-    }
     return NC_NOERR;
 }
 
@@ -197,7 +189,6 @@ NCCR_abort(int ncid)
 
     LOG((1, "nc_abort: ncid 0x%x", ncid));
 
-    /* Avoid repeated abort */
     ncstat = NC_check_id(ncid, (NC**)&nc); 
     if(ncstat != NC_NOERR) return ncstat;
 
@@ -220,7 +211,7 @@ NCCR_get_vara(int ncid, int varid,
             void *value,
 	    nc_type memtype)
 {
-    int stat = NCCR_getvarx(ncid, varid, start, edges, nccrsinglestride,value,memtype);
+    int stat = NCCR_getvarx(ncid, varid, start, edges, nc_ptrdiffvector1, value,memtype);
     return stat;
 }
 

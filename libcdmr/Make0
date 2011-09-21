@@ -46,7 +46,7 @@ clean::
 
 ##################################################
 # ncd
-S=chunkspec.c dimmap.c dumplib.c indent.c ncdump.c nciter.c nctime.c utils.c vardata.c
+S=chunkspec.c dimmap.c dumplib.c indent.c ncdump.c nciter.c nctime0.c utils.c vardata.c
 
 SRC=${S:%.c=../ncdump/%.c}
 OBJ=${S:%.c=%.o}

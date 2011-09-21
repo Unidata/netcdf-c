@@ -1356,6 +1356,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
       if(model == (NC_DISPATCH_NC4))
  	dispatcher = NC4_dispatch_table;
+      else if(model == (NC_DISPATCH_DISKLESS))
+	 dispatcher = NCD_dispatch_table;
       else
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP
@@ -1365,8 +1367,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
       if(model == (NC_DISPATCH_NC3))
  	dispatcher = NC3_dispatch_table;
-      else if(model == (NC_DISPATCH_DISKLESS))
-	 dispatcher = NCD_dispatch_table;
       else
 	 return NC_ENOTNC;
    }

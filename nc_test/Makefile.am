@@ -21,7 +21,7 @@ endif
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
-nc_test_SOURCES = nc_test.c error.c test_get.m4 test_put.m4 \
+nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
 test_read.c test_write.c util.c error.h tests.h 
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la 
@@ -50,7 +50,7 @@ endif # USE_VALGRIND_TESTS
 
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.c test_put.c run_valgrind_tests.sh
+EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.

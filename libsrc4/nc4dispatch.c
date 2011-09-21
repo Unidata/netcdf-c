@@ -99,6 +99,8 @@ NC4_get_var_chunk_cache,
 
 };
 
+NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
+
 int
 NC4_initialize(void)
 {

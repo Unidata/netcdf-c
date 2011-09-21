@@ -34,12 +34,6 @@ int nc__opendap(void) {return 0;}
 int
 nc3dinitialize(void)
 {
-    int i;
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-        dapzerostart3[i] = 0;
-	dapsinglecount3[i] = 1;
-	dapsinglestride3[i] = 1;
-    }
     compute_nccalignments();
     nc3dinitialized = 1;
     return NC_NOERR;
@@ -136,7 +130,7 @@ NCD3_open(const char * path, int mode,
     nullfree(tmpname);
 
     /* Avoid fill */
-    nc_set_fill(drno->ext_ncid,NC_NOFILL,NULL);
+    nc_set_fill(drno->substrate,NC_NOFILL,NULL);
 
     /* process control client parameters */
     applyclientparamcontrols3(dapcomm);
