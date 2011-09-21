@@ -1,4 +1,4 @@
-netcdf tst_grp_spec {
+netcdf tmp_subset {
 dimensions:
 	dim = UNLIMITED ; // (1 currently)
 variables:
