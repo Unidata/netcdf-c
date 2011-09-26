@@ -7,8 +7,6 @@ This file handles the nc4 variable functions.
 Copyright 2003-2006, University Corporation for Atmospheric
 Research. See COPYRIGHT file for copying and redistribution
 conditions.
-
-$Id: nc4var.c,v 1.148 2010/05/27 21:34:15 dmh Exp $
 */
 
 #include <nc4internal.h>

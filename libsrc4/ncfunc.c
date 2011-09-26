@@ -9,8 +9,6 @@ function, depending on ncid.
 Copyright 2003, University Corporation for Atmospheric Research. See
 netcdf-4/docs/COPYRIGHT file for copying and redistribution
 conditions.
-
-$Id: ncfunc.c,v 1.51 2010/05/26 20:13:32 dmh Exp $
 */
 
 #include "nc4internal.h"

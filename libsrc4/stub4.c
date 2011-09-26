@@ -3,9 +3,6 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-/* $Id: stub4.c,v 1.6 2010/05/24 19:48:17 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libsrc4/stub4.c,v 1.6 2010/05/24 19:48:17 dmh Exp $ */
-
 #include "config.h"
 #include "netcdf.h"
 
