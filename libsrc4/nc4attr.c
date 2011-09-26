@@ -7,11 +7,9 @@ This file handles the nc4 attribute functions.
 Remember that with atts, type conversion can take place when writing
 them, and when reading them.
 
-Copyright 2003-2005, University Corporation for Atmospheric
+Copyright 2003-2011, University Corporation for Atmospheric
 Research. See COPYRIGHT file for copying and redistribution
 conditions.
-
-$Id: nc4attr.c,v 1.78 2010/05/25 17:54:23 dmh Exp $
 */
 
 #include "nc4internal.h"
