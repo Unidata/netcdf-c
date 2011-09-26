@@ -97,22 +97,15 @@ The default,
 without this option and in the absence of the \fB-c\fP or \fB-h\fP
 options, is to include data values for \fIall\fP variables in the output.
 .IP "\fB-g\fP \fIgrp1,...,grpn\fP"
-For netCDF-4 files, the output will include the
-specified groups, in addition to declarations of any needed
-dimensions inherited from parent groups or any types defined in other
-groups.  One or more groups must be specified by name in the
+For netCDF-4 files, the output will include data values only for the
+specified groups.  One or more groups must be specified by name in the
 comma-delimited list following this option. The list must be a single
-argument to the command. The named groups must be valid netCDF groups in the
-input-file. The default, without this option and in the absence of
-the '-c' or '-h' options, is to include groupss
-in the output.
-A group in a netCDF-4 file may be specified with an absolute
-path name, such as `/grpa/grpa2'.  Use of a relative path name
-such as `grpx' or `grpx/grpy' specifies all matching
-group names in the file.
-The default,
-without this option and in the absence of the \fB-c\fP or \fB-h\fP
-options, is to include data values for \fIall\fP groups in the output.
+argument to the command. The named groups must be valid netCDF groups
+in the input-file.  A group in a netCDF-4 file may be specified with
+an absolute or relative path name.  Use of a relative path name
+specifies all matching group names in the file.  The default, without
+this option and in the absence of the \fB-c\fP or \fB-h\fP options, is
+to include data values for \fIall\fP groups in the output.
 .IP "\fB-b\fP \fIlang\fP"
 A brief annotation in the form of a CDL comment (text beginning with the
 characters ``//'') will be included in the data section of the output for

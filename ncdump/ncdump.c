@@ -2115,16 +2115,13 @@ where:
  and in the absence of the '-c' or '-h' options, is to include data
  values for all variables in the output.
 
--g grp1,... The output will include metadata and data values for the
- specified groups, in addition to declarations of any needed
- dimensions inherited from parent groups or any types defined in other
+-g grp1,... The output will include data values only for the specified
  groups.  One or more groups must be specified by name in the
  comma-delimited list following this option. The list must be a single
- argument to the command, hence cannot contain blanks or other white
- space characters. The named groups must be valid netCDF groups in the
+ argument to the command. The named groups must be valid netCDF groups in the
  input-file. The default, without this option and in the absence of
- the '-c' or '-h' options, is to include data values for all variables
- in the output.
+ the '-c' or '-h' options, is to include data values for all groups in
+ the output.
 
 -b lang A brief annotation in the form of a CDL comment (text
  beginning with the characters '//') will be included in the data
