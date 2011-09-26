@@ -4,6 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/libsrc4/nc4dispatch.c,v 1.5 2010/05/27 02:19:37 dmh Exp $
  *********************************************************************/
 
+#include "config.h"
 #include <stdlib.h>
 #include "nc.h"
 #include "ncdispatch.h"

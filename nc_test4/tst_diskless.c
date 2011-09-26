@@ -159,5 +159,61 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing diskless file with scalar vars and type conversion...");
+   {
+#define DUNE "dune"
+#define STAR_TREK "capacitor_value"    
+#define STAR_WARS "number_of_555_timer_chips"
+
+      int ncid, varid0, varid1, varid2;
+      int ndims_in, nvars_in, natts_in, unlimdimid_in;
+      char name_in[NC_MAX_NAME + 1];
+      nc_type type_in;
+      size_t len_in;
+      int i;
+      float float_data = 3.14, float_data_in;
+      int int_data = 42, int_data_in;
+      short short_data = 2, short_data_in;
+
+      /* Create a netCDF file (which exists only in memory). */
+      if (nc_create(FILE_NAME, NC_DISKLESS|NC_NETCDF4|NC_CLASSIC_MODEL, 
+		    &ncid)) ERR;
+
+      /* Create some variables. */
+      if (nc_def_var(ncid, DUNE, NC_INT, 0, NULL, &varid0)) ERR;
+      if (nc_def_var(ncid, STAR_TREK, NC_FLOAT, 0, NULL, &varid1)) ERR;
+      if (nc_def_var(ncid, STAR_WARS, NC_SHORT, 0, NULL, &varid2)) ERR;
+
+      /* Write some data to this file. */
+      if (nc_put_vara_int(ncid, varid0, NULL, NULL, &int_data)) ERR;
+      if (nc_put_vara_float(ncid, varid1, NULL, NULL, &float_data)) ERR;
+      if (nc_put_vara_short(ncid, varid2, NULL, NULL, &short_data)) ERR;
+
+      /* Now check the phony file. */
+      if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
+      if (ndims_in != 0 || nvars_in != 3 || natts_in != 0 || unlimdimid_in != -1) ERR;
+
+      /* Check variables. */
+      if (nc_inq_var(ncid, varid0, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
+      if (strcmp(name_in, DUNE) || type_in != NC_INT || ndims_in != 0 ||
+	  natts_in != 0) ERR;
+      if (nc_inq_var(ncid, varid1, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
+      if (strcmp(name_in, STAR_TREK) || type_in != NC_FLOAT || ndims_in != 0 ||
+	  natts_in != 0) ERR;
+      if (nc_inq_var(ncid, varid2, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
+      if (strcmp(name_in, STAR_WARS) || type_in != NC_SHORT || natts_in != 0) ERR;
+
+      /* Read my absolutely crucial data. */
+      if (nc_get_vara_int(ncid, varid0, NULL, NULL, &int_data_in)) ERR;
+      if (int_data_in != int_data) ERR;
+      if (nc_get_vara_float(ncid, varid1, NULL, NULL, &float_data_in)) ERR;
+      if (float_data_in != float_data) ERR;
+      if (nc_get_vara_short(ncid, varid2, NULL, NULL, &short_data_in)) ERR;
+      if (short_data_in != short_data) ERR;
+
+      /* Close the file. */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
