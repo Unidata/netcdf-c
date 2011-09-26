@@ -2414,6 +2414,10 @@ main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 		if (xml_out) {
+		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
+			error("NcML output (-x) currently only permitted for netCDF classic model");
+			return EXIT_FAILURE;
+		    }
 		    do_ncdumpx(ncid, path);
 		} else {
 		    do_ncdump(ncid, path);
