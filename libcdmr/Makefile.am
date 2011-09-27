@@ -44,29 +44,24 @@ noinst_LTLIBRARIES = libnccr.la
 
 # Build convenience library
 libnccr_la_SOURCES = $(SRC) $(HDRS)
+libnccr_la_CPPFLAGS = $(AM_CPPFLAGS)
+libnccr_la_LIBADD = 
 
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 \
-	      -I$(top_srcdir)/libsrc \
-	      -I$(top_srcdir)/libdispatch
-
-AM_CPPFLAGS += -I${top_srcdir}/libdispatch
-
-# Define the load libraries for stub3
-LDADD += ${top_builddir}/libcdmr/libnccr.la \
-	 ${top_builddir}/libsrc4/libnetcdf4.la \
-         ${top_builddir}/libsrc/libnetcdf3.la \
-         ${top_builddir}/libdispatch/libdispatch.la
-
-if BUILD_V2
-LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
-endif # BUILD_V2
-
-# Add a trivial test case to check for undefined references
-check_PROGRAMS = t_cdmr
-TESTS = t_cdmr
-TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
-t_cdmr_SOURCES = t_cdmr.c nccrstub.c
-CLEANFILES += t_cdmr
+#if USE_NETCDF4
+#LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
+#endif
+#
+#LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
+#	 ${top_builddir}/oc/liboc.la			\
+#	 ${top_builddir}/libdispatch/libdispatch.la
+#
+#
+## Add a trivial test case to check for undefined references
+#check_PROGRAMS = t_cdmr
+#TESTS = t_cdmr
+#TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
+#t_cdmr_SOURCES = t_cdmr.c nccrstub.c
+#CLEANFILES += t_cdmr
 
 ##################################################
 # These rule are used if someone wants to rebuild the grammar files.
