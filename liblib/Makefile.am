@@ -26,10 +26,10 @@ endif # BUILD_DLL
 
 if BUILD_F77
 # These are the source files for the fortran library.
-FORTRAN_SRC = fort-attio.c fort-control.c fort-dim.c		\
-fort-genatt.c fort-geninq.c fort-genvar.c fort-lib.c fort-misc.c	\
-fort-v2compat.c fort-vario.c fort-var1io.c fort-varaio.c fort-varmio.c	\
-fort-varsio.c cfortran.h fort-lib.h ncfortran.h netcdf.inc
+FORTRAN_SRC = fort-attio.c fort-control.c fort-dim.c fort-genatt.c	\
+fort-geninq.c fort-genvar.c fort-lib.c fort-misc.c fort-v2compat.c	\
+fort-vario.c fort-var1io.c fort-varaio.c fort-varmio.c fort-varsio.c	\
+cfortran.h fort-lib.h ncfortran.h netcdf.inc
 BUILT_SOURCES = fort-attio.c
 noinst_LTLIBRARIES = libnetcdff.la
 libnetcdff_la_SOURCES = ${FORTRAN_SRC}
