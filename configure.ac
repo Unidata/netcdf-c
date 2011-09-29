@@ -445,6 +445,16 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+AC_MSG_CHECKING([whether to include the F77 API in the C library (bad, but provided for backward compatibility)])
+AC_ARG_WITH([f77-dir],
+            [AS_HELP_STRING([--with-f77-dir=<directory>],
+                            [specify directory where fortran was built])],
+            [F77_DIR=$with_f77_dir])
+AC_MSG_RESULT($F77_DIR)
+AC_SUBST(F77_DIR, [$F77_DIR])
+AC_DEFINE_UNQUOTED([F77_DIR], ["$F77_DIR"], [Place to find f77 build.])
+AM_CONDITIONAL(BUILD_F77, [test -n "$with_f77_dir"])
+
 # If --enable-dll is specified the DLL will be built. This only works
 # on mingw.
 AC_MSG_CHECKING([whether a win32 DLL is desired])
