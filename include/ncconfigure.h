@@ -24,6 +24,15 @@ extern char* strdup(const char*);
 
 /* handle null arguments */
 #ifndef nulldup
+#ifdef HAVE_STRDUP
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+char *nulldup(const char* s);
+#endif
+#endif 
+
+
+#ifndef nulldup
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
 #ifndef nulllen
