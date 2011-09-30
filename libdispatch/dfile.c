@@ -1378,7 +1378,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
    ncp->dispatch = dispatcher;
    if(ncidp) 
       *ncidp = ncp->ext_ncid;
-   if (!(ncp->path = strdup(path)))
+   if (!(ncp->path = nulldup(path)))
       return NC_ENOMEM;
    return NC_NOERR;
 }
@@ -1493,7 +1493,7 @@ NC_open(const char *path, int cmode,
    if(stat == NC_NOERR) {
       ncp->dispatch = dispatcher;
       if(ncidp) *ncidp = ncp->ext_ncid;
-      ncp->path = strdup(path);
+      ncp->path = nulldup(path);
       if(path == NULL) stat = NC_ENOMEM;	
    }
    return stat;
