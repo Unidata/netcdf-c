@@ -24,24 +24,6 @@ libnetcdf_la_LDFLAGS += -no-undefined -Wl,--output-def,netcdfdll.def
 libnetcdf_la_CPPFLAGS += -DDLL_EXPORT
 endif # BUILD_DLL
 
-if BUILD_F77
-# These are the source files for the fortran library.
-FORTRAN_SRC = fort-attio.c fort-control.c fort-dim.c fort-genatt.c	\
-fort-geninq.c fort-genvar.c fort-lib.c fort-misc.c fort-v2compat.c	\
-fort-vario.c fort-var1io.c fort-varaio.c fort-varmio.c fort-varsio.c	\
-cfortran.h fort-lib.h ncfortran.h netcdf.inc
-BUILT_SOURCES = fort-attio.c
-noinst_LTLIBRARIES = libnetcdff.la
-libnetcdff_la_SOURCES = ${FORTRAN_SRC}
-libnetcdf_la_LIBADD += libnetcdff.la
-
-fort-attio.c:
-	F77_DIR=@F77_DIR@ ./get_fortran_src.sh
-
-CLEANFILES += ${FORTRAN_SRC}
-
-endif
-
 # The v2 API...
 if BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libnetcdf2.la
