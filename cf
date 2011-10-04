@@ -2,7 +2,7 @@
 #X="-x"
 
 #HDF5=1
-#DAP=1
+DAP=1
 #CDMR=1
 #RPC=1
 
@@ -11,13 +11,13 @@
 
 #NB=1
 
-#cmds=""
+cmds=""
 #cmds="all"
-cmds="all check"
+#cmds="all check"
 #cmds="all dist"
 #cmds="all distcheck"
 
-PREFIX="/tmp/install/${HOST}"
+PREFIX="/tmp/${HOST}"
 stddir="/share/ed/local/${HOST}"
 
 CPPFLAGS=""

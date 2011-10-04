@@ -251,6 +251,7 @@ dapcvtattrval3(nc_type etype, void* dst, NClist* src)
 	case NC_STRING: case NC_URL: {
 	    char** p = (char**)dstmem;
 	    *p = nulldup(s);
+	    ok = 1;
 	    } break;
 	default:
    	    PANIC1("unexpected nc_type: %d",(int)etype);
