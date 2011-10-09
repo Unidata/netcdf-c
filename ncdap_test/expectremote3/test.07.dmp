@@ -53,9 +53,9 @@ data:
   "This is a data test string (pass 4)." ;
 
  types.u =
-  "http://www.dods.org",
-  "http://www.dods.org",
-  "http://www.dods.org",
-  "http://www.dods.org",
-  "http://www.dods.org" ;
+  "http://www.opendap.org",
+  "http://www.opendap.org",
+  "http://www.opendap.org",
+  "http://www.opendap.org",
+  "http://www.opendap.org" ;
 }

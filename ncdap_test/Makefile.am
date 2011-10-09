@@ -14,7 +14,7 @@ check_PROGRAMS =
 TESTS = 
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
-TESTS += tst_ncdap3.sh
+#TESTS += tst_ncdap3.sh
 
 if USE_NETCDF4
 TESTS += tst_ncdap4.sh
