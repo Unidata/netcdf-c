@@ -1,10 +1,11 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2010, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/common34.c,v 1.29 2010/05/25 13:53:02 ed Exp $
  *********************************************************************/
 
-#include "rpc_includes.h"
+#include <stdlib.h>
+#include "ncbytes.h"
+#include "nc_path.h"
 
 NCPath*
 ncpath_append(NCPath* path, char* name)
@@ -62,9 +63,9 @@ ncpath_dup(NCPath* path)
 }
 
 char*
-ncpath_tostring(NCPath* path, char* sep, char*(encode)(char*,NCBytes*))
+ncpath_tostring(NCPath* path, char* sep, ncpath_encoder encoder)
 {
-    NCBytes* buf;
+    NCbytes* buf;
     char* result;
 
     if(path == NULL) return NULL;
@@ -72,10 +73,10 @@ ncpath_tostring(NCPath* path, char* sep, char*(encode)(char*,NCBytes*))
     buf = ncbytesnew();
     int first = 1;
     while(path != NULL) {
-	if(!first) ncbytescat(buf,path);
+	if(!first) ncbytescat(buf,path->name);
 	first = 0;
-	if(encode != NULL)
-	    encode(path->name,buf);	    
+	if(encoder != NULL)
+	    encoder(path->name,buf);	    
 	else
 	    ncbytescat(buf,path->name);
 	path = path->next;

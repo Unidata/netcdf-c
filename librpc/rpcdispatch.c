@@ -1,24 +1,9 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap4/ncd4dispatch.c,v 1.8 2010/05/27 21:34:10 dmh Exp $
  *********************************************************************/
 
-#include "config.h"
-#include <stdlib.h>
-#include <string.h>
-
-#include <curl/curl.h>
-
-#include "nclog.h"
-
-#include "netcdf.h"
-#include "nc.h"
-#include "ncdispatch.h"
-#include "nc4internal.h"
-
-#include "ncrpc.h"
-#include "ncrpcdispatch.h"
+#include "rpc_includes.h"
 
 int
 NCRPC_create(const char *path, int cmode,
@@ -27,8 +12,8 @@ NCRPC_create(const char *path, int cmode,
 	   NC_Dispatch* dispatcher, NC** ncidp)
 {
     int ncstat = NC_NOERR;
-    Create* request = (Create*)calloc(1,sizeof(Create));
-    Create_Return* response = NULL;
+    NCCreate* request = (NCCreate*)calloc(1,sizeof(NCCreate));
+    NCCreate_Return* response = NULL;
     request->path = nulldup(path);
     request->cmode = cmode;
     request->initialsz = initialsz;
@@ -57,11 +42,11 @@ int
 NCRPC_open(const char *path, int cmode,
          int basepe, size_t *chunksizehintp, 
 	 int use_parallel, void* parameters,
-	 NC_Dispatch*, NC**)
+	 NC_Dispatch* dispatch, NC** ncp)
 {
     int ncstat = NC_NOERR;
-    Open* request = (Open*)calloc(1,sizeof(Open));
-    Open_Return* response = NULL;
+    NCOpen* request = (Open*)calloc(1,sizeof(NCOpen));
+    NCOpen_Return* response = NULL;
     request->path = nulldup(path);
     request->cmode = cmode;
     request->initialsz = initialsz;
@@ -76,6 +61,9 @@ NCRPC_open(const char *path, int cmode,
     if(ncstat != NC_NOERR) goto fail;
     ncstat = rpc_receive(NCRPC_OPEN,(void*)response);
     if(ncstat != NC_NOERR) goto fail;
+
+    /* Create a local, pseudo NC */
+
     ncstat = response->ncstatus;
     if(ncstat != NC_NOERR) goto fail;
     if(ncidp != NULL) *ncidp = response->ncid;    
@@ -89,8 +77,8 @@ int
 NCRPC_redef(int ncid)
 {
     int ncstat = NC_NOERR;
-    Redef* request = (Redef*)calloc(1,sizeof(Redef));
-    Redef_Return* response = NULL;
+    NCRedef* request = (Redef*)calloc(1,sizeof(NCRedef));
+    NCRedef_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_REDEF,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -109,8 +97,8 @@ NCRPC__enddef(int ncid, size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align)
 {
     int ncstat = NC_NOERR;
-    Enddef* request = (Enddef*)calloc(1,sizeof(Enddef));
-    Enddef_Return* response = NULL;
+    NCEnddef* request = (Enddef*)calloc(1,sizeof(NCEnddef));
+    NCEnddef_Return* response = NULL;
     request->ncid = ncid;
     request->h_minfree = h_minfree;
     request->v_align = v_align;
@@ -132,8 +120,8 @@ int
 NCRPC_sync(int ncid)
 {
     int ncstat = NC_NOERR;
-    Sync* request = (Sync*)calloc(1,sizeof(Sync));
-    Sync_Return* response = NULL;
+    NCSync* request = (Sync*)calloc(1,sizeof(NCSync));
+    NCSync_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_SYNC,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -151,8 +139,8 @@ int
 NCRPC_abort(int ncid)
 {
     int ncstat = NC_NOERR;
-    Abort* request = (Abort*)calloc(1,sizeof(Abort));
-    Abort_Return* response = NULL;
+    NCAbort* request = (Abort*)calloc(1,sizeof(NCAbort));
+    NCAbort_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_ABORT,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -170,8 +158,8 @@ int
 NCRPC_close(int ncid)
 {
     int ncstat = NC_NOERR;
-    Close* request = (Close*)calloc(1,sizeof(Close));
-    Close_Return* response = NULL;
+    NCClose* request = (Close*)calloc(1,sizeof(NCClose));
+    NCClose_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_CLOSE,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -189,8 +177,8 @@ int
 NCRPC_set_fill(int ncid, int fillmode, int *old_modep)
 {
     int ncstat = NC_NOERR;
-    Set_Fill* request = (Set_Fill*)calloc(1,sizeof(Set_Fill));
-    Set_Fill_Return* response = NULL;
+    Set_NCFill* request = (Set_Fill*)calloc(1,sizeof(NCSet_Fill));
+    NCSet_Fill_Return* response = NULL;
     request->ncid = ncid;
     request->fillmode = fillmode;
     ncstat = rpc_send(NCRPC_SET_FILL,(void*)request);
@@ -210,8 +198,8 @@ int
 NCRPC_inq_base_pe(int ncid, int *pe)
 {
     int ncstat = NC_NOERR;
-    Inq_Base_PE* request = (Inq_Base_PE*)calloc(1,sizeof(Inq_Base_PE));
-    Inq_Base_PE_Return* response = NULL;
+    Inq_Base_NCPE* request = (Inq_Base_PE*)calloc(1,sizeof(NCInq_Base_PE));
+    NCInq_Base_PE_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_INQ_BASE_PE,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -230,8 +218,8 @@ int
 NCRPC_set_base_pe(int ncid, int pe)
 {
     int ncstat = NC_NOERR;
-    Set_Base_PE* request = (Set_Base_PE*)calloc(1,sizeof(Set_Base_PE));
-    Set_Base_PE_Return* response = NULL;
+    Set_Base_NCPE* request = (Set_Base_PE*)calloc(1,sizeof(NCSet_Base_PE));
+    NCSet_Base_PE_Return* response = NULL;
     request->ncid = ncid;
     request->pe = pe;
     ncstat = rpc_send(NCRPC_SET_BASE_PE,(void*)request);
@@ -250,8 +238,8 @@ int
 NCRPC_inq_format(int ncid, int *formatp)
 {
     int ncstat = NC_NOERR;
-    Inq_Format* request = (Inq_Format*)calloc(1,sizeof(Inq_Format));
-    Inq_Format_Return* response = NULL;
+    Inq_NCFormat* request = (Inq_Format*)calloc(1,sizeof(NCInq_Format));
+    NCInq_Format_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_INQ_FORMAT,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -270,8 +258,8 @@ int
 NCRPC_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
     int ncstat = NC_NOERR;
-    Inq* request = (Inq*)calloc(1,sizeof(Inq));
-    Inq_Return* response = NULL;
+    NCInq* request = (Inq*)calloc(1,sizeof(NCInq));
+    NCInq_Return* response = NULL;
     request->ncid = ncid;
     ncstat = rpc_send(NCRPC_INQ,(void*)request);
     if(ncstat != NC_NOERR) goto fail;
@@ -293,8 +281,8 @@ int
 NCRPC_inq_type(int ncid, nc_type xtype, char* name, size_t* sizep)
 {
     int ncstat = NC_NOERR;
-    Inq_Type* request = (Inq_Type*)calloc(1,sizeof(Inq_Type));
-    Inq_Type_Return* response = NULL;
+    Inq_NCType* request = (Inq_Type*)calloc(1,sizeof(NCInq_Type));
+    NCInq_Type_Return* response = NULL;
     request->ncid = ncid;
     request->xtype = xtype;
     ncstat = rpc_send(NCRPC_INQ_TYPE,(void*)request);
@@ -317,8 +305,8 @@ int
 NCRPC_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
     int ncstat = NC_NOERR;
-    Def_Dim* request = (Def_Dim*)calloc(1,sizeof(Def_Dim));
-    Def_Dim_Return* response = NULL;
+    Def_NCDim* request = (Def_Dim*)calloc(1,sizeof(NCDef_Dim));
+    NCDef_Dim_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     request->len = len;
@@ -407,8 +395,8 @@ NCRPC_def_var(int ncid, const char *name,
 {
     int i;
     int ncstat = NC_NOERR;
-    Def_Var* request = (Def_Var*)calloc(1,sizeof(Def_Var));
-    Def_Var_Return* response = NULL;
+    Def_NCVar* request = (Def_Var*)calloc(1,sizeof(NCDef_Var));
+    NCDef_Var_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     request->xtype = xtype;
@@ -526,8 +514,8 @@ int
 NCRPC_def_grp(int ncid, const char* name, int* grpidp)
 {
     int ncstat = NC_NOERR;
-    Def_Grp* request = (Def_Grp*)calloc(1,sizeof(Def_Grp));
-    Def_Grp_Return* response = NULL;
+    Def_NCGrp* request = (Def_Grp*)calloc(1,sizeof(NCDef_Grp));
+    NCDef_Grp_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     ncstat = rpc_send(NCRPC_DEF_GRP,(void*)request);
@@ -553,8 +541,8 @@ int
 NCRPC_def_compound(int ncid, size_t size, const char* name, nc_type* typeidp)
 {
     int ncstat = NC_NOERR;
-    Def_Compound* request = (Def_Compound*)calloc(1,sizeof(Def_Compound));
-    Def_Compound_Return* response = NULL;
+    Def_NCCompound* request = (Def_Compound*)calloc(1,sizeof(NCDef_Compound));
+    NCDef_Compound_Return* response = NULL;
     request->ncid = ncid;
     request->size = size;
     request->name = nulldup(name);
@@ -602,8 +590,8 @@ int
 NCRPC_def_vlen(int ncid, const char* name, nc_type base_typeid, nc_type* idp)
 {
     int ncstat = NC_NOERR;
-    Def_Vlen* request = (Def_Vlen*)calloc(1,sizeof(Def_Vlen));
-    Def_Vlen_Return* response = NULL;
+    Def_NCVlen* request = (Def_Vlen*)calloc(1,sizeof(NCDef_Vlen));
+    NCDef_Vlen_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     request->base_typeid = base_typeid;
@@ -634,8 +622,8 @@ int
 NCRPC_def_enum(int ncid, nc_type basetypeid, const char* name, nc_type* idp)
 {
     int ncstat = NC_NOERR;
-    Def_Enum* request = (Def_Enum*)calloc(1,sizeof(Def_Enum));
-    Def_Enum_Return* response = NULL;
+    Def_NCEnum* request = (Def_Enum*)calloc(1,sizeof(NCDef_Enum));
+    NCDef_Enum_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     request->basetypeid = basetypeid;
@@ -671,8 +659,8 @@ int
 NCRPC_def_opaque(int ncid, size_t size , const char* name, nc_type* idp)
 {
     int ncstat = NC_NOERR;
-    Def_Opaque* request = (Def_Opaque*)calloc(1,sizeof(Def_Opaque));
-    Def_Opaque_Return* response = NULL;
+    Def_NCOpaque* request = (Def_Opaque*)calloc(1,sizeof(NCDef_Opaque));
+    NCDef_Opaque_Return* response = NULL;
     request->ncid = ncid;
     request->name = nulldup(name);
     request->size = size;
@@ -693,8 +681,8 @@ int
 NCRPC_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflatelevel)
 {
     int ncstat = NC_NOERR;
-    Def_Var_Deflate* request = (Def_Var_Deflate*)calloc(1,sizeof(Def_Var_Deflate));
-    Def_Var_Deflate_Return* response = NULL;
+    Def_Var_NCDeflate* request = (Def_Var_Deflate*)calloc(1,sizeof(NCDef_Var_Deflate));
+    NCDef_Var_Deflate_Return* response = NULL;
     request->ncid = ncid;
     request->varid  varid;
     request->size = size;
@@ -717,8 +705,8 @@ int
 NCRPC_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     int ncstat = NC_NOERR;
-    Def_Var_Fletcher32* request = (Def_Var_Fletcher32*)calloc(1,sizeof(Def_Var_Fletcher32));
-    Def_Var_Fletcher32_Return* response = NULL;
+    Def_Var_NCFletcher32* request = (Def_Var_Fletcher32*)calloc(1,sizeof(NCDef_Var_Fletcher32));
+    NCDef_Var_Fletcher32_Return* response = NULL;
     request->ncid = ncid;
     request->varid  varid;
     request->fletcher32 = (fletcher32 == NC_FLETCHER32?1:0);
@@ -739,8 +727,8 @@ NCRPC_def_var_chunking(int ncid, int varid, int contiguous, const size_t* chunks
 {
     int i, ndims;
     int ncstat = NC_NOERR;
-    Def_Var_Chunking* request = (Def_Var_Chunking*)calloc(1,sizeof(Def_Var_Chunking));
-    Def_Var_Chunking_Return* response = NULL;
+    Def_Var_NCChunking* request = (Def_Var_Chunking*)calloc(1,sizeof(NCDef_Var_Chunking));
+    NCDef_Var_Chunking_Return* response = NULL;
     request->ncid = ncid;
     request->varid  varid;
     request->contiguous = (contiguous == NC_CONTIGUOUS?1:0);
@@ -767,8 +755,8 @@ NCRPC_def_var_fill(int ncid, int varid, int nofill, const void* fill_value)
 {
     int i, ndims;
     int ncstat = NC_NOERR;
-    Def_Var_Fill* request = (Def_Var_Fill*)calloc(1,sizeof(Def_Var_Fill));
-    Def_Var_Fill_Return* response = NULL;
+    NCDef_Var_Fill* request = (Def_Var_Fill*)calloc(1,sizeof(NCDef_Var_Fill));
+    NCDef_Var_Fill_Return* response = NULL;
     request->ncid = ncid;
     request->varid  varid;
     request->nofill = (nofill == 1?1:0);

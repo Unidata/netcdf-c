@@ -24,7 +24,11 @@ extern void ncpath_free(NCPath*);
 extern int ncpath_match(NCPath*,NCPath*);
 extern NCPath* ncpath_dup(NCPath*);
 
+/* Define function ptr for encoding */
+struct NCBytes;
+typedef char* (*ncpath_encoder)(char*,struct NCbytes*);
+
 /* Caller free's return value */
-extern char* ncpath_tostring(NCPath* path, char* sep, char*(encode(char*)));
+extern char* ncpath_tostring(NCPath* path, char* sep, ncpath_encoder);
 
 #endif /*NC_PATH_H*/

@@ -14,7 +14,7 @@ check_PROGRAMS =
 TESTS = 
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
-TESTS += tst_ncdap3.sh
+#TESTS += tst_ncdap3.sh
 
 if USE_NETCDF4
 TESTS += tst_ncdap4.sh
@@ -49,10 +49,12 @@ check_PROGRAMS += test_cvt4 t_dap4
 TESTS += test_cvt4 t_dap4
 else
 test_cvt3_SOURCES = test_cvt.c
-test_varm3_SOURCES = test_varm3.c
 test_vara_SOURCES = test_vara.c
-check_PROGRAMS += t_dap3a test_cvt3 test_varm3 test_vara
-TESTS += t_dap3a test_cvt3 test_varm3 test_vara
+check_PROGRAMS += t_dap3a test_cvt3 test_vara
+TESTS += t_dap3a test_cvt3 test_vara
+#test_varm3_SOURCES = test_varm3.c
+#TESTS += test_varm3
+#check_PROGRAMS += test_varm3
 endif
 
 t_dap3a_SOURCES = t_dap3a.c

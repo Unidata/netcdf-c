@@ -48,7 +48,7 @@ FILETESTS="${SYNTHETICDATA} ${ACTUALDATA1} ${ACTUALDATA2}"
 # Remote test info
 ##################################################
 
-# REMOTEURL1="http://motherlode.ucar.edu:8080/dods/dts"
+# REMOTEURL1="http://motherlode.ucar.edu:8080/dts"
 # REMOTEURL2="http://test.opendap.org/dap/netcdf/examples"
 # 
 # 

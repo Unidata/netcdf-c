@@ -54,14 +54,14 @@ fi
 WHICHTESTS=S1
 
 # For special testing
-REMOTEURLX="http://motherlode.ucar.edu:8080/dods/dts"
+REMOTEURLX="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSX="test.03"
 
-REMOTEURLXC="http://motherlode.ucar.edu:8080/dods/dts"
+REMOTEURLXC="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
-REMOTEURLS1="http://motherlode.ucar.edu:8080/dods/dts"
+REMOTEURLS1="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSS1="
 test.01 test.02
 test.04 test.05 test.06a test.07a test.07 \
@@ -93,7 +93,7 @@ TOOBIG="parserBug0001 test.satimage Sat_Images test.06 test.32"
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
 # Following tests are to check constraint handling
-REMOTEURLC1="http://motherlode.ucar.edu:8080/dods/dts"
+REMOTEURLC1="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSC1="\
 test.01;1;f64 \
 test.02;1;b[1:2:10] \
@@ -118,7 +118,7 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 "
 
 # Constrained long tests
-REMOTEURLLC1="http://motherlode.ucar.edu:8080/dods/dts"
+REMOTEURLLC1="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSLC1="\
 test.03;2;s1"
 
