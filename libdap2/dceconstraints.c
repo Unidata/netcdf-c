@@ -4,9 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/constraints3.c,v 1.40 2010/05/27 21:34:07 dmh Exp $
  *********************************************************************/
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>

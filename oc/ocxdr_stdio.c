@@ -49,9 +49,7 @@ I don't actually know the cost to doing
 an fseek
 */
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "ocinternal.h"
 

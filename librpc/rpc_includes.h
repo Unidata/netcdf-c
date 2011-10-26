@@ -6,9 +6,7 @@
 #ifndef RPC_INCLUDES_H
 #define RPC_INCLUDES_H
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 #include <stdlib.h>
 #include <string.h>
 
