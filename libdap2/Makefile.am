@@ -15,8 +15,6 @@ EXTRA_DIST =
 
 LDADD=
 
-AM_CPPFLAGS += -I$(top_srcdir)/include 
-
 SRC= constraints3.c common34.c dapcvt.c dapalign.c dapodom.c daputil.c	\
 ncdaperr.c cdf3.c cache.c dapdump.c dapdebug.c dapattr3.c		\
 ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c dceconstraints.c dcetab.c	\
@@ -33,34 +31,24 @@ endif
 
 if BUILD_DAP
 
-noinst_LTLIBRARIES = libdap2.la
-
-# Build convenience library
-libdap2_la_SOURCES = $(SRC) $(HDRS)
-libdap2_la_CPPFLAGS = $(AM_CPPFLAGS)
-libdap2_la_LIBADD =
-
 if USE_NETCDF4
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4
 endif
 
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc
-AM_CPPFLAGS += -I${top_srcdir}/oc
+# Build convenience library
+noinst_LTLIBRARIES = libdap2.la
+libdap2_la_SOURCES = $(SRC) $(HDRS)
+libdap2_la_CPPFLAGS = $(AM_CPPFLAGS)
+libdap2_la_LIBADD =
 
-LDADD += libdap2.la
-
-if USE_NETCDF4
-LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
-endif
-
-LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
-	 ${top_builddir}/oc/liboc.la			\
-	 ${top_builddir}/libdispatch/libdispatch.la
-
-if BUILD_V2
-LDADD += ${top_builddir}/libdispatch/libnetcdf2.la 
-endif # BUILD_V2
-
+#if USE_NETCDF4
+#LDADD += ${top_builddir}/libsrc4/libnetcdf4.la
+#endif
+#
+#LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
+#	 ${top_builddir}/oc/liboc.la			\
+#	 ${top_builddir}/libdispatch/libdispatch.la
+#
 endif # BUILD_DAP
 
 # These rule are used if someone wants to rebuild the grammar files.

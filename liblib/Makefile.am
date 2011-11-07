@@ -16,6 +16,7 @@ lib_LTLIBRARIES = libnetcdf.la
 libnetcdf_la_LDFLAGS = -version-number 7:1:1 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD = 
+CLEANFILES = 
 
 # Turn on some extra stuff when building a DLL for windows.
 if BUILD_DLL

@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2-beta1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -334,21 +334,7 @@ dnl if test "x$enable_sx_vectorization" = xyes; then
 dnl    AC_DEFINE([SX_VECTORIZATION], 1, [if true, turn on vectorization patch for NEC SX])
 dnl fi
 
-# Do we want to recover from a bad C++, F77, or F90 compiler?
-nc_compiler_recover=yes
-AC_MSG_CHECKING([whether to skip C++, F77, or F90 APIs if compiler is broken])
-AC_ARG_ENABLE([compiler-recover],
-              [AS_HELP_STRING([--disable-compiler-recover],
-                              [don't continue if a desired C++, F77, or F90 \
-                              compiler is missing; this is useful for testing \
-                              netCDF, but is not very useful for most netCDF \
-                              users])])
-test "x$enable_compiler_recover" = "xno" || enable_compiler_recover=yes
-AC_MSG_RESULT([$enable_compiler_recover])
-
 nc_build_c=yes
-nc_build_f77=yes
-nc_build_f90=yes
 nc_build_v2=yes
 nc_build_utilities=yes
 nc_build_examples=yes
@@ -718,8 +704,6 @@ fi
 AC_MSG_CHECKING([what to call the output of the ftpbin target])
 BINFILE_NAME=binary-netcdf-$PACKAGE_VERSION
 test "x$enable_netcdf_4" = xno && BINFILE_NAME=${BINFILE_NAME}_nc3
-test "x$nc_build_f77" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F77}
-test "x$nc_build_f90" = xyes && BINFILE_NAME=${BINFILE_NAME}_${F90}
 BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
@@ -830,15 +814,17 @@ AC_CONFIG_FILES([Makefile
                   librpc/Makefile
                   libdispatch/Makefile
                   liblib/Makefile
-                  ncdap_test/Makefile
-                  ncdap_test/testdata3/Makefile
-                  ncdap_test/expected3/Makefile
-                  ncdap_test/expected4/Makefile
-                  ncdap_test/expectremote3/Makefile
-                  ncdap_test/expectremote4/Makefile
                   ncdump/cdl4/Makefile
                   ncdump/expected4/Makefile],
                  [test -f  nc-config && chmod 755 nc-config ])
+
+# Temporarily shut down remote testing
+#                  ncdap_test/Makefile
+#                  ncdap_test/testdata3/Makefile
+#                  ncdap_test/expected3/Makefile
+#                  ncdap_test/expected4/Makefile
+#                  ncdap_test/expectremote3/Makefile
+#                  ncdap_test/expectremote4/Makefile
 
 AC_OUTPUT()
 

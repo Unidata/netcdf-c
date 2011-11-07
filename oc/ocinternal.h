@@ -4,9 +4,7 @@
 #ifndef OCINTERNAL_H
 #define OCINTERNAL_H
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #ifdef _AIX
 #include <netinet/in.h>

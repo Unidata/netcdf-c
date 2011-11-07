@@ -269,6 +269,9 @@ struct NC {
 	void* dispatchdata;
 	char* path;
 	int substrate;
+	void* instance; /* per-instance data specific to netcdf3,4,dap,etc.
+                           Currently only used by librpc, will retrofit other
+                           dispatch kinds over time. */
 /*END COMMON*/
 	/* contains the previous NC during redef. */
 	struct NC *old;

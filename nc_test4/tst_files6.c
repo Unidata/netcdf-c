@@ -8,7 +8,7 @@
 #include <nc_tests.h>
 #include "netcdf.h"
 
-#define URL "http://motherlode.ucar.edu:8081/dods/dts/test.01"
+#define URL "http://motherlode.ucar.edu:8080/dts/test.01"
 #define FILE_NAME "tst_files6.nc"
 
 int
