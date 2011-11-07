@@ -498,7 +498,7 @@ zlib and HDF5 libraries must also be built with 64-bit options.
 @table @code
 
 @item AIX
-Set -q64 option in all compilers, and set NMFLAGS to -X64, and ARFLAGS
+Set -q64 option in all compilers, and set NMFLAGS to -X64, and AR_FLAGS
 to '-X64 cru'. Alternatively, set environment variable OBJECT_MODE to
 64 before running configure.
 
@@ -1000,7 +1000,7 @@ option on all AIX compilers by setting CFLAGS, FFLAGS, and CXXFLAGS to
 The following is also necessary on an IBM AIX SP system for 64-bit
 mode:
 @example
-    ARFLAGS='-X64 cru'
+    AR_FLAGS='-X64 cru'
     NMFLAGS='-X64'
 @end example
 
