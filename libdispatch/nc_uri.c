@@ -267,7 +267,6 @@ nc_uribuild(NC_URI* duri, const char* prefix, const char* suffix, int pieces)
 
     if(prefix != NULL) len += NILLEN(prefix);
     if(withparams) {
-	len += NILLEN("[]");
 	len += NILLEN(duri->params);
     }
     len += (NILLEN(duri->protocol)+NILLEN("://"));
@@ -291,9 +290,7 @@ nc_uribuild(NC_URI* duri, const char* prefix, const char* suffix, int pieces)
     newuri[0] = '\0';
     if(prefix != NULL) strcat(newuri,prefix);
     if(withparams) {
-	strcat(newuri,"[");
 	strcat(newuri,duri->params);
-	strcat(newuri,"]");
     }
     strcat(newuri,duri->protocol);
     strcat(newuri,"://");

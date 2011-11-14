@@ -46,7 +46,7 @@ endif # USE_VALGRIND_TESTS
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh run_valgrind_tests.sh		\
 ref_tst_h_compounds.h5 ref_tst_h_compounds2.h5 run_par_tests.sh	\
-run_valgrind_tests.sh ref_tst_compounds.nc
+run_valgrind_tests.sh ref_tst_compounds.nc h5_err_macros.h
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5

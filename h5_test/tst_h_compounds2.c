@@ -11,7 +11,7 @@
    $Id: tst_h_compounds2.c,v 1.17 2010/06/01 15:34:51 ed Exp $
 */
 
-#include <err_macros.h>
+#include "h5_err_macros.h"
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_compounds2.h5"

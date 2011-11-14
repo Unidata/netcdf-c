@@ -127,7 +127,6 @@ NC_Dispatch NCD4_dispatcher; /* overlay result */
 int
 NCD4_initialize(void)
 {
-    int i;
     /* Create our dispatch table as the merge of NCD4 table and NCSUBSTRATE */
     /* watch the order because we want NCD4 to overwrite NCSUBSTRATE */
     NC_dispatch_overlay(&NCD4_dispatch_base, NCSUBSTRATE_dispatch_table, &NCD4_dispatcher);    

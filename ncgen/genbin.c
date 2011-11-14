@@ -364,10 +364,8 @@ genbin_defineattr(Symbol* asym,Bytebuffer* databuf)
             case NC_CHAR: {
                 char* data = (char*)bbContents(databuf);
 		size_t slen = bbLength(databuf);
-#ifdef IGNORE
 		/* Revise length if slen == 0 */
 		if(slen == 0) {bbAppend(databuf,'\0'); slen++;}
-#endif
                 stat = nc_put_att_text(grpid,varid,asym->name,slen,data);
                 check_err(stat,__LINE__,__FILE__);  
             } break;

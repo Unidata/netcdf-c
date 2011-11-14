@@ -216,7 +216,7 @@ loop:
 	    char* ddsfullname = makesimplepathstring3(dds);
 	    if(strcmp(ocfullname,ddsfullname)==0
 	       || strcmp(ocbasename,ddsfullname)==0
-	       || strcmp(ocbasename,dds->name)==0) {
+	       || strcmp(ocbasename,dds->ocname)==0) {
 		mergedas1(conn,dds,das);
 		/* remove from dasnodes list*/
 		nclistset(dasnodes,i,(ncelem)NULL);
@@ -308,14 +308,14 @@ mergedas1(OCconnection conn, CDFnode* dds, OCobject das)
 		    }
 		    dds->dodsspecial.maxstrlen = maxstrlen;
 #ifdef DEBUG
-fprintf(stderr,"%s.maxstrlen=%d\n",dds->name,(int)dds->dodsspecial.maxstrlen);
+fprintf(stderr,"%s.maxstrlen=%d\n",dds->ocname,(int)dds->dodsspecial.maxstrlen);
 #endif
 		} else if(strcmp(dodsname,"dimName")==0) {
 		    if(ocnvalues > 0) {
 		        OCHECK(oc_inq_dasattr(conn,dodsnode,0,NULL,
 				&dds->dodsspecial.dimname));
 #ifdef DEBUG
-fprintf(stderr,"%s.dimname=%s\n",dds->name,dds->dodsspecial.dimname);
+fprintf(stderr,"%s.dimname=%s\n",dds->ocname,dds->dodsspecial.dimname);
 #endif
 		    } else dds->dodsspecial.dimname = NULL;
 		} /* else ignore */
@@ -361,7 +361,7 @@ dodsextra3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* dodsextra)
 	    OCHECK(oc_inq_dasattr_nvalues(conn,extranode,&ocnvalues));
 	    if(strcmp(dodsname,"Unlimited_Dimension")==0 && ocnvalues > 0) {
 	        OCHECK(oc_inq_dasattr(conn,extranode,0,NULL,&stringval));
-		nccomm->cdf.recorddim = stringval;
+		nccomm->cdf.recorddimname = stringval;
 	    }
 	    nullfree(dodsname);
 	}

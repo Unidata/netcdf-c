@@ -504,6 +504,7 @@ genf77_defineattr(Symbol* asym)
     case NC_CHAR:
 	len = bbLength(code);
 	f77quotestring(code);	
+	if(len==0) len++;
         bbprintf0(stmt,"stat = nf_put_att_text(ncid, %s, %s, %lu, ",
 		(asym->att.var == NULL?"NF_GLOBAL"
 			              :f77varncid(asym->att.var)),

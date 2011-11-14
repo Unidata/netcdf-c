@@ -27,13 +27,14 @@ extern void ocurifree(OCURI* ocuri);
 /* Replace the constraints */
 extern void ocurisetconstraints(OCURI*,const char* constraints);
 
+/* Construct a complete OC URI; caller frees returned string */
+
 /* Define flags to control what is included */
 #define OCURICONSTRAINTS 1
 #define OCURIUSERPWD	 2
 #define OCURIPARAMS	 4
 #define OCURIENCODE	 8 /* If output should be encoded */
 
-/* Construct a complete OC URI; caller frees returned string */
 extern char* ocuribuild(OCURI*,const char* prefix, const char* suffix, int flags);
 
 

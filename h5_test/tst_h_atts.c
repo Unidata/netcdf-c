@@ -10,6 +10,7 @@
 
    $Id: tst_h_atts.c,v 1.20 2010/06/01 15:34:51 ed Exp $
 */
+#include "h5_err_macros.h"
 #include <nc_tests.h>
 #include <hdf5.h>
 #include <H5DSpublic.h>

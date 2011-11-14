@@ -193,7 +193,7 @@ ocopen(OCstate** statep, const char* url)
 {
     int stat = OC_NOERR;
     OCstate * state = NULL;
-    OCURI* tmpurl;
+    OCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
 
     if(!ocuriparse(url,&tmpurl)) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}

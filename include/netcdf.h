@@ -309,6 +309,7 @@ by the desired type. */
 #define NC_EDIMSIZE     (-63)      /**< Invalid dimension size */
 #define NC_ETRUNC       (-64)      /**< File likely truncated or possibly corrupted */
 #define NC_EAXISTYPE    (-65)      /**< Unknown axis type. */
+
 /* Following errors are added for DAP */
 #define NC_EDAP         (-66)      /**< Generic DAP error */
 #define NC_ECURL        (-67)      /**< Generic libcurl error */

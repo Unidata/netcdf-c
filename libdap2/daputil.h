@@ -23,12 +23,15 @@ extern char* maketmppath(char* path, char* prefix);
 #define WITHOUTDATASET 0
 extern void collectnodepath3(struct CDFnode*, NClist* path, int dataset);
 extern char* makecdfpathstring3(struct CDFnode*,const char*);
+extern char* ocifypathstring3(struct CDFnode*,const char*);
 extern char* makesimplepathstring3(struct CDFnode*);
 extern char* simplepathstring3(NClist*,char*);
 extern void clonenodenamepath3(struct CDFnode*, NClist*, int);
 
 extern char* cdflegalname3(char* dapname);
 
+/* Given a param string; return its value or null if not found*/
+extern const char* paramvalue34(struct NCDAPCOMMON* drno, const char* param);
 /* Given a param string; check for a given substring */
 extern int paramcheck34(struct NCDAPCOMMON* drno, const char* param, const char* substring);
 
@@ -69,7 +72,7 @@ extern size_t dimproduct3(NClist* dimensions);
 extern int nc__testurl(const char* path, char** basename);
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
-extern OCerror dap_oc_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
+extern OCerror dap_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
 
 extern int dap_badname(char* name);
 

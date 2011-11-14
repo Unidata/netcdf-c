@@ -49,7 +49,7 @@ NCDAP3 = libncdap3
 NCDAP4 = libncdap4
 DAP2 = libdap2
 #if BUILD_UTILITIES
-#NCDAPTESTDIR = ncdap_test
+NCDAPTESTDIR = ncdap_test
 #endif # BUILD_UTILITIES
 endif
 

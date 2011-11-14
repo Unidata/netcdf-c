@@ -8,11 +8,11 @@
 
 extern NCerror parsedapconstraints(NCDAPCOMMON*, char*, DCEconstraint*);
 extern NCerror mapconstraints3(DCEconstraint*,CDFnode*);
+extern NCerror qualifyconstraints3(DCEconstraint* constraint);
 
 extern char* simplepathstring(NClist* segments, char* separator);
 extern void makesegmentstring3(NClist* segments, NCbytes* buf, char* separator);
 
-extern NCerror mergeprojections3(NClist*, NClist*);
 extern int iswholeprojection(DCEprojection*);
 
 extern void freegetvara(struct Getvara* vara);
@@ -30,5 +30,11 @@ extern char* buildconstraintstring3(DCEconstraint* constraints);
 
 extern void makewholesegment3(DCEsegment*,struct CDFnode*);
 extern void makewholeslice3(DCEslice* slice, struct CDFnode* dim);
+
+extern NCerror fixprojections(NClist* list);
+
+extern int dapvar2projection(CDFnode* var, DCEprojection** projectionp);
+extern int daprestrictprojection(NClist* projections, DCEprojection* var, DCEprojection** resultp);
+extern int dapshiftprojection(DCEprojection*);
 
 #endif /*CONSTRAINTS3_H*/

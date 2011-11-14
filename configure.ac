@@ -553,8 +553,10 @@ AC_FUNC_VPRINTF
 AC_HEADER_STDBOOL
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr mktemp strcat strcpy strdup \
-			strcasecmp strtod strtoll strtoull getrlimit gettimeofday fsync MPI_Comm_f2c])
+AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
+                strdup strcasecmp strtod strtoll strtoull strstr \
+		mktemp \
+		getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
@@ -815,16 +817,14 @@ AC_CONFIG_FILES([Makefile
                   libdispatch/Makefile
                   liblib/Makefile
                   ncdump/cdl4/Makefile
-                  ncdump/expected4/Makefile],
-                 [test -f  nc-config && chmod 755 nc-config ])
-
-# Temporarily shut down remote testing
-#                  ncdap_test/Makefile
-#                  ncdap_test/testdata3/Makefile
-#                  ncdap_test/expected3/Makefile
-#                  ncdap_test/expected4/Makefile
-#                  ncdap_test/expectremote3/Makefile
-#                  ncdap_test/expectremote4/Makefile
-
+                  ncdump/expected4/Makefile
+                  ncdap_test/Makefile
+                  ncdap_test/testdata3/Makefile
+                  ncdap_test/expected3/Makefile
+                  ncdap_test/expected4/Makefile
+                  ncdap_test/expectremote3/Makefile
+                  ncdap_test/expectremote4/Makefile
+		  ],
+                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
 

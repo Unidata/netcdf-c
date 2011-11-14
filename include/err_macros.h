@@ -36,6 +36,7 @@ return 2;                                                   \
 
 /* This macro prints an error message with line number and name of
  * test program, and then exits the program. */
+
 #define ERR_RET do { \
 fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
 fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
@@ -74,5 +75,18 @@ return 2;                                                   \
    printf("*** Tests successful!\n"); \
    return 0; \
 } while (0)
+
+#ifndef NONETCDF
+extern const char* nc_strerror(int ncerr);
+static int
+complain(int stat)
+{
+    if(stat) {
+        fprintf(stderr,"%s\n",nc_strerror(stat));
+	fflush(stderr);
+    }
+    return stat;
+}
+#endif
 
 #endif /* _ERR_MACROS_H */
