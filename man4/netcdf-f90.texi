@@ -1957,6 +1957,11 @@ or any of its parents.
 @item NCID
 The group id for this operation.
 
+@item NDIMS
+Returned number of dimensions for this location.  If include_parents
+is non-zero, number of dimensions visible from this group, which
+includes dimensions in parent groups.
+
 @item DIMIDS
 An array of ints when the dimids of the visible dimensions will be
 stashed. Use nf90_inq_ndims to find out how many dims are visible from

@@ -3056,6 +3056,11 @@ int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents);
 @item ncid
 The group id for this operation.
 
+@item ndims
+If non-zero, pointer to location for returned number of dimensions defined for this
+location, including dimensions inherited from parent groups if
+include_parents is non-zero.
+
 @item dimids
 An already allocated array of ints when the dimids of the visible
 dimensions will be stashed. Use nc_inq_ndims to find out how many dims

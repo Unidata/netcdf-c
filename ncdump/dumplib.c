@@ -1770,7 +1770,11 @@ iscoordvar(int ncid, int varid)
 
     do {	  /* be safe in case someone is currently adding
 		   * dimensions */
+#ifdef USE_NETCDF4
+	NC_CHECK( nc_inq_dimids(ncid, &ndims, NULL, include_parents ) );
+#else
 	NC_CHECK( nc_inq_ndims(ncid, &ndims) );
+#endif
 	if (dims)
 	    free(dims);
 	dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
