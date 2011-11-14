@@ -2,13 +2,13 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
-F="http://localhost:8080/thredds/dodsC/testCdmUnitTest/normal/NAM_Alaska_22km_20100504_0000.grib1"
-CON="time,time1_bounds,time1,Polar_Stereographic,y,x,height_above_ground,height_above_ground1,layer_between_two_heights_above_ground,layer_between_two_heights_above_ground_bounds,layer_between_two_isobaric,layer_between_two_isobaric_bounds,layer_between_two_pressure_difference_from_ground,layer_between_two_pressure_difference_from_ground_bounds,layer_between_two_pressure_difference_from_ground1,layer_between_two_pressure_difference_from_ground1_bounds"
-#CON="Unknown-C7-S0-V2:34_layer_between_two_pressure_difference_from_ground[0:1:20][0:1:0][0:1:212][0:1:276]"
+#F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/in.nc"
+F="http://motherlode.ucar.edu:8080/dts/test.07"
+CON="person"
+VAR="person.name"
 
-
-PARMS="${PARMS}[netcdf4]"
-#PARMS="${PARMS}[cache]"
+#PARMS="${PARMS}[netcdf4]"
+PARMS="${PARMS}[cache]"
 PARMS="${PARMS}[show=fetch]"
 #PARMS="${PARMS}[compile]"
 if test "x$CE" != "x" ; then set PARMS="${PARMS}[ce=${CE}]" ; fi
@@ -17,6 +17,9 @@ PROG="./ncd"
 U="${PARMS}$F"
 if test "x$CON" != "x" ; then U="${PARMS}$F?$CON"; fi
 UALL="${PARMS}$F"
+if test "x${VAR}" != "x" ; then
+  ARGS="$ARGS -v ${VAR}"
+fi
 #ARGS="-h $ARGS"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
@@ -54,5 +57,7 @@ F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/test.PointFile"
 F="file:///home/dmh/nc/netcdf-3/ncdap_test/testdata3/synth1"
 F="http://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/46029/46029h9999.nc"
 CON="wind_dir[1:10][0:0][0:0]"
-fi
+F="http://nomads.ncep.noaa.gov:9090/dods/gens/gens20111011/gep20_00z"
+CON="ens,time,lat,lon,prmslmsl[0:1:0][0:1:64][0:1:10][0:1:10]"
 
+fi

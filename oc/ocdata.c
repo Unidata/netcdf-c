@@ -11,6 +11,8 @@ const char EndOfoclist = '\xA5';
 
 extern int oc_invert_xdr_double;
 
+static int errorstring(XDR* xdrs);
+
 #define LOCALMEMMAX 1024
 
 /* Skip arbitrary dimensioned instance; handles dimensioning.*/
@@ -325,7 +327,8 @@ done:
     return OCTHROW(stat);
 
 shortxdr:
-    oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
+    if(!errorstring(xdrs))
+        oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
     stat = OC_EDATADDS;
     goto done;    
 }
@@ -365,4 +368,42 @@ countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
     if(!xdr_setpos(xdrs,xdroffset)) return xdrerror();
     if(nrecordsp != NULL) *nrecordsp = nrecords;
     return OCTHROW(stat);
+}
+
+
+
+#define tag "Error {\n"
+
+static int
+errorstring(XDR* xdrs)
+{
+    /* Check to see if the xdrs contains "Error {\n' */
+    int i;
+    char* p;
+    size_t taglen = strlen(tag);
+    unsigned int pos, size;
+    char s[5100]; /* extra room to avoid overflow problems */
+
+    for(;;) {
+        size = 4096;
+        pos = xdr_getpos(xdrs);
+        memset(s,0,sizeof(s));
+	/* Do this a byte at a time, since we do not know how much is left */
+	for(i=0;i<4096;i++) {
+            if(!xdr_getbytes(xdrs,s+i,1)) break;
+	}
+	/* check for error tag at front */
+        if(strncmp(s,tag,taglen)==0) {
+            if((p=strchr(s,'}')) != NULL) *(++p)='\0';
+            oc_log(LOGERR,"Server error: %s",s);
+            /* Since important, report to stderr as well */
+            fprintf(stderr,"Server error: %s",s);
+	    return 1;
+        }
+        /* Move to next character of interest occurrence */
+        if((p=strchr(s,'E')) == NULL) continue;
+        /* move xdr position and read again */
+	if(!xdr_setpos(xdrs,pos+(p-s))) break;
+    }
+    return 0;
 }

@@ -922,8 +922,9 @@ genc_defineattr(Symbol* asym)
 
     /* Handle NC_CHAR specially */
     if(typecode == NC_CHAR) {
-	/* revise the length count */
 	len = bbLength(code);
+	/* Revise length if length == 0 */
+	if(len == 0) len++;
 	cquotestring(code);
 	bbNull(code);
     } else {

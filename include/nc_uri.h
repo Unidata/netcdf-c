@@ -30,9 +30,10 @@ extern void nc_urisetconstraints(NC_URI*,const char* constraints);
 /* Construct a complete NC_ URI; caller frees returned string */
 
 /* Define flags to control what is included */
-#define NC_URICONSTRAINTS 1
-#define NC_URIUSERPWD	  2
-#define NC_URIPARAMS	  4
+#define NC_URICONSTRAINTS	1
+#define NC_URIUSERPWD	  	2
+#define NC_URIPARAMS	  	4
+#define NC_URIALL	  	(NC_URICONSTRAINTS|NC_URIUSERPWD|NC_URIPARAMS)
 
 extern char* nc_uribuild(NC_URI*,const char* prefix, const char* suffix, int flags);
 

@@ -49,7 +49,14 @@ typedef struct Getvara {
     /* associated variable*/
     OCtype dsttype;
     CDFnode* target;
+#ifdef IGNORE
     CDFnode* target0;
+#endif
+    int wholevariable;
 } Getvara;
+
+#ifdef IGNORE
+extern int varamergeprojections3(NClist*,DCEprojection*,NClist*,NClist**);
+#endif
 
 #endif /*GETVARA_H*/

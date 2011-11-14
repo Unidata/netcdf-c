@@ -164,6 +164,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	    }
 	    token=WORD_STRING;
 	} else if(strchr(lexstate->wordchars1,c) != NULL) {
+	    int isdatamark = 0;
 	    /* we have a WORD_WORD */
 	    dapaddyytext(lexstate,c);
 	    while((c=*(++p))) {
@@ -191,8 +192,17 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	    tmp = ocbytescontents(lexstate->yytext);
 	    if(strcmp(tmp,"Data")==0 && *p == ':') {
 		dapaddyytext(lexstate,*p); p++;
-		token = SCAN_DATA;
-	    } else {
+		if(p[0] == '\n') {
+		    token = SCAN_DATA;
+		    isdatamark = 1;
+		    p++;
+	        } else if(p[0] == '\r' && p[1] == '\n') {
+		    token = SCAN_DATA;
+		    isdatamark = 1;
+		    p+=2;
+		}
+	    }
+	    if(!isdatamark) {
 	        /* check for keyword */
 	        token=WORD_WORD; /* assume */
 	        for(i=0;;i++) {

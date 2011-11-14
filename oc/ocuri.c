@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "oc.h"
 #include "ocuri.h"
 
 #define OCURIDEBUG
@@ -81,6 +82,9 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     char* pwd = NULL;
     char* file = NULL;
     char* stop;
+
+    if(uri0 == NULL)
+	return OC_EBADURL;
 
     ocuri = (OCURI*)calloc(1,sizeof(OCURI));
     if(ocuri == NULL) return 0;

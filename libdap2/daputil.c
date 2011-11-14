@@ -18,6 +18,8 @@ extern int oc_dumpnode(OClink, OCobject);
 #define LBRACKET '['
 #define RBRACKET ']'
 
+static char* makepathstring3(CDFnode* var, const char* separator, int ocify);
+
 /**************************************************/
 /* Provide a hidden interface to allow utilities*/
 /* to check if a given path name is really an ncdap3 url.*/
@@ -26,8 +28,8 @@ extern int oc_dumpnode(OClink, OCobject);
 int
 nc__testurl(const char* path, char** basenamep)
 {
-    OCURI* uri;
-    int ok = ocuriparse(path,&uri);
+    NC_URI* uri;
+    int ok = nc_uriparse(path,&uri);
     if(ok) {
 	char* slash = strrchr(uri->file, '/');
 	char* dot;
@@ -36,7 +38,7 @@ nc__testurl(const char* path, char** basenamep)
 	dot = strrchr(slash, '.');
         if(dot != NULL &&  dot != slash) *dot = '\0';
 	if(basenamep) *basenamep=slash ; else free(slash);
-        ocurifree(uri);
+        nc_urifree(uri);
     }
     return ok;
 }
@@ -391,35 +393,39 @@ dimproduct3(NClist* dimensions)
     return size;
 }
 
-static char* checkseps = "+,:;";
+
+/* Return vallue of param or NULL if not found */
+const char*
+paramvalue34(NCDAPCOMMON* nccomm, const char* key)
+{
+    const char* value;
+
+    if(nccomm == NULL || key == NULL) return 0;
+    if(!nc_urilookup(nccomm->oc.url,key,&value))
+	return NULL;
+    return value;
+}
+
+static const char* checkseps = "+,:;";
 
 /* Search for substring in value of param. If substring == NULL; then just
    check if param is defined.
 */
 int
-paramcheck34(NCDAPCOMMON* nccomm, const char* param, const char* substring)
+paramcheck34(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
 {
     const char* value;
-    const char* sh;
-    unsigned int splen;
-    if(nccomm == NULL || param == NULL) return 0;
-    value = oc_clientparam_get(nccomm->oc.conn,param);
-    if(value == NULL) return 0;
-    if(substring == NULL) return 1;
-    splen = strlen(substring);
-    for(sh=value;*sh;sh++) {
-	if(strncmp(sh,substring,splen)==0) {
-	    char cpost = sh[splen];
-	    char cpre;
-	    int match = 0;
-	    cpre = (sh==value?*sh:*(sh-1));
-	    /* Check for legal separators */
-	    if(sh == value || strchr(checkseps,cpre) != NULL) match++;
-	    if(cpost == '\0' || strchr(checkseps,cpost) != NULL) match++;
-	    if(match == 2) return 1;
-	}
-    }
-    return 0;
+    char* p;
+
+    if(nccomm == NULL || key == NULL) return 0;
+    if(!nc_urilookup(nccomm->oc.url,key,&value))
+	return 0;
+    if(subkey == NULL) return 1;
+    p = strstr(value,subkey);
+    if(p == NULL) return 0;
+    p += strlen(subkey);
+    if(*p != '\0' && strchr(checkseps,*p) == NULL) return 0;
+    return 1;
 }
 
 
@@ -462,9 +468,23 @@ nclistdeleteall(NClist* l, ncelem elem)
 }
 
 /* Convert a path to a name string; elide the initial Dataset node*/
-/* and elide any node marked as elided.*/
+/* and elide any node marked as elided */
 char*
 makecdfpathstring3(CDFnode* var, const char* separator)
+{
+    return makepathstring3(var,separator,0);
+}
+
+/*Like makecdfpathstring3, but using ocname*/
+
+char*
+ocifypathstring3(CDFnode* var, const char* separator)
+{
+    return makepathstring3(var,separator,1);
+}
+
+static char*
+makepathstring3(CDFnode* var, const char* separator, int ocify)
 {
     int slen,i,len,first;
     char* pathname;
@@ -477,7 +497,11 @@ makecdfpathstring3(CDFnode* var, const char* separator)
     for(slen=0,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	if(node->nctype == NC_Dataset) continue;
-	slen += strlen(node->ncbasename?node->ncbasename:node->name);
+	if(ocify)
+	    slen += strlen(node->ocname);
+	else
+	    slen += strlen(node->ncbasename?node->ncbasename
+                                           :cdflegalname3(node->ocname));
     }
     slen += ((len-2)); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
@@ -486,7 +510,12 @@ makecdfpathstring3(CDFnode* var, const char* separator)
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
-	char* name = (node->ncbasename?node->ncbasename:node->name);
+	char* name;
+	if(ocify)
+	    name = node->ocname;
+	else
+	    name = (node->ncbasename?node->ncbasename
+                                    :cdflegalname3(node->ocname));
 	if(node->nctype == NC_Dataset) continue;
 	if(node->elided) continue;
 	if(!first) strcat(pathname,separator);
@@ -498,7 +527,7 @@ done:
     return pathname;
 }
 
-/* Like makecdfpathstring, but using node->name. */
+/* Like makecdfpathstring, but using node->ncbasename. */
 char*
 makesimplepathstring3(CDFnode* var)
 {
@@ -511,7 +540,7 @@ makesimplepathstring3(CDFnode* var)
     if(len == 0) {pathname = nulldup(""); goto done;} /* Dataset only */
     for(slen=0,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
-	slen += (node->name?strlen(node->name):0);
+	slen += (node->ncbasename?strlen(node->ncbasename):0);
     }
     slen += (len-1); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
@@ -520,7 +549,7 @@ makesimplepathstring3(CDFnode* var)
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
-	char* name = node->name;
+	char* name = node->ncbasename;
 	if(!first) strcat(pathname,".");
         strcat(pathname,name?name:"null");
 	first = 0;
@@ -595,7 +624,7 @@ clonenodenamepath3(CDFnode* node, NClist* path, int withdataset)
     if(node->nctype != NC_Dataset)
         clonenodenamepath3(node->container,path,withdataset);
     if(node->nctype != NC_Dataset || withdataset)
-        nclistpush(path,(ncelem)nulldup(node->name));
+        nclistpush(path,(ncelem)nulldup(node->ncbasename));
 }
 
 char*
@@ -957,7 +986,7 @@ deltatime()
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
 OCerror
-dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
+dap_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
              OCdxd dxd, OCobject* rootp)
 {
     OCerror ocstat;
@@ -968,12 +997,12 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
     if(ce != NULL && strlen(ce) == 0) ce = NULL;
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 	/* Build uri string minus the constraint */
-	char* baseuri = ocuribuild(nccomm->oc.uri,NULL,ext,0);
+	char* baseurl = nc_uribuild(nccomm->oc.url,NULL,ext,0);
 	if(ce == NULL)
-            nclog(NCLOGNOTE,"fetch: %s",baseuri);
+            nclog(NCLOGNOTE,"fetch: %s",baseurl);
 	else	
-            nclog(NCLOGNOTE,"fetch: %s?%s",baseuri,ce);
-	nullfree(baseuri);
+            nclog(NCLOGNOTE,"fetch: %s?%s",baseurl,ce);
+	nullfree(baseurl);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
@@ -989,6 +1018,10 @@ dap_oc_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 	nclog(NCLOGNOTE,"fetch complete.");
 #endif
     }
+#ifdef DEBUG2
+fprintf(stderr,"fetch: dds:\n");
+oc_dumpnode(conn,*rootp);
+#endif
     return ocstat;
 }
 

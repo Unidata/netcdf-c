@@ -260,10 +260,10 @@ vpt::
 	date; ./vpt.exe "[compile]http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_vpt" vpt.year; date
 
 ##################################################
-#T=test_varm3
+T=test_varm3
 #T=t_dap3b
 #T=t_dap3c
-T=ansley8
+#T=ansley8
 
 v::
 	cc -g -c ${T}.c ${INCL}

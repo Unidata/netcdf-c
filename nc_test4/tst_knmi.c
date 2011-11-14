@@ -41,7 +41,7 @@ read_file(char *filename)
 
    printf("**** reading file %s\n", filename);
    if (gettimeofday(&start_time, NULL)) ERR_RET;
-   if (nc_open(filename, NC_NOWRITE, &ncid)) ERR_RET;
+   if(complain(nc_open(filename, NC_NOWRITE, &ncid))) ERR_RET;
    if (gettimeofday(&end_time, NULL)) ERR_RET;
    if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR_RET;
    time_us = (int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec;
@@ -80,8 +80,8 @@ main(int argc, char **argv)
    struct timeval start_time, end_time, diff_time;
 
    printf("\n*** Testing netcdf-4 vs. netcdf-3 performance.\n");
-   if (read_file(FILE_NAME_1)) ERR; 
-   if (read_file(FILE_NAME_2)) ERR; 
+   if (complain(read_file(FILE_NAME_1))) ERR; 
+   if (complain(read_file(FILE_NAME_2))) ERR; 
 
    SUMMARIZE_ERR;
    FINAL_RESULTS;

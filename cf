@@ -12,10 +12,10 @@ DAP=1
 #NB=1
 
 cmds=""
-#cmds="all"
+cmds="all"
 #cmds="all check"
 #cmds="all dist"
-cmds="all distcheck"
+#cmds="all distcheck"
 
 PREFIX="/tmp/${HOST}"
 stddir="/share/ed/local/${HOST}"

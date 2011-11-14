@@ -18,10 +18,10 @@
 #include "nclist.h"
 #include "nchashmap.h"
 #include "nclog.h"
+#include "nc_uri.h"
 #include "dceconstraints.h"
 
 #include "oc.h"
-#include "ocuri.h"
 
 #include "nc.h"
 #include "netcdf.h"
@@ -158,19 +158,11 @@ extern NCerror defseqdims(NCDAPCOMMON* drno);
 extern NCerror fixzerodims3(NCDAPCOMMON*);
 extern void estimatevarsizes3(NCDAPCOMMON*);
 extern NCerror defrecorddim3(NCDAPCOMMON*);
-extern NClist* getalldims3(NClist* vars, int visibleonly);
 extern NCerror showprojection3(NCDAPCOMMON*, CDFnode* var);
 
 
 /* From: dapcvt.c*/
 extern NCerror dapconvert3(nc_type, nc_type, char*, char*, size_t);
 extern int dapcvtattrval3(nc_type, void*, NClist*);
-
-#ifdef IGNORE
-/* allow access url parse and params without exposing ocuri.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-#endif
 
 #endif /*NCDAP3_H*/

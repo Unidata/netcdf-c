@@ -48,8 +48,12 @@ typedef struct DCEfcn {
 typedef struct DCEvar {
     DCEnode node;
     NClist* segments;
+#ifdef IGNORE
     struct CDFnode* cdfnode;
-    struct CDFnode* cdfleaf;
+    struct CDFnode* cdfleaf
+#else
+    struct CDFnode* cdfvar; /* corresponding node in the CDFnode tree */
+#endif
 } DCEvar;
 
 typedef struct DCEconstant {
@@ -93,11 +97,7 @@ typedef struct DCEconstraint {
 
 extern int dceparseconstraints(char* constraints, DCEconstraint* DCEonstraint);
 extern int dceslicemerge(DCEslice* dst, DCEslice* src);
-extern int dcemergeprojections(NClist* dst, NClist* src);
-
-extern char* dcebuildprojectionstring(NClist* projections);
-extern char* dcebuildselectionstring(NClist* selections);
-extern char* dcebuildconstraintstring(DCEconstraint* constraints);
+extern int dcemergeprojectionlists(NClist* dst, NClist* src);
 
 extern DCEnode* dceclone(DCEnode* node);
 extern NClist* dceclonelist(NClist* list);
@@ -119,6 +119,10 @@ extern void dcemakewholeslice(DCEslice* slice, size_t declsize);
 extern int dceiswholesegment(DCEsegment*);
 extern int dceiswholeslice(DCEslice*);
 extern int dceiswholeseglist(NClist*);
+extern int dceiswholeprojection(DCEprojection*);
 extern int dcesamepath(NClist* list1, NClist* list2);
+extern int dcemergeprojections(DCEprojection* dst, DCEprojection* src);
+
+extern int dceverbose;
 
 #endif /*DCECONSTRAINTS_H*/

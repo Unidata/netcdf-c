@@ -4,7 +4,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define URL "http://test.opendap.org:8080/dods/dts/test.06"
+#define URL "http://motherlode.ucar.edu:8080/dts/test.06"
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {

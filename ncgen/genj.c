@@ -282,6 +282,7 @@ genj_defineattribute(Symbol* asym)
 	    bbAppend(code,'\0'); len++;
 	    bbClear(code);
 	    bbCat(code,"\"\"");
+	    len++;
 	} else
             jquotestring(code,'"');
 	bbNull(code);
