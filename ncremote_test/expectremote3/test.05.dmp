@@ -29,5 +29,5 @@ data:
 
  types.strings.s = "This is a data test string (pass 0)." ;
 
- types.strings.u = "http://www.dods.org" ;
+ types.strings.u = "http://www.opendap.org" ;
 }

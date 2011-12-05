@@ -146,11 +146,6 @@ WriteFileCallback(void* ptr, size_t size, size_t nmemb,	void* data)
         if(realsize == 0)
 	    oc_log(LOGWARN,"WriteFileCallback: zero sized chunk");
 	count = fwrite(ptr, size, nmemb, fetchdata->stream);
-	if(ferror(fetchdata->stream)) {
-	    perror("xxx");
-	    fflush(stderr);
-	    abort();
-	}
 	if (count > 0) {
 		fetchdata->size += (count * size);
 	} else {

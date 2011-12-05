@@ -270,6 +270,21 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+# Control if groups are supported in [netcdf4]dap2 code
+AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
+AC_ARG_ENABLE([dap-groups],
+              [AS_HELP_STRING([--disable-dap-groups],
+                                 [disable [netcdf4] dap group names])])
+test "x$enable_groups" = xno || enable_dap_groups=yes
+if test "x$enable_dap" = "xno" -o "x$enable_enable_netcdf_4" = "xno" ; then
+  AC_MSG_NOTICE([dap groups disabled because dap disabled or netcdf-4 disabled])
+  enable_dap_groups=no
+fi
+AC_MSG_RESULT($enable_dap_groups)
+if test "x$enable_dap_groups" = xyes; then
+AC_DEFINE([ENABLE_DAP_GROUPS], [1], [if true, enable DAP group names])
+fi
+
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])

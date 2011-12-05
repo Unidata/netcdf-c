@@ -245,7 +245,8 @@ typedef struct CDFnode {
     char*            ncbasename; /* generally cdflegalname(ocname) */
     char*            ncfullname; /* complete path name from root to this node*/
     OCobject         dds;        /* oc mirror node*/
-    struct CDFnode*  container;
+    struct CDFnode*  group;	 /* null => in root group */
+    struct CDFnode*  container;  /* e.g. struct or sequence, but not group */
     struct CDFnode*  root;
     CDFtree*         tree;          /* root level metadata;only defined if root*/
     CDFdim           dim;           /* nctype == dimension */

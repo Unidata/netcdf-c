@@ -81,7 +81,6 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     char* user = NULL;
     char* pwd = NULL;
     char* file = NULL;
-    char* stop;
 
     if(uri0 == NULL)
 	return OC_EBADURL;
@@ -98,7 +97,6 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     while((c=*p1++)) {if(c != ' ' && c != '\t') *p++ = c;}
 
     p = uri;
-    stop = p + strlen(p);
 
     /* break up the uri string into pieces*/
 

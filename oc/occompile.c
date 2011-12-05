@@ -73,12 +73,11 @@ static int
 occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 {
     unsigned int i,j,xdrcount;
-    int stat = OC_NOERR;
+    OCerror ocstat = OC_NOERR;
     size_t nelements;
     OCmemdata* memdata = NULL;
     OCmemdata* structdata = NULL;
     OClist* records = NULL;
-    OCerror ocstat = OC_NOERR;
     OCmemdata** pmem = NULL;
 
 
@@ -100,9 +99,9 @@ occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
 	    memdata->mode = Dimmode;
 	    pmem = (OCmemdata**)&memdata->data;
 	    /* Consume the leading count field */
-	    if(!xdr_u_int(xdrs,&xdrcount)) {stat = OC_EXDR; goto fail;}
+	    if(!xdr_u_int(xdrs,&xdrcount)) {ocstat = OC_EXDR; goto fail;}
 	    /* validate the datadds dimensions */
-	    if(xdrcount != nelements) {stat=OC_EINVALCOORDS; goto fail;}
+	    if(xdrcount != nelements) {ocstat=OC_EINVALCOORDS; goto fail;}
             for(i=0;i<nelements;i++) {
 		ocstat = occompilefields(state,xnode,&structdata,xdrs);
 		if(ocstat != OC_NOERR) {
@@ -127,7 +126,7 @@ occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
             /* pick up the sequence record begin marker*/
             char tmp[sizeof(unsigned int)];
             /* extract the tag byte*/
-	    if(!xdr_opaque(xdrs,tmp,sizeof(tmp))) {stat = OC_EXDR; goto fail;}
+	    if(!xdr_opaque(xdrs,tmp,sizeof(tmp))) {ocstat = OC_EXDR; goto fail;}
             if(tmp[0] == StartOfoclist) { /* Walk each member field*/
 		ocstat = occompilefields(state,xnode,&structdata,xdrs);
 		if(ocstat != OC_NOERR) goto fail;
@@ -137,7 +136,7 @@ occompile1(OCstate* state, OCnode* xnode, OCmemdata** memdatap, XDR* xdrs)
                 break; /* we are done with the this sequence instance*/
             } else {
 		oc_log(LOGERR,"missing/invalid begin/end record marker\n");
-                stat = OC_EINVALCOORDS;
+                ocstat = OC_EINVALCOORDS;
 		goto fail;
             }
 	}

@@ -128,10 +128,7 @@ oc_close(OCconnection conn)
 OCerror
 oc_root_free(OCconnection conn, OCobject root0)
 {
-    OCstate* state;
     OCnode* root;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,root,root0);
     OCDEREF(OCnode*,root,root0);
 
@@ -143,13 +140,10 @@ oc_root_free(OCconnection conn, OCobject root0)
 unsigned int
 oc_inq_nobjects(OCconnection conn, OCobject root0)
 {
-    OCstate* state;
     OCnode* root;
     OClist* nodes;
     unsigned int nobjects;
-    OCVERIFYX(OCstate*,state,conn,-1);
     OCVERIFYX(OCnode*,root,root0,-1);
-    OCDEREF(OCstate*,state,conn);
     OCDEREF(OCnode*,root,root0);
 
     if(root == NULL) return 0;
@@ -165,13 +159,10 @@ OCobject*
 oc_inq_objects(OCconnection conn, OCobject root0)
 {
     unsigned int i;
-    OCstate* state;
     OCnode* root;
     OClist* nodes;
     OCobject* objects = NULL;
     unsigned int nobjects;
-    OCVERIFYX(OCstate*,state,conn,OCNULL);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFYX(OCnode*,root,root0,OCNULL);
     OCDEREF(OCnode*,root,root0);
 
@@ -196,10 +187,7 @@ oc_inq_objects(OCconnection conn, OCobject root0)
 const char*
 oc_inq_text(OCconnection conn, OCobject root0)
 {
-    OCstate* state;
     OCnode* root;
-    OCVERIFYX(OCstate*,state,conn,OCNULL);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFYX(OCnode*,root,root0,NULL);
     OCDEREF(OCnode*,root,root0);
 
@@ -220,10 +208,7 @@ oc_inq_object(OCconnection conn,
 	  unsigned int* subnodesp,
 	  unsigned int* nattrp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -262,10 +247,7 @@ oc_inq_name(OCconnection conn, OCobject node0, char** namep)
 OCerror
 oc_inq_nsubnodes(OCconnection conn, OCobject node0, unsigned int* nsubnodesp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -276,10 +258,7 @@ oc_inq_nsubnodes(OCconnection conn, OCobject node0, unsigned int* nsubnodesp)
 OCerror
 oc_inq_primtype(OCconnection conn, OCobject node0, OCtype* typep)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -297,10 +276,7 @@ oc_inq_type(OCconnection conn, OCobject node0, OCtype* typep)
 OCerror
 oc_inq_class(OCconnection conn, OCobject node0, OCtype* typep)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -311,10 +287,7 @@ oc_inq_class(OCconnection conn, OCobject node0, OCtype* typep)
 OCerror
 oc_inq_rank(OCconnection conn, OCobject node0, unsigned int* rankp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -325,10 +298,7 @@ oc_inq_rank(OCconnection conn, OCobject node0, unsigned int* rankp)
 OCerror
 oc_inq_nattr(OCconnection conn, OCobject node0, unsigned int* nattrp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -345,10 +315,7 @@ oc_inq_nattr(OCconnection conn, OCobject node0, unsigned int* nattrp)
 OCerror
 oc_inq_root(OCconnection conn, OCobject node0, OCobject* rootp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -359,10 +326,7 @@ oc_inq_root(OCconnection conn, OCobject node0, OCobject* rootp)
 OCerror
 oc_inq_container(OCconnection conn, OCobject node0, OCobject* containerp)
 {
-    OCstate* state;
     OCnode* node;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -375,12 +339,9 @@ oc_inq_container(OCconnection conn, OCobject node0, OCobject* containerp)
 OCerror
 oc_inq_subnodes(OCconnection conn, OCobject node0, OCobject** subnodesp)
 {
-    OCstate* state;
     OCnode* node;
     OCobject* subnodes = NULL;
     unsigned int len;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -402,12 +363,9 @@ OCerror
 oc_inq_ith(OCconnection conn,
            OCobject node0, unsigned int index, OCobject* subnodeidp)
 {
-    OCstate* state;
     OCnode* node;
     OCobject subnodeid = OCNULL;
     unsigned int nsubnodes;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -425,11 +383,8 @@ oc_inq_ith(OCconnection conn,
 OCerror
 oc_inq_dimset(OCconnection conn, OCobject node0, OCobject** dimids)
 {
-    OCstate* state;
     OCnode* node;
     OCobject* dims = NULL;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -450,11 +405,8 @@ oc_inq_dimset(OCconnection conn, OCobject node0, OCobject** dimids)
 OCerror
 oc_inq_ithdim(OCconnection conn, OCobject node0, unsigned int index, OCobject* dimidp)
 {
-    OCstate* state;
     OCnode* node;
     OCobject dimid = OCNULL;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -469,10 +421,7 @@ oc_inq_ithdim(OCconnection conn, OCobject node0, unsigned int index, OCobject* d
 OCerror
 oc_inq_dim(OCconnection conn, OCobject node0, size_t* sizep, char** namep)
 {
-    OCstate* state;
     OCnode* dim;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,dim,node0);
     OCDEREF(OCnode*,dim,node0);
 
@@ -490,12 +439,9 @@ oc_inq_attrstrings(OCconnection conn, OCobject node0, unsigned int i,
 			   char** namep, OCtype* octypep,
 			   unsigned int* nvaluesp, char*** stringsp)
 {
-    OCstate* state;
     OCnode* node;
     OCattribute* attr;
     unsigned int nattrs;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -523,12 +469,9 @@ OCerror
 oc_inq_attr(OCconnection conn, OCobject node0, unsigned int i,
 	    char** namep, OCtype* octypep, unsigned int* nvaluesp, void** valuesp)
 {
-    OCstate* state;
     OCnode* node;
     OCattribute* attr;
     unsigned int nattrs;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,node,node0);
     OCDEREF(OCnode*,node,node0);
 
@@ -563,10 +506,7 @@ OCerror
 oc_inq_dasattr_nvalues(OCconnection conn, OCobject node0,
 			unsigned int* nvaluesp)
 {
-    OCstate* state;
     OCnode* attr;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,attr,node0);
     OCDEREF(OCnode*,attr,node0);
     if(attr->octype != OC_Attribute) return OC_EINVAL;
@@ -578,11 +518,8 @@ OCerror
 oc_inq_dasattr(OCconnection conn, OCobject node0, unsigned int i,
                OCtype* primtypep, char** valuep)
 {
-    OCstate* state;
     OCnode* attr;
     unsigned int nvalues;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,attr,node0);
     OCDEREF(OCnode*,attr,node0);
 
@@ -754,11 +691,8 @@ oc_data_count(OCconnection conn, OCdata content0, size_t* sizep)
 OCerror
 oc_data_index(OCconnection conn, OCdata content0, size_t* sizep)
 {
-    OCstate* state;
     OCcontent* current;
     OCerror ocerr = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCcontent*,current,content0);
     OCDEREF(OCcontent*,current,content0);
 
@@ -769,11 +703,8 @@ oc_data_index(OCconnection conn, OCdata content0, size_t* sizep)
 OCerror
 oc_data_object(OCconnection conn, OCdata content0, OCobject* op)
 {
-    OCstate* state;
     OCcontent* current;
     OCerror ocerr = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCcontent*,current,content0);
     OCDEREF(OCcontent*,current,content0);
 
@@ -784,11 +715,8 @@ oc_data_object(OCconnection conn, OCdata content0, OCobject* op)
 OCerror
 oc_data_mode(OCconnection conn, OCdata content0, OCmode* modep)
 {
-    OCstate* state;
     OCcontent* current;
     OCerror ocerr = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCcontent*,current,content0);
     OCDEREF(OCcontent*,current,content0);
 
@@ -1008,11 +936,8 @@ oc_svcerrordata(OCconnection conn, char** codep,
 OCerror
 oc_raw_xdrsize(OCconnection conn, OCobject root0, size_t* sizep)
 {
-    OCstate* state;
     OCnode* root;
     OCerror ocerr = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,root,root0);
     OCDEREF(OCnode*,root,root0);
 
@@ -1047,11 +972,8 @@ oc_get_lastmodified_data(OCconnection conn)
 int
 oc_dumpnode(OCconnection conn, OCobject root0)
 {
-    OCstate* state;
     OCnode* root;
     OCerror ocerr = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCnode*,root,root0);
     OCDEREF(OCnode*,root,root0);
     ocdumpnode(root);

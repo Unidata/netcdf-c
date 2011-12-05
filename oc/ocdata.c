@@ -389,7 +389,7 @@ errorstring(XDR* xdrs)
         pos = xdr_getpos(xdrs);
         memset(s,0,sizeof(s));
 	/* Do this a byte at a time, since we do not know how much is left */
-	for(i=0;i<4096;i++) {
+	for(i=0;i<size;i++) {
             if(!xdr_getbytes(xdrs,s+i,1)) break;
 	}
 	/* check for error tag at front */
