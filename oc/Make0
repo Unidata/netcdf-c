@@ -1,5 +1,5 @@
 THISDIR=../oc
-OCDIR=/home/dmh/nc/oc
+OCDIR=/home/dmh/svn/oc
 
 all::
 
