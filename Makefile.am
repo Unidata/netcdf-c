@@ -45,8 +45,6 @@ endif
 # Build the opendap client?
 if BUILD_DAP
 OCLIB = oc
-NCDAP3 = libncdap3
-NCDAP4 = libncdap4
 DAP2 = libdap2
 #if BUILD_UTILITIES
 NCDAPTESTDIR = ncdap_test
