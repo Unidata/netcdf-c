@@ -794,7 +794,13 @@ datalist1: /* Must have at least 1 element */
 dataitem:
 	  constdata {$$=$1;}
 	| '{' datalist '}' {$$=builddatasublist($2);}
+        | FCN arglist ')' {}
 	;
+
+arglist:
+          dataitem
+        | arglist ',' dataitem
+        ;
 
 constdata:
 	  simpleconstant      {$$=$1;}
