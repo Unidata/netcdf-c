@@ -33,7 +33,7 @@ liboc_la_SOURCES = ${GRAMC} ${GRAMH} $(SRC) $(HDRS)
 liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
-EXTRA_DIST = ${GRAMFILES}
+EXTRA_DIST = ${GRAMFILES} ${GRAMC} ${GRAMH}
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

@@ -1,13 +1,13 @@
 #!/bin/sh
 # This shell script runs an ncgen buf in handling character _Fillvalue.
-
+set -x
 set -e
 echo ""
 echo "*** Running char _Fillvalue bug test."
 
 echo "*** Create tst_charfill.nc from tst_charfill.cdl..."
 rm -f tst_charfill.nc tmp_tst_charfill.cdl
-../ncgen/ncgen -b tst_charfill.cdl
+../ncgen/ncgen -b -o tst_charfill.nc $srcdir/tst_charfill.cdl
 echo "*** dumping tst_charfill.nc to tmp_tst_charfill.cdl..."
 ./ncdump tst_charfill.nc > tmp_tst_charfill.cdl
 echo "*** comparing tmp_tst_charfill.cdl with ref_tst_charfill.cdl..."
