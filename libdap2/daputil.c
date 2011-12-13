@@ -22,9 +22,9 @@ static char* makepathstring3(CDFnode* var, const char* separator, int ocify);
 
 /**************************************************/
 /**
- * Provide a hidden interface to allow utilities*/
- * to check if a given path name is really an ncdap3 url.*/
- * If no, return null, else return basename of the url*/
+ * Provide a hidden interface to allow utilities
+ * to check if a given path name is really an ncdap3 url.
+ * If no, return null, else return basename of the url
  * minus any extension.
  */
 
