@@ -275,9 +275,9 @@ sorttriplestore(void)
 	ocdodsrcdump("final .dodsrc order:",ocdodsrc->triples,ocdodsrc->ntriples);
 }
 
-/* Create a triple store from a .dodsrc */
+/* Create a triple store from a file */
 int
-ocdodsrc_read(char* basename, char *in_file_name)
+ocdodsrc_read(char* basename, char* path)
 {
     char line0[MAXRCLINESIZE];
     FILE *in_file = NULL;
@@ -292,7 +292,7 @@ ocdodsrc_read(char* basename, char *in_file_name)
     }
     ocdodsrc->ntriples = 0;
 
-    in_file = fopen(in_file_name, "r"); /* Open the file to read it */
+    in_file = fopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
 	oc_log(LOGERR, "Could not open configuration file: %s",basename);
 	return OC_EPERM;
