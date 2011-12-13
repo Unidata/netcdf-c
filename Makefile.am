@@ -12,7 +12,8 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES test_prog.c lib_flags.am
 
 # Doxygen doesn't build nicely in vpath builds.
-DISTCHECK_CONFIGURE_FLAGS = --disable-doxygen 
+# Don't do this; it wipes out any exported values
+#DISTCHECK_CONFIGURE_FLAGS = --disable-doxygen
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc

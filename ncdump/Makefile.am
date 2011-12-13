@@ -28,7 +28,7 @@ if !BUILD_DLL
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh
+tst_nccopy3.sh
 
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
@@ -41,7 +41,7 @@ TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh
+tst_grp_spec.sh tst_charfill.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
