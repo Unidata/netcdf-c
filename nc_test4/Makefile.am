@@ -46,7 +46,7 @@ endif # LARGE_FILE_TESTS
 if BUILD_BENCHMARKS
 check_PROGRAMS += tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
-tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi	\
+tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi     \
 bm_netcdf4_recs
 
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
@@ -59,9 +59,13 @@ tst_ar4_SOURCES = tst_ar4.c tst_utils.c
 tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 bm_file_SOURCES = bm_file.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
+
+#WARNING: test_knmi depends on run_get_knmi_files.sh,
+# so they must appear in the appropriate order.
 TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
 run_bm_test2.sh run_tst_chunks.sh run_bm_ar4.sh tst_files2 tst_files3	\
-tst_ar5 tst_h_files3 tst_mem tst_knmi
+tst_ar5 tst_h_files3 tst_mem                                            \
+run_get_knmi_files.sh tst_knmi
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL
@@ -82,7 +86,7 @@ check_PROGRAMS += tst_interops2
 TESTS += tst_interops2
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
-TESTS += run_get_hdf4_files.sh run_get_knmi_files.sh tst_interops3
+TESTS += run_get_hdf4_files.sh tst_interops3
 endif # USE_HDF4_FILE_TESTS
 #tst_interops2_LDADD = ${lib_LTLIBRARIES} -lmfhdf -ldf -ljpeg -lhdf5_hl	\
 #-lhdf5 -lz

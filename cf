@@ -2,7 +2,7 @@
 #X="-x"
 
 HDF5=1
-DAP=1
+#DAP=1
 #CDMR=1
 #RPC=1
 
@@ -12,10 +12,10 @@ DAP=1
 #NB=1
 
 cmds=""
-#cmds="all"
+cmds="all"
 #cmds="all check"
 #cmds="all dist"
-cmds="all distcheck"
+#cmds="all distcheck"
 
 # Default cases
 PREFIX="/tmp/install/${HOST}"
@@ -98,6 +98,8 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
+FLAGS="$FLAGS --enable-benchmarks"
+FLAGS="$FLAGS --enable-extra-tests"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
