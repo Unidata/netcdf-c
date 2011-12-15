@@ -15,18 +15,19 @@ Functions to write attributes. */
 
 /*!
 \ingroup attributes
-Write an string attribute.
+Write a string attribute.
 
 The function nc_put_att_string adds or changes a variable attribute or
 global attribute of an open netCDF dataset. The string type is only
 available in netCDF-4/HDF5 files, when ::NC_CLASSIC_MODEL has not been
 used in nc_create().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the variable to which the attribute will
-be assigned or ::NC_GLOBAL for a global attribute.
+be assigned or ::NC_GLOBAL for a global or group attribute.
 
 \param name Attribute \ref object_name. \ref attribute_conventions may
 apply.
@@ -69,8 +70,9 @@ Use the nc_put_att function to create attributes of any type,
 including user-defined types. We recommend using the type safe
 versions of this function whenever possible.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the variable to which the attribute will
 be assigned or ::NC_GLOBAL for a global attribute.
@@ -157,11 +159,12 @@ specified fill value for that variable.
 Although it's possible to create attributes of all types, text and
 double attributes are adequate for most purposes.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the variable to which the attribute will
-be assigned or ::NC_GLOBAL for a global attribute.
+be assigned or ::NC_GLOBAL for a global or group attribute.
 
 \param name Attribute \ref object_name. \ref attribute_conventions may
 apply.

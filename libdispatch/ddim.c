@@ -64,8 +64,9 @@ the record dimension, may be defined for each classic or 64-bit offset
 netCDF dataset. NetCDF-4 datasets may have multiple unlimited
 dimensions.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param name Name of the dimension to be created.
 
@@ -122,8 +123,9 @@ dimension, given the name of the dimension. If ndims is the number of
 dimensions defined for a netCDF dataset, each dimension has an ID
 between 0 and ndims-1.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param name Name of the dimension.
 
@@ -148,8 +150,9 @@ Find the name and length of a dimension.
 The length for the unlimited dimension, if any, is the number of
 records written so far.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
@@ -217,8 +220,9 @@ than the old name, the netCDF dataset must be in define mode.
 For netCDF-4 files the dataset is switched to define more for the
 rename, regardless of the name length.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
@@ -274,8 +278,9 @@ may be less than the total number of dimensions in a file. In a
 netCDF-4/HDF5 file, dimensions are in all sub-groups, sub-sub-groups,
 etc.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param ndimsp Pointer where number of dimensions will be
 written. Ignored if NULL.
@@ -300,10 +305,11 @@ Find the ID of the unlimited dimension.
 This function finds the ID of the unlimited dimension. For
 netCDF-4/HDF5 files (which may have more than one unlimited
 dimension), the ID of the first unlimited dimesnion is returned. For
-these files, nc_inq_unlimdims().
+these files, nc_inq_unlimdims() will return all the unlimited dimension IDs.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param unlimdimidp Pointer where unlimited dimension ID will be
 stored. If there is no unlimited dimension, -1 will be stored
@@ -325,8 +331,9 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
 /*!
 Find out the name of a dimension.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
@@ -386,8 +393,9 @@ Find the length of a dimension.
 The length for the unlimited dimension, if any, is the number of
 records written so far.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().

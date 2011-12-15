@@ -364,8 +364,9 @@ The nc_put_var() function will write a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -558,8 +559,9 @@ nc_put_vara_string(int ncid, int varid, const size_t *startp,
 /** \ingroup variables
 Write one datum. 
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -740,8 +742,9 @@ The nc_put_var() function will write a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -894,8 +897,9 @@ nc_put_var_string(int ncid, int varid, const char* *op)
 /** \ingroup variables
 Write a strided array of values to a variable. 
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -1120,8 +1124,9 @@ nc_put_vars_string(int ncid, int varid,
 /** \ingroup variables
 Write a mapped array of values to a variable. 
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 

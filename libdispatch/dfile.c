@@ -504,7 +504,8 @@ nc__open_mp(const char *path, int mode, int basepe,
 Get the file pathname (or the opendap URL) which was used to
 open/create the ncid's file.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
 
 \param pathlen Pointer where length of path will be returned. Ignored
 if NULL.
@@ -549,7 +550,8 @@ For all netCDF-4 files, the root ncid must be used. This is the ncid
 returned by nc_open() and nc_create(), and points to the root of the
 hierarchy tree for netCDF-4 files.
 
-\param ncid netCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
 
 \returns ::NC_NOERR No error.
 
@@ -613,9 +615,11 @@ which must be set (if they are going to be set at all) between the
 nc_def_var() and the next nc_enddef(). Once the nc_enddef() is called,
 these settings can no longer be changed for a variable.  
 
-\param ncid NetCDF ID, from a previous call to nc_open()or
-nc_create(). If you use a group id (in a netCDF-4/HDF5 file), the enddef
-will apply to the entire file. That all, the enddef will not just end
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
+
+If you use a group id (in a netCDF-4/HDF5 file), the enddef
+will apply to the entire file. That means the enddef will not just end
 define mode in one group, but in the entire file.
 
 \returns ::NC_NOERR no error
@@ -713,7 +717,8 @@ fact prevents us from providing minfree and alignment control of the
 unlimited dimension, the third section will always be copied with the
 new variable added.  
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
 
 \param h_minfree Sets the pad at the end of the "header" section.
 
@@ -802,7 +807,8 @@ records written), without having to close and reopen the dataset.
 Data is automatically synchronized to disk when a netCDF dataset is
 closed, or whenever you leave define mode.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
 
 \returns ::NC_NOERR No error.
 
@@ -829,7 +835,8 @@ is deleted. If define mode was entered by a call to nc_redef(), the
 netCDF dataset is restored to its state before definition mode was
 entered and the dataset is closed.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or
+nc_create().
 
 \returns ::NC_NOERR No error.
 
@@ -879,7 +886,7 @@ before define mode was last entered.) After an open netCDF dataset is
 closed, its netCDF ID may be reassigned to the next netCDF dataset
 that is opened or created.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or nc_create().
 
 \returns ::NC_NOERR No error.
 
@@ -975,7 +982,8 @@ The use of this feature may not be available (or even needed) in
 future releases. Programmers are cautioned against heavy reliance upon
 this feature.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or 
+nc_create().
 
 \param fillmode Desired fill mode for the dataset, either ::NC_NOFILL or
 ::NC_FILL.
@@ -1069,7 +1077,8 @@ Inquire about the binary format of a netCDF file.
 
 This function returns the (rarely needed) format version.
 
-\param ncid NetCDF ID, from a previous call to nc_open()or nc_create().
+\param ncid NetCDF ID, from a previous call to nc_open() or 
+nc_create().
 
 \param formatp Pointer to location for returned format version, one of
 NC_FORMAT_CLASSIC, NC_FORMAT_64BIT, NC_FORMAT_NETCDF4,
@@ -1090,10 +1099,11 @@ nc_inq_format(int ncid, int *formatp)
 }
 
 /**
-Inquire about a file.
+Inquire about a file or group.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param ndimsp Pointer to location for returned number of dimensions
 defined for this netCDF dataset. Ignored if NULL.
@@ -1107,7 +1117,9 @@ attributes defined for this netCDF dataset. Ignored if NULL.
 \param unlimdimidp Pointer to location for returned ID of the
 unlimited dimension, if there is one for this netCDF dataset. If no
 unlimited length dimension has been defined, -1 is returned. Ignored
-if NULL.
+if NULL.  If there are multiple unlimited dimensions (possible only 
+for netCDF-4 files), only a pointer to the first is returned, for
+backward compatibility.  If you want them all, use nc_inq_unlimids().
 
 \returns ::NC_NOERR No error.
 

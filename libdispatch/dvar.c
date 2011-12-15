@@ -131,13 +131,14 @@ Use these functions to define variables.
 \ingroup variables
 Define a new variable.
 
-This function adds a new variable to an open netCDF dataset in define
-mode. It returns (as an argument) a variable ID, given the netCDF ID,
+This function adds a new variable to an open netCDF dataset or group. 
+It returns (as an argument) a variable ID, given the netCDF ID,
 the variable name, the variable type, the number of dimensions, and a
 list of the dimension IDs.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param name Variable \ref object_name.
 
@@ -226,15 +227,16 @@ Rename a variable.
 \ingroup variables
 
 This function changes the name of a netCDF variable in an open netCDF
-file. You cannot rename a variable to have the name of any existing
+file or group. You cannot rename a variable to have the name of any existing
 variable.
 
 For classic format, 64-bit offset format, and netCDF-4/HDF5 with
 classic mode, if the new name is longer than the old name, the netCDF
 dataset must be in define mode. 
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -439,8 +441,9 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 #ifdef USE_NETCDF4
 /** \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -474,8 +477,9 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 
 /** \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
