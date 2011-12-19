@@ -19,8 +19,9 @@ Find the ID of a variable, from the name.
 The function nc_inq_varid returns the ID of a netCDF variable, given
 its name.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param name Name of the variable.
 
@@ -60,8 +61,9 @@ nc_inq_varid(int ncid, const char *name, int *varidp)
 \ingroup variables
 Learn about a variable.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -126,8 +128,9 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
 \ingroup variables
 Learn the name of a variable.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -149,8 +152,9 @@ nc_inq_varname(int ncid, int varid, char *name)
 /** Learn the type of a variable.
 \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -170,8 +174,9 @@ nc_inq_vartype(int ncid, int varid, nc_type *typep)
 /** Learn how many dimensions are associated with a variable.
 \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -191,8 +196,9 @@ nc_inq_varndims(int ncid, int varid, int *ndimsp)
 /** Learn the dimension IDs associated with a variable.
 \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -213,8 +219,9 @@ nc_inq_vardimid(int ncid, int varid, int *dimidsp)
 /** Learn how many attributes are associated with a variable.
 \ingroup variables
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -241,8 +248,9 @@ Learn the storage and deflate settings for a variable.
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -299,8 +307,9 @@ files with szip compression.
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -347,8 +356,9 @@ Learn the checksum settings for a variable.
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -392,8 +402,9 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -427,8 +438,9 @@ The fill mode of a variable is set by nc_def_var_fill().
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -474,8 +486,9 @@ Find the endianness of a variable.
 
 This is a wrapper for nc_inq_var_all().
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 

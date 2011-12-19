@@ -392,8 +392,9 @@ done.
 Other nc_get_vara_ functions will convert data to the desired output
 type as needed.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -623,8 +624,9 @@ must match the type of the variable - no data conversion is done.
 Other nc_get_var1_ functions will convert data to the desired output
 type as needed.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -811,8 +813,9 @@ The nc_get_var() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -975,8 +978,9 @@ The nc_get_vars() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 
@@ -1206,8 +1210,9 @@ The nc_get_varm() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID
 

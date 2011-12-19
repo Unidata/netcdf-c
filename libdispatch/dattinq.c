@@ -19,8 +19,9 @@ Return information about a netCDF attribute.
 
 The function nc_inq_att returns the attribute's type and length.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
 for a global attribute.
@@ -81,8 +82,9 @@ nc_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
 \ingroup attributes
 Find an attribute ID.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL for
 a global attribute.
@@ -108,8 +110,9 @@ nc_inq_attid(int ncid, int varid, const char *name, int *idp)
 \ingroup attributes
 Find the name of an attribute.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
 for a global attribute.
@@ -133,12 +136,13 @@ nc_inq_attname(int ncid, int varid, int attnum, char *name)
 
 /**
 \ingroup attributes
-Find number of global attributes.
+Find number of global or group attributes.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
-\param nattsp Pointer where number of global attributes will be
+\param nattsp Pointer where number of global or group attributes will be
 written. \ref ignored_if_null.
 */
 int
@@ -155,11 +159,12 @@ nc_inq_natts(int ncid, int *nattsp)
 \ingroup attributes
 Find the type of an attribute.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
-for a global attribute.
+for a global or group attribute.
 
 \param name Attribute \ref object_name. 
 
@@ -178,11 +183,12 @@ nc_inq_atttype(int ncid, int varid, const char *name, nc_type *xtypep)
 \ingroup attributes
 Find the length of an attribute.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
-for a global attribute.
+for a global or group attribute.
 
 \param name Attribute \ref object_name. 
 

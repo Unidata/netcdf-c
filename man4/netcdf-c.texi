@@ -2178,7 +2178,8 @@ int nc_inq_path     (int ncid, size_t *pathlenp, char *path);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item ndimsp
 Pointer to location for returned number of dimensions defined for this
@@ -3754,7 +3755,8 @@ int nc_inq_dimid (int ncid, const char *name, int *dimidp);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item name
 Dimension name.
@@ -3822,7 +3824,8 @@ int nc_inq_dimlen  (int ncid, int dimid, size_t *lengthp);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create. 
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item dimid
 Dimension ID, from a previous call to nc_inq_dimid or nc_def_dim.
@@ -3904,7 +3907,8 @@ int nc_rename_dim(int ncid, int dimid, const char* name);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item dimid
 Dimension ID, from a previous call to nc_inq_dimid or nc_def_dim.
@@ -6591,7 +6595,8 @@ int nc_def_var (int ncid, const char *name, nc_type xtype,
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item name
 Variable name.
@@ -6739,7 +6744,8 @@ int nc_def_var_chunking(int ncid, int varid, int storage, size_t *chunksizesp);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -6864,7 +6870,8 @@ int nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -6965,7 +6972,8 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7045,7 +7053,8 @@ int nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7121,7 +7130,8 @@ int nc_def_var_fill(int ncid, int varid, int no_fill, void *fill_value);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7210,7 +7220,8 @@ int nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_value);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7291,7 +7302,8 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7371,7 +7383,8 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep,
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7436,7 +7449,8 @@ int nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blo
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7509,7 +7523,8 @@ nc_def_var_fletcher32(int ncid, int varid, int checksum);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7577,7 +7592,8 @@ nc_inq_var_fletcher32(int ncid, int varid, int *checksump);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7646,7 +7662,8 @@ nc_def_var_endian(int ncid, int varid, int endian);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7715,7 +7732,8 @@ nc_inq_var_endian(int ncid, int varid, int *endianp);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7774,7 +7792,8 @@ int nc_inq_varid (int ncid, const char *name, int *varidp);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item name
 Variable name for which ID is desired.
@@ -7855,7 +7874,8 @@ int nc_inq_varnatts (int ncid, int varid, int *nattsp);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -7994,7 +8014,8 @@ int nc_put_var1(int ncid, int varid, const size_t *indexp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -8151,7 +8172,8 @@ int nc_put_var       (int ncid, int varid,  const void *op);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -8305,7 +8327,8 @@ int nc_put_vara       (int ncid, int varid,  const size_t *startp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -8515,7 +8538,8 @@ int nc_put_vars       (int ncid, int varid,  const size_t *startp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -8736,7 +8760,8 @@ n@end example
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -9002,7 +9027,8 @@ int nc_get_var1       (int ncid, int varid,  const size_t *indexp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -9167,7 +9193,8 @@ int nc_get_var       (int ncid, int varid,  void *ip);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -9329,7 +9356,8 @@ int nc_get_vara       (int ncid, int varid, const size_t start[],
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -9522,7 +9550,8 @@ int nc_get_vars       (int ncid, int varid,  const size_t *startp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -9739,7 +9768,8 @@ int nc_get_varm       (int ncid, int varid,  const size_t *startp,
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID.
@@ -10227,7 +10257,8 @@ have the name of any existing variable.
 int nc_rename_var(int ncid, int varid, const char* name);
 
 ncid
- NetCDF ID, from a previous call to nc_open or nc_create.
+ NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 varid
  Variable ID.
@@ -10379,7 +10410,7 @@ Variable ID.
  
 @item access
 NC_INDEPENDENT to set this variable to independent
-operations.NC_COLLECTIVE to set it to collective operations.
+operations.  NC_COLLECTIVE to set it to collective operations.
 
 @end table
  
@@ -10602,7 +10633,8 @@ int nc_put_att           (int ncid, int varid, const char *name, nc_type xtype,
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID of the variable to which the attribute will be assigned or
@@ -10771,7 +10803,8 @@ int nc_inq_attid   (int ncid, int varid, const char *name, int *attnump);
 @vtable @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID of the attribute's variable, or NC_GLOBAL for a global
@@ -10900,7 +10933,8 @@ int nc_get_att           (int ncid, int varid, const char *name, void *ip);
 @table @code
 
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 Variable ID of the attribute's variable, or NC_GLOBAL for a global attribute.
@@ -11124,7 +11158,8 @@ int nc_rename_att (int ncid, int varid, const char* name,
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 ID of the attribute's variable, or NC_GLOBAL for a global attribute
@@ -11202,7 +11237,8 @@ int nc_del_att (int ncid, int varid, const char* name);
 
 @table @code
 @item ncid
-NetCDF ID, from a previous call to nc_open or nc_create.
+NetCDF or group ID, from a previous call to nc_open, nc_create,
+nc_def_grp, or associated inquiry functions such as nc_inq_ncid.
  
 @item varid
 ID of the attribute's variable, or NC_GLOBAL for a global attribute.

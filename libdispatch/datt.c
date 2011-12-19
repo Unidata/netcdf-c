@@ -69,8 +69,9 @@ new name is longer than the original name, the netCDF dataset must be
 in define mode. You cannot rename an attribute to have the same name
 as another attribute of the same variable.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(), 
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL for
 a global attribute.
@@ -117,8 +118,9 @@ Delete an attribute.
 The function nc_del_att() deletes a netCDF attribute from an open
 netCDF dataset. The netCDF dataset must be in define mode.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
 for a global attribute.

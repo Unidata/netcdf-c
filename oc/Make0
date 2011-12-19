@@ -14,6 +14,10 @@ makeoc::
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
+	rm -f dap.tab.c dap.tab.h
+	bison --debug -d -p dap dap.y
+	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
+	
 
 #	# Temporary
 #	sed -e 's|dapdecode(parsestate->lexstate,|(|' \

@@ -22,8 +22,9 @@ The nc_get_att() functions works for any type of attribute, and must
 be used to get attributes of user-defined type. We recommend that they
 type safe versions of this function be used where possible.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
 for a global attribute.
@@ -65,8 +66,9 @@ function works with any type of data, including user defined types.
 file is opened with nc_open(). Getting an attribute copies the value
 from the in-memory store, and does not incure any file I/O penalties.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
 
 \param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
 for a global attribute.
