@@ -1,18 +1,18 @@
 netcdf test {
 dimensions:
-	Raster\%20Image\%20\%230__X = 5 ;
-	Raster\%20Image\%20\%230__Y = 6 ;
-	Raster\%20Image\%20\%231__X = 5 ;
-	Raster\%20Image\%20\%231__Y = 6 ;
-	Raster\%20Image\%20\%232__X = 5 ;
-	Raster\%20Image\%20\%232__Y = 6 ;
+	Raster\ Image\ \#0__X = 5 ;
+	Raster\ Image\ \#0__Y = 6 ;
+	Raster\ Image\ \#1__X = 5 ;
+	Raster\ Image\ \#1__Y = 6 ;
+	Raster\ Image\ \#2__X = 5 ;
+	Raster\ Image\ \#2__Y = 6 ;
 variables:
-	byte Raster\%20Image\%20\%230(Raster\%20Image\%20\%230__Y, Raster\%20Image\%20\%230__X) ;
-	byte Raster\%20Image\%20\%231(Raster\%20Image\%20\%231__Y, Raster\%20Image\%20\%231__X) ;
-	byte Raster\%20Image\%20\%232(Raster\%20Image\%20\%232__Y, Raster\%20Image\%20\%232__X) ;
+	byte Raster\ Image\ \#0(Raster\ Image\ \#0__Y, Raster\ Image\ \#0__X) ;
+	byte Raster\ Image\ \#1(Raster\ Image\ \#1__Y, Raster\ Image\ \#1__X) ;
+	byte Raster\ Image\ \#2(Raster\ Image\ \#2__Y, Raster\ Image\ \#2__X) ;
 data:
 
- Raster\%20Image\%20\%230 =
+ Raster\ Image\ \#0 =
   0, 1, 2, 3, 4,
   5, 6, 7, 8, 9,
   10, 11, 12, 13, 14,
@@ -20,7 +20,7 @@ data:
   20, 21, 22, 23, 24,
   25, 26, 27, 28, 29 ;
 
- Raster\%20Image\%20\%231 =
+ Raster\ Image\ \#1 =
   0, 1, 2, 3, 4,
   5, 6, 7, 8, 9,
   10, 11, 12, 13, 14,
@@ -28,7 +28,7 @@ data:
   20, 21, 22, 23, 24,
   25, 26, 27, 28, 29 ;
 
- Raster\%20Image\%20\%232 =
+ Raster\ Image\ \#2 =
   0, 1, 2, 3, 4,
   5, 6, 7, 8, 9,
   10, 11, 12, 13, 14,

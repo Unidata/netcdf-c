@@ -21,10 +21,13 @@ extern int oc_dumpnode(OClink, OCobject);
 static char* makepathstring3(CDFnode* var, const char* separator, int ocify);
 
 /**************************************************/
-/* Provide a hidden interface to allow utilities*/
-/* to check if a given path name is really an ncdap3 url.*/
-/* If no, return null, else return basename of the url*/
-/* minus any extension*/
+/**
+ * Provide a hidden interface to allow utilities*/
+ * to check if a given path name is really an ncdap3 url.*/
+ * If no, return null, else return basename of the url*/
+ * minus any extension.
+ */
+
 int
 nc__testurl(const char* path, char** basenamep)
 {

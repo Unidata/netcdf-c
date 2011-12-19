@@ -94,8 +94,6 @@ if test "x$enable_netcdf_4" = "x" ; then
   AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--enable-netcdf4],
               [build with netcdf-4 (HDF5 and zlib required)])])
   enable_netcdf_4="$enable_netcdf4"
-else
-  enable_netcdf4="$enable_netcdf_4"
 fi
 
 # Does the user want to turn on HDF4 read ability?
@@ -269,6 +267,21 @@ if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
+
+# Control if groups are supported in [netcdf4]dap2 code
+AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
+AC_ARG_ENABLE([dap-groups],
+              [AS_HELP_STRING([--disable-dap-groups],
+                                 [disable [netcdf4] dap group names])])
+test "x$enable_groups" = xno || enable_dap_groups=yes
+if test "x$enable_dap" = "xno" -o "x$enable_enable_netcdf_4" = "xno" ; then
+  AC_MSG_NOTICE([dap groups disabled because dap disabled or netcdf-4 disabled])
+  enable_dap_groups=no
+fi
+AC_MSG_RESULT($enable_dap_groups)
+if test "x$enable_dap_groups" = xyes; then
+AC_DEFINE([ENABLE_DAP_GROUPS], [1], [if true, enable DAP group names])
+fi
 
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then
@@ -585,12 +598,14 @@ AC_CHECK_LIB([m], [floor], [],
 [AC_MSG_ERROR([Can't find or link to the math library.])])
 
 if test "x$enable_netcdf_4" = xyes; then
+
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
    AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
 
    # Check for the main hdf5 and hdf5_hl library.
+
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
    [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [], 
@@ -810,6 +825,14 @@ AC_CONFIG_FILES([Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
+                 win32/Makefile
+                 win32/NET/Makefile
+                 win32/NET/libsrc/Makefile
+                 win32/NET/ncdump/Makefile
+                 win32/NET/ncgen/Makefile
+                 win32/NET/examples/Makefile
+                 win32/NET/nctest/Makefile
+                 win32/NET/nc_test/Makefile
                   oc/Makefile
                   libdap2/Makefile
                   libcdmr/Makefile

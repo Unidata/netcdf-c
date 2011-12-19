@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+
 #include "ocinternal.h"
 #include <stdio.h>
 #include <fcntl.h>

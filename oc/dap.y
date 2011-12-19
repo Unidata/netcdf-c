@@ -243,7 +243,7 @@ errorprog : /*empty*/ {$$=null;} | SCAN_PROG    '=' WORD_WORD ';' {$$=$3;}
    and are disambiguated by context
 */
 name:
-          WORD_WORD      {$$=($1);}
+          WORD_WORD      {$$=dapdecode(parsestate->lexstate,$1);}
 	| SCAN_ALIAS     {$$=strdup("alias");}
 	| SCAN_ARRAY     {$$=strdup("array");}
 	| SCAN_ATTR      {$$=strdup("attributes");}

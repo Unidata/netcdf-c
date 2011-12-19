@@ -4,10 +4,10 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
-#undef OCDEBUG
-
 #include <stdarg.h>
 #include "ocdump.h"
+
+#undef OCDEBUG
 
 /* OCCATCHERROR is used to detect errors as close
    to their point of origin as possible. When

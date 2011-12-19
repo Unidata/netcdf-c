@@ -1,5 +1,5 @@
 THISDIR=../oc
-OCDIR=/home/dmh/nc/oc
+OCDIR=/home/dmh/svn/oc
 
 all::
 
@@ -14,14 +14,16 @@ makeoc::
 	rm -f ocinternal.h
 	sed -e 's|/[*]#undef OC_DISK_STORAGE[*]/|#undef OC_DISK_STORAGE|g' \
 	    < ${OCDIR}/ocinternal.h | tr -d '\r' >./ocinternal.h
-	# Temporary
-	sed -e 's|dapdecode(parsestate->lexstate,|(|' \
-	    < ${OCDIR}/dap.y | tr -d '\r' >./dap.y
+
+#	# Temporary
+#	sed -e 's|dapdecode(parsestate->lexstate,|(|' \
+#	    < ${OCDIR}/dap.y | tr -d '\r' >./dap.y
 
 diffoc::
 	if ! test -e ${OCDIR} ; then echo "${OCDIR} not found"; exit ; fi
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f | tr -d '' ` ; \
+	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		diff --brief -wBb ${THISDIR}/$$x $$f ; \
 	    else \
@@ -30,6 +32,7 @@ diffoc::
 	done
 	for f in ${OCDIR}/*.[chy] ; do \
 	    x=`basename $$f|tr -d '' ` ; \
+	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
 	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
 		if ! diff --brief -wBb ${THISDIR}/$$x $$f > /dev/null ; then \
 		echo diff -wBb ${THISDIR}/$$x $$f ;\

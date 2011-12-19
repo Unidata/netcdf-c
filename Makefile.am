@@ -12,7 +12,8 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES test_prog.c lib_flags.am
 
 # Doxygen doesn't build nicely in vpath builds.
-DISTCHECK_CONFIGURE_FLAGS = --disable-doxygen 
+# Don't do this; it wipes out any exported values
+#DISTCHECK_CONFIGURE_FLAGS = --disable-doxygen
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
@@ -45,8 +46,6 @@ endif
 # Build the opendap client?
 if BUILD_DAP
 OCLIB = oc
-NCDAP3 = libncdap3
-NCDAP4 = libncdap4
 DAP2 = libdap2
 #if BUILD_UTILITIES
 NCDAPTESTDIR = ncdap_test
