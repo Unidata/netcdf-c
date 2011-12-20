@@ -62,13 +62,15 @@ if BUILD_RPC
 LIBRPC = librpc
 endif
 
+WIN32=win32
+
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it. 
 SUBDIRS = include $(H5_TEST_DIR) libdispatch $(OCLIB) libsrc		\
 $(LIBDISKLESS) $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBRPC) liblib $(V2_TEST) \
 nc_test $(NCGEN3) $(NCGEN) $(NCDUMP) $(NC_TEST4) $(NCDAPTESTDIR) man4	\
-$(EXAMPLES)
+$(EXAMPLES) $(WIN32)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
