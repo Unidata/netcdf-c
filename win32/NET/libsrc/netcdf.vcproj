@@ -357,10 +357,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\nf_test\fortlib.c"
-				>
-			</File>
-			<File
 				RelativePath=".\netcdf.cpp"
 				>
 			</File>
@@ -737,70 +733,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\oc\read.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="fortran"
-				>
-				<File
-					RelativePath="..\..\..\fortran\fort-attio.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-control.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-dim.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-genatt.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-geninq.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-genvar.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-lib.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-misc.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-nc4.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-v2compat.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-var1io.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-varaio.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-vario.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-varmio.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\fortran\fort-varsio.c"
 					>
 				</File>
 			</Filter>
