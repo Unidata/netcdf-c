@@ -825,6 +825,7 @@ AC_CONFIG_FILES([Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
+                 win32/Makefile
                  win32/NET/Makefile
                  win32/NET/libsrc/Makefile
                  win32/NET/ncdump/Makefile
