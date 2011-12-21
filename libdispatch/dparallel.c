@@ -27,13 +27,8 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm,
        !(cmode & NC_PNETCDF))
       return NC_EINVAL;
 
-#ifdef HAVE_MPI_COMM_F2C
-   comm_c = MPI_Comm_f2c(comm);
-   info_c = MPI_Info_f2c(info);
-#else
    comm_c = (MPI_Comm)comm;
    info_c = (MPI_Info)info;
-#endif
 
    data.comm = comm_c;
    data.info = info_c;
