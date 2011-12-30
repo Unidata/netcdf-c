@@ -3,7 +3,9 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2-rc1		2011-12-11 (Note: Jira entries include reference to '[NCF-XX]')
+4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
+
+		Released 12/30/2011
 
 		Cleaned up the definition and use of nulldup.
 		[NCF-92][NCF-93][NCF-94]
