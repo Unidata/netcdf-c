@@ -40,7 +40,7 @@ clean-local:
 # tarball to the /contents/netcdf/docs directory to update the on-line
 # docs.
 web-tarball: doxyfile.stamp
-	tar cf netcdf_docs.tar html/*
+	cd html; tar cf netcdf_docs.tar *
 	gzip -f netcdf_docs.tar
 
 endif 
