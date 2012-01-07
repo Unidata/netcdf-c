@@ -100,10 +100,11 @@ test_nc_open(void)
 	error("nc_open of nonexistent file should have returned system error");
 #endif
 
-    /* Open a file that is not a netCDF file. */
-    err = nc_open("nc_test.o", NC_NOWRITE, &ncid);/* should fail */
-    IF (err != NC_ENOTNC)
-	error("nc_open of non-netCDF file: status = %d", err);
+    /* Open a file that is not a netCDF file.  But need a portable
+     * test that also works for cross-compiles ... */
+    /* err = nc_open("nc_test.o", NC_NOWRITE, &ncid);/\* should fail *\/ */
+    /* IF (err != NC_ENOTNC) */
+    /* 	error("nc_open of non-netCDF file: status = %d", err); */
 
     /* Open a netCDF file in read-only mode, check that write fails */
     err = nc_open(testfile, NC_NOWRITE, &ncid);
