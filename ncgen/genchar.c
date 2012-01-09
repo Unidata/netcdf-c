@@ -21,7 +21,7 @@ So, this rather ugly code is kept in this file
 and a variety of heuristics are used to mimic ncgen.
 */
 
-static void gen_chararrayr(Dimset*, Bytebuffer*, int index, Datalist*, int fillchar, size_t);
+static void gen_chararrayr(Dimset*, Bytebuffer*, int index, Datasrc*, int fillchar, size_t);
 
 extern List* vlenconstants;
 
@@ -120,20 +120,17 @@ datalistpad(Datalist* data, size_t targetlen)
 	   1. pad
 */
 
-
-
 void
-gen_chararray(Symbol* vsym, Bytebuffer* databuf, Datalist* fillsrc)
+gen_chararray(Symbol* vsym, Datasrc* data, Bytebuffer* databuf, Datalist* fillsrc)
 {
     int i,fillchar = getfillchar(fillsrc);
-    Datalist* data = vsym->data;
     int lastunlimitedindex = lastunlimited(&vsym->typ.dimset);
 
     /* If there is no unlimited, then treat similarly to a field array */
     if(lastunlimitedindex < 0) {
         /* Semantics.c:walkchararray will have done all the hard work */
-	for(i=0;i<data->length;i++) {
-	    Constant* con = data->data+i;
+	while(srcmore(data)) {
+	    Constant* con = srcnext(data);
             ASSERT(con->nctype == NC_STRING);
             bbAppendn(databuf,con->value.stringv.stringv,con->value.stringv.len);
 	}
@@ -152,7 +149,7 @@ gen_chararray(Symbol* vsym, Bytebuffer* databuf, Datalist* fillsrc)
 }
 
 static void
-gen_chararrayr(Dimset* dimset, Bytebuffer* databuf, int index, Datalist* data,
+gen_chararrayr(Dimset* dimset, Bytebuffer* databuf, int index, Datasrc* data,
                int fillchar, size_t subsize)
 {
     int i;
@@ -164,8 +161,8 @@ gen_chararrayr(Dimset* dimset, Bytebuffer* databuf, int index, Datalist* data,
     if(index == lastunlimitedindex) {
 	Constant* con;
 	/* pad to the unlimited size of the dimension * subsize */
-	ASSERT(data->length == 1);
-	con = data->data;
+	ASSERT(srcmore(data));
+	con = srcnext(data);
 	ASSERT(con->nctype == NC_STRING);
 	padstring(con,dim->dim.unlimitedsize*subsize,fillchar);
 	bbAppendn(databuf,con->value.stringv.stringv,con->value.stringv.len);
@@ -173,16 +170,16 @@ gen_chararrayr(Dimset* dimset, Bytebuffer* databuf, int index, Datalist* data,
 	/* data should be a set of compounds */
 	size_t expected = (isunlimited ? dim->dim.unlimitedsize : dim->dim.declsize );
 	for(i=0;i<expected;i++) {
-
-	    if(i >= data->length) {/* pad buffer */
+	    if(!srcmore(data)) { /* pad buffer */
 		int j;
 	        for(j=0;j<subsize;j++) bbAppend(databuf,fillchar);
 	    } else {
-	        Constant* con = data->data+i;
+		Datasrc* subdata;
+	        Constant* con = srcnext(data);
                 if(con->nctype != NC_COMPOUND) continue;
                 /* recurse */
-                gen_chararrayr(dimset,databuf,index+1,con->value.compoundv,
-                               fillchar,subsize);
+		subdata = datalist2src(con->value.compoundv);
+                gen_chararrayr(dimset,databuf,index+1,subdata,fillchar,subsize);
 	    }
         }
     }

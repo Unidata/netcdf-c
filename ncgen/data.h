@@ -97,7 +97,6 @@ int isstringable(nc_type nctype);
 void bindata_array(struct Symbol*,Bytebuffer*,Datasrc*,Odometer*,int,Datalist*);
 void bindata_attrdata(struct Symbol* asym, Bytebuffer*);
 void bindata_vardata(struct Symbol* vsym, Bytebuffer*);
-void bindata_vlenconstants(List*);
 void bindata_basetype(struct Symbol*,struct Datasrc*,Bytebuffer*,struct Datalist*);
 #endif
 
@@ -208,7 +207,7 @@ extern Constant fillconstant;
 
 /* From genchar.c */
 void gen_charattr(struct Symbol* asym, Bytebuffer* databuf);
-void gen_chararray(struct Symbol* vsym, Bytebuffer* databuf, Datalist* fillsrc);
+void gen_chararray(struct Symbol* vsym, Datasrc*, Bytebuffer* databuf, Datalist* fillsrc);
 void gen_charfield(Datasrc* src, Odometer*, Bytebuffer* databuf);
 void gen_charvlen(Datasrc*, Bytebuffer*);
 int collectstring(struct Constant*, size_t, Bytebuffer*, int);

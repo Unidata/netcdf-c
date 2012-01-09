@@ -50,15 +50,13 @@ void
 gen_ncf77(const char *filename)
 {
     int idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts, ngrps, ntyps;
+    int ndims, nvars, natts, ngatts;
     char* cmode_string;
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
     ngatts = listlength(gattdefs);
-    ngrps = listlength(grpdefs);
-    ntyps = listlength(typdefs);
 
     /* Construct the main program */
 
@@ -544,12 +542,10 @@ f77fold(Bytebuffer* lines)
     char* s;
     char* line0;
     char* linen;
-    int linesize;
     static char trimchars[] = " \t\r\n";
 
     s = bbDup(lines);
     bbClear(lines);
-    linesize = 0;
     line0 = s;
     /* Start by trimming leading blanks and empty lines */
     while(*line0 && strchr(trimchars,*line0) != NULL) line0++;
@@ -771,18 +767,17 @@ genf77_definevardata(Symbol* vsym)
     int chartype = (vsym->typ.basetype->typ.typecode == NC_CHAR);
 
     if(vsym->data == NULL) return;
+    src = datalist2src(vsym->data);
 
     code = bbNew();
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
     if(!isscalar && chartype) {
-        gen_chararray(vsym,code,fillsrc);
+        gen_chararray(vsym,src,code,fillsrc);
         genf77_write(vsym,code,NULL,0,0);
     } else { /* not character constant */
-        src = datalist2src(vsym->data);
         fillsrc = vsym->var.special._Fillvalue;
-    
         /* Handle special cases first*/
         if(isscalar) {
             f77data_basetype(vsym->typ.basetype,src,code,fillsrc);

@@ -21,6 +21,9 @@
 static void cdata_primdata(Symbol*, Datasrc*, Bytebuffer*, Datalist*);
 static void cdata_fieldarray(Symbol*, Datasrc*, Odometer*, int, Bytebuffer*, Datalist* fillsrc);
 
+/* vlen uid generator */
+static int uid = 0;
+
 /* Specialty wrappers for cdata_data */
 void
 cdata_attrdata(Symbol* asym, Bytebuffer* codebuf)
@@ -128,23 +131,47 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 
     case NC_VLEN: {
         Constant* con;
-	if(!isfillvalue(datasrc) && !issublist(datasrc)) {/* fail on no compound*/
-	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
-        }
-        con = srcnext(datasrc);
-	if(con == NULL || con->nctype == NC_FILLVALUE) {
-	    Datalist* filler = getfiller(tsym,fillsrc);
-	    ASSERT(filler->length == 1);
-	    con = &filler->data[0];
-	    if(con->nctype != NC_COMPOUND) {
-	        semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
+        nc_vlen_t ptr;
+	Bytebuffer* vlenmem;
+	int count;
+	int pushed = 0;
+	Datasrc* olddatasrc = NULL;
+	if(isfillvalue(datasrc)) {
+            con = srcnext(datasrc);
+	    if(con == NULL || con->nctype == NC_FILLVALUE) {
+	        Datalist* filler = getfiller(tsym,fillsrc);
+	        ASSERT(filler->length == 1);
+	        con = &filler->data[0];
+	        if(con->nctype != NC_COMPOUND) {
+	            semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
+	        } else {
+		    olddatasrc = datasrc;
+		    datasrc = const2src(con);
+		}
 	    }
 	}
+	if(!issublist(datasrc)) {
+	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
+        } else {
+	    SRCPUSH(pushed,datasrc);
+	}
+
         /* generate the nc_vlen_t instance*/
-        bbprintf0(stmt,"{%u (void*)vlen_%u}",
-	         con->value.compoundv->vlen.count,
-    		 con->value.compoundv->vlen.uid);
+	vlenmem = bbNew();	
+        for(count=0;srcmore(datasrc);count++) {
+            cdata_basetype(tsym->typ.basetype,datasrc,vlenmem,NULL);
+	}
+
+        /* generate the nc_vlen_t instance*/
+        bbprintf0(stmt,"{%u (void*)vlen_%u}",count,++uid);
         bbCatbuf(codebuf,stmt);
+
+        ptr.len = count;
+        ptr.p = bbDup(vlenmem);
+	bbFree(vlenmem);
+	if(pushed) srcpop(datasrc);	
+	if(olddatasrc) datasrc = olddatasrc;
+
         } break;
 
     case NC_FIELD:

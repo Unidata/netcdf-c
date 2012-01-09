@@ -41,15 +41,12 @@ void
 gen_ncjava(const char *filename)
 {
     int idim, ivar, iatt, maxdims;
-    int ndims, nvars, natts, ngatts, ngrps, ntyps;
-    char* cmode_string;
+    int ndims, nvars, natts, ngatts;
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
     ngatts = listlength(gattdefs);
-    ngrps = listlength(grpdefs);
-    ntyps = listlength(typdefs);
 
     /* Construct the main class */
     codeline("import java.util.*;");
@@ -105,6 +102,7 @@ gen_ncjava(const char *filename)
     codeline("");
     codelined(1,"/* enter define mode */");
 
+#ifdef IGNORE
     if(!cmode_modifier) {
 	cmode_string = "NC_CLOBBER";
     } else if(cmode_modifier & NC_64BIT_OFFSET) {
@@ -113,6 +111,7 @@ gen_ncjava(const char *filename)
         derror("unknown cmode modifier");
 	cmode_string = "NC_CLOBBER";
     }
+#endif
 
     bbprintf0(stmt,
                 "%sNetcdfFileWriteable ncfile = NetcdfFileWriteable.createNew(\"%s\", %s);\n",
@@ -554,18 +553,17 @@ genj_definevardata(Symbol* vsym)
     int chartype = (vsym->typ.basetype->typ.typecode == NC_CHAR);
 
     if(vsym->data == NULL) return;
+    src = datalist2src(vsym->data);
 
     code = bbNew();
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
     if(!isscalar && chartype) {
-        gen_chararray(vsym,code,fillsrc);
+        gen_chararray(vsym,src,code,fillsrc);
         genj_write(vsym,code,NULL,0,0);
     } else { /* not character constant */
-        src = datalist2src(vsym->data);
         fillsrc = vsym->var.special._Fillvalue;
-    
         /* Handle special cases first*/
         if(isscalar) {
             jdata_basetype(vsym->typ.basetype,src,code,fillsrc);
