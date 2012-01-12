@@ -33,6 +33,7 @@
 #define NC_ARRAY    107
 #define NC_PRIM     108 /*Including NC_STRING */
 #define NC_STRUCT  NC_COMPOUND /* alias */
+#define NC_LIST    NC_COMPOUND /* alias */
 
 /* Extend nc types with generic fill value*/
 #define NC_FILLVALUE    31

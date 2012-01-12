@@ -129,22 +129,42 @@ bindata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* memory, Datalist* f
     case NC_VLEN: {
         Constant* con;
         nc_vlen_t ptr;
-	if(!isfillvalue(datasrc) && !issublist(datasrc)) {/* fail on no compound*/
-	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
-        }
-        con = srcnext(datasrc);
-	if(con == NULL || con->nctype == NC_FILLVALUE) {
-	    Datalist* filler = getfiller(tsym,fillsrc);
-	    ASSERT(filler->length == 1);
-	    con = &filler->data[0];
-	    if(con->nctype != NC_COMPOUND) {
-	        semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
+	Bytebuffer* vlenmem;
+	int count;
+	int pushed = 0;
+	Datasrc* olddatasrc = NULL;
+
+	if(isfillvalue(datasrc)) {
+            con = srcnext(datasrc);
+	    if(con == NULL || con->nctype == NC_FILLVALUE) {
+	        Datalist* filler = getfiller(tsym,fillsrc);
+	        ASSERT(filler->length == 1);
+	        con = &filler->data[0];
+	        if(con->nctype != NC_COMPOUND) {
+	            semerror(con->lineno,"Vlen data fill value is not enclosed in {..}");
+	        } else {
+		    olddatasrc = datasrc;
+		    datasrc = const2src(con);
+		}
 	    }
 	}
-        /* generate the nc_vlen_t instance*/
-        ptr.p = vlendata[con->value.compoundv->vlen.uid].data;
-        ptr.len = vlendata[con->value.compoundv->vlen.uid].count;
+	if(!issublist(datasrc)) {
+	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
+        } else {
+	    SRCPUSH(pushed,datasrc);
+	}
+
+        /* collect the nc_vlen_t instance*/
+	vlenmem = bbNew();	
+        for(count=0;srcmore(datasrc);count++) {
+            bindata_basetype(tsym->typ.basetype,datasrc,vlenmem,NULL);
+	}
+        ptr.len = count;
+        ptr.p = bbDup(vlenmem);
+	bbFree(vlenmem);
         bbAppendn(memory,(char*)&ptr,sizeof(ptr));
+	if(pushed) srcpop(datasrc);	
+	if(olddatasrc) datasrc = olddatasrc;
         } break;
 
     case NC_FIELD:
@@ -305,6 +325,7 @@ done:
 }
 
 
+#ifdef IGNORE
 /*
 This walk of the data lists collects
 vlen sublists and constructs separate C constants
@@ -353,5 +374,6 @@ bindata_vlenconstants(List* vlenconstants)
     }
     bbFree(memory);
 }
+#endif /*IGNORE*/
 
 #endif /*ENABLE_BINARY*/

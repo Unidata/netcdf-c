@@ -638,17 +638,20 @@ the variable
 Specifying datalists for variables in the `data:` section can be somewhat
 complicated. There are some rules that must be followed
 to ensure that datalists are parsed correctly by ncgen.
+.LP
+First, the top level is automatically assumed to be a list of items, so it should not be inside {...}.
+That means that if the variable is a scalar, there will be a single top-level element
+and if the variable is an array, there will be N top-level elements.
+For each element of the top level list, the following rules should be applied.
 .IP 1. 3
-The top level is automatically assumed to be a list of items, so it should not be inside {...}.
-.IP 2. 3
 Instances of UNLIMITED dimensions (other than the first dimension) must be surrounded by {...} in order to specify the size.
-.IP 3. 3
-Instances of vlens must be surrounded by {...} in order to specify the size.
-.IP 4. 3
+.IP 2. 3
 Compound instances must be embedded in {...}
-.IP 5. 3
+.IP 3. 3
 Non-scalar fields of compound instances must be embedded in {...}.
-.IP 6. 3
+.IP 4. 3
+Instances of vlens must be surrounded by {...} in order to specify the size.
+.LP
 Datalists associated with attributes are implicitly a vector (i.e., a list) of values of the type of the attribute and the above rules must apply with that in mind.
 .IP 7. 3
 No other use of braces is allowed.

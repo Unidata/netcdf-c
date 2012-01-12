@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2-rc1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2-rc2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -36,7 +36,7 @@ AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS([config.h])
 
 # This call is required by automake.
-AM_INIT_AUTOMAKE([foreign dist-tarZ subdir-objects])
+AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existance of this file before proceeding.
 AC_CONFIG_SRCDIR([libsrc/nc.c])

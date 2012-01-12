@@ -3,8 +3,8 @@ TOPDIR="/home/dmh/mach/minor"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
-F="file://${TOPDIR}/ncdap_test/testdata3/synth1"
-#CON="person"
+F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20111122_0000.nc"
+CON="weather"
 #VAR="person.name"
 
 #PARMS="${PARMS}[netcdf4]"

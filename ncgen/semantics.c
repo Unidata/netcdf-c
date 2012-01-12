@@ -1088,10 +1088,8 @@ walkfieldarray(Symbol* basetype, Datasrc* src, Dimset* dimset, int index)
     int lastdim = (index == (rank-1));
     Symbol* dim = dimset->dimsyms[index];
     size_t datasize = dim->dim.declsize;
-    size_t count = 0;
 
     ASSERT(datasize != 0);
-    count = datasize;
     for(i=0;i<datasize;i++) {
         if(lastdim)
 	    walktype(basetype,src,NULL);
@@ -1214,7 +1212,6 @@ walkchararray(Symbol* vsym, Datalist* fillsrc)
 {
     Dimset* dimset = &vsym->typ.dimset;
     int lastunlimindex;
-    int simpleunlim;
     int rank = dimset->ndims;
     Symbol* lastdim = dimset->dimsyms[rank-1];
     size_t lastdimsize = lastdim->dim.declsize;
@@ -1222,7 +1219,9 @@ walkchararray(Symbol* vsym, Datalist* fillsrc)
     int fillchar = getfillchar(fillsrc);
 
     lastunlimindex = lastunlimited(dimset);
+#ifdef IGNORE
     simpleunlim = (lastunlimindex == 0);
+#endif
     /* If the unlimited is also the last dimension, then do no padding */
     if(lastdimsize == 0) lastdimsize = 1;
 

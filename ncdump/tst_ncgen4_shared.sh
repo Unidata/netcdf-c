@@ -48,7 +48,8 @@ ref_ctest1_nc4 \
 ref_ctest1_nc4c \
 ref_nctst_netcdf4 \
 ref_nctst_netcdf4_classic \
-ref_tst_unlim2"
+ref_tst_unlim2 \
+"
 
 if test "${CLASSIC}" = "1" ; then
 TESTS3="${CLASSIC3}"
