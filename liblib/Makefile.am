@@ -13,7 +13,7 @@ include $(top_srcdir)/lib_flags.am
 lib_LTLIBRARIES = libnetcdf.la
 
 # These linker flags specify libtool version info.
-libnetcdf_la_LDFLAGS = -version-number 8:0:2
+libnetcdf_la_LDFLAGS = -version-number 7:1:1
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD = 
 CLEANFILES = 
@@ -32,7 +32,7 @@ endif # BUILD_V2
 # The output library will always include netcdf3 and dispatch
 # libraries
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
-${top_builddir}/libsrc/libnetcdf3.la					
+${top_builddir}/libsrc/libnetcdf3.la
 
 # netcdf3 + dap
 if USE_DAP
@@ -48,7 +48,8 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 
-libnetcdf_la_LIBADD += ${top_builddir}/libdiskless/libdiskless.la
+# Not ready for prime time yet
+# libnetcdf_la_LIBADD += ${top_builddir}/libdiskless/libdiskless.la
 
 # netcdf4+cdmremote
 if BUILD_CDMREMOTE

@@ -117,7 +117,8 @@ extern "C" {
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
 #define NC_NETCDF4       0x1000  /**< Use netCDF-4/HDF5 format. Mode flag for nc_create(). */
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model. Mode flag for nc_create(). */
-#define NC_DISKLESS      0x0002  /**< Create a diskless file. Mode flag for nc_create(). */
+/* NC_DISKLESS isn't ready for prime time yet */
+/* #define NC_DISKLESS      0x0002  /\**< Create a diskless file. Mode flag for nc_create(). *\/ */
 
 /** Share updates, limit cacheing.
 Use this in mode flags for both nc_create() and nc_open(). */

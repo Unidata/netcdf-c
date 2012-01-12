@@ -260,8 +260,8 @@ NCD_inq_unlimdims(int, int *, int *);
 extern int
 NCD_show_metadata(int);
 
-extern int 
-NCD_initialize(void);
+/* extern int  */
+/* NCD_initialize(void); */
 
 #if defined(__cplusplus)
 }
