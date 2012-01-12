@@ -46,7 +46,7 @@ NC_initialize(void)
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) return stat;
 
-    if((stat = NCD_initialize())) return stat;
+    /* if((stat = NCD_initialize())) return stat; */
 
 #ifdef USE_DAP
     if((stat = NCD4_initialize())) return stat;

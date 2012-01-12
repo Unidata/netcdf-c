@@ -40,7 +40,7 @@ if USE_NETCDF4
 H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
-LIBDISKLESS = libdiskless
+# LIBDISKLESS = libdiskless
 endif
 
 # Build the opendap client?

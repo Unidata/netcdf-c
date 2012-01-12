@@ -100,11 +100,11 @@ NC_Dispatch NCD_dispatcher =
 
 };
 
-NC_Dispatch* NCD_dispatch_table = NULL; /* Moved here from ddispatch.c */
+/* NC_Dispatch* NCD_dispatch_table = NULL; /\* Moved here from ddispatch.c *\/ */
 
-int
-NCD_initialize(void)
-{
-   NCD_dispatch_table = &NCD_dispatcher;
-   return NC_NOERR;
-}
+/* int */
+/* NCD_initialize(void) */
+/* { */
+/*    NCD_dispatch_table = &NCD_dispatcher; */
+/*    return NC_NOERR; */
+/* } */

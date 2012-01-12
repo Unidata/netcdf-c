@@ -139,9 +139,9 @@ extern int NCD3_initialize(void);
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 
-/* Diskless */
-extern NC_Dispatch* NCD_dispatch_table;
-extern int NCD_initialize(void);
+/* /\* Diskless *\/ */
+/* extern NC_Dispatch* NCD_dispatch_table; */
+/* extern int NCD_initialize(void); */
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
