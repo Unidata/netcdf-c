@@ -13,7 +13,8 @@ include $(top_srcdir)/lib_flags.am
 lib_LTLIBRARIES = libnetcdf.la
 
 # These linker flags specify libtool version info.
-libnetcdf_la_LDFLAGS = -version-number 7:1:1
+# Note: version-info of "9:0:2" results in soname of libnetcdf.so.7 -> libnetcdf.so.7.2.0
+libnetcdf_la_LDFLAGS = -version-info 9:0:2
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD = 
 CLEANFILES = 
