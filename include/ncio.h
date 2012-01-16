@@ -118,7 +118,7 @@ struct ncio {
 	const char *path;
 
 	/* implementation private stuff */
-	void *NCIO_CONST pvt;
+	void *pvt;
 };
 
 #undef NCIO_CONST
