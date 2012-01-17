@@ -240,10 +240,11 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
 static int 
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-   int d, max_dim;
-   size_t type_size, max_len = 0;
-   float num_values = 1, num_set = 0;
+   int d;
+   size_t type_size;
+   float num_values = 1,  num_set = 0;
    float total_chunk_size;
+   int num_unlim = 0;
    int retval;
 
    if (var->type_info->nc_typeid == NC_STRING)
@@ -256,38 +257,40 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    total_chunk_size = type_size;
 
    /* How many values in the variable (or one record, if there are
-    * unlimited dimensions); which is the largest dimension, and how
-    * long is it? */
+    * unlimited dimensions); how many unlimited dimensions? */
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
       if (var->dim[d]->len) 
 	 num_values *= (float)var->dim[d]->len;
       else
-	 num_set++;
-      
-      if (var->dim[d]->len > max_len)
-      {
-	 max_len = var->dim[d]->len;
-	 max_dim = d;
-      }
-      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
-	   num_values));
+	 num_unlim++;
    }
-
-   /* If a dim is several orders of magnitude smaller than the max
-    * dimension, set it's chunk size to the full extent of the smaller
-    * dimension. */
-#define NC_DIM_MULTIPLIER 10000
-   for (d = 0; d < var->ndims; d++)
-      if (var->dim[d]->unlimited)
-	 var->chunksizes[d] = 1;
-      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
-      {
-	 var->chunksizes[d] = var->dim[d]->len;
-	 num_set++; 
-      }
-   
+   /* If all dimensions are unlimited, set chunksizes to get chunks of
+    * approximately DEFAULT_UNLIM_VALUES_PER_CHUNK instead of only 1
+    * value */
+#define DEFAULT_UNLIM_VALUES_PER_CHUNK 1000
+   if(var->ndims > 0 && num_unlim == var->ndims) 
+   {
+       for (d = 0; d < var->ndims; d++) 
+       {
+	   var->chunksizes[d] = pow((double)DEFAULT_UNLIM_VALUES_PER_CHUNK, 1.0/((double) var->ndims));
+	   if(var->chunksizes[d] == 0)
+	       var->chunksizes[d] = 1;
+	   num_set++ ;
+       }
+   }
+   /* If not all dims are unlimited, set chunksizes for unlimited dims
+    * to 1 */
+   if (0 < num_unlim && num_unlim < var->ndims) 
+   {
+       for (d = 0; d < var->ndims; d++)
+	   if (! var->dim[d]->len) 
+	   {
+	       var->chunksizes[d] = 1;
+	       num_set++;
+	   }
+   }
    /* Pick a chunk length for each dimension, if one has not already
     * been picked above. */
    for (d = 0; d < var->ndims; d++)
@@ -296,7 +299,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 size_t suggested_size;
 	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
 			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
-	 if (suggested_size > var->dim[d]->len)
+	 if (var->dim[d]->len && suggested_size > var->dim[d]->len)
 	    suggested_size = var->dim[d]->len;
 	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
 	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "

@@ -349,7 +349,10 @@ nc_next_iter(nciter_t *iter,	/* returned opaque iteration state */
 	} else {		/* chunked storage */
 	    for(i = 0; i < iter->rank; i++) {
 		start[i] = 0;
-		count[i] = iter->chunksizes[i];
+		if(iter->chunksizes[i] < iter->dimsizes[i])
+		    count[i] = iter->chunksizes[i];
+		else		/* can happen for variables with only unlimited dimensions */
+		    count[i] = iter->dimsizes[i];
 	    }
 	}
 	iter->first = 0;
