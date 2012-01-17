@@ -188,7 +188,7 @@ Constant       constant;
         _FLETCHER32
 	DATASETID	
 
-%type <sym> typename primtype dimd varspec
+%type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
 %type <sym> typeref
 %type <sym> varref
@@ -196,7 +196,7 @@ Constant       constant;
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
-%type <constant> simpleconstant function
+%type <constant> simpleconstant function 
 %type <datalist> datalist intlist datalist1 datalist0 arglist
 
 
@@ -228,7 +228,7 @@ groupbody:
 
 subgrouplist: /*empty*/ | subgrouplist namedgroup;
 
-namedgroup: GROUP IDENT '{'
+namedgroup: GROUP ident '{'
             {
 		Symbol* id = $2;
                 markcdf4("Group specification");
@@ -251,7 +251,7 @@ typesection:    /* empty */
 
 typedecls: type_or_attr_decl | typedecls type_or_attr_decl ;
 
-typename: IDENT
+typename: ident
 	    { /* Use when defining a type */
               $1->objectclass = NC_TYPE;
               if(dupobjectcheck(NC_TYPE,$1))
@@ -322,7 +322,7 @@ enumidlist:   enumid
 		}
 	    ;
 
-enumid: IDENT '=' constdata
+enumid: ident '=' constdata
         {
             $1->objectclass=NC_TYPE;
             $1->subclass=NC_ECONST;
@@ -471,7 +471,7 @@ dimdecl:
 		   }
                 ;
 
-dimd:           IDENT
+dimd:           ident
                    { 
                      $1->objectclass=NC_DIM;
                      if(dupobjectcheck(NC_DIM,$1))
@@ -524,7 +524,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(elem_t)$3);}
             ;
 
-varspec:        IDENT dimspec
+varspec:        ident dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -583,7 +583,7 @@ fieldlist:
         ;
 
 fieldspec:
-	IDENT fielddimspec
+	ident fielddimspec
 	    {
 		int i;
 		Dimset dimset;
@@ -704,9 +704,9 @@ type_var_ref:
 attrdecllist: /*empty*/ {} | attrdecl ';' attrdecllist {} ;
 
 attrdecl:
-	  ':' IDENT '=' datalist
+	  ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
-	| typeref type_var_ref ':' IDENT '=' datalist
+	| typeref type_var_ref ':' ident '=' datalist
 	    {Symbol* tsym = $1; Symbol* vsym = $2; Symbol* asym = $4;
 		if(vsym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,vsym,tsym,$6,ATTRVAR);
@@ -715,7 +715,7 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' IDENT '=' datalist
+	| type_var_ref ':' ident '=' datalist
 	    {Symbol* sym = $1; Symbol* asym = $3;
 		if(sym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,sym,NULL,$5,ATTRVAR);
@@ -749,7 +749,7 @@ attrdecl:
 	;
 
 path:
-	  IDENT
+	  ident
 	    {
 	        $$=$1;
                 $1->is_ref=1;
@@ -794,13 +794,7 @@ datalist1: /* Must have at least 1 element */
 dataitem:
 	  constdata {$$=$1;}
 	| '{' datalist '}' {$$=builddatasublist($2);}
-        | FCN arglist ')' {}
 	;
-
-arglist:
-          dataitem
-        | arglist ',' dataitem
-        ;
 
 constdata:
 	  simpleconstant      {$$=$1;}
@@ -811,7 +805,7 @@ constdata:
 	;
 
 function:
-	IDENT '(' arglist ')' {$$=evaluate($1,$3);}
+	ident '(' arglist ')' {$$=evaluate($1,$3);}
 	;
 
 arglist:
@@ -861,6 +855,11 @@ constbool:
 	| constint {$$=$1;}
 
 /* End OF RULES */
+
+/* Push all idents thru here*/
+ident:
+	IDENT {$$=$1;}
+	;
 
 %%
 
