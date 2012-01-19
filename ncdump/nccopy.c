@@ -774,9 +774,10 @@ copy_var(int igrp, int varid, int ogrp)
 		/* Copy all netCDF-4 specific variable properties such as
 		 * chunking, endianness, deflation, checksumming, fill, etc. */
 		NC_CHECK(copy_var_specials(igrp, varid, ogrp, o_varid));
+	    } else {
+		/* Set chunking if specified in command line option */
+		NC_CHECK(set_var_chunked(ogrp, o_varid));
 	    }
-	    /* Set chunking if specified in command line option */
-	    NC_CHECK(set_var_chunked(ogrp, o_varid));
 	    /* Set compression if specified in command line option */
 	    NC_CHECK(set_var_compressed(ogrp, o_varid));
 	}
