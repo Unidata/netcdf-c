@@ -3,6 +3,18 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
+4.2
+
+		Fixed nccopy bug when rechunking a netCDF-4 file with
+		a chunkspec option that doesn't explicitly specify all
+		dimensions.
+		[NCF-140]
+
+		Fixed nccopy bug copying a netCDF-4 file with a
+		chunksize for an unlimited dimension that is
+		larger than the associated dimension size.
+		[NCF-139]
+
 4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
 
 		Released 12/30/2011
