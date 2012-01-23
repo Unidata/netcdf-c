@@ -36,6 +36,7 @@ endif # LARGE_FILE_TESTS
 #if BUILD_BENCHMARKS
 TESTPROGRAMS += testnc3perf
 testnc3perf_SOURCES = testnc3perf.c
+CLEANFILES += benchmark.nc
 #endif
 
 
