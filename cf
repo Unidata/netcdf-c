@@ -12,7 +12,7 @@ DAP=1
 #NB=1
 
 cmds=""
-cmds="all"
+#cmds="all"
 #cmds="all check"
 #cmds="all dist"
 #cmds="all distcheck"
