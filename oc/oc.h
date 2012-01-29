@@ -11,6 +11,7 @@ Last Revised: 4/14/2009
 #define OC_H
 
 #include <stdlib.h>
+#include <stdio.h>
 
 /* if defined, use magic numbers for consistency]) */
 #define OC_FASTCONSISTENCY
@@ -87,21 +88,32 @@ typedef int OCerror;
 #define OC_ERCFILE	(-24)
 #define OC_ENOFILE	(-25)
 
-typedef enum OCmode {
-OCFIELDMODE = OC_Structure,
-OCRECORDMODE = OC_Sequence,
-OCARRAYMODE = OC_Dimension,
-OCSCALARMODE = OC_Primitive,
-OCNULLMODE = OC_NAT,
-OCEMPTYMODE = 0x8000000 /* internal use only */
-} OCmode;
-
 /* Define the classes of DAP DXD objects */
 typedef int OCdxd;
 #define OCDDS     0
 #define OCDAS     1
 #define OCDATADDS 2
 #define OCDATA OCDATADDS
+
+/* Define flags */
+typedef int OCflags;
+#define OCINMEMORY 1
+
+typedef enum OCmode {
+OCFIELDMODE = OC_Structure,
+OCSEQUENCEMODE = OC_Sequence,
+OCARRAYMODE = OC_Dimension,
+OCPRIMITIVEMODE = OC_Primitive,
+OCNULLMODE = OC_NAT,
+OCEMPTYMODE = 0x8000000 /* internal use only */
+} OCmode;
+
+
+/* Define an unsigned alternative to off(64)_t*/
+typedef unsigned long long ocoffset_t;
+
+/* Define a wrapper for dimension sizes */
+typedef size_t ocindex_t;
 
 /* Define the effective API */
 
@@ -158,10 +170,20 @@ extern OCerror oc_close(OClink);
 
 /**************************************************/
 /* Root management */
-
 /* Fetch and parse a given class of DXD the server specified
-   at open time, and using a specified set of constraints.
+   at open time, and using a specified set of constraints
+   and flags.
    Return the root node of the parsed tree of objects.
+*/
+extern OCerror oc_fetchf(OClink,
+			const char* constraints,
+			OCdxd,
+			OCflags,
+			OCobject* rootp);
+
+
+/*
+  Equivalent to oc_fetchf with zero flag parameter
 */
 extern OCerror oc_fetch(OClink,
 			const char* constraints,
@@ -230,7 +252,7 @@ extern OCerror oc_inq_ithdim(OClink,OCobject, unsigned int, OCobject*);
 /* Return the size and name associated with a given dimension object
    as defined in the DDS
 */
-extern OCerror oc_inq_dim(OClink,OCobject,size_t*,char**);
+extern OCerror oc_inq_dim(OClink,OCobject,ocindex_t*,char**);
 
 /* Attribute Management */
 
@@ -280,48 +302,7 @@ extern OCerror oc_inq_dasattr(OClink,OCobject, unsigned int,
 /*
 These procedures allow for the location and extraction
 of data from the data packet part of a DATADDS.
-
-Data is assumed to be "nested" in the sense that, for example,
-the data of each structure field is "contained" in the
-data of the structure.  The whole of the data packet data
-is the data associated with the Dataset OCobject.
-
-State information about the current data is defined by an
-object with type OCdata. Such an object can be reused while
-iterating over the elements of, say, a record, so that
-proliferation of OCdata objects is avoided (which is why
-oc_data_new exists).
-
-Key to the access is the idea that every non-primitive
-object is made up of components and that it is possible to
-meaningfully define the notion of an "i'th" component.  The
-i'th component depends on the type of the object.  The
-"mode" of an OCdata object (defined by the OCmode type)
-determines what kind of data is being referenced and what
-the i value signifies.
-
-OCmode		I'th component
---------------------------------
-OCFIELDMODe	i'th field
-OCRECORDMODE	i'th record
-OCARRAYMODE	i'th element
-OCMSCALARMODE	0'th element
-
-For handling of multi-dimensional arrays, see the discussion
-in the ocinternals.html document.
-
-The general procedure to get to a particular scalar value or array
-of values is as follows:
-1. Get the data of the root OCobject; this root is of OCtype OC_Dataset.
-2. Get the data associated with the i'th component of the root.
-3. Repeatedly and recursively get the data associated
-   with the i'th component of some object until the desired
-   primitive valued Scalar or Array is reached.
-
-The oc_data_ith function performs these walks.  At the
-point at which primitive data has been reached, one can
-use the oc_data_get function to obtain the actual data.
-
+See ocuserman.html for detailed description.
 */
 
 typedef OCobject OCdata;
@@ -347,7 +328,7 @@ extern OCerror oc_data_free(OClink, OCdata);
 */
 extern OCerror oc_data_ith(OClink,
 				OCdata parentdata,
-				size_t index,
+				ocindex_t index,
 				OCdata subdata);
 
 /* Return the actual data values associated with the specified OCdata.
@@ -357,10 +338,10 @@ extern OCerror oc_data_ith(OClink,
 */
 extern OCerror oc_data_get(OClink,OCdata,
                          void* memory, size_t memsize,
-                         size_t index, size_t count);
+                         ocindex_t index, ocindex_t count);
 
 /* Return the OCdata's current index */
-extern OCerror oc_data_index(OClink,OCdata, size_t*);
+extern OCerror oc_data_index(OClink,OCdata, ocindex_t*);
 
 /* Return the mode associated the specified OCdata object */
 extern OCerror oc_data_mode(OClink,OCdata, OCmode*);
@@ -372,7 +353,7 @@ extern OCerror oc_data_object(OClink,OCdata, OCobject*);
    instance. Note: this is potentially computationally costly
    when computing # records.
 */
-extern OCerror oc_data_count(OClink, OCdata, size_t*);
+extern OCerror oc_data_count(OClink, OCdata, ocindex_t*);
 
 /**************************************************/
 /* Misc. OCtype-related functions */
@@ -425,7 +406,8 @@ extern OCerror oc_attach_das(OClink, OCobject dasroot, OCobject ddsroot);
 
 /**************************************************/
 /* Debugging */
-extern OCerror oc_dd(OClink,OCobject);
+extern OCerror oc_dd(OClink,OCobject,int level);
+extern OCerror oc_ddnode(OClink,OCobject);
 
 /* When a server error is detected, then it is possible
    to get the server error info using this procedure */
@@ -436,8 +418,6 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
 
 /**************************************************/
 /* Experimental */
-
-extern OCerror oc_compile(OClink,OCobject);
 
 /* New 10/31/2009: return raw information about a datadds
 */

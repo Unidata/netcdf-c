@@ -26,8 +26,10 @@
 #define NILLEN(s) ((s)==NULL?0:strlen(s))
 #endif
 
-#ifndef nulldup
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#ifdef HAVE_STRDUP
+#  ifndef nulldup
+#  define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#  endif
 #endif
 
 #ifndef HAVE_STRDUP
@@ -42,6 +44,38 @@ static char* nulldup(char* s)
     return dup;
 }
 #endif
+
+#ifdef IGNORE
+/* Not all systems have strndup, so provide one*/
+static char*
+ocstrndup(const char* s, size_t len)
+{
+    char* dup;
+    if(s == NULL) return NULL;
+    dup = (char*)ocmalloc(len+1);
+    MEMCHECK(dup,NULL);
+    memcpy((void*)dup,s,len);
+    dup[len] = '\0';
+    return dup;
+}
+#endif
+
+/* Do not trust strncmp */
+static int
+ocuristrncmp(const char* s1, const char* s2, size_t len)
+{
+    const char *p,*q;
+    if(s1 == s2) return 0;
+    if(s1 == NULL) return -1;
+    if(s2 == NULL) return +1;
+    for(p=s1,q=s2;len > 0;p++,q++,len--) {
+	if(*p != *q)
+	    return (*p - *q);	
+	if(*p == 0) return 0; /* *p == *q == 0 */
+    }
+    /* 1st len chars are same */
+    return 0;
+}
 
 static char* legalprotocols[] = {
 "file:",
@@ -89,7 +123,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     if(ocuri == NULL) return 0;
 
     /* make local copy of uri */
-    uri = strdup(uri0);
+    uri = nulldup(uri0);
 
     /* remove all whitespace*/
     p = uri;
@@ -112,7 +146,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
 
     /* verify that the uri starts with an acceptable protocol*/
     for(pp=legalprotocols;*pp;pp++) {
-        if(strncmp(p,*pp,strlen(*pp))==0) break;
+        if(ocuristrncmp(p,*pp,strlen(*pp))==0) break;
     }
     if(*pp == NULL) goto fail; /* illegal protocol*/
     /* save the protocol */
@@ -159,20 +193,20 @@ ocuriparse(const char* uri0, OCURI** ocurip)
 
     /* assemble the component pieces*/
     if(uri0 && strlen(uri0) > 0)
-        ocuri->uri = strdup(uri0);
+        ocuri->uri = nulldup(uri0);
     if(protocol && strlen(protocol) > 0) {
-        ocuri->protocol = strdup(protocol);
+        ocuri->protocol = nulldup(protocol);
         /* remove trailing ':' */
         ocuri->protocol[strlen(protocol)-1] = '\0';
     }
     if(user && strlen(user) > 0)
-        ocuri->user = strdup(user);
+        ocuri->user = nulldup(user);
     if(pwd && strlen(pwd) > 0)
-        ocuri->password = strdup(pwd);
+        ocuri->password = nulldup(pwd);
     if(host && strlen(host) > 0)
-        ocuri->host = strdup(host);
+        ocuri->host = nulldup(host);
     if(port && strlen(port) > 0)
-        ocuri->port = strdup(port);
+        ocuri->port = nulldup(port);
     if(file && strlen(file) > 0) {
 	/* Add back the leading / */
         ocuri->file = malloc(strlen(file)+2);
@@ -180,7 +214,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
         strcat(ocuri->file,file);
     }
     if(constraint && strlen(constraint) > 0)
-        ocuri->constraint = strdup(constraint);
+        ocuri->constraint = nulldup(constraint);
     ocurisetconstraints(ocuri,constraint);
     if(params != NULL && strlen(params) > 0) {
         ocuri->params = (char*)malloc(1+2+strlen(params));
@@ -247,7 +281,7 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
 
     if(constraints == NULL || strlen(constraints)==0) return;
 
-    duri->constraint = strdup(constraints);
+    duri->constraint = nulldup(constraints);
     if(*duri->constraint == '?')
 	strcpy(duri->constraint,duri->constraint+1);
 
@@ -336,7 +370,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     len += 1; /* null terminator */
     
     newuri = (char*)malloc(len);
-    if(!newuri) return NULL;
+    if(newuri == NULL) return NULL;
 
     newuri[0] = '\0';
     if(prefix != NULL) strcat(newuri,prefix);
@@ -409,15 +443,15 @@ ocuridecodeparams(OCURI* ocuri)
 
     /* Pass 1 to replace beginning '[' and ending ']' */
     if(params0[0] == '[') 
-	params = strdup(params0+1);
+	params = nulldup(params0+1);
     else
-	params = strdup(params0);	
+	params = nulldup(params0);	
 
     if(params[strlen(params)-1] == ']')
 	params[strlen(params)-1] = '\0';
 
     /* Pass 2 to replace "][" pairs with ','*/
-    params1 = strdup(params);
+    params1 = nulldup(params);
     cp=params; cq = params1;
     while((c=*cp++)) {
 	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
@@ -447,8 +481,8 @@ ocuridecodeparams(OCURI* ocuri)
 	/*break up the ith param*/
 	vp = strchr(cp,'=');
 	if(vp != NULL) {*vp = '\0'; vp++;} else {vp = "";}
-	plist[2*i] = strdup(cp);	
-	plist[2*i+1] = strdup(vp);
+	plist[2*i] = nulldup(cp);	
+	plist[2*i+1] = nulldup(vp);
 	cp = next;
     }
     plist[2*nparams] = NULL;
@@ -561,8 +595,8 @@ ocparaminsert(char** params, const char* key, const char* value)
     len = sizeof(char*)*((2*i)+1);
     newp = realloc(params,len+2*sizeof(char*));
     memcpy(newp,params,len);
-    newp[2*i] = strdup(key);
-    newp[2*i+1] = (value==NULL?NULL:strdup(value));
+    newp[2*i] = nulldup(key);
+    newp[2*i+1] = (value==NULL?NULL:nulldup(value));
     return newp;
 }
 
@@ -631,7 +665,7 @@ ocuriencode(char* s, char* allowable)
         if(c == ' ') {
 	    *outptr++ = '+';
         } else {
-            // search allowable
+            /* search allowable */
             int c2;
 	    char* a = allowable;
 	    while((c2=*a++)) {
@@ -664,7 +698,7 @@ ocuridecode(char* s)
     if (s == NULL) return NULL;
 
     slen = strlen(s);
-    decoded = (char*)malloc(slen+1); // Should be max we need
+    decoded = (char*)malloc(slen+1); /* Should be max we need */
 
     outptr = decoded;
     inptr = s;

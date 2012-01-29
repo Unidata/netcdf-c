@@ -57,7 +57,6 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     char* user = NULL;
     char* pwd = NULL;
     char* file = NULL;
-    char* stop;
 
     nc_uri = (NC_URI*)calloc(1,sizeof(NC_URI));
     if(nc_uri == NULL) return 0;    
@@ -71,7 +70,6 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     while((c=*p1++)) {if(c != ' ' && c != '\t') *p++ = c;}
 
     p = uri;
-    stop = p + strlen(p);
 
     /* break up the uri string into pieces*/
 

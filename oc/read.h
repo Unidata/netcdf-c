@@ -8,7 +8,7 @@
 extern int readDDS(OCstate*, OCtree*);
 extern int readDAS(OCstate*, OCtree*);
 
-extern int readDATADDS(OCstate*, OCtree*);
+extern int readDATADDS(OCstate*, OCtree*, int inmemory);
 
 extern int readversion(CURL*, OCURI*, OCbytes*);
 

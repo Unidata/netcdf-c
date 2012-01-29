@@ -29,6 +29,7 @@
 #include "dumplib.h"		/* for sbuf_... prototypes */
 #include "ncdump.h"		/* for fspec_t def */
 #include "nctime0.h"
+#include "vardata.h"
 
 
 static struct {
@@ -263,10 +264,10 @@ print_att_times(
 	safebuf_t *sb = sbuf_new();		/* allocate new string buffer */
 #ifdef NOTUSED
         int func;				/* line wrap control */
-#endif
 	int separator = ' ';			/* default between data and time */
 	if(formatting_specs.iso_separator)
 	    separator = 'T';
+#endif
         
 	var.type = att.type;		/* insert attrib type into fake var */
 

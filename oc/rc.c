@@ -47,12 +47,12 @@ occredentials_in_url(const char *url)
 {
 	char *pos = strstr(url, "http://");
 	if (!pos)
-		return FALSE;
+		return 0;
 	pos += 7;
 	if (strchr(pos, '@') && strchr(pos, ':'))
-		return TRUE;
+		return 1;
 
-	return FALSE;
+	return 0;
 }
 
 int
@@ -359,9 +359,10 @@ ocdodsrc_read(char* basename, char* path)
 int
 ocdodsrc_process(OCstate* state)
 {
+    int stat = 0;
     char* value;
     char* url = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
-    if(ocdodsrc == NULL) return 0;
+    if(ocdodsrc == NULL) goto done;
     value = curllookup("DEFLATE",url);
     if(value != NULL) {
         if(atoi(value)) state->curlflags.compress = 1;
@@ -381,14 +382,14 @@ ocdodsrc_process(OCstate* state)
 
     if((value = curllookup("COOKIEFILE",url)) != NULL) {
         state->curlflags.cookiefile = strdup(TRIM(value));
-        if(!state->curlflags.cookiefile) return OC_ENOMEM;
+        if(!state->curlflags.cookiefile) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
     }
     if((value = curllookup("COOKIEJAR",url))
        || (value = curllookup("COOKIE_JAR",url))) {
         state->curlflags.cookiejar = strdup(TRIM(value));
-        if(!state->curlflags.cookiejar) return OC_ENOMEM;
+        if(!state->curlflags.cookiejar) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
     }
@@ -402,8 +403,8 @@ ocdodsrc_process(OCstate* state)
     }
 
     if((value = curllookup("PROXY_SERVER",url)) != NULL) {
-        int stat = parseproxy(state,TRIM(value));
-        if(stat != OC_NOERR) return stat;
+        stat = parseproxy(state,TRIM(value));
+        if(stat != OC_NOERR) goto done;
     }
 
     if((value = curllookup("SSL.VALIDATE",url)) != NULL) {
@@ -414,21 +415,21 @@ ocdodsrc_process(OCstate* state)
 
     if((value = curllookup("SSL.CERTIFICATE",url)) != NULL) {
         state->ssl.certificate = strdup(TRIM(value));
-        if(!state->ssl.certificate) return OC_ENOMEM;
+        if(!state->ssl.certificate) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"CREDENTIALS.SSL.CERTIFICATE: %s", state->ssl.certificate);
     }
 
     if((value = curllookup("SSL.KEY",url)) != NULL) {
         state->ssl.key = strdup(TRIM(value));
-        if(!state->ssl.key) return OC_ENOMEM;
+        if(!state->ssl.key) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"CREDENTIALS.SSL.KEY: %s", state->ssl.key);
     }
 
     if((value = curllookup("SSL.KEYPASSWORD",url)) != NULL) {
         state->ssl.keypasswd = strdup(TRIM(value));
-        if(!state->ssl.keypasswd) return OC_ENOMEM;
+        if(!state->ssl.keypasswd) {stat = OC_ENOMEM; goto done;}
 #ifdef INSECURE
         if(ocdebug > 0)
             oc_log(LOGNOTE,"CREDENTIALS.SSL.KEYPASSWORD: %s", state->ssl.keypasswd);
@@ -437,32 +438,47 @@ ocdodsrc_process(OCstate* state)
 
     if((value = curllookup("SSL.CAINFO",url)) != NULL) {
         state->ssl.cainfo = strdup(TRIM(value));
-        if(!state->ssl.cainfo) return OC_ENOMEM;
+        if(!state->ssl.cainfo) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"SSL.CAINFO: %s", state->ssl.cainfo);
     }
 
     if((value = curllookup("SSL.CAPATH",url)) != NULL) {
         state->ssl.capath = strdup(TRIM(value));
-        if(!state->ssl.capath) return OC_ENOMEM;
+        if(!state->ssl.capath) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"SSL.CAPATH: %s", state->ssl.capath);
     }
 
+    if((value = curllookup("SSL.VERIFYPEER",url)) != NULL) {
+	char* s = strdup(TRIM(value));
+	int tf = 0;
+	if(s == NULL || strcmp(s,"0")==0 || strcasecmp(s,"false")==0)
+	    tf = 0;
+	else if(strcmp(s,"1")==0 || strcasecmp(s,"true")==0)
+	    tf = 1;
+	else
+	    tf = 1; /* default if not null */
+        state->ssl.verifypeer = tf;
+        if(ocdebug > 0)
+            oc_log(LOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+    }
+
     if((value = curllookup("CREDENTIALS.USER",url)) != NULL) {
         state->creds.username = strdup(TRIM(value));
-        if(!state->creds.username) return OC_ENOMEM;
+        if(!state->creds.username) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oc_log(LOGNOTE,"CREDENTIALS.USER: %s", state->creds.username);
     }
 
     if((value = curllookup("CREDENTIALS.PASSWORD",url)) != NULL) {
         state->creds.password = strdup(TRIM(value));
-        if(!state->creds.password) return OC_ENOMEM;
+        if(!state->creds.password) {stat = OC_ENOMEM; goto done;}
     }
     /* else ignore */    
 
-    free(url);
+done:
+    if(url != NULL) free(url);
 
     return OC_NOERR;
 }
@@ -482,7 +498,7 @@ ocdodsrc_lookup(char* key, char* url)
 	/* If the triple entry has no url, then use it (because we have checked all other cases)*/
 	if(triplelen == 0) {found=1;break;}
 	/* do url prefix comparison */
-	t = strncmp(url,triple->url,triplelen);
+	t = ocstrncmp(url,triple->url,triplelen);
 	if(t ==  0) {found=1; break;}
     }
     if(ocdebug > 2)

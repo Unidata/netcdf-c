@@ -455,7 +455,6 @@ getcontent4r(NCDAPCOMMON* dapcomm,
     unsigned int i;
     OCerror ocstat = OC_NOERR;
     NCerror ncstat = NC_NOERR;
-    size_t rank;
     OCmode mode;
     OCconnection conn = dapcomm->oc.conn;
     OCdata reccontent = OCNULL;
@@ -467,11 +466,13 @@ getcontent4r(NCDAPCOMMON* dapcomm,
     int caching = FLAGSET(dapcomm->controls,NCF_CACHE);
     int unconstrainable = FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE);
 
-    rank = nclistlength(tnode->array.dimset0);
     oc_data_mode(conn,currentcontent,&mode);
 #ifdef READCHECK
+{
+    int rank = nclistlength(tnode->array.dimset0);
 fprintf(stderr,"getcontent4r: rank=%lu mode=%d nctype=%s\n",
 	(unsigned long)rank,mode,nctypetostring(tnode->nctype));
+}
 #endif
 
     if(tnode->nctype == NC_Primitive) {
@@ -527,7 +528,7 @@ abort();
 	}
 	break;
 
-    case OCRECORDMODE:
+    case OCSEQUENCEMODE:
 	/* Collect the set of records as a separate memory structure */
 	vlenmemory = ncbytesnew();	
 	ncbytessetalloc(vlenmemory,4096);

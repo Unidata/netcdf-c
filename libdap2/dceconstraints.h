@@ -11,8 +11,6 @@
 
 /* Provide a universal cast type containing common fields */
 
-struct CDFnode; /* Forward */
-
 /* Define the common "supertype */
 typedef struct DCEnode {
     CEsort sort;    
@@ -36,7 +34,7 @@ typedef struct DCEsegment {
     int slicesdeclized; /*1=>slice declsize defined */
     size_t rank;
     DCEslice slices[NC_MAX_VAR_DIMS];    
-    struct CDFnode* cdfnode;
+    void* annotation;
 } DCEsegment;
 
 typedef struct DCEfcn {
@@ -48,12 +46,7 @@ typedef struct DCEfcn {
 typedef struct DCEvar {
     DCEnode node;
     NClist* segments;
-#ifdef IGNORE
-    struct CDFnode* cdfnode;
-    struct CDFnode* cdfleaf
-#else
-    struct CDFnode* cdfvar; /* corresponding node in the CDFnode tree */
-#endif
+    void* annotation;
 } DCEvar;
 
 typedef struct DCEconstant {

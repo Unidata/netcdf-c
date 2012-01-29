@@ -10,6 +10,7 @@
 #include "ocinternal.h"
 #include "occontent.h"
 #include "ocdebug.h"
+#include "ocdump.h"
 #include "oclog.h"
 #include "occlientparams.h"
 
@@ -539,25 +540,21 @@ oc_inq_dasattr(OCconnection conn, OCobject node0, unsigned int i,
 OCerror oc_fetch(OCconnection conn, const char* constraint,
                  OCdxd dxdkind, OCobject* rootp)
 {
+    return oc_fetchf(conn,constraint,dxdkind,0,rootp);
+}
+
+OCerror oc_fetchf(OCconnection conn, const char* constraint,
+                 OCdxd dxdkind, OCflags flags, OCobject* rootp)
+{
     OCstate* state;
     OCerror ocerr = OC_NOERR;
     OCnode* root;
-    int compile = 0;
     OCVERIFY(OCstate*,state,conn);
     OCDEREF(OCstate*,state,conn);
 
-    ocerr = ocfetch(state,constraint,dxdkind,&root);
+    ocerr = ocfetchf(state,constraint,dxdkind,flags,&root);
     if(ocerr) return ocerr;
-    if(dxdkind == OCDATADDS) {
-#ifdef OC_DATADDS_PREPROCESS
-	compile = 1;
-#else
-	if(oc_clientparam_get(conn,"compile") != NULL) compile = 1;
-#endif
-	if(compile) {
-	    (void)occompile(state,root); /* ignore errors */
-	}
-    }
+
     ocassignall(root->tree->nodes);
     if(rootp) *rootp = (OCobject)ocassign(root);
     return ocerr;
@@ -579,7 +576,7 @@ oc_data_root(OCconnection conn, OCobject root0, OCdata content0)
     OCDEREF(OCcontent*,content,content0);
 
     if(root->tree == NULL) {OCTHROWCHK((ocerr=OC_EINVAL)); goto fail;}
-    ocerr = ocrootcontent(state,root,content);
+    ocerr = ocrootdata(state,root,content);
 
 fail:
     return ocerr;
@@ -611,7 +608,7 @@ oc_data_free(OCconnection conn, OCdata content0)
 }
 
 OCerror
-oc_data_ith(OCconnection conn, OCdata parentdata, size_t index,OCdata subdata)
+oc_data_ith(OCconnection conn, OCdata parentdata, size_t index, OCdata subdata)
 {
     OCstate* state;
     OCcontent* parent;
@@ -623,24 +620,7 @@ oc_data_ith(OCconnection conn, OCdata parentdata, size_t index,OCdata subdata)
     OCDEREF(OCcontent*,parent,parentdata);
     OCVERIFY(OCcontent*,child,subdata);
     OCDEREF(OCcontent*,child,subdata);
-
-    switch (parent->mode) {
-    case OC_Dimension:
-	if(parent->node->octype == OC_Structure) {
-	    ocerr = ocarraycontent(state,parent,child,index);
-	} else if(parent->node->octype == OC_Primitive) {
-	    ocerr = ocarraycontent(state,parent,child,index);
-	} else return OCTHROW(OC_ENODATA);
-	break;
-    case OC_Sequence:
-	ocerr = ocrecordcontent(state,parent,child,index);
-	break;
-    case OC_Structure:
-	ocerr = ocfieldcontent(state,parent,child,index);
-	break;
-    default: return OC_EINVAL;
-    }
-    if(ocerr == OC_EDATADDS) ocdataddsmsg(state,parent->tree);
+    ocerr = ocdataith(state,parent,index,child);
     return ocerr;
 }
 
@@ -668,23 +648,12 @@ oc_data_count(OCconnection conn, OCdata content0, size_t* sizep)
 {
     OCstate* state;
     OCcontent* current;
-    size_t count = 0;
     OCerror ocerr = OC_NOERR;
     OCVERIFY(OCstate*,state,conn);
     OCDEREF(OCstate*,state,conn);
     OCVERIFY(OCcontent*,current,content0);
     OCDEREF(OCcontent*,current,content0);
-
-    switch(current->mode) {
-    case OCARRAYMODE: count = ocarraycount(state,current); break;
-    case OCRECORDMODE: count = ocrecordcount(state,current); break;
-    case OCFIELDMODE: count = ocfieldcount(state,current); break;
-    case OCSCALARMODE: count = 1; break;
-    default: 
-	return OC_EINVAL;
-    }
-    current->maxindex = count;
-    if(sizep) *sizep = count;
+    ocerr = ocdatacount(state, current, sizep);
     return ocerr;
 }
 
@@ -696,7 +665,8 @@ oc_data_index(OCconnection conn, OCdata content0, size_t* sizep)
     OCVERIFY(OCcontent*,current,content0);
     OCDEREF(OCcontent*,current,content0);
 
-    if(sizep) *sizep = current->index;
+    if(sizep)
+	*sizep = (current->cache.valid ? current->cache.index : 0);
     return ocerr;
 }
 
@@ -753,22 +723,6 @@ char*
 oc_errstring(int err)
 {
     return ocerrstring(err);
-}
-
-OCerror
-oc_compile(OCconnection conn, OCobject root0)
-{
-    OCstate* state;
-    OCnode* root;
-    OCerror err = OC_NOERR;
-    OCVERIFY(OCstate*,state,conn);
-    OCDEREF(OCstate*,state,conn);
-    OCVERIFY(OCnode*,root,root0);
-    OCDEREF(OCnode*,root,root0);
-
-    if(root->tree == NULL) return OC_EINVAL;
-    err = occompile(state,root);
-    return err;
 }
 
 /* Get clientparameters from the URL */
@@ -831,7 +785,7 @@ oc_clientparam_replace(OCconnection conn, const char* param, const char* value)
 #endif
 
 OCerror
-oc_dd(OCconnection conn, OCobject root0)
+oc_dd(OCconnection conn, OCobject root0, int level)
 {
     OCstate* state;
     OCnode* root;
@@ -840,7 +794,18 @@ oc_dd(OCconnection conn, OCobject root0)
     OCVERIFY(OCnode*,root,root0);
     OCDEREF(OCnode*,root,root0);
 
-    ocdd(state,root);
+    ocdd(state,root,1,level);
+    return OC_NOERR;
+}
+
+OCerror
+oc_ddnode(OCconnection conn, OCobject root0)
+{
+    OCnode* root;
+    OCVERIFY(OCnode*,root,root0);
+    OCDEREF(OCnode*,root,root0);
+
+    ocdumpnode(root);
     return OC_NOERR;
 }
 

@@ -24,7 +24,7 @@ int oclistnull(ocelem e) {return e == ocDATANULL;}
 #define DEFAULTALLOC 16
 #define ALLOCINCR 16
 
-OClist* oclistnew(void)
+OClist* oclistnewn(int prealloc)
 {
   OClist* l;
 /*
@@ -33,11 +33,13 @@ OClist* oclistnew(void)
     ocinitialized = 1;
   }
 */
+  if(prealloc < 0) prealloc = 0;
   l = (OClist*)malloc(sizeof(OClist));
   if(l) {
-    l->alloc=0;
-    l->length=0;
-    l->content=NULL;
+    l->alloc=prealloc;
+    l->length=prealloc;
+    l->content=(prealloc==0?NULL:(ocelem*)calloc(prealloc,sizeof(ocelem)));
+    if(l == NULL) {free(l);return 0;}
   }
   return l;
 }

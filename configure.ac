@@ -568,7 +568,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mktemp \
+		mkstemp getpid \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])

@@ -131,7 +131,9 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
 
     case NC_VLEN: {
         Constant* con;
+#ifdef NOTUSED
         nc_vlen_t ptr;
+#endif
 	Bytebuffer* vlenmem;
 	int count;
 	int pushed = 0;
@@ -166,8 +168,10 @@ cdata_basetype(Symbol* tsym, Datasrc* datasrc, Bytebuffer* codebuf, Datalist* fi
         bbprintf0(stmt,"{%u (void*)vlen_%u}",count,++uid);
         bbCatbuf(codebuf,stmt);
 
+#ifdef NOTUSED
         ptr.len = count;
         ptr.p = bbDup(vlenmem);
+#endif
 	bbFree(vlenmem);
 	if(pushed) srcpop(datasrc);	
 	if(olddatasrc) datasrc = olddatasrc;

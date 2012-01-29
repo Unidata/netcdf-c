@@ -15,7 +15,7 @@ cmds=""
 #cmds="all"
 #cmds="all check"
 #cmds="all dist"
-#cmds="all distcheck"
+cmds="all distcheck"
 
 # Default cases
 PREFIX="/tmp/install/${HOST}"

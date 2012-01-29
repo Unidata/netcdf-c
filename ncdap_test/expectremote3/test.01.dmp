@@ -33,5 +33,5 @@ data:
 
  s = "This is a data test string (pass 0)." ;
 
- u = "http://www.opendap.org" ;
+ u = "http://www.dods.org" ;
 }

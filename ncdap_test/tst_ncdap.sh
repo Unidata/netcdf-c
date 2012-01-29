@@ -4,6 +4,10 @@
 quiet=0
 leakcheck=0
 
+PARAMS="[log]"
+#PARAMS="${PARAMS}[fetch=memory]"
+#PARAMS="${PARAMS}[show=fetch]"
+
 OCLOGFILE=/dev/null
 
 # Capture arguments
@@ -23,12 +27,12 @@ case "$mode" in
 *3)
     EXPECTED="$expected3"
     TITLE="DAP to netCDF-3 translation"
-    PARAMS="[cache]"
+    PARAMS="${PARAMS}[cache]"
     ;;
 *4)
     EXPECTED="$expected4"
     TITLE="DAP to netCDF-4 translation"
-    PARAMS="[netcdf4][cache]"
+    PARAMS="${PARAMS}[netcdf4][cache]"
     ;;
 esac
 

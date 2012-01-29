@@ -9,13 +9,8 @@ extern void ocdumpnode(OCnode* node);
 extern void ocdumpslice(OCslice* slice);
 extern void ocdumpclause(OCprojectionclause* ref);
 
-extern void ocdumpmemory(char* memory, int len, int bod);
-extern void ocdumppacket(char* memory, int len, int bod);
+extern void ocdumpmemory(char* memory, size_t len, int xdrencoded, int level);
 
-extern void ocdumpfile(FILE* file, int datastart);
-
-extern void ocdumpmemdata(OCmemdata*,OCbytes*);
-
-extern void ocdd(OCstate*,OCnode*);
+extern void ocdd(OCstate*,OCnode*,int xdrencoded, int level);
 
 #endif /*OCDUMP_H*/

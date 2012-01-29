@@ -52,14 +52,14 @@ data:
   "This is a data test string (pass 9)." ;
 
  types.u =
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org",
-  "http://www.opendap.org" ;
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org",
+  "http://www.dods.org" ;
 }

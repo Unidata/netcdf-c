@@ -66,7 +66,7 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 
 	if (stat == OC_NOERR) {
 	    /* return the file size*/
-#ifdef OCOCDBG
+#ifdef OCDEBUG
 	    oc_log(LOGNOTE,"filesize: %lu bytes",fetchdata.size);
 #endif
 	    if (sizep != NULL)
@@ -125,7 +125,7 @@ ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
 	len = ocbyteslength(buf);
 	ocbytesappend(buf, '\0');
 	ocbytessetlength(buf, len); /* dont count null in buffer size*/
-#ifdef OCOCDBG
+#ifdef OCDEBUG
 	oc_log(LOGNOTE,"buffersize: %lu bytes",(unsigned long)ocbyteslength(buf));
 #endif
 

@@ -699,10 +699,12 @@ mapnodes3r(CDFnode* connode, CDFnode* fullnode, int depth)
     ASSERT((simplenodematch34(connode,fullnode)));
     
 #ifdef DEBUG
-fprintf(stderr,"mapnode: %s->%s\n",
-        makecdfpathstring3(fullnode,"."),
-	makecdfpathstring3(connode,".")
-	);
+{
+char* path1 = makecdfpathstring3(fullnode,".");
+char * path2 = makecdfpathstring3(connode,".");
+fprintf(stderr,"mapnode: %s->%s\n",path1,path2);
+nullfree(path1); nullfree(path2);
+}
 #endif
 
     /* Map node */

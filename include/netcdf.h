@@ -1861,6 +1861,9 @@ ncrecput(int ncid, long recnum, void *const *datap);
 }
 #endif
 
+/* Temporary hack to shut up warnings */
+#define END_OF_MAIN()
+
 #endif /* _NETCDF_ */
 
 

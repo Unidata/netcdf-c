@@ -65,25 +65,19 @@ typedef unsigned int NCFLAGS;
 #  define CLRFLAG(controls,flag) ((controls.flags) &= ~(flag))
 #  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
 
-/* Base translations */
-#define NCF_NC3      (0x01)    /* DAP->netcdf-3 */
-#define NCF_NC4      (0x02) /* DAP->netcdf-4 */
+/* Defined flags */
+#define NCF_NC3             (0x0001) /* DAP->netcdf-3 */
+#define NCF_NC4             (0x0002) /* DAP->netcdf-4 */
+#define NCF_NCDAP           (0x0004) /* Do libnc-dap mimic */
+#define NCF_CACHE           (0x0008) /* Cache enabled/disabled */
+#define NCF_PREFETCH        (0x0010) /* Cache prefetch enabled/disabled */
+#define NCF_UPGRADE         (0x0020) /* Do proper type upgrades */
+#define NCF_UNCONSTRAINABLE (0x0040) /* Not a constrainable URL */
+#define NCF_SHOWFETCH       (0x0080) /* show fetch calls */
+#define NCF_INMEMORY        (0x0100) /* cause oc to store data in memory */
 
-/* OR'd with the translation model */
-#define NCF_NCDAP    (0x04) /* libnc-dap mimic */
-#define NCF_COORD    (0x08) /* libnc-dap mimic + add coordinate variables */
-#define NCF_VLEN     (0x10) /* map sequences to vlen+struct */
-
-/*  Cache control flags */
-#define NCF_CACHE    (0x20) /* Cache enabled/disabled */
-
-/*  Misc control flags */
-#define NCF_UPGRADE         (0x80) /* Do proper type upgrades */
-#define NCF_UNCONSTRAINABLE (0x100) /* Not a constrainable URL */
-#define NCF_SHOWFETCH       (0x200) /* show fetch calls */
-
-/* Currently, defalt is on */
-#define DFALTCACHEFLAG (0)
+/* Define all the default on flags */
+#define DFALT_ON_FLAGS (NCF_PREFETCH)
 
 typedef struct NCCONTROLS {
     NCFLAGS  flags;
@@ -125,6 +119,7 @@ typedef struct NCOC {
     NC_URI* url;      /* parse of rawuritext */
     OCobject ocdasroot;
     DCEconstraint* dapconstraint; /* from url */
+    int inmemory; /* store fetched data in memory? */
 } NCOC;
 
 typedef struct NCCDF {
@@ -216,7 +211,8 @@ typedef struct CDFarray {
 typedef struct NCattribute {
     char*   name;
     nc_type etype; /* dap type of the attribute */
-    NClist*   values; /* strings come from the oc values */
+    NClist* values; /* strings come from the oc values */
+    int     invisible; /* Do not materialize to the user */
 } NCattribute;
 
 /* Extend as additional DODS attribute values are defined */
@@ -288,7 +284,7 @@ typedef struct CDFnode {
 /* Shared procedures */
 
 /* From ncdap3.c*/
-extern NCerror cleanNCDAPCOMMON(struct NCDAPCOMMON*);
+extern NCerror freeNCDAPCOMMON(struct NCDAPCOMMON*);
 extern NCerror fetchtemplatemetadata3(NCDAPCOMMON*);
 
 /* From error.c*/

@@ -11,8 +11,7 @@
 #define  SHORT_MAX  SHRT_MAX
 #define  SHORT_MIN  SHRT_MIN
 #define USHORT_MAX USHRT_MAX
-#include <rpc/types.h>
-#include <rpc/xdr.h>
+#include <oc/xxdr.h>
 #include <string.h>
 #include "ncx.h"
 

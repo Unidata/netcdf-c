@@ -535,7 +535,9 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
 	DCEsegment* segment = (DCEsegment*)node;
         int rank = segment->rank;
 	char* name = (segment->name?segment->name:"<unknown>");
-	ncbytescat(buf,nulldup(name));
+	name = nulldup(name);
+	ncbytescat(buf,name);
+	nullfree(name);
         if(dceverbose && dceiswholesegment(segment))
 	    ncbytescat(buf,"*");
         if(dceverbose || !dceiswholesegment(segment)) {

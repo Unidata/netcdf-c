@@ -8,6 +8,7 @@ COPYRIGHT file for copying and redistribution conditions.
 
 #include "nc4internal.h"
 #include "ncddispatch.h"
+#include "nc3dispatch.h"
 
 /* This function only does anything for netcdf-3 files. */
 int

@@ -5,6 +5,9 @@ quiet=0
 leakcheck=0
 timing=0
 
+PARAMS="[log]"
+#PARAMS="${PARAMS}[show=fetch]"
+
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
 
@@ -36,16 +39,20 @@ fi
 # fi
 # fi
 
+
 #locate the testdata and expected directory
 if test "$cache" = 0 ; then
-CACHE=""
+# No cache means no cache, including prefetch
+CACHE="[noprefetch]"
 expected3="${srcdir}/nocacheremote3"
 expected4="${srcdir}/nocacheremote4"
 else
-#CACHE="[cache]"
+CACHE="[cache][prefetch]"
 expected3="${srcdir}/expectremote3"
 expected4="${srcdir}/expectremote4"
 fi
+
+PARAMS="${PARAMS}${CACHE}"
 
 ##################################################
 # Remote test info
@@ -65,7 +72,6 @@ test.01 test.02 test.04 test.05 test.06 test.07a test.07 \
 test.21 \
 test.50 test.53 test.55 test.56 test.57 \
 test.66 test.67 test.68 test.69"
-REMOTETESTSS1="test.02"
 
 # Server is failing on some tests ; investigate why
 S1FAIL="test.06a test.22 test.23 test.31"
@@ -161,14 +167,14 @@ case "$mode" in
 3)
     EXPECTED="$expected3"
     TITLE="DAP to netCDF-3 translation"
-    PARAMS="${CACHE}[netcdf3]"
+    PARAMS="${PARAMS}[netcdf3]"
     XFAILTESTS="$XFAILTESTS3"
     SVCFAILTESTS="$SVCFAILTESTS3"
     ;;
 4)
     EXPECTED="$expected4"
     TITLE="DAP to netCDF-4 translation"
-    PARAMS="${CACHE}[netcdf4]"
+    PARAMS="${PARAMS}[netcdf4]"
     XFAILTESTS="$XFAILTESTS4"
     SVCFAILTESTS="$SVCFAILTESTS4"
     ;;

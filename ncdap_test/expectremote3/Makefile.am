@@ -14,7 +14,7 @@ test.01.1.dmp test.01.dmp test.02.1.dmp \
 test.02.dmp test.03.1.dmp test.03.2.dmp \
 test.03.dmp test.04.1.dmp test.04.dmp \
 test.05.1.dmp test.05.dmp test.06.1.dmp \
-test.06a.dmp test.07.1.dmp test.07.3.dmp \
+test.06.dmp test.06a.dmp test.07.1.dmp test.07.3.dmp \
 test.07.4.dmp test.07a.dmp test.07.dmp \
 test.21.dmp test.22.dmp test.23.dmp \
 test.31.dmp test.50.dmp test.53.dmp \

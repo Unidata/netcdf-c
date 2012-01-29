@@ -39,19 +39,21 @@ void
 gen_ncc(const char *filename)
 {
     int idim, ivar, iatt, maxdims;
-    int ndims, nvars, natts, ngatts, ngrps, ntyps;
+    int ndims, nvars, natts, ngatts;
     char* cmode_string;
 
 #ifdef USE_NETCDF4
-    int igrp,ityp;
+    int igrp,ityp, ngrps, ntyps;
 #endif
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
     ngatts = listlength(gattdefs);
+#ifdef USE_NETCDF4
     ngrps = listlength(grpdefs);
     ntyps = listlength(typdefs);
+#endif /*USE_NETCDF4*/
 
     /* wrap in main program */
     codeline("#include <stdio.h>");

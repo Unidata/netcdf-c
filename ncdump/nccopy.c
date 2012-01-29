@@ -598,6 +598,7 @@ set_var_compressed(int ogrp, int o_varid)
 /* Release the variable chunk cache allocated for variable varid in
  * group grp.  This is not necessary, but will save some memory when
  * processing one variable at a time.  */
+#ifdef UNUSED
 static int
 free_var_chunk_cache(int grp, int varid)
 {
@@ -616,6 +617,8 @@ free_var_chunk_cache(int grp, int varid)
     }
     return stat;
 }
+#endif
+
 #endif /* USE_NETCDF4 */
 
 /* Copy dimensions from group igrp to group ogrp, also associate input
@@ -627,9 +630,9 @@ copy_dims(int igrp, int ogrp)
 {
     int stat = NC_NOERR;
     int ndims;
-    int nunlims;
     int dgrp;
 #ifdef USE_NETCDF4
+    int nunlims;
     int *dimids;
     int *unlimids;
 #else
@@ -659,8 +662,10 @@ copy_dims(int igrp, int ogrp)
 	size_t length;
 	int i_is_unlim;
 	int o_is_unlim;
-	int uld;
 	int idimid, odimid;
+#ifdef USE_NETCDF4
+	int uld;
+#endif
 
 	i_is_unlim = 0;
 #ifdef USE_NETCDF4
@@ -811,7 +816,6 @@ copy_schema(int igrp, int ogrp)
 {
     int stat = NC_NOERR;
     int ogid;			/* like igrp but in output file */
-    int i;
 
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
@@ -824,6 +828,7 @@ copy_schema(int igrp, int ogrp)
     {
 	int numgrps;
 	int *grpids;
+	int i;
 	/* Copy schema from subgroups */
 	stat = nc_inq_grps(igrp, &numgrps, NULL);
 	grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
@@ -877,8 +882,10 @@ copy_var_data(int igrp, int varid, int ogrp) {
     size_t *count;
     nciter_t *iterp;		/* opaque structure for iteration status */
     int do_realloc = 0;
-    size_t chunksize;
+#ifdef USE_NETCDF4    
     int okind;
+    size_t chunksize;
+#endif
 
     NC_CHECK(inq_nvals(igrp, varid, &nvalues));
     if(nvalues == 0)
@@ -986,11 +993,13 @@ copy_data(int igrp, int ogrp)
 {
     int stat = NC_NOERR;
     int ogid;
+    int nvars;
+    int varid;
+#ifdef USE_NETCDF4
     int numgrps;
     int *grpids;
     int i;
-    int nvars;
-    int varid;
+#endif
 
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
