@@ -21,7 +21,7 @@ longtests="$5"
 if test "x$timing" = "x1" ; then leakcheck=0; fi
 
 # get the list of test files
-WHICHTESTS="S1 C1 C2 C4"
+WHICHTESTS="S1 C1 C2"
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1"
 fi
@@ -225,9 +225,11 @@ for i in $WHICHTESTS ; do
   C1) TESTURL="$REMOTEURLC1" ; TESTSET="$REMOTETESTSC1" ; constrained=1 ;;
   C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
   C3) TESTURL="$REMOTEURLC3" ; TESTSET="$REMOTETESTSC3" ; constrained=1 ;ncconstrained=0 ;;
+  C4) TESTURL="$REMOTEURLC4" ; TESTSET="$REMOTETESTSC4" ; constrained=1 ;ncconstrained=0 ;;
   LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
   X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
   XC) TESTURL="$REMOTEURLXC" ; TESTSET="$REMOTETESTSXC" ; constrained=1 ;;
+  *) echo "Unknown which test: $i" ;;
   esac
 
 cd ${RESULTSDIR}

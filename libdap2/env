@@ -11,8 +11,8 @@ PARMS="${PARMS}[cache]"
 PARMS="${PARMS}[show=fetch]"
 
 
-F="http://dapper.pmel.noaa.gov/dapper/argo/argo_all.cdp"
-CON="location.LATITUDE,location.attributes.DIRECTION&location.LATITUDE<=1&location.LATITUDE>-1"
+F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20120101_0000.nc"
+CON="weather[0:10]"
 #VAR="person.name"
 
 PROG="./ncd"

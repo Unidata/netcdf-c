@@ -27,4 +27,5 @@ test.sds1.dmp test.sds2.dmp test.sds3.dmp \
 test.sds4.dmp test.sds5.dmp test.vs1.dmp \
 test.vs2.dmp test.vs3.dmp test.vs4.dmp \
 test.vs5.dmp whoi.dmp \
-GLOBEC_cetaceans.1.dmp GLOBEC_cetaceans.2.dmp
+GLOBEC_cetaceans.1.dmp GLOBEC_cetaceans.2.dmp \
+Surface_METAR_20120101_0000.nc.1.dmp
