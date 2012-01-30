@@ -108,6 +108,7 @@ extern NClist* dceallnodes(DCEnode* node, CEsort which);
 extern DCEnode* dcecreate(CEsort sort);
 
 extern void dcemakewholeslice(DCEslice* slice, size_t declsize);
+extern void dcemakewholeprojection(DCEprojection*);
 
 extern int dceiswholesegment(DCEsegment*);
 extern int dceiswholeslice(DCEslice*);

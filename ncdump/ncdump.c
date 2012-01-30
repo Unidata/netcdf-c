@@ -2026,6 +2026,7 @@ grp_matches(int ncid) {
     return total;
 }
 
+#ifdef USE_DAP
 #define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
 /* replace path string with same string prefixed by
  * DAP_CLIENT_NCDUMP_DIRECTIVE */
@@ -2042,6 +2043,7 @@ void adapt_url_for_cache(char **pathp) {
     *pathp = path;
     return;
 }
+#endif
 
 /**
 The ncdump tool generates the CDL text representation of a netCDF

@@ -213,21 +213,18 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
 
+#ifdef IGNORE
     if(FLAGSET(nccomm->controls,NCF_CACHE)) {
         /* If the cache flag is on, then cache 
            forces whole variable projections */
-        int i,j;
+        int i;
         /* Remove the slicing (if any) */
         for(i=0;i<nclistlength(constraint->projections);i++) {
             DCEprojection* p = (DCEprojection*)nclistget(constraint->projections,i);
-            if(p->discrim != CES_VAR || p->var == NULL || p->var->segments == NULL)
-                continue;
-            for(j=0;j<nclistlength(p->var->segments);j++) {
-                DCEsegment* seg = (DCEsegment*)nclistget(p->var->segments,j);
-                seg->rank = 0;
-            }
-        }   
+	    dcemakewholeprojection(p);
+	}
     }
+#endif
     ce = buildconstraintstring3(constraint);
 
     ocstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);

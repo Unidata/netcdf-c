@@ -174,6 +174,7 @@ dap_attrset(DAPparsestate* state, Object name, Object attributes)
     /* Check var set vs global set */
     attset->att.isglobal = isglobalname(name);
     attset->subnodes = (OClist*)attributes;
+    addedges(attset);
     return attset;
 }
 

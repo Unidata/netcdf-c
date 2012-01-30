@@ -97,26 +97,27 @@ addstringdims(NCDAPCOMMON* dapcomm)
     */
     int i;
     NClist* varnodes = dapcomm->cdf.varnodes;
-    CDFnode* sdim = NULL;
+    CDFnode* globalsdim = NULL;
     char dimname[4096];
     size_t dimsize;
 
     /* Start by creating the global string dimension */
     snprintf(dimname,sizeof(dimname),"maxStrlen%lu",
 	    (unsigned long)dapcomm->cdf.defaultstringlength);
-    sdim = makecdfnode34(dapcomm, dimname, OC_Dimension, OCNULL,
+    globalsdim = makecdfnode34(dapcomm, dimname, OC_Dimension, OCNULL,
                                  dapcomm->cdf.ddsroot);
-    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)sdim);
-    sdim->dim.dimflags |= CDFDIMSTRING;
-    sdim->dim.declsize = dapcomm->cdf.defaultstringlength;
-    sdim->dim.declsize0 = sdim->dim.declsize;
-    sdim->dim.array = dapcomm->cdf.ddsroot;
-    sdim->ncbasename = cdflegalname3(dimname);
-    sdim->ncfullname = nulldup(sdim->ncbasename);
-    dapcomm->cdf.globalstringdim = sdim;
+    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)globalsdim);
+    globalsdim->dim.dimflags |= CDFDIMSTRING;
+    globalsdim->dim.declsize = dapcomm->cdf.defaultstringlength;
+    globalsdim->dim.declsize0 = globalsdim->dim.declsize;
+    globalsdim->dim.array = dapcomm->cdf.ddsroot;
+    globalsdim->ncbasename = cdflegalname3(dimname);
+    globalsdim->ncfullname = nulldup(globalsdim->ncbasename);
+    dapcomm->cdf.globalstringdim = globalsdim;
 
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(varnodes,i);
+	CDFnode* sdim = NULL;
 
 	/* Does this node need a string dim? */
 	if(var->etype != NC_STRING && var->etype != NC_URL) continue;
@@ -143,6 +144,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)sdim);
 	    sdim->dim.dimflags |= CDFDIMSTRING;
 	    sdim->dim.declsize = dimsize;
+	    sdim->dim.declsize0 = dimsize;
 	    sdim->dim.array = var;
 	    sdim->ncbasename = cdflegalname3(sdim->ocname);
 	    sdim->ncfullname = nulldup(sdim->ncbasename);

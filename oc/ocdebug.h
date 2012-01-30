@@ -4,8 +4,10 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
-#undef OCDEBUG
-#undef DAPDEBUG
+#if 0
+#define OCDEBUG
+#define DAPDEBUG 1
+#endif
 
 #ifdef OCDEBUG
 #define OCVERBOSE

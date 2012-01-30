@@ -950,7 +950,7 @@ dapshiftprojection(DCEprojection* projection)
     NClist* segments;
 
 #ifdef DEBUG1
-fprintf(stderr,"dapwalkprojection.before: %s\n",dumpprojection(projection));
+fprintf(stderr,"dapshiftprojection.before: %s\n",dumpprojection(projection));
 #endif
 
     ASSERT(projection->discrim == CES_VAR);
@@ -964,7 +964,7 @@ fprintf(stderr,"dapwalkprojection.before: %s\n",dumpprojection(projection));
     }
 
 #ifdef DEBUG1
-fprintf(stderr,"dapwalkprojection.after: %s\n",dumpprojection(projection));
+fprintf(stderr,"dapshiftprojection.after: %s\n",dumpprojection(projection));
 #endif
 
     return ncstat;

@@ -10,8 +10,9 @@ PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[noprefetch]"
 PARMS="${PARMS}[show=fetch]"
 
-F="http://motherlode.ucar.edu:8080/dts/test.02"
-CON="b[1:2:10]"
+
+F="http://dapper.pmel.noaa.gov/dapper/argo/argo_all.cdp"
+CON="location.LATITUDE,location.attributes.DIRECTION&location.LATITUDE<=1&location.LATITUDE>-1"
 #VAR="person.name"
 
 PROG="./ncd"
@@ -33,7 +34,11 @@ alias qh="$PROG -h $ARGS '$U'"
 alias qqh="gdb --args $PROG -h $ARGS '$U'"
 alias qall="$PROG -h $ARGS '${UALL}'"
 alias qv="valgrind $VARGS $PROG $ARGS '$U'"
+if test "x$CON" = "x" ; then
 alias qo="~/svn/oc/octest -p dds -p datadds -DN -DX1 $F"
+else
+alias qo="~/svn/oc/octest -p dds -p datadds -DN -DX1 -C $CON $F"
+fi
 
 if test 1 = 0; then
 F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"

@@ -10,7 +10,7 @@
 
 /* Forward */
 static NCerror buildattribute(char*,nc_type,NClist*,NCattribute**);
-static int mergedas1(NCDAPCOMMON*, OCconnection, CDFnode* dds, OCobject das, int isDODS);
+static int mergedas1(NCDAPCOMMON*, OCconnection, CDFnode* dds, OCobject das);
 static int isglobalname3(char* name);
 
 #ifdef IGNORE
@@ -231,7 +231,6 @@ loop:
 	OCobject das = (OCobject)nclistget(dasnodes,i);
 	char* ocfullname;
 	char* ocbasename;
-	int isDODS = 0;
 
 	if(das == OCNULL) continue;
 	OCHECK(oc_inq_name(conn,das,&ocbasename));
@@ -241,7 +240,6 @@ loop:
 	    if(container == OCNULL) {
 	        ASSERT(container != OCNULL);
 	    }
-	    isDODS = 1;
 	    ocfullname = makeocpathstring3(conn,container,".");
 	} else {
 	    ocfullname = makeocpathstring3(conn,das,".");
@@ -252,7 +250,7 @@ loop:
 	    if(strcmp(ocfullname,ddsfullname)==0
 	       || strcmp(ocbasename,ddsfullname)==0
 	       || strcmp(ocbasename,dds->ocname)==0) {
-		mergedas1(nccomm,conn,dds,das,isDODS);
+		mergedas1(nccomm,conn,dds,das);
 		/* remove from dasnodes list*/
 		nclistset(dasnodes,i,(ncelem)NULL);
 	    }
@@ -265,13 +263,13 @@ loop:
     /* 4. Assign globals */
     for(i=0;i<nclistlength(dasglobals);i++) {
 	OCobject das = (OCobject)nclistget(dasglobals,i);
-	mergedas1(nccomm,conn,ddsroot,das,0);
+	mergedas1(nccomm,conn,ddsroot,das);
     }
 
     /* 5. Assign DOD_EXTRA */
     for(i=0;i<nclistlength(dodsextra);i++) {
 	OCobject das = (OCobject)nclistget(dodsextra,i);
-	mergedas1(nccomm,conn,ddsroot,das,1);
+	mergedas1(nccomm,conn,ddsroot,das);
     }
 
 done: /* cleanup*/
@@ -285,7 +283,7 @@ done: /* cleanup*/
 }
 
 static int
-mergedas1(NCDAPCOMMON* nccomm, OCconnection conn, CDFnode* dds, OCobject das, int isDODS)
+mergedas1(NCDAPCOMMON* nccomm, OCconnection conn, CDFnode* dds, OCobject das)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;

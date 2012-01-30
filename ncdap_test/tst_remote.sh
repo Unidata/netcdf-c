@@ -21,7 +21,7 @@ longtests="$5"
 if test "x$timing" = "x1" ; then leakcheck=0; fi
 
 # get the list of test files
-WHICHTESTS="S1 C1 C2"
+WHICHTESTS="S1 C1 C2 C4"
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1"
 fi
@@ -121,6 +121,12 @@ GLOBEC_cetaceans;2;lat,lon&lat>42.0&lat<=42.5\
 REMOTEURLC3="http://dapper.pmel.noaa.gov/dapper/argo"
 REMOTETESTSC3="\
 argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
+"
+
+# Test string access 
+REMOTEURLC4="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar"
+REMOTETESTSC4="\
+Surface_METAR_20120101_0000.nc;1;weather[0:10]\
 "
 
 # Constrained long tests

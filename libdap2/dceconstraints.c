@@ -135,6 +135,7 @@ dceslicemerge(DCEslice* dst, DCEslice* src)
     tmp.length    = (((src->length - 1) / src->stride) * tmp.stride) + 1;
     tmp.stop      = tmp.first + tmp.length;
     tmp.count     = tmp.length / tmp.stride;
+    /* use max declsize */
     if(dst->declsize > src->declsize) {
         tmp.declsize  = dst->declsize;
     } else {
@@ -850,6 +851,19 @@ dceiswholevar(DCEvar* var)
 	if(!dceiswholesegment(segment)) {whole = 0; break;}	
     }
     return whole;
+}
+
+void
+dcemakewholeprojection(DCEprojection* p)
+{
+    int i;
+    /* Remove the slicing (if any) */
+    if(p->discrim == CES_VAR && p->var != NULL && p->var->segments != NULL) {
+        for(i=0;i<nclistlength(p->var->segments);i++) {
+	    DCEsegment* seg = (DCEsegment*)nclistget(p->var->segments,i);
+            seg->rank = 0;
+	}
+    }   
 }
 
 int
