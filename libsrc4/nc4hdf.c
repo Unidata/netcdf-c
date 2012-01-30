@@ -567,12 +567,19 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
       count[i] = countp[i];
    }
    
-   /* Open this databset if necessary. */
+   /* Open this databset if necessary, also checking for a weird case:
+    * a non-coordinate variable that has the same name as a
+    * dimension. */
+   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) && 
+			  strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0)
+       if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdf5_name,
+					  H5P_DEFAULT)) < 0)
+	   return NC_ENOTVAR;
    if (!var->hdf_datasetid)
-      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
-	      H5P_DEFAULT)) < 0)
-         return NC_ENOTVAR;
-
+       if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
+					  H5P_DEFAULT)) < 0)
+	   return NC_ENOTVAR;
+       
    /* Get file space of data. */
    if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0) 
       BAIL(NC_EHDFERR);

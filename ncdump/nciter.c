@@ -380,7 +380,10 @@ nc_next_iter(nciter_t *iter,	/* returned opaque iteration state */
 	    /* adjust count to stay in range of dimsizes */
 	    for(i = 0; i < iter->rank; i++) {
 		int leftover = iter->dimsizes[i] - start[i];
-		count[i] = iter->chunksizes[i];
+		if(iter->chunksizes[i] <= iter->dimsizes[i])
+		    count[i] = iter->chunksizes[i];
+		else /* can happen for variables with only unlimited dimensions */
+		    count[i] = iter->dimsizes[i];
 		if(leftover < count[i]) 
 		    count[i] = leftover;
 	    }
