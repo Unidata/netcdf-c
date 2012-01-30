@@ -495,7 +495,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
 #  ifdef WIN32
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
 #  else
-        fd=open(tmpl,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+        fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif
 #endif
     }
