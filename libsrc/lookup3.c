@@ -260,6 +260,9 @@ uint32_t       *pb)               /* IN: more seed OUT: secondary hash value */
   /*------------------------------------------------------ report the result */
   *pc=c; *pb=b;
 }
+
+#ifndef WORDS_BIGENDIAN
+
 /*
  * hashlittle2: return 2 32-bit hash values
  *
@@ -446,6 +449,8 @@ hashlittle2(
 }
 
 
+#else /*WORDS_BIGENDIAN*/
+
 
 /*
  * hashbig():
@@ -575,7 +580,7 @@ hashbig( const void *key, size_t length, uint32_t initval)
   final(a,b,c);
   return c;
 }
-#endif /*SELF_TEST*/
+#endif /*WORDS_BIGENDIAN*/
 
 
 /*
