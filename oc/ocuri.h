@@ -37,7 +37,6 @@ extern void ocurisetconstraints(OCURI*,const char* constraints);
 
 extern char* ocuribuild(OCURI*,const char* prefix, const char* suffix, int flags);
 
-
 /* Param Management */
 extern int ocuridecodeparams(OCURI* ocuri);
 extern int ocurisetparams(OCURI* ocuri,const char*);
@@ -48,6 +47,5 @@ extern const char* ocurilookup(OCURI*, const char* param);
 
 extern char* ocuriencode(char* s, char* allowable);
 extern char* ocuridecode(char* s);
-
 
 #endif /*OCURI_H*/

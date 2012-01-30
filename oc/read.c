@@ -23,9 +23,7 @@ extern int oc_curl_file_supported;
 /*Forward*/
 static int readpacket(CURL*, OCURI*, OCbytes*, OCdxd, long*);
 static int readfile(char* path, char* suffix, OCbytes* packet);
-#ifdef OC_DISK_STORAGE
 static int readfiletofile(char* path, char* suffix, FILE* stream, unsigned long*);
-#endif
 
 int
 readDDS(OCstate* state, OCtree* tree)
@@ -102,50 +100,48 @@ readpacket(CURL* curl,OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodified)
 }
 
 int
-readDATADDS(OCstate* state, OCtree* tree)
+readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
 {
     int stat;
     long lastmod = -1;
 
-#ifndef OC_DISK_STORAGE
-    ocurisetconstraints(state->uri,tree->constraint);
-    stat = readpacket(state->curl,state->uri,state->packet,OCDATADDS,&lastmod);
-    if(stat == OC_NOERR)
-        state->datalastmodified = lastmod;
-    tree->data.datasize = ocbyteslength(state->packet);
-#else /*OC_DISK_STORAGE*/
-    OCURI* url = state->uri;
-    int fileprotocol = 0;
-    char* readurl = NULL;
-
-    fileprotocol = (strcmp(url->protocol,"file")==0);
-
-    if(fileprotocol && !oc_curl_file_supported) {
-	readurl = ocuribuild(url,NULL,NULL,0);
-	stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
-    } else {
-	int flags = 0;
-	if(!fileprotocol) flags |= OCURICONSTRAINTS;
-	flags |= OCURIENCODE;
-        ocurisetconstraints(url,tree->constraint);
-        readurl = ocuribuild(url,NULL,".dods",flags);
-        MEMCHECK(readurl,OC_ENOMEM);
-	if (ocdebug > 0) 
-	    {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
-	stat = ocfetchurl_file(state->curl, readurl, tree->data.file,
-                               &tree->data.datasize, &lastmod);
+    if((flags & OCINMEMORY) != 0) {
+        ocurisetconstraints(state->uri,tree->constraint);
+        stat = readpacket(state->curl,state->uri,state->packet,OCDATADDS,&lastmod);
         if(stat == OC_NOERR)
-	    state->datalastmodified = lastmod;
-	if (ocdebug > 0) 
-            {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
-    }
-    free(readurl);
-#endif /*OC_DISK_STORAGE*/
+            state->datalastmodified = lastmod;
+        tree->data.datasize = ocbyteslength(state->packet);
+    } else {
+        OCURI* url = state->uri;
+        int fileprotocol = 0;
+        char* readurl = NULL;
 
+        fileprotocol = (strcmp(url->protocol,"file")==0);
+
+        if(fileprotocol && !oc_curl_file_supported) {
+            readurl = ocuribuild(url,NULL,NULL,0);
+            stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
+        } else {
+            int flags = 0;
+            if(!fileprotocol) flags |= OCURICONSTRAINTS;
+            flags |= OCURIENCODE;
+            ocurisetconstraints(url,tree->constraint);
+            readurl = ocuribuild(url,NULL,".dods",flags);
+            MEMCHECK(readurl,OC_ENOMEM);
+            if (ocdebug > 0) 
+                {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
+            stat = ocfetchurl_file(state->curl, readurl, tree->data.file,
+                                   &tree->data.datasize, &lastmod);
+            if(stat == OC_NOERR)
+                state->datalastmodified = lastmod;
+            if (ocdebug > 0) 
+                {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
+        }
+        free(readurl);
+    }
     return OCTHROW(stat);
 }
 
-#ifdef OC_DISK_STORAGE
 static int
 readfiletofile(char* path, char* suffix, FILE* stream, unsigned long* sizep)
 {
@@ -153,7 +149,7 @@ readfiletofile(char* path, char* suffix, FILE* stream, unsigned long* sizep)
     OCbytes* packet = ocbytesnew();
     size_t len;
     /* check for leading file:/// */
-    if(strncmp(path,"file:///",8)==0) path += 7; /* assume absolute path*/
+    if(ocstrncmp(path,"file:///",8)==0) path += 7; /* assume absolute path*/
     stat = readfile(path,suffix,packet);
     if(stat != OC_NOERR) goto unwind;
     len = oclistlength(packet);
@@ -168,7 +164,6 @@ unwind:
     ocbytesfree(packet);
     return OCTHROW(stat);
 }
-#endif
 
 static int
 readfile(char* path, char* suffix, OCbytes* packet)
@@ -178,7 +173,7 @@ readfile(char* path, char* suffix, OCbytes* packet)
     char filename[1024];
     int count,size,fd;
     /* check for leading file:/// */
-    if(strncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
+    if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
     strcpy(filename,path);
     if(suffix != NULL) strcat(filename,suffix);
     fd = open(filename,O_RDONLY);

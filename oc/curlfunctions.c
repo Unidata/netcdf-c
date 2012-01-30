@@ -29,18 +29,18 @@ ocset_curl_flags(OCstate* state)
     if (flags->compress) {
 	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING,"deflate, gzip");
 	if(cstat != CURLE_OK) goto fail;
-	OCDBG(1,"CURLOP_ENCODING=deflat, gzip");
+	OCDBG(1,"CURLOPT_ENCODING=deflate, gzip");
     }
 #endif
     if (flags->cookiejar || flags->cookiefile) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
 	if (cstat != CURLE_OK) goto fail;
-	OCDBG(1,"CURLOP_COOKIESESSION=1");
+	OCDBG(1,"CURLOPT_COOKIESESSION=1");
     }
     if (flags->cookiejar) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, flags->cookiejar);
 	if (cstat != CURLE_OK) goto fail;
-	OCDBG1(1,"CURLOP_COOKIEJAR=%s",flags->cookiejar);
+	OCDBG1(1,"CURLOPT_COOKIEJAR=%s",flags->cookiejar);
     }
     if (flags->cookiefile) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiefile);
@@ -145,6 +145,11 @@ ocset_ssl(OCstate* state)
             cstat = curl_easy_setopt(curl, CURLOPT_CAPATH, ssl->capath);
             if(cstat != CURLE_OK) goto fail;
 	    OCDBG1(1,"CURLOPT_CAPATH=%s",ssl->capath);
+        }
+        {
+            cstat = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, ssl->verifypeer);
+            if(cstat != CURLE_OK) goto fail;
+	    OCDBG1(1,"CURLOPT_SSL_VERIFYPEER=%d",ssl->verifypeer);
         }
     }    
     return OC_NOERR;

@@ -12,14 +12,14 @@ AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/include
 
 # OC Sources
 SRC= curlfunctions.c dapparse.c daplex.c ocuri.c http.c ocbytes.c	\
-oc.c occompile.c occontent.c ocdata.c ocdebug.c ocdrno.c ocdump.c	\
+oc.c occontent.c ocdebug.c ocdrno.c ocdump.c	\
 ocinternal.c oclist.c oclog.c ocnode.c ocutil.c occlientparams.c	\
-ocxdr_stdio.c rc.c read.c
+rc.c read.c xxdr.c
 
 HDRS= curlfunctions.h constraints.h dapparselex.h ocuri.h http.h ocbytes.h \
 occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h oc.h	\
 ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h rc.h	\
-read.h
+read.h xxdr.h
 
 GRAMFILES=dap.y
 # autoconf persists in removing the bison output unless it is renamed

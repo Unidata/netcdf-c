@@ -397,7 +397,7 @@ dimproduct3(NClist* dimensions)
 }
 
 
-/* Return vallue of param or NULL if not found */
+/* Return value of param or NULL if not found */
 const char*
 paramvalue34(NCDAPCOMMON* nccomm, const char* key)
 {
@@ -897,7 +897,9 @@ dapexpandescapes(char *termstring)
 {
     char *s, *t, *endp;
     
-    /* expand "\" escapes, e.g. "\t" to tab character  */
+    /* expand "\" escapes, e.g. "\t" to tab character;
+       will only shorten string length, never increase it
+    */
     s = termstring;
     t = termstring;
     while(*t) {
@@ -994,23 +996,36 @@ dap_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 {
     OCerror ocstat;
     char* ext;
+    OCflags flags = 0;
+
     if(dxd == OCDDS) ext = ".dds";
     else if(dxd == OCDAS) ext = ".das";
     else ext = ".dods";
-    if(ce != NULL && strlen(ce) == 0) ce = NULL;
-    if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
+
+    if(ce != NULL && strlen(ce) == 0)
+	ce = NULL;
+
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+	ce = NULL;
+    }
+
+    if(FLAGSET(nccomm->controls,NCF_INMEMORY)) {
+	flags = OCINMEMORY;
+    }
+
+    if(SHOWFETCH) {
 	/* Build uri string minus the constraint */
 	char* baseurl = nc_uribuild(nccomm->oc.url,NULL,ext,0);
 	if(ce == NULL)
-            nclog(NCLOGNOTE,"fetch: %s",baseurl);
+            LOG1(NCLOGNOTE,"fetch: %s\n",baseurl);
 	else	
-            nclog(NCLOGNOTE,"fetch: %s?%s",baseurl,ce);
+            LOG2(NCLOGNOTE,"fetch: %s?%s\n",baseurl,ce);
 	nullfree(baseurl);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
     }
-    ocstat = oc_fetch(conn,ce,dxd,rootp);
+    ocstat = oc_fetchf(conn,ce,dxd,flags,rootp);
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 #ifdef HAVE_GETTIMEOFDAY
         double secs;

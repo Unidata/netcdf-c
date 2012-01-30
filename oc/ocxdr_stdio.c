@@ -81,14 +81,14 @@ an fseek
 #include <netinet/in.h>
 #endif
 
-static bool_t	ocxdrstdio_getlong();
-static bool_t	ocxdrstdio_putlong();
-static bool_t	ocxdrstdio_getbytes();
-static bool_t	ocxdrstdio_putbytes();
-static u_int	ocxdrstdio_getpos();
-static bool_t	ocxdrstdio_setpos();
-static int *	ocxdrstdio_inline();
-static void	ocxdrstdio_destroy();
+static bool_t	xxdrstdio_getlong();
+static bool_t	xxdrstdio_putlong();
+static bool_t	xxdrstdio_getbytes();
+static bool_t	xxdrstdio_putbytes();
+static u_int	xxdrstdio_getpos();
+static bool_t	xxdrstdio_setpos();
+static int *	xxdrstdio_inline();
+static void	xxdrstdio_destroy();
 
 /* Need this to keep AIX quiet */
 #ifdef _AIX
@@ -98,19 +98,19 @@ typedef long* (*LOCALINLINE)();
 /*
  * Ops vector for stdio type XDR
  */
-static struct xdr_ops	ocxdrstdio_ops = {
-	ocxdrstdio_getlong,	/* deseraialize a 32 bit int */
-	ocxdrstdio_putlong,	/* seraialize a 32 bit  int */
-	ocxdrstdio_getbytes,	/* deserialize counted bytes */
-	ocxdrstdio_putbytes,	/* serialize counted bytes */
-	ocxdrstdio_getpos,	/* get offset in the stream */
-	ocxdrstdio_setpos,	/* set offset in the stream */
+static struct xdr_ops	xxdrstdio_ops = {
+	xxdrstdio_getlong,	/* deseraialize a 32 bit int */
+	xxdrstdio_putlong,	/* seraialize a 32 bit  int */
+	xxdrstdio_getbytes,	/* deserialize counted bytes */
+	xxdrstdio_putbytes,	/* serialize counted bytes */
+	xxdrstdio_getpos,	/* get offset in the stream */
+	xxdrstdio_setpos,	/* set offset in the stream */
 #ifdef _AIX
-	(LOCALINLINE)ocxdrstdio_inline,	/* prime stream for inline macros */
+	(LOCALINLINE)xxdrstdio_inline,	/* prime stream for inline macros */
 #else
-	ocxdrstdio_inline,	/* prime stream for inline macros */
+	xxdrstdio_inline,	/* prime stream for inline macros */
 #endif
-	ocxdrstdio_destroy	/* destroy stream */
+	xxdrstdio_destroy	/* destroy stream */
 };
 
 /*
@@ -119,14 +119,14 @@ static struct xdr_ops	ocxdrstdio_ops = {
  * Operation flag is set to op.
  */
 void
-ocxdrstdio_create(xdrs, file, op)
+xxdrstdio_create(xdrs, file, op)
 	register XDR *xdrs;
 	FILE *file;
 	enum xdr_op op;
 {
 
 	xdrs->x_op = op;
-	xdrs->x_ops = &ocxdrstdio_ops;
+	xdrs->x_ops = &xxdrstdio_ops;
 	xdrs->x_private = (caddr_t)file;
 	xdrs->x_handy = 0;
 	xdrs->x_base = 0;
@@ -135,10 +135,10 @@ ocxdrstdio_create(xdrs, file, op)
 
 /*
  * Destroy a stdio xdr stream.
- * Cleans up the xdr stream handle xdrs previously set up by ocxdrstdio_create.
+ * Cleans up the xdr stream handle xdrs previously set up by xxdrstdio_create.
  */
 static void
-ocxdrstdio_destroy(xdrs)
+xxdrstdio_destroy(xdrs)
 	register XDR *xdrs;
 {
 	(void)fflush((FILE *)xdrs->x_private);
@@ -146,7 +146,7 @@ ocxdrstdio_destroy(xdrs)
 }
 
 static bool_t
-ocxdrstdio_getlong(xdrs, lp)
+xxdrstdio_getlong(xdrs, lp)
 	XDR *xdrs;
 	register unsigned int *lp;
 {
@@ -165,7 +165,7 @@ if(fread((caddr_t)lp,sizeof(unsigned int),1,(FILE *)(xdrs->x_private)) != 1)
 }
 
 static bool_t
-ocxdrstdio_putlong(xdrs, lp)
+xxdrstdio_putlong(xdrs, lp)
 	XDR *xdrs;
 	unsigned int* lp;
 {
@@ -180,7 +180,7 @@ ocxdrstdio_putlong(xdrs, lp)
 }
 
 static bool_t
-ocxdrstdio_getbytes(xdrs, addr, len)
+xxdrstdio_getbytes(xdrs, addr, len)
 	XDR *xdrs;
 	caddr_t addr;
 	u_int len;
@@ -192,7 +192,7 @@ ocxdrstdio_getbytes(xdrs, addr, len)
 }
 
 static bool_t
-ocxdrstdio_putbytes(xdrs, addr, len)
+xxdrstdio_putbytes(xdrs, addr, len)
 	XDR *xdrs;
 	caddr_t addr;
 	u_int len;
@@ -205,7 +205,7 @@ ocxdrstdio_putbytes(xdrs, addr, len)
 }
 
 static u_int
-ocxdrstdio_getpos(xdrs)
+xxdrstdio_getpos(xdrs)
 	XDR *xdrs;
 {
     unsigned long result = (unsigned long)xdrs->x_public;
@@ -214,7 +214,7 @@ ocxdrstdio_getpos(xdrs)
 }
 
 static bool_t
-ocxdrstdio_setpos(xdrs, pos) 
+xxdrstdio_setpos(xdrs, pos) 
 	XDR *xdrs;
 	u_int pos;
 { 
@@ -225,7 +225,7 @@ ocxdrstdio_setpos(xdrs, pos)
 }
 
 static int *
-ocxdrstdio_inline(xdrs, len)
+xxdrstdio_inline(xdrs, len)
 	XDR *xdrs;
 	u_int len;
 {

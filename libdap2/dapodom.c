@@ -16,8 +16,11 @@ newdapodometer(DCEslice* slices, unsigned int first, unsigned int rank)
     int i;
     Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
+    if(rank == 0) {
+	return newdapodometer1(1);
+    }
     odom->rank = rank;
-    assert(odom->rank <= NC_MAX_VAR_DIMS);
+    ASSERT(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
 	DCEslice* slice = slices+(first+i);
 	odom->slices[i] = *slice;
@@ -32,6 +35,9 @@ newsimpledapodometer(DCEsegment* segment, unsigned int rank)
     int i;
     Dapodometer* odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
+    if(rank == 0) {
+	return newdapodometer1(1);
+    }
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     assert(segment->slicesdefined && segment->slicesdeclized);

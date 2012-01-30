@@ -568,7 +568,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mktemp \
+		mkstemp getpid \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
@@ -728,33 +728,35 @@ AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 UD_FTPBINDIR
 
 ##################################################
-# Require some version of xdr/rpc if --enable-dap is set.
-# See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
-if test "x$enable_dap" = xyes; then
-   AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
-   		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
-  if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
-    AC_MSG_ERROR(Cannot locate library containing xdr functions.)
-  else
-  if test "$dap_xdrlib" = "lc" ; then
-    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
-  elif test "$dap_xdrlib" = "none required" ; then
-    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
-  else
-    dap_xdrlib=`echo $dap_xdrlib | sed -e s/-l//g`
-    AC_MSG_NOTICE(XDR Functions appear to be in lib${dap_xdrlib}.)	
-    # Add to library list
-    AC_CHECK_LIB($dap_xdrlib,xdr_void)
-  fi
-  # Fix to get working on OS X (thanks to Fedor Baart)
-  AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
-       AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
-       AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
-       ], [], [[#ifdef HAVE_RPC_TYPES_H
-  # include <rpc/types.h>
-  #endif]])
-fi
-fi
+# OC has been modified to not depend on xdr.h, so suppress here
+## Require some version of xdr/rpc if --enable-dap is set.
+## See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
+#if test "x$enable_dap" = xyes; then
+#   AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
+#   		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
+#  if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
+#    AC_MSG_ERROR(Cannot locate library containing xdr functions.)
+#  else
+#  if test "$dap_xdrlib" = "lc" ; then
+#    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
+#  elif test "$dap_xdrlib" = "none required" ; then
+#    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
+#  else
+#    dap_xdrlib=`echo $dap_xdrlib | sed -e s/-l//g`
+#    AC_MSG_NOTICE(XDR Functions appear to be in lib${dap_xdrlib}.)	
+#    # Add to library list
+#    AC_CHECK_LIB($dap_xdrlib,xdr_void)
+#  fi
+#  # Fix to get working on OS X (thanks to Fedor Baart)
+#  AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
+#       AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
+#       AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
+#       ], [], [[#ifdef HAVE_RPC_TYPES_H
+#  # include <rpc/types.h>
+#  #endif]])
+#fi
+#fi
+
 AC_MSG_CHECKING([value of LIBS])
 AC_MSG_RESULT([$LIBS])
 

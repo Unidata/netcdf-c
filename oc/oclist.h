@@ -21,7 +21,7 @@ typedef struct OClist {
   ocelem* content;
 } OClist;
 
-EXTERNC OClist* oclistnew(void);
+EXTERNC OClist* oclistnewn(int);
 EXTERNC int oclistfree(OClist*);
 EXTERNC int oclistsetalloc(OClist*,unsigned int);
 EXTERNC int oclistsetlength(OClist*,unsigned int);
@@ -47,6 +47,7 @@ EXTERNC ocelem* oclistdup(OClist*);
 EXTERNC int oclistcontains(OClist*, ocelem);
 
 /* Following are always "in-lined"*/
+#define oclistnew() oclistnewn(0)
 #define oclistclear(l) oclistsetlength((l),0U)
 #define oclistextend(l,len) oclistsetalloc((l),(len)+(l->alloc))
 #define oclistcontents(l) ((l)->content)

@@ -4,10 +4,16 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
-#include <stdarg.h>
-#include "ocdump.h"
+#if 0
+#define OCDEBUG
+#define DAPDEBUG 1
+#endif
 
-#undef OCDEBUG
+#ifdef OCDEBUG
+#define OCVERBOSE
+#endif
+
+#include <stdarg.h>
 
 /* OCCATCHERROR is used to detect errors as close
    to their point of origin as possible. When
@@ -73,11 +79,13 @@ extern void  ocfree(void*);
 /* Place breakpoint on ocbreakpoint to catch errors close to where they occur*/
 #define OCTHROW(e) octhrow(e)
 #define OCTHROWCHK(e) (void)octhrow(e)
+#define OCGOTO(label) {ocbreakpoint(-1); goto label;}
 extern int ocbreakpoint(int err);
 extern int octhrow(int err);
 #else
 #define OCTHROW(e) (e)
 #define OCTHROWCHK(e)
+#define OCGOTO(label) goto label
 #endif
 
 

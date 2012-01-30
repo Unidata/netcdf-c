@@ -9,7 +9,16 @@
 #include "dapdump.h"
 #include "ncd3dispatch.h"
 
+
 #define NEWVARM
+
+/* Define a tracker for memory to support*/
+/* the concatenation*/
+
+struct NCMEMORY {
+    void* memory;
+    char* next; /* where to store the next chunk of data*/
+}; 
 
 /* Forward:*/
 static NCerror moveto(NCDAPCOMMON*, Getvara*, CDFnode* dataroot, void* memory);
@@ -19,9 +28,11 @@ static NCerror movetor(NCDAPCOMMON*, OCdata currentcontent,
 		   struct NCMEMORY*, NClist* segments);
 
 static int findfield(CDFnode* node, CDFnode* subnode);
-static NCerror slicestring(OCconnection, OCdata, size_t, DCEslice*, struct NCMEMORY*);
 static int wholeslicepoint(Dapodometer* odom);
-static NCerror removepseudodims(DCEprojection* proj);
+static NCerror removesequencedims(DCEprojection* proj);
+
+static int extract(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, OClink, OCdata, struct NCMEMORY*);
+static int extractstring(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, OClink, OCdata, struct NCMEMORY*);
 
 /**
 1. We build the projection to be sent to the server aka
@@ -37,27 +48,28 @@ The vara constraint is the one formed from the arguments
 (start, count, stride) provided to the call to nc_get_vara().
 
 There are some exceptions to the formation of the fetch constraint.
-a. If the target variable (as specified in nc_get_vara())
-is already in the cache and the whole variable is there,
-then we will not do any fetch at all. This will occur for,
-for example, pre-fetched variables.
-b. If the url is unconstrainable (e.g. file://...), then
-we do not use any constraint and fetch the whole dataset.
+In all cases, the fetch constraint will use any URL selections,
+but will use different fetch projections.
+a. URL is unconstrainable (e.g. file://...):
+   fetchprojection = null => fetch whole dataset
+b. The target variable (as specified in nc_get_vara())
+   is already in the cache => the whole variable is there (may change later)
+   fetchprojection = N.A. since variable is in the cache
+c. Otherwise:
+   fetchprojection = unsliced vara variable => fetch whole variable
 
-2. At this point, the target variable is available in the
-cache, either whole (cases 1a and 1b), or the constrained
-fetched part is in the cache.
+2. At this point, whole target variable is available in the cache.
 
 3. We build a projection to walk (guide) the use of the oc
 data procedures in extract the required data from the cache.
+In all cases:
+   walkprojection = merge(urlprojection,varaprojection)
 
-If the whole target variable is available in the cache,
-(case 1a or 1b) then we need to walk using the
-merge of the url constraint and the vara constraint.
-
-If the partial target variable is in the cache, then that
-means we used the merged constraints to fetch the data and
-we need only extract the complete contents of the cache.
+#ifdef FUTURE
+An eventual optimization involves caching a part of the
+variable of interest using the merge of the
+url constraints and the getvar constraint.
+This means we need only extract the complete contents of the cache.
 Notice that this will not necessarily be a direct memory to
 memory copy because the dap encoding still needs to be
 interpreted. For this case, we derive a walk projection
@@ -65,7 +77,9 @@ from the merged projection that will properly access
 the cached data. This walk projection
 shifts the merged projection so all slices
 start at 0 and have a stride of 1.
- */
+#endif
+
+*/
 
 NCerror
 nc3d_getvarx(int ncid, int varid,
@@ -194,7 +208,7 @@ fprintf(stderr,"\n");
 
     /* Validate any implied type conversion*/
     if(cdfvar->etype != dsttype && dsttype == NC_CHAR) {
-	/* The only disallowed conversion is to/from char and non-byte
+        /* The only disallowed conversion is to/from char and non-byte
            numeric types*/
 	switch (cdfvar->etype) {
 	case NC_STRING: case NC_URL:
@@ -209,25 +223,17 @@ fprintf(stderr,"\n");
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     state = 0;
-    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	state = FETCHWHOLE;
-	cachenode = dapcomm->cdf.cache->prefetch;	
+    if(iscached(dapcomm,cdfvar,&cachenode)) {
+	state = CACHED;
 	ASSERT((cachenode != NULL));
 #ifdef DEBUG
-fprintf(stderr,"Unconstrained: reusing prefetch\n");
-#endif
-#ifdef IGNORE
-    } else if(iscached(dapcomm,cdfvar,&cachenode)) {
-#else
-    } else if(iscached(dapcomm,cdfvar,&cachenode)) {
+fprintf(stderr,"var is in cache\n");
 #endif
         /* If it is cached, then it is a whole variable but may still
-           need to apply constraints */
-#ifdef DEBUG
-fprintf(stderr,"Reusing cache\n");
-#endif
+           need to apply constraints during the walk */
 	ASSERT(cachenode->wholevariable); /* by construction */
-	state = CACHED;
+    } else if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
+	state = FETCHWHOLE;
     } else {/* load using constraints */
 	state = FETCHPART;
     }
@@ -246,19 +252,54 @@ fprintf(stderr,"Reusing cache\n");
 
     fetchprojection = NULL;
     walkprojection = NULL;
-    if(state == FETCHPART) {
-	/* Create a merge of the url projections and the vara projection */
-	ncstat = daprestrictprojection(dapcomm->oc.dapconstraint->projections,
-					varaprojection,&fetchprojection);
+
+    /* Create walkprojection as the merge of the url projections
+       and the vara projection */
+    ncstat = daprestrictprojection(dapcomm->oc.dapconstraint->projections,
+				   varaprojection,&walkprojection);
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+
+    /* define the var list of interest */
+    vars = nclistnew();
+    nclistpush(vars,(ncelem)varainfo->target);
+
+    switch (state) {
+    case FETCHPART: {
+#ifdef FUTURE
+        /* Create fetch projection as the merge of the url projections
+           and the vara projection */
+        ncstat = daprestrictprojection(dapcomm->oc.dapconstraint->projections,
+				       varaprojection,&fetchprojection);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-	/* Clone the projection for use with the walk */
-	walkprojection = (DCEprojection*)dceclone((DCEnode*)fetchprojection);
+	/* Shift the varaprojection for simple walk */
+	walkprojection = (DCEprojection*)dceclone((DCEnode*)varaprojection);
+        dapshiftprojection(walkprojection);
+#else /*!FUTURE*/
+	/* Build a whole variable projection */
+	fetchprojection = (DCEprojection*)dceclone((DCEnode*)varaprojection);
+	dcemakewholeprojection(fetchprojection);
+#endif /*FUTURE*/
 	/* elide any sequence dimensions (dap servers do not allow such). */
-	ncstat = removepseudodims(fetchprojection);
+	ncstat = removesequencedims(fetchprojection);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-	/* After the removal, we might end up with a whole variable */
-	if(dceiswholeprojection(fetchprojection))
-	    state = FETCHWHOLE;
+
+	/* Occurrence of sequence node automatically makes it not a whole variable */
+	if(!dapinsequence((CDFnode*)fetchprojection->var->annotation)) {
+#ifdef IGNORE
+	    if(dceiswholeprojection(fetchprojection)) {
+	        state = FETCHWHOLE;
+	        goto fetchwhole;
+	    }
+#else
+	    dcemakewholeprojection(fetchprojection);
+#endif
+	}
+
+#ifdef DEBUG
+fprintf(stderr,"getvarx: walkprojection: |%s|\n",dumpprojection(walkprojection));
+fprintf(stderr,"getvarx: fetchprojection: |%s|\n",dumpprojection(fetchprojection));
+#endif
+
         /* Build the complete constraint to use in the fetch */
         fetchconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
         /* merged constraint just uses the url constraint selection */
@@ -269,24 +310,33 @@ fprintf(stderr,"Reusing cache\n");
 fprintf(stderr,"getvarx: fetchconstraint: %s\n",dumpconstraint(fetchconstraint));
 #endif
         /* buildcachenode3 will create a new cachenode and
-           will also fetch the corresponding datadds */
-        vars = nclistnew();
-	nclistpush(vars,(ncelem)varainfo->target);
+           will also fetch the corresponding datadds.
+        */
         ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-    } else if(state == FETCHWHOLE) {
+    } break;
+
+    case FETCHWHOLE: {
         /* buildcachenode3 will create a new cachenode and
-           will also fetch the corresponding datadds */
-        vars = nclistnew();
-	nclistpush(vars,(ncelem)varainfo->target);
+           will also fetch the corresponding datadds.
+	*/
         /* Build the complete constraint to use in the fetch */
         fetchconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
+        /* Use no projections */
+        fetchconstraint->projections = nclistnew();
         /* merged constraint just uses the url constraint selection */
         fetchconstraint->selections = dceclonelist(dapcomm->oc.dapconstraint->selections);
-	/* Use no projections */
-        fetchconstraint->projections = nclistnew();
         ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
+
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+    } break;
+
+    case CACHED: {
+    } break;
+
+    default: PANIC1("unknown fetch state: %d\n",state);
     }
 
     ASSERT(cachenode != NULL);
@@ -300,6 +350,8 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     ncstat = attachsubset34(cachenode->datadds,dapcomm->cdf.ddsroot);
     if(ncstat) goto fail;	
 
+#ifdef IGNORE
+this was handled above */
     /* Now, walk to the relevant instance */
 
     switch (state) {
@@ -317,9 +369,11 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 	break;
     default: PANIC("illegal getvarx state");
     }
+#endif
 
 #ifdef DEBUG
-fprintf(stderr,"getvarx: walkprojection: %s\n",dumpprojection(walkprojection));
+fprintf(stderr,"getvarx: final fetchprojection: %s\n",dumpprojection(fetchprojection));
+fprintf(stderr,"getvarx: final walkprojection: %s\n",dumpprojection(walkprojection));
 #endif
 
     /* Fix up varainfo to use the cache */
@@ -341,31 +395,30 @@ fprintf(stderr,"getvarx: walkprojection: %s\n",dumpprojection(walkprojection));
 
 fail:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    dcefree((DCEnode*)varaprojection);
 ok:
     nclistfree(vars);
-    dcefree((DCEnode*)fetchconstraint);
     dcefree((DCEnode*)varaprojection);
+    dcefree((DCEnode*)fetchconstraint);
     freegetvara(varainfo);
     return THROW(ncstat);
 }
 
+/* Remove any sequence dimensions */
 static NCerror
-removepseudodims(DCEprojection* proj)
+removesequencedims(DCEprojection* proj)
 {
     int i;
 #ifdef DEBUG1
-fprintf(stderr,"removepseudodims.before: %s\n",dumpprojection(proj));
+fprintf(stderr,"removesequencedims.before: %s\n",dumpprojection(proj));
 #endif
     for(i=0;i<nclistlength(proj->var->segments);i++) {
 	DCEsegment* seg = (DCEsegment*)nclistget(proj->var->segments,i);
-	if(seg->cdfnode->array.seqdim != NULL)
+	CDFnode* cdfnode = (CDFnode*)seg->annotation;
+	if(cdfnode->array.seqdim != NULL)
 	    seg->rank = 0;
-	else if(seg->cdfnode->array.stringdim != NULL)
-	    seg->rank--;
     }
 #ifdef DEBUG1
-fprintf(stderr,"removepseudodims.after: %s\n",dumpprojection(proj));
+fprintf(stderr,"removesequencedims.after: %s\n",dumpprojection(proj));
 #endif
     return NC_NOERR;
 }
@@ -387,7 +440,7 @@ moveto(NCDAPCOMMON* nccomm, Getvara* xgetvar, CDFnode* xrootnode, void* memory)
     ocroot = xrootnode->tree->ocroot;
     xrootcontent = oc_data_new(conn);
     ocstat = oc_data_root(conn,ocroot,xrootcontent);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
     /* Remember: xgetvar->target is in DATADDS tree */
     collectnodepath3(xgetvar->target,path,WITHDATASET);
@@ -395,7 +448,7 @@ moveto(NCDAPCOMMON* nccomm, Getvara* xgetvar, CDFnode* xrootnode, void* memory)
                      path,0,xgetvar,0,&memstate,
                      xgetvar->varaprojection->var->segments);
 
-fail:
+done:
     nclistfree(path);
     oc_data_free(conn,xrootcontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
@@ -430,12 +483,6 @@ movetor(NCDAPCOMMON* nccomm,
     int newdepth;
     int caching = FLAGSET(nccomm->controls,NCF_CACHE);
     int unconstrainable = FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE);
-    int wholepoint;
-    size_t externtypesize;
-    size_t interntypesize;
-    char* localmemory = NULL;
-    size_t odomsubsize;
-    size_t internlen;
 
     /* Note that we use depth-1 because the path contains the DATASET
        but the segment list does not */
@@ -454,6 +501,7 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
     /* Switch on the combination of nctype and mode */
 #define CASE(nc1,nc2) (nc1*1024+nc2)
 
+    /* This must be consistent with the oc mode transition function */
     switch (CASE(xnode->nctype,currentmode)) {
 
     default:
@@ -461,14 +509,11 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
 		(int)xnode->nctype,(int)currentmode);
 	break;
 
+    case CASE(NC_Sequence,OCFIELDMODE):
     case CASE(NC_Dataset,OCFIELDMODE):
     case CASE(NC_Grid,OCFIELDMODE):
-    case CASE(NC_Structure,OCFIELDMODE): /* fall thru */
-    case CASE(NC_Sequence,OCFIELDMODE):
-	/* Since these are never dimensioned, we can go directly to
-	   the appropriate field; locate the field index for the next
-	   item in the path.
-	*/
+    case CASE(NC_Structure,OCFIELDMODE):
+	/* currentcontent points to the grid/dataset/structure instance */
 	xnext = (CDFnode*)nclistget(path,depth+1);
 	ASSERT((xnext != NULL));
 	fieldindex = findfield(xnode,xnext);
@@ -496,12 +541,19 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
 			 segments);
 	break;
 
+    case CASE(NC_Sequence,OCARRAYMODE): /* will actually always be scalar, but will have
+                                           rank == 1 to account for the sequence dim */
+    case CASE(NC_Grid,OCARRAYMODE): /* will actually always be scalar */
     case CASE(NC_Structure,OCARRAYMODE):
         /* figure out which slices refer to this node:
            dimindex upto dimindex+rank; */
         ASSERT((segment != NULL));
         rank = segment->rank;
-	if(caching || unconstrainable) {
+	if(xnode->nctype == NC_Sequence)
+	    rank--; /* ignore the sequence dim */
+	if(rank == 0) {
+            odom = newdapodometer1(1);
+	} else if(caching || unconstrainable) {	
             odom = newdapodometer(segment->slices,0,rank);	    
 	} else { /*Since vara was projected out, build a simple odometer*/
             odom = newsimpledapodometer(segment,rank);
@@ -514,7 +566,8 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
             ocstat = oc_data_ith(conn,currentcontent,dimoffset,dimcontent);
             if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
             ocstat = oc_data_mode(conn,dimcontent,&mode);
-            ASSERT((mode == OCFIELDMODE));
+            ASSERT((mode == OCFIELDMODE
+		    || (mode == OCSEQUENCEMODE && xnode->nctype == NC_Sequence)));
             ncstat = movetor(nccomm,dimcontent,
                                  path,depth,
                                  xgetvar,dimindex+rank,
@@ -524,9 +577,8 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
         freedapodometer(odom);
         break;
 
-    case CASE(NC_Sequence,OCRECORDMODE): {
+    case CASE(NC_Sequence,OCSEQUENCEMODE): {
         DCEslice* uslice;
-        ASSERT((currentmode == OCRECORDMODE));
         ASSERT((segment != NULL));
         /* Get and check the corresponding sequence dimension from DDS */
         ASSERT((xnode->attachment != NULL));
@@ -539,13 +591,14 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
         uslice = &segment->slices[0];
         reccontent = oc_data_new(conn);
         for(i=uslice->first;i<uslice->stop;i+=uslice->stride) {
+	    OCmode eos;
             ocstat = oc_data_ith(conn,currentcontent,i,reccontent);
-            if(ocstat == OC_EINVALCOORDS) {
+	    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+	    ocstat = oc_data_mode(conn,reccontent,&eos);
+	    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+	    if(eos == OCNULLMODE) {
                 /* We asked for too much */
-                THROWCHK(ocstat);
-                goto fail;
-            } else if(ocstat != OC_NOERR) {
-                THROWCHK(ocstat);
+                ncstat = THROW(NC_EINVALCOORDS);
                 goto fail;
             }
             ncstat = movetor(nccomm,reccontent,
@@ -556,151 +609,13 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
         }
         } break;
 
-    case CASE(NC_Primitive,OCSCALARMODE):
-        ASSERT((segment != NULL));
-	externtypesize = nctypesizeof(xgetvar->dsttype);
-        if(hasstringdim) {
-	    DCEslice* stringslice;
-	    /* Get the string dimension */
-	    CDFnode* strdim = xnode->attachment->array.stringdim;
-	    ASSERT((strdim != NULL));
-	    stringslice = &segment->slices[segment->rank-1];
-  	    ncstat = slicestring(conn,currentcontent,0,stringslice,memory);
-	} else {
-            /* Read the whole scalar directly into memory (with conversion) */
-            char value[16]; /* to hold any value*/
-            ocstat = oc_data_get(conn,currentcontent,value,sizeof(value),0,1);
-            if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-            ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
-            if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-	    memory->next += (externtypesize);
-	}
+    case CASE(NC_Primitive,OCPRIMITIVEMODE):
+        if(hasstringdim)
+	    ncstat = extractstring(nccomm, xgetvar, xnode, segment, conn, currentcontent, memory);
+	else	
+	    ncstat = extract(nccomm, xgetvar, xnode, segment, conn, currentcontent, memory);
 	break;
 
-    case CASE(NC_Primitive,OCARRAYMODE): {
-	DCEslice* stringslice;
-	CDFnode* strdim;
-        char value[16]; /* to hold any value*/
-
-        ASSERT((segment != NULL));
-
-        rank = segment->rank;
-
-#ifdef DEBUG2
-fprintf(stderr,"moveto: primitive: segment=%s",
-		dcetostring((DCEnode*)segment));
-fprintf(stderr," hasstringdim=%d",hasstringdim);
-fprintf(stderr," iswholevariable=%d",xgetvar->cache->wholevariable);
-fprintf(stderr,"\n");
-#endif
-	ASSERT(xgetvar->cache != NULL);
-	if(xgetvar->cache->wholevariable) {
-            if(hasstringdim) {
-	        /* Get the string dimension */
-	        stringslice = &segment->slices[rank-1];
-	        strdim = xnode->attachment->array.stringdim;
-	        ASSERT((strdim != NULL));
-                odom = newdapodometer(segment->slices,0,rank-1);
-	    } else {
-                odom = newdapodometer(segment->slices,0,rank);
-	    }
-	} else { /*!xgetvar->cache->wholevariable*/
-            if(hasstringdim) {
-	        /* Get the string dimension */
-	        stringslice = &segment->slices[rank-1];
-	        strdim = xnode->attachment->array.stringdim;
-	        ASSERT((strdim != NULL));
-                odom = newsimpledapodometer(segment,rank-1);
-	    } else {
-                odom = newsimpledapodometer(segment,rank);
-	    }
-	}
-        /* Optimize off the use of the odometer by checking the slicing
-           to see if the whole variable, or some whole subslice
-           is being extracted.
-           However do not do this if the external type conversion is needed
-           or hasstringdim (too complicated)
-           or if the whole slice point is rank-1 (normal case anyway).
-        */
-	externtypesize = nctypesizeof(xgetvar->dsttype);
-        interntypesize = nctypesizeof(xnode->etype);
-	wholepoint = wholeslicepoint(odom);
-	if(wholepoint == -1)
-	    odomsubsize = 1; /* no whole point */
-	else
-            odomsubsize = dapodometerspace(odom,wholepoint);
-	internlen = (odomsubsize*interntypesize);
-	if(!hasstringdim && xnode->etype != xgetvar->dsttype) {
-	    /* copy the data locally before conversion */
-	    localmemory = (char*)malloc(internlen);
-	} else {
-	    localmemory = NULL;
-	}
-
-#ifdef DEBUG2
-fprintf(stderr,"moveto: primitive: ");
-fprintf(stderr," hasstringdim=%d",hasstringdim);
-fprintf(stderr," wholepoint=%d",wholepoint);
-fprintf(stderr,"\n");
-#endif
-
-        if(wholepoint == 0 && !hasstringdim) {/* whole variable */
-            /* Read the whole n elements directly into memory.*/
-	    if(localmemory == NULL) {
-                ocstat = oc_data_get(conn,currentcontent,memory->next,
-                                     internlen,0,odomsubsize);
-                if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-	    } else {
-                ocstat = oc_data_get(conn,currentcontent,localmemory,
-                                     internlen,0,odomsubsize);
-                if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-	        /* do conversion */
-                ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,
-				     memory->next,localmemory,odomsubsize);
-                if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-	    }
-            memory->next += (externtypesize*odomsubsize);
-        } else if(wholepoint > 0 && !hasstringdim) {/* whole subslice */
-	    odom->rank = wholepoint; /* truncate */
-            while(dapodometermore(odom)) {
-                size_t dimoffset = dapodometercount(odom) * odomsubsize;
-	        if(localmemory == NULL) {
-                    ocstat = oc_data_get(conn,currentcontent,memory->next,
-                                         internlen,dimoffset,odomsubsize);
-                    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-		} else {
-                    ocstat = oc_data_get(conn,currentcontent,localmemory,
-                                         internlen,dimoffset,odomsubsize);
-                    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-	            /* do conversion */
-                    ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,
-				         memory->next,localmemory,odomsubsize);
-                    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-	        }
-                memory->next += (externtypesize*odomsubsize);
-                dapodometerincr(odom);
-	    }
-        } else { /* Oh well, use the odometer to walk to the
-                    appropriate fields*/
-            while(dapodometermore(odom)) {
-                size_t dimoffset = dapodometercount(odom);
-		if(hasstringdim) {
-		    ncstat = slicestring(conn,currentcontent,dimoffset,
-					 stringslice,memory);
-		    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-		} else {
-                    ocstat = oc_data_get(conn,currentcontent,value,sizeof(value),dimoffset,1);
-                    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-                    ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
-                    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
-                    memory->next += externtypesize;
-		}
-                dapodometerincr(odom);
-            }
-        }
-        freedapodometer(odom);
-	nullfree(localmemory);
-        } break;
     }
     goto ok;
 
@@ -709,51 +624,6 @@ ok:
     oc_data_free(conn,dimcontent);
     oc_data_free(conn,fieldcontent);
     oc_data_free(conn,reccontent);
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    return THROW(ncstat);
-}
-
-/* Extract a slice of a string; many special cases to consider and optimize*/
-static NCerror
-slicestring(OCconnection conn, OCdata content, size_t dimoffset,
-                DCEslice* slice, struct NCMEMORY* memory)
-{
-    char*  stringmem = NULL;
-    size_t stringlen;
-    unsigned int i;
-    OCerror ocstat = OC_NOERR;
-    NCerror ncstat = NC_NOERR;
-
-    /* Get the whole string into local memory*/
-    ocstat = oc_data_get(conn,content,&stringmem,sizeof(stringmem),
-                         dimoffset,1);
-    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-    /* libnc-dap chooses to convert string escapes to the corresponding
-       character; so we do likewise.
-    */
-    dapexpandescapes(stringmem); 
-    stringlen = strlen(stringmem);
-
-#ifdef DEBUG2
-fprintf(stderr,"moveto: slicestring: string/%lu=%s\n",stringlen,stringmem);
-fprintf(stderr,"stringslice: %lu string=|%s|\n",stringlen,stringmem);
-fprintf(stderr,"stringslice: slice=[%lu:%lu:%lu/%lu]\n",
-slice->first,slice->stride,slice->stop,slice->declsize);
-#endif
-
-    /* Stride across string; if we go past end of string, then pad*/
-    for(i=slice->first;i<slice->length;i+=slice->stride) {
-            if(i < stringlen)
-                *memory->next = stringmem[i];
-            else /* i >= stringlen*/
-                *memory->next = NC_FILL_CHAR;
-	    memory->next++;
-    }
-    /* If room, null terminate */
-
-
-fail:
-    if(stringmem != NULL) nullfree(stringmem);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
@@ -994,4 +864,325 @@ fprintf(stderr,"old: %lu -> %lu  %f\n",
 
 done:
     return ncstat;
+}
+
+static int
+conversionrequired(nc_type t1, nc_type t2)
+{
+    if(t1 == t2)
+	return 0;
+    if(nctypesizeof(t1) != nctypesizeof(t2))
+	return 1;
+    /* Avoid too many cases by making t1 < t2 */
+    if(t1 > t2) {int tmp = t1; t1 = t2; t2 = tmp;}
+#undef CASE
+#define CASE(t1,t2) ((t1)<<5 | (t2))
+    switch (CASE(t1,t2)) {
+    case CASE(NC_BYTE,NC_UBYTE):
+    case CASE(NC_BYTE,NC_CHAR):
+    case CASE(NC_CHAR,NC_UBYTE):
+    case CASE(NC_SHORT,NC_USHORT):
+    case CASE(NC_INT,NC_UINT):
+    case CASE(NC_INT64,NC_UINT64):
+	return 0;
+    default: break;
+    }
+    return 1;
+}
+
+/* We are at a primitive variable or scalar that has no string dimensions.
+Extract the data.
+(This is way too complicated)
+*/
+static int
+extract(
+	NCDAPCOMMON* nccomm,
+	Getvara* xgetvar,
+	CDFnode* xnode,
+        DCEsegment* segment,
+        OClink conn,
+        OCdata currentcontent,
+	struct NCMEMORY* memory
+       )
+{
+    OCerror ocstat = OC_NOERR;
+    NCerror ncstat = NC_NOERR;
+    size_t rank;
+    Dapodometer* odom = OCNULL;
+    int wholepoint;
+    size_t externtypesize;
+    size_t interntypesize;
+    char* localmemory = NULL;
+    size_t odomsubsize;
+    size_t internlen;
+    int requireconversion;
+    char value[16]; 
+
+    ASSERT((segment != NULL));
+
+    requireconversion = conversionrequired(xgetvar->dsttype,xnode->etype);
+
+    rank = segment->rank;
+
+    if(rank == 0) {/* scalar */
+	char* mem = (requireconversion?value:memory->next);
+        ASSERT((segment != NULL));
+        externtypesize = nctypesizeof(xgetvar->dsttype);
+	ASSERT(externtypesize <= sizeof(value));
+	/* Read the whole scalar directly into memory  */
+	ocstat = oc_data_get(conn,currentcontent,mem,externtypesize,0,1);
+	if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+	if(requireconversion) {
+	    /* convert the value to external type */
+            ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
+            if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+        }
+        memory->next += (externtypesize);
+
+    } else {/* rank > 0 */
+
+#ifdef DEBUG2
+fprintf(stderr,"moveto: primitive: segment=%s",
+                dcetostring((DCEnode*)segment));
+fprintf(stderr," hasstringdim=%d",hasstringdim);
+fprintf(stderr," iswholevariable=%d",xgetvar->cache->wholevariable);
+fprintf(stderr,"\n");
+#endif
+
+        ASSERT(xgetvar->cache != NULL);
+        if(xgetvar->cache->wholevariable) {
+            odom = newdapodometer(segment->slices,0,rank);
+        } else { /*!xgetvar->cache->wholevariable*/
+            odom = newsimpledapodometer(segment,rank);
+        }
+        /* Optimize off the use of the odometer by checking the slicing
+           to see if the whole variable, or some whole subslice
+           is being extracted.
+           However do not do this if the external type conversion is needed
+           or if the whole slice point is rank-1 (normal case anyway).
+        */
+        externtypesize = nctypesizeof(xgetvar->dsttype);
+        interntypesize = nctypesizeof(xnode->etype);
+        wholepoint = wholeslicepoint(odom);
+        if(wholepoint == -1)
+            odomsubsize = 1; /* no whole point */
+        else
+            odomsubsize = dapodometerspace(odom,wholepoint);
+        internlen = (odomsubsize*interntypesize);
+        if(requireconversion) {
+            /* copy the data locally before conversion */
+            localmemory = (char*)malloc(internlen);
+        } else {
+            localmemory = memory->next;
+        }
+
+#ifdef DEBUG2
+fprintf(stderr,"moveto: primitive: ");
+fprintf(stderr," hasstringdim=%d",hasstringdim);
+fprintf(stderr," wholepoint=%d",wholepoint);
+fprintf(stderr,"\n");
+#endif
+
+        if(wholepoint == 0) {/* whole variable */
+            /* Read the whole n elements directly into memory.*/
+            ocstat = oc_data_get(conn,currentcontent,localmemory,
+                                 internlen,0,odomsubsize);
+            if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+	    if(requireconversion) {
+                /* do conversion */
+                ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,
+                                     memory->next,localmemory,odomsubsize);
+                if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+            }
+            memory->next += (externtypesize*odomsubsize);
+        } else if(wholepoint > 0) {/* whole subslice */
+            odom->rank = wholepoint; /* truncate */
+            while(dapodometermore(odom)) {
+                size_t dimoffset = dapodometercount(odom) * odomsubsize;
+                ocstat = oc_data_get(conn,currentcontent,localmemory,
+                                         internlen,dimoffset,odomsubsize);
+                if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+		if(requireconversion) {
+                    /* do conversion */
+                    ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,
+                                         memory->next,localmemory,odomsubsize);
+                    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+                }
+                memory->next += (externtypesize*odomsubsize);
+                dapodometerincr(odom);
+            }
+        } else { /* Oh well, use the odometer to walk to the
+                    appropriate fields*/
+            while(dapodometermore(odom)) {
+		char* mem = (requireconversion?value:memory->next);
+                size_t dimoffset = dapodometercount(odom);
+                ocstat = oc_data_get(conn,currentcontent,mem,externtypesize,dimoffset,1);
+                if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+		if(requireconversion) {
+                    ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
+                    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+		}
+                memory->next += externtypesize;
+                dapodometerincr(odom);
+            }
+        }
+        freedapodometer(odom);
+        if(requireconversion) nullfree(localmemory);
+    }
+done:
+    return THROW(ncstat);
+}
+
+
+#ifdef IGNORE
+/* We are at a primitive variable or scalar, without a string dimension; extract the data */
+/* This is way too complicated */
+static int
+extractstring(
+	NCDAPCOMMON* nccomm,
+	Getvara* xgetvar,
+	CDFnode* xnode,
+        DCEsegment* segment,
+        OClink conn,
+        OCdata currentcontent,
+	struct NCMEMORY* memory
+       )
+{
+    NCerror ncstat = NC_NOERR;
+    size_t rank;
+    DCEslice* stringslice;
+    CDFnode* strdim;
+
+    rank = segment->rank;
+
+    if(rank == 0) {/* scalar */
+        ASSERT((segment != NULL));
+        /* Get the string dimension */
+        strdim = xnode->attachment->array.stringdim;
+        ASSERT((strdim != NULL));
+        stringslice = &segment->slices[segment->rank-1];
+        ncstat = slicestring(conn,currentcontent,0,stringslice,memory);
+    } else { /* rank > 0 */
+	if(xgetvar->cache->wholevariable) {
+            /* Get the string dimension */
+	    stringslice = &segment->slices[rank-1];
+            strdim = xnode->attachment->array.stringdim;
+            ASSERT((strdim != NULL));
+        } else { /*!xgetvar->cache->wholevariable*/
+            /* Get the string dimension */
+            stringslice = &segment->slices[rank-1];
+            strdim = xnode->attachment->array.stringdim;
+            ASSERT((strdim != NULL));
+        }
+   }
+   return THROW(ncstat);
+}
+#endif
+
+/* Extract a slice of a string; many special cases to consider and optimize*/
+static NCerror
+slicestring(OCconnection conn, char* stringmem, DCEslice* slice, struct NCMEMORY* memory)
+{
+    size_t stringlen;
+    unsigned int i;
+    NCerror ncstat = NC_NOERR;
+    char* lastchar;
+    size_t charcount; /* number of characters inserted into memory */
+
+    /* libnc-dap chooses to convert string escapes to the corresponding
+       character; so we do likewise.
+    */
+    dapexpandescapes(stringmem); 
+    stringlen = strlen(stringmem);
+
+#ifdef DEBUG2
+fprintf(stderr,"moveto: slicestring: string/%lu=%s\n",stringlen,stringmem);
+fprintf(stderr,"stringslice: %lu string=|%s|\n",stringlen,stringmem);
+fprintf(stderr,"stringslice: slice=[%lu:%lu:%lu/%lu]\n",
+slice->first,slice->stride,slice->stop,slice->declsize);
+#endif
+
+    /* Stride across string; if we go past end of string, then pad*/
+    charcount = 0;
+    for(i=slice->first;i<slice->length;i+=slice->stride) {
+        if(i < stringlen)
+            *memory->next = stringmem[i];
+        else /* i >= stringlen*/
+            *memory->next = NC_FILL_CHAR;
+	memory->next++;
+	charcount++;
+    }
+    lastchar = (memory->next);
+    if(charcount > 0) {
+        lastchar--;
+	/* See if already null terminated */
+	if(*lastchar != '\0') {
+            /* null terminate (should we do this?) */
+	    *memory->next = '\0';
+	    memory->next++;
+	}
+    }
+
+    return THROW(ncstat);
+}
+
+/*
+Extract data for a netcdf variable that has a string dimension.
+*/
+static int
+extractstring(
+	NCDAPCOMMON* nccomm,
+	Getvara* xgetvar,
+	CDFnode* xnode,
+        DCEsegment* segment,
+        OClink conn,
+        OCdata currentcontent,
+	struct NCMEMORY* memory
+       )
+{
+    NCerror ncstat = NC_NOERR;
+    OCerror ocstat = OC_NOERR;
+    int i;
+    size_t rank;
+    int caching = FLAGSET(nccomm->controls,NCF_CACHE);
+    int unconstrainable = FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE);
+    NClist* strings = NULL;
+    Dapodometer* odom = OCNULL;
+
+    rank = segment->rank;
+
+    /* A number of optimizations are possible but none is currently used. */
+
+    /* Use the odometer to walk to the appropriate fields*/
+    if(rank == 1) {
+        odom = newdapodometer1(1); /* scalar case */
+    } else if(caching || unconstrainable) {	
+        odom = newdapodometer(segment->slices,0,rank-1);	    
+    } else { /*Since vara was projected out, build a simple odometer*/
+        odom = newsimpledapodometer(segment,rank-1);
+    }
+
+    /* step thru the odometer obtaining each string and storing it in an OClist */
+    strings = nclistnew();
+    nclistsetalloc(strings,dapodometerspace(odom,0)); /* preallocate */
+    while(dapodometermore(odom)) {
+	char* value = NULL;
+	size_t dimoffset = dapodometercount(odom);
+	ocstat = oc_data_get(conn,currentcontent,&value,sizeof(value),dimoffset,1);
+	if(ocstat != OC_NOERR) goto done;
+	nclistpush(strings,(ncelem)value);	
+        dapodometerincr(odom);
+    }
+    freedapodometer(odom);
+    /* Get each string in turn, slice it and store in user
+       supplied memory */
+    for(i=0;i<nclistlength(strings);i++) {
+	char* s = (char*)nclistget(strings,i);
+	slicestring(conn,s,&segment->slices[rank-1],memory);
+	free(s);	
+    }    
+    nclistfree(strings);
+done:
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
+    return THROW(ncstat);
 }

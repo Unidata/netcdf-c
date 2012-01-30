@@ -79,11 +79,7 @@ mapconstraints3(DCEconstraint* constraint,
 	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
 	if(proj->discrim != CES_VAR) continue; // ignore functions
 	ncstat = matchpartialname3(nodes,proj->var->segments,
-#ifdef IGNORE
-				   &proj->var->cdfleaf);
-#else
-				   &proj->var->cdfvar);
-#endif
+				   (CDFnode**)&proj->var->annotation);
 	if(ncstat) goto done;
     }
 
@@ -92,11 +88,7 @@ mapconstraints3(DCEconstraint* constraint,
 	DCEselection* sel = (DCEselection*)nclistget(dceselections,i);
 	if(sel->lhs->discrim != CES_VAR) continue;
 	ncstat = matchpartialname3(nodes,sel->lhs->var->segments,
-#ifdef IGNORE
-					&sel->lhs->var->cdfleaf);
-#else
-					&sel->lhs->var->cdfvar);
-#endif
+				   (CDFnode**)&sel->lhs->var->annotation);
 	if(ncstat) goto done;
     }
    
@@ -108,11 +100,7 @@ mapconstraints3(DCEconstraint* constraint,
 	    DCEvalue* value = (DCEvalue*)nclistget(sel->rhs,j);
 	    if(value->discrim != CES_VAR) continue;
 	    ncstat = matchpartialname3(nodes,value->var->segments,
-#ifdef IGNORE
-					&value->var->cdfnode);
-#else
-					&value->var->cdfvar);
-#endif
+					(CDFnode**)&value->var->annotation);
 	    if(ncstat) goto done;
 	}
     }
@@ -171,15 +159,9 @@ qualifyprojectionnames3(DCEprojection* proj)
     NClist* fullpath = nclistnew();
 
     ASSERT((proj->discrim == CES_VAR
-#ifdef IGNORE
-            && proj->var->cdfleaf != NULL
-            && proj->var->cdfleaf->dds != OCNULL));
-    collectnodepath3(proj->var->cdfleaf,fullpath,!WITHDATASET);
-#else
-            && proj->var->cdfvar != NULL
-            && proj->var->cdfvar->dds != OCNULL));
-    collectnodepath3(proj->var->cdfvar,fullpath,!WITHDATASET);
-#endif
+            && proj->var->annotation != NULL
+            && ((CDFnode*)proj->var->annotation)->dds != OCNULL));
+    collectnodepath3((CDFnode*)proj->var->annotation,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify: %s -> ",
 	dumpprojection(proj));
@@ -208,11 +190,12 @@ fprintf(stderr,"qualifyprojectionsizes.before: %s\n",
     for(i=0;i<nclistlength(proj->var->segments);i++) {
         DCEsegment* seg = (DCEsegment*)nclistget(proj->var->segments,i);
 	NClist* dimset = NULL;
-	ASSERT(seg->cdfnode != NULL);
-        dimset = seg->cdfnode->array.dimsetplus;
+	CDFnode* cdfnode = (CDFnode*)seg->annotation;
+	ASSERT(cdfnode != NULL);
+        dimset = cdfnode->array.dimsetplus;
         seg->rank = nclistlength(dimset);
 	/* For this, we do not want any string dimensions */
-	if(seg->cdfnode->array.stringdim != NULL) seg->rank--;
+	if(cdfnode->array.stringdim != NULL) seg->rank--;
         for(j=0;j<seg->rank;j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(dimset,j);
 	    if(dim->dim.basedim != NULL) dim = dim->dim.basedim;
@@ -243,11 +226,7 @@ qualifyselectionnames3(DCEselection* sel)
     NClist* fullpath = nclistnew();
 
     ASSERT(sel->lhs->discrim == CES_VAR);
-#ifdef IGNORE
-    collectnodepath3(sel->lhs->var->cdfleaf,fullpath,!WITHDATASET);
-#else
-    collectnodepath3(sel->lhs->var->cdfvar,fullpath,!WITHDATASET);
-#endif
+    collectnodepath3((CDFnode*)sel->lhs->var->annotation,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify.sel: %s -> ",
 	dumpselection(sel));
@@ -258,11 +237,7 @@ fprintf(stderr,"qualify.sel: %s -> ",
         DCEvalue* value = (DCEvalue*)nclistget(sel->rhs,i);
         if(value->discrim != CES_VAR) continue;
         nclistclear(fullpath);
-#ifdef IGNORE
-        collectnodepath3(value->var->cdfnode,fullpath,!WITHDATASET);
-#else
-        collectnodepath3(value->var->cdfvar,fullpath,!WITHDATASET);
-#endif
+        collectnodepath3((CDFnode*)value->var->annotation,fullpath,!WITHDATASET);
 	completesegments3(fullpath,value->var->segments);
     }
     nclistfree(segments);
@@ -281,7 +256,7 @@ completesegments3(NClist* fullpath, NClist* segments)
         DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
         seg->name = nulldup(node->ocname);
-        seg->cdfnode = node;
+        seg->annotation = (void*)node;
 	seg->rank = nclistlength(node->array.dimset0);
 #ifdef IGNORE
 	for(j=0;j<seg->rank;j++) {
@@ -297,7 +272,7 @@ completesegments3(NClist* fullpath, NClist* segments)
     for(i=delta;i<nclistlength(segments);i++) {
         DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
         CDFnode* node = (CDFnode*)nclistget(fullpath,i);
-	seg->cdfnode = node;
+	seg->annotation = (void*)node;
 #ifdef IGNORE
         if(!seg->slicesdefined) {
 	    makewholesegment3(seg,node);
@@ -631,8 +606,8 @@ iswholesegment(DCEsegment* seg)
     
     if(seg->rank == 0) return 1;
     if(!seg->slicesdefined) return 0;
-    if(seg->cdfnode == NULL) return 0;
-    dimset = seg->cdfnode->array.dimset0;
+    if(seg->annotation == NULL) return 0;
+    dimset = ((CDFnode*)seg->annotation)->array.dimset0;
     rank = nclistlength(dimset);
     whole = 1; /* assume so */
     for(i=0;i<rank;i++) {
@@ -710,11 +685,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
 	    if(p2 == NULL) continue;
 	    if(p1 == p2) continue;
 	    if(p2->discrim != CES_VAR) continue;
-#ifdef IGNORE
-	    if(p1->var->cdfleaf != p2->var->cdfleaf) continue;
-#else
-	    if(p1->var->cdfvar != p2->var->cdfvar) continue;
-#endif
+	    if(p1->var->annotation != p2->var->annotation) continue;
 	    /* check for slice mismatches */
 	    if(!slicematch(p1->var->segments,p2->var->segments)) {
 		/* complain */
@@ -731,25 +702,17 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
 	DCEprojection* p1 = (DCEprojection*)nclistget(list,i);
 	if(p1 == NULL) continue;
         if(p1->discrim != CES_VAR) continue; /* dont try to unify functions */
-	if(!iscontainer(p1->var->cdfvar))
+	if(!iscontainer((CDFnode*)p1->var->annotation))
 	    continue;
         for(j=i;j<nclistlength(list);j++) {
 	    DCEprojection* p2 = (DCEprojection*)nclistget(list,j);
 	    if(p2 == NULL) continue;
 	    if(p2->discrim != CES_VAR) continue;
 	    nclistclear(tmp);
-#ifdef IGNORE
-	    collectnodepath3(p2->var->cdfleaf,tmp,WITHDATASET);
-#else
-	    collectnodepath3(p2->var->cdfvar,tmp,WITHDATASET);
-#endif
+	    collectnodepath3((CDFnode*)p2->var->annotation,tmp,WITHDATASET);
 	    for(k=0;k<nclistlength(tmp);k++) {
-		CDFnode* candidate = (CDFnode*)nclistget(tmp,k);
-#ifdef IGNORE
-	        if(candidate == p1->var->cdfleaf) {
-#else
-	        if(candidate == p1->var->cdfvar) {
-#endif
+		void* candidate = (void*)nclistget(tmp,k);
+	        if(candidate == p1->var->annotation) {
 		    nclistset(list,i,(ncelem)NULL);	    
 	            dcefree((DCEnode*)p1);
 		    goto next;
@@ -768,11 +731,7 @@ next:   continue;
             if(target == NULL) continue;
             if(target->discrim != CES_VAR)
                 continue; /* dont try to unify functions */
-#ifdef IGNORE
-            leaf = target->var->cdfleaf;
-#else
-            leaf = target->var->cdfvar;
-#endif
+            leaf = (CDFnode*)target->var->annotation;
             ASSERT(leaf != NULL);
             if(iscontainer(leaf)) {/* capture container */
 		if(!nclistcontains(tmp,(ncelem)target))
@@ -784,11 +743,7 @@ next:   continue;
         /* Now explode the containers */
         for(i=0;i<nclistlength(tmp);i++) {
             DCEprojection* container = (DCEprojection*)nclistget(tmp,i);
-#ifdef IGNORE
-	    CDFnode* leaf = container->var->cdfleaf;
-#else
-	    CDFnode* leaf = container->var->cdfvar;
-#endif
+	    CDFnode* leaf = (CDFnode*)container->var->annotation;
             for(j=0;i<nclistlength(leaf->subnodes);j++) {
                 CDFnode* field = (CDFnode*)nclistget(leaf->subnodes,j);
 		/* Convert field node to a proper constraint */
@@ -811,6 +766,7 @@ done:
 #ifdef DEBUG
 fprintf(stderr,"fixprojection: exploded = %s\n",dumpprojections(list));
 #endif
+    nclistfree(tmp);
     return ncstat;
 }
 
@@ -831,12 +787,7 @@ projectify(CDFnode* field, DCEprojection* container)
     DCEsegment* seg  = (DCEsegment*)dcecreate(CES_SEGMENT);
     proj->discrim = CES_VAR;
     proj->var = var;
-#ifdef IGNORE
-    var->cdfnode = field;
-    var->cdfleaf = field;
-#else
-    var->cdfvar = field;
-#endif
+    var->annotation = (void*)field;
     /* Dup the segment list */
     var->segments = dceclonelist(container->var->segments);
     seg->rank = 0;
@@ -892,12 +843,12 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
 	int localrank;
         NClist* dimset;
 
-	segment->cdfnode = n;
+	segment->annotation = (void*)n;
         segment->name = nulldup(n->ocname);
         /* We need to assign whole slices to each segment */
-	localrank = nclistlength(segment->cdfnode->array.dimsetplus);
+	localrank = nclistlength(n->array.dimsetplus);
         segment->rank = localrank;
-	dimset = segment->cdfnode->array.dimsetplus;
+	dimset = n->array.dimsetplus;
         for(j=0;j<localrank;j++) {
 	    DCEslice* slice;
 	    CDFnode* dim;
@@ -915,11 +866,7 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
     projection = (DCEprojection*)dcecreate(CES_PROJECT);
     projection->discrim = CES_VAR;
     projection->var = (DCEvar*)dcecreate(CES_VAR);
-#ifdef IGNORE
-    projection->var->cdfleaf = var;
-#else
-    projection->var->cdfvar = var;
-#endif
+    projection->var->annotation = (void*)var;
     projection->var->segments = segments;
 
 #ifdef DEBUG1
@@ -957,11 +904,7 @@ fprintf(stderr,"restrictprojection.before: constraints=|%s| vara=|%s|\n",
     for(result=null,i=0;i<nclistlength(projections);i++) {
 	DCEprojection* p1 = (DCEprojection*)nclistget(projections,i);
 	if(p1 == NULL || p1->discrim != CES_VAR) continue;
-#ifdef IGNORE
-	if(p1->var->cdfleaf == var->var->cdfleaf) {
-#else
-	if(p1->var->cdfvar == var->var->cdfvar) {
-#endif
+	if(p1->var->annotation == var->var->annotation) {
 	    result = p1;
 	    break;
 	}
@@ -1007,7 +950,7 @@ dapshiftprojection(DCEprojection* projection)
     NClist* segments;
 
 #ifdef DEBUG1
-fprintf(stderr,"dapwalkprojection.before: %s\n",dumpprojection(projection));
+fprintf(stderr,"dapshiftprojection.before: %s\n",dumpprojection(projection));
 #endif
 
     ASSERT(projection->discrim == CES_VAR);
@@ -1021,7 +964,7 @@ fprintf(stderr,"dapwalkprojection.before: %s\n",dumpprojection(projection));
     }
 
 #ifdef DEBUG1
-fprintf(stderr,"dapwalkprojection.after: %s\n",dumpprojection(projection));
+fprintf(stderr,"dapshiftprojection.after: %s\n",dumpprojection(projection));
 #endif
 
     return ncstat;

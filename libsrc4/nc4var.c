@@ -240,11 +240,14 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
 static int 
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-   int d, max_dim;
+   int d;
    size_t type_size, max_len = 0;
    float num_values = 1, num_set = 0;
-   float total_chunk_size;
    int retval;
+#ifdef LOGGING   
+   int max_dim;
+   float total_chunk_size;
+#endif
 
    if (var->type_info->nc_typeid == NC_STRING)
       type_size = sizeof(char *);
@@ -253,7 +256,9 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
    /* Later this will become the total number of bytes in the default
     * chunk. */
+#ifdef LOGGING   
    total_chunk_size = type_size;
+#endif
 
    /* How many values in the variable (or one record, if there are
     * unlimited dimensions); which is the largest dimension, and how
@@ -269,7 +274,9 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
       if (var->dim[d]->len > max_len)
       {
 	 max_len = var->dim[d]->len;
+#ifdef LOGGING
 	 max_dim = d;
+#endif
       }
       LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
 	   num_values));

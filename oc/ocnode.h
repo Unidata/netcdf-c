@@ -11,7 +11,7 @@
 typedef struct OCdiminfo {
     struct OCnode* array;   /* defining array node (if known)*/
     unsigned int arrayindex;/* rank position ofthis dimension in the array*/
-    size_t declsize;	    /* from DDS*/
+    ocindex_t declsize;	    /* from DDS*/
 } OCdiminfo;
 
 /*! Specifies the Arrayinfo.*/
@@ -22,7 +22,7 @@ typedef struct OCarrayinfo {
     unsigned int rank; /* == |dimensions|*/
 } OCarrayinfo;
 
-/*! Specifies the Attribute.*/
+/*! Specifies Attribute info */
 typedef struct OCattribute {
     char*   name;
     OCtype etype; /* type of the attribute */
@@ -36,14 +36,6 @@ typedef struct OCattinfo {
     int isglobal;   /* is this supposed to be a global attribute set?*/
     OClist* values; /* oclist<char*>*/
 } OCattinfo;
-
-/*! Specified computed information */
-typedef struct OCdapinfo {
-    /* Size of one element: size == 0 => not uniform*/
-    size_t instancesize; /* includes array overhead of subnodes,
-                            but not of this node*/
-    size_t arraysize; /* instancesize + array overhead*/
-} OCdapinfo;
 
 /*! Specifies the OCnode. */
 typedef struct OCnode {
@@ -59,15 +51,35 @@ typedef struct OCnode {
     OCdiminfo       dim;       /* octype == OC_Dimension*/
     OCarrayinfo     array;     /* octype == {OC_Structure, OC_Primitive}*/
     OCattinfo       att;       /* octype == OC_Attribute */
-    OCdapinfo       dap;
     /* primary edge info*/
     OClist* subnodes; /*oclist<OCnode*>*/
     /*int     attributed;*/ /* 1 if merge was done*/
     OClist* attributes; /* oclist<OCattribute*>*/
+    struct OCSKIP {/* Support fast skipping ; in following, 0 => undefined */
+	ocindex_t count;        /* no. instances (== dimension cross product); may be indeterminate*/
+	ocoffset_t instancesize;/*size of single instance; may be indeterminate*/
+	ocoffset_t totalsize;   /* usually: count*instancesize + overhead; may be indeterminate */
+	ocoffset_t offset;      /* mostly for debugging */
+    } skip;
+#ifdef IGNORE
+    struct {/* do simple index cache */
+	int cacheable; /* is this object cacheable? */
+	int valid;   /* is this cache valid */
+	ocindex_t index; /* last index */
+	ocoffset_t offset; /* position of the last indexed instance */	
+    } cache;
+#endif
 #ifdef OC_DAP4
     OCtypeinfo      typdef;
     OCgroupinfo     group;
 #endif
 } OCnode;
+
+#if SIZEOF_SIZE_T == 4
+#define OCINDETERMINATE  ((size_t)0xffffffff)
+#endif
+#if SIZEOF_SIZE_T == 8
+#define OCINDETERMINATE  ((size_t)0xffffffffffffffff)
+#endif
 
 #endif /*OCNODE_H*/

@@ -21,6 +21,7 @@ extern char* maketmppath(char* path, char* prefix);
 /* mnemonic */
 #define WITHDATASET 1
 #define WITHOUTDATASET 0
+
 extern void collectnodepath3(struct CDFnode*, NClist* path, int dataset);
 extern char* makecdfpathstring3(struct CDFnode*,const char*);
 extern char* ocifypathstring3(struct CDFnode*,const char*);

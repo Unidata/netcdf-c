@@ -224,6 +224,7 @@ gs_pop(ncgiter_t *s)
     }
 }
 
+#ifdef UNUSED
 /* Return top value on stack without popping stack.  Defined for
  * completeness but not used (here). */
 static int 
@@ -237,6 +238,7 @@ gs_top(ncgiter_t *s)
 	return value;
     }
 }
+#endif
 
 /* Like netCDF-4 function nc_inq_grps(), but can be called from
  * netCDF-3 only code as well.  Maybe this is what nc_inq_grps()

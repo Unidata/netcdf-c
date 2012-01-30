@@ -14,7 +14,7 @@
    8859 characters above 128 will be handles as n-byte utf8 and so
    will probably not lex correctly.
    Solution: assume utf8 and note in the documentation that
-   ISO8859 is specifically unsupported.
+   ISO8859 is specifically unsupported (except as noted below).
 2. The netcdf function NC_check_name in string.c must be modified to
    conform to the use of UTF8.
 3. We actually have three tests for UTF8 of increasing correctness
@@ -23,6 +23,8 @@
    The tests are derived from the table at
 	    http://www.w3.org/2005/03/23-lex-U
    We include lexical definitions for all three, but use the second version.
+4. Single character constants enclosed in '...' cannot be
+   utf-8, so we assume they are the one case where ISO-8859-1 is allowed.
 */
 
 /* lex specification for tokens for ncgen */
@@ -156,6 +158,8 @@ DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
 SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"
+
+ISO8859CHAR   [\x01-\xFF]
 
 %%
 [ \r\t\f]+	{ /* whitespace */ 

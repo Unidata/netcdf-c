@@ -7,6 +7,7 @@
 /* Forward */
 
 static void addedges(OCnode* node);
+static void setroot(OCnode*,OClist*);
 static int isglobalname(char* name);
 static OCnode* newocnode(char* name, OCtype octype, DAPparsestate* state);
 static OCtype octypefor(Object etype);
@@ -38,13 +39,13 @@ dap_tagparse(DAPparsestate* state, int kind)
 Object
 dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
-    OCnode* node = newocnode((char*)name,OC_Dataset,state);
-    node->subnodes = (OClist*)decls;
+    OCnode* root = newocnode((char*)name,OC_Dataset,state);
+    root->subnodes = (OClist*)decls;
     OCASSERT((state->root == NULL));
-    addedges(node);
-    state->root = node;
-    /* make sure to cross link */
-    state->root->root = state->root;
+    state->root = root;
+    state->root->root = state->root; /* make sure to cross link */
+    addedges(root);
+    setroot(root,state->ocnodes);
     return NULL;
 }
 
@@ -173,6 +174,7 @@ dap_attrset(DAPparsestate* state, Object name, Object attributes)
     /* Check var set vs global set */
     attset->att.isglobal = isglobalname(name);
     attset->subnodes = (OClist*)attributes;
+    addedges(attset);
     return attset;
 }
 
@@ -295,6 +297,16 @@ addedges(OCnode* node)
     }
 }
 
+static void
+setroot(OCnode* root, OClist* ocnodes)
+{
+    int i;
+    for(i=0;i<oclistlength(ocnodes);i++) {
+	OCnode* node = (OCnode*)oclistget(ocnodes,i);
+	node->root = root;
+    }
+}
+
 int
 daperror(DAPparsestate* state, const char* msg)
 {
@@ -326,7 +338,7 @@ flatten(char* s, char* tmp, int tlen)
 static OCnode*
 newocnode(char* name, OCtype octype, DAPparsestate* state)
 {
-    OCnode* node = makeocnode(name,octype,state->root);
+    OCnode* node = ocmakenode(name,octype,state->root);
     oclistpush(state->ocnodes,(ocelem)node);
     return node;
 }

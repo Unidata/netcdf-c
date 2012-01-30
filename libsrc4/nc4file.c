@@ -685,7 +685,9 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    NC_TYPE_INFO_T *type;
    htri_t is_str, equal = 0;
    hid_t class, native_typeid, hdf_typeid;
+#ifdef UNUSED
    nc_type my_nc_type = 0;
+#endif
    H5T_order_t order;
    int endianness;
    nc_type nc_type_constant[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT,
@@ -760,7 +762,9 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       return NC_EHDFERR;
 	    if (equal)
 	    {
+#ifdef NOTUSED
 	       my_nc_type = nc_type_constant[t];
+#endif
 	       break;
 	    }
 	 }

@@ -35,10 +35,10 @@ gen_netcdf(const char *filename)
 {
     int stat, ncid;
     int idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts, ntyps, ngrps;
+    int ndims, nvars, natts, ngatts;
 
 #ifdef USE_NETCDF4
-    int igrp;
+    int ntyps, ngrps, igrp;
 #endif
 
     Bytebuffer* databuf = bbNew();
@@ -47,8 +47,10 @@ gen_netcdf(const char *filename)
     nvars = listlength(vardefs);
     natts = listlength(attdefs);
     ngatts = listlength(gattdefs);
+#ifdef USE_NETCDF4
     ntyps = listlength(typdefs);
     ngrps = listlength(grpdefs);
+#endif /*USE_NETCDF4*/
 
     /* create netCDF file, uses NC_CLOBBER mode */
     cmode_modifier |= NC_CLOBBER;

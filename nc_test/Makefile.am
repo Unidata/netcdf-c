@@ -33,6 +33,13 @@ TESTPROGRAMS += quick_large_files tst_big_var6 tst_big_var2	\
 tst_big_rvar tst_big_var tst_large large_files
 endif # LARGE_FILE_TESTS
 
+#if BUILD_BENCHMARKS
+TESTPROGRAMS += testnc3perf
+testnc3perf_SOURCES = testnc3perf.c
+CLEANFILES += benchmark.nc
+#endif
+
+
 # Set up the tests.
 check_PROGRAMS = $(TESTPROGRAMS) 
 TESTS = $(TESTPROGRAMS)

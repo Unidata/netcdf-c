@@ -6,9 +6,17 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#undef DEBUG
-#undef DEBUG1
-#undef DEBUG2
+#include "ocdebug.h"
+
+#ifdef DAPDEBUG
+#  define DEBUG
+#  if DAPDEBUG > 0
+#    define DEBUG1
+#  endif
+#  if DAPDEBUG > 1
+#    define DEBUG2
+#  endif
+#endif
 
 #undef PARSEDEBUG
 
@@ -44,6 +52,18 @@ extern int dapthrow(int err);
 #else
 #define THROW(e) (e)
 #define THROWCHK(e)
+#endif
+
+#ifdef DEBUG
+#define SHOWFETCH (1)
+#define LOG0(level,msg) fprintf(stderr,msg)
+#define LOG1(level,msg,a1) fprintf(stderr,msg,a1)
+#define LOG2(level,msg,a1,a2) fprintf(stderr,msg,a1,a2)
+#else
+#define SHOWFETCH FLAGSET(nccomm->controls,NCF_SHOWFETCH)
+#define LOG0(level,msg) nclog(level,msg)
+#define LOG1(level,msg,a1) nclog(level,msg,a1)
+#define LOG2(level,msg,a1,a2) nclog(level,msg,a1,a2)
 #endif
 
 #endif /*DEBUG_H*/

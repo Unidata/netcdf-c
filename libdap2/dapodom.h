@@ -9,7 +9,7 @@
 
 typedef struct Dapodometer {
     int            rank;
-    DCEslice        slices[NC_MAX_VAR_DIMS];
+    DCEslice       slices[NC_MAX_VAR_DIMS];
     size_t         index[NC_MAX_VAR_DIMS];
 } Dapodometer;
 

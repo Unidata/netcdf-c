@@ -49,7 +49,9 @@ NC_initialize(void)
     /* if((stat = NCD_initialize())) return stat; */
 
 #ifdef USE_DAP
+#ifdef NOTUSED
     if((stat = NCD4_initialize())) return stat;
+#endif
 #endif
 
 #ifdef USE_CDMREMOTE

@@ -73,7 +73,6 @@ NCD3_open(const char * path, int mode,
     OCerror ocstat = OC_NOERR;
     NC* drno = NULL;
     NCDAPCOMMON* dapcomm = NULL;
-    int ncid = -1;
     const char* value;
     char* tmpname = NULL;
 
@@ -90,7 +89,6 @@ NCD3_open(const char * path, int mode,
     /* compute an ncid */
     ncstat = add_to_NCList(drno);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    ncid = drno->ext_ncid;
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
     if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
@@ -238,15 +236,16 @@ NCD3_open(const char * path, int mode,
     ncstat = fixzerodims3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    if(nclistlength(dapcomm->cdf.seqnodes) == 0
-       && dapcomm->cdf.recorddimname != NULL) {
-	/* Attempt to use the DODS_EXTRA info to turn
-           one of the dimensions into unlimited. Can only do it
-           in a sequence free DDS.
-	   Assume computecdfdimnames34 has already been called.
-        */
-        ncstat = defrecorddim3(dapcomm);
-        if(ncstat) {THROWCHK(ncstat); goto done;}
+    /* Attempt to use the DODS_EXTRA info to turn
+       one of the dimensions into unlimited.
+       Assume computecdfdimnames34 has already been called.
+    */
+    ncstat = defrecorddim3(dapcomm);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
+    if(dapcomm->cdf.recorddimname != NULL
+       && nclistlength(dapcomm->cdf.seqnodes) > 0) {
+	/*nclog(NCLOGWARN,"unlimited dimension specified, but sequences exist in DDS");*/
+	PANIC("unlimited dimension specified, but sequences exist in DDS");	
     }
 
     /* Re-compute the var names*/
@@ -292,10 +291,12 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Do any necessary data prefetch */
-    ncstat = prefetchdata3(dapcomm);
-    if(ncstat != NC_NOERR) {
-        del_from_NCList((NC*)drno); /* undefine here */
-	{THROWCHK(ncstat); goto done;}
+    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)) {
+        ncstat = prefetchdata3(dapcomm);
+        if(ncstat != NC_NOERR) {
+            del_from_NCList((NC*)drno); /* undefine here */
+	    {THROWCHK(ncstat); goto done;}
+	}
     }
 
     {
@@ -336,7 +337,7 @@ NCD3_abort(int ncid)
     /* remove ourselves from NClist */
     del_from_NCList(drno);
     /* clean NC* */
-    cleanNCDAPCOMMON(dapcomm);
+    freeNCDAPCOMMON(dapcomm);
     if(drno->path != NULL) free(drno->path);
     free(drno);
     return THROW(ncstatus);

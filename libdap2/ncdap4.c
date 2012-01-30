@@ -40,12 +40,11 @@ static NCerror buildvars4(NCDAPCOMMON*);
 static NCerror buildglobalattrs4(NCDAPCOMMON*, int, CDFnode* root);
 static NCerror buildattribute4a(NCDAPCOMMON*, NCattribute* att, int varid);
 static NCerror showprojection4(NCDAPCOMMON* dapcomm, CDFnode* var);
-static size_t estimatesizes4r(NCDAPCOMMON* dapcomm, CDFnode* node);
-static void estimatesizes4(NCDAPCOMMON* dapcomm);
 static NCerror fixzerodims4(NCDAPCOMMON* dapcomm);
 static NCerror fixzerodims4r(NCDAPCOMMON* dapcomm, CDFnode* node);
 static NCerror cvtunlimiteddim(NCDAPCOMMON* dapcomm, CDFnode* dim);
 static void applyclientparamcontrols4(NCDAPCOMMON* dapcomm);
+static void estimatesizes4(NCDAPCOMMON* dapcomm);
 
 static int nc4dinitialized = 0;
 
@@ -75,8 +74,6 @@ NCD4_open(const char * path, int mode,
     OCerror ocstat = OC_NOERR;
     NC* drno = NULL;
     NCDAPCOMMON* dapcomm = NULL;
-    int ncid = -1;
-    char* modifiedpath = NULL;
     const char* value;
     char* tmpname = NULL;
 
@@ -104,7 +101,6 @@ NCD4_open(const char * path, int mode,
     /* compute an ncid */
     ncstat = add_to_NCList(drno);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-    ncid = drno->ext_ncid;
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
     if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto fail;}
@@ -131,7 +127,6 @@ NCD4_open(const char * path, int mode,
     strcpy(modifiedpath,"[compile]");
     strcat(modifiedpath,path);    
 #else
-    modifiedpath = nulldup(path);
 #endif
 
     nc_uriparse(dapcomm->oc.urltext,&dapcomm->oc.url);
@@ -740,6 +735,7 @@ showprojection4(NCDAPCOMMON* dapcomm, CDFnode* var)
 }
 
 
+#ifdef NOTUSED
 static unsigned long
 cdftotalsize4(NClist* dimensions)
 {
@@ -809,6 +805,12 @@ estimatesizes4(NCDAPCOMMON* dapcomm)
     /* Recursively compute the sizes of each node */
     totalsize = estimatesizes4r(dapcomm,root);
 }
+#else
+static void
+estimatesizes4(NCDAPCOMMON* dapcomm)
+{
+}
+#endif
 
 /*
 For variables which have a zero size dimension,

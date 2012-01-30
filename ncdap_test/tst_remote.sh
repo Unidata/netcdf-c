@@ -5,6 +5,9 @@ quiet=0
 leakcheck=0
 timing=0
 
+PARAMS="[log]"
+#PARAMS="${PARAMS}[show=fetch]"
+
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
 
@@ -18,7 +21,7 @@ longtests="$5"
 if test "x$timing" = "x1" ; then leakcheck=0; fi
 
 # get the list of test files
-WHICHTESTS="S1 C1 C2"
+WHICHTESTS="S1 C1"
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1"
 fi
@@ -36,16 +39,20 @@ fi
 # fi
 # fi
 
+
 #locate the testdata and expected directory
 if test "$cache" = 0 ; then
-CACHE=""
+# No cache means no cache, including prefetch
+CACHE="[noprefetch]"
 expected3="${srcdir}/nocacheremote3"
 expected4="${srcdir}/nocacheremote4"
 else
-#CACHE="[cache]"
+CACHE="[cache][prefetch]"
 expected3="${srcdir}/expectremote3"
 expected4="${srcdir}/expectremote4"
 fi
+
+PARAMS="${PARAMS}${CACHE}"
 
 ##################################################
 # Remote test info
@@ -65,7 +72,6 @@ test.01 test.02 test.04 test.05 test.06 test.07a test.07 \
 test.21 \
 test.50 test.53 test.55 test.56 test.57 \
 test.66 test.67 test.68 test.69"
-REMOTETESTSS1="test.02"
 
 # Server is failing on some tests ; investigate why
 S1FAIL="test.06a test.22 test.23 test.31"
@@ -117,6 +123,12 @@ REMOTETESTSC3="\
 argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 "
 
+# Test string access 
+REMOTEURLC4="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar"
+REMOTETESTSC4="\
+Surface_METAR_20120101_0000.nc;1;weather[0:10]\
+"
+
 # Constrained long tests
 REMOTEURLLC1="http://motherlode.ucar.edu:8080/dts"
 REMOTETESTSLC1="\
@@ -161,14 +173,14 @@ case "$mode" in
 3)
     EXPECTED="$expected3"
     TITLE="DAP to netCDF-3 translation"
-    PARAMS="${CACHE}[netcdf3]"
+    PARAMS="${PARAMS}[netcdf3]"
     XFAILTESTS="$XFAILTESTS3"
     SVCFAILTESTS="$SVCFAILTESTS3"
     ;;
 4)
     EXPECTED="$expected4"
     TITLE="DAP to netCDF-4 translation"
-    PARAMS="${CACHE}[netcdf4]"
+    PARAMS="${PARAMS}[netcdf4]"
     XFAILTESTS="$XFAILTESTS4"
     SVCFAILTESTS="$SVCFAILTESTS4"
     ;;
@@ -213,9 +225,11 @@ for i in $WHICHTESTS ; do
   C1) TESTURL="$REMOTEURLC1" ; TESTSET="$REMOTETESTSC1" ; constrained=1 ;;
   C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
   C3) TESTURL="$REMOTEURLC3" ; TESTSET="$REMOTETESTSC3" ; constrained=1 ;ncconstrained=0 ;;
+  C4) TESTURL="$REMOTEURLC4" ; TESTSET="$REMOTETESTSC4" ; constrained=1 ;ncconstrained=0 ;;
   LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
   X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
   XC) TESTURL="$REMOTEURLXC" ; TESTSET="$REMOTETESTSXC" ; constrained=1 ;;
+  *) echo "Unknown which test: $i" ;;
   esac
 
 cd ${RESULTSDIR}

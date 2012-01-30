@@ -474,8 +474,6 @@ idmember(const idnode_t* idlist, int id)
 boolean
 group_wanted(int grpid)
 {
-    int igrp;
-
     /* If -g not specified, all groups are wanted */
     if(formatting_specs.nlgrps == 0)
 	return true;
@@ -1763,7 +1761,9 @@ iscoordvar(int ncid, int varid)
     int dimid;
     int* dimids = 0;
     ncdim_t *dims = 0;
+#ifdef USE_NETCDF4
     int include_parents = 1;
+#endif
     int is_coord = 0;		/* true if variable is a coordinate variable */
     char varname[NC_MAX_NAME];
     int varndims;

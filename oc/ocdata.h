@@ -4,33 +4,25 @@
 #ifndef OCDATA_H
 #define OCDATA_H
 
-/* Temporary aliases */
-#define Emptymode OCEMPTYMODE
-#define Nullmode OCNULLMODE
-#define Dimmode OCARRAYMODE
-#define Recordmode OCRECORDMODE
-#define Fieldmode OCFIELDMODE
-#define Datamode OCSCALARMODE
-
 typedef struct OCdimcounter {
     int rank;
     size_t index[OC_MAX_DIMS];
     size_t size[OC_MAX_DIMS];
 } OCdimcounter;
 
-extern const char StartOfoclist;
-extern const char EndOfoclist;
+extern const char StartOfSequence;
+extern const char EndOfSequence;
+
+/*Forward */
+struct OCcontent;
 
 /* Skip arbitrary dimensioned instance; Handles dimensioning.*/
-extern int ocskip(OCnode* node, XDR* xdrs);
+extern int ocskip(OCnode* node, XXDR* xdrs);
 
-/* Skip arbitrary single instance; except for primitives
-   Assumes that parent will handle arrays of compound instances
-   or records of compound instances of this node type*/
-extern int ocskipinstance(OCnode* node, XDR* xdrs);
+extern int occountrecords(OCnode* node, XXDR* xdrs, size_t* nrecordsp);
 
-extern int occountrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp);
+extern int ocxdrread(struct OCcontent*, XXDR*, char* memory, size_t, ocindex_t index, ocindex_t count);
 
-extern int ocxdrread(XDR*, char* memory, size_t, int packed, OCtype, unsigned int index, size_t count);
+extern int ocskipinstance(OCnode* node, XXDR* xdrs, int state, int* tagp);
 
 #endif /*OCDATA_H*/

@@ -2,16 +2,19 @@ TOPDIR="/home/dmh/mach/minor"
 #http://esrl.noaa.gov/psd/thredds/dodsC/Datasets/noaa.oisst.v2/sst.wkmean.1990-present.nc"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
+#PARMS="${PARMS}[netcdf3]"
+PARMS="${PARMS}[fetch=memory]"
+PARMS="${PARMS}[cache]"
+#PARMS="${PARMS}[prefetch]"
+#PARMS="${PARMS}[nocache]"
+#PARMS="${PARMS}[noprefetch]"
+PARMS="${PARMS}[show=fetch]"
 
-F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20111122_0000.nc"
-CON="weather"
+
+F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20120101_0000.nc"
+CON="weather[0:10]"
 #VAR="person.name"
 
-#PARMS="${PARMS}[netcdf4]"
-PARMS="${PARMS}[cache]"
-PARMS="${PARMS}[show=fetch]"
-#PARMS="${PARMS}[compile]"
-if test "x$CE" != "x" ; then set PARMS="${PARMS}[ce=${CE}]" ; fi
 PROG="./ncd"
 #PROG="../ncdump/ncdump"
 U="${PARMS}$F"
@@ -31,7 +34,11 @@ alias qh="$PROG -h $ARGS '$U'"
 alias qqh="gdb --args $PROG -h $ARGS '$U'"
 alias qall="$PROG -h $ARGS '${UALL}'"
 alias qv="valgrind $VARGS $PROG $ARGS '$U'"
-
+if test "x$CON" = "x" ; then
+alias qo="~/svn/oc/octest -p dds -p datadds -DN -DX1 $F"
+else
+alias qo="~/svn/oc/octest -p dds -p datadds -DN -DX1 -C $CON $F"
+fi
 
 if test 1 = 0; then
 F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20110908/gfs_hd_00z"
@@ -59,5 +66,6 @@ F="http://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/46029/46029h9999.nc"
 CON="wind_dir[1:10][0:0][0:0]"
 F="http://nomads.ncep.noaa.gov:9090/dods/gens/gens20111011/gep20_00z"
 CON="ens,time,lat,lon,prmslmsl[0:1:0][0:1:64][0:1:10][0:1:10]"
-
+F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20111122_0000.nc"
+CON="weather[0:10]"
 fi

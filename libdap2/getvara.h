@@ -27,20 +27,14 @@ and the per-retrieval maximum size
 /* Max number of cache nodes */
 #define DFALTCACHECOUNT (100)
 
-/* Define a tracker for memory to support*/
-/* the concatenation*/
-
-struct NCMEMORY {
-    void* memory;
-    char* next; /* where to store the next chunk of data*/
-}; 
-
+#ifdef IGNORE
 typedef int nc_tactic;
 #define tactic_null	0
 #define tactic_all	1
 #define tactic_partial	2
 #define tactic_grid	4
 #define tactic_var	8
+#endif
 
 typedef struct Getvara {
     void* memory; /* where result is put*/

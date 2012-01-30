@@ -3,188 +3,106 @@
 
 #include "config.h"
 #include "ocinternal.h"
+#include "occontent.h"
 #include "ocdata.h"
 #include "ocdebug.h"
 
-const char StartOfoclist = '\x5A';
-const char EndOfoclist = '\xA5';
+const char StartOfSequence = '\x5A';
+const char EndOfSequence = '\xA5';
 
-extern int oc_invert_xdr_double;
-
-static int errorstring(XDR* xdrs);
+static int ocerrorstring(XXDR* xdrs);
 
 #define LOCALMEMMAX 1024
 
-/* Skip arbitrary dimensioned instance; handles dimensioning.*/
-int
-ocskip(OCnode* node, XDR* xdrs)
-{
-    unsigned int i,j,rank;
-    int stat = OC_NOERR;
-    unsigned int xdrcount;
-    unsigned int len;
-
-    switch (node->octype) {
-        case OC_Primitive:
-            /* handle non-uniform types separately*/
-            if(node->etype == OC_String || node->etype == OC_URL) {
-                rank = node->array.rank;
-        	xdrcount = 1;
-                if(rank > 0 && !xdr_u_int(xdrs,&xdrcount)) return xdrerror();
-                len = xdrcount;
-        	for(i=0;i<xdrcount;i++) {
-                    if(!xdr_u_int(xdrs,&len)) return xdrerror();
-        	    if(!xdr_skip(xdrs,len)) return xdrerror();
-        	}
-            } else { /* uniform => do a direct skip*/
-        	OCASSERT((node->dap.arraysize > 0
-                          && node->dap.instancesize > 0));
-		if(node->array.rank > 0) {
-        	    if(!xdr_skip(xdrs,node->dap.arraysize)) return xdrerror();
-		} else {
-        	    if(!xdr_skip(xdrs,node->dap.instancesize)) return xdrerror();
-		}
-            }
-	    break;
-
-        case OC_Grid:
-	    OCASSERT((node->array.rank == 0));
-            if(node->dap.instancesize > 0) { /* do a direct skip*/
-                if(!xdr_skip(xdrs,node->dap.arraysize)) return xdrerror();
-		break;
-            } else { /* Non-uniform size*/
-                /* Walk array and maps*/
-                for(j=0;j<oclistlength(node->subnodes);j++) {
-                    OCnode* field = (OCnode*)oclistget(node->subnodes,j);
-                    stat = ocskip(field,xdrs);
-                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-                }
-                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-	    }
-	    break;
-
-	case OC_Dataset:
-            OCASSERT((node->array.rank == 0));
-	    /* fall-thru*/
-        case OC_Structure:
-            if(node->dap.instancesize > 0) { /* do a direct skip*/
-                if(!xdr_skip(xdrs,node->dap.arraysize)) return xdrerror();
-            } else {
-                /* Non-uniform size, we have to skip element by element*/
-                rank = node->array.rank;
-                xdrcount = 1;
-                if(rank > 0 && !xdr_u_int(xdrs,&xdrcount)) return xdrerror();
-                for(i=0;i<xdrcount;i++) { /* skip element by element*/
-                    /* Walk each structure field*/
-                    for(j=0;j<oclistlength(node->subnodes);j++) {
-                        OCnode* field = (OCnode*)oclistget(node->subnodes,j);
-                        stat = ocskip(field,xdrs);
-                        if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-                    }
-                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-                }
-	    }
-	    break;
-
-        case OC_Sequence: /* not uniform, so walk record by record*/
-	    OCASSERT((node->array.rank == 0));
-            for(;;) {
-                /* pick up the sequence record begin marker*/
-                char tmp[sizeof(unsigned int)];
-                /* extract the tag byte*/
-                if(!xdr_opaque(xdrs,tmp,sizeof(tmp))) return xdrerror();
-                if(tmp[0] == StartOfoclist) {
-                    /* Walk each member field*/
-                    for(j=0;j<oclistlength(node->subnodes);j++) {
-                        OCnode* member = (OCnode*)oclistget(node->subnodes,j);
-                        stat = ocskip(member,xdrs);
-                        if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-                    }
-                } else if(tmp[0] == EndOfoclist) {
-                    break; /* we are done with the this sequence instance*/
-                } else {
-                    oc_log(LOGERR,"missing/invalid begin/end record marker\n");
-                    stat = OC_EINVALCOORDS;
-                    {OCTHROWCHK(stat); break;}
-                }
-                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
-            }
-            break;
-
-        default:
-	    OCPANIC1("oc_move: encountered unexpected node type: %x",node->octype);
-	    break;
-    }
-    return OCTHROW(stat);
-}
-
-/* Skip arbitrary single instance; except for primitives
-   Assumes that parent will handle arrays of compound instances
-   or records of compound instances of this node type
-   Specifically, all array counts have been absorbed by some parent caller.*/
-int
-ocskipinstance(OCnode* node, XDR* xdrs)
+/* Skip arbitrary object:
+Cases:
+astype = Grid|Structure: skip single set of fields
+astype = Primitive array (or scalar): skip whole array.
+astype = Sequence: skip whole sequence
+astype = OC_NAT => use node's type
+*/
+OCerror
+ocskipinstanceas(OCnode* node, XXDR* xdrs, OCtype astype)
 {
     unsigned int i;
     int stat = OC_NOERR;
-    unsigned int xdrcount;
+    char tmp[XDRUNIT];
 
-#if 0
-    unsigned int j,rank;
+    /* assume that xxdr_getpos points to start of the object (including leading counts) */
 
-    switch (node->octype) {
+    /* Make sure astype is defined */
+    if(astype == OC_NAT)
+	astype = node->octype;
+
+    switch (astype) {
 	case OC_Dataset:
         case OC_Grid:
-	    OCASSERT((node->array.rank == 0));
-	    stat = ocskip(node,xdrs);
-	    break;
-
-        case OC_Sequence: /* instance is essentially same a structure */
         case OC_Structure:
-            if(node->dap.instancesize > 0) { /* do a direct skip*/
-                if(!xdr_skip(xdrs,node->dap.instancesize)) return xdrerror();
-            } else {
-                /* Non-uniform size, we have to skip field by field*/
-                /* Walk each structure/sequence field*/
-                for(j=0;j<oclistlength(node->subnodes);j++) {
-                    OCnode* field = (OCnode*)oclistget(node->subnodes,j);
-                    stat = ocskip(field,xdrs);
-                    if(stat != OC_NOERR) break;
+            if(node->skip.instancesize != OCINDETERMINATE
+               && node->skip.count != OCINDETERMINATE) {
+		/* skip directly past it */
+	        xxdr_skip(xdrs,node->skip.totalsize);
+	    } else {/* Walk instance by instance */
+                for(i=0;i<oclistlength(node->subnodes);i++) {
+                    OCnode* field = (OCnode*)oclistget(node->subnodes,i);
+		    stat = ocskipinstanceas(field, xdrs, OC_NAT);
+                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
                 }
-                if(stat != OC_NOERR) break;
+                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
 	    }
 	    break;
+
+        case OC_Sequence: 
+	    /* skip whole sequence */
+            for(i=0;;i++) {
+	        /* extract the tag byte*/
+        	if(!xxdr_getbytes(xdrs,tmp,sizeof(tmp))) return xdrerror();
+	        if(tmp[0] == EndOfSequence) {
+		    /* we are done */
+		    break;
+	        } else if(tmp[0] == StartOfSequence) {
+		    /* skip record instance */
+		    stat = ocskipinstanceas(node, xdrs, OC_Structure);
+                    if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
+		} else {stat = OCTHROW(OC_EXDR); break;}
+	    }
+	    break;
+
 	case OC_Primitive:
-	    if(node->etype == OC_String || node->etype == OC_URL) {
-                if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
-		if(!xdr_skip(xdrs,xdrcount)) return xdrerror();
-	    } else {
-	        OCASSERT((node->dap.instancesize > 0));
-                if(!xdr_skip(xdrs,node->dap.instancesize)) return xdrerror();
+            OCASSERT(node->skip.count != OCINDETERMINATE);
+	    if(node->skip.instancesize != OCINDETERMINATE) {
+		/* skip directly past it */
+	        xxdr_skip(xdrs,node->skip.totalsize);
+	    } else {/* Walk instance by instance */
+		int skipstart = 0; /* worst case */
+		OCASSERT(node->etype == OC_String || node->etype == OC_URL);
+#ifdef IGNORE
+		/* But first, check the cache, if any */
+		if(node->cache.cacheable && node->cache.valid) {
+		    /* use the cache index to shorten how much we need to skip */
+		    OCASSERT(node->cache.index <= node->skip.count);
+		    if(!xxdr_setpos(xdrs,node->cache.offset))
+			return xdrerror();
+		    skipstart = node->cache.index;
+		}
+#endif
+                for(i=skipstart;i<node->skip.count;i++) {
+		    /* read and skip the string */
+		    unsigned int len;
+		    /* read string size */
+		    if(!xxdr_uint(xdrs,&len)) {stat = OCTHROW(OC_EXDR); break;}
+		    /* round up to next XDRUNIT */
+		    len = RNDUP(len);
+		    if(!xxdr_skip(xdrs,(size_t)len)) {stat = OCTHROW(OC_EXDR); break;}
+                }
+                if(stat != OC_NOERR) {OCTHROWCHK(stat); break;}
 	    }
 	    break;
 
         default:
-	    OCPANIC1("oc_move: encountered unexpected node type: %x",node->octype);
+	    OCPANIC1("ocskipinstance: encountered unexpected node type: %x",astype);
 	    break;
     }
-#else
-    if(node->dap.instancesize > 0) { /* do a direct skip*/
-        if(!xdr_skip(xdrs,node->dap.instancesize)) return xdrerror();
-    } else if(node->octype == OC_Primitive) {
-	OCASSERT((node->etype == OC_String || node->etype == OC_URL));
-        if(!xdr_u_int(xdrs,&xdrcount)) return xdrerror();
-	if(!xdr_skip(xdrs,xdrcount)) return xdrerror();
-    } else {
-        /* Non-uniform size Grid/Sequence/Structure/Dataset;*/
-        /* we have to skip field by field*/
-        for(i=0;i<oclistlength(node->subnodes);i++) {
-            OCnode* field = (OCnode*)oclistget(node->subnodes,i);
-            stat = ocskip(field,xdrs);
-            if(stat != OC_NOERR) break;
-        }
-    }
-#endif
     return OCTHROW(stat);
 }
 
@@ -194,168 +112,218 @@ Normally, it is assumed that we are (at least virtually)
 "at" a single instance in the xdr packet; which we read.
 Virtually because for packed data, we need to point to
 the beginning of the packed data and use the index to indicate
-which packed element to get.
+which packed element to get. Assume that in any case,
+any leading counts have been passed.
 */
-int
-ocxdrread(XDR* xdrs, char* memory, size_t memsize, int packed, OCtype octype, unsigned int start, size_t count)
+OCerror
+ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
+          ocindex_t start, ocindex_t count)
 {
     int stat = OC_NOERR;
     unsigned int i;
-    size_t elemsize = octypesize(octype);
-    char* localmem = NULL;
-    char* startmem = NULL;
-    size_t totalsize;
-    size_t xdrsize;
-    unsigned int xdrckp = xdr_getpos(xdrs);
+    size_t elemsize;
+    size_t readsize;
+    size_t skipsize;
+    char localmem[LOCALMEMMAX];
+    char* srcmem;    
+    unsigned int* p;
+    int packed;
+    int scalar;
+    OCtype octype,etype;
+    ocindex_t localstart = start; /* will change if node is cacheing */
+    OCnode* node;
 
+    node = content->node;
+    octype = node->octype;
+    etype = node->etype;
+
+    elemsize = octypesize(etype);
+
+    scalar = (node->array.rank == 0 ? 1 : 0);
+
+    /* check if the data is packed*/
+    packed = (octype == OC_Primitive && !scalar
+              && (etype == OC_Byte || etype == OC_UByte || etype == OC_Char));
+	 
     /* validate memory space*/
-    totalsize = elemsize*count;
-    if(memsize < totalsize) return OCTHROW(OC_EINVAL);
+    if(memsize < elemsize*count) return OCTHROW(OC_EINVAL);
 
+#ifdef IGNORE
+    if(!scalar && (!node->cache.cacheable || !node->cache.valid)) {
+        unsigned int xdrcount0,xdrcount1;
+	/* assume xdr position is correct */
+        /* Read leading double count if ! scalar*/
+        if(!xxdr_uint(xdrs,&xdrcount0)) goto shortxdr;
+        if(!xxdr_uint(xdrs,&xdrcount1)) goto shortxdr;
+        if(xdrcount0 != xdrcount1) return OCTHROW(OC_EXDR);
+        if(xdrcount0 < start+count) goto shortxdr;
+    }
+#endif
+ 
     /* Handle packed data specially*/
-    /* WARNING: assumes that the initial count has been read*/
     if(packed) {
-        char tmp[LOCALMEMMAX];
-	unsigned int readsize = start+count;
-	if(readsize <= LOCALMEMMAX) /* avoid malloc/free for common case*/
-	    localmem = tmp;
-	else {
-            localmem = (char*)ocmalloc(readsize);
-	    MEMCHECK(localmem,OC_ENOMEM);
-	}
-	if(!xdr_opaque(xdrs,(char*)localmem,readsize)) goto shortxdr;
-	memcpy((void*)memory,(void*)(localmem+start),count);
-	if(readsize > LOCALMEMMAX) ocfree(localmem);
-	if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
+	readsize = count*1; /* |OC_(Char,Byte,UByte)| == 1 */
+	skipsize = start*1; /* |OC_(Char,Byte,UByte)| == 1 */
+	/* skip to start of what we want to read */
+	if(!xxdr_skip(xdrs,skipsize)) goto shortxdr;
+	/* read data, keeping xdrs on XDRUNIT boundary */
+	if(!xxdr_opaque(xdrs,memory,readsize))
+	    goto shortxdr;
 	return OCTHROW(OC_NOERR);
     }
 
-    /* Not packed: extract count items; use xdr_opaque to speed up*/
-    if(octype == OC_String || octype == OC_URL) {
-	/* do nothing here; handle below*/
-    } else if(octype == OC_Float64
-              || octype == OC_UInt64
-              || octype == OC_Int64) {
-	unsigned int* p;
-        xdrsize = 2*(start+count)*BYTES_PER_XDR_UNIT;
-        localmem = (char*)ocmalloc(xdrsize);
-	startmem = localmem+(2*start*BYTES_PER_XDR_UNIT);
-	MEMCHECK(localmem,OC_ENOMEM);
-	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) goto shortxdr;
-	if(!oc_network_order) {
-	    for(p=(unsigned int*)startmem,i=0;i<2*count;i++,p++) {
-		unsigned int swap = *p;
-		swapinline(*p,swap);
-	    }
-	}
-    } else {
-	unsigned int* p;
-        xdrsize = (start+count)*BYTES_PER_XDR_UNIT;
-        localmem = (char*)ocmalloc(xdrsize);
-	MEMCHECK(localmem,OC_ENOMEM);
-	startmem = localmem+(start*BYTES_PER_XDR_UNIT);
-	if(!xdr_opaque(xdrs,(char*)localmem,xdrsize)) goto shortxdr;
-	if(!oc_network_order) {
-	    for(p=(unsigned int*)startmem,i=0;i<count;i++,p++) {
-		unsigned int swap = *p;
-		swapinline(*p,swap);
-	    }
+    /* Not packed */
+
+#ifdef IGNORE
+    /* If this (primitive) object is cacheable and is valid cache,
+       then modify start and set the xdr position accordingly
+    */
+    if(node->cache.cacheable && node->cache.valid) {
+	if(node->cache.index <= start) {
+	    localstart -= node->cache.index;
+	    if(!xxdr_setpos(xdrs,node->cache.offset)) return xdrerror();
 	}
     }
+#endif
 
-    switch (octype) {
+    /* Compute how much to skip based on the content's cache index */
+    localstart = start - content->cache.index;
+    if(localstart < 0) localstart = 0;
 
-    case OC_Char: case OC_Byte: case OC_UByte: {
-	char* pmem = (char*)memory;
-	unsigned int* p = (unsigned int*)startmem;
-	for(i=0;i<count;i++) {*pmem++ = (char)(*p++);}
-	} break;
-
-    case OC_Int16: case OC_UInt16: {
-	unsigned short* pmem = (unsigned short*)memory;
-	unsigned int* p = (unsigned int*)startmem;
-	for(i=0;i<count;i++) {*pmem++ = (unsigned short)(*p++);}
-	} break;
-
-    case OC_Int32: case OC_UInt32: {
-	memcpy((void*)memory,(void*)startmem,count*sizeof(unsigned int));
-	} break;
-
-    case OC_Float32: {
-	memcpy((void*)memory,(void*)startmem,count*sizeof(float));
-	} break;
-
-    case OC_Int64: case OC_UInt64: case OC_Float64: {
-	unsigned int* p;
-	unsigned int* pmem = (unsigned int*)memory;
-	/* Sometimes need to invert order*/
-	for(p=(unsigned int*)startmem,i=0;i<count;i++) {
-	    if(oc_invert_xdr_double) {
-	        pmem[1] = (unsigned int)(*p++);
-	        pmem[0] = (unsigned int)(*p++);
-	    } else {
-	        pmem[0] = (unsigned int)(*p++);
-	        pmem[1] = (unsigned int)(*p++);
+    /* extract count items; use xxdr_getbytes to speed up*/
+    srcmem = memory;
+    switch (etype) {
+    case OC_Float64: case OC_Int64: case OC_UInt64:
+	readsize = count*2*XDRUNIT;
+	skipsize = localstart*2*XDRUNIT;
+	/* skip to start of what we want to read */
+	if(!xxdr_skip(xdrs,skipsize)) goto shortxdr;
+	if(!xxdr_opaque(xdrs,(char*)srcmem,readsize)) goto shortxdr;
+	if(etype == OC_Float64) {
+	    double* dp;
+	    for(dp=(double*)srcmem,i=0;i<count;i++,dp++) {
+		double swap;
+		xxdrntohdouble((char*)dp,&swap);
+		*dp = swap;
 	    }
-	    pmem += 2;
+	} else if(!xxdr_network_order) {
+	    unsigned long long* llp;
+	    for(llp=(unsigned long long*)srcmem,i=0;i<count;i++,p++) {
+		swapinline64(llp);
+	    }
 	}
-	} break;
+	break;
 
     case OC_String: case OC_URL: {
+	/* Read string by string */
         char* s = NULL;
-	char** pmem = (char**)memory;
+	char** pmem = (char**)srcmem;
 	/* First skip to the starting string */
-	for(i=0;i<start;i++) {
-	    s = NULL; /* make xdr_string alloc the space */
-            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) goto shortxdr;
-	    ocfree(s);
+	for(i=0;i<localstart;i++) {
+	    unsigned int slen;
+            if(!xxdr_uint(xdrs,&slen)) goto shortxdr;
+	    slen = RNDUP(slen);
+            if(!xxdr_skip(xdrs,slen)) goto shortxdr;
         }
 	/* Read count strings */
 	for(i=0;i<count;i++) {
-	    s = NULL; /* make xdr_string alloc the space */	
-            if(!xdr_string(xdrs,&s,OC_INT32_MAX)) goto shortxdr;
+	    off_t slen;
+	    /* xxdr_string will always alloc the space */	
+            if(!xxdr_string(xdrs,&s,&slen)) 
+		goto shortxdr;
 	    pmem[i] = s;
 	}
-	} break;
+    } break;
 
-    default: return OCTHROW(OC_EINVAL);
+
+    case OC_Char: case OC_Byte: case OC_UByte:
+    case OC_Int16: case OC_UInt16:
+	/* We need to store the xdr data locally until we can convert it out 
+           because  elemsize < sizeof(int) */
+	srcmem = localmem;
+	if(count*elemsize > sizeof(localmem)) {
+	    srcmem = (char*)ocmalloc(count*sizeof(unsigned int));
+	    if(srcmem == NULL) {stat = OC_ENOMEM; goto done;}
+	}
+	/* fall thru */		
+    case OC_Int32: case OC_UInt32:
+    case OC_Float32:
+        readsize = (count)*XDRUNIT;
+        skipsize = (localstart)*XDRUNIT;
+	if(!xxdr_skip(xdrs,skipsize)) goto shortxdr;
+	if(!xxdr_opaque(xdrs,(char*)srcmem,readsize)) goto shortxdr;
+	if(!xxdr_network_order) {
+	    for(p=(unsigned int*)srcmem,i=0;i<count;i++,p++) {
+		swapinline32(p);
+	    }
+	}
+	break;
+
+    default: OCPANIC("unexpected etype"); break;
     }
 
+    /* Convert memory to right format */
+    p = (unsigned int*)memory;
+    switch (etype) {
+
+    case OC_Char: case OC_Byte: case OC_UByte: {
+	char* pmem = (char*)memory;
+	p = (unsigned int*)srcmem;
+	for(i=0;i<count;i++) {
+	    unsigned int tmp = *p++;
+	    *pmem++ = (unsigned char)tmp;
+	}
+    } break;
+
+    case OC_Int16: case OC_UInt16: {
+	unsigned short* pmem = (unsigned short*)memory;
+	p = (unsigned int*)srcmem;
+	for(i=0;i<count;i++) {
+	    unsigned int tmp = *p++;
+	    *pmem++ = (unsigned short)tmp;
+	}
+    } break;
+
+    default: break; /* already handled above */
+    }
+
+    /* set cache */
+    content->cache.index = start + count; /* should be our current index */
+    content->cache.offset = xxdr_getpos(xdrs); /* should be our current position */
+
 done:
-    ocfree(localmem);
-    if(!xdr_setpos(xdrs,xdrckp)) return xdrerror(); /* revert to beginning*/
     return OCTHROW(stat);
 
 shortxdr:
-    if(!errorstring(xdrs))
+    content->cache.valid = 0; /* no longer valid */
+    if(!ocerrorstring(xdrs))
         oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
     stat = OC_EDATADDS;
     goto done;    
 }
 
 int
-countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
+occountrecords(OCnode* node, XXDR* xdrs, size_t* nrecordsp)
 {
     int stat = OC_NOERR;
     size_t nrecords = 0;
-    unsigned int xdroffset;
+
     if(node->octype != OC_Sequence) return OCTHROW(OC_EINVAL);
     /* checkpoint the xdr position*/
-    xdroffset = xdr_getpos(xdrs);
     for(;;) { unsigned int i;
         /* pick up the sequence record begin marker*/
         char tmp[sizeof(unsigned int)];
         /* extract the tag byte*/
-        if(!xdr_opaque(xdrs,tmp,sizeof(tmp))) return xdrerror();
-        if(tmp[0] == StartOfoclist) {
+        if(!xxdr_getbytes(xdrs,tmp,sizeof(tmp))) return xdrerror();
+        if(tmp[0] == StartOfSequence) {
             /* Walk each member field*/
             for(i=0;i<oclistlength(node->subnodes);i++) {
                 OCnode* member = (OCnode*)oclistget(node->subnodes,i);
-                stat = ocskip(member,xdrs);
+                stat = ocskipinstanceas(member,xdrs,OC_Structure);
                 if(stat != OC_NOERR) break;
             }
 	    nrecords++;
-        } else if(tmp[0] == EndOfoclist) {
+        } else if(tmp[0] == EndOfSequence) {
             break; /* we are done with the this sequence instance*/
         } else {
             oc_log(LOGERR,"missing/invalid begin/end record marker\n");
@@ -365,7 +333,6 @@ countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
         if(stat != OC_NOERR) break;
     }
     /* move to checkpoint position*/
-    if(!xdr_setpos(xdrs,xdroffset)) return xdrerror();
     if(nrecordsp != NULL) *nrecordsp = nrecords;
     return OCTHROW(stat);
 }
@@ -375,35 +342,21 @@ countrecords(OCnode* node, XDR* xdrs, size_t* nrecordsp)
 #define tag "Error {\n"
 
 static int
-errorstring(XDR* xdrs)
+ocerrorstring(XXDR* xdrs)
 {
-    /* Check to see if the xdrs contains "Error {\n' */
-    int i;
-    char* p;
-    size_t taglen = strlen(tag);
-    unsigned int pos, size;
-    char s[5100]; /* extra room to avoid overflow problems */
-
-    for(;;) {
-        size = 4096;
-        pos = xdr_getpos(xdrs);
-        memset(s,0,sizeof(s));
-	/* Do this a byte at a time, since we do not know how much is left */
-	for(i=0;i<size;i++) {
-            if(!xdr_getbytes(xdrs,s+i,1)) break;
-	}
-	/* check for error tag at front */
-        if(strncmp(s,tag,taglen)==0) {
-            if((p=strchr(s,'}')) != NULL) *(++p)='\0';
-            oc_log(LOGERR,"Server error: %s",s);
-            /* Since important, report to stderr as well */
-            fprintf(stderr,"Server error: %s",s);
-	    return 1;
-        }
-        /* Move to next character of interest occurrence */
-        if((p=strchr(s,'E')) == NULL) continue;
-        /* move xdr position and read again */
-	if(!xdr_setpos(xdrs,pos+(p-s))) break;
+    /* Check to see if the xdrs contains "Error {\n'; assume it is at the beginning of data */
+    off_t avail = xxdr_getavail(xdrs);
+    char* data = (char*)malloc(avail);
+    if(!xxdr_setpos(xdrs,0)) return 0;
+    if(!xxdr_opaque(xdrs,data,avail)) return 0;
+    /* check for error tag at front */
+    if(ocstrncmp(data,tag,sizeof(tag))==0) {
+	char* p;
+        if((p=strchr(data,'}')) != NULL) *(++p)='\0';
+        oc_log(LOGERR,"Server error: %s",data);
+        /* Since important, report to stderr as well */
+        fprintf(stderr,"Server error: %s",data);
+	return 1;
     }
     return 0;
 }

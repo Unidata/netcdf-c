@@ -20,15 +20,8 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#ifdef HAVE_RPC_TYPES_H
-#include <rpc/types.h>
-#endif
-
-#ifdef HAVE_RPC_XDR_H
-#include <rpc/xdr.h>
-#else
-#include <xdr.h>
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
 #endif
 
 #define CURL_DISABLE_TYPECHECK 1
@@ -39,13 +32,6 @@
 #include "ocuri.h"
 
 #define OCCACHEPOS
-#ifdef OCCACHEPOS
-extern void ocxdrstdio_create(XDR*,FILE*,enum xdr_op);
-#else
-#define ocxdrstdio_create(xdrs,file,op) xdrstdio_create(xdrs,file,op)
-#endif
-
-#undef OC_DISK_STORAGE
 
 #include "oc.h"
 #include "ocdatatypes.h"
@@ -53,6 +39,7 @@ extern void ocxdrstdio_create(XDR*,FILE*,enum xdr_op);
 #include "ocnode.h"
 #include "ocutil.h"
 #include "oclog.h"
+#include "xxdr.h"
 #include "ocdata.h"
 
 #ifndef nulldup
@@ -67,9 +54,6 @@ extern void ocxdrstdio_create(XDR*,FILE*,enum xdr_op);
 
 /* Default maximum memory packet size */
 #define DFALTMAXPACKETSIZE 0x3000000 /*approximately 50M bytes*/
-
-/* Compile when |datadds| < 1M */
-#define OCCOMPILELIMIT (0x100000)
 
 /* Extend the OCdxd type */
 #define OCVER 3
@@ -87,13 +71,11 @@ typedef struct OCstate
     OCbytes* packet; /* shared by all trees during construction */
     /* OCContent information */
     struct OCcontent* contentlist;
-    struct {/* Hold info for an error return from server */
+    struct OCerrdata {/* Hold info for an error return from server */
 	char* code;
 	char* message;
 	long  httpcode;
     } error;
-    long ddslastmodified;
-    long datalastmodified;
     /* Store .rc file info */
     struct OCcurlflags {
 	int compress;
@@ -112,6 +94,7 @@ typedef struct OCstate
 	char* keypasswd;
         char* cainfo; /* certificate authority */
 	char* capath; 
+	int   verifypeer;
     } ssl;
     struct OCproxy {
 	char *host;
@@ -121,7 +104,10 @@ typedef struct OCstate
 	char *username;
 	char *password;
     } creds;
+    long ddslastmodified;
+    long datalastmodified;
 } OCstate;
+
 
 /*! Specifies all the info about a particular DAP tree
     i.e. DAS, DDS, or DATADDS as obtained from a fetch response
@@ -137,57 +123,32 @@ typedef struct OCtree
     OClist* nodes; /* all nodes in tree*/
     /* when dxdclass == OCDATADDS */
     struct {
-#ifdef OC_DISK_STORAGE
+	char* memory;           /* allocated memory if OC_INMEMORY is set */
         char* filename;
         FILE* file;
-#else
-	void* xdrdata;
-#endif
-        unsigned long datasize; /* size on disk or in memory */
-        unsigned long bod;
-        unsigned long ddslen;
-        XDR* xdrs;
-        struct OCmemdata* memdata; /* !NULL iff compiled */
+        unsigned long datasize; /* xdr size on disk or in memory */
+        unsigned long bod;      /* offset of the beginning of packet data */
+        unsigned long ddslen;   /* length of ddslen (assert(ddslen <= bod)) */
+        XXDR* xdrs;		/* access either memory or file */
     } data;
 } OCtree;
 
-/*
-WARNING: this data structures uses the standard C trick of
-casting a long memory chunk to be an instance of this
-object, which means that the data part may actually be
-longer than 8 chars.
-*/
-typedef struct OCmemdata {
-    OCtype octype; /* Actually instance of OCtype, but guaranteed to be |long| */
-    OCtype etype; /* Actually instance of OCtype, but guaranteed to be |long| */
-    OCmode mode; /* Actually instance of OCmode, but guaranteed to be |long| */
-    unsigned long count; /* count*octypesize(datatype) == |data| */
-    union {
-        struct OCmemdata* mdata[2];
-        unsigned int* idata[2];
-        char data[8]; /* Actually prefix of the data; want to start on longlong boundary */
-	char* sdata;
-    } data;
-} OCmemdata;
-
-
 /* (Almost) All shared procedure definitions are kept here
    except for: ocdebug.h ocutil.h
-   The true external interfac is defined in oc.h
+   The true external interface is defined in oc.h
 */
 
 /* Location: ocnode.c */
-/*
-extern OCnode* makepseudodimension(size_t size, OCnode* array, int index);
-*/
-extern OCnode* makeocnode(char* name, OCtype ptype, OCnode* root);
-extern void collectpathtonode(OCnode* node, OClist* path);
-extern void computeocfullnames(OCnode* root);
-extern void computeocsemantics(OClist*);
-extern void addattribute(OCattribute* attr, OCnode* parent);
-extern OCattribute* makeattribute(char* name, OCtype ptype, OClist* values);
+extern OCnode* ocmakenode(char* name, OCtype ptype, OCnode* root);
+extern void occollectpathtonode(OCnode* node, OClist* path);
+extern void occomputefullnames(OCnode* root);
+extern void occomputesemantics(OClist*);
+extern void ocaddattribute(OCattribute* attr, OCnode* parent);
+extern OCattribute* ocmakeattribute(char* name, OCtype ptype, OClist* values);
 extern size_t ocsetsize(OCnode* node);
 extern OCerror occorrelate(OCnode*,OCnode*);
+extern OCerror occomputeskipdata(OCstate*, OCnode*);
+extern void ocmarkcacheable(OCstate* state, OCnode* ddsroot);
 
 /* Location: dapparselex.c*/
 extern int dapdebug;
@@ -198,16 +159,11 @@ extern char* dimnameanon(char* basename, unsigned int index);
 extern int cedebug;
 extern OClist* CEparse(OCstate*,char* input);
 
-/* Location: occompile.c*/
-extern int occompile(OCstate* state, OCnode* root);
-extern void freeocmemdata(OCmemdata* md);
-extern void octempclear(OCstate* state);
-
 /* Location: ocinternal.c*/
 extern OCerror ocopen(OCstate** statep, const char* url);
 extern void occlose(OCstate* state);
 
-extern OCerror ocfetch(OCstate*, const char*, OCdxd, OCnode**);
+extern OCerror ocfetchf(OCstate*, const char*, OCdxd, OCflags, OCnode**);
 
 /* Location: ocinternal.c */
 extern int oc_network_order;
@@ -231,26 +187,10 @@ extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
 extern int ocinternalinitialize(void);
 
-/* Use my own ntohl and htonl */
-#define ocntoh(i) (oc_network_order?(i):ocbyteswap((i)))
-#define ochton(i) ocntoh(i)
-
-/* Define an inline version of byteswap */
-#define swapinline(iswap,i) \
-{ \
-    unsigned int b0,b1,b2,b3; \
-    b0 = (i>>24) & 0x000000ff; \
-    b1 = (i>>16) & 0x000000ff; \
-    b2 = (i>>8) & 0x000000ff; \
-    b3 = (i) & 0x000000ff; \
-    iswap = (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)); \
-}
 
 extern OCerror ocsetrcfile(char* rcfile);
 
 /* Global stateflags */
-extern int oc_network_order; /* network order is big endian */
-extern int oc_invert_xdr_double;
 extern int oc_curl_file_supported;
 extern int oc_curl_https_supported;
 

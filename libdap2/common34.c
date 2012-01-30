@@ -602,6 +602,8 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     OCconnection conn = nccomm->oc.conn;
     unsigned long limit;
 
+    ASSERT(nccomm->oc.url != NULL);
+
     nccomm->cdf.cache->cachelimit = DFALTCACHELIMIT;
     value = oc_clientparam_get(conn,"cachelimit");
     limit = getlimitnumber(value);
@@ -680,6 +682,15 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	}
 	nullfree(pathstr);
     }
+
+    /* test for the appropriate fetch flags */
+    value = oc_clientparam_get(conn,"fetch");
+    if(value != NULL && strlen(value) > 0) {
+	if(value[0] == 'm' || value[0] == 'M') {
+            SETFLAG(nccomm->controls,NCF_INMEMORY);
+	}
+    }
+
     return NC_NOERR;
 }
 
