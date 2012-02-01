@@ -567,7 +567,7 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
       count[i] = countp[i];
    }
    
-   /* Open this databset if necessary, also checking for a weird case:
+   /* Open this dataset if necessary, also checking for a weird case:
     * a non-coordinate variable that has the same name as a
     * dimension. */
    if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) && 
@@ -870,7 +870,14 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
       count[i] = countp[i];
    }
 
-   /* Open this dataset if necessary. */
+   /* Open this dataset if necessary, also checking for a weird case:
+    * a non-coordinate variable that has the same name as a
+    * dimension. */
+   if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) && 
+			  strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0)
+       if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdf5_name,
+					  H5P_DEFAULT)) < 0)
+	   return NC_ENOTVAR;
    if (!var->hdf_datasetid)
       if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
 	      H5P_DEFAULT)) < 0)
@@ -1082,13 +1089,13 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
    if (!scalar && provide_fill)
    {
       void *filldata;
-      int real_data_size = 0;
-      int fill_len;
+      size_t real_data_size = 0;
+      size_t fill_len;
 
       /* Skip past the real data we've already read. */
       if (!no_read)
-         for (real_data_size = 1, d2 = 0; d2 < var->ndims; d2++)
-            real_data_size *= (count[d2] - start[d2]) * file_type_size;
+         for (real_data_size = file_type_size, d2 = 0; d2 < var->ndims; d2++)
+            real_data_size *= (count[d2] - start[d2]);
 
       /* Get the fill value from the HDF5 variable. Memory will be
        * allocated. */
