@@ -112,6 +112,13 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
         nclistpush(varnodes,(ncelem)node);
     }
     nclistfree(allvarnodes);
+#ifdef DEBUG2
+for(i=0;i<nclistlength(varnodes);i++) {
+CDFnode* node = (CDFnode*)nclistget(varnodes,i);
+if(node == NULL) continue;
+fprintf(stderr,"computevarnodes: var: %s\n",makecdfpathstring3(node,"."));
+}
+#endif
     return NC_NOERR;
 }
 
@@ -163,6 +170,10 @@ computecdfvarnames3(NCDAPCOMMON* nccomm, CDFnode* root, NClist* varnodes)
 	CDFnode* var = (CDFnode*)nclistget(varnodes,i);
 	nullfree(var->ncfullname);
 	var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
+#ifdef DEBUG2
+fprintf(stderr,"var names: %s %s %s\n",
+	var->ocname,var->ncbasename,var->ncfullname);
+#endif
     }
 
     /*  unify all variables with same fullname and dimensions
@@ -198,11 +209,15 @@ fprintf(stderr,"basevar invoked: %s\n",var->ncfullname);
 	    }
 	}
     }
+
+#ifdef IGNORE
     /* Remove elided marks */
     for(i=0;i<nclistlength(root->tree->nodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(root->tree->nodes,i);
 	node->elided = 0;
     }
+#endif
+
     /* Finally, verify unique names */
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var1 = (CDFnode*)nclistget(varnodes,i);
@@ -776,11 +791,11 @@ unmap3(CDFnode* root)
 }
 
 /* 
-Move data from basenodes to nodes
+Move dimension data from basenodes to nodes
 */
 
 NCerror
-imprint3(NCDAPCOMMON* nccomm)
+dimimprint3(NCDAPCOMMON* nccomm)
 {
     NCerror ncstat = NC_NOERR;
     NClist* allnodes;
@@ -799,7 +814,7 @@ imprint3(NCDAPCOMMON* nccomm)
 	if(noderank == 0) continue;
         ASSERT(noderank == baserank);
 #ifdef DEBUG
-fprintf(stderr,"imprint %s/%d -> %s/%d\n",
+fprintf(stderr,"dimimprint %s/%d -> %s/%d\n",
 	makecdfpathstring3(basenode,"."),
 	noderank,
 	makecdfpathstring3(node,"."),
@@ -810,7 +825,7 @@ fprintf(stderr,"imprint %s/%d -> %s/%d\n",
 	    CDFnode* basedim = (CDFnode*)nclistget(basenode->array.dimset0,j);
 	    dim->dim.declsize0 = basedim->dim.declsize;	
 #ifdef DEBUG
-fprintf(stderr,"imprintfcn: %d: %lu -> %lu\n",i,basedim->dim.declsize,dim->dim.declsize0);
+fprintf(stderr,"dimimprint: %d: %lu -> %lu\n",i,basedim->dim.declsize,dim->dim.declsize0);
 #endif
         }
     }

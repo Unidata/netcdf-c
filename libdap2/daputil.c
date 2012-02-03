@@ -18,7 +18,6 @@ extern int oc_dumpnode(OClink, OCobject);
 #define LBRACKET '['
 #define RBRACKET ']'
 
-static char* makepathstring3(CDFnode* var, const char* separator, int ocify);
 
 /**************************************************/
 /**
@@ -317,21 +316,6 @@ collectnode0path3(CDFnode* node, NClist* path, int withdataset)
 }
 #endif
 
-/* Collect the set of container nodes ending in "container"*/
-void
-collectnodepath3(CDFnode* node, NClist* path, int withdataset)
-{
-    if(node == NULL) return;
-    nclistpush(path,(ncelem)node);
-    while(node->container != NULL) {
-	node = node->container;
-	if(!withdataset && node->nctype == NC_Dataset) break;
-	nclistinsert(path,0,(ncelem)node);
-    }
-}
-
-
-
 #ifdef IGNORE
 /* Compute the 1+deepest occurrence of a sequence in the path*/
 int
@@ -470,43 +454,97 @@ nclistdeleteall(NClist* l, ncelem elem)
     return found;    
 }
 
-/* Convert a path to a name string; elide the initial Dataset node*/
-/* and elide any node marked as elided */
-char*
-makecdfpathstring3(CDFnode* var, const char* separator)
+/* Collect the set of container nodes ending in "container"*/
+void
+collectnodepath3(CDFnode* node, NClist* path, int withdataset)
 {
-    return makepathstring3(var,separator,0);
+    if(node == NULL) return;
+    nclistpush(path,(ncelem)node);
+    while(node->container != NULL) {
+	node = node->container;
+	if(!withdataset && node->nctype == NC_Dataset) break;
+	nclistinsert(path,0,(ncelem)node);
+    }
 }
 
-/*Like makecdfpathstring3, but using ocname*/
-
-char*
-ocifypathstring3(CDFnode* var, const char* separator)
+/* Like collectnodepath3, but in ocspace */
+void
+collectocpath(OCconnection conn, OCobject node, NClist* path)
 {
-    return makepathstring3(var,separator,1);
+    OCobject container;
+    OCtype octype;
+    if(node == OCNULL) return;
+    oc_inq_class(conn,node,&octype);
+    if(octype == OC_Dataset) return;
+    oc_inq_container(conn,node,&container);
+    if(container != OCNULL)
+        collectocpath(conn,container,path);
+    nclistpush(path,(ncelem)node);
 }
 
-static char*
-makepathstring3(CDFnode* var, const char* separator, int ocify)
+char*
+makeocpathstring3(OCconnection conn, OCobject node, const char* sep)
 {
-    int slen,i,len,first;
+    int slen,i,len,first,seplen;
     char* pathname;
-    NClist* path = nclistnew();
+    OCtype octype;
+    NClist* ocpath = nclistnew();
 
-    collectnodepath3(var,path,WITHDATASET);
-    len = nclistlength(path);
+    collectocpath(conn,node,ocpath);
+    len = nclistlength(ocpath);
     assert(len > 0); /* dataset at least */
-    if(len == 1) {pathname = nulldup(""); goto done;} /* Dataset */
+
+    oc_inq_type(conn,node,&octype);
+    if(octype == OC_Dataset)
+	{pathname = nulldup(""); goto done;} /* Dataset */
+
+    seplen = strlen(sep);
+    for(slen=0,i=0;i<len;i++) {
+	OCobject node = (OCobject)nclistget(ocpath,i);
+	char* name;
+        oc_inq_type(conn,node,&octype);
+        if(octype == OC_Dataset) continue;
+        oc_inq_name(conn,node,&name);
+	slen += (name == NULL? 0 : strlen(name));
+	slen += seplen;
+	nullfree(name);
+    }
+    slen += 1;   /* for null terminator*/
+    pathname = (char*)malloc(slen);
+    MEMCHECK(pathname,NULL);
+    pathname[0] = '\0';    
+    for(first=1,i=0;i<len;i++) {
+	OCobject node = (OCobject)nclistget(ocpath,i);
+	char* name;
+        oc_inq_type(conn,node,&octype);
+        if(octype == OC_Dataset) continue;
+        oc_inq_name(conn,node,&name);
+	if(!first) strcat(pathname,sep);
+        if(name != NULL) strcat(pathname,name);
+	nullfree(name);
+	first = 0;
+    }
+done:
+    nclistfree(ocpath);
+    return pathname;
+}
+
+char*
+makepathstring3(NClist* path, const char* separator, int flags)
+{
+    int slen,i,len,first,seplen;
+    char* pathname;
+
+    len = nclistlength(path);
+    ASSERT(len > 0); /* dataset at least */
+    seplen = strlen(separator);
+    ASSERT(seplen > 0);
     for(slen=0,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	if(node->nctype == NC_Dataset) continue;
-	if(ocify)
-	    slen += strlen(node->ocname);
-	else
-	    slen += strlen(node->ncbasename?node->ncbasename
-                                           :cdflegalname3(node->ocname));
+        slen += strlen(node->ncbasename);
+	slen += seplen; 
     }
-    slen += ((len-2)); /* for 1-char separators */
     slen += 1;   /* for null terminator*/
     pathname = (char*)malloc(slen);
     MEMCHECK(pathname,NULL);
@@ -514,22 +552,32 @@ makepathstring3(CDFnode* var, const char* separator, int ocify)
     for(first=1,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	char* name;
-	if(ocify)
-	    name = node->ocname;
-	else
-	    name = (node->ncbasename?node->ncbasename
-                                    :cdflegalname3(node->ocname));
-	if(node->nctype == NC_Dataset) continue;
-	if(node->elided) continue;
-	if(!first) strcat(pathname,separator);
-        strcat(pathname,name);
-	first = 0;
+	if(!node->elided || (flags & PATHELIDE)==0) {
+    	    if(node->nctype != NC_Dataset) {
+                name = node->ncbasename;
+	        if(!first) strcat(pathname,separator);
+                strcat(pathname,name);
+	        first = 0;
+	    }
+	}
     }
-done:
-    nclistfree(path);
     return pathname;
 }
 
+
+/* convert path to string using the ncname field */
+char*
+makecdfpathstring3(CDFnode* var, const char* separator)
+{
+    char* spath;
+    NClist* path = nclistnew();
+    collectnodepath3(var,path,WITHDATASET); /* <= note */
+    spath = makepathstring3(path,separator,PATHNC);
+    nclistfree(path);
+    return spath;
+}
+
+#ifdef IGNORE
 /* Like makecdfpathstring, but using node->ncbasename. */
 char*
 makesimplepathstring3(CDFnode* var)
@@ -562,6 +610,7 @@ done:
     return pathname;
 }
 
+/* Make path string in oc space */
 char*
 makeocpathstring3(OCconnection conn, OCobject var, const char* separator)
 {
@@ -601,22 +650,7 @@ makeocpathstring3(OCconnection conn, OCobject var, const char* separator)
     nclistfree(path);
     return pathname;
 }
-
-/* Collect parent ocnodes of node, including node */
-NCerror
-collectocpath(OCconnection conn, OCobject node, NClist* path)
-{
-    OCobject container;
-    OCtype octype;
-    if(node == OCNULL) return NC_NOERR;
-    oc_inq_class(conn,node,&octype);
-    if(octype == OC_Dataset) return NC_NOERR;
-    oc_inq_container(conn,node,&container);
-    if(container != OCNULL)
-        collectocpath(conn,container,path);
-    nclistpush(path,(ncelem)node);
-    return NC_NOERR;
-}
+#endif /*IGNORE*/
 
 /* Collect the set names of container nodes ending in "container"*/
 void

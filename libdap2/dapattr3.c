@@ -229,8 +229,8 @@ loop:
     */
     for(i=0;i<nclistlength(dasnodes);i++) {
 	OCobject das = (OCobject)nclistget(dasnodes,i);
-	char* ocfullname;
-	char* ocbasename;
+	char* ocfullname = NULL;
+	char* ocbasename = NULL;
 
 	if(das == OCNULL) continue;
 	OCHECK(oc_inq_name(conn,das,&ocbasename));
@@ -246,7 +246,7 @@ loop:
 	}
         for(j=0;j<nclistlength(varnodes);j++) {
 	    CDFnode* dds = (CDFnode*)nclistget(varnodes,j);
-	    char* ddsfullname = makesimplepathstring3(dds);
+	    char* ddsfullname = makecdfpathstring3(dds,".");
 	    if(strcmp(ocfullname,ddsfullname)==0
 	       || strcmp(ocbasename,ddsfullname)==0
 	       || strcmp(ocbasename,dds->ocname)==0) {

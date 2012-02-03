@@ -442,7 +442,7 @@ dumpnode(CDFnode* node)
     snprintf(tmp,sizeof(tmp),"%s %s {\n",
 		(nctype?nctype:primtype),node->ocname);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"dds=%lx\n",(unsigned long)node->dds);
+    snprintf(tmp,sizeof(tmp),"ocnode=%lx\n",(unsigned long)node->ocnode);
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"container=%s\n",
 		(node->container?node->container->ocname:"null"));
@@ -540,7 +540,7 @@ dumpcachenode(NCcachenode* node)
     else for(i=0;i<nclistlength(node->vars);i++) {
 	CDFnode* var = (CDFnode*)nclistget(node->vars,i);
 	if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,makesimplepathstring3(var));
+	ncbytescat(buf,makecdfpathstring3(var,"."));
     }
     ncbytescat(buf,"}");
     result = ncbytesdup(buf);

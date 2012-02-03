@@ -107,7 +107,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
     globalsdim = makecdfnode34(dapcomm, dimname, OC_Dimension, OCNULL,
                                  dapcomm->cdf.ddsroot);
     nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)globalsdim);
-    globalsdim->dim.dimflags |= CDFDIMSTRING;
+    DIMFLAGSET(globalsdim,CDFDIMSTRING);
     globalsdim->dim.declsize = dapcomm->cdf.defaultstringlength;
     globalsdim->dim.declsize0 = globalsdim->dim.declsize;
     globalsdim->dim.array = dapcomm->cdf.ddsroot;
@@ -142,7 +142,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
                                  dapcomm->cdf.ddsroot);
 	    if(sdim == NULL) return THROW(NC_ENOMEM);
 	    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)sdim);
-	    sdim->dim.dimflags |= CDFDIMSTRING;
+	    DIMFLAGSET(sdim,CDFDIMSTRING);
 	    sdim->dim.declsize = dimsize;
 	    sdim->dim.declsize0 = dimsize;
 	    sdim->dim.array = var;
@@ -337,7 +337,9 @@ makeseqdim(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t count, CDFnode** sqdimp)
     sqdim->dim.declsize = count;
     sqdim->dim.declsize0 = count;
     sqdim->dim.array = seq;
+#ifdef IGNORE
     sqdim->dim.index1 = 1;    
+#endif
     if(sqdimp) *sqdimp = sqdim;
     return NC_NOERR;
 }
@@ -547,7 +549,7 @@ computeseqcountconstraints3(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcoun
 	    int ndims = nclistlength(node->array.dimset0);
 	    for(j=0;j<ndims;j++) {
 		CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,j);
-		if(dim->dim.dimflags & CDFDIMSTRING) {
+		if(DIMFLAG(dim,CDFDIMSTRING)) {
 		    ASSERT((j == (ndims - 1)));
 		    break;
 		}
@@ -706,7 +708,7 @@ computeseqcountconstraints3r(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcou
 	    ndims = nclistlength(node->array.dimset0);
 	    for(j=0;j<ndims;j++) {
 		CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,j);
-		if(dim->dim.dimflags & CDFDIMSTRING) {
+		if(DIMFLAG(dim,CDFDIMSTRING)) {
 		    ASSERT((j == (ndims - 1)));
 		    break;
 		}

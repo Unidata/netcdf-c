@@ -68,7 +68,7 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 
 done:
 #ifdef DEBUG
-fprintf(stderr,"iscached: search: %s\n",makesimplepathstring3(target));
+fprintf(stderr,"iscached: search: %s\n",makecdfpathstring3(target,"."));
 if(found)
    fprintf(stderr,"iscached: found: %s\n",dumpcachenode(cachenode));
 else
@@ -182,7 +182,7 @@ ncbytescat(buf,"prefetch.vars: ");
 for(i=0;i<nclistlength(vars);i++) {
 CDFnode* var = (CDFnode*)nclistget(vars,i);
 ncbytescat(buf," ");
-s = makesimplepathstring3(var);
+s = makecdfpathstring3(var,".");
 ncbytescat(buf,s);
 nullfree(s);
 }

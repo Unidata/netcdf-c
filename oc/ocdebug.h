@@ -4,16 +4,16 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
+#include <stdarg.h>
+
 #if 0
 #define OCDEBUG
-#define DAPDEBUG 1
+#define DAPDEBUG 3
 #endif
 
 #ifdef OCDEBUG
 #define OCVERBOSE
 #endif
-
-#include <stdarg.h>
 
 /* OCCATCHERROR is used to detect errors as close
    to their point of origin as possible. When

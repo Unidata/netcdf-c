@@ -12,7 +12,7 @@ makeoc::
 	rm -f ce.y ceparse.c celex.c ceparselex.h
 	rm -f octest.c config.h occompile.[ch]
 	rm -f ocdebug.h
-	sed -e 's|^[#]define OCDEBUG.*|#undef OCDEBUG|g' \
+	sed -e 's|^[#]if 1|#if 0|g' \
 	    < ${OCDIR}/ocdebug.h | tr -d '\r' >./ocdebug.h
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y

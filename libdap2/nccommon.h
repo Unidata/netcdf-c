@@ -240,7 +240,7 @@ typedef struct CDFnode {
     char*            ocname;     /* oc base name */
     char*            ncbasename; /* generally cdflegalname(ocname) */
     char*            ncfullname; /* complete path name from root to this node*/
-    OCobject         dds;        /* oc mirror node*/
+    OCobject         ocnode;        /* oc mirror node*/
     struct CDFnode*  group;	 /* null => in root group */
     struct CDFnode*  container;  /* e.g. struct or sequence, but not group */
     struct CDFnode*  root;
@@ -318,11 +318,8 @@ extern void canonicalprojection34(NClist*, NClist*);
 extern NClist* getalldims34(NCDAPCOMMON* nccomm, int visibleonly);
 
 /* From cdf3.c */
-extern NCerror imprint3(NCDAPCOMMON*);
+extern NCerror dimimprint3(NCDAPCOMMON*);
 extern NCerror definedimsets3(struct NCDAPCOMMON*);
-
-/* From cdf4.c */
-extern NCerror definedimsets4(struct NCDAPCOMMON*);
 
 /* From cache.c */
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);

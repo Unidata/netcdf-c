@@ -160,7 +160,7 @@ qualifyprojectionnames3(DCEprojection* proj)
 
     ASSERT((proj->discrim == CES_VAR
             && proj->var->annotation != NULL
-            && ((CDFnode*)proj->var->annotation)->dds != OCNULL));
+            && ((CDFnode*)proj->var->annotation)->ocnode != OCNULL));
     collectnodepath3((CDFnode*)proj->var->annotation,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify: %s -> ",
@@ -913,11 +913,14 @@ fprintf(stderr,"restrictprojection.before: constraints=|%s| vara=|%s|\n",
 	result = (DCEprojection*)dceclone((DCEnode*)var); /* use only the var projection */
  	goto done;	
     }
+    result = (DCEprojection*)dceclone((DCEnode*)result); /* so we can modify */
 
+#ifdef DEBUG1
+fprintf(stderr,"restrictprojection.choice: |%s|\n",dumpprojection(result));
+#endif
     /* We need to merge the projection from the projection list
        with the var projection
     */
-    result = (DCEprojection*)dceclone((DCEnode*)result); /* so we can modify */
     ncstat = dcemergeprojections(result,var); /* result will be modified */    
 
 done:
