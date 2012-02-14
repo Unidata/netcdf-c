@@ -222,21 +222,6 @@ srcsplice(Datasrc* ds, Datalist* list)
 }
 
 void
-srcmove(Datasrc* ds, size_t delta)
-{
-    srcmoveto(ds,ds->index+delta);
-}
-
-void
-srcmoveto(Datasrc* ds, size_t pos)
-{
-    if(pos >= ds->length)
-	ds->index = ds->length;
-    else
-        ds->index = pos;
-}
-
-void
 srcsetfill(Datasrc* ds, Datalist* list)
 {
     if(ds->index >= ds->length) PANIC("srcsetfill: no space");
@@ -262,13 +247,14 @@ bbFree(buf);
 void
 report0(char* lead, Datasrc* src, int index)
 {
-if(debug == 0) return;
+#ifdef IGNORE
 fprintf(stderr,"%s src ",lead);
 if(index >=0 ) fprintf(stderr,"(%d)",index);
 fprintf(stderr,":: ");
 dumpdatasrc(src);
 fprintf(stderr,"\n");
 fflush(stderr);
+#endif
 }
 #endif
 
@@ -360,7 +346,8 @@ datalistline(Datalist* ds)
    and insert commas as needed; ideally, this
    operation should be idempotent so that
    the caller need not worry about it having already
-   been applied.
+   been applied. Also, handle situation where there may be missing
+   matching right braces.
 */
 
 static char* commifyr(char* p, Bytebuffer* buf);
@@ -380,6 +367,9 @@ commify(Bytebuffer* buf)
     efree(list);
 }
 
+/* Requires that the string be balanced
+   WRT to braces
+*/
 static char*
 commifyr(char* p, Bytebuffer* buf)
 {
@@ -388,7 +378,9 @@ commifyr(char* p, Bytebuffer* buf)
     while((c=*p++)) {
 	if(c == ' ') continue;
 	if(c == ',') continue;
-	else if(c == '}') break;
+	else if(c == '}') {
+	    break;
+	}
 	if(comma) bbCat(buf,", "); else comma=1;
 	if(c == '{') {
 	    bbAppend(buf,'{');
@@ -473,6 +465,7 @@ void
 codedump(Bytebuffer* buf)
 {
    bbCatbuf(codebuffer,buf);
+   bbClear(buf);
 }
 
 void
@@ -591,10 +584,10 @@ retry:	    switch ((c=*p++)) {
 		break;
             case 'f':
 		if(lcount > 0) {
-   	            snprintf(tmp,sizeof(tmp),"%.16g",
+   	            snprintf(tmp,sizeof(tmp),"((double)%.16g)",
 			(double)va_arg(argv,double));
 		} else {
-   	            snprintf(tmp,sizeof(tmp),"%.8g",
+   	            snprintf(tmp,sizeof(tmp),"((float)%.8g)",
 			(double)va_arg(argv,double));
 		}
 		bbCat(buf,tmp);
@@ -658,3 +651,21 @@ emptystringconst(int lineno, Constant* c)
     c->value.stringv.stringv = NULL;
     return c;    
 }
+
+#define INDENTMAX 256
+static char* dent = NULL;
+
+char*
+indented(int n)
+{
+    char* indentation;
+    if(dent == NULL) {
+	dent = (char*)emalloc(INDENTMAX+1);
+	memset((void*)dent,' ',INDENTMAX);
+	dent[INDENTMAX] = '\0';	
+    }
+    if(n*4 >= INDENTMAX) n = INDENTMAX/4;
+    indentation = dent+(INDENTMAX - 4*n);
+    return indentation;
+}
+

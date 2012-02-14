@@ -82,16 +82,16 @@ various C global variables
 
 struct Kvalues {
 char* name;
-int mode;
+int k_flag;
 };
 
 #define NKVALUES 16
 extern struct Kvalues legalkinds[NKVALUES];
 
-/* Note: non-variable specials (e.g. _Format) are not included in this struct*/
+/* Note: some non-var specials (i.e. _Format) are not included in this struct*/
 typedef struct Specialdata {
     int flags;
-    Datalist*     _Fillvalue;
+    Datalist*      _Fillvalue; /* This is a per-type  */
     int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
@@ -111,7 +111,7 @@ typedef struct Dimset {
 
 typedef struct Diminfo {
     int   isconstant; /* separate constant from named dimension*/
-    size_t  unlimitedsize; /* if unlimited */
+    int   isunlimited;
     size_t  declsize; /* 0 => unlimited/unspecified*/
 } Diminfo;
 
@@ -130,6 +130,8 @@ typedef struct Typeinfo {
         size_t   size;     /* for opaque, compound, etc.*/
         size_t   nelems;   /* size in terms of # of datalist constants
 			      it takes to represent it */
+	Datalist*       _Fillvalue; /* per-type cached fillvalue
+                                       (overridden by var fillvalue) */
 } Typeinfo;
 
 typedef struct Varinfo {
@@ -140,7 +142,6 @@ typedef struct Varinfo {
 
 typedef struct Groupinfo {
     int is_root;
-    struct Symbol* unlimiteddim;
 } Groupinfo;
 
 typedef struct Symbol {  /* symbol table entry*/

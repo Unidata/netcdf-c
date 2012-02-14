@@ -39,7 +39,6 @@
 #define ENABLE_JAVA
 
 #include "netcdf.h"
-#include "odom.h"
 #include "data.h"
 #include "ncgen.h"
 #include "genlib.h"

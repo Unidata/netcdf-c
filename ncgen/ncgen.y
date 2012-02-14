@@ -71,7 +71,7 @@ char* primtypenames[PRIMNO] = {
 
 /*Defined in ncgen.l*/
 extern int lineno;              /* line number for error messages */
-extern char* lextext;           /* name or string with escapes removed */
+extern Bytebuffer* lextext;           /* name or string with escapes removed */
 
 extern double double_val;       /* last double value read */
 extern float float_val;         /* last float value read */
@@ -101,8 +101,6 @@ static Constant makeconstdata(nc_type);
 static Constant evaluate(Symbol* fcn, Datalist* arglist);
 static Constant makeenumconst(Symbol*);
 static void addtogroup(Symbol*);
-static Symbol* getunlimiteddim(void);
-static void setunlimiteddim(Symbol* udim);
 static Symbol* currentgroup(void);
 static Symbol* createrootgroup(void);
 static Symbol* creategroup(Symbol*);
@@ -440,6 +438,9 @@ dimdecl:
 	  dimd '=' UINT_CONST
               {
 		$1->dim.declsize = (size_t)uint32_val;
+#ifdef DEBUG1
+fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
+#endif
 	      }
 	| dimd '=' INT_CONST
               {
@@ -448,6 +449,9 @@ dimdecl:
 		    YYABORT;
 		}
 		$1->dim.declsize = (size_t)int32_val;
+#ifdef DEBUG1
+fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
+#endif
 	      }
         | dimd '=' DOUBLE_CONST
                    { /* for rare case where 2^31 < dimsize < 2^32 */
@@ -458,16 +462,17 @@ dimdecl:
                        if (double_val - (size_t) double_val > 0)
                          yyerror("dimension length must be an integer");
                        $1->dim.declsize = (size_t)double_val;
+#ifdef DEBUG1
+fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
+#endif
                    }
         | dimd '=' NC_UNLIMITED_K
                    {
-                       if(usingclassic) {
-	  	         /* check for multiple UNLIMITED decls*/
-                         if(getunlimiteddim() != NULL)
-			    markcdf4("Type specification");
-			 setunlimiteddim($1);
-		       }
-		       $1->dim.declsize = NC_UNLIMITED;
+		        $1->dim.declsize = NC_UNLIMITED;
+		        $1->dim.isunlimited = 1;
+#ifdef DEBUG1
+fprintf(stderr,"dimension: %s = UNLIMITED\n",$1->name);
+#endif
 		   }
                 ;
 
@@ -782,7 +787,7 @@ datalist:
 	;
 
 datalist0:
-	/*empty*/ {$$ = builddatalist(0);}
+	/*empty*/ {$$ = NULL;}
 	;
 
 datalist1: /* Must have at least 1 element */
@@ -954,18 +959,6 @@ install(const char *sname)
 }
 
 
-static void
-setunlimiteddim(Symbol* udim)
-{
-    rootgroup->grp.unlimiteddim = udim;
-}
-
-static Symbol*
-getunlimiteddim(void)
-{
-    return rootgroup->grp.unlimiteddim;
-}
-
 static Symbol*
 currentgroup(void)
 {
@@ -981,7 +974,6 @@ createrootgroup(void)
     gsym->container = NULL;
     gsym->subnodes = listnew();
     gsym->grp.is_root = 1;
-    gsym->grp.unlimiteddim = NULL;
     gsym->prefix = listnew();
     listpush(grpdefs,(elem_t)gsym);
     rootgroup = gsym;
@@ -1024,9 +1016,10 @@ makeconstdata(nc_type nctype)
 	    break;
         case NC_STRING: { /* convert to a set of chars*/
 	    int len;
-	    len = strlen(lextext);
+	    len = bbLength(lextext);
 	    con.value.stringv.len = len;
-	    con.value.stringv.stringv = nulldup(lextext);
+	    con.value.stringv.stringv = bbDup(lextext);
+	    bbClear(lextext);	    
 	    }
 	    break;
 
@@ -1041,14 +1034,14 @@ makeconstdata(nc_type nctype)
 	case NC_OPAQUE: {
 	    char* s;
 	    int len,padlen;
-	    len = strlen(lextext);
+	    len = bbLength(lextext);
 	    padlen = len;
 	    if(padlen < 16) padlen = 16;
 	    if((padlen % 2) == 1) padlen++;
 	    s = (char*)emalloc(padlen+1);
 	    memset((void*)s,'0',padlen);
 	    s[padlen]='\0';
-	    strncpy(s,lextext,len);
+	    strncpy(s,bbContents(lextext),len);
 	    con.value.opaquev.stringv = s;
 	    con.value.opaquev.len = padlen;
 	    } break;
@@ -1070,9 +1063,7 @@ static Constant
 makeenumconst(Symbol* econst)
 {
     Constant con;
-    if(usingclassic) {
-        markcdf4("Enum type");
-    } 
+    markcdf4("Enum type");
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
     con.lineno = lineno;
@@ -1185,6 +1176,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     char* sdata = NULL;
     int idata =  -1;
 
+    specials_flag = 1;
+
     if(isconst) {
 	con = (Constant*)data;
 	list = builddatalist(1);
@@ -1236,35 +1229,17 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     if(tag == _FORMAT_FLAG) {
 	struct Kvalues* kvalue;
 	int found;
-        int modifier;
 	found = 0;
-        modifier = 0;
-	if(kflag_flag != 0) goto done;
-	/* Only use this tag if kflag is not set */
 	/* Use the table in main.c */
         for(kvalue=legalkinds;kvalue->name;kvalue++) {
 	    if(strcmp(sdata,kvalue->name) == 0) {
-		modifier = kvalue->mode;
+		format_flag = kvalue->k_flag;
 		found = 1;
 	        break;
 	    }
 	}
 	if(!found)
 	    derror("_Format: illegal value: %s",sdata);
-	else {
-            /* Recompute mode flag */
-	    cmode_modifier &= ~(NC_NETCDF4 | NC_CLASSIC_MODEL | NC_64BIT_OFFSET);
-  	    cmode_modifier |= modifier;
-            if((cmode_modifier & NC_NETCDF4)) {
-	        allowspecial = 1;
-                if((cmode_modifier & NC_CLASSIC_MODEL)) {
-		    usingclassic = 1;
-	        } else {
-	            usingclassic = 0;
-	        }
-	    } else
-	        usingclassic = 1;
-	}
     } else if(tag == _FILLVALUE_FLAG) {
 	special->_Fillvalue = list;
 	/* fillvalue must be a single value*/
@@ -1338,7 +1313,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             } break;
         default: PANIC1("makespecial: illegal token: %d",tag);
      }
-done:
+
     return attr;
 }
 
@@ -1375,12 +1350,14 @@ makeattribute(Symbol* asym,
 static int
 containsfills(Datalist* list)
 {
-    int i;
-    Constant* con = list->data;
-    for(i=0;i<list->length;i++,con++) {
-	if(con->nctype == NC_COMPOUND) {
-	    if(containsfills(con->value.compoundv)) return 1;	
-	} else if(con->nctype == NC_FILLVALUE) return 1;	
+    if(list != NULL) {
+        int i;
+        Constant* con = list->data;
+        for(i=0;i<list->length;i++,con++) {
+	    if(con->nctype == NC_COMPOUND) {
+	        if(containsfills(con->value.compoundv)) return 1;	
+	    } else if(con->nctype == NC_FILLVALUE) return 1;	
+	}
     }
     return 0;
 }

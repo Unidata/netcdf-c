@@ -26,9 +26,6 @@ EXTERNC int bbFill(Bytebuffer*, const char fill);
 /* Produce a duplicate of the contents*/
 EXTERNC char* bbDup(const Bytebuffer*);
 
-/* pull a duplicate of the contents*/
-EXTERNC char* bbDup(const Bytebuffer*);
-
 /* Return the ith char; -1 if no such char */
 EXTERNC int bbGet(Bytebuffer*,unsigned int);
 
