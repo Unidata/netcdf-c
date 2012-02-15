@@ -1076,12 +1076,18 @@ slice->first,slice->stride,slice->stop,slice->declsize);
     lastchar = (memory->next);
     if(charcount > 0) {
         lastchar--;
+#ifdef IGNORE
+/* I think we cannot do this because
+   memory may not have made room for
+   a trailing null.
+*/
 	/* See if already null terminated */
 	if(*lastchar != '\0') {
             /* null terminate (should we do this?) */
 	    *memory->next = '\0';
 	    memory->next++;
 	}
+#endif
     }
 
     return THROW(ncstat);

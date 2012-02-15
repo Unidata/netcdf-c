@@ -10,7 +10,7 @@ PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[noprefetch]"
 PARMS="${PARMS}[show=fetch]"
 
-F="[cache]file:///machine/netcdf/nc_test_7549/netcdf-4.2-snapshot2012021222/ncdap_test/testdata3/1998-6-avhrr.dat"
+F="[cache]file:///machine/dmh/trunk/ncdap_test/testdata3/1998-6-avhrr.dat"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"

@@ -21,6 +21,8 @@ cmds=""
 PREFIX="/tmp/install/${HOST}"
 stddir="/share/ed/local/${HOST}"
 
+MALLOC_CHECK=""
+
 CPPFLAGS=""
 LDFLAGS=""
 
@@ -77,6 +79,7 @@ export CPPFLAGS
 export CFLAGS
 export LDFLAGS
 export LD_LIBRARY_PATH
+export MALLOC_CHECK
 
 CXXFLAGS="$CPPFLAGS $CXXFLAGS" ; export CXXFLAGS
 
