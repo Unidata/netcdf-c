@@ -316,6 +316,9 @@ In particular, if the leading character off the name is a digit (0-9),
 then it must be preceded by the escape character.
 In addition, the characters ` !"#$%&()*,:;<=>?[]^`\'{}|~\\'
 must be escaped if they occur anywhere in a name.
+Note also that attribute names that begin with an underscore (`_')
+are reserved for the use of Unidata and should not be used in user
+defined attributes.
 .LP
 Note also that the words
 `variable',
@@ -324,7 +327,7 @@ Note also that the words
 `group',
 and `types'
 are legal CDL names, but be careful that there is a space
-between them and any following colon character.
+between them and any following colon character when used as a variable name.
 This is mostly an issue with attribute declarations.
 For example, consider this.
 .HP
@@ -668,6 +671,11 @@ for the variable.
 .IP 6. 3
 `_ChunkSizes' is a list of chunk sizes for each dimension of
 the variable
+.LP
+Note that attributes such as "add_offset" or "scale_factor"
+have no special meaning to ncgen.  These attributes are
+currently conventions, handled above the library layer by
+other utility packages, for example NCO.
 .LP
 .SS "Specifying Datalists"
 .LP
