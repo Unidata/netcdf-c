@@ -1325,6 +1325,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 		  BAIL(NC_EHDFERR);
          }
       }
+   } else {
+       /* Required to truly turn HDF5 fill values off */
+       if(H5Pset_fill_time(plistid,H5D_FILL_TIME_NEVER) < 0)
+	   BAIL(NC_EHDFERR);
    }
 
    /* If the user wants to shuffle the data, set that up now. */
