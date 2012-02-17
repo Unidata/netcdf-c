@@ -1,5 +1,5 @@
 L="-lc"
-K="-k3"
+K="-k1"
 alias q0="./ncgen -d $K $L test.cdl"
 alias qq="gdb --args ./ncgen -d $K $L test.cdl"
 alias qv="valgrind --leak-check=full ./ncgen -d $K $L test.cdl"

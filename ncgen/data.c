@@ -596,6 +596,10 @@ retry:	    switch ((c=*p++)) {
 		text = va_arg(argv,char*);
 		bbCat(buf,text);
 		break;		
+	    case 'c':
+		c = va_arg(argv,int);
+		bbAppend(buf,(char)c);
+		break;		
             default:
 		PANIC1("vbbprintf: unknown specifier: %c",(char)c);
 	    }

@@ -551,9 +551,12 @@ processspecial1(Symbol* vsym)
     if((tag=(flags & _NOFILL_FLAG))) {
         con.nctype = NC_STRING;
         /* Watch out: flags is NOFILL, but we store FILL */
-        con.value.stringv.stringv
-            = (vsym->var.special._Fill == 1? "false"
-                                           : "true");
+	if(vsym->var.special._Fill == 1) {
+            con.value.stringv.stringv = "false";
+	} else {
+	    nofill_flag = 1;
+            con.value.stringv.stringv = "true";
+        }
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);

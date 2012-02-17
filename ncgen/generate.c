@@ -39,6 +39,15 @@ int generator_reset(Generator* generator, void* state)
     return 1;
 }
 
+static void
+checkodom(Odometer* odom)
+{
+    int i;
+    for(i=0;i<odom->rank;i++) {
+	ASSERT(odom->index[i] == odom->start[i]+odom->count[i]);
+    }
+}
+
 /**************************************************/
 
 void
@@ -124,12 +133,21 @@ generate_array(Symbol* vsym,
              if(nelems == 0) break;
              generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
 	     for(i=0;i<nelems;i++) {
-	 	 Constant* con = datalistith(vsym->data,i);
-                 generator->list(generator,LISTDATA,uid,i,code);
-                 generate_basetype(basetype,con,code,filler,generator);
+	 	Constant* con = datalistith(vsym->data,i);
+                generator->list(generator,LISTDATA,uid,i,code);
+#ifdef USE_NOFILL
+		if(nofill_flag && con == NULL)
+		    break;
+		else
+#endif
+                    generate_basetype(basetype,con,code,filler,generator);
  	    }
 	    generator->listend(generator,LISTDATA,uid,i,code);
+#ifdef USE_NOFILL
+            writer(generator,vsym,code,rank,odom->start,odom->index);
+#else
             writer(generator,vsym,code,rank,odom->start,odom->count);
+#endif
 	}
     } else
 
@@ -146,8 +164,13 @@ generate_array(Symbol* vsym,
                             /*dim index=*/0,
 			    filler,generator
 			   );
+#ifdef USE_NOFILL
+            writer(generator,vsym,code,odom->rank,odom->start,odom->index);
+#else
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
+#endif
         }
+checkodom(odom);
     }
     odometerfree(odom);
 }
@@ -189,6 +212,10 @@ generate_arrayr(Symbol* vsym,
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
 	    Constant* con = datalistith(list,offset);
+#ifdef USE_NOFILL
+	    if(nofill_flag && con == NULL)
+		break;
+#endif
             generator->list(generator,LISTDATA,uid,i,code);
             generate_basetype(basetype,con,code,filler,generator);
 	    odometerincr(slabodom);
@@ -214,6 +241,10 @@ generate_arrayr(Symbol* vsym,
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
 	    Constant* con = datalistith(list,offset);
+#ifdef USE_NOFILL
+	    if(nofill_flag && con == NULL)
+		break;
+#endif
 	    if(!islistconst(con))
 	        semwarn(constline(con),"Expected {...} representing unlimited list");
 	    else {

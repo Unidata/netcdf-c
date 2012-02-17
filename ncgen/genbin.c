@@ -367,10 +367,20 @@ genbin_write(Generator* generator, Symbol* sym, Bytebuffer* memory,
 
 static int
 genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
-           int rank, size_t* start, size_t* count)
+                int rank, size_t* start,
+#ifdef USE_NOFILL
+	        size_t* indices
+#else
+	        size_t* count
+#endif
+	       )
 {
     int stat = NC_NOERR;
     char* data = bbContents(memory);
+#ifdef USE_NOFILL
+    size_t count[NC_MAX_VAR_DIMS];    
+    { int i; for(i=0;i<rank;i++) count[i] = indices[i] - start[i];}
+#endif
 
 #ifdef DEBUG
     {

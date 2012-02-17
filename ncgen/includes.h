@@ -10,6 +10,8 @@
 #ifndef NCGEN_INCLUDES_H
 #define NCGEN_INCLUDES_H
 
+#undef USE_NOFILL
+
 #include "config.h"
 
 #include <stdlib.h>

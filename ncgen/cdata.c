@@ -34,6 +34,12 @@ c_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
     char* special = NULL;
 
     switch (con->nctype) {
+    case NC_CHAR:
+	if(con->value.charv == '\'') 
+	    bbprintf(codetmp,"'\\''");
+	else
+	    bbprintf(codetmp,"'%c'",con->value.charv);
+	break;
     case NC_BYTE:
 	bbprintf(codetmp,"%hhd",con->value.int8v);
 	break;

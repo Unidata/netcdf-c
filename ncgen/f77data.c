@@ -35,11 +35,10 @@ f77_constant(Generator* generator, Constant* ci, Bytebuffer* codebuf,...)
     switch (ci->nctype) {
 
     case NC_CHAR:
-	{
-	    strcpy(tmp,"'");
-	    escapifychar(ci->value.charv,tmp+1,'\'');
-	    strcat(tmp,"'");
-	}
+	if(ci->value.charv == '\'') 
+	    sprintf(tmp,"'\\''");
+	else
+	    sprintf(tmp,"'%c'",ci->value.charv);
 	break;
     case NC_BYTE:
 	sprintf(tmp,"%hhd",ci->value.int8v);
