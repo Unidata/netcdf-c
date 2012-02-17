@@ -39,6 +39,7 @@ int generator_reset(Generator* generator, void* state)
     return 1;
 }
 
+#ifdef IGNORe
 static void
 checkodom(Odometer* odom)
 {
@@ -47,6 +48,7 @@ checkodom(Odometer* odom)
 	ASSERT(odom->index[i] == odom->start[i]+odom->count[i]);
     }
 }
+#endif
 
 /**************************************************/
 
@@ -170,7 +172,6 @@ generate_array(Symbol* vsym,
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
 #endif
         }
-checkodom(odom);
     }
     odometerfree(odom);
 }
