@@ -10,6 +10,8 @@
 #ifndef NCGEN_INCLUDES_H
 #define NCGEN_INCLUDES_H
 
+#undef USE_NOFILL
+
 #include "config.h"
 
 #include <stdlib.h>
@@ -39,7 +41,6 @@
 #define ENABLE_JAVA
 
 #include "netcdf.h"
-#include "odom.h"
 #include "data.h"
 #include "ncgen.h"
 #include "genlib.h"

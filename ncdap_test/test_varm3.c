@@ -76,9 +76,11 @@ main()
     int err;
     size_t start[5], count[5];
     ptrdiff_t stride[5], imap[5];
-
-    int idim, ndim;  
+    int idim;
     float dat[20];
+#ifdef STANDALONE
+    int ndim;
+#endif
 
 #ifdef DEBUG
     oc_loginit();
@@ -96,8 +98,9 @@ main()
         stride[idim] = 1;
         imap[idim] = 1;
     }
+#ifdef STANDALONE
     ndim=3;
-
+#endif
 
     printf("*** Testing: stride case 1\n");
     start[1] = 44;

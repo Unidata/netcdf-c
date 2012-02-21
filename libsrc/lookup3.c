@@ -448,6 +448,7 @@ hashlittle2(
 #endif /*SELF_TEST*/
 
 
+#ifdef WORDS_BIGENDIAN
 /*
  * hashbig():
  * This is the same as hashword() on big-endian machines.  It is different
@@ -576,7 +577,7 @@ hashbig( const void *key, size_t length, uint32_t initval)
   final(a,b,c);
   return c;
 }
-
+#endif /*WORDS_BIGENDIAN*/
 
 /*
 -------------------------------------------------------------------------------

@@ -64,11 +64,41 @@ verror(fmt,va_alist) const char* fmt; va_dcl
     vderror(newfmt,argv);
 }
 
+#ifndef NO_STDARG
+void
+semwarn(const int lno, const char *fmt, ...)
+#else
+void
+semwarn(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
+#endif
+{
+    va_list argv;
+    vastart(argv,fmt);
+    (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
+    vderror(fmt,argv);
+}
+
+#ifndef NO_STDARG
+void
+semerror(const int lno, const char *fmt, ...)
+#else
+void
+semerror(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
+#endif
+{
+    va_list argv;
+    vastart(argv,fmt);
+    (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
+    vderror(fmt,argv);
+    exit(1);
+}
+
 /* Capture potential version errors */
 static char* markcdf4_msg = NULL;
 void
 markcdf4(const char* msg)
 {
+    enhanced_flag = 1;
     if(markcdf4_msg == NULL)
         markcdf4_msg = (char*)msg;
 }

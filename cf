@@ -1,7 +1,7 @@
 #!/bin/bash
 #X="-x"
 
-#HDF5=1
+HDF5=1
 DAP=1
 #CDMR=1
 #RPC=1
@@ -20,6 +20,8 @@ cmds=""
 # Default cases
 PREFIX="/tmp/install/${HOST}"
 stddir="/share/ed/local/${HOST}"
+
+MALLOC_CHECK=""
 
 CPPFLAGS=""
 LDFLAGS=""
@@ -77,6 +79,7 @@ export CPPFLAGS
 export CFLAGS
 export LDFLAGS
 export LD_LIBRARY_PATH
+export MALLOC_CHECK
 
 CXXFLAGS="$CPPFLAGS $CXXFLAGS" ; export CXXFLAGS
 
@@ -100,6 +103,7 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-benchmarks"
 #FLAGS="$FLAGS --enable-extra-tests"
+FLAGS="$FLAGS --enable-logging"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"

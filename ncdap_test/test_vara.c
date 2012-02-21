@@ -88,6 +88,8 @@ main()
     strcat(url,topsrcdir);
     strcat(url,"/ncdap_test/testdata3/test.06");
 
+    printf("test_vara: url=%s\n",url);
+
     memset((void*)threeD,0,sizeof(threeD));
 
     if((retval = nc_open(url, NC_NOWRITE, &ncid)))

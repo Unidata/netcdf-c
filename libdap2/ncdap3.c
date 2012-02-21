@@ -27,6 +27,8 @@ static NCerror buildglobalattrs3(NCDAPCOMMON*,CDFnode* root);
 static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 
+static char* getdefinename(CDFnode* node);
+
 extern CDFnode* v4node;
 int nc3dinitialized = 0;
 
@@ -192,6 +194,11 @@ NCD3_open(const char * path, int mode,
     ncstat = fetchconstrainedmetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
+#ifdef DEBUG2
+fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
+#endif
+
+
     /* The following actions are (mostly) WRT to the constrained tree */
 
     /* Accumulate useful nodes sets  */
@@ -253,7 +260,7 @@ NCD3_open(const char * path, int mode,
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Transfer data from the unconstrained DDS data to the unconstrained DDS */
-    ncstat = imprint3(dapcomm);
+    ncstat = dimimprint3(dapcomm);
     if(ncstat) goto done;
 
     /* Process the constraints to map to the constrained CDF tree */
@@ -374,6 +381,7 @@ builddims(NCDAPCOMMON* dapcomm)
     NClist* dimset = NULL;
     NC* drno = dapcomm->controller;
     NC* ncsub;
+    char* definename;
 
     /* collect all dimensions from variables */
     dimset = dapcomm->cdf.dimnodes;
@@ -398,10 +406,12 @@ builddims(NCDAPCOMMON* dapcomm)
     /* Define unlimited only if needed */ 
     if(dapcomm->cdf.recorddim != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
+	definename = getdefinename(unlimited);
         ncstat = nc_def_dim(drno->substrate,
-			unlimited->ncbasename,
+			definename,
 			NC_UNLIMITED,
 			&unlimited->ncid);
+	nullfree(definename);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
         /* get the id for the substrate */
@@ -420,8 +430,12 @@ builddims(NCDAPCOMMON* dapcomm)
 #ifdef DEBUG1
 fprintf(stderr,"define: dim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 #endif
-        ncstat = nc_def_dim(drno->substrate,dim->ncfullname,dim->dim.declsize,&dimid);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+	definename = getdefinename(dim);
+        ncstat = nc_def_dim(drno->substrate,definename,dim->dim.declsize,&dimid);
+        if(ncstat != NC_NOERR) {
+	    THROWCHK(ncstat); goto done;
+	}
+	nullfree(definename);
         dim->ncid = dimid;
     }
 
@@ -448,6 +462,7 @@ buildvars(NCDAPCOMMON* dapcomm)
     int varid;
     NClist* varnodes = dapcomm->cdf.varnodes;
     NC* drno = dapcomm->controller;
+    char* definename;
 
     ASSERT((varnodes != NULL));
     for(i=0;i<nclistlength(varnodes);i++) {
@@ -471,9 +486,14 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[j] = dim->ncid;
  	    }
         }   
+
+
+
+	definename = getdefinename(var);
+
 #ifdef DEBUG1
 fprintf(stderr,"define: var: %s/%s",
-		var->ncfullname,var->ocname);
+		definename,var->ocname);
 if(ncrank > 0) {
 int k;
 for(k=0;k<ncrank;k++) {
@@ -483,11 +503,13 @@ fprintf(stderr,"[%ld]",dim->dim.declsize);
  }
 fprintf(stderr,"\n");
 #endif
-        ncstat = nc_def_var(drno->substrate,var->ncfullname,
+        ncstat = nc_def_var(drno->substrate,
+		        definename,
                         var->externaltype,
                         ncrank,
                         (ncrank==0?NULL:dimids),
                         &varid);
+	nullfree(definename);
         if(ncstat != NC_NOERR) {
 	    THROWCHK(ncstat);
 	    goto done;
@@ -564,7 +586,7 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, CDFnode* root)
     if(paramcheck34(dapcomm,"show","dds")) {
 	txt = NULL;
 	if(dapcomm->cdf.ddsroot != NULL)
-  	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->cdf.ddsroot->dds);
+  	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->cdf.ddsroot->ocnode);
 	if(txt != NULL) {
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
@@ -595,7 +617,6 @@ buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int va
 {
     int i;
     NCerror ncstat = NC_NOERR;
-    char* cname = cdflegalname3(att->name);
     unsigned int nvalues = nclistlength(att->values);
     NC* drno = dapcomm->controller;
 
@@ -621,9 +642,9 @@ buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int va
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(drno->substrate,varid,cname,1,newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,att->name,1,newstring);
 	else
-	    ncstat = nc_put_att_text(drno->substrate,varid,cname,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(drno->substrate,varid,att->name,strlen(newstring),newstring);
 	free(newstring);
     } else {
 	nc_type atype;
@@ -643,9 +664,34 @@ buildattribute3a(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int va
 	typesize = nctypesizeof(atype);
 	mem = malloc(typesize * nvalues);
         ncstat = dapcvtattrval3(atype,mem,att->values);
-        ncstat = nc_put_att(drno->substrate,varid,cname,atype,nvalues,mem);
+        ncstat = nc_put_att(drno->substrate,varid,att->name,atype,nvalues,mem);
 	nullfree(mem);
     }
-    free(cname);
     return THROW(ncstat);
+}
+
+static char*
+getdefinename(CDFnode* node)
+{
+    char* spath = NULL;
+    NClist* path = NULL;
+
+    switch (node->nctype) {
+    case NC_Primitive:
+	/* The define name is same as the fullname with elided nodes */
+	path = nclistnew();
+        collectnodepath3(node,path,!WITHDATASET);
+        spath = makepathstring3(path,".",PATHNC|PATHELIDE);
+        nclistfree(path);
+	break;
+
+    case NC_Dimension:
+	/* Return just the node's ncname */
+	spath = nulldup(node->ncbasename);	
+	break;
+
+    default:
+	PANIC("unexpected nctype");
+    }
+    return spath;
 }

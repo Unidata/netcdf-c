@@ -69,14 +69,17 @@ ref_tst_comp2 \
 ref_tst_comp3 \
 ref_tst_group_data \
 ref_tst_opaque_data \
-ref_tst_vlen_data \
 ref_tst_solar_1 \
 ref_tst_solar_2 \
 ref_tst_enum_data \
 ref_tst_special_atts \
 ref_tst_nans \
 ref_solar \
-unlimtest2"
+unlimtest2 \
+ref_tst_vlen_data \
+ref_tst_vlen_data \
+ref_tst_vlen_data2 \
+"
 
 SPECIALTESTS3="ref_tst_special_atts3"
 

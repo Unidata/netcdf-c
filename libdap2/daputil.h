@@ -6,6 +6,14 @@
 #ifndef DAPUTIL_H
 #define DAPUTIL_H 1
 
+/* Define a set of flags to control path construction */
+#define PATHNC    1 /*Use ->ncname*/
+#define PATHELIDE 2 /*Leave out elided nodes*/
+
+/* mnemonic */
+#define WITHDATASET 1
+#define WITHOUTDATASET 0
+
 /* sigh!, Forwards */
 struct CDFnode;
 struct NCTMODEL;
@@ -18,16 +26,14 @@ extern size_t nctypesizeof(nc_type);
 extern char* nctypetostring(nc_type);
 extern char* maketmppath(char* path, char* prefix);
 
-/* mnemonic */
-#define WITHDATASET 1
-#define WITHOUTDATASET 0
-
 extern void collectnodepath3(struct CDFnode*, NClist* path, int dataset);
+extern void collectocpath(OCconnection conn, OCobject node, NClist* path);
+
 extern char* makecdfpathstring3(struct CDFnode*,const char*);
-extern char* ocifypathstring3(struct CDFnode*,const char*);
-extern char* makesimplepathstring3(struct CDFnode*);
-extern char* simplepathstring3(NClist*,char*);
 extern void clonenodenamepath3(struct CDFnode*, NClist*, int);
+extern char* makepathstring3(NClist* path, const char* separator, int flags);
+
+extern char* makeocpathstring3(OCconnection, OCobject, const char*);
 
 extern char* cdflegalname3(char* dapname);
 
@@ -40,9 +46,6 @@ extern int nclistconcat(NClist* l1, NClist* l2);
 extern int nclistminus(NClist* l1, NClist* l2);
 extern int nclistdeleteall(NClist* l1, ncelem);
 
-extern char* makeocpathstring3(OCconnection,OCobject,const char*);
-extern int collectocpath(OCconnection,OCobject,NClist*);
-
 extern char* getvaraprint(void* gv);
 
 extern int dapinsequence(struct CDFnode* node);
@@ -52,14 +55,6 @@ extern int daptoplevel(struct CDFnode* node);
 extern int dapgridmap(struct CDFnode* node);
 extern int dapgridarray(struct CDFnode* node);
 extern int dapgridelement(struct CDFnode* node);
-
-#ifdef IGNORE
-/* Provide alternate path to the url parameters;
-   one that does not require that an OCconnection exist */
-extern NClist* dapparamdecode(char*);
-extern void dapparamfree(NClist*);
-extern const char* dapparamlookup(NClist*, const char*);
-#endif
 
 extern unsigned int modeldecode(int, const char*, const struct NCTMODEL*, unsigned int);
 extern unsigned long getlimitnumber(const char* limit);

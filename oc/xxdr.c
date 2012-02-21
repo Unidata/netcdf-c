@@ -336,7 +336,9 @@ xxdr_memgetbytes(XXDR* xdrs, char* addr, off_t len)
 xxdrtrace(xdrs,"getbytes",len);
     if(len < 0) len = 0;
     if(xdrs->pos+len > xdrs->length) {ok=0; goto done;}
-    memcpy(addr,(char*)xdrs->data+xdrs->base+xdrs->pos, len);
+    if(len > 0) {
+        memcpy(addr,(char*)xdrs->data+xdrs->base+xdrs->pos, len);
+    }
     xdrs->pos += len;
 done:
     return ok;

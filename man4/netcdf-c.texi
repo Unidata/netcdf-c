@@ -2442,10 +2442,11 @@ values see @ref{Attribute Conventions,,, netcdf, NetCDF
 Users' Guide}.
 
 The behavior corresponding to NC_NOFILL overrides the default behavior
-of prefilling data with fill values. This can be used to enhance
+of prefilling data with fill values. This may enhance
 performance, because it avoids the duplicate writes that occur when
 the netCDF library writes fill values that are later overwritten with
-data.
+data, at the cost of losing the ability to later detect access of
+values that were never written.
 
 A value indicating which mode the netCDF dataset was already in is
 returned. You can use this value to temporarily change the fill mode
@@ -2459,13 +2460,13 @@ revert to the default behavior. You can also revert to the default
 behavior by calling nc_set_fill again to explicitly set the fill mode
 to NC_FILL.
 
-There are three situations where it is advantageous to set nofill
+There are three situations where it might be advantageous to set nofill
 mode:
 
 @enumerate
 
 @item
-Creating and initializing a netCDF dataset. In this case, you should
+Creating and initializing a netCDF dataset. In this case, you could
 set nofill mode before calling nc_enddef and then write completely all
 non-record variables and the initial records of all the record
 variables you want to initialize.

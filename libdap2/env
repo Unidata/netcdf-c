@@ -1,4 +1,4 @@
-TOPDIR="/home/dmh/mach/minor"
+TOPDIR="/home/dmh/mach/major"
 #http://esrl.noaa.gov/psd/thredds/dodsC/Datasets/noaa.oisst.v2/sst.wkmean.1990-present.nc"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
@@ -10,10 +10,7 @@ PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[noprefetch]"
 PARMS="${PARMS}[show=fetch]"
 
-
-F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20120101_0000.nc"
-CON="weather[0:10]"
-#VAR="person.name"
+F="[cache]file:///machine/dmh/trunk/ncdap_test/testdata3/1998-6-avhrr.dat"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"
@@ -69,3 +66,4 @@ CON="ens,time,lat,lon,prmslmsl[0:1:0][0:1:64][0:1:10][0:1:10]"
 F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20111122_0000.nc"
 CON="weather[0:10]"
 fi
+

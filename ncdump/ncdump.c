@@ -2199,6 +2199,14 @@ netCDF file when using ncdump, editing the resulting CDL file, and
 using 'ncgen -b' to generate a new netCDF file from the edited CDL
 file.
 
+\section Note on string output
+
+For classic, 64-bit offset or netCDF-4 classic model data, ncdump generates
+line breaks after embedded newlines in displaying the character data.  This
+is not done for netCDF-4 files, because that would create an extra string in
+a list of strings when read by ncgen, which supports real strings as a new
+primitive type.
+
 \section Examples
 
 Look at the structure of the data in the netCDF file foo.nc:

@@ -207,25 +207,27 @@ fprintf(stderr,"dapmergeprojection: src = %s\n",dcetostring((DCEnode*)src));
     return ncstat;
 }
 
+/* Modify merged projection to include "addition" projection */
 int
-dcemergeprojections(DCEprojection* dst, DCEprojection* src)
+dcemergeprojections(DCEprojection* merged, DCEprojection* addition)
 {
     int ncstat = NC_NOERR;
     int i,j;
 
-    /* merge segment by segment;
-       |dst->segments| == |src->segments|
-       by construction
-    */
-    ASSERT((dst->discrim == CES_VAR && src->discrim == CES_VAR));
-    ASSERT((nclistlength(dst->var->segments) == nclistlength(src->var->segments)));    
-    for(i=0;i<nclistlength(dst->var->segments);i++) {
-	DCEsegment* dstseg = (DCEsegment*)nclistget(dst->var->segments,i);
-	DCEsegment* srcseg = (DCEsegment*)nclistget(src->var->segments,i);
-	for(j=0;j<dstseg->rank;j++) {
-	    dceslicemerge(dstseg->slices+j,
-			  srcseg->slices+j);
+    ASSERT((merged->discrim == CES_VAR && addition->discrim == CES_VAR));
+    ASSERT((nclistlength(merged->var->segments) == nclistlength(addition->var->segments)));    
+    for(i=0;i<nclistlength(merged->var->segments);i++) {
+	DCEsegment* mergedseg = (DCEsegment*)nclistget(merged->var->segments,i);
+	DCEsegment* addedseg = (DCEsegment*)nclistget(addition->var->segments,i);
+	/* If one segment has larger rank, then copy the extra slices unchanged */
+	for(j=0;j<addedseg->rank;j++) {
+	    if(j < mergedseg->rank)
+	        dceslicemerge(mergedseg->slices+j,addedseg->slices+j);
+	    else
+		mergedseg->slices[j] = addedseg->slices[j];
 	}
+	if(addedseg->rank > mergedseg->rank)
+	    mergedseg->rank = addedseg->rank;
     }
     return ncstat;
 }
@@ -808,17 +810,6 @@ dcecreate(CEsort sort)
     return node;
 }
 
-void
-dcemakewholeslice(DCEslice* slice, size_t declsize)
-{
-    slice->first = 0;
-    slice->stride = 1;
-    slice->length = declsize;
-    slice->stop = declsize;
-    slice->declsize = declsize;
-    slice->count = declsize;
-}
-
 int
 dceiswholeslice(DCEslice* slice)
 {
@@ -841,6 +832,7 @@ dceiswholesegment(DCEsegment* seg)
     return whole;
 }
 
+#ifdef IGNORE
 int
 dceiswholevar(DCEvar* var)
 {
@@ -853,24 +845,36 @@ dceiswholevar(DCEvar* var)
     return whole;
 }
 
-void
-dcemakewholeprojection(DCEprojection* p)
-{
-    int i;
-    /* Remove the slicing (if any) */
-    if(p->discrim == CES_VAR && p->var != NULL && p->var->segments != NULL) {
-        for(i=0;i<nclistlength(p->var->segments);i++) {
-	    DCEsegment* seg = (DCEsegment*)nclistget(p->var->segments,i);
-            seg->rank = 0;
-	}
-    }   
-}
-
 int
 dceiswholeprojection(DCEprojection* p)
 {
     if(p == NULL || p->discrim != CES_VAR) return 0;
     return dceiswholevar(p->var);
+}
+
+#endif
+
+void
+dcemakewholeslice(DCEslice* slice, size_t declsize)
+{
+    slice->first = 0;
+    slice->stride = 1;
+    slice->length = declsize;
+    slice->stop = declsize;
+    slice->declsize = declsize;
+    slice->count = declsize;
+}
+
+/* Remove slicing from terminal segment of p */
+void
+dcemakewholeprojection(DCEprojection* p)
+{
+    /* Remove the slicing (if any) from the last segment */
+    if(p->discrim == CES_VAR && p->var != NULL && p->var->segments != NULL) {
+        int lastindex = nclistlength(p->var->segments) - 1;
+        DCEsegment* lastseg = (DCEsegment*)nclistget(p->var->segments,lastindex);
+        lastseg->rank = 0;
+    }   
 }
 
 int

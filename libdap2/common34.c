@@ -310,20 +310,25 @@ dupdim->dim.array->ocname,dupdim->ocname
     }
 
     /* Next case: same name and different sizes*/
-    /* => rename second dim by appending a counter */
+    /* => rename second dim */
 
     for(i=0;i<nclistlength(alldims);i++) {
 	CDFnode* basedim = (CDFnode*)nclistget(alldims,i);
-	if(basedim->dim.basedim != NULL) continue; /* ignore*/
+	if(basedim->dim.basedim != NULL) continue;
 	/* Collect all conflicting dimensions */
 	nclistclear(conflicts);
         for(j=i+1;j<nclistlength(alldims);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(alldims,j);
-	    if(dim->dim.basedim != NULL) continue; /* ignore*/	    
+	    if(dim->dim.basedim != NULL) continue;
 	    if(dim->ocname == NULL && basedim->ocname == NULL) continue;
 	    if(dim->ocname == NULL || basedim->ocname == NULL) continue;
 	    if(strcmp(dim->ocname,basedim->ocname)!=0) continue;
 	    if(dim->dim.declsize == basedim->dim.declsize) continue;
+#ifdef DEBUG2
+fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
+			basedim->ncfullname,(unsigned long)basedim->dim.declsize,
+			dim->ncfullname,(unsigned long)dim->dim.declsize);
+#endif
 	    nclistpush(conflicts,(ncelem)dim);
 	}
 	/* Give  all the conflicting dimensions an index */
@@ -388,9 +393,20 @@ dupdim->dim.array->ocname,dupdim->ocname
             dim->ncbasename = cdflegalname3(tmp);
             nullfree(dim->ncfullname);
             dim->ncfullname = nulldup(dim->ncbasename);
-    	} else { /* !anonymous */
+    	} else { /* !anonymous; use index1 if defined */
+   	    char* legalname = cdflegalname3(dim->ocname);
 	    nullfree(dim->ncbasename);
-	    dim->ncbasename = cdflegalname3(dim->ocname);
+	    if(dim->dim.index1 > 0) {/* need to fix conflicting names (see above) */
+	        char sindex[64];
+		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
+		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
+		if(dim->ncbasename == NULL) return NC_ENOMEM;
+		strcpy(dim->ncbasename,legalname);
+		strcat(dim->ncbasename,sindex);
+		nullfree(legalname);
+	    } else {/* standard case */
+	        dim->ncbasename = legalname;
+	    }
     	    nullfree(dim->ncfullname);
 	    dim->ncfullname = nulldup(dim->ncbasename);
 	}
@@ -399,14 +415,18 @@ dupdim->dim.array->ocname,dupdim->ocname
     /* Verify unique and defined names for dimensions*/
     for(i=0;i<nclistlength(basedims);i++) {
 	CDFnode* dim1 = (CDFnode*)nclistget(basedims,i);
-	if(dim1->dim.basedim != NULL) continue;
+	if(dim1->dim.basedim != NULL) PANIC1("nonbase basedim: %s\n",dim1->ncbasename);
 	if(dim1->ncbasename == NULL || dim1->ncfullname == NULL)
 	    PANIC1("missing dim names: %s",dim1->ocname);
-	for(j=0;j<i;j++) {
+	/* search backward so we can delete duplicates */
+	for(j=nclistlength(basedims)-1;j>i;j--) {
 	    CDFnode* dim2 = (CDFnode*)nclistget(basedims,j);
-	    if(dim2->dim.basedim != NULL) continue;
 	    if(strcmp(dim1->ncfullname,dim2->ncfullname)==0) {
-		PANIC1("duplicate dim names: %s",dim1->ncfullname);
+		/* complain and suppress one of them */
+		fprintf(stderr,"duplicate dim names: %s[%lu] %s[%lu]\n",
+			dim1->ncfullname,(unsigned long)dim1->dim.declsize,
+			dim2->ncfullname,(unsigned long)dim2->dim.declsize);
+		nclistremove(basedims,j);
 	    }
 	}
     }
@@ -469,7 +489,7 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
 	node->ocname[len] = '\0';
     }
     node->nctype = octypetonc(octype);
-    node->dds = ocnode;
+    node->ocnode = ocnode;
     node->subnodes = nclistnew();
     node->container = container;
     if(ocnode != OCNULL) {
@@ -655,7 +675,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	/* Define the client param stringlength for this variable*/
 	var->maxstringlength = 0; /* => use global dfalt */
 	strcpy(tmpname,"stringlength_");
-	pathstr = makeocpathstring3(conn,var->dds,".");
+	pathstr = makeocpathstring3(conn,var->ocnode,".");
 	strcat(tmpname,pathstr);
 	nullfree(pathstr);
 	value = oc_clientparam_get(conn,tmpname);	
@@ -669,7 +689,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	if(var->nctype != NC_Sequence) continue;
 	var->sequencelimit = dfaltseqlim;
 	strcpy(tmpname,"nolimit_");
-	pathstr = makeocpathstring3(conn,var->dds,".");
+	pathstr = makeocpathstring3(conn,var->ocnode,".");
 	strcat(tmpname,pathstr);
 	if(oc_clientparam_get(conn,tmpname) != NULL)
 	    var->sequencelimit = 0;
@@ -865,15 +885,15 @@ setattach(CDFnode* target, CDFnode* template)
 }
 
 static NCerror
-attachdims34(CDFnode* xnode, CDFnode* ddsnode)
+attachdims34(CDFnode* xnode, CDFnode* template)
 {
     unsigned int i;
     for(i=0;i<nclistlength(xnode->array.dimsetall);i++) {
 	CDFnode* xdim = (CDFnode*)nclistget(xnode->array.dimsetall,i);
-	CDFnode* ddim = (CDFnode*)nclistget(ddsnode->array.dimsetall,i);
-	setattach(xdim,ddim);
+	CDFnode* tdim = (CDFnode*)nclistget(template->array.dimsetall,i);
+	setattach(xdim,tdim);
 #ifdef DEBUG2
-fprintf(stderr,"attachdim: %s->%s\n",xdim->ocname,ddim->ocname);
+fprintf(stderr,"attachdim: %s->%s\n",xdim->ocname,tdim->ocname);
 #endif
     }
     return NC_NOERR;
@@ -885,48 +905,48 @@ It is assumed that both trees have been regridded if necessary.
 */
 
 static NCerror
-attach34r(CDFnode* xnode, NClist* path, int depth)
+attach34r(CDFnode* xnode, NClist* templatepath, int depth)
 {
     unsigned int i,plen,lastnode,gridable;
     NCerror ncstat = NC_NOERR;
-    CDFnode* pathnode;
-    CDFnode* pathnext;
+    CDFnode* templatepathnode;
+    CDFnode* templatepathnext;
 
-    plen = nclistlength(path);
+    plen = nclistlength(templatepath);
     if(depth >= plen) {THROWCHK(ncstat=NC_EINVAL); goto done;}
 
     lastnode = (depth == (plen-1));
-    pathnode = (CDFnode*)nclistget(path,depth);
-    ASSERT((simplenodematch34(xnode,pathnode)));
-    setattach(xnode,pathnode);    
+    templatepathnode = (CDFnode*)nclistget(templatepath,depth);
+    ASSERT((simplenodematch34(xnode,templatepathnode)));
+    setattach(xnode,templatepathnode);    
 #ifdef DEBUG2
-fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,pathnode->ocname);
+fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,templatepathnode->ocname);
 #endif
 
     if(lastnode) goto done; /* We have the match and are done */
 
     if(nclistlength(xnode->array.dimsetall) > 0) {
-	attachdims34(xnode,pathnode);
+	attachdims34(xnode,templatepathnode);
     }
 
     ASSERT((!lastnode));
-    pathnext = (CDFnode*)nclistget(path,depth+1);
+    templatepathnext = (CDFnode*)nclistget(templatepath,depth+1);
 
-    gridable = (pathnext->nctype == NC_Grid && depth+2 < plen);
+    gridable = (templatepathnext->nctype == NC_Grid && depth+2 < plen);
 
-    /* Try to find an xnode subnode that matches pathnext */
+    /* Try to find an xnode subnode that matches templatepathnext */
     for(i=0;i<nclistlength(xnode->subnodes);i++) {
         CDFnode* xsubnode = (CDFnode*)nclistget(xnode->subnodes,i);
-        if(simplenodematch34(xsubnode,pathnext)) {
-	    ncstat = attach34r(xsubnode,path,depth+1);
+        if(simplenodematch34(xsubnode,templatepathnext)) {
+	    ncstat = attach34r(xsubnode,templatepath,depth+1);
 	    if(ncstat) goto done;
         } else if(gridable && xsubnode->nctype == NC_Primitive) {
             /* grids may or may not appear in the datadds;
 	       try to match the xnode subnodes against the parts of the grid
 	    */
-   	    CDFnode* pathnext2 = (CDFnode*)nclistget(path,depth+2);
-	    if(simplenodematch34(xsubnode,pathnext2)) {
-	        ncstat = attach34r(xsubnode,path,depth+2);
+   	    CDFnode* templatepathnext2 = (CDFnode*)nclistget(templatepath,depth+2);
+	    if(simplenodematch34(xsubnode,templatepathnext2)) {
+	        ncstat = attach34r(xsubnode,templatepath,depth+2);
                 if(ncstat) goto done;
 	    }
 	}
@@ -936,20 +956,20 @@ done:
 }
 
 NCerror
-attach34(CDFnode* xroot, CDFnode* ddstarget)
+attach34(CDFnode* xroot, CDFnode* template)
 {
     NCerror ncstat = NC_NOERR;
-    NClist* path = nclistnew();
-    CDFnode* ddsroot = ddstarget->root;
+    NClist* templatepath = nclistnew();
+    CDFnode* ddsroot = template->root;
 
     if(xroot->attachment) unattach34(xroot);
     if(ddsroot != NULL && ddsroot->attachment) unattach34(ddsroot);
     if(!simplenodematch34(xroot,ddsroot))
 	{THROWCHK(ncstat=NC_EINVAL); goto done;}
-    collectnodepath3(ddstarget,path,WITHDATASET);
-    ncstat = attach34r(xroot,path,0);
+    collectnodepath3(template,templatepath,WITHDATASET);
+    ncstat = attach34r(xroot,templatepath,0);
 done:
-    nclistfree(path);
+    nclistfree(templatepath);
     return ncstat;
 }
 
@@ -1067,8 +1087,13 @@ getalldims34a(NClist* dimset, NClist* alldims)
     int i;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	if(!nclistcontains(alldims,(ncelem)dim))
+	if(!nclistcontains(alldims,(ncelem)dim)) {
+#ifdef DEBUG3
+fprintf(stderr,"getalldims: %s[%lu]\n",
+			dim->ncfullname,(unsigned long)dim->dim.declsize);
+#endif
 	    nclistpush(alldims,(ncelem)dim);
+	}
     }
 }
 

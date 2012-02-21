@@ -16,6 +16,9 @@
 #  if DAPDEBUG > 1
 #    define DEBUG2
 #  endif
+#  if DAPDEBUG > 2
+#    define DEBUG3
+#  endif
 #endif
 
 #undef PARSEDEBUG

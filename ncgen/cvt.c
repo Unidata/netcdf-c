@@ -18,6 +18,8 @@ convert1(Constant* src, Constant* dst)
     unsigned char* bytes = NULL;
     size_t bytelen;
 
+    dst->lineno = src->lineno;
+
     /* Need to translate all possible sources to all possible sinks.*/
     /* Rather than have a nested switch, combine the src and target into*/
     /* a single value so we can do a single n*n-way switch*/
