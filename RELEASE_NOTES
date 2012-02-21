@@ -3,7 +3,18 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2
+4.2-rc2
+
+		Incorporated Peter Cao's performance fixes using HDF5
+		link iteraror when many variables or types in a group.
+
+		Incorporated Wei Huang's fix for bug where netCDF-4
+		miscomputes number values to skip over before adding
+		fill values.  [NCF-143]
+
+		Fixed bug in netCDF-4 files with non-coordinate
+		variable with the same name as a dimension.
+		[NCF-141]
 
 		Fixed nccopy bug when rechunking a netCDF-4 file with
 		a chunkspec option that doesn't explicitly specify all

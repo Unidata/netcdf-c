@@ -685,9 +685,7 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    NC_TYPE_INFO_T *type;
    htri_t is_str, equal = 0;
    hid_t class, native_typeid, hdf_typeid;
-#ifdef UNUSED
    nc_type my_nc_type = 0;
-#endif
    H5T_order_t order;
    int endianness;
    nc_type nc_type_constant[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT,
@@ -762,9 +760,7 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       return NC_EHDFERR;
 	    if (equal)
 	    {
-#ifdef NOTUSED
 	       my_nc_type = nc_type_constant[t];
-#endif
 	       break;
 	    }
 	 }
@@ -1739,6 +1735,211 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 /*    return NC_NOERR; */
 /* } */
 
+#define USE_ITERATE_CODE
+#ifdef  USE_ITERATE_CODE
+
+static int
+nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
+    void *_op_data)
+{
+	hid_t oid=-1;
+    H5I_type_t otype;
+	char oname[NC_MAX_NAME + 1];
+	NC_GRP_INFO_T *child_grp;
+	NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
+	NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+
+    /* Open this critter. */
+    if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+        return H5_ITER_ERROR;
+	  
+    if ((otype = H5Iget_type( oid ))<0) {
+		H5Oclose(oid);
+		return H5_ITER_ERROR;
+	}
+    H5Oclose(oid);
+	
+	strncpy(oname, name, NC_MAX_NAME);
+	   
+	/* Deal with groups and types; ignore the rest. */
+    if (otype == H5I_GROUP)
+    {
+		LOG((3, "found group %s", oname));
+		if (nc4_grp_list_add(&(grp->children), h5->next_nc_grpid++, 
+					grp, grp->file, oname, &child_grp))
+			return H5_ITER_ERROR;
+			
+		if (nc4_rec_read_types(child_grp))
+			return H5_ITER_ERROR;
+	}
+    else if (otype == H5I_DATATYPE)
+    {
+		LOG((3, "found datatype %s", oname));
+		if (read_type(grp, oname))
+			return H5_ITER_ERROR;
+    }
+	  
+    return (H5_ITER_CONT);
+}
+
+int
+nc4_rec_read_types(NC_GRP_INFO_T *grp)
+{
+    hsize_t idx=0;
+	int res = 0;
+	hid_t pid = 0;
+	unsigned crt_order_flags = 0;
+    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+
+    assert(grp && grp->name);
+    LOG((3, "nc4_rec_read_types: grp->name %s", grp->name));
+
+    /* Open this HDF5 group and retain its grpid. It will remain open
+     * with HDF5 until this file is nc_closed. */
+    if (!grp->hdf_grpid)
+    {
+        if (grp->parent)
+        {
+          if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid, 
+					grp->name, H5P_DEFAULT)) < 0)
+            return NC_EHDFERR;
+        }
+        else
+        {
+          if ((grp->hdf_grpid = H5Gopen2(grp->file->nc4_info->hdfid, 
+					"/", H5P_DEFAULT)) < 0)
+            return NC_EHDFERR;
+        }
+    }
+    assert(grp->hdf_grpid > 0);
+
+	pid = H5Gget_create_plist(grp->hdf_grpid);
+	H5Pget_link_creation_order(pid, &crt_order_flags); 
+	H5Pclose(pid);
+
+	crt_order_flags = crt_order_flags & H5_INDEX_CRT_ORDER;
+	
+	if (crt_order_flags == H5_INDEX_CRT_ORDER)
+	{
+		res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			  &idx, nc4_rec_read_types_cb, (void *)grp);
+    } else
+	{
+		/* Without creation ordering, file must be read-only. */
+	    if (!idx && !h5->no_write)
+			return NC_ECANTWRITE;
+	 
+		res = H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
+			  &idx, nc4_rec_read_types_cb, (void *)grp);
+		if (res<0)
+			return NC_EHDFERR;
+   }
+
+   return NC_NOERR; /* everything worked! */
+}
+
+static int
+nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
+    void *_op_data)
+{
+	hid_t oid=-1;
+    H5I_type_t otype;
+	char oname[NC_MAX_NAME + 1];
+	NC_GRP_INFO_T *child_grp;
+	NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
+	NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+
+    /* Open this critter. */
+    if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+        return H5_ITER_ERROR;
+	  
+    if ((otype = H5Iget_type( oid ))<0) {
+		H5Oclose(oid);
+		return H5_ITER_ERROR;
+	}
+    H5Oclose(oid);
+	
+	strncpy(oname, name, NC_MAX_NAME);
+	
+    /* Deal with datasets. */
+    switch(otype)
+    {
+		case H5I_GROUP:
+			LOG((3, "re-encountering group %s", link_info.name));
+
+			/* The NC_GROUP_INFO_T for this group already exists. Find it. */
+			for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
+				if (!strcmp(child_grp->name, oname))
+					break;
+			if (!child_grp)
+				return H5_ITER_ERROR;
+
+            /* Recursively read the child group's vars. */
+            if (nc4_rec_read_vars(child_grp))
+               return H5_ITER_ERROR;
+            break;
+        case H5I_DATASET:
+			LOG((3, "found dataset %s", oname));
+
+            /* Learn all about this dataset, which may be a dimscale
+             * (i.e. dimension metadata), or real data. */
+            if (read_dataset(grp, oname))
+				return H5_ITER_ERROR;
+            break;
+        case H5I_DATATYPE:
+			LOG((3, "already handled type %s", oname));
+            break;
+        default:
+            LOG((0, "Unknown object class %d in nc4_rec_read_vars!", otype));
+      }
+	  
+    return (H5_ITER_CONT);
+}
+
+int
+nc4_rec_read_vars(NC_GRP_INFO_T *grp)
+{
+    hsize_t idx = 0;
+    int retval = NC_NOERR;
+	int res = 0;
+	hid_t pid = 0;
+	unsigned crt_order_flags = 0;
+    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+
+   assert(grp && grp->name && grp->hdf_grpid > 0);
+   LOG((3, "nc4_rec_read_vars: grp->name %s", grp->name));
+
+	pid = H5Gget_create_plist(grp->hdf_grpid);
+	H5Pget_link_creation_order(pid, &crt_order_flags); 
+	H5Pclose(pid);
+
+	crt_order_flags = crt_order_flags & H5_INDEX_CRT_ORDER;
+
+	if (crt_order_flags == H5_INDEX_CRT_ORDER)
+	{
+		res = H5Literate(grp->hdf_grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+			  &idx, nc4_rec_read_vars_cb, (void *)grp);
+    } else
+	{
+		/* Without creation ordering, file must be read-only. */
+	    if (!idx && !h5->no_write)
+			return NC_ECANTWRITE;
+	 
+		res = H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
+			  &idx, nc4_rec_read_vars_cb, (void *)grp);
+		if (res<0)
+			return NC_EHDFERR;
+   }
+   
+   /* Scan the group for global (i.e. group-level) attributes. */
+   if ((retval = read_grp_atts(grp)))
+      return retval;
+
+   return NC_NOERR; /* everything worked! */
+}
+
+#else
+
 /** \internal 
 This struct is used to pass information back from the callback
 function used with H5Literate. 
@@ -1972,6 +2173,7 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 
    return NC_NOERR; /* everything worked! */
 }
+#endif
 
 /* Open a netcdf-4 file. Things have already been kicked off in
  * ncfunc.c in nc_open, but here the netCDF-4 part of opening a file
