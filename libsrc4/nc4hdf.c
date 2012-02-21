@@ -567,19 +567,18 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
       count[i] = countp[i];
    }
    
-   /* Open this dataset if necessary, also checking for a weird case:
-    * a non-coordinate variable that has the same name as a
-    * dimension. */
+   /* Open this dataset if necessary, first checking for the case of
+    * a non-coordinate variable that has the same name as a dimension. */
    if (var->hdf5_name && strlen(var->hdf5_name) >= strlen(NON_COORD_PREPEND) && 
-			  strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0)
+       strncmp(var->hdf5_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)) == 0)
        if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->hdf5_name,
 					  H5P_DEFAULT)) < 0)
 	   return NC_ENOTVAR;
    if (!var->hdf_datasetid)
-       if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
-					  H5P_DEFAULT)) < 0)
-	   return NC_ENOTVAR;
-       
+      if ((var->hdf_datasetid = H5Dopen2(grp->hdf_grpid, var->name,
+	      H5P_DEFAULT)) < 0)
+         return NC_ENOTVAR;
+
    /* Get file space of data. */
    if ((file_spaceid = H5Dget_space(var->hdf_datasetid)) < 0) 
       BAIL(NC_EHDFERR);
@@ -1989,6 +1988,77 @@ write_attlist(NC_ATT_INFO_T *attlist, int varid, NC_GRP_INFO_T *grp)
    return NC_NOERR;
 }
 
+/* Using the HDF5 group iterator is more efficient than the original
+ * code (O(n) vs O(n**2) for n variables in the group) */
+#define USE_ITERATE_CODE
+#ifdef  USE_ITERATE_CODE
+typedef struct {
+    char *name;          /* The name of the object to searched*/
+    int  *exists;         /* 1 if the object exists, 0 otherswise */
+} var_exists_iter_info;
+
+/*-------------------------------------------------------------------------
+ * Function:    var_exists_cb
+ *
+ * Purpose:     Callback routine for checking an object by its name
+ *
+ * Return:      Exist:      1
+ *              Not exist:  0
+ *              Failure:   -1
+ *
+ * Programmer:  Peter Cao
+ *              1/25/2012
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+var_exists_cb(hid_t grpid, const char *name, const H5L_info_t *info,
+    void *_op_data)
+{
+    var_exists_iter_info *iter_info = (var_exists_iter_info *)_op_data;
+    H5I_type_t otype;
+	hid_t oid;
+
+    if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+        return H5_ITER_STOP;
+	  
+    if ((otype = H5Iget_type( oid ))<0) {
+		H5Oclose(oid);
+		return H5_ITER_STOP;
+	}
+    H5Oclose(oid);
+	
+    if (otype == H5I_DATASET) {
+		if (!strcmp(iter_info->name, name)) {
+			*(iter_info->exists) = 1;
+			return (H5_ITER_STOP);
+		}
+	}
+
+    return (H5_ITER_CONT);
+} /* end var_exists_cb() */
+
+static int
+var_exists(hid_t grpid, char *name, int *exists)
+{
+    var_exists_iter_info iter_info;
+    iter_info.name = name;
+    iter_info.exists = exists;
+    hsize_t num_obj;
+
+	if (H5Gget_num_objs(grpid, &num_obj) < 0)
+      return NC_EVARMETA;
+
+    if (!name)
+       return NC_NOERR;
+	   
+    *exists = 0;
+    if (H5Literate(grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, var_exists_cb, &iter_info) < 0)
+       return NC_EHDFERR;
+
+    return NC_NOERR;
+}
+#else
 static int
 var_exists(hid_t grpid, char *name, int *exists)
 {
@@ -2025,6 +2095,7 @@ var_exists(hid_t grpid, char *name, int *exists)
 
    return retval;
 }
+#endif	/* USE_ITERATE_CODE */
 
 /* This function writes a variable. The principle difficulty comes
  * from the possibility that this is a coordinate variable, and was
