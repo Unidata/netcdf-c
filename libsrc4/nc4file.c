@@ -1865,7 +1865,7 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     switch(otype)
     {
 		case H5I_GROUP:
-			LOG((3, "re-encountering group %s", link_info.name));
+			LOG((3, "re-encountering group %s", oname));
 
 			/* The NC_GROUP_INFO_T for this group already exists. Find it. */
 			for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
