@@ -958,13 +958,6 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 
     if(rank == 0) {
 	codelined(1,"size_t zero = 0;");
-	if(typecode == NC_CHAR) {
-            cquotestring(code,'"');
-            bbprintf0(stmt,"%sstatic char* %s_data = %s;\n",
-			    indented(1),
-			    cname(vsym),
-			    bbContents(code));
-	} else {
 	    /* We make the data be an array so we do not need to
                ampersand it later => we need an outer pair of braces
             */
@@ -974,7 +967,6 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 			    ctypename(basetype),
 			    cname(vsym),
 			    bbContents(code));
-	}
 	codedump(stmt);
         bbprintf0(stmt,"%sstat = nc_put_var1(%s, %s, &zero, %s_data);\n",
 		indented(1),
