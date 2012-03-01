@@ -102,10 +102,10 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-benchmarks"
-#FLAGS="$FLAGS --enable-extra-tests"
-FLAGS="$FLAGS --enable-logging"
+FLAGS="$FLAGS --enable-extra-tests"
+#FLAGS="$FLAGS --enable-logging"
 
-FLAGS="$FLAGS --disable-shared"
+#FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then

@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;C:\include"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;C:\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -128,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\fortran;C:\include"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..\..\..\libsrc4;..\..\..\libsrc;C:\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;NETCDF_EXPORTS;_HDF5USEDLL_;DLL_NETCDF;DLL_EXPORT;VISUAL_CPLUSPLUS;_FILE_OFFSET_BITS=64;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -209,8 +209,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Users\Unidata\netcdf-4.1.3-win-dev\include\hdf5&quot;;&quot;C:\Users\Unidata\netcdf-4.1.3-win-dev\include&quot;;..\..\..\include;.;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\libdispatch;..\..\..\libncdap3;..\..\..\fortran;..\..\..\oc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CURL_STATICLIB;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;pgiFortran;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
+				AdditionalIncludeDirectories="&quot;C:\Users\Unidata\netcdf-4.1.3-win-dev\include\hdf5&quot;;&quot;C:\Users\Unidata\netcdf-4.1.3-win-dev\include&quot;;..\..\..\include;.;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\libdispatch;..\..\..\libncdap3;..\..\..\oc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CURL_STATICLIB;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)/vc90_netcdf.pdb"
@@ -291,8 +291,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\libdispatch;..\..\..\libncdap3;..\..\..\fortran;..\..\..\oc;..\..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CURL_STATICLIB;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;pgiFortran;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)&quot;;..;..\..\..\libsrc4;..\..\..\libsrc;..\..\..\libdispatch;..\..\..\libncdap3;..\..\..\oc;..\..\..\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CURL_STATICLIB;NETCDF_EXPORTS;DLL_NETCDF;DLL_EXPORT;NC_DLL_EXPORT;USE_DISPATCH;H5_HAVE_WINDOWS;USE_NETCDF4"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				ProgramDataBaseFileName="$(IntDir)/vc90_netcdf.pdb"
