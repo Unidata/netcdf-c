@@ -25,7 +25,7 @@ VERSION         COMMENTS
 		[NCF-143]
 
 		Fixed ncgen bug with netCDF-4 variable-length
-		constants.
+		constants (H/T to Lynton Appel).
 		[NCF-145]
 
 		Incorporated Peter Cao's performance fixes using HDF5
