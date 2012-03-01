@@ -3,35 +3,56 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2-rc2		Released
-
-		Incorporated Wei Huang's fix for bug where netCDF-4
-		sometimes skips over too many values before adding
-		fill values.  
-		[NCF-143]
-
-		Fixed bug in netCDF-4 files with non-coordinate
-		variable with the same name as a dimension.
-		[NCF-141]
-
-		Fixed nccopy bug when rechunking a netCDF-4 file with
-		a chunkspec option that doesn't explicitly specify all
-		dimensions.
-		[NCF-140]
+4.2-rc2		Released 2012-03-02
 
 		Fixed nccopy bug copying a netCDF-4 file with a
 		chunksize for an unlimited dimension that is
 		larger than the associated dimension size.
 		[NCF-139]
 
+		Fixed nccopy bug when rechunking a netCDF-4 file with
+		a chunkspec option that doesn't explicitly specify all
+		dimensions.
+		[NCF-140]
+
+		Fixed bug in netCDF-4 files with non-coordinate
+		variable with the same name as a dimension.
+		[NCF-141]
+
+		Incorporated Wei Huang's fix for bug where netCDF-4
+		sometimes skips over too many values before adding
+		fill values to an in-memory buffer.
+		[NCF-143]
+
+		Fixed ncgen bug with netCDF-4 variable-length
+		constants.
+		[NCF-145]
+
 		Incorporated Peter Cao's performance fixes using HDF5
 		link iterator for any group with many variables or
 		types.
 		[NCF-148]
 
+		Fix bug with scalar coordinate variables in netCDF-4
+		files, causing failure with --enable-extra-tests
+		[NCF-149]
+ 		
+
 4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
 
 		Released 12/30/2011
+
+		Completely rebuilt the dap constraint handling.
+		This primarily affects users who specify a DAP constraint
+		as part of their URL.
+		[NCF-120]
+
+		Fixed problem when a url is provided that contains only a
+		host name.
+		[NCF-103]
+
+		Properly convert vara start/count parameters to DAP
+		[NCF-105][NCF-106]
 
 		Fixed bug in nccopy, in which compression and chunking
 		options were ignored for netCDF-4 input files.
@@ -51,16 +72,9 @@ VERSION         COMMENTS
 		than 2**31 records resulted in erroneous NC_EINVALCOORDS error.
 		[NCF-101]
 
-		Fixed problem when a url is provided that contains only a
-		host name.
-		[NCF-103]
-
 		Restored original functionality of ncgen so that a call with
 		no flags, only does the syntax check.
 		[NCF-104]
-
-		Properly convert vara start/count parameters to DAP
-		[NCF-105][NCF-106]
 
 		Corrected misc. test bugs
 		[NCF-107]
@@ -71,11 +85,6 @@ VERSION         COMMENTS
 
 		Fixed incorrect link flag for szip in configure.ac
 		[NCF-116]
-
-		Completely rebuilt the dap constraint handling.
-		This primarily affects users who specify a DAP constraint
-		as part of their url.
-		[NCF-120]
 
 		In ncdump, add -g option to support selection of groups
 		for which data is displayed.
