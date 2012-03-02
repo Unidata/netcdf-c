@@ -1836,11 +1836,11 @@ Beginning with netCDF version 4.1, optional support is provided for
 accessing data through OPeNDAP servers using the DAP protocol.
 
 DAP support is automatically enabled if a usable curl library can be
-located using the curl-config program or by the –with-curl-config
-flag. It can forcibly be enabled or disabled using the –enable-dap
+located using the curl-config program.
+DAP support can forcibly be enabled or disabled using the –enable-dap
 flag or the –disable-dap flag, respectively. If enabled, then DAP
 support requires access to the curl library. Refer to the installation
-manual for details The NetCDF Installation and Porting Guide.
+manual for details: The NetCDF Installation and Porting Guide.
 
 DAP uses a data model that is different from that supported by netCDF,
 either classic or enhanced. Generically, the DAP data model is encoded

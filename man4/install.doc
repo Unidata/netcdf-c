@@ -49,7 +49,9 @@ libraries. (And, optionally, the szlib library).
 Get the HDF5 1.8.8 release. You must also have the zlib compression
 library, version 1.2.5 or later. Both of these packages are available from the
 <a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
-site</a>.
+site</a>. If you wish to use the remote data client code, then you will
+also need libcurl version 7.16.4 or later. Libcurl can be obtained
+from the <a href="http://curl.haxx.se/download.html">curl website</a>.
 
 Make sure you run ``make check'' for the HDF5 and zlib
 distributions. They are very well-behaved distributions, but sometimes
