@@ -36,7 +36,11 @@ VERSION         COMMENTS
 		Fix bug with scalar coordinate variables in netCDF-4
 		files, causing failure with --enable-extra-tests
 		[NCF-149]
- 		
+
+		Fix turning off fill values in HDF5 layers when NOFILL
+		mode is set in netCDF-4 API (thanks to Karen
+		Schuchardt).
+		[NCF-151] 		
 
 4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
 
@@ -134,9 +138,13 @@ VERSION         COMMENTS
 		specifying NcML output is used on netCDF-4 enhanced model input.
 		[NCF-129]
 
-		Fix bug causing infinite loop in ncdump -c of
-		netCDF-4 file with subgroup with variables using
-		inherited dimensions
+		Incorporated Constantine Khroulev's bug fix for
+		invalid usage of MPI_Comm_f2c in nc_create_par.
+		[NCF-135]
+
+		Fixed bug causing infinite loop in ncdump -c of netCDF-4
+		file with subgroup with variables using inherited
+		dimensions.
 		[NCF-136]
 
 4.1.3		2011-06-17
