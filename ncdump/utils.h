@@ -1,7 +1,9 @@
 /*********************************************************************
  *   Copyright 2011, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Id$
+ *   
+ *   Stuff that's common to both ncdump and nccopy
+ *
  *********************************************************************/
 
 #include "config.h"
@@ -53,8 +55,10 @@ void print_name(const char *name);
 
 /* Get dimid from a full dimension path name that may include group
  * names */
-extern int 
-nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
+extern int  nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
+
+/* Test if variable is a record variable */
+extern int  isrecvar ( int ncid, int varid );
 
 #ifdef __cplusplus
 }
