@@ -166,15 +166,17 @@ gen_netcdf(const char *filename)
     stat = nc_enddef(rootgroup->ncid);
     check_err(stat,__LINE__,__FILE__);
 
-    /* Load values into those variables with defined data */
-    if(nvars > 0) {
-        for(ivar = 0; ivar < nvars; ivar++) {
-	    Symbol* vsym = (Symbol*)listget(vardefs,ivar);
-	    if(vsym->data != NULL) {
-	        bbClear(databuf);
-		genbin_definevardata(vsym);
-	    }
-	}
+    if(!header_only) {
+        /* Load values into those variables with defined data */
+        if(nvars > 0) {
+            for(ivar = 0; ivar < nvars; ivar++) {
+                Symbol* vsym = (Symbol*)listget(vardefs,ivar);
+                if(vsym->data != NULL) {
+                    bbClear(databuf);
+                    genbin_definevardata(vsym);
+                }
+            }
+        }
     }
     bbFree(databuf);
 }
@@ -308,11 +310,11 @@ genbin_deftype(Symbol* tsym)
 				efield->typ.basetype->ncid);
 	    } else {
 		int j;
-		Bytebuffer* dimbuf = bbNew();
+		int dimsizes[NC_MAX_VAR_DIMS];
 		/* Generate the field dimension constants*/
 		for(j=0;j<efield->typ.dimset.ndims;j++) {
 		     unsigned int size = efield->typ.dimset.dimsyms[j]->dim.declsize;
-		     bbAppendn(dimbuf,(char*)&size,sizeof(size));
+		     dimsizes[j] = size;
 		}
 	        stat = nc_insert_array_compound(
 				tsym->container->ncid,
@@ -321,8 +323,7 @@ genbin_deftype(Symbol* tsym)
 			        efield->typ.offset,
 				efield->typ.basetype->ncid,
 				efield->typ.dimset.ndims,
-				(int*)bbContents(dimbuf));
-		bbFree(dimbuf);
+				dimsizes);
 	    }
             check_err(stat,__LINE__,__FILE__);	
 	}
@@ -398,7 +399,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
 #endif
 	
     if(rank == 0) {
-	size_t count[1] = {1};
+	size_t count[1] = {0};
         stat = nc_put_var1(vsym->container->ncid, vsym->ncid, count, data);
     } else {
         stat = nc_put_vara(vsym->container->ncid, vsym->ncid, start, count, data);

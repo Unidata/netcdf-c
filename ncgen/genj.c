@@ -194,17 +194,19 @@ gen_ncjava(const char *filename)
 
     codelined(1,"ncfile.create();"); /* equiv to nc_enddef */
 
-    /* Load values into those variables with defined data */
-
-    if(nvars > 0) {
-        codeline("");
-        codelined(1,"/* assign variable data */");
-        for(ivar = 0; ivar < nvars; ivar++) {
-            Symbol* vsym = (Symbol*)listget(vardefs,ivar);
-            if(vsym->data != NULL) genj_definevardata(vsym);
+    if(!header_only) {
+        /* Load values into those variables with defined data */
+        if(nvars > 0) {
+            codeline("");
+            codelined(1,"/* assign variable data */");
+            for(ivar = 0; ivar < nvars; ivar++) {
+                Symbol* vsym = (Symbol*)listget(vardefs,ivar);
+                if(vsym->data != NULL) genj_definevardata(vsym);
+            }
+            codeline("");
         }
-        codeline("");
     }
+
     codeflush();
 
 }

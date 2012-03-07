@@ -31,6 +31,7 @@ int f77_flag;
 int cml_flag;
 int java_flag; /* 1=> use netcdf java interface */
 int syntax_only;
+int header_only;
 
 /* flags for tracking what output format to use */
 int k_flag;    /* > 0  => -k was specified on command line*/
@@ -156,6 +157,7 @@ main(
     binary_flag = 0;
     nofill_flag = 0;
     syntax_only = 0;
+    header_only = 0;
     mainname = "main";
     nciterbuffersize = 0;
 
@@ -169,7 +171,7 @@ main(
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "bcfk:l:no:v:xdM:D:B:")) != EOF)
+    while ((c = getopt(argc, argv, "hbcfk:l:no:v:xdM:D:B:")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;	  
@@ -187,6 +189,9 @@ main(
 	  break;
 	case 'b': /* for binary netcdf output, ".nc" extension */
 	  binary_flag = 1;
+	  break;
+	case 'h':
+	  header_only = 1;	  
 	  break;
         case 'l': /* specify language, instead of using -c or -f or -b */
 	    {

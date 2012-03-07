@@ -12,7 +12,6 @@ echo "*** checking ref_nc_test_netcdf4_4_0.nc..."
 #diff -w tmp.cdl tmp_4_0.cdl
 diff -w $srcdir/ref_nc_test_netcdf4.cdl tst_nc_test_netcdf4_4_0.cdl
 
-
 # echo "*** Testing that old versions can read data produced by this version of netCDF."
 # echo "*** checking version 4.0..."
 # ../ncgen/ncgen -b -o tst_nc_test_netcdf4 -k 4 $srcdir/ref_nc_test_netcdf4.cdl

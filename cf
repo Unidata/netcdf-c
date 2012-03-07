@@ -5,7 +5,7 @@ HDF5=1
 DAP=1
 #CDMR=1
 #RPC=1
-PGI=1
+#PGI=1
 
 #M32=1
 #M64=1
@@ -14,10 +14,10 @@ PGI=1
 
 cmds=""
 #cmds="all"
-cmds="all check"
+#cmds="all check"
 #cmds="all dist"
 #cmds="all distcheck"
-cmds="$cmds install"
+#cmds="$cmds install"
 
 # Test pgi compiler
 if test "x$PGI" = x1 ; then
@@ -124,7 +124,7 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-benchmarks"
 FLAGS="$FLAGS --enable-extra-tests"
-#FLAGS="$FLAGS --enable-logging"
+FLAGS="$FLAGS --enable-logging"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
