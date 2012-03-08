@@ -3,6 +3,13 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
+4.2		Released 2012-??-??
+	        Fixed bug in ncgen in which large variables
+                (more than 2**18 elements) duplicates the first
+                2**18 values into subsequent chunks of data.
+                [NCF-154]
+
+
 4.2-rc2		Released 2012-03-02
 
 		Fixed nccopy bug copying a netCDF-4 file with a

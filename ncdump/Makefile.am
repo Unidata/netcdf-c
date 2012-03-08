@@ -70,7 +70,7 @@ tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
 tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
 tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
-tst_iter.nc ref_tst_iter.cdl tst_iter.cdl \
+iter.* \
 tst_nc_test_netcdf4_4_0.cdl
 
 # These files all have to be included with the distribution.
