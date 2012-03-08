@@ -8,6 +8,8 @@
 #include "odom.h"
 #include "offsets.h"
 
+#undef ITERBUG
+
 /**************************************************/
 /* Code for generating data lists*/
 /**************************************************/
@@ -124,18 +126,25 @@ generate_array(Symbol* vsym,
         writer(generator,vsym,code,odom->rank,odom->start,odom->count);
     } else
 
-    /* Case 2: the only unlimited is dimension 0 */
+    /* Case 2: dim 1..n are not unlimited */
     if(findunlimited(dimset,1) == rank) {
+	size_t offset = 0; /* where are we in the data list */
+	size_t nelems = 0; /* # of data list items to read */
         /* Create an iterator and odometer and just walk the datalist */
         nc_get_iter(vsym,nciterbuffersize,&iter);
         odom = newodometer(dimset,NULL,NULL);
-	for(;;) {
+	for(;;offset+=nelems) {
 	     int i,uid;
-             size_t nelems=nc_next_iter(&iter,odom->start,odom->count);
+             nelems=nc_next_iter(&iter,odom->start,odom->count);
              if(nelems == 0) break;
+	     bbClear(code);
              generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
 	     for(i=0;i<nelems;i++) {
+#ifdef ITERBUG
 	 	Constant* con = datalistith(vsym->data,i);
+#else
+	 	Constant* con = datalistith(vsym->data,i+offset);
+#endif	
                 generator->list(generator,LISTDATA,uid,i,code);
 #ifdef USE_NOFILL
 		if(nofill_flag && con == NULL)

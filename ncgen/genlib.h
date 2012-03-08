@@ -184,6 +184,7 @@ extern int cml_flag;
 extern int java_flag;
 extern int java_jni_flag;
 extern int nofill_flag;
+extern int header_only;
 extern char* mainname;
 extern size_t nciterbuffersize;
 

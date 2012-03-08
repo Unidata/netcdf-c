@@ -37,8 +37,7 @@ typedef union Constvalue {
     double doublev;             /* NC_DOUBLE*/
     struct Stringv {		/* NC_STRING*/
 	int len;
-	char* stringv;
-        /*struct Datalist* charlist;*/
+	char* stringv; 
     } stringv;
     struct Opaquev {     /* NC_OPAQUE*/
 	int len; /* length as originally written (rounded to even number)*/

@@ -3,35 +3,71 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2-rc2		Released
+4.2		Released 2012-??-??
+	        Fixed bug in ncgen in which large variables
+                (more than 2**18 elements) duplicates the first
+                2**18 values into subsequent chunks of data.
+                [NCF-154]
 
-		Incorporated Wei Huang's fix for bug where netCDF-4
-		sometimes skips over too many values before adding
-		fill values.  
-		[NCF-143]
 
-		Fixed bug in netCDF-4 files with non-coordinate
-		variable with the same name as a dimension.
-		[NCF-141]
-
-		Fixed nccopy bug when rechunking a netCDF-4 file with
-		a chunkspec option that doesn't explicitly specify all
-		dimensions.
-		[NCF-140]
+4.2-rc2		Released 2012-03-02
 
 		Fixed nccopy bug copying a netCDF-4 file with a
 		chunksize for an unlimited dimension that is
 		larger than the associated dimension size.
 		[NCF-139]
 
+		Fixed nccopy bug when rechunking a netCDF-4 file with
+		a chunkspec option that doesn't explicitly specify all
+		dimensions.
+		[NCF-140]
+
+		Fixed bug in netCDF-4 files with non-coordinate
+		variable with the same name as a dimension.
+		[NCF-141]
+
+		Incorporated Wei Huang's fix for bug where netCDF-4
+		sometimes skips over too many values before adding
+		fill values to an in-memory buffer.
+		[NCF-143]
+
+		Fixed ncgen bug with netCDF-4 variable-length
+		constants (H/T to Lynton Appel).
+		[NCF-145]
+
 		Incorporated Peter Cao's performance fixes using HDF5
 		link iterator for any group with many variables or
 		types.
 		[NCF-148]
 
+		Fix bug with scalar coordinate variables in netCDF-4
+		files, causing failure with --enable-extra-tests
+		[NCF-149]
+
+		Fix turning off fill values in HDF5 layers when NOFILL
+		mode is set in netCDF-4 API (thanks to Karen
+		Schuchardt).
+		[NCF-151] 		
+
 4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
 
 		Released 12/30/2011
+
+		Completely rebuilt the DAP constraint handling.
+		This primarily affects users who specify a DAP constraint
+		as part of their URL.
+		[NCF-120]
+
+		Fixed problem when a URL is provided that contains only a
+		host name.
+		[NCF-103]
+
+		Properly convert vara start/count parameters to DAP
+		[NCF-105][NCF-106]
+
+		Fixed major wasted space from previous default variable
+		chunk sizes algorithm.
+                [NCF-81]
 
 		Fixed bug in nccopy, in which compression and chunking
 		options were ignored for netCDF-4 input files.
@@ -51,16 +87,9 @@ VERSION         COMMENTS
 		than 2**31 records resulted in erroneous NC_EINVALCOORDS error.
 		[NCF-101]
 
-		Fixed problem when a url is provided that contains only a
-		host name.
-		[NCF-103]
-
 		Restored original functionality of ncgen so that a call with
 		no flags, only does the syntax check.
 		[NCF-104]
-
-		Properly convert vara start/count parameters to DAP
-		[NCF-105][NCF-106]
 
 		Corrected misc. test bugs
 		[NCF-107]
@@ -71,11 +100,6 @@ VERSION         COMMENTS
 
 		Fixed incorrect link flag for szip in configure.ac
 		[NCF-116]
-
-		Completely rebuilt the dap constraint handling.
-		This primarily affects users who specify a DAP constraint
-		as part of their url.
-		[NCF-120]
 
 		In ncdump, add -g option to support selection of groups
 		for which data is displayed.
@@ -89,7 +113,7 @@ VERSION         COMMENTS
 		the C library and ncdump/ncgen/nccopy without Fortran or C++.
 		[NCF-24]
 
-		Documentation migrated to doxygen
+		Documentation migrated to Doxygen
 		[NCF-26]
 
 		Now supports bluefire
@@ -121,9 +145,13 @@ VERSION         COMMENTS
 		specifying NcML output is used on netCDF-4 enhanced model input.
 		[NCF-129]
 
-		Fix bug causing infinite loop in ncdump -c of
-		netCDF-4 file with subgroup with variables using
-		inherited dimensions
+		Incorporated Constantine Khroulev's bug fix for
+		invalid usage of MPI_Comm_f2c in nc_create_par.
+		[NCF-135]
+
+		Fixed bug causing infinite loop in ncdump -c of netCDF-4
+		file with subgroup with variables using inherited
+		dimensions.
 		[NCF-136]
 
 4.1.3		2011-06-17
@@ -157,7 +185,7 @@ VERSION         COMMENTS
 		[NCF-41]
 
 		Fix ncgen bug that did not use the value of a _Format
-		attribute in the input CDL file to dtermine the kind
+		attribute in the input CDL file to determine the kind
 		of output file created, when not specified by the -k
 		command-line flag.
 		[NCF-42]
@@ -321,7 +349,7 @@ VERSION         COMMENTS
 		opendap version of a function.
 
 		Refactoring of netCDF-4 memory internals to reduce
-		memory use and end dependance on NC_MAX_DIMS and
+		memory use and end dependence on NC_MAX_DIMS and
 		NC_MAX_NAME.
 
 		Modified constraint parser to be more compatible with
@@ -408,7 +436,7 @@ VERSION         COMMENTS
 		Added prototype NcML output capability to ncgen4.
 		It is specified by the -lcml flag.
 
-		Added capabilty to read HDF5 files without dimension
+		Added capability to read HDF5 files without dimension
 		scales. This will allow most existing HDF5 datasets to
 		be read by netCDF-4.
 
@@ -458,7 +486,7 @@ VERSION         COMMENTS
 		Added parallel example program in F90.
 
 		Changed default chunking to better handle very large
-		varibles.
+		variables.
 
 		Made contiguous the default for fixed size data sets
 		with no filters.

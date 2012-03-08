@@ -46,37 +46,3 @@ makeparser::
 	bison -pncg -t ncgen.y
 	rm -f ncgentab.c
 	mv ncgen.tab.c ncgentab.c
-
-# Test c output
-CTEST=test
-
-btest::
-	./ncgen -k3 -lb ${CTEST}.cdl -o ${CTEST}.nc
-	../ncdump/ncdump ./${CTEST}.nc >${CTEST}.dmp
-	diff -wBb ${CTEST}.cdl ${CTEST}.dmp
-
-
-ctest::
-	./ncgen -k3 -lc ${CTEST}.cdl >${CTEST}.c
-	CFLAGS=`../nc-config --cflags`  \
-	LDFLAGS=`../nc-config --libs`  \
-	gcc -o ${CTEST} -I../include ${CFLAGS} ${CTEST}.c ../liblib/.libs/libnetcdf.a ${LDFLAGS} -lm
-	./${CTEST}
-	../ncdump/ncdump ./${CTEST}.nc >${CTEST}.dmp
-	diff -wBb ${CTEST}.cdl ${CTEST}.dmp
-
-ct::
-	CFLAGS=`../nc-config --cflags`  \
-	LDFLAGS=`../nc-config --libs`  \
-	gcc -o t -I../include ${CFLAGS} t.c ../liblib/.libs/libnetcdf.a ${LDFLAGS} -lm
-	./t
-
-
-CLASSPATH=".:ncCore-4.2.jar"
-jtest::
-	./ncgen -lj ${CTEST}.cdl >Main.java
-	javac -d . -classpath "${CLASSPATH}" Main.java
-
-#	java -cp ${CPATH} ./${CTEST}
-#	../ncdump/ncdump ./${CTEST}.nc >${CTEST}.dmp
-#	diff -wBb ${CTEST}.cdl ${CTEST}.dmp
