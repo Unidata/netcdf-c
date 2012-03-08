@@ -99,9 +99,6 @@ extern void init_types ( int ncid );
 /* Test if variable is a coordinate variable */
 extern int      iscoordvar ( int ncid, int varid );
 
-/* Test if variable is a record variable */
-extern int      isrecvar ( int ncid, int varid );
-
 /* Test if user-defined type */
 extern int  is_user_defined_type ( nc_type type );
 
