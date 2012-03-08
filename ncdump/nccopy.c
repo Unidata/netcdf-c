@@ -1158,7 +1158,6 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
     size_t ivar;
     void **buf;			/* space for reading in data for each variable */
     int *rec_ovarids;		/* corresponding varids in output */
-    size_t *ndims;
     size_t **start;
     size_t **count;
     NC_CHECK(nc_inq_unlimdim(ncid, &unlimid));
