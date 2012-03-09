@@ -259,7 +259,7 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
       {
 	 if (h5->cmode & NC_CLASSIC_MODEL)
 	    return NC_EINDEFINE;
-	 if ((retval = nc_enddef(ncid)))
+	 if ((retval = NC4_redef(ncid)))
 	    BAIL(retval);
       }
    }
