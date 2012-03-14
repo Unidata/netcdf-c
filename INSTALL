@@ -1,12 +1,13 @@
-Documentation for getting and building the netCDF 4.2 C library and utilities
-*****************************************************************************
+Documentation for getting and building netCDF
+*********************************************
 
 This document is for getting and building the netCDF C library and
-utilities.  Other libraries that depend on the netCDF C library, such
-as the Fortran and C++ libraries, are available as separate
-distributions that can be built and installed after the C library is
-successfully installed.  The netCDF-Java library is also a separate
-distribution that is currently independent of the netCDF C library.
+utilities, version 4.2.  Other libraries that depend on the netCDF C
+library, such as the Fortran and C++ libraries, are available as
+separate distributions that can be built and installed after the C
+library is successfully installed.  The netCDF-Java library is also a
+separate distribution that is currently independent of the netCDF C
+library.
 
 Getting NetCDF
 **************
@@ -36,8 +37,9 @@ daily snapshot. It is generated nightly at the Unidata Program
 Center. It has passed all tests on our (Linux) test machine, but not
 necessarily all platform compatibility tests.
 
-The daily snapshot release contains bug-fixes and new features added
-since the last full release. It may also contain portability bugs.
+Warning: the daily snapshot release contains bug-fixes and new
+features added since the last full release. It may also contain
+portability bugs.
 
 Once you have downloaded and unpacked the distribution, see the
 following section on building.
@@ -48,7 +50,7 @@ Building NetCDF
 The netCDF-C library and utilities requires 3rd party libraries for
 full functionality.
 
-  *  Building with NetCDF-4 and the Remote Data Client (default)
+  *  Building with NetCDF-4 and the Remote Data Client
   *  Building NetCDF with Classic Library Only
   *  Building with HDF4 Support
   *  Building with Parallel I/O Support
@@ -66,7 +68,7 @@ from the netCDF-4 ftp site:
   ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4
 
 If you wish to use the remote data client code, then you will also
-need libcurl version 7.16.4 or later. Libcurl can be obtained from the
+need libcurl version 7.18.0 or later. Libcurl can be obtained from the
 curl website:
 
   http://curl.haxx.se/download.html
@@ -97,7 +99,7 @@ agreement to see how it applies to your situation.
 
 If ``make check'' fails for either zlib or HDF5, the problem must be
 resolved before the netCDF-4 installation can continue. For HDF5
-problems, send email to the HDF5 help desk:
+problems, see the HDF5 help services:
 
   http://www.hdfgroup.org/services/support.html
 
@@ -145,9 +147,10 @@ It is possible to build the netCDF C libraries and utilities so that
 only the netCDF classic and 64-bit offset formats are supported, or
 the remote data access client is not built.  (See
 
-  http://www.unidata.ucar.edu/netcdf/docs_rc/netcdf_format.html
+  http://www.unidata.ucar.edu/netcdf/docs/netcdf_format.html
 
-for more information about the netCDF format variants.  See
+for more information about the netCDF format variants.  See the
+netCDF-DAP site
 
   http://opendap.org/netCDF-DAP 
 
@@ -210,7 +213,7 @@ If the HDF5 used by netCDF has been built with parallel I/O, then
 netCDF will also be built with support for parallel I/O. This allows
 parallel I/O access to netCDF-4/HDF5 files.  (See
 
-  http://www.unidata.ucar.edu/netcdf/docs_rc/netcdf_format.html
+  http://www.unidata.ucar.edu/netcdf/docs/netcdf_format.html
 
 for more information about the netCDF format variants.)
 
@@ -239,8 +242,8 @@ with netCDF-4 by setting the LIBS environment variable:
 For shared builds, only -lnetcdf is needed. All other libraries will
 be found automatically.
 
-The nc-config command can be used to learn what options are needed for
-the local netCDF installation.
+The ``nc-config --all'' command can be used to learn what options are
+needed for the local netCDF installation.
 
 For example, this works for linking an application named myapp.c with
 netCDF-4 libraries:
