@@ -226,7 +226,7 @@ int
 occurlopen(CURL** curlp)
 {
 	int stat = OC_NOERR;
-	CURLcode cstat;
+	CURLcode cstat = CURLE_OK;
 	CURL* curl;
 	/* initialize curl*/
 	curl = curl_easy_init();

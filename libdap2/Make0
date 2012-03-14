@@ -33,7 +33,7 @@ RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags
 CC=cc
-CFLAGS=-g -O0 -Wall -DHAVE_CONFIG_H
+CFLAGS=-g -O2 -Wall -DHAVE_CONFIG_H
 #CFLAGS=-DHAVE_CONFIG_H
 
 GFLAGS=-g3 -O0

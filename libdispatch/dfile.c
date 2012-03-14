@@ -1311,12 +1311,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if((isurl = NC_testurl(path)))
 	model = NC_urlmodel(path);
 
-   /* /\* Look to the incoming cmode for hints *\/ */
-   /* if(model == 0) { */
-   /*    if(cmode & NC_DISKLESS) */
-   /* 	model = NC_DISPATCH_DISKLESS; */
-   /* } */
-
    /* Look to the incoming cmode for hints */
    if(model == 0) {
       if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
@@ -1374,8 +1368,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
       if(model == (NC_DISPATCH_NC4))
  	dispatcher = NC4_dispatch_table;
-      /* else if(model == (NC_DISPATCH_DISKLESS)) */
-      /* 	 dispatcher = NCD_dispatch_table; */
       else
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP

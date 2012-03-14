@@ -160,6 +160,9 @@ extern Constant fillconstant;
 void gen_charattr(Datalist*, Bytebuffer*);
 void gen_charvlen(Datalist*, Bytebuffer*);
 void gen_chararray(struct Dimset*, Datalist*, Bytebuffer*, Datalist* fillsrc);
+#ifndef CHARBUG
+void gen_leafchararray(struct Dimset*,int,Datalist*,Bytebuffer* databuf, Datalist* fillsrc);
+#endif
 
 /* Mnemonic */
 #define UNKNOWN ((size_t)0)

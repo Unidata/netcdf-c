@@ -13,7 +13,6 @@
 static void completesegments3(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames3(DCEprojection* proj);
 static NCerror qualifyprojectionsizes3(DCEprojection* proj);
-static NCerror qualifyselectionnames3(DCEselection* sel);
 static NCerror matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep);
 static int matchsuffix3(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
@@ -83,6 +82,8 @@ mapconstraints3(DCEconstraint* constraint,
 	if(ncstat) goto done;
     }
 
+#ifdef IGNORE
+Only care about projections
     /* Convert the selection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceselections);i++) {
 	DCEselection* sel = (DCEselection*)nclistget(dceselections,i);
@@ -104,6 +105,7 @@ mapconstraints3(DCEconstraint* constraint,
 	    if(ncstat) goto done;
 	}
     }
+#endif
 
 #ifdef DEBUG
 fprintf(stderr,"mapconstraint.projections: %s\n",
@@ -137,10 +139,12 @@ fprintf(stderr,"qualifyconstraints.before: %s\n",
             ncstat = qualifyprojectionnames3(p);
             ncstat = qualifyprojectionsizes3(p);
         }
+#ifdef IGNORE
         for(i=0;i<nclistlength(constraint->selections);i++) {   
             DCEselection* s = (DCEselection*)nclistget(constraint->selections,i);
             ncstat = qualifyselectionnames3(s);
         }
+#endif
     }
 #ifdef DEBUG
 fprintf(stderr,"qualifyconstraints.after: %s\n",
@@ -215,7 +219,7 @@ fprintf(stderr,"qualifyprojectionsizes.after: %s\n",
     return NC_NOERR;
 }
 
-   
+#ifdef IGNORE
 /* convert all names in selections to be fully qualified */
 static NCerror
 qualifyselectionnames3(DCEselection* sel)
@@ -244,6 +248,7 @@ fprintf(stderr,"qualify.sel: %s -> ",
     nclistfree(fullpath);
     return THROW(ncstat);
 }
+#endif
 
 static void
 completesegments3(NClist* fullpath, NClist* segments)

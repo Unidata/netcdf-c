@@ -75,6 +75,8 @@ typedef unsigned int NCFLAGS;
 #define NCF_UNCONSTRAINABLE (0x0040) /* Not a constrainable URL */
 #define NCF_SHOWFETCH       (0x0080) /* show fetch calls */
 #define NCF_INMEMORY        (0x0100) /* cause oc to store data in memory */
+#define NCF_WHOLEVAR        (0x0200) /* retrieve only whole variables (as opposed to partial variable)
+                                        into cache */
 
 /* Define all the default on flags */
 #define DFALT_ON_FLAGS (NCF_PREFETCH)

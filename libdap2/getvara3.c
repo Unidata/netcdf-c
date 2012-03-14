@@ -51,33 +51,30 @@ There are some exceptions to the formation of the fetch constraint.
 In all cases, the fetch constraint will use any URL selections,
 but will use different fetch projections.
 a. URL is unconstrainable (e.g. file://...):
-   fetchprojection = null => fetch whole dataset
+	   fetchprojection = null => fetch whole dataset
 b. The target variable (as specified in nc_get_vara())
-   is already in the cache => the whole variable is there (may change later)
-   fetchprojection = N.A. since variable is in the cache
-c. Otherwise:
-   fetchprojection = unsliced vara variable => fetch whole variable
+   is already in the cache and is whole variable.
+	   fetchprojection = N.A. since variable is in the cache
+c. Vara is requesting part of a variable but NCF_WHOLEVAR flag is set.
+	   fetchprojection = unsliced vara variable => fetch whole variable
+d. Vara is requesting part of a variable and NCF_WHOLEVAR flag is not set.
+	   fetchprojection = sliced vara variable => fetch part variable
 
-2. At this point, whole target variable is available in the cache.
+2. At this point, all or part of the target variable is available in the cache.
 
 3. We build a projection to walk (guide) the use of the oc
-data procedures in extract the required data from the cache.
-In all cases:
-   walkprojection = merge(urlprojection,varaprojection)
-
-#ifdef FUTURE
-An eventual optimization involves caching a part of the
-variable of interest using the merge of the
-url constraints and the getvar constraint.
-This means we need only extract the complete contents of the cache.
-Notice that this will not necessarily be a direct memory to
-memory copy because the dap encoding still needs to be
-interpreted. For this case, we derive a walk projection
-from the merged projection that will properly access
-the cached data. This walk projection
-shifts the merged projection so all slices
-start at 0 and have a stride of 1.
-#endif
+   data procedures in extract the required data from the cache.
+   For cases a,b,c:
+       walkprojection = merge(urlprojection,varaprojection)
+   For case d:
+       walkprojection =  varaprojection without slicing.
+       This means we need only extract the complete contents of the cache.
+       Notice that this will not necessarily be a direct memory to
+       memory copy because the dap encoding still needs to be
+       interpreted. For this case, we derive a walk projection
+       from the vara projection that will properly access the cached data.
+       This walk projection shifts the merged projection so all slices
+       start at 0 and have a stride of 1.
 
 */
 
@@ -112,8 +109,9 @@ nc3d_getvarx(int ncid, int varid,
     DCEprojection* walkprojection = NULL;
     int state;
 #define FETCHWHOLE 1 /* fetch whole data set */
-#define FETCHPART  2 /* fetch constrained variable */
-#define CACHED     4 /* whole variable is already in the cache */
+#define FETCHVAR   2 /* fetch whole variable */
+#define FETCHPART  4 /* fetch constrained variable */
+#define CACHED     8 /* whole variable is already in the cache */
 
     ncstat = NC_check_id(ncid, (NC**)&drno); 
     if(ncstat != NC_NOERR) goto fail;
@@ -235,7 +233,10 @@ fprintf(stderr,"var is in cache\n");
     } else if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	state = FETCHWHOLE;
     } else {/* load using constraints */
-	state = FETCHPART;
+        if(FLAGSET(dapcomm->controls,NCF_WHOLEVAR))
+	    state = FETCHVAR;
+	else
+	    state = FETCHPART;
     }
 
     ASSERT(state != 0);    
@@ -250,11 +251,11 @@ fprintf(stderr,"var is in cache\n");
     walkprojection = NULL;
 
     /* Create walkprojection as the merge of the url projections
-       and the vara projection; will change
-       when we do partial variable caching */
+       and the vara projection; may change in FETCHPART case below*/
     ncstat = daprestrictprojection(dapcomm->oc.dapconstraint->projections,
 				   varaprojection,&walkprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+
 #ifdef DEBUG
 fprintf(stderr,"getvarx: walkprojection: |%s|\n",dumpprojection(walkprojection));
 #endif
@@ -285,6 +286,40 @@ fprintf(stderr,"getvarx: FETCHWHOLE: fetchconstraint: %s\n",dumpconstraint(fetch
     case CACHED: {
     } break;
 
+    case FETCHVAR: { /* Fetch a complete single variable */
+        /* Create fetch projection as the merge of the url projections
+           and the vara projection */
+        ncstat = daprestrictprojection(dapcomm->oc.dapconstraint->projections,
+				       varaprojection,&fetchprojection);
+	/* elide any sequence and string dimensions (dap servers do not allow such). */
+	ncstat = removepseudodims(fetchprojection);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+
+	/* Convert to a whole variable projection */
+	dcemakewholeprojection(fetchprojection);
+
+#ifdef DEBUG
+fprintf(stderr,"getvarx: FETCHVAR: fetchprojection: |%s|\n",dumpprojection(fetchprojection));
+#endif
+
+        /* Build the complete constraint to use in the fetch */
+        fetchconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
+        /* merged constraint just uses the url constraint selection */
+        fetchconstraint->selections = dceclonelist(dapcomm->oc.dapconstraint->selections);
+	/* and the created fetch projection */
+        fetchconstraint->projections = nclistnew();
+	nclistpush(fetchconstraint->projections,(ncelem)fetchprojection);
+#ifdef DEBUG
+fprintf(stderr,"getvarx: FETCHVAR: fetchconstraint: %s\n",dumpconstraint(fetchconstraint));
+#endif
+        /* buildcachenode3 will create a new cachenode and
+           will also fetch the corresponding datadds.
+        */
+        ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
+	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+    } break;
+
     case FETCHPART: {
         /* Create fetch projection as the merge of the url projections
            and the vara projection */
@@ -294,13 +329,10 @@ fprintf(stderr,"getvarx: FETCHWHOLE: fetchconstraint: %s\n",dumpconstraint(fetch
 	ncstat = removepseudodims(fetchprojection);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-#ifdef FUTURE
 	/* Shift the varaprojection for simple walk */
+	dcefree((DCEnode*)walkprojection) ; /* reclaim any existing walkprojection */        
 	walkprojection = (DCEprojection*)dceclone((DCEnode*)varaprojection);
         dapshiftprojection(walkprojection);
-#else /*!FUTURE*/
-	dcemakewholeprojection(fetchprojection);
-#endif /*FUTURE*/
 
 #ifdef DEBUG
 fprintf(stderr,"getvarx: FETCHPART: fetchprojection: |%s|\n",dumpprojection(fetchprojection));
@@ -340,6 +372,7 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 
     /* Fix up varainfo to use the cache */
     varainfo->cache = cachenode;
+    cachenode = NULL;
     varainfo->varaprojection = walkprojection;
     walkprojection = NULL;
 
@@ -351,8 +384,9 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 
     /* Switch to datadds tree space*/
     varainfo->target = xtarget;
-    ncstat = moveto(dapcomm,varainfo,cachenode->datadds,data);
+    ncstat = moveto(dapcomm,varainfo,varainfo->cache->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+
     goto ok;
 
 fail:

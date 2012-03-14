@@ -207,7 +207,7 @@ Constant       constant;
 ncdesc: NETCDF
 	DATASETID
         rootgroup
-        {if (derror_count > 0) exit(6);}
+        {if (error_count > 0) YYABORT;}
         ;
 
 rootgroup: '{'
@@ -901,7 +901,6 @@ void
 parse_init(void)
 {
     int i;
-    derror_count=0;
     opaqueid = 0;
     arrayuid = 0;
     symlist = NULL;
@@ -1176,7 +1175,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     char* sdata = NULL;
     int idata =  -1;
 
-    specials_flag = 1;
+    
+    specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 
     if(isconst) {
 	con = (Constant*)data;

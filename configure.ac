@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2-rc2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -334,6 +334,16 @@ test "x$enable_ffio" = xyes || enable_ffio=no
 AC_MSG_RESULT($enable_ffio)
 AM_CONDITIONAL(USE_FFIO, [test x$enable_ffio = xyes])
 
+# Does the user want to use the new io mechanism?
+#AC_MSG_CHECKING([whether new IO module will be used])
+#AC_ARG_ENABLE([newio],
+#              [AS_HELP_STRING([--enable-newio],
+#                              [use new io module (not yet implemented)])])
+#test "x$enable_newio" = xyes || enable_newio=no
+#AC_MSG_RESULT($enable_newio)
+enable_newio=no
+AM_CONDITIONAL(USE_NEWIO, [test x$enable_newio = xyes])
+
 # Does the user want to enable the user-provided NEC-SX vectorization
 # patch.
 dnl AC_MSG_CHECKING([whether netCDF NEC-SX vectorization patch is enabled])
@@ -505,32 +515,17 @@ AC_MSG_NOTICE([finding other utilities])
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN"; then 
    AC_MSG_WARN([Doxygen not found - documentation will not be built])
-else
-   NETCDF_DOC_CODE_FILES='../include/netcdf.h \
-../examples/C/simple_xy_wr.c ../examples/C/simple_xy_rd.c \
-../examples/C/sfc_pres_temp_wr.c ../examples/C/sfc_pres_temp_rd.c \
-../examples/C/pres_temp_4D_wr.c ../examples/C/pres_temp_4D_rd.c \
-../examples/C/simple_nc4_wr.c ../examples/C/simple_nc4_rd.c \
-../examples/C/simple_xy_nc4_wr.c ../examples/C/simple_xy_nc4_rd.c \
-../libdispatch/dfile.c  ../libdispatch/ddim.c \
-../libdispatch/dattget.c ../libdispatch/dattinq.c  ../libdispatch/dattput.c \
-../libdispatch/datt.c ../libdispatch/dvar.c ../libdispatch/dvarinq.c \
-../libdispatch/dvarput.c ../libdispatch/dvarget.c ../libdispatch/derror.c \
-../libdispatch/dcompound.c ../libdispatch/dv2i.c \
-../libdispatch/dvlen.c ../libdispatch/denum.c ../libdispatch/dopaque.c \
-../libdispatch/dtype.c ../libsrc4/nc4file.c ../ncdump/ncdump.c'
-   NETCDF_DOC_ONLY_FILES="mainpage.doc tutorial.doc \
-../COPYRIGHT install.doc dispatch.doc guide.doc types.doc \
-notes.doc cdl.doc architecture.doc internal.doc"
 fi
-
 # If we have doxygen, and it's enabled, then process the file.
 if test "x$enable_doxygen" != xno; then
    if test -n "$DOXYGEN"; then
       AC_CONFIG_FILES([man4/Doxyfile])
-      AC_SUBST(NETCDF_DOC_CODE_FILES, ${NETCDF_DOC_CODE_FILES})
-      AC_SUBST(NETCDF_DOC_ONLY_FILES, ${NETCDF_DOC_ONLY_FILES})
    fi
+# Note: the list of files to input to doxygen
+# has been moved to man4/Doxyfile.in so
+# that make distcheck works correctly.
+# Any new inputs should be inserted into
+# man4/Doxyfile.in and possibley man4/Makefile.am
 fi
 
 # Find the install program.
@@ -851,4 +846,7 @@ AC_CONFIG_FILES([Makefile
 		  ],
                   [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
+
+
+
 

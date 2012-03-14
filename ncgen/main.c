@@ -279,7 +279,8 @@ main(
 
     if(languages == 0) {
 	binary_flag = 1; /* default */
-        if(k_flag == 0)
+	/* Treat -k or -o as an implicit -lb assuming no other -l flags */
+        if(k_flag == 0 && netcdf_name == NULL)
 	    syntax_only = 1;
     }
 
@@ -344,7 +345,8 @@ main(
     parse_init();
     ncgin = fp;
     if(debug >= 2) {ncgdebug=1;}
-    if(ncgparse() != 0) return 1;
+    if(ncgparse() != 0)
+        return 1;
 
     /* Compute the k_flag (1st pass) using rules in the man page (ncgen.1).*/
 
@@ -374,9 +376,9 @@ main(
 	return 0;
     }
 
-    if(specials_flag && k_flag == 0)
+    if(specials_flag > 0 && k_flag == 0)
 #ifdef USE_NETCDF4
-	k_flag = 4;
+	k_flag = 3;
 #else
 	k_flag = 1;
 #endif
@@ -396,7 +398,7 @@ main(
     }
 
     processsemantics();
-    if(!syntax_only) 
+    if(!syntax_only && error_count == 0) 
         define_netcdf();
 
     return 0;
@@ -413,4 +415,5 @@ init_netcdf(void) /* initialize global counts, flags */
 
     codebuffer = bbNew();
     stmt = bbNew();
+    error_count = 0; /* Track # of errors */
 }

@@ -856,23 +856,26 @@ computeunlimitedsizes(Dimset* dimset, int dimindex, Datalist* data, int ischar)
     xproduct = crossproduct(dimset,dimindex+1,nextunlim);
 
     if(!lastunlim) {
-        /*!lastunlim => data is list of sublists, recurse on each sublist*/
-	for(i=0;i<data->length;i++) {
-	    Constant* con = data->data+i;
-	    ASSERT(con->nctype == NC_COMPOUND);
-	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
-	}
 	/* Compute candiate size of this unlimited */
         length = data->length;
 	unlimsize = length / xproduct;
 	if(length % xproduct != 0)
 	    unlimsize++; /* => fill requires at some point */
 #ifdef DEBUG2
-fprintf(stderr,"unlimsize: dim=%s declsize=%d xproduct=%d newsize=%d\n",
-thisunlim->name,thisunlim->dim.declsize,xproduct,unlimsize);
+fprintf(stderr,"unlimsize: dim=%s declsize=%lu xproduct=%lu newsize=%lu\n",
+thisunlim->name,
+(unsigned long)thisunlim->dim.declsize,
+(unsigned long)xproduct,
+(unsigned long)unlimsize);
 #endif
 	if(thisunlim->dim.declsize < unlimsize) /* want max length of the unlimited*/
             thisunlim->dim.declsize = unlimsize;
+        /*!lastunlim => data is list of sublists, recurse on each sublist*/
+	for(i=0;i<data->length;i++) {
+	    Constant* con = data->data+i;
+	    ASSERT(con->nctype == NC_COMPOUND);
+	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
+	}
     } else {//lastunlim
 	if(ischar) {
 	    /* Char case requires special computations;
@@ -887,8 +890,11 @@ thisunlim->name,thisunlim->dim.declsize,xproduct,unlimsize);
 		case NC_STRING:
 		    length += con->value.stringv.len;
 	            break;
+		case NC_COMPOUND:
+		    semwarn(datalistline(data),"Expected character constant, found {...}");
+		    break;
 		default:
-		    semwarn(datalistline(data),"Illegal character constant");	      
+		    semwarn(datalistline(data),"Illegal character constant: %d",con->nctype);
 	        }
 	    }
 	} else { /* Data list should be a list of simple non-char constants */
@@ -898,8 +904,11 @@ thisunlim->name,thisunlim->dim.declsize,xproduct,unlimsize);
 	if(length % xproduct != 0)
 	    unlimsize++; /* => fill requires at some point */
 #ifdef DEBUG2
-fprintf(stderr,"unlimsize: dim=%s declsize=%d xproduct=%d newsize=%d\n",
-thisunlim->name,thisunlim->dim.declsize,xproduct,unlimsize);
+fprintf(stderr,"unlimsize: dim=%s declsize=%lu xproduct=%lu newsize=%lu\n",
+thisunlim->name,
+(unsigned long)thisunlim->dim.declsize,
+(unsigned long)xproduct,
+(unsigned long)unlimsize);
 #endif
 	if(thisunlim->dim.declsize < unlimsize) /* want max length of the unlimited*/
             thisunlim->dim.declsize = unlimsize;
