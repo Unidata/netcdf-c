@@ -9,7 +9,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
-EXTRA_DIST = README COPYRIGHT RELEASE_NOTES test_prog.c lib_flags.am
+EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL test_prog.c lib_flags.am
 
 # Doxygen doesn't build nicely in vpath builds.
 # Don't do this; it wipes out any exported values
@@ -17,6 +17,11 @@ EXTRA_DIST = README COPYRIGHT RELEASE_NOTES test_prog.c lib_flags.am
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
+
+# We need a way to automatically generate INSTALL from
+# man4/install.doc, now that we've switched from texinfo to doxygen.
+# INSTALL:
+#	non-existent-doxygen-to-text-utility <  man4/install.doc > INSTALL
 
 # Does the user want to build the V2 API?
 if BUILD_V2
