@@ -42,9 +42,9 @@ edit the CDL file to change the name of the dimensions, and use \fBncgen\fP
 to generate the corresponding netCDF file from the edited CDL file.
 .SH OPTIONS
 .IP "\fB-b\fP"
-Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a default
-file name will be constructed from the netCDF name (specified after the
-\fBnetcdf\fP keyword in the input) by appending the `.nc' extension.  If a
+Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a
+default file name will be constructed from the basename of the CDL
+file, with any suffix replaced by the `.nc' extension.  If a
 file already exists with the specified name, it will be overwritten.
 .IP "\fB-c\fP"
 Generate

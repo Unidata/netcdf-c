@@ -50,13 +50,17 @@ of the interfaces for these operations.
 */
 /**@{*/
 
-size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-size_t NC_coord_one[NC_MAX_VAR_DIMS];
+size_t* NC_coord_zero;
+size_t* NC_coord_one;
 
 static void
 nc_local_initialize(void)
 {
     int i;
+    NC_coord_zero = (size_t*)malloc(sizeof(size_t)*NC_MAX_VAR_DIMS);
+    if(NC_coord_zero == NULL) abort();
+    NC_coord_one = (size_t*)malloc(sizeof(size_t)*NC_MAX_VAR_DIMS);
+    if(NC_coord_one == NULL) abort();
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
 	NC_coord_one[i] = 1;
 	NC_coord_zero[i] = 0;
