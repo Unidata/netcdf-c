@@ -1281,9 +1281,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
     * var. */
    if (var->ndims)
    {
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
+      if (!(var->dim = calloc(var->ndims, sizeof(NC_DIM_INFO_T *))))
 	 return NC_ENOMEM;
-      if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
+      if (!(var->dimids = calloc(var->ndims, sizeof(int))))
 	 return NC_ENOMEM;
    }
 
@@ -1300,7 +1300,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    /* Check for a weird case: a non-coordinate (and non-scalar)
     * variable that has the same name as a dimension. It's legal in
     * netcdf, and requires that the HDF5 dataset name be changed. */
-   if (var->ndims && !strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
+   if (var->ndims && 
+       !strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
    {
       if (strlen(obj_name) > NC_MAX_NAME)
 	 return NC_EMAXNAME;
@@ -1743,7 +1744,7 @@ nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		      void *_op_data)
 {
     hid_t oid=-1;
-    H5I_type_t otype;
+    H5I_type_t otype=-1;
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
@@ -1842,12 +1843,13 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		     void *_op_data)
 {
     hid_t oid=-1;
-    H5I_type_t otype;
+    H5I_type_t otype=-1;
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
     NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
 
+    memset(oname, 0, NC_MAX_NAME);
     /* Open this critter. */
     if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
         return H5_ITER_ERROR;
