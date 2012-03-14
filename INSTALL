@@ -59,17 +59,17 @@ Building with NetCDF-4 and the Remote Data Client
 *************************************************
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
-libraries. (And, optionally, the szlib library). 
+libraries. (And, optionally, the szlib library). Versions required are
+at least HDF5 1.8.8, zlib 1.2.5, and curl 7.18.0 or later.
+(Optionally, if building with szlib, get szip 2.0 or later.)
 
-Get the HDF5 1.8.8 release. You must also have the zlib compression
-library, version 1.2.5 or later. Both of these packages are available
-from the netCDF-4 ftp site:
+HDF5 1.8.8 and zlib 1.2.5 packages are available from the netCDF-4 ftp
+site:
 
   ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4
 
 If you wish to use the remote data client code, then you will also
-need libcurl version 7.18.0 or later. Libcurl can be obtained from the
-curl website:
+need libcurl, which can be obtained from the curl website:
 
   http://curl.haxx.se/download.html
 
@@ -82,7 +82,7 @@ working, netCDF will have serious problems.
 Note that for building netCDF, it is not necessary to build the HDF5
 Fortran, C++, or Java API's.  Only the HDF5 C library is used.
 
-Optionally, you can also build netCDF-4 with the szip 2.0 library
+Optionally, you can also build netCDF-4 with the szip library
 (a.k.a. szlib). NetCDF cannot create szipped data files, but can read
 HDF5 data files that have used szip.
 
@@ -205,8 +205,7 @@ the mpicc wrapper script, in the case of MPICH2.
 The following works to build HDF5 with parallel I/O on our netCDF
 testing system:
 
-  CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par \
-                       --with-zlib=/shecky/local_par
+  CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par
   make check install
 
 If the HDF5 used by netCDF has been built with parallel I/O, then

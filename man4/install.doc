@@ -32,12 +32,12 @@ snapshot</a>. It is generated nightly at the Unidata Program
 Center. It has passed all tests on our (Linux) test machine, but not
 necessarily all platform compatibility tests.
 
-\warning The daily snapshot release contains bug-fixes and new features
-added since the last full release. It may also contain portability
-bugs.
+\warning The daily snapshot release contains bug-fixes and new
+features added since the last full release. It may also contain
+portability bugs.
 
-Once you have downloaded and unpacked the distribution, see \ref
-building.
+Once you have downloaded and unpacked the distribution, see the
+following section on \ref building.
 
 \page building Building NetCDF
 
@@ -51,14 +51,15 @@ full functionality. (See \ref architecture).
 \page build_default Building with NetCDF-4 and the Remote Data Client
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
-libraries. (And, optionally, the szlib library). 
+libraries. (And, optionally, the szlib library). Versions required are
+at least HDF5 1.8.8, zlib 1.2.5, and curl 7.18.0 or later.
+(Optionally, if building with szlib, get szip 2.0 or later.)
 
-Get the HDF5 1.8.8 release. You must also have the zlib compression
-library, version 1.2.5 or later. Both of these packages are available from the
-<a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
-site</a>. If you wish to use the remote data client code, then you will
-also need libcurl version 7.16.4 or later. Libcurl can be obtained
-from the <a href="http://curl.haxx.se/download.html">curl website</a>.
+HDF5 1.8.8 and zlib 1.2.5 packages are available from the <a
+href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
+site</a>. If you wish to use the remote data client code, then you
+will also need libcurl, which can be obtained from the <a
+href="http://curl.haxx.se/download.html">curl website</a>.
 
 Make sure you run ``make check'' for the HDF5 and zlib
 distributions. They are very well-behaved distributions, but sometimes
@@ -69,12 +70,12 @@ working, netCDF will have serious problems.
 Note that for building netCDF, it is not necessary to build the HDF5
 Fortran, C++, or Java API's.  Only the HDF5 C library is used.
 
-Optionally, you can also build netCDF-4 with the szip 2.0 library
+Optionally, you can also build netCDF-4 with the szip library
 (a.k.a. szlib). NetCDF cannot create szipped data files, but can read
 HDF5 data files that have used szip.
 
 There are license restrictions on the use of szip, see the section on
-licensing terms in the : <a
+licensing terms in the <a
 href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip
 compression in HDF products</a>. These license restrictions seem to
 apply to commercial users who are writing data. (Data readers are not
