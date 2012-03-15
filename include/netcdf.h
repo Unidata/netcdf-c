@@ -1863,7 +1863,9 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #endif
 
 /* Temporary hack to shut up warnings */
+#ifndef __MINGW32_VERSION 
 #define END_OF_MAIN()
+#endif
 
 #endif /* _NETCDF_ */
 
