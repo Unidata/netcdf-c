@@ -25,6 +25,7 @@ ocset_curl_flags(OCstate* state)
     CURLcode cstat = CURLE_OK;
     CURL* curl = state->curl;
     struct OCcurlflags* flags = &state->curlflags;
+
 #ifdef CURLOPT_ENCODING
     if (flags->compress) {
 	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING,"deflate, gzip");
@@ -65,6 +66,8 @@ ocset_curl_flags(OCstate* state)
     cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
 
+    cstat = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
+    OCDBG1(1,"CURLOPT_ERRORBUFFER",0);
 
     return OC_NOERR;
 fail:

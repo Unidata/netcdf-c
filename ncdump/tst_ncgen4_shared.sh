@@ -85,7 +85,13 @@ SPECIALTESTS3="ref_tst_special_atts3"
 
 SPECIALTESTS="ref_tst_special_atts ${SPECIALTESTS3}"
 
-XFAILTESTS="ref_const_test ref_tst_unlim2 ref_tst_chardata"
+XFAILTESTS=""
+# Fails because ncdump does not output multiple unlim char types correctly
+XFAILTESTS="ref_tst_unlim2 $XFAILTESTS"
+# Fails because ?
+XFAILTESTS="ref_const_test $XFAILTESTS"
+# Fails because ?
+XFAILTESTS="ref_tst_chardata $XFAILTESTS"
 
 # Following are generally not run
 # Because of the size of their output

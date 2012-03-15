@@ -1,17 +1,16 @@
 TOPDIR="/home/dmh/mach/major"
-#http://esrl.noaa.gov/psd/thredds/dodsC/Datasets/noaa.oisst.v2/sst.wkmean.1990-present.nc"
-PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
+PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
 #PARMS="${PARMS}[fetch=memory]"
-#PARMS="${PARMS}[cache]"
+PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[prefetch]"
 #PARMS="${PARMS}[nocache]"
 #PARMS="${PARMS}[noprefetch]"
-#PARMS="${PARMS}[show=fetch]"
+#PARMS="${PARMS}[wholevar]"
+PARMS="${PARMS}[show=fetch]"
 
-F="http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/ncep.reanalysis.dailyavgs/pressure/air.1948.nc"
-VAR=air
+F="file:///home/dmh/mach/minor/ncdap_test/testdata3/synth1"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"
@@ -65,7 +64,10 @@ F="http://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/46029/46029h9999.nc"
 CON="wind_dir[1:10][0:0][0:0]"
 F="http://nomads.ncep.noaa.gov:9090/dods/gens/gens20111011/gep20_00z"
 CON="ens,time,lat,lon,prmslmsl[0:1:0][0:1:64][0:1:10][0:1:10]"
+F="http://esrl.noaa.gov/psd/thredds/dodsC/Datasets/noaa.oisst.v2/sst.wkmean.1990-present.nc"
 F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_20111122_0000.nc"
 CON="weather[0:10]"
+F="http://nomad1.ncep.noaa.gov:9090/dods/reanalyses/reanalysis-1/6hr/pgb/pgb"
+VAR=hgtprs
 fi
 

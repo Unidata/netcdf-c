@@ -4,11 +4,28 @@ Entries are in reverse chronological order (most recent first).
 VERSION         COMMENTS
 -------         --------
 4.2		Released 2012-??-??
+
+		Fix behavior of ncgen flags so that -o => -lb
+                and, in the absence of any other markers, make
+                the default be -k1
+                [NCF-158]
+
+		Performance improvement to DAP code to support
+                fetching partial variables into the cache; especially
+                important when using nc_get_var() API.
+                A partial variable is one that has ranges attached
+                to the projection variables (e.g. x[1:10][20:21])
+		[NCF-157]
+
 	        Fixed bug in ncgen in which large variables
                 (more than 2**18 elements) duplicates the first
-                2**18 values into subsequent chunks of data.
-                [NCF-154]
+                2**18 values into subsequent chunks of data
+                [NCF-154].
 
+		Fix bug in ncgen for vlen arrays as fields
+                of compound types where datalists for those
+                types was improperly interpreted
+                [NCF-145] (but see NCF-155).
 
 4.2-rc2		Released 2012-03-02
 

@@ -214,9 +214,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    LOG((3, "nc4_create_file: path %s mode 0x%x", path, cmode));
    assert(nc && path);
 
+
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
-   if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r")))
+   if (!(cmode & NC_DISKLESS) && (cmode & NC_NOCLOBBER)
+       && (fp = fopen(path, "r")))
    {
       fclose(fp);
       return NC_EEXIST;
@@ -242,6 +244,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
       BAIL(NC_EHDFERR);
 #endif /* EXTRA_TESTS */
+
 #ifdef USE_PARALLEL
    /* If this is a parallel file create, set up the file creation
       property list. */
@@ -262,6 +265,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       }
    }
 #else /* only set cache for non-parallel... */
+   if(cmode & NC_DISKLESS) {
+	 if (H5Pset_fapl_core(fapl_id, 4096, 0))
+	    BAIL(NC_EDISKLESS);
+   }
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size, 
 		    nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -371,9 +378,13 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* Check the cmode for validity. */
    if (cmode & ~(NC_NOCLOBBER | NC_64BIT_OFFSET
                  | NC_NETCDF4 | NC_CLASSIC_MODEL
-                 | NC_SHARE | NC_MPIIO | NC_MPIPOSIX | NC_LOCK | NC_PNETCDF)
+                 | NC_SHARE | NC_MPIIO | NC_MPIPOSIX | NC_LOCK | NC_PNETCDF
+		 | NC_DISKLESS
+                 )
        || (cmode & NC_MPIIO && cmode & NC_MPIPOSIX)
-       || (cmode & NC_64BIT_OFFSET && cmode & NC_NETCDF4))
+       || (cmode & NC_64BIT_OFFSET && cmode & NC_NETCDF4)
+       || (cmode & (NC_MPIIO | NC_MPIPOSIX) && cmode & NC_DISKLESS)
+      )
       return NC_EINVAL;
 
    /* Allocate the storage for this file info struct, and fill it with

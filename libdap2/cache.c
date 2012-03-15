@@ -126,7 +126,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
                 nelems *= dim->dim.declsize;
 	    }
 if(SHOWFETCH) {
-nclog(NCLOGDBG,"prefetch: %s=%d",var->ncfullname,nelems);
+nclog(NCLOGDBG,"prefetch: %s=%lu",var->ncfullname,(unsigned long)nelems);
 }
 	    if(nelems <= nccomm->cdf.smallsizelimit) {
 	        nclistpush(vars,(ncelem)var);
@@ -213,18 +213,6 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
 
-#ifdef IGNORE
-    if(FLAGSET(nccomm->controls,NCF_CACHE)) {
-        /* If the cache flag is on, then cache 
-           forces whole variable projections */
-        int i;
-        /* Remove the slicing (if any) */
-        for(i=0;i<nclistlength(constraint->projections);i++) {
-            DCEprojection* p = (DCEprojection*)nclistget(constraint->projections,i);
-	    dcemakewholeprojection(p);
-	}
-    }
-#endif
     ce = buildconstraintstring3(constraint);
 
     ocstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);

@@ -281,8 +281,9 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
 	/* ignore all constraints */
 	dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,0);
     } else {
-         nc_urisetconstraints(dapcomm->oc.url,
-			   buildconstraintstring3(dapcomm->oc.dapconstraint));
+	char* constraintstring = buildconstraintstring3(dapcomm->oc.dapconstraint);
+        nc_urisetconstraints(dapcomm->oc.url,constraintstring);
+	nullfree(constraintstring);
         dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,NC_URICONSTRAINTS);
     }
 
