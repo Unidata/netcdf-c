@@ -1325,16 +1325,22 @@ copy(char* infile, char* outfile)
     NC_CHECK(copy_schema(igrp, ogrp));
     NC_CHECK(nc_enddef(ogrp));
 
-    /* For performance, special case netCDF-3 input file with record
+    /* For performance, special case netCDF-3 input or output file with record
      * variables, to copy a record-at-a-time instead of a
-     * variable-at-a-time. We should also eventually do something
-     * similar for netCDF-3 output file, but converting netCDF-4 files
-     * to netCDF-3 files is less common ... */
+     * variable-at-a-time. */
     if(nc3_special_case(igrp, inkind)) {
 	size_t nfixed_vars, nrec_vars;
 	int *fixed_varids;
 	int *rec_varids;
 	NC_CHECK(classify_vars(igrp, &nfixed_vars, &fixed_varids, &nrec_vars, &rec_varids));
+	NC_CHECK(copy_fixed_size_data(igrp, ogrp, nfixed_vars, fixed_varids));
+	NC_CHECK(copy_record_data(igrp, ogrp, nrec_vars, rec_varids));
+    } else if (nc3_special_case(ogrp, outkind)) {
+	size_t nfixed_vars, nrec_vars;
+	int *fixed_varids;
+	int *rec_varids;
+	/* classifies output vars, but returns input varids */
+	NC_CHECK(classify_vars(ogrp, &nfixed_vars, &fixed_varids, &nrec_vars, &rec_varids));
 	NC_CHECK(copy_fixed_size_data(igrp, ogrp, nfixed_vars, fixed_varids));
 	NC_CHECK(copy_record_data(igrp, ogrp, nrec_vars, rec_varids));
     } else {	    
