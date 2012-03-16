@@ -214,9 +214,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    LOG((3, "nc4_create_file: path %s mode 0x%x", path, cmode));
    assert(nc && path);
 
+
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
-   if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r")))
+   if (!(cmode & NC_DISKLESS) && (cmode & NC_NOCLOBBER)
+       && (fp = fopen(path, "r")))
    {
       fclose(fp);
       return NC_EEXIST;
@@ -242,6 +244,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG))
       BAIL(NC_EHDFERR);
 #endif /* EXTRA_TESTS */
+
 #ifdef USE_PARALLEL
    /* If this is a parallel file create, set up the file creation
       property list. */
@@ -262,6 +265,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       }
    }
 #else /* only set cache for non-parallel... */
+   if(cmode & NC_DISKLESS) {
+	 if (H5Pset_fapl_core(fapl_id, 4096, 0))
+	    BAIL(NC_EDISKLESS);
+   }
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size, 
 		    nc4_chunk_cache_preemption) < 0)
       BAIL(NC_EHDFERR);
@@ -371,9 +378,13 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* Check the cmode for validity. */
    if (cmode & ~(NC_NOCLOBBER | NC_64BIT_OFFSET
                  | NC_NETCDF4 | NC_CLASSIC_MODEL
-                 | NC_SHARE | NC_MPIIO | NC_MPIPOSIX | NC_LOCK | NC_PNETCDF)
+                 | NC_SHARE | NC_MPIIO | NC_MPIPOSIX | NC_LOCK | NC_PNETCDF
+		 | NC_DISKLESS
+                 )
        || (cmode & NC_MPIIO && cmode & NC_MPIPOSIX)
-       || (cmode & NC_64BIT_OFFSET && cmode & NC_NETCDF4))
+       || (cmode & NC_64BIT_OFFSET && cmode & NC_NETCDF4)
+       || (cmode & (NC_MPIIO | NC_MPIPOSIX) && cmode & NC_DISKLESS)
+      )
       return NC_EINVAL;
 
    /* Allocate the storage for this file info struct, and fill it with
@@ -1281,9 +1292,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
     * var. */
    if (var->ndims)
    {
-      if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
+      if (!(var->dim = calloc(var->ndims, sizeof(NC_DIM_INFO_T *))))
 	 return NC_ENOMEM;
-      if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
+      if (!(var->dimids = calloc(var->ndims, sizeof(int))))
 	 return NC_ENOMEM;
    }
 
@@ -1300,7 +1311,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    /* Check for a weird case: a non-coordinate (and non-scalar)
     * variable that has the same name as a dimension. It's legal in
     * netcdf, and requires that the HDF5 dataset name be changed. */
-   if (var->ndims && !strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
+   if (var->ndims && 
+       !strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
    {
       if (strlen(obj_name) > NC_MAX_NAME)
 	 return NC_EMAXNAME;
@@ -1743,7 +1755,7 @@ nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		      void *_op_data)
 {
     hid_t oid=-1;
-    H5I_type_t otype;
+    H5I_type_t otype=-1;
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
@@ -1842,12 +1854,13 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		     void *_op_data)
 {
     hid_t oid=-1;
-    H5I_type_t otype;
+    H5I_type_t otype=-1;
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
     NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
 
+    memset(oname, 0, NC_MAX_NAME);
     /* Open this critter. */
     if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
         return H5_ITER_ERROR;

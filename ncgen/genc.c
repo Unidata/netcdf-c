@@ -394,18 +394,19 @@ gen_ncc(const char *filename)
     codelined(1,"check_err(stat,__LINE__,__FILE__);");
     codeflush();
 
-    /* Load values into those variables with defined data */
-
-    if(nvars > 0) {
-	codeline("");
-	codelined(1,"/* assign variable data */");
-        for(ivar = 0; ivar < nvars; ivar++) {
-	    Symbol* vsym = (Symbol*)listget(vardefs,ivar);
-	    if(vsym->data != NULL) genc_definevardata(vsym);
-	}
-	codeline("");
+    if(!header_only) {
+        /* Load values into those variables with defined data */
+        if(nvars > 0) {
+            codeline("");
+            codelined(1,"/* assign variable data */");
+            for(ivar = 0; ivar < nvars; ivar++) {
+                Symbol* vsym = (Symbol*)listget(vardefs,ivar);
+                if(vsym->data != NULL) genc_definevardata(vsym);
+            }
+            codeline("");
+        }
+        codeflush();
     }
-    codeflush();
 }
 
 #ifdef USE_NETCDF4

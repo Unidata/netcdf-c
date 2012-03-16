@@ -1800,7 +1800,7 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 210 "ncgen.y"
-    {if (derror_count > 0) exit(6);}
+    {if (error_count > 0) YYABORT;}
     break;
 
   case 7:
@@ -2705,7 +2705,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
 
 /* Line 1806 of yacc.c  */
 #line 790 "ncgen.y"
-    {(yyval.datalist) = NULL;}
+    {(yyval.datalist) = builddatalist(0);}
     break;
 
   case 114:
@@ -3209,7 +3209,6 @@ void
 parse_init(void)
 {
     int i;
-    derror_count=0;
     opaqueid = 0;
     arrayuid = 0;
     symlist = NULL;
@@ -3323,7 +3322,7 @@ makeconstdata(nc_type nctype)
 	    con.value.doublev = double_val;
 	    break;
         case NC_STRING: { /* convert to a set of chars*/
-	    int len;
+	    size_t len;
 	    len = bbLength(lextext);
 	    con.value.stringv.len = len;
 	    con.value.stringv.stringv = bbDup(lextext);
@@ -3484,7 +3483,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     char* sdata = NULL;
     int idata =  -1;
 
-    specials_flag = 1;
+    
+    specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 
     if(isconst) {
 	con = (Constant*)data;

@@ -18,13 +18,18 @@ libnetcdf3_la_SOURCES = v1hpg.c onstack.h                             	\
 nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
 ncx.h lookup3.c pstdint.h
 
+if USE_NEWIO
+libnetcdf3_la_SOURCES += ncstdio.h ncstdio.h ncFile.c
+else !USE_NEWIO
 # Does the user want to use ffio, a replacement for posixio for Cray
 # computers?
 if USE_FFIO
 libnetcdf3_la_SOURCES += ffio.c
-else
+else !USE_FFIO
 libnetcdf3_la_SOURCES += posixio.c
-endif
+endif !USE_FFIO
+endif !USE_NEWIO
+
 noinst_LTLIBRARIES = libnetcdf3.la
 
 # These files are cleaned on developer workstations (and then rebuilt

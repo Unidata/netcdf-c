@@ -245,6 +245,8 @@ nc_strerror(int ncerr1)
       case NC_ENOTBUILT:
 	 return "NetCDF: Attempt to use feature that was not turned on "
 	    "when netCDF was built.";
+      case NC_EDISKLESS:
+	 return "NetCDF: Error in using diskless access";
       default:
 	 return "Unknown Error";
    }

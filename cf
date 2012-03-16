@@ -1,21 +1,35 @@
 #!/bin/bash
 #X="-x"
 
+if test $# != 0 ; then
+cmds=$@
+fi
+
 HDF5=1
 DAP=1
 #CDMR=1
 #RPC=1
-
+#PGI=1
 #M32=1
 #M64=1
-
 #NB=1
 
+if test "x$cmds" = x ; then
 cmds=""
 #cmds="all"
 #cmds="all check"
 #cmds="all dist"
 #cmds="all distcheck"
+#cmds="$cmds install"
+fi
+
+# Test pgi compiler
+if test "x$PGI" = x1 ; then
+PATH="/opt/pgi/linux86/11.1/bin:$PATH"
+CC=pgcc
+else
+CC=gcc
+fi
 
 # Default cases
 PREFIX="/tmp/install/${HOST}"
@@ -25,6 +39,14 @@ MALLOC_CHECK=""
 
 CPPFLAGS=""
 LDFLAGS=""
+
+if test "x$PGI" = x1 ; then
+CFLAGS="-Msignextend -V -m64 $CFLAGS"
+CPPFLAGS="$CPPFLAGS -DNDEBUG -DpgiFortran"
+LD_LIBRARY_PATH="/usr/local/pgi/linux86-64/11.1/lib:$LD_LIBRARY_PATH"
+PREFIX=/tmp/install/pgi
+fi
+
 
 if test x$M32 = x1 ; then
   PREFIX="/tmp/install32/${HOST}"
@@ -43,7 +65,9 @@ case "$HOST" in
 	CFLAGS="-std=c99 $CFLAGS"
 	;;
   spock)
-	CFLAGS="-Wdeclaration-after-statement -Wall $CFLAGS"
+	if test "x$PGI" = x ; then
+  	  CFLAGS="-Wdeclaration-after-statement -Wall $CFLAGS"
+	fi
 	;;
   spike)
 	CFLAGS="-Wall $CFLAGS"
@@ -75,6 +99,7 @@ else
 fi
 fi
 
+export CC
 export CPPFLAGS
 export CFLAGS
 export LDFLAGS
@@ -102,10 +127,10 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-benchmarks"
-FLAGS="$FLAGS --enable-extra-tests"
+#FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-logging"
 
-#FLAGS="$FLAGS --disable-shared"
+FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then

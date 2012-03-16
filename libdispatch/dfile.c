@@ -50,13 +50,17 @@ of the interfaces for these operations.
 */
 /**@{*/
 
-size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-size_t NC_coord_one[NC_MAX_VAR_DIMS];
+size_t* NC_coord_zero;
+size_t* NC_coord_one;
 
 static void
 nc_local_initialize(void)
 {
     int i;
+    NC_coord_zero = (size_t*)malloc(sizeof(size_t)*NC_MAX_VAR_DIMS);
+    if(NC_coord_zero == NULL) abort();
+    NC_coord_one = (size_t*)malloc(sizeof(size_t)*NC_MAX_VAR_DIMS);
+    if(NC_coord_one == NULL) abort();
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
 	NC_coord_one[i] = 1;
 	NC_coord_zero[i] = 0;
@@ -1307,12 +1311,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if((isurl = NC_testurl(path)))
 	model = NC_urlmodel(path);
 
-   /* /\* Look to the incoming cmode for hints *\/ */
-   /* if(model == 0) { */
-   /*    if(cmode & NC_DISKLESS) */
-   /* 	model = NC_DISPATCH_DISKLESS; */
-   /* } */
-
    /* Look to the incoming cmode for hints */
    if(model == 0) {
       if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
@@ -1370,8 +1368,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif
       if(model == (NC_DISPATCH_NC4))
  	dispatcher = NC4_dispatch_table;
-      /* else if(model == (NC_DISPATCH_DISKLESS)) */
-      /* 	 dispatcher = NCD_dispatch_table; */
       else
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP

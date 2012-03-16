@@ -7,7 +7,7 @@
 #include "includes.h"
 #include <ctype.h>	/* for isprint() */
 
-int derror_count;
+int error_count;
 
 #ifndef NO_STDARG
 #define vastart(argv,fmt) va_start(argv,fmt)
@@ -31,7 +31,7 @@ vderror(fmt,va_alist) const char* fmt; va_dcl
     (void) vfprintf(stderr,fmt,argv) ;
     (void) fputc('\n',stderr) ;
     (void) fflush(stderr);	/* to ensure log files are current */
-    derror_count++;
+    error_count++;
 }
 
 #ifndef NO_STDARG
@@ -90,7 +90,7 @@ semerror(lno,fmt,va_alist) const int lno; const char* fmt; va_dcl
     vastart(argv,fmt);
     (void)fprintf(stderr,"%s: %s line %d: ", progname, cdlname, lno);
     vderror(fmt,argv);
-    exit(1);
+    exit(1); /* immediately fatal */
 }
 
 /* Capture potential version errors */

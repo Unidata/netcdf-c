@@ -207,7 +207,7 @@ Constant       constant;
 ncdesc: NETCDF
 	DATASETID
         rootgroup
-        {if (derror_count > 0) exit(6);}
+        {if (error_count > 0) YYABORT;}
         ;
 
 rootgroup: '{'
@@ -787,7 +787,7 @@ datalist:
 	;
 
 datalist0:
-	/*empty*/ {$$ = NULL;}
+	/*empty*/ {$$ = builddatalist(0);}
 	;
 
 datalist1: /* Must have at least 1 element */
@@ -901,7 +901,6 @@ void
 parse_init(void)
 {
     int i;
-    derror_count=0;
     opaqueid = 0;
     arrayuid = 0;
     symlist = NULL;
@@ -1015,7 +1014,7 @@ makeconstdata(nc_type nctype)
 	    con.value.doublev = double_val;
 	    break;
         case NC_STRING: { /* convert to a set of chars*/
-	    int len;
+	    size_t len;
 	    len = bbLength(lextext);
 	    con.value.stringv.len = len;
 	    con.value.stringv.stringv = bbDup(lextext);
@@ -1176,7 +1175,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     char* sdata = NULL;
     int idata =  -1;
 
-    specials_flag = 1;
+    
+    specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 
     if(isconst) {
 	con = (Constant*)data;

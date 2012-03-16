@@ -8,6 +8,8 @@
 include $(top_srcdir)/lib_flags.am
 LDADD = ${top_builddir}/liblib/libnetcdf.la 
 
+TESTS_ENVIRONMENT=CC=${CC}
+
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump 
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c	\
@@ -28,7 +30,11 @@ if !BUILD_DLL
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh
+tst_nccopy3.sh tst_charfill.sh tst_iter.sh
+
+if LARGE_FILE_TESTS
+TESTS += tst_iter.sh
+endif
 
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
@@ -67,7 +73,9 @@ tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl			\
 tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl			\
 tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
 tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
-tst_charfill.nc tmp_tst_charfill.cdl
+tst_charfill.nc tmp_tst_charfill.cdl \
+iter.* \
+tst_nc_test_netcdf4_4_0.cdl
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -86,14 +94,15 @@ ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
-ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh
+ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
+tst_iter.sh
 
 
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 BUILT_SOURCES = ctest.c ctest64.c
 if EXTRA_TESTS
 ctest.c:
-	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest.c
+	$(top_builddir)/ncgen/ncgen -lc -o ctest0.nc $(top_srcdir)/ncgen/c0.cdl >$(srcdir)/ctest.c
 
 ctest64.c:
 	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
@@ -103,7 +112,7 @@ ctest.c:
 
 ctest64.c:
 	cp ref_ctest64.c ctest64.c
-endif # CROSS_COMPILING
+endif
 
 # NCGEN4 additions
 SUBDIRS=cdl4 expected4

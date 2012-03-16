@@ -85,7 +85,6 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCR    8
-#define NC_DISPATCH_DISKLESS 16
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -138,10 +137,6 @@ extern int NCD3_initialize(void);
 
 extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
-
-/* /\* Diskless *\/ */
-/* extern NC_Dispatch* NCD_dispatch_table; */
-/* extern int NCD_initialize(void); */
 
 #ifdef USE_DAP
 extern NC_Dispatch* NCD4_dispatch_table;
@@ -379,8 +374,8 @@ extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 
-extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
+extern size_t* NC_coord_zero;
+extern size_t* NC_coord_one;
 
 #endif /* _DISPATCH_H */
 

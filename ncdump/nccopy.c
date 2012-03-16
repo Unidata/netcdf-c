@@ -1045,12 +1045,200 @@ count_dims(ncid) {
     return ndims;
 }
 
-/* copy infile to outfile using netCDF API, kind specifies which
- * netCDF format for output: -1 -> same as input, 1 -> classic, 2 ->
- * 64-bit offset, 3 -> netCDF-4, 4 -> netCDF-4 classic model.
- * However, if compression or shuffling was specified and kind was -1,
- * kind is changed to format 4 that supports compression for input of
- * type 1 or 2.
+/* Test if special case: netCDF-3 file with more than one record
+ * variable.  Performance can be very slow for this case when the disk
+ * block size is large, there are many record variables, and a
+ * record's worth of data for some variables is smaller than the disk
+ * block size.  In this case, copying the record variables a variable
+ * at a time causes much rereading of record data, so instead we want
+ * to copy data a record at a time. */
+static int
+nc3_special_case(int ncid, int kind) {
+    int ret = 0;
+    if (kind == NC_FORMAT_CLASSIC ||  kind == NC_FORMAT_64BIT) {
+	int recdimid = 0;
+	NC_CHECK(nc_inq_unlimdim(ncid, &recdimid));
+	if (recdimid != -1) {	/* we have a record dimension */
+	    int nrecvars = 0;	/* number of record variables */
+	    int nvars;
+	    NC_CHECK(nc_inq_nvars(ncid, &nvars));
+	    if (nvars > 1) {
+		int varid;
+		for (varid = 0; varid < nvars; varid++) {
+		    int *dimids = 0;
+		    int ndims;
+		    NC_CHECK( nc_inq_varndims(ncid, varid, &ndims) );
+		    if (ndims > 0) {
+			dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+			NC_CHECK( nc_inq_vardimid(ncid, varid, dimids) );
+			if(dimids[0] == recdimid) { /* this is a record variable */
+			    nrecvars++;
+			    if (nrecvars > 1) {
+				ret = 1;
+			    }
+			}
+			free(dimids);
+			if(ret)
+			    break;
+		    }
+		}
+	    }	    
+	}
+    }
+    return ret;
+}
+
+/* Classify variables in ncid as either fixed-size variables (with no
+ * unlimited dimension) or as record variables (with an unlimited
+ * dimension) */
+static int
+classify_vars(
+    int ncid,	/* netCDF ID */
+    size_t *nf,	/* for returning number of fixed-size variables */
+    int **fvars,	/* the array of fixed_size variable IDS, caller should free */
+    size_t *nr,	/* for returning number of record variables */
+    int **rvars)	/* the array of record variable IDs, caller should free */
+{
+    int varid;
+    int nvars;
+    NC_CHECK(nc_inq_nvars(ncid, &nvars));
+    *nf = 0;
+    *fvars = (int *) emalloc(nvars * sizeof(int));
+    *nr = 0;
+    *rvars = (int *) emalloc(nvars * sizeof(int));
+    for (varid = 0; varid < nvars; varid++) {
+	if (isrecvar(ncid, varid)) {
+	    (*rvars)[*nr] = varid;
+	    (*nr)++;
+	} else {
+	    (*fvars)[*nf] = varid;
+	    (*nf)++;
+	}
+    }
+    return NC_NOERR;
+}
+
+/* Only called for classic format or 64-bit offset format files, to speed up special case */
+static int
+copy_fixed_size_data(int igrp, int ogrp, size_t nfixed_vars, int *fixed_varids) {
+    size_t ivar;
+    /* for each fixed-size variable, copy data */
+    for (ivar = 0; ivar < nfixed_vars; ivar++) {
+	int varid = fixed_varids[ivar];
+	NC_CHECK(copy_var_data(igrp, varid, ogrp));
+    }
+    if (fixed_varids)
+	free(fixed_varids);
+    return NC_NOERR;
+}
+
+/* copy a record's worth of data for a variable from input to output */
+static int
+copy_rec_var_data(int ncid, 	/* input */
+		  int ogrp, 	/* output */
+		  int irec, 	/* record number */
+		  int varid, 	/* input variable id */
+		  int ovarid, 	/* output variable id */
+		  size_t *start,   /* start indices for record data */
+		  size_t *count,   /* edge lengths for record data */
+		  void *buf	   /* buffer large enough to hold data */
+    ) 
+{
+    NC_CHECK(nc_get_vara(ncid, varid, start, count, buf));
+    NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
+    return NC_NOERR;
+}
+
+/* Only called for classic format or 64-bit offset format files, to speed up special case */
+static int
+copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
+    int unlimid;
+    size_t nrecs = 0;		/* how many records? */
+    size_t irec;
+    size_t ivar;
+    void **buf;			/* space for reading in data for each variable */
+    int *rec_ovarids;		/* corresponding varids in output */
+    size_t **start;
+    size_t **count;
+    NC_CHECK(nc_inq_unlimdim(ncid, &unlimid));
+    NC_CHECK(nc_inq_dimlen(ncid, unlimid, &nrecs));
+    buf = (void **) emalloc(nrec_vars * sizeof(void *));
+    rec_ovarids = (int *) emalloc(nrec_vars * sizeof(int));
+    start = (size_t **) emalloc(nrec_vars * sizeof(size_t*));
+    count = (size_t **) emalloc(nrec_vars * sizeof(size_t*));
+    /* get space to hold one record's worth of data for each record variable */
+    for (ivar = 0; ivar < nrec_vars; ivar++) {
+	int varid;
+	int ndims;
+	int *dimids;
+	nc_type vartype;
+	size_t value_size;
+	int dimid;
+	int ii;
+	size_t nvals;
+	char varname[NC_MAX_NAME];
+	varid = rec_varids[ivar];
+	NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
+	dimids = (int *) emalloc((1 + ndims) * sizeof(int));
+	start[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
+	count[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
+	NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
+	NC_CHECK(nc_inq_vartype(ncid, varid, &vartype));
+	NC_CHECK(nc_inq_type(ncid, vartype, NULL, &value_size));
+	nvals = 1;
+	for(ii = 1; ii < ndims; ii++) { /* for rec size, don't include first record dimension */
+	    size_t dimlen;
+	    dimid = dimids[ii];
+	    NC_CHECK(nc_inq_dimlen(ncid, dimid, &dimlen));
+	    nvals *= dimlen;
+	    start[ivar][ii] = 0;
+	    count[ivar][ii] = dimlen;
+	}
+	start[ivar][0] = 0;	
+	count[ivar][0] = 1;	/* 1 record */
+	buf[ivar] = (void *) emalloc(nvals * value_size);
+	NC_CHECK(nc_inq_varname(ncid, varid, varname));
+	NC_CHECK(nc_inq_varid(ogrp, varname, &rec_ovarids[ivar]));
+	if(dimids)
+	    free(dimids);
+    }
+
+    /* for each record, copy all variable data */
+    for(irec = 0; irec < nrecs; irec++) {
+	for (ivar = 0; ivar < nrec_vars; ivar++) {
+	    int varid, ovarid;
+	    varid = rec_varids[ivar];
+	    ovarid = rec_ovarids[ivar];
+	    start[ivar][0] = irec;
+	    NC_CHECK(copy_rec_var_data(ncid, ogrp, irec, varid, ovarid, 
+				       start[ivar], count[ivar], buf[ivar]));
+	}
+    }
+    for (ivar = 0; ivar < nrec_vars; ivar++) {
+	if(start[ivar])
+	    free(start[ivar]);
+	if(count[ivar])
+	    free(count[ivar]);
+    }
+    if(start)
+	free(start);
+    if(count)
+	free(count);
+    for (ivar = 0; ivar < nrec_vars; ivar++) {
+	if(buf[ivar]) {
+	    free(buf[ivar]);
+	}
+    }
+    if (rec_varids)
+	free(rec_varids);
+    if(buf)
+	free(buf);
+    if(rec_ovarids)
+	free(rec_ovarids);
+    return NC_NOERR;
+}
+
+/* copy infile to outfile using netCDF API
  */
 static int
 copy(char* infile, char* outfile)
@@ -1064,6 +1252,17 @@ copy(char* infile, char* outfile)
 
     NC_CHECK(nc_inq_format(igrp, &inkind));
 
+/* option_kind specifies which netCDF format for output: 
+ *   -1 -> same as input, 
+ *    1 -> classic
+ *    2 -> 64-bit offset
+ *    3 -> netCDF-4, 
+ *    4 -> netCDF-4 classic model
+ *
+ * However, if compression or shuffling was specified and kind was -1,
+ * kind is changed to format 4 that supports compression for input of
+ * type 1 or 2.  
+ */
     outkind = option_kind;
     if (option_kind == SAME_AS_INPUT) {	/* default, kind not specified */
 	outkind = inkind;
@@ -1103,7 +1302,7 @@ copy(char* infile, char* outfile)
 #else
     case NC_FORMAT_NETCDF4:
     case NC_FORMAT_NETCDF4_CLASSIC:
-	error("built without ability to create netCDF-4 files");
+	error("nccopy built with --disable-netcdf4, can't create netCDF-4 files");
 	break;
 #endif	/* USE_NETCDF4 */
     default:
@@ -1125,8 +1324,28 @@ copy(char* infile, char* outfile)
     NC_CHECK(dimmap_init(ndims));
     NC_CHECK(copy_schema(igrp, ogrp));
     NC_CHECK(nc_enddef(ogrp));
-    
-    NC_CHECK(copy_data(igrp, ogrp));
+
+    /* For performance, special case netCDF-3 input or output file with record
+     * variables, to copy a record-at-a-time instead of a
+     * variable-at-a-time. */
+    if(nc3_special_case(igrp, inkind)) {
+	size_t nfixed_vars, nrec_vars;
+	int *fixed_varids;
+	int *rec_varids;
+	NC_CHECK(classify_vars(igrp, &nfixed_vars, &fixed_varids, &nrec_vars, &rec_varids));
+	NC_CHECK(copy_fixed_size_data(igrp, ogrp, nfixed_vars, fixed_varids));
+	NC_CHECK(copy_record_data(igrp, ogrp, nrec_vars, rec_varids));
+    } else if (nc3_special_case(ogrp, outkind)) {
+	size_t nfixed_vars, nrec_vars;
+	int *fixed_varids;
+	int *rec_varids;
+	/* classifies output vars, but returns input varids */
+	NC_CHECK(classify_vars(ogrp, &nfixed_vars, &fixed_varids, &nrec_vars, &rec_varids));
+	NC_CHECK(copy_fixed_size_data(igrp, ogrp, nfixed_vars, fixed_varids));
+	NC_CHECK(copy_record_data(igrp, ogrp, nrec_vars, rec_varids));
+    } else {	    
+	NC_CHECK(copy_data(igrp, ogrp)); /* recursive, to handle nested groups */
+    }
 
     NC_CHECK(nc_close(igrp));
     NC_CHECK(nc_close(ogrp));

@@ -711,6 +711,12 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	}
     }
 
+    /* test for the force-whole-var flag */
+    value = oc_clientparam_get(conn,"wholevar");
+    if(value != NULL) {
+        SETFLAG(nccomm->controls,NCF_WHOLEVAR);
+    }
+
     return NC_NOERR;
 }
 

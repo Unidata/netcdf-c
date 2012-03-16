@@ -75,6 +75,7 @@ typedef struct OCstate
 	char* code;
 	char* message;
 	long  httpcode;
+	char  curlerrorbuf[CURL_ERROR_SIZE]; /* to get curl error message */
     } error;
     /* Store .rc file info */
     struct OCcurlflags {

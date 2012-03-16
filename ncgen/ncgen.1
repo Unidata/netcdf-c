@@ -42,9 +42,9 @@ edit the CDL file to change the name of the dimensions, and use \fBncgen\fP
 to generate the corresponding netCDF file from the edited CDL file.
 .SH OPTIONS
 .IP "\fB-b\fP"
-Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a default
-file name will be constructed from the netCDF name (specified after the
-\fBnetcdf\fP keyword in the input) by appending the `.nc' extension.  If a
+Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a
+default file name will be constructed from the basename of the CDL
+file, with any suffix replaced by the `.nc' extension.  If a
 file already exists with the specified name, it will be overwritten.
 .IP "\fB-c\fP"
 Generate
@@ -60,10 +60,12 @@ matching the netCDF specification.
 The source code is written to
 standard output; equivalent to -lf77.
 .IP "\fB-o\fP \fRnetcdf_file\fP"
-Name for the binary netCDF file created.  If this option is specified, it implies
-the "\fB-b\fP" option.  (This option is necessary because netCDF files
+Name of the file to pass to calls to "nc_create()".
+If this option is specified it implies
+(in the absense of any explicit -l flag) the "\fB-b\fP" option.
+This option is necessary because netCDF files
 cannot be written directly to standard output, since standard output is not
-seekable.)
+seekable.
 .IP "\fB-k \fRfile_format\fP"
 The -k flag specifies the format of the file to be created and, by inference,
 the data model accepted by ncgen (i.e. netcdf-3 (classic) versus
@@ -106,7 +108,7 @@ The choice of output format is determined by three flags.
 .IP "\fB_Format attribute (see below).\fP"
 .IP "\fBOccurrence of netcdf-4 constructs in the input CDL.\fP"
 The term "netCDF-4 constructs" means
-construct from the enhanced data model,
+constructs from the enhanced data model,
 not just special performance-related attributes such as
  _ChunkSizes, _DeflateLevel, _Endianness, etc.
 .LP
@@ -157,7 +159,7 @@ netCDF function invocations necessary to create an equivalent binary netCDF
 file named `\fBx.nc\fP':
 .RS
 .HP
-ncgen -c -o x.nc foo.cdl
+ncgen -lc foo.cdl >x.c
 .RE
 .LP
 .SH USAGE
@@ -796,6 +798,36 @@ The effective size of u2 will be the max of the two instance lengths
 and the shorter will be padded to produce this.
 .in +5
 datalist: var={"1","t","w","o","\\0"}, {"t","h","r","e","e"};
+.in -5
+.LP
+Consider an even more complicated case.        
+.in +5
+.nf
+variables: char var(u,u2,u3);
+datalist: var={{"1", "two"}}, {{"three"},{"four","xy"}};
+.fi
+.in -5
+In this case u again will have the effective length of two.
+The u2 dimensions will have a size = max(1,2) = 2;
+Within each instance of u2, the rules above will apply, leading to this.
+.in +5
+.nf
+datalist: var={{"1","t","w","o"}}, {{"t","h","r","e","e"},{"f","o","u","r","x","y"}};
+.fi
+.in -5
+The  effective  size  of u3 will be the max of the two instance lengths
+(six in this case) and the shorter ones will be padded to produce this.
+.in +5
+.nf
+datalist: var={{"1","t","w","o","\0","\0"}}, {{"t","h","r","e","e","\0"},{"f","o","u","r","x","y"}};
+.fi
+.in -5
+Note however that the first instance of u2 is less than the max length
+of u2, so we need to add a filler for another instance of u2, producing this.
+.in +5
+.nf
+datalist: var={{"1","t","w","o","\0","\0"},{"\0","\0","\0","\0","\0","\0"}}, {{"t","h","r","e","e","\0"},{"f","o","u","r","x","y"}};
+.fi
 .in -5
 
 .SH BUGS

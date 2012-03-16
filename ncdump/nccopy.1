@@ -1,5 +1,5 @@
 .\" $Id: nccopy.1 400 2010-08-27 21:02:52Z russ $
-.TH NCCOPY 1 "$Date$" "Printed: \n(yr-\n(mo-\n(dy" "UNIDATA UTILITIES"
+.TH NCCOPY 1 "2012-03-08" "Release 4.2" "UNIDATA UTILITIES"
 .SH NAME
 nccopy \- Copy a netCDF file to specified variant of netCDF format,
 optionally compressing or chunking data in the output copy.
@@ -59,6 +59,7 @@ The possible arguments are as follows.
 .IP "'4', 'hdf5-nc3', 'netCDF-4 classic model', 'enhanced-nc3' => netcdf-4 file format, netcdf-3 type model."
 .RE
 .RE
+.IP 
 If no value for -k is specified, then the output will use the same
 format as the input, except if the input is classic or 64-bit offset
 and either chunking or compression is specified, in which case the output will be netCDF-4 classic
@@ -80,7 +81,7 @@ that the output should be netCDF-4 classic model, as that will
 be the default.  If this option is not specified and the input file
 has compressed variables, the compression will still be preserved
 in the output, using the same chunking as in the input.
-.P
+.IP
 Note that \fB nccopy \fP requires all variables to be compressed using
 the same compression level, but the API has no such restriction.  With
 a program you can customize compression for each variable independently.
@@ -154,13 +155,12 @@ has no such restriction.  If you need to customize chunking
 for each variable independently, you will need to use the library API
 in a custom utility program.
 .SH EXAMPLES
-.LP
+.PP
 Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a
 netCDF file of the same type:
-.RS
-.HP
-nccopy foo1.nc foo2.nc
-.RE
+
+    nccopy foo1.nc foo2.nc
+
 Note that the above copy will not be as fast as use of a
 simple copy utility, because the file is copied using
 only the netCDF
@@ -170,31 +170,28 @@ netCDF data, those will not be copied, because they are not accessible
 through the netCDF interface.  If the original file was generated in
 `No fill' mode so that fill values are not stored for padding for data
 alignment, the output file may have different padding bytes.
-.LP
+.PP
 Convert a netCDF-4 classic model file, compressed.nc, that uses compression,
 to a netCDF-3 file classic.nc:
-.RS
-.HP
-nccopy -k classic compressed.nc classic.nc
-.RE
+
+    nccopy -k classic compressed.nc classic.nc
+
 Note that `1' could be used instead of `classic'.
-.LP
+.PP
 Download the variable `time_bnds' and it's associated attributes from
 an OPeNDAP server and copy the result to a netCDF file named `tb.nc':
-.RS
-.HP
-nccopy 'http://test.opendap.org/opendap/data/nc/sst.mnmean.nc.gz?time_bnds' tb.nc
-.RE
+
+    nccopy 'http://test.opendap.org/opendap/data/nc/sst.mnmean.nc.gz?time_bnds' tb.nc
+
 Note that URLs that name specific variables as command-line arguments
 should generally be quoted, to avoid the shell interpreting special
 characters such as `?'.
-.LP
+.PP
 Compress all the variables in the input file foo.nc, a netCDF file of any
 type, to the output file bar.nc:
-.RS
-.HP
-nccopy -d1 foo.nc bar.nc
-.RE
+
+    nccopy -d1 foo.nc bar.nc
+
 If foo.nc was a classic or 64-bit offset netCDF file, bar.nc will be a
 netCDF-4 classic model netCDF file, because the classic and 64-bit
 offset format variants don't support compression.  If foo.nc was a

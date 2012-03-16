@@ -318,61 +318,63 @@ gen_ncf77(const char *filename)
     f77skip();
     f77flush();
 
-    /* Assign scalar variable data and non-unlimited arrays in-line */
-    if(nvars > 0) {
-	f77skip();
-	f77skip();
-	f77comment("assign scalar and fixed dimension variable data");
-        for(ivar = 0; ivar < nvars; ivar++) {
-	    Symbol* vsym = (Symbol*)listget(vardefs,ivar);
-	    if(vsym->data == NULL) continue;
-	    if(vsym->typ.dimset.ndims == 0)
-	        genf77_definevardata(vsym);
-	}
-	f77skip();
-    }
+    if(!header_only) {
+        /* Assign scalar variable data and non-unlimited arrays in-line */
+        if(nvars > 0) {
+            f77skip();
+            f77skip();
+            f77comment("assign scalar and fixed dimension variable data");
+            for(ivar = 0; ivar < nvars; ivar++) {
+                Symbol* vsym = (Symbol*)listget(vardefs,ivar);
+                if(vsym->data == NULL) continue;
+                if(vsym->typ.dimset.ndims == 0)
+                    genf77_definevardata(vsym);
+            }
+            f77skip();
+        }
+    
+        /* Invoke write procedures */
+        if(nvars > 0) {
+            List* calllist;
+            f77skip();
+            f77skip();
+            f77comment("perform variable data writes");
+            for(ivar = 0; ivar < nvars; ivar++) {
+                int i;
+                Symbol* vsym = (Symbol*)listget(vardefs,ivar);
+                /* Call the procedures for writing unlimited variables */
+                if(vsym->data != NULL
+                    && vsym->typ.dimset.ndims > 0) {
+                    genf77_definevardata(vsym);
+                }
+                /* dump any calls */
+                generator_getstate(f77_generator,(void*)&calllist);
+                ASSERT(calllist != NULL);
+                for(i=0;i<listlength(calllist);i++) {
+                    char* callstmt = (char*)listget(calllist,i);
+                    codeline(callstmt);
+                }       
+                listclear(calllist);
+            }
+        }
+    
+        /* Close the file */
+        codeline("stat = nf_close(ncid)");
+        codeline("call check_err(stat)");
+        codeline("end");
 
-    /* Invoke write procedures */
-    if(nvars > 0) {
-	List* calllist;
-	f77skip();
-	f77skip();
-	f77comment("perform variable data writes");
-        for(ivar = 0; ivar < nvars; ivar++) {
+        /* Generate the write procedures */
+        if(listlength(f77procs) > 0) {
 	    int i;
-	    Symbol* vsym = (Symbol*)listget(vardefs,ivar);
-	    /* Call the procedures for writing unlimited variables */
-	    if(vsym->data != NULL
-		&& vsym->typ.dimset.ndims > 0) {
-	        genf77_definevardata(vsym);
-	    }
-	    /* dump any calls */
-	    generator_getstate(f77_generator,(void*)&calllist);
-	    ASSERT(calllist != NULL);
-	    for(i=0;i<listlength(calllist);i++) {
-		char* callstmt = (char*)listget(calllist,i);
-		codeline(callstmt);
-	    }	    
-	    listclear(calllist);
-	}
-    }
-
-    /* Close the file */
-    codeline("stat = nf_close(ncid)");
-    codeline("call check_err(stat)");
-    codeline("end");
-
-    /* Generate the write procedures */
-    if(listlength(f77procs) > 0) {
-	int i;
-	f77skip();
-        for(i=0;i<listlength(f77procs);i++) {
-	    Bytebuffer* proctext = (Bytebuffer*)listget(f77procs,i);
-	    codedump(proctext);
-	    bbFree(proctext);
-	}
-	listfree(f77procs); f77procs = NULL;
-	f77skip();
+    	    f77skip();
+            for(i=0;i<listlength(f77procs);i++) {
+    	        Bytebuffer* proctext = (Bytebuffer*)listget(f77procs,i);
+    	        codedump(proctext);
+    	        bbFree(proctext);
+    	    }
+    	    listfree(f77procs); f77procs = NULL;
+	    f77skip();
+        }
     }
     f77flush();
 

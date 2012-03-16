@@ -37,8 +37,7 @@ typedef union Constvalue {
     double doublev;             /* NC_DOUBLE*/
     struct Stringv {		/* NC_STRING*/
 	int len;
-	char* stringv;
-        /*struct Datalist* charlist;*/
+	char* stringv; 
     } stringv;
     struct Opaquev {     /* NC_OPAQUE*/
 	int len; /* length as originally written (rounded to even number)*/
@@ -161,6 +160,9 @@ extern Constant fillconstant;
 void gen_charattr(Datalist*, Bytebuffer*);
 void gen_charvlen(Datalist*, Bytebuffer*);
 void gen_chararray(struct Dimset*, Datalist*, Bytebuffer*, Datalist* fillsrc);
+#ifndef CHARBUG
+void gen_leafchararray(struct Dimset*,int,Datalist*,Bytebuffer* databuf, Datalist* fillsrc);
+#endif
 
 /* Mnemonic */
 #define UNKNOWN ((size_t)0)
