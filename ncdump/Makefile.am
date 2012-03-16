@@ -32,6 +32,10 @@ TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
 tst_nccopy3.sh tst_charfill.sh tst_iter.sh
 
+if LARGE_FILE_TESTS
+TESTS += tst_iter.sh
+endif
+
 if USE_NETCDF4
 # NetCDF-4 has some extra tests.
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
