@@ -83,7 +83,7 @@ AC_MSG_RESULT($enable_valgrind_tests)
 
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
-AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
+AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--enable-netcdf-4],
               [build with netcdf-4 (HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
 AC_MSG_RESULT([$enable_netcdf_4])
@@ -92,7 +92,7 @@ AC_MSG_RESULT([$enable_netcdf_4])
 # --enable-netcdf-4 is the controlling enable switch
 if test "x$enable_netcdf_4" = "x" ; then
   AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--enable-netcdf4],
-              [build with netcdf-4 (HDF5 and zlib required)])])
+              [(just a synonym for enable-netcdf-4)])])
   enable_netcdf_4="$enable_netcdf4"
 fi
 
