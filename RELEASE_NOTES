@@ -3,10 +3,12 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2		Released 2012-??-??
+4.2		Released 2012-03-16 (Note: Jira entries include reference to '[NCF-XX]')
 
-		Created a text INSTALL file for netCDF-4.2 release.
-		[NCF-161]
+		Completely rebuilt the DAP constraint handling.
+		This primarily affects users who specify a DAP constraint
+		as part of their URL.
+		[NCF-120]
 
 		Diagnosed and fixed cause of bad nccopy performance on
 		file systems with many records and large disk block
@@ -16,11 +18,6 @@ VERSION         COMMENTS
   		time instead of a variable at a time.
   		[NCF-142]
 
-		Fixed behavior of ncgen flags so that -o => -lb
-                and, in the absence of any other markers, make
-                the default be -k1
-                [NCF-158]
-
 		Performance improvement to DAP code to support
                 fetching partial variables into the cache; especially
                 important when using nc_get_var() API.
@@ -28,17 +25,49 @@ VERSION         COMMENTS
                 to the projection variables (e.g. x[1:10][20:21])
 		[NCF-157]
 
+		Separate the Fortran and C++ libraries and release
+		the C library and ncdump/ncgen/nccopy without Fortran or C++.
+		[NCF-24]
+
+		Documentation migrated to Doxygen
+		[NCF-26]
+
+		Properly convert vara start/count parameters to DAP
+		[NCF-105][NCF-106]
+
+		Fixed major wasted space from previous default variable
+		chunk sizes algorithm.
+                [NCF-81]
+
+		Fixed bug in nccopy, in which compression and chunking
+		options were ignored for netCDF-4 input files.
+		[NCF-79]
+
 	        Fixed bug in ncgen in which large variables
                 (more than 2**18 elements) duplicates the first
                 2**18 values into subsequent chunks of data
                 [NCF-154].
+
+		Fixed problem when a URL is provided that contains only a
+		host name.
+		[NCF-103]
+
+		Fixed behavior of ncgen flags so that -o => -lb
+                and, in the absence of any other markers, make
+                the default be -k1
+                [NCF-158]
+
+		Created a text INSTALL file for netCDF-4.2 release.
+		[NCF-161]
 
 		Fixed bug in ncgen for vlen arrays as fields
                 of compound types where datalists for those
                 types was improperly interpreted
                 [NCF-145] (but see NCF-155).
 
-4.2-rc2		Released 2012-03-02
+		Improve use of chunk cache in nccopy utility, making it
+		practical for rechunking large files.
+		[NCF-85]
 
 		Fixed nccopy bug copying a netCDF-4 file with a
 		chunksize for an unlimited dimension that is
@@ -68,38 +97,18 @@ VERSION         COMMENTS
 		types.
 		[NCF-148]
 
-		Fixed bug with scalar coordinate variables in netCDF-4
-		files, causing failure with --enable-extra-tests
-		[NCF-149]
+		Incorporated Constantine Khroulev's bug fix for
+		invalid usage of MPI_Comm_f2c in nc_create_par.
+		[NCF-135]
 
 		Fixed turning off fill values in HDF5 layers when NOFILL
 		mode is set in netCDF-4 API (thanks to Karen
 		Schuchardt).
 		[NCF-151] 		
 
-4.2-rc1		2011-12-30 (Note: Jira entries include reference to '[NCF-XX]')
-
-		Released 12/30/2011
-
-		Completely rebuilt the DAP constraint handling.
-		This primarily affects users who specify a DAP constraint
-		as part of their URL.
-		[NCF-120]
-
-		Fixed problem when a URL is provided that contains only a
-		host name.
-		[NCF-103]
-
-		Properly convert vara start/count parameters to DAP
-		[NCF-105][NCF-106]
-
-		Fixed major wasted space from previous default variable
-		chunk sizes algorithm.
-                [NCF-81]
-
-		Fixed bug in nccopy, in which compression and chunking
-		options were ignored for netCDF-4 input files.
-		[NCF-79]
+		Fixed bug with scalar coordinate variables in netCDF-4
+		files, causing failure with --enable-extra-tests
+		[NCF-149]
 
 		Cleaned up the definition and use of nulldup.
 		[NCF-92][NCF-93][NCF-94]
@@ -129,35 +138,24 @@ VERSION         COMMENTS
 		Fixed incorrect link flag for szip in configure.ac
 		[NCF-116]
 
-		In ncdump, add -g option to support selection of groups
-		for which data is displayed.
-		[NCF-11]
-
 		ncdump -t now properly parses ISO "T" separator in
 		date-time strings.
 		[NCF-16]
 
-		Separate the Fortran and C++ libraries and release
-		the C library and ncdump/ncgen/nccopy without Fortran or C++.
-		[NCF-24]
-
-		Documentation migrated to Doxygen
-		[NCF-26]
-
-		Now supports bluefire
-		[NCF-52]
-
-		ncdump -t functionality now available for attributes
-		and bounds variables
+		ncdump -t "human time" functionality now available for 
+		attributes and bounds variables
 		[NCF-70]
+
+		In ncdump, add -g option to support selection of groups
+		for which data is displayed.
+		[NCF-11]
+
+		Now supports bluefire platform
+		[NCF-52]
 
 		ncdump now properly displays values of attributes
 		of type NC_USHORT as signed shorts
 		[NCF-82]
-
-		Improve use of chunk cache in nccopy utility, making it
-		practical for rechunking large files.
-		[NCF-85]
 
 		Rename some code files so that there are no duplicate filenames.
 		[NCF-99]
@@ -172,10 +170,6 @@ VERSION         COMMENTS
 		ncdump now reports correct error message when "-x" option
 		specifying NcML output is used on netCDF-4 enhanced model input.
 		[NCF-129]
-
-		Incorporated Constantine Khroulev's bug fix for
-		invalid usage of MPI_Comm_f2c in nc_create_par.
-		[NCF-135]
 
 		Fixed bug causing infinite loop in ncdump -c of netCDF-4
 		file with subgroup with variables using inherited
