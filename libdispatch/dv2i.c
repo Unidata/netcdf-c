@@ -85,7 +85,7 @@ typedef signed char schar;
 static int
 numrecvars(int ncid, int *nrecvarsp, int *recvarids)
 {
-    int status;
+    int status = NC_NOERR;
     int nvars = 0;
     int ndims = 0;
     int nrecvars = 0;
@@ -131,7 +131,7 @@ numrecvars(int ncid, int *nrecvarsp, int *recvarids)
 static int
 ncrecsize(int ncid, int varid, size_t *recsizep)
 {
-    int status;
+    int status = NC_NOERR;
     int recdimid;
     nc_type type;
     int ndims;
@@ -175,7 +175,7 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
 static int
 dimsizes(int ncid, int varid, size_t *sizes)
 {
-    int status;
+    int status = NC_NOERR;
     int ndims;
     int id;
     int dimids[MAX_NC_DIMS];
@@ -211,7 +211,7 @@ nc_inq_rec(
 	int *recvarids,
 	size_t *recsizes)
 {
-    int status;
+    int status = NC_NOERR;
     int nvars = 0;
     int recdimid;
     int varid;
@@ -264,7 +264,7 @@ nc_put_rec(
 	size_t recnum,
 	void* const* datap)
 {
-    int status;
+    int status = NC_NOERR;
     int varid;
     int rvarids[MAX_NC_VARS];
     int nrvars;
@@ -310,7 +310,7 @@ nc_get_rec(
 	size_t recnum,
 	void **datap)
 {
-    int status;
+    int status = NC_NOERR;
     int varid;
     int rvarids[MAX_NC_VARS];
     int nrvars;
@@ -512,7 +512,7 @@ ncdimdef(
 )
 {
 	int dimid;
-	int status;
+	int status = NC_NOERR;
 	if(length < 0) {
 	    status = NC_EDIMSIZE;
 	    nc_advise("ncdimdef", status, "ncid %d", ncid);

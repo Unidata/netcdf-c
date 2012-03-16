@@ -41,7 +41,7 @@ int
 nc_get_att(int ncid, int varid, const char *name, void *value)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    nc_type xtype;
 
    if ((stat = NC_check_id(ncid, &ncp)))

@@ -83,8 +83,8 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	    const size_t *edges, const ptrdiff_t *stride,
 	    const ptrdiff_t *imapp, void *value0, nc_type memtype)
 {
-   int status;
-   nc_type vartype;
+   int status = NC_NOERR;
+   nc_type vartype = NC_NAT;
    int varndims,maxidim;
    NC* ncp;
    size_t memtypelen;
@@ -451,8 +451,8 @@ int
 nc_get_vara(int ncid, int varid, const size_t *startp, 
 	    const size_t *countp, void *ip)
 {
-   NC* ncp;
-   nc_type xtype;
+   NC* ncp = NULL;
+   nc_type xtype = NC_NAT;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    stat = nc_inq_vartype(ncid, varid, &xtype);
@@ -1010,7 +1010,7 @@ nc_get_vars (int ncid, int varid, const size_t * startp,
 	     void *ip)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
@@ -1245,7 +1245,7 @@ nc_get_varm(int ncid, int varid, const size_t * startp,
 	    const ptrdiff_t * imapp, void *ip)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
