@@ -208,7 +208,7 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
 	   int ndims,  const int *dimidsp, int *varidp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
       return stat;
@@ -292,7 +292,7 @@ nc_rename_var(int ncid, int varid, const char *name)
 int
 NC_is_recvar(int ncid, int varid, size_t* nrecs)
 {
-   int status;
+   int status = NC_NOERR;
    int unlimid;
    int ndims;
    int dimset[NC_MAX_VAR_DIMS];
@@ -427,7 +427,7 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 {
    int dimids[NC_MAX_VAR_DIMS];
    int i;
-   int status;
+   int status = NC_NOERR;
 
    if ((status = nc_inq_vardimid(ncid, varid, dimids)))
       return status;

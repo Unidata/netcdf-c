@@ -212,7 +212,7 @@ that name does not already exist:
 @code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo.nc", NC_NOCLOBBER, &ncid);
@@ -225,7 +225,7 @@ be in the 64-bit offset format.
 @code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo_large.nc", NC_NOCLOBBER|NC_64BIT_OFFSET, &ncid);
@@ -238,7 +238,7 @@ be in the HDF5 format.
 @code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo_HDF5.nc", NC_NOCLOBBER|NC_NETCDF4, &ncid);
@@ -253,7 +253,7 @@ the classic netCDF-3 data model.
 @code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo_HDF5_classic.nc", NC_NOCLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid);
@@ -315,7 +315,7 @@ and initial size for the file.
 \code
 #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
      int intialsz = 2048;
      int *bufrsize;
@@ -417,7 +417,7 @@ named foo.nc for read-only, non-shared access:
 @code
 #include <netcdf.h>
    ... 
-int status;
+int status = NC_NOERR;
 int ncid;
    ... 
 status = nc_open("foo.nc", 0, &ncid);
@@ -576,7 +576,7 @@ named foo.nc and put it into define mode:
 \code
 #include <netcdf.h>
    ... 
-int status;
+int status = NC_NOERR;
 int ncid;
    ... 
 status = nc_open("foo.nc", NC_WRITE, &ncid);  
@@ -638,7 +638,7 @@ netCDF dataset named foo.nc and put it into data mode:
 \code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo.nc", NC_NOCLOBBER, &ncid);
@@ -653,7 +653,7 @@ netCDF dataset named foo.nc and put it into data mode:
 int
 nc_enddef(int ncid)
 {
-   int status;
+   int status = NC_NOERR;
    NC *ncp;
    status = NC_check_id(ncid, &ncp); 
    if(status != NC_NOERR) return status;
@@ -907,7 +907,7 @@ netCDF dataset named foo.nc and release its netCDF ID:
 \code
      #include <netcdf.h>
         ...
-     int status;
+     int status = NC_NOERR;
      int ncid;
         ...
      status = nc_create("foo.nc", NC_NOCLOBBER, &ncid);
