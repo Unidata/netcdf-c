@@ -486,6 +486,10 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle, &deflate, &deflate_level));
 	if(option_deflate_level >= 0) { /* change output compression, if requested */
 	  deflate_level = option_deflate_level;
+ 	  deflate=1;
+ 	}
+ 	if(shuffle==0 && option_shuffle_vars != 0) {
+ 	  shuffle = option_shuffle_vars;
 	}
 	if(deflate != 0 || shuffle != 0) {
 	    NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle, deflate_level > 0, deflate_level));
