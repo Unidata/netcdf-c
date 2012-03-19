@@ -242,7 +242,8 @@ require_curl=no
 fi
 
 # See if the user provided us with a curl library
-AC_SEARCH_LIBS([curl_easy_setopt], [curl], [found_curl=yes],[found_curl=no])
+# Do an initial lib test for curl, but suppress the default action
+AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes -a $found_curl = no ; then
@@ -250,7 +251,13 @@ if test $require_curl = yes -a $found_curl = no ; then
   enable_dap=no
   enable_cdmremote=no
   enable_rpc=no
+elif test $require_curl = yes -a $found_curl = yes ; then
+  # Redo the check lib to actually add -lcurl
+  AC_CHECK_LIB([curl], [curl_easy_setopt])
 fi
+
+#AC_SEARCH_LIBS([curl_easy_setopt], [curl], [found_curl=yes],[found_curl=no])
+
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
