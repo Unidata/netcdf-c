@@ -213,7 +213,7 @@ test "x$enable_cdmremote" = xyes || enable_cdmremote=no
 if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
 AC_MSG_RESULT($enable_cdmremote)
 
-# Capture the state of the --enable-dap flag
+## Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
 AC_ARG_ENABLE([dap],
                  [AS_HELP_STRING([--disable-dap],
@@ -221,33 +221,28 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# Capture the state of the --enable-rpc flag
-AC_MSG_CHECKING([whether rpc client and server are to be built])
-AC_ARG_ENABLE([rpc],
-                 [AS_HELP_STRING([--enable-rpc],
-                                 [build with rpc client and server support.])])
-test "x$enable_rpc" = xyes || enable_rpc=no
-AC_MSG_RESULT($enable_rpc)
+# OC now has its own version of rpc (really xdr), so no longer need the library
+## Capture the state of the --enable-rpc flag
+#AC_MSG_CHECKING([whether rpc client and server are to be built])
+#AC_ARG_ENABLE([rpc],
+#                 [AS_HELP_STRING([--enable-rpc],
+#                                 [build with rpc client and server support.])])
+#test "x$enable_rpc" = xyes || enable_rpc=no
+#AC_MSG_RESULT($enable_rpc)
 
-# Curl support is required if these flags are set:
+# Curl support is required if and only if any of these flags are set:
 # 1. --enable-dap
 # 2. --enable-cdmremote
 # 3. --enable-rpc
 
-# If --disable-dap && --disable cdmremote && --disable-rpc,
-# then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" -o "x$enable_rpc" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
 fi
 
-# Do a lib test for curl
-AC_CHECK_LIB([curl], [curl_easy_setopt])
-found_curl=no
-if test "x$ac_cv_lib_curl_curl_easy_setopt" = xyes ; then
-found_curl=yes
-fi
+# See if the user provided us with a curl library
+AC_SEARCH_LIBS([curl_easy_setopt], [curl], [found_curl=yes],[found_curl=no])
 
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes -a $found_curl = no ; then
