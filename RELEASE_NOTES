@@ -3,19 +3,17 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.2		Released 2012-03-16 (Note: Jira entries include reference to '[NCF-XX]')
+4.2		Released 2012-03-19 (Note: Jira entries include reference to '[NCF-XX]')
 
 		Completely rebuilt the DAP constraint handling.
 		This primarily affects users who specify a DAP constraint
 		as part of their URL.
 		[NCF-120]
 
-		Diagnosed and fixed cause of bad nccopy performance on
-		file systems with many records and large disk block
-  		size or many record variables.  Speeded up nccopy
-  		significantly in these cases on classic or 64-bit
-  		offset format files by accessing data a record at a
-  		time instead of a variable at a time.
+		Fixed cause of slow nccopy performance on file systems
+		with many records and large disk block size or many
+		record variables, by accessing data a record at a time
+		instead of a variable at a time.
   		[NCF-142]
 
 		Performance improvement to DAP code to support
@@ -29,7 +27,7 @@ VERSION         COMMENTS
 		the C library and ncdump/ncgen/nccopy without Fortran or C++.
 		[NCF-24]
 
-		Documentation migrated to Doxygen
+		Documentation mostly migrated to Doxygen, from Texinfo.
 		[NCF-26]
 
 		Properly convert vara start/count parameters to DAP
@@ -47,6 +45,12 @@ VERSION         COMMENTS
                 (more than 2**18 elements) duplicates the first
                 2**18 values into subsequent chunks of data
                 [NCF-154].
+
+		Applied Greg Sjaardema's nccopy bug fix, not
+		compressing output variables f they were not already
+		using compression on the input file when shuffle
+		specified. 
+		[NCF-162]
 
 		Fixed problem when a URL is provided that contains only a
 		host name.
