@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
-# This is part of Unidata's netCDF package. Copyright 2005-2011, see
+# This is part of Unidata's netCDF package. Copyright 2005-2012, see
 # the COPYRIGHT file for more information.
 
 # Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
@@ -38,7 +38,7 @@ AC_CONFIG_HEADERS([config.h])
 # This call is required by automake.
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
-# Check for the existance of this file before proceeding.
+# Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([libsrc/nc.c])
 
 AC_MSG_NOTICE([checking user options])
@@ -83,7 +83,7 @@ AC_MSG_RESULT($enable_valgrind_tests)
 
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should try to build netCDF-4])
-AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
+AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--enable-netcdf-4],
               [build with netcdf-4 (HDF5 and zlib required)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
 AC_MSG_RESULT([$enable_netcdf_4])
@@ -92,7 +92,7 @@ AC_MSG_RESULT([$enable_netcdf_4])
 # --enable-netcdf-4 is the controlling enable switch
 if test "x$enable_netcdf_4" = "x" ; then
   AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--enable-netcdf4],
-              [build with netcdf-4 (HDF5 and zlib required)])])
+              [(just a synonym for enable-netcdf-4)])])
   enable_netcdf_4="$enable_netcdf4"
 fi
 
@@ -213,7 +213,7 @@ test "x$enable_cdmremote" = xyes || enable_cdmremote=no
 if test "x$enable_netcdf_4" = "xno" ; then enable_cdmremote=no ; fi
 AC_MSG_RESULT($enable_cdmremote)
 
-# Capture the state of the --enable-dap flag
+## Capture the state of the --enable-dap flag
 AC_MSG_CHECKING([whether DAP client is to be built])
 AC_ARG_ENABLE([dap],
                  [AS_HELP_STRING([--disable-dap],
@@ -221,33 +221,29 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# Capture the state of the --enable-rpc flag
-AC_MSG_CHECKING([whether rpc client and server are to be built])
-AC_ARG_ENABLE([rpc],
-                 [AS_HELP_STRING([--enable-rpc],
-                                 [build with rpc client and server support.])])
-test "x$enable_rpc" = xyes || enable_rpc=no
-AC_MSG_RESULT($enable_rpc)
+# OC now has its own version of rpc (really xdr), so no longer need the library
+## Capture the state of the --enable-rpc flag
+#AC_MSG_CHECKING([whether rpc client and server are to be built])
+#AC_ARG_ENABLE([rpc],
+#                 [AS_HELP_STRING([--enable-rpc],
+#                                 [build with rpc client and server support.])])
+#test "x$enable_rpc" = xyes || enable_rpc=no
+#AC_MSG_RESULT($enable_rpc)
 
-# Curl support is required if these flags are set:
+# Curl support is required if and only if any of these flags are set:
 # 1. --enable-dap
 # 2. --enable-cdmremote
 # 3. --enable-rpc
 
-# If --disable-dap && --disable cdmremote && --disable-rpc,
-# then libcurl is not required
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" -o "x$enable_rpc" = "xyes" ; then
 require_curl=yes
 else
 require_curl=no
 fi
 
-# Do a lib test for curl
-AC_CHECK_LIB([curl], [curl_easy_setopt])
-found_curl=no
-if test "x$ac_cv_lib_curl_curl_easy_setopt" = xyes ; then
-found_curl=yes
-fi
+# See if the user provided us with a curl library
+# Do an initial lib test for curl, but suppress the default action
+AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes -a $found_curl = no ; then
@@ -255,7 +251,13 @@ if test $require_curl = yes -a $found_curl = no ; then
   enable_dap=no
   enable_cdmremote=no
   enable_rpc=no
+elif test $require_curl = yes -a $found_curl = yes ; then
+  # Redo the check lib to actually add -lcurl
+  AC_CHECK_LIB([curl], [curl_easy_setopt])
 fi
+
+#AC_SEARCH_LIBS([curl_easy_setopt], [curl], [found_curl=yes],[found_curl=no])
+
 
 # Default is now to always do the short remote tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])

@@ -12,6 +12,11 @@
 
 #include <mpi.h>
 
+/* Keep C++ compilers from getting confused */
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /* Use these with nc_var_par_access(). */
 #define NC_INDEPENDENT 0
 #define NC_COLLECTIVE 1
@@ -37,5 +42,8 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
 extern int
 nc_open_par_fortran(const char *path, int mode, int comm, 
 		    int info, int *ncidp);
+
+#if defined(__cplusplus)
+}
 
 #endif /* NETCDF_PAR_H */

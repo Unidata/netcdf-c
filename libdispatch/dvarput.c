@@ -83,9 +83,10 @@ NCDEFAULT_put_varm(
    const void *value0,
    nc_type memtype)
 {
-   int status;
-   nc_type vartype;
-   int varndims,maxidim;
+   int status = NC_NOERR;
+   nc_type vartype = NC_NAT;
+   int varndims = 0;
+   int maxidim = 0;
    NC* ncp;
    size_t memtypelen;
    ptrdiff_t cvtmap[NC_MAX_VAR_DIMS];
@@ -930,7 +931,7 @@ nc_put_vars (int ncid, int varid, const size_t *startp,
 	     const void *op)
 {
    NC *ncp;
-   int stat;
+   int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
@@ -1160,7 +1161,7 @@ nc_put_varm (int ncid, int varid, const size_t *startp,
 	     const ptrdiff_t *imapp, const void *op)
 {
    NC *ncp;
-   int stat;
+   int stat = NC_NOERR;
 
    if ((stat = NC_check_id(ncid, &ncp)))
        return stat;

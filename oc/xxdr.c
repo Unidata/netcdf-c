@@ -418,7 +418,7 @@ xxdr_float(XXDR* xdr, float* fp)
    return status;
 }
 
-/* get a double from underlying stream*/
+/* Get a double from underlying stream */
 int
 xxdr_double(XXDR* xdr, double* dp)
 {
@@ -436,34 +436,19 @@ xxdr_double(XXDR* xdr, double* dp)
 void
 xxdrntohdouble(char* c8, double* dp)
 {
-    union {
-	char c[2*XDRUNIT];
-	double d;
-    }u;
-    char* src = (char*)&u.d;
-    char dst[8];
-
-    memcpy(u.c,c8,2*XDRUNIT);
-    if(xxdr_big_endian) {
-        dst[0] = src[3];
-        dst[1] = src[2];
-        dst[2] = src[1];
-        dst[3] = src[0];
-        dst[4] = src[7];
-        dst[5] = src[6];
-        dst[6] = src[5];
-        dst[7] = src[4];
-    } else {
-        dst[0] = src[7];
-        dst[1] = src[6];
-        dst[2] = src[5];
-        dst[3] = src[4];
-        dst[4] = src[3];
-        dst[5] = src[2];
-        dst[6] = src[1];
-        dst[7] = src[0];
+    unsigned int ii[2];
+    memcpy(ii,c8,2*XDRUNIT);
+    if(!xxdr_big_endian) {
+	unsigned int tmp;
+	/* reverse byte order */
+	swapinline32(&ii[0]);
+	swapinline32(&ii[1]);
+	/* interchange ii[0] and ii[1] */
+	tmp = ii[0];
+	ii[0] = ii[1];
+	ii[1] = tmp;
     }
-    if(dp) *dp = *(double*)dst;
+    if(dp) *dp = *(double*)ii;
 }
 
 void
@@ -474,5 +459,4 @@ xxdr_init()
     char *byte = (char *)&testint;
     xxdr_big_endian = (byte[0] == 0 ? 1 : 0);
     xxdr_network_order = xxdr_big_endian;
-
 }

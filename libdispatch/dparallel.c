@@ -91,7 +91,7 @@ int
 nc_var_par_access(int ncid, int varid, int par_access)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
 
     if ((stat = NC_check_id(ncid, &ncp)))
        return stat;
