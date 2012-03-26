@@ -67,11 +67,10 @@ mapconstraints3(DCEconstraint* constraint,
     int i;
     NCerror ncstat = NC_NOERR;
     NClist* nodes = root->tree->nodes;
-    NClist* dceprojections;
-    NClist* dceselections;
-
-    dceprojections = constraint->projections;
-    dceselections = constraint->selections;
+    NClist* dceprojections = constraint->projections;
+#if 0
+    NClist* dceselections = constraint->selections;
+#endif
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceprojections);i++) {
@@ -110,8 +109,6 @@ Only care about projections
 #ifdef DEBUG
 fprintf(stderr,"mapconstraint.projections: %s\n",
 		dumpprojections(dceprojections));
-fprintf(stderr,"mapconstraint.selections: %s\n",
-		dumpselections(dceselections));
 #endif
 
 done:

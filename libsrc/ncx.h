@@ -8,6 +8,8 @@
 #define _NCX_H_
 
 #include "ncdispatch.h"
+#include "ncio.h"
+#include "fbits.h"
 
 /*
  * An external data representation interface.

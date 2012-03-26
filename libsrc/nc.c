@@ -283,7 +283,7 @@ read_numrecs(NC *ncp)
 
 #define NC_NUMRECS_OFFSET 4
 #define NC_NUMRECS_EXTENT 4
-	status = ncp->nciop->get(ncp->nciop,
+	status = ncio_get(ncp->nciop,
 		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, 0, (void **)&xp);
 					/* cast away const */
 	if(status != NC_NOERR)
@@ -291,7 +291,7 @@ read_numrecs(NC *ncp)
 
 	status = ncx_get_size_t(&xp, &nrecs);
 
-	(void) ncp->nciop->rel(ncp->nciop, NC_NUMRECS_OFFSET, 0);
+	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, 0);
 
 	if(status == NC_NOERR)
 	{
@@ -316,7 +316,7 @@ write_numrecs(NC *ncp)
 	assert(!NC_readonly(ncp));
 	assert(!NC_indef(ncp));
 
-	status = ncp->nciop->get(ncp->nciop,
+	status = ncio_get(ncp->nciop,
 		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, RGN_WRITE, &xp);
 	if(status != NC_NOERR)
 		return status;
@@ -326,7 +326,8 @@ write_numrecs(NC *ncp)
 		status = ncx_put_size_t(&xp, &nrecs);
 	}
 
-	(void) ncp->nciop->rel(ncp->nciop, NC_NUMRECS_OFFSET, RGN_MODIFIED);
+	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, RGN_MODIFIED);
+
 	if(status == NC_NOERR)
 		fClr(ncp->flags, NC_NDIRTY);
 
@@ -544,9 +545,10 @@ move_recs_r(NC *gnu, NC *old)
 			continue; 	/* nothing to do */
 
 		assert(gnu_off > old_off);
-
-		status = gnu->nciop->move(gnu->nciop, gnu_off, old_off,
+	
+		status = ncio_move(gnu->nciop, gnu_off, old_off,
 			 old_varp->len, 0);
+
 		if(status != NC_NOERR)
 			return status;
 		
@@ -557,6 +559,7 @@ move_recs_r(NC *gnu, NC *old)
 
 	return NC_NOERR;
 }
+
 
 /*
  * Move the "non record" variables "out". 
@@ -595,7 +598,7 @@ move_vars_r(NC *gnu, NC *old)
 
 		assert(gnu_off > old_off);
 
-		status = gnu->nciop->move(gnu->nciop, gnu_off, old_off,
+		status = ncio_move(gnu->nciop, gnu_off, old_off,
 			 old_varp->len, 0);
 
 		if(status != NC_NOERR)
@@ -605,6 +608,7 @@ move_vars_r(NC *gnu, NC *old)
 
 	return NC_NOERR;
 }
+
 
 /*
  * Given a valid ncp, return NC_EVARSIZE if any variable has a bad len 
@@ -779,7 +783,7 @@ NC_endef(NC *ncp,
 
 	fClr(ncp->flags, NC_CREAT | NC_INDEF);
 
-	return ncp->nciop->sync(ncp->nciop);
+	return ncio_sync(ncp->nciop);
 }
 
 #ifdef LOCKNUMREC
@@ -914,10 +918,9 @@ NC3_create(const char *path, int ioflags,
 
 	assert(ncp->xsz == ncx_len_NC(ncp,sizeof_off_t));
 	
-	status = ncio_create(path, ioflags,
-		initialsz,
-		0, ncp->xsz, &ncp->chunk,
-		&ncp->nciop, &xp);
+        status =  ncio_create(path, ioflags, initialsz,
+			      0, ncp->xsz, &ncp->chunk,
+			      &ncp->nciop, &xp);
 	if(status != NC_NOERR)
 	{
 		/* translate error status */
@@ -1018,9 +1021,7 @@ NC3_open(const char * path, int ioflags,
 		return NC_EINVAL;
 #endif
 
-	status = ncio_open(path, ioflags,
-		0, 0, &ncp->chunk,
-		&ncp->nciop, 0);
+	status = ncio_open(path, ioflags, 0, 0, &ncp->chunk, &ncp->nciop, 0);
 	if(status)
 		goto unwind_alloc;
 
@@ -1104,7 +1105,7 @@ NC3_close(int ncid)
 	{
 		status = NC_sync(ncp);
 		/* flush buffers before any filesize comparisons */
-		(void) ncp->nciop->sync(ncp->nciop);
+		(void) ncio_sync(ncp->nciop);
 	}
 
 	/* 
@@ -1284,9 +1285,20 @@ NC3_sync(int ncid)
 	if(status != NC_NOERR)
 		return status;
 
-	status = ncp->nciop->sync(ncp->nciop);
+	status = ncio_sync(ncp->nciop);
 	if(status != NC_NOERR)
 		return status;
+
+#ifdef USE_FSYNC
+	/* may improve concurrent access, but slows performance if
+	 * called frequently */
+#ifndef WIN32
+	status = fsync(ncp->nciop->fd);
+#else
+	status = _commit(ncp->nciop->fd);
+#endif	/* WIN32 */
+#endif	/* USE_FSYNC */
+
 	return status;
 }
 
@@ -1349,19 +1361,21 @@ NC_get_numrecs(const NC *ncp) {
 }
 
 void
-NC_set_numrecs(NC *ncp, size_t nrecs) {
-	shmem_t numrec = (shmem_t) nrecs;
-	/* update local value too */
-	ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
-	shmem_short_put((shmem_t *) ncp->lock + LOCKNUMREC_VALUE, &numrec, 1,
-		ncp->lock[LOCKNUMREC_BASEPE]);
+NC_set_numrecs(NC *ncp, size_t nrecs)
+{
+    shmem_t numrec = (shmem_t) nrecs;
+    /* update local value too */
+    ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
+    shmem_short_put((shmem_t *) ncp->lock + LOCKNUMREC_VALUE, &numrec, 1,
+    ncp->lock[LOCKNUMREC_BASEPE]);
 }
 
-void NC_increase_numrecs(NC *ncp, size_t nrecs) {
-	/* this is only called in one place that's already protected
-	 * by a lock ... so don't worry about it */
-	if (nrecs > NC_get_numrecs(ncp))
-		NC_set_numrecs(ncp, nrecs);
+void NC_increase_numrecs(NC *ncp, size_t nrecs)
+{
+    /* this is only called in one place that's already protected
+     * by a lock ... so don't worry about it */
+    if (nrecs > NC_get_numrecs(ncp))
+	NC_set_numrecs(ncp, nrecs);
 }
 
 #endif /* LOCKNUMREC */
@@ -1526,6 +1540,7 @@ nc_delete_mp(const char * path, int basepe)
 	}
 	ncp->nciop = NULL;
 
+	ncp->nciop = NULL;
 unwind_alloc:
 	free_NC(ncp);
 	return status;
@@ -1536,3 +1551,4 @@ nc_delete(const char * path)
 {
         return nc_delete_mp(path, 0);
 }
+

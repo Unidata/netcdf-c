@@ -22,7 +22,7 @@ NCD3_create(const char *path, int cmode,
 static int NCD3_redef(int ncid);
 static int NCD3__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
 static int NCD3_sync(int ncid);
-static int NCD3_close(int ncid);
+static int NCD3_abort(int ncid);
 
 static int NCD3_put_vara(int ncid, int varid,
 	    const size_t *start, const size_t *edges0,
@@ -167,9 +167,9 @@ NCD3_sync(int ncid)
 }
 
 static int
-NCD3_close(int ncid)
+NCD3_abort(int ncid)
 {
-    return NCD3_abort(ncid);
+    return NCD3_close(ncid);
 }
 
 static int

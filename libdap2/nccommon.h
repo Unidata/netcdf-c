@@ -279,10 +279,6 @@ typedef struct CDFnode {
 } CDFnode;
 
 /**************************************************/
-/* Give PSEUDOFILE a value */
-#define PSEUDOFILE "/tmp/pseudofileXXXXXX"
-
-/**************************************************/
 /* Shared procedures */
 
 /* From ncdap3.c*/

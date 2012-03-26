@@ -9,6 +9,19 @@ Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "config.h"
+#include <stdlib.h>
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #include "ncdispatch.h"
 
 static int nc_initialized = 0;
@@ -1549,4 +1562,34 @@ NC_open(const char *path, int cmode,
    }
    return stat;
 }
+
+/*Provide an internal function for generating pseudo file descriptors
+  for systems that are not file based (e.g. dap, memio).
+*/
+
+/* Static counter for pseudo file descriptors (incremented) */
+static int pseudofd = 0;
+
+/* Create a pseudo file descriptor that does not
+   overlap real file descriptors
+*/
+int
+nc__pseudofd(void)
+{
+    if(pseudofd == 0)  {
+        int maxfd = 32767; /* default */
+#ifdef HAVE_GETRLIMIT
+        struct rlimit rl;
+        if(getrlimit(RLIMIT_NOFILE,&rl) == 0) {
+	    if(rl.rlim_max != RLIM_INFINITY)
+	        maxfd = rl.rlim_max;
+	    if(rl.rlim_cur != RLIM_INFINITY)
+	        maxfd = rl.rlim_cur;
+	}
+	pseudofd = maxfd+1;
+    }
+#endif
+    return pseudofd++;
+}
+
 

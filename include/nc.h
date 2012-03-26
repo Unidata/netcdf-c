@@ -21,8 +21,10 @@
 #else
 #include <netcdf.h>
 #endif /* USE_PARALLEL */
+#if 0
 #include "ncio.h"	
 #include "fbits.h"
+#endif
 
 /*#ifndef HAVE_SSIZE_T
 #define ssize_t int
@@ -39,7 +41,9 @@
  */
 #define MIN_NC_XSZ 32
 
+/* Forward */
 typedef struct NC NC; /* forward reference */
+struct ncio *nciop;
 
 /*
  *  The internal data types
@@ -284,7 +288,7 @@ struct NC {
 #define NC_HDIRTY 0x80  /* header info has changed */
 /*	NC_NOFILL in netcdf.h, historical interface */
 	int flags;
-	ncio *nciop;
+	struct ncio *nciop;
 	size_t chunk;	/* largest extent this layer will request from ncio->get() */
 	size_t xsz;	/* external size of this header, == var[0].begin */
 	off_t begin_var; /* position of the first (non-record) var */
@@ -416,5 +420,10 @@ extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
 extern void free_NCList(void);/* reclaim whole list */
 extern int count_NCList(void); /* return # of entries in NClist */
+
+/* Create a pseudo file descriptor that does not
+   overlap real file descriptors
+*/
+extern int nc__pseudofd(void);
 
 #endif /* _NC_H_ */

@@ -39,7 +39,10 @@ extern int num_spaces;
 #define DIMENSION_LIST "DIMENSION_LIST"
 #define NAME "NAME"
 
+/* Forward */
 static int NC4_enddef(int ncid);
+static int nc4_rec_read_types(NC_GRP_INFO_T *grp);
+static int nc4_rec_read_vars(NC_GRP_INFO_T *grp);
 
 #ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
@@ -206,10 +209,17 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                 NC_FILE_INFO_T *nc) 
 {
    hid_t fcpl_id, fapl_id;
-   unsigned flags = (cmode & NC_NOCLOBBER) ? 
-      H5F_ACC_EXCL : H5F_ACC_TRUNC;
+   unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
+   int persist = 0; /* Should diskless try to persist its data into file?*/
+
+   if(cmode & NC_DISKLESS)
+       flags = H5F_ACC_TRUNC;
+   else if(cmode & NC_NOCLOBBER)
+       flags = H5F_ACC_EXCL;
+   else
+       flags = H5F_ACC_TRUNC;
 
    LOG((3, "nc4_create_file: path %s mode 0x%x", path, cmode));
    assert(nc && path);
@@ -217,9 +227,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
-   if (!(cmode & NC_DISKLESS) && (cmode & NC_NOCLOBBER)
-       && (fp = fopen(path, "r")))
-   {
+   if (cmode & NC_DISKLESS) {
+	if(cmode & NC_WRITE)
+	    persist = 1;
+   } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
       fclose(fp);
       return NC_EEXIST;
    }
@@ -266,7 +277,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    }
 #else /* only set cache for non-parallel... */
    if(cmode & NC_DISKLESS) {
-	 if (H5Pset_fapl_core(fapl_id, 4096, 0))
+	 int persist = (cmode & NC_WRITE)?1:0;
+	 if (H5Pset_fapl_core(fapl_id, 4096, persist))
 	    BAIL(NC_EDISKLESS);
    }
    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size, 
@@ -380,6 +392,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
                  | NC_NETCDF4 | NC_CLASSIC_MODEL
                  | NC_SHARE | NC_MPIIO | NC_MPIPOSIX | NC_LOCK | NC_PNETCDF
 		 | NC_DISKLESS
+		 | NC_WRITE /* to support diskless persistence */
                  )
        || (cmode & NC_MPIIO && cmode & NC_MPIPOSIX)
        || (cmode & NC_64BIT_OFFSET && cmode & NC_NETCDF4)
@@ -696,7 +709,9 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    NC_TYPE_INFO_T *type;
    htri_t is_str, equal = 0;
    hid_t class, native_typeid, hdf_typeid;
+#if 0
    nc_type my_nc_type = 0;
+#endif
    H5T_order_t order;
    int endianness;
    nc_type nc_type_constant[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT,
@@ -771,7 +786,9 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       return NC_EHDFERR;
 	    if (equal)
 	    {
+#if 0
 	       my_nc_type = nc_type_constant[t];
+#endif
 	       break;
 	    }
 	 }
@@ -1794,7 +1811,7 @@ nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     return (H5_ITER_CONT);
 }
 
-int
+static int
 nc4_rec_read_types(NC_GRP_INFO_T *grp)
 {
     hsize_t idx=0;
@@ -1858,7 +1875,9 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
+#if 0
     NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+#endif
 
     memset(oname, 0, NC_MAX_NAME);
     /* Open this critter. */
@@ -1907,7 +1926,7 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     return (H5_ITER_CONT);
 }
 
-int
+static int
 nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 {
     hsize_t idx = 0;
@@ -2200,6 +2219,10 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 
    LOG((3, "nc4_open_file: path %s mode %d", path, mode));
    assert(path && nc);
+
+   /* Stop diskless open in its tracks */
+   if(mode & NC_DISKLESS)
+	return NC_EDISKLESS;
 
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))

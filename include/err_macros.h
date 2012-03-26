@@ -20,9 +20,11 @@
  * generally cosists of several sets of tests. */
 static int total_err = 0, err = 0;
 
+#if 0
 /* This is handy for print statements. */
 static char *format_name[] = {"", "classic", "64-bit offset", "netCDF-4", 
 			      "netCDF-4 classic model"};
+#endif
 
 /* This macro prints an error message with line number and name of
  * test program. */
@@ -76,6 +78,7 @@ return 2;                                                   \
    return 0; \
 } while (0)
 
+#if 0
 #ifndef NONETCDF
 extern const char* nc_strerror(int ncerr);
 static int
@@ -87,6 +90,7 @@ complain(int stat)
     }
     return stat;
 }
+#endif
 #endif
 
 #endif /* _ERR_MACROS_H */

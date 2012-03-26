@@ -68,12 +68,28 @@ typedef int ncio_movefunc(ncio *const nciop, off_t to, off_t from,
 	 */
 typedef int ncio_syncfunc(ncio *const nciop);
 
-	/*
-	 * Don't call this. 
-	 * Internal function called at close to
-	 * free up anything hanging off pvt;
-	 */
-typedef void ncio_freefunc(void *const pvt);
+/*
+ *  Sync any changes to disk, then truncate or extend file so its size
+ *  is length.  This is only intended to be called before close, if the
+ *  file is open for writing and the actual size does not match the
+ *  calculated size, perhaps as the result of having been previously
+ *  written in NOFILL mode.
+  */
+typedef int ncio_pad_lengthfunc(ncio* nciop, off_t length);
+
+/* 
+ *  Get file size in bytes.
+ */ 
+typedef int ncio_filesizefunc(ncio *nciop, off_t *filesizep);
+
+/* Write out any dirty buffers and
+   ensure that next read will not get cached data.
+   Sync any changes, then close the open file associated with the ncio
+   struct, and free its memory.
+   nciop - pointer to ncio to close.
+   doUnlink - if true, unlink file
+*/
+typedef int ncio_closefunc(ncio *nciop, int doUnlink);
 
 /* Get around cplusplus "const xxx in class ncio without constructor" error */
 #if defined(__cplusplus)
@@ -108,7 +124,11 @@ struct ncio {
 
 	ncio_syncfunc *NCIO_CONST sync;
 
-	ncio_freefunc *NCIO_CONST free; /* Implementation private */
+	ncio_pad_lengthfunc *NCIO_CONST pad_length;
+
+	ncio_filesizefunc *NCIO_CONST filesize;
+
+	ncio_closefunc *NCIO_CONST close;
 
 	/*
 	 * A copy of the 'path' argument passed in to ncio_open()
@@ -123,25 +143,33 @@ struct ncio {
 
 #undef NCIO_CONST
 
-extern int
-ncio_create(const char *path, int ioflags,
-	size_t initialsz,
-	off_t igeto, size_t igetsz, size_t *sizehintp,
-	ncio **nciopp, void **const igetvpp);
+/* Define wrappers around the ncio dispatch table */
 
-extern int
-ncio_open(const char *path,
-	int ioflags,
-	off_t igeto, size_t igetsz, size_t *sizehintp,
-	ncio **nciopp, void **const igetvpp);
+extern int ncio_rel(ncio* const, off_t, int);
+extern int ncio_get(ncio* const, off_t, size_t, int, void** const);
+extern int ncio_move(ncio* const, off_t, off_t, size_t, int);
+extern int ncio_sync(ncio* const);
+extern int ncio_filesize(ncio* const, off_t*);
+extern int ncio_pad_length(ncio* const, off_t);
+extern int ncio_close(ncio* const, int);
 
-extern int 
-ncio_close(ncio *nciop, int doUnlink);
+extern int ncio_create(const char *path, int ioflags, size_t initialsz,
+                       off_t igeto, size_t igetsz, size_t *sizehintp,
+                       ncio** nciopp, void** const mempp);
 
-extern int
-ncio_filesize(ncio *nciop, off_t *filesizep);
+extern int ncio_open(const char *path, int ioflags,
+                     off_t igeto, size_t igetsz, size_t *sizehintp,
+                     ncio** nciopp, void** const mempp);
 
-extern int
-ncio_pad_length(ncio *nciop, off_t length);
+/* With the advent of diskless io, we need to provide
+   for multiple ncio packages at the same time,
+   so we have multiple versions of ncio_create.
+   If you create a new package, the you must do the following.
+   1. add an extern definition for it in ncio.c
+   2. modify ncio_create and ncio_open in ncio.c to invoke
+      the new package when appropriate.
+*/
+
+
 
 #endif /* _NCIO_H_ */

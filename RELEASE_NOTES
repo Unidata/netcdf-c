@@ -3,6 +3,18 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
+4.3		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
+
+		Implemented diskless files for both netcdf classic format
+                and extended (netcdf-4) format.
+		[NCF-110][NCF-109][NCF-5][LIBCF-10]
+
+		Modified ncio mechanism to support multiple ncio packages;
+		this is so that it is possible to have e.g. posixio and memio
+		operating at the same time.
+
+		Cleanup up a bunch of lint issues (unused variables, etc).
+
 4.2		Released 2012-03-19 (Note: Jira entries include reference to '[NCF-XX]')
 
 		Completely rebuilt the DAP constraint handling.
