@@ -145,7 +145,8 @@ available: NC_NOCLOBBER (do not overwrite existing file), NC_SHARE
 (limit write caching - netcdf classic files onlt), NC_64BIT_OFFSET
 (create 64-bit offset file), NC_NETCDF4 (create netCDF-4/HDF5 file),
 NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5
-files). See discussion below.
+files), NC_DISKLESS (store data only in memory), NC_WRITE.
+See discussion below.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -189,6 +190,14 @@ types, multiple unlimited dimensions, or new atomic types. The
 advantage of this restriction is that such files are guaranteed to
 work with existing netCDF software.
 
+Setting NC_DISKLESS causes netCDF to create the file only in memory.
+This allows for the use of files that have long term purpose. Note that
+with one exception, the in-memory file is destroyed upon calling
+nc_close. If, however, if the combination (NC_DISKLESS|NC_WRITE)
+is used, then at close, the contents of the memory file will be
+made persistent in the file path that was specified in the nc_create
+call.
+
 \returns ::NC_NOERR No error.
 
 \returns ::NC_ENOMEM System out of memory.
@@ -197,6 +206,9 @@ work with existing netCDF software.
 
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
+
+\returns ::NC_EDISKLESS if there was an error in creating the
+in-memory file.
 
 \note When creating a netCDF-4 file HDF5 error reporting is turned
 off, if it is on. This doesn't stop the HDF5 error stack from
@@ -257,6 +269,33 @@ the classic netCDF-3 data model.
      int ncid;
         ...
      status = nc_create("foo_HDF5_classic.nc", NC_NOCLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid);
+     if (status != NC_NOERR) handle_error(status);
+@endcode
+
+In this example we create a in-memory netCDF classic dataset named
+diskless.nc whose content will be lost when nc_close() is called.
+
+@code
+     #include <netcdf.h>
+        ...
+     int status = NC_NOERR;
+     int ncid;
+        ...
+     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS, &ncid);
+     if (status != NC_NOERR) handle_error(status);
+@endcode
+
+In this example we create a in-memory netCDF classic dataset named
+diskless.nc and specify that it should be made persistent
+in a file named diskless.nc when nc_close() is called.
+
+@code
+     #include <netcdf.h>
+        ...
+     int status = NC_NOERR;
+     int ncid;
+        ...
+     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS|NC_WRITE, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
