@@ -7,7 +7,7 @@ VERSION         COMMENTS
 
 		Implemented diskless files for both netcdf classic format
                 and extended (netcdf-4) format.
-		[NCF-110][NCF-109][NCF-5][LIBCF-10]
+		[NCF-110][NCF-109][NCF-5]
 
 		Modified ncio mechanism to support multiple ncio packages;
 		this is so that it is possible to have e.g. posixio and memio
