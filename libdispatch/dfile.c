@@ -204,9 +204,9 @@ advantage of this restriction is that such files are guaranteed to
 work with existing netCDF software.
 
 Setting NC_DISKLESS causes netCDF to create the file only in memory.
-This allows for the use of files that have long term purpose. Note that
+This allows for the use of files that have no long term purpose. Note that
 with one exception, the in-memory file is destroyed upon calling
-nc_close. If, however, if the combination (NC_DISKLESS|NC_WRITE)
+nc_close. If, however, the flag combination (NC_DISKLESS|NC_WRITE)
 is used, then at close, the contents of the memory file will be
 made persistent in the file path that was specified in the nc_create
 call.
