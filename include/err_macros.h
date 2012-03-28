@@ -78,17 +78,4 @@ return 2;                                                   \
    return 0; \
 } while (0)
 
-#ifndef NONETCDF
-extern const char* nc_strerror(int ncerr);
-static int
-complain(int stat)
-{
-    if(stat) {
-        fprintf(stderr,"%s\n",nc_strerror(stat));
-	fflush(stderr);
-    }
-    return stat;
-}
-#endif
-
 #endif /* _ERR_MACROS_H */
