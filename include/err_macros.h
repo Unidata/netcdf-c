@@ -78,7 +78,6 @@ return 2;                                                   \
    return 0; \
 } while (0)
 
-#if 0
 #ifndef NONETCDF
 extern const char* nc_strerror(int ncerr);
 static int
@@ -90,7 +89,6 @@ complain(int stat)
     }
     return stat;
 }
-#endif
 #endif
 
 #endif /* _ERR_MACROS_H */
