@@ -209,7 +209,12 @@ with one exception, the in-memory file is destroyed upon calling
 nc_close. If, however, the flag combination (NC_DISKLESS|NC_WRITE)
 is used, then at close, the contents of the memory file will be
 made persistent in the file path that was specified in the nc_create
-call.
+call. If NC_DISKLESS is going to be used for creating a large classic file,
+it behooves one to use either nc__create or nc_create_mp and specify
+an appropriately large value of the initialsz parameter. This is
+because the in-memory file is kept as a single piece of heap memory,
+and specifying the initial size will reduce the number of heap reallocations. 
+
 
 \returns ::NC_NOERR No error.
 
