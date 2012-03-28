@@ -593,21 +593,24 @@ INPUT = \
     @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
+    @abs_top_srcdir@/libdispatch/datt.c \
     @abs_top_srcdir@/libdispatch/dattget.c \
     @abs_top_srcdir@/libdispatch/dattinq.c \
     @abs_top_srcdir@/libdispatch/dattput.c \
-    @abs_top_srcdir@/libdispatch/datt.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
+    @abs_top_srcdir@/libdispatch/dvarget.c \
     @abs_top_srcdir@/libdispatch/dvarinq.c \
     @abs_top_srcdir@/libdispatch/dvarput.c \
-    @abs_top_srcdir@/libdispatch/dvarget.c \
-    @abs_top_srcdir@/libdispatch/derror.c \
-    @abs_top_srcdir@/libdispatch/dcompound.c \
-    @abs_top_srcdir@/libdispatch/dv2i.c \
-    @abs_top_srcdir@/libdispatch/dvlen.c \
-    @abs_top_srcdir@/libdispatch/denum.c \
-    @abs_top_srcdir@/libdispatch/dopaque.c \
+    @abs_top_srcdir@/libdispatch/dgroup.c \
     @abs_top_srcdir@/libdispatch/dtype.c \
+    @abs_top_srcdir@/libdispatch/dcompound.c \
+    @abs_top_srcdir@/libdispatch/denum.c \
+    @abs_top_srcdir@/libdispatch/dvlen.c \
+    @abs_top_srcdir@/libdispatch/dopaque.c \
+    @abs_top_srcdir@/libdispatch/dparallel.c \
+    @abs_top_srcdir@/libdispatch/derror.c \
+    @abs_top_srcdir@/libdispatch/dv2i.c \
+    @abs_top_srcdir@/libdispatch/nc4.c \
     @abs_top_srcdir@/libsrc4/nc4file.c \
     @abs_top_srcdir@/ncdump/ncdump.c
 
