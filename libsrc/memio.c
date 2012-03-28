@@ -405,8 +405,8 @@ memio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 	    nbytes1 = (nbytes - overlap); /* # bytes of non-overlap */
 	    /* move the non-overlapping part */
             memcpy((void*)(memio->memory+(to+overlap)),
-                   (void*)(memio->memory+(from+overlap),
-		   nbytes1)
+                   (void*)(memio->memory+(from+overlap)),
+		   nbytes1);
 	    /* move the overlapping part */
 	    memcpy((void*)(memio->memory+to),
                    (void*)(memio->memory+from),
@@ -415,9 +415,9 @@ memio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 	    overlap = ((to + nbytes) - from); /* # bytes of overlap */
 	    nbytes1 = (nbytes - overlap); /* # bytes of non-overlap */
 	    /* move the non-overlapping part */
-            memcpy((void*)(memio->memory+to,
-                   (void*)(memio->memory+from,
-		   nbytes1)
+            memcpy((void*)(memio->memory+to),
+                   (void*)(memio->memory+from),
+		   nbytes1);
 	    /* move the overlapping part */
 	    memcpy((void*)(memio->memory+(to+nbytes1)),
                    (void*)(memio->memory+(from+nbytes1)),
