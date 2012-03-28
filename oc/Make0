@@ -14,10 +14,10 @@ makeoc::
 	rm -f ocdebug.h
 	sed -e 's|^[#]if 1|#if 0|g' \
 	    < ${OCDIR}/ocdebug.h | tr -d '\r' >./ocdebug.h
+	# This should match the bison command in Makefile.am
 	rm -f dap.tab.c dap.tab.h
 	bison --debug -d -p dap dap.y
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
-	
 
 #	# Temporary
 #	sed -e 's|dapdecode(parsestate->lexstate,|(|' \
@@ -44,4 +44,3 @@ diffoc::
 		fi; \
 	    fi; \
 	done
-

@@ -109,32 +109,41 @@ extern "C" {
 #define NC_FILL		0	/**< Argument to nc_set_fill() to clear NC_NOFILL */
 #define NC_NOFILL	0x100	/**< Argument to nc_set_fill() to turn off filling of data. */
 
-#define NC_NOWRITE	0	/**< Set read-only access for nc_open(). */
-#define NC_WRITE    	0x0001	/**< Set read-write access for nc_open(). */
+/* Define the ioflags bits for nc_create and nc_open.
+   currently unused: 0x0010,0x0020,0x0040,0x0080
+   and the whole upper 16 bits
+*/
 
-#define NC_CLOBBER	 0       /**< Destroy existing file. Mode flag for nc_create(). */
-#define NC_NOCLOBBER	 0x0004	/**< Don't destroy existing file. Mode flag for nc_create(). */
-#define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
-#define NC_NETCDF4       0x1000  /**< Use netCDF-4/HDF5 format. Mode flag for nc_create(). */
+#define NC_NOWRITE	 0x0000	/**< Set read-only access for nc_open(). */
+#define NC_WRITE    	 0x0001	/**< Set read-write access for nc_open(). */
+/* unused: 0x0002 */
+#define NC_CLOBBER	 0x0000 /**< Destroy existing file. Mode flag for nc_create(). */
+#define NC_NOCLOBBER     0x0004	/**< Don't destroy existing file. Mode flag for nc_create(). */
+
+#define NC_DISKLESS      0x0008  /**< Create a diskless file. Mode flag for nc_create(). */
+
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model. Mode flag for nc_create(). */
-#define NC_DISKLESS      0x0002  /**< Create a diskless file. Mode flag for nc_create(). */
-
-/** Share updates, limit cacheing.
-Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_SHARE       0x0800	
-/** Turn on MPI I/O.
-Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIIO       0x2000 
-/** Turn on MPI POSIX I/O.
-Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIPOSIX    0x4000
-#define NC_PNETCDF     0x8000	/**< Use parallel-netcdf library. Mode flag for nc_open(). */
+#define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
 
 /** \deprecated The following flag currently is ignored, but use in
  * nc_open() or nc_create() may someday support use of advisory
  * locking to prevent multiple writers from clobbering a file
  */
-#define NC_LOCK		0x0400	
+#define NC_LOCK          0x0400	
+
+/** Share updates, limit cacheing.
+Use this in mode flags for both nc_create() and nc_open(). */
+#define NC_SHARE         0x0800	
+
+#define NC_NETCDF4       0x1000  /**< Use netCDF-4/HDF5 format. Mode flag for nc_create(). */
+
+/** Turn on MPI I/O.
+Use this in mode flags for both nc_create() and nc_open(). */
+#define NC_MPIIO         0x2000 
+/** Turn on MPI POSIX I/O.
+Use this in mode flags for both nc_create() and nc_open(). */
+#define NC_MPIPOSIX      0x4000
+#define NC_PNETCDF       0x8000	/**< Use parallel-netcdf library. Mode flag for nc_open(). */
 
 /** Format specifier for nc_set_default_format().  Starting with
  * version 3.6, there are different format netCDF files. 4.0

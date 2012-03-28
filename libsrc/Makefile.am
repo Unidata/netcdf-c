@@ -14,13 +14,10 @@ libnetcdf3_la_CPPFLAGS += -DDLL_EXPORT
 endif # BUILD_DLL
 
 # These files comprise the netCDF-3 classic library code.
-libnetcdf3_la_SOURCES = v1hpg.c onstack.h                             	\
+libnetcdf3_la_SOURCES = v1hpg.c onstack.h                              \
 nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
-ncx.h lookup3.c pstdint.h
+ncx.h lookup3.c pstdint.h ncio.c ncio.h memio.c 
 
-if USE_NEWIO
-libnetcdf3_la_SOURCES += ncstdio.h ncstdio.h ncFile.c
-else !USE_NEWIO
 # Does the user want to use ffio, a replacement for posixio for Cray
 # computers?
 if USE_FFIO
@@ -28,7 +25,6 @@ libnetcdf3_la_SOURCES += ffio.c
 else !USE_FFIO
 libnetcdf3_la_SOURCES += posixio.c
 endif !USE_FFIO
-endif !USE_NEWIO
 
 noinst_LTLIBRARIES = libnetcdf3.la
 

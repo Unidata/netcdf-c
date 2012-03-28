@@ -27,6 +27,17 @@ redistribution conditions.
 #define TIME_LEN 1560
 #define NUM_TS 1
 
+extern const char* nc_strerror(int ncerr);
+static int
+complain(int stat)
+{
+    if(stat) {
+        fprintf(stderr,"%s\n",nc_strerror(stat));
+	fflush(stderr);
+    }
+    return stat;
+}
+
 static int 
 read_file(char *filename)
 {

@@ -283,23 +283,15 @@ read_numrecs(NC *ncp)
 
 #define NC_NUMRECS_OFFSET 4
 #define NC_NUMRECS_EXTENT 4
-#ifdef USE_NEWIO
-	if(!(status = ncstdio_seek(ncp->nciop,NC_NUMRECS_OFFSET))
-	    return status;
-	status = ncstdio_read(ncp->nciop,NC_NUMRECS_EXTENT, (void*)&xp);
-#else
-	status = ncp->nciop->get(ncp->nciop,
+	status = ncio_get(ncp->nciop,
 		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, 0, (void **)&xp);
 					/* cast away const */
-#endif
 	if(status != NC_NOERR)
 		return status;
 
 	status = ncx_get_size_t(&xp, &nrecs);
 
-#ifndef USE_NEWIO
-	(void) ncp->nciop->rel(ncp->nciop, NC_NUMRECS_OFFSET, 0);
-#endif
+	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, 0);
 
 	if(status == NC_NOERR)
 	{
@@ -324,14 +316,8 @@ write_numrecs(NC *ncp)
 	assert(!NC_readonly(ncp));
 	assert(!NC_indef(ncp));
 
-#ifdef USE_NEWIO
-	if(!(status = ncstdio_seek(ncp->nciop,NC_NUMRECS_OFFSET))
-	    return status;
-	status = ncstdio_read(ncp->nciop,NC_NUMRECS_EXTENT, (void*)&xp);
-#else
-	status = ncp->nciop->get(ncp->nciop,
+	status = ncio_get(ncp->nciop,
 		 NC_NUMRECS_OFFSET, NC_NUMRECS_EXTENT, RGN_WRITE, &xp);
-#endif
 	if(status != NC_NOERR)
 		return status;
 
@@ -340,9 +326,8 @@ write_numrecs(NC *ncp)
 		status = ncx_put_size_t(&xp, &nrecs);
 	}
 
-#ifndef USE_NEWIO
-	(void) ncp->nciop->rel(ncp->nciop, NC_NUMRECS_OFFSET, RGN_MODIFIED);
-#endif
+	(void) ncio_rel(ncp->nciop, NC_NUMRECS_OFFSET, RGN_MODIFIED);
+
 	if(status == NC_NOERR)
 		fClr(ncp->flags, NC_NDIRTY);
 
@@ -519,7 +504,6 @@ fill_added(NC *gnu, NC *old)
 }
 
 
-#ifndef USE_NEWIO
 /*
  * Move the records "out". 
  * Fill as needed.
@@ -561,9 +545,10 @@ move_recs_r(NC *gnu, NC *old)
 			continue; 	/* nothing to do */
 
 		assert(gnu_off > old_off);
-
-		status = gnu->nciop->move(gnu->nciop, gnu_off, old_off,
+	
+		status = ncio_move(gnu->nciop, gnu_off, old_off,
 			 old_varp->len, 0);
+
 		if(status != NC_NOERR)
 			return status;
 		
@@ -574,6 +559,7 @@ move_recs_r(NC *gnu, NC *old)
 
 	return NC_NOERR;
 }
+
 
 /*
  * Move the "non record" variables "out". 
@@ -612,7 +598,7 @@ move_vars_r(NC *gnu, NC *old)
 
 		assert(gnu_off > old_off);
 
-		status = gnu->nciop->move(gnu->nciop, gnu_off, old_off,
+		status = ncio_move(gnu->nciop, gnu_off, old_off,
 			 old_varp->len, 0);
 
 		if(status != NC_NOERR)
@@ -622,7 +608,7 @@ move_vars_r(NC *gnu, NC *old)
 
 	return NC_NOERR;
 }
-#endif /*!NEWIO*/
+
 
 /*
  * Given a valid ncp, return NC_EVARSIZE if any variable has a bad len 
@@ -797,11 +783,7 @@ NC_endef(NC *ncp,
 
 	fClr(ncp->flags, NC_CREAT | NC_INDEF);
 
-#ifdef USE_NEWIO
-	return ncstdio_sync(ncp->nciop);
-#else
-	return ncp->nciop->sync(ncp->nciop);
-#endif
+	return ncio_sync(ncp->nciop);
 }
 
 #ifdef LOCKNUMREC
@@ -936,14 +918,9 @@ NC3_create(const char *path, int ioflags,
 
 	assert(ncp->xsz == ncx_len_NC(ncp,sizeof_off_t));
 	
-#ifdef USE_NEWIO
-	status = ncFile_create(path,ioflags,&ncp->nciop);
-#else
-	status = ncio_create(path, ioflags,
-		initialsz,
-		0, ncp->xsz, &ncp->chunk,
-		&ncp->nciop, &xp);
-#endif
+        status =  ncio_create(path, ioflags, initialsz,
+			      0, ncp->xsz, &ncp->chunk,
+			      &ncp->nciop, &xp);
 	if(status != NC_NOERR)
 	{
 		/* translate error status */
@@ -975,23 +952,15 @@ NC3_create(const char *path, int ioflags,
 	if(chunksizehintp != NULL)
 		*chunksizehintp = ncp->chunk;
 
-#ifdef USE_NEWIO
-	ncstdio_uid(ncp->nciop,&ncp->int_ncid);
-#else
 	ncp->int_ncid = ncp->nciop->fd;
-#endif
 
 	if(ncpp) *ncpp = ncp;	
 
 	return NC_NOERR;
 
 unwind_ioc:
-#ifdef USE_NEWIO
-	ncstdio_close(ncdp->nciop,1); /* delete */
-#else
 	(void) ncio_close(ncp->nciop, 1); /* N.B.: unlink */
 	ncp->nciop = NULL;
-#endif
 	/*FALLTHRU*/
 unwind_alloc:
 	free_NC(ncp);
@@ -1052,13 +1021,7 @@ NC3_open(const char * path, int ioflags,
 		return NC_EINVAL;
 #endif
 
-#ifdef USE_NEWIO
-	status = ncFile_open(path,ioflags,&ncp->nciop);
-#else
-	status = ncio_open(path, ioflags,
-		0, 0, &ncp->chunk,
-		&ncp->nciop, 0);
-#endif
+	status = ncio_open(path, ioflags, 0, 0, &ncp->chunk, &ncp->nciop, 0);
 	if(status)
 		goto unwind_alloc;
 
@@ -1085,24 +1048,15 @@ NC3_open(const char * path, int ioflags,
 	if(chunksizehintp != NULL)
 		*chunksizehintp = ncp->chunk;
 
-
-#ifdef USE_NEWIO
-	ncstdio_uid(ncp->nciop,&ncp->int_ncid);
-#else
 	ncp->int_ncid = ncp->nciop->fd;
-#endif
 
 	if(ncpp) *ncpp = ncp;
 
 	return NC_NOERR;
 
 unwind_ioc:
-#ifdef USE_NEWIO
-	(void)ncstdio_close(ncp->nciop,0);
-#else
 	(void) ncio_close(ncp->nciop, 0);
 	ncp->nciop = NULL;
-#endif
 	/*FALLTHRU*/
 unwind_alloc:
 	free_NC(ncp);
@@ -1151,11 +1105,7 @@ NC3_close(int ncid)
 	{
 		status = NC_sync(ncp);
 		/* flush buffers before any filesize comparisons */
-#ifdef USE_NEWIO
-		(void)ncstdio_sync(ncp->nciop);
-#else
-		(void) ncp->nciop->sync(ncp->nciop);
-#endif
+		(void) ncio_sync(ncp->nciop);
 	}
 
 	/* 
@@ -1166,31 +1116,21 @@ NC3_close(int ncid)
 	if (status == ENOERR) {
 	    off_t filesize; 	/* current size of open file */
 	    off_t calcsize;	/* calculated file size, from header */
-#ifdef USE_NEWIO
-#else
 	    status = ncio_filesize(ncp->nciop, &filesize);
-#endif
 	    if(status != ENOERR)
 		return status;
 	    status = NC_calcsize(ncp, &calcsize);
 	    if(status != NC_NOERR)
 		return status;
 	    if(filesize < calcsize && !NC_readonly(ncp)) {
-#ifdef USE_NEWIO
-#else
 		status = ncio_pad_length(ncp->nciop, calcsize);
-#endif
 		if(status != ENOERR)
 		    return status;
 	    }
 	}
 
-#ifdef USE_NEWIO
-	(void*)ncstdio_close(ncp->nciop,0);
-#else
 	(void) ncio_close(ncp->nciop, 0);
 	ncp->nciop = NULL;
-#endif
 
 	del_from_NCList(ncp);
 
@@ -1234,12 +1174,8 @@ NC3_abort(int ncid)
 	}
 
 
-#ifdef USE_NEWIO
-	(void)ncstdio_close(ncp->nciop,doUnlink);
-#else
 	(void) ncio_close(ncp->nciop, doUnlink);
 	ncp->nciop = NULL;
-#endif
 
 	del_from_NCList(ncp);
 
@@ -1349,13 +1285,20 @@ NC3_sync(int ncid)
 	if(status != NC_NOERR)
 		return status;
 
-#ifdef USE_NEWIO
-	status = ncstdio_sync(ncp->nciop);
-#else
-	status = ncp->nciop->sync(ncp->nciop);
-#endif
+	status = ncio_sync(ncp->nciop);
 	if(status != NC_NOERR)
 		return status;
+
+#ifdef USE_FSYNC
+	/* may improve concurrent access, but slows performance if
+	 * called frequently */
+#ifndef WIN32
+	status = fsync(ncp->nciop->fd);
+#else
+	status = _commit(ncp->nciop->fd);
+#endif	/* WIN32 */
+#endif	/* USE_FSYNC */
+
 	return status;
 }
 
@@ -1418,19 +1361,21 @@ NC_get_numrecs(const NC *ncp) {
 }
 
 void
-NC_set_numrecs(NC *ncp, size_t nrecs) {
-	shmem_t numrec = (shmem_t) nrecs;
-	/* update local value too */
-	ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
-	shmem_short_put((shmem_t *) ncp->lock + LOCKNUMREC_VALUE, &numrec, 1,
-		ncp->lock[LOCKNUMREC_BASEPE]);
+NC_set_numrecs(NC *ncp, size_t nrecs)
+{
+    shmem_t numrec = (shmem_t) nrecs;
+    /* update local value too */
+    ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
+    shmem_short_put((shmem_t *) ncp->lock + LOCKNUMREC_VALUE, &numrec, 1,
+    ncp->lock[LOCKNUMREC_BASEPE]);
 }
 
-void NC_increase_numrecs(NC *ncp, size_t nrecs) {
-	/* this is only called in one place that's already protected
-	 * by a lock ... so don't worry about it */
-	if (nrecs > NC_get_numrecs(ncp))
-		NC_set_numrecs(ncp, nrecs);
+void NC_increase_numrecs(NC *ncp, size_t nrecs)
+{
+    /* this is only called in one place that's already protected
+     * by a lock ... so don't worry about it */
+    if (nrecs > NC_get_numrecs(ncp))
+	NC_set_numrecs(ncp, nrecs);
 }
 
 #endif /* LOCKNUMREC */
@@ -1573,13 +1518,9 @@ nc_delete_mp(const char * path, int basepe)
 		return NC_EINVAL;
 #endif
 
-#ifdef USE_NEWIO
-	status = ncFile_open(path,NC_NOWRITE,&ncp->nciop);
-#else
 	status = ncio_open(path, NC_NOWRITE,
 		0, 0, &ncp->chunk,
 		&ncp->nciop, 0);
-#endif
 	if(status)
 		goto unwind_alloc;
 
@@ -1590,24 +1531,16 @@ nc_delete_mp(const char * path, int basepe)
 	{
 		/* Not a netcdf file, don't delete */
 		/* ??? is this the right semantic? what if it was just too big? */
-#ifdef USE_NEWIO
-	status = ncstdio_close(ncp->nciop,0);
-#else
 		(void) ncio_close(ncp->nciop, 0);
-	ncp->nciop = NULL;
-#endif
 	}
 	else
 	{
-#ifdef USE_NEWIO
-	status = ncstdio_close(ncp->nciop,1);
-#else
 		/* ncio_close does the unlink */
 		status = ncio_close(ncp->nciop, 1); /* ncio_close does the unlink */
-	ncp->nciop = NULL;
-#endif
 	}
+	ncp->nciop = NULL;
 
+	ncp->nciop = NULL;
 unwind_alloc:
 	free_NC(ncp);
 	return status;
@@ -1618,3 +1551,4 @@ nc_delete(const char * path)
 {
         return nc_delete_mp(path, 0);
 }
+

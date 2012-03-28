@@ -38,6 +38,7 @@ struct nc_hdf5_link_info
    H5I_type_t obj_type;   
 };   
 
+#if 0
 static herr_t
 visit_link(hid_t g_id, const char *name, const H5L_info_t *info, 
 	   void *op_data)  
@@ -65,11 +66,14 @@ visit_link(hid_t g_id, const char *name, const H5L_info_t *info,
    
    return ret;
 }
+#endif
 
 herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
 		     void *visitor_data)
 {
+#if 0
    char name1[STR_LEN];
+#endif
    H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
@@ -101,7 +105,10 @@ main()
    printf("\n*** Checking HDF5 dimscales detach.\n");
    printf("*** Creating a file with two vars with one dimension scale...");
    {
-      hid_t fileid, grpid, spaceid, var1_id, var2_id, dimscaleid, cparmsid;
+#if 0
+      hid_t cparmsid;
+#endif
+      hid_t fileid, grpid, spaceid, var1_id, var2_id, dimscaleid;
       hid_t fcpl_id, fapl_id, create_propid, access_propid;
       hsize_t dims[NDIMS] = {DIM_LEN};
       char dimscale_wo_var[STR_LEN];

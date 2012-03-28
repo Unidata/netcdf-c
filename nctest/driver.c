@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <netcdf.h>
 #include <stdio.h>
+#include <string.h>
 #include "testcdf.h"		/* defines in-memory test netcdf structure */
 #include "tests.h"
 
@@ -101,7 +102,7 @@ main(int argc, char **argv)
 
        /* Clean up in-memory struct. */
        {
-	  int i, j;
+	  int i;
 
 	  for (i = 0; i < test.ndims; i++)
 	     free(test.dims[i].name);

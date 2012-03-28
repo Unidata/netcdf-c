@@ -10,7 +10,7 @@ PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[wholevar]"
 PARMS="${PARMS}[show=fetch]"
 
-F="file:///home/dmh/mach/minor/ncdap_test/testdata3/synth1"
+F="file:///home/dmh/mach/minor/ncdap_test/testdata3/data.nc"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"

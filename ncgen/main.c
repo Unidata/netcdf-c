@@ -41,6 +41,8 @@ int specials_flag; /* 1=> special attributes are present */
 int usingclassic;
 int cmode_modifier;
 
+int diskless;
+
 size_t nciterbuffersize;
 
 struct Vlendata* vlendata;
@@ -166,12 +168,14 @@ main(
     enhanced_flag = 0;
     specials_flag = 0;
 
+    diskless = 0;
+
 #if _CRAYMPP && 0
     /* initialize CRAY MPP parallel-I/O library */
     (void) par_io_init(32, 32);
 #endif
 
-    while ((c = getopt(argc, argv, "hbcfk:l:no:v:xdM:D:B:")) != EOF)
+    while ((c = getopt(argc, argv, "hbcfk:l:no:v:xdM:D:B:P")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;	  
@@ -261,6 +265,9 @@ main(
 	case 'B':
 	  nciterbuffersize = atoi(optarg);
 	  break;
+	case 'P': /* diskless with persistence */
+	  diskless = 1;
+	  break;
 	case '?':
 	  usage();
 	  return(8);
@@ -319,6 +326,9 @@ main(
 	  exit(1);
     }
 #endif
+
+    if(!binary_flag)
+	diskless = 0;
 
     argc -= optind;
     argv += optind;
@@ -396,6 +406,9 @@ main(
     case 4: cmode_modifier = NC_NETCDF4 | NC_CLASSIC_MODEL; break;
     default: ASSERT(0); /* cannot happen */
     }
+
+    if(diskless)
+	cmode_modifier |= (NC_DISKLESS|NC_NOCLOBBER);
 
     processsemantics();
     if(!syntax_only && error_count == 0) 

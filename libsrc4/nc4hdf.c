@@ -2044,10 +2044,10 @@ var_exists_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 static int
 var_exists(hid_t grpid, char *name, int *exists)
 {
+    hsize_t num_obj;
     var_exists_iter_info iter_info;
     iter_info.name = name;
     iter_info.exists = exists;
-    hsize_t num_obj;
 
 	if (H5Gget_num_objs(grpid, &num_obj) < 0)
       return NC_EVARMETA;
