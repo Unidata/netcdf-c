@@ -3,8 +3,6 @@
 # This forms the basis for the nc-config utility, which tells you
 # various things about the netCDF installation. This code was
 # contributed by netCDF user Arlindo DaSilva. Thanks Arlindo!
-#
-# $Id: nc-config.in,v 1.17 2010/03/24 15:20:37 dmh Exp $
 
 prefix=@prefix@
 exec_prefix=${prefix}
@@ -12,23 +10,30 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 cc="@CC@"
-cxx="@CXX@"
-fc="@FC@"
 cflags=" -I${includedir} @CPPFLAGS@" 
-fflags="@FFLAGS@ @MOD_FLAG@${includedir}"
 libs="-L${libdir} @NC_LIBS@"
-flibs="-L${libdir} @NC_FLIBS@"
 has_dap="@HAS_DAP@"
 has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
 has_hdf4="@HAS_HDF4@"
 has_pnetcdf="@HAS_PNETCDF@"
 has_hdf5="@HAS_HDF5@"
-has_f77="@HAS_F77@"
-has_f90="@HAS_F90@"
-has_cxx="@HAS_CXX@"
 has_szlib="@HAS_SZLIB@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
+
+if type -p nf-config; then
+  fc=`nf-config --fc`
+  fflags=`nf-config --fflags`
+  flibs=`nf-config --flibs`
+  has_f77=`nf-config --has_f77`
+  has_f90=`nf-config --has_f90`
+fi
+
+if type -p ncxx-config; then
+  cxx=`ncxx-config --cxx`
+  has_cxx=`ncxx-config --has_cxx`
+fi
+
 
 usage()
 {
@@ -40,28 +45,37 @@ Available values for OPTION include:
   --help        display this help message and exit
   --all         display all options
   --cc          C compiler
-  --cxx         C++ compiler
-  --fc          Fortran compiler
   --cflags      pre-processor and compiler flags
-  --fflags      flags needed to compile a Fortran program
   --has-dap     whether OPeNDAP is enabled in this build
   --has-nc2     whether NetCDF-2 API is enabled
   --has-nc4     whether NetCDF-4/HDF-5 is enabled in this build
   --has-hdf5    whether HDF5 is used in build (always the same as --has-nc4)
   --has-hdf4    whether HDF4 was used in build
   --has-pnetcdf whether parallel-netcdf (a.k.a. pnetcdf) was used in build
-  --has-f77     whether Fortran 77 API is enabled in this build
-  --has-f90     whether Fortran 90 API is enabled in this build
-  --has-c++     whether C++ API is enabled in this build
   --has-szlib   whether szlib is included in build
   --libs        library linking information for netcdf
-  --flibs       libraries needed to link a Fortran program
   --prefix      Install prefix
   --includedir  Include directory
   --version     Library version
 
 EOF
+if type -p ncxx-config; then
+    cat <<EOF
+  --cxx         C++ compiler
+  --has-c++     whether C++ API is enabled in this build
 
+EOF
+fi
+if type -p nf-config; then
+    cat <<EOF
+  --fc          Fortran compiler
+  --fflags      flags needed to compile a Fortran program
+  --flibs       libraries needed to link a Fortran program
+  --has-f77     whether Fortran 77 API is enabled in this build
+  --has-f90     whether Fortran 90 API is enabled in this build
+
+EOF
+fi
     exit $1
 }
 
@@ -124,29 +138,9 @@ while test $# -gt 0; do
 	echo $cc
 	;;
 
-    --cxx)
-	echo $cxx
-	;;
-
-    --fc)
-	echo $fc
-	;;
-
     --cflags)
 	echo $cflags
 	;;
-
-    --fflags)
-	echo $fflags
-	;;
-
-     --libs)
-       	echo $libs
-       	;;
-
-    --flibs)
-       	echo $flibs
-       	;;
 
     --has-dap)
        	echo $has_dap
@@ -160,6 +154,10 @@ while test $# -gt 0; do
        	echo $has_nc4
        	;;
 
+    --has-hdf5)
+       	echo $has_hdf5
+       	;;
+
     --has-hdf4)
        	echo $has_hdf4
        	;;
@@ -168,24 +166,12 @@ while test $# -gt 0; do
        	echo $has_pnetcdf
        	;;
 
-    --has-hdf5)
-       	echo $has_hdf5
-       	;;
-
-    --has-f77)
-       	echo $has_f77
-       	;;
-
-    --has-f90)
-       	echo $has_f90
-       	;;
-
-    --has-c++)
-       	echo $has_cxx
-       	;;
-
     --has-szlib)
        	echo $has_szlib
+       	;;
+
+     --libs)
+       	echo $libs
        	;;
 
     --prefix)
@@ -199,6 +185,34 @@ while test $# -gt 0; do
     --version)
 	echo $version
 	;;
+
+    --cxx)
+	echo $cxx
+	;;
+
+    --has-c++)
+       	echo $has_cxx
+       	;;
+
+    --fc)
+	echo $fc
+	;;
+
+    --fflags)
+	echo $fflags
+	;;
+
+    --flibs)
+       	echo $flibs
+       	;;
+
+    --has-f77)
+       	echo $has_f77
+       	;;
+
+    --has-f90)
+       	echo $has_f90
+       	;;
 
     *)
         echo "unknown option: $1"
