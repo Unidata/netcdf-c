@@ -38,7 +38,7 @@ main(int argc, char **argv)
        int ncid, dimids[NDIMS3], varid;
        size_t start[NDIMS3], count[NDIMS3];
        size_t dim_len[NDIMS3] = {D0, D1, D2};
-       int chunk_sizes[NDIMS3] = {1, D1, D2};
+       size_t chunk_sizes[NDIMS3] = {1, D1, D2};
        float *data;
        char file_name[NC_MAX_NAME * 2 + 1];
        int d, i; 
