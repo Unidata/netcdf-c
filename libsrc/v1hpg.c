@@ -1117,7 +1117,10 @@ NC_computeshapes(NC *ncp)
 		{
 	  		if(first_rec == NULL)	
 				first_rec = *vpp;
-			ncp->recsize += (*vpp)->len;
+			if((*vpp)->len == UINT32_MAX)
+			    ncp->recsize += (*vpp)->dsizes[0];
+			else
+			    ncp->recsize += (*vpp)->len;
 		}
 		else
 		{
