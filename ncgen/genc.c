@@ -295,16 +295,6 @@ gen_ncc(const char *filename)
 	codelined(1,"/* define dimensions */");
         for(idim = 0; idim < ndims; idim++) {
             Symbol* dsym = (Symbol*)listget(dimdefs,idim);
-#ifdef IGNORE
-	    if(dsym->dim.isunlimited) {
-		bbprintf0(stmt,
-		          "    stat = nc_def_dim(%s, \"%s\", %s, &%s);\n",
-		          groupncid(dsym->container),
-                          escapifyname(dsym->name),
-                          "NC_UNLIMITED",
-                          dimncid(dsym));
-	    } else
-#endif
 	    {
 		bbprintf0(stmt,
 		          "    stat = nc_def_dim(%s, \"%s\", %s_len, &%s);\n",

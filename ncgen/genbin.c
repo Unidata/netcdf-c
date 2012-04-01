@@ -11,10 +11,6 @@
 
 #undef TRACE
 
-#ifdef IGNORE
-extern List* vlenconstants;
-#endif
-
 /* Forward*/
 static void genbin_defineattr(Symbol* asym);
 static void genbin_definevardata(Symbol* vsym);
@@ -127,11 +123,6 @@ gen_netcdf(const char *filename)
     }
 
 #ifdef USE_NETCDF4
-    /* Collect vlen data*/
-#ifdef IGNORE
-    bindata_vlenconstants(vlenconstants);
-#endif
-
     /* define special variable properties */
     if(nvars > 0) {
 	for(ivar = 0; ivar < nvars; ivar++) {

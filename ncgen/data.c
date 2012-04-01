@@ -247,14 +247,6 @@ bbFree(buf);
 void
 report0(char* lead, Datasrc* src, int index)
 {
-#ifdef IGNORE
-fprintf(stderr,"%s src ",lead);
-if(index >=0 ) fprintf(stderr,"(%d)",index);
-fprintf(stderr,":: ");
-dumpdatasrc(src);
-fprintf(stderr,"\n");
-fflush(stderr);
-#endif
 }
 #endif
 

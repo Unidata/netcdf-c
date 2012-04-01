@@ -27,15 +27,6 @@ and the per-retrieval maximum size
 /* Max number of cache nodes */
 #define DFALTCACHECOUNT (100)
 
-#ifdef IGNORE
-typedef int nc_tactic;
-#define tactic_null	0
-#define tactic_all	1
-#define tactic_partial	2
-#define tactic_grid	4
-#define tactic_var	8
-#endif
-
 typedef struct Getvara {
     void* memory; /* where result is put*/
     struct NCcachenode* cache;
@@ -43,14 +34,7 @@ typedef struct Getvara {
     /* associated variable*/
     OCtype dsttype;
     CDFnode* target;
-#ifdef IGNORE
-    CDFnode* target0;
-#endif
     int wholevariable;
 } Getvara;
-
-#ifdef IGNORE
-extern int varamergeprojections3(NClist*,DCEprojection*,NClist*,NClist**);
-#endif
 
 #endif /*GETVARA_H*/

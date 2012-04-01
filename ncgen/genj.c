@@ -102,17 +102,6 @@ gen_ncjava(const char *filename)
     codeline("");
     codelined(1,"/* enter define mode */");
 
-#ifdef IGNORE
-    if(!cmode_modifier) {
-	cmode_string = "NC_CLOBBER";
-    } else if(cmode_modifier & NC_64BIT_OFFSET) {
-	cmode_string = "NC_CLOBBER|NC_64BIT_OFFSET";
-    } else {
-        derror("unknown cmode modifier");
-	cmode_string = "NC_CLOBBER";
-    }
-#endif
-
     bbprintf0(stmt,
                 "%sNetcdfFileWriteable ncfile = NetcdfFileWriteable.createNew(\"%s\", %s);\n",
 		 indented(1),filename,(nofill_flag?"false":"true"));

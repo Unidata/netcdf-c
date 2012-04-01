@@ -185,9 +185,6 @@ typedef int CDFdimflags;
 typedef struct CDFdim {
     CDFdimflags    dimflags;
     struct CDFnode* basedim; /* for duplicate dimensions*/
-#ifdef IGNORE
-    struct CDFnode* srcdim; /* for cloned dimensions*/
-#endif
     struct CDFnode* array; /* parent array node */
     size_t declsize;	    /* from constrained DDS*/
     size_t declsize0;	    /* from unconstrained DDS*/
@@ -198,10 +195,6 @@ typedef struct CDFarray {
     NClist*  dimsetall; /* inherited+originals+pseudo */
     NClist*  dimsetplus; /* originals+pseudo */
     NClist*  dimset0; /* original dims from the dds */
-#ifdef IGNORE
-    NClist*  dimensions; /* inherited+originals */
-    NClist*  dimensions0; /* Complete set of dimensions for this var */
-#endif
     struct CDFnode* stringdim;
     /* Track sequence related information */
     struct CDFnode* seqdim; /* if this node is a sequence */

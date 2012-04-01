@@ -40,10 +40,6 @@ fix1node34(NCDAPCOMMON* nccomm, CDFnode* node)
     if(node->ncfullname == NULL) return NC_ENOMEM;
     if(node->nctype == NC_Primitive)
         node->externaltype = nctypeconvert(nccomm,node->etype);
-#ifdef IGNORE
-    if(node->nctype == NC_Dimension)
-        node->maxstringlength = nccomm->cdf.defaultstringlength;
-#endif
     return NC_NOERR;
 }
 
@@ -59,36 +55,6 @@ fixnodes34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
     return NC_NOERR;
 }
 
-#ifdef IGNORE
-NCerror
-computecdfinfo34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
-{
-    int i;
-    /* Ensure every node has an initial base name defined and fullname */
-    /* Exceptions: anonymous dimensions. */
-    for(i=0;i<nclistlength(cdfnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
-        if(node->nctype == NC_Dimension && node->name == NULL) continue;
-	ASSERT((node->name != NULL));
-        nullfree(node->ncbasename);
-        node->ncbasename = cdflegalname3(node->name);
-        nullfree(node->ncfullname);
-	node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
-if(node==v4node && node->ncfullname[0] != 'Q')dappanic("");
-    }
-    for(i=0;i<nclistlength(cdfnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
-        if(node->nctype == NC_Primitive)
-            node->externaltype = nctypeconvert(node->etype);
-    }
-    for(i=0;i<nclistlength(cdfnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
-	if(node->nctype != NC_Dimension) continue;
-	node->maxstringlength = nccomm->cdf.defaultstringlength;
-    }
-    return NC_NOERR;
-}
-#endif
 
 NCerror
 fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
@@ -152,55 +118,6 @@ fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 invalid:
     return NC_EINVAL; /* mal-formed grid */
 }
-
-
-#ifdef IGNORE
-static void
-cloneseqdims(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
-{
-    int i;
-    for(i=0;i<nclistlength(dimset);i++) {
-	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	if(DIMFLAG(dim,CDFDIMSEQ))
-	    nclistset(dimset,i,(ncelem)clonedim(nccomm,dim,var));
-    }
-}
-#endif
-
-
-#ifdef IGNORE
-/* Compute the dimsetall for the given node; do not assume
-   parent container dimsetall is defined
- */
-int
-getcompletedimset3(CDFnode* var, NClist* dimset)
-{
-    int i,j;
-    NClist* path = nclistnew();
-    CDFnode* node;
-
-    nclistclear(dimset);
-    /* Get the inherited dimensions first*/
-    collectnodepath3(var,path,WITHOUTDATASET);
-    for(i=0;i<nclistlength(path)-1;i++) {
-	node = (CDFnode*)nclistget(path,i);
-	for(j=0;j<nclistlength(node->array.dimsetplus);jj++) {
-	    CDFnode* dim = (CDFnode*)nclistget(node->array.dimset,j);
-	    nclistpush(dimset,(ncelem)dim);
-	}
-    }
-    inherited = nclistlength(dimset); /* mark the # of inherited dimensions */
-    /* Now add the base dimensions */
-    node = (CDFnode*)nclistpop(path);    
-    for(j=0;j<nclistlength(node->array.dimsetplus);j++) {
-	CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,j);
-	nclistpush(dimset,(ncelem)dim);
-    }
-    nclistfree(path);
-    return inherited;
-}
-#endif
-
 
 /**
  *  Given an anonymous dimension, compute the
@@ -362,23 +279,6 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 
     /* cleanup */
     nclistfree(alldims);
-
-#ifdef IGNORE
-    /* Process record dim */
-    if(nccomm->cdf.unlimited != NULL && DIMFLAG(nccomm->cdf.unlimited,CDFDIMRECORD)) {
-	CDFnode* recdim = nccomm->cdf.unlimited;
-	for(i=0;i<nclistlength(alldims);i++) {
-	    int match;
-	    CDFnode* dupdim = (CDFnode*)nclistget(alldims,i);
-	    if(dupdim->dim.basedim != NULL) continue; /* already processed */
-	    match = (strcmp(dupdim->ncfullname,recdim->ncfullname) == 0
-	             && dupdim->dim.declsize == recdim->dim.declsize);
-            if(match) {
-	        dupdim->dim.basedim = recdim;
-	    }
-	}
-    }
-#endif
 
     /* Assign ncbasenames and ncfullnames to base dimensions */
     for(i=0;i<nclistlength(basedims);i++) {
@@ -595,9 +495,6 @@ defdimensions(OCobject ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* t
 	nclistpush(tree->nodes,(ncelem)cdfdim);
 	/* Initially, constrained and unconstrained are same */
 	cdfdim->dim.declsize = declsize;
-#ifdef IGNORE
-	cdfdim->dim.declsize0 = declsize;
-#endif
 	cdfdim->dim.array = cdfnode;
 	if(cdfnode->array.dimset0 == NULL) 
 	    cdfnode->array.dimset0 = nclistnew();
@@ -814,55 +711,6 @@ in a DATADDS that matches the DDS node.
 Return NULL if no node found
 */
 
-#ifdef IGNORE
-static CDFnode*
-findxnode34r(NClist* path, int depth, CDFnode* xnode)
-{
-    unsigned int i;
-    CDFnode* pathnode;
-    unsigned int len = nclistlength(path);
-    int lastnode = (depth == (len - 1));
-
-    if(depth >= len) return NULL;
-
-    pathnode = (CDFnode*)nclistget(path,depth);
-
-    /* If this path element matches the current xnode, then recurse */
-    if(nodematch34(pathnode,xnode)) {
-        if(lastnode) return xnode;
-        for(i=0;i<nclistlength(xnode->subnodes);i++) {
-	    CDFnode* xsubnode = (CDFnode*)nclistget(xnode->subnodes,i);
-	    CDFnode* matchnode;
-	    matchnode = findxnode34r(path,depth+1,xsubnode);	    
-	    if(matchnode != NULL) return matchnode;
-	}
-    } else
-    /* Ok, we have a node mismatch; normally return NULL,
-       but must handle the special case of an elided Grid.
-    */
-    if(pathnode->nctype == NC_Grid && xnode->nctype == NC_Primitive) {
-	/* Try to match the xnode to one of the subparts of the grid */
-	CDFnode* matchnode;
-	matchnode = findxnode34r(path,depth+1,xnode);	    
-	if(matchnode != NULL) return matchnode;
-    }
-    /* Could not find node, return NULL */
-    return NULL;
-}
-
-
-CDFnode*
-findxnode34(CDFnode* target, CDFnode* xroot)
-{
-    CDFnode* xtarget = NULL;
-    NClist* path = nclistnew();
-    collectnodepath3(target,path,WITHDATASET);
-    xtarget = findxnode34r(path,0,xroot);
-    nclistfree(path);
-    return xtarget;
-}
-#endif
-
 void
 unattach34(CDFnode* root)
 {
@@ -1034,58 +882,6 @@ fprintf(stderr,"attachsubsetr: match: %s :: %s\n",targetsubnode->ocname,template
 done:
     return THROW(ncstat);
 }
-
-#ifdef IGNORE
-/* Attach all dstnodes to all templates; all dstnodes must match */
-static NCerror
-attachall34r(CDFnode* dstnode, CDFnode* srcnode)
-{
-    unsigned int i;
-    NCerror ncstat = NC_NOERR;
-
-    ASSERT((nodematch34(dstnode,srcnode)));
-    setattach(dstnode,srcnode);    
-
-    if(dstnode->array.rank > 0) {
-	attachdims34(dstnode,srcnode);
-    }
-
-    /* Try to match dstnode subnodes against srcnode subnodes */
-    if(nclistlength(dstnode->subnodes) != nclistlength(srcnode->subnodes))
-	{THROWCHK(ncstat=NC_EINVAL); goto done;}
-
-    for(i=0;i<nclistlength(dstnode->subnodes);i++) {
-        CDFnode* dstsubnode = (CDFnode*)nclistget(dstnode->subnodes,i);
-        CDFnode* srcsubnode = (CDFnode*)nclistget(srcnode->subnodes,i);
-        if(!nodematch34(dstsubnode,srcsubnode))
-	    {THROWCHK(ncstat=NC_EINVAL); goto done;}
-        ncstat = attachall34r(dstsubnode,srcsubnode);
-	if(ncstat) goto done;
-    }
-done:
-    return THROW(ncstat);
-}
-
-/* 
-Match nodes in one tree to nodes in another.
-Usually used to attach the DATADDS to the DDS,
-but not always.
-*/
-NCerror
-attachall34(CDFnode* dstroot, CDFnode* srcroot)
-{
-    NCerror ncstat = NC_NOERR;
-
-    if(dstroot->attachment) unattach34(dstroot);
-    if(srcroot != NULL && srcroot->attachment) unattach34(srcroot);
-    if(!nodematch34(dstroot,srcroot)) {THROWCHK(ncstat=NC_EINVAL); goto done;}
-    ncstat = attachall34r(dstroot,srcroot);
-done:
-    return ncstat;
-}
-#endif
-
-
 
 static void
 getalldims34a(NClist* dimset, NClist* alldims)

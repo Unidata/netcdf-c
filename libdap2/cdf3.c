@@ -10,15 +10,6 @@
 
 CDFnode* v4node = NULL;
 
-/* Define a local structure */
-#ifdef IGNORE
-struct NCregrid {
-    CDFnode* template;
-    CDFnode* newgrid;
-    int  fieldindex;
-};
-#endif
-
 /* Forward*/
 static NCerror sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq);
 static NCerror regrid3r(CDFnode*, CDFnode*, NClist*);
@@ -122,19 +113,6 @@ fprintf(stderr,"computevarnodes: var: %s\n",makecdfpathstring3(node,"."));
     return NC_NOERR;
 }
 
-#ifdef IGNORE
-static void
-computecdfattributes(CDFnode* node)
-{
-    NClist* path = nclistnew();
-    if(node->nctype == NC_Primitive) {
-        /* Add in copies of the attributes of all parent nodes*/
-        collectnodepath(node->container,path,WITHDATASET);
-    }
-    nclistfree(path);
-}
-#endif
-
 NCerror
 fixgrids3(NCDAPCOMMON* nccomm)
 {
@@ -210,14 +188,6 @@ fprintf(stderr,"basevar invoked: %s\n",var->ncfullname);
 	}
     }
 
-#ifdef IGNORE
-    /* Remove elided marks */
-    for(i=0;i<nclistlength(root->tree->nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(root->tree->nodes,i);
-	node->elided = 0;
-    }
-#endif
-
     /* Finally, verify unique names */
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var1 = (CDFnode*)nclistget(varnodes,i);
@@ -233,87 +203,6 @@ fprintf(stderr,"basevar invoked: %s\n",var->ncfullname);
     return NC_NOERR;
 }
 
-#ifdef IGNORE
-static NClist*
-hoist(NCDAPCOMMON* nccomm, CDFnode* container)
-{
-    int i,j;
-    NClist* containers = nclistnew();
-    NClist* unique = nclistnew();
-    /* Divide the subnodes of this node into containers and unique*/
-    for(i=0;i<nclistlength(container->subnodes);i++) {
-	CDFnode* sub = (CDFnode*)nclistget(container->subnodes,i);
-	switch (sub->nctype) {
-	case NC_Structure:
-	case NC_Sequence:
-	case NC_Grid:
-	case NC_Dataset:
-	    nclistpush(containers,(ncelem)sub);
-	    break;
-	case NC_Primitive:
-	    nclistpush(unique,(ncelem)sub);
-	    break;
-	default: PANIC1("computecdfvarnames: bad node type: %d",sub->nctype);
-	}
-    }
-
-    /* Tentatively hoist each container in turn*/
-    while(nclistlength(containers) > 0) {
-	CDFnode* subcontainer = (CDFnode*)nclistremove(containers,0);	
-	NClist* vars = hoist(nccomm,subcontainer);
-	int match;
-	/* compute path names without this container*/
-	subcontainer->elided = 1;
-	if(ncdap3debug > 1) fprintf(stderr,"eliding: %s\n",subcontainer->name);
-	makevarnames(nccomm,vars);
-	/* look for duplicates in the unique list*/
-	match = 0;
-        for(i=0;i<nclistlength(unique);i++) {
-	    CDFnode* unode = (CDFnode*)nclistget(unique,i);
-            for(j=0;j<nclistlength(vars);j++) {
-	        CDFnode* var = (CDFnode*)nclistget(vars,j);
-		if(strcmp(var->ncfullname,unode->ncfullname)==0) {
-		    match = 1;
-		    if(ncdap3debug > 1) fprintf(stderr,"match: %s\n",var->ncfullname);
-		    break;
-		}
-	    }
-	    if(match) break;
-	}
-	if(match) {
-	    /* Since our goal is to hoist all the vars in a compound type or none,*/
-            /* match => we have a collision, so restore the path name of the vars*/
-	    /* to include their container*/
-	    subcontainer->elided = 0;
-	    makevarnames(nccomm,vars);
-	}
-	/* Add the subcontainer vars to our list of uniquely named vars*/
-        for(i=0;i<nclistlength(vars);i++) {
-	    CDFnode* var = (CDFnode*)nclistget(vars,i);
-	    nclistpush(unique,(ncelem)var);
-	}
-	nclistfree(vars);
-    }
-    nclistfree(containers);
-    return unique;
-}
-#endif
-
-#ifdef UNUSED
-static void
-makevarnames(NCDAPCOMMON* nccomm, NClist* vars)
-{
-    int i;
-    for(i=0;i<nclistlength(vars);i++) {
-	CDFnode* var = (CDFnode*)nclistget(vars,i);
-	nullfree(var->ncfullname);
-        var->ncfullname = makecdfpathstring3(var,nccomm->cdf.separator);
-if(var==v4node && var->ncfullname[0] != 'Q')dappanic("");
-	if(ncdap3debug > 1)
-	    fprintf(stderr,"makevarname: %s->ncfullname=%s\n",var->name,var->ncfullname);
-    }
-}
-#endif
 
 /* locate and connect usable sequences and vars.
 A sequence is usable iff:
@@ -634,56 +523,6 @@ regridremove(CDFnode* newgrid, CDFnode* node)
     return NC_EINVAL;
 }    
 
-#ifdef IGNORE
-static void
-regridclean3(NClist* nodes, struct NCregrid* gridnodes)
-{
-    int i;
-    NCregrid* ncregrid;
-
-    for(i=0;i<nclistlength(nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(nodes,i);
-        /* See if this node is a newgrid */
-        ncregrid = gridnodes;
-        while(ncregrid->newgrid != NULL && ncregrid->newgrid != node) ncregrid++;
-        if(ncregrid->newgrid == node) continue; /* no need to process this */
-        for(i=nclistlength(node->subnodes)-1;i>=0;i--) { /* walk backwards */
-	    CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
-	    /* Remove any subnodes of this node that now point to a regrid node */
-	    ncregrid = gridnodes;
-	    while(ncregrid->newgrid != NULL && ncregrid->newgrid != subnode) ncregrid++;
-	    /* Found, remove from this list */
-	    if(ncregrid->newgrid != NULL) nclistremove(node->subnodes,i);
-	}
-    }
-}
-#endif
-
-#ifdef IGNORE
-/*
-Given a node in some constrained
-DDS or DATADDS tree,
-return the equivalent node from the
-unconstrained DDS tree.
-*/
-
-CDFnode*
-findddsnode0(CDFnode* node)
-{
-    if(!node->root->tree->constrained)
-	return node; /* node is already
-		        from unconstrained tree */
-    if(node->attachment0 == NULL
-       && node->attachment != NULL)
-	node = node->attachment; /* DATADDS node -> DDS node */
-
-    if(node->attachment0 == NULL)
-	return NULL; /* cannot reach the unconstrained tree */
-
-    return node->attachment0;
-}
-#endif
-
 /**
 
 Make the constrained dds nodes (root)
@@ -753,28 +592,6 @@ mapfcn(CDFnode* dstnode, CDFnode* srcnode)
     /* Mark node as having been mapped */
     dstnode->visible = 1;
     dstnode->basenode = srcnode;
-#ifdef IGNORE
-    /* Do dimension imprinting */
-    ASSERT((nclistlength(dstnode->array.dimsetplus) == nclistlength(srcnode->array.dimsetplus)));
-#ifdef DEBUG
-fprintf(stderr,"mapfcn: %s(%d)\n",
-	makecdfpathstring3(srcnode,"."),
-	nclistlength(srcnode->array.dimsetplus));
-#endif
-    if(nclistlength(dstnode->array.dimset0) > 0) {
-        unsigned int i;
-        for(i=0;i<nclistlength(dstnode->array.dimset0);i++) {
-	    CDFnode* ddim = (CDFnode*)nclistget(dstnode->array.dimset0,i);
-	    CDFnode* sdim = (CDFnode*)nclistget(srcnode->array.dimset0,i);
-	    ddim->basenode = sdim;
-	    ddim->visible = 1;
-	    ddim->dim.declsize0 = sdim->dim.declsize;	
-#ifdef DEBUG
-fprintf(stderr,"mapfcn: %d: %lu -> %lu\n",i,sdim->dim.declsize,ddim->dim.declsize0);
-#endif
-        }
-    }
-#endif /*IGNORE*/
     return NC_NOERR;
 }
 
@@ -831,26 +648,6 @@ fprintf(stderr,"dimimprint: %d: %lu -> %lu\n",i,basedim->dim.declsize,dim->dim.d
     }
     return ncstat;
 }
-
-#ifdef IGNORE
-void
-setvisible(CDFnode* root, int visible)
-{
-    unsigned int i;
-    CDFtree* tree = root->tree;
-    for(i=0;i<nclistlength(tree->nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(tree->nodes,i);
-	node->visible = visible;
-    }
-}
-
-NCerror
-imprintself3(CDFnode* root)
-{
-    setvisible(root,1);
-    return NC_NOERR;
-}
-#endif
 
 static CDFnode*
 clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)

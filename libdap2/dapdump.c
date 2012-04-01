@@ -349,20 +349,6 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
     default: break;    
     }
 
-#ifdef IGNORE
-    if(root->nctype == NC_Sequence && root->array.seqdim != NULL) {
-        CDFnode* dim = root->array.seqdim;
-	char tmp[64];
-	ncbytescat(buf,"[");
-	if(dim->ncbasename != NULL) {
-	    ncbytescat(buf,dim->ncbasename);
-	    ncbytescat(buf,"=");
-	}
-	snprintf(tmp,sizeof(tmp),"%lu",(unsigned long)dim->dim.declsize);
-	ncbytescat(buf,tmp);
-	ncbytescat(buf,"]");
-    } else
-#endif
     if(nclistlength(root->array.dimsetplus) > 0) dimset = root->array.dimsetplus;
     else if(nclistlength(root->array.dimset0) > 0) dimset = root->array.dimset0;
     if(dimset != NULL) {
@@ -489,11 +475,6 @@ dumpnode(CDFnode* node)
 	snprintf(tmp,sizeof(tmp),"    declsize=%lu\n",
 		    (unsigned long)dim->dim.declsize);
         ncbytescat(buf,tmp);
-#ifdef IGNORE
-	snprintf(tmp,sizeof(tmp),"    declsize0=%lu\n",
-		    (unsigned long)dim->dim.declsize0);
-        ncbytescat(buf,tmp);
-#endif
         snprintf(tmp,sizeof(tmp),"    }\n");
         ncbytescat(buf,tmp);
     }

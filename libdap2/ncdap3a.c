@@ -61,31 +61,6 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
     return NC_NOERR;
 }
 
-#ifdef IGNORE
-I think this dups a procedure in common34
-/* Given a path, collect the set of dimensions along that path */
-static void
-collectdims3(NClist* path, NClist* dimset)
-{
-    int i,j;
-    nclistclear(dimset);
-    for(i=0;i<nclistlength(path);i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	if(node->nctype == NC_Sequence) {
-	    CDFnode* sqdim = (CDFnode*)nclistget(node->array.dimensions,0);
-	    if(DIMFLAG(sqdim,CDFDIMUNLIM))
-		nclistclear(dimset); /* unlimited is always first */
-        }
-	for(j=0;j<nclistlength(node->array.dimensions);j++) {
-	    CDFnode* dim = (CDFnode*)nclistget(node->array.dimensions,j);
-	    nclistpush(dimset,(ncelem)dim);
-	}
-	if(node->array.stringdim != NULL) 
-	    nclistpush(dimset,(ncelem)node->array.stringdim);
-    }
-}
-#endif
-
 NCerror
 addstringdims(NCDAPCOMMON* dapcomm)
 {
@@ -172,28 +147,6 @@ defrecorddim3(NCDAPCOMMON* dapcomm)
 	dapcomm->cdf.recorddim = dim;
 	break;
     }
-
-#ifdef IGNORE
-Can never happen?
-    /* Now, locate all the string dims and see if they are the record dim,
-       then replace */
-    if(dapcomm->cdf.unlimited != NULL) {
-	CDFnode* unlim = dapcomm->cdf.unlimited;
-        for(i=0;i<nclistlength(dapcomm->cdf.varnodes);i++) {
-            CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.varnodes,i);
-	    CDFnode* sdim = var->array.stringdim;
-            if(sdim == NULL) continue;
-	    if(strcmp(sdim->ncfullname,unlim->ncfullname)==0
-	       && sdim->dim.declsize == unlim->dim.declsize) {
-	        var->array.stringdim = unlim;
-	        nclistpop(var->array.dimsetplus);
-	        nclistpush(var->array.dimsetplus,(ncelem)dapcomm->cdf.unlimited);
-	        nclistpop(var->array.dimsetall);
-	        nclistpush(var->array.dimsetall,(ncelem)dapcomm->cdf.unlimited);
-	    }
-	}
-    }
-#endif
 
     return ncstat;
 }
@@ -337,9 +290,6 @@ makeseqdim(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t count, CDFnode** sqdimp)
     sqdim->dim.declsize = count;
     sqdim->dim.declsize0 = count;
     sqdim->dim.array = seq;
-#ifdef IGNORE
-    sqdim->dim.index1 = 1;    
-#endif
     if(sqdimp) *sqdimp = sqdim;
     return NC_NOERR;
 }
@@ -459,37 +409,6 @@ showprojection3(NCDAPCOMMON* dapcomm, CDFnode* var)
     return ncstat;
 }
 
-#ifdef IGNORE
-NCerror
-detachdatadds3(NCDAPCOMMON* dapcomm)
-{
-    int i;
-    for(i=0;i<nclistlength(dapcomm->cdf.dds->tree.nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(dapcomm->cdf.dds->tree.nodes,i);
-	node->active = 0;
-	node->dim.datasize = node->dim.declsize;
-   }
-   return NC_NOERR;
-}
-
-NCerror
-attachdatadds3(NCDAPCOMMON* dapcomm)
-{
-    int i;
-    NClist* cdfnodes = dapcomm->cdf.dds->tree.nodes;
-    for(i=0;i<nclistlength(cdfnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
-	OCobject dds = node->dds;
-	if(dds == OCNULL) continue;
-	node->active = oc_datadds_active(dapcomm->oc.conn,dds);
-	if(node->nctype == NC_Dimension) {
-	    oc_datadds_dimsize(dapcomm->oc.conn,node->dds,&node->dim.datasize);
-	}
-    }
-    return NC_NOERR;
-}
-#endif
-
 /*
 This is more complex than one might think. We want to find
 a path to a variable inside the given node so that we can
@@ -513,24 +432,9 @@ computeseqcountconstraints3(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcoun
 
     ASSERT((var != NULL));
 
-#ifdef IGNORE
-    /* collect seq path prefix */
-    prefix = makecdfpathstring3(seq->container,".");
-    ncbytescat(seqcountconstraints,prefix);
-    if(strlen(prefix) > 0) ncbytescat(seqcountconstraints,".");
-#endif
-
     /* Compute var path */
     path = nclistnew();
     collectnodepath3(var,path,WITHOUTDATASET);
-#ifdef IGNORE
-    while(nclistlength(path) > 0) {
-	CDFnode* node = (CDFnode*)nclistget(path,0);
-	if(node == seq) break;
-	nclistremove(path,0);
-    }
-    ASSERT((nclistlength(path) > 0));
-#endif
 
     /* construct the projection path using minimal index values */
     for(i=0;i<nclistlength(path);i++) {
@@ -637,94 +541,6 @@ computeseqcountconstraints3r(NCDAPCOMMON* dapcomm, CDFnode* node, CDFnode** cand
 }
 
 
-#ifdef IGNORE
-/* computeseqcountconstraints3 recursive helper function */
-static NCerror
-computeseqcountconstraints3r(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcountconstraints)
-{
-    NClist* path = nclistnew();
-    CDFnode* var;
-    CDFnode* candidate;
-    unsigned int i,j,ndims;
-    char* prefix;
-
-    nclistpush(path,(ncelem)seq);
-    /* Locate a variable that is inside this sequence */
-    /* Preferably one that is a numeric type and if possible, scalar */
-    for(candidate=NULL,var=NULL,i=0;i<nclistlength(dapcomm->cdf.varnodes);i++){
-        CDFnode* node = (CDFnode*)nclistget(dapcomm->cdf.varnodes,i);
-	if(node->array.sequence == seq) {
-	    if(node->nctype == NC_Primitive) {
-		switch(node->etype) {
-		case NC_BYTE: case NC_SHORT: case NC_INT:
-		case NC_FLOAT: case NC_DOUBLE:
-		case NC_UBYTE: case NC_USHORT: case NC_UINT:
-		case NC_INT64: case NC_UINT64:
-		    if(var == NULL) {
-			var = node; /* good choice */
-		    }
-		    break;
-		case NC_CHAR: case NC_STRING:
-		default:
-		    candidate = node; /* usable */
-		    break;
-		}
-	    }
-	}
-    }
-    if(var == NULL && candidate != NULL) var = candidate;
-    else if(var == NULL) return THROW(NC_EINVAL);
-
-    /* collect seq path prefix */
-    prefix = makecdfpathstring3(seq->container,".");
-    ncbytescat(seqcountconstraints,prefix);
-    if(strlen(prefix) > 0) ncbytescat(seqcountconstraints,".");
-
-    /* Compute a short path from the var back to and including
-       the sequence
-    */
-    collectnodepath3(var,path,WITHOUTDATASET);
-    while(nclistlength(path) > 0) {
-	CDFnode* node = (CDFnode*)nclistget(path,0);
-	if(node == seq) break;
-	nclistremove(path,0);
-    }
-    ASSERT((nclistlength(path) > 0));
-
-    /* construct the projection path using minimal index values */
-    for(i=0;i<nclistlength(path);i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	if(i > 0) ncbytescat(seqcountconstraints,".");
-	ncbytescat(seqcountconstraints,node->ocname);
-	if(node == seq) {
-	    /* Use the limit */
-	    if(node->sequencelimit > 0) {
-		char tmp[64];
-		snprintf(tmp,sizeof(tmp),"[0:%lu]",
-		         (unsigned long)(node->sequencelimit - 1));
-		ncbytescat(seqcountconstraints,tmp);
-	    }
-	} else if(nclistlength(node->array.dimset0) > 0) {
-	    ndims = nclistlength(node->array.dimset0);
-	    for(j=0;j<ndims;j++) {
-		CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,j);
-		if(DIMFLAG(dim,CDFDIMSTRING)) {
-		    ASSERT((j == (ndims - 1)));
-		    break;
-		}
-		ncbytescat(seqcountconstraints,"[0]");
-	    }
-	}
-    }
-    nclistfree(path);
-    /* Finally, add in any selection from the original URL */
-    if(dapcomm->oc.url->selection != NULL)
-        ncbytescat(seqcountconstraints,dapcomm->oc.url->selection);
-    nullfree(prefix);
-    return NC_NOERR;
-}
-#endif
-
 static unsigned long
 cdftotalsize3(NClist* dimensions)
 {
@@ -828,12 +644,6 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     dapcomm->cdf.fullddsroot = ddsroot;
 
-#ifdef NOTUSED
-    /* Combine DDS and DAS */
-    ncstat = dapmerge3(dapcomm,ddsroot,dapcomm->oc.ocdasroot);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-#endif
-
 done:
     nullfree(ce);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
@@ -854,13 +664,6 @@ fetchconstrainedmetadata3(NCDAPCOMMON* dapcomm)
     else
         ce = buildconstraintstring3(dapcomm->oc.dapconstraint);
 
-#ifdef NOTUSED
-    if(ce == NULL || strlen(ce) == 0) {
-	/* no need to get the dds again; just imprint on self */
-        ncstat = imprintself3(dapcomm->cdf.ddsroot);
-        if(ncstat) goto fail;
-    } else
-#endif
     {
         ocstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
         if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}

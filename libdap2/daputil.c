@@ -47,17 +47,6 @@ nc__testurl(const char* path, char** basenamep)
 
 /**************************************************/
 
-#ifdef UNUSED
-static char cvtchars1[] = "0123456789 !#$%&'()*,:;<=>?[\\]^`{|}~\"\\";
-
-static char hexchars[16] = {
-'0', '1', '2', '3',
-'4', '5', '6', '7',
-'8', '9', 'a', 'b',
-'c', 'd', 'e', 'f',
-};
-#endif
-
 /*
 Given a legal dap name with arbitrary characters,
 convert to equivalent legal cdf name
@@ -68,74 +57,8 @@ does nothing.
 char*
 cdflegalname3(char* dapname)
 {
-#ifndef IGNORE
     return nulldup(dapname);
-#else
-    int c;
-    char* newname;
-    char* cvtchars;
-    NCbytes* buf;
-    if(dapname == NULL) return NULL;
-    buf = ncbytesnew();
-    cvtchars = cvtchars1;
-    while((c=*dapname++)) {
-	if(c < 127 && strchr(cvtchars,c) != NULL) {
-	    ncbytesappend(buf,'\\');
-	    ncbytesappend(buf,c);
-	} else if(c < ' ' || c >= 127) {/* non-printable */
-	    char tmp[8];
-	    int hex1, hex2;
-	    hex1 = (c & 0x0F);
-	    hex2 = (c & 0xF0) >> 4;
-	    tmp[0] = '\\';
-	    tmp[1] = 'x';
-	    tmp[2] = hexchars[hex2];
-            tmp[3] = hexchars[hex1];
-	    tmp[4] = '\0';	    
-	    ncbytescat(buf,tmp);
-	} else
-	    ncbytesappend(buf,c);
-        cvtchars = cvtcharsn; /* for non-first tests*/
-    }
-    newname = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return newname;
-#endif
 }
-
-#ifdef IGNORE
-/* Convert a string, s0, to replace some characters with %XX */
-char*
-urlescape(char* s0)
-{
-    int c;
-    unsigned int slen;
-    char* newname;
-    char* p;
-    char* q;
-    static char urlescapes[] = " %&/:;,=?@'\"<>{}|\\^[]`";
-
-
-    if(s0 == NULL) return NULL;
-    slen = strlen(s0);
-    newname = (char*)emalloc(1+(slen*3)); /* if every char goes to %XX */
-    p = s0;
-    q = newname;
-    while((c=*p++)) {
-	if(c < ' ' || c >= 127 || strchr(urlescapes,c) != NULL) {
-	    int hex1, hex2;
-	    hex1 = (c & 0x0F);
-	    hex2 = (c & 0xF0) >> 4;
-	    *q++ = '%';
-	    *q++ = hexchars[hex2];
-            *q++ = hexchars[hex1];
-	} else
-	    *q++ = c;
-    }
-    *q = '\0';
-    return newname;
-}
-#endif
 
 /* Define the type conversion of the DAP variables
    to the external netCDF variable type.
@@ -296,57 +219,6 @@ nctypetostring(nc_type nctype)
     return NULL;
 }
 
-#ifdef IGNORE
-/* 
-Assuming node is in the dds or datadds space,
-move to the corresponding node in dds0 space
-(guaranteed to exist) and collect the set of
-the node plus all container nodesin depth first order.
-*/
-void
-collectnode0path3(CDFnode* node, NClist* path, int withdataset)
-{
-    /* Move to dds0 space */
-    if(node->attachment0 == NULL && node->attachment != NULL)
-	node = node->attachment;
-    if(node->attachment0 != NULL)
-	node = node->attachment0;
-
-    collectnodepath3(node,path,withdataset);
-}
-#endif
-
-#ifdef IGNORE
-/* Compute the 1+deepest occurrence of a sequence in the path*/
-int
-dividepoint(NClist* path)
-{
-    /* find divide point*/
-    int i,len = nclistlength(path);
-    int divide = 0; /* to indicate not found*/
-    for(i=0;i<len;i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	if(node->nctype == NC_Sequence) divide = i+1;
-    }
-    return divide;
-}
-
-/* Divide the set into two parts, those before and including the*/
-/* innermost sequence and those below that point*/
-void
-dividepath(NClist* path, NClist* prefix)
-{
-    int i,divide;
-    divide = dividepoint(path);
-    if(divide > 0) { /* move the prefix part if divide >= 0*/
-	for(i=0;i<=divide;i++) {
-	    ncelem node = nclistget(path,0);
-	    nclistpush(prefix,node);
-	    nclistremove(path,0);
-	}
-    }
-}
-#endif
 
 /* Pad a buffer */
 int
@@ -577,81 +449,6 @@ makecdfpathstring3(CDFnode* var, const char* separator)
     return spath;
 }
 
-#ifdef IGNORE
-/* Like makecdfpathstring, but using node->ncbasename. */
-char*
-makesimplepathstring3(CDFnode* var)
-{
-    int slen,i,len,first;
-    char* pathname;
-    NClist* path = nclistnew();
-
-    collectnodepath3(var,path,!WITHDATASET);
-    len = nclistlength(path);
-    if(len == 0) {pathname = nulldup(""); goto done;} /* Dataset only */
-    for(slen=0,i=0;i<len;i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	slen += (node->ncbasename?strlen(node->ncbasename):0);
-    }
-    slen += (len-1); /* for 1-char separators */
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
-    for(first=1,i=0;i<len;i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	char* name = node->ncbasename;
-	if(!first) strcat(pathname,".");
-        strcat(pathname,name?name:"null");
-	first = 0;
-    }
-done:
-    nclistfree(path);
-    return pathname;
-}
-
-/* Make path string in oc space */
-char*
-makeocpathstring3(OCconnection conn, OCobject var, const char* separator)
-{
-    char* pathname = NULL;
-    NClist* path = nclistnew();
-    size_t slen;
-    unsigned long len;
-    char* name;
-    unsigned int i,first;
-
-    if(var == OCNULL) return NULL;
-    collectocpath(conn,var,path);
-    len = nclistlength(path);
-    assert(len > 0); /* var at least */
-    for(slen=0,i=0;i<len;i++) {
-	OCobject o = (OCobject)nclistget(path,i);
-	oc_inq_name(conn,o,&name);
-	if(name == NULL) name = nulldup("");
-	slen += strlen(name);
-	nullfree(name);
-    }
-    slen += ((len-1)); /* for 1-char separators */
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
-    for(first=1,i=0;i<len;i++) {
-	OCobject o = (OCobject)nclistget(path,i);
-	oc_inq_name(conn,o,&name);
-	if(name == NULL) name = nulldup("");
-	if(!first) strcat(pathname,separator);
-        strcat(pathname,name);
-	nullfree(name);
-	first = 0;
-    }
-
-    nclistfree(path);
-    return pathname;
-}
-#endif /*IGNORE*/
-
 /* Collect the set names of container nodes ending in "container"*/
 void
 clonenodenamepath3(CDFnode* node, NClist* path, int withdataset)
@@ -686,38 +483,6 @@ simplepathstring3(NClist* names,  char* separator)
     }
     return result;
 }
-
-#ifdef IGNORE
-/* DO NOT FREE RESULT STRING */
-char*
-getvaraprint(void* arg)
-{
-    int i;
-    static NCbytes* line = NULL;    
-    char tmp[64];
-    Getvara* gv;
-
-    if(line == NULL) line = ncbytesnew();
-    gv = (Getvara*)arg;
-    ncbytescat(line,gv->target->name);
-    if(gv->walk != NULL) {
-        for(i=0;i<nclistlength(gv->walk->segments);i++) {
-	    NCsegment* segment = (NCsegment*)nclistget(gv->walk->segments,i);
-            ncbytescat(line,segment->segment);
-	    if(segment->slicerank == 0)
-	        ncbytescat(line,"[]");
-	    else {
-	        sprintf(tmp,"[%lu:%lu:%lu]",
-		    (unsigned long)segment->slices[i].first,
-		    (unsigned long)segment->slices[i].stride,
-		    (unsigned long)segment->slices[i].length);
-	        ncbytescat(line,tmp);
-	    }
-	}
-    }
-    return ncbytescontents(line);
-}
-#endif
 
 /* Define a number of location tests */
 
@@ -787,108 +552,6 @@ daptoplevel(CDFnode* node)
        || node->container->nctype != NC_Dataset) return FALSE;
     return TRUE;
 }
-
-#ifdef IGNORE
-/*
-Client parameters are assumed to be
-one or more instances of bracketed pairs:
-e.g "[...][...]...".
-The bracket content in turn is assumed to be a
-comma separated list of <name>=<value> pairs.
-e.g. x=y,z=,a=b.
-If the same parameter is specifed more than once,
-then the first occurrence is used; this is so that
-is possible to forcibly override user specified
-parameters by prefixing.
-IMPORTANT: client parameter string is assumed to
-have blanks compress out.
-*/
-
-NClist*
-dapparamdecode(char* params0)
-{
-    char* cp;
-    char* cq;
-    int c;
-    int i;
-    int nparams;
-    NClist* plist = nclistnew();
-    char* params;
-    char* params1;
-
-    if(params0 == NULL) return plist;
-
-    /* Kill the leading "[" and trailing "]" */
-    if(params0[0] == '[')
-      params = nulldup(params0+1);
-    else
-      params = nulldup(params0);
-
-    params[strlen(params)-1] = '\0';
-
-    params1 = nulldup(params);
-
-    /* Pass 1 to replace "][" pairs with ','*/
-    cp=params; cq = params1;
-    while((c=*cp++)) {
-	if(c == RBRACKET && *cp == LBRACKET) {cp++; c = ',';}
-	*cq++ = c;
-    }
-    *cq = '\0';
-    free(params);
-    params = params1;
-
-    /* Pass 2 to break string into pieces and count # of pairs */
-    nparams=0;
-    for(cp=params;(c=*cp);cp++) {
-	if(c == ',') {*cp = '\0'; nparams++;}
-    }
-    nparams++; /* for last one */
-
-    /* Pass 3 to break up each pass into a (name,value) pair*/
-    /* and insert into the param list */
-    /* parameters of the form name name= are converted to name=""*/
-    cp = params;
-    for(i=0;i<nparams;i++) {
-	char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
-	char* vp;
-	/*break up the ith param*/
-	vp = strchr(cp,'=');
-	if(vp != NULL) {*vp = '\0'; vp++;} else {vp = "";}
-	if(!nclistcontains(plist,(ncelem)cp)) {
-   	    nclistpush(plist,(ncelem)nulldup(cp));
-	    nclistpush(plist,(ncelem)nulldup(vp));
-	}
-	cp = next;
-    }
-    free(params);
-    return plist;
-}
-
-const char*
-dapparamlookup(NClist* params, const char* clientparam)
-{
-    int i;
-    if(params == NULL || clientparam == NULL) return NULL;
-    for(i=0;i<nclistlength(params);i+=2) {
-	char* name = (char*)nclistget(params,i);
-	if(strcmp(clientparam,name)==0)
-	    return (char*)nclistget(params,i+1);
-    }
-    return NULL;
-}
-
-void
-dapparamfree(NClist* params)
-{
-    int i;
-    if(params == NULL) return;
-    for(i=0;i<nclistlength(params);i++) {
-	nullfree((void*)nclistget(params,i));
-    }
-    nclistfree(params);
-}
-#endif
 
 unsigned int
 modeldecode(int translation, const char* smodel,

@@ -13,50 +13,6 @@ static NCerror buildattribute(char*,nc_type,NClist*,NCattribute**);
 static int mergedas1(NCDAPCOMMON*, OCconnection, CDFnode* dds, OCobject das);
 static int isglobalname3(char* name);
 
-#ifdef IGNORE
-/* Extract attributes from the underlying oc objects
-   and rematerialize them with the CDFnodes.
-*/
-
-NCerror
-dapmerge3(NCDAPCOMMON* nccomm, CDFnode* node)
-{
-    unsigned int i;
-    char* aname;
-    unsigned int nvalues,nattrs;
-    void* values;
-    OCtype atype;
-    OCerror ocstat = OC_NOERR;
-    NCerror ncstat = NC_NOERR;
-    NCattribute* att;
-
-    if(node->dds == OCNULL) goto done;
-    OCHECK(oc_inq_nattr(nccomm->conn,node->dds,&nattrs));
-    if(nattrs == 0) goto done;
-    if(node->attributes == NULL) node->attributes = nclistnew();
-    for(i=0;i<nattrs;i++) {
-	ocstat = oc_inq_attr(nccomm->conn,node->dds,i,
-			           &aname,
-			           &atype,
-                                   &nvalues,
-                                   &values);
-	if(ocstat != OC_NOERR) continue; /* ignore */
-        if(aname == NULL || nvalues == 0 || values == NULL)
-	    continue; /* nothing to do */
-	ncstat = buildattribute(aname,octypetonc(atype),
-				      nvalues,values,&att);
-	if(ncstat == NC_NOERR)
-            nclistpush(node->attributes,(ncelem)att);
-	nullfree(aname);
-	oc_attr_reclaim(atype,nvalues,values);
-    }
-done:
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    return THROW(ncstat);
-}
-
-#endif
-
 static NCerror
 buildattribute(char* name, nc_type ptype,
                NClist* values, NCattribute** attp)
@@ -75,36 +31,6 @@ buildattribute(char* name, nc_type ptype,
 
     return THROW(ncstat);
 }
-
-#ifdef IGNORE
-static NCerror
-cvttype(nc_type etype, char** srcp, char** dstp)
-{
-    unsigned int typesize = nctypesizeof(etype);
-    char* src = *srcp;
-    char* dst = *dstp;
-
-    switch (etype) {
-    case NC_STRING: case NC_URL: {
-	char* ssrc = *(char**)src;	
-	*((char**)dst) = nulldup(ssrc);
-	srcp += typesize;
-	dstp += typesize;
-    } break;
-    
-    default:
-	if(typesize == 0) goto fail;
-	memcpy((void*)dst,(void*)src,typesize);
-	srcp += typesize;
-	dstp += typesize;
-	break;
-    }
-    return NC_NOERR;
-fail:
-    nclog(NCLOGERR,"cvttype bad value: %s",oc_typetostring(etype));
-    return NC_EINVAL;
-}
-#endif
 
 /*
 Given a das attribute walk it to see if it
@@ -399,46 +325,6 @@ done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
-
-#ifdef IGNORE
-static NCerror
-dodsextra3(NCDAPCOMMON* nccomm, NCattribute* att)
-{
-    int i,j;
-    OCtype octype;
-    NCerror ncstat = NC_NOERR;
-    OCerror ocstat = OC_NOERR;
-
-    for(i=0;i<nclistlength(dodsextra);i++) {
- 	OCobject das = (OCobject)nclistget(dodsextra,i);
-	unsigned int ndodsnodes;
-	OCobject* dodsnodes = NULL;
-        OCHECK(oc_inq_class(conn,das,&octype));
-	if(octype != OC_Attributeset) continue;
-	/* Get the attributes within the DODS_EXTRA */
-        OCHECK(oc_inq_nsubnodes(conn,das,&ndodsnodes));
-        OCHECK(oc_inq_subnodes(conn,das,&dodsnodes));
-        for(j=0;j<ndodsnodes;j++) {
-	    OCobject extranode = dodsnodes[j];
-   	    char* dodsname = NULL;
-	    char* stringval;
-	    unsigned int ocnvalues;
-	    OCHECK(oc_inq_class(conn,extranode,&octype));
-	    if(octype != OC_Attribute) continue;
-	    OCHECK(oc_inq_name(conn,extranode,&dodsname));
-	    OCHECK(oc_inq_dasattr_nvalues(conn,extranode,&ocnvalues));
-	    if(strcmp(dodsname,"Unlimited_Dimension")==0 && ocnvalues > 0) {
-	        OCHECK(oc_inq_dasattr(conn,extranode,0,NULL,&stringval));
-		nccomm->cdf.recorddimname = stringval;
-	    }
-	    nullfree(dodsname);
-	}
-	nullfree(dodsnodes);
-    }
-done:
-    return ncstat;
-}
-#endif
 
 static int
 isglobalname3(char* name)

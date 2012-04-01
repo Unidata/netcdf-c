@@ -46,19 +46,6 @@ nc3dinitialize(void)
 }
 
 /**************************************************/
-#ifdef NOTUSED
-int
-NCD3_new_nc(NC** ncpp)
-{
-    NCDAPCOMMON* ncp;
-    /* Allocate memory for this info. */
-    if (!(ncp = calloc(1, sizeof(struct NCDAP3)))) 
-       return NC_ENOMEM;
-    if(ncpp) *ncpp = (NC*)ncp;
-    return NC_NOERR;
-}
-#endif
-/**************************************************/
 
 /* See ncd3dispatch.c for other version */
 int

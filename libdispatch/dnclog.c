@@ -122,30 +122,6 @@ nclog(int tag, const char* fmt, ...)
     fflush(nclogstream);
 }
 
-#ifdef IGNORE
-void
-nclogtext(int tag, const char* text)
-{
-    char line[1024];
-    size_t delta = 0;
-    const char* eol = text;
-
-    if(!nclogging || nclogstream == NULL) return;
-
-    while(*text) {
-	eol = strchr(text,'\n');
-	if(eol == NULL)
-	    delta = strlen(text);
-	else
-	    delta = (eol - text);
-	if(delta > 0) memcpy(line,text,delta);
-	line[delta] = '\0';
-	fprintf(nclogstream,"        %s\n",line);
-	text = eol+1;
-    }
-}
-#endif
-
 void
 nclogtext(int tag, const char* text)
 {

@@ -246,19 +246,6 @@ typedef struct Typealignset {
     Alignment ncvlenalign;	/* nc_vlen_t*/
 } Typealignset;
 
-#ifdef IGNORE
-static char* Ctypenames[NCTYPES] = {
-(char*)NULL,
-"char","unsigned char",
-"short","unsigned short",
-"int","unsigned int",
-"long","unsigned long",
-"long long","unsigned long long",
-"float","double",
-"void*","nc_vlen_t"
-};
-#endif
-
 static Typealignvec vec[NCTYPES];
 static Typealignset set;
 
