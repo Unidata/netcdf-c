@@ -252,16 +252,21 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		    return NC_EVARSIZE;
 		}
 #endif
-		ncp->recsize += (*vpp)->len;
+		if((*vpp)->len != UINT32_MAX) /* flag for vars >= 2**32 bytes */
+		    ncp->recsize += (*vpp)->len;
 		last = (*vpp);
 	}
 
 	/*
-	 * for special case of exactly one record variable, pack value
+	 * for special case of 
 	 */
-	if(last != NULL && ncp->recsize == last->len)
+	if(last != NULL) {
+	    if(ncp->recsize == last->len) { /* exactly one record variable, pack value */
 		ncp->recsize = *last->dsizes * last->xsz;
-
+	    } else if(last->len == UINT32_MAX) { /* huge last record variable */
+		ncp->recsize += *last->dsizes * last->xsz;
+	    }
+	}
 	if(NC_IsNew(ncp))
 		NC_set_numrecs(ncp, 0);
 	return NC_NOERR;
