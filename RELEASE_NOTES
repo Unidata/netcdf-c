@@ -5,6 +5,11 @@ VERSION         COMMENTS
 -------         --------
 4.3		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
 
+		Fixed bug in 64-bit offset files with large records
+		due to last record variable requiring more than 2**32
+		bytes per record.
+		[NCF-164]
+
 		Implemented diskless files for both netcdf classic format
                 and extended (netcdf-4) format.
 		[NCF-110][NCF-109][NCF-5]
