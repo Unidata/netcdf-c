@@ -650,26 +650,6 @@ wholeslicepoint(Dapodometer* odom)
     return point;
 }
 
-#ifdef UNUSED
-static int
-samevarinfo(Getvara* v1, Getvara* v2)
-{
-    unsigned int i;
-    NCCslice *s1, *s2;
-    if(v1 == NULL || v2 == NULL) return 0;
-    if(v1->target != v2->target) return 0;
-    if(v1->nslices != v2->nslices) return 0;
-    s1 = v1->slices;
-    s2 = v2->slices;
-    for(i=0;i<v1->nslices;i++) {
-        if(s1->first != s2->first) return 0;
-        if(s1->count != s2->count) return 0;
-    }
-    return 1;
-}
-#endif
-
-
 static int
 findfield(CDFnode* node, CDFnode* field)
 {
@@ -1030,51 +1010,6 @@ done:
 }
 
 
-#ifdef IGNORE
-/* We are at a primitive variable or scalar, without a string dimension; extract the data */
-/* This is way too complicated */
-static int
-extractstring(
-	NCDAPCOMMON* nccomm,
-	Getvara* xgetvar,
-	CDFnode* xnode,
-        DCEsegment* segment,
-        OClink conn,
-        OCdata currentcontent,
-	struct NCMEMORY* memory
-       )
-{
-    NCerror ncstat = NC_NOERR;
-    size_t rank;
-    DCEslice* stringslice;
-    CDFnode* strdim;
-
-    rank = segment->rank;
-
-    if(rank == 0) {/* scalar */
-        ASSERT((segment != NULL));
-        /* Get the string dimension */
-        strdim = xnode->attachment->array.stringdim;
-        ASSERT((strdim != NULL));
-        stringslice = &segment->slices[segment->rank-1];
-        ncstat = slicestring(conn,currentcontent,0,stringslice,memory);
-    } else { /* rank > 0 */
-	if(xgetvar->cache->wholevariable) {
-            /* Get the string dimension */
-	    stringslice = &segment->slices[rank-1];
-            strdim = xnode->attachment->array.stringdim;
-            ASSERT((strdim != NULL));
-        } else { /*!xgetvar->cache->wholevariable*/
-            /* Get the string dimension */
-            stringslice = &segment->slices[rank-1];
-            strdim = xnode->attachment->array.stringdim;
-            ASSERT((strdim != NULL));
-        }
-   }
-   return THROW(ncstat);
-}
-#endif
-
 static NCerror
 slicestring(OCconnection conn, char* stringmem, DCEslice* slice, struct NCMEMORY* memory)
 {
@@ -1110,18 +1045,6 @@ slice->first,slice->stride,slice->stop,slice->declsize);
     lastchar = (memory->next);
     if(charcount > 0) {
         lastchar--;
-#ifdef IGNORE
-/* I think we cannot do this because
-   memory may not have made room for
-   a trailing null.
-*/
-	/* See if already null terminated */
-	if(*lastchar != '\0') {
-            /* null terminate (should we do this?) */
-	    *memory->next = '\0';
-	    memory->next++;
-	}
-#endif
     }
 
     return THROW(ncstat);

@@ -83,33 +83,13 @@ struct NCsegment;
 
 
 /**************************************************/
-/* The NCDAP3 structure is an extension of the NC structure (libsrc/nc.h) */
-
-#ifdef NOTUSED
-typedef struct NCDAP3 {
-    NC nc; /* Used to store meta-data */
-    NCDAPCOMMON dap;
-} NCDAP3;
-#endif
-
-/**************************************************/
 
 extern struct NCTMODEL nctmodels[];
 
 /**************************************************/
 /* Import some internal procedures from libsrc*/
 
-#ifdef IGNORE
-extern void drno_add_to_NCList(struct NC *ncp);
-extern void drno_del_from_NCList(struct NC *ncp);
-extern void drno_free_NC(struct NC *ncp);
-extern struct NC* drno_new_NC(const size_t *chunkp);
-extern void drno_set_numrecs(NC* ncp, size_t size);
-extern size_t drno_get_numrecs(NC* ncp);
-extern int drno_ncio_open(NC* ncp, const char* path, int mode);
-#endif
-
- /* Internal, but non-static procedures */
+/* Internal, but non-static procedures */
 extern NCerror computecdfvarnames3(NCDAPCOMMON*,CDFnode*,NClist*);
 extern NCerror computecdfnodesets3(NCDAPCOMMON* drno);
 extern NCerror computevarnodes3(NCDAPCOMMON*, NClist*, NClist*);

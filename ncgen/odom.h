@@ -33,11 +33,4 @@ extern int odometermore(Odometer* odom);
 extern int odometerincr(Odometer* odo);
 extern size_t odometeroffset(Odometer* odom);
 
-#ifdef NOTUSED
-extern void odometerreset(Odometer*);
-extern size_t odometertotal(Odometer*,int);
-extern size_t odomsubarray(Odometer* odom, int index);
-extern size_t odomprefixcount(Odometer* odom, int index);
-#endif
-
 #endif /*ODOM_H*/

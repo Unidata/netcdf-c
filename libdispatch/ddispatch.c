@@ -3,10 +3,6 @@
 
 extern int NCSUBSTRATE_intialize(void);
 
-#ifdef NOTUSED
-#define INITCOORD1 if(coord_one[0] != 1) {int i; for(i=0;i<NC_MAX_VAR_DIMS;i++) coord_one[i] = 1;}
-#endif
-
 /* Define vectors of zeros and ones for use with various nc_get_varX function*/
 size_t nc_sizevector0[NC_MAX_DIMS];
 size_t nc_sizevector1[NC_MAX_DIMS];

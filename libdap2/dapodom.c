@@ -163,26 +163,6 @@ dapodometerpoints(Dapodometer* odom)
     return count;
 }
 
-#ifdef IGNORE
-/*
-Return an dapodometer that covers the last tail
-elements in the input dapodometer and removes
-them from the input dapodometer.
-*/
-Dapodometer*
-dapodometersplit(Dapodometer* odom, int tail)
-{
-    int i;
-    Dapodometer* split = (Dapodometer*)calloc(1,sizeof(Dapodometer));
-    MEMCHECK(split,NULL);
-    assert(odom->rank >= tail);
-    split->rank = tail;
-    odom->rank = odom->rank - tail;
-    for(i=0;i<tail;i++) {split->slices[i] = odom->slices[odom->rank+i];}
-    return split;
-}
-#endif
-
 int
 dapodometerincr(Dapodometer* odom)
 {

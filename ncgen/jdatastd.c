@@ -112,23 +112,6 @@ genjstd_arraydata(Symbol* vsym, Putvar* closure, Bytebuffer* databuf)
     }
 }
 
-#ifdef UNUSED
-static void
-getindex(Odometer* odom, Bytebuffer* indices)
-{
-    int i;
-    bbClear(indices);
-    bbCat(indices,"ima.set(");
-    for(i=0;i<odom->rank;i++) {
-        char tmp[32];
-	nprintf(tmp,sizeof(tmp),"%s%ld",
-		(i==0?"":","),odom->dims[i].index);
-	bbCat(indices,tmp);
-    }            
-    bbCat(indices,")");
-}
-#endif
-
 static void
 genjstd_arraydatar(Symbol* vsym,
 	      Datasrc* src,

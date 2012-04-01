@@ -512,10 +512,6 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
     case CES_SLICE: {
 	    DCEslice* slice = (DCEslice*)node;
 	    size_t last = (slice->first+slice->length)-1;
-#ifdef IGNORE
-	    if(last > slice->declsize && slice->declsize > 0)
-	        last = slice->declsize - 1;
-#endif
             if(slice->count == 1) {
                 snprintf(tmp,sizeof(tmp),"[%lu%s]",
 	            (unsigned long)slice->first,dimdecl(slice->declsize));
@@ -831,28 +827,6 @@ dceiswholesegment(DCEsegment* seg)
     }
     return whole;
 }
-
-#ifdef IGNORE
-int
-dceiswholevar(DCEvar* var)
-{
-    int i,whole;
-    whole = 1; /* assume so */
-    for(i=0;i<nclistlength(var->segments);i++) {
-        DCEsegment* segment = (DCEsegment*)nclistget(var->segments,i);
-	if(!dceiswholesegment(segment)) {whole = 0; break;}	
-    }
-    return whole;
-}
-
-int
-dceiswholeprojection(DCEprojection* p)
-{
-    if(p == NULL || p->discrim != CES_VAR) return 0;
-    return dceiswholevar(p->var);
-}
-
-#endif
 
 void
 dcemakewholeslice(DCEslice* slice, size_t declsize)
