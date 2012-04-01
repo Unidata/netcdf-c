@@ -47,7 +47,7 @@ main(int argc, char **argv) {
    int n_dim;
 
 #define NUMRECS 2
-#define I_LEN 5104
+#define I_LEN 4106
 #define J_LEN 1023
 #define K_LEN 1023
 #define N_LEN 2
@@ -190,7 +190,7 @@ main(int argc, char **argv) {
    printf("*** Tests successful!\n");
 
    /* Delete the file. */
-   // (void) remove(file_name);
+   (void) remove(file_name);
 
    return 0;
 }
