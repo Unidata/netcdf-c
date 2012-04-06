@@ -215,6 +215,8 @@ an appropriately large value of the initialsz parameter. This is
 because the in-memory file is kept as a single piece of heap memory,
 and specifying the initial size will reduce the number of heap reallocations. 
 
+Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
+nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
 
 \returns ::NC_NOERR No error.
 
@@ -340,21 +342,26 @@ Like nc_create(), this function creates a netCDF file.
 be advantageous to set the size of the output file at creation
 time. This parameter sets the initial size of the file at creation
 time. This only applies to classic and 64-bit offset files.
+The special value NC_SIZEHINT_DEFAULT (which is the value 0),
+lets the netcdf library choose a suitable initial size.
 
-\param chunksizehintp A pointer to the chunk size hint, which controls
-a space versus time tradeoff, memory allocated in the netcdf library
-versus number of system calls. Because of internal requirements, the
-value may not be set to exactly the value requested. The actual value
-chosen is returned by reference. Using the value NC_SIZEHINT_DEFAULT
-causes the library to choose a default. How the system chooses the
-default depends on the system. On many systems, the "preferred I/O
-block size" is available from the stat() system call, struct stat
-member st_blksize. If this is available it is used. Lacking that,
-twice the system pagesize is used. Lacking a call to discover the
-system pagesize, we just set default bufrsize to 8192. The bufrsize is
-a property of a given open netcdf descriptor ncid, it is not a
-persistent property of the netcdf dataset. This only applies to
-classic and 64-bit offset files.
+\param chunksizehintp A pointer to the chunk size hint,
+which controls a space versus time tradeoff, memory
+allocated in the netcdf library versus number of system
+calls. Because of internal requirements, the value may not
+be set to exactly the value requested. The actual value
+chosen is returned by reference. Using a NULL pointer or
+having the pointer point to the value NC_SIZEHINT_DEFAULT
+causes the library to choose a default. How the system
+chooses the default depends on the system. On many systems,
+the "preferred I/O block size" is available from the stat()
+system call, struct stat member st_blksize. If this is
+available it is used. Lacking that, twice the system
+pagesize is used. Lacking a call to discover the system
+pagesize, we just set default bufrsize to 8192. The bufrsize
+is a property of a given open netcdf descriptor ncid, it is
+not a persistent property of the netcdf dataset. This only
+applies to classic and 64-bit offset files.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -458,6 +465,9 @@ nc_open()returns the value NC_NOERR if no errors occurred. Otherwise,
 the returned status indicates an error. Possible causes of errors
 include:
 
+Note that nc_open(path,cmode,ncidp) is equivalent to the invocation of
+nc__open(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
+
 \returns ::NC_NOERR No error.
 
 \returns ::NC_ENOMEM Out of memory.
@@ -514,8 +524,9 @@ system calls.
 Because of internal requirements, the value may not be set to exactly
 the value requested. The actual value chosen is returned by reference.
 
-Using the value NC_SIZEHINT_DEFAULT causes the library to choose a
-default. How the system chooses the default depends on the system. On
+Using a NULL pointer or having the pointer point to the value
+NC_SIZEHINT_DEFAULT causes the library to choose a default. 
+How the system chooses the default depends on the system. On
 many systems, the "preferred I/O block size" is available from the
 stat() system call, struct stat member st_blksize. If this is
 available it is used. Lacking that, twice the system pagesize is used.

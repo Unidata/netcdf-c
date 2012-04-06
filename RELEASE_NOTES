@@ -3,7 +3,7 @@ Entries are in reverse chronological order (most recent first).
 
 VERSION         COMMENTS
 -------         --------
-4.3		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
+4.2.1		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
 
 		Fixed bug in 64-bit offset files with large records
 		due to last record variable requiring more than 2**32
