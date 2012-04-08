@@ -13,6 +13,11 @@ VERSION         COMMENTS
 		Implemented diskless files for both netcdf classic format
                 and extended (netcdf-4) format. For netcdf classic files,
                 diskless files also support in-memory caching of disk files.
+	        For nc_create(), diskless operation performs all operations
+		in memory and then optionally persists the results to a file.
+	        For nc_open(), diskless operation caches the file in-memory,
+		performs all operations on the memory resident version and then
+		writes all changes back to the original file.
 		[NCF-110][NCF-109][NCF-5]
 
 		Modified ncio mechanism to support multiple ncio packages;
