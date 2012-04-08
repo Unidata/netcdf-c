@@ -740,9 +740,11 @@ oc_dumpnode(conn,*rootp);
     return ocstat;
 }
 
-/* Check a name to see if it contains illegal dap characters */
+/* Check a name to see if it contains illegal dap characters
+*/
 
 static char* badchars = "./";
+
 
 int
 dap_badname(char* name)
@@ -753,4 +755,31 @@ dap_badname(char* name)
         if(strchr(name,*p) != NULL) return 1;
     }
     return 0;
+}
+
+/* Check a name to see if it contains illegal dap characters
+   and repair them
+*/
+
+char*
+dap_repairname(char* name)
+{
+    char* newname;
+    char *p, *q; int c;
+
+    if(name == NULL) return NULL;
+    /* assume that dap_badname was called on this name and returned 1 */
+    newname = (char*)malloc(1+(3*strlen(name))); /* max needed */
+    newname[0] = '\0'; /* so we can use strcat */
+    for(p=name,q=newname;(c=*p);p++) {
+        if(strchr(badchars,c) != NULL) {
+            char newchar[4];
+            snprintf(newchar,sizeof(newchar),"%%%hhx",c);
+            strcat(newname,newchar);
+            q += 3; /*strlen(newchar)*/
+        } else
+            *q++ = c;
+    }
+    *q = '\0'; /* ensure trailing null */
+    return newname;
 }

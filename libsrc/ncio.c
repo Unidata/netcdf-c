@@ -45,8 +45,12 @@ ncio_open(const char *path, int ioflags,
                      off_t igeto, size_t igetsz, size_t *sizehintp,
                      ncio** iopp, void** const mempp)
 {
-    if(fIsSet(ioflags,NC_DISKLESS))
-	return NC_EDISKLESS; /* create only */
+    /* Diskless open has the following constraints:
+       1. file must be classic version 1 or 2
+     */
+    if(fIsSet(ioflags,NC_DISKLESS)) {
+        return memio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
+    }
 #ifdef USE_FFIO
     return ffio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
 #else

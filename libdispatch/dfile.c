@@ -134,9 +134,9 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
    else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
    {
       if(magic[3] == '\001') 
-	 *cdf = 1;
+	 *cdf = 1; /* netcdf classic version 1 */
       else if(magic[3] == '\002') 
-	 *cdf = 2;
+	 *cdf = 2; /* netcdf classic version 2 */
    }
     
    return NC_NOERR;
@@ -425,7 +425,7 @@ support is enabled, then the path may be an OPeNDAP URL rather than a
 file path.
  
 \param mode The mode flag may include NC_WRITE (for read/write
-access) and NC_SHARE (see below).
+access) and NC_SHARE (see below) and NC_DISKLESS (see below).
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -449,6 +449,19 @@ means that dataset accesses are not buffered and caching is
 limited. Since the buffering scheme is optimized for sequential
 access, programs that do not access data sequentially may see some
 performance improvement by setting the NC_SHARE flag.
+
+This procedure may also be invoked with the NC_DISKLESS flag
+set in the mode argument, but ONLY if the file type is NOT NC_NETCDF4,
+which means it must be a classic format file.
+If NC_DISKLESS is specified, then the whole file is read completely into
+memory. In effect this creates an in-memory cache of the file.
+If the mode flag also specifies NC_WRITE, then the in-memory cache
+will be re-written to the disk file when nc_close() is called.
+For some kinds of manipulations, having the in-memory cache can
+speed up file processing. But in simple cases, non-cached
+processing may actually be faster than using cached processing.
+You will need to experiment to determine if the in-memory caching
+is worthwhile for your application.
 
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the

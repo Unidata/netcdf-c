@@ -63,8 +63,12 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
     NClist* allvarnodes = nclistnew();
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
-	/* If this node has a bad name, make it invisible */
-	if(dap_badname(node->ocname)) node->visible=0;
+	/* If this node has a bad name, repair it */
+	if(dap_badname(node->ocname)) {
+	    char* newname = dap_repairname(node->ocname);
+	    nullfree(node->ocname);
+	    node->ocname = newname;
+	}
 	if(!node->visible) continue;
 	if(node->nctype == NC_Primitive)
 	    nclistpush(allvarnodes,(ncelem)node);

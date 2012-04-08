@@ -3,15 +3,15 @@ dimensions:
 	WVC = 24 ;
 	row = 558 ;
 variables:
-	short NSCAT\ Rev\ 17.WVC_Lat(row, WVC) ;
-		NSCAT\ Rev\ 17.WVC_Lat:long_name = "latitude" ;
-		NSCAT\ Rev\ 17.WVC_Lat:units = "deg" ;
-		NSCAT\ Rev\ 17.WVC_Lat:scale_factor = 0.01 ;
-		NSCAT\ Rev\ 17.WVC_Lat:scale_factor_err = 0. ;
-		NSCAT\ Rev\ 17.WVC_Lat:add_offset = 0. ;
-		NSCAT\ Rev\ 17.WVC_Lat:add_offset_err = 0. ;
-		NSCAT\ Rev\ 17.WVC_Lat:calibrated_nt = 22 ;
-		NSCAT\ Rev\ 17.WVC_Lat:valid_range = -6281s, 8051s ;
+	short NSCAT\%20Rev\%2017.WVC_Lat(row, WVC) ;
+		NSCAT\%20Rev\%2017.WVC_Lat:long_name = "latitude" ;
+		NSCAT\%20Rev\%2017.WVC_Lat:units = "deg" ;
+		NSCAT\%20Rev\%2017.WVC_Lat:scale_factor = 0.01 ;
+		NSCAT\%20Rev\%2017.WVC_Lat:scale_factor_err = 0. ;
+		NSCAT\%20Rev\%2017.WVC_Lat:add_offset = 0. ;
+		NSCAT\%20Rev\%2017.WVC_Lat:add_offset_err = 0. ;
+		NSCAT\%20Rev\%2017.WVC_Lat:calibrated_nt = 22 ;
+		NSCAT\%20Rev\%2017.WVC_Lat:valid_range = -6281s, 8051s ;
 
 // global attributes:
 		:Producer_Agency = "NASA" ;
@@ -39,7 +39,7 @@ variables:
 		:Data_Format_Type = "HDF" ;
 data:
 
- NSCAT\ Rev\ 17.WVC_Lat =
+ NSCAT\%20Rev\%2017.WVC_Lat =
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5928,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5889,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5851,

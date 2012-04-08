@@ -71,5 +71,6 @@ extern int nc__testurl(const char* path, char** basename);
 extern OCerror dap_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
 
 extern int dap_badname(char* name);
+extern char* dap_repairname(char* name);
 
 #endif /*DAPUTIL_H*/

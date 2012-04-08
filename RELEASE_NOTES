@@ -11,7 +11,8 @@ VERSION         COMMENTS
 		[NCF-164]
 
 		Implemented diskless files for both netcdf classic format
-                and extended (netcdf-4) format.
+                and extended (netcdf-4) format. For netcdf classic files,
+                diskless files also support in-memory caching of disk files.
 		[NCF-110][NCF-109][NCF-5]
 
 		Modified ncio mechanism to support multiple ncio packages;

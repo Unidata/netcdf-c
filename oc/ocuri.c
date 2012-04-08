@@ -622,7 +622,7 @@ ocparamreplace(char** params, const char* key, const char* value)
 /* Provide % encoders and decoders */
 
 
-static char* hexchars = "0123456789abcdef";
+static char* hexchars = "0123456789abcdefABCDEF";
 
 static void
 toHex(unsigned int b, char hex[2])
@@ -689,6 +689,15 @@ ocuriencode(char* s, char* allowable)
 char*
 ocuridecode(char* s)
 {
+    return ocuridecodeonly(s,NULL);
+}
+
+/* Return a string representing decoding of input only for specified
+   characters;  caller must free
+*/
+char*
+ocuridecodeonly(char* s, char* only)
+{
     size_t slen;
     char* decoded;
     char* outptr;
@@ -696,6 +705,7 @@ ocuridecode(char* s)
     unsigned int c;
     
     if (s == NULL) return NULL;
+    if(only == NULL) only = "";
 
     slen = strlen(s);
     decoded = (char*)malloc(slen+1); /* Should be max we need */
@@ -703,17 +713,18 @@ ocuridecode(char* s)
     outptr = decoded;
     inptr = s;
     while((c = *inptr++)) {
-	if(c == '+')
+	if(c == '+' && strchr(only,'+') != NULL)
 	    *outptr++ = ' ';
 	else if(c == '%') {
-            /* try to pull two more characters */
-	    int x0, x1;
-	    x0 = inptr[0];
-	    if(x0 != '\0') {
-		x1 = inptr[1];
- 	        if(x0 != '\0') {
-		    c = (fromHex(x0) << 4) | (fromHex(x1));
-		    inptr += 2;
+            /* try to pull two hex more characters */
+	    if(inptr[0] != '\0' && inptr[1] != '\0'
+		&& strchr(hexchars,inptr[0]) != NULL
+		&& strchr(hexchars,inptr[1]) != NULL) {
+		/* test conversion */
+		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
+		if(strchr(only,xc) != NULL) {
+		    inptr += 2; /* decode it */
+		    c = xc;
                 }
             }
         }

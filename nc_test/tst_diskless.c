@@ -80,7 +80,6 @@ printf("*** testing diskless file with scalar vars...");
     if (nc_def_var(ncid, CAPACITOR, NC_FLOAT, 0, NULL, &varid1)) ERR;
     if (nc_def_var(ncid, NUM555, NC_SHORT, 0, NULL, &varid2)) ERR;
     if (nc_enddef(ncid)) ERR;
-
     
     /* Write some data to this file. */
     if (nc_put_vara_int(ncid, varid0, NULL, NULL, &int_data)) ERR;
@@ -244,6 +243,7 @@ printf("*** testing diskless file with scalar vars...");
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid1, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
     if (strcmp(name_in, STAR_TREK) || type_in != NC_FLOAT || ndims_in != 0 ||
+
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid2, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
     if (strcmp(name_in, STAR_WARS) || type_in != NC_SHORT || natts_in != 0) ERR;

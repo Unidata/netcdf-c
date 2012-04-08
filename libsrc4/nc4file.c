@@ -277,7 +277,6 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    }
 #else /* only set cache for non-parallel... */
    if(cmode & NC_DISKLESS) {
-	 int persist = (cmode & NC_WRITE)?1:0;
 	 if (H5Pset_fapl_core(fapl_id, 4096, persist))
 	    BAIL(NC_EDISKLESS);
    }
