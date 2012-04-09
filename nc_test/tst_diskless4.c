@@ -16,26 +16,12 @@
 
 #undef XFAIL
 
-/* 
- * Depending on argv, do one of the following:
-1. create a file with var of size 0x40000000 (~ 1 gig)
-2. create a file with var of size 0x40000000 (~ 1 gig) but using NC_DISKLESS
-3. open a file with var of size 0x40000000 (~ 1 gig) and read it 4096 bytes
-   at a time
-4. open a file with var of size 0x40000000 (~ 1 gig) and read it 4096 bytes
-   at a time using NC_DISKLESS
- */
-
 #define FILE_NAME "tst_diskless4.nc"
 #define CHUNKSIZE 4096
-#define GIG (1024*1024*1024)
 #define DATASIZE (CHUNKSIZE/sizeof(int))
+#define DIMMAX 1000000000
 
 typedef enum Tag {Create,CreateDiskless,Open,OpenDiskless} Tag;
-
-static size_t varsize;
-static size_t pieces;
-static float gigsize;
 
 #define REPORT err_report(status,__FILE__,__LINE__)
 
@@ -54,39 +40,53 @@ int
 main(int argc, char **argv)
 {
     int status = NC_NOERR;
-    int i,j;
+    int i,j,iv;
     unsigned int data[DATASIZE];
     size_t start[1];
     size_t count[1];
     Tag tag = Create; 
     int cmode = 0;
-    int ncid,varid;
+    int ncid;
     int dimids[1];
+    void* memory;
+    int nvars;
+    int varids[4096];
+    size_t varsize;
+    size_t filesize;
 
-    /* First, determine a reasonable file size that malloc will actually allocate
-       on this machine
-     */
-
-    for(varsize=GIG/2;;varsize/=2) {
-	void* memory = malloc(varsize);
-	if(memory != NULL) {free(memory); break;}
-	free(memory);
-    }
-
-    /* Compute other values relative to varsize */
-    pieces = varsize/CHUNKSIZE;
-    gigsize = (varsize/GIG);
-
+    /* Get the specified var/file size */
     if(argc > 1) {
-        if(strcmp(argv[1],"create")==0) tag = Create;
-        else if(strcmp(argv[1],"creatediskless")==0) tag = CreateDiskless;
-        else if(strcmp(argv[1],"open")==0) tag = Open;
-        else if(strcmp(argv[1],"opendiskless")==0) tag = OpenDiskless;
+	filesize = atol(argv[1]);
+    } else {
+	if(sizeof(size_t) == 4)
+	    filesize = 1000000000;
+	else if(sizeof(size_t) == 8)
+	    filesize = 3000000000;
 	else {
-	    fprintf(stderr,"illegal tag: %s",argv[1]);
+	    fprintf(stderr,"Cannot compute filesize\n");
 	    exit(1);
 	}
     }
+
+    /* Test that we can malloc that much space */
+    memory = malloc(filesize);
+    if(memory == NULL) {
+        fprintf(stderr,"Cannot malloc %lu bytes\n",(unsigned long)filesize);
+	exit(1);
+    }
+    free(memory);
+
+    if(argc > 2) {
+        if(strcmp(argv[2],"create")==0) tag = Create;
+        else if(strcmp(argv[2],"creatediskless")==0) tag = CreateDiskless;
+        else if(strcmp(argv[2],"open")==0) tag = Open;
+        else if(strcmp(argv[2],"opendiskless")==0) tag = OpenDiskless;
+	else {
+	    fprintf(stderr,"illegal tag: %s",argv[2]);
+	    exit(1);
+	}
+    } else
+	tag = Create; /* default */
     
     switch (tag) {
     case Create: printf("\n*** Create file\n"); break;
@@ -109,63 +109,79 @@ main(int argc, char **argv)
 	    REPORT;
         if((status=nc_set_fill(ncid, NC_NOFILL, NULL)))
 	    REPORT;
+	/* Only need 1 dimension */
+        if((status=nc_def_dim(ncid, "dim", DIMMAX, &dimids[0])))
+	    REPORT;
 	break;
     case Open:
     case OpenDiskless:
         if((status=nc_open(FILE_NAME, cmode, &ncid)))
 	    REPORT;
-	break;
-    }
-
-    switch (tag) {
-    case Create:
-    case CreateDiskless:
-        if((status=nc_def_dim(ncid, "dim", varsize, &dimids[0])))
-	    REPORT;
-        if((status=nc_def_var(ncid, "var", NC_BYTE, 1, dimids, &varid)))
-	    REPORT;
-        if((status=nc_enddef(ncid)))
-	    REPORT;
-	break;
-    case Open:
-    case OpenDiskless:
         if((status=nc_inq_dimid(ncid, "dim", &dimids[0])))
 	    REPORT;
-        if((status=nc_inq_varid(ncid, "var", &varid)))
-	    REPORT;
 	break;
     }
 
-    switch (tag) {
-    case Create:
-    case CreateDiskless:
-	/* Fill and put as integers */
-	for(i=0;i<pieces;i++) {
-	   start[0] = i*CHUNKSIZE;
-	   count[0] = CHUNKSIZE;
-	   for(j=0;j<DATASIZE;j++) data[j] = (i*CHUNKSIZE)+j;
-	   if((status=nc_put_vara(ncid,varid,start,count,(void*)data)))
-		REPORT;
-	}
+    varsize = DIMMAX;
+    nvars = filesize / varsize;
+        assert((filesize % DIMMAX) == 0);
+        assert(nvars < 4096);
+
+    for(iv=0;iv<nvars;iv++) {
+	char varname[32];
+        sprintf(varname,"var%d",iv);
+	switch (tag) {
+        case Create:
+        case CreateDiskless:
+            if((status=nc_def_var(ncid, varname, NC_BYTE, 1, &dimids[0], &varids[iv])))
+	        REPORT;
 	break;
-    case Open:
-    case OpenDiskless:
-	/* Read the var contents and validate */
-	for(i=0;i<pieces;i++) {
-	   start[0] = i*CHUNKSIZE;
-	   count[0] = CHUNKSIZE;
-	   if((status=nc_get_vara(ncid,varid,start,count,(void*)data)))
-		REPORT;
-	   for(j=0;j<DATASIZE;j++) {
-		unsigned int expected = (i*CHUNKSIZE)+j;
-		if(data[j] != expected) {
-		    printf("mismatch: i=%u j=%u data=%u; should be %u\n",
-				i,j,data[j],expected);
-		    err++;
+        case Open:
+        case OpenDiskless:
+            if((status=nc_inq_varid(ncid, varname, &varids[iv])))
+	        REPORT;
+	    break;
+	}
+    }
+
+    if(tag == Create || tag == CreateDiskless) {
+        if((status=nc_enddef(ncid)))
+	    REPORT;
+    }
+
+    for(iv=0;iv<nvars;iv++) {
+        size_t pieces = varsize/CHUNKSIZE;
+        switch (tag) {
+        case Create:
+        case CreateDiskless:
+	    /* Fill and put as integers */
+	    for(i=0;i<pieces;i++) {
+		start[0] = i*CHUNKSIZE;
+		count[0] = CHUNKSIZE;
+		for(j=0;j<DATASIZE;j++) data[j] = iv*((i*CHUNKSIZE)+j);
+		if((status=nc_put_vara(ncid,varids[iv],start,count,(void*)data)))
+		    REPORT;
+	    }
+	    break;
+        case Open:
+        case OpenDiskless:
+	    /* Read the var contents and validate */
+	    for(i=0;i<pieces;i++) {
+		start[0] = i*CHUNKSIZE;
+		count[0] = CHUNKSIZE;
+		if((status=nc_get_vara(ncid,varids[iv],start,count,(void*)data)))
+		    REPORT;
+		for(j=0;j<DATASIZE;j++) {
+		    unsigned int expected = iv*((i*CHUNKSIZE)+j);
+	   	    if(data[j] != expected) {
+		        printf("mismatch: iv=%d i=%u j=%u data=%u; should be %u\n",
+				iv, i,j,data[j],expected);
+		        err++;
+		    }
 		}
 	    }
+	    break;
 	}
-	break;
     }
 
     if((status=nc_close(ncid)))

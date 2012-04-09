@@ -2,14 +2,15 @@
 
 set -e
 
+# Get the target OS and CPU
+CPU=`uname -p`
+OS=`uname`
+
+
 #Constants
 FILE1=tst_diskless.nc
 FILE2=tst_diskless2.nc
 FILE3=tst_diskless3.nc
-FILE4=tst_diskless4.nc
-
-#SIZE=1073741824
-SIZE=536870912
 
 echo ""
 echo "Testing in-memory (diskless) files with and without persistence"
@@ -113,35 +114,5 @@ diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
 # cleanup
 rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
-
-# Create the reference ncdump output for tst_diskless4
-rm -fr tst_diskless4.cdl
-echo "netcdf tst_diskless4 {" >>tst_diskless4.cdl
-echo "dimensions:" >>tst_diskless4.cdl
-echo "	dim = $SIZE ;" >>tst_diskless4.cdl
-echo "variables:" >>tst_diskless4.cdl
-echo "	byte var(dim) ;" >>tst_diskless4.cdl
-echo "}" >>tst_diskless4.cdl
-
-echo ""
-rm -f $FILE4
-time ./tst_diskless4 create
-# Validate it
-../ncdump/ncdump -h $FILE4 |diff - tst_diskless4.cdl
-
-echo ""
-rm -f $FILE4
-time ./tst_diskless4 creatediskless
-# Validate it
-../ncdump/ncdump -h $FILE4 |diff - tst_diskless4.cdl
-
-echo ""
-time ./tst_diskless4 open
-
-echo ""
-time ./tst_diskless4 opendiskless
-
-# cleanup
-rm -f $FILE4 tst_diskless4.cdl
 
 exit
