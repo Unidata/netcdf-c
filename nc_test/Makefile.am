@@ -52,9 +52,9 @@ endif
 TESTS = $(TESTPROGRAMS)
 
 TESTS += run_diskless.sh
-#if LARGE_FILE_TESTS
+if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-#endif
+endif
 
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
