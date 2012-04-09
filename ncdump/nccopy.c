@@ -44,6 +44,8 @@ static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config
 static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
 static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
 					    * chunk cache for each variable */
+static int option_read_diskless = 0; /* default, don't read input into memory on open */
+static int option_write_diskless = 0; /* default, don't write output to diskless file */
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -1250,11 +1252,16 @@ copy(char* infile, char* outfile)
     int stat = NC_NOERR;
     int igrp, ogrp;
     int inkind, outkind;
+    int open_mode = NC_NOWRITE;
+    int create_mode = NC_WRITE | NC_CLOBBER;
     size_t ndims;
 
-    NC_CHECK(nc_open(infile,NC_NOWRITE,&igrp));
-
     NC_CHECK(nc_inq_format(igrp, &inkind));
+
+    if(option_read_diskless) {
+	open_mode |= NC_DISKLESS;
+    }
+    NC_CHECK(nc_open(infile, open_mode, &igrp));
 
 /* option_kind specifies which netCDF format for output: 
  *   -1 -> same as input, 
@@ -1289,19 +1296,21 @@ copy(char* infile, char* outfile)
     }
 #endif	/* USE_NETCDF4 */
 
+    if(option_write_diskless)
+	create_mode |= NC_DISKLESS;
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
-	NC_CHECK(nc_create(outfile,NC_CLOBBER,&ogrp));
+	/* nothing to do */
 	break;
     case NC_FORMAT_64BIT:
-	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_64BIT_OFFSET,&ogrp));
+	create_mode |= NC_64BIT_OFFSET;
 	break;
 #ifdef USE_NETCDF4
     case NC_FORMAT_NETCDF4:
-	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_NETCDF4,&ogrp));
+	create_mode |= NC_NETCDF4;
 	break;
     case NC_FORMAT_NETCDF4_CLASSIC:
-	NC_CHECK(nc_create(outfile,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ogrp));
+	create_mode |= NC_NETCDF4 | NC_CLASSIC_MODEL;
 	break;
 #else
     case NC_FORMAT_NETCDF4:
@@ -1313,6 +1322,7 @@ copy(char* infile, char* outfile)
 	error("bad value (%d) for -k option\n", option_kind);
 	break;
     }
+    NC_CHECK(nc_create(outfile, create_mode, &ogrp));
     NC_CHECK(nc_set_fill(ogrp, NC_NOFILL, NULL));
 
 #ifdef USE_NETCDF4
@@ -1369,13 +1379,15 @@ usage(void)
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
+  [-r]      read whole input file into diskless file on open (classic or 64-bit offset format only)\n\
+  [-w]      write whole output file from diskless netCDF on close\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] infile outfile\n%s",
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-m n] [-h n] [-e n] [-r] [-w] infile outfile\n%s",
 	  progname, USAGE);
 }
 
@@ -1425,7 +1437,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:x")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:rwx")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1526,6 +1538,12 @@ main(int argc, char**argv)
 	    if(option_chunk_cache_nelems <= 0) {
 		error("invalid value for number of chunk cache elements: %d", option_chunk_cache_nelems);
 	    }
+	    break;
+	case 'r':
+	    option_read_diskless = 1; /* read into memory on open */
+	    break;
+	case 'w':
+	    option_write_diskless = 1; /* write to memory, persist on close */
 	    break;
 	case 'x':		/* use experimental variable-specific chunk caches */
 	    option_compute_chunkcaches = 1;
