@@ -49,7 +49,12 @@ if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif
 
-TESTS = $(TESTPROGRAMS) run_diskless.sh
+TESTS = $(TESTPROGRAMS)
+
+TESTS += run_diskless.sh
+if LARGE_FILE_TESTS
+TESTS += run_diskless2.sh
+endif
 
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
@@ -64,7 +69,8 @@ endif # USE_VALGRIND_TESTS
 
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
-EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh run_diskless.sh
+EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
+run_diskless.sh run_diskless2.sh
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl
