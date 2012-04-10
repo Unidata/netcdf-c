@@ -21,15 +21,14 @@ has_hdf5="@HAS_HDF5@"
 has_szlib="@HAS_SZLIB@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 
-if type -p nf-config; then
+if type -p nf-config > /dev/null 2>&1; then
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
   flibs=`nf-config --flibs`
-  has_f77=`nf-config --has_f77`
-  has_f90=`nf-config --has_f90`
+  has_f90=`nf-config --has-f90`
 fi
 
-if type -p ncxx-config; then
+if type -p ncxx-config > /dev/null 2>&1; then
   cxx=`ncxx-config --cxx`
   has_cxx=`ncxx-config --has_cxx`
 fi
@@ -59,19 +58,18 @@ Available values for OPTION include:
   --version     Library version
 
 EOF
-if type -p ncxx-config; then
+if type -p ncxx-config > /dev/null 2>&1; then
     cat <<EOF
   --cxx         C++ compiler
   --has-c++     whether C++ API is enabled in this build
 
 EOF
 fi
-if type -p nf-config; then
+if type -p nf-config > /dev/null 2>&1; then
     cat <<EOF
   --fc          Fortran compiler
   --fflags      flags needed to compile a Fortran program
   --flibs       libraries needed to link a Fortran program
-  --has-f77     whether Fortran 77 API is enabled in this build
   --has-f90     whether Fortran 90 API is enabled in this build
 
 EOF
@@ -94,7 +92,6 @@ all()
         echo "  --fc        -> $fc"
         echo "  --fflags    -> $fflags"
         echo "  --flibs     -> $flibs"
-        echo "  --has-f77   -> $has_f77"
         echo "  --has-f90   -> $has_f90"
         echo
         echo "  --has-dap   -> $has_dap"
@@ -204,10 +201,6 @@ while test $# -gt 0; do
 
     --flibs)
        	echo $flibs
-       	;;
-
-    --has-f77)
-       	echo $has_f77
        	;;
 
     --has-f90)
