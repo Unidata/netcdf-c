@@ -70,7 +70,11 @@ computevarnodes4(NCDAPCOMMON* nccomm, NClist* varnodes)
     for(i=0;i<nclistlength(toplevel);i++) {
 	CDFnode* var = (CDFnode*)nclistget(toplevel,i);
 	/* If this node has a bad name, make it invisible */
-	if(dap_badname(var->ncbasename)) var->visible = 0;
+	if(dap_badname(var->ncbasename)) {
+	    char* newname = dap_repairname(var->ncbasename);
+	    nullfree(var->ncbasename);
+	    var->ncbasename = newname;
+	}
 	if(!var->visible) continue;
 	if(var->nctype == NC_Sequence && singletonsequence(var)) {
 	    var->singleton = 1;

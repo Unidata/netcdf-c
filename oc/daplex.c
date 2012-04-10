@@ -16,16 +16,25 @@ static int tohex(int c);
 #endif
 
 /****************************************************/
+
+/* Set of all ascii printable characters */
+#ifdef NOTUSED
+
+static char ascii[] = " !\"#$%&'()*+,-./:;<=>?@[]\\^_`|{}~";
+/* Define the set of legal nonalphanum characters as specified in the DAP2 spec. */
+static char* daplegal ="_!~*'-\"";
+#endif
+
 static char* ddsworddelims =
   "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
 static char* ddswordchars1 =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%.\\*";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*";
 static char* ddswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%.\\*#";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#";
 static char* daswordcharsn =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%.\\*:#";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\.*#:";
 static char* cewordchars1 =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
 static char* cewordcharsn =
@@ -315,16 +324,27 @@ daplexcleanup(DAPlexstate** lexstatep)
     *lexstatep = NULL;
 }
 
-/* Dap identifiers will come to use encoded,
-   so we must decode them; It turns out that we
-   can use ocuridecode because dap specifies
-   %xx encoding.
+/* Dap identifiers will come to us with some
+   characters escaped using the URL notation of
+   %HH. The assumption here is that any character
+   that is encoded is left encoded, except as follows:
+   1. if the encoded character is in fact a legal DAP2 character
+      (alphanum+"_!~*'-\"") then it is decoded, otherwise not.
 */
+#ifndef DECODE_IDENTIFIERS
+static char* decodelist =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
+#endif
+
 char*
 dapdecode(DAPlexstate* lexstate, char* name)
 {
     char* decoded;
+#ifdef DECODE_IDENTIFIERS
     decoded = ocuridecode(name);
+#else
+    decoded = ocuridecodeonly(name,decodelist);
+#endif
     oclistpush(lexstate->reclaim,(ocelem)decoded);
     return decoded;
 }

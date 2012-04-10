@@ -1256,12 +1256,13 @@ copy(char* infile, char* outfile)
     int create_mode = NC_WRITE | NC_CLOBBER;
     size_t ndims;
 
+    NC_CHECK(nc_open(infile, open_mode, &igrp));
+
     NC_CHECK(nc_inq_format(igrp, &inkind));
 
     if(option_read_diskless) {
 	open_mode |= NC_DISKLESS;
     }
-    NC_CHECK(nc_open(infile, open_mode, &igrp));
 
 /* option_kind specifies which netCDF format for output: 
  *   -1 -> same as input, 

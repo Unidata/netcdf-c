@@ -47,5 +47,6 @@ extern const char* ocurilookup(OCURI*, const char* param);
 
 extern char* ocuriencode(char* s, char* allowable);
 extern char* ocuridecode(char* s);
+extern char* ocuridecodeonly(char* s, char*);
 
 #endif /*OCURI_H*/

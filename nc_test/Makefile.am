@@ -9,7 +9,10 @@ include $(top_srcdir)/lib_flags.am
 
 # These files are created by the tests.
 CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
-tst_*.nc t_nc.nc large_files.nc quick_large_files.nc tst_diskless.nc tst_diskless2.nc
+tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
+tst_diskless.nc tst_diskless2.nc \
+tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
+tst_diskless4.cdl tst_diskless4.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
@@ -41,7 +44,7 @@ endif
 
 
 # Set up the tests.
-check_PROGRAMS = $(TESTPROGRAMS) tst_diskless
+check_PROGRAMS = $(TESTPROGRAMS) tst_diskless tst_diskless3 tst_diskless4
 if USE_NETCDF4
 check_PROGRAMS += tst_diskless2
 endif

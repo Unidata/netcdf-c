@@ -5,6 +5,11 @@ set -e
 #Constants
 FILE1=tst_diskless.nc
 FILE2=tst_diskless2.nc
+FILE3=tst_diskless3.nc
+FILE4=tst_diskless4.nc
+
+#SIZE=1073741824
+SIZE=536870912
 
 echo ""
 echo "Testing in-memory (diskless) files with and without persistence"
@@ -13,26 +18,20 @@ HASNC4=`../nc-config --has-nc4`
 
 echo ""
 echo "Test diskless netCDF classic file without persistence"
-cmd="./tst_diskless";
-echo "cmd=$cmd"
-$cmd
+./tst_diskless
 echo "*** PASS: diskless netCDF classic file without persistence"
 
 if test "x$HASNC4" = "xyes" ; then
 echo ""
 echo "Test diskless netCDF enhanced file without persistence"
-cmd="./tst_diskless netcdf4";
-echo "cmd=$cmd"
-$cmd
+./tst_diskless netcdf4
 echo "*** PASS: diskless netCDF enhanced file without persistence"
 fi #HASNC4
 
 echo ""
 echo "Test diskless netCDF classic file with persistence"
-cmd="./tst_diskless persist";
-echo "cmd=$cmd"
 rm -f $FILE1
-$cmd
+./tst_diskless persist
 if test -f $FILE1 ; then
 echo "$FILE1 created"
 ../ncdump/ncdump $FILE1
@@ -45,10 +44,8 @@ fi
 if test "x$HASNC4" = "xyes" ; then
 echo ""
 echo "Test diskless netCDF enhanced file with persistence"
-cmd="./tst_diskless netcdf4 persist";
-echo "cmd=$cmd"
 rm -f $FILE1
-$cmd
+./tst_diskless netcdf4 persist
 if test -f $FILE1 ; then
 echo "$FILE1 created"
 ../ncdump/ncdump $FILE1
@@ -66,10 +63,8 @@ if test "x$HASNC4" = "xyes" ; then
 ok=""
 echo ""
 echo "Test extended enhanced diskless netCDF with persistence"
-cmd="./tst_diskless2"
-echo "cmd=$cmd"
 rm -f $FILE2 tst_diskless2.cdl
-$cmd
+./tst_diskless2
 if test -f $FILE2 ; then
   echo "$FILE2 created"
   # Do a cyle test
@@ -94,3 +89,59 @@ else
 fi
 
 fi #HASNC4
+
+echo ""
+echo "Testing nc_open in-memory (diskless) files"
+
+# clear old files
+rm -f tst_diskless3_file.cdl tst_diskless3_memory.cdl
+
+echo ""
+echo "Create and modify file without using diskless"
+rm -f $FILE3
+./tst_diskless3
+../ncdump/ncdump $FILE3 >tst_diskless3_file.cdl
+
+echo ""
+echo "Create and modify file using diskless"
+rm -f $FILE3
+./tst_diskless3 diskless
+../ncdump/ncdump $FILE3 >tst_diskless3_memory.cdl
+
+# compare
+diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
+
+# cleanup
+rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
+
+# Create the reference ncdump output for tst_diskless4
+rm -fr tst_diskless4.cdl
+echo "netcdf tst_diskless4 {" >>tst_diskless4.cdl
+echo "dimensions:" >>tst_diskless4.cdl
+echo "	dim = $SIZE ;" >>tst_diskless4.cdl
+echo "variables:" >>tst_diskless4.cdl
+echo "	byte var(dim) ;" >>tst_diskless4.cdl
+echo "}" >>tst_diskless4.cdl
+
+echo ""
+rm -f $FILE4
+time ./tst_diskless4 create
+# Validate it
+../ncdump/ncdump -h $FILE4 |diff - tst_diskless4.cdl
+
+echo ""
+rm -f $FILE4
+time ./tst_diskless4 creatediskless
+# Validate it
+../ncdump/ncdump -h $FILE4 |diff - tst_diskless4.cdl
+
+echo ""
+time ./tst_diskless4 open
+
+echo ""
+time ./tst_diskless4 opendiskless
+
+# cleanup
+rm -f $FILE4 tst_diskless4.cdl
+
+exit
