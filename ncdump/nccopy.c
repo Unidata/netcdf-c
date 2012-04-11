@@ -1253,7 +1253,7 @@ copy(char* infile, char* outfile)
     int igrp, ogrp;
     int inkind, outkind;
     int open_mode = NC_NOWRITE;
-    int create_mode = NC_WRITE | NC_CLOBBER;
+    int create_mode = NC_CLOBBER;
     size_t ndims;
 
     NC_CHECK(nc_open(infile, open_mode, &igrp));
@@ -1298,7 +1298,7 @@ copy(char* infile, char* outfile)
 #endif	/* USE_NETCDF4 */
 
     if(option_write_diskless)
-	create_mode |= NC_DISKLESS;
+	create_mode |= NC_WRITE | NC_DISKLESS; /* NC_WRITE persists diskless file on close */
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	/* nothing to do */
