@@ -1060,38 +1060,31 @@ count_dims(ncid) {
  * to copy data a record at a time. */
 static int
 nc3_special_case(int ncid, int kind) {
-    int ret = 0;
     if (kind == NC_FORMAT_CLASSIC ||  kind == NC_FORMAT_64BIT) {
 	int recdimid = 0;
 	NC_CHECK(nc_inq_unlimdim(ncid, &recdimid));
 	if (recdimid != -1) {	/* we have a record dimension */
-	    int nrecvars = 0;	/* number of record variables */
 	    int nvars;
+	    int varid;
 	    NC_CHECK(nc_inq_nvars(ncid, &nvars));
-	    if (nvars > 1) {
-		int varid;
-		for (varid = 0; varid < nvars; varid++) {
-		    int *dimids = 0;
-		    int ndims;
-		    NC_CHECK( nc_inq_varndims(ncid, varid, &ndims) );
-		    if (ndims > 0) {
-			dimids = (int *) emalloc((ndims + 1) * sizeof(int));
-			NC_CHECK( nc_inq_vardimid(ncid, varid, dimids) );
-			if(dimids[0] == recdimid) { /* this is a record variable */
-			    nrecvars++;
-			    if (nrecvars > 1) {
-				ret = 1;
-			    }
-			}
-			free(dimids);
-			if(ret)
-			    break;
+	    for (varid = 0; varid < nvars; varid++) {
+		int *dimids = 0;
+		int ndims;
+		NC_CHECK( nc_inq_varndims(ncid, varid, &ndims) );
+		if (ndims > 0) {
+		    int dimids0;
+		    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+		    NC_CHECK( nc_inq_vardimid(ncid, varid, dimids) );
+		    dimids0 = dimids[0];
+		    free(dimids);
+		    if(dimids0 == recdimid) {
+			return 1; /* found a record variable */
 		    }
 		}
-	    }	    
+	    }
 	}
     }
-    return ret;
+    return 0;
 }
 
 /* Classify variables in ncid as either fixed-size variables (with no

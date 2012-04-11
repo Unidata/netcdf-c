@@ -60,9 +60,6 @@
 #undef X_ALIGN
 #endif
 
-/* Define the amount by which memory is incremented on realloc */
-#define DEFAULT_BLOCKSIZE (0x2000)
-
 #define TACTIC_INCR 1
 #define TACTIC_DOUBLE 2
 #define TACTIC TACTIC_DOUBLE
@@ -90,6 +87,8 @@ static int memio_close(ncio* nciop, int);
 /* Mnemonic */
 #define DOOPEN 1
 
+static long pagesize = 0;
+
 /* Create a new ncio struct to hold info about the file. */
 static int
 memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEMIO** memiop)
@@ -98,13 +97,17 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     ncio* nciop = NULL;
     NCMEMIO* memio = NULL;
     int openfd = -1;
+
+    if(pagesize == 0) {
 #if defined HAVE_SYSCONF
-    long pagesize = sysconf(_SC_PAGE_SIZE);
+        pagesize = sysconf(_SC_PAGE_SIZE);
 #elif defined HAVE_GETPAGESIZE
-    long pagesize = getpagesize();
+        pagesize = getpagesize();
 #else
-    long pagesize = 4096; /* good guess */
+        pagesize = 4096; /* good guess */
 #endif
+    }
+
     errno = 0;
 
     /* Always force the allocated size to be a multiple of pagesize */
@@ -234,7 +237,7 @@ memio_create(const char* path, int ioflags,
     }
 
     /* Pick a default sizehint */
-    if(sizehintp) *sizehintp = DEFAULT_BLOCKSIZE;
+    if(sizehintp) *sizehintp = pagesize;
 
     *nciopp = nciop;
     return NC_NOERR;
@@ -383,11 +386,11 @@ memio_pad_length(ncio* nciop, off_t length)
     if(!fIsSet(nciop->ioflags, NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
 
-    /* Realloc the allocated memory */
     if(memio->locked > 0)
 	return NC_EDISKLESS;
 
     if(length > memio->alloc) {
+        /* Realloc the allocated memory to a multiple of the pagesize*/
 	off_t newsize;
 	char* newmem;
 	switch(TACTIC) {
@@ -396,15 +399,25 @@ memio_pad_length(ncio* nciop, off_t length)
 	    break;
 	case TACTIC_INCR:
 	default:
-	    newsize = length + (length % DEFAULT_BLOCKSIZE);
+	    newsize = length + pagesize;
 	    break;
 	}
 
+	/* Round to a multiple of pagesize */
+	if((newsize % pagesize) != 0)
+	    newsize += (pagesize - (newsize % pagesize));
+
         newmem = (char*)realloc(memio->memory,newsize);
         if(newmem == NULL) return NC_ENOMEM;
+
 	/* zero out the extra memory */
         memset((void*)(newmem+memio->alloc),0,(newsize - memio->alloc));
 
+#ifdef PRINT_REALLOCS
+printf("realloc: %lu/%lu -> %lu/%lu\n",
+(unsigned long)memio->memory,(unsigned long)memio->alloc,
+(unsigned long)newmem,(unsigned long)newsize);
+#endif
 	memio->memory = newmem;
 	memio->alloc = newsize;
     }  
