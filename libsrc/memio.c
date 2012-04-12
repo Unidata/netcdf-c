@@ -18,6 +18,12 @@
 #endif
 #include "nc.h"
 
+#define DEBUG
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 #ifndef HAVE_SSIZE_T
 #define ssize_t int
 #endif
@@ -59,10 +65,6 @@
 #else
 #undef X_ALIGN
 #endif
-
-#define TACTIC_INCR 1
-#define TACTIC_DOUBLE 2
-#define TACTIC TACTIC_DOUBLE
 
 /* Private data for memio */
 
@@ -221,6 +223,10 @@ memio_create(const char* path, int ioflags,
 	if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
     } /*!persist*/
 
+#ifdef DEBUG
+fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->memory,(unsigned long)memio->alloc);
+#endif
+
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd; 
 
@@ -312,6 +318,10 @@ memio_open(const char* path,
     memio->memory = (char*)malloc(memio->alloc);
     if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
 
+#ifdef DEBUG
+fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->memory,(unsigned long)memio->alloc);
+#endif
+
     /* Read the file into the memio memory */
     /* We need to do multiple reads because there is no
        guarantee that the amount read will be the full amount */
@@ -391,18 +401,8 @@ memio_pad_length(ncio* nciop, off_t length)
 
     if(length > memio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/
-	off_t newsize;
-	char* newmem;
-	switch(TACTIC) {
-	case TACTIC_DOUBLE:
-	    newsize = (memio->alloc * 2);
-	    break;
-	case TACTIC_INCR:
-	default:
-	    newsize = length + pagesize;
-	    break;
-	}
-
+	off_t newsize = length;
+	void* newmem = NULL;
 	/* Round to a multiple of pagesize */
 	if((newsize % pagesize) != 0)
 	    newsize += (pagesize - (newsize % pagesize));
@@ -413,8 +413,8 @@ memio_pad_length(ncio* nciop, off_t length)
 	/* zero out the extra memory */
         memset((void*)(newmem+memio->alloc),0,(newsize - memio->alloc));
 
-#ifdef PRINT_REALLOCS
-printf("realloc: %lu/%lu -> %lu/%lu\n",
+#ifdef DEBUG
+fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 (unsigned long)memio->memory,(unsigned long)memio->alloc,
 (unsigned long)newmem,(unsigned long)newsize);
 #endif
