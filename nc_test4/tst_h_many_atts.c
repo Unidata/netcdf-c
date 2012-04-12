@@ -6,7 +6,6 @@
    but they use HDF5 the same way that netCDF-4 does, so if these
    tests don't work, than netCDF-4 won't work either.
 
-   $Id$
 */
 #include <config.h>
 #include <nc_tests.h>
