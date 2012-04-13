@@ -355,6 +355,7 @@ dnl fi
 nc_build_c=yes
 nc_build_v2=yes
 nc_build_utilities=yes
+nc_build_tests=yes
 nc_build_examples=yes
 
 # Does the user want to build examples?
@@ -388,6 +389,16 @@ test "x$nc_build_c" = xno && enable_utilities=no
 test "x$enable_utilities" = xno && nc_build_utilities=no
 AC_MSG_RESULT($nc_build_utilities)
 AM_CONDITIONAL(BUILD_UTILITIES, [test x$nc_build_utilities = xyes])
+
+# Does the user want to disable all tests?
+AC_MSG_CHECKING([whether test should be built and run])
+AC_ARG_ENABLE([testsets],
+              [AS_HELP_STRING([--disable-testsets],
+                              [don't build or run netCDF tests])])
+test "x$enable_testsets" = xno || enable_testsets=yes
+nc_build_tests=$enable_testsets
+AC_MSG_RESULT($nc_build_tests)
+AM_CONDITIONAL(BUILD_TESTSETS, [test x$nc_build_tests = xyes])
 
 # Does the user want to run tests for large files (> 2GiB)?
 AC_MSG_CHECKING([whether large file (> 2GB) tests should be run])
@@ -562,8 +573,30 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # check for memio support
-AC_FUNC_MMAP
-AC_CHECK_FUNCS([memmove getpagesize sysconf mremap])
+AC_CHECK_FUNCS([memmove getpagesize sysconf])
+
+# MMap disabled until I can figure out why it doesn't work
+# Does the user want to use the mmap for NC_DISKLESS?
+#AC_MSG_CHECKING([whether mmap will be used for in-memory files])
+#AC_ARG_ENABLE([mmap],
+#              [AS_HELP_STRING([--enable-mmap],
+#                              [use mmap for in-memory (NC_DISKLESS) files])])
+#test "x$enable_mmap" = xyes || enable_mmap=no
+#AC_MSG_RESULT($enable_mmap)
+
+# Only define if mmap and mremap are available
+#AC_FUNC_MMAP
+#AC_CHECK_FUNCS([mremap])
+#if "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
+#  echo "mmap function or mremap function is not available: disabling mmap"
+#  enable_mmap=no
+#fi
+enable_mmap=no
+
+if test "x$enable_mmap" = xyes; then
+  AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
+fi
+AM_CONDITIONAL(USE_MMAP, [test x$enable_mmap = xyes])
 
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite, signbit],,,[#include <math.h>])
@@ -721,36 +754,6 @@ AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 
 UD_FTPBINDIR
-
-##################################################
-# OC has been modified to not depend on xdr.h, so suppress here
-## Require some version of xdr/rpc if --enable-dap is set.
-## See if autoconf can find it; check libc, librpc, librpcsvc and libnsl
-#if test "x$enable_dap" = xyes; then
-#   AC_SEARCH_LIBS([xdr_void],[c rpc nsl rpcsvc],
-#   		  [dap_xdrlib=$ac_res],[dap_xdrlib=])
-#  if test -z "$dap_xdrlib" -a "x$enable_dap" = "xyes"; then
-#    AC_MSG_ERROR(Cannot locate library containing xdr functions.)
-#  else
-#  if test "$dap_xdrlib" = "lc" ; then
-#    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
-#  elif test "$dap_xdrlib" = "none required" ; then
-#    AC_MSG_NOTICE(XDR Functions appear to be in libc.)	
-#  else
-#    dap_xdrlib=`echo $dap_xdrlib | sed -e s/-l//g`
-#    AC_MSG_NOTICE(XDR Functions appear to be in lib${dap_xdrlib}.)	
-#    # Add to library list
-#    AC_CHECK_LIB($dap_xdrlib,xdr_void)
-#  fi
-#  # Fix to get working on OS X (thanks to Fedor Baart)
-#  AC_CHECK_HEADERS([rpc/types.h rpc/xdr.h], [
-#       AC_DEFINE([HAVE_RPC_TYPES_H], [], [no rpc/types.h])
-#       AC_DEFINE([HAVE_RPC_XDR_H], [], [no rpc/xdr.h])
-#       ], [], [[#ifdef HAVE_RPC_TYPES_H
-#  # include <rpc/types.h>
-#  #endif]])
-#fi
-#fi
 
 AC_MSG_CHECKING([value of LIBS])
 AC_MSG_RESULT([$LIBS])

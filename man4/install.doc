@@ -47,6 +47,7 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
+- \ref configure_options
 
 \page build_default Building with NetCDF-4 and the Remote Data Client
 
@@ -237,4 +238,48 @@ netCDF-4 libraries:
 cc -o myapp myapp.c `nc-config --cflags --libs`
 </code>
 
+\page configure_options ./configure options
+
+Note: --disable prefix indicates that the option is normally enabled.
+<table>
+<tr><th>Option<th>Description<th>Dependencies
+<tr><td>--disable-doxygen<td>Disable generation of documentation.<td>doxygen
+<tr><td>--disable-fsync<td>disable fsync support<td>kernel fsync support
+<tr><td>--enable-valgrind-tests <td>build with valgrind-tests; static builds only<td>valgrind
+<tr><td>--enable-netcdf-4<td>build with netcdf-4<td>HDF5 and zlib
+<tr><td>--enable-netcdf4<td>synonym for enable-netcdf-4
+<tr><td>--enable-hdf4<td>build netcdf-4 with HDF4 read capability<td>HDF4, HDF5 and zlib
+<tr><td>--enable-hdf4-file-tests<td>test ability to read HDF4 files<td>selected HDF4 files from Unidata ftp site
+<tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic and
+                          64-bit offset files using parallel-netcdf
+<tr><td>--enable-extra-example-tests<td>Run extra example tests<td>--enable-netcdf-4,GNU sed
+<tr><td>--enable-parallel-tests <td>run extra parallel IO tests<td>--enable-netcdf-4, parallel IO support
+<tr><td>--enable-logging<td>enable logging capability<td>--enable-netcdf-4
+<tr><td>--disable-dap<td>build without DAP client support.<td>libcurl
+<tr><td>--disable-dap-remote-tests<td>disable dap remote tests<td>--enable-dap
+<tr><td>--enable-dap-long-tests<td>enable dap long tests<td>
+<tr><td>--enable-extra-tests<td>run some extra tests that may not pass because of known issues<td>
+<tr><td>--enable-ffio<td>use ffio instead of posixio (ex. on the Cray)<td>
+<tr><td>--disable-examples<td>don't build the netCDF examples during make check
+                          (examples are treated as extra tests by netCDF)<td>
+<tr><td>--disable-v2<td>turn off the netCDF version 2 API<td>
+<tr><td>--disable-utilities<td>don't build netCDF utilities ncgen, ncdump, and nccopy<td>
+<tr><td>--disable-testsets<td>don't build or run netCDF tests<td>
+<tr><td>--enable-large-file-tests <td>Run tests which create very large data
+		          files<td>~13 GB disk space required, but recovered when
+                          tests are complete). See option --with-temp-large to
+                          specify temporary directory<td>
+<tr><td>--enable-benchmarks<td>Run benchmarks. This is an experimental feature.
+			  The benchmarks are a
+                          bunch of extra tests, which are timed. We use these
+                          tests to check netCDF performance.
+    <td>sample data files from the Unidata ftp site
+<tr><td>--disable-extreme-numbers
+<td>don't use extreme numbers during testing, such as MAX_INT - 1<td>
+<tr><td>--enable-dll<td>build a win32 DLL<td>mingw compiler
+<tr><td>--disable-shared<td>build shared libraries<td>
+<tr><td>--disable-static<td>build static libraries<td>
+<tr><td>--disable-largefile<td>omit support for large files<td>
+</table>
 */
+
