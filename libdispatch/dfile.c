@@ -325,7 +325,7 @@ creating.  */
 int
 nc_create(const char *path, int cmode, int *ncidp)
 {
-   return NC_create(path, cmode, 0, 0, NULL, 0, NULL, ncidp);
+   return nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp);
 }
 
 /*!
