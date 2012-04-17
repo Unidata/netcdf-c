@@ -20,24 +20,15 @@
 #define FS_ATT_NAME "fsatt"
 #define VS_VAR_NAME "vsvar"
 #define FS_VAR_NAME "fsvar"
-#define FSTR_LEN 40000
+#define FSTR_LEN 5
 
 int
 main()
 {
     char *vsdata    = "The art of war is of vital importance to the State.  It is a matter of life and death, a road either to safety or to ruin.  Hence it is a subject of inquiry which can on no account be neglected.";
-    char fsdata[FSTR_LEN];
+    char fsdata[] = "ABCD";
     int i;
     char ch;
-	
-    /* Create string data for the fixed string type */
-    ch = ' ';
-    for(i=0; i < FSTR_LEN - 1; i++) {
-	fsdata[i] = ch++;
-	if (ch > '~')
-	    ch = ' ';
-    }
-    fsdata[FSTR_LEN - 1] = '\0';
 
     printf("\n*** Creating file for checking HDF5 string bug.\n");
     printf("*** Checking writing scalar string vars and atts of variable- and fixed-lengths...");
@@ -60,9 +51,7 @@ main()
 	if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 	if ((vsattid = H5Acreate(fileid, VS_ATT_NAME, vstypeid, spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
-	/* The following can't be read by libsrc4 due to a bug */
 	if (H5Awrite(vsattid, vstypeid, &vsdata) < 0) ERR;
-	
 	if ((fsattid = H5Acreate(fileid, FS_ATT_NAME, fstypeid, spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
 	if (H5Awrite(fsattid, fstypeid, &fsdata) < 0) ERR;
@@ -241,9 +230,9 @@ main()
     {
 	int ncid, varid, ndims;
 	nc_type type;
-	char data_in[FSTR_LEN];
+	char *data_in;
 	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-        if (nc_get_att_string(ncid, NC_GLOBAL, FS_ATT_NAME, data_in));
+        if (nc_get_att_string(ncid, NC_GLOBAL, FS_ATT_NAME, &data_in));
 	if (strcmp(fsdata, data_in));
 	if (nc_close(ncid)) ERR;
     }
@@ -252,14 +241,14 @@ main()
     {
     	int ncid, varid, ndims;
     	nc_type type;
-    	char data_in[FSTR_LEN];
+    	char *data_in;
     	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
     	if (nc_inq_varid(ncid, FS_VAR_NAME, &varid)) ERR;
     	if (nc_inq_vartype(ncid, varid, &type)) ERR;
     	if (type != NC_STRING) ERR;
     	if (nc_inq_varndims(ncid, varid, &ndims )) ERR;
     	if (ndims != 0) ERR;
-    	if (nc_get_var_string(ncid, varid, data_in)) ERR;
+    	if (nc_get_var_string(ncid, varid, &data_in)) ERR;
     	if (strcmp(fsdata, data_in));
     	if (nc_close(ncid)) ERR;
     }
