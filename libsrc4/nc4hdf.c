@@ -1001,16 +1001,15 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
        * model supports, lacking anonymous dimensions.  So
        * variable-length strings are in allocated memory that user has
        * to free, which we allocate here. */
-      /* if ((hdf_typeid = H5Dget_type(var->hdf_datasetid)) < 0) */
-      /* 	  BAIL(NC_EHDFERR); */
       if(var->type_info->class == H5T_STRING && 
 	 H5Tget_size(var->type_info->hdf_typeid) > 1 &&
 	 !H5Tis_variable_str(var->type_info->hdf_typeid)) {
 	  hsize_t fstring_len;
 	  if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) < 0)
 	      BAIL(NC_EHDFERR);
-      	  if (!(data = malloc(1 + fstring_len)))
+      	  if (!(*(char **)data = malloc(1 + fstring_len)))
       	      BAIL(NC_ENOMEM);
+	  bufr = *(char **)data;
       }
    
 #ifndef HDF5_CONVERT   
@@ -1035,7 +1034,8 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
       }
       else
 #endif /* ifndef HDF5_CONVERT */
-         bufr = data;
+	  if(!bufr)
+	      bufr = data;
 
       /* Get the HDF type of the data in memory. */
 #ifdef HDF5_CONVERT

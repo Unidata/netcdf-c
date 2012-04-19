@@ -3,8 +3,8 @@
    conditions of use.
 
    This program tests fixes for bugs reported with accessing
-   fixed-length string variables and variable-length string attributes
-   from HDF5 files through the netCDF-4 API.
+   fixed-length scalar string variables and variable-length scalar
+   string attributes from HDF5 files through the netCDF-4 API.
 
    Here's a HDF5 sample programs:
    http://hdf.ncsa.uiuc.edu/training/other-ex5/sample-programs/strings.c
@@ -20,25 +20,23 @@
 #define FS_ATT_NAME "fsatt"
 #define VS_VAR_NAME "vsvar"
 #define FS_VAR_NAME "fsvar"
-#define FSTR_LEN 5
+#define FSTR_LEN 20
 
 int
 main()
 {
-    char *vsdata    = "The art of war is of vital importance to the State.  It is a matter of life and death, a road either to safety or to ruin.  Hence it is a subject of inquiry which can on no account be neglected.";
-    char fsdata[] = "ABCD";
+    char *vsdata    = "variable-length string";
+    char fsdata[]   = "fixed-length string";
     int i;
     char ch;
 
-    printf("\n*** Creating file for checking HDF5 string bug.\n");
-    printf("*** Checking writing scalar string vars and atts of variable- and fixed-lengths...");
+    printf("\n*** Creating file for checking fix to bugs in accessing strings from HDF5 non-netcdf-4 file.\n");
     {
 	hid_t fileid, spaceid, vstypeid, fstypeid, vsattid, fsattid, vsdsetid, fsdsetid;
 	hid_t class;
 	size_t type_size = FSTR_LEN;
 
-	/* Create new file, using default properties. */
-	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
+	if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 	
 	/* Create variable-length and fixed-length string types. */
 	if ((vstypeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -46,23 +44,25 @@ main()
 	
 	if ((fstypeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
 	if (H5Tset_size(fstypeid, type_size) < 0) ERR;
+
+	/* Create new file, using default properties. */
+	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
+	
+	/* Create scalar datasets of variable- and fixed-length strings. */
+	if ((vsdsetid = H5Dcreate (fileid, VS_VAR_NAME, vstypeid, spaceid, 
+				   H5P_DEFAULT)) < 0) ERR;
+	if (H5Dwrite (vsdsetid, vstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &vsdata)) ERR;
+	if ((fsdsetid = H5Dcreate (fileid, FS_VAR_NAME, fstypeid, spaceid, 
+				   H5P_DEFAULT)) < 0) ERR;
+	if (H5Dwrite (fsdsetid, fstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &fsdata)) ERR;
 	
 	/* Write scalar global attributes of these types. */
-	if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 	if ((vsattid = H5Acreate(fileid, VS_ATT_NAME, vstypeid, spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
 	if (H5Awrite(vsattid, vstypeid, &vsdata) < 0) ERR;
 	if ((fsattid = H5Acreate(fileid, FS_ATT_NAME, fstypeid, spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
 	if (H5Awrite(fsattid, fstypeid, &fsdata) < 0) ERR;
-	
-	/* Create scalar datasets of these types and write them. */
-	if ((vsdsetid = H5Dcreate (fileid, VS_VAR_NAME, vstypeid, spaceid, 
-				   H5P_DEFAULT)) < 0) ERR;
-	if ((fsdsetid = H5Dcreate (fileid, FS_VAR_NAME, fstypeid, spaceid, 
-				   H5P_DEFAULT)) < 0) ERR;
-	if (H5Dwrite (vsdsetid, vstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &vsdata)) ERR;
-	if (H5Dwrite (fsdsetid, fstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &fsdata)) ERR;
 	
 	/* Close up. */
 	if (H5Dclose(vsdsetid) < 0) ERR;
@@ -74,9 +74,7 @@ main()
 	if (H5Tclose(fstypeid) < 0) ERR;
 	if (H5Fclose(fileid) < 0) ERR;
     }
-    SUMMARIZE_ERR;
     
-    printf("*** Checking reading back scalar string vars and atts of variable- and fixed-lengths...");
     {
 	hid_t fileid, spaceid, vstypeid, fstypeid, vsattid, fsattid, vsdsetid, fsdsetid;
 	hid_t class;
@@ -192,23 +190,7 @@ main()
 	if (H5Tclose(fstypeid) < 0) ERR;
 	if (H5Fclose(fileid) < 0) ERR;
     }
-    SUMMARIZE_ERR;
-    printf("*** Checking reading variable-length HDF5 string att through netCDF-4 API...");
-    {
-	int ncid, varid, ndims;
-	nc_type type;
-	size_t len;
-	char *data_in;
-	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-	if (nc_inq_att(ncid, NC_GLOBAL, VS_ATT_NAME, &type, &len)) ERR;
-	if (type != NC_STRING) ERR;
-	if (len != 1) ERR;
-        if (nc_get_att_string(ncid, NC_GLOBAL, VS_ATT_NAME, &data_in));
-	if (strcmp(vsdata, data_in));
-	if (nc_free_string(1, &data_in)) ERR;
-	if (nc_close(ncid)) ERR;
-    }
-    SUMMARIZE_ERR;
+
     printf("*** Checking reading variable-length HDF5 string var through netCDF-4 API...");
     {
 	int ncid, varid, ndims;
@@ -226,17 +208,7 @@ main()
 	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-    printf("*** Checking reading fixed-length HDF5 string att through netCDF-4 API...");
-    {
-	int ncid, varid, ndims;
-	nc_type type;
-	char *data_in;
-	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-        if (nc_get_att_string(ncid, NC_GLOBAL, FS_ATT_NAME, &data_in));
-	if (strcmp(fsdata, data_in));
-	if (nc_close(ncid)) ERR;
-    }
-    SUMMARIZE_ERR;
+
     printf("*** Checking reading fixed-length HDF5 string var through netCDF-4 API...");
     {
     	int ncid, varid, ndims;
@@ -250,8 +222,63 @@ main()
     	if (ndims != 0) ERR;
     	if (nc_get_var_string(ncid, varid, &data_in)) ERR;
     	if (strcmp(fsdata, data_in));
+	if (nc_free_string(1, &data_in)) ERR;
     	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+
+    printf("*** Checking reading variable-length HDF5 string att through netCDF-4 API...");
+    {
+	int ncid, varid, ndims;
+	nc_type type;
+	size_t len;
+	char *data_in;
+	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+	if (nc_inq_att(ncid, NC_GLOBAL, VS_ATT_NAME, &type, &len)) ERR;
+	if (type != NC_STRING) ERR;
+	if (len != 1) ERR;
+        if (nc_get_att_string(ncid, NC_GLOBAL, VS_ATT_NAME, &data_in));
+	if (strcmp(vsdata, data_in));
+	if (nc_free_string(1, &data_in)) ERR;
+	if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
+
+    printf("*** Checking reading fixed-length HDF5 string att through netCDF-4 API...");
+    {
+	int ncid, varid, ndims;
+	nc_type type;
+	size_t len;
+	char *data_in;
+	if (!(data_in = malloc(FSTR_LEN))) ERR;
+	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+	if (nc_inq_att(ncid, NC_GLOBAL, FS_ATT_NAME, &type, &len)) ERR;
+	if (type != NC_CHAR) ERR;
+	if (len != FSTR_LEN) ERR;
+        if (nc_get_att_string(ncid, NC_GLOBAL, FS_ATT_NAME, &data_in));
+	if (strcmp(fsdata, data_in));
+	if (nc_free_string(1, &data_in)) ERR;
+	if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
+
+    /* printf("*** Checking reading variable-length HDF5 strings var through netCDF-4 API..."); */
+    /* { */
+    /* 	int ncid, varid, ndims; */
+    /* 	nc_type type; */
+    /* 	char *data_in[1]; */
+    /* 	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
+    /* 	if (nc_inq_varid(ncid, VS_VAR_NAME, &varid)) ERR; */
+    /* 	if (nc_inq_vartype(ncid, varid, &type)) ERR; */
+    /* 	if (type != NC_STRING) ERR; */
+    /* 	if (nc_inq_varndims(ncid, varid, &ndims )) ERR; */
+    /* 	if (ndims != 0) ERR; */
+    /* 	if (nc_get_var_string(ncid, varid, data_in)) ERR; */
+    /* 	if (strcmp(vsdata, data_in[0])); */
+    /* 	if (nc_free_string(1, data_in)) ERR; */
+    /* 	if (nc_close(ncid)) ERR; */
+    /* } */
+    /* SUMMARIZE_ERR; */
+
     FINAL_RESULTS;
 }
