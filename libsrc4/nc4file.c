@@ -1863,9 +1863,9 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
 	 
 	res = H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
 			 &idx, nc4_rec_read_types_cb, (void *)grp);
-	if (res<0)
-	    return NC_EHDFERR;
     }
+    if (res<0)
+	return NC_EHDFERR;
     return NC_NOERR; /* everything worked! */
 }
 

@@ -223,7 +223,6 @@ main()
 	       if (datasetid > 0)
 	       {
 		  H5Dclose(datasetid);
-		  datasetid = 0;
 	       }
 	       
 	       if ((datasetid = H5Dopen(grpid, obj_name)) < 0) ERR;
