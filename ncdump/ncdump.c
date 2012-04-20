@@ -908,7 +908,7 @@ pr_attx(
     )
 {
     ncatt_t att;			/* attribute */
-    char *attvals;
+    char *attvals = "";
     int attvalslen = 0;
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );

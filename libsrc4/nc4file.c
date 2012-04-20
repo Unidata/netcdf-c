@@ -772,10 +772,11 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       {
 	 if ((is_str = H5Tis_variable_str(native_typeid)) < 0)
 	    return NC_EHDFERR;
-	 if (is_str)
+	 /* Make sure fixed-len strings will work like variable-len strings */
+	 if (is_str || H5Tget_size(hdf_typeid) > 1)
 	    t = NUM_TYPES - 1;
 	 else
-	    t = 0;
+	     t = 0;
       }
       else if (class == H5T_INTEGER || class == H5T_FLOAT)
       {
@@ -895,6 +896,9 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    {
       dims[0] = 0;
    }
+   else if (att->xtype == NC_STRING) {
+       dims[0] = att_npoints;
+   }
    else if (att->xtype == NC_CHAR)
    {
       /* NC_CHAR attributes are written as a scalar in HDF5, of type
@@ -913,8 +917,8 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    } 
    else
    {
-      /* All netcdf attributes are 1-D only. */
-      if (att_ndims != 1)
+      /* All netcdf attributes are scalar or 1-D only. */
+      if (att_ndims > 1)
 	 BAIL(NC_EATTMETA);
 
       /* Read the size of this attribute. */
@@ -1859,9 +1863,9 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
 	 
 	res = H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
 			 &idx, nc4_rec_read_types_cb, (void *)grp);
-	if (res<0)
-	    return NC_EHDFERR;
     }
+    if (res<0)
+	return NC_EHDFERR;
     return NC_NOERR; /* everything worked! */
 }
 

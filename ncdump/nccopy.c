@@ -52,7 +52,7 @@ static int option_write_diskless = 0; /* default, don't write output to diskless
 static int
 get_grpid(int igrp, int parid, int *ogrpp) {
     int stat = NC_NOERR;
-    int ogid;			/* like igrp but in output file */
+    int ogid = parid;		/* like igrp but in output file */
 #ifdef USE_NETCDF4
     int inparid;
 
@@ -63,13 +63,10 @@ get_grpid(int igrp, int parid, int *ogrpp) {
 	NC_CHECK(nc_inq_grpname(igrp, grpname));
 	NC_CHECK(nc_inq_grp_ncid(parid, grpname, &ogid));
     } else if(stat == NC_ENOGRP) { /* root group */
-	ogid = parid;
 	stat = NC_NOERR;
     } else {
 	NC_CHECK(stat);
     }
-#else
-    ogid = parid;
 #endif	/* USE_NETCDF4 */
     *ogrpp = ogid;
     return stat;
@@ -88,8 +85,8 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     char *last_slash;
     if(parent == NULL) {
 	NC_CHECK(NC_ENOMEM);
-    }
-    last_slash = strrchr(parent, '/');
+    } else
+	last_slash = strrchr(parent, '/');
     if(last_slash == parent) {	/* parent is root */
 	free(parent);
 	parent = strdup(slash);
