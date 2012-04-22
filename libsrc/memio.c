@@ -34,9 +34,9 @@
 #define SEEK_END 2
 #endif
 
-/* Define the mode flags for create: rw by owner, no access by anyone else */
-#define OPENMODE 0600
-#define OPENANYMODE 0666
+/* Define the mode flags for create: let umask rule */
+#define OPENMODE 0777
+#define OPENANYMODE 0777
 
 #include "ncio.h"
 #include "fbits.h"

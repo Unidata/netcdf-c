@@ -76,7 +76,7 @@ ocskipinstanceas(OCnode* node, XXDR* xdrs, OCtype astype)
 	    } else {/* Walk instance by instance */
 		int skipstart = 0; /* worst case */
 		OCASSERT(node->etype == OC_String || node->etype == OC_URL);
-#ifdef IGNORE
+#ifdef OCIGNORE
 		/* But first, check the cache, if any */
 		if(node->cache.cacheable && node->cache.valid) {
 		    /* use the cache index to shorten how much we need to skip */
@@ -148,7 +148,7 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
     /* validate memory space*/
     if(memsize < elemsize*count) return OCTHROW(OC_EINVAL);
 
-#ifdef IGNORE
+#ifdef OCIGNORE
     if(!scalar && (!node->cache.cacheable || !node->cache.valid)) {
         unsigned int xdrcount0,xdrcount1;
 	/* assume xdr position is correct */
@@ -174,7 +174,7 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
 
     /* Not packed */
 
-#ifdef IGNORE
+#ifdef OCIGNORE
     /* If this (primitive) object is cacheable and is valid cache,
        then modify start and set the xdr position accordingly
     */

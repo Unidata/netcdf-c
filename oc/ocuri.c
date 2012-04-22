@@ -45,7 +45,7 @@ static char* nulldup(char* s)
 }
 #endif
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 /* Not all systems have strndup, so provide one*/
 static char*
 ocstrndup(const char* s, size_t len)
@@ -543,7 +543,7 @@ ocparamfree(char** params)
     free(params);
 }
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 /*
 Delete the entry.
 return value = 1 => found and deleted;

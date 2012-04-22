@@ -1,6 +1,6 @@
-TOPDIR="/home/dmh/mach/major"
+TOPDIR="/home/dmh/mach/minor"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
-#PARMS="[log]"
+PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
 #PARMS="${PARMS}[fetch=memory]"
 #PARMS="${PARMS}[cache]"
@@ -10,8 +10,7 @@ PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 #PARMS="${PARMS}[wholevar]"
 #PARMS="${PARMS}[show=fetch]"
 
-F="http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/in.nc"
-VAR="var_nm%2edot"
+F="file://${TOPDIR}/ncdap_test/testdata3/synth1"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"

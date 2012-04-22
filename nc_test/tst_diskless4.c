@@ -105,7 +105,8 @@ main(int argc, char **argv)
     switch (tag) {
     case Create:
     case CreateDiskless:
-        if((status=nc_create(FILE_NAME, cmode, &ncid)))
+	/* Try to alloc as much as possible initially */
+        if((status=nc__create(FILE_NAME, cmode, filesize, NULL, &ncid)))
 	    REPORT;
         if((status=nc_set_fill(ncid, NC_NOFILL, NULL)))
 	    REPORT;

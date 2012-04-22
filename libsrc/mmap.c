@@ -55,9 +55,9 @@
 #define SEEK_END 2
 #endif
 
-/* Define the mode flags for create: rw by owner, no access by anyone else */
-#define OPENMODE 0600
-#define OPENANYMODE 0666
+/* Define the mode flags for create: let umask decide */
+#define OPENMODE 0
+#define OPENANYMODE 0
 
 #include "ncio.h"
 #include "fbits.h"
@@ -87,9 +87,9 @@
 #undef X_ALIGN
 #endif
 
-/* Private data for memio */
+/* Private data for mmap */
 
-typedef struct NCMEMIO {
+typedef struct NCMMAPIO {
     int locked; /* => we cannot realloc */
     int persist; /* => save to a file; triggered by NC_WRITE */
     char* memory;
@@ -97,7 +97,7 @@ typedef struct NCMEMIO {
     off_t size;
     off_t pos;
     int mapfd;
-} NCMEMIO;
+} NCMMAPIO;
 
 /* Forward */
 static int mmap_rel(ncio *const nciop, off_t offset, int rflags);
@@ -115,11 +115,11 @@ static long pagesize = 0;
 
 /* Create a new ncio struct to hold info about the file. */
 static int
-mmap_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEMIO** memiop)
+mmap_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMMAPIO** mmapp)
 {
     int status = NC_NOERR;
     ncio* nciop = NULL;
-    NCMEMIO* memio = NULL;
+    NCMMAPIO* mmapio = NULL;
     int openfd = -1;
 
     if(pagesize == 0) {
@@ -156,24 +156,24 @@ mmap_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEMI
     *((ncio_pad_lengthfunc**)&nciop->pad_length) = mmap_pad_length;
     *((ncio_closefunc**)&nciop->close) = mmap_close;
 
-    memio = (NCMEMIO*)calloc(1,sizeof(NCMEMIO));
-    if(memio == NULL) {status = NC_ENOMEM; goto fail;}
-    *((void* *)&nciop->pvt) = memio;
+    mmapio = (NCMMAPIO*)calloc(1,sizeof(NCMMAPIO));
+    if(mmapio == NULL) {status = NC_ENOMEM; goto fail;}
+    *((void* *)&nciop->pvt) = mmapio;
 
-    memio->alloc = initialsize;
+    mmapio->alloc = initialsize;
 
-    memio->memory = NULL;
-    memio->size = 0;
-    memio->pos = 0;
-    memio->persist = fIsSet(ioflags,NC_WRITE);
+    mmapio->memory = NULL;
+    mmapio->size = 0;
+    mmapio->pos = 0;
+    mmapio->persist = fIsSet(ioflags,NC_WRITE);
 
     /* See if ok to use mmap */
     if(sizeof(void*) < 8 && fIsSet(ioflags,NC_64BIT_OFFSET))
 	return NC_DISKLESS; /* cannot support */
-    memio->mapfd = -1;
+    mmapio->mapfd = -1;
 
     if(nciopp) *nciopp = nciop;
-    if(memiop) *memiop = memio;
+    if(mmapp) *mmapp = mmapio;
 
 done:
     if(openfd >= 0) close(openfd);
@@ -209,7 +209,7 @@ mmap_create(const char* path, int ioflags,
     ncio* nciop;
     int fd;
     int status;
-    NCMEMIO* memio = NULL;
+    NCMMAPIO* mmapio = NULL;
     int persist = (ioflags & NC_WRITE?1:0);
     int oflags;
 
@@ -220,18 +220,18 @@ mmap_create(const char* path, int ioflags,
     if(fIsSet(ioflags,NC_NETCDF4))
         return NC_EDISKLESS; /* violates constraints */
 
-    status = mmap_new(path, ioflags, initialsz, &nciop, &memio);
+    status = mmap_new(path, ioflags, initialsz, &nciop, &mmapio);
     if(status != NC_NOERR)
         return status;
-    memio->size = 0;
+    mmapio->size = 0;
 
     if(!persist) {
-        memio->mapfd = -1;
-	memio->memory = (char*)mmap(NULL,memio->alloc,
+        mmapio->mapfd = -1;
+	mmapio->memory = (char*)mmap(NULL,mmapio->alloc,
                                     PROT_READ|PROT_WRITE,
 				    MAP_PRIVATE|MAP_ANONYMOUS,
-                                    memio->mapfd,0);
-	{memio->memory[0] = 0;} /* test writing of the mmap'd memory */
+                                    mmapio->mapfd,0);
+	{mmapio->memory[0] = 0;} /* test writing of the mmap'd memory */
     } else { /*persist */
         /* Open the file, but make sure we can write it if needed */
         oflags = (persist ? O_RDWR : O_RDONLY);    
@@ -247,16 +247,22 @@ mmap_create(const char* path, int ioflags,
         fd  = open(path, oflags, OPENMODE);
 #endif
         if(fd < 0) {status = errno; goto unwind_open;}
-	memio->mapfd = fd;
-        memio->memory = (char*)mmap(NULL,memio->alloc,
-                                    PROT_READ|PROT_WRITE,
-				    MAP_SHARED,
-                                    memio->mapfd,0);
-	{int tst=memio->memory[0];} /* test reading of the mmap'd memory */
+	mmapio->mapfd = fd;
+	{
+	int tst;
+	void* start = sbrk(0);
+        mmapio->memory = (char*)mmap(start,mmapio->alloc,
+//                                    PROT_READ|PROT_WRITE,
+PROT_WRITE,
+//				    MAP_SHARED,
+0,
+                                    mmapio->mapfd,0);
+	tst=mmapio->memory[0]; /* test reading of the mmap'd memory */
+	}
     } /*!persist*/
 
 #ifdef DEBUG
-fprintf(stderr,"mmap_create: initial memory: %lu/%lu\n",(unsigned long)memio->memory,(unsigned long)memio->alloc);
+fprintf(stderr,"mmap_create: initial memory: %lu/%lu\n",(unsigned long)mmapio->memory,(unsigned long)mmapio->alloc);
 #endif
 
     fd = nc__pseudofd();
@@ -311,7 +317,7 @@ mmap_open(const char* path,
     int status;
     int persist = (fIsSet(ioflags,NC_WRITE)?1:0);
     int oflags;
-    NCMEMIO* memio = NULL;
+    NCMMAPIO* mmapio = NULL;
     size_t sizehint;
     off_t filesize;
 
@@ -342,26 +348,26 @@ mmap_open(const char* path,
     if(filesize < (off_t)sizehint)
         filesize = (off_t)sizehint;
 
-    status = mmap_new(path, ioflags, filesize, &nciop, &memio);
+    status = mmap_new(path, ioflags, filesize, &nciop, &mmapio);
     if(status != NC_NOERR)
 	return status;
-    memio->size = filesize;
+    mmapio->size = filesize;
 
-    memio->mapfd = fd;
-    memio->memory = (char*)mmap(NULL,memio->alloc,
+    mmapio->mapfd = fd;
+    mmapio->memory = (char*)mmap(NULL,mmapio->alloc,
                                     persist?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
-                                    memio->mapfd,0);
+                                    mmapio->mapfd,0);
 #ifdef DEBUG
-fprintf(stderr,"mmap_open: initial memory: %lu/%lu\n",(unsigned long)memio->memory,(unsigned long)memio->alloc);
+fprintf(stderr,"mmap_open: initial memory: %lu/%lu\n",(unsigned long)mmapio->memory,(unsigned long)mmapio->alloc);
 #endif
 
-    /* Read the file into the memio memory */
+    /* Read the file into the mmap memory */
     /* We need to do multiple reads because there is no
        guarantee that the amount read will be the full amount */
     {
-	off_t red = memio->size;
-	char* pos = memio->memory;
+	off_t red = mmapio->size;
+	char* pos = mmapio->memory;
 	while(red > 0) {
 	    ssize_t count = read(fd, pos, red);
 	    if(count < 0)
@@ -406,10 +412,10 @@ unwind_open:
 static int
 mmap_filesize(ncio* nciop, off_t* filesizep)
 {
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    memio = (NCMEMIO*)nciop->pvt;
-    if(filesizep != NULL) *filesizep = memio->size;
+    mmapio = (NCMMAPIO*)nciop->pvt;
+    if(filesizep != NULL) *filesizep = mmapio->size;
     return NC_NOERR;
 }
 
@@ -423,17 +429,17 @@ mmap_filesize(ncio* nciop, off_t* filesizep)
 static int
 mmap_pad_length(ncio* nciop, off_t length)
 {
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    memio = (NCMEMIO*)nciop->pvt;
+    mmapio = (NCMMAPIO*)nciop->pvt;
 
     if(!fIsSet(nciop->ioflags, NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
 
-    if(memio->locked > 0)
+    if(mmapio->locked > 0)
 	return NC_EDISKLESS;
 
-    if(length > memio->alloc) {
+    if(length > mmapio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/
 	off_t newsize = length;
 	void* newmem = NULL;
@@ -441,18 +447,18 @@ mmap_pad_length(ncio* nciop, off_t length)
 	if((newsize % pagesize) != 0)
 	    newsize += (pagesize - (newsize % pagesize));
 
-	newmem = (char*)mremap(memio->memory,memio->alloc,newsize,MREMAP_MAYMOVE);
+	newmem = (char*)mremap(mmapio->memory,mmapio->alloc,newsize,MREMAP_MAYMOVE);
 	if(newmem == NULL) return NC_ENOMEM;
 
 #ifdef DEBUG
 fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
-(unsigned long)memio->memory,(unsigned long)memio->alloc,
+(unsigned long)mmapio->memory,(unsigned long)mmapio->alloc,
 (unsigned long)newmem,(unsigned long)newsize);
 #endif
-	memio->memory = newmem;
-	memio->alloc = newsize;
+	mmapio->memory = newmem;
+	mmapio->alloc = newsize;
     }  
-    memio->size = length;
+    mmapio->size = length;
     return NC_NOERR;
 }
 
@@ -468,22 +474,22 @@ static int
 mmap_close(ncio* nciop, int doUnlink)
 {
     int status = NC_NOERR;
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_NOERR;
 
-    memio = (NCMEMIO*)nciop->pvt;
-    assert(memio != NULL);
+    mmapio = (NCMMAPIO*)nciop->pvt;
+    assert(mmapio != NULL);
 
     /* Since we are using mmap, persisting to a file should be automatic */
-    status = munmap(memio->memory,memio->alloc);
-    memio->memory = NULL; /* so we do not try to free it */
+    status = munmap(mmapio->memory,mmapio->alloc);
+    mmapio->memory = NULL; /* so we do not try to free it */
 
     /* Close file if it was open */
-    if(memio->mapfd >= 0)
-	close(memio->mapfd);
+    if(mmapio->mapfd >= 0)
+	close(mmapio->mapfd);
 
     /* do cleanup  */
-    if(memio != NULL) free(memio);
+    if(mmapio != NULL) free(mmapio);
     if(nciop->path != NULL) free((char*)nciop->path);
     free(nciop);
     return status;
@@ -492,14 +498,14 @@ mmap_close(ncio* nciop, int doUnlink)
 static int
 guarantee(ncio* nciop, off_t endpoint)
 {
-    NCMEMIO* memio = (NCMEMIO*)nciop->pvt;
-    if(endpoint > memio->alloc) {
+    NCMMAPIO* mmapio = (NCMMAPIO*)nciop->pvt;
+    if(endpoint > mmapio->alloc) {
 	/* extend the allocated memory and size */
 	int status = mmap_pad_length(nciop,endpoint);
 	if(status != NC_NOERR) return status;
     }
-    if(memio->size < endpoint)
-	memio->size = endpoint;
+    if(mmapio->size < endpoint)
+	mmapio->size = endpoint;
     return NC_NOERR;
 }
 
@@ -511,13 +517,13 @@ static int
 mmap_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** const vpp)
 {
     int status = NC_NOERR;
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    memio = (NCMEMIO*)nciop->pvt;
+    mmapio = (NCMMAPIO*)nciop->pvt;
     status = guarantee(nciop, offset+extent);
-    memio->locked++;
+    mmapio->locked++;
     if(status != NC_NOERR) return status;
-    if(vpp) *vpp = memio->memory+offset;
+    if(vpp) *vpp = mmapio->memory+offset;
     return NC_NOERR;
 }
 
@@ -528,10 +534,10 @@ static int
 mmap_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 {
     int status = NC_NOERR;
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
 
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    memio = (NCMEMIO*)nciop->pvt;
+    mmapio = (NCMMAPIO*)nciop->pvt;
     if(from < to) {
        /* extend if "to" is not currently allocated */
        status = guarantee(nciop,to+nbytes);
@@ -541,7 +547,7 @@ mmap_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
     if((to + nbytes) > from || (from + nbytes) > to) {
 	/* Ranges overlap */
 #ifdef HAVE_MEMMOVE
-        memmove((void*)(memio->memory+to),(void*)(memio->memory+from),nbytes);
+        memmove((void*)(mmapio->memory+to),(void*)(mmapio->memory+from),nbytes);
 #else
         off_t overlap;
 	off_t nbytes1;
@@ -549,28 +555,28 @@ mmap_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 	    overlap = ((from + nbytes) - to); /* # bytes of overlap */
 	    nbytes1 = (nbytes - overlap); /* # bytes of non-overlap */
 	    /* move the non-overlapping part */
-            memcpy((void*)(memio->memory+(to+overlap)),
-                   (void*)(memio->memory+(from+overlap)),
+            memcpy((void*)(mmapio->memory+(to+overlap)),
+                   (void*)(mmapio->memory+(from+overlap)),
 		   nbytes1);
 	    /* move the overlapping part */
-	    memcpy((void*)(memio->memory+to),
-                   (void*)(memio->memory+from),
+	    memcpy((void*)(mmapio->memory+to),
+                   (void*)(mmapio->memory+from),
 		   overlap);
 	} else { /*((to + nbytes) > from) */
 	    overlap = ((to + nbytes) - from); /* # bytes of overlap */
 	    nbytes1 = (nbytes - overlap); /* # bytes of non-overlap */
 	    /* move the non-overlapping part */
-            memcpy((void*)(memio->memory+to),
-                   (void*)(memio->memory+from),
+            memcpy((void*)(mmapio->memory+to),
+                   (void*)(mmapio->memory+from),
 		   nbytes1);
 	    /* move the overlapping part */
-	    memcpy((void*)(memio->memory+(to+nbytes1)),
-                   (void*)(memio->memory+(from+nbytes1)),
+	    memcpy((void*)(mmapio->memory+(to+nbytes1)),
+                   (void*)(mmapio->memory+(from+nbytes1)),
 		   overlap);
 	}
 #endif
     } else {/* no overlap */
-	memcpy((void*)(memio->memory+to),(void*)(memio->memory+from),nbytes);
+	memcpy((void*)(mmapio->memory+to),(void*)(mmapio->memory+from),nbytes);
     }
     return status;
 }
@@ -578,10 +584,10 @@ mmap_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 static int
 mmap_rel(ncio* const nciop, off_t offset, int rflags)
 {
-    NCMEMIO* memio;
+    NCMMAPIO* mmapio;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    memio = (NCMEMIO*)nciop->pvt;
-    memio->locked--;
+    mmapio = (NCMMAPIO*)nciop->pvt;
+    mmapio->locked--;
     return NC_NOERR; /* do nothing */
 }
 

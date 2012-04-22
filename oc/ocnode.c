@@ -438,7 +438,7 @@ mergedas1(OCnode* dds, OCnode* das)
 
 
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 
 int
 ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
@@ -607,7 +607,7 @@ void
 ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 {
     int i,j;
-#ifdef IGNORE
+#ifdef OCIGNORE
     int ok;
 #endif
     OClist* treenodes = ddsroot->tree->nodes;
@@ -619,20 +619,20 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 	/* collect node path */
         oclistclear(path);
         occollectpathtonode(node,path);	
-#ifdef IGNORE
+#ifdef OCIGNORE
         ok = 1;
 #endif
 	for(j=1;j<oclistlength(path)-1;j++) {/* skip top level dataset and node itself*/
             OCnode* pathnode = (OCnode*)oclistget(path,j);
 	    if(pathnode->octype != OC_Structure
 		|| pathnode->array.rank > 0) {
-#ifdef IGNORE
+#ifdef OCIGNORE
 	    ok=0;
 #endif
 	    break;
 	    }
 	}	
-#ifdef IGNORE
+#ifdef OCIGNORE
 	if(ok) {
    	    node->cache.cacheable = 1;
 	    node->cache.valid = 0;

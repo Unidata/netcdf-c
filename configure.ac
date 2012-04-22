@@ -575,23 +575,22 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 # check for memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
 
-# MMap disabled until I can figure out why it doesn't work
+# check for mmap support
 # Does the user want to use the mmap for NC_DISKLESS?
-#AC_MSG_CHECKING([whether mmap will be used for in-memory files])
-#AC_ARG_ENABLE([mmap],
-#              [AS_HELP_STRING([--enable-mmap],
-#                              [use mmap for in-memory (NC_DISKLESS) files])])
-#test "x$enable_mmap" = xyes || enable_mmap=no
-#AC_MSG_RESULT($enable_mmap)
+AC_MSG_CHECKING([whether mmap will be used for in-memory files])
+AC_ARG_ENABLE([mmap],
+              [AS_HELP_STRING([--enable-mmap],
+                              [use mmap for in-memory (NC_DISKLESS) files])])
+test "x$enable_mmap" = xyes || enable_mmap=no
+AC_MSG_RESULT($enable_mmap)
 
-# Only define if mmap and mremap are available
-#AC_FUNC_MMAP
-#AC_CHECK_FUNCS([mremap])
-#if "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
-#  echo "mmap function or mremap function is not available: disabling mmap"
-#  enable_mmap=no
-#fi
-enable_mmap=no
+# check for mmap and mremap
+AC_FUNC_MMAP
+AC_CHECK_FUNCS([mremap])
+if "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
+  echo "mmap function or mremap function is not available: disabling mmap"
+  enable_mmap=no
+fi
 
 if test "x$enable_mmap" = xyes; then
   AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])

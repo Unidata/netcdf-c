@@ -150,7 +150,7 @@ xxdrstdio_getlong(xdrs, lp)
 	XDR *xdrs;
 	register unsigned int *lp;
 {
-#ifdef IGNORE
+#ifdef OCIGNORE
 FILE* f = (FILE*)xdrs->x_private;
 long fpos = ftell(f);
 #endif

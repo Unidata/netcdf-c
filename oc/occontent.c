@@ -43,7 +43,7 @@ static OCcontent* occlearcontent(struct OCstate* state, OCcontent* content);
 static void
 report(size_t memsize, char* memory)
 {
-#ifdef IGNORE
+#ifdef OCIGNORE
     switch(memsize) {
     case 1:
         oc_log(LOGNOTE,"reading xdr: %lu bytes = |%2x|",(unsigned long)memsize,memory[0]);
@@ -173,7 +173,7 @@ ocsetcontent(OCcontent* childcontent, OCcontent* parent, OCnode* node, int packe
     return childcontent;
 }
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 static OCcontent*
 occlonecontent(OCstate* state, OCcontent* content)
 {
@@ -971,7 +971,7 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
     /* validate memory space*/
     if(memsize < elemsize*count) return OCTHROW(OC_EINVAL);
 
-#ifdef IGNORE
+#ifdef OCIGNORE
     if(!scalar && (!node->cache.cacheable || !node->cache.valid)) {
         unsigned int xdrcount0,xdrcount1;
 	/* assume xdr position is correct */
@@ -997,7 +997,7 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
 
     /* Not packed */
 
-#ifdef IGNORE
+#ifdef OCIGNORE
     /* If this (primitive) object is cacheable and is valid cache,
        then modify start and set the xdr position accordingly
     */

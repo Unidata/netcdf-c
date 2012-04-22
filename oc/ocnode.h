@@ -61,7 +61,7 @@ typedef struct OCnode {
 	ocoffset_t totalsize;   /* usually: count*instancesize + overhead; may be indeterminate */
 	ocoffset_t offset;      /* mostly for debugging */
     } skip;
-#ifdef IGNORE
+#ifdef OCIGNORE
     struct {/* do simple index cache */
 	int cacheable; /* is this object cacheable? */
 	int valid;   /* is this cache valid */

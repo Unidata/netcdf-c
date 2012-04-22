@@ -26,7 +26,7 @@ variables:
 */
 
 #define PARAMS ""
-#define URL "http://motherlode.ucar.edu:8080/dts/test.GridFile"
+#define URL "http://motherlode.ucar.edu:8081/dts/test.GridFile"
 #define VAR "UTMGrid.Data Fields.Vegetation"
 #define YDim_UTMGrid 200
 #define XDim_UTMGrid 120
