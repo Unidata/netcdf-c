@@ -52,6 +52,7 @@ nc_get_iter(Symbol* vsym,
     stat = nciter_ndims(vsym, &ndims);
     CHECK(stat, nciter_ndims);
     stat = nciter_dimlens(vsym,dimsizes);
+    CHECK(stat, nciter_dimlens);
     /* compute total # elements */
     nvalues=1;
     for(dim = 0; dim < ndims; dim++) {

@@ -418,7 +418,7 @@ nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
          break;
       default:
          /* Maybe this is a user defined type? */
-         if (!(retval = nc4_find_type(h5, xtype, &type)))
+         if (!nc4_find_type(h5, xtype, &type))
          {
             if (!type)
                return NC_EBADTYPE;

@@ -81,6 +81,7 @@ lput(const char *cp) {
  * general lput-type function.
  */
 
+#define CDL_COMMENT_PREFIX "// "
 void
 lput2(
     const char *cp,		/* string to print */
@@ -91,8 +92,7 @@ lput2(
 {
     static int linep;			/* current line position (number of */
     					/*   chars); saved between calls    */
-    static char *prefix = "// ";	/* prefix for CDL comment */
-    int len_prefix = strlen (prefix);
+    int len_prefix = strlen (CDL_COMMENT_PREFIX);
     boolean make_newline;
     
     size_t len1 = strlen(cp);		/* length of input string */
@@ -122,14 +122,14 @@ lput2(
 
     if (len_prefix > 0) {
 	if (first_item || make_newline) {
-	    printf (prefix);
+	    printf (CDL_COMMENT_PREFIX);
             linep = linep + len_prefix;
 	}
     }
 
 /* (3) Output caller's string value. */
 
-     printf (cp);
+    printf ("%s", cp);
 }
 
 

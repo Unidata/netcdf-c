@@ -729,6 +729,8 @@ pr_att(
 	       case NC_UINT64:
 		   value = *((uint64_t *)data + i);
 		   break;
+	       default:
+		   error("enum must have an integer base type: %d", base_nc_type);
 	       }
 	       NC_CHECK( nc_inq_enum_ident(ncid, att.type, value, 
 					   enum_name));

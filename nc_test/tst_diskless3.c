@@ -124,7 +124,7 @@ test_one_with_att(const char *testfile)
    if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
    if (nc_get_var_text(ncid, varid, &data_in)) ERR;
    if (data_in != data) ERR;
-   if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in));
+   if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in)) ERR;
    if (data_in != data) ERR;
    if (nc_close(ncid)) ERR; 
    return 0;

@@ -122,7 +122,7 @@ find_var_shape_grp(NC_GRP_INFO_T *grp, int varid, int *ndims,
 	       dim in the space. */
 	    if ((dataset_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
 	       BAIL(NC_EHDFERR);
-	    if (dataset_ndims != *ndims)
+	    if (ndims && dataset_ndims != *ndims)
 	       BAIL(NC_EHDFERR);
 	    if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
 	       BAIL(NC_ENOMEM);

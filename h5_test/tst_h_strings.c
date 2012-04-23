@@ -66,7 +66,9 @@ main()
       if ((class = H5Tget_class(typeid)) < 0) ERR;
       if (class != H5T_STRING) ERR;
       if (!(type_size = H5Tget_size(typeid))) ERR;
+      if (type_size != sizeof(char *)) ERR;
       if ((is_str = H5Tis_variable_str(typeid)) < 0) ERR;
+      if (!is_str) ERR;
 
       /* Make sure this is a scalar. */
       if (H5Sget_simple_extent_type(spaceid) != H5S_SCALAR) ERR;
