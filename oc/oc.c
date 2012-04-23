@@ -736,7 +736,7 @@ oc_clientparam_get(OCconnection conn, const char* param)
     return ocparamlookup(state,param);
 }
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 /* Delete client parameter
    return value:
 	OC_NOERR => defined; deletion performed

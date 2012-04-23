@@ -49,7 +49,7 @@ ocparamset(OCstate* state, const char* params)
     return i?OC_NOERR:OC_EBADURL;
 }
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 void
 ocparamfree(OClist* params)
 {

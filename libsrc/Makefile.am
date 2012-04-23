@@ -19,7 +19,7 @@ nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
 ncx.h lookup3.c pstdint.h ncio.c ncio.h
 
 if USE_MMAP
-libnetcdf3_la_SOURCES += mmap.c
+libnetcdf3_la_SOURCES += mmapio.c
 else
 libnetcdf3_la_SOURCES += memio.c
 endif

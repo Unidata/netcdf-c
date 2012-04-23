@@ -119,7 +119,7 @@ ocset_ssl(OCstate* state)
     cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
     if (cstat != CURLE_OK) goto fail;
     OCDBG1(1,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
-#ifdef IGNORE
+#ifdef OCIGNORE
     if(verify)
 #endif
     {

@@ -145,8 +145,8 @@ nclogsettags(char** tagset, char* dfalt)
 	nctagsize = 0;
     } else {
         int i;
-	char** p = tagset;
-	while(*p && i < MAXTAGS) {i++;}
+	/* Find end of the tagset */
+	for(i=0;i<MAXTAGS;i++) {if(tagset[i]==NULL) break;}
 	nctagsize = i;
     }
     nctagset = tagset;

@@ -156,7 +156,7 @@ totaldimsize(OCnode* node)
     return count;
 }
 
-#if 0 /*def IGNORE*/
+#ifdef OCIGNORE
 size_t
 totaldimsize(unsigned int rank, size_t* dimsizes)
 {

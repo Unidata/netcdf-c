@@ -381,7 +381,7 @@ ocextractddsinmemory(OCstate* state, OCtree* tree, OCflags flags)
 	tree->text = NULL;
     /* Extract the inmemory contents */
     tree->data.memory = ocbytesextract(state->packet);
-#ifdef IGNORE
+#ifdef OCIGNORE
     /* guarantee the data part is on an 8 byte boundary */
     if(tree->data.bod % 8 != 0) {
         unsigned long count = tree->data.datasize - tree->data.bod;

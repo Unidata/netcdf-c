@@ -20,7 +20,7 @@ variables:
 */
 
 #define PARAMS ""
-#define URL "http://motherlode.ucar.edu:8080/dts/ingrid"
+#define URL "http://motherlode.ucar.edu:8081/dts/ingrid"
 #define VAR "v3H"
 #define ISTA 35
 #define IZ 44

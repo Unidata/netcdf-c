@@ -87,7 +87,7 @@ dumpocnode1(OCnode* node, int depth)
 	if(node->name == NULL) OCPANIC("prim without name");
 	fprintf(stdout,"%s %s",octypetostring(node->etype),node->name);
 	dumpdimensions(node);
-#ifdef IGNORE
+#ifdef OCIGNORE
 	if(node->cache.cacheable) fprintf(stdout," [cached]");
 #endif
 	dumpskip(node);

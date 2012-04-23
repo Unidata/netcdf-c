@@ -25,8 +25,8 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
 #endif
 
 #ifdef USE_MMAP
-extern int mmap_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
-extern int mmap_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
+extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
+extern int mmapio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
 #else
 extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
 extern int memio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
@@ -40,7 +40,7 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
     if(fIsSet(ioflags,NC_DISKLESS))
 
 #ifdef USE_MMAP
-        return mmap_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
+        return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
 #else
         return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
 #endif
@@ -62,7 +62,7 @@ ncio_open(const char *path, int ioflags,
      */
     if(fIsSet(ioflags,NC_DISKLESS)) {
 #ifdef USE_MMAP
-        return mmap_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
+        return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
 #else
         return memio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
 #endif

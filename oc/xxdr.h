@@ -84,7 +84,7 @@
 }
 
 
-#ifdef IGNORE
+#ifdef OCIGNORE
 /* Warning dst and src should not be the same memory (assert &iswap != &i) */
 #define xxdrntoh(dst,src) if(xxdr_network_order){dst=src;}else{swapinline32(dst,src);}
 #define xxdrntohll(dst,src) if(xxdr_network_order){dst=src;}else{swapinline64(dst,src);}

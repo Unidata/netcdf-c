@@ -6,7 +6,7 @@ cmds=$@
 fi
 
 #HDF5=1
-#DAP=1
+DAP=1
 #CDMR=1
 #RPC=1
 #PGI=1
@@ -129,6 +129,8 @@ FLAGS="$FLAGS --disable-pnetcdf"
 FLAGS="$FLAGS --enable-logging"
 FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
+FLAGS="$FLAGS --enable-mmap"
+FLAGS="$FLAGS --disable-dap-remote-tests"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
@@ -138,7 +140,6 @@ FLAGS="$FLAGS --disable-netcdf-4"
 fi
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
-#FLAGS="$FLAGS --disable-dap-remote-tests"
 fi
 if test "x$CDMR" = "x1" ; then
 FLAGS="$FLAGS --enable-cdmremote"

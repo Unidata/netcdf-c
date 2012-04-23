@@ -1858,7 +1858,7 @@ format. The URL is composed of four parts.
     are of the general form [{name}] or [{name}=value]. Examples
     include [cache=1] and [netcdf3].
  -  URL - this is a standard form URL such as
-    http://motherlode.unidata.ucar.edu:8080/dts/test.01
+    http://motherlode.unidata.ucar.edu:8081/dts/test.01
  -  Constraints - these are suffixed to the URL and take the form
     “?\<projections>&selections”. The meaning of the terms projection
     and selection is somewhat complicated; and the OPeNDAP web site,
