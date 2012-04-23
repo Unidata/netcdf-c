@@ -100,10 +100,13 @@ main() {/* create tst_diskless2.nc */
     check_err(stat,__LINE__,__FILE__);
     econst = 0;
     stat = nc_insert_enum(root_grp, enum_t_typ, "Clear", &econst);
+    check_err(stat,__LINE__,__FILE__);
     econst = 1;
     stat = nc_insert_enum(root_grp, enum_t_typ, "Cumulonimbus", &econst);
+    check_err(stat,__LINE__,__FILE__);
     econst = 2;
     stat = nc_insert_enum(root_grp, enum_t_typ, "Stratus", &econst);
+    check_err(stat,__LINE__,__FILE__);
     }
 
     stat = nc_def_opaque(root_grp, 11, "opaque_t", &opaque_t_typ);

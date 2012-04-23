@@ -802,6 +802,8 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       endianness = NC_ENDIAN_LITTLE;
 	    else if (order == H5T_ORDER_BE)
 	       endianness = NC_ENDIAN_BIG;
+	    else /* don't support H5T_ORDER_VAX, H5T_ORDER_MIXED, H5T_ORDER_NONE */
+		return NC_EBADTYPE;
 	    /* Copy this into the type_info struct. */
 	    (*type_info)->endianness = endianness;
 	 }
@@ -1960,9 +1962,9 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 	 
 	res = H5Literate(grp->hdf_grpid, H5_INDEX_NAME, H5_ITER_INC, 
 			 &idx, nc4_rec_read_vars_cb, (void *)grp);
-	if (res<0)
-	    return NC_EHDFERR;
     }
+    if (res<0)
+	return NC_EHDFERR;
    
     /* Scan the group for global (i.e. group-level) attributes. */
     if ((retval = read_grp_atts(grp)))
@@ -2807,9 +2809,7 @@ int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 	    size_t v_minfree, size_t r_align)
 {
-   NC_FILE_INFO_T *nc;
-
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!nc4_find_nc_file(ncid))
       return NC_EBADID;
 
    return NC4_enddef(ncid);
@@ -3151,7 +3151,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 	 if (dim->unlimited)
 	 {
 	    *unlimdimidp = dim->dimid;
-	    found++;
 	    break;
 	 }
    }

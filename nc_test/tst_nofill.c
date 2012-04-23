@@ -457,7 +457,7 @@ main(int argc, char **argv)
 		   if (data1[nn] != data2[nn]) {
 		       badvars++;
 		       fprintf(stderr, 
-			       "\tFrom nofill file, %s[%d] = %d\tFrom fill file, %s[%d] = %d\n", 
+			       "\tFrom nofill file, %s[%lu] = %d\tFrom fill file, %s[%lu] = %d\n", 
 			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
 		       break;
 		   };

@@ -396,7 +396,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 
    /* If this is a user defined type, find it. */
    if (xtype > NC_STRING)
-      if ((retval = nc4_find_type(grp->file->nc4_info, xtype, &type_info)))
+      if (nc4_find_type(grp->file->nc4_info, xtype, &type_info))
          return NC_EBADTYPE;
 
    /* cast needed for braindead systems with signed size_t */

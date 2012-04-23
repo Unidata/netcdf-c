@@ -264,10 +264,14 @@ test_nc_inq(void)
 	    int ngatts0;
 	    int recdim0;
 	    err = nc_enddef(ncid2); /* enter data mode */
+	    IF (err)
+		error("nc_enddef: %s", nc_strerror(err));
 	    err = nc_inq(ncid2, &ndims0, &nvars0, &ngatts0, &recdim0);
 	    IF (err)
 		error("nc_inq: %s", nc_strerror(err));
 	    err = nc_redef(ncid2); /* enter define mode */
+	    IF (err)
+		error("nc_redef: %s", nc_strerror(err));
 	    /* Check that inquire still works in define mode */
 	    err = nc_inq(ncid2, &ndims, &nvars, &ngatts, &recdim);
 	    IF (err)

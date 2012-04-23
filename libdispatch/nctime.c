@@ -1063,7 +1063,7 @@ cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* com
 	}
 					     /* Calculate new epochal time. */
 					     /* Convert back to human, then comptime. */
-	else{
+	else if(baseunits == cdHour){
 		Cde2h(base_etm+delta, old_timetype, 1970, &humantime);
 		
 	}

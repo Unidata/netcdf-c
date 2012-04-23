@@ -522,6 +522,8 @@ test_nc_def_dim(void)
     IF (dimid != 0) 
 	error("Unexpected recdim");
     err = nc_inq_dimlen(ncid, dimid, &length);
+    IF (err)
+	error("nc_inq_dimlen: %s", nc_strerror(err));
     IF (length != 0) 
 	error("Unexpected length");
     err = nc_def_dim(ncid, "abc", NC_UNLIMITED, &dimid);
@@ -600,6 +602,8 @@ test_nc_rename_dim(void)
     IF (err)
         error("nc_rename_dim: %s", nc_strerror(err));
     err = nc_inq_dimname(ncid, 2, name);
+    IF (err)
+        error("nc_inq_dimname: %s", nc_strerror(err));
     IF (strcmp(name, "abc") != 0)
         error("Unexpected name: %s", name);
     err = nc_rename_dim(ncid, 0, "abc");
@@ -2072,6 +2076,6 @@ test_nc_set_default_format(void)
     }
 
     /* Remove the left-over file. */
-    if ((err = remove(scratch)))
+    if (remove(scratch))
        error("remove of %s failed", scratch);
 }

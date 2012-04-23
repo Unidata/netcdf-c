@@ -192,7 +192,6 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 	 {
 	    if (idp)
 	       *idp = dim->dimid;
-	    finished++;
 	    return NC_NOERR;
 	 }
 
