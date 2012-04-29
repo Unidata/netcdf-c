@@ -207,7 +207,7 @@ converttype(OCtype etype, char* value, char* memory)
     case OC_Int64:
 	if(sscanf(value,"%lld",&llv) != 1) goto fail;
         /*else if(iv > OC_INT64_MAX || iv < OC_INT64_MIN) goto fail;*/
-	*((signed long long*)memory) = (signed long long)iv;
+	*((signed long long*)memory) = (signed long long)llv;
 	break;
     case OC_UInt64:
 	if(sscanf(value,"%llu",&ullv) != 1) goto fail;
@@ -662,7 +662,8 @@ occomputeskipdatar(OCstate* state, OCnode* xnode, ocoffset_t offset)
     OCerror stat = OC_NOERR;
     int i,nfields;
     int scalar = 0;
-    ocoffset_t instancesize, totalsize;
+    ocoffset_t instancesize = 0;
+    ocoffset_t totalsize = 0;
 
     scalar = (xnode->array.rank == 0 ? 1 : 0);
 
@@ -703,7 +704,8 @@ occomputeskipdatar(OCstate* state, OCnode* xnode, ocoffset_t offset)
 		totalsize += 2*XDRUNIT; /* overhead is double count */
 	    break;
 
-	default: OCPANIC("unexpected etype"); /* better not happen */
+	default:
+	    OCPANIC("unexpected etype"); /* better not happen */
 	}
 	break;
 
@@ -746,6 +748,7 @@ occomputeskipdatar(OCstate* state, OCnode* xnode, ocoffset_t offset)
     default: OCPANIC("unexpected octype"); /* better not happen */
     }
 
+    xnode->skip.offset = offset;
     xnode->skip.instancesize = instancesize;
     xnode->skip.totalsize = totalsize;
 

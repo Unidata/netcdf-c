@@ -105,7 +105,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
     int token;
     int c;
     unsigned int i;
-    char* p=lexstate->next;
+    char* p;
     char* tmp;
 
     token = 0;

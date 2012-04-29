@@ -168,7 +168,8 @@ parseproxy(OCstate* state, char* v)
     host_pos = strstr(v, "http://");
     if (host_pos)
         host_pos += strlen("http://");
-
+    else
+	host_pos = v;
     port_pos = strchr(host_pos, ':');
     if (port_pos) {
         int host_len;
@@ -479,8 +480,7 @@ ocdodsrc_process(OCstate* state)
 
 done:
     if(url != NULL) free(url);
-
-    return OC_NOERR;
+    return stat;
 }
     
 char*

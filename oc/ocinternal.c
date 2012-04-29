@@ -404,6 +404,7 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
     /* Read until we find the separator (or EOF)*/
     ocbytesclear(state->packet);
     rewind(tree->data.file);
+    bodfound = 0;
     do {
         char chunk[1024];
 	size_t count;
