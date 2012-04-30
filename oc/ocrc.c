@@ -15,7 +15,7 @@
 #include "occontent.h"
 #include "oclog.h"
 
-#include "rc.h"
+#include "ocrc.h"
 
 #define RTAG ']'
 #define LTAG '['

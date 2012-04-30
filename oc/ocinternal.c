@@ -15,11 +15,11 @@
 #include "ocdata.h"
 #include "occontent.h"
 #include "occlientparams.h"
-#include "rc.h"
-#include "curlfunctions.h"
+#include "ocrc.h"
+#include "occurlfunctions.h"
 
-#include "http.h"
-#include "read.h"
+#include "ochttp.h"
+#include "ocread.h"
 
 /* Note: TMPPATH must end in '/' */
 #ifdef __CYGWIN__

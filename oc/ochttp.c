@@ -9,8 +9,8 @@
 #include <fcntl.h>
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "http.h"
-#include "rc.h"
+#include "ochttp.h"
+#include "ocrc.h"
 
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);

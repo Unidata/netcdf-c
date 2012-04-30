@@ -7,7 +7,7 @@
 #include "ocdata.h"
 #include "occontent.h"
 
-#include "rc.h"
+#include "ocrc.h"
 
 /* Condition on libcurl version */
 /* Set up an alias as needed */
