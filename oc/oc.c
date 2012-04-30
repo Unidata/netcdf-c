@@ -459,7 +459,7 @@ oc_inq_attrstrings(OCconnection conn, OCobject node0, unsigned int i,
 	    for(i=0;i<attr->nvalues;i++)
 	        strings[i] = nulldup(attr->values[i]);
 	    *stringsp = strings;
-	else
+	} else
 	    *stringsp = NULL;
     }
     return OC_NOERR;    
