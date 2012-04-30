@@ -9,7 +9,7 @@
 #include "netcdf.h"
 
 #define FILE_NAME "tst_files.nc"
-#define URL "http://motherlode.ucar.edu:8080/dts/test.01"
+#define URL "http://motherlode.ucar.edu:8081/dts/test.01"
 
 int
 main(int argc, char **argv)
