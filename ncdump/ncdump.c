@@ -72,7 +72,7 @@ usage(void)
   [-s]             Output special (virtual) attributes\n\
   [-t]             Output time data as date-time strings\n\
   [-i]             Output time data as date-time strings with ISO-8601 'T' separator\n\
-  [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\
+  [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\n\
   [-w]             Without client-side caching of variables for DAP URLs\n\
   file             Name of netCDF file\n"
 
