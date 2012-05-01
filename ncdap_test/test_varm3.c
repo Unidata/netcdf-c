@@ -25,7 +25,7 @@ netcdf-4.1-beta2-snapshot2009091100
 
 #undef DEBUG
 
-#define URL "http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/coads_climatology.nc"
+#define URL "http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/coads_climatology.nc"
 #define VAR "SST"
 
 static float expected_stride1[12] = {

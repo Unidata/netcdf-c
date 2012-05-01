@@ -1,7 +1,7 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON=""
 PARMS="[log]"
 
-F="http://motherlode.ucar.edu:8080/thredds/cdmremote/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncd"
+F="http://motherlode.ucar.edu:8081/thredds/cdmremote/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncd"
 
 PARMS="${PARMS}[cdmremote]"
 PARMS="${PARMS}[show=fetch]"
@@ -23,6 +23,6 @@ alias qall="$PROG -h $ARGS '${UALL}'"
 alias qv="valgrind $VARGS $PROG $ARGS '$U'"
 
 if test 1 = 0; then
-F="http://motherlode.ucar.edu:8080/thredds/cdmremote/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncd"
+F="http://motherlode.ucar.edu:8081/thredds/cdmremote/fmrc/NCEP/GFS/Alaska_191km/NCEP-GFS-Alaska_191km_fmrc.ncd"
 fi
 

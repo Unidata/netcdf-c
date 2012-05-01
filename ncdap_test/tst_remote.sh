@@ -59,14 +59,14 @@ PARAMS="${PARAMS}${CACHE}"
 ##################################################
 
 # For special testing
-REMOTEURLX="http://motherlode.ucar.edu:8080/dts"
+REMOTEURLX="http://motherlode.ucar.edu:8081/dts"
 REMOTETESTSX="test.03"
 
-REMOTEURLXC="http://motherlode.ucar.edu:8080/dts"
+REMOTEURLXC="http://motherlode.ucar.edu:8081/dts"
 REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
-REMOTEURLS1="http://motherlode.ucar.edu:8080/dts"
+REMOTEURLS1="http://motherlode.ucar.edu:8081/dts"
 REMOTETESTSS1="\
 test.01 test.02 test.04 test.05 test.06 test.07a test.07 \
 test.21 \
@@ -99,7 +99,7 @@ TOOBIGL1="parserBug0001 test.satimage Sat_Images test.32"
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
 # Following tests are to check constraint handling
-REMOTEURLC1="http://motherlode.ucar.edu:8080/dts"
+REMOTEURLC1="http://motherlode.ucar.edu:8081/dts"
 REMOTETESTSC1="\
 test.01;1;f64 \
 test.02;1;b[1:2:10] \
@@ -128,13 +128,13 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 # Test string access 
 # this test cannot be used because the
 # dataset has a limited lifetime
-REMOTEURLC4="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar"
+REMOTEURLC4="http://motherlode.ucar.edu:8081/thredds/dodsC/station/metar"
 REMOTETESTSC4="\
 Surface_METAR_20120101_0000.nc;1;weather[0:10]\
 "
 
 # Constrained long tests
-REMOTEURLLC1="http://motherlode.ucar.edu:8080/dts"
+REMOTEURLLC1="http://motherlode.ucar.edu:8081/dts"
 REMOTETESTSLC1="\
 test.03;2;s1"
 
