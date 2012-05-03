@@ -1,4 +1,4 @@
-TOPDIR="/home/dmh/mach/minor"
+TOPDIR="/home/dmh/svn/trunk"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
@@ -10,7 +10,7 @@ PARMS="[log]"
 #PARMS="${PARMS}[wholevar]"
 #PARMS="${PARMS}[show=fetch]"
 
-F="file://${TOPDIR}/ncdap_test/testdata3/synth1"
+F="file://${TOPDIR}/ncdap_test/testdata3/123bears.nc"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"

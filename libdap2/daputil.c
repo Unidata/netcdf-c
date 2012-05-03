@@ -773,12 +773,13 @@ dap_repairname(char* name)
     newname[0] = '\0'; /* so we can use strcat */
     for(p=name,q=newname;(c=*p);p++) {
         if(strchr(badchars,c) != NULL) {
-            char newchar[4];
+            char newchar[8];
             snprintf(newchar,sizeof(newchar),"%%%hhx",c);
             strcat(newname,newchar);
             q += 3; /*strlen(newchar)*/
         } else
             *q++ = c;
+	*q = '\0'; /* so we can always do strcat */
     }
     *q = '\0'; /* ensure trailing null */
     return newname;
