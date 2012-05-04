@@ -439,12 +439,12 @@ makebytestring(char* s, size_t* lenp)
 {
     unsigned char* bytes;
     unsigned char* b;
-    size_t slen = strlen(s);
-    size_t blen = slen/2;
+    size_t slen = strlen(s); /* # nibbles */
+    size_t blen = slen/2; /* # bytes */
     int i;
 
     ASSERT((slen%2) == 0);
-    ASSERT(blen > 0);
+    ASSERT(blen > 0); 
     bytes = (unsigned char*)emalloc(blen);
     b = bytes;
     for(i=0;i<slen;i+=2) {

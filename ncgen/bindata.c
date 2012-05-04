@@ -34,6 +34,7 @@ bin_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
     case NC_OPAQUE: {
         unsigned char* bytes;
         size_t len;
+	/* Assume the opaque string has been normalized */
         bytes=makebytestring(con->value.opaquev.stringv,&len);
         bbAppendn(buf,(void*)bytes,len);
         } break;

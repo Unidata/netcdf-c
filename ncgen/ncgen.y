@@ -931,11 +931,12 @@ makeprimitivetype(nc_type nctype)
     sym->objectclass=NC_TYPE;
     sym->subclass=NC_PRIM;
     sym->ncid = nctype;
-    sym->typ.basetype = NULL;
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
     sym->typ.alignment = nctypealignment(nctype);
+    /* Make the basetype circular so we can always ask for it */
+    sym->typ.basetype = sym;
     sym->prefix = listnew();
     return sym;
 }
