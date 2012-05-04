@@ -80,7 +80,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     Dimset* dimset = &vsym->typ.dimset;
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
-    Datalist* filler = getfiller(vsym);
 
     if(vsym->data == NULL) return;
 
@@ -89,10 +88,10 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
 
     if(rank == 0) {/*scalar case*/
 	Constant* c0 = datalistith(vsym->data,0);
-        generate_basetype(basetype,c0,code,filler,generator);
+        generate_basetype(basetype,c0,code,NULL,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
-	generate_array(vsym,code,filler,generator,writer);
+	generate_array(vsym,code,NULL,generator,writer);
     }
 }
 		
