@@ -1033,17 +1033,13 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    int len,padlen;
+	    int len;
 	    len = bbLength(lextext);
-	    padlen = len;
-	    if(padlen < 16) padlen = 16;
-	    if((padlen % 2) == 1) padlen++;
-	    s = (char*)emalloc(padlen+1);
-	    memset((void*)s,'0',padlen);
-	    s[padlen]='\0';
+	    s = (char*)emalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
+	    s[len] = '\0';
 	    con.value.opaquev.stringv = s;
-	    con.value.opaquev.len = padlen;
+	    con.value.opaquev.len = len;
 	    } break;
 #endif
 

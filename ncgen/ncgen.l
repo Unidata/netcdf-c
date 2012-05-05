@@ -190,10 +190,9 @@ yytext[MAXTRST-1] = '\0';
 {OPAQUESTRING}	{ /* drop leading 0x; pad to even number of chars */
 		char* p = yytext+2;
 		int len = yyleng - 2;
-		int padlen = len;
-	        if((padlen % 2) == 1) padlen++;
 		bbClear(lextext);
 	        bbAppendn(lextext,p,len);
+	        if((len % 2) == 1) bbAppend(lextext,'0');
 		bbNull(lextext);
 		/* convert all chars to lower case */
 		for(p=bbContents(lextext);*p;p++) *p = tolower(*p);

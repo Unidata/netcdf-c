@@ -526,6 +526,7 @@ case CASE(NC_OPAQUE,NC_OPAQUE):
     tmp.opaquev.stringv = (char*)malloc(src->value.opaquev.len);
     memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
+    tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
     break;
 
     /* We are missing all CASE(X,NC_ECONST) cases*/
