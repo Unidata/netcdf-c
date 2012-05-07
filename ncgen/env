@@ -1,7 +1,7 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
 K="-k3"
-F="t"
+F="ref_tst_opaque_data.cdl"
 #B="-B12"
 #NCGEN="./.libs/ncgen"
 NCGEN="./ncgen"
