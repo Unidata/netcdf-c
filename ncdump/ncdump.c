@@ -2064,26 +2064,30 @@ ncdump -k file
 
 @section  DESCRIPTION
 
-ncdump generates a text representation of a specified netCDF
+\b ncdump generates a text representation of a specified netCDF
 file on standard output.  The text representation is in a
 form called CDL (network Common Data form Language) that
 can be viewed, edited, or serve as input to ncgen.  ncgen is a
 companion program that can generate a binary netCDF file from a
-CDL file.  Hence ncgen and ncdump can be used as inverses to
+CDL file.  Hence ncgen and \b ncdump can be used as inverses to
 transform the data representation between binary and text
 representations.  See ncgen for a description of CDL and
 netCDF representations.
 
+\b ncdump may also be used to determine what kind of netCDF file
+is used (which variant of the netCDF file format) with the -k
+option.
+
 As of NetCDF version 4.1, and if DAP support was enabled when
-ncdump was built, the file name may specify a DAP URL. This
-allows ncdump to print out data sources from DAP servers.  When
-used with the -h option, ncdump can be used to show the
+\b ncdump was built, the file name may specify a DAP URL. This
+allows \b ncdump to print out data sources from DAP servers.  When
+used with the -h option, \b ncdump can be used to show the
 translation from the DAP DDS data model to the NetCDF data
 model.
 
-ncdump defines a default display format used for each type of
+\b ncdump defines a default display format used for each type of
 netCDF data, but this can be changed if a `C_format' attribute
-is defined for a netCDF variable.  In this case, ncdump will
+is defined for a netCDF variable.  In this case, \b ncdump will
 use the `C_format' attribute to format each value.  For
 example, if floating-point data for the netCDF variable `Z' is
 known to be accurate to only three significant digits, it would
@@ -2093,21 +2097,17 @@ be appropriate to use the variable attribute
     Z:C_format = "%.3g"
 \endcode
 
-ncdump may also be used as a simple browser for netCDF data
+\b ncdump may also be used as a simple browser for netCDF data
 files, to display the dimension names and sizes; variable
 names, types, and shapes; attribute names and values; and
 optionally, the values of data for all variables or selected
 variables in a netCDF file.
 
-ncdump uses '_' to represent data values that are equal to the
+\b ncdump uses '_' to represent data values that are equal to the
 '_FillValue' attribute for a variable, intended to represent
 data that has not yet been written.  If a variable has no
 '_FillValue' attribute, the default fill value for the variable
 type is used if the variable is not of byte type.
-
-ncdump may also be used to determine what kind of netCDF file
-is used (which variant of the netCDF file format) with the -k
-option.
 
 @section  OPTIONS
 
@@ -2167,13 +2167,13 @@ of non-character data values.
 
 \b -n \e name  <br>
 CDL requires a name for a netCDF file, for use by 'ncgen -b' in
-generating a default netCDF file name. By default, ncdump
+generating a default netCDF file name. By default, \b ncdump
 constructs this name from the last component of the file name of
 the input netCDF file by stripping off any extension it has. Use
 the '-n' option to specify a different name. Although the output
 file name used by 'ncgen -b' can be specified, it may be wise to
-have ncdump change the default name to avoid inadvertently
-overwriting a valuable netCDF file when using ncdump, editing the
+have \b ncdump change the default name to avoid inadvertently
+overwriting a valuable netCDF file when using \b ncdump, editing the
 resulting CDL file, and using 'ncgen -b' to generate a new netCDF
 file from the edited CDL file.
 
@@ -2290,7 +2290,7 @@ ncgen(1), netcdf(3)
 
 @section string_note NOTE ON STRING OUTPUT
 
-For classic, 64-bit offset or netCDF-4 classic model data, ncdump
+For classic, 64-bit offset or netCDF-4 classic model data, \b ncdump
 generates line breaks after embedded newlines in displaying character
 data.  This is not done for netCDF-4 files, because netCDF-4 supports
 arrays of real strings of varying length.
