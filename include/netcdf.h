@@ -376,7 +376,7 @@ by the desired type. */
  * vars. */
 #define DIM_WITHOUT_VARIABLE "This is a netCDF dimension but not a netCDF variable."
 
-/* This is here at the request of the NCO team to support the stupid
+/* This is here at the request of the NCO team to support our
  * mistake of having chunksizes be first ints, then size_t. Doh! */
 #define NC_HAVE_NEW_CHUNKING_API 1
 

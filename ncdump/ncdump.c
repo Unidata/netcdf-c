@@ -68,13 +68,13 @@ usage(void)
   [-n name]        Name for netCDF (default derived from file name)\n\
   [-p n[,n]]       Display floating-point values with less precision\n\
   [-k]             Output kind of netCDF file\n\
-  [-x]             Output XML (NcML) instead of CDL\n\
   [-s]             Output special (virtual) attributes\n\
   [-t]             Output time data as date-time strings\n\
   [-i]             Output time data as date-time strings with ISO-8601 'T' separator\n\
   [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\n\
-  [-w]             Without client-side caching of variables for DAP URLs\n\
-  file             Name of netCDF file\n"
+  [-w]             With client-side caching of variables for DAP URLs\n\
+  [-x]             Output XML (NcML) instead of CDL\n\
+  file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
 		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] file\n%s",
@@ -1079,7 +1079,7 @@ print_enum_type(int ncid, nc_type typeid) {
 	    break;
 	}
 	esc_mn = escaped_name(memname);
-	res = snprintf(safe_buf, SAFE_BUF_LEN, "%s = %lld%s", memname, 
+	res = snprintf(safe_buf, SAFE_BUF_LEN, "%s = %lld%s", esc_mn, 
 		       memval, delim);
 	assert(res < SAFE_BUF_LEN);
 	free(esc_mn);
@@ -2047,181 +2047,216 @@ void adapt_url_for_cache(char **pathp) {
 }
 #endif
 
-/**
-The ncdump tool generates the CDL text representation of a netCDF
-dataset on standard output, optionally excluding some or all of the
-variable data in the output. The output from ncdump is intended to be
-acceptable as input to ncgen. Thus ncdump and ncgen can be used as
-inverses to transform data representation between binary and text
-representations.
+/** @page ncdump ncdump tool
 
-As of netCDF version 4.1, ncdump can also access DAP data sources if
-DAP support is enabled in the underlying netCDF library. Instead of
-specifying a file name as argument to ncdump, the user specifies a URL
-to a DAP source.
+@section  NAME
 
-ncdump may also be used as a simple browser for netCDF datasets, to
-display the dimension names and lengths; variable names, types, and
-shapes; attribute names and values; and optionally, the values of data
-for all variables or selected variables in a netCDF dataset.
+       ncdump - Convert netCDF file to text form (CDL)
 
-ncdump defines a default format used for each type of netCDF variable
-data, but this can be overridden if a C_format attribute is defined
-for a netCDF variable. In this case, ncdump will use the C_format
-attribute to format values for that variable. For example, if
-floating-point data for the netCDF variable Z is known to be accurate
-to only three significant digits, it might be appropriate to use this
-variable attribute:
+@section  SYNOPSIS
 
 \code
-     Z:C_format = "%.3g"
+ncdump   [-chistxw]  [-v  var1,...]  [-b lang]  [-f lang]
+         [-l  len]  [-n  name]  [-p n[,n]]  [-g  grp1,...]  file
+
+ncdump -k file
 \endcode
 
-Ncdump uses '_' to represent data values that are equal to the
-_FillValue attribute for a variable, intended to represent data that
-has not yet been written. If a variable has no _FillValue attribute,
-the default fill value for the variable type is used unless the
-variable is of byte type.
+@section  DESCRIPTION
 
-UNIX syntax for invoking ncdump:
+ncdump generates a text representation of a specified netCDF
+file on standard output.  The text representation is in a
+form called CDL (network Common Data form Language) that
+can be viewed, edited, or serve as input to ncgen.  ncgen is a
+companion program that can generate a binary netCDF file from a
+CDL file.  Hence ncgen and ncdump can be used as inverses to
+transform the data representation between binary and text
+representations.  See ncgen for a description of CDL and
+netCDF representations.
+
+As of NetCDF version 4.1, and if DAP support was enabled when
+ncdump was built, the file name may specify a DAP URL. This
+allows ncdump to print out data sources from DAP servers.  When
+used with the -h option, ncdump can be used to show the
+translation from the DAP DDS data model to the NetCDF data
+model.
+
+ncdump defines a default display format used for each type of
+netCDF data, but this can be changed if a `C_format' attribute
+is defined for a netCDF variable.  In this case, ncdump will
+use the `C_format' attribute to format each value.  For
+example, if floating-point data for the netCDF variable `Z' is
+known to be accurate to only three significant digits, it would
+be appropriate to use the variable attribute
 
 \code
-     ncdump  [-c | -h]  [-v var1,...]  [-g grp1,...]  [-b lang]  [-f lang]
-     [-l len]  [-n name]  [-p fdig[,ddig]] [-x]  [-s] [-t]  input-file
+    Z:C_format = "%.3g"
 \endcode
 
-or
+ncdump may also be used as a simple browser for netCDF data
+files, to display the dimension names and sizes; variable
+names, types, and shapes; attribute names and values; and
+optionally, the values of data for all variables or selected
+variables in a netCDF file.
 
-\code
-     ncdump -k input-file
-\endcode
+ncdump uses '_' to represent data values that are equal to the
+'_FillValue' attribute for a variable, intended to represent
+data that has not yet been written.  If a variable has no
+'_FillValue' attribute, the default fill value for the variable
+type is used if the variable is not of byte type.
 
-where:
+ncdump may also be used to determine what kind of netCDF file
+is used (which variant of the netCDF file format) with the -k
+option.
 
--c Show the values of coordinate variables (variables that are also
- dimensions) as well as the declarations of all dimensions, variables,
- and attribute values. Data values of non-coordinate variables are not
- included in the output. This is often the most suitable option to use
- for a brief look at the structure and contents of a netCDF file.
+@section  OPTIONS
 
--h Show only the header information in the output, that is, output
- only the declarations for the netCDF dimensions, variables, and
- attributes of the input file, but no data values for any
- variables. The output is identical to using the '-c' option except
- that the values of coordinate variables are not included. (At most
- one of '-c' or '-h' options may be present.)
+\b -c <br>
+Show the values of \e coordinate \e variables (1D variables with the same
+names as dimensions) as well as the declarations of all dimensions,
+variables, and attribute values.  Data values of non-coordinate
+variables are not included in the output.  This is the most suitable
+option to use for a brief look at the structure and contents of a
+netCDF file.
 
--v var1,... The output will include data values for the specified
- variables, in addition to the declarations of all dimensions,
- variables, and attributes. One or more variables must be specified by
- name in the comma-delimited list following this option. The list must
- be a single argument to the command, hence cannot contain blanks or
- other white space characters. The named variables must be valid
- netCDF variables in the input-file. The default, without this option
- and in the absence of the '-c' or '-h' options, is to include data
- values for all variables in the output.
+\b -h <br>
+Show only the header information in the output, that is, output only
+the declarations for the netCDF dimensions, variables, and attributes
+of the input file, but no data values for any variables. The output is
+identical to using the '-c' option except that the values of
+coordinate variables are not included. (At most one of '-c' or '-h'
+options may be present.)
 
--g grp1,... The output will include data values only for the specified
- groups.  One or more groups must be specified by name in the
- comma-delimited list following this option. The list must be a single
- argument to the command. The named groups must be valid netCDF groups in the
- input-file. The default, without this option and in the absence of
- the '-c' or '-h' options, is to include data values for all groups in
- the output.
+\b -v \e var1,... <br> The output will include data values for the
+specified variables, in addition to the declarations of all
+dimensions, variables, and attributes. One or more variables must be
+specified by name in the comma-delimited list following this
+option. The list must be a single argument to the command, hence
+cannot contain unescaped blanks or other white space characters. The
+named variables must be valid netCDF variables in the input-file. The
+default, without this option and in the absence of the '-c' or '-h'
+options, is to include data values for all variables in the output.
 
--b lang A brief annotation in the form of a CDL comment (text
- beginning with the characters '//') will be included in the data
- section of the output for each 'row' of data, to help identify data
- values for multidimensional variables. If lang begins with 'C' or
- 'c', then C language conventions will be used (zero-based indices,
- last dimension varying fastest). If lang begins with 'F' or 'f', then
- FORTRAN language conventions will be used (one-based indices, first
- dimension varying fastest). In either case, the data will be
- presented in the same order; only the annotations will differ. This
- option may be useful for browsing through large volumes of
- multidimensional data.
+\b -b [c|f] <br>
+A brief annotation in the form of a CDL comment (text beginning with
+the characters '//') will be included in the data section of the
+output for each 'row' of data, to help identify data values for
+multidimensional variables. If lang begins with 'C' or 'c', then C
+language conventions will be used (zero-based indices, last dimension
+varying fastest). If lang begins with 'F' or 'f', then FORTRAN
+language conventions will be used (one-based indices, first dimension
+varying fastest). In either case, the data will be presented in the
+same order; only the annotations will differ. This option may be
+useful for browsing through large volumes of multidimensional data.
 
--f lang Full annotations in the form of trailing CDL comments (text
- beginning with the characters '//') for every data value (except
- individual characters in character arrays) will be included in the
- data section. If lang begins with 'C' or 'c', then C language
- conventions will be used. If lang begins with 'F' or 'f', then FORTRAN language
- conventions will be used. In either case, the data will be presented in the same
- order; only the annotations will differ. This option may be useful
- for piping data into other filters, since each data value appears on
- a separate line, fully identified. (At most one of '-b' or '-f'
- options may be present.)
+\b -f [c|f] <br>
+Full annotations in the form of trailing CDL comments (text beginning
+with the characters '//') for every data value (except individual
+characters in character arrays) will be included in the data
+section. If lang begins with 'C' or 'c', then C language conventions
+will be used. If lang begins with 'F' or 'f', then FORTRAN language
+conventions will be used. In either case, the data will be presented
+in the same order; only the annotations will differ. This option may
+be useful for piping data into other filters, since each data value
+appears on a separate line, fully identified. (At most one of '-b' or
+'-f' options may be present.)
 
--l len Changes the default maximum line length (80) used in formatting
-lists of non-character data values.
+\b -l \e length <br>
+Changes the default maximum line length (80) used in formatting lists
+of non-character data values.
 
--p float_digits[,double_digits] Specifies default precision (number of
-significant digits) to use in displaying floating-point or double
-precision data values for attributes and variables. If specified, this
-value overrides the value of the C_format attribute, if any, for a
-variable. Floating-point data will be displayed with float_digits
-significant digits. If double_digits is also specified,
-double-precision values will be displayed with that many significant
-digits. In the absence of any '-p' specifications, floating-point and
-double-precision data are displayed with 7 and 15 significant digits
-respectively. CDL files can be made smaller if less precision is
-required. If both floating-point and double precisions are specified,
-the two values must appear separated by a comma (no blanks) as a
-single argument to the command.
+\b -n \e name  <br>
+CDL requires a name for a netCDF file, for use by 'ncgen -b' in
+generating a default netCDF file name. By default, ncdump
+constructs this name from the last component of the file name of
+the input netCDF file by stripping off any extension it has. Use
+the '-n' option to specify a different name. Although the output
+file name used by 'ncgen -b' can be specified, it may be wise to
+have ncdump change the default name to avoid inadvertently
+overwriting a valuable netCDF file when using ncdump, editing the
+resulting CDL file, and using 'ncgen -b' to generate a new netCDF
+file from the edited CDL file.
 
--s Specifies that special virtual attributes should be output for the
-file format variant and for variable properties such as compression,
-chunking, and other properties specific to the format implementation
-that are primarily related to performance rather than the logical
-schema of the data. All the special virtual attributes begin with '_'
-followed by an upper-case letter. Currently they include the global
-attribute “_Format” and the variable attributes “_Fletcher32”,
-“_ChunkSizes”, “_Endianness”, “_DeflateLevel”, “_Shuffle”, “_Storage”,
-and “_NoFill”. The ncgen utility recognizes these attributes and
+\b -p \e float_digits[,double_digits]  <br>
+Specifies default precision (number of significant digits) to use in
+displaying floating-point or double precision data values for
+attributes and variables. If specified, this value overrides the value
+of the C_format attribute, if any, for a variable. Floating-point data
+will be displayed with float_digits significant digits. If
+double_digits is also specified, double-precision values will be
+displayed with that many significant digits. In the absence of any
+'-p' specifications, floating-point and double-precision data are
+displayed with 7 and 15 significant digits respectively. CDL files can
+be made smaller if less precision is required. If both floating-point
+and double precisions are specified, the two values must appear
+separated by a comma (no blanks) as a single argument to the command.
+
+\b -k  <br>
+Show \e kind of netCDF file, that is which format variant the file uses.
+Other options are ignored if this option is specified.  Output will be
+one of 'classic'. '64-bit offset', 'netCDF-4', or 'netCDF-4 classic
+model'.
+
+\b -s  <br>
+Specifies that \e special virtual attributes should be output for the
+file format variant and for variable properties such as
+compression, chunking, and other properties specific to the format
+implementation that are primarily related to performance rather
+than the logical schema of the data. All the special virtual
+attributes begin with '_' followed by an upper-case
+letter. Currently they include the global attribute '_Format' and
+the variable attributes '_ChunkSizes', '_DeflateLevel',
+'_Endianness', '_Fletcher32', '_NoFill', '_Shuffle', and '_Storage'. 
+The ncgen utility recognizes these attributes and
 supports them appropriately.
 
--t Controls display of time data, if stored in a variable that uses a
-udunits compliant time representation such as “days since 1970-01-01”
-or “seconds since 2009-03-15 12:01:17”. If this option is specified,
-time values are displayed as human-readable date-time strings rather
-than numerical values, interpreted in terms of a “calendar” variable
-attribute, if specified. Calendar attribute values interpreted with
-this option include the CF Conventions values “gregorian” or
-“standard”, “proleptic_gregorian”, “noleap” or “365_day”, “all_leap”
-or “366_day”, “360_day”, and “julian”.
+\b -t  <br>
+Controls display of time data, if stored in a variable that uses a
+udunits compliant time representation such as 'days since 1970-01-01'
+or 'seconds since 2009-03-15 12:01:17'.  If this option is specified,
+time values are displayed as a human-readable date-time strings rather
+than numerical values, interpreted in terms of a 'calendar' variable
+attribute, if specified.  For numeric attributes of time variables,
+the human-readable time value is displayed after the actual value, in
+an associated CDL comment.  Calendar attribute values interpreted with
+this option include the CF Conventions values 'gregorian' or
+'standard', 'proleptic_gregorian', 'noleap' or '365_day', 'all_leap'
+or '366_day', '360_day', and 'julian'.
 
--n name CDL requires a name for a netCDF file, for use by 'ncgen
--b' in generating a default netCDF file name. By default, ncdump
-constructs this name from the last component of the file name of the
-input netCDF file by stripping off any extension it has. Use the
-'-n' option to specify a different name. Although the output file name
-used by 'ncgen -b' can be specified, it may be wise to have ncdump
-change the default name to avoid inadvertently overwriting a valuable
-netCDF file when using ncdump, editing the resulting CDL file, and
-using 'ncgen -b' to generate a new netCDF file from the edited CDL
-file.
+\b -i  <br>
+Same as the '-t' option, except output time data as date-time strings
+with ISO-8601 standard 'T' separator, instead of a blank.
 
-\section Note on string output
+\b -g \e grp1,... <br>
+The output will include data values only for the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option and in the absence of the
+'-c' or '-h' options, is to include data values for all groups in the
+output.
 
-For classic, 64-bit offset or netCDF-4 classic model data, ncdump generates
-line breaks after embedded newlines in displaying the character data.  This
-is not done for netCDF-4 files, because that would create an extra string in
-a list of strings when read by ncgen, which supports real strings as a new
-primitive type.
+\b -w  <br>
+For file names that request remote access using DAP URLs, access data
+with client-side caching of entire variables.
 
-\section Examples
+\b -x <br>
+Output XML (NcML) instead of CDL.  The NcML does not include data values.
+The NcML output option currently only works for netCDF classic model data.
+
+@section  EXAMPLES
 
 Look at the structure of the data in the netCDF file foo.nc:
 
 \code
-ncdump -c foo.nc
+   ncdump -c foo.nc
 \endcode
 
 Produce an annotated CDL version of the structure and data in the
 netCDF file foo.nc, using C-style indexing for the annotations:
 
 \code
-ncdump -b c foo.nc > foo.cdl
+   ncdump -b c foo.nc > foo.cdl
 \endcode
 
 Output data for only the variables uwind and vwind from the netCDF
@@ -2229,7 +2264,7 @@ file foo.nc, and show the floating-point data with only three
 significant digits of precision:
 
 \code
-ncdump -v uwind,vwind -p 3 foo.nc
+   ncdump -v uwind,vwind -p 3 foo.nc
 \endcode
 
 Produce a fully-annotated (one data value per line) listing of the
@@ -2238,14 +2273,34 @@ and changing the netCDF file name in the resulting CDL file to
 omega:
 
 \code
-ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
+   ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
 \endcode
 
 Examine the translated DDS for the DAP source from the specified URL.
 
 \code
-ncdump -h http://test.opendap.org:8080/dods/dts/test.01 
+   ncdump -h http://test.opendap.org:8080/dods/dts/test.01 
 \endcode
+
+@section see_also SEE ALSO
+
+ncgen(1)
+
+@section string_note NOTE ON STRING OUTPUT
+
+For classic, 64-bit offset or netCDF-4 classic model data, ncdump generates
+line breaks after embedded newlines in displaying the character data.  This
+is not done for netCDF-4 files, because that would create an extra string in
+a list of strings when read by ncgen, which supports real strings as a new
+primitive type.
+
+@section REFERENCES
+
+What Every Computer Scientist should Know About Floating-Point
+Arithmetic, D. Goldberg, ACM Computing Surveys, Vol.  23, No. 1, March
+1991, pp. 5-48.
+
+[Climate and Forecast Metadata Conventions](http://www.cfconventions.org/)
  */
 int
 main(int argc, char *argv[])
