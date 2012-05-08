@@ -19,7 +19,7 @@ for i in $TESTFILES ; do
     ./ncdump -n copy_of_$i $i.nc > tmp.cdl
     ./ncdump copy_of_$i.nc > copy_of_$i.cdl
     echo "*** compare " with copy_of_$i.cdl
-    diff copy_of_$i.cdl tmp.cdl
+    diff -b copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
 echo "*** Create deflatable files for testing ..."
@@ -53,7 +53,7 @@ for i in $TESTFILES ; do
     ./ncdump -n copy_of_$i $i.nc > tmp.cdl
     ./ncdump copy_of_$i.nc > copy_of_$i.cdl
     echo "*** compare " with copy_of_$i.cdl
-    diff copy_of_$i.cdl tmp.cdl
+    diff -b copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
 echo "*** Create chunkable file for testing ..."
@@ -63,10 +63,10 @@ echo "*** Test that nccopy -c can chunk and unchunk files"
 ./ncdump tmp.nc > tmp.cdl
 ./nccopy -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/ tst_chunking.nc tmp-chunked.nc
 ./ncdump -n tmp tmp-chunked.nc > tmp-chunked.cdl
-diff tmp.cdl tmp-chunked.cdl
+diff -b tmp.cdl tmp-chunked.cdl
 ./nccopy -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ tmp-chunked.nc tmp-unchunked.nc
 ./ncdump -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
-diff tmp.cdl tmp-unchunked.cdl
+diff -b tmp.cdl tmp-unchunked.cdl
 # echo "*** Test that nccopy compression with chunking can improve compression"
 rm tst_chunking.nc tmp.nc tmp.cdl tmp-chunked.nc tmp-chunked.cdl tmp-unchunked.nc tmp-unchunked.cdl
 

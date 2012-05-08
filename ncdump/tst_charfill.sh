@@ -11,7 +11,7 @@ rm -f tst_charfill.nc tmp_tst_charfill.cdl
 echo "*** dumping tst_charfill.nc to tmp_tst_charfill.cdl..."
 ./ncdump tst_charfill.nc > tmp_tst_charfill.cdl
 echo "*** comparing tmp_tst_charfill.cdl with ref_tst_charfill.cdl..."
-diff tmp_tst_charfill.cdl $srcdir/ref_tst_charfill.cdl
+diff -b tmp_tst_charfill.cdl $srcdir/ref_tst_charfill.cdl
 
 echo
 echo "*** All char _Fillvalue  bug test for netCDF-4 format passed!"

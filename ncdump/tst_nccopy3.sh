@@ -14,7 +14,7 @@ for i in $TESTFILES ; do
     ./ncdump -n copy_of_$i $i.nc > tmp.cdl
     ./ncdump copy_of_$i.nc > copy_of_$i.cdl
     echo "*** compare " with copy_of_$i.cdl
-    diff copy_of_$i.cdl tmp.cdl
+    diff -b copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
 echo "*** Test nccopy -u"
@@ -25,7 +25,7 @@ echo "*** creating tst_brecs.nc from tst_brecs.cdl..."
 ./ncdump -n copy_of_tst_brecs tst_brecs.nc | sed '/ = UNLIMITED ;/s/\(.*\) = UNLIMITED ; \/\/ (\(.*\) currently)/\1 = \2 ;/' > tmp.cdl
 ./ncdump copy_of_tst_brecs.nc >  copy_of_tst_brecs.cdl
 echo "*** compare result of nccopy -u with expected result ..."
-diff copy_of_tst_brecs.cdl tmp.cdl
+diff -b copy_of_tst_brecs.cdl tmp.cdl
 rm copy_of_tst_brecs.cdl tmp.cdl tst_brecs.nc copy_of_tst_brecs.nc
 
 echo

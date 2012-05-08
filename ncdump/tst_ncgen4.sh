@@ -19,17 +19,17 @@ export srcdir
 export builddir
 
 KFLAG=1 ; export KFLAG
-echo "Performing diff tests: k=1"
+echo "Performing diff -b tests: k=1"
 sh ${srcdir}/tst_ncgen4_diff.sh
 echo "Performing cycle tests: k=1"
 sh  ${srcdir}/tst_ncgen4_cycle.sh
 KFLAG=3 ; export KFLAG
-echo "Performing diff tests: k=3"
+echo "Performing diff -b tests: k=3"
 sh  ${srcdir}/tst_ncgen4_diff.sh
 echo "Performing cycle tests: k=3"
 sh  ${srcdir}/tst_ncgen4_cycle.sh
 KFLAG=4 ; export KFLAG
-echo "Performing diff tests: k=4"
+echo "Performing diff -b tests: k=4"
 sh  ${srcdir}/tst_ncgen4_diff.sh
 echo "Performing cycle tests: k=4"
 sh  ${srcdir}/tst_ncgen4_cycle.sh
