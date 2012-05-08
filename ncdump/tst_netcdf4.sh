@@ -3,6 +3,11 @@
 # $Id: tst_netcdf4.sh,v 1.34 2009/09/25 18:22:10 dmh Exp $
 
 set -e
+if test "x$srcdir" = "x"; then
+    srcdir=`dirname $0`; 
+fi
+export srcdir=$srcdir
+
 echo ""
 echo "*** Testing ncgen and ncdump test output for netCDF-4 format."
 echo "*** creating netcdf-4 file c0.nc from c0.cdl..."
@@ -36,7 +41,7 @@ echo "*** dumping tst_group_data.nc to tst_group_data.cdl..."
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 echo "*** testing -v option with absolute name and groups..."
-./ncdump -v /g2/g3/var tst_group_data.nc > tst_group_data.cdl
+./ncdump -v var tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data_v23.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data_v23.cdl
 echo "*** testing -v option with relative name and groups..."

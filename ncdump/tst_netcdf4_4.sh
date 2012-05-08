@@ -3,6 +3,10 @@
 # $Id: tst_netcdf4_4.sh,v 1.13 2009/05/06 14:51:52 ed Exp $
 
 set -e
+if test "x$srcdir" = "x"; then
+    srcdir=`dirname $0`; 
+    export srcdir=$srcdir
+fi
 echo ""
 echo "*** Running extra netcdf-4 tests."
 
@@ -15,15 +19,15 @@ diff -b tst_string_data.cdl $srcdir/ref_tst_string_data.cdl
 #../ncgen/ncgen -v4 -b -o tst_noncoord.nc $srcdir/ref_tst_noncoord.cdl
 
 echo '*** testing reference file ref_tst_compounds2.nc...'
-./ncdump $srcdir/ref_tst_compounds2.nc > tst_compounds2.cdl
+./ncdump ref_tst_compounds2.nc > tst_compounds2.cdl
 diff -b tst_compounds2.cdl $srcdir/ref_tst_compounds2.cdl
 
 echo '*** testing reference file ref_tst_compounds3.nc...'
-./ncdump $srcdir/ref_tst_compounds3.nc > tst_compounds3.cdl
+./ncdump ref_tst_compounds3.nc > tst_compounds3.cdl
 diff -b tst_compounds3.cdl $srcdir/ref_tst_compounds3.cdl
 
 echo '*** testing reference file ref_tst_compounds4.nc...'
-./ncdump $srcdir/ref_tst_compounds4.nc > tst_compounds4.cdl
+./ncdump ref_tst_compounds4.nc > tst_compounds4.cdl
 diff -b tst_compounds4.cdl $srcdir/ref_tst_compounds4.cdl
 
 echo
