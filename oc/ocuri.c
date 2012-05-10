@@ -379,7 +379,8 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
 	strcat(newuri,duri->params);
 	strcat(newuri,"]");
     }
-    strcat(newuri,duri->protocol);
+    if(duri->protocol != NULL)
+	strcat(newuri,duri->protocol);
     strcat(newuri,"://");
     if(withuserpwd) {
         strcat(newuri,duri->user);

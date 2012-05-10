@@ -13,10 +13,10 @@
 #endif
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "http.h"
-#include "read.h"
-#include "rc.h"
-#include "curlfunctions.h"
+#include "ochttp.h"
+#include "ocread.h"
+#include "ocrc.h"
+#include "occurlfunctions.h"
 
 extern int oc_curl_file_supported;
 

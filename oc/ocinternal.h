@@ -35,7 +35,7 @@
 
 #include "oc.h"
 #include "ocdatatypes.h"
-#include "constraints.h"
+#include "occonstraints.h"
 #include "ocnode.h"
 #include "ocutil.h"
 #include "oclog.h"

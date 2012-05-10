@@ -278,6 +278,8 @@ generate_arrayr(Symbol* vsym,
 		break;
 #endif
 	    if(con == NULL || con->nctype == NC_FILL) {
+		if(filler == NULL)
+		    filler = getfiller(vsym);
 	        generate_arrayr(vsym,code,filler,odom,nextunlimited,NULL,generator);
 		
 	    } else if(!islistconst(con))
@@ -419,6 +421,35 @@ generate_fieldarray(Symbol* basetype, Constant* con, Dimset* dimset,
     }
 }
 
+
+/* An opaque string value might not conform
+   to the size of the opaque to which it is being
+   assigned. Normalize it to match the required
+   opaque length (in bytes).
+   Note that the string is a sequence of nibbles (4 bits).
+*/
+static void
+normalizeopaquelength(Constant* prim, unsigned long nbytes)
+{
+    int nnibs = 2*nbytes;
+    ASSERT(prim->nctype==NC_OPAQUE);
+    if(prim->value.opaquev.len == nnibs) { 
+        /* do nothing*/
+    } else if(prim->value.opaquev.len > nnibs) { /* truncate*/
+	prim->value.opaquev.stringv[nnibs] = '\0';
+	prim->value.opaquev.len = nnibs;
+    } else {/* prim->value.opaquev.len < nnibs => expand*/
+        char* s;
+	s = (char*)emalloc(nnibs+1);
+	memset(s,'0',nnibs);
+	memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
+	s[nnibs] = '\0';
+	efree(prim->value.opaquev.stringv);
+	prim->value.opaquev.stringv=s;
+	prim->value.opaquev.len = nnibs;
+    }
+}
+
 static void
 generate_primdata(Symbol* basetype, Constant* prim, Bytebuffer* codebuf,
 		  Datalist* filler, Generator* generator)
@@ -444,8 +475,8 @@ generate_primdata(Symbol* basetype, Constant* prim, Bytebuffer* codebuf,
         if(basetype->subclass != NC_ENUM) {
 	    semerror(constline(prim),"Conversion to enum not supported (yet)");
 	} break;
-     case NC_OPAQUE:
-	setprimlength(&target,basetype->typ.size*2);
+     case NC_OPAQUE: 
+	normalizeopaquelength(&target,basetype->typ.size);
 	break;
     default:
 	break;

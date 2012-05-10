@@ -453,11 +453,14 @@ oc_inq_attrstrings(OCconnection conn, OCobject node0, unsigned int i,
     if(octypep) *octypep = attr->etype;
     if(nvaluesp) *nvaluesp = attr->nvalues;
     if(stringsp) {
-	size_t space = attr->nvalues * sizeof(char*);
-	char** strings = (space > 0?ocmalloc(space):NULL);
-	for(i=0;i<attr->nvalues;i++)
-	    strings[i] = nulldup(attr->values[i]);
-	*stringsp = strings;
+	if(attr->nvalues > 0) {
+	    size_t space = attr->nvalues * sizeof(char*);
+	    char** strings = ocmalloc(space);
+	    for(i=0;i<attr->nvalues;i++)
+	        strings[i] = nulldup(attr->values[i]);
+	    *stringsp = strings;
+	} else
+	    *stringsp = NULL;
     }
     return OC_NOERR;    
 }

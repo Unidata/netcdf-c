@@ -170,7 +170,7 @@ NCDEFAULT_put_varm(
       /*
        * Verify stride argument.
        */
-      stride1 = 1; // assume ok;
+      stride1 = 1;		/*  assume ok; */
       if(stride != NULL) {
 	 for (idim = 0; idim <= maxidim; ++idim) {
             if ((stride[idim] == 0)

@@ -1086,7 +1086,6 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
     }
 
     /* Convert memory to right format */
-    p = (unsigned int*)memory;
     switch (etype) {
 
     case OC_Char: case OC_Byte: case OC_UByte: {
@@ -1107,7 +1106,8 @@ ocxdrread(OCcontent* content, XXDR* xdrs, char* memory, size_t memsize,
 	}
     } break;
 
-    default: break; /* already handled above */
+    default: 
+	break; /* already handled above */
     }
 
     /* set cache */

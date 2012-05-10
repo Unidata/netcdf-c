@@ -280,6 +280,7 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--disable-shared<td>build shared libraries<td>
 <tr><td>--disable-static<td>build static libraries<td>
 <tr><td>--disable-largefile<td>omit support for large files<td>
+<tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>
 </table>
 */
 

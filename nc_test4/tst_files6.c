@@ -17,8 +17,7 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf file functions some more.\n");
 #ifdef USE_DAP
 #ifdef ENABLE_DAP_REMOTE_TESTS
-    printf("*** testing simple opendap open/close...");
-    printf("    url=%s\n",URL);
+   printf("*** testing simple opendap open/close...");
    {
       int ncid;
 

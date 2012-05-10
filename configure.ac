@@ -587,7 +587,7 @@ AC_MSG_RESULT($enable_mmap)
 # check for mmap and mremap
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([mremap])
-if "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
+if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
   echo "mmap function or mremap function is not available: disabling mmap"
   enable_mmap=no
 fi

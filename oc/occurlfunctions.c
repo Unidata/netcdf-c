@@ -7,7 +7,7 @@
 #include "ocdata.h"
 #include "occontent.h"
 
-#include "rc.h"
+#include "ocrc.h"
 
 /* Condition on libcurl version */
 /* Set up an alias as needed */
@@ -29,34 +29,34 @@ ocset_curl_flags(OCstate* state)
 #ifdef CURLOPT_ENCODING
     if (flags->compress) {
 	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING,"deflate, gzip");
-	if(cstat != CURLE_OK) goto fail;
+	if(cstat != CURLE_OK) goto done;
 	OCDBG(1,"CURLOPT_ENCODING=deflate, gzip");
     }
 #endif
     if (flags->cookiejar || flags->cookiefile) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
-	if (cstat != CURLE_OK) goto fail;
+	if (cstat != CURLE_OK) goto done;
 	OCDBG(1,"CURLOPT_COOKIESESSION=1");
     }
     if (flags->cookiejar) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, flags->cookiejar);
-	if (cstat != CURLE_OK) goto fail;
+	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_COOKIEJAR=%s",flags->cookiejar);
     }
     if (flags->cookiefile) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiefile);
-	if (cstat != CURLE_OK) goto fail;
+	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_COOKIEFILE=%s",flags->cookiefile);
     }
     if (flags->verbose) {
 	cstat = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	if (cstat != CURLE_OK) goto fail;
+	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_VERBOSE=%ld",1L);
     }
 
     if (flags->timeout) {
 	cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)flags->timeout);
-	if (cstat != CURLE_OK) goto fail;
+	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_TIMEOUT=%ld",1L);
     }
 
@@ -69,9 +69,8 @@ ocset_curl_flags(OCstate* state)
     cstat = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
     OCDBG1(1,"CURLOPT_ERRORBUFFER",0);
 
-    return OC_NOERR;
-fail:
-    return OC_ECURL;
+done:
+    return cstat;
 }
 
 int

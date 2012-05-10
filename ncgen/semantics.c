@@ -870,7 +870,7 @@ thisunlim->name,
 	    ASSERT(con->nctype == NC_COMPOUND);
 	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
 	}
-    } else {//lastunlim
+    } else {			/* lastunlim */
 	if(ischar) {
 	    /* Char case requires special computations;
 	       compute total number of characters */

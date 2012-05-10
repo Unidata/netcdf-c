@@ -9,8 +9,8 @@
 #include <fcntl.h>
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "http.h"
-#include "rc.h"
+#include "ochttp.h"
+#include "ocrc.h"
 
 static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
@@ -56,13 +56,14 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 
         /* One last thing; always try to get the last modified time */
         cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
+	if (cstat != CURLE_OK)
+		goto fail;
 
 	fetchdata.stream = stream;
 	fetchdata.size = 0;
 	cstat = curl_easy_perform(curl);
-	if (cstat != CURLE_OK) {
+	if (cstat != CURLE_OK)
 	    goto fail;
-	}
 
 	if (stat == OC_NOERR) {
 	    /* return the file size*/
@@ -78,7 +79,8 @@ ocfetchurl_file(CURL* curl, char* url, FILE* stream,
 	}
 	return OCTHROW(stat);
 
-fail: oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+fail:
+	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	return OCTHROW(OC_ECURL);
 }
 

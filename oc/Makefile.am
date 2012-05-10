@@ -11,15 +11,16 @@
 AM_CPPFLAGS =  -I$(top_srcdir) -I$(top_srcdir)/include
 
 # OC Sources; include the daptab.[ch] to avoid the need for bison by user
-SRC= curlfunctions.c dapparse.c daplex.c ocuri.c http.c ocbytes.c	\
+SRC= occurlfunctions.c dapparse.c daplex.c ocuri.c ochttp.c ocbytes.c	\
 oc.c occontent.c ocdebug.c ocdrno.c ocdump.c	\
 ocinternal.c oclist.c oclog.c ocnode.c ocutil.c occlientparams.c	\
-rc.c read.c xxdr.c daptab.c
+ocrc.c ocread.c xxdr.c daptab.c
 
-HDRS= curlfunctions.h constraints.h dapparselex.h ocuri.h http.h ocbytes.h \
-occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h oc.h	\
-ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h rc.h	\
-read.h xxdr.h daptab.h
+HDRS= occurlfunctions.h occonstraints.h dapparselex.h ocuri.h ochttp.h \
+ocbytes.h occontent.h ocdata.h ocdatatypes.h ocdebug.h ocdrno.h ocdump.h \
+ocinternal.h oclist.h oclog.h ocnode.h occlientparams.h ocutil.h ocrc.h	\
+ocread.h xxdr.h daptab.h \
+oc.h
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la

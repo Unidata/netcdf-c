@@ -2967,19 +2967,21 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
    {
       if (H5Fclose(h5->hdfid) < 0) 
       {
+	int nobjs;
+	nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL);
+	/* Apparently we can get an error even when nobjs == 0 */
+	if(nobjs < 0) {
+	  return NC_EHDFERR;
+	} else if(nobjs > 0) {
 #ifdef LOGGING
 	 /* If the close doesn't work, probably there are still some HDF5
 	  * objects open, which means there's a bug in the library. So
 	  * print out some info on to help the poor programmer figure it
 	  * out. */
-	 {
-	    int nobjs;
-	    if ((nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL) < 0))
-	       return NC_EHDFERR;
-	    LOG((0, "There are %d HDF5 objects open!", nobjs));
-	 }
+         LOG((0, "There are %d HDF5 objects open!", nobjs));
 #endif      
 	 return NC_EHDFERR;
+	}
       }
 /*      if (H5garbage_collect() < 0)
 	return NC_EHDFERR;	 */
