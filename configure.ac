@@ -243,18 +243,7 @@ fi
 
 # See if the user provided us with a curl library
 # Do an initial lib test for curl, but suppress the default action
-
-case "$host_os" in 
-*mingw*)     
-			
-	     AC_CHECK_LIB([curl],[curl_easy_setopt])
-	     AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no]);;
-*)
-	AC_CHECK_LIB([curl],[curl_easy_setopt])
-	AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-	;;
-esac
-
+AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes -a $found_curl = no ; then
@@ -263,21 +252,8 @@ if test $require_curl = yes -a $found_curl = no ; then
   enable_cdmremote=no
   enable_rpc=no
 elif test $require_curl = yes -a $found_curl = yes ; then
-
-case "$host_os" in 
-*mingw*)     
-AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-AC_CHECK_LIB([curl], [curl_easy_setopt])
-;;
-*)
-AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-AC_CHECK_LIB([curl], [curl_easy_setopt])
-;;
-esac
-
   # Redo the check lib to actually add -lcurl
-  
-  
+  AC_CHECK_LIB([curl], [curl_easy_setopt])
 fi
 
 #AC_SEARCH_LIBS([curl_easy_setopt], [curl], [found_curl=yes],[found_curl=no])
@@ -609,10 +585,10 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for diskless support
-# Does the user want to use the mmap for NC_DISKLESS?
+# Does the user want diskless support NC_DISKLESS?
 AC_MSG_CHECKING([whether to use diskless])
 AC_ARG_ENABLE([diskless],
-              [AS_HELP_STRING([--enable-mmap],
+              [AS_HELP_STRING([--enable-diskless],
                               [use mmap for in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xyes || enable_diskless=no
 AC_MSG_RESULT($enable_diskless)
@@ -622,7 +598,7 @@ AC_FUNC_MMAP
 AC_CHECK_FUNCS([mremap])
 if test "x$ac_cv_func_mmap_fixed_mapped" != xyes -o "x$ac_cv_func_mremap" != xyes ; then
   echo "mmap function or mremap function is not available: disabling mmap"
-  enable_mmap="no"
+  enable_mmap=no
 fi
 
 if test "x$enable_mmap" = xyes; then
@@ -654,10 +630,8 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
 fi
 
 # We need the math library.
-AC_CHECK_LIB([m], [floor], [],
+AC_CHECK_LIB([m], [floor], [], 
 [AC_MSG_ERROR([Can't find or link to the math library.])])
-
-#AC_CHECK_LIB([msvcr80],[_set_output_format])
 
 if test "x$enable_netcdf_4" = xyes; then
 
