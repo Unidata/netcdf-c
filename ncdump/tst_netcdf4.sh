@@ -3,6 +3,7 @@
 # $Id: tst_netcdf4.sh,v 1.34 2009/09/25 18:22:10 dmh Exp $
 
 set -e
+
 if test "x$srcdir" = "x"; then
     srcdir=`dirname $0`; 
 fi
@@ -40,10 +41,22 @@ echo "*** dumping tst_group_data.nc to tst_group_data.cdl..."
 ./ncdump tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
+
+# Temporary hack to skip a couple tests that won't work in windows
+# without changing the format of the string. See:
+#
+# http://www.mingw.org/wiki/Posix_path_conversion
+
+plat=`uname`
+
+if [[ "$plat" != 'MINGW32_NT-6.1' ]]; then
 echo "*** testing -v option with absolute name and groups..."
-./ncdump -v var tst_group_data.nc > tst_group_data.cdl
+./ncdump -v /g2/g3/var tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data_v23.cdl..."
 diff -b tst_group_data.cdl $srcdir/ref_tst_group_data_v23.cdl
+fi
+
+
 echo "*** testing -v option with relative name and groups..."
 ./ncdump -v var,var2 tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data.cdl..."
