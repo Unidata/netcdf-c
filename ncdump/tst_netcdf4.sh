@@ -47,9 +47,7 @@ diff -b tst_group_data.cdl $srcdir/ref_tst_group_data.cdl
 #
 # http://www.mingw.org/wiki/Posix_path_conversion
 
-plat=`uname`
-
-if [[ "$plat" != 'MINGW32_NT-6.1' ]]; then
+if [[ "$OSTYPE" != 'msys' ]]; then
 echo "*** testing -v option with absolute name and groups..."
 ./ncdump -v /g2/g3/var tst_group_data.nc > tst_group_data.cdl
 echo "*** comparing tst_group_data.cdl with ref_tst_group_data_v23.cdl..."
