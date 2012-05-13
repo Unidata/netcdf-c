@@ -7,7 +7,7 @@ cmds=$@
 fi
 
 HDF5=1
-#DAP=1
+DAP=1
 #CDMR=1
 #RPC=1
 #PGI=1

@@ -95,4 +95,5 @@ BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 
-DISTCLEANFILES = .dodsrc
+DISTCLEANFILES = .dodsrc results
+
