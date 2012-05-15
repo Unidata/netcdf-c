@@ -1605,8 +1605,9 @@ nc__pseudofd(void)
 	        maxfd = rl.rlim_cur;
 	}
 	pseudofd = maxfd+1;
-    }
 #endif
+    }
+
     return pseudofd++;
 }
 

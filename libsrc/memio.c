@@ -447,7 +447,11 @@ memio_close(ncio* nciop, int doUnlink)
     /* See if the user wants the contents persisted to a file */
     if(memio->persist) {
         /* Try to open the file for writing */
-	fd = open(nciop->path, O_WRONLY|O_CREAT|O_TRUNC, OPENMODE);
+	int oflags = O_WRONLY|O_CREAT|O_TRUNC;
+#ifdef O_BINARY
+        fSet(oflags, O_BINARY);
+#endif
+	fd = open(nciop->path, oflags, OPENMODE);
 	if(fd >= 0) {
 	    /* We need to do multiple writes because there is no
                guarantee that the amount written will be the full amount */

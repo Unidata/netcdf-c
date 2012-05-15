@@ -61,6 +61,16 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     nc_uri = (NC_URI*)calloc(1,sizeof(NC_URI));
     if(nc_uri == NULL) return 0;    
 
+    /* Temporary hack to remove escape characters inserted by Windows or MinGW */
+    if(strchr(uri0,'\\') != NULL) {    
+	char* u = strdup(uri0);
+	if(u == NULL) return 0;
+        p = u;
+	p1 = u;
+        while((c=*p1++)) {if(c != '\\') *p++ = c;}
+	uri0 = (const char*)u;
+    }
+
     /* make local copy of uri */
     uri = strdup(uri0);
 
