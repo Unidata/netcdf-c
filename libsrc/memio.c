@@ -18,7 +18,7 @@
 #endif
 #include "nc.h"
 
-#define DEBUG
+#undef DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>

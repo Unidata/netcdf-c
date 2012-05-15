@@ -10,9 +10,9 @@ PARMS="[log]"
 #PARMS="${PARMS}[wholevar]"
 #PARMS="${PARMS}[show=fetch]"
 
-#F="file://${TOPDIR}/ncdap_test/testdata3/synth1"
+F="file://${TOPDIR}/ncdap_test/testdata3/synth1"
 #F="http://motherlode.ucar.edu:8081/dts/test.02"
-F="http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/coads_climatology.nc"
+#F="http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/coads_climatology.nc"
 
 PROG="./ncd"
 #PROG="../ncdump/ncdump"

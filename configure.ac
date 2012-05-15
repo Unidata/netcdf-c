@@ -578,14 +578,11 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 		mkstemp getpid \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
-# check for memio support
-AC_CHECK_FUNCS([memmove getpagesize sysconf])
-
 # Does the user want to use NC_DISKLESS?
-AC_MSG_CHECKING([whether diskless is disabled])
+AC_MSG_CHECKING([whether in-memory files are enabled])
 AC_ARG_ENABLE([diskless],
               [AS_HELP_STRING([--disable-diskless],
-                              [disable in-memory (NC_DISKLESS) files])])
+                              [use in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
@@ -747,7 +744,7 @@ AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
 AM_CONDITIONAL(BUILD_RPC, [test "x$enable_rpc" = xyes])
-AM_CONDITIONAL(BUILD_DISKLESS, [test "x$enable_diskless" != xno]) 
+AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes]) 
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then

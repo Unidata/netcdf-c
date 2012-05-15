@@ -29,15 +29,16 @@ endif
 test_cvt3_SOURCES = test_cvt.c
 test_vara_SOURCES = test_vara.c
 test_partvar_SOURCES = test_partvar.c
-check_PROGRAMS += t_dap3a test_cvt3 test_vara test_partvar
-TESTS += t_dap3a test_cvt3 test_vara test_partvar
 test_varm3_SOURCES = test_varm3.c
-TESTS += test_varm3
-check_PROGRAMS += test_varm3
-
 t_dap3a_SOURCES = t_dap3a.c
-check_PROGRAMS += t_dap3a
+
+TESTS += t_dap3a test_cvt3 test_vara test_partvar
+TESTS += test_varm3
 TESTS += t_dap3a
+
+check_PROGRAMS += t_dap3a test_cvt3 test_vara test_partvar
+check_PROGRAMS += test_varm3
+check_PROGRAMS += t_dap3a
 
 endif #ENABLE_DAP_REMOTE_TESTS
 
@@ -95,5 +96,6 @@ BUILT_SOURCES = .dodsrc
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
 
-DISTCLEANFILES = .dodsrc results
+DISTCLEANFILES = .dodsrc results/* results
+
 

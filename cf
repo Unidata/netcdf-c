@@ -6,7 +6,7 @@ if test $# != 0 ; then
 cmds=$@
 fi
 
-HDF5=1
+#HDF5=1
 DAP=1
 #CDMR=1
 #RPC=1
@@ -133,6 +133,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 FLAGS="$FLAGS --disable-doxygen"
 FLAGS="$FLAGS --enable-logging"
+#FLAGS="$FLAGS --disable-diskless"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
