@@ -37,20 +37,17 @@
 /* Global */
 int diskless = 0;
 
-int status = NC_NOERR;
-
-static void
-report(int status,int lineno)
-{
-    if(status) {
-	fprintf(stderr,"fail: line %d; %s\n",lineno,nc_strerror(status));
-	fflush(stderr);
-	abort();
-    }
-}
-
 #undef ERR
 #define ERR report(status,__LINE__)
+
+static int status = NC_NOERR;
+
+void report(int stat, int lno)
+{
+    fprintf(stderr,"line: %d ; %s\n",stat,nc_strerror(stat));
+    fflush(stderr);
+    exit(1);
+}
 
 /* Test a diskless file with two record vars, which grow, and has
  * attributes added. */
@@ -80,8 +77,7 @@ test_two_growing_with_att(const char *testfile)
    for (r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
-      if((status=nc_open(testfile, NC_WRITE, &ncid)))
-	ERR;
+      if((status=nc_open(testfile, NC_WRITE, &ncid))) ERR;
       count[0] = 1;
       start[0] = r;
       sprintf(att_name, "a_%d", data[r]);
@@ -109,6 +105,7 @@ test_two_growing_with_att(const char *testfile)
    return 0;
 }
 
+#if 0
 /* Test a diskless file with one var and one att. */
 static int
 test_one_with_att(const char *testfile)
@@ -144,12 +141,11 @@ test_one_with_att(const char *testfile)
    if((status=nc_close(ncid))) ERR; 
    return 0;
 }
+#endif
 
 int
 main(int argc, char **argv)
 {
-   int i;
-
     diskless = (argc > 1);
 
     printf("\n*** Testing diskless file: create/modify %s: %s\n",

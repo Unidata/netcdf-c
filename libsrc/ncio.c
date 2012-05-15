@@ -39,9 +39,8 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
                        off_t igeto, size_t igetsz, size_t *sizehintp,
                        ncio** iopp, void** const mempp)
 {
-    if(fIsSet(ioflags,NC_DISKLESS))
-
 #ifdef USE_DISKLESS
+    if(fIsSet(ioflags,NC_DISKLESS))
 #  ifdef USE_MMAP
         return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
 #  else

@@ -18,7 +18,7 @@
 #endif
 #include "nc.h"
 
-#undef DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -299,6 +299,12 @@ memio_open(const char* path,
     fd = open(path, oflags, 0, "ctx=stm");
 #else
     fd  = open(path, oflags, OPENMODE);
+#endif
+#ifdef DEBUG
+    if(fd < 0) {
+	fprintf(stderr,"open failed: file=%s err=",path);
+	perror("");
+    }
 #endif
     if(fd < 0) {status = errno; goto unwind_open;}
 
