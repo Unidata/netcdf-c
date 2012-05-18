@@ -131,7 +131,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
-FLAGS="$FLAGS --disable-doxygen"
+#FLAGS="$FLAGS --enable-doxygen"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 
