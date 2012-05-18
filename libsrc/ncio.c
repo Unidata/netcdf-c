@@ -24,12 +24,14 @@ extern int ffio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void**
 extern int ffio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
 #endif
 
-#ifdef USE_MMAP
-extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
-extern int mmapio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
-#else
-extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
-extern int memio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
+#ifdef USE_DISKLESS
+#  ifdef USE_MMAP
+     extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
+     extern int mmapio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
+#  else
+     extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,ncio**,void** const);
+     extern int memio_open(const char*,int,off_t,size_t,size_t*,ncio**,void** const);
+#  endif
 #endif
 
 int
@@ -37,12 +39,13 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
                        off_t igeto, size_t igetsz, size_t *sizehintp,
                        ncio** iopp, void** const mempp)
 {
+#ifdef USE_DISKLESS
     if(fIsSet(ioflags,NC_DISKLESS))
-
-#ifdef USE_MMAP
+#  ifdef USE_MMAP
         return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
-#else
+#  else
         return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,iopp,mempp);
+#  endif
 #endif
 
 #ifdef USE_FFIO
@@ -60,13 +63,15 @@ ncio_open(const char *path, int ioflags,
     /* Diskless open has the following constraints:
        1. file must be classic version 1 or 2
      */
+#ifdef USE_DISKLESS
     if(fIsSet(ioflags,NC_DISKLESS)) {
-#ifdef USE_MMAP
-        return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
-#else
-        return memio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
-#endif
+#  ifdef USE_MMAP
+     return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
+#  else
+     return memio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
+#  endif
     }
+#endif
 #ifdef USE_FFIO
     return ffio_open(path,ioflags,igeto,igetsz,sizehintp,iopp,mempp);
 #else
