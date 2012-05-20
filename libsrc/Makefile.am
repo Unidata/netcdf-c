@@ -18,11 +18,13 @@ libnetcdf3_la_SOURCES = v1hpg.c onstack.h                              \
 nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
 ncx.h lookup3.c pstdint.h ncio.c ncio.h
 
-if USE_MMAP
-libnetcdf3_la_SOURCES += mmapio.c
-else
-libnetcdf3_la_SOURCES += memio.c
-endif
+if BUILD_DISKLESS
+if BUILD_MMAP
+  libnetcdf3_la_SOURCES += mmapio.c
+else !BUILD_MMAP
+  libnetcdf3_la_SOURCES += memio.c
+endif !BUILD_MMAP
+endif BUILD_DISKLESS
 
 # Does the user want to use ffio, a replacement for posixio for Cray
 # computers?

@@ -7,8 +7,12 @@
 #include "ncdap3.h"
 
 #ifdef HAVE_GETRLIMIT
-#include <sys/time.h>
-#include <sys/resource.h>
+#  ifdef HAVE_SYS_RESOURCE_H
+#    include <sys/time.h>
+#  endif
+#  ifdef HAVE_SYS_RESOURCE_H
+#    include <sys/resource.h>
+#  endif
 #endif
 #include "dapdump.h"
 

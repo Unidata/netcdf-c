@@ -37,6 +37,17 @@
 /* Global */
 int diskless = 0;
 
+#undef ERR
+#define ERR report(status,__LINE__)
+
+static int status = NC_NOERR;
+
+void report(int stat, int lno)
+{
+    fprintf(stderr,"line: %d ; %s\n",stat,nc_strerror(stat));
+    fflush(stderr);
+    exit(1);
+}
 
 /* Test a diskless file with two record vars, which grow, and has
  * attributes added. */
@@ -50,11 +61,11 @@ test_two_growing_with_att(const char *testfile)
    int v, r;
 
    /* Create a file with one ulimited dimensions, and one var. */
-   if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
-   if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
-   if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0])) ERR;
-   if (nc_def_var(ncid, VAR_NAME2, NC_CHAR, 1, &dimid, &varid[1])) ERR;
-   if (nc_close(ncid)) ERR;
+   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERR;
+   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERR;
+   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0]))) ERR;
+   if((status=nc_def_var(ncid, VAR_NAME2, NC_CHAR, 1, &dimid, &varid[1]))) ERR;
+   if((status=nc_close(ncid))) ERR;
 
    /* Create some phoney data. */
    for (data[0] = 'a', r = 1; r < MAX_RECS; r++)
@@ -66,34 +77,35 @@ test_two_growing_with_att(const char *testfile)
    for (r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
-      if (nc_open(testfile, NC_WRITE, &ncid)) ERR;
+      if((status=nc_open(testfile, NC_WRITE, &ncid))) ERR;
       count[0] = 1;
       start[0] = r;
       sprintf(att_name, "a_%d", data[r]);
       for (v = 0; v < NUM_VARS; v++)
       {
-	 if (nc_put_vara_text(ncid, varid[v], start, count, &data[r])) ERR;
-	 if (nc_redef(ncid)) ERR;
-	 if (nc_put_att_text(ncid, varid[v], att_name, 1, &data[r])) ERR;
-	 if (nc_enddef(ncid)) ERR;
+	 if((status=nc_put_vara_text(ncid, varid[v], start, count, &data[r]))) ERR;
+	 if((status=nc_redef(ncid))) ERR;
+	 if((status=nc_put_att_text(ncid, varid[v], att_name, 1, &data[r]))) ERR;
+	 if((status=nc_enddef(ncid))) ERR;
       }
-      if (nc_close(ncid)) ERR;
+      if((status=nc_close(ncid))) ERR;
       
       /* Reopen the file and check it. */
-      if (nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid)) ERR;
-      if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+      if((status=nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid))) ERR;
+      if((status=nc_inq_dimlen(ncid, 0, &len_in))) ERR;
       if (len_in != r + 1) ERR;
       index[0] = r;
       for (v = 0; v < NUM_VARS; v++)
       {
-	 if (nc_get_var1_text(ncid, varid[v], index, &data_in)) ERR;
+	 if((status=nc_get_var1_text(ncid, varid[v], index, &data_in))) ERR;
 	 if (data_in != data[r]) ERR;
       }
-      if (nc_close(ncid)) ERR; 
+      if((status=nc_close(ncid))) ERR; 
    } /* Next record. */
    return 0;
 }
 
+#if 0
 /* Test a diskless file with one var and one att. */
 static int
 test_one_with_att(const char *testfile)
@@ -104,37 +116,36 @@ test_one_with_att(const char *testfile)
    size_t start[NDIMS], count[NDIMS];
 
    /* Create a file with one ulimited dimensions, and one var. */
-   if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
-   if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
-   if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid)) ERR;
-   if (nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, 1, &data)) ERR;
-   if (nc_enddef(ncid)) ERR;
+   if((status=nc_create(testfile, NC_CLOBBER, &ncid))) ERR;
+   if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERR;
+   if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid))) ERR;
+   if((status=nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, 1, &data))) ERR;
+   if((status=nc_enddef(ncid))) ERR;
 
    /* Write one record of var data, a single character. */
    count[0] = 1;
    start[0] = 0;
-   if (nc_put_vara_text(ncid, varid, start, count, &data)) ERR;
+   if((status=nc_put_vara_text(ncid, varid, start, count, &data))) ERR;
 
    /* We're done! */
-   if (nc_close(ncid)) ERR;
+   if((status=nc_close(ncid))) ERR;
    
    /* Reopen the file and check it. */
-   if (nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid)) ERR;
-   if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+   if((status=nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid))) ERR;
+   if((status=nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid))) ERR;
    if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
-   if (nc_get_var_text(ncid, varid, &data_in)) ERR;
+   if((status=nc_get_var_text(ncid, varid, &data_in))) ERR;
    if (data_in != data) ERR;
-   if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in)) ERR;
+   if((status=nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in))) ERR;
    if (data_in != data) ERR;
-   if (nc_close(ncid)) ERR; 
+   if((status=nc_close(ncid))) ERR; 
    return 0;
 }
+#endif
 
 int
 main(int argc, char **argv)
 {
-   int i;
-
     diskless = (argc > 1);
 
     printf("\n*** Testing diskless file: create/modify %s: %s\n",
