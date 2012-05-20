@@ -140,7 +140,7 @@ affecting existing programs. The physical representation of netCDF
 data is designed to be independent of the computer on which the data
 were written.
 
-Unidata supports the netCDF interfaces for C, (see Top), FORTRAN 77
+Unidata supports the netCDF interfaces for C (see Top), FORTRAN 77
 (see Top), FORTRAN 90 (see Top), and C++ (see Top).
 
 The netCDF library is supported for various UNIX operating systems. A

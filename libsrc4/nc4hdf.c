@@ -3076,7 +3076,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_USHORT:
                for (sp = (short *)src, usp = dest; count < len; count++)
                {
-                  if (*sp > X_USHORT_MAX || *sp < 0)
+                  if (*sp < 0)
                      (*range_error)++;
                   *usp++ = *sp++;
                }
@@ -3091,7 +3091,11 @@ nc4_convert_type(const void *src, void *dest,
                break;
             case NC_UINT:
                for (sp = (short *)src, uip = dest; count < len; count++)
+	       {  
+		   if (*sp < 0)
+		       (*range_error)++;
                   *uip++ = *sp++;
+               }
                break;
             case NC_INT64:
                for (sp = (short *)src, lip = dest; count < len; count++)
@@ -3099,7 +3103,11 @@ nc4_convert_type(const void *src, void *dest,
                break;
             case NC_UINT64:
                for (sp = (short *)src, ulip = dest; count < len; count++)
+	       {  
+		   if (*sp < 0)
+		       (*range_error)++;
                   *ulip++ = *sp++;
+               }
                break;
             case NC_FLOAT:
                for (sp = (short *)src, fp = dest; count < len; count++)
@@ -3251,7 +3259,11 @@ nc4_convert_type(const void *src, void *dest,
                   break;
                case NC_UINT64:
                   for (lp = (long *)src, ulip = dest; count < len; count++)
+		  {
+                     if (*lp < 0)
+                        (*range_error)++;
                      *ulip++ = *lp++;
+		  }
                   break;
                case NC_FLOAT:
                   for (lp = (long *)src, fp = dest; count < len; count++)
@@ -3337,7 +3349,11 @@ nc4_convert_type(const void *src, void *dest,
                   break;
                case NC_UINT64:
                   for (ip = (int *)src, ulip = dest; count < len; count++)
+		  {
+		      if (*ip < 0) 
+			  (*range_error)++;
                      *ulip++ = *ip++;
+		  }
                   break;
                case NC_FLOAT:
                   for (ip = (int *)src, fp = dest; count < len; count++)
@@ -3496,13 +3512,8 @@ nc4_convert_type(const void *src, void *dest,
                break;
             case NC_INT64:
                for (lip = (long long *)src, lip1 = dest; count < len; count++)
-               {
-                  if (*lip > X_INT64_MAX || *lip < X_INT64_MIN)
-                     (*range_error)++;
                   *lip1++ = *lip++;
-               }
                break;
-
             case NC_UINT64:
                for (lip = (long long *)src, ulip = dest; count < len; count++)
                {
@@ -3594,11 +3605,7 @@ nc4_convert_type(const void *src, void *dest,
                break;
             case NC_UINT64:
                for (ulip = (unsigned long long *)src, ulip1 = dest; count < len; count++)
-               {
-                  if (*ulip > X_UINT64_MAX)
-                     (*range_error)++;
                   *ulip1++ = *ulip++;
-               }
                break;
             case NC_FLOAT:
                for (ulip = (unsigned long long *)src, fp = dest; count < len; count++)
@@ -3684,7 +3691,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UINT64:
                for (fp = (float *)src, lip = dest; count < len; count++)
                {
-                  if (*fp > X_INT64_MAX || *fp < 0)
+                  if (*fp > X_UINT64_MAX || *fp < 0)
                     (*range_error)++;
                   *lip++ = *fp++;
                }
@@ -3777,7 +3784,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UINT64:
                for (dp = (double *)src, lip = dest; count < len; count++)
                {
-                  if (*dp > X_UINT64_MAX)
+                  if (*dp > X_UINT64_MAX || *dp < 0)
                     (*range_error)++;
                   *lip++ = *dp++;
                }
