@@ -122,6 +122,17 @@ main(int argc, char **argv)
 {
     (void) signal(SIGFPE, SIG_IGN);
 
+    signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
+    unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
+    short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
+    unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
+    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
+    unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
+    float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
+    double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
+    long long longlong_in[ATT_LEN], longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
+    unsigned long long ulonglong_in[ATT_LEN], ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
+
    printf("\n*** Testing netcdf-4 attribute functions.\n");
    printf("*** testing really simple global atts...");
 #define NUM_SIMPLE_ATTS 9
@@ -158,17 +169,6 @@ main(int argc, char **argv)
       int i;
 
       char *speech_in;
-      signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
-      unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
-      short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
-      unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
-      /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
-      int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
-      unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
-      float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
-      double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
-      long long longlong_in[ATT_LEN], longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
-      unsigned long long ulonglong_in[ATT_LEN], ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
 
       /* This won't work, because classic files can't create these types. */
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
@@ -247,18 +247,6 @@ main(int argc, char **argv)
       int ncid;
       int i;
 
-      signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
-      unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
-      short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
-      unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
-      /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
-      int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
-      unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
-      float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
-      double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
-      long long longlong_in[ATT_LEN], longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
-      unsigned long long ulonglong_in[ATT_LEN], ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
-
       /* /\* Reopen the file and try different type conversions. *\/ */
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 
@@ -310,41 +298,99 @@ main(int argc, char **argv)
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_SCHAR_NAME, float_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
 	 if (float_in[i] != schar_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_UCHAR_NAME, float_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (float_in[i] != uchar_out[i]) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_SHORT_NAME, float_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
 	 if (float_in[i] != short_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_USHORT_NAME, float_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (float_in[i] != ushort_out[i]) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_INT_NAME, float_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (float_in[i] != (float) int_out[i]) ERR;
+	 if (float_in[i] != int_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_UINT_NAME, float_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	  if (float_in[i] != uint_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (float_in[i] != float_out[i]) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, float_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (float_in[i] != (float) double_out[i]) ERR;
+	  if (float_in[i] != (float) double_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_INT64_NAME, float_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	  if (float_in[i] != (float) longlong_out[i]) ERR;
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_UINT64_NAME, float_in)) ERR;   
+      for (i = 0; i < ATT_LEN; i++)
+	  if (float_in[i] != (float) ulonglong_out[i]) ERR;
+
       /* Read all atts (except text) as int. */
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_SCHAR_NAME, int_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
 	 if (int_in[i] != schar_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_UCHAR_NAME, int_in)) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (int_in[i] != (int) uchar_out[i]) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_SHORT_NAME, int_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
 	 if (int_in[i] != short_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_USHORT_NAME, int_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (int_in[i] != ushort_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (int_in[i] != int_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_UINT_NAME, int_in) != NC_ERANGE) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	  if (int_in[i] != (int) uint_out[i]) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_FLOAT_NAME, int_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (int_in[i] != (int)float_out[i]) ERR;
+	  if (int_in[i] != (int) float_out[i]) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, int_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (int_in[i] != (int)double_out[i]) ERR;
+	  if (int_in[i] != (int) double_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT64_NAME, int_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (int_in[i] != (int) longlong_out[i]) ERR;
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_UINT64_NAME, int_in) != NC_ERANGE) ERR;   
+      for (i = 0; i < ATT_LEN; i++)
+	  if (int_in[i] != (int) ulonglong_out[i]) ERR;
+
       /* Read all atts (except text) as short. */
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SCHAR_NAME, short_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
 	 if (short_in[i] != schar_out[i]) ERR;
-      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_INT_NAME, short_in) != NC_ERANGE) ERR;      
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_UCHAR_NAME, short_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (short_in[i] != (short)int_out[i]) ERR;
+	 if (short_in[i] != uchar_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;      
+      for (i = 0; i < ATT_LEN; i++)
+	 if (short_in[i] != short_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_USHORT_NAME, short_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (short_in[i] != (short) ushort_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_INT_NAME, short_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (short_in[i] != (short) int_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_UINT_NAME, short_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (short_in[i] != (short) uint_out[i]) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_FLOAT_NAME, short_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (short_in[i] != (short)float_out[i]) ERR;
+	  if (short_in[i] != (short) float_out[i]) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, short_in)) ERR;      
       for (i = 0; i < ATT_LEN; i++)
-	 if (short_in[i] != (short)double_out[i]) ERR;
+	  if (short_in[i] != (short) double_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_INT64_NAME, short_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (short_in[i] != (short) longlong_out[i]) ERR;
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_UINT64_NAME, short_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (short_in[i] != (short) ulonglong_out[i]) ERR;
+
+
       /* Read all atts (except text) as schar. Some range errors will
        * result converting to schar. */
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SHORT_NAME, schar_in) != NC_ERANGE) ERR;      
