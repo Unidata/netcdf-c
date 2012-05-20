@@ -358,6 +358,38 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	  if (int_in[i] != (int) ulonglong_out[i]) ERR;
 
+      /* Read all atts (except text) as uint. */
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_SCHAR_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != (unsigned int) schar_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_UCHAR_NAME, uint_in)) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != uchar_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_SHORT_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != (unsigned int) short_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_USHORT_NAME, uint_in)) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != ushort_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != (unsigned int) int_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_UINT_NAME, uint_in)) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != uint_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_FLOAT_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != (unsigned int) float_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	 if (uint_in[i] != (unsigned int) double_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_INT64_NAME, uint_in) != NC_ERANGE) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (uint_in[i] != (unsigned int) longlong_out[i]) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_UINT64_NAME, uint_in)) ERR;
+      for (i = 0; i < ATT_LEN; i++)
+	  if (uint_in[i] != (unsigned int) ulonglong_out[i]) ERR;
+
       /* Read all atts (except text) as short. */
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SCHAR_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
