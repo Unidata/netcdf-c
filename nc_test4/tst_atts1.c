@@ -127,6 +127,7 @@ main(int argc, char **argv)
     short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
     unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
     int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
+    long long_in[ATT_LEN], long_out[ATT_LEN] = {-200000, 128, 200000};
     unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
     float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
@@ -180,6 +181,29 @@ main(int argc, char **argv)
 			      longlong_out) != NC_ESTRICTNC3) ERR;      
       if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_UINT64_NAME, NC_UINT64, ATT_LEN, 
 			       ulonglong_out) != NC_ESTRICTNC3) ERR;      
+      /* But it's OK to put classic types like NC_INT converted from
+       * supported C types, though there may be out-of-range errrors
+       * for some values */
+      if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
+			  uint_out) != NC_ERANGE) ERR;
+      if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
+			      longlong_out) != NC_ERANGE) ERR;
+      if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
+			       ulonglong_out) != NC_ERANGE) ERR;
+      if (nc_put_att_ushort(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
+			    ushort_out)) ERR;      
+      /* restore to intended values for subsequent tests */
+      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
+			    int_out)) ERR;      
+      /* It should also be OK to read classic types converted into
+       * supported C types. though the conversion may encounter
+       * out-of-range values */
+      if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_INT_NAME, uchar_in) != NC_ERANGE) ERR;
+      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_INT_NAME, ushort_in) != NC_ERANGE) ERR;
+      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, uint_in) != NC_ERANGE) ERR;
+      if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
+      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, ulonglong_in) != NC_ERANGE) ERR;
+
       if (nc_close(ncid)) ERR;
 
       /* Create a file with a global attribute of each type. */
@@ -250,7 +274,7 @@ main(int argc, char **argv)
       /* /\* Reopen the file and try different type conversions. *\/ */
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 
-      /* No text conversions are allowed, and people who try them shold
+      /* No text conversions are allowed, and people who try them should
        * be locked up, away from decent folk! */
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_TEXT_NAME, short_in) != NC_ECHAR) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_TEXT_NAME, int_in) != NC_ECHAR) ERR;
@@ -259,6 +283,7 @@ main(int argc, char **argv)
 /*   if (nc_get_att_ubyte(ncid, NC_GLOBAL, ATT_TEXT_NAME, uchar_in) != NC_ECHAR) ERR;*/
       if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_TEXT_NAME, ushort_in) != NC_ECHAR) ERR;
       if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_TEXT_NAME, uint_in) != NC_ECHAR) ERR;
+      if (nc_get_att_long(ncid, NC_GLOBAL, ATT_TEXT_NAME, long_in) != NC_ECHAR) ERR;
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_TEXT_NAME, longlong_in) != NC_ECHAR) ERR;
       if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_TEXT_NAME, ulonglong_in) != NC_ECHAR) ERR;
 
