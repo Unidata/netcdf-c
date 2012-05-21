@@ -46,7 +46,7 @@ nvdims(int ncid, int varid)
 {
    int ndims, status;
 
-   if ((status = nc_inq_var_ndims(ncid, varid, &ndims)))
+   if ((status = nc_inq_varndims(ncid, varid, &ndims)))
    {
       nc_advise("ncvdims", status, "ncid %d", ncid);
       return -1;
