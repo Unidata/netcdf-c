@@ -26,7 +26,7 @@ def parse_options(ops):
         cur_args += "--host=x86_64-w64-mingw32 "
         
     if ops.BUILD_MIN == True:
-        cur_args += "--disabe-dap "
+        cur_args += "--disable-dap --disable-netcdf-4 --disable-diskless"
         
     if ops.BUILD_DEBUG == True:
         cur_c_flags = cur_c_flags + "-ggdb -O0 "
@@ -70,7 +70,7 @@ def main():
                       help="Enable shard build.",default=False)
                       
     parser.add_option("--min","--min_build",dest="BUILD_MIN",action="store_true",
-                      help="Build Minimal netcdf. No netcdf4, dap, diskless, etc.",default=False)
+                      help="Build Minimal netcdf. No netcdf4, dap, diskless, etc.",default=True)
                       
     parser.add_option("-d","--debug",dest="BUILD_DEBUG",action="store_true",
                       help="Build with debug options (-ggdb, -O0)",default=False)
