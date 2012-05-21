@@ -140,18 +140,24 @@ affecting existing programs. The physical representation of netCDF
 data is designed to be independent of the computer on which the data
 were written.
 
-Unidata supports the netCDF interfaces for C (see Top), FORTRAN 77
-(see Top), FORTRAN 90 (see Top), and C++ (see Top).
+Unidata supports the netCDF interfaces for C (see 
+[The NetCDF C Interface Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-c.html#Top)), 
+Fortran 77 (see 
+[The NetCDF Fortran 77 Interface Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f77.html#Top)), 
+FORTRAN 90 (see 
+[The NetCDF Fortran 90 Interface Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html#Top)), and C++ (see 
+[The NetCDF C++ Interface Guide](http://www.unidata.ucar.edu/netcdf/docs/netcdf-cxx.html#Top)).
 
 The netCDF library is supported for various UNIX operating systems. A
 MS Windows port is also available. The software is also ported and
 tested on a few other operating systems, with assistance from users
 with access to these systems, before each major release. Unidata's
-netCDF software is freely available via FTP to encourage its
-widespread use. (ftp://ftp.unidata.ucar.edu/pub/netcdf).
+netCDF software is freely available [via
+FTP](ftp://ftp.unidata.ucar.edu/pub/netcdf) to encourage its 
+widespread use.
 
-For detailed installation instructions, see the Porting and
-Installation Guide. See Top.
+For detailed installation instructions, see 
+[Building NetCDF](http://www.unidata.ucar.edu/netcdf/docs/building.html).
 
 \page netcdf_format The netCDF File Format
 
