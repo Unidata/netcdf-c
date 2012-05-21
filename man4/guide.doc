@@ -141,13 +141,13 @@ data is designed to be independent of the computer on which the data
 were written.
 
 Unidata supports the netCDF interfaces for C (see <a
-href="/software/netcdf/docs/netcdf-c.html#Top" >NetCDF C Interface
+href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-c.html#Top" >NetCDF C Interface
 Guide</a>), FORTRAN 77 (see <a
-href="/software/netcdf/docs/netcdf-f77.html#Top" >NetCDF Fortran 77
+href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-f77.html#Top" >NetCDF Fortran 77
 Interface Guide</a>), FORTRAN 90 (see <a
-href="/software/netcdf/docs/netcdf-f90.html#Top" >NetCDF Fortran 90
+href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-f90.html#Top" >NetCDF Fortran 90
 Interface Guide</a>), and C++ (see <a
-href="/software/netcdf/docs/netcdf-cxx.html#Top" >NetCDF C++ Interface
+href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-cxx.html#Top" >NetCDF C++ Interface
 Guide</a>).
 
 The netCDF library is supported for various UNIX operating systems. A
@@ -159,7 +159,7 @@ href="ftp://ftp.unidata.ucar.edu/pub/netcdf">via FTP</a> to encourage
 its widespread use.
 
 For detailed installation instructions, see <a
-href="/software/netcdf/docs/building.html" >Building NetCDF</a>.
+href="http://www.unidata.ucar.edu/netcdf/docs/building.html" >Building NetCDF</a>.
 
 \page netcdf_format The netCDF File Format
 
