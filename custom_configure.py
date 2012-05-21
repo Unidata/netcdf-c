@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 ######
 # Custom build script.
 #
@@ -50,7 +50,7 @@ def parse_options(ops):
             cur_c_flags += "-I/c/HDF5189/include "
             cur_ld_flags += "-L/c/HDF5189/bin "
     
-    return "./configure " + cur_args + " " + cur_c_flags + "\" " + cur_ld_flags + "\""
+    return "bash ./configure " + cur_args + " " + cur_c_flags + "\" " + cur_ld_flags + "\""
 
 ###
 # Main Function.
