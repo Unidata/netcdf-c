@@ -1,4 +1,3 @@
-
 ######
 # Custom build script.
 #
@@ -11,11 +10,9 @@
 from optparse import OptionParser
 import os
 
-
-#global C_FLAGS, LD_FLAGS, STD_ARGS
 C_FLAGS="CFLAGS=\""
 LD_FLAGS="LDFLAGS=\""
-STD_ARGS="--disable-doxygen --enable-diskless "
+STD_ARGS="--disable-doxygen "
 
 ### Parse the options which were passed to the program.
 def parse_options(ops):
@@ -26,31 +23,42 @@ def parse_options(ops):
         cur_args += "--host=x86_64-w64-mingw32 "
         
     if ops.BUILD_MIN == True:
-        cur_args += "--disable-dap --disable-netcdf-4 --disable-diskless"
+        cur_args += "--disable-dap --disable-netcdf-4 --disable-diskless "
         
     if ops.BUILD_DEBUG == True:
         cur_c_flags = cur_c_flags + "-ggdb -O0 "
         cur_ld_flags = cur_ld_flags + "-ggdb -O0 "       
         
     if ops.BUILD_STATIC == True:
-        cur_args += "--enable-static "        
+        cur_args += "--enable-static "
+    
         if ops.BUILD_32 == True:
             cur_c_flags += "-I/c/Users/wfisher/Desktop/hdf5-1.8.8/src -I/c/Users/wfisher/Desktop/hdf-1.8.8/hl/src "
             cur_ld_flags += "-static -L/c/GnuWin32/lib/libz.a -L/c/Users/wfisher/Desktop/hdf5-1.8.8/build_win/bin "
         else:
             cur_c_flags += "-I/c/HDF5189/include "
             cur_ld_flags += "-static -L/c/HDF5189/bin "
+    else:
+        cur_args += "--disable-static "
     
     if ops.BUILD_SHARED == True:
-        cur_args += "--enable-shared "
+        cur_args += "--enable-shared --disable-utilities "
+
+        if os.name == 'nt':
+            cur_args += "--enable-dll "
+
         if ops.BUILD_32 == True:
             cur_c_flags += "-I/c/Users/wfisher/Desktop/hdf5-1.8.8/src -I/c/Users/wfisher/Desktop/hdf-1.8.8/hl/src "
             cur_ld_flags += "-L/c/GnuWin32/lib/libz.a -L/c/Users/wfisher/Desktop/hdf5-1.8.8/build_win/bin "
         else:
             cur_c_flags += "-I/c/HDF5189/include "
             cur_ld_flags += "-L/c/HDF5189/bin "
+    else:
+        cur_args += "--disable-shared "
+
     
-    return "bash ./configure " + cur_args + " " + cur_c_flags + "\" " + cur_ld_flags + "\""
+
+    return "sh ./configure " + cur_args + " " + cur_c_flags + "\" " + cur_ld_flags + "\""
 
 ###
 # Main Function.
