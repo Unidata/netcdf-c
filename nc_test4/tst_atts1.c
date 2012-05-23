@@ -271,16 +271,17 @@ main(int argc, char **argv)
       int ncid;
       int i;
 
-      /* /\* Reopen the file and try different type conversions. *\/ */
+      /* Reopen the file and try different type conversions. */
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 
       /* No text conversions are allowed, and people who try them should
        * be locked up, away from decent folk! */
+      if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_TEXT_NAME, schar_in) != NC_ECHAR) ERR;
+      if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_TEXT_NAME, uchar_in) != NC_ECHAR) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_TEXT_NAME, short_in) != NC_ECHAR) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_TEXT_NAME, int_in) != NC_ECHAR) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_TEXT_NAME, float_in) != NC_ECHAR) ERR;
       if (nc_get_att_double(ncid, NC_GLOBAL, ATT_TEXT_NAME, double_in) != NC_ECHAR) ERR;
-/*   if (nc_get_att_ubyte(ncid, NC_GLOBAL, ATT_TEXT_NAME, uchar_in) != NC_ECHAR) ERR;*/
       if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_TEXT_NAME, ushort_in) != NC_ECHAR) ERR;
       if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_TEXT_NAME, uint_in) != NC_ECHAR) ERR;
       if (nc_get_att_long(ncid, NC_GLOBAL, ATT_TEXT_NAME, long_in) != NC_ECHAR) ERR;
