@@ -191,7 +191,7 @@ main(int argc, char **argv)
       if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,
       			  uint_out) != NC_EBADTYPE) ERR;
       if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
-			      longlong_out)) ERR;
+			      longlong_out) != NC_ERANGE) ERR;
       /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
       if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
 			       ulonglong_out) != NC_EBADTYPE) ERR;
@@ -707,7 +707,6 @@ main(int argc, char **argv)
       int ncid;
       int varid, natts, nvars;
       double dvalue[] = {999.99, 999.99, 999.99, 999.99, 999.99};
-      int varids[1];
       char name_in[NC_MAX_NAME + 1];
 
       /* Create a file with one var, and attach three atts to it. */
@@ -720,8 +719,8 @@ main(int argc, char **argv)
       
       /* Reopen the file and check. */
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
-      if (nc_inq_varids(ncid, &nvars, varids)) ERR;
-      if (nvars != 1 || varids[0] != 0) ERR;
+      if (nc_inq_nvars(ncid, &nvars)) ERR;
+      if (nvars != 1) ERR;
       if (nc_inq_varnatts(ncid, 0, &natts)) ERR;
       if (natts != 3) ERR;
       if (nc_inq_attname(ncid, 0, 0, name_in)) ERR;
