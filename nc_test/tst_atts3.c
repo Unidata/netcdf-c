@@ -489,7 +489,7 @@ main(int argc, char **argv)
       /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
 
       /* Create a file with a global attribute of each type of zero length. */
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, 0, NULL)) ERR;
       if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, 0, NULL)) ERR;
       if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, 0, NULL)) ERR;
@@ -550,7 +550,7 @@ main(int argc, char **argv)
 
 
       /* Create a file with a global attribute of each type of zero length. */
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
       if (nc_enddef(ncid)) ERR;
       if (nc_redef(ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, 0, NULL)) ERR;
@@ -624,7 +624,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Now create a file with a variable, which has an att. */
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;      
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
@@ -779,7 +779,7 @@ main(int argc, char **argv)
       double double_in[ATT_LEN], double_out[ATT_LEN] = {0.25, .5, 0.125};
 
       /* Create a file with a global attribute of each type. */
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;      
       if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, ATT_LEN, schar_out)) ERR;      
       if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, ATT_LEN, short_out)) ERR;      
@@ -788,7 +788,7 @@ main(int argc, char **argv)
       if (nc_put_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, NC_DOUBLE, ATT_LEN, double_out)) ERR;      
 
       /* Create another file and copy all the attributes. */
-      if (nc_create(FILE_NAME2, NC_NETCDF4, &ncid2)) ERR;      
+      if (nc_create(FILE_NAME2, NC_CLOBBER, &ncid2)) ERR;      
       if (nc_copy_att(ncid, NC_GLOBAL, ATT_TEXT_NAME, ncid2, NC_GLOBAL)) ERR;
       if (nc_copy_att(ncid, NC_GLOBAL, ATT_SCHAR_NAME, ncid2, NC_GLOBAL)) ERR;
       if (nc_copy_att(ncid, NC_GLOBAL, ATT_SHORT_NAME, ncid2, NC_GLOBAL)) ERR;
