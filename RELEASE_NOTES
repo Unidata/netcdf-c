@@ -5,6 +5,12 @@ VERSION         COMMENTS
 -------         --------
 4.2.1		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
 		
+		Generation of documentation is disabled by default. Use
+                --enable-doxygen to generate.
+ 
+		Fix bug in which passing a NULL path causes netcdf to fail.
+		[NCF-173]
+
 		Upgraded doxygen and man-page documentation for ncdump
 		and nccopy utilities, including new -w option for
 		nccopy with an example.
