@@ -454,7 +454,7 @@ create_file()
     int i444_dims[RANK_i444];
 
     /* enter define mode */
-    stat = nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL|NC_CLOBBER, &ncid);
+    stat = nc_create(FILE_NAME, NC_CLOBBER, &ncid);
     check_err(stat,__LINE__,__FILE__);
 
     /* define dimensions */

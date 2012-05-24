@@ -73,7 +73,7 @@ extern "C" {
 /*! Max or min values for a type. Nothing greater/smaller can be
  * stored in a netCDF file for their associated types. Recall that a C
  * compiler may define int to be any length it wants, but a NC_INT is
- * *always* a 4 byte signed int. On a platform with has 64 bit ints,
+ * *always* a 4 byte signed int. On a platform with 64 bit ints,
  * there will be many ints which are outside the range supported by
  * NC_INT. But since NC_INT is an external format, it has to mean the
  * same thing everywhere. */
