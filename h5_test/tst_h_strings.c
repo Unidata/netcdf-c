@@ -7,7 +7,7 @@
    Here's a HDF5 sample programs:
    http://hdf.ncsa.uiuc.edu/training/other-ex5/sample-programs/strings.c
 */
-
+#include <string.h>
 #include "h5_err_macros.h"
 #include <hdf5.h>
 
@@ -26,12 +26,14 @@ main()
       hid_t class;
       size_t type_size;
       htri_t is_str;
-      char *data_in;
+
       char *data = "The art of war is of vital "
 	 "importance to the State. It is a matter of life and death, a road either"
 	 "to safety or to ruin.  Hence it is a subject of inquiry"
 	 "which can on no account be neglected.";
 
+      char *data_in = malloc(sizeof(char)*(strlen(data)+1));
+      
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
