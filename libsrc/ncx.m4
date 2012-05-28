@@ -328,7 +328,7 @@ swapn8b(void *dst, const void *src, size_t nn)
 
 /* x_schar */
 
- /* We don't implement and x_schar primitives. */
+/* We don't implement any x_schar primitives. */
 
 
 /* x_short */
@@ -2827,36 +2827,9 @@ ncx_getn_int_uint(const void **xpp, size_t nelems, unsigned int *tp)
 NCX_GETN(int, int)
 NCX_GETN(int, uint)
 #endif
-#if X_SIZEOF_INT == SIZEOF_LONG
-/* optimized version */
-int
-ncx_getn_int_longlong(const void **xpp, size_t nelems, longlong *tp)
-{
-#ifdef WORDS_BIGENDIAN
-	(void) memcpy(tp, *xpp, nelems * sizeof(long));
-# else
-	swapn4b(tp, *xpp, nelems);
-# endif
-	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
-}
 
-int
-ncx_getn_int_ulonglong(const void **xpp, size_t nelems, unsigned long long *tp)
-{
-#ifdef WORDS_BIGENDIAN
-	(void) memcpy(tp, *xpp, nelems * sizeof(long));
-# else
-	swapn4b(tp, *xpp, nelems);
-# endif
-	*xpp = (const void *)((const char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
-}
-
-#else
 NCX_GETN(int, longlong)
 NCX_GETN(int, ulonglong)
-#endif
 
 NCX_GETN(int, float)
 NCX_GETN(int, double)
@@ -2892,35 +2865,9 @@ ncx_putn_int_uint(void **xpp, size_t nelems, const unsigned int *tp)
 NCX_PUTN(int, int)
 NCX_PUTN(int, uint)
 #endif
-#if X_SIZEOF_INT == SIZEOF_LONG
-/* optimized version */
-int
-ncx_putn_int_longlong(void **xpp, size_t nelems, const longlong *tp)
-{
-#ifdef WORDS_BIGENDIAN
-	(void) memcpy(*xpp, tp, nelems * X_SIZEOF_INT);
-# else
-	swapn4b(*xpp, tp, nelems);
-# endif
-	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
-}
 
-int
-ncx_putn_int_ulonglong(void **xpp, size_t nelems, const unsigned long long *tp)
-{
-#ifdef WORDS_BIGENDIAN
-	(void) memcpy(*xpp, tp, nelems * X_SIZEOF_INT);
-# else
-	swapn4b(*xpp, tp, nelems);
-# endif
-	*xpp = (void *)((char *)(*xpp) + nelems * X_SIZEOF_INT);
-	return ENOERR;
-}
-#else
 NCX_PUTN(int, longlong)
 NCX_PUTN(int, ulonglong)
-#endif
 NCX_PUTN(int, float)
 NCX_PUTN(int, double)
 

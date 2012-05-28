@@ -217,8 +217,7 @@ main(int argc, char **argv)
       /* for (i = 0; i < ATT_LEN; i++) */
       /* 	if (uint_in[i] != (unsigned int) int_out[i]) ERR; */
 
-      /* This is bug NCF-171: on 32-bit platforms, values returned
-	 don't zero out upper 4 bytes of long long */
+      /* This was bug NCF-171: on 32-bit platforms, bad values returned */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
       	if (longlong_in[i] != (long long) int_out[i]) ERR;
@@ -445,8 +444,7 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	 if (longlong_in[i] != short_out[i]) ERR;
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
-      /* This is bug NCF-171: on 32-bit platforms, values returned
-	 don't zero out upper 4 bytes of long long */
+      /* This was bug NCF-171: on 32-bit platforms, bad values returned */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
       	if (longlong_in[i] != (long long) int_out[i]) ERR;
