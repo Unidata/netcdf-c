@@ -756,37 +756,21 @@ ncx_get_int_uint(const void *xp, unsigned int *ip)
 int
 ncx_get_int_longlong(const void *xp, long long *ip)
 {
-#if SIZEOF_IX_INT == SIZEOF_LONG && IX_INT_MAX == LONG_MAX
-	get_ix_int(xp, (ix_int *)ip);
-	return ENOERR;
-#else
 	ix_int xx;
 	get_ix_int(xp, &xx);
 	*ip = xx;
-#  if IX_INT_MAX > LONG_MAX	/* unlikely */
-	if(xx > LONG_MAX || xx < LONG_MIN)
-		return NC_ERANGE;
-#  endif
 	return ENOERR;
-#endif
 }
 
 int
 ncx_get_int_ulonglong(const void *xp, unsigned long long *ip)
 {
-#if SIZEOF_IX_INT == SIZEOF_LONG && IX_INT_MAX == LONG_MAX
-	get_ix_int(xp, (ix_int *)ip);
-	return ENOERR;
-#else
 	ix_int xx;
 	get_ix_int(xp, &xx);
 	*ip = xx;
-#  if IX_INT_MAX > LONG_MAX	/* unlikely */
-	if(xx > LONG_MAX || xx < LONG_MIN)
-		return NC_ERANGE;
-#  endif
+	if(xx < 0)
+	      return NC_ERANGE;
 	return ENOERR;
-#endif
 }
 
 int
