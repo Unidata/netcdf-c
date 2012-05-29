@@ -16,16 +16,15 @@ tst_diskless4.cdl tst_diskless4.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts
 endif
 
-# Tests bugs in netCDF-3 type conversions, move to always run after bugs are fixed
-if EXTRA_TESTS
-TESTPROGRAMS += tst_atts3
-endif # EXTRA_TESTS
+# if EXTRA_TESTS
+# TESTPROGRAMS += 
+# endif # EXTRA_TESTS
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
