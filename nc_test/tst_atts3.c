@@ -175,30 +175,6 @@ main(int argc, char **argv)
 
       /* This won't work, because classic files can't create these types. */
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
-      if (nc_put_att_ushort(ncid, NC_GLOBAL, ATT_USHORT_NAME, NC_USHORT, ATT_LEN, 
-			    ushort_out) != NC_EBADTYPE) ERR;      
-      if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_UINT_NAME, NC_UINT, ATT_LEN, 
-			  uint_out) != NC_EBADTYPE) ERR;      
-      if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_INT64_NAME, NC_INT64, ATT_LEN, 
-			      longlong_out) != NC_EBADTYPE) ERR;      
-      if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_UINT64_NAME, NC_UINT64, ATT_LEN, 
-			       ulonglong_out) != NC_EBADTYPE) ERR;      
-      /* But it's OK to put classic types like NC_INT converted from
-       * supported C types, though there may be out-of-range errrors
-       * for some values */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,
-      			  uint_out) != NC_EBADTYPE) ERR;
-      /* This works OK with 64-bit, but on 32-bit returns NC_NOERR, which is a bug */
-      /* if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,  */
-      /* 			      longlong_out) != NC_ERANGE) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
-			       ulonglong_out) != NC_EBADTYPE) ERR;
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_put_att_ushort(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
-			    ushort_out) != NC_EBADTYPE) ERR;      
-      /* restore to intended values for subsequent tests */
       if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
 			    int_out)) ERR;      
       /* It is also OK to read classic types converted into
@@ -208,25 +184,10 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	if (uchar_in[i] != (unsigned char) int_out[i]) ERR;
 
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_INT_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	if (ushort_in[i] != (unsigned short) int_out[i]) ERR; */
-
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	if (uint_in[i] != (unsigned int) int_out[i]) ERR; */
-
       /* This was bug NCF-171: on 32-bit platforms, bad values returned */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
       	if (longlong_in[i] != (long long) int_out[i]) ERR;
-
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	if (ulonglong_in[i] != (unsigned long long) int_out[i]) ERR; */
-
       if (nc_close(ncid)) ERR;
 
       /* Create a file with a global attribute of each type. */
@@ -283,11 +244,6 @@ main(int argc, char **argv)
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_TEXT_NAME, int_in) != NC_ECHAR) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_TEXT_NAME, float_in) != NC_ECHAR) ERR;
       if (nc_get_att_double(ncid, NC_GLOBAL, ATT_TEXT_NAME, double_in) != NC_ECHAR) ERR;
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_TEXT_NAME, ushort_in) != NC_ECHAR) ERR;
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_TEXT_NAME, uint_in) != NC_ECHAR) ERR;
-      if (nc_get_att_long(ncid, NC_GLOBAL, ATT_TEXT_NAME, long_in) != NC_ECHAR) ERR;
-      if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_TEXT_NAME, longlong_in) != NC_ECHAR) ERR;
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_TEXT_NAME, ulonglong_in) != NC_ECHAR) ERR;
 
       /* Read all atts (except text) as double. */
       if (nc_get_att_double(ncid, NC_GLOBAL, ATT_SCHAR_NAME, double_in)) ERR;
@@ -340,28 +296,6 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	  if (int_in[i] != (int) double_out[i]) ERR;
 
-      /* Read all atts (except text) as uint. */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_SCHAR_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (uint_in[i] != (unsigned int) schar_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_SHORT_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (uint_in[i] != (unsigned int) short_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (uint_in[i] != (unsigned int) int_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_FLOAT_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (uint_in[i] != (unsigned int) float_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_uint(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, uint_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (uint_in[i] != (unsigned int) double_out[i]) ERR; */
-
       /* Read all atts (except text) as short. */
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SCHAR_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
@@ -378,28 +312,6 @@ main(int argc, char **argv)
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	  if (short_in[i] != (short) double_out[i]) ERR;
-
-      /* Read all atts (except text) as ushort. */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_SCHAR_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ushort_in[i] != (unsigned short) schar_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_SHORT_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ushort_in[i] != (unsigned short) short_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_INT_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ushort_in[i] != (unsigned short) int_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_FLOAT_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ushort_in[i] != (unsigned short) float_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ushort(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, ushort_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ushort_in[i] != (unsigned short) double_out[i]) ERR; */
 
       /* Read all atts (except text) as schar. */
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;
@@ -454,28 +366,6 @@ main(int argc, char **argv)
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, longlong_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (longlong_in[i] != (long long)double_out[i]) ERR;
-
-      /* Read all atts (except text) into unsigned long long variable. */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_SCHAR_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	  if (ulonglong_in[i] != (unsigned long long) schar_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_SHORT_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	  if (ulonglong_in[i] != (unsigned long long) short_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_INT_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	  if (ulonglong_in[i] != (unsigned long long) int_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_FLOAT_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ulonglong_in[i] != (unsigned long long) float_out[i]) ERR; */
-      /* This should conditionally return NC_ERANGE, but instead always returns NC_EBADTYPE due to a bug */
-      if (nc_get_att_ulonglong(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, ulonglong_in) != NC_EBADTYPE) ERR;
-      /* for (i = 0; i < ATT_LEN; i++) */
-      /* 	 if (ulonglong_in[i] != (unsigned long long) double_out[i]) ERR; */
 
       if (nc_close(ncid)) ERR;
    }
