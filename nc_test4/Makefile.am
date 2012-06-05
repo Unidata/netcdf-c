@@ -113,10 +113,6 @@ TESTS += run_pnetcdf_test.sh
 endif
 endif
 
-if EXTRA_TESTS
-TESTS += tst_converts4
-endif # EXTRA_TESTS
-
 EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh run_bm_test2.sh	\
 run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh run_par_bm_test.sh	\
 run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh	\
