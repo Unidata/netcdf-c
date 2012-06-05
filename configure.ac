@@ -67,9 +67,10 @@ AC_MSG_RESULT([$NCIO_MINBLOCKSIZE])
 AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for posixio.])
 
 AC_ARG_ENABLE([doxygen],
-  [AS_HELP_STRING([--disable-doxygen],
-    [Disable generation of documentation.])])
-AM_CONDITIONAL([BUILD_DOCS], [test "x$enable_doxygen" != xno]) 
+  [AS_HELP_STRING([--enable-doxygen],
+    [Enable generation of documentation.])])
+test "x$enable_doxygen" = xyes || enable_doxygen=no
+AM_CONDITIONAL([BUILD_DOCS], [test "x$enable_doxygen" = xyes]) 
 
 AC_ARG_ENABLE([internal-docs],
   [AS_HELP_STRING([--enable-internal-docs],
@@ -626,6 +627,7 @@ AC_C_BIGENDIAN
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(off_t)

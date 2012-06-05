@@ -93,17 +93,17 @@ services</a>.
 
 Build zlib like this:
 
-<code>
+\verbatim
 ./configure --prefix=/home/ed/local
 make check install
-</code>
+\endverbatim
 
 Then you build HDF5, specifying the location of the zlib library:
 
-<code>
+\verbatim
 ./configure --with-zlib=/home/ed/local --prefix=/home/ed/local 
 make check install
-</code>
+\endverbatim
 
 Note that for shared libraries, you may need to add the install
 directory to the LD_LIBRARY_PATH environment variable. See
@@ -117,10 +117,10 @@ After HDF5 is done, build netcdf, specifying the location of the
 HDF5, zlib, and (if built into HDF5) the szip header files and
 libraries in the CPPFLAGS and LDFLAGS environment variables. For example:
 
-<code>
+\verbatim
 CPPFLAGS=-I/home/ed/local/include LDFLAGS=-L/home/ed/local/lib ./configure --prefix=/home/ed/local
 make check install
-</code>
+\endverbatim
 
 The configure script will try to find necessary tools in your
 path. When you run configure you may optionally use the --prefix
@@ -144,10 +144,10 @@ on OPeNDAP servers.)
 To build without support for the netCDF-4 formats or the additional
 netCDF-4 functions, but with remote access, use:
 
-<code>
+\verbatim
 ./configure --prefix=/home/ed/local --disable-netcdf-4
 make check install
-</code>
+\endverbatim
 
 (Replace ``/home/ed/local'' with the name of the directory where
 netCDF is to be installed.) 
@@ -157,17 +157,17 @@ supported remote data access, using the OPeNDAP protocols.  To build
 with full support for netCDF-4 APIs and format but without remote
 client access, use:
 
-<code>
+\verbatim
 ./configure --prefix=/home/ed/local --disable-dap
 make check install
-</code>
+\endverbatim
 
 To build without netCDF-4 support or remote client access, use:
 
-<code>
+\verbatim
 ./configure --prefix=/home/ed/local --disable-netcdf-4 --disable-dap
 make check install
-</code>
+\endverbatim
 
 If you get the message that netCDF installed correctly, then you are
 done!
@@ -193,10 +193,10 @@ the mpicc wrapper script, in the case of MPICH2.
 The following works to build HDF5 with parallel I/O on our netCDF
 testing system:
 
-<code>
+\verbatim
 CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par
 make check install
-</code>
+\endverbatim
 
 If the HDF5 used by netCDF has been built with parallel I/O, then
 netCDF will also be built with support for parallel I/O. This allows
@@ -221,9 +221,9 @@ L) for the names of the libraries.
 For example, one user reports that she can build other applications
 with netCDF-4 by setting the LIBS environment variable:
 
-<code>
+\verbatim
 LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
-</code>
+\endverbatim
 
 For shared builds, only -lnetcdf is needed. All other libraries will
 be found automatically.
@@ -234,9 +234,9 @@ needed for the local netCDF installation.
 For example, this works for linking an application named myapp.c with
 netCDF-4 libraries:
 
-<code>
+\verbatim
 cc -o myapp myapp.c `nc-config --cflags --libs`
-</code>
+\endverbatim
 
 \page configure_options ./configure options
 
