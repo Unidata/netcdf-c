@@ -43,11 +43,15 @@ dnl
 #include <string.h>
 #include <limits.h>
 
-
 /* alias poorly named limits.h macros */
 #define  SHORT_MAX  SHRT_MAX
 #define  SHORT_MIN  SHRT_MIN
 #define USHORT_MAX USHRT_MAX
+#ifndef LLONG_MAX
+#   define LLONG_MAX	9223372036854775807LL
+#   define LLONG_MIN	(-LLONG_MAX - 1LL)
+#   define ULLONG_MAX	18446744073709551615ULL
+#endif
 #define LONG_LONG_MAX LLONG_MAX
 #define LONG_LONG_MIN LLONG_MIN
 #define ULONG_LONG_MAX ULLONG_MAX
