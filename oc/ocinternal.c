@@ -22,9 +22,9 @@
 #include "ocread.h"
 
 /* Note: TMPPATH must end in '/' */
-#ifdef __CYGWIN__
+#ifdef __WIN32__
 #define TMPPATH1 "c:/temp/"
-#define TMPPATH2 "./"
+#define TMPPATH2 "c:/"
 #else
 #define TMPPATH1 "/tmp/"
 #define TMPPATH2 "./"
@@ -459,7 +459,7 @@ createtempfile(OCstate* state, OCtree* tree)
 int
 createtempfile1(char* tmppath, char** tmpnamep)
 {
-    int fd;
+    int fd = 0;
     char* tmpname = NULL;
     {
 	char* p;
@@ -494,7 +494,8 @@ createtempfile1(char* tmppath, char** tmpnamep)
         fd = mkstemp(tmpname);
 #else
 #  ifdef WIN32
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
+        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
+	//fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif
