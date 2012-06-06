@@ -607,8 +607,8 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     /* test for the appropriate fetch flags */
     value = oc_clientparam_get(conn,"fetch");
     if(value != NULL && strlen(value) > 0) {
-	if(value[0] == 'm' || value[0] == 'M') {
-            SETFLAG(nccomm->controls,NCF_INMEMORY);
+	if(value[0] == 'd' || value[0] == 'D') {
+            SETFLAG(nccomm->controls,NCF_ONDISK);
 	}
     }
 

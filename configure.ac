@@ -576,7 +576,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp getpid \
+		mkstemp rand \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
