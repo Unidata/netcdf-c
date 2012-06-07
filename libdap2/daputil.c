@@ -706,8 +706,8 @@ dap_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 	ce = NULL;
     }
 
-    if(FLAGSET(nccomm->controls,NCF_INMEMORY)) {
-	flags = OCINMEMORY;
+    if(FLAGSET(nccomm->controls,NCF_ONDISK)) {
+	flags |= OCONDISK;
     }
 
     if(SHOWFETCH) {

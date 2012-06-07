@@ -23,8 +23,11 @@
 
 /* Note: TMPPATH must end in '/' */
 #ifdef __CYGWIN__
-#define TMPPATH1 "c:/temp/"
+#define TMPPATH1 "/cygdrive/c/temp/"
 #define TMPPATH2 "./"
+#elif defined(WIN32)
+#define TMPPATH1 "c:\\temp/"
+#define TMPPATH2 ".\\"
 #else
 #define TMPPATH1 "/tmp/"
 #define TMPPATH2 "./"
@@ -217,7 +220,7 @@ ocfetchf(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 	}
 	break;
     case OCDATADDS:
-	if((flags & OCINMEMORY) == 0) {/* store in file */
+	if((flags & OCONDISK) != 0) {/* store in file */
 	    /* Create the datadds file immediately
                so that DRNO can reference it*/
             /* Make the tmp file*/
@@ -229,7 +232,7 @@ ocfetchf(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
                    will modify packet */
                 stat = ocextractddsinfile(state,tree,flags);
 	    }
-	} else { /*inmemory*/
+	} else { /*in memory*/
             stat = readDATADDS(state,tree,flags);
 	    if(stat == OC_NOERR) {
                 /* Separate the DDS from data and return the dds;
@@ -296,7 +299,7 @@ ocfetchf(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     occomputefullnames(tree->root);
 
      if(kind == OCDATADDS) {
-	if((flags & OCINMEMORY) == 0) {
+	if((flags & OCONDISK) != 0) {
             tree->data.xdrs = xxdr_filecreate(tree->data.file,tree->data.bod);
 	} else {
 	    /* Switch to zero based memory */
@@ -461,45 +464,30 @@ createtempfile1(char* tmppath, char** tmpnamep)
 {
     int fd;
     char* tmpname = NULL;
+    tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
+    if(tmpname == NULL) return -1;
+    strcpy(tmpname,tmppath);
+#ifdef HAVE_MKSTEMP
+    strcat(tmpname,"dataddsXXXXXX");
+    /* Note Potential problem: old versions of this function
+       leave the file in mode 0666 instead of 0600 */
+    fd = mkstemp(tmpname);
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    strcat(tmpname,"datadds");
     {
-	char* p;
-	char c;
-	tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
-	if(tmpname == NULL) return -1;
-	strcpy(tmpname,tmppath);
-#ifdef HAVE_MKSTEMP
-	strcat(tmpname,"dataddsXXXXXX");
-#else
-	strcat(tmpname,"datadds");
-        {
-	    long pid = -1;
-	    char spid[7];
-#  ifdef HAVE_GETPID
-  	    pid = (long)getpid();
-#  endif
-  	    if(pid < 0) return -1;
-            sprintf(spid,"%06ld",pid);
-            strcat(tmpname,spid);
-	}
-#endif
-	p = tmpname + strlen("datadds");
-	/* \', and '/' to '_' and '.' to '-'*/
-	for(;(c=*p);p++) {
-	    if(c == '\\' || c == '/') {*p = '_';}
-	    else if(c == '.') {*p = '-';}
-	}
-        /* Note Potential problem: old versions of this function
-           leave the file in mode 0666 instead of 0600 */
-#ifdef HAVE_MKSTEMP
-        fd = mkstemp(tmpname);
-#else
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+        sprintf(spid,"%06d",rno);
+        strcat(tmpname,spid);
 #  ifdef WIN32
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif
-#endif
     }
+#endif /* !HAVE_MKSTEMP */
     if(tmpname == NULL) return -1;
     if(tmpnamep) *tmpnamep = tmpname;
     return fd;

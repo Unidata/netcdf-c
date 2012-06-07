@@ -105,7 +105,7 @@ readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
     int stat = OC_NOERR;
     long lastmod = -1;
 
-    if((flags & OCINMEMORY) != 0) {
+    if((flags & OCONDISK) == 0) {
         ocurisetconstraints(state->uri,tree->constraint);
         stat = readpacket(state->curl,state->uri,state->packet,OCDATADDS,&lastmod);
         if(stat == OC_NOERR)

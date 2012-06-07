@@ -97,7 +97,7 @@ typedef int OCdxd;
 
 /* Define flags */
 typedef int OCflags;
-#define OCINMEMORY 1
+#define OCONDISK 1
 
 typedef enum OCmode {
 OCFIELDMODE = OC_Structure,
