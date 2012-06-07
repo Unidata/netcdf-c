@@ -259,18 +259,21 @@ fi
 # See if the user provided us with a curl library
 # Do an initial lib test for curl, but suppress the default action
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
+#AC_CHECK_LIB([curl.dll],[curl_easy_setopt])
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes ; then
-  if test $enable_dll = yes ; then
-    AC_MSG_NOTICE([libcurl not found; continuing])
-  elif test $found_curl = no ; then
+  #if test $enable_dll = yes ; then
+  #  AC_MSG_NOTICE([libcurl not found; continuing])
+  #elif test $found_curl = no ; then
+  if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
     enable_dap=no
     enable_cdmremote=no
     enable_rpc=no
   elif test $found_curl = yes ; then
     # Redo the check lib to actually add -lcurl
-    AC_CHECK_LIB([curl], [curl_easy_setopt])
+    #AC_CHECK_LIB([curl], [curl_easy_setopt])
+    AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [], [])
   fi
 fi
 
