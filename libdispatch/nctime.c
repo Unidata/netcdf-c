@@ -327,7 +327,6 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	} else {
 	    nconv = sscanf(relunits,"%s since %[^T]T%s",charunits,basetime_1,basetime_2);
 	}
-
 					     /* Get the units */
 	cdTrim(charunits,CD_MAX_RELUNITS);
 	if(!strncmp(charunits,"sec",3) || !strcmp(charunits,"s")){
