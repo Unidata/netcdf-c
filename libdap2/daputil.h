@@ -71,8 +71,11 @@ extern size_t dimproduct3(NClist* dimensions);
 #else
 #  define NCC_EXTRA __declspec(dllimport)
 # endif
-#endif
 NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
+#else
+extern int nc__testurl(const char* parth, char** basename);
+#endif
+
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
 extern OCerror dap_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
