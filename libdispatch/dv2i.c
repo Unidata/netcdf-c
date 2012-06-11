@@ -44,7 +44,7 @@ int ncerr = NC_NOERR ;
 static size_t
 nvdims(int ncid, int varid)
 {
-   int ndims, status;
+   int ndims=1, status;
 
    if ((status = nc_inq_varndims(ncid, varid, &ndims)))
    {
