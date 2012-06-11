@@ -34,7 +34,7 @@ rm -f $FILE1
 ./tst_diskless persist
 if test -f $FILE1 ; then
 echo "**** $FILE1 created"
-../ncdump/ncdump $FILE1
+# ../ncdump/ncdump $FILE1
 echo "PASS: diskless netCDF classic file with persistence"
 else
 echo "#### $FILE1 not created"
@@ -48,7 +48,7 @@ rm -f $FILE1
 ./tst_diskless netcdf4 persist
 if test -f $FILE1 ; then
 echo "**** $FILE1 created"
-../ncdump/ncdump $FILE1
+# ../ncdump/ncdump $FILE1
 echo "PASS: diskless netCDF enhanced file with persistence"
 else
 echo "$FILE1 not created"
