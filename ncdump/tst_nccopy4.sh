@@ -22,7 +22,7 @@ for i in $TESTFILES ; do
     diff copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
-echo "*** Create deflatable files for testing ..."
+# echo "*** Testing compression of deflatable files ..."
 ./tst_compress
 echo "*** Test nccopy -d1 can compress a classic format file ..."
 ./nccopy -d1 tst_inflated.nc tst_deflated.nc
