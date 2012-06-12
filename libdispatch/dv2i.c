@@ -37,6 +37,8 @@ int ncerr = NC_NOERR ;
  * We do have to copy the arguments to switch from 'long'
  * to 'size_t' or 'ptrdiff_t'. In my tests on an SGI,
  * any additional cost was lost in measurement variation.
+ *
+ * This stanza is true on Windows with MinGW-64
  */
 
 # include "onstack.h"
@@ -44,7 +46,7 @@ int ncerr = NC_NOERR ;
 static size_t
 nvdims(int ncid, int varid)
 {
-   int ndims=1, status;
+   int ndims=-1, status;
 
    if ((status = nc_inq_varndims(ncid, varid, &ndims)))
    {
