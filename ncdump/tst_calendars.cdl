@@ -86,6 +86,13 @@ variables:
        t3:time5 = 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120 ;
     double t3_bnds(t3, bnds) ;  // no attributes, since a cell bounds variable
 
+// test -t bug fix, time unit without base time should not interpret numeric atts as times
+    int t4 ;
+       t4:units = "days" ;
+       t4:att1 = 1 ;
+       t4:att2 = 5, 6 ;
+       t4:att3 = 7.125f, 8.75f ;
+
 data:
    // Should all represent 2009-01-01 00:00:00
 	t1_days = 185900;

@@ -108,6 +108,55 @@ is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
     return false;
 } 
 
+/* Test if attribute is of form required by cdtime: 
+ *     <time_unit> since <base_time>
+ * where
+ *     <time_unit>: 
+ */
+boolean
+is_valid_time_unit(const char *units) {
+	char charunits[CD_MAX_RELUNITS];
+	char basetime_1[CD_MAX_CHARTIME];
+	char basetime_2[CD_MAX_CHARTIME];
+	int nconv1, nconv2;
+	boolean okunit = false;
+
+	/* Allow ISO-8601 "T" date-time separator as well as blank separator */
+	nconv1 = sscanf(units,"%s since %[^T]T%s", charunits, basetime_1, basetime_2);
+	nconv2 = sscanf(units,"%s since %s %s", charunits, basetime_1, basetime_2);
+	if (!(nconv1 > 1 || nconv2 > 1))
+	    return false;
+	/* Check for unit compatible with cdtime library, no attempt
+	 * to enforce CF-compliance or udunits compliance here ... */
+	if(!strncmp(charunits,"sec",3) || !strcmp(charunits,"s")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"min",3) || !strcmp(charunits,"mn")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"hour",4) || !strcmp(charunits,"hr")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"day",3) || !strcmp(charunits,"dy")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"week",4) || !strcmp(charunits,"wk")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"month",5) || !strcmp(charunits,"mo")){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"season",6)){
+	    okunit = true;
+	}
+	else if(!strncmp(charunits,"year",4) || !strcmp(charunits,"yr")){
+	    okunit = true;
+	}
+	if (!okunit)
+	    return false;
+	return true;
+}
+
 /* Return true only if this is a "bounds" attribute */
 boolean
 is_bounds_att(ncatt_t *attp) {
@@ -158,6 +207,10 @@ get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
 	units = emalloc(uatt.len + 1);
 	NC_CHECK(nc_get_att(ncid, varid, "units", units));
 	units[uatt.len] = '\0';
+	if(!is_valid_time_unit(units)) {
+	    free(units);
+	    return;
+	}
 	/* check for calendar attribute (not required even for time vars) */
 	vp->timeinfo = (timeinfo_t *)emalloc(sizeof(timeinfo_t));
 	memset((void*)vp->timeinfo,0,sizeof(timeinfo_t));
