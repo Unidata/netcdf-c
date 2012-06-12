@@ -72,9 +72,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
-   printf("**** printing table of default chunksizes...");
-#endif
+   printf("**** testing default chunksizes...");
    {
       int nvars, ndims, ngatts, unlimdimid;
       int contig;

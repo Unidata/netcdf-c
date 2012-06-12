@@ -71,8 +71,6 @@ if BUILD_TESTSETS
 TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR)
 endif
 
-WIN32=win32
-
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it. 
@@ -80,7 +78,7 @@ SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
 $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBRPC) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
-man4 $(EXAMPLES) $(WIN32)
+man4 $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
