@@ -3,7 +3,7 @@
 # Test if the nciter code is working [NCF-154]
 
 set -e
-
+echo ""
 echo "*** Running ncdump nc_iter test."
 
 if test "x$CC" = "x" ; then CC="gcc"; fi
@@ -12,7 +12,7 @@ CLEANUP="iter.*"
 
 rm -f $CLEANUP
 
-echo "create iter.cdl"
+# echo "create iter.cdl"
 cat > iter.cdl <<EOF
 netcdf iter {
 dimensions:
@@ -39,7 +39,7 @@ EOF
 $CC ./iter.c -o iter.exe
 ./iter.exe >>iter.cdl
 
-echo "*** create iter.nc "
+# echo "*** create iter.nc "
 ../ncgen/ncgen -k1 -o iter.nc ./iter.cdl
 echo "*** dumping iter.nc to iter.dmp"
 ./ncdump iter.nc > iter.dmp
@@ -53,5 +53,4 @@ diff -b -w ./iter.dmp ./iter.cdl
 # cleanup
 rm -f $CLEANUP
 
-echo "*** PASS: ncdump iter tests"
 exit 0

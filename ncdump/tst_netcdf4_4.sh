@@ -30,6 +30,5 @@ echo '*** testing reference file ref_tst_compounds4.nc...'
 ./ncdump ref_tst_compounds4.nc > tst_compounds4.cdl
 diff -b tst_compounds4.cdl $srcdir/ref_tst_compounds4.cdl
 
-echo
 echo "*** All ncgen and ncdump extra test output for netCDF-4 format passed!"
 exit 0

@@ -13,6 +13,5 @@ echo "*** creating tmp_subset.cdl from tmp_all.nc with ncdump -g ..."
 echo "*** comparing tmp_subset.cdl with ref_tst_grp_spec.cdl..."
 diff -b tmp_subset.cdl $srcdir/ref_tst_grp_spec.cdl
 
-echo
 echo "*** All ncdump test output for -g option passed!"
 exit 0

@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2.1-beta], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -847,28 +847,20 @@ AC_CONFIG_FILES([Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
-                 win32/Makefile
-                 win32/NET/Makefile
-                 win32/NET/libsrc/Makefile
-                 win32/NET/ncdump/Makefile
-                 win32/NET/ncgen/Makefile
-                 win32/NET/examples/Makefile
-                 win32/NET/nctest/Makefile
-                 win32/NET/nc_test/Makefile
-                  oc/Makefile
-                  libdap2/Makefile
-                  libcdmr/Makefile
-                  librpc/Makefile
-                  libdispatch/Makefile
-                  liblib/Makefile
-                  ncdump/cdl4/Makefile
-                  ncdump/expected4/Makefile
-                  ncdap_test/Makefile
-                  ncdap_test/testdata3/Makefile
-                  ncdap_test/expected3/Makefile
-                  ncdap_test/expected4/Makefile
-                  ncdap_test/expectremote3/Makefile
-                  ncdap_test/expectremote4/Makefile
-		  ],
-                  [test -f  nc-config && chmod 755 nc-config])
+                 oc/Makefile
+                 libdap2/Makefile
+                 libcdmr/Makefile
+                 librpc/Makefile
+                 libdispatch/Makefile
+                 liblib/Makefile
+                 ncdump/cdl4/Makefile
+                 ncdump/expected4/Makefile
+                 ncdap_test/Makefile
+                 ncdap_test/testdata3/Makefile
+                 ncdap_test/expected3/Makefile
+                 ncdap_test/expected4/Makefile
+                 ncdap_test/expectremote3/Makefile
+                 ncdap_test/expectremote4/Makefile
+		 ],
+                 [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()

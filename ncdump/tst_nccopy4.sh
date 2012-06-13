@@ -14,15 +14,15 @@ TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
 
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
-    echo "*** copy $i.nc to $i_copy.nc ..."
-    ./nccopy "$i.nc" "$i_copy.nc"
-    ./ncdump -n "$i_copy" "$i.nc" > tmp.cdl
-    ./ncdump "$i_copy.nc" > "$i_copy.cdl"
-    echo "*** compare " with "$i_copy.cdl"
-    diff "$i_copy.cdl" tmp.cdl
-    rm "$i_copy.nc" "$i_copy.cdl" tmp.cdl
+    echo "*** Test nccopy $i.nc copy_of_$i.nc ..."
+    ./nccopy $i.nc copy_of_$i.nc
+    ./ncdump -n copy_of_$i $i.nc > tmp.cdl
+    ./ncdump copy_of_$i.nc > copy_of_$i.cdl
+#    echo "*** compare " with copy_of_$i.cdl
+    diff copy_of_$i.cdl tmp.cdl
+    rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
-echo "*** Create deflatable files for testing ..."
+# echo "*** Testing compression of deflatable files ..."
 ./tst_compress
 echo "*** Test nccopy -d1 can compress a classic format file ..."
 ./nccopy -d1 tst_inflated.nc tst_deflated.nc
@@ -48,15 +48,14 @@ rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp.nc
 
 echo "*** Testing nccopy -d1 -s on ncdump/*.nc files"
 for i in $TESTFILES ; do
-    echo "*** nccopy -d1 -s $i.nc $i_copy.nc ..."
-    ./nccopy -d1 -s "$i.nc" "$i_copy.nc"
-    ./ncdump -n "$i_copy" "$i.nc" > tmp.cdl
-    ./ncdump "$i_copy.nc" > "$i_copy.cdl"
-    echo "*** compare " with "$i_copy.cdl"
-    diff "$i_copy.cdl" tmp.cdl
-    rm "$i_copy.nc" "$i_copy.cdl" tmp.cdl
+    echo "*** Test nccopy -d1 -s $i.nc copy_of_$i.nc ..."
+    ./nccopy -d1 -s $i.nc copy_of_$i.nc
+    ./ncdump -n copy_of_$i $i.nc > tmp.cdl
+    ./ncdump copy_of_$i.nc > copy_of_$i.cdl
+#    echo "*** compare " with copy_of_$i.cdl
+    diff copy_of_$i.cdl tmp.cdl
+    rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done
-echo "*** Create chunkable file for testing ..."
 ./tst_chunking
 echo "*** Test that nccopy -c can chunk and unchunk files"
 ./nccopy tst_chunking.nc tmp.nc
@@ -70,6 +69,5 @@ diff tmp.cdl tmp-unchunked.cdl
 # echo "*** Test that nccopy compression with chunking can improve compression"
 rm tst_chunking.nc tmp.nc tmp.cdl tmp-chunked.nc tmp-chunked.cdl tmp-unchunked.nc tmp-unchunked.cdl
 
-echo
 echo "*** All nccopy tests passed!"
 exit 0
