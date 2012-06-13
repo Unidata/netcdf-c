@@ -147,6 +147,12 @@ IGNORE="test.07.2"
 # Known to fail
 
 XFAILTESTS3=""
+# For now, remove some tests from windows platform.
+if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then
+    XFAILTESTS3="$XFAILTESTS3 test.67 test.06.1 test.06"
+fi
+
+
 XFAILTESTS4="$XFAILTESTS3"
 
 # Server is down at the moment

@@ -114,7 +114,10 @@ name_path(const char *path)
     /* See if this is a url */
     {
 	char* base;
+
         extern int nc__testurl(const char*,char**);
+
+
  	if(nc__testurl(path,&base)) {
  	    return base; /* Looks like a url */
 	}
@@ -2321,6 +2324,10 @@ main(int argc, char *argv[])
     int nameopt = 0;
     boolean xml_out = false;    /* if true, output NcML instead of CDL */
     boolean kind_out = false;	/* if true, just output kind of netCDF file */
+
+#if defined(WIN32) || defined(msdos) || defined(WIN64)
+    putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
+#endif
 
 #ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");     /* CDL may be ambiguous with other locales */
