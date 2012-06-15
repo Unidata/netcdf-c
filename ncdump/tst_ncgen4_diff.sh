@@ -33,12 +33,13 @@ for x in ${TESTSET} ; do
   rm -f ${x}.nc ${x}.dmp
   ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
   # dump .nc file
-  ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp
+  # if windows, we need to remove any leading 0's in exponents.
+  ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc | sed 's/e+0/e+/g' > ${x}.dmp
   # compare the expected (silently if XFAIL)
   if test "x$isxfail" = "x1" -a "x$SHOWXFAILS" = "x" ; then
-    if diff -bw ${expected}/${x}.dmp ${x}.dmp >/dev/null 2>&1; then ok=1; else ok=0; fi
+    if diff -b -bw ${expected}/${x}.dmp ${x}.dmp >/dev/null 2>&1; then ok=1; else ok=0; fi
   else
-    if diff -w ${expected}/${x}.dmp ${x}.dmp ; then ok=1; else ok=0; fi
+    if diff -b -w ${expected}/${x}.dmp ${x}.dmp ; then ok=1; else ok=0; fi
   fi
   if test "x$ok" = "x1" ; then
     test $verbose = 1 && echo "*** SUCCEED: ${x}"

@@ -21,6 +21,7 @@ has_hdf5="@HAS_HDF5@"
 has_szlib="@HAS_SZLIB@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 
+has_f90="no"
 if type -p nf-config > /dev/null 2>&1; then
   fc=`nf-config --fc`
   fflags=`nf-config --fflags`
@@ -28,11 +29,19 @@ if type -p nf-config > /dev/null 2>&1; then
   has_f90=`nf-config --has-f90`
 fi
 
-if type -p ncxx-config > /dev/null 2>&1; then
+has_cxx="no"
+has_cxx4="no"
+if type -p ncxx4-config > /dev/null 2>&1; then
+  cxx4=`ncxx4-config --cxx`
+#  cxxflags=`ncxx4-config --cxxflags`
+#  cxxlibs=`ncxx4-config --cxxlibs`
+  has_cxx4="yes"
+elif type -p ncxx-config > /dev/null 2>&1; then
   cxx=`ncxx-config --cxx`
-  has_cxx=`ncxx-config --has_cxx`
+#  cxxflags=`ncxx-config --cxxflags`
+#  cxxlibs=`ncxx-config --cxxlibs`
+  has_cxx="yes"
 fi
-
 
 usage()
 {
@@ -58,10 +67,18 @@ Available values for OPTION include:
   --version     Library version
 
 EOF
-if type -p ncxx-config > /dev/null 2>&1; then
+# When supported by ncxx4-config and ncxx-config, add
+#  --cxxflags    flags needed to compile a netCDF-4 C++ program
+#  --cxxlibs     libraries needed to link a netCDF-4 C++ program
+if type -p ncxx4-config > /dev/null 2>&1; then
+    cat <<EOF
+  --cxx4         C++ compiler for netCDF-4 C++ library
+  --has-c++4     whether netCDF-4 C++ API is installed
+EOF
+elif type -p ncxx-config > /dev/null 2>&1; then
     cat <<EOF
   --cxx         C++ compiler
-  --has-c++     whether C++ API is enabled in this build
+  --has-c++     whether C++ API is installed
 
 EOF
 fi
@@ -70,7 +87,7 @@ if type -p nf-config > /dev/null 2>&1; then
   --fc          Fortran compiler
   --fflags      flags needed to compile a Fortran program
   --flibs       libraries needed to link a Fortran program
-  --has-f90     whether Fortran 90 API is enabled in this build
+  --has-f90     whether Fortran 90 API is installed
 
 EOF
 fi
@@ -86,8 +103,12 @@ all()
         echo "  --cflags    -> $cflags"
         echo "  --libs      -> $libs"
         echo
-        echo "  --cxx       -> $cxx"
         echo "  --has-c++   -> $has_cxx"
+        echo "  --cxx       -> $cxx"
+#	echo "  --cxxflags  -> $cxxflags"
+#	echo "  --cxxlibs   -> $cxxlibs"
+        echo "  --has-c++4  -> $has_cxx4"
+        echo "  --cxx4      -> $cxx4"
         echo
         echo "  --fc        -> $fc"
         echo "  --fflags    -> $fflags"
@@ -183,13 +204,29 @@ while test $# -gt 0; do
 	echo $version
 	;;
 
+    --has-c++)
+       	echo $has_cxx
+       	;;
+
     --cxx)
 	echo $cxx
 	;;
 
-    --has-c++)
-       	echo $has_cxx
+    --has-c++4)
+       	echo $has_cxx4
        	;;
+
+    --cxx4)
+	echo $cxx4
+	;;
+
+#    --cxxflags)
+#	echo $cxxflags
+#	;;
+#
+#    --cxxlibs)
+#	echo $cxxlibs
+#	;;
 
     --fc)
 	echo $fc

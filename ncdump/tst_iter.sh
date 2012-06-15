@@ -48,7 +48,7 @@ mv iter.dmp iter.tmp
 sed -e 's/\([0-9][,]\) /\1@/g' <iter.tmp |tr '@' '\n' |sed -e '/^$/d' >./iter.dmp
 
 echo "*** comparing iter.dmp with iter.cdl..."
-diff -w ./iter.dmp ./iter.cdl
+diff -b -w ./iter.dmp ./iter.cdl
 
 # cleanup
 rm -f $CLEANUP

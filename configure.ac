@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2.1-beta], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2.1-beta1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -259,18 +259,22 @@ fi
 # See if the user provided us with a curl library
 # Do an initial lib test for curl, but suppress the default action
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
+#AC_CHECK_LIB([curl.dll],[curl_easy_setopt])
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes ; then
-  if test $enable_dll = yes ; then
-    AC_MSG_NOTICE([libcurl not found; continuing])
-  elif test $found_curl = no ; then
+  # Removed. Why assume no curl if we are building DLL?
+  #if test $enable_dll = yes ; then
+  #  AC_MSG_NOTICE([libcurl not found; continuing])
+  #elif test $found_curl = no ; then
+  if test $found_curl = no ; then
     AC_MSG_NOTICE([libcurl not found; disabling remote protocol(s) support])
     enable_dap=no
     enable_cdmremote=no
     enable_rpc=no
   elif test $found_curl = yes ; then
     # Redo the check lib to actually add -lcurl
-    AC_CHECK_LIB([curl], [curl_easy_setopt])
+    #AC_CHECK_LIB([curl], [curl_easy_setopt])
+    AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [], [])
   fi
 fi
 
@@ -634,7 +638,7 @@ AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(size_t)
 
 if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
-   AC_SEARCH_LIBS([deflate], [zlib1 z], [], [
+   AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
