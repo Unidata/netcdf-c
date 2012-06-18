@@ -8,40 +8,44 @@ VERSION         COMMENTS
 -------         --------
 4.2.1-rc1       Released 2012-06-18
 
-                Ported the source distribution to successfully build
-                32- and 64-bit DLLs from source with DAP remote access
-                enabled on Windows using the MinGW/MSYS
-                environment. The resulting DLLs may be used with
-                Visual Studio.  
+		Ported static and shared libraries (DLL's) for both
+		32- and 64-bit Windows, including support for DAP
+		remote access, with netCDF-3 and netCDF-4/HDF5 support
+		enabled.  The environment for this build is
+		MSYS/MinGW/MinGW64, but the resulting DLLs may be used
+		with Visual Studio.
                 [NCF-112][NCF-54][NCF-57][NCF-65]
 
                 Implemented diskless files for all netCDF formats. For
-                netcdf classic files, diskless files also support
-                in-memory caching of disk files.  For nc_create(),
-                diskless operation performs all operations in memory
-                and then optionally persists the results to a file on
-                close.  For nc_open(), diskless operation caches the
-                file in-memory, performs all operations on the memory
-                resident version and then writes all changes back to
-                the original file on close.  
+                nc_create(), diskless operation performs all
+                operations in memory and then optionally persists the
+                results to a file on close.  For nc_open(), but only
+                for netcdf classic files, diskless operation caches
+                the file in-memory, performs all operations on the
+                memory resident version and then writes all changes
+                back to the original file on close.
                 [NCF-110][NCF-109][NCF-5]
+
+                Added MMAP support. If diskless file support is
+		enabled, then it is possible to enable implementation
+		of diskless files using the operating system's MMAP
+		facility (if available). The enabling flag is
+		"--enable-mmap". This is most useful when using
+		nc_open() and when only parts of files, a single
+		variable say, need to be read.
+
+                Added configure flag for --disable-diskless.
 
                 Added nccopy command-line options to exploit diskless
                 files, resulting in large speedups for some
                 operations, for example converting unlimited dimension
                 to fixed size or rechunking files for faster access.
-
-                Added MMAP support.
-
-                Added configure flag for --disable-diskless.
-
                 Upgraded doxygen and man-page documentation for ncdump
                 and nccopy utilities, including new -w option for
-                diskless nccopy, with an example.
-                [NCF-26]
+                diskless nccopy, with an example.  
 
                 Fixed some netCDF-4 bugs with handling strings in
-                non-netCDF-4 HDF5 files.  
+                non-netCDF-4 HDF5 files.
                 [NCF-150]
 
                 Fixed bug using nccopy to compress with shuffling that
@@ -54,7 +58,7 @@ VERSION         COMMENTS
                 bytes per record.  
                 [NCF-164]
  
-                Fix bug in which passing a NULL path causes netcdf to fail.
+                Fix bug in which passing a NULL path to nc_open causes failure.
                 [NCF-173]
 
                 Fixed ncgen bugs in parsing and handling opaque data.
@@ -101,12 +105,9 @@ VERSION         COMMENTS
                 preserve line breaks in code and scripts.
                 [NCF-174]
 
-                Fixed some problems uncovered by building with
-                MinGW/MSYS, including temp file creation problems.
-
-                Cleaned up up a bunch of lint issues (unused
-                variables, etc) and some similar problems reported by
-                clang static analysis.
+                Cleaned up a bunch of lint issues (unused variables,
+                etc.) and some similar problems reported by clang
+                static analysis.
 
                 Updated and fixed pkg-config source file netcdf.pc.in
                 to work with separated netCDF language-specific

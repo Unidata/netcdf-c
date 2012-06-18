@@ -587,7 +587,7 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 AC_MSG_CHECKING([whether in-memory files are enabled])
 AC_ARG_ENABLE([diskless],
               [AS_HELP_STRING([--disable-diskless],
-                              [use in-memory (NC_DISKLESS) files])])
+                              [disable support for in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
