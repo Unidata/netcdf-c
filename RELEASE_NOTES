@@ -44,6 +44,11 @@ VERSION         COMMENTS
                 and nccopy utilities, including new -w option for
                 diskless nccopy, with an example.  
 
+		Modified Makefile to allow for concurrent builds and
+		to support builds outside the source tree, e.g. 
+  		'mkdir build; cd build; SOURCE-DIR/configure' where
+		SOURCE-DIR is the top-level source directory.
+
                 Fixed some netCDF-4 bugs with handling strings in
                 non-netCDF-4 HDF5 files.
                 [NCF-150]
