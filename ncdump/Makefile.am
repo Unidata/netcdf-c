@@ -69,10 +69,10 @@ ctest64.c:
 	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
 else
 ctest.c:
-	cp ref_ctest.c ctest.c
+	cp $(top_srcdir)/ncdump/ref_ctest.c $(top_srcdir)/ncdump/ctest.c
 
 ctest64.c:
-	cp ref_ctest64.c ctest64.c
+	cp $(top_srcdir)/ncdump/ref_ctest64.c $(top_srcdir)/ncdump/ctest64.c
 endif
 
 #if !BUILD_DLL
