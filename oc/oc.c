@@ -13,6 +13,7 @@
 #include "ocdump.h"
 #include "oclog.h"
 #include "occlientparams.h"
+#include "ochttp.h"
 
 #undef TRACK
 
@@ -704,7 +705,7 @@ size_t oc_typesize(OCtype etype)
     return octypesize(etype);
 }
 
-char*
+const char*
 oc_typetostring(OCtype octype)
 {
     return octypetoddsstring(octype);
@@ -722,7 +723,7 @@ oc_typeprint(OCtype etype, char* buf, size_t bufsize, void* value)
 /**************************************************/
 /* Miscellaneous */
 
-char*
+const char*
 oc_errstring(int err)
 {
     return ocerrstring(err);
@@ -947,3 +948,10 @@ oc_dumpnode(OCconnection conn, OCobject root0)
     ocdumpnode(root);
     return ocerr;
 }
+
+OCerror
+oc_ping(const char* url)
+{
+    return ocping(url);
+}
+    

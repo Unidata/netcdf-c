@@ -17,14 +17,16 @@ static int tohex(int c);
 
 /****************************************************/
 
+#if 0 /* Following definitions are for informational purposes */
 /* Set of all ascii printable characters */
 static char ascii[] = " !\"#$%&'()*+,-./:;<=>?@[]\\^_`|{}~";
 
-static char* ddsworddelims =
-  "{}[]:;=,";
-
 /* Define the set of legal nonalphanum characters as specified in the DAP2 spec. */
 static char* daplegal ="_!~*'-\"";
+#endif
+
+static char* ddsworddelims =
+  "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
 static char* ddswordchars1 =

@@ -69,10 +69,6 @@ typedef struct OCnode {
 	ocoffset_t offset; /* position of the last indexed instance */	
     } cache;
 #endif
-#ifdef OC_DAP4
-    OCtypeinfo      typdef;
-    OCgroupinfo     group;
-#endif
 } OCnode;
 
 #if SIZEOF_SIZE_T == 4

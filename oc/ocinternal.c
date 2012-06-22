@@ -22,13 +22,10 @@
 #include "ocread.h"
 
 /* Note: TMPPATH must end in '/' */
-#ifdef __WIN32__
+#ifdef __CYGWIN__
 #define TMPPATH1 "/cygdrive/c/temp/"
-#define TMPPATH2 "c:/"
-#elif defined(WIN32)
-#define TMPPATH1 "c:\\temp/"
-#define TMPPATH2 ".\\"
-#elif defined(WIN32)
+#define TMPPATH2 "./"
+#elifdef WIN32
 #define TMPPATH1 "c:\\temp/"
 #define TMPPATH2 ".\\"
 #else
@@ -486,7 +483,6 @@ createtempfile1(char* tmppath, char** tmpnamep)
         strcat(tmpname,spid);
 #  ifdef WIN32
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
-	//fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif
