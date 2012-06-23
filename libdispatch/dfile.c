@@ -219,7 +219,9 @@ to many extensions to the in-memory space for the file.
 
 Normally, NC_DISKLESS allocates space in the heap for storing
 the in-memory file. If, however, the ./configure flags --enable-mmap
-is used, then mmap will be used.
+is used, and the additional mode flag NC_MMAP
+is specified, then the file will be created using the operating system
+MMAP facility.
 
 Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
@@ -307,7 +309,7 @@ diskless.nc whose content will be lost when nc_close() is called.
      int status = NC_NOERR;
      int ncid;
         ...
-     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS, &ncid);
+     status = nc_create("diskless.nc", NC_DISKLESS, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
@@ -321,7 +323,7 @@ in a file named diskless.nc when nc_close() is called.
      int status = NC_NOERR;
      int ncid;
         ...
-     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS|NC_WRITE, &ncid);
+     status = nc_create("diskless.nc", NC_DISKLESS|NC_WRITE, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
@@ -457,8 +459,9 @@ access, programs that do not access data sequentially may see some
 performance improvement by setting the NC_SHARE flag.
 
 This procedure may also be invoked with the NC_DISKLESS flag
-set in the mode argument, but ONLY if the file type is NOT NC_NETCDF4,
-which means it must be a classic format file.
+set in the mode argument if the file to be opened
+is a classic format file. If the file is of type NC_NETCDF4,
+then the NC_DISKLESS flag will be ignored.
 If NC_DISKLESS is specified, then the whole file is read completely into
 memory. In effect this creates an in-memory cache of the file.
 If the mode flag also specifies NC_WRITE, then the in-memory cache

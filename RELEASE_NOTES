@@ -6,6 +6,11 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION         COMMENTS
 -------         --------
+4.2.1           Released 2012-??-??
+
+		Added a Nspecific NC_MMAP mode flag to modify
+                behavior of NC_DISKLESS.
+
 4.2.1-rc1       Released 2012-06-18
 
 		Ported static and shared libraries (DLL's) for both

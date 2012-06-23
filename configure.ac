@@ -594,11 +594,11 @@ AC_MSG_RESULT($enable_diskless)
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
 
-# Does the user want to use the mmap for NC_DISKLESS?
-AC_MSG_CHECKING([whether mmap will be used for in-memory files])
+# Does the user want to allow use of mmap for NC_DISKLESS?
+AC_MSG_CHECKING([whether mmap is enabled for in-memory files])
 AC_ARG_ENABLE([mmap],
               [AS_HELP_STRING([--enable-mmap],
-                              [use mmap for in-memory (NC_DISKLESS) files])])
+                              [allow mmap for in-memory files])])
 test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 

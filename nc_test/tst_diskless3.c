@@ -34,13 +34,15 @@
 #define TITLE " OUTPUT FROM WRF V2.0.3.1 MODEL"
 #define ATT_NAME2 "TITLE"
 
-/* Global */
-int diskless = 0;
-
 #undef ERR
 #define ERR report(status,__LINE__)
 
 static int status = NC_NOERR;
+
+/* Control flags  */
+static int persist, usenetcdf4, mmap, diskless;
+
+static int diskmode;
 
 void report(int stat, int lno)
 {
@@ -91,7 +93,7 @@ test_two_growing_with_att(const char *testfile)
       if((status=nc_close(ncid))) ERR;
       
       /* Reopen the file and check it. */
-      if((status=nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid))) ERR;
+      if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERR;
       if((status=nc_inq_dimlen(ncid, 0, &len_in))) ERR;
       if (len_in != r + 1) ERR;
       index[0] = r;
@@ -131,7 +133,7 @@ test_one_with_att(const char *testfile)
    if((status=nc_close(ncid))) ERR;
    
    /* Reopen the file and check it. */
-   if((status=nc_open(testfile, NC_DISKLESS|NC_WRITE, &ncid))) ERR;
+   if((status=nc_open(testfile, diskmode|NC_WRITE, &ncid))) ERR;
    if((status=nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid))) ERR;
    if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
    if((status=nc_get_var_text(ncid, varid, &data_in))) ERR;
@@ -146,10 +148,31 @@ test_one_with_att(const char *testfile)
 int
 main(int argc, char **argv)
 {
-    diskless = (argc > 1);
+    int i;
 
-    printf("\n*** Testing diskless file: create/modify %s: %s\n",
-	diskless?"in-memory":"in-file",NCFILENAME);
+    /* Set defaults */
+    persist = 0;
+    usenetcdf4 = 0;
+    mmap = 0;
+    diskless = 0;
+    diskmode = 0;
+
+    for(i=1;i<argc;i++) {
+	if(strcmp(argv[i],"diskless")==0) diskless=1;
+	else if(strcmp(argv[i],"mmap")==0) mmap=1;
+	/* ignore anything not recognized */
+    }
+
+    if(diskless)
+        diskmode |= NC_DISKLESS;
+    if(diskless && mmap)
+        diskmode |= NC_MMAP;
+
+    printf("\n*** Testing diskless file: create/modify %s",
+	    diskless?"in-memory":"in-file");
+    if(diskless && mmap)
+        printf("+mmap");
+    printf(" %s\n",NCFILENAME);
 
     /* case NC_FORMAT_CLASSIC: only test this format */
     nc_set_default_format(NC_FORMAT_CLASSIC, NULL);
