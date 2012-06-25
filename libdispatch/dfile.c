@@ -498,7 +498,7 @@ for just NC_DISKLESS. The one case where using MMAP is an
 advantage is when a file is to be opened and only a small portion
 of its data is to be read and/or written.
 In this scenario, MMAP will cause only the accessed data to be
-retrieved fromn disk. Without MMAP, NC_DISKLESS will read the whole
+retrieved from disk. Without MMAP, NC_DISKLESS will read the whole
 file into memory on nc_open. Thus, MMAP will provide some performance
 improvement in this case.
 
