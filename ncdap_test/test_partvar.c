@@ -6,6 +6,7 @@ Test part variable fetch code
 #include <stdio.h>
 #include <string.h>
 #include <netcdf.h>
+#include <ncdispatch.h>
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf ingrid {
@@ -20,7 +21,7 @@ variables:
 */
 
 #define PARAMS ""
-#define URL "http://motherlode.ucar.edu:8081/dts/ingrid"
+#define DTSTEST "/dts/ingrid"
 #define VAR "v3H"
 #define ISTA 35
 #define IZ 44
@@ -93,9 +94,17 @@ main()
     size_t count[RANK];
     size_t offset;
     char url[4096];
+    const char* svc = NULL;
 
+    /* Find Test Server */
+    svc = NC_findtestserver("dts");
+    if(svc == NULL) {
+	fprintf(stderr,"Cannot locate test server\n");
+	exit(1);
+    }
     strcpy(url,PARAMS);
-    strcat(url,URL);
+    strcat(url,svc);
+    strcat(url,DTSTEST);
 
     printf("test_partvar: url=%s\n",url);
 

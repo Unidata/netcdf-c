@@ -682,3 +682,11 @@ getdefinename(CDFnode* node)
     }
     return spath;
 }
+
+int
+NCDAP_ping(const char* url)
+{
+    OCerror ocstat = OC_NOERR;
+    ocstat = oc_ping(url);
+    return ocerrtoncerr(ocstat);
+}

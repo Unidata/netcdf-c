@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2.1-beta], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2.1-rc1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -262,6 +262,7 @@ AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 #AC_CHECK_LIB([curl.dll],[curl_easy_setopt])
 # If curl is required but there is no curl, then complain
 if test $require_curl = yes ; then
+  # Removed. Why assume no curl if we are building DLL?
   #if test $enable_dll = yes ; then
   #  AC_MSG_NOTICE([libcurl not found; continuing])
   #elif test $found_curl = no ; then
@@ -586,18 +587,18 @@ AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
 AC_MSG_CHECKING([whether in-memory files are enabled])
 AC_ARG_ENABLE([diskless],
               [AS_HELP_STRING([--disable-diskless],
-                              [use in-memory (NC_DISKLESS) files])])
+                              [disable support for in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xno || enable_diskless=yes
 AC_MSG_RESULT($enable_diskless)
 
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
 
-# Does the user want to use the mmap for NC_DISKLESS?
-AC_MSG_CHECKING([whether mmap will be used for in-memory files])
+# Does the user want to allow use of mmap for NC_DISKLESS?
+AC_MSG_CHECKING([whether mmap is enabled for in-memory files])
 AC_ARG_ENABLE([mmap],
               [AS_HELP_STRING([--enable-mmap],
-                              [use mmap for in-memory (NC_DISKLESS) files])])
+                              [allow mmap for in-memory files])])
 test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 

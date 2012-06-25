@@ -6,6 +6,7 @@ Test part variable fetch code
 #include <stdio.h>
 #include <string.h>
 #include <netcdf.h>
+#include <ncdispatch.h>
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {
@@ -25,8 +26,9 @@ variables:
 	double PolarGrid.Data\\ Fields.Spectra(Bands\:PolarGrid, YDim\:PolarGrid, XDim\:PolarGrid) ;
 */
 
+#define DTSTEST "/dts/test.GridFile"
+
 #define PARAMS ""
-#define URL "http://motherlode.ucar.edu:8081/dts/test.GridFile"
 #define VAR "UTMGrid.Data Fields.Vegetation"
 #define YDim_UTMGrid 200
 #define XDim_UTMGrid 120
@@ -82,10 +84,18 @@ main()
     size_t start[RANK];
     size_t count[RANK];
     size_t offset;
+    const char* svc = NULL;
     char url[4096];
 
+    /* Find Test Server */
+    svc = NC_findtestserver("dts");
+    if(svc == NULL) {
+	fprintf(stderr,"Cannot locate test server\n");
+	exit(1);
+    }
     strcpy(url,PARAMS);
-    strcat(url,URL);
+    strcat(url,svc);
+    strcat(url,DTSTEST);
 
     printf("test_partvar: url=%s\n",url);
 

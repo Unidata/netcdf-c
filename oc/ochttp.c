@@ -32,7 +32,7 @@ ocfetchhttpcode(CURL* curl)
 }
 
 int
-ocfetchurl_file(CURL* curl, char* url, FILE* stream,
+ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 		unsigned long* sizep, long* filetime)
 {
 	int stat = OC_NOERR;
@@ -85,7 +85,7 @@ fail:
 }
 
 int
-ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
+ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
 {
 	int stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
@@ -107,7 +107,7 @@ ocfetchurl(CURL* curl, char* url, OCbytes* buf, long* filetime)
 		goto fail;
 
         /* One last thing; always try to get the last modified time */
-        cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
+	cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
 
 	cstat = curl_easy_perform(curl);
 	if(cstat == CURLE_PARTIAL_FILE) {
@@ -286,3 +286,53 @@ fail:
     oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return OCTHROW(OC_ECURL);
 }
+
+int
+ocping(const char* url)
+{
+    int stat = OC_NOERR;
+    CURLcode cstat = CURLE_OK;
+    CURL* curl = NULL;
+    OCbytes* buf = NULL;
+
+    /* Create a CURL instance */
+    stat = occurlopen(&curl);
+    if(stat != OC_NOERR) return stat;    
+
+    /* use a very short timeout: 10 seconds */
+    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* fail on HTTP 400 code errors */
+    cstat = curl_easy_setopt(curl, CURLOPT_FAILONERROR, (long)1);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* Try to get the file */
+    buf = ocbytesnew();
+    stat = ocfetchurl(curl,url,buf,NULL);
+    if(stat == OC_NOERR) {
+	/* Don't trust curl to return an error when request gets 404 */
+	long http_code = 0;
+	cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &http_code);
+        if (cstat != CURLE_OK)
+            goto done;
+	if(http_code >= 400) {
+	    cstat = CURLE_HTTP_RETURNED_ERROR;
+	    goto done;
+	}
+    } else
+        goto done;
+
+done:
+    ocbytesfree(buf);
+    occurlclose(curl);
+    if(cstat != CURLE_OK) {
+        oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        stat = OC_EDAPSVC;
+    }
+    return OCTHROW(stat);
+}
+
+

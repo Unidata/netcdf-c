@@ -4,7 +4,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define URL "http://motherlode.ucar.edu:8081/dts/test.06"
+#define DTSTEST "/dts/test.06"
 
 /* The DDS in netcdf classic form is as follows: 
 netcdf test {
@@ -78,7 +78,18 @@ main()
     int retval,i;
     size_t start[RANK];
     size_t count[RANK];
+    char URL[4096];
+    const char* svc = NULL:
     
+    /* Find Test Server *.
+    svc = NC_findtestserver("dts");
+    if(svc == NULL) {
+	fprintf(stderr,"Cannot locate test server\n");
+	exit(1);
+    }
+    strcpy(URL,svc);
+    strcat(URL,DTSTEST);
+
     memset((void*)target,0,sizeof(target));
 
     if((retval = nc_open(URL, NC_NOWRITE, &ncid)))

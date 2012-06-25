@@ -100,11 +100,11 @@ typedef int OCflags;
 #define OCONDISK 1
 
 typedef enum OCmode {
-OCFIELDMODE = OC_Structure,
-OCSEQUENCEMODE = OC_Sequence,
-OCARRAYMODE = OC_Dimension,
-OCPRIMITIVEMODE = OC_Primitive,
-OCNULLMODE = OC_NAT,
+OCNULLMODE = 0,
+OCFIELDMODE = 1,
+OCSEQUENCEMODE = 2,
+OCARRAYMODE = 3,
+OCPRIMITIVEMODE = 4,
 OCEMPTYMODE = 0x8000000 /* internal use only */
 } OCmode;
 
@@ -364,7 +364,7 @@ extern size_t oc_typesize(OCtype);
 /* Return a canonical printable string describing a given type:
    e.g. Byte, Int16, etc.
 */
-extern char* oc_typetostring(OCtype);
+extern const char* oc_typetostring(OCtype);
 
 /* Given a value of a primitive OC type, provide a canonical
    string representing that value
@@ -387,7 +387,7 @@ extern void oc_log(int tag, const char* fmt, ...);
 /* Miscellaneous */
 
 /* Convert an OCerror to a human readable string */
-extern char* oc_errstring(int err);
+extern const char* oc_errstring(int err);
 
 /* Get client parameters from the URL
    DO NOT free the result
@@ -429,6 +429,8 @@ extern OCerror oc_update_lastmodified_data(OClink);
 
 /* Get last known modification time; -1 => data unknown */
 extern long oc_get_lastmodified_data(OClink);
+
+extern OCerror oc_ping(const char* url);
 
 /**************************************************/
 

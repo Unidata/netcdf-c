@@ -367,6 +367,11 @@ extern int NCDAP_urlparse(const char* s, void** dapurl);
 extern void NCDAP_urlfree(void* dapurl);
 extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 
+/* Test for specific set of servers */
+extern const char* NC_findtestserver(const char*);
+/* Ping a specific server */
+extern int NCDAP_ping(const char*);
+
 /* Misc */
 
 extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
