@@ -26,7 +26,7 @@ utils.h utils.c dimmap.h dimmap.c
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
-if !BUILD_DLL
+#if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
@@ -57,7 +57,7 @@ endif # EXTRA_TESTS
 tst_h_rdc0_CPPFLAGS = -I${top_srcdir}/nc_test ${AM_CPPFLAGS}
 
 endif #!USE_NETCDF4
-endif #!BUILD_DLL
+#endif #!BUILD_DLL
 
 # Can't run ncgen to generate ctest.c and ctest64.c on cross-compiles.
 BUILT_SOURCES = ctest.c ctest64.c
@@ -69,18 +69,18 @@ ctest64.c:
 	$(top_builddir)/ncgen/ncgen -v2 -lc -o ctest0_64.nc $(top_srcdir)/ncgen/c0.cdl > $(srcdir)/ctest64.c
 else
 ctest.c:
-	cp ref_ctest.c ctest.c
+	cp $(top_srcdir)/ncdump/ref_ctest.c $(top_srcdir)/ncdump/ctest.c
 
 ctest64.c:
-	cp ref_ctest64.c ctest64.c
+	cp $(top_srcdir)/ncdump/ref_ctest64.c $(top_srcdir)/ncdump/ctest64.c
 endif
 
-if !BUILD_DLL
+#if !BUILD_DLL
 TESTS += tst_ncgen4_classic.sh
 if USE_NETCDF4
 TESTS += tst_ncgen4.sh
 endif
-endif
+#endif
 
 endif BUILD_TESTSETS
 

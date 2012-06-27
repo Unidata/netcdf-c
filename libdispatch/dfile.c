@@ -161,7 +161,8 @@ available: NC_NOCLOBBER (do not overwrite existing file), NC_SHARE
 (limit write caching - netcdf classic files onlt), NC_64BIT_OFFSET
 (create 64-bit offset file), NC_NETCDF4 (create netCDF-4/HDF5 file),
 NC_CLASSIC_MODEL (enforce netCDF classic mode on netCDF-4/HDF5
-files), NC_DISKLESS (store data only in memory), NC_WRITE.
+files), NC_DISKLESS (store data only in memory), NC_MMAP (use MMAP
+for NC_DISKLESS), and NC_WRITE.
 See discussion below.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
@@ -216,10 +217,22 @@ call. If NC_DISKLESS is going to be used for creating a large classic file,
 it behooves one to use either nc__create or nc_create_mp and specify
 an appropriately large value of the initialsz parameter to avoid
 to many extensions to the in-memory space for the file.
+This flag applies to files in classic format and to file in extended
+format (netcdf-4).
 
-Normally, NC_DISKLESS allocates space in the heap for storing
-the in-memory file. If, however, the ./configure flags --enable-mmap
-is used, then mmap will be used.
+Normally, NC_DISKLESS allocates space in the heap for
+storing the in-memory file. If, however, the ./configure
+flags --enable-mmap is used, and the additional mode flag
+NC_MMAP is specified, then the file will be created using
+the operating system MMAP facility.
+This flag only applies to files in classic format. Extended
+format (netcdf-4) files will ignore the NC_MMAP flag.
+
+Using NC_MMAP for nc_create is
+only included for completeness vis-a-vis nc_open. The
+ability to use MMAP is of limited use for nc_create because
+nc_create is going to create the file in memory anyway.
+Closing a MMAP'd file will be slightly faster, but not significantly.
 
 Note that nc_create(path,cmode,ncidp) is equivalent to the invocation of
 nc__create(path,cmode,NC_SIZEHINT_DEFAULT,NULL,ncidp).
@@ -307,7 +320,7 @@ diskless.nc whose content will be lost when nc_close() is called.
      int status = NC_NOERR;
      int ncid;
         ...
-     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS, &ncid);
+     status = nc_create("diskless.nc", NC_DISKLESS, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
@@ -321,7 +334,7 @@ in a file named diskless.nc when nc_close() is called.
      int status = NC_NOERR;
      int ncid;
         ...
-     status = nc_create("foo_HDF5_classic.nc", NC_DISKLESS|NC_WRITE, &ncid);
+     status = nc_create("diskless.nc", NC_DISKLESS|NC_WRITE, &ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
@@ -457,8 +470,11 @@ access, programs that do not access data sequentially may see some
 performance improvement by setting the NC_SHARE flag.
 
 This procedure may also be invoked with the NC_DISKLESS flag
-set in the mode argument, but ONLY if the file type is NOT NC_NETCDF4,
-which means it must be a classic format file.
+set in the mode argument if the file to be opened is a
+classic format file.  For nc_open(), this flag applies only
+to files in classic format.  If the file is of type
+NC_NETCDF4, then the NC_DISKLESS flag will be ignored.
+
 If NC_DISKLESS is specified, then the whole file is read completely into
 memory. In effect this creates an in-memory cache of the file.
 If the mode flag also specifies NC_WRITE, then the in-memory cache
@@ -468,6 +484,23 @@ speed up file processing. But in simple cases, non-cached
 processing may actually be faster than using cached processing.
 You will need to experiment to determine if the in-memory caching
 is worthwhile for your application.
+
+Normally, NC_DISKLESS allocates space in the heap for
+storing the in-memory file. If, however, the ./configure
+flags --enable-mmap is used, and the additional mode flag
+NC_MMAP is specified, then the file will be opened using
+the operating system MMAP facility.
+This flag only applies to files in classic format. Extended
+format (netcdf-4) files will ignore the NC_MMAP flag.
+
+In most cases, using MMAP provides no advantage
+for just NC_DISKLESS. The one case where using MMAP is an
+advantage is when a file is to be opened and only a small portion
+of its data is to be read and/or written.
+In this scenario, MMAP will cause only the accessed data to be
+retrieved from disk. Without MMAP, NC_DISKLESS will read the whole
+file into memory on nc_open. Thus, MMAP will provide some performance
+improvement in this case.
 
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the

@@ -14,12 +14,17 @@ check_PROGRAMS =
 TESTS = 
 TESTS_ENVIRONMENT=TOPSRCDIR=${abs_top_srcdir}
 
+# Make nctestserver be the first test to be built
+check_PROGRAMS += nctestserver
+nctestserver_SOURCES = nctestserver.c
+
 TESTS += tst_ncdap3.sh
 
 # remote tests are optional
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
+
 TESTS += tst_remote3.sh
 
 if ENABLE_DAP_LONG_TESTS
@@ -97,5 +102,3 @@ BUILT_SOURCES = .dodsrc
 	echo "#DODSRC" >.dodsrc
 
 DISTCLEANFILES = .dodsrc results/* results
-
-

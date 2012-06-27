@@ -2,6 +2,10 @@
 # For a netCDF-3 build, test nccopy on netCDF files in this directory
 
 set -e
+if test "x$srcdir" = "x"; then
+    srcdir=`dirname $0`; 
+    export srcdir=$srcdir
+fi
 echo ""
 
 TESTFILES='c0 c0tmp ctest0 ctest0_64 small small2 test0 test1
@@ -22,7 +26,7 @@ echo "*** Testing nccopy -u"
 ./nccopy -u tst_brecs.nc copy_of_tst_brecs.nc
 ./ncdump -n copy_of_tst_brecs tst_brecs.nc | sed '/ = UNLIMITED ;/s/\(.*\) = UNLIMITED ; \/\/ (\(.*\) currently)/\1 = \2 ;/' > tmp.cdl
 ./ncdump copy_of_tst_brecs.nc >  copy_of_tst_brecs.cdl
-diff copy_of_tst_brecs.cdl tmp.cdl
+diff -b copy_of_tst_brecs.cdl tmp.cdl
 rm copy_of_tst_brecs.cdl tmp.cdl tst_brecs.nc copy_of_tst_brecs.nc
 
 echo "*** All nccopy tests passed!"

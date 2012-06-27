@@ -1,45 +1,131 @@
-This file contains a high-level description of this package's evolution.
-Entries are in reverse chronological order (most recent first).
+This file contains a high-level description of this package's
+evolution.  Releases are in reverse chronological order (most recent
+first).  Recent releases include references to Jira issue identifiers
+for more information, where '[NCF-XXX]' refers to
+https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION         COMMENTS
 -------         --------
-4.2.1		Released ????-??-?? (Note: Jira entries include reference to '[NCF-XX]')
-		
-		Generation of documentation is disabled by default. Use
-                --enable-doxygen to generate.
+4.2.1           Released 2012-??-??
+
+		Added a Nspecific NC_MMAP mode flag to modify
+                behavior of NC_DISKLESS.
+
+4.2.1-rc1       Released 2012-06-18
+
+		Ported static and shared libraries (DLL's) for both
+		32- and 64-bit Windows, including support for DAP
+		remote access, with netCDF-3 and netCDF-4/HDF5 support
+		enabled.  The environment for this build is
+		MSYS/MinGW/MinGW64, but the resulting DLLs may be used
+		with Visual Studio.
+                [NCF-112][NCF-54][NCF-57][NCF-65]
+
+                Implemented diskless files for all netCDF formats. For
+                nc_create(), diskless operation performs all
+                operations in memory and then optionally persists the
+                results to a file on close.  For nc_open(), but only
+                for netcdf classic files, diskless operation caches
+                the file in-memory, performs all operations on the
+                memory resident version and then writes all changes
+                back to the original file on close.
+                [NCF-110][NCF-109][NCF-5]
+
+                Added MMAP support. If diskless file support is
+		enabled, then it is possible to enable implementation
+		of diskless files using the operating system's MMAP
+		facility (if available). The enabling flag is
+		"--enable-mmap". This is most useful when using
+		nc_open() and when only parts of files, a single
+		variable say, need to be read.
+
+                Added configure flag for --disable-diskless.
+
+                Added nccopy command-line options to exploit diskless
+                files, resulting in large speedups for some
+                operations, for example converting unlimited dimension
+                to fixed size or rechunking files for faster access.
+                Upgraded doxygen and man-page documentation for ncdump
+                and nccopy utilities, including new -w option for
+                diskless nccopy, with an example.  
+
+		Modified Makefile to allow for concurrent builds and
+		to support builds outside the source tree, e.g. 
+  		'mkdir build; cd build; SOURCE-DIR/configure' where
+		SOURCE-DIR is the top-level source directory.
+
+                Fixed some netCDF-4 bugs with handling strings in
+                non-netCDF-4 HDF5 files.
+                [NCF-150]
+
+                Fixed bug using nccopy to compress with shuffling that
+                doesn't compress output variables unless they were
+                already compressed in the input file.  
+                [NCF-162]
+
+                Fixed bug in 64-bit offset files with large records,
+                when last record variable requires more than 2**32
+                bytes per record.  
+                [NCF-164]
  
-		Fix bug in which passing a NULL path causes netcdf to fail.
-		[NCF-173]
+                Fix bug in which passing a NULL path to nc_open causes failure.
+                [NCF-173]
 
-		Upgraded doxygen and man-page documentation for ncdump
-		and nccopy utilities, including new -w option for
-		nccopy with an example.
-		[NCF-26]
+                Fixed ncgen bugs in parsing and handling opaque data.
 
-		Fixed bugs in accessing fixed-length string attributes and variable
-		values from non-netCDF-4 HDF5 files.
-		[NCF-150]
+                Fixed ncdump bug, not escaping characters special to CDL
+                in enumeration labels. 
+                [NCF-169]
 
-		Fixed bug in 64-bit offset files with large records
-		due to last record variable requiring more than 2**32
-		bytes per record.
-		[NCF-164]
+                Fixed bug reading netCDF int into a C longlong or
+                writing from longlong to external int on 32-bit
+                platforms with classic format files.  The upper 32
+                bits of the longlong were not cleared on read or used
+                on write.  
+                [NCF-171]
 
-		Implemented diskless files for both netcdf classic format
-                and extended (netcdf-4) format. For netcdf classic files,
-                diskless files also support in-memory caching of disk files.
-	        For nc_create(), diskless operation performs all operations
-		in memory and then optionally persists the results to a file.
-	        For nc_open(), diskless operation caches the file in-memory,
-		performs all operations on the memory resident version and then
-		writes all changes back to the original file.
-		[NCF-110][NCF-109][NCF-5]
+                Resolved some erroneous returns of BADTYPE errors and
+                RANGE errors due to conflating C memory types with
+                external netCDF types when accessing classic or 64-bit
+                offset files.  
+                [NCF-172]
 
-		Modified ncio mechanism to support multiple ncio packages;
-		this is so that it is possible to have e.g. posixio and memio
-		operating at the same time.
+                Fixed bug with ncdump -t interpreting unit attribute
+                without base time as a time unit.
+                [NCF-175]
 
-		Cleanup up a bunch of lint issues (unused variables, etc).
+                Changed port for testing remote access test server to
+                increase reliability of tests.
+
+                Modified ncio mechanism to support multiple ncio
+                packages, so that it is possible to have e.g. posixio
+                and memio operating at the same time.
+                
+                Generation of documentation is disabled by default. Use
+                --enable-doxygen to generate.
+                [NCF-168]
+
+                Added description of configure flags to installation
+                guide.
+
+                Clarified documentation of arguments to nc__open() and
+                nc__create() and their default values.
+
+                Fixed doxygen installation guide source file to
+                preserve line breaks in code and scripts.
+                [NCF-174]
+
+                Cleaned up a bunch of lint issues (unused variables,
+                etc.) and some similar problems reported by clang
+                static analysis.
+
+                Updated and fixed pkg-config source file netcdf.pc.in
+                to work with separated netCDF language-specific
+                packages.  Also fixed nc-config to call nf-config,
+                ncxx-config, and ncxx4-config for for backward
+                compatibility with use of nc-config in current
+                Makefiles.
+                [NCF-165] [NCF-179]
 
 4.2		Released 2012-03-19 (Note: Jira entries include reference to '[NCF-XX]')
 

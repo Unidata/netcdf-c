@@ -26,6 +26,21 @@ static struct NCPROTOCOLLIST {
     {NULL,NULL,0} /* Terminate search */
 };
 
+/* Define the server to ping in order;
+   make the order attempt to optimize
+   against future changes.
+*/
+static const char* servers[] = {
+"http://motherlode.ucar.edu:8081", /* try this first */
+"http://remotetest.unidata.ucar.edu",
+"http://remotetest.ucar.edu",
+"http://motherlode.ucar.edu:8080",
+"http://motherlode.ucar.edu",
+"http://remotetests.unidata.ucar.edu",
+"http://remotetests.ucar.edu",
+NULL
+};
+
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
 static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
@@ -45,6 +60,31 @@ NCDISPATCH_initialize(void)
     }
     return NC_NOERR;
 }
+
+/* search list of servers and return first that succeeds when
+   concatenated with the specified path part
+*/
+const char*
+NC_findtestserver(const char* path)
+{
+    /* NCDAP_ping is defined in libdap2/ncdap3.c */
+#ifdef USE_DAP
+    const char** svc;
+    if(path == NULL) path = "";
+    for(svc=servers;*svc != NULL;svc++) {
+        char url[4096];
+	snprintf(url,sizeof(url),"%s%s%s",
+			*svc,
+			(path[0] == '/' ? "" : "/"),
+			path);
+	int stat = NCDAP_ping(url);
+	if(stat == NC_NOERR)
+	    return *svc;
+    }
+#endif
+    return NULL;
+}
+
 
 /* return 1 if path looks like a url; 0 otherwise */
 int

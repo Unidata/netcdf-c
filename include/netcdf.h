@@ -121,6 +121,7 @@ extern "C" {
 #define NC_NOCLOBBER     0x0004	/**< Don't destroy existing file. Mode flag for nc_create(). */
 
 #define NC_DISKLESS      0x0008  /**< Use diskless file. Mode flag for nc_open() or nc_create(). */
+#define NC_MMAP          0x0010  /**< Use diskless file with mmap. Mode flag for nc_open() or nc_create(). */
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
@@ -368,7 +369,7 @@ by the desired type. */
 #define NC_ESTORAGE      (-126)    /**< Can't specify both contiguous and chunking. */
 #define NC_EBADCHUNK     (-127)    /**< Bad chunksize. */
 #define NC_ENOTBUILT     (-128)    /**< Attempt to use feature that was not turned on when netCDF was built. */
-#define NC_EDISKLESS     (-129)    /**< Error in using diskless  access. */  
+#define NC_EDISKLESS     (-129)    /**< Error in using diskless  access. */ 
 
 #define NC4_LAST_ERROR   (-129) 
 

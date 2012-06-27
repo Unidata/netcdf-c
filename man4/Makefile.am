@@ -25,11 +25,6 @@ if BUILD_DOCS
 # $(directory)/man_page_1.3: doxyfile.stamp
 # $(directory)/man_page_2.3: doxyfile.stamp
 
-# Timestamp to prevent rebuilds.
-doxyfile.stamp:
-	$(DOXYGEN) Doxyfile
-	echo Timestamp > doxyfile.stamp
-
 # Note: in order to work with distcheck,
 # the Doxyfile needs to be preprocessed
 # to insert actual location of $(srcdir)
@@ -38,13 +33,19 @@ doxyfile.stamp:
 #Doxyfile.tmp: Doxyfile
 #	sed -e 's|$$[({]rootdir[})]|$(abs_top_srcdir)|g' <Doxyfile > ./Doxyfile.tmp
 
-CLEANFILES = doxyfile.stamp html latex man
-
 all-local: doxyfile.stamp
 clean-local:
 	rm -rf $(top_builddir)/man4/man
 	rm -rf $(top_builddir)/man4/html
 	rm -rf $(top_builddir)/man4/latex
+endif 
+
+# Timestamp to prevent rebuilds.
+doxyfile.stamp:
+	$(DOXYGEN) Doxyfile
+	echo Timestamp > doxyfile.stamp
+
+CLEANFILES = doxyfile.stamp html latex man
 
 # This builds the docs from source, if necessary, and tars up
 # everything needed for the website. Run this and copy the resulting
@@ -53,5 +54,3 @@ clean-local:
 web-tarball: doxyfile.stamp
 	cd html; tar cf ../netcdf_docs.tar *
 	gzip -f netcdf_docs.tar
-
-endif 

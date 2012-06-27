@@ -5,6 +5,8 @@ Copyright 2011, UCAR/Unidata. See COPYRIGHT file for copying and
 redistribution conditions.
 */
 
+#undef DDBG
+
 #include <config.h>
 #include <nc_tests.h>
 #include <stdio.h>
@@ -19,6 +21,20 @@ redistribution conditions.
 #define RESISTOR "resistor_value"
 #define CAPACITOR "capacitor_value"    
 #define NUM555 "number_of_555_timer_chips"
+
+#ifdef DDBG
+#undef ERR
+void fail(int line) {
+    fflush(stdout);
+    fprintf(stderr,"\nline=%d\n",line);
+    fflush(stderr);
+    exit(1);
+}
+#define ERR fail(__LINE__)
+#endif
+
+/* Control flags  */
+static int flags, persist, usenetcdf4, mmap;
 
 static void
 removefile(int persist,  char* filename)
@@ -37,17 +53,18 @@ removefile(int persist,  char* filename)
 int
 main(int argc, char **argv)
 {
-
-    int i, flags, persist, usenetcdf4;
+    int i;
     char* filename = "tst_diskless.nc";
 
     /* Set defaults */
     persist = 0;
     usenetcdf4 = 0;
+    mmap = 0;
 
     for(i=1;i<argc;i++) {
 	if(strcmp(argv[i],"netcdf4")==0) usenetcdf4=1;
 	else if(strcmp(argv[i],"persist")==0) persist=1;
+	else if(strcmp(argv[i],"mmap")==0) mmap=1;
 	/* ignore anything not recognized */
     }
 
@@ -55,9 +72,12 @@ main(int argc, char **argv)
     usenetcdf4 = 0;
 #endif
 
+    if(mmap)
+	usenetcdf4 = 0;
+
     flags = usenetcdf4?FLAGS4:FLAGS3;
     if(persist) flags |= PERSIST;
-
+    if(mmap) flags |= NC_MMAP;
 
 printf("\n*** Testing the diskless API.\n");
 printf("*** testing diskless file with scalar vars...");
@@ -113,6 +133,33 @@ printf("*** testing diskless file with scalar vars...");
 	abort(); //ERR;
     }
     SUMMARIZE_ERR;
+
+    if(!usenetcdf4 && persist) {
+        int ncid, varid0, varid1, varid2;
+        float float_data = 3.14, float_data_in;
+        int int_data = 42, int_data_in;
+        short short_data = 2, short_data_in;
+
+        printf("*** testing diskless open of previously created file...");
+
+        if (nc_open(filename, flags, &ncid)) ERR;
+
+	/* Read and compare */
+        if (nc_inq_varid(ncid, RESISTOR, &varid0)) ERR;
+        if (nc_inq_varid(ncid, CAPACITOR, &varid1)) ERR;
+        if (nc_inq_varid(ncid, NUM555, &varid2)) ERR;
+    
+        if (nc_get_vara_int(ncid, varid0, NULL, NULL, &int_data_in)) ERR;
+        if (int_data_in != int_data) ERR;
+        if (nc_get_vara_float(ncid, varid1, NULL, NULL, &float_data_in)) ERR;
+        if (float_data_in != float_data) ERR;
+        if (nc_get_vara_short(ncid, varid2, NULL, NULL, &short_data_in)) ERR;
+        if (short_data_in != short_data) ERR;
+    
+	nc_close(ncid);
+    }    
+    SUMMARIZE_ERR;
+
     printf("*** testing creation of simple diskless file...");
     {
     #define NDIMS 2

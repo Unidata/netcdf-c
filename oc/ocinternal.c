@@ -25,7 +25,7 @@
 #ifdef __CYGWIN__
 #define TMPPATH1 "/cygdrive/c/temp/"
 #define TMPPATH2 "./"
-#elif defined(WIN32)
+#elifdef WIN32
 #define TMPPATH1 "c:\\temp/"
 #define TMPPATH2 ".\\"
 #else
@@ -462,7 +462,7 @@ createtempfile(OCstate* state, OCtree* tree)
 int
 createtempfile1(char* tmppath, char** tmpnamep)
 {
-    int fd;
+    int fd = 0;
     char* tmpname = NULL;
     tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
     if(tmpname == NULL) return -1;
@@ -482,7 +482,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
         sprintf(spid,"%06d",rno);
         strcat(tmpname,spid);
 #  ifdef WIN32
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
+        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif

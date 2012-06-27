@@ -6,8 +6,8 @@ if test $# != 0 ; then
 cmds=$@
 fi
 
-HDF5=1
-DAP=1
+#HDF5=1
+#DAP=1
 #CDMR=1
 #RPC=1
 #PGI=1
@@ -129,11 +129,11 @@ FLAGS="$FLAGS --enable-extra-tests"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
-#FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
-#FLAGS="$FLAGS --enable-doxygen"
+FLAGS="$FLAGS --enable-doxygen"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
+#FLAGS="$FLAGS --enable-mmap"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"

@@ -224,7 +224,7 @@ for x in ${TESTSET} ; do
   cd ..
 if test 1 = 1; then
   # compare with expected
-  if diff -w ${expected}/${x}.dmp results/${x}.dmp
+  if diff -b -w ${expected}/${x}.dmp results/${x}.dmp
     then ok=1; else ok=0; fi
   if test "$ok" = "1" ; then
     echo "*** PASS: ${x}"

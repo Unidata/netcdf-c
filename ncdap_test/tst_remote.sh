@@ -5,8 +5,13 @@ quiet=0
 leakcheck=0
 timing=0
 
-# So we can switch more easily
-PORT=8081
+# Figure our dst server
+SVC=`./nctestserver dts`
+if test "x$SVC" = "x" ; then
+echo "cannot locate test server"
+exit
+fi
+DTS="$SVC/dts"
 
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
@@ -62,14 +67,14 @@ PARAMS="${PARAMS}${CACHE}"
 ##################################################
 
 # For special testing
-REMOTEURLX="http://motherlode.ucar.edu:$PORT/dts"
+REMOTEURLX="$DTS"
 REMOTETESTSX="test.03"
 
-REMOTEURLXC="http://motherlode.ucar.edu:$PORT/dts"
+REMOTEURLXC="$DTS"
 REMOTETESTSXC="test.03;1;s0,s1"
 
 # These shorter tests are always run
-REMOTEURLS1="http://motherlode.ucar.edu:$PORT/dts"
+REMOTEURLS1="$DTS"
 REMOTETESTSS1="\
 test.01 test.02 test.04 test.05 test.06 test.07a test.07 \
 test.21 \
@@ -102,7 +107,7 @@ TOOBIGL1="parserBug0001 test.satimage Sat_Images test.32"
 ESCAPEDFAIL="test.dfr1 test.dfr2 test.dfr3 test.GridFile test.PointFile test.SwathFile test.sds6 test.sds7"
 
 # Following tests are to check constraint handling
-REMOTEURLC1="http://motherlode.ucar.edu:$PORT/dts"
+REMOTEURLC1="$DTS"
 REMOTETESTSC1="\
 test.01;1;f64 \
 test.02;1;b[1:2:10] \
@@ -131,13 +136,12 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 # Test string access 
 # this test cannot be used because the
 # dataset has a limited lifetime
-REMOTEURLC4="http://motherlode.ucar.edu:$PORT/thredds/dodsC/station/metar"
-REMOTETESTSC4="\
-Surface_METAR_20120101_0000.nc;1;weather[0:10]\
-"
+#REMOTEURLC4="http://motherlode.ucar.edu:$PORT/thredds/dodsC/station/metar"
+#REMOTETESTSC4="\
+#Surface_METAR_20120101_0000.nc;1;weather[0:10]"
 
 # Constrained long tests
-REMOTEURLLC1="http://motherlode.ucar.edu:$PORT/dts"
+REMOTEURLLC1="$DTS"
 REMOTETESTSLC1="\
 test.03;2;s1"
 
@@ -147,6 +151,12 @@ IGNORE="test.07.2"
 # Known to fail
 
 XFAILTESTS3=""
+# For now, remove some tests from windows platform.
+if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then
+    XFAILTESTS3="$XFAILTESTS3 test.67 test.06.1 test.06"
+fi
+
+
 XFAILTESTS4="$XFAILTESTS3"
 
 # Server is down at the moment
@@ -232,7 +242,6 @@ for i in $WHICHTESTS ; do
   C1) TESTURL="$REMOTEURLC1" ; TESTSET="$REMOTETESTSC1" ; constrained=1 ;;
   C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
   C3) TESTURL="$REMOTEURLC3" ; TESTSET="$REMOTETESTSC3" ; constrained=1 ;ncconstrained=0 ;;
-  C4) TESTURL="$REMOTEURLC4" ; TESTSET="$REMOTETESTSC4" ; constrained=1 ;ncconstrained=0 ;;
   LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
   X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
   XC) TESTURL="$REMOTEURLXC" ; TESTSET="$REMOTETESTSXC" ; constrained=1 ;;
