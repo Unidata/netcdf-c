@@ -2434,7 +2434,7 @@ main(int argc, char *argv[])
 	  break;
         case '?':
 	  usage();
-	  return 0;
+	  return EXIT_FAILURE;
       }
 
     set_max_len(max_len);
@@ -2446,7 +2446,7 @@ main(int argc, char *argv[])
     if (argc != 1)
     {
        usage();
-       return 0;
+       return EXIT_FAILURE;
     }
 
     i = 0;
