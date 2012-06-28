@@ -1,13 +1,14 @@
 #!/bin/bash
 #X="-x"
 #NB=1
+#STD=1
 
 if test $# != 0 ; then
 cmds=$@
 fi
 
-#HDF5=1
-#DAP=1
+HDF5=1
+DAP=1
 #CDMR=1
 #RPC=1
 #PGI=1
@@ -32,8 +33,12 @@ CC=gcc
 fi
 
 # Default cases
-PREFIX="/tmp/install/${HOST}"
 stddir="/share/ed/local/${HOST}"
+if test "x$STD" != x ; then
+PREFIX="/share/ed/local/${HOST}"
+else
+PREFIX="/tmp/install/${HOST}"
+fi
 
 MALLOC_CHECK=""
 
@@ -135,7 +140,7 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
 
-FLAGS="$FLAGS --disable-shared"
+#FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then
