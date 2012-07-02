@@ -39,18 +39,22 @@ SHAREDFLAGS="--disable-static --enable-shared --enable-dll"
 
 MINFLAGS="--disable-dap --disable-netcdf-4"
 
-STATICCFLAGS="-static"
+STATICCFLAGS="-static -fno-stack-check -fno-stack-protector -mno-stack-arg-probe"
 STATICLDFLAGS="-static"
+FLAGS64="--host=x86_64-w64-mingw32"
 
 #HDF5
 HDF5DIR="/c/Users/wfisher/Desktop/hdf5-1.8.9/"
 HDF5INCDIR="$HDF5DIR/src"
 HDF532DLLDIR="$HDF5DIR/build_win32_dll/bin"
 HDF532LIBDIR="$HDF5DIR/build_win32_static/bin"
+HDF564DLLDIR="$HDF5DIR/build_win64_dll/bin"
+HDF564LIBDIR="$HDF5DIR/build_win64_static/bin"
 
 #SZIP
 SZIPDIR="/c/Users/wfisher/Desktop/szip-2.1/"
 SZIP32LIBS="/c/Users/wfisher/Desktop/szip-2.1/build_win32/bin"
+SZIP64LIBS="/c/Users/wfisher/Desktop/szip-2.1/build_win64/bin"
 
 #ZLIB
 ZLIBDIR="/c/Users/wfisher/Desktop/zlib125dll"
@@ -63,9 +67,11 @@ ZLIB64DLL="$ZLIBDIR/dllx64"
 CURLDIR="/c/Users/wfisher/Desktop/curl-7.25.0"
 CURL32INCDIR="$CURLDIR/build_win32/include/"
 CURL32LIBS="$CURLDIR/build_win32/lib/.libs"
+CURL64INCDIR="$CURLDIR/build_win64/include/"
+CURL64LIBS="$CURLDIR/build_win64/lib/.libs"
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 [clean/all] [deps]"
+    echo "Usage: $0 [clean/all/32/64] [deps]"
     exit 0
 fi
 
@@ -96,6 +102,9 @@ echo "Target Home Directory: $TARGBASEDIR"
 echo "Writing build output to: $LOGFILE"
 echo "Include Dependency libs: $INCDEPS"
 echo ""
+
+if [ $1 == "all" -o $1 == "32" ]; then
+
 echo "Building 32-bit libraries."
 echo ""
 ####
@@ -223,6 +232,9 @@ echo ""
 echo "---------------"
 echo ""
 
+
+
+
 ####
 # 32, dll, nc4, dap
 ####
@@ -249,6 +261,11 @@ echo ""
 echo "---------------"
 echo ""
 
+fi
+
+
+
+if [ $1 == "all" -o $1 == "64" ]; then
 
 
 ####
@@ -257,24 +274,164 @@ echo ""
 echo "Building 64-bit libraries."
 echo ""
 
+####
 # 64, static, classic only
+####
+
+# Build
+BUILDDIR="$CLASSIC64STATDIR"
+TARGDIR="$TARGBASEDIR/nc3_64_static"
+echo "o Building 64-bit NetCDF Classic [static] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $CMNFLAGS $STATICFLAGS $MINFLAGS $FLAGS64 CFLAGS="$STATICCFLAGS" LDFLAGS="$STATICLDFLAGS -L$ZLIB64LIB" > $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
+
+# Dependencies if needed
+DEPDIR=$TARGDIR/deps
+mkdir -p $DEPDIR
+if [ $INCDEPS == "true" ]; then
+    echo "Copying dependencies to $DEPDIR"
+    cp $ZLIB64LIB/* $DEPDIR
+fi
+
+echo ""
+echo "---------------"
+echo "" 
 
 
+####
 # 64, static, nc4
+####
+
+BUILDDIR="$NC464STATDIR"
+TARGDIR="$TARGBASEDIR/nc4_64_static"
+echo "o Building 64-bit NetCDF-4 [static] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $CMNFLAGS $STATICFLAGS --enable-netcdf-4 --disable-dap $FLAGS64 CFLAGS="$STATICCFLAGS -I$HDF5INCDIR -I`dirname $HDF564LIBDIR`" LDFLAGS="$STATICLDFLAGS -L$HDF564LIBDIR -L$SZIP64LIBS -L$ZLIB64LIB" >> $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
+
+# Dependencies if needed
+if [ $INCDEPS == "true" ]; then
+    DEPDIR=$TARGDIR/deps
+    mkdir -p $DEPDIR
+    echo "Copying dependencies to $DEPDIR"
+    cp $HDF564LIBDIR/*.a $DEPDIR
+    cp $SZIP64LIBS/*.a $SZIP64LIBS/*.lib $DEPDIR
+    cp $ZLIB64LIB/* $DEPDIR
+fi
+echo ""
+echo "---------------"
+echo ""
 
 
+####
 # 64, static, nc4, dap
+####
+BUILDDIR="$NC4DAP64STATDIR"
+TARGDIR="$TARGBASEDIR/nc4_dap_64_static"
+echo "o Building 64-bit NetCDF-4 with DAP [static] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $CMNFLAGS $STATICFLAGS --enable-netcdf-4 --enable-dap $FLAGS64 CFLAGS="$STATICCFLAGS -I$HDF5INCDIR -I$CURL64INCDIR -I`dirname $HDF564LIBDIR`" LDFLAGS="$STATICLDFLAGS -L$HDF564LIBDIR -L$SZIP64LIBS -L$CURL64LIBS -DCURL_STATICLIB -L$ZLIB64LIB" >> $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
+
+# Dependencies if needed
+if [ $INCDEPS == "true" ]; then
+    DEPDIR=$TARGDIR/deps
+    mkdir -p $DEPDIR
+    echo "Copying dependencies to $DEPDIR"
+    cp $HDF564LIBDIR/*.a $DEPDIR
+    cp $SZIP64LIBS/*.a $SZIP64LIBS/*.lib $DEPDIR
+    cp $CURL64LIBS/libcurl.a $DEPDIR
+    cp $ZLIB64LIB/* $DEPDIR
+fi
+echo ""
+echo "---------------"
+echo ""
 
 
+####
 # 64, dll, classic only
+####
+BUILDDIR="$CLASSIC64DLLDIR"
+TARGDIR="$TARGBASEDIR/nc3_64_dll"
+echo "o Building 64-bit NetCDF Classic [dll] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $CMNFLAGS $SHAREDFLAGS $MINFLAGS LDFLAGS="-L$ZLIB64DLL" >> $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
 
+# Dependencies if needed
+if [ $INCDEPS == "true" ]; then
+    DEPDIR=$TARGDIR/deps
+    mkdir -p $DEPDIR
+    echo "Copying dependencies to $DEPDIR"
+    cp $ZLIB64DLL/* $DEPDIR
+fi
+echo ""
+echo "---------------"
+echo ""
 
+####
 # 64, dll, nc4
+####
+BUILDDIR="$NC464DLLDIR"
+TARGDIR="$TARGBASEDIR/nc4_64_dll"
+echo "o Building 64-bit NetCDF-4 [dll] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $CMNFLAGS $SHAREDFLAGS --enable-netcdf-4 --disable-dap $FLAGS64 CFLAGS="-I$HDF5INCDIR -I`dirname $HDF564DLLDIR`" LDFLAGS="-L$HDF564DLLDIR -L$SZIP64LIBS -L$ZLIB64DLL" >> $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
+
+# Dependencies if needed
+if [ $INCDEPS == "true" ]; then
+    DEPDIR=$TARGDIR/deps
+    mkdir -p $DEPDIR
+    echo "Copying dependencies to $DEPDIR"
+    cp $HDF564DLLDIR/*.dll $DEPDIR
+    cp $SZIP64LIBS/*.dll $SZIP64LIBS/*.lib $DEPDIR
+    cp $ZLIB64DLL/* $DEPDIR
+fi
+echo ""
+echo "---------------"
+echo ""
 
 
+####
 # 64, dll, nc4, dap
+####
+BUILDDIR="$NC4DAP64DLLDIR"
+TARGDIR="$TARGBASEDIR/nc4_dap_64_dll"
+echo "o Building 64-bit NetCDF-4 with DAP [dll] ($BUILDDIR)"
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+../configure --prefix=$TARGDIR $SHAREDFLAGS --enable-netcdf-4 --enable-dap $FLAGS64 CFLAGS="-I$HDF5INCDIR -I$CURL64INCDIR -I`dirname $HDF564DLLDIR`" LDFLAGS="-L$HDF564DLLDIR -L$SZIP64LIBS -L$CURL64LIBS -L$ZLIB64DLL" >> $LOGFILE 2>&1
+make -j 10 >> $LOGFILE 2>&1
+make install >> $LOGFILE 2>&1
 
+# Dependencies if needed
+if [ $INCDEPS == "true" ]; then
+    DEPDIR=$TARGDIR/deps
+    mkdir -p $DEPDIR
+    echo "Copying dependencies to $DEPDIR"
+    cp $HDF564LIBDIR/*.a $DEPDIR
+    cp $SZIP64LIBS/*.a $SZIP64LIBS/*.lib $DEPDIR
+    cp $CURL64LIBS/libcurl.a $DEPDIR
+    cp $ZLIB64LIB/* $DEPDIR
+fi
+echo ""
+echo "---------------"
+echo ""
 
+## End 'if 64, etc'
+fi
 
 echo "Finished"
 

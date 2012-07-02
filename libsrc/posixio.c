@@ -4,6 +4,15 @@
  */
 /* $Id: posixio.c,v 1.89 2010/05/22 21:59:08 dmh Exp $ */
 
+/* For MinGW Build */
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#include <winbase.h>
+#include <io.h>
+#define fstat64 fstat
+#define lseek64 lseek
+#endif
+
 #include <config.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -98,7 +107,14 @@ pagesize(void)
 #define _SC_PAGESIZE _SC_PAGE_SIZE
 #endif
 
-#ifdef _SC_PAGESIZE
+  /* For MinGW Builds */
+#if defined(_WIN32) || defined(_WIN64)
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  long pgsz = info.dwPageSize;
+  return (size_t)pgsz;
+
+#elif _SC_PAGESIZE
 	{
 		const long pgsz = sysconf(_SC_PAGESIZE);
 		if(pgsz > 0)
