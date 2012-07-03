@@ -433,6 +433,19 @@ echo ""
 ## End 'if 64, etc'
 fi
 
+## Now, compress everything into individual package
+TARGCOMPS=`ls $TARGBASEDIR`
+for X in `echo $TARGCOMPS | cut -d" " -f 1-12`; do
+    
+
+    IN=./`basename $TARGBASEDIR`/$X
+    OUT=./`basename $TARGBASEDIR`/$X.tar.bz2
+    echo "Compressing $IN -> $OUT"
+    tar -jcf $OUT $IN
+    
+    
+done
+
 echo "Finished"
 
 
