@@ -433,6 +433,7 @@ echo ""
 ## End 'if 64, etc'
 fi
 
+cd $HOMEDIR
 ## Now, compress everything into individual package
 TARGCOMPS=`ls $TARGBASEDIR`
 for X in `echo $TARGCOMPS | cut -d" " -f 1-12`; do
@@ -440,9 +441,12 @@ for X in `echo $TARGCOMPS | cut -d" " -f 1-12`; do
 
     IN=./`basename $TARGBASEDIR`/$X
     OUT=./`basename $TARGBASEDIR`/$X.tar.bz2
+    OUTZ=./`basename $TARGBASEDIR`/$X.zip
+
     echo "Compressing $IN -> $OUT"
     tar -jcf $OUT $IN
-    
+    echo "Compressing $IN -> $OUTZ"
+    zip -r $OUTZ $IN
     
 done
 
