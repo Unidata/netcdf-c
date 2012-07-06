@@ -6,6 +6,7 @@
 /* addition by O. Heudecker, AWI-Bremerhaven, 12.3.1998 */
 /* added correction by John Sheldon and Hans Vahlenkamp 15.4.1998*/
 
+
 #include "config.h"
 #include <assert.h>
 #include <stdlib.h>
