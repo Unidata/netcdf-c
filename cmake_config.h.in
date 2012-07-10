@@ -25,6 +25,9 @@
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H @HAVE_HDF5_H@
 
+/* Define to 1 if you have the <stdbool.h> header file. */
+#cmakedefine HAVE_STDBOOL_H @HAVE_STDBOOL_H@
+
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCAL_H @HAVE_LOCAL_H@
 
@@ -85,5 +88,9 @@
 #cmakedefine DLL_NETCDF
 /* Set this when DAP is enabled. */
 #cmakedefine ENABLE_DAP 
+
+#cmakedefine HAVE_UCHAR 1
+
+#include <ncconfigure.h>
 
 #endif
