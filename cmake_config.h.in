@@ -1,0 +1,89 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/* Define to 1 if you have the <alloca.h> header file. */
+#cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine HAVE_CTYPE_H @HAVE_CTYPE_H@
+
+/* Define to 1 if you have the <dirent> header file. */
+#cmakedefine HAVE_DIRENT_H @HAVE_DIRENT_H@
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
+
+/* Define to 1 if you have the <errno.h> header file. */
+#cmakedefine HAVE_ERRNO_H @HAVE_ERRNO_H@
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#cmakedefine HAVE_GETOPT_H @HAVE_GETOPT_H@
+
+/* Define to 1 if you have the <hdf5.h> header file. */
+#cmakedefine HAVE_HDF5_H @HAVE_HDF5_H@
+
+/* Define to 1 if you have the <locale.h> header file. */
+#cmakedefine HAVE_LOCAL_H @HAVE_LOCAL_H@
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#cmakedefine HAVE_STDIO_H @HAVE_STDIO_H@
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H @HAVE_STDLIB_H@
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H @HAVE_STRINGS_H@
+
+/* Define to 1 if you have the <sys/dir.h> header file. */
+#cmakedefine HAVE_SYS_DIR_H @HAVE_SYS_DIR_H@
+
+/* Define to 1 if you have the <sys/ndir.h> header file. */
+#cmakedefine HAVE_SYS_NDIR_H @HAVE_SYS_NDIR_H@
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#cmakedefine HAVE_SYS_PARAM_H @HAVE_SYS_PARAM_H@
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#cmakedefine HAVE_SYS_TIME_H @HAVE_SYS_TIME_H@
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#cmakedefine HAVE_SYS_WAIT_H @HAVE_SYS_WAIT_H@
+
+/* The size of `double` as computed by sizeof. */
+#cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
+/* The size of `float` as computed by sizeof. */
+#cmakedefine SIZEOF_FLOAT @SIZEOF_FLOAT@
+/* The size of `int` as computed by sizeof. */
+#cmakedefine SIZEOF_INT @SIZEOF_INT@
+/* The size of `long` as computed by sizeof. */
+#cmakedefine SIZEOF_LONG @SIZEOF_LONG@
+/* The size of `long long` as computed by sizeof. */
+#cmakedefine SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
+/* The size of `off_t` as computed by sizeof. */
+#cmakedefine SIZEOF_OFF_T @SIZEOF_OFF_T@
+/* The size of `short` as computed by sizeof. */
+#cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
+/* The size of `size_t` as computed by sizeof. */
+#cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+/* The size of `uchar` as computed by sizeof. */
+#cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
+
+
+/* Set this when building a DLL under MinGW */
+#cmakedefine DLL_NETCDF
+/* Set this when DAP is enabled. */
+#cmakedefine ENABLE_DAP 
+
+#endif
