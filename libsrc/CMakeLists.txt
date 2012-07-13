@@ -5,6 +5,10 @@ INCLUDE_DIRECTORIES(".")
 
 
 
-SET(libsrc_SOURCES dim.c ffio.c lookup3.c memio.c mmap.c mmapio.c nc.c nc3dispatch.c ncFile.c ncio.c nclistmgr.c ncstdio.c ncx_cray.c posixio.c t_ncio.c t_ncx.c v1hpg.c var.c winceio.c)
+#SET(libsrc_SOURCES dim.c ffio.c lookup3.c memio.c mmap.c mmapio.c nc.c nc3dispatch.c ncFile.c ncio.c nclistmgr.c ncstdio.c ncx_cray.c posixio.c t_ncio.c t_ncx.c v1hpg.c var.c winceio.c)
+
+SET(libsrc_SOURCES v1hpg.c nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c lookup3.c ncio.c)
+
+
 
 add_library(netcdf3 ${libsrc_SOURCES}) 
