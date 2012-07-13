@@ -27,6 +27,13 @@ OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
 # Option to Build DAP Client
 OPTION (ENABLE_DAP "Enable DAP Client." OFF)
 
+# Option to use MMAP
+OPTION (BUILD_MMAP "Use MMAP." OFF)
+
+# Option to use Diskless
+OPTION (BUILD_DISKLESS "Build Diskless." OFF)
+
+
 # Option to Enable HDF4
 OPTION (USE_HDF4 "Use HDF4." OFF)
 IF (USE_HDF4) 
