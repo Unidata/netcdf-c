@@ -67,17 +67,18 @@ NCDISPATCH_initialize(void)
 const char*
 NC_findtestserver(const char* path)
 {
-    /* NCDAP_ping is defined in libdap2/ncdap3.c */
 #ifdef USE_DAP
+    /* NCDAP_ping is defined in libdap2/ncdap3.c */
     const char** svc;
     if(path == NULL) path = "";
     for(svc=servers;*svc != NULL;svc++) {
+        int stat;
         char url[4096];
 	snprintf(url,sizeof(url),"%s%s%s",
 			*svc,
 			(path[0] == '/' ? "" : "/"),
 			path);
-	int stat = NCDAP_ping(url);
+	stat = NCDAP_ping(url);
 	if(stat == NC_NOERR)
 	    return *svc;
     }
