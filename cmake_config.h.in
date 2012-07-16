@@ -91,7 +91,7 @@
 #cmakedefine ENABLE_DAP 
 
 /* Define to 1 if the system has the type `uchar'.*/ 
-#cmakedefine HAVE_UCHAR 1
+#cmakedefine HAVE_UCHAR 
 
 /* Define to 1 if the system has the type 'unsigned long long int'.*/
 #cmakedefine HAVE_UNSIGNED_LONG_LONG_INT 
