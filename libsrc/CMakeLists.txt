@@ -1,11 +1,20 @@
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(".")
-#INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
 
+# Process these files with m4.
+SET(m4_SOURCES attr ncx putget t_ncxx)
+MACRO(GEN_m4 filename)
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+		COMMAND m4 ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+		VERBATIM
+	)
+ENDMACRO(GEN_m4)
 
-
-#SET(libsrc_SOURCES dim.c ffio.c lookup3.c memio.c mmap.c mmapio.c nc.c nc3dispatch.c ncFile.c ncio.c nclistmgr.c ncstdio.c ncx_cray.c posixio.c t_ncio.c t_ncx.c v1hpg.c var.c winceio.c)
+foreach (f ${m4_SOURCES})
+	GEN_m4(${f})
+endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c lookup3.c ncio.c)
 
@@ -19,6 +28,26 @@ ENDIF (BUILD_DISKLESS)
 
 IF (USE_FFIO)
    SET(libsrc_SOURCES ${libsrc_SOURCES} ffio.c)
+ELSE (USE_FFIO)
+   SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
 ENDIF (USE_FFIO)
 
 add_library(netcdf3 ${libsrc_SOURCES}) 
+
+# The C API man page.
+set(man_MANS netcdf.3)
+
+set(ARGS_MANPAGE -DAPI=C)
+
+IF (USE_NETCDF4)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+ENDIF(USE_NETCDF4)
+
+IF (BUILD_DAP)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
+ENDIF(BUILD_DAP)
+
+IF (BUILD_PARALLEL)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
+ENDIF(BUILD_PARALLEL)
+

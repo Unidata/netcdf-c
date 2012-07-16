@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.6)
 #Project Name
 project(NETCDF C)
 ADD_DEFINITIONS()
-
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 #Add custom CMake Modules
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
     CACHE INTERNAL "Location of our custom CMake modules.")
@@ -45,6 +45,14 @@ ENDIF (USE_HDF4)
 FIND_PACKAGE (CURL)
 FIND_PACKAGE (HDF5)
 FIND_PACKAGE (ZLIB)
+
+# Enable some additional flags.
+IF (DLL_NETCDF)
+	SET(BUILD_DLL ON)
+	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
+ENDIF (DLL_NETCDF)
+
+
 
 ## Beging autotools-style checks for config.h
 
@@ -105,7 +113,7 @@ SET (NETCDF_LIB_CORENAME	"netcdf")
 #add_subdirectory(man4)
 #add_subdirectory(man4/images)
 add_subdirectory(libsrc)
-#add_subdirectory(libsrc4)
+add_subdirectory(libsrc4)
 #add_subdirectory(nc_test4)
 #add_subdirectory(nc_test)
 #add_subdirectory(ncdump)

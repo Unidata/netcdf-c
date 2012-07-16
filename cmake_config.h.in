@@ -86,11 +86,17 @@
 
 /* Set this when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF
+#cmakedefine BUILD_DLL
 /* Set this when DAP is enabled. */
 #cmakedefine ENABLE_DAP 
 
+/* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 1
 
-#include <ncconfigure.h>
+/* Define to 1 if the system has the type 'unsigned long long int'.*/
+#cmakedefine HAVE_UNSIGNED_LONG_LONG_INT 
 
+#cmakedefine HAVE_LONG_LONG_INT
+
+#include <ncconfigure.h>
 #endif
