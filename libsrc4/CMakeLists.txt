@@ -8,7 +8,14 @@ SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4file.c nc4grp.c nc4type.
 
 add_library(netcdf4 ${libsrc4_SOURCES}) 
 
+###
+# Options related to the man page generation.
+###
+
+###
 # The C API man page.
+###
+
 set(man_MANS netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)

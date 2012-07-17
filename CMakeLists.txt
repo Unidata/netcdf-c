@@ -3,13 +3,18 @@ cmake_minimum_required(VERSION 2.8.6)
 
 #Project Name
 project(NETCDF C)
+SET(PACKAGE_VERSION 4.2.1-rc1)
 ADD_DEFINITIONS()
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+
+### Verbose make, for debugging.
+#SET(CMAKE_VERBOSE_MAKEFILE ON)
+
 #Add custom CMake Modules
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
     CACHE INTERNAL "Location of our custom CMake modules.")
 
-# Configure type checks
+# Configure-type checks
+INCLUDE (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
@@ -17,9 +22,18 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 
-
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
+# HDF5 cache variables.
+SET (DEFAULT_CHUNK_SIZE 4194304)
+SET (DEFAULT_CHUNKS_IN_CACHE 10)
+SET (CHUNK_CACHE_SIZE 4194304)
+SET (CHUNK_CACHE_NELEMS 1009)
+SET (CHUNK_CACHE_PREEMPTION 0.75)
+SET (MAX_DEFAULT_CACHE_SIZE 67108864)
+#OPTION (DEFAULT_CHUNK_SIZE "Default Chunk Cache Size." 4194304)
+#OPTION (CHUNK_CACHE_SIZE "Default Chunk Cache Size." 4194304)
+#OPTION (CHUNK_CACHE_NELEMS "Default maximum number of elements in cache." 1009)
+#OPTION (CHUNK_CACHE_PREEMPTION "Default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive." 0.75)
 
 # Option to Build DLL
 OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
@@ -33,29 +47,55 @@ OPTION (BUILD_MMAP "Use MMAP." OFF)
 # Option to use Diskless
 OPTION (BUILD_DISKLESS "Build Diskless." OFF)
 
+# Option Logging, only valid for netcdf4. 
+OPTION (LOGGING "Enable Logging." OFF)
 
-# Option to Enable HDF4
+# Option to le HDF4
 OPTION (USE_HDF4 "Use HDF4." OFF)
 IF (USE_HDF4) 
    FIND_PACKAGE(HDF4)
+   IF(NOT HDF4_FOUND)
+	MESSAGE(FATAL_ERROR "HDF4 Support specified, but HDF4 libraries were not found.")
+   ENDIF(NOT HDF4_FOUND)
+   CHECK_INCLUDE_FILE("mfhdf.h"	HAVE_MFHDF_H)
+   IF(NOT HAVE_MFHDF_H)
+	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
+   ENDIF(NOT HAVE_MFHDF_H) 
 ENDIF (USE_HDF4)
 
+# Option to Enable HDF5
+OPTION (USE_HDF5 "Use HDF5." OFF)
+IF (USE_HDF5)
+   FIND_PACKAGE(HDF5)
+   IF(NOT HDF5_FOUND)
+	MESSAGE(FATAL_ERROR "HDF5 Not Found")
+   ENDIF(NOT HDF5_FOUND)
+   CHECK_INCLUDE_FILE("hdf5.h" HAVE_HDF5_H)
+   IF(NOT HAVE_HDF5_H)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5.h")
+   ENDIF(NOT HAVE_HDF5_H)
+   
+   CHECK_LIBRARY_EXISTS(hdf5_hl H5DSis_scale "" HAVE_HDF5_HL)
+   IF(NOT HAVE_HDF5_HL)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot link against hdf5_hl")
+   ENDIF(NOT HAVE_HDF5_HL)
+   
+   SET(H5_USE_16_API 1)
+
+ENDIF (USE_HDF5)
 # Packages to include
 
-FIND_PACKAGE (CURL)
-FIND_PACKAGE (HDF5)
-FIND_PACKAGE (ZLIB)
+#FIND_PACKAGE (CURL)
+#FIND_PACKAGE (ZLIB)
 
 # Enable some additional flags.
 IF (DLL_NETCDF)
 	SET(BUILD_DLL ON)
-	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
+	#SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
+	ADD_DEFINITION(-DDLL_EXPORT)
 ENDIF (DLL_NETCDF)
 
-
-
-## Beging autotools-style checks for config.h
-
+# Library checks
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("dirent.h"	 HAVE_DIRENT_H)
@@ -63,7 +103,6 @@ CHECK_INCLUDE_FILE("dlfcn.h"	 HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE("errno.h"	 HAVE_ERRNO_H)
 CHECK_INCLUDE_FILE("fcntl.h"	 HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("getopt.h"	 HAVE_GETOPT_H)
-CHECK_INCLUDE_FILE("hdf5.h"	 HAVE_HDF5_H)
 CHECK_INCLUDE_FILE("stdbool.h"	 HAVE_STDBOOL_H)
 CHECK_INCLUDE_FILE("locale.h"	 HAVE_LOCAL_H)
 CHECK_INCLUDE_FILE("stdint.h"	 HAVE_STDINT_H)
@@ -77,7 +116,9 @@ CHECK_INCLUDE_FILE("sys/stat.h"	 HAVE_SYS_STAT_H)
 CHECK_INCLUDE_FILE("sys/time.h"	 HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("sys/wait.h"	 HAVE_SYS_WAIT_H)
+CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 
+# Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
 CHECK_TYPE_SIZE("float"		 SIZEOF_FLOAT)
 CHECK_TYPE_SIZE("int"		 SIZEOF_INT)
@@ -89,6 +130,7 @@ CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 
 
+# Option for file cache size for HDF5
 
 # Create config.h file
 configure_file("${NETCDF_SOURCE_DIR}/cmake_config.h.in"
@@ -106,14 +148,21 @@ SET (NETCDF_LIB_CORENAME	"netcdf")
 #---
 # Set the true names of all the libraries, if customized by external project
 #---
+INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/oc)
 
 # Recurse into other subdirectories.
 #add_subdirectory(include)
 #add_subdirectory(h5_test)
 #add_subdirectory(man4)
 #add_subdirectory(man4/images)
+add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
+
+IF (USE_HDF5)
 add_subdirectory(libsrc4)
+ENDIF (USE_HDF5)
+
 #add_subdirectory(nc_test4)
 #add_subdirectory(nc_test)
 #add_subdirectory(ncdump)

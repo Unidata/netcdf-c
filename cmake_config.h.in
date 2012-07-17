@@ -1,6 +1,22 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+/* Cache Size, other variables for HDF5 */
+#define DEFAULT_CHUNK_SIZE	${DEFAULT_CHUNK_SIZE}
+#define DEFAULT_CHUNKS_IN_CACHE	${DEFAULT_CHUNKS_IN_CACHE}
+#define CHUNK_CACHE_SIZE 	${CHUNK_CACHE_SIZE}
+#define CHUNK_CACHE_NELEMS 	${CHUNK_CACHE_NELEMS}
+#define CHUNK_CACHE_PREEMPTION 	${CHUNK_CACHE_PREEMPTION}
+#define MAX_DEFAULT_CACHE_SIZE	${MAX_DEFAULT_CACHE_SIZE}
+
+#define PACKAGE_VERSION "${PACKAGE_VERSION}"
+
+/* For HDF5 use. */
+#cmakedefine H5_USE_16_API 1
+
+/* Enable Logging, only valid for netcdf 4. */
+#cmakedefine LOGGING 1
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
 
@@ -24,6 +40,9 @@
 
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H @HAVE_HDF5_H@
+
+/* Define to 1 if you have the <hdf5_hl.h> header file. */
+#cmakedefine HAVE_HDF5_HL_H @HAVE_HDF5_HL_H@
 
 /* Define to 1 if you have the <stdbool.h> header file. */
 #cmakedefine HAVE_STDBOOL_H @HAVE_STDBOOL_H@
@@ -64,6 +83,9 @@
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #cmakedefine HAVE_SYS_WAIT_H @HAVE_SYS_WAIT_H@
 
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */
@@ -92,11 +114,6 @@
 
 /* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 
-
-/* Define to 1 if the system has the type 'unsigned long long int'.*/
-#cmakedefine HAVE_UNSIGNED_LONG_LONG_INT 
-
-#cmakedefine HAVE_LONG_LONG_INT
 
 #include <ncconfigure.h>
 #endif
