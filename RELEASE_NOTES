@@ -8,8 +8,12 @@ VERSION         COMMENTS
 -------         --------
 4.2.1           Released 2012-??-??
 
-		Added a Nspecific NC_MMAP mode flag to modify
+		Added a specific NC_MMAP mode flag to modify
                 behavior of NC_DISKLESS.
+
+		Changed the file protections for NC_DISKLESS
+		created files to 0666
+		[NCF-182]
 
 4.2.1-rc1       Released 2012-06-18
 
