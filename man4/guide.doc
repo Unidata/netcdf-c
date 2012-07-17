@@ -2833,7 +2833,7 @@ The bm_file program is controlled with command line options.
 
 \page cdl_syntax CDL Syntax
 
-Below is an example of CDL, describing a netCDF dataset with several
+Below is an example of CDL, describing a netCDF classic format file with several
 named dimensions (lat, lon, time), variables (z, t, p, rh, lat, lon,
 time), variable attributes (units, _FillValue, valid_range), and some
 data.
@@ -2907,13 +2907,20 @@ separated by a colon (':'). It is possible to assign global attributes
 to the netCDF dataset as a whole by omitting the variable name and
 beginning the attribute name with a colon (':'). The data type of an
 attribute in CDL, if not explicitly specified, is derived from the
-type of the value assigned to it. The length of an attribute is the
-number of data values or the number of characters in the character
-string assigned to it. Multiple values are assigned to non-character
-attributes by separating the values with commas (','). All values
-assigned to an attribute must be of the same type. In the netCDF-4
+type of the value assigned to it. In the netCDF-4
 enhanced model, attributes may be declared to be of user-defined type,
 like variables.
+
+The length of an attribute is the number of data values assigned to
+it.  Multiple values are assigned to non-character attributes by
+separating the values with commas (',').  All values assigned to an
+attribute must be of the same type.  In the classic data model,
+character arrays are used for textual information, so the length of a
+character attribute is the number of character values, and an array of
+character values can be represented in string notation.  In the
+enhanced data model of netCDF-4, variable-length strings are available
+as a primitive type, and the length of a string attribute is the
+number of string values assigned to it.
 
 In CDL, just as for netCDF, the names of dimensions, variables and
 attributes (and, in netCDF-4 files, groups, user-defined types,
@@ -2933,8 +2940,9 @@ reserved for path names of nested groups). In CDL, most special
 characters are escaped with a backslash '\' character, but that
 character is not actually part of the netCDF name. The special
 characters that do not need to be escaped in CDL names are underscore
-'_', period '.', plus '+', hyphen '-', or at sign '@'. For the formal
-specification of CDL name syntax See Format. Note that by using
+'_', period '.', plus '+', hyphen '-', or at sign '@'.  The formal
+specification of CDL name syntax is provided in the classic format
+specification (see \ref classic_format).  Note that by using
 special characters in names, you may make your data not compliant with
 conventions that have more stringent requirements on valid names for
 netCDF components, for example the CF Conventions.
@@ -2958,7 +2966,7 @@ matrices. If fewer values are supplied than are needed to fill a
 variable, it is extended with the fill value. The types of constants
 need not match the type declared for a variable; coercions are done to
 convert integers to floating point, for example. All meaningful type
-conversions among primitive types are supported.
+conversions among numeric primitive types are supported.
 
 A special notation for fill values is supported: the ‘_’ character
 designates a fill value for variables.
@@ -2983,13 +2991,20 @@ NetCDF-4 supports the additional primitive types:
 - uint64 - Unsigned 64-bit singed integers.
 - string - Variable-length string of characters 
 
-Except for the added data-type byte, CDL supports the same primitive
+Except for the added numeric data-types byte and ubyte, CDL supports
+the same numeric primitive
 data types as C. For backward compatibility, in declarations primitive
 type names may be specified in either upper or lower case.
 
 The byte type differs from the char type in that it is intended for
 numeric data, and the zero byte has no special significance, as it may
-for character data. The short type holds values between -32768 and
+for character data. In the classic data model, byte data could be
+interpreted as either signed (-128 to 127) or unsigned (0 to
+255). When reading byte data in a way that converts it into another
+numeric type, the default interpretation is signed.  The netCDF-4
+enhanced data model added an unsigned byte type.
+
+The short type holds values between -32768 and
 32767. The ushort type holds values between 0 and 65536. The int type
 can hold values between -2147483648 and 2147483647. The uint type
 holds values between 0 and 4294967296. The int64 type can hold values
@@ -3003,6 +3018,23 @@ floating-point numbers. The double type can hold values between about
 standard normalized double-precision, floating-point numbers. The
 string type holds variable length strings.
 
+A netCDF-4 string is a variable length array of Unicode
+<http://unicode.org/> characters. When reading/writing a String to a
+netCDF file or other external representation, the characters are UTF-8
+encoded <http://en.wikipedia.org/wiki/UTF-8> (note that ASCII is a
+subset of UTF-8). Libraries may use different internal
+representations, for example the Java library uses UTF-16 encoding.
+
+The netCDF char type contains uninterpreted characters, one character
+per byte.  Typically these contain 7-bit ASCII characters, but the
+character encoding is application specific. For this reason,
+applications writing data using the enhanced data model are encouraged
+to use the netCDF-4 string data type in preference to the char data
+type.  Applications writing string data using the char data type are
+encouraged to add the special variable attribute "_Encoding" with a
+value that the netCDF libraries recognize. Currently those valid
+values are "UTF-8" or "ASCII", case insensitive.
+
 \page cdl_constants CDL Notation for Data Constants
 
 This section describes the CDL notation for constants.
@@ -3015,24 +3047,26 @@ distinguishing among different netCDF primitive types. The syntax for
 CDL constants is similar to C syntax, with type suffixes appended to
 bytes, shorts, and floats to distinguish them from ints and doubles.
 
-A byte constant is represented by a single character or multiple
-character escape sequence enclosed in single quotes. For example:
+A byte constant is represented by an integer constant with a 'b' (or
+'B') appended.  In the old netCDF-2 API, byte constants could also be
+represented using single characters or standard C character escape
+sequences such as 'a' or '\n'.  This is still supported for backward
+compatibility, but deprecated to make the distinction clear between
+the numeric byte type and the textual char type.  Example byte
+constants include:
 
 \code
-     'a'     // ASCII a
-     '\0'    // a zero byte
-     '\n'    // ASCII newline character
-     '\33'   // ASCII escape character (33 octal)
-     '\x2b'  // ASCII plus (2b hex)
-     '\376'  // 377 octal = -127 (or 254) decimal
+     0b      // a zero byte
+     -1b     // -1 as an 8-bit byte
+     255b    // also -1 as a signed 8-bit byte
 \endcode
 
 Character constants are enclosed in double quotes. A character array
-may be represented as a string enclosed in double quotes. Multiple
+may be represented as a string enclosed in double quotes. Multiple CDL
 strings are concatenated into a single array of characters, permitting
 long character arrays to appear on multiple lines. To support multiple
-variable-length string values, a conventional delimiter such as ','
-may be used, but interpretation of any such convention for a string
+variable-length textual values, a conventional delimiter such as ','
+or blank may be used, but interpretation of any such convention for a
 delimiter must be implemented in software above the netCDF library
 layer. The usual escape conventions for C strings are honored. For
 example:
@@ -3040,7 +3074,7 @@ example:
 \code
      "a"            // ASCII 'a'
      "Two\nlines\n" // a 10-character string with two embedded newlines
-     "a bell:\007"  // a string containing an ASCII bell
+     "a bell:\007"  // a character array containing an ASCII bell
      "ab","cde"     // the same as "abcde"
 \endcode
 
@@ -3094,6 +3128,32 @@ acceptable double constants:
      1.0e-20
      1.d
 \endcode
+
+Unsigned integer constants can be created by appending the character
+'U' or 'u' between the constant and any trailing size specifier.  Thus
+one could say 10U, 100us, 100000ul, or 1000000ull, for example.
+
+Constants for the variable-length string type, available as a
+primitive type in the netCDF-4 enhanced data model are, like character
+constants, represented using double quotes. This represents a
+potential ambiguity since a multi-character string may also indicate a
+dimensioned character value. Disambiguation usually occurs by context,
+but care should be taken to specify the string type to ensure the
+proper choice.  For example, these two CDL specifications of global
+attributes have different types:
+
+\code
+   :att1 = "abcd", "efg" ;       // a char attribute of length 7
+   string :att2 = "abcd", efg" ; // a string attribute of length 2
+\endcode
+
+Opaque constants are represented as sequences of hexadecimal digits
+preceded by 0X or 0x: 0xaa34ffff, for example.  These constants can
+still be used as integer constants and will be either truncated or
+extended as necessary.
+
+The ncgen man-page reference has more details about CDL representation
+of constants of user-defined types.
 
 \page guide_ncgen ncgen
 
@@ -3166,9 +3226,6 @@ the corresponding binary .nc file. The arguments to the -l flag can be
 as follows.
         c|C => C language output.
         f77|fortran77 => FORTRAN 77 language output; note that currently only the classic model is supported for fortran output.
-        cml|CML => (experimental) NcML language output
-        j|java => (experimental) Java language output; the generated java code targets the existing Unidata Java interface, which means that only the classic model is supported. 
-
 
 -x
 Use “no fill” mode, omitting the initialization of variable values
@@ -3197,7 +3254,7 @@ function invocations that will create an equivalent binary netCDF
 dataset:
 
 \code
-     ncgen -c foo.cdl > foo.c
+     ncgen -l c foo.cdl > foo.c
 \endcode
 
 \page guide_ncdump ncdump
@@ -4426,6 +4483,9 @@ ignored by the netCDF-4 API.
   dimension scale API.
 - NAME This attribute is created and maintained by the HDF5 dimension
   scale API.
+- _Netcdf4Dimid Holds a scalar H5T_NATIVE_INT that is the (zero-based) 
+  dimension ID for this dimension, needed when dimensions and
+  coordinate variables are defined in different orders.
 
 \section user_defined_spec User-Defined Data Types
 

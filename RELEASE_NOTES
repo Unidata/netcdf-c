@@ -1,21 +1,28 @@
 This file contains a high-level description of this package's
 evolution.  Releases are in reverse chronological order (most recent
-first).  Recent releases include references to Jira issue identifiers
+first).	 Recent releases include references to Jira issue identifiers
 for more information, where '[NCF-XXX]' refers to
 https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
-VERSION         COMMENTS
--------         --------
-4.2.1           Released 2012-??-??
+VERSION		COMMENTS
+-------		--------
+4.2.1		Released 2012-07-18
 
 		Added a specific NC_MMAP mode flag to modify
-                behavior of NC_DISKLESS.
+		behavior of NC_DISKLESS.
 
 		Changed the file protections for NC_DISKLESS
 		created files to 0666
 		[NCF-182]
 
-4.2.1-rc1       Released 2012-06-18
+		Fixed ncdump to report error when an unsupported
+		option is specified.
+		[NCF-180]
+
+		Fixed documentation of CDL char constants in Users
+		Guide and ncgen man page.
+
+4.2.1-rc1	Released 2012-06-18
 
 		Ported static and shared libraries (DLL's) for both
 		32- and 64-bit Windows, including support for DAP
@@ -23,19 +30,19 @@ VERSION         COMMENTS
 		enabled.  The environment for this build is
 		MSYS/MinGW/MinGW64, but the resulting DLLs may be used
 		with Visual Studio.
-                [NCF-112][NCF-54][NCF-57][NCF-65]
+		[NCF-112][NCF-54][NCF-57][NCF-65]
 
-                Implemented diskless files for all netCDF formats. For
-                nc_create(), diskless operation performs all
-                operations in memory and then optionally persists the
-                results to a file on close.  For nc_open(), but only
-                for netcdf classic files, diskless operation caches
-                the file in-memory, performs all operations on the
-                memory resident version and then writes all changes
-                back to the original file on close.
-                [NCF-110][NCF-109][NCF-5]
+		Implemented diskless files for all netCDF formats. For
+		nc_create(), diskless operation performs all
+		operations in memory and then optionally persists the
+		results to a file on close.  For nc_open(), but only
+		for netcdf classic files, diskless operation caches
+		the file in-memory, performs all operations on the
+		memory resident version and then writes all changes
+		back to the original file on close.
+		[NCF-110][NCF-109][NCF-5]
 
-                Added MMAP support. If diskless file support is
+		Added MMAP support. If diskless file support is
 		enabled, then it is possible to enable implementation
 		of diskless files using the operating system's MMAP
 		facility (if available). The enabling flag is
@@ -43,93 +50,93 @@ VERSION         COMMENTS
 		nc_open() and when only parts of files, a single
 		variable say, need to be read.
 
-                Added configure flag for --disable-diskless.
+		Added configure flag for --disable-diskless.
 
-                Added nccopy command-line options to exploit diskless
-                files, resulting in large speedups for some
-                operations, for example converting unlimited dimension
-                to fixed size or rechunking files for faster access.
-                Upgraded doxygen and man-page documentation for ncdump
-                and nccopy utilities, including new -w option for
-                diskless nccopy, with an example.  
+		Added nccopy command-line options to exploit diskless
+		files, resulting in large speedups for some
+		operations, for example converting unlimited dimension
+		to fixed size or rechunking files for faster access.
+		Upgraded doxygen and man-page documentation for ncdump
+		and nccopy utilities, including new -w option for
+		diskless nccopy, with an example.  
 
 		Modified Makefile to allow for concurrent builds and
 		to support builds outside the source tree, e.g. 
-  		'mkdir build; cd build; SOURCE-DIR/configure' where
+		'mkdir build; cd build; SOURCE-DIR/configure' where
 		SOURCE-DIR is the top-level source directory.
 
-                Fixed some netCDF-4 bugs with handling strings in
-                non-netCDF-4 HDF5 files.
-                [NCF-150]
+		Fixed some netCDF-4 bugs with handling strings in
+		non-netCDF-4 HDF5 files.
+		[NCF-150]
 
-                Fixed bug using nccopy to compress with shuffling that
-                doesn't compress output variables unless they were
-                already compressed in the input file.  
-                [NCF-162]
+		Fixed bug using nccopy to compress with shuffling that
+		doesn't compress output variables unless they were
+		already compressed in the input file.  
+		[NCF-162]
 
-                Fixed bug in 64-bit offset files with large records,
-                when last record variable requires more than 2**32
-                bytes per record.  
-                [NCF-164]
+		Fixed bug in 64-bit offset files with large records,
+		when last record variable requires more than 2**32
+		bytes per record.  
+		[NCF-164]
  
-                Fix bug in which passing a NULL path to nc_open causes failure.
-                [NCF-173]
+		Fix bug in which passing a NULL path to nc_open causes failure.
+		[NCF-173]
 
-                Fixed ncgen bugs in parsing and handling opaque data.
+		Fixed ncgen bugs in parsing and handling opaque data.
 
-                Fixed ncdump bug, not escaping characters special to CDL
-                in enumeration labels. 
-                [NCF-169]
+		Fixed ncdump bug, not escaping characters special to CDL
+		in enumeration labels. 
+		[NCF-169]
 
-                Fixed bug reading netCDF int into a C longlong or
-                writing from longlong to external int on 32-bit
-                platforms with classic format files.  The upper 32
-                bits of the longlong were not cleared on read or used
-                on write.  
-                [NCF-171]
+		Fixed bug reading netCDF int into a C longlong or
+		writing from longlong to external int on 32-bit
+		platforms with classic format files.  The upper 32
+		bits of the longlong were not cleared on read or used
+		on write.  
+		[NCF-171]
 
-                Resolved some erroneous returns of BADTYPE errors and
-                RANGE errors due to conflating C memory types with
-                external netCDF types when accessing classic or 64-bit
-                offset files.  
-                [NCF-172]
+		Resolved some erroneous returns of BADTYPE errors and
+		RANGE errors due to conflating C memory types with
+		external netCDF types when accessing classic or 64-bit
+		offset files.  
+		[NCF-172]
 
-                Fixed bug with ncdump -t interpreting unit attribute
-                without base time as a time unit.
-                [NCF-175]
+		Fixed bug with ncdump -t interpreting unit attribute
+		without base time as a time unit.
+		[NCF-175]
 
-                Changed port for testing remote access test server to
-                increase reliability of tests.
+		Changed port for testing remote access test server to
+		increase reliability of tests.
 
-                Modified ncio mechanism to support multiple ncio
-                packages, so that it is possible to have e.g. posixio
-                and memio operating at the same time.
-                
-                Generation of documentation is disabled by default. Use
-                --enable-doxygen to generate.
-                [NCF-168]
+		Modified ncio mechanism to support multiple ncio
+		packages, so that it is possible to have e.g. posixio
+		and memio operating at the same time.
+		
+		Generation of documentation is disabled by default. Use
+		--enable-doxygen to generate.
+		[NCF-168]
 
-                Added description of configure flags to installation
-                guide.
+		Added description of configure flags to installation
+		guide.
 
-                Clarified documentation of arguments to nc__open() and
-                nc__create() and their default values.
+		Clarified documentation of arguments to nc__open() and
+		nc__create() and their default values.
 
-                Fixed doxygen installation guide source file to
-                preserve line breaks in code and scripts.
-                [NCF-174]
+		Fixed doxygen installation guide source file to
+		preserve line breaks in code and scripts.
+		[NCF-174]
 
-                Cleaned up a bunch of lint issues (unused variables,
-                etc.) and some similar problems reported by clang
-                static analysis.
+		Cleaned up a bunch of lint issues (unused variables,
+		etc.) and some similar problems reported by clang
+		static analysis.
 
-                Updated and fixed pkg-config source file netcdf.pc.in
-                to work with separated netCDF language-specific
-                packages.  Also fixed nc-config to call nf-config,
-                ncxx-config, and ncxx4-config for for backward
-                compatibility with use of nc-config in current
-                Makefiles.
-                [NCF-165] [NCF-179]
+		Updated and fixed pkg-config source file netcdf.pc.in
+		to work with separated netCDF language-specific
+		packages.  Also fixed nc-config to call nf-config,
+		ncxx-config, and ncxx4-config for for backward
+		compatibility with use of nc-config in current
+		Makefiles.
+		[NCF-165] [NCF-179]
 
 4.2		Released 2012-03-19 (Note: Jira entries include reference to '[NCF-XX]')
 
@@ -142,13 +149,13 @@ VERSION         COMMENTS
 		with many records and large disk block size or many
 		record variables, by accessing data a record at a time
 		instead of a variable at a time.
-  		[NCF-142]
+		[NCF-142]
 
 		Performance improvement to DAP code to support
-                fetching partial variables into the cache; especially
-                important when using nc_get_var() API.
-                A partial variable is one that has ranges attached
-                to the projection variables (e.g. x[1:10][20:21])
+		fetching partial variables into the cache; especially
+		important when using nc_get_var() API.
+		A partial variable is one that has ranges attached
+		to the projection variables (e.g. x[1:10][20:21])
 		[NCF-157]
 
 		Separate the Fortran and C++ libraries and release
@@ -163,16 +170,16 @@ VERSION         COMMENTS
 
 		Fixed major wasted space from previous default variable
 		chunk sizes algorithm.
-                [NCF-81]
+		[NCF-81]
 
 		Fixed bug in nccopy, in which compression and chunking
 		options were ignored for netCDF-4 input files.
 		[NCF-79]
 
-	        Fixed bug in ncgen in which large variables
-                (more than 2**18 elements) duplicates the first
-                2**18 values into subsequent chunks of data
-                [NCF-154].
+		Fixed bug in ncgen in which large variables
+		(more than 2**18 elements) duplicates the first
+		2**18 values into subsequent chunks of data
+		[NCF-154].
 
 		Applied Greg Sjaardema's nccopy bug fix, not
 		compressing output variables f they were not already
@@ -185,17 +192,17 @@ VERSION         COMMENTS
 		[NCF-103]
 
 		Fixed behavior of ncgen flags so that -o => -lb
-                and, in the absence of any other markers, make
-                the default be -k1
-                [NCF-158]
+		and, in the absence of any other markers, make
+		the default be -k1
+		[NCF-158]
 
 		Created a text INSTALL file for netCDF-4.2 release.
 		[NCF-161]
 
 		Fixed bug in ncgen for vlen arrays as fields
-                of compound types where datalists for those
-                types was improperly interpreted
-                [NCF-145] (but see NCF-155).
+		of compound types where datalists for those
+		types was improperly interpreted
+		[NCF-145] (but see NCF-155).
 
 		Improve use of chunk cache in nccopy utility, making it
 		practical for rechunking large files.
@@ -236,7 +243,7 @@ VERSION         COMMENTS
 		Fixed turning off fill values in HDF5 layers when NOFILL
 		mode is set in netCDF-4 API (thanks to Karen
 		Schuchardt).
-		[NCF-151] 		
+		[NCF-151]		
 
 		Fixed bug with scalar coordinate variables in netCDF-4
 		files, causing failure with --enable-extra-tests
@@ -426,7 +433,7 @@ VERSION         COMMENTS
 		cost of maintaining this non-standard way of finding
 		libraries.
 
-4.1.2          2011-03-29
+4.1.2	       2011-03-29
 
 		Changes in build system to support building dlls on
 		cygwin/mingw32.
@@ -516,7 +523,7 @@ VERSION         COMMENTS
 		64-bit offset format and accessing multidimensional
 		variables with more than 2**32 values.
 
-4.1.1          2010-04-01
+4.1.1	       2010-04-01
 
 		Fixed various build issues.
 
@@ -530,7 +537,7 @@ VERSION         COMMENTS
 
 		Added new C++ API from Lynton Appel.
 
-4.1            2010-01-30
+4.1	       2010-01-30
 
 		Much better memory leak checking with valgrind.
 
@@ -611,7 +618,7 @@ VERSION         COMMENTS
 		dimension scales, and be readable to netCDF-4.
 
 		Handle duplicate type names within different groups in
-		ncdump.  Fix group path handling in absolute and
+		ncdump.	 Fix group path handling in absolute and
 		relative variable names for "-v" option.
 
 		Added nc-config shell script to help users build
@@ -626,7 +633,7 @@ VERSION         COMMENTS
 
 		The nc_inq_type() function now works for primitive types.
 
-4.0.1          2009-03-26
+4.0.1	       2009-03-26
 
 		Added optional arguments to F90 API to
 		nf90_open/create, nf90_create_var, and
@@ -715,10 +722,10 @@ VERSION         COMMENTS
 		--enable-opendap to build it).
 
 		Fixed ncdump bugs with array field members of compound
-		type variables.  Fixed ncdump bug of assuming default
+		type variables.	 Fixed ncdump bug of assuming default
 		fill value for data of type unsigned byte.
 		
-4.0            2008-05-31
+4.0	       2008-05-31
 		
 		Introduced the use of HDF5 as a storage layer, which
 		allows use of groups, user-defined types, multiple
@@ -726,11 +733,11 @@ VERSION         COMMENTS
 		parallel I/O, and other features. See the netCDF
 		Users Guide for more information.
 
-3.6.3          2008-05-31
+3.6.3	       2008-05-31
 
 		In ncdump and ncgen, added CDL support for UTF-8
 		encoding of characters in names and for escaped
-		special chars in names.  Made sure UTF-8 names are
+		special chars in names.	 Made sure UTF-8 names are
 		normalized using NFC rules before storing or
 		comparing.
 
@@ -777,7 +784,7 @@ VERSION         COMMENTS
 		Turned on some old test programs which were not being
 		used in the build.
 
-3.6.2          2007-03-05
+3.6.2	       2007-03-05
 
 		Released.
 
@@ -822,7 +829,7 @@ VERSION         COMMENTS
 
 		Fix a long-standing bug in nf90_get_att_text() pointed
 		out by Ryo Furue, to make sure resulting string is
-		blank-padded on return.  This is fixed in the
+		blank-padded on return.	 This is fixed in the
 		Fortran-90 interface, but is impractical to fix in the
 		Fortran-77 interface implemented via cfortran.h.
 
@@ -887,7 +894,7 @@ VERSION         COMMENTS
 		interface instead of the older netCDF-2 C interface.
 		This has the added benefit that on-the-fly numeric
 		conversions are now supported using get methods, for
-		example you can get data of any type as double.  When
+		example you can get data of any type as double.	 When
 		using --disable-v2 flag to configure, the C++
 		interface can now be built and installed.
 
@@ -947,11 +954,11 @@ VERSION         COMMENTS
 		bytes longer than necessary if there is exactly one
 		record variable of type byte, char, or short and if
 		the number of values per record for that variable is
-		not divisible by 4 (or 2 in the case of short).  Now
+		not divisible by 4 (or 2 in the case of short).	 Now
 		the filesize determined from header info by
 		NC_calcsize should be correct in all cases.
 
-3.6.1           2006-01-31
+3.6.1		2006-01-31
 
 		Updated installation manual for 3.6.1.
        
@@ -989,9 +996,9 @@ VERSION         COMMENTS
 		Add analogous interfaces for nf_inq_format(),
 		nf90_inquire(), and NcFile::get_format() to f77, f90,
 		and C++ interfaces.  Document new function in texinfo
-		files.  Add minimal test to nc_test, nf_test.
+		files.	Add minimal test to nc_test, nf_test.
 
-3.6.1-beta3     2005-02-17
+3.6.1-beta3	2005-02-17
 
 		Added function nc_get_format(int ncid, int* formatp)
 		that returns either NC_FORMAT_CLASSIC or
@@ -1003,17 +1010,17 @@ VERSION         COMMENTS
 
 		Correctly configure for Intel ifort Fortran compiler on Linux.
 
-3.6.0-p1        2005-02-18
+3.6.0-p1	2005-02-18
 
 		Fixed bug that changes CDF2 files to CDF1 files if CDF2
 		file is reopened for write access and either an
 		attribute is changed or define mode is entered.
 
-3.6.1-beta2     2005-1-6
+3.6.1-beta2	2005-1-6
        
 		Fixed absoft compile problem. Maybe.
 
-3.6.1-beta1     2005-1-3
+3.6.1-beta1	2005-1-3
 
 		Fixed Cygwin C++ problem.
 
@@ -1021,7 +1028,7 @@ VERSION         COMMENTS
 
 		More information in installation and porting guide.
 
-3.6.0           2004-12-16
+3.6.0		2004-12-16
 
 		Added texinfo source for the documentation.
 
@@ -1043,7 +1050,7 @@ VERSION         COMMENTS
 		NAGWare f95 compiler.  Also fixed bugs introduced in
 		3.6.0-beta5 in the mapped array interfaces.
 
-3.6.0-beta6     2004-10-05
+3.6.0-beta6	2004-10-05
 
 		Fixed AIX 64-bit/largefile install problems.
 
@@ -1051,7 +1058,7 @@ VERSION         COMMENTS
 		deference to online version that can be kept up to
 		date more easily.
 
-3.6.0-beta5     2004-10-04
+3.6.0-beta5	2004-10-04
 
 		Fixed assertion violation on 64-bit platforms when
 		size of last fixed size variable exceeds 2^32 - 1.
@@ -1079,7 +1086,7 @@ VERSION         COMMENTS
 		Add "extra_test" as a target for testing Large File
 		Support.
 
-3.6.0-beta3     2004-08-24
+3.6.0-beta3	2004-08-24
 
 		Upgraded to recent autoconf, changed configure to 
 		(hopefully) improve installation. Also added macros
@@ -1095,8 +1102,8 @@ VERSION         COMMENTS
 
 		Added two new error return codes to C, f77, and f90
 		interfaces for invalid dimension size and for bad
-		variable size.  Made test for max dimension size
-		depend on whether 64-bit offsets used.  Fixed bug with
+		variable size.	Made test for max dimension size
+		depend on whether 64-bit offsets used.	Fixed bug with
 		dimension sizes between 2^31 and 2^32 (for byte
 		variables).
 
@@ -1106,11 +1113,11 @@ VERSION         COMMENTS
 		Fixed ncgen to properly handle dimensions between 2^31
 		and 2^32.
 
-3.6.0-beta2     
+3.6.0-beta2	
 		Added -v2 (version 2 format with 64-bit offsets)
 		option to ncgen, to specify that generated files or
 		generated C/Fortran code should create 64-bit offset
-		files.  Also added -x option to ncgen to specify use
+		files.	Also added -x option to ncgen to specify use
 		of no-fill mode for fast creation of large files.
 
 		Added function to set default create mode to C
@@ -1126,12 +1133,12 @@ VERSION         COMMENTS
 		Added windows installer files to build windows binary
 		installs. 
 
-3.6.0-beta1     By incorporating Greg Sjaardema's patch, added support
+3.6.0-beta1	By incorporating Greg Sjaardema's patch, added support
 		for 64-bit offset files, which remove many of the
 		restrictions relating to very large files (i.e.
 		larger than 2 GB.) This introduces a new data format
 		for the first time since the original netCDF format
-		was introduced.  Files in this new 64-bit offset
+		was introduced.	 Files in this new 64-bit offset
 		format can't be read by earlier versions of
 		netCDF. Users should continue to use the netCDF
 		classic format unless they need to create very large
@@ -1156,7 +1163,7 @@ VERSION         COMMENTS
 		Fortran-90 for NAG f90 compiler, contributed by Harald
 		Anlauf.
 
-3.5.1   2004-02-03
+3.5.1	2004-02-03
 
 		Updated INSTALL.html for Mac OS X (Darwin).
 
@@ -1164,7 +1171,7 @@ VERSION         COMMENTS
 		file more robust regarding the name of the file.
 
 		Added support for eight-byte integers in Fortran90
-		interface.              
+		interface.		
 
 		Increased advisory limits in C netcdf.h and Fortran
 		netcdf.inc for maximum number of dimensions,
@@ -1190,7 +1197,7 @@ VERSION         COMMENTS
 		failure to pad a value with nulls on IRIX.
 
 		Fixed ncdump bug adding extra quote to char variable
-		data when using -fc or -ff option.              
+		data when using -fc or -ff option.		
 
 		Fixed so compiling with -DNO_NETCDF_2 will work for
 		building without backward-compatibility netCDF-2
@@ -1229,7 +1236,7 @@ VERSION         COMMENTS
 		interface last, as a workaround for problem with make
 		on AIX platforms.
 
-3.5.0   2001-03-23
+3.5.0	2001-03-23
 
 		Added Fortran 90 interface.
 
@@ -1338,7 +1345,7 @@ VERSION         COMMENTS
 
 		Changed INSTALL file to INSTALL.html instead.
 
-3.4     1998-03-09
+3.4	1998-03-09
 
 		Fixed ncx_cray.c to work on all CRAY systems,
 		not just CRAY1. Reworked USE_IEG, which was incorrect.
@@ -1366,7 +1373,7 @@ VERSION         COMMENTS
 		The C++ interface has been updated so that the
 		deprecated "nclong" typedef should no longer be
 		required, and casts to nclong no longer necessary.  Just
-		use int or long as appropriate.  nclong is still
+		use int or long as appropriate.	 nclong is still
 		supported for backwards compatibility.
 
 		The ncdump utility now displays byte values as signed,
@@ -1405,12 +1412,12 @@ VERSION         COMMENTS
 
 		The library allows "." characters in names as well
 		as "_" and "-" characters. A zero length name "" is
-		explicitly not allowed.  The ncgen utility will now
+		explicitly not allowed.	 The ncgen utility will now
 		permit "." characters in CDL names as well.
 
 		Memory leaks in the C++ interface NcVar::as_*() member
 		functions and NcFile::add_var() member function are
-		fixed.  The documentation was fixed where it indicated
+		fixed.	The documentation was fixed where it indicated
 		incorrectly that the library managed value blocks that
 		the user is actually responsible for deleting.
 
@@ -1420,7 +1427,7 @@ VERSION         COMMENTS
 
 		Added support for systems whose Fortran INTEGER*1 and
 		INTEGER*2 types are equivalent to the C "long" type but
-		whose C "int" and "long" types differ.  An example of
+		whose C "int" and "long" types differ.	An example of
 		such a system is the NEC SX-4 with the "-ew" option to
 		the f90 compiler (sheesh, what a system!).
 
@@ -1430,7 +1437,7 @@ VERSION         COMMENTS
 		(i.e. IMAP[1]) was zero (indicating that the netCDF
 		structure of the variable should be used).
 
-3.3.1   1997-06-16
+3.3.1	1997-06-16
 
 		One can now inquire about the number of attributes that a
 		variable has using the global variable ID.
@@ -1466,7 +1473,7 @@ VERSION         COMMENTS
 		the empty string "".
 
 		Made ncgen tests more stringent and fixed various bugs
-		this uncovered.  These included bugs in handling byte
+		this uncovered.	 These included bugs in handling byte
 		attributes on platforms on which char is unsigned,
 		initializing scalar character variables in generated C
 		code under "-c" option, interspersing DATA statements
@@ -1489,7 +1496,7 @@ VERSION         COMMENTS
 		a high-level description of the evolution of the
 		netCDF-3 package.
 
-3.3     1997-05-15
+3.3	1997-05-15
 
 		The production version of the netCDF-3 package was
 		released.
