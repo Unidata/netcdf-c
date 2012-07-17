@@ -8,7 +8,7 @@ cmds=$@
 fi
 
 #HDF5=1
-DAP=1
+#DAP=1
 #CDMR=1
 #RPC=1
 #PGI=1
@@ -139,6 +139,8 @@ FLAGS="$FLAGS --enable-doxygen"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
+FLAGS="$FLAGS --with-udunits"
+FLAGS="$FLAGS --with-libcf"
 
 #FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"

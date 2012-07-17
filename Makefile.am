@@ -66,6 +66,16 @@ if BUILD_RPC
 LIBRPC = librpc
 endif
 
+# Build UDUNITS?
+if BUILD_UDUNITS
+UDUNITS = udunits
+endif
+
+# Build libcf?
+if BUILD_LIBCF
+LIBCF = libcf
+endif
+
 # Define Test directories
 if BUILD_TESTSETS
 TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR)
@@ -78,7 +88,8 @@ SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
 $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBRPC) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
-man4 $(EXAMPLES)
+man4 $(EXAMPLES) \
+$(UDUNITS) $(LIBCF)
 
 # Remove these generated files, for a distclean.
 DISTCLEANFILES = VERSION comps.txt test_prog
