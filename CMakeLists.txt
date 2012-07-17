@@ -35,6 +35,11 @@ SET (MAX_DEFAULT_CACHE_SIZE 67108864)
 #OPTION (CHUNK_CACHE_NELEMS "Default maximum number of elements in cache." 1009)
 #OPTION (CHUNK_CACHE_PREEMPTION "Default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive." 0.75)
 
+# Set the appropriate compiler/architecture for universal OSX binaries.
+IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
+	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
+ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
+
 # Option to Build DLL
 OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
 
@@ -163,6 +168,7 @@ IF (USE_HDF5)
 add_subdirectory(libsrc4)
 ENDIF (USE_HDF5)
 
+add_subdirectory(liblib)
 #add_subdirectory(nc_test4)
 #add_subdirectory(nc_test)
 #add_subdirectory(ncdump)
