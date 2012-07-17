@@ -728,13 +728,17 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
+# Like other libraries, udunits and libcf
+# are no long part of the netcdf distribution.
+
 #AC_MSG_CHECKING([whether udunits is to be built])
 #AC_ARG_WITH([udunits],
 #              [AS_HELP_STRING([--with-udunits],
 #                              [Build udunits2 package.])])
 #test "x$with_udunits" = xyes || with_udunits=no
 #AC_MSG_RESULT($with_udunits)
-with_udunits=no
+#AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
+
 
 # Does the user want to also build the libcf library?
 #AC_MSG_CHECKING([whether libcf is to be built])
@@ -745,7 +749,10 @@ with_udunits=no
 #	      Forecast conventions. (Requires netCDF-4 and HDF5)])])
 #test "x$with_libcf" = xyes || with_libcf=no
 #AC_MSG_RESULT($with_libcf)
-with_libcf=no
+#AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
+
+#AC_CONFIG_SUBDIRS([udunits libcf])
+
 
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
@@ -771,8 +778,6 @@ AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
 AM_CONDITIONAL(BUILD_RPC, [test "x$enable_rpc" = xyes])
 AM_CONDITIONAL(BUILD_DISKLESS, [test x$enable_diskless = xyes]) 
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
-AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
-AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -850,7 +855,6 @@ AH_BOTTOM([#include "ncconfigure.h"])
 # debugging purposes.
 # cp confdefs.h my_config.h
 
-AC_CONFIG_SUBDIRS([udunits libcf])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile

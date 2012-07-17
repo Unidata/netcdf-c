@@ -67,14 +67,14 @@ LIBRPC = librpc
 endif
 
 # Build UDUNITS?
-if BUILD_UDUNITS
-UDUNITS = udunits
-endif
+#if BUILD_UDUNITS
+#UDUNITS = udunits
+#endif
 
 # Build libcf?
-if BUILD_LIBCF
-LIBCF = libcf
-endif
+#if BUILD_LIBCF
+#LIBCF = libcf
+#endif
 
 # Define Test directories
 if BUILD_TESTSETS
