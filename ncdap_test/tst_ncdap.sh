@@ -74,7 +74,7 @@ echo '#DODSRC' >./.dodsrc
 
 for x in ${TESTSET} ; do
   url="${PARAMS}${TESTURL}/$x"
-  if test "x$quiet" = "x0" ; then echo "*** Testing: ${x}"; fi
+  if test "x$quiet" = "x0" ; then echo "*** Testing: ${x} ; url=$url" ; fi
   # determine if this is an xfailtest
   isxfail=0
   for t in ${XFAILTESTS} ; do
@@ -103,7 +103,7 @@ for x in ${TESTSET} ; do
     ;;
   2)
     xfailcount=`expr $xfailcount + 1`
-    echo "*** XFAIL: ${x}"
+    echo "*** XFAIL : ${x}"
     ;;
   esac
 

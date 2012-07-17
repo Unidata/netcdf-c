@@ -7,7 +7,8 @@ set -e
 if test "x$srcdir" = "x"; then
     srcdir=`dirname $0`; 
 fi
-export srcdir=$srcdir
+# add hack for sunos
+export srcdir;
 
 echo ""
 echo "*** Testing ncgen and ncdump test output for netCDF-4 format."
