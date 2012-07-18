@@ -7,7 +7,7 @@ if test $# != 0 ; then
 cmds=$@
 fi
 
-#HDF5=1
+HDF5=1
 #DAP=1
 #CDMR=1
 #RPC=1
@@ -124,7 +124,6 @@ FLAGS="--prefix ${PREFIX}"
 FLAGS="$FLAGS --disable-examples"
 FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --disable-utilities"
-#FLAGS="$FLAGS --enable-valgrind-tests"
 #FLAGS="$FLAGS --enable-parallel-tests"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
@@ -141,8 +140,10 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
+#valgrind => not shared
+FLAGS="$FLAGS --enable-valgrind-tests"
 
-#FLAGS="$FLAGS --disable-shared"
+FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then

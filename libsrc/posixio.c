@@ -102,6 +102,10 @@ static int ncio_spx_close(ncio *nciop, int doUnlink);
 static size_t
 pagesize(void)
 {
+  size_t pgsz;
+#if defined(_WIN32) || defined(_WIN64)
+  SYSTEM_INFO info;
+#endif
 /* Hmm, aren't standards great? */
 #if defined(_SC_PAGE_SIZE) && !defined(_SC_PAGESIZE)
 #define _SC_PAGESIZE _SC_PAGE_SIZE
@@ -109,22 +113,20 @@ pagesize(void)
 
   /* For MinGW Builds */
 #if defined(_WIN32) || defined(_WIN64)
-  SYSTEM_INFO info;
   GetSystemInfo(&info);
-  long pgsz = info.dwPageSize;
-  return (size_t)pgsz;
-
-#elif _SC_PAGESIZE
-	{
-		const long pgsz = sysconf(_SC_PAGESIZE);
-		if(pgsz > 0)
-			return (size_t) pgsz;
-		/* else, silent in the face of error */
-	}
-#elif defined(HAVE_GETPAGESIZE)
-	return (size_t) getpagesize();
+  pgsz = (size_t)info.dwPageSize;
+#else
+#  if _SC_PAGESIZE
+  pgsz = (size_t)sysconf(_SC_PAGESIZE);
+#  else 
+#    if defined(HAVE_GETPAGESIZE)
+  pgsz = (size_t) getpagesize();
+#    endif
+#  endif
 #endif
-	return (size_t) POSIXIO_DEFAULT_PAGESIZE;
+  if(pgsz > 0)
+    return (size_t) pgsz;
+   return (size_t)POSIXIO_DEFAULT_PAGESIZE;
 }
 
 /*
