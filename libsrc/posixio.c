@@ -115,14 +115,10 @@ pagesize(void)
 #if defined(_WIN32) || defined(_WIN64)
   GetSystemInfo(&info);
   pgsz = (size_t)info.dwPageSize;
-#else
-#  if _SC_PAGESIZE
+#elif defined(_SC_PAGESIZE)
   pgsz = (size_t)sysconf(_SC_PAGESIZE);
-#  else 
-#    if defined(HAVE_GETPAGESIZE)
+#elif defined(HAVE_GETPAGESIZE)
   pgsz = (size_t) getpagesize();
-#    endif
-#  endif
 #endif
   if(pgsz > 0)
     return (size_t) pgsz;
