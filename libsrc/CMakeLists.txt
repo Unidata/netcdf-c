@@ -32,7 +32,7 @@ ELSE (USE_FFIO)
    SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
 ENDIF (USE_FFIO)
 
-add_library(netcdf3 STATIC ${libsrc_SOURCES}) 
+add_library(netcdf3 OBJECT ${libsrc_SOURCES}) 
 
 # The C API man page.
 set(man_MANS netcdf.3)

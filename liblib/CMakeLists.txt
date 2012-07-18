@@ -2,11 +2,17 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(".")
 
-# Process these files with m4.
-
-
 SET(liblib_LIBS dispatch netcdf3)
 
-ADD_LIBRARY(netcdf stub.c)
-TARGET_LINK_LIBRARIES(netcdf ${liblib_LIBS})
-#add_library(netcdf ${liblib_LIBS})
+IF(USE_HDF5 OR USE_NETCDF4) 
+	SET(liblib_LIBS ${liblib_LIBS} netcdf4)
+ENDIF()
+
+FOREACH(LIBS ${liblib_LIBS})
+	SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)
+ENDFOREACH()
+
+
+ADD_LIBRARY(netcdf stub.c ${LARGS})
+#ADD_LIBRARY(netcdf stub.c $<TARGET_OBJECTS:dispatch> $<TARGET_OBJECTS:netcdf3>)
+

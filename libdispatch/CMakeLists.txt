@@ -20,7 +20,7 @@ IF(BUILD_V2)
 	ADD_DEFINITION(-DDLL_EXPORT)
 ENDIF(BUILD_V2)	
 
-add_library(dispatch STATIC ${libdispatch_SOURCES}) 
+add_library(dispatch OBJECT ${libdispatch_SOURCES}) 
 
 ###
 # Options related to the man page generation.
