@@ -4,8 +4,8 @@
 set -e
 if test "x$srcdir" = "x"; then
     srcdir=`dirname $0`; 
-    export srcdir=$srcdir
 fi
+export srcdir
 echo ""
 
 TESTFILES='c0 c0tmp ctest0 ctest0_64 small small2 test0 test1

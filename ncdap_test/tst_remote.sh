@@ -34,20 +34,6 @@ if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1"
 fi
 
-# This fails because solaris ping does not like the -c1 option
-# # See if we can access the remote server at all
-# PINGURL="test.opendap.org"
-# # do we have ping command?
-# #if test ping -c1 localhost >/dev/null 2>&1 ; then
-# if test ping -c1 localhost ; then
-#   if ping -c1 ${PINGURL} >/dev/null 2>&1 ; then
-#     ignore=1
-#   else
-#     echo "WARNING: NETWORK ACCESS NOT AVAILABLE"
-# fi
-# fi
-
-
 #locate the testdata and expected directory
 if test "$cache" = 0 ; then
 # No cache means no cache, including prefetch
@@ -152,7 +138,7 @@ IGNORE="test.07.2"
 
 XFAILTESTS3=""
 # For now, remove some tests from windows platform.
-if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
     XFAILTESTS3="$XFAILTESTS3 test.67 test.06.1 test.06"
 fi
 
@@ -306,11 +292,11 @@ for t in ${TESTSET} ; do
     ;;
   2)
     xfailcount=`expr $xfailcount + 1`
-    echo "*** XFAIL: ${name}"
+    echo "*** XFAIL : ${name}"
     ;;
   3)
     svcfailcount=`expr $svcfailcount + 1`
-    echo "*** SVCFAIL: ${name}"
+    echo "*** SVCFAIL : ${name}"
     ;;
   esac
 

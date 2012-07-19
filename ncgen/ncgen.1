@@ -437,16 +437,19 @@ basic netCDF types.  The syntax for constants is similar to C syntax,
 except that type suffixes must be appended to shorts and floats to
 distinguish them from longs and doubles.
 .LP
-A \fIbyte\fP constant is represented by a single character or multiple
-character escape sequence enclosed in single quotes.  For example,
+A \fIbyte\fP constant is represented by
+ an integer constant with a `b' (or
+`B') appended.  In the old netCDF-2 API, byte constants could also be
+represented using single characters or standard C character escape
+sequences such as `a' or `\n'.  This is still supported for backward
+compatibility, but deprecated to make the distinction clear between
+the numeric byte type and the textual char type.  Example byte
+constants include:
 .RS
 .nf
- 'a'		// ASCII `a'
- '\\0'		// a zero byte
- '\\n'		// ASCII newline character
- '\\33'		// ASCII escape character (33 octal)
- '\\x2b'	// ASCII plus (2b hex)
- '\\377'	// 377 octal = 255 decimal, non-ASCII
+ 0b             // a zero byte
+ -1b            // -1 as an 8-bit byte
+ 255b           // also -1 as a signed 8-bit byte
 .fi
 .RE
 .LP

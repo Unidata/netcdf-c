@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2.1-rc1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.2.1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -728,6 +728,32 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
+# Like other libraries, udunits and libcf
+# are no long part of the netcdf distribution.
+
+#AC_MSG_CHECKING([whether udunits is to be built])
+#AC_ARG_WITH([udunits],
+#              [AS_HELP_STRING([--with-udunits],
+#                              [Build udunits2 package.])])
+#test "x$with_udunits" = xyes || with_udunits=no
+#AC_MSG_RESULT($with_udunits)
+#AM_CONDITIONAL(BUILD_UDUNITS, [test "x$with_udunits" = xyes])
+
+
+# Does the user want to also build the libcf library?
+#AC_MSG_CHECKING([whether libcf is to be built])
+#AC_ARG_WITH([libcf],
+#              [AS_HELP_STRING([--with-libcf],
+#                              [build and install libcf library, a library for \
+#	      handling data in conformance with the Climate and \
+#	      Forecast conventions. (Requires netCDF-4 and HDF5)])])
+#test "x$with_libcf" = xyes || with_libcf=no
+#AC_MSG_RESULT($with_libcf)
+#AM_CONDITIONAL(BUILD_LIBCF, [test "x$with_libcf" = xyes])
+
+#AC_CONFIG_SUBDIRS([udunits libcf])
+
+
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
 AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
@@ -828,6 +854,7 @@ AH_BOTTOM([#include "ncconfigure.h"])
 # Uncomment this to keep a copy of autoconf defines at this point, for
 # debugging purposes.
 # cp confdefs.h my_config.h
+
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile

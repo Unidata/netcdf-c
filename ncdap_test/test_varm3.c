@@ -20,12 +20,13 @@ netcdf-4.1-beta2-snapshot2009091100
 #include <stdio.h>
 #include <string.h>
 #include "netcdf.h"
+#include "ncdispatch.h"
 
 #undef STANDALONE
 
 #undef DEBUG
 
-#define URL "http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/coads_climatology.nc"
+#define TESTPATH "/thredds/dodsC/testdods/coads_climatology.nc"
 #define VAR "SST"
 
 static float expected_stride1[12] = {
@@ -78,6 +79,7 @@ main()
     ptrdiff_t stride[5], imap[5];
     int idim;
     float dat[20];
+    char url[4096];
 #ifdef STANDALONE
     int ndim;
 #endif
@@ -88,9 +90,20 @@ main()
     oc_logopen(NULL);
 #endif
 
-    printf("*** Test: varm on URL: %s\n",URL);
+    {
+        /* Find Test Server */
+        const char* svc = NC_findtestserver("thredds");
+        if(svc == NULL) {
+	    fprintf(stderr,"Cannot locate test server\n");
+	    exit(1);
+        }
+        strcpy(url,svc);
+        strcat(url,TESTPATH);
+    }
 
-    check(err = nc_open(URL, NC_NOWRITE, &ncid),__FILE__,__LINE__);
+    printf("*** Test: varm on URL: %s\n",url);
+
+    check(err = nc_open(url, NC_NOWRITE, &ncid),__FILE__,__LINE__);
     check(err = nc_inq_varid(ncid, VAR, &varid),__FILE__,__LINE__);
     for (idim=0; idim<4; idim++) {
         start[idim] = 0;

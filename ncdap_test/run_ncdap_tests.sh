@@ -9,7 +9,7 @@
 srcdir=`dirname $0`
 cd $srcdir
 srcdir=`pwd`
-if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
     srcdir=`pwd | sed 's/\/c\//c:\//g'`
     builddir="$srcdir"/..
 fi
