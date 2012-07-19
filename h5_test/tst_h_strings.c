@@ -27,13 +27,13 @@ main()
       size_t type_size;
       htri_t is_str;
 
-      char *data = "The art of war is of vital "
+      const char *data = "The art of war is of vital "
 	 "importance to the State. It is a matter of life and death, a road either"
 	 "to safety or to ruin.  Hence it is a subject of inquiry"
 	 "which can on no account be neglected.";
 
-      char *data_in = malloc(sizeof(char)*(strlen(data)+1));
-      
+      char *data_in = NULL;
+
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
@@ -55,7 +55,7 @@ main()
       if (H5Sclose(spaceid) < 0) ERR;
       if (H5Gclose(grpid) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
-      
+
       /* Now reopen the file and check it out. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
@@ -74,14 +74,19 @@ main()
 
       /* Make sure this is a scalar. */
       if (H5Sget_simple_extent_type(spaceid) != H5S_SCALAR) ERR;
-      
+
+#ifdef OLDCODE
+Old code was wrong apparently, HDF5 allocs the space
+which will overwrite the malloc'd space
+=> wrong      data_in = malloc(sizeof(char)*(strlen(data)+1));
+#endif
       /* Read the attribute. */
       if (H5Aread(attid, typeid, &data_in) < 0) ERR;
 
       /* Check the data. */
       if (strcmp(data, data_in)) ERR;
 
-      /* Free our memory. */
+      /* Free the memory returned by H5Aread */
       free(data_in);
 
       /* Close HDF5 stuff. */

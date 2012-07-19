@@ -22,6 +22,12 @@ VERSION		COMMENTS
 		Fixed documentation of CDL char constants in Users
 		Guide and ncgen man page.
 
+		Fixed memory leak detected by valgrind in one of the
+		HDF5 tests.
+
+		Fixed problem with #elif directives in posixio.c
+		revealed by PGI compilers.
+
 4.2.1-rc1	Released 2012-06-18
 
 		Ported static and shared libraries (DLL's) for both
