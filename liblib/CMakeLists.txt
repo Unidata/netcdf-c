@@ -8,6 +8,10 @@ IF(USE_HDF5 OR USE_NETCDF4)
 	SET(liblib_LIBS ${liblib_LIBS} netcdf4)
 ENDIF()
 
+IF(BUILD_DAP)
+	SET(liblib_LIBS ${liblib_LIBS} oc)
+ENDIF()
+
 FOREACH(LIBS ${liblib_LIBS})
 	SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)
 ENDFOREACH()
