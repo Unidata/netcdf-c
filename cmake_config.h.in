@@ -145,7 +145,7 @@
 #cmakedefine HAVE_GETPAGESIZE
 #cmakedefine HAVE_SYSCONF
 #cmakedefine HAVE_MREMAP
-
+#cmakedefine HAVE_GETRLIMIT
 
 /* Set this when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF
