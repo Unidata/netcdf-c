@@ -45,7 +45,13 @@ OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
 
 # Option to Build DAP Client
 OPTION (BUILD_DAP "Enable DAP Client." OFF)
-
+IF (BUILD_DAP)
+	FIND_PACKAGE(CURL)
+	IF(NOT CURL_FOUND)
+		MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
+	ENDIF(NOT CURL_FOUND)
+ENDIF(BUILD_DAP)
+	
 # Option to use MMAP
 OPTION (BUILD_MMAP "Use MMAP." OFF)
 
@@ -70,7 +76,10 @@ ENDIF (USE_HDF4)
 
 # Option to Enable HDF5
 OPTION (USE_HDF5 "Use HDF5." OFF)
-IF (USE_HDF5)
+IF (USE_HDF5 OR USE_NETCDF4)
+   SET(USE_HDF5 ON)
+   SET(USE_NETCDF4 ON)
+
    FIND_PACKAGE(HDF5)
    IF(NOT HDF5_FOUND)
 	MESSAGE(FATAL_ERROR "HDF5 Not Found")
@@ -79,15 +88,16 @@ IF (USE_HDF5)
    IF(NOT HAVE_HDF5_H)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5.h")
    ENDIF(NOT HAVE_HDF5_H)
-   
-   CHECK_LIBRARY_EXISTS(hdf5_hl H5DSis_scale "" HAVE_HDF5_HL)
-   IF(NOT HAVE_HDF5_HL)
-	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot link against hdf5_hl")
-   ENDIF(NOT HAVE_HDF5_HL)
+ 	
+   FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl)  
+   IF(NOT HDF5_HL_LIBRARY)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
+   ENDIF()	
+   #CHECK_LIBRARY_EXISTS(hdf5_hl H5DSis_scale "" HAVE_HDF5_HL)
    
    SET(H5_USE_16_API 1)
 
-ENDIF (USE_HDF5)
+ENDIF ()
 # Packages to include
 
 

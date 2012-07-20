@@ -157,7 +157,10 @@
 #cmakedefine DLL_NETCDF
 #cmakedefine BUILD_DLL
 /* Set this when DAP is enabled. */
-#cmakedefine ENABLE_DAP 
+#cmakedefine ENABLE_DAP
+
+/* Define this when building NETCDF4 */ 
+#cmakedefine USE_NETCDF4
 
 /* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 
