@@ -77,6 +77,9 @@
 /* Define to 1 if you have the <sys/time.h> header file. */
 #cmakedefine HAVE_SYS_TIME_H @HAVE_SYS_TIME_H@
 
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#cmakedefine HAVE_SYS_RESOURCE_H @HAVE_SYS_RESOURCE_H@
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
 
@@ -85,6 +88,9 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
 
 #if !defined(__APPLE__)
 /* The size of `double` as computed by sizeof. */
