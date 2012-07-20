@@ -13,7 +13,7 @@ if [ $# -gt 0 ]; then
 	    case $Option in
 		b ) DOBUILD="YES";;
                 c ) DOCLEAN="YES";;
-                * ) echo "Usage: $0 [-h|-b|-c]"; echo -e "-h:\tShow Help\n-b:\tExecute build checks.\n-c:\tClean directory between checks.\n\n";exit;
+                * ) echo "Usage: $0 [-h|-b|-c]"; echo -e "-h:\tShow Help\n-b:\tExecute build checks.\n-c:\tClean directory between checks.";exit;
             esac
 	done
 	
@@ -31,7 +31,7 @@ LOGFILE="../build_test_output.txt"
 echo `date` > $LOGFILE
 BLDTYPE=""
 if [ `uname -a | cut -d" " -f 1` = "MINGW32_NT-6.1" ]; then
-    BLDTYPE='-G"MSYS Makefiles"'
+    BLDTYPE="WIN"
 fi
 
 BUILDTYPE='-DBUILD_SHARED_LIBS=OFF -DBUILD_SHARED_LIBS=ON'
@@ -53,10 +53,14 @@ for BT in $BUILDTYPE; do
     for HOPS in $HDF5OPS; do
 	for DOPS in $DAPOPS; do
 	    for DIOPS in $DISKLESSOPS; do
-		CUROPS="$BLDTYPE $BT $HOPS $DOPS $DIOPS $MMAPOPS"
+		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS"
 		echo "Options: $CUROPS"
-		cmake $CUROPS .. >> $LOGFILE
-		
+		if [ x$BLDTYPE = "xWIN" ]; then
+		    cmake $CUROPS .. -G"MSYS Makefiles" >> $LOGFILE
+		else
+		    cmake $CUROPS .. >> $LOGFILE
+		fi
+
 		if [ $? -eq 0 ]; then
 		    RET="PASS"
 		    ((cmake_success++))
