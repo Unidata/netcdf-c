@@ -3,43 +3,109 @@
 # Unit tests for cmake. This script checks to see if CMake runs properly, 
 # and if the code compiles properly (if CMake runs properly).
 #
-set -x
+#set -x
+
+DOBUILD="NO"
+DOCLEAN="NO"
+if [ $# -gt 0 ]; then
+	
+	while getopts "bhc" Option; do
+	    case $Option in
+		b ) DOBUILD="YES";;
+                c ) DOCLEAN="YES";;
+                * ) echo "Usage: $0 [-h|-b|-c]"; echo -e "-h:\tShow Help\n-b:\tExecute build checks.\n-c:\tClean directory between checks.\n\n";exit;
+            esac
+	done
+	
+
+fi
+
+echo -e "\nRunning Tests:"
+echo -e "\tBuilding after cmake:\t$DOBUILD"
+echo -e "\tClean between builds:\t$DOCLEAN"
+echo ""
+
+
 BDIR="build_test"
 LOGFILE="../build_test_output.txt"
 echo `date` > $LOGFILE
 
-BUILDTYPE='-D"BUILD_SHARED_LIBS=OFF" -D"BUILD_SHARED_LIBS=ON"'
-HDF5OPS='-D"USE_HDF5=OFF -D"USE_HDF5=ON"'
-DAPOPS='-D"BUILD_DAP=OFF -D"BUILD_DAP=ON"'
-DISKLESSOPS='-D"BUILD_DISKLESS=OFF -D"BUILD_DISKLESS=ON"'
-MMAPOPS='-D"BUILD_MMAP=OFF -D"BUILD_MMAP=ON"'
- 
+BUILDTYPE='-DBUILD_SHARED_LIBS=OFF -DBUILD_SHARED_LIBS=ON '
+HDF5OPS='-DUSE_HDF5=OFF -DUSE_HDF5=ON '
+DAPOPS='-DBUILD_DAP=OFF -DBUILD_DAP=ON '
+DISKLESSOPS='-DBUILD_DISKLESS=OFF -DBUILD_DISKLESS=ON '
+
+# Track configs which configurations fail.
+CMAKEFAILS=""
+BUILDFAILS=""
+
 #mkdir -p $BDIR
 #cd $BDIR
-
+cmake_success=0
+cmake_fail=0
+build_success=0
+build_fail=0
 for BT in $BUILDTYPE; do
-    echo $BT
-    for HOPS in $HDFOPS; do
-	echo $HOPS
+    for HOPS in $HDF5OPS; do
 	for DOPS in $DAPOPS; do
 	    for DIOPS in $DISKLESSOPS; do
-		for MMAPOPS in $MMAPOPS; do
-		   
-		    cmake $BT $HOPS $DOPS $DIOPS $MMAPOPS .. #>> $LOGFILE
+		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS"
+		echo "Options: $CUROPS"
+		cmake $CUROPS .. >> $LOGFILE
+		
+		if [ $? -eq 0 ]; then
+		    RET="PASS"
+		    ((cmake_success++))
+		else
+		    RET="FAIL ($?)"
+		    CMAKEFAILS="$CMAKEFAILS\n$CUROPS"
+		    ((cmake_fail++))
+		fi
+		
+		
+		echo "CMake: $RET" 
+		
+
+		RET=""
+		
+		if [ x$DOBUILD = "xYES" ]; then
+		    make >> $LOGFILE
 		    
 		    if [ $? -eq 0 ]; then
 			RET="PASS"
+			((build_success++))
 		    else
 			RET="FAIL ($?)"
+			((build_fail++))
+			BUILDFAILS="$BUILDFAILS\n$CUROPS"
 		    fi
 		    
- 		    echo "Test [$BT $HOPS $DOPS $DIOPS $MMAPOPS]: $RET"
-		    RET=""
-
-		done
+		    echo "Build: $RET"
+		    make clean
+		fi
+		RET=""
+		echo ""
+		#Clean up
+		if [ x$DOCLEAN = "xYES" ]; then
+		    rm -rf *
+		fi
 	    done
 	done
     done
 done
 
-echo "Finished"
+
+echo -e "CMake:\tSuccess: $cmake_success\tFail: $cmake_fail"
+if [ $cmake_fail -gt 0 ]; then
+    echo -e "CMake Fails:$CMAKEFAILS\n\n"
+fi
+
+if [ x$DOBUILD = "xYES" ]; then
+    echo -e "Build:\tSuccess: $build_success\tFail: $build_fail"
+    if [ $build_fail -gt 0 ]; then
+	echo -e "Build Fails:$BUILDFAILS"
+    fi
+fi
+
+echo ""
+echo ""
