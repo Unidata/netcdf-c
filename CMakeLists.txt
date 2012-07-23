@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.8)
 
 #Project Name
 project(NETCDF C)
-SET(PACKAGE_VERSION 4.2.1-rc1)
+SET(PACKAGE_VERSION 4.2.1)
 ADD_DEFINITIONS()
 
 ### Verbose make, for debugging.
@@ -23,25 +23,24 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+#####
+# Option checks
+#####
+
 # HDF5 cache variables.
-SET (DEFAULT_CHUNK_SIZE 4194304)
-SET (DEFAULT_CHUNKS_IN_CACHE 10)
-SET (CHUNK_CACHE_SIZE 4194304)
-SET (CHUNK_CACHE_NELEMS 1009)
-SET (CHUNK_CACHE_PREEMPTION 0.75)
-SET (MAX_DEFAULT_CACHE_SIZE 67108864)
-#OPTION (DEFAULT_CHUNK_SIZE "Default Chunk Cache Size." 4194304)
-#OPTION (CHUNK_CACHE_SIZE "Default Chunk Cache Size." 4194304)
-#OPTION (CHUNK_CACHE_NELEMS "Default maximum number of elements in cache." 1009)
-#OPTION (CHUNK_CACHE_PREEMPTION "Default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive." 0.75)
+SET (DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
+SET (DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
+SET (CHUNK_CACHE_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
+SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in cache.")
+SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
+SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
+
 
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
-
-# Option to Build DLL
-OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
 
 # Option to Build DAP Client
 OPTION (BUILD_DAP "Enable DAP Client." OFF)
@@ -74,9 +73,31 @@ IF (USE_HDF4)
    ENDIF(NOT HAVE_MFHDF_H) 
 ENDIF (USE_HDF4)
 
+
+
+# Option to Build DLL
+OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
+IF (DLL_NETCDF)
+	SET(BUILD_DLL ON)
+	SET(DLL_EXPORT ON)
+	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
+ENDIF (DLL_NETCDF)
+
+OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
+OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
+OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
+OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
+
+OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" OFF)
+IF(ENABLE_NETCDF_4)
+	SET(ENABLE_NETCDF4 ON)
+ENDIF()
+
+OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
+
 # Option to Enable HDF5
 OPTION (USE_HDF5 "Use HDF5." OFF)
-IF (USE_HDF5 OR USE_NETCDF4)
+IF (USE_HDF5 OR ENABLE_NETCDF4)
    SET(USE_HDF5 ON)
    SET(USE_NETCDF4 ON)
 
@@ -98,19 +119,16 @@ IF (USE_HDF5 OR USE_NETCDF4)
    SET(H5_USE_16_API 1)
 
 ENDIF ()
-# Packages to include
 
 
+# Does the user want to turn on PNETCDF read ability?
+OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
 
-#FIND_PACKAGE (CURL)
-#FIND_PACKAGE (ZLIB)
 
-# Enable some additional flags.
-IF (DLL_NETCDF)
-	SET(BUILD_DLL ON)
-	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
-	#ADD_DEFINITION(-DDLL_EXPORT)
-ENDIF (DLL_NETCDF)
+#####
+# End option checks.
+#####
+
 
 # Library checks
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
@@ -151,6 +169,7 @@ CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 
 # Check for various functions. 
+CHECK_FUNCTION_EXISTS(fsync	HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strdup	HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strlcat 	HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strerror	HAVE_STRERROR)
@@ -177,7 +196,8 @@ CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
-# Option for file cache size for HDF5
+# Check existence of various libraries.
+
 
 # Create config.h file
 configure_file("${NETCDF_SOURCE_DIR}/cmake_config.h.in"
@@ -199,7 +219,6 @@ INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/oc)
 
 # Recurse into other subdirectories.
-#add_subdirectory(include)
 #add_subdirectory(h5_test)
 #add_subdirectory(man4)
 #add_subdirectory(man4/images)
@@ -222,11 +241,7 @@ add_subdirectory(liblib)
 #add_subdirectory(ncgen3)
 #add_subdirectory(ncgen)
 #add_subdirectory(examples)
-#add_subdirectory(oc)
 #add_subdirectory(libdap2)
 #add_subdirectory(libcdmr)
 #add_subdirectory(librpc)
-#add_subdirectory(libdispatch)
-#add_subdirectory(liblib)
-#add_subdirectory(ncdump)
 #add_subdirectory(ncdap_test) 

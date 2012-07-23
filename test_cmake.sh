@@ -39,6 +39,14 @@ HDF5OPS='-DUSE_HDF5=OFF -DUSE_HDF5=ON'
 DAPOPS='-DBUILD_DAP=OFF -DBUILD_DAP=ON'
 DISKLESSOPS='-DBUILD_DISKLESS=OFF -DBUILD_DISKLESS=ON'
 
+DOXOPS='-DENABLE_DOXYGEN=OFF -DENABLE_DOXYGEN=ON'
+INTOPS='-DENABLE_INTERNAL_DOCS=OFF -DENABLE_INTERNAL_DOCS=ON'
+FSYOPS='-DUSE_FSYNC=OFF -DUSE_FSYNC=ON'
+VALOPS='-DVALGRIND_TESTS=OFF -DVALGRIND_TESTS=ON'
+NC4OPS='-DENABLE_NETCDF_4=OFF -DENABLE_NETCDF_4=ON'
+
+
+
 # Track configs which configurations fail.
 CMAKEFAILS=""
 BUILDFAILS=""
@@ -53,7 +61,12 @@ for BT in $BUILDTYPE; do
     for HOPS in $HDF5OPS; do
 	for DOPS in $DAPOPS; do
 	    for DIOPS in $DISKLESSOPS; do
-		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS"
+		for DOXS in $DOXOPS; do
+		    for IOPS in $INTOPS; do
+			for FOPS in $FSYOPS; do
+			    for VLOPS in $VALOPS; do
+				for N4OPS in $NC4OPS; do
+		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS $DOXS $IOPS $FOPS $VLOPS $N4OPS"
 		echo "Options: $CUROPS"
 		if [ x$BLDTYPE = "xWIN" ]; then
 		    cmake $CUROPS .. -G"MSYS Makefiles" >> $LOGFILE
@@ -97,11 +110,15 @@ for BT in $BUILDTYPE; do
 		if [ x$DOCLEAN = "xYES" ]; then
 		    rm -rf *
 		fi
+				done
+			    done
+			done
+		    done
+		done
 	    done
 	done
     done
 done
-
 
 echo -e "CMake:\tSuccess: $cmake_success\tFail: $cmake_fail"
 if [ $cmake_fail -gt 0 ]; then

@@ -17,6 +17,14 @@
 /* Enable Logging, only valid for netcdf 4. */
 #cmakedefine LOGGING 1
 
+/* Various other options. */
+#cmakedefine USE_FSYNC 1
+#cmakedefine ENABLE_DOXYGEN 1
+#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine VALGRIND_TESTS 1
+#cmakedefine ENABLE_CDMREMOTE 1
+
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
 
@@ -152,6 +160,10 @@
 #cmakedefine HAVE_SYSCONF
 #cmakedefine HAVE_MREMAP
 #cmakedefine HAVE_GETRLIMIT
+#cmakedefine HAVE_FSYNC
+
+/* Specifies if various libraries are present. */
+#cmakedefine HAVE_LIBM 1
 
 /* Set this when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF
