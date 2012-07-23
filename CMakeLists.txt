@@ -45,10 +45,12 @@ ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 # Option to Build DAP Client
 OPTION (BUILD_DAP "Enable DAP Client." OFF)
 IF (BUILD_DAP)
-	FIND_PACKAGE(CURL)
-	IF(NOT CURL_FOUND)
+	#FIND_PACKAGE(CURL)
+	FIND_LIBRARY(CURL NAMES curl libcurl)
+	IF(NOT CURL)
 		MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
-	ENDIF(NOT CURL_FOUND)
+	ENDIF(NOT CURL)
+	MESSAGE("Looking for libcurl: ${CURL}")
 ENDIF(BUILD_DAP)
 	
 # Option to use MMAP
@@ -109,7 +111,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF4)
    IF(NOT HAVE_HDF5_H)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5.h")
    ENDIF(NOT HAVE_HDF5_H)
- 	
+ 
    FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl)  
    IF(NOT HDF5_HL_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
@@ -155,7 +157,7 @@ CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
 CHECK_INCLUDE_FILE("fcntl.h"	HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("curl.h"	HAVE_CURL_H)
-
+CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
 
 # Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
