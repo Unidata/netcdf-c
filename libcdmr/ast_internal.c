@@ -34,7 +34,10 @@
 #include <stdio.h>                      /* for occasional printf()s */
 #include <stdlib.h>                     /* for abort(), malloc() etc */
 #include <string.h>                     /* for strlen(), memcpy(), memmove() */
-#include <endian.h>
+
+#ifdef HAVE_ENDIAN_H
+#include <machine/endian.h>
+#endif
 
 #include "config.h"
 #include <ast_runtime.h>

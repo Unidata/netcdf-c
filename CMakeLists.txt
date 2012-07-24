@@ -42,16 +42,6 @@ IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
-# Option to Build DAP Client
-OPTION (BUILD_DAP "Enable DAP Client." OFF)
-IF (BUILD_DAP)
-	#FIND_PACKAGE(CURL)
-	FIND_LIBRARY(CURL NAMES curl libcurl)
-	IF(NOT CURL)
-		MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
-	ENDIF(NOT CURL)
-	MESSAGE("Looking for libcurl: ${CURL}")
-ENDIF(BUILD_DAP)
 	
 # Option to use MMAP
 OPTION (BUILD_MMAP "Use MMAP." OFF)
@@ -78,28 +68,26 @@ ENDIF (USE_HDF4)
 
 
 # Option to Build DLL
-OPTION (DLL_NETCDF "Build a Windows DLL." OFF)
-IF (DLL_NETCDF)
-	SET(BUILD_DLL ON)
+OPTION (BUILD_DLL "Build a Windows DLL." OFF)
+IF (BUILD_DLL)
+	SET(DLL_NETCDF ON)
 	SET(DLL_EXPORT ON)
 	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
-ENDIF (DLL_NETCDF)
+ENDIF ()
 
-OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
-OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
 
-OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" OFF)
+
+OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ${USE_HDF5})
 IF(ENABLE_NETCDF_4)
-	SET(ENABLE_NETCDF4 ON)
+	SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
 OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
 
 # Option to Enable HDF5
-OPTION (USE_HDF5 "Use HDF5." OFF)
-IF (USE_HDF5 OR ENABLE_NETCDF4)
+OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
+
+IF (USE_HDF5 OR ENABLE_NETCDF_4)
    SET(USE_HDF5 ON)
    SET(USE_NETCDF4 ON)
 
@@ -123,14 +111,42 @@ IF (USE_HDF5 OR ENABLE_NETCDF4)
 ENDIF ()
 
 
+# Option to Build DAP Client
+OPTION (BUILD_DAP "Enable DAP Client." OFF)
+IF (BUILD_DAP)
+	#FIND_PACKAGE(CURL)
+	FIND_LIBRARY(CURL NAMES curl libcurl)
+	IF(NOT CURL)
+		MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
+	ENDIF(NOT CURL)
+	MESSAGE("Looking for libcurl: ${CURL}")
+
+ENDIF(BUILD_DAP)
+
+IF(ENABLE_NETCDF4 AND BUILD_DAP)		
+	OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
+ELSE()
+	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
+ENDIF()
+
+
+OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
+OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
+OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
+OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
+
 # Does the user want to turn on PNETCDF read ability?
 OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
 
+OPTION(BUILD_CDMREMOTE "Enabled CDMRemote" OFF)
+
+MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE)
 
 #####
 # End option checks.
 #####
 
+#INCLUDE_DIRECTORIES("/usr/include/machine/")
 
 # Library checks
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
@@ -158,6 +174,7 @@ CHECK_INCLUDE_FILE("fcntl.h"	HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("curl.h"	HAVE_CURL_H)
 CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
+CHECK_INCLUDE_FILE("endian.h"	HAVE_ENDIAN_H)
 
 # Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
@@ -233,8 +250,12 @@ ENDIF (USE_HDF5)
 
 IF (BUILD_DAP)
 	ADD_SUBDIRECTORY(oc)
+	ADD_SUBDIRECTORY(libdap2)
 ENDIF()
 
+IF (BUILD_CDMREMOTE)
+   ADD_SUBDIRECTORY(libcdmr)
+ENDIF()
 
 add_subdirectory(liblib)
 #add_subdirectory(nc_test4)

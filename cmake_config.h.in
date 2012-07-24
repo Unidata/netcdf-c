@@ -1,6 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-
+#define HAVE_CONFIG_H
 /* Cache Size, other variables for HDF5 */
 #define DEFAULT_CHUNK_SIZE	${DEFAULT_CHUNK_SIZE}
 #define DEFAULT_CHUNKS_IN_CACHE	${DEFAULT_CHUNKS_IN_CACHE}

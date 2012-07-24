@@ -38,6 +38,8 @@ BUILDTYPE='-DBUILD_SHARED_LIBS=OFF -DBUILD_SHARED_LIBS=ON'
 HDF5OPS='-DUSE_HDF5=OFF -DUSE_HDF5=ON'
 DAPOPS='-DBUILD_DAP=OFF -DBUILD_DAP=ON'
 DISKLESSOPS='-DBUILD_DISKLESS=OFF -DBUILD_DISKLESS=ON'
+CDMROPS='-DENABLE_CDMREMOTE=OFF -DENABLE_CDMREMOTE=ON'
+
 
 DOXOPS='-DENABLE_DOXYGEN=OFF -DENABLE_DOXYGEN=ON'
 INTOPS='-DENABLE_INTERNAL_DOCS=OFF -DENABLE_INTERNAL_DOCS=ON'
@@ -61,12 +63,13 @@ for BT in $BUILDTYPE; do
     for HOPS in $HDF5OPS; do
 	for DOPS in $DAPOPS; do
 	    for DIOPS in $DISKLESSOPS; do
-		for DOXS in $DOXOPS; do
-		    for IOPS in $INTOPS; do
-			for FOPS in $FSYOPS; do
-			    for VLOPS in $VALOPS; do
-				for N4OPS in $NC4OPS; do
-		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS $DOXS $IOPS $FOPS $VLOPS $N4OPS"
+		for COPS in $CDMROPS; do
+		#for DOXS in $DOXOPS; do
+		    #for IOPS in $INTOPS; do
+			#for FOPS in $FSYOPS; do
+			    #for VLOPS in $VALOPS; do
+				#for N4OPS in $NC4OPS; do
+		CUROPS="$BT $HOPS $DOPS $DIOPS $MMAPOPS $COPS"
 		echo "Options: $CUROPS"
 		if [ x$BLDTYPE = "xWIN" ]; then
 		    cmake $CUROPS .. -G"MSYS Makefiles" >> $LOGFILE
@@ -110,10 +113,11 @@ for BT in $BUILDTYPE; do
 		if [ x$DOCLEAN = "xYES" ]; then
 		    rm -rf *
 		fi
-				done
-			    done
-			done
-		    done
+				#done
+			    #done
+			#done
+		    #done
+		#done
 		done
 	    done
 	done
