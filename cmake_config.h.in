@@ -23,8 +23,15 @@
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
-
-
+#cmakedefine USE_DAP 1
+#cmakedefine USE_NETCDF4 1
+#cmakedefine USE_HDF4 1
+#cmakedefine USE_HDF5 1
+#cmakedefine USE_FFIO 1
+#cmakedefine USE_PARALLEL_POSIX 1
+#cmakedefine USE_PARALLEL_MPIO 1
+#cmakedefine USE_PARALLEL 1
+#cmakedefine USE_PNETCDF 1
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
 
@@ -168,12 +175,6 @@
 /* Set this when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF
 #cmakedefine BUILD_DLL
-/* Set this when DAP is enabled. */
-#cmakedefine ENABLE_DAP
-
-/* Define this when building NETCDF4 */ 
-#cmakedefine USE_NETCDF4
-
 /* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 
 

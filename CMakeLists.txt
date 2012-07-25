@@ -21,7 +21,7 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
-
+INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #####
@@ -63,6 +63,8 @@ IF (USE_HDF4)
    IF(NOT HAVE_MFHDF_H)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
    ENDIF(NOT HAVE_MFHDF_H) 
+	
+
 ENDIF (USE_HDF4)
 
 
@@ -79,6 +81,7 @@ ENDIF ()
 
 OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ${USE_HDF5})
 IF(ENABLE_NETCDF_4)
+	SET(USE_NETCDF4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
@@ -100,7 +103,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5.h")
    ENDIF(NOT HAVE_HDF5_H)
  
-   FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl)  
+   FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl hdf5_hldll)  
    IF(NOT HDF5_HL_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
    ENDIF()	
@@ -112,18 +115,18 @@ ENDIF ()
 
 
 # Option to Build DAP Client
-OPTION (BUILD_DAP "Enable DAP Client." OFF)
-IF (BUILD_DAP)
-	#FIND_PACKAGE(CURL)
-	FIND_LIBRARY(CURL NAMES curl libcurl)
-	IF(NOT CURL)
+OPTION (USE_DAP "Enable DAP Client." OFF)
+IF (USE_DAP)
+	FIND_PACKAGE(CURL)
+	#FIND_LIBRARY(CURL NAMES curl libcurl)
+	IF(NOT CURL_FOUND)
 		MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
-	ENDIF(NOT CURL)
-	MESSAGE("Looking for libcurl: ${CURL}")
+	ENDIF(NOT CURL_FOUND)
+	#MESSAGE("Looking for libcurl: ${CURL}")
 
-ENDIF(BUILD_DAP)
+ENDIF(USE_DAP)
 
-IF(ENABLE_NETCDF4 AND BUILD_DAP)		
+IF(ENABLE_NETCDF4 AND USE_DAP)		
 	OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -137,8 +140,19 @@ OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static
 
 # Does the user want to turn on PNETCDF read ability?
 OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+IF(ENABLE_PNETCDF)
+	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
+	IF(NOT PNETCDF)
+		MESSAGE(FATAL_ERROR "Cannot find pnetcdf library, yet pnetcdf support was requested.")
+	ENDIF()
+	SET(USE_PNETCDF ON CACHE BOOL "")
+ENDIF()
+
+
 
 OPTION(BUILD_CDMREMOTE "Enabled CDMRemote" OFF)
+OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
+
 
 MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE)
 
@@ -221,6 +235,10 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 # Create config.h file
 configure_file("${NETCDF_SOURCE_DIR}/cmake_config.h.in"
 	"${NETCDF_BINARY_DIR}/config.h")
+configure_file("${NETCDF_SOURCE_DIR}/cmake_nc-config.in"
+	"${NETCDF_BINARY_DIR}/nc-config")
+EXECUTE_PROCESS(COMMAND "chmod 755 ${NETCDF_BINARY_DIR}/nc-config")
+
 INCLUDE_DIRECTORIES(${NETCDF_BINARY_DIR})
 ## End autotools-style checs for config.h
 
@@ -248,7 +266,7 @@ IF (USE_HDF5)
 add_subdirectory(libsrc4)
 ENDIF (USE_HDF5)
 
-IF (BUILD_DAP)
+IF (USE_DAP)
 	ADD_SUBDIRECTORY(oc)
 	ADD_SUBDIRECTORY(libdap2)
 ENDIF()

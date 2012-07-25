@@ -4,11 +4,15 @@ INCLUDE_DIRECTORIES(".")
 
 SET(liblib_LIBS dispatch netcdf3)
 
+#####
+# Add target objects/modules based on options.
+#####
+
 IF(USE_HDF5 OR USE_NETCDF4) 
 	SET(liblib_LIBS ${liblib_LIBS} netcdf4)
 ENDIF()
 
-IF(BUILD_DAP)
+IF(USE_DAP)
 	SET(liblib_LIBS ${liblib_LIBS} oc dap2)
 ENDIF()
 
@@ -23,19 +27,19 @@ ENDFOREACH()
 
 ADD_LIBRARY(netcdf stub.c ${LARGS})
 
-IF(BUILD_DAP)
+#####
+# Add dependencies required for linking.
+#####
+
+IF(USE_DAP)
 	TARGET_LINK_LIBRARIES(netcdf ${CURL_LIBRARIES})
-ENDIF(BUILD_DAP)
+ENDIF()
 
 IF(USE_HDF5 OR USE_NETCDF4)
 	TARGET_LINK_LIBRARIES(netcdf ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARY} )
 ENDIF()
 
-IF(BUILD_DAP)
-	TARGET_LINK_LIBRARIES(netcdf ${CURL})
+IF(ENABLE_PNETCDF AND PNETCDF)
+	TARGET_LINK_LIBRARIES(netcdf ${PNETCDF})
 ENDIF()
-
-
-#TARGET_LINK_LIBRARIES(netcdf ${LARGS})
-#ADD_LIBRARY(netcdf stub.c $<TARGET_OBJECTS:dispatch> $<TARGET_OBJECTS:netcdf3>)
 
