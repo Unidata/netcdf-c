@@ -913,7 +913,7 @@ pr_attx(
     )
 {
     ncatt_t att;			/* attribute */
-    char *attvals = "";
+    char *attvals = NULL;
     int attvalslen = 0;
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
@@ -980,7 +980,8 @@ pr_attx(
 	printf("%s\"",attvals);
     }
     printf (" />\n");
-    free (attvals);
+    if(attvals != NULL)
+      free (attvals);
 }
 
 
