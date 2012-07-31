@@ -6,6 +6,11 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION		COMMENTS
 -------		--------
+4.3		Released 201?-??-??
+		
+		Replaced the oc library with oc2.0
+
+
 4.2.1		Released 2012-07-18
 
 		Added a specific NC_MMAP mode flag to modify

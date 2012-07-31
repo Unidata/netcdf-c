@@ -29,8 +29,10 @@ static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 static char* getdefinename(CDFnode* node);
 
-extern CDFnode* v4node;
 int nc3dinitialized = 0;
+
+size_t dap_one[NC_MAX_VAR_DIMS];
+size_t dap_zero[NC_MAX_VAR_DIMS];
 
 /**************************************************/
 /* Add an extra function whose sole purpose is to allow
@@ -44,8 +46,22 @@ int nc__opendap(void) {return 0;}
 int
 nc3dinitialize(void)
 {
+    int i;
     compute_nccalignments();
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	dap_one[i] = 1;
+	dap_zero[i] = 0;
+    }
     nc3dinitialized = 1;
+#if 0
+/* This is causing a hang */
+#ifdef DEBUG
+    /* force logging to go to stderr */
+    nclogclose();
+    nclogopen(NULL);
+    ncsetlogging(1); /* turn it on */
+#endif
+#endif
     return NC_NOERR;
 }
 
@@ -117,6 +133,16 @@ NCD3_open(const char * path, int mode,
     if(!constrainable34(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
 
+    /* fail if we are unconstrainable but have constraints */
+    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
+	if(dapcomm->oc.url->constraint != NULL) {
+	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
+		   dapcomm->oc.url->constraint);
+	    ncstat = THROW(NC_EDAPCONSTRAINT);
+	    goto done;
+	}
+    }
+
     /* Use libsrc code for storing metadata */
 
     snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
@@ -133,23 +159,17 @@ NCD3_open(const char * path, int mode,
     dapcomm->oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     dapcomm->oc.dapconstraint->projections = nclistnew();
     dapcomm->oc.dapconstraint->selections = nclistnew();
+    
+    if(dapcomm->oc.url != NULL) {
+        /* Parse constraints to make sure they are syntactically correct */
+        ncstat = parsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+     } else
+	dapcomm->oc.dapconstraint = NULL;
 
-    /* Parse constraints to make sure they are syntactically correct */
-    ncstat = parsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-
-    /* Complain if we are unconstrainable but have constraints */
-    if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	if(dapcomm->oc.url->constraint != NULL
-	   && strlen(dapcomm->oc.url->constraint) > 0) {
-	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   dapcomm->oc.url->constraint);
-	}
-    }
-
-    /* Construct a url for oc minus any parameters */
+    /* Construct a url for oc minus any constraint */
     dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,
-				(NC_URIALL ^ NC_URICONSTRAINTS));
+				      (NC_URIALL ^ NC_URICONSTRAINTS));
 
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
@@ -171,7 +191,7 @@ NCD3_open(const char * path, int mode,
         oc_logopen(value);
     }
 
-    /* fetch and build the (almost) unconstrained DDS for use as
+    /* fetch and build the unconstrained DDS for use as
        template */
     ncstat = fetchtemplatemetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
@@ -261,6 +281,10 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     /* Fill in segment information */
     ncstat = qualifyconstraints3(dapcomm->oc.dapconstraint);
     if(ncstat != NC_NOERR) goto done;
+
+    /* Accumulate set of variables in the constraint's projections */
+    ncstat = computeprojectedvars(dapcomm,dapcomm->oc.dapconstraint);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* using the modified constraint, rebuild the constraint string */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
@@ -573,7 +597,7 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, CDFnode* root)
     if(paramcheck34(dapcomm,"show","dds")) {
 	txt = NULL;
 	if(dapcomm->cdf.ddsroot != NULL)
-  	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->cdf.ddsroot->ocnode);
+  	    txt = oc_tree_text(dapcomm->oc.conn,dapcomm->cdf.ddsroot->ocnode);
 	if(txt != NULL) {
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
@@ -584,8 +608,8 @@ buildglobalattrs3(NCDAPCOMMON* dapcomm, CDFnode* root)
     }
     if(paramcheck34(dapcomm,"show","das")) {
 	txt = NULL;
-	if(dapcomm->oc.ocdasroot != OCNULL)
-	    txt = oc_inq_text(dapcomm->oc.conn,dapcomm->oc.ocdasroot);
+	if(dapcomm->oc.ocdasroot != NULL)
+	    txt = oc_tree_text(dapcomm->oc.conn,dapcomm->oc.ocdasroot);
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
@@ -664,7 +688,7 @@ getdefinename(CDFnode* node)
     NClist* path = NULL;
 
     switch (node->nctype) {
-    case NC_Primitive:
+    case NC_Atomic:
 	/* The define name is same as the fullname with elided nodes */
 	path = nclistnew();
         collectnodepath3(node,path,!WITHDATASET);

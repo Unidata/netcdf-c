@@ -27,8 +27,8 @@
 #include <assert.h>
 
 /* Warning: setting CATCHERROR has significant performance impact */
-#undef CATCHERROR
-#ifdef DEBUG
+#define CATCHERROR
+#ifdef DAPDEBUG
 #undef CATCHERROR
 #define CATCHERROR
 #endif
@@ -59,15 +59,13 @@ extern int dapthrow(int err);
 
 #ifdef DEBUG
 #define SHOWFETCH (1)
-#define LOG0(level,msg) fprintf(stderr,msg)
-#define LOG1(level,msg,a1) fprintf(stderr,msg,a1)
-#define LOG2(level,msg,a1,a2) fprintf(stderr,msg,a1,a2)
 #else
 #define SHOWFETCH FLAGSET(nccomm->controls,NCF_SHOWFETCH)
+#endif
+
 #define LOG0(level,msg) nclog(level,msg)
 #define LOG1(level,msg,a1) nclog(level,msg,a1)
 #define LOG2(level,msg,a1,a2) nclog(level,msg,a1,a2)
-#endif
 
 #endif /*DEBUG_H*/
 

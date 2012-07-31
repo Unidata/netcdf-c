@@ -386,9 +386,9 @@ so the names of variables, dimensions, and attributes must not be
 primitive type names.  In declarations, type names may be specified
 in either upper or lower case.
 .LP
-Bytes differ from characters in that they are intended to hold a full eight
+Bytes are intended to hold a full eight
 bits of data, and the zero byte has no special significance, as it
-does for character data.
+mays for character data.
 \fBncgen\fP converts \fBbyte\fP declarations to \fBchar\fP
 declarations in the output C code and to the nonstandard \fBBYTE\fP
 declaration in output Fortran code.
@@ -430,6 +430,24 @@ The unsigned counterparts of the above integer types
 are mapped to the corresponding unsigned C types.
 Their ranges are suitably modified to start at zero.
 .LP
+The technical interpretation of the char type is that it is an unsigned
+8-bit value. The encoding of the 256 possible values
+is unspecified by default. A variable of char type
+may be marked with an "_Encoding" attribute to indicate
+the character set to be used: US-ASCII, ISO-8859-1, etc.
+Note that specifying the encoding of UTF-8 is equivalent to
+specifying US-ASCII 
+This is because multi-byte UTF-8 characters cannot
+be stored in an 8-bit character. The only legal
+single byte UTF-8 values are by definition
+the 7-bit US-ASCII encoding with the top bit set to zero.
+.LP
+Strings are assumed by default to be encoded using UTF-8.
+Note that this means that multi-byte UTF-8 encodings may
+be present in the string, so it is possible that the number
+of distinct UTF-8 characters in a string is smaller than
+the number of 8-bit bytes used to store the string.
+.LP
 .SS "CDL Constants"
 .LP
 Constants assigned to attributes or variables may be of any of the
@@ -452,24 +470,6 @@ constants include:
  255b           // also -1 as a signed 8-bit byte
 .fi
 .RE
-.LP
-Character constants are enclosed in double quotes.  A character array
-may be represented as a string enclosed in double quotes.  The usual C
-string escape conventions are honored.  For example
-.RS
-.nf
-"a"		// ASCII `a'
-"Two\\nlines\\n"	// a 10-character string with two embedded newlines
-"a bell:\\007"	// a string containing an ASCII bell
-.fi
-.RE
-Note that the netCDF character array "a" would fit in a one-element
-variable, since no terminating NULL character is assumed.  However, a zero
-byte in a character array is interpreted as the end of the significant
-characters by the \fBncdump\fP program, following the C convention.
-Therefore, a NULL byte should not be embedded in a character string unless
-at the end: use the \fIbyte\fP data type instead for byte arrays that
-contain the zero byte.
 .LP
 \fIshort\fP integer constants are intended for representing 16-bit
 signed quantities.  The form of a \fIshort\fP constant is an integer
@@ -547,12 +547,53 @@ the character 'U' or 'u' between the constant and any trailing
 size specifier.  Thus one could say
 10U, 100us, 100000ul, or 1000000ull, for example.
 .LP
+Single character constants may be enclosed in single quotes.
+If a sequence of one or more characters is enclosed
+in double quotes, then its interpretation must be inferred
+from the context. If the dataset is created using the netCDF
+classic model, then all such constants are interpreted
+as a character array, so each character in the constant
+is interpreted as if it were a single character.
+If the dataset is netCDF extended, then the constant may
+be interpreted as for the classic model or as a true string
+(see below) depending on the type of the attribute or variable
+into which the string is contained.
+.LP
+The interpretation of char constants is that those
+that are in the printable ASCII range (' '..'~') are assumed to
+be encoded as the 1-byte subset ofUTF-8, which is equivalent to US-ASCII.
+In all cases, the usual C string escape conventions are honored
+for values from 0 thru 127. Values greater than 127 are allowed,
+but their encoding is undefined.
+For netCDF extended, the use of the char type is deprecated
+in favor of the string type.
+.LP
+Some character constant examples are as follows.
+.RS
+.nf
+'a'		// ASCII `a'
+"a"		// equivalent to 'a'
+"Two\\nlines\\n"	// a 10-character string with two embedded newlines
+"a bell:\\007"	// a string containing an ASCII bell
+.fi
+.RE
+Note that the netCDF character array "a" would fit in a one-element
+variable, since no terminating NULL character is assumed.  However, a zero
+byte in a character array is interpreted as the end of the significant
+characters by the \fBncdump\fP program, following the C convention.
+Therefore, a NULL byte should not be embedded in a character string unless
+at the end: use the \fIbyte\fP data type instead for byte arrays that
+contain the zero byte.
+.LP
 \fIString\fP constants are, like character constants,
 represented using double quotes. This represents a potential
 ambiguity since a multi-character string may also indicate
 a dimensioned character value. Disambiguation usually occurs
 by context, but care should be taken to specify the\fIstring\fP
 type to ensure the proper choice.
+String constants are assumed to always be UTF-8 encoded. This
+specifically means that the string constant may actually
+contain multi-byte UTF-8 characters.
 .LP
 \fIOpaque\fP constants are represented as
 sequences of hexadecimal digits preceded by 0X or 0x: 0xaa34ffff,

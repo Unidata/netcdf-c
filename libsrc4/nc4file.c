@@ -3141,7 +3141,6 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (unlimdimidp)
    {
       /* Default, no unlimited dimension */
-      int found = 0;
       *unlimdimidp = -1;
 
       /* If there's more than one unlimited dim, which was not possible

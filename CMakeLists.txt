@@ -91,12 +91,12 @@ OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
 OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
-   SET(USE_HDF5 ON)
-   SET(USE_NETCDF4 ON)
-
-   FIND_PACKAGE(HDF5)
-   IF(NOT HDF5_FOUND)
-	MESSAGE(FATAL_ERROR "HDF5 Not Found")
+  SET(USE_HDF5 ON)
+  SET(USE_NETCDF4 ON)
+  
+  FIND_PACKAGE(HDF5)
+  IF(NOT HDF5_FOUND)
+    MESSAGE(FATAL_ERROR "HDF5 Not Found")
    ENDIF(NOT HDF5_FOUND)
    CHECK_INCLUDE_FILE("hdf5.h" HAVE_HDF5_H)
    IF(NOT HAVE_HDF5_H)
@@ -253,7 +253,7 @@ SET (NETCDF_LIB_CORENAME	"netcdf")
 # Set the true names of all the libraries, if customized by external project
 #---
 INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/oc)
+INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/oc2)
 
 # Recurse into other subdirectories.
 #add_subdirectory(h5_test)
@@ -267,7 +267,7 @@ add_subdirectory(libsrc4)
 ENDIF (USE_HDF5)
 
 IF (USE_DAP)
-	ADD_SUBDIRECTORY(oc)
+	ADD_SUBDIRECTORY(oc2)
 	ADD_SUBDIRECTORY(libdap2)
 ENDIF()
 

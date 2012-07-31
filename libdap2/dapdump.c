@@ -325,7 +325,7 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
     case NC_Grid:
 	dumptreer1(root,buf,indent,"Grid",visible);
 	break;
-    case NC_Primitive:
+    case NC_Atomic:
 	switch (root->etype) {
 	case NC_BYTE: primtype = "byte"; break;
 	case NC_CHAR: primtype = "char"; break;
@@ -406,7 +406,7 @@ dumpnode(CDFnode* node)
     case NC_Sequence: nctype = "Sequence"; break;
     case NC_Structure: nctype = "Structure"; break;
     case NC_Grid: nctype = "Grid"; break;
-    case NC_Primitive:
+    case NC_Atomic:
 	switch (node->etype) {
 	case NC_BYTE: primtype = "byte"; break;
 	case NC_CHAR: primtype = "char"; break;
@@ -605,3 +605,28 @@ dumpslices(DCEslice* slice, unsigned int rank)
     return result;
 }
 
+void
+dumpraw(void* o)
+{
+    fprintf(stderr,"%s\n",dcerawtostring(o));
+    fflush(stderr);
+}
+
+void
+dumplistraw(NClist* l)
+{
+    fprintf(stderr,"%s\n",dcerawlisttostring(l));
+    fflush(stderr);
+}
+
+/* For debugging */
+void
+dumpstringlist(NClist* l)
+{
+    int i;
+    for(i=0;i<nclistlength(l);i++) {
+	const char* s = (const char*)nclistget(l,i);
+	fprintf(stderr,"[%d]: |%s|\n",i,s);
+    }
+    fflush(stderr);
+}

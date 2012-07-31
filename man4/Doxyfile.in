@@ -610,7 +610,6 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dparallel.c \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
-    @abs_top_srcdir@/libdispatch/nc4.c \
     @abs_top_srcdir@/libsrc4/nc4file.c \
     @abs_top_srcdir@/ncdump/ncdump.c \
     @abs_top_srcdir@/ncdump/nccopy.c

@@ -5,7 +5,6 @@
  *********************************************************************/
 #include "config.h"
 #include "ncdap3.h"
-#include "dapodom.h"
 
 NCerror
 dapconvert3(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
