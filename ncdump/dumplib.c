@@ -188,8 +188,6 @@ safebuf_t *
 sbuf_new() {
     size_t len = SAFEBUF_INIT_LEN;
     safebuf_t *sb;
-    if (len == 0)
-	return 0;
     sb = (safebuf_t *) emalloc(sizeof(safebuf_t));
     sb->buf = (char *)emalloc(len + sizeof(int));
     sb->len = len;

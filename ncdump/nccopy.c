@@ -87,7 +87,7 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
 	NC_CHECK(NC_ENOMEM);
     } else
 	last_slash = strrchr(parent, '/');
-    if(last_slash == parent) {	/* parent is root */
+    if(last_slash == parent || last_slash == NULL) {	/* parent is root */
 	free(parent);
 	parent = strdup(slash);
     } else {
