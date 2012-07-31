@@ -175,14 +175,14 @@ is_bounds_att(ncatt_t *attp) {
  * later determine which variables are bounds variables for which
  * other variables.  att must be a variable "bounds" attribute.  */
 void
-insert_bounds_info(int ncid, int varid, ncatt_t att) {
+insert_bounds_info(int ncid, int varid, ncatt_t *attp) {
     static boolean uninitialized = true;
     if(uninitialized) {
 	bounds_list.nbnds = 0;
 	bounds_list.first = NULL;
     }
-    assert(is_bounds_att(&att));
-    bounds_add(att.valgp, ncid, varid);
+    assert(is_bounds_att(attp));
+    bounds_add(attp->valgp, ncid, varid);
 }
 
 void

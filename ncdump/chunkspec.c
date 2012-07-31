@@ -110,8 +110,7 @@ chunkspec_parse(int ncid, const char *spec) {
 	    }
 	    chunkspecs.chunksizes[idim] = chunksize;
 	    idim++;
-	    if(dimname)
-		free(dimname);
+	    free(dimname);
 	    if(*cp == '\0')
 		break;
 	    /* set np to point to first char after comma */
