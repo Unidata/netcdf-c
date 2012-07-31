@@ -5,7 +5,6 @@
  *********************************************************************/
 
 #include "ncdap3.h"
-#include "dapodom.h"
 #include "dapdebug.h"
 #include "dapdump.h"
 #include "dceparselex.h"
@@ -117,7 +116,7 @@ qualifyprojectionnames3(DCEprojection* proj)
 
     ASSERT((proj->discrim == CES_VAR
             && proj->var->annotation != NULL
-            && ((CDFnode*)proj->var->annotation)->ocnode != OCNULL));
+            && ((CDFnode*)proj->var->annotation)->ocnode != NULL));
     collectnodepath3((CDFnode*)proj->var->annotation,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify: %s -> ",
@@ -256,7 +255,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 	if(node->nctype != NC_Sequence
                && node->nctype != NC_Structure
                && node->nctype != NC_Grid
-               && node->nctype != NC_Primitive
+               && node->nctype != NC_Atomic
           )
 	    continue;
 	nclistpush(namematches,(ncelem)node);
@@ -407,25 +406,31 @@ buildconstraintstring3(DCEconstraint* constraints)
    with any pseudo dimensions removed
 */
 NCerror
-buildvaraprojection3(Getvara* getvar,
+buildvaraprojection3(CDFnode* var,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     DCEprojection** projectionp)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    CDFnode* var = getvar->target;
     DCEprojection* projection = NULL;
     NClist* path = nclistnew();
     NClist* segments = NULL;
     int dimindex;
 
+    /* Build a skeleton projection that has 1 segment for
+       every cdfnode from root to the variable of interest.
+       Each segment has the slices from its corresponding node
+       in the path, including pseudo-dims
+    */
     ncstat = dapvar2projection(var,&projection);
+
+
 #ifdef DEBUG
-fprintf(stderr,"buildvaraprojection: %s\n",dumpprojection(projection));
+fprintf(stderr,"buildvaraprojection: skeleton: %s\n",dumpprojection(projection));
 #endif
 
-    /* We need to assign the start/count/stride info to each segment;
-       declsize will have been set
+    /* Now, modify the projection to reflect the corresponding
+       start/count/stride from the nc_get_vara arguments.
     */
     segments = projection->var->segments;
     dimindex = 0;
@@ -452,7 +457,7 @@ fprintf(stderr,"buildvaraprojection.final: %s\n",dumpprojection(projection));
 #endif
 
 #ifdef DEBUG
-fprintf(stderr,"buildvaraprojection3: projection=%s\n",
+fprintf(stderr,"buildvaraprojection3: final: projection=%s\n",
         dumpprojection(projection));
 #endif
 
@@ -710,7 +715,7 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
     DCEprojection* projection = NULL;
     int dimindex;
 
-    /* Collect the nodes needed to construct the projection segment */    
+    /* Collect the nodes needed to construct the projection segments */    
     collectnodepath3(var,path,!WITHDATASET);
 
     segments = nclistnew();
@@ -849,5 +854,33 @@ fprintf(stderr,"dapshiftprojection.before: %s\n",dumpprojection(projection));
 fprintf(stderr,"dapshiftprojection.after: %s\n",dumpprojection(projection));
 #endif
 
+    return ncstat;
+}
+
+/* Compute the set of variables referenced in the projections
+   of the input constraint.
+*/
+NCerror
+computeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
+{
+    NCerror ncstat = NC_NOERR;
+    NClist* vars = nclistnew();
+    int i;
+
+    dapcomm->cdf.projectedvars = vars;
+    if(constraint == NULL || constraint->projections == NULL)
+	goto done;
+
+    for(i=0;i<nclistlength(constraint->projections);i++) {
+	CDFnode* node;
+	DCEprojection* proj = (DCEprojection*)nclistget(constraint->projections,i);
+	if(proj->discrim == CES_FCN) continue; /* ignore these */
+	node = (CDFnode*)proj->var->annotation;	
+	if(!nclistcontains(vars,(ncelem)node)) {
+	    nclistpush(vars,(ncelem)node);
+	}
+    }    
+
+done:
     return ncstat;
 }

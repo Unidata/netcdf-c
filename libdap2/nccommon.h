@@ -32,7 +32,7 @@
 #define NC_Structure	54
 #define NC_Grid		55
 #define NC_Dimension	56
-#define NC_Primitive	57
+#define NC_Atomic	57
 
 #undef OCCOMPILEBYDEFAULT
 
@@ -93,14 +93,14 @@ struct NCTMODEL {
 
 /* Detail information about each cache item */
 typedef struct NCcachenode {
-    int wholevariable; /* does this node only have wholevariables? */
+    int wholevariable; /* does this cache node only have wholevariables? */
     int prefetch; /* is this the prefetch cache entry? */
-    size_t xdrsize;
+    off_t xdrsize;
     DCEconstraint* constraint; /* as used to create this node */
     NClist* vars; /* vars potentially covered by this cache node */
     struct CDFnode* datadds;
-    OCobject ocroot;
-    OCdata content;
+    OCddsnode ocroot;
+    OCdatanode content;
 } NCcachenode;
 
 /* All cache info */
@@ -115,11 +115,11 @@ typedef struct NCcache {
 /**************************************************/
 /* The DAP packet info from OC */
 typedef struct NCOC {
-    OCconnection conn;
+    OClink conn;
     char* rawurltext; /* as given to nc3d_open */
     char* urltext;    /* as modified by nc3d_open */
     NC_URI* url;      /* parse of rawuritext */
-    OCobject ocdasroot;
+    OCdasnode ocdasroot;
     DCEconstraint* dapconstraint; /* from url */
     int inmemory; /* store fetched data in memory? */
 } NCOC;
@@ -132,6 +132,7 @@ typedef struct NCCDF {
     NClist*  seqnodes; /* sequence nodes; */
     NClist*  gridnodes; /* grid nodes */
     NClist*  dimnodes; /* (base) dimension nodes */
+    NClist*  projectedvars; /* vars appearing in nc_open url projections */
     unsigned int defaultstringlength;
     unsigned int defaultsequencelimit; /* global sequence limit;0=>no limit */
     struct NCcache* cache;
@@ -161,7 +162,7 @@ typedef struct NCDAPCOMMON {
 
 /* Each root CDFnode contains info about the whole tree */
 typedef struct CDFtree {
-    OCobject ocroot;
+    OCddsnode ocroot;
     OCdxd occlass;
     NClist* nodes; /* all nodes in tree*/
     struct CDFnode* root; /* cross link */
@@ -235,7 +236,7 @@ typedef struct CDFnode {
     char*            ocname;     /* oc base name */
     char*            ncbasename; /* generally cdflegalname(ocname) */
     char*            ncfullname; /* complete path name from root to this node*/
-    OCobject         ocnode;        /* oc mirror node*/
+    OCddsnode        ocnode;     /* oc mirror node*/
     struct CDFnode*  group;	 /* null => in root group */
     struct CDFnode*  container;  /* e.g. struct or sequence, but not group */
     struct CDFnode*  root;
@@ -275,26 +276,26 @@ typedef struct CDFnode {
 /* Shared procedures */
 
 /* From ncdap3.c*/
-extern NCerror freeNCDAPCOMMON(struct NCDAPCOMMON*);
+extern NCerror freeNCDAPCOMMON(NCDAPCOMMON*);
 extern NCerror fetchtemplatemetadata3(NCDAPCOMMON*);
 
 /* From error.c*/
 extern NCerror ocerrtoncerr(OCerror);
 
 /* From: common34.c */
-extern NCerror fixgrid34(struct NCDAPCOMMON* drno, CDFnode* grid);
-extern NCerror computecdfinfo34(struct NCDAPCOMMON*, NClist*);
+extern NCerror fixgrid34(NCDAPCOMMON* drno, CDFnode* grid);
+extern NCerror computecdfinfo34(NCDAPCOMMON*, NClist*);
 extern char* cdfname34(char* basename);
-extern NCerror augmentddstree34(struct NCDAPCOMMON*, NClist*);
-extern NCerror computecdfdimnames34(struct NCDAPCOMMON*);
-extern NCerror buildcdftree34(struct NCDAPCOMMON*, OCobject, OCdxd, CDFnode**);
-extern CDFnode* makecdfnode34(struct NCDAPCOMMON*, char* nm, OCtype,
-			    /*optional*/ OCobject ocnode, CDFnode* container);
+extern NCerror augmentddstree34(NCDAPCOMMON*, NClist*);
+extern NCerror computecdfdimnames34(NCDAPCOMMON*);
+extern NCerror buildcdftree34(NCDAPCOMMON*, OCddsnode, OCdxd, CDFnode**);
+extern CDFnode* makecdfnode34(NCDAPCOMMON*, char* nm, OCtype,
+			    /*optional*/ OCddsnode ocnode, CDFnode* container);
 extern void freecdfroot34(CDFnode*);
 
-extern NCerror findnodedds34(struct NCDAPCOMMON* drno, CDFnode* ddssrc);
-extern NCerror makegetvar34(struct NCDAPCOMMON*, struct CDFnode*, void*, nc_type, struct Getvara**);
-extern NCerror applyclientparams34(struct NCDAPCOMMON* drno);
+extern NCerror findnodedds34(NCDAPCOMMON* drno, CDFnode* ddssrc);
+extern NCerror makegetvar34(NCDAPCOMMON*, struct CDFnode*, void*, nc_type, struct Getvara**);
+extern NCerror applyclientparams34(NCDAPCOMMON* drno);
 extern NCerror attach34(CDFnode* xroot, CDFnode* ddstarget);
 extern NCerror attachall34(CDFnode* xroot, CDFnode* ddsroot);
 extern NCerror attachsubset34(CDFnode*, CDFnode*);
@@ -310,7 +311,7 @@ extern NClist* getalldims34(NCDAPCOMMON* nccomm, int visibleonly);
 
 /* From cdf3.c */
 extern NCerror dimimprint3(NCDAPCOMMON*);
-extern NCerror definedimsets3(struct NCDAPCOMMON*);
+extern NCerror definedimsets3(NCDAPCOMMON*);
 
 /* From cache.c */
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);

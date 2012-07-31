@@ -9,6 +9,7 @@
 extern NCerror parsedapconstraints(NCDAPCOMMON*, char*, DCEconstraint*);
 extern NCerror mapconstraints3(DCEconstraint*,CDFnode*);
 extern NCerror qualifyconstraints3(DCEconstraint* constraint);
+extern NCerror computeprojectedvars(NCDAPCOMMON*,DCEconstraint*);
 
 extern char* simplepathstring(NClist* segments, char* separator);
 extern void makesegmentstring3(NClist* segments, NCbytes* buf, char* separator);

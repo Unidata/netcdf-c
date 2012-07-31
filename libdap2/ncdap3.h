@@ -19,6 +19,7 @@
 #include "nchashmap.h"
 #include "nclog.h"
 #include "nc_uri.h"
+
 #include "fbits.h"
 #include "dceconstraints.h"
 
@@ -107,7 +108,7 @@ extern void dereference3(NCconstraint* constraint);
 extern NCerror rereference3(NCconstraint*, NClist*);
 */
 
-extern NCerror buildvaraprojection3(struct Getvara*,
+extern NCerror buildvaraprojection3(CDFnode*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     struct DCEprojection** projectionlist);
 
@@ -121,6 +122,9 @@ extern NCerror nc3d_getvarx(int ncid, int varid,
 /**************************************************/
 
 /* From: ncdap3.c*/
+extern size_t dap_one[NC_MAX_VAR_DIMS];
+extern size_t dap_zero[NC_MAX_VAR_DIMS];
+
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
 extern int nc3dinitialize(void);

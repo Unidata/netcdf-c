@@ -46,7 +46,7 @@ libdap2_la_LIBADD =
 #endif
 #
 #LDADD += ${top_builddir}/libsrc/libnetcdf3.la		\
-#	 ${top_builddir}/oc/liboc.la			\
+#	 ${top_builddir}/oc2/liboc.la			\
 #	 ${top_builddir}/libdispatch/libdispatch.la
 #
 endif # BUILD_DAP

@@ -20,8 +20,8 @@ extern CDFnode* v4node;
 
 /* Define the set of protocols known to be constrainable */
 static char* constrainableprotocols[] = {"http", "https",NULL};
-static NCerror buildcdftree34r(NCDAPCOMMON*,OCobject,CDFnode*,CDFtree*,CDFnode**);
-static void defdimensions(OCobject, CDFnode*, NCDAPCOMMON*, CDFtree*);
+static NCerror buildcdftree34r(NCDAPCOMMON*,OCddsnode,CDFnode*,CDFtree*,CDFnode**);
+static void defdimensions(OCddsnode, CDFnode*, NCDAPCOMMON*, CDFtree*);
 static NCerror  attachsubset34r(CDFnode*, CDFnode*);
 static void free1cdfnode34(CDFnode* node);
 
@@ -42,7 +42,7 @@ fix1node34(NCDAPCOMMON* nccomm, CDFnode* node)
     nullfree(node->ncfullname);
     node->ncfullname = makecdfpathstring3(node,nccomm->cdf.separator);
     if(node->ncfullname == NULL) return NC_ENOMEM;
-    if(node->nctype == NC_Primitive)
+    if(node->nctype == NC_Atomic)
         node->externaltype = nctypeconvert(nccomm,node->etype);
     return NC_NOERR;
 }
@@ -376,7 +376,7 @@ constrainable34(NC_URI* durl)
 
 CDFnode*
 makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
-             /*optional*/ OCobject ocnode, CDFnode* container)
+             /*optional*/ OCddsnode ocnode, CDFnode* container)
 {
     CDFnode* node;
     assert(nccomm != NULL);
@@ -396,8 +396,8 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
     node->ocnode = ocnode;
     node->subnodes = nclistnew();
     node->container = container;
-    if(ocnode != OCNULL) {
-	oc_inq_primtype(nccomm->oc.conn,ocnode,&octype);
+    if(ocnode != NULL) {
+	oc_dds_atomictype(nccomm->oc.conn,ocnode,&octype);
         node->etype = octypetonc(octype);
     }
     return node;
@@ -408,7 +408,7 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
    of all nodes in preorder.
 */
 NCerror
-buildcdftree34(NCDAPCOMMON* nccomm, OCobject ocroot, OCdxd occlass, CDFnode** cdfrootp)
+buildcdftree34(NCDAPCOMMON* nccomm, OCddsnode ocroot, OCdxd occlass, CDFnode** cdfrootp)
 {
     CDFnode* root = NULL;
     CDFtree* tree = (CDFtree*)calloc(1,sizeof(CDFtree));
@@ -428,26 +428,26 @@ buildcdftree34(NCDAPCOMMON* nccomm, OCobject ocroot, OCdxd occlass, CDFnode** cd
 }        
 
 static NCerror
-buildcdftree34r(NCDAPCOMMON* nccomm, OCobject ocnode, CDFnode* container,
+buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
                 CDFtree* tree, CDFnode** cdfnodep)
 {
-    unsigned int i,ocrank,ocnsubnodes;
+    size_t i,ocrank,ocnsubnodes;
     OCtype octype;
     char* ocname = NULL;
     NCerror ncerr = NC_NOERR;
     CDFnode* cdfnode;
 
-    oc_inq_class(nccomm->oc.conn,ocnode,&octype);
-    oc_inq_name(nccomm->oc.conn,ocnode,&ocname);
-    oc_inq_rank(nccomm->oc.conn,ocnode,&ocrank);
-    oc_inq_nsubnodes(nccomm->oc.conn,ocnode,&ocnsubnodes);
+    oc_dds_class(nccomm->oc.conn,ocnode,&octype);
+    oc_dds_name(nccomm->oc.conn,ocnode,&ocname);
+    oc_dds_rank(nccomm->oc.conn,ocnode,&ocrank);
+    oc_dds_nsubnodes(nccomm->oc.conn,ocnode,&ocnsubnodes);
 
     switch (octype) {
     case OC_Dataset:
     case OC_Grid:
     case OC_Structure:
     case OC_Sequence:
-    case OC_Primitive:
+    case OC_Atomic:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
 	nclistpush(tree->nodes,(ncelem)cdfnode);
 	if(tree->root == NULL) {
@@ -465,9 +465,9 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCobject ocnode, CDFnode* container,
 
     if(ocrank > 0) defdimensions(ocnode,cdfnode,nccomm,tree);
     for(i=0;i<ocnsubnodes;i++) {
-	OCobject ocsubnode;
+	OCddsnode ocsubnode;
 	CDFnode* subnode;
-	oc_inq_ith(nccomm->oc.conn,ocnode,i,&ocsubnode);
+	oc_dds_ithfield(nccomm->oc.conn,ocnode,i,&ocsubnode);
 	ncerr = buildcdftree34r(nccomm,ocsubnode,cdfnode,tree,&subnode);
 	if(ncerr) return ncerr;
 	nclistpush(cdfnode->subnodes,(ncelem)subnode);
@@ -478,20 +478,20 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCobject ocnode, CDFnode* container,
 }
 
 static void
-defdimensions(OCobject ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* tree)
+defdimensions(OCddsnode ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* tree)
 {
-    unsigned int i,ocrank;
+    size_t i,ocrank;
  
-    oc_inq_rank(nccomm->oc.conn,ocnode,&ocrank);
+    oc_dds_rank(nccomm->oc.conn,ocnode,&ocrank);
     assert(ocrank > 0);
     for(i=0;i<ocrank;i++) {
 	CDFnode* cdfdim;
-	OCobject ocdim;
+	OCddsnode ocdim;
 	char* ocname;
 	size_t declsize;
 
-	oc_inq_ithdim(nccomm->oc.conn,ocnode,i,&ocdim);
-	oc_inq_dim(nccomm->oc.conn,ocdim,&declsize,&ocname);
+	oc_dds_ithdimension(nccomm->oc.conn,ocnode,i,&ocdim);
+	oc_dimension_properties(nccomm->oc.conn,ocdim,&declsize,&ocname);
 
 	cdfdim = makecdfnode34(nccomm,ocname,OC_Dimension,
                               ocdim,cdfnode->container);
@@ -520,7 +520,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     const char* value;
     char tmpname[NC_MAX_NAME+32];
     char* pathstr;
-    OCconnection conn = nccomm->oc.conn;
+    OClink conn = nccomm->oc.conn;
     unsigned long limit;
 
     ASSERT(nccomm->oc.url != NULL);
@@ -633,7 +633,7 @@ freecdfroot34(CDFnode* root)
     /* Explicitly FREE the ocroot */
     nccomm = tree->owner;
     oc_root_free(nccomm->oc.conn,tree->ocroot);
-    tree->ocroot = OCNULL;
+    tree->ocroot = NULL;
     for(i=0;i<nclistlength(tree->nodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(tree->nodes,i);
 	free1cdfnode34(node);
@@ -700,7 +700,7 @@ simplenodematch34(CDFnode* node1, CDFnode* node2)
     }
     /* Add hack to address the screwed up Columbia server */
     if(node1->nctype == NC_Dataset) return 1;
-    if(node1->nctype == NC_Primitive
+    if(node1->nctype == NC_Atomic
        && node1->etype != node2->etype) return 0;
     if(node1->ocname != NULL && node2->ocname != NULL
        && strcmp(node1->ocname,node2->ocname)!=0) return 0;
@@ -798,7 +798,7 @@ fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,templatepathnode->ocname);
         if(simplenodematch34(xsubnode,templatepathnext)) {
 	    ncstat = attach34r(xsubnode,templatepath,depth+1);
 	    if(ncstat) goto done;
-        } else if(gridable && xsubnode->nctype == NC_Primitive) {
+        } else if(gridable && xsubnode->nctype == NC_Atomic) {
             /* grids may or may not appear in the datadds;
 	       try to match the xnode subnodes against the parts of the grid
 	    */

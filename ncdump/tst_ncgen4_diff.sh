@@ -45,7 +45,7 @@ for x in ${TESTSET} ; do
     test $verbose = 1 && echo "*** SUCCEED: ${x}"
     passcount=`expr $passcount + 1`
   elif test "x${isxfail}" = "x1" ; then
-    echo "*** XFAIL: ${x}"
+    echo "*** XFAIL : ${x}"
     xfailcount=`expr $xfailcount + 1`
   else
     echo "*** FAIL: ${x}"

@@ -9,11 +9,10 @@
 #include <sys/time.h>
 
 #include "oc.h"
-extern int oc_dumpnode(OClink, OCobject);
+extern int oc_dumpnode(OClink, OCddsnode);
 
 #include "ncdap3.h"
 #include "dapalign.h"
-#include "dapodom.h"
 
 #define LBRACKET '['
 #define RBRACKET ']'
@@ -137,7 +136,7 @@ octypetonc(OCtype etype)
     case OC_Structure:	return NC_Structure;
     case OC_Grid:	return NC_Grid;
     case OC_Dimension:	return NC_Dimension;
-    case OC_Primitive:	return NC_Primitive;
+    case OC_Atomic:	return NC_Atomic;
     default: break;
     }
     return NC_NAT;
@@ -213,7 +212,7 @@ nctypetostring(nc_type nctype)
     case NC_Structure:	return "NC_Structure";
     case NC_Grid:	return "NC_Grid";
     case NC_Dimension:	return "NC_Dimension";
-    case NC_Primitive:	return "NC_Primitive";
+    case NC_Atomic:	return "NC_Atomic";
     default: break;
     }
     return NULL;
@@ -341,21 +340,21 @@ collectnodepath3(CDFnode* node, NClist* path, int withdataset)
 
 /* Like collectnodepath3, but in ocspace */
 void
-collectocpath(OCconnection conn, OCobject node, NClist* path)
+collectocpath(OClink conn, OCddsnode node, NClist* path)
 {
-    OCobject container;
+    OCddsnode container;
     OCtype octype;
-    if(node == OCNULL) return;
-    oc_inq_class(conn,node,&octype);
+    if(node == NULL) return;
+    oc_dds_class(conn,node,&octype);
     if(octype == OC_Dataset) return;
-    oc_inq_container(conn,node,&container);
-    if(container != OCNULL)
+    oc_dds_container(conn,node,&container);
+    if(container != NULL)
         collectocpath(conn,container,path);
     nclistpush(path,(ncelem)node);
 }
 
 char*
-makeocpathstring3(OCconnection conn, OCobject node, const char* sep)
+makeocpathstring3(OClink conn, OCddsnode node, const char* sep)
 {
     int slen,i,len,first,seplen;
     char* pathname;
@@ -366,17 +365,17 @@ makeocpathstring3(OCconnection conn, OCobject node, const char* sep)
     len = nclistlength(ocpath);
     assert(len > 0); /* dataset at least */
 
-    oc_inq_type(conn,node,&octype);
+    oc_dds_type(conn,node,&octype);
     if(octype == OC_Dataset)
 	{pathname = nulldup(""); goto done;} /* Dataset */
 
     seplen = strlen(sep);
     for(slen=0,i=0;i<len;i++) {
-	OCobject node = (OCobject)nclistget(ocpath,i);
+	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
 	char* name;
-        oc_inq_type(conn,node,&octype);
+        oc_dds_type(conn,node,&octype);
         if(octype == OC_Dataset) continue;
-        oc_inq_name(conn,node,&name);
+        oc_dds_name(conn,node,&name);
 	slen += (name == NULL? 0 : strlen(name));
 	slen += seplen;
 	nullfree(name);
@@ -386,11 +385,11 @@ makeocpathstring3(OCconnection conn, OCobject node, const char* sep)
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';    
     for(first=1,i=0;i<len;i++) {
-	OCobject node = (OCobject)nclistget(ocpath,i);
+	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
 	char* name;
-        oc_inq_type(conn,node,&octype);
+        oc_dds_type(conn,node,&octype);
         if(octype == OC_Dataset) continue;
-        oc_inq_name(conn,node,&name);
+        oc_dds_name(conn,node,&name);
 	if(!first) strcat(pathname,sep);
         if(name != NULL) strcat(pathname,name);
 	nullfree(name);
@@ -688,8 +687,8 @@ deltatime()
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
 OCerror
-dap_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
-             OCdxd dxd, OCobject* rootp)
+dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
+             OCdxd dxd, OCddsnode* rootp)
 {
     OCerror ocstat;
     char* ext;
@@ -714,15 +713,15 @@ dap_fetch(NCDAPCOMMON* nccomm, OCconnection conn, const char* ce,
 	/* Build uri string minus the constraint */
 	char* baseurl = nc_uribuild(nccomm->oc.url,NULL,ext,0);
 	if(ce == NULL)
-            LOG1(NCLOGNOTE,"fetch: %s\n",baseurl);
+            LOG1(NCLOGNOTE,"fetch: %s",baseurl);
 	else	
-            LOG2(NCLOGNOTE,"fetch: %s?%s\n",baseurl,ce);
+            LOG2(NCLOGNOTE,"fetch: %s?%s",baseurl,ce);
 	nullfree(baseurl);
 #ifdef HAVE_GETTIMEOFDAY
 	gettimeofday(&time0,NULL);
 #endif
     }
-    ocstat = oc_fetchf(conn,ce,dxd,flags,rootp);
+    ocstat = oc_fetch(conn,ce,dxd,flags,rootp);
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 #ifdef HAVE_GETTIMEOFDAY
         double secs;
