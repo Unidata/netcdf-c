@@ -2,6 +2,12 @@
  *	Copyright 1996, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
+#if defined (_WIN32) || defined (_WIN64)
+#include <windows.h>
+#include <winbase.h>
+#include <io.h>
+#define lseek64 lseek
+#endif
 
 #include "config.h"
 #include <assert.h>
@@ -35,8 +41,7 @@
 #endif
 
 /* Define the mode flags for create: let umask rule */
-#define OPENMODE 0777
-#define OPENANYMODE 0777
+#define OPENMODE 0666
 
 #include "ncio.h"
 #include "fbits.h"
@@ -101,7 +106,12 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     int openfd = -1;
 
     if(pagesize == 0) {
-#if defined HAVE_SYSCONF
+
+#if defined (_WIN32) || defined(_WIN64)
+      SYSTEM_INFO info;
+      GetSystemInfo (&info);
+      pagesize = info.dwPageSize;
+#elif defined HAVE_SYSCONF
         pagesize = sysconf(_SC_PAGE_SIZE);
 #elif defined HAVE_GETPAGESIZE
         pagesize = getpagesize();

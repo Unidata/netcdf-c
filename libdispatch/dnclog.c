@@ -20,6 +20,7 @@
 
 static int ncinitlog = 0;
 static int nclogging = 0;
+static int ncsystemfile = 0;
 static char* nclogfile = NULL;
 static FILE* nclogstream = NULL;
 
@@ -58,23 +59,22 @@ void
 nclogopen(const char* file)
 {
     if(!ncinitlog) ncloginit();
-    if(nclogfile != NULL) {
-	fclose(nclogstream);
-	free(nclogfile);
-	nclogfile = NULL;
-    }
+    nclogclose();
     if(file == NULL || strlen(file) == 0) {
 	/* use stderr*/
 	nclogstream = stderr;
 	nclogfile = NULL;
+	ncsystemfile = 1;
     } else if(strcmp(file,"stdout") == 0) {
 	/* use stdout*/
 	nclogstream = stdout;
 	nclogfile = NULL;
+	ncsystemfile = 1;
     } else if(strcmp(file,"stderr") == 0) {
 	/* use stderr*/
 	nclogstream = stderr;
 	nclogfile = NULL;
+	ncsystemfile = 1;
     } else {
 	int fd;
 	nclogfile = strdup(file);
@@ -87,20 +87,23 @@ nclogopen(const char* file)
 	} else {
 	    free(nclogfile);
 	    nclogfile = NULL;
+	    nclogstream = NULL;
 	    ncsetlogging(0);
 	}
+	ncsystemfile = 0;
     }
 }
 
 void
 nclogclose(void)
 {
-    if(nclogfile != NULL && nclogstream != NULL) {
+    if(nclogstream != NULL && !ncsystemfile) {
 	fclose(nclogstream);
-	nclogstream = NULL;
-	if(nclogfile != NULL) free(nclogfile);
-	nclogfile = NULL;
     }
+    if(nclogfile != NULL) free(nclogfile);
+    nclogstream = NULL;
+    nclogfile = NULL;
+    ncsystemfile = 0;
 }
 
 void

@@ -5,10 +5,9 @@
 set -e
 if test "x$srcdir" = "x"; then
     srcdir=`dirname $0`; 
-    cd $srcdir
-    #srcdir=`pwd`
-    #export srcdir=$srcdir
 fi
+export srcdir
+
 echo ""
 echo "*** Running extra netcdf-4 tests."
 
@@ -23,7 +22,7 @@ echo "*** Running extra netcdf-4 tests."
 # remove the './','../../ncdump'.
 # 
 
-if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then # MINGW Platforms
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then # MINGW Platforms
 
     echo "*** dumping tst_string_data.nc to tst_string_data.cdl..."
 

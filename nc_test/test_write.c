@@ -2011,8 +2011,10 @@ nc_get_file_version(char *path, int *version)
 
    /* Figure out if this is a netcdf or hdf5 file. */
    if (!(fp = fopen(path, "r")) ||
-       fread(magic, MAGIC_NUM_LEN, 1, fp) != 1)
-      return errno;
+       fread(magic, MAGIC_NUM_LEN, 1, fp) != 1) {
+     fclose(fp);
+     return errno;
+   }
    fclose(fp);
    if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0)
    {

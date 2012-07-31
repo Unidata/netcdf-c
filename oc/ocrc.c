@@ -182,7 +182,7 @@ parseproxy(OCstate* state, char* v)
             return OC_ENOMEM;
 
         strncpy(state->proxy.host, host_pos, host_len);
-        state->proxy.host[host_len + 1] = '\0';
+        state->proxy.host[host_len] = '\0';
 
         state->proxy.port = atoi(port_pos);
     } else {
@@ -192,7 +192,7 @@ parseproxy(OCstate* state, char* v)
             return OC_ENOMEM;
 
         strncpy(state->proxy.host, host_pos, host_len);
-        state->proxy.host[host_len + 1] = '\0';
+        state->proxy.host[host_len] = '\0';
 
         state->proxy.port = 80;
     }

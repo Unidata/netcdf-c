@@ -309,6 +309,8 @@ printf("*** testing diskless file with scalar vars...");
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
-    exit(0);
+    
+    /* Unnecessary exit(0), FINAL_RESULTS returns. */
+    //exit(0);
 }
     

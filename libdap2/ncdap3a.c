@@ -427,7 +427,7 @@ computeseqcountconstraints3(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcoun
     NClist* path = NULL;
     CDFnode* var = NULL;
 
-    ASSERT(seq->nctype = NC_Sequence);
+    ASSERT(seq->nctype == NC_Sequence);
     computeseqcountconstraints3r(dapcomm,seq,&var);
 
     ASSERT((var != NULL));

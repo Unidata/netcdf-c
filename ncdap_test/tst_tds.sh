@@ -11,7 +11,7 @@ srcdir=`pwd`
 # compute the build directory
 builddir=`pwd`/..
 # Hack for CYGWIN
-if [ `uname | cut -d "_" -f 1` == "MINGW32" ]; then
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
     srcdir=`pwd | sed 's/\/c\//c:\//g'`
     builddir="$srcdir"/..
 fi
@@ -145,7 +145,7 @@ for t in ${TESTSET} ; do
     ;;
   2)
     xfailcount=`expr $xfailcount + 1`
-    echo "*** XFAIL: ${name}"
+    echo "*** XFAIL : ${name}"
     ;;
   esac
 

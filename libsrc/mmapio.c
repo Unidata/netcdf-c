@@ -57,8 +57,7 @@
 #endif
 
 /* Define the mode flags for create: let umask decide */
-#define OPENMODE 0777
-#define OPENANYMODE 0777
+#define OPENMODE 0666
 
 #include "ncio.h"
 #include "fbits.h"
