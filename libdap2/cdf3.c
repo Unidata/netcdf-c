@@ -70,7 +70,7 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	    node->ocname = newname;
 	}
 	if(!node->visible) continue;
-	if(node->nctype == NC_Primitive)
+	if(node->nctype == NC_Atomic)
 	    nclistpush(allvarnodes,(ncelem)node);
     }
     /* Further process the variable nodes to get the final set */
@@ -658,7 +658,7 @@ clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)
 {
     CDFnode* clone;
     clone = makecdfnode34(nccomm,dim->ocname,OC_Dimension,
-			  OCNULL,dim->container);
+			  NULL,dim->container);
     /* Record its existence */
     nclistpush(dim->container->root->tree->nodes,(ncelem)clone);
     clone->dim = dim->dim; /* copy most everything */

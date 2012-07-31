@@ -4,7 +4,6 @@
  *   $Header$
  *********************************************************************/
 #include "ncdap3.h"
-#include "dapodom.h"
 #include "dapdump.h"
 
 static int iscacheableconstraint(DCEconstraint* con);
@@ -80,7 +79,8 @@ else
 /* Compute the set of prefetched data.
    Notes:
    1. Even if caching is off, we will
-       still prefetch the small variables.
+       still prefetch the small variables,
+       unless prefetch is specifically disabled.
    2. All prefetches are whole variable fetches.
    3. If the data set is unconstrainable, we
       will prefetch the whole thing
@@ -97,7 +97,6 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     DCEconstraint* newconstraint = NULL;
     int isnc4 = FLAGSET(nccomm->controls,NCF_NC4);
 
-
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
         /* If we cannot constrain and caching is enabled,
            then pull in everything */
@@ -109,11 +108,17 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     	    nccomm->cdf.cache->prefetch = NULL;
 	    goto done;
 	}
-    } else { /* can do constraints */
+    } else { /* can use projections to get subset of variables */
 	/* pull in those variables of sufficiently small size */
         for(i=0;i<nclistlength(allvars);i++) {
             CDFnode* var = (CDFnode*)nclistget(allvars,i);
             size_t nelems = 1;
+
+	    /* Do not attempt to prefetch any variables in the
+               nc_open url's projection list
+	    */
+	    if(nclistcontains(nccomm->cdf.projectedvars,(ncelem)var))
+		continue;
 
             if(!isnc4) {
 	        /* If netcdf 3 and var is a sequence or under a sequence, then never prefetch */
@@ -207,8 +212,8 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    OCconnection conn = nccomm->oc.conn;
-    OCobject ocroot = OCNULL;
+    OClink conn = nccomm->oc.conn;
+    OCddsnode ocroot = NULL;
     CDFnode* dxdroot = NULL;
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
@@ -240,8 +245,7 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 
     /* save the root content*/
     cachenode->ocroot = ocroot;
-    cachenode->content = oc_data_new(conn);
-    ocstat = oc_data_root(conn,ocroot,cachenode->content);
+    ocstat = oc_data_getroot(conn,ocroot,&cachenode->content);
     if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
 
     /* capture the packet size */
@@ -310,6 +314,10 @@ void
 freenccachenode(NCDAPCOMMON* nccomm, NCcachenode* node)
 {
     if(node == NULL) return;
+#ifdef DEBUG
+fprintf(stderr,"freecachenode: %s\n",
+	dumpcachenode(node));
+#endif
     oc_data_free(nccomm->oc.conn,node->content);
     dcefree((DCEnode*)node->constraint);
     freecdfroot34(node->datadds);

@@ -27,13 +27,13 @@ extern char* nctypetostring(nc_type);
 extern char* maketmppath(char* path, char* prefix);
 
 extern void collectnodepath3(struct CDFnode*, NClist* path, int dataset);
-extern void collectocpath(OCconnection conn, OCobject node, NClist* path);
+extern void collectocpath(OClink conn, OCobject node, NClist* path);
 
 extern char* makecdfpathstring3(struct CDFnode*,const char*);
 extern void clonenodenamepath3(struct CDFnode*, NClist*, int);
 extern char* makepathstring3(NClist* path, const char* separator, int flags);
 
-extern char* makeocpathstring3(OCconnection, OCobject, const char*);
+extern char* makeocpathstring3(OClink, OCobject, const char*);
 
 extern char* cdflegalname3(char* dapname);
 
@@ -78,7 +78,7 @@ extern int nc__testurl(const char* parth, char** basename);
 
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
-extern OCerror dap_fetch(struct NCDAPCOMMON*,OCconnection,const char*,OCdxd,OCobject*);
+extern OCerror dap_fetch(struct NCDAPCOMMON*,OClink,const char*,OCdxd,OCobject*);
 
 extern int dap_badname(char* name);
 extern char* dap_repairname(char* name);

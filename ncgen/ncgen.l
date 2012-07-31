@@ -6,7 +6,7 @@
  *********************************************************************/
 
 /* Problems:
-1. Ideally, we assume the input is true ut8.
+1. We assume the input is true utf8.
    Unfortunately, we may actually get iso-latin-8859-1.
    This means that there will be ambiguity about the characters
    in the range 128-255 because they will look like n-byte unicode
@@ -24,7 +24,9 @@
 	    http://www.w3.org/2005/03/23-lex-U
    We include lexical definitions for all three, but use the second version.
 4. Single character constants enclosed in '...' cannot be
-   utf-8, so we assume they are the one case where US-Ascii (7-bit) is used.
+   utf-8, so we assume they are by default encoded using the 1-byte
+   subset of utf-8. It turns out that this subset is in fact
+   equivalent to US-Ascii (7-bit).
    We could use ISO-8859-1, but that conflicts with UTF-8 above value 127.
 */
 

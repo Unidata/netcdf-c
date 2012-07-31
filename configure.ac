@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2.1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -803,7 +803,7 @@ BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
 
-UD_FTPBINDIR
+#UD_FTPBINDIR
 
 AC_MSG_CHECKING([value of LIBS])
 AC_MSG_RESULT([$LIBS])
@@ -875,7 +875,7 @@ AC_CONFIG_FILES([Makefile
                  examples/Makefile
                  examples/C/Makefile
                  examples/CDL/Makefile
-                 oc/Makefile
+                 oc2/Makefile
                  libdap2/Makefile
                  libcdmr/Makefile
                  librpc/Makefile

@@ -4,7 +4,6 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap4/constraints4.c,v 1.9 2010/04/13 03:36:31 dmh Exp $
  *********************************************************************/
 #include "ncdap4.h"
-#include "dapodom.h"
 
 #ifdef DEBUG
 #include "dapdump.h"

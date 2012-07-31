@@ -834,7 +834,6 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
 
    hid_t file_spaceid = 0, mem_spaceid = 0;
    hid_t xfer_plistid = 0;
-   hid_t hdf_datasetid;
    size_t file_type_size;
 
    hsize_t *xtend_size = NULL, count[NC_MAX_VAR_DIMS];

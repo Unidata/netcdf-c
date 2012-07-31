@@ -39,7 +39,7 @@ ${top_builddir}/libsrc/libnetcdf3.la
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
-libnetcdf_la_LIBADD += ${top_builddir}/oc/liboc.la
+libnetcdf_la_LIBADD += ${top_builddir}/oc2/liboc.la
 endif # USE_DAP
 
 # NetCDF-4 ...
