@@ -119,7 +119,7 @@ main()
       if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
       if (H5Pset_cache(fapl_id, 0, CHUNK_CACHE_NELEMS, CHUNK_CACHE_SIZE,
 		       CHUNK_CACHE_PREEMPTION) < 0) ERR;
-      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_18, H5F_LIBVER_18) < 0) ERR;
+      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
       if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
 					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
