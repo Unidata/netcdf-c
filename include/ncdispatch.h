@@ -168,7 +168,7 @@ struct nc_vlen_t;
 #define NC_NETCDF4 0x1000
 #define NC_CLASSIC_MODEL 0x0100
 #define NC_ENOPAR (-114)
-#endif /*USE_NETCDF4*/
+#endif /*!USE_NETCDF4*/
 
 struct NC;
 
