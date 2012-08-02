@@ -193,7 +193,7 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     stat = OC_NOERR;
     for(;;) {
 	count = read(fd,buf,sizeof(buf));
-	if(count <= 0)
+	if(count == 0)
 	    break;
 	else if(count <  0) {
 	    stat = OC_EIO;

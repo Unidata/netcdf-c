@@ -37,6 +37,7 @@
 #define OCDBG2(l,msg,arg1,arg2) {oc_log(LOGDBG,msg,arg1,arg2);}
 #define OCDBGTEXT(l,text) {oc_logtext(LOGNOTE,text);} else {}
 #define OCDBGCODE(l,code) {code;}
+
 #else
 #define OCDBG(l,msg)
 #define OCDBG1(l,msg,arg)

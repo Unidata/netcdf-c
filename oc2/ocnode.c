@@ -143,7 +143,7 @@ makeattribute(char* name, OCtype ptype, OClist* values)
 static void
 marklostattribute(OCnode* att)
 {
-    oc_log(LOGWARN,"Lost attribute: %s",att->name);
+    oc_log(LOGNOTE,"Lost attribute: %s",att->name);
 }
 
 void
@@ -202,8 +202,12 @@ ocnodes_free(OClist* nodes)
         while(oclistlength(node->attributes) > 0) {
             OCattribute* attr = (OCattribute*)oclistpop(node->attributes);
 	    ocfree(attr->name);
+#if 0
 	    /* If the attribute type is string, then we need to free them*/
-	    if(attr->etype == OC_String || attr->etype == OC_URL) {
+all values are strings now
+	    if(attr->etype == OC_String || attr->etype == OC_URL)
+#endif
+	    {
 		char** strings = (char**)attr->values;
 		for(j=0;j<attr->nvalues;j++) {ocfree(*strings); strings++;}
 	    }
@@ -214,6 +218,7 @@ ocnodes_free(OClist* nodes)
         if(node->subnodes != NULL) oclistfree(node->subnodes);
         if(node->att.values != NULL) oclistfree(node->att.values);
         if(node->attributes != NULL) oclistfree(node->attributes);
+	if(node->array.sizes != NULL) free(node->array.sizes);
         ocfree(node);
     }
     oclistfree(nodes);
@@ -236,9 +241,10 @@ As described there, the algorithm is as follows.
     names to get each of those variables.
 */
 
-int
+OCerror
 ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 {
+    OCerror stat = OC_NOERR;
     OClist* dasglobals = oclistnew();
     OClist* dodsglobals = oclistnew(); /* top-level DODS_XXX {...} */
     OClist* dasnodes = oclistnew();
@@ -247,10 +253,10 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
     unsigned int i,j;
 
     if(dasroot->tree == NULL || dasroot->tree->dxdclass != OCDAS)
-	return OCTHROW(OC_EINVAL);
+	{stat = OCTHROW(OC_EINVAL); goto done;}
     if(ddsroot->tree == NULL || (ddsroot->tree->dxdclass != OCDDS
         && ddsroot->tree->dxdclass != OCDATADDS))
-	return OCTHROW(OC_EINVAL);
+	{stat = OCTHROW(OC_EINVAL); goto done;}
 
     ddsnodes = ddsroot->tree->nodes;
 
@@ -332,12 +338,14 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	OCnode* das = (OCnode*)oclistget(dodsglobals,i);
 	mergedods1(ddsroot,das);
     }
+
+done:
     /* cleanup*/
     oclistfree(dasglobals);
     oclistfree(dodsglobals);
     oclistfree(dasnodes);
     oclistfree(varnodes);
-    return OCTHROW(OC_NOERR);
+    return OCTHROW(stat);
 }
 
 static int

@@ -33,16 +33,17 @@ static char* nctagname(int tag);
 void
 ncloginit(void)
 {
+    const char* file = getenv(ENVFLAG);
     ncinitlog = 1;
     ncsetlogging(0);
     nclogfile = NULL;
     nclogstream = NULL;
     /* Use environment variables to preset nclogging state*/
     /* I hope this is portable*/
-    if(getenv(ENVFLAG) != NULL) {
-	const char* file = getenv(ENVFLAG);
-	ncsetlogging(1);
-	nclogopen(file);
+    if(file != NULL && strlen(file) > 0) {
+        if(nclogopen(file)) {
+	    ncsetlogging(1);
+	}
     }
     nctagdfalt = NCTAGDFALT;
     nctagset = nctagsetdfalt;
@@ -55,7 +56,7 @@ ncsetlogging(int tf)
     nclogging = tf;
 }
 
-void
+int
 nclogopen(const char* file)
 {
     if(!ncinitlog) ncloginit();
@@ -89,9 +90,11 @@ nclogopen(const char* file)
 	    nclogfile = NULL;
 	    nclogstream = NULL;
 	    ncsetlogging(0);
+	    return 0;
 	}
 	ncsystemfile = 0;
     }
+    return 1;
 }
 
 void

@@ -83,7 +83,7 @@ static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
 #include        "config.h"
 #include        <string.h>
 #include	<stdlib.h>
-#include	<netcdf.h>
+#include	"netcdf.h"
 #include 	"generic.h"
 #include        "ncgen.h"
 #include	"genlib.h"	/* for grow_darray() et al */
