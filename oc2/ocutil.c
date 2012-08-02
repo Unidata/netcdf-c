@@ -421,7 +421,7 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
     xxdr_setpos(xdrs,0);
     /* read the whole thing */
     contents = (char*)malloc(len+1);
-    xxdr_getbytes(xdrs,contents,len);
+    (void)xxdr_getbytes(xdrs,contents,len);
     contents[len] = '\0';
     /* Look for error tag */
     for(i=0;i<len;i++) {
@@ -542,7 +542,7 @@ ocdtmodestring(OCDT mode,int compact)
 	if(!compact && i > 0) strcat(result,",");
         if(fisset(mode,(1<<i))) {
 	    if(compact) *p++ = ms[0];
-	    else strcat(result,ms);
+	    else strncat(result,ms,sizeof(result));
 	}
     }
     /* pad compact list out to NMODES in length (+1 for null terminator) */

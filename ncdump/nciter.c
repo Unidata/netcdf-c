@@ -403,8 +403,7 @@ nc_free_iter(nciter_t *iterp) {
 	free(iterp->dimsizes);
     if(iterp->chunksizes)
 	free(iterp->chunksizes);
-    if(iterp)
-	free(iterp);
+    free(iterp);
     return NC_NOERR;
 }
 

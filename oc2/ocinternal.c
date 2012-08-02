@@ -21,7 +21,7 @@
 
 /* Note: TMPPATH must end in '/' */
 #ifdef __CYGWIN__
-#define TMPPATH1 "c:/temp/"
+#define TMPPATH1 "/cygdrive/c/temp/"
 #define TMPPATH2 "./"
 #elif WIN32
 #define TMPPATH1 "c:\\temp\\"
@@ -208,7 +208,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
                so that DRNO can reference it*/
             /* Make the tmp file*/
             stat = createtempfile(state,tree);
-            if(stat) {OCTHROWCHK(stat); goto unwind;}
+            if(stat) {OCTHROWCHK(stat); goto fail;}
             stat = readDATADDS(state,tree,flags);
 	    if(stat == OC_NOERR) {
                 /* Separate the DDS from data and return the dds;
@@ -235,7 +235,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 	} else {
 	    oc_log(LOGWARN,"oc_open: Could not read url");
 	}
-	return OCTHROW(stat);
+	goto fail;
     }
 
     tree->nodes = NULL;
@@ -246,7 +246,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 		  state->error.code,	
 		  (state->error.message?state->error.message:""));
     }
-    if(stat) {OCTHROWCHK(stat); goto unwind;}
+    if(stat) {OCTHROWCHK(stat); goto fail;}
     root = tree->root;
     /* make sure */
     tree->root = root;
@@ -256,15 +256,15 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     switch (kind) {
     case OCDAS:
         if(root->octype != OC_Attributeset)
-	    {OCTHROWCHK(stat=OC_EDAS); goto unwind;}
+	    {OCTHROWCHK(stat=OC_EDAS); goto fail;}
 	break;
     case OCDDS:
         if(root->octype != OC_Dataset)
-	    {OCTHROWCHK(stat=OC_EDDS); goto unwind;}
+	    {OCTHROWCHK(stat=OC_EDDS); goto fail;}
 	break;
     case OCDATADDS:
         if(root->octype != OC_Dataset)
-	    {OCTHROWCHK(stat=OC_EDATADDS); goto unwind;}
+	    {OCTHROWCHK(stat=OC_EDATADDS); goto fail;}
 	/* Modify the tree kind */
 	tree->dxdclass = OCDATADDS;
 	break;
@@ -293,7 +293,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 	/* Compile the data into a more accessible format */
 	stat = occompile(state,tree->root);
 	if(stat != OC_NOERR)
-	    goto unwind;
+	    goto fail;
     }
 
     /* Put root into the state->trees list */
@@ -302,16 +302,18 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     if(rootp) *rootp = root;
     return stat;
 
-unwind:
-    octree_free(tree);
 fail:
+    if(root != NULL)
+	ocroot_free(root);
+    else if(tree != NULL)
+	octree_free(tree);
     return OCTHROW(stat);
 }
 
 static OCerror
 createtempfile(OCstate* state, OCtree* tree)
 {
-    int fd;
+    int fd = 0;
     char* name = NULL;
     fd = createtempfile1(TMPPATH1,&name);
     if(fd < 0)
@@ -334,7 +336,7 @@ createtempfile(OCstate* state, OCtree* tree)
 int
 createtempfile1(char* tmppath, char** tmpnamep)
 {
-    int fd;
+    int fd = 0;
     char* tmpname = NULL;
     tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
     if(tmpname == NULL) return -1;
@@ -354,7 +356,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
         sprintf(spid,"%06d",rno);
         strcat(tmpname,spid);
 #  ifdef WIN32
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED, _S_IREAD|_S_IWRITE);
+        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif

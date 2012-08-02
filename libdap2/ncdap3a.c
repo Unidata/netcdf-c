@@ -38,6 +38,7 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
     nclistfree(dapcomm->cdf.seqnodes);
     nclistfree(dapcomm->cdf.gridnodes);
     nclistfree(dapcomm->cdf.usertypes);
+    nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
 
     /* free the trees */

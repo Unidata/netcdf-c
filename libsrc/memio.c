@@ -208,10 +208,11 @@ memio_create(const char* path, int ioflags,
         return status;
     memio->size = 0;
 
-    if(!persist) {
-	memio->memory = (char*)malloc(memio->alloc);
-	if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
-    } else { /*persist */
+    /* malloc memory */
+    memio->memory = (char*)malloc(memio->alloc);
+    if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
+
+    if(persist) {
         /* Open the file, but make sure we can write it if needed */
         oflags = (persist ? O_RDWR : O_RDONLY);    
 #ifdef O_BINARY
@@ -228,9 +229,6 @@ memio_create(const char* path, int ioflags,
         if(fd < 0) {status = errno; goto unwind_open;}
 
         (void)close(fd); /* will reopen at nc_close */
-	/* malloc memory */
-	memio->memory = (char*)malloc(memio->alloc);
-	if(memio->memory == NULL) {status = NC_ENOMEM; goto unwind_open;}
     } /*!persist*/
 
 #ifdef DEBUG
@@ -259,6 +257,8 @@ fprintf(stderr,"memio_create: initial memory: %lu/%lu\n",(unsigned long)memio->m
     return NC_NOERR;
 
 unwind_open:
+    if(memio->memory != NULL)
+	free(memio->memory);
     memio_close(nciop,1);
     return status;
 }
@@ -484,11 +484,11 @@ memio_close(ncio* nciop, int doUnlink)
 	    }
 	} else
 	    status = errno;
-        /* Free up things */
-	if(memio->memory != NULL) free(memio->memory);
      }
 
 done:
+    if(memio->memory != NULL)
+	free(memio->memory);
     /* do cleanup  */
     if(fd >= 0) (void)close(fd);		
     if(memio != NULL) free(memio);

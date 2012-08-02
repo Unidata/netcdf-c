@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 2.8.8)
 
 #Project Name
-project(NETCDF C)
-SET(PACKAGE_VERSION 4.2.1)
+project(NetCDF C)
+SET(NetCDF_VERSION 4.2.1)
 ADD_DEFINITIONS()
 
 ### Verbose make, for debugging.
@@ -23,6 +23,13 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+IF(APPLE)
+  SET(CPACK_BINARY_DRAGNDROP ON CACHE BOOL "")
+  SET(CPACK_BINARY_PACKAGEMAKER OFF CACHE BOOL "")
+ENDIF()
+
+
 
 #####
 # Option checks
@@ -233,13 +240,13 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
 
 # Create config.h file
-configure_file("${NETCDF_SOURCE_DIR}/cmake_config.h.in"
-	"${NETCDF_BINARY_DIR}/config.h")
-configure_file("${NETCDF_SOURCE_DIR}/cmake_nc-config.in"
-	"${NETCDF_BINARY_DIR}/nc-config")
-EXECUTE_PROCESS(COMMAND "chmod 755 ${NETCDF_BINARY_DIR}/nc-config")
+configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
+	"${NetCDF_BINARY_DIR}/config.h")
+configure_file("${NetCDF_SOURCE_DIR}/cmake_nc-config.in"
+	"${NetCDF_BINARY_DIR}/nc-config")
+EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
 
-INCLUDE_DIRECTORIES(${NETCDF_BINARY_DIR})
+INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 ## End autotools-style checs for config.h
 
 
@@ -247,13 +254,13 @@ INCLUDE_DIRECTORIES(${NETCDF_BINARY_DIR})
 #----
 # Set core names of the libraries.
 #---
-SET (NETCDF_LIB_CORENAME	"netcdf")
+SET (NetCDF_LIB_CORENAME	"netcdf")
 
 #---
 # Set the true names of all the libraries, if customized by external project
 #---
-INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${NETCDF_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/oc2)
 
 # Recurse into other subdirectories.
 #add_subdirectory(h5_test)
@@ -276,13 +283,12 @@ IF (BUILD_CDMREMOTE)
 ENDIF()
 
 add_subdirectory(liblib)
-#add_subdirectory(nc_test4)
-#add_subdirectory(nc_test)
-#add_subdirectory(ncdump)
-#add_subdirectory(ncgen3)
-#add_subdirectory(ncgen)
-#add_subdirectory(examples)
-#add_subdirectory(libdap2)
-#add_subdirectory(libcdmr)
-#add_subdirectory(librpc)
-#add_subdirectory(ncdap_test) 
+
+
+#####
+# Moving on to CPack, install packages.
+#####
+
+#INSTALL(TARGETS liblib/netcdf DESTINATION lib)
+INCLUDE(InstallRequiredSystemLibraries)
+include(CPack)

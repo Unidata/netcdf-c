@@ -25,7 +25,7 @@ FOREACH(LIBS ${liblib_LIBS})
 	SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)
 ENDFOREACH()
 
-ADD_LIBRARY(netcdf stub.c ${LARGS})
+ADD_LIBRARY(netcdf stub.c ${LARGS} )
 
 #####
 # Add dependencies required for linking.
@@ -43,3 +43,5 @@ IF(ENABLE_PNETCDF AND PNETCDF)
 	TARGET_LINK_LIBRARIES(netcdf ${PNETCDF})
 ENDIF()
 
+INSTALL(TARGETS netcdf DESTINATION lib)
+#include(CPack)

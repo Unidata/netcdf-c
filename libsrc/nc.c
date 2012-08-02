@@ -1557,3 +1557,19 @@ nc_delete(const char * path)
         return nc_delete_mp(path, 0);
 }
 
+int
+NC_set_readonly(NC *ncp, int tf)
+{
+    int old = 1;
+    if(ncp != NULL && ncp->nciop != NULL) {
+	old = NC_readonly(ncp) ? 1 : 0;
+	old = fIsSet(ncp->nciop->ioflags, NC_WRITE) ? 0 : 1;
+	if(tf == 1) {
+	    fClr(ncp->nciop->ioflags, NC_WRITE);
+	} else {/*tf==0*/
+	    fSet(ncp->nciop->ioflags, NC_WRITE);
+	}
+    }
+    return old;
+}
+

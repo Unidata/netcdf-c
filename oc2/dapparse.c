@@ -420,6 +420,7 @@ dap_parse_error(DAPparsestate* state, const char *fmt, ...)
     (void) fprintf(stderr,"^%s\n",tmp);
     (void) fflush(stderr);	/* to ensure log files are current */
     ocfree(tmp);
+    va_end(argv);
 }
 
 static void

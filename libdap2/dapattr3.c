@@ -24,6 +24,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
     OCerror ocstat = OC_NOERR;
     NClist* allnodes;
     OClink conn;
+    char* ocname = NULL;
 
     conn = nccomm->oc.conn;
 
@@ -37,7 +38,6 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
 	OCddsnode ocnode = node->ocnode;
-	char* ocname;
 	size_t attrcount;
 	OCtype ocetype;
 			
@@ -47,6 +47,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	    char** values = NULL;
 	    NCattribute* att = NULL;
 
+	    if(ocname != NULL) free(ocname); /* from last loop */
 	    OCCHECK(oc_dds_attr(conn,ocnode,j,&ocname,&ocetype,&nvalues,NULL));
 	    if(nvalues > 0) {
 	        values = (char**)malloc(sizeof(char*)*nvalues);
@@ -104,6 +105,7 @@ fprintf(stderr,"%s.Unlimited_Dimension=%s\n",node->ocname,nccomm->cdf.recorddimn
     }
 
 done:
+    if(ocname != NULL) free(ocname);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }

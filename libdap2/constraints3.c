@@ -864,10 +864,15 @@ NCerror
 computeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
-    NClist* vars = nclistnew();
+    NClist* vars = NULL;
     int i;
 
+    vars = nclistnew();
+
+    if(dapcomm->cdf.projectedvars != NULL)
+	nclistfree(dapcomm->cdf.projectedvars);
     dapcomm->cdf.projectedvars = vars;
+
     if(constraint == NULL || constraint->projections == NULL)
 	goto done;
 

@@ -641,7 +641,7 @@ pr_att(
 	     * Will include line breaks for longer lists. */
 	    print_att_times(ncid, varid, att);
 	    if(is_bounds_att(&att)) {
-		insert_bounds_info(ncid, varid, att);
+		insert_bounds_info(ncid, varid, &att);
 	    }
 	}
 #ifdef USE_NETCDF4
@@ -860,7 +860,7 @@ pr_att_specials(
     {
 	int endianness = 0;
 	NC_CHECK( nc_inq_var_endian(ncid, varid, &endianness) );
-	if(endianness != 0) {
+	if (endianness != NC_ENDIAN_NATIVE) { /* NC_ENDIAN_NATIVE is the default */
 	    pr_att_name(ncid, varp->name, NC_ATT_ENDIANNESS);
 	    printf(" = ");
 	    switch (endianness) {
@@ -869,9 +869,6 @@ pr_att_specials(
 		break;
 	    case NC_ENDIAN_BIG:
 		printf("\"big\"");
-		break;
-	    case NC_ENDIAN_NATIVE:
-		printf("\"native\"");
 		break;
 	    default:
 		error("pr_att_specials: bad endianness: %d", endianness);

@@ -286,7 +286,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	nc4_chunk_cache_size, nc4_chunk_cache_nelems, nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL */
    
-   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_18, H5F_LIBVER_18) < 0)
+   if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
       BAIL(NC_EHDFERR);
 
    /* Create the property list. */

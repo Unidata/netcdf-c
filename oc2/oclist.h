@@ -51,7 +51,7 @@ EXTERNC int oclistcontains(OClist*, ocelem);
 #define oclistclear(l) oclistsetlength((l),0U)
 #define oclistextend(l,len) oclistsetalloc((l),(len)+(l->alloc))
 #define oclistcontents(l) ((l)->content)
-#define oclistlength(l)  ((l)?(l)->length:0U)
+#define oclistlength(l)  ((l!=NULL)?(l)->length:0U)
 
 #endif /*OCLIST_H*/
 

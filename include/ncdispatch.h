@@ -168,7 +168,7 @@ struct nc_vlen_t;
 #define NC_NETCDF4 0x1000
 #define NC_CLASSIC_MODEL 0x0100
 #define NC_ENOPAR (-114)
-#endif /*USE_NETCDF4*/
+#endif /*!USE_NETCDF4*/
 
 struct NC;
 
@@ -377,7 +377,9 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 MSC_NCDISPATCH_EXTRA extern const char* NC_findtestserver(const char*);
 #else
 extern const char* NC_findtestserver(const char*);
+
 #endif
+
 /* Ping a specific server */
 extern int NCDAP_ping(const char*);
 

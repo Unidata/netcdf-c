@@ -53,14 +53,11 @@ nc3dinitialize(void)
 	dap_zero[i] = 0;
     }
     nc3dinitialized = 1;
-#if 0
-/* This is causing a hang */
 #ifdef DEBUG
     /* force logging to go to stderr */
     nclogclose();
-    nclogopen(NULL);
-    ncsetlogging(1); /* turn it on */
-#endif
+    if(nclogopen(NULL))
+        ncsetlogging(1); /* turn it on */
 #endif
     return NC_NOERR;
 }
@@ -184,11 +181,11 @@ NCD3_open(const char * path, int mode,
     /* Turn on logging; only do this after oc_open*/
     if((value = paramvalue34(dapcomm,"log")) != NULL) {
 	ncloginit();
-        ncsetlogging(1);
-        nclogopen(value);
+        if(nclogopen(value))
+	    ncsetlogging(1);
 	oc_loginit();
-        oc_setlogging(1);
-        oc_logopen(value);
+        if(oc_logopen(value))
+	    oc_setlogging(1);
     }
 
     /* fetch and build the unconstrained DDS for use as
@@ -308,6 +305,35 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
     ncstat = buildncstructures3(dapcomm);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
+    /* Explicitly do not call enddef because it will complain
+       about variables that are too large.
+    */
+#if 0
+    ncstat = nc_endef(drno->substrate,NC_NOFILL,NULL);
+    if(ncstat != NC_NOERR && ncstat != NC_EVARSIZE)
+        {THROWCHK(ncstat); goto done;}
+#endif
+	
+    {
+        NC* ncsub;
+        NC* drno = dapcomm->controller;
+	CDFnode* unlimited = dapcomm->cdf.recorddim;
+
+        /* get the id for the substrate */
+        ncstat = NC_check_id(drno->substrate,&ncsub);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+
+       if(unlimited != NULL) {
+            /* Set the effective size of UNLIMITED;
+               note that this cannot easily be done thru the normal API.*/
+            NC_set_numrecs(ncsub,unlimited->dim.declsize);
+        }
+
+        /* Pretend the substrate is read-only */
+	NC_set_readonly(ncsub,1);
+	
+    }
+
     /* Do any necessary data prefetch */
     if(FLAGSET(dapcomm->controls,NCF_PREFETCH)) {
         ncstat = prefetchdata3(dapcomm);
@@ -316,18 +342,6 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
 	    {THROWCHK(ncstat); goto done;}
 	}
     }
-
-#ifdef BUG
-    /* The libsrc code (NC_begins) assumes that
-       a created files is new and hence must have an
-       unlimited dimension of 0 initially, which will
-       wipe out the effect of the NC_set_numrecs in builddims.
-       There is no easy workaround, so we suppress the call
-       to nc_enddef
-    */
-    ncstat = nc_enddef(drno->substrate);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-#endif
 
     if(ncpp) *ncpp = (NC*)drno;
 
@@ -350,7 +364,10 @@ NCD3_close(int ncid)
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
 
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
-    ncstatus = nc_close(drno->substrate);
+    /* We call abort rather than close to avoid
+       trying to write anything or try to pad file length
+     */
+    ncstatus = nc_abort(drno->substrate);
 
     /* remove ourselves from NClist */
     del_from_NCList(drno);
@@ -429,9 +446,12 @@ builddims(NCDAPCOMMON* dapcomm)
         ncstat = NC_check_id(drno->substrate,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
+#if 0
         /* Set the effective size of UNLIMITED;
            note that this cannot easily be done thru the normal API.*/
         NC_set_numrecs(ncsub,unlimited->dim.declsize);
+#endif
+
     }
 
     for(i=0;i<nclistlength(dimset);i++) {

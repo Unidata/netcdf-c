@@ -32,9 +32,10 @@ oc_loginit(void)
     oclogfile = NULL;
     oclogstream = NULL;
     /* Use environment variables to preset oclogging state*/
-    if(file != NULL) {
-	oc_setlogging(1);
-	oc_logopen(file);
+    if(file != NULL && strlen(file) > 0) {
+        if(oc_logopen(file)) {
+	    oc_setlogging(1);
+	}
     }
 }
 
@@ -76,6 +77,16 @@ oc_logopen(const char* file)
 	oclogstream = stderr;
 	oclogfile = NULL;
 	ocsystemfile = 1;
+    } else if(strcmp(file,"stdout") == 0) {
+	/* use stdout*/
+	oclogstream = stdout;
+	oclogfile = NULL;
+	ocsystemfile = 1;
+    } else if(strcmp(file,"stderr") == 0) {
+	/* use stderr*/
+	oclogstream = stderr;
+	oclogfile = NULL;
+	ocsystemfile = 1;
     } else {
 	int fd;
 	oclogfile = (char*)malloc(strlen(file)+1);
@@ -104,6 +115,7 @@ Logging is still enabled.
 void
 oc_logclose(void)
 {
+    if(!ocloginit) oc_loginit();
     if(oclogstream != NULL && !ocsystemfile) {
         assert(oclogfile != NULL && oclogstream != NULL);
 	fclose(oclogstream);
@@ -128,6 +140,8 @@ oc_log(int tag, const char* format, ...)
 {
     va_list args;
     char* prefix;
+
+    if(!ocloginit) oc_loginit();
     if(!oclogging || oclogstream == NULL) return;
 
     switch (tag) {
@@ -166,6 +180,7 @@ oc_logtext(int tag, const char* text)
     size_t delta = 0;
     const char* eol = text;
 
+    if(!ocloginit) oc_loginit();
     if(!oclogging || oclogstream == NULL) return;
 
     while(*text) {

@@ -95,7 +95,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
     	    fset(data->datamode,OCDT_ARRAY);
 	    /* Determine # of instances */
             nelements = octotaldimsize(xnode->array.rank,xnode->array.sizes);
-            if(nelements == 0) return OCTHROW(OC_ENODATA);
+            if(nelements == 0) {ocstat = OCTHROW(OC_ENODATA); goto fail;}
             /* Validate and skip the leading count field */
             if(!xxdr_uint(xxdrs,&xdrcount))
 	        {ocstat = OC_EXDR; goto fail;}
@@ -187,10 +187,10 @@ fail:
     if(records != NULL) {
 	for(i=0;i<oclistlength(records);i++)
 	    ocdata_free(state,(OCdata*)oclistget(records,i));
+	oclistfree(records);
     }
-    if(data != NULL && data->instances != NULL) {
-	for(i=0;i<data->ninstances;i++)
-	    ocdata_free(state,data->instances[i]);
+    if(data != NULL) {
+	ocdata_free(state,data);
     }
     return OCTHROW(ocstat);
 }
@@ -221,6 +221,7 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs)
     size_t nelements;
     OCnode* xnode = data->template;
 
+    assert(data != NULL);
     nelements = oclistlength(xnode->subnodes);
     if(nelements == 0)
 	goto done;
@@ -245,9 +246,10 @@ done:
     return OCTHROW(ocstat);
 
 fail:
-    if(data != NULL && data->instances != NULL) {
+    if(data->instances != NULL) {
 	for(i=0;i<data->ninstances;i++)
 	    ocdata_free(state,data->instances[i]);
+	data->ninstances = 0;
     }
     return OCTHROW(ocstat);
 }
@@ -353,6 +355,7 @@ ocdata_free(OCstate* state, OCdata* data)
     }
     if(data->strings != NULL)
 	free(data->strings);
+    free(data);
 }
 
 static OCdata*
