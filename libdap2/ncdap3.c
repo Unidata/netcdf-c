@@ -326,7 +326,7 @@ NCD3_close(int ncid)
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
 
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
-    ncstatus = nc_close(drno->substrate);
+    ncstatus = nc_abort(drno->substrate);
 
     /* remove ourselves from NClist */
     del_from_NCList(drno);

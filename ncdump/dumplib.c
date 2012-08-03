@@ -934,11 +934,66 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
     size_t slen;
     char *sout;
     int res;
+    int iel;
+    const char *cp;
+    char *sp;
+    unsigned char uc;
 
-    slen = 3 + strlen(((char **)valp)[0]); /* need "'s around string */
+    cp = ((char **)valp)[0];
+    slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */ 
     sout = emalloc(slen);
-    res = snprintf(sout, slen, "\"%s\"", ((char **)valp)[0]);
-    assert(res > 0);
+    sp = sout;
+    *sp++ = '"' ;
+    while(*cp) {
+	switch (uc = *cp++ & 0377) {
+	case '\b':
+	    *sp++ = '\\';
+	    *sp++ = 'b' ;
+	    break;
+	case '\f':
+	    *sp++ = '\\';
+	    *sp++ = 'f';
+	    break;
+	case '\n':		
+	    *sp++ = '\\';
+	    *sp++ = 'n';
+	    break;
+	case '\r':
+	    *sp++ = '\\';
+	    *sp++ = 'r';
+	    break;
+	case '\t':
+	    *sp++ = '\\';
+	    *sp++ = 't';
+	    break;
+	case '\v':
+	    *sp++ = '\\';
+	    *sp++ = 'n';
+	    break;
+	case '\\':
+	    *sp++ = '\\';
+	    *sp++ = '\\';
+	    break;
+	case '\'':
+	    *sp++ = '\\';
+	    *sp++ = '\'';
+	    break;
+	case '\"':
+	    *sp++ = '\\';
+	    *sp++ = '\"';
+	    break;
+	default:
+	    if (iscntrl(uc)) {
+		snprintf(sp,3,"\\%03o",uc);
+		sp += 4;
+	    }
+	    else
+		*sp++ = uc;
+	    break;
+	}
+    }
+    *sp++ = '"' ;
+    *sp++ = '\0' ;
     sbuf_cpy(sfbf, sout);
     free(sout);
     return sbuf_len(sfbf);

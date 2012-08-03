@@ -6,6 +6,15 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION		COMMENTS
 -------		--------
+4.2.1.1		Released 2012-08-03
+
+		Patched libdap2/ncdap3.c to fix DAP performance bug
+		remotely accessing large files (> 2GiB).
+
+		Patched ncdump/dumplib.c to properly escape special
+		characters in CDL output from ncdump for netCDF-4
+		string data.
+
 4.2.1		Released 2012-07-18
 
 		Added a specific NC_MMAP mode flag to modify

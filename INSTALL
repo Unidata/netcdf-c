@@ -2,7 +2,7 @@ Documentation for getting and building netCDF
 *********************************************
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.2.1.  Other libraries that depend on the netCDF C
+utilities, version 4.2.1.1.  Other libraries that depend on the netCDF C
 library, such as the Fortran and C++ libraries, are available as
 separate distributions that can be built and installed after the C
 library is successfully installed.  The netCDF-Java library is also a
