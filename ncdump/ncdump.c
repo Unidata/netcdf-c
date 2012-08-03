@@ -295,7 +295,7 @@ pr_att_string(
 	    printf ("\\\\");
 	    break;
 	case '\'':
-	    printf ("\\'");
+	    printf ("\\\'");
 	    break;
 	case '\"':
 	    printf ("\\\"");
