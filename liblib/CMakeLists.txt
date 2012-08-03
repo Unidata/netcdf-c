@@ -13,7 +13,7 @@ IF(USE_HDF5 OR USE_NETCDF4)
 ENDIF()
 
 IF(USE_DAP)
-	SET(liblib_LIBS ${liblib_LIBS} oc dap2)
+	SET(liblib_LIBS ${liblib_LIBS} oc2 dap2)
 ENDIF()
 
 IF(BUILD_CDMREMOTE)

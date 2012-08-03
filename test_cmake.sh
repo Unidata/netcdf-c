@@ -93,7 +93,7 @@ for BT in $BUILDTYPE; do
 		RET=""
 		
 		if [ x$DOBUILD = "xYES" ]; then
-		    make >> $LOGFILE
+		    make -j >> $LOGFILE
 		    
 		    if [ $? -eq 0 ]; then
 			RET="PASS"

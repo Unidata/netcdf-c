@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 2.8.8)
 #Project Name
 project(NetCDF C)
 SET(NetCDF_VERSION 4.2.1)
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT")
+SET(CPACK_PACKAGE_VERSION "4.3")
+#SET(CPACK_PACKAGE_VERSION_MAJOR "4")
+#SET(CPACK_PACKAGE_VERSION_MINOR "2")
+#SET(CPACK_PACKAGE_VERSION_PATCH "1.1")
+
 ADD_DEFINITIONS()
 
 ### Verbose make, for debugging.
@@ -23,7 +29,6 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 IF(APPLE)
   SET(CPACK_BINARY_DRAGNDROP ON CACHE BOOL "")
   SET(CPACK_BINARY_PACKAGEMAKER OFF CACHE BOOL "")
@@ -49,6 +54,11 @@ IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
+# Option to build NetCDF Version 2
+OPTION (BUILD_V2 "Build NetCDF Version 2." ON)
+
+# Option to build utilities
+OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 	
 # Option to use MMAP
 OPTION (BUILD_MMAP "Use MMAP." OFF)
@@ -114,15 +124,14 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
    IF(NOT HDF5_HL_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
    ENDIF()	
-   #CHECK_LIBRARY_EXISTS(hdf5_hl H5DSis_scale "" HAVE_HDF5_HL)
-   
+     
    SET(H5_USE_16_API 1)
 
 ENDIF ()
 
 
 # Option to Build DAP Client
-OPTION (USE_DAP "Enable DAP Client." OFF)
+OPTION (USE_DAP "Enable DAP Client." ON)
 IF (USE_DAP)
 	FIND_PACKAGE(CURL)
 	#FIND_LIBRARY(CURL NAMES curl libcurl)
@@ -234,6 +243,33 @@ CHECK_FUNCTION_EXISTS(memmove	HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
+
+###
+# Options related to the man page generation.
+###
+
+
+
+
+# The C API man page.
+###
+
+set(man_MANS netcdf.3)
+
+set(ARGS_MANPAGE -DAPI=C)
+
+IF (USE_NETCDF4)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+ENDIF(USE_NETCDF4)
+
+IF (BUILD_DAP)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
+ENDIF(BUILD_DAP)
+
+IF (BUILD_PARALLEL)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
+ENDIF(BUILD_PARALLEL)
+
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
 # Check existence of various libraries.
@@ -284,11 +320,49 @@ ENDIF()
 
 add_subdirectory(liblib)
 
+IF (BUILD_UTILITIES)
+	ADD_SUBDIRECTORY(ncdump)
+	ADD_SUBDIRECTORY(ncgen)
+	ADD_SUBDIRECTORY(ncgen3)
+ENDIF()
+
+ADD_SUBDIRECTORY(nctest)
+
 
 #####
 # Moving on to CPack, install packages.
 #####
+IF(WIN32)
+	INCLUDE(InstallRequiredSystemLibraries)
+ENDIF()
 
-#INSTALL(TARGETS liblib/netcdf DESTINATION lib)
-INCLUDE(InstallRequiredSystemLibraries)
-include(CPack)
+INSTALL(FILES config.h
+	DESTINATION include)
+INCLUDE(CPack)
+
+###
+# Options related to the man page generation.
+###
+
+###
+# The C API man page.
+###
+
+set(man_MANS netcdf.3)
+
+set(ARGS_MANPAGE -DAPI=C)
+
+IF (USE_NETCDF4)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+ENDIF(USE_NETCDF4)
+
+IF (BUILD_DAP)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
+ENDIF(BUILD_DAP)
+
+IF (BUILD_PARALLEL)
+	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
+ENDIF(BUILD_PARALLEL)
+
+
+
