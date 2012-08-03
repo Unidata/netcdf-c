@@ -386,6 +386,9 @@ NC_sync(NC *ncp);
 extern int
 NC_calcsize(const NC *ncp, off_t *filesizep);
 
+extern int
+NC_set_readonly(NC *ncp, int onezero);
+
 /* End defined in nc.c */
 /* Begin defined in v1hpg.c */
 

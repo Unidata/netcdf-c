@@ -5,8 +5,8 @@ Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 
-#include <config.h>
-#include <netcdf_f.h>
+#include "config.h"
+#include "netcdf_f.h"
 #include "ncdispatch.h"
 
 /* This function creates a file for use with parallel I/O. */

@@ -17,7 +17,7 @@
 
 extern void ncloginit(void);
 extern void ncsetlogging(int tf);
-extern void nclogopen(const char* file);
+extern int nclogopen(const char* file);
 extern void nclogclose(void);
 
 /* The tag value is an arbitrary integer */

@@ -44,11 +44,11 @@ EXTERNC int ocbytescat(OCbytes*,const char*);
 EXTERNC int ocbytessetcontents(OCbytes*, char*, unsigned int);
 
 /* Following are always "in-lined"*/
-#define ocbyteslength(bb) ((bb)?(bb)->length:0U)
-#define ocbytesalloc(bb) ((bb)?(bb)->alloc:0U)
-#define ocbytescontents(bb) ((bb && bb->content)?(bb)->content:(char*)"")
+#define ocbyteslength(bb) ((bb)!=NULL?(bb)->length:0U)
+#define ocbytesalloc(bb) ((bb)!=NULL?(bb)->alloc:0U)
+#define ocbytescontents(bb) (((bb) !=NULL && (bb)->content != NULL)?(bb)->content:(char*)"")
 #define ocbytesextend(bb,len) ocbytessetalloc((bb),(len)+(bb->alloc))
-#define ocbytesclear(bb) ((bb)?(bb)->length=0:0U)
-#define ocbytesavail(bb,n) ((bb)?((bb)->alloc - (bb)->length) >= (n):0U)
+#define ocbytesclear(bb) ((bb)!=NULL?(bb)->length=0:0U)
+#define ocbytesavail(bb,n) ((bb)!=NULL?((bb)->alloc - (bb)->length) >= (n):0U)
 
 #endif /*OCBYTES_H*/

@@ -180,13 +180,13 @@ a DAS, DDS, or DATADDS request exactly as sent by the server.
 const char*
 oc_tree_text(OCobject link, OCobject ddsroot)
 {
-    OCnode* root;
+    OCnode* root = NULL;
     OCVERIFYX(OC_Node,ddsroot,NULL);
     OCDEREF(OCnode*,root,ddsroot);
 
     if(root == NULL) return NULL;
     root = root->root;
-    if(root == NULL) return NULL;
+    if(root->tree == NULL) return NULL;
     return root->tree->text;
 }
 

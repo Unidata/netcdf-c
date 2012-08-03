@@ -102,7 +102,7 @@ int
 ocuriparse(const char* uri0, OCURI** ocurip)
 {
     OCURI* ocuri = NULL;
-    char* uri;
+    char* uri = NULL;
     char** pp;
     char* p;
     char* p1;
@@ -173,7 +173,8 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     /* locate the end of the host section */
     file = strchr(p,'/');
     /* Temporarily overwrite the '/' */
-    *file = '\0';
+    if(file != NULL)
+        *file = '\0';
 
     /* extract any user:pwd */
     host = p;
@@ -189,22 +190,22 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     /* extract host and port */
     p = host;
     port = strchr(p,':');
-    if(port)
+    if(port!=NULL)
         *port++ = '\0';
 
     /* Locate end of the file */
     constraint = strchr(file,'?');
-    if(constraint) 
+    if(constraint!=NULL)
         suffixparams = strchr(constraint,'#');    
     else
         suffixparams = strchr(file,'#');    
 
-    if(constraint) {
+    if(constraint != NULL) {
 	*constraint++ = '\0';
 	p = constraint;
     }
 
-    if(suffixparams) {
+    if(suffixparams != NULL) {
 	*suffixparams++ = '\0';
 	p = suffixparams;
     }
@@ -302,7 +303,7 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
     char* select = NULL;
     const char* p;
 
-    if(duri->constraint == NULL) free(duri->constraint);
+    if(duri->constraint != NULL) free(duri->constraint);
     if(duri->projection != NULL) free(duri->projection);
     if(duri->selection != NULL) free(duri->selection);
     duri->constraint = NULL;	
