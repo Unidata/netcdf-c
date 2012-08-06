@@ -288,10 +288,12 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
 	"${NetCDF_BINARY_DIR}/config.h")
 configure_file("${NetCDF_SOURCE_DIR}/cmake_nc-config.in"
-	"${NetCDF_BINARY_DIR}/nc-config")
-IF(APPLE)
-  EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
-ENDIF()
+  "${NetCDF_SOURCE_DIR}/nc-config")
+FILE(COPY "${NetCDF_SOURCE_DIR}/nc-config"
+  DESTINATION "${NetCDF_BINARY_DIR}"
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
+
 INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin)
 INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 ## End autotools-style checs for config.h
@@ -339,7 +341,9 @@ ENDIF()
 
 ADD_SUBDIRECTORY(nctest)
 ADD_SUBDIRECTORY(nc_test)
-
+IF(USE_NETCDF4)
+  ADD_SUBDIRECTORY(nc_test4)
+ENDIF()
 #####
 # Moving on to CPack, install packages.
 #####
