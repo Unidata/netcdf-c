@@ -89,9 +89,10 @@ ENDIF (USE_HDF4)
 # Option to Build DLL
 OPTION (BUILD_DLL "Build a Windows DLL." OFF)
 IF (BUILD_DLL)
-	SET(DLL_NETCDF ON)
-	SET(DLL_EXPORT ON)
-	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
+	#SET(DLL_NETCDF ON CACHE BOOL "")
+	#SET(DLL_EXPORT ON CACHE BOOL "")
+	add_definitions(-DDLL_NETCDF)
+	add_definitions(-DDLL_EXPORT)
 ENDIF ()
 
 
@@ -336,7 +337,7 @@ IF(WIN32)
 	INCLUDE(InstallRequiredSystemLibraries)
 ENDIF()
 
-INSTALL(FILES config.h
+INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
 	DESTINATION include)
 INCLUDE(CPack)
 

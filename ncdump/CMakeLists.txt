@@ -2,6 +2,8 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(".")
 
+remove_definitions(-DDLL_EXPORT)
+
 SET(ncdump_FILES ncdump.c utils.c vardata.c dumplib.c indent.c nctime0.c )
 SET(nccopy_FILES nccopy.c utils.c nciter.c chunkspec.c utils.c dimmap.c)
 

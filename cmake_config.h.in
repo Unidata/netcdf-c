@@ -173,9 +173,6 @@
 /* Specifies if various libraries are present. */
 #cmakedefine HAVE_LIBM 1
 
-/* Set this when building a DLL under MinGW */
-#cmakedefine DLL_NETCDF
-#cmakedefine BUILD_DLL
 /* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 
 
