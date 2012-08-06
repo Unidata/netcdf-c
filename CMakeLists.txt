@@ -6,6 +6,14 @@ project(NetCDF C)
 SET(NetCDF_VERSION 4.2.1)
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT")
 SET(CPACK_PACKAGE_VERSION "4.3")
+ENABLE_TESTING()
+INCLUDE(CTest)
+# CTest/CDash configuration
+SET (CTEST_DROP_METHOD http CACHE STRING "")
+SET (CTEST_DROP_SITE "yakov.unidata.ucar.edu/~wfisher/cdash/" CACHE STRING "")
+SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
+SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
+
 
 ADD_DEFINITIONS()
 
@@ -159,8 +167,13 @@ IF(ENABLE_PNETCDF)
 	SET(USE_PNETCDF ON CACHE BOOL "")
 ENDIF()
 
+
 FIND_LIBRARY(MATH NAMES math m)
-MESSAGE("Math library: ${MATH}")
+MESSAGE(STATUS "Math library: ${MATH}")
+IF(NOT MATH)
+  MESSAGE(FATAL_ERROR "Unable to find the math library.")
+ENDIF()
+
 
 OPTION(BUILD_CDMREMOTE "Enabled CDMRemote" OFF)
 OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
@@ -276,8 +289,10 @@ configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
 	"${NetCDF_BINARY_DIR}/config.h")
 configure_file("${NetCDF_SOURCE_DIR}/cmake_nc-config.in"
 	"${NetCDF_BINARY_DIR}/nc-config")
-EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
-
+IF(APPLE)
+  EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
+ENDIF()
+INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin)
 INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 ## End autotools-style checs for config.h
 
@@ -323,42 +338,31 @@ IF (BUILD_UTILITIES)
 ENDIF()
 
 ADD_SUBDIRECTORY(nctest)
-
+ADD_SUBDIRECTORY(nc_test)
 
 #####
 # Moving on to CPack, install packages.
 #####
-IF(WIN32)
-	INCLUDE(InstallRequiredSystemLibraries)
-ENDIF()
-
 INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
 	DESTINATION include)
+INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
+  DESTINATION include)
+
+# Subdirectory CMakeLists.txt files should specify their own
+# 'install' files.
+# Including 'CPack' kicks everything off.
+INCLUDE(InstallRequiredSystemLibraries)
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
+  @ONLY
+)
+
+SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/${CMAKE_CURRENT_BINARY_DIR}/;~$")
+
+# CPack inclusion must come last.
 INCLUDE(CPack)
 
-###
-# Options related to the man page generation.
-###
-
-###
-# The C API man page.
-###
-
-set(man_MANS netcdf.3)
-
-set(ARGS_MANPAGE -DAPI=C)
-
-IF (USE_NETCDF4)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
-
-IF (BUILD_DAP)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
-ENDIF(BUILD_DAP)
-
-IF (BUILD_PARALLEL)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
-ENDIF(BUILD_PARALLEL)
 
 
 
