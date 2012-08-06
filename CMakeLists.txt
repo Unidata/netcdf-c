@@ -6,9 +6,6 @@ project(NetCDF C)
 SET(NetCDF_VERSION 4.2.1)
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT")
 SET(CPACK_PACKAGE_VERSION "4.3")
-#SET(CPACK_PACKAGE_VERSION_MAJOR "4")
-#SET(CPACK_PACKAGE_VERSION_MINOR "2")
-#SET(CPACK_PACKAGE_VERSION_PATCH "1.1")
 
 ADD_DEFINITIONS()
 
@@ -69,7 +66,7 @@ OPTION (BUILD_DISKLESS "Build Diskless." OFF)
 # Option Logging, only valid for netcdf4. 
 OPTION (LOGGING "Enable Logging." OFF)
 
-# Option to le HDF4
+# Option to use HDF4
 OPTION (USE_HDF4 "Use HDF4." OFF)
 IF (USE_HDF4) 
    FIND_PACKAGE(HDF4)
@@ -89,10 +86,8 @@ ENDIF (USE_HDF4)
 # Option to Build DLL
 OPTION (BUILD_DLL "Build a Windows DLL." OFF)
 IF (BUILD_DLL)
-	#SET(DLL_NETCDF ON CACHE BOOL "")
-	#SET(DLL_EXPORT ON CACHE BOOL "")
-	add_definitions(-DDLL_NETCDF)
-	add_definitions(-DDLL_EXPORT)
+  ADD_DEFINITIONS(-DDLL_NETCDF)
+  ADD_DEFINITIONS(-DDLL_EXPORT)
 ENDIF ()
 
 
@@ -149,7 +144,6 @@ ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
 ENDIF()
 
-
 OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
 OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
 OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
@@ -165,7 +159,8 @@ IF(ENABLE_PNETCDF)
 	SET(USE_PNETCDF ON CACHE BOOL "")
 ENDIF()
 
-
+FIND_LIBRARY(MATH NAMES math m)
+MESSAGE("Math library: ${MATH}")
 
 OPTION(BUILD_CDMREMOTE "Enabled CDMRemote" OFF)
 OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
@@ -177,9 +172,9 @@ MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETC
 # End option checks.
 #####
 
-#INCLUDE_DIRECTORIES("/usr/include/machine/")
 
 # Library checks
+CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("dirent.h"	 HAVE_DIRENT_H)
