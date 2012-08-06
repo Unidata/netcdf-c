@@ -31,6 +31,8 @@ ADD_LIBRARY(netcdf stub.c ${LARGS} )
 # Add dependencies required for linking.
 #####
 
+TARGET_LINK_LIBRARIES(netcdf ${MATH})
+
 IF(USE_DAP)
 	TARGET_LINK_LIBRARIES(netcdf ${CURL_LIBRARIES})
 ENDIF()
