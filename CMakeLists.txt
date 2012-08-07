@@ -99,18 +99,20 @@ IF (BUILD_DLL)
 ENDIF ()
 
 
-
-OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ${USE_HDF5})
-IF(ENABLE_NETCDF_4)
+# Build NetCDF4
+OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
+OPTION (ENABLE_NETCDF4 "Enable NetCDF-4" ON)
+IF(ENABLE_NETCDF_4 OR ENABLE_NETCDF4)
 	SET(USE_NETCDF4 ON CACHE BOOL "")
+	SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
+# Option for cdmremote support.
 OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
 
 # Option to Enable HDF5
 OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
-
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
@@ -146,16 +148,14 @@ IF (USE_DAP)
 
 ENDIF(USE_DAP)
 
+# If NetCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF4 AND USE_DAP)		
 	OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
 ENDIF()
 
-OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
-OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
+
 
 # Does the user want to turn on PNETCDF read ability?
 OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
@@ -168,16 +168,17 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 
-FIND_LIBRARY(MATH NAMES math m)
-MESSAGE(STATUS "Math library: ${MATH}")
-IF(NOT MATH)
-  MESSAGE(FATAL_ERROR "Unable to find the math library.")
-ENDIF()
-
-
-OPTION(BUILD_CDMREMOTE "Enabled CDMRemote" OFF)
+# FFIO insteaad of PosixIO
 OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
 
+# Enable Tests
+OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+
+# Other misc. options, not detailed for now.
+OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
+OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
+OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
+OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
 
 MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE)
 
@@ -186,7 +187,11 @@ MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETC
 #####
 
 
-# Library checks
+#####
+# System inspection checks
+#####
+
+# Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
@@ -252,36 +257,20 @@ CHECK_FUNCTION_EXISTS(memmove	HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
-
-###
-# Options related to the man page generation.
-###
-
-
-
-
-# The C API man page.
-###
-
-set(man_MANS netcdf.3)
-
-set(ARGS_MANPAGE -DAPI=C)
-
-IF (USE_NETCDF4)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
-
-IF (BUILD_DAP)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
-ENDIF(BUILD_DAP)
-
-IF (BUILD_PARALLEL)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
-ENDIF(BUILD_PARALLEL)
-
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
-# Check existence of various libraries.
+#####
+# End system inspection checks.
+#####
+
+
+# Check for the math library so it can be explicitely linked.
+FIND_LIBRARY(MATH NAMES math m libm)
+MESSAGE(STATUS "Math library: ${MATH}")
+IF(NOT MATH)
+  MESSAGE(FATAL_ERROR "Unable to find the math library.")
+ENDIF()
+
 
 
 # Create config.h file
@@ -296,18 +285,18 @@ EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
 
 INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin)
 INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
-## End autotools-style checs for config.h
+# End autotools-style checs for config.h
 
 
 
-#----
+#####
 # Set core names of the libraries.
-#---
+#####
 SET (NetCDF_LIB_CORENAME	"netcdf")
 
-#---
+#####
 # Set the true names of all the libraries, if customized by external project
-#---
+#####
 INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/oc2)
 
@@ -339,11 +328,14 @@ IF (BUILD_UTILITIES)
 	ADD_SUBDIRECTORY(ncgen3)
 ENDIF()
 
-ADD_SUBDIRECTORY(nctest)
-ADD_SUBDIRECTORY(nc_test)
-IF(USE_NETCDF4)
-  ADD_SUBDIRECTORY(nc_test4)
+IF(ENABLE_TESTS)
+	ADD_SUBDIRECTORY(nctest)
+	ADD_SUBDIRECTORY(nc_test)
+	IF(USE_NETCDF4)
+  		ADD_SUBDIRECTORY(nc_test4)
+	ENDIF()
 ENDIF()
+
 #####
 # Moving on to CPack, install packages.
 #####

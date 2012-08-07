@@ -11,6 +11,7 @@ tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill
 t_type cdm_sea_soundings tst_camrun tst_vl 
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug)
 
+# Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
