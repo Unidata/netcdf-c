@@ -323,17 +323,20 @@ ENDIF()
 
 add_subdirectory(liblib)
 
+# Enable Utilities.
 IF (BUILD_UTILITIES)
 	ADD_SUBDIRECTORY(ncdump)
 	ADD_SUBDIRECTORY(ncgen)
 	ADD_SUBDIRECTORY(ncgen3)
 ENDIF()
 
+# Enable tests.
 IF(ENABLE_TESTS)
 	ADD_SUBDIRECTORY(nctest)
 	ADD_SUBDIRECTORY(nc_test)
 	IF(USE_NETCDF4)
   		ADD_SUBDIRECTORY(nc_test4)
+		ADD_SUBDIRECTORY(h5_test)
 	ENDIF()
 ENDIF()
 
