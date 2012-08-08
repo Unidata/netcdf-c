@@ -10,7 +10,7 @@ COPYRIGHT file for copying and redistribution conditions.
 
 #include "nc4internal.h"
 #include "nc.h"
-#include <H5DSpublic.h>
+#include "H5DSpublic.h"
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 #ifdef USE_HDF4
