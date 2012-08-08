@@ -16,7 +16,7 @@ IF(USE_NETCDF4)
 	SET(ncDumpTests ${ncDumpTests} tst_create_files tst_group_data tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts tst_h_rdc0 tst_unicode tst_fillbug tst_compress tst_chunking)
 ENDIF()
 
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
