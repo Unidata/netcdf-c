@@ -39,7 +39,7 @@ IF(ENABLE_TESTS)
 	ENDFOREACH()
 	
 	# Now, add shell script tests.
-	ADD_TEST(run_ncdump_tests ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh ${CMAKE_CFG_INTDIR}/run_ncdump_tests)
+	ADD_TEST(run_ncdump_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh)
 ENDIF()
 
 INSTALL(TARGETS ncdump DESTINATION bin)

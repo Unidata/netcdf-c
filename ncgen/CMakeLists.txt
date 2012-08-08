@@ -10,15 +10,14 @@ TARGET_LINK_LIBRARIES(ncgen netcdf)
 
 INSTALL(TARGETS ncgen DESTINATION bin)
 
+# Stuff to build if tests are enabled.
 IF(ENABLE_TESTS)
 	FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 	FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE) 
 
-	ADD_TEST(run_tests ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh ${CMAKE_CFG_INTDIR}/run_tests)
+	ADD_TEST(run_ncgen_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh)
 	IF(USE_NETCDF4)
-		ADD_TEST(run_nc4_tests ${CMAKE_CURRENT_BINARY_DIR}/run_nc4_tests.sh ${CMAKE_CFG_INTDIR}/run_nc4_tests)
+		ADD_TEST(run_ncgen_nc4_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_nc4_tests.sh)
 	ENDIF()
 ENDIF()
-## Tests
-#ADD_TEST(run_tests.sh ${EXECUTABLE_OUTPUT_PATH}/run_tests.sh)
 
