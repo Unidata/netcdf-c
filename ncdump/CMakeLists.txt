@@ -8,7 +8,7 @@ SET(ncdump_FILES ncdump.c utils.c vardata.c dumplib.c indent.c nctime0.c )
 SET(nccopy_FILES nccopy.c utils.c nciter.c chunkspec.c utils.c dimmap.c)
 
 # Base tests
-SET(ncDumpChecks rewrite-scalar ctest ctest64 tst_utf8)
+SET(ncDumpChecks rewrite-scalar tst_utf8)
 
 SET(ncDumpTests "")
 

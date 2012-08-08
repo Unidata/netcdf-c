@@ -2,6 +2,21 @@
 # This shell script runs the ncdump tests.
 # $Id: run_tests.sh,v 1.18 2010/05/19 13:43:39 ed Exp $
 
+srcdir=`dirname $0`
+cd $srcdir
+srcdir=`pwd`
+
+# compute the build directory
+builddir=`pwd`/..
+# Hack for CYGWIN
+cd $srcdir
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir="$srcdir"/..
+fi
+
+
+
 set -e
 echo ""
 echo "*** Testing ncgen and ncdump using some test CDL files."

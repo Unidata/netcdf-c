@@ -102,8 +102,7 @@ ENDIF ()
 
 # Build NetCDF4
 OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
-OPTION (ENABLE_NETCDF4 "Enable NetCDF-4" ON)
-IF(ENABLE_NETCDF_4 OR ENABLE_NETCDF4)
+IF(ENABLE_NETCDF_4)
 	SET(USE_NETCDF4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF4 ON CACHE BOOL "")
@@ -168,9 +167,11 @@ IF(ENABLE_PNETCDF)
 	SET(USE_PNETCDF ON CACHE BOOL "")
 ENDIF()
 
-
+SET(MATH "")
+IF(NOT WIN32)
 # FFIO insteaad of PosixIO
 OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
+ENDIF()
 
 # Enable Tests
 OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
@@ -266,12 +267,13 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
 
 # Check for the math library so it can be explicitely linked.
-FIND_LIBRARY(MATH NAMES math m libm)
-MESSAGE(STATUS "Math library: ${MATH}")
-IF(NOT MATH)
-  MESSAGE(FATAL_ERROR "Unable to find the math library.")
+IF(NOT WIN32)
+       FIND_LIBRARY(MATH NAMES math m libm)
+       MESSAGE(STATUS "Math library: ${MATH}")
+       IF(NOT MATH)
+       	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
+       ENDIF()
 ENDIF()
-
 
 
 # Create config.h file
