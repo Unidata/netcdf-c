@@ -131,7 +131,7 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
     host = p;
     
     port = strchr(p,':');
-    if(!strncmp(protocol,"file",4)) {
+    if(strncmp(protocol,"file",4)) {
       if(port) {
 	*port++ = '\0';
       }
