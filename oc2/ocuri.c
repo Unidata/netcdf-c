@@ -191,12 +191,10 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     p = host;
     
     port = strchr(p,':');
-    if(strncmp(protocol,"file",4)) {	
-      if(port!=NULL) {
+    if(!strncmp(protocol,"file",4)) {
+      if(port!=NULL)
 	*port++ = '\0';
-      }
     }
-
     /* Locate end of the file */
     constraint = strchr(file,'?');
     if(constraint!=NULL)
