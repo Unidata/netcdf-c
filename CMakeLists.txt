@@ -8,8 +8,6 @@ SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT")
 SET(CPACK_PACKAGE_VERSION "4.3")
 ENABLE_TESTING()
 INCLUDE(CTest)
-MESSAGE(${CMAKE_INCLUDE_PATH})
-INCLUDE_DIRECTORIES(${CMAKE_INCLUDE_PATH})
 # CTest/CDash configuration
 SET (CTEST_DROP_METHOD http CACHE STRING "")
 SET (CTEST_DROP_SITE "yakov.unidata.ucar.edu/~wfisher/cdash/" CACHE STRING "")
@@ -133,11 +131,20 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
    ENDIF()	
 
-   FIND_PACKAGE(SZIP)
-   IF(NOT SZIP_FOUND)
-   	  MESSAGE(FATAL_ERROR "SZIP Not Found")
+   FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+   IF(NOT SZIP_LIBRARY)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find SZip.")
+   ELSE()
+	MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
    ENDIF()
-     
+
+   FIND_LIBRARY(ZLIB_LIBRARY NAMES zlibwapi zlibstat zlib zlib1 z)
+   IF(NOT ZLIB_LIBRARY)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
+   ELSE()
+	MESSAGE(STATUS "Found ZLib: ${ZLIB_LIBRARY}")
+   ENDIF()
+
    SET(H5_USE_16_API 1)
    
 
@@ -277,7 +284,7 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 # Check for the math library so it can be explicitely linked.
 IF(NOT WIN32)
        FIND_LIBRARY(MMATH NAMES math m libm)
-       MESSAGE(STATUS "Math library: ${MMATH}")
+       MESSAGE(STATUS "Found Math library: ${MMATH}")
        IF(NOT MMATH)
        	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
        ENDIF()
