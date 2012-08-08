@@ -1,8 +1,5 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
-
-#include "config.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,7 +21,7 @@ int oclistnull(ocelem e) {return e == ocDATANULL;}
 #define DEFAULTALLOC 16
 #define ALLOCINCR 16
 
-OClist* oclistnewn(int prealloc)
+OClist* oclistnew(void)
 {
   OClist* l;
 /*
@@ -33,13 +30,11 @@ OClist* oclistnewn(int prealloc)
     ocinitialized = 1;
   }
 */
-  if(prealloc < 0) prealloc = 0;
   l = (OClist*)malloc(sizeof(OClist));
   if(l) {
-    l->alloc=prealloc;
-    l->length=prealloc;
-    l->content=(prealloc==0?NULL:(ocelem*)calloc(prealloc,sizeof(ocelem)));
-    if(l == NULL) {free(l);return 0;}
+    l->alloc=0;
+    l->length=0;
+    l->content=NULL;
   }
   return l;
 }
@@ -65,8 +60,8 @@ oclistsetalloc(OClist* l, unsigned int sz)
   newcontent=(ocelem*)calloc(sz,sizeof(ocelem));
   if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(ocelem)*l->length);
-    free(l->content);
   }
+  if(l->content != NULL) free(l->content);
   l->content=newcontent;
   l->alloc=sz;
   return TRUE;
@@ -102,11 +97,11 @@ oclistset(OClist* l, unsigned int index, ocelem elem)
 int
 oclistinsert(OClist* l, unsigned int index, ocelem elem)
 {
-  unsigned int i;
+  int i; /* do not make unsigned */
   if(l == NULL) return FALSE;
   if(index > l->length) return FALSE;
   oclistsetalloc(l,0);
-  for(i=l->length;i>index;i--) l->content[i] = l->content[i-1];
+  for(i=(int)l->length;i>index;i--) l->content[i] = l->content[i-1];
   l->content[index] = elem;
   l->length++;
   return TRUE;
@@ -145,7 +140,7 @@ oclistremove(OClist* l, unsigned int i)
   if(l == NULL || (len=l->length) == 0) return ocDATANULL;
   if(i >= len) return ocDATANULL;
   elem = l->content[i];
-  for(i++;i<len;i++) l->content[i-1] = l->content[i];
+  for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
   l->length--;
   return elem;  
 }
@@ -168,4 +163,62 @@ oclistcontains(OClist* list, ocelem elem)
 	if(elem == oclistget(list,i)) return 1;
     }
     return 0;
+}
+
+/* Remove element by value; only removes first encountered */
+int
+oclistelemremove(OClist* l, ocelem elem)
+{
+  unsigned int len;
+  unsigned int i;
+  int found = 0;
+  if(l == NULL || (len=l->length) == 0) return ocDATANULL;
+  for(i=0;i<oclistlength(l);i++) {
+    ocelem candidate = l->content[i];
+    if(elem == candidate) {
+      for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
+      l->length--;
+      found = 1;
+      break;
+    }
+  }
+  return found;
+}
+
+
+
+
+/* Extends oclist to include a unique operator 
+   which remove duplicate values; NULL values removed
+   return value is always 1.
+*/
+
+int
+oclistunique(OClist* list)
+{
+    unsigned int i,j,k,len;
+    ocelem* content;
+    if(list == NULL || list->length == 0) return 1;
+    len = list->length;
+    content = list->content;
+    for(i=0;i<len;i++) {
+        for(j=i+1;j<len;j++) {
+	    if(content[i] == content[j]) {
+		/* compress out jth element */
+                for(k=j+1;k<len;k++) content[k-1] = content[k];	
+		len--;
+	    }
+	}
+    }
+    list->length = len;
+    return 1;
+}
+
+OClist*
+oclistclone(OClist* list)
+{
+    OClist* clone = oclistnew();
+    *clone = *list;
+    clone->content = oclistdup(list);
+    return clone;
 }

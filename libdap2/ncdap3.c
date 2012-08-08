@@ -15,6 +15,8 @@
 #  endif
 #endif
 
+#include "oclog.h"
+
 #include "nc3dispatch.h"
 #include "ncd3dispatch.h"
 #include "dapalign.h"
@@ -122,10 +124,10 @@ NCD3_open(const char * path, int mode,
     dapcomm->oc.rawurltext = strdup(path);
 #endif
 
-    nc_uriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
+    ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
 
     /* parse the client parameters */
-    nc_uridecodeparams(dapcomm->oc.url);
+    ncuridecodeparams(dapcomm->oc.url);
 
     if(!constrainable34(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
@@ -164,9 +166,9 @@ NCD3_open(const char * path, int mode,
      } else
 	dapcomm->oc.dapconstraint = NULL;
 
-    /* Construct a url for oc minus any constraint */
-    dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,
-				      (NC_URIALL ^ NC_URICONSTRAINTS));
+    /* Construct a url for oc minus any constraint and params*/
+    dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,
+				      (NCURISTD ^ NCURICONSTRAINTS));
 
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
@@ -183,9 +185,9 @@ NCD3_open(const char * path, int mode,
 	ncloginit();
         if(nclogopen(value))
 	    ncsetlogging(1);
-	oc_loginit();
-        if(oc_logopen(value))
-	    oc_setlogging(1);
+	ocloginit();
+        if(oclogopen(value))
+	    ocsetlogging(1);
     }
 
     /* fetch and build the unconstrained DDS for use as
@@ -286,12 +288,12 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     /* using the modified constraint, rebuild the constraint string */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	/* ignore all constraints */
-	dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,0);
+	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,0);
     } else {
 	char* constraintstring = buildconstraintstring3(dapcomm->oc.dapconstraint);
-        nc_urisetconstraints(dapcomm->oc.url,constraintstring);
+        ncurisetconstraints(dapcomm->oc.url,constraintstring);
 	nullfree(constraintstring);
-        dapcomm->oc.urltext = nc_uribuild(dapcomm->oc.url,NULL,NULL,NC_URICONSTRAINTS);
+        dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURICONSTRAINTS);
     }
 
 #ifdef DEBUG

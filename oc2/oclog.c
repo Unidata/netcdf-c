@@ -1,21 +1,32 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
+/*********************************************************************
+ *   Copyright 2010, UCAR/Unidata
+ *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   $Header$
+ *********************************************************************/
 
-#include "config.h"
-
-#include "ocinternal.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <string.h>
+
+#include "oclog.h"
 
 #define PREFIXLEN 8
+#define MAXTAGS 256
+#define OCTAGDFALT "Log";
 
-#define ENVFLAG "OCLOGFILE"
-
-static int ocloginit = 0;
+static int oclogginginitialized = 0;
 static int oclogging = 0;
-static int ocsystemfile = 0; /* 1 => we are logging something we did not open */
+static int ocsystemfile = 0; /* 1 => we are logging to file we did not open */
 static char* oclogfile = NULL;
 static FILE* oclogstream = NULL;
+
+static int octagsize = 0;
+static char** octagset = NULL;
+static char* octagdfalt = NULL;
+static char* octagsetdfalt[] = {"Warning","Error","Note","Debug"};
+static char* octagname(int tag);
 
 /*!\defgroup OClog OClog Management
 @{*/
@@ -24,19 +35,22 @@ static FILE* oclogstream = NULL;
 */
 
 void
-oc_loginit(void)
+ocloginit(void)
 {
-    const char* file = getenv(ENVFLAG); /* I hope this is portable*/
-    ocloginit = 1;
-    oc_setlogging(0);
+    const char* file = getenv(OCENVFLAG);
+    oclogginginitialized = 1;
+    ocsetlogging(0);
     oclogfile = NULL;
     oclogstream = NULL;
     /* Use environment variables to preset oclogging state*/
+    /* I hope this is portable*/
     if(file != NULL && strlen(file) > 0) {
-        if(oc_logopen(file)) {
-	    oc_setlogging(1);
+        if(oclogopen(file)) {
+	    ocsetlogging(1);
 	}
     }
+    octagdfalt = OCTAGDFALT;
+    octagset = octagsetdfalt;
 }
 
 /*!
@@ -48,10 +62,10 @@ Enable/Disable logging.
 */
 
 int
-oc_setlogging(int tf)
+ocsetlogging(int tf)
 {
     int was;
-    if(!ocloginit) oc_loginit();
+    if(!oclogginginitialized) ocloginit();
     was = oclogging;
     oclogging = tf;
     return was;
@@ -68,10 +82,10 @@ stderr.
 */
 
 int
-oc_logopen(const char* file)
+oclogopen(const char* file)
 {
-    if(!ocloginit) oc_loginit();
-    oc_logclose();
+    if(!oclogginginitialized) ocloginit();
+    oclogclose();
     if(file == NULL || strlen(file) == 0) {
 	/* use stderr*/
 	oclogstream = stderr;
@@ -89,8 +103,7 @@ oc_logopen(const char* file)
 	ocsystemfile = 1;
     } else {
 	int fd;
-	oclogfile = (char*)malloc(strlen(file)+1);
-	strcpy(oclogfile,file);
+	oclogfile = strdup(file);
 	oclogstream = NULL;
 	/* We need to deal with this file carefully
 	   to avoid unauthorized access*/
@@ -100,24 +113,20 @@ oc_logopen(const char* file)
 	} else {
 	    free(oclogfile);
 	    oclogfile = NULL;
-	    oc_setlogging(0);
+	    oclogstream = NULL;
+	    ocsetlogging(0);
 	    return 0;
 	}
+	ocsystemfile = 0;
     }
     return 1;
 }
 
-/*!
-Close the logging output file (unless it is stderr).
-Logging is still enabled.
-*/
-
 void
-oc_logclose(void)
+oclogclose(void)
 {
-    if(!ocloginit) oc_loginit();
+    if(!oclogginginitialized) ocloginit();
     if(oclogstream != NULL && !ocsystemfile) {
-        assert(oclogfile != NULL && oclogstream != NULL);
 	fclose(oclogstream);
     }
     if(oclogfile != NULL) free(oclogfile);
@@ -136,63 +145,71 @@ printf function.
 */
 
 void
-oc_log(int tag, const char* format, ...)
+oclog(int tag, const char* fmt, ...)
 {
     va_list args;
     char* prefix;
 
-    if(!ocloginit) oc_loginit();
+    if(!oclogginginitialized) ocloginit();
+
     if(!oclogging || oclogstream == NULL) return;
 
-    switch (tag) {
-    case LOGWARN: prefix = "Warning:"; break;
-    case LOGERR:  prefix = "Error:  "; break;
-    case LOGNOTE: prefix = "Note:   "; break;
-    case LOGDBG:  prefix = "Debug:  "; break;
-    default:
-        fprintf(oclogstream,"Error:  Bad log prefix: %d\n",tag);
-	prefix = "Error:  ";
-	break;
-    }
+    prefix = octagname(tag);
     fprintf(oclogstream,"%s:",prefix);
 
-    if(format != NULL) {
-      va_start(args, format);
-      vfprintf(oclogstream, format, args);
+    if(fmt != NULL) {
+      va_start(args, fmt);
+      vfprintf(oclogstream, fmt, args);
       va_end( args );
     }
     fprintf(oclogstream, "\n" );
     fflush(oclogstream);
 }
 
+void
+oclogtext(int tag, const char* text)
+{
+    oclogtextn(tag,text,strlen(text));
+}
+
 /*!
 Send arbitrarily long text as a logging message.
-Each line will be sent using oc_log with the specified tag.
-
+Each line will be sent using oclog with the specified tag.
 \param[in] tag Indicate the kind of this log message.
 \param[in] text Arbitrary text to send as a logging message.
 */
 
 void
-oc_logtext(int tag, const char* text)
+oclogtextn(int tag, const char* text, size_t count)
 {
-    char line[1024];
-    size_t delta = 0;
-    const char* eol = text;
-
-    if(!ocloginit) oc_loginit();
     if(!oclogging || oclogstream == NULL) return;
+    fwrite(text,1,count,oclogstream);
+    fflush(oclogstream);
+}
 
-    while(*text) {
-	eol = strchr(text,'\n');
-	if(eol == NULL)
-	    delta = strlen(text);
-	else
-	    delta = (eol - text);
-	if(delta > 0) memcpy(line,text,delta);
-	line[delta] = '\0';
-	fprintf(oclogstream,"        %s\n",line);
-	text = eol+1;
+/* The tagset is null terminated */
+void
+oclogsettags(char** tagset, char* dfalt)
+{
+    octagdfalt = dfalt;
+    if(tagset == NULL) {
+	octagsize = 0;
+    } else {
+        int i;
+	/* Find end of the tagset */
+	for(i=0;i<MAXTAGS;i++) {if(tagset[i]==NULL) break;}
+	octagsize = i;
+    }
+    octagset = tagset;
+}
+
+static char*
+octagname(int tag)
+{
+    if(tag < 0 || tag >= octagsize) {
+	return octagdfalt;
+    } else {
+	return octagset[tag];
     }
 }
 

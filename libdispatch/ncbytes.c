@@ -50,6 +50,7 @@ ncbytessetalloc(NCbytes* bb, unsigned int sz)
   if(bb->alloc >= sz) return TRUE;
   if(bb->nonextendible) return ncbytesfail();
   newcontent=(char*)calloc(sz,sizeof(char));
+  if(newcontent == NULL) return FALSE;
   if(bb->alloc > 0 && bb->length > 0 && bb->content != NULL) {
     memcpy((void*)newcontent,(void*)bb->content,sizeof(char)*bb->length);
   }
@@ -106,9 +107,13 @@ int
 ncbytesappend(NCbytes* bb, char elem)
 {
   if(bb == NULL) return ncbytesfail();
-  if(bb->length >= bb->alloc) if(!ncbytessetalloc(bb,0)) return ncbytesfail();
+  /* We need space for the char + null */
+  while(bb->length+1 >= bb->alloc) {
+	if(!ncbytessetalloc(bb,0)) return ncbytesfail();
+  }
   bb->content[bb->length] = elem;
   bb->length++;
+  bb->content[bb->length] = '\0';
   return TRUE;
 }
 
@@ -124,13 +129,16 @@ ncbytescat(NCbytes* bb, const char* s)
 }
 
 int
-ncbytesappendn(NCbytes* bb, void* elem, unsigned int n)
+ncbytesappendn(NCbytes* bb, const void* elem, unsigned int n)
 {
   if(bb == NULL || elem == NULL) return ncbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
-  while(!ncbytesavail(bb,n)) {if(!ncbytessetalloc(bb,0)) return ncbytesfail();}
+  while(!ncbytesavail(bb,n+1)) {
+    if(!ncbytessetalloc(bb,0)) return ncbytesfail();
+  }
   memcpy((void*)&bb->content[bb->length],(void*)elem,n);
   bb->length += n;
+  bb->content[bb->length] = '\0';
   return TRUE;
 }
 

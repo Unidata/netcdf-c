@@ -7,7 +7,7 @@
 #ifndef NCLOG_H
 #define NCLOG_H
 
-#define ENVFLAG "NCLOGFILE"
+#define NCENVFLAG "NCLOGFILE"
 
 /* Suggested tag values */
 #define NCLOGNOTE 0
@@ -16,7 +16,7 @@
 #define NCLOGDBG 3
 
 extern void ncloginit(void);
-extern void ncsetlogging(int tf);
+extern int ncsetlogging(int tf);
 extern int nclogopen(const char* file);
 extern void nclogclose(void);
 

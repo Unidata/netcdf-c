@@ -433,7 +433,7 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 		if(c > 0 && (c < ' ' || c >= '\177'))
 		    contents[i+j] = ERRFILL;
 	    }
-	    oc_log(LOGERR,"DATADDS failure, possible message: '%s'\n",
+	    oclog(OCLOGERR,"DATADDS failure, possible message: '%s'\n",
 			contents+i);
 	    goto done;
 	}

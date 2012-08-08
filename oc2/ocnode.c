@@ -143,7 +143,7 @@ makeattribute(char* name, OCtype ptype, OClist* values)
 static void
 marklostattribute(OCnode* att)
 {
-    oc_log(LOGNOTE,"Lost attribute: %s",att->name);
+    oclog(OCLOGNOTE,"Lost attribute: %s",att->name);
 }
 
 void
@@ -288,7 +288,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	        OCnode* das2 = (OCnode*)oclistget(dasnodes,j);
 		if(das->name == NULL || das2->name == NULL) continue;
 		if(strcmp(das->name,das2->name)==0) {
-		    oc_log(LOGWARN,"oc_mergedas: potentially ambiguous DAS name: %s",das->name);
+		    oclog(OCLOGWARN,"oc_mergedas: potentially ambiguous DAS name: %s",das->name);
 		}
 	    }
 	    oclistpush(dasnodes,(ocelem)das);

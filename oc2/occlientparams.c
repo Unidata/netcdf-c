@@ -37,8 +37,11 @@ ocparamdecode(OCstate* state)
 const char*
 ocparamlookup(OCstate* state, const char* key)
 {
+    const char* value = NULL;
     if(state == NULL || key == NULL || state->uri == NULL) return NULL;
-    return ocurilookup(state->uri,key);
+    if(!ocurilookup(state->uri,key,&value))
+	value = NULL;
+    return value;
 }
 
 int

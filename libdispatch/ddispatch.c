@@ -1,5 +1,5 @@
 #include "ncdispatch.h"
-#include "nc_uri.h"
+#include "ncuri.h"
 
 extern int NCSUBSTRATE_intialize(void);
 
@@ -92,7 +92,7 @@ int
 NC_testurl(const char* path)
 {
     int isurl = 0;
-    NC_URI* tmpurl = NULL;
+    NCURI* tmpurl = NULL;
     char* p;
 
     if(path == NULL) return 0;
@@ -104,7 +104,7 @@ NC_testurl(const char* path)
     if(*p == '/') return 0; /* probably an absolute file path */
 
     /* Ok, try to parse as a url */
-    if(nc_uriparse(path,&tmpurl)) {
+    if(ncuriparse(path,&tmpurl)) {
 	/* Do some extra testing to make sure this really is a url */
         /* Look for a knownprotocol */
         struct NCPROTOCOLLIST* protolist;
@@ -114,7 +114,7 @@ NC_testurl(const char* path)
 		break;
 	    }		
 	}
-	nc_urifree(tmpurl);
+	ncurifree(tmpurl);
 	return isurl;
     }
     return 0;
@@ -129,20 +129,20 @@ int
 NC_urlmodel(const char* path)
 {
     int model = 0;
-    NC_URI* tmpurl = NULL;
+    NCURI* tmpurl = NULL;
     struct NCPROTOCOLLIST* protolist;
 
-    if(!nc_uriparse(path,&tmpurl)) goto done;
+    if(!ncuriparse(path,&tmpurl)) goto done;
 
     /* Look at any prefixed parameters */
-    if(nc_urilookup(tmpurl,"netcdf4",NULL)
-       || nc_urilookup(tmpurl,"netcdf-4",NULL)) {
+    if(ncurilookup(tmpurl,"netcdf4",NULL)
+       || ncurilookup(tmpurl,"netcdf-4",NULL)) {
 	model = (NC_DISPATCH_NC4|NC_DISPATCH_NCD);
-    } else if(nc_urilookup(tmpurl,"netcdf3",NULL)
-              || nc_urilookup(tmpurl,"netcdf-3",NULL)) {
+    } else if(ncurilookup(tmpurl,"netcdf3",NULL)
+              || ncurilookup(tmpurl,"netcdf-3",NULL)) {
 	model = (NC_DISPATCH_NC3|NC_DISPATCH_NCD);
-    } else if(nc_urilookup(tmpurl,"cdmremote",NULL)
-	      || nc_urilookup(tmpurl,"cdmr",NULL)) {
+    } else if(ncurilookup(tmpurl,"cdmremote",NULL)
+	      || ncurilookup(tmpurl,"cdmr",NULL)) {
 	model = (NC_DISPATCH_NCR|NC_DISPATCH_NC4);
     }
 
@@ -165,7 +165,7 @@ NC_urlmodel(const char* path)
 	model |= (NC_DISPATCH_NC3 | NC_DISPATCH_NCD);
 
 done:
-    nc_urifree(tmpurl);
+    ncurifree(tmpurl);
     return model;
 }
 

@@ -404,7 +404,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     return OC_NOERR;
 
 xdrfail:
-    oc_log(LOGERR,"DAP DATADDS packet is apparently too short");
+    oclog(OCLOGERR,"DAP DATADDS packet is apparently too short");
     return OCTHROW(OC_EDATADDS);
 }
 

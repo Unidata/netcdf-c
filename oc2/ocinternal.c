@@ -68,7 +68,7 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
-    oc_loginit();
+    ocloginit();
 
     oc_curl_protocols(&ocglobalstate); /* see what protocols are supported */
 
@@ -106,14 +106,14 @@ ocinternalinitialize(void)
             }
 	}
         if(f == NULL) {
-            oc_log(LOGDBG,"Cannot find runtime configuration file");
+            oclog(OCLOGDBG,"Cannot find runtime configuration file");
 	} else {
 	    OCASSERT(path != NULL);
        	    fclose(f);
             if(ocdebug > 1)
 		fprintf(stderr, "DODS RC file: %s\n", path);
             if(ocdodsrc_read(*alias,path) == 0)
-	        oc_log(LOGERR, "Error parsing %s\n",path);
+	        oclog(OCLOGERR, "Error parsing %s\n",path);
         }
         if(path != NULL) free(path);
     }
@@ -144,7 +144,7 @@ ocopen(OCstate** statep, const char* url)
     state->trees = oclistnew();
     state->uri = tmpurl;
     if(!ocuridecodeparams(state->uri)) {
-	oc_log(LOGWARN,"Could not parse client parameters");
+	oclog(OCLOGWARN,"Could not parse client parameters");
     }
     state->packet = ocbytesnew();
     ocbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
@@ -231,9 +231,9 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 	/* Obtain any http code */
 	state->error.httpcode = ocfetchhttpcode(state->curl);
 	if(state->error.httpcode >= 400) {
-	    oc_log(LOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
+	    oclog(OCLOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
 	} else {
-	    oc_log(LOGWARN,"oc_open: Could not read url");
+	    oclog(OCLOGWARN,"oc_open: Could not read url");
 	}
 	goto fail;
     }
@@ -242,7 +242,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     stat = DAPparse(state,tree,tree->text);
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
-	oc_log(LOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+	oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
 		  state->error.code,	
 		  (state->error.message?state->error.message:""));
     }
@@ -319,11 +319,11 @@ createtempfile(OCstate* state, OCtree* tree)
     if(fd < 0)
         fd = createtempfile1(TMPPATH2,&name);
     if(fd < 0) {
-        oc_log(LOGERR,"oc_open: attempt to open tmp file failed: %s",name);
+        oclog(OCLOGERR,"oc_open: attempt to open tmp file failed: %s",name);
         return errno;
     }
 #ifdef OCDEBUG
-    oc_log(LOGNOTE,"oc_open: using tmp file: %s",name);
+    oclog(OCLOGNOTE,"oc_open: using tmp file: %s",name);
 #endif
     tree->data.filename = name; /* remember our tmp file name */
     tree->data.file = fdopen(fd,"w+");
@@ -532,7 +532,7 @@ ocsetcurlproperties(OCstate* state)
 
     /* process the triple store wrt to this state */
     if(ocdodsrc_process(state) != OC_NOERR) {
-	oc_log(LOGERR,"Malformed .opendaprc configuration file");
+	oclog(OCLOGERR,"Malformed .opendaprc configuration file");
 	goto fail;
     }
     if(state->creds.username == NULL && state->creds.password == NULL) {
@@ -548,6 +548,6 @@ ocsetcurlproperties(OCstate* state)
 
 fail:
     if(cstat != CURLE_OK)
-	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return;
 }
