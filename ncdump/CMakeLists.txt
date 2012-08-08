@@ -27,7 +27,6 @@ TARGET_LINK_LIBRARIES(nccopy netcdf)
 
 IF(ENABLE_TESTS)
 	FOREACH(CTEST ${ncDumpChecks})
-		
 		ADD_EXECUTABLE(${CTEST}_ncdump ${CTEST}.c)
 		TARGET_LINK_LIBRARIES(${CTEST}_ncdump netcdf)
 	ENDFOREACH()

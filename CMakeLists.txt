@@ -268,9 +268,9 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
 # Check for the math library so it can be explicitely linked.
 IF(NOT WIN32)
-       FIND_LIBRARY(MATH NAMES math m libm)
-       MESSAGE(STATUS "Math library: ${MATH}")
-       IF(NOT MATH)
+       FIND_LIBRARY(MMATH NAMES math m libm)
+       MESSAGE(STATUS "Math library: ${MMATH}")
+       IF(NOT MMATH)
        	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
        ENDIF()
 ENDIF()
