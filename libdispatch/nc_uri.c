@@ -129,12 +129,14 @@ nc_uriparse(const char* uri0, NC_URI** nc_urip)
 
     /* 8. extract host and port */
     host = p;
+    
+    port = strchr(p,':');
     if(strncmp(protocol,"file",4)) {
-      port = strchr(p,':');
       if(port) {
 	*port++ = '\0';
       }
     }
+    
 
     /* 9. Look for '?' */
     constraint = strchr(file,'?');
