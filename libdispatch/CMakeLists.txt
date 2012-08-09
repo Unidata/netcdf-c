@@ -1,13 +1,6 @@
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(".")
-# For some reason, these appear to need to be set in each folder.
-IF(ENABLE_COVERAGE_TESTS)
-        SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wun    used-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecate    d -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
-ENDIF()
-
 
 SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c dnclog.c dstring.c dutf8proc.c nc_uri.c nclist.c ncbytes.c nchashmap.c nctime.c dsubstrate.c)
 

@@ -73,6 +73,12 @@ OPTION (BUILD_MMAP "Use MMAP." OFF)
 OPTION (BUILD_DISKLESS "Build Diskless." OFF)
 
 # Option Logging, only valid for netcdf4. 
+# For some reason, these appear to need to be set in each folder.
+IF(ENABLE_COVERAGE_TESTS)
+        SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wun    used-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecate    d -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+ENDIF()
 OPTION (LOGGING "Enable Logging." OFF)
 
 # Option to use HDF4
@@ -200,15 +206,13 @@ OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
 IF(ENABLE_COVERAGE_TESTS)
-	#ADD_DEFINITION(-fprofile-arcs)
-	#ADD_DEFINITION(-ftest-coverage)
-	#ADD_DEFINITION(-g-O0)
-	SET(CMAKE_CXX_FLAGS="-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_C_FLAGS="-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_EXE_LINKER_FLAGS="-fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_EXE_LINKER_FLAGSx "-fprofile-arcs -ftest-coverage")
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
 
+# Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
 
 #####
@@ -368,6 +372,8 @@ IF(ENABLE_TESTS)
 		ADD_SUBDIRECTORY(h5_test)
 	ENDIF()
 ENDIF()
+
+
 
 #####
 # Moving on to CPack, install packages.

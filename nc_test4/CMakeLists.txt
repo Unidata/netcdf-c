@@ -11,14 +11,6 @@ tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill
 t_type cdm_sea_soundings tst_camrun tst_vl 
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug)
 
-# For some reason, these appear to need to be set in each folder.
-IF(ENABLE_COVERAGE_TESTS)
-        SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wun    used-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecate    d -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
-ENDIF()
-
-
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
