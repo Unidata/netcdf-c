@@ -137,6 +137,8 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
    ENDIF()	
 
+
+
    FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
    IF(NOT SZIP_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find SZip.")
@@ -196,6 +198,16 @@ ENDIF()
 
 # Enable Tests
 OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+IF(ENABLE_TESTS) 
+	SET(BUILD_TESTSETS ON CACHE BOOL "")
+ENDIF()
+
+
+# Enable Large file tests
+OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
+IF(ENABLE_LARGE_FILE_TESTS)
+	SET(LARGE_FILE_TESTS ON)
+ENDIF()
 
 # Other misc. options, not detailed for now.
 OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
@@ -358,9 +370,9 @@ add_subdirectory(liblib)
 
 # Enable Utilities.
 IF (BUILD_UTILITIES)
-	ADD_SUBDIRECTORY(ncdump)
 	ADD_SUBDIRECTORY(ncgen)
 	ADD_SUBDIRECTORY(ncgen3)
+	ADD_SUBDIRECTORY(ncdump)
 ENDIF()
 
 # Enable tests.

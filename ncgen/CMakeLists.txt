@@ -8,6 +8,7 @@ ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 
 TARGET_LINK_LIBRARIES(ncgen netcdf)
 
+
 INSTALL(TARGETS ncgen DESTINATION bin)
 
 # Stuff to build if tests are enabled.
