@@ -11,7 +11,7 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long ncelem;
+typedef void* ncelem;
 
 EXTERNC int nclistnull(ncelem);
 
