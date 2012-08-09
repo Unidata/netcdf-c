@@ -145,11 +145,8 @@ NCD3_open(const char * path, int mode,
     /* Use libsrc code for storing metadata */
 
     snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
-    /* Now, use the file to create the netcdf file */
-    if(sizeof(size_t) == sizeof(unsigned int))
-	ncstat = nc_create(tmpname,NC_DISKLESS,&drno->substrate);
-    else
-	ncstat = nc_create(tmpname,NC_DISKLESS|NC_64BIT_OFFSET,&drno->substrate);
+    /* Now, use the file to create the netcdf file; always 64 bit */
+    ncstat = nc_create(tmpname,NC_DISKLESS|NC_64BIT_OFFSET,&drno->substrate);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Avoid fill */
