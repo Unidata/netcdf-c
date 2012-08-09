@@ -197,7 +197,17 @@ OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is
 OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
 OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
 
-MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE)
+# Provide the option to perform coverage tests.
+OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+IF(ENABLE_COVERAGE_TESTS)
+	#ADD_DEFINITION(-fprofile-arcs)
+	#ADD_DEFINITION(-ftest-coverage)
+	#ADD_DEFINITION(-g-O0)
+	SET(CMAKE_C_FLAGS="-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_EXE_LINKER_FLAGS="-fprofile-arcs -ftest-coverage")
+ENDIF()
+
+MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
 
 #####
 # End option checks.
