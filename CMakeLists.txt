@@ -70,8 +70,10 @@ OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 OPTION (BUILD_MMAP "Use MMAP." OFF)
 
 # Option to use Diskless
-OPTION (BUILD_DISKLESS "Build Diskless." OFF)
-
+OPTION (ENABLE_DISKLESS "Build Diskless." OFF)
+IF(ENABLE_DISKLESS)
+	SET(BUILD_DISKLESS ON)
+ENDIF()
 # Option Logging, only valid for netcdf4. 
 # For some reason, these appear to need to be set in each folder.
 IF(ENABLE_COVERAGE_TESTS)
@@ -79,7 +81,7 @@ IF(ENABLE_COVERAGE_TESTS)
         SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
         SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 ENDIF()
-OPTION (LOGGING "Enable Logging." OFF)
+OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 
 # Option to use HDF4
 OPTION (USE_HDF4 "Use HDF4." OFF)
@@ -126,32 +128,36 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   FIND_PACKAGE(HDF5)
   IF(NOT HDF5_FOUND)
     MESSAGE(FATAL_ERROR "HDF5 Not Found")
-   ENDIF(NOT HDF5_FOUND)
-   CHECK_INCLUDE_FILE("hdf5.h" HAVE_HDF5_H)
-   IF(NOT HAVE_HDF5_H)
+  ENDIF(NOT HDF5_FOUND) 
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
+
+  CHECK_INCLUDE_FILE("hdf5.h" HAVE_HDF5_H)
+  IF(NOT HAVE_HDF5_H)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5.h")
-   ENDIF(NOT HAVE_HDF5_H)
+  ENDIF(NOT HAVE_HDF5_H)
    
-   FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl hdf5_hldll)  
-   IF(NOT HDF5_HL_LIBRARY)
+  FIND_LIBRARY(HDF5_HL_LIBRARY NAMES hdf5_hl libhdf5_hl hdf5_hldll)  
+  IF(NOT HDF5_HL_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find hdf5_hl")
-   ENDIF()	
+  ENDIF()	
 
+  # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
+  CHECK_LIBRARY_EXISTS(${HDF5_LIBRARIES} H5Z_SZIP "" USE_SZIP)
+  IF(USE_SZIP)
+  	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+  	IF(NOT SZIP_LIBRARY)
+		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
+  	ELSE()
+		MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
+  	ENDIF()
+  ENDIF()
 
-
-   FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
-   IF(NOT SZIP_LIBRARY)
-	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find SZip.")
-   ELSE()
-	MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
-   ENDIF()
-
-   FIND_LIBRARY(ZLIB_LIBRARY NAMES zlibwapi zlibstat zlib zlib1 z)
-   IF(NOT ZLIB_LIBRARY)
+  FIND_LIBRARY(ZLIB_LIBRARY NAMES zlibwapi zlibstat zlib zlib1 z)
+  IF(NOT ZLIB_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
-   ELSE()
+  ELSE()
 	MESSAGE(STATUS "Found ZLib: ${ZLIB_LIBRARY}")
-   ENDIF()
+  ENDIF()
 
    SET(H5_USE_16_API 1)
    
@@ -160,8 +166,9 @@ ENDIF ()
 
 
 # Option to Build DAP Client
-OPTION (USE_DAP "Enable DAP Client." ON)
-IF (USE_DAP)
+OPTION (ENABLE_DAP "Enable DAP Client." ON)
+IF (ENABLE_DAP)
+	SET(USE_DAP ON)
 	FIND_PACKAGE(CURL)
 	#FIND_LIBRARY(CURL NAMES curl libcurl)
 	IF(NOT CURL_FOUND)
@@ -169,7 +176,7 @@ IF (USE_DAP)
 	ENDIF(NOT CURL_FOUND)
 	#MESSAGE("Looking for libcurl: ${CURL}")
 
-ENDIF(USE_DAP)
+ENDIF()
 
 # If NetCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF4 AND USE_DAP)		
@@ -211,18 +218,37 @@ ENDIF()
 
 # Other misc. options, not detailed for now.
 OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
+IF(ENABLE_DOXYGEN)
+	SET(BUILD_DOCS ON)
+ENDIF()
+
 OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-OPTION (USE_FSYNC	"Enable experimental fsync code." OFF)
-OPTION (VALGRIND_TESTS  "Build with valgrind tests (valgrind is required, static builds only." OFF)
+IF(ENABLE_INTERNAL_DOCS)
+	SET(BUILD_INTERNAL_DOCS ON)
+ENDIF()
+
+OPTION (ENABLE_FSYNC	"Enable experimental fsync code." OFF)
+IF(ENABLE_FSYNC)
+	SET(USE_FSYNC ON)
+ENDIF()
 
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+	#SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -profile-arcs -ftest-coverage")
 	SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
 	SET(CMAKE_EXE_LINKER_FLAGSx "-fprofile-arcs -ftest-coverage")
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
+
+OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if NetCDF-4 is not Enabled")
+IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
+	SET (ENABLE_EXAMPLE_TESTS OFF)
+ENDIF()
+
+OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." OFF)
+
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
@@ -311,9 +337,9 @@ CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
 
 # Check for the math library so it can be explicitely linked.
 IF(NOT WIN32)
-       FIND_LIBRARY(MMATH NAMES math m libm)
-       MESSAGE(STATUS "Found Math library: ${MMATH}")
-       IF(NOT MMATH)
+       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
+       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
+       IF(NOT HAVE_LIBM)
        	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
        ENDIF()
 ENDIF()

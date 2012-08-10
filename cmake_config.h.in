@@ -24,7 +24,10 @@
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
-#cmakedefine USE_DAP 1
+#cmakedefine ENABLE_DAP 1
+#cmakedefine ENABLE_DAP_GROUPS 1
+#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine EXTRA_TESTS
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_HDF4 1
 #cmakedefine USE_HDF5 1
@@ -33,6 +36,15 @@
 #cmakedefine USE_PARALLEL_MPIO 1
 #cmakedefine USE_PARALLEL 1
 #cmakedefine USE_PNETCDF 1
+
+
+#cmakedefine HAVE_CURLOPT_KEYPASSWD
+#cmakedefine HAVE_DECL_ISFINITE 1
+#cmakedefine HAVE_DECL_ISNAN 1
+#cmakedefine HAVE_DECL_SIGNBIT 1
+#cmakedefine HAVE_DOPRNT
+
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
 
@@ -170,11 +182,20 @@
 #cmakedefine HAVE_GETRLIMIT
 #cmakedefine HAVE_FSYNC
 
+#cmakedefine HAVE_H5PGET_FAPL_MPIPOSIX 1
+#cmakedefine HAVE_H5PSET_DEFLATE
+#cmakedefine HAVE_H5Z_SZIP
+
+
 /* Specifies if various libraries are present. */
 #cmakedefine HAVE_LIBM 1
 
 /* Define to 1 if the system has the type `uchar'.*/ 
 #cmakedefine HAVE_UCHAR 
+
+/* Misc defines copied from autotools config.h.in */
+#cmakedefine CRAY_STACKSEG_END
+#cmakedefine DLL_EXPORT
 
 #include <ncconfigure.h>
 #endif
