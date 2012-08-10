@@ -1,6 +1,18 @@
 #!/bin/sh
 # This shell script tests the output several previous tests.
 # $Id: tst_output.sh,v 1.17 2010/05/14 16:21:15 ed Exp $
+srcdir=`dirname $0`
+cd $srcdir
+srcdir=`pwd`
+
+# compute the build directory
+builddir=`pwd`/..
+# Hack for CYGWIN
+cd $srcdir
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir="$srcdir"/..
+fi
 
 echo ""
 echo "*** Testing ncgen and ncdump test output for classic format."

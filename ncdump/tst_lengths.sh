@@ -32,6 +32,20 @@
 # chmod +x ./test-len.sh
 # cc -g -o rewrite-scalar -I../libsrc rewrite-scalar.c -L../libsrc -lnetcdf
 # echo "netcdf small {variables: byte t; data: t = 1;}" > small.cdl
+
+srcdir=`dirname $0`
+cd $srcdir
+srcdir=`pwd`
+
+# compute the build directory
+builddir=`pwd`/..
+# Hack for CYGWIN
+cd $srcdir
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir="$srcdir"/..
+fi
+
 set -e
 echo ""
 echo "*** testing length of classic file"

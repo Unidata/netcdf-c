@@ -1,5 +1,17 @@
 #!/bin/sh
 # This shell script runs the backward compatibility tests.
+srcdir=`dirname $0`
+cd $srcdir
+srcdir=`pwd`
+
+# compute the build directory
+builddir=`pwd`/..
+# Hack for CYGWIN
+cd $srcdir
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir="$srcdir"/..
+fi
 
 set -e
 echo ""

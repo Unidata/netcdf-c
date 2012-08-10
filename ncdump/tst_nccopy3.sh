@@ -1,6 +1,20 @@
 #!/bin/sh
 # For a netCDF-3 build, test nccopy on netCDF files in this directory
 
+srcdir=`dirname $0`
+cd $srcdir
+srcdir=`pwd`
+
+# compute the build directory
+builddir=`pwd`/..
+# Hack for CYGWIN
+cd $srcdir
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir="$srcdir"/..
+fi
+
+
 set -e
 if test "x$srcdir" = "x"; then
     srcdir=`dirname $0`; 
