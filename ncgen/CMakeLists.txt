@@ -6,7 +6,7 @@ SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug
 
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 
-TARGET_LINK_LIBRARIES(ncgen netcdf)
+TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 
 
 INSTALL(TARGETS ncgen DESTINATION bin)

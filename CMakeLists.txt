@@ -142,15 +142,16 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()	
 
   # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(${HDF5_LIBRARIES} H5Z_SZIP "" USE_SZIP)
-  IF(USE_SZIP)
-  	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+  #CHECK_LIBRARY_EXISTS(${HDF5_LIBRARIES} H5Z_SZIP "" USE_SZIP)
+  #IF(USE_SZIP)
+    	FIND_PACKAGE(SZIP)
+	#FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
   	IF(NOT SZIP_LIBRARY)
 		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
   	ELSE()
 		MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
   	ENDIF()
-  ENDIF()
+  #ENDIF()
 
   FIND_LIBRARY(ZLIB_LIBRARY NAMES zlibwapi zlibstat zlib zlib1 z)
   IF(NOT ZLIB_LIBRARY)
@@ -395,8 +396,11 @@ ENDIF()
 add_subdirectory(liblib)
 
 # Enable Utilities.
+
 IF (BUILD_UTILITIES)
+	MESSAGE(STATUS "ALL_TLL_LIBS: ${ALL_TLL_LIBS}") 
 	ADD_SUBDIRECTORY(ncgen)
+
 	ADD_SUBDIRECTORY(ncgen3)
 	ADD_SUBDIRECTORY(ncdump)
 ENDIF()

@@ -26,8 +26,8 @@ SET(nccopy_FILES nccopy.c utils.c nciter.c chunkspec.c utils.c dimmap.c)
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 
-TARGET_LINK_LIBRARIES(ncdump netcdf)
-TARGET_LINK_LIBRARIES(nccopy netcdf)
+TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
+TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
 IF(ENABLE_TESTS)
 	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
