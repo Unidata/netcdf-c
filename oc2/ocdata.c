@@ -355,13 +355,22 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     /* non-packed fixed length, but memory size < xdrsize */
     case OC_Int16: case OC_UInt16: {
 	/* In order to avoid allocating a lot of space, we do this one int at a time */
+	/* Remember also that the short is not packed, so its xdr size is twice
+           its memory size */
         xxdr_setpos(xdrs,data->xdroffset+xdrstart);
         if(scalar) {
 	    if(!xxdr_ushort(xdrs,(unsigned short*)memory)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
 	} else {
 	    unsigned short* sp = (unsigned short*)memory;
 	    for(i=0;i<count;i++,sp++) {
-	        if(!xxdr_ushort(xdrs,sp)) {OCTHROW(OC_EDATADDS); goto xdrfail;}
+	        unsigned int tmp;
+		if(!xxdr_getbytes(xdrs,(char*)&tmp,XDRUNIT))		
+		    {OCTHROW(OC_EDATADDS); goto xdrfail;}
+		/* convert from network order if necessary */
+		if(!xxdr_network_order)
+		    swapinline32(&tmp);
+		/* store as unsigned short */
+		*sp = (unsigned short)tmp;
 	    }
 	}
 	} break;
