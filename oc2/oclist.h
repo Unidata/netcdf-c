@@ -11,7 +11,7 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long ocelem;
+typedef void* ocelem;
 
 EXTERNC int oclistnull(ocelem);
 

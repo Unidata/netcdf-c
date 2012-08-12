@@ -6,10 +6,7 @@
 
 #include "oclist.h"
 
-static ocelem ocDATANULL = (ocelem)0;
-/*static int ocinitialized=0;*/
-
-int oclistnull(ocelem e) {return e == ocDATANULL;}
+int oclistnull(ocelem e) {return e == NULL;}
 
 #ifndef TRUE
 #define TRUE 1
@@ -79,8 +76,8 @@ oclistsetlength(OClist* l, unsigned int sz)
 ocelem
 oclistget(OClist* l, unsigned int index)
 {
-  if(l == NULL || l->length == 0) return ocDATANULL;
-  if(index >= l->length) return ocDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
+  if(index >= l->length) return NULL;
   return l->content[index];
 }
 
@@ -120,7 +117,7 @@ oclistpush(OClist* l, ocelem elem)
 ocelem
 oclistpop(OClist* l)
 {
-  if(l == NULL || l->length == 0) return ocDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   l->length--;  
   return l->content[l->length];
 }
@@ -128,7 +125,7 @@ oclistpop(OClist* l)
 ocelem
 oclisttop(OClist* l)
 {
-  if(l == NULL || l->length == 0) return ocDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   return l->content[l->length - 1];
 }
 
@@ -137,8 +134,8 @@ oclistremove(OClist* l, unsigned int i)
 {
   unsigned int len;
   ocelem elem;
-  if(l == NULL || (len=l->length) == 0) return ocDATANULL;
-  if(i >= len) return ocDATANULL;
+  if(l == NULL || (len=l->length) == 0) return NULL;
+  if(i >= len) return NULL;
   elem = l->content[i];
   for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
   l->length--;
@@ -172,7 +169,7 @@ oclistelemremove(OClist* l, ocelem elem)
   unsigned int len;
   unsigned int i;
   int found = 0;
-  if(l == NULL || (len=l->length) == 0) return ocDATANULL;
+  if(l == NULL || (len=l->length) == 0) return 0;
   for(i=0;i<oclistlength(l);i++) {
     ocelem candidate = l->content[i];
     if(elem == candidate) {
