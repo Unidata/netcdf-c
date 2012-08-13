@@ -19,6 +19,7 @@ Components of a NetCDF Data Set
 - \ref data_model
 - \ref dimensions
 - \ref variables
+- \ref coordinate_variables
 - \ref attributes
 - \ref differences_atts_vars
 
@@ -313,7 +314,7 @@ The mere use of netCDF is not sufficient to make data
 "self-describing" and meaningful to both humans and machines. The
 names of variables and dimensions should be meaningful and conform to
 any relevant conventions. Dimensions should have corresponding
-coordinate variables where sensible.
+coordinate variables (See \ref coordinate_variables) where sensible.
 
 Attributes play a vital role in providing ancillary information. It is
 important to use all the relevant standard attributes using the
@@ -670,6 +671,20 @@ variable (containing the packed data) is typically of type byte or
 short, whereas the unpacked values are intended to be of type float or
 double. The attributes scale_factor and add_offset should both be of
 the type intended for the unpacked data, e.g. float or double.
+
+\section coordinates
+
+Following the CF (Climate and Forecast) conventions for netCDF
+metadata, we define an <em>auxiliary coordinate variable</em> as any netCDF
+variable that contains coordinate data, but is not a coordinate
+variable (See \ref coordinate_variables).  Unlike coordinate
+variables, there is no relationship between the name of an auxiliary
+coordinate variable and the name(s) of its dimension(s).
+
+The value of the coordinates attribute is a blank separated list of
+names of auxiliary coordinate variables and (optionally) coordinate
+variables.  There is no restriction on the order in which the variable
+names appear in the coordinates attribute string.
 
 \section signedness
 
@@ -1299,25 +1314,27 @@ for variables with dimensions, or
 for scalar variables.
 
 In the above CDL example there are six variables. As discussed below,
-four of these are coordinate variables. The remaining variables
-(sometimes called primary variables), temp and rh, contain what is
-usually thought of as the data. Each of these variables has the
-unlimited dimension time as its first dimension, so they are called
-record variables. A variable that is not a record variable has a fixed
-length (number of data values) given by the product of its dimension
-lengths. The length of a record variable is also the product of its
-dimension lengths, but in this case the product is variable because it
-involves the length of the unlimited dimension, which can vary. The
-length of the unlimited dimension is the number of records.  2.3.1
-Coordinate Variables
+four of these are coordinate variables (See coordinate_variables). The
+remaining variables (sometimes called primary variables), temp and rh,
+contain what is usually thought of as the data. Each of these
+variables has the unlimited dimension time as its first dimension, so
+they are called record variables. A variable that is not a record
+variable has a fixed length (number of data values) given by the
+product of its dimension lengths. The length of a record variable is
+also the product of its dimension lengths, but in this case the
+product is variable because it involves the length of the unlimited
+dimension, which can vary. The length of the unlimited dimension is
+the number of records.
+
+\page coordinate_variables Coordinate Variables
 
 It is legal for a variable to have the same name as a dimension. Such
 variables have no special meaning to the netCDF library. However there
 is a convention that such variables should be treated in a special way
 by software using this library.
 
-A variable with the same name as a dimension is called a coordinate
-variable. It typically defines a physical coordinate corresponding to
+A variable with the same name as a dimension is called a
+<em>coordinate variable</em>. It typically defines a physical coordinate corresponding to
 that dimension. The above CDL example includes the coordinate
 variables lat, lon, level and time, defined as follows:
 
