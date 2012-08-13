@@ -4,14 +4,6 @@ INCLUDE_DIRECTORIES(".")
 
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget t_ncxx)
-MACRO(GEN_m4 filename)
-	ADD_CUSTOM_COMMAND(
-		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-		COMMAND m4 ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-		VERBATIM
-	)
-ENDMACRO(GEN_m4)
-
 foreach (f ${m4_SOURCES})
 	GEN_m4(${f})
 endforeach(f)

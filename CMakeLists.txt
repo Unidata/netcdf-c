@@ -39,7 +39,16 @@ IF(APPLE)
   SET(CPACK_BINARY_PACKAGEMAKER OFF CACHE BOOL "")
 ENDIF()
 
-
+#####
+# A basic script used to convert m4 files
+#####
+MACRO(GEN_m4 filename)
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+		COMMAND m4 ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+		VERBATIM
+	)
+ENDMACRO(GEN_m4)
 
 #####
 # Option checks
