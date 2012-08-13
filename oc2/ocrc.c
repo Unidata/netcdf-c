@@ -208,12 +208,12 @@ parseproxy(OCstate* state, char* v)
      state->proxy.password[p_len] = '\0';
 #endif /*0*/
      if (ocdebug > 1) {
-         oc_log(LOGNOTE,"host name: %s", state->proxy.host);
-         oc_log(LOGNOTE,"user name: %s", state->creds.username);
+         oclog(OCLOGNOTE,"host name: %s", state->proxy.host);
+         oclog(OCLOGNOTE,"user name: %s", state->creds.username);
 #ifdef INSECURE
-         oc_log(LOGNOTE,"password: %s", state->creds.password);
+         oclog(OCLOGNOTE,"password: %s", state->creds.password);
 #endif
-         oc_log(LOGNOTE,"port number: %d", state->proxy.port);
+         oclog(OCLOGNOTE,"port number: %d", state->proxy.port);
     }
     if(v) free(v);
     return OC_NOERR;
@@ -234,7 +234,7 @@ sorttriplestore(void)
 
     sorted = (struct OCTriple*)malloc(sizeof(struct OCTriple)*ocdodsrc->ntriples);
     if(sorted == NULL) {
-        oc_log(LOGERR,"sorttriplestore: out of memory");
+        oclog(OCLOGERR,"sorttriplestore: out of memory");
         return;
     }
 
@@ -285,7 +285,7 @@ ocdodsrc_read(char* basename, char* path)
     if(ocdodsrc == NULL) {
         ocdodsrc = (struct OCTriplestore*)malloc(sizeof(struct OCTriplestore));
         if(ocdodsrc == NULL) {
-	    oc_log(LOGERR,"ocdodsrc_read: out of memory");
+	    oclog(OCLOGERR,"ocdodsrc_read: out of memory");
 	    return 0;
 	}
         ocglobalstate.ocdodsrc = ocdodsrc;
@@ -294,7 +294,7 @@ ocdodsrc_read(char* basename, char* path)
 
     in_file = fopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
-	oc_log(LOGERR, "Could not open configuration file: %s",basename);
+	oclog(OCLOGERR, "Could not open configuration file: %s",basename);
 	return OC_EPERM;
     }
 
@@ -303,7 +303,7 @@ ocdodsrc_read(char* basename, char* path)
         if(!rcreadline(in_file,line0,sizeof(line0))) break;
 	linecount++;
 	if(linecount >= MAXRCLINES) {
-	    oc_log(LOGERR, ".dodsrc has too many lines");
+	    oclog(OCLOGERR, ".dodsrc has too many lines");
 	    return 0;
 	}	    	
 	line = line0;
@@ -312,7 +312,7 @@ ocdodsrc_read(char* basename, char* path)
 	/* trim leading blanks */
 	line = rctrimleft(line,TRIMCHARS);
 	if(strlen(line) >= MAXRCLINESIZE) {
-	    oc_log(LOGERR, "%s line too long: %s",basename,line0);
+	    oclog(OCLOGERR, "%s line too long: %s",basename,line0);
 	    return 0;
 	}	    	
         /* parse the line */
@@ -321,7 +321,7 @@ ocdodsrc_read(char* basename, char* path)
 	    char* url = ++line;
 	    char* rtag = strchr(line,RTAG);
 	    if(rtag == NULL) {
-		oc_log(LOGERR, "Malformed [url] in %s entry: %s",basename,line);
+		oclog(OCLOGERR, "Malformed [url] in %s entry: %s",basename,line);
 		continue;
 	    }	    
 	    line = rtag + 1;
@@ -338,7 +338,7 @@ ocdodsrc_read(char* basename, char* path)
 	if(value == NULL) {
 	    /* add fake '=1' */
 	    if(strlen(line) + strlen("=1") >= MAXRCLINESIZE) {
-		oc_log(LOGERR, "%s entry too long: %s",basename,line);
+		oclog(OCLOGERR, "%s entry too long: %s",basename,line);
 		continue;
 	    }
 	    strcat(line,"=1");
@@ -369,31 +369,31 @@ ocdodsrc_process(OCstate* state)
     if(value != NULL) {
         if(atoi(value)) state->curlflags.compress = 1;
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"Compression: %ld", state->curlflags.compress);
+            oclog(OCLOGNOTE,"Compression: %ld", state->curlflags.compress);
     }
     if((value = curllookup("VERBOSE",url)) != NULL) {
         if(atoi(value)) state->curlflags.verbose = 1;
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"curl.verbose: %ld", state->curlflags.verbose);
+            oclog(OCLOGNOTE,"curl.verbose: %ld", state->curlflags.verbose);
     }
     if((value = curllookup("TIMEOUT",url)) != NULL) {
         if(atoi(value)) state->curlflags.timeout = atoi(value);
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"curl.timeout: %ld", state->curlflags.timeout);
+            oclog(OCLOGNOTE,"curl.timeout: %ld", state->curlflags.timeout);
     }
 
     if((value = curllookup("COOKIEFILE",url)) != NULL) {
         state->curlflags.cookiefile = strdup(TRIM(value));
         if(!state->curlflags.cookiefile) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
+            oclog(OCLOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
     }
     if((value = curllookup("COOKIEJAR",url))
        || (value = curllookup("COOKIE_JAR",url))) {
         state->curlflags.cookiejar = strdup(TRIM(value));
         if(!state->curlflags.cookiejar) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
+            oclog(OCLOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
     }
 
     /* Some servers (e.g. thredds) appear to require a place
@@ -412,21 +412,21 @@ ocdodsrc_process(OCstate* state)
     if((value = curllookup("SSL.VALIDATE",url)) != NULL) {
         if(atoi(value)) state->ssl.validate = 1;
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"CURL.SSL.VALIDATE: %ld", state->ssl.validate);
+            oclog(OCLOGNOTE,"CURL.SSL.VALIDATE: %ld", state->ssl.validate);
     }
 
     if((value = curllookup("SSL.CERTIFICATE",url)) != NULL) {
         state->ssl.certificate = strdup(TRIM(value));
         if(!state->ssl.certificate) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"CREDENTIALS.SSL.CERTIFICATE: %s", state->ssl.certificate);
+            oclog(OCLOGNOTE,"CREDENTIALS.SSL.CERTIFICATE: %s", state->ssl.certificate);
     }
 
     if((value = curllookup("SSL.KEY",url)) != NULL) {
         state->ssl.key = strdup(TRIM(value));
         if(!state->ssl.key) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"CREDENTIALS.SSL.KEY: %s", state->ssl.key);
+            oclog(OCLOGNOTE,"CREDENTIALS.SSL.KEY: %s", state->ssl.key);
     }
 
     if((value = curllookup("SSL.KEYPASSWORD",url)) != NULL) {
@@ -434,7 +434,7 @@ ocdodsrc_process(OCstate* state)
         if(!state->ssl.keypasswd) {stat = OC_ENOMEM; goto done;}
 #ifdef INSECURE
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"CREDENTIALS.SSL.KEYPASSWORD: %s", state->ssl.keypasswd);
+            oclog(OCLOGNOTE,"CREDENTIALS.SSL.KEYPASSWORD: %s", state->ssl.keypasswd);
 #endif
     }
 
@@ -442,14 +442,14 @@ ocdodsrc_process(OCstate* state)
         state->ssl.cainfo = strdup(TRIM(value));
         if(!state->ssl.cainfo) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"SSL.CAINFO: %s", state->ssl.cainfo);
+            oclog(OCLOGNOTE,"SSL.CAINFO: %s", state->ssl.cainfo);
     }
 
     if((value = curllookup("SSL.CAPATH",url)) != NULL) {
         state->ssl.capath = strdup(TRIM(value));
         if(!state->ssl.capath) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"SSL.CAPATH: %s", state->ssl.capath);
+            oclog(OCLOGNOTE,"SSL.CAPATH: %s", state->ssl.capath);
     }
 
     if((value = curllookup("SSL.VERIFYPEER",url)) != NULL) {
@@ -463,14 +463,14 @@ ocdodsrc_process(OCstate* state)
 	    tf = 1; /* default if not null */
         state->ssl.verifypeer = tf;
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+            oclog(OCLOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
     }
 
     if((value = curllookup("CREDENTIALS.USER",url)) != NULL) {
         state->creds.username = strdup(TRIM(value));
         if(!state->creds.username) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
-            oc_log(LOGNOTE,"CREDENTIALS.USER: %s", state->creds.username);
+            oclog(OCLOGNOTE,"CREDENTIALS.USER: %s", state->creds.username);
     }
 
     if((value = curllookup("CREDENTIALS.PASSWORD",url)) != NULL) {

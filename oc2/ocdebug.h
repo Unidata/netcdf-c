@@ -32,10 +32,10 @@
 
 /* Need some syntactic trickery to make these macros work*/
 #ifdef OCDEBUG
-#define OCDBG(l,msg) {oc_log(LOGDBG,msg);}
-#define OCDBG1(l,msg,arg) {oc_log(LOGDBG,msg,arg);}
-#define OCDBG2(l,msg,arg1,arg2) {oc_log(LOGDBG,msg,arg1,arg2);}
-#define OCDBGTEXT(l,text) {oc_logtext(LOGNOTE,text);} else {}
+#define OCDBG(l,msg) {oclog(OCLOGDBG,msg);}
+#define OCDBG1(l,msg,arg) {oclog(OCLOGDBG,msg,arg);}
+#define OCDBG2(l,msg,arg1,arg2) {oclog(OCLOGDBG,msg,arg1,arg2);}
+#define OCDBGTEXT(l,text) {oclogtext(OCLOGNOTE,text);} else {}
 #define OCDBGCODE(l,code) {code;}
 
 #else

@@ -29,8 +29,8 @@ extern int oc_dumpnode(OClink, OCddsnode);
 int
 nc__testurl(const char* path, char** basenamep)
 {
-    NC_URI* uri;
-    int ok = nc_uriparse(path,&uri);
+    NCURI* uri;
+    int ok = ncuriparse(path,&uri);
     if(ok) {
 	char* slash = strrchr(uri->file, '/');
 	char* dot;
@@ -39,7 +39,7 @@ nc__testurl(const char* path, char** basenamep)
 	dot = strrchr(slash, '.');
         if(dot != NULL &&  dot != slash) *dot = '\0';
 	if(basenamep) *basenamep=slash ; else free(slash);
-        nc_urifree(uri);
+        ncurifree(uri);
     }
     return ok;
 }
@@ -259,7 +259,7 @@ paramvalue34(NCDAPCOMMON* nccomm, const char* key)
     const char* value;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if(!nc_urilookup(nccomm->oc.url,key,&value))
+    if(!ncurilookup(nccomm->oc.url,key,&value))
 	return NULL;
     return value;
 }
@@ -276,7 +276,7 @@ paramcheck34(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
     char* p;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if(!nc_urilookup(nccomm->oc.url,key,&value))
+    if(!ncurilookup(nccomm->oc.url,key,&value))
 	return 0;
     if(subkey == NULL) return 1;
     p = strstr(value,subkey);
@@ -711,7 +711,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 
     if(SHOWFETCH) {
 	/* Build uri string minus the constraint */
-	char* baseurl = nc_uribuild(nccomm->oc.url,NULL,ext,0);
+	char* baseurl = ncuribuild(nccomm->oc.url,NULL,ext,0);
 	if(ce == NULL)
             LOG1(NCLOGNOTE,"fetch: %s",baseurl);
 	else	

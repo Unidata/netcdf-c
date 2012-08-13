@@ -42,8 +42,8 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
         if(strcmp("http",*proto)==0) {state->curl.proto_https=1;break;}
     }
     if(ocdebug > 0) {
-        oc_log(LOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
-        oc_log(LOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
+        oclog(OCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
+        oclog(OCLOGNOTE,"Curl https:// support = %d",state->curl.proto_https);
     }
 }
 
@@ -226,7 +226,7 @@ combinecredentials(const char* user, const char* pwd)
     int userPassSize = strlen(user) + strlen(pwd) + 2;
     char *userPassword = malloc(sizeof(char) * userPassSize);
     if (!userPassword) {
-        oc_log(LOGERR,"Out of Memory\n");
+        oclog(OCLOGERR,"Out of Memory\n");
 	return NULL;
     }
     strcpy(userPassword, user);

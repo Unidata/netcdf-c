@@ -19,7 +19,7 @@
 #endif
 #include "netcdf.h"
 #include "nc.h"
-#include "nc_uri.h"
+#include "ncuri.h"
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 

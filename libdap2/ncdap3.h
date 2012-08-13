@@ -18,7 +18,7 @@
 #include "nclist.h"
 #include "nchashmap.h"
 #include "nclog.h"
-#include "nc_uri.h"
+#include "ncuri.h"
 
 #include "fbits.h"
 #include "dceconstraints.h"

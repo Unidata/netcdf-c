@@ -11,7 +11,7 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long ocelem;
+typedef void* ocelem;
 
 EXTERNC int oclistnull(ocelem);
 
@@ -21,7 +21,7 @@ typedef struct OClist {
   ocelem* content;
 } OClist;
 
-EXTERNC OClist* oclistnewn(int);
+EXTERNC OClist* oclistnew(void);
 EXTERNC int oclistfree(OClist*);
 EXTERNC int oclistsetalloc(OClist*,unsigned int);
 EXTERNC int oclistsetlength(OClist*,unsigned int);
@@ -46,12 +46,19 @@ EXTERNC ocelem* oclistdup(OClist*);
 /* Look for value match */
 EXTERNC int oclistcontains(OClist*, ocelem);
 
+/* Remove element by value; only removes first encountered */
+EXTERNC int oclistelemremove(OClist* l, ocelem elem);
+
+/* remove duplicates */
+EXTERNC int oclistunique(OClist*);
+
+/* Create a clone of a list */
+EXTERNC OClist* oclistclone(OClist*);
+
 /* Following are always "in-lined"*/
-#define oclistnew() oclistnewn(0)
 #define oclistclear(l) oclistsetlength((l),0U)
 #define oclistextend(l,len) oclistsetalloc((l),(len)+(l->alloc))
-#define oclistcontents(l) ((l)->content)
-#define oclistlength(l)  ((l!=NULL)?(l)->length:0U)
+#define oclistcontents(l)  ((l)==NULL?NULL:(l)->content)
+#define oclistlength(l)  ((l)==NULL?0U:(l)->length)
 
 #endif /*OCLIST_H*/
-

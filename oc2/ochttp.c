@@ -68,7 +68,7 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	if (stat == OC_NOERR) {
 	    /* return the file size*/
 #ifdef OCDEBUG
-	    oc_log(LOGNOTE,"filesize: %lu bytes",fetchdata.size);
+	    oclog(OCLOGNOTE,"filesize: %lu bytes",fetchdata.size);
 #endif
 	    if (sizep != NULL)
 		*sizep = fetchdata.size;
@@ -80,7 +80,7 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	return OCTHROW(stat);
 
 fail:
-	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	return OCTHROW(OC_ECURL);
 }
 
@@ -112,7 +112,7 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
 	cstat = curl_easy_perform(curl);
 	if(cstat == CURLE_PARTIAL_FILE) {
 	    /* Log it but otherwise ignore */
-	    oc_log(LOGWARN, "curl error: %s; ignored",
+	    oclog(OCLOGWARN, "curl error: %s; ignored",
 		   curl_easy_strerror(cstat));
 	    cstat = CURLE_OK;
 	}
@@ -128,13 +128,13 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
 	ocbytesappend(buf, '\0');
 	ocbytessetlength(buf, len); /* dont count null in buffer size*/
 #ifdef OCDEBUG
-	oc_log(LOGNOTE,"buffersize: %lu bytes",(off_t)ocbyteslength(buf));
+	oclog(OCLOGNOTE,"buffersize: %lu bytes",(off_t)ocbyteslength(buf));
 #endif
 
 	return OCTHROW(stat);
 
 fail:
-	oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	return OCTHROW(OC_ECURL);
 }
 
@@ -146,15 +146,15 @@ WriteFileCallback(void* ptr, size_t size, size_t nmemb,	void* data)
 	struct Fetchdata* fetchdata;
 	fetchdata = (struct Fetchdata*) data;
         if(realsize == 0)
-	    oc_log(LOGWARN,"WriteFileCallback: zero sized chunk");
+	    oclog(OCLOGWARN,"WriteFileCallback: zero sized chunk");
 	count = fwrite(ptr, size, nmemb, fetchdata->stream);
 	if (count > 0) {
 		fetchdata->size += (count * size);
 	} else {
-	    oc_log(LOGWARN,"WriteFileCallback: zero sized write");
+	    oclog(OCLOGWARN,"WriteFileCallback: zero sized write");
 	}
 #ifdef OCPROGRESS
-        oc_log(LOGNOTE,"callback: %lu bytes",(off_t)realsize);
+        oclog(OCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
 #endif
 	return count;
 }
@@ -165,7 +165,7 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
 	size_t realsize = size * nmemb;
 	OCbytes* buf = (OCbytes*) data;
         if(realsize == 0)
-	    oc_log(LOGWARN,"WriteMemoryCallback: zero sized chunk");
+	    oclog(OCLOGWARN,"WriteMemoryCallback: zero sized chunk");
 	/* Optimize for reading potentially large dods datasets */
 	if(!ocbytesavail(buf,realsize)) {
 	    /* double the size of the packet */
@@ -173,7 +173,7 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
 	}
 	ocbytesappendn(buf, ptr, realsize);
 #ifdef OCPROGRESS
-        oc_log(LOGNOTE,"callback: %lu bytes",(off_t)realsize);
+        oclog(OCLOGNOTE,"callback: %lu bytes",(off_t)realsize);
 #endif
 	return realsize;
 }
@@ -283,7 +283,7 @@ ocfetchlastmodified(CURL* curl, char* url, long* filetime)
     return OCTHROW(stat);
 
 fail:
-    oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+    oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return OCTHROW(OC_ECURL);
 }
 
@@ -329,7 +329,7 @@ done:
     ocbytesfree(buf);
     occurlclose(curl);
     if(cstat != CURLE_OK) {
-        oc_log(LOGERR, "curl error: %s", curl_easy_strerror(cstat));
+        oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
         stat = OC_EDAPSVC;
     }
     return OCTHROW(stat);

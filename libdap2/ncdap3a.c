@@ -50,7 +50,7 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
         oc_root_free(dapcomm->oc.conn,dapcomm->oc.ocdasroot);
     dapcomm->oc.ocdasroot = NULL;
     oc_close(dapcomm->oc.conn); /* also reclaims remaining OC trees */
-    nc_urifree(dapcomm->oc.url);
+    ncurifree(dapcomm->oc.url);
     nullfree(dapcomm->oc.urltext);
     nullfree(dapcomm->oc.rawurltext);
 

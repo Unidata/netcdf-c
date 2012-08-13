@@ -6,10 +6,7 @@
 
 #include "nclist.h"
 
-static ncelem ncDATANULL = (ncelem)0;
-/*static int ncinitialized=0;*/
-
-int nclistnull(ncelem e) {return e == ncDATANULL;}
+int nclistnull(ncelem e) {return e == NULL;}
 
 #ifndef TRUE
 #define TRUE 1
@@ -79,8 +76,8 @@ nclistsetlength(NClist* l, unsigned int sz)
 ncelem
 nclistget(NClist* l, unsigned int index)
 {
-  if(l == NULL || l->length == 0) return ncDATANULL;
-  if(index >= l->length) return ncDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
+  if(index >= l->length) return NULL;
   return l->content[index];
 }
 
@@ -120,7 +117,7 @@ nclistpush(NClist* l, ncelem elem)
 ncelem
 nclistpop(NClist* l)
 {
-  if(l == NULL || l->length == 0) return ncDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   l->length--;  
   return l->content[l->length];
 }
@@ -128,7 +125,7 @@ nclistpop(NClist* l)
 ncelem
 nclisttop(NClist* l)
 {
-  if(l == NULL || l->length == 0) return ncDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   return l->content[l->length - 1];
 }
 
@@ -137,8 +134,8 @@ nclistremove(NClist* l, unsigned int i)
 {
   unsigned int len;
   ncelem elem;
-  if(l == NULL || (len=l->length) == 0) return ncDATANULL;
-  if(i >= len) return ncDATANULL;
+  if(l == NULL || (len=l->length) == 0) return NULL;
+  if(i >= len) return NULL;
   elem = l->content[i];
   for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
   l->length--;
@@ -172,7 +169,7 @@ nclistelemremove(NClist* l, ncelem elem)
   unsigned int len;
   unsigned int i;
   int found = 0;
-  if(l == NULL || (len=l->length) == 0) return ncDATANULL;
+  if(l == NULL || (len=l->length) == 0) return 0;
   for(i=0;i<nclistlength(l);i++) {
     ncelem candidate = l->content[i];
     if(elem == candidate) {

@@ -118,7 +118,7 @@ typedef struct NCOC {
     OClink conn;
     char* rawurltext; /* as given to nc3d_open */
     char* urltext;    /* as modified by nc3d_open */
-    NC_URI* url;      /* parse of rawuritext */
+    NCURI* url;      /* parse of rawuritext */
     OCdasnode ocdasroot;
     DCEconstraint* dapconstraint; /* from url */
     int inmemory; /* store fetched data in memory? */
@@ -303,7 +303,7 @@ extern void unattach34(CDFnode*);
 extern int nodematch34(CDFnode* node1, CDFnode* node2);
 extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
 extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
-extern int constrainable34(NC_URI*);
+extern int constrainable34(NCURI*);
 extern char* makeconstraintstring34(DCEconstraint*);
 extern size_t estimatedataddssize34(CDFnode* datadds);
 extern void canonicalprojection34(NClist*, NClist*);
