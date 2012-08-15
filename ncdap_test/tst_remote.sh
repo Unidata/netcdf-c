@@ -31,7 +31,7 @@ if test "x$timing" = "x1" ; then leakcheck=0; fi
 # get the list of test files
 WHICHTESTS="S1 C1 C2"
 if test -n "$longtests"; then
-WHICHTESTS="${WHICHTESTS} L1 LC1"
+WHICHTESTS="${WHICHTESTS} L1 LC1 LC2"
 fi
 
 #locate the testdata and expected directory
@@ -85,7 +85,6 @@ test.sds4 test.sds5 \
 test.vs1 test.vs2 test.vs3 test.vs4 test.vs5 \
 whoi"
 
-
 # Anything larger than about 100k will not be in the distribution
 TOOBIGL1="parserBug0001 test.satimage Sat_Images test.32"
 
@@ -130,6 +129,9 @@ argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 REMOTEURLLC1="$DTS"
 REMOTETESTSLC1="\
 test.03;2;s1"
+
+REMOTEURLLC2="http://ferret.pmel.noaa.gov/geoide/dodsC/PSDgriddedData/ncep.reanalysis.dailyavgs/surface"
+REMOTETESTSLC2="slp_aggregated;1;slp.slp[23255:23316][29:29][88:88]"
 
 # Unknown problem: test.07;2;&age>2
 IGNORE="test.07.2" 
@@ -229,6 +231,7 @@ for i in $WHICHTESTS ; do
   C2) TESTURL="$REMOTEURLC2" ; TESTSET="$REMOTETESTSC2" ; constrained=1 ;ncconstrained=0 ;;
   C3) TESTURL="$REMOTEURLC3" ; TESTSET="$REMOTETESTSC3" ; constrained=1 ;ncconstrained=0 ;;
   LC1) TESTURL="$REMOTEURLLC1" ; TESTSET="$REMOTETESTSLC1" ; constrained=1 ;;
+  LC2) TESTURL="$REMOTEURLLC2" ; TESTSET="$REMOTETESTSLC2" ; constrained=1 ;;
   X) TESTURL="$REMOTEURLX" ; TESTSET="$REMOTETESTSX" ; constrained=0 ;;
   XC) TESTURL="$REMOTEURLXC" ; TESTSET="$REMOTETESTSXC" ; constrained=1 ;;
   *) echo "Unknown which test: $i" ;;
