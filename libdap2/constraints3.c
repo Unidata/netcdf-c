@@ -43,7 +43,9 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
 
 /* Map constraint paths to CDFnode paths in specified tree and fill
    in the declsizes.
-   The difficulty is that suffix paths are legal.
+   Two things to watch out for:
+   1. suffix paths are legal (i.e. incomplete paths)
+   2. virtual nodes (via restruct)
 */
 
 NCerror
@@ -54,9 +56,6 @@ mapconstraints3(DCEconstraint* constraint,
     NCerror ncstat = NC_NOERR;
     NClist* nodes = root->tree->nodes;
     NClist* dceprojections = constraint->projections;
-#if 0
-    NClist* dceselections = constraint->selections;
-#endif
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceprojections);i++) {
@@ -332,34 +331,43 @@ done:
 static int
 matchsuffix3(NClist* matchpath, NClist* segments)
 {
-    int i,j;
+    int i,pathstart;
     int nsegs = nclistlength(segments);
     int pathlen = nclistlength(matchpath);
-    ASSERT(pathlen >= nsegs);
-    for(i=0;i<pathlen;i++) {
-        int pathmatch = 1;
-	/* Starting at this point in the path, try to match the segment list */
-        for(j=0;j<nsegs && (i+j < pathlen);j++) {
-            int segmatch = 1;
-	    DCEsegment* seg = (DCEsegment*)nclistget(segments,j);
-   	    CDFnode* node = (CDFnode*)nclistget(matchpath,i+j);
-	    int rank = seg->rank;
-	    /* Do the names match (in oc name space) */
-	    if(strcmp(seg->name,node->ocname) != 0) {
-		segmatch = 0;/* no match */
-	    } else
+    int segmatch;
+
+    /* try to match the segment list as a suffix of the path list */
+
+    /* Find the maximal point in the path s.t. |suffix of path|
+       == |segments|
+    */
+    pathstart = (pathlen - nsegs);
+    if(pathstart < 0)
+	return 0; /* pathlen <nsegs => no match possible */
+
+    /* Walk the suffix of the path and the segments and
+       matching as we go
+    */
+    for(i=0;i<nsegs;i++) {
+	CDFnode* node = (CDFnode*)nclistget(matchpath,pathstart+i);
+	DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
+	int rank = seg->rank;
+	segmatch = 1; /* until proven otherwise */
+	/* Do the names match (in oc name space) */
+	if(strcmp(seg->name,node->ocname) != 0) {
+	    segmatch = 0;
+	} else {
 	    /* Do the ranks match (watch out for sequences) */
-	    if(rank == 0) /* rank == 9 matches any set of dimensions */
-		segmatch = 1;
-	    else if(node->nctype == NC_Sequence)
-	        segmatch = (rank == 1?1:0);
-	    else /*!NC_Sequence*/
-	        segmatch = (rank == nclistlength(node->array.dimset0)?1:0);
-	    if(!segmatch) pathmatch = 0;
+	    if(node->nctype == NC_Sequence)
+		rank--; /* remove sequence pseudo-rank */
+	    if(rank > 0
+		&& rank != nclistlength(node->array.dimset0))
+		segmatch = 0; /* rank mismatch */
 	}
-	if(pathmatch) return 1;
+	if(!segmatch)
+	    return 0;
    }
-   return 0;
+   return 1; /* all segs matched */
 }
 
 
@@ -444,11 +452,12 @@ fprintf(stderr,"buildvaraprojection: skeleton: %s\n",dumpprojection(projection))
 	    slice->stride = stridep[dimindex+j];
 	    slice->count = countp[dimindex+j];
 	    slice->length = slice->count * slice->stride;
-	    if(slice->length > slice->declsize)
-		slice->length = slice->declsize;
 	    slice->stop = (slice->first + slice->length);
-	    if(slice->stop > slice->declsize)
+	    if(slice->stop > slice->declsize) {
 		slice->stop = slice->declsize;
+		/* reverse compute the new length */
+		slice->length = (slice->stop - slice->first);
+	    }
 	}
 	dimindex += segment->rank;
     }

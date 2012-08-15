@@ -1,11 +1,11 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-#TOP="/home/dmh/mach/major"
-TOP="/cygdrive/f/svn/trunk"
+TOP="/home/dmh/mach/trunk"
+#TOP="/cygdrive/f/svn/trunk"
 
-#PROG=./ncd
-PROG="$TOP/ncdump/ncdump"
+PROG=./ncd
+#PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
@@ -16,8 +16,9 @@ F="file://$TOP/ncdap_test/testdata3/$T"
 F="http://motherlode.ucar.edu:8081/dts/$T?f64"
 #F="http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/coads_climatology.nc"
 #F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20120801/gfs_hd_00z"
-F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
-
+#F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
+F="http://ferret.pmel.noaa.gov/geoide/dodsC/PSDgriddedData/ncep.reanalysis.dailyavgs/surface/slp_aggregated"
+CON="slp.slp[23255:23316][29:29][88:88]"
 
 VAR=f64
 

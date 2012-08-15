@@ -194,12 +194,14 @@ fprintf(stderr," -> ");
 for(i=0;i<nclistlength(dims);i++) 
 if(stridep[i]==1)
 fprintf(stderr,"[%lu:%lu]",(unsigned long)startp[i],(unsigned long)((startp[i]+countp[i])-1));
-else
+else {
+unsigned long iend = (stridep[i] * countp[i]);
+iend = (iend + startp[i]);
+iend = (iend - 1);
 fprintf(stderr,"[%lu:%lu:%lu]",
-(unsigned long)startp[i],
-(unsigned long)stridep[i],
-(unsigned long)(((startp[i]+countp[i])*stridep[i])-1));
-}
+(unsigned long)startp[i],(unsigned long)stridep[i],iend);
+ }
+ }
 fprintf(stderr,"\n");
  }
 #endif
@@ -618,7 +620,7 @@ movetofield(NCDAPCOMMON* nccomm,
     /* If the next node is a virtual node, then
        we need to effectively
        ignore it and use the appropriate subnode.
-       If the next node is a structuregrid node, then
+       If the next node is a re-struct'd node, then
        use it as is.
     */
     if(xnext->virtual) {

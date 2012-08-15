@@ -256,7 +256,7 @@ vpt::
 #T=t_dap3b
 #T=t_dap3c
 #T=ansley8
-T=test
+T=a
 
 v::
 	cc -g -c ${T}.c ${INCL}

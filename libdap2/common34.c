@@ -442,11 +442,23 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
     oc_dds_rank(nccomm->oc.conn,ocnode,&ocrank);
     oc_dds_nsubnodes(nccomm->oc.conn,ocnode,&ocnsubnodes);
 
+#ifdef DEBUG1
+    fprintf(stderr,"buildcdftree: connect: %s %s\n",oc_typetostring(octype),ocname);
+#endif
+
     switch (octype) {
     case OC_Dataset:
     case OC_Grid:
     case OC_Structure:
     case OC_Sequence:
+	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
+	nclistpush(tree->nodes,(ncelem)cdfnode);
+	if(tree->root == NULL) {
+	    tree->root = cdfnode;
+	    cdfnode->tree = tree;
+	}		
+	break;
+
     case OC_Atomic:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
 	nclistpush(tree->nodes,(ncelem)cdfnode);
@@ -759,7 +771,7 @@ fprintf(stderr,"attachdim: %s->%s\n",xdim->ocname,tdim->ocname);
 
 /* 
 Match a DATADDS node to a DDS node.
-It is assumed that both trees have been regridded if necessary.
+It is assumed that both trees have been re-struct'ed if necessary.
 */
 
 static NCerror
