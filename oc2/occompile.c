@@ -151,7 +151,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
             } else if(tmp[0] == EndOfSequence) {
                 break; /* we are done with the this sequence instance*/
             } else {
-		oc_log(LOGERR,"missing/invalid begin/end record marker\n");
+		oclog(OCLOGERR,"missing/invalid begin/end record marker\n");
                 ocstat = OC_EINVALCOORDS;
 		goto fail;
             }
@@ -408,7 +408,7 @@ ocerrorstring(XXDR* xdrs)
     if(ocstrncmp(data,tag,sizeof(tag))==0) {
 	char* p;
         if((p=strchr(data,'}')) != NULL) *(++p)='\0';
-        oc_log(LOGERR,"Server error: %s",data);
+        oclog(OCLOGERR,"Server error: %s",data);
         /* Since important, report to stderr as well */
         fprintf(stderr,"Server error: %s",data);
 	return 1;

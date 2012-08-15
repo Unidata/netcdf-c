@@ -129,7 +129,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
    float real_preemption = H5D_CHUNK_CACHE_W0_DEFAULT;
 
    if (size >= 0)
-      real_size = size * MEGABYTE;
+       real_size = ((size_t) size) * MEGABYTE;
 
    if (nelems >= 0)
       real_nelems = nelems;

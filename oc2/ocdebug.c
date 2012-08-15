@@ -24,7 +24,7 @@ octhrow(int err)
 int
 xdrerror(void)
 {
-    oc_log(LOGERR,"xdr failure");
+    oclog(OCLOGERR,"xdr failure");
     return OCTHROW(OC_EDATADDS);
 }
 
@@ -39,7 +39,7 @@ void*
 ocmalloc(size_t size)
 {
     void* memory = calloc(size,1); /* use calloc to zero memory*/
-    if(memory == NULL) oc_log(LOGERR,"ocmalloc: out of memory");
+    if(memory == NULL) oclog(OCLOGERR,"ocmalloc: out of memory");
     return memory;
 }
 

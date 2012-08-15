@@ -11,7 +11,7 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long ncelem;
+typedef void* ncelem;
 
 EXTERNC int nclistnull(ncelem);
 
@@ -58,9 +58,7 @@ EXTERNC NClist* nclistclone(NClist*);
 /* Following are always "in-lined"*/
 #define nclistclear(l) nclistsetlength((l),0U)
 #define nclistextend(l,len) nclistsetalloc((l),(len)+(l->alloc))
-#define nclistcontents(l) ((l)->content)
-#define nclistlength(l)  ((l)?(l)->length:0U)
+#define nclistcontents(l)  ((l)==NULL?NULL:(l)->content)
+#define nclistlength(l)  ((l)==NULL?0U:(l)->length)
 
 #endif /*NCLIST_H*/
-
-

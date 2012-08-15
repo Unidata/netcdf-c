@@ -1,34 +1,26 @@
-#NETCDF4=1
-
-#CURLLIB=-L/opt/csw/lib -lcurl
-# for irix
-#CURLLIB=/upc/share/stdinstall/local/flip/lib/libcurl.a -llber -lldap -lz
-#CURLLIB=-L/opt/csw/lib -lcurl -lidn -lssl -lcrypto -llber -lldap -lnsl
-#CURLINCL=-I/opt/csw/include
-#RPCLIB=-lnsl
-#ZLIB=-L/opt/csw/lib -lz
-#TESTURL=file:///upc/share/dmh/nc/netcdf-3/ncdap_test/testdata3
-VALGRIND=valgrind --leak-check=full
-
-#NCLIB=/tmp/install/lib/libnetcdf.a
+CYG=1
+#HDF=1
 
 NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
-#OCLIB=liboc.a
-#OCINCL=-I./oc
-
+ifneq ($(CYG),1)
 LFLAG=-L/upc/share/ed/local/${HOST}/lib
+
+else
+# !CYGWIN
+ifneq ($(HDF),1)
+HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
+endif
+endif
 
 CURLLIB=-lcurl
 ZLIB=-lz
-#HDF5LIB=-lhdf5_hl -lhdf5
-HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 OTHERLIBS=-lm
 
 LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
-INCL=-I. -I.. -I../include ${NCINCL} ${CURLINCL}
+INCL=-I. -I.. -I../include ${NCINCL}
 RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags

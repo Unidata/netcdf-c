@@ -43,7 +43,7 @@ extern "C" {
 
 /* The following are use internally in support of user-defines
  * types. They are also the class returned by nc_inq_user_type. */
-#define	NC_VLEN 	13	/**< vlen types */
+#define	NC_VLEN 	13	/**< vlen (variable-length) types */
 #define	NC_OPAQUE 	14	/**< opaque types */
 #define	NC_ENUM 	15	/**< enum types */
 #define	NC_COMPOUND 	16	/**< compound types */

@@ -1147,6 +1147,7 @@ chars_tostring(
     *cp++ = '"';
     *cp++ = '\0';
     sbuf_cpy(sbuf, sout);
+    free(sout);
     return sbuf_len(sbuf);
 }
 
@@ -1885,7 +1886,7 @@ get_type_name(int ncid, nc_type type, char *name)
 {
 #ifdef USE_NETCDF4
     if (is_user_defined_type(type)) {
-	nc_inq_user_type(ncid, type, name, NULL, NULL, NULL, NULL);
+	NC_CHECK(nc_inq_user_type(ncid, type, name, NULL, NULL, NULL, NULL));
     } else {
 	strncpy(name, prim_type_name(type), NC_MAX_NAME + 1);
     }
@@ -1907,7 +1908,7 @@ void
 print_type_name(int locid, int typeid) {
     char *ename;
 #ifdef USE_NETCDF4
-    char name[NC_MAX_NAME];
+    char name[NC_MAX_NAME+1];
     int type_inherited = 0;
     int curlocid;		/* group we are searching in */
     int parent_groupid = locid;
@@ -1921,6 +1922,7 @@ print_type_name(int locid, int typeid) {
     if(is_user_defined_type(typeid)) {
 	/* determine if type is inherited, that is if defined in this
 	 * group or any ancestor group */
+	name[NC_MAX_NAME] = '\0';
 	strncpy(name,nctypes[typeid]->name,NC_MAX_NAME);
 	do {
 	    curlocid = parent_groupid;

@@ -9,11 +9,11 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "ocuri.h"
+#include "ncuri.h"
 
-#define OCURIDEBUG
+#define NCURIDEBUG
 
-#ifdef OCURIDEBUG
+#ifdef NCURIDEBUG
 static int failpoint = 0;
 #define THROW(n) {failpoint=(n); goto fail;}
 #else
@@ -43,7 +43,7 @@ static int failpoint = 0;
 
 #define endof(p) ((p)+strlen(p))
 
-static struct OC_ProtocolInfo {
+static struct NC_ProtocolInfo {
 char* name;
 int   filelike; /* 1=>this protocol has no host, user+pwd, or port */
 } legalprotocols[] = {
@@ -61,21 +61,21 @@ static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
 /* Forward */
-static void ocparamfree(char** params);
-static int ocfind(char** params, const char* key);
-static void oclshift1(char* p);
-static void ocrshift1(char* p);
-static char* oclocate(char* p, const char* charlist);
-static void ocappendparams(char* newuri, char** p);
+static void ncparamfree(char** params);
+static int ncfind(char** params, const char* key);
+static void nclshift1(char* p);
+static void ncrshift1(char* p);
+static char* nclocate(char* p, const char* charlist);
+static void ncappendparams(char* newuri, char** p);
 
 /* Do a simple uri parse: return 0 if fail, 1 otherwise*/
 int
-ocuriparse(const char* uri0, OCURI** ocurip)
+ncuriparse(const char* uri0, NCURI** ncurip)
 {
-    OCURI* ocuri = NULL;
+    NCURI* ncuri = NULL;
     char* uri = NULL;
     char* p;
-    struct OC_ProtocolInfo* proto;
+    struct NC_ProtocolInfo* proto;
     int i,nprotos;
 
     /* accumulate parse points*/
@@ -92,12 +92,12 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     if(uri0 == NULL || strlen(uri0) == 0)
 	{THROW(1); goto fail;}
 
-    ocuri = (OCURI*)calloc(1,sizeof(OCURI));
-    if(ocuri == NULL)
+    ncuri = (NCURI*)calloc(1,sizeof(NCURI));
+    if(ncuri == NULL)
 	{THROW(2); goto fail;}
 	
     /* save original uri */
-    ocuri->uri = nulldup(uri0);
+    ncuri->uri = nulldup(uri0);
 
     /* make local copy of uri */
     uri = (char*)malloc(strlen(uri0)+1+PADDING); /* +1 for trailing null,
@@ -108,7 +108,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     /* strings will be broken into pieces with intermixed '\0; characters;
        first char is guaranteed to be '\0' */
 
-    ocuri->strings = uri;
+    ncuri->strings = uri;
     uri++; 
 
     /* dup the incoming url */
@@ -121,7 +121,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     */
     for(p=uri;*p;p++) {
 	if(*p == '\\' || *p < ' ')
-	    oclshift1(p); /* compress out */
+	    nclshift1(p); /* compress out */
     }	
 
     p = uri;
@@ -137,7 +137,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
         for(;*p;p++) {
 	    if(p[0] == RBRACKET && p[1] == LBRACKET) {
 		p[0] = ';';
-		oclshift1(p+1);
+		nclshift1(p+1);
 	    } else if(p[0] == RBRACKET && p[1] != LBRACKET)
 		break;
 	}
@@ -157,7 +157,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     p++; /* skip the colon */
 
     /* verify that the uri starts with an acceptable protocol*/
-    nprotos = (sizeof(legalprotocols)/sizeof(struct OC_ProtocolInfo));
+    nprotos = (sizeof(legalprotocols)/sizeof(struct NC_ProtocolInfo));
     proto = NULL;
     for(i=0;i<nprotos;i++) {
         if(strcmp(protocol,legalprotocols[i].name)==0) {
@@ -185,11 +185,11 @@ ocuriparse(const char* uri0, OCURI** ocurip)
         /* locate the end of the host section and therefore the start
            of the file section */
 	host = p;
-        p  = oclocate(p,"/?#");
+        p  = nclocate(p,"/?#");
 	if(p == NULL) {
 	    file = endof(host); /* there is no file section */
 	} else {
-	    ocrshift1(p); /* make room to terminate the host section
+	    ncrshift1(p); /* make room to terminate the host section
                              without overwriting the leading character */
 	    terminate(p); /* terminate the host section */
 	    file = p+1; /* +1 becauseof the shift */
@@ -243,7 +243,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     /* find the end of the file section and the start of the
        constraints and/or suffixparams
     */
-    p = oclocate(p,"?#");
+    p = nclocate(p,"?#");
     if(p != NULL) { /* we have constraint and/or suffixparams */
 	char* fileend = p; /* save the end of the file section */
 	char* constraintend = NULL; 
@@ -251,7 +251,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
             constraint = p+1;
 	else
 	    constraint = NULL;
-	p = strchr(p,'#'); /* may repeat effect of oclocate above */
+	p = strchr(p,'#'); /* may repeat effect of nclocate above */
 	if(p != NULL) {
 	    constraintend = p;
 	    suffixparams = p+1;
@@ -287,7 +287,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
         for(;*p;p++) {
 	    if(p[0] == RBRACKET && p[1] == LBRACKET) {
 	        p[0] = ';';
-		oclshift1(p+1);
+		nclshift1(p+1);
 	    } else if(p[0] == RBRACKET && p[1] != LBRACKET) {
 		/* terminate suffixparams */
 		*p = EOFCHAR;
@@ -308,14 +308,14 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     if(constraint != NULL && *constraint == EOFCHAR) constraint = NULL;
 
     /* assemble the component pieces */
-    ocuri->protocol = protocol;
-    ocuri->user = user;
-    ocuri->password = pwd;
-    ocuri->host = host;
-    ocuri->port = port;
-    ocuri->file = file;
+    ncuri->protocol = protocol;
+    ncuri->user = user;
+    ncuri->password = pwd;
+    ncuri->host = host;
+    ncuri->port = port;
+    ncuri->file = file;
 
-    ocurisetconstraints(ocuri,constraint);
+    ncurisetconstraints(ncuri,constraint);
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
@@ -324,56 +324,56 @@ ocuriparse(const char* uri0, OCURI** ocurip)
 	int space = plen + slen + 1;
 	/* add 1 for an extra comma if both are defined */
         space++;
-        ocuri->params = (char*)malloc(space);
-	ocuri->params[0] = EOFCHAR; /* so we can use strcat */
+        ncuri->params = (char*)malloc(space);
+	ncuri->params[0] = EOFCHAR; /* so we can use strcat */
 	if(plen > 0) {
-            strcat(ocuri->params,prefixparams);
+            strcat(ncuri->params,prefixparams);
 	    if(slen > 0)
-		strcat(ocuri->params,";");
+		strcat(ncuri->params,";");
 	}
 	if(slen > 0)
-            strcat(ocuri->params,suffixparams);
+            strcat(ncuri->params,suffixparams);
     }
 
-#ifdef OCXDEBUG
+#ifdef NCXDEBUG
 	{
-        fprintf(stderr,"ocuri:");
-        fprintf(stderr," params=|%s|",FIX(ocuri->params));
-        fprintf(stderr," protocol=|%s|",FIX(ocuri->protocol));
-        fprintf(stderr," host=|%s|",FIX(ocuri->host));
-        fprintf(stderr," port=|%s|",FIX(ocuri->port));
-        fprintf(stderr," file=|%s|",FIX(ocuri->file));
-        fprintf(stderr," constraint=|%s|",FIX(ocuri->constraint));
+        fprintf(stderr,"ncuri:");
+        fprintf(stderr," params=|%s|",FIX(ncuri->params));
+        fprintf(stderr," protocol=|%s|",FIX(ncuri->protocol));
+        fprintf(stderr," host=|%s|",FIX(ncuri->host));
+        fprintf(stderr," port=|%s|",FIX(ncuri->port));
+        fprintf(stderr," file=|%s|",FIX(ncuri->file));
+        fprintf(stderr," constraint=|%s|",FIX(ncuri->constraint));
         fprintf(stderr,"\n");
     }
 #endif
-    if(ocurip != NULL) *ocurip = ocuri;
+    if(ncurip != NULL) *ncurip = ncuri;
     return 1;
 
 fail:
-    if(ocuri != NULL) {
-	ocurifree(ocuri);
+    if(ncuri != NULL) {
+	ncurifree(ncuri);
     }
     return 0;
 }
 
 void
-ocurifree(OCURI* ocuri)
+ncurifree(NCURI* ncuri)
 {
-    if(ocuri == NULL) return;
-    if(ocuri->uri != NULL) {free(ocuri->uri);}
-    if(ocuri->params != NULL) {free(ocuri->params);}
-    if(ocuri->paramlist != NULL) ocparamfree(ocuri->paramlist);
-    if(ocuri->strings != NULL) {free(ocuri->strings);}
-    if(ocuri->constraint != NULL) {free(ocuri->constraint);}
-    if(ocuri->projection != NULL) {free(ocuri->projection);}
-    if(ocuri->selection != NULL) {free(ocuri->selection);}
-    free(ocuri);
+    if(ncuri == NULL) return;
+    if(ncuri->uri != NULL) {free(ncuri->uri);}
+    if(ncuri->params != NULL) {free(ncuri->params);}
+    if(ncuri->paramlist != NULL) ncparamfree(ncuri->paramlist);
+    if(ncuri->strings != NULL) {free(ncuri->strings);}
+    if(ncuri->constraint != NULL) {free(ncuri->constraint);}
+    if(ncuri->projection != NULL) {free(ncuri->projection);}
+    if(ncuri->selection != NULL) {free(ncuri->selection);}
+    free(ncuri);
 }
 
 /* Replace the constraints */
 void
-ocurisetconstraints(OCURI* duri,const char* constraints)
+ncurisetconstraints(NCURI* duri,const char* constraints)
 {
     char* proj = NULL;
     char* select = NULL;
@@ -390,7 +390,7 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
 
     duri->constraint = nulldup(constraints);
     if(*duri->constraint == '?')
-	oclshift1(duri->constraint);
+	nclshift1(duri->constraint);
 
     p = duri->constraint;
     proj = (char*) p;
@@ -414,7 +414,7 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
 }
 
 
-/* Construct a complete OC URI.
+/* Construct a complete NC URI.
    Optionally with the constraints.
    Optionally with the user parameters.
    Caller frees returned string.
@@ -422,7 +422,7 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
 */
 
 char*
-ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
+ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 {
     size_t len = 0;
     char* newuri;
@@ -433,16 +433,16 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     int paramslen = 0;
 
     /* if both are specified, prefix has priority */
-    int withsuffixparams = ((flags&OCURISUFFIXPARAMS)!=0
+    int withsuffixparams = ((flags&NCURISUFFIXPARAMS)!=0
 				&& duri->params != NULL);
-    int withprefixparams = ((flags&OCURIPREFIXPARAMS)!=0
+    int withprefixparams = ((flags&NCURIPREFIXPARAMS)!=0
 				&& duri->params != NULL);
-    int withuserpwd = ((flags&OCURIUSERPWD)!=0
+    int withuserpwd = ((flags&NCURIUSERPWD)!=0
 	               && duri->user != NULL && duri->password != NULL);
-    int withconstraints = ((flags&OCURICONSTRAINTS)!=0
+    int withconstraints = ((flags&NCURICONSTRAINTS)!=0
 	                   && duri->constraint != NULL);
 #ifdef NEWESCAPE
-    int encode = (flags&OCURIENCODE);
+    int encode = (flags&NCURIENCODE);
 #else
     int encode = 0;
 #endif
@@ -459,27 +459,27 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     
     tmpfile = duri->file;
     if(encode)
-	tmpfile = ocuriencode(tmpfile,fileallow);
+	tmpfile = ncuriencode(tmpfile,fileallow);
     len += (NILLEN(tmpfile));
 
     if(suffix != NULL) {
         tmpsuffix = (char*)suffix;
         if(encode)
-	    tmpsuffix = ocuriencode(tmpsuffix,fileallow);
+	    tmpsuffix = ncuriencode(tmpsuffix,fileallow);
         len += (NILLEN(tmpsuffix));
     }
 
     if(withconstraints) {
 	tmpquery = duri->constraint;
         if(encode)
-	    tmpquery = ocuriencode(tmpquery,queryallow);
+	    tmpquery = ncuriencode(tmpquery,queryallow);
         len += (NILLEN("?")+NILLEN(tmpquery));
     }
 
     if(withprefixparams || withsuffixparams) {
 	char** p;
 	if(duri->paramlist == NULL)
-	    if(!ocuridecodeparams(duri))
+	    if(!ncuridecodeparams(duri))
 		return NULL;		
 	for(paramslen=0,nparams=0,p=duri->paramlist;*p;p++) {
 	    nparams++;
@@ -502,7 +502,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     newuri[0] = EOFCHAR;
     if(prefix != NULL) strcat(newuri,prefix);
     if(withprefixparams) {
-	ocappendparams(newuri,duri->paramlist);
+	ncappendparams(newuri,duri->paramlist);
     }
     if(duri->protocol != NULL)
 	strcat(newuri,duri->protocol);
@@ -531,13 +531,13 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     }
     if(withsuffixparams & !withprefixparams) {
 	strcat(newuri,"#");
-	ocappendparams(newuri,duri->paramlist);
+	ncappendparams(newuri,duri->paramlist);
     }
     return newuri;
 }
 
 static void
-ocappendparams(char* newuri, char** p)
+ncappendparams(char* newuri, char** p)
 {
 	while(*p) {
 	    strcat(newuri,"[");
@@ -575,7 +575,7 @@ is assumed to have blanks compressed out.  Returns 1 if parse
 suceeded, 0 otherwise; */
 
 int
-ocuridecodeparams(OCURI* ocuri)
+ncuridecodeparams(NCURI* ncuri)
 {
     char* cp;
     int i,c;
@@ -583,10 +583,10 @@ ocuridecodeparams(OCURI* ocuri)
     char* params;
     char** plist;
 
-    if(ocuri == NULL) return 0;
-    if(ocuri->params == NULL) return 1;
+    if(ncuri == NULL) return 0;
+    if(ncuri->params == NULL) return 1;
 
-    params = strdup(ocuri->params); /* so we can modify */
+    params = strdup(ncuri->params); /* so we can modify */
 
     /* Pass 1 to break string into pieces at the semicolons
        and count # of pairs */
@@ -614,23 +614,23 @@ ocuridecodeparams(OCURI* ocuri)
     }
     plist[2*nparams] = NULL;
     free(params);
-    if(ocuri->paramlist != NULL)
-	ocparamfree(ocuri->paramlist);
-    ocuri->paramlist = plist;
+    if(ncuri->paramlist != NULL)
+	ncparamfree(ncuri->paramlist);
+    ncuri->paramlist = plist;
     return 1;
 }
 
 int
-ocurilookup(OCURI* uri, const char* key, const char** resultp)
+ncurilookup(NCURI* uri, const char* key, const char** resultp)
 {
     int i;
     char* value = NULL;
     if(uri == NULL || key == NULL || uri->params == NULL) return 0;
     if(uri->paramlist == NULL) {
-	i = ocuridecodeparams(uri);
+	i = ncuridecodeparams(uri);
 	if(!i) return 0;
     }
-    i = ocfind(uri->paramlist,key);
+    i = ncfind(uri->paramlist,key);
     if(i < 0)
 	return 0;
     value = uri->paramlist[(2*i)+1];
@@ -639,10 +639,10 @@ ocurilookup(OCURI* uri, const char* key, const char** resultp)
 }
 
 int
-ocurisetparams(OCURI* uri, const char* newparams)
+ncurisetparams(NCURI* uri, const char* newparams)
 {
     if(uri == NULL) return 0;
-    if(uri->paramlist != NULL) ocparamfree(uri->paramlist);
+    if(uri->paramlist != NULL) ncparamfree(uri->paramlist);
     uri->paramlist = NULL;
     if(uri->params != NULL) free(uri->params);
     uri->params = nulldup(newparams);
@@ -651,7 +651,7 @@ ocurisetparams(OCURI* uri, const char* newparams)
 
 /* Internal version of lookup; returns the paired index of the key */
 static int
-ocfind(char** params, const char* key)
+ncfind(char** params, const char* key)
 {
     int i;
     char** p;
@@ -662,7 +662,7 @@ ocfind(char** params, const char* key)
 }
 
 static void
-ocparamfree(char** params)
+ncparamfree(char** params)
 {
     char** p;
     if(params == NULL) return;
@@ -679,7 +679,7 @@ ocparamfree(char** params)
    occurrences
 */
 static char*
-oclocate(char* p, const char* charlist)
+nclocate(char* p, const char* charlist)
 {
     for(;*p;p++) {
 	if(strchr(charlist,*p) != NULL)
@@ -691,7 +691,7 @@ oclocate(char* p, const char* charlist)
 
 /* Shift every char starting at p 1 place to the left */
 static void
-oclshift1(char* p)
+nclshift1(char* p)
 {
     if(p != NULL && *p != EOFCHAR) {
 	char* q = p++;
@@ -701,7 +701,7 @@ oclshift1(char* p)
 
 /* Shift every char starting at p 1 place to the right */
 static void
-ocrshift1(char* p)
+ncrshift1(char* p)
 {
     char cur;
     cur = 0;
@@ -743,7 +743,7 @@ fromHex(int c)
  */
 
 char*
-ocuriencode(char* s, char* allowable)
+ncuriencode(char* s, char* allowable)
 {
     size_t slen;
     char* encoded;
@@ -782,16 +782,16 @@ ocuriencode(char* s, char* allowable)
 
 /* Return a string representing decoding of input; caller must free;*/
 char*
-ocuridecode(char* s)
+ncuridecode(char* s)
 {
-    return ocuridecodeonly(s,NULL);
+    return ncuridecodeonly(s,NULL);
 }
 
 /* Return a string representing decoding of input only for specified
    characters;  caller must free
 */
 char*
-ocuridecodeonly(char* s, char* only)
+ncuridecodeonly(char* s, char* only)
 {
     size_t slen;
     char* decoded;

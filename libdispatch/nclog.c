@@ -4,8 +4,6 @@
  *   $Header$
  *********************************************************************/
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -18,9 +16,9 @@
 #define MAXTAGS 256
 #define NCTAGDFALT "Log";
 
-static int ncinitlog = 0;
+static int nclogginginitialized = 0;
 static int nclogging = 0;
-static int ncsystemfile = 0;
+static int ncsystemfile = 0; /* 1 => we are logging to file we did not open */
 static char* nclogfile = NULL;
 static FILE* nclogstream = NULL;
 
@@ -30,11 +28,17 @@ static char* nctagdfalt = NULL;
 static char* nctagsetdfalt[] = {"Warning","Error","Note","Debug"};
 static char* nctagname(int tag);
 
+/*!\defgroup NClog NClog Management
+@{*/
+
+/*!\internal
+*/
+
 void
 ncloginit(void)
 {
-    const char* file = getenv(ENVFLAG);
-    ncinitlog = 1;
+    const char* file = getenv(NCENVFLAG);
+    nclogginginitialized = 1;
     ncsetlogging(0);
     nclogfile = NULL;
     nclogstream = NULL;
@@ -49,17 +53,38 @@ ncloginit(void)
     nctagset = nctagsetdfalt;
 }
 
-void
+/*!
+Enable/Disable logging.
+
+\param[in] tf If 1, then turn on logging, if 0, then turn off logging.
+
+\return The previous value of the logging flag.
+*/
+
+int
 ncsetlogging(int tf)
 {
-    if(!ncinitlog) ncloginit();
+    int was;
+    if(!nclogginginitialized) ncloginit();
+    was = nclogging;
     nclogging = tf;
+    return was;
 }
+
+/*!
+Specify a file into which to place logging output.
+
+\param[in] file The name of the file into which to place logging output.
+If the file has the value NULL, then send logging output to
+stderr.
+
+\return zero if the open failed, one otherwise.
+*/
 
 int
 nclogopen(const char* file)
 {
-    if(!ncinitlog) ncloginit();
+    if(!nclogginginitialized) ncloginit();
     nclogclose();
     if(file == NULL || strlen(file) == 0) {
 	/* use stderr*/
@@ -100,6 +125,7 @@ nclogopen(const char* file)
 void
 nclogclose(void)
 {
+    if(!nclogginginitialized) ncloginit();
     if(nclogstream != NULL && !ncsystemfile) {
 	fclose(nclogstream);
     }
@@ -109,11 +135,23 @@ nclogclose(void)
     ncsystemfile = 0;
 }
 
+/*!
+Send logging messages. This uses a variable
+number of arguments and operates like the stdio
+printf function.
+
+\param[in] tag Indicate the kind of this log message.
+\param[in] format Format specification as with printf.
+*/
+
 void
 nclog(int tag, const char* fmt, ...)
 {
     va_list args;
     char* prefix;
+
+    if(!nclogginginitialized) ncloginit();
+
     if(!nclogging || nclogstream == NULL) return;
 
     prefix = nctagname(tag);
@@ -133,6 +171,13 @@ nclogtext(int tag, const char* text)
 {
     nclogtextn(tag,text,strlen(text));
 }
+
+/*!
+Send arbitrarily long text as a logging message.
+Each line will be sent using nclog with the specified tag.
+\param[in] tag Indicate the kind of this log message.
+\param[in] text Arbitrary text to send as a logging message.
+*/
 
 void
 nclogtextn(int tag, const char* text, size_t count)
@@ -167,3 +212,5 @@ nctagname(int tag)
 	return nctagset[tag];
     }
 }
+
+/**@}*/

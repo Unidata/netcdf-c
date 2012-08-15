@@ -186,7 +186,7 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     if(suffix != NULL) strcat(filename,suffix);
     fd = open(filename,O_RDONLY);
     if(fd < 0) {
-	oc_log(LOGERR,"open failed:%s",filename);
+	oclog(OCLOGERR,"open failed:%s",filename);
 	return OCTHROW(OC_EOPEN);
     }
     size=0;
@@ -197,7 +197,7 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 	    break;
 	else if(count <  0) {
 	    stat = OC_EIO;
-	    oc_log(LOGERR,"read failed: %s",filename);
+	    oclog(OCLOGERR,"read failed: %s",filename);
 	    break;
 	}
 	ocbytesappendn(packet,buf,count);

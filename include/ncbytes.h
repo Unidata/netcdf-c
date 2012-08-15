@@ -36,7 +36,7 @@ EXTERNC int ncbytesset(NCbytes*,unsigned int,char);
 /* Append one byte */
 EXTERNC int ncbytesappend(NCbytes*,char); /* Add at Tail */
 /* Append n bytes */
-EXTERNC int ncbytesappendn(NCbytes*,void*,unsigned int); /* Add at Tail */
+EXTERNC int ncbytesappendn(NCbytes*,const void*,unsigned int); /* Add at Tail */
 
 /* Null terminate the byte string without extending its length (for debugging) */
 EXTERNC int ncbytesnull(NCbytes*);
@@ -48,11 +48,11 @@ EXTERNC int ncbytescat(NCbytes*,const char*);
 EXTERNC int ncbytessetcontents(NCbytes*, char*, unsigned int);
 
 /* Following are always "in-lined"*/
-#define ncbyteslength(bb) ((bb)?(bb)->length:0U)
-#define ncbytesalloc(bb) ((bb)?(bb)->alloc:0U)
-#define ncbytescontents(bb) ((bb && bb->content)?(bb)->content:(char*)"")
+#define ncbyteslength(bb) ((bb)!=NULL?(bb)->length:0U)
+#define ncbytesalloc(bb) ((bb)!=NULL?(bb)->alloc:0U)
+#define ncbytescontents(bb) (((bb)!=NULL && (bb)->content!=NULL)?(bb)->content:(char*)"")
 #define ncbytesextend(bb,len) ncbytessetalloc((bb),(len)+(bb->alloc))
-#define ncbytesclear(bb) ((bb)?(bb)->length=0:0U)
-#define ncbytesavail(bb,n) ((bb)?((bb)->alloc - (bb)->length) >= (n):0U)
+#define ncbytesclear(bb) ((bb)!=NULL?(bb)->length=0:0U)
+#define ncbytesavail(bb,n) ((bb)!=NULL?((bb)->alloc - (bb)->length) >= (n):0U)
 
 #endif /*NCBYTES_H*/

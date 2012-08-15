@@ -1,8 +1,6 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -145,7 +143,7 @@ ocbytesappendn(OCbytes* bb, const void* elem, unsigned int n)
 }
 
 int
-ocbytesprepend(OCbytes* bb, const char elem)
+ocbytesprepend(OCbytes* bb, char elem)
 {
   int i; /* do not make unsigned */
   if(bb == NULL) return ocbytesfail();
@@ -188,3 +186,14 @@ ocbytessetcontents(OCbytes* bb, char* contents, unsigned int alloc)
     bb->nonextendible = 1;
     return 1;
 }
+
+/* Null terminate the byte string without extending its length */
+/* For debugging */
+int
+ocbytesnull(OCbytes* bb)
+{
+    ocbytesappend(bb,'\0');
+    bb->length--;
+    return 1;
+}
+

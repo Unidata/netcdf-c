@@ -364,7 +364,7 @@ makegetvar34(NCDAPCOMMON* nccomm, CDFnode* var, void* data, nc_type dsttype, Get
 }
 
 int
-constrainable34(NC_URI* durl)
+constrainable34(NCURI* durl)
 {
    char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
