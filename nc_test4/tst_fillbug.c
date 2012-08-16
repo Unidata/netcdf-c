@@ -60,9 +60,9 @@ main()
 	static const float p_FillValue_atts[] = {NC_FILL_FLOAT, -99} ;
 	int p_FillValue_att = -99 ;
 	/* This should returns error, too many attribute vals */
-	if (nc_put_att_float(ncid, p_id, "_FillValue", NC_FLOAT, 2, p_FillValue_atts) == NC_NOERR) ERR;
+	if (nc_put_att_float(ncid, p_id, "_FillValue", NC_FLOAT, 2, p_FillValue_atts) != NC_EINVAL) ERR;
 	/* This also should return error, wrong type */
-	if (nc_put_att_int(ncid, p_id, "_FillValue", NC_INT, 1, &p_FillValue_att) == NC_NOERR) ERR;
+	if (nc_put_att_int(ncid, p_id, "_FillValue", NC_INT, 1, &p_FillValue_att) != NC_EBADTYPE) ERR;
 	/* This should succeed, _FillValue is valid */
 	if (nc_put_att_float(ncid, p_id, "_FillValue", NC_FLOAT, 1, p_FillValue_atts)) ERR;
     }
