@@ -128,7 +128,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
             /* Compute the # of elements in the variable */
             for(j=0;j<nclistlength(var->array.dimset0);j++) {
                 CDFnode* dim = (CDFnode*)nclistget(var->array.dimset0,j);
-                nelems *= dim->dim.declsize;
+                nelems *= dim->dim.declsize0;
 	    }
 if(SHOWFETCH) {
 nclog(NCLOGDBG,"prefetch: %s=%lu",var->ncfullname,(unsigned long)nelems);
@@ -227,9 +227,9 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    /* regrid */
+    /* re-struct*/
     if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
-        ncstat = regrid3(dxdroot,nccomm->cdf.ddsroot,constraint->projections);
+        ncstat = restruct3(dxdroot,nccomm->cdf.ddsroot,constraint->projections);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
