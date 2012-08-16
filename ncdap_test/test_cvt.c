@@ -93,16 +93,16 @@ static double float64_data[DIMSIZE];
 static char string3_data[DIMSIZE][STRLEN];
 #endif
 
-static char ch[DIMSIZE];
-static signed char int8[DIMSIZE];
-static unsigned char uint8[DIMSIZE];
-static short int16[DIMSIZE];
-static int int32[DIMSIZE];
-static float float32[DIMSIZE];
-static double float64[DIMSIZE];
-static long  ilong[DIMSIZE];
+static char ch_tst[DIMSIZE];
+static signed char int8_tst[DIMSIZE];
+static unsigned char uint8_tst[DIMSIZE];
+static short int16_tst[DIMSIZE];
+static int int32_tst[DIMSIZE];
+static float float32_tst[DIMSIZE];
+static double float64_tst[DIMSIZE];
+static long  ilong_tst[DIMSIZE];
 #ifndef USE_NETCDF4
-static char string3[DIMSIZE][STRLEN];
+static char string3_tst[DIMSIZE][STRLEN];
 #endif
 
 int main()
@@ -147,161 +147,161 @@ int main()
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));
-    CHECK(nc_get_var_text(ncid,varid,(char*)string3));
+    CHECK(nc_get_var_text(ncid,varid,(char*)string3_tst));
 #ifdef GENERATE
     printf("static %s string3_data[DIMSIZE][STRLEN]={","char");
     for(i=0;i<DIMSIZE;i++) {
 	int j;
 	/* Do simple escape */
 	for(j=0;j<STRLEN;j++) {
-	    if(string3[i][j] > 0
-	       && string3[i][j] != '\n'
-	       && string3[i][j] != '\r'
-	       && string3[i][j] != '\t'
-	       &&(string3[i][j] < ' ' || string3[i][j] >= '\177'))
-		string3[i][j] = '?';
+	    if(string3_tst[i][j] > 0
+	       && string3_tst[i][j] != '\n'
+	       && string3_tst[i][j] != '\r'
+	       && string3_tst[i][j] != '\t'
+	       &&(string3_tst[i][j] < ' ' || string3_tst[i][j] >= '\177'))
+		string3_tst[i][j] = '?';
 	}
-	printf("%s\"%s\"",COMMA,string3[i]);
+	printf("%s\"%s\"",COMMA,string3_tst[i]);
     }
     printf("};\n");
 #else
  	fprintf(stdout,"*** testing: %s\n","string3");
 	for(i=0;i<DIMSIZE;i++) {
    	    for(j=0;j<STRLEN;j++) {
-	        if(string3[i][j] != string3_data[i][j]) {report(i,"string3",__LINE__); break;}
+	        if(string3_tst[i][j] != string3_data[i][j]) {report(i,"string3",__LINE__); break;}
 	    }
 	}
 #endif
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_text(ncid,varid,ch));
+    CHECK(nc_get_var_text(ncid,varid,ch_tst));
 #ifdef GENERATE
     printf("static %s ch_data[DIMSIZE]={","char");
-    for(i=0;i<DIMSIZE;i++) printf("%s'\\%03hho'",COMMA,ch[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s'\\%03hho'",COMMA,ch_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_CHAR,NC_CHAR,ch,ch_data);
+    COMPARE(NC_CHAR,NC_CHAR,ch_tst,ch_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_schar(ncid,varid,int8));
+    CHECK(nc_get_var_schar(ncid,varid,int8_tst));
 #ifdef GENERATE
     printf("static %s int8_data[DIMSIZE]={","signed char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhd",COMMA,int8_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_BYTE,NC_BYTE,int8,int8_data);
+    COMPARE(NC_BYTE,NC_BYTE,int8_tst,int8_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_uchar(ncid,varid,uint8));
+    CHECK(nc_get_var_uchar(ncid,varid,uint8_tst));
 #ifdef GENERATE
     printf("static %s uint8_data[DIMSIZE]={","unsigned char");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hhu",COMMA,uint8_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_UBYTE,NC_UBYTE,uint8,uint8_data);
+    COMPARE(NC_UBYTE,NC_UBYTE,uint8_tst,uint8_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32_tst));
 #ifdef GENERATE
     printf("static %s int8toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_BYTE,NC_INT,int32,int8toint32_data);
+    COMPARE(NC_BYTE,NC_INT,int32_tst,int8toint32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "b", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32_tst));
 #ifdef GENERATE
     printf("static %s int82float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_FLOAT,NC_FLOAT,float32,int82float32_data);
+    COMPARE(NC_FLOAT,NC_FLOAT,float32_tst,int82float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_short(ncid,varid,int16));
+    CHECK(nc_get_var_short(ncid,varid,int16_tst));
 #ifdef GENERATE
     printf("static %s int16_data[DIMSIZE]={","short");
-    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%hd",COMMA,int16_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_SHORT,int16,int16_data);
+    COMPARE(NC_SHORT,NC_SHORT,int16_tst,int16_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32_tst));
 #ifdef GENERATE
     printf("static %s int16toint32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_INT,int32,int16toint32_data);
+    COMPARE(NC_SHORT,NC_INT,int32_tst,int16toint32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i16", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32_tst));
 #ifdef GENERATE
     printf("static %s int162float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_SHORT,NC_FLOAT,float32,int162float32_data);
+    COMPARE(NC_SHORT,NC_FLOAT,float32_tst,int162float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_int(ncid,varid,int32));
+    CHECK(nc_get_var_int(ncid,varid,int32_tst));
 #ifdef GENERATE
     printf("static %s int32_data[DIMSIZE]={","int");
-    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%d",COMMA,int32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_INT,NC_INT,int32,int32_data);
+    COMPARE(NC_INT,NC_INT,int32_tst,int32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32_tst));
 #ifdef GENERATE
     printf("static %s int32tofloat32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_INT,NC_FLOAT,float32,int32tofloat32_data);
+    COMPARE(NC_INT,NC_FLOAT,float32_tst,int32tofloat32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "i32", &varid));
-    CHECK(nc_get_var_long(ncid,varid,ilong));
+    CHECK(nc_get_var_long(ncid,varid,ilong_tst));
 #ifdef GENERATE
     printf("static %s int32toilong_data[DIMSIZE]={","long");
-    for(i=0;i<DIMSIZE;i++) printf("%s%ld",COMMA,ilong[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%ld",COMMA,ilong_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_INT,NC_NAT,ilong,int32toilong_data);
+    COMPARE(NC_INT,NC_NAT,ilong_tst,int32toilong_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "f32", &varid));
-    CHECK(nc_get_var_float(ncid,varid,float32));
+    CHECK(nc_get_var_float(ncid,varid,float32_tst));
 #ifdef GENERATE
     printf("static %s float32_data[DIMSIZE]={","float");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float32_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_FLOAT,NC_FLOAT,float32,float32_data);
+    COMPARE(NC_FLOAT,NC_FLOAT,float32_tst,float32_data);
 #endif
 
     CHECK(nc_inq_varid(ncid, "f64", &varid));
-    CHECK(nc_get_var_double(ncid,varid,float64));
+    CHECK(nc_get_var_double(ncid,varid,float64_tst));
 #ifdef GENERATE
     printf("static %s float64_data[DIMSIZE]={","double");
-    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64[i]);
+    for(i=0;i<DIMSIZE;i++) printf("%s%1.3f",COMMA,float64_tst[i]);
     printf("};\n");
 #else
-    COMPARE(NC_DOUBLE,NC_DOUBLE,float64,float64_data);
+    COMPARE(NC_DOUBLE,NC_DOUBLE,float64_tst,float64_data);
 #endif
 
     if(fail) {
@@ -465,4 +465,3 @@ case CASE(NC_CHAR,NC_STRING):{
 
     } /*switch*/
 }
-
