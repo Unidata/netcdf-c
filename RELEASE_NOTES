@@ -10,6 +10,11 @@ VERSION		COMMENTS
 		
 		Replaced the oc library with oc2.0
 
+		Prevented adding an invalid _FillValue attribute to a
+		variable (with nonmatching type or multiple values),
+		to avoid later error when any record variable is
+		extended. 
+		[NCF-190]
 
 4.2.1		Released 2012-07-18
 

@@ -2370,6 +2370,21 @@ main(int argc, char **argv)
       if (nc_inq_varnatts(ncid, 0, &natts)) ERR;
       if (natts != 2) ERR;
       if (nc_copy_att(ncid, NC_GLOBAL, A1_NAME, ncid, 0)) ERR;
+
+      /* Also test for fix of another bug, allowing invalid _FillValue
+       * attribute (not of same type as variable or with 0 values or more
+       * than 1 value) to be created. */
+      {
+	  static const int var_FillValue_atts[] = {42, -99} ;
+	  float var_FillValue_att = -99 ;
+	  /* This should return error, because attribute has too many values */
+	  if (nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 2, var_FillValue_atts) == NC_NOERR) ERR;
+	  /* This also should return error, because types don't match */
+	  if (nc_put_att_float(ncid, varid, "_FillValue", NC_FLOAT, 1, &var_FillValue_att) == NC_NOERR) ERR;
+	  /* This should succeed, _FillValue is valid */
+	  if (nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 1, var_FillValue_atts)) ERR;
+      }
+
       if (nc_close(ncid)) ERR;
 
       /* Reopen the file and check it. */
