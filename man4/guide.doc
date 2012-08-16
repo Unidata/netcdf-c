@@ -2932,8 +2932,8 @@ The length of an attribute is the number of data values assigned to
 it.  Multiple values are assigned to non-character attributes by
 separating the values with commas (',').  All values assigned to an
 attribute must be of the same type.  In the classic data model,
-character arrays are used for textual information, so the length of a
-character attribute is the number of character values, and an array of
+character arrays are used for textual information.  The length of a
+character attribute is the number of bytes, and an array of
 character values can be represented in string notation.  In the
 enhanced data model of netCDF-4, variable-length strings are available
 as a primitive type, and the length of a string attribute is the

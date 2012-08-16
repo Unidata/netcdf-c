@@ -322,8 +322,10 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
       NC_TYPE_INFO_T *type_info;
       int size;
 
-      /* Fill value must be same type. */
+      /* Fill value must be same type and have exactly one value */
       if (att->xtype != var->xtype)
+	 return NC_EBADTYPE;
+      if (att->len != 1)
 	 return NC_EINVAL;
 
       /* If we already wrote to the dataset, then return an error. */

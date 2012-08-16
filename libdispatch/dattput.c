@@ -37,7 +37,7 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL Trying to set global _FillValue.
+\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
@@ -85,7 +85,7 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL Trying to set global _FillValue. 
+\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
@@ -153,8 +153,11 @@ or if the space required to store the attribute is greater than
 before, the netCDF dataset must be in define mode.  
 
 With netCDF-4 files, nc_put_att will notice if you are writing a
-_Fill_Value_ attribute, and will tell the HDF5 layer to use the
-specified fill value for that variable.
+_FillValue attribute, and will tell the HDF5 layer to use the
+specified fill value for that variable.  With either classic or
+netCDF-4 files, a _FillValue attribute will be checked for validity,
+to make sure it has only one value and that its type matches the type
+of the associated variable.
 
 Although it's possible to create attributes of all types, text and
 double attributes are adequate for most purposes.
@@ -176,7 +179,7 @@ apply.
 \param value Pointer to one or more values.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EINVAL Trying to set global _FillValue.
+\returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
 \returns ::NC_ENOTVAR Couldn't find varid.
 \returns ::NC_EBADTYPE Fill value and var must be same type.
 \returns ::NC_ENOMEM Out of memory
