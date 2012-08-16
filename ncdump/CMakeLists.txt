@@ -6,6 +6,8 @@ remove_definitions(-DDLL_EXPORT)
 
 FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/cdl4 ${CMAKE_CURRENT_SOURCE_DIR}/expected4 )
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
+IF(EXTRA_TESTS)
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest.c
 	COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
@@ -16,7 +18,7 @@ ADD_CUSTOM_COMMAND(
 	COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
 		"${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c"
 	)
-
+ENDIF()
 
 SET(ncdump_FILES ncdump.c utils.c vardata.c dumplib.c indent.c nctime0.c )
 SET(nccopy_FILES nccopy.c utils.c nciter.c chunkspec.c utils.c dimmap.c)
@@ -63,8 +65,10 @@ IF(ENABLE_TESTS)
 	add_sh_test(tst_charfill)
 	add_sh_test(tst_iter)
 
-	add_sh_test(run_back_comp_tests)
-
+	IF(EXTRA_TESTS)
+		add_sh_test(run_back_comp_tests)
+	ENDIF()
+	
 	IF(USE_NETCDF4)
 		add_bin_test(tst_create_files)
 		add_bin_test(tst_group_data)
