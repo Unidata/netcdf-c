@@ -261,8 +261,8 @@ typedef short int		 shmem_t;
 
 /* Warning: fields from BEGIN COMMON to END COMMON must be same for:
 	1. NCcommon (include/ncdispatch.h)
-	2. NC (libsrc/nc.h)
-	3. NC_FILE_INFO (libsrc4/nc4internal.h)
+	2. NC (include/nc.h)
+	3. NC_FILE_INFO (include/nc4internal.h)
 	4. whatever libdiskless uses
 */
 struct NC {

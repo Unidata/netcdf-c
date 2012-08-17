@@ -639,7 +639,7 @@ pr_att(
 	    /* Prints text after semicolon and before final newline.
 	     * Prints nothing if not qualified for time interpretation.
 	     * Will include line breaks for longer lists. */
-	    print_att_times(ncid, varid, att);
+	    print_att_times(ncid, varid, &att);
 	    if(is_bounds_att(&att)) {
 		insert_bounds_info(ncid, varid, &att);
 	    }
