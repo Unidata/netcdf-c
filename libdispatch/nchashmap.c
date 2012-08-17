@@ -63,7 +63,7 @@ nchashinsert(NChashmap* hm, nchashid hash, ncelem value)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) return FALSE;
+      if((nchashid)*list == hash) return FALSE;
     }    
     nclistpush(seq,(ncelem)hash);
     nclistpush(seq,value);
@@ -86,7 +86,7 @@ nchashreplace(NChashmap* hm, nchashid hash, ncelem value)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {list[1] = value; return TRUE;}
+      if((nchashid)*list == hash) {list[1] = value; return TRUE;}
     }    
     nclistpush(seq,(ncelem)hash);
     nclistpush(seq,value);
@@ -109,7 +109,7 @@ nchashremove(NChashmap* hm, nchashid hash)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {
+      if((nchashid)*list == hash) {
 	    nclistremove(seq,i+1);
 	    nclistremove(seq,i);
 	    hm->size--;
@@ -143,7 +143,7 @@ nchashlookup(NChashmap* hm, nchashid hash, ncelem* valuep)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {if(valuep) {*valuep = list[1]; return TRUE;}}
+      if((nchashid)*list == hash) {if(valuep) {*valuep = list[1]; return TRUE;}}
     }
     return FALSE;
 }

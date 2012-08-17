@@ -1,22 +1,24 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989-1990, 2000-2006, 2009-2010 Free Software
-   Foundation, Inc.
-   
-   This program is free software: you can redistribute it and/or modify
+/* Skeleton interface for Bison's Yacc-like parsers in C
+
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -27,19 +29,9 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-
-#ifndef NCG_NCGEN_TAB_H
-# define NCG_NCGEN_TAB_H
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int ncgdebug;
-#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -69,29 +61,37 @@ extern int ncgdebug;
      FILLVALUE = 277
    };
 #endif
+/* Tokens.  */
+#define NC_UNLIMITED_K 258
+#define BYTE_K 259
+#define CHAR_K 260
+#define SHORT_K 261
+#define INT_K 262
+#define FLOAT_K 263
+#define DOUBLE_K 264
+#define IDENT 265
+#define TERMSTRING 266
+#define BYTE_CONST 267
+#define CHAR_CONST 268
+#define SHORT_CONST 269
+#define INT_CONST 270
+#define FLOAT_CONST 271
+#define DOUBLE_CONST 272
+#define DIMENSIONS 273
+#define VARIABLES 274
+#define NETCDF 275
+#define DATA 276
+#define FILLVALUE 277
+
+
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE ncglval;
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int ncgparse (void *YYPARSE_PARAM);
-#else
-int ncgparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int ncgparse (void);
-#else
-int ncgparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
-
-#endif /* !NCG_NCGEN_TAB_H  */

@@ -31,7 +31,7 @@ PROJECT_NAME           = netCDF
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = @PACKAGE_VERSION@
+PROJECT_NUMBER         = @CPACK_PACKAGE_VERSION@
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
