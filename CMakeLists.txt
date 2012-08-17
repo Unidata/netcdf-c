@@ -236,12 +236,6 @@ IF(ENABLE_LARGE_FILE_TESTS)
 	SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
-# Other misc. options, not detailed for now.
-OPTION (ENABLE_DOXYGEN "Enable generation of documentation" OFF)
-IF(ENABLE_DOXYGEN)
-	SET(BUILD_DOCS ON)
-ENDIF()
-
 OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
 IF(ENABLE_INTERNAL_DOCS)
 	SET(BUILD_INTERNAL_DOCS ON)
@@ -262,16 +256,26 @@ IF(ENABLE_COVERAGE_TESTS)
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
 
-OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if NetCDF-4 is not Enabled")
+OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if NetCDF-4 is not Enabled" OFF)
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
 OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." OFF)
 
+OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
+IF(ENABLE_DOXYGEN)
+	SET(BUILD_DOCS ON CACHE BOOL "")
+	OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
+	IF(ENABLE_INTERNAL_DOCS)
+		SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+	ELSE()
+		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+	ENDIF()
+ENDIF()
 
 # Set some of the options as advanced.
-MARK_AS_ADVANCED(ENABLE_DOXYGEN ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
+MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
 
 #####
 # End option checks.
@@ -433,8 +437,12 @@ IF(ENABLE_TESTS)
 	ENDIF()
 ENDIF()
 
-
-
+#####
+# Build doxygen documentation, if need be.
+#####
+IF(BUILD_DOCS)
+	ADD_SUBDIRECTORY(man4)
+ENDIF()
 #####
 # Moving on to CPack, install packages.
 #####
