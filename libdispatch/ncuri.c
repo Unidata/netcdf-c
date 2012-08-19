@@ -70,9 +70,9 @@ static void ncappendparams(char* newuri, char** p);
 
 /* Do a simple uri parse: return 0 if fail, 1 otherwise*/
 int
-ncuriparse(const char* uri0, NCURI** ncurip)
+ncuriparse(const char* uri0, NCURI** durip)
 {
-    NCURI* ncuri = NULL;
+    NCURI* duri = NULL;
     char* uri = NULL;
     char* p;
     struct NC_ProtocolInfo* proto;
@@ -92,12 +92,12 @@ ncuriparse(const char* uri0, NCURI** ncurip)
     if(uri0 == NULL || strlen(uri0) == 0)
 	{THROW(1); goto fail;}
 
-    ncuri = (NCURI*)calloc(1,sizeof(NCURI));
-    if(ncuri == NULL)
+    duri = (NCURI*)calloc(1,sizeof(NCURI));
+    if(duri == NULL)
 	{THROW(2); goto fail;}
 	
     /* save original uri */
-    ncuri->uri = nulldup(uri0);
+    duri->uri = nulldup(uri0);
 
     /* make local copy of uri */
     uri = (char*)malloc(strlen(uri0)+1+PADDING); /* +1 for trailing null,
@@ -108,7 +108,7 @@ ncuriparse(const char* uri0, NCURI** ncurip)
     /* strings will be broken into pieces with intermixed '\0; characters;
        first char is guaranteed to be '\0' */
 
-    ncuri->strings = uri;
+    duri->strings = uri;
     uri++; 
 
     /* dup the incoming url */
@@ -308,14 +308,14 @@ ncuriparse(const char* uri0, NCURI** ncurip)
     if(constraint != NULL && *constraint == EOFCHAR) constraint = NULL;
 
     /* assemble the component pieces */
-    ncuri->protocol = protocol;
-    ncuri->user = user;
-    ncuri->password = pwd;
-    ncuri->host = host;
-    ncuri->port = port;
-    ncuri->file = file;
+    duri->protocol = protocol;
+    duri->user = user;
+    duri->password = pwd;
+    duri->host = host;
+    duri->port = port;
+    duri->file = file;
 
-    ncurisetconstraints(ncuri,constraint);
+    ncurisetconstraints(duri,constraint);
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
@@ -324,51 +324,51 @@ ncuriparse(const char* uri0, NCURI** ncurip)
 	int space = plen + slen + 1;
 	/* add 1 for an extra comma if both are defined */
         space++;
-        ncuri->params = (char*)malloc(space);
-	ncuri->params[0] = EOFCHAR; /* so we can use strcat */
+        duri->params = (char*)malloc(space);
+	duri->params[0] = EOFCHAR; /* so we can use strcat */
 	if(plen > 0) {
-            strcat(ncuri->params,prefixparams);
+            strcat(duri->params,prefixparams);
 	    if(slen > 0)
-		strcat(ncuri->params,";");
+		strcat(duri->params,";");
 	}
 	if(slen > 0)
-            strcat(ncuri->params,suffixparams);
+            strcat(duri->params,suffixparams);
     }
 
 #ifdef NCXDEBUG
 	{
-        fprintf(stderr,"ncuri:");
-        fprintf(stderr," params=|%s|",FIX(ncuri->params));
-        fprintf(stderr," protocol=|%s|",FIX(ncuri->protocol));
-        fprintf(stderr," host=|%s|",FIX(ncuri->host));
-        fprintf(stderr," port=|%s|",FIX(ncuri->port));
-        fprintf(stderr," file=|%s|",FIX(ncuri->file));
-        fprintf(stderr," constraint=|%s|",FIX(ncuri->constraint));
+        fprintf(stderr,"duri:");
+        fprintf(stderr," params=|%s|",FIX(duri->params));
+        fprintf(stderr," protocol=|%s|",FIX(duri->protocol));
+        fprintf(stderr," host=|%s|",FIX(duri->host));
+        fprintf(stderr," port=|%s|",FIX(duri->port));
+        fprintf(stderr," file=|%s|",FIX(duri->file));
+        fprintf(stderr," constraint=|%s|",FIX(duri->constraint));
         fprintf(stderr,"\n");
     }
 #endif
-    if(ncurip != NULL) *ncurip = ncuri;
+    if(durip != NULL) *durip = duri;
     return 1;
 
 fail:
-    if(ncuri != NULL) {
-	ncurifree(ncuri);
+    if(duri != NULL) {
+	ncurifree(duri);
     }
     return 0;
 }
 
 void
-ncurifree(NCURI* ncuri)
+ncurifree(NCURI* duri)
 {
-    if(ncuri == NULL) return;
-    if(ncuri->uri != NULL) {free(ncuri->uri);}
-    if(ncuri->params != NULL) {free(ncuri->params);}
-    if(ncuri->paramlist != NULL) ncparamfree(ncuri->paramlist);
-    if(ncuri->strings != NULL) {free(ncuri->strings);}
-    if(ncuri->constraint != NULL) {free(ncuri->constraint);}
-    if(ncuri->projection != NULL) {free(ncuri->projection);}
-    if(ncuri->selection != NULL) {free(ncuri->selection);}
-    free(ncuri);
+    if(duri == NULL) return;
+    if(duri->uri != NULL) {free(duri->uri);}
+    if(duri->params != NULL) {free(duri->params);}
+    if(duri->paramlist != NULL) ncparamfree(duri->paramlist);
+    if(duri->strings != NULL) {free(duri->strings);}
+    if(duri->constraint != NULL) {free(duri->constraint);}
+    if(duri->projection != NULL) {free(duri->projection);}
+    if(duri->selection != NULL) {free(duri->selection);}
+    free(duri);
 }
 
 /* Replace the constraints */

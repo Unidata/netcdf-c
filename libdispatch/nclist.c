@@ -153,11 +153,11 @@ nclistdup(NClist* l)
 }
 
 int
-nclistcontains(NClist* list, void* elem)
+nclistcontains(NClist* l, void* elem)
 {
     unsigned long i;
-    for(i=0;i<nclistlength(list);i++) {
-	if(elem == nclistget(list,i)) return 1;
+    for(i=0;i<nclistlength(l);i++) {
+	if(elem == nclistget(l,i)) return 1;
     }
     return 0;
 }
@@ -191,13 +191,13 @@ nclistelemremove(NClist* l, void* elem)
 */
 
 int
-nclistunique(NClist* list)
+nclistunique(NClist* l)
 {
     unsigned long i,j,k,len;
     void** content;
-    if(list == NULL || list->length == 0) return 1;
-    len = list->length;
-    content = list->content;
+    if(l == NULL || l->length == 0) return 1;
+    len = l->length;
+    content = l->content;
     for(i=0;i<len;i++) {
         for(j=i+1;j<len;j++) {
 	    if(content[i] == content[j]) {
@@ -207,15 +207,15 @@ nclistunique(NClist* list)
 	    }
 	}
     }
-    list->length = len;
+    l->length = len;
     return 1;
 }
 
 NClist*
-nclistclone(NClist* list)
+nclistclone(NClist* l)
 {
     NClist* clone = nclistnew();
-    *clone = *list;
-    clone->content = nclistdup(list);
+    *clone = *l;
+    clone->content = nclistdup(l);
     return clone;
 }

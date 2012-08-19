@@ -153,11 +153,11 @@ oclistdup(OClist* l)
 }
 
 int
-oclistcontains(OClist* list, void* elem)
+oclistcontains(OClist* l, void* elem)
 {
     unsigned long i;
-    for(i=0;i<oclistlength(list);i++) {
-	if(elem == oclistget(list,i)) return 1;
+    for(i=0;i<oclistlength(l);i++) {
+	if(elem == oclistget(l,i)) return 1;
     }
     return 0;
 }
@@ -191,13 +191,13 @@ oclistelemremove(OClist* l, void* elem)
 */
 
 int
-oclistunique(OClist* list)
+oclistunique(OClist* l)
 {
     unsigned long i,j,k,len;
     void** content;
-    if(list == NULL || list->length == 0) return 1;
-    len = list->length;
-    content = list->content;
+    if(l == NULL || l->length == 0) return 1;
+    len = l->length;
+    content = l->content;
     for(i=0;i<len;i++) {
         for(j=i+1;j<len;j++) {
 	    if(content[i] == content[j]) {
@@ -207,15 +207,15 @@ oclistunique(OClist* list)
 	    }
 	}
     }
-    list->length = len;
+    l->length = len;
     return 1;
 }
 
 OClist*
-oclistclone(OClist* list)
+oclistclone(OClist* l)
 {
     OClist* clone = oclistnew();
-    *clone = *list;
-    clone->content = oclistdup(list);
+    *clone = *l;
+    clone->content = oclistdup(l);
     return clone;
 }
