@@ -421,8 +421,8 @@ builddims(NCDAPCOMMON* dapcomm)
 	    CDFnode* dim1 = (CDFnode*)nclistget(dimset,i);
 	    CDFnode* dim2 = (CDFnode*)nclistget(dimset,i+1);
    	    if(strcmp(dim1->ncfullname,dim2->ncfullname) > 0) {
-		nclistset(dimset,i,(ncelem)dim2);
-		nclistset(dimset,i+1,(ncelem)dim1);
+		nclistset(dimset,i,(void*)dim2);
+		nclistset(dimset,i+1,(void*)dim1);
 		swap = 1;
 		break;
 	    }

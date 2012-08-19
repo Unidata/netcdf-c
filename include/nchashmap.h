@@ -1,24 +1,23 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/nchashmap.h,v 1.4 2009/09/23 22:26:08 dmh Exp $
+ *   $Header$
  *********************************************************************/
 #ifndef NCHASHMAP_H
 #define NCHASHMAP_H 1
 
+#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
+#define externC extern "C"
+#else
+#define externC extern
+#endif
+
 #include "nclist.h"
 
 /* Define the type of the elements in the hashmap*/
-
-#if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
-#define EXTERNC extern "C"
-#else
-#define EXTERNC extern
-#endif
-
 typedef unsigned long nchashid;
 
-EXTERNC int nchashnull(ncelem);
+externC int nchashnull(void*);
 
 typedef struct NChashmap {
   int alloc;
@@ -26,32 +25,32 @@ typedef struct NChashmap {
   NClist** table;
 } NChashmap;
 
-EXTERNC NChashmap* nchashnew(void);
-EXTERNC NChashmap* nchashnew0(int);
-EXTERNC int nchashfree(NChashmap*);
+externC NChashmap* nchashnew(void);
+externC NChashmap* nchashnew0(int);
+externC int nchashfree(NChashmap*);
 
-/* Insert a (ncnchashid,ncelem) pair into the table*/
+/* Insert a (ncnchashid,void*) pair into the table*/
 /* Fail if already there*/
-EXTERNC int nchashinsert(NChashmap*, nchashid nchash, ncelem value);
+externC int nchashinsert(NChashmap*, nchashid nchash, void* value);
 
-/* Insert a (nchashid,ncelem) pair into the table*/
+/* Insert a (nchashid,void*) pair into the table*/
 /* Overwrite if already there*/
-EXTERNC int nchashreplace(NChashmap*, nchashid nchash, ncelem value);
+externC int nchashreplace(NChashmap*, nchashid nchash, void* value);
 
 /* lookup a nchashid and return found/notfound*/
-EXTERNC int nchashlookup(NChashmap*, nchashid nchash, ncelem* valuep);
+externC int nchashlookup(NChashmap*, nchashid nchash, void** valuep);
 
 /* lookup a nchashid and return 0 or the value*/
-EXTERNC ncelem nchashget(NChashmap*, nchashid nchash);
+externC void* nchashget(NChashmap*, nchashid nchash);
 
 /* remove a nchashid*/
-EXTERNC int nchashremove(NChashmap*, nchashid nchash);
+externC int nchashremove(NChashmap*, nchashid nchash);
 
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
-EXTERNC int nchashith(NChashmap*, int i, nchashid*, ncelem*);
+externC int nchashith(NChashmap*, int i, nchashid*, void**);
 
-EXTERNC int nchashkeys(NChashmap* hm, nchashid** keylist);
+externC int nchashkeys(NChashmap* hm, nchashid** keylist);
 
 /* return the # of pairs in table*/
 #define nchashsize(hm) ((hm)?(hm)->size:0)

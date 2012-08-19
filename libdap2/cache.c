@@ -60,7 +60,7 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
         if(nclistlength(cache->nodes) > 1) {
 	    /* Manage the cache nodes as LRU */
 	    nclistremove(cache->nodes,index);
-	    nclistpush(cache->nodes,(ncelem)cachenode);
+	    nclistpush(cache->nodes,(void*)cachenode);
 	}
         if(cachenodep) *cachenodep = cachenode;
     }
@@ -117,7 +117,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	    /* Do not attempt to prefetch any variables in the
                nc_open url's projection list
 	    */
-	    if(nclistcontains(nccomm->cdf.projectedvars,(ncelem)var))
+	    if(nclistcontains(nccomm->cdf.projectedvars,(void*)var))
 		continue;
 
             if(!isnc4) {
@@ -134,7 +134,7 @@ if(SHOWFETCH) {
 nclog(NCLOGDBG,"prefetch: %s=%lu",var->ncfullname,(unsigned long)nelems);
 }
 	    if(nelems <= nccomm->cdf.smallsizelimit) {
-	        nclistpush(vars,(ncelem)var);
+	        nclistpush(vars,(void*)var);
 if(SHOWFETCH) {
 nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 }
@@ -162,7 +162,7 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 	/* convert var to a projection */
 	ncstat = dapvar2projection(var,&varprojection);
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	nclistpush(newconstraint->projections,(ncelem)varprojection);
+	nclistpush(newconstraint->projections,(void*)varprojection);
     }
 if(SHOWFETCH) {
 char* s = dumpprojections(newconstraint->projections);
@@ -284,7 +284,7 @@ fprintf(stderr,"buildcachenode: count purge cache node: %s\n",
 	    cache->cachesize -= node->xdrsize;
 	    freenccachenode(nccomm,node);
         }
-        nclistpush(nccomm->cdf.cache->nodes,(ncelem)cachenode);
+        nclistpush(nccomm->cdf.cache->nodes,(void*)cachenode);
         cache->cachesize += cachenode->xdrsize;
     }
 

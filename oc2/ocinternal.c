@@ -297,7 +297,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     }
 
     /* Put root into the state->trees list */
-    oclistpush(state->trees,(ocelem)root);
+    oclistpush(state->trees,(void*)root);
 
     if(rootp) *rootp = root;
     return stat;
@@ -414,7 +414,7 @@ fprintf(stderr,"ocextractddsinmemory:\n");
 	ddslen = tree->data.datasize;
 #ifdef OCDEBUG
 fprintf(stderr,"missing bod: bod=%lu ddslen=%lu\n",
-(unsigned long)*ddslen,(unsigned long)*bod);
+(unsigned long)ddslen,(unsigned long)bod);
 #endif
     }
     tree->data.bod = bod;
@@ -469,7 +469,7 @@ fprintf(stderr,"ocextractddsinfile:\n");
 	ddslen = tree->data.datasize;
 #ifdef OCDEBUG
 fprintf(stderr,"missing bod: bod=%lu ddslen=%lu\n",
-(unsigned long)*ddslen,(unsigned long)*bod);
+(unsigned long)ddslen,(unsigned long)bod);
 #endif
     }
     tree->data.bod = bod;

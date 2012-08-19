@@ -180,11 +180,11 @@ fprintf(stderr,"dapmergeprojection: src = %s\n",dcetostring((DCEnode*)src));
     nclistsetalloc(cat,nclistlength(dst)+nclistlength(src));
     for(i=0;i<nclistlength(dst);i++) {
 	DCEprojection* p = (DCEprojection*)nclistget(dst,i);
-	nclistpush(cat,(ncelem)p);
+	nclistpush(cat,(void*)p);
     }    
     for(i=0;i<nclistlength(src);i++) {
 	DCEprojection* p = (DCEprojection*)nclistget(src,i);
-	nclistpush(cat,(ncelem)dceclone((DCEnode*)p));
+	nclistpush(cat,(void*)dceclone((DCEnode*)p));
     }    
 
     nclistclear(dst);
@@ -206,11 +206,11 @@ fprintf(stderr,"dapmergeprojection: src = %s\n",dcetostring((DCEnode*)src));
 	    /* This entry matches our current target; merge  */
 	    ncstat = dcemergeprojections(target,p2);
 	    /* null out this merged entry and release it */
-	    nclistset(cat,i,(ncelem)NULL);	    
+	    nclistset(cat,i,(void*)NULL);	    
 	    dcefree((DCEnode*)p2);	    
 	}		    
 	/* Capture the clone */
-	nclistpush(dst,(ncelem)target);
+	nclistpush(dst,(void*)target);
     }	    
     nclistfree(cat);
     return ncstat;
@@ -388,7 +388,7 @@ dceclonelist(NClist* list)
     for(i=0;i<nclistlength(list);i++) {
 	DCEnode* node = (DCEnode*)nclistget(list,i);
 	DCEnode* newnode = dceclone((DCEnode*)node);
-	nclistpush(clone,(ncelem)newnode);
+	nclistpush(clone,(void*)newnode);
     }
     return clone;
 }
@@ -715,9 +715,9 @@ ceallnodesr(DCEnode* node, NClist* allnodes, CEsort which)
 {
     int i;
     if(node == NULL) return;
-    if(nclistcontains(allnodes,(ncelem)node)) return;
+    if(nclistcontains(allnodes,(void*)node)) return;
     if(which == CES_NIL || node->sort == which)
-        nclistpush(allnodes,(ncelem)node);
+        nclistpush(allnodes,(void*)node);
     switch(node->sort) {
     case CES_FCN: {
 	DCEfcn* fcn = (DCEfcn*)node;

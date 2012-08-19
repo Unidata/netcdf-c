@@ -44,7 +44,7 @@ extern int paramcheck34(struct NCDAPCOMMON* drno, const char* param, const char*
 
 extern int nclistconcat(NClist* l1, NClist* l2);
 extern int nclistminus(NClist* l1, NClist* l2);
-extern int nclistdeleteall(NClist* l1, ncelem);
+extern int nclistdeleteall(NClist* l1, void*);
 
 extern char* getvaraprint(void* gv);
 

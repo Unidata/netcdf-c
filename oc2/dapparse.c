@@ -96,7 +96,7 @@ dap_declarations(DAPparsestate* state, Object decls, Object decl)
     if(alist == NULL)
 	 alist = oclistnew();
     else
-	oclistpush(alist,(ocelem)decl);
+	oclistpush(alist,(void*)decl);
     return alist;
 }
 
@@ -107,7 +107,7 @@ dap_arraydecls(DAPparsestate* state, Object arraydecls, Object arraydecl)
     if(alist == NULL)
 	alist = oclistnew();
     else
-	oclistpush(alist,(ocelem)arraydecl);
+	oclistpush(alist,(void*)arraydecl);
     return alist;
 }
 
@@ -135,7 +135,7 @@ dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
     else {
 	char* dupname;
 	if(attrtuple != NULL) {/* NULL=>alias encountered, ignore */
-            oclistpush(alist,(ocelem)attrtuple);
+            oclistpush(alist,(void*)attrtuple);
             if((dupname=scopeduplicates(alist))!=NULL) {
 	        dap_parse_error(state,"Duplicate attribute names in same scope: %s",dupname);
 		/* Remove this attribute */
@@ -153,7 +153,7 @@ dap_attrvalue(DAPparsestate* state, Object valuelist, Object value, Object etype
     if(alist == NULL) alist = oclistnew();
     /* Watch out for null values */
     if(value == NULL) value = "";
-    oclistpush(alist,(ocelem)strdup(value));
+    oclistpush(alist,(void*)strdup(value));
     return alist;
 }
 
@@ -294,7 +294,7 @@ dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecl
     }
     node = newocnode(name,OC_Grid,state);
     node->subnodes = (OClist*)mapdecls;
-    oclistinsert(node->subnodes,0,(ocelem)arraydecl);
+    oclistinsert(node->subnodes,0,(void*)arraydecl);
     addedges(node);
     return node;
 }
@@ -352,7 +352,7 @@ static OCnode*
 newocnode(char* name, OCtype octype, DAPparsestate* state)
 {
     OCnode* node = ocnode_new(name,octype,state->root);
-    oclistpush(state->ocnodes,(ocelem)node);
+    oclistpush(state->ocnodes,(void*)node);
     return node;
 }
 

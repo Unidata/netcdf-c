@@ -83,7 +83,7 @@ segmentlist(DCEparsestate* state, Object var0, Object decl)
     if(v==NULL) v = (DCEvar*)dcecreate(CES_VAR);
     list = v->segments;
     if(list == NULL) list = nclistnew();
-    nclistpush(list,(ncelem)decl);
+    nclistpush(list,(void*)decl);
     v->segments = list;
     return v;
 }
@@ -180,7 +180,7 @@ sel_clause(DCEparsestate* state, int selcase,
     sel->lhs = (DCEvalue*)lhs;
     if(selcase == 2) {/*singleton value*/
 	sel->rhs = nclistnew();
-	nclistpush(sel->rhs,(ncelem)values);
+	nclistpush(sel->rhs,(void*)values);
     } else
         sel->rhs = (NClist*)values;
     return sel;
@@ -210,7 +210,7 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
     slice->count = 1;
     slice->length = 1;
     slice->stop = start+1;
-    nclistpush(list,(ncelem)slice);
+    nclistpush(list,(void*)slice);
     return list;
 }
 
@@ -307,7 +307,7 @@ collectlist(Object list0, Object decl)
 {
     NClist* list = (NClist*)list0;
     if(list == NULL) list = nclistnew();
-    nclistpush(list,(ncelem)decl);
+    nclistpush(list,(void*)decl);
     return list;
 }
 
