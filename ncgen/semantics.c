@@ -223,7 +223,7 @@ processtypes(void)
 	}
 	if(keep) {
 	    sym->touched = 1;
-	    listpush(sorted,(elem_t)sym);
+	    listpush(sorted,(void*)sym);
 	}
     }	
     /* 2. repeated walk to collect level i types*/
@@ -253,7 +253,7 @@ processtypes(void)
 	    default: break;				
 	    }
 	    if(keep) {
-		listpush(sorted,(elem_t)sym);
+		listpush(sorted,(void*)sym);
 		sym->touched = 1;
 		added++;
 	    }	    
@@ -327,7 +327,7 @@ processenums(void)
 	for(j=0;j<listlength(sym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(sym->subnodes,j);
 	    ASSERT(esym->subclass == NC_ECONST);
-	    listpush(enumids,(elem_t)esym);
+	    listpush(enumids,(void*)esym);
 	}
     }	    
     /* Now walk set of enum ids to look for duplicates with same prefix*/
@@ -475,12 +475,12 @@ makespecial(int tag, Symbol* vsym, nc_type typ, Datalist* dlist)
     attr->data = dlist;
     if(vsym) {
 	Symbol* grp = vsym->container;
-	if(grp) listpush(grp->subnodes,(elem_t)attr);
+	if(grp) listpush(grp->subnodes,(void*)attr);
 	attr->container = grp;
     }
     attr->att.var = vsym;
     attr->typ.basetype = primsymbols[typ==NC_STRING?NC_CHAR:typ];
-    listpush(attdefs,(elem_t)attr);
+    listpush(attdefs,(void*)attr);
 }
 	
 static void
@@ -629,7 +629,7 @@ processattributes(void)
 	    Symbol* asym = (Symbol*)listget(attdefs,j);
 	    ASSERT(asym->att.var != NULL);
 	    if(asym->att.var != vsym) continue;	    
-            listpush(list,(elem_t)asym);
+            listpush(list,(void*)asym);
 	}
 	vsym->var.attributes = list;
     }

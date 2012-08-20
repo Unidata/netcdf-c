@@ -104,7 +104,7 @@ occollectpathtonode(OCnode* node, OClist* path)
 {
     if(node == NULL) return;
     occollectpathtonode(node->container,path);
-    oclistpush(path,(ocelem)node);
+    oclistpush(path,(void*)node);
 }
 
 OCnode*
@@ -271,11 +271,11 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	int hasattributes = 0;
 	if(das->octype == OC_Attribute) continue; /* ignore these for now*/
 	if(das->name == NULL || das->att.isglobal) {
-	    oclistpush(dasglobals,(ocelem)das);
+	    oclistpush(dasglobals,(void*)das);
 	    continue;
 	}
 	if(das->att.isdods) {
-	    oclistpush(dodsglobals,(ocelem)das);
+	    oclistpush(dodsglobals,(void*)das);
 	    continue;
 	}
 	for(j=0;j<oclistlength(das->subnodes);j++) {
@@ -291,14 +291,14 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 		    oclog(OCLOGWARN,"oc_mergedas: potentially ambiguous DAS name: %s",das->name);
 		}
 	    }
-	    oclistpush(dasnodes,(ocelem)das);
+	    oclistpush(dasnodes,(void*)das);
 	}
     }
 
     /* 2. collect all the leaf DDS nodes (of type OC_Atomic)*/
     for(i=0;i<oclistlength(ddsnodes);i++) {
 	OCnode* dds = (OCnode*)oclistget(ddsnodes,i);
-	if(dds->octype == OC_Atomic) oclistpush(varnodes,(ocelem)dds);
+	if(dds->octype == OC_Atomic) oclistpush(varnodes,(void*)dds);
     }
 
     /* 3. For each das node, locate matching DDS node(s) and attach
@@ -317,7 +317,7 @@ ocddsdasmerge(OCstate* state, OCnode* dasroot, OCnode* ddsroot)
 	       || strcmp(das->name,dds->name)==0) {
 		mergedas1(dds,das);
 		/* remove from dasnodes list*/
-		oclistset(dasnodes,i,(ocelem)NULL);
+		oclistset(dasnodes,i,(void*)NULL);
 	    }
 	}
     }
@@ -362,7 +362,7 @@ mergedas1(OCnode* dds, OCnode* das)
 	    OCattribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
-            oclistpush(dds->attributes,(ocelem)att);
+            oclistpush(dds->attributes,(void*)att);
 	}
     }
     return OCTHROW(stat);
@@ -399,7 +399,7 @@ mergedods1(OCnode* dds, OCnode* dods)
 						attnode->etype,
 						attnode->att.values);
 	    free(newname);
-            oclistpush(dds->attributes,(ocelem)att);
+            oclistpush(dds->attributes,(void*)att);
 	}
     }
     return OCTHROW(stat);
@@ -425,7 +425,7 @@ ocddsdasmerge(OCstate* state, OCnode* ddsroot, OCnode* dasroot)
 		Attribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
-		oclistpush(globals,(ocelem)att);
+		oclistpush(globals,(void*)att);
 	    }
 	}
     }
@@ -466,7 +466,7 @@ mergedas1(OCnode* dds, OCnode* das)
 	    Attribute* att = makeattribute(attnode->name,
 						attnode->etype,
 						attnode->att.values);
-            oclistpush(dds->attributes,(ocelem)att);
+            oclistpush(dds->attributes,(void*)att);
 	}
     }
     /* Try to merge any enclosed sets with subnodes of dds*/

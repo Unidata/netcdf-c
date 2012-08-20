@@ -10,7 +10,8 @@ a user-defined data type (see \ref user_defined_types).
 
 The atomic external types supported by the netCDF interface are:
 - ::NC_BYTE 	8-bit signed integer
-- ::NC_CHAR 	8-bit unsigned integer
+- ::NC_UBYTE 	8-bit unsigned integer
+- ::NC_CHAR 	8-bit character byte
 - ::NC_SHORT 	16-bit signed integer
 - ::NC_USHORT 	16-bit unsigned integer *
 - ::NC_INT (or ::NC_LONG) 	32-bit signed integer

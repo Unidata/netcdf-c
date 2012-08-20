@@ -2,7 +2,7 @@
 Documentation for getting and building netCDF
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.2.1.  Other libraries that depend on the netCDF C
+utilities, version 4.2.1.1.  Other libraries that depend on the netCDF C
 library, such as the Fortran and C++ libraries, are available as
 separate distributions that can be built and installed after the C
 library is successfully installed.  The netCDF-Java library is also a
@@ -47,6 +47,7 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
+- \ref build_windows
 - \ref configure_options
 
 \page build_default Building with NetCDF-4 and the Remote Data Client
@@ -237,6 +238,12 @@ netCDF-4 libraries:
 \verbatim
 cc -o myapp myapp.c `nc-config --cflags --libs`
 \endverbatim
+
+\page build_windows Building with Windows
+
+See the <a href="http://www.unidata.ucar.edu/netcdf/windows_netcdf/"
+>NetCDF for Windows </a> page for Current information about building
+netCDF on Windows or downloading prebuilt Windows binaries.
 
 \page configure_options ./configure options
 

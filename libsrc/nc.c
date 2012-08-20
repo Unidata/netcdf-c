@@ -769,7 +769,7 @@ NC_endef(NC *ncp,
 				return status;
 			
 		}
-		else if(ncp->vars.nelems > ncp->old->vars.nelems)
+		else if(ncp->old && (ncp->vars.nelems > ncp->old->vars.nelems))
 		{
 			status = fill_added(ncp, ncp->old);
 			if(status != NC_NOERR)

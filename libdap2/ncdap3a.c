@@ -82,7 +82,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	    (unsigned long)dapcomm->cdf.defaultstringlength);
     globalsdim = makecdfnode34(dapcomm, dimname, OC_Dimension, NULL,
                                  dapcomm->cdf.ddsroot);
-    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)globalsdim);
+    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(void*)globalsdim);
     DIMFLAGSET(globalsdim,CDFDIMSTRING);
     globalsdim->dim.declsize = dapcomm->cdf.defaultstringlength;
     globalsdim->dim.declsize0 = globalsdim->dim.declsize;
@@ -117,7 +117,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	    sdim = makecdfnode34(dapcomm, dimname, OC_Dimension, NULL,
                                  dapcomm->cdf.ddsroot);
 	    if(sdim == NULL) return THROW(NC_ENOMEM);
-	    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(ncelem)sdim);
+	    nclistpush(dapcomm->cdf.ddsroot->tree->nodes,(void*)sdim);
 	    DIMFLAGSET(sdim,CDFDIMSTRING);
 	    sdim->dim.declsize = dimsize;
 	    sdim->dim.declsize0 = dimsize;
@@ -283,7 +283,7 @@ makeseqdim(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t count, CDFnode** sqdimp)
     /* build the dimension with given size; keep the dimension anonymous */
     sqdim = makecdfnode34(dapcomm,seq->ocname,OC_Dimension,NULL,root);
     if(sqdim == NULL) return THROW(NC_ENOMEM);
-    nclistpush(tree->nodes,(ncelem)sqdim);
+    nclistpush(tree->nodes,(void*)sqdim);
     /* Assign a name to the sequence node */
     sqdim->ncbasename = cdflegalname3(seq->ocname);
     sqdim->ncfullname = nulldup(sqdim->ncbasename);
@@ -682,8 +682,8 @@ fetchconstrainedmetadata3(NCDAPCOMMON* dapcomm)
 	ddsroot = NULL; /* to avoid double reclamation */
 
         if(!FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-            /* fix DAP server problem by adding back any missing grid structure nodes */
-            ncstat = regrid3(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot,dapcomm->oc.dapconstraint->projections);    
+            /* fix DAP server problem by adding back any inserting needed structure nodes */
+            ncstat = restruct3(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot,dapcomm->oc.dapconstraint->projections);    
             if(ncstat) goto fail;
 	}
 

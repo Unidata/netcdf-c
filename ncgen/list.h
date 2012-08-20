@@ -1,14 +1,9 @@
-/*********************************************************************
- *   Copyright 2009, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
-/* $Id: list.h,v 1.3 2010/05/24 19:59:58 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/ncgen/list.h,v 1.3 2010/05/24 19:59:58 dmh Exp $ */
-
+/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+   See the COPYRIGHT file for more information. */
 #ifndef LIST_H
 #define LIST_H 1
 
-/* Define the type of the elements in the sequence*/
+/* Define the type of the elements in the list*/
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
 #define EXTERNC extern "C"
@@ -16,71 +11,52 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long elem_t;
-
-EXTERNC int listnull(elem_t);
+EXTERNC int listnull(void*);
 
 typedef struct List {
-  unsigned int alloc;
-  unsigned int length;
-  elem_t* content;
+  unsigned long alloc;
+  unsigned long length;
+  void** content;
 } List;
 
 EXTERNC List* listnew(void);
 EXTERNC int listfree(List*);
-EXTERNC int listsetalloc(List*,unsigned int);
+EXTERNC int listsetalloc(List*,unsigned long);
+EXTERNC int listsetlength(List*,unsigned long);
 
-/* Set the ith element of sq */
-EXTERNC int listset(List*,unsigned int,elem_t);
-/* Insert at position i of sq; will push up elements i..|seq|. */
-EXTERNC int listinsert(List*,unsigned int,elem_t);
+/* Set the ith element */
+EXTERNC int listset(List*,unsigned long,void*);
+/* Get value at position i */
+EXTERNC void* listget(List*,unsigned long);/* Return the ith element of l */
+/* Insert at position i; will push up elements i..|seq|. */
+EXTERNC int listinsert(List*,unsigned long,void*);
+/* Remove element at position i; will move higher elements down */
+EXTERNC void* listremove(List* l, unsigned long i);
 
 /* Tail operations */
-EXTERNC int listpush(List*,elem_t); /* Add at Tail */
-EXTERNC elem_t listpop(List*);
-EXTERNC elem_t listtop(List*);
-
-/* Head operations */
-EXTERNC int listfpush(List*,elem_t); /* Add at Head */
-EXTERNC elem_t listfpop(List*);
-EXTERNC elem_t listfront(List*);
-EXTERNC elem_t listremove(List* sq, unsigned int i);
+EXTERNC int listpush(List*,void*); /* Add at Tail */
+EXTERNC void* listpop(List*);
+EXTERNC void* listtop(List*);
 
 /* Duplicate and return the content (null terminate) */
-EXTERNC elem_t* listdup(List*);
+EXTERNC void** listdup(List*);
 
-/* Search list for a given element */
-EXTERNC int listcontains(List*,elem_t);
+/* Look for value match */
+EXTERNC int listcontains(List*, void*);
 
-/* Remove a list element by value (remove all instances) */
-EXTERNC int listdelete(List*,elem_t);
+/* Remove element by value; only removes first encountered */
+EXTERNC int listelemremove(List* l, void* elem);
+
+/* remove duplicates */
+EXTERNC int listunique(List*);
+
+/* Create a clone of a list */
+EXTERNC List* listclone(List*);
 
 /* Following are always "in-lined"*/
-#define listclear(sq) listsetlength((sq),0U)
-#define listextend(sq,len) listsetalloc((sq),(len)+(sq->alloc))
-#define listcontents(sq) ((sq)->content)
-#define listlength(sq)  ((sq)?(sq)->length:0U)
-
-/* Following can be open-coded via macros */
-#ifdef LINLINE
-
-EXTERNC elem_t DATANULL;
-
-#define listsetlength(sq,sz) \
-(((sq)==NULL||(sz)<0||!listsetalloc((sq),(sz)))?0:((sq)->length=(sz),1))
-
-#define listget(sq,index) \
-(((sq)==NULL||(sz)<0||(index)<0||(index)>=(sq)->length)?DATANULL:((sq)->content[index]))
-
-#define listpush(sq,elem) \
-(((sq)==NULL||(((sz)->length >= (sq)->alloc)&&!listsetalloc((sq),0)))?0:((sq)->content[(sq)->length++]=(elem),1))
-
-#else
-EXTERNC int listsetlength(List*,unsigned int);
-EXTERNC elem_t listget(List*,unsigned int);/* Return the ith element of sq */
-EXTERNC int listpush(List*,elem_t); /* Add at Tail */
-#endif
-
+#define listclear(l) listsetlength((l),0)
+#define listextend(l,len) listsetalloc((l),(len)+(l->alloc))
+#define listcontents(l)  ((l)==NULL?NULL:(l)->content)
+#define listlength(l)  ((l)==NULL?0:(l)->length)
 
 #endif /*LIST_H*/
-

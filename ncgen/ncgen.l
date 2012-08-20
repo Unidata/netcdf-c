@@ -605,7 +605,7 @@ makepath(char* text0)
 		        yyerror(errstr);
 			sym = rootgroup;
 		    } else {
-		        listpush(prefix,(elem_t)sym);
+		        listpush(prefix,(void*)sym);
 		    }
 		} else
 		{

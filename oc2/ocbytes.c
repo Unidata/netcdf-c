@@ -42,7 +42,7 @@ ocbytesnew(void)
 }
 
 int
-ocbytessetalloc(OCbytes* bb, unsigned int sz)
+ocbytessetalloc(OCbytes* bb, unsigned long sz)
 {
   char* newcontent;
   if(bb == NULL) return ocbytesfail();
@@ -69,7 +69,7 @@ ocbytesfree(OCbytes* bb)
 }
 
 int
-ocbytessetlength(OCbytes* bb, unsigned int sz)
+ocbytessetlength(OCbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return ocbytesfail();
   if(sz > bb->alloc) {if(!ocbytessetalloc(bb,sz)) return ocbytesfail();}
@@ -80,14 +80,14 @@ ocbytessetlength(OCbytes* bb, unsigned int sz)
 int
 ocbytesfill(OCbytes* bb, char fill)
 {
-  unsigned int i;
+  unsigned long i;
   if(bb == NULL) return ocbytesfail();
   for(i=0;i<bb->length;i++) bb->content[i] = fill;
   return TRUE;
 }
 
 int
-ocbytesget(OCbytes* bb, unsigned int index)
+ocbytesget(OCbytes* bb, unsigned long index)
 {
   if(bb == NULL) return -1;
   if(index >= bb->length) return -1;
@@ -95,7 +95,7 @@ ocbytesget(OCbytes* bb, unsigned int index)
 }
 
 int
-ocbytesset(OCbytes* bb, unsigned int index, char elem)
+ocbytesset(OCbytes* bb, unsigned long index, char elem)
 {
   if(bb == NULL) return ocbytesfail();
   if(index >= bb->length) return ocbytesfail();
@@ -129,7 +129,7 @@ ocbytescat(OCbytes* bb, const char* s)
 }
 
 int
-ocbytesappendn(OCbytes* bb, const void* elem, unsigned int n)
+ocbytesappendn(OCbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return ocbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
@@ -175,7 +175,7 @@ ocbytesextract(OCbytes* bb)
 }
 
 int
-ocbytessetcontents(OCbytes* bb, char* contents, unsigned int alloc)
+ocbytessetcontents(OCbytes* bb, char* contents, unsigned long alloc)
 {
     if(bb == NULL) return ocbytesfail();
     ocbytesclear(bb);

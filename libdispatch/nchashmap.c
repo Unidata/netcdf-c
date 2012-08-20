@@ -1,15 +1,18 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2010, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/nchashmap.c,v 1.4 2009/09/23 22:26:08 dmh Exp $
+ *   $Header$
  *********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "nchashmap.h"
-
-static ncelem ncDATANULL = (ncelem)0;
 
 #ifndef TRUE
 #define TRUE 1
@@ -25,6 +28,10 @@ NChashmap* nchashnew(void) {return nchashnew0(DEFAULTALLOC);}
 NChashmap* nchashnew0(int alloc)
 {
   NChashmap* hm;
+  if(sizeof(nchashid) != sizeof(void*)){
+	fprintf(stderr,"nchashmap: sizeof(nchashid) != sizeof(void*)");
+	abort();
+  }
   hm = (NChashmap*)malloc(sizeof(NChashmap));
   if(!hm) return NULL;
   hm->alloc = alloc;
@@ -48,14 +55,14 @@ nchashfree(NChashmap* hm)
   return TRUE;
 }
 
-/* Insert a <nchashid,ncelem> pair into the table*/
+/* Insert a <nchashid,void*> pair into the table*/
 /* Fail if already there*/
 int
-nchashinsert(NChashmap* hm, nchashid hash, ncelem value)
+nchashinsert(NChashmap* hm, nchashid hash, void* value)
 {
     int i,offset,len;
     NClist* seq;
-    ncelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -63,22 +70,22 @@ nchashinsert(NChashmap* hm, nchashid hash, ncelem value)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-      if((nchashid)*list == hash) return FALSE;
+	if(hash==(nchashid)(*list)) return FALSE;
     }    
-    nclistpush(seq,(ncelem)hash);
+    nclistpush(seq,(void*)hash);
     nclistpush(seq,value);
     hm->size++;
     return TRUE;
 }
 
-/* Insert a <nchashid,ncelem> pair into the table*/
+/* Insert a <nchashid,void*> pair into the table*/
 /* Overwrite if already there*/
 int
-nchashreplace(NChashmap* hm, nchashid hash, ncelem value)
+nchashreplace(NChashmap* hm, nchashid hash, void* value)
 {
     int i,offset,len;
     NClist* seq;
-    ncelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -86,9 +93,9 @@ nchashreplace(NChashmap* hm, nchashid hash, ncelem value)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-      if((nchashid)*list == hash) {list[1] = value; return TRUE;}
+	if(hash==(nchashid)(*list)) {list[1] = value; return TRUE;}
     }    
-    nclistpush(seq,(ncelem)hash);
+    nclistpush(seq,(void*)hash);
     nclistpush(seq,value);
     hm->size++;
     return TRUE;
@@ -101,7 +108,7 @@ nchashremove(NChashmap* hm, nchashid hash)
 {
     int i,offset,len;
     NClist* seq;
-    ncelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -109,7 +116,7 @@ nchashremove(NChashmap* hm, nchashid hash)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-      if((nchashid)*list == hash) {
+	if(hash==(nchashid)(*list)) {
 	    nclistremove(seq,i+1);
 	    nclistremove(seq,i);
 	    hm->size--;
@@ -122,20 +129,20 @@ nchashremove(NChashmap* hm, nchashid hash)
 
 /* lookup a nchashid; return DATANULL if not found*/
 /* (use hashlookup if the possible values include 0)*/
-ncelem
+void*
 nchashget(NChashmap* hm, nchashid hash)
 {
-    ncelem value;
-    if(!nchashlookup(hm,hash,&value)) return ncDATANULL;
+    void* value;
+    if(!nchashlookup(hm,hash,&value)) return NULL;
     return value;
 }
 
 int
-nchashlookup(NChashmap* hm, nchashid hash, ncelem* valuep)
+nchashlookup(NChashmap* hm, nchashid hash, void** valuep)
 {
     int i,offset,len;
     NClist* seq;
-    ncelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -143,7 +150,7 @@ nchashlookup(NChashmap* hm, nchashid hash, ncelem* valuep)
     len = nclistlength(seq);
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-      if((nchashid)*list == hash) {if(valuep) {*valuep = list[1]; return TRUE;}}
+	if(hash==(nchashid)(*list)) {if(valuep) {*valuep = list[1]; return TRUE;}}
     }
     return FALSE;
 }
@@ -151,7 +158,7 @@ nchashlookup(NChashmap* hm, nchashid hash, ncelem* valuep)
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
 int
-nchashith(NChashmap* hm, int index, nchashid* hashp, ncelem* elemp)
+nchashith(NChashmap* hm, int index, nchashid* hashp, void** elemp)
 {
     int i;
     if(hm == NULL) return FALSE;

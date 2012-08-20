@@ -194,12 +194,14 @@ fprintf(stderr," -> ");
 for(i=0;i<nclistlength(dims);i++) 
 if(stridep[i]==1)
 fprintf(stderr,"[%lu:%lu]",(unsigned long)startp[i],(unsigned long)((startp[i]+countp[i])-1));
-else
+else {
+unsigned long iend = (stridep[i] * countp[i]);
+iend = (iend + startp[i]);
+iend = (iend - 1);
 fprintf(stderr,"[%lu:%lu:%lu]",
-(unsigned long)startp[i],
-(unsigned long)stridep[i],
-(unsigned long)(((startp[i]+countp[i])*stridep[i])-1));
-}
+(unsigned long)startp[i],(unsigned long)stridep[i],iend);
+ }
+ }
 fprintf(stderr,"\n");
  }
 #endif
@@ -268,7 +270,7 @@ fprintf(stderr,"getvarx: walkprojection: |%s|\n",dumpprojection(walkprojection))
 
     /* define the var list of interest */
     vars = nclistnew();
-    nclistpush(vars,(ncelem)varainfo->target);
+    nclistpush(vars,(void*)varainfo->target);
 
     switch (state) {
 
@@ -314,7 +316,7 @@ fprintf(stderr,"getvarx: FETCHVAR: fetchprojection: |%s|\n",dumpprojection(fetch
         fetchconstraint->selections = dceclonelist(dapcomm->oc.dapconstraint->selections);
 	/* and the created fetch projection */
         fetchconstraint->projections = nclistnew();
-	nclistpush(fetchconstraint->projections,(ncelem)fetchprojection);
+	nclistpush(fetchconstraint->projections,(void*)fetchprojection);
 #ifdef DEBUG
 fprintf(stderr,"getvarx: FETCHVAR: fetchconstraint: %s\n",dumpconstraint(fetchconstraint));
 #endif
@@ -350,7 +352,7 @@ fprintf(stderr,"getvarx: FETCHPART: fetchprojection: |%s|\n",dumpprojection(fetc
         fetchconstraint->selections = dceclonelist(dapcomm->oc.dapconstraint->selections);
 	/* and the created fetch projection */
         fetchconstraint->projections = nclistnew();
-	nclistpush(fetchconstraint->projections,(ncelem)fetchprojection);
+	nclistpush(fetchconstraint->projections,(void*)fetchprojection);
 #ifdef DEBUG
 fprintf(stderr,"getvarx: FETCHPART: fetchconstraint: %s\n",dumpconstraint(fetchconstraint));
 #endif
@@ -618,7 +620,7 @@ movetofield(NCDAPCOMMON* nccomm,
     /* If the next node is a virtual node, then
        we need to effectively
        ignore it and use the appropriate subnode.
-       If the next node is a structuregrid node, then
+       If the next node is a re-struct'd node, then
        use it as is.
     */
     if(xnext->virtual) {
@@ -1104,7 +1106,7 @@ extractstring(
 	char* value = NULL;
 	ocstat = oc_data_readscalar(conn,currentcontent,sizeof(value),&value);
 	if(ocstat != OC_NOERR) goto done;
-	nclistpush(strings,(ncelem)value);	
+	nclistpush(strings,(void*)value);	
     } else {
         /* Use the odometer to walk to the appropriate fields*/
         odom = dapodom_fromsegment(segment,0,rank0);
@@ -1112,7 +1114,7 @@ extractstring(
 	    char* value = NULL;
 	    ocstat = oc_data_readn(conn,currentcontent,odom->index,1,sizeof(value),&value);
 	    if(ocstat != OC_NOERR) goto done;
-	    nclistpush(strings,(ncelem)value);	
+	    nclistpush(strings,(void*)value);	
             dapodom_next(odom);
 	}
         dapodom_free(odom);

@@ -70,9 +70,9 @@ static void ocappendparams(char* newuri, char** p);
 
 /* Do a simple uri parse: return 0 if fail, 1 otherwise*/
 int
-ocuriparse(const char* uri0, OCURI** ocurip)
+ocuriparse(const char* uri0, OCURI** durip)
 {
-    OCURI* ocuri = NULL;
+    OCURI* duri = NULL;
     char* uri = NULL;
     char* p;
     struct OC_ProtocolInfo* proto;
@@ -92,12 +92,12 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     if(uri0 == NULL || strlen(uri0) == 0)
 	{THROW(1); goto fail;}
 
-    ocuri = (OCURI*)calloc(1,sizeof(OCURI));
-    if(ocuri == NULL)
+    duri = (OCURI*)calloc(1,sizeof(OCURI));
+    if(duri == NULL)
 	{THROW(2); goto fail;}
 	
     /* save original uri */
-    ocuri->uri = nulldup(uri0);
+    duri->uri = nulldup(uri0);
 
     /* make local copy of uri */
     uri = (char*)malloc(strlen(uri0)+1+PADDING); /* +1 for trailing null,
@@ -108,7 +108,7 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     /* strings will be broken into pieces with intermixed '\0; characters;
        first char is guaranteed to be '\0' */
 
-    ocuri->strings = uri;
+    duri->strings = uri;
     uri++; 
 
     /* dup the incoming url */
@@ -308,14 +308,14 @@ ocuriparse(const char* uri0, OCURI** ocurip)
     if(constraint != NULL && *constraint == EOFCHAR) constraint = NULL;
 
     /* assemble the component pieces */
-    ocuri->protocol = protocol;
-    ocuri->user = user;
-    ocuri->password = pwd;
-    ocuri->host = host;
-    ocuri->port = port;
-    ocuri->file = file;
+    duri->protocol = protocol;
+    duri->user = user;
+    duri->password = pwd;
+    duri->host = host;
+    duri->port = port;
+    duri->file = file;
 
-    ocurisetconstraints(ocuri,constraint);
+    ocurisetconstraints(duri,constraint);
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
@@ -324,51 +324,51 @@ ocuriparse(const char* uri0, OCURI** ocurip)
 	int space = plen + slen + 1;
 	/* add 1 for an extra comma if both are defined */
         space++;
-        ocuri->params = (char*)malloc(space);
-	ocuri->params[0] = EOFCHAR; /* so we can use strcat */
+        duri->params = (char*)malloc(space);
+	duri->params[0] = EOFCHAR; /* so we can use strcat */
 	if(plen > 0) {
-            strcat(ocuri->params,prefixparams);
+            strcat(duri->params,prefixparams);
 	    if(slen > 0)
-		strcat(ocuri->params,";");
+		strcat(duri->params,";");
 	}
 	if(slen > 0)
-            strcat(ocuri->params,suffixparams);
+            strcat(duri->params,suffixparams);
     }
 
 #ifdef OCXDEBUG
 	{
-        fprintf(stderr,"ocuri:");
-        fprintf(stderr," params=|%s|",FIX(ocuri->params));
-        fprintf(stderr," protocol=|%s|",FIX(ocuri->protocol));
-        fprintf(stderr," host=|%s|",FIX(ocuri->host));
-        fprintf(stderr," port=|%s|",FIX(ocuri->port));
-        fprintf(stderr," file=|%s|",FIX(ocuri->file));
-        fprintf(stderr," constraint=|%s|",FIX(ocuri->constraint));
+        fprintf(stderr,"duri:");
+        fprintf(stderr," params=|%s|",FIX(duri->params));
+        fprintf(stderr," protocol=|%s|",FIX(duri->protocol));
+        fprintf(stderr," host=|%s|",FIX(duri->host));
+        fprintf(stderr," port=|%s|",FIX(duri->port));
+        fprintf(stderr," file=|%s|",FIX(duri->file));
+        fprintf(stderr," constraint=|%s|",FIX(duri->constraint));
         fprintf(stderr,"\n");
     }
 #endif
-    if(ocurip != NULL) *ocurip = ocuri;
+    if(durip != NULL) *durip = duri;
     return 1;
 
 fail:
-    if(ocuri != NULL) {
-	ocurifree(ocuri);
+    if(duri != NULL) {
+	ocurifree(duri);
     }
     return 0;
 }
 
 void
-ocurifree(OCURI* ocuri)
+ocurifree(OCURI* duri)
 {
-    if(ocuri == NULL) return;
-    if(ocuri->uri != NULL) {free(ocuri->uri);}
-    if(ocuri->params != NULL) {free(ocuri->params);}
-    if(ocuri->paramlist != NULL) ocparamfree(ocuri->paramlist);
-    if(ocuri->strings != NULL) {free(ocuri->strings);}
-    if(ocuri->constraint != NULL) {free(ocuri->constraint);}
-    if(ocuri->projection != NULL) {free(ocuri->projection);}
-    if(ocuri->selection != NULL) {free(ocuri->selection);}
-    free(ocuri);
+    if(duri == NULL) return;
+    if(duri->uri != NULL) {free(duri->uri);}
+    if(duri->params != NULL) {free(duri->params);}
+    if(duri->paramlist != NULL) ocparamfree(duri->paramlist);
+    if(duri->strings != NULL) {free(duri->strings);}
+    if(duri->constraint != NULL) {free(duri->constraint);}
+    if(duri->projection != NULL) {free(duri->projection);}
+    if(duri->selection != NULL) {free(duri->selection);}
+    free(duri);
 }
 
 /* Replace the constraints */

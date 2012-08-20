@@ -11,43 +11,41 @@
 #define EXTERNC extern
 #endif
 
-typedef void* ocelem;
-
-EXTERNC int oclistnull(ocelem);
+EXTERNC int oclistnull(void*);
 
 typedef struct OClist {
-  unsigned int alloc;
-  unsigned int length;
-  ocelem* content;
+  unsigned long alloc;
+  unsigned long length;
+  void** content;
 } OClist;
 
 EXTERNC OClist* oclistnew(void);
 EXTERNC int oclistfree(OClist*);
-EXTERNC int oclistsetalloc(OClist*,unsigned int);
-EXTERNC int oclistsetlength(OClist*,unsigned int);
+EXTERNC int oclistsetalloc(OClist*,unsigned long);
+EXTERNC int oclistsetlength(OClist*,unsigned long);
 
 /* Set the ith element */
-EXTERNC int oclistset(OClist*,unsigned int,ocelem);
+EXTERNC int oclistset(OClist*,unsigned long,void*);
 /* Get value at position i */
-EXTERNC ocelem oclistget(OClist*,unsigned int);/* Return the ith element of l */
+EXTERNC void* oclistget(OClist*,unsigned long);/* Return the ith element of l */
 /* Insert at position i; will push up elements i..|seq|. */
-EXTERNC int oclistinsert(OClist*,unsigned int,ocelem);
+EXTERNC int oclistinsert(OClist*,unsigned long,void*);
 /* Remove element at position i; will move higher elements down */
-EXTERNC ocelem oclistremove(OClist* l, unsigned int i);
+EXTERNC void* oclistremove(OClist* l, unsigned long i);
 
 /* Tail operations */
-EXTERNC int oclistpush(OClist*,ocelem); /* Add at Tail */
-EXTERNC ocelem oclistpop(OClist*);
-EXTERNC ocelem oclisttop(OClist*);
+EXTERNC int oclistpush(OClist*,void*); /* Add at Tail */
+EXTERNC void* oclistpop(OClist*);
+EXTERNC void* oclisttop(OClist*);
 
 /* Duplicate and return the content (null terminate) */
-EXTERNC ocelem* oclistdup(OClist*);
+EXTERNC void** oclistdup(OClist*);
 
 /* Look for value match */
-EXTERNC int oclistcontains(OClist*, ocelem);
+EXTERNC int oclistcontains(OClist*, void*);
 
 /* Remove element by value; only removes first encountered */
-EXTERNC int oclistelemremove(OClist* l, ocelem elem);
+EXTERNC int oclistelemremove(OClist* l, void* elem);
 
 /* remove duplicates */
 EXTERNC int oclistunique(OClist*);
@@ -56,9 +54,9 @@ EXTERNC int oclistunique(OClist*);
 EXTERNC OClist* oclistclone(OClist*);
 
 /* Following are always "in-lined"*/
-#define oclistclear(l) oclistsetlength((l),0U)
+#define oclistclear(l) oclistsetlength((l),0)
 #define oclistextend(l,len) oclistsetalloc((l),(len)+(l->alloc))
 #define oclistcontents(l)  ((l)==NULL?NULL:(l)->content)
-#define oclistlength(l)  ((l)==NULL?0U:(l)->length)
+#define oclistlength(l)  ((l)==NULL?0:(l)->length)
 
 #endif /*OCLIST_H*/

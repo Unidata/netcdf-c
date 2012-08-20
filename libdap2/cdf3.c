@@ -12,11 +12,9 @@ CDFnode* v4node = NULL;
 
 /* Forward*/
 static NCerror sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq);
-static NCerror regrid3r(CDFnode*, CDFnode*, NClist*);
-static NCerror testregrid3(CDFnode* node, CDFnode* template, NClist*);
-static CDFnode* makenewgrid3(CDFnode* node, CDFnode* template);
-static NCerror regridinsert(CDFnode* newgrid, CDFnode* node);
-static NCerror regridremove(CDFnode* newgrid, CDFnode* node);
+static NCerror restruct3r(CDFnode*, CDFnode*);
+static NCerror structwrap3(CDFnode*, CDFnode*, int, CDFnode*, int);
+static CDFnode* makenewstruct3(CDFnode* node, CDFnode* template);
 static NCerror mapnodes3r(CDFnode*, CDFnode*, int depth);
 static NCerror mapfcn(CDFnode* dstnode, CDFnode* srcnode);
 static NCerror definedimsetplus3(NCDAPCOMMON* nccomm, CDFnode* node);
@@ -45,10 +43,10 @@ computecdfnodesets3(NCDAPCOMMON* nccomm)
 	if(!node->visible) continue;
 	switch (node->nctype) {
 	case NC_Sequence:
-	    nclistpush(nccomm->cdf.seqnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.seqnodes,(void*)node);
 	    break;
 	case NC_Grid:
-	    nclistpush(nccomm->cdf.gridnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.gridnodes,(void*)node);
 	    break;
 	default: break;
 	}
@@ -71,7 +69,7 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	}
 	if(!node->visible) continue;
 	if(node->nctype == NC_Atomic)
-	    nclistpush(allvarnodes,(ncelem)node);
+	    nclistpush(allvarnodes,(void*)node);
     }
     /* Further process the variable nodes to get the final set */
     /* Use toplevel vars first */
@@ -80,8 +78,8 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
         if(daptoplevel(node)) {
-	    nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+	    nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
 	}
     }
     /*... then grid arrays and maps.
@@ -92,19 +90,19 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
 	if(dapgridarray(node)) {
-	    nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+	    nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
         } else if(dapgridmap(node)) {
 	    if(!FLAGSET(nccomm->controls,NCF_NCDAP))
-		nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+		nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
 	}
     }
     /*... then all others */
     for(i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
-        nclistpush(varnodes,(ncelem)node);
+        nclistpush(varnodes,(void*)node);
     }
     nclistfree(allvarnodes);
 #ifdef DEBUG2
@@ -252,7 +250,7 @@ sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq)
 	    node->usesequence = 0;
 	    err = NC_EINVAL;
 	}
-    } else if(nclistcontains(vars,(ncelem)node)) {
+    } else if(nclistcontains(vars,(void*)node)) {
 	/* If we reach a leaf, then topseq is usable, so save it */
 	node->array.sequence = topseq;
     } else { /* Some kind of non-sequence container node with no dimensions */
@@ -270,265 +268,177 @@ sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq)
 /*
 OPeNDAP is in the process of changing servers so that
 partial grids are converted to structures.  However, not all
-servers do this: some elide the grid altogether, which can
-lead to ambiguities.  Handle this last case by attempting to
-convert the elided case to look like the newer structure
-case.  [for some reason, this code has been difficult to get
-right; I have rewritten 6 times and it probably is still not
-right.]
+servers do this, and not consistently.
+The rules that most old-style servers appear to adhere to are these.
+1. Asking for just a grid array or a single grid map
+   returns just the array not wrapped in a structure.
+2. Asking for a subset of the fields (array plus map) of a grid
+   returns those fields wrapped in a structure.
+3. However, there is an odd situation: asking for a grid array
+   plus any subset of maps that includes the last map in the grid
+   returns a malformed grid. This is clearly a bug.
+
+For case 1, we insert a structure node so that case 1 is consistent
+with case 2. Case 3 should cause an error with a malformed grid.
+
+[Note: for some reason, this code has been difficult to get right;
+I have rewritten 6 times and it probably is still not right.]
 
 Input is
 (1) the root of the dds that needs to be re-gridded
 (2) the full datadds tree that defines where the grids are.
 (3) the projections that were used to produce (1) from (2).
+
 */
 
 NCerror
-regrid3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
+restruct3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
 {
     NCerror ncstat = NC_NOERR;
-    NClist* newgrids = nclistnew();
 
-    /* The current regrid assumes that the ddsroot tree
+    /* The current restruct assumes that the ddsroot tree
        has missing grids compared to the template.
        It is also assumed that order of the nodes
        in the ddsroot is the same as in the template.
     */
-    if(ddsroot->tree->regridded) return NC_NOERR;
+    if(ddsroot->tree->restructed) return NC_NOERR;
 
 #ifdef DEBUG
-fprintf(stderr,"regrid: ddsroot=%s\n",dumptree(ddsroot));
-fprintf(stderr,"regrid: template=%s\n",dumptree(template));
+fprintf(stderr,"restruct: ddsroot=%s\n",dumptree(ddsroot));
+fprintf(stderr,"restruct: template=%s\n",dumptree(template));
 #endif
 
+    /* Try to match this node against the template */
+    if(!simplenodematch34(ddsroot,template))
+	{ncstat = NC_EDATADDS; goto done;}
 
-#ifdef PROJECTED
-    /* turn off the projection tag for all nodes */
-    unprojected3(template->tree->nodes);
-    /* Set the projection flag for all paths of all nodes
-       that are referenced in the projections that produced ddsroot.
-       This includes containers and subnodes. If there are no
-       projections then mark all nodes 
-    */
-     projectall3(template->tree->nodes);
-#endif
+    ncstat = restruct3r(ddsroot,template);
+    ddsroot->tree->restructed = 1;
 
-    if(simplenodematch34(ddsroot,template)) {
-        ncstat = regrid3r(ddsroot,template,newgrids);
-        ddsroot->tree->regridded = 1;
-    } else
-	ncstat = NC_EINVAL;
-    nclistfree(newgrids);
-    return ncstat;
-}
-
-#ifdef PROJECTED
-static void
-unprojected3(NClist* nodes)
-{
-    int i;
-    for(i=0;i<nclistlength(nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(nodes,i);
-	node->projected = 0;
-    }
-}
-
-static void
-projectall3(NClist* nodes)
-{
-    int i;
-    for(i=0;i<nclistlength(nodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(nodes,i);
-	node->projected = 1;
-    }
-}
-
-static void
-projection3r(CDFnode* node)
-{
-    int i;
-    NClist* path = nclistnew();
-    collectnodepath3(node,path,!WITHDATASET);
-    for(i=0;i<nclistlength(path);i++) {
-        CDFnode* pathnode = (CDFnode*)nclistget(path,i);
-#ifdef DEBUG
-if(pathnode->projected == 0)
-fprintf(stderr,"projection: %s\n",makesimplepathstring3(pathnode));
-#endif
-	pathnode->projected = 1;
-    }
-    /* Now tag everything below me */
-    for(i=0;i<nclistlength(node->subnodes);i++) {
-	CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
-	projection3r(subnode);
-    }
-    nclistfree(path);
-}
-#endif /*PROJECTED*/
-
-/*
-Add in virtual structure nodes so that
-old style constrainted DDS and DATADDS
-look like the new style with structures.
-*/
-static NCerror
-regrid3r(CDFnode* node, CDFnode* template, NClist* gridnodes)
-{
-    unsigned int inode, itemp;
-    NCerror ncstat = NC_NOERR;
-
-    /* Try to match node's subnodes to a subset of the
-       template subnodes
-    */
-#ifdef DEBUG
-fprintf(stderr,"regrid: matched: %s -> %s\n",
-node->ocname,template->ocname);
-#endif
-    for(inode=0;inode<nclistlength(node->subnodes);inode++) {
-        CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,inode);
-	int match = 0;
-        for(itemp=0;itemp<nclistlength(template->subnodes);itemp++) {
-            CDFnode* subtemp = (CDFnode*)nclistget(template->subnodes,itemp);
-	    if(
-#ifdef PROJECTED
-		subtemp->projected &&
-#endif
-		simplenodematch34(subnode,subtemp)) {
-                ncstat = regrid3r(subnode,subtemp,gridnodes);
-                if(ncstat != NC_NOERR) return THROW(ncstat);
-		match = 1;
-#ifdef PROJECTED
-		subtemp->projected = 0; /*make sure we dont reuse this node*/
-#endif
-		break;
-	    }
-        }
-	if(!match) { /* subnode has no match */
-	    /* ok, see if we can regrid */
-            for(itemp=0;itemp<nclistlength(template->subnodes);itemp++) {
-                CDFnode* subtemp = (CDFnode*)nclistget(template->subnodes,itemp);
-#ifdef DEBUG
-fprintf(stderr,"regrid: inside: %s.%s :: %s.%s\n",
-node->ocname,subnode->ocname,
-template->ocname,subtemp->ocname);
-#endif
-		if(subtemp->nctype != NC_Grid)
-		    continue;
-#ifdef PROJECTED
-		if(!subtemp->projected) continue;
-#endif
-		ncstat = testregrid3(subnode,subtemp,gridnodes);
-                if(ncstat == NC_NOERR) {match=1; break;}
-	    }
-	    if(!match) {/* really no match */
-	        ncstat = THROW(NC_EDDS); /* no match */
-	    }
-	}
-    }
+done:
     return THROW(ncstat);
 }
 
-/* See if this node can match a subnode of the template
-   as a grid, and if so, then rebuild the node graph.
+/*
+Locate nodes in the tree rooted at node
+that correspond to a single grid field in the template
+when the template is a grid.
+Wrap that grid field in a synthesized structure.
 */
 static NCerror
-testregrid3(CDFnode* node, CDFnode* template, NClist* gridnodes)
+restruct3r(CDFnode* node, CDFnode* template)
 {
-    int i,match;
+    unsigned int inode, itemp, i;
     NCerror ncstat = NC_NOERR;
-    ASSERT((template->nctype == NC_Grid));
-    { /* try to match inside the grid */
-        for(match=0,i=0;i<nclistlength(template->subnodes);i++) {
-            CDFnode* gridelem = (CDFnode*)nclistget(template->subnodes,i);
-            if(!simplenodematch34(gridelem,node))
-		continue;
-            ncstat = regrid3r(node,gridelem,gridnodes);
-            if(ncstat == NC_NOERR) {
-                /* create new grid node if not already created */
-                CDFnode* newgrid = NULL;
-	        match = 1;
-                for(i=0;i<nclistlength(gridnodes);i++) {
-                    newgrid = (CDFnode*)nclistget(gridnodes,i);
-                    if(newgrid->template == template) break;
-                    newgrid = NULL;
-                }
-                if(newgrid == NULL) {
-                    newgrid = makenewgrid3(node,template);
-                    if(newgrid == NULL) {ncstat = NC_ENOMEM; goto done;}
-                    /* Insert the grid into node's parent */
-                    regridinsert(newgrid,node);
-                    nclistpush(gridnodes,(ncelem)newgrid);
-                    nclistpush(node->root->tree->nodes,(ncelem)newgrid);
-                } 
-                regridremove(newgrid, node);
-                node->container = newgrid;
-                nclistpush(newgrid->subnodes,(ncelem)node);
-                break; /* done with node */
+
+#ifdef DEBUG
+fprintf(stderr,"restruct: matched: %s -> %s\n",
+node->ocname,template->ocname);
+#endif
+
+    /* this part is tricky; except for nodes needing
+       wrapping, the set of children of the node better
+       be a subset of the children in the template.
+    */
+
+    /* walk each node child and locate its match
+       in the template's children; recurse on matches,
+       non-matches should be nodes needing wrapping.
+    */
+    for(inode=0;inode<nclistlength(node->subnodes);inode++) {
+        CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,inode);
+        CDFnode* wrap = NULL;           
+	int wrapindex = 0;
+	int match = 0;
+        for(itemp=0;itemp<nclistlength(template->subnodes);itemp++) {
+            CDFnode* subtemp = (CDFnode*)nclistget(template->subnodes,itemp);
+            if(simplenodematch34(subnode,subtemp)) {
+                /* this subnode of the node matches the corresponding
+                   node of the template, so it is ok =>
+                   recurse looking for nested mis-matches
+                */
+                ncstat = restruct3r(subnode,subtemp);
+                if(ncstat != NC_NOERR) return THROW(ncstat);
+                match = 1; /* indicate that we matched */
+                break;
+            } else if(subtemp->nctype == NC_Grid || subtemp->nctype == NC_Structure) {
+                /* See if we can match this subnode to a subnode
+                    of the grid or structure */
+                for(i=0;i<nclistlength(subtemp->subnodes);i++) {
+                    CDFnode* level2 = (CDFnode*)nclistget(subtemp->subnodes,i);
+                    if(simplenodematch34(subnode,level2)) {
+                        /* ASSUME that subnode needs rewrap wrt subtemp */
+                        wrap = subtemp;                         
+			wrapindex = i;
+                        break;
+                    }
+                }   
             }
         }
+        if(!match && wrap == NULL) {
+            /* This should never occur */
+            ncstat = NC_EDATADDS; goto done;
+        }
+        if(wrap != NULL) { /* This subnode should need wrapping */
+            ASSERT(wrap->nctype == NC_Grid || wrap->nctype == NC_Structure);
+            ncstat = structwrap3(subnode,node,inode,wrap,wrapindex);
+            if(ncstat != NC_NOERR) goto done;
+	    /* since grids are terminal, there will be no
+               need to continue the recursion */
+       }
     }
-    if(!match) ncstat = NC_EDDS;
+done:
+    return THROW(ncstat);
+
+}
+
+/* Wrap the node wrt the template grid or template struct */
+
+static NCerror
+structwrap3(CDFnode* node, CDFnode* parent, int parentindex,
+                           CDFnode* templategrid, int gridindex)
+{
+    NCerror ncstat = NC_NOERR;
+    CDFnode* newstruct;
+
+    ASSERT((templategrid->nctype == NC_Grid || templategrid->nctype == NC_Structure));
+    newstruct = makenewstruct3(node,templategrid);
+    if(newstruct == NULL) {ncstat = NC_ENOMEM; goto done;}
+    /* replace the node with the new structure
+       in the parent's list of children*/
+    nclistremove(parent->subnodes,parentindex);
+    nclistinsert(parent->subnodes,parentindex,(void*)newstruct);
+    /* Update the list of all nodes in the tree */
+    nclistpush(node->root->tree->nodes,(void*)newstruct);
+
 done:
     return ncstat;
 }
 
-
+/* Create a structure to surround projected grid array or map;
+   this occurs because some servers (that means you ferret and you thredds!)
+   do not adhere to the DAP2 protocol spec.
+*/
+  
 static CDFnode*
-makenewgrid3(CDFnode* node, CDFnode* template)
+makenewstruct3(CDFnode* node, CDFnode* templatenode)
 {
-    CDFnode* newgrid;
-    newgrid = (CDFnode*)calloc(1,sizeof(CDFnode));
-    if(newgrid == NULL) return NULL;
-    memset((void*)newgrid,0,sizeof(CDFnode));
-    newgrid->virtual = 1;
-    newgrid->ocname = nulldup(template->ocname);
-    newgrid->ncbasename = nulldup(template->ncbasename);
-    newgrid->nctype = NC_Grid;
-    newgrid->subnodes = nclistnew();
-    newgrid->container = node->container;
-    newgrid->template = template;
-    return newgrid;
+    CDFnode* newstruct = (CDFnode*)calloc(1,sizeof(CDFnode));
+    if(newstruct == NULL) return NULL;
+    newstruct->nctype = NC_Structure;
+    newstruct->virtual = 1;
+    newstruct->ocname = nulldup(templatenode->ocname);
+    newstruct->ocnode = templatenode->ocnode;
+    newstruct->ncbasename = nulldup(templatenode->ncbasename);
+    newstruct->subnodes = nclistnew();
+    newstruct->container = node->container;
+    newstruct->template = templatenode;
+    node->container = newstruct;
+    nclistpush(newstruct->subnodes,(void*)node);
+    return newstruct;
 }
-
-static NCerror
-regridinsert(CDFnode* newgrid, CDFnode* node)
-{
-    int i;
-    CDFnode* parent;
-    /* Locate the index of the node in its current parent */
-    parent = node->container;
-    for(i=0;i<nclistlength(parent->subnodes);i++) {
-	CDFnode* subnode = (CDFnode*)nclistget(parent->subnodes,i);
-	if(subnode == node) {
-	    /* Insert the grid right before this node */
-	    nclistinsert(parent->subnodes,i,(ncelem)newgrid);
-	    return NC_NOERR;
-	}
-    }
-    PANIC("regridinsert failure");
-    return NC_EINVAL;
-}
-
-static NCerror
-regridremove(CDFnode* newgrid, CDFnode* node)
-{
-    int i;
-    CDFnode* parent;
-    /* Locate the index of the node in its current parent and remove */
-    parent = node->container;
-    for(i=0;i<nclistlength(parent->subnodes);i++) {
-	CDFnode* subnode = (CDFnode*)nclistget(parent->subnodes,i);
-	if(subnode == node) {
-	    nclistremove(parent->subnodes,i);
-	    return NC_NOERR;
-	}
-    }
-    PANIC("regridremove failure");
-    return NC_EINVAL;
-}    
 
 /**
-
 Make the constrained dds nodes (root)
 point to the corresponding unconstrained
 dds nodes (fullroot).
@@ -660,7 +570,7 @@ clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)
     clone = makecdfnode34(nccomm,dim->ocname,OC_Dimension,
 			  NULL,dim->container);
     /* Record its existence */
-    nclistpush(dim->container->root->tree->nodes,(ncelem)clone);
+    nclistpush(dim->container->root->tree->nodes,(void*)clone);
     clone->dim = dim->dim; /* copy most everything */
     clone->dim.dimflags |= CDFDIMCLONE;
     clone->dim.array = var;
@@ -674,7 +584,7 @@ clonedimset3(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
     int i;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	nclistpush(result,(ncelem)clonedim(nccomm,dim,var));
+	nclistpush(result,(void*)clonedim(nccomm,dim,var));
     }
     return result;
 }
@@ -696,11 +606,11 @@ definedimsetplus3(NCDAPCOMMON* nccomm, CDFnode* node)
     /* Insert the sequence or string dims */
     if(node->array.stringdim != NULL) {
 	clone = node->array.stringdim;
-        nclistpush(dimset,(ncelem)clone);
+        nclistpush(dimset,(void*)clone);
     }
     if(node->array.seqdim != NULL) {
 	clone = node->array.seqdim;
-        nclistpush(dimset,(ncelem)clone);
+        nclistpush(dimset,(void*)clone);
     }
     node->array.dimsetplus = dimset;
     return ncstat;
@@ -714,11 +624,14 @@ definedimsetall3(NCDAPCOMMON* nccomm, CDFnode* node)
     int ncstat = NC_NOERR;
     NClist* dimsetall;
 
-    ASSERT(node->array.dimsetall == NULL);
+    /* Because of upward recursion (see below) the dimsetall may
+       already be defined */
+    if(node->array.dimsetall != NULL)
+	return ncstat;
     if(node->container != NULL) {
         if(node->container->array.dimsetall == NULL) {
 #ifdef DEBUG1
-fprintf(stderr,"dimsetall: recurse %s\n",node->container->ocname);
+fprintf(stderr,"dimsetall: recurse to container%s\n",node->container->ocname);
 #endif
 	    ncstat = definedimsetall3(nccomm,node->container);
 	    if(ncstat != NC_NOERR) return ncstat;
@@ -731,7 +644,7 @@ fprintf(stderr,"dimsetall: recurse %s\n",node->container->ocname);
     // concat parentall and dimset;
     for(i=0;i<nclistlength(node->array.dimsetplus);i++) {
 	CDFnode* clone = (CDFnode*)nclistget(node->array.dimsetplus,i);
-	nclistpush(dimsetall,(ncelem)clone);
+	nclistpush(dimsetall,(void*)clone);
     }
     node->array.dimsetall = dimsetall;
 #ifdef DEBUG1
@@ -760,7 +673,6 @@ definedimsets3(NCDAPCOMMON* nccomm)
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* rankednode = (CDFnode*)nclistget(allnodes,i);
 	if(rankednode->nctype == NC_Dimension) continue; //ignore
-	ASSERT((rankednode->array.dimsetall == NULL));
 	ASSERT((rankednode->array.dimsetplus != NULL));
 	ncstat = definedimsetall3(nccomm,rankednode);
 	if(ncstat != NC_NOERR) return ncstat;

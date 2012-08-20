@@ -168,7 +168,7 @@ typedef struct CDFtree {
     struct CDFnode* root; /* cross link */
     struct NCDAPCOMMON*          owner;
     /* Classification flags */
-    int regridded; /* Was this tree passed thru regrid3? */
+    int restructed; /* Was this tree passed thru restruct3? */
 } CDFtree;
 
 /* Track the kinds of dimensions */

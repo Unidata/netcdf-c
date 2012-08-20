@@ -273,10 +273,10 @@ void
 print_att_times(
     int ncid,
     int varid,			/* parent var ID */
-    ncatt_t att			/* attribute structure */
+    const ncatt_t *att		/* attribute structure */
     )
 {
-    nc_type type = att.type;	/* local copy */
+    nc_type type = att->type;	/* local copy */
     boolean wrap;
     boolean first_item;
 
@@ -291,7 +291,7 @@ print_att_times(
     if (varid == NC_GLOBAL)	/* time units not defined for global atts */
 	return;
 
-    assert (att.len > 0);	/* should already be eliminated by caller */
+    assert (att->len > 0);	/* should already be eliminated by caller */
 
 #ifdef USE_NETCDF4
     assert ( type == NC_BYTE   || type == NC_SHORT  || type == NC_INT
@@ -313,7 +313,7 @@ print_att_times(
 /* Convert each value to ISO date/time string, and print. */
 	
 	size_t iel;				     /* attrib index */
-	const char *valp = (const char *)att.valgp;  /* attrib value pointer */
+	const char *valp = (const char *)att->valgp;  /* attrib value pointer */
 	safebuf_t *sb = sbuf_new();		/* allocate new string buffer */
 #ifdef NOTUSED
         int func;				/* line wrap control */
@@ -322,17 +322,17 @@ print_att_times(
 	    separator = 'T';
 #endif
         
-	var.type = att.type;		/* insert attrib type into fake var */
+	var.type = att->type;		/* insert attrib type into fake var */
 
-	for (iel = 0; iel < att.len; iel++) {
+	for (iel = 0; iel < att->len; iel++) {
 	    nctime_val_tostring(&var, sb, (void *)valp);  /* convert to str. */
-	    valp += att.tinfo->size;	/* increment value pointer, by type */
-	    if (iel < att.len - 1)	/* add comma, except for final value */
+	    valp += att->tinfo->size;	/* increment value pointer, by type */
+	    if (iel < att->len - 1)	/* add comma, except for final value */
 		sbuf_cat(sb, ",");
 
             first_item = (iel == 0);	/* identify start of list */
             
-            wrap = (att.len > 2);	/* specify line wrap variations:     */
+            wrap = (att->len > 2);	/* specify line wrap variations:     */
 					/* 1 or 2 values: keep on same line, */
 					/* more than 2: enable line wrap     */
 

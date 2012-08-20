@@ -58,7 +58,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	    if(ncstat != NC_NOERR) goto done;
 	    if(node->attributes == NULL)
 		node->attributes = nclistnew();
-	    nclistpush(node->attributes,(ncelem)att);
+	    nclistpush(node->attributes,(void*)att);
 	    if(strncmp(ocname,"DODS",strlen("DODS"))==0) {
 		att->invisible = 1;
 	        /* Define extra semantics associated with
@@ -126,7 +126,7 @@ buildattribute(char* name, nc_type ptype,
 
     att->values = nclistnew();
     for(i=0;i<nvalues;i++)
-	nclistpush(att->values,(ncelem)nulldup(values[i]));
+	nclistpush(att->values,(void*)nulldup(values[i]));
 
     if(attp) *attp = att;
 
@@ -204,12 +204,12 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 
 	/* catch DODS_EXTRA */
 	if(isglobal && ocname != NULL && strcmp(ocname,"DODS_EXTRA")==0) {
-	    nclistpush(dodsextra,(ncelem)das);
+	    nclistpush(dodsextra,(void*)das);
 	    nullfree(ocname);
 	    continue;
 	}
 	if(ocname == NULL || isglobal) {
-            nclistpush(dasglobals,(ncelem)das);
+            nclistpush(dasglobals,(void*)das);
 	    nullfree(ocname);
 	    continue;
 	}
@@ -227,7 +227,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 loop:
 		nullfree(ocname2);
 	    }
-	    nclistpush(dasnodes,(ncelem)das);
+	    nclistpush(dasnodes,(void*)das);
 	}
 	nullfree(ocname);
     }
@@ -266,7 +266,7 @@ loop:
 	       || strcmp(ocbasename,dds->ocname)==0) {
 		mergedas1(nccomm,conn,dds,das);
 		/* remove from dasnodes list*/
-		nclistset(dasnodes,i,(ncelem)NULL);
+		nclistset(dasnodes,i,(void*)NULL);
 	    }
 	    nullfree(ddsfullname);
 	}
@@ -329,14 +329,14 @@ mergedas1(NCDAPCOMMON* nccomm, OClink conn, CDFnode* dds, OCddsnode das)
 	    for(j=0;j<ocnvalues;j++) {
 		char* stringval;
 	        OCCHECK(oc_inq_dasattr(conn,attnode,j,&ocetype,&stringval));
-	        nclistpush(stringvalues,(ncelem)stringval);
+	        nclistpush(stringvalues,(void*)stringval);
 	    }
 	    ncstat = buildattribute(ocname,
 				    octypetonc(ocetype),
 				    stringvalues,
 				    &att);				
 	    if(ncstat) goto done;
-            nclistpush(dds->attributes,(ncelem)att);
+            nclistpush(dds->attributes,(void*)att);
 	} else if(octype == OC_Attributeset
 		  && (strcmp(ocname,"DODS")==0
 		      || strcmp(ocname,"DODS_EXTRA")==0)) {
@@ -358,7 +358,7 @@ mergedas1(NCDAPCOMMON* nccomm, OClink conn, CDFnode* dds, OCddsnode das)
 	        for(k=0;k<ocnvalues;k++) {
 		    char* stringval;
 	            OCCHECK(oc_inq_dasattr(conn,attnode,k,&ocetype,&stringval));
-	            nclistpush(stringvalues,(ncelem)stringval);
+	            nclistpush(stringvalues,(void*)stringval);
 		}
 	        OCCHECK(oc_inq_name(conn,attnode,&dodsname));
 		/* Compute new special name */
@@ -370,7 +370,7 @@ mergedas1(NCDAPCOMMON* nccomm, OClink conn, CDFnode* dds, OCddsnode das)
 				        &att);				
 		if(ncstat) goto done;
 		att->invisible = 1;
-            	nclistpush(dds->attributes,(ncelem)att);
+            	nclistpush(dds->attributes,(void*)att);
 
 		/* Define extra semantics associated with DODS and DODS_EXTRA attribute */
 		if(strcmp(dodsname,"strlen")==0) {
@@ -434,7 +434,7 @@ collect_alldasnodes(OClink link, OCddsnode dasnode, NClist* alldasnodes)
 {
     size_t nsubnodes,i;
     OCerror ocstat = OC_NOERR;
-    nclistpush(alldasnodes,(ncelem)dasnode);
+    nclistpush(alldasnodes,(void*)dasnode);
     ocstat = oc_dds_nsubnodes(link,dasnode,&nsubnodes);
     if(ocstat != OC_NOERR) goto done;
     for(i=0;i<nsubnodes;i++) {
@@ -458,7 +458,7 @@ collect_leaves(OClink link, OCddsnode ddsnode, NClist* leaves)
     ocstat = oc_dds_octype(link,ddsnode,&octype);
     if(ocstat != OC_NOERR) goto done;
     if(octype == OC_Atomic) {
-        nclistpush(leaves,(ncelem)ddsnode);
+        nclistpush(leaves,(void*)ddsnode);
     } else {
         ocstat = oc_dds_nsubnodes(link,ddsnode,&nsubnodes);
         if(ocstat != OC_NOERR) goto done;
@@ -486,7 +486,7 @@ collect_subnodes(OClink link, OCddsnode ddsnode, NClist* subnodes)
         OCddsnode subnode;
 	ocstat = oc_dds_ithsubnode(link,ddsnode,i,&subnode);
         if(ocstat != OC_NOERR) goto done;
-	nclistpush(subnodes,(ncelem)subnode);
+	nclistpush(subnodes,(void*)subnode);
     }
     
 done:

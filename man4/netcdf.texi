@@ -1703,7 +1703,7 @@ The atomic external types supported by the netCDF interface are:
 @end multitable
 
 * These types are available only for netCDF-4 format files. All the
-unsigned ints (except NC_CHAR), the 64-bit ints, and string
+unsigned ints, the 64-bit ints, and string
 type are for netCDF-4 files only.
  
 These types were chosen to provide a reasonably wide range of
