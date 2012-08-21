@@ -203,13 +203,18 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     char buf[1024];
     char filename[1024];
     int fd = -1;
+    int flags = 0;
     off_t filesize = 0;
     off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
     strcpy(filename,path);
     if(suffix != NULL) strcat(filename,suffix);
-    fd = open(filename,O_RDONLY);
+    flags = O_RDONLY;
+#ifdef O_BINARY
+    flags |= O_BINARY;
+#endif
+    fd = open(filename,flags);
     if(fd < 0) {
 	oclog(OCLOGERR,"open failed:%s",filename);
 	return OCTHROW(OC_EOPEN);
