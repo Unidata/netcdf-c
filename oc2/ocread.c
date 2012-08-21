@@ -202,7 +202,9 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     int stat = OC_NOERR;
     char buf[1024];
     char filename[1024];
-    int count,size,fd;
+    int fd = -1;
+    off_t filesize = 0;
+    off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
     strcpy(filename,path);
@@ -212,24 +214,41 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 	oclog(OCLOGERR,"open failed:%s",filename);
 	return OCTHROW(OC_EOPEN);
     }
-    size=0;
+    /* Get the file size */
+    filesize = lseek(fd,0,SEEK_END);
+    if(filesize < 0) {
+	stat = OC_EIO;
+	oclog(OCLOGERR,"lseek failed: %s",filename);
+	goto done;
+    }
+    /* Move file pointer back to the beginning of the file */
+    (void)lseek(fd,0,SEEK_SET);
     stat = OC_NOERR;
-    for(;;) {
-	count = read(fd,buf,sizeof(buf));
+    for(totalread=0;;) {
+	off_t count = (off_t)read(fd,buf,sizeof(buf));
 	if(count == 0)
-	    break;
+	    break; /*eof*/
 	else if(count <  0) {
 	    stat = OC_EIO;
 	    oclog(OCLOGERR,"read failed: %s",filename);
-	    break;
+	    goto done;
 	}
-	ocbytesappendn(packet,buf,count);
-	size += count;
+	ocbytesappendn(packet,buf,(unsigned long)count);
+	totalread += count;
     }
+    if(totalread < filesize) {
+	stat = OC_EIO;
+	oclog(OCLOGERR,"short read: |%s|=%lu read=%lu\n",
+		filename,(unsigned long)filesize,(unsigned long)totalread);
+        goto done;
+    }
+
+done:
 #ifdef OCDEBUG
-fprintf(stderr,"readfile: size=%lu\n",(unsigned long)size);
+fprintf(stderr,"readfile: filesize=%lu totalread=%lu\n",
+		(unsigned long)filesize,(unsigned long)totalread);
 #endif
-    close(fd);
+    if(fd >= 0) close(fd);
     return OCTHROW(stat);
 }
 
