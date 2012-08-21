@@ -33,6 +33,9 @@ readDDS(OCstate* state, OCtree* tree)
 
     ocset_user_password(state);
 
+#ifdef OCDEBUG
+fprintf(stderr,"readDDS:\n");
+#endif
     stat = readpacket(state,state->uri,state->packet,OCDDS,
 			&lastmodified);
     if(stat == OC_NOERR) state->ddslastmodified = lastmodified;
@@ -46,6 +49,9 @@ readDAS(OCstate* state, OCtree* tree)
     int stat = OC_NOERR;
 
     ocurisetconstraints(state->uri,tree->constraint);
+#ifdef OCDEBUG
+fprintf(stderr,"readDAS:\n");
+#endif
     stat = readpacket(state,state->uri,state->packet,OCDAS,NULL);
 
     return stat;
@@ -104,6 +110,10 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
             {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
     }
     free(fetchurl);
+#ifdef OCDEBUG
+fprintf(stderr,"readpacket: packet.size=%lu\n",
+		(unsigned long)ocbyteslength(packet));
+#endif
     return OCTHROW(stat);
 }
 
@@ -113,6 +123,9 @@ readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
     int stat = OC_NOERR;
     long lastmod = -1;
 
+#ifdef OCDEBUG
+fprintf(stderr,"readDATADDS:\n");
+#endif
     if((flags & OCONDISK) == 0) {
         ocurisetconstraints(state->uri,tree->constraint);
         stat = readpacket(state,state->uri,state->packet,OCDATADDS,&lastmod);
@@ -159,13 +172,23 @@ readfiletofile(const char* path, const char* suffix, FILE* stream, off_t* sizep)
     /* check for leading file:/// */
     if(ocstrncmp(path,"file:///",8)==0) path += 7; /* assume absolute path*/
     stat = readfile(path,suffix,packet);
+#ifdef OCDEBUG
+fprintf(stderr,"readfiletofile: packet.size=%lu\n",
+		(unsigned long)ocbyteslength(packet));
+#endif
     if(stat != OC_NOERR) goto unwind;
     len = oclistlength(packet);
     if(stat == OC_NOERR) {
 	size_t written;
         fseek(stream,0,SEEK_SET);
 	written = fwrite(ocbytescontents(packet),1,len,stream);
-	if(written != len) stat = OC_EIO;
+	if(written != len) {
+#ifdef OCDEBUG
+fprintf(stderr,"readfiletofile: written!=length: %lu :: %lu\n",
+	(unsigned long)written,(unsigned long)len);
+#endif
+	    stat = OC_EIO;
+	}
     }
     if(sizep != NULL) *sizep = len;
 unwind:
@@ -203,6 +226,9 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 	ocbytesappendn(packet,buf,count);
 	size += count;
     }
+#ifdef OCDEBUG
+fprintf(stderr,"readfile: size=%lu\n",(unsigned long)size);
+#endif
     close(fd);
     return OCTHROW(stat);
 }

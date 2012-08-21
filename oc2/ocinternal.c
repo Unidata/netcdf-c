@@ -285,6 +285,10 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 	if((flags & OCONDISK) != 0) {
             tree->data.xdrs = xxdr_filecreate(tree->data.file,tree->data.bod);
 	} else {
+#ifdef OCDEBUG
+fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
+	(unsigned long)tree->data.datasize,(unsigned long)tree->data.bod);
+#endif
 	    /* Switch to zero based memory */
             tree->data.xdrs
 		= xxdr_memcreate(tree->data.memory,tree->data.datasize,tree->data.bod);
@@ -413,7 +417,7 @@ fprintf(stderr,"ocextractddsinmemory:\n");
 	bod = tree->data.bod;
 	ddslen = tree->data.datasize;
 #ifdef OCDEBUG
-fprintf(stderr,"missing bod: bod=%lu ddslen=%lu\n",
+fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
 (unsigned long)ddslen,(unsigned long)bod);
 #endif
     }
@@ -468,7 +472,7 @@ fprintf(stderr,"ocextractddsinfile:\n");
 	bod = tree->data.bod;
 	ddslen = tree->data.datasize;
 #ifdef OCDEBUG
-fprintf(stderr,"missing bod: bod=%lu ddslen=%lu\n",
+fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
 (unsigned long)ddslen,(unsigned long)bod);
 #endif
     }
