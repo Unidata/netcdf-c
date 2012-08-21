@@ -7,6 +7,7 @@
 # will be executed in a different directory
 # than the one containing it; so capture the path to this script
 # as the location of the source directory.
+
 srcdir=`dirname $0`
 
 # compute the build directory
@@ -23,8 +24,8 @@ if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
 fi
 
 
-cd ${builddir}/ncdap_test
 
+cd ${builddir}/ncdap_test
 
 exec sh $X ${srcdir}/tst_ncdap.sh "$srcdir" "$builddir" "file3" $grind
 

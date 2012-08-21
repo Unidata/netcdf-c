@@ -111,7 +111,7 @@ int main()
     int ncid, varid;
     int ncstat = NC_NOERR;
     char* url;
-    char* topsrcdir;
+    char* topsrcdir = (char*)malloc(1024*sizeof(char));
     size_t len;
 #ifndef USE_NETCDF4
     int i,j;
@@ -122,7 +122,10 @@ int main()
      */
     
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
+    //topsrcdir = getenv("TOPSRCDIR");
+    char cwd[1024];
+    getcwd(cwd,sizeof(cwd));
+    sprintf(topsrcdir,"%s/..",cwd);
     if(topsrcdir == NULL) {
         fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
         exit(1);

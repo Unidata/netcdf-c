@@ -75,11 +75,14 @@ main()
     int retval;
     size_t start[RANK];
     size_t count[RANK];
-    char* topsrcdir;
+    char* topsrcdir = (char*)malloc(sizeof(char)*1024);
     char url[4096];
 
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
+    //topsrcdir = getenv("TOPSRCDIR");
+    char cwd[1024];
+    getcwd(cwd,sizeof(cwd));
+    sprintf(topsrcdir,"%s/..",cwd);
     if(topsrcdir == NULL) {
         fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
         exit(1);
