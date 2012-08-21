@@ -134,10 +134,6 @@ ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
 	       *ddslenp = i;
 	        i += tlen;
 	        *bodp = i;
-#ifdef OCDEBUG
-fprintf(stderr,"findbod: ddslen=%lu bod=%lu\n",
-(unsigned long)*ddslenp,(unsigned long)*bodp);
-#endif
 	        return 1;
 	    }
 	}

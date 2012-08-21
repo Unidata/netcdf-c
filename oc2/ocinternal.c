@@ -409,17 +409,10 @@ ocextractddsinmemory(OCstate* state, OCtree* tree, OCflags flags)
     OCerror stat = OC_NOERR;
     size_t ddslen, bod, bodfound;
     /* Read until we find the separator (or EOF)*/
-#ifdef OCDEBUG
-fprintf(stderr,"ocextractddsinmemory:\n");
-#endif
     bodfound = ocfindbod(state->packet,&bod,&ddslen);
     if(!bodfound) {/* No BOD; pretend */
 	bod = tree->data.bod;
 	ddslen = tree->data.datasize;
-#ifdef OCDEBUG
-fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
-(unsigned long)ddslen,(unsigned long)bod);
-#endif
     }
     tree->data.bod = bod;
     tree->data.ddslen = ddslen;
@@ -452,9 +445,6 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
     OCerror stat = OC_NOERR;
     size_t ddslen, bod, bodfound;
 
-#ifdef OCDEBUG
-fprintf(stderr,"ocextractddsinfile:\n");
-#endif
     /* Read until we find the separator (or EOF)*/
     ocbytesclear(state->packet);
     rewind(tree->data.file);
