@@ -24,6 +24,7 @@
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
+#cmakedefine USE_DAP 1
 #cmakedefine ENABLE_DAP 1
 #cmakedefine ENABLE_DAP_GROUPS 1
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1

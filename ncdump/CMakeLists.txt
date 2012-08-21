@@ -20,8 +20,8 @@ ADD_CUSTOM_COMMAND(
 	)
 #ENDIF()
 
-SET(ncdump_FILES ncdump.c utils.c vardata.c dumplib.c indent.c nctime0.c )
-SET(nccopy_FILES nccopy.c utils.c nciter.c chunkspec.c utils.c dimmap.c)
+SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
+SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
 
 
 

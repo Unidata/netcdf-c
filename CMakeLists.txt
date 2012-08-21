@@ -198,6 +198,10 @@ IF (ENABLE_DAP)
 	INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 ENDIF()
 
+# Option to Enable DAP long tests, remote tests.
+OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
+OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+
 # If NetCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF4 AND USE_DAP)		
 		  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
@@ -276,7 +280,7 @@ ENDIF()
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
-
+MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS)
 #####
 # End option checks.
 #####
@@ -433,6 +437,9 @@ IF(ENABLE_TESTS)
 	IF(USE_NETCDF4)
   		ADD_SUBDIRECTORY(nc_test4)
 		ADD_SUBDIRECTORY(h5_test)
+	ENDIF()
+	IF(USE_DAP)
+		ADD_SUBDIRECTORY(ncdap_test)
 	ENDIF()
 ENDIF()
 
