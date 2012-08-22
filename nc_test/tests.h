@@ -29,7 +29,7 @@
 #define X_BYTE_MAX	127
 #define X_SHORT_MIN	(-32768)
 #define X_SHORT_MAX	32767
-#define X_INT_MIN	(-2147483648)
+#define X_INT_MIN	(-2147483647-1)
 #define X_INT_MAX	2147483647
 #if defined(FLT_MAX_EXP) && FLT_MAX_EXP < 128
 /* FLT_MAX < X_FLOAT_MAX */
