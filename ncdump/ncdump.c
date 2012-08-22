@@ -915,7 +915,6 @@ pr_attx(
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
     NC_CHECK( nc_inq_att(ncid, varid, att.name, &att.type, &att.len) );
-    att.tinfo = get_typeinfo(att.type);
 
     /* Put attribute values into a single string, with blanks in between */
 

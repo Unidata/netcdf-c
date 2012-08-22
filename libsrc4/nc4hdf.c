@@ -1004,7 +1004,7 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
 	 H5Tget_size(var->type_info->hdf_typeid) > 1 &&
 	 !H5Tis_variable_str(var->type_info->hdf_typeid)) {
 	  hsize_t fstring_len;
-	  if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) < 0)
+	  if ((fstring_len = H5Tget_size(var->type_info->hdf_typeid)) == 0)
 	      BAIL(NC_EHDFERR);
       	  if (!(*(char **)data = malloc(1 + fstring_len)))
       	      BAIL(NC_ENOMEM);
