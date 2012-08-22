@@ -341,7 +341,7 @@ static char* decodelist =
 char*
 dapdecode(DAPlexstate* lexstate, char* name)
 {
-    char* decoded;
+    char* decoded = NULL;
 #ifdef DECODE_IDENTIFIERS
     decoded = ocuridecode(name);
 #else

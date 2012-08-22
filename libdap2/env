@@ -1,32 +1,30 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-TOP="/home/dmh/mach/trunk"
+#TOP="/home/dmh/mach/trunk"
 #TOP="/cygdrive/f/svn/trunk"
+TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
-PROG=./ncd
-#PROG="$TOP/ncdump/ncdump"
+#PROG=./ncd
+PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-T="test.01"
-
+T="1990-S1700101.HDF.WVC_Lat"
 
 F="file://$TOP/ncdap_test/testdata3/$T"
-F="http://motherlode.ucar.edu:8081/dts/$T?f64"
+#F="http://motherlode.ucar.edu:8081/dts/$T?f64"
 #F="http://motherlode.ucar.edu:8080/thredds/dodsC/testdods/coads_climatology.nc"
 #F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20120801/gfs_hd_00z"
 #F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
-#VAR=f64
-
-F="http://phy-51.io-warnemuende.de/thredds/dodsC/baltic/region_test_2005_netcdf3.nc"
-CON="temp[9:9][0:0][55:153][180:180]"
 
 
-#PARMS="[log]"
+VAR=f64
+
+PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
 #PARMS="${PARMS}[fetch=disk]"
-#PARMS="${PARMS}[cache]"
+PARMS="${PARMS}[cache]"
 #PARMS="${PARMS}[prefetch]"
 #PARMS="${PARMS}[nocache]"
 #PARMS="${PARMS}[noprefetch]"
@@ -102,8 +100,6 @@ F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_201
 CON="weather[0:10]"
 F="http://nomad1.ncep.noaa.gov:9090/dods/reanalyses/reanalysis-1/6hr/pgb/pgb"
 VAR=hgtprs
-F="http://ferret.pmel.noaa.gov/geoide/dodsC/PSDgriddedData/ncep.reanalysis.dailyavgs/surface/slp_aggregated"
-CON="slp.slp[23255:23316][29:29][88:88]"
 fi
 
 
