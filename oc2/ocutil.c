@@ -56,7 +56,7 @@ makedimlist(OClist* path, OClist* dims)
         unsigned int rank = node->array.rank;
 	for(j=0;j<rank;j++) {
 	    OCnode* dim = (OCnode*)oclistget(node->array.dimensions,j);
-	    oclistpush(dims,(ocelem)dim);
+	    oclistpush(dims,(void*)dim);
         }
     }
 }
@@ -134,10 +134,6 @@ ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
 	       *ddslenp = i;
 	        i += tlen;
 	        *bodp = i;
-#ifdef OCDEBUG
-fprintf(stderr,"findbod: buf.len=%lu bod=%lu ddslen=%lu\n",
-(unsigned long)len,(unsigned long)*ddslenp,(unsigned long)*bodp);
-#endif
 	        return 1;
 	    }
 	}

@@ -785,7 +785,7 @@ genf77_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 	/* save in the generator state */
 	generator_getstate(generator,(void*)&calllist);
 	ASSERT(calllist != NULL);
-	listpush(calllist,(elem_t)bbDup(stmt));
+	listpush(calllist,(void*)bbDup(stmt));
 
         /* Construct the procedure body and save it */
 	proctext = bbNew();
@@ -871,7 +871,7 @@ genf77_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 	codeline("end");
         /* save the generated procedure(s) */
 	if(f77procs == NULL) f77procs = listnew();
-        listpush(f77procs,(elem_t)codebuffer);
+        listpush(f77procs,(void*)codebuffer);
         codebuffer = save;
     }
 }

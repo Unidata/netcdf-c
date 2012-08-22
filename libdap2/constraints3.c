@@ -183,7 +183,7 @@ completesegments3(NClist* fullpath, NClist* segments)
         seg->name = nulldup(node->ocname);
         seg->annotation = (void*)node;
 	seg->rank = nclistlength(node->array.dimset0);
-        nclistinsert(segments,i,(ncelem)seg);
+        nclistinsert(segments,i,(void*)seg);
     }
     /* Now modify the segments to point to the appropriate node
        and fill in the slices.
@@ -257,7 +257,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
                && node->nctype != NC_Atomic
           )
 	    continue;
-	nclistpush(namematches,(ncelem)node);
+	nclistpush(namematches,(void*)node);
     }    
     if(nclistlength(namematches)==0) {
         nclog(NCLOGERR,"No match for projection name: %s",lastseg->name);
@@ -272,7 +272,7 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
 	collectnodepath3(matchnode,matchpath,0);
 	/* Do a suffix match */
         if(matchsuffix3(matchpath,segments)) {
-	    nclistpush(matches,(ncelem)matchnode);
+	    nclistpush(matches,(void*)matchnode);
 #ifdef DEBUG
 fprintf(stderr,"matchpartialname: pathmatch: %s :: %s\n",
 matchnode->ncfullname,dumpsegments(segments));
@@ -585,7 +585,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
 		nclog(NCLOGWARN,"Malformed projection: same variable with different slicing");
 	    }
 	    /* remove p32 */
-	    nclistset(list,j,(ncelem)NULL);	    
+	    nclistset(list,j,(void*)NULL);	    
 	    dcefree((DCEnode*)p2);	    
 	}	
     }
@@ -606,7 +606,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
 	    for(k=0;k<nclistlength(tmp);k++) {
 		void* candidate = (void*)nclistget(tmp,k);
 	        if(candidate == p1->var->annotation) {
-		    nclistset(list,i,(ncelem)NULL);	    
+		    nclistset(list,i,(void*)NULL);	    
 	            dcefree((DCEnode*)p1);
 		    goto next;
 		}
@@ -627,9 +627,9 @@ next:   continue;
             leaf = (CDFnode*)target->var->annotation;
             ASSERT(leaf != NULL);
             if(iscontainer(leaf)) {/* capture container */
-		if(!nclistcontains(tmp,(ncelem)target))
-                    nclistpush(tmp,(ncelem)target);
-                nclistset(list,i,(ncelem)NULL);
+		if(!nclistcontains(tmp,(void*)target))
+                    nclistpush(tmp,(void*)target);
+                nclistset(list,i,(void*)NULL);
             }
         }
 	if(nclistlength(tmp) == 0) break; /*done*/
@@ -641,7 +641,7 @@ next:   continue;
                 CDFnode* field = (CDFnode*)nclistget(leaf->subnodes,j);
 		/* Convert field node to a proper constraint */
 		DCEprojection* proj = projectify(field,container);
-		nclistpush(list,(ncelem)proj);
+		nclistpush(list,(void*)proj);
 	    }	    
             /* reclaim the container */
 	    dcefree((DCEnode*)container);
@@ -684,7 +684,7 @@ projectify(CDFnode* field, DCEprojection* container)
     /* Dup the segment list */
     var->segments = dceclonelist(container->var->segments);
     seg->rank = 0;
-    nclistpush(var->segments,(ncelem)seg);
+    nclistpush(var->segments,(void*)seg);
     return proj;
 }
 
@@ -753,7 +753,7 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
 	segment->slicesdefined = 1;
 	segment->slicesdeclized = 1;
 	dimindex += localrank;
-	nclistpush(segments,(ncelem)segment);
+	nclistpush(segments,(void*)segment);
     }
     
     projection = (DCEprojection*)dcecreate(CES_PROJECT);
@@ -890,8 +890,8 @@ computeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
 	DCEprojection* proj = (DCEprojection*)nclistget(constraint->projections,i);
 	if(proj->discrim == CES_FCN) continue; /* ignore these */
 	node = (CDFnode*)proj->var->annotation;	
-	if(!nclistcontains(vars,(ncelem)node)) {
-	    nclistpush(vars,(ncelem)node);
+	if(!nclistcontains(vars,(void*)node)) {
+	    nclistpush(vars,(void*)node);
 	}
     }    
 

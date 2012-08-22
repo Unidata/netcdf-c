@@ -182,7 +182,7 @@ c_vlendecl(Generator* generator, Bytebuffer* codebuf, Symbol* tsym, int uid, siz
     commify(vlenbuf);
     bbCatbuf(decl,vlenbuf);
     bbCat(decl,"} ;");
-    listpush(declstack,(elem_t)decl);
+    listpush(declstack,(void*)decl);
     /* Now generate the reference to buffer */
     bbprintf(codebuf,"{%u,(void*)vlen_%u}",count,uid);
     return 1;

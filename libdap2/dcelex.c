@@ -147,7 +147,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
         *lvalp = NULL;
     else {
         *lvalp = ncbytesdup(lexstate->yytext);
-	nclistpush(lexstate->reclaim,(ncelem)*lvalp);
+	nclistpush(lexstate->reclaim,(void*)*lvalp);
     }
 
     return token;

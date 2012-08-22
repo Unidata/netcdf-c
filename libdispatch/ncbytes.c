@@ -42,7 +42,7 @@ ncbytesnew(void)
 }
 
 int
-ncbytessetalloc(NCbytes* bb, unsigned int sz)
+ncbytessetalloc(NCbytes* bb, unsigned long sz)
 {
   char* newcontent;
   if(bb == NULL) return ncbytesfail();
@@ -69,7 +69,7 @@ ncbytesfree(NCbytes* bb)
 }
 
 int
-ncbytessetlength(NCbytes* bb, unsigned int sz)
+ncbytessetlength(NCbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return ncbytesfail();
   if(sz > bb->alloc) {if(!ncbytessetalloc(bb,sz)) return ncbytesfail();}
@@ -80,14 +80,14 @@ ncbytessetlength(NCbytes* bb, unsigned int sz)
 int
 ncbytesfill(NCbytes* bb, char fill)
 {
-  unsigned int i;
+  unsigned long i;
   if(bb == NULL) return ncbytesfail();
   for(i=0;i<bb->length;i++) bb->content[i] = fill;
   return TRUE;
 }
 
 int
-ncbytesget(NCbytes* bb, unsigned int index)
+ncbytesget(NCbytes* bb, unsigned long index)
 {
   if(bb == NULL) return -1;
   if(index >= bb->length) return -1;
@@ -95,7 +95,7 @@ ncbytesget(NCbytes* bb, unsigned int index)
 }
 
 int
-ncbytesset(NCbytes* bb, unsigned int index, char elem)
+ncbytesset(NCbytes* bb, unsigned long index, char elem)
 {
   if(bb == NULL) return ncbytesfail();
   if(index >= bb->length) return ncbytesfail();
@@ -129,7 +129,7 @@ ncbytescat(NCbytes* bb, const char* s)
 }
 
 int
-ncbytesappendn(NCbytes* bb, const void* elem, unsigned int n)
+ncbytesappendn(NCbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return ncbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
@@ -175,7 +175,7 @@ ncbytesextract(NCbytes* bb)
 }
 
 int
-ncbytessetcontents(NCbytes* bb, char* contents, unsigned int alloc)
+ncbytessetcontents(NCbytes* bb, char* contents, unsigned long alloc)
 {
     if(bb == NULL) return ncbytesfail();
     ncbytesclear(bb);

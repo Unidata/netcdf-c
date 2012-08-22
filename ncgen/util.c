@@ -293,7 +293,7 @@ void
 collectpath(Symbol* grp, List* grpstack)
 {
     while(grp != NULL) {
-        listpush(grpstack,(elem_t)grp);
+        listpush(grpstack,(void*)grp);
 	grp = grp->container;
     }
 }

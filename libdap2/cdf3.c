@@ -43,10 +43,10 @@ computecdfnodesets3(NCDAPCOMMON* nccomm)
 	if(!node->visible) continue;
 	switch (node->nctype) {
 	case NC_Sequence:
-	    nclistpush(nccomm->cdf.seqnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.seqnodes,(void*)node);
 	    break;
 	case NC_Grid:
-	    nclistpush(nccomm->cdf.gridnodes,(ncelem)node);
+	    nclistpush(nccomm->cdf.gridnodes,(void*)node);
 	    break;
 	default: break;
 	}
@@ -69,7 +69,7 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	}
 	if(!node->visible) continue;
 	if(node->nctype == NC_Atomic)
-	    nclistpush(allvarnodes,(ncelem)node);
+	    nclistpush(allvarnodes,(void*)node);
     }
     /* Further process the variable nodes to get the final set */
     /* Use toplevel vars first */
@@ -78,8 +78,8 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
         if(daptoplevel(node)) {
-	    nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+	    nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
 	}
     }
     /*... then grid arrays and maps.
@@ -90,19 +90,19 @@ computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
 	if(dapgridarray(node)) {
-	    nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+	    nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
         } else if(dapgridmap(node)) {
 	    if(!FLAGSET(nccomm->controls,NCF_NCDAP))
-		nclistpush(varnodes,(ncelem)node);
-	    nclistset(allvarnodes,i,(ncelem)NULL);
+		nclistpush(varnodes,(void*)node);
+	    nclistset(allvarnodes,i,(void*)NULL);
 	}
     }
     /*... then all others */
     for(i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(allvarnodes,i);
 	if(node == NULL) continue;
-        nclistpush(varnodes,(ncelem)node);
+        nclistpush(varnodes,(void*)node);
     }
     nclistfree(allvarnodes);
 #ifdef DEBUG2
@@ -250,7 +250,7 @@ sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq)
 	    node->usesequence = 0;
 	    err = NC_EINVAL;
 	}
-    } else if(nclistcontains(vars,(ncelem)node)) {
+    } else if(nclistcontains(vars,(void*)node)) {
 	/* If we reach a leaf, then topseq is usable, so save it */
 	node->array.sequence = topseq;
     } else { /* Some kind of non-sequence container node with no dimensions */
@@ -407,9 +407,9 @@ structwrap3(CDFnode* node, CDFnode* parent, int parentindex,
     /* replace the node with the new structure
        in the parent's list of children*/
     nclistremove(parent->subnodes,parentindex);
-    nclistinsert(parent->subnodes,parentindex,(ncelem)newstruct);
+    nclistinsert(parent->subnodes,parentindex,(void*)newstruct);
     /* Update the list of all nodes in the tree */
-    nclistpush(node->root->tree->nodes,(ncelem)newstruct);
+    nclistpush(node->root->tree->nodes,(void*)newstruct);
 
 done:
     return ncstat;
@@ -434,7 +434,7 @@ makenewstruct3(CDFnode* node, CDFnode* templatenode)
     newstruct->container = node->container;
     newstruct->template = templatenode;
     node->container = newstruct;
-    nclistpush(newstruct->subnodes,(ncelem)node);
+    nclistpush(newstruct->subnodes,(void*)node);
     return newstruct;
 }
 
@@ -570,7 +570,7 @@ clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)
     clone = makecdfnode34(nccomm,dim->ocname,OC_Dimension,
 			  NULL,dim->container);
     /* Record its existence */
-    nclistpush(dim->container->root->tree->nodes,(ncelem)clone);
+    nclistpush(dim->container->root->tree->nodes,(void*)clone);
     clone->dim = dim->dim; /* copy most everything */
     clone->dim.dimflags |= CDFDIMCLONE;
     clone->dim.array = var;
@@ -584,7 +584,7 @@ clonedimset3(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
     int i;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	nclistpush(result,(ncelem)clonedim(nccomm,dim,var));
+	nclistpush(result,(void*)clonedim(nccomm,dim,var));
     }
     return result;
 }
@@ -606,11 +606,11 @@ definedimsetplus3(NCDAPCOMMON* nccomm, CDFnode* node)
     /* Insert the sequence or string dims */
     if(node->array.stringdim != NULL) {
 	clone = node->array.stringdim;
-        nclistpush(dimset,(ncelem)clone);
+        nclistpush(dimset,(void*)clone);
     }
     if(node->array.seqdim != NULL) {
 	clone = node->array.seqdim;
-        nclistpush(dimset,(ncelem)clone);
+        nclistpush(dimset,(void*)clone);
     }
     node->array.dimsetplus = dimset;
     return ncstat;
@@ -644,7 +644,7 @@ fprintf(stderr,"dimsetall: recurse to container%s\n",node->container->ocname);
     // concat parentall and dimset;
     for(i=0;i<nclistlength(node->array.dimsetplus);i++) {
 	CDFnode* clone = (CDFnode*)nclistget(node->array.dimsetplus,i);
-	nclistpush(dimsetall,(ncelem)clone);
+	nclistpush(dimsetall,(void*)clone);
     }
     node->array.dimsetall = dimsetall;
 #ifdef DEBUG1

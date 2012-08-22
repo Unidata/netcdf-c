@@ -152,7 +152,7 @@ replacedims(NClist* dims)
         CDFnode* dim = (CDFnode*)nclistget(dims,i);
 	CDFnode* basedim = dim->dim.basedim;
 	if(basedim == NULL) continue;
-	nclistset(dims,i,(ncelem)basedim);
+	nclistset(dims,i,(void*)basedim);
     }
 }
 
@@ -250,7 +250,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 			basedim->ncfullname,(unsigned long)basedim->dim.declsize,
 			dim->ncfullname,(unsigned long)dim->dim.declsize);
 #endif
-	    nclistpush(conflicts,(ncelem)dim);
+	    nclistpush(conflicts,(void*)dim);
 	}
 	/* Give  all the conflicting dimensions an index */
 	for(j=0;j<nclistlength(conflicts);j++) {
@@ -273,8 +273,8 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
     for(i=0;i<nclistlength(alldims);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(alldims,i);
 	if(dim->dim.basedim == NULL) {
-	    if(!nclistcontains(basedims,(ncelem)dim)) {
-		nclistpush(basedims,(ncelem)dim);
+	    if(!nclistcontains(basedims,(void*)dim)) {
+		nclistpush(basedims,(void*)dim);
 	    }
 	}
     }
@@ -452,7 +452,7 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
     case OC_Structure:
     case OC_Sequence:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
-	nclistpush(tree->nodes,(ncelem)cdfnode);
+	nclistpush(tree->nodes,(void*)cdfnode);
 	if(tree->root == NULL) {
 	    tree->root = cdfnode;
 	    cdfnode->tree = tree;
@@ -461,7 +461,7 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 
     case OC_Atomic:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
-	nclistpush(tree->nodes,(ncelem)cdfnode);
+	nclistpush(tree->nodes,(void*)cdfnode);
 	if(tree->root == NULL) {
 	    tree->root = cdfnode;
 	    cdfnode->tree = tree;
@@ -482,7 +482,7 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 	oc_dds_ithfield(nccomm->oc.conn,ocnode,i,&ocsubnode);
 	ncerr = buildcdftree34r(nccomm,ocsubnode,cdfnode,tree,&subnode);
 	if(ncerr) return ncerr;
-	nclistpush(cdfnode->subnodes,(ncelem)subnode);
+	nclistpush(cdfnode->subnodes,(void*)subnode);
     }
     nullfree(ocname);
     if(cdfnodep) *cdfnodep = cdfnode;
@@ -508,13 +508,13 @@ defdimensions(OCddsnode ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* 
 	cdfdim = makecdfnode34(nccomm,ocname,OC_Dimension,
                               ocdim,cdfnode->container);
 	nullfree(ocname);
-	nclistpush(tree->nodes,(ncelem)cdfdim);
+	nclistpush(tree->nodes,(void*)cdfdim);
 	/* Initially, constrained and unconstrained are same */
 	cdfdim->dim.declsize = declsize;
 	cdfdim->dim.array = cdfnode;
 	if(cdfnode->array.dimset0 == NULL) 
 	    cdfnode->array.dimset0 = nclistnew();
-	nclistpush(cdfnode->array.dimset0,(ncelem)cdfdim);
+	nclistpush(cdfnode->array.dimset0,(void*)cdfdim);
     }    
 }
 
@@ -905,12 +905,12 @@ getalldims34a(NClist* dimset, NClist* alldims)
     int i;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	if(!nclistcontains(alldims,(ncelem)dim)) {
+	if(!nclistcontains(alldims,(void*)dim)) {
 #ifdef DEBUG3
 fprintf(stderr,"getalldims: %s[%lu]\n",
 			dim->ncfullname,(unsigned long)dim->dim.declsize);
 #endif
-	    nclistpush(alldims,(ncelem)dim);
+	    nclistpush(alldims,(void*)dim);
 	}
     }
 }

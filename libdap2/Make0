@@ -10,7 +10,7 @@ LFLAG=-L/upc/share/ed/local/${HOST}/lib
 else
 # !CYGWIN
 ifneq ($(HDF),1)
-HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
+#HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 endif
 endif
 

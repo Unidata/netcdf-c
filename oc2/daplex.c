@@ -109,6 +109,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
     unsigned int i;
     char* p;
     char* tmp;
+    YYSTYPE lval = NULL;
 
     token = 0;
     ocbytesclear(lexstate->yytext);
@@ -234,11 +235,12 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
     /*Put return value onto Bison stack*/
 
     if(ocbyteslength(lexstate->yytext) == 0)
-        *lvalp = NULL;
+        lval = NULL;
     else {
-        *lvalp = ocbytesdup(lexstate->yytext);
-	oclistpush(lexstate->reclaim,(ocelem)*lvalp);
+        lval = ocbytesdup(lexstate->yytext);
+	oclistpush(lexstate->reclaim,(void*)lval);
     }
+    if(lvalp) *lvalp = lval;
     return token;      /* Return the type of the token.  */
 }
 
@@ -339,12 +341,12 @@ static char* decodelist =
 char*
 dapdecode(DAPlexstate* lexstate, char* name)
 {
-    char* decoded;
+    char* decoded = NULL;
 #ifdef DECODE_IDENTIFIERS
     decoded = ocuridecode(name);
 #else
     decoded = ocuridecodeonly(name,decodelist);
 #endif
-    oclistpush(lexstate->reclaim,(ocelem)decoded);
+    oclistpush(lexstate->reclaim,(void*)decoded);
     return decoded;
 }

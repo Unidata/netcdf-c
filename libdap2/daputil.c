@@ -309,14 +309,14 @@ nclistminus(NClist* l1, NClist* l2)
 }
 
 int
-nclistdeleteall(NClist* l, ncelem elem)
+nclistdeleteall(NClist* l, void* elem)
 {
     int i; /* do not make unsigned */
     unsigned int len,found;
     found = 0;
     len = nclistlength(l);
     for(i=len-1;i>=0;i--) {
-	ncelem test = nclistget(l,i);
+	void* test = nclistget(l,i);
 	if(test==elem) {
 	    nclistremove(l,i);
             found=1;
@@ -330,11 +330,11 @@ void
 collectnodepath3(CDFnode* node, NClist* path, int withdataset)
 {
     if(node == NULL) return;
-    nclistpush(path,(ncelem)node);
+    nclistpush(path,(void*)node);
     while(node->container != NULL) {
 	node = node->container;
 	if(!withdataset && node->nctype == NC_Dataset) break;
-	nclistinsert(path,0,(ncelem)node);
+	nclistinsert(path,0,(void*)node);
     }
 }
 
@@ -350,7 +350,7 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
     oc_dds_container(conn,node,&container);
     if(container != NULL)
         collectocpath(conn,container,path);
-    nclistpush(path,(ncelem)node);
+    nclistpush(path,(void*)node);
 }
 
 char*
@@ -457,7 +457,7 @@ clonenodenamepath3(CDFnode* node, NClist* path, int withdataset)
     if(node->nctype != NC_Dataset)
         clonenodenamepath3(node->container,path,withdataset);
     if(node->nctype != NC_Dataset || withdataset)
-        nclistpush(path,(ncelem)nulldup(node->ncbasename));
+        nclistpush(path,(void*)nulldup(node->ncbasename));
 }
 
 char*

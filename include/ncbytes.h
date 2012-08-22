@@ -6,8 +6,8 @@
 
 typedef struct NCbytes {
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
-  unsigned int alloc;
-  unsigned int length;
+  unsigned long alloc;
+  unsigned long length;
   char* content;
 } NCbytes;
 
@@ -19,8 +19,8 @@ typedef struct NCbytes {
 
 EXTERNC NCbytes* ncbytesnew(void);
 EXTERNC void ncbytesfree(NCbytes*);
-EXTERNC int ncbytessetalloc(NCbytes*,unsigned int);
-EXTERNC int ncbytessetlength(NCbytes*,unsigned int);
+EXTERNC int ncbytessetalloc(NCbytes*,unsigned long);
+EXTERNC int ncbytessetlength(NCbytes*,unsigned long);
 EXTERNC int ncbytesfill(NCbytes*, char fill);
 
 /* Produce a duplicate of the contents*/
@@ -29,14 +29,14 @@ EXTERNC char* ncbytesdup(NCbytes*);
 EXTERNC char* ncbytesextract(NCbytes*);
 
 /* Return the ith byte; -1 if no such index */
-EXTERNC int ncbytesget(NCbytes*,unsigned int);
+EXTERNC int ncbytesget(NCbytes*,unsigned long);
 /* Set the ith byte */
-EXTERNC int ncbytesset(NCbytes*,unsigned int,char);
+EXTERNC int ncbytesset(NCbytes*,unsigned long,char);
 
 /* Append one byte */
 EXTERNC int ncbytesappend(NCbytes*,char); /* Add at Tail */
 /* Append n bytes */
-EXTERNC int ncbytesappendn(NCbytes*,const void*,unsigned int); /* Add at Tail */
+EXTERNC int ncbytesappendn(NCbytes*,const void*,unsigned long); /* Add at Tail */
 
 /* Null terminate the byte string without extending its length (for debugging) */
 EXTERNC int ncbytesnull(NCbytes*);
@@ -45,14 +45,14 @@ EXTERNC int ncbytesnull(NCbytes*);
 EXTERNC int ncbytescat(NCbytes*,const char*);
 
 /* Set the contents of the buffer; mark the buffer as non-extendible */
-EXTERNC int ncbytessetcontents(NCbytes*, char*, unsigned int);
+EXTERNC int ncbytessetcontents(NCbytes*, char*, unsigned long);
 
 /* Following are always "in-lined"*/
-#define ncbyteslength(bb) ((bb)!=NULL?(bb)->length:0U)
-#define ncbytesalloc(bb) ((bb)!=NULL?(bb)->alloc:0U)
+#define ncbyteslength(bb) ((bb)!=NULL?(bb)->length:0)
+#define ncbytesalloc(bb) ((bb)!=NULL?(bb)->alloc:0)
 #define ncbytescontents(bb) (((bb)!=NULL && (bb)->content!=NULL)?(bb)->content:(char*)"")
 #define ncbytesextend(bb,len) ncbytessetalloc((bb),(len)+(bb->alloc))
-#define ncbytesclear(bb) ((bb)!=NULL?(bb)->length=0:0U)
-#define ncbytesavail(bb,n) ((bb)!=NULL?((bb)->alloc - (bb)->length) >= (n):0U)
+#define ncbytesclear(bb) ((bb)!=NULL?(bb)->length=0:0)
+#define ncbytesavail(bb,n) ((bb)!=NULL?((bb)->alloc - (bb)->length) >= (n):0)
 
 #endif /*NCBYTES_H*/

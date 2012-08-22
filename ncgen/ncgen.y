@@ -255,7 +255,7 @@ typename: ident
               if(dupobjectcheck(NC_TYPE,$1))
                     yyerror("duplicate type declaration for %s",
                             $1->name);
-              listpush(typdefs,(elem_t)$1);
+              listpush(typdefs,(void*)$1);
 	    }
 	  ;
 
@@ -293,7 +293,7 @@ enumdecl: primtype ENUM typename
                    Symbol* eid = (Symbol*)listget(stack,i);
 		   assert(eid->subclass == NC_ECONST);
 		   addtogroup(eid);
-                   listpush($3->subnodes,(elem_t)eid);
+                   listpush($3->subnodes,(void*)eid);
                    eid->container = $3;
 		   eid->typ.basetype = $3->typ.basetype;
                 }               
@@ -302,7 +302,7 @@ enumdecl: primtype ENUM typename
           ;
 
 enumidlist:   enumid
-		{$$=listlength(stack); listpush(stack,(elem_t)$1);}
+		{$$=listlength(stack); listpush(stack,(void*)$1);}
 	    | enumidlist ',' enumid
 		{
 		    int i;
@@ -316,7 +316,7 @@ enumidlist:   enumid
   	                yyerror("duplicate enum declaration for %s",
         	                 elem->name);
 		    }    	    
-		    listpush(stack,(elem_t)$3);
+		    listpush(stack,(void*)$3);
 		}
 	    ;
 
@@ -381,7 +381,7 @@ compounddecl: COMPOUND typename '{' fields '}'
 	    for(i=stackbase;i<stacklen;i++) {
 	        Symbol* fsym = (Symbol*)listget(stack,i);
 		fsym->container = $2;
- 	        listpush($2->subnodes,(elem_t)fsym);
+ 	        listpush($2->subnodes,(void*)fsym);
 	    }    	    
 	    listsetlength(stack,stackbase);/* remove stack nodes*/
           }
@@ -484,7 +484,7 @@ dimd:           ident
                                 $1->name);
 		     addtogroup($1);
 		     $$=$1;
-		     listpush(dimdefs,(elem_t)$1);
+		     listpush(dimdefs,(void*)$1);
                    }
                 ;
 
@@ -514,7 +514,7 @@ vardecl:        typeref varlist
 			} else {
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
-		            listpush(vardefs,(elem_t)sym);
+		            listpush(vardefs,(void*)sym);
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -523,10 +523,10 @@ vardecl:        typeref varlist
 
 varlist:      varspec
 	        {$$=listlength(stack);
-                 listpush(stack,(elem_t)$1);
+                 listpush(stack,(void*)$1);
 		}
             | varlist ',' varspec
-	        {$$=$1; listpush(stack,(elem_t)$3);}
+	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
 varspec:        ident dimspec
@@ -560,9 +560,9 @@ dimspec:        /* empty */ {$$=listlength(stack);}
                 | '(' dimlist ')' {$$=$2;}
                 ;
 
-dimlist:        dimref {$$=listlength(stack); listpush(stack,(elem_t)$1);}
+dimlist:        dimref {$$=listlength(stack); listpush(stack,(void*)$1);}
                 | dimlist ',' dimref
-		    {$$=$1; listpush(stack,(elem_t)$3);}
+		    {$$=$1; listpush(stack,(void*)$3);}
                 ;
 
 dimref: path
@@ -581,10 +581,10 @@ dimref: path
 fieldlist:
 	  fieldspec
 	    {$$=listlength(stack);
-             listpush(stack,(elem_t)$1);
+             listpush(stack,(void*)$1);
 	    }
 	| fieldlist ',' fieldspec
-	    {$$=$1; listpush(stack,(elem_t)$3);}
+	    {$$=$1; listpush(stack,(void*)$3);}
         ;
 
 fieldspec:
@@ -622,9 +622,9 @@ fielddimspec:        /* empty */ {$$=listlength(stack);}
                 ;
 
 fielddimlist:
-	  fielddim {$$=listlength(stack); listpush(stack,(elem_t)$1);}
+	  fielddim {$$=listlength(stack); listpush(stack,(void*)$1);}
 	| fielddimlist ',' fielddim
-	    {$$=$1; listpush(stack,(elem_t)$3);}
+	    {$$=$1; listpush(stack,(void*)$3);}
         ;
 
 fielddim:
@@ -975,7 +975,7 @@ createrootgroup(void)
     gsym->subnodes = listnew();
     gsym->grp.is_root = 1;
     gsym->prefix = listnew();
-    listpush(grpdefs,(elem_t)gsym);
+    listpush(grpdefs,(void*)gsym);
     rootgroup = gsym;
     return gsym;
 }
@@ -991,8 +991,8 @@ creategroup(Symbol * gsym)
     }
     addtogroup(gsym);
     gsym->subnodes = listnew();
-    listpush(groupstack,(elem_t)gsym);
-    listpush(grpdefs,(elem_t)gsym);
+    listpush(groupstack,(void*)gsym);
+    listpush(grpdefs,(void*)gsym);
     return gsym;
 }
 
@@ -1082,7 +1082,7 @@ addtogroup(Symbol* sym)
 {
     Symbol* grp = currentgroup();
     sym->container = grp;
-    listpush(grp->subnodes,(elem_t)sym);
+    listpush(grp->subnodes,(void*)sym);
     setpathcurrent(sym);
 }
 
@@ -1328,12 +1328,12 @@ makeattribute(Symbol* asym,
     case ATTRVAR:
         asym->att.var = vsym;
         asym->typ.basetype = tsym;
-        listpush(attdefs,(elem_t)asym);
+        listpush(attdefs,(void*)asym);
 	break;
     case ATTRGLOBAL:
         asym->att.var = NULL; /* NULL => NC_GLOBAL*/
         asym->typ.basetype = tsym;
-        listpush(gattdefs,(elem_t)asym);
+        listpush(gattdefs,(void*)asym);
 	break;
     default: PANIC1("unexpected attribute type: %d",kind);
     }

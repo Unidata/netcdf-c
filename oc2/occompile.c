@@ -146,7 +146,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 		/* Capture the back link */
 		record->container = data;
 		record->index = nelements;
-		oclistpush(records,(ocelem)record);
+		oclistpush(records,(void*)record);
 		record = NULL;
             } else if(tmp[0] == EndOfSequence) {
                 break; /* we are done with the this sequence instance*/
