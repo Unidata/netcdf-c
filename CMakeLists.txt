@@ -35,6 +35,8 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 IF(APPLE)
+  SET(CPACK_SOURCE_GENERATOR "TBZ2")
+  SET(CPACK_GENERATOR "DragNDrop")
   SET(CPACK_BINARY_DRAGNDROP ON CACHE BOOL "")
   SET(CPACK_BINARY_PACKAGEMAKER OFF CACHE BOOL "")
 ENDIF()
@@ -471,6 +473,8 @@ INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
 INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
   DESTINATION include)
 
+INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
+
 # Subdirectory CMakeLists.txt files should specify their own
 # 'install' files.
 # Including 'CPack' kicks everything off.
@@ -480,9 +484,20 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
   @ONLY
 )
-
-SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/${CMAKE_CURRENT_BINARY_DIR}/;~$")
-
+#####
+# Declare exclusions list used when building a source file.
+# NOTE!! This list uses regular expressions, NOT wildcards!!
+# 
+##### 
+SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
+	"Makefile\\\\.in$"
+	"${CMAKE_BINARY_DIR}/*"
+	"/myhtml/*"
+	"/.svn/"
+	"my.*sh"
+	".*~" 
+)
+MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 # CPack inclusion must come last.
 INCLUDE(CPack)
 
