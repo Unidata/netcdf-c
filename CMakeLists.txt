@@ -85,6 +85,7 @@ OPTION (BUILD_MMAP "Use MMAP." OFF)
 OPTION (ENABLE_DISKLESS "Build Diskless." OFF)
 IF(ENABLE_DISKLESS)
 	SET(BUILD_DISKLESS ON)
+	SET(USE_DISKLESS ON)
 ENDIF()
 # Option Logging, only valid for netcdf4. 
 # For some reason, these appear to need to be set in each folder.
@@ -97,7 +98,7 @@ ENDIF()
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 
 # Option to use HDF4
-OPTION (USE_HDF4 "Use HDF4." OFF)
+OPTION (USE_HDF4 "Build NetCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required." OFF)
 IF (USE_HDF4) 
    FIND_PACKAGE(HDF4)
    IF(NOT HDF4_FOUND)
@@ -107,19 +108,20 @@ IF (USE_HDF4)
    IF(NOT HAVE_MFHDF_H)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
    ENDIF(NOT HAVE_MFHDF_H) 
-	
-
 ENDIF (USE_HDF4)
 
 
 
 # Option to Build DLL
-OPTION (BUILD_DLL "Build a Windows DLL." OFF)
-IF (BUILD_DLL)
+OPTION (ENABLE_DLL "Build a Windows DLL." OFF)
+IF (ENABLE_DLL)
+  SET(BUILD_DLL ON)
   ADD_DEFINITIONS(-DDLL_NETCDF)
   ADD_DEFINITIONS(-DDLL_EXPORT)
 ENDIF ()
 
+# Did the user specify a default minimum blocksize for posixio?
+SET (NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
 # Build NetCDF4
 OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
@@ -132,6 +134,12 @@ ENDIF()
 
 # Option for cdmremote support.
 OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
+
+# Option for building RPC
+OPTION (ENABLE_RPC OFF "ENable RPC Client and Server.")
+IF(ENABLE_RPC)
+	SET(BUILD_RPC ON CACHE BOOL "")
+ENDIF()
 
 # Option to Enable HDF5
 OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
@@ -176,6 +184,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   IF(NOT ZLIB_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
   ENDIF()
+  SET(USE_ZLIB ON)	
   #ELSE()
   #	MESSAGE(STATUS "Found ZLib: ${ZLIB_LIBRARY}")
   #ENDIF()
@@ -223,8 +232,11 @@ ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
-# FFIO insteaad of PosixIO
-OPTION(USE_FFIO "If true, use ffio instead of posixio" OFF)
+	# FFIO insteaad of PosixIO
+	OPTION(ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
+	IF(ENABLE_FFIO)
+		SET(USE_FFIO ON CACHE BOOL "")
+	ENDIF()
 ENDIF()
 
 # Enable Tests
@@ -277,6 +289,8 @@ IF(ENABLE_DOXYGEN)
 		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
 	ENDIF()
 ENDIF()
+
+
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
@@ -424,7 +438,7 @@ add_subdirectory(liblib)
 # Enable Utilities.
 
 IF (BUILD_UTILITIES)
-	MESSAGE(STATUS "ALL_TLL_LIBS: ${ALL_TLL_LIBS}") 
+	MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 	ADD_SUBDIRECTORY(ncgen)
 	ADD_SUBDIRECTORY(ncgen3)
 	ADD_SUBDIRECTORY(ncdump)

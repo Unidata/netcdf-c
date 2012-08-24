@@ -163,41 +163,45 @@ nc_check_for_hdf(const char *path, int use_parallel, MPI_Comm comm, MPI_Info inf
    assert(hdf_file && path);
    LOG((3, "nc_check_for_hdf: path %s", path));
 
+   /* HDF5 function handles possible user block at beginning of file */
+   if(H5Fis_hdf5(path)) 
+   {
+       *hdf_file = NC_HDF5_FILE;
+   } else {
+
 /* Get the 4-byte blob from the beginning of the file. Don't use posix
  * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL
-   if (use_parallel)
-   {
-      MPI_File fh;
-      MPI_Status status;
-      int retval;
-      if ((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,
-				  info, &fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
-      if ((retval = MPI_File_read(fh, blob, MAGIC_NUMBER_LEN, MPI_CHAR,
-				  &status)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
-      if ((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
-   }
-   else
+       if (use_parallel)
+       {
+	   MPI_File fh;
+	   MPI_Status status;
+	   int retval;
+	   if ((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,
+				       info, &fh)) != MPI_SUCCESS)
+	       return NC_EPARINIT;
+	   if ((retval = MPI_File_read(fh, blob, MAGIC_NUMBER_LEN, MPI_CHAR,
+				       &status)) != MPI_SUCCESS)
+	       return NC_EPARINIT;
+	   if ((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
+	       return NC_EPARINIT;
+       }
+       else
 #endif /* USE_PARALLEL */
-   {
-      FILE *fp;
-      if (!(fp = fopen(path, "r")) ||
-	  fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1)
-	 return errno;
-      fclose(fp);
+       {
+	   FILE *fp;
+	   if (!(fp = fopen(path, "r")) ||
+	       fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1)
+	       return errno;
+	   fclose(fp);
+       }
+       
+       /* Check for HDF4. */
+       if (!strncmp(blob, "\016\003\023\001", MAGIC_NUMBER_LEN))
+	   *hdf_file = NC_HDF4_FILE;
+       else
+	   *hdf_file = 0;
    }
-
-   /* Ignore the first byte for HDF5. */
-   if (blob[1] == 'H' && blob[2] == 'D' && blob[3] == 'F')
-      *hdf_file = NC_HDF5_FILE;
-   else if (!strncmp(blob, "\016\003\023\001", MAGIC_NUMBER_LEN))
-      *hdf_file = NC_HDF4_FILE;
-   else
-      *hdf_file = 0;
-
    return NC_NOERR;
 }
    
