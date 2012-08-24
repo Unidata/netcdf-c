@@ -114,7 +114,7 @@ pagesize(void)
   /* For MinGW Builds */
 #if defined(_WIN32) || defined(_WIN64)
   GetSystemInfo(&info);
-  pgsz = info.dwPageSize;
+  pgsz = (size_t)info.dwPageSize;
 #elif defined(_SC_PAGESIZE)
   pgsz = (size_t)sysconf(_SC_PAGESIZE);
 #elif defined(HAVE_GETPAGESIZE)
