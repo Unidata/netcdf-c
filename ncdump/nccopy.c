@@ -11,7 +11,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <string.h>

@@ -4,6 +4,10 @@
  *   $Header$
  *********************************************************************/
 
+#ifdef _MSC_VER
+#include<io.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
