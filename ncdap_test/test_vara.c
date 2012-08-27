@@ -77,11 +77,19 @@ main()
     size_t count[RANK];
     char* topsrcdir = (char*)malloc(sizeof(char)*1024);
     char url[4096];
-
+    int i;
     /* Assume that TESTS_ENVIRONMENT was set */
     //topsrcdir = getenv("TOPSRCDIR");
     char cwd[1024];
     getcwd(cwd,sizeof(cwd));
+#ifdef __MINGW32__
+    /* Convert to MinGW-style paths if need be. */ 
+    for(i = 0; i < strlen(cwd); i++) {
+      if(cwd[i] == '\\')
+	cwd[i] = '/';
+    }
+#endif
+
     sprintf(topsrcdir,"%s/..",cwd);
     if(topsrcdir == NULL) {
         fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
