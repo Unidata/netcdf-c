@@ -242,11 +242,14 @@ IF(NOT WIN32)
 ENDIF()
 
 # Enable Tests
-OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-IF(ENABLE_TESTS) 
-	SET(BUILD_TESTSETS ON CACHE BOOL "")
+IF(NOT MSVC)
+	OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+	IF(ENABLE_TESTS) 
+		SET(BUILD_TESTSETS ON CACHE BOOL "")
+	ENDIF()
+ELSE()
+	SET(ENABLE_TESTS OFF CACHE "")
 ENDIF()
-
 
 # Enable Large file tests
 OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
