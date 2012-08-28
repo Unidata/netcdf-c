@@ -21,33 +21,22 @@ IF(ENABLE_TESTS)
 	# must be run in a particular order. It is painful but will use macros to help
 	# keep it from being too bad.
 	# Binary Test Macro
-	MACRO(add_bin_test F)
-		ADD_EXECUTABLE(ncdap_${F} ${F}.c)
-		TARGET_LINK_LIBRARIES(ncdap_${F} netcdf)
-		ADD_TEST(ncdap_${F} ${EXECUTABLE_OUTPUT_PATH}/ncdap_${F})
-	
-	ENDMACRO()
-	
-	# Shell script Macro
-	MACRO(add_sh_test F)
-		ADD_TEST(ncdap_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
-	ENDMACRO()
 
-	add_sh_test(tst_ncdap3)
+	add_sh_test(ncdap tst_ncdap3)
 	
 	IF(ENABLE_DAP_REMOTE_TESTS)
-		add_sh_test(tst_remote3)
+		add_sh_test(ncdap tst_remote3)
 	ENDIF()
 
 	IF(ENABLE_DAP_LONG_TESTS)
-		add_sh_test(tst_longremote3)
+		add_sh_test(ncdap tst_longremote3)
 	ENDIF()
 
-	add_bin_test(t_dap3a)
-	add_bin_test(test_cvt)
-	add_bin_test(test_vara)
-	add_bin_test(test_partvar)
-	add_bin_test(test_varm3)
+	add_bin_test(ncdap t_dap3a)
+	add_bin_test(ncdap test_cvt)
+	add_bin_test(ncdap test_vara)
+	add_bin_test(ncdap test_partvar)
+	add_bin_test(ncdap test_varm3)
 	
 ENDIF()
 

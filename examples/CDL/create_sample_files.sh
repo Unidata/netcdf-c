@@ -1,6 +1,20 @@
 #!/bin/sh
 # This shell script creates the netCDF example files from CDL scipts.
 # $Id: create_sample_files.sh,v 1.2 2006/07/14 18:39:45 ed Exp $
+srcdir=`dirname $0`
+
+# compute the build directory
+# Do a hack to remove e.g. c: for CYGWIN
+cd `pwd`
+builddir=`pwd`/..
+
+# Hack for CYGWIN
+cd $srcdir
+srcdir=`pwd`
+if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+    srcdir=`pwd | sed 's/\/c\//c:\//g'`
+    builddir=`echo $builddir | sed 's/\/c\//c:\//g'`
+fi
 
 set -e
 echo ""

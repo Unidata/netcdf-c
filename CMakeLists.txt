@@ -58,6 +58,19 @@ MACRO(GEN_m4 filename)
 	)
 ENDMACRO(GEN_m4)
 
+MACRO(add_bin_test prefix F)
+	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	
+ENDMACRO()
+	
+# Shell script Macro
+MACRO(add_sh_test prefix F)
+	ADD_TEST(${prefix}_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
+ENDMACRO()
+
+
 #####
 # Option checks
 #####
@@ -88,6 +101,10 @@ OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 	
 # Option to use MMAP
 OPTION (BUILD_MMAP "Use MMAP." OFF)
+
+# Option to use examples.
+OPTION (ENABLE_EXAMPLES "Build Examples" ON)
+
 
 # Option to use Diskless
 OPTION (ENABLE_DISKLESS "Build Diskless." OFF)
@@ -123,7 +140,7 @@ ENDIF (USE_HDF4)
 # Option to Build DLL
 OPTION (ENABLE_DLL "Build a Windows DLL." OFF)
 IF (ENABLE_DLL)
-  SET(BUILD_DLL ON)
+  SET(BUILD_DLL ON CACHE BOOL "")
   ADD_DEFINITIONS(-DDLL_NETCDF)
   ADD_DEFINITIONS(-DDLL_EXPORT)
 ENDIF ()
@@ -467,6 +484,11 @@ IF(ENABLE_TESTS)
 	IF(USE_DAP)
 		ADD_SUBDIRECTORY(ncdap_test)
 	ENDIF()
+	
+	IF(ENABLE_EXAMPLES)
+		ADD_SUBDIRECTORY(examples)
+	ENDIF()
+
 ENDIF()
 
 #####
