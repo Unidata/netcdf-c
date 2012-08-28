@@ -72,6 +72,9 @@
 /* Line 336 of yacc.c  */
 #line 9 "/Users/wfisher/Desktop/win_netcdf/ncgen3/ncgen.y"
 
+/* Line 268 of yacc.c  */
+#line 9 "/home/wfisher/Desktop/win_netcdf/ncgen3/ncgen.y"
+
 #ifdef sccs
 static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
 #endif
@@ -153,6 +156,11 @@ int yyerror(char*);
 #   define YY_NULL 0
 #  endif
 # endif
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
