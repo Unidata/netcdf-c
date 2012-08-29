@@ -4,8 +4,6 @@ cmake_minimum_required(VERSION 2.8.8)
 #Project Name
 project(NetCDF C)
 SET(NetCDF_VERSION 4.2.1)
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT")
-SET(CPACK_PACKAGE_VERSION "4.3")
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -24,6 +22,7 @@ ADD_DEFINITIONS()
 
 ### Verbose make, for debugging.
 #SET(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #Add custom CMake Module
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
@@ -38,13 +37,8 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TBZ2")
-  SET(CPACK_GENERATOR "DragNDrop")
-  SET(CPACK_BINARY_DRAGNDROP ON CACHE BOOL "")
-  SET(CPACK_BINARY_PACKAGEMAKER OFF CACHE BOOL "")
-ENDIF()
+INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
+
 
 #####
 # A basic script used to convert m4 files
@@ -446,6 +440,7 @@ INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/oc2)
 #add_subdirectory(h5_test)
 #add_subdirectory(man4)
 #add_subdirectory(man4/images)
+add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
@@ -463,11 +458,11 @@ IF (BUILD_CDMREMOTE)
 ENDIF()
 
 add_subdirectory(liblib)
+MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
 # Enable Utilities.
 
 IF (BUILD_UTILITIES)
-	MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 	ADD_SUBDIRECTORY(ncgen)
 	ADD_SUBDIRECTORY(ncgen3)
 	ADD_SUBDIRECTORY(ncdump)
@@ -502,10 +497,13 @@ ENDIF()
 #####
 INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
 	DESTINATION include)
-INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION include)
-
-INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
+#INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
+#  DESTINATION include)
+INSTALL(DIRECTORY include DESTINATION include)
+IF(ENABLE_DOXYGEN)	
+	INSTALL(DIRECTORY man4 DESTINATION man4)
+ENDIF()
+#INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
 
 # Subdirectory CMakeLists.txt files should specify their own
 # 'install' files.
@@ -516,11 +514,16 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
   @ONLY
 )
+#INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
+
 #####
+# Various options for CPACK
+#####
+
+##
 # Declare exclusions list used when building a source file.
-# NOTE!! This list uses regular expressions, NOT wildcards!!
-# 
-##### 
+# NOTE!! This list uses regular expressions, NOT wildcards!! 
+## 
 SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"Makefile\\\\.in$"
 	"${CMAKE_BINARY_DIR}/*"
@@ -529,6 +532,20 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"my.*sh"
 	".*~" 
 )
+
+IF(APPLE)
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
+	${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
+	@ONLY
+  )
+  SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
+   
+  SET(CPACK_PACKAGE_VERSION "4.3")
+  SET(CPACK_SOURCE_GENERATOR "TBZ2")
+  SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
+ENDIF()
+
+
 MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 # CPack inclusion must come last.
 INCLUDE(CPack)

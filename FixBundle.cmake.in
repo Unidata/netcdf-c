@@ -2,7 +2,7 @@ INCLUDE(BundleUtilities)
 
 # Set bundle to the full path name of the executable
 
-SET (BUNDLE "${CMAKE_INSTALL_PREFIX}/ncdump@CMAKE_EXECUTABLE_SUFFIX@"
+SET (BUNDLE "${CMAKE_INSTALL_PREFIX}/ncdump@CMAKE_EXECUTABLE_SUFFIX@")
 
 SET (OTHER_LIBS "")
 

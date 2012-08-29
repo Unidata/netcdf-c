@@ -13,8 +13,8 @@ ADD_EXECUTABLE(tst_rename tst_rename.c)
 TARGET_LINK_LIBRARIES(nctest netcdf)
 TARGET_LINK_LIBRARIES(tst_rename netcdf)
 
-INSTALL(TARGETS nctest DESTINATION bin)
-INSTALL(TARGETS tst_rename DESTINATION bin)
+#INSTALL(TARGETS nctest DESTINATION bin)
+#INSTALL(TARGETS tst_rename DESTINATION bin)
 ## Tests
 #ADD_TEST(run_tests.sh ${CMAKE_SOURCE_PATH}/run_tests.sh)
 
