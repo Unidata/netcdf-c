@@ -72,7 +72,9 @@ int
 ncbytessetlength(NCbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return ncbytesfail();
-  if(sz > bb->alloc) {if(!ncbytessetalloc(bb,sz)) return ncbytesfail();}
+  if(bb->length < sz) {
+      if(sz > bb->alloc) {if(!ncbytessetalloc(bb,sz)) return ncbytesfail();}
+  }
   bb->length = sz;
   return TRUE;
 }

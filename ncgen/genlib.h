@@ -55,7 +55,6 @@ extern void close_netcdf ( void ); /* generates close */
 extern char* cprefixed(List* prefix, char* suffix, char* separator);
 
 /* from: escapes.c */
-extern void expand_escapes (Bytebuffer* termstring, char* yytext, int yyleng );
 extern void deescapify(char *name); /* redunandt over expand_escapes?*/
 extern char* decodify(const char *name);
 extern char* escapifychar(unsigned int c, char* s0, int quote);
