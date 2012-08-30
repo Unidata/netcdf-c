@@ -66,6 +66,7 @@ unsigned char ubyte_val;       /* last byte value read */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static int parseLL(char* text);
+static void expand_escapes(Bytebuffer*, char*, int);
 
 static struct Specialtoken {
     char* name;
@@ -555,7 +556,9 @@ lexdebug(int token)
 {
     if(debug >= 2)
     {
-        fprintf(stderr,"Token=%d |%s|\n",token,yytext);
+	char* text = yytext;
+	text[yyleng] = 0;
+        fprintf(stderr,"Token=%d |%s| line=%d\n",token,text,lineno);
     }
     return token;
 }
@@ -663,3 +666,94 @@ parseLL(char* text)
 #endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
     return result;
 }
+
+/*
+ * "Expands" valid escape sequences in yystring (read by lex) into the
+ * apropriate characters in termstring.  For example, the two character
+ * sequence "\t" in yystring would be converted into a single tab character
+ * in termstring.  On return, termstring is properly terminated.
+ */
+
+static void
+expand_escapes(
+     Bytebuffer *s, /* fill with contents of yytext, with escapes expanded */
+     char *yytext,
+     int yyleng)
+{
+    char *t, *endp, *tend;
+    /* ignore leading and trailing quotes */
+    if(yytext[0] != '"' || yytext[yyleng-1] != '"')
+	abort();
+    yytext++;
+    yyleng--; /* leading quote */
+    yyleng--; /* trailing quote */
+    /* expand "\" escapes, e.g. "\t" to tab character  */
+    t = yytext;
+    tend = t + yyleng;
+    while(*t && t < tend) {
+	if (*t == '\\') {
+	    t++;
+	    switch (*t) {
+	      case 'a':
+		bbAppend(s,'\007'); t++; /* will use '\a' when STDC */
+		break;
+	      case 'b':
+		bbAppend(s,'\b'); t++;
+		break;
+	      case 'f':
+		bbAppend(s,'\f'); t++;
+		break;
+	      case 'n':
+		bbAppend(s,'\n'); t++;
+		break;
+	      case 'r':
+		bbAppend(s,'\r'); t++;
+		break;
+	      case 't':
+		bbAppend(s,'\t'); t++;
+		break;
+	      case 'v':
+		bbAppend(s,'\v'); t++;
+		break;
+	      case '\\':
+		bbAppend(s,'\\'); t++;
+		break;
+	      case '?':
+		bbAppend(s,'\177'); t++;
+		break;
+	      case '\'':
+		bbAppend(s,'\''); t++;
+		break;
+	      case '\"':
+		bbAppend(s,'\"'); t++;
+		break;
+	      case 'x':
+		t++; /* now t points to one or more hex digits */
+		bbAppend(s,(char) strtol(t, &endp, 16));
+		t = endp;
+		break;
+	      case '0':
+	      case '1':
+	      case '2':
+	      case '3':
+	      case '4':
+	      case '5':
+	      case '6':
+	      case '7':
+		/* t now points to octal digits */
+		bbAppend(s,(char) strtol(t, &endp, 8));
+		t = endp;
+		break;
+	      default:
+		bbAppend(s,*t); t++;
+		break;
+	    }
+	} else {
+	    bbAppend(s,*t); t++;
+	}
+    }
+    bbNull(s);
+    bbSetlength(s,strlen(bbContents(s)));
+    return;
+}
+

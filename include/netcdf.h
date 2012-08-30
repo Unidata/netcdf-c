@@ -157,11 +157,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_NETCDF4_CLASSIC  (4)
 /**@}*/
 
-/** Let nc__create() or nc__open() figure out as suitable chunk
- * size. */
+/** Let nc__create() or nc__open() figure out a suitable buffer size. */
 #define NC_SIZEHINT_DEFAULT 0
 
-/** In nc__enddef(), align to the chunk size. */
+/** In nc__enddef(), align to the buffer size. */
 #define NC_ALIGN_CHUNK ((size_t)(-1))
 
 /** Size argument to nc_def_dim() for an unlimited dimension. */
@@ -179,11 +178,11 @@ variable attributes (\ref NC_MAX_ATTRS), the number of variables in
 the file (\ref NC_MAX_VARS), and the length of a name (\ref
 NC_MAX_NAME).
 
-This maximum is enforced by the interface, to facilitate writing
+These maximums are enforced by the interface, to facilitate writing
 applications and utilities.  However, nothing is statically allocated
-to this size internally.
+to these sizes internally.
 
-This maximum is not used for netCDF-4/HDF5 files unless they were
+These maximums are not used for netCDF-4/HDF5 files unless they were
 created with the ::NC_CLASSIC_MODEL flag.
 
 As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.

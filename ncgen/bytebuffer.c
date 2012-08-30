@@ -75,7 +75,9 @@ int
 bbSetlength(Bytebuffer* bb, const unsigned int sz)
 {
   if(bb == NULL) return bbFail();
-  if(!bbSetalloc(bb,sz)) return bbFail();
+  if(bb->length < sz) {
+      if(!bbSetalloc(bb,sz)) return bbFail();
+  }
   bb->length = sz;
   return TRUE;
 }
