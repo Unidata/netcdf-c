@@ -44,12 +44,14 @@ INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 # A basic script used to convert m4 files
 #####
 MACRO(GEN_m4 filename)
+	IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
 		COMMAND m4 
 		ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
 		VERBATIM
 	)
+	ENDIF()
 ENDMACRO(GEN_m4)
 
 MACRO(add_bin_test prefix F)
