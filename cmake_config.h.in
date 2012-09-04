@@ -1,3 +1,16 @@
+/* Eliminate a number of warnings which come up based on deprecated
+   POSIX naming conventions. */
+#ifdef _MSC_VER
+  #define unlink _unlink
+  #define open _open
+  #define close _close
+  #define read _read
+  #define lseek _lseek
+  #define strdup _strdup
+  #define fdopen _fdopen
+  #define write _write
+#endif
+
 #ifndef CONFIG_H
 #define CONFIG_H
 #define HAVE_CONFIG_H
