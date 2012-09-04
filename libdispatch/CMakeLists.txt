@@ -8,12 +8,6 @@ IF(USE_NETCDF4)
 	SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c ncaux.c)
 ENDIF(USE_NETCDF4)
 
-
-IF(BUILD_DLL)
-	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)
-	#ADD_DEFINITION(-DDLL_EXPORT)
-ENDIF(BUILD_DLL)
-
 IF(BUILD_V2)
 	SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
 	#SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DDLL_EXPORT)	
