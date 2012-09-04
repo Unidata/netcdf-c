@@ -22,27 +22,4 @@ ENDIF(BUILD_V2)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES}) 
 
-###
-# Options related to the man page generation.
-###
-
-###
-# The C API man page.
-###
-
-set(man_MANS netcdf.3)
-
-set(ARGS_MANPAGE -DAPI=C)
-
-IF (USE_NETCDF4)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
-
-IF (BUILD_DAP)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
-ENDIF(BUILD_DAP)
-
-IF (BUILD_PARALLEL)
-	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
-ENDIF(BUILD_PARALLEL)
 
