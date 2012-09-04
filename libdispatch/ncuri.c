@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include "config.h"
 
 #include "ncuri.h"
 

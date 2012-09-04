@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include "config.h"
 #include "nclog.h"
 
 #define PREFIXLEN 8

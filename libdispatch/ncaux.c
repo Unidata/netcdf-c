@@ -22,7 +22,7 @@ Author: D. Heimbigner 10/7/2008
 #include <string.h>
 #include <assert.h>
 #include <netcdf.h>
-
+#include "config.h"
 #include "ncaux.h"
 
 struct NCAUX_FIELD {
