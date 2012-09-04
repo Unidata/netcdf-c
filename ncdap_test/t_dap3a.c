@@ -111,10 +111,11 @@ int main()
     int ncid, varid;
     int ncstat = NC_NOERR;
     char* url;
-    char* topsrcdir;
+    char* topsrcdir = (char*)malloc(1024*sizeof(char));
     size_t len;
+    int i;
 #ifndef USE_NETCDF4
-    int i,j;
+    int j;
 #endif
 
     /* location of our target url: use file:// to avoid remote
@@ -122,7 +123,19 @@ int main()
      */
     
     /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
+    //topsrcdir = getenv("TOPSRCDIR");
+    char cwd[1024];
+    getcwd(cwd,sizeof(cwd));
+    
+#ifdef __MINGW32__
+    /* Convert to MinGW-style paths if need be. */ 
+    for(i = 0; i < strlen(cwd); i++) {
+      if(cwd[i] == '\\')
+	cwd[i] = '/';
+    }
+#endif
+
+    sprintf(topsrcdir,"%s/..",cwd);
     if(topsrcdir == NULL) {
         fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
         exit(1);
