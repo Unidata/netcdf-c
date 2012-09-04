@@ -39,6 +39,11 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 
+# Supress some warnings on Windows
+IF(MSVC)
+	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF()	
+
 
 #####
 # A basic script used to convert m4 files
@@ -134,13 +139,14 @@ ENDIF (USE_HDF4)
 
 
 # Option to Build DLL
-OPTION (ENABLE_DLL "Build a Windows DLL." OFF)
-IF (ENABLE_DLL)
-  SET(BUILD_DLL ON CACHE BOOL "")
-  ADD_DEFINITIONS(-DDLL_NETCDF)
-  ADD_DEFINITIONS(-DDLL_EXPORT)
-ENDIF ()
-
+IF(WIN32)
+	OPTION (ENABLE_DLL "Build a Windows DLL." OFF)
+	IF (ENABLE_DLL)
+  		SET(BUILD_DLL ON CACHE BOOL "")
+  		ADD_DEFINITIONS(-DDLL_NETCDF)
+  		ADD_DEFINITIONS(-DDLL_EXPORT)
+	ENDIF ()
+ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
 SET (NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
