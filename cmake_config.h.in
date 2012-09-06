@@ -203,7 +203,7 @@
 /* Some linux systems have getrlimit, but
    no definition of RLIM_INFINITY */
 #cmakedefine HAVE_RLIM_INFINITY
-#if HAVE_RLIM_INFINITY
+#ifdef HAVE_RLIM_INFINITY
 	#cmakedefine HAVE_GETRLIMIT
 #else
 	#undef HAVE_GETRLIMIT
