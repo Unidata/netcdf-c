@@ -213,20 +213,14 @@ struct NC_Dispatch {
 
 int model; /* one of the NC_DISPATCH #'s above */
 
-int (*new_nc)(struct NC**); /* Create an nc instance;free is not needed,
-				because it can be done by close and abort*/
-
-/* Warning: these two will create appropriate NC instances
-   using new_nc dispatch function
-*/
 int (*create)(const char *path, int cmode,
 	  size_t initialsz, int basepe, size_t *chunksizehintp, 
 	  int use_parallel, void* parameters,
-	  struct NC_Dispatch* table, NC** ncp);
+	  struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
 	    int basepe, size_t *chunksizehintp,
 	    int use_parallel, void* parameters,
-	    struct NC_Dispatch* table, NC** ncp);
+	    struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);

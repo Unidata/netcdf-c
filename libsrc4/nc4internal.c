@@ -4,7 +4,7 @@ Internal netcdf-4 functions.
 This file contains functions internal to the netcdf4 library. None of
 the functions in this file are exposed in the exetnal API. These
 functions all relate to the manipulation of netcdf-4's in-memory
-buffer of metadata information, i.e. the linked list of NC_FILE_INFO_T
+buffer of metadata information, i.e. the linked list of NC
 structs.
 
 Copyright 2003-2011, University Corporation for Atmospheric
@@ -150,27 +150,22 @@ find_var_shape_grp(NC_GRP_INFO_T *grp, int varid, int *ndims,
    return retval;
 }
 
-/* Given an NC_FILE_INFO_T pointer, add the necessary stuff for a
+/* Given an NC pointer, add the necessary stuff for a
  * netcdf-4 file. */
 int
-nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode)
+nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 {
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
 
-   assert(nc && !nc->nc4_info && path);
+   assert(nc && !NC4_DATA(nc) && path);
 
-   /* The NC_FILE_INFO_T was allocated and inited by
-      ncfunc.c before this function is called. We need to malloc and
+   /* We need to malloc and
       initialize the substructure NC_HDF_FILE_INFO_T. */
-   if (!(nc->nc4_info = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
+   if (!(h5 = calloc(1, sizeof(NC_HDF5_FILE_INFO_T))))
       return NC_ENOMEM;
-   h5 = nc->nc4_info;
-
-   /* Hang on to the filename for nc_abort. */
-   if (!(h5->path = malloc((strlen(path) + 1) * sizeof(char))))
-      return NC_ENOMEM;
-   strcpy(h5->path, path);
+   NC4_DATA_SET(nc,h5);
+   h5->controller = nc;
 
    /* Hang on to cmode, and note that we're in define mode. */
    h5->cmode = mode | NC_INDEF;
@@ -190,7 +185,7 @@ nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode)
 /* NC_GRP_INFO_T * */
 /* find_nc_grp(int ncid) */
 /* { */
-/*    NC_FILE_INFO_T *f; */
+/*    NC *f; */
 
 /*    for (f = nc_file; f; f = f->next) */
 /*    { */
@@ -212,19 +207,20 @@ nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode)
 int
 nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 {
-   NC_FILE_INFO_T *f = nc4_find_nc_file(ncid);
+   NC_HDF5_FILE_INFO_T* h5;
+   NC *f = nc4_find_nc_file(ncid,&h5);
    if(f == NULL) return NC_EBADID;
 
    /* No netcdf-3 files allowed! */
-   if (!f->nc4_info) return NC_ENOTNC4;
-   assert(f->nc4_info->root_grp);
+   if (!h5) return NC_ENOTNC4;
+   assert(h5->root_grp);
 
    /* This function demands netcdf-4 files without strict nc3
     * rules.*/
-   if (f->nc4_info->cmode & NC_CLASSIC_MODEL) return NC_ESTRICTNC3;
+   if (h5->cmode & NC_CLASSIC_MODEL) return NC_ESTRICTNC3;
 
    /* If we can't find it, the grp id part of ncid is bad. */
-   if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
+   if (!(*grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
       return NC_EBADID;
    return NC_NOERR;
 }
@@ -233,43 +229,53 @@ nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
  * also set a pointer to the nc4_info struct of the related file. For
  * netcdf-3 files, *h5 will be set to NULL. */
 int
-nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_HDF5_FILE_INFO_T **h5)
+nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grpp, NC_HDF5_FILE_INFO_T **h5p)
 {
-    NC_FILE_INFO_T *f = nc4_find_nc_file(ncid);
+    NC_HDF5_FILE_INFO_T *h5;
+    NC_GRP_INFO_T *grp;
+    NC *f = nc4_find_nc_file(ncid,&h5);
     if(f == NULL) return NC_EBADID;
-    if (f->nc4_info) {
-        assert(f->nc4_info->root_grp);
+    if (h5) {
+        assert(h5->root_grp);
         /* If we can't find it, the grp id part of ncid is bad. */
-	if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
+	if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
   	    return NC_EBADID;
-	*h5 = (*grp)->file->nc4_info;
-	assert(*h5);
+	h5 = (grp)->nc4_info;
+	assert(h5);
     } else {
-	*h5 = NULL;
-	*grp = NULL;
+	h5 = NULL;
+	grp = NULL;
     }
+    if(h5p) *h5p = h5;
+    if(grpp) *grpp = grp;
     return NC_NOERR;
 }
 
 int
-nc4_find_nc_grp_h5(int ncid, NC_FILE_INFO_T **nc, NC_GRP_INFO_T **grp, 
-		   NC_HDF5_FILE_INFO_T **h5)
+nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
+		   NC_HDF5_FILE_INFO_T **h5p)
 {
-    NC_FILE_INFO_T *f = nc4_find_nc_file(ncid);
+    NC_GRP_INFO_T *grp;
+    NC_HDF5_FILE_INFO_T* h5;
+    NC *f = nc4_find_nc_file(ncid,&h5);
+
     if(f == NULL) return NC_EBADID;
     *nc = f;
-    if (f->nc4_info) {
-	assert(f->nc4_info->root_grp);
+    
+    if (h5) {
+	assert(h5->root_grp);
 	/* If we can't find it, the grp id part of ncid is bad. */
-	if (!(*grp = nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK))))
+	if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
 	       return NC_EBADID;
 
-	*h5 = (*grp)->file->nc4_info;
-	assert(*h5);
+	h5 = (grp)->nc4_info;
+	assert(h5);
     } else {
-	*h5 = NULL;
-	*grp = NULL;
+	h5 = NULL;
+	grp = NULL;
     }
+    if(h5p) *h5p = h5;
+    if(grpp) *grpp = grp;
     return NC_NOERR;
 }
 
@@ -298,12 +304,14 @@ nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid)
 /* Given an ncid and varid, get pointers to the group and var
  * metadata. */
 int
-nc4_find_g_var_nc(NC_FILE_INFO_T *nc, int ncid, int varid, 
+nc4_find_g_var_nc(NC *nc, int ncid, int varid, 
 		  NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
 {
+   NC_HDF5_FILE_INFO_T* h5 = NC4_DATA(nc);
+
    /* Find the group info. */
-   assert(grp && var && nc && nc->nc4_info && nc->nc4_info->root_grp);
-   *grp = nc4_rec_find_grp(nc->nc4_info->root_grp, (ncid & GRP_ID_MASK));
+   assert(grp && var && h5 && h5->root_grp);
+   *grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK));
 
    /* Find the var info. */
    for ((*var) = (*grp)->var; (*var); (*var) = (*var)->next)
@@ -576,71 +584,20 @@ nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
    return NC_ENOTATT;
 }
 
-void
-nc4_file_list_free(void)
-{
-    free_NCList();
-}
-
-
-int
-NC4_new_nc(NC** ncpp)
-{
-    NC_FILE_INFO_T** ncp;
-    /* Allocate memory for this info. */
-    if (!(ncp = calloc(1, sizeof(NC_FILE_INFO_T)))) 
-       return NC_ENOMEM;
-    if(ncpp) *ncpp = (NC*)ncp;
-    return NC_NOERR;
-}
-
-int
-nc4_file_list_add(NC_FILE_INFO_T** ncp, NC_Dispatch* dispatch)
-{
-    NC_FILE_INFO_T *nc;
-    int status = NC_NOERR;
-
-    /* Allocate memory for this info; use the dispatcher to do this */
-    status = dispatch->new_nc((NC**)&nc);
-    if(status) return status;
-
-    /* Add this file to the list. */
-    if ((status = add_to_NCList((NC *)nc)))
-    {
-       if(nc && nc->ext_ncid > 0) 
-       {
-	  del_from_NCList((NC *)nc);
-	  free(nc);
-       }
-       return status;
-    }
-    
-    /* Return a pointer to the new struct. */
-    if(ncp) 
-       *ncp = nc;
-
-    return NC_NOERR;
-}
-
-/* Remove a NC_FILE_INFO_T from the linked list. This will nc_free the
-   memory too. */
-void
-nc4_file_list_del(NC_FILE_INFO_T *nc)
-{
-   /* Remove file from master list. */
-   del_from_NCList((NC *)nc);
-   free(nc);
-}
-
 
 /* Given an id, walk the list and find the appropriate
-   NC_FILE_INFO_T. */
-NC_FILE_INFO_T*
-nc4_find_nc_file(int ext_ncid)
+   NC. */
+NC*
+nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
 {
-   return (NC_FILE_INFO_T*)find_in_NCList(ext_ncid);
+   NC* nc;
+   int stat;
+   stat = NC_check_id(ext_ncid,&nc);
+   if(stat != NC_NOERR)
+	nc = NULL;
+   if(h5p) *h5p = (NC_HDF5_FILE_INFO_T*)nc->dispatchdata;
+   return nc;
 }
-
 
 /* Add to the end of a var list. Return a pointer to the newly
  * added var. */
@@ -734,7 +691,7 @@ nc4_att_list_add(NC_ATT_INFO_T **list)
  * it's reserverd for the root group. */
 int
 nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid, 
-		 NC_GRP_INFO_T *parent_grp, NC_FILE_INFO_T *nc, 
+		 NC_GRP_INFO_T *parent_grp, NC *nc, 
 		 char *name, NC_GRP_INFO_T **grp)
 {
    NC_GRP_INFO_T *g;
@@ -768,7 +725,7 @@ nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
    if (!((*grp)->name = malloc((strlen(name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy((*grp)->name, name);
-   (*grp)->file = nc;
+   (*grp)->nc4_info = NC4_DATA(nc);
 
    return NC_NOERR;
 }
@@ -1432,9 +1389,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
  * that netCDF is working! Nonetheless, this function will print
  * nothing if logging is not set to at least two. */
 int
-log_metadata_nc(NC_FILE_INFO_T *nc)
+log_metadata_nc(NC *nc)
 {
-   NC_HDF5_FILE_INFO_T *h5 = nc->nc4_info;
+   NC_HDF5_FILE_INFO_T *h5 = NC4_DATA(nc);
    int tab_count = 0;
 
    LOG((2, "*** NetCDF-4 Internal Metadata: int_ncid 0x%x ext_ncid 0x%x", 
@@ -1445,7 +1402,7 @@ log_metadata_nc(NC_FILE_INFO_T *nc)
       return NC_NOERR;
    }
    LOG((2, "FILE - hdfid: 0x%x path: %s cmode: 0x%x parallel: %d redef: %d "
-	"fill_mode: %d no_write: %d next_nc_grpid: %d",	h5->hdfid, h5->path, 
+	"fill_mode: %d no_write: %d next_nc_grpid: %d",	h5->hdfid, nc->path, 
 	h5->cmode, h5->parallel, h5->redef, h5->fill_mode, h5->no_write, 
 	h5->next_nc_grpid));
    return rec_print_metadata(h5->root_grp, &tab_count);
@@ -1459,11 +1416,11 @@ NC4_show_metadata(int ncid)
 {
    int retval = NC_NOERR;
 #ifdef LOGGING
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    int old_log_level = nc_log_level;
    
    /* Find file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
    /* Log level must be 2 to see metadata. */

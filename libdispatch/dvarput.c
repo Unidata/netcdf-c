@@ -1,4 +1,4 @@
-/*! \file
+/*! 
 Functions for writing data to variables.
 
 Copyright 2010 University Corporation for Atmospheric

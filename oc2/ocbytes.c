@@ -72,7 +72,9 @@ int
 ocbytessetlength(OCbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return ocbytesfail();
-  if(sz > bb->alloc) {if(!ocbytessetalloc(bb,sz)) return ocbytesfail();}
+  if(bb->length < sz) {
+      if(sz > bb->alloc) {if(!ocbytessetalloc(bb,sz)) return ocbytesfail();}
+  }
   bb->length = sz;
   return TRUE;
 }

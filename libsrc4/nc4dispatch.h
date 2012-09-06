@@ -22,19 +22,13 @@ extern int
 NC4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int useparallel, void* parameters,
-	   NC_Dispatch*, NC**);
+	   NC_Dispatch*, NC*);
 
 extern int
 NC4_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp, 
 	 int use_parallel, void* parameters,
-	 NC_Dispatch*, NC**);
-
-extern int
-NC4_new_nc(NC**);
-
-extern int
-NC4_free_nc(NC*);
+	 NC_Dispatch*, NC*);
 
 extern int
 NC4_redef(int ncid);

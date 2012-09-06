@@ -52,10 +52,10 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * group creation will be done when metadata is written by a
     * sync. */
    if ((retval = nc4_grp_list_add(&(grp->children), h5->next_nc_grpid, 
-				  grp, grp->file, norm_name, &g)))
+				  grp, grp->nc4_info->controller, norm_name, &g)))
       return retval;
    if (new_ncid)
-      *new_ncid = grp->file->ext_ncid | h5->next_nc_grpid;
+      *new_ncid = grp->nc4_info->controller->ext_ncid | h5->next_nc_grpid;
    h5->next_nc_grpid++;
    
    return NC_NOERR;
@@ -90,7 +90,7 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
       if (!strcmp(norm_name, g->name)) /* found it! */
       {
 	 if (grp_ncid)
-	    *grp_ncid = grp->file->ext_ncid | g->nc_grpid;
+	    *grp_ncid = grp->nc4_info->controller->ext_ncid | g->nc_grpid;
 	 return NC_NOERR;
       }
    
@@ -130,7 +130,7 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
 	 /* Combine the nc_grpid in a bitwise or with the ext_ncid,
 	  * which allows the returned ncid to carry both file and
 	  * group information. */
-	 *ncids = g->nc_grpid | g->file->ext_ncid;
+	 *ncids = g->nc_grpid | g->nc4_info->controller->ext_ncid;
 	 ncids++;
       }
       num++;
@@ -248,7 +248,7 @@ NC4_inq_grp_parent(int ncid, int *parent_ncid)
    if (grp->parent)
    {
       if (parent_ncid)
-	 *parent_ncid = grp->file->ext_ncid | grp->parent->nc_grpid;
+	 *parent_ncid = grp->nc4_info->controller->ext_ncid | grp->parent->nc_grpid;
    }
    else
       return NC_ENOGRP;

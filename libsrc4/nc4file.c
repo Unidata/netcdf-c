@@ -46,7 +46,7 @@ static int nc4_rec_read_vars(NC_GRP_INFO_T *grp);
 #ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
  * netCDF files. */
-extern NC_FILE_INFO_T *nc_file;
+extern NC *nc_file;
 #endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
@@ -54,9 +54,6 @@ extern NC_FILE_INFO_T *nc_file;
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
-
-/* This is set by nc_set_default_format in libsrc/nc.c. */
-extern int default_create_format;
 
 /* To turn off HDF5 error messages, I have to catch an early
    invocation of a netcdf function. */
@@ -205,17 +202,21 @@ nc_check_for_hdf(const char *path, int use_parallel, MPI_Comm comm, MPI_Info inf
    return NC_NOERR;
 }
    
-/* Create a HDF5/netcdf-4 file. In this case, ncid has already been
- * selected in ncfunc.c. */
+/* Create a HDF5/netcdf-4 file. */
+
 static int
 nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
-                NC_FILE_INFO_T *nc) 
+                NC *nc) 
 {
    hid_t fcpl_id, fapl_id;
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
    int persist = 0; /* Should diskless try to persist its data into file?*/
+   NC_HDF5_FILE_INFO_T* nc4_info;
+
+
+   assert(nc);
 
    if(cmode & NC_DISKLESS)
        flags = H5F_ACC_TRUNC;
@@ -226,7 +227,6 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    LOG((3, "nc4_create_file: path %s mode 0x%x", path, cmode));
    assert(nc && path);
-
 
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
@@ -241,7 +241,8 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, (NC_WRITE | cmode))))
       BAIL(retval);
-   assert(nc->nc4_info && nc->nc4_info->root_grp);
+   nc4_info = NC4_DATA(nc);
+   assert(nc4_info && nc4_info->root_grp);
 
    /* Need this access plist to control how HDF5 handles open onjects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
@@ -264,7 +265,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       property list. */
    if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX))
    {
-      nc->nc4_info->parallel++;
+      nc4_info->parallel++;
       if (cmode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "creating parallel file with MPI/IO"));
@@ -311,11 +312,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       BAIL(NC_EHDFERR);
 
    /* Create the file. */
-   if ((nc->nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0) 
+   if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0) 
       BAIL(NC_EFILEMETA);
 
    /* Open the root group. */
-   if ((nc->nc4_info->root_grp->hdf_grpid = H5Gopen2(nc->nc4_info->hdfid, "/", 
+   if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/", 
 						     H5P_DEFAULT)) < 0)
       BAIL(NC_EFILEMETA);
 
@@ -329,12 +330,12 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 #endif
 
    /* Define mode gets turned on automatically on create. */
-   nc->nc4_info->flags |= NC_INDEF;
+   nc4_info->flags |= NC_INDEF;
 
    return NC_NOERR;
 
   exit:
-   if (nc->nc4_info->hdfid > 0) H5Fclose(nc->nc4_info->hdfid);
+   if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
    return retval;
 }
 
@@ -350,15 +351,14 @@ Create a netCDF-4/HDF5 file.
 \param mpidata pointer to struct holdind data for parallel I/O
 layer. Ignored if NULL.
 \param dispatch Pointer to the dispatch table for this file.
-\param ncpp Pointer to start of linked list of open files.
+\param nc_file Pointer to an instance of NC.
 \return NC_INVAL Invalid input (check cmode).
 */
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe, 
 	   size_t *chunksizehintp, int use_parallel, void *mpidata,
-	   NC_Dispatch *dispatch, NC **ncpp)
+	   NC_Dispatch *dispatch, NC* nc_file)
 {
-   NC_FILE_INFO_T *nc_file = NULL;
 #ifdef USE_PARALLEL
    MPI_Comm comm = 0; 
    MPI_Info info = 0; 
@@ -367,7 +367,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 #endif /* USE_PARALLEL */
    int res;
 
-   assert(ncpp && path);
+   assert(nc_file && path);
 
    LOG((1, "nc4_create_file: path %s cmode 0x%x comm %d info %d",
 	path, cmode, comm, info));
@@ -402,51 +402,26 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
       )
       return NC_EINVAL;
 
-   /* Allocate the storage for this file info struct, and fill it with
-      zeros. This add the file metadata to the front of the global
-      nc_file list. */
-   if ((res = nc4_file_list_add(&nc_file, dispatch)))
-      return res;
+   cmode |= NC_NETCDF4;
 
    /* Apply default create format. */
-   if (default_create_format == NC_FORMAT_64BIT)
+   if (nc_get_default_format() == NC_FORMAT_64BIT)
       cmode |= NC_64BIT_OFFSET;
-   else if (default_create_format == NC_FORMAT_NETCDF4)
-      cmode |= NC_NETCDF4;
-   else if (default_create_format == NC_FORMAT_NETCDF4_CLASSIC)
-   {
-      cmode |= NC_NETCDF4;
+   else if (nc_get_default_format() == NC_FORMAT_NETCDF4_CLASSIC)
       cmode |= NC_CLASSIC_MODEL;
-   }
+
    LOG((2, "cmode after applying default format: 0x%x", cmode));
 
-   /* Check to see if we want a netcdf3 or netcdf4 file. Open it, and
-      call the appropriate nc*_create. */
-   if (cmode & NC_NETCDF4) 
-   {
-      nc_file->int_ncid = nc_file->ext_ncid;
-      res = nc4_create_file(path, cmode, comm, info, nc_file);
-   } 
+   nc_file->int_ncid = nc_file->ext_ncid;
+   res = nc4_create_file(path, cmode, comm, info, nc_file);
+
 #ifdef USE_PNETCDF
-   else if (cmode & NC_PNETCDF)
+   if (cmode & NC_PNETCDF)
    {
       nc_file->pnetcdf_file++;
       res = ncmpi_create(comm, path, cmode, info, &(nc_file->int_ncid));      
    }
 #endif /* USE_PNETCDF */
-   else 
-   {
-      return NC_EINVAL;
-   }
-   
-   /* Delete this file list entry if there was a failure. */
-   if (res)
-   {
-      if (nc_file) 
-	 nc4_file_list_del(nc_file);
-   }
-   else
-      *ncpp = (NC *)nc_file;
 
    return res;
 }
@@ -472,7 +447,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
       return retval;
 
    /* Assign dimid and increment number of dimensions. */
-   grp->dim->dimid = grp->file->nc4_info->next_dimid++;
+   grp->dim->dimid = grp->nc4_info->next_dimid++;
    grp->ndims++;
 
    /* Does this dataset have a hidden attribute that tells us its
@@ -880,7 +855,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       if (!(fixed_size = H5Tget_size(att->native_typeid)))
 	 BAIL(NC_EATTMETA);
    }
-   if ((retval = get_netcdf_type(grp->file->nc4_info, att->native_typeid, &(att->xtype))))
+   if ((retval = get_netcdf_type(grp->nc4_info, att->native_typeid, &(att->xtype))))
       BAIL(retval);
 
 
@@ -938,7 +913,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       attribute. */
    if (dims[0])
    {
-      if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, att->xtype, 0,
+      if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->xtype, 0,
 					&type_size)))
 	 return retval;
       if (att_class == H5T_VLEN)
@@ -1101,7 +1076,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
                return NC_EHDFERR;
 
             /* What is the netcdf corresponding type. */
-            if ((retval = get_netcdf_type(grp->file->nc4_info, base_hdf_typeid, 
+            if ((retval = get_netcdf_type(grp->nc4_info, base_hdf_typeid, 
 					  &base_nc_type)))
                return retval;
             LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d", 
@@ -1126,7 +1101,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          if (!(type_size = H5Tget_size(base_hdf_typeid)))
             return NC_EHDFERR;
          /* What is the netcdf corresponding type. */
-         if ((retval = get_netcdf_type(grp->file->nc4_info, base_hdf_typeid, 
+         if ((retval = get_netcdf_type(grp->nc4_info, base_hdf_typeid, 
 				       &base_nc_type)))
             return retval;
          LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d", 
@@ -1143,7 +1118,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
    assert(type);
 
    /* Remember info about this type. */
-   type->nc_typeid = grp->file->nc4_info->next_typeid++;
+   type->nc_typeid = grp->nc4_info->next_typeid++;
    type->size = type_size;
    if (!(type->name = malloc((strlen(type_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
@@ -1195,14 +1170,14 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
             for (d = 0; d < ndims; d++)
                dim_size[d] = dims[d];
 	    /* What is the netCDF typeid of this member? */
-	    if ((retval = get_netcdf_type(grp->file->nc4_info, H5Tget_super(member_hdf_typeid), 
+	    if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid), 
 					  &member_xtype)))
 	       return retval;
          }
 	 else
 	 {
 	    /* What is the netCDF typeid of this member? */
-	    if ((retval = get_netcdf_type(grp->file->nc4_info, member_native_typeid, 
+	    if ((retval = get_netcdf_type(grp->nc4_info, member_native_typeid, 
 					  &member_xtype)))
 	       return retval;
 	 }
@@ -1408,7 +1383,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    }
                
    /* Learn all about the type of this variable. */
-   if ((retval = get_type_info2(grp->file->nc4_info, datasetid, 
+   if ((retval = get_type_info2(grp->nc4_info, datasetid, 
 				&var->xtype, &var->type_info)))
       BAIL(retval);
 
@@ -1596,7 +1571,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
        * but not add this attribute to the metadata. It's not a user
        * attribute, but an internal netcdf-4 one. */
       if (!strcmp(obj_name, NC3_STRICT_ATT_NAME))
-         grp->file->nc4_info->cmode |= NC_CLASSIC_MODEL;
+         grp->nc4_info->cmode |= NC_CLASSIC_MODEL;
       else
       {
          /* Add an att struct at the end of the list, and then go to it. */
@@ -1615,7 +1590,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
          if ((retval = read_hdf5_att(grp, attid, att)))
             BAIL(retval);
          att->created++;
-         if ((retval = nc4_find_type(grp->file->nc4_info, att->xtype, &type)))
+         if ((retval = nc4_find_type(grp->nc4_info, att->xtype, &type)))
             BAIL(retval);
          if (type)
             att->class = type->class;
@@ -1784,7 +1759,7 @@ nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     char oname[NC_MAX_NAME + 1];
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
-    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+    NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
 
     /* Open this critter. */
     if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
@@ -1803,7 +1778,7 @@ nc4_rec_read_types_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     {
 	LOG((3, "found group %s", oname));
 	if (nc4_grp_list_add(&(grp->children), h5->next_nc_grpid++, 
-			     grp, grp->file, oname, &child_grp))
+			     grp, grp->nc4_info->controller, oname, &child_grp))
 	    return H5_ITER_ERROR;
 			
 	if (nc4_rec_read_types(child_grp))
@@ -1826,7 +1801,7 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
     int res = 0;
     hid_t pid = 0;
     unsigned crt_order_flags = 0;
-    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+    NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
 
     assert(grp && grp->name);
     LOG((3, "nc4_rec_read_types: grp->name %s", grp->name));
@@ -1843,7 +1818,7 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
         }
         else
         {
-	    if ((grp->hdf_grpid = H5Gopen2(grp->file->nc4_info->hdfid, 
+	    if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, 
 					   "/", H5P_DEFAULT)) < 0)
 		return NC_EHDFERR;
         }
@@ -1884,7 +1859,7 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
     NC_GRP_INFO_T *child_grp;
     NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
 #if 0
-    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+    NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
 #endif
 
     memset(oname, 0, NC_MAX_NAME);
@@ -1942,7 +1917,7 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
     int res = 0;
     hid_t pid = 0;
     unsigned crt_order_flags = 0;
-    NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+    NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
     
     assert(grp && grp->name && grp->hdf_grpid > 0);
     LOG((3, "nc4_rec_read_vars: grp->name %s", grp->name));
@@ -2077,7 +2052,7 @@ int
 nc4_rec_read_types(NC_GRP_INFO_T *grp)
 {
    hsize_t num_obj, i;
-   NC_HDF5_FILE_INFO_T *h5 = grp->file->nc4_info;
+   NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
    NC_GRP_INFO_T *child_grp;
    hsize_t idx = 0;
    struct nc_hdf5_link_info link_info;
@@ -2100,7 +2075,7 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
       }
       else
       {
-         if ((grp->hdf_grpid = H5Gopen2(grp->file->nc4_info->hdfid, 
+         if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, 
 					"/", H5P_DEFAULT)) < 0)
             return NC_EHDFERR;
       }
@@ -2218,16 +2193,16 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
  * is handled. */
 static int
 nc4_open_file(const char *path, int mode, MPI_Comm comm,
-	      MPI_Info info, NC_FILE_INFO_T *nc)
+	      MPI_Info info, NC *nc)
 {
    hid_t fapl_id = H5P_DEFAULT;
    unsigned flags = (mode & NC_WRITE) ? 
       H5F_ACC_RDWR : H5F_ACC_RDONLY;
    int retval;
+   NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((3, "nc4_open_file: path %s mode %d", path, mode));
    assert(path && nc);
-
    /* Stop diskless open in its tracks */
    if(mode & NC_DISKLESS)
 	return NC_EDISKLESS;
@@ -2235,7 +2210,8 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
       BAIL(retval);
-   assert(nc->nc4_info && nc->nc4_info->root_grp);
+   nc4_info = NC4_DATA(nc);
+   assert(nc4_info && nc4_info->root_grp);
    
    /* Need this access plist to control how HDF5 handles open onjects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
@@ -2258,7 +2234,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
       property list. */
    if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
    {
-      nc->nc4_info->parallel++;
+      nc4_info->parallel++;
       if (mode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "opening parallel file with MPI/IO"));
@@ -2283,25 +2259,25 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    /* The NetCDF-3.x prototype contains an mode option NC_SHARE for
       multiple processes accessing the dataset concurrently.  As there
       is no HDF5 equivalent, NC_SHARE is treated as NC_NOWRITE. */
-   if ((nc->nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+   if ((nc4_info->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
       BAIL(NC_EHDFERR);
 
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
-      nc->nc4_info->no_write++;
+      nc4_info->no_write++;
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
     * dataset of user-defined type is encountered before the
     * definition of that type. */
-   if ((retval = nc4_rec_read_types(nc->nc4_info->root_grp)))
+   if ((retval = nc4_rec_read_types(nc4_info->root_grp)))
       BAIL(retval);
-   if ((retval = nc4_rec_read_vars(nc->nc4_info->root_grp)))
+   if ((retval = nc4_rec_read_vars(nc4_info->root_grp)))
       BAIL(retval);
 
    /* Now figure out which netCDF dims are indicated by the dimscale
     * information. */
-   if ((retval = nc4_rec_match_dimscales(nc->nc4_info->root_grp)))
+   if ((retval = nc4_rec_match_dimscales(nc4_info->root_grp)))
       BAIL(retval);
 
 #ifdef LOGGING
@@ -2324,8 +2300,8 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
-   if (nc->nc4_info->hdfid > 0) H5Fclose(nc->nc4_info->hdfid);
-   if (nc->nc4_info) free(nc->nc4_info);
+   if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   if (nc4_info) free(nc4_info);
    return retval;
 }
 
@@ -2406,7 +2382,7 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 /* Open a HDF4 file. Things have already been kicked off in nc_open,
  * but here the netCDF-4 part of opening a file is handled. */
 static int
-nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
+nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 {
 #ifdef USE_HDF4
    NC_HDF5_FILE_INFO_T *h5;
@@ -2428,8 +2404,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
       return retval;
-   assert(nc->nc4_info && nc->nc4_info->root_grp);
-   h5 = nc->nc4_info;
+   assert(nc4_info && nc4_info->root_grp);
+   h5 = nc4_info;
    h5->hdf4++;
    grp = h5->root_grp;
    h5->no_write++;
@@ -2562,7 +2538,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 	       return retval;
 	    grp->ndims++;
 	    dim = grp->dim;
-	    dim->dimid = grp->file->nc4_info->next_dimid++;
+	    dim->dimid = grp->nc4_info->next_dimid++;
 	    if (strlen(dim_name) > NC_MAX_HDF4_NAME)
 	       return NC_EMAXNAME;
 	    if (!(dim->name = malloc(NC_MAX_HDF4_NAME + 1)))
@@ -2626,10 +2602,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC_FILE_INFO_T *nc)
 
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
-	 int use_parallel, void *mpidata, NC_Dispatch *dispatch, NC **ncpp)
+	 int use_parallel, void *mpidata, NC_Dispatch *dispatch, NC *nc_file)
 {
    int hdf_file = 0;
-   NC_FILE_INFO_T *nc_file;
 #ifdef USE_PARALLEL
    MPI_Comm comm = 0; 
    MPI_Info info = 0;	
@@ -2638,7 +2613,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* USE_PARALLEL */
    int res;
 
-   assert(ncpp && path);
+   assert(nc_file && path);
 
    LOG((1, "nc_open_file: path %s mode %d comm %d info %d", 
 	path, mode, comm, info));
@@ -2670,11 +2645,6 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Figure out if this is a hdf4 or hdf5 file. */
    if ((res = nc_check_for_hdf(path, use_parallel, comm, info, &hdf_file)))
-      return res;
-
-   /* Allocate the storage for this file info struct, and fill it with
-      zeros. */
-   if ((res = nc4_file_list_add(&nc_file,dispatch)))
       return res;
 
    /* Depending on the type of file, open it. */
@@ -2717,17 +2687,6 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
       assert(0);
    }
 
-   /* If it succeeds, pass back the new ncid. Otherwise, remove this
-      file from the list. */
-   if (res)
-   {
-      if(nc_file != NULL) nc4_file_list_del(nc_file);
-   }
-   else
-   {
-      *ncpp = (NC*)nc_file;
-   }
-
    return res;
 }
 
@@ -2739,18 +2698,17 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 int 
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* nc4_info;
  
    LOG((2, "nc_set_fill: ncid 0x%x fillmode %d", ncid, fillmode));
 
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
-
-   /* Is this a netcdf-3 file? */
-   assert(nc->nc4_info);
+   assert(nc4_info);
 
    /* Trying to set fill on a read-only file? You sicken me! */
-   if (nc->nc4_info->no_write)
+   if (nc4_info->no_write)
       return NC_EPERM;
 
    /* Did you pass me some weird fillmode? */
@@ -2759,9 +2717,9 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    /* If the user wants to know, tell him what the old mode was. */
    if (old_modep)
-      *old_modep = nc->nc4_info->fill_mode;
+      *old_modep = nc4_info->fill_mode;
 
-   nc->nc4_info->fill_mode = fillmode;
+   nc4_info->fill_mode = fillmode;
 
    return NC_NOERR;
 }
@@ -2771,13 +2729,15 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((1, "nc_redef: ncid 0x%x", ncid));
 
    /* Find this file's metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
+   assert(nc4_info);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -2786,22 +2746,22 @@ NC4_redef(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(nc4_info);
 
    /* If we're already in define mode, return an error. */
-   if (nc->nc4_info->flags & NC_INDEF)
+   if (nc4_info->flags & NC_INDEF)
       return NC_EINDEFINE;
 
    /* If the file is read-only, return an error. */
-   if (nc->nc4_info->no_write)
+   if (nc4_info->no_write)
       return NC_EPERM;
 
    /* Set define mode. */
-   nc->nc4_info->flags |= NC_INDEF;
+   nc4_info->flags |= NC_INDEF;
 
    /* For nc_abort, we need to remember if we're in define mode as a
       redef. */
-   nc->nc4_info->redef++;
+   nc4_info->redef++;
 
    return NC_NOERR;
 }
@@ -2812,7 +2772,7 @@ int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
 	    size_t v_minfree, size_t r_align)
 {
-   if (!nc4_find_nc_file(ncid))
+   if (nc4_find_nc_file(ncid,NULL) == NULL)
       return NC_EBADID;
 
    return NC4_enddef(ncid);
@@ -2822,12 +2782,14 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * netcdf-4 files, if the user forgets. */
 static int NC4_enddef(int ncid)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((1, "nc_enddef: ncid 0x%x", ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
+   assert(nc4_info);
 
 #ifdef USE_PNETCDF
    if (nc->pnetcdf_file)
@@ -2844,9 +2806,9 @@ static int NC4_enddef(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(nc4_info);
 
-   return nc4_enddef_netcdf4_file(nc->nc4_info);
+   return nc4_enddef_netcdf4_file(nc4_info);
 }
 
 /* This function will write all changed metadata, and (someday) reread
@@ -2876,7 +2838,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */ 
-   log_metadata_nc(h5->root_grp->file);
+   log_metadata_nc(h5->root_grp->nc4_info->controller);
 #endif
 
    /* Write any metadata that has changed. */
@@ -2902,13 +2864,15 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
 int
 NC4_sync(int ncid)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    int retval;
+   NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((2, "nc_sync: ncid 0x%x", ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
+   assert(nc4_info);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -2917,18 +2881,18 @@ NC4_sync(int ncid)
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(nc4_info);
 
    /* If we're in define mode, we can't sync. */
-   if (nc->nc4_info && nc->nc4_info->flags & NC_INDEF)
+   if (nc4_info && nc4_info->flags & NC_INDEF)
    {
-      if (nc->nc4_info->cmode & NC_CLASSIC_MODEL)
+      if (nc4_info->cmode & NC_CLASSIC_MODEL)
 	 return NC_EINDEFINE;
       if ((retval = nc_enddef(ncid)))
 	 return retval;
    }
 
-   return sync_netcdf4_file(nc->nc4_info);
+   return sync_netcdf4_file(nc4_info);
 }
 
 /* This function will free all allocated metadata memory, and close
@@ -2937,11 +2901,11 @@ NC4_sync(int ncid)
 static int
 close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 {
-   int retval;
+   int retval = NC_NOERR;
 
    assert(h5 && h5->root_grp);
    LOG((3, "close_netcdf4_file: h5->path %s abort %d", 
-	h5->path, abort));
+	h5->controller->path, abort));
 
    /* According to the docs, always end define mode on close. */
    if (h5->flags & NC_INDEF)
@@ -2951,19 +2915,19 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
     * file. */
    if (!h5->no_write && !abort)
       if ((retval = sync_netcdf4_file(h5)))
-	 return retval;
+	goto done;
 
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(&h5->root_grp, h5->root_grp)))
-      return retval;
+	goto done;
 
    /* Close hdf file. */
    if (h5->hdf4)
    {
 #ifdef USE_HDF4
       if (SDend(h5->sdid))
-	 return NC_EHDFERR;
+	 {retval = NC_EHDFERR; goto done;}
 #endif /* USE_HDF4 */
    } 
    else
@@ -2974,7 +2938,7 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	nobjs = H5Fget_obj_count(h5->hdfid, H5F_OBJ_ALL);
 	/* Apparently we can get an error even when nobjs == 0 */
 	if(nobjs < 0) {
-	  return NC_EHDFERR;
+	  {retval = NC_EHDFERR; goto done;}
 	} else if(nobjs > 0) {
 #ifdef LOGGING
 	 /* If the close doesn't work, probably there are still some HDF5
@@ -2983,20 +2947,20 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	  * out. */
          LOG((0, "There are %d HDF5 objects open!", nobjs));
 #endif      
-	 return NC_EHDFERR;
+	 retval = NC_EHDFERR; goto done;
 	}
       }
 /*      if (H5garbage_collect() < 0)
-	return NC_EHDFERR;	 */
+	{retval = NC_EHDFERR; goto done;	 */
    }
 
-   /* Delete the memory for the path, if it's been allocated. */
-   if (h5->path)
-      free(h5->path);
+   /* Free the nc4_info struct; above code should have reclaimed 
+      everything else */
+   if(h5 != NULL)
+       free(h5);
 
-   /* Free the nc4_info struct. */
-   free(h5);
-   return NC_NOERR;
+done:
+   return retval;
 }
 
 /* From the netcdf-3 docs: The function nc_abort just closes the
@@ -3008,16 +2972,18 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 int
 NC4_abort(int ncid)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
    int retval = NC_NOERR;
+   NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((2, "nc_abort: ncid 0x%x", ncid));
 
    /* Find metadata for this file. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
+   assert(nc4_info);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -3025,28 +2991,23 @@ NC4_abort(int ncid)
       return ncmpi_abort(nc->int_ncid);
 #endif /* USE_PNETCDF */
 
-   /* If this is a netcdf-3 file, let the netcdf-3 library handle it. */
-   assert(nc->nc4_info);
+   assert(nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
-   if (nc->nc4_info->flags & NC_INDEF && !nc->nc4_info->redef)
+   if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
    {
       delete_file++;
-      strcpy(path, nc->nc4_info->path);
-      /*strcpy(path, nc->path);*/
+      strcpy(path, nc->path);
    }
 
    /* Free any resources the netcdf-4 library has for this file's
     * metadata. */
-   if ((retval = close_netcdf4_file(nc->nc4_info, 1)))
+   if ((retval = close_netcdf4_file(nc4_info, 1)))
       return retval;
    
    /* Delete the file, if we should. */
    if (delete_file)
       remove(path);
-
-   /* Delete this entry from our list of open files. */
-   nc4_file_list_del(nc);
 
    return retval;
 }
@@ -3056,7 +3017,7 @@ int
 NC4_close(int ncid)
 {
    NC_GRP_INFO_T *grp;
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
    int retval;
 
@@ -3079,17 +3040,8 @@ NC4_close(int ncid)
       return NC_EBADGRPID;
 
    /* Call the nc4 close. */
-   if ((retval = close_netcdf4_file(grp->file->nc4_info, 0)))
+   if ((retval = close_netcdf4_file(grp->nc4_info, 0)))
       return retval;
-
-   /* Delete this entry from our list of open files. */
-   if (nc->path)
-      free(nc->path);
-   nc4_file_list_del(nc);
-
-   /* Reset the ncid numbers if there are no more files open. */
-   if(count_NCList() == 0)
-      nc4_file_list_free();
 
    return NC_NOERR;
 }
@@ -3099,7 +3051,7 @@ NC4_close(int ncid)
 int
 NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_DIM_INFO_T *dim;

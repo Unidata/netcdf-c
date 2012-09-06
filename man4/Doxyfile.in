@@ -573,6 +573,7 @@ INPUT = \
     @abs_top_srcdir@/man4/tutorial.doc \
     @abs_top_srcdir@/man4/install.doc \
     @abs_top_srcdir@/man4/dispatch.doc \
+    @abs_top_srcdir@/man4/win_netcdf.doc \
     @abs_top_srcdir@/man4/guide.doc \
     @abs_top_srcdir@/man4/types.doc \
     @abs_top_srcdir@/man4/notes.doc \

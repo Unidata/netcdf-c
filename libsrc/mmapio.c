@@ -17,7 +17,7 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#include "nc.h"
+#include "nc3internal.h"
 
 #undef DEBUG
 

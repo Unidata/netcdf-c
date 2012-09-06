@@ -44,14 +44,10 @@ extern "C" {
 #endif
 
 EXTERNL int
-NCD3_new_nc(struct NC**);
-
-/* WARNING: this signature differs from external nc_open API*/
-EXTERNL int
 NCD3_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
          int use_parallel, void* mpidata,
-         struct NC_Dispatch* dispatch, NC** ncp);
+         struct NC_Dispatch* dispatch, NC* ncp);
 
 EXTERNL int
 NCD3_close(int ncid);

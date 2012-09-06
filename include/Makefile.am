@@ -13,7 +13,7 @@ endif
 noinst_HEADERS = nc_logging.h nc_tests.h fbits.h nc.h	\
 nclist.h ncuri.h utf8proc.h ncdispatch.h ncdimscale.h		\
 netcdf_f.h err_macros.h ncbytes.h nchashmap.h ceconstraints.h rnd.h	\
-nclog.h ncconfigure.h nc4internal.h nctime.h nc3dispatch.h
+nclog.h ncconfigure.h nc4internal.h nctime.h nc3dispatch.h nc3internal.h
 
 if USE_NETCDF4
 noinst_HEADERS += ncaux.h 

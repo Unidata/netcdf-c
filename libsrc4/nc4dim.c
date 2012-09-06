@@ -23,7 +23,7 @@ $Id: nc4dim.c,v 1.41 2010/05/25 17:54:23 dmh Exp $
 int 
 NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp, *g;
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
@@ -68,7 +68,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 int
 NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
@@ -134,7 +134,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    /* Add a dimension to the list. The ID must come from the file
     * information, since dimids are visible in more than one group. */
    nc4_dim_list_add(&grp->dim);
-   grp->dim->dimid = grp->file->nc4_info->next_dimid++;
+   grp->dim->dimid = grp->nc4_info->next_dimid++;
 
    /* Initialize the metadata for this dimension. */
    if (!(grp->dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
@@ -156,7 +156,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 int
 NC4_inq_dimid(int ncid, const char *name, int *idp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp, *g;
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
@@ -204,7 +204,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 int
 NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp, *dim_grp;
    NC_DIM_INFO_T *dim;
@@ -274,7 +274,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 int
 NC4_rename_dim(int ncid, int dimid, const char *name)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
@@ -366,7 +366,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 {
   NC_DIM_INFO_T *dim;
   NC_GRP_INFO_T *grp;
-  NC_FILE_INFO_T *nc;
+  NC *nc;
   NC_HDF5_FILE_INFO_T *h5;
   int num_unlim = 0;
   int retval;

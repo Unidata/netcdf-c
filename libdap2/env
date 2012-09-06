@@ -1,16 +1,17 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-#TOP="/home/dmh/mach/trunk"
+TOP="/home/dmh/mach/trunk"
 #TOP="/cygdrive/f/svn/trunk"
-TOP="/cygdrive/c/Users/dmh/svn/trunk"
+#TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
 PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-T="1990-S1700101.HDF.WVC_Lat"
+#T="1990-S1700101.HDF.WVC_Lat"
+T="synth1"
 
 F="file://$TOP/ncdap_test/testdata3/$T"
 #F="http://motherlode.ucar.edu:8081/dts/$T?f64"

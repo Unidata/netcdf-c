@@ -20,7 +20,7 @@ dnl
 #include <assert.h>
 
 #include "netcdf.h"
-#include "nc.h"
+#include "nc3internal.h"
 #include "ncx.h"
 #include "fbits.h"
 #include "onstack.h"
@@ -37,10 +37,10 @@ dnl
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
 
 static int
-readNCv(const NC* ncp, const NC_var* varp, const size_t* start,
+readNCv(const NC3_INFO* ncp, const NC_var* varp, const size_t* start,
         const size_t nelems, void* value, const nc_type memtype);
 static int
-writeNCv(NC* ncp, const NC_var* varp, const size_t* start,
+writeNCv(NC3_INFO* ncp, const NC_var* varp, const size_t* start,
          const size_t nelems, const void* value, const nc_type memtype);
 
 
@@ -139,7 +139,7 @@ NCFILL(double, double, X_SIZEOF_DOUBLE, NC_FILL_DOUBLE)
 xdr_NC_fill()
  */
 int
-fill_NC_var(NC *ncp, const NC_var *varp, size_t varsize, size_t recno)
+fill_NC_var(NC3_INFO* ncp, const NC_var *varp, size_t varsize, size_t recno)
 {
 	char xfillp[NFILL * X_SIZEOF_DOUBLE];
 	const size_t step = varp->xsz;
@@ -289,7 +289,7 @@ fill_NC_var(NC *ncp, const NC_var *varp, size_t varsize, size_t recno)
  * Add a record containing the fill values.
  */
 static int
-NCfillrecord(NC *ncp, const NC_var *const *varpp, size_t recno)
+NCfillrecord(NC3_INFO* ncp, const NC_var *const *varpp, size_t recno)
 {
 	size_t ii = 0;
 	for(; ii < ncp->vars.nelems; ii++, varpp++)
@@ -314,7 +314,7 @@ NCfillrecord(NC *ncp, const NC_var *const *varpp, size_t recno)
  * record to be four-byte aligned (no record padding).
  */
 static int
-NCfillspecialrecord(NC *ncp, const NC_var *varp, size_t recno)
+NCfillspecialrecord(NC3_INFO* ncp, const NC_var *varp, size_t recno)
 {
     int status;
     assert(IS_RECVAR(varp));
@@ -335,7 +335,7 @@ NCfillspecialrecord(NC *ncp, const NC_var *varp, size_t recno)
  * Grow the file to a size which can contain recno
  */
 static int
-NCtouchlast(NC *ncp, const NC_var *const *varpp, size_t recno)
+NCtouchlast(NC3_INFO* ncp, const NC_var *const *varpp, size_t recno)
 {
 	int status = NC_NOERR;
 	const NC_var *varp = NULL;
@@ -377,7 +377,7 @@ NCtouchlast(NC *ncp, const NC_var *const *varpp, size_t recno)
  * add records and fill as neccessary.
  */
 static int
-NCvnrecs(NC *ncp, size_t numrecs)
+NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 {
 	int status = NC_NOERR;
 #ifdef LOCKNUMREC
@@ -509,7 +509,7 @@ common_return:
  * Check whether 'coord' values are valid for the variable.
  */
 static int
-NCcoordck(NC *ncp, const NC_var *varp, const size_t *coord)
+NCcoordck(NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 {
 	const size_t *ip;
 	size_t *up;
@@ -571,7 +571,7 @@ fprintf(stderr,"	NCcoordck: ip %p, *ip %ld, up %p, *up %lu\n",
  */
 /*ARGSUSED*/
 static int
-NCedgeck(const NC *ncp, const NC_var *varp,
+NCedgeck(const NC3_INFO* ncp, const NC_var *varp,
 	 const size_t *start, const size_t *edges)
 {
 	const size_t *const end = start + varp->ndims;
@@ -604,7 +604,7 @@ NCedgeck(const NC *ncp, const NC_var *varp,
  * Translate the (variable, coord) pair into a seek index
  */
 static off_t
-NC_varoffset(const NC *ncp, const NC_var *varp, const size_t *coord)
+NC_varoffset(const NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 {
 	if(varp->ndims == 0) /* 'scalar' variable */
 		return varp->begin;
@@ -653,7 +653,7 @@ dnl
 define(`PUTNCVX',dnl
 `dnl
 static int
-putNCvx_$1_$2(NC *ncp, const NC_var *varp,
+putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 		 const size_t *start, size_t nelems, const $2 *value)
 {
 	off_t offset = NC_varoffset(ncp, varp, start);
@@ -760,7 +760,7 @@ dnl
 define(`GETNCVX',dnl
 `dnl
 static int
-getNCvx_$1_$2(const NC *ncp, const NC_var *varp,
+getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 		 const size_t *start, size_t nelems, $2 *value)
 {
 	off_t offset = NC_varoffset(ncp, varp, start);
@@ -866,7 +866,7 @@ GETNCVX(schar, uchar)
  *  overly subtle.
  */
 static int
-NCiocount(const NC *const ncp, const NC_var *const varp,
+NCiocount(const NC3_INFO* const ncp, const NC_var *const varp,
 	const size_t *const edges,
 	size_t *const iocountp)
 {
@@ -1020,7 +1020,7 @@ ifelse($1, text,dnl
 #define CASE(nc1,nc2) (nc1*256+nc2)
 
 static int
-readNCv(const NC* ncp, const NC_var* varp, const size_t* start,
+readNCv(const NC3_INFO* ncp, const NC_var* varp, const size_t* start,
         const size_t nelems, void* value, const nc_type memtype)
 {
     int status = NC_NOERR;
@@ -1179,7 +1179,7 @@ readNCv(const NC* ncp, const NC_var* varp, const size_t* start,
 
 
 static int
-writeNCv(NC* ncp, const NC_var* varp, const size_t* start,
+writeNCv(NC3_INFO* ncp, const NC_var* varp, const size_t* start,
          const size_t nelems, const void* value, const nc_type memtype)
 {
     int status = NC_NOERR;
@@ -1314,7 +1314,8 @@ NC3_get_vara(int ncid, int varid,
 	    nc_type memtype)
 {
     int status = NC_NOERR;
-    NC* ncp;
+    NC* nc;
+    NC3_INFO* nc3;
     NC_var *varp;
     int ii;
     size_t iocount;
@@ -1323,14 +1324,15 @@ NC3_get_vara(int ncid, int varid,
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 
-    status = NC_check_id(ncid, &ncp); 
+    status = NC_check_id(ncid, &nc); 
     if(status != NC_NOERR)
         return status;
+    nc3 = NC3_DATA(nc);
 
-    if(NC_indef(ncp))
+    if(NC_indef(nc3))
         return NC_EINDEFINE;
 
-    varp = NC_lookupvar(ncp, varid);
+    varp = NC_lookupvar(nc3, varid);
     if(varp == NULL)
         return NC_ENOTVAR;
 
@@ -1348,17 +1350,17 @@ NC3_get_vara(int ncid, int varid,
 	if(varp->shape[0] == 0) {
 	    (void*)memcpy((void*)modedges,(void*)varp->shape,
                           sizeof(size_t)*varp->ndims);
-	    modedges[0] = NC_get_numrecs(ncp);
+	    modedges[0] = NC_get_numrecs(nc3);
 	    edges = modedges;
 	} else
 	    edges = varp->shape;
     }
 
-    status = NCcoordck(ncp, varp, start);
+    status = NCcoordck(nc3, varp, start);
     if(status != NC_NOERR)
         return status;
 
-    status = NCedgeck(ncp, varp, start, edges);
+    status = NCedgeck(nc3, varp, start, edges);
     if(status != NC_NOERR)
         return status;
 
@@ -1367,17 +1369,17 @@ NC3_get_vara(int ncid, int varid,
 
     if(varp->ndims == 0) /* scalar variable */
     {
-        return( readNCv(ncp, varp, start, 1, (void*)value, memtype) );
+        return( readNCv(nc3, varp, start, 1, (void*)value, memtype) );
     }
 
     if(IS_RECVAR(varp))
     {
-        if(*start + *edges > NC_get_numrecs(ncp))
+        if(*start + *edges > NC_get_numrecs(nc3))
             return NC_EEDGE;
-        if(varp->ndims == 1 && ncp->recsize <= varp->len)
+        if(varp->ndims == 1 && nc3->recsize <= varp->len)
         {
             /* one dimensional && the only record variable  */
-            return( readNCv(ncp, varp, start, *edges, (void*)value, memtype) );
+            return( readNCv(nc3, varp, start, *edges, (void*)value, memtype) );
         }
     }
 
@@ -1385,11 +1387,11 @@ NC3_get_vara(int ncid, int varid,
      * find max contiguous
      *   and accumulate max count for a single io operation
      */
-    ii = NCiocount(ncp, varp, edges, &iocount);
+    ii = NCiocount(nc3, varp, edges, &iocount);
 
     if(ii == -1)
     {
-        return( readNCv(ncp, varp, start, iocount, (void*)value, memtype) );
+        return( readNCv(nc3, varp, start, iocount, (void*)value, memtype) );
     }
 
     assert(ii >= 0);
@@ -1408,7 +1410,7 @@ NC3_get_vara(int ncid, int varid,
     /* ripple counter */
     while(*coord < *upper)
     {
-        const int lstatus = readNCv(ncp, varp, coord, iocount, (void*)value, memtype);
+        const int lstatus = readNCv(nc3, varp, coord, iocount, (void*)value, memtype);
 	if(lstatus != NC_NOERR)
         {
             if(lstatus != NC_ERANGE)
@@ -1439,7 +1441,8 @@ NC3_put_vara(int ncid, int varid,
 	    nc_type memtype)
 {
     int status = NC_NOERR;
-    NC *ncp;
+    NC *nc;
+    NC3_INFO* nc3;
     NC_var *varp;
     int ii;
     size_t iocount;
@@ -1448,17 +1451,18 @@ NC3_put_vara(int ncid, int varid,
     const size_t* edges = edges0; /* so we can modify for special cases */
     size_t modedges[NC_MAX_VAR_DIMS];
 
-    status = NC_check_id(ncid, &ncp); 
+    status = NC_check_id(ncid, &nc); 
     if(status != NC_NOERR)
         return status;
+    nc3 = NC3_DATA(nc);
 
-    if(NC_readonly(ncp))
+    if(NC_readonly(nc3))
         return NC_EPERM;
 
-    if(NC_indef(ncp))
+    if(NC_indef(nc3))
         return NC_EINDEFINE;
 
-    varp = NC_lookupvar(ncp, varid);
+    varp = NC_lookupvar(nc3, varid);
     if(varp == NULL)
         return NC_ENOTVAR; /* TODO: lost NC_EGLOBAL */
 
@@ -1479,35 +1483,35 @@ NC3_put_vara(int ncid, int varid,
 	if(varp->shape[0] == 0) {
 	    (void*)memcpy((void*)modedges,(void*)varp->shape,
                           sizeof(size_t)*varp->ndims);
-	    modedges[0] = NC_get_numrecs(ncp);
+	    modedges[0] = NC_get_numrecs(nc3);
 	    edges = modedges;
 	} else
 	    edges = varp->shape;
     }
 
-    status = NCcoordck(ncp, varp, start);
+    status = NCcoordck(nc3, varp, start);
     if(status != NC_NOERR)
         return status;
-    status = NCedgeck(ncp, varp, start, edges);
+    status = NCedgeck(nc3, varp, start, edges);
     if(status != NC_NOERR)
         return status;
 
     if(varp->ndims == 0) /* scalar variable */
     {
-        return( writeNCv(ncp, varp, start, 1, (void*)value, memtype) );
+        return( writeNCv(nc3, varp, start, 1, (void*)value, memtype) );
     }
 
     if(IS_RECVAR(varp))
     {
-        status = NCvnrecs(ncp, *start + *edges);
+        status = NCvnrecs(nc3, *start + *edges);
         if(status != NC_NOERR)
             return status;
 
         if(varp->ndims == 1
-            && ncp->recsize <= varp->len)
+            && nc3->recsize <= varp->len)
         {
             /* one dimensional && the only record variable  */
-            return( writeNCv(ncp, varp, start, *edges, (void*)value, memtype) );
+            return( writeNCv(nc3, varp, start, *edges, (void*)value, memtype) );
         }
     }
 
@@ -1515,11 +1519,11 @@ NC3_put_vara(int ncid, int varid,
      * find max contiguous
      *   and accumulate max count for a single io operation
      */
-    ii = NCiocount(ncp, varp, edges, &iocount);
+    ii = NCiocount(nc3, varp, edges, &iocount);
 
     if(ii == -1)
     {
-        return( writeNCv(ncp, varp, start, iocount, (void*)value, memtype) );
+        return( writeNCv(nc3, varp, start, iocount, (void*)value, memtype) );
     }
 
     assert(ii >= 0);
@@ -1538,7 +1542,7 @@ NC3_put_vara(int ncid, int varid,
     /* ripple counter */
     while(*coord < *upper)
     {
-        const int lstatus = writeNCv(ncp, varp, coord, iocount, (void*)value, memtype);
+        const int lstatus = writeNCv(nc3, varp, coord, iocount, (void*)value, memtype);
         if(lstatus != NC_NOERR)
         {
             if(lstatus != NC_ERANGE)
