@@ -10,7 +10,7 @@
 #include <string.h>
 
 #include "netcdf.h"
-#include "nc.h"
+#include "nc3internal.h"
 #include "nc3dispatch.h"
 
 #ifndef NC_CONTIGUOUS
@@ -79,8 +79,6 @@ static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
 NC_Dispatch NC3_dispatcher = {
 
 NC_DISPATCH_NC3,
-
-NC3_new_nc,
 
 NC3_create,
 NC3_open,

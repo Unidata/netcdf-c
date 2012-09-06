@@ -39,7 +39,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
-AC_CONFIG_SRCDIR([libsrc/nc.c])
+AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking user options])
 

@@ -159,7 +159,7 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
    And live and die a Pirate king.
 */
 int
-nc4_pg_var1(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, 
+nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid, 
             const size_t *indexp, nc_type xtype, int is_long, void *ip)
 {
    NC_GRP_INFO_T *grp;
@@ -520,7 +520,7 @@ set_par_access(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * the big cheese, the mighty kahuna, the top bananna, the high
  * muckity-muck, numero uno. Well, you get the idea.  */
 int 
-nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, 
+nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		      const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
    NC_GRP_INFO_T *grp;
@@ -549,7 +549,7 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
    assert(nc);
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->name);
 
    LOG((3, "nc4_put_vara: var->name %s mem_nc_type %d is_long %d", 
@@ -824,7 +824,7 @@ nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
 }
 
 int 
-nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, 
+nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		      const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
    NC_GRP_INFO_T *grp, *g;
@@ -854,7 +854,7 @@ nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp,
    assert(nc);
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->name);
 
    LOG((3, "nc4_get_vara: var->name %s mem_nc_type %d is_long %d", 
@@ -1305,14 +1305,14 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 #endif
 
    /* Find the HDF5 type of the dataset. */
-   if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, var->xtype, &typeid, 
+   if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->xtype, &typeid, 
 				    var->type_info->endianness)))
       BAIL(retval);
 
    /* Figure out what fill value to set, if any. */
    if (!var->no_fill)
    {
-      if ((retval = get_fill_value(grp->file->nc4_info, var, &fillp)))
+      if ((retval = get_fill_value(grp->nc4_info, var, &fillp)))
          BAIL(retval);
 
       /* If there is a fill value, set it. */
@@ -1331,7 +1331,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 	     * is non-native. HDF5 will translate the fill value to
 	     * the target endiannesss. */
 	    hid_t fill_typeid;
-            if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, var->xtype, &fill_typeid, 
+            if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->xtype, &fill_typeid, 
 					     NC_ENDIAN_NATIVE)))
                BAIL(retval);
             if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
@@ -1602,7 +1602,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         att->xtype, att->len));
 
    /* If the file is read-only, return an error. */
-   if (grp->file->nc4_info->no_write)
+   if (grp->nc4_info->no_write)
       return NC_EPERM;
    
    /* Get the hid to attach the attribute to, or read it from. */
@@ -1623,7 +1623,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
    /* Get the length ready, and find the HDF type we'll be
     * writing. */
    dims[0] = att->len;
-   if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, att->xtype, 
+   if ((retval = nc4_get_hdf_typeid(grp->nc4_info, att->xtype, 
 				    &file_typeid, 0)))
       BAIL(retval);
 
@@ -1735,7 +1735,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
            type->hdf_typeid));
       for (field = type->field; field; field = field->next)
       {
-         if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, field->nctype, 
+         if ((retval = nc4_get_hdf_typeid(grp->nc4_info, field->nctype, 
 					  &hdf_base_typeid, type->endianness)))
             return retval;
          /* If this is an array, create a special array type. */
@@ -1763,7 +1763,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
    else if (type->class == NC_VLEN)
    {
       /* Find the HDF typeid of the base type of this vlen. */
-      if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, type->base_nc_type, 
+      if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->base_nc_type, 
 				       &type->base_hdf_typeid, type->endianness)))
          return retval;
 
@@ -1783,7 +1783,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
          return NC_EINVAL;
 
       /* Find the HDF typeid of the base type of this enum. */
-      if ((retval = nc4_get_hdf_typeid(grp->file->nc4_info, type->base_nc_type, 
+      if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->base_nc_type, 
 				       &type->base_hdf_typeid, type->endianness)))
          return retval;
       
@@ -1906,7 +1906,7 @@ create_group(NC_GRP_INFO_T *grp)
    else
    {
       /* Since this is the root group, we have to open it. */
-      if ((grp->hdf_grpid = H5Gopen2(grp->file->nc4_info->hdfid, "/", H5P_DEFAULT)) < 0)
+      if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, "/", H5P_DEFAULT)) < 0)
          BAIL(NC_EFILEMETA);
    }
    return NC_NOERR;
@@ -2169,7 +2169,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
                   /* If we're replacing an existing dimscale dataset, go to
                    * every var in the file and detatch this dimension scale,
                    * because we have to delete it. */
-                  if ((retval = rec_detach_scales(grp->file->nc4_info->root_grp, 
+                  if ((retval = rec_detach_scales(grp->nc4_info->root_grp, 
                                                   var->dimids[0], d1->hdf_dimscaleid)))
                      return retval;
                   break;
@@ -2226,7 +2226,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
       if (d1 && replace_existing_var)
       {
          d1->hdf_dimscaleid = var->hdf_datasetid;
-         if ((retval = rec_reattach_scales(grp->file->nc4_info->root_grp, 
+         if ((retval = rec_reattach_scales(grp->nc4_info->root_grp, 
                                            var->dimids[0], d1->hdf_dimscaleid)))
             return retval;
       }
@@ -2517,7 +2517,7 @@ nc4_rec_write_types(NC_GRP_INFO_T *grp)
 
    /* If this is the root group of a file with strict NC3 rules, write
     * an attribute. But don't leave the attribute open. */
-   if (!grp->parent && (grp->file->nc4_info->cmode & NC_CLASSIC_MODEL))
+   if (!grp->parent && (grp->nc4_info->cmode & NC_CLASSIC_MODEL))
       if ((retval = write_nc3_strict_att(grp->hdf_grpid)))
          return retval;
 
@@ -2541,7 +2541,7 @@ nc4_rec_write_types(NC_GRP_INFO_T *grp)
    that is there look-out! So we will not be extending datasets
    here. */
 int
-pg_var(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, nc_type xtype, 
+pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype, 
        int is_long, void *ip)
 {
    NC_GRP_INFO_T *grp;
@@ -2586,7 +2586,7 @@ pg_var(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, nc_type xtype,
    Ed Hartnett, 9/43/03
 */
 int 
-nc4_pg_varm(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *start, 
+nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start, 
             const size_t *edges, const ptrdiff_t *stride,
             const ptrdiff_t *map, nc_type xtype, int is_long, void *data)
 {
@@ -2604,8 +2604,10 @@ nc4_pg_varm(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *s
         xtype));
 
    /* Find metadata for this file and var. */
-   assert(nc && nc->nc4_info);
-   h5 = nc->nc4_info;
+   assert(nc);
+   h5 = NC4_DATA(nc);
+   assert(h5);
+
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
    assert(grp && var && var->name);
@@ -3943,7 +3945,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 		     return retval;
 		  grp->ndims++;
 		  dim = grp->dim;
-		  dim->dimid = grp->file->nc4_info->next_dimid++;
+		  dim->dimid = grp->nc4_info->next_dimid++;
 		  sprintf(phony_dim_name, "phony_dim_%d", dim->dimid);
 		  if (!(dim->name = malloc((strlen(phony_dim_name) + 1) * sizeof(char))))
 		     return NC_ENOMEM;

@@ -331,4 +331,9 @@ extern void freenccache(NCDAPCOMMON*, NCcache* cache);
 */
 extern int nc__opendap(void);
 
+/* Define accessors for the dispatchdata */
+#define NCD3_DATA(nc) ((NCDAPCOMMON*)(nc)->dispatchdata)
+#define NCD3_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
+
+
 #endif /*NCCOMMON_H*/

@@ -4,7 +4,8 @@
  */
 /* $Id: var.c,v 1.144 2010/05/30 00:50:35 russ Exp $ */
 
-#include "nc.h"
+#include "config.h"
+#include "nc3internal.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -504,7 +505,7 @@ NC_check_vlen(NC_var *varp, size_t vlen_max) {
 NC_hlookupvar()
  */
 NC_var *
-NC_lookupvar(NC *ncp, int varid)
+NC_lookupvar(NC3_INFO* ncp, int varid)
 {
 	NC_var *varp;
 
@@ -533,13 +534,15 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 	 int ndims, const int *dimids, int *varidp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	int varid;
 	NC_var *varp;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(!NC_indef(ncp))
 	{
@@ -599,13 +602,15 @@ int
 NC3_inq_varid(int ncid, const char *name, int *varid_ptr)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_var *varp;
 	int varid;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	varid = NC_findvar(&ncp->vars, name, &varp);
 	if(varid == -1)
@@ -628,13 +633,15 @@ NC3_inq_var(int ncid,
 	int *nattsp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_var *varp;
 	size_t ii;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	varp = elem_NC_vararray(&ncp->vars, (size_t)varid);
 	if(varp == NULL)
@@ -671,15 +678,17 @@ int
 NC3_rename_var(int ncid, int varid, const char *unewname)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_var *varp;
 	NC_string *old, *newStr;
 	int other;
 	char *newname;		/* normalized */
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(NC_readonly(ncp))
 	{

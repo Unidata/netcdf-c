@@ -10,7 +10,7 @@ dnl
  */
 /* $Id: attr.m4,v 2.39 2010/05/26 18:11:08 dmh Exp $ */
 
-#include "nc.h"
+#include "nc3internal.h"
 #include "ncdispatch.h"
 #include "nc3dispatch.h"
 #include <stdlib.h>
@@ -302,7 +302,7 @@ elem_NC_attrarray(const NC_attrarray *ncap, size_t elem)
  *  else NULL on error
  */
 static NC_attrarray *
-NC_attrarray0( NC *ncp, int varid)
+NC_attrarray0(NC3_INFO* ncp, int varid)
 {
 	NC_attrarray *ap;
 
@@ -372,13 +372,15 @@ NC_lookupattr(int ncid,
 	NC_attr **attrpp) /* modified on return */
 {
 	int status;
-	NC *ncp;
+	NC* nc;
+	NC3_INFO *ncp;
 	NC_attrarray *ncap;
 	NC_attr **tmp;
 
-	status = NC_check_id(ncid, &ncp);
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	ncap = NC_attrarray0(ncp, varid);
 	if(ncap == NULL)
@@ -400,13 +402,15 @@ int
 NC3_inq_attname(int ncid, int varid, int attnum, char *name)
 {
 	int status;
-	NC *ncp;
+	NC* nc;
+	NC3_INFO *ncp;
 	NC_attrarray *ncap;
 	NC_attr *attrp;
 
-	status = NC_check_id(ncid, &ncp);
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	ncap = NC_attrarray0(ncp, varid);
 	if(ncap == NULL)
@@ -427,13 +431,15 @@ int
 NC3_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_attrarray *ncap;
 	NC_attr **attrpp;
 
-	status = NC_check_id(ncid, &ncp);
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	ncap = NC_attrarray0(ncp, varid);
 	if(ncap == NULL)
@@ -477,7 +483,8 @@ int
 NC3_rename_att( int ncid, int varid, const char *name, const char *unewname)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_attrarray *ncap;
 	NC_attr **tmp;
 	NC_attr *attrp;
@@ -485,9 +492,10 @@ NC3_rename_att( int ncid, int varid, const char *name, const char *unewname)
 	char *newname;  /* normalized version */
 
 			/* sortof inline clone of NC_lookupattr() */
-	status = NC_check_id(ncid, &ncp);
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(NC_readonly(ncp))
 		return NC_EPERM;
@@ -548,16 +556,18 @@ int
 NC3_del_att(int ncid, int varid, const char *uname)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_attrarray *ncap;
 	NC_attr **attrpp;
 	NC_attr *old = NULL;
 	int attrid;
 	size_t slen;
 
-	status = NC_check_id(ncid, &ncp);
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(!NC_indef(ncp))
 		return NC_ENOTINDEFINE;
@@ -729,15 +739,17 @@ NC3_put_att(
 	nc_type memtype)
 {
     int status;
-    NC *ncp;
+    NC *nc;
+    NC3_INFO* ncp;
     NC_attrarray *ncap;
     NC_attr **attrpp;
     NC_attr *old = NULL;
     NC_attr *attrp;
 
-    status = NC_check_id(ncid, &ncp);
+    status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR)
 	return status;
+    ncp = NC3_DATA(nc);
 
     if(NC_readonly(ncp))
 	return NC_EPERM;

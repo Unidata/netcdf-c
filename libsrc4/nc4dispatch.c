@@ -14,8 +14,6 @@ NC_Dispatch NC4_dispatcher = {
 
 NC_DISPATCH_NC4,
 
-NC4_new_nc,
-
 NC4_create,
 NC4_open,
 

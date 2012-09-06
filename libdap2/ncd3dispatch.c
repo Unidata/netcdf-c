@@ -17,7 +17,7 @@ static int
 NCD3_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC** ncp);
+           NC_Dispatch*,NC* ncp);
 
 static int NCD3_redef(int ncid);
 static int NCD3__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -45,9 +45,6 @@ static int NCD3_get_vars(int ncid, int varid,
 NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
-
-/* Note: we are using the standard substrate struct NC creator */
-NULL,
 
 NCD3_create,
 NCD3_open,
@@ -176,7 +173,7 @@ static int
 NCD3_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC** ncp)
+           NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }

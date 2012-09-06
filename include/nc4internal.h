@@ -28,6 +28,9 @@
 #endif /* USE_PARALLEL */
 #include <netcdf_f.h>
 
+/* Always needed */
+#include "nc.h"
+
 #ifdef USE_HDF4
 #include <mfhdf.h>
 #endif
@@ -232,7 +235,7 @@ typedef struct NC_GRP_INFO
    int nvars;
    int ndims;
    int natts;
-   struct NC_FILE_INFO *file;
+   struct NC_HDF5_FILE_INFO *nc4_info;
    char *name;
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
@@ -249,8 +252,9 @@ typedef struct NC_GRP_INFO
 
 /* This is the metadata we need to keep track of for each
    netcdf-4/HDF5 file. */
-typedef struct 
+typedef struct  NC_HDF5_FILE_INFO
 {
+   NC* controller;
    hid_t hdfid;
    int flags;
    int cmode;
@@ -259,7 +263,6 @@ typedef struct
    int natts;
    int parallel;  /* true if file is open for parallel access */
    int redef;
-   char *path;
    int fill_mode;
    int no_write; /* true if nc_open has mode NC_NOWRITE. */
    NC_GRP_INFO_T *root_grp;
@@ -270,37 +273,6 @@ typedef struct
    int ignore_creationorder;
    int hdf4;
    int sdid;
-} NC_HDF5_FILE_INFO_T;
-
-/* In the nc_file array there will be one entry for each open file.*/
-
-   /* There's an external ncid (ext_ncid) and an internal ncid
-    * (int_ncid). The ext_ncid is the ncid returned to the user. If
-    * the user has opened or created a netcdf-4 file, then the
-    * ext_ncid is the same as the int_ncid. If he has opened or
-    * created a netcdf-3 file ext_ncid (which the user sees) is
-    * different from the int_ncid, which is the ncid returned by the
-    * netcdf-3 layer, which insists on inventing its own ncids,
-    * regardless of what is already in use due to previously opened
-    * netcdf-4 files. The ext_ncid contains the ncid for the root
-    * group (i.e. group zero). */
-
-/* Warning: fields from BEGIN COMMON to END COMMON must be same for:
-	1. NCcommon (include/ncdispatch.h)
-	2. NC (libsrc/nc.h)
-	3. NC_FILE_INFO (libsrc4/nc4internal.h)
-	4. whatever libdiskless uses
-*/
-typedef struct NC_FILE_INFO
-{
-/*BEGIN COMMON*/
-   int ext_ncid;
-   int int_ncid;
-   struct NC_Dispatch* dispatch;	
-   void* dispatchdata;
-   char* path;
-   int substrate;
-/*END COMMON*/
 
 #ifdef USE_PNETCDF
    /* pnetcdf_file will be true if the file is created/opened with the
@@ -316,10 +288,7 @@ typedef struct NC_FILE_INFO
    int pnetcdf_ndims[NC_MAX_VARS];
 #endif /* USE_PNETCDF */
 
-   /* The nc4_info pointer will remain NULL for netcdf3 files,
-    * otherwise it points to information about the netcdf-4 file. */
-   NC_HDF5_FILE_INFO_T *nc4_info;
-} NC_FILE_INFO_T;
+} NC_HDF5_FILE_INFO_T;
 
 /* These functions only use the netcdf API calls, so they will work on
    both new format and old format files. */
@@ -337,15 +306,14 @@ int nc4_convert_type(const void *src, void *dest,
 
 /* These functions do HDF5 things. */
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
-int pg_var(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, nc_type xtype, int is_long, 
-	   void *ip);
-int nc4_pg_var1(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *indexp, 
+int pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype, int is_long, void *ip);
+int nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *indexp, 
 		nc_type xtype, int is_long, void *ip);
-int nc4_put_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, 
+int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, 
+int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_pg_varm(NC_PG_T pg, NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, 
+int nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *startp, 
 		const size_t *countp, const ptrdiff_t *stridep,
 		const ptrdiff_t *imapp, nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
@@ -357,13 +325,13 @@ int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
 
 /* The following functions manipulate the in-memory linked list of
    metadata, without using HDF calls. */
-int nc4_find_nc_grp_h5(int ncid, NC_FILE_INFO_T **nc, NC_GRP_INFO_T **grp, 
+int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, 
 		       NC_HDF5_FILE_INFO_T **h5);
 int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_HDF5_FILE_INFO_T **h5);
 int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
 NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
 NC_GRP_INFO_T *nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid);
-NC_FILE_INFO_T *nc4_find_nc_file(int ncid);
+NC *nc4_find_nc_file(int ncid, NC_HDF5_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(NC_HDF5_FILE_INFO_T *h5, int typeid, NC_TYPE_INFO_T **type);
@@ -373,7 +341,7 @@ NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1, NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
 		    NC_ATT_INFO_T **att);
-int nc4_find_g_var_nc(NC_FILE_INFO_T *nc, int ncid, int varid, 
+int nc4_find_g_var_nc(NC *nc, int ncid, int varid, 
 		      NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
 		     NC_ATT_INFO_T **att);
@@ -381,11 +349,9 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 		       hid_t *hdf_typeid, int endianness);
 /*int var_info_nc(NC_PG_T pg, hid_t dataset, NC_VAR_INFO_T *var_info);*/
 
-/* These list functions add and delete vars, atts, and files. */
-int nc4_file_list_add(NC_FILE_INFO_T**, struct NC_Dispatch*);
-void nc4_file_list_free(void);
+/* These list functions add and delete vars, atts. */
 
-int nc4_nc4f_list_add(NC_FILE_INFO_T *nc, const char *path, int mode);
+int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var);
 int nc4_dim_list_add(NC_DIM_INFO_T **list);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
@@ -394,10 +360,10 @@ int nc4_type_list_add(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T **new_type);
 int nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
 		       size_t offset, hid_t field_hdf_typeid, hid_t native_typeid, 
 		       nc_type xtype, int ndims, const int *dim_sizesp);
-void nc4_file_list_del(NC_FILE_INFO_T *nc);
+void nc4_file_list_del(NC *nc);
 int nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att);
 int nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid, NC_GRP_INFO_T *parent_grp, 
-		     NC_FILE_INFO_T *nc, char *name, NC_GRP_INFO_T **grp);
+		     NC *nc, char *name, NC_GRP_INFO_T **grp);
 int nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 			const char *name, const void *value);
@@ -419,7 +385,11 @@ int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING
-int log_metadata_nc(NC_FILE_INFO_T *nc);
+int log_metadata_nc(NC *nc);
 #endif
+
+/* Define accessors for the dispatchdata */
+#define NC4_DATA(nc) ((NC_HDF5_FILE_INFO_T*)(nc)->dispatchdata)
+#define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
 #endif /* _NETCDF4_ */

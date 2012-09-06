@@ -46,24 +46,32 @@ nc_delete_mp(const char *path, int basepe)
 int
 NC4_set_base_pe(int ncid, int pe)
 {
-   NC_FILE_INFO_T *nc;
+#if 0
+   NC *nc;
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
    if (nc->nc4_info)
       return NC_ENOTNC3;
    return NC3_set_base_pe(nc->int_ncid,  pe);
+#else
+      return NC_ENOTNC3;
+#endif
 }
 
 /* This function only does anything for netcdf-3 files. */
 int
 NC4_inq_base_pe(int ncid, int *pe)
 {
-   NC_FILE_INFO_T *nc;
+#if 0
+   NC *nc;
    if (!(nc = nc4_find_nc_file(ncid)))
       return NC_EBADID;
    if (nc->nc4_info)
       return NC_ENOTNC3;
    return NC3_inq_base_pe(nc->int_ncid, pe);
+#else
+   return NC_ENOTNC3;
+#endif
 }
 
 /* Get the format (i.e. classic, 64-bit-offset, or netcdf-4) of an
@@ -71,7 +79,8 @@ NC4_inq_base_pe(int ncid, int *pe)
 int
 NC4_inq_format(int ncid, int *formatp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
+   NC_HDF5_FILE_INFO_T* h5;
 
    LOG((2, "nc_inq_format: ncid 0x%x", ncid));
 
@@ -79,17 +88,19 @@ NC4_inq_format(int ncid, int *formatp)
       return NC_NOERR;
 
    /* Find the file metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
+#if 0
    /* If this isn't a netcdf-4 file, pass this call on to the netcdf-3
     * library. */
    if (!nc->nc4_info)
       return NC3_inq_format(nc->int_ncid, formatp);
+#endif
    
    /* Otherwise, this is a netcdf-4 file. Check if classic NC3 rules
     * are in effect for this file. */
-   if (nc->nc4_info->cmode & NC_CLASSIC_MODEL)
+   if (h5->cmode & NC_CLASSIC_MODEL)
       *formatp = NC_FORMAT_NETCDF4_CLASSIC;
    else
       *formatp = NC_FORMAT_NETCDF4;

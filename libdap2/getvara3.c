@@ -118,11 +118,11 @@ nc3d_getvarx(int ncid, int varid,
 #define FETCHPART  4 /* fetch constrained variable */
 #define CACHED     8 /* whole variable is already in the cache */
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) goto fail;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
     
-    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate);
     if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
@@ -699,6 +699,7 @@ nc3d_getvarmx(int ncid, int varid,
     int i;
     NC* drno;
     NC* substrate;
+    NC3_INFO* substrate3;
     NCDAPCOMMON* dapcomm;
     NC_var* var;
     CDFnode* cdfvar; /* cdf node mapping to var*/
@@ -714,13 +715,15 @@ nc3d_getvarmx(int ncid, int varid,
     char* localcopy; /* of whole variable */
 #endif
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) goto done;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
-    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    ncstat = NC_check_id(drno->substrate, &substrate);
     if(ncstat != NC_NOERR) goto done;
-    var = NC_lookupvar(substrate,varid);
+    substrate3 = (NC3_INFO*)drno->dispatchdata;
+
+    var = NC_lookupvar(substrate3,varid);
     if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
     /* Locate var node via varid */
