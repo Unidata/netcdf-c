@@ -8,7 +8,7 @@ Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.  
 */
 
-
+#include "config.h"
 #include <stdlib.h>
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
