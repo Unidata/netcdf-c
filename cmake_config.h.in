@@ -202,12 +202,12 @@
 
 /* Some linux systems have getrlimit, but
    no definition of RLIM_INFINITY */
-#cmakedefine HAVE_RLIM_INFINITY
-#ifdef HAVE_RLIM_INFINITY
+//#cmakedefine HAVE_RLIM_INFINITY
+//#ifdef HAVE_RLIM_INFINITY
 	#cmakedefine HAVE_GETRLIMIT
-#else
-	#undef HAVE_GETRLIMIT
-#endif
+//#else
+//	#undef HAVE_GETRLIMIT
+//#endif
 #cmakedefine HAVE_FSYNC
 
 #cmakedefine HAVE_H5PGET_FAPL_MPIPOSIX 1

@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.2.  */
 
 /* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef NCG_NCGEN_TAB_H
+# define NCG_NCGEN_TAB_H
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int ncgdebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -61,7 +70,6 @@
 #endif
 
 
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
@@ -71,4 +79,18 @@ typedef int YYSTYPE;
 
 extern YYSTYPE ncglval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int ncgparse (void *YYPARSE_PARAM);
+#else
+int ncgparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int ncgparse (void);
+#else
+int ncgparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !NCG_NCGEN_TAB_H  */
