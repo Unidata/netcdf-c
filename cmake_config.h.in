@@ -1,6 +1,9 @@
 /* Eliminate a number of warnings which come up based on deprecated
    POSIX naming conventions. */
 #ifdef _MSC_VER
+/* Disable a few warnings under Visual Studio, for the
+   time being. */
+  #pragma warning( disable: 4018 4996 4244 )
   #define unlink _unlink
   #define open _open
   #define close _close
@@ -9,6 +12,7 @@
   #define strdup _strdup
   #define fdopen _fdopen
   #define write _write
+  #define snprintf _snprintf
 #endif
 
 #ifndef CONFIG_H

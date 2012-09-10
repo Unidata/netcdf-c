@@ -16,6 +16,12 @@
  * the CDMS library, get the original sources from LLNL.
  */
 
+/* Disable a couple warnings which only
+   appear on Visual Studio. */
+#ifdef _MSC_VER
+#pragma warning ( disable: 4244 )
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>

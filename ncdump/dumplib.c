@@ -8,6 +8,7 @@
  * We potentially include <stdarg.h> before <stdio.h> in order to obtain a
  * definition for va_list from the GNU C compiler.
  */
+
 #include <config.h>
 #include <stdarg.h>
 #include <stdio.h>
