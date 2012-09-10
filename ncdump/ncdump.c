@@ -11,10 +11,13 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+
 #ifdef _MSC_VER
 #include "XGetopt.h"
 #define snprintf _snprintf
+int opterr;
 #endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
