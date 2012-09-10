@@ -35,7 +35,7 @@ extern size_t sint32_encode(int32_t value, uint8_t *out);
 extern size_t sint64_encode(int64_t value, uint8_t *out);
 extern size_t fixed32_encode(uint32_t value, uint8_t *out);
 extern size_t fixed64_encode(uint64_t value, uint8_t *out);
-extern size_t boolean_encode(bool_t value, uint8_t* out);
+extern size_t boolen_encode(bool_t value, uint8_t* out);
 
 /* Varint decodings; when in doubt use varint_decode */
 extern uint64_t varint_decode(const size_t, const uint8_t*, size_t*);
@@ -46,7 +46,7 @@ extern int64_t int64_decode(const size_t len, const uint8_t* data);
 /* Fixed size decodes; may need subsequent unzigzag */
 extern uint32_t fixed32_decode(const uint8_t*);
 extern uint64_t fixed64_decode(const uint8_t*);
-extern bool_t boolean_decode(const size_t len, const uint8_t*);
+extern bool_t boolen_decode(const size_t len, const uint8_t*);
 
 extern size_t uint32_size(uint32_t v);
 extern size_t int32_size(int32_t v);

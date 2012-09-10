@@ -85,15 +85,15 @@ lput(const char *cp) {
 void
 lput2(
     const char *cp,		/* string to print */
-    boolean first_item,		/* identify first item in list */
-    boolean wrap		/* line wrap control: true=enable,
+    boolen first_item,		/* identify first item in list */
+    boolen wrap		/* line wrap control: true=enable,
     				 * false=stay on same line  */
     )
 {
     static int linep;			/* current line position (number of */
     					/*   chars); saved between calls    */
     int len_prefix = strlen (CDL_COMMENT_PREFIX);
-    boolean make_newline;
+    boolen make_newline;
     
     size_t len1 = strlen(cp);		/* length of input string */
 
@@ -173,7 +173,7 @@ print_any_val(
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim (boolean more, boolean lastrow)
+lastdelim (boolen more, boolen lastrow)
 {
     if (more) {
 	printf(", ");
@@ -190,7 +190,7 @@ lastdelim (boolean more, boolean lastrow)
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim2 (boolean more, boolean lastrow)
+lastdelim2 (boolen more, boolen lastrow)
 {
     if (more) {
 	lput(", ");
@@ -277,9 +277,9 @@ static void
 pr_any_vals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolean more,		/* true if more data for this row will
+     boolen more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolean lastrow,		/* true if this is the last row for this
+     boolen lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const void *vals,		/* pointer to block of values */
@@ -323,9 +323,9 @@ static void
 pr_tvals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolean more,		/* true if more data for this row will
+     boolen more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolean lastrow,		/* true if this is the last row for this
+     boolen lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const char *vals,		/* pointer to block of values */
@@ -491,7 +491,7 @@ vardata(
 	 */
 	size_t corsav = 0;
 	int left = (int)ncols;
-	boolean lastrow;
+	boolen lastrow;
 
 	if (vrank > 0) {
 	    corsav = cor[vrank-1];
@@ -529,7 +529,7 @@ vardata(
 		set_indent(4 + indent_get());
 	    }
 	}
-	lastrow = (boolean)(ir == nrows-1);
+	lastrow = (boolen)(ir == nrows-1);
 	while (left > 0) {
 	    size_t toget = left < gulp ? left : gulp;
 	    if (vrank > 0)
@@ -568,7 +568,7 @@ vardata(
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim2x (boolean more, boolean lastrow)
+lastdelim2x (boolen more, boolen lastrow)
 {
     if (more) {
 	lput(" ");
@@ -589,9 +589,9 @@ static void
 pr_tvalsx(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolean more,		/* true if more data for this row will
+     boolen more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolean lastrow,		/* true if this is the last row for this
+     boolen lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const char *vals		/* pointer to block of values */
@@ -655,9 +655,9 @@ static void
 pr_any_valsx(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolean more,		/* true if more data for this row will
+     boolen more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolean lastrow,		/* true if this is the last row for this
+     boolen lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const void *vals		/* pointer to block of values */
@@ -739,12 +739,12 @@ vardatax(
 	 */
 	size_t corsav;
 	int left = (int)ncols;
-	boolean lastrow;
+	boolen lastrow;
 
 	if (vrank > 0) {
 	    corsav = cor[vrank-1];
 	}
-	lastrow = (boolean)(ir == nrows-1);
+	lastrow = (boolen)(ir == nrows-1);
 	while (left > 0) {
 	    size_t toget = left < gulp ? left : gulp;
 	    if (vrank > 0)

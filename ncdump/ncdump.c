@@ -2323,8 +2323,8 @@ main(int argc, char *argv[])
     int i;
     int max_len = 80;		/* default maximum line length */
     int nameopt = 0;
-    boolean xml_out = false;    /* if true, output NcML instead of CDL */
-    boolean kind_out = false;	/* if true, just output kind of netCDF file */
+    boolen xml_out = false;    /* if true, output NcML instead of CDL */
+    boolen kind_out = false;	/* if true, just output kind of netCDF file */
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */

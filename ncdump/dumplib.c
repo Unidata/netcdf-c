@@ -455,7 +455,7 @@ idadd(idnode_t* vlist, int varid)
 /* 
  * return true if id is member of list that vlist points to.
  */
-boolean
+boolen
 idmember(const idnode_t* idlist, int id)
 {
     idnode_t *vp = idlist -> next;
@@ -470,7 +470,7 @@ idmember(const idnode_t* idlist, int id)
  * return true if group identified by grpid is member of group
  * list specified on command line by -g.
  */
-boolean
+boolen
 group_wanted(int grpid)
 {
     /* If -g not specified, all groups are wanted */
@@ -593,25 +593,25 @@ get_typeinfo ( int typeid ) {
 /* } */
 
 
-boolean 
+boolen 
 ncbyte_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(signed char* )v1p == *(signed char* )v2p);
 }
 
-boolean 
+boolen 
 ncchar_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(char* )v1p == *(char* )v2p);
 }
 
-boolean 
+boolen 
 ncshort_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(short* )v1p == *(short* )v2p);
 }
 
-boolean 
+boolen 
 ncint_val_equals(const nctype_t *this, 
 		 const void *v1p, const void *v2p) {
     return ( *(int* )v1p == *(int* )v2p);
@@ -624,7 +624,7 @@ ncint_val_equals(const nctype_t *this,
  * except use floating epsilon to compare very close vals as equal
  * and handle IEEE NaNs and infinities.
  */
-boolean 
+boolen 
 ncfloat_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     float v1 = *(float* )v1p;
@@ -645,7 +645,7 @@ ncfloat_val_equals(const nctype_t *this,
  * except use floating epsilon to compare very close vals as equal
  * and handle IEEE NaNs and infinities.
  */
-boolean 
+boolen 
 ncdouble_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     double v1 = *(double* )v1p;
@@ -662,43 +662,43 @@ ncdouble_val_equals(const nctype_t *this,
 }
 
 #ifdef USE_NETCDF4
-boolean 
+boolen 
 ncubyte_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(unsigned char* )v1p == *(unsigned char* )v2p);
 }
 
-boolean 
+boolen 
 ncushort_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return ( *(unsigned short* )v1p == *(unsigned short* )v2p);
 }
 
-boolean 
+boolen 
 ncuint_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(unsigned int* )v1p == *(unsigned int* )v2p);
 }
 
-boolean 
+boolen 
 ncint64_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(long long* )v1p == *(long long* )v2p);
 }
 
-boolean 
+boolen 
 ncuint64_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return ( *(unsigned long long* )v1p == *(unsigned long long* )v2p);
 }
 
-boolean
+boolen
 ncstring_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return (strcmp(*((char **)v1p), *((char **)v2p)) == 0);
 }
 
-boolean
+boolen
 ncopaque_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     size_t nbytes = this->size;
@@ -712,7 +712,7 @@ ncopaque_val_equals(const nctype_t *this,
     return true;
 }
 
-boolean
+boolen
 ncvlen_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     size_t v1len = ((nc_vlen_t *)v1p)->len;
@@ -740,7 +740,7 @@ ncvlen_val_equals(const nctype_t *this,
 
 /* Determine if two compound values are equal, by testing eqaulity of
  * each member field. */
-boolean
+boolen
 nccomp_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     int nfields = this->nfields;
