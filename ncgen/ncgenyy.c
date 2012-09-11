@@ -1754,9 +1754,9 @@ YY_RULE_SETUP
 #line 231 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (ncgtext[0] == '-') {
-		    double_val = NEGINFINITE;
+		    double_val = NEGNC_INFINITE;
                 } else {
-		    double_val = INFINITE;
+		    double_val = NC_INFINITE;
                 }
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
@@ -1776,9 +1776,9 @@ YY_RULE_SETUP
 #line 246 "ncgen.l"
 {/* missing value (pre-2.4 backward compatibility)*/
                 if (ncgtext[0] == '-') {
-		    float_val = NEGINFINITEF;
+		    float_val = NEGNC_INFINITEF;
                 } else {
-		    float_val = INFINITEF;
+		    float_val = NC_INFINITEF;
                 }
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);

@@ -64,7 +64,8 @@
 
 #cmakedefine HAVE_CURLOPT_KEYPASSWD
 #cmakedefine HAVE_DECL_ISFINITE 1
-#cmakedefine HAVE_DECL_ISNAN 1
+//#cmakedefine HAVE_DECL_ISNAN 1
+#cmakedefine HAVE_DECL_ISNAN
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 
@@ -205,7 +206,7 @@
 #cmakedefine HAVE_SYSCONF
 #cmakedefine HAVE_MREMAP
 #cmakedefine HAVE_DECL_ISINF
-#cmakedefine HAVE_DECL_ISNAN
+
 
 /* Some linux systems have getrlimit, but
    no definition of RLIM_INFINITY */

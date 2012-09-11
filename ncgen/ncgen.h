@@ -42,19 +42,19 @@
 #define NC_FILLVALUE    31
 
 /* Must be a better way to do this */
-#ifndef INFINITE
+#ifndef NC_INFINITE
 #ifdef _MSC_VER
-#define INFINITE (DBL_MAX+DBL_MAX)
-#define NAN (INFINITE-INFINITE)
+#define NC_INFINITE (DBL_MAX+DBL_MAX)
+#define NAN (NC_INFINITE-NC_INFINITE)
 #define NANF NAN
 #else
-#define INFINITE (1.0/0.0)
+#define NC_INFINITE (1.0/0.0)
 #define NAN (0.0/0.0)
 #define NANF (0.0f/0.0f)
 #endif
-#define INFINITEF (1.0f/0.0f)
-#define NEGINFINITEF (-INFINITEF)
-#define NEGINFINITE (-INFINITEF)
+#define NC_INFINITEF (1.0f/0.0f)
+#define NEGNC_INFINITEF (-NC_INFINITEF)
+#define NEGNC_INFINITE (-NC_INFINITEF)
 #endif
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
