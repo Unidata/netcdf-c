@@ -21,6 +21,12 @@
 #include "utils.h"
 #include "dimmap.h"
 
+#ifdef _MSC_VER
+#include "XGetopt.h"
+#define snprintf _snprintf
+int opterr;
+#endif
+
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)

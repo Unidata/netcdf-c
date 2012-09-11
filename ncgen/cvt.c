@@ -7,6 +7,7 @@
 
 #include        "includes.h"
 #include        "bytebuffer.h"
+#include "isnan.h"
 #include	<math.h>
 
 static char stmp[256];

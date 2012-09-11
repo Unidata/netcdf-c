@@ -204,6 +204,8 @@
 #cmakedefine HAVE_GETPAGESIZE
 #cmakedefine HAVE_SYSCONF
 #cmakedefine HAVE_MREMAP
+#cmakedefine HAVE_DECL_ISINF
+#cmakedefine HAVE_DECL_ISNAN
 
 /* Some linux systems have getrlimit, but
    no definition of RLIM_INFINITY */

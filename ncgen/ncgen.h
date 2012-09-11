@@ -6,6 +6,9 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
  *********************************************************************/
 
+#ifdef _MSC_VER
+#include <float.h>
+#endif
 
 #ifdef USE_NETCDF4
 #define CLASSICONLY 0
@@ -40,14 +43,19 @@
 
 /* Must be a better way to do this */
 #ifndef INFINITE
-#define NANF (0.0f/0.0f)
+#ifdef _MSC_VER
+#define INFINITE (DBL_MAX+DBL_MAX)
+#define NAN (INFINITE-INFINITE)
+#define NANF NAN
+#else
+#define INFINITE (1.0/0.0)
 #define NAN (0.0/0.0)
+#define NANF (0.0f/0.0f)
+#endif
 #define INFINITEF (1.0f/0.0f)
 #define NEGINFINITEF (-INFINITEF)
-#define INFINITE (1.0/0.0)
 #define NEGINFINITE (-INFINITEF)
 #endif
-
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
 */
