@@ -151,7 +151,7 @@ int getopt(int argc, TCHAR *argv[], TCHAR *optstring)
 {
 	static TCHAR *next = NULL;
 	TCHAR c;
-	TCHAR *cp;
+	TCHAR *cp = malloc(sizeof(TCHAR)*1024);
 
 	if (optind == 0)
 		next = NULL;

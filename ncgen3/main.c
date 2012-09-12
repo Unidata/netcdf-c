@@ -14,6 +14,12 @@
 #include <getopt.h>
 #endif
 
+#ifdef _MSC_VER
+#include "XGetopt.h"
+#define snprintf _snprintf
+int opterr;
+#endif
+
 #ifdef __hpux
 #include <locale.h>
 #endif

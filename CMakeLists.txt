@@ -68,7 +68,9 @@ ENDMACRO()
 	
 # Shell script Macro
 MACRO(add_sh_test prefix F)
-	ADD_TEST(${prefix}_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
+	IF(NOT MSVC)
+		ADD_TEST(${prefix}_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
+	ENDIF()
 ENDMACRO()
 
 
