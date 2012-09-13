@@ -13,8 +13,8 @@ Research/Unidata. See \ref copyright file for more info.  */
 #endif
 
 #ifdef _MSC_VER
-#include "XGetopt.h"
 #define snprintf _snprintf
+#include "XGetopt.h"
 int opterr;
 int optind;
 #endif

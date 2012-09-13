@@ -60,7 +60,7 @@
 #cmakedefine USE_DISKLESS
 #cmakedefine USE_SZIP 1
 #cmakedefine USE_ZLIB 1
-
+#cmakedefine USE_X_GETOPT 1
 
 #cmakedefine HAVE_CURLOPT_KEYPASSWD
 #cmakedefine HAVE_DECL_ISFINITE 1

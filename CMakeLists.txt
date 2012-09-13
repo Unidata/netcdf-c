@@ -246,8 +246,14 @@ ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
 ENDIF()
 
-
-
+# Option to use bundled XGetopt in place of getopt(). This is mostly useful
+# for MSVC builds. If not building utilities, getopt() isn't required at all.
+IF(MSVC)
+	OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+	IF(ENABLE_XGETOPT)
+		SET(USE_X_GETOPT ON CACHE BOOL "")
+	ENDIF()
+ENDIF()
 # Does the user want to turn on PNETCDF read ability?
 OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
 IF(ENABLE_PNETCDF)
