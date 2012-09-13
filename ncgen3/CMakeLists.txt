@@ -17,7 +17,7 @@ ADD_CUSTOM_COMMAND(
 
 IF(USE_X_GETOPT)
 	SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
-ENDIF(
+ENDIF()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 
