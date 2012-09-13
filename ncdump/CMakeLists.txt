@@ -3,6 +3,7 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 INCLUDE_DIRECTORIES(".")
 
 remove_definitions(-DDLL_EXPORT)
+remove_definitions(-DDLL_NETCDF)
 
 FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/cdl4 ${CMAKE_CURRENT_SOURCE_DIR}/expected4 )
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
@@ -22,6 +23,12 @@ ADD_CUSTOM_COMMAND(
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
+
+IF(MSVC)
+	SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
+	SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
+ENDIF()
+
 
 
 

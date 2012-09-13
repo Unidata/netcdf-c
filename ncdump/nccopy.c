@@ -25,6 +25,7 @@
 #include "XGetopt.h"
 #define snprintf _snprintf
 int opterr;
+int optind;
 #endif
 
 /* default bytes of memory we are willing to allocate for variable

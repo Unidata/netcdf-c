@@ -16,6 +16,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "XGetopt.h"
 #define snprintf _snprintf
 int opterr;
+int optind;
 #endif
 
 #include <stdlib.h>
