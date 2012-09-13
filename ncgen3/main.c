@@ -18,6 +18,7 @@
 #include "XGetopt.h"
 #define snprintf _snprintf
 int opterr;
+int optind;
 #endif
 
 #ifdef __hpux

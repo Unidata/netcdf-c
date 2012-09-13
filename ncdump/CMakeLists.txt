@@ -31,9 +31,6 @@ IF(USE_X_GETOPT)
 	SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
 ENDIF()
 
-
-
-
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 

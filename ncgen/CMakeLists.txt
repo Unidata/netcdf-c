@@ -4,8 +4,11 @@ INCLUDE_DIRECTORIES(".")
 
 SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c offsets.c semantics.c ncgentab.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nciter.c ConvertUTF.c  )
 
+IF(USE_X_GETOPT)
+	SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
+ENDIF()
+
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
-#MESSAGE(STATUS "ALL_TLL_LIBS (ncgen): ${ALL_TLL_LIBS}")
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 
 INSTALL(TARGETS ncgen DESTINATION bin)
