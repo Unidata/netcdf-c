@@ -30,10 +30,10 @@ IF(ENABLE_TESTS)
 	ENDIF()
 	
 	FOREACH(F ${NCGEN3_TESTS})
-		ADD_TEST(ncgen3_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
+		add_sh_test(ncgen3 ${F})
+		#ADD_TEST(ncgen3_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
 	ENDFOREACH()
 ENDIF()
-
 INSTALL(TARGETS ncgen3 DESTINATION bin)
 
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc) 

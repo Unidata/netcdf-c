@@ -1780,7 +1780,9 @@ ncio_px_close(ncio *nciop, int doUnlink)
 	if(nciop == NULL)
 		return EINVAL;
 	status = nciop->sync(nciop);
-	(void) close(nciop->fd);
+	if(nciop->fd > 0) {
+		(void) close(nciop->fd);
+	}
 	if(doUnlink)
 		(void) unlink(nciop->path);
 	ncio_px_free(nciop);
