@@ -12,7 +12,7 @@ t_type cdm_sea_soundings tst_vl
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug)
 
 IF(NOT MSVC)
-	SET(EXTRA_TSTS4 ${EXTRA_TST4} tst_interops5 tst_camrun)
+	SET(EXTRA_TSTS4 ${EXTRA_TSTS4} tst_interops5 tst_camrun)
 ENDIF()
 
 
@@ -21,9 +21,10 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 FOREACH(CTEST ${EXTRA_TSTS4})
-  ADD_EXECUTABLE(${CTEST} ${CTEST}.c)
-  TARGET_LINK_LIBRARIES(${CTEST} netcdf)
-  ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
+  add_bin_test(nc_test4 ${CTEST})
+  #ADD_EXECUTABLE(${CTEST} ${CTEST}.c)
+  #TARGET_LINK_LIBRARIES(${CTEST} netcdf)
+  #ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
 ENDFOREACH()
 
 
