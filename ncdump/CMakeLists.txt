@@ -37,6 +37,15 @@ ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
+IF(MSVC)
+	SET_TARGET_PROPERTIES(ncdump 
+		PROPERTIES LINK_FLAGS " /NODEFAULTLIB:MSVCRT"
+		)
+	SET_TARGET_PROPERTIES(nccopy
+		PROPERTIES LINK_FLAGS " /NODEFAULTLIB:MSVCRT"
+		)
+ENDIF()
+
 IF(ENABLE_TESTS)
 	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
 	TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
@@ -91,13 +100,17 @@ IF(ENABLE_TESTS)
 		#add_sh_test(tst_netcdf4)
 		#add_bin_test(tst_h_rdc0)
 		add_bin_test(ncdump tst_unicode)
-		#add_bin_test(tst_fillbug)
-		#add_sh_test(tst_fillbug)
+		if(NOT WIN32)
+			add_bin_test(tst_fillbug)
+			add_sh_test(tst_fillbug)
+		ENDIF()
 		IF(NOT WIN32)	
 			add_sh_test(ncdump tst_netcdf4_4)
 	ENDIF()	
 		add_bin_test(ncdump tst_compress)
-		#add_sh_test(tst_nccopy4)
+		IF(NOT WIN32)
+			add_sh_test(tst_nccopy4)
+		ENDIF()
 		add_sh_test(ncdump tst_grp_spec)
 	ENDIF()
 	
