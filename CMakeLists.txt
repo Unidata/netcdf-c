@@ -9,7 +9,6 @@ INCLUDE(CTest)
 
 IF(MSVC)
 	SET(USE_FOLDERS OFF)
-	#SET(CMAKE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} "/NODEFAULTLIB:MSVCRT")
 ENDIF()
 
 # CTest/CDash configuration
@@ -87,11 +86,6 @@ SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in
 SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
 SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 
-#IF(NOT BUILD_SHARED_LIBS)
-#	SET(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-#	SET(CMAKE_FIND_PACKAGE_SUFFIXES .a ${CMAKE_FIND_PACKAGE_SUFFIXES})
-#ENDIF()
-
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
@@ -116,14 +110,14 @@ IF(ENABLE_DISKLESS)
 	SET(BUILD_DISKLESS ON)
 	SET(USE_DISKLESS ON)
 ENDIF()
-# Option Logging, only valid for netcdf4. 
-# For some reason, these appear to need to be set in each folder.
+
 IF(ENABLE_COVERAGE_TESTS)
 	SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-        #SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wun    used-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecate    d -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
         SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
         SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 ENDIF()
+
+# Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 
 # Option to use HDF4
@@ -138,8 +132,6 @@ IF (USE_HDF4)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
    ENDIF(NOT HAVE_MFHDF_H) 
 ENDIF (USE_HDF4)
-
-
 
 # Option to Build DLL
 IF(WIN32)
@@ -202,17 +194,13 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
 
   FIND_PACKAGE(ZLIB)
-  #FIND_LIBRARY(ZLIB_LIBRARY NAMES zlibwapi zlibstat zlib zlib1 z)
   IF(NOT ZLIB_LIBRARY)
 	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
   ENDIF()
   SET(USE_ZLIB ON)	
-  #ELSE()
-  #	MESSAGE(STATUS "Found ZLib: ${ZLIB_LIBRARY}")
-  #ENDIF()
+
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
-  SET(H5_USE_16_API 1)
-   
+  SET(H5_USE_16_API 1)   
 
 ENDIF ()
 
@@ -273,9 +261,6 @@ ENDIF()
 	IF(ENABLE_TESTS) 
 		SET(BUILD_TESTSETS ON CACHE BOOL "")
 	ENDIF()
-#ELSE()
-#	SET(ENABLE_TESTS OFF CACHE BOOL "")
-#ENDIF()
 
 # Enable Large file tests
 OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
