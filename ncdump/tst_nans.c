@@ -23,7 +23,7 @@
 #define NVALS 3
 #define F_NAME "fvar"
 #define D_NAME "dvar"
-
+#define NC_INFINITE (DBL_MAX+DBL_MAX)
 int
 main(int argc, char **argv)
 {
@@ -31,11 +31,12 @@ main(int argc, char **argv)
     float fvals[NVALS], fvals_in[NVALS];
     double dvals[NVALS], dvals_in[NVALS];
 
-    float fnan = 0.f/0.f;
-    double dnan = 0.0/0.0;
-    float fpinf = 1.0f/0.0f;
+    
+    float fnan = (NC_INFINITE-NC_INFINITE);//0.f/0.f;
+    double dnan = (NC_INFINITE-NC_INFINITE);//0.0/0.0;
+    float fpinf = NC_INFINITE;//1.0f/0.0f;
     float fninf = -fpinf;
-    double dpinf = 1.0/0.0;
+    double dpinf = NC_INFINITE;//1.0/0.0;
     double dninf = -dpinf;
     nc_type att_type;
     size_t att_len;
