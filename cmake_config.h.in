@@ -3,7 +3,7 @@
 #ifdef _MSC_VER
 /* Disable a few warnings under Visual Studio, for the
    time being. */
-  #pragma warning( disable: 4018 4996 4244 )
+  #pragma warning( disable: 4018 4996 4244 4305 )
   #define unlink _unlink
   #define open _open
   #define close _close
