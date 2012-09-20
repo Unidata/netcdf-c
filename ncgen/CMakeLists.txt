@@ -21,7 +21,7 @@ IF(ENABLE_TESTS)
 	#ADD_TEST(run_ncgen_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh)
 	IF(USE_NETCDF4)
 		#ADD_TEST(run_ncgen_nc4_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_nc4_tests.sh)
-		add_sh_test(ncgen run_ncgen_nc4_tests)
+		add_sh_test(ncgen run_nc4_tests)
 	ENDIF()
 ENDIF()
 
