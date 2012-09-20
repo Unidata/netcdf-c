@@ -114,7 +114,7 @@ extern void xxdrntohdouble(char*,double*);
 typedef struct XXDR XXDR; /* forward */
 
 /* Assume |off_t| == |void*| */
-struct XXDR {
+typedef struct XXDR {
   char* data;
   off_t pos; /* relative to data;
                  may be a cache of underlying stream pos */

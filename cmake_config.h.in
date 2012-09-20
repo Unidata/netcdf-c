@@ -13,7 +13,8 @@
   #define fdopen _fdopen
   #define write _write
   #define snprintf _snprintf
-  
+  #define strcasecmp _stricmp
+  #define strtoll _strtoi64
 #endif
 
 #ifndef CONFIG_H

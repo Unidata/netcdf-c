@@ -45,7 +45,7 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
    in the declsizes.
    Two things to watch out for:
    1. suffix paths are legal (i.e. incomplete paths)
-   2. virtual nodes (via restruct)
+   2. nc_virtual nodes (via restruct)
 */
 
 NCerror
