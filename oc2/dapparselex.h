@@ -14,7 +14,6 @@
 #endif
 
 #ifdef WIN32
-#define strcasecmp stricmp
 #define snprintf _snprintf
 #endif
 

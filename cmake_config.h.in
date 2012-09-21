@@ -3,6 +3,8 @@
 #ifdef _MSC_VER
 /* Disable a few warnings under Visual Studio, for the
    time being. */
+#include <io.h>
+
   #pragma warning( disable: 4018 4996 4244 4305 )
   #define unlink _unlink
   #define open _open
@@ -13,7 +15,10 @@
   #define fdopen _fdopen
   #define write _write
   #define snprintf _snprintf
-  #define strcasecmp _stricmp
+  #ifndef strcasecmp
+  	#define strcasecmp _stricmp
+  #endif
+  
   #define strtoll _strtoi64
 #endif
 
