@@ -435,19 +435,16 @@ processvars(void)
     int i,j;
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* vsym = (Symbol*)listget(vardefs,i);
-	Symbol* tsym = vsym->typ.basetype;
+	Symbol* basetype = vsym->typ.basetype;
 	/* fill in the typecode*/
-	vsym->typ.typecode = tsym->typ.typecode;
-	for(j=0;j<tsym->typ.dimset.ndims;j++) {
-	    /* deref the dimensions*/
-	    tsym->typ.dimset.dimsyms[j] = tsym->typ.dimset.dimsyms[j];
-#ifndef USE_NETCDF4
-	    /* UNLIMITED must only be in first place*/
-	    if(tsym->typ.dimset.dimsyms[j]->dim.declsize == NC_UNLIMITED) {
-		if(j != 0)
+	vsym->typ.typecode = basetype->typ.typecode;
+	for(j=0;j<vsym->typ.dimset.ndims;j++) {
+	    /* validate the dimensions*/
+            /* UNLIMITED must only be in first place if using classic */
+	    if(vsym->typ.dimset.dimsyms[j]->dim.declsize == NC_UNLIMITED) {
+	        if(usingclassic && j != 0)
 		    semerror(vsym->lineno,"Variable: %s: UNLIMITED must be in first dimension only",fullname(vsym));
 	    }
-#endif
 	}	
     }
 }
@@ -934,8 +931,10 @@ processunlimiteddims(void)
 	} else {
 	    for(i=0;i<var->data->length;i++) {
 	        Constant* con = var->data->data+i;
-	        ASSERT(con->nctype == NC_COMPOUND);
-	        computeunlimitedsizes(dimset,first,con->value.compoundv,ischar);
+	        if(con->nctype != NC_COMPOUND)
+		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
+		else
+	            computeunlimitedsizes(dimset,first,con->value.compoundv,ischar);
 	    }
 	}
     }
