@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 
 #Project Name
-project(NetCDF C)
+project(NetCDF C CXX)
 SET(NetCDF_VERSION 4.2.1)
 ENABLE_TESTING()
 INCLUDE(CTest)
@@ -17,6 +17,13 @@ SET (CTEST_DROP_SITE "yakov.unidata.ucar.edu/~wfisher/cdash/" CACHE STRING "")
 SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
 SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
+
+# Set variable to define the build type.
+INCLUDE(GenerateExportHeader)
+SET (LIB_TYPE STATIC)
+IF (BUILD_SHARED_LIBS)
+	SET(LIB_TYPE SHARED)
+ENDIF()
 
 ADD_DEFINITIONS()
 
@@ -489,6 +496,14 @@ IF(ENABLE_TESTS)
 	ENDIF()
 
 ENDIF()
+
+# Code to generate an export header
+GENERATE_EXPORT_HEADER(netcdf
+	BASE_NAME netcdf
+	EXPORT_MACRO_NAME netcdf_EXPORT
+	EXPORT_FILE_NAME netcdf_Export.h
+	STATIC_DEFINE netcdf_BUILT_AS_STATIC
+)
 
 #####
 # Build doxygen documentation, if need be.
