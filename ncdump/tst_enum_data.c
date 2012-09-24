@@ -79,10 +79,11 @@ main(int argc, char **argv)
    /* Create an enum type. */
    if (nc_def_enum(ncid, NC_UBYTE, TYPE2_NAME, &typeid)) ERR;
    num_members = (sizeof cloud_types) / (sizeof cloud_types[0]);
-   for (i = 0; i < num_members; i++)
+   for (i = 0; i < num_members; i++) {
        if (nc_insert_enum(ncid, typeid, cloud_types[i].name,
-			  &cloud_types[i].value)) ERR;
-
+			  &cloud_types[i].value)) 
+			  ERR;
+   }
    /* Declare a station dimension */
    if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimid)) ERR;
    /* Declare a variable of the enum type */

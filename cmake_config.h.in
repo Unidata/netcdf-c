@@ -241,6 +241,7 @@
 /* Misc defines copied from autotools config.h.in */
 #cmakedefine CRAY_STACKSEG_END
 #cmakedefine DLL_EXPORT
+#cmakedefine DLL_NETCDF
 
 #include <ncconfigure.h>
 #endif
