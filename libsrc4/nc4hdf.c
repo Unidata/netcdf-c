@@ -3900,8 +3900,11 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 	    {
 	       if (!(h5dimlen = malloc(var->ndims * sizeof(hsize_t))))
 		  return NC_ENOMEM;
-	       if (!(h5dimlenmax = malloc(var->ndims * sizeof(hsize_t))))
+	       if (!(h5dimlenmax = malloc(var->ndims * sizeof(hsize_t)))) 
+	       {
+		  free(h5dimlen);
 		  return NC_ENOMEM;
+	       }
 	       if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, h5dimlen, 
 							      h5dimlenmax)) < 0)
 		  return NC_EHDFERR;		  
