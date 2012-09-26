@@ -10,9 +10,10 @@ COPYRIGHT file for copying and redistribution conditions.
 
 #include "nc4internal.h"
 #include "nc.h"
-#include "H5DSpublic.h"
+#include <H5DSpublic.h>
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
+
 #ifdef USE_HDF4
 #include <mfhdf.h>
 #endif
@@ -383,10 +384,10 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    /* If this is our first file, turn off HDF5 error messages. */
    if (virgin)
    {
-     if (H5Eset_auto(NULL, NULL) < 0)
-       LOG((0, "Couldn't turn off HDF5 error messages!"));
-     LOG((1, "HDF5 error messages have been turned off."));
-     virgin = 0;
+      if (H5Eset_auto(NULL, NULL) < 0)
+	 LOG((0, "Couldn't turn off HDF5 error messages!"));
+      LOG((1, "HDF5 error messages have been turned off."));
+      virgin = 0;
    }
 
    /* Check the cmode for validity. */
@@ -2629,10 +2630,10 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    /* If this is our first file, turn off HDF5 error messages. */
    if (virgin)
    {
-     if (H5Eset_auto(NULL, NULL) < 0)
-       LOG((0, "Couldn't turn off HDF5 error messages!"));
-     LOG((1, "HDF5 error messages turned off!"));
-     virgin = 0;
+      if (H5Eset_auto(NULL, NULL) < 0)
+	 LOG((0, "Couldn't turn off HDF5 error messages!"));
+      LOG((1, "HDF5 error messages turned off!"));
+      virgin = 0;
    }
 
    /* Check the mode for validity. First make sure only certain bits
