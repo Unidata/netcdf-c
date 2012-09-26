@@ -388,3 +388,4 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 done:
     return status;
 }
+
