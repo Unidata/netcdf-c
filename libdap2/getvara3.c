@@ -617,13 +617,13 @@ movetofield(NCDAPCOMMON* nccomm,
     xnext = (CDFnode*)nclistget(path,depth+1);
     ASSERT((xnext != NULL));
     fieldindex = findfield(xnode,xnext);
-    /* If the next node is a virtual node, then
+    /* If the next node is a nc_virtual node, then
        we need to effectively
        ignore it and use the appropriate subnode.
        If the next node is a re-struct'd node, then
        use it as is.
     */
-    if(xnext->virtual) {
+    if(xnext->nc_virtual) {
         CDFnode* xgrid = xnext;
 	xnext = (CDFnode*)nclistget(path,depth+2); /* real node */
         gridindex = fieldindex;
@@ -649,6 +649,7 @@ done:
 }
 
 #if 0
+
 /* Determine the index in the odometer at which
    the odometer will be walking the whole subslice
    This will allow us to optimize.

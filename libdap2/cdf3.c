@@ -426,7 +426,7 @@ makenewstruct3(CDFnode* node, CDFnode* templatenode)
     CDFnode* newstruct = (CDFnode*)calloc(1,sizeof(CDFnode));
     if(newstruct == NULL) return NULL;
     newstruct->nctype = NC_Structure;
-    newstruct->virtual = 1;
+    newstruct->nc_virtual = 1;
     newstruct->ocname = nulldup(templatenode->ocname);
     newstruct->ocnode = templatenode->ocnode;
     newstruct->ncbasename = nulldup(templatenode->ncbasename);

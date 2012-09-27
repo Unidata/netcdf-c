@@ -11,6 +11,13 @@
 #include <getopt.h>
 #endif
 
+#ifdef _MSC_VER
+#include "XGetopt.h"
+#define snprintf _snprintf
+int opterr;
+int optind;
+#endif
+
 /* Default is netcdf-3 mode 1 */
 #define DFALTCMODE 0
 

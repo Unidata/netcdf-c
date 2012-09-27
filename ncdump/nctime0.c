@@ -95,7 +95,7 @@ calendar_type(int ncid, int varid) {
     return ctype;
 }
 
-boolean
+boolen
 is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
     bounds_node_t *bp = bounds_list.first;
     for(; bp; bp = bp->next) {
@@ -113,13 +113,13 @@ is_bounds_var(char *varname, int *pargrpidp, int *parvaridp) {
  * where
  *     <time_unit>: 
  */
-boolean
+boolen
 is_valid_time_unit(const char *units) {
 	char charunits[CD_MAX_RELUNITS];
 	char basetime_1[CD_MAX_CHARTIME];
 	char basetime_2[CD_MAX_CHARTIME];
 	int nconv1, nconv2;
-	boolean okunit = false;
+	boolen okunit = false;
 
 	/* Allow ISO-8601 "T" date-time separator as well as blank separator */
 	nconv1 = sscanf(units,"%s since %[^T]T%s", charunits, basetime_1, basetime_2);
@@ -158,7 +158,7 @@ is_valid_time_unit(const char *units) {
 }
 
 /* Return true only if this is a "bounds" attribute */
-boolean
+boolen
 is_bounds_att(ncatt_t *attp) {
     if(attp->type == NC_CHAR && attp->valgp && STREQ((char *)attp->name, "bounds")) {
 	return true;
@@ -176,7 +176,8 @@ is_bounds_att(ncatt_t *attp) {
  * other variables.  att must be a variable "bounds" attribute.  */
 void
 insert_bounds_info(int ncid, int varid, ncatt_t *attp) {
-    static boolean uninitialized = true;
+    static boolen uninitialized = true;
+
     if(uninitialized) {
 	bounds_list.nbnds = 0;
 	bounds_list.first = NULL;
@@ -277,8 +278,8 @@ print_att_times(
     )
 {
     nc_type type = att->type;	/* local copy */
-    boolean wrap;
-    boolean first_item;
+    boolen wrap;
+    boolen first_item;
 
     ncvar_t var;		/* fake var structure for the att values; */
 				/* will add only the minimum necessary info */

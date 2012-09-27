@@ -43,9 +43,11 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
 
 /* Map constraint paths to CDFnode paths in specified tree and fill
    in the declsizes.
+
    Two things to watch out for:
    1. suffix paths are legal (i.e. incomplete paths)
-   2. virtual nodes (via restruct)
+   2. nc_virtual nodes (via restruct)
+
 */
 
 NCerror

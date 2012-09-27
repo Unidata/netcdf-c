@@ -20,7 +20,7 @@ struct timeinfo_t;
  * Member function to determine if values for this type are equal, 
  * used to compare with fill value.
  */
-typedef boolean (*val_equals_func)(const struct nctype_t *this,
+typedef boolen (*val_equals_func)(const struct nctype_t *this,
 				   const void *v1p, const void *v2p);
 /* 
  * Member function to convert value of this type to a string. Returns
@@ -72,11 +72,11 @@ typedef struct ncvar_t {	/* variable */
     int ndims;			/* number of dimensions (rank) */
     int *dims;			/* dimension ids */
     int natts;			/* number of attributes */
-    boolean has_fillval;	/* has a fill value defined? */
+    boolen has_fillval;	/* has a fill value defined? */
     void* fillvalp;	        /* pointer to the fill value, if any */
-    boolean has_timeval;	/* has date-time values, for -t output option */
+    boolen has_timeval;	/* has date-time values, for -t output option */
     struct timeinfo_t *timeinfo;/* if time values, units, calendar, and origin */
-    boolean is_bnds_var;        /* cell bounds variable, inherits timeinfo */
+    boolen is_bnds_var;        /* cell bounds variable, inherits timeinfo */
     const char *fmt;            /* overriding variable-specific format for
 				   printing values or base values, if any */
     int locid;			/* group id */

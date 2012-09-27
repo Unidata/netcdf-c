@@ -34,7 +34,10 @@
 #include <stdio.h>                      /* for occasional printf()s */
 #include <stdlib.h>                     /* for abort(), malloc() etc */
 #include <string.h>                     /* for strlen(), memcpy(), memmove() */
-#include <endian.h>
+
+#ifdef HAVE_ENDIAN_H
+#include <machine/endian.h>
+#endif
 
 #include "config.h"
 #include <ast_runtime.h>
@@ -201,13 +204,13 @@ fixed64_encode(uint64_t value, uint8_t *out)
   return 8;
 }
 
-/* Pack a boolean as 0 or 1, even though the bool_t
+/* Pack a boolen as 0 or 1, even though the bool_t
    can really assume any integer value. */
 /* XXX: perhaps on some platforms "*out = !!value" would be
    a better impl, b/c that is idiotmatic c++ in some stl impls. */
 
 size_t
-boolean_encode(bool_t value, uint8_t *out)
+boolen_encode(bool_t value, uint8_t *out)
 {
   *out = value ? 1 : 0;
   return 1;
@@ -321,7 +324,7 @@ fixed64_decode(const uint8_t* data)
 }
 
 bool_t
-boolean_decode(const size_t len, const uint8_t* data)
+boolen_decode(const size_t len, const uint8_t* data)
 {
   int i;
   bool_t tf;

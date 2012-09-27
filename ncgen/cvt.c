@@ -7,7 +7,8 @@
 
 #include        "includes.h"
 #include        "bytebuffer.h"
-#include	<math.h>
+#include		"../ncdump/isnan.h"
+#include	    <math.h>
 
 static char stmp[256];
 

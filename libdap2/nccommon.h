@@ -256,7 +256,7 @@ typedef struct CDFnode {
     BOOL	     visible;       /* 1 => node is present in derived tree; independent of elided flag */
     BOOL	     zerodim;       /* 1 => node has a zero dimension */
     /* These two flags track the effects on grids of constraints */
-    BOOL             virtual;       /* node added by regrid */
+    BOOL             nc_virtual;       /* node added by regrid */
 #ifdef PROJECTED
     BOOL             projected;     /* node referenced by projection */
 #endif

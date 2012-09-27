@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header$
  *********************************************************************/
-
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

@@ -10,7 +10,7 @@
 
 #define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 
-typedef int boolean;
+typedef int boolen;
 enum {false=0, true=1};
 
 struct safebuf_t;

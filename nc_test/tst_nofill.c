@@ -436,7 +436,7 @@ main(int argc, char **argv)
 		       badvars++;
 		       fprintf(stderr, 
 			       "\tFrom nofill file, %s[%lu] = %.15g\tFrom fill file, %s[%lu] = %.15g\n", 
-			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
+			       varname1, (unsigned long)nn, data1[nn], varname2, (unsigned long)nn, data2[nn]);
 		       break;
 		   };
 	       }
@@ -458,7 +458,7 @@ main(int argc, char **argv)
 		       badvars++;
 		       fprintf(stderr, 
 			       "\tFrom nofill file, %s[%lu] = %d\tFrom fill file, %s[%lu] = %d\n", 
-			       varname1, nn, data1[nn], varname2, nn, data2[nn]);
+			       varname1, (unsigned long)nn, data1[nn], varname2, (unsigned long)nn, data2[nn]);
 		       break;
 		   };
 	       }

@@ -71,11 +71,11 @@ odometerprint(Odometer* odom)
     } else for(i=0;i<odom->rank;i++) {
 	int ioffset = i + odom->offset;
 	sprintf(tmp,"[%lu/%lu..%lu:%lu]",
-		odom->origin->index[ioffset],
-		odom->origin->start[ioffset],
-		odom->origin->declsize[ioffset],
-		odom->origin->count[ioffset]
-               );
+		(unsigned long)odom->origin->index[ioffset],
+		(unsigned long)odom->origin->start[ioffset],
+		(unsigned long)odom->origin->declsize[ioffset],
+		(unsigned long)odom->origin->count[ioffset]
+	       );
 	strcat(line,tmp);	
     }
     return line;

@@ -70,10 +70,10 @@ extern idnode_t*	newidlist ( void );
 extern void	idadd ( idnode_t* idlist, int id );
 
 /* Test if a variable id is in variable list */
-extern boolean	idmember ( const idnode_t* idlist, int id );
+extern boolen	idmember ( const idnode_t* idlist, int id );
 
 /* Test if a group id is in group list */
-extern boolean	group_wanted ( int grpid );
+extern boolen	group_wanted ( int grpid );
 
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );
