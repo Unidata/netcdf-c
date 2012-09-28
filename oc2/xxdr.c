@@ -52,6 +52,11 @@
 #include <unistd.h>
 #endif
 
+#ifdef _MSC_VER
+#include <wchar.h>
+#include <sys/types.h>
+#endif
+
 #ifdef ENDIAN_VALIDATE
 #include <arpa/inet.h>
 #endif
