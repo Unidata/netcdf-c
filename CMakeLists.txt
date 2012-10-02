@@ -18,6 +18,12 @@ SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
 SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 
+# By default, we want shared libs. I don't know if
+# this is overly verbose way of doing it.
+IF(NOT BUILD_SHARED_LIBS)
+	SET(BUILD_SHARED_LIBS ON CACHE BOOL "")
+ENDIF()
+
 # Set variable to define the build type.
 INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
@@ -51,10 +57,11 @@ IF(MSVC)
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()	
 
+#####
+# Some utility macros/scripts.
+#####
 
-#####
 # A basic script used to convert m4 files
-#####
 MACRO(GEN_m4 filename)
 	IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 	ADD_CUSTOM_COMMAND(
@@ -79,7 +86,23 @@ MACRO(add_bin_test prefix F)
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	
 ENDMACRO()
-	
+
+# A script to print out information at the end of the configuration step.
+MACRO(print_conf_summary)
+	MESSAGE("")
+	MESSAGE("")
+	MESSAGE(STATUS "CMake Summary:")
+	MESSAGE("")
+	MESSAGE(STATUS "\tBuilding Shared Libraries:\t" ${BUILD_SHARED_LIBS})
+	MESSAGE(STATUS "\tBuilding NetCDF-4:\t\t" ${ENABLE_NETCDF_4})
+	MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
+	MESSAGE(STATUS "\tBuilding Utilities:\t\t" ${BUILD_UTILITIES})
+	MESSAGE(STATUS "\tCMake Prefix Path:\t\t" ${CMAKE_PREFIX_PATH})
+	MESSAGE(STATUS "\tLinking against:\t\t" ${ALL_TLL_LIBS}) 
+	#MESSAGE("CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
+	MESSAGE("")
+
+ENDMACRO()
 # Shell script Macro
 MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
@@ -185,7 +208,6 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
  
   IF(HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
 	SET(HDF5_FOUND ON)
-	INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
   ELSE()
 	  FIND_PACKAGE(HDF5 COMPONENTS C HL)
   ENDIF()
@@ -194,7 +216,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	MESSAGE(FATAL_ERROR "HDF5 Not Found.")
   ENDIF()
 
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
 
   # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
@@ -205,20 +227,21 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   	ELSE()
 		MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
   	ENDIF()
+	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
   ENDIF()
 	
-
- 
   SET(H5_USE_16_API 1)   
 
+  # Check for ZLib, but only if using HDF5.
+  FIND_PACKAGE(ZLIB)
+  IF(NOT ZLIB_LIBRARY)
+	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
+  ENDIF()
+  SET(USE_ZLIB ON)
+  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ENDIF ()
 
 
-FIND_PACKAGE(ZLIB)
-IF(NOT ZLIB_LIBRARY)
-	MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
-ENDIF()
-SET(USE_ZLIB ON)
 INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 # Option to Build DAP Client
 OPTION (ENABLE_DAP "Enable DAP Client." ON)
@@ -333,7 +356,11 @@ MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS)
 #####
 # System inspection checks
 #####
-
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
+SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+#
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("unistd.h"	 HAVE_UNISTD_H)
@@ -450,9 +477,6 @@ SET (NetCDF_LIB_CORENAME	"netcdf")
 #####
 # Set the true names of all the libraries, if customized by external project
 #####
-INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${NetCDF_SOURCE_DIR}/oc2)
-
 # Recurse into other subdirectories.
 #add_subdirectory(h5_test)
 #add_subdirectory(man4)
@@ -475,7 +499,7 @@ IF (BUILD_CDMREMOTE)
 ENDIF()
 
 add_subdirectory(liblib)
-MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
+#MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
 # Enable Utilities.
 
@@ -572,7 +596,9 @@ IF(APPLE)
 ENDIF()
 
 
-MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
+
+print_conf_summary()
+#MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 # CPack inclusion must come last.
 INCLUDE(CPack)
 
