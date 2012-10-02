@@ -1,5 +1,5 @@
 # Test c output
-T=t
+T=z
 #VG=valgrind --leak-check=full
 
 CFLAGS=-I../include -I/share/ed/local/spock/include
