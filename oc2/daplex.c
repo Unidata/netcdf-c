@@ -2,7 +2,9 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
+#endif
 #include "dapparselex.h"
 
 #undef URLCVT /* NEVER turn this on */

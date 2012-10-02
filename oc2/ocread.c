@@ -18,6 +18,11 @@
 #include "ocrc.h"
 #include "occurlfunctions.h"
 
+#ifdef _MSC_VER
+#include <io.h>
+#endif
+
+
 /*Forward*/
 static int readpacket(OCstate* state, OCURI*, OCbytes*, OCdxd, long*);
 static int readfile(const char* path, const char* suffix, OCbytes* packet);

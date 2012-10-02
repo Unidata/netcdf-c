@@ -1,18 +1,9 @@
-CYG=1
-#HDF=1
-
 NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
-ifneq ($(CYG),1)
 LFLAG=-L/upc/share/ed/local/${HOST}/lib
 
-else
-# !CYGWIN
-ifneq ($(HDF),1)
-#HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
-endif
-endif
+HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 CURLLIB=-lcurl
 ZLIB=-lz
@@ -256,7 +247,7 @@ vpt::
 #T=t_dap3b
 #T=t_dap3c
 #T=ansley8
-T=a
+T=z
 
 v::
 	cc -g -c ${T}.c ${INCL}
