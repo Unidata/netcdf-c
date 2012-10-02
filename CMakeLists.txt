@@ -18,12 +18,6 @@ SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
 SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 
-# By default, we want shared libs. I don't know if
-# this is overly verbose way of doing it.
-IF(NOT BUILD_SHARED_LIBS)
-	SET(BUILD_SHARED_LIBS ON CACHE BOOL "")
-ENDIF()
-
 # Set variable to define the build type.
 INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
