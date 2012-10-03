@@ -543,6 +543,8 @@ ENDIF()
 #####
 # Moving on to CPack, install packages.
 #####
+INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
+
 INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
 	DESTINATION include)
 #INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
