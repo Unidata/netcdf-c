@@ -18,11 +18,15 @@ SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
 SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 
+
+# Default to shared libs on
+OPTION(BUILD_SHARED_LIBS "Configure NetCDF as a shared library." ON)
 # Set variable to define the build type.
 INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
 	SET(LIB_TYPE SHARED)
+	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fPIC)
 ENDIF()
 
 ADD_DEFINITIONS()
