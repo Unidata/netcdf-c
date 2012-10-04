@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 
 #Project Name
-project(NetCDF C CXX)
+project(NetCDF C)
 SET(NetCDF_VERSION 4.2.1)
 ENABLE_TESTING()
 INCLUDE(CTest)
@@ -26,7 +26,7 @@ INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
 	SET(LIB_TYPE SHARED)
-	SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fPIC)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 ENDIF()
 
 ADD_DEFINITIONS()
@@ -147,9 +147,9 @@ IF(ENABLE_DISKLESS)
 ENDIF()
 
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 ENDIF()
 
 # Option Logging, only valid for netcdf4. 
@@ -317,10 +317,9 @@ ENDIF()
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
 IF(ENABLE_COVERAGE_TESTS)
-	#SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -W -profile-arcs -ftest-coverage")
-	SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_EXE_LINKER_FLAGSx "-fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -W -profile-arcs -ftest-coverage")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
 
@@ -527,12 +526,12 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 # Code to generate an export header
-GENERATE_EXPORT_HEADER(netcdf
-	BASE_NAME netcdf
-	EXPORT_MACRO_NAME netcdf_EXPORT
-	EXPORT_FILE_NAME netcdf_Export.h
-	STATIC_DEFINE netcdf_BUILT_AS_STATIC
-)
+#GENERATE_EXPORT_HEADER(netcdf
+#	BASE_NAME netcdf
+#	EXPORT_MACRO_NAME netcdf_EXPORT
+#	EXPORT_FILE_NAME netcdf_Export.h
+#	STATIC_DEFINE netcdf_BUILT_AS_STATIC
+#)
 
 #####
 # Build doxygen documentation, if need be.
