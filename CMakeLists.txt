@@ -498,8 +498,13 @@ ENDIF()
 add_subdirectory(liblib)
 #MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
-# Enable Utilities.
+# For tests and utilities, we are no longer
+# exporting symbols but rather importing them.
+IF(BUILD_DLL)
+	REMOVE_DEFINITIONS(-DDLL_EXPORT)
+ENDIF()
 
+# Enable Utilities.
 IF (BUILD_UTILITIES)
 	INCLUDE_DIRECTORIES(ncdump)
 	ADD_SUBDIRECTORY(ncgen)
