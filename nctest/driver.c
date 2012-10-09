@@ -18,6 +18,8 @@
 #include "testcdf.h"		/* defines in-memory test netcdf structure */
 #include "tests.h"
 
+int ncopts = (NC_FATAL | NC_VERBOSE);
+
 /* Test everything for classic and 64-bit offsetfiles. If netcdf-4 is
  * included, that means another whole round of testing. */
 #ifdef USE_NETCDF4
