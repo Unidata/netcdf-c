@@ -5,6 +5,7 @@ INCLUDE_DIRECTORIES(".")
 
 IF(ENABLE_DLL)
 	ADD_DEFINITIONS(-DDLL_NETCDF)
+	REMOVE_DEFINITIONS(-DDLL_EXPORT)
 ENDIF()
 
 SET(nctest_SRC add.c atttests.c cdftests.c dimtests.c driver.c emalloc.c error.c misctest.c rec.c slabs.c val.c vardef.c varget.c vargetg.c varput.c varputg.c vartests.c vputget.c vputgetg.c)
