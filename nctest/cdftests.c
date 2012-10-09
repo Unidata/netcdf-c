@@ -17,7 +17,6 @@
 
 #define LEN_OF(array) ((sizeof array) / (sizeof array[0]))
 
-int ncerr = NC_NOERR;
 
 /* 
  * Test nccreate

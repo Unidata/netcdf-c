@@ -14,7 +14,6 @@
 
 #include <netcdf.h>
 #include "error.h"
-
 static int	error_count = 0;
 
 /*
