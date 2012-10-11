@@ -11,11 +11,7 @@ IF(MSVC)
 	SET(USE_FOLDERS OFF)
 ENDIF()
 
-# CTest/CDash configuration
-SET (CTEST_DROP_METHOD http CACHE STRING "")
-SET (CTEST_DROP_SITE "yakov.unidata.ucar.edu/~wfisher/cdash/" CACHE STRING "")
-SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
-SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
+# CTest configuration
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 
 
