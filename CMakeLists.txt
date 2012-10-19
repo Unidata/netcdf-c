@@ -11,11 +11,7 @@ IF(MSVC)
 	SET(USE_FOLDERS OFF)
 ENDIF()
 
-# CTest/CDash configuration
-SET (CTEST_DROP_METHOD http CACHE STRING "")
-SET (CTEST_DROP_SITE "yakov.unidata.ucar.edu/~wfisher/cdash/" CACHE STRING "")
-SET (CTEST_DROP_LOCATION "/submit.php?project=WinNETCDF" CACHE STRING "")
-SET (CTEST_DROP_SITE_CDASH TRUE CACHE BOOL "")
+# CTest configuration
 SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 
 
@@ -26,9 +22,10 @@ INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
 	SET(LIB_TYPE SHARED)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		SET(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fPIC)
+	ENDIF()
 ENDIF()
-
 ADD_DEFINITIONS()
 
 ### Verbose make, for debugging.
@@ -199,6 +196,7 @@ IF(ENABLE_RPC)
 ENDIF()
 
 # Option to Enable HDF5
+OPTION (USE_SZIP "Use SZip" OFF)
 OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
@@ -385,7 +383,6 @@ CHECK_INCLUDE_FILE("sys/wait.h"	 HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE("sys/resource.h" HAVE_SYS_RESOURCE_H)
 CHECK_INCLUDE_FILE("fcntl.h"	HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
-CHECK_INCLUDE_FILE("curl/curl.h" HAVE_CURL_H)
 CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
 CHECK_INCLUDE_FILE("endian.h"	HAVE_ENDIAN_H)
 
@@ -425,16 +422,6 @@ CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
-#CHECK_FUNCTION_EXISTS(isnan	HAVE_DECL_ISNAN_EXISTS)
-#IF(HAVE_DECL_ISNAN_EXISTS)
-#	SET(HAVE_DECL_ISNAN 1 CACHE STRING "")
-#ELSE()
-#	SET(HAVE_DECL_ISNAN 0 CACHE STRING "")
-#ENDIF()
-#CHECK_FUNCTION_EXISTS(isinf	HAVE_DECL_ISINF)
-
-#CHECK_SYMBOL_EXISTS(RLIM_INFINITY "resource.h" HAVE_RLIM_INFINITY)
-#INCLUDE_DIRECTORIES(${RESOURCE_H_PATH})
 #####
 # End system inspection checks.
 #####
@@ -498,8 +485,13 @@ ENDIF()
 add_subdirectory(liblib)
 #MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
-# Enable Utilities.
+# For tests and utilities, we are no longer
+# exporting symbols but rather importing them.
+IF(BUILD_DLL)
+	REMOVE_DEFINITIONS(-DDLL_EXPORT)
+ENDIF()
 
+# Enable Utilities.
 IF (BUILD_UTILITIES)
 	INCLUDE_DIRECTORIES(ncdump)
 	ADD_SUBDIRECTORY(ncgen)
@@ -542,18 +534,12 @@ ENDIF()
 #####
 # Moving on to CPack, install packages.
 #####
-#INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
+INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
+  	DESTINATION include)
 
-INSTALL(FILES ${NetCDF_BINARY_DIR}/config.h
-	DESTINATION include)
-#INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
-#  DESTINATION include)
-FILE(GLOB INC_FILES ${CMAKE_SOURCE_DIR}/include/*.h)
-INSTALL(FILES ${INC_FILES} DESTINATION include) 
 IF(ENABLE_DOXYGEN)	
 	INSTALL(DIRECTORY man4 DESTINATION ".")
 ENDIF()
-#INSTALL(FILES ${ALL_TLL_LIBS} DESTINATION deps)
 
 # Subdirectory CMakeLists.txt files should specify their own
 # 'install' files.
@@ -595,7 +581,14 @@ IF(APPLE)
   SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
 ENDIF()
 
+# Create an 'uninstall' target.
+CONFIGURE_FILE(
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	IMMEDIAGE @ONLY)
 
+ADD_CUSTOM_TARGET(uninstall
+	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 print_conf_summary()
 #MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
