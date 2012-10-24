@@ -72,12 +72,24 @@ ENDMACRO(GEN_m4)
 MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${prefix}_${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+			)
+	ENDIF()
+
+
 	ADD_TEST(${prefix}_${F} sh "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${prefix}_${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+			)
+	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	
 ENDMACRO()
