@@ -1,0 +1,13 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+ccompiler=@CMAKE_C_COMPILER@
+
+Name: @PROJECT@
+Description: NetCDF Client Library for C
+URL: http://www.unidata.ucar.edu/netcdf
+Version: @NetCDF_VERSION@
+Libs: -L${libdir} "@ALL_TLL_LIBS@" 
+Cflags: -I${includedir} 
+

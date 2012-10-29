@@ -73,7 +73,7 @@ MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
 	IF(MSVC)
-		SET_TARGET_PROPERTIES(${prefix}_${F} 
+		SET_TAd0v3trapRGET_PROPERTIES(${prefix}_${F} 
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 			)
 	ENDIF()
@@ -600,10 +600,25 @@ ENDIF()
 CONFIGURE_FILE(
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-	IMMEDIAGE @ONLY)
+	IMMEDIATE @ONLY)
+
+
+# Create a pkgconfig file.
+IF(NOT MSVC)
+	CONFIGURE_FILE(
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_netcdf.pc.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/netcdf.pc"
+	IMMEDIATE @ONLY)
+	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.pc
+	DESTINATION "lib/pkgconfig/")	
+ENDIF()
+
 
 ADD_CUSTOM_TARGET(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+
+
 
 print_conf_summary()
 #MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
