@@ -603,17 +603,6 @@ CONFIGURE_FILE(
 	IMMEDIATE @ONLY)
 
 
-# Create a pkgconfig file.
-IF(NOT MSVC)
-	CONFIGURE_FILE(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_netcdf.pc.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/netcdf.pc"
-	IMMEDIATE @ONLY)
-	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.pc
-	DESTINATION "lib/pkgconfig/")	
-ENDIF()
-
-
 ADD_CUSTOM_TARGET(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
