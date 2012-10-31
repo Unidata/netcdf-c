@@ -3,7 +3,7 @@
 K="-k3"
 F="ref_tst_opaque_data.cdl"
 F="MAPSS_combined-MAPSS_SC-20120828154820.cdl"
-F="z.cdl"
+F="test.cdl"
 #B="-B12"
 DBG="-d"
 #DBG="-D2"
