@@ -41,7 +41,7 @@ groups, strings, and user-defined types, including arbitrarily
 nested compound types, variable-length types, and data of any valid
 netCDF-4 type.
 .LP
-If DAP support was enabled when \b nccopy was built, the file name may
+If DAP support was enabled when \fBnccopy\fP was built, the file name may
 specify a DAP URL. This may be used to convert data on DAP servers to
 local netCDF files.
 .SH OPTIONS
@@ -81,7 +81,8 @@ specified and the input file has compressed variables, the compression
 will still be preserved in the output, using the same chunking as in
 the input by default.
 .IP
-Note that \fBnccopy\fP requires all variables to be compressed using
+Note that specifying output deflation level with \fBnccopy\fP results in
+all output variables compressed using 
 the same compression level, but the API has no such restriction.  With
 a program you can customize compression for each variable independently.
 .IP "\fB -s \fP"
@@ -171,7 +172,7 @@ of chunk cache elements has been implemented yet.
 .IP "\fB -r \fP"
 Read netCDF classic or 64-bit offset input file into a diskless netCDF
 file in memory before copying.  Requires that input file be small
-enough to fit into memory.  For \b nccopy, this doesn't seem to provide
+enough to fit into memory.  For nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
 .SH EXAMPLES
 .LP
