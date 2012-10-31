@@ -97,7 +97,7 @@ nc3d_getvarx(int ncid, int varid,
     NC* drno;
     NC* substrate;
     NCDAPCOMMON* dapcomm;
-    CDFnode* cdfvar; /* cdf node mapping to var*/
+    CDFnode* cdfvar = NULL; /* cdf node mapping to var*/
     NClist* varnodes;
     nc_type dsttype;
     Getvara* varainfo = NULL;

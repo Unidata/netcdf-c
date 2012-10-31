@@ -33,12 +33,12 @@ define_netcdf(void)
 	cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	char base[1024];
 	char* p;
-	strcpy(base,cdlname);
+	strncpy(base,cdlname,1023);
 	/* remove any suffix and prefix*/
 	p = strrchr(base,'.');
 	if(p != NULL) {*p= '\0';}
 	p = strrchr(base,'/');
-	if(p != NULL) {strcpy(base,p+1);}
+	if(p != NULL) {strncpy(base,p+1,1023);}
 	if(strlen(base) > 0) {
 	    strcat(base,
 		(binary_flag == -1?".cdf" /* old, deprecated extension */
@@ -48,7 +48,7 @@ define_netcdf(void)
     }
     if(filename == NULL) {/* construct name from dataset name */
 	char base[1024];
-	strcpy(base,datasetname);
+	strncpy(base,datasetname,1019); /* Reserve space for extension, terminating '\0' */
 	strcat(base,
 		(binary_flag == -1?".cdf" /* old, deprecated extension */
 				  :".nc")); /* preferred*/

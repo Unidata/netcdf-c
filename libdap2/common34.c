@@ -589,7 +589,7 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	var->maxstringlength = 0; /* => use global dfalt */
 	strcpy(tmpname,"stringlength_");
 	pathstr = makeocpathstring3(conn,var->ocnode,".");
-	strcat(tmpname,pathstr);
+	strncat(tmpname,pathstr,NC_MAX_NAME);
 	nullfree(pathstr);
 	value = oc_clientparam_get(conn,tmpname);	
         if(value != NULL && strlen(value) != 0) {
@@ -603,11 +603,11 @@ applyclientparams34(NCDAPCOMMON* nccomm)
 	var->sequencelimit = dfaltseqlim;
 	strcpy(tmpname,"nolimit_");
 	pathstr = makeocpathstring3(conn,var->ocnode,".");
-	strcat(tmpname,pathstr);
+	strncat(tmpname,pathstr,NC_MAX_NAME);
 	if(oc_clientparam_get(conn,tmpname) != NULL)
 	    var->sequencelimit = 0;
 	strcpy(tmpname,"limit_");
-	strcat(tmpname,pathstr);
+	strncat(tmpname,pathstr,NC_MAX_NAME);
 	value = oc_clientparam_get(conn,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0)
