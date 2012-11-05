@@ -8,7 +8,7 @@ ENABLE_TESTING()
 INCLUDE(CTest)
 
 IF(MSVC)
-	SET(USE_FOLDERS OFF)
+	SET(USE_FOLDERS ON)
 ENDIF()
 
 # CTest configuration
@@ -73,13 +73,16 @@ MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
 	IF(MSVC)
-		SET_TAd0v3trapRGET_PROPERTIES(${prefix}_${F} 
+		SET_TARGET_PROPERTIES(${prefix}_${F} 
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 			)
 	ENDIF()
 
 
 	ADD_TEST(${prefix}_${F} sh "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	IF(MSVC)
+		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+	ENDIF()
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
@@ -91,7 +94,9 @@ MACRO(add_bin_test prefix F)
 			)
 	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
-	
+	IF(MSVC)
+		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests")
+	ENDIF()	
 ENDMACRO()
 
 # A script to print out information at the end of the configuration step.
@@ -115,6 +120,7 @@ MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
 		ADD_TEST(${prefix}_${F} sh "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
 	ENDIF()
+
 ENDMACRO()
 
 
