@@ -8,7 +8,7 @@ ENABLE_TESTING()
 INCLUDE(CTest)
 
 IF(MSVC)
-	SET(USE_FOLDERS ON)
+	SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
 # CTest configuration
@@ -95,7 +95,7 @@ MACRO(add_bin_test prefix F)
 	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	IF(MSVC)
-		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests")
+		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
 ENDMACRO()
 
