@@ -49,7 +49,7 @@ INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 
 # Only necessary for Windows
 IF(MSVC)
-	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/FindHDF5.cmake)
+	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
 ENDIF()
 # Supress some warnings on Windows
 IF(MSVC)
