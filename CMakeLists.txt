@@ -46,8 +46,11 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/FindHDF5.cmake)
 
+# Only necessary for Windows
+IF(MSVC)
+	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/FindHDF5.cmake)
+ENDIF()
 # Supress some warnings on Windows
 IF(MSVC)
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
