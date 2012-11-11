@@ -263,8 +263,8 @@ generate_arrayr(Symbol* vsym,
 	int i;
 	Odometer* slabodom;
         int nextunlimited = findunlimited(dimset,dimindex+1);
-	ASSERT((dimindex < lastunlimited
-                && (dimset->dimsyms[dimindex]->dim.isunlimited)));
+	ASSERT((dimindex < nextunlimited
+                && (dimset->dimsyms[nextunlimited]->dim.isunlimited)));
 	/* build a sub odometer */
         slabodom = newsubodometer(odom,dimset,dimindex,nextunlimited);
 	/* compute the starting offset in our datalist 

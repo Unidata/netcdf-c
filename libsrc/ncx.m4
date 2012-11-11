@@ -52,9 +52,15 @@ dnl
 #   define LLONG_MIN	(-LLONG_MAX - 1LL)
 #   define ULLONG_MAX	18446744073709551615ULL
 #endif
+#ifndef LONG_LONG_MAX
 #define LONG_LONG_MAX LLONG_MAX
+#endif
+#ifndef LONG_LONG_MIN
 #define LONG_LONG_MIN LLONG_MIN
+#endif
+#ifndef ULONG_LONG_MAX
 #define ULONG_LONG_MAX ULLONG_MAX
+#endif
 #include <float.h>
 #ifndef FLT_MAX /* This POSIX macro missing on some systems */
 # ifndef NO_IEEE_FLOAT

@@ -97,7 +97,7 @@ nc3d_getvarx(int ncid, int varid,
     NC* drno;
     NC* substrate;
     NCDAPCOMMON* dapcomm;
-    CDFnode* cdfvar; /* cdf node mapping to var*/
+    CDFnode* cdfvar = NULL; /* cdf node mapping to var*/
     NClist* varnodes;
     nc_type dsttype;
     Getvara* varainfo = NULL;
@@ -118,11 +118,11 @@ nc3d_getvarx(int ncid, int varid,
 #define FETCHPART  4 /* fetch constrained variable */
 #define CACHED     8 /* whole variable is already in the cache */
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) goto fail;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
     
-    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    ncstat = NC_check_id(drno->substrate, (NC**)&substrate);
     if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
@@ -617,13 +617,13 @@ movetofield(NCDAPCOMMON* nccomm,
     xnext = (CDFnode*)nclistget(path,depth+1);
     ASSERT((xnext != NULL));
     fieldindex = findfield(xnode,xnext);
-    /* If the next node is a virtual node, then
+    /* If the next node is a nc_virtual node, then
        we need to effectively
        ignore it and use the appropriate subnode.
        If the next node is a re-struct'd node, then
        use it as is.
     */
-    if(xnext->virtual) {
+    if(xnext->nc_virtual) {
         CDFnode* xgrid = xnext;
 	xnext = (CDFnode*)nclistget(path,depth+2); /* real node */
         gridindex = fieldindex;
@@ -649,6 +649,7 @@ done:
 }
 
 #if 0
+
 /* Determine the index in the odometer at which
    the odometer will be walking the whole subslice
    This will allow us to optimize.
@@ -699,6 +700,7 @@ nc3d_getvarmx(int ncid, int varid,
     int i;
     NC* drno;
     NC* substrate;
+    NC3_INFO* substrate3;
     NCDAPCOMMON* dapcomm;
     NC_var* var;
     CDFnode* cdfvar; /* cdf node mapping to var*/
@@ -714,13 +716,15 @@ nc3d_getvarmx(int ncid, int varid,
     char* localcopy; /* of whole variable */
 #endif
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) goto done;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
-    ncstat = NC_check_id(drno->substrate, (NC**)&substrate); 
+    ncstat = NC_check_id(drno->substrate, &substrate);
     if(ncstat != NC_NOERR) goto done;
-    var = NC_lookupvar(substrate,varid);
+    substrate3 = (NC3_INFO*)drno->dispatchdata;
+
+    var = NC_lookupvar(substrate3,varid);
     if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
     /* Locate var node via varid */

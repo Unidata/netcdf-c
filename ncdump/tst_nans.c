@@ -24,6 +24,20 @@
 #define F_NAME "fvar"
 #define D_NAME "dvar"
 
+#ifdef _MSC_VER
+#define NC_INFINITE (DBL_MAX+DBL_MAX)
+#define NC_FNAN (NC_INFINITE-NC_INFINITE)
+#define NC_DNAN (NC_INFINITE-NC_INFINITE)
+#define NC_FPINF NC_INFINITE
+#define NC_DPINF NC_INFINITE
+#else
+#define NC_FNAN (0.f/0.f)
+#define NC_DNAN (0.0/0.0)
+#define NC_FPINF (1.0f/0.0f)
+#define NC_DPINF (1.0/0.0)
+#endif
+
+
 int
 main(int argc, char **argv)
 {
@@ -31,11 +45,12 @@ main(int argc, char **argv)
     float fvals[NVALS], fvals_in[NVALS];
     double dvals[NVALS], dvals_in[NVALS];
 
-    float fnan = 0.f/0.f;
-    double dnan = 0.0/0.0;
-    float fpinf = 1.0f/0.0f;
+    
+    float fnan = NC_FNAN;//(NC_INFINITE-NC_INFINITE);//0.f/0.f;
+    double dnan = NC_DNAN;//(NC_INFINITE-NC_INFINITE);//0.0/0.0;
+    float fpinf = NC_FPINF;//NC_INFINITE;//1.0f/0.0f;
     float fninf = -fpinf;
-    double dpinf = 1.0/0.0;
+    double dpinf = NC_DPINF;//NC_INFINITE;//1.0/0.0;
     double dninf = -dpinf;
     nc_type att_type;
     size_t att_len;

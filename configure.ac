@@ -39,7 +39,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
-AC_CONFIG_SRCDIR([libsrc/nc.c])
+AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking user options])
 
@@ -659,7 +659,6 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
 
    # Check for the main hdf5 and hdf5_hl library.
 
@@ -668,7 +667,7 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [], 
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 	
-   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([NetCDF-4 requires HDF5, but hdf5.h cannot be found.])])
+   AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
    AC_CHECK_FUNCS([H5Pget_fapl_mpiposix H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP])
 
    # The user may have parallel HDF5 based on MPI POSIX.
@@ -712,7 +711,8 @@ dnl 	 fi
 
    # The user may have built HDF5 with the SZLIB library.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-     AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
+   	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
+  	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
 
    # If the user wants hdf4 built in, check it out.

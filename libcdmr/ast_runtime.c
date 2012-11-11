@@ -212,7 +212,7 @@ ast_read_primitive_data(ast_runtime* rt, const ast_sort sort, void* valuep)
 	*((int64_t*)valuep) = unzigzag64(uint64_decode(len,buffer));
 	break;
     case ast_bool:
-	*((bool_t*)valuep) = boolean_decode(len,buffer);
+	*((bool_t*)valuep) = boolen_decode(len,buffer);
 	break;
     case ast_fixed32:
 	*((uint32_t*)valuep) = fixed32_decode(buffer);
@@ -312,7 +312,7 @@ ast_write_primitive_data(ast_runtime* rt, const ast_sort sort,
 	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_bool:
-	count = boolean_encode(*(bool_t*)valuep,buffer);
+	count = boolen_encode(*(bool_t*)valuep,buffer);
 	if(ast_write(rt,count,buffer) != count) {status = AST_EIO; ATHROW(status,done);}
 	break;
     case ast_enum:

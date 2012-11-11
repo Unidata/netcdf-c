@@ -11,7 +11,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifndef _WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <string.h>
@@ -20,6 +20,13 @@
 #include "chunkspec.h"
 #include "utils.h"
 #include "dimmap.h"
+
+#ifdef _MSC_VER
+#include "XGetopt.h"
+#define snprintf _snprintf
+int opterr;
+int optind;
+#endif
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */

@@ -27,7 +27,7 @@ int nc4typelen(nc_type type);
    info. Always locate the attribute by name, never by attnum.
    The mem_type is ignored if data=NULL. */
 int
-nc4_get_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name, 
+nc4_get_att(int ncid, NC *nc, int varid, const char *name, 
 	    nc_type *xtype, nc_type mem_type, size_t *lenp, 
 	    int *attnum, int is_long, void *data) 
 {
@@ -45,13 +45,13 @@ nc4_get_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
    if (attnum)
       my_attnum = *attnum;
-   assert(nc && nc->nc4_info);
+   assert(nc && NC4_DATA(nc));
 
    LOG((3, "nc4_get_att: ncid 0x%x varid %d name %s attnum %d mem_type %d", 
 	ncid, varid, name, my_attnum, mem_type));
 
    /* Find info for this file and group, and set pointer to each. */
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
       return NC_EBADGRPID;      
 
@@ -179,7 +179,7 @@ nc4_get_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
 /* Put attribute metadata into our global metadata. */
 int
-nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name, 
+nc4_put_att(int ncid, NC *nc, int varid, const char *name, 
 	    nc_type file_type, nc_type mem_type, size_t len, int is_long, 
 	    const void *data)
 {
@@ -197,7 +197,7 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
    if (!name) 
       return NC_EBADNAME;
-   assert(nc && nc->nc4_info);
+   assert(nc && NC4_DATA(nc));
 
    LOG((1, "nc4_put_att: ncid 0x%x varid %d name %s "
 	"file_type %d mem_type %d len %d", ncid, varid,
@@ -208,7 +208,7 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
       return NC_EINVAL;
 
    /* Find info for this file and group, and set pointer to each. */
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
       return NC_EBADGRPID;      
 
@@ -334,10 +334,10 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 
       /* If fill value hasn't been set, allocate space. Of course,
        * vlens have to be differnt... */
-      if ((retval = nc4_get_typelen_mem(grp->file->nc4_info, var->xtype, 0, 
+      if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->xtype, 0, 
 					&type_size)))
 	 return retval;
-      if ((retval = nc4_find_type(grp->file->nc4_info, var->xtype, &type_info)))
+      if ((retval = nc4_find_type(grp->nc4_info, var->xtype, &type_info)))
 	 BAIL(retval);
       
       /* Already set a fill value? Now I'll have to free the old
@@ -462,12 +462,12 @@ nc4_put_att(int ncid, NC_FILE_INFO_T *nc, int varid, const char *name,
 int
 NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
 
    LOG((2, "nc_inq_att: ncid 0x%x varid %d name %s", ncid, varid, name));
 
    /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
@@ -485,7 +485,7 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(NC4_DATA(nc));
 
    /* Handle netcdf-4 files. */
    return nc4_get_att(ncid, nc, varid, name, xtypep, NC_UBYTE, lenp, NULL, 0, NULL);
@@ -495,12 +495,12 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
 int 
 NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
 
    LOG((2, "nc_inq_attid: ncid 0x%x varid %d name %s", ncid, varid, name));
 
    /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
@@ -510,7 +510,7 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(NC4_DATA(nc));
 
    /* Handle netcdf-4 files. */
    return nc4_get_att(ncid, nc, varid, name, NULL, NC_UBYTE, 
@@ -522,7 +522,7 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 int
 NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_ATT_INFO_T *att;
    int retval = NC_NOERR;
 
@@ -530,7 +530,7 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 	ncid, varid, attnum));
 
    /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
@@ -540,7 +540,7 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(NC4_DATA(nc));
 
    /* Handle netcdf-4 files. */
    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
@@ -559,7 +559,7 @@ int
 NC4_rename_att(int ncid, int varid, const char *name, 
 	      const char *newname)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
@@ -670,7 +670,7 @@ NC4_rename_att(int ncid, int varid, const char *name,
 int
 NC4_del_att(int ncid, int varid, const char *name)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_HDF5_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att, *natt;
@@ -771,7 +771,7 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 	       nc_type mem_type, int mem_type_is_long, size_t len, 
 	       const void *op)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
 
    if (!name || strlen(name) > NC_MAX_NAME)
       return NC_EBADNAME;
@@ -785,7 +785,7 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
       return NC_EINVAL;
 
    /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
@@ -826,7 +826,7 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(NC4_DATA(nc));
 
    /* Otherwise, handle things the netcdf-4 way. */
    return nc4_put_att(ncid, nc, varid, name, file_type, mem_type, len, 
@@ -839,13 +839,13 @@ int
 nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type, 
 	       int mem_type_is_long, void *ip)
 {
-   NC_FILE_INFO_T *nc;
+   NC *nc;
 
    LOG((3, "nc4_get_att_tc: ncid 0x%x varid %d name %s mem_type %d", 
 	ncid, varid, name, mem_type));
 
    /* Find metadata. */
-   if (!(nc = nc4_find_nc_file(ncid)))
+   if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
@@ -879,7 +879,7 @@ nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
 #endif /* USE_PNETCDF */
 
    /* Handle netcdf-3 files. */
-   assert(nc->nc4_info);
+   assert(NC4_DATA(nc));
 
    return nc4_get_att(ncid, nc, varid, name, NULL, mem_type, 
 		      NULL, NULL, mem_type_is_long, ip);

@@ -8,7 +8,9 @@
 
 #include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -25,9 +27,10 @@
 
 #include "oc.h"
 
-#include "nc.h"
 #include "netcdf.h"
 #include "ncdispatch.h"
+#include "nc.h"
+#include "nc3internal.h"
  /* netcdf overrides*/
 #include "dapnc.h"
 

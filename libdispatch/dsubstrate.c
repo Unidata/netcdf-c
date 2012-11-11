@@ -30,17 +30,6 @@ NCSUBSTRATE_initialize(void)
 }
 
 static int
-NCSUB_new_nc(NC** ncp)
-{
-    NC* nc;
-    /* Allocate memory for this info. */
-    if (!(nc = calloc(1, sizeof(struct NC)))) 
-       return NC_ENOMEM;
-    if(ncp) *ncp = nc;
-    return NC_NOERR;
-}
-
-static int
 NCSUB_redef(int ncid)
 {
     NC *nc, *ncsub;
@@ -405,7 +394,7 @@ NCSUB_inq_var_all(int ncid, int varid, char* name, nc_type* xtypep,
    NC *nc, *ncsub;
    int ncstat = NC_check_id(ncid, &nc);
    if(ncstat != NC_NOERR) return ncstat;
-    ncstat = NC_check_id(nc->substrate, &ncsub);
+   ncstat = NC_check_id(nc->substrate, &ncsub);
    if(ncstat != NC_NOERR) return ncstat;
    return ncsub->dispatch->inq_var_all(nc->substrate,varid,name,xtypep,
                                      ndimsp,dimidsp,nattsp,shufflep,
@@ -821,8 +810,6 @@ NCSUB_get_var_chunk_cache(int ncid, int a1, size_t* a2, size_t* a3, float* a4)
 static NC_Dispatch NCSUBSTRATE_dispatch_base =  {
 
 0,
-
-NCSUB_new_nc,
 
 NULL, /*NC_create*/
 NULL, /*NC_open*/

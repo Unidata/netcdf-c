@@ -15,14 +15,11 @@
 #include <unistd.h>
 #endif
 
-#include "nc.h"
+#include "nc3internal.h"
 #include "ncdispatch.h"
 #include "nc3dispatch.h"
 #include "rnd.h"
 #include "ncx.h"
-
-/* This is the default create format for nc_create and nc__create. */
-int default_create_format = NC_FORMAT_CLASSIC;
 
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4
@@ -30,52 +27,39 @@ int default_create_format = NC_FORMAT_CLASSIC;
 #define VER_64BIT_OFFSET 2
 #define VER_HDF5 3
 
-int
-NC_check_id(int ncid, NC **ncpp)
-{
-    NC* nc = find_in_NCList(ncid);
-    if(nc == NULL) return NC_EBADID;
-    if(ncpp) *ncpp = nc;
-    return NC_NOERR;
-}
-
 static void
-free_NC(NC *ncp)
+free_NC3INFO(NC3_INFO *nc3)
 {
-	if(ncp == NULL)
+	if(nc3 == NULL)
 		return;
-	free_NC_dimarrayV(&ncp->dims);
-	free_NC_attrarrayV(&ncp->attrs);
-	free_NC_vararrayV(&ncp->vars);
-	if (ncp->path)
-	   free(ncp->path);
+	free_NC_dimarrayV(&nc3->dims);
+	free_NC_attrarrayV(&nc3->attrs);
+	free_NC_vararrayV(&nc3->vars);
 #if _CRAYMPP && defined(LOCKNUMREC)
-	shfree(ncp);
+	shfree(nc3);
 #else
-	free(ncp);
+	free(nc3);
 #endif /* _CRAYMPP && LOCKNUMREC */
 }
 
-static NC *
-new_NC(const size_t *chunkp, NC_Dispatch* dispatch)
+static NC3_INFO *
+new_NC3INFO(const size_t *chunkp)
 {
-	NC *ncp;
-	int stat = dispatch->new_nc(&ncp);
-	if(stat) return NULL;
+	NC3_INFO *ncp;
+	ncp = (NC3_INFO*)calloc(1,sizeof(NC3_INFO));
+	if(ncp == NULL) return ncp;
 	ncp->xsz = MIN_NC_XSZ;
 	assert(ncp->xsz == ncx_len_NC(ncp,0));
         ncp->chunk = chunkp != NULL ? *chunkp : NC_SIZEHINT_DEFAULT;
 	return ncp;
 }
 
-static NC *
-dup_NC(const NC *ref)
+static NC3_INFO *
+dup_NC3INFO(const NC3_INFO *ref)
 {
-	NC *ncp;
-	int stat = ref->dispatch->new_nc(&ncp);
-	if(stat) return NULL;
-	if(ncp == NULL)
-		return NULL;
+	NC3_INFO *ncp;
+	ncp = (NC3_INFO*)calloc(1,sizeof(NC3_INFO));
+	if(ncp == NULL) return ncp;
 
 	if(dup_NC_dimarrayV(&ncp->dims, &ref->dims) != NC_NOERR)
 		goto err;
@@ -91,7 +75,7 @@ dup_NC(const NC *ref)
 	NC_set_numrecs(ncp, NC_get_numrecs(ref));
 	return ncp;
 err:
-	free_NC(ncp);
+	free_NC3INFO(ncp);
 	return NULL;
 }
 
@@ -150,7 +134,7 @@ ncx_howmany(nc_type type, size_t xbufsize)
  * update 'begin_rec' as well.
  */
 static int
-NC_begins(NC *ncp,
+NC_begins(NC3_INFO* ncp,
 	size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align)
 {
@@ -278,7 +262,7 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
  * (A relatively expensive way to do things.)
  */
 int
-read_numrecs(NC *ncp)
+read_numrecs(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 	const void *xp = NULL;
@@ -313,7 +297,7 @@ read_numrecs(NC *ncp)
  * (A relatively expensive way to do things.)
  */
 int
-write_numrecs(NC *ncp)
+write_numrecs(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 	void *xp = NULL;
@@ -345,7 +329,7 @@ write_numrecs(NC *ncp)
  * It is expensive.
  */
 static int
-read_NC(NC *ncp)
+read_NC(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 
@@ -366,7 +350,7 @@ read_NC(NC *ncp)
  * Write out the header
  */
 static int
-write_NC(NC *ncp)
+write_NC(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 
@@ -385,7 +369,7 @@ write_NC(NC *ncp)
  * Write the header or the numrecs if necessary.
  */
 int
-NC_sync(NC *ncp)
+NC_sync(NC3_INFO *ncp)
 {
 	assert(!NC_readonly(ncp));
 
@@ -409,7 +393,7 @@ NC_sync(NC *ncp)
  * Initialize the 'non-record' variables.
  */
 static int
-fillerup(NC *ncp)
+fillerup(NC3_INFO *ncp)
 {
 	int status = NC_NOERR;
 	size_t ii;
@@ -440,7 +424,7 @@ fillerup(NC *ncp)
 /*
  */
 static int
-fill_added_recs(NC *gnu, NC *old)
+fill_added_recs(NC3_INFO *gnu, NC3_INFO *old)
 {
 	NC_var ** const gnu_varpp = (NC_var **)gnu->vars.value;
 
@@ -484,7 +468,7 @@ fill_added_recs(NC *gnu, NC *old)
 /*
  */
 static int
-fill_added(NC *gnu, NC *old)
+fill_added(NC3_INFO *gnu, NC3_INFO *old)
 {
 	NC_var ** const gnu_varpp = (NC_var **)gnu->vars.value;
 	int varid = (int)old->vars.nelems;
@@ -514,7 +498,7 @@ fill_added(NC *gnu, NC *old)
  * Fill as needed.
  */
 static int
-move_recs_r(NC *gnu, NC *old)
+move_recs_r(NC3_INFO *gnu, NC3_INFO *old)
 {
 	int status;
 	int recno;
@@ -571,7 +555,7 @@ move_recs_r(NC *gnu, NC *old)
  * Fill as needed.
  */
 static int
-move_vars_r(NC *gnu, NC *old)
+move_vars_r(NC3_INFO *gnu, NC3_INFO *old)
 {
 	int status;
 	int varid;
@@ -620,7 +604,7 @@ move_vars_r(NC *gnu, NC *old)
  * (product of non-rec dim sizes too large), else return NC_NOERR.
  */
 static int
-NC_check_vlens(NC *ncp)
+NC_check_vlens(NC3_INFO *ncp)
 {
     NC_var **vpp;
     /* maximum permitted variable size (or size of one record's worth
@@ -703,7 +687,7 @@ NC_check_vlens(NC *ncp)
  *  Flushes I/O buffers.
  */
 static int
-NC_endef(NC *ncp,
+NC_endef(NC3_INFO *ncp,
 	size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align)
 {
@@ -769,7 +753,7 @@ NC_endef(NC *ncp,
 				return status;
 			
 		}
-		else if(ncp->old && (ncp->vars.nelems > ncp->old->vars.nelems))
+		else if(ncp->vars.nelems > ncp->old->vars.nelems)
 		{
 			status = fill_added(ncp, ncp->old);
 			if(status != NC_NOERR)
@@ -782,7 +766,7 @@ NC_endef(NC *ncp,
 
 	if(ncp->old != NULL)
 	{
-		free_NC(ncp->old);
+		free_NC3INFO(ncp->old);
 		ncp->old = NULL;
 	}
 
@@ -811,7 +795,7 @@ NC_init_pe(NC *ncp, int basepe) {
  * Compute the expected size of the file.
  */
 int
-NC_calcsize(const NC *ncp, off_t *calcsizep)
+NC_calcsize(const NC3_INFO *ncp, off_t *calcsizep)
 {
 	NC_var **vpp = (NC_var **)ncp->vars.value;
 	NC_var *const *const end = &vpp[ncp->vars.nelems];
@@ -854,9 +838,11 @@ NC_calcsize(const NC *ncp, off_t *calcsizep)
 
 /* Public */
 
-int NC3_new_nc(NC** ncpp)
+#if 0 /* no longer needed */
+int NC3_new_nc(NC3_INFO** ncpp)
 {
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
 #if _CRAYMPP && defined(LOCKNUMREC)
 	ncp = (NC *) shmalloc(sizeof(NC));
@@ -874,6 +860,7 @@ int NC3_new_nc(NC** ncpp)
         return NC_NOERR;
 
 }
+#endif
 
 /* WARNING: SIGNATURE CHANGE */
 int
@@ -881,23 +868,22 @@ NC3_create(const char *path, int ioflags,
 		size_t initialsz, int basepe,
 		size_t *chunksizehintp,
 		int use_parallel, void* parameters,
-                NC_Dispatch* dispatch, NC** ncpp)
+                NC_Dispatch* dispatch, NC* nc)
 {
-	NC *ncp;
 	int status;
 	void *xp = NULL;
 	int sizeof_off_t = 0;
+	NC3_INFO* nc3;
+
+	/* Create our specific NC3_INFO instance */
+	nc3 = new_NC3INFO(chunksizehintp);	
 
 #if ALWAYS_NC_SHARE /* DEBUG */
 	fSet(ioflags, NC_SHARE);
 #endif
 
-	ncp = new_NC(chunksizehintp,dispatch);
-	if(ncp == NULL)
-		return NC_ENOMEM;
-
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(ncp, basepe)) {
+	if (status = NC_init_pe(nc3, basepe)) {
 		return status;
 	}
 #else
@@ -908,24 +894,24 @@ NC3_create(const char *path, int ioflags,
 		return NC_EINVAL;
 #endif
 
-	assert(ncp->flags == 0);
+	assert(nc3->flags == 0);
 
 	/* Apply default create format. */
-	if (default_create_format == NC_FORMAT_64BIT)
+	if (nc_get_default_format() == NC_FORMAT_64BIT)
 	  ioflags |= NC_64BIT_OFFSET;
 
 	if (fIsSet(ioflags, NC_64BIT_OFFSET)) {
-	  fSet(ncp->flags, NC_64BIT_OFFSET);
+	  fSet(nc3->flags, NC_64BIT_OFFSET);
 	  sizeof_off_t = 8;
 	} else {
 	  sizeof_off_t = 4;
 	}
 
-	assert(ncp->xsz == ncx_len_NC(ncp,sizeof_off_t));
+	assert(nc3->xsz == ncx_len_NC(nc3,sizeof_off_t));
 	
         status =  ncio_create(path, ioflags, initialsz,
-			      0, ncp->xsz, &ncp->chunk,
-			      &ncp->nciop, &xp);
+			      0, nc3->xsz, &nc3->chunk,
+			      &nc3->nciop, &xp);
 	if(status != NC_NOERR)
 	{
 		/* translate error status */
@@ -934,9 +920,9 @@ NC3_create(const char *path, int ioflags,
 		goto unwind_alloc;
 	}
 
-	fSet(ncp->flags, NC_CREAT);
+	fSet(nc3->flags, NC_CREAT);
 
-	if(fIsSet(ncp->nciop->ioflags, NC_SHARE))
+	if(fIsSet(nc3->nciop->ioflags, NC_SHARE))
 	{
 		/*
 		 * NC_SHARE implies sync up the number of records as well.
@@ -945,33 +931,36 @@ NC3_create(const char *path, int ioflags,
 		 * automatically.  Some sort of IPC (external to this package)
 		 * would be used to trigger a call to nc_sync().
 		 */
-		fSet(ncp->flags, NC_NSYNC);
+		fSet(nc3->flags, NC_NSYNC);
 	}
 
-	status = ncx_put_NC(ncp, &xp, sizeof_off_t, ncp->xsz);
+	status = ncx_put_NC(nc3, &xp, sizeof_off_t, nc3->xsz);
 	if(status != NC_NOERR)
 		goto unwind_ioc;
 
-	add_to_NCList(ncp);
-
 	if(chunksizehintp != NULL)
-		*chunksizehintp = ncp->chunk;
+		*chunksizehintp = nc3->chunk;
 
-	ncp->int_ncid = ncp->nciop->fd;
-
-	if(ncpp) *ncpp = ncp;	
+	/* Link nc3 and nc */
+        NC3_DATA_SET(nc,nc3);
+	nc->int_ncid = nc3->nciop->fd;
 
 	return NC_NOERR;
 
 unwind_ioc:
-	(void) ncio_close(ncp->nciop, 1); /* N.B.: unlink */
-	ncp->nciop = NULL;
+	if(nc3 != NULL) {
+	    (void) ncio_close(nc3->nciop, 1); /* N.B.: unlink */
+	    nc3->nciop = NULL;
+	}
 	/*FALLTHRU*/
 unwind_alloc:
-	free_NC(ncp);
+	free_NC3INFO(nc3);
+	if(nc) 
+            NC3_DATA_SET(nc,NULL);
 	return status;
 }
 
+#if 0
 /* This function sets a default create flag that will be logically
    or'd to whatever flags are passed into nc_create for all future
    calls to nc_create.
@@ -996,26 +985,26 @@ nc_set_default_format(int format, int *old_formatp)
     default_create_format = format;
     return NC_NOERR;
 }
+#endif
 
 int
 NC3_open(const char * path, int ioflags,
                int basepe, size_t *chunksizehintp,
 	       int use_parallel,void* parameters,
-               NC_Dispatch* dispatch, NC** ncpp)
+               NC_Dispatch* dispatch, NC* nc)
 {
-	NC *ncp;
 	int status;
+	NC3_INFO* nc3;
+
+	/* Create our specific NC3_INFO instance */
+	nc3 = new_NC3INFO(chunksizehintp);	
 
 #if ALWAYS_NC_SHARE /* DEBUG */
 	fSet(ioflags, NC_SHARE);
 #endif
 
-	ncp = new_NC(chunksizehintp,dispatch);
-	if(ncp == NULL)
-		return NC_ENOMEM;
-
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(ncp, basepe)) {
+	if (status = NC_init_pe(nc3, basepe)) {
 		return status;
 	}
 #else
@@ -1026,13 +1015,13 @@ NC3_open(const char * path, int ioflags,
 		return NC_EINVAL;
 #endif
 
-	status = ncio_open(path, ioflags, 0, 0, &ncp->chunk, &ncp->nciop, 0);
+	status = ncio_open(path, ioflags, 0, 0, &nc3->chunk, &nc3->nciop, 0);
 	if(status)
 		goto unwind_alloc;
 
-	assert(ncp->flags == 0);
+	assert(nc3->flags == 0);
 
-	if(fIsSet(ncp->nciop->ioflags, NC_SHARE))
+	if(fIsSet(nc3->nciop->ioflags, NC_SHARE))
 	{
 		/*
 		 * NC_SHARE implies sync up the number of records as well.
@@ -1041,30 +1030,32 @@ NC3_open(const char * path, int ioflags,
 		 * automatically.  Some sort of IPC (external to this package)
 		 * would be used to trigger a call to nc_sync().
 		 */
-		fSet(ncp->flags, NC_NSYNC);
+		fSet(nc3->flags, NC_NSYNC);
 	}
 
-	status = nc_get_NC(ncp);
+	status = nc_get_NC(nc3);
 	if(status != NC_NOERR)
 		goto unwind_ioc;
 
-	add_to_NCList(ncp);
-
 	if(chunksizehintp != NULL)
-		*chunksizehintp = ncp->chunk;
+		*chunksizehintp = nc3->chunk;
 
-	ncp->int_ncid = ncp->nciop->fd;
-
-	if(ncpp) *ncpp = ncp;
+	/* Link nc3 and nc */
+        NC3_DATA_SET(nc,nc3);
+	nc->int_ncid = nc3->nciop->fd;
 
 	return NC_NOERR;
 
 unwind_ioc:
-	(void) ncio_close(ncp->nciop, 0);
-	ncp->nciop = NULL;
+	if(nc3) {
+    	    (void) ncio_close(nc3->nciop, 0);
+	    nc3->nciop = NULL;
+	}
 	/*FALLTHRU*/
 unwind_alloc:
-	free_NC(ncp);
+	free_NC3INFO(nc3);
+	if(nc) 
+            NC3_DATA_SET(nc,NULL);
 	return status;
 }
 
@@ -1074,16 +1065,18 @@ NC3__enddef(int ncid,
 	size_t v_minfree, size_t r_align)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
-		return status;
+	  return status;
+	nc3 = NC3_DATA(nc);
 
-	if(!NC_indef(ncp))
+	if(!NC_indef(nc3))
 		return(NC_ENOTINDEFINE);
 
-	return (NC_endef(ncp, h_minfree, v_align, v_minfree, r_align));
+	return (NC_endef(nc3, h_minfree, v_align, v_minfree, r_align));
 }
 
 
@@ -1091,26 +1084,28 @@ int
 NC3_close(int ncid)
 {
 	int status = NC_NOERR;
-	NC *ncp; 
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
-		return status;
+	    return status;
+	nc3 = NC3_DATA(nc);
 
-	if(NC_indef(ncp))
+	if(NC_indef(nc3))
 	{
-		status = NC_endef(ncp, 0, 1, 0, 1); /* TODO: defaults */
+		status = NC_endef(nc3, 0, 1, 0, 1); /* TODO: defaults */
 		if(status != NC_NOERR )
 		{
 			(void) nc_abort(ncid);
 			return status;
 		}
 	}
-	else if(!NC_readonly(ncp))
+	else if(!NC_readonly(nc3))
 	{
-		status = NC_sync(ncp);
+		status = NC_sync(nc3);
 		/* flush buffers before any filesize comparisons */
-		(void) ncio_sync(ncp->nciop);
+		(void) ncio_sync(nc3->nciop);
 	}
 
 	/* 
@@ -1121,25 +1116,24 @@ NC3_close(int ncid)
 	if (status == ENOERR) {
 	    off_t filesize; 	/* current size of open file */
 	    off_t calcsize;	/* calculated file size, from header */
-	    status = ncio_filesize(ncp->nciop, &filesize);
+	    status = ncio_filesize(nc3->nciop, &filesize);
 	    if(status != ENOERR)
 		return status;
-	    status = NC_calcsize(ncp, &calcsize);
+	    status = NC_calcsize(nc3, &calcsize);
 	    if(status != NC_NOERR)
 		return status;
-	    if(filesize < calcsize && !NC_readonly(ncp)) {
-		status = ncio_pad_length(ncp->nciop, calcsize);
+	    if(filesize < calcsize && !NC_readonly(nc3)) {
+		status = ncio_pad_length(nc3->nciop, calcsize);
 		if(status != ENOERR)
 		    return status;
 	    }
 	}
 
-	(void) ncio_close(ncp->nciop, 0);
-	ncp->nciop = NULL;
+	(void) ncio_close(nc3->nciop, 0);
+	nc3->nciop = NULL;
 
-	del_from_NCList(ncp);
-
-	free_NC(ncp);
+	free_NC3INFO(nc3);
+        NC3_DATA_SET(nc,NULL);
 
 	return status;
 }
@@ -1153,38 +1147,40 @@ int
 NC3_abort(int ncid)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 	int doUnlink = 0;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
-		return status;
+	    return status;
+	nc3 = NC3_DATA(nc);
 
-	doUnlink = NC_IsNew(ncp);
+	doUnlink = NC_IsNew(nc3);
 
-	if(ncp->old != NULL)
+	if(nc3->old != NULL)
 	{
 		/* a plain redef, not a create */
-		assert(!NC_IsNew(ncp));
-		assert(fIsSet(ncp->flags, NC_INDEF));
-		free_NC(ncp->old);
-		ncp->old = NULL;
-		fClr(ncp->flags, NC_INDEF);
+		assert(!NC_IsNew(nc3));
+		assert(fIsSet(nc3->flags, NC_INDEF));
+		free_NC3INFO(nc3->old);
+		nc3->old = NULL;
+		fClr(nc3->flags, NC_INDEF);
 	}
-	else if(!NC_readonly(ncp))
+	else if(!NC_readonly(nc3))
 	{
-		status = NC_sync(ncp);
+		status = NC_sync(nc3);
 		if(status != NC_NOERR)
 			return status;
 	}
 
 
-	(void) ncio_close(ncp->nciop, doUnlink);
-	ncp->nciop = NULL;
+	(void) ncio_close(nc3->nciop, doUnlink);
+	nc3->nciop = NULL;
 
-	del_from_NCList(ncp);
-
-	free_NC(ncp);
+	free_NC3INFO(nc3);
+	if(nc)
+            NC3_DATA_SET(nc,NULL);
 
 	return NC_NOERR;
 }
@@ -1194,32 +1190,34 @@ int
 NC3_redef(int ncid)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
-	if(NC_readonly(ncp))
+	if(NC_readonly(nc3))
 		return NC_EPERM;
 
-	if(NC_indef(ncp))
+	if(NC_indef(nc3))
 		return NC_EINDEFINE;
 
 	
-	if(fIsSet(ncp->nciop->ioflags, NC_SHARE))
+	if(fIsSet(nc3->nciop->ioflags, NC_SHARE))
 	{
 		/* read in from disk */
-		status = read_NC(ncp);
+		status = read_NC(nc3);
 		if(status != NC_NOERR)
 			return status;
 	}
 
-	ncp->old = dup_NC(ncp);
-	if(ncp->old == NULL)
+	nc3->old = dup_NC3INFO(nc3);
+	if(nc3->old == NULL)
 		return NC_ENOMEM;
 
-	fSet(ncp->flags, NC_INDEF);
+	fSet(nc3->flags, NC_INDEF);
 
 	return NC_NOERR;
 }
@@ -1233,20 +1231,22 @@ NC3_inq(int ncid,
 	int *xtendimp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
 	if(ndimsp != NULL)
-		*ndimsp = (int) ncp->dims.nelems;
+		*ndimsp = (int) nc3->dims.nelems;
 	if(nvarsp != NULL)
-		*nvarsp = (int) ncp->vars.nelems;
+		*nvarsp = (int) nc3->vars.nelems;
 	if(nattsp != NULL)
-		*nattsp = (int) ncp->attrs.nelems;
+		*nattsp = (int) nc3->attrs.nelems;
 	if(xtendimp != NULL)
-		*xtendimp = find_NC_Udim(&ncp->dims, NULL);
+		*xtendimp = find_NC_Udim(&nc3->dims, NULL);
 
 	return NC_NOERR;
 }
@@ -1255,14 +1255,16 @@ int
 NC3_inq_unlimdim(int ncid, int *xtendimp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
 	if(xtendimp != NULL)
-		*xtendimp = find_NC_Udim(&ncp->dims, NULL);
+		*xtendimp = find_NC_Udim(&nc3->dims, NULL);
 
 	return NC_NOERR;
 }
@@ -1271,26 +1273,28 @@ int
 NC3_sync(int ncid)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
-	if(NC_indef(ncp))
+	if(NC_indef(nc3))
 		return NC_EINDEFINE;
 
-	if(NC_readonly(ncp))
+	if(NC_readonly(nc3))
 	{
-		return read_NC(ncp);
+		return read_NC(nc3);
 	}
 	/* else, read/write */
 
-	status = NC_sync(ncp);
+	status = NC_sync(nc3);
 	if(status != NC_NOERR)
 		return status;
 
-	status = ncio_sync(ncp->nciop);
+	status = ncio_sync(nc3->nciop);
 	if(status != NC_NOERR)
 		return status;
 
@@ -1298,9 +1302,9 @@ NC3_sync(int ncid)
 	/* may improve concurrent access, but slows performance if
 	 * called frequently */
 #ifndef WIN32
-	status = fsync(ncp->nciop->fd);
+	status = fsync(nc3->nciop->fd);
 #else
-	status = _commit(ncp->nciop->fd);
+	status = _commit(nc3->nciop->fd);
 #endif	/* WIN32 */
 #endif	/* USE_FSYNC */
 
@@ -1313,35 +1317,37 @@ NC3_set_fill(int ncid,
 	int fillmode, int *old_mode_ptr)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 	int oldmode;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
-	if(NC_readonly(ncp))
+	if(NC_readonly(nc3))
 		return NC_EPERM;
 
-	oldmode = fIsSet(ncp->flags, NC_NOFILL) ? NC_NOFILL : NC_FILL;
+	oldmode = fIsSet(nc3->flags, NC_NOFILL) ? NC_NOFILL : NC_FILL;
 
 	if(fillmode == NC_NOFILL)
 	{
-		fSet(ncp->flags, NC_NOFILL);
+		fSet(nc3->flags, NC_NOFILL);
 	}
 	else if(fillmode == NC_FILL)
 	{
-		if(fIsSet(ncp->flags, NC_NOFILL))
+		if(fIsSet(nc3->flags, NC_NOFILL))
 		{
 			/*
 			 * We are changing back to fill mode
 			 * so do a sync
 			 */
-			status = NC_sync(ncp);
+			status = NC_sync(nc3);
 			if(status != NC_NOERR)
 				return status;
 		}
-		fClr(ncp->flags, NC_NOFILL);
+		fClr(nc3->flags, NC_NOFILL);
 	}
 	else
 	{
@@ -1358,29 +1364,29 @@ NC3_set_fill(int ncid,
 
 /* create function versions of the NC_*_numrecs macros */
 size_t
-NC_get_numrecs(const NC *ncp) {
+NC_get_numrecs(const NC *nc3) {
 	shmem_t numrec;
-	shmem_short_get(&numrec, (shmem_t *) ncp->lock + LOCKNUMREC_VALUE, 1,
-		ncp->lock[LOCKNUMREC_BASEPE]);
+	shmem_short_get(&numrec, (shmem_t *) nc3->lock + LOCKNUMREC_VALUE, 1,
+		nc3->lock[LOCKNUMREC_BASEPE]);
 	return (size_t) numrec;
 }
 
 void
-NC_set_numrecs(NC *ncp, size_t nrecs)
+NC_set_numrecs(NC *nc3, size_t nrecs)
 {
     shmem_t numrec = (shmem_t) nrecs;
     /* update local value too */
-    ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
-    shmem_short_put((shmem_t *) ncp->lock + LOCKNUMREC_VALUE, &numrec, 1,
-    ncp->lock[LOCKNUMREC_BASEPE]);
+    nc3->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
+    shmem_short_put((shmem_t *) nc3->lock + LOCKNUMREC_VALUE, &numrec, 1,
+    nc3->lock[LOCKNUMREC_BASEPE]);
 }
 
-void NC_increase_numrecs(NC *ncp, size_t nrecs)
+void NC_increase_numrecs(NC *nc3, size_t nrecs)
 {
     /* this is only called in one place that's already protected
      * by a lock ... so don't worry about it */
-    if (nrecs > NC_get_numrecs(ncp))
-	NC_set_numrecs(ncp, nrecs);
+    if (nrecs > NC_get_numrecs(nc3))
+	NC_set_numrecs(nc3, nrecs);
 }
 
 #endif /* LOCKNUMREC */
@@ -1392,36 +1398,38 @@ NC3_set_base_pe(int ncid, int pe)
 {
 #if _CRAYMPP && defined(LOCKNUMREC)
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 	shmem_t numrecs;
 
-	if ((status = NC_check_id(ncid, &ncp)) != NC_NOERR) {
+	if ((status = NC_check_id(ncid, &nc) != NC_NOERR) {
 		return status;
 	}
 	if (pe < 0 || pe >= _num_pes()) {
 		return NC_EINVAL; /* invalid base pe */
 	}
+	nc3 = NC3_DATA(nc);
 
-	numrecs = (shmem_t) NC_get_numrecs(ncp);
+	numrecs = (shmem_t) NC_get_numrecs(nc3);
 
-	ncp->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrecs;
+	nc3->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrecs;
 
 	/* update serving & lock values for a "smooth" transition */
 	/* note that the "real" server will being doing this as well */
 	/* as all the rest in the group */
 	/* must have syncronization before & after this step */
 	shmem_short_get(
-		(shmem_t *) ncp->lock + LOCKNUMREC_SERVING,
-		(shmem_t *) ncp->lock + LOCKNUMREC_SERVING,
-		1, ncp->lock[LOCKNUMREC_BASEPE]);
+		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
+		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
+		1, nc3->lock[LOCKNUMREC_BASEPE]);
 
 	shmem_short_get(
-		(shmem_t *) ncp->lock + LOCKNUMREC_LOCK,
-		(shmem_t *) ncp->lock + LOCKNUMREC_LOCK,
-		1, ncp->lock[LOCKNUMREC_BASEPE]);
+		(shmem_t *) nc3->lock + LOCKNUMREC_LOCK,
+		(shmem_t *) nc3->lock + LOCKNUMREC_LOCK,
+		1, nc3->lock[LOCKNUMREC_BASEPE]);
 
 	/* complete transition */
-	ncp->lock[LOCKNUMREC_BASEPE] = (ushmem_t) pe;
+	nc3->lock[LOCKNUMREC_BASEPE] = (ushmem_t) pe;
 
 #endif /* _CRAYMPP && LOCKNUMREC */
 	return NC_NOERR;
@@ -1433,13 +1441,15 @@ NC3_inq_base_pe(int ncid, int *pe)
 {
 #if _CRAYMPP && defined(LOCKNUMREC)
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	if ((status = NC_check_id(ncid, &ncp)) != NC_NOERR) {
+	if ((status = NC_check_id(ncid, &nc)) != NC_NOERR) {
 		return status;
 	}
 
-	*pe = (int) ncp->lock[LOCKNUMREC_BASEPE];
+	*pe = (int) nc3->lock[LOCKNUMREC_BASEPE];
+	nc3 = NC3_DATA(nc);
 #else
 	/*
 	 * !_CRAYMPP, only pe 0 is valid
@@ -1453,15 +1463,17 @@ int
 NC3_inq_format(int ncid, int *formatp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	nc3 = NC3_DATA(nc);
 
 	/* only need to check for netCDF-3 variants, since this is never called for netCDF-4 
 	   files */
-	*formatp = fIsSet(ncp->flags, NC_64BIT_OFFSET) ? NC_FORMAT_64BIT 
+	*formatp = fIsSet(nc3->flags, NC_64BIT_OFFSET) ? NC_FORMAT_64BIT 
 	    : NC_FORMAT_CLASSIC; 
 	return NC_NOERR;
 }
@@ -1503,16 +1515,23 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
 int
 nc_delete_mp(const char * path, int basepe)
 {
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* nc3;
 	int status;
+	int ncid;
 	size_t chunk = 512;
 
-	status = NC3_new_nc(&ncp);
+	status = nc_open(path,NC_NOWRITE,&ncid);
         if(status) return status;
-        ncp->chunk = chunk;
-	
+
+	status = NC_check_id(ncid,&nc);
+        if(status) return status;
+	nc3 = NC3_DATA(nc);
+
+	nc3->chunk = chunk;
+
 #if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(ncp, basepe)) {
+	if (status = NC_init_pe(nc3, basepe)) {
 		return status;
 	}
 #else
@@ -1523,31 +1542,22 @@ nc_delete_mp(const char * path, int basepe)
 		return NC_EINVAL;
 #endif
 
-	status = ncio_open(path, NC_NOWRITE,
-		0, 0, &ncp->chunk,
-		&ncp->nciop, 0);
-	if(status)
-		goto unwind_alloc;
+	assert(nc3->flags == 0);
 
-	assert(ncp->flags == 0);
-
-	status = nc_get_NC(ncp);
+	status = nc_get_NC(nc3);
 	if(status != NC_NOERR)
 	{
 		/* Not a netcdf file, don't delete */
 		/* ??? is this the right semantic? what if it was just too big? */
-		(void) ncio_close(ncp->nciop, 0);
+		(void)nc_abort(ncid);
 	}
 	else
 	{
-		/* ncio_close does the unlink */
-		status = ncio_close(ncp->nciop, 1); /* ncio_close does the unlink */
+		/* ncio_abort does the unlink */
+		/*cheat and mark the file as new */
+		fSet((nc3)->nciop->ioflags,NC_WRITE);
+		(void)nc_abort(ncid);		
 	}
-	ncp->nciop = NULL;
-
-	ncp->nciop = NULL;
-unwind_alloc:
-	free_NC(ncp);
 	return status;
 }
 
@@ -1555,21 +1565,5 @@ int
 nc_delete(const char * path)
 {
         return nc_delete_mp(path, 0);
-}
-
-int
-NC_set_readonly(NC *ncp, int tf)
-{
-    int old = 1;
-    if(ncp != NULL && ncp->nciop != NULL) {
-	old = NC_readonly(ncp) ? 1 : 0;
-	old = fIsSet(ncp->nciop->ioflags, NC_WRITE) ? 0 : 1;
-	if(tf == 1) {
-	    fClr(ncp->nciop->ioflags, NC_WRITE);
-	} else {/*tf==0*/
-	    fSet(ncp->nciop->ioflags, NC_WRITE);
-	}
-    }
-    return old;
 }
 

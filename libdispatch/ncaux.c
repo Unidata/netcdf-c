@@ -1,3 +1,4 @@
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
@@ -22,7 +23,7 @@ Author: D. Heimbigner 10/7/2008
 #include <string.h>
 #include <assert.h>
 #include <netcdf.h>
-
+#include "config.h"
 #include "ncaux.h"
 
 struct NCAUX_FIELD {
@@ -388,3 +389,5 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 done:
     return status;
 }
+
+

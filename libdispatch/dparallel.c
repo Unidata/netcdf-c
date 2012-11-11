@@ -6,7 +6,9 @@ Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "config.h"
+#ifdef USE_PARALLEL
 #include "netcdf_f.h"
+#endif
 #include "ncdispatch.h"
 
 /* This function creates a file for use with parallel I/O. */
@@ -91,6 +93,7 @@ int
 nc_var_par_access(int ncid, int varid, int par_access)
 {
     NC* ncp;
+    
     int stat = NC_NOERR;
 
     if ((stat = NC_check_id(ncid, &ncp)))

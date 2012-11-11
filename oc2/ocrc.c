@@ -329,7 +329,7 @@ ocdodsrc_read(char* basename, char* path)
 	    /* trim again */
    	    line = rctrimleft(line,TRIMCHARS);
 	    /* save the url */
-	    strcpy(ocdodsrc->triples[ocdodsrc->ntriples].url,TRIM(url));
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,TRIM(url),2047);
 	}
 	if(strlen(line)==0) continue; /* empty line */
 	/* split off key and value */
@@ -346,8 +346,8 @@ ocdodsrc_read(char* basename, char* path)
 	}
         *value = '\0';
 	value++;
-	strcpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key));
-	strcpy(ocdodsrc->triples[ocdodsrc->ntriples].value,TRIM(value));
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key),2047);
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,TRIM(value),2047);
 	ocdodsrc->ntriples++;
     }
     fclose(in_file);
@@ -541,12 +541,12 @@ curllookup(char* suffix, char* url)
 {
     char key[2048];
     char* value = NULL;
-    strcpy(key,HTTPPREFIX);
-    strcat(key,suffix);
+    strncpy(key,HTTPPREFIX,2047);
+    strncat(key,suffix,2047-strlen(HTTPPREFIX));
     value = ocdodsrc_lookup(key,url);
     if(value == NULL) {
 	strcpy(key,HTTPPREFIXDEPRECATED);
-	strcat(key,suffix);
+	strncat(key,suffix,2047);
         value = ocdodsrc_lookup(key,url);
     }
     return value;

@@ -41,7 +41,7 @@ following section on \ref building.
 
 \page building Building NetCDF
 
-The netCDF-C library and utilities requires 3rd party libraries for
+The netCDF-C library and utilities require third-party libraries for
 full functionality. (See \ref architecture).
 - \ref build_default
 - \ref build_classic
@@ -206,9 +206,9 @@ for more information about the netCDF format variants.)
 
 If parallel I/O access to netCDF classic and 64-bit offset files is
 also needed, the parallel-netcdf library should also be installed,
-(and the <a
+(Note: the previously recommended <a
 href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
-pnetcdf.h</a> must be used). Then configure netCDF with the
+pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
 --enable-pnetcdf flag.
 
 \page linking Linking to NetCDF

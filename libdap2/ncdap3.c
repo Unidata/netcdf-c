@@ -17,6 +17,7 @@
 
 #include "oclog.h"
 
+#include "nc3internal.h"
 #include "nc3dispatch.h"
 #include "ncd3dispatch.h"
 #include "dapalign.h"
@@ -71,13 +72,13 @@ int
 NCD3_open(const char * path, int mode,
                int basepe, size_t *chunksizehintp,
  	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC** ncpp)
+               NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    NC* drno = NULL;
     NCDAPCOMMON* dapcomm = NULL;
     const char* value;
+
     /* We will use a fake file descriptor as our internal in-memory filename */
     char tmpname[32];
 
@@ -88,18 +89,11 @@ NCD3_open(const char * path, int mode,
     if(dispatch == NULL) PANIC("NC3D_open: no dispatch table");
 
     /* Setup our NC and NCDAPCOMMON state*/
-    drno = (NC*)calloc(1,sizeof(NC));
-    if(drno == NULL) {ncstat = NC_ENOMEM; goto done;}
-
-    /* compute an ncid */
-    ncstat = add_to_NCList(drno);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
     if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
 
-    drno->dispatch = dispatch;
-    drno->dispatchdata = dapcomm;
+    NCD3_DATA_SET(drno,dapcomm);
     drno->int_ncid = nc__pseudofd(); /* create a unique id */
     dapcomm->controller = (NC*)drno;
 
@@ -317,19 +311,21 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
         NC* ncsub;
         NC* drno = dapcomm->controller;
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
+        /* (for now) break abstractions*/
+	NC3_INFO* nc3i;
 
         /* get the id for the substrate */
         ncstat = NC_check_id(drno->substrate,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+	nc3i = (NC3_INFO*)ncsub->dispatchdata;
 
-       if(unlimited != NULL) {
-            /* Set the effective size of UNLIMITED;
-               note that this cannot easily be done thru the normal API.*/
-            NC_set_numrecs(ncsub,unlimited->dim.declsize);
+        if(unlimited != NULL) {
+            /* Set the effective size of UNLIMITED */
+            NC_set_numrecs(nc3i,unlimited->dim.declsize);
         }
 
         /* Pretend the substrate is read-only */
-	NC_set_readonly(ncsub,1);
+	NC_set_readonly(nc3i);
 	
     }
 
@@ -341,8 +337,6 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
 	    {THROWCHK(ncstat); goto done;}
 	}
     }
-
-    if(ncpp) *ncpp = (NC*)drno;
 
     return ncstat;
 
@@ -361,19 +355,16 @@ NCD3_close(int ncid)
 
     ncstatus = NC_check_id(ncid, (NC**)&drno); 
     if(ncstatus != NC_NOERR) return THROW(ncstatus);
-
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
+
     /* We call abort rather than close to avoid
        trying to write anything or try to pad file length
      */
     ncstatus = nc_abort(drno->substrate);
 
-    /* remove ourselves from NClist */
-    del_from_NCList(drno);
     /* clean NC* */
     freeNCDAPCOMMON(dapcomm);
-    if(drno->path != NULL) free(drno->path);
-    free(drno);
+
     return THROW(ncstatus);
 }
 
@@ -384,6 +375,7 @@ buildncstructures3(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = dapcomm->cdf.ddsroot;
     NC* ncsub;
+
     NC_check_id(dapcomm->controller->substrate,&ncsub);
 
     ncstat = buildglobalattrs3(dapcomm,dds);
@@ -408,6 +400,7 @@ builddims(NCDAPCOMMON* dapcomm)
     NClist* dimset = NULL;
     NC* drno = dapcomm->controller;
     NC* ncsub;
+    NC3_INFO* nc3sub;
     char* definename;
 
     /* collect all dimensions from variables */
@@ -444,11 +437,12 @@ builddims(NCDAPCOMMON* dapcomm)
         /* get the id for the substrate */
         ncstat = NC_check_id(drno->substrate,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
 
 #if 0
         /* Set the effective size of UNLIMITED;
            note that this cannot easily be done thru the normal API.*/
-        NC_set_numrecs(ncsub,unlimited->dim.declsize);
+        NC_set_numrecs(nc3sub,unlimited->dim.declsize);
 #endif
 
     }

@@ -35,7 +35,7 @@ extern void set_max_len ( int len );
 extern void lput( const char *string );
 
 /* like lput, but with options to support formatting with appended comments */
-extern void lput2( const char *string, boolean first, boolean wrap);
+extern void lput2( const char *string, boolen first, boolen wrap);
 
 /* print values of an attribute */
 extern void pr_any_att_vals( const ncatt_t *attp, const void *vals );

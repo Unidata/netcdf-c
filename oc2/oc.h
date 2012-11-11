@@ -425,11 +425,14 @@ extern void oc_logtext(int tag, const char* text);
 /**************************************************/
 /* Miscellaneous */
 
+/* For some reason, the MSVC compiler doesn't like this. */
+#ifndef _MSC_VER
 /* Return the size of the in-memory or on-disk
    data chunk returned by the server for a given tree.
    Zero implies it is not defined.
 */
 extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
+#endif
 
 /* Reclaim the strings within a string vector, but not the vector itself.
    This is useful for reclaiming the result of oc_data_read

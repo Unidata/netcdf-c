@@ -15,7 +15,7 @@ endif # BUILD_DLL
 
 # These files comprise the netCDF-3 classic library code.
 libnetcdf3_la_SOURCES = v1hpg.c onstack.h                              \
-nclistmgr.c putget.c attr.c nc3dispatch.c nc.c var.c dim.c ncx.c	\
+putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c \
 ncx.h lookup3.c pstdint.h ncio.c ncio.h
 
 if BUILD_DISKLESS

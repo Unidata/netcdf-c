@@ -55,7 +55,7 @@ For a complete description of the netCDF format and utilities see
 * Variables::                   
 * Attributes::                  
 * Summary of Fortran 90 Interface::  
-* FORTRAN 77 to Fortran 90 Transition Guide::  
+* Fortran 77 to Fortran 90 Transition Guide::  
 * Combined Index::              
 
 @detailmenu
@@ -577,19 +577,19 @@ f90 -c -I/usr/local/include mymodule.f90
 
 
 Starting with version 3.6.2, another method of building the netCDF
-fortran libraries becomes available. With the
+Fortran libraries becomes available. With the
 --enable-separate-fortran option to configure, the user can specify
-that the C library should not contain the fortran functions. In these
-cases an additional library, libnetcdff.a (not the extra ``f'') will
-be built. This library contains the fortran functions.
+that the C library should not contain the Fortran functions. In these
+cases an additional library, libnetcdff.a (note the extra ``f'') will
+be built. This library contains the Fortran functions.
 
 For more information about configure options, @xref{Specifying the
 Environment for Building,,, netcdf-install, @value{i-man}}.
 
-Building separate fortran libraries is required for shared library
+Building separate Fortran libraries is required for shared library
 builds, but is not done, by default, for static library builds.
 
-When linking fortran programs without a separate fortran library,
+When linking Fortran programs without a separate Fortran library,
 programs must link to the netCDF library like this:
 
 @example
@@ -626,7 +626,7 @@ A netCDF dataset that has not yet been opened can only be referred to
 by its dataset name. Once a netCDF dataset is opened, it is referred
 to by a netCDF ID, which is a small nonnegative integer returned when
 you create or open the dataset. A netCDF ID is much like a file
-descriptor in C or a logical unit number in FORTRAN. In any single
+descriptor in C or a logical unit number in Fortran. In any single
 program, the netCDF IDs of distinct open netCDF datasets are
 distinct. A single netCDF dataset may be opened multiple times and
 will then have multiple distinct netCDF IDs; however at most one of
@@ -4609,11 +4609,11 @@ Rename a variable.
 @section Language Types Corresponding to netCDF external data types
 
 The following table gives the netCDF external data types and the
-corresponding type constants for defining variables in the FORTRAN
+corresponding type constants for defining variables in the Fortran
 interface:
 
 @multitable @columnfractions .25 .60 .15
-@item Type @tab FORTRAN API Mnemonic @tab Bits
+@item Type @tab Fortran API Mnemonic @tab Bits
 
 @item byte
 @tab NF90_BYTE 
@@ -5872,8 +5872,8 @@ using Fortran 90 intrinsic functions:
 
 Character strings are not a primitive netCDF external data type under
 the classic netCDF data model, in
-part because FORTRAN does not support the abstraction of
-variable-length character strings (the FORTRAN LEN function returns
+part because Fortran does not support the abstraction of
+variable-length character strings (the Fortran LEN function returns
 the static length of a character string, not its dynamic length). As a
 result, a character string cannot be written or read as a single
 object in the netCDF interface. Instead, a character string must be
@@ -6842,7 +6842,7 @@ Units for a variable rh in an existing netCDF dataset named foo.nc:
  if (status /= nf90_noerr) call handle_err(status)
 @end example
 
-@node Summary of Fortran 90 Interface, FORTRAN 77 to Fortran 90 Transition Guide, Attributes, Top
+@node Summary of Fortran 90 Interface, Fortran 77 to Fortran 90 Transition Guide, Attributes, Top
 @appendix Appendix A - Summary of Fortran 90 Interface
 
  Dataset Functions
@@ -7000,28 +7000,28 @@ Units for a variable rh in an existing netCDF dataset named foo.nc:
    integer                          :: nf90_del_att
 @end example
 
-@node FORTRAN 77 to Fortran 90 Transition Guide, Combined Index, Summary of Fortran 90 Interface, Top
-@appendix Appendix B - FORTRAN 77 to Fortran 90 Transition Guide
+@node Fortran 77 to Fortran 90 Transition Guide, Combined Index, Summary of Fortran 90 Interface, Top
+@appendix Appendix B - Fortran 77 to Fortran 90 Transition Guide
 
 @unnumberedsubsec The new Fortran 90 interface 
 
 The Fortran 90 interface to the netCDF library closely follows the
-FORTRAN 77 interface. In most cases, function and constant names and
+Fortran 77 interface. In most cases, function and constant names and
 argument lists are the same, except that nf90_ replaces nf_ in
-names. The Fortran 90 interface is much smaller than the FORTRAN 77
+names. The Fortran 90 interface is much smaller than the Fortran 77
 interface, however. This has been accomplished by using optional
 arguments and overloaded functions wherever possible.
 
-Because FORTRAN 77 is a subset of Fortran 90, there is no reason to
-modify working FORTRAN code to use the Fortran 90 interface. New code,
-however, can easily be patterned after existing FORTRAN while taking
+Because Fortran 77 is a subset of Fortran 90, there is no reason to
+modify working Fortran code to use the Fortran 90 interface. New code,
+however, can easily be patterned after existing Fortran while taking
 advantage of the simpler interface. Some compilers may provide
 additional support when using Fortran 90. For example, compilers may
 issue warnings if arguments with intent( in) are not set before they
 are passed to a procedure.
 
 The Fortran 90 interface is currently implemented as a set of wrappers
-around the base FORTRAN subroutines in the netCDF distribution. Future
+around the base Fortran subroutines in the netCDF distribution. Future
 versions may be implemented entirely in Fortran 90, adding additional
 error checking possibilities.
 
@@ -7031,7 +7031,7 @@ In the Fortran 90 interface there are two inquiry functions each for
 dimensions, variables, and attributes, and a single inquiry function
 for datasets. These functions take optional arguments, allowing users
 to request only the information they need. These functions replace the
-many-argument and single-argument inquiry functions in the FORTRAN
+many-argument and single-argument inquiry functions in the Fortran
 interface.
 
 As an example, compare the attribute inquiry functions in the Fortran
@@ -7049,7 +7049,7 @@ As an example, compare the attribute inquiry functions in the Fortran
    integer                          :: nf90_inq_attname
 @end example
 
-with those in the FORTRAN interface 
+with those in the Fortran interface 
 
 @example
  INTEGER FUNCTION  NF_INQ_ATT        (NCID, VARID, NAME, xtype, len)
@@ -7080,7 +7080,7 @@ Note also that Fortran 90 allows arbitrary array sections to be passed
 to any procedure, which may greatly simplify programming. For examples
 see @ref{NF90_PUT_VAR} and @ref{NF90_GET_VAR}.
 
-@node Combined Index,  , FORTRAN 77 to Fortran 90 Transition Guide, Top
+@node Combined Index,  , Fortran 77 to Fortran 90 Transition Guide, Top
 @unnumbered Index
 
 @printindex cp

@@ -1650,8 +1650,8 @@ posixio_open(const char *path,
 {
 	ncio *nciop;
 	int oflags = fIsSet(ioflags, NC_WRITE) ? O_RDWR : O_RDONLY;
-	int fd;
-	int status;
+	int fd = -1;
+	int status = 0;
 
 	if(path == NULL || *path == 0)
 		return EINVAL;
@@ -1712,7 +1712,7 @@ posixio_open(const char *path,
 	return ENOERR;
 
 unwind_open:
-	(void) close(fd);
+	(void) close(fd); /* assert fd >= 0 */
 	/*FALLTHRU*/
 unwind_new:
 	ncio_close(nciop,0);
@@ -1779,8 +1779,10 @@ ncio_px_close(ncio *nciop, int doUnlink)
 	int status = ENOERR;
 	if(nciop == NULL)
 		return EINVAL;
-	status = nciop->sync(nciop);
-	(void) close(nciop->fd);
+	if(nciop->fd > 0) {
+	    status = nciop->sync(nciop);
+	    (void) close(nciop->fd);
+	}	
 	if(doUnlink)
 		(void) unlink(nciop->path);
 	ncio_px_free(nciop);
@@ -1793,8 +1795,10 @@ ncio_spx_close(ncio *nciop, int doUnlink)
 	int status = ENOERR;
 	if(nciop == NULL)
 		return EINVAL;
-	status = nciop->sync(nciop);
-	(void) close(nciop->fd);
+	if(nciop->fd > 0) {
+	    status = nciop->sync(nciop);
+	    (void) close(nciop->fd);
+	}
 	if(doUnlink)
 		(void) unlink(nciop->path);
 	ncio_spx_free(nciop);

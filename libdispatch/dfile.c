@@ -995,9 +995,10 @@ nc_abort(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   if(ncp->path != NULL) free(ncp->path);
-   ncp->path = NULL;   
-   return ncp->dispatch->abort(ncid);
+   stat = ncp->dispatch->abort(ncid);
+   del_from_NCList(ncp);
+   free_NC(ncp);
+   return stat;   
 }
 
 /**
@@ -1046,7 +1047,11 @@ nc_close(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->close(ncid);
+   stat = ncp->dispatch->close(ncid);
+   /* Remove from the nc list */
+   del_from_NCList(ncp);
+   free_NC(ncp);
+   return stat;
 }
 
 /**
@@ -1414,7 +1419,6 @@ NC_create(const char *path, int cmode, size_t initialsz,
    int model = 0; /* one of the NC_DISPATCH_XXX values */
    int isurl = 0;   /* dap or cdmremote or neither */
    int xcmode = 0; /* for implied cmode flags */
-   extern int default_create_format;
 
    /* Initialize the dispatch table. The function pointers in the
     * dispatch table will depend on how netCDF was built
@@ -1439,7 +1443,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    if(model == 0) {
       /* Check default format */
-      int format = default_create_format;
+      int format = nc_get_default_format();
       switch (format) {
 #ifdef USE_NETCDF4
 	 case NC_FORMAT_NETCDF4:
@@ -1494,16 +1498,22 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	 return NC_ENOTNC;
    }
 
-   if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
-				   useparallel, mpi_info, dispatcher, &ncp)))
-      return stat;
+   /* Create the NC* instance and insert its dispatcher */
+   stat = new_NC(dispatcher,path,&ncp);
+   if(stat) return stat;
 
-   ncp->dispatch = dispatcher;
-   if(ncidp) 
-      *ncidp = ncp->ext_ncid;
-   if (!(ncp->path = nulldup(path)))
-      return NC_ENOMEM;
-   return NC_NOERR;
+   /* Add to list of known open files and define ext_ncid */
+   add_to_NCList(ncp);
+
+   /* Assume create will fill in remaining ncp fields */
+   if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
+				   useparallel, mpi_info, dispatcher, ncp))) {
+	del_from_NCList(ncp); /* oh well */
+	free_NC(ncp);
+     } else {
+       if(ncidp)*ncidp = ncp->ext_ncid;
+     }
+   return stat;
 }
 
 /**
@@ -1535,7 +1545,6 @@ NC_open(const char *path, int cmode,
    int isurl = 0; 
    int cdfversion = 0;
    int hdfversion = 0;
-   extern int default_create_format;
 
    if(!nc_initialized) {
       stat = NC_initialize();
@@ -1605,14 +1614,23 @@ NC_open(const char *path, int cmode,
    else
       return  NC_ENOTNC;
 
-  havetable:
-  stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
-			   useparallel, mpi_info, dispatcher, &ncp);
+havetable:
+
+   /* Create the NC* instance and insert its dispatcher */
+   stat = new_NC(dispatcher,path,&ncp);
+   if(stat) return stat;
+
+   /* Add to list of known open files */
+   add_to_NCList(ncp);
+
+   /* Assume open will fill in remaining ncp fields */
+   stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
+			   useparallel, mpi_info, dispatcher, ncp);
    if(stat == NC_NOERR) {
-      ncp->dispatch = dispatcher;
-      if(ncidp) *ncidp = ncp->ext_ncid;
-      ncp->path = nulldup(path);
-      if(path == NULL) stat = NC_ENOMEM;	
+     if(ncidp) *ncidp = ncp->ext_ncid;
+   } else {
+	del_from_NCList(ncp);
+	free_NC(ncp);
    }
    return stat;
 }

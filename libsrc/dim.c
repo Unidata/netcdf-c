@@ -4,7 +4,7 @@
  */
 /* $Id: dim.c,v 1.83 2010/05/25 17:54:15 dmh Exp $ */
 
-#include "nc.h"
+#include "nc3internal.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -322,13 +322,15 @@ int
 NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	int dimid;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(!NC_indef(ncp))
 		return NC_ENOTINDEFINE;
@@ -384,12 +386,14 @@ int
 NC3_inq_dimid(int ncid, const char *name, int *dimid_ptr)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	int dimid;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	dimid = NC_finddim(&ncp->dims, name, NULL);
 
@@ -405,12 +409,14 @@ int
 NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	dimp = elem_NC_dimarray(&ncp->dims, (size_t)dimid);
 	if(dimp == NULL)
@@ -436,14 +442,16 @@ int
 NC3_rename_dim( int ncid, int dimid, const char *unewname)
 {
 	int status;
-	NC *ncp;
+	NC *nc;
+	NC3_INFO* ncp;
 	int existid;
 	NC_dim *dimp;
 	char *newname;		/* normalized */
 
-	status = NC_check_id(ncid, &ncp); 
+	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
 		return status;
+	ncp = NC3_DATA(nc);
 
 	if(NC_readonly(ncp))
 		return NC_EPERM;

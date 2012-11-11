@@ -256,7 +256,7 @@ typedef struct CDFnode {
     BOOL	     visible;       /* 1 => node is present in derived tree; independent of elided flag */
     BOOL	     zerodim;       /* 1 => node has a zero dimension */
     /* These two flags track the effects on grids of constraints */
-    BOOL             virtual;       /* node added by regrid */
+    BOOL             nc_virtual;       /* node added by regrid */
 #ifdef PROJECTED
     BOOL             projected;     /* node referenced by projection */
 #endif
@@ -330,5 +330,10 @@ extern void freenccache(NCDAPCOMMON*, NCcache* cache);
    configure(.ac) to test for the presence of thiscode.
 */
 extern int nc__opendap(void);
+
+/* Define accessors for the dispatchdata */
+#define NCD3_DATA(nc) ((NCDAPCOMMON*)(nc)->dispatchdata)
+#define NCD3_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
+
 
 #endif /*NCCOMMON_H*/

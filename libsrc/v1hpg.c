@@ -5,7 +5,7 @@
 /* $Id: v1hpg.c,v 1.70 2010/05/26 21:43:34 dmh Exp $ */
 
 #include "config.h"
-#include "nc.h"
+#include "nc3internal.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -1092,7 +1092,7 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
  * netcdf file.
  */
 static int
-NC_computeshapes(NC *ncp)
+NC_computeshapes(NC3_INFO* ncp)
 {
 	NC_var **vpp = (NC_var **)ncp->vars.value;
 	NC_var *const *const end = &vpp[ncp->vars.nelems];
@@ -1164,7 +1164,7 @@ NC_computeshapes(NC *ncp)
 
 /* How much space in the header is required for the NC data structure? */
 size_t
-ncx_len_NC(const NC *ncp, size_t sizeof_off_t)
+ncx_len_NC(const NC3_INFO* ncp, size_t sizeof_off_t)
 {
 	size_t xlen = sizeof(ncmagic);
 
@@ -1181,7 +1181,7 @@ ncx_len_NC(const NC *ncp, size_t sizeof_off_t)
 
 /* Write the file header */
 int
-ncx_put_NC(const NC *ncp, void **xpp, off_t offset, size_t extent)
+ncx_put_NC(const NC3_INFO* ncp, void **xpp, off_t offset, size_t extent)
 {
 	int status = ENOERR;
 	v1hs ps; /* the get stream */
@@ -1271,7 +1271,7 @@ release:
 
 /* Make the in-memory NC structure from reading the file header */
 int
-nc_get_NC(NC *ncp)
+nc_get_NC(NC3_INFO* ncp)
 {
 	int status;
 	v1hs gs; /* the get stream */

@@ -54,14 +54,14 @@ EXTERNL int
 NC3_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
 	   int useparallel, void* mpidata,
-           struct NC_Dispatch*, NC** ncp);
+           struct NC_Dispatch*, NC* ncp);
 
 /* WARNING: this signature differs from external nc_open API*/
 EXTERNL int
 NC3_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
          int use_parallel, void* mpidata,
-         NC_Dispatch*, NC** ncp);
+         NC_Dispatch*, NC* ncp);
 
 EXTERNL int
 NC3_new_nc(NC**);
