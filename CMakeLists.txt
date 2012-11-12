@@ -145,6 +145,10 @@ IF(NOT NETCDF_LIB_NAME STREQUAL "")
 	SET(MOD_NETCDF_NAME ON)
 ENDIF()
 
+# Option to use a local or remote CDash instance.
+# instances Defined in CTestConfig.cmake
+OPTION (USE_REMOTE_CDASH "Use CDash instance at CDash.org." OFF)
+
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
@@ -371,7 +375,7 @@ ENDIF()
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
-MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS)
+MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
 #####
 # End option checks.
 #####
