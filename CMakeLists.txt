@@ -8,7 +8,7 @@ ENABLE_TESTING()
 INCLUDE(CTest)
 
 IF(MSVC)
-	SET(USE_FOLDERS OFF)
+	SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
 # CTest configuration
@@ -47,6 +47,10 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 
+# Only necessary for Windows
+IF(MSVC)
+	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
+ENDIF()
 # Supress some warnings on Windows
 IF(MSVC)
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
@@ -80,6 +84,9 @@ MACRO(add_bin_env_test prefix F)
 
 
 	ADD_TEST(${prefix}_${F} sh "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	IF(MSVC)
+		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+	ENDIF()
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
@@ -91,7 +98,9 @@ MACRO(add_bin_test prefix F)
 			)
 	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
-	
+	IF(MSVC)
+		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
+	ENDIF()	
 ENDMACRO()
 
 # A script to print out information at the end of the configuration step.
@@ -115,6 +124,7 @@ MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
 		ADD_TEST(${prefix}_${F} sh "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
 	ENDIF()
+
 ENDMACRO()
 
 
@@ -129,6 +139,11 @@ SET (CHUNK_CACHE_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in cache.")
 SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
 SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
+SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.") 
+
+IF(NOT NETCDF_LIB_NAME STREQUAL "")
+	SET(MOD_NETCDF_NAME ON)
+ENDIF()
 
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
@@ -200,9 +215,12 @@ ENDIF()
 
 # Option for cdmremote support.
 OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
+IF(ENABLE_CDMREMOTE)
+	SET(BUILD_CDMREMOTE ON CACHE BOOL "")
+ENDIF()
 
 # Option for building RPC
-OPTION (ENABLE_RPC OFF "ENable RPC Client and Server.")
+OPTION (ENABLE_RPC OFF "Enable RPC Client and Server.")
 IF(ENABLE_RPC)
 	SET(BUILD_RPC ON CACHE BOOL "")
 ENDIF()
@@ -213,23 +231,22 @@ OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
+
+  #FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+  FIND_LIBRARY(HDF5_LIB NAMES hdf5 libhdf5 hdf5dll)
+  FIND_LIBRARY(HDF5_HL_LIB NAMES hdf5_hl libhdf5_hl hdf5_hldll)
  
-  IF(HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
-	SET(HDF5_FOUND ON)
-  ELSE()
-	  FIND_PACKAGE(HDF5 COMPONENTS C HL)
-  ENDIF()
+  SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})  
+  FIND_PATH(HDF5_INCLUDE_DIR H5public.h)
 
-  IF(NOT HDF5_FOUND)
-	MESSAGE(FATAL_ERROR "HDF5 Not Found.")
-  ENDIF()
+  MESSAGE(STATUS "${HDF5_LIB}, ${HDF5_HL_LIB}, ${HDF5_INCLUDE_DIR}")
 
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
-
-  # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+  
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-    	FIND_PACKAGE(SZIP)
-	#FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+	 #FIND_PACKAGE(SZIP)
+	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
   	IF(NOT SZIP_LIBRARY)
 		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
   	ELSE()
@@ -350,7 +367,6 @@ IF(ENABLE_DOXYGEN)
 		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
 	ENDIF()
 ENDIF()
-
 
 
 # Set some of the options as advanced.
@@ -586,7 +602,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
 )
 
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
-SET(CPACK_PACKAGE_VERSION "4.3")
+SET(CPACK_PACKAGE_VERSION "4.2.x-Developer_Snapshot")
 
 IF(APPLE)
   SET(CPACK_SOURCE_GENERATOR "TBZ2")
@@ -597,10 +613,14 @@ ENDIF()
 CONFIGURE_FILE(
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-	IMMEDIAGE @ONLY)
+	IMMEDIATE @ONLY)
+
 
 ADD_CUSTOM_TARGET(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+
+
 
 print_conf_summary()
 #MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
