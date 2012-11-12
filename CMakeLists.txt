@@ -210,7 +210,6 @@ SET (NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classi
 
 # Build NetCDF4
 OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
-SET(USE_NETCDF4 OFF CACHE BOOL "")
 IF(ENABLE_NETCDF_4)
 	SET(USE_NETCDF4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
@@ -289,7 +288,7 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 # If NetCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF4 AND USE_DAP)		
+IF(ENABLE_NETCDF_4 AND USE_DAP)		
 		  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
