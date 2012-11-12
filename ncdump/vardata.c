@@ -27,7 +27,7 @@ extern fspec_t formatting_specs; /* set from command-line options */
 
 /* Only read this many values at a time, if last dimension is larger
   than this */
-#define VALBUFSIZ 8096
+#define VALBUFSIZ 10000
 
 static int linep;		/* line position, not counting global indent */
 static int max_line_len;	/* max chars per line, not counting global indent */
@@ -85,15 +85,15 @@ lput(const char *cp) {
 void
 lput2(
     const char *cp,		/* string to print */
-    boolen first_item,		/* identify first item in list */
-    boolen wrap		/* line wrap control: true=enable,
+    bool_t first_item,		/* identify first item in list */
+    bool_t wrap		/* line wrap control: true=enable,
     				 * false=stay on same line  */
     )
 {
     static int linep;			/* current line position (number of */
     					/*   chars); saved between calls    */
     int len_prefix = strlen (CDL_COMMENT_PREFIX);
-    boolen make_newline;
+    bool_t make_newline;
     
     size_t len1 = strlen(cp);		/* length of input string */
 
@@ -173,7 +173,7 @@ print_any_val(
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim (boolen more, boolen lastrow)
+lastdelim (bool_t more, bool_t lastrow)
 {
     if (more) {
 	printf(", ");
@@ -190,7 +190,7 @@ lastdelim (boolen more, boolen lastrow)
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim2 (boolen more, boolen lastrow)
+lastdelim2 (bool_t more, bool_t lastrow)
 {
     if (more) {
 	lput(", ");
@@ -231,13 +231,55 @@ pr_any_att_vals(
     sbuf_free(sb);
 }
 
+/* 
+ * Prints brief annotation for a row of data values
+ */
+static void
+annotate_brief(
+    const ncvar_t *vp,		/* variable */
+    const size_t *cor,		/* corner coordinates */
+    size_t vdims[]		/* variable dimension sizes */
+    ) 
+{
+    int vrank = vp->ndims;
+    int id;
+    printf ("// ");
+    print_name(vp->name);
+    printf("(");
+
+    switch (formatting_specs.data_lang) {
+    case LANG_C:
+	/* print brief comment with C variable indices */
+	for (id = 0; id < vrank-1; id++)
+	    printf("%lu,", (unsigned long)cor[id]);
+	if (vdims[vrank-1] == 1)
+	    printf("0");
+	else
+	    printf(" 0-%lu", (unsigned long)vdims[vrank-1]-1);
+	break;
+    case LANG_F:
+	/* print brief comment with Fortran variable indices */
+	if (vdims[vrank-1] == 1)
+	    printf("1");
+	else
+	    printf("1-%lu ", (unsigned long)vdims[vrank-1]);
+	for (id = vrank-2; id >=0 ; id--) {
+	    printf(",%lu", (unsigned long)(1 + cor[id]));
+	}
+	break;
+    }
+    printf(")\n");
+    indent_out();
+    printf("    ");
+    set_indent(4 + indent_get());
+}
 
 /*
  * Annotates a value in data section with var name and indices in comment
  */
 static void
 annotate(
-     const ncvar_t *vp,	/* variable */
+     const ncvar_t *vp,		/* variable */
      const size_t *cor,		/* corner coordinates */
      long iel			/* which element in current row */
      )
@@ -269,6 +311,7 @@ annotate(
 }
 
 
+
 /*
  * Print a number of variable values, where the optional comments
  * for each value identify the variable, and each dimension index.
@@ -277,9 +320,9 @@ static void
 pr_any_vals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolen more,		/* true if more data for this row will
+     bool_t more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolen lastrow,		/* true if this is the last row for this
+     bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const void *vals,		/* pointer to block of values */
@@ -323,9 +366,9 @@ static void
 pr_tvals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolen more,		/* true if more data for this row will
+     bool_t more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolen lastrow,		/* true if this is the last row for this
+     bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const char *vals,		/* pointer to block of values */
@@ -430,7 +473,6 @@ vardata(
     size_t *cor;	     /* corner coordinates */
     size_t *edg;	     /* edges of hypercube */
     size_t *add;	     /* "odometer" increment to next "row"  */
-    size_t gulp;
     void *vals;
 
     int id;
@@ -456,11 +498,8 @@ vardata(
 
     printf("\n");
     indent_out();
-/* 	printf(" %s = ", vp->name); */
-/*          or      */
-/* 	printf(" %s =\n  ", vp->name); */
-	printf(" ");
-	print_name(vp->name);
+    printf(" ");
+    print_name(vp->name);
     if (vrank <= 1) {
 	printf(" = ");
 	set_indent ((int)strlen(vp->name) + 4 + indent_get());
@@ -480,73 +519,34 @@ vardata(
 	  add[vrank-2] = 1;
     }
     nrows = nels/ncols;		/* number of "rows" */
-    gulp = ncols < VALBUFSIZ ? ncols : VALBUFSIZ;
-    vals = emalloc(gulp * vp->tinfo->size);
+    vals = emalloc(ncols * vp->tinfo->size);
     
     for (ir = 0; ir < nrows; ir++) {
-	/*
-	 * rather than just printing a whole row at once (which might
-	 * exceed the capacity of some platforms), we break each row
-	 * into smaller chunks, if necessary.
-	 */
 	size_t corsav = 0;
-	int left = (int)ncols;
-	boolen lastrow;
-
+	bool_t lastrow;
 	if (vrank > 0) {
 	    corsav = cor[vrank-1];
-	    if (formatting_specs.brief_data_cmnts != false
-		&& vrank > 1
-		&& left > 0) {	/* print brief comment with indices range */
-/* 		printf("// %s(",vp->name); */
-		printf("// ");
-		print_name(vp->name);
-		printf("(");
-		switch (formatting_specs.data_lang) {
-		  case LANG_C:
-		    /* print brief comment with C variable indices */
-		    for (id = 0; id < vrank-1; id++)
-		      printf("%lu,", (unsigned long)cor[id]);
-		    if (vdims[vrank-1] == 1)
-		      printf("0");
-		    else
-		      printf(" 0-%lu", (unsigned long)vdims[vrank-1]-1);
-		    break;
-		  case LANG_F:
-		    /* print brief comment with Fortran variable indices */
-		    if (vdims[vrank-1] == 1)
-		      printf("1");
-		    else
-		      printf("1-%lu ", (unsigned long)vdims[vrank-1]);
-		    for (id = vrank-2; id >=0 ; id--) {
-			printf(",%lu", (unsigned long)(1 + cor[id]));
-		    }
-		    break;
-		}
-		printf(")\n");
-		indent_out();
-		printf("    ");
-		set_indent(4 + indent_get());
+	    if (formatting_specs.brief_data_cmnts != false && vrank > 1 && ncols > 0) {
+		annotate_brief(vp, cor, vdims);
 	    }
 	}
-	lastrow = (boolen)(ir == nrows-1);
-	while (left > 0) {
-	    size_t toget = left < gulp ? left : gulp;
-	    if (vrank > 0)
-	      edg[vrank-1] = toget;
-	    NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
-	    /* Test if we should treat array of chars as a string  */
-	    if(vp->type == NC_CHAR && 
-	       (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
-	        pr_tvals(vp, toget, left > toget, lastrow, (char *) vals, cor);
-	    } else {
-	        pr_any_vals(vp, toget, left > toget, lastrow, vals, cor);
-	    }
+	/* Finally, print a row of data values */
+	lastrow = (bool_t)(ir == nrows-1);
 
-	    left -= toget;
-	    if (vrank > 0)
-	      cor[vrank-1] += toget;
+	if (vrank > 0)
+	    edg[vrank-1] = ncols;
+	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
+	/* Test if we should treat array of chars as a string  */
+	if(vp->type == NC_CHAR && 
+	   (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	    pr_tvals(vp, ncols, 0, lastrow, (char *) vals, cor);
+	} else {
+	    pr_any_vals(vp, ncols, 0, lastrow, vals, cor);
 	}
+	
+	if (vrank > 0)
+	    cor[vrank-1] += ncols;
+	
 	if (vrank > 0)
 	  cor[vrank-1] = corsav;
 	if (ir < nrows-1)
@@ -568,7 +568,7 @@ vardata(
  * print last delimiter in each line before annotation (, or ;)
  */
 static void
-lastdelim2x (boolen more, boolen lastrow)
+lastdelim2x (bool_t more, bool_t lastrow)
 {
     if (more) {
 	lput(" ");
@@ -589,9 +589,9 @@ static void
 pr_tvalsx(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolen more,		/* true if more data for this row will
+     bool_t more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolen lastrow,		/* true if this is the last row for this
+     bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const char *vals		/* pointer to block of values */
@@ -655,9 +655,9 @@ static void
 pr_any_valsx(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     boolen more,		/* true if more data for this row will
+     bool_t more,		/* true if more data for this row will
 				 * follow, so add trailing comma */
-     boolen lastrow,		/* true if this is the last row for this
+     bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
      const void *vals		/* pointer to block of values */
@@ -693,7 +693,6 @@ vardatax(
     size_t *cor;	     /* corner coordinates */
     size_t *edg;	     /* edges of hypercube */
     size_t *add;	     /* "odometer" increment to next "row"  */
-    size_t gulp;
     void *vals;
 
     int id;
@@ -728,41 +727,31 @@ vardatax(
 	  add[vrank-2] = 1;
     }
     nrows = nels/ncols;		/* number of "rows" */
-    gulp = ncols < VALBUFSIZ ? VALBUFSIZ : ncols;
-    vals = emalloc(gulp * vp->tinfo->size);
+    vals = emalloc(ncols * vp->tinfo->size);
     
     for (ir = 0; ir < nrows; ir++) {
-	/*
-	 * rather than just printing a whole row at once (which might
-	 * exceed the capacity of some platforms), we break each row
-	 * into smaller chunks, if necessary.
-	 */
 	size_t corsav;
-	int left = (int)ncols;
-	boolen lastrow;
+	bool_t lastrow;
 
 	if (vrank > 0) {
 	    corsav = cor[vrank-1];
 	}
-	lastrow = (boolen)(ir == nrows-1);
-	while (left > 0) {
-	    size_t toget = left < gulp ? left : gulp;
-	    if (vrank > 0)
-	      edg[vrank-1] = toget;
-	    NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals) );
+	lastrow = (bool_t)(ir == nrows-1);
 
-	    /* Test if we should treat array of chars as a string  */
-	    if(vp->type == NC_CHAR && 
-	       (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
-	        pr_tvalsx(vp, toget, left > toget, lastrow, (char *) vals);
-	    } else {
-	        pr_any_valsx(vp, toget, left > toget, lastrow, vals);
-	    }
-
-	    left -= toget;
-	    if (vrank > 0)
-	      cor[vrank-1] += toget;
+	if (vrank > 0)
+	    edg[vrank-1] = ncols;
+	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals) );
+	/* Test if we should treat array of chars as a string  */
+	if(vp->type == NC_CHAR && 
+	   (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	    pr_tvalsx(vp, ncols, 0, lastrow, (char *) vals);
+	} else {
+	    pr_any_valsx(vp, ncols, 0, lastrow, vals);
 	}
+	
+	if (vrank > 0)
+	    cor[vrank-1] += ncols;
+	
 	if (vrank > 0)
 	  cor[vrank-1] = corsav;
 	if (ir < nrows-1)

@@ -14,32 +14,32 @@ typedef struct {			/* specification for how to format dump */
     char *name;			/* name specified with -n or derived from
 				 * file name */
 
-    boolen header_only;	/* if true, don't print any variable data */
+    bool_t header_only;	/* if true, don't print any variable data */
 
-    boolen coord_vals;		/* if true, print header and coordinate
+    bool_t coord_vals;		/* if true, print header and coordinate
 				 * dimension values (values of variables
 				 * that are also dimensions), but no other
 				 * variable data */
 
-    boolen brief_data_cmnts;	/* if true, put // comments in data section
+    bool_t brief_data_cmnts;	/* if true, put // comments in data section
 				 * identifying variable and indices, useful
 				 * for navigating through large
 				 * multi-dimensional data lists.  */
 
-    boolen full_data_cmnts;	/* if true, put // comments in data section
+    bool_t full_data_cmnts;	/* if true, put // comments in data section
 				 * identifying every value, useful for
 				 * navigating through large
 				 * multi-dimensional data lists.  */
 
-    boolen string_times;	/* if true, output date-time values as
+    bool_t string_times;	/* if true, output date-time values as
 				 * human-readable strings.  */
 
-    boolen iso_separator;	/* if true, use 'T' separator between
+    bool_t iso_separator;	/* if true, use 'T' separator between
 				 * date and time components of
 				 * human-readable strings, otherwise
 				 * use ' ' */
 
-    boolen special_atts;	/* if true, output special attributes
+    bool_t special_atts;	/* if true, output special attributes
 				 * for optimization characteristics:
 				 * _Compression, _Chunking,
 				 * _Endianness, _Format, _Checksum,
@@ -50,7 +50,7 @@ typedef struct {			/* specification for how to format dump */
 				 * column major) or LANG_F (Fortran,
 				 * 1-based, row major) */
 
-    boolen with_cache;		/* For DAP URLs, get data with client-side
+    bool_t with_cache;		/* For DAP URLs, get data with client-side
 				 * caching when each variable is first accessed */
 
     int nlvars;			/* Number of variables specified with -v
