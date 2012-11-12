@@ -75,11 +75,6 @@ main()
       /* Make sure this is a scalar. */
       if (H5Sget_simple_extent_type(spaceid) != H5S_SCALAR) ERR;
 
-#ifdef OLDCODE
-Old code was wrong apparently, HDF5 allocs the space
-which will overwrite the malloc'd space
-=> wrong      data_in = malloc(sizeof(char)*(strlen(data)+1));
-#endif
       /* Read the attribute. */
       if (H5Aread(attid, typeid, &data_in) < 0) ERR;
 

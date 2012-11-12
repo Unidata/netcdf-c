@@ -320,9 +320,9 @@ makeselectiontag(CEsort tag)
 int
 dceerror(DCEparsestate* state, char* msg)
 {
-    strcpy(state->errorbuf,msg);
-    state->errorcode=1;
-    return 0;
+  strncpy(state->errorbuf,msg,1023);
+  state->errorcode=1;
+  return 0;
 }
 
 static void

@@ -213,8 +213,8 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
-    strcpy(filename,path);
-    if(suffix != NULL) strcat(filename,suffix);
+    strncpy(filename,path,1023);
+    if(suffix != NULL) strncat(filename,suffix,1023-strlen(path)); /* A char is reserved for terminating '\0' */
     flags = O_RDONLY;
 #ifdef O_BINARY
     flags |= O_BINARY;

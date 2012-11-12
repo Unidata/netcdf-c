@@ -11,5 +11,8 @@ echo "*** creating netCDF-4 classic model file c0_4c.nc from c0.cdl..."
 echo "*** creating C code for CAM file ref_camrun.cdl..."
 ./ncgen -lc $srcdir/ref_camrun.cdl >ref_camrun.c
 
+echo "*** test for jira NCF-199 bug"
+./ncgen -k3 $srcdir/ncf199.cdl
+
 echo "*** Test successful!"
 exit 0
