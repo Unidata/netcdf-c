@@ -320,8 +320,6 @@ static void
 pr_any_vals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     bool_t more,		/* true if more data for this row will
-				 * follow, so add trailing comma */
      bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
@@ -347,11 +345,11 @@ pr_any_vals(
     print_any_val(sb, vp, (void *)valp);
     if (formatting_specs.full_data_cmnts) {
 	printf("%s", sbuf_str(sb));
-	lastdelim (more, lastrow);
+	lastdelim (0, lastrow);
 	annotate (vp, cor, iel);
     } else {
 	lput(sbuf_str(sb));
-	lastdelim2 (more, lastrow);
+	lastdelim2 (0, lastrow);
     }
     sbuf_free(sb);
 }
@@ -366,8 +364,6 @@ static void
 pr_tvals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     bool_t more,		/* true if more data for this row will
-				 * follow, so add trailing comma */
      bool_t lastrow,		/* true if this is the last row for this
 				 * variable, so terminate with ";" instead
 				 * of "," */
@@ -424,10 +420,10 @@ pr_tvals(
     printf("\"");
     /* if (fsp && formatting_specs.full_data_cmnts) { */
     if (formatting_specs.full_data_cmnts) {
-	lastdelim (more, lastrow);
+	lastdelim (0, lastrow);
 	annotate (vp,  (size_t *)cor, 0L);
     } else {
-	lastdelim2 (more, lastrow);
+	lastdelim2 (0, lastrow);
     }
 }
 
@@ -508,11 +504,11 @@ vardata(
 	set_indent (2 + indent_get());
     }
 
-    if (vrank < 1) {
+    if (vrank == 0) {
 	ncols = 1;
     } else {
 	ncols = vdims[vrank-1];	/* size of "row" along last dimension */
-	edg[vrank-1] = vdims[vrank-1];
+	edg[vrank-1] = ncols;
 	for (id = 0; id < vrank; id++)
 	  add[id] = 0;
 	if (vrank > 1)
@@ -522,35 +518,20 @@ vardata(
     vals = emalloc(ncols * vp->tinfo->size);
     
     for (ir = 0; ir < nrows; ir++) {
-	size_t corsav = 0;
-	bool_t lastrow;
 	if (vrank > 0) {
-	    corsav = cor[vrank-1];
 	    if (formatting_specs.brief_data_cmnts != false && vrank > 1 && ncols > 0) {
 		annotate_brief(vp, cor, vdims);
 	    }
 	}
-	/* Finally, print a row of data values */
-	lastrow = (bool_t)(ir == nrows-1);
-
-	if (vrank > 0)
-	    edg[vrank-1] = ncols;
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
 	/* Test if we should treat array of chars as a string  */
-	if(vp->type == NC_CHAR && 
-	   (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
-	    pr_tvals(vp, ncols, 0, lastrow, (char *) vals, cor);
+	if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	    pr_tvals(vp, ncols, (ir == nrows-1), (char *) vals, cor);
 	} else {
-	    pr_any_vals(vp, ncols, 0, lastrow, vals, cor);
+	    pr_any_vals(vp, ncols, (ir == nrows-1), vals, cor);
 	}
-	
-	if (vrank > 0)
-	    cor[vrank-1] += ncols;
-	
-	if (vrank > 0)
-	  cor[vrank-1] = corsav;
 	if (ir < nrows-1)
-	  if (!upcorner(vdims,vp->ndims,cor,add))
+	  if (!upcorner(vdims, vp->ndims, cor, add))
 	    error("vardata: odometer overflowed!");
 	set_indent(2);
     }
