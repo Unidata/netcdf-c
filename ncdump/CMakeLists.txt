@@ -128,10 +128,10 @@ IF(MSVC)
 ENDIF()
 
 
-INSTALL(TARGETS ncdump DESTINATION bin)
-INSTALL(TARGETS nccopy DESTINATION bin)
+INSTALL(TARGETS ncdump DESTINATION bin COMPONENT utilities)
+INSTALL(TARGETS nccopy DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
-INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1")
+INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
 
 
 SET(CLEANFILES test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c ctest64.c ctest0.nc  ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl)

@@ -478,7 +478,7 @@ FILE(COPY "${NetCDF_SOURCE_DIR}/nc-config"
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
 EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
 
-INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin)
+INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 # End autotools-style checs for config.h
 
@@ -566,10 +566,17 @@ ENDIF()
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
-  	DESTINATION include)
+  	DESTINATION include COMPONENT headers)
+
+# Install the dependencies.
+IF(MSVC)
+	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+
+ENDIF()
+
 
 IF(ENABLE_DOXYGEN)	
-	INSTALL(DIRECTORY man4 DESTINATION ".")
+	INSTALL(DIRECTORY man4 DESTINATION "." COMPONENT documentation)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -623,8 +630,24 @@ ADD_CUSTOM_TARGET(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 
+## Customize some of the package component descriptions
+set (CPACK_COMPONENT_UTILITIES_DISPLAY_NAME "netCDF Utilities")
+set (CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "netCDF Libraries")
+set (CPACK_COMPONENT_HEADERS_DISPLAY_NAME "netCDF Headers")
+set (CPACK_COMPONENT_DEPENDENCIES_DISPLAY_NAME "netCDF Dependencies")
+set (CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "netCDF Documentation")
 
 
+set (CPACK_COMPONENT_UTILITIES_DESCRIPTION
+	"The netCDF Utilities")
+set (CPACK_COMPONENT_LIBRARIES_DESCRIPTION
+	"The netCDF Libraries")
+set (CPACK_COMPONENT_HEADERS_DESCRIPTION
+	"C header files for use with netCDF")
+set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
+	"Dependencies for this build of netCDF")
+set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
+	"The netCDF user documentation.")
 print_conf_summary()
 #MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 # CPack inclusion must come last.
