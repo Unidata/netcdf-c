@@ -249,7 +249,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
 	 #FIND_PACKAGE(SZIP)
-	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz libszip)
   	IF(NOT SZIP_LIBRARY)
 		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
   	ELSE()
