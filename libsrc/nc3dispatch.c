@@ -222,14 +222,14 @@ NC3_def_grp(int parent_ncid, const char *name, int *new_ncid)
 static int
 NC3_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
-    if(grp_ncid) *grp_ncid = ncid;
+  if(grp_ncid) *grp_ncid = ncid;
     return NC_NOERR;
 }
 
 static int
 NC3_inq_grps(int ncid, int *numgrps, int *ncids)
 {
-    if (numgrps)
+  if (numgrps)
        *numgrps = 0;
     return NC_NOERR;
 }

@@ -284,7 +284,7 @@ memio_open(const char* path,
     off_t igeto, size_t igetsz, size_t* sizehintp,
     ncio* *nciopp, void** const mempp)
 {
-    ncio* nciop;
+    ncio* nciop = NULL;
     int fd;
     int status;
     int persist = (fIsSet(ioflags,NC_WRITE)?1:0);
@@ -377,6 +377,7 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
     return NC_NOERR;
 
 unwind_open:
+
     memio_close(nciop,0);
     return status;
 }
