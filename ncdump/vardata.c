@@ -456,6 +456,84 @@ upcorner(
     return ret;
 }
 
+static int
+print_rows(     
+    int level,          /* 0 at top-level, incremented for each recursive level */
+    int ncid,		/* netcdf id */
+    int varid,		/* variable id */
+    const ncvar_t *vp,	/* variable */
+    size_t ncols,	/* number of values in a row */
+    int rank,	       	/* number of elements in following 3 arrays  */
+    size_t vdims[],    	/* variable dimension sizes */
+    size_t cor[],      	/* corner coordinates */
+    size_t edg[],      	/* edges of hypercube */
+    bool_t lastrow,	/* true if this is last row for this variable */
+    void *vals   	/* allocated buffer for ncols values in a row */
+    ) 
+{
+    size_t d0 = vdims[level];
+    size_t inc = 1;
+    int i;
+    size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
+    size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
+    bool_t mark_record = (is_unlim_dim(ncid, vp->dims[level]) && level > 0);
+
+    for(i = 0; i < rank; i++) {
+	local_cor[i] = cor[i];
+	local_edg[i] = edg[i];
+    }
+    for(i = level + 1; i < rank; i++) {
+	inc *= vdims[i];
+    }
+    if(mark_record)
+	printf("{");
+    if(rank - level > 1) {	/* LEFT OFF HERE */
+	size_t start = 0;
+	size_t end = inc;
+	local_cor[0] = 0;
+	local_edg[0] = 1;
+	for(i = 0; i < d0; i++) {
+	    lastrow = (i == d0 - 1);
+	    print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
+		       local_cor, local_edg, lastrow, vals);
+	    local_cor[level] += 1;
+	}
+    } else {			/* bottom out of recursion */
+	safebuf_t *sb = sbuf_new();
+	void *valp = vals;
+	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, valp));
+	for(i=0; i < d0 - 1; i++) {
+	    print_any_val(sb, vp, (void *)valp);
+	    valp += vp->tinfo->size; /* next value according to type */
+	    if (formatting_specs.full_data_cmnts) {
+		printf("%s, ", sb->buf);
+		annotate (vp, cor, i);
+	    } else {
+		sbuf_cat(sb, ", ");
+		lput(sbuf_str(sb));
+	    }
+	}
+	print_any_val(sb, vp, (void *)valp);
+
+	if (formatting_specs.full_data_cmnts) {
+	    printf("%s", sbuf_str(sb));
+	    if(is_unlim_dim(ncid, vp->dims[0]) && level > 0)
+		printf("}");
+	    lastdelim (0, lastrow);
+	    annotate (vp, cor, i);
+	} else {
+	    lput(sbuf_str(sb));
+	    if(mark_record)
+		sbuf_cat(sb, "}");
+	    lput(sbuf_str(sb));
+	    lastdelim2 (0, lastrow);
+	}    
+	sbuf_free(sb);
+    }
+    free(local_edg);
+    free(local_cor);
+}
+
 
 /* Output the data for a single variable, in CDL syntax. */
 int
