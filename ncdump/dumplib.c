@@ -1965,12 +1965,12 @@ static int
 init_is_unlim(int ncid, int **is_unlim_p)
 {
     int num_grps;	 /* total number of groups */
-    int num_dims = 0; /* total number of dimensions in all groups */
-    int num_undims = 0; /* total number of unlimited dimensions in all groups */
-    int *grpids;	  /* list of all grpids */
+    int num_dims = 0;    /* total number of dimensions in all groups */
+    int num_undims = 0;  /* total number of unlimited dimensions in all groups */
+    int *grpids = NULL;	 /* temporary list of all grpids */
+    int *dimids = NULL;	 /* temporary list of dimids */
+    int igrp;
     int grpid;
-    int igrp = 0;
-    int *dimids;
 
 #ifdef USE_NETCDF4
     /* check if ncid is a root group */
@@ -2004,7 +2004,11 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	    (*is_unlim_p)[dimids[idim]] = 1;
 	    num_undims++;
 	}
+	if(dimids)
+	    free(dimids);
     }
+    if(grpids)
+	free(grpids);
 #endif	/*  USE_NETCDF4 */
     return NC_NOERR;
 }
