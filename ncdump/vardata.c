@@ -535,10 +535,10 @@ print_rows(
 	    lastdelim (0, lastrow);
 	    annotate (vp, cor, i);
 	} else {
-	    if(mark_record) {
+	    lput(sbuf_str(sb));
+	    if(record_end) {
 		sbuf_cat(sb, "}");
 	    }
-	    lput(sbuf_str(sb));
 	    lastdelim2 (0, lastrow);
 	}    
     }
