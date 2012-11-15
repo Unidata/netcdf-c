@@ -476,11 +476,13 @@ print_rows(
     int marks_pending	/* number of pending closing "}" record markers */
     ) 
 {
-    size_t d0 = vdims[level];
+    int d0 = 0;
     size_t inc = 1;
     int i;
-    bool_t mark_record = (is_unlim_dim(ncid, vp->dims[level]) && level > 0);
+    bool_t mark_record = (level > 0 && is_unlim_dim(ncid, vp->dims[level]));
     safebuf_t *sb = sbuf_new();
+    if (rank > 0)
+	d0 = vdims[level];
     for(i = level + 1; i < rank; i++) {
 	inc *= vdims[i];
     }
