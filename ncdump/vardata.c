@@ -50,7 +50,8 @@ set_max_len(int len) {
  * Output a string that should not be split across lines.  If it would
  * make current line too long, first output a newline and current
  * (nested group) indentation, then continuation indentation, then
- * output string.
+ * output string.  If string ends with a newline to force short line, 
+ * reset indentation after output.
  */
 void
 lput(const char *cp) {
@@ -63,7 +64,11 @@ lput(const char *cp) {
 	linep = (int)strlen(LINEPIND) + indent_get();
     }
     (void) fputs(cp,stdout);
-    linep += nn;
+    if (cp[nn - 1] == '\n') {
+	indent_out();
+	linep = indent_get();
+    } else
+	linep += nn;
 }
 
 
