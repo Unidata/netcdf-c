@@ -20,8 +20,8 @@ set(CTEST_BUILD_NAME        "${osname}-${osrel}-${cpu}")
 
 
 # Set locations of src/build
-set (CTEST_DASHBOARD_ROOT "/Users/wfisher/Dashboards")
-SET (CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/src-snapshot")
+set (CTEST_DASHBOARD_ROOT "$ENV{HOME}/Dashboards")
+SET (CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/netcdf-src")
 SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/builds/build-cont")
 
 #####
@@ -42,10 +42,11 @@ set (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 
 ## Kick off the test
 SET (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE 1)
+ctest_start("Continuous")
 
 while (${CTEST_ELAPSED_TIME} LESS 36000)
 	set (START_TIME ${CTEST_ELAPSED_TIME})
-	ctest_start("Continuous")
+
 	ctest_update(RETURN_VALUE count)
 	message("Count: ${count}")
 	if (count GREATER 0)
