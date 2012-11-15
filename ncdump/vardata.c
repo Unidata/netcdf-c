@@ -474,11 +474,13 @@ print_rows(
     size_t inc = 1;
     int i;
     bool_t mark_record = (is_unlim_dim(ncid, vp->dims[level]) && level > 0);
+    safebuf_t *sb = sbuf_new();
     for(i = level + 1; i < rank; i++) {
 	inc *= vdims[i];
     }
-    if(mark_record)
-	printf("{");	       /* the whole point of this recursion is printing these "{}" */
+    if(mark_record) { /* the whole point of this recursion is printing these "{}" */
+	lput("{");
+    }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
 	size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
 	size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
@@ -496,7 +498,6 @@ print_rows(
 	free(local_edg);
 	free(local_cor);
     } else {			/* bottom out of recursion */
-	safebuf_t *sb = sbuf_new();
 	void *valp = vals;
 	bool_t lastrow;
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, valp));
@@ -529,15 +530,14 @@ print_rows(
 	    lastdelim (0, lastrow);
 	    annotate (vp, cor, i);
 	} else {
-	    lput(sbuf_str(sb));
 	    if(mark_record) {
 		sbuf_cat(sb, "}");
-		lput(sbuf_str(sb));
 	    }
+	    lput(sbuf_str(sb));
 	    lastdelim2 (0, lastrow);
 	}    
-	sbuf_free(sb);
     }
+    sbuf_free(sb);
     return NC_NOERR;
 }
 
