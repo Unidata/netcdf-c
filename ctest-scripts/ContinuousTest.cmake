@@ -20,7 +20,7 @@ set(CTEST_BUILD_NAME        "${osname}-${osrel}-${cpu}")
 
 
 # Set locations of src/build
-set (CTEST_DASHBOARD_ROOT "$ENV{HOME}/Dashboards")
+set (CTEST_DASHBOARD_ROOT "${CTEST_SCRIPT_DIRECTORY}/Dashboards")
 SET (CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/netcdf-src")
 SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/builds/build-cont")
 
