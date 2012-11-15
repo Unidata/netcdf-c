@@ -472,7 +472,8 @@ print_rows(
     size_t vdims[],    	/* variable dimension sizes */
     size_t cor[],      	/* corner coordinates */
     size_t edg[],      	/* edges of hypercube */
-    void *vals   	/* allocated buffer for ncols values in a row */
+    void *vals,   	/* allocated buffer for ncols values in a row */
+    int marks_pending	/* number of pending closing "}" record markers */
     ) 
 {
     size_t d0 = vdims[level];
@@ -485,6 +486,7 @@ print_rows(
     }
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
 	lput("{");
+	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
 	size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
@@ -495,11 +497,13 @@ print_rows(
 	}
 	local_cor[level] = 0;
 	local_edg[level] = 1;
-	for(i = 0; i < d0; i++) {
+	for(i = 0; i < d0 - 1; i++) {
 	    print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
-		       local_cor, local_edg, vals);
+		       local_cor, local_edg, vals, 0);
 	    local_cor[level] += 1;
 	}
+	print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
+		   local_cor, local_edg, vals, marks_pending);
 	free(local_edg);
 	free(local_cor);
     } else {			/* bottom out of recursion */
@@ -527,18 +531,17 @@ print_rows(
 	    }
 	} 
 	if (formatting_specs.full_data_cmnts) {
-	    printf("%s", sbuf_str(sb));
-	    if(mark_record) {
+	    for (i = 0; i < marks_pending; i++) {
 		sbuf_cat(sb, "}");
-		lput(sbuf_str(sb));
 	    }
+	    printf("%s", sbuf_str(sb));
 	    lastdelim (0, lastrow);
 	    annotate (vp, cor, i);
 	} else {
-	    lput(sbuf_str(sb));
-	    if(record_end) {
+	    for (i = 0; i < marks_pending; i++) {
 		sbuf_cat(sb, "}");
 	    }
+	    lput(sbuf_str(sb));
 	    lastdelim2 (0, lastrow);
 	}    
     }
@@ -627,7 +630,9 @@ vardata(
     } else {
 	int level = 0;
 	int rank = vp->ndims;
-	NC_CHECK(print_rows(level, ncid, varid, vp, ncols, rank, vdims, cor, edg, vals));
+	int marks_pending = 0;
+	NC_CHECK(print_rows(level, ncid, varid, vp, ncols, rank, vdims, cor, edg, 
+			    vals, marks_pending));
     }
     free(vals);
     free(cor);
