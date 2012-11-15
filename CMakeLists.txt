@@ -12,8 +12,9 @@ IF(MSVC)
 ENDIF()
 
 # CTest configuration
-SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
-
+IF(NOT MSVC)
+	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
+ENDIF()
 
 # Default to shared libs on
 OPTION(BUILD_SHARED_LIBS "Configure NetCDF as a shared library." ON)

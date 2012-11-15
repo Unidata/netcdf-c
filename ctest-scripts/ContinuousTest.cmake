@@ -20,7 +20,7 @@ set(CTEST_BUILD_NAME        "${osname}-${osrel}-${cpu}")
 
 
 # Set locations of src/build
-set (CTEST_DASHBOARD_ROOT /Users/wfisher/Desktop/ctest/Dashboards)
+set (CTEST_DASHBOARD_ROOT /Users/wfisher/Desktop/netcdf-cmake/Dashboards)
 SET (CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/src-snapshot")
 SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/build-cont")
 
@@ -43,9 +43,18 @@ set (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 ## Kick off the test
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
-ctest_start("Continuous")
-ctest_update()
-ctest_configure()
-ctest_build()
-ctest_test()
-ctest_submit()
+
+while (${CTEST_ELAPSED_TIME} LESS 36000)
+	set (START_TIME ${CTEST_ELAPSED_TIME})
+	ctest_start("Continuous")
+	ctest_update(RETURN_VALUE count)
+	message("Count: ${count}")
+	if (count GREATER 0)
+		message("Count ${count} > 0, running analysis.")
+		ctest_configure()
+		ctest_build()
+		ctest_test()
+		ctest_submit()
+	endif()
+	ctest_sleep( ${START_TIME} 60 ${CTEST_ELAPSED_TIME})
+endwhile()
