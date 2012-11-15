@@ -522,6 +522,7 @@ builddatasublist(Datalist* dl)
   d.lineno = (dl->length > 0?dl->data[0].lineno:0);
   d.value.compoundv = dl;
   d.filled = 0; 
+
   return d;
 }
 
