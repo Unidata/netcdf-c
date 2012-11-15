@@ -348,6 +348,9 @@ ocuriparse(const char* uri0, OCURI** durip)
     }
 #endif
     if(durip != NULL) *durip = duri;
+    else {
+      free(duri);
+    }
     return 1;
 
 fail:
