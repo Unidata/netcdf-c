@@ -20,9 +20,9 @@ set(CTEST_BUILD_NAME        "${osname}-${osrel}-${cpu}")
 
 
 # Set locations of src/build
-set (CTEST_DASHBOARD_ROOT /Users/wfisher/Desktop/ctest/Dashboards)
-SET (CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/src-snapshot")
-SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/build")
+set (CTEST_DASHBOARD_ROOT "${CTEST_SCRIPT_DIRECTORY}/Dashboards")
+SET (CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/netcdf-src")
+SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/builds/build-exp")
 
 #####
 # End Test/System Setup
@@ -30,7 +30,8 @@ SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/build")
 
 
 set (CTEST_CMAKE_GENERATOR "Unix Makefiles")
-set (CTEST_SVN_COMMAND "/opt/local/bin/svn")
+#set (CTEST_SVN_COMMAND "/opt/local/bin/svn")
+find_program(CTEST_SVN_COMMAND NAMES svn)
 set (CTEST_SVN_CHECKOUT "\"${CTEST_SVN_COMMAND} co https://sub.unidata.ucar.edu/netcdf/branches/netcdf-cmake ${CTEST_SOURCE_DIRECTORY}")
 set (CTEST_COMMAND "\"${CTEST_EXECUTABLE_NAME} -D Experimental\"")
 
