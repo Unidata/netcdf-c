@@ -20,16 +20,16 @@ set(CTEST_BUILD_NAME        "${osname}-${osrel}-${cpu}")
 
 
 # Set locations of src/build
-set (CTEST_DASHBOARD_ROOT /Users/wfisher/Desktop/netcdf-cmake/Dashboards)
-SET (CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/src-snapshot")
-SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/build-cont")
+set (CTEST_DASHBOARD_ROOT "/Users/wfisher/Dashboards")
+SET (CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/src-snapshot")
+SET (CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/builds/build-cont")
 
 #####
 # End Test/System Setup
 #####
 
-set (CTEST_CONTINUOUS_DURATION 300)
-set (CTEST_CONTINUOUS_MINIMUM_INTERVAL 10)
+#set (CTEST_CONTINUOUS_DURATION 300)
+#set (CTEST_CONTINUOUS_MINIMUM_INTERVAL 10)
 
 set (CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set (CTEST_SVN_COMMAND "/opt/local/bin/svn")
