@@ -467,40 +467,38 @@ print_rows(
     size_t vdims[],    	/* variable dimension sizes */
     size_t cor[],      	/* corner coordinates */
     size_t edg[],      	/* edges of hypercube */
-    bool_t lastrow,	/* true if this is last row for this variable */
     void *vals   	/* allocated buffer for ncols values in a row */
     ) 
 {
     size_t d0 = vdims[level];
     size_t inc = 1;
     int i;
-    size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
-    size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
     bool_t mark_record = (is_unlim_dim(ncid, vp->dims[level]) && level > 0);
-
-    for(i = 0; i < rank; i++) {
-	local_cor[i] = cor[i];
-	local_edg[i] = edg[i];
-    }
     for(i = level + 1; i < rank; i++) {
 	inc *= vdims[i];
     }
     if(mark_record)
-	printf("{");
-    if(rank - level > 1) {	/* LEFT OFF HERE */
-	size_t start = 0;
-	size_t end = inc;
-	local_cor[0] = 0;
-	local_edg[0] = 1;
+	printf("{");	       /* the whole point of this recursion is printing these "{}" */
+    if(rank - level > 1) {     	/* this level is just d0 next levels */
+	size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
+	size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
+	for(i = 0; i < rank; i++) {
+	    local_cor[i] = cor[i];
+	    local_edg[i] = edg[i];
+	}
+	local_cor[level] = 0;
+	local_edg[level] = 1;
 	for(i = 0; i < d0; i++) {
-	    lastrow = (i == d0 - 1);
 	    print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
-		       local_cor, local_edg, lastrow, vals);
+		       local_cor, local_edg, vals);
 	    local_cor[level] += 1;
 	}
+	free(local_edg);
+	free(local_cor);
     } else {			/* bottom out of recursion */
 	safebuf_t *sb = sbuf_new();
 	void *valp = vals;
+	bool_t lastrow;
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, valp));
 	for(i=0; i < d0 - 1; i++) {
 	    print_any_val(sb, vp, (void *)valp);
@@ -514,24 +512,33 @@ print_rows(
 	    }
 	}
 	print_any_val(sb, vp, (void *)valp);
-
+	/* determine if this is the last row */
+	lastrow = true;
+	for(i = 0; i < rank - 1; i++) {
+	    if (cor[i] != vdims[i] - 1) {
+		lastrow = false;
+		break;
+	    }
+	} 
 	if (formatting_specs.full_data_cmnts) {
 	    printf("%s", sbuf_str(sb));
-	    if(is_unlim_dim(ncid, vp->dims[0]) && level > 0)
-		printf("}");
+	    if(mark_record) {
+		sbuf_cat(sb, "}");
+		lput(sbuf_str(sb));
+	    }
 	    lastdelim (0, lastrow);
 	    annotate (vp, cor, i);
 	} else {
 	    lput(sbuf_str(sb));
-	    if(mark_record)
+	    if(mark_record) {
 		sbuf_cat(sb, "}");
-	    lput(sbuf_str(sb));
+		lput(sbuf_str(sb));
+	    }
 	    lastdelim2 (0, lastrow);
 	}    
 	sbuf_free(sb);
     }
-    free(local_edg);
-    free(local_cor);
+    return NC_NOERR;
 }
 
 
@@ -564,12 +571,13 @@ vardata(
     if(vrank == 0) { /*scalar*/
 	cor[0] = 0;
 	edg[0] = 1;
-    } for (id = 0; id < vrank; id++) {
-	cor[id] = 0;
-	edg[id] = 1;
-	nels *= vdims[id];	/* total number of values for variable */
+    } else {
+	for (id = 0; id < vrank; id++) {
+	    cor[id] = 0;
+	    edg[id] = 1;
+	    nels *= vdims[id];	/* total number of values for variable */
+	}
     }
-
     printf("\n");
     indent_out();
     printf(" ");
@@ -595,25 +603,27 @@ vardata(
     nrows = nels/ncols;		/* number of "rows" */
     vals = emalloc(ncols * vp->tinfo->size);
     
-    for (ir = 0; ir < nrows; ir++) {
-	if (vrank > 0) {
-	    if (formatting_specs.brief_data_cmnts != false && vrank > 1 && ncols > 0) {
-		annotate_brief(vp, cor, vdims);
+    /* Test if we should treat array of chars as a string  */
+    if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	for (ir = 0; ir < nrows; ir++) {
+	    if (vrank > 0) {
+		if (formatting_specs.brief_data_cmnts != false && vrank > 1 && ncols > 0) {
+		    annotate_brief(vp, cor, vdims);
+		}
 	    }
-	}
-	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
-	/* Test if we should treat array of chars as a string  */
-	if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	    NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
+	    /* Test if we should treat array of chars as a string  */
 	    pr_tvals(vp, ncols, (ir == nrows-1), (char *) vals, cor);
-	} else {
-	    pr_any_vals(vp, ncols, (ir == nrows-1), vals, cor);
+	    if (ir < nrows-1)
+	      if (!upcorner(vdims, vp->ndims, cor, add))
+	        error("vardata: odometer overflowed!");
+	    set_indent(2);
 	}
-	if (ir < nrows-1)
-	  if (!upcorner(vdims, vp->ndims, cor, add))
-	    error("vardata: odometer overflowed!");
-	set_indent(2);
+    } else {
+	int level = 0;
+	int rank = vp->ndims;
+	NC_CHECK(print_rows(level, ncid, varid, vp, ncols, rank, vdims, cor, edg, vals));
     }
-
     free(vals);
     free(cor);
     free(edg);

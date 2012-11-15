@@ -1964,11 +1964,12 @@ print_type_name(int locid, int typeid) {
 static int 
 init_is_unlim(int ncid, int **is_unlim_p)
 {
-    size_t num_grps;	 /* total number of groups */
-    size_t num_dims = 0; /* total number of dimensions in all groups */
-    size_t num_undims = 0; /* total number of unlimited dimensions in all groups */
+    int num_grps;	 /* total number of groups */
+    int num_dims = 0; /* total number of dimensions in all groups */
+    int num_undims = 0; /* total number of unlimited dimensions in all groups */
     int *grpids;	  /* list of all grpids */
-    int grpid, igrp;
+    int grpid;
+    int igrp = 0;
     int *dimids;
 
 #ifdef USE_NETCDF4
@@ -1981,13 +1982,13 @@ init_is_unlim(int ncid, int **is_unlim_p)
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in descendant groups and info about which ones are unlimited */
-    for(grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
 	int ndims;
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	num_dims += ndims;
     }
     *is_unlim_p = emalloc((num_dims + 1) * sizeof(int));
-    for(grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
 	int ndims, idim, *dimids, nundims;
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	dimids = emalloc((ndims + 1) * sizeof(int));
@@ -2018,7 +2019,7 @@ is_unlim_dim(int ncid, int dimid) {
 #define UNLIM_NOT_INITIALIZED (-1)
     static int for_ncid = UNLIM_NOT_INITIALIZED; /* ensure only ever called for one ncid */
 #ifdef USE_NETCDF4
-    int *is_unlim = NULL;			 /* gets allocated by init_is_unlim() */
+    static int *is_unlim = NULL; /* gets allocated by init_is_unlim() */
     if(for_ncid == UNLIM_NOT_INITIALIZED) {
 	NC_CHECK( init_is_unlim(ncid, &is_unlim) );
 	for_ncid = ncid;
