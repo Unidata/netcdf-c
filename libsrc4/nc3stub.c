@@ -1,7 +1,6 @@
 /*
  * Copyright 1993-2011 University Corporation for Atmospheric
  * Research/Unidata
- *
  * 
  */
 
