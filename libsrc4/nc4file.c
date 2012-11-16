@@ -214,7 +214,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    FILE *fp;
    int retval = NC_NOERR;
    int persist = 0; /* Should diskless try to persist its data into file?*/
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
 
 
    assert(nc);
@@ -336,6 +336,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    return NC_NOERR;
 
   exit:
+   if(!nc4_info) return retval;
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
    return retval;
 }
@@ -2200,7 +2201,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    unsigned flags = (mode & NC_WRITE) ? 
       H5F_ACC_RDWR : H5F_ACC_RDONLY;
    int retval;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
 
    LOG((3, "nc4_open_file: path %s mode %d", path, mode));
    assert(path && nc);
@@ -2301,6 +2302,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
+   if (!nc4_info) return retval;
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
    free(nc4_info);
    return retval;

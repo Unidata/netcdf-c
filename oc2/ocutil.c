@@ -542,7 +542,7 @@ ocdtmodestring(OCDT mode,int compact)
 	if(!compact && i > 0) strcat(result,",");
         if(fisset(mode,(1<<i))) {
 	    if(compact) *p++ = ms[0];
-	    else strncat(result,ms,sizeof(result));
+	    else strncat(result,ms,sizeof(result)-1);
 	}
     }
     /* pad compact list out to NMODES in length (+1 for null terminator) */

@@ -272,12 +272,12 @@ NC4_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
    LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid));
 
    /* If this is an atomic type, the answer is easy. */
-   if (typeid <= NUM_ATOMIC_TYPES)
+   if (typeid < NUM_ATOMIC_TYPES)
    {
       if (name)
-	 strcpy(name, atomic_name[typeid]);
+	strcpy(name, atomic_name[typeid]);
       if (size)
-	 *size = atomic_size[typeid];
+	*size = atomic_size[typeid];
       return NC_NOERR;
    }
 

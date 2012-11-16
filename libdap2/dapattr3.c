@@ -47,7 +47,10 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	    char** values = NULL;
 	    NCattribute* att = NULL;
 
-	    if(ocname != NULL) free(ocname); /* from last loop */
+	    if(ocname != NULL) {
+	      free(ocname); ocname = NULL;
+	    } /* from last loop */
+	    
 	    OCCHECK(oc_dds_attr(conn,ocnode,j,&ocname,&ocetype,&nvalues,NULL));
 	    if(nvalues > 0) {
 	        values = (char**)malloc(sizeof(char*)*nvalues);
