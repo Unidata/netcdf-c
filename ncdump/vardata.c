@@ -65,7 +65,6 @@ lput(const char *cp) {
     }
     (void) fputs(cp,stdout);
     if (cp[nn - 1] == '\n') {
-	indent_out();
 	linep = indent_get();
     } else
 	linep += nn;
@@ -622,7 +621,6 @@ vardata(
 		}
 	    }
 	    NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
-	    /* Test if we should treat array of chars as a string  */
 	    pr_tvals(vp, ncols, (ir == nrows-1), (char *) vals, cor);
 	    if (ir < nrows-1)
 	      if (!upcorner(vdims, vp->ndims, cor, add))

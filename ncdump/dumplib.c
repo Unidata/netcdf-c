@@ -1959,8 +1959,9 @@ print_type_name(int locid, int typeid) {
 }
 
 /* Allocate and initialize table of unlimited dimensions for ncid, for
- * use by is_unlim_dim() function.  ncid should be the root group of a
- * netCDF dataset. */
+ * use by is_unlim_dim() function.  If ncid is a subgroup of a netCDF
+ * dataset, the table will still be initialized for the whole dataset
+ * in which the subgroup resides. */
 static int 
 init_is_unlim(int ncid, int **is_unlim_p)
 {
@@ -1973,15 +1974,20 @@ init_is_unlim(int ncid, int **is_unlim_p)
     int grpid;
 
 #ifdef USE_NETCDF4
-    /* check if ncid is a root group */
-    if (nc_inq_grp_parent(ncid, &grpid) != NC_ENOGRP)
-	return NC_EBADGRPID;	/* must be root group */
-    /* Get total number of descendant groups and their ids */
+    /* if ncid is not root group, find its ancestor root group id */
+    int status = nc_inq_grp_parent(ncid, &grpid);
+    while(status == NC_NOERR && grpid != ncid) {
+	ncid = grpid;
+	status = nc_inq_grp_parent(ncid, &grpid);
+    }
+    if (status != NC_ENOGRP)
+	return NC_EBADGRPID;
+    /* Now ncid is root group.  Get total number of groups and their ids */
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, NULL) );
     grpids = emalloc((num_grps + 1) * sizeof(int));
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
-    /* Get all dimensions in descendant groups and info about which ones are unlimited */
+    /* Get all dimensions in groups and info about which ones are unlimited */
     for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
 	int ndims;
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );

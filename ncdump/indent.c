@@ -54,6 +54,8 @@ indent_more(){		/*  increment current indent */
 void 
 indent_less(){		/*  decrement current indent */
     indent -= indent_increment;
+    if(indent < 0)
+    	indent = 0;
 }
 
 int
