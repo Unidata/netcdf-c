@@ -2013,8 +2013,7 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	if(dimids)
 	    free(dimids);
     }
-    if(grpids)
-	free(grpids);
+    free(grpids);
 #endif	/*  USE_NETCDF4 */
     return NC_NOERR;
 }
@@ -2023,10 +2022,12 @@ init_is_unlim(int ncid, int **is_unlim_p)
  * the idnode_t lists above.  For now, we just have one of these, for
  * the unique input dataset for this invocation of ncdump. */
 
+#define UNLIM_NOT_INITIALIZED (-1)
+
 /* Is dimid the dimension ID of an unlimited dimension?  */
 bool_t
 is_unlim_dim(int ncid, int dimid) {
-#define UNLIM_NOT_INITIALIZED (-1)
+    bool_t result;		/* 0 if fixed, 1 if unlimited size */
     static int for_ncid = UNLIM_NOT_INITIALIZED; /* ensure only ever called for one ncid */
 #ifdef USE_NETCDF4
     static int *is_unlim = NULL; /* gets allocated by init_is_unlim() */
@@ -2034,14 +2035,15 @@ is_unlim_dim(int ncid, int dimid) {
 	NC_CHECK( init_is_unlim(ncid, &is_unlim) );
 	for_ncid = ncid;
     }
-    return is_unlim[dimid];	/* 0 if fixed, 1 if unlimited size */
-#endif 	 /* USE_NETCDF4 */
-    {
-	int unlimdimid;
-	if(for_ncid == UNLIM_NOT_INITIALIZED) {
-	    NC_CHECK( nc_inq_unlimdim(ncid, &unlimdimid) );
-	    for_ncid = ncid;
-	}
-	return dimid == unlimdimid ;
+    result = is_unlim[dimid];	/* 0 if fixed, 1 if unlimited size */
+#else
+    static int unlimdimid;
+    if(for_ncid == UNLIM_NOT_INITIALIZED) {
+	NC_CHECK( nc_inq_unlimdim(ncid, &unlimdimid) );
+	for_ncid = ncid;
     }
+    result = (dimid == unlimdimid) ;
+#endif 	 /* USE_NETCDF4 */
+    return result;
 }
+

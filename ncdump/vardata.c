@@ -460,6 +460,13 @@ upcorner(
     return ret;
 }
 
+/*  Print data values for variable varid.  
+ *
+ * Recursive to handle possibility of variables with multiple
+ * unlimited dimensions, for which the CDL syntax requires use of "{"
+ * and "}" in data section to disambiguate the size of nested records
+ * in a simple linear list of values.
+ */
 static int
 print_rows(     
     int level,          /* 0 at top-level, incremented for each recursive level */
