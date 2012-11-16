@@ -1681,7 +1681,7 @@ do_ncdumpx(int ncid, const char *path)
     ncvar_t var;		/* variable */
     int ia;			/* attribute number */
     int iv;			/* variable number */
-    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+    idnode_t* vlist = 0;        /* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of associated
@@ -2327,8 +2327,8 @@ main(int argc, char *argv[])
     int i;
     int max_len = 80;		/* default maximum line length */
     int nameopt = 0;
-    boolen xml_out = false;    /* if true, output NcML instead of CDL */
-    boolen kind_out = false;	/* if true, just output kind of netCDF file */
+    bool_t xml_out = false;    /* if true, output NcML instead of CDL */
+    bool_t kind_out = false;	/* if true, just output kind of netCDF file */
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */

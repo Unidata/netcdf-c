@@ -453,9 +453,9 @@ idadd(idnode_t* vlist, int varid)
 
 
 /* 
- * return true if id is member of list that vlist points to.
+ * return true if id is member of list that idlist points to.
  */
-boolen
+bool_t
 idmember(const idnode_t* idlist, int id)
 {
     idnode_t *vp = idlist -> next;
@@ -470,7 +470,7 @@ idmember(const idnode_t* idlist, int id)
  * return true if group identified by grpid is member of group
  * list specified on command line by -g.
  */
-boolen
+bool_t
 group_wanted(int grpid)
 {
     /* If -g not specified, all groups are wanted */
@@ -593,25 +593,25 @@ get_typeinfo ( int typeid ) {
 /* } */
 
 
-boolen 
+bool_t 
 ncbyte_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(signed char* )v1p == *(signed char* )v2p);
 }
 
-boolen 
+bool_t 
 ncchar_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(char* )v1p == *(char* )v2p);
 }
 
-boolen 
+bool_t 
 ncshort_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(short* )v1p == *(short* )v2p);
 }
 
-boolen 
+bool_t 
 ncint_val_equals(const nctype_t *this, 
 		 const void *v1p, const void *v2p) {
     return ( *(int* )v1p == *(int* )v2p);
@@ -624,7 +624,7 @@ ncint_val_equals(const nctype_t *this,
  * except use floating epsilon to compare very close vals as equal
  * and handle IEEE NaNs and infinities.
  */
-boolen 
+bool_t 
 ncfloat_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     float v1 = *(float* )v1p;
@@ -645,7 +645,7 @@ ncfloat_val_equals(const nctype_t *this,
  * except use floating epsilon to compare very close vals as equal
  * and handle IEEE NaNs and infinities.
  */
-boolen 
+bool_t 
 ncdouble_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     double v1 = *(double* )v1p;
@@ -662,43 +662,43 @@ ncdouble_val_equals(const nctype_t *this,
 }
 
 #ifdef USE_NETCDF4
-boolen 
+bool_t 
 ncubyte_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(unsigned char* )v1p == *(unsigned char* )v2p);
 }
 
-boolen 
+bool_t 
 ncushort_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return ( *(unsigned short* )v1p == *(unsigned short* )v2p);
 }
 
-boolen 
+bool_t 
 ncuint_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     return ( *(unsigned int* )v1p == *(unsigned int* )v2p);
 }
 
-boolen 
+bool_t 
 ncint64_val_equals(const nctype_t *this, 
 		   const void *v1p, const void *v2p) {
     return ( *(long long* )v1p == *(long long* )v2p);
 }
 
-boolen 
+bool_t 
 ncuint64_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return ( *(unsigned long long* )v1p == *(unsigned long long* )v2p);
 }
 
-boolen
+bool_t
 ncstring_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     return (strcmp(*((char **)v1p), *((char **)v2p)) == 0);
 }
 
-boolen
+bool_t
 ncopaque_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
     size_t nbytes = this->size;
@@ -712,7 +712,7 @@ ncopaque_val_equals(const nctype_t *this,
     return true;
 }
 
-boolen
+bool_t
 ncvlen_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     size_t v1len = ((nc_vlen_t *)v1p)->len;
@@ -740,7 +740,7 @@ ncvlen_val_equals(const nctype_t *this,
 
 /* Determine if two compound values are equal, by testing eqaulity of
  * each member field. */
-boolen
+bool_t
 nccomp_val_equals(const nctype_t *this, 
 		  const void *v1p, const void *v2p) {
     int nfields = this->nfields;
@@ -1957,3 +1957,93 @@ print_type_name(int locid, int typeid) {
     fputs(ename, stdout);
     free(ename);
 }
+
+/* Allocate and initialize table of unlimited dimensions for ncid, for
+ * use by is_unlim_dim() function.  If ncid is a subgroup of a netCDF
+ * dataset, the table will still be initialized for the whole dataset
+ * in which the subgroup resides. */
+static int 
+init_is_unlim(int ncid, int **is_unlim_p)
+{
+    int num_grps;	 /* total number of groups */
+    int num_dims = 0;    /* total number of dimensions in all groups */
+    int num_undims = 0;  /* total number of unlimited dimensions in all groups */
+    int *grpids = NULL;	 /* temporary list of all grpids */
+    int *dimids = NULL;	 /* temporary list of dimids */
+    int igrp;
+    int grpid;
+
+#ifdef USE_NETCDF4
+    /* if ncid is not root group, find its ancestor root group id */
+    int status = nc_inq_grp_parent(ncid, &grpid);
+    while(status == NC_NOERR && grpid != ncid) {
+	ncid = grpid;
+	status = nc_inq_grp_parent(ncid, &grpid);
+    }
+    if (status != NC_ENOGRP)
+	return NC_EBADGRPID;
+    /* Now ncid is root group.  Get total number of groups and their ids */
+    NC_CHECK( nc_inq_grps_full(ncid, &num_grps, NULL) );
+    grpids = emalloc((num_grps + 1) * sizeof(int));
+    NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
+#define DONT_INCLUDE_PARENTS 0
+    /* Get all dimensions in groups and info about which ones are unlimited */
+    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+	int ndims;
+	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
+	num_dims += ndims;
+    }
+    *is_unlim_p = emalloc((num_dims + 1) * sizeof(int));
+    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+	int ndims, idim, *dimids, nundims;
+	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
+	dimids = emalloc((ndims + 1) * sizeof(int));
+	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
+	/* mark all dims in this group as fixed-size */
+	for(idim = 0; idim < ndims; idim++) {
+	    (*is_unlim_p)[dimids[idim]] = 0;
+	}
+	NC_CHECK( nc_inq_unlimdims(grpid, &nundims, dimids) );
+	assert(nundims <= ndims);
+	/* mark the subset of dims in this group that are unlimited */
+	for(idim = 0; idim < nundims; idim++) {
+	    (*is_unlim_p)[dimids[idim]] = 1;
+	    num_undims++;
+	}
+	if(dimids)
+	    free(dimids);
+    }
+    free(grpids);
+#endif	/*  USE_NETCDF4 */
+    return NC_NOERR;
+}
+
+/* TODO: make list of these arrays for multiple open datasets, such as
+ * the idnode_t lists above.  For now, we just have one of these, for
+ * the unique input dataset for this invocation of ncdump. */
+
+#define UNLIM_NOT_INITIALIZED (-1)
+
+/* Is dimid the dimension ID of an unlimited dimension?  */
+bool_t
+is_unlim_dim(int ncid, int dimid) {
+    bool_t result;		/* 0 if fixed, 1 if unlimited size */
+    static int for_ncid = UNLIM_NOT_INITIALIZED; /* ensure only ever called for one ncid */
+#ifdef USE_NETCDF4
+    static int *is_unlim = NULL; /* gets allocated by init_is_unlim() */
+    if(for_ncid == UNLIM_NOT_INITIALIZED) {
+	NC_CHECK( init_is_unlim(ncid, &is_unlim) );
+	for_ncid = ncid;
+    }
+    result = is_unlim[dimid];	/* 0 if fixed, 1 if unlimited size */
+#else
+    static int unlimdimid;
+    if(for_ncid == UNLIM_NOT_INITIALIZED) {
+	NC_CHECK( nc_inq_unlimdim(ncid, &unlimdimid) );
+	for_ncid = ncid;
+    }
+    result = (dimid == unlimdimid) ;
+#endif 	 /* USE_NETCDF4 */
+    return result;
+}
+

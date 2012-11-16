@@ -91,9 +91,9 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     char *slash = "/";		/* groupname separator */
     char *last_slash;
     if(parent == NULL) {
-	NC_CHECK(NC_ENOMEM);
-    } else
-	last_slash = strrchr(parent, '/');
+	NC_CHECK(NC_ENOMEM);	/* exits */
+    }
+    last_slash = strrchr(parent, '/');
     if(last_slash == parent || last_slash == NULL) {	/* parent is root */
 	free(parent);
 	parent = strdup(slash);

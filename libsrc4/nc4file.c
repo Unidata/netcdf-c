@@ -2304,7 +2304,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 #endif
    if (!nc4_info) return retval;
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
-   if (nc4_info) free(nc4_info);
+   free(nc4_info);
    return retval;
 }
 

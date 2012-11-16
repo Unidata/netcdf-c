@@ -70,10 +70,10 @@ extern idnode_t*	newidlist ( void );
 extern void	idadd ( idnode_t* idlist, int id );
 
 /* Test if a variable id is in variable list */
-extern boolen	idmember ( const idnode_t* idlist, int id );
+extern bool_t	idmember ( const idnode_t* idlist, int id );
 
 /* Test if a group id is in group list */
-extern boolen	group_wanted ( int grpid );
+extern bool_t	group_wanted ( int grpid );
 
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );
@@ -142,6 +142,10 @@ void print_name(const char *name);
 void print_type_name(int locid, int typeid);
 
 int nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp);
+
+/* Return true if dimid is an unlimited dimension */
+extern bool_t is_unlim_dim(int ncid, int dimid);
+
 #ifdef __cplusplus
 }
 #endif
