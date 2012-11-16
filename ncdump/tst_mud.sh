@@ -11,6 +11,7 @@ fi
 # add hack for sunos
 export srcdir;
 
+echo ""
 echo "*** Testing ncdump output for multiple unlimited dimensions"
 echo "*** creating netcdf file tst_mud4.nc from ref_tst_mud4.cdl ..."
 ../ncgen/ncgen -k3 -b -o tst_mud4.nc $srcdir/ref_tst_mud4.cdl
