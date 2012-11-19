@@ -515,9 +515,9 @@ print_rows(
 	free(local_edg);
 	free(local_cor);
     } else {			/* bottom out of recursion */
-	void *valp = vals;
+	char *valp = vals;
 	bool_t lastrow;
-	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, valp));
+	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
 	for(i=0; i < d0 - 1; i++) {
 	    print_any_val(sb, vp, (void *)valp);
 	    valp += vp->tinfo->size; /* next value according to type */
