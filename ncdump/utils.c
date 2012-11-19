@@ -94,7 +94,6 @@ escaped_name(const char* cp) {
 		case '"':
 		case '#':
 		case '$':
-		case '%':
 		case '&':
 		case '\'':
 		case '(':
