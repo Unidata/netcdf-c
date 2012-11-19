@@ -517,12 +517,14 @@ dlappend(Datalist* dl, Constant* constant)
 Constant
 builddatasublist(Datalist* dl)
 {
+
   Constant d;
   d.nctype = NC_COMPOUND;
   d.lineno = (dl->length > 0?dl->data[0].lineno:0);
   d.value.compoundv = dl;
   d.filled = NULL;
   return d;
+ 
 }
 
 static void

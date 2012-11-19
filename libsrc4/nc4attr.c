@@ -35,9 +35,10 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    NC_HDF5_FILE_INFO_T *h5;
    NC_ATT_INFO_T *att;
    int my_attnum = -1;
+
    int need_to_convert = 0;
    int range_error = NC_NOERR;
-   void *bufr = NULL;
+   void *bufr = NULL; 
    size_t type_size;
    char norm_name[NC_MAX_NAME + 1];
    int i;

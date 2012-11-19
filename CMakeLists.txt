@@ -1,9 +1,15 @@
+
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
 
 #Project Name
 project(NetCDF C)
-SET(NetCDF_VERSION 4.2.1)
+SET(NetCDF_VERSION_MAJOR 4)
+SET(NetCDF_VERSION_MINOR 2)
+SET(NetCDF_VERSION_PATCH 1)
+SET(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH})
+SET(VERSION ${NetCDF_VERSION})
+
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -12,8 +18,9 @@ IF(MSVC)
 ENDIF()
 
 # CTest configuration
-SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
-
+IF(NOT MSVC)
+	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
+ENDIF()
 
 # Default to shared libs on
 OPTION(BUILD_SHARED_LIBS "Configure NetCDF as a shared library." ON)
@@ -83,7 +90,7 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 
 
-	ADD_TEST(${prefix}_${F} sh "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=/machine/wfisher/netcdf-cmake/ncgen;" "export TOPSRCDIR=/machine/wfisher/netcdf-cmake;" "/machine/wfisher/netcdf-cmake/build/ncgen/run_tests.sh" "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	IF(MSVC)
 		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
 	ENDIF()
@@ -122,7 +129,7 @@ ENDMACRO()
 # Shell script Macro
 MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
-		ADD_TEST(${prefix}_${F} sh "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+		ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
 	ENDIF()
 
 ENDMACRO()
@@ -144,6 +151,10 @@ SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
 	SET(MOD_NETCDF_NAME ON)
 ENDIF()
+
+# Option to use a local or remote CDash instance.
+# instances Defined in CTestConfig.cmake
+OPTION (USE_REMOTE_CDASH "Use CDash instance at CDash.org." OFF)
 
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
@@ -206,7 +217,6 @@ SET (NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classi
 
 # Build NetCDF4
 OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
-SET(USE_NETCDF4 OFF CACHE BOOL "")
 IF(ENABLE_NETCDF_4)
 	SET(USE_NETCDF4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
@@ -246,7 +256,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
 	 #FIND_PACKAGE(SZIP)
-	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz)
+	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz libszip)
   	IF(NOT SZIP_LIBRARY)
 		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
   	ELSE()
@@ -285,7 +295,7 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 # If NetCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF4 AND USE_DAP)		
+IF(ENABLE_NETCDF_4 AND USE_DAP)		
 		  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -371,7 +381,7 @@ ENDIF()
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
-MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS)
+MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
 #####
 # End option checks.
 #####
@@ -464,7 +474,7 @@ IF(NOT WIN32)
        ENDIF()
 ENDIF()
 
-
+MESSAGE(netcdf_libraries: ${netcdf_library})
 # Create config.h file
 configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
 	"${NetCDF_BINARY_DIR}/config.h")
@@ -475,7 +485,7 @@ FILE(COPY "${NetCDF_SOURCE_DIR}/nc-config"
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
 EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
 
-INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin)
+INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 # End autotools-style checs for config.h
 
@@ -563,10 +573,17 @@ ENDIF()
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
-  	DESTINATION include)
+  	DESTINATION include COMPONENT headers)
+
+# Install the dependencies.
+IF(MSVC)
+	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+
+ENDIF()
+
 
 IF(ENABLE_DOXYGEN)	
-	INSTALL(DIRECTORY man4 DESTINATION ".")
+	INSTALL(DIRECTORY man4 DESTINATION "." COMPONENT documentation)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -580,6 +597,26 @@ CONFIGURE_FILE(
 )
 #INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
 
+# Create CMake package configuration files. With these, other packages using
+# cmake should be able to find netcdf using find_package and find_library.
+# This call is paired with one in liblib.
+install (EXPORT netcdf-targets
+	DESTINATION share/cmake
+	COMPONENT documentation)
+
+configure_file (
+	${NetCDF_SOURCE_DIR}/netcdf-config.cmake.in
+	${NetCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
+
+configure_file (
+	${NetCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
+	${NetCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
+
+install (FILES ${NetCDF_BINARY_DIR}/netcdf-config.cmake
+		${NetCDF_BINARY_DIR}/netcdf-config-version.cmake
+		DESTINATION share/cmake)
+
+# End CMake package configuration files.
 #####
 # Various options for CPACK
 #####
@@ -620,8 +657,24 @@ ADD_CUSTOM_TARGET(uninstall
 	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 
+## Customize some of the package component descriptions
+set (CPACK_COMPONENT_UTILITIES_DISPLAY_NAME "netCDF Utilities")
+set (CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "netCDF Libraries")
+set (CPACK_COMPONENT_HEADERS_DISPLAY_NAME "netCDF Headers")
+set (CPACK_COMPONENT_DEPENDENCIES_DISPLAY_NAME "netCDF Dependencies")
+set (CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "netCDF Documentation")
 
 
+set (CPACK_COMPONENT_UTILITIES_DESCRIPTION
+	"The netCDF Utilities")
+set (CPACK_COMPONENT_LIBRARIES_DESCRIPTION
+	"The netCDF Libraries")
+set (CPACK_COMPONENT_HEADERS_DESCRIPTION
+	"C header files for use with netCDF")
+set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
+	"Dependencies for this build of netCDF")
+set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
+	"The netCDF user documentation.")
 print_conf_summary()
 #MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 # CPack inclusion must come last.

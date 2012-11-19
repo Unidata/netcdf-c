@@ -781,7 +781,7 @@ dap_repairname(char* name)
 	    newchar[0] = '%';	
             digit = (c & 0xf0) >> 4;
 	    newchar[1] = hexdigits[digit];
-            digit = (c & 0x0f)
+            digit = (c & 0x0f);
 	    newchar[2] = hexdigits[digit];
 	    newchar[3] = '\0';
             strcat(newname,newchar);
