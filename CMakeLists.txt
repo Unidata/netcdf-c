@@ -474,7 +474,7 @@ IF(NOT WIN32)
        ENDIF()
 ENDIF()
 
-
+MESSAGE(netcdf_libraries: ${netcdf_library})
 # Create config.h file
 configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
 	"${NetCDF_BINARY_DIR}/config.h")
@@ -597,6 +597,26 @@ CONFIGURE_FILE(
 )
 #INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
 
+# Create CMake package configuration files. With these, other packages using
+# cmake should be able to find netcdf using find_package and find_library.
+# This call is paired with one in liblib.
+install (EXPORT netcdf-targets
+	DESTINATION share/cmake
+	COMPONENT documentation)
+
+configure_file (
+	${NetCDF_SOURCE_DIR}/netcdf-config.cmake.in
+	${NetCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
+
+configure_file (
+	${NetCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
+	${NetCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
+
+install (FILES ${NetCDF_BINARY_DIR}/netcdf-config.cmake
+		${NetCDF_BINARY_DIR}/netcdf-config-version.cmake
+		DESTINATION share/cmake)
+
+# End CMake package configuration files.
 #####
 # Various options for CPACK
 #####
