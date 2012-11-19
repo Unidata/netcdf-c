@@ -10,6 +10,13 @@ VERSION		COMMENTS
 		
 		Replaced the oc library with oc2.0
 
+		Fixed bug with strided access for NC_STRING type.
+		[NCF-206]
+
+		Fixed ncdump bug in display of data values of
+		variables that use multiple unlimited dimensions.
+		[NCF-144]
+
 		Prevented adding an invalid _FillValue attribute to a
 		variable (with nonmatching type or multiple values),
 		to avoid later error when any record variable is
