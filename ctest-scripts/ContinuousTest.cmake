@@ -5,7 +5,7 @@ set (CTEST_PROJECT_NAME "netCDF-C")
 
 # Get Hostname
 find_program(HOSTNAME_CMD NAMES hostname)
-exec_program(${HOSTNAME_CMD} ARGS "-f" OUTPUT_VARIABLE HOSTNAME)
+exec_program(${HOSTNAME_CMD} OUTPUT_VARIABLE HOSTNAME)
 set(CTEST_SITE "${HOSTNAME}")
 
 # Get system configuration
