@@ -130,13 +130,6 @@ char *sbuf_str(const safebuf_t *sbuf);
 /* Free string buffer */
 void sbuf_free(safebuf_t *sbuf);
 
-/* Return malloced name with chars special to CDL escaped. */
-char* escaped_name(const char* cp);
-
-/* Print name of netCDF var, dim, att, group, type, member, or enum
- * symbol with escaped special chars */
-void print_name(const char *name);
-
 /* Print simple type name symbol or as absolute path, if necessary.
  * Escape any special chars. */
 void print_type_name(int locid, int typeid);
