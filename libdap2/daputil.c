@@ -762,6 +762,8 @@ dap_badname(char* name)
    and repair them
 */
 
+static const char* hexdigits = "0123456789abcdef";
+
 char*
 dap_repairname(char* name)
 {
@@ -774,8 +776,14 @@ dap_repairname(char* name)
     newname[0] = '\0'; /* so we can use strcat */
     for(p=name,q=newname;(c=*p);p++) {
         if(strchr(badchars,c) != NULL) {
-            char newchar[8];
-            snprintf(newchar,sizeof(newchar),"%%%hhx",c);
+	    int digit;
+            char newchar[3];
+	    newchar[0] = '%';	
+            digit = (c & 0xf0) >> 4;
+	    newchar[1] = hexdigits[digit];
+            digit = (c & 0x0f)
+	    newchar[2] = hexdigits[digit];
+	    newchar[3] = '\0';
             strcat(newname,newchar);
             q += 3; /*strlen(newchar)*/
         } else
