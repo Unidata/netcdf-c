@@ -101,7 +101,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    status = nc_inq_vartype(ncid, varid, &vartype); 
    if(status != NC_NOERR) return status;
    /* Check that this is an atomic type */
-   if(vartype >= NC_MAX_ATOMIC_TYPE)
+   if(vartype > NC_MAX_ATOMIC_TYPE)
 	return NC_EMAPTYPE;
 
    status = nc_inq_varndims(ncid, varid, &varndims); 

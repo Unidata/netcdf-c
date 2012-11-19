@@ -129,7 +129,7 @@ ENDMACRO()
 # Shell script Macro
 MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
-		ADD_TEST(${prefix}_${F} sh "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+		ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
 	ENDIF()
 
 ENDMACRO()

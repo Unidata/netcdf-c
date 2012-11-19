@@ -107,6 +107,7 @@ IF(ENABLE_TESTS)
 			#add_sh_test(ncdump tst_nccopy4)
 		ENDIF()
 		add_sh_test(ncdump tst_grp_spec)
+		add_sh_test(ncdump tst_mud)
 	ENDIF()
 	
 	#add_sh_test(tst_ncgen4_classic)

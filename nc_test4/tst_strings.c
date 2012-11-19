@@ -199,6 +199,48 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+    printf("\n*** Testing netcdf-4 strided string access.\n");
+    {
+#define NUM_PRES 43
+#define SOME_PRES 16
+#define NDIMS_PRES 1
+#define VAR_NAME_P "presidents"
+      int ncid, varid, i, dimids[NDIMS_PRES];
+      size_t start[NDIMS_PRES], count[NDIMS_PRES], stride[NDIMS_PRES];
+      char *data[SOME_PRES] = {"Washington", "Adams", "Jefferson", "Madison",
+			       "Monroe", "Adams", "Jackson", "VanBuren",
+			       "Harrison", "Tyler", "Polk", "Tayor",
+			       "Fillmore", "Peirce", "Buchanan", "Lincoln"};
+      char *data_in[NUM_PRES];
+      int status;
+
+      /* Create a file with NUM_PRES strings, and write SOME_PRES of
+       * them. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, NUM_PRES, dimids)) ERR;
+      if (nc_def_var(ncid, VAR_NAME_P, NC_STRING, NDIMS_PRES, dimids, &varid)) ERR;
+      start[0] = 0;
+      count[0] = SOME_PRES;
+      stride[0] = 2;
+      status = nc_put_vars_string(ncid, varid, start, count, stride, (const char **)data);
+      if(status != NC_NOERR)
+	  fprintf(stderr,"%s\n",nc_strerror(status));
+      if (nc_close(ncid)) ERR;
+      
+      /* Check it out. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_get_vars_string(ncid, varid, start, count, stride, data_in)) ERR;
+      for (i = 0; i < NUM_PRES; i++)
+      {
+	 if (i < SOME_PRES && strcmp(data_in[i], data[i])) ERR;
+      }
+      
+      /* Must free your data! */
+      if (nc_free_string(SOME_PRES, (char **)data_in)) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** testing long string variable...");
    {
 #define VAR_NAME2 "empty"
