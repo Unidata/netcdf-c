@@ -90,7 +90,7 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 
 
-	ADD_TEST(${prefix}_${F} bash/usr/bin/sh "-c" "export srcdir=/machine/wfisher/netcdf-cmake/ncgen;" "export TOPSRCDIR=/machine/wfisher/netcdf-cmake;" "/machine/wfisher/netcdf-cmake/build/ncgen/run_tests.sh" "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=/machine/wfisher/netcdf-cmake/ncgen;" "export TOPSRCDIR=/machine/wfisher/netcdf-cmake;" "/machine/wfisher/netcdf-cmake/build/ncgen/run_tests.sh" "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	IF(MSVC)
 		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
 	ENDIF()
