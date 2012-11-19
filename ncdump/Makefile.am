@@ -48,7 +48,7 @@ TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh
+tst_grp_spec.sh tst_mud.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -101,7 +101,7 @@ tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
 tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
 iter.* \
-tst_nc_test_netcdf4_4_0.cdl
+tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -121,7 +121,7 @@ tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
-tst_iter.sh
+tst_iter.sh tst_mud.sh ref_tst_mud4.cdl
 
 
 # NCGEN4 additions
