@@ -90,7 +90,7 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 
 
-	ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F}")
+	ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
 	IF(MSVC)
 		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
 	ENDIF()
