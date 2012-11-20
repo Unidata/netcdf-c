@@ -777,7 +777,7 @@ dap_repairname(char* name)
     for(p=name,q=newname;(c=*p);p++) {
         if(strchr(badchars,c) != NULL) {
 	    int digit;
-            char newchar[3];
+            char newchar[4];
 	    newchar[0] = '%';	
             digit = (c & 0xf0) >> 4;
 	    newchar[1] = hexdigits[digit];
@@ -785,7 +785,7 @@ dap_repairname(char* name)
 	    newchar[2] = hexdigits[digit];
 	    newchar[3] = '\0';
             strcat(newname,newchar);
-            q += 3; /*strlen(newchar)*/
+            q += 4; /*strlen(newchar)*/
         } else
             *q++ = c;
 	*q = '\0'; /* so we can always do strcat */
