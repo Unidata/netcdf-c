@@ -78,15 +78,17 @@ IF(ENABLE_TESTS)
 		#add_bin_test(ncdump tst_special_atts)
 		# Add this test by hand, as it is also called from a script.
 		# Editing the script would break autotools compatibility.
-		ADD_EXECUTABLE(tst_special_atts tst_special_atts.c)
-		TARGET_LINK_LIBRARIES(tst_special_atts netcdf)
-		IF(MSVC)
-			SET_TARGET_PROPERTIES(tst_special_atts
-				PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-			)
-		ENDIF()
-		ADD_TEST(tst_special_atts ${EXECUTABLE_OUTPUT_PATH}/tst_special_atts)
-		
+		set(MANUAL_TESTS tst_special_atts tst_compress)
+		FOREACH (MTEST ${MANUAL_TESTS})
+			ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
+			TARGET_LINK_LIBRARIES(${MTEST} netcdf)
+			IF(MSVC)
+				SET_TARGET_PROPERTIES(${MTEST}
+					PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+				)
+			ENDIF()
+			ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
+		ENDFOREACH()
 		
 		IF(NOT WIN32)
 			add_sh_test(ncdump tst_netcdf4)
