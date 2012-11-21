@@ -528,21 +528,21 @@ NULL,
 const char*
 ocdtmodestring(OCDT mode,int compact)
 {
-
-    static char result[1+(NMODES*(MAXMODENAME+1))]; /* hack to avoid malloc */
+#define MAXMODESTRING (NMODES*(MAXMODENAME+1))
+    static char result[1+MAXMODESTRING]; /* hack to avoid malloc */
     int i;
     char* p = result;
     result[0] = '\0';
     if(mode == 0) {
 	if(compact) *p++ = '-';
-	else strcat(result,"NONE");
+	else strncat(result,"NONE",strlen("NONE"));
     } else for(i=0;;i++) {
 	char* ms = modestrings[i];
 	if(ms == NULL) break;
-	if(!compact && i > 0) strcat(result,",");
+	if(!compact && i > 0) strncat(result,",",1);
         if(fisset(mode,(1<<i))) {
 	    if(compact) *p++ = ms[0];
-	    else strncat(result,ms,sizeof(result)-1);
+	    else strncat(result,ms,strlen(ms));
 	}
     }
     /* pad compact list out to NMODES in length (+1 for null terminator) */

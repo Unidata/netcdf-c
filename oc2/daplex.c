@@ -6,6 +6,7 @@
 #include <strings.h>
 #endif
 #include "dapparselex.h"
+#include "daptab.h"
 
 #undef URLCVT /* NEVER turn this on */
 #define DAP2ENCODE

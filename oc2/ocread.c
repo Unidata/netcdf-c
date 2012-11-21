@@ -11,17 +11,16 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef _MSC_VER
+#include <io.h>
+#endif
+
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"
 #include "ocread.h"
 #include "ocrc.h"
 #include "occurlfunctions.h"
-
-#ifdef _MSC_VER
-#include <io.h>
-#endif
-
 
 /*Forward*/
 static int readpacket(OCstate* state, OCURI*, OCbytes*, OCdxd, long*);
@@ -213,8 +212,7 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
-    strncpy(filename,path,1023);
-    if(suffix != NULL) strncat(filename,suffix,1023-strlen(path)); /* A char is reserved for terminating '\0' */
+    snprintf(filename,sizeof(filename),"%s%s",path,(suffix == NULL ? "" : suffix));
     flags = O_RDONLY;
 #ifdef O_BINARY
     flags |= O_BINARY;

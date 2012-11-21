@@ -62,19 +62,20 @@ REMOTETESTSXC="test.03;1;s0,s1"
 # These shorter tests are always run
 REMOTEURLS1="$DTS"
 REMOTETESTSS1="\
-test.01 test.02 test.04 test.05 test.06 test.07a test.07 \
+test.01 test.02 test.04 test.05 test.07a test.07 \
 test.21 \
 test.50 test.53 test.55 test.56 test.57 \
 test.66 test.67 test.68 test.69"
 
 # Server is failing on some tests ; investigate why
 S1FAIL="test.06a test.22 test.23 test.31"
+# This fails because of the duplicate name problem and the way thredds dap handles grids"
+S2FAIL="test.06"
 
 # These longer tests are optional
 REMOTEURLL1="$REMOTEURLS1"
 REMOTETESTSL1="\
 test.03 \
-test.06 \
 b31 b31a D1 Drifters EOSDB \
 ingrid nestedDAS NestedSeq NestedSeq2 OverideExample \
 SimpleDrdsExample test.an1 \
@@ -99,10 +100,12 @@ test.02;1;b[1:2:10] \
 test.03;1;i32[0:1][1:2][0:2] \
 test.04;1;types.i32 \
 test.05;1;types.floats.f32 \
-test.06;1;ThreeD \
 test.07;1;person.age \
 test.07;3;person \
 test.07;4;types.f32"
+
+# See S2FAIL above
+SR1FAIL="test.06;1;ThreeD"
 
 # Following tests are to check selection handling
 REMOTEURLC2="http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC"
@@ -141,9 +144,8 @@ IGNORE="test.07.2"
 XFAILTESTS3=""
 # For now, remove some tests from windows platform.
 if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    XFAILTESTS3="$XFAILTESTS3 test.67 test.06.1 test.06"
+    XFAILTESTS3="$XFAILTESTS3 test.67"
 fi
-
 
 XFAILTESTS4="$XFAILTESTS3"
 

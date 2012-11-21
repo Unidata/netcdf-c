@@ -467,16 +467,30 @@ mapnodes3r(CDFnode* connode, CDFnode* fullnode, int depth)
     ASSERT((simplenodematch34(connode,fullnode)));
     
 #ifdef DEBUG
-{
+  {
 char* path1 = makecdfpathstring3(fullnode,".");
 char * path2 = makecdfpathstring3(connode,".");
 fprintf(stderr,"mapnode: %s->%s\n",path1,path2);
 nullfree(path1); nullfree(path2);
-}
+  }
 #endif
 
     /* Map node */
     mapfcn(connode,fullnode);
+
+#if 0
+  {
+    int i;
+    for(i=0;i<nclistlength(fullnode->subnodes);i++) {
+	CDFnode* n = (CDFnode*)nclistget(fullnode->subnodes,i);
+	fprintf(stderr,"fullnode.subnode[%d]: (%d) %s\n",i,n->nctype,n->ocname);
+    }
+    for(i=0;i<nclistlength(connode->subnodes);i++) {
+	CDFnode* n = (CDFnode*)nclistget(connode->subnodes,i);
+	fprintf(stderr,"connode.subnode[%d]: (%d) %s\n",i,n->nctype,n->ocname);
+    }
+  }
+#endif
 
     /* Try to match connode subnodes against fullnode subnodes */
     ASSERT(nclistlength(connode->subnodes) <= nclistlength(fullnode->subnodes));
