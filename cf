@@ -7,7 +7,7 @@ if test $# != 0 ; then
 cmds=$@
 fi
 
-HDF5=1
+#HDF5=1
 DAP=1
 #CDMR=1
 #RPC=1
@@ -137,7 +137,7 @@ FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --enable-benchmarks"
 FLAGS="$FLAGS --enable-extra-tests"
 FLAGS="$FLAGS --enable-logging"
-#FLAGS="$FLAGS --enable-large-file-tests"
+FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-doxygen"
