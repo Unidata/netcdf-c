@@ -91,7 +91,11 @@ IF(ENABLE_TESTS)
 		ENDFOREACH()
 		
 		IF(NOT WIN32)
-			add_sh_test(ncdump tst_netcdf4)
+			# tst_netcdf4 depends on the output from other scripts
+			# that don't currently run. So for time being, leave
+			# it disabled.
+
+			#add_sh_test(ncdump tst_netcdf4)
 			#add_bin_test(ncdump tst_h_rdc0)
 		ENDIF()
 		add_bin_test(ncdump tst_unicode)
