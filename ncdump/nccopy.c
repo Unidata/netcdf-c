@@ -1364,6 +1364,44 @@ copy(char* infile, char* outfile)
     return stat;
 }
 
+/* 
+ * For non-negative numeric string with multiplier suffix K, M, G, T,
+ * or P (or lower-case equivalent), return corresponding value
+ * incorporating multiplier 1000, 1000000, 1.0d9, ... 1.0d15, or -1.0
+ * for error.
+ */
+static double
+double_with_suffix(char *str) {
+    double dval;
+    char *suffix = 0;
+    errno = 0;
+    dval = strtod(str, &suffix);
+    if(dval < 0 || errno != 0)
+	return -1.0;
+    if(*suffix) {
+	switch (*suffix) {
+	case 'k': case 'K':
+	    dval *= 1000;
+	    break;
+	case 'm': case 'M':
+	    dval *= 1000000;
+	    break;
+	case 'g': case 'G':
+	    dval *= 1000000000;
+	    break;
+	case 't': case 'T':
+	    dval *= 1.0e12;
+	    break;
+	case 'p': case 'P':
+	    dval *= 1.0e15;
+	    break;
+	default:
+	    dval = -1.0;	/* error, suffix multiplier must be K, M, G, or T */
+	}		
+    }
+    return dval;
+}
+
 static void
 usage(void)
 {
@@ -1527,7 +1565,7 @@ a value larger than the default for copying large files over high
 latency networks.  Using the '-w' option may provide better
 performance, if the output fits in memory.
 
-@par -e \e chunk_cache
+@par -h \e chunk_cache
 @par
 For netCDF-4 output, including netCDF-4 classic model, an integer or
 floating-point number that specifies the size in bytes of chunk cache
@@ -1544,10 +1582,12 @@ cache, but no general algorithm for computing the optimum chunk cache
 size has been implemented yet. Using the '-w' option may provide
 better performance, if the output fits in memory.
 
-@par -h \e cache_elems
+@par -e \e cache_elems
 @par
 For netCDF-4 output, including netCDF-4 classic model, specifies
-number of elements that the chunk cache can hold. This is not a
+number of elements that the chunk cache can hold. A suffix of K, M, G,
+or T multiplies the copy buffer size by one thousand, million,
+billion, or trillion, respectively.  This is not a
 property of the file, but merely a performance tuning parameter for
 avoiding compressing or decompressing the same data multiple times
 while copying and changing chunk shapes.  The default is 1009 (or
@@ -1728,64 +1768,28 @@ main(int argc, char**argv)
 	    break;
 	case 'm':		/* non-default size of data copy buffer */
 	{
-	    double dval;
-	    char *suffix = 0;	/* "K" for kilobytes. "M" for megabytes, ... */
-	    dval = strtod(optarg, &suffix);
-	    if(*suffix) {
-		switch (*suffix) {
-		case 'k': case 'K':
-		    dval *= 1000;
-		    break;
-		case 'm': case 'M':
-		    dval *= 1000000;
-		    break;
-		case 'g': case 'G':
-		    dval *= 1000000000;
-		    break;
-		case 't': case 'T':
-		    dval *= 1.0e12;
-		    break;
-		default:
-		    error("If suffix used for '-m' option value, it must be K, M, G, or T: %c", 
-			  *suffix);
-		}		
-	    }
+	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
+	    if(dval < 0)
+		error("Suffix used for '-m' option value must be K, M, G, T, or P");
 	    option_copy_buffer_size = dval;
 	    break;
 	}
 	case 'h':		/* non-default size of chunk cache */
 	{
-	    double dval;
-	    char *suffix = 0;	/* "K" for kilobytes, "M" for megabytes, ... */
-	    dval = strtod(optarg, &suffix);
-	    if(*suffix) {
-		switch (*suffix) {
-		case 'k': case 'K':
-		    dval *= 1000;
-		    break;
-		case 'm': case 'M':
-		    dval *= 1000000;
-		    break;
-		case 'g': case 'G':
-		    dval *= 1000000000;
-		    break;
-		case 't': case 'T':
-		    dval *= 1.0e12;
-		    break;
-		default:
-		    error("If suffix used for '-h' option value, it must be K, M, G, or T: %c", 
-			  *suffix);
-		}		
-	    }
+	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
+	    if(dval < 0)
+		error("Suffix used for '-h' option value must be K, M, G, T, or P");
 	    option_chunk_cache_size = dval;
 	    break;
-	    }
+	}
 	case 'e':		/* number of elements chunk cache can hold */
-	    option_chunk_cache_nelems = strtol(optarg, NULL, 10);
-	    if(option_chunk_cache_nelems <= 0) {
-		error("invalid value for number of chunk cache elements: %d", option_chunk_cache_nelems);
-	    }
+	{
+	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
+	    if(dval < 0 )
+		error("Suffix used for '-e' option value must be K, M, G, T, or P");
+	    option_chunk_cache_nelems = (long)dval;
 	    break;
+	}
 	case 'r':
 	    option_read_diskless = 1; /* read into memory on open */
 	    break;
