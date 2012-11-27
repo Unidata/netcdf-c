@@ -20,7 +20,13 @@ DOBUILD () {
 	BTYPE="shared"
     fi
 
-    NAME="$VER-NC4$NC4-DAP$DAP-$BTYPE"
+    if [ $pltfrm = "32" ]; then
+	CMAKEGEN=$CMAKEGEN32
+    else
+	CMAKEGEN=$CMAKEGEN64
+    fi
+
+    NAME="$VER-NC4_$NC4-DAP_$DAP-$pltfrm-$BTYPE"
     BDIR="build_$NAME"
     echo "Building $NAME"
 
@@ -47,13 +53,16 @@ DOBUILD () {
 # Set up platform-specific variables 
 #####
 
-unamestr=`uname`
+unamestr=`uname | cut -d " " -f 1`
 VER="4.2.x-snapshot"
 INSTALLDIRS="packages"
 
 case $unamestr in
     Darwin) echo "Configuring Darwin"
-    CMAKEGEN="Unix Makefiles"
+    CMAKEGEN32="Unix Makefiles"
+    ;;
+    MINGW32_NT-6.1) echo "Configuring MSYS/MinGW"
+    CMAKEGEN32="Visual Studio 10"
     ;;
     *) echo "Unknown platform: $unamestr"
     exit 1
