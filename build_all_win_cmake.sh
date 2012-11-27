@@ -20,13 +20,13 @@ DOBUILD () {
 	BTYPE="shared"
     fi
 
-    if [ $pltfrm = "32" ]; then
+    if [ $PLTFRM = "32" ]; then
 	CMAKEGEN=$CMAKEGEN32
     else
 	CMAKEGEN=$CMAKEGEN64
     fi
 
-    NAME="$VER-NC4_$NC4-DAP_$DAP-$pltfrm-$BTYPE"
+    NAME="$VER-NC4_$NC4-DAP_$DAP-$PLTFRM-$BTYPE"
     BDIR="build_$NAME"
     echo "Building $NAME"
 
