@@ -157,42 +157,16 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
 
-#if !defined(__APPLE__)
-/* The size of `double` as computed by sizeof. */
-#cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
-/* The size of `float` as computed by sizeof. */
-#cmakedefine SIZEOF_FLOAT @SIZEOF_FLOAT@
-/* The size of `int` as computed by sizeof. */
-#cmakedefine SIZEOF_INT @SIZEOF_INT@
-/* The size of `long` as computed by sizeof. */
-#cmakedefine SIZEOF_LONG @SIZEOF_LONG@
-/* The size of `long long` as computed by sizeof. */
-#cmakedefine SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
-/* The size of `off_t` as computed by sizeof. */
-#cmakedefine SIZEOF_OFF_T @SIZEOF_OFF_T@
-/* The size of `short` as computed by sizeof. */
-#cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
-/* The size of `size_t` as computed by sizeof. */
-#cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
-/* The size of `uchar` as computed by sizeof. */
-#cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
-#else
 #define SIZEOF_SHORT	@SIZEOF_DOUBLE@
 #define	SIZEOF_INT	@SIZEOF_INT@
-#if defined(__LP64__) && __LP64__ /* Linux, OSX, Unix */
 #define SIZEOF_LONG	@SIZEOF_LONG@
+#define SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
 #define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
-#elif defined(_WIN64) /* Windows */
-#define SIZEOF_LONG 	@SIZEOF_LONG@
-#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
-#else
-#define SIZEOF_LONG	@SIZEOF_LONG@
-#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
-#endif
 #define SIZEOF_FLOAT	@SIZEOF_FLOAT@
 #define SIZEOF_DOUBLE	@SIZEOF_DOUBLE@
 #define SIZEOF_OFF_T	@SIZEOF_OFF_T@
-#endif
+#define SIZEOF_INT64_T  @SIZEOF_INT64_T@
+#define SIZEOF_UINT64_T @SIZEOF_UINT64_T@
 
 /* Set if we have strdup */
 #cmakedefine HAVE_STRDUP
