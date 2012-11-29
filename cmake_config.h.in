@@ -177,18 +177,21 @@
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
 #else
-#define SIZEOF_SHORT	2
-#define	SIZEOF_INT	4
-#if defined(__LP64__) && __LP64__
-#define SIZEOF_LONG	8
-#define SIZEOF_SIZE_T	8
+#define SIZEOF_SHORT	@SIZEOF_DOUBLE@
+#define	SIZEOF_INT	@SIZEOF_INT@
+#if defined(__LP64__) && __LP64__ /* Linux, OSX, Unix */
+#define SIZEOF_LONG	@SIZEOF_LONG@
+#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
+#elif defined(_WIN64) /* Windows */
+#define SIZEOF_LONG 	@SIZEOF_LONG@
+#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
 #else
-#define SIZEOF_LONG	4
-#define SIZEOF_SIZE_T	4
+#define SIZEOF_LONG	@SIZEOF_LONG@
+#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
 #endif
-#define SIZEOF_FLOAT	4
-#define SIZEOF_DOUBLE	8
-#define SIZEOF_OFF_T	8
+#define SIZEOF_FLOAT	@SIZEOF_FLOAT@
+#define SIZEOF_DOUBLE	@SIZEOF_DOUBLE@
+#define SIZEOF_OFF_T	@SIZEOF_OFF_T@
 #endif
 
 /* Set if we have strdup */
