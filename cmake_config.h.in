@@ -76,6 +76,9 @@
 #cmakedefine HAVE_DOPRNT
 
 
+/* Location to store very large netCDF test files. */
+#cmakedefine TEMP_LARGE "@TEMP_LARGE@"
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
 
@@ -219,6 +222,13 @@
 #cmakedefine CRAY_STACKSEG_END
 #cmakedefine DLL_EXPORT
 #cmakedefine DLL_NETCDF
+
+/* Enable Large inode numbers on Mac OSX 10.5 */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+
 
 #include <ncconfigure.h>
 #endif

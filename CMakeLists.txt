@@ -343,6 +343,9 @@ IF(ENABLE_LARGE_FILE_TESTS)
 	SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
+# Location for large file tests.
+SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
+
 OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
 IF(ENABLE_INTERNAL_DOCS)
 	SET(BUILD_INTERNAL_DOCS ON)

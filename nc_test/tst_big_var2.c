@@ -93,7 +93,7 @@ test_big_var(const char *testfile)
 		       start[0], i, j, 42, data[i][j]);
 		ERR;
 		if(nerrs++ > 1)
-		    return;
+		    return nerrs;
 	    }
 	}
     start[0] = DIM0 - 1;
@@ -107,7 +107,7 @@ test_big_var(const char *testfile)
 		       start[0], i, j, 19, data[i][j]);
 		ERR;
 		if(nerrs++ > 1)
-		    return;
+		  return nerrs;
 	    }
 	}
     if (nc_close(ncid)) ERR;
