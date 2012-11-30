@@ -48,6 +48,7 @@ free_NC(NC *ncp)
 #else
 	free(ncp);
 #endif /* _CRAYMPP && LOCKNUMREC */
+	ncp = NULL;
 }
 
 int

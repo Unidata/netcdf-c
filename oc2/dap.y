@@ -11,6 +11,7 @@
 %{
 #include "config.h"
 #include "dapparselex.h"
+#include "daptab.h"
 int dapdebug = 0;
 %}
 
@@ -94,7 +95,7 @@ declaration:
           declarations '}' var_name ';'
 	    {if(($$=dap_makegrid(parsestate,$10,$5,$8))==null) {YYABORT;}}
         | error 
-            {daperror(parsestate,"Unrecognized type"); YYABORT;}
+            {dapsemanticerror(parsestate,OC_EBADTYPE,"Unrecognized type"); YYABORT;}
 	;
  
 
@@ -120,13 +121,13 @@ array_decl:
 	 | '[' '=' WORD_WORD ']' {$$=dap_arraydecl(parsestate,null,$3);}
 	 | '[' name '=' WORD_WORD ']' {$$=dap_arraydecl(parsestate,$2,$4);}
 	 | error
-	    {daperror(parsestate,"Illegal dimension declaration"); YYABORT;}
+	    {dapsemanticerror(parsestate,OC_EDIMSIZE,"Illegal dimension declaration"); YYABORT;}
 	;
 
 datasetname:
 	  var_name {$$=$1;}
         | error
-	    {daperror(parsestate,"Illegal dataset declaration"); YYABORT;}
+	    {dapsemanticerror(parsestate,OC_EDDS,"Illegal dataset declaration"); YYABORT;}
 	;
 
 var_name: name {$$=$1;};
@@ -134,7 +135,7 @@ var_name: name {$$=$1;};
 attributebody:
 	  '{' attr_list '}' {dap_attributebody(parsestate,$2);}
 	| error
-            {daperror(parsestate,"Illegal DAS body"); YYABORT;}
+            {dapsemanticerror(parsestate,OC_EDAS,"Illegal DAS body"); YYABORT;}
 	;
 
 attr_list:
@@ -164,7 +165,7 @@ attribute:
 	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_URL);}
 	| name '{' attr_list '}' {$$=dap_attrset(parsestate,$1,$3);}
 	| error 
-            {daperror(parsestate,"Illegal attribute"); YYABORT;}
+            {dapsemanticerror(parsestate,OC_EDAS,"Illegal attribute"); YYABORT;}
 	;
 
 bytes:

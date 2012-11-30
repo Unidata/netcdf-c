@@ -541,12 +541,10 @@ curllookup(char* suffix, char* url)
 {
     char key[2048];
     char* value = NULL;
-    strncpy(key,HTTPPREFIX,2047);
-    strncat(key,suffix,2047-strlen(HTTPPREFIX));
+    snprintf(key,sizeof(key),"%s%s",HTTPPREFIX,suffix);
     value = ocdodsrc_lookup(key,url);
     if(value == NULL) {
-	strcpy(key,HTTPPREFIXDEPRECATED);
-	strncat(key,suffix,2047);
+        snprintf(key,sizeof(key),"%s%s",HTTPPREFIXDEPRECATED,suffix);
         value = ocdodsrc_lookup(key,url);
     }
     return value;

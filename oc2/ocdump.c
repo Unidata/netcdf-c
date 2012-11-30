@@ -615,8 +615,8 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	    if(fisset(next->datamode,OCDT_FIELD)
 		|| fisset(next->datamode,OCDT_ELEMENT)
 		|| fisset(next->datamode,OCDT_RECORD)) {
-	      snprintf(tmp,sizeof(tmp),".%lu",(unsigned long)next->index);
-	      ocbytescat(buffer,tmp);
+		snprintf(tmp,sizeof(tmp),".%lu",(unsigned long)next->index);
+	        ocbytescat(buffer,tmp);
 	    }
 	}
 	if(template->octype == OC_Atomic) {
