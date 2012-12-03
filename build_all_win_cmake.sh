@@ -38,7 +38,7 @@ DOBUILD () {
     rm -rf $BDIR
     mkdir -p $BDIR
     cd $BDIR
-    CMAKE_PREFIX_PATH=$RESOURCE_DIR cmake $CURDIR -G"$CMAKEGEN" -DCPACK_PACKAGE_FILE_NAME=NetCDF-$NAME -DENABLE_TESTS=OFF -DBUILD_SHARED_LIBS=$SHARED -DENABLE_DAP=$DAP -DENABLE_NETCDF_4=$NC4
+    CMAKE_PREFIX_PATH=$RESOURCE_DIR cmake $CURDIR -G"$CMAKEGEN" -DCPACK_PACKAGE_FILE_NAME=NetCDF-$NAME -DENABLE_TESTS=OFF -DBUILD_SHARED_LIBS=$SHARED -DENABLE_DAP=$DAP -DENABLE_NETCDF_4=$NC4 $POSTFLAGS
     CHECKERR
 
     cmake --build .
@@ -71,11 +71,12 @@ case $unamestr in
     Darwin) echo "Configuring Darwin"
     CMAKEGEN32="Unix Makefiles"
     CMAKEGEN64="Unix Makefiles"
-    POSTFLAGS=-D'CMAKE_OSX_ARCHITECTURES=i386;x86_64'
+    
     ;;
     MINGW32_NT-6.1) echo "Configuring MSYS/MinGW"
     CMAKEGEN32="Visual Studio 10"
     CMAKEGEN64="Visual Studio 10 Win64"
+    POSTFLAGS="-DUSE_SZIP=ON"
     ;;
     *) echo "Unknown platform: $unamestr"
     exit 1

@@ -391,7 +391,6 @@ by the desired type. */
  */
 
 /* Declaration modifiers for DLL support (MSC et al) */
-
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 #  if defined(DLL_EXPORT) /* define when building the library */
 #   define MSC_EXTRA __declspec(dllexport)
@@ -399,13 +398,19 @@ by the desired type. */
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
 #include <io.h>
-/*#define lseek _lseeki64
-  #define off_t __int64*/
 #else
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
 # define EXTERNL MSC_EXTRA extern
+
+/* Define for 64 bit windows. */
+#if defined (_WIN64)
+#define off_t __int64
+#define size_t __int64
+//#define lseek _lseeki64
+#define _OFF_T_DEFINED
+#endif
 
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 EXTERNL int ncerr;
