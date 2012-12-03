@@ -108,7 +108,7 @@ IF(ENABLE_TESTS)
 		ENDIF()	
 		
 		IF(NOT WIN32)
-			add_sh_test(ncdump tst_nccopy4)
+			#add_sh_test(ncdump tst_nccopy4)
 		ENDIF()
 		add_sh_test(ncdump tst_grp_spec)
 		add_sh_test(ncdump tst_mud)
