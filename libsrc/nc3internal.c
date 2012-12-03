@@ -1097,7 +1097,7 @@ NC3_close(int ncid)
 		status = NC_endef(nc3, 0, 1, 0, 1); /* TODO: defaults */
 		if(status != NC_NOERR )
 		{
-			(void) NC3_abort(ncid); /* do not use nc_abort */
+			(void) nc_abort(ncid);
 			return status;
 		}
 	}
@@ -1541,24 +1541,12 @@ nc_delete_mp(const char * path, int basepe)
 	if(basepe != 0)
 		return NC_EINVAL;
 #endif
-
-	assert(nc3->flags == 0);
-
-	status = nc_get_NC(nc3);
-	if(status != NC_NOERR)
-	{
-		/* Not a netcdf file, don't delete */
-		/* ??? is this the right semantic? what if it was just too big? */
-		(void)NC3_abort(ncid);
+	
+	(void) nc_close(ncid);
+	if(unlink(path) == -1) {
+	    return NC_EIO;	/* No more specific error code is appropriate */
 	}
-	else
-	{
-		/* ncio_abort does the unlink */
-		/*cheat and mark the file as new */
-		fSet((nc3)->nciop->ioflags,NC_WRITE);
-		(void)NC3_abort(ncid);		
-	}
-	return status;
+	return NC_NOERR;
 }
 
 int
