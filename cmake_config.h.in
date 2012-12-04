@@ -1,10 +1,13 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+#define HAVE_CONFIG_H
+
 /* Eliminate a number of warnings which come up based on deprecated
    POSIX naming conventions. */
 #ifdef _MSC_VER
 /* Disable a few warnings under Visual Studio, for the
    time being. */
-#include <io.h>
-
+  #include <io.h>
   #pragma warning( disable: 4018 4996 4244 4305 )
   #define unlink _unlink
   #define open _open
@@ -23,15 +26,15 @@
   #define write _write
   #define snprintf _snprintf
   #ifndef strcasecmp
+	//#define strcasecmp stricmp
   	#define strcasecmp _stricmp
+	#define snprintf _snprintf
   #endif
   
   #define strtoll _strtoi64
 #endif
 
-#ifndef CONFIG_H
-#define CONFIG_H
-#define HAVE_CONFIG_H
+
 /* Cache Size, other variables for HDF5 */
 #define DEFAULT_CHUNK_SIZE	${DEFAULT_CHUNK_SIZE}
 #define DEFAULT_CHUNKS_IN_CACHE	${DEFAULT_CHUNKS_IN_CACHE}

@@ -14,6 +14,11 @@ for more info.
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
+
+#ifdef _WIN64
+#include <sys/stat.h>
+#endif
+
 /*! The nc_type type is just an int. */
 typedef int nc_type;
 
