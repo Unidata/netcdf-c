@@ -96,6 +96,9 @@ typedef struct OCheader {
 /* Default maximum memory packet size */
 #define DFALTMAXPACKETSIZE 0x3000000 /*approximately 50M bytes*/
 
+/* Default user agent string (will have version appended)*/
+#define DFALTUSERAGENT "oc"
+
 /* Collect global state info in one place */
 extern struct OCGLOBALSTATE {
     int initialized;
@@ -197,5 +200,7 @@ extern int ocinternalinitialize(void);
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
 extern int ocinternalinitialize(void);
+
+extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 
 #endif /*COMMON_H*/
