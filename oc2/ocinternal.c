@@ -552,7 +552,7 @@ ocsetcurlproperties(OCstate* state)
             state->creds.username = nulldup(state->uri->user);
 	}
     }
-    if(state->curlflags.useragent == null) {
+    if(state->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len);
 	snprintf(agent,len+1,"%s%s",DFALTUSERAGENT,VERSION);
