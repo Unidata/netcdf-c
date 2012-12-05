@@ -13,26 +13,27 @@
   #define open _open
   #define close _close
   #define read _read
+
 #ifdef _WIN64
 	#define lseek _lseeki64
 #else
 	#define lseek _lseek
 #endif
   
-
-
   #define strdup _strdup
   #define fdopen _fdopen
   #define write _write
   #define snprintf _snprintf
-  #ifndef strcasecmp
-	//#define strcasecmp stricmp
-  	#define strcasecmp _stricmp
-	#define snprintf _snprintf
-  #endif
-  
   #define strtoll _strtoi64
 #endif
+
+#if defined(_WIN32)
+	#ifndef strcasecmp
+  		#define strcasecmp _stricmp
+		#define snprintf _snprintf
+  	#endif
+#endif
+
 
 
 /* Cache Size, other variables for HDF5 */
