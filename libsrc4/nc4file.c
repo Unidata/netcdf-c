@@ -189,8 +189,11 @@ nc_check_for_hdf(const char *path, int use_parallel, MPI_Comm comm, MPI_Info inf
        {
 	   FILE *fp;
 	   if (!(fp = fopen(path, "r")) ||
-	       fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1)
-	       return errno;
+	       fread(blob, MAGIC_NUMBER_LEN, 1, fp) != 1) {
+
+	     if(fp) fclose(fp);
+	     return errno;
+	   }
 	   fclose(fp);
        }
        
@@ -1022,7 +1025,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
    nc_type ud_type_type = NC_NAT, base_nc_type = NC_NAT, member_xtype;
    htri_t ret;
    int retval = NC_NOERR;
-   void *value;
+   void *value = NULL;
    int i;
 
    assert(grp && type_name);
@@ -1224,12 +1227,16 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
 
       /* Read each name and value defined in the enum. */
       for (i = 0; i < type->num_enum_members; i++)
-      {
-         /* Get the name and value from HDF5. */
-         if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
-            return NC_EHDFERR;
-         if (!member_name || strlen(member_name) > NC_MAX_NAME)
-            return NC_EBADNAME;
+	{
+	  /* Get the name and value from HDF5. */
+	  if (!(member_name = H5Tget_member_name(hdf_typeid, i))) {
+	    if(value) free(value);
+	    return NC_EHDFERR;
+	  }
+	  if (!member_name || strlen(member_name) > NC_MAX_NAME) {
+	   if(value) free(value); 
+	   return NC_EBADNAME;
+	 }
          if (H5Tget_member_value(hdf_typeid, i, value) < 0) 
             return NC_EHDFERR;
 

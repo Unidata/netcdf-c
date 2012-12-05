@@ -286,10 +286,10 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       }
       else if (var->xtype == NC_STRING)
       {
-         if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
-					sizeof(char))))
-	    return NC_ENOMEM;
-         strcpy(*(char **)fillp, (char *)var->fill_value);
+	if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
+				       sizeof(char))))
+	  return NC_ENOMEM;
+	strcpy(*(char **)fillp, (char *)var->fill_value);
       }
       else
          memcpy((*fillp), var->fill_value, size);
@@ -1543,6 +1543,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    if (maxdimsize) free(maxdimsize);
    if (dimsize) free(dimsize);
    if (chunksize) free(chunksize);
+   
    return retval;
 }
 

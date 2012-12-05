@@ -135,8 +135,10 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 	 size_t base_typelen = type_size;
 	 hvl_t *vldest = data;
 	 NC_TYPE_INFO_T *type;
-	 if ((retval = nc4_find_type(h5, att->xtype, &type)))
-	    return retval;
+	 if ((retval = nc4_find_type(h5, att->xtype, &type))) {
+	   if(bufr) free(bufr);
+	   return retval;
+	 }
 	 for (i = 0; i < att->len; i++)
 	 {
 	    vldest[i].len = att->vldata[i].len;
