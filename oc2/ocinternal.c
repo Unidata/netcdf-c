@@ -324,7 +324,8 @@ createtempfile(OCstate* state, OCtree* tree)
         fd = createtempfile1(TMPPATH2,&name);
     if(fd < 0) {
         oclog(OCLOGERR,"oc_open: attempt to open tmp file failed: %s",name);
-        return errno;
+        if(name) free(name);
+	return errno;
     }
 #ifdef OCDEBUG
     oclog(OCLOGNOTE,"oc_open: using tmp file: %s",name);
@@ -368,6 +369,9 @@ createtempfile1(char* tmppath, char** tmpnamep)
 #endif /* !HAVE_MKSTEMP */
     if(tmpname == NULL) return -1;
     if(tmpnamep) *tmpnamep = tmpname;
+    else
+      free(tmpname);
+
     return fd;
 }
 
@@ -555,7 +559,7 @@ ocsetcurlproperties(OCstate* state)
     if(state->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len);
-	snprintf(agent,len+1,"%s%s",DFALTUSERAGENT,VERSION);
+	snprintf(agent,len,"%s%s",DFALTUSERAGENT,VERSION);
 	state->curlflags.useragent = agent;
     }
     return;
