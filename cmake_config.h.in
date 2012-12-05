@@ -44,8 +44,8 @@
 #define MAX_DEFAULT_CACHE_SIZE	${MAX_DEFAULT_CACHE_SIZE}
 #define NCIO_MINBLOCKSIZE	${NCIO_MINBLOCKSIZE}
 
-#define PACKAGE_VERSION "${PACKAGE_VERSION}"
-
+#define PACKAGE_VERSION "${VERSION}"
+#define VERSION "${VERSION}"
 /* For HDF5 use. */
 #cmakedefine H5_USE_16_API 1
 
@@ -85,9 +85,6 @@
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 
-
-/* Location to store very large netCDF test files. */
-#cmakedefine TEMP_LARGE "@TEMP_LARGE@"
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
@@ -170,16 +167,39 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
 
-#define SIZEOF_SHORT	@SIZEOF_DOUBLE@
-#define	SIZEOF_INT	@SIZEOF_INT@
-#define SIZEOF_LONG	@SIZEOF_LONG@
-#define SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
-#define SIZEOF_SIZE_T	@SIZEOF_SIZE_T@
-#define SIZEOF_FLOAT	@SIZEOF_FLOAT@
-#define SIZEOF_DOUBLE	@SIZEOF_DOUBLE@
-#define SIZEOF_OFF_T	@SIZEOF_OFF_T@
-#define SIZEOF_INT64_T  @SIZEOF_INT64_T@
-#define SIZEOF_UINT64_T @SIZEOF_UINT64_T@
+#if !defined(__APPLE__)
+/* The size of `double` as computed by sizeof. */
+#cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
+/* The size of `float` as computed by sizeof. */
+#cmakedefine SIZEOF_FLOAT @SIZEOF_FLOAT@
+/* The size of `int` as computed by sizeof. */
+#cmakedefine SIZEOF_INT @SIZEOF_INT@
+/* The size of `long` as computed by sizeof. */
+#cmakedefine SIZEOF_LONG @SIZEOF_LONG@
+/* The size of `long long` as computed by sizeof. */
+#cmakedefine SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
+/* The size of `off_t` as computed by sizeof. */
+#cmakedefine SIZEOF_OFF_T @SIZEOF_OFF_T@
+/* The size of `short` as computed by sizeof. */
+#cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
+/* The size of `size_t` as computed by sizeof. */
+#cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+/* The size of `uchar` as computed by sizeof. */
+#cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
+#else
+#define SIZEOF_SHORT	2
+#define	SIZEOF_INT	4
+#if defined(__LP64__) && __LP64__
+#define SIZEOF_LONG	8
+#define SIZEOF_SIZE_T	8
+#else
+#define SIZEOF_LONG	4
+#define SIZEOF_SIZE_T	4
+#endif
+#define SIZEOF_FLOAT	4
+#define SIZEOF_DOUBLE	8
+#define SIZEOF_OFF_T	8
+#endif
 
 /* Set if we have strdup */
 #cmakedefine HAVE_STRDUP
@@ -232,13 +252,6 @@
 #cmakedefine CRAY_STACKSEG_END
 #cmakedefine DLL_EXPORT
 #cmakedefine DLL_NETCDF
-
-/* Enable Large inode numbers on Mac OSX 10.5 */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif
-
-
 
 #include <ncconfigure.h>
 #endif

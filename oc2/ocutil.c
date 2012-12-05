@@ -528,8 +528,7 @@ NULL,
 const char*
 ocdtmodestring(OCDT mode,int compact)
 {
-#define MAXMODESTRING (NMODES*(MAXMODENAME+1))
-    static char result[1+MAXMODESTRING]; /* hack to avoid malloc */
+    static char result[1+(NMODES*(MAXMODENAME+1))]; /* hack to avoid malloc */
     int i;
     char* p = result;
     result[0] = '\0';

@@ -238,10 +238,6 @@ occurlopen(CURL** curlp)
 		cstat = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 		if (cstat != CURLE_OK)
 			stat = OC_ECURL;
-		/* some servers don't like requests that are made without a user-agent */
-		cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-		if (cstat != CURLE_OK)
-			stat = OC_ECURL;
 	}
 	if (curlp)
 		*curlp = curl;

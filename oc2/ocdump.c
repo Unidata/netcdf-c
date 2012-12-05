@@ -298,7 +298,7 @@ dumpfield(int index, char* n8, int isxdr)
                 sprintf(stmp,"\\%02x",c);
 	    else
                 sprintf(stmp,"%c",c);
-	    strncat(tmp,stmp,4);
+	    strncat(tmp,stmp,strlen(stmp));
         }
     }
 

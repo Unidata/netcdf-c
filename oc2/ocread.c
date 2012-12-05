@@ -14,7 +14,6 @@
 #ifdef _MSC_VER
 #include <io.h>
 #endif
-
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"
@@ -212,7 +211,9 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
-    snprintf(filename,sizeof(filename),"%s%s",path,(suffix == NULL ? "" : suffix));
+    snprintf(filename,sizeof(filename),"%s%s",
+		path,
+		(suffix != NULL ? suffix : ""));
     flags = O_RDONLY;
 #ifdef O_BINARY
     flags |= O_BINARY;
