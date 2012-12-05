@@ -68,8 +68,7 @@ static void* nvmalloc(int ct, int size) {
 
 
 # define A_DECL(name, type, ndims, rhs) \
-	type *const name = (type *) nvmalloc(ndims,sizeof(type))
-//ALLOC_ONSTACK(name, type, ndims)
+	ALLOC_ONSTACK(name, type, ndims)
 
 # define A_FREE(name) \
 	FREE_ONSTACK(name)
@@ -680,21 +679,6 @@ ncvarput1(
 	NDIMS_DECL
 	A_DECL(coordp, size_t, (size_t)ndims, index);
 	A_INIT(coordp, size_t, (size_t)ndims, index);
-	
-	//const int ndims = nvdims(ncid,varid); //NDIMS_DECL
-	//int ndims2 = min(1,ndims);
-	//size_t *const coordp = (size_t*)malloc((ndims2)*sizeof(size_t)) ;
-
-	//const long *lp = index; 
-	//size_t *tp = coordp; 
-	//size_t *const end = coordp + ndims; 
-	//while(tp < end) 
-	//{
-	//	*tp++ = (size_t) *lp++; 
-	//} 
-
-	
-
 	{
 	const int status = nc_put_var1(ncid, varid, coordp, value);
 	A_FREE(coordp);
