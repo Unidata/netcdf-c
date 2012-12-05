@@ -12,7 +12,7 @@ See \ref copyright file for copying and redistribution conditions.
 #include <stdio.h>
 #include <stdarg.h>
 #include "netcdf.h"
-
+#include "math.h"
 /* The subroutines in error.c emit no messages unless NC_VERBOSE bit
  * is on.  They call exit() when NC_FATAL bit is on. */
 int ncopts = (NC_FATAL | NC_VERBOSE) ;
@@ -43,7 +43,7 @@ int ncerr = NC_NOERR ;
 
 # include "onstack.h"
 
-static size_t
+static int
 nvdims(int ncid, int varid)
 {
    int ndims=-1, status;
@@ -56,7 +56,16 @@ nvdims(int ncid, int varid)
    return ndims;
 }
 
-#define NDIMS_DECL	const size_t ndims = nvdims(ncid, varid);
+static void* nvmalloc(int ct, int size) {
+	int mct = ct;
+	if(ct < 0) mct = 1;
+
+	return malloc(mct * size);
+
+}
+
+#define NDIMS_DECL const int ndims = nvdims(ncid, varid);
+
 
 # define A_DECL(name, type, ndims, rhs) \
 	ALLOC_ONSTACK(name, type, ndims)
@@ -66,6 +75,7 @@ nvdims(int ncid, int varid)
 
 # define A_INIT(lhs, type, ndims, rhs) \
 	{ \
+		if(ndims >= 0) { \
 		const long *lp = rhs; \
 		type *tp = lhs; \
 		type *const end = lhs + ndims; \
@@ -73,7 +83,10 @@ nvdims(int ncid, int varid)
 		{ \
 			*tp++ = (type) *lp++; \
 		} \
-	}
+		} \
+	} \
+	\
+	if (ndims < 0) {nc_advise("nvdims",NC_EMAXDIMS,"ndims %d",ndims); return -1;}
 
 
 #endif
@@ -664,8 +677,8 @@ ncvarput1(
 )
 {
 	NDIMS_DECL
-	A_DECL(coordp, size_t, ndims, index);
-	A_INIT(coordp, size_t, ndims, index);
+	A_DECL(coordp, size_t, (size_t)ndims, index);
+	A_INIT(coordp, size_t, (size_t)ndims, index);
 	{
 	const int status = nc_put_var1(ncid, varid, coordp, value);
 	A_FREE(coordp);
@@ -773,7 +786,9 @@ ncvarputs(
 		return ncvarput(ncid, varid, start, count, value);
 	/* else */
 	{
-	NDIMS_DECL
+
+	NDIMS_DECL 
+
 	A_DECL(stp, size_t, ndims, start);
 	A_DECL(cntp, size_t, ndims, count);
 	A_DECL(strdp, ptrdiff_t, ndims, stride);

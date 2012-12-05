@@ -22,6 +22,10 @@ IF(USE_NETCDF4)
   SET(EXTRA_TSTS ${EXTRA_TSTS} tst_atts)
 ENDIF()
 
+IF(LARGE_FILE_TESTS)
+  SET(EXTRA_TSTS ${EXTRA_TSTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large large_files)
+ENDIF()
+
 IF(BUILD_DISKLESS)
   SET(EXTRA_TSTS ${EXTRA_TSTS} tst_diskless tst_diskless3 tst_diskless4)
   IF(USE_NETCDF4)

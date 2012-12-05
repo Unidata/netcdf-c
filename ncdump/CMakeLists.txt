@@ -46,20 +46,6 @@ IF(ENABLE_TESTS)
 	# The tests are set up as a combination of shell scripts and executables that
 	# must be run in a particular order. It is painful but will use macros to help
 	# keep it from being too bad.
-	# Binary Test Macro
-	#MACRO(add_bin_test F)
-	#	ADD_EXECUTABLE(ncdump_${F} ${F}.c)
-	#	TARGET_LINK_LIBRARIES(ncdump_${F} netcdf)
-	#	ADD_TEST(ncdump_${F} ${EXECUTABLE_OUTPUT_PATH}/ncdump_${F})
-	
-	#ENDMACRO()
-	
-	# Shell script Macro
-	#MACRO(add_sh_test F)
-	#	IF(NOT MSVC)
-	#		ADD_TEST(ncdump_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
-	#	ENDIF()
-	#ENDMACRO()
 	
 	## Start adding tests in the appropriate order
 	add_sh_test(ncdump run_tests)
@@ -89,8 +75,26 @@ IF(ENABLE_TESTS)
 		add_bin_test(ncdump tst_comp)
 		add_bin_test(ncdump tst_comp2)
 		add_bin_test(ncdump tst_nans)
-		add_bin_test(ncdump tst_special_atts)
+		#add_bin_test(ncdump tst_special_atts)
+		# Add this test by hand, as it is also called from a script.
+		# Editing the script would break autotools compatibility.
+		set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
+		FOREACH (MTEST ${MANUAL_TESTS})
+			ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
+			TARGET_LINK_LIBRARIES(${MTEST} netcdf)
+			IF(MSVC)
+				SET_TARGET_PROPERTIES(${MTEST}
+					PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+				)
+			ENDIF()
+			#ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
+		ENDFOREACH()
+		
 		IF(NOT WIN32)
+			# tst_netcdf4 depends on the output from other scripts
+			# that don't currently run. So for time being, leave
+			# it disabled.
+
 			#add_sh_test(ncdump tst_netcdf4)
 			#add_bin_test(ncdump tst_h_rdc0)
 		ENDIF()
@@ -100,9 +104,9 @@ IF(ENABLE_TESTS)
 			#add_sh_test(ncdump tst_fillbug)
 		ENDIF()
 		IF(NOT WIN32)	
-			#add_sh_test(ncdump tst_netcdf4_4)
+			add_sh_test(ncdump tst_netcdf4_4)
 		ENDIF()	
-		add_bin_test(ncdump tst_compress)
+		
 		IF(NOT WIN32)
 			#add_sh_test(ncdump tst_nccopy4)
 		ENDIF()
@@ -112,7 +116,7 @@ IF(ENABLE_TESTS)
 	
 	#add_sh_test(tst_ncgen4_classic)
 	IF(USE_NETCDF4)
-		#add_sh_test(tst_ncgen4)
+		add_sh_test(ncdump tst_ncgen4)
 	ENDIF()
 
 

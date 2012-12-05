@@ -1,4 +1,4 @@
-
+ 
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
 
@@ -90,7 +90,7 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 
 
-	ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=/machine/wfisher/netcdf-cmake/ncgen;" "export TOPSRCDIR=/machine/wfisher/netcdf-cmake;" "/machine/wfisher/netcdf-cmake/build/ncgen/run_tests.sh" "-c" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+	ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
 	IF(MSVC)
 		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
 	ENDIF()
@@ -129,7 +129,7 @@ ENDMACRO()
 # Shell script Macro
 MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
-		ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};" "export TOPSRCDIR=${CMAKE_SOURCE_DIR};" "${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+		ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
 	ENDIF()
 
 ENDMACRO()
@@ -189,7 +189,9 @@ ENDIF()
 
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
-
+IF(ENABLE_LOGGING)
+	SET(LOGGING ON)
+ENDIF()
 # Option to use HDF4
 OPTION (USE_HDF4 "Build NetCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required." OFF)
 IF (USE_HDF4) 
@@ -341,6 +343,9 @@ IF(ENABLE_LARGE_FILE_TESTS)
 	SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
+# Location for large file tests.
+SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
+
 OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
 IF(ENABLE_INTERNAL_DOCS)
 	SET(BUILD_INTERNAL_DOCS ON)
@@ -434,6 +439,8 @@ CHECK_TYPE_SIZE("off_t"		 SIZEOF_OFF_T)
 CHECK_TYPE_SIZE("short"		 SIZEOF_SHORT)
 CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
+CHECK_TYPE_SIZE("int64_t"	 SIZEOF_INT64_T)
+CHECK_TYPE_SIZE("uint64_t"	 SIZEOF_UINT64_T)
 
 # Check for various functions. 
 CHECK_FUNCTION_EXISTS(fsync	HAVE_FSYNC)
@@ -639,8 +646,9 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
 )
 
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
-SET(CPACK_PACKAGE_VERSION "4.2.x-Developer_Snapshot")
-
+IF(NOT CPACK_PACK_VERSION)
+	SET(CPACK_PACKAGE_VERSION "4.2.x-Developer_Snapshot")
+ENDIF()
 IF(APPLE)
   SET(CPACK_SOURCE_GENERATOR "TBZ2")
   SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")

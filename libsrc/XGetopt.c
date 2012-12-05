@@ -186,7 +186,7 @@ int getopt(int argc, TCHAR *argv[], TCHAR *optstring)
 	}
 
 	c = *next++;
-	*cp = _tcschr(optstring, c);
+	cp = strchr(optstring, c);
 
 	if (cp == NULL || c == _T(':'))
 		return _T('?');
