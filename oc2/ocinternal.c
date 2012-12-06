@@ -343,23 +343,24 @@ createtempfile1(char* tmppath, char** tmpnamep)
 {
     int fd = 0;
     char* tmpname = NULL;
-    tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
+    int tmpsize = strlen(tmppath)+strlen("dataddsXXXXXX");
+    tmpname = (char*)malloc(tmpsize+1);
     if(tmpname == NULL) return -1;
-    strcpy(tmpname,tmppath);
+    strncpy(tmpname,tmppath,tmpsize);
 #ifdef HAVE_MKSTEMP
-    strcat(tmpname,"dataddsXXXXXX");
+    strncat(tmpname,"dataddsXXXXXX",strlen("dataddsXXXXXX")));
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     fd = mkstemp(tmpname);
 #else /* !HAVE_MKSTEMP */
     /* Need to simulate by using some kind of pseudo-random number */
-    strcat(tmpname,"datadds");
+    strncat(tmpname,"datadds",strlen("datadds"));
     {
 	int rno = rand();
 	char spid[7];
 	if(rno < 0) rno = -rno;
-        sprintf(spid,"%06d",rno);
-        strcat(tmpname,spid);
+        snprintf(spid,sizeof(spid),"%06d",rno);
+        strncat(tmpname,spid,strlen(spid));
 #  ifdef WIN32
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
@@ -371,7 +372,6 @@ createtempfile1(char* tmppath, char** tmpnamep)
     if(tmpnamep) *tmpnamep = tmpname;
     else
       free(tmpname);
-
     return fd;
 }
 
@@ -557,8 +557,8 @@ ocsetcurlproperties(OCstate* state)
 	}
     }
     if(state->curlflags.useragent == NULL) {
-        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
-	char* agent = (char*)malloc(len);
+        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION);
+	char* agent = (char*)malloc(len+1);
 	snprintf(agent,len,"%s%s",DFALTUSERAGENT,VERSION);
 	state->curlflags.useragent = agent;
     }

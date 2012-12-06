@@ -125,7 +125,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
       if(i != 1)
-	 return errno;
+	 return NC_ENOTNC;
    }
     
    /* Ignore the first byte for HDF */
@@ -140,7 +140,10 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 	 *cdf = 1; /* netcdf classic version 1 */
       else if(magic[3] == '\002') 
 	 *cdf = 2; /* netcdf classic version 2 */
-   }
+      else
+	 return NC_ENOTNC;
+   } else
+	 return NC_ENOTNC;
     
    return NC_NOERR;
 }
@@ -1567,8 +1570,8 @@ NC_open(const char *path, int cmode,
 	 } else if(cdfversion != 0) {
 	    model = NC_DISPATCH_NC3;
 	 }
-      } 
-      /* else ignore the file */
+      } else /* presumably not a netcdf file */
+	return NC_ENOTNC;
    }
 
    /* Look to the incoming cmode for hints */
