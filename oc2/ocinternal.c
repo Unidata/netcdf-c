@@ -348,7 +348,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
     if(tmpname == NULL) return -1;
     strncpy(tmpname,tmppath,tmpsize);
 #ifdef HAVE_MKSTEMP
-    strncat(tmpname,"dataddsXXXXXX",strlen("dataddsXXXXXX")));
+    strncat(tmpname,"dataddsXXXXXX",strlen("dataddsXXXXXX"));
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     fd = mkstemp(tmpname);
