@@ -55,7 +55,13 @@ DOBUILD () {
     cmake --build . --target package
     CHECKERR
 
-    mv -f *.zip *.dmg *.exe $INSTALLDIRS
+    for X in zip dmg exe; do
+	    TNAME="NetCDF-$NAME.$X"
+	    if [ -f $TNAME ]; then
+		    mv -f $TNAME $INSTALLDIRS
+	    fi
+    done
+
     cd $CURDIR
     echo "Finished building $NAME"
     
