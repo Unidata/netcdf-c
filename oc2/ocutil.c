@@ -551,3 +551,47 @@ ocdtmodestring(OCDT mode,int compact)
     }
     return result;
 }
+
+
+/*
+Instead of using snprintf to concatenate
+multiple strings into a given target,
+provide a direct concatenator.
+So, this function concatenates n strings
+into dst, being careful to not overrun size.
+Note that size is assumed to include the null
+terminator and that in the event of overrun,
+the string will have a null at dst[size-1].
+Return -1 if overrun, 0 otherwise.
+*/
+int
+occoncat(char* dst, size_t size, size_t n, ...)
+{
+    va_list args;
+    size_t avail = size - 1;
+    int i; 
+    int status = 0; // assume ok
+    char* p = dst;
+
+    if(n == 0) {
+	if(size > 0)
+	    dst[0] = '\0';
+	return (size > 0 ? 0: -1);
+    }
+	
+    va_start(args,n);
+    for(i=0;i<n;i++) {
+	char* q = va_arg(args, char*);
+	for(;;) {
+	    int c = *q++;
+	    if(c == '\0') break;
+	    if(avail == 0) {status = -1; goto done;}
+	    *p++ = c;
+	    avail--;
+	}
+    }
+
+done:
+    va_end(args);
+    return status;    
+}

@@ -43,6 +43,8 @@ extern void ocdataddsmsg(struct OCstate*, struct OCtree*);
 
 extern const char* ocdtmodestring(OCDT mode,int compact);
 
+extern int occoncat(char* dst, size_t size, size_t n, ...);
+
 /* Define some classifiers */
 #define iscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid)
 

@@ -7,7 +7,6 @@
 #include "ocinternal.h"
 #include "ocdebug.h"
 
-
 /* For consistency with Java parser */
 #define null NULL
 
