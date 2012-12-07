@@ -125,7 +125,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
       if(i != 1)
-	 return NC_ENOTNC;
+	 return errno;
    }
     
    /* Ignore the first byte for HDF */
@@ -1571,7 +1571,7 @@ NC_open(const char *path, int cmode,
 	    model = NC_DISPATCH_NC3;
 	 }
       } else /* presumably not a netcdf file */
-	return NC_ENOTNC;
+	return stat;
    }
 
    /* Look to the incoming cmode for hints */

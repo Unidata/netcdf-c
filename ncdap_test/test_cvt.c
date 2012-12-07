@@ -107,7 +107,9 @@ static char string3_tst[DIMSIZE][STRLEN];
 
 int main()
 {
+#ifdef GENERATE
     int i,j;
+#endif
     int ncid, varid;
     int ncstat = NC_NOERR;
     char* url;

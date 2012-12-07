@@ -45,7 +45,9 @@ typedef struct Odom {
     size_t* count;
 } Odom;
 
+#if 0
 static float targetwhole[ISTA*IZ];
+#endif
 static float targetpart[ISTA*IZ];
 static float target_content[ISTA*IZ];
 
