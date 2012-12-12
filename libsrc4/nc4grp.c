@@ -178,7 +178,7 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
    int i, ret = NC_NOERR;
 
    /* How many generations? */
-   for (g = 0; !nc_inq_grp_parent(id, &parent_id); g++, id = parent_id)
+   for (g = 0; !NC4_inq_grp_parent(id, &parent_id); g++, id = parent_id)
       ;
 
    /* Allocate storage. */
@@ -197,12 +197,12 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
    /* Get the ncids for all generations. */
    gid[0] = ncid;
    for (i = 1; i < g && !ret; i++)
-      ret = nc_inq_grp_parent(gid[i - 1], &gid[i]);
+      ret = NC4_inq_grp_parent(gid[i - 1], &gid[i]);
 
    /* Assemble the full name. */
    for (i = g - 1; !ret && i >= 0 && !ret; i--)
    {
-      if ((ret = nc_inq_grpname(gid[i], grp_name)))
+      if ((ret = NC4_inq_grpname(gid[i], grp_name)))
 	 break;
       strcat(name, grp_name);
       if (i)
@@ -297,7 +297,7 @@ NC4_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
       /* Keep parsing the string. */
       for (; cp; id1 = id2)
       {
-	 if ((ret = nc_inq_grp_ncid(id1, cp, &id2)))
+	 if ((ret = NC4_inq_ncid(id1, cp, &id2)))
 	 {
 	    free(full_name_cpy);
 	    return ret;
@@ -335,7 +335,7 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
    {
       /* If this is a netcdf-3 file, there is only one group, the root
        * group, and its vars have ids 0 thru nvars - 1. */
-      if ((retval = nc_inq(ncid, NULL, &num_vars, NULL, NULL)))
+      if ((retval = NC4_inq(ncid, NULL, &num_vars, NULL, NULL)))
 	 return retval;
       if (varids)
 	 for (v = 0; v < num_vars; v++)
@@ -396,7 +396,7 @@ NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
    {
       /* If this is a netcdf-3 file, then the dimids are going to be 0
        * thru ndims-1, so just provide them. */
-      if ((retval = nc_inq(ncid, &num, NULL, NULL, NULL)))
+      if ((retval = NC4_inq(ncid, &num, NULL, NULL, NULL)))
 	 return retval;
       if (dimids)
 	 for (d = 0; d < num; d++)

@@ -1097,7 +1097,7 @@ NC3_close(int ncid)
 		status = NC_endef(nc3, 0, 1, 0, 1); /* TODO: defaults */
 		if(status != NC_NOERR )
 		{
-			(void) nc_abort(ncid);
+			(void) NC3_abort(ncid);
 			return status;
 		}
 	}

@@ -137,7 +137,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
    if (preemption >= 0)
       real_preemption = preemption / 100.;
 	 
-   return nc_set_var_chunk_cache(ncid, varid, real_size, real_nelems, 
+   return NC4_set_var_chunk_cache(ncid, varid, real_size, real_nelems, 
 				 real_preemption);
 }
 
@@ -190,7 +190,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
    float real_preemption;
    int ret;
 
-   if ((ret = nc_get_var_chunk_cache(ncid, varid, &real_size, 
+   if ((ret = NC4_get_var_chunk_cache(ncid, varid, &real_size, 
 				     &real_nelems, &real_preemption)))
       return ret;
    
@@ -915,7 +915,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       memcpy(var->fill_value, fill_value, type_size);
 
       /* If there's a _FillValue attribute, delete it. */
-      retval = nc_del_att(ncid, varid, _FillValue);
+      retval = NC4_del_att(ncid, varid, _FillValue);
       if (retval && retval != NC_ENOTATT)
          return retval;
 

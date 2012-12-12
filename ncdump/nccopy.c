@@ -33,7 +33,7 @@ int optind;
 #define COPY_BUFFER_SIZE (5000000)
 #define COPY_CHUNKCACHE_PREEMPTION (1.0f) /* for copying, can eject fully read chunks */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
-#define CHUNK_THRESHOLD (1024)	/* variables with fewer bytes don't get chunked */
+#define CHUNK_THRESHOLD (8192)	/* variables with fewer bytes don't get chunked */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -49,10 +49,13 @@ static char* option_chunkspec = 0;   /* default, no chunk specification */
 static size_t option_copy_buffer_size = COPY_BUFFER_SIZE;
 static size_t option_chunk_cache_size = CHUNK_CACHE_SIZE; /* default from config.h */
 static size_t option_chunk_cache_nelems = CHUNK_CACHE_NELEMS; /* default from config.h */
-static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
-					    * chunk cache for each variable */
 static int option_read_diskless = 0; /* default, don't read input into memory on open */
 static int option_write_diskless = 0; /* default, don't write output to diskless file */
+static int option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
+						      * chunksizes of its dimensions is smaller
+						      * than this */
+static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
+					    * chunk cache for each variable */
 
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
@@ -79,6 +82,15 @@ get_grpid(int igrp, int parid, int *ogrpp) {
     return stat;
 }
 
+/* Return size in bytes of a variable value */
+static size_t
+val_size(int grpid, int varid) {
+    nc_type vartype;
+    size_t value_size;
+    NC_CHECK(nc_inq_vartype(grpid, varid, &vartype));
+    NC_CHECK(nc_inq_type(grpid, vartype, NULL, &value_size));
+    return value_size;
+}
 
 #ifdef USE_NETCDF4
 /* Get parent id needed to define a new group from its full name in an
@@ -383,29 +395,31 @@ copy_groups(int iroot, int oroot)
 
     /* get total number of groups and their ids, including all descendants */
     NC_CHECK(nc_inq_grps_full(iroot, &numgrps, NULL));
-    grpids = emalloc(numgrps * sizeof(int));
-    NC_CHECK(nc_inq_grps_full(iroot, NULL, grpids));
-    /* create corresponding new groups in ogrp, except for root group */
-    for(i = 1; i < numgrps; i++) {
-	char *grpname_full;
-	char grpname[NC_MAX_NAME];
-	size_t len_name;
-	int ogid, oparid;
-	/* get full group name of input group */
-	NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
-	grpname_full = emalloc(len_name + 1);
-	NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
-	/* get id of parent group of corresponding group in output.
-	 * Note that this exists, because nc_inq_groups returned
-	 * grpids in preorder, so parents are always copied before
-	 * their subgroups */
-	NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
-	NC_CHECK(nc_inq_grpname(grpids[i], grpname));
-	/* define corresponding group in output */
-	NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
-	free(grpname_full);
+    if(numgrps > 1) {		/* there's always 1 root group */
+	grpids = emalloc(numgrps * sizeof(int));
+	NC_CHECK(nc_inq_grps_full(iroot, NULL, grpids));
+	/* create corresponding new groups in ogrp, except for root group */
+	for(i = 1; i < numgrps; i++) {
+	    char *grpname_full;
+	    char grpname[NC_MAX_NAME];
+	    size_t len_name;
+	    int ogid, oparid;
+	    /* get full group name of input group */
+	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
+	    grpname_full = emalloc(len_name + 1);
+	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
+	    /* get id of parent group of corresponding group in output.
+	     * Note that this exists, because nc_inq_groups returned
+	     * grpids in preorder, so parents are always copied before
+	     * their subgroups */
+	    NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
+	    NC_CHECK(nc_inq_grpname(grpids[i], grpname));
+	    /* define corresponding group in output */
+	    NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
+	    free(grpname_full);
+	}
+	free(grpids);
     }
-    free(grpids);
     return stat;    
 }
 
@@ -463,27 +477,36 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
 	if (ndims > 0) {		/* no chunking for scalar variables */
 	    int contig = 0;
-	    NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
-	    if(contig == 1) {
+	    size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
+	    int *dimids = (int *) emalloc(ndims * sizeof(int));
+	    int idim;
+	     /* size of a chunk: product of dimension chunksizes and size of value */ 
+	    size_t csprod = val_size(ogrp, o_varid);
+	    int is_unlimited = 0;
+	    NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, chunkp));
+	    NC_CHECK(nc_inq_vardimid(igrp, varid, dimids));
+
+	    for(idim = 0; idim < ndims; idim++) {
+		int idimid = dimids[idim];
+		int odimid = dimmap_odimid(idimid);
+		size_t chunksize = chunkspec_size(idimid);
+		if(chunksize > 0) { /* found in chunkspec */
+		    chunkp[idim] = chunksize;
+		}
+		csprod *= chunkp[idim];
+		if(dimmap_ounlim(odimid))
+		    is_unlimited = 1;
+	    }
+	    /* Explicitly set chunking, even if default */
+	    /* If product of chunksizes is too small and no unlimited
+	     * dimensions used, don't chunk */
+	    if ((csprod < option_min_chunk_bytes && !is_unlimited) || contig == 1) {
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
 	    } else {
-		size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
-		int *dimids = (int *) emalloc(ndims * sizeof(int));
-		int idim;
-		NC_CHECK(nc_inq_var_chunking(igrp, varid, NULL, chunkp));
-		NC_CHECK(nc_inq_vardimid(igrp, varid, dimids));
-		for(idim = 0; idim < ndims; idim++) {
-		    int dimid = dimids[idim];
-		    size_t chunksize = chunkspec_size(dimid);
-		    if(chunkspec_size(dimid) > 0) { /* found in chunkspec */
-			chunkp[idim] = chunksize;
-		    }
-		}
-		/* explicitly set chunking, even if default */
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
-		free(dimids);
-		free(chunkp);
 	    }
+	    free(dimids);
+	    free(chunkp);
 	}
     }
     { /* handle compression parameters, copying from input, overriding
@@ -904,8 +927,7 @@ copy_var_data(int igrp, int varid, int ogrp) {
     NC_CHECK(nc_inq_varname(igrp, varid, varname));
     NC_CHECK(nc_inq_varid(ogrp, varname, &ovarid));
     NC_CHECK(nc_inq_vartype(igrp, varid, &vartype));
-    /* from type, get size in memory needed for each value */
-    NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
+    value_size = val_size(igrp, varid);
     if(value_size > option_copy_buffer_size) {
 	option_copy_buffer_size = value_size;
 	do_realloc = 1;
@@ -1035,23 +1057,24 @@ copy_data(int igrp, int ogrp)
     return stat;
 }
 
-/* Count total number of dimensions in ncid and all its subgroups */
+/* Count total number of dimensions in ncid and all its descendant subgroups */
 int
 count_dims(ncid) {
     int numgrps;
-    int *grpids;
-    int igrp;
-    int ndims=0;
-    /* get total number of groups and their ids, including all descendants */
-    NC_CHECK(nc_inq_grps_full(ncid, &numgrps, NULL));
-    grpids = emalloc(numgrps * sizeof(int));
-    NC_CHECK(nc_inq_grps_full(ncid, NULL, grpids));
-    for(igrp = 0; igrp < numgrps; igrp++) {
-	int ndims_local;
-	nc_inq_ndims(grpids[igrp], &ndims_local);
-	ndims += ndims_local;
+    int ndims;
+    NC_CHECK(nc_inq_ndims(ncid, &ndims));
+#ifdef USE_NETCDF4
+    NC_CHECK(nc_inq_grps(ncid, &numgrps, NULL));
+    if(numgrps > 0) {
+	int igrp;
+	int *grpids = emalloc(numgrps * sizeof(int));
+	NC_CHECK(nc_inq_grps(ncid, &numgrps, grpids));
+	for(igrp = 0; igrp < numgrps; igrp++) {
+	    ndims += count_dims(grpids[igrp]);
+	}
+	free(grpids); 
     }
-    free(grpids); 
+#endif	/* USE_NETCDF4 */
     return ndims;
 }
 
@@ -1186,8 +1209,7 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	start[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
 	count[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
 	NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
-	NC_CHECK(nc_inq_vartype(ncid, varid, &vartype));
-	NC_CHECK(nc_inq_type(ncid, vartype, NULL, &value_size));
+	value_size = val_size(ncid, varid);
 	nvals = 1;
 	for(ii = 1; ii < ndims; ii++) { /* for rec size, don't include first record dimension */
 	    size_t dimlen;
