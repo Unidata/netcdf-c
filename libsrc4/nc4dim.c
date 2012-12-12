@@ -12,6 +12,7 @@ $Id: nc4dim.c,v 1.41 2010/05/25 17:54:23 dmh Exp $
 */
 
 #include "nc4internal.h"
+#include "nc4dispatch.h"
 
 #ifdef USE_PNETCDF
 #include <pnetcdf.h>
@@ -113,7 +114,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 
    /* If it's not in define mode, enter define mode. */
    if (!(h5->flags & NC_INDEF))
-      if ((retval = nc_redef(ncid)))
+      if ((retval = NC4_redef(ncid)))
 	 return retval;
 
    /* Make sure this is a valid netcdf name. */
@@ -328,7 +329,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
 /*    { */
 /*       if (h5->cmode & NC_CLASSIC_MODEL) */
 /* 	 return NC_ENOTINDEFINE; */
-/*       if ((retval = nc_redef(ncid))) */
+/*       if ((retval = NC4_redef(ncid))) */
 /* 	 return retval; */
 /*    } */
 

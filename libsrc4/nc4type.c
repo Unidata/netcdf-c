@@ -13,6 +13,7 @@ $Id: nc4type.c,v 1.73 2010/05/25 17:54:24 dmh Exp $
 */
 
 #include "nc4internal.h"
+#include "nc4dispatch.h"
 
 #define NUM_ATOMIC_TYPES 13
 char atomic_name[NUM_ATOMIC_TYPES][NC_MAX_NAME + 1] = {"none", "byte", "char", 
@@ -206,7 +207,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
 
    /* Turn on define mode if it is not on. */
    if (!(h5->cmode & NC_INDEF))
-      if ((retval = nc_redef(ncid)))
+      if ((retval = NC4_redef(ncid)))
 	 return retval;
 
    /* No size is provided for vlens or enums, get it from the base type. */

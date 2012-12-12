@@ -1245,8 +1245,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
                                            member_name, value)))
             return retval;
-	
-		H5MM_xfree(member_name);
+         H5MM_xfree(member_name); /* Where is this defined? */
      }
       
       /* Free the tempory memory for one value, and the member name
@@ -2900,7 +2899,7 @@ NC4_sync(int ncid)
    {
       if (nc4_info->cmode & NC_CLASSIC_MODEL)
 	 return NC_EINDEFINE;
-      if ((retval = nc_enddef(ncid)))
+      if ((retval = NC4_enddef(ncid)))
 	 return retval;
    }
 

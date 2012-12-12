@@ -202,7 +202,7 @@ NC3_inq_unlimdims(int ncid, int *ndimsp, int *unlimdimidsp)
     int retval;
     int unlimid;
 
-    if ((retval = nc_inq_unlimdim(ncid, &unlimid)))
+    if ((retval = NC3_inq_unlimdim(ncid, &unlimid)))
         return retval;
     if (unlimid != -1) {
         if(ndimsp) *ndimsp = 1;
@@ -267,9 +267,9 @@ static int
 NC3_inq_varids(int ncid, int *nvarsp, int *varids)
 {
     int retval,v,nvars;
-    /* If this is a netcdf-3 file, there is only one group, the root
+    /* This is a netcdf-3 file, there is only one group, the root
         group, and its vars have ids 0 thru nvars - 1. */
-    if ((retval = nc_inq(ncid, NULL, &nvars, NULL, NULL)))
+    if ((retval = NC3_inq(ncid, NULL, &nvars, NULL, NULL)))
         return retval;
     if(nvarsp) *nvarsp = nvars;
     if (varids)
@@ -284,7 +284,7 @@ NC3_inq_dimids(int ncid, int *ndimsp, int *dimids, int include_parents)
     int retval,d,ndims;
     /* If this is a netcdf-3 file, then the dimids are going to be 0
        thru ndims-1, so just provide them. */
-    if ((retval = nc_inq(ncid, &ndims,  NULL, NULL, NULL)))
+    if ((retval = NC3_inq(ncid, &ndims,  NULL, NULL, NULL)))
         return retval;
     if(ndimsp) *ndimsp = ndims;
     if (dimids)

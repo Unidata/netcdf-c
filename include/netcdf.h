@@ -828,6 +828,7 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 EXTERNL int
 nc_redef(int ncid);
 
+/* Is this ever used? */
 EXTERNL int
 nc__enddef(int ncid, size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align);

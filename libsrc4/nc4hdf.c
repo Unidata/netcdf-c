@@ -15,6 +15,7 @@
 
 #include "config.h"
 #include "nc4internal.h"
+#include "nc4dispatch.h"
 #include <H5DSpublic.h>
 #include <math.h>
 
@@ -924,7 +925,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                   
                   /* We can't go beyond the latgest current extent of
                      the unlimited dim. */
-                  if ((retval = nc_inq_dimlen(ncid, dim->dimid, &ulen)))
+                  if ((retval = NC4_inq_dim(ncid, dim->dimid, NULL, &ulen)))
                      BAIL(retval);
                   
                   /* Check for out of bound requests. */
@@ -2561,7 +2562,7 @@ pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype,
    for (i = 0; i < var->ndims; i++)
    {
       start[i] = 0;
-      if ((retval = nc_inq_dimlen(ncid, var->dimids[i], &(count[i]))))
+      if ((retval = NC4_inq_dim(ncid, var->dimids[i], NULL, &(count[i]))))
          return retval;
    }
 
@@ -2662,7 +2663,7 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
    {
       if (h5->cmode & NC_CLASSIC_MODEL)
          return NC_EINDEFINE;
-      if ((retval = nc_enddef(ncid)))
+      if ((retval = NC4__enddef(ncid,0,0,0,0)))
          BAIL(retval);
    }
 
@@ -2748,7 +2749,7 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
          else 
          {
             size_t len;
-            if ((retval = nc_inq_dimlen(ncid, var->dimids[idim], &len)))
+            if ((retval = NC4_inq_dim(ncid, var->dimids[idim], NULL, &len)))
                goto done;
             myedges[idim] = len - mystart[idim];
          }
@@ -2773,13 +2774,13 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
       for (idim = maxidim; idim >= 0; --idim)
       {
          size_t dimlen;
-         if ((retval = nc_inq_dimlen(ncid, var->dimids[idim], &dimlen)))
+         if ((retval = NC4_inq_dim(ncid, var->dimids[idim], NULL, &dimlen)))
             goto done;
          /* Don't check unlimited dimension on PUTs. */
          if (pg == PUT)
          {
             int stop = 0, d, num_unlim_dim, unlim_dimids[NC_MAX_DIMS];
-            if ((retval = nc_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
+            if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
                goto done;
             for (d = 0; d < num_unlim_dim; d++)
                if (var->dimids[idim] == unlim_dimids[d])
