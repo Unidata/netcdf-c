@@ -90,6 +90,8 @@ if [ $# -gt 0 ]; then
 			* ) DOHELP;;
 		esac
 	done
+else 
+	DOHELP
 fi
 
 
