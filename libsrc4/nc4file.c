@@ -2404,6 +2404,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    int32 rank;
    int v, d, a;
    int retval;
+   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
 
    LOG((3, "nc4_open_hdf4_file: path %s mode %d", path, mode));
    assert(path && nc);
@@ -2415,6 +2416,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    /* Add necessary structs to hold netcdf-4 file data. */
    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
       return retval;
+   nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
    h5 = nc4_info;
    h5->hdf4++;
@@ -2604,7 +2606,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */ 
-   log_metadata_nc(h5->root_grp->file);
+   log_metadata_nc(h5->root_grp->nc4_info->controller);
 #endif
    return NC_NOERR;   
 #endif /* USE_HDF4 */
