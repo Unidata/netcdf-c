@@ -1,6 +1,14 @@
 #!/bin/bash
 
 #####
+# Help statement.
+#####
+DOHELP () {
+	echo -e "Syntax: $0 -[i][x][h]\n\ti: Compile 32-bit libraries.\n\tx: Compile 64-bit libraries.\n\th: This help dialog."
+	exit 0
+}
+	
+#####
 # Function to check for error.
 #####
 CHECKERR () {
@@ -67,6 +75,23 @@ DOBUILD () {
     
 }
 
+#####
+# End functions, now parse arguments.
+#####
+BUILD32=""
+BUILD64=""
+
+if [ $# -gt 0 ]; then
+	while getopts "ixh" Option; do
+		case $Option in
+			i ) BUILD32="TRUE";;
+			x ) BUILD64="TRUE";;
+			h ) DOHELP;;
+			* ) DOHELP;;
+		esac
+	done
+fi
+
 
 #####
 # Set up platform-specific variables 
@@ -126,16 +151,19 @@ PLTFRM="32"
 ###
 # Shared
 ###
-RESOURCE_DIR=/c/share/w32/shared
-SHARED=ON
+if [ x$BUILD32 = "xTRUE" ]; then
+	echo "Building 32-bit libraries."	
+	RESOURCE_DIR=/c/share/w32/shared
+	SHARED=ON
 
-for NC4_STATES in OFF ON; do
-    for DAP_STATES in OFF ON; do
-	NC4=$NC4_STATES
-	DAP=$DAP_STATES
-	DOBUILD
-    done
-done
+	for NC4_STATES in OFF ON; do
+    		for DAP_STATES in OFF ON; do
+			NC4=$NC4_STATES
+			DAP=$DAP_STATES
+			DOBUILD
+	    	done
+	done
+fi
 
 # Bail if on OSX; 32 & 64 were built together.
 if [ $unamestr = "Darwin" ]; then
@@ -150,16 +178,18 @@ PLTFRM="64"
 ###
 # Shared
 ###
-RESOURCE_DIR=/c/share/x64/shared
-SHARED=ON
+if [ x$BUILD32 = "xTRUE" ]; then
+	echo "Building 64-bit libraries"
+	RESOURCE_DIR=/c/share/x64/shared
+	SHARED=ON
 
-for NC4_STATES in OFF ON; do
-    for DAP_STATES in OFF ON; do
-	NC4=$NC4_STATES
-	DAP=$DAP_STATES
-	DOBUILD
-    done
-done
-
+	for NC4_STATES in OFF ON; do
+	    for DAP_STATES in OFF ON; do
+		NC4=$NC4_STATES
+		DAP=$DAP_STATES
+		DOBUILD
+	    done
+	done
+fi
 
 exit 0
