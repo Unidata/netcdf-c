@@ -49,10 +49,10 @@ DOBUILD () {
     cmake $CURDIR -G"$CMAKEGEN" -DCPACK_PACKAGE_FILE_NAME=NetCDF-$NAME -DENABLE_TESTS=OFF -DBUILD_SHARED_LIBS=$SHARED -DENABLE_DAP=$DAP -DENABLE_NETCDF_4=$NC4 -D"CMAKE_PREFIX_PATH=$RESOURCE_DIR"
     CHECKERR
 
-    cmake --build .
+    cmake --build . --config Release
     CHECKERR
 
-    cmake --build . --target package
+    cmake --build . --target package --config Release
     CHECKERR
 
     for X in zip dmg exe; do

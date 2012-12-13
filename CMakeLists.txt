@@ -590,7 +590,6 @@ INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
 # Install the dependencies.
 IF(MSVC)
 	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-
 ENDIF()
 
 
