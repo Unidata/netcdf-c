@@ -227,16 +227,24 @@ NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
 
 #endif /* USE_NETCDF4 */
 
-/* This will copy a variable from one file to another, assuming
-   dimensions in output file are already defined and have same
-   dimension ids.
+/* This will copy a variable and its attributes from one file to
+   another, assuming dimensions in the output file are already defined
+   and have same dimension IDs and length.
 
-   This function must work even if the files are different formats,
-   (i.e. one old netcdf, the other hdf5-netcdf.)
+   This function works even if the files are different formats,
+   (for example, one netcdf classic, the other netcdf-4).
 
-   But if you're copying into a netcdf-3 file, from a netcdf-4 file,
-   you must be copying a var of one of the six netcdf-3
-   types. Similarly for the attributes. */
+   If you're copying into a classic-model file, from a netcdf-4 file,
+   you must be copying a variable of one of the six classic-model
+   types, and similarly for the attributes.
+
+   For large netCDF-3 files, this can be a very inefficient way to
+   copy data from one file to another, because adding a new variable
+   to the target file may require more space in the header and thus
+   result in moving data for other variables in the target file. This
+   is not a problem for netCDF-4 files, which support efficient
+   addition of variables without moving data for other variables.
+*/
 int
 nc_copy_var(int ncid_in, int varid_in, int ncid_out)
 {
