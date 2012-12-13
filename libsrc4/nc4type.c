@@ -113,7 +113,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
       return NC_EINVAL;
 
    /* Normalize name. */
-   if (!(norm_name = malloc(strlen(name) + 1)))
+   if (!(norm_name = (char*)malloc(strlen(name) + 1)))
       return NC_ENOMEM;
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
@@ -259,7 +259,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
 /* Get the name and size of a type. For strings, 1 is returned. For
  * VLEN the base type len is returned. */
 int
-NC4_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
+NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
 {
    NC_GRP_INFO_T *grp;
    NC_TYPE_INFO_T *type;
@@ -273,12 +273,12 @@ NC4_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
    LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid));
 
    /* If this is an atomic type, the answer is easy. */
-   if (typeid < NUM_ATOMIC_TYPES)
+   if (typeid1 < NUM_ATOMIC_TYPES)
    {
       if (name)
-	strcpy(name, atomic_name[typeid]);
+	strcpy(name, atomic_name[typeid1]);
       if (size)
-	*size = atomic_size[typeid];
+	*size = atomic_size[typeid1];
       return NC_NOERR;
    }
 
@@ -287,7 +287,7 @@ NC4_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid)))
+   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid1)))
       return NC_EBADTYPE;
 
    if (name)
@@ -313,16 +313,16 @@ NC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
 
 /* Insert a named field into a compound type. */
 int
-NC4_insert_compound(int ncid, nc_type typeid, const char *name, size_t offset, 
+NC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset, 
 		   nc_type field_typeid)
 {
-   return nc_insert_array_compound(ncid, typeid, name, offset, 
+   return nc_insert_array_compound(ncid, typeid1, name, offset, 
 				   field_typeid, 0, NULL);
 }
 
 /* Insert a named array into a compound type. */
 EXTERNL int
-NC4_insert_array_compound(int ncid, int typeid, const char *name, 
+NC4_insert_array_compound(int ncid, int typeid1, const char *name, 
 			 size_t offset, nc_type field_typeid,
 			 int ndims, const int *dim_sizesp)
 {
@@ -344,7 +344,7 @@ NC4_insert_array_compound(int ncid, int typeid, const char *name,
       return retval;
 
    /* Find type metadata. */
-   if ((retval = nc4_find_type(grp->nc4_info, typeid, &type)))
+   if ((retval = nc4_find_type(grp->nc4_info, typeid1, &type)))
       return retval;
 
    /* Did the user give us a good compound type typeid? */
@@ -369,7 +369,7 @@ NC4_insert_array_compound(int ncid, int typeid, const char *name,
 
 /* Find info about any user defined type. */
 int
-NC4_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size, 
+NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size, 
 		 nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
 {
    NC_GRP_INFO_T *grp;
@@ -377,14 +377,14 @@ NC4_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
    NC_FIELD_INFO_T *field;
    int retval;
    
-   LOG((2, "nc_inq_user_type: ncid 0x%x typeid %d", ncid, typeid));
+   LOG((2, "nc_inq_user_type: ncid 0x%x typeid %d", ncid, typeid1));
 
    /* Find group metadata. */
    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid)))
+   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid1)))
       return NC_EBADTYPE;
 
    /* Count the number of fields. */
@@ -424,7 +424,7 @@ NC4_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
 
 /* Given the ncid, typeid and fieldid, get info about the field. */
 int
-NC4_inq_compound_field(int ncid, nc_type typeid, int fieldid, char *name, 
+NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name, 
 		      size_t *offsetp, nc_type *field_typeidp, int *ndimsp, 
 		      int *dim_sizesp)
 {
@@ -438,7 +438,7 @@ NC4_inq_compound_field(int ncid, nc_type typeid, int fieldid, char *name,
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid)))
+   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid1)))
       return NC_EBADTYPE;
 
    /* Find the field. */
@@ -481,7 +481,7 @@ find_nc4_file(int ncid, NC **nc)
 
 /* Given the typeid and the name, get the fieldid. */
 int
-NC4_inq_compound_fieldindex(int ncid, nc_type typeid, const char *name, int *fieldidp)
+NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
 {
    NC *nc;
    NC_TYPE_INFO_T *type;
@@ -497,7 +497,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid, const char *name, int *fie
       return retval;
 
    /* Find the type. */
-   if ((retval = nc4_find_type(NC4_DATA(nc), typeid, &type)))
+   if ((retval = nc4_find_type(NC4_DATA(nc), typeid1, &type)))
       return retval;
 
    /* Did the user give us a good compound type typeid? */
@@ -628,7 +628,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
 /* Get information about an enum member: an identifier and
  * value. Identifier size will be <= NC_MAX_NAME. */
 int
-NC4_inq_enum_member(int ncid, nc_type typeid, int idx, char *identifier, 
+NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier, 
 		   void *value)
 {
    NC_GRP_INFO_T *grp;
@@ -637,14 +637,14 @@ NC4_inq_enum_member(int ncid, nc_type typeid, int idx, char *identifier,
    int i;
    int retval;
    
-   LOG((2, "nc_inq_enum_member: ncid 0x%x typeid %d", ncid, typeid));
+   LOG((2, "nc_inq_enum_member: ncid 0x%x typeid %d", ncid, typeid1));
 
    /* Find group metadata. */
    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
       return retval;
    
    /* Find this type. */
-   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid)))
+   if (!(type = nc4_rec_find_nc_type(grp->nc4_info->root_grp, typeid1)))
       return NC_EBADTYPE;
    
    /* Complain if they are confused about the type. */
@@ -672,7 +672,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid, int idx, char *identifier,
 /* Insert a identifierd value into an enum type. The value must fit within
  * the size of the enum type, the identifier size must be <= NC_MAX_NAME. */
 int
-NC4_insert_enum(int ncid, nc_type typeid, const char *identifier, 
+NC4_insert_enum(int ncid, nc_type typeid1, const char *identifier, 
 	       const void *value)
 {
    NC_GRP_INFO_T *grp;
@@ -692,7 +692,7 @@ NC4_insert_enum(int ncid, nc_type typeid, const char *identifier,
       return retval;
 
    /* Find type metadata. */
-   if ((retval = nc4_find_type(grp->nc4_info, typeid, &type)))
+   if ((retval = nc4_find_type(grp->nc4_info, typeid1, &type)))
       return retval;
 
    /* Did the user give us a good enum typeid? */
@@ -716,10 +716,10 @@ NC4_insert_enum(int ncid, nc_type typeid, const char *identifier,
 
 /* Insert one element into an already allocated vlen array element. */
 int
-NC4_put_vlen_element(int ncid, int typeid, void *vlen_element, 
+NC4_put_vlen_element(int ncid, int typeid1, void *vlen_element, 
 		    size_t len, const void *data)
 {
-   nc_vlen_t *tmp = vlen_element;
+   nc_vlen_t *tmp = (nc_vlen_t*)vlen_element;
    tmp->len = len;
    tmp->p = (void *)data;
    return NC_NOERR;
@@ -727,10 +727,10 @@ NC4_put_vlen_element(int ncid, int typeid, void *vlen_element,
 
 /* Insert one element into an already allocated vlen array element. */
 int
-NC4_get_vlen_element(int ncid, int typeid, const void *vlen_element, 
+NC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element, 
 		    size_t *len, void *data)
 {
-   const nc_vlen_t *tmp = vlen_element;
+   const nc_vlen_t *tmp = (nc_vlen_t*)vlen_element;
    int type_size = 4;
 
    *len = tmp->len;

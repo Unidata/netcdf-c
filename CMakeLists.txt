@@ -57,11 +57,15 @@ INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
-ENDIF()
-# Supress some warnings on Windows
-IF(MSVC)
+	# Supress some warnings on Windows
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-ENDIF()	
+ENDIF()
+
+IF (NOT CMAKE_BUILD_TYPE)
+	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
+		FORCE)
+ENDIF()
+		
 
 #####
 # Some utility macros/scripts.
@@ -116,6 +120,7 @@ MACRO(print_conf_summary)
 	MESSAGE("")
 	MESSAGE(STATUS "CMake Summary:")
 	MESSAGE("")
+	MESSAGE(STATUS "\tBuild Type:\t\t\t" ${CMAKE_BUILD_TYPE})
 	MESSAGE(STATUS "\tBuilding Shared Libraries:\t" ${BUILD_SHARED_LIBS})
 	MESSAGE(STATUS "\tBuilding NetCDF-4:\t\t" ${ENABLE_NETCDF_4})
 	MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
@@ -585,7 +590,6 @@ INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
 # Install the dependencies.
 IF(MSVC)
 	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-
 ENDIF()
 
 

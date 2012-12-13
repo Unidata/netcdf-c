@@ -1003,6 +1003,7 @@ makeconstdata(nc_type nctype)
     consttype = nctype;
     con.nctype = nctype;
     con.lineno = lineno;
+    con.filled = 0;
     switch (nctype) {
 	case NC_CHAR: con.value.charv = char_val; break;
         case NC_BYTE: con.value.int8v = byte_val; break;
