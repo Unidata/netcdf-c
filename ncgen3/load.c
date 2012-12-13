@@ -67,7 +67,7 @@ gen_load_c(
     double *doublevalp;
     char stmnt[C_MAX_STMNT];
     size_t stmnt_len;
-    char s2[C_MAX_STMNT];
+    char s2[C_MAX_STMNT] = {'\0'};
 
     if (!vars[varnum].has_data)
 	return;
