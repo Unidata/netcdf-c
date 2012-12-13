@@ -124,7 +124,7 @@ case $unamestr in
     ;;
 esac
 
-rm -rf $INSTALLDIRS
+#rm -rf $INSTALLDIRS
 mkdir -p $INSTALLDIRS
 
 
@@ -180,7 +180,7 @@ PLTFRM="64"
 ###
 # Shared
 ###
-if [ x$BUILD32 = "xTRUE" ]; then
+if [ x$BUILD64 = "xTRUE" ]; then
 	echo "Building 64-bit libraries"
 	RESOURCE_DIR=/c/share/x64/shared
 	SHARED=ON
