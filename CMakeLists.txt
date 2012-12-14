@@ -1,7 +1,7 @@
  
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
-
+ 
 #Project Name
 project(NetCDF C)
 SET(NetCDF_VERSION_MAJOR 4)
