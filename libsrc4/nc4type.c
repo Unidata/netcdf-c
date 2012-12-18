@@ -270,7 +270,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
 					
    int retval;
    
-   LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid));
+   LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid1));
 
    /* If this is an atomic type, the answer is easy. */
    if (typeid1 < NUM_ATOMIC_TYPES)
@@ -332,7 +332,7 @@ NC4_insert_array_compound(int ncid, int typeid1, const char *name,
    int retval;
 
    LOG((2, "nc_insert_array_compound: ncid 0x%x, typeid %d name %s "
-	"offset %d field_typeid %d ndims %d", ncid, typeid, 
+	"offset %d field_typeid %d ndims %d", ncid, typeid1, 
 	name, offset, field_typeid, ndims));
 
    /* Check and normalize the name. */
@@ -490,7 +490,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
    int retval;
 
    LOG((2, "nc_inq_compound_fieldindex: ncid 0x%x typeid %d name %s",
-	ncid, typeid, name));
+	ncid, typeid1, name));
 
    /* Find file metadata. */
    if ((retval = find_nc4_file(ncid, &nc)))
@@ -681,7 +681,7 @@ NC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
    int retval;
 
    LOG((2, "nc_insert_enum: ncid 0x%x, typeid %d identifier %s value %d", ncid, 
-	typeid, identifier, value));
+	typeid1, identifier, value));
 
    /* Check and normalize the name. */
    if ((retval = nc4_check_name(identifier, norm_name)))
