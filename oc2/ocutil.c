@@ -5,13 +5,11 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 #include "ocinternal.h"
 #include "ocdebug.h"
-
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
 
 /* Order is important: longest first */
 static char* DDSdatamarks[3] = {"Data:\r\n","Data:\n",(char*)NULL};
@@ -380,8 +378,10 @@ ocerrstring(int err)
 	    return "OC_EINDEX: index argument too large";
 	case OC_EBADTYPE:
 	    return "OC_EBADTYPE: argument of wrong OCtype";
-	case OC_ESCALAR:
-	    return "OC_ESCALAR: argument is a scalar and should not be or is not scalar and should be.";
+
+	/* String concatenation overrun */
+	case OC_EOVERRUN:
+	    return "OC_EOVERRUN: internal concatenation failed";
 	default: break;
     }
     return "<unknown error code>";
@@ -534,14 +534,18 @@ ocdtmodestring(OCDT mode,int compact)
     result[0] = '\0';
     if(mode == 0) {
 	if(compact) *p++ = '-';
-	else strncat(result,"NONE",strlen("NONE"));
+	else if(!occoncat(result,sizeof(result),1,"NONE"))
+	    return NULL;
     } else for(i=0;;i++) {
 	char* ms = modestrings[i];
 	if(ms == NULL) break;
-	if(!compact && i > 0) strncat(result,",",1);
+	if(!compact && i > 0)
+	    if(!occoncat(result,sizeof(result),1,","))
+		return NULL;
         if(fisset(mode,(1<<i))) {
 	    if(compact) *p++ = ms[0];
-	    else strncat(result,ms,strlen(ms));
+	    else if(!occoncat(result,sizeof(result),1,ms))
+		return NULL;
 	}
     }
     /* pad compact list out to NMODES in length (+1 for null terminator) */
@@ -557,26 +561,28 @@ ocdtmodestring(OCDT mode,int compact)
 Instead of using snprintf to concatenate
 multiple strings into a given target,
 provide a direct concatenator.
-So, this function concatenates n strings
-into dst, being careful to not overrun size.
+So, this function concats the n argument strings
+and overwrites the contents of dst.
+Care is taken to never overrun the available
+space (the size parameter).
 Note that size is assumed to include the null
 terminator and that in the event of overrun,
 the string will have a null at dst[size-1].
-Return -1 if overrun, 0 otherwise.
+Return 0 if overrun, 1 otherwise.
 */
 int
-occoncat(char* dst, size_t size, size_t n, ...)
+occopycat(char* dst, size_t size, size_t n, ...)
 {
     va_list args;
     size_t avail = size - 1;
     int i; 
-    int status = 0; // assume ok
+    int status = 1; // assume ok
     char* p = dst;
 
     if(n == 0) {
 	if(size > 0)
 	    dst[0] = '\0';
-	return (size > 0 ? 0: -1);
+	return (size > 0 ? 1: 0);
     }
 	
     va_start(args,n);
@@ -585,11 +591,71 @@ occoncat(char* dst, size_t size, size_t n, ...)
 	for(;;) {
 	    int c = *q++;
 	    if(c == '\0') break;
-	    if(avail == 0) {status = -1; goto done;}
+	    if(avail == 0) {status = 0; goto done;}
 	    *p++ = c;
 	    avail--;
 	}
     }
+    /* make sure we null terminate;
+       note that since avail was size-1, there
+       will always be room
+    */
+    *p = '\0';    
+
+done:
+    va_end(args);
+    return status;    
+}
+
+/*
+Similar to occopycat, but
+the n strings are, in effect,
+concatenated and appended to the
+current contents of dst.
+The size parameter is the total size of dst,
+including room for null terminator.
+Return 0 if overrun, 1 otherwise.
+*/
+int
+occoncat(char* dst, size_t size, size_t n, ...)
+{
+    va_list args;
+    int status = 1; // assume ok
+    size_t avail;
+    int i; 
+    char* p;
+    size_t dstused;
+    dstused = strlen(dst);
+    if(dstused >= size)
+	return 0; /* There is no room to append */
+    /* move to the end of the current contents of dst
+       and act like we are doing copycat
+    */
+    p = dst + dstused;
+    size -= dstused;
+    avail = size - 1;
+    if(n == 0) {
+	if(size > 0)
+	    p[0] = '\0';
+	return (size > 0 ? 1: 0);
+    }
+	
+    va_start(args,n);
+    for(i=0;i<n;i++) {
+	char* q = va_arg(args, char*);
+	for(;;) {
+	    int c = *q++;
+	    if(c == '\0') break;
+	    if(avail == 0) {status = 0; goto done;}
+	    *p++ = c;
+	    avail--;
+	}
+    }
+    /* make sure we null terminate;
+       note that since avail was size-1, there
+       will always be room
+    */
+    *p = '\0';    
 
 done:
     va_end(args);

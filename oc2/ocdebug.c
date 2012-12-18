@@ -2,7 +2,9 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
 #include "ocinternal.h"
 #include "ocdebug.h"
 
