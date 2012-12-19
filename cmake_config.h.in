@@ -44,7 +44,7 @@
 #define CHUNK_CACHE_PREEMPTION 	${CHUNK_CACHE_PREEMPTION}
 #define MAX_DEFAULT_CACHE_SIZE	${MAX_DEFAULT_CACHE_SIZE}
 #define NCIO_MINBLOCKSIZE	${NCIO_MINBLOCKSIZE}
-#cmakedefine _FILE_OFFSET_BITS
+#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
 
 
 #define PACKAGE_VERSION "${VERSION}"
@@ -184,6 +184,7 @@
 /* The size of `off_t` as computed by sizeof. */
 #cmakedefine SIZEOF_OFF_T @SIZEOF_OFF_T@
 /* The size of `short` as computed by sizeof. */
+#cmakedefine SIZEOF_OFF64_T @SIZEOF_OFF64_T@
 #cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
 /* The size of `size_t` as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
