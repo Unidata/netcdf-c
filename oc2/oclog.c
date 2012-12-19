@@ -4,11 +4,19 @@
  *   $Header$
  *********************************************************************/
 
+#include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <stdio.h>
-#include <fcntl.h>
-#include <stdarg.h>
 #include <string.h>
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #include "oclog.h"
 

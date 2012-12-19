@@ -65,7 +65,6 @@ IF (NOT CMAKE_BUILD_TYPE)
 	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
 		FORCE)
 ENDIF()
-
 #####
 # Some utility macros/scripts.
 #####

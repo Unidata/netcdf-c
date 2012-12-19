@@ -546,10 +546,12 @@ curllookup(char* suffix, char* url)
 {
     char key[2048];
     char* value = NULL;
-    snprintf(key,sizeof(key),"%s%s",HTTPPREFIX,suffix);
+    if(!occopycat(key,sizeof(key),2,HTTPPREFIX,suffix))
+	return NULL;
     value = ocdodsrc_lookup(key,url);
     if(value == NULL) {
-        snprintf(key,sizeof(key),"%s%s",HTTPPREFIXDEPRECATED,suffix);
+        if(!occopycat(key,sizeof(key),2,HTTPPREFIXDEPRECATED,suffix))
+	    return NULL;
         value = ocdodsrc_lookup(key,url);
     }
     return value;

@@ -124,6 +124,7 @@ OC_ENOFILE=-25,
 OC_EINDEX=-26,
 OC_EBADTYPE=-27,
 OC_ESCALAR=-28,
+OC_EOVERRUN=-29,
 } OCerror;
 
 /*!\def OCLOGNOTE
@@ -424,15 +425,6 @@ extern void oc_logtext(int tag, const char* text);
 /**************************************************/
 /* Miscellaneous */
 
-/* Return the size of the in-memory or on-disk
-   data chunk returned by the server for a given tree.
-   Zero implies it is not defined.
-*/
-/* For some reason, the MSVC compiler doesn't like this. */
-#ifndef _MSC_VER
-extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
-#endif
-
 /* Reclaim the strings within a string vector, but not the vector itself.
    This is useful for reclaiming the result of oc_data_read
    or oc_dds_attr when the type is OC_String or OC_URL.
@@ -477,6 +469,15 @@ extern OCerror oc_ping(const char* url);
 
 /* Allow the setting of the user agent */
 extern OCerror oc_set_useragent(OClink, const char* agent);
+
+/* Return the size of the in-memory or on-disk
+   data chunk returned by the server for a given tree.
+   Zero implies it is not defined.
+*/
+/* For some reason, the MSVC compiler doesn't like this. */
+#ifndef _WIN32
+extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
+#endif
 
 #ifdef __cplusplus
 }

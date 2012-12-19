@@ -1328,18 +1328,20 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
 		  const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
 #ifdef USE_HDF4   
-   NC_GRP_INFO_T *grp, *g;
+   NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
    int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
    int retval, d;
-   
+#if 0
+   NC_GRP_INFO_T *g;
+   NC_DIM_INFO_T *dim;
+#endif   
    /* Find our metadata for this file, group, and var. */
    assert(nc);
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->name);
    
    for (d = 0; d < var->ndims; d++)
