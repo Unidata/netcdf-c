@@ -336,15 +336,15 @@ ENDIF()
 
 # Enable Tests
 #IF(NOT MSVC)
-	OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-	IF(ENABLE_TESTS) 
-		SET(BUILD_TESTSETS ON CACHE BOOL "")
-	ENDIF()
+OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+IF(ENABLE_TESTS) 
+ SET(BUILD_TESTSETS ON CACHE BOOL "")
+ENDIF()
 
 # Enable Large file tests
 OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 IF(ENABLE_LARGE_FILE_TESTS)
-	SET(LARGE_FILE_TESTS ON)
+  SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
 # Location for large file tests.
@@ -359,6 +359,21 @@ OPTION (ENABLE_FSYNC	"Enable experimental fsync code." OFF)
 IF(ENABLE_FSYNC)
 	SET(USE_FSYNC ON)
 ENDIF()
+
+# Linux specific large file support flags.
+# Modelled after check in CMakeLists.txt for hdf5.
+IF (NOT WINDOWS)
+  OPTION(ENABLE_LFS "Enable large (64-bit) files on linux." ON)
+  # TODO: There needs to be a check here to ensure
+  # that large file support is actually supported.
+  
+  IF(ENABLE_LFS)
+    SET(_FILE_OFFSET_BITS 64)
+    SET(_LARGEFILE64_SOURCE TRUE)
+    SET(_LARGEFILE_SOURCE TRUE)
+  ENDIF()
+ENDIF()
+
 
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
@@ -402,13 +417,6 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
 SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
-#
-# Large File Support?
-check_type_size(off64_t OFF64_T)
-if(HAVE_OFF64_T)
-  set(_FILE_OFFSET_BITS 64)
-endif()
-
 
 #
 # Library include checks
