@@ -65,7 +65,6 @@ IF (NOT CMAKE_BUILD_TYPE)
 	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
 		FORCE)
 ENDIF()
-		
 
 #####
 # Some utility macros/scripts.
@@ -403,6 +402,14 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
 SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+#
+# Large File Support?
+check_type_size(off64_t OFF64_T)
+if(HAVE_OFF64_T)
+  set(_FILE_OFFSET_BITS 64)
+endif()
+
+
 #
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
