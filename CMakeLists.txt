@@ -1,12 +1,12 @@
- 
+  
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
-
+ 
 #Project Name
 project(NetCDF C)
 SET(NetCDF_VERSION_MAJOR 4)
 SET(NetCDF_VERSION_MINOR 2)
-SET(NetCDF_VERSION_PATCH 1)
+SET(NetCDF_VERSION_PATCH 3)
 SET(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH})
 SET(VERSION ${NetCDF_VERSION})
 
@@ -65,8 +65,6 @@ IF (NOT CMAKE_BUILD_TYPE)
 	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
 		FORCE)
 ENDIF()
-		
-
 #####
 # Some utility macros/scripts.
 #####
@@ -337,15 +335,15 @@ ENDIF()
 
 # Enable Tests
 #IF(NOT MSVC)
-	OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-	IF(ENABLE_TESTS) 
-		SET(BUILD_TESTSETS ON CACHE BOOL "")
-	ENDIF()
+OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+IF(ENABLE_TESTS) 
+ SET(BUILD_TESTSETS ON CACHE BOOL "")
+ENDIF()
 
 # Enable Large file tests
 OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 IF(ENABLE_LARGE_FILE_TESTS)
-	SET(LARGE_FILE_TESTS ON)
+  SET(LARGE_FILE_TESTS ON)
 ENDIF()
 
 # Location for large file tests.
@@ -360,6 +358,21 @@ OPTION (ENABLE_FSYNC	"Enable experimental fsync code." OFF)
 IF(ENABLE_FSYNC)
 	SET(USE_FSYNC ON)
 ENDIF()
+
+# Linux specific large file support flags.
+# Modelled after check in CMakeLists.txt for hdf5.
+IF (NOT WINDOWS)
+  OPTION(ENABLE_LFS "Enable large (64-bit) files on linux." ON)
+  # TODO: There needs to be a check here to ensure
+  # that large file support is actually supported.
+  
+  IF(ENABLE_LFS)
+    SET(_FILE_OFFSET_BITS 64)
+    SET(_LARGEFILE64_SOURCE TRUE)
+    SET(_LARGEFILE_SOURCE TRUE)
+  ENDIF()
+ENDIF()
+
 
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
@@ -403,6 +416,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
 SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+
 #
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
@@ -419,6 +433,7 @@ CHECK_INCLUDE_FILE("locale.h"	 HAVE_LOCAL_H)
 CHECK_INCLUDE_FILE("stdint.h"	 HAVE_STDINT_H)
 CHECK_INCLUDE_FILE("stdio.h"	 HAVE_STDIO_H)
 CHECK_INCLUDE_FILE("stdlib.h"	 HAVE_STDLIB_H)
+CHECK_INCLUDE_FILE("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_FILE("strings.h"	 HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("signal.h" 	 HAVE_SIGNAL_H)
 CHECK_INCLUDE_FILE("sys/dir.h"	 HAVE_SYS_DIR_H)
@@ -441,6 +456,7 @@ CHECK_TYPE_SIZE("int"		 SIZEOF_INT)
 CHECK_TYPE_SIZE("long"		 SIZEOF_LONG)
 CHECK_TYPE_SIZE("long long"	 SIZEOF_LONG_LONG)
 CHECK_TYPE_SIZE("off_t"		 SIZEOF_OFF_T)
+CHECK_TYPE_SIZE("off64_t"        SIZEOF_OFF64_T)
 CHECK_TYPE_SIZE("short"		 SIZEOF_SHORT)
 CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
@@ -642,6 +658,10 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"/myhtml/*"
 	"/.svn/"
 	"my.*sh"
+	"/.deps/"
+	"/.libs"
+	"/libcf/"
+	"/html/"
 	".*~" 
 )
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
@@ -651,10 +671,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
 
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
 IF(NOT CPACK_PACK_VERSION)
-	SET(CPACK_PACKAGE_VERSION "4.2.x-Developer_Snapshot")
+	SET(CPACK_PACKAGE_VERSION "4.2.x-rc1")
 ENDIF()
 IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TBZ2")
+  SET(CPACK_SOURCE_GENERATOR "TBZ2" "ZIP")
   SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
 ENDIF()
 

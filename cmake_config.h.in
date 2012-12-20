@@ -45,6 +45,12 @@
 #define MAX_DEFAULT_CACHE_SIZE	${MAX_DEFAULT_CACHE_SIZE}
 #define NCIO_MINBLOCKSIZE	${NCIO_MINBLOCKSIZE}
 
+#ifndef _FILE_OFFSET_BITS
+#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
+#cmakedefine _LARGEFILE64_SOURCE
+#cmakedefine _LARGEFILE_SOURCE
+#endif
+
 #define PACKAGE_VERSION "${VERSION}"
 #define VERSION "${VERSION}"
 /* For HDF5 use. */
@@ -110,6 +116,9 @@
 
 /* Define to 1 if you have the <getopt.h> header file. */
 #cmakedefine HAVE_GETOPT_H @HAVE_GETOPT_H@
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#cmakedefine HAVE_STDARG_H @HAVE_STDARG_H@
 
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H @HAVE_HDF5_H@
@@ -182,6 +191,7 @@
 /* The size of `off_t` as computed by sizeof. */
 #cmakedefine SIZEOF_OFF_T @SIZEOF_OFF_T@
 /* The size of `short` as computed by sizeof. */
+#cmakedefine SIZEOF_OFF64_T @SIZEOF_OFF64_T@
 #cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
 /* The size of `size_t` as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
