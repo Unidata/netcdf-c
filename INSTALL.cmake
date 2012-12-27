@@ -1,51 +1,17 @@
-Documentation for getting and building netCDF with CMake
+Documentation for building netCDF with CMake
 ********************************************************
 
-This document is for getting and building the netCDF C library and
-utilities, version 4.3.  Other libraries that depend on the netCDF C
-library, such as the Fortran and C++ libraries, are available as
-separate distributions that can be built and installed after the C
-library is successfully installed.  The netCDF-Java library is also a
-separate distribution that is currently independent of the netCDF C
-library.
 
-Getting NetCDF
-**************
+This document describes building the netCDF 4.3 C libraries
+using KitWare's CMake utility.  By integrating CMake, we are 
+able to  provide cross-platform (Windows as well as Linux/Unix)
+configuration and build support.
 
-The easiest way to get netCDF is through a package management program,
-such as rpm, yum, adept, and others. NetCDF is available from many
-different repositories, including the default Red Hat and Ubuntu
-repositories.
+For instructions on getting the latest version of netCDF,
+as well as how to get and build the netCDF dependencies,
+please refer to the 'INSTALL' file found in the root 
+netCDF source directory.
 
-When getting netCDF from a software repository, you will wish to get
-the development version of the package ("netcdf-devel"). This includes
-the netcdf.h header file.
-
-Unfortunately, you may not be able to get a recent version of netCDF
-from a package management system, in which case you must build from
-source code. Get the
-
-  ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz
-
-source distribution for the latest, fully-tested release.
-
-Alternatively, you may wish to try the 
-
-  ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz
-
-daily snapshot. It is generated nightly at the Unidata Program
-Center. It has passed all tests on our (Linux) test machine, but not
-necessarily all platform compatibility tests.
-
-Warning: the daily snapshot release contains bug-fixes and new
-features added since the last full release. It may also contain
-portability bugs.
-
-Once you have downloaded and unpacked the distribution, see the
-following section on building.
-
-For additional instructions on getting and building the netCDF 
-dependencies, please see the 'INSTALL' text file.
 
 Getting CMake
 *************

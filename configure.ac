@@ -723,6 +723,8 @@ dnl 	 fi
       fi		      
       AC_CHECK_LIB([df], [Hclose], [], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
+      #AC_SEARCH_LIBS([Hclose],[df], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
+      #AC_SEARCH_LIBS([SDcreate],[mfhdf], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi

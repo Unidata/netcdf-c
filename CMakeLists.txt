@@ -196,17 +196,33 @@ IF(ENABLE_LOGGING)
 	SET(LOGGING ON)
 ENDIF()
 # Option to use HDF4
-OPTION (USE_HDF4 "Build NetCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required." OFF)
-IF (USE_HDF4) 
-   FIND_PACKAGE(HDF4)
-   IF(NOT HDF4_FOUND)
-	MESSAGE(FATAL_ERROR "HDF4 Support specified, but HDF4 libraries were not found.")
-   ENDIF(NOT HDF4_FOUND)
+OPTION (ENABLE_HDF4 "Build NetCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required)." OFF)
+IF (ENABLE_HDF4) 
+   SET(USE_HDF4 ON) 
+   # Check for include files, libraries.
    CHECK_INCLUDE_FILE("mfhdf.h"	HAVE_MFHDF_H)
    IF(NOT HAVE_MFHDF_H)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
    ENDIF(NOT HAVE_MFHDF_H) 
-ENDIF (USE_HDF4)
+ 
+   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
+   IF(NOT HDF4_DF_LIB)
+	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find df lib.")
+   ENDIF()
+
+   FIND_LIBRARY(HDF4_MFHDF_LIB NAMES mfhdf libmfhdf)
+   IF(NOT HDF4_MFHDF_LIB)
+	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find mfhdf lib.")
+   ENDIF()
+
+   SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
+   # End include files, libraries.
+   MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
+   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests.",OFF)
+   IF(ENABLE_HDF4_FILE_TESTS)
+	SET(USE_HDF4_FILE_TESTS ON)
+   ENDIF()
+ENDIF ()
 
 # Option to Build DLL
 IF(WIN32)

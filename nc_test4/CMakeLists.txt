@@ -15,20 +15,28 @@ IF(NOT MSVC)
 	SET(EXTRA_TSTS4 ${EXTRA_TSTS4} tst_interops5 tst_camrun)
 ENDIF()
 
+IF(USE_HDF4)
+	SET(EXTRA_TSTS4 ${EXTRA_TSTS4} tst_interops2)
+ENDIF()
+
+
+
 
 # Copy some test files from current source dir to out-of-tree build dir.
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 FOREACH(CTEST ${EXTRA_TSTS4})
   add_bin_test(nc_test4 ${CTEST})
+
   #ADD_EXECUTABLE(${CTEST} ${CTEST}.c)
   #TARGET_LINK_LIBRARIES(${CTEST} netcdf)
   #ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
 ENDFOREACH()
 
-
-
-
+IF(USE_HDF4_FILE_TESTS)
+	add_sh_test(nc_test4 run_get_hdf4_files)
+	add_bin_test(nc_test4 tst_interops3)
+ENDIF()
 
 
