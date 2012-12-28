@@ -322,6 +322,13 @@ ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
 ENDIF()
 
+
+# Enable some developer-only tests
+OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
+IF(ENABLE_EXTRA_TESTS)
+	SET(EXTRA_TESTS ON)
+ENDIF()
+
 # Option to use bundled XGetopt in place of getopt(). This is mostly useful
 # for MSVC builds. If not building utilities, getopt() isn't required at all.
 IF(MSVC)

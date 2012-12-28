@@ -93,7 +93,6 @@ Linux/Unix
 
 If you get the message that netCDF installed correctly, then you are
 done!
->>>> Pick Up Here <<<<
 
 
 
@@ -102,7 +101,7 @@ Building with HDF4 Support
 
 The netCDF-4 library can (since version 4.1) read HDF4 data files, if
 they were created with the SD (Scientific Data) API. To enable this
-feature, use the --enable-hdf4 option. The location for the HDF4
+feature, use the -DENABLE_HDF4=ON option. The location for the HDF4
 header files and library must be set in the CPPFLAGS and LDFLAGS
 options.
 
@@ -113,14 +112,11 @@ Building with Parallel I/O Support
 **********************************
 
 For parallel I/O to work, HDF5 must be installed with
-–enable-parallel, and an MPI library (and related libraries) must be
+-DENABLE_PARALLEL=ON, and an MPI library (and related libraries) must be
 made available to the HDF5 configure. This can be accomplished with
 the mpicc wrapper script, in the case of MPICH2.
 
-The following works to build HDF5 with parallel I/O on our netCDF
-testing system:
-
-  CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par
+  CC=mpicc cmake .. -DENABLE_PARALLEL=ON -DCMAKE_INSTALL_PREFIX=/shecky/local_par 
   make check install
 
 If the HDF5 used by netCDF has been built with parallel I/O, then
@@ -148,18 +144,10 @@ remote access client has not been disabled). This will mean -L options
 to your build for the locations of the libraries, and -l (lower-case
 L) for the names of the libraries.
 
-For example, one user reports that she can build other applications
-with netCDF-4 by setting the LIBS environment variable:
-
-  LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
-
 For shared builds, only -lnetcdf is needed. All other libraries will
 be found automatically.
 
-The ``nc-config --all'' command can be used to learn what options are
-needed for the local netCDF installation.
-
-For example, this works for linking an application named myapp.c with
-netCDF-4 libraries:
-
-    cc -o myapp myapp.c `nc-config --cflags --libs`
+On Windows, when using Visual Studio and compiling a shared library (.dll),
+netcdf will be built with an 'import' library, named netcdf.lib. Visual
+Studio projects should link against this import library, instead of linking
+against the netcdf.dll file directly.
