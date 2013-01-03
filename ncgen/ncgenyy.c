@@ -1335,10 +1335,9 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
  * down here because we want the user's section 1 to have been scanned first.
  * The user has a chance to override it with an option.
  */
-#ifndef _MSC_VER
 #include <unistd.h>
 #endif
-#endif
+
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -1755,7 +1754,6 @@ YY_RULE_SETUP
 { /* missing value (pre-2.4 backward compatibility) */
                 if (ncgtext[0] == '-') {
 		    double_val = NEGNC_INFINITE;
-
                 } else {
 		    double_val = NC_INFINITE;
                 }

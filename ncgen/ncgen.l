@@ -230,9 +230,9 @@ group:			{return lexdebug(GROUP);}
 
 DoubleInf|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
-		    double_val = NEGINFINITE;
+		    double_val = NEGNC_INFINITE;
                 } else {
-		    double_val = INFINITE;
+		    double_val = NC_INFINITE;
                 }
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
@@ -245,9 +245,9 @@ NaN|nan { /* missing value (pre-2.4 backward compatibility) */
 
 FloatInf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
                 if (yytext[0] == '-') {
-		    float_val = NEGINFINITEF;
+		    float_val = NEGNC_INFINITEF;
                 } else {
-		    float_val = INFINITEF;
+		    float_val = NC_INFINITEF;
                 }
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
