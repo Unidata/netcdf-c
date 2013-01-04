@@ -464,6 +464,11 @@ processtypesizes(void)
     }
 }
 
+#ifdef NCF213 /*Jira NCF-213*/
+/* We should not create an actual
+   attribute for any of the
+   special attributes.
+*/
 static void
 makespecial(int tag, Symbol* vsym, nc_type typ, Datalist* dlist)
 {
@@ -479,6 +484,7 @@ makespecial(int tag, Symbol* vsym, nc_type typ, Datalist* dlist)
     attr->typ.basetype = primsymbols[typ==NC_STRING?NC_CHAR:typ];
     listpush(attdefs,(void*)attr);
 }
+#endif /*NCF213*/
 	
 static void
 processspecial1(Symbol* vsym)
@@ -497,7 +503,6 @@ processspecial1(Symbol* vsym)
             con.value.int32v = (int)vsym->var.special._ChunkSizes[i];
             dlappend(dlist,&con);
         }
-        makespecial(tag,vsym,con.nctype,dlist);
     } else if((tag=(flags & _STORAGE_FLAG))) {
         con.nctype = NC_STRING;
         con.value.stringv.stringv
@@ -506,7 +511,6 @@ processspecial1(Symbol* vsym)
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
     if((tag=(flags & _FLETCHER32_FLAG))) {
         con.nctype = NC_STRING;
@@ -516,14 +520,12 @@ processspecial1(Symbol* vsym)
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
     if((tag=(flags & _DEFLATE_FLAG))) {
         con.nctype = NC_INT;
         con.value.int32v = vsym->var.special._DeflateLevel;
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
     if((tag=(flags & _SHUFFLE_FLAG))) {
         con.nctype = NC_STRING;
@@ -533,7 +535,6 @@ processspecial1(Symbol* vsym)
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
     if((tag=(flags & _ENDIAN_FLAG))) {
         con.nctype = NC_STRING;
@@ -543,7 +544,6 @@ processspecial1(Symbol* vsym)
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
     if((tag=(flags & _NOFILL_FLAG))) {
         con.nctype = NC_STRING;
@@ -557,8 +557,13 @@ processspecial1(Symbol* vsym)
         con.value.stringv.len = strlen(con.value.stringv.stringv);
         dlist = builddatalist(1);
         dlappend(dlist,&con);
-        makespecial(tag,vsym,con.nctype,dlist);
     }
+#ifdef NCF213 /*Jira NCF-213*/
+/* We should not create an actual
+   attribute for any of the
+   special attributes.
+*/
+#endif /*NCF213*/
 }
 
 static void

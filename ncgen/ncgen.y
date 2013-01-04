@@ -1172,7 +1172,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
-
     
     specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 

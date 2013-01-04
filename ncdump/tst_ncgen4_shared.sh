@@ -83,7 +83,7 @@ ref_tst_vlen_data2 \
 
 SPECIALTESTS3="ref_tst_special_atts3"
 
-SPECIALTESTS="ref_tst_special_atts ${SPECIALTESTS3}"
+SPECIALTESTS="${SPECIALTESTS3} ref_tst_special_atts"
 
 XFAILTESTS=""
 # Fails because ncdump does not output multiple unlim char types correctly

@@ -80,6 +80,19 @@ else # Non-MINGW Platforms
     ./ncdump $srcdir/ref_tst_compounds4.nc > tst_compounds4.cdl
     diff -b tst_compounds4.cdl $srcdir/ref_tst_compounds4.cdl
 
+    # Exercise Jira NCF-213 bug fix
+    rm -f tst_ncf213.cdl tst_ncf213.nc
+    ../ncgen/ncgen -b -o tst_ncf213.nc $srcdir/ref_tst_ncf213.cdl
+    ./ncdump -s -h tst_ncf213.nc >tst_ncf213.cdl
+    # Now compare
+    ok=1;
+    if diff -b $srcdir/ref_tst_ncf213.cdl tst_ncf213.cdl ; then ok=1; else ok=0; fi
+    # cleanup
+    rm -f tst_ncf213.cdl tst_ncf213.nc
+    if test $ok = 0 ; then
+      echo "*** FAIL: NCF-213 Bug Fix test"
+      exit 1
+    fi
 fi
 
 echo "*** All ncgen and ncdump extra test output for netCDF-4 format passed!"
