@@ -444,6 +444,12 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
 # Library include checks
 CHECK_INCLUDE_FILE("math.h"      HAVE_MATH_H)
 CHECK_INCLUDE_FILE("unistd.h"	 HAVE_UNISTD_H)
+# Solve a compatibility issue in ncgen/, which checks
+# for NO_UNISTD_H
+IF(NOT HAVE_UNISTD_H)
+	SET(YY_NO_UNISTD_H TRUE)
+ENDIF()
+
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("dirent.h"	 HAVE_DIRENT_H)

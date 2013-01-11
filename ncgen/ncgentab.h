@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 2.7.  */
+/* A Bison parser, made by GNU Bison 2.4.2.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* Skeleton interface for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2006, 2009-2010 Free Software
+   Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,15 +31,6 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_NCG_NCGEN_TAB_H_INCLUDED
-# define YY_NCG_NCGEN_TAB_H_INCLUDED
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
-#if YYDEBUG
-extern int ncgdebug;
-#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -97,10 +89,12 @@ extern int ncgdebug;
 #endif
 
 
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-/* Line 2058 of yacc.c  */
+
+/* Line 1685 of yacc.c  */
 #line 131 "ncgen.y"
 
 Symbol* sym;
@@ -111,8 +105,9 @@ Datalist*      datalist;
 Constant       constant;
 
 
-/* Line 2058 of yacc.c  */
-#line 116 "ncgen.tab.h"
+
+/* Line 1685 of yacc.c  */
+#line 111 "ncgen.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -121,18 +116,4 @@ Constant       constant;
 
 extern YYSTYPE ncglval;
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int ncgparse (void *YYPARSE_PARAM);
-#else
-int ncgparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int ncgparse (void);
-#else
-int ncgparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */
