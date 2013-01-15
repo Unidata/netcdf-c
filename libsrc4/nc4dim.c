@@ -226,7 +226,8 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 	 return ret;
       if (lenp)
 	 *lenp = mpi_len;
-   }
+      return ret;
+      }
 #endif /* USE_PNETCDF */
 
    /* Take care of netcdf-3 files. */

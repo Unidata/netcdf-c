@@ -513,6 +513,8 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
        * with command-line options */
 	int shuffle, deflate, deflate_level;
 	NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle, &deflate, &deflate_level));
+	if(deflate_level == 0 && deflate == 1) /* TODO: why is this needed??  Bug in nc_inq_var_deflate? */
+	    deflate = 0;
 	if(option_deflate_level >= 0) { /* change output compression, if requested */
 	  deflate_level = option_deflate_level;
  	  deflate=1;

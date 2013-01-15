@@ -619,14 +619,15 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-   assert(nc && grp && h5);
 
+   assert(nc);
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc->pnetcdf_file)
       return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
 			   dimidsp, nattsp);
 #endif /* USE_PNETCDF */
+   assert(grp && h5);
 
    /* Walk through the list of vars, and return the info about the one
       with a matching varid. If the varid is -1, find the global
@@ -1088,6 +1089,14 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
       return retval;
+
+#ifdef USE_PNETCDF
+   /* Take care of files created/opened with parallel-netcdf library. */
+   if (nc->pnetcdf_file)
+   {
+     return ncmpi_inq_varid(nc->int_ncid, name, varidp);
+   }
+#endif /* USE_PNETCDF */
    
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))

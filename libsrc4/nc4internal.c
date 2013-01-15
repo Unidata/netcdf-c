@@ -18,6 +18,10 @@ conditions.
 #include "ncdispatch.h" /* from libdispatch */
 #include <utf8proc.h>
 
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>
+#endif
+
 #define MEGABYTE 1048576
 
 /* These are the default chunk cache sizes for HDF5 files created or
@@ -261,6 +265,14 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
 
     if(f == NULL) return NC_EBADID;
     *nc = f;
+
+#ifdef USE_PNETCDF
+    if (f->pnetcdf_file) {
+      *h5 = NULL;
+      *grp = NULL;
+      return NC_NOERR;
+    }
+#endif
     
     if (h5) {
 	assert(h5->root_grp);

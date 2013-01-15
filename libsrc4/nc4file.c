@@ -2732,6 +2732,12 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
    if (old_modep)
       *old_modep = nc4_info->fill_mode;
 
+#ifdef USE_PNETCDF
+   /* Take care of files created/opened with parallel-netcdf library. */
+   if (nc->pnetcdf_file)
+     return ncmpi_set_fill(nc->int_ncid, fillmode, old_modep);
+#endif /* USE_PNETCDF */
+
    nc4_info->fill_mode = fillmode;
 
    return NC_NOERR;
