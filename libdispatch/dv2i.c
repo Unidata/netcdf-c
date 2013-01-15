@@ -56,26 +56,32 @@ nvdims(int ncid, int varid)
    return ndims;
 }
 
-static void* nvmalloc(int ct, int size) {
-	int mct = ct;
-	if(ct < 0) mct = 1;
-
-	return malloc(mct * size);
+/* Used to avoid errors on 64-bit windows related to 
+   c89 macros and flow control/conditionals. */
+static void* nvmalloc(off_t size) {
+  if(size < 0)
+    return NULL;
+  
+  return malloc(size);
 
 }
 
-#define NDIMS_DECL const int ndims = nvdims(ncid, varid);
+#define NDIMS_DECL const int ndims = nvdims(ncid, varid); \
+  
+  
+# define A_DECL(name, type, ndims, rhs)		\
+  type *const name = (type*) nvmalloc((ndims) * sizeof(type))
 
 
-# define A_DECL(name, type, ndims, rhs) \
-	ALLOC_ONSTACK(name, type, ndims)
+//  ALLOC_ONSTACK(name, type, ndims)		
+
 
 # define A_FREE(name) \
 	FREE_ONSTACK(name)
 
 # define A_INIT(lhs, type, ndims, rhs) \
 	{ \
-		if(ndims >= 0) { \
+	  if((off_t)ndims >= 0) {     \
 		const long *lp = rhs; \
 		type *tp = lhs; \
 		type *const end = lhs + ndims; \
@@ -86,7 +92,7 @@ static void* nvmalloc(int ct, int size) {
 		} \
 	} \
 	\
-	if (ndims < 0) {nc_advise("nvdims",NC_EMAXDIMS,"ndims %d",ndims); return -1;}
+    if ((off_t)ndims < 0) {nc_advise("nvdims",NC_EMAXDIMS,"ndims %d",ndims); return -1;}
 
 
 #endif
@@ -788,7 +794,6 @@ ncvarputs(
 	{
 
 	NDIMS_DECL 
-
 	A_DECL(stp, size_t, ndims, start);
 	A_DECL(cntp, size_t, ndims, count);
 	A_DECL(strdp, ptrdiff_t, ndims, stride);

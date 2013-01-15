@@ -412,8 +412,7 @@ by the desired type. */
 /* Define for 64 bit windows. */
 #if defined (_WIN64)
 #define off_t __int64
-#define size_t __int64
-//#define lseek _lseeki64
+#define size_t unsigned __int64
 #define _OFF_T_DEFINED
 #endif
 

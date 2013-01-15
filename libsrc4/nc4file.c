@@ -1244,9 +1244,10 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          /* Insert new field into this type's list of fields. */
          if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
                                            member_name, value)))
-            return retval;
-         free(member_name); /* Where is this defined? */
-     }
+	   return retval;
+	 free(member_name); 
+     
+	}
       
       /* Free the tempory memory for one value, and the member name
        * (which HDF5 allocated for us). */
