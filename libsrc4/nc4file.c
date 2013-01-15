@@ -1244,8 +1244,12 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          /* Insert new field into this type's list of fields. */
          if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
                                            member_name, value)))
-            return retval;
-         H5MM_xfree(member_name); /* Where is this defined? */
+	   return retval;
+#if defined(_WIN64) || defined(_WIN32) 
+	 H5MM_xfree(member_name); /* Defined in H5MMprivate.h, part of hdf5. Used to avoid cross-dll memory errors on Windows. */
+#else
+	 free(member_name);
+#endif
      }
       
       /* Free the tempory memory for one value, and the member name
