@@ -19,6 +19,10 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>
+#endif
+
 #ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
 #endif
@@ -617,12 +621,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
          }
       }
    }
-
-   /* A little quirk: if any of the count values are zero, then
-      return success and forget about it. */
-   for (d2 = 0; d2 < var->ndims; d2++)
-      if (count[d2] == 0)
-         goto exit;
    
    /* Now you would think that no one would be crazy enough to write
       a scalar dataspace with one of the array function calls, but you
@@ -748,7 +746,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       if (need_to_extend)
       {
          LOG((4, "extending dataset"));
-         if (H5Dextend(var->hdf_datasetid, xtend_size) < 0)
+	 if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
 	 if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
 	    BAIL2(NC_EHDFERR);

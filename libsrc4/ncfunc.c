@@ -91,6 +91,12 @@ NC4_inq_format(int ncid, int *formatp)
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
+#ifdef USE_PNETCDF
+   /* Take care of files created/opened with parallel-netcdf library. */
+   if (nc->pnetcdf_file)
+     return ncmpi_inq_format(nc->int_ncid, formatp);
+#endif /* USE_PNETCDF */
+
 #if 0
    /* If this isn't a netcdf-4 file, pass this call on to the netcdf-3
     * library. */
