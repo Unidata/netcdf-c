@@ -1742,15 +1742,21 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
          if (field->ndims)
          {
             int d;
-            hsize_t dims[NC_MAX_DIMS];
-            for (d = 0; d < field->ndims; d++)
+            hsize_t *dims = NULL;
+	    if( (dims = (hsize_t*)malloc(sizeof(hsize_t)*field->ndims)) == NULL)
+	      return errno;
+
+	    for (d = 0; d < field->ndims; d++)
                dims[d] = field->dim_size[d];
             if ((hdf_typeid = H5Tarray_create(hdf_base_typeid, field->ndims, 
-                                              dims, NULL)) < 0)
-               return NC_EHDFERR;
-         } 
+                                              dims, NULL)) < 0) {
+	      free(dims);
+	      return NC_EHDFERR;
+	    } 
+	    free(dims);
+	 }
          else
-            hdf_typeid = hdf_base_typeid;
+	   hdf_typeid = hdf_base_typeid;
          LOG((4, "inserting field %s offset %d hdf_typeid 0x%x", field->name, 
               field->offset, hdf_typeid));
          if (H5Tinsert(type->hdf_typeid, field->name, field->offset, 
