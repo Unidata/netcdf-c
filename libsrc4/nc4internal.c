@@ -266,12 +266,14 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
     if(f == NULL) return NC_EBADID;
     *nc = f;
 
+#if 0 /* I do not understand this code at all */
 #ifdef USE_PNETCDF
-    if (f->pnetcdf_file) {
-      *h5 = NULL;
-      *grp = NULL;
+    if (h5->pnetcdf_file) {
+      *h5p = NULL;
+      *grpp = NULL;
       return NC_NOERR;
     }
+#endif
 #endif
     
     if (h5) {

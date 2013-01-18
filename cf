@@ -8,8 +8,8 @@ cmds=$@
 fi
 
 HDF5=1
-DAP=1
-#CDMR=1
+#DAP=1
+PNETCDF=1
 #RPC=1
 #PGI=1
 #M32=1
@@ -111,14 +111,8 @@ else
 fi
 fi
 
-export CC
-export CPPFLAGS
-export CFLAGS
-export LDFLAGS
-export LD_LIBRARY_PATH
-export MALLOC_CHECK
+CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 
-CXXFLAGS="$CPPFLAGS $CXXFLAGS" ; export CXXFLAGS
 
 if test -z "$NB" ; then
 ${MAKE} maintainer-clean >/dev/null 2>&1
@@ -129,9 +123,7 @@ FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
 FLAGS="$FLAGS --disable-examples"
-FLAGS="$FLAGS --disable-pnetcdf"
 #FLAGS="$FLAGS --disable-utilities"
-#FLAGS="$FLAGS --enable-parallel-tests"
 #FLAGS="$FLAGS --enable-cxx-4"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
@@ -169,6 +161,25 @@ fi
 if test "x$RPC" = "x1" ; then
 FLAGS="$FLAGS --enable-rpc"
 fi
+
+if test "x$PNETCDF" = x1 ; then
+PATH=${PATH}:/machine/local_mpich2/bin
+CC="/machine/local_mpich2/bin/mpicc"
+CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include"
+LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib"
+LDLIBS="-lmpich -lmpl"
+FLAGS="$FLAGS --enable-pnetcdf"
+FLAGS="$FLAGS --enable-parallel-tests"
+fi
+
+export PATH
+export CC
+export CPPFLAGS
+export CFLAGS
+export LDFLAGS
+export LD_LIBRARY_PATH
+export MALLOC_CHECK
+export CXXFLAGS
 
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
