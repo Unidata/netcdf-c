@@ -10,6 +10,9 @@
 
 #define	STREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 
+/* Delimiter for separating netCDF groups in absolute pathnames, same as for HDF5 */
+#define NC_GRP_DELIM '/'
+
 typedef int bool_t;
 enum {false=0, true=1};
 
@@ -83,6 +86,19 @@ extern int grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
 
 /* Returns 1 if string s1 ends with string s2, 0 otherwise. */
 extern int strendswith(const char *s1, const char *s2);
+
+/* Within group with id ncid, get varid of variable with name varname
+ * using nested group syntax "gp1/gp2/var" */
+extern int nc_inq_gvarid ( int ncid, const char *varname, int *varidp );
+
+/* Get variable id varid within group grpid using absolute or relative pathname for variable */
+    extern int nc_inq_gvarid(int grpid, const char *varname, int *varidp);
+
+/* Return how many variables are named varname in any groups in ncid */
+extern size_t nc_inq_varname_count(int ncid, char *varname);
+
+/* Check if any variable names specified in the list lvars (of length nlvars) are missing. */
+extern int missing_vars(int ncid, int nlvars, char **lvars);
 
 #ifdef __cplusplus
 }

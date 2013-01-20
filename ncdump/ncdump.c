@@ -1881,73 +1881,6 @@ set_precision(const char *optarg)
     set_formats(flt_digits, dbl_digits);
 }
 
-/* Determine whether a variable named varname exists in any group in
-   an open netCDF file with id ncid.  If so, return the count of how
-   many matching variables were found, else return a count of 0.  The
-   variable name can be absolute such as "/foo" or "/GRP1/GRP1A/foo",
-   in which case there is only one group to look in, given by the path
-   from the root group.  Alternatively, the variable name can be
-   relative, such as "foo" or "GRPA/GRPB/foo", in which case every
-   group is examined for a variable with that relative name.  */
-size_t
-nc_inq_varname_count(int ncid, char *varname) {
-    /* 
-       count = 0;
-       status = nc_inq_gvarid(ncid, varname, varid);
-       if (status == NC_NOERR)
-          count++;
-       for each subgroup gid {
-          count += nc_inq_varname_count(gid, varname);
-       }
-       return count;
-    */
-    size_t count = 0;
-    int varid;
-    /* look in this group */
-    int status = nc_inq_gvarid(ncid, varname, &varid);
-#ifdef USE_NETCDF4
-    int numgrps;
-    int *ncids;
-    int g;
-#endif
-
-    if (status == NC_NOERR)
-	count++;
-
-#ifdef USE_NETCDF4
-    /* if this group has subgroups, call recursively on each of them */
-    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
-	 
-    /* Allocate memory to hold the list of group ids. */
-    ncids = emalloc((numgrps + 1) * sizeof(int));
-	
-    /* Get the list of group ids. */
-    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
-	
-    /* Call this function for each group. */
-    for (g = 0; g < numgrps; g++) {
-	count += nc_inq_varname_count(ncids[g], varname);
-    }
-    free(ncids);
-#endif /* USE_NETCDF4 */
-    return count;    
-   
-}
-
-
-/* Check if any variable names specified with "-v var1,...,varn" are
- * missing.  Returns 0 if no missing variables detected, otherwise
- * exits. */
-static int
-missing_vars(int ncid) {
-    int iv;
-    for (iv=0; iv < formatting_specs.nlvars; iv++) {
-	if(nc_inq_varname_count(ncid, formatting_specs.lvars[iv]) == 0) {
-	    error("%s: No such variable", formatting_specs.lvars[iv]);
-	}
-    }
-    return 0;
-}
 
 #ifdef USE_DAP
 #define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
@@ -2403,7 +2336,7 @@ main(int argc, char *argv[])
 		/* Initialize list of types. */
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
-		if(missing_vars(ncid))
+		if(missing_vars(ncid, formatting_specs.nlvars, formatting_specs.lvars))
 		    return EXIT_FAILURE;
 		if(formatting_specs.nlgrps > 0) {
 		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4) {

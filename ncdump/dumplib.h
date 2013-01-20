@@ -85,10 +85,6 @@ extern int  is_user_defined_type ( nc_type type );
 /* Initialize global constants used in slightly fuzzy float comparisons */
 extern void init_epsilons ( void );
 
-/* Withing group with id ncid, get varid of variable with name varname
- * using nested group syntax "gp1/gp2/var" */
-extern int nc_inq_gvarid ( int ncid, const char *varname, int *varidp );
-
 /* Initialize string buffer */
 safebuf_t *sbuf_new();
 

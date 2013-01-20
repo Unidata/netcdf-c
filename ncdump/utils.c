@@ -371,3 +371,135 @@ strendswith(const char *s1, const char *s2) {
 	return 0;
     return (strcmp(s1 + (m1 - m2), s2) == 0);
 }
+
+/* Get varid of variable with name using nested group syntax
+ * "gp1/gp2/var" or "/gp1/gp2/var".  In the former case, grpname of
+ * grp corresponding to grpid must end in "gp1/gp2".  In the latter
+ * case, grpname for grpid must be exactly "/gp1/gp2".  If variable
+ * named "var" is not in group grpid, returns NC_ENOTVAR, else sets
+ * varid and returns NC_NOERR.  */
+int 
+nc_inq_gvarid(int grpid, const char *varname, int *varidp) {
+    /* if varname has no "/" chars, then
+          return varidp from nc_inq_varid(grpid, varname, varidp)
+       if varname begins with "/"
+          
+       else
+          get groupname corresponding to grpid
+          get vargroup = substring of varname up to last "/"
+          get relname = substring of varname after last "/"
+          if (varname starts with "/" and groupname == vargroup) ||
+             (groupname ends with vargroup)
+             return nc_inq_varid(grpid, relname, varidp)
+          else
+             return NC_ENOTVAR
+    */
+    
+#ifdef USE_NETCDF4
+    char *vargroup;
+    char *relname;
+    char *groupname;
+    int status;
+    if (varname[0] == '\0')
+	return NC_ENOTVAR;
+    vargroup = strdup(varname);
+    if (vargroup == NULL) 
+	return NC_ENOMEM;
+    relname = strrchr(vargroup, NC_GRP_DELIM);
+    if (relname != NULL) {	/* name has a "/" in it */
+	size_t len;		/* length of full group name for grpid */
+	*relname++ = '\0';	/* split vargroup string in two,
+				 * vargroup and relname */
+	if ( (status = nc_inq_grpname_full(grpid, &len, NULL)) != NC_NOERR ) {
+	    free(vargroup);
+	    return status;
+	}
+	groupname = (char *)emalloc(len + 1);
+	if ( (status = nc_inq_grpname_full(grpid, &len, groupname)) == NC_NOERR ) {
+	    if(varname[0] == NC_GRP_DELIM) {
+		if( strcmp(groupname, vargroup) == 0)
+		    status = nc_inq_varid(grpid, relname, varidp);
+		else
+		    status = NC_ENOTVAR;
+	    } else {
+		if(strendswith(groupname, vargroup))
+		    status = nc_inq_varid(grpid, relname, varidp);
+		else
+		    status = NC_ENOTVAR;
+	    }
+	}
+	free(vargroup);
+	free(groupname);
+	return status;
+    }
+    free(vargroup);
+#endif	/* USE_NETCDF4 */
+    return nc_inq_varid(grpid, varname, varidp);
+}
+
+/* Determine whether a variable named varname exists in any group in
+   an open netCDF file with id ncid.  If so, return the count of how
+   many matching variables were found, else return a count of 0.  The
+   variable name can be absolute such as "/foo" or "/GRP1/GRP1A/foo",
+   in which case there is only one group to look in, given by the path
+   from the root group.  Alternatively, the variable name can be
+   relative, such as "foo" or "GRPA/GRPB/foo", in which case every
+   group is examined for a variable with that relative name.  */
+size_t
+nc_inq_varname_count(int ncid, char *varname) {
+    /* 
+       count = 0;
+       status = nc_inq_gvarid(ncid, varname, varid);
+       if (status == NC_NOERR)
+          count++;
+       for each subgroup gid {
+          count += nc_inq_varname_count(gid, varname);
+       }
+       return count;
+    */
+    size_t count = 0;
+    int varid;
+    /* look in this group */
+    int status = nc_inq_gvarid(ncid, varname, &varid);
+#ifdef USE_NETCDF4
+    int numgrps;
+    int *ncids;
+    int g;
+#endif
+
+    if (status == NC_NOERR)
+	count++;
+
+#ifdef USE_NETCDF4
+    /* if this group has subgroups, call recursively on each of them */
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
+	 
+    /* Allocate memory to hold the list of group ids. */
+    ncids = emalloc((numgrps + 1) * sizeof(int));
+	
+    /* Get the list of group ids. */
+    NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	
+    /* Call this function for each group. */
+    for (g = 0; g < numgrps; g++) {
+	count += nc_inq_varname_count(ncids[g], varname);
+    }
+    free(ncids);
+#endif /* USE_NETCDF4 */
+    return count;    
+   
+}
+
+/* Check if any variable names specified with "-v var1,...,varn" are
+ * missing.  Returns 0 if no missing variables detected, otherwise
+ * exits. */
+int
+missing_vars(int ncid, int nlvars, char **lvars) {
+    int iv;
+    for (iv=0; iv < nlvars; iv++) {
+	if(nc_inq_varname_count(ncid, lvars[iv]) == 0) {
+	    error("%s: No such variable", lvars[iv]);
+	}
+    }
+    return 0;
+}
