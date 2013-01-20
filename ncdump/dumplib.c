@@ -104,7 +104,6 @@ init_epsilons(void)
 
 
 static char* has_c_format_att(int ncid, int varid);
-static idnode_t* newidnode(void);
 
 int float_precision_specified = 0; /* -p option specified float precision */
 int double_precision_specified = 0; /* -p option specified double precision */
@@ -416,68 +415,6 @@ get_fmt(
     if (c_format_att)
       return c_format_att;    
     return get_default_fmt(typeid);
-}
-
-static idnode_t*
-newidnode(void)
-{
-    idnode_t *newvp = (idnode_t*) emalloc(sizeof(idnode_t));
-    return newvp;
-}
-
-
-/*
- * Get a new, empty variable list.
- */
-idnode_t*
-newidlist(void)
-{
-    idnode_t *vp = newidnode();
-
-    vp -> next = 0;
-    vp -> id = -1;		/* bad id */
-
-    return vp;
-}
-
-
-void
-idadd(idnode_t* vlist, int varid)
-{
-    idnode_t *newvp = newidnode();
-    
-    newvp -> next = vlist -> next;
-    newvp -> id = varid;
-    vlist -> next = newvp;
-}
-
-
-/* 
- * return true if id is member of list that idlist points to.
- */
-bool_t
-idmember(const idnode_t* idlist, int id)
-{
-    idnode_t *vp = idlist -> next;
-
-    for (; vp ; vp = vp->next)
-      if (vp->id == id)
-	return true;
-    return false;    
-}
-
-/* 
- * return true if group identified by grpid is member of group
- * list specified on command line by -g.
- */
-bool_t
-group_wanted(int grpid)
-{
-    /* If -g not specified, all groups are wanted */
-    if(formatting_specs.nlgrps == 0)
-	return true;
-    /* if -g specified, look for match in group id list */
-    return idmember(formatting_specs.grpids, grpid);
 }
 
 /* Return primitive type name */
@@ -1523,18 +1460,6 @@ set_tostring_func(ncvar_t *varp) {
 #endif /* USE_NETCDF4 */
     return;
 }
-
-#ifdef USE_NETCDF4
-/* Returns 1 if string s1 ends with string s2, 0 otherwise. */
-static int
-strendswith(const char *s1, const char *s2) {
-    size_t m1 = strlen(s1);
-    size_t m2 = strlen(s2);
-    if (m1 < m2)
-	return 0;
-    return (strcmp(s1 + (m1 - m2), s2) == 0);
-}
-#endif
 
 #define NC_GRP_DELIM '/'
 

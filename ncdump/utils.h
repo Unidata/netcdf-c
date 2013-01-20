@@ -25,6 +25,12 @@ typedef struct safebuf_t {
     char *buf;
 } safebuf_t;
 
+/* structure for list of ids, such as varids or grpids specified with -v or -g option */
+typedef struct idnode {
+    struct idnode* next;
+    int id;
+} idnode_t;
+
 extern char *progname;		/* for error messages */
 
 #ifndef NO_NETCDF_2
@@ -59,6 +65,24 @@ extern int  nc_inq_dimid2(int ncid, const char *dimname, int *dimidp);
 
 /* Test if variable is a record variable */
 extern int  isrecvar ( int ncid, int varid );
+
+/* Get a new, empty id list. */
+extern idnode_t* newidlist(void);
+
+/* Add id to id list  */
+extern void idadd(idnode_t* idlist, int id);
+
+/* Test if id is in id list */
+extern bool_t	idmember ( const idnode_t* idlist, int id );
+
+/* Test if a group id is in group list */
+extern bool_t	group_wanted ( int grpid, int nlgrps, const idnode_t* grpids );
+
+/* Check group list for missing groups */
+extern int grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
+
+/* Returns 1 if string s1 ends with string s2, 0 otherwise. */
+extern int strendswith(const char *s1, const char *s2);
 
 #ifdef __cplusplus
 }

@@ -219,3 +219,155 @@ isrecvar(int ncid, int varid)
     return is_recvar;
 }
 
+static idnode_t*
+newidnode(void) {
+    idnode_t *newvp = (idnode_t*) emalloc(sizeof(idnode_t));
+    return newvp;
+}
+
+/*
+ * Get a new, empty variable list.
+ */
+idnode_t*
+newidlist(void) {
+    idnode_t *vp = newidnode();
+
+    vp -> next = 0;
+    vp -> id = -1;		/* bad id */
+
+    return vp;
+}
+
+void
+idadd(idnode_t* vlist, int varid) {
+    idnode_t *newvp = newidnode();
+    
+    newvp -> next = vlist -> next;
+    newvp -> id = varid;
+    vlist -> next = newvp;
+}
+
+/* 
+ * return true if id is member of list that idlist points to.
+ */
+bool_t
+idmember(const idnode_t* idlist, int id)
+{
+    idnode_t *vp = idlist -> next;
+
+    for (; vp ; vp = vp->next)
+      if (vp->id == id)
+	return true;
+    return false;    
+}
+
+/* 
+ * Return true if group identified by grpid is member of grpids, a list of groups.
+ * nlgrps is number of groups in the list.
+ */
+bool_t
+group_wanted(int grpid, int nlgrps, const idnode_t* grpids)
+{
+    /* If -g not specified, all groups are wanted */
+    if(nlgrps == 0) return true;
+    /* if -g specified, look for match in group id list */
+    return idmember(grpids, grpid);
+}
+
+/* Determine whether a group named formatting_specs.lgrps[igrp] exists
+ * in a netCDF file or group with id ncid.  If so, return the count of
+ * how many matching groups were found, else return a count of 0.  If
+ * the name begins with "/", it is interpreted as an absolute group
+ * name, in which case only 0 or 1 is returned.  Otherwise, interpret
+ * it as a relative name, and the total number of occurrences within
+ * the file/group identified by ncid is returned.  
+ *
+ * Also has side effect of updating the ngrpids and the associate
+ * grpids array that represent the group list specified by the -g
+ * option.  TODO: put this in its own function instead.
+ */
+static size_t
+nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
+    size_t count = 0;
+#ifdef USE_NETCDF4
+    int numgrps;
+    int *ncids;
+    int g;
+    int grpid;
+    int status;
+#endif
+    char *grpname = lgrps[igrp];
+
+    /* permit empty string to also designate root group */
+    if(grpname[0] == '\0' || STREQ(grpname,"/")) { 
+	count = 1;
+	idadd(grpids, ncid);
+	return count;
+    }
+#ifdef USE_NETCDF4
+    /* Handle absolute group names */
+    if(grpname[0] == '/') {
+	int grpid;
+	status = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
+	if(status == NC_NOERR) {
+	    count = 1;
+	    idadd(grpids, grpid);
+	} else if(status == NC_ENOGRP) {
+	    count = 0;
+	} else {
+	    error("when looking up group %s: %s ", grpname, nc_strerror(status));
+	}
+	return count;
+    }
+    
+    /* look in this group */
+    status = nc_inq_grp_ncid(ncid, grpname, &grpid);
+    if (status == NC_NOERR) {
+	count++;
+	idadd(grpids, grpid);
+    }
+    /* if this group has subgroups, call recursively on each of them */
+    NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
+    if(numgrps > 0) {
+	/* Allocate memory to hold the list of group ids. */
+	ncids = emalloc(numgrps * sizeof(int));
+	/* Get the list of group ids. */
+	NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
+	/* Call this function recursively for each group. */
+	for (g = 0; g < numgrps; g++) {
+	    count += nc_inq_grpname_count(ncids[g], igrp, lgrps, grpids);
+	}
+	free(ncids);
+    }
+#endif /* USE_NETCDF4 */
+    return count;    
+}
+
+/* Check if any group names specified with "-g grp1,...,grpn" are
+ * missing.  Returns total number of matching groups if no missing
+ * groups detected, otherwise exits. */
+int
+grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids) {
+    int ig;
+    size_t total = 0;
+
+    for (ig=0; ig < nlgrps; ig++) {
+	size_t count = nc_inq_grpname_count(ncid, ig, lgrps, grpids);
+	if(count == 0) {
+	    error("%s: No such group", lgrps[ig]);
+	    return 0;
+	}
+	total += count;
+    }
+    return total;
+}
+
+/* Returns 1 if string s1 ends with string s2, 0 otherwise. */
+int
+strendswith(const char *s1, const char *s2) {
+    size_t m1 = strlen(s1);
+    size_t m2 = strlen(s2);
+    if (m1 < m2)
+	return 0;
+    return (strcmp(s1 + (m1 - m2), s2) == 0);
+}

@@ -20,6 +20,7 @@
 #include "chunkspec.h"
 #include "utils.h"
 #include "dimmap.h"
+#include "nccomps.h"
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
@@ -54,6 +55,16 @@ static int option_write_diskless = 0; /* default, don't write output to diskless
 static int option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
 						      * chunksizes of its dimensions is smaller
 						      * than this */
+static int option_nlgrps = 0;		    /* Number of groups specified with -g
+					     * option on command line */
+static char** option_lgrps = 0;		    /* list of group names specified with -g
+					     * option on command line */
+static idnode_t* option_grpids = 0; /* list of grpids matching list specified with -g option */
+static bool_t option_grpstruct = false; /* if -g set, copy structure for non-selected groups */
+static int option_nlvars = 0; /* Number of variables specified with -v * option on command line */
+static char** option_lvars = 0;         /* list of variable names specified with -v
+                                         * option on command line */
+static bool_t option_varstruct = false;   /* if -v set, copy structure for non-selected vars */
 static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
 					    * chunk cache for each variable */
 
