@@ -88,7 +88,7 @@ test_big_var(const char *testfile)
 		   start[0], start[1], start[2], j, FIRST_VAL, data[j]);
 	    ERR;
 	    if(nerrs++ > 1)
-		return;
+	      return nerrs;
 	}
     }
     if (nc_close(ncid)) ERR;

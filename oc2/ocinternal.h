@@ -13,10 +13,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#ifndef WIN32
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -95,6 +97,9 @@ typedef struct OCheader {
 
 /* Default maximum memory packet size */
 #define DFALTMAXPACKETSIZE 0x3000000 /*approximately 50M bytes*/
+
+/* Default user agent string (will have version appended)*/
+#define DFALTUSERAGENT "oc"
 
 /* Collect global state info in one place */
 extern struct OCGLOBALSTATE {
@@ -197,5 +202,7 @@ extern int ocinternalinitialize(void);
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
 extern int ocinternalinitialize(void);
+
+extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 
 #endif /*COMMON_H*/

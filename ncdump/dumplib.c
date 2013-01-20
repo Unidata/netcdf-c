@@ -1988,14 +1988,16 @@ init_is_unlim(int ncid, int **is_unlim_p)
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in groups and info about which ones are unlimited */
-    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+    for(igrp = 0; igrp < num_grps; igrp++) {
 	int ndims;
+	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	num_dims += ndims;
     }
     *is_unlim_p = emalloc((num_dims + 1) * sizeof(int));
-    for(igrp = 0, grpid = grpids[igrp]; igrp < num_grps; igrp++) {
+    for(igrp = 0; igrp < num_grps; igrp++) {
 	int ndims, idim, *dimids, nundims;
+	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	dimids = emalloc((ndims + 1) * sizeof(int));
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );

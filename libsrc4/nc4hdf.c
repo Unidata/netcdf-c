@@ -15,8 +15,13 @@
 
 #include "config.h"
 #include "nc4internal.h"
+#include "nc4dispatch.h"
 #include <H5DSpublic.h>
 #include <math.h>
+
+#ifdef USE_PNETCDF
+#include <pnetcdf.h>
+#endif
 
 #ifdef IGNORE
 extern NC_FILE_INFO_T *nc_file;
@@ -286,10 +291,10 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       }
       else if (var->xtype == NC_STRING)
       {
-         if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
-					sizeof(char))))
-	    return NC_ENOMEM;
-         strcpy(*(char **)fillp, (char *)var->fill_value);
+	if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
+				       sizeof(char))))
+	  return NC_ENOMEM;
+	strcpy(*(char **)fillp, (char *)var->fill_value);
       }
       else
          memcpy((*fillp), var->fill_value, size);
@@ -616,12 +621,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
          }
       }
    }
-
-   /* A little quirk: if any of the count values are zero, then
-      return success and forget about it. */
-   for (d2 = 0; d2 < var->ndims; d2++)
-      if (count[d2] == 0)
-         goto exit;
    
    /* Now you would think that no one would be crazy enough to write
       a scalar dataspace with one of the array function calls, but you
@@ -747,7 +746,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       if (need_to_extend)
       {
          LOG((4, "extending dataset"));
-         if (H5Dextend(var->hdf_datasetid, xtend_size) < 0)
+	 if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
 	 if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
 	    BAIL2(NC_EHDFERR);
@@ -924,7 +923,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
                   
                   /* We can't go beyond the latgest current extent of
                      the unlimited dim. */
-                  if ((retval = nc_inq_dimlen(ncid, dim->dimid, &ulen)))
+                  if ((retval = NC4_inq_dim(ncid, dim->dimid, NULL, &ulen)))
                      BAIL(retval);
                   
                   /* Check for out of bound requests. */
@@ -1543,6 +1542,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    if (maxdimsize) free(maxdimsize);
    if (dimsize) free(dimsize);
    if (chunksize) free(chunksize);
+   
    return retval;
 }
 
@@ -2560,7 +2560,7 @@ pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype,
    for (i = 0; i < var->ndims; i++)
    {
       start[i] = 0;
-      if ((retval = nc_inq_dimlen(ncid, var->dimids[i], &(count[i]))))
+      if ((retval = NC4_inq_dim(ncid, var->dimids[i], NULL, &(count[i]))))
          return retval;
    }
 
@@ -2661,7 +2661,7 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
    {
       if (h5->cmode & NC_CLASSIC_MODEL)
          return NC_EINDEFINE;
-      if ((retval = nc_enddef(ncid)))
+      if ((retval = NC4__enddef(ncid,0,0,0,0)))
          BAIL(retval);
    }
 
@@ -2747,7 +2747,7 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
          else 
          {
             size_t len;
-            if ((retval = nc_inq_dimlen(ncid, var->dimids[idim], &len)))
+            if ((retval = NC4_inq_dim(ncid, var->dimids[idim], NULL, &len)))
                goto done;
             myedges[idim] = len - mystart[idim];
          }
@@ -2772,13 +2772,13 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
       for (idim = maxidim; idim >= 0; --idim)
       {
          size_t dimlen;
-         if ((retval = nc_inq_dimlen(ncid, var->dimids[idim], &dimlen)))
+         if ((retval = NC4_inq_dim(ncid, var->dimids[idim], NULL, &dimlen)))
             goto done;
          /* Don't check unlimited dimension on PUTs. */
          if (pg == PUT)
          {
             int stop = 0, d, num_unlim_dim, unlim_dimids[NC_MAX_DIMS];
-            if ((retval = nc_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
+            if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
                goto done;
             for (d = 0; d < num_unlim_dim; d++)
                if (var->dimids[idim] == unlim_dimids[d])

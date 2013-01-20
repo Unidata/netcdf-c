@@ -347,7 +347,11 @@ ncuriparse(const char* uri0, NCURI** durip)
         fprintf(stderr,"\n");
     }
 #endif
-    if(durip != NULL) *durip = duri;
+    if(durip != NULL) 
+      *durip = duri;
+    else
+      ncurifree(duri);
+
     return 1;
 
 fail:

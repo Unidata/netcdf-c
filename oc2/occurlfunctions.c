@@ -90,6 +90,12 @@ ocset_curl_flags(OCstate* state)
 	OCDBG1(1,"CURLOPT_TIMEOUT=%ld",1L);
     }
 
+    if (flags->useragent) {
+	cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, flags->useragent);
+	if (cstat != CURLE_OK) goto done;
+	OCDBG1(1,"CURLOPT_USERAGENT=%s",flags->useragent);
+    }
+
     /* Following are always set */
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);

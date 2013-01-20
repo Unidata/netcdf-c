@@ -329,7 +329,7 @@ ocdodsrc_read(char* basename, char* path)
 	    /* trim again */
    	    line = rctrimleft(line,TRIMCHARS);
 	    /* save the url */
-	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,TRIM(url),2047);
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,TRIM(url),strlen(url));
 	}
 	if(strlen(line)==0) continue; /* empty line */
 	/* split off key and value */
@@ -346,15 +346,14 @@ ocdodsrc_read(char* basename, char* path)
 	}
         *value = '\0';
 	value++;
-	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key),2047);
-	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,TRIM(value),2047);
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key),strlen(key));
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,TRIM(value),strlen(value));
 	ocdodsrc->ntriples++;
     }
     fclose(in_file);
     sorttriplestore();
     return 1;
 }
-
 
 int
 ocdodsrc_process(OCstate* state)
@@ -380,6 +379,12 @@ ocdodsrc_process(OCstate* state)
         if(atoi(value)) state->curlflags.timeout = atoi(value);
         if(ocdebug > 0)
             oclog(OCLOGNOTE,"curl.timeout: %ld", state->curlflags.timeout);
+    }
+    if((value = curllookup("USERAGENT",url)) != NULL) {
+        if(atoi(value)) state->curlflags.useragent = strdup(TRIM(value));
+        if(!state->curlflags.useragent) {stat = OC_ENOMEM; goto done;}
+        if(ocdebug > 0)
+            oclog(OCLOGNOTE,"USERAGENT: %s", state->curlflags.useragent);
     }
 
     if((value = curllookup("COOKIEFILE",url)) != NULL) {
@@ -541,12 +546,12 @@ curllookup(char* suffix, char* url)
 {
     char key[2048];
     char* value = NULL;
-    strncpy(key,HTTPPREFIX,2047);
-    strncat(key,suffix,2047-strlen(HTTPPREFIX));
+    if(!occopycat(key,sizeof(key),2,HTTPPREFIX,suffix))
+	return NULL;
     value = ocdodsrc_lookup(key,url);
     if(value == NULL) {
-	strcpy(key,HTTPPREFIXDEPRECATED);
-	strncat(key,suffix,2047);
+        if(!occopycat(key,sizeof(key),2,HTTPPREFIXDEPRECATED,suffix))
+	    return NULL;
         value = ocdodsrc_lookup(key,url);
     }
     return value;

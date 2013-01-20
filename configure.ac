@@ -723,6 +723,8 @@ dnl 	 fi
       fi		      
       AC_CHECK_LIB([df], [Hclose], [], [])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [])
+      #AC_SEARCH_LIBS([Hclose],[df], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
+      #AC_SEARCH_LIBS([SDcreate],[mfhdf], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi
@@ -853,6 +855,15 @@ AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
+
+# Include some specifics for netcdf on windows.
+#AH_VERBATIM([_WIN32_STRICMP],
+AH_BOTTOM(
+[/* Define strcasecmp, snprintf on Win32 systems. */
+#ifdef _WIN32
+	#define strcasecmp _stricmp
+	#define snprintf _snprintf
+#endif])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])

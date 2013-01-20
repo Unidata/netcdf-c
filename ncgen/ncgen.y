@@ -1003,6 +1003,7 @@ makeconstdata(nc_type nctype)
     consttype = nctype;
     con.nctype = nctype;
     con.lineno = lineno;
+    con.filled = 0;
     switch (nctype) {
 	case NC_CHAR: con.value.charv = char_val; break;
         case NC_BYTE: con.value.int8v = byte_val; break;
@@ -1171,7 +1172,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
-
     
     specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 

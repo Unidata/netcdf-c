@@ -295,10 +295,11 @@ dumpfield(int index, char* n8, int isxdr)
 	    char stmp[64];
 	    unsigned int c = (n8[i] & 0xff);
 	    if(c < ' ' || c > 126)
-                sprintf(stmp,"\\%02x",c);
+                snprintf(stmp,sizeof(stmp),"\\%02x",c);
 	    else
-                sprintf(stmp,"%c",c);
-	    strncat(tmp,stmp,4);
+                snprintf(stmp,sizeof(stmp),"%c",c);
+	    if(!occoncat(tmp,sizeof(tmp),1,stmp))
+		return;
         }
     }
 
@@ -571,7 +572,8 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
 
     tabto(tabstops[++tabstop],buffer);
 
-    snprintf(tmp,sizeof(tmp),"%s",template->name);
+    if(!occopycat(tmp,sizeof(tmp),1,template->name))
+	return;
     ocbytescat(buffer,tmp);
 
     if(rank > 0) {
@@ -615,8 +617,8 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	    if(fisset(next->datamode,OCDT_FIELD)
 		|| fisset(next->datamode,OCDT_ELEMENT)
 		|| fisset(next->datamode,OCDT_RECORD)) {
-	      snprintf(tmp,sizeof(tmp),".%lu",(unsigned long)next->index);
-	      ocbytescat(buffer,tmp);
+		snprintf(tmp,sizeof(tmp),".%lu",(unsigned long)next->index);
+	        ocbytescat(buffer,tmp);
 	    }
 	}
 	if(template->octype == OC_Atomic) {

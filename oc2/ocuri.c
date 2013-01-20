@@ -347,7 +347,7 @@ ocuriparse(const char* uri0, OCURI** durip)
         fprintf(stderr,"\n");
     }
 #endif
-    if(durip != NULL) *durip = duri;
+    if(durip != NULL) *durip = duri; else free(duri);
     return 1;
 
 fail:

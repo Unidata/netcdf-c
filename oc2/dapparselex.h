@@ -6,17 +6,6 @@
 
 #include "ocinternal.h"
 #include "ocdebug.h"
-#ifdef USE_DAP
-/* To avoid "make distclean" wiping out dap.tab.h */
-#include "daptab.h"
-#else
-#include "daptab.h"
-#endif
-
-#ifdef WIN32
-#define strcasecmp stricmp
-#define snprintf _snprintf
-#endif
 
 /* For consistency with Java parser */
 #define null NULL
@@ -48,8 +37,8 @@ typedef struct DAPparsestate {
     DAPlexstate* lexstate;
     OClist* ocnodes;
     struct OCstate* conn;
-    /* For error returns from the server */
-    int svcerror; /* 1 => we had an error from the server */
+    /* Provide a flag for semantic failures during parse */
+    OCerror error; /* OC_EDAPSVC=> we had a server failure; else we had a semantic error */
     char* code;
     char* message;
     char* progtype;
@@ -60,7 +49,8 @@ typedef struct DAPparsestate {
 
 extern int dapdebug; /* global state */
 
-extern int daperror(DAPparsestate* state, const char* msg);
+extern int daperror(DAPparsestate*, const char*);
+extern int dapsemanticerror(DAPparsestate* state, OCerror, const char* msg);
 extern void dap_parse_error(DAPparsestate*,const char *fmt, ...);
 /* bison parse entry point */
 extern int dapparse(DAPparsestate*);

@@ -39,14 +39,15 @@ NC_check_id(int ncid, NC** ncpp)
 void
 free_NC(NC *ncp)
 {
-	if (ncp->path)
-	   free(ncp->path);
-	if(ncp == NULL)
-		return;
+    if(ncp == NULL)
+	return;
+    if(ncp->path)
+	free(ncp->path);
+    /* We assume caller has already cleaned up ncp->dispatchdata */
 #if _CRAYMPP && defined(LOCKNUMREC)
-	shfree(ncp);
+    shfree(ncp);
 #else
-	free(ncp);
+    free(ncp);
 #endif /* _CRAYMPP && LOCKNUMREC */
 }
 

@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "dapparselex.h"
+#include "daptab.h"
 
 /* Forward */
 
@@ -41,6 +42,17 @@ Object
 dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
     OCnode* root = newocnode((char*)name,OC_Dataset,state);
+    char* dupname = NULL;
+    dupname = scopeduplicates((OClist*)decls);
+    if(dupname != NULL) {
+	/* Sometimes, some servers (i.e. Thredds)
+           return a dds with duplicate field names
+           at the dataset level; simulate an errorbody response
+        */
+        dap_parse_error(state,"Duplicate dataset field names: %s",name,dupname);
+	state->error = OC_ENAMEINUSE;
+	return (Object)NULL;
+    }
     root->subnodes = (OClist*)decls;
     OCASSERT((state->root == NULL));
     state->root = root;
@@ -67,7 +79,7 @@ void
 dap_errorbody(DAPparsestate* state,
 	  Object code, Object msg, Object ptype, Object prog)
 {
-    state->svcerror = 1;
+    state->error = OC_EDAPSVC;
     state->code     = nulldup((char*)code);
     state->message  = nulldup((char*)msg);
     /* Ignore ptype and prog for now */
@@ -116,8 +128,10 @@ dap_arraydecl(DAPparsestate* state, Object name, Object size)
 {
     long value;
     OCnode* dim;
-    if(!check_int32(size,&value))
+    if(!check_int32(size,&value)) {
 	dap_parse_error(state,"Dimension not an integer");
+	state->error = OC_EDIMSIZE; /* signal semantic error */
+    }
     if(name != NULL)
 	dim = newocnode((char*)name,OC_Dimension,state);
     else
@@ -140,6 +154,7 @@ dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
 	        dap_parse_error(state,"Duplicate attribute names in same scope: %s",dupname);
 		/* Remove this attribute */
 		oclistpop(alist);
+		state->error = OC_ENAMEINUSE; /* semantic error */
 	    }
 	}
     }
@@ -258,6 +273,7 @@ dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object f
     char* dupname;    
     if((dupname=scopeduplicates((OClist*)fields))!= NULL) {
         dap_parse_error(state,"Duplicate structure field names in same scope: %s.%s",(char*)name,dupname);
+	state->error = OC_ENAMEINUSE; /* semantic error */
 	return (Object)NULL;
     }
     node = newocnode(name,OC_Structure,state);
@@ -290,6 +306,7 @@ dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecl
     char* dupname;    
     if((dupname=scopeduplicates((OClist*)mapdecls)) != NULL) {
         dap_parse_error(state,"Duplicate grid map names in same scope: %s.%s",(char*)name,dupname);
+	state->error = OC_ENAMEINUSE; /* semantic error */
 	return (Object)NULL;
     }
     node = newocnode(name,OC_Grid,state);
@@ -323,7 +340,14 @@ setroot(OCnode* root, OClist* ocnodes)
 int
 daperror(DAPparsestate* state, const char* msg)
 {
+    return dapsemanticerror(state,OC_EINVAL,msg);
+}
+
+int
+dapsemanticerror(DAPparsestate* state, OCerror err, const char* msg)
+{
     dap_parse_error(state,msg);
+    state->error = err; /* semantic error */
     return 0;
 }
 
@@ -439,6 +463,7 @@ dap_parse_init(char* buf)
     MEMCHECK(state,NULL);
     if(buf==NULL) {
         dap_parse_error(state,"dap_parse_init: no input buffer");
+	state->error = OC_EINVAL; /* semantic error */
 	dap_parse_cleanup(state);
 	return NULL;
     }
@@ -459,8 +484,8 @@ DAPparse(OCstate* conn, OCtree* tree, char* parsestring)
 	dapdebug = 1;
     parseresult = dapparse(state);
     if(parseresult == 0) {/* 0 => parse ok */
-	/* Check to see if we ended up parsing an error message */
-	if(state->svcerror) {
+	if(state->error == OC_EDAPSVC) {
+	    /* we ended up parsing an error message from server */
             conn->error.code = nulldup(state->code);
             conn->error.message = nulldup(state->message);
 	    tree->root = NULL;
@@ -471,8 +496,10 @@ DAPparse(OCstate* conn, OCtree* tree, char* parsestring)
 		ocerr = OC_ENOFILE;
 	    else
 	        ocerr = OC_EDAPSVC;
+	} else if(state->error != OC_NOERR) {
+	    /* Parse failed for semantic reasons */
+	    ocerr = state->error;
 	} else {
-	    OCASSERT((state->root != NULL));	
             tree->root = state->root;
 	    state->root = NULL; /* avoid reclaim */
             tree->nodes = state->ocnodes;

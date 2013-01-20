@@ -1655,6 +1655,24 @@ oc_ping(const char* url)
     return ocping(url);
 }
 
+/*!
+Set the user agent field.
+
+\param[in] agent The user agent string
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_EINVAL if the request failed, typically
+                  because the agent string is null or zero-length.
+*/
+
+OCerror
+oc_set_useragent(OCobject link, const char* agent)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    return ocsetuseragent(state,agent);
+}
 
 /**@}*/
 

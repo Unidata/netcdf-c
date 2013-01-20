@@ -46,20 +46,6 @@ IF(ENABLE_TESTS)
 	# The tests are set up as a combination of shell scripts and executables that
 	# must be run in a particular order. It is painful but will use macros to help
 	# keep it from being too bad.
-	# Binary Test Macro
-	#MACRO(add_bin_test F)
-	#	ADD_EXECUTABLE(ncdump_${F} ${F}.c)
-	#	TARGET_LINK_LIBRARIES(ncdump_${F} netcdf)
-	#	ADD_TEST(ncdump_${F} ${EXECUTABLE_OUTPUT_PATH}/ncdump_${F})
-	
-	#ENDMACRO()
-	
-	# Shell script Macro
-	#MACRO(add_sh_test F)
-	#	IF(NOT MSVC)
-	#		ADD_TEST(ncdump_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
-	#	ENDIF()
-	#ENDMACRO()
 	
 	## Start adding tests in the appropriate order
 	add_sh_test(ncdump run_tests)
@@ -89,8 +75,26 @@ IF(ENABLE_TESTS)
 		add_bin_test(ncdump tst_comp)
 		add_bin_test(ncdump tst_comp2)
 		add_bin_test(ncdump tst_nans)
-		add_bin_test(ncdump tst_special_atts)
+		#add_bin_test(ncdump tst_special_atts)
+		# Add this test by hand, as it is also called from a script.
+		# Editing the script would break autotools compatibility.
+		set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
+		FOREACH (MTEST ${MANUAL_TESTS})
+			ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
+			TARGET_LINK_LIBRARIES(${MTEST} netcdf)
+			IF(MSVC)
+				SET_TARGET_PROPERTIES(${MTEST}
+					PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+				)
+			ENDIF()
+			#ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
+		ENDFOREACH()
+		
 		IF(NOT WIN32)
+			# tst_netcdf4 depends on the output from other scripts
+			# that don't currently run. So for time being, leave
+			# it disabled.
+
 			#add_sh_test(ncdump tst_netcdf4)
 			#add_bin_test(ncdump tst_h_rdc0)
 		ENDIF()
@@ -100,9 +104,9 @@ IF(ENABLE_TESTS)
 			#add_sh_test(ncdump tst_fillbug)
 		ENDIF()
 		IF(NOT WIN32)	
-			#add_sh_test(ncdump tst_netcdf4_4)
+			add_sh_test(ncdump tst_netcdf4_4)
 		ENDIF()	
-		add_bin_test(ncdump tst_compress)
+		
 		IF(NOT WIN32)
 			#add_sh_test(ncdump tst_nccopy4)
 		ENDIF()
@@ -112,7 +116,7 @@ IF(ENABLE_TESTS)
 	
 	#add_sh_test(tst_ncgen4_classic)
 	IF(USE_NETCDF4)
-		#add_sh_test(tst_ncgen4)
+		add_sh_test(ncdump tst_ncgen4)
 	ENDIF()
 
 
@@ -129,11 +133,12 @@ IF(MSVC)
 ENDIF()
 
 
-INSTALL(TARGETS ncdump DESTINATION bin)
-INSTALL(TARGETS nccopy DESTINATION bin)
+INSTALL(TARGETS ncdump DESTINATION bin COMPONENT utilities)
+INSTALL(TARGETS nccopy DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
-INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1")
-
+IF(NOT MSVC)	
+	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+ENDIF()
 
 SET(CLEANFILES test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c ctest64.c ctest0.nc  ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl)
 

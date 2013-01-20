@@ -33,8 +33,9 @@ add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 set(man_MANS netcdf.3)
 
 SET(MAN_FILES netcdf.3)
-INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man3")
-
+IF(EXISTS ${MAN_FILES} AND NOT MSVC)
+	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man3" COMPONENT documentation)
+ENDIF()
 
 set(ARGS_MANPAGE -DAPI=C)
 

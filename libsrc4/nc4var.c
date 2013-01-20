@@ -137,7 +137,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
    if (preemption >= 0)
       real_preemption = preemption / 100.;
 	 
-   return nc_set_var_chunk_cache(ncid, varid, real_size, real_nelems, 
+   return NC4_set_var_chunk_cache(ncid, varid, real_size, real_nelems, 
 				 real_preemption);
 }
 
@@ -190,7 +190,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
    float real_preemption;
    int ret;
 
-   if ((ret = nc_get_var_chunk_cache(ncid, varid, &real_size, 
+   if ((ret = NC4_get_var_chunk_cache(ncid, varid, &real_size, 
 				     &real_nelems, &real_preemption)))
       return ret;
    
@@ -578,13 +578,13 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
    {
       int ret;
 
       ret = ncmpi_def_var(nc->int_ncid, name, xtype, ndims, 
 			  dimidsp, varidp);
-      nc->pnetcdf_ndims[*varidp] = ndims;
+      h5->pnetcdf_ndims[*varidp] = ndims;
       return ret;
    }
 #endif /* USE_PNETCDF */
@@ -619,11 +619,13 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
-   assert(nc && grp && h5);
+
+   assert(nc);
+   assert(grp && h5);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
       return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
 			   dimidsp, nattsp);
 #endif /* USE_PNETCDF */
@@ -915,7 +917,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       memcpy(var->fill_value, fill_value, type_size);
 
       /* If there's a _FillValue attribute, delete it. */
-      retval = nc_del_att(ncid, varid, _FillValue);
+      retval = NC4_del_att(ncid, varid, _FillValue);
       if (retval && retval != NC_ENOTATT)
          return retval;
 
@@ -1077,6 +1079,9 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    NC_VAR_INFO_T *var;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
+#ifdef USE_PNETCDF
+   NC_HDF5_FILE_INFO_T *h5;
+#endif
    
    if (!name)
       return NC_EINVAL;
@@ -1088,6 +1093,16 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
       return retval;
+
+#ifdef USE_PNETCDF
+   h5 = NC4_DATA(nc);
+   assert(h5);
+   /* Take care of files created/opened with parallel-netcdf library. */
+   if (h5->pnetcdf_file)
+   {
+     return ncmpi_inq_varid(nc->int_ncid, name, varidp);
+   }
+#endif /* USE_PNETCDF */
    
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
@@ -1124,14 +1139,13 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    
+   assert(h5);
+
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
       return ncmpi_rename_var(nc->int_ncid, varid, name);
 #endif /* USE_PNETCDF */
-
-   /* Take care of netcdf-3 files. */
-   assert(h5);
 
    /* Is the new name too long? */
    if (strlen(name) > NC_MAX_NAME)
@@ -1207,12 +1221,12 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 
 #ifdef USE_PNETCDF
    /* Handle files opened/created with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
    {
-      if (par_access == nc->pnetcdf_access_mode)
+      if (par_access == h5->pnetcdf_access_mode)
 	 return NC_NOERR;
 
-      nc->pnetcdf_access_mode = par_access;
+      h5->pnetcdf_access_mode = par_access;
       if (par_access == NC_INDEPENDENT)
 	 return ncmpi_begin_indep_data(nc->int_ncid);
       else
@@ -1244,6 +1258,9 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
                 const size_t *startp, const size_t *countp, const void *op)
 {
    NC *nc;
+#ifdef USE_PNETCDF
+   NC_HDF5_FILE_INFO_T *h5;
+#endif
 
    LOG((2, "nc4_put_vara_tc: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
         ncid, varid, mem_type, mem_type_is_long));
@@ -1252,8 +1269,11 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
       return NC_EBADID;
 
 #ifdef USE_PNETCDF
+   h5 = NC4_DATA(nc);
+   assert(h5);
+
    /* Handle files opened/created with the parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
    {
       MPI_Offset mpi_start[NC_MAX_DIMS], mpi_count[NC_MAX_DIMS];
       int d;
@@ -1264,13 +1284,13 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
       
       /* We must convert the start, count, and stride arrays to
        * MPI_Offset type. */
-      for (d = 0; d < nc->pnetcdf_ndims[varid]; d++)
+      for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
       {
 	 mpi_start[d] = startp[d];
 	 mpi_count[d] = countp[d];
       }
 
-      if (nc->pnetcdf_access_mode == NC_INDEPENDENT)
+      if (h5->pnetcdf_access_mode == NC_INDEPENDENT)
       {
 	 switch(mem_type)
 	 {
@@ -1328,18 +1348,20 @@ nc4_get_hdf4_vara(NC *nc, int ncid, int varid, const size_t *startp,
 		  const size_t *countp, nc_type mem_nc_type, int is_long, void *data)
 {
 #ifdef USE_HDF4   
-   NC_GRP_INFO_T *grp, *g;
+   NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
-   NC_DIM_INFO_T *dim;
    int32 start32[NC_MAX_VAR_DIMS], edge32[NC_MAX_VAR_DIMS];
    int retval, d;
-   
+#if 0
+   NC_GRP_INFO_T *g;
+   NC_DIM_INFO_T *dim;
+#endif   
    /* Find our metadata for this file, group, and var. */
    assert(nc);
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
       return retval;
-   h5 = nc->nc4_info;
+   h5 = NC4_DATA(nc);
    assert(grp && h5 && var && var->name);
    
    for (d = 0; d < var->ndims; d++)
@@ -1371,7 +1393,7 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    
 #ifdef USE_PNETCDF
    /* Handle files opened/created with the parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
    {
       MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
       int d;
@@ -1382,13 +1404,13 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
       
       /* We must convert the start, count, and stride arrays to
        * MPI_Offset type. */
-      for (d = 0; d < nc->pnetcdf_ndims[varid]; d++)
+      for (d = 0; d < h5->pnetcdf_ndims[varid]; d++)
       {
 	 mpi_start[d] = startp[d];
 	 mpi_count[d] = countp[d];
       }
 
-      if (nc->pnetcdf_access_mode == NC_INDEPENDENT)
+      if (h5->pnetcdf_access_mode == NC_INDEPENDENT)
       {
 	 switch(mem_type)
 	 {

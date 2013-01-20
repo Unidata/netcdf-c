@@ -2,14 +2,23 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef _WIN32
+#include <io.h>
 #endif
 #include "ocinternal.h"
 #include "ocdebug.h"
@@ -17,11 +26,6 @@
 #include "ocread.h"
 #include "ocrc.h"
 #include "occurlfunctions.h"
-
-#ifdef _MSC_VER
-#include <io.h>
-#endif
-
 
 /*Forward*/
 static int readpacket(OCstate* state, OCURI*, OCbytes*, OCdxd, long*);
@@ -213,8 +217,8 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
     off_t totalread = 0;
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
-    strncpy(filename,path,1023);
-    if(suffix != NULL) strncat(filename,suffix,1023-strlen(path)); /* A char is reserved for terminating '\0' */
+    if(!occopycat(filename,sizeof(filename),2,path,(suffix != NULL ? suffix : "")))
+	return OCTHROW(OC_EOVERRUN);
     flags = O_RDONLY;
 #ifdef O_BINARY
     flags |= O_BINARY;

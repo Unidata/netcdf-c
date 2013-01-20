@@ -11,7 +11,11 @@ ENDIF()
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 
-INSTALL(TARGETS ncgen DESTINATION bin)
+INSTALL(TARGETS ncgen DESTINATION bin COMPONENT utilities)
+
+# Copy the input for the flex file (ncgen.l)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.l ${CMAKE_CURRENT_SOURCE_DIR}/*.y)
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 # Stuff to build if tests are enabled.
 IF(ENABLE_TESTS)
@@ -26,8 +30,23 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 SET(MAN_FILES ncgen.1)
-INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1")
-
+IF(NOT MSVC)
+	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1"
+		COMPONENT documentation)
+ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ncgentab.h
+	COMMAND flex -Pncg -B ncgen.l
+	COMMAND rm -f ncgenyy.c
+	COMMAND mv lex.ncg.c ncgenyy.c
+	COMMAND bison -pncg -t -d ncgen.y
+	COMMAND rm -f ncgentab.c ncgentab.h
+	COMMAND mv ncgen.tab.c ncgentab.c
+	COMMAND mv ncgen.tab.h ncgentab.h
+)
+
+ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
 

@@ -9,8 +9,6 @@
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
-#define fstat64 fstat
-#define lseek64 lseek
 #endif
 
 #include <config.h>

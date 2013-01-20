@@ -23,7 +23,7 @@
 #ifdef __CYGWIN__
 #define TMPPATH1 "/cygdrive/c/temp/"
 #define TMPPATH2 "./"
-#elif WIN32
+#elif _WIN32
 #define TMPPATH1 "c:\\temp\\"
 #define TMPPATH2 ".\\"
 #else
@@ -44,12 +44,16 @@ static void ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
-#ifdef WIN32
+#ifdef _WIN32
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 #define _S_IREAD 256
 #define _S_IWRITE 128
 #else
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 #endif
 
 /* Collect global state info in one place */
@@ -80,10 +84,11 @@ ocinternalinitialize(void)
 	FILE* f = NULL;
         /* locate the configuration files: . first in '.',  then $HOME */
 	for(alias=rcfilenames;*alias;alias++) {
-            path = (char*)malloc(strlen("./")+strlen(*alias)+1);
+	    size_t pathlen = strlen("./")+strlen(*alias)+1;
+            path = (char*)malloc(pathlen);
 	    if(path == NULL) return OC_ENOMEM;
-            strcpy(path,"./");
-            strcat(path,*alias);
+	    if(!occopycat(path,pathlen,2,"./",*alias))
+		return OC_EOVERRUN;
   	    /* see if file is readable */
 	    f = fopen(path,"r");
 	    if(f != NULL) break;
@@ -94,11 +99,11 @@ ocinternalinitialize(void)
             homepath = getenv("HOME");
             if (homepath!= NULL) {
 	        for(alias=rcfilenames;*alias;alias++) {
-	            path = (char*)malloc(strlen(homepath)+1+strlen(*alias)+1);
+	            size_t pathlen = strlen(homepath)+1+strlen(*alias)+1;
+	            path = (char*)malloc(pathlen);
 	            if(path == NULL) return OC_ENOMEM;
-	            strcpy(path,homepath);
-	            strcat(path,"/");
-	            strcat(path,*alias);
+		    if(!occopycat(path,pathlen,3,homepath,"/",*alias))
+			return OC_EOVERRUN;
 		    f = fopen(path,"r");
 		    if(f != NULL) break;
  	            if(path != NULL) {free(path); path=NULL;}
@@ -324,7 +329,8 @@ createtempfile(OCstate* state, OCtree* tree)
         fd = createtempfile1(TMPPATH2,&name);
     if(fd < 0) {
         oclog(OCLOGERR,"oc_open: attempt to open tmp file failed: %s",name);
-        return errno;
+        if(name) free(name);
+	return errno;
     }
 #ifdef OCDEBUG
     oclog(OCLOGNOTE,"oc_open: using tmp file: %s",name);
@@ -342,24 +348,29 @@ createtempfile1(char* tmppath, char** tmpnamep)
 {
     int fd = 0;
     char* tmpname = NULL;
-    tmpname = (char*)malloc(strlen(tmppath)+strlen("dataddsXXXXXX")+1);
+    size_t tmpsize = strlen(tmppath)+strlen("dataddsXXXXXX") + 1;
+    tmpname = (char*)malloc(tmpsize);
     if(tmpname == NULL) return -1;
-    strcpy(tmpname,tmppath);
+    if(!occopycat(tmpname,tmpsize,1,tmppath))
+	return OC_EOVERRUN;
 #ifdef HAVE_MKSTEMP
-    strcat(tmpname,"dataddsXXXXXX");
+    if(!occoncat(tmpname,tmpsize,1,"dataddsXXXXXX"))
+	return OC_EOVERRUN;
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     fd = mkstemp(tmpname);
 #else /* !HAVE_MKSTEMP */
     /* Need to simulate by using some kind of pseudo-random number */
-    strcat(tmpname,"datadds");
+    if(!occoncat(tmpname,tmpsize,1,"datadds"))
+	return OC_EOVERRUN;
     {
 	int rno = rand();
 	char spid[7];
 	if(rno < 0) rno = -rno;
-        sprintf(spid,"%06d",rno);
-        strcat(tmpname,spid);
-#  ifdef WIN32
+        snprintf(spid,sizeof(spid),"%06d",rno);
+	if(!occoncat(tmpname,tmpsize,1,spid))
+	    return OC_EOVERRUN;
+#  ifdef _WIN32
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
@@ -368,6 +379,8 @@ createtempfile1(char* tmppath, char** tmpnamep)
 #endif /* !HAVE_MKSTEMP */
     if(tmpname == NULL) return -1;
     if(tmpnamep) *tmpnamep = tmpname;
+    else
+      free(tmpname);
     return fd;
 }
 
@@ -552,10 +565,27 @@ ocsetcurlproperties(OCstate* state)
             state->creds.username = nulldup(state->uri->user);
 	}
     }
+    if(state->curlflags.useragent == NULL) {
+        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
+	char* agent = (char*)malloc(len+1);
+	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
+	    state->curlflags.useragent = agent;
+    }
     return;
 
 fail:
     if(cstat != CURLE_OK)
 	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
     return;
+}
+
+OCerror
+ocsetuseragent(OCstate* state, const char* agent)
+{
+    if(state->curlflags.useragent != NULL)
+	free(state->curlflags.useragent);
+    state->curlflags.useragent = strdup(agent);
+    if(state->curlflags.useragent == NULL)
+	return OC_ENOMEM;
+    return OC_NOERR;
 }

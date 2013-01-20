@@ -111,6 +111,8 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 	 return NC_EPARINIT;
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
+      /* Pretend this is an HDF5 file */
+      *hdf = 5;
    } else
 #endif /* USE_PARALLEL */
    {
@@ -126,22 +128,24 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       fclose(fp);
       if(i != 1)
 	 return errno;
-   }
     
-   /* Ignore the first byte for HDF */
-   if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F')
-      *hdf = 5;
-   else if(magic[0] == '\016' && magic[1] == '\003'
-	   && magic[2] == '\023' && magic[3] == '\001')
-      *hdf = 4;
-   else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
-   {
-      if(magic[3] == '\001') 
-	 *cdf = 1; /* netcdf classic version 1 */
-      else if(magic[3] == '\002') 
-	 *cdf = 2; /* netcdf classic version 2 */
-   }
-    
+      /* Ignore the first byte for HDF */
+      if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F')
+         *hdf = 5;
+      else if(magic[0] == '\016' && magic[1] == '\003'
+              && magic[2] == '\023' && magic[3] == '\001')
+         *hdf = 4;
+      else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
+      {
+         if(magic[3] == '\001') 
+            *cdf = 1; /* netcdf classic version 1 */
+         else if(magic[3] == '\002') 
+            *cdf = 2; /* netcdf classic version 2 */
+         else
+            return NC_ENOTNC;
+      } else
+            return NC_ENOTNC;
+    }       
    return NC_NOERR;
 }
 
@@ -1567,8 +1571,8 @@ NC_open(const char *path, int cmode,
 	 } else if(cdfversion != 0) {
 	    model = NC_DISPATCH_NC3;
 	 }
-      } 
-      /* else ignore the file */
+      } else /* presumably not a netcdf file */
+	return stat;
    }
 
    /* Look to the incoming cmode for hints */

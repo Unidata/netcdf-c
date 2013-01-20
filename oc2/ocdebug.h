@@ -4,7 +4,9 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
 
 #if 0
 #define OCDEBUG

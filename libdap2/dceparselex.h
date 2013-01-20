@@ -8,8 +8,8 @@
 #include "dcetab.h"
 
 #ifdef WIN32
-#define strcasecmp stricmp
-#define snprintf _snprintf
+
+
 #endif
 
 /* For consistency with Java parser */

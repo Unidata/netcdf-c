@@ -45,6 +45,7 @@ makeparser::
 	flex -Pncg -8 ncgen.l
 	rm -f ncgenyy.c
 	mv lex.ncg.c ncgenyy.c
-	bison -pncg -t ncgen.y
-	rm -f ncgentab.c
+	bison -pncg -t -d ncgen.y
+	rm -f ncgentab.c ncgentab.h
 	mv ncgen.tab.c ncgentab.c
+	mv ncgen.tab.h ncgentab.h

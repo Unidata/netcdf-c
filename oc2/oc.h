@@ -124,6 +124,7 @@ OC_ENOFILE=-25,
 OC_EINDEX=-26,
 OC_EBADTYPE=-27,
 OC_ESCALAR=-28,
+OC_EOVERRUN=-29,
 } OCerror;
 
 /*!\def OCLOGNOTE
@@ -363,7 +364,6 @@ extern OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
 */
 extern OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*);
 
-
 /* Return the indices for this datas; Assumes the data
    was obtained using oc_data_ithelement or oc_data_ithrecord;
    if not, then an error is returned.
@@ -425,15 +425,6 @@ extern void oc_logtext(int tag, const char* text);
 /**************************************************/
 /* Miscellaneous */
 
-/* For some reason, the MSVC compiler doesn't like this. */
-#ifndef _MSC_VER
-/* Return the size of the in-memory or on-disk
-   data chunk returned by the server for a given tree.
-   Zero implies it is not defined.
-*/
-extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
-#endif
-
 /* Reclaim the strings within a string vector, but not the vector itself.
    This is useful for reclaiming the result of oc_data_read
    or oc_dds_attr when the type is OC_String or OC_URL.
@@ -450,9 +441,6 @@ extern const char* oc_errstring(OCerror err);
 */
 extern const char* oc_clientparam_get(OClink, const char* param);
 
-/* Test is a given url responds to a DAP protocol request */
-extern OCerror oc_ping(const char* url);
-
 /**************************************************/
 /* Merging operations */
 
@@ -468,13 +456,28 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
                                char** msgp, long* httpp);
 
 /**************************************************/
-/* Experimental */
+/* Experimental/Undocumented */
 
 /* Resend a url as a head request to check the Last-Modified time */
 extern OCerror oc_update_lastmodified_data(OClink);
 
 /* Get last known modification time; -1 => data unknown */
 extern long oc_get_lastmodified_data(OClink);
+
+/* Test if a given url responds to a DAP protocol request */
+extern OCerror oc_ping(const char* url);
+
+/* Allow the setting of the user agent */
+extern OCerror oc_set_useragent(OClink, const char* agent);
+
+/* Return the size of the in-memory or on-disk
+   data chunk returned by the server for a given tree.
+   Zero implies it is not defined.
+*/
+/* For some reason, the MSVC compiler doesn't like this. */
+#ifndef _WIN32
+extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
+#endif
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,9 @@ struct OCstate;
 extern char* ocstrndup(const char* s, size_t len);
 extern int ocstrncmp(const char* s1, const char* s2, size_t len);
 
+extern int occopycat(char* dst, size_t size, size_t n, ...);
+extern int occoncat(char* dst, size_t size, size_t n, ...);
+
 extern size_t octypesize(OCtype etype);
 extern char*  octypetostring(OCtype octype);
 extern char*  octypetoddsstring(OCtype octype);

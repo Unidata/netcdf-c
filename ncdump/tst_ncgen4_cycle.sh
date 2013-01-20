@@ -15,7 +15,7 @@ echo "*** Cycle testing ncgen with -k${KFLAG}"
 
 cd ${RESULTSDIR}
 for x in ${TESTSET} ; do
-  test $verbose = 1 && echo "*** Testing: ${x}"
+  test "x$verbose" = x1 && echo "*** Testing: ${x}"
   # determine if we need the specflag set
   specflag=
   headflag=
@@ -36,7 +36,7 @@ for x in ${TESTSET} ; do
     ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${cdl}/${x}.cdl
     # step 2: dump .nc file
     ${builddir}/../ncdump/ncdump ${headflag} ${specflag} ${x}.nc > ${x}.dmp
-    # step 3: use ncdump output to (re-)build the .nc
+    # step 3: use ncgen and the ncdump output to (re-)build the .nc
     rm -f ${x}.nc
     ${builddir}/../ncgen/ncgen -b -k${KFLAG} -o ${x}.nc ${x}.dmp
     # step 4: dump .nc file again
@@ -44,7 +44,7 @@ for x in ${TESTSET} ; do
     # compare the two ncdump outputs
     if diff -b -w ${x}.dmp ${x}.dmp2 ; then ok=1; else ok=0; fi
     if test "x$ok" = "x1" ; then
-      test $verbose = 1 && echo "*** SUCCEED: ${x}"
+      test "x$verbose" = x1 && echo "*** SUCCEED: ${x}"
       passcount=`expr $passcount + 1`
     else
       echo "*** FAIL: ${x}"

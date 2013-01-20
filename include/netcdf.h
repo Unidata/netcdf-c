@@ -14,6 +14,11 @@ for more info.
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
+
+#ifdef _WIN64
+#include <sys/stat.h>
+#endif
+
 /*! The nc_type type is just an int. */
 typedef int nc_type;
 
@@ -391,7 +396,6 @@ by the desired type. */
  */
 
 /* Declaration modifiers for DLL support (MSC et al) */
-
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 #  if defined(DLL_EXPORT) /* define when building the library */
 #   define MSC_EXTRA __declspec(dllexport)
@@ -399,13 +403,18 @@ by the desired type. */
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
 #include <io.h>
-/*#define lseek _lseeki64
-  #define off_t __int64*/
 #else
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
 
 # define EXTERNL MSC_EXTRA extern
+
+/* Define for 64 bit windows. */
+#if defined (_WIN64)
+#define off_t __int64
+#define size_t unsigned __int64
+#define _OFF_T_DEFINED
+#endif
 
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 EXTERNL int ncerr;
@@ -818,6 +827,7 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 EXTERNL int
 nc_redef(int ncid);
 
+/* Is this ever used? */
 EXTERNL int
 nc__enddef(int ncid, size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align);
