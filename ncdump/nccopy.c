@@ -414,20 +414,29 @@ copy_groups(int iroot, int oroot)
 	    char *grpname_full;
 	    char grpname[NC_MAX_NAME];
 	    size_t len_name;
-	    int ogid, oparid;
+	    int ogid, oparid, iparid;
 	    /* get full group name of input group */
-	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
-	    grpname_full = emalloc(len_name + 1);
-	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
-	    /* get id of parent group of corresponding group in output.
-	     * Note that this exists, because nc_inq_groups returned
-	     * grpids in preorder, so parents are always copied before
-	     * their subgroups */
-	    NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
 	    NC_CHECK(nc_inq_grpname(grpids[i], grpname));
-	    /* define corresponding group in output */
-	    NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
-	    free(grpname_full);
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+	        NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
+		grpname_full = emalloc(len_name + 1);
+		NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
+		/* Make sure, the parent group is also wanted (root group is always wanted) */
+		NC_CHECK(nc_inq_parid(iroot, grpname_full, &iparid));
+		if (!option_grpstruct && !group_wanted(iparid, option_nlgrps, option_grpids) 
+		    && iparid != iroot) {
+		    error("ERROR: trying to copy a group but not the parent: %s", grpname_full);
+		}
+		/* get id of parent group of corresponding group in output.
+		 * Note that this exists, because nc_inq_groups returned
+		 * grpids in preorder, so parents are always copied before
+		 * their subgroups */
+		NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
+		NC_CHECK(nc_inq_grpname(grpids[i], grpname));
+		/* define corresponding group in output */
+		NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
+		free(grpname_full);
+	    }
 	}
 	free(grpids);
     }
@@ -465,12 +474,14 @@ copy_types(int igrp, int ogrp)
 	grpids = (int *)emalloc(sizeof(int) * numgrps);
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	for(i = 0; i < numgrps; i++) {
-	    int ogid;
-	    /* get groupid in output corresponding to grpids[i] in
-	     * input, given parent group (or root group) ogrp in
-	     * output */
-	    NC_CHECK(get_grpid(grpids[i], ogrp, &ogid));
-	    NC_CHECK(copy_types(grpids[i], ogid));
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+		int ogid;
+		/* get groupid in output corresponding to grpids[i] in
+		 * input, given parent group (or root group) ogrp in
+		 * output */
+		NC_CHECK(get_grpid(grpids[i], ogrp, &ogid));
+		NC_CHECK(copy_types(grpids[i], ogid));
+	    }
 	}
 	free(grpids);
     }
@@ -846,9 +857,26 @@ copy_vars(int igrp, int ogrp)
     int stat = NC_NOERR;
     int nvars;
     int varid;
+
+    int iv;			/* variable number */
+    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+
+    /*
+     * If any vars were specified with -v option, get list of
+     * associated variable ids relative to this group.  Assume vars
+     * specified with syntax like "grp1/grp2/varname" or
+     * "/grp1/grp2/varname" if they are in groups.
+     */
+    vlist = newidlist();	/* list for vars specified with -v option */
+    for (iv=0; iv < option_nlvars; iv++) {
+        if(nc_inq_gvarid(igrp, option_lvars[iv], &varid) == NC_NOERR)
+            idadd(vlist, varid);
+    }
     
     NC_CHECK(nc_inq_nvars(igrp, &nvars));
     for (varid = 0; varid < nvars; varid++) {
+	if (!option_varstruct && option_nlvars > 0 && ! idmember(vlist, varid))
+            continue;
 	NC_CHECK(copy_var(igrp, varid, ogrp));
     }
     return stat;
@@ -881,7 +909,9 @@ copy_schema(int igrp, int ogrp)
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	
 	for(i = 0; i < numgrps; i++) {
-	    NC_CHECK(copy_schema(grpids[i], ogid));
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+	        NC_CHECK(copy_schema(grpids[i], ogid));
+	    }
 	}
 	free(grpids);
     }
@@ -1046,6 +1076,21 @@ copy_data(int igrp, int ogrp)
     int i;
 #endif
 
+    int iv;			/* variable number */
+    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+
+    /*
+     * If any vars were specified with -v option, get list of
+     * associated variable ids relative to this group.  Assume vars
+     * specified with syntax like "grp1/grp2/varname" or
+     * "/grp1/grp2/varname" if they are in groups.
+     */
+    vlist = newidlist();	/* list for vars specified with -v option */
+    for (iv=0; iv < option_nlvars; iv++) {
+        if(nc_inq_gvarid(igrp, option_lvars[iv], &varid) == NC_NOERR)
+            idadd(vlist, varid);
+    }
+    
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
     NC_CHECK(get_grpid(igrp, ogrp, &ogid));
@@ -1054,6 +1099,10 @@ copy_data(int igrp, int ogrp)
     NC_CHECK(nc_inq_nvars(igrp, &nvars));
 
     for (varid = 0; varid < nvars; varid++) {
+	if (option_nlvars > 0 && ! idmember(vlist, varid))
+            continue;
+        if (!group_wanted(igrp, option_nlgrps, option_grpids))
+            continue;
 	NC_CHECK(copy_var_data(igrp, varid, ogid));
     }
 #ifdef USE_NETCDF4
@@ -1063,6 +1112,8 @@ copy_data(int igrp, int ogrp)
     NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
     for(i = 0; i < numgrps; i++) {
+        if (!option_grpstruct && !group_wanted(grpids[i], option_nlgrps, option_grpids))
+            continue;
 	NC_CHECK(copy_data(grpids[i], ogid));
     }
     free(grpids);
@@ -1329,6 +1380,20 @@ copy(char* infile, char* outfile)
     }
 #endif	/* USE_NETCDF4 */
 
+	/* Check if any vars in -v don't exist */
+    if(missing_vars(igrp, option_nlvars, option_lvars))
+	return EXIT_FAILURE;
+
+    if(option_nlgrps > 0) {
+	if(inkind != NC_FORMAT_NETCDF4) {
+	    error("Group list (-g ...) only permitted for netCDF-4 file");
+	    return EXIT_FAILURE;
+	}
+	/* Check if any grps in -g don't exist */
+	if(grp_matches(igrp, option_nlgrps, option_lgrps, option_grpids) == 0)
+	    return EXIT_FAILURE;
+    }
+
     if(option_write_diskless)
 	create_mode |= NC_WRITE | NC_DISKLESS; /* NC_WRITE persists diskless file on close */
     switch(outkind) {
@@ -1375,6 +1440,7 @@ copy(char* infile, char* outfile)
     /* For performance, special case netCDF-3 input or output file with record
      * variables, to copy a record-at-a-time instead of a
      * variable-at-a-time. */
+    /* TODO: check that these special cases work with -v option */
     if(nc3_special_case(igrp, inkind)) {
 	size_t nfixed_vars, nrec_vars;
 	int *fixed_varids;

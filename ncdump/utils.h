@@ -100,6 +100,12 @@ extern size_t nc_inq_varname_count(int ncid, char *varname);
 /* Check if any variable names specified in the list lvars (of length nlvars) are missing. */
 extern int missing_vars(int ncid, int nlvars, char **lvars);
 
+/* Make list of variables from comma-delimited string */
+    void make_lvars(char *optarg, int *nlvarsp, char ***lvarsp);
+
+/* Make list of groups from comma-delimited string */
+    void make_lgrps(char *optarg, int *nlgrpsp, char*** lgrpsp, idnode_t **grpidsp);
+
 #ifdef __cplusplus
 }
 #endif

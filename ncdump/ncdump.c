@@ -1769,52 +1769,6 @@ do_ncdumpx(int ncid, const char *path)
 	free(dims);
 }
 
-static void
-make_lvars(char *optarg)
-{
-    char *cp = optarg;
-    int nvars = 1;
-    char ** cpp;
-
-    /* compute number of variable names in comma-delimited list */
-    formatting_specs.nlvars = 1;
-    while (*cp++)
-      if (*cp == ',')
- 	nvars++;
-    formatting_specs.nlvars = nvars;
-    formatting_specs.lvars = (char **) emalloc(nvars * sizeof(char*));
-    cpp = formatting_specs.lvars;
-    /* copy variable names into list */
-    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
-	*cpp = strdup(cp);
-	cpp++;
-    }
-}
-
-static void
-make_lgrps(char *optarg)
-{
-    char *cp = optarg;
-    int ngrps = 1;
-    char ** cpp;
-
-    /* compute number of group names in comma-delimited list */
-    while (*cp++)
-      if (*cp == ',')
- 	ngrps++;
-    formatting_specs.nlgrps = ngrps;
-    formatting_specs.lgrps = (char **) emalloc(ngrps * sizeof(char*));
-    cpp = formatting_specs.lgrps;
-    /* copy group names into list */
-    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
-	*cpp = strdup(cp);
-	cpp++;
-    }
-    /* make empty list of grpids, to be filled in after input file opened */
-    formatting_specs.grpids = newidlist();
-}
-
-
 /*
  * Extract the significant-digits specifiers from the (deprecated and
  * undocumented) -d argument on the command-line and update the
@@ -2248,11 +2202,12 @@ main(int argc, char *argv[])
 	  break;
 	case 'v':		/* variable names */
 	  /* make list of names of variables specified */
-	  make_lvars (optarg);
+	  make_lvars (optarg, &formatting_specs.nlvars, &formatting_specs.lvars);
 	  break;
 	case 'g':		/* group names */
 	  /* make list of names of groups specified */
-	  make_lgrps (optarg);
+	  make_lgrps (optarg, &formatting_specs.nlgrps, &formatting_specs.lgrps, 
+			&formatting_specs.grpids);
 	  break;
 	case 'd':		/* specify precision for floats (deprecated, undocumented) */
 	  set_sigdigs(optarg);

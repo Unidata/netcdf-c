@@ -503,3 +503,48 @@ missing_vars(int ncid, int nlvars, char **lvars) {
     }
     return 0;
 }
+
+void
+make_lvars(char *optarg, int *nlvarsp, char ***lvarsp)
+{
+    char *cp = optarg;
+    int nvars = 1;
+    char ** cpp;
+
+    /* compute number of variable names in comma-delimited list */
+    *nlvarsp = 1;
+    while (*cp++)
+      if (*cp == ',')
+ 	nvars++;
+    *nlvarsp = nvars;
+    *lvarsp = (char **) emalloc(nvars * sizeof(char*));
+    cpp = *lvarsp;
+    /* copy variable names into list */
+    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
+	*cpp = strdup(cp);
+	cpp++;
+    }
+}
+
+void
+make_lgrps(char *optarg, int *nlgrps, char ***lgrpsp, idnode_t **grpidsp)
+{
+    char *cp = optarg;
+    int ngrps = 1;
+    char ** cpp;
+
+    /* compute number of group names in comma-delimited list */
+    while (*cp++)
+      if (*cp == ',')
+ 	ngrps++;
+    *nlgrps = ngrps;
+    *lgrpsp = (char **) emalloc(ngrps * sizeof(char*));
+    cpp = *lgrpsp;
+    /* copy group names into list */
+    for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
+	*cpp = strdup(cp);
+	cpp++;
+    }
+    /* make empty list of grpids, to be filled in after input file opened */
+    *grpidsp = newidlist();
+}
