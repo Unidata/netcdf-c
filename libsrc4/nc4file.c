@@ -2483,19 +2483,15 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    for (v = 0; v < num_datasets; v++)
    {
       int32 data_type, num_atts;
-      //int32 dimsize[NC_MAX_DIMS];
-
-      /* Not really an improvement, but for now do this, until we
-	 know how to calculate the proper number of dimensions. */
-      int32 *dimsize = malloc(sizeof(int32)*1024);
-      for(int i = 0; i < 1024; i++) dimsize[i] = 0;
-
+      /* Problem: Number of dims is returned by the call that requires
+	 a pre-allocated array, 'dimsize'. */
+      int32 dimsize[1];
       size_t var_type_size;
       int a;
 
       /* Add a variable to the end of the group's var list. */
       if ((retval = nc4_var_list_add(&grp->var, &var))) {
-	free(dimsize);
+	
 	return retval;
       }
       
@@ -2505,37 +2501,31 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
             
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL) {
-	free(dimsize);
 	return NC_EVARMETA;
       }
 
       /* Get shape, name, type, and attribute info about this dataset. */
       if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1))) {
-	free dimsize;
 	return NC_ENOMEM;
       }
-
+      
       if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
-	free(dimsize);
 	return NC_EVARMETA;
       }
-
+      
       var->ndims = rank;
       var->hdf4_data_type = data_type;
 
       /* Fill special type_info struct for variable type information. */
       if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T)))) {
-	free(dimsize);
 	return NC_ENOMEM;
       }
       
       if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info))) {
-	free(dimsize);
 	return retval;
       }
       
       if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size))) {
-	free(dimsize);
 	return retval;
       }
 
@@ -2545,7 +2535,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 
       /* Get the fill value. */
       if (!(var->fill_value = malloc(var_type_size))) {
-	free(dimsize);
 	return NC_ENOMEM;
       }
 
@@ -2560,7 +2549,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if (var->ndims)
       {
 	if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims))) {
-	  free(dimsize);
 	  return NC_ENOMEM;
 	}
 	
@@ -3151,10 +3139,10 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    {
       *nvarsp = 0;
       for (var = grp->var; var; var= var->next)
-	 (*nvarsp)++;
+	(*nvarsp)++;
    }
    if (nattsp)
-   {
+     {
       *nattsp = 0;
       for (att = grp->att; att; att = att->next)
 	 (*nattsp)++;
