@@ -227,9 +227,11 @@ NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
 
 #endif /* USE_NETCDF4 */
 
-/* This will copy a variable and its attributes from one file to
-   another, assuming dimensions in the output file are already defined
-   and have same dimension IDs and length.
+/* This will copy a variable that is an array of primitive type and
+   its attributes from one file to another, assuming dimensions in the
+   output file are already defined and have same dimension IDs and
+   length.  However it doesn't work for copying netCDF-4 variables of
+   type string or a user-defined type.
 
    This function works even if the files are different formats,
    (for example, one netcdf classic, the other netcdf-4).
@@ -251,7 +253,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    char name[NC_MAX_NAME + 1];
    char att_name[NC_MAX_NAME + 1];
    nc_type xtype;
-   int ndims, dimids[NC_MAX_VAR_DIMS], natts, real_ndims;
+   int ndims, dimids_in[NC_MAX_VAR_DIMS], dimids_out[NC_MAX_VAR_DIMS], natts, real_ndims;
    int varid_out;
    int a, d;
    void *data = NULL;
@@ -262,11 +264,21 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    size_t type_size;
    int src_format, dest_format;
    char type_name[NC_MAX_NAME+1];
+   char dimname_in[NC_MAX_NAME + 1];
+   int i;
 
    /* Learn about this var. */
    if ((retval = nc_inq_var(ncid_in, varid_in, name, &xtype, 
-                            &ndims, dimids, &natts)))
+                            &ndims, dimids_in, &natts)))
       return retval;
+   /* find corresponding dimids in the output file */ 
+   for(i = 0; i < ndims; i++) {
+      dimids_out[i] = dimids_in[i];
+      if ((retval = nc_inq_dimname(ncid_in, dimids_in[i], dimname_in)))
+         return retval;
+      if ((retval = nc_inq_dimid(ncid_out, dimname_in, &dimids_out[i])))
+         return retval;
+   }
 
 #ifdef USE_NETCDF4
    LOG((2, "nc_copy_var: ncid_in 0x%x varid_in %d ncid_out 0x%x", 
@@ -295,7 +307,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    if (retval && retval != NC_EINDEFINE)
       BAIL(retval);
    if ((retval = nc_def_var(ncid_out, name, xtype,
-                            ndims, dimids, &varid_out)))
+                            ndims, dimids_out, &varid_out)))
       BAIL(retval);
 
    /* Copy the attributes. */
@@ -332,7 +344,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    /* Find out how much data. */
    for (d=0; d<ndims; d++)
    {
-      if ((retval = nc_inq_dimlen(ncid_in, dimids[d], &dimlen[d])))
+      if ((retval = nc_inq_dimlen(ncid_in, dimids_in[d], &dimlen[d])))
          BAIL(retval);
 #ifdef USE_NETCDF4
       LOG((4, "nc_copy_var: there are %d data", dimlen[d]));
