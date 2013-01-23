@@ -226,14 +226,14 @@ createtestvars(int id, const struct tcdfvar *testvars, size_t count)
 	}
 }
 
-static void
-parray(const char *label, size_t count, const size_t array[])
-{
-	(void) fprintf(stdout, "%s", label);
-	(void) fputc('\t',stdout);	
-	for(; count != 0; count--, array++)
-		(void) fprintf(stdout," %lu", (unsigned long) *array);
-}
+/* static void */
+/* parray(const char *label, size_t count, const size_t array[]) */
+/* { */
+/* 	(void) fprintf(stdout, "%s", label); */
+/* 	(void) fputc('\t',stdout);	 */
+/* 	for(; count != 0; count--, array++) */
+/* 		(void) fprintf(stdout," %lu", (unsigned long) *array); */
+/* } */
 
 
 static void

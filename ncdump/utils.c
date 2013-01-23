@@ -548,3 +548,186 @@ make_lgrps(char *optarg, int *nlgrps, char ***lgrpsp, idnode_t **grpidsp)
     /* make empty list of grpids, to be filled in after input file opened */
     *grpidsp = newidlist();
 }
+
+/* initialize and return a new empty stack of grpids */
+static ncgiter_t *
+gs_init() {
+    ncgiter_t *s = emalloc(sizeof(ncgiter_t));
+    s->ngrps = 0;
+    s->top = NULL;
+    return s;
+}
+
+/* free a stack and all its nodes */
+static void
+gs_free(ncgiter_t *s) {
+    grpnode_t *n0, *n1;
+    n0 = s->top;
+    while (n0) {
+	n1 = n0->next;
+	free(n0);
+	n0 = n1;
+    }
+    free(s);
+}
+
+/* test if a stack is empty */
+static int
+gs_empty(ncgiter_t *s)
+{
+    return s->ngrps == 0;
+}
+
+/* push a grpid on stack */
+static void
+gs_push(ncgiter_t *s, int grpid)
+{
+    grpnode_t *node = emalloc(sizeof(grpnode_t));
+ 
+    node->grpid = grpid;
+    node->next = gs_empty(s) ? NULL : s->top;
+    s->top = node;
+    s->ngrps++;
+}
+
+/* pop value off stack and return */
+static int 
+gs_pop(ncgiter_t *s)
+{
+    if (gs_empty(s)) {
+	return -1;		/* underflow, stack is empty */
+    } else {			/* pop a node */
+	grpnode_t *top = s->top;
+	int value = top->grpid;
+	s->top = top->next;
+	/* TODO: first call to free gets seg fault with libumem */
+	free(top);
+	s->ngrps--;
+	return value;
+    }
+}
+
+#ifdef UNUSED
+/* Return top value on stack without popping stack.  Defined for
+ * completeness but not used (here). */
+static int 
+gs_top(ncgiter_t *s)
+{
+    if (gs_empty(s)) {
+	return -1;		/* underflow, stack is empty */
+    } else {			/* get top value */
+	grpnode_t *top = s->top;
+	int value = top->grpid;
+	return value;
+    }
+}
+#endif
+
+/* Like netCDF-4 function nc_inq_grps(), but can be called from
+ * netCDF-3 only code as well.  Maybe this is what nc_inq_grps()
+ * should do if built without netCDF-4 data model support. */
+static int
+nc_inq_grps2(int ncid, int *numgrps, int *grpids)
+{
+    int stat = NC_NOERR;
+
+    /* just check if ncid is valid id of open netCDF file */
+    NC_CHECK(nc_inq(ncid, NULL, NULL, NULL, NULL));
+
+#ifdef USE_NETCDF4
+    NC_CHECK(nc_inq_grps(ncid, numgrps, grpids));
+#else
+    *numgrps = 0;
+#endif
+    return stat;
+}
+
+/* Initialize group iterator for start group and all its descendant
+ * groups. */
+int
+nc_get_giter(int grpid,	       /* start group id */
+	    ncgiter_t **iterp  /* returned opaque iteration state */
+    ) 
+{
+    int stat = NC_NOERR;
+
+    stat = nc_inq(grpid, NULL, NULL, NULL, NULL); /* check if grpid is valid */
+    if(stat != NC_EBADGRPID && stat != NC_EBADID) {
+	*iterp = gs_init();
+	gs_push(*iterp, grpid);
+    }
+
+    return stat;
+}
+
+/* 
+ * Get group id of next group.  On first call gets start group id,
+ * subsequently returns other subgroup ids in preorder.  Returns zero
+ * when no more groups left.
+ */
+int
+nc_next_giter(ncgiter_t *iterp, int *grpidp) {
+    int stat = NC_NOERR;
+    int numgrps;
+    int *grpids;
+    int i;
+
+    if(gs_empty(iterp)) {
+	*grpidp = 0;		/* not a group, signals iterator is done */
+    } else {
+	*grpidp = gs_pop(iterp);
+	NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, NULL));
+	if(numgrps > 0) {
+	    grpids = (int *)emalloc(sizeof(int) * numgrps);
+	    NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, grpids));
+	    for(i = numgrps - 1; i >= 0; i--) { /* push ids on stack in reverse order */
+		gs_push(iterp, grpids[i]);
+	    }
+	    free(grpids);
+	}
+    }
+    return stat;
+}
+
+/*
+ * Release group iter.
+ */
+void
+nc_free_giter(ncgiter_t *iterp)
+{
+    gs_free(iterp);
+}
+
+/* 
+ * Get total number of groups (including the top-level group and all
+ * descendant groups, recursively) and all descendant subgroup ids
+ * (including the input rootid of the start group) for a group and
+ * all its descendants, in preorder.
+ *
+ * If grpids or numgrps is NULL, it will be ignored.  So typical use
+ * is to call with grpids NULL to get numgrps, allocate enough space
+ * for the group ids, then call again to get them.
+ */
+int
+nc_inq_grps_full(int rootid, int *numgrps, int *grpids) 
+{
+    int stat = NC_NOERR;
+    ncgiter_t *giter;		/* pointer to group iterator */
+    int grpid;
+    size_t count;
+
+    NC_CHECK(nc_get_giter(rootid, &giter));
+    
+    count = 0;
+    NC_CHECK(nc_next_giter(giter, &grpid));
+    while(grpid != 0) {
+	if(grpids)
+	    grpids[count] = grpid;
+	count++;
+	NC_CHECK(nc_next_giter(giter, &grpid));
+    }
+    if(numgrps)
+	*numgrps = count;
+    nc_free_giter(giter);
+    return stat;
+}

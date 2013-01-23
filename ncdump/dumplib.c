@@ -869,8 +869,6 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
 int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     size_t slen;
     char *sout;
-    int res;
-    int iel;
     const char *cp;
     char *sp;
     unsigned char uc;
@@ -929,7 +927,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
 	}
     }
     *sp++ = '"' ;
-    *sp++ = '\0' ;
+    *sp = '\0' ;
     sbuf_cpy(sfbf, sout);
     free(sout);
     return sbuf_len(sfbf);
@@ -1083,7 +1081,7 @@ chars_tostring(
 	}
     }
     *cp++ = '"';
-    *cp++ = '\0';
+    *cp = '\0';
     sbuf_cpy(sbuf, sout);
     free(sout);
     return sbuf_len(sbuf);
@@ -1827,7 +1825,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
     int num_dims = 0;    /* total number of dimensions in all groups */
     int num_undims = 0;  /* total number of unlimited dimensions in all groups */
     int *grpids = NULL;	 /* temporary list of all grpids */
-    int *dimids = NULL;	 /* temporary list of dimids */
     int igrp;
     int grpid;
 

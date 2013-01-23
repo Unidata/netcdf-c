@@ -109,12 +109,11 @@ val_size(int grpid, int varid) {
  * already defined.  */
 static int
 nc_inq_parid(int ncid, const char *fullname, int *locidp) {
-    int stat = NC_NOERR;
     char *parent = strdup(fullname);
     char *slash = "/";		/* groupname separator */
     char *last_slash;
     if(parent == NULL) {
-	NC_CHECK(NC_ENOMEM);	/* exits */
+	return NC_ENOMEM;	/* exits */
     }
     last_slash = strrchr(parent, '/');
     if(last_slash == parent || last_slash == NULL) {	/* parent is root */
@@ -125,7 +124,7 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     }
     NC_CHECK(nc_inq_grp_full_ncid(ncid, parent, locidp));
        free(parent);
-    return stat;
+    return NC_NOERR;
 }
 
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
@@ -1261,7 +1260,6 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	int varid;
 	int ndims;
 	int *dimids;
-	nc_type vartype;
 	size_t value_size;
 	int dimid;
 	int ii;

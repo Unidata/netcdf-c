@@ -34,6 +34,21 @@ typedef struct idnode {
     int id;
 } idnode_t;
 
+/* node in stack of group ids */
+typedef struct grpnode {
+    int grpid;
+    struct grpnode *next;
+} grpnode_t;
+
+/* 
+ * The opaque structure to hold state of iteration over groups.
+ * (Just implemented as a stack of group ids.)
+ */
+typedef struct {
+    int ngrps;			/* number of groups left to visit */
+    grpnode_t *top;		/* group ids left to visit */
+} ncgiter_t;
+
 extern char *progname;		/* for error messages */
 
 #ifndef NO_NETCDF_2
@@ -101,10 +116,37 @@ extern size_t nc_inq_varname_count(int ncid, char *varname);
 extern int missing_vars(int ncid, int nlvars, char **lvars);
 
 /* Make list of variables from comma-delimited string */
-    void make_lvars(char *optarg, int *nlvarsp, char ***lvarsp);
+extern void make_lvars(char *optarg, int *nlvarsp, char ***lvarsp);
 
 /* Make list of groups from comma-delimited string */
-    void make_lgrps(char *optarg, int *nlgrpsp, char*** lgrpsp, idnode_t **grpidsp);
+extern void make_lgrps(char *optarg, int *nlgrpsp, char*** lgrpsp, idnode_t **grpidsp);
+
+/* 
+ * Simplest interface for group iteration: get total number of groups
+ * (including all descendant groups, recursively) and all group ids
+ * for start group and its descendants, in preorder.  Note that this
+ * loses information about subgroup relationships, just flattening all
+ * groups into a serial list.
+ */
+extern int nc_inq_grps_full(int ncid, int *numgrps, int *ncids);
+
+/* 
+ * More complex iterator interface: get group iterator for start group
+ * ncid and all its descendant groups.
+ */
+extern int nc_get_giter(int ncid, ncgiter_t **iterp);
+
+/* 
+ * Get group id of next group.  On first call returns start group,
+ * subsequently returns other subgroup ids in preorder.  Returns grpid
+ * of 0 (never an actual group number) when no more groups.
+ */
+extern int nc_next_giter(ncgiter_t *iterp, int *grpid);
+
+/*
+ * Release memory allocated for group iterator.
+ */
+extern void nc_free_giter(ncgiter_t *iterp);
 
 #ifdef __cplusplus
 }
