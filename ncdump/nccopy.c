@@ -1704,6 +1704,57 @@ file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
 
+@par -g \e grp1,...
+
+@par
+The output will include data values only for the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include data values for all
+groups in the output.
+
+@par -G \e grp1,...
+
+@par
+The output will include only the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include all groups in the
+output.
+
+@par -v \a var1,...  
+
+@par 
+The output will include data values for the specified variables, in
+addition to the declarations of all dimensions, variables, and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single
+argument to the command, hence cannot contain unescaped blanks or
+other white space characters. The named variables must be valid netCDF
+variables in the input-file. A variable within a group in a netCDF-4
+file may be specified with an absolute path name, such as
+`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
+`grp/var' specifies all matching variable names in the file.  The
+default, without this optiong, is to include data values for \e all variables
+in the output.
+
+@par -V \a var1,...  
+
+@par 
+The output will include the specified variables only but all dimensions and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single argument
+to the command, hence cannot contain unescaped blanks or other white space
+characters. The named variables must be valid netCDF variables in the
+input-file. A variable within a group in a netCDF-4 file may be specified with
+an absolute path name, such as `/GroupA/GroupA2/var'.  Use of a relative path
+name such as `var' or `grp/var' specifies all matching variable names in the
+file.  The default, without this option, is to include \e all variables in the
+output.
+
+
 @section  EXAMPLES
 
 @subsection simple_copy Simple Copy
@@ -1825,7 +1876,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:rwx")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:rwxg:G:v:V:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1901,11 +1952,29 @@ main(int argc, char**argv)
 	    option_compute_chunkcaches = 1;
 	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
-	{
 	    /* save chunkspec string for parsing later, once we know input ncid */
 	    option_chunkspec = strdup(optarg);
 	    break;
-	}
+	case 'g':		/* group names */
+	    /* make list of names of groups specified */
+	    make_lgrps (optarg, &option_nlgrps, &option_lgrps, &option_grpids);
+	    option_grpstruct = true;
+	    break;
+	case 'G':		/* group names */
+	    /* make list of names of groups specified */
+	    make_lgrps (optarg, &option_nlgrps, &option_lgrps, &option_grpids);
+	    option_grpstruct = false;
+	    break;
+	case 'v':		/* variable names */
+	    /* make list of names of variables specified */
+	    make_lvars (optarg, &option_nlvars, &option_lvars);
+	    option_varstruct = true;
+	    break;
+	case 'V':		/* variable names */
+	    /* make list of names of variables specified */
+	    make_lvars (optarg, &option_nlvars, &option_lvars);
+	    option_varstruct = false;
+	    break;
 	default: 
 	    usage();
         }
