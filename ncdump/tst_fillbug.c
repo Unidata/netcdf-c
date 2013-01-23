@@ -82,8 +82,8 @@ main(int argc, char **argv)
 	int format, ndims, nvars, ngatts, xdimid, ndims_grp, dimids_grp[3],
 	    unlimids[1], d_grp, nunlim, nvars_grp, varids_grp[3], v_grp,
 	    varid, varndims, vardims[3], varnatts, vartype, dimids[3], is_recvar,
-	    vdims[3], id, ntypes, numgrps, atttype, nc_status;
-	size_t dimsize, len, attlen;
+	    vdims[3], id, ntypes, numgrps;
+	size_t dimsize, len;
 	char dimname[20], varname[20];
 	if ( nc_inq_format(ncid, &format)) ERR;
 	ntypes = count_udtypes(ncid);

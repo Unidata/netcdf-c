@@ -20,6 +20,7 @@
 #include "chunkspec.h"
 #include "utils.h"
 #include "dimmap.h"
+#include "nccomps.h"
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
@@ -54,6 +55,16 @@ static int option_write_diskless = 0; /* default, don't write output to diskless
 static int option_min_chunk_bytes = CHUNK_THRESHOLD; /* default, don't chunk variable if prod of
 						      * chunksizes of its dimensions is smaller
 						      * than this */
+static int option_nlgrps = 0;		    /* Number of groups specified with -g
+					     * option on command line */
+static char** option_lgrps = 0;		    /* list of group names specified with -g
+					     * option on command line */
+static idnode_t* option_grpids = 0; /* list of grpids matching list specified with -g option */
+static bool_t option_grpstruct = false; /* if -g set, copy structure for non-selected groups */
+static int option_nlvars = 0; /* Number of variables specified with -v * option on command line */
+static char** option_lvars = 0;         /* list of variable names specified with -v
+                                         * option on command line */
+static bool_t option_varstruct = false;   /* if -v set, copy structure for non-selected vars */
 static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
 					    * chunk cache for each variable */
 
@@ -98,12 +109,11 @@ val_size(int grpid, int varid) {
  * already defined.  */
 static int
 nc_inq_parid(int ncid, const char *fullname, int *locidp) {
-    int stat = NC_NOERR;
     char *parent = strdup(fullname);
     char *slash = "/";		/* groupname separator */
     char *last_slash;
     if(parent == NULL) {
-	NC_CHECK(NC_ENOMEM);	/* exits */
+	return NC_ENOMEM;	/* exits */
     }
     last_slash = strrchr(parent, '/');
     if(last_slash == parent || last_slash == NULL) {	/* parent is root */
@@ -114,7 +124,7 @@ nc_inq_parid(int ncid, const char *fullname, int *locidp) {
     }
     NC_CHECK(nc_inq_grp_full_ncid(ncid, parent, locidp));
        free(parent);
-    return stat;
+    return NC_NOERR;
 }
 
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
@@ -403,20 +413,29 @@ copy_groups(int iroot, int oroot)
 	    char *grpname_full;
 	    char grpname[NC_MAX_NAME];
 	    size_t len_name;
-	    int ogid, oparid;
+	    int ogid, oparid, iparid;
 	    /* get full group name of input group */
-	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
-	    grpname_full = emalloc(len_name + 1);
-	    NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
-	    /* get id of parent group of corresponding group in output.
-	     * Note that this exists, because nc_inq_groups returned
-	     * grpids in preorder, so parents are always copied before
-	     * their subgroups */
-	    NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
 	    NC_CHECK(nc_inq_grpname(grpids[i], grpname));
-	    /* define corresponding group in output */
-	    NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
-	    free(grpname_full);
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+	        NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, NULL));
+		grpname_full = emalloc(len_name + 1);
+		NC_CHECK(nc_inq_grpname_full(grpids[i], &len_name, grpname_full));
+		/* Make sure, the parent group is also wanted (root group is always wanted) */
+		NC_CHECK(nc_inq_parid(iroot, grpname_full, &iparid));
+		if (!option_grpstruct && !group_wanted(iparid, option_nlgrps, option_grpids) 
+		    && iparid != iroot) {
+		    error("ERROR: trying to copy a group but not the parent: %s", grpname_full);
+		}
+		/* get id of parent group of corresponding group in output.
+		 * Note that this exists, because nc_inq_groups returned
+		 * grpids in preorder, so parents are always copied before
+		 * their subgroups */
+		NC_CHECK(nc_inq_parid(oroot, grpname_full, &oparid));
+		NC_CHECK(nc_inq_grpname(grpids[i], grpname));
+		/* define corresponding group in output */
+		NC_CHECK(nc_def_grp(oparid, grpname, &ogid));
+		free(grpname_full);
+	    }
 	}
 	free(grpids);
     }
@@ -454,12 +473,14 @@ copy_types(int igrp, int ogrp)
 	grpids = (int *)emalloc(sizeof(int) * numgrps);
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	for(i = 0; i < numgrps; i++) {
-	    int ogid;
-	    /* get groupid in output corresponding to grpids[i] in
-	     * input, given parent group (or root group) ogrp in
-	     * output */
-	    NC_CHECK(get_grpid(grpids[i], ogrp, &ogid));
-	    NC_CHECK(copy_types(grpids[i], ogid));
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+		int ogid;
+		/* get groupid in output corresponding to grpids[i] in
+		 * input, given parent group (or root group) ogrp in
+		 * output */
+		NC_CHECK(get_grpid(grpids[i], ogrp, &ogid));
+		NC_CHECK(copy_types(grpids[i], ogid));
+	    }
 	}
 	free(grpids);
     }
@@ -835,9 +856,26 @@ copy_vars(int igrp, int ogrp)
     int stat = NC_NOERR;
     int nvars;
     int varid;
+
+    int iv;			/* variable number */
+    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+
+    /*
+     * If any vars were specified with -v option, get list of
+     * associated variable ids relative to this group.  Assume vars
+     * specified with syntax like "grp1/grp2/varname" or
+     * "/grp1/grp2/varname" if they are in groups.
+     */
+    vlist = newidlist();	/* list for vars specified with -v option */
+    for (iv=0; iv < option_nlvars; iv++) {
+        if(nc_inq_gvarid(igrp, option_lvars[iv], &varid) == NC_NOERR)
+            idadd(vlist, varid);
+    }
     
     NC_CHECK(nc_inq_nvars(igrp, &nvars));
     for (varid = 0; varid < nvars; varid++) {
+	if (!option_varstruct && option_nlvars > 0 && ! idmember(vlist, varid))
+            continue;
 	NC_CHECK(copy_var(igrp, varid, ogrp));
     }
     return stat;
@@ -870,7 +908,9 @@ copy_schema(int igrp, int ogrp)
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	
 	for(i = 0; i < numgrps; i++) {
-	    NC_CHECK(copy_schema(grpids[i], ogid));
+	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
+	        NC_CHECK(copy_schema(grpids[i], ogid));
+	    }
 	}
 	free(grpids);
     }
@@ -1035,6 +1075,21 @@ copy_data(int igrp, int ogrp)
     int i;
 #endif
 
+    int iv;			/* variable number */
+    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+
+    /*
+     * If any vars were specified with -v option, get list of
+     * associated variable ids relative to this group.  Assume vars
+     * specified with syntax like "grp1/grp2/varname" or
+     * "/grp1/grp2/varname" if they are in groups.
+     */
+    vlist = newidlist();	/* list for vars specified with -v option */
+    for (iv=0; iv < option_nlvars; iv++) {
+        if(nc_inq_gvarid(igrp, option_lvars[iv], &varid) == NC_NOERR)
+            idadd(vlist, varid);
+    }
+    
     /* get groupid in output corresponding to group igrp in input,
      * given parent group (or root group) ogrp in output */
     NC_CHECK(get_grpid(igrp, ogrp, &ogid));
@@ -1043,6 +1098,10 @@ copy_data(int igrp, int ogrp)
     NC_CHECK(nc_inq_nvars(igrp, &nvars));
 
     for (varid = 0; varid < nvars; varid++) {
+	if (option_nlvars > 0 && ! idmember(vlist, varid))
+            continue;
+        if (!group_wanted(igrp, option_nlgrps, option_grpids))
+            continue;
 	NC_CHECK(copy_var_data(igrp, varid, ogid));
     }
 #ifdef USE_NETCDF4
@@ -1052,6 +1111,8 @@ copy_data(int igrp, int ogrp)
     NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
     for(i = 0; i < numgrps; i++) {
+        if (!option_grpstruct && !group_wanted(grpids[i], option_nlgrps, option_grpids))
+            continue;
 	NC_CHECK(copy_data(grpids[i], ogid));
     }
     free(grpids);
@@ -1199,7 +1260,6 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	int varid;
 	int ndims;
 	int *dimids;
-	nc_type vartype;
 	size_t value_size;
 	int dimid;
 	int ii;
@@ -1318,6 +1378,20 @@ copy(char* infile, char* outfile)
     }
 #endif	/* USE_NETCDF4 */
 
+	/* Check if any vars in -v don't exist */
+    if(missing_vars(igrp, option_nlvars, option_lvars))
+	return EXIT_FAILURE;
+
+    if(option_nlgrps > 0) {
+	if(inkind != NC_FORMAT_NETCDF4) {
+	    error("Group list (-g ...) only permitted for netCDF-4 file");
+	    return EXIT_FAILURE;
+	}
+	/* Check if any grps in -g don't exist */
+	if(grp_matches(igrp, option_nlgrps, option_lgrps, option_grpids) == 0)
+	    return EXIT_FAILURE;
+    }
+
     if(option_write_diskless)
 	create_mode |= NC_WRITE | NC_DISKLESS; /* NC_WRITE persists diskless file on close */
     switch(outkind) {
@@ -1364,6 +1438,7 @@ copy(char* infile, char* outfile)
     /* For performance, special case netCDF-3 input or output file with record
      * variables, to copy a record-at-a-time instead of a
      * variable-at-a-time. */
+    /* TODO: check that these special cases work with -v option */
     if(nc3_special_case(igrp, inkind)) {
 	size_t nfixed_vars, nrec_vars;
 	int *fixed_varids;
@@ -1627,6 +1702,57 @@ file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
 
+@par -g \e grp1,...
+
+@par
+The output will include data values only for the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include data values for all
+groups in the output.
+
+@par -G \e grp1,...
+
+@par
+The output will include only the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include all groups in the
+output.
+
+@par -v \a var1,...  
+
+@par 
+The output will include data values for the specified variables, in
+addition to the declarations of all dimensions, variables, and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single
+argument to the command, hence cannot contain unescaped blanks or
+other white space characters. The named variables must be valid netCDF
+variables in the input-file. A variable within a group in a netCDF-4
+file may be specified with an absolute path name, such as
+`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
+`grp/var' specifies all matching variable names in the file.  The
+default, without this optiong, is to include data values for \e all variables
+in the output.
+
+@par -V \a var1,...  
+
+@par 
+The output will include the specified variables only but all dimensions and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single argument
+to the command, hence cannot contain unescaped blanks or other white space
+characters. The named variables must be valid netCDF variables in the
+input-file. A variable within a group in a netCDF-4 file may be specified with
+an absolute path name, such as `/GroupA/GroupA2/var'.  Use of a relative path
+name such as `var' or `grp/var' specifies all matching variable names in the
+file.  The default, without this option, is to include \e all variables in the
+output.
+
+
 @section  EXAMPLES
 
 @subsection simple_copy Simple Copy
@@ -1748,7 +1874,7 @@ main(int argc, char**argv)
        usage();
     }
 
-    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:rwx")) != -1) {
+    while ((c = getopt(argc, argv, "k:d:sum:c:h:e:rwxg:G:v:V:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
                      Possible values are:
@@ -1824,11 +1950,29 @@ main(int argc, char**argv)
 	    option_compute_chunkcaches = 1;
 	    break;
 	case 'c':               /* optional chunking spec for each dimension in list */
-	{
 	    /* save chunkspec string for parsing later, once we know input ncid */
 	    option_chunkspec = strdup(optarg);
 	    break;
-	}
+	case 'g':		/* group names */
+	    /* make list of names of groups specified */
+	    make_lgrps (optarg, &option_nlgrps, &option_lgrps, &option_grpids);
+	    option_grpstruct = true;
+	    break;
+	case 'G':		/* group names */
+	    /* make list of names of groups specified */
+	    make_lgrps (optarg, &option_nlgrps, &option_lgrps, &option_grpids);
+	    option_grpstruct = false;
+	    break;
+	case 'v':		/* variable names */
+	    /* make list of names of variables specified */
+	    make_lvars (optarg, &option_nlvars, &option_lvars);
+	    option_varstruct = true;
+	    break;
+	case 'V':		/* variable names */
+	    /* make list of names of variables specified */
+	    make_lvars (optarg, &option_nlvars, &option_lvars);
+	    option_varstruct = false;
+	    break;
 	default: 
 	    usage();
         }
