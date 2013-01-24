@@ -126,8 +126,10 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 	 return errno;
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
-      if(i != 1)
-	 return errno;
+	  if(i == 0 && errno == 22) //if file size < 4, Windows fread returns 0, errno 22.
+		return NC_ENOTNC;
+      if(i != 1) 
+		 return errno;
     
       /* Ignore the first byte for HDF */
       if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F')
