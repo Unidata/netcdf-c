@@ -1258,9 +1258,11 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
                 const size_t *startp, const size_t *countp, const void *op)
 {
    NC *nc;
+
 #ifdef USE_PNETCDF
    NC_HDF5_FILE_INFO_T *h5;
 #endif
+   int res = -1;
 
    LOG((2, "nc4_put_vara_tc: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
         ncid, varid, mem_type, mem_type_is_long));
@@ -1275,8 +1277,12 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    /* Handle files opened/created with the parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
-      MPI_Offset mpi_start[NC_MAX_DIMS], mpi_count[NC_MAX_DIMS];
-      int d;
+     MPI_Offset *mpi_start;
+     MPI_Offset *mpi_count;
+     int d;
+     
+     mpi_start = (MPI_Offset*)malloc(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
+     mpi_count = (MPI_Offset*)malloc(sizeof(MPI_Offset)*h5->pnetcdf_ndims[varid]);
 
       /* No NC_LONGs for parallel-netcdf library! */
       if (mem_type_is_long)
@@ -1295,48 +1301,52 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
 	 switch(mem_type)
 	 {
 	    case NC_BYTE:
-	       return ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_schar(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_UBYTE:
-	       return ncmpi_put_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_uchar(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_CHAR:
-	       return ncmpi_put_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_text(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_SHORT:
-	       return ncmpi_put_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_short(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_INT:
-	       return ncmpi_put_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_int(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_FLOAT:
-	       return ncmpi_put_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_float(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_DOUBLE:
-	       return ncmpi_put_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_double(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_NAT:
 	    default:
-	       return NC_EBADTYPE;
+	       res = NC_EBADTYPE;
 	 }
-      } 
+      }
       else
       {
 	 switch(mem_type)
 	 {
 	    case NC_BYTE:
-	       return ncmpi_put_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_schar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_UBYTE:
-	       return ncmpi_put_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_uchar_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_CHAR:
-	       return ncmpi_put_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_text_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_SHORT:
-	       return ncmpi_put_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_short_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_INT:
-	       return ncmpi_put_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_int_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_FLOAT:
-	       return ncmpi_put_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_float_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_DOUBLE:
-	       return ncmpi_put_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
+	       res = ncmpi_put_vara_double_all(nc->int_ncid, varid, mpi_start, mpi_count, op);
 	    case NC_NAT:
 	    default:
-	       return NC_EBADTYPE;
+	       res = NC_EBADTYPE;
 	 }
       }
+      free(mpi_start); mpi_start = NULL;
+      free(mpi_count); mpi_count = NULL;
+      return res;
    }
+   
 #endif /* USE_PNETCDF */   
    
    return nc4_put_vara(nc, ncid, varid, startp, countp, mem_type, 

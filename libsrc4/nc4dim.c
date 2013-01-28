@@ -364,10 +364,10 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 
   LOG((2, "nc_inq_unlimdims: ncid 0x%x", ncid));
 
-   /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-
+  /* Find info for this file and group, and set pointer to each. */
+  if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+    return retval;
+  
    /* Get our dim info. */
    assert(h5);
    {

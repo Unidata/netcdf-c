@@ -215,7 +215,7 @@ IF (ENABLE_HDF4)
 	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find mfhdf lib.")
    ENDIF()
 
-   SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
+   SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
    MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
    OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests.",OFF)

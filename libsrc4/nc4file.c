@@ -1629,7 +1629,8 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
    hid_t datasetid = 0;   
    hid_t spaceid = 0, access_pid = 0;
    int ndims;
-   hsize_t dims[NC_MAX_DIMS], max_dims[NC_MAX_DIMS];
+   hsize_t *dims = NULL;
+   hsize_t *max_dims = NULL;
    int is_scale = 0;
    int dim_without_var = 0;
    int num_scales = 0;            
@@ -1654,8 +1655,17 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #endif
    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EHDFERR);
-   if (ndims > NC_MAX_DIMS)
-      BAIL(NC_EMAXDIMS);
+   
+   /* Removed check to remove nc4 dependency on 
+      maximum dimensions. */
+   //if (ndims > NC_MAX_DIMS)
+   //   BAIL(NC_EMAXDIMS);
+
+   if( (dims = (hsize_t*)malloc(sizeof(hsize_t)*ndims)) == NULL)
+     BAIL(errno);
+   if( (max_dims = (hsize_t*)malloc(sizeof(hsize_t)*ndims)) == NULL)
+     BAIL(errno);
+   
    if (H5Sget_simple_extent_dims(spaceid, dims, max_dims) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1697,9 +1707,13 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
+   
+   if(dims) free(dims);
+   if(max_dims) free(max_dims);
+
    return NC_NOERR;
 
-  exit:
+  exit: 
    if (access_pid && H5Pclose(access_pid) < 0)
       BAIL2(retval);
 #ifdef EXTRA_TESTS
@@ -1712,6 +1726,9 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
+
+   if(dims) free(dims);
+   if(max_dims) free(max_dims);
    return retval;
 }
 
@@ -2478,43 +2495,80 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    for (v = 0; v < num_datasets; v++)
    {
       int32 data_type, num_atts;
-      int32 dimsize[NC_MAX_DIMS];
+      /* Problem: Number of dims is returned by the call that requires
+	 a pre-allocated array, 'dimsize'. 
+       From SDS_SD website: 
+       http://www.hdfgroup.org/training/HDFtraining/UsersGuide/SDS_SD.fm3.html 
+       The maximum rank is 32, or MAX_VAR_DIMS (as defined in netcdf.h).
+       
+       int32 dimsize[MAX_VAR_DIMS];
+      */
+      int32 *dimsize = NULL;
       size_t var_type_size;
       int a;
-
+	
       /* Add a variable to the end of the group's var list. */
-      if ((retval = nc4_var_list_add(&grp->var, &var)))
-	 return retval;
+      if ((retval = nc4_var_list_add(&grp->var, &var))) {
+	return retval;
+      }
+      
       var->varid = grp->nvars++;
       var->created = 1;
       var->written_to = 1;
             
       /* Open this dataset in HDF4 file. */
-      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
-	 return NC_EVARMETA;
+      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL) {
+	return NC_EVARMETA;
+      }
 
       /* Get shape, name, type, and attribute info about this dataset. */
-      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1)))
-	 return NC_ENOMEM;
-      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts))
-	 return NC_EVARMETA;
+      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1))) {
+	return NC_ENOMEM;
+      }
+      
+      /* Invoke SDgetInfo with null dimsize to get rank. */
+      if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
+	return NC_EVARMETA;
+      
+      if(!(dimsize = (int32*)malloc(sizeof(int32)*rank))) {
+	return NC_ENOMEM;
+      }
+      
+      
+      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
+	if(dimsize) free(dimsize);
+	return NC_EVARMETA;
+      }
+      
       var->ndims = rank;
       var->hdf4_data_type = data_type;
 
       /* Fill special type_info struct for variable type information. */
-      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
-	 return NC_ENOMEM;
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info)))
-	 return retval;
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size)))
-	 return retval;
+      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T)))) {
+	if(dimsize) free(dimsize);
+	return NC_ENOMEM;
+      }
+      
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info))) {
+	if(dimsize) free(dimsize);
+	return retval;
+      }
+      
+      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size))) {
+	if(dimsize) free(dimsize);
+	return retval;
+      }
+
       var->type_info->size = var_type_size;
       LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->name, 
 	   rank, var->xtype));
 
       /* Get the fill value. */
-      if (!(var->fill_value = malloc(var_type_size)))
-	 return NC_ENOMEM;
+      if (!(var->fill_value = malloc(var_type_size))) {
+	if(dimsize) free(dimsize);
+	return NC_ENOMEM;
+      }
+
       if (SDgetfillvalue(var->sdsid, var->fill_value))
       {
 	 /* Whoops! No fill value! */
@@ -2525,11 +2579,17 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Allocate storage for dimension info in this variable. */
       if (var->ndims)
       {
-	 if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
-	    return NC_ENOMEM;
-	 if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
-	    return NC_ENOMEM;
+	if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims))) {
+	  if(dimsize) free(dimsize);
+	  return NC_ENOMEM;
+	}
+	
+	if (!(var->dimids = malloc(sizeof(int) * var->ndims))) {
+	  if(dimsize) free(dimsize);
+	  return NC_ENOMEM;
+	}
       }
+      
 
       /* Find its dimensions. */
       for (d = 0; d < var->ndims; d++)
@@ -2538,11 +2598,16 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 char dim_name[NC_MAX_NAME + 1];
 	 NC_DIM_INFO_T *dim;
 
-	 if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL)
-	    return NC_EDIMMETA;
+	 if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL) {
+	   if(dimsize) free(dimsize);
+	   return NC_EDIMMETA;
+	 }
 	 if (SDdiminfo(dimid, dim_name, &dim_len, &dim_data_type, 
 		       &dim_num_attrs))
-	    return NC_EDIMMETA;
+	   {
+	     if(dimsize) free(dimsize);
+	     return NC_EDIMMETA;
+	   }
 
 	 /* Do we already have this dimension? HDF4 explicitly uses
 	  * the name to tell. */
@@ -2582,33 +2647,49 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 size_t att_type_size;
 
 	 /* Add to the end of the list of atts for this var. */
-         if ((retval = nc4_att_list_add(&var->att)))
-            return retval;
+         if ((retval = nc4_att_list_add(&var->att))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
          for (att = var->att; att->next; att = att->next)
-            ;
+	   ;
 	 att->attnum = var->natts++;
 	 att->created++;
 
 	 /* Learn about this attribute. */
-	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
-	    return NC_ENOMEM;
-	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) 
+	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char)))) {
+	   if(dimsize) free(dimsize);
+	   return NC_ENOMEM;
+	 }
+	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) {
+	   if(dimsize) free(dimsize);
 	    return NC_EATTMETA;
+	 }
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-						 &att->xtype, NULL)))
-	    return retval;
+						 &att->xtype, NULL))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
+	 
 	 att->len = att_count;
 
 	 /* Allocate memory to hold the data. */
-	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size)))
-	    return retval;
-	 if (!(att->data = malloc(att_type_size * att->len)))
-	    return NC_ENOMEM;
+	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
+	 if (!(att->data = malloc(att_type_size * att->len))) {
+	   	if(dimsize) free(dimsize);
+		return NC_ENOMEM;
+	 }
 
 	 /* Read the data. */
-	 if (SDreadattr(var->sdsid, a, att->data)) 
-	    return NC_EHDFERR;
+	 if (SDreadattr(var->sdsid, a, att->data)) {
+	   if(dimsize) free(dimsize);
+	   return NC_EHDFERR;
+	 }
       }
+      if(dimsize) free(dimsize);
    } /* next var */
 
 #ifdef LOGGING
@@ -3111,10 +3192,10 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    {
       *nvarsp = 0;
       for (var = grp->var; var; var= var->next)
-	 (*nvarsp)++;
+	(*nvarsp)++;
    }
    if (nattsp)
-   {
+     {
       *nattsp = 0;
       for (att = grp->att; att; att = att->next)
 	 (*nattsp)++;
