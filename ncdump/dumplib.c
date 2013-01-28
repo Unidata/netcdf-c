@@ -104,7 +104,6 @@ init_epsilons(void)
 
 
 static char* has_c_format_att(int ncid, int varid);
-static idnode_t* newidnode(void);
 
 int float_precision_specified = 0; /* -p option specified float precision */
 int double_precision_specified = 0; /* -p option specified double precision */
@@ -416,68 +415,6 @@ get_fmt(
     if (c_format_att)
       return c_format_att;    
     return get_default_fmt(typeid);
-}
-
-static idnode_t*
-newidnode(void)
-{
-    idnode_t *newvp = (idnode_t*) emalloc(sizeof(idnode_t));
-    return newvp;
-}
-
-
-/*
- * Get a new, empty variable list.
- */
-idnode_t*
-newidlist(void)
-{
-    idnode_t *vp = newidnode();
-
-    vp -> next = 0;
-    vp -> id = -1;		/* bad id */
-
-    return vp;
-}
-
-
-void
-idadd(idnode_t* vlist, int varid)
-{
-    idnode_t *newvp = newidnode();
-    
-    newvp -> next = vlist -> next;
-    newvp -> id = varid;
-    vlist -> next = newvp;
-}
-
-
-/* 
- * return true if id is member of list that idlist points to.
- */
-bool_t
-idmember(const idnode_t* idlist, int id)
-{
-    idnode_t *vp = idlist -> next;
-
-    for (; vp ; vp = vp->next)
-      if (vp->id == id)
-	return true;
-    return false;    
-}
-
-/* 
- * return true if group identified by grpid is member of group
- * list specified on command line by -g.
- */
-bool_t
-group_wanted(int grpid)
-{
-    /* If -g not specified, all groups are wanted */
-    if(formatting_specs.nlgrps == 0)
-	return true;
-    /* if -g specified, look for match in group id list */
-    return idmember(formatting_specs.grpids, grpid);
 }
 
 /* Return primitive type name */
@@ -932,8 +869,6 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
 int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     size_t slen;
     char *sout;
-    int res;
-    int iel;
     const char *cp;
     char *sp;
     unsigned char uc;
@@ -992,7 +927,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
 	}
     }
     *sp++ = '"' ;
-    *sp++ = '\0' ;
+    *sp = '\0' ;
     sbuf_cpy(sfbf, sout);
     free(sout);
     return sbuf_len(sfbf);
@@ -1146,7 +1081,7 @@ chars_tostring(
 	}
     }
     *cp++ = '"';
-    *cp++ = '\0';
+    *cp = '\0';
     sbuf_cpy(sbuf, sout);
     free(sout);
     return sbuf_len(sbuf);
@@ -1524,85 +1459,6 @@ set_tostring_func(ncvar_t *varp) {
     return;
 }
 
-#ifdef USE_NETCDF4
-/* Returns 1 if string s1 ends with string s2, 0 otherwise. */
-static int
-strendswith(const char *s1, const char *s2) {
-    size_t m1 = strlen(s1);
-    size_t m2 = strlen(s2);
-    if (m1 < m2)
-	return 0;
-    return (strcmp(s1 + (m1 - m2), s2) == 0);
-}
-#endif
-
-#define NC_GRP_DELIM '/'
-
-/* Get varid of variable with name using nested group syntax
- * "gp1/gp2/var" or "/gp1/gp2/var".  In the former case, grpname of
- * grp corresponding to grpid must end in "gp1/gp2".  In the latter
- * case, grpname for grpid must be exactly "/gp1/gp2".  If variable
- * named "var" is not in group grpid, returns NC_ENOTVAR, else sets
- * varid and returns NC_NOERR.  */
-int 
-nc_inq_gvarid(int grpid, const char *varname, int *varidp) {
-    /* if varname has no "/" chars, then
-          return varidp from nc_inq_varid(grpid, varname, varidp)
-       if varname begins with "/"
-          
-       else
-          get groupname corresponding to grpid
-          get vargroup = substring of varname up to last "/"
-          get relname = substring of varname after last "/"
-          if (varname starts with "/" and groupname == vargroup) ||
-             (groupname ends with vargroup)
-             return nc_inq_varid(grpid, relname, varidp)
-          else
-             return NC_ENOTVAR
-    */
-    
-#ifdef USE_NETCDF4
-    char *vargroup;
-    char *relname;
-    char *groupname;
-    int status;
-    if (varname[0] == '\0')
-	return NC_ENOTVAR;
-    vargroup = strdup(varname);
-    if (vargroup == NULL) 
-	return NC_ENOMEM;
-    relname = strrchr(vargroup, NC_GRP_DELIM);
-    if (relname != NULL) {	/* name has a "/" in it */
-	size_t len;		/* length of full group name for grpid */
-	*relname++ = '\0';	/* split vargroup string in two,
-				 * vargroup and relname */
-	if ( (status = nc_inq_grpname_full(grpid, &len, NULL)) != NC_NOERR ) {
-	    free(vargroup);
-	    return status;
-	}
-	groupname = (char *)emalloc(len + 1);
-	if ( (status = nc_inq_grpname_full(grpid, &len, groupname)) == NC_NOERR ) {
-	    if(varname[0] == NC_GRP_DELIM) {
-		if( strcmp(groupname, vargroup) == 0)
-		    status = nc_inq_varid(grpid, relname, varidp);
-		else
-		    status = NC_ENOTVAR;
-	    } else {
-		if(strendswith(groupname, vargroup))
-		    status = nc_inq_varid(grpid, relname, varidp);
-		else
-		    status = NC_ENOTVAR;
-	    }
-	}
-	free(vargroup);
-	free(groupname);
-	return status;
-    }
-    free(vargroup);
-#endif	/* USE_NETCDF4 */
-    return nc_inq_varid(grpid, varname, varidp);
-}
-
 
 /* Initialize typelist with primitive types.  For netCDF-3 only need primitive 
    types. */ 
@@ -1969,7 +1825,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
     int num_dims = 0;    /* total number of dimensions in all groups */
     int num_undims = 0;  /* total number of unlimited dimensions in all groups */
     int *grpids = NULL;	 /* temporary list of all grpids */
-    int *dimids = NULL;	 /* temporary list of dimids */
     int igrp;
     int grpid;
 

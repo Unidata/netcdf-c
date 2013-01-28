@@ -106,6 +106,10 @@ Then you build HDF5, specifying the location of the zlib library:
 make check install
 \endverbatim
 
+In all cases, the installation location specified with the --prefix
+option must be different from the source directory where the software
+is being built.
+
 Note that for shared libraries, you may need to add the install
 directory to the LD_LIBRARY_PATH environment variable. See
 the <a href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
@@ -130,7 +134,9 @@ examples install the zlib, HDF5, and netCDF-4 libraries in
 /home/ed/local/lib, the header file in /home/ed/local/include, and the
 utilities in /home/ed/local/bin. If you don't provide a --prefix
 option, installation will be in /usr/local/, in subdirectories lib/,
-include/, and bin/.
+include/, and bin/.  The installation location specified with the
+--prefix option must be different from the source directory where the
+software is being built.
 
 \page build_classic Building NetCDF with Classic Library Only
 
@@ -151,7 +157,9 @@ make check install
 \endverbatim
 
 (Replace ``/home/ed/local'' with the name of the directory where
-netCDF is to be installed.) 
+netCDF is to be installed.  The installation location specified with
+the --prefix option must be different from the source directory where
+the software is being built.)
 
 Starting with version 4.1.1 the netCDF C libraries and utilities have
 supported remote data access, using the OPeNDAP protocols.  To build 

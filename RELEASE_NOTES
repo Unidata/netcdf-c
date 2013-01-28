@@ -7,6 +7,13 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
+
+		Merged in nccopy additions to support -g and -v
+		options for specifying which groups or variables are
+		to be copied.
+
+		Merged in parallel-netcdf bugs fixes from Greg
+		Sjaardema.
 		
 		Replaced the oc library with oc2.0
 

@@ -217,9 +217,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
-   int persist = 0; /* Should diskless try to persist its data into file?*/
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
-
+#ifndef USE_PARALLEL
+   int persist = 0; /* Should diskless try to persist its data into file?*/
+#endif
 
    assert(nc);
 
@@ -236,8 +237,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    /* If this file already exists, and NC_NOCLOBBER is specified,
       return an error. */
    if (cmode & NC_DISKLESS) {
+#ifndef USE_PARALLEL
 	if(cmode & NC_WRITE)
 	    persist = 1;
+#endif
    } else if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
       fclose(fp);
       return NC_EEXIST;
@@ -424,7 +427,11 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 #ifdef USE_PNETCDF
    if (cmode & NC_PNETCDF)
    {
-      nc_file->pnetcdf_file++;
+      NC_HDF5_FILE_INFO_T* nc4_info;
+      nc4_info = NC4_DATA(nc_file);
+      assert(nc4_info);
+
+      nc4_info->pnetcdf_file++;
       res = ncmpi_create(comm, path, cmode, info, &(nc_file->int_ncid));      
    }
 #endif /* USE_PNETCDF */
@@ -1245,12 +1252,9 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
                                            member_name, value)))
 	   return retval;
-#if defined(_WIN64) || defined(_WIN32) 
-	 H5MM_xfree(member_name); /* Defined in H5MMprivate.h, part of hdf5. Used to avoid cross-dll memory errors on Windows. */
-#else
-	 free(member_name);
-#endif
-     }
+
+	 free(member_name); 
+	}
       
       /* Free the tempory memory for one value, and the member name
        * (which HDF5 allocated for us). */
@@ -1625,7 +1629,8 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
    hid_t datasetid = 0;   
    hid_t spaceid = 0, access_pid = 0;
    int ndims;
-   hsize_t dims[NC_MAX_DIMS], max_dims[NC_MAX_DIMS];
+   hsize_t *dims = NULL;
+   hsize_t *max_dims = NULL;
    int is_scale = 0;
    int dim_without_var = 0;
    int num_scales = 0;            
@@ -1650,8 +1655,17 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #endif
    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EHDFERR);
-   if (ndims > NC_MAX_DIMS)
-      BAIL(NC_EMAXDIMS);
+   
+   /* Removed check to remove nc4 dependency on 
+      maximum dimensions. */
+   //if (ndims > NC_MAX_DIMS)
+   //   BAIL(NC_EMAXDIMS);
+
+   if( (dims = (hsize_t*)malloc(sizeof(hsize_t)*ndims)) == NULL)
+     BAIL(errno);
+   if( (max_dims = (hsize_t*)malloc(sizeof(hsize_t)*ndims)) == NULL)
+     BAIL(errno);
+   
    if (H5Sget_simple_extent_dims(spaceid, dims, max_dims) < 0)
       BAIL(NC_EHDFERR);
 
@@ -1693,9 +1707,13 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
+   
+   if(dims) free(dims);
+   if(max_dims) free(max_dims);
+
    return NC_NOERR;
 
-  exit:
+  exit: 
    if (access_pid && H5Pclose(access_pid) < 0)
       BAIL2(retval);
 #ifdef EXTRA_TESTS
@@ -1708,6 +1726,9 @@ read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
+
+   if(dims) free(dims);
+   if(max_dims) free(max_dims);
    return retval;
 }
 
@@ -2474,43 +2495,80 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    for (v = 0; v < num_datasets; v++)
    {
       int32 data_type, num_atts;
-      int32 dimsize[NC_MAX_DIMS];
+      /* Problem: Number of dims is returned by the call that requires
+	 a pre-allocated array, 'dimsize'. 
+       From SDS_SD website: 
+       http://www.hdfgroup.org/training/HDFtraining/UsersGuide/SDS_SD.fm3.html 
+       The maximum rank is 32, or MAX_VAR_DIMS (as defined in netcdf.h).
+       
+       int32 dimsize[MAX_VAR_DIMS];
+      */
+      int32 *dimsize = NULL;
       size_t var_type_size;
       int a;
-
+	
       /* Add a variable to the end of the group's var list. */
-      if ((retval = nc4_var_list_add(&grp->var, &var)))
-	 return retval;
+      if ((retval = nc4_var_list_add(&grp->var, &var))) {
+	return retval;
+      }
+      
       var->varid = grp->nvars++;
       var->created = 1;
       var->written_to = 1;
             
       /* Open this dataset in HDF4 file. */
-      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
-	 return NC_EVARMETA;
+      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL) {
+	return NC_EVARMETA;
+      }
 
       /* Get shape, name, type, and attribute info about this dataset. */
-      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1)))
-	 return NC_ENOMEM;
-      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts))
-	 return NC_EVARMETA;
+      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1))) {
+	return NC_ENOMEM;
+      }
+      
+      /* Invoke SDgetInfo with null dimsize to get rank. */
+      if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
+	return NC_EVARMETA;
+      
+      if(!(dimsize = (int32*)malloc(sizeof(int32)*rank))) {
+	return NC_ENOMEM;
+      }
+      
+      
+      if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
+	if(dimsize) free(dimsize);
+	return NC_EVARMETA;
+      }
+      
       var->ndims = rank;
       var->hdf4_data_type = data_type;
 
       /* Fill special type_info struct for variable type information. */
-      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
-	 return NC_ENOMEM;
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info)))
-	 return retval;
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size)))
-	 return retval;
+      if (!(var->type_info = calloc(1, sizeof(NC_TYPE_INFO_T)))) {
+	if(dimsize) free(dimsize);
+	return NC_ENOMEM;
+      }
+      
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info))) {
+	if(dimsize) free(dimsize);
+	return retval;
+      }
+      
+      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size))) {
+	if(dimsize) free(dimsize);
+	return retval;
+      }
+
       var->type_info->size = var_type_size;
       LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->name, 
 	   rank, var->xtype));
 
       /* Get the fill value. */
-      if (!(var->fill_value = malloc(var_type_size)))
-	 return NC_ENOMEM;
+      if (!(var->fill_value = malloc(var_type_size))) {
+	if(dimsize) free(dimsize);
+	return NC_ENOMEM;
+      }
+
       if (SDgetfillvalue(var->sdsid, var->fill_value))
       {
 	 /* Whoops! No fill value! */
@@ -2521,11 +2579,17 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       /* Allocate storage for dimension info in this variable. */
       if (var->ndims)
       {
-	 if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims)))
-	    return NC_ENOMEM;
-	 if (!(var->dimids = malloc(sizeof(int) * var->ndims)))
-	    return NC_ENOMEM;
+	if (!(var->dim = malloc(sizeof(NC_DIM_INFO_T *) * var->ndims))) {
+	  if(dimsize) free(dimsize);
+	  return NC_ENOMEM;
+	}
+	
+	if (!(var->dimids = malloc(sizeof(int) * var->ndims))) {
+	  if(dimsize) free(dimsize);
+	  return NC_ENOMEM;
+	}
       }
+      
 
       /* Find its dimensions. */
       for (d = 0; d < var->ndims; d++)
@@ -2534,11 +2598,16 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 char dim_name[NC_MAX_NAME + 1];
 	 NC_DIM_INFO_T *dim;
 
-	 if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL)
-	    return NC_EDIMMETA;
+	 if ((dimid = SDgetdimid(var->sdsid, d)) == FAIL) {
+	   if(dimsize) free(dimsize);
+	   return NC_EDIMMETA;
+	 }
 	 if (SDdiminfo(dimid, dim_name, &dim_len, &dim_data_type, 
 		       &dim_num_attrs))
-	    return NC_EDIMMETA;
+	   {
+	     if(dimsize) free(dimsize);
+	     return NC_EDIMMETA;
+	   }
 
 	 /* Do we already have this dimension? HDF4 explicitly uses
 	  * the name to tell. */
@@ -2578,33 +2647,49 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 size_t att_type_size;
 
 	 /* Add to the end of the list of atts for this var. */
-         if ((retval = nc4_att_list_add(&var->att)))
-            return retval;
+         if ((retval = nc4_att_list_add(&var->att))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
          for (att = var->att; att->next; att = att->next)
-            ;
+	   ;
 	 att->attnum = var->natts++;
 	 att->created++;
 
 	 /* Learn about this attribute. */
-	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
-	    return NC_ENOMEM;
-	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) 
+	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char)))) {
+	   if(dimsize) free(dimsize);
+	   return NC_ENOMEM;
+	 }
+	 if (SDattrinfo(var->sdsid, a, att->name, &att_data_type, &att_count)) {
+	   if(dimsize) free(dimsize);
 	    return NC_EATTMETA;
+	 }
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-						 &att->xtype, NULL)))
-	    return retval;
+						 &att->xtype, NULL))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
+	 
 	 att->len = att_count;
 
 	 /* Allocate memory to hold the data. */
-	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size)))
-	    return retval;
-	 if (!(att->data = malloc(att_type_size * att->len)))
-	    return NC_ENOMEM;
+	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size))) {
+	   if(dimsize) free(dimsize);
+	   return retval;
+	 }
+	 if (!(att->data = malloc(att_type_size * att->len))) {
+	   	if(dimsize) free(dimsize);
+		return NC_ENOMEM;
+	 }
 
 	 /* Read the data. */
-	 if (SDreadattr(var->sdsid, a, att->data)) 
-	    return NC_EHDFERR;
+	 if (SDreadattr(var->sdsid, a, att->data)) {
+	   if(dimsize) free(dimsize);
+	   return NC_EHDFERR;
+	 }
       }
+      if(dimsize) free(dimsize);
    } /* next var */
 
 #ifdef LOGGING
@@ -2660,28 +2745,23 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
        (mode & NC_MPIIO && mode & NC_MPIPOSIX))
       return NC_EINVAL;
 
-   /* Figure out if this is a hdf4 or hdf5 file. */
-   if ((res = nc_check_for_hdf(path, use_parallel, comm, info, &hdf_file)))
-      return res;
 
    /* Depending on the type of file, open it. */
-   if (hdf_file == NC_HDF5_FILE)
-   {
-      nc_file->int_ncid = nc_file->ext_ncid;
-      res = nc4_open_file(path, mode, comm, info, nc_file);
-   }
-   else if (hdf_file == NC_HDF4_FILE)
-   {
-      nc_file->int_ncid = nc_file->ext_ncid;
-      res = nc4_open_hdf4_file(path, mode, nc_file);
-   }
+
 #ifdef USE_PNETCDF
-   else if (mode & NC_PNETCDF)
-   {
+   if(mode & NC_PNETCDF) {
+	/* this is not really an hdf file */
       int pnetcdf_nvars, i;
+      NC_HDF5_FILE_INFO_T* nc4_info;
+
+      /* Create the fake nc4_info data */
+      res = nc4_nc4f_list_add(nc_file, path, mode);
+
+      nc4_info = NC4_DATA(nc_file);
+      assert(nc4_info);
 
       res = ncmpi_open(comm, path, mode, info, &(nc_file->int_ncid));
-      nc_file->pnetcdf_file++;
+      nc4_info->pnetcdf_file++;
 
       /* Default to independent access, like netCDF-4/HDF5 files. */
       if (!res)
@@ -2694,14 +2774,29 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	 res = ncmpi_inq_nvars(nc_file->int_ncid, &pnetcdf_nvars);
 	 for (i = 0; i < pnetcdf_nvars; i++)
 	    res = ncmpi_inq_varndims(nc_file->int_ncid, i, 
-				     &(nc_file->pnetcdf_ndims[i]));
+				     &(nc4_info->pnetcdf_ndims[i]));
 
       }
-   }
-#endif /* USE_PNETCDF */
-   else /* netcdf */
+   } else
+#endif
    {
-      assert(0);
+      /* Figure out if this is a hdf4 or hdf5 file. */
+     if ((res = nc_check_for_hdf(path, use_parallel, comm, info, &hdf_file)))
+         return res;
+
+      if (hdf_file == NC_HDF5_FILE)
+      {
+         nc_file->int_ncid = nc_file->ext_ncid;
+         res = nc4_open_file(path, mode, comm, info, nc_file);
+      }
+      else if (hdf_file == NC_HDF4_FILE)
+      {
+         nc_file->int_ncid = nc_file->ext_ncid;
+         res = nc4_open_hdf4_file(path, mode, nc_file);
+      } else /* netcdf */
+      {
+         assert(0); /* should never happen */
+      }
    }
 
    return res;
@@ -2738,7 +2833,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (nc4_info->pnetcdf_file)
      return ncmpi_set_fill(nc->int_ncid, fillmode, old_modep);
 #endif /* USE_PNETCDF */
 
@@ -2764,12 +2859,9 @@ NC4_redef(int ncid)
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (nc4_info->pnetcdf_file)
       return ncmpi_redef(nc->int_ncid);
 #endif /* USE_PNETCDF */
-
-   /* Handle netcdf-3 files. */
-   assert(nc4_info);
 
    /* If we're already in define mode, return an error. */
    if (nc4_info->flags & NC_INDEF)
@@ -2815,21 +2907,18 @@ static int NC4_enddef(int ncid)
    assert(nc4_info);
 
 #ifdef USE_PNETCDF
-   if (nc->pnetcdf_file)
+   if (nc4_info->pnetcdf_file)
    {
       int res;
       res = ncmpi_enddef(nc->int_ncid);
       if (!res)
       {
-	 if (nc->pnetcdf_access_mode == NC_INDEPENDENT)
+	 if (nc4_info->pnetcdf_access_mode == NC_INDEPENDENT)
 	    res = ncmpi_begin_indep_data(nc->int_ncid);
       }
       return res;
    }
 #endif /* USE_PNETCDF */
-
-   /* Take care of netcdf-3 files. */
-   assert(nc4_info);
 
    return nc4_enddef_netcdf4_file(nc4_info);
 }
@@ -2899,12 +2988,9 @@ NC4_sync(int ncid)
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (nc4_info->pnetcdf_file)
       return ncmpi_sync(nc->int_ncid);
 #endif /* USE_PNETCDF */
-
-   /* Take care of netcdf-3 files. */
-   assert(nc4_info);
 
    /* If we're in define mode, we can't sync. */
    if (nc4_info && nc4_info->flags & NC_INDEF)
@@ -3006,15 +3092,14 @@ NC4_abort(int ncid)
    /* Find metadata for this file. */
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
+
    assert(nc4_info);
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (nc4_info->pnetcdf_file)
       return ncmpi_abort(nc->int_ncid);
 #endif /* USE_PNETCDF */
-
-   assert(nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
@@ -3050,17 +3135,17 @@ NC4_close(int ncid)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
-#ifdef USE_PNETCDF
-   /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
-      return ncmpi_close(nc->int_ncid);
-#endif /* USE_PNETCDF */
-
-   assert(h5 && nc);
+   assert(nc && h5 && grp);
 
    /* This must be the root group. */
    if (grp->parent)
       return NC_EBADGRPID;
+
+#ifdef USE_PNETCDF
+   /* Take care of files created/opened with parallel-netcdf library. */
+   if (h5->pnetcdf_file)
+      return ncmpi_close(nc->int_ncid);
+#endif /* USE_PNETCDF */
 
    /* Call the nc4 close. */
    if ((retval = close_netcdf4_file(grp->nc4_info, 0)))
@@ -3088,14 +3173,13 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
+   assert(h5 && grp && nc);
+
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
       return ncmpi_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimdimidp);
 #endif /* USE_PNETCDF */
-
-   /* Netcdf-3 files are already taken care of. */
-   assert(h5 && grp && nc);
 
    /* Count the number of dims, vars, and global atts. */
    if (ndimsp)
@@ -3108,10 +3192,10 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    {
       *nvarsp = 0;
       for (var = grp->var; var; var= var->next)
-	 (*nvarsp)++;
+	(*nvarsp)++;
    }
    if (nattsp)
-   {
+     {
       *nattsp = 0;
       for (att = grp->att; att; att = att->next)
 	 (*nattsp)++;
