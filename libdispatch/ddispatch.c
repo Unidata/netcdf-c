@@ -4,9 +4,9 @@
 extern int NCSUBSTRATE_intialize(void);
 
 /* Define vectors of zeros and ones for use with various nc_get_varX function*/
-size_t nc_sizevector0[NC_MAX_DIMS];
-size_t nc_sizevector1[NC_MAX_DIMS];
-ptrdiff_t nc_ptrdiffvector1[NC_MAX_DIMS];
+size_t nc_sizevector0[NC_MAX_VAR_DIMS];
+size_t nc_sizevector1[NC_MAX_VAR_DIMS];
+ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
 
 /* Define the known protocols and their manipulations */
 static struct NCPROTOCOLLIST {

@@ -2799,16 +2799,26 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
             goto done;
          /* Don't check unlimited dimension on PUTs. */
          if (pg == PUT)
-         {
-            int stop = 0, d, num_unlim_dim, unlim_dimids[NC_MAX_DIMS];
-            if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
-               goto done;
+	   {
+	     int stop = 0, d, num_unlim_dim;
+	     int *unlim_dimids = NULL;
+	    
+	     NC4_inq_unlimdims(ncid, &num_unlim_dim, NULL);
+	     if(!(unlim_dimids=(int*)malloc(sizeof(int)*num_unlim_dim)))
+	       return errno;
+	     
+	     if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids))) 
+	       {
+		 free(unlim_dimids);
+		 goto done;
+	       }
+	     
             for (d = 0; d < num_unlim_dim; d++)
                if (var->dimids[idim] == unlim_dimids[d])
                   stop++;
             if (stop)
                break;
-         }
+	   }
          LOG((4, "idim=%d mystart[idim]=%d myedge[idim]=%d dimlen=%d", 
               idim, mystart[idim], myedges[idim], dimlen));
          if (mystart[idim] >= dimlen)

@@ -93,7 +93,7 @@ NC4_inq_format(int ncid, int *formatp)
 
 #ifdef USE_PNETCDF
    /* Take care of files created/opened with parallel-netcdf library. */
-   if (nc->pnetcdf_file)
+   if (h5->pnetcdf_file)
      return ncmpi_inq_format(nc->int_ncid, formatp);
 #endif /* USE_PNETCDF */
 

@@ -314,51 +314,6 @@ annotate(
     printf(")\n    ");
 }
 
-
-
-/*
- * Print a number of variable values, where the optional comments
- * for each value identify the variable, and each dimension index.
- */
-static void
-pr_any_vals(
-     const ncvar_t *vp,		/* variable */
-     size_t len,		/* number of values to print */
-     bool_t lastrow,		/* true if this is the last row for this
-				 * variable, so terminate with ";" instead
-				 * of "," */
-     const void *vals,		/* pointer to block of values */
-     const size_t *cor		/* corner coordinates */
-     )
-{
-    long iel;
-    safebuf_t *sb = sbuf_new();
-    const char *valp = (const char *)vals;
-
-    for (iel = 0; iel < len-1; iel++) {
-	print_any_val(sb, vp, (void *)valp);
-	valp += vp->tinfo->size; /* next value according to type */
-	if (formatting_specs.full_data_cmnts) {
-	    printf("%s, ", sb->buf);
-	    annotate (vp, cor, iel);
-	} else {
-	    sbuf_cat(sb, ", ");
-	    lput(sbuf_str(sb));
-	}
-    }
-    print_any_val(sb, vp, (void *)valp);
-    if (formatting_specs.full_data_cmnts) {
-	printf("%s", sbuf_str(sb));
-	lastdelim (0, lastrow);
-	annotate (vp, cor, iel);
-    } else {
-	lput(sbuf_str(sb));
-	lastdelim2 (0, lastrow);
-    }
-    sbuf_free(sb);
-}
-
-
 /*
  * Print a number of char variable values as a text string, where the
  * optional comments for each value identify the variable, and each

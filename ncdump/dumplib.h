@@ -55,26 +55,6 @@ extern void	set_formats ( int flt_digs, int dbl_digs );
 /* Determine print format to use for each value for this variable. */
 const char *	get_fmt ( int ncid, int varid, nc_type typeid );
 
-/* structure for list of ids, such as varids or grpids specified with -v or -g option */
-struct idnode
-{
-    struct idnode* next;
-    int id;
-};
-typedef struct idnode idnode_t;
-
-/* Get new id list */
-extern idnode_t*	newidlist ( void );
-
-/* Add an id to id list */
-extern void	idadd ( idnode_t* idlist, int id );
-
-/* Test if a variable id is in variable list */
-extern bool_t	idmember ( const idnode_t* idlist, int id );
-
-/* Test if a group id is in group list */
-extern bool_t	group_wanted ( int grpid );
-
 /* Add type info to type list */
 extern void	typeadd ( nctype_t *typep );
 
@@ -104,10 +84,6 @@ extern int  is_user_defined_type ( nc_type type );
 
 /* Initialize global constants used in slightly fuzzy float comparisons */
 extern void init_epsilons ( void );
-
-/* Withing group with id ncid, get varid of variable with name varname
- * using nested group syntax "gp1/gp2/var" */
-extern int nc_inq_gvarid ( int ncid, const char *varname, int *varidp );
 
 /* Initialize string buffer */
 safebuf_t *sbuf_new();

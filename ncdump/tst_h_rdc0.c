@@ -22,7 +22,6 @@ main()
    {
       hid_t fileid, grpid;
       hsize_t num_obj, i;
-      int obj_class;
       char obj_name[MAX_NAME];
 
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR; 
@@ -34,7 +33,7 @@ main()
       {
 	 /* Get the class (i.e. group, dataset, etc.), and the name of
 	  * the object. */
-	 if ((obj_class = H5Gget_objtype_by_idx(grpid, i)) < 0) ERR;
+	 if (H5Gget_objtype_by_idx(grpid, i) < 0) ERR;
 	 if (H5Gget_objname_by_idx(grpid, i, obj_name, MAX_NAME) < 0) ERR;
       }
 

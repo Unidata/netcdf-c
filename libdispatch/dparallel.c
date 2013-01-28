@@ -50,8 +50,11 @@ nc_open_par(const char *path, int mode, MPI_Comm comm,
 
    /* One of these two parallel IO modes must be chosen by the user,
     * or else pnetcdf must be in use. */
-   if (!(mode & NC_MPIIO || mode & NC_MPIPOSIX) &&
-       !(mode & NC_PNETCDF))
+   if ((mode & NC_MPIIO) || (mode & NC_MPIPOSIX)) {
+	/* ok */
+   } else if(mode & NC_PNETCDF) {
+	/* ok */
+   } else
       return NC_EINVAL;
 
    mpi_data.comm = comm;

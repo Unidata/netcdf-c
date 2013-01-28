@@ -79,7 +79,7 @@ nc_set_log_level(0);
    SUMMARIZE_ERR;
    printf("*** testing a scalar coordinate dimension...");
    {
-      int ncid, dimid, varid, stat;
+      int ncid, dimid, varid;
       float data = 42.5;
       
       /* Create a scalar coordinate dimension. The only reason that
