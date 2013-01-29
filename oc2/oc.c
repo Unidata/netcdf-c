@@ -551,9 +551,10 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
 {
     OCerror err = OC_NOERR;
     OCnode* node;
+    size_t count,i;
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
-    size_t count,i;
+    
 
     if(!iscontainer(node->octype))
 	return OC_EBADTYPE;
@@ -965,12 +966,12 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
     OCerror err = OC_NOERR;
     OCstate* state;
     OCdata* data;
+    size_t count,i;
+    OCobject ddsnode;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
-    size_t count,i;
-    OCobject ddsnode;
 
     /* Get the dds node for this datanode */
     err = oc_data_ddsnode(link,datanode,&ddsnode);

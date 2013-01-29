@@ -172,6 +172,7 @@ nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid,
    int i;
    size_t *start = NULL;
    size_t *count = NULL;
+   int res = 0;
    
    int retval;
 
@@ -199,7 +200,6 @@ nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid,
    }
    
    /* Get or put this data. */
-   int res = 0;
    if (pg == GET) {
      res = nc4_get_vara(nc, ncid, varid, start, count, xtype, 
                           is_long, ip);
