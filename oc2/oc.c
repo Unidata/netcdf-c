@@ -451,6 +451,7 @@ of a node that itself is a container (Dataset, Structure, Sequence, or Grid)
 \retval OC_NOERR The procedure executed normally.
 \retval OC_EINDEX The index was greater than the number of fields.
 \retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+\retval OC_EBADTYPE The dds node is not a container node.
 */
 
 OCerror
@@ -483,6 +484,7 @@ Alias for oc_dds_ithfield.
 \retval OC_NOERR The procedure executed normally.
 \retval OC_EINDEX The index was greater than the number of fields.
 \retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+\retval OC_EBADTYPE The dds node is not a container node.
 */
 
 OCerror
@@ -528,6 +530,54 @@ OCerror
 oc_dds_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapnodep)
 {
     return oc_dds_ithfield(link,grid,index+1,mapnodep);
+}
+
+
+/*!
+Obtain a dds node by name from a dds structure or dataset node.
+
+\param[in] link The link through which the server is accessed.
+\param[in] ddsnode The container node of interest.
+\param[in] name The name of the field to return.
+\param[out] fieldnodep  A pointer into which the name'th field node is stored.
+
+\retval OC_NOERR The procedure executed normally.
+\retval OC_EINDEX No field with the given name was found.
+\retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+*/
+
+OCerror
+oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* fieldp)
+{
+    OCerror err = OC_NOERR;
+    OCnode* node;
+    OCVERIFY(OC_Node,ddsnode);
+    OCDEREF(OCnode*,node,ddsnode);
+    size_t count,i;
+
+    if(!iscontainer(node->octype))
+	return OC_EBADTYPE;
+
+    /* Search the fields to find a name match */
+    err = oc_dds_nsubnodes(link,ddsnode,&count);
+    if(err != OC_NOERR) return err;
+    for(i=0;i<count;i++) {
+	int match;
+	OCobject field;
+	char* fieldname = NULL;
+        err = oc_dds_ithfield(link,ddsnode,i,&field);
+        if(err != OC_NOERR) return err;
+	// Get the field's name
+        err = oc_dds_name(link,field,&fieldname);
+        if(err != OC_NOERR) return err;
+	match = strcmp(name,fieldname);
+	if(fieldname != NULL) free(fieldname);
+	if(match == 0) {
+	    if(fieldp) *fieldp = field;
+	    return OC_NOERR;
+	}
+    }
+    return OC_EINDEX; /* name was not found */
 }
 
 /*!
@@ -830,6 +880,8 @@ oc_merge_das(OCobject link, OCobject dasroot, OCobject ddsroot)
 
 /*!
 Obtain the datanode root associated with a DataDDS tree.
+Do not confuse this with oc_data_root.
+This procedure, given the DDS tree root, gets the data tree root.
 
 \param[in] link The link through which the server is accessed.
 \param[in] ddsroot The DataDDS tree root.
@@ -840,7 +892,7 @@ Obtain the datanode root associated with a DataDDS tree.
 */
 
 OCerror
-oc_data_getroot(OCobject link, OCobject ddsroot, OCobject* datarootp)
+oc_dds_getdataroot(OCobject link, OCobject ddsroot, OCobject* datarootp)
 {
     OCerror ocerr = OC_NOERR;
     OCstate* state;
@@ -871,6 +923,7 @@ of a data node instance that itself is a container instance.
 \retval OC_NOERR The procedure executed normally.
 \retval OC_EINDEX The index was greater than the number of fields.
 \retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+\retval OC_EBADTYPE The data node is not a container node.
 */
 
 OCerror
@@ -890,6 +943,62 @@ oc_data_ithfield(OCobject link, OCobject datanode, size_t index, OCobject* field
     if(ocerr == OC_NOERR)
 	*fieldp = (OCobject)field;
     return ocerr;
+}
+
+/*!
+Obtain a data node by name from a container data node.
+
+\param[in] link The link through which the server is accessed.
+\param[in] datanode The container data node instance of interest.
+\param[in] name The name of the field instance to return.
+\param[out] fieldp  A pointer into which the i'th field instance is stored.
+
+\retval OC_NOERR The procedure executed normally.
+\retval OC_EINDEX No field with the given name was found.
+\retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+\retval OC_EBADTYPE The data node is not a container node.
+*/
+
+OCerror
+oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject* fieldp)
+{
+    OCerror err = OC_NOERR;
+    OCstate* state;
+    OCdata* data;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    OCVERIFY(OC_Data,datanode);
+    OCDEREF(OCdata*,data,datanode);
+    size_t count,i;
+    OCobject ddsnode;
+
+    /* Get the dds node for this datanode */
+    err = oc_data_ddsnode(link,datanode,&ddsnode);
+    if(err != OC_NOERR) return err;
+
+    /* Search the fields to find a name match */
+    err = oc_dds_nsubnodes(link,ddsnode,&count);
+    if(err != OC_NOERR) return err;
+    for(i=0;i<count;i++) {
+	int match;
+	OCobject field;
+	char* fieldname = NULL;
+        err = oc_dds_ithfield(link,ddsnode,i,&field);
+        if(err != OC_NOERR) return err;
+	// Get the field's name
+        err = oc_dds_name(link,field,&fieldname);
+        if(err != OC_NOERR) return err;
+	match = strcmp(name,fieldname);
+	if(fieldname != NULL) free(fieldname);
+	if(match == 0) {
+	    /* Get the ith datasubnode */
+	    err = oc_data_ithfield(link,datanode,i,&field);
+            if(err != OC_NOERR) return err;	
+	    if(fieldp) *fieldp = field;
+	    return OC_NOERR;
+	}
+    }
+    return OC_EINDEX; /* name was not found */
 }
 
 /*!
@@ -968,6 +1077,8 @@ oc_data_container(OCobject link,  OCobject datanode, OCobject* containerp)
 /*!
 Obtain the data instance corresponding to the root of the tree
 of which the specified instance object is a part.
+Do not confuse this with oc_dds_getdataroot.
+This procedure, given any node in a data tree, get the root of that tree.
 
 \param[in] link The link through which the server is accessed.
 \param[in] datanode The data instance of interest
