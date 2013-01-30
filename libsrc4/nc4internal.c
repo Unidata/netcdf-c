@@ -473,8 +473,8 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
-   int d, ndims, dimids[NC_MAX_DIMS];
-   size_t dimlen[NC_MAX_DIMS];
+   int d, ndims, *dimids = NULL;
+   size_t *dimlen = NULL;
    int retval; 
    
    assert(grp && len);
@@ -490,24 +490,31 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
     * dimension, and remember the max length. */
    for (var = grp->var; var; var = var->next)
    {
-      /* Find dimensions of this var. */
-      if ((retval = find_var_shape_grp(grp, var->varid, &ndims, 
-				       dimids, dimlen)))
-	 return retval;
-
-      /* Check for any dimension that matches dimid. If found, check
-       * if its length is longer than *lenp. */
-      for (d = 0; d < ndims; d++)
-      {
+     if(var->ndims > 0) {
+       dimids = (int*)malloc(sizeof(int)*var->ndims);
+       dimlen = (size_t*)malloc(sizeof(size_t)*var->ndims);
+     }
+     
+     /* Find dimensions of this var. */
+     if ((retval = find_var_shape_grp(grp, var->varid, &ndims, 
+				      dimids, dimlen)))
+       return retval;
+     
+     /* Check for any dimension that matches dimid. If found, check
+      * if its length is longer than *lenp. */
+     for (d = 0; d < ndims; d++)
+       {
 	 if (dimids[d] == dimid)
-	 {
-	    /* Remember the max length in *lenp. */
-	    **len = dimlen[d] > **len ? dimlen[d] : **len;
-	    break;
-	 }
-      }
+	   {
+	     /* Remember the max length in *lenp. */
+	     **len = dimlen[d] > **len ? dimlen[d] : **len;
+	     break;
+	   }
+       }
+     free(dimids); dimids = NULL;
+     free(dimlen); dimlen = NULL;
    }
-
+   
    return NC_NOERR;
 }
 
@@ -1316,7 +1323,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
    NC_TYPE_INFO_T *type;
    NC_FIELD_INFO_T *field;
    char tabs[MAX_NESTS] = "";
-   char dims_string[NC_MAX_DIMS*4];
+   char *dims_string = NULL;
    char temp_string[10];
    int t, retval, d;
 
@@ -1345,18 +1352,20 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
       ;
    for( ; var; var = var->prev)
    {
-      strcpy(dims_string, "");
-      for (d = 0; d < var->ndims; d++)
-      {
+     dims_string = (char*)malloc(sizeof(char)*(var->ndims*4));
+     strcpy(dims_string, "");
+     for (d = 0; d < var->ndims; d++)
+       {
 	 sprintf(temp_string, " %d", var->dimids[d]);
 	 strcat(dims_string, temp_string);
-      }
+       }
       LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s",
 	   tabs, var->varid, var->name, var->xtype, var->ndims, var->dimscale, 
 	   dims_string));
       for(att = var->att; att; att = att->next)
 	 LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
 	      tabs, att->attnum, att->name, att->xtype, att->len));
+      free(dims_string); dims_string = NULL;
    }
    
    for (type = grp->type; type; type = type->next)

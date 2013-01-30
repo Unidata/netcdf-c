@@ -170,7 +170,10 @@ nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid,
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
    int i;
-   size_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+   size_t *start = NULL;
+   size_t *count = NULL;
+   int res = 0;
+   
    int retval;
 
    /* Find file and var, cause I need the number of dims. */
@@ -179,22 +182,36 @@ nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid,
       return retval;
    assert(grp && var && var->name);
 
+   if(!(start = (size_t*)malloc(sizeof(size_t)*var->ndims))) {
+     return NC_ENOMEM;
+   }
+   
+   if(!(count = (size_t*)malloc(sizeof(size_t)*var->ndims))) {
+     free(start);
+     return NC_ENOMEM;
+   }
+  
+
    /* Set up the count and start arrays. */
    for (i=0; i<var->ndims; i++)
    {
-      start[i] = indexp[i];
-      count[i] = 1;
+     start[i] = indexp[i];
+     count[i] = 1;
    }
-
+   
    /* Get or put this data. */
-   if (pg == GET)
-      return nc4_get_vara(nc, ncid, varid, start, count, xtype, 
+   if (pg == GET) {
+     res = nc4_get_vara(nc, ncid, varid, start, count, xtype, 
                           is_long, ip);
-   else
-      return nc4_put_vara(nc, ncid, varid, start, count, xtype, 
-                          is_long, ip);
+   } else {
+     res =  nc4_put_vara(nc, ncid, varid, start, count, xtype, 
+			 is_long, ip);
+   }
+   free(start);
+   free(count);
+   return res;
 }
-
+   
 /* Get the default fill value for an atomic type. Memory for
  * fill_value must already be allocated, or you are DOOMED!!!*/
 int
@@ -1742,15 +1759,21 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
          if (field->ndims)
          {
             int d;
-            hsize_t dims[NC_MAX_DIMS];
-            for (d = 0; d < field->ndims; d++)
+            hsize_t *dims = NULL;
+	    if( (dims = (hsize_t*)malloc(sizeof(hsize_t)*field->ndims)) == NULL)
+	      return errno;
+
+	    for (d = 0; d < field->ndims; d++)
                dims[d] = field->dim_size[d];
             if ((hdf_typeid = H5Tarray_create(hdf_base_typeid, field->ndims, 
-                                              dims, NULL)) < 0)
-               return NC_EHDFERR;
-         } 
+                                              dims, NULL)) < 0) {
+	      free(dims);
+	      return NC_EHDFERR;
+	    } 
+	    free(dims);
+	 }
          else
-            hdf_typeid = hdf_base_typeid;
+	   hdf_typeid = hdf_base_typeid;
          LOG((4, "inserting field %s offset %d hdf_typeid 0x%x", field->name, 
               field->offset, hdf_typeid));
          if (H5Tinsert(type->hdf_typeid, field->name, field->offset, 
@@ -2776,16 +2799,26 @@ nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *start,
             goto done;
          /* Don't check unlimited dimension on PUTs. */
          if (pg == PUT)
-         {
-            int stop = 0, d, num_unlim_dim, unlim_dimids[NC_MAX_DIMS];
-            if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids)))
-               goto done;
+	   {
+	     int stop = 0, d, num_unlim_dim;
+	     int *unlim_dimids = NULL;
+	    
+	     NC4_inq_unlimdims(ncid, &num_unlim_dim, NULL);
+	     if(!(unlim_dimids=(int*)malloc(sizeof(int)*num_unlim_dim)))
+	       return errno;
+	     
+	     if ((retval = NC4_inq_unlimdims(ncid, &num_unlim_dim, unlim_dimids))) 
+	       {
+		 free(unlim_dimids);
+		 goto done;
+	       }
+	     
             for (d = 0; d < num_unlim_dim; d++)
                if (var->dimids[idim] == unlim_dimids[d])
                   stop++;
             if (stop)
                break;
-         }
+	   }
          LOG((4, "idim=%d mystart[idim]=%d myedge[idim]=%d dimlen=%d", 
               idim, mystart[idim], myedges[idim], dimlen));
          if (mystart[idim] >= dimlen)

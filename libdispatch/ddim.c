@@ -21,7 +21,7 @@ dimension can have the unlimited length, which means variables using
 this dimension can grow along this dimension. In a netCDF-4 file
 multiple unlimited dimensions are supported.
 
-There is a suggested limit (100) to the number of dimensions that can
+There is a suggested limit (1024) to the number of dimensions that can
 be defined in a single netCDF dataset. The limit is the value of the
 predefined macro NC_MAX_DIMS. The purpose of the limit is to make
 writing generic applications simpler. They need only provide an array
@@ -30,6 +30,11 @@ implementation of the netCDF library does not enforce this advisory
 maximum, so it is possible to use more dimensions, if necessary, but
 netCDF utilities that assume the advisory maximums may not be able to
 handle the resulting netCDF datasets.
+
+NC_MAX_VAR_DIMS, which must not exceed NC_MAX_DIMS, is the maximum
+number of dimensions that can be used to specify the shape of a single
+variable.  It is also intended to simplify writing generic
+applications.
 
 Ordinarily, the name and length of a dimension are fixed when the
 dimension is first defined. The name may be changed later, but the

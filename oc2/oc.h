@@ -245,10 +245,27 @@ extern OCerror oc_dds_container(OClink,OCddsnode,OCddsnode*);
    if there is no such node; return OC_EBADTYPE if node is not
    a container
 */
-extern OCerror oc_dds_ithfield(OClink, OCddsnode, size_t index, OCddsnode* dimids);
+extern OCerror oc_dds_ithfield(OClink, OCddsnode, size_t index, OCddsnode* ithfieldp);
 
 /* Alias for oc_dds_ithfield */
-extern OCerror oc_dds_ithsubnode(OClink, OCddsnode, size_t index, OCddsnode* dimids);
+extern OCerror oc_dds_ithsubnode(OClink, OCddsnode, size_t, OCddsnode*);
+
+/* Convenience functions that are just combinations of ithfield with other functions */
+
+/* Return the grid array dds node from the specified grid node*/
+extern OCerror oc_dds_gridarray(OClink, OCddsnode grid, OCddsnode* arrayp);
+
+/* Return the i'th grid map dds node from the specified grid dds node.
+   NOTE: Map indices start at ZERO.
+*/
+extern OCerror oc_dds_gridmap(OClink, OCddsnode grid, size_t index, OCddsnode* mapp);
+
+/* Retrieve a dds node by name from a dds structure or dataset node.
+   return OC_EBADTYPE if node is not a container,
+   return OC_EINDEX if no field by the given name is found.
+*/
+extern OCerror oc_dds_fieldbyname(OClink, OCddsnode, const char* name, OCddsnode* fieldp);
+
 
 /* Return the dimension nodes, if any, associated with a given DDS node */
 /* Caller must allocate and free the vector for dimids */
@@ -305,28 +322,63 @@ extern OCerror oc_dds_free(OClink, OCddsnode);
 /**************************************************/
 /* Data Procedures */
 
-/* Get the root data of datadds */
-extern OCerror oc_data_getroot(OClink, OCddsnode treeroot, OCdatanode* rootp);
+/* Given the DDS tree root, get the root data of datadds */
+extern OCerror oc_dds_getdataroot(OClink, OCddsnode treeroot, OCdatanode* rootp);
 
-/* Return an data for the i'th field of the specified container data */
+/* Alias for oc_dds_getdataroot */
+#define oc_data_getroot oc_dds_getdataroot
+
+/* Return the data of the container for the specified data.
+   If it does not exist, then return NULL.
+   In effect this procedure allows one to walk up the datatree one level.
+*/
+extern OCerror oc_data_container(OClink, OCdatanode data, OCdatanode* containerp);
+
+/* Return the root node of the data tree that contains the specified data node.
+   In effect this procedure allows one to walk to the root of the datatree
+   containing the specified datanode.
+*/
+extern OCerror oc_data_root(OClink, OCdatanode data, OCdatanode* rootp);
+
+/*
+There are multiple ways to walk down a level in a data tree
+depending on what kind of node we are currently visiting.
+The possibilities are:
+1. current node is the data for a structure or dataset node:
+   => oc_data_ithfield -- get the data node corresponding
+                          to the ith field of the structure
+2. current node is the data for a grid node:
+   => oc_data_gridarray -- get the data node for the grid array
+   => oc_data_gridmap -- get the data node for the ith grid map
+3. current node is the data for an array of structures
+   => oc_data_ithelement -- get the data node corresponding to
+                            the i'th structure in the array
+                            If the structure is scalar, then the indices
+                            are ignored.
+4. current node is the data for a sequence
+   => oc_data_ithrecord -- get the data node corresponding to
+                            the i'th record in the sequence
+
+Note that the above only apply to compound objects. Once
+you have the data node for an atomic types object (dimensioned
+or scalar), you can read its contents using oc_data_read
+or oc_data_readscalar.
+*/
+
+/* Return the data node for the i'th field of the specified container data */
 extern OCerror oc_data_ithfield(OClink, OCdatanode container, size_t index,
                                 OCdatanode* fieldp);
+
+/* Retrieve the data node by name from a container data node */
+extern OCerror oc_dat_fieldbyname(OClink, OCdatanode, const char* name, OCdatanode* fieldp);
 
 /* Return the grid array data for the specified grid data */
 extern OCerror oc_data_gridarray(OClink, OCdatanode grid, OCdatanode* arrayp);
 
 /* Return the i'th grid map data for the specified grid data.
-   Map indices start at zero.
+   NOTE: Map indices start at ZERO.
 */
 extern OCerror oc_data_gridmap(OClink, OCdatanode grid, size_t index, OCdatanode* mapp);
-
-/* Return the data of the container for the specified data.
-   If it does not exist, then return OCNULL.
-*/
-extern OCerror oc_data_container(OClink, OCdatanode data, OCdatanode* containerp);
-
-/* Return the data of the root for the specified data. */
-extern OCerror oc_data_root(OClink, OCdatanode data, OCdatanode* rootp);
 
 /* Return the data of a dimensioned Structure corresponding
    to the element specified by the indices.

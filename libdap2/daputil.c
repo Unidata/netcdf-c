@@ -746,7 +746,6 @@ oc_dumpnode(conn,*rootp);
 
 static char* badchars = "./";
 
-
 int
 dap_badname(char* name)
 {
@@ -785,7 +784,7 @@ dap_repairname(char* name)
 	    newchar[2] = hexdigits[digit];
 	    newchar[3] = '\0';
             strcat(newname,newchar);
-            q += 4; /*strlen(newchar)*/
+            q += 3; /*strlen(newchar)*/
         } else
             *q++ = c;
 	*q = '\0'; /* so we can always do strcat */
