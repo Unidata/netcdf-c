@@ -8,8 +8,8 @@ cmds=$@
 fi
 
 HDF5=1
-#DAP=1
-PNETCDF=1
+DAP=1
+#PNETCDF=1
 #RPC=1
 #PGI=1
 #M32=1
