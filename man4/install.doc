@@ -249,7 +249,7 @@ cc -o myapp myapp.c `nc-config --cflags --libs`
 
 \page build_windows Building with Windows
 
-See the <a href="http://www.unidata.ucar.edu/netcdf/windows_netcdf/"
+See the <a href="http://www.unidata.ucar.edu/netcdf/win_netcdf/"
 >NetCDF for Windows </a> page for Current information about building
 netCDF on Windows or downloading prebuilt Windows binaries.
 
