@@ -19,8 +19,8 @@ T="synth1"
 #F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
 #F="http://testbedapps-dev.sura.org/thredds/dodsC/auto/in.usf.fvcom.ike.ultralite.vardrag.nowave.2d"
 #F="http://motherlode.ucar.edu:8081/dts/test.06"
-
-F="http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/nametest3.nc"
+#F="http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/nametest3.nc"
+F="http://ingrid.ldeo.columbia.edu/SOURCES/.USTOPO/dods"
 
 #CON="OneD.amp,TwoD.amp,ThreeD.amp"
 

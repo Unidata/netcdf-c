@@ -211,7 +211,7 @@ urls:
 	;
 
 url:
-	name {$$=$1;}
+	str_or_id {$$=$1;}
 	;
 
 str_or_id:
