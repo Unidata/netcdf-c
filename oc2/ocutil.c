@@ -587,8 +587,8 @@ occopycat(char* dst, size_t size, size_t n, ...)
 	
     va_start(args,n);
     for(i=0;i<n;i++) {
-      char* q = va_arg(args, char*);
-      for(;;) {
+	char* q = va_arg(args, char*);
+	for(;;) {
 	    int c = *q++;
 	    if(c == '\0') break;
 	    if(avail == 0) {status = 0; goto done;}

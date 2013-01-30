@@ -1252,8 +1252,8 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
          if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
                                            member_name, value)))
 	   return retval;
-
 	 free(member_name); 
+     
 	}
       
       /* Free the tempory memory for one value, and the member name
