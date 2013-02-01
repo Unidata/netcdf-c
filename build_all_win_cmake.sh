@@ -47,7 +47,7 @@ DOBUILD () {
 	NAME="$NAME-DAP"
     fi		
 
-    NAME="$NAME-$PLTFRM-$BTYPE"
+    NAME="$NAME-$PLTFRM"
     BDIR=$ALLBUILDS"build_$NAME"
     echo "Building $NAME"
 
@@ -100,7 +100,7 @@ fi
 #####
 
 unamestr=`uname | cut -d " " -f 1`
-VER="4.2.dev"
+VER="netCDF4.3RC1"
 CURDIR=`pwd`
 ALLBUILDS=$CURDIR/"all_builds/"
 INSTALLDIRS=$ALLBUILDS"packages"
