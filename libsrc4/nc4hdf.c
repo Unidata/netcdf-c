@@ -2462,8 +2462,8 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
     * If so, dimensions will be out of order. */
    for (var = grp->var; var; var = var->next)
       if (var->dirty && !var->created && var->ndims)
-	 for (dim = grp->dim; dim && dim->next; dim = dim->next)
-	    if (strcmp(dim->name, var->name) && !dim->dirty)
+	 for (dim = grp->dim; dim; dim = dim->next)
+	    if (!strcmp(dim->name, var->name) && !dim->dirty)
 	    {
 	       LOG((5, "coord var defined after enddef/redef"));
 	       bad_coord_order++;

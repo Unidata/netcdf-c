@@ -311,6 +311,72 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing fix of bug in checking coordinate variables out of order...");
+   {
+#define GRP_NAME "group_G"
+#define TIME_DIMNAME "time"
+#define B_DIMNAME "bDim"
+#define C_DIMNAME "cDim"
+#define C_VARNAME "c"
+#define D_VARNAME "dd"
+#define E_VARNAME "ee"
+      int ncid, grpid;
+      int timeDimId, bDimId, cDimId, dimidIn;  
+      size_t timeDimSize = 2, bDimSize = 3, cDimSize = 1;
+      int cNdims = 1, eeNdims = 1, ddNdims = 1 ;
+      int cVarId, eeVarId, ddVarId ;
+      size_t index = 0;
+      double s1Data = 10;
+      const double timeVar[] = {1.3, 4.6 };
+
+      if ( nc_create(FILE_NAME, NC_NETCDF4, &ncid) ) ERR;
+      if ( nc_def_grp(ncid, GRP_NAME, &grpid) ) ERR;
+      if ( nc_def_dim(ncid, TIME_DIMNAME, timeDimSize, &timeDimId) ) ERR;
+      if ( nc_def_dim(grpid, B_DIMNAME, bDimSize, &bDimId) ) ERR;
+      if ( nc_def_dim(grpid, C_DIMNAME, cDimSize, &cDimId) ) ERR;
+      if ( nc_def_var(grpid, C_VARNAME, NC_DOUBLE, cNdims, &cDimId, &cVarId) ) ERR;
+      if ( nc_def_var(ncid, E_VARNAME, NC_DOUBLE, eeNdims, &timeDimId, &eeVarId) ) ERR;
+      /* worked without this enddef, but in 4.2.1.1 and earlier, inserting this caused failure */
+      if ( nc_enddef(ncid)) ERR;
+      if ( nc_def_var(grpid, D_VARNAME, NC_DOUBLE, ddNdims, &timeDimId, &ddVarId)) ERR;
+      if ( nc_put_var1(grpid, cVarId, &index, &s1Data) ) ERR;
+      if ( nc_put_var_double(grpid, ddVarId, timeVar)) ERR;
+      if ( nc_close(ncid)) ERR;
+
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_grp_ncid(ncid, GRP_NAME, &grpid)) ERR;
+      if (nc_inq_varid(grpid, D_VARNAME, &ddVarId)) ERR;
+      if (nc_inq_vardimid(grpid, ddVarId, &dimidIn)) ERR;
+      if (nc_inq_dimid(ncid, TIME_DIMNAME, &timeDimId)) ERR;
+      if (nc_inq_dimid(grpid, C_DIMNAME, &cDimId)) ERR;
+      if (dimidIn == cDimId || cDimId == timeDimId) ERR; /* bug in 4.2.1.1 and earlier */
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing fix of bug in non-coordinate scalar variable with same name as dimension ...");
+   {
+#define DIMNAME "abc"
+#define SCALAR_VARNAME DIMNAME
+      int ncid;
+      int dimid, varid;  
+      int ndims = 1;
+      size_t dimsize = 3;
+      char varname_in[NC_MAX_NAME];
+
+      if ( nc_create(FILE_NAME, NC_NETCDF4, &ncid) ) ERR;
+      if ( nc_def_dim(ncid, DIMNAME, dimsize, &dimid) ) ERR;
+      if ( nc_def_var(ncid, SCALAR_VARNAME, NC_FLOAT, ndims, &dimid, &varid) ) ERR;
+      if ( nc_close(ncid)) ERR;
+
+      /* Open the file and check varname. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, SCALAR_VARNAME, &varid)) ERR;
+      if (nc_inq_varname(ncid, varid, varname_in)) ERR;
+      if (strcmp(varname_in, SCALAR_VARNAME) != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
 /* #ifdef USE_SZIP */
 /*    printf("**** testing that szip works..."); */
 /*    { */

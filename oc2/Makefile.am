@@ -30,6 +30,8 @@ ochttp.h ocrc.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
+EXTRA_DIST = dap.y
+
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
 liboc_la_SOURCES = $(SRC) $(HDRS) 
