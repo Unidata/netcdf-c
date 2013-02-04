@@ -20,6 +20,8 @@ extern int oc_dumpnode(OClink, OCddsnode);
 #define RBRACKET ']'
 
 
+static char* repairname(const char* name, const char* badchars);
+
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities
@@ -50,15 +52,15 @@ nc__testurl(const char* path, char** basenamep)
 
 /*
 Given a legal dap name with arbitrary characters,
-convert to equivalent legal cdf name
-With the new name policy for netcdf, this procedure
-does nothing.
+convert to equivalent legal cdf name.
+Currently, the only change is to convert '/'
+names to %2f.
 */
 
 char*
-cdflegalname3(char* dapname)
+cdflegalname3(char* name)
 {
-    return nulldup(dapname);
+    return repairname(name,"/");
 }
 
 /* Define the type conversion of the DAP variables
@@ -437,7 +439,6 @@ makepathstring3(NClist* path, const char* separator, int flags)
     return pathname;
 }
 
-
 /* convert path to string using the ncname field */
 char*
 makecdfpathstring3(CDFnode* var, const char* separator)
@@ -744,17 +745,26 @@ oc_dumpnode(conn,*rootp);
 /* Check a name to see if it contains illegal dap characters
 */
 
-static char* badchars = "./";
+static char* baddapchars = "./";
 
 int
 dap_badname(char* name)
 {
     char* p;
     if(name == NULL) return 0;
-    for(p=badchars;*p;p++) {
-        if(strchr(name,*p) != NULL) return 1;
+    for(p=baddapchars;*p;p++) {
+        if(strchr(name,*p) != NULL)
+	    return 1;
     }
     return 0;
+}
+
+/* Repair a dap name */
+char*
+dap_repairname(char* name)
+{
+    /* assume that dap_badname was called on this name and returned 1 */
+    return repairname(name,baddapchars);
 }
 
 /* Check a name to see if it contains illegal dap characters
@@ -763,14 +773,15 @@ dap_badname(char* name)
 
 static const char* hexdigits = "0123456789abcdef";
 
-char*
-dap_repairname(char* name)
+static char*
+repairname(const char* name, const char* badchars)
 {
     char* newname;
-    char *p, *q; int c;
+    const char *p;
+    char *q;
+    int c;
 
     if(name == NULL) return NULL;
-    /* assume that dap_badname was called on this name and returned 1 */
     newname = (char*)malloc(1+(3*strlen(name))); /* max needed */
     newname[0] = '\0'; /* so we can use strcat */
     for(p=name,q=newname;(c=*p);p++) {
