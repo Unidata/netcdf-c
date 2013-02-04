@@ -1326,11 +1326,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    if (!(var->name = malloc((strlen(obj_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
 
-   /* Check for a weird case: a non-coordinate (and non-scalar)
-    * variable that has the same name as a dimension. It's legal in
-    * netcdf, and requires that the HDF5 dataset name be changed. */
-   if (var->ndims && 
-       !strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
+   /* Check for a weird case: a non-coordinate variable that has the
+    * same name as a dimension. It's legal in netcdf, and requires
+    * that the HDF5 dataset name be changed. */
+   if (!strncmp(obj_name, NON_COORD_PREPEND, strlen(NON_COORD_PREPEND)))
    {
       if (strlen(obj_name) > NC_MAX_NAME)
 	 return NC_EMAXNAME;
