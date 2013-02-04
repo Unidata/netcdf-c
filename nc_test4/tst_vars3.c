@@ -354,6 +354,29 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing fix of bug in non-coordinate scalar variable with same name as dimension ...");
+   {
+#define DIMNAME "abc"
+#define SCALAR_VARNAME DIMNAME
+      int ncid;
+      int dimid, varid;  
+      int ndims = 1;
+      size_t dimsize = 3;
+      char varname_in[NC_MAX_NAME];
+
+      if ( nc_create(FILE_NAME, NC_NETCDF4, &ncid) ) ERR;
+      if ( nc_def_dim(ncid, DIMNAME, dimsize, &dimid) ) ERR;
+      if ( nc_def_var(ncid, SCALAR_VARNAME, NC_FLOAT, ndims, &dimid, &varid) ) ERR;
+      if ( nc_close(ncid)) ERR;
+
+      /* Open the file and check varname. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, SCALAR_VARNAME, &varid)) ERR;
+      if (nc_inq_varname(ncid, varid, varname_in)) ERR;
+      if (strcmp(varname_in, SCALAR_VARNAME) != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
 /* #ifdef USE_SZIP */
 /*    printf("**** testing that szip works..."); */
 /*    { */
