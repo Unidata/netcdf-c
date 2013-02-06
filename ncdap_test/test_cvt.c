@@ -107,12 +107,14 @@ static char string3_tst[DIMSIZE][STRLEN];
 
 int main()
 {
-    int i,j;
     int ncid, varid;
     int ncstat = NC_NOERR;
     char* url;
     char* topsrcdir;
     size_t len;
+#ifndef USE_NETCDF4
+    int i,j;
+#endif
 
     /* location of our target url: use file// to avoid remote
 	server downtime issues

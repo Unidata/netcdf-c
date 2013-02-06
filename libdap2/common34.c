@@ -375,7 +375,7 @@ constrainable34(NCURI* durl)
 }
 
 CDFnode*
-makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
+makecdfnode34(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
              /*optional*/ OCddsnode ocnode, CDFnode* container)
 {
     CDFnode* node;
@@ -384,12 +384,12 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
     if(node == NULL) return (CDFnode*)NULL;
 
     node->ocname = NULL;
-    if(name) {
-        size_t len = strlen(name);
+    if(ocname) {
+        size_t len = strlen(ocname);
         if(len >= NC_MAX_NAME) len = NC_MAX_NAME-1;
         node->ocname = (char*)malloc(len+1);
 	if(node->ocname == NULL) return NULL;
-	memcpy(node->ocname,name,len);
+	memcpy(node->ocname,ocname,len);
 	node->ocname[len] = '\0';
     }
     node->nctype = octypetonc(octype);
