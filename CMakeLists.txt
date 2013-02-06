@@ -54,7 +54,7 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-
+MESSAGE(${CMAKE_ROOT})
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
@@ -338,15 +338,6 @@ IF(MSVC)
 		SET(USE_X_GETOPT ON CACHE BOOL "")
 	ENDIF()
 ENDIF()
-# Does the user want to turn on PNETCDF read ability?
-OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
-IF(ENABLE_PNETCDF)
-	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
-	IF(NOT PNETCDF)
-		MESSAGE(FATAL_ERROR "Cannot find pnetcdf library, yet pnetcdf support was requested.")
-	ENDIF()
-	SET(USE_PNETCDF ON CACHE BOOL "")
-ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
@@ -411,6 +402,39 @@ OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignore
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
+
+# Options to enable parallel IO, tests.
+OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+
+IF(ENABLE_PNETCDF)
+	
+	SET(USE_PARALLEL ON CACHE BOOL "")
+	# Check for H5Pget_fapl_mpiposx, define USE_PARALLEL_POSIX
+	CHECK_FUNCTION_EXISTS(H5Pget_fapl_mpioposix USE_PARALLEL_POSIX)
+	
+	# Else Check for H5Pget_fapl_mpio, define USE_PARALLEL_MPIO
+	IF(NOT USE_PARALLEL_POSIX)
+		CHECK_FUNCTION_EXISTS(H5Pget_fapl_mpio USE_PARALLEL_MPIO)
+	ENDIF()
+	# Else bail
+	IF(NOT USE_PARALLEL_POSIX AND NOT USE_PARALLEL_MPIO)
+		SET(USE_PARALLEL OFF CACHE BOOL "")
+		MESSAGE("Cannot find HDF5 library built with parallel support. Disabling parallel build.")
+	ELSE()
+
+		# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
+		# Does the user want to turn on PNETCDF read ability?
+		IF(ENABLE_PNETCDF)
+			FIND_LIBRARY(PNETCDF NAMES pnetcdf)
+			IF(NOT PNETCDF)
+				MESSAGE(FATAL_ERROR "Cannot find pnetcdf library, yet pnetcdf support was requested.")
+			ENDIF()
+			SET(USE_PNETCDF ON CACHE BOOL "")
+		ENDIF()
+
+	ENDIF()
+ENDIF()
+
 
 OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." OFF)
 

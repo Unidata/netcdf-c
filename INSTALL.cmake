@@ -151,3 +151,9 @@ On Windows, when using Visual Studio and compiling a shared library (.dll),
 netcdf will be built with an 'import' library, named netcdf.lib. Visual
 Studio projects should link against this import library, instead of linking
 against the netcdf.dll file directly.
+
+To specify static libraries with CMake, you must use the 'BUILD_SHARED_LIBS=OFF'
+flag when invoking CMake.
+
+ 	netcdf/build> cmake .. -D"BUILD_SHARED_LIBS=OFF" 
+
