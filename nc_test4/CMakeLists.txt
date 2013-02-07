@@ -44,7 +44,7 @@ IF(TEST_PARALLEL)
 ENDIF()	
 
 IF(USE_PNETCDF)
-	SET(NC4_TESTS ${NC4_TESTS} run_pnetcdf_test.sh)
+	SET(NC4_TESTS ${NC4_TESTS} tst_parallel2)
 ENDIF()
 
 
