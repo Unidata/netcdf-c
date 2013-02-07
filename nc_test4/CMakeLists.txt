@@ -39,7 +39,13 @@ IF(BUILD_BENCHMARKS)
 ENDIF()
 
 
+IF(TEST_PARALLEL)
+	SET(NC4_TESTS ${NC4_TESTS} tst_mpi_parallel tst_parallel tst_parallel3 tst_parallel4 tst_nc4perf)
+ENDIF()	
 
+IF(USE_PNETCDF)
+	SET(NC4_TESTS ${NC4_TESTS} run_pnetcdf_test.sh)
+ENDIF()
 
 
 # Copy some test files from current source dir to out-of-tree build dir.
