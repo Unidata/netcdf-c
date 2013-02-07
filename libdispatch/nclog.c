@@ -43,13 +43,16 @@ static char* nctagname(int tag);
 void
 ncloginit(void)
 {
-    const char* file = getenv(NCENVFLAG);
+    const char* file;
+    if(nclogginginitialized)
+	return;
     nclogginginitialized = 1;
     ncsetlogging(0);
     nclogfile = NULL;
     nclogstream = NULL;
     /* Use environment variables to preset nclogging state*/
     /* I hope this is portable*/
+    file = getenv(NCENVFLAG);
     if(file != NULL && strlen(file) > 0) {
         if(nclogopen(file)) {
 	    ncsetlogging(1);
