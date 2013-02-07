@@ -47,7 +47,7 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
-- \ref build_windows
+- \ref netCDF-CMake 
 - \ref configure_options
 
 \page build_default Building with NetCDF-4 and the Remote Data Client
@@ -246,12 +246,6 @@ netCDF-4 libraries:
 \verbatim
 cc -o myapp myapp.c `nc-config --cflags --libs`
 \endverbatim
-
-\page build_windows Building with Windows
-
-See the <a href="http://www.unidata.ucar.edu/netcdf/win_netcdf/"
->NetCDF for Windows </a> page for Current information about building
-netCDF on Windows or downloading prebuilt Windows binaries.
 
 \page configure_options ./configure options
 

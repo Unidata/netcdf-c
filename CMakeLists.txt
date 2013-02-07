@@ -124,8 +124,12 @@ MACRO(print_conf_summary)
 	MESSAGE(STATUS "\tBuilding NetCDF-4:\t\t" ${ENABLE_NETCDF_4})
 	MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
 	MESSAGE(STATUS "\tBuilding Utilities:\t\t" ${BUILD_UTILITIES})
-	MESSAGE(STATUS "\tCMake Prefix Path:\t\t" ${CMAKE_PREFIX_PATH})
-	MESSAGE(STATUS "\tLinking against:\t\t" ${ALL_TLL_LIBS}) 
+	IF(CMAKE_PREFIX_PATH)
+		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" ${CMAKE_PREFIX_PATH})
+	ENDIF()
+	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
+	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
+	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 	#MESSAGE("CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 	MESSAGE("")
 
@@ -403,11 +407,9 @@ IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
-# Options to enable parallel IO, tests.
-OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
-
-IF(ENABLE_PNETCDF)
-	
+SET(STATUS_PARALLEL "OFF")
+OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
+IF(ENABLE_PARALLEL)
 	SET(USE_PARALLEL ON CACHE BOOL "")
 	# Check for H5Pget_fapl_mpiposx, define USE_PARALLEL_POSIX
 	CHECK_FUNCTION_EXISTS(H5Pget_fapl_mpioposix USE_PARALLEL_POSIX)
@@ -416,27 +418,36 @@ IF(ENABLE_PNETCDF)
 	IF(NOT USE_PARALLEL_POSIX)
 		CHECK_FUNCTION_EXISTS(H5Pget_fapl_mpio USE_PARALLEL_MPIO)
 	ENDIF()
-	# Else bail
+	
 	IF(NOT USE_PARALLEL_POSIX AND NOT USE_PARALLEL_MPIO)
 		SET(USE_PARALLEL OFF CACHE BOOL "")
-		MESSAGE("Cannot find HDF5 library built with parallel support. Disabling parallel build.")
-	ELSE()
-
-		# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
-		# Does the user want to turn on PNETCDF read ability?
-		IF(ENABLE_PNETCDF)
-			FIND_LIBRARY(PNETCDF NAMES pnetcdf)
-			IF(NOT PNETCDF)
-				MESSAGE(FATAL_ERROR "Cannot find pnetcdf library, yet pnetcdf support was requested.")
-			ENDIF()
-			SET(USE_PNETCDF ON CACHE BOOL "")
-		ENDIF()
-
+		MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
 	ENDIF()
+	SET(STATUS_PARALLEL "ON")
 ENDIF()
 
 
-OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." OFF)
+# Options to enable parallel IO, tests.
+SET(STATUS_PNETCDF "OFF")
+OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+IF(ENABLE_PNETCDF)
+	# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
+	# Does the user want to turn on PNETCDF read ability?
+	SET(USE_PNETCDF ON CACHE BOOL "")	
+	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
+	IF(NOT PNETCDF)
+		MESSAGE(STATUS "Cannot find pnetcdf library. Disabling pnetcdf support.")
+		SET(USE_PNETCDF OFF CACHE BOOL "")
+	ENDIF()
+	SET(STATUS_PNETCDF "ON")	
+
+ENDIF()
+
+
+OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
+IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
+	SET(TEST_PARALLEL ON CACHE BOOL "")
+ENDIF()
 
 OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
