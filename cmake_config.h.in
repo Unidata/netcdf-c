@@ -214,7 +214,7 @@
 #define SIZEOF_OFF_T	8
 #endif
 
-#cmakedefine TEMP_LARGE @TEMP_LARGE@
+#cmakedefine TEMP_LARGE "@TEMP_LARGE@"
 
 /* Set if we have strdup */
 #cmakedefine HAVE_STRDUP
