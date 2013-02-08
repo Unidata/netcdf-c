@@ -65,6 +65,6 @@ IF(TEST_PARALLEL)
 ENDIF()	
 
 IF(USE_PNETCDF)
-	add_bin_env_tmp_large_tst(nc_test4 tst_parallel2)
+	add_bin_env_temp_large_tst(nc_test4 tst_parallel2)
 	add_sh_test(nc_test4 run_pnetcdf_test)
 ENDIF()
