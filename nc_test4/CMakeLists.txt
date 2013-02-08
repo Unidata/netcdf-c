@@ -39,13 +39,7 @@ IF(BUILD_BENCHMARKS)
 ENDIF()
 
 
-IF(TEST_PARALLEL)
-	SET(NC4_TESTS ${NC4_TESTS} tst_mpi_parallel tst_parallel tst_parallel3 tst_parallel4 tst_nc4perf)
-ENDIF()	
 
-IF(USE_PNETCDF)
-	SET(NC4_TESTS ${NC4_TESTS} tst_parallel2)
-ENDIF()
 
 
 # Copy some test files from current source dir to out-of-tree build dir.
@@ -61,4 +55,16 @@ IF(USE_HDF4_FILE_TESTS)
 	add_bin_test(nc_test4 tst_interops3)
 ENDIF()
 
+IF(TEST_PARALLEL)
+	add_bin_env_tmp_large_tst(nc_test4 tst_mpi_parallel)
+	add_bin_env_tmp_large_tst(nc_test4 tst_parallel)
+	add_bin_env_tmp_large_tst(nc_test4 tst_parallel3)
+	add_bin_env_tmp_large_tst(nc_test4 tst_parallel4)
+	add_bin_env_tmp_large_tst(nc_test4 tst_nc4perf)
+	add_sh_test(nc_test4 run_par_test)
+ENDIF()	
 
+IF(USE_PNETCDF)
+	add_bin_env_tmp_large_tst(nc_test4 tst_parallel2)
+	add_sh_test(nc_test4 run_pnetcdf_test)
+ENDIF()

@@ -82,6 +82,24 @@ MACRO(GEN_m4 filename)
 	ENDIF()
 ENDMACRO(GEN_m4)
 
+# Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
+MACRO(add_bin_env_temp_large_test prefix F)
+	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${prefix}_${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+			)
+	ENDIF()
+
+
+	ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+	IF(MSVC)
+		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+	ENDIF()
+ENDMACRO()
+
+
 # Tests which are binary, but depend on a particular environmental variable.
 MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
