@@ -656,6 +656,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = @CMAKE_SOURCE_DIR@/man4/Building-with-CMake.md \
+			 @CMAKE_SOURCE_DIR@/man4/windows-binaries.md \
 	                 @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
                          @CMAKE_SOURCE_DIR@/man4/tutorial.doc \
                          @CMAKE_SOURCE_DIR@/man4/install.doc \

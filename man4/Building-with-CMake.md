@@ -29,6 +29,8 @@ There are four steps in the Build Process when using CMake
 3. Testing: Post-build, it is possible to run tests to ensure the functionality of the netCDF-C libraries.
 4. Installation: If all tests pass, the libraries can be installed in the location specified during configuration.
 
+For users who prefer pre-built binaries, installation packages are available at \ref winbin
+
 ## Configuration
 
 The output of the configuration step is a project file based on the appropriate configurator specified.  Common configurators include:

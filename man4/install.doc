@@ -47,8 +47,12 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
-- \ref netCDF-CMake 
 - \ref configure_options
+
+\section sub CMake and Windows support
+
+- \ref netCDF-CMake
+- \ref winbin
 
 \page build_default Building with NetCDF-4 and the Remote Data Client
 
