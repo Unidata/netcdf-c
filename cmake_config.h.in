@@ -107,7 +107,7 @@
 #cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
 #cmakedefine YY_NO_UNISTD_H @YY_NO_UNISTD_H@
 
-/* Define to 1 if you have the <dlfcn.h> header file. */
+/* Define to 1 if you have the <dlfcn.CC=mpicc CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include -I/machine/local_szlib/include" LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib -L/machine/local_szlib/lib" LDLIBS='-lmpich -lmpl -lsz' ./configure --enable-pnetcdf --enable-parallel-tests --disable-sharedh> header file. */
 #cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
 
 /* Define to 1 if you have the <errno.h> header file. */
@@ -135,7 +135,7 @@
 #cmakedefine HAVE_LOCAL_H @HAVE_LOCAL_H@
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
+#cmakedefine HAVE_STDINT_H @HAVE_STDINCC=mpicc CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include -I/machine/local_szlib/include" LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib -L/machine/local_szlib/lib" LDLIBS='-lmpich -lmpl -lsz' ./configure --enable-pnetcdf --enable-parallel-tests --disable-sharedT_H@
 
 /* Define to 1 if you have the <stdio.h> header file. */
 #cmakedefine HAVE_STDIO_H @HAVE_STDIO_H@
@@ -214,6 +214,8 @@
 #define SIZEOF_OFF_T	8
 #endif
 
+#cmakedefine TEMP_LARGE @TEMP_LARGE@
+
 /* Set if we have strdup */
 #cmakedefine HAVE_STRDUP
 #cmakedefine HAVE_STRLCAT
@@ -265,6 +267,7 @@
 #cmakedefine CRAY_STACKSEG_END
 #cmakedefine DLL_EXPORT
 #cmakedefine DLL_NETCDF
+
 
 #include <ncconfigure.h>
 #endif

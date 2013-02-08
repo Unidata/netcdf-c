@@ -173,8 +173,9 @@ SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in
 SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
 SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.") 
+SET (TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 
-IF(NOT NETCDF_LIB_NAME STREQUAL "")
+ee(NOT NETCDF_LIB_NAME STREQUAL "")
 	SET(MOD_NETCDF_NAME ON)
 ENDIF()
 

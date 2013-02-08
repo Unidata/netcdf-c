@@ -38,10 +38,6 @@ IF(BUILD_BENCHMARKS)
 	ENDIF()
 ENDIF()
 
-
-
-
-
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
@@ -56,15 +52,15 @@ IF(USE_HDF4_FILE_TESTS)
 ENDIF()
 
 IF(TEST_PARALLEL)
-	add_bin_env_temp_large_test(nc_test4 tst_mpi_parallel)
-	add_bin_env_temp_large_test(nc_test4 tst_parallel)
-	add_bin_env_temp_large_test(nc_test4 tst_parallel3)
-	add_bin_env_temp_large_test(nc_test4 tst_parallel4)
-	add_bin_env_temp_large_test(nc_test4 tst_nc4perf)
+	add_bin_test(nc_test4 tst_mpi_parallel)
+	add_bin_test(nc_test4 tst_parallel)
+	add_bin_test(nc_test4 tst_parallel3)
+	add_bin_test(nc_test4 tst_parallel4)
+	add_bin_test(nc_test4 tst_nc4perf)
 	add_sh_test(nc_test4 run_par_test)
 ENDIF()	
 
 IF(USE_PNETCDF)
-	add_bin_env_temp_large_test(nc_test4 tst_parallel2)
+	add_bin_test(nc_test4 tst_parallel2)
 	add_sh_test(nc_test4 run_pnetcdf_test)
 ENDIF()
