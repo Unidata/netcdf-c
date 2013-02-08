@@ -175,7 +175,7 @@ SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.") 
 SET (TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 
-ee(NOT NETCDF_LIB_NAME STREQUAL "")
+IF(NOT NETCDF_LIB_NAME STREQUAL "")
 	SET(MOD_NETCDF_NAME ON)
 ENDIF()
 
