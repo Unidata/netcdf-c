@@ -117,6 +117,20 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 ENDMACRO()
 
+MACRO(add_bin_test_no_prefix F)
+	ADD_EXECUTABLE(${F} ${F}.c)
+	TARGET_LINK_LIBRARIES(${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+			)
+	ENDIF()
+	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+	IF(MSVC)
+		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+	ENDIF()	
+END()
+
 MACRO(add_bin_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
