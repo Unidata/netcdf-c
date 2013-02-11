@@ -129,7 +129,7 @@ MACRO(add_bin_test_no_prefix F)
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
-END()
+ENDMACRO()
 
 MACRO(add_bin_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
