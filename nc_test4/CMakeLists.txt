@@ -60,6 +60,6 @@ IF(TEST_PARALLEL)
 ENDIF()	
 
 IF(USE_PNETCDF)
-	add_bin_test(nc_test4 tst_parallel2)
-	add_sh_test(nc_test4 run_pnetcdf_test)
+	add_bin_test_no_prefix(tst_parallel2)
+	#add_sh_test(nc_test4 run_pnetcdf_test)
 ENDIF()

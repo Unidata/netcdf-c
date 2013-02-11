@@ -159,7 +159,7 @@ MACRO(print_conf_summary)
 	IF(CMAKE_PREFIX_PATH)
 		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
 	ENDIF()
-	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
+	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF}, "\t" ${PNETCDF_INCLUDE_DIR})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 	#MESSAGE("CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
@@ -468,12 +468,13 @@ IF(ENABLE_PNETCDF)
 	# Does the user want to turn on PNETCDF read ability?
 	SET(USE_PNETCDF ON CACHE BOOL "")	
 	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
+	FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
 	IF(NOT PNETCDF)
 		MESSAGE(STATUS "Cannot find pnetcdf library. Disabling pnetcdf support.")
 		SET(USE_PNETCDF OFF CACHE BOOL "")
 	ENDIF()
 	SET(STATUS_PNETCDF "ON")	
-
+	INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
 ENDIF()
 
 
