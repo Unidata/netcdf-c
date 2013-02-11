@@ -52,7 +52,7 @@ IF(USE_HDF4_FILE_TESTS)
 ENDIF()
 
 IF(TEST_PARALLEL)
-	add_bin_test(nc_test4 tst_mpi_parallel)
+	add_bin_test("" tst_mpi_parallel)
 	add_bin_test(nc_test4 tst_parallel)
 	add_bin_test(nc_test4 tst_parallel3)
 	add_bin_test(nc_test4 tst_parallel4)
