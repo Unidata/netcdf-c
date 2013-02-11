@@ -81,7 +81,7 @@
 #cmakedefine USE_PNETCDF 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
-#cmakedefine USE_DISKLESS
+#cmakedefine USE_DISKLESS 1
 #cmakedefine USE_SZIP 1
 #cmakedefine USE_ZLIB 1
 #cmakedefine USE_X_GETOPT 1
