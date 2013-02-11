@@ -612,18 +612,19 @@ static int
 dataError(XXDR* xdrs, OCstate* state)
 {
     int depth;
+    int errfound = 0;
     off_t ckp,avail,i;
     char* errmsg;
     char errortext[16]; /* bigger thant |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
     if(avail < strlen(ERROR_TAG))
-	return 0; /* assume it is ok */
+	goto done; /* assume it is ok */
     ckp = xxdr_getpos(xdrs);
     /* Read enough characters to test for 'ERROR ' */
     errortext[0] = '\0';
     xxdr_getbytes(xdrs,errortext,(off_t)strlen(ERROR_TAG));
     if(ocstrncmp(errortext,ERROR_TAG,strlen(ERROR_TAG)) != 0)
-	return 0; /* not an immediate error */
+	goto done; /* not an immediate error */
     /* Try to locate the whole error body */
     xxdr_setpos(xdrs,ckp);
     for(depth=0,i=0;i<avail;i++) {
@@ -635,7 +636,7 @@ dataError(XXDR* xdrs, OCstate* state)
 	}
     }    
     errmsg = (char*)malloc(i+1);
-    if(errmsg == NULL) return 1;
+    if(errmsg == NULL) {errfound = 1; goto done;}
     xxdr_setpos(xdrs,ckp);
     xxdr_getbytes(xdrs,errmsg,i);
     errmsg[i] = '\0';
@@ -643,5 +644,8 @@ dataError(XXDR* xdrs, OCstate* state)
     state->error.code = strdup("?");
     state->error.httpcode = 404;
     xxdr_setpos(xdrs,ckp);
-    return 1;    
+    errfound = 1;
+done:
+    xxdr_setpos(xdrs,ckp);
+    return errfound;
 }
