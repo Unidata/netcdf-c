@@ -751,7 +751,7 @@ nc_get_var1_uint(int ncid, int varid, const size_t *indexp,
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_INT);
+   return NC_get_var1(ncid, varid, indexp, (void *)ip, NC_UINT);
 }
 
 int
