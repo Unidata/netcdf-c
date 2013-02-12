@@ -27,9 +27,13 @@ IF(LARGE_FILE_TESTS)
 ENDIF()
 
 IF(BUILD_DISKLESS)
-  SET(TESTS ${TESTS} tst_diskless tst_diskless3 tst_diskless4)
+  #SET(TESTS ${TESTS} tst_diskless tst_diskless3 tst_diskless4)
+  add_bin_test_no_prefix(tst_diskless)
+  add_bin_test_no_prefix(tst_diskless3)
+  add_bin_test_no_prefix(tst_diskless4)
   IF(USE_NETCDF4)
-    SET(TESTS ${TESTS} tst_diskless2)
+    add_bin_test_no_prefix(tst_diskless2)
+    #SET(TESTS ${TESTS} tst_diskless2)
   ENDIF()
 ENDIF()
 
@@ -47,3 +51,7 @@ IF(BUILD_DISKLESS)
 	add_sh_test(nc_test run_diskless)  	
 	#ADD_TEST(run_diskless ${CMAKE_CURRENT_SOURCE_DIR}/run_diskless.sh ${CMAKE_CFG_INTDIR}/run_diskless)
 ENDIF()
+
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.trs)
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
