@@ -15,12 +15,28 @@ IF(NOT MSVC)
 	SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
+IF(LARGE_FILE_TESTS)
+	SET(NC4_TESTS ${NC4_TESTS} tst_large tst_large2)
+ENDIF()
+	
+
 IF(USE_HDF4)
 	SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
 ENDIF()
 
+IF(BUILD_BENCHMARKS)
+	add_sh_test(nc_test4 run_bm_test1)
+	add_sh_test(nc_test4 run_bm_elena)
+	add_sh_test(nc_test4 run_bm_test2)
+	add_sh_test(nc_test4 run_tst_chunks)
+	add_sh_test(nc_test4 run_bm_ar4)
+	add_sh_test(nc_test4 run_get_knmi_files)
 
-
+	SET(NC4_TESTS ${NC4_TESTS} tst_create_files bm_file tst_chunks3 tst_ar4 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts tst_files2 tst_files3 tst_ar5 tst_h_files3 tst_mem tst_knmi bm_netcdf4_recs)
+	IF(TEST_PARALLEL)
+		add_sh_test(nc_test4 run_par_bm_test)
+	ENDIF()
+ENDIF()
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
@@ -35,4 +51,15 @@ IF(USE_HDF4_FILE_TESTS)
 	add_bin_test(nc_test4 tst_interops3)
 ENDIF()
 
+IF(TEST_PARALLEL)
+  	add_bin_test(nc_test4 tst_mpi_parallel)	
+	add_bin_test(nc_test4 tst_parallel)
+	add_bin_test(nc_test4 tst_parallel3)
+	add_bin_test(nc_test4 tst_parallel4)
+	add_bin_test(nc_test4 tst_nc4perf)
+ENDIF()	
 
+IF(USE_PNETCDF)
+	add_bin_test_no_prefix(tst_parallel2)
+	#add_sh_test(nc_test4 run_pnetcdf_test)
+ENDIF()
