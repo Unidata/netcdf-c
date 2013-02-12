@@ -554,7 +554,6 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
     size_t count,i;
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
-    
 
     if(!iscontainer(node->octype))
 	return OC_EBADTYPE;

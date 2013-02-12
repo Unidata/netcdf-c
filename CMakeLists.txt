@@ -459,7 +459,6 @@ IF(ENABLE_PARALLEL)
 	SET(STATUS_PARALLEL "ON")
 ENDIF()
 
-
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
