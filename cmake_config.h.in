@@ -79,6 +79,7 @@
 #cmakedefine USE_PARALLEL_MPIO 1
 #cmakedefine USE_PARALLEL 1
 #cmakedefine USE_PNETCDF 1
+#cmakedefine USE_MMAP 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
 #cmakedefine USE_DISKLESS 1
@@ -237,6 +238,7 @@
 #cmakedefine HAVE_GETTIMEOFDAY
 #cmakedefine HAVE_MPI_COMM_F2C
 #cmakedefine HAVE_MEMMOVE
+#cmakedefine HAVE_MMAP
 #cmakedefine HAVE_GETPAGESIZE
 #cmakedefine HAVE_SYSCONF
 #cmakedefine HAVE_MREMAP

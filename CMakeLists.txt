@@ -117,14 +117,20 @@ MACRO(add_bin_env_test prefix F)
 	ENDIF()
 ENDMACRO()
 
-MACRO(add_bin_test_no_prefix F)
+# Build a binary used by a script, but don't make a test out of it.
+MACRO(build_bin_test F) 
 	ADD_EXECUTABLE(${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${F} netcdf)
 	IF(MSVC)
 		SET_TARGET_PROPERTIES(${F} 
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-			)
+		)
 	ENDIF()
+ENDMACRO()
+
+# Binary tests which are used by a script looking for a specific name.
+MACRO(add_bin_test_no_prefix F)
+	build_bin_test(${F})
 	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
@@ -209,7 +215,18 @@ OPTION (BUILD_V2 "Build NetCDF Version 2." ON)
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 	
 # Option to use MMAP
-OPTION (BUILD_MMAP "Use MMAP." OFF)
+OPTION (ENABLE_MMAP "Use MMAP." OFF)
+IF(ENABLE_MMAP)
+	IF(NOT HAVE_MREMAP)
+		MESSAGE(STATUS "mremap not found: disabling MMAP support.")
+		SET(ENABLE_MMAP OFF)
+	ELSE()
+		SET(HAVE_MMAP ON)
+		SET(BUILD_MMAP ON)
+		SET(USE_MMAP ON)
+	ENDIF()
+ENDIF()
+
 
 # Option to use examples.
 OPTION (ENABLE_EXAMPLES "Build Examples" ON)
