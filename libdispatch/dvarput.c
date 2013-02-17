@@ -7,6 +7,56 @@ Research/Unidata. See COPYRIGHT file for more info.
 
 #include "ncdispatch.h"
 
+#undef VARS_USES_VARM
+#ifndef VARS_USES_VARM
+struct PUTodometer {
+    int            rank;
+    size_t         index[NC_MAX_VAR_DIMS];
+    size_t         start[NC_MAX_VAR_DIMS];
+    size_t         edges[NC_MAX_VAR_DIMS];
+    ptrdiff_t      stride[NC_MAX_VAR_DIMS];
+    size_t         stop[NC_MAX_VAR_DIMS];
+};
+
+static void
+odom_init(struct PUTodometer* odom,
+	    size_t rank,
+	    const size_t* start, const size_t* edges, const ptrdiff_t* stride)
+{
+    int i;
+    memset(odom,0,sizeof(struct PUTodometer));
+    odom->rank = rank;
+    assert(odom->rank <= NC_MAX_VAR_DIMS);
+    for(i=0;i<odom->rank;i++) {
+	odom->start[i] = (start != NULL ? start[i] : 0);
+	odom->edges[i] = (edges != NULL ? edges[i] : 1);
+	odom->stride[i] = (stride != NULL ? stride[i] : 1);
+	odom->stop[i] = odom->start[i] + (odom->edges[i]*odom->stride[i]);
+	odom->index[i] = odom->start[i];
+    }    
+}
+
+static int
+odom_more(struct PUTodometer* odom)
+{
+    return (odom->index[0] < odom->stop[0]);
+}
+
+static int
+odom_next(struct PUTodometer* odom)
+{
+    int i;
+    if(odom->rank == 0) return 0;
+    for(i=odom->rank-1;i>=0;i--) {
+        odom->index[i] += odom->stride[i];
+        if(odom->index[i] < odom->stop[i]) break;
+	if(i == 0) return 0; /* leave the 0th entry if it overflows*/
+	odom->index[i] = odom->start[i]; /* reset this position*/
+    }
+    return 1;
+}
+#endif
+
 /** \internal
 \ingroup variables
 */
@@ -60,13 +110,138 @@ NC_put_var1(int ncid, int varid, const size_t *coord, const void* value,
 int
 NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	    const size_t * edges, const ptrdiff_t * stride,
-	    const void *value, nc_type memtype)
+	    const void *value0, nc_type memtype)
 {
+#ifdef VARS_USES_VARM
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
 
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,NULL,value,memtype);
+   return ncp->dispatch->put_varm(ncid,varid,start,edges,stride,NULL,value0,memtype);
+#else
+  /* Rebuilt put_vars code to simplify and avoid use of put_varm */
+  
+   int status = NC_NOERR;
+   int i,simplestride,rank,isrecvar;
+   struct PUTodometer odom;
+   nc_type vartype = NC_NAT;
+   NC* ncp;
+   size_t vartypelen, memtypelen;
+   const char* value = (const char*)value0;
+   size_t numrecs;
+   size_t varshape[NC_MAX_VAR_DIMS];
+   size_t mystart[NC_MAX_VAR_DIMS];
+   size_t myedges[NC_MAX_VAR_DIMS];
+   ptrdiff_t mystride[NC_MAX_VAR_DIMS];
+
+   status = NC_check_id (ncid, &ncp);
+   if(status != NC_NOERR) return status;
+
+   status = nc_inq_vartype(ncid, varid, &vartype); 
+   if(status != NC_NOERR) return status;
+
+   if(memtype == NC_NAT) memtype = vartype;
+
+   /* compute the variable type size */
+   status = nc_inq_type(ncid,vartype,NULL,&vartypelen);
+   if(status != NC_NOERR) return status;
+
+   if(memtype > NC_MAX_ATOMIC_TYPE)
+	memtypelen = vartypelen;
+    else
+	memtypelen = nctypelen(memtype);
+
+   /* Check gross internal/external type compatibility */
+   if(vartype != memtype) {
+      /* If !atomic, the two types must be the same */
+      if(vartype > NC_MAX_ATOMIC_TYPE
+         || memtype > NC_MAX_ATOMIC_TYPE)
+	 return NC_EBADTYPE;
+      /* ok, the types differ but both are atomic */
+      if(memtype == NC_CHAR || vartype == NC_CHAR)
+	 return NC_ECHAR;
+   }
+
+   /* Get the variable rank */
+   status = nc_inq_varndims(ncid, varid, &rank); 
+   if(status != NC_NOERR) return status;
+
+   /* Get variable dimension sizes */
+   isrecvar = NC_is_recvar(ncid,varid,&numrecs);
+   NC_getshape(ncid,varid,rank,varshape);	
+
+   /* Optimize out using various checks */
+   if (rank == 0) {
+      /*
+       * The variable is a scalar; consequently,
+       * there is only one thing to get and only one place to put it.
+       * (Why was I called?)
+       */
+      size_t edge1[1] = {1};
+      return NC_put_vara(ncid, varid, start, edge1, value0, memtype);
+   }
+
+   /* Do various checks and fixups on start/edges/stride */
+   simplestride = 1; /* assume so */
+   for(i=0;i<rank;i++) {
+	size_t dimlen;
+	mystart[i] = (start == NULL ? 0 : start[i]);
+	if(edges == NULL) {
+	   if(i == 0 && isrecvar)
+  	      myedges[i] = numrecs - start[i];
+	   else
+	      myedges[i] = varshape[i] - mystart[i];
+	} else
+	    myedges[i] = edges[i];
+	if(myedges[i] == 0)
+	    return NC_NOERR; /* cannot write anything */
+	mystride[i] = (stride == NULL ? 1 : stride[i]);
+	if(mystride[i] <= 0
+	   /* cast needed for braindead systems with signed size_t */
+           || ((unsigned long) mystride[i] >= X_INT_MAX))
+           return NC_ESTRIDE;
+  	if(mystride[i] != 1) simplestride = 0;	
+        /* illegal value checks */
+	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
+	if(i == 0 && isrecvar) {/*do nothing*/}
+        else {
+           if(mystart[i] < 0 || mystart[i] > dimlen)
+	      return NC_EINVALCOORDS;
+           if(myedges[i] < 0 || (mystart[i] + myedges[i] > dimlen))
+	      return NC_EEDGE;
+       }
+   }
+   if(simplestride) {
+      return NC_put_vara(ncid, varid, mystart, myedges, value, memtype);
+   }
+
+   /* Initial version uses and odometer to walk the variable
+      and read each value one at a time. This can later be optimized
+      to read larger chunks at a time.
+    */
+
+   /* memptr indicates where to store the next value */
+   const char* memptr = value;
+
+   odom_init(&odom,rank,mystart,myedges,mystride);
+
+   /* walk the odometer to extract values */
+   while(odom_more(&odom)) {
+      int localstatus = NC_NOERR;
+      /* Write a single value */
+      localstatus = NC_put_vara(ncid,varid,odom.index,nc_sizevector1,memptr,memtype);
+      /* So it turns out that when get_varm is used, all errors are
+         delayed and ERANGE will be overwritten by more serious errors.
+      */
+      if(localstatus != NC_NOERR) {
+	    if(status == NC_NOERR || localstatus != NC_ERANGE)
+	       status = localstatus;
+      }
+      memptr += memtypelen;
+      odom_next(&odom);
+   }
+   return status;
+#endif
 }
 
 /** \internal
@@ -222,16 +397,16 @@ NCDEFAULT_put_varm(
 	 myedges[idim] = edges != NULL
 	    ? edges[idim]
 	    : idim == 0 && isrecvar
-	    ? numrecs - mystart[idim]
-	    : varshape[idim] - mystart[idim];
+    	        ? numrecs - mystart[idim]
+	        : varshape[idim] - mystart[idim];
 	 mystride[idim] = stride != NULL
 	    ? stride[idim]
 	    : 1;
 	 mymap[idim] = imapp != NULL
 	    ? imapp[idim]
 	    : idim == maxidim
-	    ? 1
-	    : mymap[idim + 1] * (ptrdiff_t) myedges[idim + 1];
+	        ? 1
+	        : mymap[idim + 1] * (ptrdiff_t) myedges[idim + 1];
 
 	 iocount[idim] = 1;
 	 length[idim] = mymap[idim] * myedges[idim];
@@ -1124,6 +1299,11 @@ nc_put_vars_string(int ncid, int varid,
 
 /** \ingroup variables
 Write a mapped array of values to a variable. 
+
+The nc_put_varm() function will only write a variable of an
+atomic type; it will not write user defined types. For this
+function, the type of the data in memory must match the type
+of the variable - no data conversion is done.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as 
