@@ -54,7 +54,7 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-
+MESSAGE(${CMAKE_ROOT})
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
@@ -82,6 +82,24 @@ MACRO(GEN_m4 filename)
 	ENDIF()
 ENDMACRO(GEN_m4)
 
+# Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
+MACRO(add_bin_env_temp_large_test prefix F)
+	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${prefix}_${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+			)
+	ENDIF()
+
+
+	ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+	IF(MSVC)
+		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+	ENDIF()
+ENDMACRO()
+
+
 # Tests which are binary, but depend on a particular environmental variable.
 MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
@@ -97,6 +115,26 @@ MACRO(add_bin_env_test prefix F)
 	IF(MSVC)
 		SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
 	ENDIF()
+ENDMACRO()
+
+# Build a binary used by a script, but don't make a test out of it.
+MACRO(build_bin_test F) 
+	ADD_EXECUTABLE(${F} ${F}.c)
+	TARGET_LINK_LIBRARIES(${F} netcdf)
+	IF(MSVC)
+		SET_TARGET_PROPERTIES(${F} 
+			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+		)
+	ENDIF()
+ENDMACRO()
+
+# Binary tests which are used by a script looking for a specific name.
+MACRO(add_bin_test_no_prefix F)
+	build_bin_test(${F})
+	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+	IF(MSVC)
+		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+	ENDIF()	
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
@@ -124,8 +162,12 @@ MACRO(print_conf_summary)
 	MESSAGE(STATUS "\tBuilding NetCDF-4:\t\t" ${ENABLE_NETCDF_4})
 	MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
 	MESSAGE(STATUS "\tBuilding Utilities:\t\t" ${BUILD_UTILITIES})
-	MESSAGE(STATUS "\tCMake Prefix Path:\t\t" ${CMAKE_PREFIX_PATH})
-	MESSAGE(STATUS "\tLinking against:\t\t" ${ALL_TLL_LIBS}) 
+	IF(CMAKE_PREFIX_PATH)
+		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
+	ENDIF()
+	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF}, "\t" ${PNETCDF_INCLUDE_DIR})
+	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
+	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 	#MESSAGE("CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 	MESSAGE("")
 
@@ -151,6 +193,7 @@ SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in
 SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
 SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.") 
+SET (TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
 	SET(MOD_NETCDF_NAME ON)
@@ -172,14 +215,25 @@ OPTION (BUILD_V2 "Build NetCDF Version 2." ON)
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 	
 # Option to use MMAP
-OPTION (BUILD_MMAP "Use MMAP." OFF)
+OPTION (ENABLE_MMAP "Use MMAP." OFF)
+IF(ENABLE_MMAP)
+	IF(NOT HAVE_MREMAP)
+		MESSAGE(STATUS "mremap not found: disabling MMAP support.")
+		SET(ENABLE_MMAP OFF)
+	ELSE()
+		SET(HAVE_MMAP ON)
+		SET(BUILD_MMAP ON)
+		SET(USE_MMAP ON)
+	ENDIF()
+ENDIF()
+
 
 # Option to use examples.
 OPTION (ENABLE_EXAMPLES "Build Examples" ON)
 
 
 # Option to use Diskless
-OPTION (ENABLE_DISKLESS "Build Diskless." OFF)
+OPTION (ENABLE_DISKLESS "Build Diskless." ON)
 IF(ENABLE_DISKLESS)
 	SET(BUILD_DISKLESS ON)
 	SET(USE_DISKLESS ON)
@@ -338,15 +392,6 @@ IF(MSVC)
 		SET(USE_X_GETOPT ON CACHE BOOL "")
 	ENDIF()
 ENDIF()
-# Does the user want to turn on PNETCDF read ability?
-OPTION (ENABLE_PNETCDF "Enable parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
-IF(ENABLE_PNETCDF)
-	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
-	IF(NOT PNETCDF)
-		MESSAGE(FATAL_ERROR "Cannot find pnetcdf library, yet pnetcdf support was requested.")
-	ENDIF()
-	SET(USE_PNETCDF ON CACHE BOOL "")
-ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
@@ -412,7 +457,48 @@ IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
-OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." OFF)
+SET(STATUS_PARALLEL "OFF")
+OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
+IF(ENABLE_PARALLEL)
+	SET(USE_PARALLEL ON CACHE BOOL "")
+	# Check for H5Pget_fapl_mpiposx, define USE_PARALLEL_POSIX
+	CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpioposix "" USE_PARALLEL_POSIX)
+	
+	# Else Check for H5Pget_fapl_mpio, define USE_PARALLEL_MPIO
+	IF(NOT USE_PARALLEL_POSIX)
+		CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpio "" USE_PARALLEL_MPIO)
+	ENDIF()
+	
+	IF(NOT USE_PARALLEL_POSIX AND NOT USE_PARALLEL_MPIO)
+		SET(USE_PARALLEL OFF CACHE BOOL "")
+		MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
+	ENDIF()
+	SET(STATUS_PARALLEL "ON")
+ENDIF()
+
+# Options to enable parallel IO, tests.
+SET(STATUS_PNETCDF "OFF")
+OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+IF(ENABLE_PNETCDF)
+	# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
+	# Does the user want to turn on PNETCDF read ability?
+	SET(USE_PNETCDF ON CACHE BOOL "")	
+	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
+	FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
+	IF(NOT PNETCDF)
+		MESSAGE(STATUS "Cannot find pnetcdf library. Disabling pnetcdf support.")
+		SET(USE_PNETCDF OFF CACHE BOOL "")
+	ENDIF()
+	SET(STATUS_PNETCDF "ON")	
+	INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
+	SET(HAVE_LIBPNETCDF ON)
+ENDIF()
+
+
+OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
+IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
+	SET(TEST_PARALLEL ON CACHE BOOL "")
+ENDIF()
 
 OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)

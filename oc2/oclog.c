@@ -45,8 +45,11 @@ static char* octagname(int tag);
 void
 ocloginit(void)
 {
-    const char* file = getenv(OCENVFLAG);
+    const char* file;
+    if(oclogginginitialized)
+	return;
     oclogginginitialized = 1;
+    file = getenv(OCENVFLAG);
     ocsetlogging(0);
     oclogfile = NULL;
     oclogstream = NULL;

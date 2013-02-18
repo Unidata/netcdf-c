@@ -10,17 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-#T="1990-S1700101.HDF.WVC_Lat"
-T="synth10"
-
-F="file://$TOP/ncdap_test/testdata3/$T"
-#F="http://motherlode.ucar.edu:8081/dts/$T?f64"
-#F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20120801/gfs_hd_00z"
-#F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
-#F="http://testbedapps-dev.sura.org/thredds/dodsC/auto/in.usf.fvcom.ike.ultralite.vardrag.nowave.2d"
-#F="http://motherlode.ucar.edu:8081/dts/test.06"
-#F="http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/nametest3.nc"
-#F="http://ingrid.ldeo.columbia.edu/SOURCES/.USTOPO/dods"
+#F="http://motherlode.ucar.edu:9080/thredds/dodsC/grib/NCEP/NAM/CONUS_12km/best"
+F="file://${TOP}/ncdap_test/testdata3/synth1"
 
 #CON="OneD.amp,TwoD.amp,ThreeD.amp"
 
@@ -104,6 +95,14 @@ F="http://motherlode.ucar.edu:8080/thredds/dodsC/station/metar/Surface_METAR_201
 CON="weather[0:10]"
 F="http://nomad1.ncep.noaa.gov:9090/dods/reanalyses/reanalysis-1/6hr/pgb/pgb"
 VAR=hgtprs
+F="file://$TOP/ncdap_test/testdata3/$T"
+#F="http://motherlode.ucar.edu:8081/dts/$T?f64"
+#F="http://nomads.ncep.noaa.gov:9090/dods/gfs_hd/gfs_hd20120801/gfs_hd_00z"
+#F="http://hycom.coaps.fsu.edu/thredds/dodsC/atl_ops"
+#F="http://testbedapps-dev.sura.org/thredds/dodsC/auto/in.usf.fvcom.ike.ultralite.vardrag.nowave.2d"
+#F="http://motherlode.ucar.edu:8081/dts/test.06"
+#F="http://motherlode.ucar.edu:8081/thredds/dodsC/testdods/nametest3.nc"
+#F="http://ingrid.ldeo.columbia.edu/SOURCES/.USTOPO/dods"
 fi
 
 
