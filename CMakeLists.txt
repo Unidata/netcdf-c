@@ -721,7 +721,10 @@ ENDIF()
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
   	DESTINATION include COMPONENT headers)
-
+IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
+	INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
+	DESTINATION include COMPONENT headers)
+ENDIF()
 # Install the dependencies.
 IF(MSVC)
 	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
