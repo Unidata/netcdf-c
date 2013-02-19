@@ -10,7 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://motherlode.ucar.edu:9080/thredds/dodsC/grib/NCEP/NAM/CONUS_12km/best"
+#F="http://motherlode.ucar.edu:9080/thredds/dodsC/grib/NCEP/NAM/CONUS_12km/best"
+F="file://${TOP}/ncdap_test/testdata3/synth1"
 
 #CON="OneD.amp,TwoD.amp,ThreeD.amp"
 
