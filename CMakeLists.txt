@@ -775,19 +775,25 @@ install (FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
 # NOTE!! This list uses regular expressions, NOT wildcards!! 
 ## 
 SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
-	"Makefile\\\\.in$"
+	"/expecttds3/"
+	"/nocacheremote3/"
+	"/nocacheremote4/"
+	"/special3/"
 	"${CMAKE_BINARY_DIR}/*"
 	"/myhtml/*"
 	"/.svn/"
-	"my.*sh"
+	"my.*\\\\.sh"
 	"/.deps/"
 	"/.libs"
 	"/libcf/"
 	"/html/"
-	".jar"
-	".sed"
-	".y"
-	".proto"
+	".*\\\\.jar"
+	".*\\\\.jdl"
+	".*\\\\.sed"
+	".*\\\\.proto"
+	".*\\\\.texi"
+	".*\\\\.example"
+	"Make0"
 	"/obsolete/"
 	"/unknown/"
 	"/udunits/"
@@ -803,7 +809,8 @@ IF(NOT CPACK_PACK_VERSION)
 	SET(CPACK_PACKAGE_VERSION ${VERSION})
 ENDIF()
 IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TBZ2" "TGZ" "ZIP")
+  SET(CPACK_SOURCE_GENERATOR "TGZ")
+  #SET(CPACK_SOURCE_GENERATOR "TBZ2" "TGZ" "ZIP")
   SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
 ENDIF()
 
