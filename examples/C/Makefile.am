@@ -41,4 +41,4 @@ endif # USE_NETCDF4
 CLEANFILES = sfc_pres_temp.nc simple_xy.nc pres_temp_4D.nc	\
 simple_nc4.nc simple_xy_nc4.nc
 
-EXTRA_DIST = run_valgrind_tests.sh run_nc4_valgrind_tests.sh
+EXTRA_DIST = run_valgrind_tests.sh run_nc4_valgrind_tests.sh CMakeLists.txt

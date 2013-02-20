@@ -791,7 +791,8 @@ IMAGE_PATH             = @CMAKE_SOURCE_DIR@/man4/images/chunking2.png \
                          @CMAKE_SOURCE_DIR@/man4/images/ncfile.png \
                          @CMAKE_SOURCE_DIR@/man4/images/netcdf_architecture.png \
                          @CMAKE_SOURCE_DIR@/man4/images/pnetcdf.png \
-			 @CMAKE_SOURCE_DIR@/man4/images/deptree.jpg
+			 @CMAKE_SOURCE_DIR@/man4/images/deptree.jpg \
+			 @CMAKE_SOURCE_DIR@/man4/images/InstallTreeWindows.jpg 
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

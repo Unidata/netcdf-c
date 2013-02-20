@@ -18,3 +18,6 @@ nclog.h ncconfigure.h nc4internal.h nctime.h nc3dispatch.h nc3internal.h
 if USE_NETCDF4
 noinst_HEADERS += ncaux.h 
 endif
+
+EXTRA_DIST=CMakeLists.txt
+
