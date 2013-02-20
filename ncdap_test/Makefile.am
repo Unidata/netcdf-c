@@ -78,7 +78,7 @@ EXTRA_DIST = tst_ncdap3.sh tst_ncdap4.sh \
              tst_remote3.sh tst_remote4.sh \
              tst_longremote3.sh tst_longremote4.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
-	     t_dap.c
+	     t_dap.c CMakeLists.txt
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a
 

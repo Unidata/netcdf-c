@@ -25,7 +25,7 @@ ast_byteio.c ast_curl.c ast_internal.c \
 ast_runtime.c ast_util.c ast_debug.c \
 cceparse.c cceconstraints.c
 
-EXTRA_DIST += ccetab.c ccelex.c
+EXTRA_DIST += ccetab.c ccelex.c CMakeLists.txt
 
 HDRS=includes.h \
 nccrdispatch.h nccr.h crmeta.h nccrproto.h nccrgetvarx.h \
