@@ -120,9 +120,8 @@ tst_att_ordering(int cmode)
 int
 main(int argc, char **argv)
 {
-#ifndef WIN32
     (void) signal(SIGFPE, SIG_IGN);
-#endif
+
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
     short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};

@@ -212,13 +212,14 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       to read larger chunks at a time.
     */
 
+   /* memptr indicates where to store the next value */
+   char* memptr = value;
 
    odom_init(&odom,rank,mystart,myedges,mystride);
 
    /* walk the odometer to extract values */
    while(odom_more(&odom)) {
-   	char* memptr = value;
-     	int localstatus = NC_NOERR;
+      int localstatus = NC_NOERR;
       /* Read a single value */
       localstatus = NC_get_vara(ncid,varid,odom.index,nc_sizevector1,memptr,memtype);
       /* So it turns out that when get_varm is used, all errors are
