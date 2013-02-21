@@ -120,7 +120,6 @@ tst_att_ordering(int cmode)
 int
 main(int argc, char **argv)
 {
-    (void) signal(SIGFPE, SIG_IGN);
 
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
@@ -133,7 +132,8 @@ main(int argc, char **argv)
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN], longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
     unsigned long long ulonglong_in[ATT_LEN], ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
-
+	
+   (void) signal(SIGFPE, SIG_IGN);
    printf("\n*** Testing netcdf-4 attribute functions.\n");
    printf("*** testing really simple global atts...");
 #define NUM_SIMPLE_ATTS 9
