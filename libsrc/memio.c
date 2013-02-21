@@ -428,7 +428,7 @@ memio_pad_length(ncio* nciop, off_t length)
         if(newmem == NULL) return NC_ENOMEM;
 
 	/* zero out the extra memory */
-        memset((void*)(newmem+memio->alloc),0,(newsize - memio->alloc));
+        memset((void*)((char*)newmem+memio->alloc),0,(newsize - memio->alloc));
 
 #ifdef DEBUG
 fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
