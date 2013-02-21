@@ -351,9 +351,10 @@ main(int argc, char **argv)
       /* for (i = 0; i < ATT_LEN; i++) */
       /* 	  if (float_in[i] != (float) longlong_out[i]) ERR; */
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_UINT64_NAME, float_in)) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+#if !defined(_WIN32) && !defined(_WIN64) 
+	  for (i = 0; i < ATT_LEN; i++)
 	  if (float_in[i] != (float) ulonglong_out[i]) ERR;
-
+#endif
       /* Read all atts (except text) as int. */
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_SCHAR_NAME, int_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
