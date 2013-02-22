@@ -611,10 +611,10 @@ static char* ERROR_TAG = "Error ";
 static int
 dataError(XXDR* xdrs, OCstate* state)
 {
-    int depth;
+    int depth=0;
     int errfound = 0;
-    off_t ckp,avail,i;
-    char* errmsg;
+    off_t ckp=0,avail=0,i=0;
+    char* errmsg = NULL;
     char errortext[16]; /* bigger thant |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
     if(avail < strlen(ERROR_TAG))

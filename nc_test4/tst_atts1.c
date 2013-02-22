@@ -120,7 +120,6 @@ tst_att_ordering(int cmode)
 int
 main(int argc, char **argv)
 {
-    (void) signal(SIGFPE, SIG_IGN);
 
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN], uchar_out[ATT_LEN] = {0, 128, NC_MAX_UBYTE};
@@ -133,7 +132,8 @@ main(int argc, char **argv)
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN], longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
     unsigned long long ulonglong_in[ATT_LEN], ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
-
+	
+   (void) signal(SIGFPE, SIG_IGN);
    printf("\n*** Testing netcdf-4 attribute functions.\n");
    printf("*** testing really simple global atts...");
 #define NUM_SIMPLE_ATTS 9
@@ -351,9 +351,10 @@ main(int argc, char **argv)
       /* for (i = 0; i < ATT_LEN; i++) */
       /* 	  if (float_in[i] != (float) longlong_out[i]) ERR; */
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_UINT64_NAME, float_in)) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+#if !defined(_WIN32) && !defined(_WIN64) 
+	  for (i = 0; i < ATT_LEN; i++)
 	  if (float_in[i] != (float) ulonglong_out[i]) ERR;
-
+#endif
       /* Read all atts (except text) as int. */
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_SCHAR_NAME, int_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)

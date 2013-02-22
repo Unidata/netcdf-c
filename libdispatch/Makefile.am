@@ -41,3 +41,4 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
+EXTRA_DIST=CMakeLists.txt

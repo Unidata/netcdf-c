@@ -3,13 +3,13 @@
 cmake_minimum_required(VERSION 2.8.8)
  
 #Project Name
-project(NetCDF C)
-SET(NetCDF_VERSION_MAJOR 4)
-SET(NetCDF_VERSION_MINOR 3)
-SET(NetCDF_VERSION_PATCH 0)
-SET(NetCDF_VERSION_NOTE "-rc1")
-SET(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH}${NetCDF_VERSION_NOTE})
-SET(VERSION ${NetCDF_VERSION})
+project(netCDF C)
+SET(netCDF_VERSION_MAJOR 4)
+SET(netCDF_VERSION_MINOR 3)
+SET(netCDF_VERSION_PATCH 0)
+SET(netCDF_VERSION_NOTE "-rc1")
+SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
+SET(VERSION ${netCDF_VERSION})
 
 # Set some default C Flags if we are using GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -30,7 +30,7 @@ IF(NOT MSVC)
 ENDIF()
 
 # Default to shared libs on
-OPTION(BUILD_SHARED_LIBS "Configure NetCDF as a shared library." ON)
+OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
 # Set variable to define the build type.
 INCLUDE(GenerateExportHeader)
 SET (LIB_TYPE STATIC)
@@ -60,7 +60,6 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-MESSAGE(${CMAKE_ROOT})
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
@@ -165,7 +164,7 @@ MACRO(print_conf_summary)
 	MESSAGE("")
 	MESSAGE(STATUS "\tBuild Type:\t\t\t" ${CMAKE_BUILD_TYPE})
 	MESSAGE(STATUS "\tBuilding Shared Libraries:\t" ${BUILD_SHARED_LIBS})
-	MESSAGE(STATUS "\tBuilding NetCDF-4:\t\t" ${ENABLE_NETCDF_4})
+	MESSAGE(STATUS "\tBuilding netCDF-4:\t\t" ${ENABLE_NETCDF_4})
 	MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
 	MESSAGE(STATUS "\tBuilding Utilities:\t\t" ${BUILD_UTILITIES})
 	IF(CMAKE_PREFIX_PATH)
@@ -174,7 +173,6 @@ MACRO(print_conf_summary)
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF}, "\t" ${PNETCDF_INCLUDE_DIR})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
-	#MESSAGE("CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
 	MESSAGE("")
 
 ENDMACRO()
@@ -214,8 +212,8 @@ IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
-# Option to build NetCDF Version 2
-OPTION (BUILD_V2 "Build NetCDF Version 2." ON)
+# Option to build netCDF Version 2
+OPTION (BUILD_V2 "Build netCDF Version 2." ON)
 
 # Option to build utilities
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
@@ -257,7 +255,7 @@ IF(ENABLE_LOGGING)
 	SET(LOGGING ON)
 ENDIF()
 # Option to use HDF4
-OPTION (ENABLE_HDF4 "Build NetCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required)." OFF)
+OPTION (ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required)." OFF)
 IF (ENABLE_HDF4) 
    SET(USE_HDF4 ON) 
    # Check for include files, libraries.
@@ -297,8 +295,8 @@ ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
 SET (NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
-# Build NetCDF4
-OPTION (ENABLE_NETCDF_4 "Enable NetCDF-4" ON)
+# Build netCDF4
+OPTION (ENABLE_NETCDF_4 "Enable netCDF-4" ON)
 IF(ENABLE_NETCDF_4)
 	SET(USE_NETCDF4 ON CACHE BOOL "")
 	SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
@@ -376,7 +374,7 @@ ENDIF()
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
-# If NetCDF4 and DAP, Option for DAP groups.
+# If netCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF_4 AND USE_DAP)		
 		  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
@@ -458,7 +456,7 @@ IF(ENABLE_COVERAGE_TESTS)
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
 
-OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if NetCDF-4 is not Enabled" OFF)
+OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
@@ -501,7 +499,7 @@ IF(ENABLE_PNETCDF)
 ENDIF()
 
 
-OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if NetCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
+OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 	SET(TEST_PARALLEL ON CACHE BOOL "")
 ENDIF()
@@ -624,19 +622,18 @@ IF(NOT WIN32)
        ENDIF()
 ENDIF()
 
-MESSAGE(netcdf_libraries: ${netcdf_library})
 # Create config.h file
-configure_file("${NetCDF_SOURCE_DIR}/cmake_config.h.in"
-	"${NetCDF_BINARY_DIR}/config.h")
-configure_file("${NetCDF_SOURCE_DIR}/cmake_nc-config.in"
-  "${NetCDF_SOURCE_DIR}/nc-config")
-FILE(COPY "${NetCDF_SOURCE_DIR}/nc-config"
-  DESTINATION "${NetCDF_BINARY_DIR}"
+configure_file("${netCDF_SOURCE_DIR}/cmake_config.h.in"
+	"${netCDF_BINARY_DIR}/config.h")
+configure_file("${netCDF_SOURCE_DIR}/cmake_nc-config.in"
+  "${netCDF_SOURCE_DIR}/nc-config")
+FILE(COPY "${netCDF_SOURCE_DIR}/nc-config"
+  DESTINATION "${netCDF_BINARY_DIR}"
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-EXECUTE_PROCESS(COMMAND "chmod 755 ${NetCDF_BINARY_DIR}/nc-config")
+EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
 
-INSTALL(PROGRAMS ${NetCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
-INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
+INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
 
 
@@ -644,7 +641,7 @@ INCLUDE_DIRECTORIES(${NetCDF_BINARY_DIR})
 #####
 # Set core names of the libraries.
 #####
-SET (NetCDF_LIB_CORENAME	"netcdf")
+SET (netCDF_LIB_CORENAME	"netcdf")
 
 #####
 # Set the true names of all the libraries, if customized by external project
@@ -722,9 +719,12 @@ ENDIF()
 #####
 # Moving on to CPack, install packages.
 #####
-INSTALL(FILES ${NetCDF_SOURCE_DIR}/include/netcdf.h
+INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
   	DESTINATION include COMPONENT headers)
-
+IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
+	INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
+	DESTINATION include COMPONENT headers)
+ENDIF()
 # Install the dependencies.
 IF(MSVC)
 	INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
@@ -754,15 +754,15 @@ install (EXPORT netcdf-targets
 	COMPONENT documentation)
 
 configure_file (
-	${NetCDF_SOURCE_DIR}/netcdf-config.cmake.in
-	${NetCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
+	${netCDF_SOURCE_DIR}/netcdf-config.cmake.in
+	${netCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
 
 configure_file (
-	${NetCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
-	${NetCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
+	${netCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
+	${netCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
 
-install (FILES ${NetCDF_BINARY_DIR}/netcdf-config.cmake
-		${NetCDF_BINARY_DIR}/netcdf-config-version.cmake
+install (FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
+		${netCDF_BINARY_DIR}/netcdf-config-version.cmake
 		DESTINATION share/cmake)
 
 # End CMake package configuration files.
@@ -775,15 +775,28 @@ install (FILES ${NetCDF_BINARY_DIR}/netcdf-config.cmake
 # NOTE!! This list uses regular expressions, NOT wildcards!! 
 ## 
 SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
-	"Makefile\\\\.in$"
+	"/expecttds3/"
+	"/nocacheremote3/"
+	"/nocacheremote4/"
+	"/special3/"
 	"${CMAKE_BINARY_DIR}/*"
 	"/myhtml/*"
 	"/.svn/"
-	"my.*sh"
+	"my.*\\\\.sh"
 	"/.deps/"
 	"/.libs"
 	"/libcf/"
 	"/html/"
+	".*\\\\.jar"
+	".*\\\\.jdl"
+	".*\\\\.sed"
+	".*\\\\.proto"
+	".*\\\\.texi"
+	".*\\\\.example"
+	"Make0"
+	"/obsolete/"
+	"/unknown/"
+	"/udunits/"
 	".*~" 
 )
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
@@ -796,7 +809,8 @@ IF(NOT CPACK_PACK_VERSION)
 	SET(CPACK_PACKAGE_VERSION ${VERSION})
 ENDIF()
 IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TBZ2" "ZIP")
+  SET(CPACK_SOURCE_GENERATOR "TGZ")
+  #SET(CPACK_SOURCE_GENERATOR "TBZ2" "TGZ" "ZIP")
   SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
 ENDIF()
 

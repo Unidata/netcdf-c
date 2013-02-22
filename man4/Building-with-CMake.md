@@ -17,7 +17,7 @@ The following packages are required to build netCDF-C using CMake.
 	* libcurl for DAP support.
 
 <center>
-<img src="../images/deptree.jpg" height="250px" />
+<img src="deptree.jpg" height="250px" />
 </center>
 
 # The CMake Build Process

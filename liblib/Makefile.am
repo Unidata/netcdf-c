@@ -60,4 +60,5 @@ endif # BUILD_CDMREMOTE
 endif #USE_NETCDF4
 
 # We need at least one source file
-libnetcdf_la_SOURCES = stub.c 
+libnetcdf_la_SOURCES = stub.c
+EXTRA_DIST=CMakeLists.txt 

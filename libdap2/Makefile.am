@@ -11,7 +11,7 @@ include $(top_srcdir)/lib_flags.am
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 CLEANFILES =
-EXTRA_DIST =
+EXTRA_DIST = CMakeLists.txt
 
 LDADD=
 
