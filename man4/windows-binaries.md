@@ -28,7 +28,6 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 
 <center>
 <IMG SRC="InstallTreeWindows.jpg" />
-<IMG SRC=http://www.unidata.ucar.edu/software/netcdf/win_netcdf/InstallTreeWindows.jpg />
 </center>
 
 # Notes
