@@ -100,7 +100,7 @@ fi
 #####
 
 unamestr=`uname | cut -d " " -f 1`
-VER="netCDF4.3RC1"
+VER="netCDF4.3RC2"
 CURDIR=`pwd`
 ALLBUILDS=$CURDIR/"all_builds/"
 INSTALLDIRS=$ALLBUILDS"packages"
