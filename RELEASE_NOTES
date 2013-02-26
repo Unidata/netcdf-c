@@ -17,6 +17,26 @@ VERSION		COMMENTS
 		
 		Replaced the oc library with oc2.0
 
+		Fix bug in which interspersing def_var calls with
+		put_var calls can lead to corrupt metadata in a netCDF
+		file with groups and inherited dimensions. [NCF-134]
+
+		Fix bug with nc_get_var1_uint() not accepting unsigned
+		ints larger than 2**31. [NCF-226]
+
+		Fix ncdump bug for data values of variables that use
+		multiple unlimited dimensions.  [NCF-144]
+
+		Fix bug in netCDF-4 with scalar non-coordinate
+		variables with same name as dimensions.  [NCF-222]
+
+		Fix bug in which some uses of vlen within compounds
+		causes HDF5 errors.  [NCF-155]
+
+		Fix bug in which calling netCDF-4 functions in which
+		behavior that should not depend on order of calls
+		sometimes produces the wrong results.  [NCF-217]
+
 		Fixed bug with strided access for NC_STRING type.
 		[NCF-206]
 
