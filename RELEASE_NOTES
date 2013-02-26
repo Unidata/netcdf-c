@@ -8,6 +8,24 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
+		Fixed bug in handling old servers that do not do
+		proper Grid to Structure conversions. [NCF-232]
+
+		Replaced the oc library with oc2.0
+
+		Fix bug with nc_get_var1_uint() not accepting unsigned
+		ints larger than 2**31. [NCF-226]
+
+		Fix to convert occurrences of '/' in DAP names
+                to %2f. [NCF-223]
+	
+		Fix bug in netCDF-4 with scalar non-coordinate
+		variables with same name as dimensions.  [NCF-222]
+
+		Fix bug in which calling netCDF-4 functions in which
+		behavior that should not depend on order of calls
+		sometimes produces the wrong results.  [NCF-217]
+
 		Merged in nccopy additions from Martin van Driel to
 		support -g and -v options for specifying which groups
 		or variables are to be copied.  [NCF-216]
@@ -15,37 +33,33 @@ VERSION		COMMENTS
 		Merged in parallel-netcdf bugs fixes from Greg
 		Sjaardema.  [NCF-214]
 		
-		Replaced the oc library with oc2.0
+		Added library version info to the user-agent
+                string so that the server logs will be more informative.
+		[NCF-210]
 
-		Fix bug in which interspersing def_var calls with
-		put_var calls can lead to corrupt metadata in a netCDF
-		file with groups and inherited dimensions. [NCF-134]
-
-		Fix bug with nc_get_var1_uint() not accepting unsigned
-		ints larger than 2**31. [NCF-226]
-
-		Fix bug in netCDF-4 with scalar non-coordinate
-		variables with same name as dimensions.  [NCF-222]
-
-		Fix bug in which some uses of vlen within compounds
-		causes HDF5 errors.  [NCF-155]
-
-		Fix bug in which calling netCDF-4 functions in which
-		behavior that should not depend on order of calls
-		sometimes produces the wrong results.  [NCF-217]
+		Added work around for bad servers that sometimes
+                sends DAP dataset with duplicate field names.
+		[NCF-208]
 
 		Fixed bug with strided access for NC_STRING type.
 		[NCF-206]
-
-		Fixed ncdump bug in display of data values of
-		variables that use multiple unlimited dimensions.
-		[NCF-144]
 
 		Prevented adding an invalid _FillValue attribute to a
 		variable (with nonmatching type or multiple values),
 		to avoid later error when any record variable is
 		extended. 
 		[NCF-190]
+
+		Fix bug in which some uses of vlen within compounds
+		causes HDF5 errors.  [NCF-155]
+
+		Fixed ncdump bug in display of data values of
+		variables that use multiple unlimited dimensions.
+		[NCF-144]
+
+		Fix bug in which interspersing def_var calls with
+		put_var calls can lead to corrupt metadata in a netCDF
+		file with groups and inherited dimensions. [NCF-134]
 
 		Building shared libraries works with DAP and netCDF4
 		functionality. [NCF-205] [NCF-57]
