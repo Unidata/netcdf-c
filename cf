@@ -1,7 +1,6 @@
 #!/bin/bash
 #X="-x"
 #NB=1
-STD=1
 
 if test $# != 0 ; then
 cmds=$@
@@ -15,12 +14,14 @@ DAP=1
 #M32=1
 #M64=1
 
+#INSTALL=1
+
 if test "x$cmds" = x ; then
 cmds=""
 #cmds="all"
 #cmds="all check"
 #cmds="all dist"
-#cmds="all distcheck"
+cmds="all distcheck"
 #cmds="$cmds install"
 fi
 
@@ -33,11 +34,15 @@ CC=gcc
 fi
 
 # Default cases
-if test "x$STD" != x ; then
+if test -f "/share/ed/local" ; then
 stddir="/share/ed/local/${HOST}"
-PREFIX="/share/ed/local/${HOST}"
 else
-stddir="/tmp/local/${HOST}"
+stddir="/usr/local"
+fi
+
+if test "x$INSTALL" = "x1" ; then
+PREFIX="$stddir/${HOST}"
+else
 PREFIX="/tmp/local/${HOST}"
 fi
 

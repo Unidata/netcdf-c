@@ -350,93 +350,88 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
     OCtype octype;
     if(node == NULL) return;
     oc_dds_class(conn,node,&octype);
-    if(octype == OC_Dataset) return;
-    oc_dds_container(conn,node,&container);
-    if(container != NULL)
-        collectocpath(conn,container,path);
+    if(octype != OC_Dataset) {
+        oc_dds_container(conn,node,&container);
+        if(container != NULL)
+            collectocpath(conn,container,path);
+    }
     nclistpush(path,(void*)node);
 }
 
 char*
 makeocpathstring3(OClink conn, OCddsnode node, const char* sep)
 {
-    int slen,i,len,first,seplen;
-    char* pathname;
+    int i,len,first;
+    char* result;
+    char* name;
     OCtype octype;
-    NClist* ocpath = nclistnew();
+    NClist* ocpath = NULL;
+    NCbytes* pathname = NULL;
 
+    /* If we are asking for the dataset path only,
+       then nclude it, otherwise elide it
+    */
+    oc_dds_type(conn,node,&octype);
+    if(octype == OC_Dataset) {
+        oc_dds_name(conn,node,&name);
+	return nulldup(name);
+    }
+
+    ocpath = nclistnew();
     collectocpath(conn,node,ocpath);
     len = nclistlength(ocpath);
     assert(len > 0); /* dataset at least */
 
-    oc_dds_type(conn,node,&octype);
-    if(octype == OC_Dataset)
-	{pathname = nulldup(""); goto done;} /* Dataset */
-
-    seplen = strlen(sep);
-    for(slen=0,i=0;i<len;i++) {
+    pathname = ncbytesnew();
+    for(first=1,i=1;i<len;i++) { /* start at 1 to skip dataset name */
 	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
 	char* name;
         oc_dds_type(conn,node,&octype);
-        if(octype == OC_Dataset) continue;
         oc_dds_name(conn,node,&name);
-	slen += (name == NULL? 0 : strlen(name));
-	slen += seplen;
-	nullfree(name);
-    }
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
-    for(first=1,i=0;i<len;i++) {
-	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
-	char* name;
-        oc_dds_type(conn,node,&octype);
-        if(octype == OC_Dataset) continue;
-        oc_dds_name(conn,node,&name);
-	if(!first) strcat(pathname,sep);
-        if(name != NULL) strcat(pathname,name);
+	if(!first) ncbytescat(pathname,sep);
+	ncbytescat(pathname,name);
 	nullfree(name);
 	first = 0;
     }
-done:
+    result = ncbytesextract(pathname);
+    ncbytesfree(pathname);
     nclistfree(ocpath);
-    return pathname;
+    return result;
 }
 
 char*
 makepathstring3(NClist* path, const char* separator, int flags)
 {
-    int slen,i,len,first,seplen;
-    char* pathname;
+    int i,len,first;
+    NCbytes* pathname = NULL;
+    char* result;
+    CDFnode* node;
 
     len = nclistlength(path);
     ASSERT(len > 0); /* dataset at least */
-    seplen = strlen(separator);
-    ASSERT(seplen > 0);
-    for(slen=0,i=0;i<len;i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	if(node->nctype == NC_Dataset) continue;
-        slen += strlen(node->ncbasename);
-	slen += seplen; 
+
+    if(len == 1) {/* dataset only */
+        node = (CDFnode*)nclistget(path,0);
+	return nulldup(node->ncbasename);
     }
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
+
+    pathname = ncbytesnew();
     for(first=1,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	char* name;
 	if(!node->elided || (flags & PATHELIDE)==0) {
     	    if(node->nctype != NC_Dataset) {
                 name = node->ncbasename;
-	        if(!first) strcat(pathname,separator);
-                strcat(pathname,name);
+		assert(name != NULL);
+	        if(!first) ncbytescat(pathname,separator);
+                ncbytescat(pathname,name);
 	        first = 0;
 	    }
 	}
     }
-    return pathname;
+    result = ncbytesextract(pathname);
+    ncbytesfree(pathname);
+    return result;
 }
 
 /* convert path to string using the ncname field */

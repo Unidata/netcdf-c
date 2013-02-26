@@ -697,29 +697,42 @@ nodematch34(CDFnode* node1, CDFnode* node2)
     return simplenodematch34(node1,node2);
 }
 
+/*
+Try to figure out if two nodes
+are the "related" =>
+    same name && same nc_type and same arity
+but: Allow Grid == Structure
+*/
+
 int
 simplenodematch34(CDFnode* node1, CDFnode* node2)
 {
-    if(node1 == NULL) return (node2==NULL);
-    if(node2 == NULL) return 0;
-    if(node1->nctype != node2->nctype) {
-	/* Check for Grid->Structure match */
-	if((node1->nctype == NC_Structure && node2->nctype == NC_Grid)
-	   || (node2->nctype == NC_Structure && node1->nctype == NC_Grid)){
-	   if(node1->ocname == NULL || node2->ocname == NULL
-	      || strcmp(node1->ocname,node2->ocname) !=0) return 0;	    	
-	} else return 0;
-    }
+    /* Test all the obvious stuff */
+    if(node1 == NULL || node2 == NULL)
+	return 0;
+    if(strcmp(node1->ocname,node2->ocname)!=0) /* same names */
+	return 0;
+    if(nclistlength(node1->array.dimset0)
+	!= nclistlength(node2->array.dimset0)) /* same arity */
+	return 0;
+
     /* Add hack to address the screwed up Columbia server */
     if(node1->nctype == NC_Dataset) return 1;
-    if(node1->nctype == NC_Atomic
-       && node1->etype != node2->etype) return 0;
-    if(node1->ocname != NULL && node2->ocname != NULL
-       && strcmp(node1->ocname,node2->ocname)!=0) return 0;
-    if(nclistlength(node1->array.dimset0)
-       != nclistlength(node2->array.dimset0)) return 0;
+
+    if(node1->nctype != node2->nctype) {
+	/* test for struct-grid match */
+	int structgrid = ((node1->nctype == NC_Grid && node2->nctype == NC_Structure)
+                          || (node1->nctype == NC_Structure && node2->nctype == NC_Grid) ? 1 : 0);
+	if(!structgrid)
+	    return 0;
+    }
+
+    if(node1->nctype == NC_Atomic && node1->etype != node2->etype)
+	return 0;
+
     return 1;
 }
+
 
 /*
 Given DDS node, locate the node

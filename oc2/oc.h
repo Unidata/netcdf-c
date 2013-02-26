@@ -510,6 +510,9 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
 /**************************************************/
 /* Experimental/Undocumented */
 
+/* Given an arbitrary OCnode, return the connection of which it is a part */
+extern OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
+
 /* Resend a url as a head request to check the Last-Modified time */
 extern OCerror oc_update_lastmodified_data(OClink);
 

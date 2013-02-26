@@ -5,7 +5,7 @@
  *********************************************************************/
 
 #include "ncdap3.h"
-#include "dapdebug.h"
+#include "dapdump.h"
 #include "dapdump.h"
 #include "dceparselex.h"
 
