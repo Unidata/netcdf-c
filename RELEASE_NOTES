@@ -8,12 +8,12 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
-		Merged in nccopy additions to support -g and -v
-		options for specifying which groups or variables are
-		to be copied.
+		Merged in nccopy additions from Martin van Driel to
+		support -g and -v options for specifying which groups
+		or variables are to be copied.  [NCF-216]
 
 		Merged in parallel-netcdf bugs fixes from Greg
-		Sjaardema.
+		Sjaardema.  [NCF-214]
 		
 		Replaced the oc library with oc2.0
 
@@ -23,9 +23,6 @@ VERSION		COMMENTS
 
 		Fix bug with nc_get_var1_uint() not accepting unsigned
 		ints larger than 2**31. [NCF-226]
-
-		Fix ncdump bug for data values of variables that use
-		multiple unlimited dimensions.  [NCF-144]
 
 		Fix bug in netCDF-4 with scalar non-coordinate
 		variables with same name as dimensions.  [NCF-222]
