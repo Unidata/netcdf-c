@@ -301,7 +301,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
     }
     dumpindent(indent,buf);
     ncbytescat(buf,"} ");
-    ncbytescat(buf,root->ncbasename);
+    ncbytescat(buf,(root->ncbasename?root->ncbasename:"<?>"));
 }
 
 static void
@@ -344,7 +344,7 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
 	dumpindent(indent,buf);
 	ncbytescat(buf,primtype);
 	ncbytescat(buf," ");
-	ncbytescat(buf,root->ncbasename);
+        ncbytescat(buf,(root->ncbasename?root->ncbasename:"<?>"));
 	break;
     default: break;    
     }
