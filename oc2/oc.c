@@ -1750,6 +1750,18 @@ oc_get_lastmodified_data(OCobject link)
     return state->datalastmodified;
 }
 
+/* Given an arbitrary OCnode, return the connection of which it is a part */
+OCerror
+oc_get_connection(OCobject ddsnode, OCobject* linkp)
+{
+    OCnode* node;
+    OCVERIFY(OC_Node,ddsnode);
+    OCDEREF(OCnode*,node,ddsnode);
+    if(linkp) *linkp = node->root->tree->state;
+    return OC_NOERR;
+}
+
+
 /*!
 Attempt to retrieve a dataset using a specified URL
 and using the DAP protocol.

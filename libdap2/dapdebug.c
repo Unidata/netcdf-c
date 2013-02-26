@@ -8,8 +8,7 @@
 #include <stdio.h>
 
 #include "nclog.h"
-#include "oc.h"
-#include "dapdebug.h"
+#include "ncdap3.h"
 
 int ncdap3debug = 0;
 
@@ -41,4 +40,17 @@ dappanic(const char* fmt, ...)
     fprintf(stderr, "\n" );
     fflush(stderr);
     return 0;
+}
+
+/*
+Provide a way to print the oc full name for
+an ocnode
+*/
+
+char*
+ocfqn(OCddsnode node)
+{
+    OClink conn;
+    oc_get_connection(node,&conn);
+    return makeocpathstring3(conn,node,".");
 }
