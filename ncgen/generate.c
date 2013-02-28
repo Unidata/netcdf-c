@@ -4,7 +4,7 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nciter.h"
+#include "nc_iter.h"
 #include "odom.h"
 #include "offsets.h"
 
