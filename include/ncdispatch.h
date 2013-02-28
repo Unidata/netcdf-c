@@ -156,9 +156,9 @@ extern int NCRPC_initialize(void);
 #endif /*USE_NETCDF4*/
 
 /* Vectors of ones and zeros */
-extern size_t nc_sizevector0[NC_MAX_DIMS];
-extern size_t nc_sizevector1[NC_MAX_DIMS];
-extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_DIMS];
+extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
+extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
+extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
 
 /**************************************************/
 /* Forward */
