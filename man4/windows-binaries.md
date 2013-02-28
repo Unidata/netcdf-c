@@ -8,6 +8,8 @@ There are several development environments available for programmers who develop
 
 For the latter two, the Linux/Unix build instructions may be used. For the former build environment, you may download using the Windows build instructions, or you may download the pre-built netCDF-C libraries from this page.
 
+Users who prefer to build the netCDF-C libraries from source in a Windows environment using Microsoft Visual Studio are referred to \ref netCDF-CMake
+
 # Getting pre-built netCDF-C Libraries for Visual Studio
 
 These libraries can be used with Visual Studio 2010 projects.  The downloads are installer packages which contain the netCDF-C libraries and utilities (ncgen, ncgen3, ncdump and nccopy), as well as the associated dependencies.  
@@ -40,7 +42,7 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 Both of these issues are being actively worked on.  The may be tracked in the Unidata JIRA system at <http://bugtracking.unidata.ucar.edu/>, using the provided JIRA identifiers.
 
 [1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC3-32.exe
-[2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC3-DAP.exe
+[2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC3-DAP-32.exe
 [3]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC4-32.exe
 [4]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC4-DAP-32.exe
 [5]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC2-NC3-64.exe

@@ -483,9 +483,8 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
    if (h5->pnetcdf_file)
    {
       MPI_Offset mpi_len;
-      int ret;
-
-      if ((ret = ncmpi_inq_att(nc->int_ncid, varid, name, xtypep, &mpi_len)))
+      int ret = ncmpi_inq_att(nc->int_ncid, varid, name, xtypep, &mpi_len);	
+      if (ret != NC_NOERR)
 	 return ret;
       if (lenp)
 	 *lenp = mpi_len;
