@@ -5,7 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nciter.h"
+#include "nc_iter.h"
 
 
 #define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}

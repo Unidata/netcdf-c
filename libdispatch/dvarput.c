@@ -134,6 +134,8 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    size_t myedges[NC_MAX_VAR_DIMS];
    ptrdiff_t mystride[NC_MAX_VAR_DIMS];
 
+   const char* memptr = value;
+
    status = NC_check_id (ncid, &ncp);
    if(status != NC_NOERR) return status;
 
@@ -220,8 +222,6 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
       to read larger chunks at a time.
     */
 
-   /* memptr indicates where to store the next value */
-   const char* memptr = value;
 
    odom_init(&odom,rank,mystart,myedges,mystride);
 

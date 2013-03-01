@@ -7,7 +7,8 @@
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     mainpage.doc tutorial.doc install.doc dispatch.doc \
     guide.doc types.doc notes.doc cdl.doc \
-    architecture.doc internal.doc
+    architecture.doc internal.doc Doxyfile.in.cmake windows-binaries.md \
+    Building-with-CMake.md CMakeLists.txt
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

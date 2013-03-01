@@ -4,7 +4,7 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nciter.h"
+#include "nc_iter.h"
 
 #ifdef ENABLE_BINARY
 

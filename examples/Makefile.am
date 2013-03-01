@@ -12,3 +12,5 @@ endif
 
 # These are the subdirectories that will be built. 
 SUBDIRS = C $(CDL_DIR)
+
+EXTRA_DIST=CMakeLists.txt

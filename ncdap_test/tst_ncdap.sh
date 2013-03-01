@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#set -x
+set -x
 quiet=0
 leakcheck=0
 
@@ -23,6 +23,8 @@ expected4="${srcdir}/expected4"
 # get the list of test files
 . ${srcdir}/tst_ncdap_shared.sh
 
+FLAGS=
+
 case "$mode" in
 *3)
     EXPECTED="$expected3"
@@ -41,6 +43,11 @@ file*)
     TESTURL="$FILEURL"
     TESTSET="$FILETESTS"
     ;;
+dds*)
+    TESTURL="[noprefetch]$FILEURL"
+    TESTSET="$DDSTESTS"
+    FLAGS="-h"
+    ;;
 remote*)
     TESTURL="$REMOTEURL"
     TITLE="Remote $TITLE"
@@ -50,7 +57,7 @@ esac
 
 RESULTSDIR="./results"
 # Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump"
+NCDUMP="${builddir}/ncdump/ncdump $FLAGS"
 if test "x$leakcheck" = "x1" ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 else

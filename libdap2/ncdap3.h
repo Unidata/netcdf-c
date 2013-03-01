@@ -25,14 +25,14 @@
 #include "fbits.h"
 #include "dceconstraints.h"
 
-#include "oc.h"
-
 #include "netcdf.h"
 #include "ncdispatch.h"
 #include "nc.h"
 #include "nc3internal.h"
  /* netcdf overrides*/
 #include "dapnc.h"
+
+#include "oc.h"
 
 #include "dapdebug.h"
 #include "daputil.h"

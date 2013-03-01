@@ -120,7 +120,7 @@ run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
 run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
-ref_tst_interops4.nc run_get_knmi_files.sh
+ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
