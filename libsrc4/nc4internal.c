@@ -900,14 +900,14 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 }
 
 /* Delete a var from a var list, and free the memory. */
-static int
-var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
+int
+nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 {
    NC_ATT_INFO_T *a, *att;
    int ret;
 
    /* First delete all the attributes attached to this var. */
-   att = (*list)->att;
+   att = var->att;
    while (att)
    {
       a = att->next;
@@ -943,17 +943,19 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    {
       if (var->hdf_datasetid)
       {
-	 if (var->type_info->class == NC_VLEN)
-	    nc_free_vlen((nc_vlen_t *)var->fill_value);
-	 else if (var->type_info->nc_typeid == NC_STRING)
-	    free(*(char **)var->fill_value);
+         if (var->type_info)
+         {
+            if (var->type_info->class == NC_VLEN)
+               nc_free_vlen((nc_vlen_t *)var->fill_value);
+            else if (var->type_info->nc_typeid == NC_STRING)
+               free(*(char **)var->fill_value);
+         }
       }
       free(var->fill_value);
    }
 
    /* For atomic types we have allocated space for type information. */
-/*   if (var->hdf_datasetid && var->xtype <= NC_STRING)*/
-   if (var->xtype <= NC_STRING)
+   if (var->type_info && var->xtype <= NC_STRING)
    {
       if (var->type_info->native_typeid)
 	 if ((H5Tclose(var->type_info->native_typeid)) < 0)
@@ -1158,7 +1160,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
 	  H5Dclose(var->hdf_datasetid) < 0)
 	 return NC_EHDFERR;
       v = var->next;
-      if ((retval = var_list_del(&grp->var, var)))
+      if ((retval = nc4_var_list_del(&grp->var, var)))
 	 return retval;
       var = v;
    }
