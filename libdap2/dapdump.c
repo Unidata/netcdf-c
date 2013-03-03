@@ -285,7 +285,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
     ncbytescat(buf," {\n");
     for(i=0;i<nclistlength(root->subnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(root->subnodes,i);
-	if(visible && !root->visible) continue;
+	if(visible && root->invisible) continue;
 	if(root->nctype == NC_Grid) {
 	    if(i==0) {
 		dumpindent(indent+1,buf);
@@ -311,7 +311,7 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
     char* primtype = NULL;
     NClist* dimset = NULL;
 
-    if(visible && !root->visible) return;
+    if(visible && root->invisible) return;
     switch (root->nctype) {
     case NC_Dataset:
 	dumptreer1(root,buf,indent,"Dataset",visible);
@@ -454,7 +454,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"elided=%d\n",node->elided);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"visible=%d\n",node->visible);
+    snprintf(tmp,sizeof(tmp),"invisible=%d\n",node->invisible);
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"attachment=%s\n",
 		(node->attachment?node->attachment->ocname:"null"));

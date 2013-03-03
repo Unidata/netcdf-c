@@ -78,11 +78,8 @@ else
 
 /* Compute the set of prefetched data.
    Notes:
-   1. Even if caching is off, we will
-       still prefetch the small variables,
-       unless prefetch is specifically disabled.
-   2. All prefetches are whole variable fetches.
-   3. If the data set is unconstrainable, we
+   1. All prefetches are whole variable fetches.
+   2. If the data set is unconstrainable, we
       will prefetch the whole thing
 */
 NCerror
@@ -90,7 +87,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
-    NClist* allvars = nccomm->cdf.varnodes;
+    NClist* allvars = nccomm->cdf.ddsroot->tree->varnodes;
     DCEconstraint* urlconstraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
@@ -108,11 +105,15 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     	    nccomm->cdf.cache->prefetch = NULL;
 	    goto done;
 	}
-    } else { /* can use projections to get subset of variables */
-	/* pull in those variables of sufficiently small size */
+    } else {
+	/* pull in those variables previously marked as prefetchable */
         for(i=0;i<nclistlength(allvars);i++) {
             CDFnode* var = (CDFnode*)nclistget(allvars,i);
             size_t nelems = 1;
+
+	    /* Most of the important testing was already done */
+	    if(!var->basenode->prefetchable)
+		continue;
 
 	    /* Do not attempt to prefetch any variables in the
                nc_open url's projection list
@@ -120,25 +121,11 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	    if(nclistcontains(nccomm->cdf.projectedvars,(void*)var))
 		continue;
 
-            if(!isnc4) {
-	        /* If netcdf 3 and var is a sequence or under a sequence, then never prefetch */
-	        if(var->nctype == NC_Sequence || dapinsequence(var)) continue;
-	    }
-
-            /* Compute the # of elements in the variable */
-            for(j=0;j<nclistlength(var->array.dimset0);j++) {
-                CDFnode* dim = (CDFnode*)nclistget(var->array.dimset0,j);
-                nelems *= dim->dim.declsize0;
-	    }
-if(SHOWFETCH) {
-nclog(NCLOGDBG,"prefetch: %s=%lu",var->ncfullname,(unsigned long)nelems);
-}
-	    if(nelems <= nccomm->cdf.smallsizelimit) {
-	        nclistpush(vars,(void*)var);
+	    /* Should be prefetchable */
+            nclistpush(vars,(void*)var);
 if(SHOWFETCH) {
 nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 }
-	    }
 	}
     }
 
@@ -190,11 +177,11 @@ ncbytescat(buf," ");
 s = makecdfpathstring3(var,".");
 ncbytescat(buf,s);
 nullfree(s);
-}
+ }
 ncbytescat(buf,"\n");
 nclog(NCLOGNOTE,"%s",ncbytescontents(buf));
 ncbytesfree(buf);
-}
+ }
 
 done:
     nclistfree(vars);
@@ -374,4 +361,46 @@ iscacheableconstraint(DCEconstraint* con)
 	    return 0;
     }
     return 1;
+}
+
+/*
+A variable is prefetchable if
+1. it is atomic
+2. it's size is sufficiently small
+3. it is not contained in sequence or a dimensioned structure.
+*/
+NCerror
+markprefetch3(NCDAPCOMMON* nccomm)
+{
+    int i,j;
+    NClist* allvars = nccomm->cdf.fullddsroot->tree->varnodes;
+    assert(allvars != NULL);
+    /* mark those variables of sufficiently small size */
+    for(i=0;i<nclistlength(allvars);i++) {
+	CDFnode* var = (CDFnode*)nclistget(allvars,i);
+	size_t nelems;
+
+	/* If var is not atomic, then it is not prefetchable */
+	if(var->nctype != NC_Atomic)
+	    continue;
+
+        /* if var is under a sequence, then never prefetch */
+        if(dapinsequence(var))
+	    continue;
+
+        /* Compute the # of elements in the variable */
+        for(nelems=1,j=0;j<nclistlength(var->array.dimsettrans);j++) {
+            CDFnode* dim = (CDFnode*)nclistget(var->array.dimsettrans,j);
+            nelems *= dim->dim.declsize;
+	}
+	if(nelems <= nccomm->cdf.smallsizelimit) {
+	    var->prefetchable = 1;
+if(SHOWFETCH)
+ {
+nclog(NCLOGDBG,"prefetchable: %s=%lu",
+      ocfqn(var->ocnode),(unsigned long)nelems);
+ }
+	}
+    }
+    return NC_NOERR;
 }

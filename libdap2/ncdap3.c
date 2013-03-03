@@ -186,6 +186,19 @@ NCD3_open(const char * path, int mode,
     ncstat = fetchtemplatemetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
+    /* Operations on the template tree */
+
+    /* Accumulate useful nodes sets  */
+    ncstat = computecdfnodesets3(dapcomm,dapcomm->cdf.fullddsroot->tree);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
+
+    /* Define the dimsettrans list */
+    ncstat = definedimsets3(dapcomm,dapcomm->cdf.fullddsroot->tree);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
+
+    /* Mark the nodes of the template that are eligible for prefetch */
+    ncstat = markprefetch3(dapcomm);
+
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
@@ -194,11 +207,10 @@ NCD3_open(const char * path, int mode,
 fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
 #endif
 
-
-    /* The following actions are (mostly) WRT to the constrained tree */
+    /* Operations on the constrained tree */
 
     /* Accumulate useful nodes sets  */
-    ncstat = computecdfnodesets3(dapcomm);
+    ncstat = computecdfnodesets3(dapcomm,dapcomm->cdf.ddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Fix grids */
@@ -221,14 +233,14 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     ncstat = addstringdims(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    if(nclistlength(dapcomm->cdf.seqnodes) > 0) {
+    if(nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes) > 0) {
 	/* Build the sequence related dimensions */
         ncstat = defseqdims(dapcomm);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* Define the dimsetplus and dimsetall lists */
-    ncstat = definedimsets3(dapcomm);
+    ncstat = definedimsets3(dapcomm,dapcomm->cdf.ddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the dimension names*/
@@ -246,13 +258,15 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     ncstat = defrecorddim3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
     if(dapcomm->cdf.recorddimname != NULL
-       && nclistlength(dapcomm->cdf.seqnodes) > 0) {
+       && nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes) > 0) {
 	/*nclog(NCLOGWARN,"unlimited dimension specified, but sequences exist in DDS");*/
 	PANIC("unlimited dimension specified, but sequences exist in DDS");	
     }
 
     /* Re-compute the var names*/
-    ncstat = computecdfvarnames3(dapcomm,dapcomm->cdf.ddsroot,dapcomm->cdf.varnodes);
+    ncstat = computecdfvarnames3(dapcomm,
+				 dapcomm->cdf.ddsroot,
+				 dapcomm->cdf.ddsroot->tree->varnodes);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Transfer data from the unconstrained DDS data to the unconstrained DDS */
@@ -330,7 +344,8 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
     }
 
     /* Do any necessary data prefetch */
-    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)) {
+    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)
+       && FLAGSET(dapcomm->controls,NCF_PREFETCH_EAGER)) {
         ncstat = prefetchdata3(dapcomm);
         if(ncstat != NC_NOERR) {
             del_from_NCList((NC*)drno); /* undefine here */
@@ -404,7 +419,7 @@ builddims(NCDAPCOMMON* dapcomm)
     char* definename;
 
     /* collect all dimensions from variables */
-    dimset = dapcomm->cdf.dimnodes;
+    dimset = dapcomm->cdf.ddsroot->tree->dimnodes;
 
     /* Sort by fullname just for the fun of it */
     for(;;) {
@@ -484,7 +499,7 @@ buildvars(NCDAPCOMMON* dapcomm)
     int i,j;
     NCerror ncstat = NC_NOERR;
     int varid;
-    NClist* varnodes = dapcomm->cdf.varnodes;
+    NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     NC* drno = dapcomm->controller;
     char* definename;
 
@@ -495,7 +510,7 @@ buildvars(NCDAPCOMMON* dapcomm)
 	unsigned int ncrank;
         NClist* vardims = NULL;
 
-	if(!var->visible) continue;
+	if(var->invisible) continue;
 	if(var->array.basevar != NULL) continue;
 
 #ifdef DEBUG1

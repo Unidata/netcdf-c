@@ -12,17 +12,17 @@ and the per-retrieval maximum size
 */
 
 /* Use slightly misspelled names to avoid conflicts */
-#define KILBYTE 0x400
+#define KILOBYTE 0x400
 #define MEGBYTE 0x100000
 #define GIGBYTE 0x40000000
 
 /* The cache limit is in terms of bytes */
 #define DFALTCACHELIMIT (100*MEGBYTE)
 /* The fetch limit is in terms of bytes */
-#define DFALTFETCHLIMIT (100*KILBYTE)
+#define DFALTFETCHLIMIT (100*KILOBYTE)
 
 /* WARNING: The small limit is in terms of the # of vector elements */
-#define DFALTSMALLLIMIT (1*KILBYTE)
+#define DFALTSMALLLIMIT (4096)
 
 /* Max number of cache nodes */
 #define DFALTCACHECOUNT (100)

@@ -95,7 +95,7 @@ extern struct NCTMODEL nctmodels[];
 
 /* Internal, but non-static procedures */
 extern NCerror computecdfvarnames3(NCDAPCOMMON*,CDFnode*,NClist*);
-extern NCerror computecdfnodesets3(NCDAPCOMMON* drno);
+extern NCerror computecdfnodesets3(NCDAPCOMMON* nccomm, CDFtree* tree);
 extern NCerror computevarnodes3(NCDAPCOMMON*, NClist*, NClist*);
 extern NCerror collectvardefdims(NCDAPCOMMON* drno, CDFnode* var, NClist* dimset);
 extern NCerror fixgrids3(NCDAPCOMMON* drno);
