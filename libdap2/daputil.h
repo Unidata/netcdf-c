@@ -49,6 +49,7 @@ extern int nclistdeleteall(NClist* l1, void*);
 extern char* getvaraprint(void* gv);
 
 extern int dapinsequence(struct CDFnode* node);
+extern int dapinstructarray(struct CDFnode* node);
 extern int daptopgrid(struct CDFnode* node);
 extern int daptopseq(struct CDFnode* node);
 extern int daptoplevel(struct CDFnode* node);

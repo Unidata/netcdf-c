@@ -182,7 +182,7 @@ computecdfdimnames34(NCDAPCOMMON* nccomm)
     int i,j;
     char tmp[NC_MAX_NAME*2];
     NClist* conflicts = nclistnew();
-    NClist* varnodes = nccomm->cdf.varnodes;
+    NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
     NClist* alldims;
     NClist* basedims;
     
@@ -279,7 +279,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	}
     }
 
-    nccomm->cdf.dimnodes = basedims;
+    nccomm->cdf.ddsroot->tree->dimnodes = basedims;
 
     /* cleanup */
     nclistfree(alldims);
@@ -583,8 +583,8 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
-    for(i=0;i<nclistlength(nccomm->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.varnodes,i);
+    for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
 	/* Define the client param stringlength for this variable*/
 	var->maxstringlength = 0; /* => use global dfalt */
 	strcpy(tmpname,"stringlength_");
@@ -651,6 +651,9 @@ freecdfroot34(CDFnode* root)
 	free1cdfnode34(node);
     }
     nclistfree(tree->nodes);
+    nclistfree(tree->varnodes);
+    nclistfree(tree->seqnodes);
+    nclistfree(tree->gridnodes);
     nullfree(tree);
 }
 
@@ -936,12 +939,12 @@ getalldims34(NCDAPCOMMON* nccomm, int visibleonly)
 {
     int i;
     NClist* alldims = nclistnew();
-    NClist* varnodes = nccomm->cdf.varnodes;
+    NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
 
     /* get bag of all dimensions */
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
-	if(!visibleonly || node->visible) {
+	if(!visibleonly || !node->invisible) {
 	    getalldims34a(node->array.dimsetall,alldims);
 	}
     }

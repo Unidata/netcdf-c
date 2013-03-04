@@ -494,6 +494,19 @@ dapinsequence(CDFnode* node)
     return FALSE;
 }
 
+/* Is node contained (transitively) in a structure array */
+BOOL
+dapinstructarray(CDFnode* node)
+{
+    if(node == NULL) return TRUE;
+    for(node=node->container;node->nctype != NC_Dataset;node=node->container) {
+       if(node->nctype == NC_Structure
+	  && nclistlength(node->array.dimset0) > 0)
+	    return TRUE;
+    }
+    return FALSE;
+}
+
 /* Is node a map field of a grid? */
 BOOL
 dapgridmap(CDFnode* node)
@@ -579,7 +592,7 @@ getlimitnumber(const char* limit)
     switch (limit[slen-1]) {
     case 'G': case 'g': multiplier = GIGBYTE; break;
     case 'M': case 'm': multiplier = MEGBYTE; break;
-    case 'K': case 'k': multiplier = KILBYTE; break;
+    case 'K': case 'k': multiplier = KILOBYTE; break;
     default: break;
     }
     sscanf(limit,"%lu",&lu);

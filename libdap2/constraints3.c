@@ -61,11 +61,14 @@ mapconstraints3(DCEconstraint* constraint,
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceprojections);i++) {
+	CDFnode* cdfmatch = NULL;
 	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
 	if(proj->discrim != CES_VAR) continue; // ignore functions
-	ncstat = matchpartialname3(nodes,proj->var->segments,
-				   (CDFnode**)&proj->var->annotation);
+	ncstat = matchpartialname3(nodes,proj->var->segments,&cdfmatch);
 	if(ncstat) goto done;
+	/* Cross links */
+	assert(cdfmatch != NULL);
+	proj->var->annotation = (void*)cdfmatch;
     }
 
 #ifdef DEBUG

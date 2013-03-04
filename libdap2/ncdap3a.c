@@ -34,10 +34,6 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
     /* abort the metadata file */
     (void)nc_abort(getncid(dapcomm));
     freenccache(dapcomm,dapcomm->cdf.cache);
-    nclistfree(dapcomm->cdf.varnodes);
-    nclistfree(dapcomm->cdf.seqnodes);
-    nclistfree(dapcomm->cdf.gridnodes);
-    nclistfree(dapcomm->cdf.usertypes);
     nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
 
@@ -72,7 +68,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
        All such dimensions are global.
     */
     int i;
-    NClist* varnodes = dapcomm->cdf.varnodes;
+    NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     CDFnode* globalsdim = NULL;
     char dimname[4096];
     size_t dimsize;
@@ -140,7 +136,7 @@ defrecorddim3(NCDAPCOMMON* dapcomm)
 
     if(dapcomm->cdf.recorddimname == NULL) return NC_NOERR; /* ignore */
     /* Locate the base dimension matching the record dim */
-    basedims = dapcomm->cdf.dimnodes;
+    basedims = dapcomm->cdf.ddsroot->tree->dimnodes;
     for(i=0;i<nclistlength(basedims);i++) {
         CDFnode* dim = (CDFnode*)nclistget(basedims,i);
 	if(strcmp(dim->ocname,dapcomm->cdf.recorddimname) != 0) continue;
@@ -171,8 +167,8 @@ defseqdims(NCDAPCOMMON* dapcomm)
 	All other sequences will be ignored.
     */
 
-    for(i=0;i<nclistlength(dapcomm->cdf.seqnodes);i++) {
-        CDFnode* seq = (CDFnode*)nclistget(dapcomm->cdf.seqnodes,i);
+    for(i=0;i<nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes);i++) {
+        CDFnode* seq = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->seqnodes,i);
 	size_t seqsize;
 	CDFnode* sqdim = NULL;
 	CDFnode* container;
@@ -571,8 +567,8 @@ estimatevarsizes3(NCDAPCOMMON* dapcomm)
     unsigned int rank;
     size_t totalsize = 0;
 
-    for(ivar=0;ivar<nclistlength(dapcomm->cdf.varnodes);ivar++) {
-        CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.varnodes,ivar);
+    for(ivar=0;ivar<nclistlength(dapcomm->cdf.ddsroot->tree->varnodes);ivar++) {
+        CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,ivar);
 	NClist* ncdims = var->array.dimset0;
 	rank = nclistlength(ncdims);
 	if(rank == 0) { /* use instance size of the type */
@@ -645,7 +641,7 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
 	ocstat = OC_NOERR;
     }
 
-    /* Construct our parallel dds tree */
+    /* Construct the netcdf cdf tree corresponding to the dds tree*/
     ncstat = buildcdftree34(dapcomm,ocroot,OCDDS,&ddsroot);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     dapcomm->cdf.fullddsroot = ddsroot;
@@ -721,8 +717,8 @@ suppressunusablevars3(NCDAPCOMMON* dapcomm)
     while(found) {
 	found = 0;
 	/* Walk backwards to aid removal semantics */
-	for(i=nclistlength(dapcomm->cdf.varnodes)-1;i>=0;i--) {
-	    CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.varnodes,i);
+	for(i=nclistlength(dapcomm->cdf.ddsroot->tree->varnodes)-1;i>=0;i--) {
+	    CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,i);
 	    /* See if this var is under an unusable sequence */
 	    nclistclear(path);
 	    collectnodepath3(var,path,WITHOUTDATASET);
@@ -739,7 +735,7 @@ fprintf(stderr,"suppressing var in unusable sequence: %s.%s\n",node->ncfullname,
 	    }
 	    if(found) break;
 	}
-        if(found) nclistremove(dapcomm->cdf.varnodes,i);
+        if(found) nclistremove(dapcomm->cdf.ddsroot->tree->varnodes,i);
     }
     nclistfree(path);
     return NC_NOERR;
@@ -754,15 +750,15 @@ NCerror
 fixzerodims3(NCDAPCOMMON* dapcomm)
 {
     int i,j;
-    for(i=0;i<nclistlength(dapcomm->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.varnodes,i);
+    for(i=0;i<nclistlength(dapcomm->cdf.ddsroot->tree->varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,i);
         NClist* ncdims = var->array.dimsetplus;
 	if(nclistlength(ncdims) == 0) continue;
         for(j=0;j<nclistlength(ncdims);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(ncdims,j);
 	    if(dim->dim.declsize == 0) {
 	 	/* make node invisible */
-		var->visible = 0;
+		var->invisible = 1;
 		var->zerodim = 1;
 	    }
 	}
@@ -775,10 +771,11 @@ applyclientparamcontrols3(NCDAPCOMMON* dapcomm)
 {
     /* clear the flags */
     CLRFLAG(dapcomm->controls,NCF_CACHE);
-    CLRFLAG(dapcomm->controls,NCF_PREFETCH);
     CLRFLAG(dapcomm->controls,NCF_SHOWFETCH);
     CLRFLAG(dapcomm->controls,NCF_NC3);
     CLRFLAG(dapcomm->controls,NCF_NCDAP);
+    CLRFLAG(dapcomm->controls,NCF_PREFETCH);
+    CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
 
     /* Turn on any default on flags */
     SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);    
@@ -790,12 +787,18 @@ applyclientparamcontrols3(NCDAPCOMMON* dapcomm)
     else if(paramcheck34(dapcomm,"nocache",NULL))
 	CLRFLAG(dapcomm->controls,NCF_CACHE);
 
-    /* enable/disable cache prefetch */
-    if(paramcheck34(dapcomm,"prefetch",NULL))
-	SETFLAG(dapcomm->controls,NCF_PREFETCH);
-    else if(paramcheck34(dapcomm,"noprefetch",NULL))
-	CLRFLAG(dapcomm->controls,NCF_PREFETCH);
-
+    /* enable/disable cache prefetch and lazy vs eager*/
+    if(FLAGSET(dapcomm->controls,NCF_CACHE)) {
+        if(paramcheck34(dapcomm,"prefetch","eager")) {
+            SETFLAG(dapcomm->controls,NCF_PREFETCH);
+            SETFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+        } else if(paramcheck34(dapcomm,"prefetch","lazy")
+                  || paramcheck34(dapcomm,"prefetch",NULL)) {
+            SETFLAG(dapcomm->controls,NCF_PREFETCH);
+            CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+        } else if(paramcheck34(dapcomm,"noprefetch",NULL))
+            CLRFLAG(dapcomm->controls,NCF_PREFETCH);
+    }
 
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	SETFLAG(dapcomm->controls,NCF_CACHE);
