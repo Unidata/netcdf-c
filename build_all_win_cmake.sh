@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VER="netCDF4.3RC2"
+
 #####
 # Help statement.
 #####
@@ -64,7 +66,7 @@ DOBUILD () {
     CHECKERR
 
     for X in zip dmg exe; do
-	    TNAME="NetCDF-$NAME.$X"
+	    TNAME="$NAME.$X"
 	    if [ -f $TNAME ]; then
 		    mv -f $TNAME $INSTALLDIRS
 	    fi
@@ -100,7 +102,6 @@ fi
 #####
 
 unamestr=`uname | cut -d " " -f 1`
-VER="netCDF4.3RC1"
 CURDIR=`pwd`
 ALLBUILDS=$CURDIR/"all_builds/"
 INSTALLDIRS=$ALLBUILDS"packages"
