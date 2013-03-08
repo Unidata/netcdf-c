@@ -4,6 +4,12 @@
  *   "$Id $"
  *********************************************************************/
 
+/*
+This nciter code was derived from the ncdump/nciter code.
+It has diverged slightly over time.
+*/
+
+
 #include "includes.h"
 #include "nc_iter.h"
 
