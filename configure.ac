@@ -80,8 +80,10 @@ AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
-              [AS_HELP_STRING([--disable-fsync],
-                              [disable fsync support])])
+              [AS_HELP_STRING([--enable-fsync],
+                              [enable fsync support])],
+				[],
+				[enable_fsync=no])
 test "x$enable_fsync" = xno || enable_fsync=yes
 AC_MSG_RESULT($enable_fsync)
 if test "x$enable_fsync" = xyes ; then

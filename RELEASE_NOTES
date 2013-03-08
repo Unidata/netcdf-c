@@ -8,6 +8,10 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
+	 	fsync: Changed default in autotools config
+		file; fsync must now be explicitely enabled
+		instead of explicitely disabled.
+
 		Fixed bug in handling old servers that do not do
 		proper Grid to Structure conversions. [NCF-232]
 
