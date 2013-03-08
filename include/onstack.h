@@ -60,11 +60,10 @@
 
 # define FREE_ONSTACK(name)
 
-#elsif defined(_WIN32) || defined(_WIN64)
+#elif defined(_WIN32) || defined(_WIN64)
 #include <malloc.h>
 #undef ALLOCA_ARG_T
 # define ALLOCA_ARG_T size_t
-#endif
 
 #else
 /*
