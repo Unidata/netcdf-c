@@ -8,6 +8,11 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
+		Fixed bug with incorrect fixed-size variable offsets in header
+		getting written when schema changed for files created
+		by parallel-netcdf.  Thanks to Wei-keng Liao for
+		developing and contributing the fix. [NCF-234]
+
 	 	fsync: Changed default in autotools config
 		file; fsync must now be explicitely enabled
 		instead of explicitely disabled.
