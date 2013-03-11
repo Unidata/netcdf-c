@@ -17,6 +17,16 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF()
 
 
+# Get system configuration
+find_program(UNAME NAMES uname)
+macro(getuname name flag)
+        exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
+endmacro(getuname)
+getuname(osname -s)
+getuname(osrel  -r)
+getuname(cpu    -m)
+set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
+
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -141,6 +151,16 @@ MACRO(add_bin_test_no_prefix F)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
 ENDMACRO()
+
+# Binary tests which are used by a script looking for a specific name.
+MACRO(build_bin_test_no_prefix F)
+	build_bin_test(${F})
+	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+	IF(MSVC)
+		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+	ENDIF()	
+ENDMACRO()
+
 
 MACRO(add_bin_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
