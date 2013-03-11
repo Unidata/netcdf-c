@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
+
 #include "netcdf.h"
 #include "nc3internal.h"
 #include "ncx.h"
