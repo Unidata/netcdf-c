@@ -107,8 +107,9 @@ if TEST_PARALLEL
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
 tst_parallel4 tst_nc4perf
 TESTS += run_par_test.sh
+# More tests run with --enable-pnetcdf
 if USE_PNETCDF
-check_PROGRAMS += tst_parallel2
+check_PROGRAMS += tst_parallel2 tst_pnetcdf
 TESTS += run_pnetcdf_test.sh
 endif
 endif
