@@ -612,7 +612,7 @@ move_recs_r(NC3_INFO *gnu, NC3_INFO *old)
 static int
 move_vars_r(NC3_INFO *gnu, NC3_INFO *old)
 {
-	int i, err, status=NC_NOERR;
+	int err, status=NC_NOERR;
 	int varid;
 	NC_var **gnu_varpp = (NC_var **)gnu->vars.value;
 	NC_var **old_varpp = (NC_var **)old->vars.value;

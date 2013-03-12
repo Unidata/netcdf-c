@@ -415,7 +415,6 @@ builddims(NCDAPCOMMON* dapcomm)
     NClist* dimset = NULL;
     NC* drno = dapcomm->controller;
     NC* ncsub;
-    NC3_INFO* nc3sub;
     char* definename;
 
     /* collect all dimensions from variables */
@@ -452,9 +451,8 @@ builddims(NCDAPCOMMON* dapcomm)
         /* get the id for the substrate */
         ncstat = NC_check_id(drno->substrate,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
-
 #if 0
+	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
            note that this cannot easily be done thru the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
