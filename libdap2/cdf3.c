@@ -33,11 +33,9 @@ NCerror
 computecdfnodesets3(NCDAPCOMMON* nccomm, CDFtree* tree)
 {
     unsigned int i;
-    CDFnode* root;
     NClist* varnodes;
     NClist* allnodes;
 
-    root = tree->root;
     allnodes = tree->nodes;
     varnodes = nclistnew(); 
 
@@ -376,14 +374,12 @@ ocfqn(parentnode->ocnode),ocfqn(templateparent->ocnode));
     for(index=0;index<nclistlength(parentnode->subnodes);index++) {
         CDFnode* subnode = (CDFnode*)nclistget(parentnode->subnodes,index);
 	CDFnode* matchnode = NULL;
-	int      matchindex = -1;
 
 	/* Look for a matching template node with same ocname */
         for(i=0;i<nclistlength(templateparent->subnodes);i++) {
             CDFnode* subtemp = (CDFnode*)nclistget(templateparent->subnodes,i);
 	    if(strcmp(subnode->ocname,subtemp->ocname) == 0) {
 		matchnode = subtemp;
-		matchindex = i;
 		break;
 	    }
 	}

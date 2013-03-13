@@ -85,7 +85,7 @@ else
 NCerror
 prefetchdata3(NCDAPCOMMON* nccomm)
 {
-    int i,j;
+    int i;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.ddsroot->tree->varnodes;
     DCEconstraint* urlconstraint = nccomm->oc.dapconstraint;
@@ -109,7 +109,6 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 	/* pull in those variables previously marked as prefetchable */
         for(i=0;i<nclistlength(allvars);i++) {
             CDFnode* var = (CDFnode*)nclistget(allvars,i);
-            size_t nelems = 1;
 
 	    /* Most of the important testing was already done */
 	    if(!var->basenode->prefetchable)
@@ -397,7 +396,8 @@ markprefetch3(NCDAPCOMMON* nccomm)
 	    var->prefetchable = 1;
 if(SHOWFETCH)
  {
-nclog(NCLOGDBG,"prefetchable: %s=%lu",
+  extern char* ocfqn(OCddsnode);
+  nclog(NCLOGDBG,"prefetchable: %s=%lu",
       ocfqn(var->ocnode),(unsigned long)nelems);
  }
 	}
