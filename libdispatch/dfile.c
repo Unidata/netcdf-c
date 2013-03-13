@@ -91,6 +91,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL_MPIO
+/* Note that this assumes netcdf-4 support is enabled */
    if (use_parallel) 
    {
       MPI_File fh;

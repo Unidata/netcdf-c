@@ -22,7 +22,8 @@
 
 int main(int argc, char* argv[])
 {
-    int i, j, rank, nprocs, err, ncid, cmode, varid[NVARS], dimid[2], *buf;
+    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf;
+    int err = 0;
     char str[32];
     size_t start[2], count[2];
     MPI_Comm comm=MPI_COMM_SELF;
@@ -87,8 +88,8 @@ int main(int argc, char* argv[])
     if (nc_close(ncid)) ERR;
     if (info != MPI_INFO_NULL) MPI_Info_free(&info);
 
-    /* re-open the file with netCDF and enter define mode */
-    if (nc_open(FILENAME, NC_WRITE, &ncid)) ERR_RET;
+    /* re-open the file with netCDF (parallel) and enter define mode */
+    if (nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid)) ERR_RET;
     if (nc_redef(ncid)) ERR;
 
     /* add attributes to make header grow */
