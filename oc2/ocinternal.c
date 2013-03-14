@@ -365,7 +365,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
     int fd = 0;
     char* tmpname = NULL;
     size_t tmpsize = strlen(tmppath)+strlen("dataddsXXXXXX") + 1;
-    tmpname = (char*)malloc(tmpsize);
+    tmpname = (char*)alloca(tmpsize);
     if(tmpname == NULL) return -1;
     if(!occopycat(tmpname,tmpsize,1,tmppath))
 	return OC_EOVERRUN;
