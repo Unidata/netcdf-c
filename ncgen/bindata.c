@@ -32,12 +32,13 @@ bin_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
     }
     switch (con->nctype) {
     case NC_OPAQUE: {
-        unsigned char* bytes;
+        unsigned char* bytes = NULL;
         size_t len;
 	/* Assume the opaque string has been normalized */
         bytes=makebytestring(con->value.opaquev.stringv,&len);
         bbAppendn(buf,(void*)bytes,len);
-        } break;
+	free(bytes);
+    } break;
     case NC_CHAR:
         bbAppendn(buf,&con->value.charv,sizeof(con->value.charv));
         break;

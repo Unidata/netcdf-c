@@ -606,6 +606,7 @@ convertstringtochars(Constant* str)
 	con.nctype = NC_CHAR;
         con.lineno = str->lineno;
         con.value.charv = s[i];
+	con.filled = 0;
 	dlappend(dl,&con);
     }
     return dl;
