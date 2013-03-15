@@ -2,12 +2,12 @@ NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
 #CYGWIN
-LFLAG=-L/usr/local/lib
+#LFLAG=-L/usr/local/lib
 #HDF5LIB=/usr/local/lib/libhdf5_hl.a /usr/local/lib/libhdf5.a
 
 #!CYGWIN
-#LFLAG=-L/upc/share/ed/local/${HOST}/lib
-#HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
+LFLAG=-L/upc/share/ed/local/${HOST}/lib
+HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 CURLLIB=-lcurl
 ZLIB=-lz
@@ -258,7 +258,7 @@ fix::
 	done
 
 ##################################################
-T=civ
+T=civ2
 
 v::
 	cc -g -c ${T}.c ${INCL}
