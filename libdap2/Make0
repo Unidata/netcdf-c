@@ -247,12 +247,6 @@ vpt::
 	date; ./vpt.exe "[compile]http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_vpt" vpt.year; date
 
 ##################################################
-T=test_partvar
-
-v::
-	cc -g -c ${T}.c ${INCL}
-	cc -g -o v ${T}.o ${LIBS} ${RPATH}
-
 do::
 	pushd ..; make; popd ; $(MAKE) -f Make0 ncd
 ##################################################
@@ -262,3 +256,11 @@ fix::
 	rm -f ./$${f}.c ;\
 	sed -e 's/oc_log/nclog/g' -e 's/OCLOG/NCLOG/g' <ckp1/$${f}.c >./$${f}.c ; \
 	done
+
+##################################################
+T=civ
+
+v::
+	cc -g -c ${T}.c ${INCL}
+	cc -g -o v ${T}.o ${LIBS} ${RPATH}
+

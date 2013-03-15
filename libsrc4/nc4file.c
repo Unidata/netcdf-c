@@ -252,6 +252,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
+#ifdef USE_PNETCDF
+    if (cmode & NC_PNETCDF)
+	return NC_NOERR;
+#endif
+
    /* Need this access plist to control how HDF5 handles open onjects
     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
     * fail if there are any open objects in the file. */
