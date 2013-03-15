@@ -107,17 +107,12 @@ if TEST_PARALLEL
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3	\
 tst_parallel4 tst_nc4perf
 TESTS += run_par_test.sh
-# More tests run with --enable-pnetcdf
-if USE_PNETCDF
-check_PROGRAMS += tst_parallel2 tst_pnetcdf
-TESTS += run_pnetcdf_test.sh
-endif
 endif
 
 EXTRA_DIST = run_par_test.sh run_bm.sh run_bm_test1.sh run_bm_test2.sh	\
 run_bm_radar_2D.sh run_bm_radar_2D_compression1.sh run_par_bm_test.sh	\
 run_bm_elena.sh run_par_bm_radar_2D.sh run_bm_radar_2D_endianness1.sh	\
-run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl run_pnetcdf_test.sh	\
+run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl 			\
 run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\

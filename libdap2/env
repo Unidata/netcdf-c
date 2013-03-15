@@ -1,8 +1,9 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-#TOP="/home/dmh/mach/trunk"
-TOP="/cygdrive/f/svn/trunk"
+TOP="/home/dmh/mach/trunk"
+TOP="/home/dmh/mach/pnetcdf"
+#TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
@@ -10,8 +11,7 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://motherlode.ucar.edu:8081/dts/ingrid"
-CON="v3H[0:0][0:43]"
+F="file://${TOP}/ncdap_test/testdata3/synth9"
 
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
@@ -107,4 +107,6 @@ CON="U50M_EOSGRID_Data_Fields[0:23][282:282][441:441]"
 #CON="OneD.amp,TwoD.amp,ThreeD.amp"
 F="http://goldsmr2.sci.gsfc.nasa.gov/opendap/hyrax/MERRA/MAT1NXSLV.5.2.0/1990/01/MERRA100.prod.assim.tavg1_2d_slv_Nx.19900101.hdf"
 CON="U50M_EOSGRID_Data_Fields[0:23][282:282][441:441],XDim_EOSGRID"
+F="http://motherlode.ucar.edu:8081/dts/ingrid"
+CON="v3H[0:0][0:43]"
 fi

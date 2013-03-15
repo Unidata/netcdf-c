@@ -19,7 +19,7 @@ COPYRIGHT file for copying and redistribution conditions.
 #include <mfhdf.h>
 #endif
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 
@@ -252,7 +252,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
     if (cmode & NC_PNETCDF)
 	return NC_NOERR;
 #endif
@@ -429,7 +429,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
    nc_file->int_ncid = nc_file->ext_ncid;
    res = nc4_create_file(path, cmode, comm, info, nc_file);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    if (cmode & NC_PNETCDF)
    {
       NC_HDF5_FILE_INFO_T* nc4_info;
@@ -2752,7 +2752,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
    /* Depending on the type of file, open it. */
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    if(mode & NC_PNETCDF) {
 	/* this is not really an hdf file */
       int pnetcdf_nvars, i;
@@ -2837,7 +2837,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;	
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc4_info->pnetcdf_file)
      return ncmpi_set_fill(nc->int_ncid, fillmode, old_modep);
@@ -2862,7 +2862,7 @@ NC4_redef(int ncid)
       return NC_EBADID;
    assert(nc4_info);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc4_info->pnetcdf_file)
       return ncmpi_redef(nc->int_ncid);
@@ -2911,7 +2911,7 @@ static int NC4_enddef(int ncid)
       return NC_EBADID;
    assert(nc4_info);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    if (nc4_info->pnetcdf_file)
    {
       int res;
@@ -2991,7 +2991,7 @@ NC4_sync(int ncid)
       return NC_EBADID;
    assert(nc4_info);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc4_info->pnetcdf_file)
       return ncmpi_sync(nc->int_ncid);
@@ -3100,7 +3100,7 @@ NC4_abort(int ncid)
 
    assert(nc4_info);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (nc4_info->pnetcdf_file)
       return ncmpi_abort(nc->int_ncid);
@@ -3146,7 +3146,7 @@ NC4_close(int ncid)
    if (grp->parent)
       return NC_EBADGRPID;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_close(nc->int_ncid);
@@ -3180,7 +3180,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 
    assert(h5 && grp && nc);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq(nc->int_ncid, ndimsp, nvarsp, nattsp, unlimdimidp);

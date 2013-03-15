@@ -309,6 +309,8 @@ daplexinit(char* input, DAPlexstate** lexstatep)
     lexstate->yytext = ocbytesnew();
     lexstate->reclaim = oclistnew();
     dapsetwordchars(lexstate,0); /* Assume DDS */
+    if(!lexstatep)
+      free(lexstate);
 }
 
 void

@@ -1,8 +1,18 @@
 /** \substrate
 Define the substrate dispatch table and functions
 
-These functions end up calling functions in one of the dispatch layers
-(netCDF-4, dap server, etc) using the substrate field of struct NC.
+The idea of a substrate is that for some dispatch
+tables, it is convenient to delegate many of its functions
+of some other dispatch table, called the substrate.
+For example, the libdap2 code needs to create
+metadata. Rather than duplicate the code in libsrc,
+it is convenient to create a temporary
+netcdf-3 "file" (using in-memory data storage)
+and delegate the creation and inquiries about
+the metadata to that substrate netcdf-3 object.
+
+So, these functions end up calling functions in another
+dispatch table using the substrate field of struct NC.
 
 Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.  
@@ -854,11 +864,11 @@ NCSUB_put_varm,
 
 NCSUB_inq_var_all,
 
+NCSUB_var_par_access,
+
 #ifdef USE_NETCDF4
 NCSUB_show_metadata,
 NCSUB_inq_unlimdims,
-
-NCSUB_var_par_access,
 
 NCSUB_inq_ncid,
 NCSUB_inq_grps,

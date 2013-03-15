@@ -37,10 +37,11 @@ static int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *no_fill, void *fill_valuep, int *endiannessp, 
 	       int *options_maskp, int *pixels_per_blockp);
 
+static int NC3_var_par_access(int,int,int);
+
 #ifdef USE_NETCDF4
 static int NC3_show_metadata(int);
 static int NC3_inq_unlimdims(int,int*,int*);
-static int NC3_var_par_access(int,int,int);
 static int NC3_inq_ncid(int,const char*,int*);
 static int NC3_inq_grps(int,int*,int*);
 static int NC3_inq_grpname(int,char*);
@@ -122,10 +123,11 @@ NCDEFAULT_put_varm,
 
 NC3_inq_var_all,
 
+NC3_var_par_access,
+
 #ifdef USE_NETCDF4
 NC3_show_metadata,
 NC3_inq_unlimdims,
-NC3_var_par_access,
 NC3_inq_ncid,
 NC3_inq_grps,
 NC3_inq_grpname,
@@ -194,6 +196,12 @@ NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     return NC_NOERR;
 }
 
+static int
+NC3_var_par_access(int ncid, int varid, int par_access)
+{
+    return NC_NOERR; /* no-op for netcdf classic */
+}
+    
 #ifdef USE_NETCDF4
 
 static int
@@ -488,11 +496,5 @@ NC3_def_var_endian(int ncid, int varid, int endianness)
     return NC_ENOTNC4;
 }
 
-static int
-NC3_var_par_access(int ncid, int varid, int par_access)
-{
-    return NC_ENOTNC4;
-}
-    
 #endif /*USE_NETCDF4*/
     

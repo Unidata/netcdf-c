@@ -4,4 +4,4 @@ Attributes {
           Int32 a1 32;
 	}
       }
-    }
+}

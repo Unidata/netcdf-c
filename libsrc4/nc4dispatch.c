@@ -56,10 +56,10 @@ NCDEFAULT_put_varm,
 
 NC4_inq_var_all,
 
+NC4_var_par_access,
+
 NC4_show_metadata,
 NC4_inq_unlimdims,
-
-NC4_var_par_access,
 
 NC4_inq_ncid,
 NC4_inq_grps,

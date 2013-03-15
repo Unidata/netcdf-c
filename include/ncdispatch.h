@@ -85,6 +85,8 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 #define NC_DISPATCH_NC4    2
 #define NC_DISPATCH_NCD    4
 #define NC_DISPATCH_NCR    8
+#define NC_DISPATCH_NC5    16
+
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -107,15 +109,27 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 /* Define an alias for int to indicate an error return */
 typedef int NCerror;
 
+/* WARNING: this must match libsrc4/netcdf.h */
+#ifndef MPI_Comm
+#define MPI_Comm int
+#endif
+#ifndef MPI_Info
+#define MPI_Info int
+#endif
+#ifndef MPI_COMM_WORLD
+#define MPI_COMM_WORLD 0
+#endif
+#ifndef MPI_INFO_NULL
+#define MPI_INFO_NULL 0
+#endif
+
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It
  * should not be used by netcdf users. */
-#ifdef USE_PARALLEL
 typedef struct NC_MPI_INFO {
     MPI_Comm comm;
     MPI_Info info;
 } NC_MPI_INFO;
-#endif
 
 /* Define known dispatch tables and initializers */
 
@@ -131,6 +145,11 @@ extern int NC3_initialize(void);
 #ifdef USE_DAP
 extern NC_Dispatch* NCD3_dispatch_table;
 extern int NCD3_initialize(void);
+#endif
+
+#ifdef USE_PNETCDF
+extern NC_Dispatch* NC5_dispatch_table;
+extern int NC5_initialize(void);
 #endif
 
 #ifdef USE_NETCDF4
@@ -172,17 +191,6 @@ struct nc_vlen_t;
 
 struct NC;
 
-/* WARNING: this must match libsrc4/netcdf.h */
-#ifndef USE_PARALLEL
-#ifndef MPI_Comm
-#define MPI_Comm int
-#define MPI_Info int
-#define MPI_COMM_WORLD 0
-#ifndef MPI_INFO_NULL
-#define MPI_INFO_NULL 0
-#endif
-#endif
-#endif
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp, 
@@ -271,13 +279,14 @@ int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep,
                int *no_fill, void *fill_valuep, int *endiannessp, 
 	       int *options_maskp, int *pixels_per_blockp);
 
+int (*var_par_access)(int, int, int);
+
 /* Note the following may still be invoked by netcdf client code
    even when the file is a classic file
 */
 #ifdef USE_NETCDF4
 int (*show_metadata)(int);
 int (*inq_unlimdims)(int, int*, int*);
-int (*var_par_access)(int, int, int);
 int (*inq_ncid)(int, const char*, int*);
 int (*inq_grps)(int, int*, int*);
 int (*inq_grpname)(int, char*);
@@ -313,7 +322,6 @@ int (*def_var_endian)(int, int, int);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
 int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
 #endif /*USE_NETCDF4*/
-
 };
 
 /* Following functions must be handled as non-dispatch */

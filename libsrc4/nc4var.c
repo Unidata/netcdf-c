@@ -13,7 +13,7 @@ conditions.
 #include "nc4dispatch.h"
 #include <math.h>
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 
@@ -576,7 +576,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
@@ -623,7 +623,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    assert(nc);
    assert(grp && h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq_var(nc->int_ncid, varid, name, xtypep, ndimsp, 
@@ -1079,7 +1079,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    NC_VAR_INFO_T *var;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    NC_HDF5_FILE_INFO_T *h5;
 #endif
    
@@ -1094,7 +1094,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
       return retval;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    h5 = NC4_DATA(nc);
    assert(h5);
    /* Take care of files created/opened with parallel-netcdf library. */
@@ -1141,7 +1141,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_rename_var(nc->int_ncid, varid, name);
@@ -1219,7 +1219,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Handle files opened/created with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
@@ -1259,7 +1259,7 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
 {
    NC *nc;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    NC_HDF5_FILE_INFO_T *h5;
 #endif
    
@@ -1269,7 +1269,7 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    h5 = NC4_DATA(nc);
    assert(h5);
 
@@ -1399,7 +1399,7 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
    
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Handle files opened/created with the parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {

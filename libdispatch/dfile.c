@@ -24,6 +24,17 @@ Research/Unidata. See COPYRIGHT file for more info.
 #endif
 #include "ncdispatch.h"
 
+/* Define an enum over the possible set of
+   File Types
+*/
+enum FileType {
+FT_UNKNOWN,
+FT_HDF,
+FT_NC,
+FT_PNETCDF
+};
+
+
 static int nc_initialized = 0;
 
 /** \defgroup datasets NetCDF Files
@@ -82,16 +93,15 @@ nc_local_initialize(void)
 
 static int
 NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
-		   int *cdf, int *hdf)
+		   enum FileType* filetype, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
     
-   *hdf = 0; *cdf = 0;
+   *filetype = FT_UNKNOWN;
 
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL_MPIO
-/* Note that this assumes netcdf-4 support is enabled */
    if (use_parallel) 
    {
       MPI_File fh;
@@ -112,8 +122,6 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 	 return NC_EPARINIT;
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
 	 return NC_EPARINIT;
-      /* Pretend this is an HDF5 file */
-      *hdf = 5;
    } else
 #endif /* USE_PARALLEL */
    {
@@ -127,28 +135,34 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 	 return errno;
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
-	  if(i == 0 && errno == 22) //if file size < 4, Windows fread returns 0, errno 22.
-		return NC_ENOTNC;
+      if(i == 0 && errno == 22) //if file size < 4, Windows fread returns 0, errno 22.
+	return NC_ENOTNC;
       if(i != 1) 
-		 return errno;
+	return errno;
+    }
     
-      /* Ignore the first byte for HDF */
-      if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F')
-         *hdf = 5;
-      else if(magic[0] == '\016' && magic[1] == '\003'
-              && magic[2] == '\023' && magic[3] == '\001')
-         *hdf = 4;
-      else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') 
-      {
-         if(magic[3] == '\001') 
-            *cdf = 1; /* netcdf classic version 1 */
+    /* Look at the magic number */
+    /* Ignore the first byte for HDF */
+    if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
+	*filetype = FT_HDF;
+	*version = 5;
+    } else if(magic[0] == '\016' && magic[1] == '\003'
+              && magic[2] == '\023' && magic[3] == '\001') {
+	*filetype = FT_HDF;
+	*version = 4;
+    } else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
+	*filetype = FT_NC;
+        if(magic[3] == '\001') 
+            *version = 1; /* netcdf classic version 1 */
          else if(magic[3] == '\002') 
-            *cdf = 2; /* netcdf classic version 2 */
-         else
+            *version = 2; /* netcdf classic version 2 */
+         else if(magic[3] == '\005') {
+	    *filetype = FT_PNETCDF;
+            *version = 5; /* pnetcdf file */
+         } else
             return NC_ENOTNC;
-      } else
+     } else
             return NC_ENOTNC;
-    }       
    return NC_NOERR;
 }
 
@@ -1444,8 +1458,12 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
+      if(cmode & NC_NETCDF4)
 	model = NC_DISPATCH_NC4;
+      else if(cmode & NC_PNETCDF)
+	model = NC_DISPATCH_NC5;
+      else if(cmode & NC_CLASSIC_MODEL)
+	model = NC_DISPATCH_NC3;
    }
 
    if(model == 0) {
@@ -1499,6 +1517,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	dispatcher = NCD3_dispatch_table;
       else
 #endif
+#ifdef USE_PNETCDF
+      if(model == (NC_DISPATCH_NC5))
+	dispatcher = NC5_dispatch_table;
+      else
+#endif
       if(model == (NC_DISPATCH_NC3))
  	dispatcher = NC3_dispatch_table;
       else
@@ -1550,8 +1573,8 @@ NC_open(const char *path, int cmode,
    /* Need two pieces of information for now */
    int model = 0;
    int isurl = 0; 
-   int cdfversion = 0;
-   int hdfversion = 0;
+   int version;
+   enum FileType filetype;
 
    if(!nc_initialized) {
       stat = NC_initialize();
@@ -1564,23 +1587,36 @@ NC_open(const char *path, int cmode,
    isurl = NC_testurl(path);
    if(isurl)
       model = NC_urlmodel(path);
-
-   if(!isurl) {
+   else {
+      filetype = FT_UNKNOWN;
+      version = 0;
+      model = 0;
       /* Look at the file if it exists */
-      stat = NC_check_file_type(path,useparallel,mpi_info,&cdfversion,&hdfversion);
+      stat = NC_check_file_type(path,useparallel,mpi_info,
+				&filetype,&version);
       if(stat == NC_NOERR) {
-	 if(hdfversion != 0) {
+	switch (filetype) {
+	case FT_NC:
+	    if(version == 1 || version == 2)
+		model = NC_DISPATCH_NC3;
+	    break;
+	case FT_HDF:
 	    model = NC_DISPATCH_NC4;
-	 } else if(cdfversion != 0) {
-	    model = NC_DISPATCH_NC3;
-	 }
+	    break;
+	case FT_PNETCDF:
+	    model = NC_DISPATCH_NC5;
+	    break;
+	default:
+	    return NC_ENOTNC;
+	}
       } else /* presumably not a netcdf file */
 	return stat;
    }
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
-      if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF) model |= NC_DISPATCH_NC4;
+      if(cmode & NC_PNETCDF) model |= NC_DISPATCH_NC5;
+      else if(cmode & NC_NETCDF4) model |= NC_DISPATCH_NC4;
    }
 
    if(model == 0) model = NC_DISPATCH_NC3; /* final default */
@@ -1590,7 +1626,10 @@ NC_open(const char *path, int cmode,
       cmode |= NC_NETCDF4;
    else if(model & NC_DISPATCH_NC3) {
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
-      if(cdfversion == 2) cmode |= NC_64BIT_OFFSET;
+      if(version == 2) cmode |= NC_64BIT_OFFSET;
+   } else if(model & NC_DISPATCH_NC5) {
+      cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */ 
+      cmode |= NC_PNETCDF;
    }
 
    if((cmode & NC_MPIIO && cmode & NC_MPIPOSIX))
@@ -1609,6 +1648,11 @@ NC_open(const char *path, int cmode,
 #if defined(USE_DAP)
    if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
 	dispatcher = NCD3_dispatch_table;
+   else
+#endif
+#if  defined(USE_PNETCDF)
+   if(model == (NC_DISPATCH_NC5))
+	dispatcher = NC5_dispatch_table;
    else
 #endif
 #if defined(USE_NETCDF4)
