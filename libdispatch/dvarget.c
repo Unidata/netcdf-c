@@ -1383,6 +1383,10 @@ atomic type; it will not read user defined types. For this
 function, the type of the data in memory must match the type
 of the variable - no data conversion is done.
 
+Use of this family of functions is discouraged, although not
+formally deprecated. The reason is the complexity of the
+algorithm makes its use difficult for users to properly use.
+
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as 
 nc_inq_ncid().
