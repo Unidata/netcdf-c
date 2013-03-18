@@ -79,9 +79,6 @@ NCD3_open(const char * path, int mode,
     NCDAPCOMMON* dapcomm = NULL;
     const char* value;
 
-    /* We will use a fake file descriptor as our internal in-memory filename */
-    char tmpname[32];
-
     if(!nc3dinitialized) nc3dinitialize();
 
     if(path == NULL)
@@ -137,11 +134,18 @@ NCD3_open(const char * path, int mode,
     }
 
     /* Use libsrc code for storing metadata */
+    {
+	char tmpname[32];
 
-    snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
-    /* Now, use the file to create the netcdf file; always 64 bit */
-    ncstat = nc_create(tmpname,NC_DISKLESS|NC_64BIT_OFFSET,&drno->substrate);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+        /* Create fake file name: exact name must be unique,
+           but is otherwise irrelevant because we are using NC_DISKLESS
+        */
+        snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
+
+        /* Now, use the file to create the netcdf file; force classic.  */
+        ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&drno->substrate);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    }
 
     /* Avoid fill */
     nc_set_fill(drno->substrate,NC_NOFILL,NULL);

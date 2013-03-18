@@ -205,5 +205,4 @@ extern int ocinternalinitialize(void);
 
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 
-
 #endif /*COMMON_H*/
