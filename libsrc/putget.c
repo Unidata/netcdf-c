@@ -23,6 +23,9 @@
 #endif
 #include "nc3dispatch.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
 
 #undef MIN  /* system may define MIN somewhere and complain */
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))

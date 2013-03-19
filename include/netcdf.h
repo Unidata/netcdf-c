@@ -14,6 +14,10 @@ for more info.
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <errno.h>  /* netcdf functions sometimes return system errors */
 
+/* Required for alloca on Windows */ 
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
 
 #ifdef _WIN64
 #include <sys/stat.h>
