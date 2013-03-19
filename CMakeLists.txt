@@ -19,6 +19,7 @@ ENDIF()
 
 # Get system configuration
 find_program(UNAME NAMES uname)
+IF(UNAME)
 macro(getuname name flag)
         exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
 endmacro(getuname)
@@ -26,7 +27,7 @@ getuname(osname -s)
 getuname(osrel  -r)
 getuname(cpu    -m)
 set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
-
+ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
 

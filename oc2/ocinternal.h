@@ -6,6 +6,11 @@
 
 #include "config.h"
 
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
+
 #ifdef _AIX
 #include <netinet/in.h>
 #endif
