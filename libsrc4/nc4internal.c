@@ -668,7 +668,7 @@ nc4_dim_list_add(NC_DIM_INFO_T **list)
 }
 
 /* Add to the beginning of a dim list. */
-int
+static int
 nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
 {
    NC_DIM_INFO_T *dim;
@@ -1012,7 +1012,7 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
 }
 
 /* Delete a type from a type list, and nc_free the memory. */
-int
+static int
 type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 {
    NC_FIELD_INFO_T *field, *f;
@@ -1071,7 +1071,7 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 }
 
 /* Delete a del from a var list, and nc_free the memory. */
-int
+static int
 nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
 {
    /* Take this dimension out of the list. */

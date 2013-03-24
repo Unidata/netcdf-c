@@ -35,7 +35,7 @@ free_NC_string(NC_string *ncstrp)
 }
 
 
-int 
+static int 
 nextUTF8(const char* cp)
 {
     /*  The goal here is to recognize the length of each

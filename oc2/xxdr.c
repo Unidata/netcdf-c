@@ -240,7 +240,7 @@ xxdr_skip_strings(XXDR* xdrs, off_t n)
 }
 
 unsigned int
-xdr_roundup(unsigned int n)
+xxdr_roundup(off_t n)
 {
     unsigned int rounded;
     rounded = RNDUP(n);
