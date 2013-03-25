@@ -245,7 +245,7 @@ dcemergeprojections(DCEprojection* merged, DCEprojection* addition)
    that can be used with the url
 */
 
-static char*
+char*
 buildprojectionstring(NClist* projections)
 {
     char* pstring;
@@ -256,7 +256,7 @@ buildprojectionstring(NClist* projections)
     return pstring;
 }
 
-static char*
+char*
 buildselectionstring(NClist* selections)
 {
     NCbytes* buf = ncbytesnew();
@@ -267,7 +267,7 @@ buildselectionstring(NClist* selections)
     return sstring;
 }
 
-static char*
+char*
 buildconstraintstring(DCEconstraint* constraints)
 {
     NCbytes* buf = ncbytesnew();

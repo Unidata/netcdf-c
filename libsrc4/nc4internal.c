@@ -668,7 +668,8 @@ nc4_dim_list_add(NC_DIM_INFO_T **list)
 }
 
 /* Add to the beginning of a dim list. */
-static int
+#ifdef EXTERN_UNUSED
+int
 nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
 {
    NC_DIM_INFO_T *dim;
@@ -684,6 +685,7 @@ nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
       *new_dim = dim;
    return NC_NOERR;
 }
+#endif
 
 /* Add to the end of an att list. */
 int
