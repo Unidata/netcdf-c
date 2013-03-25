@@ -1071,7 +1071,7 @@ type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 }
 
 /* Delete a del from a var list, and nc_free the memory. */
-static int
+int
 nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
 {
    /* Take this dimension out of the list. */
