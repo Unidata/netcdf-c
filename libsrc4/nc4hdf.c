@@ -1420,9 +1420,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
       maxdimsize[d] = var->dim[d]->unlimited ? H5S_UNLIMITED : (hsize_t)var->dim[d]->len;
       chunksize[d] = var->chunksizes[d];*/
    
-         for (d = 0; d < var->ndims; d++)
-         for (g = grp; g && (dims_found < var->ndims); g = g->parent)
-            for (dim = g->dim; dim; dim = dim->next)
+      for (d = 0; d < var->ndims; d++)
+      {
+	 for (g = grp; g && (dims_found < var->ndims); g = g->parent) 
+	 {
+	    for (dim = g->dim; dim; dim = dim->next)
+	    {
                if (dim->dimid == var->dimids[d])
                {
                   dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
@@ -1456,6 +1459,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                   dims_found++;
                   break;
                }
+	    }
+	 }
+      }
       
       if (var->contiguous)
       {
@@ -2420,20 +2426,20 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
 }
 
 /* Recursively write all the metadata in a group. Groups and types
- * have all already been written. */
+ * have all already been written.  Propagate bad cooordinate order to
+ * subgroups, if detected. */
 int
-nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
+nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
 {
    NC_DIM_INFO_T *dim;
    NC_VAR_INFO_T *var;
    NC_GRP_INFO_T *child_grp;
    int found_coord, coord_varid = -1, wrote_coord;
-   int bad_coord_order = 0;
    int last_dimid = -1;
    int retval;
 
    assert(grp && grp->name && grp->hdf_grpid);
-   LOG((3, "nc4_rec_write_metadata: grp->name %s", grp->name));
+   LOG((3, "nc4_rec_write_metadata: grp->name %s, bad_coord_order %d", grp->name, bad_coord_order));
 
    /* Write global attributes for this group. */
    if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
@@ -2516,7 +2522,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
    
    /* If there are any child groups, write their metadata. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
-      if ((retval = nc4_rec_write_metadata(child_grp)))
+      if ((retval = nc4_rec_write_metadata(child_grp, bad_coord_order)))
          return retval;
       
    return NC_NOERR;

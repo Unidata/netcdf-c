@@ -79,14 +79,15 @@ main()
     size_t start[RANK];
     size_t count[RANK];
     char URL[4096];
-    const char* svc = NULL:
+    const char* svc = NULL;
     
-    /* Find Test Server *.
+    /* Find Test Server */
     svc = NC_findtestserver("dts");
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
 	exit(1);
     }
+    printf("Using test server: %s\n",svc);
     strcpy(URL,svc);
     strcat(URL,DTSTEST);
 

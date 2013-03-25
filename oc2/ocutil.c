@@ -46,7 +46,8 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
-static void
+#ifdef EXTERN_UNUSEd
+void
 makedimlist(OClist* path, OClist* dims)
 {
     unsigned int i,j;
@@ -59,6 +60,7 @@ makedimlist(OClist* path, OClist* dims)
         }
     }
 }
+#endif
 
 void
 ocfreeprojectionclause(OCprojectionclause* clause)
@@ -76,7 +78,8 @@ ocfreeprojectionclause(OCprojectionclause* clause)
     free(clause);
 }
 
-static void
+#ifdef EXTERN_UNUSED
+void
 freeAttributes(OClist* attset)
 {
     unsigned int i,j;
@@ -93,8 +96,10 @@ freeAttributes(OClist* attset)
 	}
     }
 }
+#endif
 
-static void
+#ifdef EXTERN_UNUSED
+void
 freeOCnode(OCnode* cdf, int deep)
 {
     unsigned int i;
@@ -113,6 +118,7 @@ freeOCnode(OCnode* cdf, int deep)
     }
     free(cdf);
 }
+#endif
 
 int
 ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)

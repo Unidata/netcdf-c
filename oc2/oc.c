@@ -963,14 +963,10 @@ OCerror
 oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject* fieldp)
 {
     OCerror err = OC_NOERR;
-    OCstate* state;
-    OCdata* data;
     size_t count,i;
     OCobject ddsnode;
     OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,datanode);
-    OCDEREF(OCdata*,data,datanode);
 
     /* Get the dds node for this datanode */
     err = oc_data_ddsnode(link,datanode,&ddsnode);

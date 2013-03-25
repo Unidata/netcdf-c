@@ -361,7 +361,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info;
    char norm_name[NC_MAX_NAME + 1];
-   int new_varid = 0;
    int num_unlim = 0;
    int d;
    size_t num_values = 1;
@@ -414,10 +413,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    /* If the file is read-only, return an error. */
    if (h5->no_write)
      return NC_EPERM;
-
-   /* Get the new varid. */
-   for (var = grp->var; var; var = var->next)
-      new_varid++;
 
    /* Check all the dimids to make sure they exist. */
    for (d = 0; d < ndims; d++)
