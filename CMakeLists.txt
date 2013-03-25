@@ -69,8 +69,9 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
-INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
+
+FIND_PACKAGE(PkgConfig QUIET)
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
@@ -376,11 +377,24 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   #FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
   FIND_LIBRARY(HDF5_LIB NAMES hdf5 libhdf5 hdf5dll)
   FIND_LIBRARY(HDF5_HL_LIB NAMES hdf5_hl libhdf5_hl hdf5_hldll)
+
+  IF(NOT HDF5_LIB) 
+	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 libraries not found.")
+  ELSEIF(NOT HDF5_HL_LIB)
+	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 high-level libraries not found.")
+  ENDIF()
  
   SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})  
   FIND_PATH(HDF5_INCLUDE_DIR H5public.h)
 
-  MESSAGE(STATUS "${HDF5_LIB}, ${HDF5_HL_LIB}, ${HDF5_INCLUDE_DIR}")
+  IF(NOT HDF5_INCLUDE_DIR) 
+	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 include directories not found.")
+  ENDIF()
+
+  MESSAGE(STATUS "Found HDF5: ${HDF5_LIB}")
+  MESSAGE(STATUS "Found HDF5_HL: ${HDF5_HL_LIB}")
+  MESSAGE(STATUS "Found HDF5 Includes: ${HDF5_INCLUDE_DIR}")
+
 
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
   
