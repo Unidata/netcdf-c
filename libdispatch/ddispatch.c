@@ -32,10 +32,11 @@ static struct NCPROTOCOLLIST {
 */
 static const char* servers[] = {
 "http://motherlode.ucar.edu:8081", /* try this first */
-"http://remotetest.unidata.ucar.edu",
-"http://remotetest.ucar.edu",
+"http://thredds.ucar.edu", /* Eventually, this will work */
 "http://motherlode.ucar.edu:8080",
 "http://motherlode.ucar.edu",
+"http://remotetest.unidata.ucar.edu",
+"http://remotetest.ucar.edu",
 "http://remotetests.unidata.ucar.edu",
 "http://remotetests.ucar.edu",
 NULL
