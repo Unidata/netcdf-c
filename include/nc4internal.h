@@ -317,7 +317,7 @@ int nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *startp,
 		const size_t *countp, const ptrdiff_t *stridep,
 		const ptrdiff_t *imapp, nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
-int nc4_rec_write_metadata(NC_GRP_INFO_T *grp);
+int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order);
 int nc4_rec_write_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
