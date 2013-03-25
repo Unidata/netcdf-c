@@ -38,7 +38,6 @@ extern void ocmakedimlist(OClist* path, OClist* dims);
 extern int ocfindbod(OCbytes* buffer, size_t*, size_t*);
 
 /* Reclaimers*/
-extern void freeOCnode(OCnode*,int);
 extern void ocfreeprojectionclause(OCprojectionclause* clause);
 
 /* Misc. */

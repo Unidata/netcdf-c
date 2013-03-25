@@ -22,7 +22,7 @@ man_MANS = ncgen.1
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l $(man_MANS) internals.html	\
 run_tests.sh run_nc4_tests.sh c0.cdl ref_camrun.cdl \
-ncf199.cdl CMakeLists.txt
+ncf199.cdl CMakeLists.txt XGetopt.c
 
 # This shell script causes ncgen to build a classic and a 64-bit
 # offset file from a cdl file shipped with the distribution.

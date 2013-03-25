@@ -69,8 +69,9 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
-INCLUDE (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
+
+FIND_PACKAGE(PkgConfig QUIET)
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)

@@ -130,7 +130,6 @@ extern size_t dap_zero[NC_MAX_VAR_DIMS];
 
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
-extern int nc3dinitialize(void);
 extern NCerror restruct3(CDFnode* ddsroot, CDFnode* template, NClist*);
 extern void setvisible(CDFnode* root, int visible);
 extern NCerror mapnodes3(CDFnode* dstroot, CDFnode* srcroot);

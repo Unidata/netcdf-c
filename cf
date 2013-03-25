@@ -9,6 +9,7 @@ fi
 HDF5=1
 DAP=1
 #PNETCDF=1
+#HDF4=1
 #RPC=1
 #PGI=1
 #M32=1
@@ -23,6 +24,11 @@ cmds=""
 #cmds="all dist"
 #cmds="all distcheck"
 #cmds="$cmds install"
+fi
+
+# HDF4=>HDF5
+if test "x$HDF4" = x1 ; then
+HDF5=1
 fi
 
 # Test pgi compiler
@@ -97,10 +103,15 @@ MAKE=make
 IGNORE="test 0 = 1"
 
 if test "x$HDF5" = "x1" ; then
-CPPFLAGS="-I${stddir}/include -I${stddir}/include $CPPFLAGS"
-LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -L${stddir}/lib -lz $LDFLAGS"
+CPPFLAGS="-I${stddir}/include $CPPFLAGS"
+LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
 LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
+
+#if test "x$HDF4" = "x1" ; then
+#CPPFLAGS="-I/machine/local/include $CPPFLAGS"
+#LDFLAGS="-L/machine/local/lib $LDFLAGS"
+#fi
 
 if test "x$DAP" = "x1" -o "x$CDMR" = "x1" -o "x$RPC" = "x1" ; then
 if curl-config --version >/dev/null ; then
@@ -146,16 +157,15 @@ FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --with-libcf"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
-# hdf4 requires adding to paths
-#FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
-#CPPFLAGS="$CPPFLAGS -I/machine/local/include"
-#LDFLAGS="$LDFLAGS -L/machine/local/lib -L/usr/local/lib"
 
 FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then
 FLAGS="$FLAGS --disable-netcdf-4"
+fi
+if test "x$HDF4" = x1 ; then
+FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
 fi
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"

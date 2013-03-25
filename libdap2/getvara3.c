@@ -695,7 +695,7 @@ findfield(CDFnode* node, CDFnode* field)
 }
 
 
-int
+static int
 nc3d_getvarmx(int ncid, int varid,
 	    const size_t *start,
 	    const size_t *edges,

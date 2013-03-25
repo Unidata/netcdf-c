@@ -26,8 +26,8 @@ static int ocerrorstring(XXDR* xdrs);
 static int istoplevel(OCnode* node);
 
 /* Sequence tag constant */
-const char StartOfSequence = '\x5A';
-const char EndOfSequence = '\xA5';
+static const char StartOfSequence = '\x5A';
+static const char EndOfSequence = '\xA5';
 
 /*
 Provide an option that makes a single pass over 

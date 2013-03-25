@@ -46,7 +46,7 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
-void
+static void
 makedimlist(OClist* path, OClist* dims)
 {
     unsigned int i,j;
@@ -94,7 +94,7 @@ freeAttributes(OClist* attset)
     }
 }
 
-void
+static void
 freeOCnode(OCnode* cdf, int deep)
 {
     unsigned int i;
@@ -516,7 +516,7 @@ oc_ispacked(OCnode* node)
 /* Must be consistent with ocx.h.OCDT */
 #define NMODES 6
 #define MAXMODENAME 8 /*max (strlen(modestrings[i])) */
-char* modestrings[NMODES+1] = {
+static char* modestrings[NMODES+1] = {
 "FIELD", /* ((OCDT)(1<<0)) field of a container */
 "ELEMENT", /* ((OCDT)(1<<1)) element of a structure array */
 "RECORD", /* ((OCDT)(1<<2)) record of a sequence */
