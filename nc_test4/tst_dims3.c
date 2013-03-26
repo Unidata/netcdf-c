@@ -20,10 +20,18 @@ nc_set_log_level(0);
 #define FILE_NAME "tst_dims3.nc"
 #define RANK_time 1
 #define GRP_NAME  "G"
+#define GRP2_NAME "G2"
 #define TIME_NAME "time"
 #define VAR2_NAME "z"
 #define TIME_RANK 1
 #define NUM_TIMES 2
+#define LEV_NAME "level"     
+#define VRT_NAME "vert_number"
+#define LEV_NUM  3
+#define LEV_RANK 1
+#define VRT_RANK 1
+#define VAR2_RANK 2
+#define NUM_VRT 3
       int ncid, grpid;
       int time_dim, time_dim_in;
       int time_var, z_var;
@@ -93,6 +101,99 @@ nc_set_log_level(0);
       if (nc_def_dim(ncid, "scalar", 0, &dimid)) ERR_RET;
       if (nc_def_var(ncid, "scalar", NC_FLOAT, 0, &dimid, &varid)) ERR_RET;
       if (nc_put_var_float(ncid, varid, &data)) ERR_RET;
+      if (nc_close(ncid))
+	ERR_RET;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing defining dimensions and coord variables in different orders in root group...");
+   {
+       int ncid, grpid, grp2id;
+       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
+       int var2_dims[VAR2_RANK];
+      /* Create test for fix of bug that resulted in two dimensions
+       * having the same dimid, which violates the Pauli exclusion
+       * principle for dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR_RET;
+      if (nc_def_grp(ncid, GRP_NAME, &grpid)) ERR;
+      if (nc_def_dim(ncid, TIME_NAME, NC_UNLIMITED, &time_dimid)) ERR_RET;
+      if (nc_def_dim(ncid, LEV_NAME, LEV_NUM, &lev_dimid)) ERR_RET;
+      var2_dims[0] = time_dimid;
+      var2_dims[1] = lev_dimid;
+      if (nc_def_var(grpid, VAR2_NAME, NC_FLOAT, VAR2_RANK, var2_dims, &gvar2_varid)) ERR;
+      /* define coord vars in opposite order of coord dims */
+      if (nc_def_var(ncid, LEV_NAME, NC_FLOAT, LEV_RANK, &lev_dimid, &lev_varid)) ERR;
+      if (nc_def_var(ncid, TIME_NAME, NC_FLOAT, TIME_RANK, &time_dimid, &time_varid)) ERR;
+
+      if (nc_def_grp(ncid, GRP2_NAME, &grp2id)) ERR;
+      if (nc_def_dim(grp2id, LEV_NAME, LEV_NUM, &g2lev_dimid)) ERR_RET;
+      if (nc_def_dim(grp2id, VRT_NAME, NUM_VRT, &g2vrt_dimid)) ERR_RET;
+      if (nc_def_var(grp2id, LEV_NAME, NC_FLOAT, LEV_RANK, &g2lev_dimid, &g2lev_varid)) ERR;
+      if (nc_def_var(grp2id, VRT_NAME, NC_FLOAT, VRT_RANK, &g2vrt_dimid, &g2vrt_varid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Re-open, in which dimids may get reassigned */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, TIME_NAME, &time_dimid_in)) ERR;
+      if (nc_inq_dimid(ncid, LEV_NAME, &lev_dimid_in)) ERR;
+      if (nc_inq_ncid(ncid, GRP2_NAME, &grp2id)) ERR;
+      if (nc_inq_dimid(grp2id, LEV_NAME, &g2lev_dimid_in)) ERR;
+      if (nc_inq_dimid(grp2id, VRT_NAME, &g2vrt_dimid_in)) ERR;
+      /* dimids must still all be distinct */
+      if (time_dimid_in == lev_dimid_in ||
+	  time_dimid_in == g2lev_dimid_in ||
+	  time_dimid_in == g2vrt_dimid_in ||
+	  lev_dimid_in == g2lev_dimid_in ||
+	  lev_dimid_in == g2vrt_dimid_in ||
+	  g2lev_dimid_in == g2vrt_dimid_in) ERR;
+
+      if (nc_close(ncid))
+	ERR_RET;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing defining dimensions and coord variables in different orders in subgroup...");
+   {
+       int ncid, grpid, grp2id;
+       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
+       int var2_dims[VAR2_RANK];
+      /* Create test for fix of bug inside a subgroup that results in two dimensions
+       * having the same dimid. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR_RET;
+      if (nc_def_grp(ncid, GRP_NAME, &grpid)) ERR;
+      if (nc_def_dim(ncid, TIME_NAME, NC_UNLIMITED, &time_dimid)) ERR_RET;
+      if (nc_def_dim(ncid, LEV_NAME, LEV_NUM, &lev_dimid)) ERR_RET;
+      var2_dims[0] = time_dimid;
+      var2_dims[1] = lev_dimid;
+      if (nc_def_var(grpid, VAR2_NAME, NC_FLOAT, VAR2_RANK, var2_dims, &gvar2_varid)) ERR;
+      if (nc_def_var(ncid, TIME_NAME, NC_FLOAT, TIME_RANK, &time_dimid, &time_varid)) ERR;
+      if (nc_def_var(ncid, LEV_NAME, NC_FLOAT, LEV_RANK, &lev_dimid, &lev_varid)) ERR;
+
+      if (nc_def_grp(ncid, GRP2_NAME, &grp2id)) ERR;
+      if (nc_def_dim(grp2id, LEV_NAME, LEV_NUM, &g2lev_dimid)) ERR_RET;
+      if (nc_def_dim(grp2id, VRT_NAME, NUM_VRT, &g2vrt_dimid)) ERR_RET;
+      /* define coord vars in opposite order of coord dims */
+      if (nc_def_var(grp2id, VRT_NAME, NC_FLOAT, VRT_RANK, &g2vrt_dimid, &g2vrt_varid)) ERR;
+      if (nc_def_var(grp2id, LEV_NAME, NC_FLOAT, LEV_RANK, &g2lev_dimid, &g2lev_varid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Re-open, in which dimids may get reassigned */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, TIME_NAME, &time_dimid_in)) ERR;
+      if (nc_inq_dimid(ncid, LEV_NAME, &lev_dimid_in)) ERR;
+      if (nc_inq_ncid(ncid, GRP2_NAME, &grp2id)) ERR;
+      if (nc_inq_dimid(grp2id, LEV_NAME, &g2lev_dimid_in)) ERR;
+      if (nc_inq_dimid(grp2id, VRT_NAME, &g2vrt_dimid_in)) ERR;
+      /* dimids must still all be distinct */
+      if (time_dimid_in == lev_dimid_in ||
+	  time_dimid_in == g2lev_dimid_in ||
+	  time_dimid_in == g2vrt_dimid_in ||
+	  lev_dimid_in == g2lev_dimid_in ||
+	  lev_dimid_in == g2vrt_dimid_in ||
+	  g2lev_dimid_in == g2vrt_dimid_in) ERR;
+
       if (nc_close(ncid))
 	ERR_RET;
    }
