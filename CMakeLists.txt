@@ -70,7 +70,6 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-
 FIND_PACKAGE(PkgConfig QUIET)
 # Only necessary for Windows
 IF(MSVC)

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#set -x
+set -x
 quiet=0
 leakcheck=0
 

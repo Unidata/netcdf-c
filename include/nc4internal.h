@@ -354,6 +354,7 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var);
+int nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_DIM_INFO_T **list);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
 int nc4_att_list_add(NC_ATT_INFO_T **list);

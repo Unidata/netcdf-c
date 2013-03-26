@@ -454,7 +454,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
  * dimension without a variable - that is, a coordinate dimension
  * which does not have any coordinate data. */
 static int
-read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name, 
+read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name, 
            hsize_t scale_size, hsize_t max_scale_size, 
            int *dim_without_var)
 {
@@ -1278,7 +1278,7 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
  * file. This function reads in all the metadata about the var,
  * including the attributes. */
 static int
-read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name, 
+read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name, 
          size_t ndims, int is_scale, int num_scales, hid_t access_pid)
 {
    NC_VAR_INFO_T *var;
@@ -1545,7 +1545,16 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
 	    /* Read the rest of the info about the att,
 	     * including its values. */
 	    if ((retval = read_hdf5_att(grp, attid, att)))
-	       BAIL(retval);
+            {
+               if (NC_EBADTYPID == retval)
+               {
+                   if ((retval = nc4_att_list_del(&var->att, att)))
+                       BAIL(retval);
+                   continue;
+               }
+               else
+                   BAIL(retval);
+            }
 	    
 	    att->created++;
 	 } /* endif not HDF5 att */
@@ -1558,6 +1567,11 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
       BAIL(retval);
 
   exit:
+   if (var && retval)
+   {
+      if(nc4_var_list_del(&grp->var, var))
+         BAIL2(NC_EHDFERR);
+   }
    if (propid > 0 && H5Pclose(propid) < 0)
       BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
@@ -1614,7 +1628,16 @@ read_grp_atts(NC_GRP_INFO_T *grp)
          att->name[max_len] = 0;
          att->attnum = grp->natts++;
          if ((retval = read_hdf5_att(grp, attid, att)))
-            BAIL(retval);
+         {
+            if (NC_EBADTYPID == retval)
+            {
+               if ((retval = nc4_att_list_del(&grp->att, att)))
+                  BAIL(retval);
+               continue;
+            }
+            else
+               BAIL(retval);
+         }
          att->created++;
          if ((retval = nc4_find_type(grp->nc4_info, att->xtype, &type)))
             BAIL(retval);
@@ -1632,7 +1655,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
 /* This function is called when nc4_rec_read_vars encounters an HDF5
  * dataset when reading a file. */
 static int
-read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
+read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
 {
    hid_t datasetid = 0;   
    hid_t spaceid = 0, access_pid = 0;
@@ -1936,12 +1959,20 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 	    return H5_ITER_ERROR;
 	break;
     case H5I_DATASET:
-	LOG((3, "found dataset %s", oname));
+       {
+           int retval = NC_NOERR;
 
-	/* Learn all about this dataset, which may be a dimscale
-	 * (i.e. dimension metadata), or real data. */
-	if (read_dataset(grp, oname))
-	    return H5_ITER_ERROR;
+ 	   LOG((3, "found dataset %s", oname));
+
+            /* Learn all about this dataset, which may be a dimscale
+             * (i.e. dimension metadata), or real data. */
+            if ((retval = read_dataset(grp, oname))) {
+                if(NC_EBADTYPID == retval)
+                    return H5_ITER_CONT;
+                else
+                    return H5_ITER_ERROR;
+            }
+        }
 	break;
     case H5I_DATATYPE:
 	LOG((3, "already handled type %s", oname));
