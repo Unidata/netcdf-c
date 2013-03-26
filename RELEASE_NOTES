@@ -8,6 +8,10 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
+		Fixed netCDF-4 bug where netCDF would ignore
+		the HDF5 reference type in the file, instead
+		of rejecting the file as it should.  [NCF-29]
+
 		Fixed netCDF-4 bug with particular order of
 		creation of dimensions, coordinate variables, and
 		subgroups resulting in two dimensions with the same
@@ -20,7 +24,7 @@ VERSION		COMMENTS
 
 	 	fsync: Changed default in autotools config
 		file; fsync must now be explicitely enabled
-		instead of explicitely disabled.
+		instead of explicitely disabled. [NCF-239]
 
 		Fixed bug in handling old servers that do not do
 		proper Grid to Structure conversions. [NCF-232]

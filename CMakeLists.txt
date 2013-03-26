@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
  
 #Project Name
 project(netCDF C)
+set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 0)
@@ -70,8 +71,16 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-
 FIND_PACKAGE(PkgConfig QUIET)
+
+
+## Enable 'dist and distcheck'.
+## File taken from http://ensc.de/cmake/FindMakeDist.cmake
+FIND_PACKAGE(MakeDist)
+ADD_MAKEDIST()
+ENABLE_MAKEDIST(cmake_config.h.in CMakeLists.txt cmake)
+
+## End 'enable dist and distcheck'
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
