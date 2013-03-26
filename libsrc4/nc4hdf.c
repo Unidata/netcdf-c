@@ -2488,7 +2488,6 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
    NC_GRP_INFO_T *child_grp;
    int found_coord, coord_varid = -1, wrote_coord;
 
-   int last_dimid = -1;
    int retval;
 
    assert(grp && grp->name && grp->hdf_grpid);

@@ -8,12 +8,14 @@ Copyright 2003, University Corporation for Atmospheric Research. See
 COPYRIGHT file for copying and redistribution conditions.  
 */
 
-#include "nc4internal.h"
-#include "nc.h"
-#include <H5DSpublic.h>
+#include "config.h"
+#include <errno.h>  /* netcdf functions sometimes return system errors */
 
+#include "nc.h"
+#include "nc4internal.h"
 #include "nc4dispatch.h"
-#include "ncdispatch.h"
+
+#include <H5DSpublic.h>
 
 #ifdef USE_HDF4
 #include <mfhdf.h>
@@ -326,7 +328,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    /* Create the file. */
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0) 
-      BAIL(NC_EFILEMETA);
+        /*Change the return error from NC_EFILEMETADATA to
+          System error EACCES because that is the more likely problem */
+      BAIL(EACCES);
 
    /* Open the root group. */
    if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/", 
