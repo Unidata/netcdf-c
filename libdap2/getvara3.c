@@ -695,6 +695,7 @@ findfield(CDFnode* node, CDFnode* field)
 }
 
 
+#ifdef EXTERN_UNUSED
 int
 nc3d_getvarmx(int ncid, int varid,
 	    const size_t *start,
@@ -879,6 +880,7 @@ fprintf(stderr,"old: %lu -> %lu  %f\n",
 done:
     return ncstat;
 }
+#endif /*EXTERN_UNUSED*/
 
 static int
 conversionrequired(nc_type t1, nc_type t2)

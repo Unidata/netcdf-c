@@ -42,9 +42,9 @@ EXPECTED="${srcdir}/expecttds3"
 # Special test info
 ##################################################
 # TDS files under 10 megabytes
-# TDS Catalog: http://motherlode.ucar.edu:8080/thredds/catalog/public/dataset/catalog.html
+# TDS Catalog: http://thredds.ucar.edu/thredds/catalog/public/dataset/catalog.html
 
-TDSURL1="http://motherlode.ucar.edu:8080/thredds/dodsC/public/dataset"
+TDSURL1="http://thredds.ucar.edu/thredds/dodsC/public/dataset"
 TDSTESTS1="\
 tst-striped.nc \
 tst-PROFILER_RASS.nc \

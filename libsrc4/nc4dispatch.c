@@ -10,7 +10,7 @@
 #include "ncdispatch.h"
 #include "nc4dispatch.h"
 
-NC_Dispatch NC4_dispatcher = {
+static NC_Dispatch NC4_dispatcher = {
 
 NC_DISPATCH_NC4,
 

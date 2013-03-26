@@ -6,6 +6,11 @@
 
 #include "config.h"
 
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
+
 #ifdef _AIX
 #include <netinet/in.h>
 #endif
@@ -204,6 +209,5 @@ extern OCerror ocupdatelastmodifieddata(OCstate* state);
 extern int ocinternalinitialize(void);
 
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
-
 
 #endif /*COMMON_H*/

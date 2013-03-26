@@ -12,18 +12,22 @@
 #include "ocdebug.h"
 #include "ocdump.h"
 
+/* Mnemonic */
+#define TOPLEVEL 1
+
 /* Forward */
 static OCdata* newocdata(OCnode* template);
 static size_t ocxdrsize(OCtype etype,int isscalar);
 static OCerror occompile1(OCstate*, OCnode*, XXDR*, OCdata**);
 static OCerror occompilerecord(OCstate*, OCnode*, XXDR*, OCdata**);
-static OCerror occompilefields(OCstate*, OCdata*, XXDR*);
+static OCerror occompilefields(OCstate*, OCdata*, XXDR*, int istoplevel);
 static OCerror occompileatomic(OCstate*, OCdata*, XXDR*);
 static int ocerrorstring(XXDR* xdrs);
+static int istoplevel(OCnode* node);
 
 /* Sequence tag constant */
-const char StartOfSequence = '\x5A';
-const char EndOfSequence = '\xA5';
+static const char StartOfSequence = '\x5A';
+static const char EndOfSequence = '\xA5';
 
 /*
 Provide an option that makes a single pass over 
@@ -86,13 +90,13 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 
     case OC_Dataset:
     case OC_Grid: /* Always scalars */
-	ocstat = occompilefields(state,data,xxdrs);
+	ocstat = occompilefields(state,data,xxdrs,istoplevel(xnode));
 	if(ocstat != OC_NOERR) goto fail;
 	break;
 
     case OC_Structure:
 	if(xnode->array.rank == 0) {/* scalar */
-	    ocstat = occompilefields(state,data,xxdrs);
+	    ocstat = occompilefields(state,data,xxdrs,istoplevel(xnode));
 	    if(ocstat != OC_NOERR) goto fail;
 	} else { /* dimensioned structure */
 	    unsigned int xdrcount;
@@ -124,7 +128,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
   	        /* capture the current instance position */
 		instance->xdroffset = xxdr_getpos(xxdrs);
 	        /* Now compile the fields of this instance */
-		ocstat = occompilefields(state,instance,xxdrs);
+		ocstat = occompilefields(state,instance,xxdrs,!TOPLEVEL);
 		if(ocstat != OC_NOERR) {goto fail;}
 	    }
 	}
@@ -210,7 +214,7 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
     /* capture the current record position */
     record->xdroffset = xxdr_getpos(xxdrs);
     /* Compile the fields of this record */
-    ocstat = OCTHROW(occompilefields(state,record,xxdrs));
+    ocstat = OCTHROW(occompilefields(state,record,xxdrs,!TOPLEVEL));
     if(ocstat == OC_NOERR) {
         if(recordp) *recordp = record;
     }
@@ -218,7 +222,7 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
 }
 
 static OCerror
-occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs)
+occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
 {
     int i;
     OCerror ocstat = OC_NOERR;
@@ -244,6 +248,15 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs)
 	/* Capture the back link */
 	fieldinstance->container = data;
         fieldinstance->index = i;
+    }
+
+    /* If top-level, then link the OCnode to the OCdata directly */
+    if(istoplevel) {
+	for(i=0;i<nelements;i++) {
+            OCnode* fieldnode = (OCnode*)oclistget(xnode->subnodes,i);
+            OCdata* fieldinstance = data->instances[i];
+	    fieldnode->data = fieldinstance;
+	}
     }
 
 done:
@@ -372,6 +385,23 @@ newocdata(OCnode* template)
     data->template = template;
     return data;
 }
+
+static int
+istoplevel(OCnode* node)
+{
+    if(node == NULL)
+	return 1; /* base case */
+    if(!istoplevel(node->container))
+	return 0;
+    switch (node->octype) {
+    case OC_Dataset: case OC_Grid: case OC_Atomic: return 1;
+    case OC_Structure:
+	return (node->array.rank == 0 ? 1 : 0); /* Toplevel if scalar */ 
+    case OC_Sequence: default: return 0;
+    }
+    return 1;
+}
+
 
 /* XDR representation size depends on if this is scalar or not */
 static size_t

@@ -24,7 +24,7 @@ octhrow(int err)
 #endif
 
 int
-xdrerror(void)
+xxdrerror(void)
 {
     oclog(OCLOGERR,"xdr failure");
     return OCTHROW(OC_EDATADDS);

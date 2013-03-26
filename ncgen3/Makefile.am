@@ -30,7 +30,7 @@ endif # USE_NETCDF4
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc
 
-EXTRA_DIST += CMakeLists.txt
+EXTRA_DIST += CMakeLists.txt XGetopt.c
 
 # This is used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it. Don't forget to

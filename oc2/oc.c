@@ -539,7 +539,7 @@ Obtain a dds node by name from a dds structure or dataset node.
 \param[in] link The link through which the server is accessed.
 \param[in] ddsnode The container node of interest.
 \param[in] name The name of the field to return.
-\param[out] fieldnodep  A pointer into which the name'th field node is stored.
+\param[out] fieldp  A pointer into which the name'th field node is stored.
 
 \retval OC_NOERR The procedure executed normally.
 \retval OC_EINDEX No field with the given name was found.
@@ -836,7 +836,7 @@ oc_das_attr(OCobject link, OCobject dasnode, size_t index, OCtype* atomtypep, ch
 /**@}*/
 
 /**************************************************/
-/*! Node Interconnection Management */
+/*!\defgroup Interconnection Node Interconnection Management */
 
 /**@{*/
 
@@ -875,7 +875,7 @@ oc_merge_das(OCobject link, OCobject dasroot, OCobject ddsroot)
 
 /**************************************************/
 
-/*! Data Management */
+/*!\defgroup Data Data Management */
 /**@{*/
 
 /*!
@@ -965,6 +965,8 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
     OCerror err = OC_NOERR;
     size_t count,i;
     OCobject ddsnode;
+    OCVERIFY(OC_State,link);
+    OCVERIFY(OC_Data,datanode);
 
     /* Get the dds node for this datanode */
     err = oc_data_ddsnode(link,datanode,&ddsnode);
@@ -1492,11 +1494,140 @@ oc_data_readn(OCobject link, OCobject datanode,
 }
 
 
+
+/*!
+This procedure has the same semantics as oc_data_read.
+However, it takes an OCddsnode as argument.
+The limitation is that the DDS node must be a top-level,
+atomic variable.
+Top-level means that it is not nested in a Sequence or a
+dimensioned Structure; being in a Grid is ok as is being in
+a scalar structure.
+
+\param[in] link The link through which the server is accessed.
+\param[in] ddsnode The dds node instance of interest.
+\param[in] start A vector of indices specifying the starting element
+to return.
+\param[in] edges A vector of indices specifying the count in each dimension
+of the number of elements to return.
+\param[in] memsize The size (in bytes) of the memory argument.
+\param[out] memory User allocated memory into which the extracted
+data is to be stored. The caller is responsible for allocating and free'ing
+this argument.
+
+\retval OC_NOERR The procedure executed normally.
+\retval OC_EINVAL The memsize argument is too small to hold
+the specified data.
+\retval OC_EINVALCOORDS The start and/or edges argument is outside
+the range of legal indices.
+\retval OC_EDATADDS The data retrieved from the server was malformed
+and the read request cannot be completed.
+
+*/
+
+OCerror
+oc_dds_read(OCobject link, OCobject ddsnode,
+                 size_t* start, size_t* edges,
+	         size_t memsize, void* memory)
+{
+    OCdata* data;
+    OCnode* dds;
+
+    OCVERIFY(OC_Node,ddsnode);
+    OCDEREF(OCnode*,dds,ddsnode);
+
+    /* Get the data associated with this top-level node */
+    data = dds->data;
+    if(data == NULL) return OC_EINVAL;
+    return oc_data_read(link,data,start,edges,memsize,memory);
+}
+
+
+/*!
+This procedure is a variant of oc_data_read for reading a single scalar.
+This procedure has the same semantics as oc_data_readscalar.
+However, it takes an OCddsnode as argument.
+The limitation is that the DDS node must be a top-level, atomic variable.
+Top-level means that it is not nested in a Sequence or a
+dimensioned Structure; being in a Grid is ok as is being in
+a scalar structure.
+
+\param[in] link The link through which the server is accessed.
+\param[in] ddsnode The dds node instance of interest.
+\param[in] memsize The size (in bytes) of the memory argument.
+\param[out] memory User allocated memory into which the extracted
+data is to be stored. The caller is responsible for allocating and free'ing
+this argument.
+
+\retval OC_NOERR The procedure executed normally.
+\retval OC_EINVAL The memsize argument is too small to hold
+the specified data.
+\retval OC_ESCALAR The data instance is not a scalar.
+\retval OC_EDATADDS The data retrieved from the server was malformed
+and the read request cannot be completed.
+\retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+*/
+
+OCerror
+oc_dds_readscalar(OCobject link, OCobject ddsnode,
+	         size_t memsize, void* memory)
+{
+    return oc_dds_readn(link,ddsnode,NULL,0,memsize,memory);
+}
+
+/*!
+This procedure is a variant of oc_dds_read for reading
+nelements of values starting at a given index position.
+If the variable is a scalar, then the
+index vector and count will be ignored.
+This procedure has the same semantics as oc_data_readn.
+However, it takes an OCddsnode as argument.
+The limitation is that the DDS node must be a top-level, atomic variable.
+Top-level means that it is not nested in a Sequence or a
+dimensioned Structure; being in a Grid is ok as is being in
+a scalar structure.
+
+\param[in] link The link through which the server is accessed.
+\param[in] ddsnode The dds node instance of interest.
+\param[in] start A vector of indices specifying the starting element
+to return.
+\param[in] N The number of elements to read. Reading is assumed
+to use row-major order.
+\param[in] memsize The size (in bytes) of the memory argument.
+\param[out] memory User allocated memory into which the extracted
+data is to be stored. The caller is responsible for allocating and free'ing
+this argument.
+
+\retval OC_NOERR The procedure executed normally.
+\retval OC_EINVAL The memsize argument is too small to hold
+the specified data.
+\retval OC_EINVALCOORDS The start and/or count argument is outside
+the range of legal indices.
+\retval OC_EDATADDS The data retrieved from the server was malformed
+and the read request cannot be completed.
+\retval OC_EINVAL  One of the arguments (link, etc.) was invalid.
+*/
+
+OCerror
+oc_dds_readn(OCobject link, OCobject ddsnode,
+                 size_t* start, size_t N,
+	         size_t memsize, void* memory)
+{
+    OCdata* data;
+    OCnode* dds;
+
+    OCVERIFY(OC_Node,ddsnode);
+    OCDEREF(OCnode*,dds,ddsnode);
+
+    /* Get the data associated with this top-level node */
+    data = dds->data;
+    if(data == NULL) return OC_EINVAL;
+    return oc_data_readn(link,data,start,N,memsize,memory);
+}
+
 /**@}*/
 
 /**************************************************/
-/* OCtype Management */
-
 /*!\defgroup OCtype OCtype Management
 @{*/
 
@@ -1775,6 +1906,7 @@ oc_ping(const char* url)
 /*!
 Set the user agent field.
 
+\param[in] link The link through which the server is accessed.
 \param[in] agent The user agent string
 
 \retval OC_NOERR if the request succeeded.

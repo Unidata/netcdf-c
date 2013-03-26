@@ -300,8 +300,10 @@ dapsetwordchars(DAPlexstate* lexstate, int kind)
 void
 daplexinit(char* input, DAPlexstate** lexstatep)
 {
-    DAPlexstate* lexstate = (DAPlexstate*)malloc(sizeof(DAPlexstate));
-    if(lexstatep) *lexstatep = lexstate;
+    DAPlexstate* lexstate;
+    if(lexstatep == NULL) return; /* no point in building it */
+    lexstate = (DAPlexstate*)malloc(sizeof(DAPlexstate));
+    *lexstatep = lexstate;
     if(lexstate == NULL) return;
     memset((void*)lexstate,0,sizeof(DAPlexstate));
     lexstate->input = strdup(input);
@@ -309,8 +311,6 @@ daplexinit(char* input, DAPlexstate** lexstatep)
     lexstate->yytext = ocbytesnew();
     lexstate->reclaim = oclistnew();
     dapsetwordchars(lexstate,0); /* Assume DDS */
-    if(!lexstatep)
-      free(lexstate);
 }
 
 void

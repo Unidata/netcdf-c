@@ -668,6 +668,7 @@ nc4_dim_list_add(NC_DIM_INFO_T **list)
 }
 
 /* Add to the beginning of a dim list. */
+#ifdef EXTERN_UNUSED
 int
 nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
 {
@@ -684,6 +685,7 @@ nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
       *new_dim = dim;
    return NC_NOERR;
 }
+#endif
 
 /* Add to the end of an att list. */
 int
@@ -1012,7 +1014,7 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
 }
 
 /* Delete a type from a type list, and nc_free the memory. */
-int
+static int
 type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 {
    NC_FIELD_INFO_T *field, *f;

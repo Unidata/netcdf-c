@@ -42,7 +42,7 @@ static int NCD3_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
-NC_Dispatch NCD3_dispatch_base = {
+static NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,
 
@@ -134,7 +134,7 @@ NULL, /*get_var_chunk_cache*/
 
 NC_Dispatch* NCD3_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-NC_Dispatch NCD3_dispatcher; /* overlay result */
+static NC_Dispatch NCD3_dispatcher; /* overlay result */
 
 int
 NCD3_initialize(void)

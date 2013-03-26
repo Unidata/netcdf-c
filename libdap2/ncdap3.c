@@ -32,7 +32,7 @@ static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 static char* getdefinename(CDFnode* node);
 
-int nc3dinitialized = 0;
+static int ncd3initialized = 0;
 
 size_t dap_one[NC_MAX_VAR_DIMS];
 size_t dap_zero[NC_MAX_VAR_DIMS];
@@ -46,8 +46,8 @@ int nc__opendap(void) {return 0;}
 /**************************************************/
 /* Do local initialization */
 
-int
-nc3dinitialize(void)
+static int
+ncd3initialize(void)
 {
     int i;
     compute_nccalignments();
@@ -55,7 +55,7 @@ nc3dinitialize(void)
 	dap_one[i] = 1;
 	dap_zero[i] = 0;
     }
-    nc3dinitialized = 1;
+    ncd3initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
     nclogclose();
@@ -79,7 +79,7 @@ NCD3_open(const char * path, int mode,
     NCDAPCOMMON* dapcomm = NULL;
     const char* value;
 
-    if(!nc3dinitialized) nc3dinitialize();
+    if(!ncd3initialized) ncd3initialize();
 
     if(path == NULL)
 	return NC_EDAPURL;

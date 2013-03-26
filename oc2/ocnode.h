@@ -57,6 +57,7 @@ struct OCnode {
     OClist* subnodes; /*oclist<OCnode*>*/
     /*int     attributed;*/ /* 1 if merge was done*/
     OClist* attributes; /* oclist<OCattribute*>*/
+    OCdata* data; /* Defined only if this node is a top-level atomic variable*/
 };
 
 #if SIZEOF_SIZE_T == 4

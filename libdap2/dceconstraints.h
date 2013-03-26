@@ -136,6 +136,14 @@ extern size_t dcesafeindex(DCEsegment* seg, size_t start, size_t stop);
 /* Compute segment size for start upto stop */
 extern size_t dcesegmentsize(DCEsegment*, size_t start, size_t stop);
 
+/* Convert a DCE projection/selection/constraint instance into a string
+   that can be used with a url. Caller must free returned string.
+*/
+
+extern char* buildprojectionstring(NClist* projections);
+extern char* buildselectionstring(NClist* selections);
+extern char* buildconstraintstring(DCEconstraint* constraints);
+
 extern int dceverbose;
 
 #endif /*DCECONSTRAINTS_H*/

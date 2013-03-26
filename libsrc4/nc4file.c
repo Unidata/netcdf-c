@@ -8,12 +8,14 @@ Copyright 2003, University Corporation for Atmospheric Research. See
 COPYRIGHT file for copying and redistribution conditions.  
 */
 
-#include "nc4internal.h"
-#include "nc.h"
-#include <H5DSpublic.h>
+#include "config.h"
+#include <errno.h>  /* netcdf functions sometimes return system errors */
 
+#include "nc.h"
+#include "nc4internal.h"
 #include "nc4dispatch.h"
-#include "ncdispatch.h"
+
+#include <H5DSpublic.h>
 
 #ifdef USE_HDF4
 #include <mfhdf.h>
@@ -326,7 +328,9 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    /* Create the file. */
    if ((nc4_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0) 
-      BAIL(NC_EFILEMETA);
+        /*Change the return error from NC_EFILEMETADATA to
+          System error EACCES because that is the more likely problem */
+      BAIL(EACCES);
 
    /* Open the root group. */
    if ((nc4_info->root_grp->hdf_grpid = H5Gopen2(nc4_info->hdfid, "/", 
@@ -2961,9 +2965,12 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
    /* Write any metadata that has changed. */
    if (!(h5->cmode & NC_NOWRITE))
    {
+      int bad_coord_order = 0;	/* if detected, propagate to all groups to consistently store dimids */
       if ((retval = nc4_rec_write_types(h5->root_grp)))
 	 return retval;
-      if ((retval = nc4_rec_write_metadata(h5->root_grp)))
+      if ((retval = nc4_rec_detect_bad_coord_order(h5->root_grp, &bad_coord_order)))
+	 return retval;
+      if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
 	 return retval;
    }
 

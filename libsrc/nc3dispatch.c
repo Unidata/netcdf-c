@@ -77,7 +77,7 @@ static int NC3_set_var_chunk_cache(int,int,size_t,size_t,float);
 static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
 #endif /*USE_NETCDF4*/
 
-NC_Dispatch NC3_dispatcher = {
+static NC_Dispatch NC3_dispatcher = {
 
 NC_DISPATCH_NC3,
 

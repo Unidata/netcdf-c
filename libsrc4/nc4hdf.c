@@ -1420,9 +1420,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
       maxdimsize[d] = var->dim[d]->unlimited ? H5S_UNLIMITED : (hsize_t)var->dim[d]->len;
       chunksize[d] = var->chunksizes[d];*/
    
-         for (d = 0; d < var->ndims; d++)
-         for (g = grp; g && (dims_found < var->ndims); g = g->parent)
-            for (dim = g->dim; dim; dim = dim->next)
+      for (d = 0; d < var->ndims; d++)
+      {
+	 for (g = grp; g && (dims_found < var->ndims); g = g->parent) 
+	 {
+	    for (dim = g->dim; dim; dim = dim->next)
+	    {
                if (dim->dimid == var->dimids[d])
                {
                   dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
@@ -1456,6 +1459,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                   dims_found++;
                   break;
                }
+	    }
+	 }
+      }
       
       if (var->contiguous)
       {
@@ -2419,25 +2425,17 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
    return retval;
 }
 
-/* Recursively write all the metadata in a group. Groups and types
- * have all already been written. */
+/* Recursively determine if there is a mismatch between order of
+ * coordinate creation and associated dimensions in this group or any
+ * subgroups, to find out if we have to handle that situation. */
 int
-nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
+nc4_rec_detect_bad_coord_order(NC_GRP_INFO_T *grp, int *bad_coord_orderp)
 {
    NC_DIM_INFO_T *dim;
    NC_VAR_INFO_T *var;
    NC_GRP_INFO_T *child_grp;
-   int found_coord, coord_varid = -1, wrote_coord;
-   int bad_coord_order = 0;
    int last_dimid = -1;
    int retval;
-
-   assert(grp && grp->name && grp->hdf_grpid);
-   LOG((3, "nc4_rec_write_metadata: grp->name %s", grp->name));
-
-   /* Write global attributes for this group. */
-   if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
-      return retval;
 
    /* If the user writes coord vars in a different order then he
     * defined their dimensions, then, when the file is reopened, the
@@ -2450,8 +2448,8 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
       {
 	 if (var->dimids[0] < last_dimid)
 	 {
-	    bad_coord_order++;
-	    break;
+	     *bad_coord_orderp = 1;
+	     return NC_NOERR;
 	 }
 	 last_dimid = var->dimids[0];
       }
@@ -2466,9 +2464,38 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
 	    if (!strcmp(dim->name, var->name) && !dim->dirty)
 	    {
 	       LOG((5, "coord var defined after enddef/redef"));
-	       bad_coord_order++;
+	       *bad_coord_orderp = 1;
+	       return NC_NOERR;
 	    }
    
+   /* If there are any child groups, check them also for this condition. */
+   for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
+      if ((retval = nc4_rec_detect_bad_coord_order(child_grp, bad_coord_orderp)))
+         return retval;
+
+   return NC_NOERR;
+}
+
+
+/* Recursively write all the metadata in a group. Groups and types
+ * have all already been written.  Propagate bad cooordinate order to
+ * subgroups, if detected. */
+int
+nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
+{
+   NC_DIM_INFO_T *dim;
+   NC_VAR_INFO_T *var;
+   NC_GRP_INFO_T *child_grp;
+   int found_coord, coord_varid = -1, wrote_coord;
+
+   int retval;
+
+   assert(grp && grp->name && grp->hdf_grpid);
+   LOG((3, "nc4_rec_write_metadata: grp->name %s, bad_coord_order %d", grp->name, bad_coord_order));
+
+   /* Write global attributes for this group. */
+   if ((retval = write_attlist(grp->att, NC_GLOBAL, grp)))
+      return retval;
       
    /* For some stupid reason, the dim list is stored backwards! Get to
     * the back of the list. */
@@ -2516,7 +2543,7 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp)
    
    /* If there are any child groups, write their metadata. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
-      if ((retval = nc4_rec_write_metadata(child_grp)))
+      if ((retval = nc4_rec_write_metadata(child_grp, bad_coord_order)))
          return retval;
       
    return NC_NOERR;
