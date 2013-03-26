@@ -8,6 +8,11 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
+		Fixed netCDF-4 bug with particular order of
+		creation of dimensions, coordinate variables, and
+		subgroups resulting in two dimensions with the same
+		dimension ID. [NCF-244]
+
 		Fixed bug with incorrect fixed-size variable offsets in header
 		getting written when schema changed for files created
 		by parallel-netcdf.  Thanks to Wei-keng Liao for

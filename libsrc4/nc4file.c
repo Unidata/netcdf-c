@@ -2964,6 +2964,8 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
       int bad_coord_order = 0;	/* if detected, propagate to all groups to consistently store dimids */
       if ((retval = nc4_rec_write_types(h5->root_grp)))
 	 return retval;
+      if ((retval = nc4_rec_detect_bad_coord_order(h5->root_grp, &bad_coord_order)))
+	 return retval;
       if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
 	 return retval;
    }
