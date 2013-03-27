@@ -16,10 +16,10 @@ These libraries can be used with Visual Studio 2010 projects.  The downloads are
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
-netCDF 3		| [netCDF4.3RC3-NC3-32.exe][1]		| [netCDF4.3RC3-NC3-64.exe][5] 
-netCDF3+DAP		| [netCDF4.3RC3-NC3-DAP-32.exe][2]	| [netCDF4.3RC3-NC3-DAP-64.exe][6]
-netCDF4			| [netCDF4.3RC3-NC4-32.exe][3]		| [netCDF4.3RC3-NC4-64.exe][7]
-netCDF4+DAP		| [netCDF4.3RC3-NC4-DAP-32.exe][4]	| [netCDF4.3RC3-NC4-DAP-64.exe][8]
+netCDF 3		| [netCDF4.3RC4-NC3-32.exe][1]		| [netCDF4.3RC4-NC3-64.exe][5] 
+netCDF3+DAP		| [netCDF4.3RC4-NC3-DAP-32.exe][2]	| [netCDF4.3RC4-NC3-DAP-64.exe][6]
+netCDF4			| [netCDF4.3RC4-NC4-32.exe][3]		| [netCDF4.3RC4-NC4-64.exe][7]
+netCDF4+DAP		| [netCDF4.3RC4-NC4-DAP-32.exe][4]	| [netCDF4.3RC4-NC4-DAP-64.exe][8]
 
 # Using the netCDF-C Libraries with Visual Studio
 In order to use the netcdf libraries, you must ensure that the .dll files (along with any dependencies from deps/shared/bin) are on the system path. In order to compile a program using these libraries, you must first link your program against the appropriate 'import' (.lib) libraries.  
@@ -41,11 +41,11 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 
 Both of these issues are being actively worked on.  The may be tracked in the Unidata JIRA system at <http://bugtracking.unidata.ucar.edu/>, using the provided JIRA identifiers.
 
-[1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC3-32.exe
-[2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC3-DAP-32.exe
-[3]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC4-32.exe
-[4]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC4-DAP-32.exe
-[5]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC3-64.exe
-[6]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC3-DAP-64.exe
-[7]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC4-64.exe
-[8]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC3-NC4-DAP-64.exe
+[1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC3-32.exe
+[2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC3-DAP-32.exe
+[3]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC4-32.exe
+[4]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC4-DAP-32.exe
+[5]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC3-64.exe
+[6]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC3-DAP-64.exe
+[7]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC4-64.exe
+[8]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3RC4-NC4-DAP-64.exe
