@@ -19,12 +19,15 @@
  * The macro ALLOC_ONSTACK wraps a call to alloca() on most systems.
  */
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER 
+#ifdef HAVE_MALLOC_H
 #undef HAVE_ALLOCA
 #define HAVE_ALLOCA 1
+#include <malloc.h>
+#endif
 #endif
 
-#if HAVE_ALLOCA
+#ifdef HAVE_ALLOCA
 /*
  * Implementation based on alloca()
  */

@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
  
 #Project Name
 project(netCDF C)
+set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 0)
@@ -71,6 +72,15 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 FIND_PACKAGE(PkgConfig QUIET)
+
+
+## Enable 'dist and distcheck'.
+## File taken from http://ensc.de/cmake/FindMakeDist.cmake
+FIND_PACKAGE(MakeDist)
+ADD_MAKEDIST()
+ENABLE_MAKEDIST(cmake_config.h.in CMakeLists.txt cmake)
+
+## End 'enable dist and distcheck'
 # Only necessary for Windows
 IF(MSVC)
 	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
@@ -606,6 +616,7 @@ IF(NOT HAVE_UNISTD_H)
 ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
+CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("dirent.h"	 HAVE_DIRENT_H)
 CHECK_INCLUDE_FILE("dlfcn.h"	 HAVE_DLFCN_H)
@@ -672,6 +683,8 @@ CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
+
+
 #####
 # End system inspection checks.
 #####
