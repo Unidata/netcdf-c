@@ -1064,6 +1064,7 @@ makeenumconst(Symbol* econst)
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
     con.lineno = lineno;
+    con.filled = 0;
     /* fix up econst to be a ref to an econst*/
     econst->objectclass = NC_TYPE;
     econst->subclass = NC_ECONST;

@@ -119,6 +119,7 @@ list2const(Datalist* list)
     con.nctype = NC_COMPOUND;
     con.lineno = list->data[0].lineno;
     con.value.compoundv = list;
+    con.filled = 0;
     return con;
 }
 
@@ -634,6 +635,7 @@ emptycompoundconst(int lineno, Constant* c)
     c->lineno = lineno;
     c->nctype = NC_COMPOUND;
     c->value.compoundv = builddatalist(0);
+    c->filled = 0;
     return c;    
 }
 
@@ -645,6 +647,7 @@ emptystringconst(int lineno, Constant* c)
     c->nctype = NC_STRING;
     c->value.stringv.len = 0;
     c->value.stringv.stringv = NULL;
+    c->filled = 0;
     return c;    
 }
 
