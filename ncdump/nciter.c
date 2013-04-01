@@ -192,7 +192,7 @@ nc_get_iter(int ncid,
     memset((void*)iterp,0,sizeof(nciter_t)); /* make sure it is initialized */
 
     NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
-    dimids = (int *) emalloc((ndims + 1) * sizeof(size_t));
+    dimids = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
 
