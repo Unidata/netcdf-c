@@ -20,5 +20,5 @@ if USE_NETCDF4
 noinst_HEADERS += ncaux.h 
 endif
 
-EXTRA_DIST=CMakeLists.txt
+EXTRA_DIST = CMakeLists.txt XGetopt.h
 
