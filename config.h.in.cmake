@@ -20,18 +20,19 @@
 	#define lseek _lseek
 #endif
   
+#ifdef _WIN32
+	#ifndef strcasecmp
+  		#define strcasecmp _stricmp
+		#define snprintf _snprintf
+  	#endif
+#endif
+
+
   #define strdup _strdup
   #define fdopen _fdopen
   #define write _write
   #define snprintf _snprintf
   #define strtoll _strtoi64
-#endif
-
-#if defined(_WIN32)
-	#ifndef strcasecmp
-  		#define strcasecmp _stricmp
-		#define snprintf _snprintf
-  	#endif
 #endif
 
 
@@ -184,7 +185,6 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #cmakedefine HAVE_MALLOC_H @HAVE_MALLOC_H@
 
-#if !defined(__APPLE__)
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */
@@ -202,22 +202,13 @@
 #cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
 /* The size of `size_t` as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+/* The size of `ssize_t` as computed by sizeof. */
+#cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@ 
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
-#else
-#define SIZEOF_SHORT	2
-#define	SIZEOF_INT	4
-#if defined(__LP64__) && __LP64__
-#define SIZEOF_LONG	8
-#define SIZEOF_SIZE_T	8
-#else
-#define SIZEOF_LONG	4
-#define SIZEOF_SIZE_T	4
-#endif
-#define SIZEOF_FLOAT	4
-#define SIZEOF_DOUBLE	8
-#define SIZEOF_OFF_T	8
-#endif
+
+
+
 
 #cmakedefine TEMP_LARGE "@TEMP_LARGE@"
 
