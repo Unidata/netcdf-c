@@ -1744,9 +1744,11 @@ read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
 
    return NC_NOERR;
 
-  exit: 
+   //exit: 
    if (access_pid && H5Pclose(access_pid) < 0)
       BAIL2(retval);
+
+
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
@@ -1757,6 +1759,8 @@ read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
 #ifdef EXTRA_TESTS
    num_spaces--;
 #endif
+   
+ exit:
 
    if(dims) free(dims);
    if(max_dims) free(max_dims);

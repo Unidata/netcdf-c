@@ -497,8 +497,11 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
      
      /* Find dimensions of this var. */
      if ((retval = find_var_shape_grp(grp, var->varid, &ndims, 
-				      dimids, dimlen)))
+				      dimids, dimlen))) {
+       free(dimids);
+       free(dimlen);
        return retval;
+     }
      
      /* Check for any dimension that matches dimid. If found, check
       * if its length is longer than *lenp. */

@@ -878,6 +878,7 @@ copy_vars(int igrp, int ogrp)
             continue;
 	NC_CHECK(copy_var(igrp, varid, ogrp));
     }
+    free(vlist);
     return stat;
 }
 
