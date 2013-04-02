@@ -185,6 +185,9 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #cmakedefine HAVE_MALLOC_H @HAVE_MALLOC_H@
 
+/* Define to 1 if you have the BaseTsd.h header file. */
+#cmakedefine HAVE_BASETSD_H @HAVE_BASETSD_H@
+
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */
