@@ -19,6 +19,11 @@ for more info.
 #include <malloc.h>
 #endif
 
+#ifndef SIZEOF_SSIZE_T
+#define ssize_t int
+#endif
+
+
 #ifdef _WIN64
 #include <sys/stat.h>
 #endif
