@@ -22,6 +22,13 @@ defined.
 extern char* strdup(const char*);
 #endif
 
+
+#ifndef SIZEOF_SSIZE_T
+#define ssize_t int
+#endif
+
+
+
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
