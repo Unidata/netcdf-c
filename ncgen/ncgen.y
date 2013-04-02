@@ -1168,7 +1168,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     Symbol* attr = NULL;
     Datalist* list;
     Constant* con;
-    Specialdata* special;
+    Specialdata* special = (Specialdata*)malloc(sizeof(Specialdata));
     Constant iconst;
     int tf = 0;
     char* sdata = NULL;

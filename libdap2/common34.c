@@ -304,7 +304,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	        char sindex[64];
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
 		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
-		if(dim->ncbasename == NULL) return NC_ENOMEM;
+		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
 		strcpy(dim->ncbasename,legalname);
 		strcat(dim->ncbasename,sindex);
 		nullfree(legalname);

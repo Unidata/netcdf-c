@@ -643,6 +643,7 @@ CHECK_INCLUDE_FILE("fcntl.h"	HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
 CHECK_INCLUDE_FILE("endian.h"	HAVE_ENDIAN_H)
+CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 
 # Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
@@ -654,9 +655,12 @@ CHECK_TYPE_SIZE("off_t"		 SIZEOF_OFF_T)
 CHECK_TYPE_SIZE("off64_t"        SIZEOF_OFF64_T)
 CHECK_TYPE_SIZE("short"		 SIZEOF_SHORT)
 CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
+CHECK_TYPE_SIZE("ssize_t"	 SIZEOF_SSIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"	 SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"	 SIZEOF_UINT64_T)
+
+SET(HAVE_SSIZE_T SIZEOF_SSIZE_T CACHE STRING "")
 
 # Check for various functions. 
 CHECK_FUNCTION_EXISTS(fsync	HAVE_FSYNC)
@@ -700,9 +704,9 @@ IF(NOT WIN32)
 ENDIF()
 
 # Create config.h file
-configure_file("${netCDF_SOURCE_DIR}/cmake_config.h.in"
+configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-configure_file("${netCDF_SOURCE_DIR}/cmake_nc-config.in"
+configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
   "${netCDF_SOURCE_DIR}/nc-config")
 FILE(COPY "${netCDF_SOURCE_DIR}/nc-config"
   DESTINATION "${netCDF_BINARY_DIR}"
