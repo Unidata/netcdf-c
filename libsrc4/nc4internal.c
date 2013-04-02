@@ -911,6 +911,10 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    NC_ATT_INFO_T *a, *att;
    int ret;
 
+   if(var == NULL) {
+     return NC_NOERR;
+   }
+
    /* First delete all the attributes attached to this var. */
    att = var->att;
    while (att)
@@ -922,16 +926,20 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    }
 
    /* Free some things that may be allocated. */
-   if (var->chunksizes)
-      free(var->chunksizes);
+   if (var->chunksizes) 
+     {free(var->chunksizes);var->chunksizes = NULL;}
+   
    if (var->hdf5_name)
-      free(var->hdf5_name);
+     {free(var->hdf5_name); var->hdf5_name = NULL;}
+ 
    if (var->name)
-      free(var->name);
+     {free(var->name); var->name = NULL;}
+
    if (var->dimids)
-      free(var->dimids);
+     {free(var->dimids); var->dimids = NULL;}
+   
    if (var->dim)
-      free(var->dim);
+     {free(var->dim); var->dim = NULL;}
 
    /* Remove the var from the linked list. */
    if(*list == var)
@@ -957,6 +965,7 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
          }
       }
       free(var->fill_value);
+      var->fill_value = NULL;
    }
 
    /* For atomic types we have allocated space for type information. */
@@ -974,10 +983,13 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 	    return NC_EHDFERR;
 
       /* Free the name. */
-      if (var->type_info->name)
+      if (var->type_info->name) {
 	 free(var->type_info->name);
-
+	 var->type_info->name = NULL;
+      }
+      
       free(var->type_info);
+      var->type_info = NULL;
    }
    
    /* Delete any HDF5 dimscale objid information. */
@@ -990,6 +1002,7 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 
    /* Delete the var. */
    free(var);
+   var = NULL;
 
    return NC_NOERR;
 }
