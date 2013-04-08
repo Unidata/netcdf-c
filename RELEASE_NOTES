@@ -50,7 +50,13 @@ VERSION		COMMENTS
 
 		Merged in parallel-netcdf bugs fixes from Greg
 		Sjaardema.  [NCF-214]
-		
+
+		Modify ncgen so that if the incoming file has a
+		special attribute, then it is used to
+                establish the special property of the netcdf file,
+                but the attribute is not included as a real attribute
+                in the file. [NCF-213].
+
 		Added library version info to the user-agent
                 string so that the server logs will be more informative.
 		[NCF-210]
