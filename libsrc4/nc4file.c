@@ -850,7 +850,7 @@ static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
    hid_t spaceid = 0, file_typeid = 0;
-   hsize_t dims[1] = {0}; /* netcdf attributes always 1-D. */
+   hsize_t dims[1]; /* netcdf attributes always 1-D. */
    int retval = NC_NOERR;
    size_t type_size;
    int att_ndims;
@@ -1743,8 +1743,20 @@ read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
    if(max_dims) free(max_dims);
 
    return NC_NOERR;
-   
- exit:
+
+  exit: 
+   if (access_pid && H5Pclose(access_pid) < 0)
+      BAIL2(retval);
+#ifdef EXTRA_TESTS
+   num_plists--;
+#endif
+   if (datasetid && H5Dclose(datasetid) < 0)
+      BAIL2(retval);
+   if (spaceid && H5Sclose(spaceid) <0)
+      BAIL2(retval);
+#ifdef EXTRA_TESTS
+   num_spaces--;
+#endif
 
    if(dims) free(dims);
    if(max_dims) free(max_dims);
