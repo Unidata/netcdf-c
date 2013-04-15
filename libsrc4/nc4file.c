@@ -1893,7 +1893,8 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
 
     pid = H5Gget_create_plist(grp->hdf_grpid);
     H5Pget_link_creation_order(pid, &crt_order_flags); 
-    H5Pclose(pid);
+    if(H5Pclose(pid) < 0)
+	return NC_EHDFERR;
     
     crt_order_flags = crt_order_flags & H5_INDEX_CRT_ORDER;
 	
