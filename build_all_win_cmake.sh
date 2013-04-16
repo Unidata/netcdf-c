@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VER="netCDF4.3RC3"
+VER="netCDF4.3RC5"
 
 #####
 # Help statement.
