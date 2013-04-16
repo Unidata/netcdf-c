@@ -123,11 +123,14 @@ ncbytesappend(NCbytes* bb, char elem)
 int
 ncbytescat(NCbytes* bb, const char* s)
 {
-    ncbytesappendn(bb,(void*)s,strlen(s)+1); /* include trailing null*/
-    /* back up over the trailing null*/
-    if(bb->length == 0) return ncbytesfail();
-    bb->length--;
+  if(s == NULL) {
     return 1;
+  }
+  ncbytesappendn(bb,(void*)s,strlen(s)+1); /* include trailing null*/
+  /* back up over the trailing null*/
+  if(bb->length == 0) return ncbytesfail();
+  bb->length--;
+  return 1;
 }
 
 int

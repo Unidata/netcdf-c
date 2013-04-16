@@ -491,38 +491,49 @@ case CASE(NC_DOUBLE,NC_STRING):
     break;
 
 case CASE(NC_OPAQUE,NC_CHAR):
+  if(bytes)
     tmp.charv	= *(char*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_BYTE):
+  if(bytes)
     tmp.uint8v	= *(unsigned char*)bytes;
     break;
 case CASE(NC_OPAQUE,NC_UBYTE):
+  if(bytes)  
     tmp.uint8v	= *(unsigned char*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_USHORT):
+  if(bytes)  
     tmp.uint16v	= *(unsigned short*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_UINT):
+  if(bytes) 
     tmp.uint32v = *(unsigned int*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_UINT64):
+  if(bytes)  
     tmp.uint64v	 = *(unsigned long long*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_SHORT):
+  if(bytes)  
     tmp.int16v	= *(short*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_INT):
+  if(bytes)  
     tmp.int32v	= *(int*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_INT64):
+  if(bytes)  
     tmp.int64v	 = *(long long*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_FLOAT):
+  if(bytes)  
     tmp.floatv	= *(float*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_DOUBLE):
+  if(bytes)  
     tmp.doublev = *(double*)bytes;
-    break;
+  break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
     tmp.opaquev.stringv = (char*)malloc(src->value.opaquev.len+1);
     memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
