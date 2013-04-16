@@ -327,11 +327,6 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
    assert(grp && var && h5 && h5->root_grp);
    *grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK));
 
-   /* It is possible for *grp to be NULL. If it is,
-      return an error. */
-   if(*grp == NULL) 
-     return NC_ENOTVAR;
-   
    /* Find the var info. */
    for ((*var) = (*grp)->var; (*var); (*var) = (*var)->next)
      if ((*var)->varid == varid)
