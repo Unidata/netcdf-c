@@ -29,11 +29,6 @@ extern char* strdup(const char*);
 #endif
 #endif
 
-//#ifndef SIZEOF_SSIZE_T
-//#undef ssize_t
-//#define ssize_t int
-//#endif
-
 
 
 /* handle null arguments */

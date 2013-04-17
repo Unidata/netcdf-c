@@ -16,14 +16,16 @@ typedef struct DCEnode {
     CEsort sort;    
 } DCEnode;
 
-/* The slice structure is assumed common to all uses */
+/* The slice structure is assumed common to all uses.
+   It is initially established from [first:stride:last]
+*/
 typedef struct DCEslice {
     DCEnode node;
-    size_t first;
-    size_t count;
-    size_t length; /* count*stride */
+    size_t first; 
     size_t stride;
-    size_t stop; /* == first + count*/
+    size_t length;
+    size_t stop;   /* first + length */
+    size_t count;  /* (length + (stride-1))/ stride == actual # of elements returned to client*/
     size_t declsize;  /* from defining dimension, if any.*/
 } DCEslice;
 
@@ -89,7 +91,7 @@ typedef struct DCEconstraint {
 
 
 extern int dceparseconstraints(char* constraints, DCEconstraint* DCEonstraint);
-extern int dceslicemerge(DCEslice* dst, DCEslice* src);
+extern int dceslicecompose(DCEslice* dst, DCEslice* src);
 extern int dcemergeprojectionlists(NClist* dst, NClist* src);
 
 extern DCEnode* dceclone(DCEnode* node);

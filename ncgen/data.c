@@ -609,6 +609,7 @@ bbprintf(Bytebuffer* buf, const char *fmt, ...)
     va_list argv;
     va_start(argv,fmt);
     vbbprintf(buf,fmt,argv);
+    va_end(argv);
 }
 
 void
@@ -618,6 +619,7 @@ bbprintf0(Bytebuffer* buf, const char *fmt, ...)
     va_start(argv,fmt);
     bbClear(buf);
     vbbprintf(buf,fmt,argv);
+    va_end(argv);
 }
 
 void
@@ -626,6 +628,7 @@ codeprintf(const char *fmt, ...)
     va_list argv;
     va_start(argv,fmt);
     vbbprintf(codebuffer,fmt,argv);
+    va_end(argv);
 }
 
 Constant*
