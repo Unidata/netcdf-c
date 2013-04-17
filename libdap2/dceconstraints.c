@@ -63,97 +63,193 @@ fprintf(stderr,"constraint: %s",dcetostring((DCEnode*)dapconstraint));
 }
 #endif
 
-/* Worksheet
+#ifdef DEBUG1
+static void
+dumpslice(const char* prefix, DCEslice* s)
+{
+#if 1
+    int v = dceverbose;
+    dceverbose = 1;
+    fprintf(stderr,"%s: %s\n",prefix,dcetostring(s));
+    dceverbose = v;
+#else
+    size_t last = (s->first+s->length)-1;
+    fprintf(stderr,"%s: [%lu:%lu:%lu p=%lu l=%lu c=%lu]\n",
+	prefix,s->first,s->stride,last,s->stop,s->length,s->count);
+#endif
+}
+#endif
 
-mg.st = md.st * ms.st
-mg.f  = md.f+(ms.f*md.st)
-mg.l  = ((ms.l-1) / ms.st) * mg.st + 1
-mg.p  = mg.f + mg.l
-mg.c  = mg.l / mg.st
 
+/*
+Logical derivation of s1 compose s2 = sr
+
+The composed value of first and stride are easy:
+sr.first   = s1.first + (s2.first * s1.stride)
+sr.stride = s1.stride * s2.stride
+
+Finding sr.length, however, is significantly more
+complex. In particular, the length specified by s2
+may be more or less than the number of values
+provided by s1.
+
+One way to compute sr.length is as follows
+. Compute the count of the number of values provided by s1
+	count1 = (s1.length+(s1.stride-1))/s1.stride
+   Note that count1 is effectively the number of elements
+   available to s2.
+. Compute the stop point of s1 using count1 and wrt original data
+  (stop point is first + length)
+	stop1 = (s1.first + (count1 * s1.stride))
+. Compute the number of elements resulting from applying s2
+	count2 = (s2.length+(s2.stride-1))/s2.stride
+. Compute the stop point of s2 using count2 and wrt s1 output
+	stop2 = (s2.first + (count2 * s2.stride))
+. Now we can convert stop2 back into a stop point wrt the original data
+	stopx = (s1.first + (stop2*s1.stride))
+. Make sure we do not overrun the output of s2 by using the min()
+	stopr = min(stopx,stop1)
+. Compute the result length wrt the original data
+	sr.length = (stopr - sr.first)
+
+Example 1:
+0000000000111111111
+0123456789012345678
+ 0 1 2 3 4                s1=(f=1 st=2 len=9)
+ 0 1 2 3 4                s2=(f=0 st=1 len=5)
+ xxxxxxxxxx
+ 0 1 3 4 5		  sr=(f=1 st=2 len=9)
+sr.f    = 1+(0*2) = 1
+sr.st   = 2*1     = 2
+count1  = (9+(2-1))/2 = 5
+stop1   = (1+(5*2)) = 11
+count2  = (5+(1-1))/1 = 5
+stop2   = 0+(5*1) = 5
+stopx   = (1+(5*2)) = 11
+stopr   = min(11,11) = 11
+sr.l    = (11 - 2) = 9
+
+Example 2:
 0000000000111111111122222222223
 0123456789012345678901234567890
-          xxxxxx
-                xxxxxx
- 0  1  2  3  4  5  6  7  8        md=(st=3 f=1 l=25 p=26)
-          0     1     2           ms=(st=2 f=3 l=5  p=8 )
-		                  ----------------------------
-                                  mg=(st=6 f=10 p=23 l=13)
-c = 4 / 2 = 2
-l = 2 * 6 + 1 = 13
+ 0  1  2  3  4  5  6  7  8  _     s1=(f=1 st=3 len=25)
+          0     1     2     _     s2=(f=3 st=2 len=5)
+          xxxxxxxxxxxxxxxxxx
+          0     1     2           sr=(f=10 st=6 l=18)
 
+sr.f    = 1+(3*3) = 10
+sr.st   = 3*2 =6
+count1  = (25+(3-1))/3 = 9
+stop1   = (1+(9*3)) = 28
+count2  = (5+(2-1))/2 = 3
+stop2   = (3+(3*2)) = 9
+stopx   = (1+(9*3)) = 28
+stopr   = min(28,28) = 28
+sr.l    = 28 - 10 = 18
+
+
+Example 3:
 0000000000111111
 0123456789012345
- 0 1 2 3 4                md=(st=2 f=1 l=9 p=10)
-     0 1 2                ms=(st=1 f=2 l=3 p=5)
-                          ----------------------------
-                          mg=(st=2 f=5 p=10 l=5 )
-c = 2/1 = 2
-l = 2 * 2 + 1 = 13
+ 0 1 2 3 4 _ _            s1=(f=1 st=2 l=9)
+     0 1 2 3 _            s2=(f=2 st=1 l=4)
+     xxxxxxp               ----------------------------
+                          sr=(f=5 st=2 l=6)
+sr.f   = 1+(2*2) = 5
+sr.st  = 2*1 = 2
+count1 = (9+(2-1))/2 = 5
+stop1  = 1+(5*2) = 11
+count2 = (4+(1-1))/1 = 4
+stop2  = 2+(4*1) = 6
+stopx  = 1*(6*2) = 13
+stopr  = min(13,11) = 11
+sr.l   = 11 - 5 = 6
 
+Example 4:
 0000000000111111111
 0123456789012345678
- 0 1 2 3 4 5 6 7 8        md=(st=2 f=1 l=17 p=18)
-       0   1   2          ms=(st=2 f=3 l=5 p=8)
-		          ----------------------------
-                          mg=(st=4 f=7 p=16 l=9 )
-c = 4/2 = 2
-l = 2 * 4 + 1 = 9
+ 0 1 2 3 4 _ _            s1=(f=1 st=2 l=9)
+     0   1   p            s2=(f=2 st=2 l=4)
+     xxxxxx               ----------------------------
+                          sr=(f=5 st=4 l=6)
+sr.f   = 1+(2*2) = 5
+sr.st  = 2*2 = 4
+count1 = (9+(2-1))/2 = 5
+stop1  = 1+(5*2) = 11
+count2 = (4+(2-1))/2 = 2
+stop2  = 2+(2*2) = 6
+stopx  = 1*(6*2) = 13
+stopr  = min(13,11) = 11
+sr.l   = 11 - 5 = 6
 
-0000000000111111111
-0123456789012345678
- 0 1 2 3 4                md=(st=2 f=1 l=9 p=10)
- 0 1 2 3 4                ms=(st=1 f=0 l=5 p=5)
+Example 5:
+00000000001
+01234567890
+012                       s1=(f=0 st=1 l=3)
+012                       s2=(f=0 st=1 l=3)
 		          ----------------------------
-                          mg=(st=2 f=1 p=10 l=9 )
-c = 4/1 = 4
-l = 4 * 2 + 1 = 9
+                          sr=(f=0 st=1 l=3)
+sr.f   = 0+(0*1) = 0
+sr.st  = 1*1 = 1
+count1 = (3+(1-1))/1 = 3
+stop1  = 0+(3*1) = 3
+count2 = (3+(1-1))/1 = 3
+stop2  = 0+(3*1) = 3
+stopx  = 0+(3*1) = 3
+stopr  = min(3,3) = 3
+sr.l   = 3 - 0 = 3
 
 00000
 01234
-01                        md=(st=1 f=0 l=2 p=2)
-0                         ms=(st=1 f=0 l=1 p=1)
+01                        s1=(f=0 st=1 l=2)
+0                         s2=(f=0 st=1 l=1)
 		          ----------------------------
-                          mg=(st=1 f=0 p=1 l=1 )
-c = 0/1 = 0
-l = 0 * 1 + 1 = 1
-
-000000000011
-012345678901
-012                       md=(st=1 f=0 l=3 p=3)
-012                       ms=(st=1 f=0 l=3 p=2)
-		          ----------------------------
-                          mg=(st=1 f=0 p=3 l=3 )
-c = 2/1 = 2
-l = 2 * 1 + 1 = 3
+                          sr=(f=0 st=1 l=1)
+sr.f   = 0+(0*1) = 0
+sr.st  = 1*1 = 1
+count1 = (2+(1-1))/1 = 2
+stop1  = 0+(2*1) = 2
+count2 = (1+(1-1))/1 = 1
+stop2  = 0+(1*1) = 1
+stopx  = 0+(1*1) = 1
+stopr  = min(1,2) = 1
+sr.l   = 1 - 0 = 1
 
 */
 
-/* Merge slice src into slice dst; dst != src */
+/* compose slice src into slice dst; dst != src.
+Compose means that the src constraint is applied
+to the output of the dst constraint.
+ */
 
 int
-dceslicemerge(DCEslice* dst, DCEslice* src)
+dceslicecompose(DCEslice* s1, DCEslice* s2)
 {
     int err = NC_NOERR;
     DCEslice tmp;
-
+    size_t count1, stop1, count2, stop2, stopx, stopr;
+#ifdef DEBUG1
+dumpslice("compose: s1",s1);
+dumpslice("compose: s2",s2);
+#endif
     tmp.node.sort = CES_SLICE;
-    tmp.stride    = (dst->stride * src->stride);
-    tmp.first     = (dst->first+((src->first)*(dst->stride)));
-    tmp.length    = (((src->length - 1) / src->stride) * tmp.stride) + 1;
-    tmp.stop      = tmp.first + tmp.length;
-    tmp.count     = tmp.length / tmp.stride;
-    /* use max declsize */
-    if(dst->declsize > src->declsize) {
-        tmp.declsize  = dst->declsize;
-    } else {
-        tmp.declsize  = src->declsize;
-    }
-    if(tmp.length % tmp.stride != 0) tmp.count++;
-    if(tmp.first >= dst->stop || tmp.stop > dst->stop)
-	err = NC_EINVALCOORDS;
-    else
-	*dst = tmp;
+    tmp.first     = s1->first+(s2->first * s1->stride);
+    tmp.stride    = s1->stride * s2->stride;
+    count1        = (s1->length + (s1->stride - 1))/s1->stride;
+    stop1         = s1->first + (count1 * s1->stride);
+    count2        = (s2->length + (s2->stride - 1))/s2->stride;
+    stop2         = s2->first + (count2 * s2->stride);
+    stopx         = s1->first + (stop2 * s1->stride);
+    stopr         = (stopx < stop1 ? stopx : stop1); /* min(stopx,stop1) */
+    tmp.length    = (stopr - tmp.first);
+    tmp.declsize = (s1->declsize < s2->declsize ? s2->declsize : s1->declsize); /* use max declsize */
+    /* fill in other fields */
+    tmp.stop = tmp.first + tmp.length;
+    tmp.count = (tmp.length + (tmp.stride - 1))/tmp.stride;
+    *s1 = tmp;
+#ifdef DEBUG1
+dumpslice("compose: result",&tmp);
+#endif
     return err;
 }
 
@@ -231,7 +327,7 @@ dcemergeprojections(DCEprojection* merged, DCEprojection* addition)
 	/* If one segment has larger rank, then copy the extra slices unchanged */
 	for(j=0;j<addedseg->rank;j++) {
 	    if(j < mergedseg->rank)
-	        dceslicemerge(mergedseg->slices+j,addedseg->slices+j);
+	        dceslicecompose(mergedseg->slices+j,addedseg->slices+j);
 	    else
 		mergedseg->slices[j] = addedseg->slices[j];
 	}
@@ -1145,3 +1241,4 @@ dcedumprawlist(NClist* list, NCbytes* buf)
     }
     ncbytescat(buf,")");
 }
+

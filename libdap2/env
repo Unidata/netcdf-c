@@ -10,8 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://motherlode.ucar.edu:8081/dts/ingrid"
-CON="v3H[0:0][0:43]"
+F="http://test.opendap.org:8080/dods/dts/test.03"
+CON="i32[0:1][1:2][0:2]"
 
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
