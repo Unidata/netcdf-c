@@ -23,7 +23,10 @@ extern char* strdup(const char*);
 #endif
 
 #if HAVE_BASETSD_H
+#ifndef SSIZE_T
 #include <BaseTsd.h>
+#define ssize_t SSIZE_T
+#endif
 #endif
 
 //#ifndef SIZEOF_SSIZE_T
