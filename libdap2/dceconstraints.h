@@ -24,7 +24,7 @@ typedef struct DCEslice {
     size_t first; 
     size_t stride;
     size_t length;
-    size_t stop;   /* first + length */
+    size_t last;   /* first + length - 1*/
     size_t count;  /* (length + (stride-1))/ stride == actual # of elements returned to client*/
     size_t declsize;  /* from defining dimension, if any.*/
 } DCEslice;
@@ -91,7 +91,7 @@ typedef struct DCEconstraint {
 
 
 extern int dceparseconstraints(char* constraints, DCEconstraint* DCEonstraint);
-extern int dceslicecompose(DCEslice* dst, DCEslice* src);
+extern int dceslicecompose(DCEslice* s1, DCEslice* s2, DCEslice* sr);
 extern int dcemergeprojectionlists(NClist* dst, NClist* src);
 
 extern DCEnode* dceclone(DCEnode* node);

@@ -454,11 +454,11 @@ fprintf(stderr,"buildvaraprojection: skeleton: %s\n",dumpprojection(projection))
 	    count = countp[dimindex+j];
 	    slice->count = count;
 	    slice->length = count * slice->stride;
-	    slice->stop = (slice->first + slice->length);
-	    if(slice->stop > slice->declsize) {
-		slice->stop = slice->declsize;
+	    slice->last = (slice->first + slice->length) - 1;
+	    if(slice->last >= slice->declsize) {
+		slice->last = slice->declsize - 1;
 		/* reverse compute the new length */
-		slice->length = (slice->stop - slice->first);
+		slice->length = (slice->last - slice->first) + 1;
 	    }
 	}
 	dimindex += segment->rank;
@@ -484,7 +484,7 @@ iswholeslice(DCEslice* slice, CDFnode* dim)
 {
     if(slice->first != 0 || slice->stride != 1) return 0;
     if(dim != NULL) {
-	if(slice->stop != dim->dim.declsize) return 0;
+	if(slice->length != dim->dim.declsize) return 0;
     } else if(dim == NULL) {
 	size_t count = slice->count;
 	if(slice->declsize == 0
@@ -843,7 +843,7 @@ dapshiftslice(DCEslice* slice)
     slice->first = 0;
     slice->stride = 1;
     slice->length = slice->count;
-    slice->stop = slice->length;
+    slice->last = slice->length - 1;
 }
 
 int
