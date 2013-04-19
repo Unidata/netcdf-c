@@ -566,27 +566,26 @@ dumpcache(NCcache* cache)
 char*
 dumpslice(DCEslice* slice)
 {
-	char buf[8192];
-	char tmp[8192];
-        size_t last = (slice->first+slice->length)-1;
-	buf[0] = '\0';
-	if(last > slice->declsize && slice->declsize > 0)
-	    last = slice->declsize - 1;
-        if(slice->count == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu]",
-	        (unsigned long)slice->first);
-        } else if(slice->stride == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
-	            (unsigned long)slice->first,
-	            (unsigned long)last);
-        } else {
-	   snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
-		    (unsigned long)slice->first,
-		    (unsigned long)slice->stride,
-		    (unsigned long)last);
-        }
-	strcat(buf,tmp);
-	return strdup(tmp);
+    char buf[8192];
+    char tmp[8192];
+    buf[0] = '\0';
+    if(slice->last > slice->declsize && slice->declsize > 0)
+        slice->last = slice->declsize - 1;
+    if(slice->count == 1) {
+        snprintf(tmp,sizeof(tmp),"[%lu]",
+            (unsigned long)slice->first);
+    } else if(slice->stride == 1) {
+        snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
+                (unsigned long)slice->first,
+                (unsigned long)slice->last);
+    } else {
+       snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
+                (unsigned long)slice->first,
+                (unsigned long)slice->stride,
+                (unsigned long)slice->last);
+    }
+    strcat(buf,tmp);
+    return strdup(tmp);
 }
 
 char*

@@ -10,8 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://test.opendap.org:8080/dods/dts/test.03"
-CON="i32[0:1][1:2][0:2]"
+F="http://opendap.co-ops.nos.noaa.gov/dods/IOOS/SixMin_Verified_Water_Level"
+CON="&WATERLEVEL_6MIN_VFD_PX._STATION_ID=%228779770%22&WATERLEVEL_6MIN_VFD_PX._DATUM=%22MSL%22&WATERLEVEL_6MIN_VFD_PX._BEGIN_DATE=%2220061001%22&WATERLEVEL_6MIN_VFD_PX._END_DATE=%2220061030%22"
 
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
