@@ -25,14 +25,14 @@
 #include "fbits.h"
 #include "dceconstraints.h"
 
-#include "oc.h"
-
 #include "netcdf.h"
 #include "ncdispatch.h"
 #include "nc.h"
 #include "nc3internal.h"
  /* netcdf overrides*/
 #include "dapnc.h"
+
+#include "oc.h"
 
 #include "dapdebug.h"
 #include "daputil.h"
@@ -95,7 +95,7 @@ extern struct NCTMODEL nctmodels[];
 
 /* Internal, but non-static procedures */
 extern NCerror computecdfvarnames3(NCDAPCOMMON*,CDFnode*,NClist*);
-extern NCerror computecdfnodesets3(NCDAPCOMMON* drno);
+extern NCerror computecdfnodesets3(NCDAPCOMMON* nccomm, CDFtree* tree);
 extern NCerror computevarnodes3(NCDAPCOMMON*, NClist*, NClist*);
 extern NCerror collectvardefdims(NCDAPCOMMON* drno, CDFnode* var, NClist* dimset);
 extern NCerror fixgrids3(NCDAPCOMMON* drno);
@@ -130,7 +130,6 @@ extern size_t dap_zero[NC_MAX_VAR_DIMS];
 
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
-extern int nc3dinitialize(void);
 extern NCerror restruct3(CDFnode* ddsroot, CDFnode* template, NClist*);
 extern void setvisible(CDFnode* root, int visible);
 extern NCerror mapnodes3(CDFnode* dstroot, CDFnode* srcroot);

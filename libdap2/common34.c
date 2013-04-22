@@ -182,7 +182,7 @@ computecdfdimnames34(NCDAPCOMMON* nccomm)
     int i,j;
     char tmp[NC_MAX_NAME*2];
     NClist* conflicts = nclistnew();
-    NClist* varnodes = nccomm->cdf.varnodes;
+    NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
     NClist* alldims;
     NClist* basedims;
     
@@ -279,7 +279,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	}
     }
 
-    nccomm->cdf.dimnodes = basedims;
+    nccomm->cdf.ddsroot->tree->dimnodes = basedims;
 
     /* cleanup */
     nclistfree(alldims);
@@ -304,7 +304,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	        char sindex[64];
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
 		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
-		if(dim->ncbasename == NULL) return NC_ENOMEM;
+		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
 		strcpy(dim->ncbasename,legalname);
 		strcat(dim->ncbasename,sindex);
 		nullfree(legalname);
@@ -375,7 +375,7 @@ constrainable34(NCURI* durl)
 }
 
 CDFnode*
-makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
+makecdfnode34(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
              /*optional*/ OCddsnode ocnode, CDFnode* container)
 {
     CDFnode* node;
@@ -384,12 +384,12 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* name, OCtype octype,
     if(node == NULL) return (CDFnode*)NULL;
 
     node->ocname = NULL;
-    if(name) {
-        size_t len = strlen(name);
+    if(ocname) {
+        size_t len = strlen(ocname);
         if(len >= NC_MAX_NAME) len = NC_MAX_NAME-1;
         node->ocname = (char*)malloc(len+1);
 	if(node->ocname == NULL) return NULL;
-	memcpy(node->ocname,name,len);
+	memcpy(node->ocname,ocname,len);
 	node->ocname[len] = '\0';
     }
     node->nctype = octypetonc(octype);
@@ -583,8 +583,8 @@ applyclientparams34(NCDAPCOMMON* nccomm)
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
-    for(i=0;i<nclistlength(nccomm->cdf.varnodes);i++) {
-	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.varnodes,i);
+    for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
+	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
 	/* Define the client param stringlength for this variable*/
 	var->maxstringlength = 0; /* => use global dfalt */
 	strcpy(tmpname,"stringlength_");
@@ -651,6 +651,9 @@ freecdfroot34(CDFnode* root)
 	free1cdfnode34(node);
     }
     nclistfree(tree->nodes);
+    nclistfree(tree->varnodes);
+    nclistfree(tree->seqnodes);
+    nclistfree(tree->gridnodes);
     nullfree(tree);
 }
 
@@ -697,29 +700,42 @@ nodematch34(CDFnode* node1, CDFnode* node2)
     return simplenodematch34(node1,node2);
 }
 
+/*
+Try to figure out if two nodes
+are the "related" =>
+    same name && same nc_type and same arity
+but: Allow Grid == Structure
+*/
+
 int
 simplenodematch34(CDFnode* node1, CDFnode* node2)
 {
-    if(node1 == NULL) return (node2==NULL);
-    if(node2 == NULL) return 0;
-    if(node1->nctype != node2->nctype) {
-	/* Check for Grid->Structure match */
-	if((node1->nctype == NC_Structure && node2->nctype == NC_Grid)
-	   || (node2->nctype == NC_Structure && node1->nctype == NC_Grid)){
-	   if(node1->ocname == NULL || node2->ocname == NULL
-	      || strcmp(node1->ocname,node2->ocname) !=0) return 0;	    	
-	} else return 0;
-    }
+    /* Test all the obvious stuff */
+    if(node1 == NULL || node2 == NULL)
+	return 0;
+    if(strcmp(node1->ocname,node2->ocname)!=0) /* same names */
+	return 0;
+    if(nclistlength(node1->array.dimset0)
+	!= nclistlength(node2->array.dimset0)) /* same arity */
+	return 0;
+
     /* Add hack to address the screwed up Columbia server */
     if(node1->nctype == NC_Dataset) return 1;
-    if(node1->nctype == NC_Atomic
-       && node1->etype != node2->etype) return 0;
-    if(node1->ocname != NULL && node2->ocname != NULL
-       && strcmp(node1->ocname,node2->ocname)!=0) return 0;
-    if(nclistlength(node1->array.dimset0)
-       != nclistlength(node2->array.dimset0)) return 0;
+
+    if(node1->nctype != node2->nctype) {
+	/* test for struct-grid match */
+	int structgrid = ((node1->nctype == NC_Grid && node2->nctype == NC_Structure)
+                          || (node1->nctype == NC_Structure && node2->nctype == NC_Grid) ? 1 : 0);
+	if(!structgrid)
+	    return 0;
+    }
+
+    if(node1->nctype == NC_Atomic && node1->etype != node2->etype)
+	return 0;
+
     return 1;
 }
+
 
 /*
 Given DDS node, locate the node
@@ -923,12 +939,12 @@ getalldims34(NCDAPCOMMON* nccomm, int visibleonly)
 {
     int i;
     NClist* alldims = nclistnew();
-    NClist* varnodes = nccomm->cdf.varnodes;
+    NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
 
     /* get bag of all dimensions */
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
-	if(!visibleonly || node->visible) {
+	if(!visibleonly || !node->invisible) {
 	    getalldims34a(node->array.dimsetall,alldims);
 	}
     }

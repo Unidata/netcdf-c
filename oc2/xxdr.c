@@ -59,6 +59,7 @@
 #include <sys/types.h>
 #endif
 
+
 #ifdef ENDIAN_VALIDATE
 #include <arpa/inet.h>
 #endif
@@ -219,7 +220,7 @@ xxdr_free(XXDR* xdr)
 int
 xxdr_skip(XXDR* xdrs, off_t len)
 {
-    unsigned int pos;
+  ssize_t pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
     if(pos < 0) pos = 0;
@@ -240,7 +241,7 @@ xxdr_skip_strings(XXDR* xdrs, off_t n)
 }
 
 unsigned int
-xdr_roundup(unsigned int n)
+xxdr_roundup(off_t n)
 {
     unsigned int rounded;
     rounded = RNDUP(n);

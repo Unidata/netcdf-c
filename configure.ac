@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.2.1.1], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3.0-rc4], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -80,8 +80,10 @@ AC_SUBST([BUILD_INTERNAL_DOCS], [$enable_internal_docs])
 
 AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
-              [AS_HELP_STRING([--disable-fsync],
-                              [disable fsync support])])
+              [AS_HELP_STRING([--enable-fsync],
+                              [enable fsync support])],
+				[],
+				[enable_fsync=no])
 test "x$enable_fsync" = xno || enable_fsync=yes
 AC_MSG_RESULT($enable_fsync)
 if test "x$enable_fsync" = xyes ; then

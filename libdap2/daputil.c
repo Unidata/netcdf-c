@@ -20,6 +20,8 @@ extern int oc_dumpnode(OClink, OCddsnode);
 #define RBRACKET ']'
 
 
+static char* repairname(const char* name, const char* badchars);
+
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities
@@ -50,15 +52,15 @@ nc__testurl(const char* path, char** basenamep)
 
 /*
 Given a legal dap name with arbitrary characters,
-convert to equivalent legal cdf name
-With the new name policy for netcdf, this procedure
-does nothing.
+convert to equivalent legal cdf name.
+Currently, the only change is to convert '/'
+names to %2f.
 */
 
 char*
-cdflegalname3(char* dapname)
+cdflegalname3(char* name)
 {
-    return nulldup(dapname);
+    return repairname(name,"/");
 }
 
 /* Define the type conversion of the DAP variables
@@ -348,95 +350,89 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
     OCtype octype;
     if(node == NULL) return;
     oc_dds_class(conn,node,&octype);
-    if(octype == OC_Dataset) return;
-    oc_dds_container(conn,node,&container);
-    if(container != NULL)
-        collectocpath(conn,container,path);
+    if(octype != OC_Dataset) {
+        oc_dds_container(conn,node,&container);
+        if(container != NULL)
+            collectocpath(conn,container,path);
+    }
     nclistpush(path,(void*)node);
 }
 
 char*
 makeocpathstring3(OClink conn, OCddsnode node, const char* sep)
 {
-    int slen,i,len,first,seplen;
-    char* pathname;
+    int i,len,first;
+    char* result;
+    char* name;
     OCtype octype;
-    NClist* ocpath = nclistnew();
+    NClist* ocpath = NULL;
+    NCbytes* pathname = NULL;
 
+    /* If we are asking for the dataset path only,
+       then nclude it, otherwise elide it
+    */
+    oc_dds_type(conn,node,&octype);
+    if(octype == OC_Dataset) {
+        oc_dds_name(conn,node,&name);
+	return nulldup(name);
+    }
+
+    ocpath = nclistnew();
     collectocpath(conn,node,ocpath);
     len = nclistlength(ocpath);
     assert(len > 0); /* dataset at least */
 
-    oc_dds_type(conn,node,&octype);
-    if(octype == OC_Dataset)
-	{pathname = nulldup(""); goto done;} /* Dataset */
-
-    seplen = strlen(sep);
-    for(slen=0,i=0;i<len;i++) {
+    pathname = ncbytesnew();
+    for(first=1,i=1;i<len;i++) { /* start at 1 to skip dataset name */
 	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
 	char* name;
         oc_dds_type(conn,node,&octype);
-        if(octype == OC_Dataset) continue;
         oc_dds_name(conn,node,&name);
-	slen += (name == NULL? 0 : strlen(name));
-	slen += seplen;
-	nullfree(name);
-    }
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
-    for(first=1,i=0;i<len;i++) {
-	OCddsnode node = (OCddsnode)nclistget(ocpath,i);
-	char* name;
-        oc_dds_type(conn,node,&octype);
-        if(octype == OC_Dataset) continue;
-        oc_dds_name(conn,node,&name);
-	if(!first) strcat(pathname,sep);
-        if(name != NULL) strcat(pathname,name);
+	if(!first) ncbytescat(pathname,sep);
+	ncbytescat(pathname,name);
 	nullfree(name);
 	first = 0;
     }
-done:
+    result = ncbytesextract(pathname);
+    ncbytesfree(pathname);
     nclistfree(ocpath);
-    return pathname;
+    return result;
 }
 
 char*
 makepathstring3(NClist* path, const char* separator, int flags)
 {
-    int slen,i,len,first,seplen;
-    char* pathname;
+    int i,len,first;
+    NCbytes* pathname = NULL;
+    char* result;
+    CDFnode* node;
 
     len = nclistlength(path);
     ASSERT(len > 0); /* dataset at least */
-    seplen = strlen(separator);
-    ASSERT(seplen > 0);
-    for(slen=0,i=0;i<len;i++) {
-	CDFnode* node = (CDFnode*)nclistget(path,i);
-	if(node->nctype == NC_Dataset) continue;
-        slen += strlen(node->ncbasename);
-	slen += seplen; 
+
+    if(len == 1) {/* dataset only */
+        node = (CDFnode*)nclistget(path,0);
+	return nulldup(node->ncbasename);
     }
-    slen += 1;   /* for null terminator*/
-    pathname = (char*)malloc(slen);
-    MEMCHECK(pathname,NULL);
-    pathname[0] = '\0';    
+
+    pathname = ncbytesnew();
     for(first=1,i=0;i<len;i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	char* name;
 	if(!node->elided || (flags & PATHELIDE)==0) {
     	    if(node->nctype != NC_Dataset) {
                 name = node->ncbasename;
-	        if(!first) strcat(pathname,separator);
-                strcat(pathname,name);
+		assert(name != NULL);
+	        if(!first) ncbytescat(pathname,separator);
+                ncbytescat(pathname,name);
 	        first = 0;
 	    }
 	}
     }
-    return pathname;
+    result = ncbytesextract(pathname);
+    ncbytesfree(pathname);
+    return result;
 }
-
 
 /* convert path to string using the ncname field */
 char*
@@ -494,6 +490,19 @@ dapinsequence(CDFnode* node)
     if(node == NULL || node->container == NULL) return TRUE;
     for(node=node->container;node->nctype != NC_Dataset;node=node->container) {
        if(node->nctype == NC_Sequence) return TRUE;
+    }
+    return FALSE;
+}
+
+/* Is node contained (transitively) in a structure array */
+BOOL
+dapinstructarray(CDFnode* node)
+{
+    if(node == NULL) return TRUE;
+    for(node=node->container;node->nctype != NC_Dataset;node=node->container) {
+       if(node->nctype == NC_Structure
+	  && nclistlength(node->array.dimset0) > 0)
+	    return TRUE;
     }
     return FALSE;
 }
@@ -583,7 +592,7 @@ getlimitnumber(const char* limit)
     switch (limit[slen-1]) {
     case 'G': case 'g': multiplier = GIGBYTE; break;
     case 'M': case 'm': multiplier = MEGBYTE; break;
-    case 'K': case 'k': multiplier = KILBYTE; break;
+    case 'K': case 'k': multiplier = KILOBYTE; break;
     default: break;
     }
     sscanf(limit,"%lu",&lu);
@@ -744,17 +753,26 @@ oc_dumpnode(conn,*rootp);
 /* Check a name to see if it contains illegal dap characters
 */
 
-static char* badchars = "./";
+static char* baddapchars = "./";
 
 int
 dap_badname(char* name)
 {
     char* p;
     if(name == NULL) return 0;
-    for(p=badchars;*p;p++) {
-        if(strchr(name,*p) != NULL) return 1;
+    for(p=baddapchars;*p;p++) {
+        if(strchr(name,*p) != NULL)
+	    return 1;
     }
     return 0;
+}
+
+/* Repair a dap name */
+char*
+dap_repairname(char* name)
+{
+    /* assume that dap_badname was called on this name and returned 1 */
+    return repairname(name,baddapchars);
 }
 
 /* Check a name to see if it contains illegal dap characters
@@ -763,14 +781,15 @@ dap_badname(char* name)
 
 static const char* hexdigits = "0123456789abcdef";
 
-char*
-dap_repairname(char* name)
+static char*
+repairname(const char* name, const char* badchars)
 {
     char* newname;
-    char *p, *q; int c;
+    const char *p;
+    char *q;
+    int c;
 
     if(name == NULL) return NULL;
-    /* assume that dap_badname was called on this name and returned 1 */
     newname = (char*)malloc(1+(3*strlen(name))); /* max needed */
     newname[0] = '\0'; /* so we can use strcat */
     for(p=name,q=newname;(c=*p);p++) {

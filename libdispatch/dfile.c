@@ -91,6 +91,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL_MPIO
+/* Note that this assumes netcdf-4 support is enabled */
    if (use_parallel) 
    {
       MPI_File fh;
@@ -1445,6 +1446,8 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if(model == 0) {
       if(cmode & NC_NETCDF4 || cmode & NC_PNETCDF)
 	model = NC_DISPATCH_NC4;
+      else if(cmode & NC_CLASSIC_MODEL)
+	model = NC_DISPATCH_NC3;
    }
 
    if(model == 0) {

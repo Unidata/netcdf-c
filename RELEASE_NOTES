@@ -8,27 +8,108 @@ VERSION		COMMENTS
 -------		--------
 4.3		Released 201?-??-??
 
-		Merged in nccopy additions to support -g and -v
-		options for specifying which groups or variables are
-		to be copied.
+		Fixed netCDF-4 bug where netCDF would ignore
+		the HDF5 reference type in the file, instead
+		of rejecting the file as it should.  [NCF-29]
+
+		Fixed netCDF-4 bug with particular order of
+		creation of dimensions, coordinate variables, and
+		subgroups resulting in two dimensions with the same
+		dimension ID. [NCF-244]
+
+		Fixed bug with incorrect fixed-size variable offsets in header
+		getting written when schema changed for files created
+		by parallel-netcdf.  Thanks to Wei-keng Liao for
+		developing and contributing the fix. [NCF-234]
+
+	 	fsync: Changed default in autotools config
+		file; fsync must now be explicitely enabled
+		instead of explicitely disabled. [NCF-239]
+
+		Fixed bug in handling old servers that do not do
+		proper Grid to Structure conversions. [NCF-232]
+
+		Replaced the oc library with oc2.0
+
+		Fix bug with nc_get_var1_uint() not accepting unsigned
+		ints larger than 2**31. [NCF-226]
+
+		Fix to convert occurrences of '/' in DAP names
+                to %2f. [NCF-223]
+	
+		Fix bug in netCDF-4 with scalar non-coordinate
+		variables with same name as dimensions.  [NCF-222]
+
+		Fix bug in which calling netCDF-4 functions in which
+		behavior that should not depend on order of calls
+		sometimes produces the wrong results.  [NCF-217]
+
+		Merged in nccopy additions from Martin van Driel to
+		support -g and -v options for specifying which groups
+		or variables are to be copied.  [NCF-216]
 
 		Merged in parallel-netcdf bugs fixes from Greg
-		Sjaardema.
-		
-		Replaced the oc library with oc2.0
+		Sjaardema.  [NCF-214]
+
+		Modify ncgen so that if the incoming file has a
+		special attribute, then it is used to
+                establish the special property of the netcdf file,
+                but the attribute is not included as a real attribute
+                in the file. [NCF-213].
+
+		Added library version info to the user-agent
+                string so that the server logs will be more informative.
+		[NCF-210]
+
+		Added work around for bad servers that sometimes
+                sends DAP dataset with duplicate field names.
+		[NCF-208]
 
 		Fixed bug with strided access for NC_STRING type.
 		[NCF-206]
-
-		Fixed ncdump bug in display of data values of
-		variables that use multiple unlimited dimensions.
-		[NCF-144]
 
 		Prevented adding an invalid _FillValue attribute to a
 		variable (with nonmatching type or multiple values),
 		to avoid later error when any record variable is
 		extended. 
 		[NCF-190]
+
+		Fix bug in which some uses of vlen within compounds
+		causes HDF5 errors.  [NCF-155]
+
+		Fixed ncdump bug in display of data values of
+		variables that use multiple unlimited dimensions.
+		[NCF-144]
+
+		Fix bug in which interspersing def_var calls with
+		put_var calls can lead to corrupt metadata in a netCDF
+		file with groups and inherited dimensions. [NCF-134]
+
+		Building shared libraries works with DAP and netCDF4
+		functionality. [NCF-205] [NCF-57]
+
+		32-and-64-bit builds are working under MinGW on 
+		Windows. [NCF-112]
+
+		Config.h for Windows compiles are included in the 
+		build. [NCF-98]
+
+		NetCDF-4 dependency on NC_MAX_DIMS has been
+		removed. [NCF-71]
+
+		64-bit DLL's are produced on Windows. [NCF-65]
+		
+		DLL Packaging issues are resolved. [NCF-54]
+
+		The CMake build system (with related ctest 
+		and cdash systems for testing) has been
+		integrated into netCDF-C.  This allows for
+		Visual Studio-based builds in addition to gcc-based
+		builds.  This requires at least CMake version 2.8.8.
+		This replaces/supplements the cross-compiled set
+		of Visual-Studio compatible netCDF libraries introduced
+		in netCDF 4.2.1-rc1.
+		
 
 4.2.1		Released 2012-07-18
 

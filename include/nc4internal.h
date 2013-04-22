@@ -317,7 +317,8 @@ int nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *startp,
 		const size_t *countp, const ptrdiff_t *stridep,
 		const ptrdiff_t *imapp, nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
-int nc4_rec_write_metadata(NC_GRP_INFO_T *grp);
+int nc4_rec_detect_bad_coord_order(NC_GRP_INFO_T *grp, int *bad_coord_orderp);
+int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order);
 int nc4_rec_write_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
@@ -353,6 +354,7 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var);
+int nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var);
 int nc4_dim_list_add(NC_DIM_INFO_T **list);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
 int nc4_att_list_add(NC_ATT_INFO_T **list);

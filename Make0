@@ -1,14 +1,18 @@
 # Test c output
-T=t
+T=test_nc4
 #VG=valgrind --leak-check=full
 
 CFLAGS=-g -O0 -I. -I./include
-LDFLAGS=/tmp/install/spock/lib/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
-LD_RUN_PATH=/tmp/install/spock/lib:/share/ed/local/spock/lib
+
+CFLAGS=-g -O0 -I../include -I/share/ed/local/spock/include
+LDFLAGS=./liblib/.libs/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lcurl -lm -llber -lldap -lrt -lssl -lcrypto -ldl
+LFLAG=-L/usr/local/lib
+RPATH=-Wl,-rpath,${LFLAG}
 
 all::
-	export LD_RUN_PATH; export CFLAGS; export LDFLAGS; \
+	export CFLAGS; export LDFLAGS; \
 	${MAKE} all ; \
-	gcc -o t ${CFLAGS} ${T}.c ${LDFLAGS} -lm ; \
+	gcc ${CFLAGS} -o t ${T}.c ${LDFLAGS} 
 	${VG} ./t
+
 

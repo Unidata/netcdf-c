@@ -5,7 +5,7 @@
  *********************************************************************/
 
 #include "ncdap3.h"
-#include "dapdebug.h"
+#include "dapdump.h"
 #include "dapdump.h"
 #include "dceparselex.h"
 
@@ -61,17 +61,15 @@ mapconstraints3(DCEconstraint* constraint,
 
     /* Convert the projection paths to leaves in the dds tree */
     for(i=0;i<nclistlength(dceprojections);i++) {
+	CDFnode* cdfmatch = NULL;
 	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
 	if(proj->discrim != CES_VAR) continue; // ignore functions
-	ncstat = matchpartialname3(nodes,proj->var->segments,
-				   (CDFnode**)&proj->var->annotation);
+	ncstat = matchpartialname3(nodes,proj->var->segments,&cdfmatch);
 	if(ncstat) goto done;
+	/* Cross links */
+	assert(cdfmatch != NULL);
+	proj->var->annotation = (void*)cdfmatch;
     }
-
-#ifdef DEBUG
-fprintf(stderr,"mapconstraint.projections: %s\n",
-		dumpprojections(dceprojections));
-#endif
 
 done:
     return THROW(ncstat);
@@ -447,18 +445,20 @@ fprintf(stderr,"buildvaraprojection: skeleton: %s\n",dumpprojection(projection))
     for(i=0;i<nclistlength(segments);i++) {
 	DCEsegment* segment = (DCEsegment*)nclistget(segments,i);
         for(j=0;j<segment->rank;j++) {
+	    size_t count = 0;
 	    DCEslice* slice = &segment->slices[j];
 	    /* make each slice represent the corresponding
                start/count/stride */
 	    slice->first = startp[dimindex+j];
 	    slice->stride = stridep[dimindex+j];
-	    slice->count = countp[dimindex+j];
-	    slice->length = slice->count * slice->stride;
-	    slice->stop = (slice->first + slice->length);
-	    if(slice->stop > slice->declsize) {
-		slice->stop = slice->declsize;
+	    count = countp[dimindex+j];
+	    slice->count = count;
+	    slice->length = count * slice->stride;
+	    slice->last = (slice->first + slice->length) - 1;
+	    if(slice->last >= slice->declsize) {
+		slice->last = slice->declsize - 1;
 		/* reverse compute the new length */
-		slice->length = (slice->stop - slice->first);
+		slice->length = (slice->last - slice->first) + 1;
 	    }
 	}
 	dimindex += segment->rank;
@@ -484,10 +484,11 @@ iswholeslice(DCEslice* slice, CDFnode* dim)
 {
     if(slice->first != 0 || slice->stride != 1) return 0;
     if(dim != NULL) {
-	if(slice->stop != dim->dim.declsize) return 0;
+	if(slice->length != dim->dim.declsize) return 0;
     } else if(dim == NULL) {
+	size_t count = slice->count;
 	if(slice->declsize == 0
-	   || slice->count != slice->declsize) return 0;
+	   || count != slice->declsize) return 0;
     }
     return 1;
 }
@@ -704,9 +705,13 @@ slicematch(NClist* seglist1, NClist* seglist2)
 	if(seg1->rank != seg2->rank)
 	    return 0;
 	for(j=0;j<seg1->rank;j++) {
-	    if(seg1->slices[j].first != seg2->slices[j].first 
-	       || seg1->slices[j].count != seg2->slices[j].count
-	       || seg1->slices[j].stride != seg2->slices[j].stride)
+	    DCEslice* slice1 = &seg1->slices[j];
+	    DCEslice* slice2 = &seg2->slices[j];
+	    size_t count1 = slice1->count;
+	    size_t count2 = slice2->count;
+	    if(slice1->first != slice2->first
+	       || count1 != count2
+	       || slice1->stride != slice2->stride)
 		return 0;
 	}
     }
@@ -811,7 +816,8 @@ fprintf(stderr,"restrictprojection.before: constraints=|%s| vara=|%s|\n",
     result = (DCEprojection*)dceclone((DCEnode*)result); /* so we can modify */
 
 #ifdef DEBUG1
-fprintf(stderr,"restrictprojection.choice: |%s|\n",dumpprojection(result));
+fprintf(stderr,"restrictprojection.choice: base=|%s| add=|%s|\n",
+	dumpprojection(result),dumpprojection(var));
 #endif
     /* We need to merge the projection from the projection list
        with the var projection
@@ -837,7 +843,7 @@ dapshiftslice(DCEslice* slice)
     slice->first = 0;
     slice->stride = 1;
     slice->length = slice->count;
-    slice->stop = slice->count;
+    slice->last = slice->length - 1;
 }
 
 int

@@ -878,6 +878,7 @@ copy_vars(int igrp, int ogrp)
             continue;
 	NC_CHECK(copy_var(igrp, varid, ogrp));
     }
+    free(vlist);
     return stat;
 }
 
@@ -1512,6 +1513,10 @@ usage(void)
   [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
   [-u]      convert unlimited dimensions to fixed-size dimensions in output copy\n\
   [-w]      write whole output file from diskless netCDF on close\n\
+  [-v var1,...] include data for only listed variables, but definitions for all variables\n\
+  [-V var1,...] include definitions and data for only listed variables\n\
+  [-g grp1,...] include data for only variables in listed groups, but all definitions\n\
+  [-G grp1,...] include definitions and data only for variables in listed groups\n\
   [-m n]    set size in bytes of copy buffer, default is 5000000 bytes\n\
   [-h n]    set size in bytes of chunk_cache for chunked variables\n\
   [-e n]    set number of elements that chunk_cache can hold\n\
@@ -1522,7 +1527,7 @@ usage(void)
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-w] [-m n] [-h n] [-e n] [-r] infile outfile\n%s",
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s",
 	  progname, USAGE);
 }
 

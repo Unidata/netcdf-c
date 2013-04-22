@@ -32,7 +32,7 @@ static NCerror buildattribute3a(NCDAPCOMMON*, NCattribute*, nc_type, int);
 
 static char* getdefinename(CDFnode* node);
 
-int nc3dinitialized = 0;
+static int ncd3initialized = 0;
 
 size_t dap_one[NC_MAX_VAR_DIMS];
 size_t dap_zero[NC_MAX_VAR_DIMS];
@@ -46,8 +46,8 @@ int nc__opendap(void) {return 0;}
 /**************************************************/
 /* Do local initialization */
 
-int
-nc3dinitialize(void)
+static int
+ncd3initialize(void)
 {
     int i;
     compute_nccalignments();
@@ -55,7 +55,7 @@ nc3dinitialize(void)
 	dap_one[i] = 1;
 	dap_zero[i] = 0;
     }
-    nc3dinitialized = 1;
+    ncd3initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
     nclogclose();
@@ -79,10 +79,7 @@ NCD3_open(const char * path, int mode,
     NCDAPCOMMON* dapcomm = NULL;
     const char* value;
 
-    /* We will use a fake file descriptor as our internal in-memory filename */
-    char tmpname[32];
-
-    if(!nc3dinitialized) nc3dinitialize();
+    if(!ncd3initialized) ncd3initialize();
 
     if(path == NULL)
 	return NC_EDAPURL;
@@ -137,11 +134,18 @@ NCD3_open(const char * path, int mode,
     }
 
     /* Use libsrc code for storing metadata */
+    {
+	char tmpname[32];
 
-    snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
-    /* Now, use the file to create the netcdf file; always 64 bit */
-    ncstat = nc_create(tmpname,NC_DISKLESS|NC_64BIT_OFFSET,&drno->substrate);
-    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+        /* Create fake file name: exact name must be unique,
+           but is otherwise irrelevant because we are using NC_DISKLESS
+        */
+        snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
+
+        /* Now, use the file to create the netcdf file; force classic.  */
+        ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&drno->substrate);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    }
 
     /* Avoid fill */
     nc_set_fill(drno->substrate,NC_NOFILL,NULL);
@@ -186,6 +190,19 @@ NCD3_open(const char * path, int mode,
     ncstat = fetchtemplatemetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
+    /* Operations on the template tree */
+
+    /* Accumulate useful nodes sets  */
+    ncstat = computecdfnodesets3(dapcomm,dapcomm->cdf.fullddsroot->tree);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
+
+    /* Define the dimsettrans list */
+    ncstat = definedimsets3(dapcomm,dapcomm->cdf.fullddsroot->tree);
+    if(ncstat) {THROWCHK(ncstat); goto done;}
+
+    /* Mark the nodes of the template that are eligible for prefetch */
+    ncstat = markprefetch3(dapcomm);
+
     /* fetch and build the constrained DDS */
     ncstat = fetchconstrainedmetadata3(dapcomm);
     if(ncstat != NC_NOERR) goto done;
@@ -194,11 +211,10 @@ NCD3_open(const char * path, int mode,
 fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
 #endif
 
-
-    /* The following actions are (mostly) WRT to the constrained tree */
+    /* Operations on the constrained tree */
 
     /* Accumulate useful nodes sets  */
-    ncstat = computecdfnodesets3(dapcomm);
+    ncstat = computecdfnodesets3(dapcomm,dapcomm->cdf.ddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Fix grids */
@@ -221,14 +237,14 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     ncstat = addstringdims(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    if(nclistlength(dapcomm->cdf.seqnodes) > 0) {
+    if(nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes) > 0) {
 	/* Build the sequence related dimensions */
         ncstat = defseqdims(dapcomm);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 
     /* Define the dimsetplus and dimsetall lists */
-    ncstat = definedimsets3(dapcomm);
+    ncstat = definedimsets3(dapcomm,dapcomm->cdf.ddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Re-compute the dimension names*/
@@ -246,13 +262,15 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     ncstat = defrecorddim3(dapcomm);
     if(ncstat) {THROWCHK(ncstat); goto done;}
     if(dapcomm->cdf.recorddimname != NULL
-       && nclistlength(dapcomm->cdf.seqnodes) > 0) {
+       && nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes) > 0) {
 	/*nclog(NCLOGWARN,"unlimited dimension specified, but sequences exist in DDS");*/
 	PANIC("unlimited dimension specified, but sequences exist in DDS");	
     }
 
     /* Re-compute the var names*/
-    ncstat = computecdfvarnames3(dapcomm,dapcomm->cdf.ddsroot,dapcomm->cdf.varnodes);
+    ncstat = computecdfvarnames3(dapcomm,
+				 dapcomm->cdf.ddsroot,
+				 dapcomm->cdf.ddsroot->tree->varnodes);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Transfer data from the unconstrained DDS data to the unconstrained DDS */
@@ -330,7 +348,8 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
     }
 
     /* Do any necessary data prefetch */
-    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)) {
+    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)
+       && FLAGSET(dapcomm->controls,NCF_PREFETCH_EAGER)) {
         ncstat = prefetchdata3(dapcomm);
         if(ncstat != NC_NOERR) {
             del_from_NCList((NC*)drno); /* undefine here */
@@ -400,11 +419,10 @@ builddims(NCDAPCOMMON* dapcomm)
     NClist* dimset = NULL;
     NC* drno = dapcomm->controller;
     NC* ncsub;
-    NC3_INFO* nc3sub;
     char* definename;
 
     /* collect all dimensions from variables */
-    dimset = dapcomm->cdf.dimnodes;
+    dimset = dapcomm->cdf.ddsroot->tree->dimnodes;
 
     /* Sort by fullname just for the fun of it */
     for(;;) {
@@ -437,9 +455,8 @@ builddims(NCDAPCOMMON* dapcomm)
         /* get the id for the substrate */
         ncstat = NC_check_id(drno->substrate,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
-
 #if 0
+	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
            note that this cannot easily be done thru the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
@@ -484,7 +501,7 @@ buildvars(NCDAPCOMMON* dapcomm)
     int i,j;
     NCerror ncstat = NC_NOERR;
     int varid;
-    NClist* varnodes = dapcomm->cdf.varnodes;
+    NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     NC* drno = dapcomm->controller;
     char* definename;
 
@@ -495,7 +512,7 @@ buildvars(NCDAPCOMMON* dapcomm)
 	unsigned int ncrank;
         NClist* vardims = NULL;
 
-	if(!var->visible) continue;
+	if(var->invisible) continue;
 	if(var->array.basevar != NULL) continue;
 
 #ifdef DEBUG1

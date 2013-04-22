@@ -400,12 +400,14 @@ extern OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
    If scalar, then index and count are ignored.
    Caller is responsible for allocating memory(of proper size)
    and free'ing it.
+   See also oc_dds_read().
 */
 extern OCerror oc_data_read(OClink, OCdatanode, size_t*, size_t*, size_t, void*);
 
 /* Like oc_data_read, but for reading a scalar.
    Caller is responsible for allocating memory(of proper size)
    and free'ing it.
+   See also oc_dds_readscalar().
 */
 extern OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
 
@@ -413,6 +415,7 @@ extern OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
    and count of the number of elements to read.
    Caller is responsible for allocating memory(of proper size)
    and free'ing it.
+   See also oc_dds_readn().
 */
 extern OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*);
 
@@ -445,6 +448,22 @@ extern int oc_data_indexed(OClink, OCdatanode);
    an indexed structure or to a sequence.
 */
 extern int oc_data_indexable(OClink, OCdatanode);
+
+/**************************************************/
+/* 
+For top-level, atomic variables, it is possible to directly
+read the associated data without having to use the oc_data_XXX
+procedures. Provide special procedures to support this.
+*/
+
+/* See oc_data_read for semantics */
+extern OCerror oc_dds_read(OClink, OCddsnode, size_t*, size_t*, size_t, void*);
+
+/* See oc_data_readscalar for semantics */
+extern OCerror oc_dds_readscalar(OClink, OCddsnode, size_t, void*);
+
+/* See oc_data_readn for semantics */
+extern OCerror oc_dds_readn(OClink, OCddsnode, size_t*, size_t, size_t, void*);
 
 /**************************************************/
 /* Misc. OCtype-related functions */
@@ -509,6 +528,9 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
 
 /**************************************************/
 /* Experimental/Undocumented */
+
+/* Given an arbitrary OCnode, return the connection of which it is a part */
+extern OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
 
 /* Resend a url as a head request to check the Last-Modified time */
 extern OCerror oc_update_lastmodified_data(OClink);

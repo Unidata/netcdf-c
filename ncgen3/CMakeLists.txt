@@ -7,13 +7,13 @@ SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgentab.c)
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(NOT EXISTS ${NetCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
-	${NetCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
+IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
+	${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.h
-	COMMAND bison -pncg -d ${NetCDF_SOURCE_DIR}/ncgen3/ncgen.y
-	COMMAND mv ncgen.tab.c ${NetCDF_SOURCE_DIR}/ncgen3/ncgentab.c
-	COMMAND mv ncgen.tab.h ${NetCDF_SOURCE_DIR}/ncgen3/ncgentab.h
+	COMMAND bison -pncg -d ${netCDF_SOURCE_DIR}/ncgen3/ncgen.y
+	COMMAND mv ncgen.tab.c ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c
+	COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
 	VERBATIM
 )
 ENDIF()

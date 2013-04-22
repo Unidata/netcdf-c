@@ -327,6 +327,11 @@ nc4_find_g_var_nc(NC *nc, int ncid, int varid,
    assert(grp && var && h5 && h5->root_grp);
    *grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK));
 
+   /* It is possible for *grp to be NULL. If it is,
+      return an error. */
+   if(*grp == NULL) 
+     return NC_ENOTVAR;
+   
    /* Find the var info. */
    for ((*var) = (*grp)->var; (*var); (*var) = (*var)->next)
      if ((*var)->varid == varid)
@@ -497,8 +502,11 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
      
      /* Find dimensions of this var. */
      if ((retval = find_var_shape_grp(grp, var->varid, &ndims, 
-				      dimids, dimlen)))
+				      dimids, dimlen))) {
+       free(dimids);
+       free(dimlen);
        return retval;
+     }
      
      /* Check for any dimension that matches dimid. If found, check
       * if its length is longer than *lenp. */
@@ -668,6 +676,7 @@ nc4_dim_list_add(NC_DIM_INFO_T **list)
 }
 
 /* Add to the beginning of a dim list. */
+#ifdef EXTERN_UNUSED
 int
 nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
 {
@@ -684,6 +693,7 @@ nc4_dim_list_add2(NC_DIM_INFO_T **list, NC_DIM_INFO_T **new_dim)
       *new_dim = dim;
    return NC_NOERR;
 }
+#endif
 
 /* Add to the end of an att list. */
 int
@@ -900,14 +910,18 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 }
 
 /* Delete a var from a var list, and free the memory. */
-static int
-var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
+int
+nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 {
    NC_ATT_INFO_T *a, *att;
    int ret;
 
+   if(var == NULL) {
+     return NC_NOERR;
+   }
+
    /* First delete all the attributes attached to this var. */
-   att = (*list)->att;
+   att = var->att;
    while (att)
    {
       a = att->next;
@@ -917,16 +931,20 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    }
 
    /* Free some things that may be allocated. */
-   if (var->chunksizes)
-      free(var->chunksizes);
+   if (var->chunksizes) 
+     {free(var->chunksizes);var->chunksizes = NULL;}
+   
    if (var->hdf5_name)
-      free(var->hdf5_name);
+     {free(var->hdf5_name); var->hdf5_name = NULL;}
+ 
    if (var->name)
-      free(var->name);
+     {free(var->name); var->name = NULL;}
+
    if (var->dimids)
-      free(var->dimids);
+     {free(var->dimids); var->dimids = NULL;}
+   
    if (var->dim)
-      free(var->dim);
+     {free(var->dim); var->dim = NULL;}
 
    /* Remove the var from the linked list. */
    if(*list == var)
@@ -943,17 +961,20 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    {
       if (var->hdf_datasetid)
       {
-	 if (var->type_info->class == NC_VLEN)
-	    nc_free_vlen((nc_vlen_t *)var->fill_value);
-	 else if (var->type_info->nc_typeid == NC_STRING)
-	    free(*(char **)var->fill_value);
+         if (var->type_info)
+         {
+            if (var->type_info->class == NC_VLEN)
+               nc_free_vlen((nc_vlen_t *)var->fill_value);
+            else if (var->type_info->nc_typeid == NC_STRING)
+               free(*(char **)var->fill_value);
+         }
       }
       free(var->fill_value);
+      var->fill_value = NULL;
    }
 
    /* For atomic types we have allocated space for type information. */
-/*   if (var->hdf_datasetid && var->xtype <= NC_STRING)*/
-   if (var->xtype <= NC_STRING)
+   if (var->type_info && var->xtype <= NC_STRING)
    {
       if (var->type_info->native_typeid)
 	 if ((H5Tclose(var->type_info->native_typeid)) < 0)
@@ -967,10 +988,13 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 	    return NC_EHDFERR;
 
       /* Free the name. */
-      if (var->type_info->name)
+      if (var->type_info->name) {
 	 free(var->type_info->name);
-
+	 var->type_info->name = NULL;
+      }
+      
       free(var->type_info);
+      var->type_info = NULL;
    }
    
    /* Delete any HDF5 dimscale objid information. */
@@ -983,6 +1007,7 @@ var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
 
    /* Delete the var. */
    free(var);
+   var = NULL;
 
    return NC_NOERR;
 }
@@ -1012,7 +1037,7 @@ field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
 }
 
 /* Delete a type from a type list, and nc_free the memory. */
-int
+static int
 type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 {
    NC_FIELD_INFO_T *field, *f;
@@ -1158,7 +1183,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
 	  H5Dclose(var->hdf_datasetid) < 0)
 	 return NC_EHDFERR;
       v = var->next;
-      if ((retval = var_list_del(&grp->var, var)))
+      if ((retval = nc4_var_list_del(&grp->var, var)))
 	 return retval;
       var = v;
    }

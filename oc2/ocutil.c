@@ -27,7 +27,8 @@ ocstrndup(const char* s, size_t len)
     return dup;
 }
 
-/* Do not trust strncmp semantics */
+/* Do not trust strncmp semantics; this one
+   compares upto len chars or to null terminators */
 int
 ocstrncmp(const char* s1, const char* s2, size_t len)
 {
@@ -45,6 +46,7 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
+#ifdef EXTERN_UNUSEd
 void
 makedimlist(OClist* path, OClist* dims)
 {
@@ -58,6 +60,7 @@ makedimlist(OClist* path, OClist* dims)
         }
     }
 }
+#endif
 
 void
 ocfreeprojectionclause(OCprojectionclause* clause)
@@ -75,7 +78,8 @@ ocfreeprojectionclause(OCprojectionclause* clause)
     free(clause);
 }
 
-static void
+#ifdef EXTERN_UNUSED
+void
 freeAttributes(OClist* attset)
 {
     unsigned int i,j;
@@ -92,7 +96,9 @@ freeAttributes(OClist* attset)
 	}
     }
 }
+#endif
 
+#ifdef EXTERN_UNUSED
 void
 freeOCnode(OCnode* cdf, int deep)
 {
@@ -112,6 +118,7 @@ freeOCnode(OCnode* cdf, int deep)
     }
     free(cdf);
 }
+#endif
 
 int
 ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
@@ -515,7 +522,7 @@ oc_ispacked(OCnode* node)
 /* Must be consistent with ocx.h.OCDT */
 #define NMODES 6
 #define MAXMODENAME 8 /*max (strlen(modestrings[i])) */
-char* modestrings[NMODES+1] = {
+static char* modestrings[NMODES+1] = {
 "FIELD", /* ((OCDT)(1<<0)) field of a container */
 "ELEMENT", /* ((OCDT)(1<<1)) element of a structure array */
 "RECORD", /* ((OCDT)(1<<2)) record of a sequence */

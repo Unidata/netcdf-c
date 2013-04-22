@@ -119,6 +119,7 @@ list2const(Datalist* list)
     con.nctype = NC_COMPOUND;
     con.lineno = list->data[0].lineno;
     con.value.compoundv = list;
+    con.filled = 0;
     return con;
 }
 
@@ -608,6 +609,7 @@ bbprintf(Bytebuffer* buf, const char *fmt, ...)
     va_list argv;
     va_start(argv,fmt);
     vbbprintf(buf,fmt,argv);
+    va_end(argv);
 }
 
 void
@@ -617,6 +619,7 @@ bbprintf0(Bytebuffer* buf, const char *fmt, ...)
     va_start(argv,fmt);
     bbClear(buf);
     vbbprintf(buf,fmt,argv);
+    va_end(argv);
 }
 
 void
@@ -625,6 +628,7 @@ codeprintf(const char *fmt, ...)
     va_list argv;
     va_start(argv,fmt);
     vbbprintf(codebuffer,fmt,argv);
+    va_end(argv);
 }
 
 Constant*
@@ -634,6 +638,7 @@ emptycompoundconst(int lineno, Constant* c)
     c->lineno = lineno;
     c->nctype = NC_COMPOUND;
     c->value.compoundv = builddatalist(0);
+    c->filled = 0;
     return c;    
 }
 
@@ -645,6 +650,7 @@ emptystringconst(int lineno, Constant* c)
     c->nctype = NC_STRING;
     c->value.stringv.len = 0;
     c->value.stringv.stringv = NULL;
+    c->filled = 0;
     return c;    
 }
 

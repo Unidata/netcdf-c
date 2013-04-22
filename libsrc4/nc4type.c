@@ -115,9 +115,10 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    /* Normalize name. */
    if (!(norm_name = (char*)malloc(strlen(name) + 1)))
       return NC_ENOMEM;
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      return retval;
-
+   if ((retval = nc4_normalize_name(name, norm_name))) {
+     free(norm_name);
+     return retval;
+   }
    /* Is the type in this group? If not, search parents. */
    for (grp2 = grp; grp2; grp2 = grp2->parent)
       for (type = grp2->type; type; type = type->next)

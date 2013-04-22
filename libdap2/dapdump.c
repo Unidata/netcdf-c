@@ -285,7 +285,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
     ncbytescat(buf," {\n");
     for(i=0;i<nclistlength(root->subnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(root->subnodes,i);
-	if(visible && !root->visible) continue;
+	if(visible && root->invisible) continue;
 	if(root->nctype == NC_Grid) {
 	    if(i==0) {
 		dumpindent(indent+1,buf);
@@ -301,7 +301,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
     }
     dumpindent(indent,buf);
     ncbytescat(buf,"} ");
-    ncbytescat(buf,root->ncbasename);
+    ncbytescat(buf,(root->ncbasename?root->ncbasename:"<?>"));
 }
 
 static void
@@ -311,7 +311,7 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
     char* primtype = NULL;
     NClist* dimset = NULL;
 
-    if(visible && !root->visible) return;
+    if(visible && root->invisible) return;
     switch (root->nctype) {
     case NC_Dataset:
 	dumptreer1(root,buf,indent,"Dataset",visible);
@@ -344,7 +344,7 @@ dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
 	dumpindent(indent,buf);
 	ncbytescat(buf,primtype);
 	ncbytescat(buf," ");
-	ncbytescat(buf,root->ncbasename);
+        ncbytescat(buf,(root->ncbasename?root->ncbasename:"<?>"));
 	break;
     default: break;    
     }
@@ -454,7 +454,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"elided=%d\n",node->elided);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"visible=%d\n",node->visible);
+    snprintf(tmp,sizeof(tmp),"invisible=%d\n",node->invisible);
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"attachment=%s\n",
 		(node->attachment?node->attachment->ocname:"null"));
@@ -566,27 +566,26 @@ dumpcache(NCcache* cache)
 char*
 dumpslice(DCEslice* slice)
 {
-	char buf[8192];
-	char tmp[8192];
-        size_t last = (slice->first+slice->length)-1;
-	buf[0] = '\0';
-	if(last > slice->declsize && slice->declsize > 0)
-	    last = slice->declsize - 1;
-        if(slice->count == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu]",
-	        (unsigned long)slice->first);
-        } else if(slice->stride == 1) {
-            snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
-	            (unsigned long)slice->first,
-	            (unsigned long)last);
-        } else {
-	   snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
-		    (unsigned long)slice->first,
-		    (unsigned long)slice->stride,
-		    (unsigned long)last);
-        }
-	strcat(buf,tmp);
-	return strdup(tmp);
+    char buf[8192];
+    char tmp[8192];
+    buf[0] = '\0';
+    if(slice->last > slice->declsize && slice->declsize > 0)
+        slice->last = slice->declsize - 1;
+    if(slice->count == 1) {
+        snprintf(tmp,sizeof(tmp),"[%lu]",
+            (unsigned long)slice->first);
+    } else if(slice->stride == 1) {
+        snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
+                (unsigned long)slice->first,
+                (unsigned long)slice->last);
+    } else {
+       snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
+                (unsigned long)slice->first,
+                (unsigned long)slice->stride,
+                (unsigned long)slice->last);
+    }
+    strcat(buf,tmp);
+    return strdup(tmp);
 }
 
 char*

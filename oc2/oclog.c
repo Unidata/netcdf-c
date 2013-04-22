@@ -45,8 +45,11 @@ static char* octagname(int tag);
 void
 ocloginit(void)
 {
-    const char* file = getenv(OCENVFLAG);
+    const char* file;
+    if(oclogginginitialized)
+	return;
     oclogginginitialized = 1;
+    file = getenv(OCENVFLAG);
     ocsetlogging(0);
     oclogfile = NULL;
     oclogstream = NULL;
@@ -149,7 +152,7 @@ number of arguments and operates like the stdio
 printf function.
 
 \param[in] tag Indicate the kind of this log message.
-\param[in] format Format specification as with printf.
+\param[in] fmt Format specification as with printf.
 */
 
 void
@@ -183,8 +186,10 @@ oclogtext(int tag, const char* text)
 /*!
 Send arbitrarily long text as a logging message.
 Each line will be sent using oclog with the specified tag.
+
 \param[in] tag Indicate the kind of this log message.
 \param[in] text Arbitrary text to send as a logging message.
+\param[in] count Maximum ength of the text to write.
 */
 
 void

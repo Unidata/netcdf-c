@@ -122,7 +122,7 @@ ocnode_new(char* name, OCtype ptype, OCnode* root)
     return cdf;
 }
 
-OCattribute*
+static OCattribute*
 makeattribute(char* name, OCtype ptype, OClist* values)
 {
     OCattribute* att = (OCattribute*)ocmalloc(sizeof(OCattribute)); /* ocmalloc zeros*/

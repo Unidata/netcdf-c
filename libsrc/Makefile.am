@@ -14,7 +14,7 @@ libnetcdf3_la_CPPFLAGS += -DDLL_EXPORT
 endif # BUILD_DLL
 
 # These files comprise the netCDF-3 classic library code.
-libnetcdf3_la_SOURCES = v1hpg.c onstack.h                              \
+libnetcdf3_la_SOURCES = v1hpg.c \
 putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c \
 ncx.h lookup3.c pstdint.h ncio.c ncio.h
 
@@ -39,7 +39,7 @@ noinst_LTLIBRARIES = libnetcdf3.la
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.
 MAINTAINERCLEANFILES = attr.c ncx.c putget.c $(man_MANS) attrx.c putgetx.c
-EXTRA_DIST = attr.m4 ncx.m4 putget.m4 $(man_MANS) 
+EXTRA_DIST = attr.m4 ncx.m4 putget.m4 $(man_MANS) CMakeLists.txt XGetopt.c 
 
 # This tells make how to turn .m4 files into .c files.
 .m4.c:

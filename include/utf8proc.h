@@ -78,7 +78,7 @@ typedef unsigned char _Bool;
 #include <sys/types.h>
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && defined(HAVE_STDINT_H)
 #include <stdint.h>
 #else /* HAVE_INTTYPES_H */
 #include <pstdint.h>

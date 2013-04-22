@@ -45,7 +45,7 @@ typedef enum CdTimeUnit {
 	CdSecond = 8
 } CdTimeUnit;
 
-typedef enum cdUnit {
+typedef enum cdUnitTime {
     cdBadUnit = CdBadTimeUnit,
 	cdMinute = CdMinute,
 	cdHour = CdHour,

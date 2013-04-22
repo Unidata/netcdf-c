@@ -31,6 +31,10 @@
 #define TMPPATH2 "./"
 #endif
 
+#define CLBRACE '{'
+#define CRBRACE '}'
+
+
 /* Define default rc files and aliases*/
 static char* rcfilenames[4] = {".daprc",".dodsrc",".ocrc",NULL};
 
@@ -39,6 +43,7 @@ static int ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int createtempfile1(char*,char**);
+static int dataError(XXDR* xdrs, OCstate*);
 
 static void ocsetcurlproperties(OCstate*);
 
@@ -299,6 +304,17 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
 		= xxdr_memcreate(tree->data.memory,tree->data.datasize,tree->data.bod);
 	}
         MEMCHECK(tree->data.xdrs,OC_ENOMEM);
+	/* Do a quick check to see if server returned an ERROR {}
+           at the beginning of the data
+         */
+	if(dataError(tree->data.xdrs,state)) {
+	    stat = OC_EDATADDS;
+	    oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+		  state->error.code,	
+		  (state->error.message?state->error.message:""));
+	    goto fail;
+	}
+
 	/* Compile the data into a more accessible format */
 	stat = occompile(state,tree->root);
 	if(stat != OC_NOERR)
@@ -588,4 +604,48 @@ ocsetuseragent(OCstate* state, const char* agent)
     if(state->curlflags.useragent == NULL)
 	return OC_ENOMEM;
     return OC_NOERR;
+}
+
+static char* ERROR_TAG = "Error ";
+
+static int
+dataError(XXDR* xdrs, OCstate* state)
+{
+    int depth=0;
+    int errfound = 0;
+    off_t ckp=0,avail=0,i=0;
+    char* errmsg = NULL;
+    char errortext[16]; /* bigger thant |ERROR_TAG|*/
+    avail = xxdr_getavail(xdrs);
+    if(avail < strlen(ERROR_TAG))
+	goto done; /* assume it is ok */
+    ckp = xxdr_getpos(xdrs);
+    /* Read enough characters to test for 'ERROR ' */
+    errortext[0] = '\0';
+    xxdr_getbytes(xdrs,errortext,(off_t)strlen(ERROR_TAG));
+    if(ocstrncmp(errortext,ERROR_TAG,strlen(ERROR_TAG)) != 0)
+	goto done; /* not an immediate error */
+    /* Try to locate the whole error body */
+    xxdr_setpos(xdrs,ckp);
+    for(depth=0,i=0;i<avail;i++) {
+	xxdr_getbytes(xdrs,errortext,1);
+	if(errortext[0] == CLBRACE) depth++;
+	else if(errortext[0] == CRBRACE) {
+	    depth--;
+	    if(depth == 0) {i++; break;}
+	}
+    }    
+    errmsg = (char*)malloc(i+1);
+    if(errmsg == NULL) {errfound = 1; goto done;}
+    xxdr_setpos(xdrs,ckp);
+    xxdr_getbytes(xdrs,errmsg,i);
+    errmsg[i] = '\0';
+    state->error.message = errmsg;
+    state->error.code = strdup("?");
+    state->error.httpcode = 404;
+    xxdr_setpos(xdrs,ckp);
+    errfound = 1;
+done:
+    xxdr_setpos(xdrs,ckp);
+    return errfound;
 }

@@ -206,7 +206,8 @@ main(int argc, char **argv)
 #define NDIMS_PRES 1
 #define VAR_NAME_P "presidents"
       int ncid, varid, i, dimids[NDIMS_PRES];
-      size_t start[NDIMS_PRES], count[NDIMS_PRES], stride[NDIMS_PRES];
+      size_t start[NDIMS_PRES], count[NDIMS_PRES];
+      ptrdiff_t stride[NDIMS_PRES];
       char *data[SOME_PRES] = {"Washington", "Adams", "Jefferson", "Madison",
 			       "Monroe", "Adams", "Jackson", "VanBuren",
 			       "Harrison", "Tyler", "Polk", "Tayor",

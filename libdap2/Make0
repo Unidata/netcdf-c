@@ -1,8 +1,12 @@
 NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
-LFLAG=-L/upc/share/ed/local/${HOST}/lib
+#CYGWIN
+#LFLAG=-L/usr/local/lib
+#HDF5LIB=/usr/local/lib/libhdf5_hl.a /usr/local/lib/libhdf5.a
 
+#!CYGWIN
+LFLAG=-L/upc/share/ed/local/${HOST}/lib
 HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 CURLLIB=-lcurl
@@ -15,7 +19,7 @@ INCL=-I. -I.. -I../include ${NCINCL}
 RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags
-CC=cc
+CC=gcc
 #CFLAGS=-g -O2 -Wall -DHAVE_CONFIG_H
 CFLAGS=-g -O2 -DHAVE_CONFIG_H
 
@@ -243,14 +247,6 @@ vpt::
 	date; ./vpt.exe "[compile]http://oceanwatch.pfeg.noaa.gov/opendap/GLOBEC/GLOBEC_vpt" vpt.year; date
 
 ##################################################
-#T=test_varm3
-T=test_ncf191
-T=a
-
-v::
-	cc -g -c ${T}.c ${INCL}
-	cc -g -o v ${T}.o ${LIBS} ${RPATH}
-
 do::
 	pushd ..; make; popd ; $(MAKE) -f Make0 ncd
 ##################################################
@@ -260,3 +256,11 @@ fix::
 	rm -f ./$${f}.c ;\
 	sed -e 's/oc_log/nclog/g' -e 's/OCLOG/NCLOG/g' <ckp1/$${f}.c >./$${f}.c ; \
 	done
+
+##################################################
+T=test_vara
+
+v::
+	cc -g -c ${T}.c ${INCL}
+	cc -g -o v ${T}.o ${LIBS} ${RPATH}
+

@@ -123,7 +123,7 @@ ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl                                 \
-ref_tst_ncf213.cdl
+ref_tst_ncf213.cdl CMakeLists.txt XGetopt.c
 
 # NCGEN4 additions
 SUBDIRS=cdl4 expected4

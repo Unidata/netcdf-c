@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
    /* Phoney data we will write. */
    unsigned char ubyte_data_out[] = {0,1,2,3,4};
    unsigned short ushort_data_out[] = {0,11,22,33,44}; 
-   unsigned int uint_data_out[] = {0,111,222,333,444};
+   unsigned int uint_data_out[] = {0,111,222,333,3000000000u;};
    nc_int64 int64_data_out[] = {0,-111111111,2222222222,-3333333333,444444444};
    nc_uint64 uint64_data_out[] = {0,111111111,2222222222,33333333,44444444};
    unsigned char bool_data_out[] = {0,1,0,1,0};

@@ -248,3 +248,7 @@ For example, this works for linking an application named myapp.c with
 netCDF-4 libraries:
 
     cc -o myapp myapp.c `nc-config --cflags --libs`
+
+Building on Windows
+*******************
+Refer to the document COMPILE_CMake.txt

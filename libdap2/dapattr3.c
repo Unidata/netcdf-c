@@ -25,7 +25,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
     NClist* allnodes;
     OClink conn;
     char* ocname = NULL;
-
+    char** values = NULL;
     conn = nccomm->oc.conn;
 
     if(ddsroot == NULL || dasroot == NULL) return NC_NOERR;
@@ -44,7 +44,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	OCCHECK(oc_dds_attr_count(conn,ocnode,&attrcount));
 	for(j=0;j<attrcount;j++) {
 	    size_t nvalues;
-	    char** values = NULL;
+	    
 	    NCattribute* att = NULL;
 
 	    if(ocname != NULL) {
@@ -103,11 +103,13 @@ fprintf(stderr,"%s.Unlimited_Dimension=%s\n",node->ocname,nccomm->cdf.recorddimn
 	    if(values) {
 		oc_reclaim_strings(nvalues,values);
 		free(values);
+		values = NULL;
 	    }
 	}
     }
 
 done:
+    if(values != NULL) free(values);
     if(ocname != NULL) free(ocname);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
@@ -120,7 +122,7 @@ buildattribute(char* name, nc_type ptype,
 {
     int i;
     NCerror ncstat = NC_NOERR;
-    NCattribute* att;
+    NCattribute* att = NULL;
 
     att = (NCattribute*)calloc(1,sizeof(NCattribute));
     MEMCHECK(att,NC_ENOMEM);
@@ -132,6 +134,8 @@ buildattribute(char* name, nc_type ptype,
 	nclistpush(att->values,(void*)nulldup(values[i]));
 
     if(attp) *attp = att;
+    else
+      free(att);
 
     return THROW(ncstat);
 }

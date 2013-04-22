@@ -28,6 +28,9 @@ dapodom_fromsegment(DCEsegment* segment, size_t startslice, size_t stopslice)
 	odom->stride[i] = segment->slices[i+startslice].stride;
 	odom->declsize[i] = segment->slices[i+startslice].declsize;
 	odom->stop[i] = odom->start[i] + odom->count[i];
+	/* should the above line be instead?
+ 	odom->stop[i] = odom->start[i] + (odom->count[i]*odom->stride[i]);
+	*/
 	odom->index[i] = odom->start[i];
     }    
     return odom;

@@ -17,7 +17,7 @@ nestedDAS.dmp NestedSeq2.dmp NestedSeq.dmp \
 OverideExample.dmp pbug0001b.dmp saco1.nc.dmp \
 SimpleDrdsExample.dmp synth1.dmp synth2.dmp \
 synth3.dmp synth4.dmp synth5.dmp \
-synth6.dmp synth7.dmp synth8.dmp \
+synth6.dmp synth7.dmp synth8.dmp synth9.dmp synth10.dmp \
 test.01.dmp test.02.dmp test.03.dmp \
 test.04.dmp test.05.dmp test.06a.dmp \
 test.07a.dmp test.07.dmp test.21.dmp \

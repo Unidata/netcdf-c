@@ -655,7 +655,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
+INPUT                  = @CMAKE_SOURCE_DIR@/man4/Building-with-CMake.md \
+			 @CMAKE_SOURCE_DIR@/man4/windows-binaries.md \
+	                 @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
                          @CMAKE_SOURCE_DIR@/man4/tutorial.doc \
                          @CMAKE_SOURCE_DIR@/man4/install.doc \
                          @CMAKE_SOURCE_DIR@/man4/dispatch.doc \
@@ -665,7 +667,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
                          @CMAKE_SOURCE_DIR@/man4/cdl.doc \
                          @CMAKE_SOURCE_DIR@/man4/architecture.doc \
                          @CMAKE_SOURCE_DIR@/man4/internal.doc \
-                         @CMAKE_SOURCE_DIR@/man4/win_netcdf.doc \
                          @CMAKE_SOURCE_DIR@/COPYRIGHT \
                          @CMAKE_SOURCE_DIR@/include/netcdf.h \
                          @CMAKE_SOURCE_DIR@/examples/C/simple_xy_wr.c \
@@ -705,7 +706,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
 # also the default input encoding. Doxygen uses libiconv (or the iconv built
 # into libc) for the transcoding. See http://www.gnu.org/software/libiconv for
-# the list of possible encodings.
+# the list of possible encodings.# Build Instructions for netCDF-C using CMake
 
 INPUT_ENCODING         = UTF-8
 
@@ -789,7 +790,9 @@ IMAGE_PATH             = @CMAKE_SOURCE_DIR@/man4/images/chunking2.png \
                          @CMAKE_SOURCE_DIR@/man4/images/nccoords.png \
                          @CMAKE_SOURCE_DIR@/man4/images/ncfile.png \
                          @CMAKE_SOURCE_DIR@/man4/images/netcdf_architecture.png \
-                         @CMAKE_SOURCE_DIR@/man4/images/pnetcdf.png
+                         @CMAKE_SOURCE_DIR@/man4/images/pnetcdf.png \
+			 @CMAKE_SOURCE_DIR@/man4/images/deptree.jpg \
+			 @CMAKE_SOURCE_DIR@/man4/images/InstallTreeWindows.jpg 
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

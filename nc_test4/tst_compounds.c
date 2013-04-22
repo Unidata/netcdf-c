@@ -16,6 +16,7 @@
 #define BATTLES_WITH_KLINGONS "Number_of_Battles_with_Klingons"
 #define DATES_WITH_ALIENS "Dates_with_Alien_Hotties"
 #define STARDATE "Stardate"
+#define RANK 1
 #define DIM_LEN 3
 #define SERVICE_RECORD "Kirk_Service_Record"
 
@@ -179,6 +180,33 @@ main(int argc, char **argv)
       if (nc_get_var(ncid, varid, data_in)) ERR;
       for (i=0; i<DIM_LEN; i++)
 	 if (data[i].i1 != data_in[i].i1 || data[i].i2 != data_in[i].i2) ERR;
+
+      { /* Test if we can read/write with get_vars */
+#       define STRIDE_S 2
+#       define DIM_LEN_S ((1+DIM_LEN) / STRIDE_S)
+	size_t start[RANK] = {0};
+	size_t edges[RANK] = {2};
+	ptrdiff_t stride[RANK] = {2};
+        struct s1 datas[DIM_LEN_S];
+	memcpy(datas,data,sizeof(datas));
+	datas[0].i1 = 13; datas[0].i2 = 23;
+	datas[1].i1 = 111; datas[1].i2 = 222;
+	memset(data,0,sizeof(data));
+	if (nc_get_var(ncid, varid, data)) ERR;
+        if (nc_put_vars(ncid, varid, start, edges, stride, datas)) ERR;
+	memset(data,0,sizeof(data));
+	if (nc_get_var(ncid, varid, data)) ERR;
+        for (i=0; i<DIM_LEN_S; i++) { /* verify the write */
+	  if(data[i*STRIDE_S].i1 != datas[i].i1 || data[i*STRIDE_S].i2 != datas[i].i2) ERR;
+	}
+	/* Do a strided read */
+	memset(data,0,sizeof(data));
+        if (nc_get_vars(ncid, varid, start, edges, stride, data)) ERR;
+        for (i=0; i<DIM_LEN_S; i++) {
+	  if(data[i].i1 != datas[i].i1 || data[i].i2 != datas[i].i2) ERR;
+	}	
+      }
+
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

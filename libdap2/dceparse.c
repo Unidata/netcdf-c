@@ -124,7 +124,7 @@ Object
 range(DCEparsestate* state, Object sfirst, Object sstride, Object slast)
 {
     DCEslice* slice = (DCEslice*)dcecreate(CES_SLICE);
-    unsigned long first,stride,last;
+    unsigned long first=0,stride=0,last=0;
 
     /* Note: that incoming arguments are strings; we must convert to size_t;
        but we do know they are legal integers or NULL */
@@ -143,9 +143,9 @@ range(DCEparsestate* state, Object sfirst, Object sstride, Object slast)
     if(last < first)
 	dceerror(state,"Illegal index for range last index");
     slice->first  = first;
-    slice->stride = stride;
-    slice->stop   = last + 1;
-    slice->length  = slice->stop - slice->first;
+    slice->stride = (stride == 0 ? 1 : stride);
+    slice->last   = last;
+    slice->length  = (slice->last - slice->first) + 1;
     slice->count  = slice->length / slice->stride;
 #ifdef DEBUG
 fprintf(stderr,"	ce.slice: %s\n",
@@ -207,9 +207,9 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
     slice = (DCEslice*)dcecreate(CES_SLICE);
     slice->first = start;
     slice->stride = 1;
-    slice->count = 1;
     slice->length = 1;
-    slice->stop = start+1;
+    slice->last = start;
+    slice->count = 1;
     nclistpush(list,(void*)slice);
     return list;
 }

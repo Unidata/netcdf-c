@@ -1064,6 +1064,7 @@ makeenumconst(Symbol* econst)
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
     con.lineno = lineno;
+    con.filled = 0;
     /* fix up econst to be a ref to an econst*/
     econst->objectclass = NC_TYPE;
     econst->subclass = NC_ECONST;
@@ -1167,7 +1168,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     Symbol* attr = NULL;
     Datalist* list;
     Constant* con;
-    Specialdata* special;
+    Specialdata* special = (Specialdata*)malloc(sizeof(Specialdata));
     Constant iconst;
     int tf = 0;
     char* sdata = NULL;

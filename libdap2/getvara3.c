@@ -126,7 +126,7 @@ nc3d_getvarx(int ncid, int varid,
     if(ncstat != NC_NOERR) goto fail;
 
     /* Locate var node via varid */
-    varnodes = dapcomm->cdf.varnodes;
+    varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
 	if(node->array.basevar == NULL
@@ -139,6 +139,16 @@ nc3d_getvarx(int ncid, int varid,
 
     ASSERT((cdfvar != NULL));
 
+    /* If the variable is prefetchable, then now
+       is the time to do a lazy prefetch */
+   if(FLAGSET(dapcomm->controls,NCF_PREFETCH)
+      && !FLAGSET(dapcomm->controls,NCF_PREFETCH_EAGER)) {
+        if(dapcomm->cdf.cache != NULL && dapcomm->cdf.cache->prefetch == NULL) {
+            ncstat = prefetchdata3(dapcomm);
+            if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
+	}
+    }
+    
     /* Get the dimension info */
     ncdimsall = cdfvar->array.dimsetall;
     ncrank = nclistlength(ncdimsall);
@@ -227,32 +237,10 @@ fprintf(stderr,"\n");
     ncstat = makegetvar34(dapcomm,cdfvar,data,dsttype,&varainfo);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    state = 0;
-    if(iscached(dapcomm,cdfvar,&cachenode)) { /* ignores non-whole variable cache entries */
-	state = CACHED;
-	ASSERT((cachenode != NULL));
-#ifdef DEBUG
-fprintf(stderr,"var is in cache\n");
-#endif
-        /* If it is cached, then it is a whole variable but may still
-           need to apply constraints during the walk */
-	ASSERT(cachenode->wholevariable); /* by construction */
-    } else if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	state = FETCHWHOLE;
-    } else {/* load using constraints */
-        if(FLAGSET(dapcomm->controls,NCF_WHOLEVAR))
-	    state = FETCHVAR;
-	else
-	    state = FETCHPART;
-    }
-
-    ASSERT(state != 0);    
-
     /* Compile the start/stop/stride info into a projection */
     ncstat = buildvaraprojection3(varainfo->target,
 		                  startp,countp,stridep,
                                   &varaprojection);
-
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     fetchprojection = NULL;
@@ -271,6 +259,26 @@ fprintf(stderr,"getvarx: walkprojection: |%s|\n",dumpprojection(walkprojection))
     /* define the var list of interest */
     vars = nclistnew();
     nclistpush(vars,(void*)varainfo->target);
+
+    state = 0;
+    if(iscached(dapcomm,cdfvar,&cachenode)) { /* ignores non-whole variable cache entries */
+	state = CACHED;
+	ASSERT((cachenode != NULL));
+#ifdef DEBUG
+fprintf(stderr,"var is in cache\n");
+#endif
+        /* If it is cached, then it is a whole variable but may still
+           need to apply constraints during the walk */
+	ASSERT(cachenode->wholevariable); /* by construction */
+    } else if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
+	state = FETCHWHOLE;
+    } else {/* load using constraints */
+        if(FLAGSET(dapcomm->controls,NCF_WHOLEVAR))
+	    state = FETCHVAR;
+	else
+	    state = FETCHPART;
+    }
+    ASSERT(state != 0);    
 
     switch (state) {
 
@@ -687,6 +695,7 @@ findfield(CDFnode* node, CDFnode* field)
 }
 
 
+#ifdef EXTERN_UNUSED
 int
 nc3d_getvarmx(int ncid, int varid,
 	    const size_t *start,
@@ -728,7 +737,7 @@ nc3d_getvarmx(int ncid, int varid,
     if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
 
     /* Locate var node via varid */
-    varnodes = dapcomm->cdf.varnodes;
+    varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
 	if(node->array.basevar == NULL
@@ -871,6 +880,7 @@ fprintf(stderr,"old: %lu -> %lu  %f\n",
 done:
     return ncstat;
 }
+#endif /*EXTERN_UNUSED*/
 
 static int
 conversionrequired(nc_type t1, nc_type t2)

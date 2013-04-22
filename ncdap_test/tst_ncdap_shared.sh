@@ -8,7 +8,11 @@
 
 FILEURL="file://${testdata3}"
 
-SYNTHETICDATA="synth1 synth2 synth3 synth4 synth5 synth6 synth7"
+# Synth8 still fails
+
+SYNTHETICDATA="synth1 synth2 synth3 synth4 synth5 synth6 synth7 synth10"
+SYNTHETICDDS="synth9"
+
 
 ACTUALDATA1=\
 "1990-S1700101.HDF.WVC_Lat 1998-6-avhrr.dat \
@@ -48,4 +52,6 @@ if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
 fi
 
 FILETESTS="${SYNTHETICDATA} ${ACTUALDATA1} ${ACTUALDATA2}"
+#DDSTESTS intersect FILETESTS should empty
+DDSTESTS="${SYNTHETICDDS}"
 

@@ -138,11 +138,13 @@ NC_begins(NC3_INFO* ncp,
 	size_t h_minfree, size_t v_align,
 	size_t v_minfree, size_t r_align)
 {
-	size_t ii;
+	size_t ii, j;
 	int sizeof_off_t;
 	off_t index = 0;
 	NC_var **vpp;
 	NC_var *last = NULL;
+	NC_var *first_var = NULL;       /* first "non-record" var */
+
 
 	if(v_align == NC_ALIGN_CHUNK)
 		v_align = ncp->chunk;
@@ -172,9 +174,17 @@ NC_begins(NC3_INFO* ncp,
 	    ncp->begin_var = D_RNDUP(index + (off_t)h_minfree, v_align);
 	  }
 	}
+
+	if (ncp->old != NULL) {
+            /* check whether the new begin_var is smaller */
+            if (ncp->begin_var < ncp->old->begin_var)
+                ncp->begin_var = ncp->old->begin_var;
+	}
+
 	index = ncp->begin_var;
 
 	/* loop thru vars, first pass is for the 'non-record' vars */
+	j = 0;
 	vpp = ncp->vars.value;
 	for(ii = 0; ii < ncp->vars.nelems ; ii++, vpp++)
 	{
@@ -183,6 +193,8 @@ NC_begins(NC3_INFO* ncp,
 			/* skip record variables on this pass */
 			continue;
 		}
+		if (first_var == NULL) first_var = *vpp;
+
 #if 0
 fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 #endif
@@ -191,7 +203,29 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
+
+		if (ncp->old != NULL) {
+		    /* move to the next fixed variable */
+		    for (; j<ncp->old->vars.nelems; j++)
+		        if (!IS_RECVAR(ncp->old->vars.value[j]))
+		            break;
+		    if (j < ncp->old->vars.nelems) {
+		        if ((*vpp)->begin < ncp->old->vars.value[j]->begin)
+		            /* the first ncp->vars.nelems fixed variables
+                               should be the same. If the new begin is smaller,
+                               reuse the old begin */
+                            (*vpp)->begin = ncp->old->vars.value[j]->begin;
+                        j++;
+		    }
+		}
+
 		index += (*vpp)->len;
+	}
+
+	if (ncp->old != NULL) {
+	    /* check whether the new begin_rec is smaller */
+	    if (ncp->begin_rec < ncp->old->begin_rec)
+	        ncp->begin_rec = ncp->old->begin_rec;
 	}
 
 	/* only (re)calculate begin_rec if there is not sufficient
@@ -206,11 +240,18 @@ fprintf(stderr, "    VAR %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 	    ncp->begin_rec = D_RNDUP(index + (off_t)v_minfree, r_align);
 	  }
 	}
+
+	if (first_var != NULL)
+	    ncp->begin_var = first_var->begin;
+	else
+	    ncp->begin_var = ncp->begin_rec;
+
 	index = ncp->begin_rec;
 
 	ncp->recsize = 0;
 
 	/* loop thru vars, second pass is for the 'record' vars */
+	j = 0;
 	vpp = (NC_var **)ncp->vars.value;
 	for(ii = 0; ii < ncp->vars.nelems; ii++, vpp++)
 	{
@@ -228,6 +269,20 @@ fprintf(stderr, "    REC %d %s: %ld\n", ii, (*vpp)->name->cp, (long)index);
 		    return NC_EVARSIZE;
                 }
 		(*vpp)->begin = index;
+
+                if (ncp->old != NULL) {
+                    /* move to the next record variable */
+                    for (; j<ncp->old->vars.nelems; j++)
+                        if (IS_RECVAR(ncp->old->vars.value[j]))
+                            break;
+                    if (j < ncp->old->vars.nelems) {
+                        if ((*vpp)->begin < ncp->old->vars.value[j]->begin)
+                            /* if the new begin is smaller, use the old begin */
+                            (*vpp)->begin = ncp->old->vars.value[j]->begin;
+                        j++;
+                    }
+                }
+
 		index += (*vpp)->len;
 		/* check if record size must fit in 32-bits */
 #if SIZEOF_OFF_T == SIZEOF_SIZE_T && SIZEOF_SIZE_T == 4
@@ -557,7 +612,7 @@ move_recs_r(NC3_INFO *gnu, NC3_INFO *old)
 static int
 move_vars_r(NC3_INFO *gnu, NC3_INFO *old)
 {
-	int status;
+	int err, status=NC_NOERR;
 	int varid;
 	NC_var **gnu_varpp = (NC_var **)gnu->vars.value;
 	NC_var **old_varpp = (NC_var **)old->vars.value;
@@ -582,20 +637,13 @@ move_vars_r(NC3_INFO *gnu, NC3_INFO *old)
 		gnu_off = gnu_varp->begin;
 		old_off = old_varp->begin;
 	
-		if(gnu_off == old_off)
-			continue; 	/* nothing to do */
-
-		assert(gnu_off > old_off);
-
-		status = ncio_move(gnu->nciop, gnu_off, old_off,
-			 old_varp->len, 0);
-
-		if(status != NC_NOERR)
-			return status;
-		
+		if (gnu_off > old_off) {
+		    err = ncio_move(gnu->nciop, gnu_off, old_off,
+			               old_varp->len, 0);
+		    if (status == NC_NOERR) status = err;
+		}
 	}
-
-	return NC_NOERR;
+	return status;
 }
 
 
@@ -727,7 +775,16 @@ NC_endef(NC3_INFO *ncp,
 			/* else if (ncp->begin_var == ncp->old->begin_var) { NOOP } */
 		}
 		else
-		{	/* Even if (ncp->begin_rec == ncp->old->begin_rec)
+                {
+			/* due to fixed variable alignment, it is possible that header
+                           grows but begin_rec did not change */
+			if(ncp->begin_var > ncp->old->begin_var)
+			{
+				status = move_vars_r(ncp, ncp->old);
+				if(status != NC_NOERR)
+					return status;
+			} 
+		 	/* Even if (ncp->begin_rec == ncp->old->begin_rec)
 			   and     (ncp->begin_var == ncp->old->begin_var)
 			   might still have added a new record variable */
 		        if(ncp->recsize > ncp->old->recsize)
