@@ -1,0 +1,206 @@
+#!/bin/bash
+#X="-x"
+#NB=1
+
+if test $# != 0 ; then
+cmds=$@
+fi
+
+HDF5=1
+DAP=1
+#PNETCDF=1
+#HDF4=1
+#RPC=1
+#PGI=1
+#M32=1
+#M64=1
+
+#INSTALL=1
+
+if test "x$cmds" = x ; then
+cmds=""
+#cmds="all"
+#cmds="all check"
+#cmds="all dist"
+#cmds="all distcheck"
+#cmds="$cmds install"
+fi
+
+# HDF4=>HDF5
+if test "x$HDF4" = x1 ; then
+HDF5=1
+fi
+
+# Test pgi compiler
+if test "x$PGI" = x1 ; then
+PATH="/opt/pgi/linux86/11.1/bin:$PATH"
+CC=pgcc
+else
+CC=gcc
+fi
+
+# Default cases
+if test -f "/share/ed/local" ; then
+stddir="/share/ed/local/${HOST}"
+else
+stddir="/usr/local"
+fi
+
+if test "x$INSTALL" = "x1" ; then
+PREFIX="$stddir/${HOST}"
+else
+PREFIX="/tmp/local/${HOST}"
+fi
+
+MALLOC_CHECK=""
+
+CPPFLAGS=""
+LDFLAGS=""
+
+if test "x$PGI" = x1 ; then
+CFLAGS="-Msignextend -V -m64 $CFLAGS"
+CPPFLAGS="$CPPFLAGS -DNDEBUG -DpgiFortran"
+LD_LIBRARY_PATH="/usr/local/pgi/linux86-64/11.1/lib:$LD_LIBRARY_PATH"
+PREFIX=/tmp/install/pgi
+fi
+
+if test x$M32 = x1 ; then
+  PREFIX="/tmp/install32/${HOST}"
+  stddir="/share/ed/local/${HOST}_32"
+  CFLAGS="-m32 $CFLAGS"
+elif test x$M64 = x1 ; then
+  PREFIX="/tmp/install64/${HOST}"
+  stddir="/share/ed/local/${HOST}_64"
+  CFLAGS="-m64 $CFLAGS"
+fi
+
+if test "x$HOST" = xyakov ; then
+    stddir="/opt/local"
+fi
+
+CFLAGS="-g -O0 $CFLAGS"
+
+case "$HOST" in
+  mort)
+	CFLAGS="-std=c99 $CFLAGS"
+	;;
+  yakov)
+	CFLAGS="-std=c99 $CFLAGS"
+	;;
+  spock)
+	if test "x$PGI" = x ; then
+  	  CFLAGS="-Wdeclaration-after-statement -Wall $CFLAGS"
+	fi
+	;;
+  spike)
+	CFLAGS="-Wall $CFLAGS"
+	;;
+  *)
+	;;
+esac
+
+MAKE=make
+IGNORE="test 0 = 1"
+
+if test "x$HDF5" = "x1" ; then
+CPPFLAGS="-I${stddir}/include $CPPFLAGS"
+LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
+LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
+fi
+
+#if test "x$HDF4" = "x1" ; then
+#CPPFLAGS="-I/machine/local/include $CPPFLAGS"
+#LDFLAGS="-L/machine/local/lib $LDFLAGS"
+#fi
+
+if test "x$DAP" = "x1" -o "x$CDMR" = "x1" -o "x$RPC" = "x1" ; then
+if curl-config --version >/dev/null ; then
+TMP=`curl-config --cflags`
+CPPFLAGS="$TMP $CPPFLAGS"
+TMP=`curl-config --libs`
+LDFLAGS="$TMP $LDFLAGS"
+TMP=`curl-config --prefix`
+LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
+else
+  echo "Cannot find curl-config"
+  exit 1
+fi
+fi
+
+CXXFLAGS="$CPPFLAGS $CXXFLAGS"
+
+
+if test -z "$NB" ; then
+${MAKE} maintainer-clean >/dev/null 2>&1
+if autoreconf -i --force ; then ok=1; else exit ; fi
+fi
+
+FLAGS="--prefix ${PREFIX}"
+#FLAGS="$FLAGS --disable-f77 --disable-f90"
+#FLAGS="$FLAGS --disable-cxx"
+FLAGS="$FLAGS --disable-examples"
+#FLAGS="$FLAGS --disable-utilities"
+#FLAGS="$FLAGS --enable-cxx-4"
+#FLAGS="$FLAGS --enable-dap-long-tests"
+#FLAGS="$FLAGS --enable-ffio"
+#FLAGS="$FLAGS --enable-benchmarks"
+#FLAGS="$FLAGS --enable-extra-tests"
+#FLAGS="$FLAGS --enable-large-file-tests"
+#FLAGS="$FLAGS --disable-testsets"
+#FLAGS="$FLAGS --disable-dap-remote-tests"
+#FLAGS="$FLAGS --enable-doxygen"
+#FLAGS="$FLAGS --enable-logging"
+#FLAGS="$FLAGS --disable-diskless"
+#FLAGS="$FLAGS --enable-mmap"
+#FLAGS="$FLAGS --with-udunits"
+#FLAGS="$FLAGS --with-libcf"
+#valgrind => not shared
+#FLAGS="$FLAGS --enable-valgrind-tests"
+
+FLAGS="$FLAGS --disable-shared"
+#FLAGS="$FLAGS --enable-shared"
+
+if test "x$HDF5" = "x" ; then
+FLAGS="$FLAGS --disable-netcdf-4"
+fi
+if test "x$HDF4" = x1 ; then
+FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
+fi
+if test "x$DAP" = "x" ; then
+FLAGS="$FLAGS --disable-dap"
+fi
+if test "x$CDMR" = "x1" ; then
+FLAGS="$FLAGS --enable-cdmremote"
+fi
+if test "x$RPC" = "x1" ; then
+FLAGS="$FLAGS --enable-rpc"
+fi
+
+if test "x$PNETCDF" = x1 ; then
+PATH=${PATH}:/machine/local_mpich2/bin
+CC="/machine/local_mpich2/bin/mpicc"
+CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include"
+LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib"
+LDLIBS="-lmpich -lmpl"
+FLAGS="$FLAGS --enable-pnetcdf"
+FLAGS="$FLAGS --enable-parallel-tests"
+fi
+
+export PATH
+export CC
+export CPPFLAGS
+export CFLAGS
+export LDFLAGS
+export LD_LIBRARY_PATH
+export MALLOC_CHECK
+export CXXFLAGS
+
+DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
+export DISTCHECK_CONFIGURE_FLAGS
+
+if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+sh $X ./configure ${FLAGS}
+for c in $cmds; do
+  ${MAKE} $c
+done
+exit 0
