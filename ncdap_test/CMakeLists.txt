@@ -37,6 +37,7 @@ IF(ENABLE_TESTS)
 		add_bin_env_test(ncdap test_cvt)
 		add_bin_env_test(ncdap test_vara)
 	ENDIF()
+	add_bin_test(ncdap test_nstride_cached)
 	add_bin_test(ncdap test_partvar)
 	add_bin_test(ncdap test_varm3)
 	

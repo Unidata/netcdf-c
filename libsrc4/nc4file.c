@@ -351,9 +351,14 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    return NC_NOERR;
 
-  exit:
+exit: /*failure exit*/
+#ifdef EXTRA_TESTS
+   num_plists--;
+#endif
    if(!nc4_info) return retval;
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   /* Reclaim nc4_info */
+   free(nc4_info);
    return retval;
 }
 
@@ -531,7 +536,6 @@ static int
 read_coord_dimids(NC_VAR_INFO_T *var)
 {
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
-   hssize_t coord_array_size;
    int ret = 0;
 
    /* There is a hidden attribute telling us the ids of the
@@ -547,11 +551,8 @@ read_coord_dimids(NC_VAR_INFO_T *var)
 #ifdef EXTRA_TESTS
    num_spaces++;
 #endif
-   if ((coord_array_size = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
+   if (H5Sget_simple_extent_npoints(spaceid) < 0) ret++;
    
-   /* Malloc space to the array of pointers to dims. */
-   
-
    /* Set my HDF5 IDs free! */
    if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
 #ifdef EXTRA_TESTS

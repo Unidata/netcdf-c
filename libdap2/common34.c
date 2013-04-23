@@ -433,17 +433,25 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 {
     size_t i,ocrank,ocnsubnodes;
     OCtype octype;
+    OCtype ocatomtype;
     char* ocname = NULL;
     NCerror ncerr = NC_NOERR;
     CDFnode* cdfnode;
 
     oc_dds_class(nccomm->oc.conn,ocnode,&octype);
+    if(octype == OC_Atomic)
+	oc_dds_atomictype(nccomm->oc.conn,ocnode,&ocatomtype);
+    else
+	ocatomtype = OC_NAT;
     oc_dds_name(nccomm->oc.conn,ocnode,&ocname);
     oc_dds_rank(nccomm->oc.conn,ocnode,&ocrank);
     oc_dds_nsubnodes(nccomm->oc.conn,ocnode,&ocnsubnodes);
 
 #ifdef DEBUG1
-    fprintf(stderr,"buildcdftree: connect: %s %s\n",oc_typetostring(octype),ocname);
+    if(ocatomtype == OC_NAT)
+	fprintf(stderr,"buildcdftree: connect: %s %s\n",oc_typetostring(octype),ocname);
+    else
+	fprintf(stderr,"buildcdftree: connect: %s %s\n",oc_typetostring(ocatomtype),ocname);
 #endif
 
     switch (octype) {

@@ -158,7 +158,7 @@ nc3d_getvarx(int ncid, int varid,
 int i;
 fprintf(stderr,"getvarx: %s",cdfvar->ncfullname);
 for(i=0;i<ncrank;i++)
-  fprintf(stderr,"[%ld:%ld:%ld]",
+  fprintf(stderr,"(%ld:%ld:%ld)",
 	(long)startp[i],
 	(long)countp[i],
 	(long)stridep[i]
@@ -199,7 +199,7 @@ NClist* dims = cdfvar->array.dimsetall;
 fprintf(stderr,"getvarx: %s",cdfvar->ncfullname);
 if(nclistlength(dims) > 0) {int i;
 for(i=0;i<nclistlength(dims);i++) 
-fprintf(stderr,"[%lu:%lu:%lu]",(unsigned long)startp[i],(unsigned long)countp[i],(unsigned long)stridep[i]);
+fprintf(stderr,"(%lu:%lu:%lu)",(unsigned long)startp[i],(unsigned long)countp[i],(unsigned long)stridep[i]);
 fprintf(stderr," -> ");
 for(i=0;i<nclistlength(dims);i++) 
 if(stridep[i]==1)
