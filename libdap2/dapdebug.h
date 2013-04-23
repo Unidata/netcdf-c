@@ -7,7 +7,7 @@
 #define DEBUG_H
 
 
-#if 1
+#if 0
 #define DAPDEBUG 1
 #define OCDEBUG
 #endif

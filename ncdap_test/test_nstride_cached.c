@@ -32,7 +32,7 @@ Problem was two-fold:
 /* vars_whoi_test */
 /* acm 4/2013 */
 /* ansley.b.manke@noaa.gov */
-/*
+
 /* test nc_get_vars_float with calls similar to Ferret calls */
 
 
@@ -54,9 +54,9 @@ incorrect data return */
 #include<string.h>
 #include "netcdf.h"
 
-static int coords = 0;
+static int verbose = 0;
 
-static char* URL="[noprefetch]http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd";
+static char* URL="http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd";
 
 int
 main()
@@ -68,6 +68,7 @@ main()
     int ncstatus;
     size_t start[5], count[5];
     ptrdiff_t stride[5], tmp_ptrdiff_t;
+    int pass = 1;
 
     int idim, ndim;
     float dat[301060];
@@ -87,6 +88,11 @@ main()
     printf(" \n");
 
     ncstatus = nc_open(URL, NC_NOWRITE, &ncid);
+
+    if(ncstatus != NC_NOERR) {
+	fprintf(stderr,"Could not open: %s; server may be down; test ignored\n",URL);
+	exit(0);
+    }
 
     ncstatus = nc_inq_varid(ncid, "lon_rho", &varid);
 
@@ -112,13 +118,15 @@ main()
     stride[0] = 1;
     stride[1] = 1;
 
+if(verbose) {
     for (idim=0; idim<ndim; idim++)
-	printf("start[%1d]=%3d count[%1d]=%3d stride[%1d]=%3d\n",
+	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
 		idim,start[idim],idim,count[idim],idim,stride[idim]);
+}
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
 
-if(coords) {
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Print some of lon_rho\n");
@@ -160,13 +168,15 @@ if(coords) {
     stride[0] = 1;
     stride[1] = 1;
 
+if(verbose) {
     for (idim=0; idim<ndim; idim++)
-        printf("start[%d]=%3d count[%d]=%3d stride[%d]=%3d\n",
+        printf("start[%d]=%3lu count[%d]=%3lu stride[%d]=%3lu\n",
 		idim, start[idim], idim, count[idim], idim, stride[idim]);
+}
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
 
-if(coords) {
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Print some of lat_rho\n");
@@ -183,7 +193,7 @@ if(coords) {
 
     memset((void*)dat,0,sizeof(dat));
 
-    /* close and reopen the dataset, then the below read is correct
+    /* close and reopen the dataset, then the below read is correct */
 
     printf(" \n");
     printf("********************\n");
@@ -211,15 +221,25 @@ if(coords) {
     stride[0] = 2;
     stride[1] = 4;
 
+if(verbose) {
     for (idim=0; idim<ndim; idim++)
-	printf("start[%1d]=%3d count[%1d]=%3d stride[%1d]=%3d\n",
+	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
 		idim,start[idim],idim,count[idim],idim,stride[idim]);
+}
 
     memset((void*)sdat,0,sizeof(sdat));
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride,  (float*) sdat);
 
     printf("status = %d\n", ncstatus);
 
+    /* Verify that all read values are 67 <= n < 68 */
+    for (i=0; i<10; i++) {
+	if(!(sdat[i] <= -67 && sdat[i] > -68)) {
+	    printf("lon_rho[%d] = %f\n",i,sdat[i]);
+	    pass = 0;
+	}
+    }
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Print  values read. They should all be -67.xxxx \n");
@@ -227,7 +247,16 @@ if(coords) {
 
     for (i=0; i<10; i++)
         printf("lon_rho[%d] = %f\n",i,sdat[i]);
+}
 
     ncstatus = nc_close (ncid);
+
+    if(!pass) {
+	printf("*** FAIL: lon_rho value out of range.\n");
+	exit(1);
+    }
+
+    printf("*** PASS\n");
+    exit(0);
 
 }
