@@ -557,7 +557,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS];
    int need_to_extend = 0;
-   int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
+   int retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
 #ifndef HDF5_CONVERT   
    int need_to_convert = 0;
@@ -650,7 +650,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef EXTRA_TESTS
       num_spaces++;
 #endif
-      scalar++;
    }
    else
    {
@@ -2427,9 +2426,12 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
 
 /* Recursively determine if there is a mismatch between order of
  * coordinate creation and associated dimensions in this group or any
- * subgroups, to find out if we have to handle that situation. */
+ * subgroups, to find out if we have to handle that situation.  Also
+ * check if there are any multidimensional coordinate variables
+ * defined, which require the same treatment to fix a potential bug
+ * when such variables occur in subgroups. */
 int
-nc4_rec_detect_bad_coord_order(NC_GRP_INFO_T *grp, int *bad_coord_orderp)
+nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, int *bad_coord_orderp)
 {
    NC_DIM_INFO_T *dim;
    NC_VAR_INFO_T *var;
@@ -2455,6 +2457,19 @@ nc4_rec_detect_bad_coord_order(NC_GRP_INFO_T *grp, int *bad_coord_orderp)
       }
    }
 
+   /* If there are multidimensional coordinate variables defined, then
+    * it's also necessary to preserve dimension IDs when the file is
+    * reopened ... */
+   for (var = grp->var; var; var = var->next)
+   {
+      LOG((5, "checking %s for multidimensional coord var", var->name));
+      if (var->ndims > 1 && var->dimscale)
+      {
+	     *bad_coord_orderp = 1;
+	     return NC_NOERR;
+      }
+   }
+
    /* Did the user define a dimension, end define mode, reenter define
     * mode, and then define a coordinate variable for that dimension?
     * If so, dimensions will be out of order. */
@@ -2470,7 +2485,7 @@ nc4_rec_detect_bad_coord_order(NC_GRP_INFO_T *grp, int *bad_coord_orderp)
    
    /* If there are any child groups, check them also for this condition. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
-      if ((retval = nc4_rec_detect_bad_coord_order(child_grp, bad_coord_orderp)))
+      if ((retval = nc4_rec_detect_need_to_preserve_dimids(child_grp, bad_coord_orderp)))
          return retval;
 
    return NC_NOERR;

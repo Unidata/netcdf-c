@@ -139,6 +139,46 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("**** testing example from bug NCF-247, multidimensional coord variable in subgroup ...");
+   {
+#define GRPNAME "g1"
+#define DIM0NAME "dim0"
+#define DIM1NAME "dim1"
+#define DIM2NAME "coord"
+#define DIM3NAME "dim3"
+#define VARNAME  DIM2NAME
+#define VARRANK 2
+       int  ncid, grpid, varid, var_dims[VARRANK], var_dims_in[VARRANK];
+       char name2[NC_MAX_NAME], name3[NC_MAX_NAME];
+       int dim0_dim, dim1_dim, dim2_dim, dim3_dim;
+       size_t dim0_len = 3, dim1_len = 2, dim2_len = 5, dim3_len = 7;
+
+       if (nc_create(FILE_NAME, NC_CLOBBER|NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_grp(ncid, GRPNAME, &grpid)) ERR;
+       
+       if (nc_def_dim(ncid, DIM0NAME, dim0_len, &dim0_dim)) ERR;
+       if (nc_def_dim(ncid, DIM1NAME, dim1_len, &dim1_dim)) ERR;
+       if (nc_def_dim(grpid, DIM2NAME, dim2_len, &dim2_dim)) ERR;
+       if (nc_def_dim(grpid, DIM3NAME, dim3_len, &dim3_dim)) ERR;
+
+       var_dims[0] = dim2_dim;
+       var_dims[1] = dim3_dim;
+       if (nc_def_var(grpid, VARNAME, NC_INT, VARRANK, var_dims, &varid)) ERR;
+    
+       if (nc_close(ncid)) ERR;
+    
+       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+    
+       if (nc_inq_grp_ncid(ncid, GRPNAME, &grpid)) ERR;
+    
+       if (nc_inq_varid(grpid, VARNAME, &varid)) ERR;
+       if (nc_inq_vardimid(grpid, varid, var_dims_in)) ERR;
+       if (nc_inq_dimname(grpid, var_dims_in[0], name2)) ERR;
+       if (nc_inq_dimname(grpid, var_dims_in[1], name3)) ERR;
+       if (strcmp(name2, DIM2NAME) != 0 || strcmp(name3, DIM3NAME) != 0) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
 
