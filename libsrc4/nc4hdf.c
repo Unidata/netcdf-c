@@ -557,7 +557,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS];
    int need_to_extend = 0;
-   int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
+   int retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
 #ifndef HDF5_CONVERT   
    int need_to_convert = 0;
@@ -650,7 +650,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifdef EXTRA_TESTS
       num_spaces++;
 #endif
-      scalar++;
    }
    else
    {
