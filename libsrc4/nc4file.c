@@ -351,9 +351,14 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    return NC_NOERR;
 
-  exit:
+exit: /*failure exit*/
+#ifdef EXTRA_TESTS
+   num_plists--;
+#endif
    if(!nc4_info) return retval;
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   /* Reclaim nc4_info */
+   free(nc4_info);
    return retval;
 }
 

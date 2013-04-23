@@ -258,7 +258,7 @@ fix::
 	done
 
 ##################################################
-T=test_vara
+T=vars_whoi_test
 
 v::
 	cc -g -c ${T}.c ${INCL}
