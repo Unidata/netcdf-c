@@ -31,8 +31,8 @@ typedef struct Getvara {
     void* memory; /* where result is put*/
     struct NCcachenode* cache;
     struct DCEprojection* varaprojection;
-    /* associated variable*/
-    OCtype dsttype;
+    /* associated nc variable*/
+    nc_type dsttype;
     CDFnode* target;
     int wholevariable;
 } Getvara;

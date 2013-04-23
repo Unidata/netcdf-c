@@ -65,12 +65,12 @@ fprintf(stderr,"constraint: %s",dcetostring((DCEnode*)dapconstraint));
 
 #ifdef DEBUG1
 static void
-dumpslice(const char* prefix, DCEslice* s)
+slicedump(const char* prefix, DCEslice* s)
 {
 #if 1
     int v = dceverbose;
     dceverbose = 1;
-    fprintf(stderr,"%s: %s\n",prefix,dcetostring(s));
+    fprintf(stderr,"%s: %s\n",prefix,dcetostring((DCEnode*)s));
     dceverbose = v;
 #else
     size_t last = (s->first+s->length)-1;
@@ -199,8 +199,8 @@ dceslicecompose(DCEslice* s1, DCEslice* s2, DCEslice* result)
     size_t lastx = 0;
     DCEslice sr; /* For back compatability so s1 and result can be same object */
 #ifdef DEBUG1
-dumpslice("compose: s1",s1);
-dumpslice("compose: s2",s2);
+slicedump("compose: s1",s1);
+slicedump("compose: s2",s2);
 #endif
     sr.node.sort = CES_SLICE;
     sr.stride    = s1->stride * s2->stride;
@@ -213,10 +213,10 @@ dumpslice("compose: s2",s2);
     sr.declsize = XMAX(s1->declsize,s2->declsize); /* use max declsize */
     /* fill in other fields */
     sr.count = (sr.length + (sr.stride - 1))/sr.stride;
-#ifdef DEBUG1
-dumpslice("compose: result",sr);
-#endif
     *result = sr;
+#ifdef DEBUG1
+slicedump("compose: result",result);
+#endif
     return err;
 }
 

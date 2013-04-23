@@ -11,7 +11,9 @@ typedef struct Dapodometer {
     int            rank;
     size_t         index[NC_MAX_VAR_DIMS];
     size_t         start[NC_MAX_VAR_DIMS];
+#if 0
     size_t         count[NC_MAX_VAR_DIMS];
+#endif
     size_t         stride[NC_MAX_VAR_DIMS];
     size_t         stop[NC_MAX_VAR_DIMS];
     size_t         declsize[NC_MAX_VAR_DIMS];
