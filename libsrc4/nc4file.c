@@ -851,7 +851,7 @@ static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
    hid_t spaceid = 0, file_typeid = 0;
-   hsize_t dims[1]; /* netcdf attributes always 1-D. */
+   hsize_t dims[1] = {0}; /* netcdf attributes always 1-D. */
    int retval = NC_NOERR;
    size_t type_size;
    int att_ndims;
@@ -1282,7 +1282,7 @@ static int
 read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name, 
          size_t ndims, int is_scale, int num_scales, hid_t access_pid)
 {
-   NC_VAR_INFO_T *var;
+   NC_VAR_INFO_T *var = NULL;
    int natts, a, d;
 
    NC_ATT_INFO_T *att;
@@ -1309,7 +1309,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(&grp->var, &var)))
       return retval;
-            
+   
+   if(!var)
+     return NC_ENOMEM;
+
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
    var->varid = grp->nvars++;

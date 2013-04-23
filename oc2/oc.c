@@ -562,7 +562,7 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
     err = oc_dds_nsubnodes(link,ddsnode,&count);
     if(err != OC_NOERR) return err;
     for(i=0;i<count;i++) {
-	int match;
+	int match=1;
 	OCobject field;
 	char* fieldname = NULL;
         err = oc_dds_ithfield(link,ddsnode,i,&field);
@@ -570,8 +570,11 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
 	// Get the field's name
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
-	match = strcmp(name,fieldname);
-	if(fieldname != NULL) free(fieldname);
+	if(fieldname != NULL) {
+	  match = strcmp(name,fieldname);
+	  free(fieldname);
+	}
+	 
 	if(match == 0) {
 	    if(fieldp) *fieldp = field;
 	    return OC_NOERR;

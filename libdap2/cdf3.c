@@ -341,6 +341,10 @@ fprintf(stderr,"restruct: template=%s\n",dumptree(template));
 	/* Do the repairs */
 	ncstat = repairgrids(repairs);
     }
+
+    if(repairs)
+      nclistfree(repairs);
+
     return THROW(ncstat);
 }
 
