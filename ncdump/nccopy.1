@@ -11,9 +11,11 @@ nccopy
 \%[-k \fI kind \fP]
 \%[-d \fI n \fP]
 \%[-s]
+\%[-c \fI chunkspec \fP]
 \%[-u]
 \%[-w]
-\%[-c \fI chunkspec \fP]
+\%[-[v|V] var1,...]
+\%[-[g|G] grp1,...]
 \%[-m \fI bufsize \fP]
 \%[-h \fI chunk_cache \fP]
 \%[-e \fI cache_elems \fP]
@@ -133,6 +135,44 @@ also share the chunk size associated with that dimension, but the
 programming interface has no such restriction.  If you need to
 customize chunking for variables independently, you will need to use
 the library API in a custom utility program.
+.IP "\fB -v \fP \fI var1,... \fP"
+The output will include data values for the specified variables, in
+addition to the declarations of all dimensions, variables, and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single
+argument to the command, hence cannot contain unescaped blanks or
+other white space characters. The named variables must be valid netCDF
+variables in the input-file. A variable within a group in a netCDF-4
+file may be specified with an absolute path name, such as
+'/GroupA/GroupA2/var'.  Use of a relative path name such as 'var' or
+'grp/var' specifies all matching variable names in the file.  The
+default, without this option, is to include data values for \fI all \fP variables
+in the output.
+.IP "\fB -V \fP \fI var1,... \fP"
+The output will include the specified variables only but all dimensions and
+global or group attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single argument
+to the command, hence cannot contain unescaped blanks or other white space
+characters. The named variables must be valid netCDF variables in the
+input-file. A variable within a group in a netCDF-4 file may be specified with
+an absolute path name, such as '/GroupA/GroupA2/var'.  Use of a relative path
+name such as 'var' or 'grp/var' specifies all matching variable names in the
+file.  The default, without this option, is to include \fI all \fP variables in the
+output.
+.IP "\fB -g \fP \fI grp1,... \fP"
+The output will include data values only for the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include data values for all
+groups in the output.
+.IP "\fB -G \fP \fI grp1,... \fP"
+The output will include only the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include all groups in the
+output.
 .IP "\fB -m \fP \fI bufsize \fP"
 An integer or floating-point number that specifies the size, in bytes,
 of the copy buffer used to copy large variables.  A suffix of K, M, G,
@@ -160,7 +200,9 @@ cache size has been implemented yet.  Using the '-w' option may
 provide better performance, if the output fits in memory.
 .IP "\fB -e \fP \fI cache_elems \fP"
 For netCDF-4 output, including netCDF-4 classic model, specifies
-number of elements that the chunk cache can hold. This is not a
+number of elements that the chunk cache can hold. A suffix of K, M, G,
+or T multiplies the copy buffer size by one thousand, million,
+billion, or trillion, respectively.  This is not a
 property of the file, but merely a performance tuning parameter for
 avoiding compressing or decompressing the same data multiple times
 while copying and changing chunk shapes.  The default is 1009 (or
