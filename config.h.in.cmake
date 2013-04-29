@@ -36,7 +36,6 @@
 #endif
 
 
-
 /* Cache Size, other variables for HDF5 */
 #define DEFAULT_CHUNK_SIZE	${DEFAULT_CHUNK_SIZE}
 #define DEFAULT_CHUNKS_IN_CACHE	${DEFAULT_CHUNKS_IN_CACHE}

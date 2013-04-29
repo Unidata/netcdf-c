@@ -220,7 +220,7 @@ xxdr_free(XXDR* xdr)
 int
 xxdr_skip(XXDR* xdrs, off_t len)
 {
-  ssize_t pos;
+    unsigned int pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
     if(pos < 0) pos = 0;
