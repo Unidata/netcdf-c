@@ -83,7 +83,6 @@ ENABLE_MAKEDIST(cmake_config.h.in CMakeLists.txt cmake)
 ## End 'enable dist and distcheck'
 # Only necessary for Windows
 IF(MSVC)
-	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
 	# Supress some warnings on Windows
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
@@ -383,40 +382,18 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
 
-  #FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-  FIND_LIBRARY(HDF5_LIB NAMES hdf5 libhdf5 hdf5dll)
-  FIND_LIBRARY(HDF5_HL_LIB NAMES hdf5_hl libhdf5_hl hdf5_hldll)
+IF(MSVC)
+  FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE REQUIRED)
+ELSE()
+  FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+ENDIF()
 
-  IF(NOT HDF5_LIB) 
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 libraries not found.")
-  ELSEIF(NOT HDF5_HL_LIB)
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 high-level libraries not found.")
-  ENDIF()
- 
-  SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})  
-  FIND_PATH(HDF5_INCLUDE_DIR H5public.h)
-
-  IF(NOT HDF5_INCLUDE_DIR) 
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 include directories not found.")
-  ENDIF()
-
-  MESSAGE(STATUS "Found HDF5: ${HDF5_LIB}")
-  MESSAGE(STATUS "Found HDF5_HL: ${HDF5_HL_LIB}")
-  MESSAGE(STATUS "Found HDF5 Includes: ${HDF5_INCLUDE_DIR}")
-
-
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
   
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-	 #FIND_PACKAGE(SZIP)
-	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz libszip)
-  	IF(NOT SZIP_LIBRARY)
-		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
-  	ELSE()
-		MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
-  	ENDIF()
-	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
+	FIND_PACKAGE(SZIP NO_MODULE)
+	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 	
   SET(H5_USE_16_API 1)   

@@ -36,7 +36,6 @@
 #endif
 
 
-
 /* Cache Size, other variables for HDF5 */
 #define DEFAULT_CHUNK_SIZE	${DEFAULT_CHUNK_SIZE}
 #define DEFAULT_CHUNKS_IN_CACHE	${DEFAULT_CHUNKS_IN_CACHE}
@@ -53,7 +52,8 @@
 #endif
 
 #define PACKAGE_VERSION "${VERSION}"
-#define VERSION "${VERSION}"
+#cmakedefine VERSION "${VERSION}"
+#cmakedefine NC_VERSION "${VERSION}"
 /* For HDF5 use. */
 #cmakedefine H5_USE_16_API 1
 
