@@ -224,7 +224,7 @@ make install
 cd ${NETCDF_SOURCE_DIRECTORY}
 CPPFLAGS="-I${H5DIR}/include -I${H4DIR}/include" \
 LDFLAGS="-L${H5DIR}/lib -L${H4DIR}/lib" \
-./configure --disable-shared --enable-hdf4 --enable-hdf4-file-tests
+./configure --enable-hdf4 --enable-hdf4-file-tests
 make check
 make install
 \endverbatim
