@@ -788,17 +788,15 @@ applyclientparamcontrols3(NCDAPCOMMON* dapcomm)
 	CLRFLAG(dapcomm->controls,NCF_CACHE);
 
     /* enable/disable cache prefetch and lazy vs eager*/
-    if(FLAGSET(dapcomm->controls,NCF_CACHE)) {
-        if(paramcheck34(dapcomm,"prefetch","eager")) {
-            SETFLAG(dapcomm->controls,NCF_PREFETCH);
-            SETFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
-        } else if(paramcheck34(dapcomm,"prefetch","lazy")
-                  || paramcheck34(dapcomm,"prefetch",NULL)) {
-            SETFLAG(dapcomm->controls,NCF_PREFETCH);
-            CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
-        } else if(paramcheck34(dapcomm,"noprefetch",NULL))
-            CLRFLAG(dapcomm->controls,NCF_PREFETCH);
-    }
+    if(paramcheck34(dapcomm,"prefetch","eager")) {
+        SETFLAG(dapcomm->controls,NCF_PREFETCH);
+        SETFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    } else if(paramcheck34(dapcomm,"prefetch","lazy")
+              || paramcheck34(dapcomm,"prefetch",NULL)) {
+        SETFLAG(dapcomm->controls,NCF_PREFETCH);
+        CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    } else if(paramcheck34(dapcomm,"noprefetch",NULL))
+        CLRFLAG(dapcomm->controls,NCF_PREFETCH);
 
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	SETFLAG(dapcomm->controls,NCF_CACHE);

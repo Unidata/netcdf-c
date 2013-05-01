@@ -97,7 +97,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
         /* If we cannot constrain and caching is enabled,
            then pull in everything */
-        if(FLAGSET(nccomm->controls,NCF_CACHE)) {
+        if(FLAGSET(nccomm->controls,NCF_CACHE)) { 
 	    for(i=0;i<nclistlength(allvars);i++) {
 	        nclistpush(vars,nclistget(allvars,i));
 	    }
@@ -392,7 +392,8 @@ markprefetch3(NCDAPCOMMON* nccomm)
             CDFnode* dim = (CDFnode*)nclistget(var->array.dimsettrans,j);
             nelems *= dim->dim.declsize;
 	}
-	if(nelems <= nccomm->cdf.smallsizelimit) {
+	if(nelems <= nccomm->cdf.smallsizelimit
+	    && FLAGSET(nccomm->controls,NCF_PREFETCH)) {
 	    var->prefetchable = 1;
 if(SHOWFETCH)
  {
