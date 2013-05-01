@@ -52,7 +52,8 @@
 #endif
 
 #define PACKAGE_VERSION "${VERSION}"
-#define NC_VERSION "${VERSION}"
+#cmakedefine VERSION "${VERSION}"
+#cmakedefine NC_VERSION "${VERSION}"
 /* For HDF5 use. */
 #cmakedefine H5_USE_16_API 1
 

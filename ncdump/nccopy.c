@@ -1535,8 +1535,9 @@ usage(void)
 @section  SYNOPSIS
 
 \code
-nccopy [-k kind] [-d n] [-s] [-u] [-w] [-c chunkspec] [-m bufsize] 
-       [-h chunk_cache] [-e cache_elems] [-r]   infile   outfile
+nccopy [-k kind] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] var1,...]
+       [-[g|G] grp1,...] [-m bufsize] [-h chunk_cache] [-e cache_elems]
+       [-r]   infile   outfile
 \endcode
 
 @section  DESCRIPTION
@@ -1657,6 +1658,56 @@ programming interface has no such restriction.  If you need to
 customize chunking for variables independently, you will need to use
 the library API in a custom utility program.
 
+@par -v \a var1,...  
+
+@par 
+The output will include data values for the specified variables, in
+addition to the declarations of all dimensions, variables, and
+attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single
+argument to the command, hence cannot contain unescaped blanks or
+other white space characters. The named variables must be valid netCDF
+variables in the input-file. A variable within a group in a netCDF-4
+file may be specified with an absolute path name, such as
+`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
+`grp/var' specifies all matching variable names in the file.  The
+default, without this option, is to include data values for \e all variables
+in the output.
+
+@par -V \a var1,...  
+
+@par 
+The output will include the specified variables only but all dimensions and
+global or group attributes. One or more variables must be specified by name in the
+comma-delimited list following this option. The list must be a single argument
+to the command, hence cannot contain unescaped blanks or other white space
+characters. The named variables must be valid netCDF variables in the
+input-file. A variable within a group in a netCDF-4 file may be specified with
+an absolute path name, such as `/GroupA/GroupA2/var'.  Use of a relative path
+name such as `var' or `grp/var' specifies all matching variable names in the
+file.  The default, without this option, is to include \e all variables in the
+output.
+
+@par -g \e grp1,...
+
+@par
+The output will include data values only for the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include data values for all
+groups in the output.
+
+@par -G \e grp1,...
+
+@par
+The output will include only the specified groups.
+One or more groups must be specified by name in the comma-delimited
+list following this option. The list must be a single argument to the
+command. The named groups must be valid netCDF groups in the
+input-file. The default, without this option, is to include all groups in the
+output.
+
 @par -m  \e  bufsize
 @par
 An integer or floating-point number that specifies the size, in bytes,
@@ -1706,57 +1757,6 @@ Read netCDF classic or 64-bit offset input file into a diskless netCDF
 file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
-
-@par -g \e grp1,...
-
-@par
-The output will include data values only for the specified groups.
-One or more groups must be specified by name in the comma-delimited
-list following this option. The list must be a single argument to the
-command. The named groups must be valid netCDF groups in the
-input-file. The default, without this option, is to include data values for all
-groups in the output.
-
-@par -G \e grp1,...
-
-@par
-The output will include only the specified groups.
-One or more groups must be specified by name in the comma-delimited
-list following this option. The list must be a single argument to the
-command. The named groups must be valid netCDF groups in the
-input-file. The default, without this option, is to include all groups in the
-output.
-
-@par -v \a var1,...  
-
-@par 
-The output will include data values for the specified variables, in
-addition to the declarations of all dimensions, variables, and
-attributes. One or more variables must be specified by name in the
-comma-delimited list following this option. The list must be a single
-argument to the command, hence cannot contain unescaped blanks or
-other white space characters. The named variables must be valid netCDF
-variables in the input-file. A variable within a group in a netCDF-4
-file may be specified with an absolute path name, such as
-`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
-`grp/var' specifies all matching variable names in the file.  The
-default, without this optiong, is to include data values for \e all variables
-in the output.
-
-@par -V \a var1,...  
-
-@par 
-The output will include the specified variables only but all dimensions and
-attributes. One or more variables must be specified by name in the
-comma-delimited list following this option. The list must be a single argument
-to the command, hence cannot contain unescaped blanks or other white space
-characters. The named variables must be valid netCDF variables in the
-input-file. A variable within a group in a netCDF-4 file may be specified with
-an absolute path name, such as `/GroupA/GroupA2/var'.  Use of a relative path
-name such as `var' or `grp/var' specifies all matching variable names in the
-file.  The default, without this option, is to include \e all variables in the
-output.
-
 
 @section  EXAMPLES
 
@@ -1830,7 +1830,7 @@ nccopy -w -c time/1000,lat/40,lon/40 slow.nc fast.nc
 \endcode
 @section see_also SEE ALSO
 
-netcdf(3), ncgen(1), netcdf(3)
+ncdump(1), ncgen(1), netcdf(3)
 
  */
 int

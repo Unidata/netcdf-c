@@ -46,6 +46,7 @@ extern int num_spaces;
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_types(NC_GRP_INFO_T *grp);
 static int nc4_rec_read_vars(NC_GRP_INFO_T *grp);
+static int close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort);
 
 #ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
@@ -355,10 +356,17 @@ exit: /*failure exit*/
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
+   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
+   close_netcdf4_file(nc4_info,1); // treat like abort
+#if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
-   /* Reclaim nc4_info */
+   if (nc4_info->root_grp) {
+     free(nc4_info->root_grp->name);
+     free(nc4_info->root_grp);
+   }
    free(nc4_info);
+#endif
    return retval;
 }
 
@@ -2381,8 +2389,15 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    num_plists--;
 #endif
    if (!nc4_info) return retval;
+   close_netcdf4_file(nc4_info,1); // treat like abort
+#if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   if (nc4_info->root_grp) {
+     free(nc4_info->root_grp->name);
+     free(nc4_info->root_grp);
+   }
    free(nc4_info);
+#endif
    return retval;
 }
 
@@ -3108,16 +3123,18 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	 retval = NC_EHDFERR; goto done;
 	}
       }
-/*      if (H5garbage_collect() < 0)
-	{retval = NC_EHDFERR; goto done;	 */
+#if 0
+      if (H5garbage_collect() < 0)
+	{retval = NC_EHDFERR; goto done;
+#endif
    }
 
+done:
    /* Free the nc4_info struct; above code should have reclaimed 
       everything else */
    if(h5 != NULL)
        free(h5);
 
-done:
    return retval;
 }
 

@@ -582,9 +582,9 @@ ocsetcurlproperties(OCstate* state)
 	}
     }
     if(state->curlflags.useragent == NULL) {
-        size_t len = strlen(DFALTUSERAGENT) + strlen(NC_VERSION) + 1;
+        size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
-    if(occopycat(agent,len,2,DFALTUSERAGENT,NC_VERSION))
+    if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
 	    state->curlflags.useragent = agent;
     }
     return;
