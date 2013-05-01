@@ -191,13 +191,20 @@ The netCDF-4 library can (since version 4.1) read HDF4 data files, if
 they were created with the SD (Scientific Data) API. 
 
 For this to work, you must build the HDF4 library with the
-configure option "--disable-netcdf" to prevent it from building an
-HDF4 version of the netCDF-2 library that conflicts with the
-netCDF-2 functions built into the Unidata netCDF library.
+configure option
+\verbatim
+  --disable-netcdf
+\endverbatim
+to prevent it from building an HDF4 version of the netCDF-2 library
+that conflicts with the netCDF-2 functions that are built into the Unidata
+netCDF library.
 
-Then, when building netCDF-4, use the "--enable-hdf4" option to
-configure. The location for the HDF4 header files and library must be
-set in the CPPFLAGS and LDFLAGS options.
+Then, when building netCDF-4, use the 
+\verbatim
+  --enable-hdf4
+\endverbatim
+option to configure. The location for the HDF4 header files and
+library must be set in the CPPFLAGS and LDFLAGS options.
 
 For HDF4 access to work, the library must be build with netCDF-4
 features.
