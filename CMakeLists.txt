@@ -382,12 +382,21 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
 
-IF(MSVC)
-  FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE REQUIRED)
-ELSE()
-  FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-ENDIF()
-
+  # Accomodate developers who have hdf5 libraries and
+  # headers on their system, but do not have a the hdf
+  # .cmake files.  If this is the case, they should
+  # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
+  IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
+	SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
+  	SET(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
+  ELSE()
+	IF(MSVC)
+  		FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE )
+	ELSE()
+  		FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+	ENDIF()
+  ENDIF()
+  
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
   
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
@@ -406,7 +415,6 @@ ENDIF()
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ENDIF ()
-
 
 INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 # Option to Build DAP Client
