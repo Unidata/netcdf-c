@@ -96,16 +96,15 @@ main()
 
     ncstatus = nc_inq_varid(ncid, "lon_rho", &varid);
 
-    printf("varid = %d\n", varid);
-    printf("ncid = %d\n", ncid);
-
     ndim=2;
 
 
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Read lon_rho data w/o strides\n");
     printf(" \n");
+}
 
     start[0] = 0;
     start[1] = 0;
@@ -147,15 +146,14 @@ if(verbose) {
 
     ncstatus = nc_inq_varid(ncid, "lat_rho", &varid);
 
-    printf("varid = %d\n", varid);
-    printf("ncid = %d\n", ncid);
-
     ndim=2;
 
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Read lat_rho data w/o strides\n");
     printf(" \n");
+}
 
     start[0] = 0;
     start[1] = 0;
@@ -195,9 +193,11 @@ if(verbose) {
 
     /* close and reopen the dataset, then the below read is correct */
 
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Close and reopen the dataset\n");
+}
 
     ncstatus = nc_close (ncid);
     ncstatus = nc_open(URL, NC_NOWRITE, &ncid);
@@ -207,10 +207,12 @@ if(verbose) {
 
     ncstatus = nc_inq_varid(ncid, "lon_rho", &varid);
 
+if(verbose) {
     printf(" \n");
     printf("********************\n");
     printf("Read a subset of lon_rho data with strides\n");
     printf(" \n");
+}
 
     start[0] = 250;
     start[1] = 704;

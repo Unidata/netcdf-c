@@ -125,22 +125,20 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 
       if(path == NULL || strlen(path)==0)
 	return NC_EINVAL;
+	
+      if (!(fp = fopen(path, "r")))
+	 return errno;
 
 #ifdef HAVE_SYS_STAT_H
       /* The file must be at least MAGIC_NUMBER_LEN in size,
          or otherwise the following fread will exhibit unexpected
          behavior. */
-      if((stat(path,&st)))
+      if(!(fstat(fileno(fp),&st) == 0))
 	return errno;
 
       if(st.st_size < MAGIC_NUMBER_LEN)
 	return NC_ENOTNC;
 #endif
-
-	
-      if (!(fp = fopen(path, "r")))
-	 return errno;
-
             
 
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
