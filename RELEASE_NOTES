@@ -6,7 +6,11 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION		COMMENTS
 -------		--------
-4.3		Released 2013-04-29
+4.3		Released 2013-05-03
+
+	       fsync: Changed default in autotools config
+	       file; fsync must now be explicitely enabled
+	       instead of explicitely disabled. [NCF-239]
 
 		Fixed netCDF-4 bug where odometer code for
 		libdap2 mishandled stride > 1. Bug reported
@@ -29,10 +33,6 @@ VERSION		COMMENTS
 		getting written when schema changed for files created
 		by parallel-netcdf.  Thanks to Wei-keng Liao for
 		developing and contributing the fix. [NCF-234]
-
-	 	fsync: Changed default in autotools config
-		file; fsync must now be explicitely enabled
-		instead of explicitely disabled. [NCF-239]
 
 		Fixed bug in handling old servers that do not do
 		proper Grid to Structure conversions. [NCF-232]
