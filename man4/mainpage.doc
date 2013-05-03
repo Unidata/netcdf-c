@@ -22,7 +22,7 @@ Hartnett, Dennis Heimbigner and Ward Fisher
 - \ref tutorial
 - \ref user_guide
 - \ref winbin 
-- <A HREF="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Documentation for 4.1.3 (in previous form)</A>
+- <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Documentation for 4.1.3 (in previous form)</a>
 \internal
 
 The dispatch interface within the netCDF library allows the netCDF API

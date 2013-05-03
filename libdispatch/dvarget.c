@@ -208,11 +208,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       return NC_get_vara(ncid, varid, mystart, myedges, value, memtype);
    }
 
-   /* Initial version uses and odometer to walk the variable
-      and read each value one at a time. This can later be optimized
-      to read larger chunks at a time.
-    */
-
    /* memptr indicates where to store the next value */
    memptr = value;
 

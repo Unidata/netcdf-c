@@ -186,8 +186,12 @@ fprintf(stderr,"\n");
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
         CDFnode* dim = (CDFnode*)nclistget(ncdimsall,i);
-	if(startp[i] > dim->dim.declsize
-	   || startp[i]+countp[i] > dim->dim.declsize) {
+	if(startp[i] < 0 || countp[i] < 0 || stridep[i] < 1) {
+	    ncstat = NC_EINVALCOORDS;
+	    goto fail;	    
+	}
+	if(startp[i] >= dim->dim.declsize
+	   || startp[i]+(stridep[i]*(countp[i]-1)) >= dim->dim.declsize) {
 	    ncstat = NC_EINVALCOORDS;
 	    goto fail;	    
 	}
@@ -694,194 +698,6 @@ findfield(CDFnode* node, CDFnode* field)
     return -1;
 }
 
-
-#ifdef EXTERN_UNUSED
-int
-nc3d_getvarmx(int ncid, int varid,
-	    const size_t *start,
-	    const size_t *edges,
-	    const ptrdiff_t* stride,
- 	    const ptrdiff_t* map,
-	    void* data,
-	    nc_type dsttype0)
-{
-    NCerror ncstat = NC_NOERR;
-    int i;
-    NC* drno;
-    NC* substrate;
-    NC3_INFO* substrate3;
-    NCDAPCOMMON* dapcomm;
-    NC_var* var;
-    CDFnode* cdfvar; /* cdf node mapping to var*/
-    NClist* varnodes;
-    nc_type dsttype;
-    size_t externsize;
-    size_t dimsizes[NC_MAX_VAR_DIMS];
-    Dapodometer* odom = NULL;
-    unsigned int ncrank;
-    NClist* ncdims = NULL;
-    size_t nelems;
-#ifdef NEWVARM
-    char* localcopy; /* of whole variable */
-#endif
-
-    ncstat = NC_check_id(ncid, (NC**)&drno);
-    if(ncstat != NC_NOERR) goto done;
-    dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
-
-    ncstat = NC_check_id(drno->substrate, &substrate);
-    if(ncstat != NC_NOERR) goto done;
-    substrate3 = (NC3_INFO*)drno->dispatchdata;
-
-    var = NC_lookupvar(substrate3,varid);
-    if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
-
-    /* Locate var node via varid */
-    varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
-    for(i=0;i<nclistlength(varnodes);i++) {
-	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
-	if(node->array.basevar == NULL
-           && node->nctype == NC_Atomic
-           && node->ncid == varid) {
-	    cdfvar = node;
-	    break;
-	}
-    }
-
-    ASSERT((cdfvar != NULL));
-    ASSERT((strcmp(cdfvar->ncfullname,var->name->cp)==0));
-
-    if(nclistlength(cdfvar->array.dimsetplus) == 0) {
-       /* The variable is a scalar; consequently, there is only one
-          thing to get and only one place to put it. */
-	/* recurse with additional parameters */
-        return THROW(nc3d_getvarx(ncid,varid,
-		 NULL,NULL,NULL,
-		 data,dsttype0));
-    }
-         
-    dsttype = (dsttype0);
-
-    /* Default to using the inquiry type for this var*/
-    if(dsttype == NC_NAT) dsttype = cdfvar->externaltype;
-
-    /* Validate any implied type conversion*/
-    if(cdfvar->etype != dsttype && dsttype == NC_CHAR) {
-	/* The only disallowed conversion is to/from char and non-byte
-           numeric types*/
-	switch (cdfvar->etype) {
-	case NC_STRING: case NC_URL:
-	case NC_CHAR: case NC_BYTE: case NC_UBYTE:
- 	    break;
-	default:
-	    return THROW(NC_ECHAR);
-	}
-    }
-
-    externsize = nctypesizeof(dsttype);
-
-    /* Accumulate the dimension sizes and the total # of elements */
-    ncdims = cdfvar->array.dimsetall;
-    ncrank = nclistlength(ncdims);
-
-    nelems = 1; /* also Compute the number of elements being retrieved */
-    for(i=0;i<ncrank;i++) {
-	CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
-	dimsizes[i] = dim->dim.declsize;
-	nelems *= edges[i];
-    }
-
-    /* Originally, this code repeatedly extracted single values
-       using get_var1. In an attempt to improve performance,
-       I have converted to reading the whole variable at once
-       and walking it locally.
-    */
-
-#ifdef NEWVARM
-    localcopy = (char*)malloc(nelems*externsize);
-
-    /* We need to use the varieties of get_vars in order to
-       properly do conversion to the external type
-    */
-
-    switch (dsttype) {
-
-    case NC_CHAR:
-	ncstat = nc_get_vars_text(ncid,varid,start, edges, stride,
-				  (char*)localcopy);
-	break;
-    case NC_BYTE:
-	ncstat = nc_get_vars_schar(ncid,varid,start, edges, stride,
-				   (signed char*)localcopy);
-	break;
-    case NC_SHORT:
-	ncstat = nc_get_vars_short(ncid,varid, start, edges, stride,
-			  	   (short*)localcopy);
-	break;
-    case NC_INT:
-	ncstat = nc_get_vars_int(ncid,varid,start, edges, stride,
-				 (int*)localcopy);
-	break;
-    case NC_FLOAT:
-	ncstat = nc_get_vars_float(ncid,varid,start, edges, stride,
-				   (float*)localcopy);
-	break;
-    case NC_DOUBLE:
-	ncstat = nc_get_vars_double(ncid,varid,	start, edges, stride,
-		 		    (double*)localcopy);
-	break;
-    default: break;
-    }
-
-
-    odom = dapodom_new(ncrank,start,edges,stride,NULL);
-
-    /* Walk the local copy */
-    for(i=0;i<nelems;i++) {
-	size_t voffset = dapodom_varmcount(odom,map,dimsizes);
-	void* dataoffset = (void*)(((char*)data) + (externsize*voffset));
-	char* localpos = (localcopy + externsize*i);
-	/* extract the indexset'th value from local copy */
-	memcpy(dataoffset,(void*)localpos,externsize);
-/*
-fprintf(stderr,"new: %lu -> %lu  %f\n",
-	(unsigned long)(i),
-        (unsigned long)voffset,
-	*(float*)localpos);
-*/
-	dapodom_next(odom);
-    }    
-#else
-    odom = dapodom_new(ncrank,start,edges,stride,NULL);
-    while(dapodom_more(odom)) {
-	size_t* indexset = odom->index;
-	size_t voffset = dapodom_varmcount(odom,map,dimsizes);
-	char internalmem[128];
-	char externalmem[128];
-	void* dataoffset = (void*)(((char*)data) + (externsize*voffset));
-
-	/* get the indexset'th value using variable's internal type */
-	ncstat = nc_get_var1(ncid,varid,indexset,(void*)&internalmem);
-        if(ncstat != NC_NOERR) goto done;
-	/* Convert to external type */
-	ncstat = dapconvert3(cdfvar->etype,dsttype,externalmem,internalmem);
-        if(ncstat != NC_NOERR) goto done;
-	memcpy(dataoffset,(void*)externalmem,externsize);
-/*
-fprintf(stderr,"old: %lu -> %lu  %f\n",
-	(unsigned long)dapodom_count(odom),
-        (unsigned long)voffset,
-	*(float*)externalmem);
-*/
-	dapodom_next(odom);
-    }    
-#endif
-
-done:
-    return ncstat;
-}
-#endif /*EXTERN_UNUSED*/
-
 static int
 conversionrequired(nc_type t1, nc_type t2)
 {
@@ -1127,7 +943,8 @@ extractstring(
         while(dapodom_more(odom)) {
 	    char* value = NULL;
 	    ocstat = oc_data_readn(conn,currentcontent,odom->index,1,sizeof(value),&value);
-	    if(ocstat != OC_NOERR) goto done;
+	    if(ocstat != OC_NOERR)
+		goto done;
 	    nclistpush(strings,(void*)value);	
             dapodom_next(odom);
 	}
@@ -1146,3 +963,192 @@ done:
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
+
+
+#ifdef EXTERN_UNUSED
+int
+nc3d_getvarmx(int ncid, int varid,
+	    const size_t *start,
+	    const size_t *edges,
+	    const ptrdiff_t* stride,
+ 	    const ptrdiff_t* map,
+	    void* data,
+	    nc_type dsttype0)
+{
+    NCerror ncstat = NC_NOERR;
+    int i;
+    NC* drno;
+    NC* substrate;
+    NC3_INFO* substrate3;
+    NCDAPCOMMON* dapcomm;
+    NC_var* var;
+    CDFnode* cdfvar; /* cdf node mapping to var*/
+    NClist* varnodes;
+    nc_type dsttype;
+    size_t externsize;
+    size_t dimsizes[NC_MAX_VAR_DIMS];
+    Dapodometer* odom = NULL;
+    unsigned int ncrank;
+    NClist* ncdims = NULL;
+    size_t nelems;
+#ifdef NEWVARM
+    char* localcopy; /* of whole variable */
+#endif
+
+    ncstat = NC_check_id(ncid, (NC**)&drno);
+    if(ncstat != NC_NOERR) goto done;
+    dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
+
+    ncstat = NC_check_id(drno->substrate, &substrate);
+    if(ncstat != NC_NOERR) goto done;
+    substrate3 = (NC3_INFO*)drno->dispatchdata;
+
+    var = NC_lookupvar(substrate3,varid);
+    if(var == NULL) {ncstat = NC_ENOTVAR; goto done;}
+
+    /* Locate var node via varid */
+    varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
+    for(i=0;i<nclistlength(varnodes);i++) {
+	CDFnode* node = (CDFnode*)nclistget(varnodes,i);
+	if(node->array.basevar == NULL
+           && node->nctype == NC_Atomic
+           && node->ncid == varid) {
+	    cdfvar = node;
+	    break;
+	}
+    }
+
+    ASSERT((cdfvar != NULL));
+    ASSERT((strcmp(cdfvar->ncfullname,var->name->cp)==0));
+
+    if(nclistlength(cdfvar->array.dimsetplus) == 0) {
+       /* The variable is a scalar; consequently, there is only one
+          thing to get and only one place to put it. */
+	/* recurse with additional parameters */
+        return THROW(nc3d_getvarx(ncid,varid,
+		 NULL,NULL,NULL,
+		 data,dsttype0));
+    }
+         
+    dsttype = (dsttype0);
+
+    /* Default to using the inquiry type for this var*/
+    if(dsttype == NC_NAT) dsttype = cdfvar->externaltype;
+
+    /* Validate any implied type conversion*/
+    if(cdfvar->etype != dsttype && dsttype == NC_CHAR) {
+	/* The only disallowed conversion is to/from char and non-byte
+           numeric types*/
+	switch (cdfvar->etype) {
+	case NC_STRING: case NC_URL:
+	case NC_CHAR: case NC_BYTE: case NC_UBYTE:
+ 	    break;
+	default:
+	    return THROW(NC_ECHAR);
+	}
+    }
+
+    externsize = nctypesizeof(dsttype);
+
+    /* Accumulate the dimension sizes and the total # of elements */
+    ncdims = cdfvar->array.dimsetall;
+    ncrank = nclistlength(ncdims);
+
+    nelems = 1; /* also Compute the number of elements being retrieved */
+    for(i=0;i<ncrank;i++) {
+	CDFnode* dim = (CDFnode*)nclistget(ncdims,i);
+	dimsizes[i] = dim->dim.declsize;
+	nelems *= edges[i];
+    }
+
+    /* Originally, this code repeatedly extracted single values
+       using get_var1. In an attempt to improve performance,
+       I have converted to reading the whole variable at once
+       and walking it locally.
+    */
+
+#ifdef NEWVARM
+    localcopy = (char*)malloc(nelems*externsize);
+
+    /* We need to use the varieties of get_vars in order to
+       properly do conversion to the external type
+    */
+
+    switch (dsttype) {
+
+    case NC_CHAR:
+	ncstat = nc_get_vars_text(ncid,varid,start, edges, stride,
+				  (char*)localcopy);
+	break;
+    case NC_BYTE:
+	ncstat = nc_get_vars_schar(ncid,varid,start, edges, stride,
+				   (signed char*)localcopy);
+	break;
+    case NC_SHORT:
+	ncstat = nc_get_vars_short(ncid,varid, start, edges, stride,
+			  	   (short*)localcopy);
+	break;
+    case NC_INT:
+	ncstat = nc_get_vars_int(ncid,varid,start, edges, stride,
+				 (int*)localcopy);
+	break;
+    case NC_FLOAT:
+	ncstat = nc_get_vars_float(ncid,varid,start, edges, stride,
+				   (float*)localcopy);
+	break;
+    case NC_DOUBLE:
+	ncstat = nc_get_vars_double(ncid,varid,	start, edges, stride,
+		 		    (double*)localcopy);
+	break;
+    default: break;
+    }
+
+
+    odom = dapodom_new(ncrank,start,edges,stride,NULL);
+
+    /* Walk the local copy */
+    for(i=0;i<nelems;i++) {
+	size_t voffset = dapodom_varmcount(odom,map,dimsizes);
+	void* dataoffset = (void*)(((char*)data) + (externsize*voffset));
+	char* localpos = (localcopy + externsize*i);
+	/* extract the indexset'th value from local copy */
+	memcpy(dataoffset,(void*)localpos,externsize);
+/*
+fprintf(stderr,"new: %lu -> %lu  %f\n",
+	(unsigned long)(i),
+        (unsigned long)voffset,
+	*(float*)localpos);
+*/
+	dapodom_next(odom);
+    }    
+#else
+    odom = dapodom_new(ncrank,start,edges,stride,NULL);
+    while(dapodom_more(odom)) {
+	size_t* indexset = odom->index;
+	size_t voffset = dapodom_varmcount(odom,map,dimsizes);
+	char internalmem[128];
+	char externalmem[128];
+	void* dataoffset = (void*)(((char*)data) + (externsize*voffset));
+
+	/* get the indexset'th value using variable's internal type */
+	ncstat = nc_get_var1(ncid,varid,indexset,(void*)&internalmem);
+        if(ncstat != NC_NOERR) goto done;
+	/* Convert to external type */
+	ncstat = dapconvert3(cdfvar->etype,dsttype,externalmem,internalmem);
+        if(ncstat != NC_NOERR) goto done;
+	memcpy(dataoffset,(void*)externalmem,externsize);
+/*
+fprintf(stderr,"old: %lu -> %lu  %f\n",
+	(unsigned long)dapodom_count(odom),
+        (unsigned long)voffset,
+	*(float*)externalmem);
+*/
+	dapodom_next(odom);
+    }    
+#endif
+
+done:
+    return ncstat;
+}
+#endif /*EXTERN_UNUSED*/
+
