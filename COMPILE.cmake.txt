@@ -43,6 +43,7 @@ developer@dummy-machine:/netcdf$ mkdir build_dir
 developer@dummy-machine:/netcdf$ cd build_dir
 developer@dummy-machine:/netcdf/build_dir$ cmake ..
 
+
 Compiling and Testing the NetCDF Libraries and Utilities
 ********************************************************
 
@@ -65,23 +66,8 @@ C:\netcdf\build_dir>cmake --build .
 Note: If you want to use a different generator than the default, you
 would specify it with the '-G' flag.
 
-Manually specifying which HDF5 Libraries to include.
-****************************************************
-
-Occasionally CMake may not find the appropriate dependencies
-for your build, and you may need to specify the libraries 
-manually. For the HDF5 libraries, this could be accomplished as
-follows:
-
-developer@dummy-machine:/netcdf/build_dir$ cmake .. \
-			-DHDF5_HL_LIB=/path/to/lib/libhdf5_hl.dylib \
-			-DHDF5_LIB=/path/to/lib/libhdf5.dylib \
-			-DHDF5_INCLUDE_DIR=/path/to/include/
-
-
-
 Common NetCDF/CMake Options
-***************************
+*********************
 
 - ENABLE_NETCDF_4 (On by Default)
 - ENABLE_DAP (On by Default)
