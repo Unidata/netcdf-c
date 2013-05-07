@@ -17,6 +17,7 @@ Foundation.
 Hartnett, Dennis Heimbigner and Ward Fisher
 
 <p>Learn more about netCDF:
+- \ref release_notes
 - \ref getting
 - \ref building
 - \ref tutorial
