@@ -655,7 +655,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @CMAKE_SOURCE_DIR@/man4/Building-with-CMake.md \
+INPUT                  = @CMAKE_SOURCE_DIR@/RELEASE_NOTES.md \
+			 @CMAKE_SOURCE_DIR@/man4/Building-with-CMake.md \
 			 @CMAKE_SOURCE_DIR@/man4/windows-binaries.md \
 	                 @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
                          @CMAKE_SOURCE_DIR@/man4/tutorial.doc \
