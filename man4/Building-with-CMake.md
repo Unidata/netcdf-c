@@ -1,12 +1,23 @@
 \page netCDF-CMake Build Instructions for netCDF-C using CMake
 
-
 # Overview
 
 Starting with netCDF-C 4.3, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
 
 In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
 
+# Errata
+
+## netCDF 4.3.0
+
+* When netCDF 4.3.0 was originally released, the file `nc-config.in.cmake` was accidentally excluded.  This file can be downloaded **[here]**. The file should be placed in the root of the netcdf source directory.
+
+[here]: https://www.unidata.ucar.edu/software/netcdf/win_netcdf/nc-config.in.cmake "nc-config.in.cmake"
+
+* When building shared libraries via CMake on Unix/Linux, the resulting files have the soversion 4.3.0.  This is a mistake, the soversion should be 7.2.0.  This can be rectified post-install by creating a symbolic link from libnetcdf.4.3.0.so to libnetcdf.7.2.0.so.  This would be accomplished thusly:
+		
+		> sudo ln -s /usr/local/lib/libnetcdf.4.3.0.so /usr/local/lib/libnetcdf.7.2.0.so
+		
 # Requirements
 The following packages are required to build netCDF-C using CMake.
 
@@ -66,9 +77,13 @@ Building can also be executed indirectly via cmake:
 Testing can be executed several different ways:
 
 > \> make test
+
 or
+
 > \> ctest
+
 or
+
 > \> cmake --build [Build Directory] --target test
 
 ## Installation
@@ -76,5 +91,38 @@ or
 Once netCDF has been built and tested, it may be installed using the following commands:
 
 > \> make install
+
 or
+
 > \> cmake --build [Build Directory] --target install
+
+# CMake Frequently Asked Questions (FAQ)
+
+* **How do I specify how to build a shared or static library?**
+
+		-DBUILD_SHARED_LIBS=[ON/OFF]
+		
+* **Can I build both shared and static libraries at the same time?**
+
+		Not at this time; it is required to instead build first one version, and then the other, if you need both.
+		
+
+* **How can I specify linking against a particular library?**
+
+		It depends on the library.  To specify a custom ZLib, for example, you would do the following:
+			-DZLIB_LIBRARY=/path/to/my/zlib.lib
+			
+		HDF5 is more complex, since it requires both the hdf5 and hdf5_hl libraries. You would specify custom HDF5 libraries as follows:
+		
+			* -DHDF5_LIB=/path/to/hdf5.lib
+			* -DHDF5_HL_LIB=/path/to/hdf5_hl.lib
+			* -DHDF5_INCLUDE_DIR=/path/to/hdf5/include
+
+		Alternatively, you may specify 
+			* -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" -DHDF5_INCLUDE_DIRS=/path/to/hdf5/include/
+			
+
+* **How can I see the options available to CMake?**
+
+		> cmake [path to source tree] -L	- This will show the basic options.
+		> cmake [path to source tree] -LA	- This will show the basic and advanced options.
