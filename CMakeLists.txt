@@ -5,12 +5,15 @@ cmake_minimum_required(VERSION 2.8.8)
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
+#Project Version
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 0)
 SET(netCDF_VERSION_NOTE "")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+#Library .so version.
+SET(netCDF_SO_VERSION 7.0.2)
 
 # Set some default C Flags if we are using GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
