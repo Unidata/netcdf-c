@@ -5,12 +5,15 @@ cmake_minimum_required(VERSION 2.8.8)
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
+#Project Version
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 0)
 SET(netCDF_VERSION_NOTE "")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+#Library .so version.
+SET(netCDF_SO_VERSION 7.2.0)
 
 # Set some default C Flags if we are using GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -200,7 +203,7 @@ MACRO(print_conf_summary)
 	IF(CMAKE_PREFIX_PATH)
 		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
 	ENDIF()
-	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF}, "\t" ${PNETCDF_INCLUDE_DIR})
+	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 	MESSAGE("")
@@ -231,7 +234,6 @@ IF(NOT MSVC)
 	# add the automatically determined parts of the RPATH
 	# which point to directories outside the build tree to the install RPATH
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
 
 	# the RPATH to be used when installing, but only if it's not a system directory
 	LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
@@ -713,9 +715,6 @@ SET (netCDF_LIB_CORENAME	"netcdf")
 # Set the true names of all the libraries, if customized by external project
 #####
 # Recurse into other subdirectories.
-#add_subdirectory(h5_test)
-#add_subdirectory(man4)
-#add_subdirectory(man4/images)
 add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
@@ -734,7 +733,6 @@ IF (BUILD_CDMREMOTE)
 ENDIF()
 
 add_subdirectory(liblib)
-#MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.
