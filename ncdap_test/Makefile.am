@@ -36,14 +36,17 @@ test_vara_SOURCES = test_vara.c
 test_partvar_SOURCES = test_partvar.c
 test_varm3_SOURCES = test_varm3.c
 t_dap3a_SOURCES = t_dap3a.c
+test_nstride_cached_SOURCE = test_nstride_cached.c
 
 TESTS += t_dap3a test_cvt3 test_vara test_partvar
 TESTS += test_varm3
 TESTS += t_dap3a
+TESTS += test_nstride_cached
 
 check_PROGRAMS += t_dap3a test_cvt3 test_vara test_partvar
 check_PROGRAMS += test_varm3
 check_PROGRAMS += t_dap3a
+check_PROGRAMS += test_nstride_cached
 
 endif #ENABLE_DAP_REMOTE_TESTS
 
@@ -80,7 +83,7 @@ EXTRA_DIST = tst_ncdap3.sh tst_ncdap4.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
 	     t_dap.c CMakeLists.txt
 
-CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a
+CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached
 
 if USE_NETCDF4
 CLEANFILES += test_cvt4 t_dap4

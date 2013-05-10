@@ -414,7 +414,7 @@ ocreadfile(FILE* file, int datastart, char** memp, size_t* lenp)
 {
     char* mem;
     size_t len;
-    size_t pos;
+    ssize_t pos;
     size_t red;
     struct stat stats;
 

@@ -40,7 +40,7 @@ CC=gcc
 fi
 
 # Default cases
-if test -f "/share/ed/local" ; then
+if test -e "/share/ed/local/${HOST}" ; then
 stddir="/share/ed/local/${HOST}"
 else
 stddir="/usr/local"

@@ -2,7 +2,7 @@
 Documentation for getting and building netCDF
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.2.1.1.  Other libraries that depend on the netCDF C
+utilities, version 4.3.0.  Other libraries that depend on the netCDF C
 library, such as the Fortran and C++ libraries, are available as
 separate distributions that can be built and installed after the C
 library is successfully installed.  The netCDF-Java library is also a
@@ -47,6 +47,7 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
+- <a class="el" href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-fortran-install.html" >Building netCDF-Fortran Libraries</a>
 - \ref configure_options
 
 \section sub CMake and Windows support
@@ -188,13 +189,45 @@ done!
 \page build_hdf4 Building with HDF4 Support
 
 The netCDF-4 library can (since version 4.1) read HDF4 data files, if
-they were created with the SD (Scientific Data) API. To enable this
-feature, use the --enable-hdf4 option. The location for the HDF4
-header files and library must be set in the CPPFLAGS and LDFLAGS
-options.
+they were created with the SD (Scientific Data) API. 
+
+For this to work, you must build the HDF4 library with the
+configure option
+\verbatim
+  --disable-netcdf
+\endverbatim
+to prevent it from building an HDF4 version of the netCDF-2 library
+that conflicts with the netCDF-2 functions that are built into the Unidata
+netCDF library.
+
+Then, when building netCDF-4, use the 
+\verbatim
+  --enable-hdf4
+\endverbatim
+option to configure. The location for the HDF4 header files and
+library must be set in the CPPFLAGS and LDFLAGS options.
 
 For HDF4 access to work, the library must be build with netCDF-4
 features.
+
+Here's an example, assuming the HDF5 library has been built and
+installed in H5DIR and you will build and install the HDF4 library in
+H4DIR (which could be the same as H5DIR):
+
+\verbatim
+# Build and install HDF4
+cd ${HDF4_SOURCE_DIRECTORY}
+./configure --enable-shared --disable-netcdf --disable-fortran --prefix=${H4DIR}
+make
+make install
+# Build and install netCDF with HDF4 access enabled
+cd ${NETCDF_SOURCE_DIRECTORY}
+CPPFLAGS="-I${H5DIR}/include -I${H4DIR}/include" \
+LDFLAGS="-L${H5DIR}/lib -L${H4DIR}/lib" \
+./configure --enable-hdf4 --enable-hdf4-file-tests
+make check
+make install
+\endverbatim
 
 \page build_parallel Building with Parallel I/O Support
 

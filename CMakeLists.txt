@@ -4,12 +4,16 @@ cmake_minimum_required(VERSION 2.8.8)
  
 #Project Name
 project(netCDF C)
+set(PACKAGE "netCDF" CACHE STRING "")
+#Project Version
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 0)
-SET(netCDF_VERSION_NOTE "-rc3")
+SET(netCDF_VERSION_NOTE "")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+#Library .so version.
+SET(netCDF_SO_VERSION 7.2.0)
 
 # Set some default C Flags if we are using GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -70,11 +74,18 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
-
 FIND_PACKAGE(PkgConfig QUIET)
+
+
+## Enable 'dist and distcheck'.
+## File taken from http://ensc.de/cmake/FindMakeDist.cmake
+FIND_PACKAGE(MakeDist)
+ADD_MAKEDIST()
+ENABLE_MAKEDIST(cmake_config.h.in CMakeLists.txt cmake)
+
+## End 'enable dist and distcheck'
 # Only necessary for Windows
 IF(MSVC)
-	INCLUDE (${CMAKE_SOURCE_DIR}/cmake/modules/windows/FindHDF5.cmake)
 	# Supress some warnings on Windows
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
@@ -192,7 +203,7 @@ MACRO(print_conf_summary)
 	IF(CMAKE_PREFIX_PATH)
 		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
 	ENDIF()
-	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF}, "\t" ${PNETCDF_INCLUDE_DIR})
+	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 	MESSAGE("")
@@ -223,7 +234,6 @@ IF(NOT MSVC)
 	# add the automatically determined parts of the RPATH
 	# which point to directories outside the build tree to the install RPATH
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
 
 	# the RPATH to be used when installing, but only if it's not a system directory
 	LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
@@ -374,40 +384,27 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
 
-  #FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-  FIND_LIBRARY(HDF5_LIB NAMES hdf5 libhdf5 hdf5dll)
-  FIND_LIBRARY(HDF5_HL_LIB NAMES hdf5_hl libhdf5_hl hdf5_hldll)
-
-  IF(NOT HDF5_LIB) 
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 libraries not found.")
-  ELSEIF(NOT HDF5_HL_LIB)
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 high-level libraries not found.")
+  # Accomodate developers who have hdf5 libraries and
+  # headers on their system, but do not have a the hdf
+  # .cmake files.  If this is the case, they should
+  # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
+  IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
+	SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
+  	SET(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
+  ELSE()
+	IF(MSVC)
+  		FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE )
+	ELSE()
+  		FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+	ENDIF()
   ENDIF()
- 
-  SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})  
-  FIND_PATH(HDF5_INCLUDE_DIR H5public.h)
-
-  IF(NOT HDF5_INCLUDE_DIR) 
-	MESSAGE(FATAL_ERROR "netCDF-4 support specified, but hdf5 include directories not found.")
-  ENDIF()
-
-  MESSAGE(STATUS "Found HDF5: ${HDF5_LIB}")
-  MESSAGE(STATUS "Found HDF5_HL: ${HDF5_HL_LIB}")
-  MESSAGE(STATUS "Found HDF5 Includes: ${HDF5_INCLUDE_DIR}")
-
-
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+  
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
   
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-	 #FIND_PACKAGE(SZIP)
-	FIND_LIBRARY(SZIP_LIBRARY NAMES szip sz libszip)
-  	IF(NOT SZIP_LIBRARY)
-		MESSAGE(FATAL_ERROR "HDF5 compiled with szip, but cannot find local szip libraries.")
-  	ELSE()
-		MESSAGE(STATUS "Found SZip: ${SZIP_LIBRARY}")
-  	ENDIF()
-	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
+	FIND_PACKAGE(SZIP NO_MODULE)
+	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 	
   SET(H5_USE_16_API 1)   
@@ -420,7 +417,6 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ENDIF ()
-
 
 INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 # Option to Build DAP Client
@@ -609,6 +605,7 @@ IF(NOT HAVE_UNISTD_H)
 ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"	 HAVE_ALLOCA_H)
+CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("ctype.h"	 HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("dirent.h"	 HAVE_DIRENT_H)
 CHECK_INCLUDE_FILE("dlfcn.h"	 HAVE_DLFCN_H)
@@ -635,6 +632,7 @@ CHECK_INCLUDE_FILE("fcntl.h"	HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
 CHECK_INCLUDE_FILE("endian.h"	HAVE_ENDIAN_H)
+CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 
 # Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
@@ -646,9 +644,12 @@ CHECK_TYPE_SIZE("off_t"		 SIZEOF_OFF_T)
 CHECK_TYPE_SIZE("off64_t"        SIZEOF_OFF64_T)
 CHECK_TYPE_SIZE("short"		 SIZEOF_SHORT)
 CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
+CHECK_TYPE_SIZE("ssize_t"	 SIZEOF_SSIZE_T)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"	 SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"	 SIZEOF_UINT64_T)
+
+SET(HAVE_SSIZE_T SIZEOF_SSIZE_T CACHE STRING "")
 
 # Check for various functions. 
 CHECK_FUNCTION_EXISTS(fsync	HAVE_FSYNC)
@@ -675,6 +676,8 @@ CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
+
+
 #####
 # End system inspection checks.
 #####
@@ -690,9 +693,9 @@ IF(NOT WIN32)
 ENDIF()
 
 # Create config.h file
-configure_file("${netCDF_SOURCE_DIR}/cmake_config.h.in"
+configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-configure_file("${netCDF_SOURCE_DIR}/cmake_nc-config.in"
+configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
   "${netCDF_SOURCE_DIR}/nc-config")
 FILE(COPY "${netCDF_SOURCE_DIR}/nc-config"
   DESTINATION "${netCDF_BINARY_DIR}"
@@ -714,9 +717,6 @@ SET (netCDF_LIB_CORENAME	"netcdf")
 # Set the true names of all the libraries, if customized by external project
 #####
 # Recurse into other subdirectories.
-#add_subdirectory(h5_test)
-#add_subdirectory(man4)
-#add_subdirectory(man4/images)
 add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
@@ -739,7 +739,6 @@ IF (BUILD_CDMREMOTE)
 ENDIF()
 
 add_subdirectory(liblib)
-#MESSAGE(STATUS "Linking with: ${ALL_TLL_LIBS}") 
 
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.

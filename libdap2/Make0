@@ -258,7 +258,7 @@ fix::
 	done
 
 ##################################################
-T=test_vara
+T=test_nstride2
 
 v::
 	cc -g -c ${T}.c ${INCL}

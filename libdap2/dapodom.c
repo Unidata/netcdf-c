@@ -12,25 +12,27 @@
 
 /* Build an odometer covering slices startslice upto, but not including, stopslice */
 Dapodometer*
-dapodom_fromsegment(DCEsegment* segment, size_t startslice, size_t stopslice)
+dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
 {
     int i;
     Dapodometer* odom;
 
-    assert(stopslice > startslice);
-    assert((stopslice - startslice) <= NC_MAX_VAR_DIMS);
+    assert(stopindex > startindex);
+    assert((stopindex - startindex) <= NC_MAX_VAR_DIMS);
     odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
-    odom->rank = (stopslice - startslice);
+    odom->rank = (stopindex - startindex);
     for(i=0;i<odom->rank;i++) {
-	odom->start[i] = segment->slices[i+startslice].first;
-	odom->count[i] = segment->slices[i+startslice].count;
-	odom->stride[i] = segment->slices[i+startslice].stride;
-	odom->declsize[i] = segment->slices[i+startslice].declsize;
-	odom->stop[i] = odom->start[i] + odom->count[i];
+	odom->start[i] = segment->slices[i+startindex].first;
+	odom->stride[i] = segment->slices[i+startindex].stride;
+	odom->stop[i] = (segment->slices[i+startindex].last + 1);
 	/* should the above line be instead?
  	odom->stop[i] = odom->start[i] + (odom->count[i]*odom->stride[i]);
 	*/
+#if 0
+	odom->count[i] = segment->slices[i+startindex].count;
+#endif
+	odom->declsize[i] = segment->slices[i+startindex].declsize;
 	odom->index[i] = odom->start[i];
     }    
     return odom;
@@ -47,13 +49,17 @@ dapodom_new(size_t rank,
     odom->rank = rank;
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
-	odom->start[i] = (start != NULL ? start[i] : 0);
-	odom->count[i] = (count != NULL ? count[i]
-                                        : (size != NULL ? size[i] : 1));
-	odom->stride[i] = (size_t)(stride != NULL ? stride[i] : 1);
-	odom->declsize[i] = (size != NULL ? size[i]
-				      : (odom->start[i]+odom->count[i]));
-	odom->stop[i] = odom->start[i] + odom->count[i];
+	size_t istart,icount,istop,ideclsize;
+	ptrdiff_t istride;
+	istart = (start != NULL ? start[i] : 0);
+	icount = (count != NULL ? count[i] : (size != NULL ? size[i] : 1));
+	istride = (size_t)(stride != NULL ? stride[i] : 1);
+	istop = istart + icount*istride;
+	ideclsize = (size != NULL ? size[i]: (istop - istart));
+	odom->start[i] = istart;
+	odom->stop[i] = istop;
+	odom->stride[i] = istride;
+	odom->declsize[i] = ideclsize;
 	odom->index[i] = odom->start[i];
     }    
     return odom;

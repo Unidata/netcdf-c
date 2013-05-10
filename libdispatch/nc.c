@@ -62,7 +62,11 @@ new_NC(NC_Dispatch* dispatcher, const char* path, NC** ncpp)
         free_NC(ncp);
 	return NC_ENOMEM;
     }
-    if(ncpp) *ncpp = ncp;
+    if(ncpp) {
+      *ncpp = ncp;
+    } else {
+      free_NC(ncp);
+    }
     return NC_NOERR;
 }
 

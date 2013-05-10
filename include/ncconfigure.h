@@ -22,6 +22,17 @@ defined.
 extern char* strdup(const char*);
 #endif
 
+//#if HAVE_BASETSD_H
+//#ifndef ssize_t
+//#ifndef SSIZE_T
+//#include <BaseTsd.h>
+//#endif
+//#define ssize_t SSIZE_T
+//#endif
+//#endif
+
+
+
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP

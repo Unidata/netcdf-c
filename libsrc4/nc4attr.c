@@ -33,7 +33,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 {
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
-   NC_ATT_INFO_T *att;
+   NC_ATT_INFO_T *att = NULL;
    int my_attnum = -1;
 
    int need_to_convert = 0;

@@ -10,9 +10,9 @@ ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
 EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c \
-	lib_flags.am cmake CMakeLists.txt COMPILE_CMake.txt cmake_config.h.in \
-	cmake_nc-config.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in \
-	netcdf-config.cmake.in FixBundle.cmake.in 
+	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake \
+	config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in \
+	netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md
 
 # Doxygen doesn't build nicely in vpath builds.
 # Don't do this; it wipes out any exported values

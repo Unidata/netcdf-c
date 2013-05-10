@@ -20,20 +20,20 @@
 	#define lseek _lseek
 #endif
   
-  #define strdup _strdup
-  #define fdopen _fdopen
-  #define write _write
-  #define snprintf _snprintf
-  #define strtoll _strtoi64
-#endif
-
-#if defined(_WIN32)
+#ifdef _WIN32
 	#ifndef strcasecmp
   		#define strcasecmp _stricmp
 		#define snprintf _snprintf
   	#endif
 #endif
 
+
+  #define strdup _strdup
+  #define fdopen _fdopen
+  #define write _write
+  #define snprintf _snprintf
+  #define strtoll _strtoi64
+#endif
 
 
 /* Cache Size, other variables for HDF5 */
@@ -52,7 +52,8 @@
 #endif
 
 #define PACKAGE_VERSION "${VERSION}"
-#define VERSION "${VERSION}"
+#cmakedefine VERSION "${VERSION}"
+#cmakedefine NC_VERSION "${VERSION}"
 /* For HDF5 use. */
 #cmakedefine H5_USE_16_API 1
 
@@ -89,10 +90,10 @@
 #cmakedefine LARGE_FILE_TESTS 1
 #cmakedefine HAVE_CURLOPT_KEYPASSWD
 #cmakedefine HAVE_DECL_ISFINITE 1
-//#cmakedefine HAVE_DECL_ISNAN 1
 #cmakedefine HAVE_DECL_ISNAN
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
+#cmakedefine HAVE_ALLOCA
 
 #cmakedefine HAVE_LIBPNETCDF
 
@@ -109,7 +110,7 @@
 #cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
 #cmakedefine YY_NO_UNISTD_H @YY_NO_UNISTD_H@
 
-/* Define to 1 if you have the <dlfcn.CC=mpicc CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include -I/machine/local_szlib/include" LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib -L/machine/local_szlib/lib" LDLIBS='-lmpich -lmpl -lsz' ./configure --enable-pnetcdf --enable-parallel-tests --disable-sharedh> header file. */
+/* Define to 1 if you have the <dlfcn.h> header file. */
 #cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
 
 /* Define to 1 if you have the <errno.h> header file. */
@@ -137,7 +138,7 @@
 #cmakedefine HAVE_LOCAL_H @HAVE_LOCAL_H@
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#cmakedefine HAVE_STDINT_H @HAVE_STDINCC=mpicc CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include -I/machine/local_szlib/include" LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib -L/machine/local_szlib/lib" LDLIBS='-lmpich -lmpl -lsz' ./configure --enable-pnetcdf --enable-parallel-tests --disable-sharedT_H@
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
 
 /* Define to 1 if you have the <stdio.h> header file. */
 #cmakedefine HAVE_STDIO_H @HAVE_STDIO_H@
@@ -181,7 +182,12 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H @HAVE_FCNTL_H@
 
-#if !defined(__APPLE__)
+/* Define to 1 if you have the <malloc.h> header file. */
+#cmakedefine HAVE_MALLOC_H @HAVE_MALLOC_H@
+
+/* Define to 1 if you have the BaseTsd.h header file. */
+#cmakedefine HAVE_BASETSD_H @HAVE_BASETSD_H@
+
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */
@@ -199,22 +205,13 @@
 #cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@
 /* The size of `size_t` as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
+/* The size of `ssize_t` as computed by sizeof. */
+#cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@ 
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
-#else
-#define SIZEOF_SHORT	2
-#define	SIZEOF_INT	4
-#if defined(__LP64__) && __LP64__
-#define SIZEOF_LONG	8
-#define SIZEOF_SIZE_T	8
-#else
-#define SIZEOF_LONG	4
-#define SIZEOF_SIZE_T	4
-#endif
-#define SIZEOF_FLOAT	4
-#define SIZEOF_DOUBLE	8
-#define SIZEOF_OFF_T	8
-#endif
+
+
+
 
 #cmakedefine TEMP_LARGE "@TEMP_LARGE@"
 

@@ -492,7 +492,7 @@ processspecial1(Symbol* vsym)
     unsigned long flags = vsym->var.special.flags;
     int i,tag;
     Constant con;
-    Datalist* dlist;
+    Datalist* dlist = NULL;
     if(flags == 0) return; /* no specials defined */
     con = nullconstant;
     if((tag=(flags & _CHUNKSIZES_FLAG))) {

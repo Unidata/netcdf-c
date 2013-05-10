@@ -59,9 +59,9 @@ main(int argc, char **argv)
 	filesize = atol(argv[1]);
     } else {
 	if(sizeof(size_t) == 4)
-	    filesize = 1000000000;
+	    filesize = 1000000000L;
 	else if(sizeof(size_t) == 8)
-	    filesize = 3000000000;
+	    filesize = 3000000000L;
 	else {
 	    fprintf(stderr,"Cannot compute filesize\n");
 	    exit(1);

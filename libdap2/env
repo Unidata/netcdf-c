@@ -1,9 +1,8 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-TOP="/home/dmh/mach/trunk"
-TOP="/home/dmh/mach/pnetcdf"
-#TOP="/cygdrive/f/svn/trunk"
+#TOP="/home/dmh/mach/trunk"
+TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
@@ -11,7 +10,7 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="file://${TOP}/ncdap_test/testdata3/synth9"
+F=
 
 PARMS="[log]"
 #PARMS="${PARMS}[netcdf3]"
@@ -107,6 +106,8 @@ CON="U50M_EOSGRID_Data_Fields[0:23][282:282][441:441]"
 #CON="OneD.amp,TwoD.amp,ThreeD.amp"
 F="http://goldsmr2.sci.gsfc.nasa.gov/opendap/hyrax/MERRA/MAT1NXSLV.5.2.0/1990/01/MERRA100.prod.assim.tavg1_2d_slv_Nx.19900101.hdf"
 CON="U50M_EOSGRID_Data_Fields[0:23][282:282][441:441],XDim_EOSGRID"
-F="http://motherlode.ucar.edu:8081/dts/ingrid"
-CON="v3H[0:0][0:43]"
+
+F="http://opendap.co-ops.nos.noaa.gov/dods/IOOS/SixMin_Verified_Water_Level"
+CON="&WATERLEVEL_6MIN_VFD_PX._STATION_ID=%228779770%22&WATERLEVEL_6MIN_VFD_PX._DATUM=%22MSL%22&WATERLEVEL_6MIN_VFD_PX._BEGIN_DATE=%2220061001%22&WATERLEVEL_6MIN_VFD_PX._END_DATE=%2220061030%22"
+
 fi

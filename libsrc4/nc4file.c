@@ -46,6 +46,7 @@ extern int num_spaces;
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_types(NC_GRP_INFO_T *grp);
 static int nc4_rec_read_vars(NC_GRP_INFO_T *grp);
+static int close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort);
 
 #ifdef IGNORE
 /* This extern points to the pointer that holds the list of open
@@ -351,9 +352,21 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 
    return NC_NOERR;
 
-  exit:
+exit: /*failure exit*/
+#ifdef EXTRA_TESTS
+   num_plists--;
+#endif
+   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
+   close_netcdf4_file(nc4_info,1); // treat like abort
+#if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   if (nc4_info->root_grp) {
+     free(nc4_info->root_grp->name);
+     free(nc4_info->root_grp);
+   }
+   free(nc4_info);
+#endif
    return retval;
 }
 
@@ -454,7 +467,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
  * dimension without a variable - that is, a coordinate dimension
  * which does not have any coordinate data. */
 static int
-read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name, 
+read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name, 
            hsize_t scale_size, hsize_t max_scale_size, 
            int *dim_without_var)
 {
@@ -531,7 +544,6 @@ static int
 read_coord_dimids(NC_VAR_INFO_T *var)
 {
    hid_t coord_att_typeid = -1, coord_attid = -1, spaceid = -1;
-   hssize_t coord_array_size;
    int ret = 0;
 
    /* There is a hidden attribute telling us the ids of the
@@ -547,11 +559,8 @@ read_coord_dimids(NC_VAR_INFO_T *var)
 #ifdef EXTRA_TESTS
    num_spaces++;
 #endif
-   if ((coord_array_size = H5Sget_simple_extent_npoints(spaceid)) < 0) ret++;
+   if (H5Sget_simple_extent_npoints(spaceid) < 0) ret++;
    
-   /* Malloc space to the array of pointers to dims. */
-   
-
    /* Set my HDF5 IDs free! */
    if (spaceid >= 0 && H5Sclose(spaceid) < 0) ret++;
 #ifdef EXTRA_TESTS
@@ -850,7 +859,7 @@ static int
 read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
    hid_t spaceid = 0, file_typeid = 0;
-   hsize_t dims[1]; /* netcdf attributes always 1-D. */
+   hsize_t dims[1] = {0}; /* netcdf attributes always 1-D. */
    int retval = NC_NOERR;
    size_t type_size;
    int att_ndims;
@@ -1278,10 +1287,10 @@ read_type(NC_GRP_INFO_T *grp, char *type_name)
  * file. This function reads in all the metadata about the var,
  * including the attributes. */
 static int
-read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name, 
+read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name, 
          size_t ndims, int is_scale, int num_scales, hid_t access_pid)
 {
-   NC_VAR_INFO_T *var;
+   NC_VAR_INFO_T *var = NULL;
    int natts, a, d;
 
    NC_ATT_INFO_T *att;
@@ -1308,7 +1317,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(&grp->var, &var)))
       return retval;
-            
+   
+   if(!var)
+     return NC_ENOMEM;
+
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
    var->varid = grp->nvars++;
@@ -1545,7 +1557,16 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
 	    /* Read the rest of the info about the att,
 	     * including its values. */
 	    if ((retval = read_hdf5_att(grp, attid, att)))
-	       BAIL(retval);
+            {
+               if (NC_EBADTYPID == retval)
+               {
+                   if ((retval = nc4_att_list_del(&var->att, att)))
+                       BAIL(retval);
+                   continue;
+               }
+               else
+                   BAIL(retval);
+            }
 	    
 	    att->created++;
 	 } /* endif not HDF5 att */
@@ -1558,6 +1579,11 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, char *obj_name,
       BAIL(retval);
 
   exit:
+   if (var && retval)
+   {
+      if(nc4_var_list_del(&grp->var, var))
+         BAIL2(NC_EHDFERR);
+   }
    if (propid > 0 && H5Pclose(propid) < 0)
       BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
@@ -1614,7 +1640,16 @@ read_grp_atts(NC_GRP_INFO_T *grp)
          att->name[max_len] = 0;
          att->attnum = grp->natts++;
          if ((retval = read_hdf5_att(grp, attid, att)))
-            BAIL(retval);
+         {
+            if (NC_EBADTYPID == retval)
+            {
+               if ((retval = nc4_att_list_del(&grp->att, att)))
+                  BAIL(retval);
+               continue;
+            }
+            else
+               BAIL(retval);
+         }
          att->created++;
          if ((retval = nc4_find_type(grp->nc4_info, att->xtype, &type)))
             BAIL(retval);
@@ -1632,7 +1667,7 @@ read_grp_atts(NC_GRP_INFO_T *grp)
 /* This function is called when nc4_rec_read_vars encounters an HDF5
  * dataset when reading a file. */
 static int
-read_dataset(NC_GRP_INFO_T *grp, char *obj_name)
+read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
 {
    hid_t datasetid = 0;   
    hid_t spaceid = 0, access_pid = 0;
@@ -1870,7 +1905,8 @@ nc4_rec_read_types(NC_GRP_INFO_T *grp)
 
     pid = H5Gget_create_plist(grp->hdf_grpid);
     H5Pget_link_creation_order(pid, &crt_order_flags); 
-    H5Pclose(pid);
+    if(H5Pclose(pid) < 0)
+	return NC_EHDFERR;
     
     crt_order_flags = crt_order_flags & H5_INDEX_CRT_ORDER;
 	
@@ -1936,12 +1972,20 @@ nc4_rec_read_vars_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 	    return H5_ITER_ERROR;
 	break;
     case H5I_DATASET:
-	LOG((3, "found dataset %s", oname));
+       {
+           int retval = NC_NOERR;
 
-	/* Learn all about this dataset, which may be a dimscale
-	 * (i.e. dimension metadata), or real data. */
-	if (read_dataset(grp, oname))
-	    return H5_ITER_ERROR;
+ 	   LOG((3, "found dataset %s", oname));
+
+            /* Learn all about this dataset, which may be a dimscale
+             * (i.e. dimension metadata), or real data. */
+            if ((retval = read_dataset(grp, oname))) {
+                if(NC_EBADTYPID == retval)
+                    return H5_ITER_CONT;
+                else
+                    return H5_ITER_ERROR;
+            }
+        }
 	break;
     case H5I_DATATYPE:
 	LOG((3, "already handled type %s", oname));
@@ -1967,7 +2011,8 @@ nc4_rec_read_vars(NC_GRP_INFO_T *grp)
 
     pid = H5Gget_create_plist(grp->hdf_grpid);
     H5Pget_link_creation_order(pid, &crt_order_flags); 
-    H5Pclose(pid);
+    if(H5Pclose(pid) < 0)
+	return NC_EHDFERR;
     
     crt_order_flags = crt_order_flags & H5_INDEX_CRT_ORDER;
 
@@ -2344,8 +2389,15 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    num_plists--;
 #endif
    if (!nc4_info) return retval;
+   close_netcdf4_file(nc4_info,1); // treat like abort
+#if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
+   if (nc4_info->root_grp) {
+     free(nc4_info->root_grp->name);
+     free(nc4_info->root_grp);
+   }
    free(nc4_info);
+#endif
    return retval;
 }
 
@@ -2968,7 +3020,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
       int bad_coord_order = 0;	/* if detected, propagate to all groups to consistently store dimids */
       if ((retval = nc4_rec_write_types(h5->root_grp)))
 	 return retval;
-      if ((retval = nc4_rec_detect_bad_coord_order(h5->root_grp, &bad_coord_order)))
+      if ((retval = nc4_rec_detect_need_to_preserve_dimids(h5->root_grp, &bad_coord_order)))
 	 return retval;
       if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
 	 return retval;
@@ -3071,16 +3123,18 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	 retval = NC_EHDFERR; goto done;
 	}
       }
-/*      if (H5garbage_collect() < 0)
-	{retval = NC_EHDFERR; goto done;	 */
+#if 0
+      if (H5garbage_collect() < 0)
+	{retval = NC_EHDFERR; goto done;
+#endif
    }
 
+done:
    /* Free the nc4_info struct; above code should have reclaimed 
       everything else */
    if(h5 != NULL)
        free(h5);
 
-done:
    return retval;
 }
 

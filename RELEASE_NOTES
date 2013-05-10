@@ -6,21 +6,33 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION		COMMENTS
 -------		--------
-4.3		Released 201?-??-??
+4.3		Released 2013-05-03
+
+	       fsync: Changed default in autotools config
+	       file; fsync must now be explicitely enabled
+	       instead of explicitely disabled. [NCF-239]
+
+		Fixed netCDF-4 bug where odometer code for
+		libdap2 mishandled stride > 1. Bug reported
+		by Ansley Manke. [NCF-249]
+
+		Fixed netCDF-4 bug where netCDF would ignore
+		the HDF5 reference type in the file, instead
+		of rejecting the file as it should.  [NCF-29]
 
 		Fixed netCDF-4 bug with particular order of
 		creation of dimensions, coordinate variables, and
 		subgroups resulting in two dimensions with the same
 		dimension ID. [NCF-244]
 
+		Fixed netCDF-4 bug with a multidimensional coordinate
+		variable in a subgroup getting the wrong dimension IDs
+		for its dimensions. [NCF-247]
+
 		Fixed bug with incorrect fixed-size variable offsets in header
 		getting written when schema changed for files created
 		by parallel-netcdf.  Thanks to Wei-keng Liao for
 		developing and contributing the fix. [NCF-234]
-
-	 	fsync: Changed default in autotools config
-		file; fsync must now be explicitely enabled
-		instead of explicitely disabled.
 
 		Fixed bug in handling old servers that do not do
 		proper Grid to Structure conversions. [NCF-232]
@@ -46,7 +58,13 @@ VERSION		COMMENTS
 
 		Merged in parallel-netcdf bugs fixes from Greg
 		Sjaardema.  [NCF-214]
-		
+
+		Modify ncgen so that if the incoming file has a
+		special attribute, then it is used to
+                establish the special property of the netcdf file,
+                but the attribute is not included as a real attribute
+                in the file. [NCF-213].
+
 		Added library version info to the user-agent
                 string so that the server logs will be more informative.
 		[NCF-210]
@@ -100,6 +118,15 @@ VERSION		COMMENTS
 		of Visual-Studio compatible netCDF libraries introduced
 		in netCDF 4.2.1-rc1.
 		
+4.2.1.1	       Released 2012-08-03
+
+	       Patched libdap2/ncdap3.c to fix DAP performance bug
+	       remotely accessing large files (> 2GiB).
+
+	       Patched ncdump/dumplib.c to properly escape special
+	       characters in CDL output from ncdump for netCDF-4
+	       string data.
+
 
 4.2.1		Released 2012-07-18
 
