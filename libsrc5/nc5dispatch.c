@@ -86,9 +86,7 @@ NC5_create(const char *path, int cmode,
     cmode |= (NC_NETCDF4);
     res = ncmpi_create(comm, path, cmode, info, &(nc->int_ncid));      
 
-done:
-    
-    if(res && nc5 != null) free(nc5); /* reclaim allocated space */
+    if(res && nc5 != NULL) free(nc5); /* reclaim allocated space */
     return res;
 }
 
@@ -102,7 +100,6 @@ NC5_open(const char *path, int cmode,
     NC5_INFO* nc5;
     MPI_Comm comm = 0; 
     MPI_Info info = 0; 
-    int pnetcdf_nvars, i;
 
     /* Check the cmode for only valid flags*/
     if(cmode & ~LEGAL_OPEN_FLAGS)
@@ -126,8 +123,6 @@ NC5_open(const char *path, int cmode,
 
     cmode |= (NC_NETCDF4); /* see comment in NC5_create */
 
-    res = ncmpi_open(comm, path, cmode, info, &(nc->int_ncid));
-
     /* Create our specific NC5_INFO instance */
     nc5 = (NC5_INFO*)calloc(1,sizeof(NC5_INFO));
     if(nc5 == NULL) return NC_ENOMEM;
@@ -135,14 +130,14 @@ NC5_open(const char *path, int cmode,
     /* Link nc5 and nc */
     NC5_DATA_SET(nc,nc5);
 
+    res = ncmpi_open(comm, path, cmode, info, &(nc->int_ncid));
+
     /* Default to independent access, like netCDF-4/HDF5 files. */
     if(!res) {
 	res = ncmpi_begin_indep_data(nc->int_ncid);
 	nc5->pnetcdf_access_mode = NC_INDEPENDENT;
     }
 
-done:
-    if(res && nc5 != null) free(nc5); /* reclaim allocated space */
     return res;
 }
 
@@ -204,14 +199,13 @@ NC5_abort(int ncid)
 
 done:
     nc5 = NC5_DATA(nc);
-    if(nc5 != null) free(nc5); /* reclaim allocated space */
+    if(nc5 != NULL) free(nc5); /* reclaim allocated space */
     return status;
 }
 
 
 static int
 NC5_close(int ncid)
-{
 {
     NC* nc;
     NC5_INFO* nc5;
@@ -222,7 +216,7 @@ NC5_close(int ncid)
 
 done:
     nc5 = NC5_DATA(nc);
-    if(nc5 != null) free(nc5); /* reclaim allocated space */
+    if(nc5 != NULL) free(nc5); /* reclaim allocated space */
     return status;
 }
 
@@ -555,7 +549,8 @@ NC5_get_vara(int ncid,
 	 return NC_EINVAL;
       
     /* get variable's rank */
-    res = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+    status= ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+    if(status) return status;
 
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
     for (d = 0; d < rank; d++) {
@@ -635,7 +630,8 @@ NC5_put_vara(int ncid,
 	 return NC_EINVAL;
       
     /* get variable's rank */
-    res = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+    status = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+    if(status) return status;
 
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
     for (d = 0; d < rank; d++) {

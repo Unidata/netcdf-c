@@ -415,6 +415,17 @@ NCSUB_inq_var_all(int ncid, int varid, char* name, nc_type* xtypep,
                                      options_maskp,pixels_per_blockp);
 }
 
+static int
+NCSUB_var_par_access(int ncid, int a1, int a2)
+{
+    NC *nc, *ncsub;
+    int ncstat = NC_check_id(ncid, &nc);
+    if(ncstat != NC_NOERR) return ncstat;
+    ncstat = NC_check_id(nc->substrate, &ncsub);
+    if(ncstat != NC_NOERR) return ncstat;
+    return ncsub->dispatch->var_par_access(nc->substrate,a1,a2);
+}
+
 #ifdef USE_NETCDF4
 
 static int
@@ -437,17 +448,6 @@ NCSUB_inq_unlimdims(int ncid, int* a1, int* a2)
     ncstat = NC_check_id(nc->substrate, &ncsub);
     if(ncstat != NC_NOERR) return ncstat;
     return ncsub->dispatch->inq_unlimdims(nc->substrate,a1,a2);
-}
-
-static int
-NCSUB_var_par_access(int ncid, int a1, int a2)
-{
-    NC *nc, *ncsub;
-    int ncstat = NC_check_id(ncid, &nc);
-    if(ncstat != NC_NOERR) return ncstat;
-    ncstat = NC_check_id(nc->substrate, &ncsub);
-    if(ncstat != NC_NOERR) return ncstat;
-    return ncsub->dispatch->var_par_access(nc->substrate,a1,a2);
 }
 
 static int
