@@ -17,7 +17,7 @@ conditions.
 #include "nc4dispatch.h"
 #include "ncdispatch.h"
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 
@@ -478,7 +478,7 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep, size_t *lenp
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
@@ -512,7 +512,7 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq_attid(nc->int_ncid, varid, name, attnump);
@@ -544,7 +544,7 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq_attname(nc->int_ncid, varid, attnum, name);
@@ -596,7 +596,7 @@ NC4_rename_att(int ncid, int varid, const char *name,
    if (h5->no_write)
      return NC_EPERM;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_rename_att(nc->int_ncid, varid, name, newname);
@@ -702,7 +702,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    if (h5->no_write)
       return NC_EPERM;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_del_att(nc->int_ncid, varid, name);   
@@ -797,12 +797,13 @@ nc4_put_att_tc(int ncid, int varid, const char *name, nc_type file_type,
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
       if (mem_type == NC_UBYTE)
 	 mem_type = NC_BYTE;
+
       switch(mem_type)
       {
 	 case NC_BYTE:
@@ -859,12 +860,13 @@ nc4_get_att_tc(int ncid, int varid, const char *name, nc_type mem_type,
    h5 = NC4_DATA(nc);
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
       if (mem_type == NC_UBYTE)
 	 mem_type = NC_BYTE;
+
       switch(mem_type)
       {
 	 case NC_BYTE:

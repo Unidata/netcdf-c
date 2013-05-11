@@ -88,10 +88,11 @@ NCDEFAULT_put_varm,
 
 NULL, /*inq_var_all*/
 
+NULL, /*var_par_access*/
+
 #ifdef USE_NETCDF4
 NULL, /*show_metadata*/
 NULL, /*inq_unlimdims*/
-NULL, /*var_par_access*/
 NULL, /*inq_ncid*/
 NULL, /*inq_grps*/
 NULL, /*inq_grpname*/

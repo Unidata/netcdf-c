@@ -10,6 +10,7 @@ fi
 DAP=1
 #PNETCDF=1
 #HDF4=1
+#HDF4=1
 #RPC=1
 #PGI=1
 #M32=1

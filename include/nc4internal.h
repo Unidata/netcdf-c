@@ -273,21 +273,6 @@ typedef struct  NC_HDF5_FILE_INFO
    int ignore_creationorder;
    int hdf4;
    int sdid;
-
-#ifdef USE_PNETCDF
-   /* pnetcdf_file will be true if the file is created/opened with the
-    * parallel-netcdf library. pnetcdf_access_mode keeps track of
-    * whether independpent or collective mode is
-    * desired. pnetcdf_ndims keeps track of how many dims each var
-    * has, which I need to know to convert start, count, and stride
-    * arrays from size_t to MPI_Offset. (I can't use an inq function
-    * to find out the number of dims, because these are collective in
-    * pnetcdf.) */
-   int pnetcdf_file;
-   int pnetcdf_access_mode;
-   int pnetcdf_ndims[NC_MAX_VARS];
-#endif /* USE_PNETCDF */
-
 } NC_HDF5_FILE_INFO_T;
 
 /* These functions only use the netcdf API calls, so they will work on

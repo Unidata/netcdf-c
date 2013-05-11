@@ -133,7 +133,7 @@ AC_MSG_RESULT($enable_hdf4_file_tests)
 # Does the user want to turn on PNETCDF read ability?
 AC_MSG_CHECKING([whether parallel I/O for classic and 64-bit offset files using parallel-netcdf is to be enabled])
 AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
-              [build netcdf-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf])])
+              [build with parallel I/O for classic and 64-bit offset files using parallel-netcdf])])
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
@@ -687,18 +687,6 @@ if test "x$enable_netcdf_4" = xyes; then
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       enable_parallel=yes
       AC_DEFINE([USE_PARALLEL], [1], [if true, parallel netCDF-4 is in use])
-
-      # Using pnetcdf for classic parallel I/O?
-      if test "x$enable_pnetcdf" = xyes; then
-         AC_CHECK_LIB([pnetcdf], [ncmpi_create], [], 
-	 [AC_MSG_ERROR([Cannot link to pnetcdf library, yet --enable-pnetcdf was used.])])
-
-dnl          AC_CHECK_HEADERS([pnetcdf.h], [], [nc4_pnetcdf_h_missing=yes)	   
-dnl 	 if test ! "x$HAVE_PNETCDF" = x1; then
-dnl             AC_MSG_ERROR([Cannot find pnetcdf header, yet --enable-pnetcdf was used.])
-dnl 	 fi
-         AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])      	 
-      fi
    fi
    
    AC_MSG_CHECKING([whether parallel I/O features are to be included])
@@ -738,6 +726,19 @@ fi
 if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
+
+# Using pnetcdf for classic parallel I/O?
+if test "x$enable_pnetcdf" = xyes; then
+  AC_CHECK_LIB([pnetcdf], [ncmpi_create], [], 
+  [AC_MSG_ERROR([Cannot link to pnetcdf library, yet --enable-pnetcdf was used.])])
+  AC_DEFINE([USE_PNETCDF], [1], [if true, parallel netCDF is used])
+
+  # pnetcdf => parallel
+  # If parallel is in use, enable it in the C code. Also add some stuff to netcdf.h.
+  enable_parallel=yes
+  AC_DEFINE([USE_PARALLEL], [1], [if true, pnetcdf or parallel netcdf-4 is in use])
+fi
+
 
 # Like other libraries, udunits and libcf
 # are no long part of the netcdf distribution.
@@ -886,6 +887,7 @@ AC_CONFIG_FILES([Makefile
                  man4/images/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
+                 libsrc5/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
                  nc_test/Makefile
@@ -898,7 +900,6 @@ AC_CONFIG_FILES([Makefile
                  oc2/Makefile
                  libdap2/Makefile
                  libcdmr/Makefile
-                 librpc/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl4/Makefile

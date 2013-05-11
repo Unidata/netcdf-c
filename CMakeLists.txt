@@ -543,7 +543,7 @@ ENDIF()
 
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
-OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
+OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)
 IF(ENABLE_PNETCDF)
 	# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
 	# Does the user want to turn on PNETCDF read ability?
@@ -557,6 +557,8 @@ IF(ENABLE_PNETCDF)
 	SET(STATUS_PNETCDF "ON")	
 	INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
 	SET(HAVE_LIBPNETCDF ON)
+        # pnetcdf => parallel
+        SET(STATUS_PARALLEL "ON")
 ENDIF()
 
 
@@ -718,6 +720,10 @@ SET (netCDF_LIB_CORENAME	"netcdf")
 add_subdirectory("include")
 add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
+
+IF (USE_PNETCDF)
+add_subdirectory(libsrc5)
+ENDIF (USE_HDF5)
 
 IF (USE_HDF5)
 add_subdirectory(libsrc4)

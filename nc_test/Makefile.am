@@ -22,6 +22,10 @@ if USE_NETCDF4
 TESTPROGRAMS += tst_atts
 endif
 
+if USE_PNETCDF
+TESTPROGRAMS += tst_parallel2 tst_pnetcdf
+endif
+
 # if EXTRA_TESTS
 # TESTPROGRAMS += 
 # endif # EXTRA_TESTS
@@ -70,6 +74,10 @@ TESTS += run_diskless2.sh
 endif
 endif
 
+if USE_PNETCDF
+TESTS += run_pnetcdf_test.sh
+endif
+
 # This will run a bunch of the test programs with valgrind, the memory
 # checking tool. (Valgrind must be present for this to work.)
 if USE_VALGRIND_TESTS
@@ -84,7 +92,7 @@ endif # USE_VALGRIND_TESTS
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
 EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
-run_diskless.sh run_diskless2.sh run_mmap.sh
+run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt

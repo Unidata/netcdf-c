@@ -14,7 +14,7 @@ $Id: nc4dim.c,v 1.41 2010/05/25 17:54:23 dmh Exp $
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 
@@ -37,7 +37,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
       return retval;
    assert(h5);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq_unlimdim(nc->int_ncid, unlimdimidp);
@@ -87,7 +87,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    if (h5->no_write)
      return NC_EPERM;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_def_dim(nc->int_ncid, name, len, idp);
@@ -169,7 +169,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
    assert(h5);
    assert(nc && grp);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_inq_dimid(nc->int_ncid, name, idp);
@@ -213,7 +213,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    assert(h5);
    assert(nc && grp);
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
    {
@@ -291,7 +291,7 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    if (h5->no_write)
       return NC_EPERM;
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
    /* Take care of files created/opened with parallel-netcdf library. */
    if (h5->pnetcdf_file)
       return ncmpi_rename_dim(nc->int_ncid, dimid, name);
