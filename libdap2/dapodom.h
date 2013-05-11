@@ -19,7 +19,9 @@ typedef struct Dapodometer {
     size_t         declsize[NC_MAX_VAR_DIMS];
 } Dapodometer;
 
+#ifndef TESTING
 extern Dapodometer* dapodom_fromsegment(DCEsegment* segment, size_t start, size_t stop);
+#endif
 
 extern Dapodometer* dapodom_new(size_t rank,
                                 const size_t* start, const size_t* count,
