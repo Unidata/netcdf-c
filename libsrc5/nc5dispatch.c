@@ -14,8 +14,6 @@
 
 typedef struct NC5_INFO
 {
-   int int_ncid;
-
    /* pnetcdf_file will be true if the file is created/opened with the
     * parallel-netcdf library. pnetcdf_access_mode keeps track of
     * whether independpent or collective mode is
@@ -25,7 +23,6 @@ typedef struct NC5_INFO
     * to find out the number of dims, because these are collective in
     * pnetcdf.) */
    int pnetcdf_access_mode;
-   int pnetcdf_ndims[NC_MAX_VARS];
 } NC5_INFO;
 
 /* Define accessors for the dispatchdata */
@@ -83,11 +80,15 @@ NC5_create(const char *path, int cmode,
        a proper pnetcdf format file.
        It just happens that the value of NC_64BIT_DATA is the same
        as the netcdf NC_NETCDF4 flag value. This is probably no accident.
+
        In any case, this flag must be set.
     */
     cmode |= (NC_NETCDF4);
     res = ncmpi_create(comm, path, cmode, info, &(nc->int_ncid));      
 
+done:
+    
+    if(res && nc5 != null) free(nc5); /* reclaim allocated space */
     return res;
 }
 
@@ -140,14 +141,8 @@ NC5_open(const char *path, int cmode,
 	nc5->pnetcdf_access_mode = NC_INDEPENDENT;
     }
 
-    /* I need to keep track of the ndims of each var to translate
-     * start, count, and stride arrays to MPI_Offset type. */
-    if(!res) {
-	res = ncmpi_inq_nvars(nc->int_ncid, &pnetcdf_nvars);
-	for(i=0;i< pnetcdf_nvars;i++)
-	    res = ncmpi_inq_varndims(nc->int_ncid, i,
-				     &(nc5->pnetcdf_ndims[i]));
-    }
+done:
+    if(res && nc5 != null) free(nc5); /* reclaim allocated space */
     return res;
 }
 
@@ -201,19 +196,34 @@ static int
 NC5_abort(int ncid)
 {
     NC* nc;
+    NC5_INFO* nc5;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_abort(nc->int_ncid);
+    if(status != NC_NOERR) goto done;
+
+    status = ncmpi_abort(nc->int_ncid);
+
+done:
+    nc5 = NC5_DATA(nc);
+    if(nc5 != null) free(nc5); /* reclaim allocated space */
+    return status;
 }
 
 
 static int
 NC5_close(int ncid)
 {
+{
     NC* nc;
+    NC5_INFO* nc5;
     int status = NC_check_id(ncid, &nc);
-    if(status != NC_NOERR) return status;
-    return ncmpi_close(nc->int_ncid);
+    if(status != NC_NOERR) goto done;
+
+    status = ncmpi_close(nc->int_ncid);
+
+done:
+    nc5 = NC5_DATA(nc);
+    if(nc5 != null) free(nc5); /* reclaim allocated space */
+    return status;
 }
 
 static int
@@ -498,7 +508,6 @@ NC5_def_var(int ncid, const char *name, nc_type xtype,
     assert(nc5);
 
     status = ncmpi_def_var(nc->int_ncid,name,xtype,ndims,dimidsp,varidp);
-    nc5->pnetcdf_ndims[*varidp] = ndims;
     return status;
 }
 
@@ -533,6 +542,7 @@ NC5_get_vara(int ncid,
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
+    int rank = 0;
 
     status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
@@ -544,8 +554,11 @@ NC5_get_vara(int ncid,
     if(memtype == NC_INT64)
 	 return NC_EINVAL;
       
+    /* get variable's rank */
+    res = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
-    for (d = 0; d < nc5->pnetcdf_ndims[varid]; d++) {
+    for (d = 0; d < rank; d++) {
 	 mpi_start[d] = startp[d];
 	 mpi_count[d] = countp[d];
     }
@@ -609,6 +622,7 @@ NC5_put_vara(int ncid,
     int status;
     MPI_Offset mpi_start[NC_MAX_VAR_DIMS], mpi_count[NC_MAX_VAR_DIMS];
     int d;
+    int rank;
 
     status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
@@ -620,8 +634,11 @@ NC5_put_vara(int ncid,
     if(memtype == NC_INT64)
 	 return NC_EINVAL;
       
+    /* get variable's rank */
+    res = ncmpi_inq_varndims(nc->int_ncid, varid, &rank);
+
     /* We must convert the start, count, and stride arrays to MPI_Offset type. */
-    for (d = 0; d < nc5->pnetcdf_ndims[varid]; d++) {
+    for (d = 0; d < rank; d++) {
 	 mpi_start[d] = startp[d];
 	 mpi_count[d] = countp[d];
     }

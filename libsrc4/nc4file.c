@@ -358,7 +358,7 @@ exit: /*failure exit*/
 #endif
    if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if(!nc4_info) return retval;
-   close_netcdf4_file(nc4_info,1); // treat like abort
+   close_netcdf4_file(nc4_info,1); /* treat like abort */
 #if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
    if (nc4_info->root_grp) {
@@ -1699,10 +1699,12 @@ read_dataset(NC_GRP_INFO_T *grp, const char *obj_name)
    if ((ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
       BAIL(NC_EHDFERR);
    
+#if 0
    /* Removed check to remove nc4 dependency on 
       maximum dimensions. */
-   //if (ndims > NC_MAX_DIMS)
-   //   BAIL(NC_EMAXDIMS);
+   if (ndims > NC_MAX_DIMS)
+      BAIL(NC_EMAXDIMS);
+#endif
 
    if( (dims = (hsize_t*)malloc(sizeof(hsize_t)*ndims)) == NULL)
      BAIL(errno);
@@ -2389,7 +2391,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    num_plists--;
 #endif
    if (!nc4_info) return retval;
-   close_netcdf4_file(nc4_info,1); // treat like abort
+   close_netcdf4_file(nc4_info,1); /*  treat like abort*/
 #if 0
    if (nc4_info->hdfid > 0) H5Fclose(nc4_info->hdfid);
    if (nc4_info->root_grp) {

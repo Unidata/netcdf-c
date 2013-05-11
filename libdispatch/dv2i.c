@@ -1120,11 +1120,18 @@ ncrecinq(
 )
 {
 	size_t nrv = 0;
-	size_t rs[NC_MAX_VARS]; /* TODO */
-	const int status = nc_inq_rec(ncid, &nrv, recvarids, rs);
+	size_t *rs = NULL;
+	int status = NC_NOERR;
+
+	rs = (size_t*)malloc(sizeof(size_t)*NC_MAX_VARS);
+	if(rs == NULL)
+	    return NC_ENOMEM;
+
+	status = nc_inq_rec(ncid, &nrv, recvarids, rs);
 	if(status != NC_NOERR)
 	{
 		nc_advise("ncrecinq", status, "ncid %d", ncid);
+		if(rs != NULL) free(rs);
 		return -1;
 	}
 
@@ -1139,6 +1146,8 @@ ncrecinq(
 			recsizes[ii] = (long) rs[ii];
 		}
 	}
+
+	if(rs != NULL) free(rs);
 
 	return (int) nrv;
 }
