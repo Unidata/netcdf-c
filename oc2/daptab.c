@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.6.4.  */
+/* A Bison parser, made by GNU Bison 2.5.  */
 
 /* Bison implementation for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.6.4"
+#define YYBISON_VERSION "2.5"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -58,6 +58,8 @@
 /* Pull parsers.  */
 #define YYPULL 1
 
+/* Using locations.  */
+#define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
 #define yyparse         dapparse
@@ -68,8 +70,10 @@
 #define yydebug         dapdebug
 #define yynerrs         dapnerrs
 
+
 /* Copy the first part of user declarations.  */
-/* Line 358 of yacc.c  */
+
+/* Line 268 of yacc.c  */
 #line 11 "dap.y"
 
 #include "config.h"
@@ -77,16 +81,14 @@
 #include "daptab.h"
 int dapdebug = 0;
 
-/* Line 358 of yacc.c  */
-#line 82 "dap.tab.c"
 
-# ifndef YY_NULL
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULL nullptr
-#  else
-#   define YY_NULL 0
-#  endif
-# endif
+/* Line 268 of yacc.c  */
+#line 87 "dap.tab.c"
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -96,17 +98,11 @@ int dapdebug = 0;
 # define YYERROR_VERBOSE 1
 #endif
 
-/* In a future release of Bison, this section will be replaced
-   by #include "dap.tab.h".  */
-#ifndef YY_DAP_DAP_TAB_H_INCLUDED
-# define YY_DAP_DAP_TAB_H_INCLUDED
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
 #endif
-#if YYDEBUG
-extern int dapdebug;
-#endif
+
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -143,6 +139,7 @@ extern int dapdebug;
 #endif
 
 
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
@@ -151,26 +148,11 @@ typedef int YYSTYPE;
 #endif
 
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int dapparse (void *YYPARSE_PARAM);
-#else
-int dapparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int dapparse (DAPparsestate* parsestate);
-#else
-int dapparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
-
-#endif /* !YY_DAP_DAP_TAB_H_INCLUDED  */
-
 /* Copy the second part of user declarations.  */
 
-/* Line 377 of yacc.c  */
-#line 174 "dap.tab.c"
+
+/* Line 343 of yacc.c  */
+#line 156 "dap.tab.c"
 
 #ifdef short
 # undef short
@@ -223,24 +205,24 @@ typedef short int yytype_int16;
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
-#   define YY_(Msgid) dgettext ("bison-runtime", Msgid)
+#   define YY_(msgid) dgettext ("bison-runtime", msgid)
 #  endif
 # endif
 # ifndef YY_
-#  define YY_(Msgid) Msgid
+#  define YY_(msgid) msgid
 # endif
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YYUSE(e) ((void) (e))
 #else
-# define YYUSE(E) /* empty */
+# define YYUSE(e) /* empty */
 #endif
 
 /* Identity function, used to suppress warnings about constant conditions.  */
 #ifndef lint
-# define YYID(N) (N)
+# define YYID(n) (n)
 #else
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
@@ -276,7 +258,6 @@ YYID (yyi)
 #    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
 #     ifndef EXIT_SUCCESS
 #      define EXIT_SUCCESS 0
 #     endif
@@ -368,20 +349,20 @@ union yyalloc
 #endif
 
 #if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from SRC to DST.  The source and destination do
+/* Copy COUNT objects from FROM to TO.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
+#   define YYCOPY(To, From, Count) \
+      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
 #  else
-#   define YYCOPY(Dst, Src, Count)              \
-      do                                        \
-        {                                       \
-          YYSIZE_T yyi;                         \
-          for (yyi = 0; yyi < (Count); yyi++)   \
-            (Dst)[yyi] = (Src)[yyi];            \
-        }                                       \
+#   define YYCOPY(To, From, Count)		\
+      do					\
+	{					\
+	  YYSIZE_T yyi;				\
+	  for (yyi = 0; yyi < (Count); yyi++)	\
+	    (To)[yyi] = (From)[yyi];		\
+	}					\
       while (YYID (0))
 #  endif
 # endif
@@ -515,7 +496,7 @@ static const yytype_uint16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 1
+#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -531,7 +512,7 @@ static const char *const yytname[] =
   "array_decl", "datasetname", "var_name", "attributebody", "attr_list",
   "attribute", "bytes", "int16", "uint16", "int32", "uint32", "float32",
   "float64", "strs", "urls", "url", "str_or_id", "alias", "errorbody",
-  "errorcode", "errormsg", "errorptype", "errorprog", "name", YY_NULL
+  "errorcode", "errormsg", "errorptype", "errorprog", "name", 0
 };
 #endif
 
@@ -698,10 +679,10 @@ static const yytype_uint8 yytable[] =
       27,    28,     0,     0,    29,    30,    31,    32,    33,    34
 };
 
-#define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-91)))
+#define yypact_value_is_default(yystate) \
+  ((yystate) == (-91))
 
-#define yytable_value_is_error(Yytable_value) \
+#define yytable_value_is_error(yytable_value) \
   YYID (0)
 
 static const yytype_int16 yycheck[] =
@@ -799,18 +780,17 @@ static const yytype_uint8 yystos[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                  \
-do                                                              \
-  if (yychar == YYEMPTY)                                        \
-    {                                                           \
-      yychar = (Token);                                         \
-      yylval = (Value);                                         \
-      YYPOPSTACK (yylen);                                       \
-      yystate = *yyssp;                                         \
-      goto yybackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
+#define YYBACKUP(Token, Value)					\
+do								\
+  if (yychar == YYEMPTY && yylen == 1)				\
+    {								\
+      yychar = (Token);						\
+      yylval = (Value);						\
+      YYPOPSTACK (1);						\
+      goto yybackup;						\
+    }								\
+  else								\
+    {								\
       yyerror (parsestate, YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
@@ -820,32 +800,31 @@ while (YYID (0))
 #define YYTERROR	1
 #define YYERRCODE	256
 
+
 /* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
    If N is 0, then set CURRENT to the empty location which ends
    the previous symbol: RHS[0] (always defined).  */
 
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-    do                                                                  \
-      if (YYID (N))                                                     \
-        {                                                               \
-          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
-          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
-          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
-          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
-        }                                                               \
-      else                                                              \
-        {                                                               \
-          (Current).first_line   = (Current).last_line   =              \
-            YYRHSLOC (Rhs, 0).last_line;                                \
-          (Current).first_column = (Current).last_column =              \
-            YYRHSLOC (Rhs, 0).last_column;                              \
-        }                                                               \
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (YYID (N))                                                    \
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	}								\
+      else								\
+	{								\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	}								\
     while (YYID (0))
 #endif
-
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
-
 
 
 /* This macro is provided for backward compatibility. */
@@ -907,8 +886,6 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, parsestate)
     DAPparsestate* parsestate;
 #endif
 {
-  FILE *yyo = yyoutput;
-  YYUSE (yyo);
   if (!yyvaluep)
     return;
   YYUSE (parsestate);
@@ -1163,12 +1140,12 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytnamerr (0, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
   YYSIZE_T yysize1;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
-  const char *yyformat = YY_NULL;
+  const char *yyformat = 0;
   /* Arguments of yyformat. */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
@@ -1228,7 +1205,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                     break;
                   }
                 yyarg[yycount++] = yytname[yyx];
-                yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
+                yysize1 = yysize + yytnamerr (0, yytname[yyx]);
                 if (! (yysize <= yysize1
                        && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
                   return 2;
@@ -1322,6 +1299,20 @@ yydestruct (yymsg, yytype, yyvaluep, parsestate)
 }
 
 
+/* Prevent warnings from -Wmissing-prototypes.  */
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (DAPparsestate* parsestate);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 
 /*----------.
@@ -1353,28 +1344,6 @@ yyparse (parsestate)
 /* The lookahead symbol.  */
 int yychar;
 
-
-#if defined __GNUC__ && (4 < __GNUC__ + (6 <= __GNUC_MINOR__))
-/* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END \
-    _Pragma ("GCC diagnostic pop")
-#else
-/* Default value used for initialization, for pacifying older GCCs
-   or non-GCC compilers.  */
-static YYSTYPE yyval_default;
-# define YYLVAL_INITIALIZE() (yylval = yyval_default)
-#endif
-#ifndef YYLVAL_INITIALIZE
-# define YYLVAL_INITIALIZE()
-#endif
-#ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END
-#endif
-
 /* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
@@ -1389,7 +1358,7 @@ YYSTYPE yylval;
        `yyss': related to states.
        `yyvs': related to semantic values.
 
-       Refer to the stacks through separate pointers, to allow yyoverflow
+       Refer to the stacks thru separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
     /* The state stack.  */
@@ -1407,7 +1376,7 @@ YYSTYPE yylval;
   int yyn;
   int yyresult;
   /* Lookahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  int yytoken;
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
@@ -1425,6 +1394,7 @@ YYSTYPE yylval;
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
 
+  yytoken = 0;
   yyss = yyssa;
   yyvs = yyvsa;
   yystacksize = YYINITDEPTH;
@@ -1443,7 +1413,6 @@ YYSTYPE yylval;
   yyssp = yyss;
   yyvsp = yyvs;
 
-  YYLVAL_INITIALIZE ();
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1584,9 +1553,7 @@ yybackup:
   yychar = YYEMPTY;
 
   yystate = yyn;
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
   goto yynewstate;
 
@@ -1623,614 +1590,716 @@ yyreduce:
   switch (yyn)
     {
         case 6:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 58 "dap.y"
     {dap_unrecognizedresponse(parsestate); YYABORT;}
     break;
 
   case 7:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 63 "dap.y"
     {dap_tagparse(parsestate,SCAN_DATASET);}
     break;
 
   case 8:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 67 "dap.y"
     {dap_tagparse(parsestate,SCAN_ATTR);}
     break;
 
   case 9:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 71 "dap.y"
     {dap_tagparse(parsestate,SCAN_ERROR);}
     break;
 
   case 10:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 76 "dap.y"
     {dap_datasetbody(parsestate,(yyvsp[(4) - (5)]),(yyvsp[(2) - (5)]));}
     break;
 
   case 11:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 81 "dap.y"
     {(yyval)=dap_declarations(parsestate,null,null);}
     break;
 
   case 12:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 82 "dap.y"
     {(yyval)=dap_declarations(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));}
     break;
 
   case 13:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 89 "dap.y"
     {(yyval)=dap_makebase(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(1) - (4)]),(yyvsp[(3) - (4)]));}
     break;
 
   case 14:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 91 "dap.y"
     {if(((yyval)=dap_makestructure(parsestate,(yyvsp[(5) - (7)]),(yyvsp[(6) - (7)]),(yyvsp[(3) - (7)])))==null) {YYABORT;}}
     break;
 
   case 15:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 93 "dap.y"
     {if(((yyval)=dap_makesequence(parsestate,(yyvsp[(5) - (6)]),(yyvsp[(3) - (6)])))==null) {YYABORT;}}
     break;
 
   case 16:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 96 "dap.y"
     {if(((yyval)=dap_makegrid(parsestate,(yyvsp[(10) - (11)]),(yyvsp[(5) - (11)]),(yyvsp[(8) - (11)])))==null) {YYABORT;}}
     break;
 
   case 17:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 98 "dap.y"
     {dapsemanticerror(parsestate,OC_EBADTYPE,"Unrecognized type"); YYABORT;}
     break;
 
   case 18:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 103 "dap.y"
     {(yyval)=(Object)SCAN_BYTE;}
     break;
 
   case 19:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 104 "dap.y"
     {(yyval)=(Object)SCAN_INT16;}
     break;
 
   case 20:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 105 "dap.y"
     {(yyval)=(Object)SCAN_UINT16;}
     break;
 
   case 21:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 106 "dap.y"
     {(yyval)=(Object)SCAN_INT32;}
     break;
 
   case 22:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 107 "dap.y"
     {(yyval)=(Object)SCAN_UINT32;}
     break;
 
   case 23:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 108 "dap.y"
     {(yyval)=(Object)SCAN_FLOAT32;}
     break;
 
   case 24:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 109 "dap.y"
     {(yyval)=(Object)SCAN_FLOAT64;}
     break;
 
   case 25:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 110 "dap.y"
     {(yyval)=(Object)SCAN_URL;}
     break;
 
   case 26:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 111 "dap.y"
     {(yyval)=(Object)SCAN_STRING;}
     break;
 
   case 27:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 115 "dap.y"
     {(yyval)=dap_arraydecls(parsestate,null,null);}
     break;
 
   case 28:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 116 "dap.y"
     {(yyval)=dap_arraydecls(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));}
     break;
 
   case 29:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 120 "dap.y"
     {(yyval)=dap_arraydecl(parsestate,null,(yyvsp[(2) - (3)]));}
     break;
 
   case 30:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 121 "dap.y"
     {(yyval)=dap_arraydecl(parsestate,null,(yyvsp[(3) - (4)]));}
     break;
 
   case 31:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 122 "dap.y"
     {(yyval)=dap_arraydecl(parsestate,(yyvsp[(2) - (5)]),(yyvsp[(4) - (5)]));}
     break;
 
   case 32:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 124 "dap.y"
     {dapsemanticerror(parsestate,OC_EDIMSIZE,"Illegal dimension declaration"); YYABORT;}
     break;
 
   case 33:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 128 "dap.y"
     {(yyval)=(yyvsp[(1) - (1)]);}
     break;
 
   case 34:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 130 "dap.y"
     {dapsemanticerror(parsestate,OC_EDDS,"Illegal dataset declaration"); YYABORT;}
     break;
 
   case 35:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 133 "dap.y"
     {(yyval)=(yyvsp[(1) - (1)]);}
     break;
 
   case 36:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 136 "dap.y"
     {dap_attributebody(parsestate,(yyvsp[(2) - (3)]));}
     break;
 
   case 37:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 138 "dap.y"
     {dapsemanticerror(parsestate,OC_EDAS,"Illegal DAS body"); YYABORT;}
     break;
 
   case 38:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 142 "dap.y"
     {(yyval)=dap_attrlist(parsestate,null,null);}
     break;
 
   case 39:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 143 "dap.y"
     {(yyval)=dap_attrlist(parsestate,(yyvsp[(1) - (2)]),(yyvsp[(2) - (2)]));}
     break;
 
   case 40:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 147 "dap.y"
     {(yyval)=null;}
     break;
 
   case 41:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 149 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_BYTE);}
     break;
 
   case 42:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 151 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_INT16);}
     break;
 
   case 43:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 153 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_UINT16);}
     break;
 
   case 44:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 155 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_INT32);}
     break;
 
   case 45:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 157 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_UINT32);}
     break;
 
   case 46:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 159 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_FLOAT32);}
     break;
 
   case 47:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 161 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_FLOAT64);}
     break;
 
   case 48:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 163 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_STRING);}
     break;
 
   case 49:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 165 "dap.y"
     {(yyval)=dap_attribute(parsestate,(yyvsp[(2) - (4)]),(yyvsp[(3) - (4)]),(Object)SCAN_URL);}
     break;
 
   case 50:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 166 "dap.y"
     {(yyval)=dap_attrset(parsestate,(yyvsp[(1) - (4)]),(yyvsp[(3) - (4)]));}
     break;
 
   case 51:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 168 "dap.y"
     {dapsemanticerror(parsestate,OC_EDAS,"Illegal attribute"); YYABORT;}
     break;
 
   case 52:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 172 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_BYTE);}
     break;
 
   case 53:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 174 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_BYTE);}
     break;
 
   case 54:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 177 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_INT16);}
     break;
 
   case 55:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 179 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_INT16);}
     break;
 
   case 56:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 182 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_UINT16);}
     break;
 
   case 57:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 184 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_UINT16);}
     break;
 
   case 58:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 187 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_INT32);}
     break;
 
   case 59:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 189 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_INT32);}
     break;
 
   case 60:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 192 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_UINT32);}
     break;
 
   case 61:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 193 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_UINT32);}
     break;
 
   case 62:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 196 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_FLOAT32);}
     break;
 
   case 63:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 197 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_FLOAT32);}
     break;
 
   case 64:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 200 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_FLOAT64);}
     break;
 
   case 65:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 201 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_FLOAT64);}
     break;
 
   case 66:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 204 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_STRING);}
     break;
 
   case 67:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 205 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_STRING);}
     break;
 
   case 68:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 209 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,null,(yyvsp[(1) - (1)]),(Object)SCAN_URL);}
     break;
 
   case 69:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 210 "dap.y"
     {(yyval)=dap_attrvalue(parsestate,(yyvsp[(1) - (3)]),(yyvsp[(3) - (3)]),(Object)SCAN_URL);}
     break;
 
   case 70:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 214 "dap.y"
     {(yyval)=(yyvsp[(1) - (1)]);}
     break;
 
   case 71:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 218 "dap.y"
     {(yyval)=(yyvsp[(1) - (1)]);}
     break;
 
   case 72:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 219 "dap.y"
     {(yyval)=(yyvsp[(1) - (1)]);}
     break;
 
   case 73:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 230 "dap.y"
     {(yyval)=(yyvsp[(2) - (3)]); (yyval)=(yyvsp[(3) - (3)]); (yyval)=null;}
     break;
 
   case 74:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 235 "dap.y"
     {dap_errorbody(parsestate,(yyvsp[(2) - (7)]),(yyvsp[(3) - (7)]),(yyvsp[(4) - (7)]),(yyvsp[(5) - (7)]));}
     break;
 
   case 75:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 238 "dap.y"
     {(yyval)=null;}
     break;
 
   case 76:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 238 "dap.y"
     {(yyval)=(yyvsp[(3) - (4)]);}
     break;
 
   case 77:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 239 "dap.y"
     {(yyval)=null;}
     break;
 
   case 78:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 239 "dap.y"
     {(yyval)=(yyvsp[(3) - (4)]);}
     break;
 
   case 79:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 240 "dap.y"
     {(yyval)=null;}
     break;
 
   case 80:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 240 "dap.y"
     {(yyval)=(yyvsp[(3) - (4)]);}
     break;
 
   case 81:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 241 "dap.y"
     {(yyval)=null;}
     break;
 
   case 82:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 241 "dap.y"
     {(yyval)=(yyvsp[(3) - (4)]);}
     break;
 
   case 83:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 247 "dap.y"
     {(yyval)=dapdecode(parsestate->lexstate,(yyvsp[(1) - (1)]));}
     break;
 
   case 84:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 248 "dap.y"
     {(yyval)=strdup("alias");}
     break;
 
   case 85:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 249 "dap.y"
     {(yyval)=strdup("array");}
     break;
 
   case 86:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 250 "dap.y"
     {(yyval)=strdup("attributes");}
     break;
 
   case 87:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 251 "dap.y"
     {(yyval)=strdup("byte");}
     break;
 
   case 88:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 252 "dap.y"
     {(yyval)=strdup("dataset");}
     break;
 
   case 89:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 253 "dap.y"
     {(yyval)=strdup("data");}
     break;
 
   case 90:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 254 "dap.y"
     {(yyval)=strdup("error");}
     break;
 
   case 91:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 255 "dap.y"
     {(yyval)=strdup("float32");}
     break;
 
   case 92:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 256 "dap.y"
     {(yyval)=strdup("float64");}
     break;
 
   case 93:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 257 "dap.y"
     {(yyval)=strdup("grid");}
     break;
 
   case 94:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 258 "dap.y"
     {(yyval)=strdup("int16");}
     break;
 
   case 95:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 259 "dap.y"
     {(yyval)=strdup("int32");}
     break;
 
   case 96:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 260 "dap.y"
     {(yyval)=strdup("maps");}
     break;
 
   case 97:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 261 "dap.y"
     {(yyval)=strdup("sequence");}
     break;
 
   case 98:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 262 "dap.y"
     {(yyval)=strdup("string");}
     break;
 
   case 99:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 263 "dap.y"
     {(yyval)=strdup("structure");}
     break;
 
   case 100:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 264 "dap.y"
     {(yyval)=strdup("uint16");}
     break;
 
   case 101:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 265 "dap.y"
     {(yyval)=strdup("uint32");}
     break;
 
   case 102:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 266 "dap.y"
     {(yyval)=strdup("url");}
     break;
 
   case 103:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 267 "dap.y"
     {(yyval)=strdup("code");}
     break;
 
   case 104:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 268 "dap.y"
     {(yyval)=strdup("message");}
     break;
 
   case 105:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 269 "dap.y"
     {(yyval)=strdup("program");}
     break;
 
   case 106:
-/* Line 1813 of yacc.c  */
+
+/* Line 1806 of yacc.c  */
 #line 270 "dap.y"
     {(yyval)=strdup("program_type");}
     break;
 
 
-/* Line 1813 of yacc.c  */
-#line 2234 "dap.tab.c"
+
+/* Line 1806 of yacc.c  */
+#line 2303 "dap.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2393,9 +2462,7 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
 
   /* Shift the error token.  */
@@ -2419,7 +2486,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined yyoverflow || YYERROR_VERBOSE
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2461,6 +2528,8 @@ yyreturn:
 }
 
 
-/* Line 2076 of yacc.c  */
+
+/* Line 2067 of yacc.c  */
 #line 273 "dap.y"
+
 

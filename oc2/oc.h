@@ -17,13 +17,6 @@ Version: 2.0
 /*!\file oc.h
 */
 
-#ifndef ssize_t
-#ifdef SSIZE_T
-#define ssize_t SSIZE_T
-#else
-#define ssize_t int
-#endif
-#endif
 /*!\defgroup Definitions Constants, types, etc.
 @{*/
 

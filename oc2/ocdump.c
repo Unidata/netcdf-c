@@ -9,6 +9,14 @@
 #include <netinet/in.h>
 #endif
 
+#ifndef HAVE_SSIZE_T
+#ifdef SSIZE_T
+#define ssize_t SSIZE_T
+#else
+#define ssize_t int
+#endif
+#endif 
+
 #include "ocinternal.h"
 #include "ocdebug.h"
 
@@ -414,9 +422,9 @@ ocreadfile(FILE* file, int datastart, char** memp, size_t* lenp)
 {
     char* mem;
     size_t len;
-    ssize_t pos;
     size_t red;
     struct stat stats;
+    ssize_t pos;
 
     pos = ftell(file);
     fseek(file,0,SEEK_SET);
