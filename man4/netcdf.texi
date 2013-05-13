@@ -3147,12 +3147,15 @@ and then verify them in HDF5. (And vice versa).
 Beginning with netCDF version 4.1,
 optional support is provided for accessing data through
 OPeNDAP servers using the DAP protocol.
+Currently, only DAP protocol version 2 is supported; DAP protocol
+version 4 support is under development.
 
 DAP support is automatically enabled if a usable curl library can be
-located using the curl-config program or by the --with-curl-config flag.
-It can forcibly be enabled or disabled using the --enable-dap
+set using the LDFLAGS environment variable (similar to the way
+that the HDF5 libraries are referenced).
+DAP support can forcibly be enabled or disabled using the --enable-dap
 flag or the --disable-dap flag, respectively.  If enabled,
-then DAP support requires access to the curl library.
+then DAP2 support requires access to the curl library.
 Refer to the installation manual for details
 @ref{Top,@value{i-man},, netcdf-install, @value{i-man}}.
 
@@ -3168,22 +3171,29 @@ the OPeNDAP web site @uref{@value{opendap-url}}.
 In order to access an OPeNDAP data source through the netCDF
 API, the file name normally used is replaced with a
 URL with a specific format.
-The URL is composed of four parts.
+The URL is composed of three parts.
 @enumerate
-@item Client parameters - these are prefixed to the front of the
-URL and are of the general form [<name>] or [<name>=value].
-Examples include [cache=1] and [netcdf3].
 @item URL - this is a standard form URL such as
-http://test.opendap.org:8080/dods/dts/test.01
+http://thredds-test.ucar.edu/dts/test.01
 @item Constraints - these are suffixed to the URL and
 take the form ``?<projections>&selections''.
 The meaning of the terms projection and selection is somewhat complicated;
 and the OPeNDAP web site,
-@uref{http://www.opendap.or},
+@uref{http://www.opendap.org},
 should be consulted.
 The interaction of DAP constraints with netCDF is complex and
 at the moment requires an understanding of how DAP is translated
 to netCDF.
+@item Client parameters -
+these may be specified in either of two ways.
+The older, deprecated form prefixes
+text to the front of the url and is of
+the general form [<name>] or [<name>=value].
+Examples include [show=fetch] and [noprefetch].
+The newer, preferred form prefixes the
+parameters to the end of the url using the
+semi-standard '#' format:
+``http://....#show=fetch&noprefetch''.
 @end enumerate
 
 It is possible to see what the translation does to a particular DAP
@@ -3199,13 +3209,13 @@ For example, if a web browser is given the following,
 the first URL will return the DDS for the specified dataset,
 and the second URL will return the DAS for the specified dataset.
 @example
-http://test.opendap.org:8080/dods/dts/test.01.dds
-http://test.opendap.org:8080/dods/dts/test.01.das
+http://thredds-test.ucar.edu/dts/test.01.dds
+http://thredds-test.ucar.edu/dts/test.01.das
 @end example
 Then by using the following ncdump command, it is possible to see the
 equivalent netCDF Classic translation.
 @example
-ncdump -h http://test.opendap.org:8080/dods/dts/test.01
+ncdump -h http://thredds-test.ucar.edu/dts/test.01
 @end example
 
 The DDS output from the web server should look like this.
@@ -3277,11 +3287,11 @@ associated with a variable in the DDS.
 
 Alternately, one can get the text of the DDS as a global attribute
 by using the client parameters
-mechanism . In this case, the parameter ``[show=dds]'' 
+mechanism . In this case, the parameter ``show=dds'' 
 can be prefixed to the URL and the data retrieved using
 the following command
 @example
-ncdump -h [show=dds]http://test.opendap.org:8080/dods/dts/test.01.dds
+ncdump -h http://thredds-test.ucar.edu/dts/test.01.dds#show=dds
 @end example
 The ncdump -h command will then show both the translation and the original
 DDS. In the above example, the DDS would appear as the global
@@ -3300,11 +3310,9 @@ variables:
 @end verbatim
 
 @subsection DAP to NetCDF Translation Rules
-Two translations are currently available.
-@itemize
-@item DAP 2 Protocol to netCDF-3
-@item DAP 2 Protocol to netCDF-4
-@end itemize
+Currently only one translation available: DAP 2 Protocol to netCDF-3.
+There used to be a DAP 2 Protocol to netCDF-4 translation
+but that has been removed until the DAP4 protocol is available.
 
 @subsubsection netCDF-3 Translation Rules
 The current default translation code
@@ -3312,9 +3320,8 @@ translates the OPeNDAP protocol to netCDF-3 (classic).
 This netCDF-3 translation converts an OPeNDAP
 DAP protocol version 2 DDS to netCDF-3 and is designed to mimic
 as closely as possible the translation provided by the libnc-dap
-system.
-In addition, a translation to netCDF-4 (enhanced) is provided
-that is entirely new.
+system, except that some errors in that older translation have
+been fixed.
 
 For illustrative purposes, the following example will be used.
 @verbatim
@@ -3604,6 +3611,7 @@ how many records are associated with the sequence.
 Since libnc-dap did essentially the same thing, it can be assumed that
 the cost is not prohibitive.
 
+@ignore
 @subsubsection netCDF-4 Translation Rules
 A DAP to netCDF-4 translation also exists, but is not the
 default and in any case is only available if the
@@ -3792,14 +3800,14 @@ then netCF-4 translation is used.
 If none of the above holds, then default to netCDF-3 classic
 translation.
 @end enumerate
+@end
 
 @subsubsection Caching
 In an effort to provide better
 performance for some access patterns,
 client-side caching of data is available.
 The default is no caching, but it may
-be enabled by prefixing the URL
-with "[cache]".
+be enabled by the parameter "cache".
 
 Caching operates basically as follows.
 @enumerate
@@ -3808,7 +3816,8 @@ netCDF automatically does a pre-fetch
 of selected variables. These include all
 variables smaller than a specified (and user definable)
 size. This allows, for example, quick access to
-coordinate variables.
+coordinate variables. This can be suppressed
+with the parameter "noprefetch".
 
 @item
 Whenever a request is made using some variant
@@ -3856,71 +3865,65 @@ Currently, a limited set of client parameters is recognized.
 Parameters not listed here are ignored, but no error is signalled.
 @table @emph
 @item  Parameter Name Legal Values Semantics
-@item [netcdf-3]|[netcdf-3]
+@item netcdf-3 | netcdf-3
 Specify translation to netCDF-3.
-@item [netcdf-4]|[netcdf-4]
-Specify translation to netCDF-4.
-@item "[log]|[log=<file>]" ""
+@item "log | log=<file>"
 Turn on logging and send the log output to the specified file.
-If no file is specified, then output to standard error.
-@item  "[show=...]" das|dds|url
+If no file is specified, then output is sent to standard error.
+@item  "show=..." das|dds|url
 This causes information to appear as specific global attributes.
 The currently recognized tags are "dds" to
 display the underlying DDS, "das" similarly, and "url" to display
 the url used to retrieve the data.
-This parameter may be specified multiple times (e.g. ``[show=dds][show=url]'').
-@item  "[show=fetch]"
+This parameter may be specified multiple times (e.g. ``show=dds&show=url'').
+@item  "show=fetch"
 This parameter causes the netCDF code to log a copy of the complete
 url for every HTTP get request. If logging is enabled, then
 this can be helpful in checking to see the access behavior of the
 netCDF code.
-@item "[stringlength=NN]"
+@item "stringlength=NN"
 Specify the default string length to use for string dimensions.
 The default is 64.
-@item "[stringlength_<var>=NN]"
+@item "stringlength_<var>=NN"
 Specify the default string length to use for a string dimension
 for the specified variable.
 The default is 64.
-@item  "[cache]"
+@item  "cache"
 This enables caching.
-@item  "[cachelimit=NN]"
+@item  "cachelimit=NN"
 Specify the maximum amount of space allowed for the cache.
-@item  "[cachecount=NN]"
+@item  "cachecount=NN"
 Specify the maximum number of entries in the cache.
+@item  "noprefetch"
+Disable prefetch of small variables
 @end table
 
 @subsection Notes on Debugging OPeNDAP Access
 
 The OPeNDAP support makes use of the logging facility of the
-underlying oc system. Note that this is currently
+underlying oc system (see http://www.opendap.org/oc).
+Note that this is currently
 separate from the existing netCDF logging facility.
 Turning on this logging can sometimes give
 important information. Logging can be enabled
-by prefixing the url with
-the client parameter [log] or [log=filename], where the first
+using the client parameter "log" or "log=filename", where the first
 case will send log output to standard error and the second
 will send log output to the specified file.
 
-Users should also be aware that the DAP subsystem
-creates temporary files of the name dataddsXXXXXX,
-where XXXXX is some random string. If the program
-using the DAP subsystem crashes, these files may
-be left around. It is perfectly safe to delete them.
-Also, if you are accessing data over an NFS mount,
-you may see some .nfsxxxxx files; those can be ignored
-as well.
+Users should also be aware that if you one is
+accessing data over an NFS mount, you may see some .nfsxxxxx files;
+those can be ignored.
 
 @subsection HTTP Configuration.
 
 Limited support for configuring the http connection
 is provided via parameters in the
-``.httprc'' configuration file. Although deprecated, the name
-``.dodsrc'' may also be used.
-The relevant .httprc file is located by first looking in the
+``.dodsrc'' configuration file.
+The relevant .dodsrc file is located by first looking in the
 current working directory, and if not found, then looking in the
 directory specified by the ``$HOME'' environment variable.
 
-Entries in the .httprc file are of the form:
+Entries in the .dodsrc file are of the form:
 @example
 ['['<url>']']<key>=<value>
 @end example
@@ -4068,7 +4071,7 @@ by this key.  See the libcurl documentation of the curl_easy_setopt()
 function for more detail
 @uref{http://curl.haxx.se/libcurl/c/curl_easy_setopt.html}.
 
-For ESG, the following entries must be specified:
+For ESG client side key support, the following entries must be specified:
 @itemize
 @item HTTP.SSL.VALIDATE
 @item HTTP.COOKIEJAR
@@ -4773,7 +4776,7 @@ ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
 
 Examine the translated DDS for the DAP source from the specified URL.
 
-ncdump -h http://test.opendap.org:8080/dods/dts/test.01
+ncdump -h http://thredds-test.ucar.edu/dts/test.01
 
 @node nccopy, ncgen3, ncdump, NetCDF Utilities
 @section nccopy
