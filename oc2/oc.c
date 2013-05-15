@@ -2039,3 +2039,13 @@ oc_dds_free(OCobject link, OCobject dds0)
 }
 
 
+OCerror
+oc_set_curl_callback(OClink link, oc_curl_callback* callback, void* userstate)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    state->usercurl = callback;
+    state->usercurldata = userstate;
+    return OC_NOERR;
+}

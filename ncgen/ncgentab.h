@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.7.  */
+/* A Bison parser, made by GNU Bison 2.6.4.  */
 
 /* Bison interface for Yacc-like parsers in C
    
@@ -100,7 +100,7 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-/* Line 2058 of yacc.c  */
+/* Line 2077 of yacc.c  */
 #line 131 "ncgen.y"
 
 Symbol* sym;
@@ -111,7 +111,7 @@ Datalist*      datalist;
 Constant       constant;
 
 
-/* Line 2058 of yacc.c  */
+/* Line 2077 of yacc.c  */
 #line 116 "ncgen.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1

@@ -194,6 +194,8 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     if((stat=ocset_curl_flags(state)) != OC_NOERR) goto fail;
     if((stat=ocset_proxy(state)) != OC_NOERR) goto fail;
     if((stat=ocset_ssl(state)) != OC_NOERR) goto fail;
+    if(state->usercurl)
+	state->usercurl((void*)state->curl,state->usercurldata);
 
     ocbytesclear(state->packet);
 

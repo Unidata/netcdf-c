@@ -159,6 +159,8 @@ struct OCstate {
 	char *username;
 	char *password;
     } creds;
+    oc_curl_callback* usercurl;
+    void* usercurldata;
     long ddslastmodified;
     long datalastmodified;
 };
