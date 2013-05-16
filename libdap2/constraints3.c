@@ -378,34 +378,19 @@ matchsuffix3(NClist* matchpath, NClist* segments)
 char*
 buildprojectionstring3(NClist* projections)
 {
-    char* pstring;
-    NCbytes* buf = ncbytesnew();
-    dcelisttobuffer(projections,buf,",");
-    pstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return pstring;
+    return dcebuildprojectionstring(projections);
 }
 
 char*
 buildselectionstring3(NClist* selections)
 {
-    NCbytes* buf = ncbytesnew();
-    char* sstring;
-    dcelisttobuffer(selections,buf,"&");
-    sstring = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return sstring;
+    return dcebuildselectionstring(selections);
 }
 
 char*
 buildconstraintstring3(DCEconstraint* constraints)
 {
-    NCbytes* buf = ncbytesnew();
-    char* result = NULL;
-    dcetobuffer((DCEnode*)constraints,buf);
-    result = ncbytesdup(buf);
-    ncbytesfree(buf);
-    return result;
+    return dcebuildconstraintstring(constraints);
 }
 
 

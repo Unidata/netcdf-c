@@ -142,9 +142,9 @@ extern size_t dcesegmentsize(DCEsegment*, size_t start, size_t stop);
    that can be used with a url. Caller must free returned string.
 */
 
-extern char* buildprojectionstring(NClist* projections);
-extern char* buildselectionstring(NClist* selections);
-extern char* buildconstraintstring(DCEconstraint* constraints);
+extern char* dcebuildprojectionstring(NClist* projections);
+extern char* dcebuildselectionstring(NClist* selections);
+extern char* dcebuildconstraintstring(DCEconstraint* constraints);
 
 extern int dceverbose;
 

@@ -1,4 +1,4 @@
-PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
+PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
 TOP="/home/dmh/mach/trunk"
@@ -10,10 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://thredds-test.ucar.edu/dts/test.01"
-CON="f64"
-
-SHARP='#'
+F="http://coastwatch.pfeg.noaa.gov/erddap/tabledap/erdCinpKfmT"
+CON="temperature&longitude>=-120.&longitude<=-118.4&latitude>=33&latitude<=34&time>=2007-01-01&time<=2007-02-01"
 
 PARMS="log"
 #PARMS="${PARMS}&netcdf3"
