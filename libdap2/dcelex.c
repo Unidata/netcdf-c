@@ -1,6 +1,8 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#define URLDECODE
+
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +13,7 @@
 
 #include "nclist.h"
 #include "ncbytes.h"
+#include "ncuri.h"
 #include "dceconstraints.h"
 #include "dceparselex.h"
 
@@ -48,6 +51,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
 	if(c <= ' ' || c >= '\177') {p++; continue;}
 	if(c == '"') {
 	    int more = 1;
+	    ceaddyytext(lexstate,c);
 	    /* We have a SCAN_STRINGCONST */
 	    while(more && (c=*(++p))) {
 		switch (c) {
@@ -190,7 +194,11 @@ dcelexinit(char* input, DCElexstate** lexstatep)
     if(lexstatep) *lexstatep = lexstate;
     if(lexstate == NULL) return;
     memset((void*)lexstate,0,sizeof(DCElexstate));
+#ifdef URLDECODE
+    lexstate->input = ncuridecode(input);
+#else
     lexstate->input = strdup(input);
+#endif
     lexstate->next = lexstate->input;
     lexstate->yytext = ncbytesnew();
     lexstate->reclaim = nclistnew();

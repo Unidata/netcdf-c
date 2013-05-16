@@ -11,7 +11,8 @@ PROG="$TOP/ncdump/ncdump"
 P=`pwd`
 
 F="http://coastwatch.pfeg.noaa.gov/erddap/tabledap/erdCinpKfmT"
-CON="temperature&longitude>=-120.&longitude<=-118.4&latitude>=33&latitude<=34&time>=2007-01-01&time<=2007-02-01"
+CON='station&station="Anacapa_Landing_Cove"'
+#CON="station,longitude,latitude,altitude,time,temperature&station=%22Anacapa_Landing_Cove%22&time>=2007-01-01&time<=2007-06-01"
 
 PARMS="log"
 #PARMS="${PARMS}&netcdf3"
@@ -38,9 +39,10 @@ if test "x$PROG" = x ; then
  PROG="../ncdump/ncdump"
 fi
 
+if test "x$PARMS" != "x" ; then PARMS="\#$PARMS"; fi
 U="$F"
 if test "x$CON" != "x" ; then U="$U?$CON"; fi
-UALL="$U\#${PARMS}"
+UALL="$U${PARMS}"
 #ARGS="-h $ARGS"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
