@@ -240,21 +240,39 @@ The following works to build HDF5 with parallel I/O on our netCDF
 testing system:
 
 \verbatim
-CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par
+CC=mpicc ./configure --enable-parallel
 make check install
 \endverbatim
 
 If the HDF5 used by netCDF has been built with parallel I/O, then
 netCDF will also be built with support for parallel I/O. This allows
-parallel I/O access to netCDF-4/HDF5 files. (See /ref netcdf_formats
-for more information about the netCDF format variants.)
+parallel I/O access to netCDF-4/HDF5 files. Note that shared libraries
+are not supported for parallel HDF5, which makes linking more
+difficult to get right.  For some reason, "LIBS=-ldl" seems to
+sometimes be needed to link successfully with parallel HDF5 libraries.
+(See /ref netcdf_formats for more information about the netCDF format
+variants.)
+
+The following works to build netCDF-4 with parallel I/O on our netCDF
+testing system:
+
+\verbatim
+H5DIR=/where/parallel/HDF5/was/installed
+CPPFLAGS="-I${H5DIR}/include"
+CC=mpicc
+LDFLAGS=-L${H5DIR}/lib
+LIBS=-ldl
+./configure --disable-shared --enable-parallel-tests
+make check install
+\endverbatim
+
 
 If parallel I/O access to netCDF classic and 64-bit offset files is
-also needed, the parallel-netcdf library should also be installed,
+also needed, the parallel-netcdf library should also be installed.
 (Note: the previously recommended <a
 href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
 pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
---enable-pnetcdf flag.
+"--enable-pnetcdf" option.
 
 \page linking Linking to NetCDF
 
