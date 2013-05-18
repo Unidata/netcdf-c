@@ -10,7 +10,7 @@ In addition to providing new build options for netCDF-C, we will also provide pr
 
 ## netCDF 4.3.0
 
-* When netCDF 4.3.0 was originally released, the file `nc-config.in.cmake` was accidentally excluded.  This file can be downloaded **[here]**. The file should be placed in the root of the netcdf source directory.
+* When netCDF 4.3.0 was originally released, the file `nc-config.in.cmake` was accidentally excluded.  This file can be downloaded [here]. The file should be placed in the root of the netcdf source directory.
 
 [here]: https://www.unidata.ucar.edu/software/netcdf/win_netcdf/nc-config.in.cmake "nc-config.in.cmake"
 
