@@ -94,7 +94,7 @@
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 #cmakedefine HAVE_ALLOCA
-
+#cmakedefine HAVE_SSIZE_T 1
 #cmakedefine HAVE_LIBPNETCDF
 
 /* Define to 1 if you have the <alloca.h> header file. */

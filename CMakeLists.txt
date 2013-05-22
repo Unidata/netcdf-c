@@ -723,7 +723,7 @@ add_subdirectory(libsrc)
 
 IF (USE_PNETCDF)
 add_subdirectory(libsrc5)
-ENDIF (USE_HDF5)
+ENDIF (USE_PNETCDF)
 
 IF (USE_HDF5)
 add_subdirectory(libsrc4)
