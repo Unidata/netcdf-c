@@ -14,6 +14,7 @@
 #include <string.h>
 #include <mpi.h>
 #include <netcdf.h>
+#include <netcdf_par.h>
 #include <assert.h>
 
 #define NVARS 6

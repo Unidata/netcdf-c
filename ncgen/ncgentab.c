@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.7.  */
+/* A Bison parser, made by GNU Bison 2.6.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
    
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.7"
+#define YYBISON_VERSION "2.6.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -69,7 +69,7 @@
 #define yynerrs         ncgnerrs
 
 /* Copy the first part of user declarations.  */
-/* Line 371 of yacc.c  */
+/* Line 358 of yacc.c  */
 #line 11 "ncgen.y"
 
 /*
@@ -188,7 +188,7 @@ static void yyerror(fmt,va_alist) const char* fmt; va_dcl;
 extern int lex_init(void);
 
 
-/* Line 371 of yacc.c  */
+/* Line 358 of yacc.c  */
 #line 193 "ncgen.tab.c"
 
 # ifndef YY_NULL
@@ -279,7 +279,7 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-/* Line 387 of yacc.c  */
+/* Line 374 of yacc.c  */
 #line 131 "ncgen.y"
 
 Symbol* sym;
@@ -290,7 +290,7 @@ Datalist*      datalist;
 Constant       constant;
 
 
-/* Line 387 of yacc.c  */
+/* Line 374 of yacc.c  */
 #line 295 "ncgen.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
@@ -318,7 +318,7 @@ int ncgparse ();
 
 /* Copy the second part of user declarations.  */
 
-/* Line 390 of yacc.c  */
+/* Line 377 of yacc.c  */
 #line 323 "ncgen.tab.c"
 
 #ifdef short
@@ -1027,18 +1027,47 @@ do                                                              \
     }								\
 while (YYID (0))
 
-/* Error token number */
+
 #define YYTERROR	1
 #define YYERRCODE	256
 
+/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
+
+#ifndef YYLLOC_DEFAULT
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (YYID (N))                                                     \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
+    while (YYID (0))
+#endif
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
+
+
 
 /* This macro is provided for backward compatibility. */
+
 #ifndef YY_LOCATION_PRINT
 # define YY_LOCATION_PRINT(File, Loc) ((void) 0)
 #endif
 
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
+
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (YYLEX_PARAM)
 #else
@@ -1101,7 +1130,7 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
   switch (yytype)
     {
       default:
-        break;
+	break;
     }
 }
 
@@ -1343,6 +1372,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 {
   YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
+  YYSIZE_T yysize1;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
   const char *yyformat = YY_NULL;
@@ -1405,13 +1435,11 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                     break;
                   }
                 yyarg[yycount++] = yytname[yyx];
-                {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
-                  if (! (yysize <= yysize1
-                         && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-                    return 2;
-                  yysize = yysize1;
-                }
+                yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
+                if (! (yysize <= yysize1
+                       && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+                  return 2;
+                yysize = yysize1;
               }
         }
     }
@@ -1431,12 +1459,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 # undef YYCASE_
     }
 
-  {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-      return 2;
-    yysize = yysize1;
-  }
+  yysize1 = yysize + yystrlen (yyformat);
+  if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+    return 2;
+  yysize = yysize1;
 
   if (*yymsg_alloc < yysize)
     {
@@ -1496,7 +1522,7 @@ yydestruct (yymsg, yytype, yyvaluep)
     {
 
       default:
-        break;
+	break;
     }
 }
 
@@ -1507,16 +1533,16 @@ yydestruct (yymsg, yytype, yyvaluep)
 int yychar;
 
 
+#ifndef YYLVAL_INITIALIZE
+# define YYLVAL_INITIALIZE()
+#endif
 #ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
 # define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END
 #endif
-#ifndef YY_INITIAL_VALUE
-# define YY_INITIAL_VALUE(Value) /* Nothing. */
-#endif
 
 /* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval YY_INITIAL_VALUE(yyval_default);
+YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
 int yynerrs;
@@ -1592,8 +1618,8 @@ yyparse ()
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
 
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;
+  yyss = yyssa;
+  yyvs = yyvsa;
   yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
@@ -1602,6 +1628,15 @@ yyparse ()
   yyerrstatus = 0;
   yynerrs = 0;
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
+  /* Initialize stack pointers.
+     Waste one element of value and location stack
+     so that they stay on the same level as the state stack.
+     The wasted elements are never initialized.  */
+  yyssp = yyss;
+  yyvsp = yyvs;
+
+  YYLVAL_INITIALIZE ();
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1781,13 +1816,13 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 210 "ncgen.y"
     {if (error_count > 0) YYABORT;}
     break;
 
   case 7:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 230 "ncgen.y"
     {
 		Symbol* id = (yyvsp[(2) - (3)].sym);
@@ -1799,25 +1834,25 @@ yyreduce:
     break;
 
   case 8:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 239 "ncgen.y"
     {listpop(groupstack);}
     break;
 
   case 11:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 245 "ncgen.y"
     {}
     break;
 
   case 12:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 247 "ncgen.y"
     {markcdf4("Type specification");}
     break;
 
   case 15:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 253 "ncgen.y"
     { /* Use when defining a type */
               (yyvsp[(1) - (1)].sym)->objectclass = NC_TYPE;
@@ -1829,19 +1864,19 @@ yyreduce:
     break;
 
   case 16:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 262 "ncgen.y"
     {}
     break;
 
   case 17:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 262 "ncgen.y"
     {}
     break;
 
   case 24:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 276 "ncgen.y"
     {
 		int i;
@@ -1872,13 +1907,13 @@ yyreduce:
     break;
 
   case 25:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 305 "ncgen.y"
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[(1) - (1)].sym));}
     break;
 
   case 26:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 307 "ncgen.y"
     {
 		    int i;
@@ -1897,7 +1932,7 @@ yyreduce:
     break;
 
   case 27:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 324 "ncgen.y"
     {
             (yyvsp[(1) - (3)].sym)->objectclass=NC_TYPE;
@@ -1908,7 +1943,7 @@ yyreduce:
     break;
 
   case 28:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 333 "ncgen.y"
     {
 		    vercheck(NC_OPAQUE);
@@ -1922,7 +1957,7 @@ yyreduce:
     break;
 
   case 29:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 345 "ncgen.y"
     {
                     Symbol* basetype = (yyvsp[(1) - (5)].sym);
@@ -1938,7 +1973,7 @@ yyreduce:
     break;
 
   case 30:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 359 "ncgen.y"
     {
 	    int i,j;
@@ -1972,19 +2007,19 @@ yyreduce:
     break;
 
   case 31:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 391 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (2)].mark);}
     break;
 
   case 32:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 392 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (3)].mark);}
     break;
 
   case 33:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 396 "ncgen.y"
     {
 	    int i;
@@ -2000,97 +2035,97 @@ yyreduce:
     break;
 
   case 34:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 409 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_CHAR]; }
     break;
 
   case 35:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 410 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_BYTE]; }
     break;
 
   case 36:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 411 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_SHORT]; }
     break;
 
   case 37:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 412 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_INT]; }
     break;
 
   case 38:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 413 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_FLOAT]; }
     break;
 
   case 39:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 414 "ncgen.y"
     { (yyval.sym) = primsymbols[NC_DOUBLE]; }
     break;
 
   case 40:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 415 "ncgen.y"
     { vercheck(NC_UBYTE); (yyval.sym) = primsymbols[NC_UBYTE]; }
     break;
 
   case 41:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 416 "ncgen.y"
     { vercheck(NC_USHORT); (yyval.sym) = primsymbols[NC_USHORT]; }
     break;
 
   case 42:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 417 "ncgen.y"
     { vercheck(NC_UINT); (yyval.sym) = primsymbols[NC_UINT]; }
     break;
 
   case 43:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 418 "ncgen.y"
     { vercheck(NC_INT64); (yyval.sym) = primsymbols[NC_INT64]; }
     break;
 
   case 44:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 419 "ncgen.y"
     { vercheck(NC_UINT64); (yyval.sym) = primsymbols[NC_UINT64]; }
     break;
 
   case 46:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 423 "ncgen.y"
     {}
     break;
 
   case 47:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 424 "ncgen.y"
     {}
     break;
 
   case 50:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 431 "ncgen.y"
     {}
     break;
 
   case 51:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 431 "ncgen.y"
     {}
     break;
 
   case 54:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 439 "ncgen.y"
     {
 		(yyvsp[(1) - (3)].sym)->dim.declsize = (size_t)uint32_val;
@@ -2101,7 +2136,7 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[(1) - (3)].sym)->name,(unsigned lo
     break;
 
   case 55:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 446 "ncgen.y"
     {
 		if(int32_val <= 0) {
@@ -2116,7 +2151,7 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[(1) - (3)].sym)->name,(unsigned lo
     break;
 
   case 56:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 457 "ncgen.y"
     { /* for rare case where 2^31 < dimsize < 2^32 */
                        if (double_val <= 0)
@@ -2133,7 +2168,7 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[(1) - (3)].sym)->name,(unsigned lo
     break;
 
   case 57:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 470 "ncgen.y"
     {
 		        (yyvsp[(1) - (3)].sym)->dim.declsize = NC_UNLIMITED;
@@ -2145,7 +2180,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 58:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 480 "ncgen.y"
     { 
                      (yyvsp[(1) - (1)].sym)->objectclass=NC_DIM;
@@ -2159,31 +2194,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 60:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 492 "ncgen.y"
     {}
     break;
 
   case 61:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 493 "ncgen.y"
     {}
     break;
 
   case 64:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 500 "ncgen.y"
     {}
     break;
 
   case 65:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 500 "ncgen.y"
     {}
     break;
 
   case 66:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 503 "ncgen.y"
     {
 		    int i;
@@ -2207,7 +2242,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 67:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 525 "ncgen.y"
     {(yyval.mark)=listlength(stack);
                  listpush(stack,(void*)(yyvsp[(1) - (1)].sym));
@@ -2215,13 +2250,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 68:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 529 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (3)].mark); listpush(stack,(void*)(yyvsp[(3) - (3)].sym));}
     break;
 
   case 69:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 533 "ncgen.y"
     {
 		    int i;
@@ -2250,31 +2285,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 70:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 559 "ncgen.y"
     {(yyval.mark)=listlength(stack);}
     break;
 
   case 71:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 560 "ncgen.y"
     {(yyval.mark)=(yyvsp[(2) - (3)].mark);}
     break;
 
   case 72:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 563 "ncgen.y"
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[(1) - (1)].sym));}
     break;
 
   case 73:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 565 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (3)].mark); listpush(stack,(void*)(yyvsp[(3) - (3)].sym));}
     break;
 
   case 74:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 569 "ncgen.y"
     {Symbol* dimsym = (yyvsp[(1) - (1)].sym);
 		dimsym->objectclass = NC_DIM;
@@ -2289,7 +2324,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 75:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 583 "ncgen.y"
     {(yyval.mark)=listlength(stack);
              listpush(stack,(void*)(yyvsp[(1) - (1)].sym));
@@ -2297,13 +2332,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 76:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 587 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (3)].mark); listpush(stack,(void*)(yyvsp[(3) - (3)].sym));}
     break;
 
   case 77:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 592 "ncgen.y"
     {
 		int i;
@@ -2334,31 +2369,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 78:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 620 "ncgen.y"
     {(yyval.mark)=listlength(stack);}
     break;
 
   case 79:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 621 "ncgen.y"
     {(yyval.mark)=(yyvsp[(2) - (3)].mark);}
     break;
 
   case 80:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 625 "ncgen.y"
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[(1) - (1)].sym));}
     break;
 
   case 81:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 627 "ncgen.y"
     {(yyval.mark)=(yyvsp[(1) - (3)].mark); listpush(stack,(void*)(yyvsp[(3) - (3)].sym));}
     break;
 
   case 82:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 632 "ncgen.y"
     {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
@@ -2372,7 +2407,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 83:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 642 "ncgen.y"
     {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
@@ -2390,7 +2425,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 84:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 662 "ncgen.y"
     {Symbol* vsym = (yyvsp[(1) - (1)].sym);
 		if(vsym->objectclass != NC_VAR) {
@@ -2402,7 +2437,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 85:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 673 "ncgen.y"
     {Symbol* tsym = (yyvsp[(1) - (1)].sym);
 		if(tsym->objectclass != NC_TYPE) {
@@ -2414,7 +2449,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 86:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 684 "ncgen.y"
     {Symbol* tvsym = (yyvsp[(1) - (1)].sym); Symbol* sym;
 		/* disambiguate*/
@@ -2437,31 +2472,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 87:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 702 "ncgen.y"
     {(yyval.sym)=(yyvsp[(1) - (1)].sym);}
     break;
 
   case 88:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 709 "ncgen.y"
     {}
     break;
 
   case 89:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 709 "ncgen.y"
     {}
     break;
 
   case 90:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 713 "ncgen.y"
     { (yyval.sym)=makeattribute((yyvsp[(2) - (4)].sym),NULL,NULL,(yyvsp[(4) - (4)].datalist),ATTRGLOBAL);}
     break;
 
   case 91:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 715 "ncgen.y"
     {Symbol* tsym = (yyvsp[(1) - (6)].sym); Symbol* vsym = (yyvsp[(2) - (6)].sym); Symbol* asym = (yyvsp[(4) - (6)].sym);
 		if(vsym->objectclass == NC_VAR) {
@@ -2474,7 +2509,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 92:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 724 "ncgen.y"
     {Symbol* sym = (yyvsp[(1) - (5)].sym); Symbol* asym = (yyvsp[(3) - (5)].sym);
 		if(sym->objectclass == NC_VAR) {
@@ -2489,67 +2524,67 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 93:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 735 "ncgen.y"
     {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)(yyvsp[(5) - (5)].datalist),0);}
     break;
 
   case 94:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 737 "ncgen.y"
     {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[(2) - (6)].sym),(yyvsp[(1) - (6)].sym),(void*)(yyvsp[(6) - (6)].datalist),0);}
     break;
 
   case 95:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 739 "ncgen.y"
     {(yyval.sym) = makespecial(_STORAGE_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 96:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 741 "ncgen.y"
     {(yyval.sym) = makespecial(_CHUNKSIZES_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)(yyvsp[(5) - (5)].datalist),0);}
     break;
 
   case 97:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 743 "ncgen.y"
     {(yyval.sym) = makespecial(_FLETCHER32_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 98:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 745 "ncgen.y"
     {(yyval.sym) = makespecial(_DEFLATE_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 99:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 747 "ncgen.y"
     {(yyval.sym) = makespecial(_SHUFFLE_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 100:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 749 "ncgen.y"
     {(yyval.sym) = makespecial(_ENDIAN_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 101:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 751 "ncgen.y"
     {(yyval.sym) = makespecial(_NOFILL_FLAG,(yyvsp[(1) - (5)].sym),NULL,(void*)&(yyvsp[(5) - (5)].constant),1);}
     break;
 
   case 102:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 753 "ncgen.y"
     {(yyval.sym) = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&(yyvsp[(4) - (4)].constant),1);}
     break;
 
   case 103:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 758 "ncgen.y"
     {
 	        (yyval.sym)=(yyvsp[(1) - (1)].sym);
@@ -2559,7 +2594,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 104:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 764 "ncgen.y"
     {
 	        (yyval.sym)=(yyvsp[(1) - (1)].sym);
@@ -2570,242 +2605,242 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[(1) - (3)].sym)->name);
     break;
 
   case 106:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 773 "ncgen.y"
     {}
     break;
 
   case 107:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 774 "ncgen.y"
     {}
     break;
 
   case 110:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 782 "ncgen.y"
     {(yyvsp[(1) - (3)].sym)->data = (yyvsp[(3) - (3)].datalist);}
     break;
 
   case 111:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 785 "ncgen.y"
     {(yyval.datalist) = (yyvsp[(1) - (1)].datalist);}
     break;
 
   case 112:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 786 "ncgen.y"
     {(yyval.datalist) = (yyvsp[(1) - (1)].datalist);}
     break;
 
   case 113:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 790 "ncgen.y"
     {(yyval.datalist) = builddatalist(0);}
     break;
 
   case 114:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 794 "ncgen.y"
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[(1) - (1)].constant)));}
     break;
 
   case 115:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 796 "ncgen.y"
     {datalistextend((yyvsp[(1) - (3)].datalist),&((yyvsp[(3) - (3)].constant))); (yyval.datalist)=(yyvsp[(1) - (3)].datalist);}
     break;
 
   case 116:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 800 "ncgen.y"
     {(yyval.constant)=(yyvsp[(1) - (1)].constant);}
     break;
 
   case 117:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 801 "ncgen.y"
     {(yyval.constant)=builddatasublist((yyvsp[(2) - (3)].datalist));}
     break;
 
   case 118:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 805 "ncgen.y"
     {(yyval.constant)=(yyvsp[(1) - (1)].constant);}
     break;
 
   case 119:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 806 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_OPAQUE);}
     break;
 
   case 120:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 807 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_FILLVALUE);}
     break;
 
   case 121:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 808 "ncgen.y"
     {(yyval.constant)=makeenumconst((yyvsp[(1) - (1)].sym));}
     break;
 
   case 123:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 813 "ncgen.y"
     {(yyval.constant)=evaluate((yyvsp[(1) - (4)].sym),(yyvsp[(3) - (4)].datalist));}
     break;
 
   case 124:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 818 "ncgen.y"
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[(1) - (1)].constant)));}
     break;
 
   case 125:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 820 "ncgen.y"
     {datalistextend((yyvsp[(1) - (3)].datalist),&((yyvsp[(3) - (3)].constant))); (yyval.datalist)=(yyvsp[(1) - (3)].datalist);}
     break;
 
   case 126:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 824 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_CHAR);}
     break;
 
   case 127:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 825 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_BYTE);}
     break;
 
   case 128:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 826 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_SHORT);}
     break;
 
   case 129:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 827 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_INT);}
     break;
 
   case 130:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 828 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_INT64);}
     break;
 
   case 131:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 829 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_UBYTE);}
     break;
 
   case 132:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 830 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_USHORT);}
     break;
 
   case 133:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 831 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_UINT);}
     break;
 
   case 134:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 832 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_UINT64);}
     break;
 
   case 135:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 833 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_FLOAT);}
     break;
 
   case 136:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 834 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_DOUBLE);}
     break;
 
   case 137:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 835 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_STRING);}
     break;
 
   case 138:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 839 "ncgen.y"
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[(1) - (1)].constant)));}
     break;
 
   case 139:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 840 "ncgen.y"
     {(yyval.datalist)=(yyvsp[(1) - (3)].datalist); datalistextend((yyvsp[(1) - (3)].datalist),&((yyvsp[(3) - (3)].constant)));}
     break;
 
   case 140:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 845 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_INT);}
     break;
 
   case 141:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 847 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_UINT);}
     break;
 
   case 142:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 849 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_INT64);}
     break;
 
   case 143:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 851 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_UINT64);}
     break;
 
   case 144:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 855 "ncgen.y"
     {(yyval.constant)=makeconstdata(NC_STRING);}
     break;
 
   case 145:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 859 "ncgen.y"
     {(yyval.constant)=(yyvsp[(1) - (1)].constant);}
     break;
 
   case 146:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 860 "ncgen.y"
     {(yyval.constant)=(yyvsp[(1) - (1)].constant);}
     break;
 
   case 147:
-/* Line 1792 of yacc.c  */
+/* Line 1813 of yacc.c  */
 #line 866 "ncgen.y"
     {(yyval.sym)=(yyvsp[(1) - (1)].sym);}
     break;
 
 
-/* Line 1792 of yacc.c  */
-#line 2809 "ncgen.tab.c"
+/* Line 1813 of yacc.c  */
+#line 2844 "ncgen.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3036,7 +3071,7 @@ yyreturn:
 }
 
 
-/* Line 2055 of yacc.c  */
+/* Line 2076 of yacc.c  */
 #line 869 "ncgen.y"
 
 
@@ -3340,7 +3375,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     Symbol* attr = NULL;
     Datalist* list;
     Constant* con;
-    Specialdata* special;
+    Specialdata* special = (Specialdata*)malloc(sizeof(Specialdata));
     Constant iconst;
     int tf = 0;
     char* sdata = NULL;

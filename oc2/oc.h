@@ -17,13 +17,6 @@ Version: 2.0
 /*!\file oc.h
 */
 
-#ifndef ssize_t
-#ifdef SSIZE_T
-#define ssize_t SSIZE_T
-#else
-#define ssize_t int
-#endif
-#endif
 /*!\defgroup Definitions Constants, types, etc.
 @{*/
 
@@ -93,6 +86,8 @@ OC_Structure=104,
 OC_Dimension=105,
 OC_Attribute=106,
 OC_Attributeset=107,
+OC_Map=108,
+OC_Group=109,
 } OCtype;
 
 /*!\enum OCerror
@@ -559,6 +554,14 @@ extern OCerror oc_set_useragent(OClink, const char* agent);
 #ifndef _WIN32
 extern OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
 #endif
+
+/*
+Define a callback function type
+*/
+
+typedef void oc_curl_callback(void*,void*);
+
+extern OCerror oc_set_curl_callback(OClink,oc_curl_callback*,void* state);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,8 @@
-PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""
+PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-#TOP="/home/dmh/mach/trunk"
-TOP="/cygdrive/f/svn/trunk"
+TOP="/home/dmh/mach/trunk"
+#TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
@@ -10,18 +10,20 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F=
+F="http://coastwatch.pfeg.noaa.gov/erddap/tabledap/erdCinpKfmT"
+CON='station&station="Anacapa_Landing_Cove"'
+#CON="station,longitude,latitude,altitude,time,temperature&station=%22Anacapa_Landing_Cove%22&time>=2007-01-01&time<=2007-06-01"
 
-PARMS="[log]"
-#PARMS="${PARMS}[netcdf3]"
-#PARMS="${PARMS}[fetch=disk]"
-#PARMS="${PARMS}[cache]"
-#PARMS="${PARMS}[nocache]"
-#PARMS="${PARMS}[wholevar]"
-PARMS="${PARMS}[show=fetch]"
-#PARMS="${PARMS}[noprefetch]"
-#PARMS="${PARMS}[prefetch]"
-#PARMS="${PARMS}[prefetch=eager]"
+PARMS="log"
+#PARMS="${PARMS}&netcdf3"
+#PARMS="${PARMS}&fetch=disk"
+#PARMS="${PARMS}&cache"
+#PARMS="${PARMS}&nocache"
+#PARMS="${PARMS}&wholevar"
+PARMS="${PARMS}&show=fetch"
+#PARMS="${PARMS}&noprefetch"
+#PARMS="${PARMS}&prefetch"
+#PARMS="${PARMS}&prefetch=eager"
 
 # Pick in order
 if test "x$PROG" = x ; then
@@ -37,9 +39,10 @@ if test "x$PROG" = x ; then
  PROG="../ncdump/ncdump"
 fi
 
-U="${PARMS}$F"
-if test "x$CON" != "x" ; then U="${PARMS}$F?$CON"; fi
-UALL="${PARMS}$F"
+if test "x$PARMS" != "x" ; then PARMS="\#$PARMS"; fi
+U="$F"
+if test "x$CON" != "x" ; then U="$U?$CON"; fi
+UALL="$U${PARMS}"
 #ARGS="-h $ARGS"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
@@ -48,13 +51,13 @@ VARGS="--leak-check=full"
 
 alias qq="gdb --args $PROG $ARGS '$U'"
 alias qv="valgrind $VARGS PROG $ARGS '$U'"
-alias q0="$PROG $ARGS '$U'"
-alias qh="$PROG -h $ARGS '$U'"
-alias qk="$PROG -k $ARGS '$U'"
-alias qvar="$PROG -v $VAR $ARGS '$U'"
-alias qqh="gdb --args $PROG -h $ARGS '$U'"
+alias q0="$PROG $ARGS '$UALL'"
+alias qh="$PROG -h $ARGS '$UALL'"
+alias qk="$PROG -k $ARGS '$UALL'"
+alias qvar="$PROG -v $VAR $ARGS '$UALL'"
+alias qqh="gdb --args $PROG -h $ARGS '$UALL'"
 alias qall="$PROG -h $ARGS '${UALL}'"
-alias qv="valgrind $VARGS $PROG $ARGS '$U'"
+alias qv="valgrind $VARGS $PROG $ARGS '$UALL'"
 if test "x$CON" = "x" ; then
 alias qo="~/svn/oc/octest -p dds -p datadds -DN -DX1 $F"
 else

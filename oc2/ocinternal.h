@@ -159,6 +159,8 @@ struct OCstate {
 	char *username;
 	char *password;
     } creds;
+    oc_curl_callback* usercurl;
+    void* usercurldata;
     long ddslastmodified;
     long datalastmodified;
 };
@@ -209,6 +211,5 @@ extern OCerror ocupdatelastmodifieddata(OCstate* state);
 extern int ocinternalinitialize(void);
 
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
-
 
 #endif /*COMMON_H*/

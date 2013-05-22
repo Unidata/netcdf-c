@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.5"
+#define YYBISON_VERSION "2.6.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -58,8 +58,6 @@
 /* Pull parsers.  */
 #define YYPULL 1
 
-/* Using locations.  */
-#define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
 #define yyparse         ncgparse
@@ -70,11 +68,9 @@
 #define yydebug         ncgdebug
 #define yynerrs         ncgnerrs
 
-
 /* Copy the first part of user declarations.  */
-
-/* Line 268 of yacc.c  */
-#line 9 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 358 of yacc.c  */
+#line 9 "ncgen.y"
 
 #ifdef sccs
 static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
@@ -147,14 +143,16 @@ void yyerror(char*);
 int yyerror(char*);
 #endif
 
+/* Line 358 of yacc.c  */
+#line 148 "ncgen.tab.c"
 
-/* Line 268 of yacc.c  */
-#line 153 "ncgen.tab.c"
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
+# ifndef YY_NULL
+#  if defined __cplusplus && 201103L <= __cplusplus
+#   define YY_NULL nullptr
+#  else
+#   define YY_NULL 0
+#  endif
+# endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -164,11 +162,17 @@ int yyerror(char*);
 # define YYERROR_VERBOSE 0
 #endif
 
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
+/* In a future release of Bison, this section will be replaced
+   by #include "ncgen.tab.h".  */
+#ifndef YY_NCG_NCGEN_TAB_H_INCLUDED
+# define YY_NCG_NCGEN_TAB_H_INCLUDED
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
 #endif
-
+#if YYDEBUG
+extern int ncgdebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -200,7 +204,6 @@ int yyerror(char*);
 #endif
 
 
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
@@ -208,12 +211,28 @@ typedef int YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+extern YYSTYPE ncglval;
+
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int ncgparse (void *YYPARSE_PARAM);
+#else
+int ncgparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int ncgparse (void);
+#else
+int ncgparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
+
+#endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-
-/* Line 343 of yacc.c  */
-#line 217 "ncgen.tab.c"
+/* Line 377 of yacc.c  */
+#line 236 "ncgen.tab.c"
 
 #ifdef short
 # undef short
@@ -266,24 +285,24 @@ typedef short int yytype_int16;
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
-#   define YY_(msgid) dgettext ("bison-runtime", msgid)
+#   define YY_(Msgid) dgettext ("bison-runtime", Msgid)
 #  endif
 # endif
 # ifndef YY_
-#  define YY_(msgid) msgid
+#  define YY_(Msgid) Msgid
 # endif
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(e) ((void) (e))
+# define YYUSE(E) ((void) (E))
 #else
-# define YYUSE(e) /* empty */
+# define YYUSE(E) /* empty */
 #endif
 
 /* Identity function, used to suppress warnings about constant conditions.  */
 #ifndef lint
-# define YYID(n) (n)
+# define YYID(N) (N)
 #else
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
@@ -319,6 +338,7 @@ YYID (yyi)
 #    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
+      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
 #     ifndef EXIT_SUCCESS
 #      define EXIT_SUCCESS 0
 #     endif
@@ -410,20 +430,20 @@ union yyalloc
 #endif
 
 #if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from FROM to TO.  The source and destination do
+/* Copy COUNT objects from SRC to DST.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(To, From, Count) \
-      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+#   define YYCOPY(Dst, Src, Count) \
+      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
 #  else
-#   define YYCOPY(To, From, Count)		\
-      do					\
-	{					\
-	  YYSIZE_T yyi;				\
-	  for (yyi = 0; yyi < (Count); yyi++)	\
-	    (To)[yyi] = (From)[yyi];		\
-	}					\
+#   define YYCOPY(Dst, Src, Count)              \
+      do                                        \
+        {                                       \
+          YYSIZE_T yyi;                         \
+          for (yyi = 0; yyi < (Count); yyi++)   \
+            (Dst)[yyi] = (Src)[yyi];            \
+        }                                       \
       while (YYID (0))
 #  endif
 # endif
@@ -538,7 +558,7 @@ static const yytype_uint16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
+#if YYDEBUG || YYERROR_VERBOSE || 0
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -553,7 +573,7 @@ static const char *const yytname[] =
   "vardecl", "type", "varlist", "varspec", "$@3", "var", "dimspec",
   "dimlist", "vdim", "attdecl", "$@4", "gattdecl", "$@5", "att", "gatt",
   "avar", "attr", "attvallist", "aconst", "attconst", "datasection",
-  "datadecls", "datadecl", "$@6", "constlist", "dconst", "$@7", "const", 0
+  "datadecls", "datadecl", "$@6", "constlist", "dconst", "$@7", "const", YY_NULL
 };
 #endif
 
@@ -669,10 +689,10 @@ static const yytype_uint8 yytable[] =
       93,    66,   101,    94,   111,     0,    86,     0,    51
 };
 
-#define yypact_value_is_default(yystate) \
-  ((yystate) == (-73))
+#define yypact_value_is_default(Yystate) \
+  (!!((Yystate) == (-73)))
 
-#define yytable_value_is_error(yytable_value) \
+#define yytable_value_is_error(Yytable_value) \
   YYID (0)
 
 static const yytype_int8 yycheck[] =
@@ -732,17 +752,18 @@ static const yytype_uint8 yystos[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)					\
-do								\
-  if (yychar == YYEMPTY && yylen == 1)				\
-    {								\
-      yychar = (Token);						\
-      yylval = (Value);						\
-      YYPOPSTACK (1);						\
-      goto yybackup;						\
-    }								\
-  else								\
-    {								\
+#define YYBACKUP(Token, Value)                                  \
+do                                                              \
+  if (yychar == YYEMPTY)                                        \
+    {                                                           \
+      yychar = (Token);                                         \
+      yylval = (Value);                                         \
+      YYPOPSTACK (yylen);                                       \
+      yystate = *yyssp;                                         \
+      goto yybackup;                                            \
+    }                                                           \
+  else                                                          \
+    {                                                           \
       yyerror (YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
@@ -752,31 +773,32 @@ while (YYID (0))
 #define YYTERROR	1
 #define YYERRCODE	256
 
-
 /* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
    If N is 0, then set CURRENT to the empty location which ends
    the previous symbol: RHS[0] (always defined).  */
 
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)				\
-    do									\
-      if (YYID (N))                                                    \
-	{								\
-	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
-	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
-	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
-	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
-	}								\
-      else								\
-	{								\
-	  (Current).first_line   = (Current).last_line   =		\
-	    YYRHSLOC (Rhs, 0).last_line;				\
-	  (Current).first_column = (Current).last_column =		\
-	    YYRHSLOC (Rhs, 0).last_column;				\
-	}								\
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (YYID (N))                                                     \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
     while (YYID (0))
 #endif
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
+
 
 
 /* This macro is provided for backward compatibility. */
@@ -837,6 +859,8 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
     YYSTYPE const * const yyvaluep;
 #endif
 {
+  FILE *yyo = yyoutput;
+  YYUSE (yyo);
   if (!yyvaluep)
     return;
 # ifdef YYPRINT
@@ -1088,12 +1112,12 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (0, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
   YYSIZE_T yysize1;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
-  const char *yyformat = 0;
+  const char *yyformat = YY_NULL;
   /* Arguments of yyformat. */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
@@ -1153,7 +1177,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                     break;
                   }
                 yyarg[yycount++] = yytname[yyx];
-                yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+                yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
                 if (! (yysize <= yysize1
                        && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
                   return 2;
@@ -1245,24 +1269,19 @@ yydestruct (yymsg, yytype, yyvaluep)
 }
 
 
-/* Prevent warnings from -Wmissing-prototypes.  */
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
 
 /* The lookahead symbol.  */
 int yychar;
+
+
+#ifndef YYLVAL_INITIALIZE
+# define YYLVAL_INITIALIZE()
+#endif
+#ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+# define YY_IGNORE_MAYBE_UNINITIALIZED_END
+#endif
 
 /* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
@@ -1305,7 +1324,7 @@ yyparse ()
        `yyss': related to states.
        `yyvs': related to semantic values.
 
-       Refer to the stacks thru separate pointers, to allow yyoverflow
+       Refer to the stacks through separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
     /* The state stack.  */
@@ -1323,7 +1342,7 @@ yyparse ()
   int yyn;
   int yyresult;
   /* Lookahead token as an internal (translated) token number.  */
-  int yytoken;
+  int yytoken = 0;
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
@@ -1341,7 +1360,6 @@ yyparse ()
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
 
-  yytoken = 0;
   yyss = yyssa;
   yyvs = yyvsa;
   yystacksize = YYINITDEPTH;
@@ -1360,6 +1378,7 @@ yyparse ()
   yyssp = yyss;
   yyvsp = yyvs;
 
+  YYLVAL_INITIALIZE ();
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1500,7 +1519,9 @@ yybackup:
   yychar = YYEMPTY;
 
   yystate = yyn;
+  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
+  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
   goto yynewstate;
 
@@ -1537,16 +1558,14 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-
-/* Line 1806 of yacc.c  */
-#line 114 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 114 "ncgen.y"
     { init_netcdf(); }
     break;
 
   case 3:
-
-/* Line 1806 of yacc.c  */
-#line 117 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 117 "ncgen.y"
     {
 		       if (derror_count == 0)
 			 define_netcdf(netcdfname);
@@ -1556,9 +1575,8 @@ yyreduce:
     break;
 
   case 4:
-
-/* Line 1806 of yacc.c  */
-#line 125 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 125 "ncgen.y"
     {
 		       if (derror_count == 0)
 			 close_netcdf();
@@ -1566,9 +1584,8 @@ yyreduce:
     break;
 
   case 11:
-
-/* Line 1806 of yacc.c  */
-#line 140 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 140 "ncgen.y"
     { if (int_val <= 0)
 			 derror("dimension length must be positive");
 		     dims[ndims].size = int_val;
@@ -1577,9 +1594,8 @@ yyreduce:
     break;
 
   case 12:
-
-/* Line 1806 of yacc.c  */
-#line 146 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 146 "ncgen.y"
     { /* for rare case where 2^31 < dimsize < 2^32 */
 		       if (double_val <= 0)
 			 derror("dimension length must be positive");
@@ -1593,9 +1609,8 @@ yyreduce:
     break;
 
   case 13:
-
-/* Line 1806 of yacc.c  */
-#line 157 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 157 "ncgen.y"
     {  if (rec_dim != -1)
 			 derror("only one NC_UNLIMITED dimension allowed");
 		     rec_dim = ndims; /* the unlimited (record) dimension */
@@ -1605,9 +1620,8 @@ yyreduce:
     break;
 
   case 14:
-
-/* Line 1806 of yacc.c  */
-#line 165 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 165 "ncgen.y"
     { 
 		    if ((yyvsp[(1) - (1)])->is_dim == 1) {
 		        derror( "duplicate dimension declaration for %s",
@@ -1626,51 +1640,44 @@ yyreduce:
     break;
 
   case 27:
-
-/* Line 1806 of yacc.c  */
-#line 197 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 197 "ncgen.y"
     { type_code = NC_BYTE; }
     break;
 
   case 28:
-
-/* Line 1806 of yacc.c  */
-#line 198 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 198 "ncgen.y"
     { type_code = NC_CHAR; }
     break;
 
   case 29:
-
-/* Line 1806 of yacc.c  */
-#line 199 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 199 "ncgen.y"
     { type_code = NC_SHORT; }
     break;
 
   case 30:
-
-/* Line 1806 of yacc.c  */
-#line 200 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 200 "ncgen.y"
     { type_code = NC_INT; }
     break;
 
   case 31:
-
-/* Line 1806 of yacc.c  */
-#line 201 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 201 "ncgen.y"
     { type_code = NC_FLOAT; }
     break;
 
   case 32:
-
-/* Line 1806 of yacc.c  */
-#line 202 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 202 "ncgen.y"
     { type_code = NC_DOUBLE; }
     break;
 
   case 35:
-
-/* Line 1806 of yacc.c  */
-#line 208 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 208 "ncgen.y"
     {
 		    static struct vars dummyvar;
 
@@ -1706,9 +1713,8 @@ yyreduce:
     break;
 
   case 36:
-
-/* Line 1806 of yacc.c  */
-#line 241 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 241 "ncgen.y"
     {
 		    vars[nvars].ndims = nvdims;
 		    nvars++;
@@ -1716,9 +1722,8 @@ yyreduce:
     break;
 
   case 42:
-
-/* Line 1806 of yacc.c  */
-#line 255 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 255 "ncgen.y"
     {
 		    if (nvdims >= NC_MAX_VAR_DIMS) {
 		       derror("%s has too many dimensions",vars[nvars].name);
@@ -1741,54 +1746,48 @@ yyreduce:
     break;
 
   case 43:
-
-/* Line 1806 of yacc.c  */
-#line 276 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 276 "ncgen.y"
     {
                    defatt();
 		   }
     break;
 
   case 44:
-
-/* Line 1806 of yacc.c  */
-#line 280 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 280 "ncgen.y"
     {
                    equalatt();
 		   }
     break;
 
   case 45:
-
-/* Line 1806 of yacc.c  */
-#line 285 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 285 "ncgen.y"
     {
                    defatt();
 		   }
     break;
 
   case 46:
-
-/* Line 1806 of yacc.c  */
-#line 289 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 289 "ncgen.y"
     {
                    equalatt();
 		   }
     break;
 
   case 48:
-
-/* Line 1806 of yacc.c  */
-#line 297 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 297 "ncgen.y"
     {
 		    varnum = NC_GLOBAL;  /* handle of "global" attribute */
 		   }
     break;
 
   case 49:
-
-/* Line 1806 of yacc.c  */
-#line 303 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 303 "ncgen.y"
     { if ((yyvsp[(1) - (1)])->is_var == 1)
 		       varnum = (yyvsp[(1) - (1)])->vnum;
 		    else {
@@ -1800,9 +1799,8 @@ yyreduce:
     break;
 
   case 50:
-
-/* Line 1806 of yacc.c  */
-#line 313 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 313 "ncgen.y"
     {
 		       /* make sure atts array will hold attributes */
 		       grow_aarray(natts,  /* must hold natts+1 atts */
@@ -1815,9 +1813,8 @@ yyreduce:
     break;
 
   case 53:
-
-/* Line 1806 of yacc.c  */
-#line 327 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 327 "ncgen.y"
     {
 		    if (valtype == NC_UNSPECIFIED)
 		      valtype = atype_code;
@@ -1827,9 +1824,8 @@ yyreduce:
     break;
 
   case 54:
-
-/* Line 1806 of yacc.c  */
-#line 336 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 336 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
 		       *char_valp++ = char_val;
@@ -1838,9 +1834,8 @@ yyreduce:
     break;
 
   case 55:
-
-/* Line 1806 of yacc.c  */
-#line 342 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 342 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
 		       {
@@ -1856,9 +1851,8 @@ yyreduce:
     break;
 
   case 56:
-
-/* Line 1806 of yacc.c  */
-#line 355 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 355 "ncgen.y"
     {
 		       atype_code = NC_BYTE;
 		       *byte_valp++ = byte_val;
@@ -1867,9 +1861,8 @@ yyreduce:
     break;
 
   case 57:
-
-/* Line 1806 of yacc.c  */
-#line 361 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 361 "ncgen.y"
     {
 		       atype_code = NC_SHORT;
 		       *short_valp++ = short_val;
@@ -1878,9 +1871,8 @@ yyreduce:
     break;
 
   case 58:
-
-/* Line 1806 of yacc.c  */
-#line 367 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 367 "ncgen.y"
     {
 		       atype_code = NC_INT;
 		       *int_valp++ = int_val;
@@ -1889,9 +1881,8 @@ yyreduce:
     break;
 
   case 59:
-
-/* Line 1806 of yacc.c  */
-#line 373 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 373 "ncgen.y"
     {
 		       atype_code = NC_FLOAT;
 		       *float_valp++ = float_val;
@@ -1900,9 +1891,8 @@ yyreduce:
     break;
 
   case 60:
-
-/* Line 1806 of yacc.c  */
-#line 379 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 379 "ncgen.y"
     {
 		       atype_code = NC_DOUBLE;
 		       *double_valp++ = double_val;
@@ -1911,9 +1901,8 @@ yyreduce:
     break;
 
   case 66:
-
-/* Line 1806 of yacc.c  */
-#line 395 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 395 "ncgen.y"
     {
 		       valtype = vars[varnum].type; /* variable type */
 		       valnum = 0;	/* values accumulated for variable */
@@ -1967,9 +1956,8 @@ yyreduce:
     break;
 
   case 67:
-
-/* Line 1806 of yacc.c  */
-#line 446 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 446 "ncgen.y"
     {
 		       if (valnum < var_len) { /* leftovers */
 			   nc_fill(valtype,
@@ -1987,9 +1975,8 @@ yyreduce:
     break;
 
   case 70:
-
-/* Line 1806 of yacc.c  */
-#line 465 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 465 "ncgen.y"
     {
 		       if(valnum >= var_len) {
 			   if (vars[varnum].dims[0] != rec_dim) { /* not recvar */
@@ -2017,9 +2004,8 @@ yyreduce:
     break;
 
   case 71:
-
-/* Line 1806 of yacc.c  */
-#line 490 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 490 "ncgen.y"
     {
 		       if (not_a_string) {
 			   switch (valtype) {
@@ -2048,9 +2034,8 @@ yyreduce:
     break;
 
   case 72:
-
-/* Line 1806 of yacc.c  */
-#line 518 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 518 "ncgen.y"
     {
 		       atype_code = NC_CHAR;
 		       switch (valtype) {
@@ -2079,9 +2064,8 @@ yyreduce:
     break;
 
   case 73:
-
-/* Line 1806 of yacc.c  */
-#line 544 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 544 "ncgen.y"
     {
 		       not_a_string = 0;
 		       atype_code = NC_CHAR;
@@ -2139,9 +2123,8 @@ yyreduce:
     break;
 
   case 74:
-
-/* Line 1806 of yacc.c  */
-#line 599 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 599 "ncgen.y"
     {
 		       atype_code = NC_BYTE;
 		       switch (valtype) {
@@ -2170,9 +2153,8 @@ yyreduce:
     break;
 
   case 75:
-
-/* Line 1806 of yacc.c  */
-#line 625 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 625 "ncgen.y"
     {
 		       atype_code = NC_SHORT;
 		       switch (valtype) {
@@ -2201,9 +2183,8 @@ yyreduce:
     break;
 
   case 76:
-
-/* Line 1806 of yacc.c  */
-#line 651 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 651 "ncgen.y"
     {
 		       atype_code = NC_INT;
 		       switch (valtype) {
@@ -2232,9 +2213,8 @@ yyreduce:
     break;
 
   case 77:
-
-/* Line 1806 of yacc.c  */
-#line 677 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 677 "ncgen.y"
     {
 		       atype_code = NC_FLOAT;
 		       switch (valtype) {
@@ -2263,9 +2243,8 @@ yyreduce:
     break;
 
   case 78:
-
-/* Line 1806 of yacc.c  */
-#line 703 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 703 "ncgen.y"
     {
 		       atype_code = NC_DOUBLE;
 		       switch (valtype) {
@@ -2297,9 +2276,8 @@ yyreduce:
     break;
 
   case 79:
-
-/* Line 1806 of yacc.c  */
-#line 732 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 1813 of yacc.c  */
+#line 732 "ncgen.y"
     {
 		       /* store fill_value */
 		       switch (valtype) {
@@ -2334,9 +2312,8 @@ yyreduce:
     break;
 
 
-
-/* Line 1806 of yacc.c  */
-#line 2340 "ncgen.tab.c"
+/* Line 1813 of yacc.c  */
+#line 2317 "ncgen.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2499,7 +2476,9 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
+  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
+  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
 
   /* Shift the error token.  */
@@ -2523,7 +2502,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined(yyoverflow) || YYERROR_VERBOSE
+#if !defined yyoverflow || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -2565,9 +2544,8 @@ yyreturn:
 }
 
 
-
-/* Line 2067 of yacc.c  */
-#line 767 "/home/wfisher/Desktop/netcdf-cmake/ncgen3/ncgen.y"
+/* Line 2076 of yacc.c  */
+#line 767 "ncgen.y"
 
 
 /* HELPER PROGRAMS */
@@ -2697,4 +2675,3 @@ clearout(void)	/* reset symbol table to empty */
 #define YY_NO_INPUT
 
 #include "ncgenyy.c"
-

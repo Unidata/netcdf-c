@@ -562,19 +562,19 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
     err = oc_dds_nsubnodes(link,ddsnode,&count);
     if(err != OC_NOERR) return err;
     for(i=0;i<count;i++) {
-	int match=1;
 	OCobject field;
 	char* fieldname = NULL;
+	int match = 1;
+
         err = oc_dds_ithfield(link,ddsnode,i,&field);
         if(err != OC_NOERR) return err;
 	// Get the field's name
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
 	if(fieldname != NULL) {
-	  match = strcmp(name,fieldname);
-	  free(fieldname);
+	    match = strcmp(name,fieldname);
+	    free(fieldname);
 	}
-	 
 	if(match == 0) {
 	    if(fieldp) *fieldp = field;
 	    return OC_NOERR;
@@ -2039,3 +2039,13 @@ oc_dds_free(OCobject link, OCobject dds0)
 }
 
 
+OCerror
+oc_set_curl_callback(OClink link, oc_curl_callback* callback, void* userstate)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    state->usercurl = callback;
+    state->usercurldata = userstate;
+    return OC_NOERR;
+}

@@ -34,12 +34,10 @@ EXTRA_DIST += CMakeLists.txt XGetopt.c
 
 # This is used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it. Don't forget to
-# manually insert #include <config.h> in ncgenyy.c!
-ncgenyy.c: ncgen.l
+# manually insert #include "config.h" in ncgenyy.c!
+makeparser::
 	flex -Pncg -8 ncgen.l
 	mv lex.ncg.c ncgenyy.c
-
-ncgentab.c ncgentab.h: ncgen.y
 	bison -pncg -d ncgen.y
 	mv ncgen.tab.c ncgentab.c
 	mv ncgen.tab.h ncgentab.h

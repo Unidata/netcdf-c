@@ -133,10 +133,10 @@ ncuriparse(const char* uri0, NCURI** durip)
     /* collect any prefix bracketed parameters */
     if(*p == LBRACKET) {
 	prefixparams = p+1;
-	/* find end of the clientparams; convert LB,RB to ';' */
+	/* find end of the clientparams; convert LB,RB to '&' */
         for(;*p;p++) {
 	    if(p[0] == RBRACKET && p[1] == LBRACKET) {
-		p[0] = ';';
+		p[0] = '&';
 		nclshift1(p+1);
 	    } else if(p[0] == RBRACKET && p[1] != LBRACKET)
 		break;
@@ -277,16 +277,12 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     if(suffixparams != NULL) {
 	/* there really are suffix params; so rebuild the suffix params */
+	if(*suffixparams == LBRACKET) suffixparams++;
         p = suffixparams;
-	/* There must be brackets */
-        if(*p != LBRACKET)
-	    {THROW(14); goto fail;}
-	suffixparams++; /* skip leading LBRACKET */
-	p = suffixparams;
-	/* convert RBRACKET LBRACKET to ';' */
+	/* convert RBRACKET LBRACKET to '&' */
         for(;*p;p++) {
 	    if(p[0] == RBRACKET && p[1] == LBRACKET) {
-	        p[0] = ';';
+	        p[0] = '&';
 		nclshift1(p+1);
 	    } else if(p[0] == RBRACKET && p[1] != LBRACKET) {
 		/* terminate suffixparams */
@@ -322,14 +318,14 @@ ncuriparse(const char* uri0, NCURI** durip)
 	int plen = prefixparams ? strlen(prefixparams) : 0;
 	int slen = suffixparams ? strlen(suffixparams) : 0;
 	int space = plen + slen + 1;
-	/* add 1 for an extra comma if both are defined */
+	/* add 1 for an extra ampersand if both are defined */
         space++;
         duri->params = (char*)malloc(space);
 	duri->params[0] = EOFCHAR; /* so we can use strcat */
 	if(plen > 0) {
             strcat(duri->params,prefixparams);
 	    if(slen > 0)
-		strcat(duri->params,";");
+		strcat(duri->params,"&");
 	}
 	if(slen > 0)
             strcat(duri->params,suffixparams);
@@ -562,12 +558,12 @@ ncappendparams(char* newuri, char** p)
 In the original url, client parameters are assumed to be one
 or more instances of bracketed pairs: e.g "[...][...]...".
 They may occur either at the front, or suffixed after
-a trailing # character After processing, the list is
-converted to a semicolon separated list of the combination
+a trailing # character. After processing, the list is
+converted to an ampersand separated list of the combination
 of prefix and suffix parameters.
 
 After the url is parsed, the parameter list
-is converted to a semicolon separated list with all
+is converted to an ampersand separated list with all
 whitespace removed.
 In any case, each parameter in turn is assumed to be a
 of the form <name>=<value> or [<name>].
@@ -592,11 +588,11 @@ ncuridecodeparams(NCURI* ncuri)
 
     params = strdup(ncuri->params); /* so we can modify */
 
-    /* Pass 1 to break string into pieces at the semicolons
+    /* Pass 1 to break string into pieces at the ampersands
        and count # of pairs */
     nparams=0;
     for(cp=params;(c=*cp);cp++) {
-	if(c == ';') {*cp = EOFCHAR; nparams++;}
+	if(c == '&') {*cp = EOFCHAR; nparams++;}
     }
     nparams++; /* for last one */
 
@@ -804,7 +800,6 @@ ncuridecodeonly(char* s, char* only)
     unsigned int c;
     
     if (s == NULL) return NULL;
-    if(only == NULL) only = "";
 
     slen = strlen(s);
     decoded = (char*)malloc(slen+1); /* Should be max we need */
@@ -812,7 +807,7 @@ ncuridecodeonly(char* s, char* only)
     outptr = decoded;
     inptr = s;
     while((c = *inptr++)) {
-	if(c == '+' && strchr(only,'+') != NULL)
+	if(c == '+' && only != NULL && strchr(only,'+') != NULL)
 	    *outptr++ = ' ';
 	else if(c == '%') {
             /* try to pull two hex more characters */
@@ -821,7 +816,7 @@ ncuridecodeonly(char* s, char* only)
 		&& strchr(hexchars,inptr[1]) != NULL) {
 		/* test conversion */
 		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
-		if(strchr(only,xc) != NULL) {
+		if(only == NULL || strchr(only,xc) != NULL) {
 		    inptr += 2; /* decode it */
 		    c = xc;
                 }

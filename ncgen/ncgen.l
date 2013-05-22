@@ -202,21 +202,21 @@ yytext[MAXTRST-1] = '\0';
 		return lexdebug(OPAQUESTRING);
 		}
 
-[cC]ompound|[sS]truct|[sS]tructure|STRUCT|COMPOUND|STRUCTURE {return lexdebug(COMPOUND);}
-enum|ENUM				{return lexdebug(ENUM);}
-opaque|OPAQUE				{return lexdebug(OPAQUE);}
+compound|struct|structure {return lexdebug(COMPOUND);}
+enum				{return lexdebug(ENUM);}
+opaque				{return lexdebug(OPAQUE);}
 
-float|FLOAT|real|REAL	{return lexdebug(FLOAT_K);}
-char|CHAR		{return lexdebug(CHAR_K);}
-byte|BYTE		{return lexdebug(BYTE_K);}
-ubyte|UBYTE		{return lexdebug(UBYTE_K);}
-short|SHORT		{return lexdebug(SHORT_K);}
-ushort|USHORT		{return lexdebug(USHORT_K);}
-long|LONG|int|INT|integer|INTEGER	{return lexdebug(INT_K);}
-ulong|ULONG|uint|UINT|uinteger|UINTEGER	{return lexdebug(UINT_K);}
-int64|INT64		{return lexdebug(INT64_K);}
-uint64|UINT64		{return lexdebug(UINT64_K);}
-double|DOUBLE		{return lexdebug(DOUBLE_K);}
+float|real		{return lexdebug(FLOAT_K);}
+char			{return lexdebug(CHAR_K);}
+byte			{return lexdebug(BYTE_K);}
+ubyte			{return lexdebug(UBYTE_K);}
+short			{return lexdebug(SHORT_K);}
+ushort			{return lexdebug(USHORT_K);}
+long|int|integer	{return lexdebug(INT_K);}
+ulong|uint|uinteger	{return lexdebug(UINT_K);}
+int64			{return lexdebug(INT64_K);}
+uint64			{return lexdebug(UINT64_K);}
+double			{return lexdebug(DOUBLE_K);}
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 

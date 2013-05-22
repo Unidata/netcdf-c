@@ -18,7 +18,7 @@ conditions.
 #include "ncdispatch.h" /* from libdispatch */
 #include <utf8proc.h>
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 
@@ -267,7 +267,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grpp,
     *nc = f;
 
 #if 0 /* I do not understand this code at all */
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
     if (h5->pnetcdf_file) {
       *h5p = NULL;
       *grpp = NULL;

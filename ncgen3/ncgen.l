@@ -118,12 +118,12 @@ exp		([eE][+-]?[0-9]+)
 		 	 return (TERMSTRING);
 		        }
 
-float|FLOAT|real|REAL	{return (FLOAT_K);}
-char|CHAR		{return (CHAR_K);}
-byte|BYTE		{return (BYTE_K);}
-short|SHORT		{return (SHORT_K);}
-long|LONG|int|INT|integer|INTEGER	{return (INT_K);}
-double|DOUBLE		{return (DOUBLE_K);}
+float|real		{return (FLOAT_K);}
+char			{return (CHAR_K);}
+byte			{return (BYTE_K);}
+short			{return (SHORT_K);}
+long|int|integer	{return (INT_K);}
+double			{return (DOUBLE_K);}
 unlimited|UNLIMITED	{int_val = -1;
 			 return (NC_UNLIMITED_K);}
 

@@ -194,6 +194,8 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     if((stat=ocset_curl_flags(state)) != OC_NOERR) goto fail;
     if((stat=ocset_proxy(state)) != OC_NOERR) goto fail;
     if((stat=ocset_ssl(state)) != OC_NOERR) goto fail;
+    if(state->usercurl)
+	state->usercurl((void*)state->curl,state->usercurldata);
 
     ocbytesclear(state->packet);
 
@@ -584,7 +586,7 @@ ocsetcurlproperties(OCstate* state)
     if(state->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
-    if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
+	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
 	    state->curlflags.useragent = agent;
     }
     return;

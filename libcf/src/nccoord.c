@@ -176,7 +176,8 @@ nccf_parse_coords(int ncid, int varid, char *att_name, int *naxes,
    size_t len;
    char *coords_str;
    char axis_name[NC_MAX_NAME + 1], *p, *a;
-   int num_axes = 0, axes[NC_MAX_DIMS];
+   int num_axes = 0;
+   int *axes;
    int a1, ret;
 
    /* Check reasonableness of name. */
@@ -196,6 +197,9 @@ nccf_parse_coords(int ncid, int varid, char *att_name, int *naxes,
 
    /* If we got the coord axes string, parse it to find the names of
     * the coordinate vars which make up this system. */
+   axes = (int*)malloc(sizeof(int)*NC_MAX_DIMS);
+   if(axes == null) return NC_ENOMEM;
+
    for (p = coords_str; !ret && (p - coords_str) < strlen(coords_str);)
    {
       for (a = axis_name; *p && *p != ' '; )
@@ -215,7 +219,7 @@ nccf_parse_coords(int ncid, int varid, char *att_name, int *naxes,
    if (axis_varids)
       for (a1 = 0; a1 < num_axes; a1++)
 	 axis_varids[a1] = axes[a1];
-   
+   free(axes)   
    return CF_NOERR;
 }
 

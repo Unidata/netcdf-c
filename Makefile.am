@@ -64,9 +64,9 @@ if BUILD_CDMREMOTE
 LIBCDMR = libcdmr
 endif
 
-# Build librpc
-if BUILD_RPC
-LIBRPC = librpc
+# Build pnetcdf
+if USE_PNETCDF
+LIBSRC5 = libsrc5
 endif
 
 # Build UDUNITS?
@@ -88,7 +88,7 @@ endif
 # and run. ncgen must come before ncdump, because their tests
 # depend on it. 
 SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
-$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBRPC) liblib  \
+$(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRC5) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
 man4 $(EXAMPLES) \

@@ -309,7 +309,7 @@ dcemergeprojections(DCEprojection* merged, DCEprojection* addition)
 */
 
 char*
-buildprojectionstring(NClist* projections)
+dcebuildprojectionstring(NClist* projections)
 {
     char* pstring;
     NCbytes* buf = ncbytesnew();
@@ -320,7 +320,7 @@ buildprojectionstring(NClist* projections)
 }
 
 char*
-buildselectionstring(NClist* selections)
+dcebuildselectionstring(NClist* selections)
 {
     NCbytes* buf = ncbytesnew();
     char* sstring;
@@ -331,7 +331,7 @@ buildselectionstring(NClist* selections)
 }
 
 char*
-buildconstraintstring(DCEconstraint* constraints)
+dcebuildconstraintstring(DCEconstraint* constraints)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;

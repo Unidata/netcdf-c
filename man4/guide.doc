@@ -1859,13 +1859,16 @@ and then verify them in HDF5. (And vice versa).
 
 Beginning with netCDF version 4.1, optional support is provided for
 accessing data through OPeNDAP servers using the DAP protocol.
+Currently, only DAP protocol version 2 is supported; DAP protocol
+version 4 support is under development.
 
 DAP support is automatically enabled if a usable curl library can be
-located using the curl-config program.
-DAP support can forcibly be enabled or disabled using the –enable-dap
-flag or the –disable-dap flag, respectively. If enabled, then DAP
-support requires access to the curl library. Refer to the installation
-manual for details: The NetCDF Installation and Porting Guide.
+set using the LDFLAGS environment variable (similar to the way
+that the HDF5 libraries are referenced).
+DAP support can forcibly be enabled or disabled using the --enable-dap
+flag or the --disable-dap flag, respectively.  If enabled,
+then DAP2 support requires access to the curl library.
+Refer to the installation manual for details
 
 DAP uses a data model that is different from that supported by netCDF,
 either classic or enhanced. Generically, the DAP data model is encoded
@@ -1878,18 +1881,24 @@ DDS and DAS, refer to the OPeNDAP web site http://opendap.org.
 
 In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
-format. The URL is composed of four parts.
- -  Client parameters - these are prefixed to the front of the URL and
-    are of the general form [{name}] or [{name}=value]. Examples
-    include [cache=1] and [netcdf3].
+format. The URL is composed of three parts.
  -  URL - this is a standard form URL such as
-    http://motherlode.unidata.ucar.edu:8081/dts/test.01
+    http://thredds-test.ucar.edu/dts/test.01
+
  -  Constraints - these are suffixed to the URL and take the form
-    “?\<projections>&selections”. The meaning of the terms projection
+    “?\<projections>&\<selections>”. The meaning of the terms projection
     and selection is somewhat complicated; and the OPeNDAP web site,
-    http://www.opendap.or, should be consulted. The interaction of DAP
+    http://www.opendap.org, should be consulted. The interaction of DAP
     constraints with netCDF is complex and at the moment requires an
     understanding of how DAP is translated to netCDF.
+
+ - Client parameters - these may be specified in either of
+   two ways.  The older, deprecated form prefixes text to the
+   front of the url and is of the the general form [\<name>]
+   or [\<name>=value].  Examples include [show=fetch] and
+   [noprefetch].  The newer, preferred form prefixes the
+   parameters to the end of the url using the semi-standard '#'
+   format: e.g. http://....#show=fetch&noprefetch.
 
 It is possible to see what the translation does to a particular DAP
 data source in either of two ways. First, one can examine the DDS
@@ -1903,15 +1912,15 @@ will return the DDS for the specified dataset, and the second URL will
 return the DAS for the specified dataset.
 
 \code
-     http://test.opendap.org:8080/dods/dts/test.01.dds
-     http://test.opendap.org:8080/dods/dts/test.01.das
+     http://thredds-test.ucar.edu/dts/test.01.dds
+     http://thredds-test.ucar.edu/dts/test.01.das
 \endcode
 
 Then by using the following ncdump command, it is possible to see the
 equivalent netCDF Classic translation.
 
 \code
-     ncdump -h http://test.opendap.org:8080/dods/dts/test.01
+     ncdump -h http://thredds-test.ucar.edu/dts/test.01
 \endcode
 
 The DDS output from the web server should look like this.
@@ -1986,11 +1995,11 @@ variable in the DDS.
 
 Alternately, one can get the text of the DDS as a global attribute by
 using the client parameters mechanism . In this case, the parameter
-“[show=dds]” can be prefixed to the URL and the data retrieved using
+“show=dds” can be used, and the data retrieved using
 the following command
 
 \code
-     ncdump -h [show=dds]http://test.opendap.org:8080/dods/dts/test.01.dds
+     ncdump -h http://thredds-test.ucar.edu/dts/test.01.dds#show=dds
 \endcode
 
 The ncdump -h command will then show both the translation and the
@@ -2012,19 +2021,18 @@ variables:
 
 \section dap_to_netcdf DAP to NetCDF Translation Rules
 
-Two translations are currently available.
+Currently only one translation available: DAP 2 Protocol to netCDF-3.
+There used to be a DAP 2 Protocol to netCDF-4 translation
+but that has been removed until the DAP4 protocol is available.
 
-    DAP 2 Protocol to netCDF-3
-    DAP 2 Protocol to netCDF-4 
-
-\subsection netCDF-3 Translation Rules
+\subsection nc3_trans_rules netCDF-3 Translation Rules
 
 The current default translation code translates the OPeNDAP protocol
 to netCDF-3 (classic). This netCDF-3 translation converts an OPeNDAP
 DAP protocol version 2 DDS to netCDF-3 and is designed to mimic as
 closely as possible the translation provided by the libnc-dap
-system. In addition, a translation to netCDF-4 (enhanced) is provided
-that is entirely new.
+system, except that some errors in that older translation have
+been fixed.
 
 For illustrative purposes, the following example will be used.
 
@@ -2059,7 +2067,7 @@ Dataset {
 } D1;
 \code
 
-\subsection Variable Definition
+\subsection var_def Variable Definition
 
 The set of netCDF variables is derived from the fields with primitive
 base types as they occur in Sequences, Grids, and Structures. The
@@ -2078,7 +2086,7 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     lon 
 \endcode
 
-\subsection Variable Dimension Translation
+\subsection var_dim_trans Variable Dimension Translation
 
 A variable's rank is determined from three sources.
 - The variable has the dimensions associated with the field it
@@ -2093,7 +2101,7 @@ containers is a DAP DDS Sequence. This is discussed more fully below.
 If the type of the netCDF variable is char, then an extra string
 dimension is added as the last dimension.
 
-\subsection Dimension translation
+\subsection dim_trans Dimension translation
 
 For dimensions, the rules are as follows.
 
@@ -2172,7 +2180,7 @@ dimensions:
   S1.FS2.f2_0 = 2 ;
 \endcode
 
-\subsection Variable Name Translation
+\subsection var_name_trans Variable Name Translation
 
 The steps for variable name translation are as follows.
 
@@ -2241,7 +2249,7 @@ int S1.FS2.f1(lat, lat) ;
 Note that this is incorrect because it dimensions S1.FS2.f1(2,2)
 rather than S1.FS2.f1(2,3).
 
-\subsection Translating DAP DDS Sequences
+\subsection translation Translating DAP DDS Sequences
 
 Any variable (as determined above) that is contained directly or
 indirectly by a Sequence is subject to revision of its rank using the
@@ -2311,154 +2319,19 @@ data to determine how many records are associated with the
 sequence. Since libnc-dap did essentially the same thing, it can be
 assumed that the cost is not prohibitive.
 
-\subsection netCDF-4 Translation Rules
-
-A DAP to netCDF-4 translation also exists, but is not the default and
-in any case is only available if the "–enable-netcdf-4" option is
-specified at configure time. This translation includes some elements
-of the libnc-dap translation, but attempts to provide a simpler (but
-not, unfortunately, simple) set of translation rules than is used for
-the netCDF-3 translation. Please note that the translation is still
-experimental and will change to respond to unforeseen problems or to
-suggested improvements.
-
-This text will use this running example.
-
-\code
-Dataset {
-  Int32 f1[fdim=10];
-  Structure {
-    Int32 f11;        
-    Structure {
-      Int32 f1[3];
-      Int32 f2;
-    } FS2[2]; 
-  } S1; 
-  Grid {
-    Array:
-      Float32 temp[lat=2][lon=2];
-    Maps:
-      Int32 lat[2];
-      Int32 lon[2];
-  } G1;
-  Sequence {
-    Float64 depth;
-  } Q1;
-} D
-\code
-
-\subsection Variable Definition
-
-The rule for choosing variables is relatively simple. Start with the
-names of the top-level fields of the DDS. The term top-level means
-that the object is a direct subnode of the Dataset object. In our
-example, this produces the set [f1, S1, G1, Q1].
-
-\subsection Dimension Definition
-
-The rules for choosing and defining dimensions is as follows.
-
-Collect the set of dimensions (named and anonymous) directly
-associated with the variables as defined above. This means that
-dimensions within user-defined types are ignored. From our example,
-the dimension set is [fdim=10,lat=2,lon=2,2,2]. Note that the
-unqualified names are used.
-
-All remaining anonymous dimensions are given the name "<var>_NN",
-where "<var>" is the unqualified name of the variable in which the
-anonymous dimension appears and NN is the relative position of that
-dimension in the dimensions associated with that array. No instances
-of this rule occur in the running example.
-
-Remove duplicate dimensions (those with same name and value). Our
-dimension set now becomes [fdim=10,lat=2,lon=2].
-
-The final case occurs when there are dimensions with the same name but
-with different values. For this case, the size of the dimension is
-appended to the dimension name.
-
-\subsection Type Definition
-
-The rules for choosing user-defined types are as follows.
-
-For every Structure, Grid, and Sequence, a netCDF-4 compound type is
-created whose fields are the fields of the Structure, Sequence, or
-Grid. With one exception, the name of the type is the same as the
-Structure or Grid name suffixed with "_t". The exception is that the
-compound types derived from Sequences are instead suffixed with
-"_record_t".
-
-The types of the fields are the types of the corresponding field of
-the Structure, Sequence, or Grid. Note that this type might be itself
-a user-defined type.
-
-From the example, we get the following compound types.
-
-\code
-         compound FS2_t {
-             int f1(3);
-             int f2;
-         };
-         compound S1_t {
-             int f11;
-             FS2_t FS2(2);  
-         };
-         compound G1_t {
-             float temp(2,2);
-             int lat(2);
-             int lon(2);
-         }
-         compound Q1_record_t {
-             double depth;
-         };
-\endcode
-
-For all sequences of name X, also create this type.
-
-\code
-             X_record_t (*) X_t
-\endcode
-
-In our example, this produces the following type.
-
-\code
-             Q1_record_t (*) Q1_t
-\endcode
-
-If a Sequence, Q has a single field F, whose type is a primitive type,
-T, (e.g., int, float, string), then do not apply the previous rule,
-but instead replace the whole sequence with the the following field.
-
-\code
-             T (*) Q.f
-\endcode
-
-\subsection Choosing a Translation
-
-The decision about whether to translate to netCDF-3 or netCDF-4 is
-determined by applying the following rules in order.
-- If the NC_CLASSIC_MODEL flag is set on nc_open(), then netCDF-3
-  translation is used.
-- If the NC_NETCDF4 flag is set on nc_open(), then netCDF-4
-  translation is used.
-- If the URL is prefixed with the client parameter "[netcdf3]" or
-  "[netcdf-3]" then netCF-3 translation is used.
-- If the URL is prefixed with the client parameter "[netcdf4]" or
-  "[netcdf-4]" then netCF-4 translation is used.
-- If none of the above holds, then default to netCDF-3 classic translation. 
-
-\subsection Caching
+\subsection caching Caching
 
 In an effort to provide better performance for some access patterns,
 client-side caching of data is available. The default is no caching,
-but it may be enabled by prefixing the URL with "[cache]".
+but it may be enabled by prefixing the URL with the paramter "cache".
 
 Caching operates basically as follows.
 
 When a URL is first accessed using nc_open(), netCDF automatically
 does a pre-fetch of selected variables. These include all variables
 smaller than a specified (and user definable) size. This allows, for
-example, quick access to coordinate variables.
+example, quick access to coordinate variables. This can be suppressed
+with the parameter "noprefetch".
 
 Whenever a request is made using some variant of the nc_get_var() API
 procedures, the complete variable is fetched and stored in the cache
@@ -2489,63 +2362,61 @@ have an obvious answer. Probably a good rule of thumb is to avoid
 caching initially and later turn it on to see its effect on
 performance.
 
-\subsection Defined Client Parameters
+\subsection defined_params Defined Client Parameters
 
 Currently, a limited set of client parameters is
 recognized. Parameters not listed here are ignored, but no error is
 signalled.
 
 Parameter Name Legal Values Semantics
-- [netcdf-3]|[netcdf-3] - Specify translation to netCDF-3.
-- [netcdf-4]|[netcdf-4] - Specify translation to netCDF-4.
-- "[log]|[log=<file>]" "" - Turn on logging and send the log output to
-  the specified file. If no file is specified, then output to standard
+- "log" | "log=<file>" - Turn on logging and send the log output to
+  the specified file. If no file is specified, then output is sent to standard
   error.
-- "[show=...]" das|dds|url - This causes information to appear as
+- "show=... das|dds|url" - This causes information to appear as
   specific global attributes. The currently recognized tags are "dds"
   to display the underlying DDS, "das" similarly, and "url" to display
   the url used to retrieve the data. This parameter may be specified
-  multiple times (e.g. “[show=dds][show=url]”).
-- "[show=fetch]" - This parameter causes the netCDF code to log a copy
+  multiple times (e.g. “show=dds&show=url”).
+- "show=fetch" - This parameter causes the netCDF code to log a copy
   of the complete url for every HTTP get request. If logging is
   enabled, then this can be helpful in checking to see the access
   behavior of the netCDF code.
-- "[stringlength=NN]" - Specify the default string length to use for
+- "stringlength=NN" - Specify the default string length to use for
   string dimensions. The default is 64.
-- "[stringlength_<var>=NN]" - Specify the default string length to use
+- "stringlength_<var>=NN" - Specify the default string length to use
   for a string dimension for the specified variable. The default is
   64.
-- "[cache]" - This enables caching.
-- "[cachelimit=NN]" - Specify the maximum amount of space allowed for
+- "cache" - This enables caching.
+- "cachelimit=NN" - Specify the maximum amount of space allowed for
   the cache.
-- "[cachecount=NN]" - Specify the maximum number of entries in the
+- "cachecount=NN" - Specify the maximum number of entries in the
   cache.
+- "noprefetch" - This disables prefetch of small variables.
 
-\subsection Notes on Debugging OPeNDAP Access
+\subsection dap_debug Notes on Debugging OPeNDAP Access
 
 The OPeNDAP support makes use of the logging facility of the
-underlying oc system. Note that this is currently separate from the
+underlying oc system (see http://www.opendap.org/oc).
+Note that this is currently separate from the
 existing netCDF logging facility. Turning on this logging can
 sometimes give important information. Logging can be enabled by
-prefixing the url with the client parameter [log] or [log=filename],
+using the client parameter "log" or "log=filename",
 where the first case will send log output to standard error and the
 second will send log output to the specified file.
 
-Users should also be aware that the DAP subsystem creates temporary
-files of the name dataddsXXXXXX, where XXXXX is some random string. If
-the program using the DAP subsystem crashes, these files may be left
-around. It is perfectly safe to delete them. Also, if you are
-accessing data over an NFS mount, you may see some .nfsxxxxx files;
-those can be ignored as well.  4.12.4 HTTP Configuration.
+Users should also be aware that if one is
+accessing data over an NFS mount, one may see some .nfsxxxxx files;
+those can be ignored.
+
+\subsection http_config HTTP Configuration.
 
 Limited support for configuring the http connection is provided via
-parameters in the “.httprc” configuration file. Although deprecated,
-the name “.dodsrc” may also be used. The relevant .httprc file is
+parameters in the “.dodsrc” configuration file. The relevant .dodsrc file is
 located by first looking in the current working directory, and if not
 found, then looking in the directory specified by the “$HOME”
 environment variable.
 
-Entries in the .httprc file are of the form:
+Entries in the .dodsrc file are of the form:
 
 \code
      ['['<url>']']<key>=<value>
@@ -2640,9 +2511,9 @@ follows.
 
 The related curl flags line indicates the curl flags modified by this
 key. See the libcurl documentation of the curl_easy_setopt() function
-for more detail http://curl.haxx.se/libcurl/c/curl_easy_setopt.html.
+for more detail (http://curl.haxx.se/libcurl/c/curl_easy_setopt.html).
 
-For ESG, the following entries must be specified:
+For ESG client side key support, the following entries must be specified:
 
 \code
     HTTP.SSL.VALIDATE
@@ -2973,7 +2844,7 @@ variables may be initialized. The syntax of an initialization is
 simple:
 
 \code
-     variable = value_1, value_2, ...;
+     variable = value_1, value_2, ... ;
 \endcode
 
 The comma-delimited list of constants may be separated by spaces,
@@ -3506,7 +3377,7 @@ omega:
 Examine the translated DDS for the DAP source from the specified URL:
 
 \code
-   ncdump -h http://test.opendap.org:8080/dods/dts/test.01 
+   ncdump -h http://thredds-test.ucar.edu/dts/test.01 
 \endcode
 
 Without dumping all the data, show the special virtual attributes that indicate

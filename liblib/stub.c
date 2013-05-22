@@ -8,6 +8,8 @@
 
 extern int NC3_initialize(void);
 
+extern int NCSUBSTRATE_initialize(void);
+
 #ifdef USE_NETCDF4
 extern int NC4_initialize(void);
 #endif
@@ -23,9 +25,17 @@ extern int NCD4_initialize(void);
 extern int NCCR_initialize(void);
 #endif
 
-#ifdef BUILD_RPC
-extern int NCRPC_initialize(void);
+#ifdef USE_PNETCDF
+extern int NC5_initialize(void);
 #endif
+
+/**
+This procedure invokes all defined
+initializers, and there is an initializer
+for every known dispatch table.
+So if you modify the format of NC_Dispatch,
+then you need to fix it everywhere.
+*/
 
 int
 NC_initialize(void)
@@ -43,6 +53,10 @@ NC_initialize(void)
     if((stat = NCD3_initialize())) return stat;
 #endif
 
+#ifdef USE_PNETCDF
+    if((stat = NC5_initialize())) return stat;
+#endif
+
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) return stat;
 
@@ -58,12 +72,10 @@ NC_initialize(void)
     if((stat = NCCR_initialize())) return stat;
 #endif
 
-#ifdef USE_RPC
-    if((stat = NCRPC_initialize())) return stat;
-#endif
-
 #endif /* USE_NETCDF4 */
 
+    /* Finally, initialize the SUBSTRATE table (dsubstrate.c) */
+    if((stat = NCSUBSTRATE_initialize())) return stat;
 
     return NC_NOERR;
 }

@@ -19,7 +19,7 @@
 #include <H5DSpublic.h>
 #include <math.h>
 
-#ifdef USE_PNETCDF
+#if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
 #endif
 

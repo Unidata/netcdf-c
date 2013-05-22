@@ -12,10 +12,10 @@
 #endif
 
 typedef enum CEops {
-CEO_NIL=0,CEO_EQ=1,CEO_NEQ=2,CEO_GE=3,CEO_GT=4,CEO_LT=5,CEO_LE=6,CEO_RE=7
+CEO_NIL=0,CEO_EQ=1,CEO_NEQ=2,CEO_GE=3,CEO_GT=4,CEO_LE=5,CEO_LT=6,CEO_RE=7
 } CEops;
 
-/* Must match NCCops */
+/* Must match CEops */
 #define OPSTRINGS {"?","=","!=",">=",">","<=","<","=~"}
 
 typedef enum CEsort {

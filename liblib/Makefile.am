@@ -33,9 +33,15 @@ endif # BUILD_V2
 # The output library will always include netcdf3 and dispatch
 # libraries
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
-${top_builddir}/libsrc/libnetcdf3.la
+			${top_builddir}/libsrc/libnetcdf3.la
 
-# netcdf3 + dap
+# + pnetcdf
+if USE_PNETCDF
+AM_CPPFLAGS += -I${top_srcdir}/libsrc5
+libnetcdf_la_LIBADD += ${top_builddir}/libsrc5/libnetcdf5.la
+endif # USE_PNETCDF
+
+# + dap
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la

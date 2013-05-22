@@ -95,8 +95,6 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
    char* fetchurl = NULL;
    CURL* curl = state->curl;
 
-   
-
    fileprotocol = (strcmp(url->protocol,"file")==0);
 
    if(fileprotocol && !state->curlflags.proto_file) {
