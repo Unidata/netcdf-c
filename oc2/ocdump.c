@@ -9,14 +9,6 @@
 #include <netinet/in.h>
 #endif
 
-#ifndef ssize_t 
-#ifdef SSIZE_T
-#define ssize_t SSIZE_T
-#else
-#define ssize_t int
-#endif
-#endif 
-
 #include "ocinternal.h"
 #include "ocdebug.h"
 
