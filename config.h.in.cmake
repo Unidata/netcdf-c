@@ -268,6 +268,5 @@
 #cmakedefine DLL_EXPORT
 #cmakedefine DLL_NETCDF
 
-
 #include <ncconfigure.h>
 #endif

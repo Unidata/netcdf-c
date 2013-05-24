@@ -15,7 +15,8 @@
 #else
 #define ssize_t int
 #endif
-#endif 
+#define HAVE_SSIZE_T
+#endif
 
 #include "ocinternal.h"
 #include "ocdebug.h"
