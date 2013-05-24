@@ -81,7 +81,7 @@ FIND_PACKAGE(PkgConfig QUIET)
 ## File taken from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
 ADD_MAKEDIST()
-ENABLE_MAKEDIST(cmake_config.h.in CMakeLists.txt cmake)
+
 
 ## End 'enable dist and distcheck'
 # Only necessary for Windows
@@ -97,6 +97,16 @@ ENDIF()
 #####
 # Some utility macros/scripts.
 #####
+# Macro to append files to the EXTRA_DIST files.
+#####
+SET(EXTRA_DIST "")
+MACRO(ADD_EXTRA_DIST files)
+  FOREACH(F ${files})
+    SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/${F})
+    SET(EXTRA_DIST ${EXTRA_DIST} PARENT_SCOPE)
+  
+  ENDFOREACH()
+ENDMACRO()
 
 # A basic script used to convert m4 files
 MACRO(GEN_m4 filename)
@@ -206,6 +216,7 @@ MACRO(print_conf_summary)
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
+
 	MESSAGE("")
 
 ENDMACRO()
@@ -916,7 +927,10 @@ set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
 set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
 	"The netCDF user documentation.")
 print_conf_summary()
-#MESSAGE(STATUS "CPACK_SOURCE_IGNORE_FILES: ${CPACK_SOURCE_IGNORE_FILES}")
+
+# Enable Makedist files.
+ENABLE_MAKEDIST(README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md configure)
+
 # CPack inclusion must come last.
 INCLUDE(CPack)
 
