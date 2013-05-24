@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #endif
 
-#ifndef HAVE_SSIZE_T
+#ifndef ssize_t 
 #ifdef SSIZE_T
 #define ssize_t SSIZE_T
 #else
