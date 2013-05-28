@@ -2566,58 +2566,13 @@ netCDF library has to come up with some default values.
 
 The C code below determines the default chunks sizes.
 
-For unlimited dimensions, a chunk size of one is always used. Users
-are advised to set chunk sizes for large data sets with one or more
-unlimited dimensions, since a chunk size of one is quite inefficient.
-
-For fixed dimensions, the algorithm below finds a size for the chunk
-sizes in each dimension which results in chunks of DEFAULT_CHUNK_SIZE
-(which can be modified in the netCDF configure script).
-
-\code
-     		     /* Unlimited dim always gets chunksize of 1. */
-     		     if (dim->unlimited)
-     			chunksize[d] = 1;
-     		     else
-     			chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size,
-     					   1/(double)(var->ndims - unlimdim));
-\endcode
-
-\page default_chunking_4_0_1 The Default Chunking Scheme in version 4.0.1
-
-In the 4.0.1 release, the default chunk sizes were chosen with a
-different scheme, as demonstrated in the following C code:
-
-\code
-     /* These are limits for default chunk sizes. (2^16 and 2^20). */
-     #define NC_LEN_TOO_BIG 65536
-     #define NC_LEN_WAY_TOO_BIG 1048576
-     
-           /* Now we must determine the default chunksize. */
-           if (dim->unlimited)
-              chunksize[d] = 1;
-           else if (dim->len < NC_LEN_TOO_BIG)
-              chunksize[d] = dim->len;
-           else if (dim->len > NC_LEN_TOO_BIG && dim->len <= NC_LEN_WAY_TOO_BIG)
-              chunksize[d] = dim->len / 2 + 1;
-           else
-              chunksize[d] = NC_LEN_WAY_TOO_BIG;
-\endcode
-
-As can be seen from this code, the default chunksize is 1 for
-unlimited dimensions, otherwise it is the full length of the dimension
-(if it is under NC_LEN_TOO_BIG), or half the size of the dimension (if
-it is between NC_LEN_TOO_BIG and NC_LEN_WAY_TOO_BIG), and, if it's
-longer than NC_LEN_WAY_TOO_BIG, it is set to NC_LEN_WAY_TOO_BIG.
-
-Our experience is that these defaults work well for small data sets,
-but once variable size reaches the GB range, the user is better off
-determining chunk sizes for their read access patterns.
-
-In particular, the idea of using 1 for the chunksize of an unlimited
-dimension works well if the data are being read a record at a
-time. Any other read access patterns will result in slower
-performance.
+For unlimited dimensions, a chunk size of one is always used. For
+large datasets, where the size of fixed dimensions is small compared
+to the unlimited dimensions, users are advised to avoid unlimited
+dimensions or to increase the chunk sizes of the unlimited
+dimensions. Be aware that an unlimited dimension with chunksize > 1
+may result in slower performance for record-oriented access patterns
+that where common with netcdf-3.
 
 \page chunking_parallel_io Chunking and Parallel I/O
 
