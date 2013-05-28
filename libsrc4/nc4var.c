@@ -282,19 +282,6 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	   num_values));
    }
 
-   /* If a dim is several orders of magnitude smaller than the max
-    * dimension, set it's chunk size to the full extent of the smaller
-    * dimension. */
-#define NC_DIM_MULTIPLIER 10000
-   for (d = 0; d < var->ndims; d++)
-      if (var->dim[d]->unlimited)
-	 var->chunksizes[d] = 1;
-      else if (!var->dim[d]->unlimited && var->dim[d]->len * NC_DIM_MULTIPLIER < max_len)
-      {
-	 var->chunksizes[d] = var->dim[d]->len;
-	 num_set++; 
-      }
-   
    /* Pick a chunk length for each dimension, if one has not already
     * been picked above. */
    for (d = 0; d < var->ndims; d++)
