@@ -29,6 +29,13 @@ ENDIF (USE_FFIO)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES}) 
 
+# Add files to the distribution
+FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
+ADD_EXTRA_DIST("${libsrc_SOURCES}")
+ADD_EXTRA_DIST("${libsrc_HEADERS}") 
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
+
 # The C API man page.
 set(man_MANS netcdf.3)
 
@@ -51,4 +58,3 @@ IF (BUILD_PARALLEL)
 	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
 ENDIF(BUILD_PARALLEL)
 
-ADD_EXTRA_DIST("${libsrc_SOURCES}" attr.m4 ncx.m4 putget.m4 XGetopt.c)

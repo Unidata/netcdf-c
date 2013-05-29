@@ -14,10 +14,11 @@ ADD_EXECUTABLE(tst_rename tst_rename.c)
 TARGET_LINK_LIBRARIES(nctest netcdf)
 TARGET_LINK_LIBRARIES(tst_rename netcdf)
 
-#INSTALL(TARGETS nctest DESTINATION bin)
-#INSTALL(TARGETS tst_rename DESTINATION bin)
-## Tests
-#ADD_TEST(run_tests.sh ${CMAKE_SOURCE_PATH}/run_tests.sh)
-
 ADD_TEST(nctest ${EXECUTABLE_OUTPUT_PATH}/nctest)
 ADD_TEST(tst_rename ${EXECUTABLE_OUTPUT_PATH}/tst_rename)
+
+## Specify files to be distributed by 'make dist'
+FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_nctest_classic.nc ref_nctest_64bit_offset.nc)
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

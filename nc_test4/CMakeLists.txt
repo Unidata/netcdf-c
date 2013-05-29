@@ -67,5 +67,11 @@ IF(USE_PNETCDF)
 	build_bin_test_no_prefix(tst_pnetcdf)
 	build_bin_test_no_prefix(tst_parallel2)
 	add_sh_test(nc_test4 run_pnetcdf_test)
-	#add_sh_test(nc_test4 run_pnetcdf_test)
 ENDIF()
+
+## Specify files to be distributed by 'make dist'
+FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc)
+
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
