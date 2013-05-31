@@ -37,7 +37,7 @@ main(int argc, char **argv) {
    char file_name[NC_MAX_NAME + 1];
    int  ncid;			/* netCDF id */
    int rec, i, j, k;
-   signed char x[] = {42, 21};
+   int x[] = {42, 21};
 
    /* dimension ids */
    int rec_dim;
@@ -47,8 +47,9 @@ main(int argc, char **argv) {
    int n_dim;
 
 #define NUMRECS 2
-#define I_LEN 4106
-#define J_LEN 1023
+#define I_LEN 5
+//#define J_LEN 214700000
+#define J_LEN   500000000
 #define K_LEN 1023
 #define N_LEN 2
 
@@ -64,7 +65,7 @@ main(int argc, char **argv) {
    int x_id;
 
    /* rank (number of dimensions) for each variable */
-#  define RANK_var1 4
+#  define RANK_var1 3
 #  define RANK_x 2
 
    /* variable shapes */
@@ -96,14 +97,14 @@ main(int argc, char **argv) {
 
    x_dims[0] = rec_dim;
    x_dims[1] = n_dim;
-   stat = nc_def_var(ncid, "x", NC_BYTE, RANK_x, x_dims, &x_id);
+   stat = nc_def_var(ncid, "x", NC_INT, RANK_x, x_dims, &x_id);
    check_err(stat,__LINE__,__FILE__);
 
    var1_dims[0] = rec_dim;
    var1_dims[1] = i_dim;
    var1_dims[2] = j_dim;
-   var1_dims[3] = k_dim;
-   stat = nc_def_var(ncid, "var1", NC_BYTE, RANK_var1, var1_dims, &var1_id);
+   //var1_dims[3] = k_dim;
+   stat = nc_def_var(ncid, "var1", NC_FLOAT, RANK_var1, var1_dims, &var1_id);
    check_err(stat,__LINE__,__FILE__);
 
    /* don't initialize variables with fill values */
@@ -115,30 +116,26 @@ main(int argc, char **argv) {
    check_err(stat,__LINE__,__FILE__);
 
    {			/* store var1 */
-       int n = 0;
-       static signed char var1[J_LEN][K_LEN];
-       static size_t var1_start[RANK_var1] = {0, 0, 0, 0};
-       static size_t var1_count[RANK_var1] = {1, 1, J_LEN, K_LEN};
-       static size_t x_start[RANK_x] = {0, 0};
-       static size_t x_count[RANK_x] = {1, N_LEN};
-       for(rec=0; rec<NUMRECS; rec++) {
-	   var1_start[0] = rec;
-	   x_start[0] = rec;
-	   for(i=0; i<I_LEN; i++) {
-	       for(j=0; j<J_LEN; j++) {
-		   for (k=0; k<K_LEN; k++) {
-		       var1[j][k] = (signed char) n;
-                   n++;
-                   n %= 256;
-		   }
-	       }
-	       var1_start[1] = i;
-	       stat = nc_put_vara_schar(ncid, var1_id, var1_start, var1_count, &var1[0][0]);
-	       check_err(stat,__LINE__,__FILE__);
-	   }
-       stat = nc_put_vara_schar(ncid, x_id, x_start, x_count, x);
-       check_err(stat,__LINE__,__FILE__);
+     static float var1[J_LEN];
+     static size_t var1_start[RANK_var1] = {0, 0, 0};
+     static size_t var1_count[RANK_var1] = {1, 1, J_LEN};
+     static size_t x_start[RANK_x] = {0, 0};
+     static size_t x_count[RANK_x] = {1, N_LEN};
+     for(rec=0; rec<NUMRECS; rec++) {
+       var1_start[0] = rec;
+       x_start[0] = rec;
+       for(i=0; i<I_LEN; i++) {
+         for(j=0; j<J_LEN; j++) {
+           var1[j] = (float)(j + (rec+1) * i);
+         }
+         var1_start[1] = i;
+         stat = nc_put_vara_float(ncid, var1_id, var1_start, var1_count, var1);
+         check_err(stat,__LINE__,__FILE__);
        }
+       x[0] += rec; x[1] += rec;
+       stat = nc_put_vara_int(ncid, x_id, x_start, x_count, x);
+       check_err(stat,__LINE__,__FILE__);
+     }
    }
 
    stat = nc_close(ncid);
@@ -151,37 +148,33 @@ main(int argc, char **argv) {
    check_err(stat,__LINE__,__FILE__);
 
    {			/* read var1 */
-       int n = 0;
-       static signed char var1[J_LEN][K_LEN];
-       static size_t var1_start[RANK_var1] = {0, 0, 0, 0};
-       static size_t var1_count[RANK_var1] = {1, 1, J_LEN, K_LEN};
-       static size_t x_start[RANK_x] = {0, 0};
-       static size_t x_count[RANK_x] = {1, N_LEN};
-       for(rec=0; rec<NUMRECS; rec++) {
-	   var1_start[0] = rec;
-	   x_start[0] = rec;
-	   for(i=0; i<I_LEN; i++) {
-	       var1_start[1] = i;
-	       stat = nc_get_vara_schar(ncid, var1_id, var1_start, var1_count, &var1[0][0]);
-	       check_err(stat,__LINE__,__FILE__);
-	       for(j=0; j<J_LEN; j++) {
-		   for (k=0; k<K_LEN; k++) {
-		       if (var1[j][k] != (signed char) n) {
-			   printf("Error on read, var1[%d, %d, %d, %d] = %d wrong, "
-				  "should be %d !\n", rec, i, j, k, var1[j][k], (signed char) n); 
-			   return 1;
-		       }
-		       n++;
-                   n %= 256;
-		   }
-	       }
-	   }
-	   nc_get_vara_schar(ncid, x_id, x_start, x_count, x);
-	   if(x[0] != 42 || x[1] != 21) {
-	       printf("Error on read, x[] = %d, %d\n", x[0], x[1]);
-	       return 1;
-	   }
+     static float avar1[J_LEN];
+     static size_t avar1_start[RANK_var1] = {0, 0, 0};
+     static size_t avar1_count[RANK_var1] = {1, 1, J_LEN};
+     static size_t ax_start[RANK_x] = {0, 0};
+     static size_t ax_count[RANK_x] = {1, N_LEN};
+     for(rec=0; rec<NUMRECS; rec++) {
+       avar1_start[0] = rec;
+       ax_start[0] = rec;
+       for(i=0; i<I_LEN; i++) {
+         avar1_start[1] = i;
+         stat = nc_get_vara_float(ncid, var1_id, avar1_start, avar1_count, avar1);
+         check_err(stat,__LINE__,__FILE__);
+         for(j=0; j<J_LEN; j++) 
+         {
+           if (avar1[j] != (float)(j + (rec + 1) * i)) {
+             printf("Error on read, var1[%d, %d, %d] = %g wrong, "
+                    "should be %g !\n", rec, i, j, avar1[j], (float) (j + (rec + 1)* i)); 
+             return 1;
+           }
+         }
        }
+       nc_get_vara_int(ncid, x_id, ax_start, ax_count, x);
+       if(x[0] != (42 + rec) || x[1] != (21+rec)) {
+         printf("Error on read, x[] = %d, %d\n", x[0], x[1]);
+         return 1;
+       }
+     }
    }
    stat = nc_close(ncid);
    check_err(stat,__LINE__,__FILE__);
