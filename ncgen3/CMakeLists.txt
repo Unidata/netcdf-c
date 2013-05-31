@@ -45,7 +45,7 @@ ENDIF()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt XGetopt.c Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt XGetopt.c Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl ncgen3.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
 

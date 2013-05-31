@@ -801,9 +801,7 @@ ENDIF()
 #####
 # Build doxygen documentation, if need be.
 #####
-IF(BUILD_DOCS)
-	ADD_SUBDIRECTORY(man4)
-ENDIF()
+ADD_SUBDIRECTORY(man4)
 #####
 # Moving on to CPack, install packages.
 #####
@@ -937,7 +935,7 @@ print_conf_summary()
 
 # Enable Makedist files.
 ADD_MAKEDIST()
-ENABLE_MAKEDIST(README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md configure)
+ENABLE_MAKEDIST(README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md configure configure.ac install-sh config.h.in config.sub)
 
 # CPack inclusion must come last.
 INCLUDE(CPack)

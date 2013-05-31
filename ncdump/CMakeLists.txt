@@ -7,8 +7,7 @@ IF(BUILD_SHARED_LIBS AND WIN32)
 	remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
-FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/cdl4 ${CMAKE_CURRENT_SOURCE_DIR}/expected4 )
-FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
 
 #IF(EXTRA_TESTS)
 ADD_CUSTOM_COMMAND(
@@ -134,13 +133,17 @@ ENDIF()
 INSTALL(TARGETS ncdump DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
-IF(NOT MSVC)	
-	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
-ENDIF()
+
+
+FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1) 
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
+ADD_SUBDIRECTORY(cdl4)
+ADD_SUBDIRECTORY(expected4)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test0.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl ref_tst_solar_2.cdl ref_tst_small.cdl tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl ref_tst_nans.cdl small.cdl small2.cdl ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_calendars.cdl ref_times.cdl ref_tst_special_atts.cdl ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl ref_nc_test_netcdf4_4_0.nc ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_charfill.cdl tst_charfill.cdl ref_tst_mud4.cdl ref_tst_ncf213.cdl CMakeLists.txt Makefile.am XGetopt.c)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test0.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl ref_tst_solar_2.cdl ref_tst_small.cdl tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl ref_tst_nans.cdl small.cdl small2.cdl ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_calendars.cdl ref_times.cdl ref_tst_special_atts.cdl ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl ref_nc_test_netcdf4_4_0.nc ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_charfill.cdl tst_charfill.cdl ref_tst_mud4.cdl ref_tst_ncf213.cdl CMakeLists.txt Makefile.am XGetopt.c nccopy.1 ncdump.1) 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
 
@@ -148,4 +151,8 @@ ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 SET(CLEANFILES test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c ctest64.c ctest0.nc  ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl)
 
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
+
+IF(NOT MSVC)	
+	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+ENDIF()
 
