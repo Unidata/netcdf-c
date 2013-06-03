@@ -2558,13 +2558,18 @@ function at any time on an open file. C programmers see
 nc_set_var_chunk_cache(), Fortran 77 programmers see
 NF_SET_VAR_CHUNK_CACHE, ).
 
-\page default_chunking_4_1 The Default Chunking Scheme in version 4.1
-(and 4.1.1)
+\page default_chunking_4_1 The Default Chunking Scheme
 
 When the data writer does not specify chunk sizes for variable, the
 netCDF library has to come up with some default values.
 
-The C code below determines the default chunks sizes.
+For unlimited dimensions, a chunk size of one is always used. For
+large datasets, where the size of fixed dimensions is small compared
+to the unlimited dimensions, users are advised to avoid unlimited
+dimensions or to increase the chunk sizes of the unlimited
+dimensions. Be aware that an unlimited dimension with chunksize > 1
+may result in slower performance for record-oriented access patterns
+that where common with netcdf-3.
 
 For unlimited dimensions, a chunk size of one is always used. For
 large datasets, where the size of fixed dimensions is small compared
