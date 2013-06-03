@@ -12,6 +12,13 @@ ENDIF()
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES}) 
 
+# Files for make dist
+FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+SET(CUR_EXTRA_DIST error4.c CMakeLists.txt Makefile.am)
+ADD_EXTRA_DIST("${libsrc4_SOURCES}")
+ADD_EXTRA_DIST("${libsrc4_HEADERS}")
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
+
 ###
 # Options related to the man page generation.
 ###
@@ -19,6 +26,7 @@ add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 ###
 # The C API man page.
 ###
+
 
 set(man_MANS netcdf.3)
 

@@ -80,7 +80,6 @@ FIND_PACKAGE(PkgConfig QUIET)
 ## Enable 'dist and distcheck'.
 ## File taken from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
-ADD_MAKEDIST()
 
 
 ## End 'enable dist and distcheck'
@@ -104,7 +103,6 @@ MACRO(ADD_EXTRA_DIST files)
   FOREACH(F ${files})
     SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/${F})
     SET(EXTRA_DIST ${EXTRA_DIST} PARENT_SCOPE)
-  
   ENDFOREACH()
 ENDMACRO()
 
@@ -710,15 +708,17 @@ IF(NOT WIN32)
        ENDIF()
 ENDIF()
 
-# Create config.h file
+# Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
+
+FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
-  "${netCDF_SOURCE_DIR}/nc-config")
-FILE(COPY "${netCDF_SOURCE_DIR}/nc-config"
-  DESTINATION "${netCDF_BINARY_DIR}"
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
+  "${netCDF_BINARY_DIR}/tmp/nc-config")
+FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+#EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
 
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
@@ -801,9 +801,7 @@ ENDIF()
 #####
 # Build doxygen documentation, if need be.
 #####
-IF(BUILD_DOCS)
-	ADD_SUBDIRECTORY(man4)
-ENDIF()
+ADD_SUBDIRECTORY(man4)
 #####
 # Moving on to CPack, install packages.
 #####
@@ -936,7 +934,8 @@ set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
 print_conf_summary()
 
 # Enable Makedist files.
-ENABLE_MAKEDIST(README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md configure)
+ADD_MAKEDIST()
+ENABLE_MAKEDIST(README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md configure configure.ac install-sh config.h.in config.sub)
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
