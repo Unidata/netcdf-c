@@ -3,6 +3,8 @@ This header file holds the documentation for the main page.
 
 \mainpage
 
+\section NetCDF
+
 NetCDF is a set of software libraries and self-describing,
 machine-independent data formats that support the creation, access,
 and sharing of array-oriented scientific data. 
@@ -22,9 +24,14 @@ Hartnett, Dennis Heimbigner and Ward Fisher
 - \ref building
 - \ref tutorial
 - \ref user_guide
-- \ref winbin 
 - <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Documentation for 4.1.3 (in previous form)</a>
+- NetCDF CMake and Windows support:
+	- \ref netCDF-CMake
+	- \ref winbin
+
 \internal
+
+
 
 The dispatch interface within the netCDF library allows the netCDF API
 to be used for different types of back-ends, for example, the HDF5
