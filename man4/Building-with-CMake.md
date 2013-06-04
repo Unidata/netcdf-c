@@ -54,13 +54,28 @@ The output of the configuration step is a project file based on the appropriate 
 ### Common CMake Options
 
 | **Option** | **Autotools** | **CMake** |
-| :------- | :----: | :-----: |
+| :------- | :---- | :----- |
 Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
 Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
 Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
 Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
 Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
 Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
+Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
+
+A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
+
+### Configuring your build from the command line.
+
+The easiest configuration case would be one in which all of the dependent libraries are installed on the system path (in either Unix/Linux or Windows) and all the default options are desired. From the build directory (often, but not required to be located within the source directory):
+
+> \> cmake [Source Directory]
+
+If you have libraries installed in a custom directory, you may need to specify the **CMAKE\_PREFIX_PATH** variable to tell cmake where the libraries are installed. For example:
+
+> \> cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
+
+
 
 ## Building
 
@@ -71,6 +86,8 @@ The compiler can be executed directly with 'make' or the appropriate command for
 Building can also be executed indirectly via cmake:
 
 > \> cmake --build [Build Directory]
+
+
 
 ## Testing
 
@@ -121,7 +138,16 @@ or
 		Alternatively, you may specify 
 			* -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" -DHDF5_INCLUDE_DIRS=/path/to/hdf5/include/
 			
+* **What if I want to link against multiple libraries in a non-standard location?**
+	
+		You can specify the path to search when looking for dependencies and header files using the CMAKE_PREFIX_PATH variable:
+	
+	
+		> cmake [Source Directory] -DCMAKE_PREFIX_PATH=c:\shared\libs\
+		or
+		> cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
 
+			
 * **How can I see the options available to CMake?**
 
 		> cmake [path to source tree] -L	- This will show the basic options.
