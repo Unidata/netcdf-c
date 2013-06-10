@@ -389,6 +389,11 @@ ENDIF()
 # Option to Enable HDF5
 OPTION (USE_SZIP "Use SZip" OFF)
 OPTION (USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
+OPTION (ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" OFF)
+IF(ENABLE_DYNAMIC_LOADING)
+  SET(USE_LIBDL ON CACHE BOOL "")
+ENDIF()
+
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
@@ -411,6 +416,24 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
   
+  # Starting with hdf5 1.8.11, dynamic loading is an option.
+  # In case hdf5 has a dependency on libdl, the user must specify
+  # -DENABLE_DYNAMIC_LOADING=ON when configuring netcdf.
+  IF(USE_LIBDL)
+    FIND_LIBRARY(LIBDL NAMES dl dld)
+    FIND_PATH(LIBDL_INCLUDE_DIR dlfcn.h)
+    IF(NOT LIBDL)
+      MESSAGE(ERROR "Cannot find libdl, but dynamic loading was specified.")
+    ENDIF()
+    IF(NOT LIBDL_INCLUDE_DIR)
+      MESSAGE(ERROR "Cannot find dlfcn.h, but dynamic loading was specified.")
+    ENDIF()
+    MESSAGE(STATUS "Found libdl: ${LIBDL}")
+    SET(HAVE_LIBDL ON)
+    INCLUDE_DIRECTORIES(${LIBDL_INCLUDE_DIR})
+
+  ENDIF()
+
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
 	FIND_PACKAGE(SZIP NO_MODULE)
