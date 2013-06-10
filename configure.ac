@@ -113,6 +113,14 @@ if test "x$enable_netcdf_4" = "x" ; then
   enable_netcdf_4="$enable_netcdf4"
 fi
 
+# Does the user require dynamic loading?
+# This is only for those hdf5 installs that support it.
+AC_MSG_CHECKING([do we require hdf5 dynamic-loading support])
+AC_ARG_ENABLE([dynamic-loading], [AS_HELP_STRING([--enable-dynamic-loading],
+				 [enable dynamic loading for use with supported hdf5 installs (libdl, HDF5 required)])])
+test "x$enable_dynamic_loading" = xyes || enable_dynamic_loading=xno
+AC_MSG_RESULT([$enable_dynamic_loading])
+
 # Does the user want to turn on HDF4 read ability?
 AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
@@ -704,6 +712,17 @@ if test "x$enable_netcdf_4" = xyes; then
    	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
+
+   # The user may have built HDF5 with libdl (dynamic loading support).
+   if test "x$enable_dynamic_loading" = xyes; then
+      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
+      if test "x$nc_dlfcn_h_missing" = xyes; then
+      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
+      fi
+      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
+      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
+   fi
+   
 
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then

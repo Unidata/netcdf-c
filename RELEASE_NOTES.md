@@ -5,6 +5,14 @@ Releases are in reverse chronological order (most recent first). Recent
 releases include references to Jira issue identifiers for more
 information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
+### 4.3.1 Released TBD
+
+* Added support for dynamic loading, to compliment the dynamic loading support introduced in hdf 1.8.11.  Dynamic loading support depends on libdl, and is enabled as follows: [NCF-258]
+	* autotools-based builds: --enable-dynamic-loading
+	* cmake-based builds: -DENABLE\_DYNAMIC\_LOADING=ON
+	
+[NCF-258]: https://www.unidata.ucar.edu/jira/browse/NCF-258
+
 ### 4.3.0 Released 2013-04-29
 
 * fsync: Changed default in autotools config file; fsync must now be

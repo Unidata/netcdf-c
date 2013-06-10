@@ -6,6 +6,15 @@ https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
 VERSION		COMMENTS
 -------		--------
+4.3.1		Released TBD
+
+		Added support for dynamic loading, to compliment
+		the dynamic loading support introduced in hdf 1.8.11. 
+		Dynamic loading support depends on libdl, and 
+		is enabled as follows: [NCF-258]
+			o autotools-based builds: --enable-dynamic-loading
+			o cmake-based builds: -DENABLE_DYNAMIC_LOADING=ON
+
 4.3		Released 2013-05-03
 
 	       fsync: Changed default in autotools config

@@ -73,6 +73,7 @@
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
 #cmakedefine EXTRA_TESTS
 #cmakedefine USE_NETCDF4 1
+#cmakedefine USE_LIBDL 1
 #cmakedefine USE_HDF4 1
 #cmakedefine USE_HDF5 1
 #cmakedefine USE_FFIO 1
@@ -95,7 +96,8 @@
 #cmakedefine HAVE_DOPRNT
 #cmakedefine HAVE_ALLOCA
 #cmakedefine HAVE_SSIZE_T 1
-#cmakedefine HAVE_LIBPNETCDF
+#cmakedefine HAVE_LIBPNETCDF 1
+#cmakedefine HAVE_LIBDL 1
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #cmakedefine HAVE_ALLOCA_H @HAVE_ALLOCA_H@
