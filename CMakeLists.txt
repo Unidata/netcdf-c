@@ -735,14 +735,6 @@ ENDIF()
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
 
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
-configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
-  "${netCDF_BINARY_DIR}/tmp/nc-config")
-FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-#EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
-
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
@@ -955,6 +947,19 @@ set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
 set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
 	"The netCDF user documentation.")
 print_conf_summary()
+
+
+# Create nc-config
+FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
+FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+#EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
+
+
+
 
 # Enable Makedist files.
 ADD_MAKEDIST()

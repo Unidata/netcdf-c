@@ -4,24 +4,67 @@
 # various things about the netCDF installation. This code was
 # contributed by netCDF user Arlindo DaSilva. Thanks Arlindo!
 
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_PREFIX@/lib
+includedir=@CMAKE_INSTALL_PREFIX@/include
 
+cc="@CMAKE_C_COMPILER@"
+cflags="-I@CMAKE_INSTALL_PREFIX@/include @CMAKE_C_FLAGS@ @CMAKE_CPP_FLAGS@"
+libs="-L@CMAKE_INSTALL_PREFIX@/lib -l@ALL_TLL_LIBS@"
 
-prefix=${CMAKE_INSTALL_PREFIX}
-exec_prefix=${CMAKE_INSTALL_PREFIX}
-libdir=${CMAKE_INSTALL_PREFIX}/lib
-includedir=${CMAKE_INSTALL_PREFIX}/include
-
-cc="@CC@"
-cflags=" -I${includedir} @CPPFLAGS@" 
-libs="-L${CMAKE_INSTALL_PREFIX} @NC_LIBS@"
 has_dap="@USE_DAP@"
-has_nc2="@USE_V2@"
+if [ -z $has_dap ]; then
+    has_dap="no"
+else
+    has_dap="yes"
+fi
+
+has_nc2="@BUILD_V2@"
+
+if [ -z $has_nc2 ]; then
+    has_nc2="no"
+else
+    has_nc2="yes"
+fi
+
 has_nc4="@USE_NETCDF4@"
+if [ -z $has_nc4 ]; then
+    has_nc4="no"
+else
+    has_nc4="yes"
+fi
+
 has_hdf4="@USE_HDF4@"
+if [ -z $has_hdf4 ]; then
+    has_hdf4="no"
+else
+    has_hdf4="yes"
+fi
+
 has_pnetcdf="@USE_PNETCDF@"
+if [ -z $has_pnetcdf ]; then
+    has_pnetcdf="no"
+else
+    has_pnetcdf="yes"
+fi
+
 has_hdf5="@USE_HDF5@"
-has_szlib="@U_SZLIB@"
-version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
+if [ -z $has_hdf5 ]; then
+    has_hdf5="no"
+else
+    has_hdf5="yes"
+fi
+
+has_szlib="@USE_SZLIB@"
+if [ -z $has_szlib ]; then
+    has_szlib="no"
+else
+    has_szlib="yes"
+fi
+
+
+version="@PACKAGE@ @VERSION@"
 
 has_f90="no"
 if type -p nf-config > /dev/null 2>&1; then
@@ -35,13 +78,9 @@ has_cxx="no"
 has_cxx4="no"
 if type -p ncxx4-config > /dev/null 2>&1; then
   cxx4=`ncxx4-config --cxx`
-#  cxxflags=`ncxx4-config --cxxflags`
-#  cxxlibs=`ncxx4-config --cxxlibs`
   has_cxx4="yes"
 elif type -p ncxx-config > /dev/null 2>&1; then
   cxx=`ncxx-config --cxx`
-#  cxxflags=`ncxx-config --cxxflags`
-#  cxxlibs=`ncxx-config --cxxlibs`
   has_cxx="yes"
 fi
 
@@ -107,8 +146,6 @@ all()
         echo
         echo "  --has-c++   -> $has_cxx"
         echo "  --cxx       -> $cxx"
-#	echo "  --cxxflags  -> $cxxflags"
-#	echo "  --cxxlibs   -> $cxxlibs"
         echo "  --has-c++4  -> $has_cxx4"
         echo "  --cxx4      -> $cxx4"
         echo
