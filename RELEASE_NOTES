@@ -8,6 +8,11 @@ VERSION		COMMENTS
 -------		--------
 4.3.1		Released TBD
 
+		Added Greg Sjaardema's contributed optimization for
+		the nc4_find_dim_len function in
+		libsrc4/nc4internal.c. The patch eliminates several
+		malloc/free calls that exist in the original coding.
+
 		Added support for dynamic loading, to compliment
 		the dynamic loading support introduced in hdf 1.8.11. 
 		Dynamic loading support depends on libdl, and 
