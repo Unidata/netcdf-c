@@ -1,14 +1,14 @@
-# Doxyfile 1.6.1
+# Doxyfile 1.8.3.1
 
 # This file describes the settings to be used by the documentation system
-# doxygen (www.doxygen.org) for a project
+# doxygen (www.doxygen.org) for a project.
 #
-# All text after a hash (#) is considered a comment and will be ignored
+# All text after a hash (#) is considered a comment and will be ignored.
 # The format is:
 #       TAG = value [value, ...]
 # For lists items can also be appended using:
 #       TAG += value [value, ...]
-# Values that contain spaces should be placed between quotes (" ")
+# Values that contain spaces should be placed between quotes (" ").
 
 #---------------------------------------------------------------------------
 # Project related configuration options

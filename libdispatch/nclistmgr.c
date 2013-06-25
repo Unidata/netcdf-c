@@ -43,7 +43,7 @@ add_to_NCList(NC* ncp)
 	numfiles = 0;
     }
     new_id = 0; /* id's begin at 1 */
-    for(i=1;i<0x10000;i++) {
+    for(i=1; i < NCFILELISTLENGTH; i++) {
 	if(nc_filelist[i] == NULL) {new_id = i; break;}
     }
     if(new_id == 0) return NC_ENOMEM; /* no more slots */

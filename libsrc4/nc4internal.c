@@ -70,11 +70,10 @@ nc4_check_name(const char *name, char *norm_name)
    return NC_NOERR;
 }
 
-/* Given a varid, find its shape. For unlimited dimensions, return
-   the current number of records. */
+/* Given a varid, return the maximum length of a dimension using dimid */
+
 static int
-find_var_shape_grp(NC_GRP_INFO_T *grp, int varid, int *ndims, 
-		   int *dimid, size_t *dimlen)
+find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen)
 {
    hid_t datasetid = 0, spaceid = 0;
    NC_VAR_INFO_T *var;
@@ -82,6 +81,8 @@ find_var_shape_grp(NC_GRP_INFO_T *grp, int varid, int *ndims,
    int d, dataset_ndims = 0;
    int retval = NC_NOERR;
 
+   *maxlen = 0;
+   
    /* Find this var. */
    for (var = grp->var; var; var = var->next)
       if (var->varid == varid)
@@ -89,58 +90,49 @@ find_var_shape_grp(NC_GRP_INFO_T *grp, int varid, int *ndims,
    if (!var)
       return NC_ENOTVAR;
 
-   /* Get the dimids and the ndims for this var. */
-   if (ndims)
-      *ndims = var->ndims;
-
-   if (dimid)
-      for (d = 0; d < var->ndims; d++)
-	 dimid[d] = var->dimids[d];
-   
-   if (dimlen)
+   /* If the var hasn't been created yet, its size is 0. */
+   if (!var->created)
    {
-      /* If the var hasn't been created yet, its size is 0. */
-      if (!var->created)
-      {
-	 for (d = 0; d < var->ndims; d++)
-	    dimlen[d] = 0;
-      }
-      else
-      {
-	 /* Get the number of records in the dataset. */
-	 if ((retval = nc4_open_var_grp2(grp, var->varid, &datasetid)))
-	    BAIL(retval);
-	 if ((spaceid = H5Dget_space(datasetid)) < 0)
-	    BAIL(NC_EHDFERR);
+     *maxlen = 0;
+   }
+   else
+   {
+     /* Get the number of records in the dataset. */
+     if ((retval = nc4_open_var_grp2(grp, var->varid, &datasetid)))
+       BAIL(retval);
+     if ((spaceid = H5Dget_space(datasetid)) < 0)
+       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
-	 num_spaces++;
+     num_spaces++;
 #endif
-	 /* If it's a scalar dataset, it has length one. */
-	 if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR)
-	 {
-	    dimlen[0] = 1;
+     /* If it's a scalar dataset, it has length one. */
+     if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR)
+     {
+       *maxlen = (var->dimids && var->dimids[0] == dimid) ? 1 : 0;
+     }
+     else
+     {
+       /* Check to make sure ndims is right, then get the len of each
+	  dim in the space. */
+       if ((dataset_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
+	 BAIL(NC_EHDFERR);
+       if (dataset_ndims != var->ndims)
+	 BAIL(NC_EHDFERR);
+       if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
+	 BAIL(NC_ENOMEM);
+       if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t))))
+	 BAIL(NC_ENOMEM);
+       if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, 
+						      h5dimlen, h5dimlenmax)) < 0)
+	 BAIL(NC_EHDFERR);
+       LOG((5, "find_var_shape_nc: varid %d len %d max: %d", 
+	    varid, (int)h5dimlen[0], (int)h5dimlenmax[0]));
+       for (d=0; d<dataset_ndims; d++) {
+	 if (var->dimids[d] == dimid) {
+	   *maxlen = *maxlen > h5dimlen[d] ? *maxlen : h5dimlen[d];
 	 }
-	 else
-	 {
-	    /* Check to make sure ndims is right, then get the len of each
-	       dim in the space. */
-	    if ((dataset_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
-	       BAIL(NC_EHDFERR);
-	    if (ndims && dataset_ndims != *ndims)
-	       BAIL(NC_EHDFERR);
-	    if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
-	       BAIL(NC_ENOMEM);
-	    if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t))))
-	       BAIL(NC_ENOMEM);
-	    if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, 
-							   h5dimlen, h5dimlenmax)) < 0)
-	       BAIL(NC_EHDFERR);
-	    LOG((5, "find_var_shape_nc: varid %d len %d max: %d", 
-		 varid, (int)h5dimlen[0], (int)h5dimlenmax[0]));
-	    for (d=0; d<dataset_ndims; d++)
-	       dimlen[d] = h5dimlen[d];
-	 }
-      }
+       }
+     }
    }
 
   exit:
@@ -478,9 +470,11 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
-   int d, ndims, *dimids = NULL;
-   size_t *dimlen = NULL;
+   int d, ndims;
    int retval; 
+   
+   size_t mylen;
+   int curmax = 0;
    
    assert(grp && len);
    LOG((3, "nc4_find_dim_len: grp->name %s dimid %d", grp->name, dimid));
@@ -495,32 +489,11 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
     * dimension, and remember the max length. */
    for (var = grp->var; var; var = var->next)
    {
-     if(var->ndims > 0) {
-       dimids = (int*)malloc(sizeof(int)*var->ndims);
-       dimlen = (size_t*)malloc(sizeof(size_t)*var->ndims);
-     }
-     
-     /* Find dimensions of this var. */
-     if ((retval = find_var_shape_grp(grp, var->varid, &ndims, 
-				      dimids, dimlen))) {
-       free(dimids);
-       free(dimlen);
+     /* Find max length of dim in this variable... */
+     if ((retval = find_var_dim_max_length(grp, var->varid, dimid, &mylen)))
        return retval;
-     }
      
-     /* Check for any dimension that matches dimid. If found, check
-      * if its length is longer than *lenp. */
-     for (d = 0; d < ndims; d++)
-       {
-	 if (dimids[d] == dimid)
-	   {
-	     /* Remember the max length in *lenp. */
-	     **len = dimlen[d] > **len ? dimlen[d] : **len;
-	     break;
-	   }
-       }
-     free(dimids); dimids = NULL;
-     free(dimlen); dimlen = NULL;
+     **len = **len > mylen ? **len : mylen;
    }
    
    return NC_NOERR;
