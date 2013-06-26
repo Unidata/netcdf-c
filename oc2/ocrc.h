@@ -30,7 +30,4 @@ extern int ocdodsrc_read(char* basename,char *in_file_name);
 extern int ocdodsrc_process(OCstate* state);
 extern char* ocdodsrc_lookup(char* key, char* url);
 
-extern int occredentials_in_url(const char *url);
-extern int ocextract_credentials(const char *url, char **name, char **pw, char **result_url);
-
 #endif /* RC_H_ */
