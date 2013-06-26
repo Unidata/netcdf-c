@@ -82,7 +82,7 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 /* Need some (unused) definitions to get it to compile */
 #define ncatt_t void*
 #define ncvar_t void
-#include        "nctime.h"
+#include "nctime.h"
 
 /* parser controls */
 #define YY_NO_INPUT 1

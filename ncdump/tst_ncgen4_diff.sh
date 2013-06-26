@@ -56,7 +56,7 @@ cd ..
 
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
-set -x
+#set -x
 echo "*** PASSED: ${okcount}/${totalcount} ; ${xfailcount} expected failures ; ${failcount} unexpected failures"
 
 if test $failcount -gt 0 ; then

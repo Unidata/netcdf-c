@@ -6,7 +6,7 @@ if test $# != 0 ; then
 cmds=$@
 fi
 
-#HDF5=1
+HDF5=1
 DAP=1
 #PNETCDF=1
 #HDF4=1
@@ -17,6 +17,7 @@ DAP=1
 #M64=1
 
 #INSTALL=1
+#PREFIX=/usr/local
 
 if test "x$cmds" = x ; then
 cmds=""
@@ -41,14 +42,16 @@ CC=gcc
 fi
 
 # Default cases
-if test -e "/share/ed/local/${HOST}" ; then
+if test -f "/share/ed/local/${HOST}" ; then
 stddir="/share/ed/local/${HOST}"
 else
 stddir="/usr/local"
 fi
 
 if test "x$INSTALL" = "x1" ; then
-PREFIX="$stddir/${HOST}"
+  if test "x$PREFIX" = x ; then
+   PREFIX="$stddir/${HOST}"
+  fi
 else
 PREFIX="/tmp/local/${HOST}"
 fi

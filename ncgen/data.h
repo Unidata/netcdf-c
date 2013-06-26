@@ -109,6 +109,8 @@ void srcsetfill(Datasrc* ds, Datalist* list);
 
 int       datalistline(Datalist*);
 #define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
+#define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
+
 
 Constant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
