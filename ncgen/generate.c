@@ -314,7 +314,7 @@ generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* fi
 	break;
 
     case NC_COMPOUND: {
-	int i,uid;
+	int i,uid, nfields, dllen;
 	if(con == NULL || isfillconst(con)) {
 	    Datalist* fill = (filler==NULL?getfiller(tsym):filler);
 	    ASSERT(fill->length == 1);
@@ -326,8 +326,14 @@ generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* fi
 	    semerror(constline(con),"Compound data must be enclosed in {..}");
         }
 	data = con->value.compoundv;
+        nfields = listlength(tsym->subnodes);
+	dllen = datalistlen(data);
+	if(dllen > nfields) {
+	    semerror(con->lineno,"Datalist longer than the number of compound fields");
+	    break;
+	}
 	generator->listbegin(generator,LISTCOMPOUND,listlength(tsym->subnodes),codebuf,&uid);
-        for(i=0;i<listlength(tsym->subnodes);i++) {
+        for(i=0;i<nfields;i++) {
             Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 	    con = datalistith(data,i);
 	    generator->list(generator,LISTCOMPOUND,uid,i,codebuf);
@@ -363,7 +369,8 @@ generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* fi
     	    generator->listbegin(generator,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
    	        generator->list(generator,LISTVLEN,uid,count,vlenbuf);
-                generate_basetype(tsym->typ.basetype,datalistith(data,count),vlenbuf,NULL,generator);
+		Constant* con = datalistith(data,count);
+                generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
 	    }
    	    generator->listend(generator,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
 	}

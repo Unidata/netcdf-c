@@ -799,7 +799,8 @@ ocuridecodeonly(char* s, char* only)
     char* inptr;
     unsigned int c;
     
-    if (s == NULL) return NULL;
+    if(s == NULL) return NULL;
+    if(only == NULL) only = "";
 
     slen = strlen(s);
     decoded = (char*)malloc(slen+1); /* Should be max we need */
@@ -807,7 +808,7 @@ ocuridecodeonly(char* s, char* only)
     outptr = decoded;
     inptr = s;
     while((c = *inptr++)) {
-	if(c == '+' && only != NULL && strchr(only,'+') != NULL)
+	if(c == '+' && strchr(only,'+') != NULL)
 	    *outptr++ = ' ';
 	else if(c == '%') {
             /* try to pull two hex more characters */
@@ -816,7 +817,7 @@ ocuridecodeonly(char* s, char* only)
 		&& strchr(hexchars,inptr[1]) != NULL) {
 		/* test conversion */
 		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
-		if(only == NULL || strchr(only,xc) != NULL) {
+		if(strchr(only,xc) != NULL) {
 		    inptr += 2; /* decode it */
 		    c = xc;
                 }

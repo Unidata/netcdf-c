@@ -1,9 +1,7 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
 K="-k3"
-F="ref_tst_opaque_data.cdl"
-F="MAPSS_combined-MAPSS_SC-20120828154820.cdl"
-F="test.cdl"
+F="fail.cdl"
 #B="-B12"
 DBG="-d"
 #DBG="-D2"

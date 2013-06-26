@@ -1,8 +1,8 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-TOP="/home/dmh/mach/trunk"
-#TOP="/cygdrive/f/svn/trunk"
+#TOP="/home/dmh/mach/trunk"
+TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
@@ -10,9 +10,8 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://coastwatch.pfeg.noaa.gov/erddap/tabledap/erdCinpKfmT"
-CON='station&station="Anacapa_Landing_Cove"'
-#CON="station,longitude,latitude,altitude,time,temperature&station=%22Anacapa_Landing_Cove%22&time>=2007-01-01&time<=2007-06-01"
+F="http://portal.nersc.gov/pydap/20C_Reanalysis_ensemble/analysis.derived/pwat/pwat_1928.daily.nc"
+#CON='station&station="Anacapa_Landing_Cove"'
 
 PARMS="log"
 #PARMS="${PARMS}&netcdf3"

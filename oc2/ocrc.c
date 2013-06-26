@@ -37,7 +37,7 @@ static char* curllookup(char* suffix,char* url);
 /* The Username and password are in the URL if the URL is of the form:
  * http://<name>:<passwd>@<host>/....
  */
-int
+static int
 occredentials_in_url(const char *url)
 {
 	char *pos = strstr(url, "http://");
@@ -50,7 +50,7 @@ occredentials_in_url(const char *url)
 	return 0;
 }
 
-int
+static int
 ocextract_credentials(const char *url, char **name, char **pw, char **result_url)
 {
 	char *pos;
