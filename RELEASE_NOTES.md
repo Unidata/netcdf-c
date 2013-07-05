@@ -7,6 +7,8 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1 Released TBD
 
+*	Added Greg Sjaardema's contributed optimization for the nc4\_find\_dim\_len function in libsrc4/nc4internal.c. The patch eliminates several malloc/free calls that exist in the original coding.
+
 * Added support for dynamic loading, to compliment the dynamic loading support introduced in hdf 1.8.11.  Dynamic loading support depends on libdl, and is enabled as follows: [NCF-258]
 	* autotools-based builds: --enable-dynamic-loading
 	* cmake-based builds: -DENABLE\_DYNAMIC\_LOADING=ON
