@@ -7,8 +7,8 @@
 #define _NC3STUB_H
 
 #ifndef MPI_INCLUDED
-#define MPI_Comm int
-#define MPI_Info int
+typedef int MPI_Comm;
+typedef int MPI_Info;
 #endif
 
 #if defined(__cplusplus)

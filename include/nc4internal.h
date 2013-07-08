@@ -21,11 +21,8 @@
 
 #ifdef USE_PARALLEL
 #include <netcdf_par.h>
-#else
-#define MPI_Info int
-#define MPI_Comm int
-#include <netcdf.h>
 #endif /* USE_PARALLEL */
+#include <netcdf.h>
 #include <netcdf_f.h>
 
 /* Always needed */

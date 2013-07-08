@@ -271,7 +271,14 @@ int test_pio(int flag)
 	    }
 
    /* Write slabs of phoney data. */
-   if (nc_put_vara_int(ncid, uvid, ustart, ucount, udata)) ERR;
+   if (NC_INDEPENDENT == flag) {
+       int res;
+       res = nc_put_vara_int(ncid, uvid, ustart, ucount, udata);
+       if(res != NC_ECANTEXTEND) ERR;
+   }
+   else {
+       if (nc_put_vara_int(ncid, uvid, ustart, ucount, udata)) ERR;
+   }
    free(udata);
 
    /* Close the netcdf file. */
@@ -319,28 +326,31 @@ int test_pio(int flag)
    ucount[3] = DIMSIZE/mpi_size;
  
    /* Inquiry the data */
-   if (nc_inq_varid(ncid, "uv1", &rvid)) ERR;
-    
-   /* Access the parallel */
-   if (nc_var_par_access(ncid, rvid, flag)) ERR;
+   /* (NOTE: This variable isn't written out, when access is independent) */
+   if (NC_INDEPENDENT != flag) {
+       if (nc_inq_varid(ncid, "uv1", &rvid)) ERR;
+        
+       /* Access the parallel */
+       if (nc_var_par_access(ncid, rvid, flag)) ERR;
 
-   if (!(rudata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int)))) ERR;
-   temprudata = rudata;
+       if (!(rudata = malloc(ucount[0]*ucount[1]*ucount[2]*ucount[3]*sizeof(int)))) ERR;
+       temprudata = rudata;
 
-   /* Read data */
-   if (nc_get_vara_int(ncid, rvid, ustart, ucount, rudata)) ERR;
+       /* Read data */
+       if (nc_get_vara_int(ncid, rvid, ustart, ucount, rudata)) ERR;
 
-   for(m = 0; m < ucount[0]; m++)
-      for(k = 0; k < ucount[1]; k++)
-	 for(j = 0; j < ucount[2]; j++)
-	    for(i = 0; i < ucount[3]; i++)
-	    {
-	       if(*temprudata != (1+mpi_rank)*2*(j+1)*(k+1)*(m+1))
-		  ERR_RET;
-	       temprudata++;
-	    }
+       for(m = 0; m < ucount[0]; m++)
+          for(k = 0; k < ucount[1]; k++)
+             for(j = 0; j < ucount[2]; j++)
+                for(i = 0; i < ucount[3]; i++)
+                {
+                   if(*temprudata != (1+mpi_rank)*2*(j+1)*(k+1)*(m+1))
+                      ERR_RET;
+                   temprudata++;
+                }
 
-   free(rudata);
+       free(rudata);
+   }
 
    /* Close the netcdf file. */
    if (nc_close(ncid)) ERR;

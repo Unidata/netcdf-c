@@ -390,12 +390,8 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 	   size_t *chunksizehintp, int use_parallel, void *mpidata,
 	   NC_Dispatch *dispatch, NC* nc_file)
 {
-#ifdef USE_PARALLEL
-   MPI_Comm comm = 0; 
-   MPI_Info info = 0; 
-#else
-   int comm = 0, info = 0;
-#endif /* USE_PARALLEL */
+   MPI_Comm comm = MPI_COMM_WORLD; 
+   MPI_Info info = MPI_INFO_NULL; 
    int res;
 
    assert(nc_file && path);
@@ -2769,12 +2765,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 	 int use_parallel, void *mpidata, NC_Dispatch *dispatch, NC *nc_file)
 {
    int hdf_file = 0;
-#ifdef USE_PARALLEL
-   MPI_Comm comm = 0; 
-   MPI_Info info = 0;	
-#else
-   int comm = 0, info = 0;
-#endif /* USE_PARALLEL */
+   MPI_Comm comm = MPI_COMM_WORLD;
+   MPI_Info info = MPI_INFO_NULL;
    int res;
 
    assert(nc_file && path);
@@ -2785,8 +2777,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #ifdef USE_PARALLEL
    if (mpidata) 
    { 
-      NC_MPI_INFO *nmi = (NC_MPI_INFO *)mpidata; 
-      comm = nmi->comm; info = nmi->info; 
+      comm = ((NC_MPI_INFO *)mpidata)->comm;
+      info = ((NC_MPI_INFO *)mpidata)->info; 
    }
 #endif /* USE_PARALLEL */
     
