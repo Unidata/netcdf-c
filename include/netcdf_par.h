@@ -11,7 +11,6 @@
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
-#include <netcdf.h>
 
 #if defined(__cplusplus)
 extern "C" {

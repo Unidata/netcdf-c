@@ -762,6 +762,10 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       if (need_to_extend)
       {
          LOG((4, "extending dataset"));
+#ifdef USE_PARALLEL
+         if (h5->parallel && NC_COLLECTIVE != var->parallel_access)
+            BAIL(NC_ECANTEXTEND);
+#endif /* USE_PARALLEL */
 	 if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
 	 if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)

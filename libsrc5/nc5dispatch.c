@@ -44,8 +44,8 @@ NC5_create(const char *path, int cmode,
 {
     int res;
     NC5_INFO* nc5;
-    MPI_Comm comm = 0; 
-    MPI_Info info = 0; 
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Info info = MPI_INFO_NULL;
 
     /* Check the cmode for only valid flags*/
     if(cmode & ~LEGAL_CREATE_FLAGS)
@@ -98,8 +98,8 @@ NC5_open(const char *path, int cmode,
 {
     int res;
     NC5_INFO* nc5;
-    MPI_Comm comm = 0; 
-    MPI_Info info = 0; 
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Info info = MPI_INFO_NULL;
 
     /* Check the cmode for only valid flags*/
     if(cmode & ~LEGAL_OPEN_FLAGS)

@@ -378,8 +378,9 @@ by the desired type. */
 #define NC_EBADCHUNK     (-127)    /**< Bad chunksize. */
 #define NC_ENOTBUILT     (-128)    /**< Attempt to use feature that was not turned on when netCDF was built. */
 #define NC_EDISKLESS     (-129)    /**< Error in using diskless  access. */ 
+#define NC_ECANTEXTEND   (-130)    /**< Attempt to extend dataset during ind. I/O operation. */ 
 
-#define NC4_LAST_ERROR   (-129) 
+#define NC4_LAST_ERROR   (-130) 
 
 /* This is used in netCDF-4 files for dimensions without coordinate
  * vars. */

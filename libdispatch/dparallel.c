@@ -8,7 +8,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 #include "config.h"
 #ifdef USE_PARALLEL
 #include "netcdf_f.h"
-#endif
+#endif /* USE_PARALLEL */
 #include "ncdispatch.h"
 
 /* This function creates a file for use with parallel I/O. */
@@ -20,8 +20,6 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm,
    return NC_ENOPAR;
 #else   
    NC_MPI_INFO data;
-   MPI_Comm comm_c = 0;
-   MPI_Info info_c = 0;
    
    /* One of these two parallel IO modes must be chosen by the user,
     * or else pnetcdf must be in use. */
@@ -29,11 +27,8 @@ nc_create_par(const char *path, int cmode, MPI_Comm comm,
        !(cmode & NC_PNETCDF))
       return NC_EINVAL;
 
-   comm_c = (MPI_Comm)comm;
-   info_c = (MPI_Info)info;
-
-   data.comm = comm_c;
-   data.info = info_c;
+   data.comm = comm;
+   data.info = info;
    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
 #endif /* USE_PARALLEL */
 }
@@ -72,9 +67,8 @@ nc_open_par_fortran(const char *path, int mode, int comm,
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
 #else
-
-   MPI_Comm comm_c = 0;
-   MPI_Info info_c = 0;
+   MPI_Comm comm_c;
+   MPI_Info info_c;
 
    /* Convert fortran comm and info to C comm and info, if there is a
     * function to do so. Otherwise just pass them. */
@@ -117,9 +111,11 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
 #ifndef USE_PARALLEL
    return NC_ENOPAR;
 #else
-   MPI_Comm comm_c = 0;
-   MPI_Info info_c = 0;
-#ifdef USE_PARALLEL
+   MPI_Comm comm_c;
+   MPI_Info info_c;
+
+   /* Convert fortran comm and info to C comm and info, if there is a
+    * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
    comm_c = MPI_Comm_f2c(comm);
    info_c = MPI_Info_f2c(info);
@@ -127,7 +123,7 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
    comm_c = (MPI_Comm)comm;
    info_c = (MPI_Info)info;
 #endif
-#endif
+
    return nc_create_par(path, cmode, comm_c, info_c, ncidp);
 #endif
 }

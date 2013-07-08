@@ -101,14 +101,14 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
-#ifdef USE_PARALLEL_MPIO
+#ifdef USE_PARALLEL
    if (use_parallel) 
    {
       MPI_File fh;
       MPI_Status status;
       int retval;
-      MPI_Comm comm = 0;
-      MPI_Info info = 0;
+      MPI_Comm comm = MPI_COMM_WORLD;
+      MPI_Info info = MPI_INFO_NULL;
 
       if(mpi_info != NULL) {
 	 comm = ((NC_MPI_INFO*)mpi_info)->comm;

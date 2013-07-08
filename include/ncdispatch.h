@@ -109,19 +109,12 @@ extern int nc_put_vara_ulonglong(int ncid, int varid,
 /* Define an alias for int to indicate an error return */
 typedef int NCerror;
 
-/* WARNING: this must match libsrc4/netcdf.h */
-#ifndef MPI_Comm
-#define MPI_Comm int
-#endif
-#ifndef MPI_Info
-#define MPI_Info int
-#endif
-#ifndef MPI_COMM_WORLD
+#ifndef USE_PARALLEL
+typedef int MPI_Comm;
+typedef int MPI_Info;
 #define MPI_COMM_WORLD 0
-#endif
-#ifndef MPI_INFO_NULL
 #define MPI_INFO_NULL 0
-#endif
+#endif /* USE_PARALLEL */
 
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It

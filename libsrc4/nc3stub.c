@@ -9,10 +9,8 @@
 #include "nc.h"
 
 #ifndef MPI_INCLUDED
-#define MPI_Comm int
-#define MPI_Info int
-#define MPI_COMM_WORLD 0
-#define MPI_INFO_NULL 0
+typedef int MPI_Comm;
+typedef int MPI_Info;
 #endif
 
 int
