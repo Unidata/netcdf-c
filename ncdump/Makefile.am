@@ -102,7 +102,7 @@ tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
 iter.* \
 tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl \
-tst_ncf213.cdl tst_ncf213.nc
+tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
