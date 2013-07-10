@@ -436,6 +436,8 @@ processvars(void)
 	Symbol* basetype = vsym->typ.basetype;
 	/* fill in the typecode*/
 	vsym->typ.typecode = basetype->typ.typecode;
+	/* validate uses of NIL */
+        validateNIL(vsym);
 	for(j=0;j<vsym->typ.dimset.ndims;j++) {
 	    /* validate the dimensions*/
             /* UNLIMITED must only be in first place if using classic */
@@ -443,8 +445,6 @@ processvars(void)
 	        if(usingclassic && j != 0)
 		    semerror(vsym->lineno,"Variable: %s: UNLIMITED must be in first dimension only",fullname(vsym));
 	    }
-	    /* validate uses of NIL */
-	    validateNIL(vsym);
 	}	
     }
 }

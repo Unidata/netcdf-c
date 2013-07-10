@@ -79,6 +79,8 @@ unlimtest2 \
 ref_tst_vlen_data \
 ref_tst_vlen_data \
 ref_tst_vlen_data2 \
+ref_niltest \
+ref_tst_h_scalar \
 "
 
 SPECIALTESTS3="ref_tst_special_atts3"
