@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# To add a new test,
+# 1. put the .cdl file in the 'cdl4' directory
+# 2. put the result of running ncgen then ncdump
+#    into the directory 'expected4' as .dmp
+# 3. Modify the file tst_ncgen4_shared.sh to add
+#    the test to the end of the TESTS4 variable
+# 4. Add the new files into cdl4/Makfile.am
+#    and expected4/Makefile.am 
+
 set -e
 RESULTSDIR="./results"
 #SHOWXFAILS=1
