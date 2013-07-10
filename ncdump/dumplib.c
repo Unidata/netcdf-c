@@ -632,6 +632,12 @@ ncuint64_val_equals(const nctype_t *this,
 bool_t
 ncstring_val_equals(const nctype_t *this, 
 		    const void *v1p, const void *v2p) {
+    if (NULL == *((char **)v1p) && NULL == *((char **)v2p))
+        return(1);
+    else if (NULL != *((char **)v1p) && NULL == *((char **)v2p))
+        return(0);
+    else if (NULL == *((char **)v1p) && NULL != *((char **)v2p))
+        return(0);
     return (strcmp(*((char **)v1p), *((char **)v2p)) == 0);
 }
 
@@ -867,69 +873,75 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
 }
 
 int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
-    size_t slen;
-    char *sout;
     const char *cp;
-    char *sp;
-    unsigned char uc;
 
     cp = ((char **)valp)[0];
-    slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */ 
-    sout = emalloc(slen);
-    sp = sout;
-    *sp++ = '"' ;
-    while(*cp) {
-	switch (uc = *cp++ & 0377) {
-	case '\b':
-	    *sp++ = '\\';
-	    *sp++ = 'b' ;
-	    break;
-	case '\f':
-	    *sp++ = '\\';
-	    *sp++ = 'f';
-	    break;
-	case '\n':		
-	    *sp++ = '\\';
-	    *sp++ = 'n';
-	    break;
-	case '\r':
-	    *sp++ = '\\';
-	    *sp++ = 'r';
-	    break;
-	case '\t':
-	    *sp++ = '\\';
-	    *sp++ = 't';
-	    break;
-	case '\v':
-	    *sp++ = '\\';
-	    *sp++ = 'n';
-	    break;
-	case '\\':
-	    *sp++ = '\\';
-	    *sp++ = '\\';
-	    break;
-	case '\'':
-	    *sp++ = '\\';
-	    *sp++ = '\'';
-	    break;
-	case '\"':
-	    *sp++ = '\\';
-	    *sp++ = '\"';
-	    break;
-	default:
-	    if (iscntrl(uc)) {
-		snprintf(sp,3,"\\%03o",uc);
-		sp += 4;
-	    }
-	    else
-		*sp++ = uc;
-	    break;
-	}
+    if(cp) {
+        size_t slen;
+        char *sout;
+        char *sp;
+        unsigned char uc;
+
+        slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */ 
+        sout = emalloc(slen);
+        sp = sout;
+        *sp++ = '"' ;
+        while(*cp) {
+            switch (uc = *cp++ & 0377) {
+            case '\b':
+                *sp++ = '\\';
+                *sp++ = 'b' ;
+                break;
+            case '\f':
+                *sp++ = '\\';
+                *sp++ = 'f';
+                break;
+            case '\n':		
+                *sp++ = '\\';
+                *sp++ = 'n';
+                break;
+            case '\r':
+                *sp++ = '\\';
+                *sp++ = 'r';
+                break;
+            case '\t':
+                *sp++ = '\\';
+                *sp++ = 't';
+                break;
+            case '\v':
+                *sp++ = '\\';
+                *sp++ = 'n';
+                break;
+            case '\\':
+                *sp++ = '\\';
+                *sp++ = '\\';
+                break;
+            case '\'':
+                *sp++ = '\\';
+                *sp++ = '\'';
+                break;
+            case '\"':
+                *sp++ = '\\';
+                *sp++ = '\"';
+                break;
+            default:
+                if (iscntrl(uc)) {
+                    snprintf(sp,3,"\\%03o",uc);
+                    sp += 4;
+                }
+                else
+                    *sp++ = uc;
+                break;
+            }
+        }
+        *sp++ = '"' ;
+        *sp = '\0' ;
+        sbuf_cpy(sfbf, sout);
+        free(sout);
     }
-    *sp++ = '"' ;
-    *sp = '\0' ;
-    sbuf_cpy(sfbf, sout);
-    free(sout);
+    else {
+        sbuf_cpy(sfbf, "NIL");
+    }
     return sbuf_len(sfbf);
 }
 

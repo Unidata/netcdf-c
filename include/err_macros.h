@@ -46,6 +46,13 @@ fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
 return 2;                                                   \
 } while (0)
 
+#define ERR_GOTO do { \
+fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
+fprintf(stderr, "Sorry! Unexpected result, %s, line: %d\n", \
+	__FILE__, __LINE__);				    \
+goto error;                                                 \
+} while (0)
+
 /* After a set of tests, report the number of errors, and increment
  * total_err. */
 #define SUMMARIZE_ERR do { \

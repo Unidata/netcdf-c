@@ -924,13 +924,29 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    } 
    else
    {
+      H5S_class_t space_class;
+
       /* All netcdf attributes are scalar or 1-D only. */
       if (att_ndims > 1)
 	 BAIL(NC_EATTMETA);
 
-      /* Read the size of this attribute. */
-      if (H5Sget_simple_extent_dims(spaceid, dims, NULL) < 0)
+      /* Check class of HDF5 dataspace */
+      if ((space_class = H5Sget_simple_extent_type(spaceid)) < 0)
 	 BAIL(NC_EATTMETA);
+
+      /* Check for NULL HDF5 dataspace class (should be weeded out earlier) */
+      if (H5S_NULL == space_class)
+	 BAIL(NC_EATTMETA);
+
+      /* check for SCALAR HDF5 dataspace class */
+      if (H5S_SCALAR == space_class)
+          dims[0] = 1;
+      else /* Must be "simple" dataspace */
+      {
+          /* Read the size of this attribute. */
+          if (H5Sget_simple_extent_dims(spaceid, dims, NULL) < 0)
+             BAIL(NC_EATTMETA);
+      }
    }
       
    /* Tell the user what the length if this attribute is. */

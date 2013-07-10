@@ -935,12 +935,8 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       if (var->hdf_datasetid)
       {
          if (var->type_info)
-         {
             if (var->type_info->class == NC_VLEN)
                nc_free_vlen((nc_vlen_t *)var->fill_value);
-            else if (var->type_info->nc_typeid == NC_STRING)
-               free(*(char **)var->fill_value);
-         }
       }
       free(var->fill_value);
       var->fill_value = NULL;
@@ -1240,7 +1236,8 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
    if (att->stdata)
    {
       for (i = 0; i < att->len; i++)
-	 free(att->stdata[i]);
+         if(att->stdata[i])
+	    free(att->stdata[i]);
       free(att->stdata);
    }
 
@@ -1350,20 +1347,27 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
       ;
    for( ; var; var = var->prev)
    {
-     dims_string = (char*)malloc(sizeof(char)*(var->ndims*4));
-     strcpy(dims_string, "");
-     for (d = 0; d < var->ndims; d++)
-       {
-	 sprintf(temp_string, " %d", var->dimids[d]);
-	 strcat(dims_string, temp_string);
-       }
+      if(var->ndims > 0)
+      {
+         dims_string = (char*)malloc(sizeof(char)*(var->ndims*4));
+         strcpy(dims_string, "");
+         for (d = 0; d < var->ndims; d++)
+           {
+             sprintf(temp_string, " %d", var->dimids[d]);
+             strcat(dims_string, temp_string);
+           }
+      }
       LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s",
 	   tabs, var->varid, var->name, var->xtype, var->ndims, var->dimscale, 
-	   dims_string));
+	   (dims_string ? dims_string : " -")));
       for(att = var->att; att; att = att->next)
 	 LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
 	      tabs, att->attnum, att->name, att->xtype, att->len));
-      free(dims_string); dims_string = NULL;
+      if(dims_string)
+      {
+         free(dims_string);
+         dims_string = NULL;
+      }
    }
    
    for (type = grp->type; type; type = type->next)

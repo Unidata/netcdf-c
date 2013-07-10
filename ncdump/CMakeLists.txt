@@ -72,6 +72,7 @@ IF(ENABLE_TESTS)
 		add_bin_test(ncdump tst_comp)
 		add_bin_test(ncdump tst_comp2)
 		add_bin_test(ncdump tst_nans)
+		add_bin_test(ncdump tst_h_scalar)
 		#add_bin_test(ncdump tst_special_atts)
 		# Add this test by hand, as it is also called from a script.
 		# Editing the script would break autotools compatibility.
@@ -109,6 +110,7 @@ IF(ENABLE_TESTS)
 		ENDIF()
 		add_sh_test(ncdump tst_grp_spec)
 		add_sh_test(ncdump tst_mud)
+		add_sh_test(ncdump tst_h_scalar)
 	ENDIF()
 	
 	#add_sh_test(tst_ncgen4_classic)
