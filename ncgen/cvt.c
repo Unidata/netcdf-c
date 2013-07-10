@@ -540,6 +540,12 @@ case CASE(NC_OPAQUE,NC_OPAQUE):
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
     break;
+case CASE(NC_NIL,NC_NIL):
+    break; /* probably will never happen */
+case CASE(NC_NIL,NC_STRING):
+    tmp.stringv.len = 0;
+    tmp.stringv.stringv = NULL;    
+    break;
 
     /* We are missing all CASE(X,NC_ECONST) cases*/
 

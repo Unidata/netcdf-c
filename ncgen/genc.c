@@ -948,18 +948,18 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
     }       
 
     if(rank == 0) {
-	codelined(1,"size_t zero = 0;");
+	codelined(1,"size_t count = 0;");
 	    /* We make the data be an array so we do not need to
                ampersand it later => we need an outer pair of braces
             */
-	    commify(code); /* insert commas at proper places */
-            bbprintf0(stmt,"%sstatic %s %s_data[1] = {%s};\n",
+	commify(code); /* insert commas at proper places */
+        bbprintf0(stmt,"%sstatic %s %s_data[1] = {%s};\n",
 			    indented(1),
 			    ctypename(basetype),
 			    cname(vsym),
 			    bbContents(code));
 	codedump(stmt);
-        bbprintf0(stmt,"%sstat = nc_put_var1(%s, %s, &zero, %s_data);\n",
+        bbprintf0(stmt,"%sstat = nc_put_var1(%s, %s, &count, %s_data);\n",
 		indented(1),
 		groupncid(vsym->container),
 		varncid(vsym),
@@ -1055,27 +1055,26 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	cquotestring(code,'"');
     } else {
         /* All other cases */
-	/* Dump any vlen decls first */
-	List* vlendecls;
-	generator_getstate(generator,(void**)&vlendecls);
-	if(vlendecls != NULL && listlength(vlendecls) > 0) {
-	    int i;
-	    for(i=0;i<listlength(vlendecls);i++) {
-	        Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
-	        codelined(1,bbContents(decl));
-	        bbFree(decl);
-	    }
-	    listfree(vlendecls);
-	    generator_reset(generator,NULL);
-	}       
-
+        /* Dump any vlen decls first */
+        List* vlendecls;
+        generator_getstate(generator,(void**)&vlendecls);
+        if(vlendecls != NULL && listlength(vlendecls) > 0) {
+            int i;
+            for(i=0;i<listlength(vlendecls);i++) {
+                Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
+                codelined(1,bbContents(decl));
+                bbFree(decl);
+            }
+            listfree(vlendecls);
+            generator_reset(generator,NULL);
+        }       
         commify(code);
         bbprintf0(stmt,"%sstatic const %s %s_att[%ld] = ",
-			indented(1),
-			ctypename(basetype),
-			cname(asym),
-			asym->data->length
-			);
+                        indented(1),
+                        ctypename(basetype),
+                        cname(asym),
+                        asym->data->length
+                        );
         codedump(stmt);
         codepartial("{");
         codedump(code);

@@ -58,7 +58,7 @@ generate_attrdata(Symbol* asym, Generator* generator, Writer writer, Bytebuffer*
     Symbol* basetype = asym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
 
-    if(typecode == NC_CHAR) {
+   if(typecode == NC_CHAR) {
 	gen_charattr(asym->data,codebuf);
     } else {
 	int uid;

@@ -359,6 +359,9 @@ distinguished variable attribute named `_FillValue'.  The
 types of constants need not match the type declared for a variable;
 coercions are done to convert integers to floating point, for example.
 The constant `_' can be used to designate the fill value for a variable.
+If the type of the variable is explicitly `string', then the special
+constant `NIL` can be used to represent a nil string, which is not the
+same as a zero length string.
 .SS "Primitive Data Types"
 .LP
 .RS
@@ -594,6 +597,8 @@ type to ensure the proper choice.
 String constants are assumed to always be UTF-8 encoded. This
 specifically means that the string constant may actually
 contain multi-byte UTF-8 characters.
+The special constant `NIL` can be used to represent a nil string, which is not the
+same as a zero length string.
 .LP
 \fIOpaque\fP constants are represented as
 sequences of hexadecimal digits preceded by 0X or 0x: 0xaa34ffff,
@@ -646,24 +651,25 @@ The type being referenced (t1) is the one within group g2, which in
 turn is nested in group g1.
 The similarity of this notation to Unix file paths is deliberate,
 and one can consider groups as a form of directory structure.
-.HP
-1. When name is not prefixed, then scope rules are applied to locate the
+.LP
+When name is not prefixed, then scope rules are applied to locate the
 specified declaration. Currently, there are three rules: one for dimensions,
 one for types and enumeration constants, and one for all others.
 .HP
-2. When an unprefixed name of a dimension is used (as in a variable declaration),
-ncgen first looks in the immediately enclosing group for the dimension.
-If it is not found there, then it looks in the group enclosing this group.
-This continues up the group hierarchy until the dimension is found,
-or there are no more groups to search.
+1. When an unprefixed name of a dimension is used (as in a
+variable declaration), ncgen first looks in the immediately
+enclosing group for the dimension.  If it is not found
+there, then it looks in the group enclosing this group.
+This continues up the group hierarchy until the dimension is
+found, or there are no more groups to search.
 .HP
-3. For all other names, only the immediately enclosing group is searched.
-.LP
-When an unprefixed name of a type or an enumeration constant
+2. When an unprefixed name of a type or an enumeration constant
 is used, ncgen searches the group tree using a pre-order depth-first
 search. This essentially means that it will find the matching declaration
 that precedes the reference textually in the cdl file and that
 is "highest" in the group hierarchy.
+.HP
+3. For all other names, only the immediately enclosing group is searched.
 .LP
 One final note. Forward references are not allowed.
 This means that specifying, for example,

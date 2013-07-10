@@ -1,9 +1,12 @@
 # Test c output
-T=z
+T=niltest
 #VG=valgrind --leak-check=full
 
-CFLAGS=-I../include -I/share/ed/local/spock/include
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lcurl -lm -llber -lldap -lrt -lssl -lcrypto -ldl
+#CFLAGS=-I../include -I/share/ed/local/spock/include
+#LDFLAGS=../liblib/.libs/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lcurl -lm -llber -lldap -lrt -lssl -lcrypto -ldl
+
+CFLAGS=-I../include -I/user/local/include
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lcurl -lm -lrt  -ldl
 
 CLASSPATH=".:ncCore-4.2.jar"
 

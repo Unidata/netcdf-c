@@ -120,6 +120,8 @@ int srcline(Datasrc* ds);
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)
 #define constline(con) (con==NULL?0:(con)->lineno)
 
+#define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
+
 Constant* emptystringconst(int,Constant*);
 
 Constant cloneconstant(Constant* con); /* shallow clone*/
@@ -157,6 +159,7 @@ Constant* srcpeek(Datasrc*);
 
 extern Constant nullconstant;
 extern Constant fillconstant;
+extern Constant nilconstant;
 
 /* From genchar.c */
 void gen_charattr(Datalist*, Bytebuffer*);

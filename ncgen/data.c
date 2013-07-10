@@ -18,6 +18,8 @@ extern int lvsnprintf(char*, size_t, const char*, va_list);
 Constant nullconstant;
 Constant fillconstant;
 
+Datalist nildatalist; // to support NIL keyword
+
 Bytebuffer* codebuffer;
 Bytebuffer* codetmp;
 Bytebuffer* stmt;

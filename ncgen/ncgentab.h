@@ -83,16 +83,17 @@ extern int ncgdebug;
      GROUP = 292,
      PATH = 293,
      FILLMARKER = 294,
-     _FILLVALUE = 295,
-     _FORMAT = 296,
-     _STORAGE = 297,
-     _CHUNKSIZES = 298,
-     _DEFLATELEVEL = 299,
-     _SHUFFLE = 300,
-     _ENDIANNESS = 301,
-     _NOFILL = 302,
-     _FLETCHER32 = 303,
-     DATASETID = 304
+     NIL = 295,
+     _FILLVALUE = 296,
+     _FORMAT = 297,
+     _STORAGE = 298,
+     _CHUNKSIZES = 299,
+     _DEFLATELEVEL = 300,
+     _SHUFFLE = 301,
+     _ENDIANNESS = 302,
+     _NOFILL = 303,
+     _FLETCHER32 = 304,
+     DATASETID = 305
    };
 #endif
 
@@ -112,7 +113,7 @@ Constant       constant;
 
 
 /* Line 2077 of yacc.c  */
-#line 116 "ncgen.tab.h"
+#line 117 "ncgen.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
