@@ -81,13 +81,19 @@ c_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
     case NC_ECONST:
 	bbprintf(codetmp,"%s",cname(con->value.enumv));
 	break;
+    case NC_NIL:
     case NC_STRING: { /* handle separately */
-	char* escaped = escapify(con->value.stringv.stringv,
+	if(con->value.stringv.len == 0 && con->value.stringv.stringv == NULL) {
+	    char* nil = NULL;
+            bbprintf(codetmp,"NULL");
+	} else {
+	    char* escaped = escapify(con->value.stringv.stringv,
 				 '"',con->value.stringv.len);
-	special = poolalloc(1+2+strlen(escaped));
-	strcpy(special,"\"");
-	strcat(special,escaped);
-	strcat(special,"\"");
+	    special = poolalloc(1+2+strlen(escaped));
+	    strcpy(special,"\"");
+	    strcat(special,escaped);
+	    strcat(special,"\"");
+	}
 	} break;
     case NC_OPAQUE: {
 	char* p;

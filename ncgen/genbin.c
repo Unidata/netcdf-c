@@ -455,11 +455,11 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
             } break;
 #ifdef USE_NETCDF4
 	    case NC_STRING: {
-	        const char** data;
+		const char** data;
 	        data = (const char**)bbContents(databuf);
                 stat = nc_put_att_string(grpid,varid,asym->name,
-				     bbLength(databuf)/sizeof(char*),
-				     data);
+					 bbLength(databuf)/sizeof(char*),
+				         data);
 		} break;
             case NC_UBYTE: {
                 unsigned char* data = (unsigned char*)bbContents(databuf);

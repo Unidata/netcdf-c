@@ -21,4 +21,7 @@ bigf1.cdl bigf2.cdl bigf3.cdl bigr1.cdl bigr2.cdl bigr3.cdl \
 n3time.cdl ref_tst_special_atts3.cdl ref_tst_unlim2.cdl ref_tst_chardata.cdl \
 ref_solar.cdl unlimtest1.cdl unlimtest2.cdl \
 ref_tst_opaque_data.cdl  \
-ref_tst_vlen_data.cdl ref_tst_vlen_data2.cdl
+ref_tst_vlen_data.cdl ref_tst_vlen_data2.cdl \
+ref_niltest.cdl ref_tst_h_scalar.cdl
+
+

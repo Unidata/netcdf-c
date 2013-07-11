@@ -215,7 +215,7 @@ nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid,
 /* Get the default fill value for an atomic type. Memory for
  * fill_value must already be allocated, or you are DOOMED!!!*/
 int
-nc4_get_default_fill_value(NC_TYPE_INFO_T *type_info, void *fill_value)
+nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
 {
    switch (type_info->nc_typeid)
    {
@@ -270,28 +270,26 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
    int retval;
 
    /* Find out how much space we need for this type's fill value. */
-   if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &size)))
-      return retval;
-
-   /* Strings have a size of one for the empty sting (to hold the
-    * null), otherwise the length of the users fill_value string, plus
-    * one. */
-   if (var->xtype == NC_STRING)
-   {
-         size = 1;
-   }
-   
-   /* Allocate the space. VLENS are different, of course. */
    if (var->type_info->class == NC_VLEN)
+      size = sizeof(nc_vlen_t);
+   else if (var->xtype == NC_STRING)
    {
-      if (!((*fillp) = malloc(sizeof(nc_vlen_t))))
-         return NC_ENOMEM;
+      /* Strings have a size of one for the empty string (to hold the null),
+       * otherwise the length of the users fill_value string, plus one. */
+       size = 1;
+       if (var->fill_value)
+           size += strlen((char *)var->fill_value);
    }
    else
    {
-      if (!((*fillp) = malloc(size)))
-         return NC_ENOMEM;
+       if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &size)))
+          return retval;
    }
+   assert(size);
+
+   /* Allocate the space. */
+   if (!((*fillp) = malloc(size)))
+      return NC_ENOMEM;
 
    /* If the user has set a fill_value for this var, use, otherwise
     * find the default fill value. */
@@ -308,9 +306,6 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       }
       else if (var->xtype == NC_STRING)
       {
-	if (!(*(char **)fillp = malloc((strlen((char *)var->fill_value) + 1) * 
-				       sizeof(char))))
-	  return NC_ENOMEM;
 	strcpy(*(char **)fillp, (char *)var->fill_value);
       }
       else
@@ -1303,7 +1298,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    hsize_t *chunksize = NULL, *dimsize = NULL, *maxdimsize = NULL;
    int d;
    NC_DIM_INFO_T *dim = NULL;
-   void *fillp = NULL;
    int dims_found = 0;
    int set_chunksizes = 0;
    char *name_to_use;
@@ -1331,6 +1325,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    /* Figure out what fill value to set, if any. */
    if (!var->no_fill)
    {
+      void *fillp = NULL;
+
       if ((retval = get_fill_value(grp->nc4_info, var, &fillp)))
          BAIL(retval);
 
@@ -1341,7 +1337,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
          {
             if (H5Pset_fill_value(plistid, typeid, &fillp) < 0)
                BAIL(NC_EHDFERR);
-            free((char *)fillp);
          }
          else 
          {
@@ -1357,12 +1352,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                BAIL(NC_EHDFERR);
             if (var->type_info->class == NC_VLEN)
                nc_free_vlen((nc_vlen_t *)fillp);
-            else
-               free(fillp);
             if (var->type_info->nc_typeid == NC_STRING || var->type_info->nc_typeid == NC_CHAR)
 	       if (H5Tclose(fill_typeid) < 0)
 		  BAIL(NC_EHDFERR);
          }
+         free(fillp);
       }
    } else {
        /* Required to truly turn HDF5 fill values off */

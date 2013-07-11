@@ -76,14 +76,20 @@ bin_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
         su64.i64 = con->value.uint64v;
         bbAppendn(buf,(void*)su64.ch,sizeof(su64.ch));
         } break;
+    case NC_NIL:
     case NC_STRING: {
         char* ptr;
         int len = (size_t)con->value.stringv.len;
-        ptr = (char*)malloc(len+1);
-        memcpy(ptr,con->value.stringv.stringv,len);
-        ptr[len] = '\0';
-        bbAppendn(buf,(void*)&ptr,sizeof(ptr));
-        } break;
+	if(len == 0 && con->value.stringv.stringv == NULL) {
+	    char* nil = NULL;
+            bbAppendn(buf,(void*)&nil,sizeof(nil));
+	} else {
+	    ptr = (char*)malloc(len+1);
+	    memcpy(ptr,con->value.stringv.stringv,len);
+	    ptr[len] = '\0';
+            bbAppendn(buf,(void*)&ptr,sizeof(ptr));
+        }
+	} break;
 
     default: PANIC1("bin_constant: unexpected type: %d",con->nctype);
     }

@@ -42,13 +42,13 @@ if USE_NETCDF4
 check_PROGRAMS += tst_create_files tst_h_rdc0 tst_group_data		\
 tst_enum_data tst_opaque_data tst_string_data tst_vlen_data tst_comp	\
 tst_comp2 tst_nans tst_special_atts tst_unicode tst_fillbug tst_compress \
-tst_chunking
+tst_chunking tst_h_scalar
 
 TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh tst_mud.sh
+tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -102,7 +102,7 @@ tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
 iter.* \
 tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl \
-tst_ncf213.cdl tst_ncf213.nc
+tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -123,7 +123,8 @@ ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl                                 \
-ref_tst_ncf213.cdl CMakeLists.txt XGetopt.c
+ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh CMakeLists.txt  \
+XGetopt.c
 
 # NCGEN4 additions
 SUBDIRS=cdl4 expected4

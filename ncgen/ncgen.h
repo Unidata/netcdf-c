@@ -41,7 +41,9 @@
 #define NC_LIST    NC_COMPOUND /* alias */
 
 /* Extend nc types with generic fill value*/
-#define NC_FILLVALUE    31
+#define NC_FILLVALUE 31
+/* Extend nc types with NIL value*/
+#define NC_NIL       32
 
 /* Must be a better way to do this */
 #ifndef INFINITE

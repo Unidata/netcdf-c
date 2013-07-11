@@ -35,7 +35,7 @@ extern int num_plists;
 #define NC_SZIP_NN_OPTION_MASK 32
 #define NC_SZIP_MAX_PIXELS_PER_BLOCK 32
 
-int nc4_get_default_fill_value(NC_TYPE_INFO_T *type_info, void *fill_value);
+extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
 
 
 /* If the HDF5 dataset for this variable is open, then close it and

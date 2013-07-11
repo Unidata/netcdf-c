@@ -489,7 +489,10 @@ pr_att_valgs(
 	    break;
 	case NC_STRING:
 	    stringp = ((char **) vals)[iel];
-	    pr_att_string(kind, strlen(stringp), stringp);
+            if(stringp)
+                pr_att_string(kind, strlen(stringp), stringp);
+            else
+	        printf("NIL");
 	    printf("%s", delim);
 	    break;
 #endif /* USE_NETCDF4 */

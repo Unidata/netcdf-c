@@ -40,6 +40,12 @@ extern char float_att_fmt[];
 extern char float_attx_fmt[];
 extern char double_att_fmt[];
 
+/* Display for netCDF-4 and HDF5 string values representing NULL
+ * pointers rather than empty strings.  HDF5 distinguishes these two
+ * kinds of string values so NULL pointers can be used as fill values
+ * for lists of strings that might include empty strings. */
+#define NIL_STRING "NIL"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

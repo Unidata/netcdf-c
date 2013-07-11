@@ -168,6 +168,7 @@ nctypename(nc_type nctype)
     if(nctype >= NC_GRP && nctype <= NC_PRIM)
 	return nctypenamesextend[(nctype - NC_GRP)];
     if(nctype == NC_FILLVALUE) return "NC_FILL";
+    if(nctype == NC_NIL) return "NC_NIL";
     s = poolalloc(128);    
     sprintf(s,"NC_<%d>",nctype);
     return s;

@@ -151,9 +151,15 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
       {
 	 for (i = 0; i < att->len; i++)
 	 {
-	    if (!(((char **)data)[i] = malloc(strlen(att->stdata[i]) + 1)))
-	       BAIL(NC_ENOMEM);
-	    strcpy(((char **)data)[i], att->stdata[i]);
+            /* Check for NULL pointer for string (valid in HDF5) */
+            if(att->stdata[i])
+            {
+                if (!(((char **)data)[i] = malloc(strlen(att->stdata[i]) + 1)))
+                   BAIL(NC_ENOMEM);
+                strcpy(((char **)data)[i], att->stdata[i]);
+            }
+            else
+                ((char **)data)[i] = att->stdata[i];
 	 }
       }
       else
@@ -308,6 +314,24 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       return NC_ENOMEM;
    strcpy(att->name, norm_name);
    att->xtype = file_type;
+
+   /* If this att has vlen or string data, release it before we lose the length value. */
+   if (att->stdata)
+   {
+      for (i = 0; i < att->len; i++)
+         if(att->stdata[i])
+	    free(att->stdata[i]);
+      free(att->stdata);
+      att->stdata = NULL;
+   }
+   if (att->vldata)
+   {
+      for (i = 0; i < att->len; i++)
+	 nc_free_vlen(&att->vldata[i]);
+      free(att->vldata);
+      att->vldata = NULL;
+   }
+
    att->len = len;
    if (att->prev)
       att->attnum = att->prev->attnum + 1;
@@ -357,11 +381,14 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       if (type_info && type_info->class == NC_VLEN)
 	 size = sizeof(hvl_t);
       else if (var->xtype == NC_STRING)
-	 size = sizeof(char *);
+      {
+         size = 1;
+         if(NULL != (*(char **)data))
+             size += strlen(*(char **)data);
+      }
       else
 	 size = type_size;
 
-      /* 	 size = strlen(*(char **)data) + 1; */
       if (!(var->fill_value = malloc(size)))
 	 return NC_ENOMEM;
 
@@ -377,9 +404,10 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       }
       else if (var->xtype == NC_STRING)
       {
-	 if (!(*(char **)var->fill_value = malloc(strlen(*(char **)data) + 1)))
-	    return NC_ENOMEM;
-	 strcpy(*(char **)(var->fill_value), *(char **)data);
+         if(NULL != (*(char **)data))
+            strcpy((char *)var->fill_value, *(char **)data);
+         else
+            strcpy((char *)var->fill_value, "");
       }
       else
 	 memcpy(var->fill_value, data, type_size);
@@ -415,10 +443,14 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
 	 BAIL(NC_ENOMEM);	 
       for (i = 0; i < att->len; i++)
       {
-	 LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
-	 if (!(att->stdata[i] = malloc(strlen(((char **)data)[i]) + 1)))
-	    BAIL(NC_ENOMEM);
-	 strcpy(att->stdata[i], ((char **)data)[i]);
+         if(NULL != ((char **)data)[i]) {
+            LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
+            if (!(att->stdata[i] = malloc(strlen(((char **)data)[i]) + 1)))
+               BAIL(NC_ENOMEM);
+            strcpy(att->stdata[i], ((char **)data)[i]);
+        }
+        else
+            att->stdata[i] = ((char **)data)[i];
       }
    }
    else

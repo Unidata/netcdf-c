@@ -162,7 +162,7 @@ Constant       constant;
         UINT_CONST   /* unsigned long long constant */
         UINT64_CONST   /* unsigned int constant */
         FLOAT_CONST /* float constant */
-        DOUBLE_CONST /* double constant */
+        DOUBLE_CONST/* double constant */
         DIMENSIONS  /* keyword starting dimensions section, if any */
         VARIABLES   /* keyword starting variables section, if any */
         NETCDF      /* keyword declaring netcdf name */
@@ -175,6 +175,7 @@ Constant       constant;
         GROUP
 	PATH            /* / or (/IDENT)+ */
 	FILLMARKER	/* "_" as opposed to the attribute */
+	NIL             /* NIL */
         _FILLVALUE
         _FORMAT
         _STORAGE
@@ -805,6 +806,7 @@ constdata:
 	  simpleconstant      {$$=$1;}
 	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
 	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
+	| NIL   	{$$=makeconstdata(NC_NIL);}
 	| path		{$$=makeenumconst($1);}
 	| function
 	;
@@ -1042,11 +1044,14 @@ makeconstdata(nc_type nctype)
 	    con.value.opaquev.stringv = s;
 	    con.value.opaquev.len = len;
 	    } break;
+
+	case NC_NIL:
+	    break; /* no associated value*/
 #endif
 
 	case NC_FILLVALUE:
 	    break; /* no associated value*/
-	    
+
 	default:
 	    yyerror("Data constant: unexpected NC type: %s",
 		    nctypename(nctype));

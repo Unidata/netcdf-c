@@ -258,6 +258,16 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 		return lexdebug(FLOAT_CONST);
 		}
 
+NIL|nil|Nil {
+#ifdef USE_NETCDF4
+		if(c_flag != 0 || binary_flag != 0)
+		    return lexdebug(NIL);
+		yyerror("NIL only allowed for netcdf-4 and for -lc or -lb");
+#else
+		yyerror("NIL only allowed for netcdf-4 and for -lc or -lb");
+#endif
+		}
+
 {PATH}		{
 		bbClear(lextext);
 		bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */

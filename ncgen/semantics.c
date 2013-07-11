@@ -20,8 +20,8 @@ static void processspecials(void);
 static void processunlimiteddims(void);
 
 static void inferattributetype(Symbol* asym);
+static void validateNIL(Symbol* sym);
 static void checkconsistency(void);
-static void validate(void);
 static int tagvlentypes(Symbol* tsym);
 
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
@@ -53,8 +53,6 @@ processsemantics(void)
     processunlimiteddims();
     /* check internal consistency*/
     checkconsistency();
-    /* do any needed additional semantic checks*/
-    validate();
 }
 
 /*
@@ -438,6 +436,8 @@ processvars(void)
 	Symbol* basetype = vsym->typ.basetype;
 	/* fill in the typecode*/
 	vsym->typ.typecode = basetype->typ.typecode;
+	/* validate uses of NIL */
+        validateNIL(vsym);
 	for(j=0;j<vsym->typ.dimset.ndims;j++) {
 	    /* validate the dimensions*/
             /* UNLIMITED must only be in first place if using classic */
@@ -583,29 +583,24 @@ processattributes(void)
     /* process global attributes*/
     for(i=0;i<listlength(gattdefs);i++) {
 	Symbol* asym = (Symbol*)listget(gattdefs,i);
-	/* If the attribute has a zero length, then default it */
-	if(asym->data == NULL || asym->data->length == 0) {
-	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
-	    /* force type to be NC_CHAR */
-	    asym->typ.basetype = primsymbols[NC_CHAR];
-	}
 	if(asym->typ.basetype == NULL) inferattributetype(asym);
         /* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
+	if(asym->data->length == 0) {
+	    /* If the attribute has a zero length, then default it;
+               note that it must be of type NC_CHAR */
+	    if(asym->typ.typecode != NC_CHAR)
+	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
+	    asym->data = builddatalist(1);
+	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	}
+	validateNIL(asym);
     }
     /* process per variable attributes*/
     for(i=0;i<listlength(attdefs);i++) {
 	Symbol* asym = (Symbol*)listget(attdefs,i);
-	/* If the attribute has a zero length, then default it */
-	if(asym->data == NULL || asym->data->length == 0) {
-	    asym->data = builddatalist(1);
-	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
-	    /* force type to be NC_CHAR */
-	    asym->typ.basetype = primsymbols[NC_CHAR];
-	}
 	/* If no basetype is specified, then try to infer it;
-           the exception if _Fillvalue, whose type is that of the
+           the exception is _Fillvalue, whose type is that of the
            containing variable.
         */
         if(strcmp(asym->name,specialname(_FILLVALUE_FLAG)) == 0) {
@@ -622,6 +617,14 @@ processattributes(void)
 	}
 	/* fill in the typecode*/
 	asym->typ.typecode = asym->typ.basetype->typ.typecode;
+	if(asym->data->length == 0) {
+	    /* If the attribute has a zero length, and is char type, then default it */
+	    if(asym->typ.typecode != NC_CHAR)
+	        semerror(asym->lineno,"Empty datalist can only be assigned to attributes of type char",fullname(asym));
+	    asym->data = builddatalist(1);
+	    emptystringconst(asym->lineno,&asym->data->data[asym->data->length]);
+	}
+	validateNIL(asym);
     }
     /* collect per-variable attributes per variable*/
     for(i=0;i<listlength(vardefs);i++) {
@@ -706,6 +709,34 @@ inferattributetype(Symbol* asym)
 	asym->typ.basetype = basetypefor(nctype);
     } else
 	asym->typ.basetype = basetypefor(nctype);
+}
+
+#ifdef USE_NETCDF4
+/* recursive helper for validataNIL */
+static void
+validateNILr(Datalist* src)
+{
+    int i;
+    for(i=0;i<src->length;i++) {
+	Constant* con = datalistith(src,i);
+	if(isnilconst(con))
+            semerror(con->lineno,"NIL data can only be assigned to variables or attributes of type string");
+	else if(islistconst(con)) /* recurse */
+	    validateNILr(con->value.compoundv);
+    }
+}
+#endif
+
+static void
+validateNIL(Symbol* sym)
+{
+#ifdef USE_NETCDF4
+    Datalist* datalist = sym->data;
+
+    if(sym->data == NULL || datalist->length == 0) return;
+    if(sym->typ.typecode == NC_STRING) return;
+    validateNILr(sym->data);
+#endif
 }
 
 /* Find name within group structure*/
@@ -826,16 +857,6 @@ checkconsistency(void)
     }
 }
 
-static void
-validate(void)
-{
-    int i;
-    for(i=0;i<listlength(vardefs);i++) {
-	Symbol* sym = (Symbol*)listget(vardefs,i);
-	if(sym->var.special._Fillvalue != NULL) {
-	}
-    }
-}
 static void
 computeunlimitedsizes(Dimset* dimset, int dimindex, Datalist* data, int ischar)
 {
