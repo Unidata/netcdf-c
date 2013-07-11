@@ -110,7 +110,7 @@ IF(ENABLE_TESTS)
 		ENDIF()
 		add_sh_test(ncdump tst_grp_spec)
 		add_sh_test(ncdump tst_mud)
-		add_sh_test(ncdump tst_h_scalar)
+		add_sh_test(ncdump_shell tst_h_scalar)
 	ENDIF()
 	
 	#add_sh_test(tst_ncgen4_classic)

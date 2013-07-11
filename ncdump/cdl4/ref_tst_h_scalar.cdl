@@ -1,4 +1,4 @@
-netcdf ref_tst_h_scalar {
+netcdf tst_h_scalar {
 variables:
 	string vstrvar1 ;
 		string vstrvar1:vstratt1 = NIL ;
