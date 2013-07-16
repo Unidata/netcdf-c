@@ -28,7 +28,7 @@ j_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-j_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
+j_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 {
     Bytebuffer* codetmp = bbNew();
     char* special = NULL;

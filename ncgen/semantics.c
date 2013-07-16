@@ -346,7 +346,7 @@ processenums(void)
 	if(tsym->subclass != NC_ENUM) continue;
 	for(j=0;j<listlength(tsym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(tsym->subnodes,j);
-	    Constant newec;
+	    NCConstant newec;
 	    ASSERT(esym->subclass == NC_ECONST);
 	    newec.nctype = esym->typ.typecode;
 	    convert1(&esym->typ.econst,&newec);
@@ -491,7 +491,7 @@ processspecial1(Symbol* vsym)
 {
     unsigned long flags = vsym->var.special.flags;
     int i,tag;
-    Constant con;
+    NCConstant con;
     Datalist* dlist = NULL;
     if(flags == 0) return; /* no specials defined */
     con = nullconstant;
@@ -660,7 +660,7 @@ inferattributetype1(Datasrc* src)
 	    result = inferattributetype1(src);
 	    srcpop(src);
 	} else {	
-	    Constant* con = srcnext(src);
+	    NCConstant* con = srcnext(src);
 	    if(isprimplus(con->nctype)) result = con->nctype;
 	    /* else keep looking*/
 	}
@@ -718,7 +718,7 @@ validateNILr(Datalist* src)
 {
     int i;
     for(i=0;i<src->length;i++) {
-	Constant* con = datalistith(src,i);
+	NCConstant* con = datalistith(src,i);
 	if(isnilconst(con))
             semerror(con->lineno,"NIL data can only be assigned to variables or attributes of type string");
 	else if(islistconst(con)) /* recurse */
@@ -738,6 +738,7 @@ validateNIL(Symbol* sym)
     validateNILr(sym->data);
 #endif
 }
+
 
 /* Find name within group structure*/
 Symbol*
@@ -889,7 +890,7 @@ thisunlim->name,
             thisunlim->dim.declsize = unlimsize;
         /*!lastunlim => data is list of sublists, recurse on each sublist*/
 	for(i=0;i<data->length;i++) {
-	    Constant* con = data->data+i;
+	    NCConstant* con = data->data+i;
 	    ASSERT(con->nctype == NC_COMPOUND);
 	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
 	}
@@ -899,7 +900,7 @@ thisunlim->name,
 	       compute total number of characters */
 	    length = 0;
 	    for(i=0;i<data->length;i++) {
-		Constant* con = &data->data[i];
+		NCConstant* con = &data->data[i];
 		switch (con->nctype) {
 	        case NC_CHAR: case NC_BYTE: case NC_UBYTE:
 		    length++;
@@ -956,7 +957,7 @@ processunlimiteddims(void)
 	    computeunlimitedsizes(dimset,first,var->data,ischar);
 	} else {
 	    for(i=0;i<var->data->length;i++) {
-	        Constant* con = var->data->data+i;
+	        NCConstant* con = var->data->data+i;
 	        if(con->nctype != NC_COMPOUND)
 		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 		else

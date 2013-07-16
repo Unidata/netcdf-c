@@ -11,7 +11,7 @@
 
 extern void dumptransform(Datalist*);
 extern void dumpdatalist(Datalist*,char*);
-extern void dumpconstant(Constant*,char*);
+extern void dumpconstant(NCConstant*,char*);
 extern void bufdump(Datalist*,Bytebuffer*);
 extern void dumpgroup(Symbol* g);
 extern void dumpsrc(Datasrc*,char*);

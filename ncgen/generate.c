@@ -16,8 +16,8 @@
 /* Forward*/
 static void generate_array(Symbol*,Bytebuffer*,Datalist*,Generator*,Writer);
 static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,Datalist*,Generator*);
-static void generate_primdata(Symbol*, Constant*, Bytebuffer*, Datalist* fillsrc, Generator*);
-static void generate_fieldarray(Symbol*, Constant*, Dimset*, Bytebuffer*, Datalist* fillsrc, Generator*);
+static void generate_primdata(Symbol*, NCConstant*, Bytebuffer*, Datalist* fillsrc, Generator*);
+static void generate_fieldarray(Symbol*, NCConstant*, Dimset*, Bytebuffer*, Datalist* fillsrc, Generator*);
 
 /* Mnemonics */
 #define VLENLIST1
@@ -65,7 +65,7 @@ generate_attrdata(Symbol* asym, Generator* generator, Writer writer, Bytebuffer*
 	size_t count;
         generator->listbegin(generator,LISTATTR,asym->data->length,codebuf,&uid);
         for(count=0;count<asym->data->length;count++) {
-	    Constant* con = datalistith(asym->data,count);
+        NCConstant* con = datalistith(asym->data,count);
 	    generator->list(generator,LISTATTR,uid,count,codebuf);
             generate_basetype(asym->typ.basetype,con,codebuf,NULL,generator);
 	}
@@ -88,7 +88,7 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     bbSetalloc(code, nciterbuffersize);
 
     if(rank == 0) {/*scalar case*/
-	Constant* c0 = datalistith(vsym->data,0);
+    NCConstant* c0 = datalistith(vsym->data,0);
         generate_basetype(basetype,c0,code,filler,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
@@ -152,7 +152,7 @@ generate_array(Symbol* vsym,
 #ifdef ITERBUG
 	 	Constant* con = datalistith(vsym->data,i);
 #else
-	 	Constant* con = datalistith(vsym->data,i+offset);
+        NCConstant* con = datalistith(vsym->data,i+offset);
 #endif	
                 generator->list(generator,LISTDATA,uid,i,code);
 #ifdef USE_NOFILL
@@ -243,7 +243,7 @@ generate_arrayr(Symbol* vsym,
         generator->listbegin(generator,LISTDATA,list->length,code,&uid);
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
-	    Constant* con = datalistith(list,offset);
+        NCConstant* con = datalistith(list,offset);
 #ifdef USE_NOFILL
 	    if(nofill_flag && con == NULL)
 		break;
@@ -272,7 +272,7 @@ generate_arrayr(Symbol* vsym,
         */
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
-	    Constant* con = datalistith(list,offset);
+        NCConstant* con = datalistith(list,offset);
 #ifdef USE_NOFILL
 	    if(nofill_flag && con == NULL)
 		break;
@@ -298,7 +298,7 @@ generate_arrayr(Symbol* vsym,
 
 /* Generate an instance of the basetype */
 void
-generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
+generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
     Datalist* data;
 
@@ -368,8 +368,9 @@ generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* fi
 	} else {
     	    generator->listbegin(generator,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
+	      NCConstant* con;
    	        generator->list(generator,LISTVLEN,uid,count,vlenbuf);
-		Constant* con = datalistith(data,count);
+		con = datalistith(data,count);
                 generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
 	    }
    	    generator->listend(generator,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
@@ -395,7 +396,7 @@ generate_basetype(Symbol* tsym, Constant* con, Bytebuffer* codebuf, Datalist* fi
 
 /* Used only for structure field arrays*/
 static void
-generate_fieldarray(Symbol* basetype, Constant* con, Dimset* dimset,
+generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
 		 Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
     int i;
@@ -436,7 +437,7 @@ generate_fieldarray(Symbol* basetype, Constant* con, Dimset* dimset,
    Note that the string is a sequence of nibbles (4 bits).
 */
 static void
-normalizeopaquelength(Constant* prim, unsigned long nbytes)
+normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
 {
     int nnibs = 2*nbytes;
     ASSERT(prim->nctype==NC_OPAQUE);
@@ -458,10 +459,10 @@ normalizeopaquelength(Constant* prim, unsigned long nbytes)
 }
 
 static void
-generate_primdata(Symbol* basetype, Constant* prim, Bytebuffer* codebuf,
+generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
 		  Datalist* filler, Generator* generator)
 {
-    Constant target;
+    NCConstant target;
 
     if(prim == NULL || isfillconst(prim)) {
 	Datalist* fill = (filler==NULL?getfiller(basetype):filler);

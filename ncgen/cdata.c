@@ -28,7 +28,7 @@ c_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-c_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
+c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 {
     Bytebuffer* codetmp = bbNew();
     char* special = NULL;

@@ -69,7 +69,7 @@ extern char* jescapifyname(char* s0);
 extern char* jdecodify(const char *name);
 
 /* from: getfill.c */
-extern void nc_getfill(Constant*);
+extern void nc_getfill(NCConstant*);
 extern char* nc_dfaltfillname(nc_type);
 extern struct Datalist* getfiller(Symbol*); /* symbol isa variable|type */
 
@@ -79,9 +79,9 @@ extern Symbol* basetypefor(nc_type nctype);/* Convert nctype to a Symbol*/
 extern Symbol* makearraytype(Symbol*, Dimset*);
 
 /* from: cvt.c */
-extern void convert1(Constant*,Constant*); /* Convert an arbitrary value to another */
-extern void setprimlength(Constant* prim, unsigned long len);
-extern struct Datalist* convertstringtochars(Constant* str);
+extern void convert1(NCConstant*,NCConstant*); /* Convert an arbitrary value to another */
+extern void setprimlength(NCConstant* prim, unsigned long len);
+extern struct Datalist* convertstringtochars(NCConstant* str);
 
 
 /* from: semantic.c */
@@ -100,11 +100,11 @@ extern  void semwarnlno,fmt,va_alist) const int lno; const char* fmt; va_dcl;
 #endif
 extern int nounlimited(Dimset* dimset, int from);
 extern int lastunlimited(Dimset* dimset);
-extern void padstring(Constant* con, size_t desiredlength, int fillchar);
+extern void padstring(NCConstant* con, size_t desiredlength, int fillchar);
 
 extern Datalist* explodestrings(Datalist*,char*);
 extern Datalist* implodestrings(Datalist*,char*);
-extern int explodestringconst(Constant* con, char* tag, Constant*);
+extern int explodestringconst(NCConstant* con, char* tag, NCConstant*);
 
 extern char* indented(int n);
 

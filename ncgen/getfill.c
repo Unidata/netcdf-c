@@ -51,7 +51,7 @@ static void
 fill(Symbol* tsym, Datalist* filler)
 {
     int i;
-    Constant con;
+    NCConstant con;
     Datalist* sublist;
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -85,7 +85,7 @@ filllist(Symbol* tsym, Datalist* dl)
 {
     int i;
     Datalist* sublist;
-    Constant con;
+    NCConstant con;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -148,7 +148,7 @@ fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)
  * that type.
  */
 void
-nc_getfill(Constant* value)
+nc_getfill(NCConstant* value)
 {
     switch(value->nctype) {
       case NC_CHAR: value->value.charv = NC_FILL_CHAR; break;
