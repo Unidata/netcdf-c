@@ -368,8 +368,9 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
 	} else {
     	    generator->listbegin(generator,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
+	      NCConstant* con;
    	        generator->list(generator,LISTVLEN,uid,count,vlenbuf);
-        NCConstant* con = datalistith(data,count);
+		con = datalistith(data,count);
                 generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
 	    }
    	    generator->listend(generator,LISTVLEN,uid,count,codebuf,(void*)vlenbuf);
