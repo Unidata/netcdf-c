@@ -429,7 +429,7 @@ void
 init_netcdf(void) /* initialize global counts, flags */
 {
     compute_alignments();
-    memset((void*)&nullconstant,0,sizeof(Constant));
+    memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;
 

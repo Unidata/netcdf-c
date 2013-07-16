@@ -10,7 +10,7 @@
    language independent */
 /******************************************************/
 
-static size_t gen_charconstant(Constant*, Bytebuffer*, int fillchar);
+static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
 static int getfillchar(Datalist* fillsrc);
 static void gen_chararrayr(Dimset*,int,int,Bytebuffer*,Datalist*,int,int,int);
 
@@ -95,14 +95,14 @@ gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
     if(dimindex < lastunlimited) {
 	/* keep recursing */
         for(i=0;i<dimsize;i++) {
-	    Constant* c = datalistith(data,i);
+	    NCConstant* c = datalistith(data,i);
 	    ASSERT(islistconst(c));
 	    gen_chararrayr(dimset,dimindex+1,lastunlimited,databuf,
 			   c->value.compoundv,fillchar,unitsize,expectedsize);
 	}
     } else {/* we should be at a list of simple constants */
 	for(i=0;i<data->length;i++) {
-	    Constant* c = datalistith(data,i);
+	    NCConstant* c = datalistith(data,i);
 	    ASSERT(!islistconst(c));
 	    if(isstringable(c->nctype)) {
 		int j;
@@ -143,7 +143,7 @@ void
 gen_charvlen(Datalist* data, Bytebuffer* databuf)
 {
     int i;
-    Constant* c;
+    NCConstant* c;
 
     ASSERT(bbLength(databuf) == 0);
 
@@ -160,7 +160,7 @@ gen_charvlen(Datalist* data, Bytebuffer* databuf)
 }
 
 static size_t
-gen_charconstant(Constant* con, Bytebuffer* databuf, int fillchar)
+gen_charconstant(NCConstant* con, Bytebuffer* databuf, int fillchar)
 {
     /* Following cases should be consistent with isstringable */
     size_t constsize = 1;
@@ -194,7 +194,7 @@ getfillchar(Datalist* fillsrc)
     /* Determine the fill char */
     int fillchar = 0;
     if(fillsrc != NULL && fillsrc->length > 0) {
-	Constant* ccon = fillsrc->data;
+	NCConstant* ccon = fillsrc->data;
 	if(ccon->nctype == NC_CHAR) {
 	    fillchar = ccon->value.charv;
 	} else if(ccon->nctype == NC_STRING) {	    
@@ -246,7 +246,7 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
     }
 
     for(i=0;i<data->length;i++) {
-	Constant* c = datalistith(data,i);
+	NCConstant* c = datalistith(data,i);
 	ASSERT(!islistconst(c));
 	if(isstringable(c->nctype)) {
 	    int j;

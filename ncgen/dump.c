@@ -11,7 +11,7 @@
 #define DEBUGSRC
 
 /* Forward */
-static void dumpdataprim(Constant*,Bytebuffer*);
+static void dumpdataprim(NCConstant*,Bytebuffer*);
 
 char*
 indentstr(int n)
@@ -24,7 +24,7 @@ indentstr(int n)
 
 
 void
-dumpconstant(Constant* con, char* tag)
+dumpconstant(NCConstant* con, char* tag)
 {
     Bytebuffer* buf = bbNew();
     Datalist* dl = builddatalist(1);
@@ -47,7 +47,7 @@ void
 bufdump(Datalist* list, Bytebuffer* buf)
 {
     int i;
-    Constant* dp;
+    NCConstant* dp;
     unsigned int count;
 
     if(list == NULL) {
@@ -88,7 +88,7 @@ bufdump(Datalist* list, Bytebuffer* buf)
 
 
 static void
-dumpdataprim(Constant* ci, Bytebuffer* buf)
+dumpdataprim(NCConstant* ci, Bytebuffer* buf)
 {
     char tmp[64];
     ASSERT(isprimplus(ci->nctype) || ci->nctype == NC_FILLVALUE);
@@ -186,7 +186,7 @@ dumpgroup(Symbol* g)
 }
 
 void
-dumpconstant1(Constant* con)
+dumpconstant1(NCConstant* con)
 {
     switch (con->nctype) {
     case NC_COMPOUND: {

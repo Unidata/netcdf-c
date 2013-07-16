@@ -28,7 +28,7 @@ f77_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-f77_constant(Generator* generator, Constant* ci, Bytebuffer* codebuf,...)
+f77_constant(Generator* generator, NCConstant* ci, Bytebuffer* codebuf,...)
 {
     char tmp[64];
     char* special = NULL;

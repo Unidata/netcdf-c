@@ -15,8 +15,8 @@
 extern int lvsnprintf(char*, size_t, const char*, va_list);
 */
 
-Constant nullconstant;
-Constant fillconstant;
+NCConstant nullconstant;
+NCConstant fillconstant;
 
 Datalist nildatalist; // to support NIL keyword
 
@@ -49,7 +49,7 @@ return srcpeek(datasrc) == NULL || istype(datasrc,NC_FILLVALUE);
 int
 istype(Datasrc* datasrc , nc_type nctype)
 {
-    Constant* ci = srcpeek(datasrc);
+    NCConstant* ci = srcpeek(datasrc);
     if(ci != NULL && ci->nctype == nctype) return 1;
     return 0;
 }
@@ -101,7 +101,7 @@ datalist2src(Datalist* list)
 }
 
 Datasrc*
-const2src(Constant* con)
+const2src(NCConstant* con)
 {
     Datasrc* src;
     ASSERT(con != NULL);
@@ -113,10 +113,10 @@ const2src(Constant* con)
     return src;
 }
 
-Constant
+NCConstant
 list2const(Datalist* list)
 {
-    Constant con;
+    NCConstant con;
     ASSERT(list != NULL);
     con.nctype = NC_COMPOUND;
     con.lineno = list->data[0].lineno;
@@ -126,7 +126,7 @@ list2const(Datalist* list)
 }
 
 Datalist*
-const2list(Constant* con)
+const2list(NCConstant* con)
 {
     Datalist* list;
     ASSERT(con != NULL);
@@ -137,7 +137,7 @@ const2list(Constant* con)
     return list;
 }
 
-Constant*
+NCConstant*
 srcpeek(Datasrc* ds)
 {
     if(ds == NULL) return NULL;
@@ -148,7 +148,7 @@ srcpeek(Datasrc* ds)
     return NULL;
 }
 
-Constant*
+NCConstant*
 srcnext(Datasrc* ds)
 {
     DUMPSRC(ds,"!");
@@ -185,7 +185,7 @@ srcline(Datasrc* ds)
 void
 srcpush(Datasrc* src)
 {
-    Constant* con;
+    NCConstant* con;
     ASSERT(src != NULL);
     con = srcnext(src);
     ASSERT(con->nctype == NC_COMPOUND);
@@ -256,10 +256,10 @@ report0(char* lead, Datasrc* src, int index)
 /**************************************************/
 
 /* Shallow constant cloning*/
-Constant
-cloneconstant(Constant* con)
+NCConstant
+cloneconstant(NCConstant* con)
 {
-    Constant newcon = *con;
+    NCConstant newcon = *con;
     char* s;
     switch (newcon.nctype) {
     case NC_STRING:
@@ -295,23 +295,23 @@ datalistclone(Datalist* dl)
 Datalist*
 datalistconcat(Datalist* dl1, Datalist* dl2)
 {
-    Constant* vector;
+    NCConstant* vector;
     ASSERT(dl1 != NULL);
     if(dl2 == NULL) return dl1;
-    vector = (Constant*)erealloc(dl1->data,sizeof(Constant)*(dl1->length+dl2->length));
+    vector = (NCConstant*)erealloc(dl1->data,sizeof(NCConstant)*(dl1->length+dl2->length));
     if(vector == NULL) return NULL;
-    memcpy((void*)(vector+dl1->length),dl2->data,sizeof(Constant)*(dl2->length));
+    memcpy((void*)(vector+dl1->length),dl2->data,sizeof(NCConstant)*(dl2->length));
     dl1->data = vector;
     return dl1;
 }
 
 Datalist*
-datalistappend(Datalist* dl, Constant* con)
+datalistappend(Datalist* dl, NCConstant* con)
 {
-    Constant* vector;
+    NCConstant* vector;
     ASSERT(dl != NULL);
     if(con == NULL) return dl;
-    vector = (Constant*)erealloc(dl->data,sizeof(Constant)*(dl->length+1));
+    vector = (NCConstant*)erealloc(dl->data,sizeof(NCConstant)*(dl->length+1));
     if(vector == NULL) return NULL;
     vector[dl->length] = *con;
     dl->length++;
@@ -320,7 +320,7 @@ datalistappend(Datalist* dl, Constant* con)
 }
 
 Datalist*
-datalistreplace(Datalist* dl, unsigned int index, Constant* con)
+datalistreplace(Datalist* dl, unsigned int index, NCConstant* con)
 {
     ASSERT(dl != NULL);
     ASSERT(index < dl->length);
@@ -431,7 +431,7 @@ wordstring(char* p, Bytebuffer* buf, int quote)
 static const char zeros[] =
     "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 void
-alignbuffer(Constant* prim, Bytebuffer* buf)
+alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
     int alignment,pad,offset;
 
@@ -633,8 +633,8 @@ codeprintf(const char *fmt, ...)
     va_end(argv);
 }
 
-Constant*
-emptycompoundconst(int lineno, Constant* c)
+NCConstant*
+emptycompoundconst(int lineno, NCConstant* c)
 {
     ASSERT(c != NULL);
     c->lineno = lineno;
@@ -644,8 +644,8 @@ emptycompoundconst(int lineno, Constant* c)
     return c;    
 }
 
-Constant*
-emptystringconst(int lineno, Constant* c)
+NCConstant*
+emptystringconst(int lineno, NCConstant* c)
 {
     ASSERT(c != NULL);
     c->lineno = lineno;

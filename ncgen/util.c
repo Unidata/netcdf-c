@@ -479,13 +479,13 @@ dlextend(Datalist* dl)
 void
 dlsetalloc(Datalist* dl, size_t newalloc)
 {
-    Constant* newdata;
+    NCConstant* newdata;
     if(newalloc <= 0) newalloc = 1;
     if(dl->alloc > 0)
-        newdata = (Constant*)erealloc((void*)dl->data,sizeof(Constant)*newalloc);
+        newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
     else {
-        newdata = (Constant*)emalloc(sizeof(Constant)*newalloc);
-        memset((void*)newdata,0,sizeof(Constant)*newalloc);
+        newdata = (NCConstant*)emalloc(sizeof(NCConstant)*newalloc);
+        memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
     }
     dl->alloc = newalloc;
     dl->data = newdata;
@@ -500,26 +500,26 @@ builddatalist(int initial)
     initial++; /* for header*/
     ci = (Datalist*)emalloc(sizeof(Datalist));
     memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
-    ci->data = (Constant*)emalloc(sizeof(Constant)*initial);
-    memset((void*)ci->data,0,sizeof(Constant)*initial);
+    ci->data = (NCConstant*)emalloc(sizeof(NCConstant)*initial);
+    memset((void*)ci->data,0,sizeof(NCConstant)*initial);
     ci->alloc = initial;
     ci->length = 0;
     return ci;
 }
 
 void
-dlappend(Datalist* dl, Constant* constant)
+dlappend(Datalist* dl, NCConstant* constant)
 {
     if(dl->length >= dl->alloc) dlextend(dl);
     if(constant == NULL) constant = &nullconstant;
     dl->data[dl->length++] = *constant;
 }
 
-Constant
+NCConstant
 builddatasublist(Datalist* dl)
 {
 
-  Constant d;
+  NCConstant d;
   d.nctype = NC_COMPOUND;
   d.lineno = (dl->length > 0?dl->data[0].lineno:0);
   d.value.compoundv = dl;
@@ -529,7 +529,7 @@ builddatasublist(Datalist* dl)
 }
 
 static void
-constantFree(Constant* con)
+constantFree(NCConstant* con)
 {
     switch(con->nctype) {
     case NC_COMPOUND:
@@ -552,7 +552,7 @@ static void
 reclaimDatalists(void)
 {
     Datalist* list;
-    Constant* con;
+    NCConstant* con;
     /* Step 1: free up the constant content of each datalist*/
     for(list=alldatalists;list != NULL; list = list->next) {
 	if(list->data != NULL) { /* avoid multiple free attempts*/

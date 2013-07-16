@@ -48,19 +48,19 @@ typedef union Constvalue {
     struct Symbol* enumv;   /* NC_ECONST*/
 } Constvalue;
 
-typedef struct Constant {
+typedef struct NCConstant {
     nc_type 	  nctype;
     int		  lineno;
     Constvalue    value;
     int           filled; /* was this originally NC_FILLVALUE? */
-} Constant;
+} NCConstant;
 
 typedef struct Datalist {
     struct Datalist* next; /* chain of all known datalists*/
     int           readonly; /* data field is shared with another Datalist*/
     size_t  length; /* |data| */
     size_t  alloc;  /* track total allocated space for data field*/
-    Constant*     data; /* actual list of constants constituting the datalist*/
+    NCConstant*     data; /* actual list of constants constituting the datalist*/
     /* Track various values associated with the datalist*/
     /* (used to be in Constvalue.compoundv)*/
     struct Vlen {
@@ -75,7 +75,7 @@ typedef struct Datalist {
    In effect, we are parsing the data sequence.
    Push and pop of data sources is supported (see srcpush() below).*/
 typedef struct Datasrc {
-    Constant*    data;     /* duplicate pointer; so do not free.*/
+    NCConstant*    data;     /* duplicate pointer; so do not free.*/
     int index;        
     int length;
     int spliced;           /* Was this list spliced into our parent ? */
@@ -97,9 +97,9 @@ int istype(Datasrc* src, nc_type);
 int isstringable(nc_type nctype);
 
 Datasrc* datalist2src(Datalist* list);
-Datasrc* const2src(Constant*);
-Constant list2const(Datalist*);
-Datalist* const2list(Constant* con);
+Datasrc* const2src(NCConstant*);
+NCConstant list2const(Datalist*);
+Datalist* const2list(NCConstant* con);
 void freedatasrc(Datasrc* src);
 
 void srcpush(Datasrc*);
@@ -112,7 +112,7 @@ int       datalistline(Datalist*);
 #define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
 
 
-Constant* srcnext(Datasrc*);
+NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
 int srcline(Datasrc* ds);
 
@@ -122,11 +122,11 @@ int srcline(Datasrc* ds);
 
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 
-Constant* emptystringconst(int,Constant*);
+NCConstant* emptystringconst(int,NCConstant*);
 
-Constant cloneconstant(Constant* con); /* shallow clone*/
+NCConstant cloneconstant(NCConstant* con); /* shallow clone*/
 
-void alignbuffer(struct Constant* prim, Bytebuffer* buf);
+void alignbuffer(struct NCConstant* prim, Bytebuffer* buf);
 
 /* Code dump support procedures */
 void bbindent(Bytebuffer*,const int);
@@ -150,16 +150,16 @@ extern Bytebuffer* stmt; /* single stmt text generation */
 #ifdef FASTDATASRC
 #define srcpeek(ds) ((ds)==NULL || (ds)->index >= (ds)->max?NULL:(ds)->data+(ds)->index)
 #else
-Constant* srcpeek(Datasrc*);
+NCConstant* srcpeek(Datasrc*);
 #endif
 
 /* Aliases */
 #define srcincr(src) srcnext(src)
 #define srcget(src) srcpeek(src)
 
-extern Constant nullconstant;
-extern Constant fillconstant;
-extern Constant nilconstant;
+extern NCConstant nullconstant;
+extern NCConstant fillconstant;
+extern NCConstant nilconstant;
 
 /* From genchar.c */
 void gen_charattr(Datalist*, Bytebuffer*);
@@ -179,7 +179,7 @@ typedef enum ListClass {
 struct Generator {
     void* state;
         int (*charconstant)(Generator*,Bytebuffer*,...);
-        int (*constant)(Generator*,Constant*,Bytebuffer*,...);
+        int (*constant)(Generator*,NCConstant*,Bytebuffer*,...);
         int (*listbegin)(Generator*,ListClass,size_t,Bytebuffer*,int*,...);
         int (*list)(Generator*,ListClass,int,size_t,Bytebuffer*,...);
         int (*listend)(Generator*,ListClass,int,size_t,Bytebuffer*,...);
@@ -194,7 +194,7 @@ typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,size_t*,size_t*)
 
 extern void generate_attrdata(struct Symbol*, Generator*, Writer writer, Bytebuffer*);
 extern void generate_vardata(struct Symbol*, Generator*, Writer writer,Bytebuffer*);
-extern void generate_basetype(struct Symbol*,Constant*,Bytebuffer*,Datalist*,Generator*);
+extern void generate_basetype(struct Symbol*,NCConstant*,Bytebuffer*,Datalist*,Generator*);
 
 
 #endif /*DATA_H*/

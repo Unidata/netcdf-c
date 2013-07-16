@@ -25,7 +25,7 @@ bin_charconstant(Generator* generator, Bytebuffer* buf, ...)
 }
 
 static int
-bin_constant(Generator* generator, Constant* con, Bytebuffer* buf,...)
+bin_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 {
     if(con->nctype != NC_ECONST) {
         alignbuffer(con,buf);

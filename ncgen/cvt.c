@@ -13,7 +13,7 @@
 static char stmp[256];
 
 void
-convert1(Constant* src, Constant* dst)
+convert1(NCConstant* src, NCConstant* dst)
 {
     Constvalue tmp;
     unsigned char* bytes = NULL;
@@ -608,7 +608,7 @@ setprimlength(Constant* prim, unsigned long len)
 #endif
 
 Datalist*
-convertstringtochars(Constant* str)
+convertstringtochars(NCConstant* str)
 {
     int i;
     Datalist* dl;
@@ -619,7 +619,7 @@ convertstringtochars(Constant* str)
     dl = builddatalist(slen);
     s = str->value.stringv.stringv;
     for(i=0;i<slen;i++) {
-	Constant con;
+	NCConstant con;
 	con.nctype = NC_CHAR;
         con.lineno = str->lineno;
         con.value.charv = s[i];
