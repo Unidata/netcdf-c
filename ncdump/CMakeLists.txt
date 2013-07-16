@@ -111,9 +111,10 @@ IF(ENABLE_TESTS)
 		add_sh_test(ncdump tst_grp_spec)
 		add_sh_test(ncdump tst_mud)
 		add_sh_test(ncdump_shell tst_h_scalar)
+	
 	ENDIF()
 	
-	#add_sh_test(tst_ncgen4_classic)
+	add_sh_test(ncdump tst_ncgen4_classic)
 	IF(USE_NETCDF4)
 		add_sh_test(ncdump tst_ncgen4)
 	ENDIF()

@@ -739,6 +739,7 @@ validateNIL(Symbol* sym)
 #endif
 }
 
+
 /* Find name within group structure*/
 Symbol*
 lookupgroup(List* prefix)
