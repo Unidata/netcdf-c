@@ -848,7 +848,7 @@ int
 nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size, 
 		    const char *name, const void *value)
 {
-   NC_ENUM_MEMBER_INFO_T *member, *m;
+   NC_ENUM_MEMBER_INFO_T *member = NULL, *m = NULL;
 
    /* Name has already been checked. */
    assert(name && size > 0 && value);
@@ -874,8 +874,11 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    }
 
    /* Store the information about this member. */
-   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char))))
-      return NC_ENOMEM;
+   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char)))) {
+     if(member) free(member);
+    
+     return NC_ENOMEM;
+   }
    strcpy(member->name, name);
    memcpy(member->value, value, size);
 

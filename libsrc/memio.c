@@ -327,8 +327,10 @@ memio_open(const char* path,
         filesize = (off_t)sizehint;
 
     status = memio_new(path, ioflags, filesize, &nciop, &memio);
-    if(status != NC_NOERR)
-	return status;
+    if(status != NC_NOERR) {
+      if(fd > 0) close(fd);
+      return status;
+    }
     memio->size = filesize;
 
     memio->memory = (char*)malloc(memio->alloc);
