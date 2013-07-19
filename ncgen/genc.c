@@ -110,6 +110,7 @@ gen_ncc(const char *filename)
                 codedump(tmp);
                 codeline("} ;");
             }
+	    bbFree(tmp);
         }
 	codeline("");
     }

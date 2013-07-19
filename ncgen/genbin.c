@@ -250,7 +250,8 @@ genbin_deftype(Symbol* tsym)
 			     &tsym->ncid);
         check_err(stat,__LINE__,__FILE__);	
 	break;
-    case NC_ENUM: {
+    case NC_ENUM: 
+      {
         Bytebuffer* datum;
         Datalist* ecdl;
 	stat = nc_def_enum(tsym->container->ncid,
@@ -263,19 +264,21 @@ genbin_deftype(Symbol* tsym)
         dlextend(ecdl); /* make room for one constant*/
 	ecdl->length = 1;
 	for(i=0;i<listlength(tsym->subnodes);i++) {
-	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
-	    ASSERT(econst->subclass == NC_ECONST);
-	    generator_reset(bin_generator,NULL);
-	    bbClear(datum);
-	    generate_basetype(econst->typ.basetype,&econst->typ.econst,datum,NULL,bin_generator);
-	    stat = nc_insert_enum(tsym->container->ncid,
-				  tsym->ncid,
-				  econst->name,
-				  bbContents(datum));
-	    check_err(stat,__LINE__,__FILE__);	
+	  Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
+	  ASSERT(econst->subclass == NC_ECONST);
+	  generator_reset(bin_generator,NULL);
+	  bbClear(datum);
+	  generate_basetype(econst->typ.basetype,&econst->typ.econst,datum,NULL,bin_generator);
+	  stat = nc_insert_enum(tsym->container->ncid,
+				tsym->ncid,
+				econst->name,
+				bbContents(datum));
+	  check_err(stat,__LINE__,__FILE__);	
 	}
 	bbFree(datum);
-	} break;
+	
+      } 
+      break;
     case NC_VLEN:
 	stat = nc_def_vlen(tsym->container->ncid,
 			   tsym->name,
