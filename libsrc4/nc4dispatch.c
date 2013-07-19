@@ -72,6 +72,7 @@ NC4_inq_dimids,
 NC4_inq_typeids,
 NC4_inq_type_equal,
 NC4_def_grp,
+NC4_rename_grp,
 NC4_inq_user_type,
 NC4_inq_typeid,
 

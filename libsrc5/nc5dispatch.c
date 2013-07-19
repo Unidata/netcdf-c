@@ -799,6 +799,12 @@ NC5_def_grp(int parent_ncid, const char *name, int *new_ncid)
 }
 
 static int
+NC5_rename_grp(int ncid, const char *name)
+{
+    return NC_ENOTNC4;
+}
+
+static int
 NC5_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
     if(grp_ncid) *grp_ncid = ncid;
@@ -1098,6 +1104,7 @@ NC5_inq_dimids,
 NC5_inq_typeids,
 NC5_inq_type_equal,
 NC5_def_grp,
+NC5_rename_grp,
 NC5_inq_user_type,
 NC5_inq_typeid,
 

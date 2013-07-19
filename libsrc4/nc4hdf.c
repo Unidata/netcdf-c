@@ -2554,6 +2554,16 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
    if ((retval = attach_dimscales(grp)))
       return retval;
    
+   /* Rename this group */
+   if (grp->old_name && strlen(grp->old_name))
+   {
+      /* Rename the group in the HDF5 file. */
+      if (H5Gmove(grp->hdf_grpid, grp->old_name, grp->name) < 0)
+         return NC_EHDFERR;
+      /* Reset old_name. */
+      strcpy(grp->old_name, "");
+   }
+
    /* If there are any child groups, write their metadata. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
       if ((retval = nc4_rec_write_metadata(child_grp, bad_coord_order)))

@@ -53,6 +53,7 @@ static int NC3_inq_dimids(int,int* ndims,int*,int);
 static int NC3_inq_typeids(int,int* ntypes,int*);
 static int NC3_inq_type_equal(int,nc_type,int,nc_type,int*);
 static int NC3_def_grp(int,const char*,int*);
+static int NC3_rename_grp(int,const char*);
 static int NC3_inq_user_type(int,nc_type,char*,size_t*,nc_type*,size_t*,int*);
 static int NC3_inq_typeid(int,const char*,nc_type*);
 static int NC3_def_compound(int,size_t,const char*,nc_type*);
@@ -139,6 +140,7 @@ NC3_inq_dimids,
 NC3_inq_typeids,
 NC3_inq_type_equal,
 NC3_def_grp,
+NC3_rename_grp,
 NC3_inq_user_type,
 NC3_inq_typeid,
 
@@ -223,6 +225,12 @@ NC3_inq_unlimdims(int ncid, int *ndimsp, int *unlimdimidsp)
 
 static int
 NC3_def_grp(int parent_ncid, const char *name, int *new_ncid)
+{
+    return NC_ENOTNC4;
+}
+
+static int
+NC3_rename_grp(int grpid, const char *name)
 {
     return NC_ENOTNC4;
 }

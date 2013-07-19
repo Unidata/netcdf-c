@@ -104,6 +104,7 @@ NULL, /*inq_dimids*/
 NULL, /*inq_typeids*/
 NULL, /*inq_type_equal*/
 NULL, /*def_grp*/
+NULL, /*rename_grp*/
 NULL, /*inq_user_type*/
 NULL, /*inq_typeid*/
 

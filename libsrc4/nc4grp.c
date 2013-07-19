@@ -61,6 +61,68 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
    return NC_NOERR;
 }
 
+/* Rename a group. */
+int
+NC4_rename_grp(int grpid, const char *name)
+{
+   NC_GRP_INFO_T *grp, *g;
+   NC_HDF5_FILE_INFO_T *h5;
+   char norm_name[NC_MAX_NAME + 1];
+   int retval;
+
+   LOG((2, "nc_rename_grp: grpid 0x%x name %s", grpid, name));
+
+   /* Find info for this file and group, and set pointer to each. */
+   if ((retval = nc4_find_grp_h5(grpid, &grp, &h5)))
+      return retval;
+   if (!h5)
+      return NC_ENOTNC4;
+
+   if (h5->no_write)
+      return NC_EPERM; /* attempt to write to a read-only file */
+
+   /* Do not allow renaming the root group */
+   if(grp->parent == NULL)
+	return NC_EBADGRPID;
+
+   /* Check and normalize the name. */
+   if ((retval = nc4_check_name(name, norm_name)))
+      return retval;
+
+   /* Check that this name is not in use as a var, grp, or type. */
+   if ((retval = nc4_check_dup_name(grp, norm_name)))
+      return retval;
+
+   /* If it's not in define mode, switch to define mode. */
+   if (!(h5->flags & NC_INDEF))
+      if ((retval = NC4_redef(grpid)))
+	 return retval;
+
+   /* Save the old name, we'll need it to rename this object when we
+    * sync to HDF5 file. But if there already is an old_name saved,
+    * just stick with what we've got, since the user might be renaming
+    * the crap out of this thing, without ever syncing with the
+    * file. When the sync does take place, we only need the original
+    * name of the grp, not any of the intermediate ones. If the user
+    * could just make up his mind, we could all get on to writing some
+    * data... */
+   if (!grp->old_name)
+   {
+      if (!(grp->old_name = malloc((strlen(grp->name) + 1) * sizeof(char))))
+	 return NC_ENOMEM;
+      strcpy(grp->old_name, grp->name);
+   }
+
+   /* Give the group its new name in metadata. UTF8 normalization
+    * has been done. */
+   free(grp->name);
+   if (!(grp->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
+   strcpy(grp->name, norm_name);
+
+   return NC_NOERR;
+}
+
 /* Given an ncid and group name (NULL gets root group), return
  * the ncid of that group. */
 int

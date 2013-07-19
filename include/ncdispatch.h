@@ -291,6 +291,7 @@ int (*inq_dimids)(int, int* ndims, int*, int);
 int (*inq_typeids)(int, int* ntypes, int*);
 int (*inq_type_equal)(int, nc_type, int, nc_type, int*);
 int (*def_grp)(int, const char*, int*);
+int (*rename_grp)(int, const char*);
 int (*inq_user_type)(int, nc_type, char*, size_t*, nc_type*, size_t*, int*);
 int (*inq_typeid)(int, const char*, nc_type*);
 

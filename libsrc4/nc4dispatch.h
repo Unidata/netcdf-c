@@ -188,6 +188,9 @@ EXTERNL int
 NC4_def_grp(int, const char *, int *);
 
 EXTERNL int
+NC4_rename_grp(int, const char *);
+
+EXTERNL int
 NC4_inq_user_type(int, nc_type, char *, size_t *, nc_type *, 
 		  size_t *, int *);
 
