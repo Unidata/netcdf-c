@@ -127,6 +127,30 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
    return NC_NOERR;
 }
 
+static int
+getfullname(int grpid, NC_GRP_INFO_T* grp, char** fullnamep)
+{
+    int retval = NC_NOERR;
+    size_t len;
+    char* fullname = NULL;
+    retval = nc_inq_grpname_full(grpid,&len,NULL);
+    if(retval != NC_NOERR) goto done;
+    fullname = (char*)malloc(len+1);
+    if(fullname == NULL)
+	{retval = NC_ENOMEM; goto done;}
+    retval = nc_inq_grpname_full(grpid,&len,fullname);
+    if(retval != NC_NOERR) goto done;
+    fullname[len] = '\0';
+done:
+    if(retval != NC_NOERR) {
+	if(fullname) free(fullname);
+    } else {
+	if(fullnamep) *fullnamep = fullname;
+    }
+    return retval;
+}
+
+
 /* Open the dataset and leave it open. */
 int 
 nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
@@ -2557,11 +2581,32 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
    /* Rename this group */
    if (grp->old_name && strlen(grp->old_name))
    {
-      /* Rename the group in the HDF5 file. */
-      if (H5Gmove(grp->hdf_grpid, grp->old_name, grp->name) < 0)
-         return NC_EHDFERR;
+      /* We need to get the full name for the new name and the old name */
+      char* oldfullname = NULL;
+      char* newfullname = NULL;
+      char* tmp = NULL;
+      int nc_groupid = 0;
+      /* Construct the group's full ncid */
+      nc_groupid = (grp->nc4_info->controller->ext_ncid) | (grp->nc_grpid);
+      /* Temporarily make group's name be old name so we can get the
+         old full name */
+      tmp = grp->name;
+      grp->name = grp->old_name;
+      retval = getfullname(nc_groupid,grp,&oldfullname);	
+      if(retval != NC_NOERR) goto done;
+      /* repeat for the new name */
+      grp->name = tmp;
+      retval = getfullname(nc_groupid,grp,&newfullname);	
+      if(retval != NC_NOERR) goto done;
+
+      if(H5Lmove(grp->nc4_info->hdfid, oldfullname, grp->nc4_info->hdfid, newfullname, H5P_DEFAULT, H5P_DEFAULT) < 0)
+	{retval = NC_EHDFERR; goto done;}
       /* Reset old_name. */
       strcpy(grp->old_name, "");
+done:
+      if(oldfullname) free(oldfullname);
+      if(newfullname) free(newfullname);
+      if(retval) return retval;
    }
 
    /* If there are any child groups, write their metadata. */
