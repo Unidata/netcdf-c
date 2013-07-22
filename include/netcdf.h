@@ -519,7 +519,7 @@ nc_def_grp(int parent_ncid, const char *name, int *new_ncid);
 
 /* Rename a group */
 EXTERNL int
-nc_rename_group(int ncid, int grpid, const char *name);
+nc_rename_grp(int ncid, int grpid, const char *name);
 
 /* Here are functions for dealing with compound types. */
 

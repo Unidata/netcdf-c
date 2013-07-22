@@ -47,6 +47,7 @@ stddir="/share/ed/local/${HOST}"
 else
 stddir="/usr/local"
 fi
+stddir="/machine/local_szlib"
 
 if test "x$INSTALL" = "x1" ; then
   if test "x$PREFIX" = x ; then
