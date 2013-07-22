@@ -572,6 +572,17 @@ NCSUB_def_grp(int ncid, const char* a1, int* a2)
 }
 
 static int
+NCSUB_rename_grp(int ncid, const char* a2)
+{
+    NC *nc, *ncsub;
+    int ncstat = NC_check_id(ncid, &nc);
+    if(ncstat != NC_NOERR) return ncstat;
+    ncstat = NC_check_id(nc->substrate, &ncsub);
+    if(ncstat != NC_NOERR) return ncstat;
+    return ncsub->dispatch->rename_grp(nc->substrate,a2);
+}
+
+static int
 NCSUB_inq_user_type(int ncid, nc_type a1, char* a2, size_t* a3, nc_type* a4, size_t* a5, int* a6)
 {
     NC *nc, *ncsub;
@@ -881,6 +892,7 @@ NCSUB_inq_dimids,
 NCSUB_inq_typeids,
 NCSUB_inq_type_equal,
 NCSUB_def_grp,
+NCSUB_rename_grp,
 NCSUB_inq_user_type,
 NCSUB_inq_typeid,
 

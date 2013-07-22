@@ -12,6 +12,10 @@ t_type cdm_sea_soundings tst_vl tst_atts1 tst_atts2
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs
 tst_h_scalar)
 
+# Note, renamegroup needs to be compiled before run_grp_rename
+build_bin_test(renamegroup)
+add_sh_test(nc_test4 run_grp_rename)
+
 IF(NOT MSVC)
 	SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
@@ -73,6 +77,6 @@ ENDIF()
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc ref_grp_rename.cdl)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

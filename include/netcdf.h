@@ -517,6 +517,10 @@ nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 EXTERNL int
 nc_def_grp(int parent_ncid, const char *name, int *new_ncid);
 
+/* Rename a group */
+EXTERNL int
+nc_rename_grp(int ncid, int grpid, const char *name);
+
 /* Here are functions for dealing with compound types. */
 
 /* Create a compound type. */

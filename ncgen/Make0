@@ -1,9 +1,9 @@
 # Test c output
-T=niltest
+T=scope
 #VG=valgrind --leak-check=full
 
-#STDLIB=/usr/local
-STDLIB=/share/ed/local/${HOST}
+STDLIB=/usr/local
+#STDLIB=/share/ed/local/${HOST}
 
 CFLAGS=-I../include -I${STDLIB}/include
 LDFLAGS=../liblib/.libs/libnetcdf.a -L${STDLIB}/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
@@ -23,7 +23,12 @@ ctest::
 	../ncdump/ncdump ./${T}.nc >${T}.dmp
 	diff -wBb ${T}.cdl ${T}.dmp
 
-ct::
+gtest::
+	./ncgen -k3 -lc ${T}.cdl >${T}.c
+	gcc -g -O0 -o ${T} ${CFLAGS} ${T}.c ${LDFLAGS}
+	gdb --args ./${T}
+
+vctest::
 	gcc -o t ${CFLAGS} t.c ${LDFLAGS} -lm
 	${VG} ./t
 	../ncdump/ncdump ./t.nc |tee t.dmp

@@ -47,7 +47,7 @@ Groups are identified with a ncid, which identifies both the open
 file, and the group within that file. When a file is opened with
 nc_open or nc_create, the ncid for the root group of that file is
 provided. Using that as a starting point, users can add new groups, or
-list and navigate existing groups.
+list and navigate existing groups or rename a group.
 
 All netCDF calls take a ncid which determines where the call will take
 its action. For example, the nc_def_var function takes a ncid as its
@@ -173,7 +173,14 @@ nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
     return ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
 }
 
-
+int
+nc_rename_grp(int ncid, int grpid, const char *name)
+{
+    NC* ncp;
+    int stat = NC_check_id(grpid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->rename_grp(grpid,name);
+}
 
 int 
 nc_show_metadata(int ncid)

@@ -23,7 +23,7 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs        \
 tst_h_scalar
 
-check_PROGRAMS = $(NC4_TESTS)
+check_PROGRAMS = $(NC4_TESTS) renamegroup
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -31,6 +31,8 @@ check_PROGRAMS += tst_large tst_large2
 endif
 
 TESTS = $(NC4_TESTS)
+
+TESTS += run_grp_rename.sh
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
@@ -117,7 +119,8 @@ run_tst_chunks.sh ref_chunks1.cdl ref_chunks2.cdl 			\
 run_get_hdf4_files.sh run_valgrind_tests.sh run_valgrind_tests2.sh	\
 run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
-ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt
+ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt               \
+run_grp_rename.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\
@@ -125,7 +128,8 @@ radar_3d_compression.txt radar_2d_compression.txt			\
 radar_3d_chunking.txt tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl	\
 tst_*.nc tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl		\
 tst_elena_*.cdl tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.*	\
-usi_01.* thetau_01.* tst_*.nc tst_*.h5
+usi_01.* thetau_01.* tst_*.nc tst_*.h5                                  \
+tst_grp_rename.cdl tst_grp_rename.nc tst_grp_rename.dmp ref_grp_rename.cdl
 
 if USE_HDF4_FILE_TESTS
 DISTCLEANFILES = AMSR_E_L2_Rain_V10_200905312326_A.hdf	\

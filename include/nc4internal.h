@@ -234,6 +234,7 @@ typedef struct NC_GRP_INFO
    int natts;
    struct NC_HDF5_FILE_INFO *nc4_info;
    char *name;
+   char *old_name; /* need when renaming group */
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
 } NC_GRP_INFO_T;
