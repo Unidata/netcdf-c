@@ -76,7 +76,7 @@ main(int argc, char **argv)
     stat = nc_inq_grp_full_ncid(ncid,oldname,&grpid);
     check(stat);
 
-    stat = nc_rename_grp(grpid,newname);
+    stat = nc_rename_grp(ncid,grpid,newname);
     check(stat);
 
     stat = nc_close(ncid);

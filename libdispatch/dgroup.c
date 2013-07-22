@@ -174,7 +174,7 @@ nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 }
 
 int
-nc_rename_grp(int grpid, const char *name)
+nc_rename_grp(int ncid, int grpid, const char *name)
 {
     NC* ncp;
     int stat = NC_check_id(grpid,&ncp);
