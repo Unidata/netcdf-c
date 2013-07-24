@@ -36,6 +36,7 @@ ENDIF()
 # Build executables required for the shell scripts.
 FOREACH(BINFILE ${TESTFILES})
 	build_bin_test(${BINFILE})
+	SET_PROPERTY(TARGET ${BINFILE} PROPERTY LABELS nc_test)
 ENDFOREACH()
 
 # Process single-file test files.
