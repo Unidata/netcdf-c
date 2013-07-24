@@ -1,13 +1,13 @@
 <Project name="WinNETCDF">
-  <SubProject name="libnetcdf">
+  <SubProject name="netcdf">
   </SubProject>
   <SubProject name="ncgen">
-    <Dependency name="libnetcdf"/>
+    <Dependency name="netcdf"/>
   </SubProject>
   <SubProject name="ncdump">
-    <Dependency name="libnetcdf"/>
+    <Dependency name="netcdf"/>
   </SubProject>
   <SubProject name="nccopy">
-    <Dependency name="libnetcdf" />
+    <Dependency name="netcdf" />
   </SubProject>
 </Project>
