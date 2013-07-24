@@ -1,6 +1,7 @@
 # CTest/CDash configuration
 
 SET(CTEST_PROJECT_SUBPROJECTS netcdf ncgen ncdump nccopy nc_test)
+SET(CTEST_USE_LAUNCHERS 1)
 
 IF(USE_REMOTE_CDASH)
 	set(CTEST_PROJECT_NAME "NetCDF-C")
