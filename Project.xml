@@ -10,4 +10,7 @@
   <SubProject name="nccopy">
     <Dependency name="netcdf" />
   </SubProject>
+  <SubProject name="nc_test">
+    <Dependency name="netcdf" />
+  </SubProject>
 </Project>
