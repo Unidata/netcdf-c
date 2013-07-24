@@ -1,16 +1,23 @@
 <Project name="WinNETCDF">
   <SubProject name="netcdf">
   </SubProject>
+  <SubProject name="invoked_by_scripts">
+    <Dependency name="netcdf" />
+  </SubProject>
   <SubProject name="ncgen">
     <Dependency name="netcdf"/>
+    <Dependency name="invoked_by_scripts">
   </SubProject>
   <SubProject name="ncdump">
     <Dependency name="netcdf"/>
+    <Dependency name="invoked_by_scripts">
   </SubProject>
   <SubProject name="nccopy">
     <Dependency name="netcdf" />
+    <Dependency name="invoked_by_scripts">
   </SubProject>
   <SubProject name="nc_test">
     <Dependency name="netcdf" />
+    <Dependency name="invoked_by_scripts">
   </SubProject>
 </Project>

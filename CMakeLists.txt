@@ -162,6 +162,7 @@ MACRO(build_bin_test F)
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 		)
 	ENDIF()
+	SET_PROPERTY(TARGET ${F} PROPERTY LABELS invoked_by_scripts)
 ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
@@ -171,6 +172,7 @@ MACRO(add_bin_test_no_prefix F)
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
+
 ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
