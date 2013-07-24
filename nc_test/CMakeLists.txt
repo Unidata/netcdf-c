@@ -49,17 +49,17 @@ ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 SET_PROPERTY(TEST nc_test PROPERTY LABELS nc_test)
 
 IF(BUILD_DISKLESS)
-	add_sh_test(nc_test run_diskless)  	
-	SET_PROPERTY(TEST nc_test_run_diskless PROPERTY LABELS nc_test)
-	IF(BUILD_MMAP)
-		add_sh_test(nc_test run_mmap)
-		SET_PROPERTY(TEST nc_test_run_mmap PROPERTY LABELS nc_test)
-	ENDIF()
-	IF(LARGE_FILE_TESTS)
-		add_sh_test(nc_test run_diskless2.)
-		SET_PROPERTY(TEST nc_test_run_diskless2 PROPERTY LABELS nc_test)
-	ENDIF()
-
+  add_sh_test(nc_test run_diskless)  	
+  SET_PROPERTY(TEST nc_test_run_diskless PROPERTY LABELS nc_test)
+  IF(BUILD_MMAP)
+    add_sh_test(nc_test run_mmap)
+    SET_PROPERTY(TEST nc_test_run_mmap PROPERTY LABELS nc_test)
+  ENDIF()
+  IF(LARGE_FILE_TESTS)
+    add_sh_test(nc_test run_diskless2.)
+    SET_PROPERTY(TEST nc_test_run_diskless2 PROPERTY LABELS nc_test)
+  ENDIF()
+  
 ENDIF()
 
 # Copy some test files from current source dir to out-of-tree build dir.
