@@ -1,0 +1,6 @@
+<Project name="WinNETCDF">
+  <SubProject name="ncgen">
+  </SubProject>
+  <SubProject name="ncdump">
+  </SubProject>
+</Project>
