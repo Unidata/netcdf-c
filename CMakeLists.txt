@@ -162,7 +162,6 @@ MACRO(build_bin_test F)
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 		)
 	ENDIF()
-	SET_PROPERTY(TARGET ${F} PROPERTY LABELS invoked_by_scripts)
 ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
@@ -172,7 +171,6 @@ MACRO(add_bin_test_no_prefix F)
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
-
 ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
@@ -194,7 +192,6 @@ MACRO(add_bin_test prefix F)
 			)
 	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
-	SET_PROPERTY(TEST ${prefix}_${F} PROPERTY LABELS ${prefix})
 	IF(MSVC)
 		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
 	ENDIF()	
@@ -225,7 +222,6 @@ ENDMACRO()
 MACRO(add_sh_test prefix F)
 	IF(NOT MSVC)
 		ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
-	SET_PROPERTY(TEST ${prefix}_${F} PROPERTY LABELS ${prefix})
 	ENDIF()
 
 ENDMACRO()

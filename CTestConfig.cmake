@@ -1,7 +1,4 @@
 # CTest/CDash configuration
-
-SET(CTEST_PROJECT_SUBPROJECTS netcdf ncgen ncdump nccopy nc_test)
-
 IF(USE_REMOTE_CDASH)
 	set(CTEST_PROJECT_NAME "NetCDF-C")
 	set(CTEST_NIGHTLY_START_TIME "00:00:00 EST")

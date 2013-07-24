@@ -8,6 +8,8 @@ ENDFOREACH()
 
 
 SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
+ADD_EXECUTABLE(nc_test ${nc_test_SRC})
+TARGET_LINK_LIBRARIES(nc_test netcdf)
 
 # Some extra tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
@@ -33,38 +35,26 @@ ENDIF()
 
 # Build executables required for the shell scripts.
 FOREACH(BINFILE ${TESTFILES})
-  build_bin_test(${BINFILE})
+	build_bin_test(${BINFILE})
 ENDFOREACH()
 
 # Process single-file test files.
 FOREACH(CTEST ${TESTS})
 	add_bin_test(nc_test ${CTEST})
-	SET_PROPERTY(TEST nc_test_${CTEST} PROPERTY LABELS nc_test)
 ENDFOREACH()
 
-
-#SET_PROPERTY(TEST nc_test PROPERTY LABELS nc_test)
+ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_DISKLESS)
-  add_sh_test(nc_test run_diskless)  	
-  SET_PROPERTY(TEST nc_test_run_diskless PROPERTY LABELS nc_test)
-  IF(BUILD_MMAP)
-    add_sh_test(nc_test run_mmap)
-    SET_PROPERTY(TEST nc_test_run_mmap PROPERTY LABELS nc_test)
-  ENDIF()
-  IF(LARGE_FILE_TESTS)
-    add_sh_test(nc_test run_diskless2)
-    SET_PROPERTY(TEST nc_test_run_diskless2 PROPERTY LABELS nc_test)
-  ENDIF()
-  
+	add_sh_test(nc_test run_diskless)  	
+	IF(BUILD_MMAP)
+		add_sh_test(nc_test run_mmap)
+	ENDIF()
+	IF(LARGE_FILE_TESTS)
+		add_sh_test(nc_test run_diskless2.sh)
+	ENDIF()
+
 ENDIF()
-
-
-ADD_EXECUTABLE(nc_test ${nc_test_SRC})
-TARGET_LINK_LIBRARIES(nc_test netcdf)
-ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
-SET_PROPERTY(TEST nc_test PROPERTY LABELS nc_test)
-
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
