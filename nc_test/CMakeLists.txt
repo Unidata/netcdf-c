@@ -10,6 +10,7 @@ ENDFOREACH()
 SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
 TARGET_LINK_LIBRARIES(nc_test netcdf)
+SET_PROPERTY(TARGET nc_test PROPERTY LABELS nc_test)
 
 # Some extra tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
@@ -35,8 +36,8 @@ ENDIF()
 
 # Build executables required for the shell scripts.
 FOREACH(BINFILE ${TESTFILES})
-	build_bin_test(${BINFILE})
-	SET_PROPERTY(TARGET ${BINFILE} PROPERTY LABELS nc_test)
+  build_bin_test(${BINFILE})
+  SET_PROPERTY(TARGET ${BINFILE} PROPERTY LABELS nc_test)
 ENDFOREACH()
 
 # Process single-file test files.
