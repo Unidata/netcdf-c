@@ -10,7 +10,7 @@ ENDFOREACH()
 SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
 TARGET_LINK_LIBRARIES(nc_test netcdf)
-SET_PROPERTY(TARGET nc_test PROPERTY LABELS nc_test)
+#SET_PROPERTY(TARGET nc_test PROPERTY LABELS nc_test)
 
 # Some extra tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
@@ -47,7 +47,7 @@ FOREACH(CTEST ${TESTS})
 ENDFOREACH()
 
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
-SET_PROPERTY(TEST nc_test PROPERTY LABELS nc_test)
+#SET_PROPERTY(TEST nc_test PROPERTY LABELS nc_test)
 
 IF(BUILD_DISKLESS)
   add_sh_test(nc_test run_diskless)  	
@@ -57,7 +57,7 @@ IF(BUILD_DISKLESS)
     SET_PROPERTY(TEST nc_test_run_mmap PROPERTY LABELS nc_test)
   ENDIF()
   IF(LARGE_FILE_TESTS)
-    add_sh_test(nc_test run_diskless2.)
+    add_sh_test(nc_test run_diskless2)
     SET_PROPERTY(TEST nc_test_run_diskless2 PROPERTY LABELS nc_test)
   ENDIF()
   
