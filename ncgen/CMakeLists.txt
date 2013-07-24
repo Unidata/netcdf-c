@@ -10,6 +10,9 @@ ENDIF()
 
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
+SET_PROPERTY(TARGET ncgen PROPERTY LABELS ncgen)
+
+
 
 INSTALL(TARGETS ncgen DESTINATION bin COMPONENT utilities)
 
@@ -27,6 +30,8 @@ IF(ENABLE_TESTS)
 		#ADD_TEST(run_ncgen_nc4_tests sh ${CMAKE_CURRENT_BINARY_DIR}/run_nc4_tests.sh)
 		add_sh_test(ncgen run_nc4_tests)
 	ENDIF()
+	SET_PROPERTY(TARGET ncgen_run_tests PROPERTY LABELS ncgen)
+	SET_PROPERTY(TARGET ncgen_run_nc4_tests PROPERTY LABELS ncgen)
 ENDIF()
 
 SET(MAN_FILES ncgen.1)
