@@ -3,6 +3,7 @@
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *   $Header: /upc/share/CVS/netcdf-3/libnccommon/nccommon.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
+
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 

@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdump.c,v 1.21 2010/05/26 21:43:31 dmh Exp $
  *********************************************************************/
+
 #include "config.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
