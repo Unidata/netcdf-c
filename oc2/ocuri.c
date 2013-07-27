@@ -799,7 +799,7 @@ ocuridecodeonly(char* s, char* only)
     char* inptr;
     unsigned int c;
     
-    if(s == NULL) return NULL;
+    if (s == NULL) return NULL;
     if(only == NULL) only = "";
 
     slen = strlen(s);

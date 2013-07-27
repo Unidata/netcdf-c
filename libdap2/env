@@ -1,8 +1,8 @@
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-#TOP="/home/dmh/mach/trunk"
-TOP="/cygdrive/f/svn/trunk"
+TOP="/home/dmh/mach/trunk"
+#TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
 #PROG=./ncd
@@ -10,8 +10,11 @@ PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-F="http://portal.nersc.gov/pydap/20C_Reanalysis_ensemble/analysis.derived/pwat/pwat_1928.daily.nc"
-#CON='station&station="Anacapa_Landing_Cove"'
+#F='http://colossus.dl.stevens-tech.edu/thredds/dodsC/fmrc/NYBight/NYHOPS_Forecast_Collection_for_the_New_York_Bight_best.ncd'
+#CON='xpos'
+#VAR=data
+
+F="http://opendap.deltares.nl/opendap/test/testNcWithManyVariables/test3000.nc"
 
 PARMS="log"
 #PARMS="${PARMS}&netcdf3"
@@ -45,6 +48,7 @@ UALL="$U${PARMS}"
 #ARGS="-h $ARGS"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
+if test "x$VAR" != "x" ; then ARGS="$ARGS -v $VAR" ; fi
 
 VARGS="--leak-check=full"
 

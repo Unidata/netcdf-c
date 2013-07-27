@@ -511,7 +511,7 @@ dumpcachenode(NCcachenode* node)
     buf = ncbytesnew();
     result = buildconstraintstring3(node->constraint);
     snprintf(tmp,sizeof(tmp),"cachenode%s(%lx){size=%lu; constraint=%s; vars=",
-		node->prefetch?"*":"",
+		node->isprefetch?"*":"",
 		(unsigned long)node,
 		(unsigned long)node->xdrsize,
 	        result);

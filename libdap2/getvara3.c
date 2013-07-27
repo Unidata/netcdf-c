@@ -372,6 +372,7 @@ fprintf(stderr,"getvarx: FETCHPART: fetchconstraint: %s\n",dumpconstraint(fetchc
            will also fetch the corresponding datadds.
         */
         ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     } break;

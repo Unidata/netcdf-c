@@ -13,7 +13,7 @@ static int isglobalname(const char* name);
 static int isdodsname(const char* name);
 static OCnode* newocnode(char* name, OCtype octype, DAPparsestate* state);
 static OCtype octypefor(Object etype);
-static char* scopeduplicates(OClist* list);
+static OClist* scopeduplicates(OClist* list);
 static int check_int32(char* val, long* value);
 
 
@@ -43,12 +43,13 @@ dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 {
     OCnode* root = newocnode((char*)name,OC_Dataset,state);
     char* dupname = NULL;
-    dupname = scopeduplicates((OClist*)decls);
-    if(dupname != NULL) {
+    OClist* dups = scopeduplicates((OClist*)decls);
+    if(dups != NULL) {
 	/* Sometimes, some servers (i.e. Thredds)
            return a dds with duplicate field names
            at the dataset level; simulate an errorbody response
         */
+	ocnodes_free(dups);
         dap_parse_error(state,"Duplicate dataset field names: %s",name,dupname);
 	state->error = OC_ENAMEINUSE;
 	return (Object)NULL;
@@ -65,7 +66,16 @@ dap_datasetbody(DAPparsestate* state, Object name, Object decls)
 Object
 dap_attributebody(DAPparsestate* state, Object attrlist)
 {
-    OCnode* node = newocnode(NULL,OC_Attributeset,state);
+    OCnode* node;
+    /* Check for and remove attribute duplicates */
+    OClist* dups = scopeduplicates((OClist*)attrlist);
+    if(dups != NULL) {
+        ocnodes_free(dups);	
+	dap_parse_error(state,"Duplicate attribute names in same scope");
+	state->error = OC_ENAMEINUSE; /* semantic error */
+	return NULL;
+    }
+    node = newocnode(NULL,OC_Attributeset,state);
     OCASSERT((state->root == NULL));
     state->root = node;
     /* make sure to cross link */
@@ -147,15 +157,8 @@ dap_attrlist(DAPparsestate* state, Object attrlist, Object attrtuple)
     if(alist == NULL)
 	alist = oclistnew();
     else {
-	char* dupname;
 	if(attrtuple != NULL) {/* NULL=>alias encountered, ignore */
             oclistpush(alist,(void*)attrtuple);
-            if((dupname=scopeduplicates(alist))!=NULL) {
-	        dap_parse_error(state,"Duplicate attribute names in same scope: %s",dupname);
-		/* Remove this attribute */
-		oclistpop(alist);
-		state->error = OC_ENAMEINUSE; /* semantic error */
-	    }
 	}
     }
     return alist;
@@ -270,9 +273,10 @@ Object
 dap_makestructure(DAPparsestate* state, Object name, Object dimensions, Object fields)
 {
     OCnode* node;
-    char* dupname;    
-    if((dupname=scopeduplicates((OClist*)fields))!= NULL) {
-        dap_parse_error(state,"Duplicate structure field names in same scope: %s.%s",(char*)name,dupname);
+    OClist* dups = scopeduplicates((OClist*)fields);
+    if(dups != NULL) {
+	ocnodes_free(dups);
+        dap_parse_error(state,"Duplicate structure field names in same structure: %s",(char*)name);
 	state->error = OC_ENAMEINUSE; /* semantic error */
 	return (Object)NULL;
     }
@@ -287,9 +291,10 @@ Object
 dap_makesequence(DAPparsestate* state, Object name, Object members)
 {
     OCnode* node;
-    char* dupname;    
-    if((dupname=scopeduplicates((OClist*)members)) != NULL) {
-        dap_parse_error(state,"Duplicate sequence member names in same scope: %s.%s",(char*)name,dupname);
+    OClist* dups = scopeduplicates((OClist*)members);
+    if(dups != NULL) {
+	ocnodes_free(dups);
+        dap_parse_error(state,"Duplicate sequence member names in same sequence: %s",(char*)name);
 	return (Object)NULL;
     }
     node = newocnode(name,OC_Sequence,state);
@@ -303,9 +308,10 @@ dap_makegrid(DAPparsestate* state, Object name, Object arraydecl, Object mapdecl
 {
     OCnode* node;
     /* Check for duplicate map names */
-    char* dupname;    
-    if((dupname=scopeduplicates((OClist*)mapdecls)) != NULL) {
-        dap_parse_error(state,"Duplicate grid map names in same scope: %s.%s",(char*)name,dupname);
+    OClist* dups = scopeduplicates((OClist*)mapdecls);
+    if(dups != NULL) {
+	ocnodes_free(dups);
+        dap_parse_error(state,"Duplicate grid map names in same grid: %s",(char*)name);
 	state->error = OC_ENAMEINUSE; /* semantic error */
 	return (Object)NULL;
     }
@@ -392,19 +398,27 @@ check_int32(char* val, long* value)
     return ok;
 }
 
-static char*
+static OClist*
 scopeduplicates(OClist* list)
 {
     unsigned int i,j;
-    for(i=0;i<oclistlength(list);i++) {
+    unsigned int len = oclistlength(list);
+    OClist* dups = NULL;
+    for(i=0;i<len;i++) {
 	OCnode* io = (OCnode*)oclistget(list,i);
-        for(j=i+1;j<oclistlength(list);j++) {
+retry:
+        for(j=i+1;j<len;j++) {
 	    OCnode* jo = (OCnode*)oclistget(list,j);
-	    if(strcmp(io->name,jo->name)==0)
-		return io->name;
+	    if(strcmp(io->name,jo->name)==0) {
+		if(dups == NULL) dups = oclistnew();
+		oclistpush(dups,jo);
+		oclistremove(list,j);
+		len--;
+		goto retry;
+	    }
 	}
     }
-    return NULL;
+    return dups;
 }
 
 static OCtype
