@@ -3,6 +3,7 @@
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *   $Header: /upc/share/CVS/netcdf-3/libnccommon/nccommon.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
+
 #ifndef NCCOMMON_H
 #define NCCOMMON_H 1
 
@@ -77,6 +78,7 @@ typedef unsigned int NCFLAGS;
 #define NCF_WHOLEVAR        (0x0100) /* retrieve only whole variables (as opposed to partial variable) into cache */
 #define NCF_PREFETCH        (0x0200) /* Cache prefetch enabled/disabled */
 #define NCF_PREFETCH_EAGER  (0x0400) /* Do eager prefetch; 0=>lazy */
+#define NCF_PREFETCH_ALL    (0x0800) /* Prefetch all variables */
 
 /* Define all the default on flags */
 #define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
@@ -91,10 +93,13 @@ struct NCTMODEL {
     unsigned int flags;
 };
 
+/* Define the cache control flags */
+
+
 /* Detail information about each cache item */
 typedef struct NCcachenode {
     int wholevariable; /* does this cache node only have wholevariables? */
-    int prefetch; /* is this the prefetch cache entry? */
+    int isprefetch; 
     off_t xdrsize;
     DCEconstraint* constraint; /* as used to create this node */
     NClist* vars; /* vars potentially covered by this cache node */
@@ -322,7 +327,7 @@ extern NCerror buildcachenode34(NCDAPCOMMON*,
 	        DCEconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
-		int isprefetch);
+		NCFLAGS flags);
 extern NCcachenode* createnccachenode(void);
 extern void freenccachenode(NCDAPCOMMON*, NCcachenode* node);
 extern NCcache* createnccache(void);

@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdump.c,v 1.21 2010/05/26 21:43:31 dmh Exp $
  *********************************************************************/
+
 #include "config.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
@@ -511,7 +512,7 @@ dumpcachenode(NCcachenode* node)
     buf = ncbytesnew();
     result = buildconstraintstring3(node->constraint);
     snprintf(tmp,sizeof(tmp),"cachenode%s(%lx){size=%lu; constraint=%s; vars=",
-		node->prefetch?"*":"",
+		node->isprefetch?"*":"",
 		(unsigned long)node,
 		(unsigned long)node->xdrsize,
 	        result);

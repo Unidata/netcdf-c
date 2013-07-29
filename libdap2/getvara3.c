@@ -4,6 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/getvara3.c,v 1.44 2010/05/27 21:34:08 dmh Exp $
  *********************************************************************/
 
+
 #include "ncdap3.h"
 #include "dapodom.h"
 #include "dapdump.h"
@@ -372,6 +373,7 @@ fprintf(stderr,"getvarx: FETCHPART: fetchconstraint: %s\n",dumpconstraint(fetchc
            will also fetch the corresponding datadds.
         */
         ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     } break;

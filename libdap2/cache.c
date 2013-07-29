@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header$
  *********************************************************************/
+
 #include "ncdap3.h"
 #include "dapdump.h"
 
@@ -86,13 +87,13 @@ NCerror
 prefetchdata3(NCDAPCOMMON* nccomm)
 {
     int i;
+    NCFLAGS flags;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.ddsroot->tree->varnodes;
     DCEconstraint* urlconstraint = nccomm->oc.dapconstraint;
     NClist* vars = nclistnew();
     NCcachenode* cache = NULL;
     DCEconstraint* newconstraint = NULL;
-    int isnc4 = FLAGSET(nccomm->controls,NCF_NC4);
 
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
         /* If we cannot constrain and caching is enabled,
@@ -121,7 +122,7 @@ prefetchdata3(NCDAPCOMMON* nccomm)
 		continue;
 
 	    /* Should be prefetchable */
-            nclistpush(vars,(void*)var);
+	    nclistpush(vars,(void*)var);
 if(SHOWFETCH) {
 nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 }
@@ -136,6 +137,7 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 
     /* Create a single constraint consisting of the projections for the variables;
        each projection is whole variable. The selections are passed on as is.
+       The exception is if we are prefetching everything.
     */
 
     newconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
@@ -143,7 +145,7 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
     newconstraint->selections = dceclonelist(urlconstraint->selections);
 
     for(i=0;i<nclistlength(vars);i++) {
-	CDFnode* var = (CDFnode*)nclistget(vars,i);
+        CDFnode* var = (CDFnode*)nclistget(vars,i);
 	DCEprojection* varprojection;
 	/* convert var to a projection */
 	ncstat = dapvar2projection(var,&varprojection);
@@ -155,7 +157,10 @@ char* s = dumpprojections(newconstraint->projections);
 LOG1(NCLOGNOTE,"prefetch.final: %s",s);
 nullfree(s);
 }
-    ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,!isnc4);
+
+    flags = NCF_PREFETCH;
+    if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
+    ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,flags);
     newconstraint = NULL; /* buildcachenode34 takes control of newconstraint */
     if(ncstat) goto done;
     cache->wholevariable = 1; /* All prefetches are whole variable */
@@ -194,7 +199,7 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 	        DCEconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
-		int isprefetch)
+		NCFLAGS flags)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -203,8 +208,13 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     CDFnode* dxdroot = NULL;
     NCcachenode* cachenode = NULL;
     char* ce = NULL;
+    int isprefetch = 0;
 
-    ce = buildconstraintstring3(constraint);
+    if((flags & NCF_PREFETCH) != 0)
+	isprefetch = 1;	
+
+    if((flags & NCF_PREFETCH_ALL) == 0)
+        ce = buildconstraintstring3(constraint);
 
     ocstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     nullfree(ce);
@@ -221,7 +231,7 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 
     /* create the cache node */
     cachenode = createnccachenode();
-    cachenode->prefetch = isprefetch;
+    cachenode->isprefetch = isprefetch;
     cachenode->vars = nclistclone(varlist);
     cachenode->datadds = dxdroot;
     /* Give the constraint over to the cachenode */
