@@ -8,6 +8,12 @@ VERSION		COMMENTS
 -------		--------
 4.3.1		Released TBD
 
+	       Added a NC_HAVE_RENAME_GRP macro to netcdf.h, as per
+	       a request by Charlie Zender.  This will allow software
+	       compiling against netcdf to easily query whether or
+	       not nc_rename_grp() is available.
+
+
 		Added Greg Sjaardema's contributed optimization for
 		the nc4_find_dim_len function in
 		libsrc4/nc4internal.c. The patch eliminates several
