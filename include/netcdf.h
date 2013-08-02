@@ -1895,6 +1895,14 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #define END_OF_MAIN()
 #endif
 
+
+/* Allow dependent software to tell if
+   nc_rename_grp() is available, as requested
+   by Charlie Zender. */
+#ifndef NC_HAVE_RENAME_GRP
+#define NC_HAVE_RENAME_GRP
+#endif
+
 #endif /* _NETCDF_ */
 
 
