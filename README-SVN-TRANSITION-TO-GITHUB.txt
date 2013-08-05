@@ -1,3 +1,12 @@
+STARTING August 6, 2013, this repository is no longer maintained! 
+To download netCDF-C, visit our new location at:
+
+http://github.com/Unidata/netCDF-C
+
+Which will be available from the afternoon of August 6, 2013.
+
+-----------
+
 Hello all,
 
 In a move that has been a long time coming, we would like to announce
