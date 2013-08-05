@@ -107,8 +107,10 @@ ocinternalinitialize(void)
 	            size_t pathlen = strlen(homepath)+1+strlen(*alias)+1;
 	            path = (char*)malloc(pathlen);
 	            if(path == NULL) return OC_ENOMEM;
-		    if(!occopycat(path,pathlen,3,homepath,"/",*alias))
-			return OC_EOVERRUN;
+		    if(!occopycat(path,pathlen,3,homepath,"/",*alias)) {
+		      if(path) {free(path);}
+		      return OC_EOVERRUN;
+		    }
 		    f = fopen(path,"r");
 		    if(f != NULL) break;
  	            if(path != NULL) {free(path); path=NULL;}
@@ -587,7 +589,9 @@ ocsetcurlproperties(OCstate* state)
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
-	    state->curlflags.useragent = agent;
+	  state->curlflags.useragent = agent;
+	else
+	  free(agent);
     }
     return;
 

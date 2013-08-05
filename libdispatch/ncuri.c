@@ -295,6 +295,7 @@ ncuriparse(const char* uri0, NCURI** durip)
     }
 
     /* do last minute empty check */
+    
     if(protocol != NULL && *protocol == EOFCHAR) protocol = NULL;
     if(user != NULL && *user == EOFCHAR) user = NULL;
     if(pwd != NULL && *pwd == EOFCHAR) pwd = NULL;

@@ -216,7 +216,7 @@ static int
 nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                 NC *nc) 
 {
-   hid_t fcpl_id, fapl_id;
+   hid_t fcpl_id, fapl_id = -1;
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;

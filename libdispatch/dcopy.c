@@ -341,6 +341,10 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    if (!(dimlen = malloc(real_ndims * sizeof(size_t))))
       BAIL(NC_ENOMEM);
 
+   /* Set to 0, to correct for an unlikely dereference
+      error reported by clang/llvm. */
+   dimlen[0] = 0;
+
    /* Find out how much data. */
    for (d=0; d<ndims; d++)
    {
