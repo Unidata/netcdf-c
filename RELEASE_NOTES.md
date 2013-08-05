@@ -19,6 +19,20 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 	
 [NCF-258]: https://www.unidata.ucar.edu/jira/browse/NCF-258
 
+* Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging.  Extending the size of an unlimited dimension in HDF5 must be a collective operation, so now an error is returned if trying to extend in independent access mode. [NCF-250]
+
+[NCF-250]: https://bugtracking.unidata.ucar.edu/browse/NCF-250
+
+* Fixed bug with netCDF-4's inability to read HDF5 scalar numeric attributes. Also allow, in addition to zero length strings, a new NULL pointer as a string value. to improve interoperability with HDF5. This required a new CDL constant, 'NIL', that can be output from ncdump for such a string value in an HDF5 or netCDF-4 file. The ncgen utility was also modified to properly handle such NIL values for strings. [NCF-56]
+
+[NCF-56]: https://bugtracking.unidata.ucar.edu/browse/NCF-56
+
+* Parallel-build portability fixes, particularly for OpenMPI and gcc/gfortran-4.8.x on OSX.
+
+* Fix contributed by Nath Gopalaswamy to large file problem reading netCDF classic or 64-bit offset files that have a UINT32_MAX flag for large last record size of a variable that has values larger than 1 byte.  This problem had previously been fixed for *writing* such data, but was only tested with an ncbyte variable.
+
+* Fixed various minor documentation problems.
+
 ### 4.3.0 Released 2013-04-29
 
 * fsync: Changed default in autotools config file; fsync must now be
