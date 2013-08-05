@@ -987,6 +987,9 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
 	// Get the field's name
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
+ 	if(!fieldname)
+	  return OC_EINVAL;
+
 	match = strcmp(name,fieldname);
 	if(fieldname != NULL) free(fieldname);
 	if(match == 0) {

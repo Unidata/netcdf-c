@@ -141,11 +141,15 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       /* The file must be at least MAGIC_NUMBER_LEN in size,
          or otherwise the following fread will exhibit unexpected
          behavior. */
-      if(!(fstat(fileno(fp),&st) == 0))
+      if(!(fstat(fileno(fp),&st) == 0)) {
+	fclose(fp);
 	return errno;
-
-      if(st.st_size < MAGIC_NUMBER_LEN)
+      }
+      
+      if(st.st_size < MAGIC_NUMBER_LEN) {
+	fclose(fp);
 	return NC_ENOTNC;
+      }
 #endif
             
 

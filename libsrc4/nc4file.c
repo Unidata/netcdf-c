@@ -216,7 +216,7 @@ static int
 nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                 NC *nc) 
 {
-   hid_t fcpl_id, fapl_id;
+   hid_t fcpl_id, fapl_id = -1;
    unsigned flags;
    FILE *fp;
    int retval = NC_NOERR;
@@ -2918,13 +2918,13 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC *nc;
+  //NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((1, "nc_redef: ncid 0x%x", ncid));
 
    /* Find this file's metadata. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
+   if (!(nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);
 
@@ -2968,11 +2968,11 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * netcdf-4 files, if the user forgets. */
 static int NC4_enddef(int ncid)
 {
-   NC *nc;
+  NC *nc;
    NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((1, "nc_enddef: ncid 0x%x", ncid));
-
+   
    if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
       return NC_EBADID;
    assert(nc4_info);

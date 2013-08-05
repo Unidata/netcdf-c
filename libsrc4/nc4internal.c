@@ -597,7 +597,10 @@ nc4_find_nc_file(int ext_ncid, NC_HDF5_FILE_INFO_T** h5p)
    stat = NC_check_id(ext_ncid,&nc);
    if(stat != NC_NOERR)
 	nc = NULL;
-   if(h5p) *h5p = (NC_HDF5_FILE_INFO_T*)nc->dispatchdata;
+   
+   if(nc)
+     if(h5p) *h5p = (NC_HDF5_FILE_INFO_T*)nc->dispatchdata;
+   
    return nc;
 }
 

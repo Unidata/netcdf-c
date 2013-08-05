@@ -196,6 +196,8 @@ nchashkeys(NChashmap* hm, nchashid** keylist)
 	}
     }
     if(keylist) {*keylist = keys;}
+    else {free(keys);}
+    
     return TRUE;
 }
 

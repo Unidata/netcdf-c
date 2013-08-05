@@ -199,10 +199,14 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
   	if(mystride[i] != 1) simplestride = 0;	
         /* illegal value checks */
 	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
-        if(mystart < 0 || mystart[i] >= dimlen)
-	   return NC_EINVALCOORDS;
-        if(myedges[i] < 0 || (mystart[i] + myedges[i] > dimlen))
-	   return NC_EEDGE;
+        /* mystart is unsigned, never < 0 */  
+	//if(mystart[i] < 0 || mystart[i] >= dimlen)
+	if(mystart[i] >= dimlen)
+	  return NC_EINVALCOORDS;
+        /* myedges is unsigned, never < 0 */
+	//if(myedges[i] < 0 || (mystart[i] + myedges[i] > dimlen))
+	if(mystart[i] + myedges[i] > dimlen)
+	  return NC_EEDGE;
    }
    if(simplestride) {
       return NC_get_vara(ncid, varid, mystart, myedges, value, memtype);

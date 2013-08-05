@@ -186,16 +186,18 @@ fprintf(stderr,"\n");
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
-        CDFnode* dim = (CDFnode*)nclistget(ncdimsall,i);
-	if(startp[i] < 0 || countp[i] < 0 || stridep[i] < 1) {
-	    ncstat = NC_EINVALCOORDS;
-	    goto fail;	    
-	}
-	if(startp[i] >= dim->dim.declsize
-	   || startp[i]+(stridep[i]*(countp[i]-1)) >= dim->dim.declsize) {
-	    ncstat = NC_EINVALCOORDS;
-	    goto fail;	    
-	}
+      CDFnode* dim = (CDFnode*)nclistget(ncdimsall,i);
+      /* countp and startp are unsigned, so will never be < 0 */
+      //if(startp[i] < 0 || countp[i] < 0 || stridep[i] < 1) {
+      if(stridep[i] < 1) {
+	ncstat = NC_EINVALCOORDS;
+	goto fail;	    
+      }
+      if(startp[i] >= dim->dim.declsize
+	 || startp[i]+(stridep[i]*(countp[i]-1)) >= dim->dim.declsize) {
+	ncstat = NC_EINVALCOORDS;
+	goto fail;	    
+      }
     }	     
 
 #ifdef DEBUG
