@@ -23,21 +23,26 @@ the netcdf.h header file.
 
 Unfortunately, you may not be able to get a recent version of netCDF
 from a package management system, in which case you must build from
-source code. Get the
+source code. Visit
 
-  ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz
+  http://github.com/Unidata/netcdf-c/releases
 
-source distribution for the latest, fully-tested release.
 
-Alternatively, you may wish to try the 
+to download the source distribution for the latest, fully-tested release.
 
-  ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz
+Alternatively, you may download the latest developer snapshot via
+the `git` program. This may be accessed from the command line
+as follows:
 
-daily snapshot. It is generated nightly at the Unidata Program
-Center. It has passed all tests on our (Linux) test machine, but not
-necessarily all platform compatibility tests.
+   $ git clone http://github.com/Unidata/netcdf-c.git
 
-Warning: the daily snapshot release contains bug-fixes and new
+If you prefer, there are many git GUI programs which may be used
+as an alternative to the command line.  A listing of these may be found
+here:
+
+   * http://git-scm.com/downloads/guis
+
+Warning: the developer snapshot release contains bug-fixes and new
 features added since the last full release. It may also contain
 portability bugs.
 
