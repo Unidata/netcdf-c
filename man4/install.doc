@@ -27,14 +27,24 @@ the netcdf.h header file.
 Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the 
 Unidata GitHub repository, available at http://github.com/Unidata/netcdf-c.
 
-Two options are available for building from source.
+Two options are available for building from source:
 
-- The latest release
-- The developer snapshot
+- The latest release.
+- The developer snapshot.
 
 \subsection sec_latest_release The latest release
 
+The latest release may be downloaded from github at the following location:
+
+- http://github.com/Unidata/netcdf-c/releases
+
+Source files are available in `.tar.gz` and `.zip` formats.
+
 \subsection sec_dev_snapshot The developer snapshot
+
+The developer snapshot may be cloned from github directly by using the `git` command.
+
+    $ git clone http://github.com/Unidata/netcdf-c netcdf-c
 
 \warning The developer snapshot release contains bug-fixes and new
 features added since the last full release. It may also contain
