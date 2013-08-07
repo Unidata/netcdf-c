@@ -48,8 +48,8 @@ explicitely enabled instead of explicitely disabled. [NCF-239]
 
 [NCF-249]: https://www.unidata.ucar.edu/jira/browse/NCF-249
 
-* Fixed netCDF-4 bug where netCDF would ignore the HDF5 reference type in
-the file, instead of rejecting the file as it should. [NCF-29]
+* Fixed netCDF-4 bug so netCDF just ignores objects of HDF5 reference type in
+the file, instead of rejecting the file. [NCF-29]
 
 [NCF-29]: https://www.unidata.ucar.edu/jira/browse/NCF-29
 
