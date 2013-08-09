@@ -11,7 +11,11 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 > $ git clone https://github.com/Unidata/netCDF-C.git
 
-* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per the request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
+* Added `nc_rename_grp` to allow for group renaming in netCDF-4 files. [NCF-204]
+
+[NCF-204]: https://bugtracking.unidata.ucar.edu/browse/NCF-204
+
+* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per a request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
 
 [cz1]: https://www.unidata.ucar.edu/esupport/staff/index.php?_m=tickets&_a=viewticket&ticketid=22442
 
