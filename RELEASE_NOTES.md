@@ -1,39 +1,45 @@
 \page release_notes Release Notes
 
 This file contains a high-level description of this package's evolution.
-Releases are in reverse chronological order (most recent first). Recent
-releases include references to Jira issue identifiers for more
+Releases are in reverse chronological order (most recent first). 
+
+Recent releases include references to Jira issue identifiers for more
 information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
-### 4.3.1 Released TBD
+### 4.3.1-rc1 Released 2013-08-09
 
 * Migrated from the netCDF-C `subversion` repository to a publically available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
 
-> $ git clone https://github.com/Unidata/netCDF-C.git
+	> $ git clone https://github.com/Unidata/netCDF-C.git
 
-* Added `nc_rename_grp` to allow for group renaming in netCDF-4 files. [NCF-204]
+	* Note: in this release, it is necessary to generate the `configure` script and makefile templates using `autoreconf` in the root netCDF-C directory.:
+	
+	> $ autoreconf -i -f 
 
-[NCF-204]: https://bugtracking.unidata.ucar.edu/browse/NCF-204
+* Added `nc_rename_grp` to allow for group renaming in netCDF-4 files. 
+	https://bugtracking.unidata.ucar.edu/browse/NCF-204
 
-* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per a request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
 
-[cz1]: https://www.unidata.ucar.edu/esupport/staff/index.php?_m=tickets&_a=viewticket&ticketid=22442
+* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, as per a request by Charlie Zender. This will allow software compiling against netcdf to easily query whether or not `nc_rename_grp()` is available.
+
+	* https://www.unidata.ucar.edu/esupport/staff/index.php?_m=tickets&_a=viewticket&ticketid=22442
 
 * Added Greg Sjaardema's contributed optimization for the nc4\_find\_dim\_len function in libsrc4/nc4internal.c. The patch eliminates several malloc/free calls that exist in the original coding.
 
-* Added support for dynamic loading, to compliment the dynamic loading support introduced in hdf 1.8.11.  Dynamic loading support depends on libdl, and is enabled as follows: [NCF-258]
+* Added support for dynamic loading, to compliment the dynamic loading support introduced in hdf 1.8.11.  Dynamic loading support depends on libdl, and is enabled as follows: 
+
 	* autotools-based builds: --enable-dynamic-loading
 	* cmake-based builds: -DENABLE\_DYNAMIC\_LOADING=ON
-	
-[NCF-258]: https://www.unidata.ucar.edu/jira/browse/NCF-258
+	https://www.unidata.ucar.edu/jira/browse/NCF-258
 
-* Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging.  Extending the size of an unlimited dimension in HDF5 must be a collective operation, so now an error is returned if trying to extend in independent access mode. [NCF-250]
 
-[NCF-250]: https://bugtracking.unidata.ucar.edu/browse/NCF-250
+* Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging.  Extending the size of an unlimited dimension in HDF5 must be a collective operation, so now an error is returned if trying to extend in independent access mode. 
 
-* Fixed bug with netCDF-4's inability to read HDF5 scalar numeric attributes. Also allow, in addition to zero length strings, a new NULL pointer as a string value. to improve interoperability with HDF5. This required a new CDL constant, 'NIL', that can be output from ncdump for such a string value in an HDF5 or netCDF-4 file. The ncgen utility was also modified to properly handle such NIL values for strings. [NCF-56]
+	https://bugtracking.unidata.ucar.edu/browse/NCF-250
 
-[NCF-56]: https://bugtracking.unidata.ucar.edu/browse/NCF-56
+* Fixed bug with netCDF-4's inability to read HDF5 scalar numeric attributes. Also allow, in addition to zero length strings, a new NULL pointer as a string value. to improve interoperability with HDF5. This required a new CDL constant, 'NIL', that can be output from ncdump for such a string value in an HDF5 or netCDF-4 file. The ncgen utility was also modified to properly handle such NIL values for strings.
+
+	https://bugtracking.unidata.ucar.edu/browse/NCF-56
 
 * Parallel-build portability fixes, particularly for OpenMPI and gcc/gfortran-4.8.x on OSX.
 
