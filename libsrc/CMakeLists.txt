@@ -29,20 +29,9 @@ ENDIF (USE_FFIO)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES}) 
 
-# Add files to the distribution
-FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
-ADD_EXTRA_DIST("${libsrc_SOURCES}")
-ADD_EXTRA_DIST("${libsrc_HEADERS}") 
-ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
 # The C API man page.
-set(man_MANS netcdf.3)
 
 SET(MAN_FILES netcdf.3)
-IF(EXISTS ${MAN_FILES} AND NOT MSVC)
-	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man3" COMPONENT documentation)
-ENDIF()
 
 set(ARGS_MANPAGE -DAPI=C)
 
@@ -57,4 +46,23 @@ ENDIF(BUILD_DAP)
 IF (BUILD_PARALLEL)
 	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
 ENDIF(BUILD_PARALLEL)
+FILE(GLOB libsrc_manpage ${CMAKE_SOURCE_DIR}/man4/*.m4)
+FILE(COPY ${libsrc_manpage} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# Generate the man page.
+
+
+ADD_CUSTOM_TARGET(manpage ALL
+  COMMAND m4 ${ARGS_MANPAGE} ${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4 > ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3 DESTINATION "share/man/man3" COMPONENT documentation)
+
+
+# Add files to the distribution
+FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
+ADD_EXTRA_DIST("${libsrc_SOURCES}")
+ADD_EXTRA_DIST("${libsrc_HEADERS}") 
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 

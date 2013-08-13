@@ -8,7 +8,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "-rc1")
+SET(netCDF_VERSION_NOTE "-rc2")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 #Library .so version.
@@ -20,7 +20,11 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF()
 
 
-# Get system configuration
+# Get system configuration,
+# Use it to determine osname,
+# os release, cpu. These will be used
+# when committing to CDash.
+
 find_program(UNAME NAMES uname)
 IF(UNAME)
 macro(getuname name flag)
@@ -33,6 +37,7 @@ set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variab
 ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
+
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
