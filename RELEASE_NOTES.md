@@ -6,6 +6,12 @@ Releases are in reverse chronological order (most recent first).
 Recent releases include references to Jira issue identifiers for more
 information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
+### 4.3.1-rc2 Released TBD
+
+* Integrated change contributed by Orion Poplawski which integrated GNUInstallDirs into the netCDF-C CMake system; this will permit systems that install into lib64 (such as Fedora) to `make install` without problem.
+
+* Corrected an error with the CMake config files that resulted in the `netcdf.3` manpage not being built or installed.
+
 ### 4.3.1-rc1 Released 2013-08-09
 
 * Migrated from the netCDF-C `subversion` repository to a publically available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
