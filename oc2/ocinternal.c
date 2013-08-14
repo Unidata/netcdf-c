@@ -92,8 +92,10 @@ ocinternalinitialize(void)
 	    size_t pathlen = strlen("./")+strlen(*alias)+1;
             path = (char*)malloc(pathlen);
 	    if(path == NULL) return OC_ENOMEM;
-	    if(!occopycat(path,pathlen,2,"./",*alias))
-		return OC_EOVERRUN;
+	    if(!occopycat(path,pathlen,2,"./",*alias)) {
+	      if(path) free(path);
+	      return OC_EOVERRUN;
+	    }
   	    /* see if file is readable */
 	    f = fopen(path,"r");
 	    if(f != NULL) break;
