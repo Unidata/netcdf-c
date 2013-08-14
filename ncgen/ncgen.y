@@ -97,9 +97,9 @@ List* condefs; /* non-dimension constants used in type defs*/
 List* tmp;
 
 /* Forward */
-static Constant makeconstdata(nc_type);
-static Constant evaluate(Symbol* fcn, Datalist* arglist);
-static Constant makeenumconst(Symbol*);
+static NCConstant makeconstdata(nc_type);
+static NCConstant evaluate(Symbol* fcn, Datalist* arglist);
+static NCConstant makeenumconst(Symbol*);
 static void addtogroup(Symbol*);
 static Symbol* currentgroup(void);
 static Symbol* createrootgroup(void);
@@ -110,7 +110,7 @@ static Symbol* makeattribute(Symbol*,Symbol*,Symbol*,Datalist*,Attrkind);
 static Symbol* makeprimitivetype(nc_type i);
 static Symbol* makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst);
 static int containsfills(Datalist* list);
-static void datalistextend(Datalist* dl, Constant* con);
+static void datalistextend(Datalist* dl, NCConstant* con);
 static void vercheck(int ncid);
 
 int yylex(void);
@@ -134,7 +134,7 @@ unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
 long           mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
-Constant       constant;
+NCConstant       constant;
 }
 
 %token <sym>
@@ -998,10 +998,10 @@ creategroup(Symbol * gsym)
     return gsym;
 }
 
-static Constant
+static NCConstant
 makeconstdata(nc_type nctype)
 {
-    Constant con = nullconstant;
+    NCConstant con = nullconstant;
     consttype = nctype;
     con.nctype = nctype;
     con.lineno = lineno;
@@ -1061,10 +1061,10 @@ makeconstdata(nc_type nctype)
     return con;
 }
 
-static Constant
+static NCConstant
 makeenumconst(Symbol* econst)
 {
-    Constant con;
+    NCConstant con;
     markcdf4("Enum type");
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
@@ -1143,7 +1143,7 @@ specialname(int flag)
 }
 
 static int
-truefalse(Constant* con, int tag)
+truefalse(NCConstant* con, int tag)
 {
     if(con->nctype == NC_STRING) {
 	char* sdata = con->value.stringv.stringv;
@@ -1172,22 +1172,24 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 {
     Symbol* attr = NULL;
     Datalist* list;
-    Constant* con;
+    NCConstant* con;
     Specialdata* special = (Specialdata*)malloc(sizeof(Specialdata));
-    Constant iconst;
+    NCConstant iconst;
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
-    
+
+    special->flags = 0;
+
     specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 
     if(isconst) {
-	con = (Constant*)data;
+	con = (NCConstant*)data;
 	list = builddatalist(1);
-        dlappend(list,(Constant*)data);
+        dlappend(list,(NCConstant*)data);
     } else {
         list = (Datalist*)data;
-        con = (Constant*)list->data;
+        con = (NCConstant*)list->data;
     }
 
     if(tag == _FORMAT && vsym != NULL) {
@@ -1355,7 +1357,7 @@ containsfills(Datalist* list)
 {
     if(list != NULL) {
         int i;
-        Constant* con = list->data;
+        NCConstant* con = list->data;
         for(i=0;i<list->length;i++,con++) {
 	    if(con->nctype == NC_COMPOUND) {
 	        if(containsfills(con->value.compoundv)) return 1;	
@@ -1366,7 +1368,7 @@ containsfills(Datalist* list)
 }
 
 static void
-datalistextend(Datalist* dl, Constant* con)
+datalistextend(Datalist* dl, NCConstant* con)
 {
     dlappend(dl,con);
 }
@@ -1399,10 +1401,10 @@ Note that currently, only a single value can
 be returned.
 */
 
-static Constant
+static NCConstant
 evaluate(Symbol* fcn, Datalist* arglist)
 {
-    Constant result;
+    NCConstant result;
 
     /* prepare the result */
     result.lineno = fcn->lineno;
