@@ -380,6 +380,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
 	return OC_EOVERRUN;
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
+    umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     fd = mkstemp(tmpname);
 #else /* !HAVE_MKSTEMP */
     /* Need to simulate by using some kind of pseudo-random number */
