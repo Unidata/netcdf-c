@@ -11,6 +11,8 @@ library.
 
 \page getting Getting NetCDF
 
+\section sec_get_pre_built Getting pre-built netCDF-C libraries.
+
 The easiest way to get netCDF is through a package management program,
 such as rpm, yum, adept, and others. NetCDF is available from many
 different repositories, including the default Red Hat and Ubuntu
@@ -20,19 +22,31 @@ When getting netCDF from a software repository, you will wish to get
 the development version of the package ("netcdf-devel"). This includes
 the netcdf.h header file.
 
-Unfortunately, you may not be able to get a recent version of netCDF
-from a package management system, in which case you must build from
-source code. Get the <a
-href=ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz>source
-distribution</a> for the latest, fully-tested release.
+\section sec_get_source Getting the latest netCDF-C Source Code
 
-Alternatively, you may wish to try the <a
-href=ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz>daily
-snapshot</a>. It is generated nightly at the Unidata Program
-Center. It has passed all tests on our (Linux) test machine, but not
-necessarily all platform compatibility tests.
+Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the 
+Unidata GitHub repository, available at http://github.com/Unidata/netcdf-c.
 
-\warning The daily snapshot release contains bug-fixes and new
+Two options are available for building from source:
+
+- The latest release.
+- The developer snapshot.
+
+\subsection sec_latest_release The latest release
+
+The latest release may be downloaded from github at the following location:
+
+- http://github.com/Unidata/netcdf-c/releases
+
+Source files are available in `.tar.gz` and `.zip` formats.
+
+\subsection sec_dev_snapshot The developer snapshot
+
+The developer snapshot may be cloned from github directly by using the `git` command.
+
+    $ git clone http://github.com/Unidata/netcdf-c netcdf-c
+
+\warning The developer snapshot release contains bug-fixes and new
 features added since the last full release. It may also contain
 portability bugs.
 

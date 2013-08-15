@@ -328,7 +328,8 @@ memio_open(const char* path,
 
     status = memio_new(path, ioflags, filesize, &nciop, &memio);
     if(status != NC_NOERR) {
-      if(fd > 0) close(fd);
+      if(fd >= 0) 
+	close(fd);
       return status;
     }
     memio->size = filesize;
@@ -379,7 +380,8 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
     return NC_NOERR;
 
 unwind_open:
-
+    if(fd >= 0)
+      close(fd);
     memio_close(nciop,0);
     return status;
 }

@@ -2,21 +2,10 @@
 
 # Overview
 
-Starting with netCDF-C 4.3, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
+Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
 
 In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
 
-# Errata
-
-## netCDF 4.3.0
-
-* When netCDF 4.3.0 was originally released, the file `nc-config.in.cmake` was accidentally excluded.  This file can be downloaded [here]. The file should be placed in the root of the netcdf source directory.
-
-[here]: https://www.unidata.ucar.edu/software/netcdf/win_netcdf/nc-config.in.cmake "nc-config.in.cmake"
-
-* When building shared libraries via CMake on Unix/Linux, the resulting files have the soversion 4.3.0.  This is a mistake, the soversion should be 7.2.0.  This can be rectified post-install by creating a symbolic link from libnetcdf.4.3.0.so to libnetcdf.7.2.0.so.  This would be accomplished thusly:
-		
-		> sudo ln -s /usr/local/lib/libnetcdf.4.3.0.so /usr/local/lib/libnetcdf.7.2.0.so
 		
 # Requirements
 The following packages are required to build netCDF-C using CMake.
@@ -152,3 +141,18 @@ or
 
 		> cmake [path to source tree] -L	- This will show the basic options.
 		> cmake [path to source tree] -LA	- This will show the basic and advanced options.
+
+
+# Errata
+
+## netCDF 4.3.1-rc1
+
+## netCDF 4.3.0
+
+* When netCDF 4.3.0 was originally released, the file `nc-config.in.cmake` was accidentally excluded.  This file can be downloaded [here]. The file should be placed in the root of the netcdf source directory.
+
+[here]: https://www.unidata.ucar.edu/software/netcdf/win_netcdf/nc-config.in.cmake "nc-config.in.cmake"
+
+* When building shared libraries via CMake on Unix/Linux, the resulting files have the soversion 4.3.0.  This is a mistake, the soversion should be 7.2.0.  This can be rectified post-install by creating a symbolic link from libnetcdf.4.3.0.so to libnetcdf.7.2.0.so.  This would be accomplished thusly:
+		
+	> $ sudo ln -s /usr/local/lib/libnetcdf.4.3.0.so /usr/local/lib/libnetcdf.7.2.0.so

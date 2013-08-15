@@ -325,7 +325,10 @@ restruct3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
        It is also assumed that order of the nodes
        in the ddsroot is the same as in the template.
     */
-    if(ddsroot->tree->restructed) return NC_NOERR;
+    if(ddsroot->tree->restructed) {
+      nclistfree(repairs);
+      return NC_NOERR;
+    }
 
 #ifdef DEBUG
 fprintf(stderr,"restruct: ddsroot=%s\n",dumptree(ddsroot));

@@ -46,6 +46,10 @@ ADD_CUSTOM_COMMAND(
 	COMMAND rm -f ncgentab.c ncgentab.h
 	COMMAND mv ncgen.tab.c ncgentab.c
 	COMMAND mv ncgen.tab.h ncgentab.h
+	COMMAND mv ncgentab.h ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMAND mv ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMAND mv ncgenyy.c ${CMAKE_CURRENT_SOURCE_DIR}
+
 )
 
 ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)

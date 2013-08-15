@@ -1,17 +1,32 @@
 \page release_notes Release Notes
 
 This file contains a high-level description of this package's evolution.
-Releases are in reverse chronological order (most recent first). Recent
-releases include references to Jira issue identifiers for more
+Releases are in reverse chronological order (most recent first). 
+
+Recent releases include references to Jira issue identifiers for more
 information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
-### 4.3.1 Released TBD
+### 4.3.1-rc2 Released TBD
+
+* Integrated change contributed by Orion Poplawski which integrated GNUInstallDirs into the netCDF-C CMake system; this will permit systems that install into lib64 (such as Fedora) to `make install` without problem.
+
+* Corrected an error with the CMake config files that resulted in the `netcdf.3` manpage not being built or installed.
+
+### 4.3.1-rc1 Released 2013-08-09
 
 * Migrated from the netCDF-C `subversion` repository to a publically available GitHub repository available at https://github.com/Unidata/netCDF-C.  This repository may be checked out (cloned) with the following command:
 
-> $ git clone https://github.com/Unidata/netCDF-C.git
+	$ git clone https://github.com/Unidata/netCDF-C.git
 
-* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per the request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
+* Note: in this release, it is necessary to generate the `configure` script and makefile templates using `autoreconf` in the root netCDF-C directory.:
+	
+	$ autoreconf -i -f 
+
+* Added `nc_rename_grp` to allow for group renaming in netCDF-4 files. [NCF-204]
+
+[NCF-204]: https://bugtracking.unidata.ucar.edu/browse/NCF-204
+
+* Added a `NC_HAVE_RENAME_GRP` macro to netcdf.h, [as per a request by Charlie Zender][cz1]. This will allow software compiling against netcdf to easily query whether or not nc\_rename\_grp() is available.
 
 [cz1]: https://www.unidata.ucar.edu/esupport/staff/index.php?_m=tickets&_a=viewticket&ticketid=22442
 

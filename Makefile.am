@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005-2011, see the COPYRIGHT file for more information.
+# Copyright 2005-2013, see the COPYRIGHT file for more information.
 
 # This is the main automake file for netCDF. It builds the different
 # netcdf directories. Not all directories are built, depending on the
@@ -9,7 +9,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
-EXTRA_DIST = README COPYRIGHT RELEASE_NOTES INSTALL INSTALL.cmake test_prog.c \
+EXTRA_DIST = README README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake \
 	config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in \
 	netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md

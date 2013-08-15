@@ -1,3 +1,6 @@
+## This is a CMake file, part of Unidata's netCDF package.
+# Copyright 2012-2013, see the COPYRIGHT file for more information.
+
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
  
@@ -8,7 +11,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "-rc1")
+SET(netCDF_VERSION_NOTE "-rc2")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 #Library .so version.
@@ -20,7 +23,11 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF()
 
 
-# Get system configuration
+# Get system configuration,
+# Use it to determine osname,
+# os release, cpu. These will be used
+# when committing to CDash.
+
 find_program(UNAME NAMES uname)
 IF(UNAME)
 macro(getuname name flag)
@@ -33,6 +40,9 @@ set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variab
 ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
+
+# For CMAKE_INSTALL_LIBDIR
+INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
 	SET(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -237,16 +247,16 @@ IF(NOT MSVC)
 	# (but later on when installing)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 
-	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
 	# add the automatically determined parts of the RPATH
 	# which point to directories outside the build tree to the install RPATH
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 	# the RPATH to be used when installing, but only if it's not a system directory
-	LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+	LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
 	IF("${isSystemDir}" STREQUAL "-1")
-		SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+		SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 	ENDIF("${isSystemDir}" STREQUAL "-1")
 ENDIF()
 

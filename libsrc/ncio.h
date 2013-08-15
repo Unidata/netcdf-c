@@ -127,7 +127,7 @@ struct ncio {
 	ncio_pad_lengthfunc *NCIO_CONST pad_length;
 
 	ncio_filesizefunc *NCIO_CONST filesize;
-
+  
 	ncio_closefunc *NCIO_CONST close;
 
 	/*

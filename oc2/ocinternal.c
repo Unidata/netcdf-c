@@ -92,8 +92,10 @@ ocinternalinitialize(void)
 	    size_t pathlen = strlen("./")+strlen(*alias)+1;
             path = (char*)malloc(pathlen);
 	    if(path == NULL) return OC_ENOMEM;
-	    if(!occopycat(path,pathlen,2,"./",*alias))
-		return OC_EOVERRUN;
+	    if(!occopycat(path,pathlen,2,"./",*alias)) {
+	      if(path) free(path);
+	      return OC_EOVERRUN;
+	    }
   	    /* see if file is readable */
 	    f = fopen(path,"r");
 	    if(f != NULL) break;
@@ -378,6 +380,7 @@ createtempfile1(char* tmppath, char** tmpnamep)
 	return OC_EOVERRUN;
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
+    umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     fd = mkstemp(tmpname);
 #else /* !HAVE_MKSTEMP */
     /* Need to simulate by using some kind of pseudo-random number */

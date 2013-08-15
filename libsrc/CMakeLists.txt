@@ -1,3 +1,6 @@
+## This is a CMake file, part of Unidata's netCDF package.
+# Copyright 2012-2013, see the COPYRIGHT file for more information.
+
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 INCLUDE_DIRECTORIES(".")
@@ -29,20 +32,9 @@ ENDIF (USE_FFIO)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES}) 
 
-# Add files to the distribution
-FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
-ADD_EXTRA_DIST("${libsrc_SOURCES}")
-ADD_EXTRA_DIST("${libsrc_HEADERS}") 
-ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
 # The C API man page.
-set(man_MANS netcdf.3)
 
 SET(MAN_FILES netcdf.3)
-IF(EXISTS ${MAN_FILES} AND NOT MSVC)
-	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man3" COMPONENT documentation)
-ENDIF()
 
 set(ARGS_MANPAGE -DAPI=C)
 
@@ -57,4 +49,25 @@ ENDIF(BUILD_DAP)
 IF (BUILD_PARALLEL)
 	SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
 ENDIF(BUILD_PARALLEL)
+
+# Generate the man page.
+IF(NOT MSVC)
+
+  FILE(GLOB libsrc_MANPAGE ${CMAKE_SOURCE_DIR}/man4/netcdf.m4)
+  FILE(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+  ADD_CUSTOM_TARGET(manpage ALL
+    COMMAND m4 ${ARGS_MANPAGE} ${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4 > ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+  INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/netcdf.3 DESTINATION "share/man/man3" COMPONENT documentation)
+ENDIF()
+
+# Add files to the distribution
+FILE(GLOB libsrc_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+SET(CUR_EXTRA_DIST attr.m4 ncx.m4 putget.m4 XGetopt.c memio.c mmapio.c ffio.c posixio.c CMakeLists.txt Makefile.am)
+ADD_EXTRA_DIST("${libsrc_SOURCES}")
+ADD_EXTRA_DIST("${libsrc_HEADERS}") 
+ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
