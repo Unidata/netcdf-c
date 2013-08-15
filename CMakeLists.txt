@@ -1,3 +1,6 @@
+## This is a CMake file, part of Unidata's netCDF package.
+# Copyright 2012-2013, see the COPYRIGHT file for more information.
+
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
  
