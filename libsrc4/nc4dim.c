@@ -333,14 +333,18 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
     * data... */
    if (!dim->old_name)
    {
-      if (!(dim->old_name = malloc((strlen(dim->name) + 1) * sizeof(char))))
-	 return NC_ENOMEM;
-      strcpy(dim->old_name, dim->name);
+      dim->old_name = dim->name;
+      dim->name = NULL;
    }
+
+   /* Check if this is a coordinate variable, and if so, mark it dirty */
+   if (dim->coord_var)
+       dim->coord_var->dirty++;
 
    /* Give the dimension its new name in metadata. UTF8 normalization
     * has been done. */
-   free(dim->name);
+   if(dim->name)
+      free(dim->name);
    if (!(dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
       return NC_ENOMEM;
    strcpy(dim->name, norm_name);

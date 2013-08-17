@@ -1488,6 +1488,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       {
          var->dimids[0] = grp->dim->dimid;
 	 var->dim[0] = grp->dim;
+         if(0 == strcmp(var->name, grp->dim->name)) {
+             grp->dim->coord_var = var;
+             grp->dim->coord_var_in_grp++;
+         } /* end if */
       }
    }
    else

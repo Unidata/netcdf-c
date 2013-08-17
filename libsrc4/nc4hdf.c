@@ -1427,7 +1427,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
        * has not specified chunksizes, use contiguous variable for
        * better performance. */
       if (!unlimdim && !var->shuffle && !var->deflate && !var->options_mask &&
-          !var->fletcher32 && !var->chunksizes[0])
+          !var->fletcher32 && (var->chunksizes == NULL || !var->chunksizes[0]))
          var->contiguous = 1;
 
       if (!(dimsize = malloc(var->ndims * sizeof(hsize_t))))
@@ -1436,10 +1436,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
          BAIL(NC_ENOMEM);
       if (!(chunksize = malloc(var->ndims * sizeof(hsize_t))))
          BAIL(NC_ENOMEM);
-/*      for (d = 0; d < var->ndims; d++)
-	 dimsize[d] = var->dim[d]->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : var->dim[d]->len;
-      maxdimsize[d] = var->dim[d]->unlimited ? H5S_UNLIMITED : (hsize_t)var->dim[d]->len;
-      chunksize[d] = var->chunksizes[d];*/
    
       for (d = 0; d < var->ndims; d++)
       {
@@ -1451,28 +1447,30 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                {
                   dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
                   maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-                  if (var->chunksizes[d])
-                     chunksize[d] = var->chunksizes[d];
-                  else
-                  {
-		     size_t type_size;
-		     if (var->type_info->nc_typeid == NC_STRING)
-			type_size = sizeof(char *);
-		     else
-			type_size = var->type_info->size;
-		     
-		     /* Unlimited dim always gets chunksize of 1. */
-		     if (dim->unlimited)
-			chunksize[d] = 1;
-		     else
-			chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size, 
-					   1/(double)(var->ndims - unlimdim));
-		     
-		     /* If the chunksize is greater than the dim
-		      * length, make it the dim length. */
-		     if (!dim->unlimited && chunksize[d] > dim->len)
-			chunksize[d] = dim->len;
-		     set_chunksizes++;
+                  if (!var->contiguous) {
+                     if (var->chunksizes[d])
+                        chunksize[d] = var->chunksizes[d];
+                     else
+                     {
+                        size_t type_size;
+                        if (var->type_info->nc_typeid == NC_STRING)
+                           type_size = sizeof(char *);
+                        else
+                           type_size = var->type_info->size;
+                        
+                        /* Unlimited dim always gets chunksize of 1. */
+                        if (dim->unlimited)
+                           chunksize[d] = 1;
+                        else
+                           chunksize[d] = pow((double)DEFAULT_CHUNK_SIZE/type_size, 
+                                              1/(double)(var->ndims - unlimdim));
+                        
+                        /* If the chunksize is greater than the dim
+                         * length, make it the dim length. */
+                        if (!dim->unlimited && chunksize[d] > dim->len)
+                           chunksize[d] = dim->len;
+                        set_chunksizes++;
+                     }
                   }
 
                   if (!var->contiguous && !var->chunksizes[d])
@@ -2250,17 +2248,19 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
                   for (dim1 = g->dim; dim1; dim1 = dim1->next)
                      if (var->dimids[d] == dim1->dimid)
                      {
+                if(var->hdf_datasetid != dim1->hdf_dimscaleid)
                         if (H5DSdetach_scale(var->hdf_datasetid, dim1->hdf_dimscaleid, d) < 0)
                            BAIL(NC_EHDFERR);
+                if(var->dimscale_attached)
                         var->dimscale_attached[d] = 0;
                         if (dims_detached++ == var->ndims)
                            finished++;
                      }
-         }
 
-         /* Free the HDF5 dataset id. */
-         if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid)) 
-            BAIL(NC_EHDFERR);
+            /* Free the HDF5 dataset id. */
+            if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0) 
+               BAIL(NC_EHDFERR);
+         }
                
          /* Now delete the variable. */
          if (H5Gunlink(grp->hdf_grpid, var->name) < 0)

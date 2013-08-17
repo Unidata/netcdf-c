@@ -858,9 +858,17 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    LOG((4, "nc4_enum_member_add: size %d name %s", size, name));
 
    /* Allocate storage for this field information. */
-   if (!(member = calloc(1, sizeof(NC_ENUM_MEMBER_INFO_T))) ||
-       !(member->value = calloc(1, size)))
+   if (!(member = calloc(1, sizeof(NC_ENUM_MEMBER_INFO_T))))
       return NC_ENOMEM;
+   if (!(member->value = calloc(1, size))) {
+      free(member);
+      return NC_ENOMEM;
+   }
+   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char)))) {
+      free(member->value);
+      free(member);
+      return NC_ENOMEM;
+   }
 
    /* Add this field to list. */
    if (*list)
@@ -877,11 +885,6 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    }
 
    /* Store the information about this member. */
-   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char)))) {
-     if(member) free(member);
-    
-     return NC_ENOMEM;
-   }
    strcpy(member->name, name);
    memcpy(member->value, value, size);
 
