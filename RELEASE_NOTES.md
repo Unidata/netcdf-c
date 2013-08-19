@@ -8,6 +8,10 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc2 Released TBD
 
+* Integrated a fix by Quincey Koziol which addressed a variation of [NCF-250], *Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging*.
+
+[NCF-250]:https://www.unidata.ucar.edu/jira/browse/NCF-258
+
 * Integrated change contributed by Orion Poplawski which integrated GNUInstallDirs into the netCDF-C CMake system; this will permit systems that install into lib64 (such as Fedora) to `make install` without problem.
 
 * Corrected an error with the CMake config files that resulted in the `netcdf.3` manpage not being built or installed.
