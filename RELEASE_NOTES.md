@@ -6,7 +6,11 @@ Releases are in reverse chronological order (most recent first).
 Recent releases include references to Jira issue identifiers for more
 information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
 
-### 4.3.1-rc2 Released TBD
+## 4.3.1 Released TBD
+
+### 4.3.1-rc2 Released 2013-08-19
+
+* Added `configure` and accompanying configuration files/templates to release repository.  **These will only be added to tagged releases on GitHub**.
 
 * Integrated a fix by Quincey Koziol which addressed a variation of [NCF-250], *Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging*.
 
@@ -56,7 +60,7 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 * Fixed various minor documentation problems.
 
-### 4.3.0 Released 2013-04-29
+## 4.3.0 Released 2013-04-29
 
 * fsync: Changed default in autotools config file; fsync must now be
 explicitely enabled instead of explicitely disabled. [NCF-239]
@@ -201,7 +205,7 @@ least CMake version 2.8.8. This replaces/supplements the cross-compiled
 set of Visual-Studio compatible netCDF libraries introduced in netCDF
 4.2.1-rc1.
 
-### 4.2.1.1 Released 2012-08-03
+## 4.2.1.1 Released 2012-08-03
 
 * Patched libdap2/ncdap3.c to fix DAP performance bug remotely accessing large files (> 2GiB).
 
@@ -446,7 +450,7 @@ NcML output is used on netCDF-4 enhanced model input. [NCF-129]
 * Fixed bug causing infinite loop in ncdump -c of netCDF-4 file with
 subgroup with variables using inherited dimensions. [NCF-136]
 
-### 4.1.3 2011-06-17
+## 4.1.3 2011-06-17
 
 * Replace use of --with-hdf5= and other such configure options that
 violate conventions and causes build problems. Set environment variables
@@ -539,7 +543,7 @@ support.
 * Took out --with-hdf5 and related options due to high cost of maintaining
 this non-standard way of finding libraries.
 
-### 4.1.2 2011-03-29
+## 4.1.2 2011-03-29
 
 * Changes in build system to support building dlls on cygwin/mingw32.
 
@@ -619,7 +623,7 @@ visible effect.
 format and accessing multidimensional variables with more than 2\*\*32
 values.
 
-### 4.1.1 2010-04-01
+## 4.1.1 2010-04-01
 
 * Fixed various build issues.
 
@@ -632,7 +636,7 @@ different orders, with data writes interspersed.
 
 * Added new C++ API from Lynton Appel.
 
-### 4.1 2010-01-30
+## 4.1 2010-01-30
 
 * Much better memory leak checking with valgrind.
 
@@ -715,7 +719,7 @@ having to figure out all the compiler options they will need.
 
 * The nc\_inq\_type() function now works for primitive types.
 
-### 4.0.1 2009-03-26
+## 4.0.1 2009-03-26
 
 * Added optional arguments to F90 API to nf90\_open/create,
 nf90\_create\_var, and nf90\_inquire\_variable so that all netCDF-4
@@ -793,14 +797,14 @@ using the DAP protocol (use --enable-opendap to build it).
 Fixed ncdump bug of assuming default fill value for data of type
 unsigned byte.
 
-### 4.0 2008-05-31
+## 4.0 2008-05-31
 
 * Introduced the use of HDF5 as a storage layer, which allows use of
 groups, user-defined types, multiple unlimited dimensions, compression,
 data chunking, parallel I/O, and other features. See the netCDF Users
 Guide for more information.
 
-### 3.6.3 2008-05-31
+## 3.6.3 2008-05-31
 
 * In ncdump and ncgen, added CDL support for UTF-8 encoding of characters
 in names and for escaped special chars in names. Made sure UTF-8 names
@@ -845,7 +849,7 @@ setting of --disable-v2.
 
 * Turned on some old test programs which were not being used in the build.
 
-### 3.6.2 2007-03-05
+## 3.6.2 2007-03-05
 
 * Released.
 
@@ -994,7 +998,7 @@ short and if the number of values per record for that variable is not
 divisible by 4 (or 2 in the case of short). Now the filesize determined
 from header info by NC\_calcsize should be correct in all cases.
 
-### 3.6.1 2006-01-31
+## 3.6.1 2006-01-31
 
 * Updated installation manual for 3.6.1.
 
@@ -1057,7 +1061,7 @@ entered.
 
 * More information in installation and porting guide.
 
-### 3.6.0 2004-12-16
+## 3.6.0 2004-12-16
 
 * Added texinfo source for the documentation.
 
@@ -1175,7 +1179,7 @@ and "typesizes.d" (instead of ".mod" files).
 * Fixed access to iargc and getarg functions from Fortran-90 for NAG f90
 compiler, contributed by Harald Anlauf.
 
-### 3.5.1 2004-02-03
+## 3.5.1 2004-02-03
 
 * Updated INSTALL.html for Mac OS X (Darwin).
 
@@ -1238,7 +1242,7 @@ penalty when synchronization is unnecessary.
 * Changed order of targets in Makefile to build Fortran interface last, as
 a workaround for problem with make on AIX platforms.
 
-### 3.5.0 2001-03-23
+## 3.5.0 2001-03-23
 
 * Added Fortran 90 interface.
 
@@ -1325,7 +1329,7 @@ include old netCDF-2 interfaces, as intended.
 
 * Changed INSTALL file to INSTALL.html instead.
 
-### 3.4 1998-03-09
+## 3.4 1998-03-09
 
 * Fixed ncx\_cray.c to work on all CRAY systems, not just CRAY1. Reworked
 USE\_IEG, which was incorrect. Reworked short support. Now USE\_IEG and
@@ -1406,7 +1410,7 @@ NCVPGC didn't work according to the Version 2 documentation if the
 innermost mapping value (i.e. IMAP[1]) was zero (indicating that the
 netCDF structure of the variable should be used).
 
-### 3.3.1 1997-06-16
+## 3.3.1 1997-06-16
 
 * One can now inquire about the number of attributes that a variable has
 using the global variable ID.
@@ -1455,7 +1459,7 @@ failure of generated C or Fortran code.
 * The file that you are now reading was created to contain a high-level
 description of the evolution of the netCDF-3 package.
 
-### 3.3 1997-05-15
+## 3.3 1997-05-15
 
 * The production version of the netCDF-3 package was released.
 
