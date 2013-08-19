@@ -221,7 +221,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    FILE *fp;
    int retval = NC_NOERR;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
-#ifndef USE_PARALLEL
+#ifdef USE_PARALLEL
+   int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
+   int info_duped = 0;          /* Whether the MPI Info object was duplicated */
+#else /* !USE_PARALLEL */
    int persist = 0; /* Should diskless try to persist its data into file?*/
 #endif
 
@@ -294,6 +297,22 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
       }
+
+      /* Keep copies of the MPI Comm & Info objects */
+      if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
+         BAIL(NC_EMPI);
+      comm_duped++;
+      if (MPI_INFO_NULL != info)
+      {
+         if (MPI_SUCCESS != MPI_Info_dup(info, &nc4_info->info))
+            BAIL(NC_EMPI);
+         info_duped++;
+      }
+      else
+      {
+         /* No dup, just copy it. */
+         nc4_info->info = info;
+      }
    }
 #else /* only set cache for non-parallel... */
    if(cmode & NC_DISKLESS) {
@@ -353,6 +372,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    return NC_NOERR;
 
 exit: /*failure exit*/
+#ifdef USE_PARALLEL
+   if (comm_duped) MPI_Comm_free(&nc4_info->comm);
+   if (info_duped) MPI_Info_free(&nc4_info->info);
+#endif
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
@@ -2302,6 +2325,10 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
       H5F_ACC_RDWR : H5F_ACC_RDONLY;
    int retval;
    NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+#ifdef USE_PARALLEL
+   int comm_duped = 0;          /* Whether the MPI Communicator was duplicated */
+   int info_duped = 0;          /* Whether the MPI Info object was duplicated */
+#endif /* !USE_PARALLEL */
 
    LOG((3, "nc4_open_file: path %s mode %d", path, mode));
    assert(path && nc);
@@ -2348,6 +2375,22 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 	 LOG((4, "opening parallel file with MPI/posix"));
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
+      }
+
+      /* Keep copies of the MPI Comm & Info objects */
+      if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
+         BAIL(NC_EMPI);
+      comm_duped++;
+      if (MPI_INFO_NULL != info)
+      {
+         if (MPI_SUCCESS != MPI_Info_dup(info, &nc4_info->info))
+            BAIL(NC_EMPI);
+         info_duped++;
+      }
+      else
+      {
+         /* No dup, just copy it. */
+         nc4_info->info = info;
       }
    }
 #else /* only set cache for non-parallel. */
@@ -2397,11 +2440,15 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 
    return NC_NOERR;
 
-  exit:
-   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
+exit:
+#ifdef USE_PARALLEL
+   if (comm_duped) MPI_Comm_free(&nc4_info->comm);
+   if (info_duped) MPI_Info_free(&nc4_info->info);
+#endif
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
+   if (fapl_id != H5P_DEFAULT) H5Pclose(fapl_id);
    if (!nc4_info) return retval;
    close_netcdf4_file(nc4_info,1); /*  treat like abort*/
 #if 0
@@ -3115,6 +3162,15 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
    } 
    else
    {
+#ifdef USE_PARALLEL
+      /* Free the MPI Comm & Info objects, if we opened the file in parallel */
+      if(h5->parallel)
+      {
+          MPI_Comm_free(&h5->comm);
+          if(MPI_INFO_NULL != h5->info)
+              MPI_Info_free(&h5->info);
+      }
+#endif
       if (H5Fclose(h5->hdfid) < 0) 
       {
 	int nobjs;
@@ -3133,10 +3189,6 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	 retval = NC_EHDFERR; goto done;
 	}
       }
-#if 0
-      if (H5garbage_collect() < 0)
-	{retval = NC_EHDFERR; goto done;
-#endif
    }
 
 done:
