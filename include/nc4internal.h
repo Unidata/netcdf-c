@@ -254,6 +254,10 @@ typedef struct  NC_HDF5_FILE_INFO
 {
    NC* controller;
    hid_t hdfid;
+#ifdef USE_PARALLEL
+   MPI_Comm comm;    /* Copy of MPI Communicator used to open the file */
+   MPI_Info info;    /* Copy of MPI Information Object used to open the file */
+#endif
    int flags;
    int cmode;
    int nvars;
