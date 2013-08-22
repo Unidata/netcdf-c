@@ -247,7 +247,9 @@ IF(NOT MSVC)
 	# (but later on when installing)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 
-
+	# Stanza for Apple RPATH.
+	# See: http://www.cmake.org/pipermail/cmake/2011-April/043826.html
+	# 
 	IF(APPLE)
 	  SET(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 	ENDIF(APPLE)
