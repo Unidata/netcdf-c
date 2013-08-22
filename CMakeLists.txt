@@ -390,12 +390,6 @@ IF(ENABLE_NETCDF_4)
 	SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
 
-# Option for cdmremote support.
-OPTION (ENABLE_CDMREMOTE OFF "Build with cdmremote client support.")
-IF(ENABLE_CDMREMOTE)
-	SET(BUILD_CDMREMOTE ON CACHE BOOL "")
-ENDIF()
-
 # Option for building RPC
 OPTION (ENABLE_RPC OFF "Enable RPC Client and Server.")
 IF(ENABLE_RPC)
@@ -629,7 +623,7 @@ ENDIF()
 
 
 # Set some of the options as advanced.
-MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF BUILD_CDMREMOTE ENABLE_COVERAGE_TESTS)
+MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
 #####
 # End option checks.
@@ -784,10 +778,6 @@ IF (USE_DAP)
 	ADD_SUBDIRECTORY(libdap2)
 ENDIF()
 
-IF (BUILD_CDMREMOTE)
-   ADD_SUBDIRECTORY(libcdmr)
-ENDIF()
-
 add_subdirectory(liblib)
 
 # For tests and utilities, we are no longer
@@ -903,7 +893,6 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"my.*\\\\.sh"
 	"/.deps/"
 	"/.libs"
-	"/libcf/"
 	"/html/"
 	".*\\\\.jar"
 	".*\\\\.jdl"
@@ -914,7 +903,6 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"Make0"
 	"/obsolete/"
 	"/unknown/"
-	"/udunits/"
 	".*~" 
 )
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT

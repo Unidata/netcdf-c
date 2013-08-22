@@ -8,6 +8,14 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
+### 4.3.1-rc3 Released TBD
+
+* Removed deprecated directories:
+	* librpc/
+	* udunits/
+	* libcf/
+	* libcdmr/
+
 ### 4.3.1-rc2 Released 2013-08-19
 
 * Added `configure` and accompanying configuration files/templates to release repository.  **These will only be added to tagged releases on GitHub**.

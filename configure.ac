@@ -918,7 +918,6 @@ AC_CONFIG_FILES([Makefile
                  examples/CDL/Makefile
                  oc2/Makefile
                  libdap2/Makefile
-                 libcdmr/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl4/Makefile
