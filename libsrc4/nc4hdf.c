@@ -572,7 +572,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
    hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
    size_t file_type_size;
 
-   hsize_t *xtend_size = NULL, count[NC_MAX_VAR_DIMS];
+   hsize_t xtend_size[NC_MAX_VAR_DIMS] , count[NC_MAX_VAR_DIMS];
    hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
    hsize_t start[NC_MAX_VAR_DIMS];
    int need_to_extend = 0;
@@ -748,8 +748,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
       it to that size. */
    if (var->ndims)
    {
-      if (!(xtend_size = malloc(var->ndims * sizeof(hsize_t))))
-         BAIL(NC_ENOMEM);
       for (d2 = 0; d2 < var->ndims; d2++)
       {
          if ((retval = nc4_find_dim(grp, var->dimids[d2], &dim, NULL)))
@@ -776,14 +774,37 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
          }
       }
 
+#ifdef USE_PARALLEL
+     /* Check if anyone wants to extend */
+     if (h5->parallel && NC_COLLECTIVE == var->parallel_access)
+     {
+        /* Form consensus opinion among all processes about whether to perform
+         * collective I/O
+         */
+        if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1, MPI_INT, MPI_BOR, h5->comm))
+            BAIL(NC_EMPI);
+     }
+#endif /* USE_PARALLEL */
+
       /* If we need to extend it, we also need a new file_spaceid
          to reflect the new size of the space. */
       if (need_to_extend)
       {
          LOG((4, "extending dataset"));
 #ifdef USE_PARALLEL
-         if (h5->parallel && NC_COLLECTIVE != var->parallel_access)
-            BAIL(NC_ECANTEXTEND);
+         if (h5->parallel)
+         {
+            if(NC_COLLECTIVE != var->parallel_access)
+                BAIL(NC_ECANTEXTEND);
+
+            /* Reach consensus about dimension sizes to extend to */
+            /* (Note: Somewhat hackish, with the use of MPI_BYTE, but MPI_MAX is
+             *        correct with this usage, as long as it's not executed on
+             *        heterogenous systems)
+             */
+            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * sizeof(hsize_t)), MPI_BYTE, MPI_MAX, h5->comm))
+                BAIL(NC_EMPI);
+         }
 #endif /* USE_PARALLEL */
 	 if (H5Dset_extent(var->hdf_datasetid, xtend_size) < 0)
             BAIL(NC_EHDFERR);
@@ -850,7 +871,6 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
 #ifndef HDF5_CONVERT
    if (need_to_convert) free(bufr);
 #endif
-   if (xtend_size) free(xtend_size);
 
    /* If there was an error return it, otherwise return any potential
       range error value. If none, return NC_NOERR as usual.*/
@@ -2415,7 +2435,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
                      }
             }
          }
-         if (H5Dextend(v1->hdf_datasetid, new_size) < 0)
+         if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0)
             BAIL(NC_EHDFERR);
          free(new_size);
       }

@@ -74,7 +74,7 @@ int main(int argc, char **argv)
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("\n*** Testing more advanced parallel access.\n");
 
    for (i = 0; i < 16; i++){
@@ -101,56 +101,68 @@ int main(int argc, char **argv)
    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
 
    /* Test NetCDF4 with MPI-IO driver */
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for raw-data with MPI-IO (driver)...");
    if(test_pio(NC_INDEPENDENT)!=0) ERR;
    if(test_pio(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for meta-data with MPI-IO (driver)...");
    if(test_pio_attr(NC_INDEPENDENT)!=0) ERR;
    if(test_pio_attr(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for different hyperslab selections with MPI-IO (driver)...");
    if(test_pio_hyper(NC_INDEPENDENT)!=0)ERR;
    if(test_pio_hyper(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
+      printf("*** Testing parallel IO for extending variables with MPI-IO (driver)...");
+   if(test_pio_extend(NC_COLLECTIVE)!=0) ERR;
+   if (mpi_rank == 0)
+      SUMMARIZE_ERR;
+
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for raw-data with MPIPOSIX-IO (driver)...");
    facc_type = NC_NETCDF4|NC_MPIPOSIX;
    facc_type_open = NC_MPIPOSIX;
    if(test_pio(NC_INDEPENDENT)!=0) ERR;
    if(test_pio(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for meta-data with MPIPOSIX-IO (driver)...");
    if(test_pio_attr(NC_INDEPENDENT)!=0) ERR;
    if(test_pio_attr(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       printf("*** Testing parallel IO for different hyperslab selections "
 	     "with MPIPOSIX-IO (driver)...");
    if(test_pio_hyper(NC_INDEPENDENT)!=0)ERR;
    if(test_pio_hyper(NC_COLLECTIVE)!=0) ERR;
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
+      SUMMARIZE_ERR;
+
+   if (mpi_rank == 0)
+      printf("*** Testing parallel IO for extending variables with MPIPOSIX-IO (driver)...");
+   if(test_pio_extend(NC_COLLECTIVE)!=0) ERR;
+   if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
 /*     if(!getenv_all(MPI_COMM_WORLD,0,"NETCDF4_NOCLEANUP")) */
    remove(file_name); 
    MPI_Finalize();
 
-   if (mpi_rank == 1)
+   if (mpi_rank == 0)
       FINAL_RESULTS;
    return 0;
 }
@@ -683,6 +695,52 @@ int test_pio_hyper(int flag){
    /* Close the netcdf file. */
    if (nc_close(ncid)) ERR;
     
+   return 0;
+}
+
+/* test extending variables */
+int test_pio_extend(int flag){
+    int rank, procs;
+    int ncFile;
+    int ncDimPart;
+    int ncDimVrtx;
+    int ncVarVrtx;
+    int dimsVrtx[2];
+    size_t start[2];
+    size_t count[2];
+    int vertices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &procs);
+
+    /* Create netcdf file */
+    if (nc_create_par("test.nc", NC_NETCDF4 | NC_MPIIO, MPI_COMM_WORLD, MPI_INFO_NULL, &ncFile)) ERR;
+
+    /* Create netcdf dimensions */
+    if (nc_def_dim(ncFile, "partitions", procs, &ncDimPart)) ERR;
+    if (nc_def_dim(ncFile, "vertices", NC_UNLIMITED, &ncDimVrtx)) ERR;
+
+    /* Create netcdf variables */
+    dimsVrtx[0] = ncDimPart;
+    dimsVrtx[1] = ncDimVrtx;
+    if (nc_def_var(ncFile, "vertex", NC_INT, 2, dimsVrtx, &ncVarVrtx)) ERR;
+
+    /* Start writing data */
+    if (nc_enddef(ncFile)) ERR;
+
+    /* Set access mode */
+    if (nc_var_par_access(ncFile, ncVarVrtx, flag)) ERR;
+
+    /* Write vertices */
+    start[0] = rank;
+    start[1] = 0;
+    count[0] = 1;
+    count[1] = rank;
+    if (nc_put_vara_int(ncFile, ncVarVrtx, start, count, vertices)) ERR;
+
+    /* Close netcdf file */
+    if (nc_close(ncFile)) ERR;
+
    return 0;
 }
 
