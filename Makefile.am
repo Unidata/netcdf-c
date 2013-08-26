@@ -59,11 +59,6 @@ NCDAPTESTDIR = ncdap_test
 #endif # BUILD_UTILITIES
 endif
 
-# Build libcdmr
-if BUILD_CDMREMOTE
-LIBCDMR = libcdmr
-endif
-
 # Build pnetcdf
 if USE_PNETCDF
 LIBSRC5 = libsrc5

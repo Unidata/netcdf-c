@@ -22,6 +22,12 @@ IF(USE_NETCDF4)
   SET(TESTS ${TESTS} tst_atts)
 ENDIF()
 
+IF(USE_PNETCDF)
+	build_bin_test_no_prefix(tst_pnetcdf)
+	build_bin_test_no_prefix(tst_parallel2)
+	add_sh_test(nc_test run_pnetcdf_test)
+ENDIF()
+
 IF(LARGE_FILE_TESTS)
   SET(TESTS ${TESTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large large_files)
 ENDIF()
