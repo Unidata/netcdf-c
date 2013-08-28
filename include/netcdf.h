@@ -415,13 +415,6 @@ by the desired type. */
 
 # define EXTERNL MSC_EXTRA extern
 
-/* Define for 64 bit windows. */
-#if defined (_WIN64)
-#define off_t __int64
-#define size_t unsigned __int64
-#define _OFF_T_DEFINED
-#endif
-
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 EXTERNL int ncerr;
 EXTERNL int ncopts;

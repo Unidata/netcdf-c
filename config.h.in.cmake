@@ -14,11 +14,13 @@
   #define close _close
   #define read _read
 
-#ifdef _WIN64
-	#define lseek _lseeki64
-#else
-	#define lseek _lseek
-#endif
+  #define lseek _lseeki64
+  #define off_t __int64
+  #define _off_t __int64
+  
+  #ifndef _OFF_T_DEFINED
+  #define _OFF_T_DEFINED
+  #endif
   
 #ifdef _WIN32
 	#ifndef strcasecmp
