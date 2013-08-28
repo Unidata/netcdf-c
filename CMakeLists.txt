@@ -450,7 +450,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 	
-  SET(H5_USE_16_API 1)   
+  OPTION(H5_USE_16_API ON "Enable HDF5 1.6.x Compatibility (Required)")   
 
   # Check for ZLib, but only if using HDF5.
   FIND_PACKAGE(ZLIB)
