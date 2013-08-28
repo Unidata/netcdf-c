@@ -29,7 +29,11 @@ IF(USE_PNETCDF)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
-  SET(TESTS ${TESTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large large_files)
+  SET(TESTS ${TESTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large)
+  IF(NOT MSVC)
+    SET(TESTS ${TESTS} large_files)
+  ENDIF()
+  
 ENDIF()
 
 IF(BUILD_DISKLESS)
