@@ -57,7 +57,7 @@ IF(BUILD_DISKLESS)
 		add_sh_test(nc_test run_mmap)
 	ENDIF()
 	IF(LARGE_FILE_TESTS)
-		add_sh_test(nc_test run_diskless2.sh)
+		add_sh_test(nc_test run_diskless2)
 	ENDIF()
 
 ENDIF()
