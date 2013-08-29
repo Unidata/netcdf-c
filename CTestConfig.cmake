@@ -6,7 +6,6 @@
 ##   ENABLE_TESTING()
 ##   INCLUDE(CTest)
 
-set(CTEST_TEST_TIMEOUT  "1")
 set(DART_TESTING_TIMEOUT "3600")
 
 set(CTEST_PROJECT_NAME "netcdf-c")

@@ -130,8 +130,7 @@ or
 * **What if I want to link against multiple libraries in a non-standard location?**
 	
 		You can specify the path to search when looking for dependencies and header files using the CMAKE_PREFIX_PATH variable:
-	
-	
+		
 		> cmake [Source Directory] -DCMAKE_PREFIX_PATH=c:\shared\libs\
 		or
 		> cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
