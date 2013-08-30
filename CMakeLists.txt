@@ -699,8 +699,11 @@ CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"	 SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"	 SIZEOF_UINT64_T)
 
+# On windows systems, we redefine off_t as __int64
+# to enable LFS. This is true on 32 and 64 bit system.s
+# We must redefine SIZEOF_OFF_T to match.
 IF(MSVC AND SIZEOF___INT_64)
-  SET(SIZEOF_OFF_T  SIZEOF___INT_64)
+  SET(SIZEOF_OFF_T  ${SIZEOF___INT_64})
 ENDIF()
 
 IF(SIZEOF_SSIZE_T)
