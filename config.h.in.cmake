@@ -11,11 +11,7 @@
   #pragma warning( disable: 4018 4996 4244 4305 )
   #define unlink _unlink
   #define open _open
-  #define close _close
-  #define read _read
-
-  #define lseek _lseeki64
-  #define off_t __int64
+#define off_t __int64
   #define _off_t __int64
   
   #ifndef _OFF_T_DEFINED
@@ -213,7 +209,8 @@
 #cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@ 
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
-
+/* The size of `__int64` found on Windows systems. */
+#cmakedefine SIZEOF___INT64 @SIZEOF___INT64@
 
 
 
