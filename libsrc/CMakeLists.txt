@@ -6,13 +6,11 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 INCLUDE_DIRECTORIES(".")
 
 
-IF(NOT MSVC)
-    # Process these files with m4.
-    SET(m4_SOURCES attr ncx putget t_ncxx)
-    foreach (f ${m4_SOURCES})      
-    	       GEN_m4(${f})
-    endforeach(f)
-ENDIF()
+# Process these files with m4.
+SET(m4_SOURCES attr ncx putget t_ncxx)
+foreach (f ${m4_SOURCES})      
+ 	       GEN_m4(${f})
+endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 

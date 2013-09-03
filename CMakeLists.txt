@@ -116,11 +116,12 @@ MACRO(ADD_EXTRA_DIST files)
 ENDMACRO()
 
 # A basic script used to convert m4 files
+FIND_PROGRAM(NC_M4 NAMES m4)
 MACRO(GEN_m4 filename)
 	IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-		COMMAND m4 
+		COMMAND ${NC_M4} 
 		ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
 		VERBATIM
 	)
