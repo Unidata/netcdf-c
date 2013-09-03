@@ -11,7 +11,11 @@
   #pragma warning( disable: 4018 4996 4244 4305 )
   #define unlink _unlink
   #define open _open
-#define off_t __int64
+  #define close _close
+  #define read _read
+  #define lseek _lseeki64
+  
+  #define off_t __int64
   #define _off_t __int64
   
   #ifndef _OFF_T_DEFINED
