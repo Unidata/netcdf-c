@@ -342,11 +342,14 @@ ENDIF()
 
 OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
 IF(ENABLE_CONVERSION_WARNINGS)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+  IF(APPLE)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+  ELSE()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
+  ENDIF()
 ENDIF()
-
-
 
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
