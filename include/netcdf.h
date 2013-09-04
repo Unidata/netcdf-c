@@ -444,15 +444,6 @@ nc_open(const char *path, int mode, int *ncidp);
 EXTERNL int
 nc_inq_path(int ncid, size_t *pathlen, char *path);
 
-/* Use these with nc_var_par_access(). */
-#define NC_INDEPENDENT 0
-#define NC_COLLECTIVE 1
-
-/* Set parallel access for a variable to independent (the default) or
- * collective. */
-EXTERNL int
-nc_var_par_access(int ncid, int varid, int par_access);
-
 /* Given an ncid and group name (NULL gets root group), return
  * locid. */
 EXTERNL int
