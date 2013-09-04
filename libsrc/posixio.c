@@ -249,8 +249,15 @@ px_pgout(ncio *const nciop,
 	while((partial = write(nciop->fd, nvp, nextent)) != -1) {
 	    if(partial == nextent)
 		break;
-	    nvp += partial;		
-	    nextent -= partial;
+	    nvp += partial;
+	    /* nextent is unsigned; subtracting a larger value
+	       could cause unexpected issues.  Logically, this
+	       would not happen, but it doens't hurt to add a block
+	       checking for it. */
+	    if(partial < nextent) 
+	      nextent -= (size_t)partial;
+	    else
+	      nextent = 0;
 	}
 	if(partial == -1)
 	    return errno;
