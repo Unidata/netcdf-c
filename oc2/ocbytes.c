@@ -19,7 +19,7 @@
 
 static int ocbytesdebug = 1;
 
-static long
+static int
 ocbytesfail(void)
 {
     fflush(stdout);
@@ -147,7 +147,9 @@ ocbytesappendn(OCbytes* bb, const void* elem, unsigned long n)
 int
 ocbytesprepend(OCbytes* bb, char elem)
 {
-  int i; /* do not make unsigned */
+  /* Why not?*/
+  //int i; /* do not make unsigned */
+  unsigned long i = 0;
   if(bb == NULL) return ocbytesfail();
   if(bb->length >= bb->alloc) if(!ocbytessetalloc(bb,0)) return ocbytesfail();
   /* could we trust memcpy? instead */

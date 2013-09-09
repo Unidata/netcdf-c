@@ -60,7 +60,8 @@ nchashfree(NChashmap* hm)
 int
 nchashinsert(NChashmap* hm, nchashid hash, void* value)
 {
-    int i,offset,len;
+    size_t i,len;
+    off_t offset;
     NClist* seq;
     void** list;
 
@@ -83,7 +84,8 @@ nchashinsert(NChashmap* hm, nchashid hash, void* value)
 int
 nchashreplace(NChashmap* hm, nchashid hash, void* value)
 {
-    int i,offset,len;
+    size_t i,len;
+    off_t offset;
     NClist* seq;
     void** list;
 
@@ -106,7 +108,8 @@ nchashreplace(NChashmap* hm, nchashid hash, void* value)
 int
 nchashremove(NChashmap* hm, nchashid hash)
 {
-    int i,offset,len;
+    size_t i,len;
+    off_t offset;
     NClist* seq;
     void** list;
 
@@ -140,7 +143,8 @@ nchashget(NChashmap* hm, nchashid hash)
 int
 nchashlookup(NChashmap* hm, nchashid hash, void** valuep)
 {
-    int i,offset,len;
+    size_t i,len;
+    off_t offset;
     NClist* seq;
     void** list;
 
@@ -164,14 +168,14 @@ nchashith(NChashmap* hm, int index, nchashid* hashp, void** elemp)
     if(hm == NULL) return FALSE;
     for(i=0;i<hm->alloc;i++) {
 	NClist* seq = hm->table[i];
-	int len = nclistlength(seq) / 2;
+    size_t len = nclistlength(seq) / 2;
 	if(len == 0) continue;
-	if((index - len) < 0) {
+    if((index - (int)len) < 0) {
 	    if(hashp) *hashp = (nchashid)nclistget(seq,index*2);
 	    if(elemp) *elemp = nclistget(seq,(index*2)+1);
 	    return TRUE;
 	}
-	index -= len;
+    index -= (int)len;
     }
     return FALSE;
 }

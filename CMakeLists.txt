@@ -344,7 +344,7 @@ ENDIF()
 
 OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
 IF(ENABLE_CONVERSION_WARNINGS)
-	IF(CMAKE_COMPILER_IS_GNUCC)
+        IF(NOT MSVC)
 		IF(APPLE)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
     			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
@@ -352,7 +352,7 @@ IF(ENABLE_CONVERSION_WARNINGS)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
     			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
   		ENDIF(APPLE)
-	ENDIF(CMAKE_COMPILER_IS_GNUCC)
+        ENDIF(NOT MSVC)
 ENDIF(ENABLE_CONVERSION_WARNINGS)
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
@@ -777,7 +777,7 @@ ENDIF()
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-
+ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h

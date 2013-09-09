@@ -195,8 +195,8 @@ dapcvtattrval3(nc_type etype, void* dst, NClist* src)
 {
     int i,ok;
     NCerror  ncstat = NC_NOERR;
-    unsigned int memsize = nctypesizeof(etype);
-    unsigned int nvalues = nclistlength(src);
+    size_t memsize = nctypesizeof(etype);
+    size_t nvalues = nclistlength(src);
     char* dstmem = (char*)dst;
 
     for(i=0;i<nvalues;i++) {

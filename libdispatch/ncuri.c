@@ -316,9 +316,9 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
-	int plen = prefixparams ? strlen(prefixparams) : 0;
-	int slen = suffixparams ? strlen(suffixparams) : 0;
-	int space = plen + slen + 1;
+    size_t plen = prefixparams ? strlen(prefixparams) : 0;
+    size_t slen = suffixparams ? strlen(suffixparams) : 0;
+    size_t space = plen + slen + 1;
 	/* add 1 for an extra ampersand if both are defined */
         space++;
         duri->params = (char*)malloc(space);

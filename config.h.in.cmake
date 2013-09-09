@@ -1,6 +1,5 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#define HAVE_CONFIG_H
 
 /* Eliminate a number of warnings which come up based on deprecated
    POSIX naming conventions. */

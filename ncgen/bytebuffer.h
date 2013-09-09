@@ -6,8 +6,8 @@
 
 typedef struct Bytebuffer {
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
-  unsigned int alloc;
-  unsigned int length;
+  size_t alloc;
+  size_t length;
   char* content;
 } Bytebuffer;
 

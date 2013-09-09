@@ -319,9 +319,9 @@ ocuriparse(const char* uri0, OCURI** durip)
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
-	int plen = prefixparams ? strlen(prefixparams) : 0;
-	int slen = suffixparams ? strlen(suffixparams) : 0;
-	int space = plen + slen + 1;
+    size_t plen = prefixparams ? strlen(prefixparams) : 0;
+    size_t slen = suffixparams ? strlen(suffixparams) : 0;
+    size_t space = plen + slen + 1;
 	/* add 1 for an extra comma if both are defined */
         space++;
         duri->params = (char*)malloc(space);
@@ -430,7 +430,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     char* tmpsuffix;
     char* tmpquery;
     int nparams = 0;
-    int paramslen = 0;
+    size_t paramslen = 0;
 
     /* if both are specified, prefix has priority */
     int withsuffixparams = ((flags&OCURISUFFIXPARAMS)!=0

@@ -899,7 +899,7 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    hsize_t start[NC_MAX_VAR_DIMS];
    void *fillvalue = NULL;
    int no_read = 0, provide_fill = 0;
-   int fill_value_size[NC_MAX_VAR_DIMS];
+   hsize_t fill_value_size[NC_MAX_VAR_DIMS];
    int scalar = 0, retval = NC_NOERR, range_error = 0, i, d2;
    void *bufr = NULL;
    int break_it;
@@ -3381,7 +3381,7 @@ nc4_convert_type(const void *src, void *dest,
                      {
                         if (*lp > X_LONG_MAX || *lp < X_LONG_MIN)
                            (*range_error)++;
-                        *lp1++ = *lp++;
+                        *lp1++ = (int)*lp++;
                      }
                   }
                   else /* dest is int */
@@ -3390,7 +3390,7 @@ nc4_convert_type(const void *src, void *dest,
                      {
                         if (*lp > X_INT_MAX || *lp < X_INT_MIN)
                            (*range_error)++;
-                        *ip++ = *lp++;
+                        *ip++ = (int)*lp++;
                      }
                   }
                   break;
@@ -3399,7 +3399,7 @@ nc4_convert_type(const void *src, void *dest,
                   {
                      if (*lp > X_UINT_MAX || *lp < 0)
                         (*range_error)++;
-                     *uip++ = *lp++;
+                     *uip++ = (unsigned int)*lp++;
                   }
                   break;
                case NC_INT64:
@@ -3640,7 +3640,7 @@ nc4_convert_type(const void *src, void *dest,
                {
                   if (*lip > X_UINT_MAX || *lip < 0)
                      (*range_error)++;
-                  *uip++ = *lip++;
+                  *uip++ = (unsigned int)*lip++;
                }
                break;
             case NC_INT:
@@ -3656,7 +3656,7 @@ nc4_convert_type(const void *src, void *dest,
                   {
                      if (*lip > X_INT_MAX || *lip < X_INT_MIN)
                         (*range_error)++;
-                     *ip++ = *lip++;
+                     *ip++ = (int)*lip++;
                   }
                break;
             case NC_INT64:
@@ -3725,7 +3725,7 @@ nc4_convert_type(const void *src, void *dest,
                {
                   if (*ulip > X_UINT_MAX)
                      (*range_error)++;
-                  *uip++ = *ulip++;
+                  *uip++ = (unsigned int)*ulip++;
                }
                break;
             case NC_INT:
@@ -3741,7 +3741,7 @@ nc4_convert_type(const void *src, void *dest,
                   {
                      if (*ulip > X_INT_MAX)
                         (*range_error)++;
-                     *ip++ = *ulip++;
+                     *ip++ = (unsigned int)*ulip++;
                   }
                break;
             case NC_INT64:

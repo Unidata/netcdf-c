@@ -190,7 +190,7 @@ Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime)
 	int     daysInYear;		     /* days in non-leap year */
 	extern void CdMonthDay(int *doy, CdTime *date);
 
-	doy	= (long) floor(etime / 24.) + 1;
+    doy	= (int) floor(etime / 24.) + 1;
 	htime->hour	= etime - (double) (doy - 1) * 24.;
 
 					     /* Correct for goofy floor func on J90 */
@@ -513,7 +513,7 @@ CdDivDelTime(double begEtm, double endEtm, CdDeltaTime delTime, CdTimeType timeT
 			range = (ehtime.month - bhtime.month);
 			if(range < 0) range += 12;
 		}
-		*nDel = abs(range)/delMonths;
+        *nDel = labs(range)/delMonths;
 		break;
 	  case CdWeek: case CdDay: case CdHour: case CdMinute: case CdSecond:
 		delHours *= (double)delTime.count;

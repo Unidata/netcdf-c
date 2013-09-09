@@ -17,7 +17,7 @@ static Datalist* alldatalists = NULL;
 char*
 append(const char* s1, const char* s2)
 {
-    int len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
+    size_t len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
     char* result = (char*)emalloc(len+1);
     result[0] = '\0';
     if(s1) strcat(result,s1);
@@ -305,7 +305,7 @@ collectpath(Symbol* grp, List* grpstack)
 char*
 prefixtostring(List* prefix, char* separator)
 {
-    int slen=0;
+    size_t slen=0;
     int plen;
     int i;
     char* result;
@@ -422,7 +422,7 @@ pooldup(char* s)
 char*
 poolcat(const char* s1, const char* s2)
 {
-    int len1, len2;
+    size_t len1, len2;
     char* cat;
     if(s1 == NULL && s2 == NULL) return NULL;
     len1 = (s1?strlen(s1):0);

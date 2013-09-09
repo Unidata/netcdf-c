@@ -143,7 +143,7 @@ bbCatbuf(Bytebuffer* bb, const Bytebuffer* s)
 int
 bbAppendn(Bytebuffer* bb, const void* elem, const unsigned int n0)
 {
-  unsigned int n = n0;
+  size_t n = n0;
   if(bb == NULL || elem == NULL) return bbFail();
   if(n == 0) {n = strlen((char*)elem);}
   while(!bbNeed(bb,(n+1))) {if(!bbSetalloc(bb,0)) return bbFail();}

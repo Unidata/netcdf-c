@@ -19,7 +19,7 @@
 
 static int ncbytesdebug = 1;
 
-static long
+static int
 ncbytesfail(void)
 {
     fflush(stdout);
@@ -150,7 +150,10 @@ ncbytesappendn(NCbytes* bb, const void* elem, unsigned long n)
 int
 ncbytesprepend(NCbytes* bb, char elem)
 {
-  int i; /* do not make unsigned */
+
+  //int i; /* do not make unsigned */
+  /* Why not? */
+  unsigned long i = 0;
   if(bb == NULL) return ncbytesfail();
   if(bb->length >= bb->alloc) if(!ncbytessetalloc(bb,0)) return ncbytesfail();
   /* could we trust memcpy? instead */

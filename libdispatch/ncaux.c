@@ -346,7 +346,8 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 {
     int i;
     int status = NC_NOERR;
-    size_t offset = 0;
+
+    int offset = 0;
     size_t totaldimsize;
 
     /* Assign the sizes for the fields */
