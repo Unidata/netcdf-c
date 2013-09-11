@@ -68,7 +68,7 @@ computecdfnodesets3(NCDAPCOMMON* nccomm, CDFtree* tree)
 NCerror
 computevarnodes3(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 {
-    unsigned int i,len;
+    size_t i,len;
     NClist* allvarnodes = nclistnew();
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
@@ -616,7 +616,7 @@ dimimprint3(NCDAPCOMMON* nccomm)
     allnodes = nccomm->cdf.ddsroot->tree->nodes;
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
-	int noderank, baserank;
+    size_t noderank, baserank;
         /* Do dimension imprinting */
 	basenode = node->basenode;
 	if(basenode == NULL) continue;

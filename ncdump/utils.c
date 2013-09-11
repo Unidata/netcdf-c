@@ -286,9 +286,9 @@ group_wanted(int grpid, int nlgrps, const idnode_t* grpids)
  * grpids array that represent the group list specified by the -g
  * option.  TODO: put this in its own function instead.
  */
-static size_t
+static int
 nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
-    size_t count = 0;
+    int count = 0;
 #ifdef USE_NETCDF4
     int numgrps;
     int *ncids;
@@ -349,10 +349,10 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
 int
 grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids) {
     int ig;
-    size_t total = 0;
+    int total = 0;
 
     for (ig=0; ig < nlgrps; ig++) {
-	size_t count = nc_inq_grpname_count(ncid, ig, lgrps, grpids);
+    int count = nc_inq_grpname_count(ncid, ig, lgrps, grpids);
 	if(count == 0) {
 	    error("%s: No such group", lgrps[ig]);
 	    return 0;
@@ -714,7 +714,7 @@ nc_inq_grps_full(int rootid, int *numgrps, int *grpids)
     int stat = NC_NOERR;
     ncgiter_t *giter;		/* pointer to group iterator */
     int grpid;
-    size_t count;
+    int count;
 
     NC_CHECK(nc_get_giter(rootid, &giter));
     

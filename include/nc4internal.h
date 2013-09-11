@@ -117,7 +117,7 @@ typedef struct NC_DIM_INFO
 
 typedef struct NC_ATT_INFO
 {
-   int len;
+   ssize_t len;
    char *name;
    struct NC_ATT_INFO *next;
    struct NC_ATT_INFO *prev;

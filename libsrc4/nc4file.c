@@ -493,7 +493,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /*char *start_of_len;*/
    char dimscale_name_att[NC_MAX_NAME + 1] = "";
    hid_t attid = 0;
-   int max_len;
+   size_t max_len;
    int retval;
 
    /* Add a dimension for this scale. */
@@ -879,7 +879,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 {
    hid_t spaceid = 0, file_typeid = 0;
    hsize_t dims[1] = {0}; /* netcdf attributes always 1-D. */
-   int retval = NC_NOERR;
+   ssize_t retval = NC_NOERR;
    size_t type_size;
    int att_ndims;
    hssize_t att_npoints;

@@ -199,7 +199,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    NC_TYPE_INFO_T *type = NULL;
    char norm_name[NC_MAX_NAME + 1];
    int new_att = 0;
-   int retval = NC_NOERR, range_error = 0;
+   int retval = NC_NOERR;
+   int range_error = 0;
    size_t type_size;
    int i;
    int res;
@@ -347,7 +348,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    if (!strcmp(att->name, _FillValue) && varid != NC_GLOBAL)
    {
       NC_TYPE_INFO_T *type_info;
-      int size;
+      size_t size;
 
       /* Fill value must be same type and have exactly one value */
       if (att->xtype != var->xtype)

@@ -12,7 +12,7 @@
 
 static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
 static int getfillchar(Datalist* fillsrc);
-static void gen_chararrayr(Dimset*,int,int,Bytebuffer*,Datalist*,int,int,int);
+static void gen_chararrayr(Dimset*, int, int, Bytebuffer*, Datalist*, int, size_t, size_t);
 
 /*
 Matching strings to char variables, attributes, and vlen
@@ -87,7 +87,7 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
 static void
 gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
                Bytebuffer* databuf, Datalist* data, int fillchar,
-	       int unitsize, int expectedsize)
+           size_t unitsize, size_t expectedsize)
 {
     int i;
     size_t dimsize = dimset->dimsyms[dimindex]->dim.declsize;
