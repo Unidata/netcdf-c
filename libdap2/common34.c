@@ -63,7 +63,7 @@ fixnodes34(NCDAPCOMMON* nccomm, NClist* cdfnodes)
 NCerror
 fixgrid34(NCDAPCOMMON* nccomm, CDFnode* grid)
 {
-    unsigned int i,glen;
+    unsigned long i,glen;
     CDFnode* array;
 
     glen = nclistlength(grid->subnodes);
@@ -179,7 +179,8 @@ equivalentdim(CDFnode* basedim, CDFnode* dupdim)
 NCerror
 computecdfdimnames34(NCDAPCOMMON* nccomm)
 {
-    int i,j;
+    //int i,j;
+    unsigned long i,j;
     char tmp[NC_MAX_NAME*2];
     NClist* conflicts = nclistnew();
     NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
@@ -255,7 +256,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	/* Give  all the conflicting dimensions an index */
 	for(j=0;j<nclistlength(conflicts);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(conflicts,j);
-	    dim->dim.index1 = j+1;
+			dim->dim.index1 = (int)j+1;
 	}
     }
     nclistfree(conflicts);
@@ -801,7 +802,8 @@ It is assumed that both trees have been re-struct'ed if necessary.
 static NCerror
 attach34r(CDFnode* xnode, NClist* templatepath, int depth)
 {
-    unsigned int i,plen,lastnode,gridable;
+    unsigned int i,lastnode,gridable;
+    unsigned long plen;
     NCerror ncstat = NC_NOERR;
     CDFnode* templatepathnode;
     CDFnode* templatepathnext;

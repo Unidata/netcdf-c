@@ -118,18 +118,30 @@ or
 
 ## <a id="faqtoc"></a> Table of Contents
 
+* [How can I see the options available to CMake?](#listoptions)
 * [How do I specify how to build a shared or static library?](#sharedstatic)
 * [Can I build both shared and static libraries at the same time with cmake?](#sharedstaticboth)
 * [What if I want to link against multiple libraries in a non-standard location?](#nonstdloc)
-* [How can I see the options available to CMake?](#listoptions)
+* [How can I specify a Parallel Build using HDF5](#parallelhdf)
+
 
 ## Frequently Asked Questions
+
+
+* **How can I see the options available to CMake?** <a id="listoptions"></a>
+
+
+		> cmake [path to source tree] -L	- This will show the basic options.
+		> cmake [path to source tree] -LA	- This will show the basic and advanced options.
+
+[Back to the top of the FAQ](#faqtoc)
+--
 
 * **How do I specify how to build a shared or static library?** <a id="sharedstatic"></a>
 
 		-DBUILD_SHARED_LIBS=[ON/OFF]
 	
-[Back to the top of FAQ](#faqtoc)
+[Back to the top of the FAQ](#faqtoc)
 
 
 --
@@ -139,7 +151,7 @@ or
 Not at this time; it is required to instead build first one version, and then the other, if you need both.
 
 
-[Back to the top of FAQ](#faqtoc)
+[Back to the top of the FAQ](#faqtoc)
 
 --
 
@@ -159,7 +171,7 @@ Not at this time; it is required to instead build first one version, and then th
 			* -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" -DHDF5_INCLUDE_DIRS=/path/to/hdf5/include/
 
 
-[Back to the top of FAQ](#faqtoc)
+[Back to the top of the FAQ](#faqtoc)
 
 --
 			
@@ -171,14 +183,23 @@ Not at this time; it is required to instead build first one version, and then th
 		or
 		> cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
 
-[Back to the top of FAQ](#faqtoc)
+[Back to the top of the FAQ](#faqtoc)
 
 --
+
+* **How can I specify a Parallel Build using HDF5** <a id="parallelhdf"></a>
+
+	
+		If cmake is having problems finding the parallel HDF5 install, you can specify the location manually:
+	
+		-DENABLE_PARALLEL=ON
+		-DHDF5_LIB=/usr/lib64/openmpi/lib/libhdf5.so
+		-DHDF5_HL_LIB=/usr/lib64/openmpi/lib/libhdf5.hl.so
+		-DHDF5_INCLUDE_DIR=/usr/include/openmpi-x86_64
 		
-* **How can I see the options available to CMake?** <a id="listoptions"></a>
+	You will, of course, need to use the location of the libraries specific to your development environment.
+	
 
+[Back to the top of the FAQ](#faqtoc)
 
-		> cmake [path to source tree] -L	- This will show the basic options.
-		> cmake [path to source tree] -LA	- This will show the basic and advanced options.
-
-[Back to the top of FAQ](#faqtoc)
+--
