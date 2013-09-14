@@ -1341,7 +1341,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t propid = 0;
    H5D_fill_value_t fill_status;
    H5D_layout_t layout;
-   hsize_t chunksize[NC_MAX_VAR_DIMS];
+   hsize_t chunksize[NC_MAX_VAR_DIMS] = {0};
    int retval = NC_NOERR;
    double rdcc_w0;
    int f;
@@ -1416,7 +1416,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          var->chunksizes[d] = chunksize[d];
    }
    else if (layout == H5D_CONTIGUOUS)
-      var->contiguous++;
+      var->contiguous++; 
+   else if (layout == H5D_COMPACT)
+     var->contiguous++;
 
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */

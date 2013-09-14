@@ -68,12 +68,6 @@ IF(TEST_PARALLEL)
 	add_bin_test(nc_test4 tst_nc4perf)
 ENDIF()	
 
-IF(USE_PNETCDF)
-	build_bin_test_no_prefix(tst_pnetcdf)
-	build_bin_test_no_prefix(tst_parallel2)
-	add_sh_test(nc_test4 run_pnetcdf_test)
-ENDIF()
-
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)

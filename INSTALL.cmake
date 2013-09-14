@@ -1,7 +1,6 @@
 Documentation for building netCDF with CMake
 ********************************************************
 
-
 This document describes building the netCDF 4.3 C libraries
 using KitWare's CMake utility.  By integrating CMake, we are 
 able to  provide cross-platform (Windows as well as Linux/Unix)
@@ -69,8 +68,9 @@ Windows:
 	> cmake --build . --target INSTALL
 
 Linux/Unix:	
-  	> ./cmake -DCMAKE_INSTALL_PREFIX=/home/ed/local -DENABLE_NETCDF_4=OFF
-   	> make test install
+  	> cmake -DCMAKE_INSTALL_PREFIX=/home/ed/local -DENABLE_NETCDF_4=OFF
+   	> make 
+	> make test install
 
 (Replace ``/home/ed/local'' with the name of the directory where
 netCDF is to be installed.)
@@ -87,7 +87,8 @@ Windows:
 	> cmake --build . --target INSTALL
 
 Linux/Unix
-	> ./cmake -DCMAKE_INSTALL_PREFIX=/home/ed/local -DENABLE_DAP=OFF
+        > cmake -DCMAKE_INSTALL_PREFIX=/home/ed/local -DENABLE_DAP=OFF
+	> make
 	> make test install
 	
 
@@ -114,7 +115,8 @@ Building with Parallel I/O Support
 For parallel I/O to work, HDF5 must be installed with
 -DENABLE_PARALLEL=ON, and an MPI library (and related libraries) must be
 made available to the HDF5 configure. This can be accomplished with
-the mpicc wrapper script, in the case of MPICH2.
+the mpicc wrapper script, in the case of MPICH2 (assuming you are building
+within the `netcdf/build` directory).
 
   CC=mpicc cmake .. -DENABLE_PARALLEL=ON -DCMAKE_INSTALL_PREFIX=/shecky/local_par 
   make check install

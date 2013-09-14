@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	}
 
 	/* Create a netCDF 64-bit offset format file. Write a value. */
-	sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+	sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME); 
 	printf("*** Creating %s for 64-bit offset large file test...", file_name);
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
@@ -97,7 +97,7 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* How about a meteorological data file about the weather
 	   experience by various generals of revolutionary armies? 
@@ -118,7 +118,7 @@ main(int argc, char **argv)
 	   classic format). Then some variations to check record var
 	   boundaries. 
 	*/
-	printf("*** Now a 64-bit offset, large file, fixed var test...");
+	printf("*** Now a 64-bit offset, large file, fixed var test..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -145,7 +145,7 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_enddef(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Write a value or two just for fun. */
 	/*index[0] = QTR_CLASSIC_MAX - 296;
@@ -155,7 +155,7 @@ main(int argc, char **argv)
 	    ERR;
 	if (int_val_in != int_val_out)
 	BAIL2;*/
-	printf("*** Now writing some values...");
+	printf("*** Now writing some values..."); 
 	index[0] = QTR_CLASSIC_MAX - 295;
 	if ((res = nc_put_var1_int(ncid, napoleanid, index, &int_val_out)))
 	    ERR;
@@ -182,12 +182,12 @@ main(int argc, char **argv)
 
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* This time it should fail, because we're trying to cram this into
 	   a classic format file. nc_enddef will detect our violations and
 	   give an error. We've*/
-	printf("*** Now a classic file which will fail...");
+	printf("*** Now a classic file which will fail..."); 
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -216,10 +216,10 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)) != NC_EVARSIZE)
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* This will create some max sized 64-bit offset format fixed vars. */
-	printf("*** Now a 64-bit offset, simple fixed var create test...");
+	printf("*** Now a 64-bit offset, simple fixed var create test..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -240,11 +240,11 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* This will exceed the 64-bit offset format limits for one of the
 	   fixed vars. */
-	printf("*** Now a 64-bit offset, over-sized file that will fail...");
+	printf("*** Now a 64-bit offset, over-sized file that will fail..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -262,12 +262,12 @@ main(int argc, char **argv)
 		ERR;
 	if ((res = nc_close(ncid)) != NC_EVARSIZE)
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Now let's see about record vars. First create a 64-bit offset
 	   file with three rec variables, each with the same numbers as
 	   defined above for the fixed var tests. This should all work. */
-	printf("*** Now a 64-bit offset, record var file...");
+	printf("*** Now a 64-bit offset, record var file..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -299,11 +299,11 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Now try this record file in classic format. It should fail and
 	   the enddef. Too many bytes in the first record.*/
-	printf("*** Now a classic file that's too big and will fail...");
+	printf("*** Now a classic file that's too big and will fail..."); 
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -335,13 +335,13 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)) != NC_EVARSIZE)
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Now try this record file in classic format. It just barely
 	   passes at the enddef. Almost, but not quite, too many bytes in
 	   the first record. Since I'm adding a fixed variable (Collins), 
 	   I don't get the last record size exemption. */ 
-	printf("*** Now a classic file with recs and one fixed will fail...");
+	printf("*** Now a classic file with recs and one fixed will fail..."); 
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -364,7 +364,7 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Try a classic file with several records, and the last record var
 	   with a record size greater than our magic number of 2 GiB - 4
@@ -374,7 +374,7 @@ main(int argc, char **argv)
 	   8, or about 16 GB per record. Zowie! (Mind you, Cromwell
 	   certainly had a great deal of revolutionary fervor.)
 	*/ 
-	printf("*** Now a classic file with one large rec var...");
+	printf("*** Now a classic file with one large rec var..."); 
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -400,11 +400,11 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
    
 	/* This is a classic format file with an extra-large last record
 	   var. */
-	printf("*** Now a classic file with extra-large last record var...");
+	printf("*** Now a classic file with extra-large last record var...") ;
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -443,13 +443,13 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* This is a classic format file with an extra-large second to last
 	   record var. But this time it won't work, because the size
 	   exemption only applies to the last record var. Note that one
 	   dimension is small (5000). */
-	printf("*** Now a classic file xtra-large 2nd to last var that will fail...");
+	printf("*** Now a classic file xtra-large 2nd to last var that will fail..."); 
 	if ((res = nc_create(file_name, cflag, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -480,13 +480,13 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)) != NC_EVARSIZE)
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* Now try an extra large second to last ver with 64-bit
 	   offset. This won't work either, because the cromwell var is so
 	   large. It exceeds the 4GiB - 4 byte per record limit for record
 	   vars. */
-	printf("*** Now a 64-bit offset file with too-large rec var that will fail...");
+	printf("*** Now a 64-bit offset file with too-large rec var that will fail..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -517,10 +517,10 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)) != NC_EVARSIZE)
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
 
 	/* A 64-bit offset record file that just fits... */
-	printf("*** Now a 64 bit-offset file that just fits...");
+	printf("*** Now a 64 bit-offset file that just fits..."); 
 	if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))
 	    ERR;
 	if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
@@ -559,11 +559,11 @@ main(int argc, char **argv)
 	    ERR;
 	if ((res = nc_close(ncid)))
 	    ERR;
-	printf("ok\n");
+	printf("ok\n"); 
     } /* end of cmode run */
 
     /* Wow! Everything worked! */
-    printf("*** Tests successful!\n");
+    printf("*** Tests successful!\n"); 
 
     /* Delete the huge data file we created. */
     (void) remove(file_name); 

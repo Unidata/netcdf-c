@@ -71,7 +71,8 @@ main()
     int pass = 1;
 
     int idim, ndim;
-    float dat[301060];
+    //float dat[301060];
+    float *dat = (float*)malloc(sizeof(float)*301060);
     float sdat[10];
 
     for (idim=0; idim<5; idim++) {
@@ -259,6 +260,7 @@ if(verbose) {
     }
 
     printf("*** PASS\n");
+    free(dat);
     exit(0);
 
 }
