@@ -798,11 +798,11 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
                 BAIL(NC_ECANTEXTEND);
 
             /* Reach consensus about dimension sizes to extend to */
-            /* (Note: Somewhat hackish, with the use of MPI_BYTE, but MPI_MAX is
+            /* (Note: Somewhat hackish, with the use of MPI_INTEGER, but MPI_MAX is
              *        correct with this usage, as long as it's not executed on
              *        heterogenous systems)
              */
-            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * sizeof(hsize_t)), MPI_BYTE, MPI_MAX, h5->comm))
+            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_INT, MPI_MAX, h5->comm))
                 BAIL(NC_EMPI);
          }
 #endif /* USE_PARALLEL */
