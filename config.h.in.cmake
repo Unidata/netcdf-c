@@ -1,6 +1,5 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#define HAVE_CONFIG_H
 
 /* Eliminate a number of warnings which come up based on deprecated
    POSIX naming conventions. */
@@ -13,12 +12,14 @@
   #define open _open
   #define close _close
   #define read _read
-
-#ifdef _WIN64
-	#define lseek _lseeki64
-#else
-	#define lseek _lseek
-#endif
+  #define lseek _lseeki64
+  
+  #define off_t __int64
+  #define _off_t __int64
+  
+  #ifndef _OFF_T_DEFINED
+  #define _OFF_T_DEFINED
+  #endif
   
 #ifdef _WIN32
 	#ifndef strcasecmp
@@ -211,7 +212,8 @@
 #cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@ 
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
-
+/* The size of `__int64` found on Windows systems. */
+#cmakedefine SIZEOF___INT64 @SIZEOF___INT64@
 
 
 

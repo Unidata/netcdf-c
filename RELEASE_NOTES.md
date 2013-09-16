@@ -10,6 +10,10 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc3 Released TBD
 
+* Addressed issue with Large File Support on Windows, using both 32 and 64-bit builds. [NCF-219]
+
+[NCF-219]:https://bugtracking.unidata.ucar.edu/browse/NCF-219
+
 * Removed deprecated directories:
 	* librpc/
 	* udunits/

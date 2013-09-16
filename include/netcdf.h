@@ -415,13 +415,6 @@ by the desired type. */
 
 # define EXTERNL MSC_EXTRA extern
 
-/* Define for 64 bit windows. */
-#if defined (_WIN64)
-#define off_t __int64
-#define size_t unsigned __int64
-#define _OFF_T_DEFINED
-#endif
-
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 EXTERNL int ncerr;
 EXTERNL int ncopts;
@@ -450,15 +443,6 @@ nc_open(const char *path, int mode, int *ncidp);
 /* Learn the path used to open/create the file. */
 EXTERNL int
 nc_inq_path(int ncid, size_t *pathlen, char *path);
-
-/* Use these with nc_var_par_access(). */
-#define NC_INDEPENDENT 0
-#define NC_COLLECTIVE 1
-
-/* Set parallel access for a variable to independent (the default) or
- * collective. */
-EXTERNL int
-nc_var_par_access(int ncid, int varid, int par_access);
 
 /* Given an ncid and group name (NULL gets root group), return
  * locid. */

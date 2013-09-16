@@ -199,7 +199,7 @@ macro(add_makedist)
 
 
   add_custom_target(distcheck
-    COMMAND rm -f "${MAKEDIST_TARBALL}".tmp
+    COMMAND rm -f "${MAKEDIST_TARBALL}.tmp"
     COMMAND ${CMAKE_MAKE_PROGRAM} dist       MAKEDIST_TARBALL_TMP=.tmp
     COMMAND ${CMAKE_MAKE_PROGRAM} .distcheck MAKEDIST_TARBALL_TMP=.tmp
     COMMAND rm -f "${MAKEDIST_TARBALL}"

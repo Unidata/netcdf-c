@@ -41,6 +41,9 @@ ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
 
+# Copy the CTest customization file into binary directory, as required.
+FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
@@ -116,11 +119,12 @@ MACRO(ADD_EXTRA_DIST files)
 ENDMACRO()
 
 # A basic script used to convert m4 files
+FIND_PROGRAM(NC_M4 NAMES m4)
 MACRO(GEN_m4 filename)
 	IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-		COMMAND m4 
+		COMMAND ${NC_M4} 
 		ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
 		VERBATIM
 	)
@@ -331,11 +335,25 @@ IF(ENABLE_DISKLESS)
 ENDIF()
 
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+		        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+        		SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	ENDIF()
 ENDIF()
 
+OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+IF(ENABLE_CONVERSION_WARNINGS)
+        IF(NOT MSVC)
+		IF(APPLE)
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+  		ELSE()
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
+  		ENDIF(APPLE)
+        ENDIF(NOT MSVC)
+ENDIF(ENABLE_CONVERSION_WARNINGS)
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -364,7 +382,7 @@ IF (ENABLE_HDF4)
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
    MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
-   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests.",OFF)
+   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests." OFF)
    IF(ENABLE_HDF4_FILE_TESTS)
 	SET(USE_HDF4_FILE_TESTS ON)
    ENDIF()
@@ -693,9 +711,18 @@ CHECK_TYPE_SIZE("off64_t"        SIZEOF_OFF64_T)
 CHECK_TYPE_SIZE("short"		 SIZEOF_SHORT)
 CHECK_TYPE_SIZE("size_t"	 SIZEOF_SIZE_T)
 CHECK_TYPE_SIZE("ssize_t"	 SIZEOF_SSIZE_T)
+# __int64 is used on Windows for large file support.
+CHECK_TYPE_SIZE("__int64"        SIZEOF___INT_64)
 CHECK_TYPE_SIZE("uchar"		 SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("int64_t"	 SIZEOF_INT64_T)
 CHECK_TYPE_SIZE("uint64_t"	 SIZEOF_UINT64_T)
+
+# On windows systems, we redefine off_t as __int64
+# to enable LFS. This is true on 32 and 64 bit system.s
+# We must redefine SIZEOF_OFF_T to match.
+IF(MSVC AND SIZEOF___INT_64)
+  SET(SIZEOF_OFF_T  ${SIZEOF___INT_64})
+ENDIF()
 
 IF(SIZEOF_SSIZE_T)
 	SET(HAVE_SSIZE_T 1)
@@ -750,7 +777,7 @@ ENDIF()
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-
+ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
