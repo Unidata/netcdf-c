@@ -41,6 +41,9 @@ ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
 
+# Copy the CTest customization file into binary directory, as required.
+FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
@@ -332,11 +335,25 @@ IF(ENABLE_DISKLESS)
 ENDIF()
 
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+		        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+        		SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	ENDIF()
 ENDIF()
 
+OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+IF(ENABLE_CONVERSION_WARNINGS)
+        IF(NOT MSVC)
+		IF(APPLE)
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+  		ELSE()
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
+  		ENDIF(APPLE)
+        ENDIF(NOT MSVC)
+ENDIF(ENABLE_CONVERSION_WARNINGS)
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -760,7 +777,7 @@ ENDIF()
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-
+ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
