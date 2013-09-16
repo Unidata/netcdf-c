@@ -10,6 +10,18 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc3 Released TBD
 
+* Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
+
+[NCF-160]:https://bugtracking.unidata.ucar.edu/browse/NCF-160
+
+* Addressed issue with netCDF-4 renaming dimension and variable using that dimension, in either order. [NCF-177]
+
+[NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
+
+* Addressed issue with hanging Parallel netCDF-4 using HDF5 1.8.10. [NCF-240]
+
+[NCF-240]:https://bugtracking.unidata.ucar.edu/browse/NCF-240
+
 * Addressed issue with Large File Support on Windows, using both 32 and 64-bit builds. [NCF-219]
 
 [NCF-219]:https://bugtracking.unidata.ucar.edu/browse/NCF-219
