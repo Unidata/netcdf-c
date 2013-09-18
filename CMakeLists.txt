@@ -92,12 +92,12 @@ FIND_PACKAGE(PkgConfig QUIET)
 ## Enable 'dist and distcheck'.
 ## File taken from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
-
-
 ## End 'enable dist and distcheck'
+
+
+# Supress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
-	# Supress some warnings on Windows
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
@@ -239,6 +239,38 @@ MACRO(add_sh_test prefix F)
 
 ENDMACRO()
 
+
+# Macro for replacing '/MD' with '/MT'.
+# Used only on Windows, /MD tells VS to use the shared
+# CRT libs, MT tells VS to use the static CRT libs.
+#
+# Taken From:
+# 	http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
+#
+MACRO(specify_static_crt_flag) 
+
+  SET(vars 
+    CMAKE_C_FLAGS
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_MINSIZEREL
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+  
+  FOREACH(flag_var ${vars})
+    IF(${flag_var} MATCHES "/MD")
+      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    ENDIF()
+  ENDFOREACH()			    
+  
+  FOREACH(flag_var ${vars})
+    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
+  ENDFOREACH()
+  MESSAGE(STATUS "")
+
+ENDMACRO()
+
 ##
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
@@ -302,6 +334,16 @@ OPTION (USE_REMOTE_CDASH "Use CDash instance at CDash.org." OFF)
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
+
+
+# Option to use Static Runtimes in MSVC
+IF(MSVC)
+  OPTION(NC_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
+  IF(NC_USE_STATIC_CRT)
+    SET(USE_STATIC_CRT ON)
+    specify_static_crt_flag()
+  ENDIF()
+ENDIF()
 
 # Option to build netCDF Version 2
 OPTION (BUILD_V2 "Build netCDF Version 2." ON)
