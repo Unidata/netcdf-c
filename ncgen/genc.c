@@ -648,8 +648,9 @@ dimncid(Symbol* dsym)
     const char* tmp1;
     char* dimtmp;
     tmp1 = cname(dsym);
-    dimtmp = poolalloc(strlen(tmp1)+1);
+    dimtmp = poolalloc(strlen(tmp1)+strlen("_dim")+1);
     strcpy(dimtmp,tmp1);
+    strcat(dimtmp,"_dim");
     return dimtmp;
 }
 

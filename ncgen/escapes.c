@@ -186,7 +186,7 @@ static struct {
 	{'|', "_VERTICALBAR_"},
 	{'}', "_RIGHTCURLY_"},
 	{'~', "_TILDE_"},
- 	{'/', "__"},
+ 	{'/', "_SLASH_"},
 };
 static int idtlen;
 static int hexlen;
@@ -529,7 +529,7 @@ f77codify(const char* s0)
 
 /**************************************************/
 /* Escape Fqn segment names by replacing
-   '/' and '.' by ascii hex equivalent
+   '/' and '.' by alternate representation.
 */
 
 char*
@@ -539,8 +539,16 @@ fqnescape(const char* s)
     char* q;
     int c;
     int l = strlen(s);
-    char* newname = poolalloc(l*3+1);
+
+/*
+1234567
+_SLASH_
+_DOT__
+*/
+    char* newname = poolalloc(l*7+1);
+    *newname = '\0';
     for(q=newname,p=s;(c=*p++);) {
+#if 0
         if(c == '/' || c == '.') {
 	    /* Do hex escape */
 	    int hex1 = (c & 0x0f);
@@ -550,6 +558,18 @@ fqnescape(const char* s)
             *q++ = hexdigits[hex2];
         } else
 	    *q++ = c;
+#else
+        if(c == '/') {
+	    strcat(q,"_SLASH_");
+	    q += 7;
+        } else if(c == '.') {
+	    strcat(q,"_DOT_");
+	    q += 5;
+	} else {
+	    *q++ = c;
+	    *q = '\0';
+	}
+#endif
     }
     return newname;
 }

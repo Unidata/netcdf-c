@@ -102,23 +102,30 @@ topfqn(Symbol* sym)
     if(sym->fqn != NULL)
 	return; /* already defined */
 
-    parent = sym->container;
-    /* Recursively compute parent fqn */
-    if(parent == NULL) { /* implies this is the rootgroup */
-	assert(sym->grp.is_root);
-        sym->fqn = strdup("");
-	return;
-    } else if(parent->fqn == NULL) {
-	topfqn(parent);
+#ifdef USE_NETCDF4
+    if(!usingclassic) {
+        parent = sym->container;
+        /* Recursively compute parent fqn */
+        if(parent == NULL) { /* implies this is the rootgroup */
+            assert(sym->grp.is_root);
+            sym->fqn = strdup("");
+            return;
+        } else if(parent->fqn == NULL) {
+            topfqn(parent);
+        }
+        parentfqn = parent->fqn;
+    
+        fqnname = fqnescape(sym->name);
+        fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
+        strcpy(fqn,parentfqn);
+        strcat(fqn,"/");
+        strcat(fqn,fqnname);
+        sym->fqn = fqn;
+    } else
+#endif /*USE_NETCDF4*/
+    {
+	sym->fqn = strdup(sym->name);
     }
-    parentfqn = parent->fqn;
-
-    fqnname = fqnescape(sym->name);
-    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
-    strcpy(fqn,parentfqn);
-    strcat(fqn,"/");
-    strcat(fqn,fqnname);
-    sym->fqn = fqn;
 }
 
 /**
