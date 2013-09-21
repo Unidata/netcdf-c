@@ -10,6 +10,11 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc3 Released TBD
 
+* Nodify ncgen to support disambiguating references to
+  an enum constant in a data list. [NCF-265]
+
+[NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
+
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 
 [NCF-160]:https://bugtracking.unidata.ucar.edu/browse/NCF-160
