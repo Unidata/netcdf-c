@@ -21,11 +21,6 @@
 #define MAX_NC_ATTSIZE    20000	/* max size of attribute (for ncgen) */
 #define MAXTRST		  5000	/* max size of string value (for ncgen) */
 
-/* Name of the root group,*/
-/* although prefix construction*/
-/* elides it.*/
-#define ROOTGROUPNAME "root"
-
 /* Define the possible classes of objects*/
 /* extend the NC_XXX values*/
 #define NC_GRP      100
@@ -94,6 +89,15 @@ various C global variables
 #define _FILLVALUE_FLAG     0x080
 #define _FORMAT_FLAG        0x100
 
+/* Define an enumeration of supported languages */
+typedef enum Language {
+    L_UNDEFINED=0,
+    L_BINARY=1,
+    L_C=2,
+    L_F77=3,
+    L_JAVA=4
+} Language;
+
 struct Kvalues {
 char* name;
 int k_flag;
@@ -158,12 +162,22 @@ typedef struct Groupinfo {
     int is_root;
 } Groupinfo;
 
+/* store info when the symbol
+   is really a reference to another
+   symbol
+*/
+typedef struct Reference {
+        int             is_ref;  /* separate name defs  from refs*/
+	char*		unescaped; /* original, unescaped name */
+        struct Symbol*  ref;  /* ptr to the symbol if is_ref is true*/
+} Reference;
+
 typedef struct Symbol {  /* symbol table entry*/
         struct Symbol*  next;    /* Linked list of all defined symbols*/
         nc_class        objectclass;  /* NC_DIM|NC_VLEN|NC_OPAQUE...*/
         nc_class        subclass;  /* NC_STRUCT|...*/
         char*           name;
-        struct Symbol*  ref;  /* ptr to the symbol if is_ref is true*/
+	char*           fqn; /* cached fully qualified C or FORTRAN name*/
         struct Symbol*  container;  /* The group containing this symbol.*/
 				    /* for fields or enumids, it is*/
 				    /* the parent type.*/
@@ -179,11 +193,10 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;        
         Diminfo   dim;
         Groupinfo grp;
+ 	Reference ref; /* symbol is really a referene to another symbol*/ 
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
-        int             is_ref;  /* separate name defs  from refs*/
-	char*           lname; /* cached C or FORTRAN name*/
         int             ncid;  /* from netcdf API: varid, or dimid, or etc.*/
 } Symbol;
 

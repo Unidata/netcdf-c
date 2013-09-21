@@ -10,21 +10,32 @@
 #include        "offsets.h"
 
 /* Forward*/
+static void computefqns(void);
 static void filltypecodes(void);
 static void processenums(void);
+static void processeconstrefs(void);
 static void processtypes(void);
 static void processtypesizes(void);
 static void processvars(void);
 static void processattributes(void);
 static void processspecials(void);
 static void processunlimiteddims(void);
+static void processeconstrefs(void);
+static void processeconstrefsR(Datalist*);
 
+static List* ecsearchgrp(Symbol* grp, List* candidates);
+static List* findecmatches(char* ident);
+static void fixeconstref(NCConstant* con);
 static void inferattributetype(Symbol* asym);
 static void validateNIL(Symbol* sym);
 static void checkconsistency(void);
 static int tagvlentypes(Symbol* tsym);
 
+static void computefqns(void);
+
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
+static Symbol* checkeconst(Symbol* en, const char* refname);
+
 
 List* vlenconstants;  /* List<Constant*>;*/
 			  /* ptr to vlen instances across all datalists*/
@@ -33,6 +44,8 @@ List* vlenconstants;  /* List<Constant*>;*/
 void
 processsemantics(void)
 {
+    /* Fill in the fqn for every defining symbol */
+    computefqns();
     /* Process each type and sort by dependency order*/
     processtypes();
     /* Make sure all typecodes are set if basetype is set*/
@@ -49,6 +62,8 @@ processsemantics(void)
     processattributes();
     /* Fix up enum constant values*/
     processenums();
+    /* Fix up enum constant references*/
+    processeconstrefs();
     /* Compute the unlimited dimension sizes */
     processunlimiteddims();
     /* check internal consistency*/
@@ -68,7 +83,8 @@ various scoping rules, namely:
    c. complain and require prefixed name.
 3. look in the same group as ref for un-prefixed variable names.
 4. ditto for group references
-5. look in whole group tree for un-prefixed enum constants
+5. look in whole group tree for un-prefixed enum constants;
+   result must be unique
 */
 
 Symbol*
@@ -136,7 +152,7 @@ locate(Symbol* refsym)
 	    /* locate exact group specified*/
 	    sym = lookup(NC_GRP,refsym);
 	} else {
-	    Symbol* parent = lookupgroup(refsym->prefix);/*get group for refsym*/
+ 	    Symbol* parent = lookupgroup(refsym->prefix);/*get group for refsym*/
    	    /* search this parent for matching name and type*/
 	    sym = lookupingroup(NC_GRP,refsym->name,parent);
 	}		
@@ -170,7 +186,7 @@ uniquetreelocate(Symbol* refsym, Symbol* root)
     if(sym == NULL) {
 	for(i=0;i<listlength(root->subnodes);i++) {
 	    Symbol* grp = (Symbol*)listget(root->subnodes,i);
-	    if(grp->objectclass == NC_GRP && !grp->is_ref) {
+	    if(grp->objectclass == NC_GRP && !grp->ref.is_ref) {
 		Symbol* nextsym = uniquetreelocate(refsym,grp);
 		if(nextsym != NULL) {
 		    if(sym != NULL) return NULL; /* not unique */	
@@ -182,6 +198,64 @@ uniquetreelocate(Symbol* refsym, Symbol* root)
     return sym;
 }
 
+
+/*
+Compute the fqn for every top-level definition symbol
+*/
+static void
+computefqns(void)
+{
+    int i,j;
+    /* Groups first */
+    for(i=0;i<listlength(grpdefs);i++) {
+        Symbol* sym = (Symbol*)listget(grpdefs,i);
+	topfqn(sym);
+    }
+    /* Dimensions */
+    for(i=0;i<listlength(dimdefs);i++) {
+        Symbol* sym = (Symbol*)listget(dimdefs,i);
+	topfqn(sym);
+    }
+    /* types */
+    for(i=0;i<listlength(typdefs);i++) {
+        Symbol* sym = (Symbol*)listget(typdefs,i);
+	topfqn(sym);
+    }
+    /* variables */
+    for(i=0;i<listlength(vardefs);i++) {
+        Symbol* sym = (Symbol*)listget(vardefs,i);
+	topfqn(sym);
+    }
+    /* fill in the fqn names of econsts */
+    for(i=0;i<listlength(typdefs);i++) {
+        Symbol* sym = (Symbol*)listget(typdefs,i);
+	if(sym->subclass == NC_ENUM) {
+	    for(j=0;j<listlength(sym->subnodes);j++) {
+		Symbol* econ = (Symbol*)listget(sym->subnodes,j);
+		nestedfqn(econ);
+	    }
+	}
+    }
+    /* fill in the fqn names of fields */
+    for(i=0;i<listlength(typdefs);i++) {
+        Symbol* sym = (Symbol*)listget(typdefs,i);
+	if(sym->subclass == NC_COMPOUND) {
+	    for(j=0;j<listlength(sym->subnodes);j++) {
+		Symbol* field = (Symbol*)listget(sym->subnodes,j);
+		nestedfqn(field);
+	    }
+	}
+    }
+    /* fill in the fqn names of attributes */
+    for(i=0;i<listlength(gattdefs);i++) {
+        Symbol* sym = (Symbol*)listget(gattdefs,i);
+        attfqn(sym);
+    }
+    for(i=0;i<listlength(attdefs);i++) {
+        Symbol* sym = (Symbol*)listget(attdefs,i);
+        attfqn(sym);
+    }
+}
 
 /* 1. Do a topological sort of the types based on dependency*/
 /*    so that the least dependent are first in the typdefs list*/
@@ -328,17 +402,6 @@ processenums(void)
 	    listpush(enumids,(void*)esym);
 	}
     }	    
-    /* Now walk set of enum ids to look for duplicates with same prefix*/
-    for(i=0;i<listlength(enumids);i++) {
-	Symbol* sym1 = (Symbol*)listget(enumids,i);
-        for(j=i+1;j<listlength(enumids);j++) {
-	   Symbol* sym2 = (Symbol*)listget(enumids,j);
-	   if(strcmp(sym1->name,sym2->name) != 0) continue;
-	   if(!prefixeq(sym1->prefix,sym2->prefix)) continue;
-	   semerror(sym1->lineno,"Duplicate enumeration ids in same scope: %s",
-		   fullname(sym1));	
-	}
-    }    
     /* Convert enum values to match enum type*/
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* tsym = (Symbol*)listget(typdefs,i);
@@ -354,6 +417,181 @@ processenums(void)
 	}	
     }
 }
+
+/* Walk all data lists looking for econst refs
+   and convert to point to actual definition
+*/
+static void
+processeconstrefs(void)
+{
+    int i;
+    /* locate all the datalist and walk them recursively */
+    for(i=0;i<listlength(attdefs);i++) {
+	Symbol* att = (Symbol*)listget(attdefs,i);
+	if(att->data != NULL && listlength(att->data) > 0)
+	    processeconstrefsR(att->data);
+    }
+    for(i=0;i<listlength(vardefs);i++) {
+	Symbol* var = (Symbol*)listget(vardefs,i);
+	if(var->data != NULL && listlength(var->data) > 0)
+	    processeconstrefsR(var->data);
+    }
+}
+
+/* Recursive helper for processeconstrefs */
+static void
+processeconstrefsR(Datalist* data)
+{
+    NCConstant* con;
+    int i;
+    for(i=0,con=data->data;i<data->alloc;i++,con++) {
+	if(con->nctype == NC_COMPOUND) {
+	    /* Iterate over the sublists */
+	    processeconstrefsR(con->value.compoundv);
+	} else if(con->nctype == NC_ECONST) {
+	    fixeconstref(con);
+	}
+    }
+}
+
+static void
+fixeconstref(NCConstant* con)
+{
+    Symbol* match = NULL;
+    Symbol* parent = NULL;
+    Symbol* refsym = con->value.enumv;
+    List* grpmatches;
+
+    /* Locate all possible matching enum constant definitions */
+    List* candidates = findecmatches(refsym->name);
+    if(candidates == NULL) {
+	semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
+	return;
+    }
+    /* One hopes that 99% of the time, the match is unique */
+    if(listlength(candidates) == 1) {
+	con->value.enumv = (Symbol*)listget(candidates,0);
+	return;
+    }
+    /* If this ref has a specified group prefix, then find that group
+       and search only within it for matches to the candidates */
+    if(refsym->is_prefixed && refsym->prefix != NULL) {
+	parent = lookupgroup(refsym->prefix);
+	if(parent == NULL) {
+	    semerror(con->lineno,"Undefined group reference: ",fullname(refsym));
+	    return;
+	}
+	/* Search this group only for matches */
+	grpmatches = ecsearchgrp(parent,candidates);
+	switch (listlength(grpmatches)) {
+	case 0:
+	    semerror(con->lineno,"Undefined enum or enum constant reference: ",refsym->name);
+	    return;
+	case 1:
+	    break;
+	default:
+	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
+	}
+	con->value.enumv = listget(grpmatches,0);
+	listfree(grpmatches);
+	return;
+    }
+    /* Sigh, we have to search up the tree to see if any of our candidates are there */
+    parent = refsym->container;
+    assert(parent->objectclass == NC_GRP);
+    while(parent != NULL && match == NULL) {
+	grpmatches = ecsearchgrp(parent,candidates);
+	switch (listlength(grpmatches)) {
+	case 0: break;
+	case 1: match = listget(grpmatches,0); break;
+	default:
+	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
+	    match = listget(grpmatches,0);
+	    break;
+	}
+    }
+    if(match != NULL) {
+	con->value.enumv = match;
+	return;
+    }
+    /* Not unique and not in the parent tree, so complains and pick the first candidate */
+    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
+    con->value.enumv = (Symbol*)listget(candidates,0);
+}
+
+/*
+Locate enums whose name is a prefix of ident
+and contains the suffix as an enum const
+and capture that enum constant.
+*/
+static List*
+findecmatches(char* ident)
+{
+    List* matches = listnew();
+    int i;
+
+    for(i=0;i<listlength(typdefs);i++) {
+	int len;
+	Symbol* ec;
+	Symbol* en = (Symbol*)listget(typdefs,i);
+	if(en->subclass != NC_ENUM)
+	    continue;
+        /* First, assume that the ident is the econst name only */
+	ec = checkeconst(en,ident);
+	if(ec != NULL)
+	    listpush(matches,ec);
+	/* Second, do the prefix check */	
+	len = strlen(en->name);
+	if(strncmp(ident,en->name,len) == 0) {
+	    /* Find the matching ec constant, if any */
+	    if(*(ident+len) != '.') continue;
+	    Symbol* ec = checkeconst(en,ident+len+1); /* +1 for the dot */
+	    if(ec != NULL)
+		listpush(matches,ec);
+	}
+    }
+    if(listlength(matches) == 0) {
+	listfree(matches);
+        matches = NULL;
+    }
+    return matches;    
+}
+
+static List*
+ecsearchgrp(Symbol* grp, List* candidates)
+{
+    List* matches = listnew();
+    int i,j;
+    /* do the intersection of grp subnodes and candidates */
+    for(i=0;i<listlength(grp->subnodes);i++) {
+	Symbol* sub= (Symbol*)listget(grp->subnodes,i);
+	if(sub->subclass != NC_ENUM)
+	    continue;
+	for(j=0;j<listlength(candidates);j++) {
+	    Symbol* ec = (Symbol*)listget(candidates,j);
+	    if(ec->container == sub)
+		listpush(matches,ec);
+	}
+    }
+    if(listlength(matches) == 0) {
+        listfree(matches);
+	matches = NULL;
+    }
+    return matches;
+}
+
+static Symbol*
+checkeconst(Symbol* en, const char* refname)
+{
+    int i;
+    for(i=0;i<listlength(en->subnodes);i++) {
+	Symbol* ec = (Symbol*)listget(en->subnodes,i);
+	if(strcmp(ec->name,refname) == 0)
+	    return ec;
+    }
+    return NULL;
+}
+
 
 /* Compute type sizes and compound offsets*/
 void
@@ -764,7 +1002,7 @@ lookupingroup(nc_class objectclass, char* name, Symbol* grp)
 dumpgroup(grp);
     for(i=0;i<listlength(grp->subnodes);i++) {
 	Symbol* sym = (Symbol*)listget(grp->subnodes,i);
-	if(sym->is_ref) continue;
+	if(sym->ref.is_ref) continue;
 	if(sym->objectclass != objectclass) continue;
 	if(strcmp(sym->name,name)!=0) continue;
 	return sym;
@@ -831,7 +1069,7 @@ checkconsistency(void)
 	        PANIC("rootgroup has a container");
 	} else if(sym->container == NULL && sym != rootgroup)
 	    PANIC1("symbol with no container: %s",sym->name);
-	else if(sym->container->is_ref != 0)
+	else if(sym->container->ref.is_ref != 0)
 	    PANIC1("group with reference container: %s",sym->name);
 	else if(sym != rootgroup && !sqContains(sym->container->subnodes,sym))
 	    PANIC1("group not in container: %s",sym->name);

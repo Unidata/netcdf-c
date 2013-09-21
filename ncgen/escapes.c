@@ -8,7 +8,10 @@
 #include "ConvertUTF.h"
 
 /* Forward*/
-static void initdecodify(void);
+static void initcodify(void);
+static char* ccodify(const char*);
+static char* f77codify(const char*);
+static char* jcodify(const char*);
 
 /*
  * Replace escaped chars in CDL representation of name such as
@@ -139,8 +142,8 @@ cquotestring(Bytebuffer* databuf, char quote)
  * Note that apparently, FORTRAN will not allow a leading underscore,
  * so remove if we are doing fortran.
  *
- * It is required that decodify be idempotent:
- * i.e. decodify(decodify(s)) == decodify(s)
+ * It is required that codify be idempotent:
+ * i.e. codify(codify(s)) == codify(s)
  *
  * Returned name is pool alloc'd so is transient
  */
@@ -183,15 +186,14 @@ static struct {
 	{'|', "_VERTICALBAR_"},
 	{'}', "_RIGHTCURLY_"},
 	{'~', "_TILDE_"},
- 	{'/', "_SLASH_"} 		/* should not occur in names */
-/* 	{'_', "_UNDERSCORE_"} */
+ 	{'/', "__"},
 };
 static int idtlen;
 static int hexlen;
 static Bytebuffer* newname;
 
 static void
-initdecodify(void)
+initcodify(void)
 {
     int nctable = (sizeof(ctable))/(sizeof(ctable[0]));
     int i;
@@ -223,14 +225,43 @@ initdecodify(void)
     init = 1;               /* only do this initialization once */
 }
 
+/*
+Convert a name to a 
+form suitable for use in a
+language file.
+Conversion depends on l_flag.
+*/
 char*
-decodify(const char *name0)
+codify(const char *name0)
+{
+    /* If the name is rooted, then elide
+       the leading '/'.
+    */
+    if(name0[0] == '/')
+	name0++;
+    switch (l_flag) {
+    case L_BINARY:
+	return pooldup(name0);
+    case L_C:
+        return ccodify(name0);
+    case L_F77:
+        return f77codify(name0);
+    case L_JAVA:
+        return jcodify(name0);
+    default:
+        assert(0); /*no such language*/
+    }
+    return NULL;
+}
+
+static char*
+ccodify(const char *name0)
 {
     const unsigned char *cp;
     unsigned int c;
     char* name;
 
-    if(init == 0) initdecodify();
+    if(init == 0) initcodify();
     bbClear(newname);
     cp = (const unsigned char*) name0;
     if('0' <= *cp && *cp <= '9') { /* handle initial digit, if any */
@@ -243,7 +274,7 @@ decodify(const char *name0)
 	ASSERT(c <= 256);
 	bbCat(newname,repls[c]);
     }
-    /* If FORTRAN, remove leading _, if any */
+    /* Remove leading _, if any */
     name = bbContents(newname);
     if(bbGet(newname,0) == '_') name++;
     return pooldup(name);
@@ -414,15 +445,16 @@ Convert a java name that might possibly
 contain utf8 characters to one that is
 acceptable to the Java compiler.
 Basically this means convert the printables
-using decodify (above) equivalent and then escape
+using codify (above) equivalent and then escape
 all the utf chars.
 */
-char*
-jdecodify (const char *name)
+static char*
+jcodify (const char *name)
 {
-    return decodify(name);
+    return codify(name);
 }
 
+/**************************************************/
 /* FORTRAN does escapes differently than e.g. C */
 
 char*
@@ -483,8 +515,8 @@ f77quotestring(Bytebuffer* databuf)
     if(!lastcharescaped) bbAppend(databuf,'\'');
 }
 
-char*
-f77escapifyname(char* s0)
+static char*
+f77codify(const char* s0)
 {
     Bytebuffer* buf = bbNew();
     char* name;
@@ -493,4 +525,31 @@ f77escapifyname(char* s0)
     name = bbDup(buf);
     bbFree(buf);
     return name;
+}
+
+/**************************************************/
+/* Escape Fqn segment names by replacing
+   '/' and '.' by ascii hex equivalent
+*/
+
+char*
+fqnescape(const char* s)
+{
+    const char* p;
+    char* q;
+    int c;
+    int l = strlen(s);
+    char* newname = poolalloc(l*3+1);
+    for(q=newname,p=s;(c=*p++);) {
+        if(c == '/' || c == '.') {
+	    /* Do hex escape */
+	    int hex1 = (c & 0x0f);
+	    int hex2 = ((c >> 4) & 0x0f);
+	    *q++ = 'X';
+            *q++ = hexdigits[hex1];
+            *q++ = hexdigits[hex2];
+        } else
+	    *q++ = c;
+    }
+    return newname;
 }

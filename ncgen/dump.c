@@ -140,7 +140,7 @@ dumpdataprim(NCConstant* ci, Bytebuffer* buf)
 	bbCat(buf,tmp);
 	break;
     case NC_ECONST:
-	sprintf(tmp,"%s",cname(ci->value.enumv));
+	sprintf(tmp,"%s",ci->value.enumv->fqn);
 	bbCat(buf,tmp);
 	break;
     case NC_STRING:
@@ -178,7 +178,7 @@ dumpgroup(Symbol* g)
 		i,
 		sym->name,
 		tname,
-		(sym->is_ref?"ref":"")
+		(sym->ref.is_ref?"ref":"")
 		);
 	}
     }

@@ -84,7 +84,6 @@ c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
     case NC_NIL:
     case NC_STRING: { /* handle separately */
 	if(con->value.stringv.len == 0 && con->value.stringv.stringv == NULL) {
-	    char* nil = NULL;
             bbprintf(codetmp,"NULL");
 	} else {
 	    char* escaped = escapify(con->value.stringv.stringv,

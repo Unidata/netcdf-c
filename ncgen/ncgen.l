@@ -260,7 +260,7 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 
 NIL|nil|Nil {
 #ifdef USE_NETCDF4
-		if(c_flag != 0 || binary_flag != 0)
+		if(l_flag == L_C || l_flag == L_BINARY)
 		    return lexdebug(NIL);
 		yyerror("NIL only allowed for netcdf-4 and for -lc or -lb");
 #else
@@ -585,61 +585,62 @@ lex_init(void)
 static Symbol*
 makepath(char* text0)
 {
-    /* Convert path to a sequence of symbols */
-    /* use last name as symbol name (with '/' as exception) */
-    Symbol* sym = NULL;
+    /* Create a reference symbol.
+       Convert path to a sequence of symbols.
+       Use last name as symbol name (with root group reference ('/') as exception).
+    */
+    Symbol* refsym = NULL;
     /* walk the path converting to a sequence of symbols */
     if(strcmp(text0,"/")==0) {
 	/* special case of root reference */
-	sym = rootgroup;
+	refsym = rootgroup;
     } else {
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
         char* text = strdup(text0);
-	int c,issuffix;
+	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {
-	    issuffix=0;
+	    lastident = 0;
 	    switch ((c=*p)) {
 	    default: p++; break;
 	    case '\\': p++; if(*p == '/') p++; break;
 	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		issuffix=1; /* this is the last ident in the path */
+		lastident=1; /* this is the last ident in the path */
 		/*fall thru */
 	    case '/':
 		*p='\0';
-		deescapify(ident);
-		if(!issuffix) {
-		    sym = lookupingroup(NC_GRP,ident,container);
-		    if(sym == NULL) {
+		if(!lastident) {
+		    deescapify(ident);
+		    refsym = lookupingroup(NC_GRP,ident,container);
+		    if(refsym == NULL) {
 		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
 		        yyerror(errstr);
-			sym = rootgroup;
+			refsym = rootgroup;
 		    } else {
-		        listpush(prefix,(void*)sym);
+		        listpush(prefix,(void*)refsym);
 		    }
-		} else
-		{
-		    sym = install(ident);
-		    sym->objectclass = NC_GRP;
-		    sym->is_ref = 1;
-		    sym->ref = NULL;
-		    sym->container = container;
-		    sym->subnodes = listnew();
+		} else { /* lastident is true */
+		    deescapify(ident);
+		    refsym = install(ident);
+		    refsym->objectclass = NC_GRP;/* tentative */
+		    refsym->ref.is_ref = 1;
+		    refsym->container = container;
+		    refsym->subnodes = listnew();
 		}
-		container = sym;
+		container = refsym;
 	        ident=p+1; p=ident;		
 	        break;
 	    }
 	} while(c != '\0');
-	sym->objectclass = NC_NAT; /*make caller set correctly */
-	sym->prefix = prefix;
+        refsym->prefix = prefix;
 	free(text);
     }
-    return sym;
+    return refsym;
 }
+
 
 static int
 parseLL(char* text)

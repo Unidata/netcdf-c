@@ -1,9 +1,9 @@
 # Test c output
-T=scope
+T=tim
 #VG=valgrind --leak-check=full
 
-STDLIB=/usr/local
-#STDLIB=/share/ed/local/${HOST}
+#STDLIB=/usr/local
+STDLIB=/share/ed/local/${HOST}
 
 CFLAGS=-I../include -I${STDLIB}/include
 LDFLAGS=../liblib/.libs/libnetcdf.a -L${STDLIB}/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
@@ -32,6 +32,10 @@ vctest::
 	gcc -o t ${CFLAGS} t.c ${LDFLAGS} -lm
 	${VG} ./t
 	../ncdump/ncdump ./t.nc |tee t.dmp
+
+ftest::
+	./ncgen -k3 -lf77 ${T}.cdl >${T}.f77
+	gfortran -c ${CFLAGS} ${T}.f77
 
 jtest::
 	./ncgen -lj ${T}.cdl >Main.java

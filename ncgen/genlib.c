@@ -16,8 +16,8 @@ The output file name is chosen by using the following in priority order:
 void
 define_netcdf(void)
 {
-    char *filename;		/* output file name */
-    filename = NULL;
+    char filename[2048+1];
+
     /* Rule for specifying the dataset name:
 	1. use -o name
 	2. use input cdl file name
@@ -27,43 +27,32 @@ define_netcdf(void)
 	file name, but oh well.
     */
     if(netcdf_name) { /* -o flag name */
-	filename = nulldup(netcdf_name);
-    }    
-    if(filename == NULL &&
-	cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
-	char base[1024];
-	char* p;
-	strncpy(base,cdlname,1023);
-	/* remove any suffix and prefix*/
-	p = strrchr(base,'.');
-	if(p != NULL) {*p= '\0';}
-	p = strrchr(base,'/');
-	if(p != NULL) {strncpy(base,p+1,1023);}
-	if(strlen(base) > 0) {
-	    strcat(base,
-		(binary_flag == -1?".cdf" /* old, deprecated extension */
-				  :".nc")); /* preferred*/
-	    filename = nulldup(base);
-	}
-    }
-    if(filename == NULL) {/* construct name from dataset name */
-	char base[1024];
-	strncpy(base,datasetname,1019); /* Reserve space for extension, terminating '\0' */
-	strcat(base,
-		(binary_flag == -1?".cdf" /* old, deprecated extension */
-				  :".nc")); /* preferred*/
-	filename = nulldup(base);
+	strcpy(filename,netcdf_name);
+    } else { /* construct a usable output file name */
+	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
+	    char* p;
+	    strncpy(filename,cdlname,2048);
+	    /* remove any suffix and prefix*/
+	    p = strrchr(filename,'.');
+	    if(p != NULL) {*p= '\0';}
+	    p = strrchr(filename,'/');
+	    if(p != NULL) {strncpy(filename,p+1,2048);}
+        } else {/* construct name from dataset name */
+	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
+        }
+        /* Append the proper extension */
+        strcat(filename,binary_ext);
     }
 
     /* Execute exactly one of these */
 #ifdef ENABLE_C
-    if (c_flag) gen_ncc(filename); else /* create C code to create netcdf */
+    if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (f77_flag) gen_ncf77(filename); else /* create Fortran code */
+    if (l_flag == L_F77) gen_ncf77(filename); else /* create Fortran code */
 #endif
 #ifdef ENABLE_JAVA
-    if(java_flag) {
+    if(l_flag == L_JAVA) {
 	gen_ncjava(filename);
     } else
 #endif
@@ -81,56 +70,120 @@ void
 close_netcdf(void)
 {
 #ifdef ENABLE_C
-    if (c_flag) cl_c(); else /* create C code to close netcdf */
+    if (l_flag == L_C) cl_c(); else /* create C code to close netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (f77_flag) cl_f77(); else
+    if (l_flag == L_F77) cl_f77(); else
 #endif
 #ifdef ENABLE_JAVA
-    if (java_flag) cl_java(); else
+    if (l_flag == L_JAVA) cl_java(); else
 #endif
 #ifdef ENABLE_BINARY
-    if (binary_flag) cl_netcdf();
+    if (l_flag == L_BINARY) cl_netcdf();
 #endif
 }
 
-/* Compute the C name for a given symbol*/
-/* Cache in symbol->lname*/
-const char*
-cname(Symbol* sym)
+#ifdef USE_NETCDF4
+
+/**
+Return a string representing
+the fully qualified name of the symbol.
+Symbol must be top level
+Caller must free.
+*/
+void
+topfqn(Symbol* sym)
 {
-    if(sym->lname == NULL) {
-	char* name = pooldup(sym->name);
-#ifdef USE_NETCDF4
-	if(sym->subclass == NC_FIELD || sym->subclass == NC_ECONST) {
-	     sym->lname = nulldup(decodify(name));
-	} else
-#endif
-	if(sym->objectclass == NC_ATT && sym->att.var != NULL) {
-	    /* Attribute name must be prefixed with the cname of the*/
-	    /* associated variable*/
-	    const char* vname = cname(sym->att.var);
-	    const char* aname = decodify(name);
-	    sym->lname = (char*)emalloc(strlen(vname)
-					+strlen(aname)
-					+1+1);
-	    sym->lname[0] = '\0';
-            strcpy(sym->lname,vname);
-	    strcat(sym->lname,"_");
-	    strcat(sym->lname,aname);
-	} else {
-            /* convert to language form*/
-#ifdef USE_NETCDF4
-            sym->lname = nulldup(decodify(cprefixed(sym->prefix,name,"_")));
-#else
-            sym->lname = nulldup(decodify(name)); /* convert to usable form*/
-#endif
-	}
+    char* fqn;
+    char* fqnname;
+    char* parentfqn;
+    Symbol* parent;
+    
+    if(sym->fqn != NULL)
+	return; /* already defined */
+
+    parent = sym->container;
+    /* Recursively compute parent fqn */
+    if(parent == NULL) { /* implies this is the rootgroup */
+	assert(sym->grp.is_root);
+        sym->fqn = strdup("");
+	return;
+    } else if(parent->fqn == NULL) {
+	topfqn(parent);
     }
-    return sym->lname;
+    parentfqn = parent->fqn;
+
+    fqnname = fqnescape(sym->name);
+    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
+    strcpy(fqn,parentfqn);
+    strcat(fqn,"/");
+    strcat(fqn,fqnname);
+    sym->fqn = fqn;
 }
 
-#ifdef USE_NETCDF4
+/**
+Return a string representing
+the fully qualified name of a nested symbol
+(i.e. field or econst).
+Caller must free.
+*/
+void
+nestedfqn(Symbol* sym)
+{
+    char* fqn;
+    char* fqnname;
+    Symbol* parent;
+    
+    if(sym->fqn != NULL)
+	return; /* already defined */
+
+    /* Parent must be a type */
+    parent = sym->container;
+    assert (parent->objectclass == NC_TYPE);
+
+    assert(parent->fqn != NULL);
+
+    fqnname = fqnescape(sym->name);
+    fqn = (char*)malloc(strlen(fqnname) + strlen(parent->fqn) + 1 + 1);    
+    strcpy(fqn,parent->fqn);
+    strcat(fqn,".");
+    strcat(fqn,fqnname);
+    sym->fqn = fqn;
+}
+
+/**
+Return a string representing
+the fully qualified name of an attribute.
+Caller must free.
+*/
+void
+attfqn(Symbol* sym)
+{
+    char* fqn;
+    char* fqnname;
+    char* parentfqn;
+    Symbol* parent;
+    
+    if(sym->fqn != NULL)
+	return; /* already defined */
+
+    assert (sym->objectclass == NC_ATT);
+
+    parent = sym->container;
+    if(parent == NULL)
+	parentfqn = "";
+    else
+	parentfqn = parent->fqn;
+
+    fqnname = fqnescape(sym->name);
+    fqn = (char*)malloc(strlen(fqnname) + strlen(parentfqn) + 1 + 1);    
+    strcpy(fqn,parentfqn);
+    strcat(fqn,"_");
+    strcat(fqn,fqnname);
+    sym->fqn = fqn;
+}
+
+#if 0
 /* Result is pool alloc'd*/
 char*
 cprefixed(List* prefix, char* suffix, char* separator)
@@ -142,7 +195,7 @@ cprefixed(List* prefix, char* suffix, char* separator)
 
     ASSERT(suffix != NULL);
     plen = prefixlen(prefix);
-    if(prefix == NULL || plen == 0) return decodify(suffix);
+    if(prefix == NULL || plen == 0) return codify(suffix);
     /* plen > 0*/
     slen = 0;
     for(i=0;i<plen;i++) {
@@ -163,4 +216,6 @@ cprefixed(List* prefix, char* suffix, char* separator)
     strcat(result,suffix); /* append "<suffix>"*/
     return result;
 }
+#endif /*0*/
+
 #endif

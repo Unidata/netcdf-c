@@ -49,24 +49,25 @@ All external procedures in ncgen.h have been moved to this file.
 */
 
 /* from: genlib.c */
-extern const char* cname(Symbol*);
 extern void define_netcdf(void);/* generates all define mode stuff */
 extern void close_netcdf ( void ); /* generates close */
 extern char* cprefixed(List* prefix, char* suffix, char* separator);
+extern void topfqn(Symbol* sym);
+extern void nestedfqn(Symbol* sym);
+extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
 extern void deescapify(char *name); /* redunandt over expand_escapes?*/
-extern char* decodify(const char *name);
+extern char* codify(const char *name);
 extern char* escapifychar(unsigned int c, char* s0, int quote);
 extern char* escapify(char*,int,size_t);
 extern char* escapifyname(char* s0);
 extern void cquotestring(Bytebuffer*,char quote);
 extern void f77quotestring(Bytebuffer*);
-extern char* f77escapifyname(char* s0);
 extern char* xescapify(char* s0, int quote, size_t len);
 extern char* jescapify(char* s0, int quote, size_t len);
 extern char* jescapifyname(char* s0);
-extern char* jdecodify(const char *name);
+extern char* fqnescape(const char* s);
 
 /* from: getfill.c */
 extern void nc_getfill(NCConstant*);
@@ -126,6 +127,8 @@ extern const char* ctypename(Symbol*);
 extern const char* nctype(nc_type type);
 extern const char* ncctype(nc_type type);
 extern const char* ncstype(nc_type type);
+extern const char* cname(Symbol* sym);
+
 #endif
 
 #ifdef ENABLE_F77
@@ -176,12 +179,8 @@ extern int lineno;
 extern int derror_count;
 extern int kflag_flag;
 extern int cmode_modifier;
-extern int binary_flag;
-extern int c_flag;
-extern int f77_flag;
-extern int cml_flag;
-extern int java_flag;
-extern int java_jni_flag;
+extern Language l_flag;
+extern char* binary_ext;
 extern int nofill_flag;
 extern int header_only;
 extern char* mainname;
