@@ -12,6 +12,8 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 * Nodify ncgen to support disambiguating references to
   an enum constant in a data list. [NCF-265]
+  
+* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
 
 [NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
 
