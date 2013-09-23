@@ -7,12 +7,16 @@
 #include "includes.h"
 #include "ConvertUTF.h"
 
+#define HEXCHARS "0123456789abcdefABCDEF"
+#define OCTCHARS "01234567"
+
 /* Forward*/
 static void initcodify(void);
 static char* ccodify(const char*);
 static char* f77codify(const char*);
 static char* jcodify(const char*);
 
+#if 0
 /*
  * Replace escaped chars in CDL representation of name such as
  * 'abc\:def\ gh\\i' with unescaped version, such as 'abc:def gh\i'.
@@ -52,13 +56,15 @@ deescapify(char* name)
     efree(newname);
     return;
 }
+#endif /*0*/
 
 /*
 Given a character c, fill s with the character suitably escaped.
 E.g. c = '\t' => s="\t"
-Caller must ensure enough space
-Currently does not handle unicode
-Returns s as it result.
+Caller must ensure enough space.
+Watch out for embedded NULs.
+Currently passes unicode thru unchanged.
+Returns s as its result.
 */
 
 char*
@@ -70,6 +76,8 @@ escapifychar(unsigned int c, char* s0, int quote)
     } else if(c == quote) {
 	*s++ = '\\'; *s++=(char)quote;
     } else if(c >= ' ' && c != '\177') {
+	*s++ = (char)c;
+    } else if((c & 0x80) != 0) {/* Unicode */
 	*s++ = (char)c;
     } else {
         switch (c) {
@@ -278,6 +286,14 @@ ccodify(const char *name0)
     name = bbContents(newname);
     if(bbGet(newname,0) == '_') name++;
     return pooldup(name);
+}
+
+char*
+cescapifychar(unsigned int c, int quote)
+{
+    char* s = poolalloc(4+1);
+    escapifychar(c,s,quote);
+    return s;
 }
 
 /**************************************************/
@@ -572,4 +588,144 @@ _DOT__
 #endif
     }
     return newname;
+}
+
+/**************************************************/
+
+/*
+ * Given a pointer to a string of the form
+ * 'xdd', return the corresponding hex byte
+ */
+
+int
+unescapehex(const char* s)
+{
+    int b;
+    int c1 = s[0];
+    int c2 = s[1];
+    if(strchr(HEXCHARS,c1) == NULL
+       || strchr(HEXCHARS,c2) == NULL)
+	return -1;
+    b = 0;
+    if(c1 < 'a') c1 = (c1 - 'A') + 'a';/* lowercase */
+    if(c1 <= '9') b = (c1 - '0') << 4;
+    else b = ((c1 - 'a')+10) << 4;
+    if(c2 < 'a') c2 |= (c2 - 'A') + 'a';/* lowercase */
+    if(c2 <= '9') b = (c2 - '0');
+    else b |= ((c2 - 'a')+10);
+    return b;
+}
+
+/*
+ * Given a pointer to a string of the form
+ * 'ddd', return the corresponding octal byte
+ */
+
+int
+unescapeoct(const char* s)
+{
+    int b;
+    int c1 = s[0];
+    int c2 = s[1];
+    int c3 = s[2];
+    if(c1 != '0'
+       || strchr(OCTCHARS,c1) == NULL
+       || strchr(OCTCHARS,c2) == NULL
+       || strchr(OCTCHARS,c3) == NULL)
+	return -1;
+    b = (c1 - '0') << 6;
+    b |= (c2 - '0') << 3;
+    b |= (c3 - '0');
+    return b;
+}
+
+/*
+ * "Un-escapes" valid escape sequences in yystring (read by lex) into the
+ * apropriate unescaped characters.  For example, the two character
+ * sequence "\t" in yystring would be converted into a single tab character.
+ * On return, termstring is nul terminated.
+ * Watch out for embedded nuls and utf-8 characters.
+ * Return # of characters written.
+ */
+
+int
+unescape(
+     char *s, /* fill with contents of yytext, with escapes removed.
+                 s and yytext may be same*/
+     const char *yytext,
+     int yyleng)
+{
+    char *t, *tend, *p;
+    int len;
+    int b;
+    /* ignore leading and trailing quotes */
+    if(yytext[0] != '"' || yytext[yyleng-1] != '"')
+	abort();
+    yytext++;
+    yyleng--; /* leading quote */
+    yyleng--; /* trailing quote */
+    /* expand "\" escapes, e.g. "\t" to tab character  */
+    t = yytext;
+    tend = t + yyleng;
+    p = s;
+    while(*t && t < tend) {
+	if (*t == '\\') {
+	    t++;
+	    switch (*t) {
+	      case 'a':
+		*p++ = ('\007'); t++; /* will use '\a' when STDC */
+		break;
+	      case 'b':
+		*p++ = ('\b'); t++;
+		break;
+	      case 'f':
+		*p++ = ('\f'); t++;
+		break;
+	      case 'n':
+		*p++ = ('\n'); t++;
+		break;
+	      case 'r':
+		*p++ = ('\r'); t++;
+		break;
+	      case 't':
+		*p++ = ('\t'); t++;
+		break;
+	      case 'v':
+		*p++ = ('\v'); t++;
+		break;
+	      case '\\':
+		*p++ = ('\\'); t++;
+		break;
+	      case '?':
+		*p++ = ('\177'); t++;
+		break;
+	      case '\'':
+		*p++ = ('\''); t++;
+		break;
+	      case '\"':
+		*p++ = ('\"'); t++;
+		break;
+	      case 'x':
+		/* t now points to hex */
+		b = unescapehex(t);
+		t += 2;
+		*p++ = ((char)b);
+		break;
+	      case '0': case '1': case '2': case '3':
+	      case '4': case '5': case '6': case '7':
+		/* t now points to octal */
+		b = unescapeoct(t);
+		t += 3;
+		*p++ = ((char)b);
+		break;
+	      default:
+		*p++ = (*t); t++;
+		break;
+	    }
+	} else {
+	    *p++ = (*t); t++;
+	}
+    }
+    *p = '\0';
+    return (p - s);
 }

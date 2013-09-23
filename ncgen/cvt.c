@@ -429,8 +429,13 @@ case CASE(NC_STRING,NC_CHAR):
      tmp.charv = src->value.stringv.stringv[0];
      break;
 case CASE(NC_STRING,NC_STRING):
-    tmp.stringv.stringv = nulldup(src->value.stringv.stringv);
+    /* Need to watch out for embedded NULs */
     tmp.stringv.len = src->value.stringv.len;
+    tmp.stringv.stringv = (char*)malloc(src->value.stringv.len+1);
+    memcpy((void*)tmp.stringv.stringv,
+           (void*)src->value.stringv.stringv,
+           tmp.stringv.len);
+    tmp.stringv[tmp.stringv.len] = '\0';
     break;
 
 /* What is the proper conversion for T->STRING?*/

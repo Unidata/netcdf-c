@@ -38,7 +38,7 @@ c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 	if(con->value.charv == '\'') 
 	    bbprintf(codetmp,"'\\''");
 	else
-	    bbprintf(codetmp,"'%c'",con->value.charv);
+	    bbprintf(codetmp,"'%s'",cescapifychar(con->value.charv,'\'',);
 	break;
     case NC_BYTE:
 	bbprintf(codetmp,"%hhd",con->value.int8v);
