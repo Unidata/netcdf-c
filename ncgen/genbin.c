@@ -393,7 +393,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
 #endif
 	
     if(rank == 0) {
-	size_t count[1] = {0};
+	size_t count[1] = {1};
         stat = nc_put_var1(vsym->container->ncid, vsym->ncid, count, data);
     } else {
         stat = nc_put_vara(vsym->container->ncid, vsym->ncid, start, count, data);
