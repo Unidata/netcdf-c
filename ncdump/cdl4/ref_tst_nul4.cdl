@@ -1,0 +1,18 @@
+netcdf ref_tst_nul4 {
+dimensions:
+	n = 8 ;
+variables:
+//	char cdata(n) ;
+	string sdata ;
+//	char c ;
+
+// global attributes:
+//		string :global = "x\000y";
+data:
+
+// cdata = "abc\000def" ;
+
+ sdata = "123\0004" ;
+
+// c = "" ;
+}
