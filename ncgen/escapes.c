@@ -628,8 +628,7 @@ unescapeoct(const char* s)
     int c1 = s[0];
     int c2 = s[1];
     int c3 = s[2];
-    if(c1 != '0'
-       || strchr(OCTCHARS,c1) == NULL
+    if(strchr(OCTCHARS,c1) == NULL
        || strchr(OCTCHARS,c2) == NULL
        || strchr(OCTCHARS,c3) == NULL)
 	return -1;
@@ -655,15 +654,9 @@ unescape(
      const char *yytext,
      int yyleng)
 {
-    char *t, *tend, *p;
-    int len;
+    const char *t, *tend;
+    char* p;
     int b;
-    /* ignore leading and trailing quotes */
-    if(yytext[0] != '"' || yytext[yyleng-1] != '"')
-	abort();
-    yytext++;
-    yyleng--; /* leading quote */
-    yyleng--; /* trailing quote */
     /* expand "\" escapes, e.g. "\t" to tab character  */
     t = yytext;
     tend = t + yyleng;

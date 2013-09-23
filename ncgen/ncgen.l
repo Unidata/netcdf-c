@@ -183,10 +183,14 @@ yytext[MAXTRST-1] = '\0';
 }
 */
 		        /* FIX: Assumes unescape also does normalization */
-			bbSetLength(lextext,yyleng);
+			bbSetlength(lextext,yyleng-2);
 			len = unescape(bbContents(lextext),
-                                       (char *)yytext,yyleng);
-			bbSetLength(lextext,len);
+                                       (char *)yytext+1,yyleng-2);
+			if(len < 0) {
+			    sprintf(errstr,"Illegal character: %s",yytext);
+			    yyerror(errstr);
+			}
+			bbSetlength(lextext,len);
 			bbNull(lextext);
 		 	return lexdebug(TERMSTRING);
 		        }
@@ -310,7 +314,7 @@ NIL|nil|Nil {
 		    bbNull(lextext);
 		    id = bbContents(lextext);
 		    len = unescape(id,id,bbLength(lextext));
-		    bbSetLength(lextext,len);
+		    bbSetlength(lextext,len);
 		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
 		    return lexdebug(IDENT);
@@ -508,7 +512,7 @@ NIL|nil|Nil {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
                 }
-\'\\[0-7][0-7]?[0-7]?\'  {
+\'\\[0-7][0-7][0-7]\'  {
 		byte_val = unescapeoct(&yytext[2]);
 		if(byte_val < 0) {
 		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
@@ -516,7 +520,7 @@ NIL|nil|Nil {
 		}		    		    
 		return lexdebug(BYTE_CONST);
                 }
-\'\\[xX][0-9a-fA-F][0-9a-fA-F]?\'  {
+\'\\[xX][0-9a-fA-F][0-9a-fA-F]\'  {
 		byte_val = unescapehex(&yytext[3]);
 		if(byte_val < 0) {
 		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
@@ -623,7 +627,7 @@ makepath(char* text0)
 	    case '/':
 		*p='\0';
 		if(!lastident) {
-		    deescapify(ident);
+		    unescape(ident,ident,strlen(ident));
 		    refsym = lookupingroup(NC_GRP,ident,container);
 		    if(refsym == NULL) {
 		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
@@ -633,7 +637,7 @@ makepath(char* text0)
 		        listpush(prefix,(void*)refsym);
 		    }
 		} else { /* lastident is true */
-		    deescapify(ident);
+		    unescape(ident,ident,strlen(ident));
 		    refsym = install(ident);
 		    refsym->objectclass = NC_GRP;/* tentative */
 		    refsym->ref.is_ref = 1;

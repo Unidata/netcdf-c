@@ -435,7 +435,7 @@ case CASE(NC_STRING,NC_STRING):
     memcpy((void*)tmp.stringv.stringv,
            (void*)src->value.stringv.stringv,
            tmp.stringv.len);
-    tmp.stringv[tmp.stringv.len] = '\0';
+    tmp.stringv.stringv[tmp.stringv.len] = '\0';
     break;
 
 /* What is the proper conversion for T->STRING?*/
