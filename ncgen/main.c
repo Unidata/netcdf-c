@@ -90,6 +90,7 @@ struct Kvalues legalkinds[NKVALUES] = {
     {NULL,0}
 };
 
+#ifndef _MSC_VER
 struct Languages {
     char* name;
     Language flag;
@@ -102,8 +103,26 @@ struct Languages {
 {"Fortran77", L_F77},
 {"j", L_JAVA},
 {"java", L_JAVA},
-{NULL,0}
+{NULL,L_UNDEFINED}
 };
+#else
+typedef struct Languages {
+		char* name;
+		Language flag;
+} Languages;
+
+struct Languages legallanguages[] = {
+{"b", L_BINARY},
+{"c", L_C},
+{"C", L_C},
+{"f77", L_F77},
+{"fortran77", L_F77},
+{"Fortran77", L_F77},
+{"j", L_JAVA},
+{"java", L_JAVA},
+{NULL,L_UNDEFINED}
+};
+#endif
 
 /* The default minimum iterator size depends
    on whether we are doing binary or language
@@ -144,7 +163,8 @@ main(
 {
     int c;
     FILE *fp;
-
+	struct Languages* langs;
+    char* lang_name;//
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif
@@ -209,14 +229,14 @@ main(
 	case 'h':
 	  header_only = 1;	  
 	  break;
-        case 'l': /* specify language, instead of using -c or -f or -b */
-	    {
+     case 'l': /* specify language, instead of using -c or -f or -b */
+
+		 {
 		if(l_flag != 0) {
 		    fprintf(stderr,"Please specify only one language\n");
 		    return 1;
 		}
-		struct Languages* langs;
-		char* lang_name = (char*) emalloc(strlen(optarg)+1);
+		lang_name = (char*) emalloc(strlen(optarg)+1);
 		(void)strcpy(lang_name, optarg);
 		for(langs=legallanguages;langs->name != NULL;langs++) {
 		    if(strcmp(lang_name,langs->name)==0) {

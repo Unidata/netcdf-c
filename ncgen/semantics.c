@@ -543,9 +543,10 @@ findecmatches(char* ident)
 	/* Second, do the prefix check */	
 	len = strlen(en->name);
 	if(strncmp(ident,en->name,len) == 0) {
-	    /* Find the matching ec constant, if any */
+		Symbol *ec;
+		/* Find the matching ec constant, if any */
 	    if(*(ident+len) != '.') continue;
-	    Symbol* ec = checkeconst(en,ident+len+1); /* +1 for the dot */
+	    ec = checkeconst(en,ident+len+1); /* +1 for the dot */
 	    if(ec != NULL)
 		listpush(matches,ec);
 	}
