@@ -66,7 +66,6 @@ unsigned char ubyte_val;       /* last byte value read */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static int parseLL(char* text);
-static void expand_escapes(Bytebuffer*, char*, int);
 
 static struct Specialtoken {
     char* name;
@@ -174,7 +173,7 @@ USASCII   [\x01-\x7F]
                           break;
                         }
 
-\"{nonquotes}\"		{
+\"{nonquotes}\"		{int len;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -183,9 +182,11 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* Assumes expand escapes also does normalization */
-			bbClear(lextext);
-			expand_escapes(lextext,(char *)yytext,yyleng);
+		        /* FIX: Assumes unescape also does normalization */
+			bbSetLength(lextext,yyleng);
+			len = unescape(bbContents(lextext),
+                                       (char *)yytext,yyleng);
+			bbSetLength(lextext,len);
 			bbNull(lextext);
 		 	return lexdebug(TERMSTRING);
 		        }
@@ -303,12 +304,13 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id;
+{ID}		{ char* id; int len;
 		    bbClear(lextext);
 		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
 		    bbNull(lextext);
 		    id = bbContents(lextext);
-		    deescapify(id);
+		    len = unescape(id,id,bbLength(lextext));
+		    bbSetLength(lextext,len);
 		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
 		    return lexdebug(IDENT);
@@ -507,11 +509,19 @@ NIL|nil|Nil {
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[0-7][0-7]?[0-7]?\'  {
-		byte_val = (char) strtol((char*)&yytext[2], (char **) 0, 8);
+		byte_val = unescapeoct(&yytext[2]);
+		if(byte_val < 0) {
+		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
+		    yyerror(errstr);
+		}		    		    
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[xX][0-9a-fA-F][0-9a-fA-F]?\'  {
-		byte_val = (char) strtol((char*)&yytext[3], (char **) 0, 16);
+		byte_val = unescapehex(&yytext[3]);
+		if(byte_val < 0) {
+		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
+		    yyerror(errstr);
+		}		    		    
 		return lexdebug(BYTE_CONST);
                 }
 \'\\.\'        {
@@ -678,93 +688,4 @@ parseLL(char* text)
     return result;
 }
 
-/*
- * "Expands" valid escape sequences in yystring (read by lex) into the
- * apropriate characters in termstring.  For example, the two character
- * sequence "\t" in yystring would be converted into a single tab character
- * in termstring.  On return, termstring is properly terminated.
- */
-
-static void
-expand_escapes(
-     Bytebuffer *s, /* fill with contents of yytext, with escapes expanded */
-     char *yytext,
-     int yyleng)
-{
-    char *t, *endp, *tend;
-    /* ignore leading and trailing quotes */
-    if(yytext[0] != '"' || yytext[yyleng-1] != '"')
-	abort();
-    yytext++;
-    yyleng--; /* leading quote */
-    yyleng--; /* trailing quote */
-    /* expand "\" escapes, e.g. "\t" to tab character  */
-    t = yytext;
-    tend = t + yyleng;
-    while(*t && t < tend) {
-	if (*t == '\\') {
-	    t++;
-	    switch (*t) {
-	      case 'a':
-		bbAppend(s,'\007'); t++; /* will use '\a' when STDC */
-		break;
-	      case 'b':
-		bbAppend(s,'\b'); t++;
-		break;
-	      case 'f':
-		bbAppend(s,'\f'); t++;
-		break;
-	      case 'n':
-		bbAppend(s,'\n'); t++;
-		break;
-	      case 'r':
-		bbAppend(s,'\r'); t++;
-		break;
-	      case 't':
-		bbAppend(s,'\t'); t++;
-		break;
-	      case 'v':
-		bbAppend(s,'\v'); t++;
-		break;
-	      case '\\':
-		bbAppend(s,'\\'); t++;
-		break;
-	      case '?':
-		bbAppend(s,'\177'); t++;
-		break;
-	      case '\'':
-		bbAppend(s,'\''); t++;
-		break;
-	      case '\"':
-		bbAppend(s,'\"'); t++;
-		break;
-	      case 'x':
-		t++; /* now t points to one or more hex digits */
-		bbAppend(s,(char) strtol(t, &endp, 16));
-		t = endp;
-		break;
-	      case '0':
-	      case '1':
-	      case '2':
-	      case '3':
-	      case '4':
-	      case '5':
-	      case '6':
-	      case '7':
-		/* t now points to octal digits */
-		bbAppend(s,(char) strtol(t, &endp, 8));
-		t = endp;
-		break;
-	      default:
-		bbAppend(s,*t); t++;
-		break;
-	    }
-	} else {
-	    bbAppend(s,*t); t++;
-	}
-    }
-    bbNull(s);
-    bbSetlength(s,strlen(bbContents(s)));
-    return;
-}
 

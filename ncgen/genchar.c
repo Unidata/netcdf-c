@@ -176,7 +176,8 @@ gen_charconstant(NCConstant* con, Bytebuffer* databuf, int fillchar)
         break;
     case NC_STRING:
 	constsize = con->value.stringv.len;
-        bbCat(databuf,con->value.stringv.stringv);
+        bbAppendn(databuf,con->value.stringv.stringv,
+                         con->value.stringv.len);
         bbNull(databuf);
         break;
     case NC_FILL:
