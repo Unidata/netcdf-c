@@ -83,8 +83,6 @@ close_netcdf(void)
 #endif
 }
 
-#ifdef USE_NETCDF4
-
 /**
 Return a string representing
 the fully qualified name of the symbol.
@@ -224,5 +222,3 @@ cprefixed(List* prefix, char* suffix, char* separator)
     return result;
 }
 #endif /*0*/
-
-#endif
