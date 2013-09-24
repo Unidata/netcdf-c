@@ -18,17 +18,19 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 * Modify ncgen to support disambiguating references to
   an enum constant in a data list. [NCF-265]
   
+[NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
+
+* Corrected bug in netCDF-4 dimension ID ordering assumptions, resulting in access that works locally but fails through DAP server. [NCF-166]
+
+[NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
+
 * Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
 
-[NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
+
 
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 
 [NCF-160]:https://bugtracking.unidata.ucar.edu/browse/NCF-160
-
-* Addressed issue with netCDF-4 renaming dimension and variable using that dimension, in either order. [NCF-177]
-
-[NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
 
 * Addressed issue with hanging Parallel netCDF-4 using HDF5 1.8.10. [NCF-240]
 
