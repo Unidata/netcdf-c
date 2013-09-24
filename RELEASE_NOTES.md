@@ -10,7 +10,12 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc3 Released TBD
 
-* Nodify ncgen to support disambiguating references to
+* Modify ncgen to support NUL characters in character array
+  constants. [NCF-267]
+
+[NCF-267]:https://bugtracking.unidata.ucar.edu/browse/NCF-267
+
+* Modify ncgen to support disambiguating references to
   an enum constant in a data list. [NCF-265]
   
 * Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
