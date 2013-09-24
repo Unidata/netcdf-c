@@ -8,7 +8,7 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
-### 4.3.1-rc3 Released TBD
+### 4.3.1-rc3 Released 2013-09-24
 
 * Modify ncgen to support NUL characters in character array
   constants. [NCF-267]
@@ -25,8 +25,6 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 [NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
 
 * Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
-
-
 
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 
