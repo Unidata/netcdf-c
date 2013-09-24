@@ -2,3 +2,4 @@ build
 html
 doxygen*.tmp
 \#*.*\#
+autom4te.cache
