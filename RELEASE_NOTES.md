@@ -10,6 +10,11 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc4 Released TBD
 
+Fix bug introduced by [NCF-267] where octal constants above
+'\177' were not recognized as proper octal constants. [NCF-271]
+
+[NCF-271]:https://bugtracking.unidata.ucar.edu/browse/NCF-271
+
 ### 4.3.1-rc3 Released 2013-09-24
 
 * Modify ncgen to support NUL characters in character array

@@ -4,9 +4,14 @@ dimensions:
 variables:
 	char cdata(n) ;
 
+	char cdata2(n) ;
+
 // global attributes:
-		:global = "x\000y" ;
+	:global = "x\000y" ;
+	:byte_att = '\000','\001','\002','\177','\200','\201','\376','\377';
 data:
 
  cdata = "abc\000def" ;
+
+ cdata2 = '\000','\001','\002','\177','\200','\201','\376','\377';
 }

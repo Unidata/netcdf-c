@@ -618,7 +618,8 @@ unescapehex(const char* s)
 
 /*
  * Given a pointer to a string of the form
- * 'ddd', return the corresponding octal byte
+ * 'ddd', return the corresponding 
+ * unsigned octal byte
  */
 
 int
@@ -708,6 +709,10 @@ unescape(
 	      case '4': case '5': case '6': case '7':
 		/* t now points to octal */
 		b = unescapeoct(t);
+		if(b < 0) {
+		    derror("Bad octal constant: %s",yytext);
+		    b = 0;
+		}
 		t += 3;
 		*p++ = ((char)b);
 		break;

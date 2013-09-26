@@ -513,19 +513,21 @@ NIL|nil|Nil {
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[0-7][0-7][0-7]\'  {
-		byte_val = unescapeoct(&yytext[2]);
-		if(byte_val < 0) {
+		int oct = unescapeoct(&yytext[2]);
+		if(oct < 0) {
 		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}		    		    
+	        byte_val = (unsigned int)oct;
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[xX][0-9a-fA-F][0-9a-fA-F]\'  {
-		byte_val = unescapehex(&yytext[3]);
+		int hex = unescapehex(&yytext[3]);
 		if(byte_val < 0) {
 		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}		    		    
+		byte_val = (unsigned int)hex;
 		return lexdebug(BYTE_CONST);
                 }
 \'\\.\'        {
