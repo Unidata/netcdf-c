@@ -272,26 +272,11 @@ jquotestring(Bytebuffer* databuf, char quote)
 static const char*
 jname(Symbol* sym)
 {
-    if(sym->lname == NULL) {
-	if(sym->objectclass == NC_ATT && sym->att.var != NULL) {
-	    /* Attribute name must be prefixed with the jname of the*/
-	    /* associated variable*/
-	    char* lname;
-	    lname = (char*)emalloc(strlen(sym->att.var->name)
-					+strlen(sym->name)
-					+1+1);
-	    lname[0] = '\0';
-            strcpy(lname,sym->att.var->name);
-	    strcat(lname,"_");
-	    strcat(lname,sym->name);
-	    /* Now convert to java acceptable name */
-	    sym->lname = nulldup(jdecodify(lname));
-	} else {
-            /* convert to language form*/
-            sym->lname = nulldup(jdecodify(sym->name)); /* convert to usable form*/
-	}
-    }
-    return sym->lname;
+    char* name;
+    assert (sym->fqn != NULL);
+    /* convert to language form*/
+    name = codify(sym->fqn); /* convert to usable form*/
+    return name;
 }
 
 

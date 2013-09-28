@@ -412,7 +412,7 @@ poolalloc(size_t length)
 }
 
 char*
-pooldup(char* s)
+pooldup(const char* s)
 {
     char* sdup = poolalloc(strlen(s)+1);
     strcpy(sdup,s);

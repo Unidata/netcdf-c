@@ -20,7 +20,8 @@ simple_xy.dmp small.dmp small2.dmp test0.dmp tst_ncml.dmp \
 n3time.dmp ref_tst_special_atts3.dmp ref_tst_chardata.dmp ref_tst_unlim2.dmp \
 ref_solar.dmp unlimtest1.dmp unlimtest2.dmp \
 ref_tst_vlen_data.dmp ref_tst_vlen_data2.dmp \
-ref_niltest.dmp ref_tst_h_scalar.dmp
+ref_niltest.dmp ref_tst_h_scalar.dmp ref_tst_econst.dmp \
+ref_tst_nul3.dmp ref_tst_nul4.dmp
 
 # These do not exist because they are not run as usual tests
 # bigf1.dmp bigf2.dmp bigf3.dmp bigr1.dmp bigr2.dmp bigr3.dmp gfs1.dmp

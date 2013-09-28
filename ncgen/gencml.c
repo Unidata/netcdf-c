@@ -458,11 +458,11 @@ xname(Symbol* sym)
 	char* name = pooldup(sym->name);
 #ifdef USE_NETCDF4
 	if(sym->subclass == NC_FIELD || sym->subclass == NC_ECONST) {
-	     sym->lname = nulldup(decodify(name));
+	     sym->lname = nulldup(codify(name));
 	} else
-            sym->lname = nulldup(decodify(xprefixed(sym->prefix,name,"/")));
+            sym->lname = nulldup(codify(xprefixed(sym->prefix,name,"/")));
 #else
-            sym->lname = nulldup(decodify(name)); /* convert to usable form*/
+            sym->lname = nulldup(codify(name)); /* convert to usable form*/
 #endif
     }
     return sym->lname;
@@ -480,7 +480,7 @@ xprefixed(List* prefix, char* suffix, char* separator)
 
     ASSERT(suffix != NULL);
     plen = prefixlen(prefix);
-    if(prefix == NULL || plen == 0) return decodify(suffix);
+    if(prefix == NULL || plen == 0) return codify(suffix);
     /* plen > 0*/
     slen = 0;
     for(i=0;i<plen;i++) {

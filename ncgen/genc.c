@@ -641,7 +641,7 @@ varncid(Symbol* vsym)
 }
 
 /* Compute the C name for a given dim's id*/
-/* Watch out: the result is a static*/
+/* Watch out: the result is pooled*/
 static const char*
 dimncid(Symbol* dsym)
 {
@@ -688,6 +688,7 @@ definectype(Symbol* tsym)
 	    ASSERT(econst->subclass == NC_ECONST);
 	    c_generator->constant(c_generator,&econst->typ.econst,econststring);
 	    bbNull(econststring);
+            /* Enum constants must be converted to a fully qualified name */
 	    bbprintf0(stmt,"#define %s ((%s)%s)\n",
 		    cname(econst),
 		    ctypename(econst->typ.basetype),
@@ -1184,4 +1185,24 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
     codelined(1,"check_err(stat,__LINE__,__FILE__);");
     codelined(1,"}");
 }
+
+
+/* Compute the C name for a given symbol;
+modified to use the fqn
+*/
+const char*
+cname(Symbol* sym)
+{
+    char* name;
+
+    assert (sym->fqn != NULL && sym->name != NULL);
+    /* Convert the fqn as its C name. */
+    if(sym->grp.is_root)
+	name = codify(sym->name);
+    else
+	name = codify(sym->fqn);    
+    return name;
+}
+
 #endif /*ENABLE_C*/
+

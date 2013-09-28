@@ -1534,7 +1534,7 @@ jname(Symbol* sym)
     if(sym->lname == NULL) {
 #ifdef USE_NETCDF4
 	if(sym->subclass == NC_FIELD || sym->subclass == NC_ECONST) {
-	     sym->lname = nulldup(jdecodify(sym->name));
+	     sym->lname = nulldup(jcodify(sym->name));
 	} else
 #endif
 	if(sym->objectclass == NC_ATT && sym->att.var != NULL) {
@@ -1549,13 +1549,13 @@ jname(Symbol* sym)
 	    strcat(lname,"_");
 	    strcat(lname,sym->name);
 	    /* Now convert to java acceptable name */
-	    sym->lname = nulldup(jdecodify(lname));
+	    sym->lname = nulldup(jcodify(lname));
 	} else {
             /* convert to language form*/
 #ifdef USE_NETCDF4
-            sym->lname = nulldup(jdecodify(jprefixed(sym->prefix,sym->name,"_")));
+            sym->lname = nulldup(jcodify(jprefixed(sym->prefix,sym->name,"_")));
 #else
-            sym->lname = nulldup(jdecodify(sym->name)); /* convert to usable form*/
+            sym->lname = nulldup(jcodify(sym->name)); /* convert to usable form*/
 #endif
 	}
     }

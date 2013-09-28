@@ -66,7 +66,6 @@ unsigned char ubyte_val;       /* last byte value read */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static int parseLL(char* text);
-static void expand_escapes(Bytebuffer*, char*, int);
 
 static struct Specialtoken {
     char* name;
@@ -174,7 +173,7 @@ USASCII   [\x01-\x7F]
                           break;
                         }
 
-\"{nonquotes}\"		{
+\"{nonquotes}\"		{int len;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -183,9 +182,15 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* Assumes expand escapes also does normalization */
-			bbClear(lextext);
-			expand_escapes(lextext,(char *)yytext,yyleng);
+		        /* FIX: Assumes unescape also does normalization */
+			bbSetlength(lextext,yyleng-2);
+			len = unescape(bbContents(lextext),
+                                       (char *)yytext+1,yyleng-2);
+			if(len < 0) {
+			    sprintf(errstr,"Illegal character: %s",yytext);
+			    yyerror(errstr);
+			}
+			bbSetlength(lextext,len);
 			bbNull(lextext);
 		 	return lexdebug(TERMSTRING);
 		        }
@@ -260,7 +265,7 @@ NaNf|nanf { /* missing value (pre-2.4 backward compatibility) */
 
 NIL|nil|Nil {
 #ifdef USE_NETCDF4
-		if(c_flag != 0 || binary_flag != 0)
+		if(l_flag == L_C || l_flag == L_BINARY)
 		    return lexdebug(NIL);
 		yyerror("NIL only allowed for netcdf-4 and for -lc or -lb");
 #else
@@ -303,12 +308,13 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id;
+{ID}		{ char* id; int len;
 		    bbClear(lextext);
 		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
 		    bbNull(lextext);
 		    id = bbContents(lextext);
-		    deescapify(id);
+		    len = unescape(id,id,bbLength(lextext));
+		    bbSetlength(lextext,len);
 		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
 		    return lexdebug(IDENT);
@@ -506,12 +512,22 @@ NIL|nil|Nil {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
                 }
-\'\\[0-7][0-7]?[0-7]?\'  {
-		byte_val = (char) strtol((char*)&yytext[2], (char **) 0, 8);
+\'\\[0-7][0-7][0-7]\'  {
+		int oct = unescapeoct(&yytext[2]);
+		if(oct < 0) {
+		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
+		    yyerror(errstr);
+		}		    		    
+	        byte_val = (unsigned int)oct;
 		return lexdebug(BYTE_CONST);
                 }
-\'\\[xX][0-9a-fA-F][0-9a-fA-F]?\'  {
-		byte_val = (char) strtol((char*)&yytext[3], (char **) 0, 16);
+\'\\[xX][0-9a-fA-F][0-9a-fA-F]\'  {
+		int hex = unescapehex(&yytext[3]);
+		if(byte_val < 0) {
+		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
+		    yyerror(errstr);
+		}		    		    
+		byte_val = (unsigned int)hex;
 		return lexdebug(BYTE_CONST);
                 }
 \'\\.\'        {
@@ -585,61 +601,62 @@ lex_init(void)
 static Symbol*
 makepath(char* text0)
 {
-    /* Convert path to a sequence of symbols */
-    /* use last name as symbol name (with '/' as exception) */
-    Symbol* sym = NULL;
+    /* Create a reference symbol.
+       Convert path to a sequence of symbols.
+       Use last name as symbol name (with root group reference ('/') as exception).
+    */
+    Symbol* refsym = NULL;
     /* walk the path converting to a sequence of symbols */
     if(strcmp(text0,"/")==0) {
 	/* special case of root reference */
-	sym = rootgroup;
+	refsym = rootgroup;
     } else {
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
 	char *ident, *p;
         char* text = strdup(text0);
-	int c,issuffix;
+	int c,lastident;
 	ident=text+1; p=ident; /* skip leading '/' */
 	do {
-	    issuffix=0;
+	    lastident = 0;
 	    switch ((c=*p)) {
 	    default: p++; break;
 	    case '\\': p++; if(*p == '/') p++; break;
 	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		issuffix=1; /* this is the last ident in the path */
+		lastident=1; /* this is the last ident in the path */
 		/*fall thru */
 	    case '/':
 		*p='\0';
-		deescapify(ident);
-		if(!issuffix) {
-		    sym = lookupingroup(NC_GRP,ident,container);
-		    if(sym == NULL) {
+		if(!lastident) {
+		    unescape(ident,ident,strlen(ident));
+		    refsym = lookupingroup(NC_GRP,ident,container);
+		    if(refsym == NULL) {
 		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
 		        yyerror(errstr);
-			sym = rootgroup;
+			refsym = rootgroup;
 		    } else {
-		        listpush(prefix,(void*)sym);
+		        listpush(prefix,(void*)refsym);
 		    }
-		} else
-		{
-		    sym = install(ident);
-		    sym->objectclass = NC_GRP;
-		    sym->is_ref = 1;
-		    sym->ref = NULL;
-		    sym->container = container;
-		    sym->subnodes = listnew();
+		} else { /* lastident is true */
+		    unescape(ident,ident,strlen(ident));
+		    refsym = install(ident);
+		    refsym->objectclass = NC_GRP;/* tentative */
+		    refsym->ref.is_ref = 1;
+		    refsym->container = container;
+		    refsym->subnodes = listnew();
 		}
-		container = sym;
+		container = refsym;
 	        ident=p+1; p=ident;		
 	        break;
 	    }
 	} while(c != '\0');
-	sym->objectclass = NC_NAT; /*make caller set correctly */
-	sym->prefix = prefix;
+        refsym->prefix = prefix;
 	free(text);
     }
-    return sym;
+    return refsym;
 }
+
 
 static int
 parseLL(char* text)
@@ -677,93 +694,4 @@ parseLL(char* text)
     return result;
 }
 
-/*
- * "Expands" valid escape sequences in yystring (read by lex) into the
- * apropriate characters in termstring.  For example, the two character
- * sequence "\t" in yystring would be converted into a single tab character
- * in termstring.  On return, termstring is properly terminated.
- */
-
-static void
-expand_escapes(
-     Bytebuffer *s, /* fill with contents of yytext, with escapes expanded */
-     char *yytext,
-     int yyleng)
-{
-    char *t, *endp, *tend;
-    /* ignore leading and trailing quotes */
-    if(yytext[0] != '"' || yytext[yyleng-1] != '"')
-	abort();
-    yytext++;
-    yyleng--; /* leading quote */
-    yyleng--; /* trailing quote */
-    /* expand "\" escapes, e.g. "\t" to tab character  */
-    t = yytext;
-    tend = t + yyleng;
-    while(*t && t < tend) {
-	if (*t == '\\') {
-	    t++;
-	    switch (*t) {
-	      case 'a':
-		bbAppend(s,'\007'); t++; /* will use '\a' when STDC */
-		break;
-	      case 'b':
-		bbAppend(s,'\b'); t++;
-		break;
-	      case 'f':
-		bbAppend(s,'\f'); t++;
-		break;
-	      case 'n':
-		bbAppend(s,'\n'); t++;
-		break;
-	      case 'r':
-		bbAppend(s,'\r'); t++;
-		break;
-	      case 't':
-		bbAppend(s,'\t'); t++;
-		break;
-	      case 'v':
-		bbAppend(s,'\v'); t++;
-		break;
-	      case '\\':
-		bbAppend(s,'\\'); t++;
-		break;
-	      case '?':
-		bbAppend(s,'\177'); t++;
-		break;
-	      case '\'':
-		bbAppend(s,'\''); t++;
-		break;
-	      case '\"':
-		bbAppend(s,'\"'); t++;
-		break;
-	      case 'x':
-		t++; /* now t points to one or more hex digits */
-		bbAppend(s,(char) strtol(t, &endp, 16));
-		t = endp;
-		break;
-	      case '0':
-	      case '1':
-	      case '2':
-	      case '3':
-	      case '4':
-	      case '5':
-	      case '6':
-	      case '7':
-		/* t now points to octal digits */
-		bbAppend(s,(char) strtol(t, &endp, 8));
-		t = endp;
-		break;
-	      default:
-		bbAppend(s,*t); t++;
-		break;
-	    }
-	} else {
-	    bbAppend(s,*t); t++;
-	}
-    }
-    bbNull(s);
-    bbSetlength(s,strlen(bbContents(s)));
-    return;
-}
 

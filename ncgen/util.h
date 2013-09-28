@@ -39,7 +39,7 @@ extern int prefixeq(List*,List*);
 #define prefixlen(sequence) (listlength(sequence))
 
 extern char* poolalloc(size_t);
-extern char* pooldup(char*);
+extern char* pooldup(const char*);
 extern char* poolcat(const char* s1, const char* s2);
 
 /* compute the total n-dimensional size as 1 long array;

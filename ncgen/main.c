@@ -32,11 +32,7 @@ char* cdlname;
 /* option flags */
 int nofill_flag;
 char* mainname; /* name to use for main function; defaults to "main"*/
-int c_flag;
-int binary_flag;
-int f77_flag;
-int cml_flag;
-int java_flag; /* 1=> use netcdf java interface */
+Language l_flag;
 int syntax_only;
 int header_only;
 
@@ -49,6 +45,8 @@ int usingclassic;
 int cmode_modifier;
 
 int diskless;
+
+char* binary_ext = ".nc";
 
 size_t nciterbuffersize;
 
@@ -92,20 +90,39 @@ struct Kvalues legalkinds[NKVALUES] = {
     {NULL,0}
 };
 
+#ifndef _MSC_VER
 struct Languages {
     char* name;
-    int*  flag;
+    Language flag;
 } legallanguages[] = {
-{"b", &binary_flag},
-{"c", &c_flag},
-{"C", &c_flag},
-{"f77", &f77_flag},
-{"fortran77", &f77_flag},
-{"Fortran77", &f77_flag},
-{"j", &java_flag},
-{"java", &java_flag},
-{NULL,NULL}
+{"b", L_BINARY},
+{"c", L_C},
+{"C", L_C},
+{"f77", L_F77},
+{"fortran77", L_F77},
+{"Fortran77", L_F77},
+{"j", L_JAVA},
+{"java", L_JAVA},
+{NULL,L_UNDEFINED}
 };
+#else
+typedef struct Languages {
+		char* name;
+		Language flag;
+} Languages;
+
+struct Languages legallanguages[] = {
+{"b", L_BINARY},
+{"c", L_C},
+{"C", L_C},
+{"f77", L_F77},
+{"fortran77", L_F77},
+{"Fortran77", L_F77},
+{"j", L_JAVA},
+{"java", L_JAVA},
+{NULL,L_UNDEFINED}
+};
+#endif
 
 /* The default minimum iterator size depends
    on whether we are doing binary or language
@@ -146,8 +163,8 @@ main(
 {
     int c;
     FILE *fp;
-    int languages = 0;
-
+	struct Languages* langs;
+    char* lang_name;//
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif
@@ -159,11 +176,7 @@ main(
     cdlname = "-";
     netcdf_name = NULL;
     datasetname = NULL;
-    c_flag = 0;
-    f77_flag = 0;
-    cml_flag = 0;
-    java_flag = 0;
-    binary_flag = 0;
+    l_flag = 0;
     nofill_flag = 0;
     syntax_only = 0;
     header_only = 0;
@@ -191,27 +204,43 @@ main(
 	  debug = atoi(optarg);
 	  break;
 	case 'c': /* for c output, old version of "-lc" */
-	  c_flag = 1;
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_C;
 	  fprintf(stderr,"-c is deprecated: please use -lc\n");
 	  break;
 	case 'f': /* for f77 output, old version of "-lf" */
-	  f77_flag = 1;
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_F77;
 	  fprintf(stderr,"-f is deprecated: please use -lf77\n");
 	  break;
 	case 'b': /* for binary netcdf output, ".nc" extension */
-	  binary_flag = 1;
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_BINARY;
 	  break;
 	case 'h':
 	  header_only = 1;	  
 	  break;
-        case 'l': /* specify language, instead of using -c or -f or -b */
-	    {
-		struct Languages* langs;
-		char* lang_name = (char*) emalloc(strlen(optarg)+1);
+     case 'l': /* specify language, instead of using -c or -f or -b */
+
+		 {
+		if(l_flag != 0) {
+		    fprintf(stderr,"Please specify only one language\n");
+		    return 1;
+		}
+		lang_name = (char*) emalloc(strlen(optarg)+1);
 		(void)strcpy(lang_name, optarg);
 		for(langs=legallanguages;langs->name != NULL;langs++) {
 		    if(strcmp(lang_name,langs->name)==0) {
-			*(langs->flag) = 1;
+			l_flag = langs->flag;
 		        break;
 		    }
 		}
@@ -223,7 +252,12 @@ main(
 	    }
 	  break;
 	case 'n':		/* old version of -b, uses ".cdf" extension */
-	  binary_flag = -1;
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_BINARY;
+          binary_ext = ".cdf";
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  netcdf_name = nulldup(optarg);
@@ -280,26 +314,15 @@ main(
 	  return(8);
       }
 
-    /* check for multiple or no language spec */
-    if(binary_flag) languages++;
-    if(c_flag) languages++;
-    if(f77_flag)languages++;
-    if(cml_flag) languages++;
-    if(java_flag) languages++;
-    if(languages > 1) {
-	fprintf(stderr,"Please specify only one language\n");
-	return 1;
-    }
-
-    if(languages == 0) {
-	binary_flag = 1; /* default */
+    if(l_flag == 0) {
+	l_flag = L_BINARY; /* default */
 	/* Treat -k or -o as an implicit -lb assuming no other -l flags */
         if(k_flag == 0 && netcdf_name == NULL)
 	    syntax_only = 1;
     }
 
     /* Compute/default the iterator buffer size */
-    if(binary_flag) {
+    if(l_flag == L_BINARY) {
 	if(nciterbuffersize == 0 )
 	    nciterbuffersize = DFALTBINNCITERBUFFERSIZE;
     } else {
@@ -314,27 +337,28 @@ main(
     }
 #endif
 #ifndef ENABLE_BINARY
-    if(binary_flag) {
+    if(l_flag == L_BINARY) {
 	  fprintf(stderr,"Binary netcdf not currently supported\n");
 	  exit(1);
     }
 #endif
 #ifndef ENABLE_JAVA
-    if(java_flag) {
+    if(l_flag == L_JAVA) {
 	  fprintf(stderr,"Java not currently supported\n");
 	  exit(1);
     }
 #else
-    if(java_flag && strcmp(mainname,"main")==0) mainname = "Main";
+    if(l_flag == L_JAVA && strcmp(mainname,"main")==0)
+	mainname = "Main";
 #endif
 #ifndef ENABLE_F77
-    if(f77_flag) {
+    if(l_flag == L_F77) {
 	  fprintf(stderr,"F77 not currently supported\n");
 	  exit(1);
     }
 #endif
 
-    if(!binary_flag)
+    if(l_flag != L_BINARY)
 	diskless = 0;
 
     argc -= optind;
@@ -374,7 +398,7 @@ main(
     }
 #endif
 
-    if(java_flag || f77_flag) {
+    if(l_flag == L_JAVA || l_flag == L_F77) {
         k_flag = 1;
 	if(enhanced_flag) {
 	    derror("Java or Fortran requires classic model CDL input");
