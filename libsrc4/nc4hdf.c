@@ -1343,7 +1343,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    int d;
    NC_DIM_INFO_T *dim = NULL;
    int dims_found = 0;
-   int set_chunksizes = 0;
    char *name_to_use;
    int retval = NC_NOERR;
    
@@ -1454,8 +1453,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
          BAIL(NC_ENOMEM);
       if (!(maxdimsize = malloc(var->ndims * sizeof(hsize_t))))
          BAIL(NC_ENOMEM);
-      if (!(chunksize = malloc(var->ndims * sizeof(hsize_t))))
-         BAIL(NC_ENOMEM);
+      if (!var->contiguous)
+          if (!(chunksize = malloc(var->ndims * sizeof(hsize_t))))
+             BAIL(NC_ENOMEM);
    
       for (d = 0; d < var->ndims; d++)
       {
@@ -1489,12 +1489,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                          * length, make it the dim length. */
                         if (!dim->unlimited && chunksize[d] > dim->len)
                            chunksize[d] = dim->len;
-                        set_chunksizes++;
+
+                        /* Remember the computed chunksize */
+                        var->chunksizes[d] = chunksize[d];
                      }
                   }
 
-                  if (!var->contiguous && !var->chunksizes[d])
-                     var->chunksizes[d] = chunksize[d];
                   dims_found++;
                   break;
                }
@@ -1534,11 +1534,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
                                   H5P_CRT_ORDER_INDEXED) < 0)
       BAIL(NC_EHDFERR);
 
-   /* Set per-var chunk cache. */
-   if (var->chunk_cache_size)
+   /* Set per-var chunk cache, for chunked datasets. */
+   if (!var->contiguous && var->chunk_cache_size)
       if (H5Pset_chunk_cache(access_plistid, var->chunk_cache_nelems,
-			     var->chunk_cache_size, var->chunk_cache_preemption) < 0)
-	 BAIL(NC_EHDFERR);
+                             var->chunk_cache_size, var->chunk_cache_preemption) < 0)
+         BAIL(NC_EHDFERR);
 
    /* At long last, create the dataset. */
    name_to_use = var->hdf5_name ? var->hdf5_name : var->name;
@@ -2226,7 +2226,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
        * this object exists in the HDF group. */
       if (var->dimscale)
          for (d1 = grp->dim; d1; d1 = d1->next)
-            if (!strcmp(d1->name, var->name))
+            if (!strcmp(d1->name, var->name) ||
+                    !strcmp(d1->old_name, var->name))
             {
                if ((retval = var_exists(grp->hdf_grpid, var->name, &exists)))
                   return retval;
@@ -2240,6 +2241,11 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
                   if ((retval = rec_detach_scales(grp->nc4_info->root_grp, 
                                                   var->dimids[0], d1->hdf_dimscaleid)))
                      return retval;
+
+                  /* Check if this variable should no longer be a dimscale */
+                  /* (Because its dim was renamed) */
+                  if (!strcmp(d1->old_name, var->name))
+                      var->dimscale = 0;
                   break;
                }
             }
@@ -2253,6 +2259,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
             assert(d1 && d1->hdf_dimscaleid);
             if (H5Dclose(d1->hdf_dimscaleid) < 0) 
                return NC_EDIMMETA;
+            d1->hdf_dimscaleid = 0;
          }
          else
          {
@@ -2268,11 +2275,11 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
                   for (dim1 = g->dim; dim1; dim1 = dim1->next)
                      if (var->dimids[d] == dim1->dimid)
                      {
-                if(var->hdf_datasetid != dim1->hdf_dimscaleid)
-                        if (H5DSdetach_scale(var->hdf_datasetid, dim1->hdf_dimscaleid, d) < 0)
-                           BAIL(NC_EHDFERR);
-                if(var->dimscale_attached)
-                        var->dimscale_attached[d] = 0;
+                        if(var->hdf_datasetid != dim1->hdf_dimscaleid)
+                            if (H5DSdetach_scale(var->hdf_datasetid, dim1->hdf_dimscaleid, d) < 0)
+                               BAIL(NC_EHDFERR);
+                        if(var->dimscale_attached)
+                            var->dimscale_attached[d] = 0;
                         if (dims_detached++ == var->ndims)
                            finished++;
                      }
@@ -2280,6 +2287,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
             /* Free the HDF5 dataset id. */
             if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0) 
                BAIL(NC_EHDFERR);
+            var->hdf_datasetid = 0;
          }
                
          /* Now delete the variable. */
@@ -2293,7 +2301,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, int write_dimid)
          
       /* Reattach this scale everywhere it is used. (Recall that
        * netCDF dimscales are always 1-D). */
-      if (d1 && replace_existing_var)
+      /* (Only do this if the variable is still a dimscale) */
+      if (d1 && replace_existing_var && var->dimscale)
       {
          d1->hdf_dimscaleid = var->hdf_datasetid;
          if ((retval = rec_reattach_scales(grp->nc4_info->root_grp, 

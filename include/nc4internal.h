@@ -145,7 +145,7 @@ typedef struct NC_VAR_INFO
    struct NC_VAR_INFO *next;
    struct NC_VAR_INFO *prev;
    int dirty;
-   int created;
+   int created;         /* Variable has already been created (_not_ that it was just created) */
    int written_to;
    int *dimscale_attached;
    struct NC_TYPE_INFO *type_info;
