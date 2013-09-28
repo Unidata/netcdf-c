@@ -216,7 +216,7 @@ netcdf foo {  // an example netCDF specification in CDL
 \fBvariables\fP:
 	/g/\fIcmpd_t\fP  compoundvar;
 \fBdata\fP:
-        compoundvar = { {3,4,5}, Stratus } ;
+        compoundvar = { {3,4,5}, enum_t.Stratus } ;
 } // group h
 }
 .fi
@@ -656,7 +656,7 @@ When name is not prefixed, then scope rules are applied to locate the
 specified declaration. Currently, there are three rules: one for dimensions,
 one for types and enumeration constants, and one for all others.
 .HP
-1. When an unprefixed name of a dimension is used (as in a
+When an unprefixed name of a dimension is used (as in a
 variable declaration), ncgen first looks in the immediately
 enclosing group for the dimension.  If it is not found
 there, then it looks in the group enclosing this group.
@@ -674,6 +674,20 @@ is "highest" in the group hierarchy.
 One final note. Forward references are not allowed.
 This means that specifying, for example,
 /g1/g2/t1 will fail if this reference occurs before g1 and/or g2 are defined.
+.SS "Specifying Enumeration Constants"
+.LP
+References to Enumeration constants (in data lists) can be ambiguous
+since the same enumeration constant name can be defined in more than
+one enumeration. If a cdl file specified an ambiguous constant,
+then ncgen will signal an error. Such constants can be disambiguated
+in two ways.
+.IP "\fB1.\fP"
+Prefix the enumeration constant with the name of the enumeration separated
+by a dot: \fIenum.econst\fP, for example.
+.IP "\fB2.\fP"
+If case one is not sufficient to disambiguate the enumeration constant,
+then one must specify the precise enumeration type using 
+a group path: \fI/g1/g2/enum.econst\fP, for example.
 .SS "Special Attributes"
 .LP
 Special, virtual, attributes can be specified to provide

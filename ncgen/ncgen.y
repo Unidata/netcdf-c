@@ -99,10 +99,10 @@ List* tmp;
 /* Forward */
 static NCConstant makeconstdata(nc_type);
 static NCConstant evaluate(Symbol* fcn, Datalist* arglist);
-static NCConstant makeenumconst(Symbol*);
+static NCConstant makeenumconstref(Symbol*);
 static void addtogroup(Symbol*);
 static Symbol* currentgroup(void);
-static Symbol* createrootgroup(void);
+static Symbol* createrootgroup(const char*);
 static Symbol* creategroup(Symbol*);
 static int dupobjectcheck(nc_class,Symbol*);
 static void setpathcurrent(Symbol* sym);
@@ -173,7 +173,7 @@ NCConstant       constant;
         OPAQUE
         OPAQUESTRING    /* 0x<even number of hexdigits> */
         GROUP
-	PATH            /* / or (/IDENT)+ */
+	PATH            /* / or (/IDENT)+(.IDENT)? */
 	FILLMARKER	/* "_" as opposed to the attribute */
 	NIL             /* NIL */
         _FILLVALUE
@@ -195,7 +195,7 @@ NCConstant       constant;
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
-%type <constant> simpleconstant function 
+%type <constant> simpleconstant function econstref
 %type <datalist> datalist intlist datalist1 datalist0 arglist
 
 
@@ -206,10 +206,12 @@ NCConstant       constant;
 /* RULES */
 
 ncdesc: NETCDF
-	DATASETID
+	datasetid
         rootgroup
         {if (error_count > 0) YYABORT;}
         ;
+
+datasetid: DATASETID {createrootgroup(datasetname);};
 
 rootgroup: '{'
            groupbody
@@ -321,7 +323,7 @@ enumidlist:   enumid
 		}
 	    ;
 
-enumid: ident '=' constdata
+enumid: ident '=' constint
         {
             $1->objectclass=NC_TYPE;
             $1->subclass=NC_ECONST;
@@ -758,13 +760,14 @@ path:
 	  ident
 	    {
 	        $$=$1;
-                $1->is_ref=1;
+                $1->ref.is_ref=1;
+                $1->is_prefixed=0;
                 setpathcurrent($1);
 	    }
 	| PATH
 	    {
 	        $$=$1;
-                $1->is_ref=1;
+                $1->ref.is_ref=1;
                 $1->is_prefixed=1;
 	        /* path is set in ncgen.l*/
 	    }
@@ -807,8 +810,12 @@ constdata:
 	| OPAQUESTRING	{$$=makeconstdata(NC_OPAQUE);}
 	| FILLMARKER	{$$=makeconstdata(NC_FILLVALUE);}
 	| NIL   	{$$=makeconstdata(NC_NIL);}
-	| path		{$$=makeenumconst($1);}
+	| econstref	{$$=$1;}
 	| function
+	;
+
+econstref:
+	path {$$ = makeenumconstref($1);}
 	;
 
 function:
@@ -918,7 +925,6 @@ parse_init(void)
     vardefs = listnew();
     condefs = listnew();
     tmp = listnew();
-    createrootgroup();
     /* Create the primitive types */
     for(i=NC_NAT+1;i<=NC_STRING;i++) {
         primsymbols[i] = makeprimitivetype(i);
@@ -969,9 +975,9 @@ currentgroup(void)
 }
 
 static Symbol*
-createrootgroup(void)
+createrootgroup(const char* dataset)
 {
-    Symbol* gsym = install(ROOTGROUPNAME);
+    Symbol* gsym = install(dataset);
     gsym->objectclass = NC_GRP;
     gsym->container = NULL;
     gsym->subnodes = listnew();
@@ -1062,25 +1068,18 @@ makeconstdata(nc_type nctype)
 }
 
 static NCConstant
-makeenumconst(Symbol* econst)
+makeenumconstref(Symbol* refsym)
 {
     NCConstant con;
+
     markcdf4("Enum type");
     consttype = NC_ENUM;
     con.nctype = NC_ECONST;
     con.lineno = lineno;
     con.filled = 0;
-    /* fix up econst to be a ref to an econst*/
-    econst->objectclass = NC_TYPE;
-    econst->subclass = NC_ECONST;
-    {
-	Symbol* defsym;
-	defsym = locate(econst);
-	if(defsym == NULL)
-	    derror("Undefined or forward referenced enum constant: %s",econst->name);
-	econst = defsym;
-    }
-    con.value.enumv = econst;
+    refsym->objectclass = NC_TYPE;
+    refsym->subclass = NC_ECONST;
+    con.value.enumv = refsym;
     return con;
 }
 
@@ -1104,7 +1103,7 @@ dupobjectcheck(nc_class objectclass, Symbol* pattern)
     if(grp == NULL || grp->subnodes == NULL) return 0;
     for(i=0;i<listlength(grp->subnodes);i++) {
 	Symbol* sym = (Symbol*)listget(grp->subnodes,i);
-	if(!sym->is_ref && sym->objectclass == objectclass
+	if(!sym->ref.is_ref && sym->objectclass == objectclass
 	   && strcmp(sym->name,pattern->name)==0) return 1;
     }
     return 0;

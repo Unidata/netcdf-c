@@ -99,7 +99,7 @@ EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.
-MAINTAINERCLEANFILES = test_get.c test_put.c
+#MAINTAINERCLEANFILES = test_get.c test_put.c
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:

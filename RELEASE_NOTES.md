@@ -8,7 +8,38 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
-### 4.3.1-rc3 Released TBD
+### 4.3.1-rc4 Released TBD
+
+Fix bug introduced by [NCF-267] where octal constants above
+'\177' were not recognized as proper octal constants. [NCF-271]
+
+[NCF-271]:https://bugtracking.unidata.ucar.edu/browse/NCF-271
+
+### 4.3.1-rc3 Released 2013-09-24
+
+* Modify ncgen to support NUL characters in character array
+  constants. [NCF-267]
+
+[NCF-267]:https://bugtracking.unidata.ucar.edu/browse/NCF-267
+
+* Modify ncgen to support disambiguating references to
+  an enum constant in a data list. [NCF-265]
+  
+[NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
+
+* Corrected bug in netCDF-4 dimension ID ordering assumptions, resulting in access that works locally but fails through DAP server. [NCF-166]
+
+[NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
+
+* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
+
+* Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
+
+[NCF-160]:https://bugtracking.unidata.ucar.edu/browse/NCF-160
+
+* Addressed issue with hanging Parallel netCDF-4 using HDF5 1.8.10. [NCF-240]
+
+[NCF-240]:https://bugtracking.unidata.ucar.edu/browse/NCF-240
 
 * Addressed issue with Large File Support on Windows, using both 32 and 64-bit builds. [NCF-219]
 
@@ -26,7 +57,7 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 * Integrated a fix by Quincey Koziol which addressed a variation of [NCF-250], *Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging*.
 
-[NCF-250]:https://www.unidata.ucar.edu/jira/browse/NCF-258
+[NCF-250]:https://www.unidata.ucar.edu/jira/browse/NCF-250
 
 * Integrated change contributed by Orion Poplawski which integrated GNUInstallDirs into the netCDF-C CMake system; this will permit systems that install into lib64 (such as Fedora) to `make install` without problem.
 
@@ -83,8 +114,8 @@ explicitely enabled instead of explicitely disabled. [NCF-239]
 
 [NCF-249]: https://www.unidata.ucar.edu/jira/browse/NCF-249
 
-* Fixed netCDF-4 bug where netCDF would ignore the HDF5 reference type in
-the file, instead of rejecting the file as it should. [NCF-29]
+* Fixed netCDF-4 bug so netCDF just ignores objects of HDF5 reference type in
+the file, instead of rejecting the file. [NCF-29]
 
 [NCF-29]: https://www.unidata.ucar.edu/jira/browse/NCF-29
 

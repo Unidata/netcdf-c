@@ -49,7 +49,7 @@ typedef union Constvalue {
 } Constvalue;
 
 typedef struct NCConstant {
-    nc_type 	  nctype;
+    nc_type 	  nctype; /* NC_INT,... */
     int		  lineno;
     Constvalue    value;
     int           filled; /* was this originally NC_FILLVALUE? */

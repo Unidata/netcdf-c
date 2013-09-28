@@ -41,10 +41,6 @@ static void genf77_writevar(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static void genf77_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 
 
-#ifdef USE_NETCDF4
-static char* f77prefixed(List* prefix, char* suffix, char* separator);
-#endif
-
 /*
  * Generate code for creating netCDF from in-memory structure.
  */
@@ -239,7 +235,7 @@ gen_ncf77(const char *filename)
             Symbol* dsym = (Symbol*)listget(dimdefs,idim);
     	    bbprintf0(stmt,
 		"stat = nf_def_dim(ncid, %s, %s_len, %s);\n",
-                f77escapifyname(dsym->name), f77name(dsym), f77dimncid(dsym));
+                  codify(dsym->name), f77name(dsym), f77dimncid(dsym));
 	    codedump(stmt);
 	    codeline("call check_err(stat)");
        }
@@ -270,7 +266,7 @@ gen_ncf77(const char *filename)
 	    }
 	    bbprintf0(stmt,
 			"stat = nf_def_var(ncid, %s, %s, %s_rank, %s, %s);\n",
-			f77escapifyname(vsym->name),
+			codify(vsym->name),
 			nftype(basetype->typ.typecode),
 			f77name(vsym),
 			(dimset->ndims == 0?"0":poolcat(f77name(vsym),"_dims")),
@@ -440,39 +436,13 @@ f77typename(Symbol* tsym)
 }
 
 /* Compute the name for a given symbol*/
-/* Cache in symbol->lname*/
 const char*
 f77name(Symbol* sym)
 {
-    if(sym->lname == NULL) {
-	char* name = pooldup(sym->name);
-#ifdef USE_NETCDF4
-	if(sym->subclass == NC_FIELD || sym->subclass == NC_ECONST) {
-	     sym->lname = nulldup(decodify(name));
-	} else
-#endif
-	if(sym->objectclass == NC_ATT && sym->att.var != NULL) {
-	    /* Attribute name must be prefixed with the f77name of the*/
-	    /* associated variable*/
-	    const char* vname = f77name(sym->att.var);
-	    const char* aname = decodify(name);
-	    sym->lname = (char*)emalloc(strlen(vname)
-					+strlen(aname)
-					+1+1);
-	    sym->lname[0] = '\0';
-            strcpy(sym->lname,vname);
-	    strcat(sym->lname,"_");
-	    strcat(sym->lname,aname);
-	} else {
-            /* convert to language form*/
-#ifdef USE_NETCDF4
-            sym->lname = nulldup(decodify(f77prefixed(sym->prefix,name,"_")));
-#else
-            sym->lname = nulldup(decodify(name)); /* convert to usable form*/
-#endif
-	}
-    }
-    return sym->lname;
+    char* name;
+    assert(sym->fqn != NULL);
+    name = codify(sym->fqn);
+    return name;
 }
 
 static void
@@ -601,6 +571,7 @@ f77attrifyr(Symbol* asym, char* p, Bytebuffer* buf)
 }
 
 #ifdef USE_NETCDF4
+#if 0
 /* Result is pool alloc'd*/
 static char*
 f77prefixed(List* prefix, char* suffix, char* separator)
@@ -612,7 +583,7 @@ f77prefixed(List* prefix, char* suffix, char* separator)
 
     ASSERT(suffix != NULL);
     plen = prefixlen(prefix);
-    if(prefix == NULL || plen == 0) return decodify(suffix);
+    if(prefix == NULL || plen == 0) return codify(suffix);
     /* plen > 0*/
     slen = 0;
     for(i=0;i<plen;i++) {
@@ -633,6 +604,7 @@ f77prefixed(List* prefix, char* suffix, char* separator)
     strcat(result,suffix); /* append "<suffix>"*/
     return result;
 }
+#endif
 #endif
 
 /* return FORTRAN name for netCDF type, given type code */
@@ -904,7 +876,7 @@ genf77_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 		nfstype(basetype->typ.typecode),
 		(asym->att.var == NULL?"NF_GLOBAL"
 				      :f77varncid(asym->att.var)),
-		f77escapifyname(asym->name),
+		codify(asym->name),
 		nftype(basetype->typ.typecode),		
 		len,
 		ncftype(basetype->typ.typecode));
@@ -918,7 +890,7 @@ genf77_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	bbprintf0(stmt,"stat = nf_put_att_text(ncid, %s, %s, %lu, ",
 		(asym->att.var == NULL?"NF_GLOBAL"
 				      :f77varncid(asym->att.var)),
-		f77escapifyname(asym->name),
+		codify(asym->name),
 		len);
 	codedump(stmt);
 	codedump(code);

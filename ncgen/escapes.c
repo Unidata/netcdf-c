@@ -7,9 +7,16 @@
 #include "includes.h"
 #include "ConvertUTF.h"
 
-/* Forward*/
-static void initdecodify(void);
+#define HEXCHARS "0123456789abcdefABCDEF"
+#define OCTCHARS "01234567"
 
+/* Forward*/
+static void initcodify(void);
+static char* ccodify(const char*);
+static char* f77codify(const char*);
+static char* jcodify(const char*);
+
+#if 0
 /*
  * Replace escaped chars in CDL representation of name such as
  * 'abc\:def\ gh\\i' with unescaped version, such as 'abc:def gh\i'.
@@ -49,13 +56,15 @@ deescapify(char* name)
     efree(newname);
     return;
 }
+#endif /*0*/
 
 /*
 Given a character c, fill s with the character suitably escaped.
 E.g. c = '\t' => s="\t"
-Caller must ensure enough space
-Currently does not handle unicode
-Returns s as it result.
+Caller must ensure enough space.
+Watch out for embedded NULs.
+Currently passes unicode thru unchanged.
+Returns s as its result.
 */
 
 char*
@@ -67,6 +76,8 @@ escapifychar(unsigned int c, char* s0, int quote)
     } else if(c == quote) {
 	*s++ = '\\'; *s++=(char)quote;
     } else if(c >= ' ' && c != '\177') {
+	*s++ = (char)c;
+    } else if((c & 0x80) != 0) {/* Unicode */
 	*s++ = (char)c;
     } else {
         switch (c) {
@@ -139,8 +150,8 @@ cquotestring(Bytebuffer* databuf, char quote)
  * Note that apparently, FORTRAN will not allow a leading underscore,
  * so remove if we are doing fortran.
  *
- * It is required that decodify be idempotent:
- * i.e. decodify(decodify(s)) == decodify(s)
+ * It is required that codify be idempotent:
+ * i.e. codify(codify(s)) == codify(s)
  *
  * Returned name is pool alloc'd so is transient
  */
@@ -183,15 +194,14 @@ static struct {
 	{'|', "_VERTICALBAR_"},
 	{'}', "_RIGHTCURLY_"},
 	{'~', "_TILDE_"},
- 	{'/', "_SLASH_"} 		/* should not occur in names */
-/* 	{'_', "_UNDERSCORE_"} */
+ 	{'/', "_SLASH_"},
 };
 static int idtlen;
 static int hexlen;
 static Bytebuffer* newname;
 
 static void
-initdecodify(void)
+initcodify(void)
 {
     int nctable = (sizeof(ctable))/(sizeof(ctable[0]));
     int i;
@@ -223,14 +233,43 @@ initdecodify(void)
     init = 1;               /* only do this initialization once */
 }
 
+/*
+Convert a name to a 
+form suitable for use in a
+language file.
+Conversion depends on l_flag.
+*/
 char*
-decodify(const char *name0)
+codify(const char *name0)
+{
+    /* If the name is rooted, then elide
+       the leading '/'.
+    */
+    if(name0[0] == '/')
+	name0++;
+    switch (l_flag) {
+    case L_BINARY:
+	return pooldup(name0);
+    case L_C:
+        return ccodify(name0);
+    case L_F77:
+        return f77codify(name0);
+    case L_JAVA:
+        return jcodify(name0);
+    default:
+        assert(0); /*no such language*/
+    }
+    return NULL;
+}
+
+static char*
+ccodify(const char *name0)
 {
     const unsigned char *cp;
     unsigned int c;
     char* name;
 
-    if(init == 0) initdecodify();
+    if(init == 0) initcodify();
     bbClear(newname);
     cp = (const unsigned char*) name0;
     if('0' <= *cp && *cp <= '9') { /* handle initial digit, if any */
@@ -243,10 +282,18 @@ decodify(const char *name0)
 	ASSERT(c <= 256);
 	bbCat(newname,repls[c]);
     }
-    /* If FORTRAN, remove leading _, if any */
+    /* Remove leading _, if any */
     name = bbContents(newname);
     if(bbGet(newname,0) == '_') name++;
     return pooldup(name);
+}
+
+char*
+cescapifychar(unsigned int c, int quote)
+{
+    char* s = poolalloc(4+1);
+    escapifychar(c,s,quote);
+    return s;
 }
 
 /**************************************************/
@@ -414,15 +461,16 @@ Convert a java name that might possibly
 contain utf8 characters to one that is
 acceptable to the Java compiler.
 Basically this means convert the printables
-using decodify (above) equivalent and then escape
+using codify (above) equivalent and then escape
 all the utf chars.
 */
-char*
-jdecodify (const char *name)
+static char*
+jcodify (const char *name)
 {
-    return decodify(name);
+    return codify(name);
 }
 
+/**************************************************/
 /* FORTRAN does escapes differently than e.g. C */
 
 char*
@@ -483,8 +531,8 @@ f77quotestring(Bytebuffer* databuf)
     if(!lastcharescaped) bbAppend(databuf,'\'');
 }
 
-char*
-f77escapifyname(char* s0)
+static char*
+f77codify(const char* s0)
 {
     Bytebuffer* buf = bbNew();
     char* name;
@@ -493,4 +541,189 @@ f77escapifyname(char* s0)
     name = bbDup(buf);
     bbFree(buf);
     return name;
+}
+
+/**************************************************/
+/* Escape Fqn segment names by replacing
+   '/' and '.' by alternate representation.
+*/
+
+char*
+fqnescape(const char* s)
+{
+    const char* p;
+    char* q;
+    int c;
+    int l = strlen(s);
+
+/*
+1234567
+_SLASH_
+_DOT__
+*/
+    char* newname = poolalloc(l*7+1);
+    *newname = '\0';
+    for(q=newname,p=s;(c=*p++);) {
+#if 0
+        if(c == '/' || c == '.') {
+	    /* Do hex escape */
+	    int hex1 = (c & 0x0f);
+	    int hex2 = ((c >> 4) & 0x0f);
+	    *q++ = 'X';
+            *q++ = hexdigits[hex1];
+            *q++ = hexdigits[hex2];
+        } else
+	    *q++ = c;
+#else
+        if(c == '/') {
+	    strcat(q,"_SLASH_");
+	    q += 7;
+        } else if(c == '.') {
+	    strcat(q,"_DOT_");
+	    q += 5;
+	} else {
+	    *q++ = c;
+	    *q = '\0';
+	}
+#endif
+    }
+    return newname;
+}
+
+/**************************************************/
+
+/*
+ * Given a pointer to a string of the form
+ * 'xdd', return the corresponding hex byte
+ */
+
+int
+unescapehex(const char* s)
+{
+    int b;
+    int c1 = s[0];
+    int c2 = s[1];
+    if(strchr(HEXCHARS,c1) == NULL
+       || strchr(HEXCHARS,c2) == NULL)
+	return -1;
+    b = 0;
+    if(c1 < 'a') c1 = (c1 - 'A') + 'a';/* lowercase */
+    if(c1 <= '9') b = (c1 - '0') << 4;
+    else b = ((c1 - 'a')+10) << 4;
+    if(c2 < 'a') c2 |= (c2 - 'A') + 'a';/* lowercase */
+    if(c2 <= '9') b = (c2 - '0');
+    else b |= ((c2 - 'a')+10);
+    return b;
+}
+
+/*
+ * Given a pointer to a string of the form
+ * 'ddd', return the corresponding 
+ * unsigned octal byte
+ */
+
+int
+unescapeoct(const char* s)
+{
+    int b;
+    int c1 = s[0];
+    int c2 = s[1];
+    int c3 = s[2];
+    if(strchr(OCTCHARS,c1) == NULL
+       || strchr(OCTCHARS,c2) == NULL
+       || strchr(OCTCHARS,c3) == NULL)
+	return -1;
+    b = (c1 - '0') << 6;
+    b |= (c2 - '0') << 3;
+    b |= (c3 - '0');
+    return b;
+}
+
+/*
+ * "Un-escapes" valid escape sequences in yystring (read by lex) into the
+ * apropriate unescaped characters.  For example, the two character
+ * sequence "\t" in yystring would be converted into a single tab character.
+ * On return, termstring is nul terminated.
+ * Watch out for embedded nuls and utf-8 characters.
+ * Return # of characters written.
+ */
+
+int
+unescape(
+     char *s, /* fill with contents of yytext, with escapes removed.
+                 s and yytext may be same*/
+     const char *yytext,
+     int yyleng)
+{
+    const char *t, *tend;
+    char* p;
+    int b;
+    /* expand "\" escapes, e.g. "\t" to tab character  */
+    t = yytext;
+    tend = t + yyleng;
+    p = s;
+    while(*t && t < tend) {
+	if (*t == '\\') {
+	    t++;
+	    switch (*t) {
+	      case 'a':
+		*p++ = ('\007'); t++; /* will use '\a' when STDC */
+		break;
+	      case 'b':
+		*p++ = ('\b'); t++;
+		break;
+	      case 'f':
+		*p++ = ('\f'); t++;
+		break;
+	      case 'n':
+		*p++ = ('\n'); t++;
+		break;
+	      case 'r':
+		*p++ = ('\r'); t++;
+		break;
+	      case 't':
+		*p++ = ('\t'); t++;
+		break;
+	      case 'v':
+		*p++ = ('\v'); t++;
+		break;
+	      case '\\':
+		*p++ = ('\\'); t++;
+		break;
+	      case '?':
+		*p++ = ('\177'); t++;
+		break;
+	      case '\'':
+		*p++ = ('\''); t++;
+		break;
+	      case '\"':
+		*p++ = ('\"'); t++;
+		break;
+	      case 'x':
+		/* t now points to hex */
+		b = unescapehex(t);
+		t += 2;
+		*p++ = ((char)b);
+		break;
+	      case '0': case '1': case '2': case '3':
+	      case '4': case '5': case '6': case '7':
+		/* t now points to octal */
+		b = unescapeoct(t);
+		if(b < 0) {
+		    derror("Bad octal constant: %s",yytext);
+		    b = 0;
+		}
+		t += 3;
+		*p++ = ((char)b);
+		break;
+	      default:
+		*p++ = (*t); t++;
+		break;
+	    }
+	} else {
+	    *p++ = (*t); t++;
+	}
+    }
+    *p = '\0';
+    return (p - s);
 }

@@ -11,7 +11,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "-rc3")
+SET(netCDF_VERSION_NOTE "-rc4")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 #Library .so version.
@@ -40,6 +40,9 @@ set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variab
 ENDIF()
 ENABLE_TESTING()
 INCLUDE(CTest)
+
+# Copy the CTest customization file into binary directory, as required.
+FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
@@ -89,12 +92,12 @@ FIND_PACKAGE(PkgConfig QUIET)
 ## Enable 'dist and distcheck'.
 ## File taken from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
-
-
 ## End 'enable dist and distcheck'
+
+
+# Supress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
-	# Supress some warnings on Windows
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
@@ -236,6 +239,38 @@ MACRO(add_sh_test prefix F)
 
 ENDMACRO()
 
+
+# Macro for replacing '/MD' with '/MT'.
+# Used only on Windows, /MD tells VS to use the shared
+# CRT libs, MT tells VS to use the static CRT libs.
+#
+# Taken From:
+# 	http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
+#
+MACRO(specify_static_crt_flag) 
+
+  SET(vars 
+    CMAKE_C_FLAGS
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_MINSIZEREL
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+  
+  FOREACH(flag_var ${vars})
+    IF(${flag_var} MATCHES "/MD")
+      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    ENDIF()
+  ENDFOREACH()			    
+  
+  FOREACH(flag_var ${vars})
+    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
+  ENDFOREACH()
+  MESSAGE(STATUS "")
+
+ENDMACRO()
+
 ##
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
@@ -300,6 +335,16 @@ IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 	SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
 ENDIF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
+
+# Option to use Static Runtimes in MSVC
+IF(MSVC)
+  OPTION(NC_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
+  IF(NC_USE_STATIC_CRT)
+    SET(USE_STATIC_CRT ON)
+    specify_static_crt_flag()
+  ENDIF()
+ENDIF()
+
 # Option to build netCDF Version 2
 OPTION (BUILD_V2 "Build netCDF Version 2." ON)
 
@@ -332,11 +377,25 @@ IF(ENABLE_DISKLESS)
 ENDIF()
 
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+		        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+        		SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+	ENDIF()
 ENDIF()
 
+OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+IF(ENABLE_CONVERSION_WARNINGS)
+        IF(NOT MSVC)
+		IF(APPLE)
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+  		ELSE()
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
+  		ENDIF(APPLE)
+        ENDIF(NOT MSVC)
+ENDIF(ENABLE_CONVERSION_WARNINGS)
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -365,7 +424,7 @@ IF (ENABLE_HDF4)
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
    MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
-   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests.",OFF)
+   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests." OFF)
    IF(ENABLE_HDF4_FILE_TESTS)
 	SET(USE_HDF4_FILE_TESTS ON)
    ENDIF()
@@ -760,7 +819,7 @@ ENDIF()
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
 	"${netCDF_BINARY_DIR}/config.h")
-
+ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h

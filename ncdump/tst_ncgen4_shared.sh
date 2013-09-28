@@ -42,6 +42,7 @@ small2 \
 tst_ncml
 n3time \
 ref_tst_chardata \
+ref_tst_nul3 \
 unlimtest1"
 
 NONCLASSIC3="\
@@ -90,6 +91,7 @@ ref_tst_vlen_data \
 ref_tst_vlen_data2 \
 ref_niltest \
 ref_tst_h_scalar \
+ref_tst_nul4 \
 "
 
 SPECIALTESTS3="ref_tst_special_atts3"
@@ -103,6 +105,8 @@ XFAILTESTS="ref_tst_unlim2 $XFAILTESTS"
 XFAILTESTS="ref_const_test $XFAILTESTS"
 # Fails because ?
 XFAILTESTS="ref_tst_chardata $XFAILTESTS"
+# Fails because ncdump is crashing
+XFAILTESTS="ref_tst_econst $XFAILTESTS"
 
 # Following are generally not run
 # Because of the size of their output

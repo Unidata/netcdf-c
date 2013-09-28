@@ -88,7 +88,7 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     bbSetalloc(code, nciterbuffersize);
 
     if(rank == 0) {/*scalar case*/
-    NCConstant* c0 = datalistith(vsym->data,0);
+        NCConstant* c0 = datalistith(vsym->data,0);
         generate_basetype(basetype,c0,code,filler,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
@@ -463,6 +463,7 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
 		  Datalist* filler, Generator* generator)
 {
     NCConstant target;
+    int match;
 
     if(prim == NULL || isfillconst(prim)) {
 	Datalist* fill = (filler==NULL?getfiller(basetype):filler);
@@ -471,6 +472,52 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
     }
 
     ASSERT(prim->nctype != NC_COMPOUND);
+
+    /* Verify that the constant is consistent with the type */
+    match = 1;
+    switch (prim->nctype) {
+    case NC_CHAR:
+    case NC_BYTE:
+    case NC_SHORT:
+    case NC_INT:
+    case NC_FLOAT:
+    case NC_DOUBLE:
+    case NC_UBYTE:
+    case NC_USHORT:
+    case NC_UINT:
+    case NC_INT64:
+    case NC_UINT64:
+    case NC_STRING:
+	match = (basetype->subclass == NC_PRIM ? 1 : 0);
+	break;
+
+#ifdef USE_NETCDF4
+    case NC_NIL:
+	match = (basetype->subclass == NC_PRIM && basetype->typ.typecode == NC_STRING ? 1 : 0);
+	break;
+
+    case NC_OPAQUE:
+	/* OPAQUE is also consistent with numbers */
+	match = (basetype->subclass == NC_OPAQUE
+		 || basetype->subclass == NC_PRIM ? 1 : 0);
+	break;
+    case NC_ECONST:
+	match = (basetype->subclass == NC_ENUM ? 1 : 0);
+	if(match) {
+	    /* Make sure this econst belongs to this enum */
+	    Symbol* ec = prim->value.enumv;
+	    Symbol* en = ec->container;
+	    match = (en == basetype);
+	}
+	break;
+#endif
+    default:
+	match = 0;
+    }
+    if(!match) {
+        semerror(constline(prim),"Data value is not consistent with the expected type: %s",
+		 basetype->name);
+    }
 
     target.nctype = basetype->typ.typecode;
 
