@@ -1,9 +1,14 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2013, see the COPYRIGHT file for more information.
 
+
+##################################
+# Set Project Properties
+##################################
+
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
- 
+
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
@@ -14,20 +19,12 @@ SET(netCDF_VERSION_PATCH 1)
 SET(netCDF_VERSION_NOTE "-rc4")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
-#Library .so version.
 SET(netCDF_SO_VERSION 7.2.0)
-
-# Set some default C Flags if we are using GCC
-IF(CMAKE_COMPILER_IS_GNUCC)
-	SET(CMAKE_C_FLAGS "-g -O2")
-ENDIF()
-
 
 # Get system configuration,
 # Use it to determine osname,
 # os release, cpu. These will be used
 # when committing to CDash.
-
 find_program(UNAME NAMES uname)
 IF(UNAME)
 macro(getuname name flag)
@@ -38,11 +35,6 @@ getuname(osrel  -r)
 getuname(cpu    -m)
 set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
-ENABLE_TESTING()
-INCLUDE(CTest)
-
-# Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
@@ -51,33 +43,12 @@ IF(MSVC)
 	SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
-# CTest configuration
-IF(NOT MSVC)
-	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
-ENDIF()
-
-# Default to shared libs on
-OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-# Set variable to define the build type.
-INCLUDE(GenerateExportHeader)
-SET (LIB_TYPE STATIC)
-IF (BUILD_SHARED_LIBS)
-	SET(LIB_TYPE SHARED)
-	IF(CMAKE_COMPILER_IS_GNUCC)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-	ENDIF()
-ENDIF()
-ADD_DEFINITIONS()
-
-### Verbose make, for debugging.
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #Add custom CMake Module
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
     CACHE INTERNAL "Location of our custom CMake modules.")
 
-# Configure-type checks
+# auto-configure style checks, other CMake modules.
 INCLUDE (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
@@ -88,12 +59,77 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 FIND_PACKAGE(PkgConfig QUIET)
 
-
-## Enable 'dist and distcheck'.
-## File taken from http://ensc.de/cmake/FindMakeDist.cmake
+# Enable 'dist and distcheck'.
+# File adapted from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
-## End 'enable dist and distcheck'
+# End 'enable dist and distcheck'
 
+# Set the build type.
+IF (NOT CMAKE_BUILD_TYPE)
+	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
+		FORCE)
+ENDIF()
+
+################################
+# End Project Properties
+################################
+
+
+################################
+# Set CTest Properties
+################################
+
+ENABLE_TESTING()
+INCLUDE(CTest)
+
+# Copy the CTest customization file into binary directory, as required.
+FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+
+# Set Memory test program for non-MSVC based builds.
+# Assume valgrind for now.
+IF(NOT MSVC)
+	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
+ENDIF()
+
+# Set variable to define the build type.
+INCLUDE(GenerateExportHeader)
+
+################################
+# End CTest Properties
+################################
+
+
+################################
+# Compiler Configuration
+################################
+
+
+# Default to shared libs on.
+OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+SET (LIB_TYPE STATIC)
+IF (BUILD_SHARED_LIBS)
+	SET(LIB_TYPE SHARED)
+	IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	ENDIF()
+ENDIF()
+
+# Supress unused variable and parameter warnings, for the time being,
+# on GCC.
+#
+# Also, set some other default compiler flags.
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
+ENDIF()
+
+IF(NOT ENABLE_COVERAGE_TESTS)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
+ENDIF()
+
+
+ADD_DEFINITIONS()
 
 # Supress CRT Warnings.
 # Only necessary for Windows
@@ -101,15 +137,17 @@ IF(MSVC)
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
-IF (NOT CMAKE_BUILD_TYPE)
-	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
-		FORCE)
-ENDIF()
-#####
-# Some utility macros/scripts.
-#####
+
+################################
+# End Compiler Configuration
+################################
+
+
+################################
+# Define Utility Macros
+################################
+
 # Macro to append files to the EXTRA_DIST files.
-#####
 SET(EXTRA_DIST "")
 MACRO(ADD_EXTRA_DIST files)
   FOREACH(F ${files})
@@ -271,6 +309,11 @@ MACRO(specify_static_crt_flag)
 
 ENDMACRO()
 
+################################
+# End Macro Definitions
+################################
+
+
 ##
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
@@ -308,9 +351,11 @@ ENDIF()
 ##
 
 
-#####
+################################
 # Option checks
-#####
+################################
+
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # HDF5 cache variables.
 SET (DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
@@ -379,8 +424,8 @@ ENDIF()
 IF(ENABLE_COVERAGE_TESTS)
 	IF(CMAKE_COMPILER_IS_GNUCC)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-		        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        		SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -W -fprofile-arcs -ftest-coverage")
+        	SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 	ENDIF()
 ENDIF()
 
@@ -590,11 +635,6 @@ ENDIF()
 # Location for large file tests.
 SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-IF(ENABLE_INTERNAL_DOCS)
-	SET(BUILD_INTERNAL_DOCS ON)
-ENDIF()
-
 OPTION (ENABLE_FSYNC "Enable experimental fsync code." OFF)
 IF(ENABLE_FSYNC)
 	SET(USE_FSYNC ON)
@@ -604,9 +644,6 @@ ENDIF()
 # Modelled after check in CMakeLists.txt for hdf5.
 IF (NOT WINDOWS)
   OPTION(ENABLE_LFS "Enable large (64-bit) files on linux." ON)
-  # TODO: There needs to be a check here to ensure
-  # that large file support is actually supported.
-  
   IF(ENABLE_LFS)
     SET(_FILE_OFFSET_BITS 64)
     SET(_LARGEFILE64_SOURCE TRUE)
@@ -618,8 +655,8 @@ ENDIF()
 # Provide the option to perform coverage tests.
 OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
 IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -W -profile-arcs -ftest-coverage")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -W -profile-arcs -ftest-coverage")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -W -fprofile-arcs -ftest-coverage")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 	MESSAGE(STATUS "Coverage Tests: On.")
 ENDIF()
@@ -629,6 +666,7 @@ IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
+# Enable Parallel (different than pnetcdf).
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
 IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
@@ -669,12 +707,13 @@ IF(ENABLE_PNETCDF)
         SET(STATUS_PARALLEL "ON")
 ENDIF()
 
-
+# Enable Parallel Tests.
 OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 	SET(TEST_PARALLEL ON CACHE BOOL "")
 ENDIF()
 
+# Determine whether or not to generate documentation.
 OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
 	SET(BUILD_DOCS ON CACHE BOOL "")
@@ -687,12 +726,21 @@ IF(ENABLE_DOXYGEN)
 ENDIF()
 
 
+# Internal Documentation
+OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
+IF(ENABLE_INTERNAL_DOCS)
+	SET(BUILD_INTERNAL_DOCS ON)
+ENDIF()
+
+
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-#####
-# End option checks.
-#####
+
+################################
+# Option checks
+################################
+
 
 #####
 # System inspection checks
