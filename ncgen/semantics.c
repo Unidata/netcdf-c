@@ -471,7 +471,7 @@ fixeconstref(NCConstant* con)
     /* One hopes that 99% of the time, the match is unique */
     if(listlength(candidates) == 1) {
 	con->value.enumv = (Symbol*)listget(candidates,0);
-	return;
+	goto done;
     }
     /* If this ref has a specified group prefix, then find that group
        and search only within it for matches to the candidates */
@@ -479,14 +479,15 @@ fixeconstref(NCConstant* con)
 	parent = lookupgroup(refsym->prefix);
 	if(parent == NULL) {
 	    semerror(con->lineno,"Undefined group reference: ",fullname(refsym));
-	    return;
+	    goto done;
 	}
 	/* Search this group only for matches */
 	grpmatches = ecsearchgrp(parent,candidates);
 	switch (listlength(grpmatches)) {
 	case 0:
 	    semerror(con->lineno,"Undefined enum or enum constant reference: ",refsym->name);
-	    return;
+	    listfree(grpmatches);
+	    goto done;
 	case 1:
 	    break;
 	default:
@@ -494,11 +495,11 @@ fixeconstref(NCConstant* con)
 	}
 	con->value.enumv = listget(grpmatches,0);
 	listfree(grpmatches);
-	return;
+	goto done;
     }
     /* Sigh, we have to search up the tree to see if any of our candidates are there */
     parent = refsym->container;
-    assert(parent->objectclass == NC_GRP);
+    assert(parent == NULL || parent->objectclass == NC_GRP);
     while(parent != NULL && match == NULL) {
 	grpmatches = ecsearchgrp(parent,candidates);
 	switch (listlength(grpmatches)) {
@@ -509,14 +510,17 @@ fixeconstref(NCConstant* con)
 	    match = listget(grpmatches,0);
 	    break;
 	}
+	listfree(grpmatches);
     }
     if(match != NULL) {
 	con->value.enumv = match;
-	return;
+	goto done;
     }
     /* Not unique and not in the parent tree, so complains and pick the first candidate */
     semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
     con->value.enumv = (Symbol*)listget(candidates,0);
+done:
+    listfree(candidates);
 }
 
 /*
