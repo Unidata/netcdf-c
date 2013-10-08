@@ -443,10 +443,14 @@ OPTION (ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability (HDF4, HDF5 and Zl
 IF (ENABLE_HDF4) 
    SET(USE_HDF4 ON) 
    # Check for include files, libraries.
-   CHECK_INCLUDE_FILE("mfhdf.h"	HAVE_MFHDF_H)
-   IF(NOT HAVE_MFHDF_H)
+
+   FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
+   IF(NOT MFHDF_H_INCLUDE_DIR)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
-   ENDIF(NOT HAVE_MFHDF_H) 
+   ELSE()
+     SET(HAVE_MFHDF_H ON CACHE BOOL "")
+     INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
+   ENDIF() 
  
    FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
    IF(NOT HDF4_DF_LIB)
