@@ -657,13 +657,16 @@ ENDIF()
 
 
 # Provide the option to perform coverage tests.
-OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-	MESSAGE(STATUS "Coverage Tests: On.")
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+  OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+  IF(ENABLE_COVERAGE_TESTS)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+    MESSAGE(STATUS "Coverage Tests: On.")
+  ENDIF()
 ENDIF()
+
 
 OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
@@ -726,6 +729,17 @@ IF(ENABLE_DOXYGEN)
 	ELSE()
 		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
 	ENDIF()
+ENDIF()
+
+# By default, MSVC has a stack size of 1000000.
+# Allow a user to override this.
+IF(MSVC)
+  SET(NC_MSVC_STACK_SIZE 1000000 CACHE STRING "Default stack size for MSVC-based projects.")
+  
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  
 ENDIF()
 
 
