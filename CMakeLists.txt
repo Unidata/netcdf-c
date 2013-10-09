@@ -40,15 +40,7 @@ ENDIF()
 INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
-	SET(GLOBAL PROPERTY USE_FOLDERS ON)
-	# By default, CMake sets the stack to 10000000.
-	# Remove this limitation.
-	# See here for more details:
-	# http://www.cmake.org/pipermail/cmake/2009-April/028710.html
-
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:40000000")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /STACK:40000000")
-	SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /STACK:40000000")
+  SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
 
@@ -736,6 +728,10 @@ ENDIF()
 IF(MSVC)
   SET(NC_MSVC_STACK_SIZE 1000000 CACHE STRING "Default stack size for MSVC-based projects.")
   
+  # By default, CMake sets the stack to 1000000.
+  # Remove this limitation.
+  # See here for more details:
+  # http://www.cmake.org/pipermail/cmake/2009-April/028710.html
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
   SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
   SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
