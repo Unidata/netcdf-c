@@ -49,9 +49,10 @@ test_big_var(const char *testfile)
     size_t start[NUMDIMS] = {0, 0, 0};
     size_t count[NUMDIMS] = {1, DIM1, DIM2};
     signed char data[DIM1][DIM2];
+
     int i, j;
     int nerrs = 0;
-    
+
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
     if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
@@ -110,6 +111,7 @@ test_big_var(const char *testfile)
 		  return nerrs;
 	    }
 	}
+
     if (nc_close(ncid)) ERR;
     return 0;
 }
