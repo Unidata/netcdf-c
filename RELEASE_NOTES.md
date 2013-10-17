@@ -10,6 +10,9 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc4 Released TBD
 
+* Added better documentation about accessing ESG datasets.
+  See http://www.unidata.ucar.edu/software/netcdf/docs/esg.html.
+
 * Corrected an issue with CMake-based builds enabling HDF4 support where the HDF4 libraries were in a non-standard location.
 
 * Fix bug introduced by [NCF-267] where octal constants above
