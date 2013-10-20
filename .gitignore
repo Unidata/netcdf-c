@@ -1,37 +1,3 @@
-# docs
-html
-doxygen*.tmp
-myhtml
-
-# cmake
-CMakeLists.txt.user
-scan-build
-# out of source build?
-build
-
-# http://www.gnu.org/software/automake
-Makefile.in
-Makefile
-/compile
-/stamp-h1
-
-# http://www.gnu.org/software/autoconf
-/config.h
-/config.h.in
-/config.log
-/config.status
-/config.sub
-/config.guess
-
-/autom4te.cache
-/aclocal.m4
-/compile
-/configure
-/depcomp
-/install-sh
-/missing
-
-
 # man page
 /libsrc/netcdf.3
 
@@ -170,7 +136,50 @@ Makefile
 /comps.txt
 /VERSION
 
+# executables
+/ncdump/nccopy
+/ncdump/ncdump
+/ncgen/ncgen
+/ncgen3/ncgen3
 
+
+# pkg config
+/nc-config
+/netcdf.pc
+
+
+# docs
+html
+doxygen*.tmp
+myhtml
+
+# cmake
+CMakeLists.txt.user
+scan-build
+# out of source build?
+build
+
+# http://www.gnu.org/software/automake
+Makefile.in
+Makefile
+/compile
+/stamp-h1
+
+# http://www.gnu.org/software/autoconf
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/config.guess
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
 
 
 # c dependencies
