@@ -1,7 +1,4 @@
-# man page
-/libsrc/netcdf.3
-
-
+# Make results
 # executables
 /ncdump/nccopy
 /ncdump/ncdump
@@ -12,19 +9,14 @@
 /nc-config
 /netcdf.pc
 
+# man page
+/libsrc/netcdf.3
+
+# Make check results
 # ncgen tests
 /ncgen/*.nc
 /ncgen/ref_camrun.c
 /ncgen3/*.nc
-/ncgen/c0.nc
-/ncgen/c0_4.nc
-/ncgen/c0_4c.nc
-/ncgen/c0_64.nc
-/ncgen/ncf199.nc
-/ncgen3/c0.nc
-/ncgen3/c0_4.nc
-/ncgen3/c0_4c.nc
-/ncgen3/c0_64.nc
 
 # netcdf 3 tests
 /nctest/nctest
@@ -55,57 +47,34 @@
 /nc_test/tst_norm
 /nc_test/tst_small
 
-
 # hdf5 tests
 /h5_test/*.h5
 /h5_test/tst_h_atts
-/h5_test/tst_h_atts.h5
 /h5_test/tst_h_atts3
 /h5_test/tst_h_atts4
 /h5_test/tst_h_compounds
-/h5_test/tst_h_compounds.h5
 /h5_test/tst_h_compounds2
-/h5_test/tst_h_compounds2.h5
 /h5_test/tst_h_dimscales
-/h5_test/tst_h_dimscales.h5
 /h5_test/tst_h_dimscales1
 /h5_test/tst_h_dimscales2
-/h5_test/tst_h_dimscales2.h5
 /h5_test/tst_h_dimscales3
-/h5_test/tst_h_dimscales3.h5
 /h5_test/tst_h_dimscales4
-/h5_test/tst_h_dimscales4.h5
 /h5_test/tst_h_enums
-/h5_test/tst_h_enums.h5
 /h5_test/tst_h_files
-/h5_test/tst_h_files.h5
 /h5_test/tst_h_files2
-/h5_test/tst_h_files2.h5
 /h5_test/tst_h_files4
-/h5_test/tst_h_files4.h5
 /h5_test/tst_h_grps
-/h5_test/tst_h_grps.h5
 /h5_test/tst_h_ints
-/h5_test/tst_h_ints.h5
 /h5_test/tst_h_opaques
-/h5_test/tst_h_opaques.h5
 /h5_test/tst_h_rd_cmp
 /h5_test/tst_h_strings
-/h5_test/tst_h_strings.h5
 /h5_test/tst_h_strings1
-/h5_test/tst_h_strings1.h5
 /h5_test/tst_h_strings2
-/h5_test/tst_h_strings2.h5
 /h5_test/tst_h_vars
-/h5_test/tst_h_vars.h5
 /h5_test/tst_h_vars2
-/h5_test/tst_h_vars2.h5
 /h5_test/tst_h_vars3
-/h5_test/tst_h_vars3.h5
 /h5_test/tst_h_vl
-/h5_test/tst_h_vl.h5
 /h5_test/tst_h_wrt_cmp
-/h5_test/tst_h_wrt_cmp.h5
 
 # netcdf 4 tests
 /nc_test4/cdm_sea_soundings
@@ -154,159 +123,32 @@
 /ncdump/*.cdl
 /ncdump/*.nc
 /ncdump/*.ncml
-/ncdump/c0.nc
-/ncdump/c0tmp.nc
-/ncdump/c1.cdl
-/ncdump/c1.ncml
 /ncdump/ctest
-/ncdump/ctest0.nc
-/ncdump/ctest0_64.nc
-/ncdump/ctest1.cdl
-/ncdump/ctest1_64.cdl
 /ncdump/ctest64
 /ncdump/results/*
-/ncdump/results/bigf1.dmp
-/ncdump/results/bigf1.dmp2
-/ncdump/results/bigf1.nc
-/ncdump/results/bigf2.dmp
-/ncdump/results/bigf2.dmp2
-/ncdump/results/bigf2.nc
-/ncdump/results/bigr1.dmp
-/ncdump/results/bigr1.dmp2
-/ncdump/results/bigr1.nc
-/ncdump/results/bigr2.dmp
-/ncdump/results/bigr2.dmp2
-/ncdump/results/bigr2.nc
-/ncdump/results/n3time.dmp
-/ncdump/results/n3time.dmp2
-/ncdump/results/n3time.nc
-/ncdump/results/nc_enddef.dmp
-/ncdump/results/nc_enddef.dmp2
-/ncdump/results/nc_enddef.nc
-/ncdump/results/nc_sync.dmp
-/ncdump/results/nc_sync.dmp2
-/ncdump/results/nc_sync.nc
-/ncdump/results/ref_tst_nul3.dmp
-/ncdump/results/ref_tst_nul3.dmp2
-/ncdump/results/ref_tst_nul3.nc
-/ncdump/results/ref_tst_small.dmp
-/ncdump/results/ref_tst_small.dmp2
-/ncdump/results/ref_tst_small.nc
-/ncdump/results/ref_tst_special_atts3.dmp
-/ncdump/results/ref_tst_special_atts3.dmp2
-/ncdump/results/ref_tst_special_atts3.nc
-/ncdump/results/ref_tst_unicode.dmp
-/ncdump/results/ref_tst_unicode.dmp2
-/ncdump/results/ref_tst_unicode.nc
-/ncdump/results/ref_tst_utf8.dmp
-/ncdump/results/ref_tst_utf8.dmp2
-/ncdump/results/ref_tst_utf8.nc
-/ncdump/results/simple_xy.dmp
-/ncdump/results/simple_xy.dmp2
-/ncdump/results/simple_xy.nc
-/ncdump/results/small.dmp
-/ncdump/results/small.dmp2
-/ncdump/results/small.nc
-/ncdump/results/small2.dmp
-/ncdump/results/small2.dmp2
-/ncdump/results/small2.nc
-/ncdump/results/tst_ncml.dmp
-/ncdump/results/tst_ncml.dmp2
-/ncdump/results/tst_ncml.nc
-/ncdump/results/unlimtest1.dmp
-/ncdump/results/unlimtest1.dmp2
-/ncdump/results/unlimtest1.nc
 /ncdump/rewrite-scalar
-/ncdump/small.nc
-/ncdump/small2.nc
-/ncdump/test0.nc
-/ncdump/test1.cdl
-/ncdump/test1.nc
-/ncdump/test2.cdl
-/ncdump/tmp_all.nc
-/ncdump/tmp_subset.cdl
-/ncdump/tmp_tst_charfill.cdl
-/ncdump/tst_calendars.nc
-/ncdump/tst_charfill.nc
 /ncdump/tst_chunking
 /ncdump/tst_comp
-/ncdump/tst_comp.cdl
-/ncdump/tst_comp.nc
 /ncdump/tst_comp2
-/ncdump/tst_comp2.nc
-/ncdump/tst_compounds2.cdl
-/ncdump/tst_compounds3.cdl
-/ncdump/tst_compounds4.cdl
 /ncdump/tst_compress
 /ncdump/tst_create_files
 /ncdump/tst_enum_data
 /ncdump/tst_enum_data.cdl
-/ncdump/tst_enum_data.nc
 /ncdump/tst_fillbug
 /ncdump/tst_fillbug.cdl
-/ncdump/tst_fillbug.nc
-/ncdump/tst_format_att.cdl
-/ncdump/tst_format_att_64.cdl
 /ncdump/tst_group_data
-/ncdump/tst_group_data.cdl
-/ncdump/tst_group_data.nc
 /ncdump/tst_h_rdc0
 /ncdump/tst_h_scalar
-/ncdump/tst_h_scalar.cdl
-/ncdump/tst_h_scalar.nc
-/ncdump/tst_mslp.nc
-/ncdump/tst_mslp_64.nc
-/ncdump/tst_mud4.cdl
-/ncdump/tst_mud4.nc
 /ncdump/tst_nans
-/ncdump/tst_nans.cdl
-/ncdump/tst_nans.nc
-/ncdump/tst_ncml.nc
 /ncdump/tst_opaque_data
-/ncdump/tst_opaque_data.cdl
-/ncdump/tst_opaque_data.nc
-/ncdump/tst_small.cdl
-/ncdump/tst_small.nc
-/ncdump/tst_solar_1.cdl
-/ncdump/tst_solar_1.nc
-/ncdump/tst_solar_2.cdl
-/ncdump/tst_solar_2.nc
-/ncdump/tst_solar_cmp.nc
 /ncdump/tst_special_atts
-/ncdump/tst_special_atts.cdl
-/ncdump/tst_special_atts.nc
 /ncdump/tst_string_data
-/ncdump/tst_string_data.cdl
-/ncdump/tst_string_data.nc
-/ncdump/tst_times.cdl
 /ncdump/tst_unicode
-/ncdump/tst_unicode.cdl
-/ncdump/tst_unicode.nc
 /ncdump/tst_utf8
-/ncdump/tst_utf8.cdl
-/ncdump/tst_utf8.nc
 /ncdump/tst_vlen_data
-/ncdump/tst_vlen_data.cdl
-/ncdump/tst_vlen_data.nc
-/ncdump/utf8.cdl
-/ncdump/utf8.nc
 
 #ncdap tests
 /ncdap_test/.dodsrc
-
-/comps.txt
-/VERSION
-
-# executables
-/ncdump/nccopy
-/ncdump/ncdump
-/ncgen/ncgen
-/ncgen3/ncgen3
-
-
-# pkg config
-/nc-config
-/netcdf.pc
 
 
 # docs
@@ -319,9 +161,7 @@ CMakeLists.txt.user
 scan-build
 /comps.txt
 /compile
-
-
-# out of source build?
+/VERSION
 build
 
 # http://www.gnu.org/software/automake
@@ -426,7 +266,6 @@ Session.vim
 .AppleDouble
 .LSOverride
 Icon
-
 
 # Thumbnails
 ._*
