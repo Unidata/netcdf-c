@@ -31,7 +31,8 @@ enum FileType {
 FT_UNKNOWN,
 FT_HDF,
 FT_NC,
-FT_PNETCDF
+FT_PNETCDF,
+FT_MEM
 };
 
 
@@ -134,16 +135,18 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       if(path == NULL || strlen(path)==0)
         return NC_EINVAL;
 
-      /* TODO: check if this is diskless.... */
-      if (find_path_in_NCList(path) != NULL) {
-        *filetype = FT_NC;
-        *version = 2;
-        return NC_NOERR;
-      }
 
       if (!(fp = fopen(path, "r")))
-        /*  TODO, wait a minute here, what if the file is in memory.... */
-         return errno;
+        {
+          /* TODO: check if this is diskless.... */
+          if (find_path_in_NCList(path)) {
+            /* File is probably in memory */
+            *filetype = FT_MEM;
+            *version = 2;       /* Is it version 2? TODO Check.. */
+            return NC_NOERR;
+          }
+          return errno;
+        }
 
 #ifdef HAVE_SYS_STAT_H
       /* The file must be at least MAGIC_NUMBER_LEN in size,
@@ -1661,15 +1664,18 @@ NC_open(const char *path, int cmode,
       if(stat == NC_NOERR) {
         switch (filetype) {
         case FT_NC:
-            if(version == 1 || version == 2)
-                model = NC_DISPATCH_NC3;
-            break;
+          if(version == 1 || version == 2)
+            model = NC_DISPATCH_NC3;
+          break;
         case FT_HDF:
-            model = NC_DISPATCH_NC4;
-            break;
+          model = NC_DISPATCH_NC4;
+          break;
         case FT_PNETCDF:
-            model = NC_DISPATCH_NC5;
-            break;
+          model = NC_DISPATCH_NC5;
+          break;
+        case FT_MEM:
+          model = NC_DISPATCH_NC3;
+          break;
         default:
             return NC_ENOTNC;
         }
@@ -1678,13 +1684,21 @@ NC_open(const char *path, int cmode,
         return stat;
    }
 
-   /* TODO if diskless just return here.... */
-   if (cmode & NC_DISKLESS) {
-     ncp = find_path_in_NCList(path);
-     *ncidp = ncp->ext_ncid;
 
-     return NC_NOERR;
+   if (filetype == FT_MEM) {
+     /* We did not find a file, so it should be in memory */
+     if (cmode & NC_DISKLESS) {
+       /* We also asked for a file in memory, so that's fine */
+       ncp = find_path_in_NCList(path);
+       *ncidp = ncp->ext_ncid;
+       return NC_NOERR;
+     }
+     else {
+       /* We did not find a file, but we did expect one */
+       return NC_ENOTNC;
+     }
    }
+
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
