@@ -136,9 +136,9 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
         return NC_EINVAL;
 
 
-      if (!(fp = fopen(path, "r")))
+      if (!(fp = fopen(path, "r")) )
+        /* no file */
         {
-          /* TODO: check if this is diskless.... */
           if (find_path_in_NCList(path)) {
             /* File is probably in memory */
             *filetype = FT_MEM;
@@ -157,7 +157,16 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
         return errno;
       }
 
+      if (st.st_size == 0 && find_path_in_NCList(path)) {
+        /* Empty file and in our list */
+        /* Assume file is in memory and not synced yet */
+        *filetype = FT_MEM;
+        *version = 2;       /* Is it version 2? TODO Check.. */
+        return NC_NOERR;
+      }
+
       if(st.st_size < MAGIC_NUMBER_LEN) {
+        /*  */
         fclose(fp);
         return NC_ENOTNC;
       }
