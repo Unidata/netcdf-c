@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   status = nc_close(ncid);
   check_err(status, __LINE__, __FILE__);
 
+  /* TODO check a persistent file also */
   SUMMARIZE_ERR;
   FINAL_RESULTS;
 

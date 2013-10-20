@@ -160,9 +160,14 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       if (st.st_size == 0 && find_path_in_NCList(path)) {
         /* Empty file and in our list */
         /* Assume file is in memory and not synced yet */
-        *filetype = FT_MEM;
-        *version = 2;       /* Is it version 2? TODO Check.. */
-        return NC_NOERR;
+        if (find_path_in_NCList(path)) {
+          *filetype = FT_MEM;
+          *version = 2;       /* Is it version 2? TODO Check.. */
+          return NC_NOERR;
+        }
+        /* An empty file that is not in our list */
+        fclose(fp);
+        return NC_ENOTNC;
       }
 
       if(st.st_size < MAGIC_NUMBER_LEN) {
@@ -1699,6 +1704,10 @@ NC_open(const char *path, int cmode,
      if (cmode & NC_DISKLESS) {
        /* We also asked for a file in memory, so that's fine */
        ncp = find_path_in_NCList(path);
+       if (!ncp) {
+         /* But we can't find it, so that's bad */
+         return NC_EBADID;
+       }
        *ncidp = ncp->ext_ncid;
        return NC_NOERR;
      }
