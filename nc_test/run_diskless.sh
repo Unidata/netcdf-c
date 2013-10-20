@@ -111,6 +111,12 @@ rm -f $FILE3
 # compare
 diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
+# not so large...
+echo ""
+echo "**** Testing nc_create + nc_open in-memory (diskless) files"
+./tst_diskless5
+
+
 # cleanup
 rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
 

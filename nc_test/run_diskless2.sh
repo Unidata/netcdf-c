@@ -47,6 +47,11 @@ time ./tst_diskless4 $SIZE open
 echo ""
 time ./tst_diskless4 $SIZE opendiskless
 
+
+echo ""
+echo "**** Testing nc_create + nc_open in-memory (diskless) files"
+time ./tst_diskless5
+
 # cleanup
 rm -f $FILE4 tst_diskless4.cdl
 
