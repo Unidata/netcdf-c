@@ -1,8 +1,269 @@
-build
+# docs
 html
 doxygen*.tmp
-\#*.*\#
-autom4te.cache
 myhtml
+
+# cmake
 CMakeLists.txt.user
 scan-build
+# out of source build?
+build
+
+# http://www.gnu.org/software/automake
+Makefile.in
+Makefile
+/compile
+/stamp-h1
+
+# http://www.gnu.org/software/autoconf
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/config.guess
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+
+
+# man page
+/libsrc/netcdf.3
+
+# ncgen tests
+/ncgen/*.nc
+/ncgen/ref_camrun.c
+
+/ncgen3/*.nc
+
+# netcdf 3 tests
+/nctest/nctest
+/nctest/temp.tmp
+/nctest/tst_rename
+/nctest/*.nc
+
+# hdf5 tests
+/h5_test/*.h5
+/h5_test/tst_h_atts
+/h5_test/tst_h_atts3
+/h5_test/tst_h_atts4
+/h5_test/tst_h_compounds
+/h5_test/tst_h_compounds2
+/h5_test/tst_h_dimscales
+/h5_test/tst_h_dimscales1
+/h5_test/tst_h_dimscales2
+/h5_test/tst_h_dimscales3
+/h5_test/tst_h_dimscales4
+/h5_test/tst_h_enums
+/h5_test/tst_h_files
+/h5_test/tst_h_files2
+/h5_test/tst_h_files4
+/h5_test/tst_h_grps
+/h5_test/tst_h_ints
+/h5_test/tst_h_opaques
+/h5_test/tst_h_rd_cmp
+/h5_test/tst_h_strings
+/h5_test/tst_h_strings1
+/h5_test/tst_h_strings2
+/h5_test/tst_h_vars
+/h5_test/tst_h_vars2
+/h5_test/tst_h_vars3
+/h5_test/tst_h_vl
+/h5_test/tst_h_wrt_cmp
+
+/nc_test/nc_test
+/nc_test/*.nc
+/nc_test/*.cdl
+/nc_test/t_nc
+/nc_test/tst_atts
+/nc_test/tst_atts3
+/nc_test/tst_diskless
+/nc_test/tst_diskless2
+/nc_test/tst_diskless3
+/nc_test/tst_diskless4
+/nc_test/tst_diskless5
+/nc_test/tst_misc
+/nc_test/tst_names
+/nc_test/tst_nofill
+/nc_test/tst_nofill2
+/nc_test/tst_nofill3
+/nc_test/tst_norm
+/nc_test/tst_small
+
+# netcdf 4 tests
+/nc_test4/cdm_sea_soundings
+/nc_test4/t_type
+/nc_test4/tst_atts
+/nc_test4/tst_chunks
+/nc_test4/tst_chunks2
+/nc_test4/tst_compounds
+/nc_test4/tst_compounds2
+/nc_test4/tst_compounds3
+/nc_test4/tst_converts
+/nc_test4/tst_converts2
+/nc_test4/tst_coords
+/nc_test4/tst_coords2
+/nc_test4/tst_coords3
+/nc_test4/tst_dims
+/nc_test4/tst_dims2
+/nc_test4/tst_dims3
+/nc_test4/tst_endian_fill
+/nc_test4/tst_enums
+/nc_test4/tst_files
+/nc_test4/tst_files4
+/nc_test4/tst_fillbug
+/nc_test4/tst_fills
+/nc_test4/tst_fills2
+/nc_test4/tst_grps
+/nc_test4/tst_grps2
+/nc_test4/tst_h_atts2
+/nc_test4/tst_interops
+/nc_test4/tst_interops4
+/nc_test4/tst_interops5
+/nc_test4/tst_interops6
+/nc_test4/tst_opaques
+/nc_test4/tst_strings
+/nc_test4/tst_strings2
+/nc_test4/tst_unlim_vars
+/nc_test4/tst_utf8
+/nc_test4/tst_varms
+/nc_test4/tst_vars
+/nc_test4/tst_vars3
+/nc_test4/tst_vars4
+/nc_test4/tst_xplatform
+/nc_test4/tst_xplatform2
+
+# ncdump tests
+/ncdump/ctest
+/ncdump/ctest64
+/ncdump/rewrite-scalar
+/ncdump/tst_chunking
+/ncdump/tst_comp
+/ncdump/tst_comp2
+/ncdump/tst_compress
+/ncdump/tst_create_files
+/ncdump/tst_enum_data
+/ncdump/tst_fillbug
+/ncdump/tst_group_data
+/ncdump/tst_h_rdc0
+/ncdump/tst_h_scalar
+/ncdump/tst_nans
+/ncdump/tst_opaque_data
+/ncdump/tst_special_atts
+/ncdump/tst_string_data
+/ncdump/tst_unicode
+/ncdump/tst_utf8
+/ncdump/tst_vlen_data
+/ncdump/*.cdl
+/ncdump/*.ncml
+/ncdump/*.nc
+/ncdump/results/*
+
+#ncdap tests
+/ncdap_test/.dodsrc
+
+/comps.txt
+/VERSION
+
+
+
+
+# c dependencies
+/depcomp
+.deps
+
+
+# Fortran modules
+*.mod
+
+# Object files
+*.o
+
+# Libtool
+*.lo
+.libs
+*.la
+/ltmain.sh
+/libtool
+/m4/libtool.m4
+/m4/ltoptions.m4
+/m4/ltsugar.m4
+/m4/ltversion.m4
+/m4/lt~obsolete.m4
+
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Tar files
+*.tar.gz
+*.tar.bz2
+
+# emacs stuff
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# Ignore tags created by etags and ctags
+TAGS
+!TAGS/
+tags
+!tags/
+
+# vim stuff
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# apple stuff
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+
