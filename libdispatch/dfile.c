@@ -135,7 +135,9 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
         return NC_EINVAL;
 
       /* TODO: check if this is diskless.... */
-      if (find_path_in_NCList(path)) {
+      if (find_path_in_NCList(path) != NULL) {
+        *filetype = FT_NC;
+        *version = 2;
         return NC_NOERR;
       }
 
@@ -1674,6 +1676,14 @@ NC_open(const char *path, int cmode,
       } else /* presumably not a netcdf file */
 
         return stat;
+   }
+
+   /* TODO if diskless just return here.... */
+   if (cmode & NC_DISKLESS) {
+     ncp = find_path_in_NCList(path);
+     *ncidp = ncp->ext_ncid;
+
+     return NC_NOERR;
    }
 
    /* Look to the incoming cmode for hints */
