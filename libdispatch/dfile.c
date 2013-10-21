@@ -1243,7 +1243,8 @@ nc_set_base_pe(int ncid, int pe)
 }
 
 /**
-Inquire about the binary format of a netCDF file.
+Inquire about the binary format of a netCDF file
+as presented by the API.
 
 This function returns the (rarely needed) format version.
 
@@ -1266,6 +1267,37 @@ nc_inq_format(int ncid, int *formatp)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_format(ncid,formatp);
+}
+
+/**
+Inquire about the true format of a netCDF file.
+Note that the netcdf API will present the file
+as if it had the format specified by nc_inq_format.
+The true file format, however, may not even be
+a netcdf file; it might be DAP, HDF4, or PNETCDF,
+for example. This function returns that true file type. 
+
+\param ncid NetCDF ID, from a previous call to nc_open() or 
+nc_create().
+
+\param formatp Pointer to location for returned true format.
+This is currently defined to be one of the following.
+
+Refer to the actual list in the file netcdf.h to see the
+currently defined set.
+
+\returns ::NC_NOERR No error.
+
+\returns ::NC_EBADID Invalid ncid passed.
+
+ */
+int
+nc_inq_format_extended(int ncid, int *modelp)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_format_extended(ncid,modelp);
 }
 
 /**

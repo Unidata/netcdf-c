@@ -155,15 +155,32 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_MPIPOSIX      0x4000
 #define NC_PNETCDF       0x8000	/**< Use parallel-netcdf library. Mode flag for nc_open(). */
 
-/** Format specifier for nc_set_default_format().  Starting with
- * version 3.6, there are different format netCDF files. 4.0
- * introduces the third one. \see netcdf_format
+/** Format specifier for nc_set_default_format() and returned
+ *  by nc_inq_format. This returns the format as provided by
+ *  the API. See nc_inq_format_extended to see the true file format.
+ *  Starting with version 3.6, there are different format netCDF files.
+ *  4.0 introduces the third one. \see netcdf_format
  */
 /**@{*/
 #define NC_FORMAT_CLASSIC (1)
 #define NC_FORMAT_64BIT   (2)
 #define NC_FORMAT_NETCDF4 (3)
 #define NC_FORMAT_NETCDF4_CLASSIC  (4)
+
+/**@}*/
+
+/** Extended format specifier returned by  nc_inq_format_extended() 
+ *  Added in version 4.3.1.2. This returns the true format of the
+ *  underlying data; It may differ from NC_FORMAT if the file
+ *  was translated to netcdf format from some other format
+ */
+/**@{*/
+#define NC_FORMAT_NC3  (NC_FORMAT_CLASSIC)
+#define NC_FORMAT_HDF5 (2<<8)
+#define NC_FORMAT_HDF4 (2<<9)
+#define NC_FORMAT_DAP2 (2<<10)
+#define NC_FORMAT_DAP4 (2<<11)
+#define NC_FORMAT_NC5  (2<<12) /*PNETCDF*/
 /**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */

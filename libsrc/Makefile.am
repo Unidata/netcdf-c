@@ -38,7 +38,7 @@ noinst_LTLIBRARIES = libnetcdf3.la
 # These files are cleaned on developer workstations (and then rebuilt
 # with m4), but they are included in the distribution so that the user
 # does not have to have m4.
-MAINTAINERCLEANFILES = attr.c ncx.c putget.c $(man_MANS) attrx.c putgetx.c
+MAINTAINERCLEANFILES = $(man_MANS) attrx.c putgetx.c
 EXTRA_DIST = attr.m4 ncx.m4 putget.m4 $(man_MANS) CMakeLists.txt XGetopt.c 
 
 # This tells make how to turn .m4 files into .c files.

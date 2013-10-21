@@ -1535,6 +1535,19 @@ NC3_inq_format(int ncid, int *formatp)
 	return NC_NOERR;
 }
 
+int
+NC3_inq_format_extended(int ncid, int *formatp)
+{
+	int status;
+	NC *nc;
+
+	status = NC_check_id(ncid, &nc); 
+	if(status != NC_NOERR)
+		return status;
+        if(formatp) *formatp = NC_FORMAT_NC3;
+	return NC_NOERR;
+}
+
 /* The sizes of types may vary from platform to platform, but within
  * netCDF files, type sizes are fixed. */
 #define NC_BYTE_LEN 1

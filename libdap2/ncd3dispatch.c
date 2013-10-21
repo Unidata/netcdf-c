@@ -58,6 +58,7 @@ NULL, /*set_fill*/
 NULL, /*inq_base_pe*/
 NULL, /*set_base_pe*/
 NULL, /*inq_format*/
+NCD3_inq_format_extended, /*inq_format_extended*/
 
 NULL, /*inq*/
 NULL, /*inq_type*/
@@ -214,4 +215,11 @@ NCD3_get_vars(int ncid, int varid,
 {
     int stat = nc3d_getvarx(ncid, varid, start, edges, stride, value, memtype);
     return stat;
+}
+
+static int
+NCD3_inq_format_extended(int ncid, int* formatp)
+{
+    if(formatp) *formatp = NC_FORMAT_DAP2;
+    return NC_NOERR;
 }

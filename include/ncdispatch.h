@@ -209,6 +209,7 @@ int (*set_fill)(int,int,int*);
 int (*inq_base_pe)(int,int*);
 int (*set_base_pe)(int,int);
 int (*inq_format)(int,int*);
+int (*inq_format_extended)(int,int*);
 
 int (*inq)(int,int*,int*,int*,int*);
 int (*inq_type)(int, nc_type, char*, size_t*);

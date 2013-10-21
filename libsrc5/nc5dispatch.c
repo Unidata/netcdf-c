@@ -252,6 +252,16 @@ NC5_inq_format(int ncid, int* formatp)
 }
 
 static int
+NC5_inq_format_extended(int ncid, int* formatp)
+{
+    NC* nc;
+    int status = NC_check_id(ncid, &nc);
+    if(status != NC_NOERR) return status;
+    if(formatp) *formatp = NC_FORMAT_NC5;
+    return NC_NOERR;
+}
+
+static int
 NC5_inq(int ncid,
 	int *ndimsp,
 	int *nvarsp,
@@ -1057,6 +1067,7 @@ NC5_set_fill,
 NC5_inq_base_pe,
 NC5_set_base_pe,
 NC5_inq_format,
+NC5_inq_format_extended,
 
 NC5_inq,
 NC5_inq_type,
