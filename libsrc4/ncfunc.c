@@ -67,8 +67,10 @@ NC4_inq_format(int ncid, int *formatp)
 }
 
 /* Get the extended format of an open file. */
+int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
+   NC *nc;
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
@@ -78,16 +80,12 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-   if(modep)
-	*modep = nc->mode;
-    if(formatp) {
-	/* Distinguish HDF5 from HDF4; not clear how to test
-           if the file was created by netcdf-4 (HDF5 only).
-        */
-	if(h5->hdf4) 
-	    *formatp = NC_FORMAT_NC_HDF4;
-	else
-	    *formatp = NC_FORMAT_NC_HDF5;
-    }
+   if(modep) *modep = nc->mode;
+
+   if(formatp) {
+	/* Distinguish HDF5 from HDF4 */
+	*formatp = (h5->hdf4 ? NC_FORMAT_HDF4 : NC_FORMAT_HDF5);
+   }
+
    return NC_NOERR;
 }
