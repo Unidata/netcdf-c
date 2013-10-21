@@ -1,5 +1,5 @@
 #!/bin/bash
-#X="-x"
+1#X="-x"
 #NB=1
 
 if test $# != 0 ; then

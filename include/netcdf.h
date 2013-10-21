@@ -192,7 +192,6 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_DAP2    (5)
 #define NC_FORMAT_DAP4    (6)
 #define NC_FORMAT_UNDEFINED (0)
-
 /**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */

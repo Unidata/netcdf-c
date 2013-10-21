@@ -216,3 +216,10 @@ NCD3_get_vars(int ncid, int varid,
     int stat = nc3d_getvarx(ncid, varid, start, edges, stride, value, memtype);
     return stat;
 }
+
+static int
+NCD3_inq_format_extended(int ncid, int* formatp)
+{
+    if(formatp) *formatp = NC_FORMAT_DAP2;
+    return NC_NOERR;
+}
