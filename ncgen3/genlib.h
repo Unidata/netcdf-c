@@ -8,6 +8,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <limits.h>
+#include "config.h"
 
 extern const char *progname;	/* for error messages */
 extern const char *cdlname;	/* for error messages */
