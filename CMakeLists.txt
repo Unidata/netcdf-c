@@ -730,7 +730,7 @@ ENDIF()
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
-  SET(NC_MSVC_STACK_SIZE 1000000 CACHE STRING "Default stack size for MSVC-based projects.")
+  SET(NC_MSVC_STACK_SIZE 40000000 CACHE STRING "Default stack size for MSVC-based projects.")
   
   # By default, CMake sets the stack to 1000000.
   # Remove this limitation.

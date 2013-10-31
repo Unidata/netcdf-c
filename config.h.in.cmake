@@ -4,6 +4,10 @@
 /* Eliminate a number of warnings which come up based on deprecated
    POSIX naming conventions. */
 #ifdef _MSC_VER
+
+/* Define O_BINARY so that the appropriate flags
+are set when opening a binary file on Windows. */
+
 /* Disable a few warnings under Visual Studio, for the
    time being. */
   #include <io.h>
@@ -13,7 +17,8 @@
   #define close _close
   #define read _read
   #define lseek _lseeki64
-  
+  #define fstat _fstati64
+
   #define off_t __int64
   #define _off_t __int64
   
