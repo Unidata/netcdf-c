@@ -10,6 +10,7 @@
   $Id: tst_big_var2.c,v 1.3 2010/05/19 16:38:44 russ Exp $
 */
 
+#include "config.h"
 #include <nc_tests.h>
 #include <netcdf.h>
 #include <stdio.h>
@@ -79,6 +80,9 @@ test_big_var(const char *testfile)
     if (nc_put_vara_schar(ncid, varid, start, count, &data[0][0])) ERR;
     if (nc_close(ncid)) ERR;
 
+    printf("\n\nExiting early so that we can investigate the output file. Remove this before putting back in git.\n");
+    //exit(0);
+
     /* Open the file and check it. */
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
@@ -104,9 +108,9 @@ test_big_var(const char *testfile)
 	{
 	    if (data[i][j] != 19 )
 	    {
-		printf("error on start[0]: %d i: %d j: %d expected %d got %d\n", 
-		       start[0], i, j, 19, data[i][j]);
-		ERR;
+	      printf("error on start[0]: %d i: %d j: %d expected %d got %d\n", 
+		     start[0], i, j, 19, data[i][j]);
+	      ERR;
 		if(nerrs++ > 1)
 		  return nerrs;
 	    }

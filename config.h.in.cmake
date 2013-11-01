@@ -17,7 +17,8 @@ are set when opening a binary file on Windows. */
   #define close _close
   #define read _read
   #define lseek _lseeki64
-  #define fstat _fstati64
+  
+  #define fstat _fstat64
 
   #define off_t __int64
   #define _off_t __int64
