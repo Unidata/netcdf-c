@@ -80,9 +80,6 @@ test_big_var(const char *testfile)
     if (nc_put_vara_schar(ncid, varid, start, count, &data[0][0])) ERR;
     if (nc_close(ncid)) ERR;
 
-    printf("\n\nExiting early so that we can investigate the output file. Remove this before putting back in git.\n");
-    //exit(0);
-
     /* Open the file and check it. */
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
