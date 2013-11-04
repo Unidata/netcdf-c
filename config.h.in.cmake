@@ -197,6 +197,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the BaseTsd.h header file. */
 #cmakedefine HAVE_BASETSD_H @HAVE_BASETSD_H@
 
+/* Define if we have filelengthi64. */
+#cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
+
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */

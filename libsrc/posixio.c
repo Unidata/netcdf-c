@@ -1732,7 +1732,7 @@ ncio_px_filesize(ncio *nciop, off_t *filesizep)
 	/* There is a problem with fstat on Windows based systems
 		which manifests (so far) when Config RELEASE is built. 
 		Use _filelengthi64 isntead. */
-#ifdef _MSC_VER
+#ifdef HAVE_FILE_LENGTH_I64
 
 	__int64 file_len = 0;
 	if( (file_len = _filelengthi64(nciop->fd)) < 0) {
