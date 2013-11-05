@@ -10,6 +10,9 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc4 Released TBD
 
+* Addressed an issue on Windows where `fstat` would report an incorrect file size on files > 4GB.  [NCF-219]
+
+
 * Added better documentation about accessing ESG datasets.
   See http://www.unidata.ucar.edu/software/netcdf/docs/esg.html.
 
