@@ -8,7 +8,7 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
-### 4.3.1-rc4 Released TBD
+### 4.3.1-rc4 Released 2013-11-06
 
 * Addressed an issue on Windows where `fstat` would report an incorrect file size on files > 4GB.  [NCF-219]
 
@@ -22,6 +22,10 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 '\177' were not recognized as proper octal constants. [NCF-271]
 
 [NCF-271]:https://bugtracking.unidata.ucar.edu/browse/NCF-271
+
+* Fixed an issue where the `netcdf.3` man page was not being installed by CMake-based builds. [Github](https://github.com/Unidata/netcdf-c/issues/3)
+
+
 
 ### 4.3.1-rc3 Released 2013-09-24
 
