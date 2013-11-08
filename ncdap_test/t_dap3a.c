@@ -113,6 +113,7 @@ int main()
     char* url;
     char* topsrcdir;
     size_t len;
+    int format;
 #ifndef USE_NETCDF4
     int i,j;
 #endif
@@ -147,6 +148,12 @@ int main()
     /* open file, get varid */
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
     
+    /* Check the extended format */
+    CHECK(nc_inq_format_extended(ncid,&format));
+    if(format != NC_FORMAT_DAP2)
+	fprintf(stderr,"*** FAIL: nc_inq_format_extended returned: %d at %s:%d\n",
+	    format,__FILE__,__LINE__);
+
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));

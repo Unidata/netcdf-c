@@ -139,6 +139,17 @@ NCSUB_inq_format(int ncid, int* a1)
 }
 
 static int
+NCSUB_inq_format_extended(int ncid, int* a1)
+{
+    NC *nc, *ncsub;
+    int ncstat = NC_check_id(ncid, &nc);
+    if(ncstat != NC_NOERR) return ncstat;
+    ncstat = NC_check_id(nc->substrate, &ncsub);
+    if(ncstat != NC_NOERR) return ncstat;
+    return ncsub->dispatch->inq_format_extended(nc->substrate,a1);
+}
+
+static int
 NCSUB_inq(int ncid, int* a1, int* a2, int* a3, int* a4)
 {
     NC *nc, *ncsub;
@@ -844,6 +855,7 @@ NCSUB_set_fill,
 NCSUB_inq_base_pe,
 NCSUB_set_base_pe,
 NCSUB_inq_format,
+NCSUB_inq_format_extended,
 
 NCSUB_inq,
 NCSUB_inq_type,

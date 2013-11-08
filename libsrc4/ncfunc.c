@@ -71,7 +71,6 @@ int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
-   NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
    LOG((2, "nc_inq_format_extended: ncid 0x%x", ncid));
@@ -84,8 +83,17 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 	*modep = nc->mode;
 
     if(formatp) {
-	/* Distinguish HDF5 from HDF4 */
-	*formatp = (h5->hdf4 ? NC_FORMAT_HDF4 : NC_FORMAT_HDF5);
+	/* Distinguish HDF5 from HDF4; not clear how to test
+           if the file was created by netcdf-4 (HDF5 only).
+	   if writeable, then assume we created it, else assume
+           (for now) we did not.
+        */
+	if(h5->hdf4) 
+	    *formatp = NC_FORMAT_HDF4;
+	else if(h5->no_write)
+	    *formatp = NC_FORMAT_HDF5;
+	else
+	    *formatp = NC_FORMAT_NC_HDF5;
     }
    return NC_NOERR;
 }

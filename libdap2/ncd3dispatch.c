@@ -42,6 +42,8 @@ static int NCD3_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
+static int NCD3_inq_format_extended(int ncid, int* formatp);
+
 static NC_Dispatch NCD3_dispatch_base = {
 
 NC_DISPATCH_NC3 | NC_DISPATCH_NCD,

@@ -29,7 +29,7 @@ test_small_atts(const char *testfile)
    int ndims, nvars, natts, unlimdimid;
    size_t len_in;
    int t, f;
-
+   int format;
    
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)
@@ -43,6 +43,9 @@ test_small_atts(const char *testfile)
 	 
 	 /* Create a file with one attribute. */
 	 if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
+	 /* Test format functions */
+	 if(nc_inq_format(ncid,&format)) ERR;
+         if(format & NC_FORMAT_CLASSIC
 	 if (nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, t + 1, att)) ERR;
 	 if (f && nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 	 if (nc_close(ncid)) ERR;

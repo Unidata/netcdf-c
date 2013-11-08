@@ -173,14 +173,21 @@ Use this in mode flags for both nc_create() and nc_open(). */
  *  Added in version 4.3.1.2. This returns the true format of the
  *  underlying data; It may differ from NC_FORMAT if the file
  *  was translated to netcdf format from some other format
+ *  Note that the returned format may have multiple flags set
+ *  (e.g. NC3+DISKLESS).
  */
 /**@{*/
-#define NC_FORMAT_NC3  (NC_FORMAT_CLASSIC)
-#define NC_FORMAT_HDF5 (2<<8)
-#define NC_FORMAT_HDF4 (2<<9)
-#define NC_FORMAT_DAP2 (2<<10)
-#define NC_FORMAT_DAP4 (2<<11)
-#define NC_FORMAT_NC5  (2<<12) /*PNETCDF*/
+#define NC_FORMAT_NC3     (NC_FORMAT_CLASSIC)
+#define NC_FORMAT_NC_HDF5 (NC_FORMAT_NETCDF4) /* netcdf 4 subset of HDF5 */
+#define NC_FORMAT_NC_HDF4 (NC_FORMAT_NETCDF4) /* netcdf 4 subset of HDF5 */
+#define NC_FORMAT_HDF5    (2<<8) 
+#define NC_FORMAT_HDF4    (2<<9)
+#define NC_FORMAT_DAP2    (2<<10)
+#define NC_FORMAT_DAP4    (2<<11)
+#define NC_FORMAT_NC5     (2<<12) /*PNETCDF*/
+#define NC_FORMAT_DISKLESS (2<<13)
+#define NC_FORMAT_UNDEFINED (0)
+
 /**@}*/
 
 /** Let nc__create() or nc__open() figure out a suitable buffer size. */
