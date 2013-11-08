@@ -71,7 +71,6 @@ int
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
-   NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
    LOG((2, "nc_inq_format_extended: ncid 0x%x", ncid));
