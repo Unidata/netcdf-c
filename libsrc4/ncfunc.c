@@ -67,7 +67,6 @@ NC4_inq_format(int ncid, int *formatp)
 }
 
 /* Get the extended format of an open file. */
-<<<<<<< HEAD
 NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
    NC *nc;
