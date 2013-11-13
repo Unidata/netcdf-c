@@ -473,6 +473,9 @@ print_rows(
 	char *valp = vals;
 	bool_t lastrow;
 	int j;
+	if(formatting_specs.brief_data_cmnts && rank > 1) {
+	    annotate_brief(vp, cor, vdims);
+	}
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
 	for(i=0; i < d0 - 1; i++) {
 	    print_any_val(sb, vp, (void *)valp);
