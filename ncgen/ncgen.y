@@ -441,7 +441,7 @@ dimdecl:
 	  dimd '=' UINT_CONST
               {
 		$1->dim.declsize = (size_t)uint32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
 	      }
@@ -452,7 +452,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
 		    YYABORT;
 		}
 		$1->dim.declsize = (size_t)int32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
 	      }
@@ -465,7 +465,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
                        if (double_val - (size_t) double_val > 0)
                          yyerror("dimension length must be an integer");
                        $1->dim.declsize = (size_t)double_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
                    }
@@ -473,7 +473,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
                    {
 		        $1->dim.declsize = NC_UNLIMITED;
 		        $1->dim.isunlimited = 1;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = UNLIMITED\n",$1->name);
 #endif
 		   }

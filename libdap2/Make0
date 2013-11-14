@@ -2,12 +2,12 @@ NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
 #CYGWIN
-LFLAG=-L/usr/lib -L/usr/local/lib
-HDF5LIB=/usr/lib/libhdf5_hl.a /usr/lib/libhdf5.a
+#LFLAG=-L/usr/lib -L/usr/local/lib
+#HDF5LIB=/usr/lib/libhdf5_hl.a /usr/lib/libhdf5.a
 
 #!CYGWIN
-#LFLAG=-L/upc/share/ed/local/${HOST}/lib
-#HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
+LFLAG=-L/upc/share/ed/local/${HOST}/lib
+HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
 
 CURLLIB=-lcurl
 ZLIB=-lz
@@ -15,7 +15,7 @@ ZLIB=-lz
 OTHERLIBS=-lm
 
 LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
-INCL=-I. -I.. -I../include ${NCINCL}
+INCL=-I. -I.. -I../include -I../libsrc -I../libsrc4 ${NCINCL} 
 RPATH=-Wl,-rpath,${LFLAG}
 
 # Might want to specify a particular C compiler with flags
@@ -216,8 +216,7 @@ cpp::
 
 ##################################################
 # ncd
-NCDUMPC=../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/ncdump.c ../ncdump/nctime0.c ../ncdump/vardata.c ../ncdump/utils.c ../ncdump/nciter.c
-NCDUMPH=../ncdump/cdl.h ../ncdump/dumplib.h ../ncdump/indent.h ../ncdump/isnan.h ../ncdump/ncdump.h ../ncdump/nctime0.h ../ncdump/vardata.h ../ncdump/utils.h
+NCDUMPC= ../ncdump/ncdump.c ../ncdump/vardata.c ../ncdump/dumplib.c ../ncdump/indent.c ../ncdump/nctime0.c ../ncdump/nciter.c ../ncdump/utils.c
 
 NCDUMPOBJ=${NCDUMPC:../ncdump/%.c=%.o}
 
@@ -258,7 +257,12 @@ fix::
 	done
 
 ##################################################
-T=junk
+E=common34
+e::
+	cc -E -g -c ${E}.c ${INCL} -I../oc2 >${E}.txt
+
+##################################################
+T=
 
 v::
 	cc -g -c ${T}.c ${INCL}

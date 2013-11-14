@@ -50,6 +50,7 @@ static int
 ncd3initialize(void)
 {
     int i;
+
     compute_nccalignments();
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
 	dap_one[i] = 1;

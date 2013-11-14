@@ -1122,7 +1122,7 @@ computeunlimitedsizes(Dimset* dimset, int dimindex, Datalist* data, int ischar)
 	unlimsize = length / xproduct;
 	if(length % xproduct != 0)
 	    unlimsize++; /* => fill requires at some point */
-#ifdef DEBUG2
+#ifdef GENDEBUG2
 fprintf(stderr,"unlimsize: dim=%s declsize=%lu xproduct=%lu newsize=%lu\n",
 thisunlim->name,
 (unsigned long)thisunlim->dim.declsize,
@@ -1164,7 +1164,7 @@ thisunlim->name,
 	unlimsize = length / xproduct;
 	if(length % xproduct != 0)
 	    unlimsize++; /* => fill requires at some point */
-#ifdef DEBUG2
+#ifdef GENDEBUG2
 fprintf(stderr,"unlimsize: dim=%s declsize=%lu xproduct=%lu newsize=%lu\n",
 thisunlim->name,
 (unsigned long)thisunlim->dim.declsize,
@@ -1208,7 +1208,7 @@ processunlimiteddims(void)
 	    }
 	}
     }
-#ifdef DEBUG1
+#ifdef GENDEBUG1
     /* print unlimited dim size */
     if(listlength(dimdefs) == 0)
         fprintf(stderr,"unlimited: no unlimited dimensions\n");

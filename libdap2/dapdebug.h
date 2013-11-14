@@ -7,9 +7,9 @@
 #define DEBUG_H
 
 
-#if 0
+#if 1
 #define DAPDEBUG 1
-#define OCDEBUG
+#define OCDEBUG 1
 #endif
 
 #include "ocdebug.h"

@@ -5,16 +5,17 @@ TOP="/home/dmh/mach/trunk"
 #TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
-#PROG=./ncd
-PROG="$TOP/ncdump/ncdump"
+PROG=./ncd
+#PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 
-#F='http://colossus.dl.stevens-tech.edu/thredds/dodsC/fmrc/NYBight/NYHOPS_Forecast_Collection_for_the_New_York_Bight_best.ncd'
+F="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTHLY/.sst/dods"
+
+#F="http://ticket:ticket1@utmea.enea.it:8080/thredds/dodsC/UNIDATA_passwd/head_out.nc"
+
 #CON='xpos'
 #VAR=data
-
-F="http://opendap.deltares.nl/opendap/test/testNcWithManyVariables/test3000.nc"
 
 PARMS="log"
 #PARMS="${PARMS}&netcdf3"
@@ -23,13 +24,15 @@ PARMS="log"
 #PARMS="${PARMS}&nocache"
 #PARMS="${PARMS}&wholevar"
 PARMS="${PARMS}&show=fetch"
-#PARMS="${PARMS}&noprefetch"
+PARMS="${PARMS}&noprefetch"
 #PARMS="${PARMS}&prefetch"
 #PARMS="${PARMS}&prefetch=eager"
 
+VARGS="--leak-check=full"
+
 # Pick in order
 if test "x$PROG" = x ; then
-for f in ../ncdump/.libs/lt-ncdump ../ncdump/.libs/ncdump ../ncdump/ncdump ./ncd ; do
+for f in ./ncd ../ncdump/.libs/lt-ncdump ../ncdump/.libs/ncdump ../ncdump/ncdump ; do
  if test -f $f ; then
   PROG="$f"
   break;
@@ -49,8 +52,6 @@ UALL="$U${PARMS}"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
 if test "x$VAR" != "x" ; then ARGS="$ARGS -v $VAR" ; fi
-
-VARGS="--leak-check=full"
 
 alias qq="gdb --args $PROG $ARGS '$U'"
 alias qv="valgrind $VARGS PROG $ARGS '$U'"

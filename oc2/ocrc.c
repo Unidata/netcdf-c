@@ -387,26 +387,12 @@ ocdodsrc_process(OCstate* state)
             oclog(OCLOGNOTE,"USERAGENT: %s", state->curlflags.useragent);
     }
 
-    if((value = curllookup("COOKIEFILE",url)) != NULL) {
-        state->curlflags.cookiefile = strdup(TRIM(value));
-        if(!state->curlflags.cookiefile) {stat = OC_ENOMEM; goto done;}
-        if(ocdebug > 0)
-            oclog(OCLOGNOTE,"COOKIEFILE: %s", state->curlflags.cookiefile);
-    }
     if((value = curllookup("COOKIEJAR",url))
        || (value = curllookup("COOKIE_JAR",url))) {
         state->curlflags.cookiejar = strdup(TRIM(value));
         if(!state->curlflags.cookiejar) {stat = OC_ENOMEM; goto done;}
         if(ocdebug > 0)
             oclog(OCLOGNOTE,"COOKIEJAR: %s", state->curlflags.cookiejar);
-    }
-
-    /* Some servers (e.g. thredds) appear to require a place
-       to put cookies in order for some security functions to work
-    */
-    if(state->curlflags.cookiejar == NULL
-       && state->curlflags.cookiefile == NULL) {
-	state->curlflags.cookiefile = strdup("");
     }
 
     if((value = curllookup("PROXY_SERVER",url)) != NULL) {

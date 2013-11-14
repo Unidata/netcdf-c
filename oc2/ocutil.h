@@ -41,6 +41,9 @@ extern int ocfindbod(OCbytes* buffer, size_t*, size_t*);
 extern void ocfreeprojectionclause(OCprojectionclause* clause);
 
 /* Misc. */
+
+extern int ocmktmp(const char* base, char** tmpnamep, int* fdp);
+
 extern void ocdataddsmsg(struct OCstate*, struct OCtree*);
 
 extern const char* ocdtmodestring(OCDT mode,int compact);

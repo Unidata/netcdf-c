@@ -3,12 +3,14 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#include <errno.h>
 
 #include "ocinternal.h"
 #include "ocdebug.h"
@@ -21,14 +23,14 @@
 
 /* Note: TMPPATH must end in '/' */
 #ifdef __CYGWIN__
-#define TMPPATH1 "/cygdrive/c/temp/"
-#define TMPPATH2 "./"
+#define TMPPATH1 "/cygdrive/c/temp/datadds"
+#define TMPPATH2 "./datadds"
 #elif _WIN32
-#define TMPPATH1 "c:\\temp\\"
-#define TMPPATH2 ".\\"
+#define TMPPATH1 "c:\\temp\\datadds"
+#define TMPPATH2 ".\\datadds"
 #else
-#define TMPPATH1 "/tmp/"
-#define TMPPATH2 "./"
+#define TMPPATH1 "/tmp/datadds"
+#define TMPPATH2 "./datadds"
 #endif
 
 #define CLBRACE '{'
@@ -42,10 +44,9 @@ static int ocextractddsinmemory(OCstate*,OCtree*,int);
 static int ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
-static int createtempfile1(char*,char**);
 static int dataError(XXDR* xdrs, OCstate*);
 
-static void ocsetcurlproperties(OCstate*);
+static int ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -74,6 +75,32 @@ ocinternalinitialize(void)
 	ocglobalstate.initialized = 1;
     }
 
+    /* Capture $HOME */
+    {
+	char* p;
+	char* q;
+        char* home = getenv("HOME");
+	char cwd[4096];
+        if(ocglobalstate.home == NULL) {
+#if defined(_WIN32) || defined(_WIN64)
+	    home = getenv("TEMP");
+#else
+	    home = "/tmp";
+#endif
+	}
+        if(home == NULL) {
+	    home = getcwd(cwd,sizeof(cwd));
+	    if(home == NULL || *home == '\0') home = ".";
+	}
+
+        /* Convert '\' to '/' */
+        ocglobalstate.home = (char*)malloc(strlen(home) + 1);
+	for(p=home,q=ocglobalstate.home;*p;p++,q++) {
+	    if(*p == '\\') {*q = '/'; } else {*q = *p;}
+	}
+	*q = '\0';
+    }
+
     /* Compute some xdr related flags */
     xxdr_init();
 
@@ -84,7 +111,6 @@ ocinternalinitialize(void)
     /* compile the .dodsrc, if any */
     {
         char* path = NULL;
-        char* homepath = NULL;
 	char** alias;
 	FILE* f = NULL;
         /* locate the configuration files: . first in '.',  then $HOME */
@@ -93,8 +119,8 @@ ocinternalinitialize(void)
             path = (char*)malloc(pathlen);
 	    if(path == NULL) return OC_ENOMEM;
 	    if(!occopycat(path,pathlen,2,"./",*alias)) {
-	      if(path) free(path);
-	      return OC_EOVERRUN;
+	        if(path) free(path);
+		return OC_EOVERRUN;
 	    }
   	    /* see if file is readable */
 	    f = fopen(path,"r");
@@ -103,20 +129,17 @@ ocinternalinitialize(void)
 	}
 	if(f == NULL) { /* try $HOME */
 	    OCASSERT(path == NULL);
-            homepath = getenv("HOME");
-            if (homepath!= NULL) {
-	        for(alias=rcfilenames;*alias;alias++) {
-	            size_t pathlen = strlen(homepath)+1+strlen(*alias)+1;
-	            path = (char*)malloc(pathlen);
-	            if(path == NULL) return OC_ENOMEM;
-		    if(!occopycat(path,pathlen,3,homepath,"/",*alias)) {
-		      if(path) {free(path);}
-		      return OC_EOVERRUN;
-		    }
-		    f = fopen(path,"r");
-		    if(f != NULL) break;
- 	            if(path != NULL) {free(path); path=NULL;}
+	    for(alias=rcfilenames;*alias;alias++) {
+		size_t pathlen = strlen(ocglobalstate.home)+1+strlen(*alias)+1;
+	        path = (char*)malloc(pathlen);
+	        if(path == NULL) return OC_ENOMEM;
+		if(!occopycat(path,pathlen,3,ocglobalstate.home,"/",*alias)) {
+		    if(path) free(path);
+		    return OC_EOVERRUN;
 		}
+		f = fopen(path,"r");
+		if(f != NULL) break;
+ 	        if(path != NULL) {free(path); path=NULL;}
             }
 	}
         if(f == NULL) {
@@ -131,6 +154,7 @@ ocinternalinitialize(void)
         }
         if(path != NULL) free(path);
     }
+
     return OCTHROW(stat);
 }
 
@@ -164,7 +188,7 @@ ocopen(OCstate** statep, const char* url)
     ocbytessetalloc(state->packet,DFALTPACKETSIZE); /*initial reasonable size*/
 
     /* set curl properties for this link */
-    ocsetcurlproperties(state);
+    stat = ocsetcurlproperties(state);
 
     if(statep) *statep = state;
     return OCTHROW(stat);   
@@ -344,16 +368,14 @@ fail:
 static OCerror
 createtempfile(OCstate* state, OCtree* tree)
 {
+    int stat = OC_NOERR;
     int fd = 0;
     char* name = NULL;
-    fd = createtempfile1(TMPPATH1,&name);
-    if(fd < 0)
-        fd = createtempfile1(TMPPATH2,&name);
-    if(fd < 0) {
-        oclog(OCLOGERR,"oc_open: attempt to open tmp file failed: %s",name);
-        if(name) free(name);
-	return errno;
-    }
+
+    stat = ocmktmp(TMPPATH1,&name, &fd);
+    if(stat != OC_NOERR)
+        stat = ocmktmp(TMPPATH2,&name,&fd);
+    if(stat != OC_NOERR) goto fail;
 #ifdef OCDEBUG
     oclog(OCLOGNOTE,"oc_open: using tmp file: %s",name);
 #endif
@@ -362,49 +384,12 @@ createtempfile(OCstate* state, OCtree* tree)
     if(tree->data.file == NULL) return OC_EOPEN;
     /* unlink the temp file so it will automatically be reclaimed */
     if(ocdebug == 0) unlink(tree->data.filename);
-    return OC_NOERR;
-}
+    return stat;
 
-int
-createtempfile1(char* tmppath, char** tmpnamep)
-{
-    int fd = 0;
-    char* tmpname = NULL;
-    size_t tmpsize = strlen(tmppath)+strlen("dataddsXXXXXX") + 1;
-    tmpname = (char*)malloc(tmpsize);
-    if(tmpname == NULL) return -1;
-    if(!occopycat(tmpname,tmpsize,1,tmppath))
-	return OC_EOVERRUN;
-#ifdef HAVE_MKSTEMP
-    if(!occoncat(tmpname,tmpsize,1,"dataddsXXXXXX"))
-	return OC_EOVERRUN;
-    /* Note Potential problem: old versions of this function
-       leave the file in mode 0666 instead of 0600 */
-    umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    fd = mkstemp(tmpname);
-#else /* !HAVE_MKSTEMP */
-    /* Need to simulate by using some kind of pseudo-random number */
-    if(!occoncat(tmpname,tmpsize,1,"datadds"))
-	return OC_EOVERRUN;
-    {
-	int rno = rand();
-	char spid[7];
-	if(rno < 0) rno = -rno;
-        snprintf(spid,sizeof(spid),"%06d",rno);
-	if(!occoncat(tmpname,tmpsize,1,spid))
-	    return OC_EOVERRUN;
-#  ifdef _WIN32
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
-#  else
-        fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
-#  endif
-    }
-#endif /* !HAVE_MKSTEMP */
-    if(tmpname == NULL) return -1;
-    if(tmpnamep) *tmpnamep = tmpname;
-    else
-      free(tmpname);
-    return fd;
+fail:
+    if(name != NULL) free(name);
+    oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
+    return stat;
 }
 
 void
@@ -426,7 +411,6 @@ occlose(OCstate* state)
     ocfree(state->error.message);
     ocfree(state->curlflags.useragent);
     ocfree(state->curlflags.cookiejar);
-    ocfree(state->curlflags.cookiefile);
     ocfree(state->ssl.certificate);
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
@@ -567,12 +551,14 @@ ocupdatelastmodifieddata(OCstate* state)
 }
 
 /*
-    Set curl properties for link based on rc files
+    Set curl properties for link based on rc files etc.
 */
-static void
+static int
 ocsetcurlproperties(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
+    CURL* curl = state->curl;
+    int stat;
 
     /* process the triple store wrt to this state */
     if(ocdodsrc_process(state) != OC_NOERR) {
@@ -592,16 +578,57 @@ ocsetcurlproperties(OCstate* state)
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
 	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
-	  state->curlflags.useragent = agent;
+	    state->curlflags.useragent = agent;
 	else
-	  free(agent);
+	    free(agent);
     }
-    return;
+
+    /* Some servers (e.g. thredds and columbia) appear to require a place
+       to put cookies in order for some security functions to work
+    */
+    if(state->curlflags.cookiejar == NULL 
+       || *state->curlflags.cookiejar) {
+	/* If no cookie file was defined, define a default */
+	char id[17];
+	char* tmp;
+	int fd;
+
+	snprintf(id,sizeof(id),"%016lx",*(long*)&curl);
+
+        tmp = (char*)malloc(strlen(ocglobalstate.home)
+				  +strlen("/")
+				  +strlen(OCDIR)
+				  +strlen("/")
+				  +strlen(id)
+				  +1);
+	if(tmp == NULL)
+	    return OC_ENOMEM;
+	strcpy(tmp,ocglobalstate.home);
+	strcat(tmp,"/");
+	strcat(tmp,OCDIR);
+	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
+	if(stat != 0 && errno != EEXIST) {
+	    fprintf(stderr,"Cannot create cookie file\n");
+	    return stat;
+	}
+	errno = 0;
+	/* Create the actual cookie file */
+	strcat(tmp,"/");
+	strcat(tmp,id);
+	fd = creat(tmp,S_IRUSR | S_IWUSR);
+	if(fd < 0) {
+	    fprintf(stderr,"Cannot create cookie file\n");
+	    return OC_EPERM;
+	} else
+	    close(fd);
+    }	     
+
+    return OC_NOERR;
 
 fail:
     if(cstat != CURLE_OK)
 	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return;
+    return OC_ECURL;
 }
 
 OCerror

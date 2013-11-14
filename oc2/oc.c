@@ -11,6 +11,7 @@
 #include "ocdump.h"
 #include "oclog.h"
 #include "occlientparams.h"
+#include "occurlfunctions.h"
 #include "ochttp.h"
 
 #undef TRACK
@@ -1927,6 +1928,26 @@ oc_set_useragent(OCobject link, const char* agent)
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     return ocsetuseragent(state,agent);
+}
+
+/*!
+Force the curl library to trace its actions.
+
+\param[in] link The link through which the server is accessed.
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_EINVAL if the request failed.
+
+*/
+
+OCerror
+oc_trace_curl(OCobject link)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    oc_curl_debug(state);
+    return OC_NOERR;
 }
 
 /**@}*/

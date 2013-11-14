@@ -104,7 +104,10 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
 	stat = readfile(fetchurl,suffix,packet);
     } else {
 	int flags = 0;
-	if(!fileprotocol) flags |= OCURICONSTRAINTS;
+	if(!fileprotocol) {
+	    flags |= OCURICONSTRAINTS;
+	    flags |= OCURIUSERPWD;
+	}
 	flags |= OCURIENCODE;
         fetchurl = ocuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl,OC_ENOMEM);
@@ -153,6 +156,7 @@ fprintf(stderr,"readDATADDS:\n");
             int flags = 0;
             if(!fileprotocol) flags |= OCURICONSTRAINTS;
             flags |= OCURIENCODE;
+	    flags |= OCURIUSERPWD;
             ocurisetconstraints(url,tree->constraint);
             readurl = ocuribuild(url,NULL,".dods",flags);
             MEMCHECK(readurl,OC_ENOMEM);
