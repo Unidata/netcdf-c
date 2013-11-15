@@ -124,6 +124,19 @@ NCD3_open(const char * path, int mode,
     if(!constrainable34(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
 
+#ifdef COLUMBIA_HACK
+    {
+	const char* p;
+	/* Does this url look like it is from columbia? */
+	if(dapcomm->oc.url->host != NULL) {
+	    for(p=dapcomm->oc.url->host;*p;p++) {
+	        if(strncmp(p,COLUMBIA_HACK,strlen(COLUMBIA_HACK))==0)
+		    SETFLAG(dapcomm->controls,NCF_COLUMBIA);
+	    }
+	}
+    } 
+#endif
+
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	if(dapcomm->oc.url->constraint != NULL) {

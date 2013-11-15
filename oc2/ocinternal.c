@@ -25,7 +25,7 @@
 #ifdef __CYGWIN__
 #define TMPPATH1 "/cygdrive/c/temp/datadds"
 #define TMPPATH2 "./datadds"
-#elif _WIN32
+#elif defined(_WIN32) || defined(_WIN64)
 #define TMPPATH1 "c:\\temp\\datadds"
 #define TMPPATH2 ".\\datadds"
 #else
@@ -50,7 +50,7 @@ static int ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -560,7 +560,6 @@ static int
 ocsetcurlproperties(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
-    int stat;
 
     /* process the triple store wrt to this state */
     if(ocdodsrc_process(state) != OC_NOERR) {
@@ -597,6 +596,7 @@ ocsetcurlproperties(OCstate* state)
 	/* If no cookie file was defined, define a default */
 	char* tmp;
 	int fd;
+        int stat;
 		
         tmp = (char*)malloc(strlen(ocglobalstate.home)
 				  +strlen("/")

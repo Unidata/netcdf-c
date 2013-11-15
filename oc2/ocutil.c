@@ -13,6 +13,10 @@
 #endif
 #include <errno.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#define mode_t int
+#endif
+
 #include "ocinternal.h"
 #include "ocdebug.h"
 
@@ -708,7 +712,7 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
         snprintf(spid,sizeof(spid),"%06d",rno);
 	if(!occoncat(tmpname,tmpsize,1,spid))
 	    return OC_EOVERRUN;
-#  ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
