@@ -410,7 +410,10 @@ occlose(OCstate* state)
     ocfree(state->error.code);
     ocfree(state->error.message);
     ocfree(state->curlflags.useragent);
-    ocfree(state->curlflags.cookiejar);
+    if(state->curlflags.cookiejar) {
+	unlink(state->curlflags.cookiejar);
+	ocfree(state->curlflags.cookiejar);
+    }
     ocfree(state->ssl.certificate);
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
@@ -557,7 +560,6 @@ static int
 ocsetcurlproperties(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
-    CURL* curl = state->curl;
     int stat;
 
     /* process the triple store wrt to this state */
@@ -588,24 +590,25 @@ ocsetcurlproperties(OCstate* state)
     */
     if(state->curlflags.cookiejar == NULL 
        || *state->curlflags.cookiejar) {
+#if 1
+	/* Apparently anything non-null will work */
+	state->curlflags.cookiejar = strdup("");
+#else
 	/* If no cookie file was defined, define a default */
-	char id[17];
 	char* tmp;
 	int fd;
-
-	snprintf(id,sizeof(id),"%016lx",*(long*)&curl);
-
+		
         tmp = (char*)malloc(strlen(ocglobalstate.home)
 				  +strlen("/")
 				  +strlen(OCDIR)
 				  +strlen("/")
-				  +strlen(id)
 				  +1);
 	if(tmp == NULL)
 	    return OC_ENOMEM;
 	strcpy(tmp,ocglobalstate.home);
 	strcat(tmp,"/");
 	strcat(tmp,OCDIR);
+	strcat(tmp,"/");
 	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
 	if(stat != 0 && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
@@ -613,16 +616,19 @@ ocsetcurlproperties(OCstate* state)
 	}
 	errno = 0;
 	/* Create the actual cookie file */
-	strcat(tmp,"/");
-	strcat(tmp,id);
+	stat = ocmktmp(tmp,&state->curlflags.cookiejar,&fd);
+	close(fd);	
+
+#if 0
 	fd = creat(tmp,S_IRUSR | S_IWUSR);
 	if(fd < 0) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    return OC_EPERM;
-	} else
+	}else
 	    close(fd);
-    }	     
-
+#endif
+#endif
+    }
     return OC_NOERR;
 
 fail:

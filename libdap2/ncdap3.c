@@ -170,6 +170,10 @@ NCD3_open(const char * path, int mode,
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
+#ifdef DEBUG1
+    (void)oc_trace_curl(dapcomm->oc.conn);
+#endif
+
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;
 
