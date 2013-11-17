@@ -21,7 +21,7 @@ man_MANS = ncgen.1
 
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l $(man_MANS) internals.html	\
-run_tests.sh run_nc4_tests.sh c0.cdl ref_camrun.cdl \
+run_tests.sh run_nc4_tests.sh c0.cdl c0_4.cdl ref_camrun.cdl \
 ncf199.cdl CMakeLists.txt XGetopt.c
 
 # This shell script causes ncgen to build a classic and a 64-bit
@@ -44,8 +44,8 @@ CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 makeparser::
 	flex -Pncg -8 ncgen.l
 	rm -f ncgenyy.c
-	mv lex.ncg.c ncgenyy.c
+	sed -e s/lex.ncg.c/ncgenyy.c/g <lex.ncg.c >ncgenyy.c
 	bison -pncg -t -d ncgen.y
 	rm -f ncgentab.c ncgentab.h
-	mv ncgen.tab.c ncgentab.c
-	mv ncgen.tab.h ncgentab.h
+	sed -e s/ncgen.tab.c/ncgentab.c/g -e s/ncgen.tab.h/ncgentab.h/g <ncgen.tab.c >ncgentab.c
+	sed -e s/ncgen.tab.c/ncgentab.c/g -e s/ncgen.tab.h/ncgentab.h/g <ncgen.tab.h >ncgentab.h

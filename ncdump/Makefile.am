@@ -85,7 +85,7 @@ endif
 endif BUILD_TESTSETS
 
 CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl	\
-ctest0.nc ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc	\
+ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
 tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
 tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc	\

@@ -110,7 +110,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant       constant;
 
-#line 114 "ncgen.tab.h" /* yacc.c:1909  */
+#line 114 "ncgentab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

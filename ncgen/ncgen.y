@@ -697,7 +697,7 @@ type_var_ref:
 		    } else tvsym = sym;
 		} else tvsym = sym;
 		if(tvsym == NULL) {
-		    derror("Undefined name: %s",$1->name);
+		    derror("Undefined name (line %d): %s",$1->lineno,$1->name);
 		    YYABORT;
 		}
 		$$=tvsym;

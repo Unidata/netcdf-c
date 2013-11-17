@@ -8,6 +8,30 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
+* Fixed bug in ncgen; it was not properly filling empty string constants
+  ("") to be the proper length. [NCF-279]
+
+[NCF-279]:https://bugtracking.unidata.ucar.edu/browse/NCF-279
+
+* Fixed bug in ncgen where it was interpreting int64 constants
+  as uint64 constants. [NCF-278]
+
+[NCF-278]:https://bugtracking.unidata.ucar.edu/browse/NCF-278
+
+* Fixed bug in handling Http Basic Authorization.
+  The code was actually there but was not being
+  executed. [NCF-277]
+
+[NCF-277]:https://bugtracking.unidata.ucar.edu/browse/NCF-277
+
+* Added hack to the DAP code to address a problem with the
+  Columbia.edu server. That server does not serve up proper
+  DAP2 DDS replies. The Dataset {...} name changes depending
+  on if the request has certain kinds of
+  constraints. [NCF-276]
+
+[NCF-276]:https://bugtracking.unidata.ucar.edu/browse/NCF-276
+
 * Fixed bugs with ncdump annotation of values, using -b or -f
   options. [NCF-275]
 
