@@ -84,10 +84,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
 
     if(vsym->data == NULL) return;
 
-if(strcmp(vsym->name,"c213")==0) {
-int x = 0;
-}
-
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
@@ -109,73 +105,90 @@ generate_array(Symbol* vsym,
               )
 {
     Dimset* dimset = &vsym->typ.dimset;
+    int i;
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
     Odometer* odom;
     nciter_t iter;
+    DimProduct dimproduct;
 
     ASSERT(rank > 0);
 
+    /* We need to compress the dimensions into a smaller
+       set where each of the new dimensions is either
+       an unlimited, or is the cross product of the
+       fixed size dimensions between unlimiteds
+    */
+    for(dimproduct.rank=0,i=0;i<rank;) {
+	dimproduct.product[dimproduct.rank] = dimset->dimsyms[i]->dim.declsize;
+	if(dimset->dimsyms[i]->dim.isunlimited) {
+	    dimproduct.rank++;
+	    i++;
+	} else {/* take crossproduct upto next unlimited, if any
+	    int j;
+	    int stop = findunlimited(dimset,i);
+	    if(nextunlim < 0) stop = rank-1;
+	    for(j=i;j<stop;j++)
+		dimproduct.product[dimproduct.rank] *= dimset->dimsyms[j]->dim.declsize;
+	    dimproduct.rank++;
+	    i = stop;
+	}
+    }
+    dimproduct.index = 0;
+
     /* Start by doing easy cases */
 
-#ifdef CHARBUG
-    if(typecode == NC_CHAR) { /* case: character typed variable, rank > 0 */
+    if(typecode == NC_CHAR) { /* character typed variable */
 	Bytebuffer* charbuf = bbNew();
-        gen_chararray(dimset,vsym->data,charbuf,filler);
-	generator->charconstant(generator,code,charbuf);
-	bbFree(charbuf);
-        odom = newodometer(dimset,NULL,NULL);
-        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-    } else
-#else /*!CHARBUG*/
-    /* Case: char var && dim 1..n are not unlimited */
-    if(findunlimited(dimset,1) == rank && typecode == NC_CHAR) {
-	Bytebuffer* charbuf = bbNew();
-	gen_leafchararray(dimset,0,vsym->data,charbuf,filler);
-	generator->charconstant(generator,code,charbuf);
-	bbFree(charbuf);
-        odom = newodometer(dimset,NULL,NULL);
-        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-    } else
-#endif
-    /* Case 2: dim 1..n are not unlimited */
-    if(findunlimited(dimset,1) == rank) {
-	size_t offset = 0; /* where are we in the data list */
-	size_t nelems = 0; /* # of data list items to read */
-        /* Create an iterator and odometer and just walk the datalist */
-        nc_get_iter(vsym,nciterbuffersize,&iter);
-        odom = newodometer(dimset,NULL,NULL);
-	for(;;offset+=nelems) {
-	     int i,uid;
-             nelems=nc_next_iter(&iter,odom->start,odom->count);
-             if(nelems == 0) break;
-	     bbClear(code);
-             generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
-	     for(i=0;i<nelems;i++) {
-#ifdef ITERBUG
-	 	Constant* con = datalistith(vsym->data,i);
-#else
-        NCConstant* con = datalistith(vsym->data,i+offset);
-#endif	
-                generator->list(generator,LISTDATA,uid,i,code);
-#ifdef USE_NOFILL
-		if(nofill_flag && con == NULL)
-		    break;
-		else
-#endif
-                    generate_basetype(basetype,con,code,filler,generator);
- 	    }
-	    generator->listend(generator,LISTDATA,uid,i,code);
-#ifdef USE_NOFILL
-            writer(generator,vsym,code,rank,odom->start,odom->index);
-#else
-            writer(generator,vsym,code,rank,odom->start,odom->count);
-#endif
+	if(dimproduct.rank == 1) {/* Case: dim 0..ndims-1 are fixed in size*/
+
+	    gen_leafchararray(dimset,dimproduct->product[0],vsym->data,charbuf,filler);
+	} else if(dimproduct.rank == 2) {/* Case: dim 1..ndims-1 are fixed in size*/
+	    for(i=0;i<dimproduct->product[0];i++)
+	        gen_leafchararray(dimset,dimproduct->product[1],vsym->data,charbuf,filler);
 	}
+	generator->charconstant(generator,code,charbuf);
+	bbFree(charbuf);
+        odom = newodometer(dimset,NULL,NULL);
+        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
+    } else { /* non char variable
+	if(dimproduct.rank == 1) {/* Case dim 0..ndims-1 are fixed in size */ 
+	    size_t offset = 0; /* where are we in the data list */
+	    size_t nelems = 0; /* # of data list items to read */
+            /* Create an iterator and just walk the datalist */
+	    nc_get_iter(vsym,nciterbuffersize,&iter);
+	    for(;;offset+=nelems) {
+		int i,uid;
+                nelems=nc_next_iter(&iter,odom->start,odom->count);
+                if(nelems == 0) break;
+	        bbClear(code);
+		generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
+	        for(i=0;i<nelems;i++) {
+#ifdef ITERBUG
+		    Constant* con = datalistith(vsym->data,i);
+#else
+		    NCConstant* con = datalistith(vsym->data,i+offset);
+#endif	
+		    generator->list(generator,LISTDATA,uid,i,code);
+#ifdef USE_NOFILL
+		    if(nofill_flag && con == NULL)
+		        break;
+		    else
+#endif
+                        generate_basetype(basetype,con,code,filler,generator);
+ 	        }
+		generator->listend(generator,LISTDATA,uid,i,code);
+#ifdef USE_NOFILL
+                writer(generator,vsym,code,rank,odom->start,odom->index);
+#else
+                writer(generator,vsym,code,rank,odom->start,odom->count);
+#endif
+	    } /*for*/
+	} else if(dimproduct
     } else
 
-    { /* Hard case: multiple unlimited dimensions */
+    { /* Hard case: unlimited dimensions past first dim */
         /* Setup iterator and odometer */
 #ifdef CHARBUG
         nc_get_iter(vsym,nciterbuffersize,&iter);
@@ -216,25 +229,27 @@ generate_arrayr(Symbol* vsym,
     Dimset* dimset = &vsym->typ.dimset;
     int rank = dimset->ndims;
     int lastunlimited;
-    int typecode = basetype->typ.typecode;
-
-    lastunlimited = findlastunlimited(dimset);
-    if(lastunlimited == rank) lastunlimited = 0;
+    int typecode;
 
     ASSERT(rank > 0);
     ASSERT(dimindex >= 0 && dimindex < rank);
 
+    lastunlimited = findlastunlimited(dimset);
+
+    typecode = basetype->typ.typecode;
+
 #ifdef CHARBUG
     ASSERT(typecode != NC_CHAR); 
 #else /*!CHARBUG*/
-    if(dimindex == lastunlimited && typecode == NC_CHAR) {
+    /* so dimindex .. lastunlimited are fixed */
+    if((dimindex == 0 || dimindex == lastunlimited) && typecode == NC_CHAR) {
 	Bytebuffer* charbuf = bbNew();
 	gen_leafchararray(dimset,dimindex,list,charbuf,filler);
 	generator->charconstant(generator,code,charbuf);
 	bbFree(charbuf);
     } else
 #endif /*!CHARBUG*/
-    if(dimindex == lastunlimited) {
+    if(lastunlimited < 0 || dimindex == lastunlimited) {
 	int uid,i;
 	Odometer* slabodom;
 	/* build a special odometer to walk the last few dimensions

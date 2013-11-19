@@ -646,6 +646,8 @@ unescapeoct(const char* s)
  * On return, termstring is nul terminated.
  * Watch out for embedded nuls and utf-8 characters.
  * Return # of characters written.
+ * Note that the escape handling for identifiers is different
+ * than for string constants
  */
 
 int
@@ -653,7 +655,8 @@ unescape(
      char *s, /* fill with contents of yytext, with escapes removed.
                  s and yytext may be same*/
      const char *yytext,
-     int yyleng)
+     int yyleng,
+     int isident)
 {
     const char *t, *tend;
     char* p;
@@ -699,21 +702,28 @@ unescape(
 	      case '\"':
 		*p++ = ('\"'); t++;
 		break;
+	      /* Hex or oct constants not allowed in identifiers */
 	      case 'x':
-		/* t now points to hex */
-		b = unescapehex(t);
-		t += 2;
-		*p++ = ((char)b);
+		if(!isident) {
+		    /* t now points to hex */
+		    b = unescapehex(t);
+		    t += 2;
+		} else
+		    b = *t++;
+	        *p++ = ((char)b);
 		break;
 	      case '0': case '1': case '2': case '3':
 	      case '4': case '5': case '6': case '7':
-		/* t now points to octal */
-		b = unescapeoct(t);
-		if(b < 0) {
-		    derror("Bad octal constant: %s",yytext);
-		    b = 0;
-		}
-		t += 3;
+		if(!isident) {
+		    /* t now points to octal */
+		    b = unescapeoct(t);
+		    if(b < 0) {
+		        derror("Bad octal constant: %s",yytext);
+		        b = 0;
+		    }
+		    t += 3;
+		} else
+		    b = *t++;
 		*p++ = ((char)b);
 		break;
 	      default:

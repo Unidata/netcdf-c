@@ -40,6 +40,9 @@
 #define XDR_INT64_MIN  (-9223372036854775807LL-1)
 #define XDR_INT64_MAX  (9223372036854775807LL)
 
+/*Mnemonics*/
+#define ISIDENT 1
+
 char errstr[100];		/* for short error messages */
 
 int lineno;              /* line number for error messages */
@@ -185,7 +188,7 @@ yytext[MAXTRST-1] = '\0';
 		        /* FIX: Assumes unescape also does normalization */
 			bbSetlength(lextext,yyleng-2);
 			len = unescape(bbContents(lextext),
-                                       (char *)yytext+1,yyleng-2);
+                                       (char *)yytext+1,yyleng-2,!ISIDENT);
 			if(len < 0) {
 			    sprintf(errstr,"Illegal character: %s",yytext);
 			    yyerror(errstr);
@@ -313,7 +316,7 @@ NIL|nil|Nil {
 		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
 		    bbNull(lextext);
 		    id = bbContents(lextext);
-		    len = unescape(id,id,bbLength(lextext));
+		    len = unescape(id,id,bbLength(lextext),ISIDENT);
 		    bbSetlength(lextext,len);
 		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
 		    yylval.sym = install(id);
@@ -637,7 +640,7 @@ makepath(char* text0)
 	    case '/':
 		*p='\0';
 		if(!lastident) {
-		    unescape(ident,ident,strlen(ident));
+		    unescape(ident,ident,strlen(ident),ISIDENT);
 		    refsym = lookupingroup(NC_GRP,ident,container);
 		    if(refsym == NULL) {
 		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
@@ -647,7 +650,7 @@ makepath(char* text0)
 		        listpush(prefix,(void*)refsym);
 		    }
 		} else { /* lastident is true */
-		    unescape(ident,ident,strlen(ident));
+		    unescape(ident,ident,strlen(ident),ISIDENT);
 		    refsym = install(ident);
 		    refsym->objectclass = NC_GRP;/* tentative */
 		    refsym->ref.is_ref = 1;

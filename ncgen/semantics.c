@@ -1106,17 +1106,18 @@ computeunlimitedsizes(Dimset* dimset, int dimindex, Datalist* data, int ischar)
 {
     int i;
     size_t xproduct, unlimsize;
-    int nextunlim,lastunlim;
+    int nextunlim,islastunlim;
     Symbol* thisunlim = dimset->dimsyms[dimindex];
     size_t length;
     
     ASSERT(thisunlim->dim.isunlimited);
     nextunlim = findunlimited(dimset,dimindex+1);
-    lastunlim = (nextunlim == dimset->ndims);
+    islastunlim = (nextunlim < 0);
 
-    xproduct = crossproduct(dimset,dimindex+1,nextunlim);
+    xproduct = crossproduct(dimset,dimindex+1,
+			    islastunlim?0:nextunlim);
 
-    if(!lastunlim) {
+    if(!islastunlim) {
 	/* Compute candiate size of this unlimited */
         length = data->length;
 	unlimsize = length / xproduct;
@@ -1137,7 +1138,7 @@ thisunlim->name,
 	    ASSERT(con->nctype == NC_COMPOUND);
 	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
 	}
-    } else {			/* lastunlim */
+    } else { /* lastunlim */
 	if(ischar) {
 	    /* Char case requires special computations;
 	       compute total number of characters */
@@ -1195,7 +1196,7 @@ processunlimiteddims(void)
 	if(var->data == NULL) continue; /* no data list to walk */
 	ischar = (var->typ.basetype->typ.typecode == NC_CHAR);
 	first = findunlimited(dimset,0);
-	if(first == dimset->ndims) continue; /* no unlimited dims */
+	if(first < 0) continue; /* no unlimited dims */
 	if(first == 0) {
 	    computeunlimitedsizes(dimset,first,var->data,ischar);
 	} else {

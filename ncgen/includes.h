@@ -50,6 +50,5 @@
 extern int specialconstants;
 
 #undef ITERBUG
-#undef CHARBUG
 
 #endif /* NCGEN_INCLUDES_H */

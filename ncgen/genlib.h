@@ -43,6 +43,14 @@ extern void	verror ( const char *fmt, ... )
 extern void markcdf4(const char *msg);
 extern char* getmarkcdf4(void);
 
+/* Define a structure for managing dimension sets */
+typedef structure DimProducts {
+    int rank;
+    int index;
+    size_t product[NC_MAX_VAR_DIMS];
+} DimProducts
+
+
 
 /*
 All external procedures in ncgen.h have been moved to this file.
@@ -57,7 +65,7 @@ extern void nestedfqn(Symbol* sym);
 extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
-extern int unescape(char*, const char*, int);
+extern int unescape(char*, const char*, int, int);
 extern int unescapeoct(const char* s);
 extern int unescapehex(const char* s);
 extern char* cescapifychar(unsigned int c, int quote);

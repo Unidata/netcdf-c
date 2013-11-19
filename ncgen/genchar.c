@@ -62,12 +62,14 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
 
     /* Find the last unlimited */
     lastunlim = findlastunlimited(dimset);
-    if(lastunlim < 0) lastunlim = 0; /* pretend */
 
     /* Compute crossproduct upto the last dimension,
        starting at the last unlimited
     */
-    xproduct = crossproduct(dimset,lastunlim,ndims-1);
+    if(lastunlim < 0)
+	xproduct = crossproduct(dimset,0,ndims-1);
+    else
+	xproduct = crossproduct(dimset,lastunlim,ndims-1);
     if(ndims == 0) {
 	unitsize = 1;
     } else if(lastunlim == ndims-1) {/* last dimension is unlimited */
@@ -78,26 +80,24 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
 
     expectedsize = (xproduct * unitsize);
 
-
-
     gen_chararrayr(dimset,0,lastunlim,databuf,data,fillchar,unitsize,expectedsize);
 }
 
 /* Recursive helper */
 static void
-gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
+gen_chararrayr(Dimset* dimset, int dimindex, int lastunlim,
                Bytebuffer* databuf, Datalist* data, int fillchar,
 	       int unitsize, int expectedsize)
 {
     int i;
     size_t dimsize = dimset->dimsyms[dimindex]->dim.declsize;
 
-    if(dimindex < lastunlimited) {
+    if(lastunlim >= 0 && dimindex < lastunlim) {
 	/* keep recursing */
         for(i=0;i<dimsize;i++) {
 	    NCConstant* c = datalistith(data,i);
 	    ASSERT(islistconst(c));
-	    gen_chararrayr(dimset,dimindex+1,lastunlimited,databuf,
+	    gen_chararrayr(dimset,dimindex+1,lastunlim,databuf,
 			   c->value.compoundv,fillchar,unitsize,expectedsize);
 	}
     } else {/* we should be at a list of simple constants */
@@ -108,7 +108,7 @@ gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
 		int j;
 	        size_t constsize;
 	        constsize = gen_charconstant(c,databuf,fillchar);
-		if(constsize % unitsize > 0) {
+		if(constsize == 0 || constsize % unitsize > 0) {
 	            size_t padsize = unitsize - (constsize % unitsize);
 	            for(j=0;j<padsize;j++) bbAppend(databuf,fillchar);
 		}
@@ -126,7 +126,7 @@ gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
     } else {
 	size_t bufsize = bbLength(databuf);
 	/* Pad to size dimproduct size */
-	if(bufsize % expectedsize > 0) {
+	if(bufsize == 0 || bufsize % expectedsize > 0) {
 	    size_t padsize = expectedsize - (bufsize % expectedsize);
             for(i=0;i<padsize;i++) bbAppend(databuf,fillchar);
 	}
@@ -208,9 +208,8 @@ getfillchar(Datalist* fillsrc)
     return fillchar;
 }
 
-#ifndef CHARBUG
 void
-gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
+gen_leafchararray(Dimset* dimset, DimProduct* dimproduct, Datalist* data,
                    Bytebuffer* databuf, Datalist* fillsrc)
 {
     int i;
@@ -220,28 +219,36 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
 
     ASSERT(bbLength(databuf) == 0);
 
-    /* Assume dimindex is the last unlimited (or 0 if their are
+    /* dimproduct->index ... dimproduct->rank - 1
+       should reference a simple set of 
        no unlimiteds => we should be at a list of simple constants
     */
 
-    /* Compute crossproduct upto the last dimension,
-       starting at the last unlimited
+    /* Compute crossproduct upto (but not including) the last dimension,
+       starting at dimindex; note that it is possible
+       that dimindex == ndims-1 => xproduct will be 1
     */
-    xproduct = crossproduct(dimset,lastunlim,ndims-1);
+    if(dimindex == ndims-1)
+	xproduct = 1;
+    else
+	xproduct = crossproduct(dimset,dimindex,ndims-1);
 
-    /* Compute the required size (after padding) of each string constant */
-    /* expected size is the size of concat of the string constants
-       after padding
+    /* Basically, we need to construct 'unitsize' string constants
+       where the unitsize is the size of the last dimension.
+       Note that the actual constants we have to work with may need
+       to be padded to The unitsize.
+       The number of such unitsize chunks is determined by the
+       cross-product of the dimensions starting with dimindex
+       upto but not including the last dimension (ndims - 1).
     */
-    if(ndims == 0) {
+    if(ndims == 0) { /* scalar case => create 1 long string*/
 	unitsize = 1;
         expectedsize = (xproduct * unitsize);
-    } else
-    if(lastunlim == ndims-1) {/* last dimension is unlimited */
+    } else if(dimindex == ndims-1) {
+	ASSERT (ndims == 1)
         unitsize = 1;
-        expectedsize = (xproduct*dimset->dimsyms[lastunlim]->dim.declsize);
-    } else
-    { /* last dim is not unlimited */
+        expectedsize = (unitsize*dimset->dimsyms[dimindex]->dim.declsize);
+    } else { /* ndims > 1 && last dim is not unlimited */
         unitsize = dimset->dimsyms[ndims-1]->dim.declsize;
         expectedsize = (xproduct * unitsize);
     }
@@ -266,7 +273,7 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
 	/* this is okay */
     } else if(bbLength(databuf) > expectedsize) {
 	semwarn(data->data[0].lineno,"character data list too long");
-    } else {
+    } else { /* bbLength(databuf) <= expectedsize */
 	size_t bufsize = bbLength(databuf);
 	/* Pad to size dimproduct size */
 	if(bufsize % expectedsize > 0) {

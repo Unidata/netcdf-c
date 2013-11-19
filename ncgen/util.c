@@ -590,6 +590,7 @@ cleanup()
 
 /* compute the total n-dimensional size as 1 long array;
    if stop == 0, then stop = dimset->ndims.
+   if start == stop then return 1
 */
 size_t
 crossproduct(Dimset* dimset, int start, int stop)
@@ -640,7 +641,7 @@ findunlimited(Dimset* dimset, int start)
 	if(dimset->dimsyms[start]->dim.isunlimited)
 	    return start;
     }
-    return dimset->ndims;
+    return -1;
 }
 
 int
@@ -652,6 +653,17 @@ findlastunlimited(Dimset* dimset)
 	    return i;
     }
     return -1;
+}
+
+int
+countunlimited(Dimset* dimset)
+{
+    int i,count;
+    for(count=0,i=0;i<dimset->ndims;i++) {
+	if(dimset->dimsyms[i]->dim.isunlimited)
+	    count++;
+    }
+    return count;
 }
 
 
