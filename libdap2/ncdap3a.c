@@ -151,7 +151,7 @@ defrecorddim3(NCDAPCOMMON* dapcomm)
 NCerror
 defseqdims(NCDAPCOMMON* dapcomm)
 {
-    unsigned int i;
+    unsigned int i = 0;
     NCerror ncstat = NC_NOERR;
     int seqdims = 1; /* default is to compute seq dims counts */
 
@@ -169,7 +169,7 @@ defseqdims(NCDAPCOMMON* dapcomm)
 
     for(i=0;i<nclistlength(dapcomm->cdf.ddsroot->tree->seqnodes);i++) {
         CDFnode* seq = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->seqnodes,i);
-	size_t seqsize;
+	size_t seqsize = 0;
 	CDFnode* sqdim = NULL;
 	CDFnode* container;
 	/* Does this sequence match the requirements for use ? */
@@ -214,7 +214,7 @@ getseqdimsize(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t* sizep)
     CDFnode* dxdroot;
     CDFnode* xseq;
     NCbytes* seqcountconstraints = ncbytesnew();
-    size_t seqsize;
+    size_t seqsize = 0;
 
     /* Read the minimal amount of data in order to get the count */
     /* If the url is unconstrainable, then get the whole thing */

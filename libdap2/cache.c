@@ -162,8 +162,9 @@ nullfree(s);
     if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,flags);
     newconstraint = NULL; /* buildcachenode34 takes control of newconstraint */
-    if(ncstat) goto done;
-    cache->wholevariable = 1; /* All prefetches are whole variable */
+    if(ncstat || cache == NULL) goto done;
+    else
+      cache->wholevariable = 1; /* All prefetches are whole variable */
     /* Make cache node be the prefetch node */
     nccomm->cdf.cache->prefetch = cache;
 if(SHOWFETCH) {
@@ -190,7 +191,7 @@ ncbytesfree(buf);
 done:
     nclistfree(vars);
     dcefree((DCEnode*)newconstraint);    
-    if(ncstat) freenccachenode(nccomm,cache);
+    if(ncstat && cache != NULL) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
 
