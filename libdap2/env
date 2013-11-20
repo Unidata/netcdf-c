@@ -4,14 +4,15 @@ alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias q
 #CON='xpos'
 #VAR=data
 
-TOP="/home/dmh/mach/trunk"
+TOP="/home/dmh/mach/netcdf-c"
 #TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
-F="file://${TOP}/ncdap_test/testdata3/synth9"
+F="http://ticket:ticket1@utmea.enea.it:8080/thredds/dodsC/UNIDATA_passwd/head_out.nc"
 
-PROG=./ncd
-#PROG="$TOP/ncdump/ncdump"
+
+#PROG=./ncd
+PROG="$TOP/ncdump/ncdump"
 
 P=`pwd`
 

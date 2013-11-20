@@ -84,10 +84,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
 
     if(vsym->data == NULL) return;
 
-if(strcmp(vsym->name,"c213")==0) {
-int x = 0;
-}
-
     /* give the buffer a running start to be large enough*/
     bbSetalloc(code, nciterbuffersize);
 
