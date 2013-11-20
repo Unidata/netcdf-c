@@ -524,7 +524,8 @@ computeseqcountconstraints3r(NCDAPCOMMON* dapcomm, CDFnode* node, CDFnode** cand
 
     candidate = NULL;
     compound = NULL;
-
+    if(node == NULL)
+      return;
     for(i=0;i<nclistlength(node->subnodes);i++) {
         CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
         if(subnode->nctype == NC_Structure || subnode->nctype == NC_Grid)
