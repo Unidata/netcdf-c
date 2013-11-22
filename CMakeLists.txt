@@ -464,11 +464,30 @@ IF (ENABLE_HDF4)
 
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
-   MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
+   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
    OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests." OFF)
    IF(ENABLE_HDF4_FILE_TESTS)
 	SET(USE_HDF4_FILE_TESTS ON)
    ENDIF()
+
+   MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
+
+   # Look for the jpeglib.h header file.
+   FIND_PATH(JPEGLIB_H_INCLUDE_DIR jpeglib.h)
+   IF(NOT JPEGLIB_H_INCLUDE_DIR)
+     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
+   ELSE()
+     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
+   ENDIF()
+
+   FIND_LIBRARY(JPEG_LIB NAMES jpeg libjpeg)
+   IF(NOT JPEG_LIB)
+     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
+   ENDIF()
+   SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
+   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
+   
 ENDIF ()
 
 # Option to Build DLL
