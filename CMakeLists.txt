@@ -454,22 +454,18 @@ IF (ENABLE_HDF4)
  
    FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
    IF(NOT HDF4_DF_LIB)
-	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find df lib.")
+	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
    ENDIF()
 
    FIND_LIBRARY(HDF4_MFHDF_LIB NAMES mfhdf libmfhdf)
    IF(NOT HDF4_MFHDF_LIB)
-	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find mfhdf lib.")
+	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
    ENDIF()
 
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
    MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
-   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests." OFF)
-   IF(ENABLE_HDF4_FILE_TESTS)
-	SET(USE_HDF4_FILE_TESTS ON)
-   ENDIF()
-
+   
    MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
 
    # Look for the jpeglib.h header file.
@@ -488,7 +484,20 @@ IF (ENABLE_HDF4)
    SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
    MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
    
-ENDIF ()
+   # Option to enable HDF4 file tests.
+   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires wget)." ON)
+   IF(ENABLE_HDF4_FILE_TESTS)
+     FIND_PROGRAM(PROG_WGET NAMES wget)
+     IF(PROG_WGET)
+       SET(USE_HDF4_FILE_TESTS ON)
+     ELSE()
+       MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
+       SET(USE_HDF4_FILE_TESTS OFF)
+     ENDIF()
+     
+   ENDIF()
+   
+ ENDIF ()
 
 # Option to Build DLL
 IF(WIN32)
