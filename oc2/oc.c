@@ -967,7 +967,7 @@ OCerror
 oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject* fieldp)
 {
     OCerror err = OC_NOERR;
-    size_t count,i;
+    size_t i=0,count=0;
     OCobject ddsnode;
     OCVERIFY(OC_State,link);
     OCVERIFY(OC_Data,datanode);
@@ -1292,7 +1292,10 @@ oc_data_octype(OCobject link, OCobject datanode, OCtype* typep)
 
     OCASSERT(data->template != NULL);
     if(typep == NULL) ocerr = OC_EINVAL;
-    else *typep = data->template->octype;
+    else if(data->template)
+      *typep = data->template->octype;
+    else 
+      ocerr = OC_EINVAL;
     return ocerr;
 }
 
