@@ -17,6 +17,7 @@ void
 define_netcdf(void)
 {
     char filename[2048+1];
+    const char *fname;
 
     /* Rule for specifying the dataset name:
 	1. use -o name
@@ -28,37 +29,43 @@ define_netcdf(void)
     */
     if(netcdf_name) { /* -o flag name */
 	strcpy(filename,netcdf_name);
+        fname = filename;
     } else { /* construct a usable output file name */
 	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	    char* p;
+
 	    strncpy(filename,cdlname,2048);
 	    /* remove any suffix and prefix*/
 	    p = strrchr(filename,'.');
 	    if(p != NULL) {*p= '\0';}
 	    p = strrchr(filename,'/');
-	    if(p != NULL) {strncpy(filename,p+1,2048);}
+            if(p != NULL)
+                fname = p + 1;
+            else
+                fname = filename;
         } else {/* construct name from dataset name */
 	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
+            fname = filename;
         }
         /* Append the proper extension */
-        strcat(filename,binary_ext);
+        strcat(fname,binary_ext);
     }
 
     /* Execute exactly one of these */
 #ifdef ENABLE_C
-    if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
+    if (l_flag == L_C) gen_ncc(fname); else /* create C code to create netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) gen_ncf77(filename); else /* create Fortran code */
+    if (l_flag == L_F77) gen_ncf77(fname); else /* create Fortran code */
 #endif
 #ifdef ENABLE_JAVA
     if(l_flag == L_JAVA) {
-	gen_ncjava(filename);
+	gen_ncjava(fname);
     } else
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
-    gen_netcdf(filename); /* create netcdf */
+    gen_netcdf(fname); /* create netcdf */
 #else
     derror("No language specified");
 #endif

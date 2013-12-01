@@ -108,11 +108,9 @@ typedef struct NC_DIM_INFO
    struct NC_DIM_INFO *next;
    struct NC_DIM_INFO *prev;
    hid_t hdf_dimscaleid;
-   char *old_name; /* only used to rename dim */
-   int dirty;
-   unsigned char coord_var_in_grp;
+   HDF5_OBJID_T hdf5_objid;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
-   int too_long; /* True if len it too big to fit in local size_t. */
+   int too_long; /* True if len is too big to fit in local size_t. */
 } NC_DIM_INFO_T;
 
 typedef struct NC_ATT_INFO
@@ -234,7 +232,6 @@ typedef struct NC_GRP_INFO
    int natts;
    struct NC_HDF5_FILE_INFO *nc4_info;
    char *name;
-   char *old_name; /* need when renaming group */
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
 } NC_GRP_INFO_T;
@@ -292,6 +289,7 @@ int nc4_convert_type(const void *src, void *dest,
 		     int dest_long);
 
 /* These functions do HDF5 things. */
+int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype, int is_long, void *ip);
 int nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *indexp, 
@@ -306,7 +304,7 @@ int nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *startp,
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, int *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order);
-int nc4_rec_write_types(NC_GRP_INFO_T *grp);
+int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
@@ -321,6 +319,7 @@ NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
 NC_GRP_INFO_T *nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid);
 NC *nc4_find_nc_file(int ncid, NC_HDF5_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
+int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(NC_HDF5_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
 NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_GRP_INFO_T *start_grp, hid_t target_nc_typeid);
@@ -356,6 +355,10 @@ int nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid, NC_GRP_INFO_T *pare
 int nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 			const char *name, const void *value);
+
+/* Break & reform coordinate variables */
+int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
+int nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
 
 int NC_check_name(const char *name);
 
