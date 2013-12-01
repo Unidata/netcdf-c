@@ -41,7 +41,6 @@ define_netcdf(void)
 	    
        } else {/* construct name from dataset name */
 	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
-            fname = filename;
         }
         /* Append the proper extension */
 	strncat(filename,binary_ext,2048-(strlen(filename) + strlen(binary_ext)));
@@ -49,19 +48,19 @@ define_netcdf(void)
 
     /* Execute exactly one of these */
 #ifdef ENABLE_C
-    if (l_flag == L_C) gen_ncc(fname); else /* create C code to create netcdf */
+    if (l_flag == L_C) gen_ncc(filename); else /* create C code to create netcdf */
 #endif
 #ifdef ENABLE_F77
-    if (l_flag == L_F77) gen_ncf77(fname); else /* create Fortran code */
+    if (l_flag == L_F77) gen_ncf77(filename); else /* create Fortran code */
 #endif
 #ifdef ENABLE_JAVA
     if(l_flag == L_JAVA) {
-	gen_ncjava(fname);
+	gen_ncjava(filename);
     } else
 #endif
 /* Binary is the default */
 #ifdef ENABLE_BINARY
-    gen_netcdf(fname); /* create netcdf */
+    gen_netcdf(filename); /* create netcdf */
 #else
     derror("No language specified");
 #endif
