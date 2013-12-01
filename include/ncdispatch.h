@@ -23,29 +23,6 @@
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
-extern int nc_get_vara_ubyte(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  unsigned char* value);
-extern int nc_get_vara_ushort(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  unsigned short* value);
-extern int nc_get_vara_uint(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  unsigned int* value);
-extern int nc_get_vara_ulonglong(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  unsigned long long* value);
-
-extern int nc_put_vara_ushort(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  const unsigned short* value);
-extern int nc_put_vara_uint(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  const unsigned int* value);
-extern int nc_put_vara_ulonglong(int ncid, int varid,
-                  const size_t* start, const size_t* count,
-		  const unsigned long long* value);
-
 #define X_INT_MAX	2147483647
 
 /* Given a filename, check its magic number */

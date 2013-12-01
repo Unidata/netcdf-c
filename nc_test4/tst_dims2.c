@@ -68,9 +68,6 @@ main(int argc, char **argv)
        * Christian! Next time I'm in Rostock I'll come by and buy you
        * a beer. ;-) */
 #define TL 15
-#define SHUFFLE 0
-#define DEFLATE 1
-#define DEFLATE_LEVEL 5
       int ncid;
       int time_dim;
       int tl_dim;
@@ -137,9 +134,6 @@ main(int argc, char **argv)
        * Christian! Next time I'm in Rostock I'll come by and buy you
        * a beer. ;-) */
 #define TL 15
-#define SHUFFLE 0
-#define DEFLATE 1
-#define DEFLATE_LEVEL 5
 #define NDIMS2 2
 #define NUM_TIMES 16
       int ncid;
@@ -247,7 +241,6 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** Checking multiple unlimited dimensions...");
    {
-#define MAX(x,y) ((x)>(y)?(x):(y))
 #define NDIMS 2
 #define MAX_VALUES 3
 

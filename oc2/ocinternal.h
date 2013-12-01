@@ -210,8 +210,6 @@ extern int ocinternalinitialize(void);
 
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
-extern int ocinternalinitialize(void);
-
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 
 #endif /*COMMON_H*/

@@ -53,6 +53,7 @@ int test_pio(int);
 int test_pio_attr(int);
 int test_pio_big(int);
 int test_pio_hyper(int);
+int test_pio_extend(int);
 
 char* getenv_all(MPI_Comm comm, int root, const char* name);
 int facc_type;

@@ -9,6 +9,7 @@
 #define MAX_NC_ATTSIZE    20000	/* max size of attribute (for ncgen) */
 #define MAXTRST		  5000	/* max size of string value (for ncgen) */
 
+#include "config.h"
 #include "generic.h"
 
 extern int ncid;		/* handle for netCDF */
