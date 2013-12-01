@@ -1,9 +1,14 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2013, see the COPYRIGHT file for more information.
 
+
+##################################
+# Set Project Properties
+##################################
+
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 2.8.8)
- 
+
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
@@ -11,23 +16,15 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "-rc4")
+SET(netCDF_VERSION_NOTE "-rc5")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
-#Library .so version.
 SET(netCDF_SO_VERSION 7.2.0)
-
-# Set some default C Flags if we are using GCC
-IF(CMAKE_COMPILER_IS_GNUCC)
-	SET(CMAKE_C_FLAGS "-g -O2")
-ENDIF()
-
 
 # Get system configuration,
 # Use it to determine osname,
 # os release, cpu. These will be used
 # when committing to CDash.
-
 find_program(UNAME NAMES uname)
 IF(UNAME)
 macro(getuname name flag)
@@ -38,46 +35,20 @@ getuname(osrel  -r)
 getuname(cpu    -m)
 set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
-ENABLE_TESTING()
-INCLUDE(CTest)
-
-# Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
-	SET(GLOBAL PROPERTY USE_FOLDERS ON)
+  SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
-# CTest configuration
-IF(NOT MSVC)
-	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
-ENDIF()
-
-# Default to shared libs on
-OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-# Set variable to define the build type.
-INCLUDE(GenerateExportHeader)
-SET (LIB_TYPE STATIC)
-IF (BUILD_SHARED_LIBS)
-	SET(LIB_TYPE SHARED)
-	IF(CMAKE_COMPILER_IS_GNUCC)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-	ENDIF()
-ENDIF()
-ADD_DEFINITIONS()
-
-### Verbose make, for debugging.
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #Add custom CMake Module
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
     CACHE INTERNAL "Location of our custom CMake modules.")
 
-# Configure-type checks
+# auto-configure style checks, other CMake modules.
 INCLUDE (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
@@ -88,12 +59,77 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 FIND_PACKAGE(PkgConfig QUIET)
 
-
-## Enable 'dist and distcheck'.
-## File taken from http://ensc.de/cmake/FindMakeDist.cmake
+# Enable 'dist and distcheck'.
+# File adapted from http://ensc.de/cmake/FindMakeDist.cmake
 FIND_PACKAGE(MakeDist)
-## End 'enable dist and distcheck'
+# End 'enable dist and distcheck'
 
+# Set the build type.
+IF (NOT CMAKE_BUILD_TYPE)
+	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
+		FORCE)
+ENDIF()
+
+################################
+# End Project Properties
+################################
+
+
+################################
+# Set CTest Properties
+################################
+
+ENABLE_TESTING()
+INCLUDE(CTest)
+
+# Copy the CTest customization file into binary directory, as required.
+FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+
+# Set Memory test program for non-MSVC based builds.
+# Assume valgrind for now.
+IF(NOT MSVC)
+	SET (CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
+ENDIF()
+
+# Set variable to define the build type.
+INCLUDE(GenerateExportHeader)
+
+################################
+# End CTest Properties
+################################
+
+
+################################
+# Compiler Configuration
+################################
+
+
+# Default to shared libs on.
+OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+SET (LIB_TYPE STATIC)
+IF (BUILD_SHARED_LIBS)
+	SET(LIB_TYPE SHARED)
+	IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	ENDIF()
+ENDIF()
+
+# Supress unused variable and parameter warnings, for the time being,
+# on GCC.
+#
+# Also, set some other default compiler flags.
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
+ENDIF()
+
+IF(NOT ENABLE_COVERAGE_TESTS)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
+ENDIF()
+
+
+ADD_DEFINITIONS()
 
 # Supress CRT Warnings.
 # Only necessary for Windows
@@ -101,15 +137,17 @@ IF(MSVC)
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
-IF (NOT CMAKE_BUILD_TYPE)
-	SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
-		FORCE)
-ENDIF()
-#####
-# Some utility macros/scripts.
-#####
+
+################################
+# End Compiler Configuration
+################################
+
+
+################################
+# Define Utility Macros
+################################
+
 # Macro to append files to the EXTRA_DIST files.
-#####
 SET(EXTRA_DIST "")
 MACRO(ADD_EXTRA_DIST files)
   FOREACH(F ${files})
@@ -271,6 +309,11 @@ MACRO(specify_static_crt_flag)
 
 ENDMACRO()
 
+################################
+# End Macro Definitions
+################################
+
+
 ##
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
@@ -308,9 +351,11 @@ ENDIF()
 ##
 
 
-#####
+################################
 # Option checks
-#####
+################################
+
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # HDF5 cache variables.
 SET (DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
@@ -376,14 +421,6 @@ IF(ENABLE_DISKLESS)
 	SET(USE_DISKLESS ON)
 ENDIF()
 
-IF(ENABLE_COVERAGE_TESTS)
-	IF(CMAKE_COMPILER_IS_GNUCC)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-		        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-        		SET(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-	ENDIF()
-ENDIF()
-
 OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
 IF(ENABLE_CONVERSION_WARNINGS)
         IF(NOT MSVC)
@@ -406,29 +443,61 @@ OPTION (ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability (HDF4, HDF5 and Zl
 IF (ENABLE_HDF4) 
    SET(USE_HDF4 ON) 
    # Check for include files, libraries.
-   CHECK_INCLUDE_FILE("mfhdf.h"	HAVE_MFHDF_H)
-   IF(NOT HAVE_MFHDF_H)
+
+   FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
+   IF(NOT MFHDF_H_INCLUDE_DIR)
 	MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
-   ENDIF(NOT HAVE_MFHDF_H) 
+   ELSE()
+     SET(HAVE_MFHDF_H ON CACHE BOOL "")
+     INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
+   ENDIF() 
  
    FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
    IF(NOT HDF4_DF_LIB)
-	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find df lib.")
+	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
    ENDIF()
 
    FIND_LIBRARY(HDF4_MFHDF_LIB NAMES mfhdf libmfhdf)
    IF(NOT HDF4_MFHDF_LIB)
-	MESSAGE(FATAL_ERROR "HDF4 Support enabled, but cannot find mfhdf lib.")
+	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
    ENDIF()
 
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
-   MESSAGE(STATUS "HDF4 Libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
-   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 File Tests." OFF)
-   IF(ENABLE_HDF4_FILE_TESTS)
-	SET(USE_HDF4_FILE_TESTS ON)
+   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
+   
+   MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
+
+   # Look for the jpeglib.h header file.
+   FIND_PATH(JPEGLIB_H_INCLUDE_DIR jpeglib.h)
+   IF(NOT JPEGLIB_H_INCLUDE_DIR)
+     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
+   ELSE()
+     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
    ENDIF()
-ENDIF ()
+
+   FIND_LIBRARY(JPEG_LIB NAMES jpeg libjpeg)
+   IF(NOT JPEG_LIB)
+     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
+   ENDIF()
+   SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
+   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
+   
+   # Option to enable HDF4 file tests.
+   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires wget)." ON)
+   IF(ENABLE_HDF4_FILE_TESTS)
+     FIND_PROGRAM(PROG_WGET NAMES wget)
+     IF(PROG_WGET)
+       SET(USE_HDF4_FILE_TESTS ON)
+     ELSE()
+       MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
+       SET(USE_HDF4_FILE_TESTS OFF)
+     ENDIF()
+     
+   ENDIF()
+   
+ ENDIF ()
 
 # Option to Build DLL
 IF(WIN32)
@@ -478,6 +547,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
     IF(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE REQUIRED)
+      MESSAGE(STATUS "Found HDF5: ${HDF5_LIBRARIES}")
     ELSE()
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
@@ -525,7 +595,6 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 ENDIF ()
 
-INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 # Option to Build DAP Client
 OPTION (ENABLE_DAP "Enable DAP Client." ON)
 IF (ENABLE_DAP)
@@ -590,11 +659,6 @@ ENDIF()
 # Location for large file tests.
 SET(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-IF(ENABLE_INTERNAL_DOCS)
-	SET(BUILD_INTERNAL_DOCS ON)
-ENDIF()
-
 OPTION (ENABLE_FSYNC "Enable experimental fsync code." OFF)
 IF(ENABLE_FSYNC)
 	SET(USE_FSYNC ON)
@@ -602,12 +666,13 @@ ENDIF()
 
 # Linux specific large file support flags.
 # Modelled after check in CMakeLists.txt for hdf5.
-IF (NOT WINDOWS)
-  OPTION(ENABLE_LFS "Enable large (64-bit) files on linux." ON)
-  # TODO: There needs to be a check here to ensure
-  # that large file support is actually supported.
-  
-  IF(ENABLE_LFS)
+OPTION(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
+IF(ENABLE_LARGE_FILE_SUPPORT)
+  IF(MSVC)
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
+    SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+  ELSE()
     SET(_FILE_OFFSET_BITS 64)
     SET(_LARGEFILE64_SOURCE TRUE)
     SET(_LARGEFILE_SOURCE TRUE)
@@ -616,23 +681,26 @@ ENDIF()
 
 
 # Provide the option to perform coverage tests.
-OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-IF(ENABLE_COVERAGE_TESTS)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -W -profile-arcs -ftest-coverage")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-	MESSAGE(STATUS "Coverage Tests: On.")
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+  OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+  IF(ENABLE_COVERAGE_TESTS)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+    MESSAGE(STATUS "Coverage Tests: On.")
+  ENDIF()
 ENDIF()
+
 
 OPTION (ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
 	SET (ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
+# Enable Parallel (different than pnetcdf).
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
 IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
-        MESSAGE(STATUS "Debug: ${HDF5_LIB}")
 	SET(USE_PARALLEL ON CACHE BOOL "")
 	# Check for H5Pget_fapl_mpiposx, define USE_PARALLEL_POSIX
 	CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpioposix "" USE_PARALLEL_POSIX)	
@@ -669,12 +737,13 @@ IF(ENABLE_PNETCDF)
         SET(STATUS_PARALLEL "ON")
 ENDIF()
 
-
+# Enable Parallel Tests.
 OPTION (ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Ignored if netCDF4 is not enabled, or if there is no parallel I/O Support." ${USE_PARALLEL})
 IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 	SET(TEST_PARALLEL ON CACHE BOOL "")
 ENDIF()
 
+# Determine whether or not to generate documentation.
 OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
 	SET(BUILD_DOCS ON CACHE BOOL "")
@@ -686,13 +755,37 @@ IF(ENABLE_DOXYGEN)
 	ENDIF()
 ENDIF()
 
+# By default, MSVC has a stack size of 1000000.
+# Allow a user to override this.
+IF(MSVC)
+  SET(NC_MSVC_STACK_SIZE 40000000 CACHE STRING "Default stack size for MSVC-based projects.")
+  
+  # By default, CMake sets the stack to 1000000.
+  # Remove this limitation.
+  # See here for more details:
+  # http://www.cmake.org/pipermail/cmake/2009-April/028710.html
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
+  
+ENDIF()
+
+
+# Internal Documentation
+OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
+IF(ENABLE_INTERNAL_DOCS)
+	SET(BUILD_INTERNAL_DOCS ON)
+ENDIF()
+
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-#####
-# End option checks.
-#####
+
+################################
+# Option checks
+################################
+
 
 #####
 # System inspection checks
@@ -800,7 +893,7 @@ CHECK_FUNCTION_EXISTS(getpagesize	HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf	HAVE_SYSCONF)
 CHECK_FUNCTION_EXISTS(mremap	HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(getrlimit	HAVE_GETRLIMIT)
-
+CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 
 #####
 # End system inspection checks.

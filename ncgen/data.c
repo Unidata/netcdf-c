@@ -235,7 +235,7 @@ srcsetfill(Datasrc* ds, Datalist* list)
 
 
 /**************************************************/
-#ifdef DEBUG
+#ifdef GENDEBUG
 void
 report(char* lead, Datalist* list)
 {

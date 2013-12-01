@@ -49,7 +49,7 @@ nc_get_iter(Symbol* vsym,
     Symbol* vartype;
     size_t value_size;      /* size in bytes of each variable element */
     int ndims;		    /* number of dimensions for variable */
-    size_t dimsizes[NC_MAX_VAR_DIMS]; /* variable dimension sizes */
+    size_t dimsizes[NC_MAX_VAR_DIMS] = {0}; /* variable dimension sizes */
     long long nvalues = 1;
     int dim;
 

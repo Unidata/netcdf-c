@@ -10,6 +10,7 @@
   $Id: tst_big_var2.c,v 1.3 2010/05/19 16:38:44 russ Exp $
 */
 
+#include "config.h"
 #include <nc_tests.h>
 #include <netcdf.h>
 #include <stdio.h>
@@ -49,9 +50,10 @@ test_big_var(const char *testfile)
     size_t start[NUMDIMS] = {0, 0, 0};
     size_t count[NUMDIMS] = {1, DIM1, DIM2};
     signed char data[DIM1][DIM2];
+
     int i, j;
     int nerrs = 0;
-    
+
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_CLOBBER, &ncid)) ERR;
     if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
@@ -103,13 +105,14 @@ test_big_var(const char *testfile)
 	{
 	    if (data[i][j] != 19 )
 	    {
-		printf("error on start[0]: %d i: %d j: %d expected %d got %d\n", 
-		       start[0], i, j, 19, data[i][j]);
-		ERR;
+	      printf("error on start[0]: %d i: %d j: %d expected %d got %d\n", 
+		     start[0], i, j, 19, data[i][j]);
+	      ERR;
 		if(nerrs++ > 1)
 		  return nerrs;
 	    }
 	}
+
     if (nc_close(ncid)) ERR;
     return 0;
 }

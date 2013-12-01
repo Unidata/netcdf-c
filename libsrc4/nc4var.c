@@ -204,12 +204,12 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
    return NC_NOERR;
 }
 
-/* Check a set of chunksizes to see if they add up to a chunk that is too big. */
+/* Check a set of chunksizes to see if they specify a chunk that is too big. */
 static int
 check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
 {
    NC_TYPE_INFO_T *type_info;
-   float total;
+   double dprod;
    size_t type_len;
    int d;
    int retval;
@@ -219,17 +219,17 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
    if ((retval = nc4_find_type(grp->nc4_info, var->xtype, &type_info)))
       return retval;
    if (type_info && type_info->class == NC_VLEN)
-      total = sizeof(hvl_t);
+       dprod = (double) sizeof(hvl_t);
    else
-      total = type_len;
+       dprod = (double) type_len;
    for (d = 0; d < var->ndims; d++)
    {
       if (chunksizes[d] < 1)
 	 return NC_EINVAL;
-      total *= chunksizes[d];
+      dprod *= (double) chunksizes[d];
    }
    
-   if (total > NC_MAX_UINT)
+   if (dprod > (double) NC_MAX_UINT)
       return NC_EBADCHUNK;
 
    return NC_NOERR;
@@ -246,7 +246,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    int retval;
 #ifdef LOGGING   
    int max_dim;
-   float total_chunk_size;
+   double total_chunk_size;
 #endif
 
    if (var->type_info->nc_typeid == NC_STRING)
@@ -257,7 +257,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Later this will become the total number of bytes in the default
     * chunk. */
 #ifdef LOGGING   
-   total_chunk_size = type_size;
+   total_chunk_size = (double) type_size;
 #endif
 
    /* How many values in the variable (or one record, if there are
@@ -300,7 +300,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    /* Find total chunk size. */
 #ifdef LOGGING   
    for (d = 0; d < var->ndims; d++)
-      total_chunk_size *= var->chunksizes[d];
+       total_chunk_size *= (double) var->chunksizes[d];
    LOG((4, "total_chunk_size %f", total_chunk_size));
 #endif
    

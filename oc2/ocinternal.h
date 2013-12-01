@@ -87,6 +87,8 @@ typedef struct OCheader {
 #define nullstring(s) (s==NULL?"(null)":s)
 #define PATHSEPARATOR "."
 
+#define OCDIR ".oc"
+
 /* Define infinity for memory size */
 #if SIZEOF_SIZE_T == 4 
 #define OCINFINITY ((size_t)0xffffffff)
@@ -114,6 +116,7 @@ extern struct OCGLOBALSTATE {
         int proto_https;
     } curl;
     struct OCTriplestore* ocdodsrc; /* the .dodsrc triple store */
+    char* home; /* track $HOME for use in creating $HOME/.oc dir */
 } ocglobalstate;
 
 /*! Specifies the OCstate = non-opaque version of OClink */
@@ -140,7 +143,6 @@ struct OCstate {
 	int maxredirs;
 	char* useragent;
 	char* cookiejar;
-	char* cookiefile;
     } curlflags;
     struct OCSSL {
 	int   validate;

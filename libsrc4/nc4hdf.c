@@ -2626,9 +2626,12 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order)
 done:
       if(oldfullname) free(oldfullname);
       if(newfullname) free(newfullname);
-      if(retval) return retval;
+      if(retval) {
+	if(tmp)
+	  grp->name = tmp;
+	return retval;
+      }
    }
-
    /* If there are any child groups, write their metadata. */
    for (child_grp = grp->children; child_grp; child_grp = child_grp->next)
       if ((retval = nc4_rec_write_metadata(child_grp, bad_coord_order)))

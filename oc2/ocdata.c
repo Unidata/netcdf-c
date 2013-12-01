@@ -247,7 +247,6 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
     assert(memory != NULL);
     assert(memsize > 0);
 
-    data = data;
     template = data->template;
     octype = template->octype;
     assert(octype == OC_Atomic);

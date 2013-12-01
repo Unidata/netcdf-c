@@ -36,7 +36,7 @@ getfiller(Symbol* tvsym)
         filler = builddatalist(0);
 	fill(tsym,filler);
     }
-#ifdef DEBUG2
+#ifdef GENDEBUG2
     dumpdatalist(filler,"getfiller");
 #endif
     if(tvsym->objectclass == NC_VAR) {

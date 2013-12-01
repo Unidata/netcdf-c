@@ -19,5 +19,8 @@ echo "*** creating tst_mud4.cdl from tst_mud4.nc ..."
 ./ncdump tst_mud4.nc > tst_mud4.cdl
 # echo "*** comparing tst_mud4.cdl with ref_tst_mud4.cdl..."
 diff -b tst_mud4.cdl $srcdir/ref_tst_mud4.cdl
+# echo "*** comparing annotation from ncdump -bc tst_mud4.nc with expected output..."
+./ncdump -bc tst_mud4.nc > tst_mud4-bc.cdl
+diff -b tst_mud4-bc.cdl $srcdir/ref_tst_mud4-bc.cdl
 echo "*** All ncdump test output for multiple unlimited dimensions passed!"
 exit 0

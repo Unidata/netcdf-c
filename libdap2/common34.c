@@ -721,14 +721,19 @@ simplenodematch34(CDFnode* node1, CDFnode* node2)
     /* Test all the obvious stuff */
     if(node1 == NULL || node2 == NULL)
 	return 0;
+
+    /* Add hack to address the screwed up Columbia server
+       which returns different Dataset {...} names
+       depending on the constraint.
+    */
+    if(FLAGSET(node1->root->tree->owner->controls,NCF_COLUMBIA)
+       && node1->nctype == NC_Dataset) return 1;
+
     if(strcmp(node1->ocname,node2->ocname)!=0) /* same names */
 	return 0;
     if(nclistlength(node1->array.dimset0)
 	!= nclistlength(node2->array.dimset0)) /* same arity */
 	return 0;
-
-    /* Add hack to address the screwed up Columbia server */
-    if(node1->nctype == NC_Dataset) return 1;
 
     if(node1->nctype != node2->nctype) {
 	/* test for struct-grid match */

@@ -5,13 +5,16 @@
 /* $Id: posixio.c,v 1.89 2010/05/22 21:59:08 dmh Exp $ */
 
 /* For MinGW Build */
+
+
+#include <config.h>
+#include <stdio.h>
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
 #endif
 
-#include <config.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -1658,7 +1661,8 @@ posixio_open(const char *path,
 	if(nciop == NULL)
 		return ENOMEM;
 
-#ifdef O_BINARY
+//#ifdef O_BINARY
+#if _MSC_VER
 	fSet(oflags, O_BINARY);
 #endif
 #ifdef vms
@@ -1723,13 +1727,28 @@ unwind_new:
 static int
 ncio_px_filesize(ncio *nciop, off_t *filesizep)
 {
-    struct stat sb;
 
+
+	/* There is a problem with fstat on Windows based systems
+		which manifests (so far) when Config RELEASE is built. 
+		Use _filelengthi64 isntead. */
+#ifdef HAVE_FILE_LENGTH_I64
+
+	__int64 file_len = 0;
+	if( (file_len = _filelengthi64(nciop->fd)) < 0) {
+		return errno;
+	}
+
+	*filesizep = file_len;
+
+#else
+    struct stat sb;
     assert(nciop != NULL);
     if (fstat(nciop->fd, &sb) < 0)
 	return errno;
     *filesizep = sb.st_size;
-    return ENOERR;
+#endif
+	return ENOERR;
 }
 
 /*
@@ -1742,8 +1761,9 @@ ncio_px_filesize(ncio *nciop, off_t *filesizep)
 static int
 ncio_px_pad_length(ncio *nciop, off_t length)
 {
-	int status = ENOERR;
 
+	int status = ENOERR;
+	printf("\nncio_px_pad_length entered.\n");
 	if(nciop == NULL)
 		return EINVAL;
 

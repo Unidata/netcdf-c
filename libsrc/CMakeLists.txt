@@ -13,6 +13,7 @@ foreach (f ${m4_SOURCES})
 endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
+SET(libsrc_SOURCES ${libsrc_SOURCES} ncstdio.h pstdint.h)
 
 IF (BUILD_DISKLESS)
    SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)

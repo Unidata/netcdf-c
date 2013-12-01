@@ -30,9 +30,9 @@ gtest::
 	gdb --args ./${T}
 
 vctest::
-	gcc -o t ${CFLAGS} t.c ${LDFLAGS} -lm
-	${VG} ./t
-	../ncdump/ncdump ./t.nc |tee t.dmp
+	gcc -c ${CFLAGS} ${T}.c
+	gcc -o ./vt ${T}.o ${LDFLAGS}
+	${VG} ./vt
 
 ftest::
 	./ncgen -k$K -lf77 ${T}.cdl >${T}.f77
@@ -45,3 +45,11 @@ jtest::
 #	java -cp ${CPATH} ./${T}
 #	../ncdump/ncdump ./${T}.nc >${T}.dmp
 #	diff -wBb ${T}.cdl ${T}.dmp
+
+xtest::
+	gcc -c ${CFLAGS} ${T}.c
+	gcc -o ./vt ${T}.o ${LDFLAGS}
+	rm -f ctest0.nc junk.cdl
+	./vt
+	../ncdump/ncdump ctest0.nc >junk.cdl
+#	gdb --args ./vt

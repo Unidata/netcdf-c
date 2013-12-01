@@ -50,6 +50,7 @@ static int
 ncd3initialize(void)
 {
     int i;
+
     compute_nccalignments();
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
 	dap_one[i] = 1;
@@ -123,6 +124,19 @@ NCD3_open(const char * path, int mode,
     if(!constrainable34(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
 
+#ifdef COLUMBIA_HACK
+    {
+	const char* p;
+	/* Does this url look like it is from columbia? */
+	if(dapcomm->oc.url->host != NULL) {
+	    for(p=dapcomm->oc.url->host;*p;p++) {
+	        if(strncmp(p,COLUMBIA_HACK,strlen(COLUMBIA_HACK))==0)
+		    SETFLAG(dapcomm->controls,NCF_COLUMBIA);
+	    }
+	}
+    } 
+#endif
+
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	if(dapcomm->oc.url->constraint != NULL) {
@@ -168,6 +182,10 @@ NCD3_open(const char * path, int mode,
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
+
+#ifdef DEBUG1
+    (void)oc_trace_curl(dapcomm->oc.conn);
+#endif
 
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;

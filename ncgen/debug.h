@@ -17,15 +17,14 @@
 #endif
 
 #ifdef GENDEBUG
-#  define DEBUG
 #  if GENDEBUG > 0
-#    define DEBUG1
+#    define GENDEBUG1
 #  endif
 #  if GENDEBUG > 1
-#    define DEBUG2
+#    define GENDEBUG2
 #  endif
 #  if GENDEBUG > 2
-#    define DEBUG3
+#    define GENDEBUG3
 #  endif
 #endif
 

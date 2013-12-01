@@ -27,7 +27,7 @@ define_netcdf(void)
 	file name, but oh well.
     */
     if(netcdf_name) { /* -o flag name */
-	strcpy(filename,netcdf_name);
+      strncpy(filename,netcdf_name,2048);
     } else { /* construct a usable output file name */
 	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	    char* p;
@@ -36,12 +36,13 @@ define_netcdf(void)
 	    p = strrchr(filename,'.');
 	    if(p != NULL) {*p= '\0';}
 	    p = strrchr(filename,'/');
-	    if(p != NULL) {strncpy(filename,p+1,2048);}
-        } else {/* construct name from dataset name */
+	    if(p != NULL) {memmove(filename,(p+1),2048);}
+	    
+       } else {/* construct name from dataset name */
 	    strncpy(filename,datasetname,2048); /* Reserve space for extension, terminating '\0' */
         }
         /* Append the proper extension */
-        strcat(filename,binary_ext);
+	strncat(filename,binary_ext,2048-(strlen(filename) + strlen(binary_ext)));
     }
 
     /* Execute exactly one of these */

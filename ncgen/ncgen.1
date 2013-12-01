@@ -906,3 +906,302 @@ The CDL syntax makes it easy to assign what looks like an array of
 variable-length strings to a netCDF variable, but the strings may simply be
 concatenated into a single array of characters.
 Specific use of the \fIstring\fP type specifier may solve the problem
+
+.SH "CDL Grammar"
+.LP
+The file ncgen.y is the definitive grammar for CDL, but a stripped
+down version is included here for completeness.
+.RS
+.nf
+ncdesc: NETCDF
+	datasetid
+        rootgroup
+        ;
+
+datasetid: DATASETID
+
+rootgroup: '{'
+           groupbody
+           subgrouplist
+           '}';
+
+groupbody:
+		attrdecllist
+                typesection
+                dimsection
+                vasection
+                datasection
+                ;
+
+subgrouplist:
+	  /*empty*/
+	| subgrouplist namedgroup
+	;
+
+namedgroup: GROUP ident '{'
+            groupbody
+            subgrouplist
+            '}'
+	    attrdecllist
+	    ;
+
+typesection:    /* empty */
+                | TYPES
+		| TYPES typedecls
+                ;
+
+typedecls:
+	  type_or_attr_decl
+	| typedecls type_or_attr_decl
+	;
+
+typename: ident ;
+
+type_or_attr_decl:
+	  typedecl
+	| attrdecl ';'
+	;
+
+typedecl:
+	  enumdecl optsemicolon
+	| compounddecl optsemicolon
+	| vlendecl optsemicolon
+	| opaquedecl optsemicolon
+	;
+
+optsemicolon:
+	  /*empty*/
+	| ';'
+	;
+
+enumdecl: primtype ENUM typename ;
+
+enumidlist:   enumid
+	    | enumidlist ',' enumid
+	    ;
+
+enumid: ident '=' constint ;
+
+opaquedecl: OPAQUE '(' INT_CONST ')' typename ;
+
+vlendecl: typeref '(' '*' ')' typename ;
+
+compounddecl: COMPOUND typename '{' fields '}' ;
+
+fields:   field ';'
+	| fields field ';'
+	;
+
+field: typeref fieldlist ;
+
+primtype:         CHAR_K
+                | BYTE_K
+                | SHORT_K
+                | INT_K
+                | FLOAT_K
+                | DOUBLE_K
+                | UBYTE_K
+                | USHORT_K
+                | UINT_K
+                | INT64_K
+                | UINT64_K
+                ;
+
+dimsection:     /* empty */
+                | DIMENSIONS
+		| DIMENSIONS dimdecls
+                ;
+
+dimdecls:       dim_or_attr_decl ';'
+                | dimdecls dim_or_attr_decl ';'
+                ;
+
+dim_or_attr_decl: dimdeclist  | attrdecl  ;
+
+dimdeclist:     dimdecl
+                | dimdeclist ',' dimdecl
+                ;
+
+dimdecl:
+	  dimd '=' UINT_CONST
+	| dimd '=' INT_CONST
+        | dimd '=' DOUBLE_CONST
+        | dimd '=' NC_UNLIMITED_K
+        ;
+
+dimd:           ident ;
+
+vasection:      /* empty */
+                | VARIABLES
+                | VARIABLES vadecls
+                ;
+
+vadecls:        vadecl_or_attr ';'
+                | vadecls vadecl_or_attr ';'
+                ;
+
+vadecl_or_attr: vardecl  | attrdecl  ;
+
+vardecl:        typeref varlist ;
+
+varlist:      varspec
+            | varlist ',' varspec
+            ;
+
+varspec:        ident dimspec ;
+
+dimspec:        /* empty */
+                | '(' dimlist ')'
+                ;
+
+dimlist:        dimref
+                | dimlist ',' dimref
+                ;
+
+dimref: path ;
+
+fieldlist:
+	  fieldspec
+	| fieldlist ',' fieldspec
+        ;
+
+fieldspec: ident fielddimspec ;
+
+fielddimspec:     /* empty */
+                | '(' fielddimlist ')'
+                ;
+
+fielddimlist:
+	  fielddim
+	| fielddimlist ',' fielddim
+        ;
+
+fielddim:
+	  UINT_CONST
+	| INT_CONST
+	;
+
+/* Use this when referencing defined objects */
+varref: type_var_ref ;
+
+typeref: type_var_ref	   ;
+
+type_var_ref:
+    	  path
+	| primtype
+	;
+
+/* Use this for all attribute decls */
+/* Watch out; this is left recursive */
+attrdecllist: /*empty*/  | attrdecl ';' attrdecllist  ;
+
+attrdecl:
+	  ':' ident '=' datalist
+	| typeref type_var_ref ':' ident '=' datalist
+	| type_var_ref ':' ident '=' datalist
+	| type_var_ref ':' _FILLVALUE '=' datalist
+	| typeref type_var_ref ':' _FILLVALUE '=' datalist
+	| type_var_ref ':' _STORAGE '=' conststring
+	| type_var_ref ':' _CHUNKSIZES '=' intlist
+	| type_var_ref ':' _FLETCHER32 '=' constbool
+	| type_var_ref ':' _DEFLATELEVEL '=' constint
+	| type_var_ref ':' _SHUFFLE '=' constbool
+	| type_var_ref ':' _ENDIANNESS '=' conststring
+	| type_var_ref ':' _NOFILL '=' constbool
+	| ':' _FORMAT '=' conststring
+	;
+
+path:
+	  ident
+	| PATH
+	;
+
+datasection:    /* empty */
+                | DATA
+                | DATA datadecls
+                ;
+
+datadecls:
+	  datadecl ';'
+	| datadecls datadecl ';'
+	;
+
+datadecl: varref '=' datalist ;
+datalist:
+	  datalist0
+	| datalist1
+	;
+
+datalist0:
+	/*empty*/
+	;
+
+/* Must have at least 1 element */
+datalist1:
+	  dataitem
+	| datalist ',' dataitem
+	;
+
+dataitem:
+	  constdata
+	| '{' datalist '}'
+	;
+
+constdata:
+	  simpleconstant
+	| OPAQUESTRING
+	| FILLMARKER
+	| NIL
+	| econstref
+	| function
+	;
+
+econstref: path ;
+
+function: ident '(' arglist ')' ;
+
+arglist:
+	  simpleconstant
+	| arglist ',' simpleconstant
+	;
+
+simpleconstant:
+	  CHAR_CONST /* never used apparently*/
+	| BYTE_CONST
+	| SHORT_CONST
+	| INT_CONST
+	| INT64_CONST
+	| UBYTE_CONST
+	| USHORT_CONST
+	| UINT_CONST
+	| UINT64_CONST
+	| FLOAT_CONST
+	| DOUBLE_CONST
+	| TERMSTRING
+	;
+
+intlist:
+	  constint
+	| intlist ',' constint
+	;
+
+constint:
+	  INT_CONST
+	| UINT_CONST
+	| INT64_CONST
+	| UINT64_CONST
+	;
+
+conststring: TERMSTRING ;
+
+constbool:
+	  conststring
+	| constint
+	;
+
+/* Push all idents thru here for tracking */
+ident: IDENT ;
+.fi
+.RE 
+
+

@@ -1,4 +1,4 @@
-netcdf c1 {
+netcdf c0 {
 dimensions:
 	Dr = UNLIMITED ; // (2 currently)
 	D1 = 1 ;
@@ -7,12 +7,12 @@ dimensions:
 	dim-name-dashes = 4 ;
 	dim.name.dots = 5 ;
 	dim+name+plusses = 6 ;
-	dim@name@ats = 7 ;
+	dim@name@ats = 7;
 variables:
 	char c ;
 		c:att-name-dashes = 4 ;
 		c:att.name.dots = 5 ;
-		c:att+name+plusses = 6 ;
+                c:att+name+plusses = 6 ;
 		c:att@name@ats = 7 ;
 	byte b ;
 		b:c = "" ;
@@ -127,9 +127,9 @@ data:
 
  d = -10 ;
 
- i64 = 9223372036854775807 ;
+ i64 = 9223372036854775807L;
 
- ui64 = 18446744073709551615 ;
+ ui64 = 18446744073709551615UL;
 
  cr = "ab" ;
 
@@ -389,8 +389,4 @@ data:
  var-name-dashes = -1 ;
 
  var.name.dots = -2 ;
-
- var+name+plusses = _ ;
-
- var@name@ats = _ ;
 }
