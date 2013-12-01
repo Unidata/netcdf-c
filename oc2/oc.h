@@ -525,6 +525,12 @@ extern OCerror oc_svcerrordata(OClink link, char** codep,
 /**************************************************/
 /* Experimental/Undocumented */
 
+/*
+Cause the curl library
+to be verbose
+*/
+extern OCerror oc_trace_curl(OClink link);
+
 /* Given an arbitrary OCnode, return the connection of which it is a part */
 extern OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
 

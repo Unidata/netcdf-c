@@ -162,8 +162,10 @@ nullfree(s);
     if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,flags);
     newconstraint = NULL; /* buildcachenode34 takes control of newconstraint */
-    if(ncstat) goto done;
-    cache->wholevariable = 1; /* All prefetches are whole variable */
+    if(ncstat != OC_NOERR) goto done;
+    else if(cache == NULL) goto done;
+    else
+      cache->wholevariable = 1; /* All prefetches are whole variable */
     /* Make cache node be the prefetch node */
     nccomm->cdf.cache->prefetch = cache;
 if(SHOWFETCH) {
@@ -190,7 +192,7 @@ ncbytesfree(buf);
 done:
     nclistfree(vars);
     dcefree((DCEnode*)newconstraint);    
-    if(ncstat) freenccachenode(nccomm,cache);
+    if(ncstat && cache != NULL) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
 
@@ -292,9 +294,10 @@ done:
     if(constraint != NULL) dcefree((DCEnode*)constraint);
     if(cachep) *cachep = cachenode;
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
-    if(ncstat) {
+    if(ncstat != OC_NOERR) {
 	freecdfroot34(dxdroot);
 	freenccachenode(nccomm,cachenode);
+	if(cachep) *cachep = NULL;
     }
     return THROW(ncstat);
 }
@@ -319,6 +322,7 @@ fprintf(stderr,"freecachenode: %s\n",
     freecdfroot34(node->datadds);
     nclistfree(node->vars);
     nullfree(node);
+
 }
 
 void

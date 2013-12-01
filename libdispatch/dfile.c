@@ -1593,8 +1593,8 @@ NC_open(const char *path, int cmode,
    /* Need two pieces of information for now */
    int model = 0;
    int isurl = 0; 
-   int version;
-   enum FileType filetype;
+   int version = 0;
+   enum FileType filetype = FT_UNKNOWN;
 
    if(!nc_initialized) {
       stat = NC_initialize();

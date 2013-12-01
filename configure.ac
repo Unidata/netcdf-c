@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.3.1-rc4], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3.1-rc5], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -732,8 +732,9 @@ if test "x$enable_netcdf_4" = xyes; then
       fi		      
       AC_CHECK_LIB([df], [Hclose], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
       AC_CHECK_LIB([mfhdf], [SDcreate], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
-      #AC_SEARCH_LIBS([Hclose],[df], [], [AC_MSG_ERROR([Can't find or link to the hdf4 df library. See config.log for errors.])])
-      #AC_SEARCH_LIBS([SDcreate],[mfhdf], [], [AC_MSG_ERROR([Can't find or link to the hdf4 mfhdf library. See config.log for errors.])])
+     
+     AC_CHECK_LIB([jpeg], [jpeg_set_quality], [], [AC_MSG_ERROR([Can't find or link to the jpeg library (required by hdf4). See config.log for errors.])])
+
       AC_DEFINE([USE_HDF4], [1], [if true, use HDF4 too])
    fi
 fi

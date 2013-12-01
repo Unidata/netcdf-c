@@ -4,6 +4,7 @@
  *   $Id: load.c,v 1.35 2009/11/17 18:15:08 dmh Exp $
  *********************************************************************/
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

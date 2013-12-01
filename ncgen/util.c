@@ -415,7 +415,7 @@ char*
 pooldup(const char* s)
 {
     char* sdup = poolalloc(strlen(s)+1);
-    strcpy(sdup,s);
+    strncpy(sdup,s,(strlen(s)+1));
     return sdup;
 }
 

@@ -11,6 +11,7 @@
 #include "ocdump.h"
 #include "oclog.h"
 #include "occlientparams.h"
+#include "occurlfunctions.h"
 #include "ochttp.h"
 
 #undef TRACK
@@ -966,7 +967,7 @@ OCerror
 oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject* fieldp)
 {
     OCerror err = OC_NOERR;
-    size_t count,i;
+    size_t i=0,count=0;
     OCobject ddsnode;
     OCVERIFY(OC_State,link);
     OCVERIFY(OC_Data,datanode);
@@ -1291,7 +1292,10 @@ oc_data_octype(OCobject link, OCobject datanode, OCtype* typep)
 
     OCASSERT(data->template != NULL);
     if(typep == NULL) ocerr = OC_EINVAL;
-    else *typep = data->template->octype;
+    else if(data->template)
+      *typep = data->template->octype;
+    else 
+      ocerr = OC_EINVAL;
     return ocerr;
 }
 
@@ -1927,6 +1931,26 @@ oc_set_useragent(OCobject link, const char* agent)
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     return ocsetuseragent(state,agent);
+}
+
+/*!
+Force the curl library to trace its actions.
+
+\param[in] link The link through which the server is accessed.
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_EINVAL if the request failed.
+
+*/
+
+OCerror
+oc_trace_curl(OCobject link)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    oc_curl_debug(state);
+    return OC_NOERR;
 }
 
 /**@}*/

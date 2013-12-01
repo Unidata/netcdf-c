@@ -56,6 +56,10 @@ ocset_curl_flags(OCstate* state)
     CURL* curl = state->curl;
     struct OCcurlflags* flags = &state->curlflags;
 
+#if 0
+    cstat = curl_easy_reset(curl);
+#endif
+
 #ifdef CURLOPT_ENCODING
     if (flags->compress) {
 	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING,"deflate, gzip");
@@ -63,18 +67,19 @@ ocset_curl_flags(OCstate* state)
 	OCDBG(1,"CURLOPT_ENCODING=deflate, gzip");
     }
 #endif
-    if (flags->cookiejar || flags->cookiefile) {
+#if 0
+Do not think this is correct
+    if (flags->cookiejar) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
 	if (cstat != CURLE_OK) goto done;
 	OCDBG(1,"CURLOPT_COOKIESESSION=1");
     }
+#endif
     if (flags->cookiejar) {
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, flags->cookiejar);
 	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_COOKIEJAR=%s",flags->cookiejar);
-    }
-    if (flags->cookiefile) {
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiefile);
+	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiejar);
 	if (cstat != CURLE_OK) goto done;
 	OCDBG1(1,"CURLOPT_COOKIEFILE=%s",flags->cookiefile);
     }
@@ -101,6 +106,10 @@ ocset_curl_flags(OCstate* state)
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
     cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
     OCDBG1(1,"CURLOPT_MAXREDIRS=%ld",10L);
+#if 0
+    cstat = curl_setopt(curl,CURLOPT_RETURNTRANSFER, 1L);
+    OCDBG1(1,"CURLOPT_RETURNTRANSFER=%ld",1L);
+#endif
 
     cstat = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
     OCDBG1(1,"CURLOPT_ERRORBUFFER",0);

@@ -8,6 +8,15 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#include <errno.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#define mode_t int
+#endif
+
 #include "ocinternal.h"
 #include "ocdebug.h"
 
@@ -667,4 +676,50 @@ occoncat(char* dst, size_t size, size_t n, ...)
 done:
     va_end(args);
     return status;    
+}
+
+
+/**
+Wrap mktmp
+*/
+
+int
+ocmktmp(const char* base, char** tmpnamep, int* fdp)
+{
+    int fd;
+    char* tmpname = NULL;
+    mode_t oldmask;
+    size_t tmpsize = strlen(base)+strlen("XXXXXX") + 1;
+
+    tmpname = (char*)malloc(tmpsize);
+    if(tmpname == NULL) return OC_ENOMEM;
+    if(!occopycat(tmpname,tmpsize,1,base))
+	return OC_EOVERRUN;
+#ifdef HAVE_MKSTEMP
+    if(!occoncat(tmpname,tmpsize,1,"XXXXXX"))
+	return OC_EOVERRUN;
+    /* Note Potential problem: old versions of this function
+       leave the file in mode 0666 instead of 0600 */
+    oldmask= umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    fd = mkstemp(tmpname);
+    umask(oldmask); /* restore */
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    {
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+        snprintf(spid,sizeof(spid),"%06d",rno);
+	if(!occoncat(tmpname,tmpsize,1,spid))
+	    return OC_EOVERRUN;
+#if defined(_WIN32) || defined(_WIN64)
+        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
+#  else
+        fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
+#  endif
+    }
+#endif /* !HAVE_MKSTEMP */
+    if(tmpnamep) *tmpnamep = tmpname;    
+    if(fdp) *fdp = fd;
+    return OC_NOERR;
 }

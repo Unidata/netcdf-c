@@ -411,7 +411,15 @@ NIL|nil|Nil {
 		        yyerror(errstr);
 			break;
 		    case -1: token = INT64_CONST; break;
-		    case 1: token = UINT64_CONST; break;
+		    case 1:
+			/* if value is too big, complain */
+		        if(uint64_val > NC_MAX_INT64) {
+			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
+			   yyerror(errstr);
+			}
+		        int64_val = (long long)(uint64_val & 0x7fffffffffffffff);
+			token = INT64_CONST;
+			break;
 		    }
 		    break;
 		default:/*(optionally)signed string of digits; treat like int*/

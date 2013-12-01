@@ -1,5 +1,5 @@
 
-#line 3 "lex.ncg.c"
+#line 3 "ncgenyy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1231,7 +1231,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1235 "lex.ncg.c"
+#line 1235 "ncgenyy.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1322,7 +1322,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO fwrite( ncgtext, ncgleng, 1, ncgout )
+#define ECHO do { if (fwrite( ncgtext, ncgleng, 1, ncgout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -1333,7 +1333,7 @@ static int input (void );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		int n; \
+		unsigned n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( ncgin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -1417,7 +1417,7 @@ YY_DECL
     
 #line 167 "ncgen.l"
 
-#line 1421 "lex.ncg.c"
+#line 1421 "ncgenyy.c"
 
 	if ( !(yy_init) )
 		{
@@ -1874,7 +1874,15 @@ YY_RULE_SETUP
 		        yyerror(errstr);
 			break;
 		    case -1: token = INT64_CONST; break;
-		    case 1: token = UINT64_CONST; break;
+		    case 1:
+			/* if value is too big, complain */
+		        if(uint64_val > NC_MAX_INT64) {
+			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)ncgtext);
+			   yyerror(errstr);
+			}
+		        int64_val = (long long)(uint64_val & 0x7fffffffffffffff);
+			token = INT64_CONST;
+			break;
 		    }
 		    break;
 		default:/*(optionally)signed string of digits; treat like int*/
@@ -1886,7 +1894,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 424 "ncgen.l"
+#line 432 "ncgen.l"
 {
 		int slen = strlen(ncgtext);
 		int tag = ncgtext[slen-1];
@@ -1929,7 +1937,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 463 "ncgen.l"
+#line 471 "ncgen.l"
 {
 		int c;
 		int token = 0;
@@ -1967,7 +1975,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 497 "ncgen.l"
+#line 505 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%le", &double_val) != 1) {
 		    sprintf(errstr,"bad long or double constant: %s",(char*)ncgtext);
@@ -1978,7 +1986,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 504 "ncgen.l"
+#line 512 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%e", &float_val) != 1) {
 		    sprintf(errstr,"bad float constant: %s",(char*)ncgtext);
@@ -1990,7 +1998,7 @@ YY_RULE_SETUP
 case 41:
 /* rule 41 can match eol */
 YY_RULE_SETUP
-#line 511 "ncgen.l"
+#line 519 "ncgen.l"
 {
 	        (void) sscanf((char*)&ncgtext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
@@ -1998,7 +2006,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 515 "ncgen.l"
+#line 523 "ncgen.l"
 {
 		int oct = unescapeoct(&ncgtext[2]);
 		if(oct < 0) {
@@ -2011,7 +2019,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 524 "ncgen.l"
+#line 532 "ncgen.l"
 {
 		int hex = unescapehex(&ncgtext[3]);
 		if(byte_val < 0) {
@@ -2024,7 +2032,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 533 "ncgen.l"
+#line 541 "ncgen.l"
 {
 	       switch ((char)ncgtext[2]) {
 	          case 'a': byte_val = '\007'; break; /* not everyone under-
@@ -2046,7 +2054,7 @@ YY_RULE_SETUP
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 551 "ncgen.l"
+#line 559 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -2054,7 +2062,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 556 "ncgen.l"
+#line 564 "ncgen.l"
 {/*initial*/
 	    BEGIN(ST_C_COMMENT);
 	    break;
@@ -2063,21 +2071,21 @@ YY_RULE_SETUP
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 561 "ncgen.l"
+#line 569 "ncgen.l"
 {/* continuation */
 				     break;
 				}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 565 "ncgen.l"
+#line 573 "ncgen.l"
 {/* final */
 			    BEGIN(INITIAL);
 			    break;
 			}
 	YY_BREAK
 case YY_STATE_EOF(ST_C_COMMENT):
-#line 570 "ncgen.l"
+#line 578 "ncgen.l"
 {/* final, error */
 			    fprintf(stderr,"unterminated /**/ comment");
 			    BEGIN(INITIAL);
@@ -2086,17 +2094,17 @@ case YY_STATE_EOF(ST_C_COMMENT):
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 576 "ncgen.l"
+#line 584 "ncgen.l"
 {/* Note: this next rule will not work for UTF8 characters */
 		return lexdebug(ncgtext[0]) ;
 		}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 579 "ncgen.l"
+#line 587 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2100 "lex.ncg.c"
+#line 2108 "ncgenyy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -3095,7 +3103,7 @@ void ncgfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 579 "ncgen.l"
+#line 587 "ncgen.l"
 
 
 static int
