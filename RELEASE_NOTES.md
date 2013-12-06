@@ -8,7 +8,7 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ## 4.3.1 Released TBD
 
-### 4.3.1-rc5 Released TBD
+### 4.3.1-rc5 Released 2013-12-06
 
 * When opening a netCDF-4 file, streamline the iteration over objects in
   the underlying HDF5 file.
