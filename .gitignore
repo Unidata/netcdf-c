@@ -4,3 +4,5 @@ doxygen*.tmp
 \#*.*\#
 autom4te.cache
 myhtml
+CMakeLists.txt.user
+scan-build
