@@ -10,6 +10,14 @@ information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/brows
 
 ### 4.3.1-rc5 Released TBD
 
+* When opening a netCDF-4 file, streamline the iteration over objects in
+  the underlying HDF5 file.
+
+* Fixed netCDF-4 failure when renaming a dimension and renaming a
+  variable using that dimension, in either order. [NCF-177]
+
+[NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
+
 * When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
 
 * Fixed bug in ncgen; it was not properly filling empty string constants
