@@ -756,9 +756,9 @@ check_dims(int  ncid)
 	IF (err)
 	    error("nc_inq_dim: %s", nc_strerror(err));
 	IF (strcmp(name, dim_name[i]) != 0)
-	    error("Unexpected name of dimension %d", i);
+	    error("Unexpected name of dimension %d: '%s', expected: '%s'", i, name, dim_name[i]);
 	IF (length != dim_len[i])
-	    error("Unexpected length %d of dimension %d", length, i);
+	    error("Unexpected length %d of dimension %d, expected %zu", length, i, dim_len[i]);
     }
 }
 

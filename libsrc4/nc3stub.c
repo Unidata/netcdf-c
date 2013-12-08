@@ -294,11 +294,6 @@ nc3_inq_unlimdim(int ncid, int *unlimdimidp) {abort();}
 int
 nc3_show_metadata(int ncid) {abort();}
 
-#ifdef IGNORE
-int
-nc3_delete_mp(const char * path, int basepe) {abort();}
-#endif
-
 int
 nc3_put_att_text(int ncid, int varid, const char *name,
 		size_t len, const char *op) {abort();}

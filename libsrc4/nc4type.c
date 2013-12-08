@@ -121,7 +121,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
    }
    /* Is the type in this group? If not, search parents. */
    for (grp2 = grp; grp2; grp2 = grp2->parent)
-      for (type = grp2->type; type; type = type->next)
+      for (type = grp2->type; type; type = type->l.next)
 	 if (!strcmp(norm_name, type->name))
 	 {
 	    if (typeidp)
@@ -164,7 +164,7 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 
    /* If this is a netCDF-4 file, count types. */
    if (h5 && grp->type)
-      for (type = grp->type; type; type = type->next)
+      for (type = grp->type; type; type = type->l.next)
       {
 	 if (typeids)
 	    typeids[num] = type->nc_typeid;
@@ -232,9 +232,8 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
    /* Remember info about this type. */
    type->nc_typeid = grp->nc4_info->next_typeid++;
    type->size = size;
-   if (!(type->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+   if (!(type->name = strdup(norm_name)))
       return NC_ENOMEM;
-   strcpy(type->name, norm_name);
    type->class = type_class;
    type->base_nc_type = base_typeid;
    
@@ -393,7 +392,7 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
    {
       *nfieldsp = 0;
       if (type->class == NC_COMPOUND)
-	 for (field = type->field; field; field = field->next)
+	 for (field = type->field; field; field = field->l.next)
 	    (*nfieldsp)++;
       else if (type->class == NC_ENUM)
 	 *nfieldsp = type->num_enum_members;
@@ -443,7 +442,7 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
       return NC_EBADTYPE;
 
    /* Find the field. */
-   for (field = type->field; field; field = field->next)
+   for (field = type->field; field; field = field->l.next)
       if (field->fieldid == fieldid)
       {
 	 if (name)
@@ -510,7 +509,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
       return retval;
 
    /* Find the field with this name. */
-   for (field = type->field; field; field = field->next)
+   for (field = type->field; field; field = field->l.next)
       if (!strcmp(field->name, norm_name))
 	 break;
 
@@ -616,7 +615,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
 	 break;
       }
       else
-	 enum_member = enum_member->next;
+	 enum_member = enum_member->l.next;
    }
 
    /* If we didn't find it, life sucks for us. :-( */
@@ -659,7 +658,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
    /* Move to the desired enum member in the list. */
    enum_member = type->enum_member;
    for (i = 0; i < idx; i++)
-      enum_member = enum_member->next;
+      enum_member = enum_member->l.next;
 
    /* Give the people what they want. */
    if (identifier)
@@ -710,7 +709,7 @@ NC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
 				     norm_name, value)))
       return retval;
 
-      type->num_enum_members++;
+   type->num_enum_members++;
    
    return NC_NOERR;
 }

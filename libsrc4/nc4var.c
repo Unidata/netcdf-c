@@ -98,7 +98,7 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -161,7 +161,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -524,7 +524,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * is not a coordinate variable. I need to change its HDF5 name,
     * because the dimension will cause a HDF5 dataset to be created,
     * and this var has the same name. */
-   for (dim = grp->dim; dim; dim = dim->next)
+   for (dim = grp->dim; dim; dim = dim->l.next)
       if (!strcmp(dim->name, norm_name) && 
 	  (!var->ndims || dimidsp[0] != dim->dimid))
       {
@@ -636,7 +636,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    {
       if (nattsp)
       {
-         for (att = grp->att; att; att = att->next)
+         for (att = grp->att; att; att = att->l.next)
             natts++;
          *nattsp = natts;
       }
@@ -644,7 +644,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    }
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    
@@ -664,7 +664,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          dimidsp[d] = var->dimids[d];
    if (nattsp)
    {
-      for (att = var->att; att; att = att->next)
+      for (att = var->att; att; att = att->l.next)
          natts++;
       *nattsp = natts;
    }
@@ -757,7 +757,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    
@@ -811,7 +811,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    {
 #ifndef USE_SZIP
       return NC_EINVAL;
-#endif
+#else /* USE_SZIP */
       if (var->deflate)
 	 return NC_EINVAL;
       if ((*options_mask != NC_SZIP_EC_OPTION_MASK) &&
@@ -823,6 +823,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       var->options_mask = *options_mask;
       var->pixels_per_block = *pixels_per_block;
       var->contiguous = 0;
+#endif /* USE_SZIP */
    }
 
    /* Shuffle filter? */
@@ -1108,7 +1109,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
       return retval;
 
    /* Find var of this name. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (!(strcmp(var->name, norm_name)))
       {
          *varidp = var->varid;
@@ -1160,12 +1161,12 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    /* Is name in use? */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (!strncmp(var->name, name, NC_MAX_NAME))
          return NC_ENAMEINUSE;   
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -1270,7 +1271,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
       return NC_ENOPAR;
 
    /* Find the var, and set its preference. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
