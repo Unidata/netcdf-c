@@ -102,8 +102,8 @@ main(int argc, char **argv)
       if (long_in != lval) ERR;
 
       /* This should fail. */
-      coord[3] = 100;
-      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+      coord[0] = 5;
+      if (nc_get_var1_ushort(ncid, varid, coord,
 			     &ushort_in) != NC_EINVALCOORDS) ERR;
 
       if (nc_close(ncid)) ERR;
@@ -162,8 +162,8 @@ main(int argc, char **argv)
       if (long_in != lval) ERR;
 
       /* This should fail. */
-      coord[3] = 100;
-      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+      coord[0] = 5;
+      if (nc_get_var1_ushort(ncid, varid, coord, 
 			     &ushort_in) != NC_EINVALCOORDS) ERR;
 
       if (nc_close(ncid)) ERR;

@@ -18,7 +18,6 @@ static void processtypes(void);
 static void processtypesizes(void);
 static void processvars(void);
 static void processattributes(void);
-static void processspecials(void);
 static void processunlimiteddims(void);
 static void processeconstrefs(void);
 static void processeconstrefsR(Datalist*);
@@ -54,10 +53,6 @@ processsemantics(void)
     processtypesizes();
     /* Process each var to fill in missing fields, etc*/
     processvars();
-    /* If we are not allowing certain special attributes,
-       but they were defined, convert them back to attributes
-    */
-    processspecials();
     /* Process attributes to connect to corresponding variable*/
     processattributes();
     /* Fix up enum constant values*/
@@ -704,118 +699,6 @@ processtypesizes(void)
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* tsym = (Symbol*)listget(typdefs,i);
 	computesize(tsym); /* this will recurse*/
-    }
-}
-
-#ifdef NCF213 /*Jira NCF-213*/
-/* We should not create an actual
-   attribute for any of the
-   special attributes.
-*/
-static void
-makespecial(int tag, Symbol* vsym, nc_type typ, Datalist* dlist)
-{
-    Symbol* attr = install(specialname(tag));
-    attr->objectclass = NC_ATT;
-    attr->data = dlist;
-    if(vsym) {
-	Symbol* grp = vsym->container;
-	if(grp) listpush(grp->subnodes,(void*)attr);
-	attr->container = grp;
-    }
-    attr->att.var = vsym;
-    attr->typ.basetype = primsymbols[typ==NC_STRING?NC_CHAR:typ];
-    listpush(attdefs,(void*)attr);
-}
-#endif /*NCF213*/
-	
-static void
-processspecial1(Symbol* vsym)
-{
-    unsigned long flags = vsym->var.special.flags;
-    int i,tag;
-    NCConstant con;
-    Datalist* dlist = NULL;
-    if(flags == 0) return; /* no specials defined */
-    con = nullconstant;
-    if((tag=(flags & _CHUNKSIZES_FLAG))) {
-	dlist = builddatalist(vsym->var.special.nchunks);
-        for(i=0;i<vsym->var.special.nchunks;i++) {
-            con = nullconstant;
-            con.nctype = NC_INT;
-            con.value.int32v = (int)vsym->var.special._ChunkSizes[i];
-            dlappend(dlist,&con);
-        }
-    } else if((tag=(flags & _STORAGE_FLAG))) {
-        con.nctype = NC_STRING;
-        con.value.stringv.stringv
-            = (vsym->var.special._Storage == NC_CHUNKED? "chunked"
-                                                       : "contiguous");
-        con.value.stringv.len = strlen(con.value.stringv.stringv);
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-    if((tag=(flags & _FLETCHER32_FLAG))) {
-        con.nctype = NC_STRING;
-        con.value.stringv.stringv
-            = (vsym->var.special._Fletcher32 == 1? "true"
-                                                 : "false");
-        con.value.stringv.len = strlen(con.value.stringv.stringv);
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-    if((tag=(flags & _DEFLATE_FLAG))) {
-        con.nctype = NC_INT;
-        con.value.int32v = vsym->var.special._DeflateLevel;
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-    if((tag=(flags & _SHUFFLE_FLAG))) {
-        con.nctype = NC_STRING;
-        con.value.stringv.stringv
-            = (vsym->var.special._Shuffle == 1? "true"
-                                              : "false");
-        con.value.stringv.len = strlen(con.value.stringv.stringv);
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-    if((tag=(flags & _ENDIAN_FLAG))) {
-        con.nctype = NC_STRING;
-        con.value.stringv.stringv
-            = (vsym->var.special._Endianness == 1? "little"
-                                                 :"big");
-        con.value.stringv.len = strlen(con.value.stringv.stringv);
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-    if((tag=(flags & _NOFILL_FLAG))) {
-        con.nctype = NC_STRING;
-        /* Watch out: flags is NOFILL, but we store FILL */
-	if(vsym->var.special._Fill == 1) {
-            con.value.stringv.stringv = "false";
-	} else {
-	    nofill_flag = 1;
-            con.value.stringv.stringv = "true";
-        }
-        con.value.stringv.len = strlen(con.value.stringv.stringv);
-        dlist = builddatalist(1);
-        dlappend(dlist,&con);
-    }
-#ifdef NCF213 /*Jira NCF-213*/
-/* We should not create an actual
-   attribute for any of the
-   special attributes.
-*/
-#endif /*NCF213*/
-}
-
-static void
-processspecials(void)
-{
-    int i;
-    for(i=0;i<listlength(vardefs);i++) {
-	Symbol* vsym = (Symbol*)listget(vardefs,i);
-	processspecial1(vsym);
     }
 }
 

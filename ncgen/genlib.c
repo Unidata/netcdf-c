@@ -31,6 +31,7 @@ define_netcdf(void)
     } else { /* construct a usable output file name */
 	if (cdlname != NULL && strcmp(cdlname,"-") != 0) {/* cmd line name */
 	    char* p;
+
 	    strncpy(filename,cdlname,2048);
 	    /* remove any suffix and prefix*/
 	    p = strrchr(filename,'.');

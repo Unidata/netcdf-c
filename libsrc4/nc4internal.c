@@ -16,6 +16,7 @@ conditions.
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
+#include "H5DSpublic.h"
 #include <utf8proc.h>
 
 #if 0 /*def USE_PNETCDF*/
@@ -125,7 +126,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid, size_t *maxlen
        if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, 
 						      h5dimlen, h5dimlenmax)) < 0)
 	 BAIL(NC_EHDFERR);
-       LOG((5, "find_var_shape_nc: varid %d len %d max: %d", 
+       LOG((5, "find_var_dim_max_length: varid %d len %d max: %d", 
 	    varid, (int)h5dimlen[0], (int)h5dimlenmax[0]));
        for (d=0; d<dataset_ndims; d++) {
 	 if (var->dimids[d] == dimid) {
@@ -176,30 +177,10 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
    return nc4_grp_list_add(&(h5->root_grp), h5->next_nc_grpid++, 
 			   NULL, nc, NC_GROUP_NAME, &grp);
 }
-/* /\* Given an ncid, find the relevant group and return a pointer to */
-/*  * it. *\/ */
-/* NC_GRP_INFO_T * */
-/* find_nc_grp(int ncid) */
-/* { */
-/*    NC *f; */
-
-/*    for (f = nc_file; f; f = f->next) */
-/*    { */
-/*       if (f->ext_ncid == (ncid & FILE_ID_MASK)) */
-/*       { */
-/* 	 assert(f->nc4_info && f->nc4_info->root_grp); */
-/* 	 return nc4_rec_find_grp(f->nc4_info->root_grp, (ncid & GRP_ID_MASK)); */
-/*       } */
-/*    } */
-
-/*    return NULL; */
-/* } */
 
 /* Given an ncid, find the relevant group and return a pointer to it,
  * return an error of this is not a netcdf-4 file (or if strict nc3 is
  * turned on for this file.) */
-
-
 int
 nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp)
 {
@@ -361,6 +342,20 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
    /* Give the caller the group the dimension is in. */
    if (dim_grp)
       *dim_grp = dg;
+
+   return NC_NOERR;
+}
+
+/* Find a var (by name) in a grp. */
+int
+nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
+{
+   assert(grp && var && name);
+
+   /* Find the var info. */
+   for ((*var) = grp->var; (*var); (*var) = (*var)->next)
+      if (0 == strcmp(name, (*var)->name))
+         break;
 
    return NC_NOERR;
 }
@@ -703,8 +698,7 @@ nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid,
 {
    NC_GRP_INFO_T *g;
 
-   LOG((3, "grp_list_add: new_nc_grpid %d name %s ", 
-	new_nc_grpid, name));
+   LOG((3, "%s: new_nc_grpid %d name %s ", __func__, new_nc_grpid, name));
 
    /* Get the memory to store this groups info. */
    if (!(*grp = calloc(1, sizeof(NC_GRP_INFO_T))))
@@ -858,9 +852,17 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    LOG((4, "nc4_enum_member_add: size %d name %s", size, name));
 
    /* Allocate storage for this field information. */
-   if (!(member = calloc(1, sizeof(NC_ENUM_MEMBER_INFO_T))) ||
-       !(member->value = calloc(1, size)))
+   if (!(member = calloc(1, sizeof(NC_ENUM_MEMBER_INFO_T))))
       return NC_ENOMEM;
+   if (!(member->value = calloc(1, size))) {
+      free(member);
+      return NC_ENOMEM;
+   }
+   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char)))) {
+      free(member->value);
+      free(member);
+      return NC_ENOMEM;
+   }
 
    /* Add this field to list. */
    if (*list)
@@ -877,11 +879,6 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    }
 
    /* Store the information about this member. */
-   if (!(member->name = malloc((strlen(name) + 1) * sizeof(char)))) {
-     if(member) free(member);
-    
-     return NC_ENOMEM;
-   }
    strcpy(member->name, name);
    memcpy(member->value, value, size);
 
@@ -1086,8 +1083,6 @@ nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim)
    /* Free memory allocated for names. */
    if (dim->name)
       free(dim->name);
-   if (dim->old_name)
-      free(dim->old_name);
 
    free(dim);
    return NC_NOERR;
@@ -1122,7 +1117,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    int retval;
 
    assert(grp);
-   LOG((3, "nc4_rec_grp_del: grp->name %s", grp->name));
+   LOG((3, "%s: grp->name %s", __func__, grp->name));
 
    /* Recursively call this function for each child, if any, stopping
     * if there is an error. */
@@ -1140,7 +1135,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    att = grp->att;
    while (att)
    {
-      LOG((4, "nc4_rec_grp_del: deleting att %s", att->name));      
+      LOG((4, "%s: deleting att %s", __func__, att->name));
       a = att->next;
       if ((retval = nc4_att_list_del(&grp->att, att)))
 	 return retval;
@@ -1151,11 +1146,10 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    var = grp->var;
    while (var)
    {
-      LOG((4, "nc4_rec_grp_del: deleting var %s", var->name));      
+      LOG((4, "%s: deleting var %s", __func__, var->name));
       /* Close HDF5 dataset associated with this var, unless it's a
        * scale. */
-      if (var->hdf_datasetid && !var->dimscale && 
-	  H5Dclose(var->hdf_datasetid) < 0)
+      if (var->hdf_datasetid && H5Dclose(var->hdf_datasetid) < 0)
 	 return NC_EHDFERR;
       v = var->next;
       if ((retval = nc4_var_list_del(&grp->var, var)))
@@ -1167,7 +1161,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    dim = grp->dim;
    while (dim)
    {
-      LOG((4, "nc4_rec_grp_del: deleting dim %s", dim->name));      
+      LOG((4, "%s: deleting dim %s", __func__, dim->name));
       /* Close HDF5 dataset associated with this dim. */
       if (dim->hdf_dimscaleid && H5Dclose(dim->hdf_dimscaleid) < 0)
 	 return NC_EHDFERR;
@@ -1181,7 +1175,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    type = grp->type; 
    while (type)
    {
-      LOG((4, "nc4_rec_grp_del: deleting type %s", type->name));      
+      LOG((4, "%s: deleting type %s", __func__, type->name));
       t = type->next;
       if ((retval = type_list_del(&grp->type, type)))
 	 return retval;
@@ -1189,7 +1183,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp)
    }
 
    /* Tell HDF5 we're closing this group. */ 
-   LOG((4, "nc4_rec_grp_del: closing group %s", grp->name));         
+   LOG((4, "%s: closing group %s", __func__, grp->name));
    if (grp->hdf_grpid && H5Gclose(grp->hdf_grpid) < 0) 
       return NC_EHDFERR;
 
@@ -1257,6 +1251,113 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
 
    free(att);
    return NC_NOERR;
+}
+
+/* Break a coordinate variable to separate the dimension and the variable */
+int
+nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim)
+{
+   int retval = NC_NOERR;
+
+   /* Sanity checks */
+   assert(dim->coord_var == coord_var);
+   assert(coord_var->dim[0] == dim);
+   assert(coord_var->dimids[0] == dim->dimid);
+   assert(0 == dim->hdf_dimscaleid);
+
+   /* If we're replacing an existing dimscale dataset, go to
+    * every var in the file and detach this dimension scale. */
+   if ((retval = rec_detach_scales(grp->nc4_info->root_grp, 
+                                   dim->dimid, coord_var->hdf_datasetid)))
+      return retval;
+
+   /* Allow attached dimscales to be tracked on the [former] coordinate variable */
+   if (coord_var->ndims)
+   {
+      /* Coordinate variables shouldn't have dimscales attached */
+      assert(NULL == coord_var->dimscale_attached);
+
+      /* Allocate space for tracking them */
+      if (NULL == (coord_var->dimscale_attached = calloc(coord_var->ndims, sizeof(int))))
+         return NC_ENOMEM;
+   }
+
+   /* Detach dimension from variable */
+   coord_var->dimscale = 0;
+   coord_var->dirty++;
+   dim->coord_var = NULL;
+
+   return NC_NOERR;
+}
+
+/* Reform a coordinate variable from a dimension and a variable */
+int
+nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
+{
+   int retval = NC_NOERR;
+
+   /* Attach variable to dimension */
+   var->dimscale++;
+   var->dirty++;
+   dim->coord_var = var;
+
+   /* Detach dimscales from the [new] coordinate variable */
+   if(var->dimscale_attached)
+   {
+      int dims_detached = 0;
+      int finished = 0;
+      int d;
+
+      /* Loop over all dimensions for variable */
+      for (d = 0; d < var->ndims && !finished; d++)
+         /* Is there a dimscale attached to this axis? */
+         if(var->dimscale_attached[d])
+         {
+            NC_GRP_INFO_T *g;
+         
+            for (g = grp; g && !finished; g = g->parent)
+            {
+               NC_DIM_INFO_T *dim1;
+         
+               for (dim1 = g->dim; dim1 && !finished; dim1 = dim1->next)
+                  if (var->dimids[d] == dim1->dimid)
+                  {
+                     hid_t dim_datasetid;  /* Dataset ID for dimension */
+         
+                     /* Find dataset ID for dimension */
+                     if (dim1->coord_var)
+                         dim_datasetid = dim1->coord_var->hdf_datasetid;
+                     else
+                         dim_datasetid = dim1->hdf_dimscaleid;
+                     assert(dim_datasetid > 0);
+                     if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
+                        BAIL(NC_EHDFERR);
+                     var->dimscale_attached[d] = 0;
+                     if (dims_detached++ == var->ndims)
+                        finished++;
+                  }
+            }
+         }
+
+      /* Release & reset the array tracking attached dimscales */
+      free(var->dimscale_attached);
+      var->dimscale_attached = NULL;
+   }
+
+   /* Use variable's dataset ID for the dimscale ID */
+   if (dim->hdf_dimscaleid)
+   {
+      if (H5Dclose(dim->hdf_dimscaleid) < 0)
+         BAIL(NC_EHDFERR);
+      dim->hdf_dimscaleid = 0;
+
+      /* Now delete the dimscale's dataset (it will be recreated later, if necessary) */
+      if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
+         return NC_EDIMMETA;
+   }
+
+  exit:
+   return retval;
 }
 
 /* Normalize a UTF8 name. Put the result in norm_name, which can be

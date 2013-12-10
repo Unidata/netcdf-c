@@ -15,7 +15,6 @@
 #define LEVEL_NAME "level"
 #define TIME_NAME "time"
 #define DIM5_NAME "twilight_zone"
-#define DIM_NAME "dim"
 #define LAT_LEN 1
 #define LON_LEN 2
 #define LEVEL_LEN 3
@@ -168,6 +167,153 @@ main(int argc, char **argv)
       if (strcmp(name_in, BUBBA)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
       if (len_in != LAT_LEN) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+
+   SUMMARIZE_ERR;
+   printf("*** Testing renaming dimensions and vars...");
+   {
+#define FILE_NAME1 "foo1.nc"
+#define FILE_NAME2 "foo2.nc"
+#define FILE_NAME3 "foo3.nc"
+#define FILE_NAME4 "foo4.nc"
+#define DIM_NAME "lat_T42"
+#define VAR_NAME DIM_NAME
+#define DIM_NAME2 "lat"
+#define VAR_NAME2 DIM_NAME2
+#define RANK_lat_T42 1
+      int  ncid, varid, dimid;
+      int lat_T42_dim;
+      size_t lat_T42_len = 3;
+      int lat_T42_id;
+      int lat_T42_dims[RANK_lat_T42];
+      char name[NC_MAX_NAME + 1];
+
+    /* =========== */
+    /* Sub-test #1 */
+    /* =========== */
+      /* create file with dimension and associated coordinate variable */
+      if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
+      lat_T42_dims[0] = lat_T42_dim;
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, RANK_lat_T42, lat_T42_dims, &lat_T42_id)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, rename coordinate dimension and then associated variable */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
+      if (nc_rename_dim(ncid, dimid, DIM_NAME2)) ERR;
+      if (nc_rename_var(ncid, varid, VAR_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, check coordinate dimension and associated variable names */
+      /* Should be just like they created the file with DIM_NAME2 & VAR_NAME2 to
+       *  begin with.
+       */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME2, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME2, &varid)) ERR;
+      if (nc_inq_dimname(ncid, dimid, name)) ERR;
+      if (strcmp(name, DIM_NAME2)) ERR;
+      if (nc_inq_varname(ncid, varid, name)) ERR;
+      if (strcmp(name, VAR_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+    /* =========== */
+    /* Sub-test #2 */
+    /* =========== */
+      /* create file with dimension and associated coordinate variable */
+      if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
+      lat_T42_dims[0] = lat_T42_dim;
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, RANK_lat_T42, lat_T42_dims, &lat_T42_id)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, just rename coordinate dimension */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME, &dimid)) ERR;
+      if (nc_rename_dim(ncid, dimid, DIM_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, check coordinate dimension and associated variable names */
+      /* Should be just like the file was created with DIM_NAME2 to begin with */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME2, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
+      if (nc_inq_dimname(ncid, dimid, name)) ERR;
+      if (strcmp(name, DIM_NAME2)) ERR;
+      if (nc_inq_varname(ncid, varid, name)) ERR;
+      if (strcmp(name, VAR_NAME)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+    /* =========== */
+    /* Sub-test #3 */
+    /* =========== */
+      /* create file with dimension and associated coordinate variable */
+      if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
+      lat_T42_dims[0] = lat_T42_dim;
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, RANK_lat_T42, lat_T42_dims, &lat_T42_id)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, just rename variable */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
+      if (nc_rename_var(ncid, varid, VAR_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, check coordinate dimension and associated variable names */
+      /* Should be just like the file was created with VAR_NAME2 to begin with */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME2, &varid)) ERR;
+      if (nc_inq_dimname(ncid, dimid, name)) ERR;
+      if (strcmp(name, DIM_NAME)) ERR;
+      if (nc_inq_varname(ncid, varid, name)) ERR;
+      if (strcmp(name, VAR_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+    /* =========== */
+    /* Sub-test #4 */
+    /* =========== */
+      /* create file with dimension and associated coordinate variable */
+      if (nc_create(FILE_NAME1, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME, lat_T42_len, &lat_T42_dim)) ERR;
+      lat_T42_dims[0] = lat_T42_dim;
+      if (nc_def_var(ncid, VAR_NAME, NC_INT, RANK_lat_T42, lat_T42_dims, &lat_T42_id)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, rename associated variable and then coordinate dimension */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
+      if (nc_rename_var(ncid, varid, VAR_NAME2)) ERR;
+      if (nc_rename_dim(ncid, dimid, DIM_NAME2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+
+      /* reopen file, check coordinate dimension and associated variable names */
+      /* Should be just like they created the file with DIM_NAME2 & VAR_NAME2 to
+       *  begin with.
+       */
+      if (nc_open(FILE_NAME1, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_dimid(ncid, DIM_NAME2, &dimid)) ERR;
+      if (nc_inq_varid(ncid, VAR_NAME2, &varid)) ERR;
+      if (nc_inq_dimname(ncid, dimid, name)) ERR;
+      if (strcmp(name, DIM_NAME2)) ERR;
+      if (nc_inq_varname(ncid, varid, name)) ERR;
+      if (strcmp(name, VAR_NAME2)) ERR;
       if (nc_close(ncid)) ERR;
    }
 
