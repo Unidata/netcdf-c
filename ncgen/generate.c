@@ -453,7 +453,7 @@ normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
     } else {/* prim->value.opaquev.len < nnibs => expand*/
         char* s;
 	s = (char*)emalloc(nnibs+1);
-	memset(s,'0',nnibs);
+	memset(s,'0',nnibs);    /* Fill with '0' characters */
 	memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
 	s[nnibs] = '\0';
 	efree(prim->value.opaquev.stringv);

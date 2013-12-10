@@ -48,7 +48,7 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
    *unlimdimidp = -1;
    for (g = grp; g && !found; g = g->parent)
    {
-      for (dim = g->dim; dim; dim = dim->next)
+      for (dim = g->dim; dim; dim = dim->l.next)
       {
 	 if (dim->unlimited)
 	 {
@@ -98,7 +98,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    {
       /* Only one limited dimenson for strict nc3. */
       if (len == NC_UNLIMITED)
-	 for (dim = grp->dim; dim; dim = dim->next)
+	 for (dim = grp->dim; dim; dim = dim->l.next)
 	    if (dim->unlimited)
 	       return NC_EUNLIMIT;
 
@@ -123,26 +123,25 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
 	 return NC_EDIMSIZE;
 
    /* Make sure the name is not already in use. */
-   for (dim = grp->dim; dim; dim = dim->next)
+   for (dim = grp->dim; dim; dim = dim->l.next)
       if (!strncmp(dim->name, norm_name, NC_MAX_NAME))
 	 return NC_ENAMEINUSE;
 
    /* Add a dimension to the list. The ID must come from the file
     * information, since dimids are visible in more than one group. */
-   nc4_dim_list_add(&grp->dim);
-   grp->dim->dimid = grp->nc4_info->next_dimid++;
+   nc4_dim_list_add(&grp->dim, &dim);
+   dim->dimid = grp->nc4_info->next_dimid++;
 
    /* Initialize the metadata for this dimension. */
-   if (!(grp->dim->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+   if (!(dim->name = strdup(norm_name)))
       return NC_ENOMEM;
-   strcpy(grp->dim->name, norm_name);
-   grp->dim->len = len;
+   dim->len = len;
    if (len == NC_UNLIMITED)
-      grp->dim->unlimited++;
+      dim->unlimited++;
 
    /* Pass back the dimid. */
    if (idp)
-      *idp = grp->dim->dimid;
+      *idp = dim->dimid;
 
    return retval;
 }
@@ -180,7 +179,7 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 
    /* Go through each dim and check for a name match. */
    for (g = grp; g && !finished; g = g->parent)
-      for (dim = g->dim; dim; dim = dim->next)
+      for (dim = g->dim; dim; dim = dim->l.next)
 	 if (!strncmp(dim->name, norm_name, NC_MAX_NAME))
 	 {
 	    if (idp)
@@ -301,12 +300,12 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
       return retval;
 
    /* Make sure the new name is not already in use in this group. */
-   for (dim = grp->dim; dim; dim = dim->next)
+   for (dim = grp->dim; dim; dim = dim->l.next)
       if (!strncmp(dim->name, norm_name, NC_MAX_NAME))
 	 return NC_ENAMEINUSE;
 
    /* Find the dim. */
-   for (dim = grp->dim; dim; dim = dim->next)
+   for (dim = grp->dim; dim; dim = dim->l.next)
       if (dim->dimid == dimid)
 	 break;
    if (!dim)
@@ -393,7 +392,7 @@ NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
    /* Get our dim info. */
    assert(h5);
    {
-      for (dim=grp->dim; dim; dim=dim->next)
+      for (dim=grp->dim; dim; dim=dim->l.next)
       {
 	 if (dim->unlimited)
 	 {

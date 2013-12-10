@@ -193,69 +193,47 @@ test_nc_redef(void)
 	error("nc_close: %s", nc_strerror(err));
 
     /* check scratch file written as expected */
-
-    /* These checks don't work for the HDF5 alpha releases so far, but
-     * Quincey tells me this will eventually work. Until then, block
-     * out the tests with the HDF5_ALPHA_RELEASE macro. */
-#ifndef HDF5_ALPHA_RELEASE
     check_file(scratch);  /* checks all except "abc" stuff added above */
-#endif
-    err = nc_open(scratch, NC_NOWRITE, &ncid);
-    IF (err)
+
+    IF ((err = nc_open(scratch, NC_NOWRITE, &ncid)))
         error("nc_open: %s", nc_strerror(err));
-    err = nc_inq_dim(ncid, dimid, name, &length);
-    IF (err) 
+    IF ((err = nc_inq_dim(ncid, dimid, name, &length))) 
 	error("nc_inq_dim: %s", nc_strerror(err));
     IF (strcmp(name, "abc") != 0) 
 	error("Unexpected dim name");
     IF (length != sizehint) 
 	error("Unexpected dim length");
-    err = nc_get_var1_double(ncid, varid, NULL, &var);
-    IF (err)
+    IF ((err = nc_get_var1_double(ncid, varid, NULL, &var)))
         error("nc_get_var1_double: %s", nc_strerror(err));
     IF (var != 1.0)
         error("nc_get_var1_double: unexpected value");
-    err = nc_close(ncid);
-    IF (err)
+    IF ((err = nc_close(ncid)))
         error("nc_close: %s", nc_strerror(err));
 
     /* open scratch file for writing, add another dim, var, att, then check */
-    err = nc_open(scratch, NC_WRITE, &ncid);
-    IF (err)
+    IF ((err = nc_open(scratch, NC_WRITE, &ncid)))
         error("nc_open: %s", nc_strerror(err));
-    err = nc_redef(ncid);
-    IF (err)
+    IF ((err = nc_redef(ncid)))
         error("nc_redef: %s", nc_strerror(err));
-    err = nc_def_dim(ncid, "def", sizehint, &dimid);
-    IF (err)
+    IF ((err = nc_def_dim(ncid, "def", sizehint, &dimid)))
         error("nc_def_dim: %s", nc_strerror(err));
-    err = nc_def_var(ncid, "defScalar", NC_INT, 0, NULL, &varid);
-    IF (err)
+    IF ((err = nc_def_var(ncid, "defScalar", NC_INT, 0, NULL, &varid)))
         error("nc_def_var: %s", nc_strerror(err));
-    err = nc_def_var(ncid, "def", NC_INT, 1, &dimid, &varid1);
-    IF (err)
+    IF ((err = nc_def_var(ncid, "def", NC_INT, 1, &dimid, &varid1)))
         error("nc_def_var: %s", nc_strerror(err));
-    err = nc_put_att_text(ncid, NC_GLOBAL, "Credits", 1+strlen("Thanks!"), 
-			  "Thanks!");
-    IF (err)
+    IF ((err = nc_put_att_text(ncid, NC_GLOBAL, "Credits", 1+strlen("Thanks!"), "Thanks!")))
         error("nc_put_att_text: %s", nc_strerror(err));
-    err = nc_enddef(ncid);
-    IF (err)
+    IF ((err = nc_enddef(ncid)))
         error("nc_enddef: %s", nc_strerror(err));
     var = 2.0;
-    err = nc_put_var1_double(ncid, varid, NULL, &var);
-    IF (err)
+    IF ((err = nc_put_var1_double(ncid, varid, NULL, &var)))
         error("nc_put_var1_double: %s", nc_strerror(err));
-    err = nc_close(ncid);
-    IF (err) 
+    IF ((err = nc_close(ncid))) 
 	error("nc_close: %s", nc_strerror(err));
 
-    /* These checks don't work for the HDF5 alpha releases so far, but
-     * Quincey tells me this will eventually work. Until then, block
-     * out the tests with the HDF5_ALPHA_RELEASE macro. */
-#ifndef HDF5_ALPHA_RELEASE
+    /* check scratch file written as expected */
     check_file(scratch);
-#endif
+
     err = nc_open(scratch, NC_NOWRITE, &ncid);
     IF (err)
         error("nc_open: %s", nc_strerror(err));
