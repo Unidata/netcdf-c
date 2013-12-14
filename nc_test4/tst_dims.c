@@ -384,9 +384,9 @@ main(int argc, char **argv)
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 2 || dimids_in[0] != 0 || dimids_in[1] != 1) ERR;
       if (nc_inq_unlimdim(ncid, &unlimdimid_in[0])) ERR;
-      if (unlimdimid_in[0] != 1) ERR;
+      if (unlimdimid_in[0] != 0) ERR;
       if (nc_inq_unlimdims(ncid, &nunlimdims_in, unlimdimid_in)) ERR;
-      if (nunlimdims_in != 2 || unlimdimid_in[0] != 1 || unlimdimid_in[1] != 0) ERR;
+      if (nunlimdims_in != 2 || unlimdimid_in[0] != 0 || unlimdimid_in[1] != 1) ERR;
       
       /* Automatically enddef and close. */
       if (nc_close(ncid)) ERR;
