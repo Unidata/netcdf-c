@@ -7,6 +7,9 @@ Recent releases include references to Jira issue identifiers for more informatio
 ## 4.3.1 Released TBD
 
 
+* Corrected behavior of nc_inq_unlimdim and nv_inq_unlimdims to report dimids
+  in same order as nc_inq_dimids
+
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
 ### 4.3.1-rc5 Released 2013-12-06
