@@ -51,10 +51,9 @@ static void
 fill(Symbol* tsym, Datalist* filler)
 {
     int i;
-    NCConstant con;
+    NCConstant con = nullconstant;
     Datalist* sublist;
 
-    con.filled = 0;
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
     case NC_ENUM: case NC_OPAQUE: case NC_PRIM:
@@ -87,8 +86,7 @@ filllist(Symbol* tsym, Datalist* dl)
 {
     int i;
     Datalist* sublist;
-    NCConstant con;
-    con.filled = 0;
+    NCConstant con = nullconstant;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
