@@ -354,9 +354,9 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 	while(red > 0) {
 	    ssize_t count = read(fd, pos, red);
 	    if(count < 0)
-	        {close(fd); status = errno; goto unwind_open;}
+	        {status = errno; goto unwind_open;}
 	    if(count == 0)
-	        {close(fd); status = NC_ENOTNC; goto unwind_open;}
+	        {status = NC_ENOTNC; goto unwind_open;}
 	    red -= count;
 	    pos += count;
 	}
