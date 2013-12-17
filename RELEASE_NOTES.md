@@ -2,13 +2,12 @@
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
-Recent releases include references to Jira issue identifiers for more information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
-
 ## 4.3.1 Released TBD
 
+* Fixed fill value handling for string types in nc4_get_vara().
 
 * Corrected behavior of nc_inq_unlimdim and nv_inq_unlimdims to report dimids
-  in same order as nc_inq_dimids
+  in same order as nc_inq_dimids.
 
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
