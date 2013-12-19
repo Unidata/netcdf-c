@@ -13,6 +13,8 @@ This file contains a high-level description of this package's evolution. Release
 
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
+* A number of previously-disabled unit tests were reviewed and made active. 
+
 ### 4.3.1-rc5 Released 2013-12-06
 
 * When opening a netCDF-4 file, streamline the iteration over objects in the underlying HDF5 file.
