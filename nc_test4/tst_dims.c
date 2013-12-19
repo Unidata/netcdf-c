@@ -384,9 +384,9 @@ main(int argc, char **argv)
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 2 || dimids_in[0] != 0 || dimids_in[1] != 1) ERR;
       if (nc_inq_unlimdim(ncid, &unlimdimid_in[0])) ERR;
-      if (unlimdimid_in[0] != 1) ERR;
+      if (unlimdimid_in[0] != 0) ERR;
       if (nc_inq_unlimdims(ncid, &nunlimdims_in, unlimdimid_in)) ERR;
-      if (nunlimdims_in != 2 || unlimdimid_in[0] != 1 || unlimdimid_in[1] != 0) ERR;
+      if (nunlimdims_in != 2 || unlimdimid_in[0] != 0 || unlimdimid_in[1] != 1) ERR;
       
       /* Automatically enddef and close. */
       if (nc_close(ncid)) ERR;
@@ -986,12 +986,28 @@ main(int argc, char **argv)
 		     dimids_in, &natts_in)) ERR;
       if (nc_inq_dim(ncid, dimids_in[3], NULL, &len_in)) ERR;
       if (len_in != 0) ERR;
-/*      if (nc_get_var_double(ncid, pres_varid, (double *)pres_in)) ERR;*/
+      memset(pres_in, 0, sizeof(pres_in));
+      if (nc_get_var_double(ncid, pres_varid, (double *)pres_in)) ERR;
+
+      /* Check our pressure values. */
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    for (k = 0; k < LEVEL_LEN; k++)
+	       for (l = 0; l <TIME_LEN; l++)
+		  if (0 != pres_in[i][j][k][l]) ERR;
+
       if (nc_inq_var(ncid, hp_varid, NULL, NULL, &ndims_in,
 		     dimids_in, NULL)) ERR;
       if (nc_inq_dim(ncid, dimids_in[2], NULL, &len_in)) ERR;
       if (len_in != 0) ERR;
-/*      if (nc_get_var_ushort(ncid, hp_varid, (unsigned short *)hp_in)) ERR;*/
+      memset(hp_in, 0, sizeof(hp_in));
+      if (nc_get_var_ushort(ncid, hp_varid, (unsigned short *)hp_in)) ERR;
+
+      /* Check our hp values. */
+      for (i = 0; i < LAT_LEN; i++)
+	 for (j = 0; j < LON_LEN; j++)
+	    for (l = 0; l <TIME_LEN; l++)
+	       if (0 != hp_in[i][j][l]) ERR;
 
       /* Now use nc_put_vara to really write pressure and hp
        * data. Write TIME_LEN (4) records of each. */

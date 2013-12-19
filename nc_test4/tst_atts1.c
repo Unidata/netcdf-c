@@ -683,13 +683,11 @@ main(int argc, char **argv)
    {
       int ncid;
 
-      /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
-
       /* Create a file with a global attribute of each type of zero length. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, 0, NULL)) ERR;
       if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, 0, NULL)) ERR;
-/*   if (nc_put_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, NC_UCHAR, ATT_LEN, uchar_out)) ERR;*/
+      if (nc_put_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, NC_UBYTE, 0, uchar_out)) ERR;
       if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, 0, NULL)) ERR;
       if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, 0, NULL)) ERR;
       if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, 0, NULL)) ERR;
@@ -701,8 +699,8 @@ main(int argc, char **argv)
    {
       int ncid;
       signed char schar_in[ATT_LEN];
+      unsigned char uchar_in[ATT_LEN];
       short short_in[ATT_LEN];
-      /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
       int int_in[ATT_LEN];
       float float_in[ATT_LEN];
       double double_in[ATT_LEN];
@@ -716,6 +714,9 @@ main(int argc, char **argv)
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;
       if (nc_inq_att(ncid, NC_GLOBAL, ATT_SCHAR_NAME, &xtype, &len)) ERR;
       if (len || xtype != NC_BYTE) ERR;
+      if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, uchar_in)) ERR;
+      if (nc_inq_att(ncid, NC_GLOBAL, ATT_UCHAR_NAME, &xtype, &len)) ERR;
+      if (len || xtype != NC_UBYTE) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;
       if (nc_inq_att(ncid, NC_GLOBAL, ATT_SHORT_NAME, &xtype, &len)) ERR;
       if (len || xtype != NC_SHORT) ERR;
@@ -737,10 +738,11 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-   printf("*** testing zero-length attributes and redef...(this test skipped for HDF5-1.8.0 beta1");
+   printf("*** testing zero-length attributes and redef...");
    {
       int ncid;
       signed char schar_in[ATT_LEN];
+      unsigned char uchar_in[ATT_LEN];
       short short_in[ATT_LEN];
       int int_in[ATT_LEN];
       float float_in[ATT_LEN];
@@ -753,7 +755,7 @@ main(int argc, char **argv)
       if (nc_redef(ncid)) ERR;
       if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, 0, NULL)) ERR;
       if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, 0, NULL)) ERR;
-/*   if (nc_put_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, NC_UCHAR, ATT_LEN, uchar_out)) ERR;*/
+      if (nc_put_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, NC_UBYTE, 0, uchar_out)) ERR;
       if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, 0, NULL)) ERR;
       if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, 0, NULL)) ERR;
       if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, 0, NULL)) ERR;
@@ -765,6 +767,7 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
       if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, NULL)) ERR;
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;
+      if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, uchar_in)) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;
       if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;
       if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;

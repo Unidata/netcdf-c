@@ -103,7 +103,6 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     int status = NC_NOERR;
     ncio* nciop = NULL;
     NCMEMIO* memio = NULL;
-    int openfd = -1;
 
     if(pagesize == 0) {
 
@@ -156,15 +155,20 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     memio->persist = fIsSet(ioflags,NC_WRITE);
 
     if(nciopp) *nciopp = nciop;
+    else {
+        free((char*)nciop->path);
+        free(nciop);
+    }
     if(memiop) *memiop = memio;
+    else free(memio);
 
 done:
-    if(openfd >= 0) close(openfd);
     return status;
 
 fail:
     if(nciop != NULL) {
         if(nciop->path != NULL) free((char*)nciop->path);
+        free(nciop);
     }
     goto done;
 }
@@ -350,9 +354,9 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
 	while(red > 0) {
 	    ssize_t count = read(fd, pos, red);
 	    if(count < 0)
-	        {close(fd); status = errno; goto unwind_open;}
+	        {status = errno; goto unwind_open;}
 	    if(count == 0)
-	        {close(fd); status = NC_ENOTNC; goto unwind_open;}
+	        {status = NC_ENOTNC; goto unwind_open;}
 	    red -= count;
 	    pos += count;
 	}

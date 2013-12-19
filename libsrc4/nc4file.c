@@ -42,16 +42,28 @@ extern int num_spaces;
 #define DIMENSION_LIST "DIMENSION_LIST"
 #define NAME "NAME"
 
+/* Struct to track information about objects in a group, for nc4_rec_read_metadata() */
+typedef struct NC4_rec_read_metadata_obj_info
+{
+    hid_t oid;                          /* HDF5 object ID */
+    char oname[NC_MAX_NAME + 1];        /* Name of object */
+    H5G_stat_t statbuf;                 /* Information about the object */
+    struct NC4_rec_read_metadata_obj_info *next;        /* Pointer to next node in list */
+} NC4_rec_read_metadata_obj_info_t;
+
+/* User data struct for call to H5Literate() in nc4_rec_read_metadata() */
+/* Tracks the groups, named datatypes and datasets in the group, for later use */
+typedef struct NC4_rec_read_metadata_ud
+{
+    NC4_rec_read_metadata_obj_info_t *types_head, *types_tail;    /* Pointers to head & tail of list of named datatypes */
+    NC4_rec_read_metadata_obj_info_t *dsets_head, *dsets_tail;    /* Pointers to head & tail of list of datasets */
+    NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
+} NC4_rec_read_metadata_ud_t;
+
 /* Forward */
 static int NC4_enddef(int ncid);
 static int nc4_rec_read_metadata(NC_GRP_INFO_T *grp);
 static int close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort);
-
-#ifdef IGNORE
-/* This extern points to the pointer that holds the list of open
- * netCDF files. */
-extern NC *nc_file;
-#endif
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */
@@ -481,58 +493,64 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
         const H5G_stat_t *statbuf, hsize_t scale_size, hsize_t max_scale_size, 
         NC_DIM_INFO_T **dim)
 {
-   char dimscale_name_att[NC_MAX_NAME + 1] = "";
-   htri_t attr_exists;
+   NC_DIM_INFO_T *new_dim;              /* Dimension added to group */
+   char dimscale_name_att[NC_MAX_NAME + 1] = "";    /* Dimscale name, for checking if dim without var */
+   htri_t attr_exists = -1;             /* Flag indicating hidden attribute exists */
+   hid_t attid = -1;                    /* ID of hidden attribute (to store dim ID) */
+   int dimscale_created = 0;            /* Remember if a dimension was created (for error recovery) */
+   int initial_grp_ndims = grp->ndims;  /* Retain for error recovery */
+   short initial_next_dimid = grp->nc4_info->next_dimid;/* Retain for error recovery */
    int retval;
 
    /* Add a dimension for this scale. */
-   if ((retval = nc4_dim_list_add(&grp->dim)))
-      return retval;
-
-   /* Assign dimid and increment number of dimensions. */
-   grp->dim->dimid = grp->nc4_info->next_dimid++;
-   grp->ndims++;
+   if ((retval = nc4_dim_list_add(&grp->dim, &new_dim)))
+      BAIL(retval);
+   dimscale_created++;
 
    /* Does this dataset have a hidden attribute that tells us its
     * dimid? If so, read it. */
    if ((attr_exists = H5Aexists(datasetid, NC_DIMID_ATT_NAME)) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
    if (attr_exists)
    {
-      hid_t attid;
-
       if ((attid = H5Aopen_by_name(datasetid, ".", NC_DIMID_ATT_NAME, 
-				   H5P_DEFAULT, H5P_DEFAULT)) > 0)
-      {
-	 if (H5Aread(attid, H5T_NATIVE_INT, &grp->dim->dimid) < 0)
-         {
-	    H5Aclose(attid);
-	    return NC_EHDFERR;
-         }
-	 if (H5Aclose(attid) < 0)
-	    return NC_EHDFERR;
-      }
-   }
+				   H5P_DEFAULT, H5P_DEFAULT)) < 0)
+         BAIL(NC_EHDFERR);
 
-   if (!(grp->dim->name = malloc((strlen(obj_name) + 1) * sizeof(char))))
-      return NC_ENOMEM;
-   strcpy(grp->dim->name, obj_name);
-   if (SIZEOF_SIZE_T < 8 && scale_size > NC_MAX_UINT)
-   {
-      grp->dim->len = NC_MAX_UINT;
-      grp->dim->too_long = 1;
+      if (H5Aread(attid, H5T_NATIVE_INT, &new_dim->dimid) < 0)
+         BAIL(NC_EHDFERR);
+
+      /* Check if scale's dimid should impact the group's next dimid */
+      if (new_dim->dimid >= grp->nc4_info->next_dimid)
+         grp->nc4_info->next_dimid = new_dim->dimid + 1;
    }
    else
-      grp->dim->len = scale_size;
-   grp->dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
-   grp->dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
-   grp->dim->hdf5_objid.objno[0] = statbuf->objno[0];
-   grp->dim->hdf5_objid.objno[1] = statbuf->objno[1];
+   {
+      /* Assign dimid */
+      new_dim->dimid = grp->nc4_info->next_dimid++;
+   }
+
+   /* Increment number of dimensions. */
+   grp->ndims++;
+
+   if (!(new_dim->name = strdup(obj_name)))
+      BAIL(NC_ENOMEM);
+   if (SIZEOF_SIZE_T < 8 && scale_size > NC_MAX_UINT)
+   {
+      new_dim->len = NC_MAX_UINT;
+      new_dim->too_long = 1;
+   }
+   else
+      new_dim->len = scale_size;
+   new_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
+   new_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
+   new_dim->hdf5_objid.objno[0] = statbuf->objno[0];
+   new_dim->hdf5_objid.objno[1] = statbuf->objno[1];
 
    /* If the dimscale has an unlimited dimension, then this dimension
     * is unlimited. */
    if (max_scale_size == H5S_UNLIMITED)
-      grp->dim->unlimited++;
+      new_dim->unlimited++;
 
    /* If the scale name is set to DIM_WITHOUT_VARIABLE, then this is a
     * dimension, but not a variable. (If get_scale_name returns an
@@ -542,24 +560,42 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       if (!strncmp(dimscale_name_att, DIM_WITHOUT_VARIABLE, 
                    strlen(DIM_WITHOUT_VARIABLE)))
       {
-         if (grp->dim->unlimited)
+         if (new_dim->unlimited)
          {
             size_t len = 0, *lenp = &len;
-            if ((retval = nc4_find_dim_len(grp, grp->dim->dimid, &lenp)))
-               return retval;
-            grp->dim->len = *lenp;
+
+            if ((retval = nc4_find_dim_len(grp, new_dim->dimid, &lenp)))
+               BAIL(retval);
+            new_dim->len = *lenp;
          }
 
          /* Hold open the dataset, since the dimension doesn't have a coordinate variable */
-         grp->dim->hdf_dimscaleid = datasetid;
-         H5Iinc_ref(grp->dim->hdf_dimscaleid);        /* Increment number of objects using ID */
+         new_dim->hdf_dimscaleid = datasetid;
+         H5Iinc_ref(new_dim->hdf_dimscaleid);        /* Increment number of objects using ID */
       }
    }
 
    /* Set the dimension created */
-   *dim = grp->dim;
+   *dim = new_dim;
 
-   return NC_NOERR;
+exit:
+   /* Close the hidden attribute, if it was opened (error, or no error) */
+   if (attid > 0 && H5Aclose(attid) < 0)
+      BAIL2(NC_EHDFERR);
+
+   /* On error, undo any dimscale creation */
+   if (retval < 0 && dimscale_created)
+   {
+       /* Delete the dimension */
+       if ((retval = nc4_dim_list_del(&grp->dim, new_dim)))
+           BAIL2(retval);
+
+      /* Reset the group's information */
+      grp->ndims = initial_grp_ndims;
+      grp->nc4_info->next_dimid = initial_next_dimid;
+   }
+
+   return retval;
 }
 
 /* This function reads the hacked in coordinates attribute I use for
@@ -586,7 +622,7 @@ read_coord_dimids(NC_VAR_INFO_T *var)
 
    /* Check that the number of points is the same as the number of dimensions
     *   for the variable */
-   if (npoints != var->ndims) ret++;
+   if (!ret && npoints != var->ndims) ret++;
 
    if (!ret && H5Aread(coord_attid, coord_att_typeid, var->dimids) < 0) ret++;
    LOG((4, "dimscale %s is multidimensional and has coords", var->name));
@@ -1172,14 +1208,12 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
    /* Add to the list for this new type, and get a local pointer to it. */
    if ((retval = nc4_type_list_add(&grp->type, &type)))
       return retval;
-   assert(type);
 
    /* Remember info about this type. */
    type->nc_typeid = grp->nc4_info->next_typeid++;
    type->size = type_size;
-   if (!(type->name = malloc((strlen(type_name) + 1) * sizeof(char))))
+   if (!(type->name = strdup(type_name)))
       return NC_ENOMEM;
-   strcpy(type->name, type_name);
    type->class = ud_type_type;
    type->base_nc_type = base_nc_type;
    type->committed++;
@@ -1347,9 +1381,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if ((retval = nc4_var_list_add(&grp->var, &var)))
       return retval;
    
-   if(!var)
-     return NC_ENOMEM;
-
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
    H5Iinc_ref(var->hdf_datasetid);      /* Increment number of objects using ID */
@@ -1592,16 +1623,13 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 	  strcmp(att_name, NC_DIMID_ATT_NAME))
       {
 	 /* Add to the end of the list of atts for this var. */
-	 if ((retval = nc4_att_list_add(&var->att)))
+	 if ((retval = nc4_att_list_add(&var->att, &att)))
 	    BAIL(retval);
-	 for (att = var->att; att->next; att = att->next)
-	    ;
 	 
 	 /* Fill in the information we know. */
 	 att->attnum = var->natts++;
-	 if (!(att->name = malloc((strlen(att_name) + 1) * sizeof(char))))
+	 if (!(att->name = strdup(att_name)))
 	    BAIL(NC_ENOMEM);
-	 strcpy(att->name, att_name);
 	 
 	 /* Read the rest of the info about the att,
 	  * including its values. */
@@ -1665,8 +1693,11 @@ read_grp_atts(NC_GRP_INFO_T *grp)
    num_obj = H5Aget_num_attrs(grp->hdf_grpid);
    for (i = 0; i < num_obj; i++)
    {
-      if (attid > 0) 
-         H5Aclose(attid);
+      /* Close an attribute from previous loop iteration */
+      /* (Should be from 'continue' statement, below) */
+      if (attid && H5Aclose(attid) < 0)
+         BAIL(NC_EHDFERR);
+
       if ((attid = H5Aopen_idx(grp->hdf_grpid, (unsigned int)i)) < 0)
          BAIL(NC_EATTMETA);
       if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0)
@@ -1682,10 +1713,8 @@ read_grp_atts(NC_GRP_INFO_T *grp)
       else
       {
          /* Add an att struct at the end of the list, and then go to it. */
-         if ((retval = nc4_att_list_add(&grp->att)))
+         if ((retval = nc4_att_list_add(&grp->att, &att)))
             BAIL(retval);
-         for (att = grp->att; att->next; att = att->next)
-            ;
 
 	 /* Add the info about this attribute. */
 	 max_len = strlen(obj_name) > NC_MAX_NAME ? NC_MAX_NAME : strlen(obj_name);
@@ -1776,91 +1805,103 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 }
 
 static int
+nc4_iter_list_add(NC4_rec_read_metadata_obj_info_t **head,
+                  NC4_rec_read_metadata_obj_info_t **tail,
+                  NC4_rec_read_metadata_obj_info_t *oinfo)
+{
+   if (*tail)
+   {
+       assert(*head);
+       (*tail)->next = oinfo;
+       *tail = oinfo;
+   }
+   else
+   {
+       assert(NULL == *head);
+       *head = *tail = oinfo;
+   }
+
+   return (NC_NOERR);
+}
+
+static int
 nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		      void *_op_data)
 {
-    hid_t oid=-1;
-    H5G_stat_t statbuf;
-    char oname[NC_MAX_NAME + 1];
-    NC_GRP_INFO_T *child_grp;
-    NC_GRP_INFO_T *grp = (NC_GRP_INFO_T *) (_op_data);
-    NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
+    NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
+    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
+    int retval = H5_ITER_CONT;
 
-    /* Open this critter. */
-    if ((oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
-        return H5_ITER_ERROR;
+   /* Allocate memory for the object's info */
+   if (!(oinfo = calloc(1, sizeof(NC4_rec_read_metadata_obj_info_t))))
+      return NC_ENOMEM;
+
+   /* Open this critter. */
+   if ((oinfo->oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+      return H5_ITER_ERROR;
 	  
-    /* Get more info about the object.*/
-    if (H5Gget_objinfo(oid, ".", 1, &statbuf) < 0)
-       return H5_ITER_ERROR;
+   /* Get info about the object.*/
+   if (H5Gget_objinfo(oinfo->oid, ".", 1, &oinfo->statbuf) < 0)
+     return H5_ITER_ERROR;
 
-    strncpy(oname, name, NC_MAX_NAME);
+   strncpy(oinfo->oname, name, NC_MAX_NAME);
 	   
-    /* Deal with objects. */
-    switch(statbuf.type)
-    {
-        case H5G_GROUP:
-            LOG((3, "found group %s", oname));
+   /* Add object to list, for later */
+   switch(oinfo->statbuf.type)
+   {
+      case H5G_GROUP:
+         LOG((3, "found group %s", oinfo->oname));
+         if (nc4_iter_list_add(&udata->grps_head, &udata->grps_tail, oinfo))
+             BAIL(H5_ITER_ERROR);
+         break;
 
-            /* Add group to file's hierarchy */
-            if (nc4_grp_list_add(&(grp->children), h5->next_nc_grpid++, 
-                         grp, grp->nc4_info->controller, oname, &child_grp))
-                return H5_ITER_ERROR;
+      case H5G_DATASET:
+         LOG((3, "found dataset %s", oinfo->oname));
+         if (nc4_iter_list_add(&udata->dsets_head, &udata->dsets_tail, oinfo))
+             BAIL(H5_ITER_ERROR);
+         break;
 
-            /* Recursively read the child group's metadata */
-            if (nc4_rec_read_metadata(child_grp))
-                return H5_ITER_ERROR;
-            break;
+      case H5G_TYPE:
+         LOG((3, "found datatype %s", oinfo->oname));
+         if (nc4_iter_list_add(&udata->types_head, &udata->types_tail, oinfo))
+             BAIL(H5_ITER_ERROR);
+         break;
 
-        case H5G_DATASET:
-           {
-               int retval = NC_NOERR;
-
-               LOG((3, "found dataset %s", oname));
-
-                /* Learn all about this dataset, which may be a dimscale
-                 * (i.e. dimension metadata), or real data. */
-                if ((retval = read_dataset(grp, oid, oname, &statbuf)))
-                {
-                    /* Allow NC_EBADTYPID to transparently skip over datasets
-                     *  which have a datatype that netCDF-4 doesn't undertand
-                     *  (currently), but break out of iteration for other
-                     *  errors.
-                     */
-                    if(NC_EBADTYPID != retval)
-                        return H5_ITER_ERROR;
-                }
-            }
-            break;
-
-        case H5G_TYPE:
-            LOG((3, "found datatype %s", oname));
-            if (read_type(grp, oid, oname))
-                return H5_ITER_ERROR;
-            break;
-
-        default:
-            LOG((0, "Unknown object class %d in %s!", statbuf.type, __func__));
+      default:
+         LOG((0, "Unknown object class %d in %s!", oinfo->statbuf.type, __func__));
+         BAIL(H5_ITER_ERROR);
     }
-	  
-    /* Close the object */
-    if (H5Oclose(oid) < 0)
-	return H5_ITER_ERROR;
-	
-    return (H5_ITER_CONT);
+
+exit:
+   if (retval)
+   {
+      if (oinfo)
+      {
+         if (oinfo->oid > 0 && H5Oclose(oinfo->oid) < 0)
+	    BAIL2(H5_ITER_ERROR);
+         free(oinfo);
+      }
+   }
+
+   return (retval);
 }
 
 static int
 nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
+    NC4_rec_read_metadata_ud_t udata;   /* User data for iteration */
+    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
     hsize_t idx=0;
-    int retval;
     hid_t pid = 0;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
+    int retval = NC_NOERR; /* everything worked! */
 
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
+
+    /* Portably initialize user data for iteration */
+    memset(&udata, 0, sizeof(udata));
 
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
@@ -1868,15 +1909,15 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     {
         if (grp->parent)
         {
-          if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid, 
+            if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid, 
 					grp->name, H5P_DEFAULT)) < 0)
-            return NC_EHDFERR;
+                BAIL(NC_EHDFERR);
         }
         else
         {
 	    if ((grp->hdf_grpid = H5Gopen2(grp->nc4_info->hdfid, 
 					   "/", H5P_DEFAULT)) < 0)
-		return NC_EHDFERR;
+                BAIL(NC_EHDFERR);
         }
     }
     assert(grp->hdf_grpid > 0);
@@ -1885,7 +1926,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     pid = H5Gget_create_plist(grp->hdf_grpid);
     H5Pget_link_creation_order(pid, &crt_order_flags); 
     if (H5Pclose(pid) < 0)
-	return NC_EHDFERR;
+	BAIL(NC_EHDFERR);
 	
     /* Set the iteration index to use */
     if (crt_order_flags & H5P_CRT_ORDER_TRACKED)
@@ -1896,23 +1937,125 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
         /* Without creation ordering, file must be read-only. */
         if (!h5->no_write)
-            return NC_ECANTWRITE;
+            BAIL(NC_ECANTWRITE);
 
         iter_index = H5_INDEX_NAME;
     }
 
-    /* Iterate over links in this group, processing all the objects 
-     *  and recursively handling the types encountered
+    /* Iterate over links in this group, building lists for the types,
+     *  datasets and groups encountered
      */
     if (H5Literate(grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
-            nc4_rec_read_metadata_cb, (void *)grp) < 0)
-	return NC_EHDFERR;
+            nc4_rec_read_metadata_cb, (void *)&udata) < 0)
+	BAIL(NC_EHDFERR);
+
+    /* Process the types, datasets and groups found */
+    /* (Make certain it's in this order, so that the types are available for
+     *  future datasets & child groups)
+     */
+    for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
+    {
+        /* Process the named datatype */
+        if ((retval = read_type(grp, oinfo->oid, oinfo->oname)))
+            BAIL(retval);
+
+        /* Close the object */
+        if (H5Oclose(oinfo->oid) < 0)
+	    BAIL(NC_EHDFERR);
+
+        /* Advance to next node, free current node */
+        udata.types_head = oinfo->next;
+        free(oinfo);
+    }
+    for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
+    {
+        /* Learn all about this dataset, which may be a dimscale
+         * (i.e. dimension metadata), or real data. */
+        if ((retval = read_dataset(grp, oinfo->oid, oinfo->oname, &oinfo->statbuf)))
+        {
+            /* Allow NC_EBADTYPID to transparently skip over datasets
+             *  which have a datatype that netCDF-4 doesn't undertand
+             *  (currently), but break out of iteration for other
+             *  errors.
+             */
+            if(NC_EBADTYPID != retval)
+                BAIL(retval);
+            else
+                retval = NC_NOERR;
+        }
+
+        /* Close the object */
+        if (H5Oclose(oinfo->oid) < 0)
+	    BAIL(NC_EHDFERR);
+
+        /* Advance to next node, free current node */
+        udata.dsets_head = oinfo->next;
+        free(oinfo);
+    }
+    for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
+    {
+        NC_GRP_INFO_T *child_grp;
+        NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
+
+        /* Add group to file's hierarchy */
+        if ((retval = nc4_grp_list_add(&(grp->children), h5->next_nc_grpid++, 
+                        grp, grp->nc4_info->controller, oinfo->oname, &child_grp)))
+            BAIL(retval);
+
+        /* Recursively read the child group's metadata */
+        if ((retval = nc4_rec_read_metadata(child_grp)))
+            BAIL(retval);
+
+        /* Close the object */
+        if (H5Oclose(oinfo->oid) < 0)
+	    BAIL(NC_EHDFERR);
+
+        /* Advance to next node, free current node */
+        udata.grps_head = oinfo->next;
+        free(oinfo);
+    }
 
     /* Scan the group for global (i.e. group-level) attributes. */
     if ((retval = read_grp_atts(grp)))
-	return retval;
+	BAIL(retval);
     
-    return NC_NOERR; /* everything worked! */
+exit:
+    /* Clean up local information on error, if anything remains */
+    if (retval)
+    {
+        for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
+        {
+            /* Close the object */
+            if (H5Oclose(oinfo->oid) < 0)
+                BAIL(NC_EHDFERR);
+
+            /* Advance to next node, free current node */
+            udata.types_head = oinfo->next;
+            free(oinfo);
+        }
+        for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
+        {
+            /* Close the object */
+            if (H5Oclose(oinfo->oid) < 0)
+                BAIL(NC_EHDFERR);
+
+            /* Advance to next node, free current node */
+            udata.dsets_head = oinfo->next;
+            free(oinfo);
+        }
+        for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
+        {
+            /* Close the object */
+            if (H5Oclose(oinfo->oid) < 0)
+                BAIL(NC_EHDFERR);
+
+            /* Advance to next node, free current node */
+            udata.grps_head = oinfo->next;
+            free(oinfo);
+        }
+    }
+
+    return retval;
 }
 
 /* Open a netcdf-4 file. Things have already been kicked off in
@@ -2137,7 +2280,6 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_ATT_INFO_T *att;
-   NC_VAR_INFO_T *var;
    int32 num_datasets, num_gatts;
    int32 rank;
    int v, d, a;
@@ -2176,10 +2318,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       size_t att_type_size;
 
       /* Add to the end of the list of atts for this var. */
-      if ((retval = nc4_att_list_add(&h5->root_grp->att)))
+      if ((retval = nc4_att_list_add(&h5->root_grp->att, &att)))
 	 return retval;
-      for (att = h5->root_grp->att; att->next; att = att->next)
-	 ;
       att->attnum = grp->natts++;
       att->created++;
 
@@ -2207,6 +2347,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    /* Read each dataset. */
    for (v = 0; v < num_datasets; v++)
    {
+      NC_VAR_INFO_T *var;
       int32 data_type, num_atts;
       /* Problem: Number of dims is returned by the call that requires
 	 a pre-allocated array, 'dimsize'. 
@@ -2221,32 +2362,27 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       int a;
 	
       /* Add a variable to the end of the group's var list. */
-      if ((retval = nc4_var_list_add(&grp->var, &var))) {
+      if ((retval = nc4_var_list_add(&grp->var, &var)))
 	return retval;
-      }
       
       var->varid = grp->nvars++;
       var->created = 1;
       var->written_to = 1;
             
       /* Open this dataset in HDF4 file. */
-      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL) {
+      if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
 	return NC_EVARMETA;
-      }
 
       /* Get shape, name, type, and attribute info about this dataset. */
-      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1))) {
+      if (!(var->name = malloc(NC_MAX_HDF4_NAME + 1)))
 	return NC_ENOMEM;
-      }
       
       /* Invoke SDgetInfo with null dimsize to get rank. */
       if (SDgetinfo(var->sdsid, var->name, &rank, NULL, &data_type, &num_atts))
 	return NC_EVARMETA;
       
-      if(!(dimsize = (int32*)malloc(sizeof(int32)*rank))) {
+      if(!(dimsize = (int32*)malloc(sizeof(int32)*rank)))
 	return NC_ENOMEM;
-      }
-      
       
       if (SDgetinfo(var->sdsid, var->name, &rank, dimsize, &data_type, &num_atts)) {
 	if(dimsize) free(dimsize);
@@ -2324,7 +2460,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 
 	 /* Do we already have this dimension? HDF4 explicitly uses
 	  * the name to tell. */
-	 for (dim = grp->dim; dim; dim = dim->next)
+	 for (dim = grp->dim; dim; dim = dim->l.next)
 	    if (!strcmp(dim->name, dim_name))
 	       break;
 
@@ -2333,16 +2469,14 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 {
 	    LOG((4, "adding dimension %s for HDF4 dataset %s", 
 		 dim_name, var->name));
-	    if ((retval = nc4_dim_list_add(&grp->dim)))
+	    if ((retval = nc4_dim_list_add(&grp->dim, &dim)))
 	       return retval;
 	    grp->ndims++;
-	    dim = grp->dim;
 	    dim->dimid = grp->nc4_info->next_dimid++;
 	    if (strlen(dim_name) > NC_MAX_HDF4_NAME)
 	       return NC_EMAXNAME;
-	    if (!(dim->name = malloc(NC_MAX_HDF4_NAME + 1)))
+	    if (!(dim->name = strdup(dim_name)))
 	       return NC_ENOMEM;
-	    strcpy(dim->name, dim_name);
 	    if (dim_len)
 	       dim->len = dim_len;
 	    else
@@ -2360,12 +2494,10 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 size_t att_type_size;
 
 	 /* Add to the end of the list of atts for this var. */
-         if ((retval = nc4_att_list_add(&var->att))) {
+         if ((retval = nc4_att_list_add(&var->att, &att))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }
-         for (att = var->att; att->next; att = att->next)
-	   ;
 	 att->attnum = var->natts++;
 	 att->created++;
 
@@ -2392,8 +2524,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	   return retval;
 	 }
 	 if (!(att->data = malloc(att_type_size * att->len))) {
-	   	if(dimsize) free(dimsize);
-		return NC_ENOMEM;
+	   if(dimsize) free(dimsize);
+	   return NC_ENOMEM;
 	 }
 
 	 /* Read the data. */
@@ -2903,19 +3035,19 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (ndimsp)
    {
       *ndimsp = 0;
-      for (dim = grp->dim; dim; dim = dim->next)
+      for (dim = grp->dim; dim; dim = dim->l.next)
 	 (*ndimsp)++;
    }
    if (nvarsp)
    {
       *nvarsp = 0;
-      for (var = grp->var; var; var= var->next)
+      for (var = grp->var; var; var= var->l.next)
 	(*nvarsp)++;
    }
    if (nattsp)
      {
       *nattsp = 0;
-      for (att = grp->att; att; att = att->next)
+      for (att = grp->att; att; att = att->l.next)
 	 (*nattsp)++;
    }
 
@@ -2928,7 +3060,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 	 with netcdf-3, then only the last unlimited one will be reported
 	 back in xtendimp. */
       /* Note that this code is inconsistent with nc_inq_unlimid() */
-      for (dim = grp->dim; dim; dim = dim->next)
+      for (dim = grp->dim; dim; dim = dim->l.next)
 	 if (dim->unlimited)
 	 {
 	    *unlimdimidp = dim->dimid;
