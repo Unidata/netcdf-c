@@ -4,10 +4,12 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1 Released TBD
 
-* Fixed fill value handling for string types in nc4_get_vara().
+### 4.3.1-rc6 Released 2013-12-19
 
-* Corrected behavior of nc_inq_unlimdim and nv_inq_unlimdims to report dimids
-  in same order as nc_inq_dimids.
+* Fixed fill value handling for string types in nc4\_get\_vara().
+
+* Corrected behavior of nc\_inq\_unlimdim and nv\_inq\_unlimdims to report dimids
+  in same order as nc\_inq\_dimids.
 
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
