@@ -302,7 +302,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 #ifdef LOGGING   
    for (d = 0; d < var->ndims; d++)
        total_chunk_size *= (double) var->chunksizes[d];
-p   LOG((4, "total_chunk_size %f", total_chunk_size));
+   LOG((4, "total_chunk_size %f", total_chunk_size));
 #endif
    
    /* But did this add up to a chunk that is too big? */
