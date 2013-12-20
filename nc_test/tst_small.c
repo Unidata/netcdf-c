@@ -29,7 +29,6 @@ test_small_atts(const char *testfile)
    int ndims, nvars, natts, unlimdimid;
    size_t len_in;
    int t, f;
-
    
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)

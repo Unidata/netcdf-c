@@ -270,7 +270,7 @@ check_fill_seq(int id)
 	size_t *cc, *mm;
 	union getret got;
 	int ii = 0;
-	float val;
+	/*float val;*/
 
 	sizes[0] = NUM_RECS;
 	cc = vindices;
@@ -288,7 +288,7 @@ check_fill_seq(int id)
 		{
 	if(nc_get_var1_float(id, Float_id, vindices, &got.fl[0]) == -1) 
 		goto bad_ret;
-	val = (float) ii;
+	/* val = (float) ii;  */
 	/* if(val != got.fl[0]) */
 	/* { */
 	/* 	parray("indices", NUM_DIMS, vindices); */
