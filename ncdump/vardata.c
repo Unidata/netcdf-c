@@ -472,6 +472,10 @@ print_rows(
     } else {			/* bottom out of recursion */
 	char *valp = vals;
 	bool_t lastrow;
+	int j;
+	if(formatting_specs.brief_data_cmnts && rank > 1) {
+	    annotate_brief(vp, cor, vdims);
+	}
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
 	for(i=0; i < d0 - 1; i++) {
 	    print_any_val(sb, vp, (void *)valp);
@@ -487,21 +491,21 @@ print_rows(
 	print_any_val(sb, vp, (void *)valp);
 	/* determine if this is the last row */
 	lastrow = true;
-	for(i = 0; i < rank - 1; i++) {
-	    if (cor[i] != vdims[i] - 1) {
+	for(j = 0; j < rank - 1; j++) {
+	    if (cor[j] != vdims[j] - 1) {
 		lastrow = false;
 		break;
 	    }
-	} 
+	}
 	if (formatting_specs.full_data_cmnts) {
-	    for (i = 0; i < marks_pending; i++) {
+	    for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
 	    }
 	    printf("%s", sbuf_str(sb));
 	    lastdelim (0, lastrow);
 	    annotate (vp, cor, i);
 	} else {
-	    for (i = 0; i < marks_pending; i++) {
+	    for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
 	    }
 	    lput(sbuf_str(sb));

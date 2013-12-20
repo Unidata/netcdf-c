@@ -253,7 +253,7 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
 	    int j;
 	    size_t constsize;
 	    constsize = gen_charconstant(c,databuf,fillchar);
-	    if(constsize % unitsize > 0) {
+	    if(constsize == 0 || constsize % unitsize > 0) {
 	        size_t padsize = unitsize - (constsize % unitsize);
 	        for(j=0;j<padsize;j++) bbAppend(databuf,fillchar);
 	    }

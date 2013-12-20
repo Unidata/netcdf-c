@@ -377,7 +377,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     { int i; for(i=0;i<rank;i++) count[i] = indices[i] - start[i];}
 #endif
 
-#ifdef DEBUG
+#ifdef GENDEBUG
     {
     int i;
     fprintf(stderr,"startset = [");
@@ -498,7 +498,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
         stat = nc_put_att(grpid,varid,asym->name,typid,
 			        len,(void*)data);
         check_err(stat,__LINE__,__FILE__);
-#ifdef DEBUG
+#ifdef GENDEBUG
 	{
 	    char out[4096];
 	    memset(out,0x77,sizeof(out));

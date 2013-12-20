@@ -20,11 +20,6 @@
 #define DIMSCALE_LABEL "dimscale_label"
 #define STR_LEN 255
 
-/* typedef struct { */
-/*       unsigned long 	fileno;		/\*file number			*\/ */
-/*       haddr_t 		objno;		/\*object number			*\/ */
-/* } HDF5_OBJID_T;  */
-
 herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
 		     void *visitor_data)
 {
@@ -37,33 +32,20 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
    if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
    if (strcmp(&name1[1], VAR1_NAME)) ERR;
    
-   /*printf("visiting did 0x%x dim %d dsid 0x%x name of did %s \n", 
-     did, dim, dsid, name1);*/
-
    /* Get more info on the dimscale object.*/
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
-   /*printf("for dsid: statbuf.fileno = %d statbuf.objno = %d\n", 
-     statbuf.fileno, statbuf.objno);*/
 
-   if (H5Gget_objinfo(did, ".", 1, &statbuf) < 0) ERR;
-   /*printf("for did: statbuf.fileno = %d statbuf.objno = %d\n", 
-     statbuf.fileno, statbuf.objno);*/
    return 0;
 }
 
 herr_t alien_visitor2(hid_t did, unsigned dim, hid_t dsid, void *visitor_data)
 {
-   char name1[STR_LEN];
    H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
-
-   if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
-   /*printf("visiting did 0x%x dim %d dsid 0x%x name of did %s \n",  
-     did, dim, dsid, name1); */
 
    /* Get obj id of the dimscale object. THis will be used later to
     * match dimensions to dimscales. */
@@ -145,9 +127,6 @@ main()
 	 if ((obj_class = H5Gget_objtype_by_idx(fileid, i)) < 0) ERR;
 	 if (H5Gget_objname_by_idx(fileid, i, obj_name, STR_LEN) < 0) ERR;
 
-	 /*printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n",
-	   obj_class, obj_name);*/
-
 	 /* Deal with object based on its obj_class. */
 	 switch(obj_class)
 	 {
@@ -179,9 +158,6 @@ main()
 		  dimscale_obj.objno[0] = statbuf.objno[0];
 		  dimscale_obj.fileno[1] = statbuf.fileno[1];
 		  dimscale_obj.objno[1] = statbuf.objno[1];
-		  /*printf("statbuf.fileno = %d statbuf.objno = %d\n",
-		    statbuf.fileno, statbuf.objno);*/
-
 	       }
 	       else
 	       {
@@ -193,8 +169,6 @@ main()
 		  /* Go through all dimscales for this var and learn about them. */
 		  if (H5DSiterate_scales(datasetid, 0, NULL, alien_visitor,
 					 &vars_dimscale_obj) < 0) ERR;
-		  /*printf("vars_dimscale_obj.fileno = %d vars_dimscale_obj.objno = %d\n",
-		    vars_dimscale_obj.fileno, vars_dimscale_obj.objno);*/
 		  if (vars_dimscale_obj.fileno[0] != dimscale_obj.fileno[0] ||
 		      vars_dimscale_obj.objno[0] != dimscale_obj.objno[0] ||
 		      vars_dimscale_obj.fileno[1] != dimscale_obj.fileno[1] ||
@@ -202,8 +176,6 @@ main()
 		  
 		  /* There's also a label for dimension 0. */
 		  if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
-
-		  /*printf("found non-scale dataset %s, label %s\n", obj_name, label);*/
 	       }
 	       if (H5Dclose(datasetid) < 0) ERR;
 	       break;
@@ -304,9 +276,6 @@ main()
 	 if ((obj_class = H5Gget_objtype_by_idx(fileid, i)) < 0) ERR;
 	 if (H5Gget_objname_by_idx(fileid, i, obj_name, STR_LEN) < 0) ERR;
 
-/* 	 printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n", */
-/* 		obj_class, obj_name); */
-
 	 /* Deal with object based on its obj_class. */
 	 switch(obj_class)
 	 {
@@ -333,9 +302,6 @@ main()
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
-/* 		  printf("dimscale_obj[%d].fileno = %d dimscale_obj[%d].objno = %d\n", */
-/* 			 dimscale_cnt, dimscale_obj[dimscale_cnt].fileno, dimscale_cnt,  */
-/* 			 dimscale_obj[dimscale_cnt].objno); */
 		  dimscale_cnt++;
 	       }
 	       else
@@ -791,9 +757,6 @@ main()
 	 if ((obj_class = H5Gget_objtype_by_idx(fileid, i)) < 0) ERR;
 	 if (H5Gget_objname_by_idx(fileid, i, obj_name, STR_LEN) < 0) ERR;
 
- 	 /* printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n",  */
-/*  		obj_class, obj_name);  */
-
 	 /* Deal with object based on its obj_class. */
 	 switch(obj_class)
 	 {
@@ -819,9 +782,6 @@ main()
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
-		  /* printf("dimscale_obj[%d].fileno = %d dimscale_obj[%d].objno = %d\n", */
-/* 			 dimscale_cnt, dimscale_obj[dimscale_cnt].fileno, dimscale_cnt, */
-/* 			 dimscale_obj[dimscale_cnt].objno); */
 		  dimscale_cnt++;
 	       }
 	       else
@@ -982,9 +942,6 @@ main()
 	 if ((obj_class = H5Gget_objtype_by_idx(fileid, i)) < 0) ERR;
 	 if (H5Gget_objname_by_idx(fileid, i, obj_name, STR_LEN) < 0) ERR;
 
- 	 /* printf("\nEncountered: HDF5 object obj_class %d obj_name %s\n",  */
-/*  		obj_class, obj_name);  */
-
 	 /* Deal with object based on its obj_class. */
 	 switch(obj_class)
 	 {
@@ -1010,9 +967,6 @@ main()
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
-		  /* printf("dimscale_obj[%d].fileno = %d dimscale_obj[%d].objno = %d\n", */
-/* 			 dimscale_cnt, dimscale_obj[dimscale_cnt].fileno, dimscale_cnt, */
-/* 			 dimscale_obj[dimscale_cnt].objno); */
 		  dimscale_cnt++;
 	       }
 	       else

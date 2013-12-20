@@ -234,7 +234,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       attlist = &grp->att;
    else
    {
-      for (var = grp->var; var; var = var->next)
+      for (var = grp->var; var; var = var->l.next)
 	 if (var->varid == varid)
 	 {
 	    attlist = &var->att;
@@ -243,7 +243,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       if (!var)
 	 return NC_ENOTVAR;
    }
-   for (att = *attlist; att; att = att->next)
+   for (att = *attlist; att; att = att->l.next)
       if (!strcmp(att->name, norm_name))
 	 break;
 
@@ -299,20 +299,16 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    if (new_att)
    {
       LOG((3, "adding attribute %s to the list...", norm_name));
-      if ((res = nc4_att_list_add(attlist)))
+      if ((res = nc4_att_list_add(attlist, &att)))
 	 BAIL (res);
-      /* Find this att's entry in the list (the last one). */
-      for (att=*attlist; att->next; att=att->next)
-	 ;
    }
 
    /* Now fill in the metadata. */
    att->dirty++;
    if (att->name)
       free(att->name);
-   if (!(att->name = malloc((strlen(norm_name) + 1) * sizeof(char))))
+   if (!(att->name = strdup(norm_name)))
       return NC_ENOMEM;
-   strcpy(att->name, norm_name);
    att->xtype = file_type;
 
    /* If this att has vlen or string data, release it before we lose the length value. */
@@ -333,8 +329,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    }
 
    att->len = len;
-   if (att->prev)
-      att->attnum = att->prev->attnum + 1;
+   if (att->l.prev)
+      att->attnum = ((NC_ATT_INFO_T *)att->l.prev)->attnum + 1;
    else
       att->attnum = 0;
    if (type)
@@ -415,7 +411,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       /* Mark the var and all its atts as dirty, so they get
        * rewritten. */
       var->dirty++;
-      for (varatt = var->att; varatt; varatt = varatt->next)
+      for (varatt = var->att; varatt; varatt = varatt->l.next)
 	 varatt->dirty++;
    }
 
@@ -645,7 +641,7 @@ NC4_rename_att(int ncid, int varid, const char *name,
    }
    else
    {
-      for (var = grp->var; var; var = var->next)
+      for (var = grp->var; var; var = var->l.next)
 	 if (var->varid == varid)
 	 {
 	    list = var->att;
@@ -654,14 +650,14 @@ NC4_rename_att(int ncid, int varid, const char *name,
       if (!var)
 	 return NC_ENOTVAR;
    }
-   for (att = list; att; att = att->next)
+   for (att = list; att; att = att->l.next)
       if (!strncmp(att->name, norm_newname, NC_MAX_NAME))
 	 return NC_ENAMEINUSE;
 
    /* Normalize name and find the attribute. */
    if ((retval = nc4_normalize_name(name, norm_name)))
       return retval;
-   for (att = list; att; att = att->next)
+   for (att = list; att; att = att->l.next)
       if (!strncmp(att->name, norm_name, NC_MAX_NAME))
 	 break;
    if (!att)
@@ -758,7 +754,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    }
    else
    {
-      for(var = grp->var; var; var = var->next)
+      for(var = grp->var; var; var = var->l.next)
       {
 	 if (var->varid == varid)
 	 {
@@ -775,7 +771,7 @@ NC4_del_att(int ncid, int varid, const char *name)
    }
 
    /* Now find the attribute by name or number. */
-   for (att = *attlist; att; att = att->next)
+   for (att = *attlist; att; att = att->l.next)
       if (!strcmp(att->name, name))
 	 break;
 
@@ -789,7 +785,7 @@ NC4_del_att(int ncid, int varid, const char *name)
 	 BAIL(NC_EATTMETA);
 
    /* Renumber all following attributes. */
-   for (natt = att->next; natt; natt = natt->next)
+   for (natt = att->l.next; natt; natt = natt->l.next)
       natt->attnum--;
 
    /* Delete this attribute from this list. */

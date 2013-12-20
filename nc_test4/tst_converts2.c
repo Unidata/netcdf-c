@@ -9,6 +9,7 @@
 
 #include <nc_tests.h>
 #include "netcdf.h"
+#include "math.h"
 
 #define FILE_NAME "tst_converts2.nc"
 #define VAR_NAME "Monkey"
@@ -102,8 +103,8 @@ main(int argc, char **argv)
       if (long_in != lval) ERR;
 
       /* This should fail. */
-      coord[3] = 100;
-      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+      coord[0] = 5;
+      if (nc_get_var1_ushort(ncid, varid, coord,
 			     &ushort_in) != NC_EINVALCOORDS) ERR;
 
       if (nc_close(ncid)) ERR;
@@ -162,8 +163,8 @@ main(int argc, char **argv)
       if (long_in != lval) ERR;
 
       /* This should fail. */
-      coord[3] = 100;
-      if (nc_get_var1_ushort(ncid, varid, &coord[3], 
+      coord[0] = 5;
+      if (nc_get_var1_ushort(ncid, varid, coord, 
 			     &ushort_in) != NC_EINVALCOORDS) ERR;
 
       if (nc_close(ncid)) ERR;
@@ -179,6 +180,7 @@ main(int argc, char **argv)
       unsigned short usvalue_in;
       long long int64_in;
       unsigned long long uint64_in;
+      float float_in;
       double double_in;
       
       /* Write a scalar NC_INT with value X_MAX_INT. */
@@ -210,9 +212,10 @@ main(int argc, char **argv)
       if (int64_in != ivalue) ERR;
       if (nc_get_var_ulonglong(ncid, varid, &uint64_in)) ERR;
       if (uint64_in != ivalue) ERR;
-/*      if (nc_get_var_float(ncid, varid, &float_in)) ERR;
-      f2 = (float)ivalue; 
-      if (float_in != f2) ERR;*/
+      if (nc_get_var_float(ncid, varid, &float_in)) ERR;
+ 
+      if(fabs( (float_in-X_INT_MAX) - ((float)ivalue - X_INT_MAX)) > 1) ERR;
+      
       if (nc_get_var_double(ncid, varid, &double_in)) ERR;
       if (double_in != (double)ivalue) ERR;
       if (nc_close(ncid)) ERR;

@@ -1,12 +1,51 @@
 \page release_notes Release Notes
 
-This file contains a high-level description of this package's evolution.
-Releases are in reverse chronological order (most recent first). 
-
-Recent releases include references to Jira issue identifiers for more
-information, where '[NCF-XXX]' refers to https://www.unidata.ucar.edu/jira/browse/NCF-XXX .
+This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
 ## 4.3.1 Released TBD
+
+### 4.3.1-rc6 Released 2013-12-19
+
+* Fixed fill value handling for string types in nc4\_get\_vara().
+
+* Corrected behavior of nc\_inq\_unlimdim and nv\_inq\_unlimdims to report dimids
+  in same order as nc\_inq\_dimids.
+
+* Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
+
+* A number of previously-disabled unit tests were reviewed and made active. 
+
+### 4.3.1-rc5 Released 2013-12-06
+
+* When opening a netCDF-4 file, streamline the iteration over objects in the underlying HDF5 file.
+
+* Fixed netCDF-4 failure when renaming a dimension and renaming a variable using that dimension, in either order. [NCF-177]
+
+[NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
+
+* When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
+
+* Fixed bug in ncgen; it was not properly filling empty string constants ("") to be the proper length. [NCF-279]
+
+[NCF-279]:https://bugtracking.unidata.ucar.edu/browse/NCF-279
+
+* Fixed bug in ncgen where it was interpreting int64 constants
+  as uint64 constants. [NCF-278]
+
+[NCF-278]:https://bugtracking.unidata.ucar.edu/browse/NCF-278
+
+* Fixed bug in handling Http Basic Authorization. The code was actually there but was not being executed. [NCF-277]
+
+[NCF-277]:https://bugtracking.unidata.ucar.edu/browse/NCF-277
+
+* Added hack to the DAP code to address a problem with the Columbia.edu server. That server does not serve up proper DAP2 DDS replies. The Dataset {...} name changes depending on if the request has certain kinds of constraints. [NCF-276]
+
+[NCF-276]:https://bugtracking.unidata.ucar.edu/browse/NCF-276
+
+* Fixed bugs with ncdump annotation of values, using -b or -f
+  options. [NCF-275]
+
+[NCF-275]:https://bugtracking.unidata.ucar.edu/browse/NCF-275
 
 ### 4.3.1-rc4 Released 2013-11-06
 

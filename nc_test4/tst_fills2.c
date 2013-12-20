@@ -70,75 +70,106 @@ main(int argc, char **argv)
 
       if (nc_close(ncid)) ERR;
 
-/*       free(data_in); */
    }
    SUMMARIZE_ERR;
-/*    printf("*** testing read of string record var with no data..."); */
-/*    { */
-/* #define STRING_VAR_NAME "I_Have_A_Dream" */
-/* #define NDIMS_STRING 1 */
-/* #define FILLVALUE_LEN 1 /\* There is 1 string, the empty one. *\/ */
-/* #define DATA_START 2 /\* Real data here. *\/ */
+   printf("*** testing read of string record var w/fill-value with no data...");
+   {
+#undef STRING_VAR_NAME
+#define STRING_VAR_NAME "I_Have_A_Dream"
+#undef NDIMS_STRING
+#define NDIMS_STRING 1
+#define FILLVALUE_LEN 1 /* There is 1 string, the empty one. */
+#undef DATA_START
+#define DATA_START 2 /* Real data here. */
 
-/*       int  ncid, varid, dimid, varid_in; */
-/*       const char *missing_val[FILLVALUE_LEN] = {""}; */
-/*       const char *missing_val_in[FILLVALUE_LEN]; */
-/*       const char *data_out[1] = { */
-/* 	 "With this faith, we will be able to hew out of the mountain of " */
-/* 	 "despair a stone of hope. With this faith, we will be able to " */
-/* 	 "transform the jangling discords of our nation into a beautiful " */
-/* 	 "symphony of brotherhood. With this faith, we will be able to work " */
-/* 	 "together, to pray together, to struggle together, to go to jail " */
-/* 	 "together, to stand up for freedom together, knowing that we will " */
-/* 	 "be free one day."}; */
-/*       char *data_in; */
-/*       size_t index = DATA_START; */
+      int  ncid, varid, dimid, varid_in;
+      const char *missing_val[FILLVALUE_LEN] = {""};
+      const char *missing_val_in[FILLVALUE_LEN];
+      const char *data_out[1] = {
+	 "With this faith, we will be able to hew out of the mountain of "
+	 "despair a stone of hope. With this faith, we will be able to "
+	 "transform the jangling discords of our nation into a beautiful "
+	 "symphony of brotherhood. With this faith, we will be able to work "
+	 "together, to pray together, to struggle together, to go to jail "
+	 "together, to stand up for freedom together, knowing that we will "
+	 "be free one day."};
+      char *data_in;
+      size_t index = DATA_START;
 
-/*       /\* Create file with a 1D string var. Set its fill value to the */
-/*        * empty string. *\/ */
-/*       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-/*       if (nc_def_dim(ncid, "sentence", NC_UNLIMITED, &dimid)) ERR; */
-/*       if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, NDIMS_STRING,  */
-/* 		     &dimid, &varid)) ERR; */
-/* /\*      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN,  */
-/* 	missing_val)) ERR;*\/ */
+      /* Create file with a 1D string var. Set its fill value to the
+       * empty string. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, "sentence", NC_UNLIMITED, &dimid)) ERR;
+      if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, NDIMS_STRING, 
+		     &dimid, &varid)) ERR;
+      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN,
+	missing_val)) ERR;
 
-/*       /\* Check it out. *\/ */
-/*       /\* if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR; *\/ */
-/*       /\* if (nc_get_att_string(ncid, varid_in, "_FillValue",  *\/ */
-/*       /\* 			    (char **)missing_val_in)) ERR; *\/ */
-/*       /\* if (strcmp(missing_val[0], missing_val_in[0])) ERR; *\/ */
-/*       /\* if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR; *\/ */
+      /* Check it out. */
+      if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, "_FillValue",
+      			    (char **)missing_val_in)) ERR;
+      if (strcmp(missing_val[0], missing_val_in[0])) ERR;
+      if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
 
-/*       /\* Write one string, leaving some blank records which will then */
-/*        * get the fill value. *\/ */
-/*       if (nc_put_var1_string(ncid, varid_in, &index, data_out)) ERR; */
+      /* Write one string, leaving some blank records which will then
+       * get the fill value. */
+      if (nc_put_var1_string(ncid, varid_in, &index, data_out)) ERR;
 
-/*       /\* Get all the data from the variable. *\/ */
-/*       if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR; */
-/*       if (strcmp(data_in, data_out[0])) ERR; */
-/*       free(data_in); */
+      /* Get all the data from the variable. */
+      index = 0;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, missing_val[0])) ERR;
+      free(data_in);
+      index = 1;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, missing_val[0])) ERR;
+      free(data_in);
+      index = DATA_START;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, data_out[0])) ERR;
+      free(data_in);
 
-/*       if (nc_close(ncid)) ERR; */
+      if (nc_close(ncid)) ERR;
 
-/*       /\* Now re-open file, read data, and check values again. *\/ */
-/*       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-/*       /\* if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR; *\/ */
-/*       /\* if (nc_get_att_string(ncid, varid_in, "_FillValue",  *\/ */
-/*       /\* 			    (char **)missing_val_in)) ERR; *\/ */
-/*       /\* if (strcmp(missing_val[0], missing_val_in[0])) ERR; *\/ */
-/*       /\* if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR; *\/ */
+      /* Now re-open file, read data, and check values again. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, "_FillValue",
+      			    (char **)missing_val_in)) ERR;
+      if (strcmp(missing_val[0], missing_val_in[0])) ERR;
+      if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
 
-/*       data_in = NULL; */
-/*       if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR; */
-/*       if (strcmp(data_in, data_out[0])) ERR; */
-/*       free(data_in); */
+      /* Get all the data from the variable. */
+/* As of HDF5-1.8.12, reading from an unwritten chunk in a dataset with a
+ *      variable-length datatype and a fill-value set will error, instead
+ *      of retrieving the fill-value. -QAK
+ */
+#ifdef NOT_YET
+      index = 0;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, missing_val[0])) ERR;
+      free(data_in);
+      index = 1;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, missing_val[0])) ERR;
+      free(data_in);
+#endif /* NOT_YET */
+      index = DATA_START;
+      data_in = NULL;
+      if (nc_get_var1_string(ncid, varid_in, &index, &data_in)) ERR;
+      if (strcmp(data_in, data_out[0])) ERR;
+      free(data_in);
 
-/*       if (nc_close(ncid)) ERR; */
+      if (nc_close(ncid)) ERR;
 
-/* /\*       free(data_in); *\/ */
-/*    } */
-/*    SUMMARIZE_ERR; */
+   }
+   SUMMARIZE_ERR;
 /*    printf("*** testing empty fill values of a string var..."); */
 /*    { */
 /* #define STRING_VAR_NAME "The_String" */

@@ -30,8 +30,9 @@ if test "x$timing" = "x1" ; then leakcheck=0; fi
 
 # get the list of test files
 # Currently C2 fails because server is not responding
-#WHICHTESTS="S1 C1 C2"
-WHICHTESTS="S1 C1"
+#WHICHTESTS="S1 C1 C2 CB"
+#WHICHTESTS="S1 C1 CB"
+WHICHTESTS="CB"
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1 LC2"
 fi
@@ -140,6 +141,10 @@ REMOTETESTSLC2="slp_aggregated;1;slp.slp[23255:23316][29:29][88:88]"
 
 # Unknown problem: test.07;2;&age>2
 IGNORE="test.07.2" 
+
+# Columbia hack test
+REMOTEURLCB="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTHLY/.sst"
+REMOTETESTSCB="dods"
 
 # Known to fail
 

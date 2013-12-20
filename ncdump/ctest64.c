@@ -895,7 +895,7 @@ main() {/* create ctest0_64.nc */
 
 
     {
-    char* c1_data = "" ;
+    char* c1_data = "\000" ;
     size_t c1_startset[1] = {0} ;
     size_t c1_countset[1] = {1};
     stat = nc_put_vara(ncid, c1_id, c1_startset, c1_countset, c1_data);
@@ -1345,7 +1345,7 @@ main() {/* create ctest0_64.nc */
 
 
     {
-    char* c213_data = "" ;
+    char* c213_data = "\000\000\000\000\000\000" ;
     size_t c213_startset[3] = {0, 0, 0} ;
     size_t c213_countset[3] = {2, 1, 3};
     stat = nc_put_vara(ncid, c213_id, c213_startset, c213_countset, c213_data);

@@ -188,7 +188,7 @@ static void yyerror(fmt,va_alist) const char* fmt; va_dcl;
 extern int lex_init(void);
 
 
-#line 192 "ncgen.tab.c" /* yacc.c:339  */
+#line 192 "ncgentab.c" /* yacc.c:339  */
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -207,7 +207,7 @@ extern int lex_init(void);
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "ncgen.tab.h".  */
+   by #include "ncgentab.h".  */
 #ifndef YY_NCG_NCGEN_TAB_H_INCLUDED
 # define YY_NCG_NCGEN_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -288,7 +288,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant       constant;
 
-#line 292 "ncgen.tab.c" /* yacc.c:355  */
+#line 292 "ncgentab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -303,7 +303,7 @@ int ncgparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 307 "ncgen.tab.c" /* yacc.c:358  */
+#line 307 "ncgentab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1584,13 +1584,13 @@ yyreduce:
         case 2:
 #line 211 "ncgen.y" /* yacc.c:1646  */
     {if (error_count > 0) YYABORT;}
-#line 1588 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1588 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 3:
 #line 214 "ncgen.y" /* yacc.c:1646  */
     {createrootgroup(datasetname);}
-#line 1594 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1594 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 8:
@@ -1602,25 +1602,25 @@ yyreduce:
                     yyerror("duplicate group declaration within parent group for %s",
                                 id->name);
             }
-#line 1606 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1606 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 242 "ncgen.y" /* yacc.c:1646  */
     {listpop(groupstack);}
-#line 1612 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1612 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 12:
 #line 248 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1618 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1618 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 13:
 #line 250 "ncgen.y" /* yacc.c:1646  */
     {markcdf4("Type specification");}
-#line 1624 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1624 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 16:
@@ -1632,19 +1632,19 @@ yyreduce:
                             (yyvsp[0].sym)->name);
               listpush(typdefs,(void*)(yyvsp[0].sym));
 	    }
-#line 1636 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1636 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 17:
 #line 265 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1642 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1642 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 18:
 #line 265 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1648 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1648 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 25:
@@ -1675,13 +1675,13 @@ yyreduce:
                 }               
                 listsetlength(stack,stackbase);/* remove stack nodes*/
               }
-#line 1679 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1679 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 26:
 #line 308 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 1685 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1685 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 27:
@@ -1700,7 +1700,7 @@ yyreduce:
 		    }    	    
 		    listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 1704 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1704 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 28:
@@ -1711,7 +1711,7 @@ yyreduce:
             (yyvsp[-2].sym)->typ.econst=(yyvsp[0].constant);
 	    (yyval.sym)=(yyvsp[-2].sym);
         }
-#line 1715 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1715 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 29:
@@ -1725,7 +1725,7 @@ yyreduce:
                     (yyvsp[0].sym)->typ.size=int32_val;
                     (yyvsp[0].sym)->typ.alignment=nctypealignment(NC_OPAQUE);
                 }
-#line 1729 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1729 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 30:
@@ -1741,7 +1741,7 @@ yyreduce:
                     (yyvsp[0].sym)->typ.size=VLENSIZE;
                     (yyvsp[0].sym)->typ.alignment=nctypealignment(NC_VLEN);
                 }
-#line 1745 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1745 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 31:
@@ -1775,19 +1775,19 @@ yyreduce:
 	    }    	    
 	    listsetlength(stack,stackbase);/* remove stack nodes*/
           }
-#line 1779 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1779 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 32:
 #line 394 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-1].mark);}
-#line 1785 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1785 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 33:
 #line 395 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-2].mark);}
-#line 1791 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1791 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 34:
@@ -1803,108 +1803,108 @@ yyreduce:
 		f->typ.basetype = (yyvsp[-1].sym);
             }
         }
-#line 1807 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1807 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 35:
 #line 412 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_CHAR]; }
-#line 1813 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1813 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 36:
 #line 413 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_BYTE]; }
-#line 1819 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1819 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 37:
 #line 414 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_SHORT]; }
-#line 1825 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1825 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 38:
 #line 415 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_INT]; }
-#line 1831 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1831 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 39:
 #line 416 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_FLOAT]; }
-#line 1837 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1837 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 40:
 #line 417 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym) = primsymbols[NC_DOUBLE]; }
-#line 1843 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1843 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 41:
 #line 418 "ncgen.y" /* yacc.c:1646  */
     { vercheck(NC_UBYTE); (yyval.sym) = primsymbols[NC_UBYTE]; }
-#line 1849 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1849 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 42:
 #line 419 "ncgen.y" /* yacc.c:1646  */
     { vercheck(NC_USHORT); (yyval.sym) = primsymbols[NC_USHORT]; }
-#line 1855 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1855 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 43:
 #line 420 "ncgen.y" /* yacc.c:1646  */
     { vercheck(NC_UINT); (yyval.sym) = primsymbols[NC_UINT]; }
-#line 1861 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1861 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 44:
 #line 421 "ncgen.y" /* yacc.c:1646  */
     { vercheck(NC_INT64); (yyval.sym) = primsymbols[NC_INT64]; }
-#line 1867 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1867 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 45:
 #line 422 "ncgen.y" /* yacc.c:1646  */
     { vercheck(NC_UINT64); (yyval.sym) = primsymbols[NC_UINT64]; }
-#line 1873 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1873 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 47:
 #line 426 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1879 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1879 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 48:
 #line 427 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1885 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1885 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 51:
 #line 434 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1891 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1891 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 52:
 #line 434 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1897 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1897 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 55:
 #line 442 "ncgen.y" /* yacc.c:1646  */
     {
 		(yyvsp[-2].sym)->dim.declsize = (size_t)uint32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyvsp[-2].sym)->dim.declsize);
 #endif
 	      }
-#line 1908 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1908 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 56:
@@ -1915,11 +1915,11 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyv
 		    YYABORT;
 		}
 		(yyvsp[-2].sym)->dim.declsize = (size_t)int32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyvsp[-2].sym)->dim.declsize);
 #endif
 	      }
-#line 1923 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1923 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 57:
@@ -1932,11 +1932,11 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyv
                        if (double_val - (size_t) double_val > 0)
                          yyerror("dimension length must be an integer");
                        (yyvsp[-2].sym)->dim.declsize = (size_t)double_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyvsp[-2].sym)->dim.declsize);
 #endif
                    }
-#line 1940 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1940 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 58:
@@ -1944,11 +1944,11 @@ fprintf(stderr,"dimension: %s = %lu\n",(yyvsp[-2].sym)->name,(unsigned long)(yyv
     {
 		        (yyvsp[-2].sym)->dim.declsize = NC_UNLIMITED;
 		        (yyvsp[-2].sym)->dim.isunlimited = 1;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 #endif
 		   }
-#line 1952 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1952 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 59:
@@ -1962,31 +1962,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		     (yyval.sym)=(yyvsp[0].sym);
 		     listpush(dimdefs,(void*)(yyvsp[0].sym));
                    }
-#line 1966 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1966 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 61:
 #line 495 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1972 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1972 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 62:
 #line 496 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1978 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1978 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 65:
 #line 503 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1984 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1984 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 66:
 #line 503 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 1990 "ncgen.tab.c" /* yacc.c:1646  */
+#line 1990 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 67:
@@ -2010,7 +2010,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		}
-#line 2014 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2014 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 68:
@@ -2018,13 +2018,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
     {(yyval.mark)=listlength(stack);
                  listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 2022 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2022 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 69:
 #line 532 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2028 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2028 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 70:
@@ -2053,31 +2053,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                     (yyvsp[-1].sym)->objectclass=NC_VAR;
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		    }
-#line 2057 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2057 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 71:
 #line 562 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=listlength(stack);}
-#line 2063 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2063 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 72:
 #line 563 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2069 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2069 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 73:
 #line 566 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2075 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2075 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 74:
 #line 568 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2081 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2081 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 75:
@@ -2092,7 +2092,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=dimsym;
 	    }
-#line 2096 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2096 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 76:
@@ -2100,13 +2100,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
     {(yyval.mark)=listlength(stack);
              listpush(stack,(void*)(yyvsp[0].sym));
 	    }
-#line 2104 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2104 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 77:
 #line 590 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2110 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2110 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 78:
@@ -2137,31 +2137,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		listsetlength(stack,stackbase);/* remove stack nodes*/
 		(yyval.sym) = (yyvsp[-1].sym);
 	    }
-#line 2141 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2141 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 79:
 #line 623 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=listlength(stack);}
-#line 2147 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2147 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 80:
 #line 624 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2153 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2153 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 81:
 #line 628 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2159 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2159 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 82:
 #line 630 "ncgen.y" /* yacc.c:1646  */
     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2165 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2165 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 83:
@@ -2175,7 +2175,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = uint32_val;
 	    }
-#line 2179 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2179 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 84:
@@ -2193,7 +2193,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = int32_val;
 	    }
-#line 2197 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2197 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 85:
@@ -2205,7 +2205,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=vsym;
 	    }
-#line 2209 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2209 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 86:
@@ -2217,7 +2217,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=tsym;
 	    }
-#line 2221 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2221 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 87:
@@ -2235,36 +2235,36 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    } else tvsym = sym;
 		} else tvsym = sym;
 		if(tvsym == NULL) {
-		    derror("Undefined name: %s",(yyvsp[0].sym)->name);
+		    derror("Undefined name (line %d): %s",(yyvsp[0].sym)->lineno,(yyvsp[0].sym)->name);
 		    YYABORT;
 		}
 		(yyval.sym)=tvsym;
 	    }
-#line 2244 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2244 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 88:
 #line 705 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym)=(yyvsp[0].sym);}
-#line 2250 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2250 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 89:
 #line 712 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 2256 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2256 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 90:
 #line 712 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 2262 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2262 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 91:
 #line 716 "ncgen.y" /* yacc.c:1646  */
     { (yyval.sym)=makeattribute((yyvsp[-2].sym),NULL,NULL,(yyvsp[0].datalist),ATTRGLOBAL);}
-#line 2268 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2268 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 92:
@@ -2277,7 +2277,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2281 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2281 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 93:
@@ -2292,67 +2292,67 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2296 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2296 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 94:
 #line 738 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),0);}
-#line 2302 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2302 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 95:
 #line 740 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),(yyvsp[-5].sym),(void*)(yyvsp[0].datalist),0);}
-#line 2308 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2308 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 96:
 #line 742 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_STORAGE_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2314 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2314 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 97:
 #line 744 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_CHUNKSIZES_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),0);}
-#line 2320 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2320 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 98:
 #line 746 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_FLETCHER32_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2326 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2326 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 99:
 #line 748 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_DEFLATE_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2332 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2332 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 100:
 #line 750 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_SHUFFLE_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2338 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2338 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 101:
 #line 752 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_ENDIAN_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2344 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2344 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 102:
 #line 754 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_NOFILL_FLAG,(yyvsp[-4].sym),NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2350 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2350 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 103:
 #line 756 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym) = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&(yyvsp[0].constant),1);}
-#line 2356 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2356 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 104:
@@ -2363,7 +2363,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                 (yyvsp[0].sym)->is_prefixed=0;
                 setpathcurrent((yyvsp[0].sym));
 	    }
-#line 2367 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2367 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 105:
@@ -2374,257 +2374,257 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                 (yyvsp[0].sym)->is_prefixed=1;
 	        /* path is set in ncgen.l*/
 	    }
-#line 2378 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2378 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 107:
 #line 777 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 2384 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2384 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 108:
 #line 778 "ncgen.y" /* yacc.c:1646  */
     {}
-#line 2390 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2390 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 111:
 #line 786 "ncgen.y" /* yacc.c:1646  */
     {(yyvsp[-2].sym)->data = (yyvsp[0].datalist);}
-#line 2396 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2396 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 112:
 #line 789 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2402 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2402 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 113:
 #line 790 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2408 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2408 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 114:
 #line 794 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = builddatalist(0);}
-#line 2414 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2414 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 115:
 #line 798 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[0].constant)));}
-#line 2420 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2420 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 116:
 #line 800 "ncgen.y" /* yacc.c:1646  */
     {datalistextend((yyvsp[-2].datalist),&((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist);}
-#line 2426 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2426 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 117:
 #line 804 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2432 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2432 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 118:
 #line 805 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=builddatasublist((yyvsp[-1].datalist));}
-#line 2438 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2438 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 119:
 #line 809 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2444 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2444 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 120:
 #line 810 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_OPAQUE);}
-#line 2450 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2450 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 121:
 #line 811 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_FILLVALUE);}
-#line 2456 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2456 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 122:
 #line 812 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_NIL);}
-#line 2462 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2462 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 123:
 #line 813 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2468 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2468 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 125:
 #line 818 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant) = makeenumconstref((yyvsp[0].sym));}
-#line 2474 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2474 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 126:
 #line 822 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=evaluate((yyvsp[-3].sym),(yyvsp[-1].datalist));}
-#line 2480 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2480 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 127:
 #line 827 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[0].constant)));}
-#line 2486 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2486 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 128:
 #line 829 "ncgen.y" /* yacc.c:1646  */
     {datalistextend((yyvsp[-2].datalist),&((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist);}
-#line 2492 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2492 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 129:
 #line 833 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_CHAR);}
-#line 2498 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2498 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 130:
 #line 834 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_BYTE);}
-#line 2504 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2504 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 131:
 #line 835 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_SHORT);}
-#line 2510 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2510 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 132:
 #line 836 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2516 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2516 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 133:
 #line 837 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2522 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2522 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 134:
 #line 838 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_UBYTE);}
-#line 2528 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2528 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 135:
 #line 839 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_USHORT);}
-#line 2534 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2534 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 136:
 #line 840 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2540 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2540 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 137:
 #line 841 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2546 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2546 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 138:
 #line 842 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_FLOAT);}
-#line 2552 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2552 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 139:
 #line 843 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_DOUBLE);}
-#line 2558 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2558 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 140:
 #line 844 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2564 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2564 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 141:
 #line 848 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist) = builddatalist(0); datalistextend((yyval.datalist),&((yyvsp[0].constant)));}
-#line 2570 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2570 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 142:
 #line 849 "ncgen.y" /* yacc.c:1646  */
     {(yyval.datalist)=(yyvsp[-2].datalist); datalistextend((yyvsp[-2].datalist),&((yyvsp[0].constant)));}
-#line 2576 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2576 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 143:
 #line 854 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2582 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2582 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 144:
 #line 856 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2588 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2588 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 145:
 #line 858 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2594 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2594 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 146:
 #line 860 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2600 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2600 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 147:
 #line 864 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2606 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2606 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 148:
 #line 868 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2612 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2612 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 149:
 #line 869 "ncgen.y" /* yacc.c:1646  */
     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2618 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2618 "ncgentab.c" /* yacc.c:1646  */
     break;
 
   case 150:
 #line 875 "ncgen.y" /* yacc.c:1646  */
     {(yyval.sym)=(yyvsp[0].sym);}
-#line 2624 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2624 "ncgentab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2628 "ncgen.tab.c" /* yacc.c:1646  */
+#line 2628 "ncgentab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

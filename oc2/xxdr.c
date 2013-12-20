@@ -222,7 +222,8 @@ xxdr_skip(XXDR* xdrs, off_t len)
     unsigned int pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
-    if(pos < 0) pos = 0;
+    // Removed the following; pos is unsigned. jhrg 9/30/13
+    // if(pos < 0) pos = 0;
     return xxdr_setpos(xdrs,pos);
 }
 

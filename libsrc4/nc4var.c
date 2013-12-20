@@ -66,9 +66,6 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 #ifdef EXTRA_TESTS
       num_plists--;
 #endif
-
-      if (var->dimscale)
-	 var->dim[0]->hdf_dimscaleid = var->hdf_datasetid;
    }
    
    return NC_NOERR;
@@ -101,7 +98,7 @@ NC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -164,7 +161,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -209,7 +206,6 @@ static int
 check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
 {
    NC_TYPE_INFO_T *type_info;
-   size_t prod;
    double dprod;
    size_t type_len;
    int d;
@@ -294,8 +290,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	 if (suggested_size > var->dim[d]->len)
 	    suggested_size = var->dim[d]->len;
 	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
-	 LOG((4, "nc_def_var_nc4: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-	      "chunksize %ld", var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+	 LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+	      "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
 
    /* Find total chunk size. */
@@ -349,9 +345,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type_info;
    char norm_name[NC_MAX_NAME + 1];
-   int num_unlim = 0;
    int d;
-   size_t num_values = 1;
    int retval;
 
    /* Find info for this file and group, and set pointer to each. */
@@ -407,14 +401,10 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    {
       if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, NULL)))
          return retval;
-      if (dim->unlimited)
-	 num_unlim++;
-      else
-	 num_values *= dim->len;
    }
 
    /* These degrubbing messages sure are handy! */
-   LOG((3, "nc_def_var_nc4: name %s type %d ndims %d", norm_name, xtype, ndims));
+   LOG((3, "%s: name %s type %d ndims %d", __func__, norm_name, xtype, ndims));
 #ifdef LOGGING
    {
       int dd;
@@ -456,8 +446,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 					&var->type_info->size)))
 	 return retval;
    }
-   if (!num_unlim)
-      var->contiguous = 1;
 
    /* Allocate space for dimension information. */
    if (ndims)
@@ -468,21 +456,49 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	 return NC_ENOMEM;
    }
 
+   /* Assign dimensions to the variable */
    /* At the same time, check to see if this is a coordinate
     * variable. If so, it will have the same name as one of its
     * dimensions. If it is a coordinate var, is it a coordinate var in
     * the same group as the dim? */
+   /* Also, check whether we should use contiguous or chunked storage */
+   var->contiguous = 1;
    for (d = 0; d < ndims; d++)
    {
       NC_GRP_INFO_T *dim_grp;
+
+      /* Look up each dimension */
       if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, &dim_grp)))
          return retval;
-      if (strcmp(dim->name, norm_name) == 0 && dim_grp == grp && d == 0)
+
+      /* Check for dim index 0 having the same name, in the same group */
+      if (d == 0 && dim_grp == grp && strcmp(dim->name, norm_name) == 0)
       {
          var->dimscale++;
          dim->coord_var = var;
-	 dim->coord_var_in_grp++;
+
+         /* Use variable's dataset ID for the dimscale ID */
+         if (dim->hdf_dimscaleid)
+         {
+            /* Detach dimscale from any variables using it */
+            if ((retval = rec_detach_scales(grp, dimidsp[d], dim->hdf_dimscaleid)) < 0)
+               return retval;
+
+            if (H5Dclose(dim->hdf_dimscaleid) < 0)
+                return NC_EHDFERR;
+            dim->hdf_dimscaleid = 0;
+
+            /* Now delete the dataset (it will be recreated later, if necessary) */
+            if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
+               return NC_EDIMMETA;
+         }
       }
+
+      /* Check for unlimited dimension and turn off contiguous storage */
+      if (dim->unlimited)
+	 var->contiguous = 0;
+
+      /* Track dimensions for variable */
       var->dimids[d] = dimidsp[d];
       var->dim[d] = dim;
    }
@@ -508,7 +524,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * is not a coordinate variable. I need to change its HDF5 name,
     * because the dimension will cause a HDF5 dataset to be created,
     * and this var has the same name. */
-   for (dim = grp->dim; dim; dim = dim->next)
+   for (dim = grp->dim; dim; dim = dim->l.next)
       if (!strcmp(dim->name, norm_name) && 
 	  (!var->ndims || dimidsp[0] != dim->dimid))
       {
@@ -548,8 +564,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
    NC *nc;
    NC_HDF5_FILE_INFO_T *h5;
 
-   LOG((2, "nc_def_var: ncid 0x%x name %s xtype %d ndims %d",
-        ncid, name, xtype, ndims));
+   LOG((2, "%s: ncid 0x%x name %s xtype %d ndims %d",
+        __func__, ncid, name, xtype, ndims));
 
    /* If there are dimensions, I need their ids. */
    if (ndims && !dimidsp)
@@ -597,7 +613,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    int d;
    int retval;
 
-   LOG((2, "nc_inq_var_all: ncid 0x%x varid %d", ncid, varid));
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -620,7 +636,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    {
       if (nattsp)
       {
-         for (att = grp->att; att; att = att->next)
+         for (att = grp->att; att; att = att->l.next)
             natts++;
          *nattsp = natts;
       }
@@ -628,7 +644,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    }
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    
@@ -648,7 +664,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          dimidsp[d] = var->dimids[d];
    if (nattsp)
    {
-      for (att = var->att; att; att = att->next)
+      for (att = var->att; att; att = att->l.next)
          natts++;
       *nattsp = natts;
    }
@@ -727,7 +743,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    int d;
    int retval;
 
-   LOG((2, "nc_def_var_extra: ncid 0x%x varid %d", ncid, varid));
+   LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -741,7 +757,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    assert(nc && grp && h5);
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    
@@ -787,7 +803,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       var->deflate = *deflate;
       if (*deflate)
          var->deflate_level = *deflate_level;
-      LOG((3, "nc_def_var_extra: *deflate_level %d", *deflate_level));      
+      LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
    }
 
    /* Szip in use? */
@@ -795,7 +811,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    {
 #ifndef USE_SZIP
       return NC_EINVAL;
-#endif
+#else /* USE_SZIP */
       if (var->deflate)
 	 return NC_EINVAL;
       if ((*options_mask != NC_SZIP_EC_OPTION_MASK) &&
@@ -807,6 +823,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       var->options_mask = *options_mask;
       var->pixels_per_block = *pixels_per_block;
       var->contiguous = 0;
+#endif /* USE_SZIP */
    }
 
    /* Shuffle filter? */
@@ -1071,7 +1088,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
    if (!varidp)
       return NC_NOERR;
 
-   LOG((2, "nc_inq_varid: ncid 0x%x name %s", ncid, name));
+   LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
    
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
@@ -1092,7 +1109,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
       return retval;
 
    /* Find var of this name. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (!(strcmp(var->name, norm_name)))
       {
          *varidp = var->varid;
@@ -1115,8 +1132,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_VAR_INFO_T *var;
    int retval = NC_NOERR;
 
-   LOG((2, "nc_rename_var: ncid 0x%x varid %d name %s", 
-        ncid, varid, name));
+   LOG((2, "%s: ncid 0x%x varid %d name %s", 
+        __func__, ncid, varid, name));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
@@ -1144,12 +1161,12 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    /* Is name in use? */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (!strncmp(var->name, name, NC_MAX_NAME))
          return NC_ENAMEINUSE;   
 
    /* Find the var. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -1175,6 +1192,38 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return NC_ENOMEM;
    strcpy(var->name, name);
 
+   /* Check if this was a coordinate variable previously, but names are different now */
+   if (var->dimscale && strcmp(var->name, var->dim[0]->name))
+   {
+      /* Break up the coordinate variable */
+      if ((retval = nc4_break_coord_var(grp, var, var->dim[0])))
+         return retval;
+   }
+
+   /* Check if this should become a coordinate variable */
+   if (!var->dimscale)
+   {
+      /* Only variables with >0 dimensions can become coordinate variables */
+      if (var->ndims)
+      {
+         NC_GRP_INFO_T *dim_grp;
+         NC_DIM_INFO_T *dim;
+
+          /* Check to see if this is became a coordinate variable.  If so, it
+           * will have the same name as dimension index 0. If it is a
+           * coordinate var, is it a coordinate var in the same group as the dim?
+           */
+         if ((retval = nc4_find_dim(grp, var->dimids[0], &dim, &dim_grp)))
+            return retval;
+         if (strcmp(dim->name, name) == 0 && dim_grp == grp)
+         {
+             /* Reform the coordinate variable */
+             if ((retval = nc4_reform_coord_var(grp, var, dim)))
+                return retval;
+         }
+      }
+   }
+
   exit:
    return retval;
 }
@@ -1192,7 +1241,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
    NC_VAR_INFO_T *var;
    int retval;
 
-   LOG((1, "nc_var_par_access: ncid 0x%x varid %d par_access %d", ncid, 
+   LOG((1, "%s: ncid 0x%x varid %d par_access %d", __func__, ncid, 
         varid, par_access));
 
    if (par_access != NC_INDEPENDENT && par_access != NC_COLLECTIVE)
@@ -1222,7 +1271,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
       return NC_ENOPAR;
 
    /* Find the var, and set its preference. */
-   for (var = grp->var; var; var = var->next)
+   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
          break;
    if (!var)
@@ -1246,8 +1295,8 @@ nc4_put_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    NC_HDF5_FILE_INFO_T *h5;
 #endif
    
-   LOG((2, "nc4_put_vara_tc: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
-        ncid, varid, mem_type, mem_type_is_long));
+   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
+        __func__, ncid, varid, mem_type, mem_type_is_long));
 
    if (!(nc = nc4_find_nc_file(ncid,NULL)))
       return NC_EBADID;
@@ -1376,8 +1425,8 @@ nc4_get_vara_tc(int ncid, int varid, nc_type mem_type, int mem_type_is_long,
    NC *nc;
    NC_HDF5_FILE_INFO_T* h5;
 
-   LOG((2, "nc4_get_vara_tc: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
-        ncid, varid, mem_type, mem_type_is_long));
+   LOG((2, "%s: ncid 0x%x varid %d mem_type %d mem_type_is_long %d", 
+        __func__, ncid, varid, mem_type, mem_type_is_long));
 
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;

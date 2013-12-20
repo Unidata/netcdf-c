@@ -97,30 +97,33 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
  * as the netCDF dimid. */
 #define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
 
+/* Generic doubly-linked list node */
+typedef struct NC_LIST_NODE
+{
+   void *next;
+   void *prev;
+} NC_LIST_NODE_T;
+
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
 {
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    char *name;
    size_t len;
    int dimid;
    int unlimited;
    int extended;
-   struct NC_DIM_INFO *next;
-   struct NC_DIM_INFO *prev;
    hid_t hdf_dimscaleid;
-   char *old_name; /* only used to rename dim */
-   int dirty;
-   unsigned char coord_var_in_grp;
+   HDF5_OBJID_T hdf5_objid;
    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
-   int too_long; /* True if len it too big to fit in local size_t. */
+   int too_long; /* True if len is too big to fit in local size_t. */
 } NC_DIM_INFO_T;
 
 typedef struct NC_ATT_INFO
 {
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    int len;
    char *name;
-   struct NC_ATT_INFO *next;
-   struct NC_ATT_INFO *prev;
    int dirty;
    int created;
    nc_type xtype;
@@ -135,6 +138,7 @@ typedef struct NC_ATT_INFO
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    char *name;
    char *hdf5_name; /* used if different from name */
    int ndims;
@@ -142,10 +146,8 @@ typedef struct NC_VAR_INFO
    NC_DIM_INFO_T **dim;
    int varid;
    int natts;
-   struct NC_VAR_INFO *next;
-   struct NC_VAR_INFO *prev;
    int dirty;
-   int created;
+   int created;         /* Variable has already been created (_not_ that it was just created) */
    int written_to;
    int *dimscale_attached;
    struct NC_TYPE_INFO *type_info;
@@ -176,8 +178,7 @@ typedef struct NC_VAR_INFO
 
 typedef struct NC_FIELD_INFO
 {
-   struct NC_FIELD_INFO *next;
-   struct NC_FIELD_INFO *prev;
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    nc_type nctype;
    hid_t hdf_typeid;
    hid_t native_typeid;
@@ -190,16 +191,14 @@ typedef struct NC_FIELD_INFO
 
 typedef struct NC_ENUM_MEMBER_INFO
 {
-   struct NC_ENUM_MEMBER_INFO *next;
-   struct NC_ENUM_MEMBER_INFO *prev;
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    char *name;
    void *value;
 } NC_ENUM_MEMBER_INFO_T;
 
 typedef struct NC_TYPE_INFO
 {
-   struct NC_TYPE_INFO *next;
-   struct NC_TYPE_INFO *prev;
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    nc_type nc_typeid;
    hid_t hdf_typeid;
    hid_t native_typeid;
@@ -221,11 +220,10 @@ typedef struct NC_TYPE_INFO
  * parthenogenesis. */
 typedef struct NC_GRP_INFO
 {
+   NC_LIST_NODE_T l;            /* Use generic doubly-linked list (must be first) */
    int nc_grpid;
    struct NC_GRP_INFO *parent;
    struct NC_GRP_INFO *children;
-   struct NC_GRP_INFO *next; /* points to siblings */
-   struct NC_GRP_INFO *prev; /* points to siblings */
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
    NC_ATT_INFO_T *att;
@@ -234,7 +232,6 @@ typedef struct NC_GRP_INFO
    int natts;
    struct NC_HDF5_FILE_INFO *nc4_info;
    char *name;
-   char *old_name; /* need when renaming group */
    hid_t hdf_grpid;
    NC_TYPE_INFO_T *type;
 } NC_GRP_INFO_T;
@@ -292,21 +289,16 @@ int nc4_convert_type(const void *src, void *dest,
 		     int dest_long);
 
 /* These functions do HDF5 things. */
+int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
-int pg_var(NC_PG_T pg, NC *nc, int ncid, int varid, nc_type xtype, int is_long, void *ip);
-int nc4_pg_var1(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *indexp, 
-		nc_type xtype, int is_long, void *ip);
 int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
-int nc4_pg_varm(NC_PG_T pg, NC *nc, int ncid, int varid, const size_t *startp, 
-		const size_t *countp, const ptrdiff_t *stridep,
-		const ptrdiff_t *imapp, nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
 int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, int *bad_coord_orderp);
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order);
-int nc4_rec_write_types(NC_GRP_INFO_T *grp);
+int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 int nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T * var);
@@ -321,6 +313,7 @@ NC_GRP_INFO_T *nc4_find_nc_grp(int ncid);
 NC_GRP_INFO_T *nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid);
 NC *nc4_find_nc_file(int ncid, NC_HDF5_FILE_INFO_T**);
 int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim, NC_GRP_INFO_T **dim_grp);
+int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
 int nc4_find_type(NC_HDF5_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
 NC_TYPE_INFO_T *nc4_rec_find_nc_type(NC_GRP_INFO_T *start_grp, hid_t target_nc_typeid);
@@ -342,9 +335,9 @@ int nc4_get_hdf_typeid(NC_HDF5_FILE_INFO_T *h5, nc_type xtype,
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_var_list_add(NC_VAR_INFO_T **list, NC_VAR_INFO_T **var);
 int nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var);
-int nc4_dim_list_add(NC_DIM_INFO_T **list);
+int nc4_dim_list_add(NC_DIM_INFO_T **list, NC_DIM_INFO_T **dim);
 int nc4_dim_list_del(NC_DIM_INFO_T **list, NC_DIM_INFO_T *dim);
-int nc4_att_list_add(NC_ATT_INFO_T **list);
+int nc4_att_list_add(NC_ATT_INFO_T **list, NC_ATT_INFO_T **att);
 int nc4_type_list_add(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T **new_type);
 int nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
 		       size_t offset, hid_t field_hdf_typeid, hid_t native_typeid, 
@@ -356,6 +349,10 @@ int nc4_grp_list_add(NC_GRP_INFO_T **list, int new_nc_grpid, NC_GRP_INFO_T *pare
 int nc4_rec_grp_del(NC_GRP_INFO_T **list, NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
 			const char *name, const void *value);
+
+/* Break & reform coordinate variables */
+int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
+int nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
 
 int NC_check_name(const char *name);
 

@@ -10,7 +10,6 @@ HDF5=1
 DAP=1
 #PNETCDF=1
 #HDF4=1
-#HDF4=1
 #RPC=1
 #PGI=1
 #M32=1
@@ -47,7 +46,8 @@ stddir="/share/ed/local/${HOST}"
 else
 stddir="/usr/local"
 fi
-stddir="/machine/local_szlib"
+#stddir="/machine/local_szlib"
+stddir="/usr/local"
 
 if test "x$INSTALL" = "x1" ; then
   if test "x$PREFIX" = x ; then
@@ -149,10 +149,10 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
 #FLAGS="$FLAGS --enable-benchmarks"
-#FLAGS="$FLAGS --enable-extra-tests"
+FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
-FLAGS="$FLAGS --disable-dap-remote-tests"
+#FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-doxygen"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"

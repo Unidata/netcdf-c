@@ -441,7 +441,7 @@ dimdecl:
 	  dimd '=' UINT_CONST
               {
 		$1->dim.declsize = (size_t)uint32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
 	      }
@@ -452,7 +452,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
 		    YYABORT;
 		}
 		$1->dim.declsize = (size_t)int32_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
 	      }
@@ -465,7 +465,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
                        if (double_val - (size_t) double_val > 0)
                          yyerror("dimension length must be an integer");
                        $1->dim.declsize = (size_t)double_val;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize);
 #endif
                    }
@@ -473,7 +473,7 @@ fprintf(stderr,"dimension: %s = %lu\n",$1->name,(unsigned long)$1->dim.declsize)
                    {
 		        $1->dim.declsize = NC_UNLIMITED;
 		        $1->dim.isunlimited = 1;
-#ifdef DEBUG1
+#ifdef GENDEBUG1
 fprintf(stderr,"dimension: %s = UNLIMITED\n",$1->name);
 #endif
 		   }
@@ -697,7 +697,7 @@ type_var_ref:
 		    } else tvsym = sym;
 		} else tvsym = sym;
 		if(tvsym == NULL) {
-		    derror("Undefined name: %s",$1->name);
+		    derror("Undefined name (line %d): %s",$1->lineno,$1->name);
 		    YYABORT;
 		}
 		$$=tvsym;
@@ -1172,13 +1172,22 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     Symbol* attr = NULL;
     Datalist* list;
     NCConstant* con;
-    Specialdata* special = (Specialdata*)malloc(sizeof(Specialdata));
     NCConstant iconst;
     int tf = 0;
     char* sdata = NULL;
     int idata =  -1;
 
-    special->flags = 0;
+    if(tag == _FORMAT) {
+        if(vsym != NULL) {
+            derror("_Format: must be global attribute");
+            vsym = NULL;
+        }
+    } else {
+        if(vsym == NULL) {
+	    derror("%s: must have non-NULL vsym", specialname(tag));
+	    return NULL;
+        }
+    }
 
     specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
 
@@ -1189,11 +1198,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     } else {
         list = (Datalist*)data;
         con = (NCConstant*)list->data;
-    }
-
-    if(tag == _FORMAT && vsym != NULL) {
-	derror("_Format: must be global attribute");
-	vsym = NULL;
     }
 
     switch (tag) {
@@ -1229,14 +1233,13 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     default: PANIC1("unexpected special tag: %d",tag);
     }
     
-    if(vsym != NULL) special = &vsym->var.special;
     if(tag == _FORMAT_FLAG) {
 	struct Kvalues* kvalue;
-	int found;
-	found = 0;
+	int found = 0;
+
 	/* Use the table in main.c */
-        for(kvalue=legalkinds;kvalue->name;kvalue++) {
-	    if(strcmp(sdata,kvalue->name) == 0) {
+        for(kvalue = legalkinds; kvalue->name; kvalue++) {
+	    if(strcmp(sdata, kvalue->name) == 0) {
 		format_flag = kvalue->k_flag;
 		found = 1;
 	        break;
@@ -1244,79 +1247,86 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	}
 	if(!found)
 	    derror("_Format: illegal value: %s",sdata);
-    } else if(tag == _FILLVALUE_FLAG) {
-	special->_Fillvalue = list;
-	/* fillvalue must be a single value*/
-	if(list->length != 1)
-	    derror("_FillValue: must be a single (possibly compound) value",
-			vsym->name);
-        /* check that the attribute value contains no fill values*/
-        if(containsfills(list)) {
-	    derror("Attribute data may not contain fill values (i.e. _ )");
-        }
-	/* _FillValue is also a real attribute*/
-	if(vsym->objectclass != NC_VAR) {
-	    derror("_FillValue attribute not associated with variable: %s",vsym->name);
-	}
-	if(tsym  == NULL) tsym = vsym->typ.basetype;
-	else if(vsym->typ.basetype != tsym) {
-	    derror("_FillValue attribute type does not match variable type: %s",vsym->name);
-	}
-	attr=makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
-    } else switch (tag) {
-        case _STORAGE_FLAG:
-            if(strcmp(sdata,"contiguous") == 0)
-                special->_Storage = NC_CONTIGUOUS;
-            else if(strcmp(sdata,"chunked") == 0)
-                special->_Storage = NC_CHUNKED;
-            else
-                derror("_Storage: illegal value: %s",sdata);
-            special->flags |= _STORAGE_FLAG;
-            break;
-        case _FLETCHER32_FLAG:
-            special->_Fletcher32 = tf;
-            special->flags |= _FLETCHER32_FLAG;
-            break;
-        case _DEFLATE_FLAG:
-            special->_DeflateLevel = idata;
-            special->flags |= _DEFLATE_FLAG;
-            break;
-        case _SHUFFLE_FLAG:
-	    special->_Shuffle = tf;
-            special->flags |= _SHUFFLE_FLAG;
-            break;
-        case _ENDIAN_FLAG:
-            if(strcmp(sdata,"little") == 0)
-                special->_Endianness = 1;
-            else if(strcmp(sdata,"big") == 0)
-                special->_Endianness = 2;
-            else
-                derror("_Endianness: illegal value: %s",sdata);
-            special->flags |= _ENDIAN_FLAG;
-            break;
-        case _NOFILL_FLAG:
-            special->_Fill = (1 - tf); /* negate */
-            special->flags |= _NOFILL_FLAG;
-            break;
-        case _CHUNKSIZES_FLAG: {
-	    int i;
-            special->nchunks = list->length;
-            special->_ChunkSizes = (size_t*)emalloc(sizeof(size_t)*special->nchunks);
-            for(i=0;i<special->nchunks;i++) {
-		iconst.nctype = NC_INT;
-		convert1(&list->data[i],&iconst);
-	        if(iconst.nctype == NC_INT) {
-		    special->_ChunkSizes[i] = (size_t)iconst.value.int32v;
-	        } else
-		    derror("%s: illegal value",specialname(tag));
+    } else {
+        Specialdata* special;
+
+        /* Set up special info */
+        special = &vsym->var.special;
+        special->flags = 0;
+
+        if(tag == _FILLVALUE_FLAG) {
+            special->_Fillvalue = list;
+            /* fillvalue must be a single value*/
+            if(list->length != 1)
+                derror("_FillValue: must be a single (possibly compound) value",
+                            vsym->name);
+            /* check that the attribute value contains no fill values*/
+            if(containsfills(list)) {
+                derror("Attribute data may not contain fill values (i.e. _ )");
             }
-            special->flags |= _CHUNKSIZES_FLAG;
-	    /* Chunksizes => storage == chunked */
-            special->flags |= _STORAGE_FLAG;
-            special->_Storage = NC_CHUNKED;
-            } break;
-        default: PANIC1("makespecial: illegal token: %d",tag);
-     }
+            /* _FillValue is also a real attribute*/
+            if(vsym->objectclass != NC_VAR) {
+                derror("_FillValue attribute not associated with variable: %s",vsym->name);
+            }
+            if(tsym  == NULL) tsym = vsym->typ.basetype;
+            else if(vsym->typ.basetype != tsym) {
+                derror("_FillValue attribute type does not match variable type: %s",vsym->name);
+            }
+            attr=makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
+        } else switch (tag) {
+            case _STORAGE_FLAG:
+                if(strcmp(sdata,"contiguous") == 0)
+                    special->_Storage = NC_CONTIGUOUS;
+                else if(strcmp(sdata,"chunked") == 0)
+                    special->_Storage = NC_CHUNKED;
+                else
+                    derror("_Storage: illegal value: %s",sdata);
+                special->flags |= _STORAGE_FLAG;
+                break;
+            case _FLETCHER32_FLAG:
+                special->_Fletcher32 = tf;
+                special->flags |= _FLETCHER32_FLAG;
+                break;
+            case _DEFLATE_FLAG:
+                special->_DeflateLevel = idata;
+                special->flags |= _DEFLATE_FLAG;
+                break;
+            case _SHUFFLE_FLAG:
+                special->_Shuffle = tf;
+                special->flags |= _SHUFFLE_FLAG;
+                break;
+            case _ENDIAN_FLAG:
+                if(strcmp(sdata,"little") == 0)
+                    special->_Endianness = 1;
+                else if(strcmp(sdata,"big") == 0)
+                    special->_Endianness = 2;
+                else
+                    derror("_Endianness: illegal value: %s",sdata);
+                special->flags |= _ENDIAN_FLAG;
+                break;
+            case _NOFILL_FLAG:
+                special->_Fill = (1 - tf); /* negate */
+                special->flags |= _NOFILL_FLAG;
+                break;
+            case _CHUNKSIZES_FLAG: {
+                int i;
+                special->nchunks = list->length;
+                special->_ChunkSizes = (size_t*)emalloc(sizeof(size_t)*special->nchunks);
+                for(i=0;i<special->nchunks;i++) {
+                    iconst.nctype = NC_INT;
+                    convert1(&list->data[i],&iconst);
+                    if(iconst.nctype == NC_INT) {
+                        special->_ChunkSizes[i] = (size_t)iconst.value.int32v;
+                    } else
+                        derror("%s: illegal value",specialname(tag));
+                }
+                special->flags |= _CHUNKSIZES_FLAG;
+                /* Chunksizes => storage == chunked */
+                special->flags |= _STORAGE_FLAG;
+                special->_Storage = NC_CHUNKED;
+                } break;
+            default: PANIC1("makespecial: illegal token: %d",tag);
+         }
 
     return attr;
 }
@@ -1403,11 +1413,10 @@ be returned.
 static NCConstant
 evaluate(Symbol* fcn, Datalist* arglist)
 {
-    NCConstant result;
+    NCConstant result = nullconstant;
 
     /* prepare the result */
     result.lineno = fcn->lineno;
-    result.filled = 0;
 
     if(strcasecmp(fcn->name,"time") == 0) {
         char* timekind = NULL;

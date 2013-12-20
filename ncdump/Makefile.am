@@ -85,7 +85,7 @@ endif
 endif BUILD_TESTSETS
 
 CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl	\
-ctest0.nc ctest0_64.nc c1.cdl ctest1_64.cdl c0.nc small.nc	\
+ctest0.nc ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc	\
 small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
 tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
 tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc	\
@@ -101,7 +101,7 @@ tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc    \
 tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
 iter.* \
-tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl \
+tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl tst_mud4-bc.cdl \
 tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc
 
 # These files all have to be included with the distribution.
@@ -122,7 +122,7 @@ tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
-tst_iter.sh tst_mud.sh ref_tst_mud4.cdl                                 \
+tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
 ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh CMakeLists.txt  \
 XGetopt.c
 

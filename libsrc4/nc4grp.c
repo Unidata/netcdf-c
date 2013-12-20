@@ -18,12 +18,12 @@ $Id: nc4grp.c,v 1.44 2010/05/25 17:54:23 dmh Exp $
 int
 NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
-   NC_GRP_INFO_T *grp, *g;
+   NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
 
-   LOG((2, "nc_def_grp: parent_ncid 0x%x name %s", parent_ncid, name));
+   LOG((2, "%s: parent_ncid 0x%x name %s", __func__, parent_ncid, name));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_grp_h5(parent_ncid, &grp, &h5)))
@@ -52,7 +52,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
     * group creation will be done when metadata is written by a
     * sync. */
    if ((retval = nc4_grp_list_add(&(grp->children), h5->next_nc_grpid, 
-				  grp, grp->nc4_info->controller, norm_name, &g)))
+				  grp, grp->nc4_info->controller, norm_name, NULL)))
       return retval;
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | h5->next_nc_grpid;
@@ -98,19 +98,25 @@ NC4_rename_grp(int grpid, const char *name)
       if ((retval = NC4_redef(grpid)))
 	 return retval;
 
-   /* Save the old name, we'll need it to rename this object when we
-    * sync to HDF5 file. But if there already is an old_name saved,
-    * just stick with what we've got, since the user might be renaming
-    * the crap out of this thing, without ever syncing with the
-    * file. When the sync does take place, we only need the original
-    * name of the grp, not any of the intermediate ones. If the user
-    * could just make up his mind, we could all get on to writing some
-    * data... */
-   if (!grp->old_name)
+   /* Rename the group, if it exists in the file */
+   if (grp->hdf_grpid)
    {
-      if (!(grp->old_name = malloc((strlen(grp->name) + 1) * sizeof(char))))
-	 return NC_ENOMEM;
-      strcpy(grp->old_name, grp->name);
+      /* Close the group */
+      if (H5Gclose(grp->hdf_grpid) < 0)
+         return NC_EHDFERR;
+      grp->hdf_grpid = 0;
+
+      /* Attempt to rename & re-open the group, if the parent group is open */
+      if (grp->parent->hdf_grpid)
+      {
+         /* Rename the group */
+         if (H5Gmove(grp->parent->hdf_grpid, grp->name, name) < 0)
+            return NC_EHDFERR;
+
+         /* Reopen the group, with the new name */
+         if ((grp->hdf_grpid = H5Gopen2(grp->parent->hdf_grpid, name, H5P_DEFAULT)) < 0)
+            return NC_EHDFERR;
+      }
    }
 
    /* Give the group its new name in metadata. UTF8 normalization
@@ -148,7 +154,7 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
       return retval;
 
    /* Look through groups for one of this name. */
-   for (g = grp->children; g; g = g->next)
+   for (g = grp->children; g; g = g->l.next)
       if (!strcmp(norm_name, g->name)) /* found it! */
       {
 	 if (grp_ncid)
@@ -185,7 +191,7 @@ NC4_inq_grps(int ncid, int *numgrps, int *ncids)
    }
 
    /* Count the number of groups in this group. */
-   for (g = grp->children; g; g = g->next)
+   for (g = grp->children; g; g = g->l.next)
    {
       if (ncids)
       {
@@ -409,7 +415,7 @@ NC4_inq_varids(int ncid, int *nvars, int *varids)
        * 'em. The list is in correct (i.e. creation) order. */
       if (grp->var)
       {
-	 for (var = grp->var; var; var = var->next)
+	 for (var = grp->var; var; var = var->l.next)
 	 {
 	    if (varids)
 	       varids[num_vars] = var->varid;
@@ -467,11 +473,11 @@ NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
    else
    {
       /* First count them. */
-      for (dim = grp->dim; dim; dim = dim->next)
+      for (dim = grp->dim; dim; dim = dim->l.next)
 	 num++;
       if (include_parents)
 	 for (g = grp->parent; g; g = g->parent)
-	    for (dim = g->dim; dim; dim = dim->next)
+	    for (dim = g->dim; dim; dim = dim->l.next)
 	       num++;
       
       /* If the user wants the dimension ids, get them. */
@@ -480,13 +486,13 @@ NC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 	 int n = 0;
 
 	 /* Get dimension ids from this group. */
-	 for (dim = grp->dim; dim; dim = dim->next)
+	 for (dim = grp->dim; dim; dim = dim->l.next)
 	    dimids[n++] = dim->dimid;
 
 	 /* Get dimension ids from parent groups. */
 	 if (include_parents)
 	    for (g = grp->parent; g; g = g->parent)
-	       for (dim = g->dim; dim; dim = dim->next)
+	       for (dim = g->dim; dim; dim = dim->l.next)
 		  dimids[n++] = dim->dimid;
 	 
 	 qsort(dimids, num, sizeof(int), int_cmp);
