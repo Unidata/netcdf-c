@@ -252,11 +252,12 @@ NC5_inq_format(int ncid, int* formatp)
 }
 
 static int
-NC5_inq_format_extended(int ncid, int* formatp)
+NC5_inq_format_extended(int ncid, int* formatp, int *modep)
 {
     NC* nc;
     int status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
+    if(modep) *modep = nc->mode;
     if(formatp) *formatp = NC_FORMAT_NC5;
     return NC_NOERR;
 }

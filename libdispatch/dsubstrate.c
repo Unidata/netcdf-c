@@ -139,14 +139,14 @@ NCSUB_inq_format(int ncid, int* a1)
 }
 
 static int
-NCSUB_inq_format_extended(int ncid, int* a1)
+NCSUB_inq_format_extended(int ncid, int* a1, int *a2)
 {
     NC *nc, *ncsub;
     int ncstat = NC_check_id(ncid, &nc);
     if(ncstat != NC_NOERR) return ncstat;
     ncstat = NC_check_id(nc->substrate, &ncsub);
     if(ncstat != NC_NOERR) return ncstat;
-    return ncsub->dispatch->inq_format_extended(nc->substrate,a1);
+    return ncsub->dispatch->inq_format_extended(nc->substrate,a1,a2);
 }
 
 static int

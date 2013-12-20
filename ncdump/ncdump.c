@@ -239,6 +239,35 @@ kind_string(int kind)
 }
 
 
+/* Return extended format string */
+static const char *
+kind_string_extended(int kind, int mode)
+{
+    switch (kind) {
+    case NC_FORMAT_NC3:
+	if(mode & NC_64BIT_OFFSET)
+	    return "64-bit offset";
+	else
+	    return "classic";
+    case NC_FORMAT_NC_HDF5:
+	return "HDF5";
+    case NC_FORMAT_NC_HDF4:
+	return "HDF4";
+    case NC_FORMAT_NC5:
+	return "PNETCDF";
+    case NC_FORMAT_DAP2:
+	return "DAP2";
+    case NC_FORMAT_DAP4:
+	return "DAP4";
+    case NC_FORMAT_UNDEFINED:
+	return "unknown";
+    default:
+	error("unrecognized extended format: %d",kind);
+	return "unrecognized";
+    }
+}
+
+
 /* 
  * Emit initial line of output for NcML
  */
@@ -2132,6 +2161,7 @@ main(int argc, char *argv[])
     int nameopt = 0;
     bool_t xml_out = false;    /* if true, output NcML instead of CDL */
     bool_t kind_out = false;	/* if true, just output kind of netCDF file */
+    bool_t kind_out_extended = false;	/* output inq_format vs inq_format_extended */
 
 #if defined(WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
@@ -2156,7 +2186,7 @@ main(int argc, char *argv[])
 #endif
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xw")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwK")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2224,6 +2254,9 @@ main(int argc, char *argv[])
         case 'k':	        /* just output what kind of netCDF file */
 	  kind_out = true;
 	  break;
+        case 'K':	        /* extended format info */
+	  kind_out_extended = true;
+	  break;
 	case 't':		/* human-readable strings for date-time values */
 	  formatting_specs.string_times = true;
 	  formatting_specs.iso_separator = false;
@@ -2288,8 +2321,13 @@ main(int argc, char *argv[])
 		error("%s: %s", path, nc_strerror(nc_status));
 	    }
 	    NC_CHECK( nc_inq_format(ncid, &formatting_specs.nc_kind) );
+	    NC_CHECK( nc_inq_format_extended(ncid,
+                                             &formatting_specs.nc_extended,
+                                             &formatting_specs.nc_mode) );
 	    if (kind_out) {
 		printf ("%s\n", kind_string(formatting_specs.nc_kind));
+	    } else if (kind_out_extended) {
+		printf ("%s\n", kind_string_extended(formatting_specs.nc_extended,formatting_specs.nc_mode));
 	    } else {
 		/* Initialize list of types. */
 		init_types(ncid);

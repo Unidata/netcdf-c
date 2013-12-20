@@ -762,3 +762,14 @@ NCDAP_ping(const char* url)
     ocstat = oc_ping(url);
     return ocerrtoncerr(ocstat);
 }
+
+int
+NCD3_inq_format_extended(int ncid, int* formatp, int* modep)
+{
+    NC* nc;
+    int ncstatus = NC_check_id(ncid, (NC**)&nc);
+    if(ncstatus != NC_NOERR) return THROW(ncstatus);
+    if(modep) *modep = nc->mode;
+    if(formatp) *formatp = NC_FORMAT_DAP2;
+    return NC_NOERR;
+}

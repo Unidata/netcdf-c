@@ -95,7 +95,7 @@ EXTERNL int
 NC3_inq_format(int ncid, int *formatp);
 
 EXTERNL int
-NC3_inq_format_extended(int ncid, int *formatp);
+NC3_inq_format_extended(int ncid, int *formatp, int *modep);
 
 EXTERNL int
 NC3_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp);

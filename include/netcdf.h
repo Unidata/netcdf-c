@@ -170,22 +170,27 @@ Use this in mode flags for both nc_create() and nc_open(). */
 /**@}*/
 
 /** Extended format specifier returned by  nc_inq_format_extended() 
- *  Added in version 4.3.1.2. This returns the true format of the
- *  underlying data; It may differ from NC_FORMAT if the file
- *  was translated to netcdf format from some other format
- *  Note that the returned format may have multiple flags set
- *  (e.g. NC3+DISKLESS).
+ *  Added in version 4.3.1. This returns the true format of the
+ *  underlying data‥
+ * The function returns two values
+ * 1. a small integer indicating the underlying source type
+ *    of the data. Note that this may differ from what the user
+ *    sees from nc_inq_format() because this latter function
+ *    returns what the user can expect to see thru the API.
+ * 2. A mode value indicating what mode flags are effectively
+ *    set for this dataset. This usually will be a superset
+ *    of the mode flags used as the argument to nc_open
+ *    or nc_create.
+ * More or less, the #1 values track the set of dispatch tables.
+ * The #1 values are as follows.
  */
 /**@{*/
-#define NC_FORMAT_NC3     (NC_FORMAT_CLASSIC)
-#define NC_FORMAT_NC_HDF5 (NC_FORMAT_NETCDF4) /* netcdf 4 subset of HDF5 */
-#define NC_FORMAT_NC_HDF4 (NC_FORMAT_NETCDF4) /* netcdf 4 subset of HDF5 */
-#define NC_FORMAT_HDF5    (2<<8) 
-#define NC_FORMAT_HDF4    (2<<9)
-#define NC_FORMAT_DAP2    (2<<10)
-#define NC_FORMAT_DAP4    (2<<11)
-#define NC_FORMAT_NC5     (2<<12) /*PNETCDF*/
-#define NC_FORMAT_DISKLESS (2<<13)
+#define NC_FORMAT_NC3     (1)
+#define NC_FORMAT_NC_HDF5 (2) /*cdf 4 subset of HDF5 */
+#define NC_FORMAT_NC_HDF4 (3) /* netcdf 4 subset of HDF4 */
+#define NC_FORMAT_NC5     (4) /*PNETCDF*/
+#define NC_FORMAT_DAP2    (5)
+#define NC_FORMAT_DAP4    (6)
 #define NC_FORMAT_UNDEFINED (0)
 
 /**@}*/
@@ -884,6 +889,10 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp);
 /* Added in 3.6.1 to return format of netCDF file. */
 EXTERNL int
 nc_inq_format(int ncid, int *formatp);
+
+/* Added in 4.3.1 to return additional format info */
+EXTERNL int
+nc_inq_format_extended(int ncid, int *formatp, int* modep);
 
 /* Begin _dim */
 

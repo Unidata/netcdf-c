@@ -1536,7 +1536,7 @@ NC3_inq_format(int ncid, int *formatp)
 }
 
 int
-NC3_inq_format_extended(int ncid, int *formatp)
+NC3_inq_format_extended(int ncid, int *formatp, int *modep)
 {
 	int status;
 	NC *nc;
@@ -1545,6 +1545,7 @@ NC3_inq_format_extended(int ncid, int *formatp)
 	if(status != NC_NOERR)
 		return status;
         if(formatp) *formatp = NC_FORMAT_NC3;
+	if(modep) *modep = nc->mode;
 	return NC_NOERR;
 }
 
