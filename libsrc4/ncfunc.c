@@ -79,12 +79,11 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    if (!(nc = nc4_find_nc_file(ncid,&h5)))
       return NC_EBADID;
 
-   if(modep) *modep = nc->mode;
+   if(modep) *modep = (nc->mode|NC_NETCDF4);
 
    if(formatp) {
 	/* Distinguish HDF5 from HDF4 */
 	*formatp = (h5->hdf4 ? NC_FORMAT_HDF4 : NC_FORMAT_HDF5);
    }
-
    return NC_NOERR;
 }
