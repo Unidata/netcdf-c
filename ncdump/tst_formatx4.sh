@@ -26,4 +26,5 @@ if ! fgrep 'HDF5 mode=00001000' <tmp ; then
 echo "*** Fail: extended format for a classic netcdf-4 file"
 fi
 
-rm -f tmp
+rm -f tmp test.nc
+
