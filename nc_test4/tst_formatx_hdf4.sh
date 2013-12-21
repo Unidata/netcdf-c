@@ -11,6 +11,6 @@ set -e
 echo "Test extended format output for a HDF4 file"
 rm -f tmp
 ../ncdump/ncdump -K $PATH >tmp
-if ! fgrep 'HDF4' <tmp ; then
+if ! fgrep 'HDF4 mode=00000000' <tmp ; then
 echo "*** Fail: extended format for an HDF4 file"
 fi

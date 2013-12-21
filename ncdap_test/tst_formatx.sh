@@ -18,6 +18,8 @@ URL="$SVC/dts/test.03"
 echo "Test extended format output for a DAP2  file"
 rm -f tmp
 ../ncdump/ncdump -K $URL >tmp
-if ! fgrep 'DAP2' <tmp ; then
+if ! fgrep 'DAP2 mode=00000000' <tmp ; then
 echo "*** Fail: extended format for a DAP2 file"
 fi
+
+rm tmp

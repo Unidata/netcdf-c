@@ -12,7 +12,7 @@ CLEANFILES = nc_test_classic.nc nc_test_64bit.nc nc_test_netcdf4.nc	\
 tst_*.nc t_nc.nc large_files.nc quick_large_files.nc \
 tst_diskless.nc tst_diskless2.nc \
 tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
-tst_diskless4.cdl tst_diskless4.nc
+tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc
 
 # These are the tests which are always run.
 TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
@@ -23,7 +23,7 @@ TESTPROGRAMS += tst_atts
 endif
 
 if USE_PNETCDF
-TESTPROGRAMS += tst_parallel2 tst_pnetcdf
+TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_formatx_pnetcdf
 endif
 
 # if EXTRA_TESTS
@@ -75,7 +75,7 @@ endif
 endif
 
 if USE_PNETCDF
-TESTS += run_pnetcdf_test.sh tst_formatx_pnetcdf.sh
+TESTS += run_pnetcdf_test.sh
 endif
 
 # This will run a bunch of the test programs with valgrind, the memory
@@ -92,8 +92,7 @@ endif # USE_VALGRIND_TESTS
 # Distribute the .c files so that m4 isn't required on the users
 # machine.
 EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
-run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh \
-tst_formatx_pnetcdf.sh
+run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt

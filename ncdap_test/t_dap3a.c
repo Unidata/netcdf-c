@@ -146,7 +146,6 @@ int main()
 
     /* open file, get varid */
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
-    
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));

@@ -243,28 +243,38 @@ kind_string(int kind)
 static const char *
 kind_string_extended(int kind, int mode)
 {
+    static char text[1024];
     switch (kind) {
     case NC_FORMAT_NC3:
 	if(mode & NC_64BIT_OFFSET)
-	    return "64-bit offset";
+	    snprintf(text,sizeof(text),"%s mode=%08x", "64-bit offset",mode);
 	else
-	    return "classic";
+	    snprintf(text,sizeof(text),"%s mode=%08x", "classic",mode);
+	break;
     case NC_FORMAT_NC_HDF5:
-	return "HDF5";
+	snprintf(text,sizeof(text),"%s mode=%08x", "HDF5",mode);
+	break;	
     case NC_FORMAT_NC_HDF4:
-	return "HDF4";
-    case NC_FORMAT_NC5:
-	return "PNETCDF";
+	snprintf(text,sizeof(text),"%s mode=%08x", "HDF4",mode);
+	break;
+    case NC_FORMAT_PNETCDF:
+	snprintf(text,sizeof(text),"%s mode=%08x", "PNETCDF",mode);
+	break;
     case NC_FORMAT_DAP2:
-	return "DAP2";
+	snprintf(text,sizeof(text),"%s mode=%08x", "DAP2",mode);
+	break;
     case NC_FORMAT_DAP4:
-	return "DAP4";
+	snprintf(text,sizeof(text),"%s mode=%08x", "DAP4",mode);
+	break;
     case NC_FORMAT_UNDEFINED:
-	return "unknown";
+	snprintf(text,sizeof(text),"%s mode=%08x", "unknown",mode);
+	break;
     default:
 	error("unrecognized extended format: %d",kind);
-	return "unrecognized";
+	snprintf(text,sizeof(text),"%s mode=%08x", "unrecognized",mode);
+	break;
     }
+    return text;
 }
 
 

@@ -113,8 +113,13 @@ NC5_open(const char *path, int cmode,
     if(cmode & (NC_64BIT_OFFSET))
 	return NC_EINVAL;
 
-    comm = ((NC_MPI_INFO *)mpidata)->comm; 
-    info = ((NC_MPI_INFO *)mpidata)->info;	
+    if(mpidata != NULL) {
+        comm = ((NC_MPI_INFO *)mpidata)->comm; 
+        info = ((NC_MPI_INFO *)mpidata)->info;	
+    } else {
+	comm = MPI_COMM_WORLD;
+	info = MPI_INFO_NULL;
+    }
 
     /* Fix up the cmode by keeping only essential flags;
        these are the flags that are the same in netcf.h and pnetcdf.h
@@ -258,7 +263,7 @@ NC5_inq_format_extended(int ncid, int* formatp, int *modep)
     int status = NC_check_id(ncid, &nc);
     if(status != NC_NOERR) return status;
     if(modep) *modep = nc->mode;
-    if(formatp) *formatp = NC_FORMAT_NC5;
+    if(formatp) *formatp = NC_FORMAT_PNETCDF;
     return NC_NOERR;
 }
 

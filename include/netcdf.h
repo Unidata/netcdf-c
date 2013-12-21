@@ -188,7 +188,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_NC3     (1)
 #define NC_FORMAT_NC_HDF5 (2) /*cdf 4 subset of HDF5 */
 #define NC_FORMAT_NC_HDF4 (3) /* netcdf 4 subset of HDF4 */
-#define NC_FORMAT_NC5     (4) /*PNETCDF*/
+#define NC_FORMAT_PNETCDF (4)
 #define NC_FORMAT_DAP2    (5)
 #define NC_FORMAT_DAP4    (6)
 #define NC_FORMAT_UNDEFINED (0)
