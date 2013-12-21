@@ -83,7 +83,7 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
 
    if(formatp) {
 	/* Distinguish HDF5 from HDF4 */
-	*formatp = (h5->hdf4 ? NC_FORMAT_HDF4 : NC_FORMAT_HDF5);
+	*formatp = (h5->hdf4 ? NC_FORMAT_NC_HDF4 : NC_FORMAT_NC_HDF5);
    }
    return NC_NOERR;
 }

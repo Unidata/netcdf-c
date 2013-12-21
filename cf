@@ -1,5 +1,5 @@
 #!/bin/bash
-1#X="-x"
+#X="-x"
 #NB=1
 
 if test $# != 0 ; then
@@ -183,10 +183,19 @@ FLAGS="$FLAGS --enable-rpc"
 fi
 
 if test "x$PNETCDF" = x1 ; then
-PATH=${PATH}:/machine/local_mpich2/bin
-CC="/machine/local_mpich2/bin/mpicc"
-CPPFLAGS="-I/machine/local_par7/include -I/machine/local_mpich2/include -I/machine/local_par/include"
-LDFLAGS="-L/machine/local_par7/lib -L/machine/local_mpich2/lib -L/machine/local_par/lib"
+if test -f /machine/local_mpich2 ; then
+MPI1=/machine/local_mpich2
+MPI2=/machine/local_par7
+MPI3=/machine/local_par
+else
+MPI1=/usr/local
+MPI2=${MPI1}
+MPI3=${MPI1}
+fi
+PATH=${PATH}:${MPI1}/bin
+CC="${MPI1}/bin/mpicc"
+CPPFLAGS="-I${MPI2}/include -I${MPI1}/include -I${MPI3}/include"
+LDFLAGS="-L${MPI2}/lib -L${MPI1}/lib -L${MPI3}/lib"
 LDLIBS="-lmpich -lmpl"
 FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
