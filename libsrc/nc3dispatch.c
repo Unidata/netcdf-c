@@ -94,6 +94,7 @@ NC3_set_fill,
 NC3_inq_base_pe,
 NC3_set_base_pe,
 NC3_inq_format,
+NC3_inq_format_extended,
 
 NC3_inq,
 NC3_inq_type,

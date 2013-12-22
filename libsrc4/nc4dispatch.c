@@ -26,6 +26,7 @@ NC4_set_fill,
 NC4_inq_base_pe,
 NC4_set_base_pe,
 NC4_inq_format,
+NC4_inq_format_extended,
 
 NC4_inq,
 NC4_inq_type,

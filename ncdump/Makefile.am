@@ -31,7 +31,7 @@ if BUILD_TESTSETS
 check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh tst_iter.sh
+tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh
 
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
@@ -48,7 +48,7 @@ TESTS += tst_create_files tst_group_data tst_enum_data tst_opaque_data	\
 tst_string_data tst_vlen_data tst_comp tst_comp2 tst_nans		\
 tst_special_atts tst_netcdf4.sh tst_h_rdc0 tst_unicode tst_fillbug	\
 tst_fillbug.sh tst_netcdf4_4.sh tst_compress tst_nccopy4.sh             \
-tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh
+tst_grp_spec.sh tst_mud.sh tst_h_scalar tst_h_scalar.sh tst_formatx4.sh
 
 if EXTRA_TESTS
 TESTS += run_back_comp_tests.sh
@@ -123,13 +123,15 @@ ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
-ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh CMakeLists.txt  \
-XGetopt.c
+ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh            \
+tst_formatx3.sh tst_formatx4.sh                                         \
+CMakeLists.txt XGetopt.c
 
 # NCGEN4 additions
 SUBDIRS=cdl4 expected4
 EXTRA_DIST += tst_ncgen4_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
-tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c
+tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c \
+ctest.c ctest64.c
 
 CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl
 DISTCLEANFILES = results

@@ -1243,7 +1243,8 @@ nc_set_base_pe(int ncid, int pe)
 }
 
 /**
-Inquire about the binary format of a netCDF file.
+Inquire about the binary format of a netCDF file
+as presented by the API.
 
 This function returns the (rarely needed) format version.
 
@@ -1266,6 +1267,40 @@ nc_inq_format(int ncid, int *formatp)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_format(ncid,formatp);
+}
+
+/**
+Obtain more detailed (vis-a-vis nc_inq_format)
+format information about an open dataset.
+Note that the netcdf API will present the file
+as if it had the format specified by nc_inq_format.
+The true file format, however, may not even be
+a netcdf file; it might be DAP, HDF4, or PNETCDF,
+for example. This function returns that true file type.
+It also returns the effective mode for the file.
+
+\param ncid NetCDF ID, from a previous call to nc_open() or 
+nc_create().
+
+\param formatp Pointer to location for returned true format.
+
+\param modep Pointer to location for returned mode flags.
+
+Refer to the actual list in the file netcdf.h to see the
+currently defined set.
+
+\returns ::NC_NOERR No error.
+
+\returns ::NC_EBADID Invalid ncid passed.
+
+ */
+int
+nc_inq_format_extended(int ncid, int *formatp, int *modep)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   return ncp->dispatch->inq_format_extended(ncid,formatp,modep);
 }
 
 /**
@@ -1549,7 +1584,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
    }
 
    /* Create the NC* instance and insert its dispatcher */
-   stat = new_NC(dispatcher,path,&ncp);
+   stat = new_NC(dispatcher,path,cmode,&ncp);
    if(stat) return stat;
 
    /* Add to list of known open files and define ext_ncid */
@@ -1688,7 +1723,7 @@ NC_open(const char *path, int cmode,
 havetable:
 
    /* Create the NC* instance and insert its dispatcher */
-   stat = new_NC(dispatcher,path,&ncp);
+   stat = new_NC(dispatcher,path,cmode,&ncp);
    if(stat) return stat;
 
    /* Add to list of known open files */

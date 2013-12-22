@@ -58,6 +58,7 @@ NULL, /*set_fill*/
 NULL, /*inq_base_pe*/
 NULL, /*set_base_pe*/
 NULL, /*inq_format*/
+NCD3_inq_format_extended, /*inq_format_extended*/
 
 NULL, /*inq*/
 NULL, /*inq_type*/

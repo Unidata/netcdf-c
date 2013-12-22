@@ -52,6 +52,10 @@ NCD3_open(const char *path, int mode,
 EXTERNL int
 NCD3_close(int ncid);
 
+EXTERNL int
+NCD3_inq_format_extended(int ncid, int* formatp, int* modep);
+
+
 /* End _var */
 
 extern int NCD3_initialize(void);

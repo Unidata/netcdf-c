@@ -85,8 +85,8 @@ endif # BUILD_BENCHMARKS
 
 # These are the tests for HDF4.
 if USE_HDF4
-check_PROGRAMS += tst_interops2 
-TESTS += tst_interops2
+check_PROGRAMS += tst_interops2
+TESTS += tst_interops2  tst_formatx_hdf4.sh
 if USE_HDF4_FILE_TESTS
 check_PROGRAMS += tst_interops3
 TESTS += run_get_hdf4_files.sh tst_interops3
