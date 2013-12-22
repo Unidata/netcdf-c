@@ -8,7 +8,7 @@ fi
 
 HDF5=1
 DAP=1
-#HDF4=1
+HDF4=1
 #PNETCDF=1
 
 #RPC=1
@@ -114,10 +114,9 @@ LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
 LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
-#if test "x$HDF4" = "x1" ; then
-#CPPFLAGS="-I/machine/local/include $CPPFLAGS"
-#LDFLAGS="-L/machine/local/lib $LDFLAGS"
-#fi
+if test "x$HDF4" = "x1" ; then
+LDFLAGS="$LDFLAGS -ljpeg"
+fi
 
 if test "x$DAP" = "x1" -o "x$CDMR" = "x1" -o "x$RPC" = "x1" ; then
 if curl-config --version >/dev/null ; then
@@ -150,12 +149,12 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-dap-long-tests"
 #FLAGS="$FLAGS --enable-ffio"
 #FLAGS="$FLAGS --enable-benchmarks"
-FLAGS="$FLAGS --enable-extra-tests"
+#FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-doxygen"
-FLAGS="$FLAGS --enable-logging"
+#FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
 #FLAGS="$FLAGS --with-udunits"

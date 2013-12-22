@@ -4,6 +4,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1 Released TBD
 
+* Add an extended format inquiry method to the netcdf API: nc_inq_format_extended. [NCF-273]
+
+[NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
+
 ### 4.3.1-rc6 Released 2013-12-19
 
 * Fixed fill value handling for string types in nc4\_get\_vara().

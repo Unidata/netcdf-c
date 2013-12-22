@@ -24,6 +24,7 @@
 int main(int argc, char* argv[])
 {
     int err = 0;
+    int ecode = 0;
     int ncid;
     int cmode, format;   
     int nprocs, rank;
@@ -55,10 +56,12 @@ int main(int argc, char* argv[])
     if(nc_inq_format_extended(ncid,&format,&cmode)) ERR;
     if(cmode != 0x8000) {
 	printf("***FAIL: mode was %08x ; expected %08x\n",cmode,0);
+	ecode = 1;
 	ERR;
     }
     if(format != NC_FORMAT_PNETCDF) {
 	printf("***FAIL: format was %d ; expected %d\n",format,NC_FORMAT_PNETCDF);
+	ecode = 1;
 	ERR;
     }
 
@@ -68,5 +71,5 @@ fn_exit:
     MPI_Finalize();
     SUMMARIZE_ERR;
     FINAL_RESULTS;
-    return 0;
+    return ecode;
 }

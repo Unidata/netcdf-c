@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then
 srcdir="."
 fi
 
-
+ECODE=0
 echo ""
 echo "*** Testing extended file format output."
 set -e
@@ -16,6 +16,7 @@ rm -f tmp
 ./ncdump -K test.nc >tmp
 if ! fgrep 'HDF5 mode=00001000' <tmp ; then
 echo "*** Fail: extended format for a netcdf-4 file"
+ECODE=1
 fi
 
 echo "Test extended format output for a classic netcdf-4 file"
@@ -24,7 +25,10 @@ rm -f tmp
 ./ncdump -K test.nc >tmp
 if ! fgrep 'HDF5 mode=00001000' <tmp ; then
 echo "*** Fail: extended format for a classic netcdf-4 file"
+ECODE=1
 fi
 
 rm -f tmp test.nc
+
+exit $ECODE
 
