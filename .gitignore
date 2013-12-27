@@ -1,8 +1,37 @@
-build
-html
-doxygen*.tmp
-\#*.*\#
-autom4te.cache
-myhtml
-CMakeLists.txt.user
-scan-build
+# Make results
+
+# ignore out of source build
+/build
+
+# # http://www.gnu.org/software/automake
+Makefile.in
+/compile
+
+# # http://www.gnu.org/software/autoconf
+/config.h.in
+/config.sub
+/config.guess
+/autom4te.cache
+/aclocal.m4
+/configure
+/depcomp
+/install-sh
+/missing
+
+# # autotest
+/test-driver
+
+# # Libtool
+/ltmain.sh
+/libtool
+/m4/libtool.m4
+/m4/ltoptions.m4
+/m4/ltsugar.m4
+/m4/ltversion.m4
+/m4/lt~obsolete.m4
+
+
+# # emacs stuff
+*~
+\#*\#
+
