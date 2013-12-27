@@ -140,9 +140,10 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
         /* no file */
         {
           if (find_path_in_NCList(path)) {
-            /* File is probably in memory */
+            /* File is in memory */
             *filetype = FT_MEM;
-            *version = 2;       /* Is it version 2? TODO Check.. */
+            /* In memory files always return version 2 */
+            *version = 2;       
             return NC_NOERR;
           }
           return errno;
@@ -159,10 +160,10 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 
       if (st.st_size == 0 && find_path_in_NCList(path)) {
         /* Empty file and in our list */
-        /* Assume file is in memory and not synced yet */
+        /* File is in memory and not synced yet */
         if (find_path_in_NCList(path)) {
           *filetype = FT_MEM;
-          *version = 2;       /* Is it version 2? TODO Check.. */
+          *version = 2;       
           return NC_NOERR;
         }
         /* An empty file that is not in our list */
@@ -171,7 +172,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       }
 
       if(st.st_size < MAGIC_NUMBER_LEN) {
-        /*  */
+        /* Not enough bytes to check magic number for type */
         fclose(fp);
         return NC_ENOTNC;
       }
