@@ -14,13 +14,19 @@
 
 # Make check results
 # ncgen tests
-/ncgen/*.nc
 /ncgen/ref_camrun.c
-/ncgen3/*.nc
+/ncgen/*.log
+/ncgen/*.trs
+
+/ncgen3/*.log
+/ncgen3/*.trs
+
 
 # netcdf 3 tests
 /nctest/nctest
 /nctest/temp.tmp
+/nctest/*.log
+/nctest/*.trs
 /nctest/tst_rename
 /nctest/nctest_64bit_offset.nc
 /nctest/nctest_classic.nc
@@ -29,8 +35,8 @@
 /nctest/tst_rename.nc
 
 /nc_test/nc_test
-/nc_test/*.nc
-/nc_test/*.cdl
+/nc_test/*.log
+/nc_test/*.trs
 /nc_test/t_nc
 /nc_test/tst_atts
 /nc_test/tst_atts3
@@ -48,7 +54,8 @@
 /nc_test/tst_small
 
 # hdf5 tests
-/h5_test/*.h5
+/h5_test/*.log
+/h5_test/*.trs
 /h5_test/tst_h_atts
 /h5_test/tst_h_atts3
 /h5_test/tst_h_atts4
@@ -76,9 +83,27 @@
 /h5_test/tst_h_vl
 /h5_test/tst_h_wrt_cmp
 
+
 # netcdf 4 tests
+/nc_test4/*.log
+/nc_test4/*.trs
+/nc_test4/*.h5
 /nc_test4/cdm_sea_soundings
 /nc_test4/t_type
+/nc_test4/renamegroup
+/nc_test4/tst_atts1
+/nc_test4/tst_atts2
+/nc_test4/tst_camrun
+/nc_test4/tst_files5
+/nc_test4/tst_files6
+/nc_test4/tst_grp_rename.dmp
+/nc_test4/tst_h_refs
+/nc_test4/tst_h_scalar
+/nc_test4/tst_h_strbug
+/nc_test4/tst_sync
+/nc_test4/tst_v2
+/nc_test4/tst_vars2
+/nc_test4/tst_vl
 /nc_test4/tst_atts
 /nc_test4/tst_chunks
 /nc_test4/tst_chunks2
@@ -120,9 +145,8 @@
 /nc_test4/tst_xplatform2
 
 # ncdump tests
-/ncdump/*.cdl
-/ncdump/*.nc
-/ncdump/*.ncml
+/ncdump/*.log
+/ncdump/*.trs
 /ncdump/ctest
 /ncdump/ctest64
 /ncdump/results/*
@@ -133,9 +157,7 @@
 /ncdump/tst_compress
 /ncdump/tst_create_files
 /ncdump/tst_enum_data
-/ncdump/tst_enum_data.cdl
 /ncdump/tst_fillbug
-/ncdump/tst_fillbug.cdl
 /ncdump/tst_group_data
 /ncdump/tst_h_rdc0
 /ncdump/tst_h_scalar
@@ -149,7 +171,84 @@
 
 #ncdap tests
 /ncdap_test/.dodsrc
+/ncdap_test/*.log
+/ncdap_test/*.trs
+/ncdap_test/nctestserver
+/ncdap_test/t_auth
+/ncdap_test/t_dap3a
+/ncdap_test/test_cvt3
+/ncdap_test/test_nstride_cached
+/ncdap_test/test_partvar
+/ncdap_test/test_vara
+/ncdap_test/test_varm3
 
+# examples
+/examples/C/*.log
+/examples/C/*.trs
+/examples/C/pres_temp_4D_rd
+/examples/C/pres_temp_4D_wr
+/examples/C/sfc_pres_temp_rd
+/examples/C/sfc_pres_temp_wr
+/examples/C/simple_nc4_rd
+/examples/C/simple_nc4_wr
+/examples/C/simple_xy_nc4_rd
+/examples/C/simple_xy_nc4_wr
+/examples/C/simple_xy_rd
+/examples/C/simple_xy_wr
+/examples/CDL/*.log
+/examples/CDL/*.trs
+
+# generated netcdf/h5/cdl files
+h5_test/tst_*.h5
+nc_test/tst_*.nc
+nc_test4/tst_*.nc
+ncdump/tst_*.nc
+ncdump/tst_*.cdl
+examples/C/pres_temp_4D.nc
+examples/C/sfc_pres_temp.nc
+examples/C/simple_nc4.nc
+examples/C/simple_xy.nc
+examples/C/simple_xy_nc4.nc
+examples/CDL/pres_temp_4D.nc
+examples/CDL/sfc_pres_temp.nc
+examples/CDL/simple_xy.nc
+nc_test/nc_test_64bit.nc
+nc_test/nc_test_classic.nc
+nc_test/nc_test_netcdf4.nc
+nc_test/t_nc.nc
+nc_test4/cdm_sea_soundings.nc
+nc_test4/foo1.nc
+nc_test4/ref_grp_rename.cdl
+ncdump/c0.nc
+ncdump/c0_4.nc
+ncdump/c0tmp.nc
+ncdump/c1.cdl
+ncdump/c1.ncml
+ncdump/c1_4.cdl
+ncdump/ctest0.nc
+ncdump/ctest0_64.nc
+ncdump/ctest1.cdl
+ncdump/ctest1_64.cdl
+ncdump/small.nc
+ncdump/small2.nc
+ncdump/test0.nc
+ncdump/test1.cdl
+ncdump/test1.nc
+ncdump/test2.cdl
+ncdump/tmp_all.nc
+ncdump/tmp_subset.cdl
+ncdump/tmp_tst_charfill.cdl
+ncdump/utf8.cdl
+ncdump/utf8.nc
+ncgen/c0.nc
+ncgen/c0_4.nc
+ncgen/c0_4c.nc
+ncgen/c0_64.nc
+ncgen/ncf199.nc
+ncgen3/c0.nc
+ncgen3/c0_4.nc
+ncgen3/c0_4c.nc
+ncgen3/c0_64.nc
 
 # docs
 html
@@ -191,6 +290,8 @@ Makefile
 /install-sh
 /missing
 
+# autotest
+/test-driver
 
 # c dependencies
 /depcomp
