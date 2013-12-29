@@ -55,9 +55,8 @@ typedef struct NC4_rec_read_metadata_obj_info
 /* Tracks the groups, named datatypes and datasets in the group, for later use */
 typedef struct NC4_rec_read_metadata_ud
 {
-    NC4_rec_read_metadata_obj_info_t *types_head, *types_tail;    /* Pointers to head & tail of list of named datatypes */
-    NC4_rec_read_metadata_obj_info_t *dsets_head, *dsets_tail;    /* Pointers to head & tail of list of datasets */
-    NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
+   NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
+   NC_GRP_INFO_T *grp;                                          /* Pointer to parent group */
 } NC4_rec_read_metadata_ud_t;
 
 /* Forward */
@@ -1379,7 +1378,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(&grp->var, &var)))
-      return retval;
+      BAIL(retval);
    
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
@@ -1394,9 +1393,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if (var->ndims)
    {
       if (!(var->dim = calloc(var->ndims, sizeof(NC_DIM_INFO_T *))))
-	 return NC_ENOMEM;
+	 BAIL(NC_ENOMEM);
       if (!(var->dimids = calloc(var->ndims, sizeof(int))))
-	 return NC_ENOMEM;
+	 BAIL(NC_ENOMEM);
    }
 
    /* Get the current chunk cache settings. */
@@ -1409,7 +1408,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Learn about current chunk cache settings. */
    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems), 
 			   &(var->chunk_cache_size), &rdcc_w0)) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
    var->chunk_cache_preemption = rdcc_w0;
 
    /* Check for a weird case: a non-coordinate variable that has the
@@ -1420,13 +1419,13 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    {
       /* Allocate space for the name. */
       if (!(var->name = malloc(((strlen(obj_name) - strlen(NON_COORD_PREPEND))+ 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->name, &obj_name[strlen(NON_COORD_PREPEND)]);
 
       /* Allocate space for the HDF5 name. */
       if (!(var->hdf5_name = malloc((strlen(obj_name) + 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->hdf5_name, obj_name);
    }
@@ -1434,7 +1433,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    {
       /* Allocate space for the name. */
       if (!(var->name = malloc((strlen(obj_name) + 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->name, obj_name);
    }
@@ -1654,7 +1653,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if ((retval = nc4_adjust_var_cache(grp, var)))
       BAIL(retval);
 
-  exit:
+exit:
    if (retval)
    {
        if (incr_id_rc && H5Idec_ref(datasetid) < 0)
@@ -1663,7 +1662,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
           BAIL2(NC_EHDFERR);
    }
    if (access_pid && H5Pclose(access_pid) < 0)
-      BAIL2(retval);
+      BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
@@ -1794,7 +1793,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
 	 BAIL(retval);
    
-  exit: 
+exit: 
    if (spaceid && H5Sclose(spaceid) <0)
       BAIL2(retval);
 #ifdef EXTRA_TESTS
@@ -1805,20 +1804,29 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 }
 
 static int
-nc4_iter_list_add(NC4_rec_read_metadata_obj_info_t **head,
+nc4_rec_read_metadata_cb_list_add(NC4_rec_read_metadata_obj_info_t **head,
                   NC4_rec_read_metadata_obj_info_t **tail,
-                  NC4_rec_read_metadata_obj_info_t *oinfo)
+                  const NC4_rec_read_metadata_obj_info_t *oinfo)
 {
+   NC4_rec_read_metadata_obj_info_t *new_oinfo;    /* Pointer to info for object */
+
+   /* Allocate memory for the object's info */
+   if (!(new_oinfo = calloc(1, sizeof(*new_oinfo))))
+      return NC_ENOMEM;
+
+   /* Make a copy of the object's info */
+   memcpy(new_oinfo, oinfo, sizeof(*oinfo));
+
    if (*tail)
    {
        assert(*head);
-       (*tail)->next = oinfo;
-       *tail = oinfo;
+       (*tail)->next = new_oinfo;
+       *tail = new_oinfo;
    }
    else
    {
        assert(NULL == *head);
-       *head = *tail = oinfo;
+       *head = *tail = new_oinfo;
    }
 
    return (NC_NOERR);
@@ -1829,63 +1837,93 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		      void *_op_data)
 {
     NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
-    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
+    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
     int retval = H5_ITER_CONT;
 
-   /* Allocate memory for the object's info */
-   if (!(oinfo = calloc(1, sizeof(NC4_rec_read_metadata_obj_info_t))))
-      return NC_ENOMEM;
+   /* Reset the memory for the object's info */
+   memset(&oinfo, 0, sizeof(oinfo));
 
    /* Open this critter. */
-   if ((oinfo->oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
-      return H5_ITER_ERROR;
+   if ((oinfo.oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+      BAIL(H5_ITER_ERROR);
 	  
    /* Get info about the object.*/
-   if (H5Gget_objinfo(oinfo->oid, ".", 1, &oinfo->statbuf) < 0)
-     return H5_ITER_ERROR;
+   if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
+      BAIL(H5_ITER_ERROR);
 
-   strncpy(oinfo->oname, name, NC_MAX_NAME);
+   strncpy(oinfo.oname, name, NC_MAX_NAME);
 	   
    /* Add object to list, for later */
-   switch(oinfo->statbuf.type)
+   switch(oinfo.statbuf.type)
    {
       case H5G_GROUP:
-         LOG((3, "found group %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->grps_head, &udata->grps_tail, oinfo))
+         LOG((3, "found group %s", oinfo.oname));
+
+         /* Defer descending into child group immediately, so that the types
+          *     in the current group can be processed and be ready for use by
+          *     vars in the child group(s).
+          */
+         if (nc4_rec_read_metadata_cb_list_add(&udata->grps_head, &udata->grps_tail, &oinfo))
              BAIL(H5_ITER_ERROR);
          break;
 
       case H5G_DATASET:
-         LOG((3, "found dataset %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->dsets_head, &udata->dsets_tail, oinfo))
-             BAIL(H5_ITER_ERROR);
+         LOG((3, "found dataset %s", oinfo.oname));
+
+         /* Learn all about this dataset, which may be a dimscale
+          * (i.e. dimension metadata), or real data. */
+         if ((retval = read_dataset(udata->grp, oinfo.oid, oinfo.oname, &oinfo.statbuf)))
+         {
+            /* Allow NC_EBADTYPID to transparently skip over datasets
+             *  which have a datatype that netCDF-4 doesn't undertand
+             *  (currently), but break out of iteration for other
+             *  errors.
+             */
+            if(NC_EBADTYPID != retval)
+               BAIL(H5_ITER_ERROR);
+            else
+               retval = H5_ITER_CONT;
+         }
+
+         /* Close the object */
+         if (H5Oclose(oinfo.oid) < 0)
+	    BAIL(H5_ITER_ERROR);
          break;
 
       case H5G_TYPE:
-         LOG((3, "found datatype %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->types_head, &udata->types_tail, oinfo))
-             BAIL(H5_ITER_ERROR);
+         LOG((3, "found datatype %s", oinfo.oname));
+
+         /* Process the named datatype */
+         if (read_type(udata->grp, oinfo.oid, oinfo.oname))
+            BAIL(H5_ITER_ERROR);
+
+         /* Close the object */
+         if (H5Oclose(oinfo.oid) < 0)
+	    BAIL(H5_ITER_ERROR);
          break;
 
       default:
-         LOG((0, "Unknown object class %d in %s!", oinfo->statbuf.type, __func__));
+         LOG((0, "Unknown object class %d in %s!", oinfo.statbuf.type, __func__));
          BAIL(H5_ITER_ERROR);
     }
 
 exit:
    if (retval)
    {
-      if (oinfo)
-      {
-         if (oinfo->oid > 0 && H5Oclose(oinfo->oid) < 0)
-	    BAIL2(H5_ITER_ERROR);
-         free(oinfo);
-      }
+      if (oinfo.oid > 0 && H5Oclose(oinfo.oid) < 0)
+         BAIL2(H5_ITER_ERROR);
    }
 
    return (retval);
 }
 
+/* This is the main function to recursively read all the metadata for the file. */
+/* The links in the 'grp' are iterated over and added to the file's metadata
+ *      information.  Note that child groups are not immediately processed, but
+ *      are deferred until all the other links in the group are handled (so that
+ *      vars in the child groups are guaranteed to have types that they use in
+ *      a parent group in place).
+ */
 static int
 nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
@@ -1899,9 +1937,6 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
-
-    /* Portably initialize user data for iteration */
-    memset(&udata, 0, sizeof(udata));
 
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
@@ -1942,6 +1977,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
         iter_index = H5_INDEX_NAME;
     }
 
+    /* Portably initialize user data for iteration */
+    memset(&udata, 0, sizeof(udata));
+    udata.grp = grp;
+
     /* Iterate over links in this group, building lists for the types,
      *  datasets and groups encountered
      */
@@ -1949,49 +1988,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
             nc4_rec_read_metadata_cb, (void *)&udata) < 0)
 	BAIL(NC_EHDFERR);
 
-    /* Process the types, datasets and groups found */
-    /* (Make certain it's in this order, so that the types are available for
-     *  future datasets & child groups)
+    /* Process the child groups found */
+    /* (Deferred until now, so that the types in the current group get
+     *  processed and are available for vars in the child group(s).)
      */
-    for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
-    {
-        /* Process the named datatype */
-        if ((retval = read_type(grp, oinfo->oid, oinfo->oname)))
-            BAIL(retval);
-
-        /* Close the object */
-        if (H5Oclose(oinfo->oid) < 0)
-	    BAIL(NC_EHDFERR);
-
-        /* Advance to next node, free current node */
-        udata.types_head = oinfo->next;
-        free(oinfo);
-    }
-    for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
-    {
-        /* Learn all about this dataset, which may be a dimscale
-         * (i.e. dimension metadata), or real data. */
-        if ((retval = read_dataset(grp, oinfo->oid, oinfo->oname, &oinfo->statbuf)))
-        {
-            /* Allow NC_EBADTYPID to transparently skip over datasets
-             *  which have a datatype that netCDF-4 doesn't undertand
-             *  (currently), but break out of iteration for other
-             *  errors.
-             */
-            if(NC_EBADTYPID != retval)
-                BAIL(retval);
-            else
-                retval = NC_NOERR;
-        }
-
-        /* Close the object */
-        if (H5Oclose(oinfo->oid) < 0)
-	    BAIL(NC_EHDFERR);
-
-        /* Advance to next node, free current node */
-        udata.dsets_head = oinfo->next;
-        free(oinfo);
-    }
     for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
     {
         NC_GRP_INFO_T *child_grp;
@@ -2023,31 +2023,11 @@ exit:
     /* Clean up local information on error, if anything remains */
     if (retval)
     {
-        for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
-        {
-            /* Close the object */
-            if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Advance to next node, free current node */
-            udata.types_head = oinfo->next;
-            free(oinfo);
-        }
-        for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
-        {
-            /* Close the object */
-            if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Advance to next node, free current node */
-            udata.dsets_head = oinfo->next;
-            free(oinfo);
-        }
         for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
         {
             /* Close the object */
             if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
+                BAIL2(NC_EHDFERR);
 
             /* Advance to next node, free current node */
             udata.grps_head = oinfo->next;

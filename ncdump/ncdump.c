@@ -1318,7 +1318,7 @@ do_ncdump_rec(int ncid, const char *path)
    int id;			/* dimension number per variable */
    int ia;			/* attribute number */
    int iv;			/* variable number */
-   idnode_t* vlist = 0;		/* list for vars specified with -v option */
+   idnode_t* vlist = NULL;	/* list for vars specified with -v option */
    char type_name[NC_MAX_NAME + 1];
    int kind;		/* strings output differently for nc4 files */
    char dim_name[NC_MAX_NAME + 1];
@@ -1691,7 +1691,7 @@ done:
    if (dims)
       free(dims);
    if (vlist)
-      free(vlist);
+      freeidlist(vlist);
 }
 
 
@@ -1724,7 +1724,7 @@ do_ncdumpx(int ncid, const char *path)
     ncvar_t var;		/* variable */
     int ia;			/* attribute number */
     int iv;			/* variable number */
-    idnode_t* vlist = 0;        /* list for vars specified with -v option */
+    idnode_t* vlist = NULL;     /* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of associated
@@ -1806,7 +1806,7 @@ do_ncdumpx(int ncid, const char *path)
     
     printf ("</netcdf>\n");
     if (vlist)
-	free(vlist);
+	freeidlist(vlist);
     if(dims)
 	free(dims);
 }

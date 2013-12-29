@@ -125,7 +125,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    }
 
    /* If the caller wants data, copy it for him. If he hasn't
-      allocated enough memory for it, he will burn in segmantation
+      allocated enough memory for it, he will burn in segmentation
       fault hell, writhing with the agony of undiscovered memory
       bugs! */
    if (data)
@@ -367,9 +367,19 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
        * one. Make up your damn mind, would you? */
       if (var->fill_value)
       {
-	 if (type_info && type_info->class == NC_VLEN)
-	    if ((retval = nc_free_vlen(var->fill_value)))
-	       return retval;
+	 if (type_info)
+         {
+            if (type_info->class == NC_VLEN)
+            {
+               if ((retval = nc_free_vlen(var->fill_value)))
+                  return retval;
+            }
+            else if (type_info->class == NC_STRING)
+            {
+               if (*(char **)var->fill_value)
+                  free(*(char **)var->fill_value);
+            }
+         }
 	 free(var->fill_value);
       }
 
@@ -377,15 +387,11 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       if (type_info && type_info->class == NC_VLEN)
 	 size = sizeof(hvl_t);
       else if (var->xtype == NC_STRING)
-      {
-         size = 1;
-         if(NULL != (*(char **)data))
-             size += strlen(*(char **)data);
-      }
+	 size = sizeof(char *);
       else
 	 size = type_size;
 
-      if (!(var->fill_value = malloc(size)))
+      if (!(var->fill_value = calloc(1, size)))
 	 return NC_ENOMEM;
 
       /* Copy the fill_value. */
@@ -393,6 +399,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       if (type_info && type_info->class == NC_VLEN)
       {
 	 nc_vlen_t *in_vlen = (nc_vlen_t *)data, *fv_vlen = (nc_vlen_t *)(var->fill_value);
+
 	 fv_vlen->len = in_vlen->len;
 	 if (!(fv_vlen->p = malloc(size * in_vlen->len)))
 	    return NC_ENOMEM;
@@ -401,9 +408,13 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       else if (var->xtype == NC_STRING)
       {
          if(NULL != (*(char **)data))
-            strcpy((char *)var->fill_value, *(char **)data);
+         {
+            if (!(*(char **)(var->fill_value) = malloc(strlen(*(char **)data) + 1)))
+               return NC_ENOMEM;
+            strcpy(*(char **)var->fill_value, *(char **)data);
+         }
          else
-            strcpy((char *)var->fill_value, "");
+            *(char **)var->fill_value = NULL;
       }
       else
 	 memcpy(var->fill_value, data, type_size);

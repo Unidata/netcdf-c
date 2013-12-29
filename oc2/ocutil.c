@@ -698,8 +698,10 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
       return OC_EOVERRUN;
     }
 #ifdef HAVE_MKSTEMP
-    if(!occoncat(tmpname,tmpsize,1,"XXXXXX"))
+    if(!occoncat(tmpname,tmpsize,1,"XXXXXX")) {
+        free(tmpname);
 	return OC_EOVERRUN;
+    }
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     oldmask= umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -712,8 +714,10 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
 	char spid[7];
 	if(rno < 0) rno = -rno;
         snprintf(spid,sizeof(spid),"%06d",rno);
-	if(!occoncat(tmpname,tmpsize,1,spid))
+	if(!occoncat(tmpname,tmpsize,1,spid)) {
+            free(tmpname);
 	    return OC_EOVERRUN;
+        }
 #if defined(_WIN32) || defined(_WIN64)
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
@@ -722,6 +726,8 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
     }
 #endif /* !HAVE_MKSTEMP */
     if(tmpnamep) *tmpnamep = tmpname;    
+    else free(tmpname);
     if(fdp) *fdp = fd;
+    else if(fd) close(fd);
     return OC_NOERR;
 }

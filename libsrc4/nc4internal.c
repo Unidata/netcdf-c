@@ -906,8 +906,12 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       if (var->hdf_datasetid)
       {
          if (var->type_info)
+         {
             if (var->type_info->class == NC_VLEN)
                nc_free_vlen((nc_vlen_t *)var->fill_value);
+            else if (var->type_info->class == NC_STRING && *(char **)var->fill_value)
+               free(*(char **)var->fill_value);
+         }
       }
       free(var->fill_value);
       var->fill_value = NULL;

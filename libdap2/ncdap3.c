@@ -168,12 +168,9 @@ NCD3_open(const char * path, int mode,
     dapcomm->oc.dapconstraint->projections = nclistnew();
     dapcomm->oc.dapconstraint->selections = nclistnew();
     
-    if(dapcomm->oc.url != NULL) {
-        /* Parse constraints to make sure they are syntactically correct */
-        ncstat = parsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
-        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-     } else
-	dapcomm->oc.dapconstraint = NULL;
+     /* Parse constraints to make sure they are syntactically correct */
+     ncstat = parsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
+     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Construct a url for oc minus any constraint and params*/
     dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,

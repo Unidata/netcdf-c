@@ -198,13 +198,7 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
    if (var->type_info->class == NC_VLEN)
       size = sizeof(nc_vlen_t);
    else if (var->xtype == NC_STRING)
-   {
-      /* Strings have a size of one for the empty string (to hold the null),
-       * otherwise the length of the users fill_value string, plus one. */
-       size = 1;
-       if (var->fill_value)
-           size += strlen((char *)var->fill_value);
-   }
+      size = sizeof(char *);
    else
    {
        if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &size)))
@@ -213,7 +207,7 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
    assert(size);
 
    /* Allocate the space. */
-   if (!((*fillp) = malloc(size)))
+   if (!((*fillp) = calloc(1, size)))
       return NC_ENOMEM;
 
    /* If the user has set a fill_value for this var, use, otherwise
@@ -224,22 +218,48 @@ get_fill_value(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
       if (var->type_info->class == NC_VLEN)   
       {
          nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
+
          fv_vlen->len = in_vlen->len;
          if (!(fv_vlen->p = malloc(size * in_vlen->len)))
+         {
+            free(*fillp);
+            *fillp = NULL;
             return NC_ENOMEM;
+         }
          memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * size);
       }
-      else if (var->xtype == NC_STRING)
-	 strcpy(*(char **)fillp, (char *)var->fill_value);
+      else if (var->type_info->class == NC_STRING)
+      {
+         if (*(char **)var->fill_value)
+            if (!(*(char **)(*fillp) = strdup(*(char **)var->fill_value)))
+            {
+               free(*fillp);
+               *fillp = NULL;
+               return NC_ENOMEM;
+            }
+      }
       else
          memcpy((*fillp), var->fill_value, size);
    }
    else
    {
-      if ((nc4_get_default_fill_value(var->type_info, *fillp)))
+      if (var->type_info->class == NC_STRING)
       {
-         free(*fillp);
-         *fillp = NULL;
+         /* Note: release memory, but don't return error on failure */
+         if (nc4_get_default_fill_value(var->type_info, *(char **)(*fillp)))
+         {
+            free(*fillp);
+            *fillp = NULL;
+         }
+      }
+      else
+      {
+         /* Note: release memory, but don't return error on failure */
+         if (nc4_get_default_fill_value(var->type_info, *fillp))
+         {
+            free(*fillp);
+            *fillp = NULL;
+         }
       }
    }
 
@@ -1089,8 +1109,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
       {
          if (var->xtype == NC_STRING)
          {
-            if (!(*(char **)filldata = strdup(*(char **)fillvalue)))
-               return NC_ENOMEM;
+            if (*(char **)fillvalue)
+            {
+               if (!(*(char **)filldata = strdup(*(char **)fillvalue)))
+                  BAIL(NC_ENOMEM);
+            }
+            else
+               *(char **)filldata = NULL;
          }
          else
             memcpy(filldata, fillvalue, file_type_size);
@@ -1132,7 +1157,13 @@ nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp,
    if (xtend_size) 
       free(xtend_size);
    if (fillvalue) 
+   {
+      if (var->xtype == NC_VLEN)
+         nc_free_vlen((nc_vlen_t *)fillvalue);
+      else if (var->xtype == NC_STRING && *(char **)fillvalue)
+         free(*(char **)fillvalue);
       free(fillvalue);
+   }
 
    /* If there was an error return it, otherwise return any potential
       range error value. If none, return NC_NOERR as usual.*/
@@ -1268,7 +1299,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
       {
          if (var->xtype == NC_STRING)
          {
-            if (H5Pset_fill_value(plistid, typeid, &fillp) < 0)
+            if (H5Pset_fill_value(plistid, typeid, fillp) < 0)
                BAIL(NC_EHDFERR);
          }
          else 
@@ -1278,13 +1309,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 	     * is non-native. HDF5 will translate the fill value to
 	     * the target endiannesss. */
 	    hid_t fill_typeid;
+
             if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->xtype, &fill_typeid, 
 					     NC_ENDIAN_NATIVE)))
                BAIL(retval);
             if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
                BAIL(NC_EHDFERR);
-            if (var->type_info->class == NC_VLEN)
-               nc_free_vlen((nc_vlen_t *)fillp);
             if (var->type_info->nc_typeid == NC_STRING || var->type_info->nc_typeid == NC_CHAR)
 	       if (H5Tclose(fill_typeid) < 0)
 		  BAIL(NC_EHDFERR);
@@ -1459,7 +1489,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 	    BAIL(retval);
    }
 
-  exit:
+exit:
    if (var->type_info->nc_typeid == NC_STRING || var->type_info->nc_typeid == NC_CHAR)
       if (typeid > 0 && H5Tclose(typeid) < 0)
 	  BAIL2(NC_EHDFERR);
@@ -1481,7 +1511,14 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
    if (maxdimsize) free(maxdimsize);
    if (dimsize) free(dimsize);
    if (chunksize) free(chunksize);
-   if (fillp) free(fillp);
+   if (fillp)
+   {
+      if (var->type_info->class == NC_VLEN)
+         nc_free_vlen((nc_vlen_t *)fillp);
+      else if (var->xtype == NC_STRING && *(char **)fillp)
+         free(*(char **)fillp);
+      free(fillp);
+   }
    
    return retval;
 }

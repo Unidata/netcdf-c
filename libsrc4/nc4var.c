@@ -705,14 +705,34 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       /* Do we have a fill value for this var? */
       if (var->fill_value)
       {
-         if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->xtype, 0, &type_size)))
-            return retval;
-         memcpy(fill_valuep, var->fill_value, type_size);
+         if (var->xtype == NC_STRING)
+         {
+            if (!(fill_valuep = calloc(1, sizeof(char *))))
+               return NC_ENOMEM;
+            if (*(char **)var->fill_value)
+               if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
+                  return NC_ENOMEM;
+         }
+         else {
+             if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->xtype, 0, &type_size)))
+                return retval;
+             memcpy(fill_valuep, var->fill_value, type_size);
+         }
       }
       else
       {
-         if ((retval = nc4_get_default_fill_value(var->type_info, fill_valuep)))
-            return retval;
+         if (var->xtype == NC_STRING)
+         {
+            if (!(fill_valuep = calloc(1, sizeof(char *))))
+               return NC_ENOMEM;
+            if ((retval = nc4_get_default_fill_value(var->type_info, *(char **)fill_valuep)))
+               return retval;
+         }
+         else
+         {
+            if ((retval = nc4_get_default_fill_value(var->type_info, fill_valuep)))
+               return retval;
+         }
       }
    }
 
@@ -904,17 +924,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    /* Are we setting a fill value? */
    if (fill_value && !var->no_fill)
    {
-      /* If fill value hasn't been set, allocate space. */
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &type_size)))
-         return retval;
-      if (!var->fill_value)
-         if (!(var->fill_value = malloc(type_size)))
-            return NC_ENOMEM;
-
       /* Copy the fill_value. */
       LOG((4, "Copying fill value into metadata for variable %s", 
            var->name));
-      memcpy(var->fill_value, fill_value, type_size);
 
       /* If there's a _FillValue attribute, delete it. */
       retval = NC4_del_att(ncid, varid, _FillValue);
