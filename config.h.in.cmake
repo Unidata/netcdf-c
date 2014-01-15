@@ -7,7 +7,7 @@
 
 /* Define O_BINARY so that the appropriate flags
 are set when opening a binary file on Windows. */
-
+#define O_BINARY
 /* Disable a few warnings under Visual Studio, for the
    time being. */
   #include <io.h>
@@ -78,6 +78,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine ENABLE_DAP 1
 #cmakedefine ENABLE_DAP_GROUPS 1
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine ENABLE_THREAD_SAFETY 1
 #cmakedefine EXTRA_TESTS
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_LIBDL 1

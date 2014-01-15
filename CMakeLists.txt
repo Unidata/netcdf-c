@@ -292,6 +292,9 @@ MACRO(print_conf_summary)
 	IF(CMAKE_PREFIX_PATH)
 		MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
 	ENDIF()
+	IF(ENABLE_THREAD_SAFETY)
+	  MESSAGE(STATUS "\tBuilding Thread-Safe Library:\t${ENABLE_THREAD_SAFETY}")
+	ENDIF()
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
 	MESSAGE(STATUS "\tCMAKE_C_FLAGS:\t\t" ${CMAKE_C_FLAGS})
@@ -626,6 +629,13 @@ IF (ENABLE_DAP)
 	ENDIF()
 	ADD_DEFINITIONS(-DCURL_STATICLIB=1)
 	INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
+ENDIF()
+
+# Option to enable thread safety.
+OPTION(ENABLE_THREAD_SAFETY "Enable thread safety." OFF)
+IF(ENABLE_THREAD_SAFETY)
+  # TODO: Add check for posix, windows threading here.
+  SET(USE_THREAD_SAFETY ON)
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.

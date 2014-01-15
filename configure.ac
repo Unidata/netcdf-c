@@ -57,6 +57,13 @@ if test "x$enable_dll" = xyes; then
 fi
 AM_CONDITIONAL(BUILD_DLL, [test x$enable_dll = xyes])
 
+# Check to see if thread safety is turned on.
+AC_ARG_ENABLE([thread-safety],
+	[AS_HELP_STRING([--enable-thread-safety],
+	[Enable thread safety.])])
+test "x$enable_thread_safety" = xyes || enable_thread_safety=no
+AM_CONDITIONAL([ENABLE_THREAD_SAFETY], [test "x$enable_thread_safet" = xyes])
+
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
 AC_MSG_CHECKING([whether a NCIO_MINBLOCKSIZE was specified])
 AC_ARG_WITH([minblocksize],
