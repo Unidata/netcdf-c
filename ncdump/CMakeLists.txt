@@ -57,6 +57,8 @@ IF(ENABLE_TESTS)
 	add_sh_test(ncdump tst_nccopy3)
 	add_sh_test(ncdump tst_charfill)
 	add_sh_test(ncdump tst_iter)
+	add_sh_test(ncdump tst_formatx3)
+	
 
 	IF(EXTRA_TESTS)
 		add_sh_test(ncdump run_back_comp_tests)
@@ -73,6 +75,7 @@ IF(ENABLE_TESTS)
 		add_bin_test(ncdump tst_comp2)
 		add_bin_test(ncdump tst_nans)
 		add_bin_test(ncdump tst_h_scalar)
+		add_sh_test(ncdump tst_formatx4)
 		#add_bin_test(ncdump tst_special_atts)
 		# Add this test by hand, as it is also called from a script.
 		# Editing the script would break autotools compatibility.

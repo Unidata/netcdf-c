@@ -1920,6 +1920,17 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #define NC_HAVE_RENAME_GRP
 #endif
 
+/* Allow dependent software to tell if
+   inq_format_extended() is available.
+   
+   This is not a scalable approach to querying
+   the functionality of the netcdf library, but
+   it will do for the time being. */
+#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
+#define NC_HAVE_INQ_FORMAT_EXTENDED
+#endif
+
+
 #endif /* _NETCDF_ */
 
 

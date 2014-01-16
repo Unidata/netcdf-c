@@ -28,6 +28,7 @@ ENDIF()
 
 IF(USE_HDF4)
 	SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
+	add_sh_test(nc_test4 tst_formatx_hdf4)
 ENDIF()
 
 IF(BUILD_BENCHMARKS)

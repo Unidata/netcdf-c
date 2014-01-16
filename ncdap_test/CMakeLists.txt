@@ -26,6 +26,7 @@ IF(ENABLE_TESTS)
 	
 	IF(ENABLE_DAP_REMOTE_TESTS)
 		add_sh_test(ncdap tst_remote3)
+		add_sh_test(ncdap tst_formatx)
 	ENDIF()
 
 	IF(ENABLE_DAP_LONG_TESTS)
