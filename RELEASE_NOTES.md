@@ -14,6 +14,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
 
+
 ### 4.3.1-rc6 Released 2013-12-19
 
 * Fixed fill value handling for string types in nc4\_get\_vara().
@@ -35,7 +36,7 @@ This file contains a high-level description of this package's evolution. Release
 
 * When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
 
-* Fixed bug in ncgen; it was not properly filling empty string constants ("") to be the proper length. [NCF-279]
+* Fixed bug in ncgen; it was not properly filling empty string constants `("")` to be the proper length. [NCF-279]
 
 [NCF-279]:https://bugtracking.unidata.ucar.edu/browse/NCF-279
 
@@ -48,19 +49,18 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-277]:https://bugtracking.unidata.ucar.edu/browse/NCF-277
 
-* Added hack to the DAP code to address a problem with the Columbia.edu server. That server does not serve up proper DAP2 DDS replies. The Dataset {...} name changes depending on if the request has certain kinds of constraints. [NCF-276]
+* Added hack to the DAP code to address a problem with the Columbia.edu server. That server does not serve up proper DAP2 DDS replies. The Dataset `{...}` name changes depending on if the request has certain kinds of constraints. [NCF-276]
 
 [NCF-276]:https://bugtracking.unidata.ucar.edu/browse/NCF-276
 
-* Fixed bugs with ncdump annotation of values, using -b or -f
-  options. [NCF-275]
+* Fixed bugs with ncdump annotation of values, using `-b` or `-f` options. [NCF-275]
 
 [NCF-275]:https://bugtracking.unidata.ucar.edu/browse/NCF-275
 
+
 ### 4.3.1-rc4 Released 2013-11-06
 
-* Addressed an issue on Windows where `fstat` would report an incorrect file size on files > 4GB.  [NCF-219]
-
+* Addressed an issue on Windows where `fstat` would report an incorrect file size on files `>` 4GB.  [NCF-219]
 
 * Added better documentation about accessing ESG datasets.
   See http://www.unidata.ucar.edu/software/netcdf/docs/esg.html.
@@ -72,9 +72,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-271]:https://bugtracking.unidata.ucar.edu/browse/NCF-271
 
-* Fixed an issue where the `netcdf.3` man page was not being installed by CMake-based builds. [Github](https://github.com/Unidata/netcdf-c/issues/3)
-
-
+* Fixed an issue where the `netcdf.3` man page was not being installed by CMake-based builds. [https://github.com/Unidata/netcdf-c/issues/3](https://github.com/Unidata/netcdf-c/issues/3)
 
 ### 4.3.1-rc3 Released 2013-09-24
 
@@ -92,7 +90,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
 
-* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
+* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\\MD) or static CRT libraries (\\MT) in Visual Studio builds.
 
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 
