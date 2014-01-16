@@ -319,22 +319,6 @@ INLINE_SIMPLE_STRUCTS  = NO
 
 TYPEDEF_HIDES_STRUCT   = NO
 
-# The SYMBOL_CACHE_SIZE determines the size of the internal cache use to
-# determine which symbols to keep in memory and which to flush to disk.
-# When the cache is full, less often used symbols will be written to disk.
-# For small to medium size projects (<1000 input files) the default value is
-# probably good enough. For larger projects a too small cache size can cause
-# doxygen to be busy swapping symbols to and from disk most of the time
-# causing a significant performance penalty.
-# If the system has enough physical memory increasing the cache will improve the
-# performance by keeping more symbols in memory. Note that the value works on
-# a logarithmic scale so increasing the size by one will roughly double the
-# memory usage. The cache size is given by this formula:
-# 2^(16+SYMBOL_CACHE_SIZE). The valid range is 0..9, the default is 0,
-# corresponding to a cache size of 2^16 = 65536 symbols.
-
-SYMBOL_CACHE_SIZE      = 0
-
 # Similar to the SYMBOL_CACHE_SIZE the size of the symbol lookup cache can be
 # set using LOOKUP_CACHE_SIZE. This cache is used to resolve symbols given
 # their name and scope. Since this can be an expensive process and often the
@@ -658,16 +642,16 @@ WARN_LOGFILE           =
 INPUT                  = @CMAKE_SOURCE_DIR@/RELEASE_NOTES.md \
 			 @CMAKE_SOURCE_DIR@/man4/Building-with-CMake.md \
 			 @CMAKE_SOURCE_DIR@/man4/windows-binaries.md \
-	                 @CMAKE_SOURCE_DIR@/man4/mainpage.doc \
-                         @CMAKE_SOURCE_DIR@/man4/tutorial.doc \
-                         @CMAKE_SOURCE_DIR@/man4/install.doc \
-                         @CMAKE_SOURCE_DIR@/man4/dispatch.doc \
-                         @CMAKE_SOURCE_DIR@/man4/guide.doc \
-                         @CMAKE_SOURCE_DIR@/man4/types.doc \
-                         @CMAKE_SOURCE_DIR@/man4/notes.doc \
-                         @CMAKE_SOURCE_DIR@/man4/cdl.doc \
-                         @CMAKE_SOURCE_DIR@/man4/architecture.doc \
-                         @CMAKE_SOURCE_DIR@/man4/internal.doc \
+	                 @CMAKE_SOURCE_DIR@/man4/mainpage.dox \
+                         @CMAKE_SOURCE_DIR@/man4/tutorial.dox \
+                         @CMAKE_SOURCE_DIR@/man4/install.dox \
+                         @CMAKE_SOURCE_DIR@/man4/dispatch.dox \
+                         @CMAKE_SOURCE_DIR@/man4/guide.dox \
+                         @CMAKE_SOURCE_DIR@/man4/types.dox \
+                         @CMAKE_SOURCE_DIR@/man4/notes.dox \
+                         @CMAKE_SOURCE_DIR@/man4/cdl.dox \
+                         @CMAKE_SOURCE_DIR@/man4/architecture.dox \
+                         @CMAKE_SOURCE_DIR@/man4/internal.dox \
                          @CMAKE_SOURCE_DIR@/COPYRIGHT \
                          @CMAKE_SOURCE_DIR@/include/netcdf.h \
                          @CMAKE_SOURCE_DIR@/examples/C/simple_xy_wr.c \
@@ -1674,7 +1658,7 @@ DOT_NUM_THREADS        = 0
 # the DOTFONTPATH environment variable or by setting DOT_FONTPATH to the
 # directory containing the font.
 
-DOT_FONTNAME           = FreeSans
+DOT_FONTNAME           = 
 
 # The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs.
 # The default size is 10pt.
