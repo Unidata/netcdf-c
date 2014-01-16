@@ -2,9 +2,9 @@
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
-## 4.3.1 Released TBD
+## 4.3.1 Released 2014-01-16
 
-* Add an extended format inquiry method to the netcdf API: nc_inq_format_extended. NC_HAVE_INQ_FORMAT_EXTENDED is defined in netcdf.h [NCF-273]
+* Add an extended format inquiry method to the netcdf API: nc\_inq\_format\_extended. NC\_HAVE\_INQ\_FORMAT\_EXTENDED is defined in netcdf.h [NCF-273]
 
 [NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
 
