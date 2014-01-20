@@ -42,6 +42,7 @@ IF(ENABLE_TESTS)
 	add_bin_test(ncdap test_partvar)
 	add_bin_test(ncdap test_varm3)
 	add_bin_test(ncdap t_auth)
+	add_bin_test(ncdap t_misc)
 	
 ENDIF()
 

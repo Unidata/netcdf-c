@@ -8,8 +8,8 @@ TOP="/home/dmh/mach/netcdf-c"
 #TOP="/cygdrive/f/svn/trunk"
 #TOP="/cygdrive/c/Users/dmh/svn/trunk"
 
-F="http://ticket:ticket1@utmea.enea.it:8080/thredds/dodsC/UNIDATA_passwd/head_out.nc"
-
+#F="http://ticket:ticket1@utmea.enea.it:8080/thredds/dodsC/UNIDATA_passwd/head_out.nc"
+F="http://motherlode.ucar.edu"
 
 #PROG=./ncd
 PROG="$TOP/ncdump/ncdump"

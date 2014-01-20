@@ -38,18 +38,21 @@ test_varm3_SOURCES = test_varm3.c
 t_dap3a_SOURCES = t_dap3a.c
 test_nstride_cached_SOURCE = test_nstride_cached.c
 t_auth_SOURCES = t_auth.c
+t_misc_SOURCES = t_misc.c
 
 TESTS += t_dap3a test_cvt3 test_vara test_partvar
 TESTS += test_varm3
 TESTS += t_dap3a
 TESTS += test_nstride_cached
 TESTS += t_auth
+TESTS += t_misc
 
 check_PROGRAMS += t_dap3a test_cvt3 test_vara test_partvar
 check_PROGRAMS += test_varm3
 check_PROGRAMS += t_dap3a
 check_PROGRAMS += test_nstride_cached
 check_PROGRAMS += t_auth
+check_PROGRAMS += t_misc
 
 endif #ENABLE_DAP_REMOTE_TESTS
 
