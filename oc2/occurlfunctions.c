@@ -81,7 +81,6 @@ Do not think this is correct
 	OCDBG1(1,"CURLOPT_COOKIEJAR=%s",flags->cookiejar);
 	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiejar);
 	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_COOKIEFILE=%s",flags->cookiefile);
     }
     if (flags->verbose) {
 	cstat = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);

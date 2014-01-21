@@ -694,12 +694,14 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
     tmpname = (char*)malloc(tmpsize);
     if(tmpname == NULL) return OC_ENOMEM;
     if(!occopycat(tmpname,tmpsize,1,base)) {
-      free(tmpname);
-      return OC_EOVERRUN;
+	free(tmpname);
+	return OC_EOVERRUN;
     }
 #ifdef HAVE_MKSTEMP
-    if(!occoncat(tmpname,tmpsize,1,"XXXXXX"))
+    if(!occoncat(tmpname,tmpsize,1,"XXXXXX")) {
+	free(tmpname);
 	return OC_EOVERRUN;
+    }
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     oldmask= umask(S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);

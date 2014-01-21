@@ -439,6 +439,12 @@ extern OCerror oc_data_octype(OClink, OCdatanode data, OCtype*);
 */
 extern int oc_data_indexed(OClink link, OCdatanode datanode);
 
+/* Return 1 if the specified data has a valid index, 0 otherwise.
+   Valid index means it was created using
+   oc_data_ithelement or oc_data_ithrecord.
+*/
+extern int oc_data_indexed(OClink, OCdatanode);
+
 /* Return 1 if the specified data can be indexed
    Indexable means the data is pointing to
    an indexed structure or to a sequence.

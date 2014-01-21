@@ -74,7 +74,7 @@ oc_open(const char* url, OCobject* linkp)
     if(ocerr == OC_NOERR && linkp) {
 	*linkp = (OCobject)(state);
     }
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -94,7 +94,7 @@ oc_close(OCobject link)
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     occlose(state);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /** @} */
@@ -135,10 +135,10 @@ oc_fetch(OCobject link, const char* constraint,
     OCDEREF(OCstate*,state,link);
 
     ocerr = ocfetch(state,constraint,dxdkind,flags,&root);
-    if(ocerr) return ocerr;
+    if(ocerr) return OCTHROW(ocerr);
 
     if(rootp) *rootp = (OCobject)(root);
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 
@@ -164,7 +164,7 @@ oc_root_free(OCobject link, OCobject ddsroot)
     OCDEREF(OCnode*,root,ddsroot);
 
     ocroot_free(root);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -254,7 +254,7 @@ oc_dds_properties(OCobject link,
             *nattrp = oclistlength(node->attributes);
 	}
     }
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -279,9 +279,9 @@ oc_dds_name(OCobject link, OCobject ddsnode, char** namep)
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(state == NULL || node == NULL) return OCTHROW(OC_EINVAL);
+    if(state == NULL || node == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     if(namep) *namep = nulldup(node->name);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -303,7 +303,7 @@ oc_dds_nsubnodes(OCobject link, OCobject ddsnode, size_t* nsubnodesp)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(nsubnodesp) *nsubnodesp = oclistlength(node->subnodes);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -324,7 +324,7 @@ oc_dds_atomictype(OCobject link, OCobject ddsnode, OCtype* typep)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(typep) *typep = node->etype;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -345,7 +345,7 @@ oc_dds_class(OCobject link, OCobject ddsnode, OCtype* typep)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(typep) *typep = node->octype;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -366,7 +366,7 @@ oc_dds_rank(OCobject link, OCobject ddsnode, size_t* rankp)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(rankp) *rankp = node->array.rank;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -393,7 +393,7 @@ oc_dds_attr_count(OCobject link, OCobject ddsnode, size_t* nattrp)
             *nattrp = oclistlength(node->attributes);
 	}
     }
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -415,7 +415,7 @@ oc_dds_root(OCobject link, OCobject ddsnode, OCobject* rootp)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(rootp) *rootp = (OCobject)node->root;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -437,7 +437,7 @@ oc_dds_container(OCobject link, OCobject ddsnode, OCobject* containerp)
     OCDEREF(OCnode*,node,ddsnode);
 
     if(containerp) *containerp = (OCobject)node->container;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -464,14 +464,14 @@ oc_dds_ithfield(OCobject link, OCobject ddsnode, size_t index, OCobject* fieldno
     OCDEREF(OCnode*,node,ddsnode);
 
     if(!iscontainer(node->octype))
-	return OC_EBADTYPE;
+	return OCTHROW(OC_EBADTYPE);
 
     if(index >= oclistlength(node->subnodes))
-	return OC_EINDEX;
+	return OCTHROW(OC_EINDEX);
 
     field = (OCnode*)oclistget(node->subnodes,index);
     if(fieldnodep) *fieldnodep = (OCobject)field;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -491,7 +491,7 @@ Alias for oc_dds_ithfield.
 OCerror
 oc_dds_ithsubnode(OCobject link, OCobject ddsnode, size_t index, OCobject* fieldnodep)
 {
-    return oc_dds_ithfield(link,ddsnode,index,fieldnodep);
+    return OCTHROW(oc_dds_ithfield(link,ddsnode,index,fieldnodep));
 }
 
 /*!
@@ -509,7 +509,7 @@ Equivalent to oc_dds_ithfield(link,grid-container,0,arraynode).
 OCerror
 oc_dds_gridarray(OCobject link, OCobject grid, OCobject* arraynodep)
 {
-    return oc_dds_ithfield(link,grid,0,arraynodep);
+    return OCTHROW(oc_dds_ithfield(link,grid,0,arraynodep));
 }
 
 /*!
@@ -530,7 +530,7 @@ Note the map index starts at zero.
 OCerror
 oc_dds_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapnodep)
 {
-    return oc_dds_ithfield(link,grid,index+1,mapnodep);
+    return OCTHROW(oc_dds_ithfield(link,grid,index+1,mapnodep));
 }
 
 
@@ -557,7 +557,7 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
     OCDEREF(OCnode*,node,ddsnode);
 
     if(!iscontainer(node->octype))
-	return OC_EBADTYPE;
+	return OCTHROW(OC_EBADTYPE);
 
     /* Search the fields to find a name match */
     err = oc_dds_nsubnodes(link,ddsnode,&count);
@@ -578,10 +578,10 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
 	}
 	if(match == 0) {
 	    if(fieldp) *fieldp = field;
-	    return OC_NOERR;
+	    return OCTHROW(OC_NOERR);
 	}
     }
-    return OC_EINDEX; /* name was not found */
+    return OCTHROW(OC_EINDEX); /* name was not found */
 }
 
 /*!
@@ -606,14 +606,14 @@ oc_dds_dimensions(OCobject link, OCobject ddsnode, OCobject* dims)
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(node->array.rank == 0) return OCTHROW(OC_ESCALAR);
+    if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
     if(dims != NULL) {
         for(i=0;i<node->array.rank;i++) {
             OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
 	    dims[i] = (OCobject)dim;
 	}	
     }
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -638,11 +638,11 @@ oc_dds_ithdimension(OCobject link, OCobject ddsnode, size_t index, OCobject* dim
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(node->array.rank == 0) return OCTHROW(OC_ESCALAR);
-    if(index >= node->array.rank) return OCTHROW(OC_EINDEX);
+    if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
+    if(index >= node->array.rank) return OCTHROW(OCTHROW(OC_EINDEX));
     dimid = (OCobject)oclistget(node->array.dimensions,index);
     if(dimidp) *dimidp = dimid;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -667,10 +667,10 @@ oc_dimension_properties(OCobject link, OCobject ddsnode, size_t* sizep, char** n
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,dim,ddsnode);
 
-    if(dim->octype != OC_Dimension) return OCTHROW(OC_EBADTYPE);
+    if(dim->octype != OC_Dimension) return OCTHROW(OCTHROW(OC_EBADTYPE));
     if(sizep) *sizep = dim->dim.declsize;
     if(namep) *namep = nulldup(dim->name);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -695,7 +695,7 @@ oc_dds_dimensionsizes(OCobject link, OCobject ddsnode, size_t* dimsizes)
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(node->array.rank == 0) return OCTHROW(OC_ESCALAR);
+    if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
     if(dimsizes != NULL) {
 	int i;
         for(i=0;i<node->array.rank;i++) {
@@ -703,7 +703,7 @@ oc_dds_dimensionsizes(OCobject link, OCobject ddsnode, size_t* dimsizes)
 	    dimsizes[i] = dim->dim.declsize;
 	}	
     }
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -746,7 +746,7 @@ oc_dds_attr(OCobject link, OCobject ddsnode, size_t index,
     OCDEREF(OCnode*,node,ddsnode);
 
     nattrs = oclistlength(node->attributes);
-    if(index >= nattrs) return OCTHROW(OC_EINDEX);
+    if(index >= nattrs) return OCTHROW(OCTHROW(OC_EINDEX));
     attr = (OCattribute*)oclistget(node->attributes,index);
     if(namep) *namep = strdup(attr->name);
     if(octypep) *octypep = attr->etype;
@@ -757,7 +757,7 @@ oc_dds_attr(OCobject link, OCobject ddsnode, size_t index,
 	        strings[i] = nulldup(attr->values[i]);
 	}
     }
-    return OC_NOERR;    
+    return OCTHROW(OC_NOERR);    
 }
 
 /*!
@@ -794,9 +794,9 @@ oc_das_attr_count(OCobject link, OCobject dasnode, size_t* nvaluesp)
     OCnode* attr;
     OCVERIFY(OC_Node,dasnode);
     OCDEREF(OCnode*,attr,dasnode);
-    if(attr->octype != OC_Attribute) return OCTHROW(OC_EBADTYPE);
+    if(attr->octype != OC_Attribute) return OCTHROW(OCTHROW(OC_EBADTYPE));
     if(nvaluesp) *nvaluesp = oclistlength(attr->att.values);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /*!
@@ -829,12 +829,12 @@ oc_das_attr(OCobject link, OCobject dasnode, size_t index, OCtype* atomtypep, ch
     OCVERIFY(OC_Node,dasnode);
     OCDEREF(OCnode*,attr,dasnode);
 
-    if(attr->octype != OC_Attribute) return OCTHROW(OC_EBADTYPE);
+    if(attr->octype != OC_Attribute) return OCTHROW(OCTHROW(OC_EBADTYPE));
     nvalues = oclistlength(attr->att.values);
-    if(index >= nvalues) return OCTHROW(OC_EINDEX);
+    if(index >= nvalues) return OCTHROW(OCTHROW(OC_EINDEX));
     if(atomtypep) *atomtypep = attr->etype;
     if(valuep) *valuep = nulldup((char*)oclistget(attr->att.values,index));
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /**@}*/
@@ -872,7 +872,7 @@ oc_merge_das(OCobject link, OCobject dasroot, OCobject ddsroot)
     OCVERIFY(OC_Node,ddsroot);
     OCDEREF(OCnode*,dds,ddsroot);
 
-    return ocddsdasmerge(state,das,dds);
+    return OCTHROW(ocddsdasmerge(state,das,dds));
 }
 
 /**@}*/
@@ -908,11 +908,11 @@ oc_dds_getdataroot(OCobject link, OCobject ddsroot, OCobject* datarootp)
     OCDEREF(OCnode*,root,ddsroot);
 
     if(datarootp == NULL)
-	return OCTHROW(OC_EINVAL);
+	return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_getroot(state,root,&droot);
     if(ocerr == OC_NOERR && datarootp)
 	*datarootp = (OCobject)droot;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -942,11 +942,11 @@ oc_data_ithfield(OCobject link, OCobject datanode, size_t index, OCobject* field
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    if(fieldp == NULL) return OCTHROW(OC_EINVAL);
+    if(fieldp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_ithfield(state,data,index,&field);
     if(ocerr == OC_NOERR)
 	*fieldp = (OCobject)field;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -967,7 +967,7 @@ OCerror
 oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject* fieldp)
 {
     OCerror err = OC_NOERR;
-    size_t i=0,count=0;
+    size_t count,i;
     OCobject ddsnode;
     OCVERIFY(OC_State,link);
     OCVERIFY(OC_Data,datanode);
@@ -989,7 +989,7 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
  	if(!fieldname)
-	  return OC_EINVAL;
+	  return OCTHROW(OC_EINVAL);
 
 	match = strcmp(name,fieldname);
 	if(fieldname != NULL) free(fieldname);
@@ -998,10 +998,10 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
 	    err = oc_data_ithfield(link,datanode,i,&field);
             if(err != OC_NOERR) return err;	
 	    if(fieldp) *fieldp = field;
-	    return OC_NOERR;
+	    return OCTHROW(OC_NOERR);
 	}
     }
-    return OC_EINDEX; /* name was not found */
+    return OCTHROW(OC_EINDEX); /* name was not found */
 }
 
 /*!
@@ -1020,7 +1020,7 @@ Equivalent to oc_data_ithfield(link,grid,0,arraydata).
 OCerror
 oc_data_gridarray(OCobject link, OCobject grid, OCobject* arraydatap)
 {
-    return oc_data_ithfield(link,grid,0,arraydatap);
+    return OCTHROW(oc_data_ithfield(link,grid,0,arraydatap));
 }
 
 /*!
@@ -1041,7 +1041,7 @@ Note that Map indices start at zero.
 OCerror
 oc_data_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapdatap)
 {
-    return oc_data_ithfield(link,grid,index+1,mapdatap);
+    return OCTHROW(oc_data_ithfield(link,grid,index+1,mapdatap));
 }
 
 /*!
@@ -1070,11 +1070,11 @@ oc_data_container(OCobject link,  OCobject datanode, OCobject* containerp)
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    if(containerp == NULL) return OCTHROW(OC_EINVAL);
+    if(containerp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_container(state,data,&container);
     if(ocerr == OC_NOERR)
 	*containerp = (OCobject)container;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1103,11 +1103,11 @@ oc_data_root(OCobject link, OCobject datanode, OCobject* rootp)
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    if(rootp == NULL) return OCTHROW(OC_EINVAL);
+    if(rootp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_root(state,data,&root);
     if(ocerr == OC_NOERR)
 	*rootp = (OCobject)root;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1139,11 +1139,11 @@ oc_data_ithelement(OCobject link, OCobject datanode, size_t* indices, OCobject* 
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    if(indices == NULL || elementp == NULL) return OCTHROW(OC_EINVAL);
+    if(indices == NULL || elementp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_ithelement(state,data,indices,&element);
     if(ocerr == OC_NOERR)
 	*elementp = (OCobject)element;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1173,11 +1173,11 @@ extern OCerror oc_data_ithrecord(OCobject link, OCobject datanode, size_t index,
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    if(recordp == NULL) return OCTHROW(OC_EINVAL);
+    if(recordp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
     ocerr = ocdata_ithrecord(state,data,index,&record);
     if(ocerr == OC_NOERR)
 	*recordp = (OCobject)record;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1207,8 +1207,8 @@ oc_data_position(OCobject link, OCobject datanode, size_t* indices)
     OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
-    if(indices == NULL) return OCTHROW(OC_EINVAL);
-    return ocdata_position(state,data,indices);
+    if(indices == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
+    return OCTHROW(ocdata_position(state,data,indices));
 }
 
 /*!
@@ -1238,8 +1238,8 @@ oc_data_recordcount(OCobject link, OCobject datanode, size_t* countp)
     OCDEREF(OCstate*,state,link);
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
-    if(countp == NULL) return OCTHROW(OC_EINVAL);
-    return ocdata_recordcount(state,data,countp);
+    if(countp == NULL) return OCTHROW(OCTHROW(OC_EINVAL));
+    return OCTHROW(ocdata_recordcount(state,data,countp));
 }
 
 /*!
@@ -1265,7 +1265,7 @@ oc_data_ddsnode(OCobject link, OCobject datanode, OCobject* nodep)
     OCASSERT(data->template != NULL);
     if(nodep == NULL) ocerr = OC_EINVAL;
     else *nodep = (OCobject)data->template;
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1292,11 +1292,8 @@ oc_data_octype(OCobject link, OCobject datanode, OCtype* typep)
 
     OCASSERT(data->template != NULL);
     if(typep == NULL) ocerr = OC_EINVAL;
-    else if(data->template)
-      *typep = data->template->octype;
-    else 
-      ocerr = OC_EINVAL;
-    return ocerr;
+    else *typep = data->template->octype;
+    return OCTHROW(ocerr);
 }
 
 /*!
@@ -1393,17 +1390,17 @@ oc_data_read(OCobject link, OCobject datanode,
     OCDEREF(OCdata*,data,datanode);
 
     if(start == NULL && edges == NULL) /* Assume it is a scalar read */
-        return oc_data_readn(link,datanode,start,0,memsize,memory);
+        return OCTHROW(oc_data_readn(link,datanode,start,0,memsize,memory));
  
     if(edges == NULL)
-	return OCTHROW(OC_EINVALCOORDS);
+	return OCTHROW(OCTHROW(OC_EINVALCOORDS));
 
     /* Convert edges to a count */
     template = data->template;
     rank = template->array.rank;
     count = octotaldimsize(rank,edges);
 
-    return oc_data_readn(link,datanode,start,count,memsize,memory);
+    return OCTHROW(oc_data_readn(link,datanode,start,count,memsize,memory));
 }
 
 
@@ -1434,7 +1431,7 @@ OCerror
 oc_data_readscalar(OCobject link, OCobject datanode,
 	         size_t memsize, void* memory)
 {
-    return oc_data_readn(link,datanode,NULL,0,memsize,memory);
+    return OCTHROW(oc_data_readn(link,datanode,NULL,0,memsize,memory));
 }
 
 /*!
@@ -1483,7 +1480,7 @@ oc_data_readn(OCobject link, OCobject datanode,
     /* Do argument validation */
 
     if(memory == NULL || memsize == 0)
-	return OC_EINVAL;
+	return OCTHROW(OC_EINVAL);
 
     template = data->template;
     rank = template->array.rank;
@@ -1492,7 +1489,7 @@ oc_data_readn(OCobject link, OCobject datanode,
 	startpoint = 0;
 	N = 1;
     } else if(start == NULL) {
-        return OCTHROW(OC_EINVALCOORDS);
+        return OCTHROW(OCTHROW(OC_EINVALCOORDS));
     } else {/* not scalar */
 	startpoint = ocarrayoffset(rank,template->array.sizes,start);
     }
@@ -1500,7 +1497,7 @@ oc_data_readn(OCobject link, OCobject datanode,
         ocerr = ocdata_read(state,data,startpoint,N,memory,memsize);
     if(ocerr == OC_EDATADDS)
 	ocdataddsmsg(state,template->tree);
-    return OCTHROW(ocerr);
+    return OCTHROW(OCTHROW(ocerr));
 }
 
 
@@ -1548,8 +1545,8 @@ oc_dds_read(OCobject link, OCobject ddsnode,
 
     /* Get the data associated with this top-level node */
     data = dds->data;
-    if(data == NULL) return OC_EINVAL;
-    return oc_data_read(link,data,start,edges,memsize,memory);
+    if(data == NULL) return OCTHROW(OC_EINVAL);
+    return OCTHROW(oc_data_read(link,data,start,edges,memsize,memory));
 }
 
 
@@ -1582,7 +1579,7 @@ OCerror
 oc_dds_readscalar(OCobject link, OCobject ddsnode,
 	         size_t memsize, void* memory)
 {
-    return oc_dds_readn(link,ddsnode,NULL,0,memsize,memory);
+    return OCTHROW(oc_dds_readn(link,ddsnode,NULL,0,memsize,memory));
 }
 
 /*!
@@ -1631,8 +1628,8 @@ oc_dds_readn(OCobject link, OCobject ddsnode,
 
     /* Get the data associated with this top-level node */
     data = dds->data;
-    if(data == NULL) return OC_EINVAL;
-    return oc_data_readn(link,data,start,N,memsize,memory);
+    if(data == NULL) return OCTHROW(OC_EINVAL);
+    return OCTHROW(oc_data_readn(link,data,start,N,memsize,memory));
 }
 
 /**@}*/
@@ -1657,7 +1654,7 @@ Non-atomic types (e.g. OC_Structure) return zero.
 size_t
 oc_typesize(OCtype etype)
 {
-    return octypesize(etype);
+    return OCTHROW(octypesize(etype));
 }
 
 /*!
@@ -1697,7 +1694,7 @@ value as a NULL terminated string.
 OCerror
 oc_typeprint(OCtype etype, void* value, size_t bufsize, char* buffer)
 {
-    return octypeprint(etype,value,bufsize,buffer);
+    return OCTHROW(octypeprint(etype,value,bufsize,buffer));
 }
 
 /**@}*/
@@ -1762,7 +1759,7 @@ oc_clientparam_delete(OCobject link, const char* param)
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
 
-    return ocparamdelete(state->clientparams,param);
+    return OCTHROW(ocparamdelete(state->clientparams,param));
 }
 
 /* Insert client parameter
@@ -1778,7 +1775,7 @@ oc_clientparam_insert(OCobject link, const char* param, const char* value)
     OCDEREF(OCstate*,state,link);
 
     state->clientparams = dapparaminsert(state->clientparams,param,value);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /* Replace client parameter
@@ -1831,7 +1828,7 @@ oc_svcerrordata(OCobject link, char** codep,
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return ocsvcerrordata(state,codep,msgp,httpp);
+    return OCTHROW(ocsvcerrordata(state,codep,msgp,httpp));
 }
 
 
@@ -1861,9 +1858,9 @@ oc_raw_xdrsize(OCobject link, OCobject ddsroot, off_t* xdrsizep)
 
     if(root->root == NULL || root->root->tree == NULL
 	|| root->root->tree->dxdclass != OCDATADDS)
-	    return OCTHROW(OC_EINVAL);
+	    return OCTHROW(OCTHROW(OC_EINVAL));
     if(xdrsizep) *xdrsizep = root->root->tree->data.datasize;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /* Resend a url as a head request to check the Last-Modified time */
@@ -1873,7 +1870,7 @@ oc_update_lastmodified_data(OCobject link)
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return ocupdatelastmodifieddata(state);
+    return OCTHROW(ocupdatelastmodifieddata(state));
 }
 
 long
@@ -1893,7 +1890,7 @@ oc_get_connection(OCobject ddsnode, OCobject* linkp)
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
     if(linkp) *linkp = node->root->tree->state;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 
@@ -1910,7 +1907,7 @@ and using the DAP protocol.
 OCerror
 oc_ping(const char* url)
 {
-    return ocping(url);
+    return OCTHROW(ocping(url));
 }
 
 /*!
@@ -1930,7 +1927,7 @@ oc_set_useragent(OCobject link, const char* agent)
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return ocsetuseragent(state,agent);
+    return OCTHROW(ocsetuseragent(state,agent));
 }
 
 /*!
@@ -1950,7 +1947,7 @@ oc_trace_curl(OCobject link)
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
     oc_curl_debug(state);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /**@}*/
@@ -1965,7 +1962,7 @@ oc_dumpnode(OCobject link, OCobject ddsroot)
     OCVERIFY(OC_Node,ddsroot);
     OCDEREF(OCnode*,root,ddsroot);
     ocdumpnode(root);
-    return ocerr;
+    return OCTHROW(ocerr);
 }
 
 /**************************************************/
@@ -1986,7 +1983,7 @@ oc_dds_dd(OCobject link, OCobject ddsroot, int level)
     OCDEREF(OCnode*,root,ddsroot);
 
     ocdd(state,root,1,level);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 OCerror
@@ -1997,7 +1994,7 @@ oc_dds_ddnode(OCobject link, OCobject ddsroot)
     OCDEREF(OCnode*,root,ddsroot);
 
     ocdumpnode(root);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 OCerror
@@ -2016,7 +2013,7 @@ oc_data_ddpath(OCobject link, OCobject datanode, char** resultp)
     ocdumpdatapath(state,data,buffer);
     if(resultp) *resultp = ocbytesdup(buffer);
     ocbytesfree(buffer);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 OCerror
@@ -2034,7 +2031,7 @@ oc_data_ddtree(OCobject link, OCobject ddsroot)
     ocdumpdatatree(state,data,buffer,0);
     fprintf(stderr,"%s\n",ocbytescontents(buffer));
     ocbytesfree(buffer);
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 OCDT
@@ -2053,7 +2050,7 @@ oc_data_mode(OCobject link, OCobject datanode)
 OCerror
 oc_data_free(OCobject link, OCobject datanode)
 {
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 /* Free up a ddsnode that is no longer being used;
@@ -2062,7 +2059,7 @@ oc_data_free(OCobject link, OCobject datanode)
 OCerror
 oc_dds_free(OCobject link, OCobject dds0)
 {
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }
 
 
@@ -2074,5 +2071,5 @@ oc_set_curl_callback(OClink link, oc_curl_callback* callback, void* userstate)
     OCDEREF(OCstate*,state,link);
     state->usercurl = callback;
     state->usercurldata = userstate;
-    return OC_NOERR;
+    return OCTHROW(OC_NOERR);
 }

@@ -387,9 +387,8 @@ createtempfile(OCstate* state, OCtree* tree)
     return stat;
 
 fail:
-    oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name == NULL ? "[NULL]" : name);
-
-    if(name != NULL) {free(name);name=NULL;}
+    if(name != NULL) free(name);
+    oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
     return stat;
 }
 
