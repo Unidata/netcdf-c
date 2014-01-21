@@ -121,8 +121,13 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
     }
     free(fetchurl);
 #ifdef OCDEBUG
+  {
 fprintf(stderr,"readpacket: packet.size=%lu\n",
 		(unsigned long)ocbyteslength(packet));
+int count = ocbyteslength(packet);
+if(count > 20) count = 20;
+fprintf(stderr,"packet[0..20]=|%20s|",ocbytescontents(packet));
+  }
 #endif
     return OCTHROW(stat);
 }

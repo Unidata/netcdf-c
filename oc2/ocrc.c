@@ -344,7 +344,7 @@ ocdodsrc_read(char* basename, char* path)
 	    strncat(line,"=1",2);
 	    value = strchr(line,'=');
 	}
-	if(value == null) continue;
+	if(value == NULL) continue;
         *value = '\0';
 	value++;
 	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key),strlen(key));
