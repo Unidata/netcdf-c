@@ -8,8 +8,8 @@
 #include <stdarg.h>
 #endif
 
-#ifndef OCDEBUG
-#define OCDEBUG
+#ifdef OCDEBUG
+#undef OCDEBUG
 #endif
 
 /* OCCATCHERROR is used to detect errors as close
