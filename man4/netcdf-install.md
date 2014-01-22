@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-NetCDF Installation and Porting Guide {.settitle}
+NetCDF Installation and Porting Guide 
 =====================================
 
 This document describes how to build and install the netCDF library,
@@ -92,7 +92,7 @@ What if it Doesn’t Work?
 
 Index of Concepts
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 Building and Installing NetCDF on Unix Systems
@@ -160,7 +160,7 @@ Porting Notes for New Platforms
 
 Working with the Source Code
 
-~~~~ {.menu-comment}
+~~~~ 
 Using NetCDF on Unix Systems
 ~~~~
 
@@ -177,7 +177,7 @@ Flags](#nc_002dconfig)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Building and Installing NetCDF on Windows
 ~~~~
 
@@ -217,7 +217,7 @@ Building with VC++ .NET
 
 Using with VC++ .NET
 
-~~~~ {.menu-comment}
+~~~~ 
 If Something Goes Wrong
 ~~~~
 
@@ -245,7 +245,7 @@ Getting Support
 
 What to Send to Support
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -254,7 +254,7 @@ What to Send to Support
   [[\<](#Top "Previous section in reading order")]   [[\>](#Quick-Instructions "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Quick-Instructions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- ------------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1. Installing the NetCDF Binaries {.chapter}
+1. Installing the NetCDF Binaries 
 =================================
 
 The easiest way to get netCDF is through a package management program,
@@ -293,7 +293,7 @@ use shared libraries” at
   [[\<](#Binaries "Previous section in reading order")]   [[\>](#Building-NetCDF-Without-HDF5 "Next section in reading order")]       [[\<\<](#Binaries "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Building-on-Unix "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2. Quick Instructions for Installing NetCDF on Unix {.chapter}
+2. Quick Instructions for Installing NetCDF on Unix 
 ===================================================
 
 Who has time to read long installation manuals these days?
@@ -307,7 +307,7 @@ of HDF5 as a storage format.
   [[\<](#Quick-Instructions "Previous section in reading order")]   [[\>](#Building-NetCDF-With-HDF5 "Next section in reading order")]       [[\<\<](#Quick-Instructions "Beginning of this chapter or previous chapter")]   [[Up](#Quick-Instructions "Up section")]   [[\>\>](#Building-on-Unix "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.1 Building NetCDF Without HDF5 {.section}
+2.1 Building NetCDF Without HDF5 
 --------------------------------
 
 If you don’t want netCDF-4/HDF5, then build like this:
@@ -331,7 +331,7 @@ done!
   [[\<](#Building-NetCDF-Without-HDF5 "Previous section in reading order")]   [[\>](#Building-with-HDF4-Support "Next section in reading order")]       [[\<\<](#Quick-Instructions "Beginning of this chapter or previous chapter")]   [[Up](#Quick-Instructions "Up section")]   [[\>\>](#Building-on-Unix "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- --------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.2 Building NetCDF With HDF5 {.section}
+2.2 Building NetCDF With HDF5 
 -----------------------------
 
 If you want to use the HDF5 storage format, you must have the HDF5 1.8.6
@@ -441,7 +441,7 @@ the local netCDF installation.
   [[\<](#Building-NetCDF-With-HDF5 "Previous section in reading order")]   [[\>](#Building-on-Unix "Next section in reading order")]       [[\<\<](#Quick-Instructions "Beginning of this chapter or previous chapter")]   [[Up](#Quick-Instructions "Up section")]   [[\>\>](#Building-on-Unix "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ----------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.3 Building with HDF4 Support {.section}
+2.3 Building with HDF4 Support 
 ------------------------------
 
 The netCDF-4 library can (since version 4.1) read HDF4 data files, if
@@ -455,7 +455,7 @@ files and library must be set in the CPPFLAGS and LDFLAGS options.
   [[\<](#Building-with-HDF4-Support "Previous section in reading order")]   [[\>](#Requirements "Next section in reading order")]       [[\<\<](#Quick-Instructions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------------- --------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3. Building and Installing NetCDF on Unix Systems {.chapter}
+3. Building and Installing NetCDF on Unix Systems 
 =================================================
 
 The latest version of this document is available at
@@ -490,7 +490,7 @@ platforms can me found at
   [[\<](#Building-on-Unix "Previous section in reading order")]   [[\>](#Environment "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ------------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.1 Installation Requirements {.section}
+3.1 Installation Requirements 
 -----------------------------
 
 If you wish to build from source on a Windows (Win32) platform,
@@ -539,7 +539,7 @@ libcurl may be obtained at [http://curl.haxx.se](http://curl.haxx.se).
   [[\<](#Requirements "Previous section in reading order")]   [[\>](#Variable-Description-Notes "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.2 Specifying the Environment for Building {.section}
+3.2 Specifying the Environment for Building 
 -------------------------------------------
 
 The netCDF configure script searches your path to find the compilers and
@@ -593,7 +593,7 @@ In this case you will need to run configure with
   [[\<](#Environment "Previous section in reading order")]   [[\>](#g_t64-Bit "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Environment "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ---------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.1 Variable Description Notes {.subsection}
+### 3.2.1 Variable Description Notes 
 
   ------------------------------------------------------- ------------------------------ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   CC                                                      C compiler                     If you don’t specify this, the configure script will try to find a suitable C compiler. The default choice is gcc. If you wish to use a vendor compiler you must set CC to that compiler, and set other environment variables (as described below) to appropriate settings.
@@ -618,7 +618,7 @@ used, and additional commentary.
   [[\<](#Variable-Description-Notes "Previous section in reading order")]   [[\>](#parallel "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- --------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.3 Building on 64 Bit Platforms {.section}
+3.3 Building on 64 Bit Platforms 
 --------------------------------
 
 The compiler options for SunOS, Irix, and AIX are listed below. The zlib
@@ -642,7 +642,7 @@ and HDF5 libraries must also be built with 64-bit options.
   [[\<](#g_t64-Bit "Previous section in reading order")]   [[\>](#Building-HDF5-for-Parallel-I_002fO "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ----------------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.4 Building on Platforms with Parallel I/O {.section}
+3.4 Building on Platforms with Parallel I/O 
 -------------------------------------------
 
 NetCDF makes available the parallel I/O features of HDF5 and the
@@ -655,7 +655,7 @@ programs.
   [[\<](#parallel "Previous section in reading order")]   [[\>](#The-parallel_002dnetcdf-Library "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#parallel "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- -------------------------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.1 Building HDF5 for Parallel I/O {.subsection}
+### 3.4.1 Building HDF5 for Parallel I/O 
 
 For parallel I/O to work, HDF5 must be installed with –enable-parallel,
 and an MPI library (and related libraries) must be made available to the
@@ -677,7 +677,7 @@ CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/s
   [[\<](#Building-HDF5-for-Parallel-I_002fO "Previous section in reading order")]   [[\>](#Building-NetCDF "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#parallel "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ---------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.2 The parallel-netcdf Library {.subsection}
+### 3.4.2 The parallel-netcdf Library 
 
 Optionally, the parallel-netcdf library should also be installed, and
 the replacement for pnetcdf.h should be copied from
@@ -689,7 +689,7 @@ ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h.
   [[\<](#The-parallel_002dnetcdf-Library "Previous section in reading order")]   [[\>](#Configure "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#parallel "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ---------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.3 Building NetCDF {.subsection}
+### 3.4.3 Building NetCDF 
 
 To build netCDF with parallel I/O, build as usual, but point the
 configure at a version of HDF5 that has been built for parallel I/O.
@@ -722,7 +722,7 @@ cluttering them with MPI\_Init/Finalize calls.
   [[\<](#Building-NetCDF "Previous section in reading order")]   [[\>](#Make "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ----------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.5 Running the configure Script {.section}
+3.5 Running the configure Script 
 --------------------------------
 
 To create the Makefiles needed to build netCDF, you must run the
@@ -950,7 +950,7 @@ telling you about the problem.
   [[\<](#Configure "Previous section in reading order")]   [[\>](#Testing "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- -------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.6 Running make {.section}
+3.6 Running make 
 ----------------
 
 Run "make". This will build one or more netCDF libraries. It will build
@@ -975,7 +975,7 @@ make
   [[\<](#Make "Previous section in reading order")]   [[\>](#Installation "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- ------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.7 Testing the Build {.section}
+3.7 Testing the Build 
 ---------------------
 
 Run “make check” to verify that the netCDF library and executables have
@@ -1048,7 +1048,7 @@ See section [If Something Goes Wrong](#Build-Problems).
   [[\<](#Testing "Previous section in reading order")]   [[\>](#Platform-Notes "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ --------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.8 Installing NetCDF {.section}
+3.8 Installing NetCDF 
 ---------------------
 
 To install the libraries and executables, run "make install". This will
@@ -1111,7 +1111,7 @@ section [Reporting Problems](#Reporting-Problems)).
   [[\<](#Installation "Previous section in reading order")]   [[\>](#AIX "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ---------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.9 Platform Specific Notes {.section}
+3.9 Platform Specific Notes 
 ---------------------------
 
 The following platform-specific note may be helpful when building and
@@ -1129,7 +1129,7 @@ No value for VERSION can be found at
   [[\<](#Platform-Notes "Previous section in reading order")]   [[\>](#Cygwin "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.1 AIX {.subsection}
+### 3.9.1 AIX 
 
 We found the vendor compilers in /usr/vac/bin, and included this in our
 PATH. Compilers were xlc, xlf, xlf90, xlC.
@@ -1181,7 +1181,7 @@ compilers.
   [[\<](#AIX "Previous section in reading order")]   [[\>](#HPUX "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- ----------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.2 Cygwin {.subsection}
+### 3.9.2 Cygwin 
 
 NetCDF builds under Cygwin tools on Windows just as with Linux.
 
@@ -1191,7 +1191,7 @@ NetCDF builds under Cygwin tools on Windows just as with Linux.
   [[\<](#Cygwin "Previous section in reading order")]   [[\>](#Irix "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ----------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.3 HPUX {.subsection}
+### 3.9.3 HPUX 
 
 The HP Fortran compiler (f77, a.k.a. fort77, also f90) requires FLIBS to
 include -lU77 for the fortran tests to work. The configure script does
@@ -1238,7 +1238,7 @@ netCDF uses buffered I/O to improve performance.
   [[\<](#HPUX "Previous section in reading order")]   [[\>](#Linux "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- ------------------------------------------------ --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.4 Irix {.subsection}
+### 3.9.4 Irix 
 
 A 64-bit version can be built by setting the appropriate environment
 variables.
@@ -1254,7 +1254,7 @@ only works with the former.
   [[\<](#Irix "Previous section in reading order")]   [[\>](#Macintosh "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- ---------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.5 Linux {.subsection}
+### 3.9.5 Linux 
 
 The gFortran flag is required with GNU fortran:
 
@@ -1286,7 +1286,7 @@ netCDF configure script should set this automatically.
   [[\<](#Linux "Previous section in reading order")]   [[\>](#OSF1 "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- ----------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.6 Macintosh {.subsection}
+### 3.9.6 Macintosh 
 
 The gFortran flag is required with GNU fortran (CPPFLAGS=-DgFortran).
 The NetCDF configure script should and set this automatically.
@@ -1310,7 +1310,7 @@ environment):
   [[\<](#Macintosh "Previous section in reading order")]   [[\>](#SunOS "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------ --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.7 OSF1 {.subsection}
+### 3.9.7 OSF1 
 
 NetCDF builds out of the box on OSF1.
 
@@ -1320,7 +1320,7 @@ NetCDF builds out of the box on OSF1.
   [[\<](#OSF1 "Previous section in reading order")]   [[\>](#Handling-Fortran-Compilers "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- --------------------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.8 SunOS {.subsection}
+### 3.9.8 SunOS 
 
 PATH should contain /usr/ccs/bin to find make, nm, ar, etc.
 
@@ -1344,7 +1344,7 @@ this on automatically if needed.
   [[\<](#SunOS "Previous section in reading order")]   [[\>](#Porting-Notes "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Platform-Notes "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- -------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.9.9 Handling Fortran Compilers {.subsection}
+### 3.9.9 Handling Fortran Compilers 
 
 Commercial fortran compilers will generally require at least one flag in
 the CPPFLAGS variable. The netCDF configure script tries to set this for
@@ -1382,7 +1382,7 @@ The Portland Group also has a “PGI Guide to NetCDF” at
   [[\<](#Handling-Fortran-Compilers "Previous section in reading order")]   [[\>](#Source "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.10 Additional Porting Notes {.section}
+3.10 Additional Porting Notes 
 -----------------------------
 
 The configure and build system should work on any system which has a
@@ -1433,7 +1433,7 @@ functions, compile this module with -DUSE\_IEG.
   [[\<](#Porting-Notes "Previous section in reading order")]   [[\>](#Using "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Unix "Up section")]   [[\>\>](#Using "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.11 Contributing to NetCDF Source Code Development {.section}
+3.11 Contributing to NetCDF Source Code Development 
 ---------------------------------------------------
 
 Most users will not be interested in working directly with the netCDF
@@ -1505,7 +1505,7 @@ support-netcdf@unidata.ucar.edu.
   [[\<](#Source "Previous section in reading order")]   [[\>](#Linker-Flags "Next section in reading order")]       [[\<\<](#Building-on-Unix "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Building-on-Windows "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------------- --- ----------------------------------------------------------------------------- --------------------------- ----------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4. Using NetCDF on Unix Systems {.chapter}
+4. Using NetCDF on Unix Systems 
 ===============================
 
 To use netCDF you must link to the netCDF library, and, if using the
@@ -1524,7 +1524,7 @@ and (on some systems) the math library.
   [[\<](#Using "Previous section in reading order")]   [[\>](#Compiler-Flags "Next section in reading order")]       [[\<\<](#Using "Beginning of this chapter or previous chapter")]   [[Up](#Using "Up section")]   [[\>\>](#Building-on-Windows "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ----------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.1 Using Linker Flags with NetCDF {.section}
+4.1 Using Linker Flags with NetCDF 
 ----------------------------------
 
 For this to work, you have to tell the linker which libraries to link to
@@ -1573,7 +1573,7 @@ Flags](#nc_002dconfig)).
   [[\<](#Linker-Flags "Previous section in reading order")]   [[\>](#nc_002dconfig "Next section in reading order")]       [[\<\<](#Using "Beginning of this chapter or previous chapter")]   [[Up](#Using "Up section")]   [[\>\>](#Building-on-Windows "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ----------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.2 Using Compiler Flags with NetCDF {.section}
+4.2 Using Compiler Flags with NetCDF 
 ------------------------------------
 
 Depending on how netCDF was built, you may need to use compiler flags
@@ -1594,7 +1594,7 @@ set by all users as well.
   [[\<](#Compiler-Flags "Previous section in reading order")]   [[\>](#Building-on-Windows "Next section in reading order")]       [[\<\<](#Using "Beginning of this chapter or previous chapter")]   [[Up](#Using "Up section")]   [[\>\>](#Building-on-Windows "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ----------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.3 Using the nc-config Utility to Find Compiler and Linker Flags {.section}
+4.3 Using the nc-config Utility to Find Compiler and Linker Flags 
 -----------------------------------------------------------------
 
 To assist with the setting of compiler and linker flags, the nc-config
@@ -1632,7 +1632,7 @@ information.
   [[\<](#nc_002dconfig "Previous section in reading order")]   [[\>](#Prebuilt-DLL "Next section in reading order")]       [[\<\<](#Using "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------------- --- ------------------------------------------------------------------ --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5. Building and Installing NetCDF on Windows {.chapter}
+5. Building and Installing NetCDF on Windows 
 ============================================
 
 NetCDF can be built and used from a variety of development environments
@@ -1672,7 +1672,7 @@ unless the page has been moved.
   [[\<](#Building-on-Windows "Previous section in reading order")]   [[\>](#Installing-DLL "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ --------------------------------------------------------- --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.1 Getting Prebuilt netcdf.dll {.section}
+5.1 Getting Prebuilt netcdf.dll 
 -------------------------------
 
 We have pre-built Win32 binary versions of the netcdf dll and static
@@ -1687,7 +1687,7 @@ You can get them from
   [[\<](#Prebuilt-DLL "Previous section in reading order")]   [[\>](#Visual-Cplusplus "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ----------------------------------------------------------- --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.2 Installing the DLL {.section}
+5.2 Installing the DLL 
 ----------------------
 
 Whether you get the pre-built DLL or build your own, you’ll then have to
@@ -1746,7 +1746,7 @@ places:
   [[\<](#Installing-DLL "Previous section in reading order")]   [[\>](#Using-DLL "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ---------------------------------------------------- --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.3 Building netcdf.dll with VC++ 6.0 {.section}
+5.3 Building netcdf.dll with VC++ 6.0 
 -------------------------------------
 
 The most recent releases of netCDF aren’t tested under VC++ 6.0. (They
@@ -1849,7 +1849,7 @@ To build netcdf, proceed as follows:
   [[\<](#Visual-Cplusplus "Previous section in reading order")]   [[\>](#Building-with-NET "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ------------------------------------------------------------ --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.4 Using netcdf.dll with VC++ 6.0 {.section}
+5.4 Using netcdf.dll with VC++ 6.0 
 ----------------------------------
 
 To use the netcdf.dll:
@@ -1876,7 +1876,7 @@ linked (no DLL needed) ncdumps.exe statically linked (no DLL needed)
   [[\<](#Using-DLL "Previous section in reading order")]   [[\>](#Using-with-NET "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- --------------------------------------------------------- --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.5 Building netcdf.dll with VC++.NET {.section}
+5.5 Building netcdf.dll with VC++.NET 
 -------------------------------------
 
 To build the netCDF dll with VC++.NET open the win32/NET/netcdf.sln file
@@ -1909,7 +1909,7 @@ so please be patient.
   [[\<](#Building-with-NET "Previous section in reading order")]   [[\>](#Build-Problems "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Building-on-Windows "Up section")]   [[\>\>](#Build-Problems "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- --------------------------------------------------------- --- -------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.6 Using netcdf.dll with VC++.NET {.section}
+5.6 Using netcdf.dll with VC++.NET 
 ----------------------------------
 
 Load-time linking to the DLL is the most straightforward from C++. This
@@ -1944,7 +1944,7 @@ file that wants to use the functions will need:
   [[\<](#Using-with-NET "Previous section in reading order")]   [[\>](#Usual-Problems "Next section in reading order")]       [[\<\<](#Building-on-Windows "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------------- --- -------------------------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6. If Something Goes Wrong {.chapter}
+6. If Something Goes Wrong 
 ==========================
 
 The netCDF package is designed to build and install on a wide variety of
@@ -1964,7 +1964,7 @@ all.
   [[\<](#Build-Problems "Previous section in reading order")]   [[\>](#Taking-the-Easy-Way-Out "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Build-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------------------------ --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.1 The Usual Build Problems {.section}
+6.1 The Usual Build Problems 
 ----------------------------
 
 * * * * *
@@ -1973,7 +1973,7 @@ all.
   [[\<](#Usual-Problems "Previous section in reading order")]   [[\>](#How-to-Clean-Up-the-Mess-from-a-Failed-Build "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.1 Taking the Easy Way Out {.subsection}
+### 6.1.1 Taking the Easy Way Out 
 
 Why not take the easy way out if you can?
 
@@ -1993,7 +1993,7 @@ and man directories into your own local equivalents (Perhaps
   [[\<](#Taking-the-Easy-Way-Out "Previous section in reading order")]   [[\>](#Platforms-On-Which-NetCDF-is-Known-to-Work "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.2 How to Clean Up the Mess from a Failed Build {.subsection}
+### 6.1.2 How to Clean Up the Mess from a Failed Build 
 
 If you are trying to get the configure or build to work, make sure you
 start with a clean distribution for each attempt. If netCDF failed in
@@ -2012,7 +2012,7 @@ make distclean
   [[\<](#How-to-Clean-Up-the-Mess-from-a-Failed-Build "Previous section in reading order")]   [[\>](#Platforms-On-Which-NetCDF-is-Reported-to-Work "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.3 Platforms On Which NetCDF is Known to Work {.subsection}
+### 6.1.3 Platforms On Which NetCDF is Known to Work 
 
 At NetCDF World Headquarters (in sunny Boulder, Colorado), as part of
 the wonderful Unidata organization, we have a wide variety of computers,
@@ -2051,7 +2051,7 @@ flip% make distclean;./configure;make check
   [[\<](#Platforms-On-Which-NetCDF-is-Known-to-Work "Previous section in reading order")]   [[\>](#If-You-Have-a-Broken-Compiler "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- ------------------------------------------------------------------------ --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.4 Platforms On Which NetCDF is Reported to Work {.subsection}
+### 6.1.4 Platforms On Which NetCDF is Reported to Work 
 
 If your platform isn’t listed on the successful build page, see if
 another friendly netCDF user has sent in values for environment
@@ -2069,7 +2069,7 @@ support-netcdf@unidata.ucar.edu.
   [[\<](#Platforms-On-Which-NetCDF-is-Reported-to-Work "Previous section in reading order")]   [[\>](#What-to-Do-If-NetCDF-Still-Won_0027t-Build "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.5 If You Have a Broken Compiler {.subsection}
+### 6.1.5 If You Have a Broken Compiler 
 
 For netCDF to build correctly, you must be able to compile C from your
 environment, and, optionally, Fortran 77, Fortran 90, and C++. If C
@@ -2104,7 +2104,7 @@ the C++ API, set the CXX environment variable to a working C++ compiler.
   [[\<](#If-You-Have-a-Broken-Compiler "Previous section in reading order")]   [[\>](#Troubleshooting "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Usual-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ---------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.1.6 What to Do If NetCDF Still Won’t Build {.subsection}
+### 6.1.6 What to Do If NetCDF Still Won’t Build 
 
 If none of the above help, try our troubleshooting section: See section
 [Troubleshooting](#Troubleshooting).
@@ -2122,7 +2122,7 @@ section [Reporting Problems](#Reporting-Problems)).
   [[\<](#What-to-Do-If-NetCDF-Still-Won_0027t-Build "Previous section in reading order")]   [[\>](#Problems-During-Configuration "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Build-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- ------------------------------------------------------------------------ --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.2 Troubleshooting {.section}
+6.2 Troubleshooting 
 -------------------
 
 * * * * *
@@ -2131,7 +2131,7 @@ section [Reporting Problems](#Reporting-Problems)).
   [[\<](#Troubleshooting "Previous section in reading order")]   [[\>](#Problems-During-Compilation "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Troubleshooting "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ---------------------------------------------------------------------- --- --------------------------------------------------------------------------- --------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.2.1 Problems During Configuration {.subsection}
+### 6.2.1 Problems During Configuration 
 
 If the ./configure; make check fails, it’s a good idea to turn off the
 C++ and Fortran interfaces, and try to build the C interface alone. All
@@ -2190,7 +2190,7 @@ be obvious in config.log.
   [[\<](#Problems-During-Configuration "Previous section in reading order")]   [[\>](#Problems-During-Testing "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Troubleshooting "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------ --- --------------------------------------------------------------------------- --------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.2.2 Problems During Compilation {.subsection}
+### 6.2.2 Problems During Compilation 
 
 If the configure script runs, but the compile step doesn’t work, or the
 tests don’t complete successfully, the problem is probably in your
@@ -2207,7 +2207,7 @@ the static library build works.
   [[\<](#Problems-During-Compilation "Previous section in reading order")]   [[\>](#Finding-Help "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Troubleshooting "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------- --- --------------------------------------------------------------------------- --------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.2.3 Problems During Testing {.subsection}
+### 6.2.3 Problems During Testing 
 
 If you are planning on using large files (i.e. \> 2 GiB), then you may
 wish to rerun configure with –enable-large-file-tests to ensure that
@@ -2226,7 +2226,7 @@ may fail. Because of this, the use of these tests is controlled by the
   [[\<](#Problems-During-Testing "Previous section in reading order")]   [[\>](#Reporting-Problems "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Build-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.3 Finding Help On-line {.section}
+6.3 Finding Help On-line 
 ------------------------
 
 The latest netCDF documentation (including this manual) can be found at
@@ -2270,7 +2270,7 @@ The netCDF mailing list also can be searched; see
   [[\<](#Finding-Help "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Build-Problems "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.4 Reporting Problems {.section}
+6.4 Reporting Problems 
 ----------------------
 
 To help us solve your problem, please include the following information
@@ -2302,7 +2302,7 @@ one less place to harvest it from.
   [[\<](#Reporting-Problems "Previous section in reading order")]   [ \> ]       [[\<\<](#Build-Problems "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------- --- --------------------------------------------------------------------------- --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Index {.unnumbered}
+Index 
 =====
 
 Jump to:  
