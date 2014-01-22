@@ -252,16 +252,22 @@ echo '#DODSRC' >./.dodsrc
 
 for t in ${TESTSET} ; do
   # see if we are using constraints
-  index=`expr index "${t}" ";"`
-  if test "x$index" = "x0" ; then
+  #index=`expr index "${t}" ";"`
+  index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`
+  #echo index: $index
+  
+  if [ $index == 0 ]; then
+    #echo "No Constraint"
     constrained=0
   else
     constrained=1
+    #echo "Constrained"
   fi
   if test "x$constrained" = "x0" ; then # No constraint
     testname=$t
     ce=
   else # Constrained
+      
     testname=`echo $t | cut -d ';' -f1`
     testno=`echo $t | cut -d ';' -f2`
     ce=`echo $t | cut -d ';' -f3-`
