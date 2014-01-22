@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-The NetCDF C++ Interface Guide {.settitle}
+The NetCDF C++ Interface Guide 
 ==============================
 
 This document describes the netCDF C++ API. It applies to netCDF version
@@ -41,7 +41,7 @@ For a complete description of the netCDF format and utilities see
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 Introduction
@@ -55,7 +55,7 @@ Introduction
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 NetCDF Classes
 ~~~~
 
@@ -89,7 +89,7 @@ Variables
 
 Attributes
 
-~~~~ {.menu-comment}
+~~~~ 
 Auxiliary Classes
 ~~~~
 
@@ -101,7 +101,7 @@ Auxiliary Classes
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -110,7 +110,7 @@ Auxiliary Classes
   [[\<](#Top "Previous section in reading order")]   [[\>](#Class-Hierarchy "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Introduction {.unnumbered}
+Introduction 
 ============
 
 The main requirements for the design of the C++ interface are:
@@ -158,7 +158,7 @@ attributes are discussed.
   [[\<](#Introduction "Previous section in reading order")]   [[\>](#Auxiliary-Types-and-Constants "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class Hierarchy {.unnumberedsec}
+Class Hierarchy 
 ---------------
 
 The class for netCDF file objects is `NcFile`.
@@ -202,7 +202,7 @@ NcError                    for error handling
   [[\<](#Class-Hierarchy "Previous section in reading order")]   [[\>](#NetCDF-Classes "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Auxiliary Types and Constants {.unnumberedsec}
+Auxiliary Types and Constants 
 -----------------------------
 
 The netCDF classes use several auxiliary types for arguments and return
@@ -242,7 +242,7 @@ representation.)
   [[\<](#Auxiliary-Types-and-Constants "Previous section in reading order")]   [[\>](#Class-NcFile "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------- --------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-NetCDF Classes {.unnumbered}
+NetCDF Classes 
 ==============
 
   --------------------------------------------------- ---- -----------------------------------------------
@@ -259,7 +259,7 @@ NetCDF Classes {.unnumbered}
   [[\<](#NetCDF-Classes "Previous section in reading order")]   [[\>](#Public-Member-Functions-1 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcFile {.unnumberedsec}
+Class NcFile 
 ------------
 
 `NcFile` is the class for netCDF files, providing methods for netCDF
@@ -297,7 +297,7 @@ may entail a copy of the data.
   [[\<](#Class-NcFile "Previous section in reading order")]   [[\>](#Class-NcDim "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcFile "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ------------------------------------ --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcFile( const char * path, FileMode = ReadOnly )`
 
@@ -470,7 +470,7 @@ changes to the file schema (dimensions, variables, and attributes).
   [[\<](#Public-Member-Functions-1 "Previous section in reading order")]   [[\>](#Public-Member-Functions-4 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcDim {.unnumberedsec}
+Class NcDim 
 -----------
 
 A netCDF dimension has a name and a size. Dimensions are only created
@@ -484,7 +484,7 @@ constructors or destructors.
   [[\<](#Class-NcDim "Previous section in reading order")]   [[\>](#Class-NcTypedComponent "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcDim "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ----------------------------------------------------------------- --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcToken name( void ) const`
 
@@ -518,7 +518,7 @@ If the dimension may have been renamed, make sure its name is updated.
   [[\<](#Public-Member-Functions-4 "Previous section in reading order")]   [[\>](#Public-Member-Functions-6 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcTypedComponent {.unnumberedsec}
+Class NcTypedComponent 
 ----------------------
 
 `NcTypedComponent` is an abstract base class for `NcVar` and `NcAtt`
@@ -533,7 +533,7 @@ under the `NcVar` and `NcAtt` classes for convenience.
   [[\<](#Class-NcTypedComponent "Previous section in reading order")]   [[\>](#Class-NcVar "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcTypedComponent "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ---------------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcToken name( void ) const`
 
@@ -598,7 +598,7 @@ appropriate type is returned.
   [[\<](#Public-Member-Functions-6 "Previous section in reading order")]   [[\>](#Public-Member-Functions-2 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcVar {.unnumberedsec}
+Class NcVar 
 -----------
 
 `NcVar` is derived from NcTypedComponent, and represents a netCDF
@@ -614,7 +614,7 @@ variables or add new variables.
   [[\<](#Class-NcVar "Previous section in reading order")]   [[\>](#Class-NcAtt "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcVar "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcToken name( void ) const`
 
@@ -978,7 +978,7 @@ variable.
   [[\<](#Public-Member-Functions-2 "Previous section in reading order")]   [[\>](#Public-Member-Functions-3 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcAtt {.unnumberedsec}
+Class NcAtt 
 -----------
 
 `NcAtt` is derived from `NcTypedComponent`, and represents a netCDF
@@ -998,7 +998,7 @@ inherited from class `NcTypedComponent`.
   [[\<](#Class-NcAtt "Previous section in reading order")]   [[\>](#Auxiliary-Classes "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcAtt "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------------ --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcToken name( void ) const`
 
@@ -1068,7 +1068,7 @@ Destructor.
   [[\<](#Public-Member-Functions-3 "Previous section in reading order")]   [[\>](#Class-NcValues "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ --------------------------------------------------------- --- --------------------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Auxiliary Classes {.unnumbered}
+Auxiliary Classes 
 =================
 
 Auxiliary classes include the abstract base class `NcValues`, its
@@ -1086,7 +1086,7 @@ type-specific derived subclasses, and the error-handling class
   [[\<](#Auxiliary-Classes "Previous section in reading order")]   [[\>](#Public-Member-Functions "Next section in reading order")]       [[\<\<](#Auxiliary-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Auxiliary-Classes "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------ ----------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcValues {.unnumberedsec}
+Class NcValues 
 --------------
 
 Class `NcValues` is an abstract base class for a block of typed values.
@@ -1103,7 +1103,7 @@ attributes.
   [[\<](#Class-NcValues "Previous section in reading order")]   [[\>](#Class-NcError "Next section in reading order")]       [[\<\<](#Auxiliary-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcValues "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------------------ -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcValues( void )`
 
@@ -1161,7 +1161,7 @@ the appropriate type is returned.
   [[\<](#Public-Member-Functions "Previous section in reading order")]   [[\>](#Public-Member-Functions-5 "Next section in reading order")]       [[\<\<](#Auxiliary-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Auxiliary-Classes "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------------ ----------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcError {.unnumberedsec}
+Class NcError 
 -------------
 
 This class provides control for netCDF error handling. Declaring an
@@ -1176,7 +1176,7 @@ is restored.
   [[\<](#Class-NcError "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#Auxiliary-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcError "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ --------------------------------------------------------- --- ------------------------------------------------------------------------------ ------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Public Member Functions {.unnumberedsubsec}
+### Public Member Functions 
 
 `NcError( Behavior b = verbose_fatal )`
 
@@ -1201,7 +1201,7 @@ Returns most recent error, as enumerated in ‘`netcdf.h`’.
   [[\<](#Public-Member-Functions-5 "Previous section in reading order")]   [ \> ]       [[\<\<](#Auxiliary-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------- --- ------------------------------------------------------------------------------ --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Index {.unnumbered}
+Index 
 =====
 
 Jump to:  

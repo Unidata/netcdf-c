@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-The NetCDF Fortran 90 Interface Guide {.settitle}
+The NetCDF Fortran 90 Interface Guide 
 =====================================
 
 This document describes the Fortran 90 interface to the netCDF library.
@@ -57,7 +57,7 @@ Guide](#Fortran-77-to-Fortran-90-Transition-Guide)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 Use of the NetCDF Library
@@ -96,7 +96,7 @@ Library](#Compiling-and-Linking-with-the-NetCDF-Library)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Datasets
 ~~~~
 
@@ -154,7 +154,7 @@ NF90\_INQ\_LIBVERS](#NF90_005fINQ_005fLIBVERS)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Groups
 ~~~~
 
@@ -210,7 +210,7 @@ NF90\_INQ\_GRP\_FULL\_NCID](#NF90_005fINQ_005fGRP_005fFULL_005fNCID)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Dimensions
 ~~~~
 
@@ -234,7 +234,7 @@ Dimensions
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 User Defined Data Types
 ~~~~
 
@@ -278,7 +278,7 @@ NF90\_INQ\_USER\_TYPE](#NF90_005fINQ_005fUSER_005fTYPE)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Example
 ~~~~
 
@@ -292,7 +292,7 @@ NF90\_GET\_VLEN\_ELEMENT](#NF90_005fGET_005fVLEN_005fELEMENT)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Compound Types Introduction
 ~~~~
 
@@ -321,7 +321,7 @@ NF90\_INQ\_COMPOUND\_FIELD](#NF90_005fINQ_005fCOMPOUND_005fFIELD)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Variable Length Array Introduction
 ~~~~
 
@@ -340,7 +340,7 @@ NF90\_FREE\_VLEN](#NF90_005fFREE_005fVLEN)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Opaque Type Introduction
 ~~~~
 
@@ -354,7 +354,7 @@ NF90\_INQ\_OPAQUE](#NF90_005fINQ_005fOPAQUE)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Example
 ~~~~
 
@@ -363,7 +363,7 @@ NF90\_INQ\_OPAQUE](#NF90_005fINQ_005fOPAQUE)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Enum Type Introduction
 ~~~~
 
@@ -390,7 +390,7 @@ NF90\_INQ\_ENUM\_IDENT](#NF90_005fINQ_005fENUM_005fIDENT)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Variables
 ~~~~
 
@@ -463,7 +463,7 @@ NF90\_VAR\_PAR\_ACCESS](#NF90_005fVAR_005fPAR_005fACCESS)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Attributes
 ~~~~
 
@@ -497,7 +497,7 @@ NF90\_COPY\_ATT](#NF90_005fCOPY_005fATT)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -506,7 +506,7 @@ NF90\_COPY\_ATT](#NF90_005fCOPY_005fATT)
   [[\<](#Top "Previous section in reading order")]   [[\>](#Creating-a-NetCDF-Dataset "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- -------------------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1. Use of the NetCDF Library {.chapter}
+1. Use of the NetCDF Library 
 ============================
 
 You can use the netCDF library without knowing about all of the netCDF
@@ -546,7 +546,7 @@ are described in later chapters.
   [[\<](#Use-of-the-NetCDF-Library "Previous section in reading order")]   [[\>](#Reading-a-NetCDF-Dataset-with-Known-Names "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ------------------------------------------------------------------------------------ --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.1 Creating a NetCDF Dataset {.section}
+1.1 Creating a NetCDF Dataset 
 -----------------------------
 
 Here is a typical sequence of netCDF calls used to create a new netCDF
@@ -608,7 +608,7 @@ are not written out until NF90\_SYNC or NF90\_CLOSE is called.
   [[\<](#Creating-a-NetCDF-Dataset "Previous section in reading order")]   [[\>](#Reading-a-netCDF-Dataset-with-Unknown-Names "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.2 Reading a NetCDF Dataset with Known Names {.section}
+1.2 Reading a NetCDF Dataset with Known Names 
 ---------------------------------------------
 
 Here we consider the case where you know the names of not only the
@@ -655,7 +655,7 @@ to close a dataset open only for reading.
   [[\<](#Reading-a-NetCDF-Dataset-with-Known-Names "Previous section in reading order")]   [[\>](#Writing-Data-in-an-Existing-NetCDF-Dataset "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.3 Reading a netCDF Dataset with Unknown Names {.section}
+1.3 Reading a netCDF Dataset with Unknown Names 
 -----------------------------------------------
 
 It is possible to write programs (e.g., generic software) which do such
@@ -729,7 +729,7 @@ be accessed by calling NF90\_GET\_VAR.
   [[\<](#Reading-a-netCDF-Dataset-with-Unknown-Names "Previous section in reading order")]   [[\>](#Adding-New-Dimensions "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------------ ---------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.4 Writing Data in an Existing NetCDF Dataset {.section}
+1.4 Writing Data in an Existing NetCDF Dataset 
 ----------------------------------------------
 
 With write access to an existing netCDF dataset, you can overwrite data
@@ -793,7 +793,7 @@ Otherwise, modifications to the dataset may be lost.
   [[\<](#Writing-Data-in-an-Existing-NetCDF-Dataset "Previous section in reading order")]   [[\>](#Error-Handling "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- --------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.5 Adding New Dimensions, Variables, Attributes {.section}
+1.5 Adding New Dimensions, Variables, Attributes 
 ------------------------------------------------
 
 An existing netCDF dataset can be extensively altered. New dimensions,
@@ -860,7 +860,7 @@ NF90\_SYNC before the next access.
   [[\<](#Adding-New-Dimensions "Previous section in reading order")]   [[\>](#Compiling-and-Linking-with-the-NetCDF-Library "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.6 Error Handling {.section}
+1.6 Error Handling 
 ------------------
 
 The netCDF library provides the facilities needed to handle errors in a
@@ -887,7 +887,7 @@ value.
   [[\<](#Error-Handling "Previous section in reading order")]   [[\>](#Datasets "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.7 Compiling and Linking with the NetCDF Library {.section}
+1.7 Compiling and Linking with the NetCDF Library 
 -------------------------------------------------
 
 Details of how to compile and link a program that uses the netCDF C or
@@ -940,7 +940,7 @@ f90 -o myprogram myprogram.o -L/usr/local/netcdf/lib -lnetcdf
   [[\<](#Compiling-and-Linking-with-the-NetCDF-Library "Previous section in reading order")]   [[\>](#Datasets-Introduction "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------------------- ---------------------------------------------------------------- --- -------------------------------------------------------------------------------------- --------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2. Datasets {.chapter}
+2. Datasets 
 ===========
 
   ------------------------------------------------------------------------------------- ---- --
@@ -965,7 +965,7 @@ f90 -o myprogram myprogram.o -L/usr/local/netcdf/lib -lnetcdf
   [[\<](#Datasets "Previous section in reading order")]   [[\>](#NetCDF-Library-Interface-Descriptions "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- -------------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.1 Datasets Introduction {.section}
+2.1 Datasets Introduction 
 -------------------------
 
 This chapter presents the interfaces of the netCDF functions that deal
@@ -1008,7 +1008,7 @@ The operations supported on a netCDF dataset as a single object are:
   [[\<](#Datasets-Introduction "Previous section in reading order")]   [[\>](#NF90_005fSTRERROR "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.2 NetCDF Library Interface Descriptions {.section}
+2.2 NetCDF Library Interface Descriptions 
 -----------------------------------------
 
 Each interface description for a particular netCDF function in this and
@@ -1034,7 +1034,7 @@ corresponding to error status: nf90\_strerror".
   [[\<](#NetCDF-Library-Interface-Descriptions "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fLIBVERS "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.3 NF90\_STRERROR {.section}
+2.3 NF90\_STRERROR 
 ------------------
 
 The function NF90\_STRERROR returns a static reference to an error
@@ -1043,7 +1043,7 @@ system error number, presumably returned by a previous call to some
 other netCDF function. The list of netCDF error status codes is
 available in the appropriate include file for each language binding.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1058,7 +1058,7 @@ Usage {.heading}
 :   An error status that might have been returned from a previous call
     to some netCDF function.
 
-Errors {.heading}
+Errors 
 ------
 
 If you provide an invalid integer error status that does not correspond
@@ -1066,7 +1066,7 @@ to any netCDF error message or or to any system error message (as
 understood by the system strerror function), NF90\_STRERROR returns a
 string indicating that there is no such error status.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example of a simple error handling function that uses
@@ -1092,13 +1092,13 @@ error status returned from any netCDF function call and then exit:
   [[\<](#NF90_005fSTRERROR "Previous section in reading order")]   [[\>](#NF90_005fCREATE "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ---------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.4 Get netCDF library version: NF90\_INQ\_LIBVERS {.section}
+2.4 Get netCDF library version: NF90\_INQ\_LIBVERS 
 --------------------------------------------------
 
 The function NF90\_INQ\_LIBVERS returns a string identifying the version
 of the netCDF library, and when it was built.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1108,12 +1108,12 @@ Usage {.heading}
    character(len = 80) :: nf90_inq_libvers
 ~~~~
 
-Errors {.heading}
+Errors 
 ------
 
 This function takes no arguments, and returns no error status.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nf90\_inq\_libvers to print the version of the
@@ -1131,7 +1131,7 @@ netCDF library with which the program is linked:
   [[\<](#NF90_005fINQ_005fLIBVERS "Previous section in reading order")]   [[\>](#NF90_005fOPEN "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- -------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.5 NF90\_CREATE {.section}
+2.5 NF90\_CREATE 
 ----------------
 
 This function creates a new netCDF dataset, returning a netCDF ID that
@@ -1143,7 +1143,7 @@ attributes.
 A creation mode flag specifies whether to overwrite any existing dataset
 with the same name and whether access to the dataset is shared.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1260,7 +1260,7 @@ The following optional arguments allow additional performance tuning.
     information value (of type MPI\_Info). If this parameter is provided
     the comm parameter must also be provided.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_CREATE returns the value NF90\_NOERR if no errors occurred.
@@ -1274,7 +1274,7 @@ Possible causes of errors include:
 -   Attempting to create a netCDF dataset in a directory where you don’t
     have permission to create files.
 
-Example {.heading}
+Example 
 -------
 
 In this example we create a netCDF dataset named foo.nc; we want the
@@ -1298,12 +1298,12 @@ that name does not already exist:
   [[\<](#NF90_005fCREATE "Previous section in reading order")]   [[\>](#NF90_005fREDEF "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- --------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.6 NF90\_OPEN {.section}
+2.6 NF90\_OPEN 
 --------------
 
 The function NF90\_OPEN opens an existing netCDF dataset for access.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1395,7 +1395,7 @@ The following optional argument allows additional performance tuning.
     (of type MPI\_Info). If this parameter is provided the comm
     parameter must also be provided.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_OPEN returns the value NF90\_NOERR if no errors occurred.
@@ -1405,7 +1405,7 @@ errors include:
 -   The specified netCDF dataset does not exist.
 -   A meaningless mode was specified.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_OPEN to open an existing netCDF dataset
@@ -1422,7 +1422,7 @@ named foo.nc for read-only, non-shared access:
  if (status /= nf90_noerr) call handle_err(status)
 ~~~~
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_OPEN to open an existing netCDF dataset
@@ -1447,14 +1447,14 @@ This example is from test program nf\_test/f90tst\_parallel.f90.
   [[\<](#NF90_005fOPEN "Previous section in reading order")]   [[\>](#NF90_005fENDDEF "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ---------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.7 NF90\_REDEF {.section}
+2.7 NF90\_REDEF 
 ---------------
 
 The function NF90\_REDEF puts an open netCDF dataset into define mode,
 so dimensions, variables, and attributes can be added or renamed and
 attributes can be deleted.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1468,7 +1468,7 @@ Usage {.heading}
  `ncid`
 :   netCDF ID, from a previous call to NF90\_OPEN or NF90\_CREATE.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_REDEF returns the value NF90\_NOERR if no errors occurred.
@@ -1479,7 +1479,7 @@ errors include:
 -   The specified netCDF dataset was opened for read-only.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_REDEF to open an existing netCDF dataset
@@ -1505,7 +1505,7 @@ named foo.nc and put it into define mode:
   [[\<](#NF90_005fREDEF "Previous section in reading order")]   [[\>](#NF90_005fCLOSE "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.8 NF90\_ENDDEF {.section}
+2.8 NF90\_ENDDEF 
 ----------------
 
 The function NF90\_ENDDEF takes an open netCDF dataset out of define
@@ -1520,7 +1520,7 @@ extensive discussion See [(netcdf)File Structure and
 Performance](netcdf.html#File-Structure-and-Performance) section ‘File
 Structure and Performance’ in NetCDF Users Guide.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1577,7 +1577,7 @@ the align parameter. The default value for both v\_align and r\_align is
 :   The alignment of the beginning of the data section for variables
     which have an unlimited dimension (record variables).
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_ENDDEF returns the value NF90\_NOERR if no errors occurred.
@@ -1591,7 +1591,7 @@ errors include:
     File Support](netcdf.html#Large-File-Support) section ‘Large File
     Support’ in The NetCDF Users Guide.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_ENDDEF to finish the definitions of a new
@@ -1617,7 +1617,7 @@ netCDF dataset named foo.nc and put it into data mode:
   [[\<](#NF90_005fENDDEF "Previous section in reading order")]   [[\>](#NF90_005fINQUIRE-Family "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.9 NF90\_CLOSE {.section}
+2.9 NF90\_CLOSE 
 ---------------
 
 The function NF90\_CLOSE closes an open netCDF dataset. If the dataset
@@ -1628,7 +1628,7 @@ mode was last entered.) After an open netCDF dataset is closed, its
 netCDF ID may be reassigned to the next netCDF dataset that is opened or
 created.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1642,7 +1642,7 @@ Usage {.heading}
  `ncid`
 :   NetCDF ID, from a previous call to NF90\_OPEN or NF90\_CREATE.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_CLOSE returns the value NF90\_NOERR if no errors occurred.
@@ -1653,7 +1653,7 @@ errors include:
     failed.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_CLOSE to finish the definitions of a new
@@ -1679,7 +1679,7 @@ netCDF dataset named foo.nc and release its netCDF ID:
   [[\<](#NF90_005fCLOSE "Previous section in reading order")]   [[\>](#NF90_005fSYNC "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.10 NF90\_INQUIRE Family {.section}
+2.10 NF90\_INQUIRE Family 
 -------------------------
 
 The NF90\_INQUIRE subroutine returns information about an open netCDF
@@ -1693,7 +1693,7 @@ returns the (rarely needed) format version.
 No I/O is performed when NF90\_INQUIRE is called, since the required
 information is available in memory for each open netCDF dataset.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1735,7 +1735,7 @@ Usage {.heading}
     or applications, since thhe library recognizes the format of a file
     it is accessing and handles it accordingly.
 
-Errors {.heading}
+Errors 
 ------
 
 Function NF90\_INQUIRE returns the value NF90\_NOERR if no errors
@@ -1744,7 +1744,7 @@ causes of errors include:
 
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQUIRE to find out about a netCDF
@@ -1773,7 +1773,7 @@ dataset named foo.nc:
   [[\<](#NF90_005fINQUIRE-Family "Previous section in reading order")]   [[\>](#NF90_005fABORT "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.11 NF90\_SYNC {.section}
+2.11 NF90\_SYNC 
 ---------------
 
 The function NF90\_SYNC offers a way to synchronize the disk copy of a
@@ -1834,7 +1834,7 @@ records written), without having to close and reopen the dataset.
 Data is automatically synchronized to disk when a netCDF dataset is
 closed, or whenever you leave define mode.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1848,7 +1848,7 @@ Usage {.heading}
  `ncid`
 :   NetCDF ID, from a previous call to NF90\_OPEN or NF90\_CREATE.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_SYNC returns the value NF90\_NOERR if no errors occurred.
@@ -1858,7 +1858,7 @@ errors include:
 -   The netCDF dataset is in define mode.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_SYNC to synchronize the disk writes of a
@@ -1886,7 +1886,7 @@ netCDF dataset named foo.nc:
   [[\<](#NF90_005fSYNC "Previous section in reading order")]   [[\>](#NF90_005fSET_005fFILL "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ---------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.12 NF90\_ABORT {.section}
+2.12 NF90\_ABORT 
 ----------------
 
 You no longer need to call this function, since it is called
@@ -1898,7 +1898,7 @@ deleted. If define mode was entered by a call to NF90\_REDEF, the netCDF
 dataset is restored to its state before definition mode was entered and
 the dataset is closed.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1912,7 +1912,7 @@ Usage {.heading}
  `ncid`
 :   NetCDF ID, from a previous call to NF90\_OPEN or NF90\_CREATE.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_ABORT returns the value NF90\_NOERR if no errors occurred.
@@ -1923,7 +1923,7 @@ errors include:
     deletion of the dataset failed.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_ABORT to back out of redefinitions of a
@@ -1957,7 +1957,7 @@ dataset named foo.nc:
   [[\<](#NF90_005fABORT "Previous section in reading order")]   [[\>](#Groups "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.13 NF90\_SET\_FILL {.section}
+2.13 NF90\_SET\_FILL 
 --------------------
 
 This function is intended for advanced usage, to optimize writes under
@@ -2018,7 +2018,7 @@ The use of this feature may not be available (or even needed) in future
 releases. Programmers are cautioned against heavy reliance upon this
 feature.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2041,7 +2041,7 @@ Usage {.heading}
 :   Returned current fill mode of the dataset before this call, either
     NF90\_NOFILL or NF90\_FILL.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_SET\_FILL returns the value NF90\_NOERR if no errors occurred.
@@ -2053,7 +2053,7 @@ errors include:
     access.
 -   The fill mode argument is neither NF90\_NOFILL nor NF90\_FILL..
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_SET\_FILL to set nofill mode for
@@ -2084,7 +2084,7 @@ subsequent writes of a netCDF dataset named foo.nc:
   [[\<](#NF90_005fSET_005fFILL "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fNCID "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3. Groups {.chapter}
+3. Groups 
 =========
 
 NetCDF-4 added support for hierarchical groups within netCDF datasets.
@@ -2134,13 +2134,13 @@ NF90\_CLASSIC\_MODEL file cannot contain groups (except the root group).
   [[\<](#Groups "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRPS "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.1 Find a Group ID: NF90\_INQ\_NCID {.section}
+3.1 Find a Group ID: NF90\_INQ\_NCID 
 ------------------------------------
 
 Given an ncid and group name (NULL or "" gets root group), return ncid
 of the named group.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2163,7 +2163,7 @@ Usage {.heading}
  `GRPID`
 :   The ID of the group will go here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2186,7 +2186,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from nf90\_test/ftst\_groups.F.
@@ -2197,13 +2197,13 @@ This example is from nf90\_test/ftst\_groups.F.
   [[\<](#NF90_005fINQ_005fNCID "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fVARIDS "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.2 Get a List of Groups in a Group: NF90\_INQ\_GRPS {.section}
+3.2 Get a List of Groups in a Group: NF90\_INQ\_GRPS 
 ----------------------------------------------------
 
 Given a location id, return the number of groups it contains, and an
 array of their ncids.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2226,7 +2226,7 @@ Usage {.heading}
 :   An array of ints which will receive the IDs of all the groups in
     this group.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2249,7 +2249,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2258,12 +2258,12 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fGRPS "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fDIMIDS "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.3 Find all the Variables in a Group: NF90\_INQ\_VARIDS {.section}
+3.3 Find all the Variables in a Group: NF90\_INQ\_VARIDS 
 --------------------------------------------------------
 
 Find all varids for a location.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2285,7 +2285,7 @@ Usage {.heading}
     section [Get Information about a Variable from Its ID:
     NF90\_INQUIRE\_VARIABLE](#NF90_005fINQUIRE_005fVARIABLE)).
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2308,7 +2308,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2317,13 +2317,13 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fVARIDS "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRPNAME_005fLEN "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.4 Find all Dimensions Visible in a Group: NF90\_INQ\_DIMIDS {.section}
+3.4 Find all Dimensions Visible in a Group: NF90\_INQ\_DIMIDS 
 -------------------------------------------------------------
 
 Find all dimids for a location. This finds all dimensions in a group, or
 any of its parents.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2355,7 +2355,7 @@ Usage {.heading}
 :   If zero, only the group specified by NCID will be searched for
     dimensions. Otherwise parent groups will be searched too.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2378,7 +2378,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2387,13 +2387,13 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fDIMIDS "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRPNAME "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.5 Find the Length of a Group’s Full Name: NF90\_INQ\_GRPNAME\_LEN {.section}
+3.5 Find the Length of a Group’s Full Name: NF90\_INQ\_GRPNAME\_LEN 
 -------------------------------------------------------------------
 
 Given ncid, find length of the full name. (Root group is named "/", with
 length 1.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2412,7 +2412,7 @@ Usage {.heading}
  `LEN`
 :   An integer where the length will be placed.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2435,7 +2435,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2444,7 +2444,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fGRPNAME_005fLEN "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRPNAME_005fFULL "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.6 Find a Group’s Name: NF90\_INQ\_GRPNAME {.section}
+3.6 Find a Group’s Name: NF90\_INQ\_GRPNAME 
 -------------------------------------------
 
 Given ncid, find relative name of group. (Root group is named "/").
@@ -2455,7 +2455,7 @@ separated with a forward slash (as in Unix directory names) See section
 [Find a Group’s Full Name:
 NF90\_INQ\_GRPNAME\_FULL](#NF90_005fINQ_005fGRPNAME_005fFULL).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2478,7 +2478,7 @@ will be less than NF90\_MAX\_NAME in length.
 
 ``
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2501,7 +2501,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2510,7 +2510,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fGRPNAME "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRP_005fPARENT "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- -------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.7 Find a Group’s Full Name: NF90\_INQ\_GRPNAME\_FULL {.section}
+3.7 Find a Group’s Full Name: NF90\_INQ\_GRPNAME\_FULL 
 ------------------------------------------------------
 
 Given ncid, find complete name of group. (Root group is named "/").
@@ -2525,7 +2525,7 @@ To find the length of the full name See section [Find the Length of a
 Group’s Full Name:
 NF90\_INQ\_GRPNAME\_LEN](#NF90_005fINQ_005fGRPNAME_005fLEN).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2547,7 +2547,7 @@ Usage {.heading}
  `NAME`
 :   The name of the group will be copied to this character array.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2570,7 +2570,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program nf\_test/f90tst\_grps.f90.
@@ -2588,7 +2588,7 @@ This example is from test program nf\_test/f90tst\_grps.f90.
   [[\<](#NF90_005fINQ_005fGRPNAME_005fFULL "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRP_005fNCID "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.8 Find a Group’s Parent: NF90\_INQ\_GRP\_PARENT {.section}
+3.8 Find a Group’s Parent: NF90\_INQ\_GRP\_PARENT 
 -------------------------------------------------
 
 Given ncid, find the ncid of the parent group.
@@ -2596,7 +2596,7 @@ Given ncid, find the ncid of the parent group.
 When used with the root group, this function returns the NF90\_ENOGRP
 error (since the root group has no parent.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2614,7 +2614,7 @@ Usage {.heading}
  `PARENT_NCID`
 :   The ncid of the parent group will be copied here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2640,7 +2640,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -2649,12 +2649,12 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fGRP_005fPARENT "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fGRP_005fFULL_005fNCID "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ --------------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.9 Find a Group by Name: NF90\_INQ\_GRP\_NCID {.section}
+3.9 Find a Group by Name: NF90\_INQ\_GRP\_NCID 
 ----------------------------------------------
 
 Given a group name and an ncid, find the ncid of the group id.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2679,7 +2679,7 @@ Usage {.heading}
  `GRP_NCID`
 :   This will get the group id, if it is found.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 The following return codes may be returned by this function.
@@ -2710,7 +2710,7 @@ The following return codes may be returned by this function.
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program nf\_test/f90tst\_grps.f90.
@@ -2731,13 +2731,13 @@ This example is from test program nf\_test/f90tst\_grps.f90.
   [[\<](#NF90_005fINQ_005fGRP_005fNCID "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fGRP "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- --------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.10 Find a Group by its Fully-qualified Name: NF90\_INQ\_GRP\_FULL\_NCID {.section}
+3.10 Find a Group by its Fully-qualified Name: NF90\_INQ\_GRP\_FULL\_NCID 
 -------------------------------------------------------------------------
 
 Given a fully qualified group name and an ncid, find the ncid of the
 group id.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2762,7 +2762,7 @@ Usage {.heading}
  `GRP_NCID`
 :   This will get the group id, if it is found.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 The following return codes may be returned by this function.
@@ -2793,7 +2793,7 @@ The following return codes may be returned by this function.
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program nf\_test/tstf90\_grps.f90.
@@ -2812,12 +2812,12 @@ This example is from test program nf\_test/tstf90\_grps.f90.
   [[\<](#NF90_005fINQ_005fGRP_005fFULL_005fNCID "Previous section in reading order")]   [[\>](#Dimensions "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.11 Create a New Group: NF90\_DEF\_GRP {.section}
+3.11 Create a New Group: NF90\_DEF\_GRP 
 ---------------------------------------
 
 Create a group. Its location id is returned in new\_ncid.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2840,7 +2840,7 @@ Usage {.heading}
  `NEW_NCID`
 :   The ncid of the new group will be placed there.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -2878,7 +2878,7 @@ Errors {.heading}
  `NF90_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -2901,7 +2901,7 @@ C     Create a group and a subgroup.
   [[\<](#NF90_005fDEF_005fGRP "Previous section in reading order")]   [[\>](#Dimensions-Introduction "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------- --------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4. Dimensions {.chapter}
+4. Dimensions 
 =============
 
   ----------------------------------------------------------------- ---- --
@@ -2918,7 +2918,7 @@ C     Create a group and a subgroup.
   [[\<](#Dimensions "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fDIM "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.1 Dimensions Introduction {.section}
+4.1 Dimensions Introduction 
 ---------------------------
 
 Dimensions for a netCDF dataset are defined when it is created, while
@@ -2961,7 +2961,7 @@ Operations supported on dimensions are:
   [[\<](#Dimensions-Introduction "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fDIMID "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ----------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.2 NF90\_DEF\_DIM {.section}
+4.2 NF90\_DEF\_DIM 
 ------------------
 
 The function NF90\_DEF\_DIM adds a new dimension to an open netCDF
@@ -2970,7 +2970,7 @@ given the netCDF ID, the dimension name, and the dimension length. At
 most one unlimited length dimension, called the record dimension, may be
 defined for each netCDF dataset.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3000,7 +3000,7 @@ Usage {.heading}
  `dimid`
 :   Returned dimension ID.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_DEF\_DIM returns the value NF90\_NOERR if no errors occurred.
@@ -3015,7 +3015,7 @@ errors include:
     length dimension defined for this netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_DEF\_DIM to create a dimension named lat
@@ -3044,7 +3044,7 @@ named foo.nc:
   [[\<](#NF90_005fDEF_005fDIM "Previous section in reading order")]   [[\>](#NF90_005fINQUIRE_005fDIMENSION "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.3 NF90\_INQ\_DIMID {.section}
+4.3 NF90\_INQ\_DIMID 
 --------------------
 
 The function NF90\_INQ\_DIMID returns (as an argument) the ID of a
@@ -3052,7 +3052,7 @@ netCDF dimension, given the name of the dimension. If ndims is the
 number of dimensions defined for a netCDF dataset, each dimension has an
 ID between 1 and ndims.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3076,7 +3076,7 @@ Usage {.heading}
  `dimid`
 :   Returned dimension ID.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_INQ\_DIMID returns the value NF90\_NOERR if no errors occurred.
@@ -3087,7 +3087,7 @@ errors include:
     netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQ\_DIMID to determine the dimension ID
@@ -3114,14 +3114,14 @@ existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fINQ_005fDIMID "Previous section in reading order")]   [[\>](#NF90_005fRENAME_005fDIM "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.4 NF90\_INQUIRE\_DIMENSION {.section}
+4.4 NF90\_INQUIRE\_DIMENSION 
 ----------------------------
 
 This function information about a netCDF dimension. Information about a
 dimension includes its name and its length. The length for the unlimited
 dimension, if any, is the number of records written so far.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3153,7 +3153,7 @@ Usage {.heading}
     the current maximum value used for writing any variables with this
     dimension, that is the maximum record number.
 
-Errors {.heading}
+Errors 
 ------
 
 These functions return the value NF90\_NOERR if no errors occurred.
@@ -3163,7 +3163,7 @@ errors include:
 -   The dimension ID is invalid for the specified netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQ\_DIM to determine the length of a
@@ -3202,7 +3202,7 @@ unlimited dimension for an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fINQUIRE_005fDIMENSION "Previous section in reading order")]   [[\>](#User-Defined-Data-Types "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.5 NF90\_RENAME\_DIM {.section}
+4.5 NF90\_RENAME\_DIM 
 ---------------------
 
 The function NF90\_RENAME\_DIM renames an existing dimension in a netCDF
@@ -3210,7 +3210,7 @@ dataset open for writing. If the new name is longer than the old name,
 the netCDF dataset must be in define mode. You cannot rename a dimension
 to have the same name as another dimension.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3235,7 +3235,7 @@ Usage {.heading}
  `name`
 :   New dimension name.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_RENAME\_DIM returns the value NF90\_NOERR if no errors occurred.
@@ -3248,7 +3248,7 @@ errors include:
 -   The new name is longer than the old name and the netCDF dataset is
     not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_RENAME\_DIM to rename the dimension lat
@@ -3284,7 +3284,7 @@ to latitude in an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fRENAME_005fDIM "Previous section in reading order")]   [[\>](#User-Defined-Types "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------------- --------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5. User Defined Data Types {.chapter}
+5. User Defined Data Types 
 ==========================
 
   ----------------------------------------------------------------------------------------------- ---- --
@@ -3305,7 +3305,7 @@ to latitude in an existing netCDF dataset named foo.nc:
   [[\<](#User-Defined-Data-Types "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fTYPEIDS "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.1 User Defined Types Introduction {.section}
+5.1 User Defined Types Introduction 
 -----------------------------------
 
 NetCDF-4 has added support for four different user defined data types.
@@ -3348,12 +3348,12 @@ Attribute’s Values: NF90\_GET\_ATT](#NF90_005fGET_005fATT)).
   [[\<](#User-Defined-Types "Previous section in reading order")]   [[\>](#nf90_005finq_005ftypeid "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.2 Learn the IDs of All Types in Group: NF90\_INQ\_TYPEIDS {.section}
+5.2 Learn the IDs of All Types in Group: NF90\_INQ\_TYPEIDS 
 -----------------------------------------------------------
 
 Learn the number of types defined in a group, and their IDs.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3377,7 +3377,7 @@ Usage {.heading}
 :   A pointer to an int array which will get the typeids. If NULL,
     ignored.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3386,7 +3386,7 @@ Errors {.heading}
  `NF90_BADID`
 :   Bad ncid.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3395,14 +3395,14 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fTYPEIDS "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fTYPE "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.3 Find a Typeid from Group and Name: nf90\_inq\_typeid {.section}
+5.3 Find a Typeid from Group and Name: nf90\_inq\_typeid 
 --------------------------------------------------------
 
 Given a group ID and a type name, find the ID of the type. If the type
 is not found in the group, then the parents are searched. If still not
 found, the entire file is searched.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3420,7 +3420,7 @@ int nf90_inq_typeid(int ncid, char *name, nf90_type *typeidp);
  `typeidp`
 :   The typeid, if found.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3432,7 +3432,7 @@ Errors {.heading}
  `NF90_EBADTYPE`
 :   Can’t find type.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3441,7 +3441,7 @@ Example {.heading}
   [[\<](#nf90_005finq_005ftypeid "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fUSER_005fTYPE "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.4 Learn About a User Defined Type: NF90\_INQ\_TYPE {.section}
+5.4 Learn About a User Defined Type: NF90\_INQ\_TYPE 
 ----------------------------------------------------
 
 Given an ncid and a typeid, get the information about a type. This
@@ -3451,7 +3451,7 @@ type, whether compound, opaque, enumeration, or variable length array.
 For even more information about a user defined type [Learn About a User
 Defined Type: NF90\_INQ\_USER\_TYPE](#NF90_005fINQ_005fUSER_005fTYPE).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3486,7 +3486,7 @@ Usage {.heading}
     VLEN type size is the size of one element of the VLEN. String size
     is returned as the size of one char.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NF90_NOERR`
@@ -3511,7 +3511,7 @@ Return Codes {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3520,14 +3520,14 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fTYPE "Previous section in reading order")]   [[\>](#NF90_005fPUT_005fVLEN_005fELEMENT "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.5 Learn About a User Defined Type: NF90\_INQ\_USER\_TYPE {.section}
+5.5 Learn About a User Defined Type: NF90\_INQ\_USER\_TYPE 
 ----------------------------------------------------------
 
 Given an ncid and a typeid, get the information about a user defined
 type. This function will work on any user defined type, whether
 compound, opaque, enumeration, or variable length array.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3570,7 +3570,7 @@ Usage {.heading}
 :   The class of the user defined type, NF90\_VLEN, NF90\_OPAQUE,
     NF90\_ENUM, or NF90\_COMPOUND, will be copied here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3585,7 +3585,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
   ------------------------------------------------------------------------------------------------------- ---- --
@@ -3599,12 +3599,12 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fUSER_005fTYPE "Previous section in reading order")]   [[\>](#NF90_005fGET_005fVLEN_005fELEMENT "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#NF90_005fINQ_005fUSER_005fTYPE "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ------------------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.5.1 Set a Variable Length Array with NF90\_PUT\_VLEN\_ELEMENT {.subsection}
+### 5.5.1 Set a Variable Length Array with NF90\_PUT\_VLEN\_ELEMENT 
 
 Use this to set the element of the (potentially) n-dimensional array of
 VLEN. That is, this sets the data in one variable length array.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3629,7 +3629,7 @@ INTEGER FUNCTION NF90_PUT_VLEN_ELEMENT(INTEGER NCID, INTEGER XTYPE,
  `DATA`
 :   The data to be stored. Must match the base type of this VLEN.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3644,7 +3644,7 @@ Errors {.heading}
  `NF90_EBADGRPID`
 :   Group ID part of ncid was invalid.
 
-Example {.heading}
+Example 
 -------
 
 This example is from nf90\_test/ftst\_vars4.F.
@@ -3665,12 +3665,12 @@ C     with pointers.
   [[\<](#NF90_005fPUT_005fVLEN_005fELEMENT "Previous section in reading order")]   [[\>](#Compound-Types "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#NF90_005fINQ_005fUSER_005fTYPE "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------------ ------------------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.5.2 Set a Variable Length Array with NF90\_GET\_VLEN\_ELEMENT {.subsection}
+### 5.5.2 Set a Variable Length Array with NF90\_GET\_VLEN\_ELEMENT 
 
 Use this to set the element of the (potentially) n-dimensional array of
 VLEN. That is, this sets the data in one variable length array.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3696,7 +3696,7 @@ INTEGER FUNCTION NF90_GET_VLEN_ELEMENT(INTEGER NCID, INTEGER XTYPE,
 :   The data will be copied here. Sufficient storage must be available
     or bad things will happen to you.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3711,7 +3711,7 @@ Errors {.heading}
  `NF90_EBADGRPID`
 :   Group ID part of ncid was invalid.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3720,7 +3720,7 @@ Example {.heading}
   [[\<](#NF90_005fGET_005fVLEN_005fELEMENT "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fCOMPOUND "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.6 Compound Types Introduction {.section}
+5.6 Compound Types Introduction 
 -------------------------------
 
 NetCDF-4 added support for compound types, which allow users to
@@ -3758,7 +3758,7 @@ for Fortran users.
   [[\<](#Compound-Types "Previous section in reading order")]   [[\>](#NF90_005fINSERT_005fCOMPOUND "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Compound-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ----------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ -------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.6.1 Creating a Compound Type: NF90\_DEF\_COMPOUND {.subsection}
+### 5.6.1 Creating a Compound Type: NF90\_DEF\_COMPOUND 
 
 Create a compound type. Provide an ncid, a name, and a total size (in
 bytes) of one element of the completed compound type.
@@ -3779,7 +3779,7 @@ Fortran users may use character buffers to read and write compound
 types. User are invited to try classic Fortran features such as the
 equivilence and the common block statment.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3805,7 +3805,7 @@ Usage {.heading}
  `TYPEIDP`
 :   The typeid of the new type will be placed here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3844,7 +3844,7 @@ Errors {.heading}
  `NF90_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3853,11 +3853,11 @@ Example {.heading}
   [[\<](#NF90_005fDEF_005fCOMPOUND "Previous section in reading order")]   [[\>](#NF90_005fINSERT_005fARRAY_005fCOMPOUND "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Compound-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ --------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ -------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.6.2 Inserting a Field into a Compound Type: NF90\_INSERT\_COMPOUND {.subsection}
+### 5.6.2 Inserting a Field into a Compound Type: NF90\_INSERT\_COMPOUND 
 
 Insert a named field into a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3886,7 +3886,7 @@ Usage {.heading}
  `FIELD_TYPEID`
 :   The type of the field to be inserted.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -3922,7 +3922,7 @@ Errors {.heading}
  `NF90_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -3931,11 +3931,11 @@ Example {.heading}
   [[\<](#NF90_005fINSERT_005fCOMPOUND "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fCOMPOUND "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Compound-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ -------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.6.3 Inserting an Array Field into a Compound Type: NF90\_INSERT\_ARRAY\_COMPOUND {.subsection}
+### 5.6.3 Inserting an Array Field into a Compound Type: NF90\_INSERT\_ARRAY\_COMPOUND 
 
 Insert a named array field into a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3977,7 +3977,7 @@ Usage {.heading}
  `DIM_SIZES`
 :   An array containing the sizes of each dimension.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4019,7 +4019,7 @@ Errors {.heading}
     and can’t be changed. If you wish to add an array to a compound
     type, you must do so before the compound type is committed.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4028,7 +4028,7 @@ Example {.heading}
   [[\<](#NF90_005fINSERT_005fARRAY_005fCOMPOUND "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fCOMPOUND_005fFIELD "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Compound-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ -------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.6.4 Learn About a Compound Type: NF90\_INQ\_COMPOUND {.subsection}
+### 5.6.4 Learn About a Compound Type: NF90\_INQ\_COMPOUND 
 
 Get the number of fields, length in bytes, and name of a compound type.
 
@@ -4036,7 +4036,7 @@ In addtion to the NF90\_INQ\_COMPOUND function, three additional
 functions are provided which get only the name, size, and number of
 fields.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4086,7 +4086,7 @@ Usage {.heading}
  `NFIELDSP`
 :   The number of fields in the compound type will be placed here.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NF90_NOERR`
@@ -4111,7 +4111,7 @@ Return Codes {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4120,11 +4120,11 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fCOMPOUND "Previous section in reading order")]   [[\>](#Variable-Length-Array "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Compound-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ -------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.6.5 Learn About a Field of a Compound Type: NF90\_INQ\_COMPOUND\_FIELD {.subsection}
+### 5.6.5 Learn About a Field of a Compound Type: NF90\_INQ\_COMPOUND\_FIELD 
 
 Get information about one of the fields of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4211,7 +4211,7 @@ Usage {.heading}
  `DIM_SIZESP`
 :   An integer array which will get the dimension sizes of the field.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4223,7 +4223,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4232,7 +4232,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fCOMPOUND_005fFIELD "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fVLEN "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.7 Variable Length Array Introduction {.section}
+5.7 Variable Length Array Introduction 
 --------------------------------------
 
 NetCDF-4 added support for a variable length array type. This is not
@@ -4277,11 +4277,11 @@ the actual data.
   [[\<](#Variable-Length-Array "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fVLEN "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Variable-Length-Array "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.7.1 Define a Variable Length Array (VLEN): NF90\_DEF\_VLEN {.subsection}
+### 5.7.1 Define a Variable Length Array (VLEN): NF90\_DEF\_VLEN 
 
 Use this function to define a variable length array type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4309,7 +4309,7 @@ Usage {.heading}
  `XTYPEP`
 :   The typeid of the new VLEN type will be set here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4336,7 +4336,7 @@ Errors {.heading}
  `NF90_ENOMEM`
 :   Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4345,11 +4345,11 @@ Example {.heading}
   [[\<](#NF90_005fDEF_005fVLEN "Previous section in reading order")]   [[\>](#NF90_005fFREE_005fVLEN "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Variable-Length-Array "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.7.2 Learning about a Variable Length Array (VLEN) Type: NF90\_INQ\_VLEN {.subsection}
+### 5.7.2 Learning about a Variable Length Array (VLEN) Type: NF90\_INQ\_VLEN 
 
 Use this type to learn about a vlen.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4382,7 +4382,7 @@ Usage {.heading}
 :   An integer that will get the type of the VLEN base type. (In other
     words, what type is this a VLEN of?)
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4397,7 +4397,7 @@ Errors {.heading}
  `NF90_EBADGRPID`
 :   Group ID part of ncid was invalid.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4406,7 +4406,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fVLEN "Previous section in reading order")]   [[\>](#Opaque-Type "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Variable-Length-Array "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ --------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.7.3 Releasing Memory for a Variable Length Array (VLEN) Type: NF90\_FREE\_VLEN {.subsection}
+### 5.7.3 Releasing Memory for a Variable Length Array (VLEN) Type: NF90\_FREE\_VLEN 
 
 When a VLEN is read into user memory from the file, the HDF5 library
 performs memory allocations for each of the variable length arrays
@@ -4418,7 +4418,7 @@ for all memory allocation. But, with VLEN arrays, the underlying HDF5
 library allocates the memory for the user, and the user is responsible
 for deallocating that memory.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4433,7 +4433,7 @@ Usage {.heading}
  `VL`
 :   The variable length array structure which is to be freed.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4442,7 +4442,7 @@ Errors {.heading}
  `NF90_EBADTYPE`
 :   Can’t find the typeid.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4451,7 +4451,7 @@ Example {.heading}
   [[\<](#NF90_005fFREE_005fVLEN "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fOPAQUE "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.8 Opaque Type Introduction {.section}
+5.8 Opaque Type Introduction 
 ----------------------------
 
 NetCDF-4 added support for the opaque type. This is not supported in
@@ -4478,11 +4478,11 @@ NF90\_INQ\_OPAQUE](#NF90_005fINQ_005fOPAQUE) to learn its name and size.
   [[\<](#Opaque-Type "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fOPAQUE "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Opaque-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.8.1 Creating Opaque Types: NF90\_DEF\_OPAQUE {.subsection}
+### 5.8.1 Creating Opaque Types: NF90\_DEF\_OPAQUE 
 
 Create an opaque type. Provide a size and a name.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4511,7 +4511,7 @@ Usage {.heading}
     typeid when defining variables of this type with [Create a Variable:
     `NF90_DEF_VAR`](#NF90_005fDEF_005fVAR).
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4526,7 +4526,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
   --------------------------------------------------------------------------------- ---- --
@@ -4539,11 +4539,11 @@ Example {.heading}
   [[\<](#NF90_005fDEF_005fOPAQUE "Previous section in reading order")]   [[\>](#Enum-Type "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Opaque-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.8.2 Learn About an Opaque Type: NF90\_INQ\_OPAQUE {.subsection}
+### 5.8.2 Learn About an Opaque Type: NF90\_INQ\_OPAQUE 
 
 Given a typeid, get the information about an opaque type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4571,7 +4571,7 @@ Usage {.heading}
  `SIZEP`
 :   The size of the opaque type will be copied here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4586,7 +4586,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4595,7 +4595,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fOPAQUE "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fENUM "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.9 Enum Type Introduction {.section}
+5.9 Enum Type Introduction 
 --------------------------
 
 NetCDF-4 added support for the enum type. This is not supported in
@@ -4615,7 +4615,7 @@ classic or 64-bit offset files.
   [[\<](#Enum-Type "Previous section in reading order")]   [[\>](#NF90_005fINSERT_005fENUM "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Enum-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.9.1 Creating a Enum Type: NF90\_DEF\_ENUM {.subsection}
+### 5.9.1 Creating a Enum Type: NF90\_DEF\_ENUM 
 
 Create an enum type. Provide an ncid, a name, and a base integer type.
 
@@ -4624,7 +4624,7 @@ NF90\_INSERT\_ENUM (see section [Inserting a Field into a Enum Type:
 NF90\_INSERT\_ENUM](#NF90_005fINSERT_005fENUM)). Call NF90\_INSERT\_ENUM
 once for each value you wish to make part of the enumeration.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4652,7 +4652,7 @@ Usage {.heading}
  `TYPEIDP`
 :   The typeid of the new type will be placed here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4691,7 +4691,7 @@ Errors {.heading}
  `NF90_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4700,11 +4700,11 @@ Example {.heading}
   [[\<](#NF90_005fDEF_005fENUM "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fENUM "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Enum-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.9.2 Inserting a Field into a Enum Type: NF90\_INSERT\_ENUM {.subsection}
+### 5.9.2 Inserting a Field into a Enum Type: NF90\_INSERT\_ENUM 
 
 Insert a named member into a enum type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4731,7 +4731,7 @@ Usage {.heading}
  `VALUE`
 :   The value that is to be associated with this member.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4766,7 +4766,7 @@ Errors {.heading}
  `NF90_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4775,11 +4775,11 @@ Example {.heading}
   [[\<](#NF90_005fINSERT_005fENUM "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fENUM_005fMEMBER "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Enum-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- --------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.9.3 Learn About a Enum Type: NF90\_INQ\_ENUM {.subsection}
+### 5.9.3 Learn About a Enum Type: NF90\_INQ\_ENUM 
 
 Get information about a user-defined enumeration type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4817,7 +4817,7 @@ Usage {.heading}
 :   An integer which will get the number of members defined for this
     enumeration type.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4829,7 +4829,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4838,11 +4838,11 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fENUM "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fENUM_005fIDENT "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Enum-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.9.4 Learn the Name of a Enum Type: nf90\_inq\_enum\_member {.subsection}
+### 5.9.4 Learn the Name of a Enum Type: nf90\_inq\_enum\_member 
 
 Get information about a member of an enum type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4873,7 +4873,7 @@ Usage {.heading}
  `VALUE`
 :   An integer that will get the value associated with this member.
 
-Errors {.heading}
+Errors 
 ------
 
  `NF90_NOERR`
@@ -4885,7 +4885,7 @@ Errors {.heading}
  `NF90_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4894,14 +4894,14 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fENUM_005fMEMBER "Previous section in reading order")]   [[\>](#Variables "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Enum-Type "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.9.5 Learn the Name of a Enum Type: NF90\_INQ\_ENUM\_IDENT {.subsection}
+### 5.9.5 Learn the Name of a Enum Type: NF90\_INQ\_ENUM\_IDENT 
 
 Get the name which is associated with an enum member value.
 
 This is similar to NF90\_INQ\_ENUM\_MEMBER, but instead of using the
 index of the member, you use the value of the member.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4928,7 +4928,7 @@ Usage {.heading}
 :   A character array that will get the identifier. It will have a
     maximum length of NF90\_MAX\_NAME.
 
-Return Code {.heading}
+Return Code 
 -----------
 
  `NF90_NOERR`
@@ -4943,7 +4943,7 @@ Return Code {.heading}
  `NF90_EINVAL`
 :   The value was not found in the enum.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -4952,7 +4952,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fENUM_005fIDENT "Previous section in reading order")]   [[\>](#Variables-Introduction "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ----------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6. Variables {.chapter}
+6. Variables 
 ============
 
   ---------------------------------------------------------------------------------------------------------------------------- ---- ---------------------------------------
@@ -4977,7 +4977,7 @@ Example {.heading}
   [[\<](#Variables "Previous section in reading order")]   [[\>](#Language_002dTypes "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.1 Variables Introduction {.section}
+6.1 Variables Introduction 
 --------------------------
 
 Variables for a netCDF dataset are defined when the dataset is created,
@@ -5029,7 +5029,7 @@ Operations supported on variables are:
   [[\<](#Variables-Introduction "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fVAR "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- --------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.2 Language Types Corresponding to netCDF external data types {.section}
+6.2 Language Types Corresponding to netCDF external data types 
 --------------------------------------------------------------
 
 The following table gives the netCDF external data types and the
@@ -5063,7 +5063,7 @@ library.
   [[\<](#Language_002dTypes "Previous section in reading order")]   [[\>](#NF90_005fDEF_005fVAR_005fFILL "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.3 Create a Variable: `NF90_DEF_VAR` {.section}
+6.3 Create a Variable: `NF90_DEF_VAR` 
 -------------------------------------
 
 The function NF90\_DEF\_VAR adds a new variable to an open netCDF
@@ -5088,7 +5088,7 @@ All parameters after the varid are optional, and only supported if
 netCDF was built with netCDF-4 features enabled, and if the variable is
 in a netCDF-4/HDF5 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5209,7 +5209,7 @@ Usage {.heading}
     a value of 100 means fully read chunks are always preempted before
     other chunks.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 NF90\_DEF\_VAR returns the value NF90\_NOERR if no errors occurred.
@@ -5250,7 +5250,7 @@ Otherwise, the returned status indicates an error.
 -   NF90\_ESTRICTNC3 Trying to create a var some place other than the
     root group in a netCDF file with NF90\_STRICT\_NC3 turned on.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_DEF\_VAR to create a variable named rh of
@@ -5313,7 +5313,7 @@ checksums, and endianness control are all used in a netCDF-4/HDF5 file.
   [[\<](#NF90_005fDEF_005fVAR "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fVAR_005fFILL "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.4 Define Fill Parameters for a Variable: `nf90_def_var_fill` {.section}
+6.4 Define Fill Parameters for a Variable: `nf90_def_var_fill` 
 --------------------------------------------------------------
 
 The function NF90\_DEF\_VAR\_FILL sets the fill parameters for a
@@ -5322,7 +5322,7 @@ variable in a netCDF-4 file.
 This function must be called after the variable is defined, but before
 NF90\_ENDDEF is called.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5355,7 +5355,7 @@ NF90_DEF_VAR_FILL(INTEGER NCID, INTEGER VARID, INTEGER NO_FILL, FILL_VALUE);
     \_FillValue attribute, created for this purpose. If NULL, this
     argument will be ignored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NF90_NOERR`
@@ -5385,7 +5385,7 @@ Return Codes {.heading}
  `NF90_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -5394,13 +5394,13 @@ Example {.heading}
   [[\<](#NF90_005fDEF_005fVAR_005fFILL "Previous section in reading order")]   [[\>](#NF90_005fINQUIRE_005fVARIABLE "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.5 Learn About Fill Parameters for a Variable: `NF90_INQ_VAR_FILL` {.section}
+6.5 Learn About Fill Parameters for a Variable: `NF90_INQ_VAR_FILL` 
 -------------------------------------------------------------------
 
 The function NF90\_INQ\_VAR\_FILL returns the fill settings for a
 variable in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5425,7 +5425,7 @@ NF90_INQ_VAR_FILL(INTEGER NCID, INTEGER VARID, INTEGER NO_FILL, FILL_VALUE)
 :   This will get the fill value for this variable. This parameter will
     be ignored if it is NULL.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NF90_NOERR`
@@ -5440,7 +5440,7 @@ Return Codes {.heading}
  `NF90_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -5449,7 +5449,7 @@ Example {.heading}
   [[\<](#NF90_005fINQ_005fVAR_005fFILL "Previous section in reading order")]   [[\>](#NF90_005fINQ_005fVARID "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ----------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.6 Get Information about a Variable from Its ID: NF90\_INQUIRE\_VARIABLE {.section}
+6.6 Get Information about a Variable from Its ID: NF90\_INQUIRE\_VARIABLE 
 -------------------------------------------------------------------------
 
 NF90\_INQUIRE\_VARIABLE returns information about a netCDF variable
@@ -5462,7 +5462,7 @@ All parameters after nAtts are optional, and only supported if netCDF
 was built with netCDF-4 features enabled, and if the variable is in a
 netCDF-4/HDF5 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5550,7 +5550,7 @@ errors include:
 -   The variable ID is invalid for the specified netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQ\_VAR to find out about a variable
@@ -5583,12 +5583,12 @@ named rh in an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fINQUIRE_005fVARIABLE "Previous section in reading order")]   [[\>](#NF90_005fPUT_005fVAR "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- --------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.7 Get the ID of a variable from the name: NF90\_INQ\_VARID {.section}
+6.7 Get the ID of a variable from the name: NF90\_INQ\_VARID 
 ------------------------------------------------------------
 
 Given the name of a varaible, nf90\_inq\_varid finds the variable ID.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5620,7 +5620,7 @@ errors include:
 -   Variable not found.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQ\_VARID to find out about a variable
@@ -5653,7 +5653,7 @@ named rh in an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fINQ_005fVARID "Previous section in reading order")]   [[\>](#NF90_005fGET_005fVAR "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- --------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.8 Writing Data Values: NF90\_PUT\_VAR {.section}
+6.8 Writing Data Values: NF90\_PUT\_VAR 
 ---------------------------------------
 
 The function NF90\_PUT\_VAR puts one or more data values into the
@@ -5680,7 +5680,7 @@ segmentation violation. To avoid such problems, it is better to specify
 start and count arguments for variables that use the NF90\_UNLIMITED
 dimension.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5762,7 +5762,7 @@ Usage {.heading}
     Use of Fortran 90 intrinsic functions (including reshape, transpose,
     and spread) may let you avoid using this argument.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_PUT\_VAR1\_ type returns the value NF90\_NOERR if no errors
@@ -5779,7 +5779,7 @@ causes of errors include:
 -   The specified netCDF is in define mode rather than data mode.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_PUT\_VAR to set the (4,3,2) element of
@@ -5975,7 +5975,7 @@ functions:
   [[\<](#NF90_005fPUT_005fVAR "Previous section in reading order")]   [[\>](#Reading-and-Writing-Character-String-Values "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- -------------------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.9 Reading Data Values: NF90\_GET\_VAR {.section}
+6.9 Reading Data Values: NF90\_GET\_VAR 
 ---------------------------------------
 
 The function NF90\_GET\_VAR gets one or more data values from a netCDF
@@ -6006,7 +6006,7 @@ array from a classic model file will read from an NF90\_INT. Reading
 variables into an eight-byte integer in a netCDF-4/HDF5 (without classic
 model flag) will read from an NF90\_INT64
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6088,7 +6088,7 @@ Usage {.heading}
     Use of Fortran 90 intrinsic functions (including reshape, transpose,
     and spread) may let you avoid using this argument.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_GET\_VAR returns the value NF90\_NOERR if no errors occurred.
@@ -6109,7 +6109,7 @@ interface to read all the values of a record variable without specifying
 the number of records. If there are more records in the file than you
 assume, more data will be read than you expect!)
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_GET\_VAR to read the (4,3,2) element of
@@ -6304,7 +6304,7 @@ using Fortran 90 intrinsic functions:
   [[\<](#NF90_005fGET_005fVAR "Previous section in reading order")]   [[\>](#Fill-Values "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.10 Reading and Writing Character String Values {.section}
+6.10 Reading and Writing Character String Values 
 ------------------------------------------------
 
 Character strings are not a primitive netCDF external data type under
@@ -6404,7 +6404,7 @@ array variables:
   [[\<](#Reading-and-Writing-Character-String-Values "Previous section in reading order")]   [[\>](#NF90_005fRENAME_005fVAR "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------------ ------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.11 Fill Values {.section}
+6.11 Fill Values 
 ----------------
 
 What happens when you try to read a value that was never written in an
@@ -6453,7 +6453,7 @@ larger type cannot be represented in the smaller type.
   [[\<](#Fill-Values "Previous section in reading order")]   [[\>](#NF90_005fVAR_005fPAR_005fACCESS "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.12 NF90\_RENAME\_VAR {.section}
+6.12 NF90\_RENAME\_VAR 
 ----------------------
 
 The function NF90\_RENAME\_VAR changes the name of a netCDF variable in
@@ -6461,7 +6461,7 @@ an open netCDF dataset. If the new name is longer than the old name, the
 netCDF dataset must be in define mode. You cannot rename a variable to
 have the name of any existing variable.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6484,7 +6484,7 @@ Usage {.heading}
  `newname`
 :   New name for the specified variable.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_RENAME\_VAR returns the value NF90\_NOERR if no errors occurred.
@@ -6495,7 +6495,7 @@ errors include:
 -   The variable ID is invalid for the specified netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_RENAME\_VAR to rename the variable rh to
@@ -6527,7 +6527,7 @@ rel\_hum in an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fRENAME_005fVAR "Previous section in reading order")]   [[\>](#Attributes "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ----------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.13 Change between Collective and Independent Parallel Access: NF90\_VAR\_PAR\_ACCESS {.section}
+6.13 Change between Collective and Independent Parallel Access: NF90\_VAR\_PAR\_ACCESS 
 --------------------------------------------------------------------------------------
 
 The function NF90\_VAR\_PAR\_ACCESS changes whether read/write
@@ -6556,7 +6556,7 @@ independently or collectively. For classic and 64-bit offset files, the
 nf90\_var\_par\_access function changes the access for all variables in
 the file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6582,7 +6582,7 @@ Usage {.heading}
 :   NF90\_INDEPENDENT to set this variable to independent operations.
     NF90\_COLLECTIVE to set it to collective operations.
 
-Return Values {.heading}
+Return Values 
 -------------
 
  `NF90_NOERR`
@@ -6594,7 +6594,7 @@ Return Values {.heading}
  `NF90_NOPAR`
 :   File not opened for parallel access.
 
-Example {.heading}
+Example 
 -------
 
 This example comes from test program nf\_test/f90tst\_parallel.f90. For
@@ -6623,7 +6623,7 @@ netcdf.
   [[\<](#NF90_005fVAR_005fPAR_005fACCESS "Previous section in reading order")]   [[\>](#Attributes-Introduction "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7. Attributes {.chapter}
+7. Attributes 
 =============
 
   ---------------------------------------------------------------------------------------------------------------------------- ---- --
@@ -6642,7 +6642,7 @@ netcdf.
   [[\<](#Attributes "Previous section in reading order")]   [[\>](#NF90_005fPUT_005fATT "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.1 Attributes Introduction {.section}
+7.1 Attributes Introduction 
 ---------------------------
 
 Attributes may be associated with each netCDF variable to specify such
@@ -6691,7 +6691,7 @@ Operations supported on attributes are:
   [[\<](#Attributes-Introduction "Previous section in reading order")]   [[\>](#NF90_005fINQUIRE_005fATTRIBUTE "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.2 Create an Attribute: NF90\_PUT\_ATT {.section}
+7.2 Create an Attribute: NF90\_PUT\_ATT 
 ---------------------------------------
 
 The function NF90\_PUT\_ATTadds or changes a variable attribute or
@@ -6699,7 +6699,7 @@ global attribute of an open netCDF dataset. If this attribute is new, or
 if the space required to store the attribute is greater than before, the
 netCDF dataset must be in define mode.
 
-Usage {.heading}
+Usage 
 -----
 
 Although it’s possible to create attributes of all types, text and
@@ -6740,7 +6740,7 @@ double attributes are adequate for most purposes.
     attribute will be of type NF90\_INT2. Fortran 90 intrinsic functions
     can be used to convert attributes to the desired type.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_PUT\_ATT returns the value NF90\_NOERR if no errors occurred.
@@ -6757,7 +6757,7 @@ errors include:
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 -   The number of attributes for this variable exceeds NF90\_MAX\_ATTRS.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_PUT\_ATT to add a variable attribute
@@ -6797,7 +6797,7 @@ named title to an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fPUT_005fATT "Previous section in reading order")]   [[\>](#NF90_005fGET_005fATT "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.3 Get Information about an Attribute: NF90\_INQUIRE\_ATTRIBUTE and NF90\_INQ\_ATTNAME {.section}
+7.3 Get Information about an Attribute: NF90\_INQUIRE\_ATTRIBUTE and NF90\_INQ\_ATTNAME 
 ---------------------------------------------------------------------------------------
 
 The function NF90\_INQUIRE\_ATTRIBUTE returns information about a netCDF
@@ -6814,7 +6814,7 @@ volatile than the name, since it can change when other attributes of the
 same variable are deleted. This is why an attribute number is not called
 an attribute ID.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6866,7 +6866,7 @@ Usage {.heading}
     very useful, because accessing information about an attribute
     requires its name.)
 
-Errors {.heading}
+Errors 
 ------
 
 Each function returns the value NF90\_NOERR if no errors occurred.
@@ -6880,7 +6880,7 @@ errors include:
     or more than the number of attributes defined for the specified
     variable.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_INQUIRE\_ATTRIBUTE to inquire about the
@@ -6918,13 +6918,13 @@ named foo.nc:
   [[\<](#NF90_005fINQUIRE_005fATTRIBUTE "Previous section in reading order")]   [[\>](#NF90_005fCOPY_005fATT "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.4 Get Attribute’s Values: NF90\_GET\_ATT {.section}
+7.4 Get Attribute’s Values: NF90\_GET\_ATT 
 ------------------------------------------
 
 Function nf90\_get\_att gets the value(s) of a netCDF attribute, given
 its variable ID and name.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6965,7 +6965,7 @@ Usage {.heading}
     [(netcdf)Type Conversion](netcdf.html#Type-Conversion) section ‘Type
     Conversion’ in NetCDF Users Guide.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_GET\_ATT\_ type returns the value NF90\_NOERR if no errors
@@ -6978,7 +6978,7 @@ causes of errors include:
 -   One or more of the attribute values are out of the range of values
     representable by the desired type.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_GET\_ATT to determine the values of an
@@ -7031,7 +7031,7 @@ sure we have enough space to store them:
   [[\<](#NF90_005fGET_005fATT "Previous section in reading order")]   [[\>](#NF90_005fRENAME_005fATT "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.5 Copy Attribute from One NetCDF to Another: NF90\_COPY\_ATT {.section}
+7.5 Copy Attribute from One NetCDF to Another: NF90\_COPY\_ATT 
 --------------------------------------------------------------
 
 The function NF90\_COPY\_ATT copies an attribute from one open netCDF
@@ -7045,7 +7045,7 @@ ncid\_out if they are in define mode. (This is the ensure that all
 user-defined types are committed to the file(s) before the copy is
 attempted.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7082,7 +7082,7 @@ Usage {.heading}
     attribute will be copied, or NF90\_GLOBAL to copy to a global
     attribute.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_COPY\_ATT returns the value NF90\_NOERR if no errors occurred.
@@ -7097,7 +7097,7 @@ errors include:
 -   The input or output netCDF ID does not refer to an open netCDF
     dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_COPY\_ATT to copy the variable attribute
@@ -7140,7 +7140,7 @@ units attribute:
   [[\<](#NF90_005fCOPY_005fATT "Previous section in reading order")]   [[\>](#NF90_005fDEL_005fATT "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.6 Rename an Attribute: NF90\_RENAME\_ATT {.section}
+7.6 Rename an Attribute: NF90\_RENAME\_ATT 
 ------------------------------------------
 
 The function NF90\_RENAME\_ATT changes the name of an attribute. If the
@@ -7148,7 +7148,7 @@ new name is longer than the original name, the netCDF dataset must be in
 define mode. You cannot rename an attribute to have the same name as
 another attribute of the same variable.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7177,7 +7177,7 @@ Usage {.heading}
     name is longer than the current name, the netCDF dataset must be in
     define mode.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_RENAME\_ATT returns the value NF90\_NOERR if no errors occurred.
@@ -7192,7 +7192,7 @@ errors include:
 -   The specified attribute does not exist.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_RENAME\_ATT to rename the variable
@@ -7224,13 +7224,13 @@ named foo.nc:
   [[\<](#NF90_005fRENAME_005fATT "Previous section in reading order")]   [[\>](#Summary-of-Fortran-90-Interface "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-Fortran-90-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- -------------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- ----------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.7 NF90\_DEL\_ATT {.section}
+7.7 NF90\_DEL\_ATT 
 ------------------
 
 The function NF90\_DEL\_ATT deletes a netCDF attribute from an open
 netCDF dataset. The netCDF dataset must be in define mode.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7254,7 +7254,7 @@ Usage {.heading}
  `name`
 :   The name of the attribute to be deleted.
 
-Errors {.heading}
+Errors 
 ------
 
 NF90\_DEL\_ATT returns the value NF90\_NOERR if no errors occurred.
@@ -7266,7 +7266,7 @@ errors include:
 -   The specified attribute does not exist.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using NF90\_DEL\_ATT to delete the variable attribute
@@ -7301,7 +7301,7 @@ Units for a variable rh in an existing netCDF dataset named foo.nc:
   [[\<](#NF90_005fDEL_005fATT "Previous section in reading order")]   [[\>](#Fortran-77-to-Fortran-90-Transition-Guide "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Fortran-77-to-Fortran-90-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------------------------ --- ----------------------------------------------------------------------- --------------------------- --------------------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-A. Appendix A - Summary of Fortran 90 Interface {.appendix}
+A. Appendix A - Summary of Fortran 90 Interface 
 ===============================================
 
 Dataset Functions
@@ -7473,7 +7473,7 @@ Attribute functions
   [[\<](#Summary-of-Fortran-90-Interface "Previous section in reading order")]   [[\>](#The-new-Fortran-90-interface "Next section in reading order")]       [[\<\<](#Summary-of-Fortran-90-Interface "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ----------------------------------------------------------------------- --- -------------------------------------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B. Appendix B - Fortran 77 to Fortran 90 Transition Guide {.appendix}
+B. Appendix B - Fortran 77 to Fortran 90 Transition Guide 
 =========================================================
 
 * * * * *
@@ -7482,7 +7482,7 @@ B. Appendix B - Fortran 77 to Fortran 90 Transition Guide {.appendix}
   [[\<](#Fortran-77-to-Fortran-90-Transition-Guide "Previous section in reading order")]   [[\>](#Changes-to-Inquiry-functions "Next section in reading order")]       [[\<\<](#Fortran-77-to-Fortran-90-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Fortran-77-to-Fortran-90-Transition-Guide "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------- ----------------------------------------------------------------------- --- ------------------------------------------------------------------------------------------------------ ----------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### The new Fortran 90 interface {.unnumberedsubsec}
+### The new Fortran 90 interface 
 
 The Fortran 90 interface to the netCDF library closely follows the
 Fortran 77 interface. In most cases, function and constant names and
@@ -7510,7 +7510,7 @@ error checking possibilities.
   [[\<](#The-new-Fortran-90-interface "Previous section in reading order")]   [[\>](#Changes-to-put-and-get-function "Next section in reading order")]       [[\<\<](#Fortran-77-to-Fortran-90-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Fortran-77-to-Fortran-90-Transition-Guide "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- -------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------------------------ ----------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Changes to Inquiry functions {.unnumberedsubsec}
+### Changes to Inquiry functions 
 
 In the Fortran 90 interface there are two inquiry functions each for
 dimensions, variables, and attributes, and a single inquiry function for
@@ -7554,7 +7554,7 @@ with those in the Fortran interface
   [[\<](#Changes-to-Inquiry-functions "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#Fortran-77-to-Fortran-90-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Fortran-77-to-Fortran-90-Transition-Guide "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------------------------------ ----------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Changes to put and get function {.unnumberedsubsec}
+### Changes to put and get function 
 
 The biggest simplification in the Fortran 90 is in the nf90\_put\_var
 and nf90\_get\_var functions. Both functions are overloaded: the values
@@ -7582,7 +7582,7 @@ see [Writing Data Values: NF90\_PUT\_VAR](#NF90_005fPUT_005fVAR) and
   [[\<](#Changes-to-put-and-get-function "Previous section in reading order")]   [ \> ]       [[\<\<](#Fortran-77-to-Fortran-90-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ -------- --- ------------------------------------------------------------------------------------------------------ --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Index {.unnumbered}
+Index 
 =====
 
 Jump to:  
