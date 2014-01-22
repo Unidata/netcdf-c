@@ -256,12 +256,12 @@ for t in ${TESTSET} ; do
   index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`
   #echo index: $index
   
-  if [[ ( "$index" == 0 ) ]]; then
-    #echo "No Constraint"
+  if (( $index == 0 )) ; then
+    echo "No Constraint"
     constrained=0
   else
     constrained=1
-    #echo "Constrained"
+    echo "Constrained"
   fi
   if test "x$constrained" = "x0" ; then # No constraint
     testname=$t
