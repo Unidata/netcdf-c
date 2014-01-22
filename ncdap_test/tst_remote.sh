@@ -256,7 +256,7 @@ for t in ${TESTSET} ; do
   index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`
   #echo index: $index
   
-  if [ $index == 0 ]; then
+  if [[ ( "$index" == 0 ) ]]; then
     #echo "No Constraint"
     constrained=0
   else
