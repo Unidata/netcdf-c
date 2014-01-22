@@ -566,6 +566,7 @@ INPUT = \
     @abs_top_srcdir@/man4/cdl.dox \
     @abs_top_srcdir@/man4/architecture.dox \
     @abs_top_srcdir@/man4/internal.dox \
+    @abs_top_srcdir@/man4/netcdf-c.md \
     @abs_top_srcdir@/COPYRIGHT \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
@@ -600,7 +601,7 @@ INPUT = \
     @abs_top_srcdir@/libsrc4/nc4file.c \
     @abs_top_srcdir@/ncdump/ncdump.c \
     @abs_top_srcdir@/ncdump/nccopy.c
-
+    
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
 # also the default input encoding. Doxygen uses libiconv (or the iconv built
@@ -691,7 +692,7 @@ IMAGE_PATH = \
     @abs_top_srcdir@/man4/images/pnetcdf.png \
     @abs_top_srcdir@/man4/images/deptree.jpg \
     @abs_top_srcdir@/man4/images/InstallTreeWindows.jpg
-
+    
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
 # by executing (via popen()) the command <filter> <input-file>, where <filter>
