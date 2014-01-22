@@ -16,6 +16,12 @@ DTS="$SVC/dts"
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
+
+# Determine If we're on OSX or Linux
+
+myplatform=`uname -a | cut -d" " -f 1`
+
+
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
 
@@ -253,16 +259,28 @@ echo '#DODSRC' >./.dodsrc
 for t in ${TESTSET} ; do
   # see if we are using constraints
   #index=`expr index "${t}" ";"`
-  index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`
+  
   #echo index: $index
   
-  if (( $index == 0 )) ; then
-    echo "No Constraint"
-    constrained=0
+  if [ "$myplatform" = "Darwin" ]; then
+      index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`    
+      if (( $index == 0 )) ; then
+	  constrained=0
+      else
+	  constrained=1
+      fi
+
   else
-    constrained=1
-    echo "Constrained"
+      index=`expr index "${t}" ";"`
+
+      if test "x$index" = "x0" ; then
+	  constrained=0
+      else
+	  constrained=1
+      fi
+
   fi
+
   if test "x$constrained" = "x0" ; then # No constraint
     testname=$t
     ce=
