@@ -652,7 +652,15 @@ INPUT                  = @CMAKE_SOURCE_DIR@/RELEASE_NOTES.md \
                          @CMAKE_SOURCE_DIR@/man4/cdl.dox \
                          @CMAKE_SOURCE_DIR@/man4/architecture.dox \
                          @CMAKE_SOURCE_DIR@/man4/internal.dox \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf.md \
                          @CMAKE_SOURCE_DIR@/man4/netcdf-c.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-cxx.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-cxx4.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-internal.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-install.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-tutorial.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-f77.md \
+                         @CMAKE_SOURCE_DIR@/man4/netcdf-f90.md \
                          @CMAKE_SOURCE_DIR@/COPYRIGHT \
                          @CMAKE_SOURCE_DIR@/include/netcdf.h \
                          @CMAKE_SOURCE_DIR@/examples/C/simple_xy_wr.c \

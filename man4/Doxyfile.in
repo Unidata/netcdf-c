@@ -566,7 +566,15 @@ INPUT = \
     @abs_top_srcdir@/man4/cdl.dox \
     @abs_top_srcdir@/man4/architecture.dox \
     @abs_top_srcdir@/man4/internal.dox \
+    @abs_top_srcdir@/man4/netcdf.md
     @abs_top_srcdir@/man4/netcdf-c.md \
+    @abs_top_srcdir@/man4/netcdf-cxx.md \
+    @abs_top_srcdir@/man4/netcdf-cxx4.md \
+    @abs_top_srcdir@/man4/netcdf-internal.md \
+    @abs_top_srcdir@/man4/netcdf-install.md \
+    @abs_top_srcdir@/man4/netcdf-tutorial.md \
+    @abs_top_srcdir@/man4/netcdf-f77.md \
+    @abs_top_srcdir@/man4/netcdf-f90.md \
     @abs_top_srcdir@/COPYRIGHT \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \

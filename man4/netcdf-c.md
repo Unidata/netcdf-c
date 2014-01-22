@@ -1,4 +1,4 @@
-\page netcdf-c-texi netCDF-C texi-based documentation.
+\page netcdf-c-texi NetCDF-C Documentation
 
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
