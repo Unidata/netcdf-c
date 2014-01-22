@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-NetCDF Library Internals {.settitle}
+NetCDF Library Internals 
 ========================
 
 The most recent update of this documentation was released with version
@@ -36,7 +36,7 @@ NetCDF Users’ Guide for FORTRAN 90).
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 C Code
@@ -74,10 +74,10 @@ C Code
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -86,7 +86,7 @@ C Code
   [[\<](#Top "Previous section in reading order")]   [[\>](#libsrc-directory "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- ----------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1. C Code {.chapter}
+1. C Code 
 =========
 
 The netCDF library is implemented in C in a bunch of directories under
@@ -109,7 +109,7 @@ netcdf-3.
   [[\<](#C-Code "Previous section in reading order")]   [[\>](#m4-Files "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.1 libsrc directory {.section}
+1.1 libsrc directory 
 --------------------
 
 The libsrc directory holds the core library C code.
@@ -120,7 +120,7 @@ The libsrc directory holds the core library C code.
   [[\<](#libsrc-directory "Previous section in reading order")]   [[\>](#C-Header-Files "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.1 m4 Files {.subsection}
+### 1.1.1 m4 Files 
 
 The m4 macro processor is used as a pre-pre-processor for attr.m4,
 putget.m4, ncx.m4, t\_ncxx.m4. The m4 macros are used to deal with the 6
@@ -149,7 +149,7 @@ different netcdf data types.
   [[\<](#m4-Files "Previous section in reading order")]   [[\>](#C-Code-Files "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.2 C Header Files {.subsection}
+### 1.1.2 C Header Files 
 
  `netcdf.h` 
 :   The formal definition of the netCDF API.
@@ -184,7 +184,7 @@ different netcdf data types.
   [[\<](#C-Header-Files "Previous section in reading order")]   [[\>](#Makefile "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.3 C Code Files {.subsection}
+### 1.1.3 C Code Files 
 
  `nc.c` 
 :   Holds nc\_open, nc\_create, nc\_enddef, nc\_close, nc\_delete,
@@ -269,7 +269,7 @@ different netcdf data types.
   [[\<](#C-Code-Files "Previous section in reading order")]   [[\>](#I_002fO-Layering "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ----------------------------------------------------------- --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.4 Makefile {.subsection}
+### 1.1.4 Makefile 
 
 Let us not neglect the Makefile, hand-crafted by Glenn and Steve to
 stand the test of many different installation platforms.
@@ -280,7 +280,7 @@ stand the test of many different installation platforms.
   [[\<](#Makefile "Previous section in reading order")]   [[\>](#Extra-Tests "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.5 I/O Layering {.subsection}
+### 1.1.5 I/O Layering 
 
 Here’s some discussion from Glenn (July, 1997) in the support archive:
 
@@ -427,7 +427,7 @@ parameter.
   [[\<](#I_002fO-Layering "Previous section in reading order")]   [[\>](#nc_005ftest-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#libsrc-directory "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------- ---------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 1.1.6 Extra Tests {.subsection}
+### 1.1.6 Extra Tests 
 
 According to Russ make full\_test runs three tests:
 
@@ -472,7 +472,7 @@ which produce no output if they succeed.
   [[\<](#Extra-Tests "Previous section in reading order")]   [[\>](#nctest-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ----------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.2 nc\_test directory {.section}
+1.2 nc\_test directory 
 ----------------------
 
 This runs the version 3 tests suite.
@@ -488,7 +488,7 @@ scratch.nc.
   [[\<](#nc_005ftest-directory "Previous section in reading order")]   [[\>](#cxx-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.3 nctest directory {.section}
+1.3 nctest directory 
 --------------------
 
 This runs the version 2 test suite.
@@ -499,7 +499,7 @@ This runs the version 2 test suite.
   [[\<](#nctest-directory "Previous section in reading order")]   [[\>](#man-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.4 cxx directory {.section}
+1.4 cxx directory 
 -----------------
 
 This directory contains the C++ interface to netCDF.
@@ -510,7 +510,7 @@ This directory contains the C++ interface to netCDF.
   [[\<](#cxx-directory "Previous section in reading order")]   [[\>](#ncgen-and-ncgen4-directories "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ----------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.5 man directory {.section}
+1.5 man directory 
 -----------------
 
 This directory holds the .m4 file that is used to generate both the C
@@ -526,7 +526,7 @@ conscience.
   [[\<](#man-directory "Previous section in reading order")]   [[\>](#ncdump-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ----------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.6 ncgen and ncgen4 directories {.section}
+1.6 ncgen and ncgen4 directories 
 --------------------------------
 
 The ncgen directory is the home of ncgen, of course. This program uses
@@ -594,7 +594,7 @@ Code files:
   [[\<](#ncgen-and-ncgen4-directories "Previous section in reading order")]   [[\>](#fortran-directory "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------ --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.7 ncdump directory {.section}
+1.7 ncdump directory 
 --------------------
 
 This directory holds ncdump, of course! No m4 or any of that stuff here
@@ -606,7 +606,7 @@ This directory holds ncdump, of course! No m4 or any of that stuff here
   [[\<](#ncdump-directory "Previous section in reading order")]   [[\>](#Derivitive-Works "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#C-Code "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ----------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-1.8 fortran directory {.section}
+1.8 fortran directory 
 ---------------------
 
 Amazingly, the fortran interface is actually C code! Steve gets some
@@ -620,7 +620,7 @@ function. So \_nf\_open will map to nc\_open.
   [[\<](#fortran-directory "Previous section in reading order")]   [[\>](#From-_0060_0060A-Tale-of-Two-Data-Formats_002c_0027_0027-the-bestselling-novel "Next section in reading order")]       [[\<\<](#C-Code "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Concept-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------- --- ------------------------------------------------------------------- --------------------------- ----------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-2. Derivitive Works {.chapter}
+2. Derivitive Works 
 ===================
 
 At Unidata, the creative energies are simply enourmous. NetCDF has
@@ -633,7 +633,7 @@ below.
   [[\<](#Derivitive-Works "Previous section in reading order")]   [[\>](#g_t_0060_0060The-Marriage-of-NetCDF_002c_0027_0027-an-Opera-in-Three-Acts "Next section in reading order")]       [[\<\<](#Derivitive-Works "Beginning of this chapter or previous chapter")]   [[Up](#Derivitive-Works "Up section")]   [[\>\>](#Concept-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- ----------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-2.1 From “A Tale of Two Data Formats,” the bestselling novel {.section}
+2.1 From “A Tale of Two Data Formats,” the bestselling novel 
 ------------------------------------------------------------
 
  
@@ -655,7 +655,7 @@ the other way--
   [[\<](#From-_0060_0060A-Tale-of-Two-Data-Formats_002c_0027_0027-the-bestselling-novel "Previous section in reading order")]   [[\>](#Transcript-from-Jerry-Springer-Show "Next section in reading order")]       [[\<\<](#Derivitive-Works "Beginning of this chapter or previous chapter")]   [[Up](#Derivitive-Works "Up section")]   [[\>\>](#Concept-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- ----------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-2.2 “The Marriage of NetCDF,” an Opera in Three Acts {.section}
+2.2 “The Marriage of NetCDF,” an Opera in Three Acts 
 ----------------------------------------------------
 
 The massive response to this opera has been called the “Marriage
@@ -698,7 +698,7 @@ would dooooo...
   [[\<](#g_t_0060_0060The-Marriage-of-NetCDF_002c_0027_0027-an-Opera-in-Three-Acts "Previous section in reading order")]   [[\>](#show-title_003a_0060_0060I_0027ve-Beed-Dumped-for-a-Newer-Data-Format_0027_0027 "Next section in reading order")]       [[\<\<](#Derivitive-Works "Beginning of this chapter or previous chapter")]   [[Up](#Derivitive-Works "Up section")]   [[\>\>](#Concept-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------------------------------------------ -------------------------------------------------------------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- ----------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-2.3 Transcript from Jerry Springer Show, aired 12/12/03, {.section}
+2.3 Transcript from Jerry Springer Show, aired 12/12/03, 
 --------------------------------------------------------
 
 * * * * *
@@ -707,7 +707,7 @@ would dooooo...
   [[\<](#Transcript-from-Jerry-Springer-Show "Previous section in reading order")]   [[\>](#Concept-Index "Next section in reading order")]       [[\<\<](#Derivitive-Works "Beginning of this chapter or previous chapter")]   [[Up](#Transcript-from-Jerry-Springer-Show "Up section")]   [[\>\>](#Concept-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- -------------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------------------------------- ----------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-### 2.3.1 show title:“I’ve Beed Dumped for a Newer Data Format” {.subsection}
+### 2.3.1 show title:“I’ve Beed Dumped for a Newer Data Format” 
 
  
 
@@ -792,7 +792,7 @@ someone gets hurt...
   [[\<](#show-title_003a_0060_0060I_0027ve-Beed-Dumped-for-a-Newer-Data-Format_0027_0027 "Previous section in reading order")]   [ \> ]       [[\<\<](#Derivitive-Works "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------------------------------------------------ -------- --- ----------------------------------------------------------------------------- --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
-3. Concept Index {.chapter}
+3. Concept Index 
 ================
 
 * * * * *

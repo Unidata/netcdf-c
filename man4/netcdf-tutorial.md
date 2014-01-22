@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-NetCDF Tutorial {.settitle}
+NetCDF Tutorial 
 ===============
 
 This tutorial aims to give a quick and painless introduction to netCDF.
@@ -69,7 +69,7 @@ New features added in netCDF-4.
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 What is NetCDF?
@@ -129,7 +129,7 @@ Introducing the netCDF documentation!
 
 Different versions of netCDF.
 
-~~~~ {.menu-comment}
+~~~~ 
 Example Programs
 ~~~~
 
@@ -151,7 +151,7 @@ A more complex file with more metadata.
 
 A 4D file with an unlimited dimension.
 
-~~~~ {.menu-comment}
+~~~~ 
 The simple_xy Example
 ~~~~
 
@@ -172,7 +172,7 @@ simple\_xy\_rd.cpp](#simple_005fxy-in-C_002b_002b)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_wr.c and simple_xy_rd.c
 ~~~~
 
@@ -184,7 +184,7 @@ simple_xy_wr.c and simple_xy_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_wr.f and simple_xy_rd.f
 ~~~~
 
@@ -196,7 +196,7 @@ simple_xy_wr.f and simple_xy_rd.f
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_wr.f90 and simple_xy_rd.f90
 ~~~~
 
@@ -208,7 +208,7 @@ simple_xy_wr.f90 and simple_xy_rd.f90
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_wr.cpp and simple_xy_rd.cpp
 ~~~~
 
@@ -220,7 +220,7 @@ simple_xy_wr.cpp and simple_xy_rd.cpp
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The sfc_pres_temp Example
 ~~~~
 
@@ -244,7 +244,7 @@ sfc\_pres\_temp\_rd.cpp](#sfc_005fpres_005ftemp-in-C_002b_002b)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 sfc_pres_temp_wr.c and sfc_pres_temp_rd.c
 ~~~~
 
@@ -256,7 +256,7 @@ sfc_pres_temp_wr.c and sfc_pres_temp_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 sfc_pres_temp_wr.f and sfc_pres_temp_rd.f
 ~~~~
 
@@ -268,7 +268,7 @@ sfc_pres_temp_wr.f and sfc_pres_temp_rd.f
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 sfc_pres_temp_wr.f90 and sfc_pres_temp_rd.f90
 ~~~~
 
@@ -280,7 +280,7 @@ sfc_pres_temp_wr.f90 and sfc_pres_temp_rd.f90
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 sfc_pres_temp_wr.cpp and sfc_pres_temp_rd.cpp
 ~~~~
 
@@ -292,7 +292,7 @@ sfc_pres_temp_wr.cpp and sfc_pres_temp_rd.cpp
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The pres_temp_4D Example
 ~~~~
 
@@ -316,7 +316,7 @@ pres\_temp\_4D\_rd.cpp](#pres_005ftemp_005f4D-in-C_002b_002b)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 pres_temp_4D_wr.c and pres_temp_4D_rd.c
 ~~~~
 
@@ -328,7 +328,7 @@ pres_temp_4D_wr.c and pres_temp_4D_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 pres_temp_4D_wr.f and pres_temp_4D_rd.f
 ~~~~
 
@@ -340,7 +340,7 @@ pres_temp_4D_wr.f and pres_temp_4D_rd.f
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 pres_temp_4D_wr.f90 and pres_temp_4D_rd.f90
 ~~~~
 
@@ -352,7 +352,7 @@ pres_temp_4D_wr.f90 and pres_temp_4D_rd.f90
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 pres_temp_4D_wr.cpp and pres_temp_4D_rd.cpp
 ~~~~
 
@@ -364,7 +364,7 @@ pres_temp_4D_wr.cpp and pres_temp_4D_rd.cpp
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The Functions You Need in NetCDF-3
 ~~~~
 
@@ -392,7 +392,7 @@ Learning about an unknown netCDF file.
 
 Reading and writing Subsets of data.
 
-~~~~ {.menu-comment}
+~~~~ 
 Creating New Files and Metadata, an Overview
 ~~~~
 
@@ -412,7 +412,7 @@ Creating New Files and Metadata, an Overview
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Numbering of NetCDF IDs
 ~~~~
 
@@ -432,7 +432,7 @@ Numbering of NetCDF IDs
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Reading NetCDF Files of Unknown Structure
 ~~~~
 
@@ -452,7 +452,7 @@ Reading NetCDF Files of Unknown Structure
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Reading and Writing Subsets of Data
 ~~~~
 
@@ -475,7 +475,7 @@ C++](#Subsetting-in-C_002b_002b)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 API Extensions Introduced with NetCDF-4
 ~~~~
 
@@ -540,7 +540,7 @@ How to get parallel I/O.
 
 What’s coming next!
 
-~~~~ {.menu-comment}
+~~~~ 
 Collective/Independent Access
 ~~~~
 
@@ -549,7 +549,7 @@ simple\_xy\_par\_rd.c](#simple_005fxy_005fpar-in-C)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_par_wr.c and simple_xy_par_rd.c
 ~~~~
 
@@ -561,7 +561,7 @@ simple_xy_par_wr.c and simple_xy_par_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 NetCDF-4 Examples
 ~~~~
 
@@ -573,7 +573,7 @@ NetCDF-4 Examples
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The simple_nc4 Example
 ~~~~
 
@@ -581,7 +581,7 @@ The simple_nc4 Example
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_nc4_wr.c and simple_nc4_rd.c
 ~~~~
 
@@ -593,7 +593,7 @@ simple_nc4_wr.c and simple_nc4_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The simple_xy_nc4 Example
 ~~~~
 
@@ -612,7 +612,7 @@ simple\_xy\_nc4\_rd.f90](#simple_005fxy_005fnc4-in-F90)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_nc4_wr.c and simple_xy_nc4_rd.c
 ~~~~
 
@@ -624,7 +624,7 @@ simple_xy_nc4_wr.c and simple_xy_nc4_rd.c
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_nc4_wr.f and simple_xy_nc4_rd.f
 ~~~~
 
@@ -636,7 +636,7 @@ simple_xy_nc4_wr.f and simple_xy_nc4_rd.f
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 simple_xy_nc4_wr.f90 and simple_xy_nc4_rd.f90
 ~~~~
 
@@ -648,7 +648,7 @@ simple_xy_nc4_wr.f90 and simple_xy_nc4_rd.f90
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -657,7 +657,7 @@ simple_xy_nc4_wr.f90 and simple_xy_nc4_rd.f90
   [[\<](#Top "Previous section in reading order")]   [[\>](#Data-Model "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- ----------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1. What is NetCDF? {.chapter}
+1. What is NetCDF? 
 ==================
 
 NetCDF is a set of data formats, programming interfaces, and software
@@ -696,7 +696,7 @@ Documentation](#Documentation)).
   [[\<](#Intro "Previous section in reading order")]   [[\>](#Meteorological-Example "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- ----------------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.1 The Classic NetCDF Data Model {.section}
+1.1 The Classic NetCDF Data Model 
 ---------------------------------
 
 The classic netCDF data model consists of *variables*, *dimensions*, and
@@ -739,7 +739,7 @@ Model’ in The NetCDF Users Guide.
   [[\<](#Data-Model "Previous section in reading order")]   [[\>](#Common-Data-Model "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Data-Model "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------------ --- ------------------------------------------------------------------ ---------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.1.1 Meteorological Example {.subsection}
+### 1.1.1 Meteorological Example 
 
 NetCDF can be used to store many kinds of data, but it was originally
 developed for the Earth science community.
@@ -782,7 +782,7 @@ Example](#pres_005ftemp_005f4D).
   [[\<](#Meteorological-Example "Previous section in reading order")]   [[\>](#Errors "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.2 The Common Data Model and NetCDF-4 {.section}
+1.2 The Common Data Model and NetCDF-4 
 --------------------------------------
 
 With netCDF-4, the netCDF data model has been extended, in a backwards
@@ -832,7 +832,7 @@ classic netCDF file.
   [[\<](#Common-Data-Model "Previous section in reading order")]   [[\>](#Unlimited-Dimensions "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- --------------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.3 NetCDF Error Handling {.section}
+1.3 NetCDF Error Handling 
 -------------------------
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns 0
@@ -881,7 +881,7 @@ Interface Guide.
   [[\<](#Errors "Previous section in reading order")]   [[\>](#Fill-Values "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.4 Unlimited Dimensions {.section}
+1.4 Unlimited Dimensions 
 ------------------------
 
 Sometimes you don’t know the size of all dimensions when you create a
@@ -923,7 +923,7 @@ NetCDF Users Guide.
   [[\<](#Unlimited-Dimensions "Previous section in reading order")]   [[\>](#Tools "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------ --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.5 Fill Values {.section}
+1.5 Fill Values 
 ---------------
 
 Sometimes there are missing values in the data, and some value is needed
@@ -965,7 +965,7 @@ Metadata, an Overview](#Creation).
   [[\<](#Fill-Values "Previous section in reading order")]   [[\>](#APIs "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ----------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.6 Tools for Manipulating NetCDF Files {.section}
+1.6 Tools for Manipulating NetCDF Files 
 ---------------------------------------
 
 Many existing software applications can read and manipulate netCDF
@@ -1011,7 +1011,7 @@ support-netcdf@unidata.ucar.edu.
   [[\<](#Tools "Previous section in reading order")]   [[\>](#Documentation "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.7 The NetCDF Programming APIs {.section}
+1.7 The NetCDF Programming APIs 
 -------------------------------
 
 Unidata supports netCDF APIs in C, C++, Fortran 77, Fortran 90, and
@@ -1075,7 +1075,7 @@ for the netCDF-2 API can be found on the netCDF website, see
   [[\<](#APIs "Previous section in reading order")]   [[\>](#Versions "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.8 NetCDF Documentation {.section}
+1.8 NetCDF Documentation 
 ------------------------
 
 This tutorial is brief. A much more complete description of netCDF can
@@ -1133,7 +1133,7 @@ the documentation page of the netCDF web site:
   [[\<](#Documentation "Previous section in reading order")]   [[\>](#Classic-Format "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Intro "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ --------------------------------------------------------- --- ------------------------------------------------------------------ ----------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.9 A Note on NetCDF Versions and Formats {.section}
+1.9 A Note on NetCDF Versions and Formats 
 -----------------------------------------
 
 NetCDF has changed (and improved) over its lifetime. That means the user
@@ -1155,7 +1155,7 @@ compatibility.
   [[\<](#Versions "Previous section in reading order")]   [[\>](#g_t64_002dbit-Offset-Format "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Versions "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ---------------------------------------------------------------------- --- ------------------------------------------------------------------ -------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.9.1 Classic Format {.subsection}
+### 1.9.1 Classic Format 
 
 The default format is classic format. This is the original netCDF binary
 format - the format that the netCDF library has been using for almost 20
@@ -1174,7 +1174,7 @@ Limitations](netcdf.html#NetCDF-Classic-Format-Limitations) section
   [[\<](#Classic-Format "Previous section in reading order")]   [[\>](#NetCDF_002d4_002fHDF5-Format "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Versions "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ----------------------------------------------------------------------- --- ------------------------------------------------------------------ -------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.9.2 64-bit Offset Format {.subsection}
+### 1.9.2 64-bit Offset Format 
 
 In December, 2004, version 3.6.0 of the netCDF library was released. It
 allows users to use a new version of the netCDF file format which
@@ -1200,7 +1200,7 @@ netCDF will not be able to read these files.
   [[\<](#g_t64_002dbit-Offset-Format "Previous section in reading order")]   [[\>](#Sharing-Data "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Versions "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------ -------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.9.3 NetCDF-4/HDF5 Format {.subsection}
+### 1.9.3 NetCDF-4/HDF5 Format 
 
 With version 4.0 of netCDF, we introduce another new data format:
 netCDF-4/HDF5 format. This format is HDF5, with full use of the new
@@ -1218,7 +1218,7 @@ section ‘nf\_create’ in The NetCDF Fortran 77 Interface Guide).
   [[\<](#NetCDF_002d4_002fHDF5-Format "Previous section in reading order")]   [[\>](#Classic-Model "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Versions "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------ -------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.9.4 Sharing Data {.subsection}
+### 1.9.4 Sharing Data 
 
 The classic format is the most portable. Classic format files can be
 read correctly by any version of netCDF. A netCDF-4 user can create a
@@ -1241,7 +1241,7 @@ file, whatever version of netCDF was used to create it.
   [[\<](#Sharing-Data "Previous section in reading order")]   [[\>](#Examples "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Versions "Up section")]   [[\>\>](#Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------ -------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.9.5 Classic Model {.subsection}
+### 1.9.5 Classic Model 
 
 The original netCDF API represents a data model as well as a programming
 API. That is, the idea of variables, attributes, and the six data types
@@ -1281,7 +1281,7 @@ Guide.
   [[\<](#Classic-Model "Previous section in reading order")]   [[\>](#simple_005fxy "Next section in reading order")]       [[\<\<](#Intro "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ -------------------------------------------------------- --- ------------------------------------------------------------------ --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2. Example Programs {.chapter}
+2. Example Programs 
 ===================
 
 The netCDF example programs show how to use netCDF.
@@ -1324,7 +1324,7 @@ in this tutorial, as well as in the netCDF distribution.
   [[\<](#Examples "Previous section in reading order")]   [[\>](#simple_005fxy-in-C "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#Examples "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.1 The simple\_xy Example {.section}
+2.1 The simple\_xy Example 
 --------------------------
 
 This example is an unrealistically simple netCDF file, to demonstrate
@@ -1370,7 +1370,7 @@ section ‘NetCDF Utilities’ in The NetCDF Users Guide.
   [[\<](#simple_005fxy "Previous section in reading order")]   [[\>](#simple_005fxy_005fwr_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ --------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.1 simple\_xy\_wr.c and simple\_xy\_rd.c {.subsection}
+### 2.1.1 simple\_xy\_wr.c and simple\_xy\_rd.c 
 
 These example programs can be found in the netCDF distribution, under
 examples/C.
@@ -1389,7 +1389,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.c reads the data file.
   [[\<](#simple_005fxy-in-C "Previous section in reading order")]   [[\>](#simple_005fxy_005frd_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- --------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.1.1 simple\_xy\_wr.c {.subsubsection}
+#### 2.1.1.1 simple\_xy\_wr.c 
 
 * * * * *
 
@@ -1397,7 +1397,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.c reads the data file.
   [[\<](#simple_005fxy_005fwr_002ec "Previous section in reading order")]   [[\>](#simple_005fxy-in-F77 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- --------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.1.2 simple\_xy\_rd.c {.subsubsection}
+#### 2.1.1.2 simple\_xy\_rd.c 
 
 * * * * *
 
@@ -1405,7 +1405,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.c reads the data file.
   [[\<](#simple_005fxy_005frd_002ec "Previous section in reading order")]   [[\>](#simple_005fxy_005fwr_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- --------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.2 simple\_xy\_wr.f and simple\_xy\_rd.f {.subsection}
+### 2.1.2 simple\_xy\_wr.f and simple\_xy\_rd.f 
 
 These example programs can be found in the netCDF distribution, under
 examples/F77.
@@ -1424,7 +1424,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.f reads the data file.
   [[\<](#simple_005fxy-in-F77 "Previous section in reading order")]   [[\>](#simple_005fxy_005frd_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- --------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.2.1 simple\_xy\_wr.f {.subsubsection}
+#### 2.1.2.1 simple\_xy\_wr.f 
 
 * * * * *
 
@@ -1432,7 +1432,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.f reads the data file.
   [[\<](#simple_005fxy_005fwr_002ef "Previous section in reading order")]   [[\>](#simple_005fxy-in-F90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- --------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.2.2 simple\_xy\_rd.f {.subsubsection}
+#### 2.1.2.2 simple\_xy\_rd.f 
 
 * * * * *
 
@@ -1440,7 +1440,7 @@ simple\_xy.nc. The example program simple\_xy\_rd.f reads the data file.
   [[\<](#simple_005fxy_005frd_002ef "Previous section in reading order")]   [[\>](#simple_005fxy_005fwr_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.3 simple\_xy\_wr.f90 and simple\_xy\_rd.f90 {.subsection}
+### 2.1.3 simple\_xy\_wr.f90 and simple\_xy\_rd.f90 
 
 These example programs can be found in the netCDF distribution, under
 examples/F90.
@@ -1460,7 +1460,7 @@ file.
   [[\<](#simple_005fxy-in-F90 "Previous section in reading order")]   [[\>](#simple_005fxy_005frd_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.3.1 simple\_xy\_wr.f90 {.subsubsection}
+#### 2.1.3.1 simple\_xy\_wr.f90 
 
 * * * * *
 
@@ -1468,7 +1468,7 @@ file.
   [[\<](#simple_005fxy_005fwr_002ef90 "Previous section in reading order")]   [[\>](#simple_005fxy-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.3.2 simple\_xy\_rd.f90 {.subsubsection}
+#### 2.1.3.2 simple\_xy\_rd.f90 
 
 * * * * *
 
@@ -1476,7 +1476,7 @@ file.
   [[\<](#simple_005fxy_005frd_002ef90 "Previous section in reading order")]   [[\>](#simple_005fxy_005fwr_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.4 simple\_xy\_wr.cpp and simple\_xy\_rd.cpp {.subsection}
+### 2.1.4 simple\_xy\_wr.cpp and simple\_xy\_rd.cpp 
 
 These example programs can be found in the netCDF distribution, under
 examples/CXX.
@@ -1496,7 +1496,7 @@ file.
   [[\<](#simple_005fxy-in-C_002b_002b "Previous section in reading order")]   [[\>](#simple_005fxy_005frd_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.4.1 simple\_xy\_wr.cpp {.subsubsection}
+#### 2.1.4.1 simple\_xy\_wr.cpp 
 
 * * * * *
 
@@ -1504,7 +1504,7 @@ file.
   [[\<](#simple_005fxy_005fwr_002ecpp "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ---------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.1.4.2 simple\_xy\_rd.cpp {.subsubsection}
+#### 2.1.4.2 simple\_xy\_rd.cpp 
 
 * * * * *
 
@@ -1512,7 +1512,7 @@ file.
   [[\<](#simple_005fxy_005frd_002ecpp "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp-in-C "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#Examples "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- --------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.2 The sfc\_pres\_temp Example {.section}
+2.2 The sfc\_pres\_temp Example 
 -------------------------------
 
 This example has been constructed for the meteorological mind.
@@ -1551,7 +1551,7 @@ The NetCDF Users Guide.
   [[\<](#sfc_005fpres_005ftemp "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005fwr_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.2.1 sfc\_pres\_temp\_wr.c and sfc\_pres\_temp\_rd.c {.subsection}
+### 2.2.1 sfc\_pres\_temp\_wr.c and sfc\_pres\_temp\_rd.c 
 
 These example programs can be found in the netCDF distribution, under
 examples/C.
@@ -1571,7 +1571,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp-in-C "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005frd_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.1.1 sfc\_pres\_temp\_wr.c {.subsubsection}
+#### 2.2.1.1 sfc\_pres\_temp\_wr.c 
 
 * * * * *
 
@@ -1579,7 +1579,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp_005fwr_002ec "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp-in-F77 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.1.2 sfc\_pres\_temp\_rd.c {.subsubsection}
+#### 2.2.1.2 sfc\_pres\_temp\_rd.c 
 
 * * * * *
 
@@ -1587,7 +1587,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp_005frd_002ec "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005fwr_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.2.2 sfc\_pres\_temp\_wr.f and sfc\_pres\_temp\_rd.f {.subsection}
+### 2.2.2 sfc\_pres\_temp\_wr.f and sfc\_pres\_temp\_rd.f 
 
 These example programs can be found in the netCDF distribution, under
 examples/F77.
@@ -1607,7 +1607,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp-in-F77 "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005frd_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.2.1 sfc\_pres\_temp\_wr.f {.subsubsection}
+#### 2.2.2.1 sfc\_pres\_temp\_wr.f 
 
 * * * * *
 
@@ -1615,7 +1615,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp_005fwr_002ef "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp-in-F90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.2.2 sfc\_pres\_temp\_rd.f {.subsubsection}
+#### 2.2.2.2 sfc\_pres\_temp\_rd.f 
 
 * * * * *
 
@@ -1623,7 +1623,7 @@ data file.
   [[\<](#sfc_005fpres_005ftemp_005frd_002ef "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005fwr_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.2.3 sfc\_pres\_temp\_wr.f90 and sfc\_pres\_temp\_rd.f90 {.subsection}
+### 2.2.3 sfc\_pres\_temp\_wr.f90 and sfc\_pres\_temp\_rd.f90 
 
 These example programs can be found in the netCDF distribution, under
 examples/F90.
@@ -1643,7 +1643,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp-in-F90 "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005frd_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.3.1 sfc\_pres\_temp\_wr.f90 {.subsubsection}
+#### 2.2.3.1 sfc\_pres\_temp\_wr.f90 
 
 * * * * *
 
@@ -1651,7 +1651,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp_005fwr_002ef90 "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- --------------------------------------------------------------------- ---------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.3.2 sfc\_pres\_temp\_rd.f90 {.subsubsection}
+#### 2.2.3.2 sfc\_pres\_temp\_rd.f90 
 
 * * * * *
 
@@ -1659,7 +1659,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp_005frd_002ef90 "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005fwr_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.2.4 sfc\_pres\_temp\_wr.cpp and sfc\_pres\_temp\_rd.cpp {.subsection}
+### 2.2.4 sfc\_pres\_temp\_wr.cpp and sfc\_pres\_temp\_rd.cpp 
 
 These example programs can be found in the netCDF distribution, under
 examples/CXX.
@@ -1679,7 +1679,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp-in-C_002b_002b "Previous section in reading order")]   [[\>](#sfc_005fpres_005ftemp_005frd_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.4.1 sfc\_pres\_temp\_wr.cpp {.subsubsection}
+#### 2.2.4.1 sfc\_pres\_temp\_wr.cpp 
 
 * * * * *
 
@@ -1687,7 +1687,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp_005fwr_002ecpp "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#sfc_005fpres_005ftemp-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- --------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------------------------ -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.2.4.2 sfc\_pres\_temp\_rd.cpp {.subsubsection}
+#### 2.2.4.2 sfc\_pres\_temp\_rd.cpp 
 
 * * * * *
 
@@ -1695,7 +1695,7 @@ reads the data file.
   [[\<](#sfc_005fpres_005ftemp_005frd_002ecpp "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D-in-C "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#Examples "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- -------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.3 The pres\_temp\_4D Example {.section}
+2.3 The pres\_temp\_4D Example 
 ------------------------------
 
 This example expands on the previous example by making our
@@ -1724,7 +1724,7 @@ section ‘NetCDF Utilities’ in The NetCDF Users Guide.
   [[\<](#pres_005ftemp_005f4D "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005fwr_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ---------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.3.1 pres\_temp\_4D\_wr.c and pres\_temp\_4D\_rd.c {.subsection}
+### 2.3.1 pres\_temp\_4D\_wr.c and pres\_temp\_4D\_rd.c 
 
 These example programs can be found in the netCDF distribution, under
 examples/C.
@@ -1744,7 +1744,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D-in-C "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005frd_002ec "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ---------------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.1.1 pres\_temp\_4D\_wr.c {.subsubsection}
+#### 2.3.1.1 pres\_temp\_4D\_wr.c 
 
 * * * * *
 
@@ -1752,7 +1752,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005fwr_002ec "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D-in-F77 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-C "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ---------------------------------------------------------------------- --- --------------------------------------------------------------------- ------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.1.2 pres\_temp\_4D\_rd.c {.subsubsection}
+#### 2.3.1.2 pres\_temp\_4D\_rd.c 
 
 * * * * *
 
@@ -1760,7 +1760,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005frd_002ec "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005fwr_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.3.2 pres\_temp\_4D\_wr.f and pres\_temp\_4D\_rd.f {.subsection}
+### 2.3.2 pres\_temp\_4D\_wr.f and pres\_temp\_4D\_rd.f 
 
 These example programs can be found in the netCDF distribution, under
 examples/F77.
@@ -1780,7 +1780,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D-in-F77 "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005frd_002ef "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.2.1 pres\_temp\_4D\_wr.f {.subsubsection}
+#### 2.3.2.1 pres\_temp\_4D\_wr.f 
 
 * * * * *
 
@@ -1788,7 +1788,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005fwr_002ef "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D-in-F90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-F77 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ---------------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.2.2 pres\_temp\_4D\_rd.f {.subsubsection}
+#### 2.3.2.2 pres\_temp\_4D\_rd.f 
 
 * * * * *
 
@@ -1796,7 +1796,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005frd_002ef "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005fwr_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.3.3 pres\_temp\_4D\_wr.f90 and pres\_temp\_4D\_rd.f90 {.subsection}
+### 2.3.3 pres\_temp\_4D\_wr.f90 and pres\_temp\_4D\_rd.f90 
 
 These example programs can be found in the netCDF distribution, under
 examples/F90.
@@ -1816,7 +1816,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D-in-F90 "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005frd_002ef90 "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- --------------------------------------------------------------------- --------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.3.1 pres\_temp\_4D\_wr.f90 {.subsubsection}
+#### 2.3.3.1 pres\_temp\_4D\_wr.f90 
 
 * * * * *
 
@@ -1824,7 +1824,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005fwr_002ef90 "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-F90 "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- --------------------------------------------------------------------- --------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.3.2 pres\_temp\_4D\_rd.f90 {.subsubsection}
+#### 2.3.3.2 pres\_temp\_4D\_rd.f90 
 
 * * * * *
 
@@ -1832,7 +1832,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005frd_002ef90 "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005fwr_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.3.4 pres\_temp\_4D\_wr.cpp and pres\_temp\_4D\_rd.cpp {.subsection}
+### 2.3.4 pres\_temp\_4D\_wr.cpp and pres\_temp\_4D\_rd.cpp 
 
 These example programs can be found in the netCDF distribution, under
 examples/CXX.
@@ -1852,7 +1852,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D-in-C_002b_002b "Previous section in reading order")]   [[\>](#pres_005ftemp_005f4D_005frd_002ecpp "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- --------------------------------------------------------------------- ----------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.4.1 pres\_temp\_4D\_wr.cpp {.subsubsection}
+#### 2.3.4.1 pres\_temp\_4D\_wr.cpp 
 
 * * * * *
 
@@ -1860,7 +1860,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005fwr_002ecpp "Previous section in reading order")]   [[\>](#Useful-Functions "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#pres_005ftemp_005f4D-in-C_002b_002b "Up section")]   [[\>\>](#Useful-Functions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- ----------------------------------------------------------- --- --------------------------------------------------------------------- ----------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 2.3.4.2 pres\_temp\_4D\_rd.cpp {.subsubsection}
+#### 2.3.4.2 pres\_temp\_4D\_rd.cpp 
 
 * * * * *
 
@@ -1868,7 +1868,7 @@ data file.
   [[\<](#pres_005ftemp_005f4D_005frd_002ecpp "Previous section in reading order")]   [[\>](#Creation "Next section in reading order")]       [[\<\<](#Examples "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- --------------------------------------------------- --- --------------------------------------------------------------------- --------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3. The Functions You Need in NetCDF-3 {.chapter}
+3. The Functions You Need in NetCDF-3 
 =====================================
 
 The netCDF-3 C and Fortran APIs each have over 100 functions, but most
@@ -1894,7 +1894,7 @@ detailed documentation of each function.
   [[\<](#Useful-Functions "Previous section in reading order")]   [[\>](#Creation-in-C "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Useful-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- -------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.1 Creating New Files and Metadata, an Overview {.section}
+3.1 Creating New Files and Metadata, an Overview 
 ------------------------------------------------
 
 To construct a netCDF file you need to:
@@ -1928,7 +1928,7 @@ To construct a netCDF file you need to:
   [[\<](#Creation "Previous section in reading order")]   [[\>](#Creation-in-F77 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Creation "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ---------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.1.1 Creating a NetCDF File in C {.subsection}
+### 3.1.1 Creating a NetCDF File in C 
 
 Use nc\_create to create a file. Then use nc\_def\_dim to define each
 shared dimension. The data variables are then specified with
@@ -1964,7 +1964,7 @@ Dataset’ in The NetCDF C Interface Guide.
   [[\<](#Creation-in-C "Previous section in reading order")]   [[\>](#Creation-in-F90 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Creation "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ---------------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.1.2 Creating a NetCDF File in Fortran 77 {.subsection}
+### 3.1.2 Creating a NetCDF File in Fortran 77 
 
 Use NF\_CREATE to create a file. Then use NF\_DEF\_DIM to define each
 shared dimension. The data variables are then specified with
@@ -2004,7 +2004,7 @@ wraps (for example, NF\_CREATE is a wrapper around nc\_create).
   [[\<](#Creation-in-F77 "Previous section in reading order")]   [[\>](#Creation-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Creation "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------------- -------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.1.3 Creating a NetCDF File in Fortran 90 {.subsection}
+### 3.1.3 Creating a NetCDF File in Fortran 90 
 
 Use NF90\_CREATE to create a file. Then use NF90\_DEF\_DIM to define
 each shared dimension. The data variables are then specified with
@@ -2043,7 +2043,7 @@ F77 functions are, in turn, wrappers around the C functions.
   [[\<](#Creation-in-F90 "Previous section in reading order")]   [[\>](#Reading "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Creation "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- -------------------------------------------------- --- ----------------------------------------------------------------------------- -------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.1.4 Creating a NetCDF File in C++ {.subsection}
+### 3.1.4 Creating a NetCDF File in C++ 
 
 Create an instance of the NcFile class to create a netCDF file. Use its
 add\_dim and add\_var methods to add dimensions and variables. The
@@ -2070,7 +2070,7 @@ example see
   [[\<](#Creation-in-C_002b_002b "Previous section in reading order")]   [[\>](#Numbering-of-NetCDF-IDs "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Useful-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.2 Reading NetCDF Files of Known Structure {.section}
+3.2 Reading NetCDF Files of Known Structure 
 -------------------------------------------
 
 To read a netCDF file of known structure, you need to:
@@ -2096,7 +2096,7 @@ The NetCDF Users Guide.
   [[\<](#Reading "Previous section in reading order")]   [[\>](#Reading-in-C "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Reading "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ ------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.1 Numbering of NetCDF IDs {.subsection}
+### 3.2.1 Numbering of NetCDF IDs 
 
 In C, Fortran 77, and Fortran 90, netCDF objects are identified by an
 integer: the ID. NetCDF functions use this ID to identify the object.
@@ -2140,7 +2140,7 @@ Other inquiry functions exist to further describe the file. (see section
   [[\<](#Numbering-of-NetCDF-IDs "Previous section in reading order")]   [[\>](#Reading-in-F77 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Reading "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.2 Reading a Known NetCDF File in C {.subsection}
+### 3.2.2 Reading a Known NetCDF File in C 
 
 For a typical sequence of calls to these C functions see [Reading a
 NetCDF Dataset with Known Names: (netcdf-c)Reading
@@ -2160,7 +2160,7 @@ with Known Names’ in The NetCDF C Interface Guide.
   [[\<](#Reading-in-C "Previous section in reading order")]   [[\>](#Reading-in-F90 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Reading "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.3 Reading a Known NetCDF File in Fortran 77 {.subsection}
+### 3.2.3 Reading a Known NetCDF File in Fortran 77 
 
 For a typical sequence of calls to these functions see [Reading a NetCDF
 Dataset with Known Names: (netcdf-f77)Reading
@@ -2180,7 +2180,7 @@ with Known Names’ in The NetCDF Fortran 77 Interface Guide.
   [[\<](#Reading-in-F77 "Previous section in reading order")]   [[\>](#Reading-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Reading "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ----------------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.4 Reading a Known NetCDF File in Fortran 90 {.subsection}
+### 3.2.4 Reading a Known NetCDF File in Fortran 90 
 
 For a typical sequence of calls to these functions see [Reading a NetCDF
 Dataset with Known Names: (netcdf-f90)Reading
@@ -2200,7 +2200,7 @@ with Known Names’ in The NetCDF Fortran 90 Interface Guide.
   [[\<](#Reading-in-F90 "Previous section in reading order")]   [[\>](#Inquiry-Functions "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Reading "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------------------ --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.2.5 Reading a Known NetCDF File in C++ {.subsection}
+### 3.2.5 Reading a Known NetCDF File in C++ 
 
   ------------------------------------------------------------------------------------------------------------------- ---------------------------------------------
   [(netcdf-cxx)Class NcFile](netcdf-cxx.html#Class-NcFile) section ‘Class NcFile’ in The NetCDF C++ Interface Guide   a C++ class to manipulate netCDF files
@@ -2215,7 +2215,7 @@ with Known Names’ in The NetCDF Fortran 90 Interface Guide.
   [[\<](#Reading-in-C_002b_002b "Previous section in reading order")]   [[\>](#Inquiry-in-C "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Useful-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.3 Reading NetCDF Files of Unknown Structure {.section}
+3.3 Reading NetCDF Files of Unknown Structure 
 ---------------------------------------------
 
 Perhaps you would like to write your software to handle more general
@@ -2243,7 +2243,7 @@ ncdump does just that.)
   [[\<](#Inquiry-Functions "Previous section in reading order")]   [[\>](#NULL-Parameters-in-Inquiry-Functions "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Inquiry-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.1 Inquiry in C {.subsection}
+### 3.3.1 Inquiry in C 
 
 First use nc\_inq, which will tell you how many variables and global
 attributes there are in the file.
@@ -2282,7 +2282,7 @@ Dataset with Unknown Names’ in The NetCDF C Interface Guide.
   [[\<](#Inquiry-in-C "Previous section in reading order")]   [[\>](#Inquiry-in-F77 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Inquiry-in-C "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 3.3.1.1 NULL Parameters in Inquiry Functions {.subsubsection}
+#### 3.3.1.1 NULL Parameters in Inquiry Functions 
 
 With any of the C inquiry functions, a NULL pointer can be used to
 ignore a return parameter. Consider the nc\_inq function:
@@ -2321,7 +2321,7 @@ just what the nc\_inq\_ndims functions does).
   [[\<](#NULL-Parameters-in-Inquiry-Functions "Previous section in reading order")]   [[\>](#Inquiry-in-F90 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Inquiry-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.2 Inquiry in Fortran 77 {.subsection}
+### 3.3.2 Inquiry in Fortran 77 
 
 First use NF\_INQ, which will tell you how many variables and global
 attributes there are in the file. Then start with varid 1, and proceed
@@ -2350,7 +2350,7 @@ Dataset with Unknown Names’ in The NetCDF Fortran 77 Interface Guide.
   [[\<](#Inquiry-in-F77 "Previous section in reading order")]   [[\>](#Inquiry-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Inquiry-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ----------------------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.3 Inquiry in Fortran 90 {.subsection}
+### 3.3.3 Inquiry in Fortran 90 
 
 First use NF90\_INQ, which will tell you how many variables and global
 attributes there are in the file. Then start with varid 1, and proceed
@@ -2379,7 +2379,7 @@ Dataset with Unknown Names’ in The NetCDF Fortran 90 Interface Guide.
   [[\<](#Inquiry-in-F90 "Previous section in reading order")]   [[\>](#Subsets "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Inquiry-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------- --- ----------------------------------------------------------------------------- ----------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.4 Inquiry Functions in the C++ API {.subsection}
+### 3.3.4 Inquiry Functions in the C++ API 
 
   ------------------------------------------------------------------------------------------------------------------- ---------------------------------------------
   [(netcdf-cxx)Class NcFile](netcdf-cxx.html#Class-NcFile) section ‘Class NcFile’ in The NetCDF C++ Interface Guide   a C++ class to manipulate netCDF files
@@ -2394,7 +2394,7 @@ Dataset with Unknown Names’ in The NetCDF Fortran 90 Interface Guide.
   [[\<](#Inquiry-in-C_002b_002b "Previous section in reading order")]   [[\>](#Subsetting-in-C "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Useful-Functions "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ---------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.4 Reading and Writing Subsets of Data {.section}
+3.4 Reading and Writing Subsets of Data 
 ---------------------------------------
 
 Usually users are interested in reading or writing subsets of variables
@@ -2439,7 +2439,7 @@ netCDF variable is defined.
   [[\<](#Subsets "Previous section in reading order")]   [[\>](#Subsetting-in-F77 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Subsets "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ ------------------------------------------------------------ --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.1 Reading and Writing Subsets of Data in C {.subsection}
+### 3.4.1 Reading and Writing Subsets of Data in C 
 
 The type of the data may be automatically converted on read or write.
 For more information about type conversion see [(netcdf-c)Type
@@ -2463,7 +2463,7 @@ The NetCDF C Interface Guide.
   [[\<](#Subsetting-in-C "Previous section in reading order")]   [[\>](#Subsetting-in-F90 "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Subsets "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------------ --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.2 Reading and Writing Subsets of Data in Fortran 77 {.subsection}
+### 3.4.2 Reading and Writing Subsets of Data in Fortran 77 
 
 The type of the data may be automatically converted on read or write.
 For more information about type conversion see [(netcdf-f77)Type
@@ -2487,7 +2487,7 @@ in The NetCDF Fortran 77 Interface Guide.
   [[\<](#Subsetting-in-F77 "Previous section in reading order")]   [[\>](#Subsetting-in-C_002b_002b "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Subsets "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- -------------------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.3 Reading and Writing Subsets of Data in Fortran 90 {.subsection}
+### 3.4.3 Reading and Writing Subsets of Data in Fortran 90 
 
 The type of the data may be automatically converted on read or write.
 For more information about type conversion see [(netcdf-f90)Type
@@ -2511,7 +2511,7 @@ in The NetCDF Fortran 90 Interface Guide.
   [[\<](#Subsetting-in-F90 "Previous section in reading order")]   [[\>](#API_002dExtensions "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Subsets "Up section")]   [[\>\>](#API_002dExtensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------------------- ------------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.4 Reading and Writing Subsets of Data in C++ {.subsection}
+### 3.4.4 Reading and Writing Subsets of Data in C++ 
 
 To read a record of data at a time, use the set\_cur method of the NcVar
 class to set the number of the record of interest, and then use the get
@@ -2527,7 +2527,7 @@ method to read the record.
   [[\<](#Subsetting-in-C_002b_002b "Previous section in reading order")]   [[\>](#Interoperability "Next section in reading order")]       [[\<\<](#Useful-Functions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ----------------------------------------------------------- --- ----------------------------------------------------------------------------- --------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4. API Extensions Introduced with NetCDF-4 {.chapter}
+4. API Extensions Introduced with NetCDF-4 
 ==========================================
 
 NetCDF-4 includes many advanced features. These features are only
@@ -2553,7 +2553,7 @@ is, HDF5 files, created by netCDF, or simple-model HDF5 files).
   [[\<](#API_002dExtensions "Previous section in reading order")]   [[\>](#Reading-and-Editing-NetCDF_002d4-Files-with-HDF5 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.1 Interoperability with HDF5 {.section}
+4.1 Interoperability with HDF5 
 ------------------------------
 
 NetCDF-4 allows some interoperability with HDF5.
@@ -2564,7 +2564,7 @@ NetCDF-4 allows some interoperability with HDF5.
   [[\<](#Interoperability "Previous section in reading order")]   [[\>](#Reading-and-Editing-HDF5-Files-with-NetCDF_002d4 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Interoperability "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ------------------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.1.1 Reading and Editing NetCDF-4 Files with HDF5 {.subsection}
+### 4.1.1 Reading and Editing NetCDF-4 Files with HDF5 
 
 The HDF5 Files produced by netCDF-4 are perfectly respectable HDF5
 files, and can be read by any HDF5 application.
@@ -2599,7 +2599,7 @@ modified, or even deleted, in HDF5.
   [[\<](#Reading-and-Editing-NetCDF_002d4-Files-with-HDF5 "Previous section in reading order")]   [[\>](#Multiple_002dUnlimited_002dDimensions "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Interoperability "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.1.2 Reading and Editing HDF5 Files with NetCDF-4 {.subsection}
+### 4.1.2 Reading and Editing HDF5 Files with NetCDF-4 
 
 Assuming a HDF5 file is written in accordance with the netCDF-4 rules
 (i.e. no strange types, no looping groups), and assuming that \*every\*
@@ -2623,7 +2623,7 @@ every dataset in the file.
   [[\<](#Reading-and-Editing-HDF5-Files-with-NetCDF_002d4 "Previous section in reading order")]   [[\>](#Groups "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.2 Multiple Unlimited Dimensions {.section}
+4.2 Multiple Unlimited Dimensions 
 ---------------------------------
 
 With classic and 64-bit offset netCDF files, each variable may use at
@@ -2640,7 +2640,7 @@ be expanded as needed.
   [[\<](#Multiple_002dUnlimited_002dDimensions "Previous section in reading order")]   [[\>](#Compound_002dTypes "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.3 Groups {.section}
+4.3 Groups 
 ----------
 
 NetCDF-4 files can store attributes, variables, and dimensions in
@@ -2668,7 +2668,7 @@ exactly with the classic data mode, before groups were introduced.
   [[\<](#Groups "Previous section in reading order")]   [[\>](#Opaque_002dTypes "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ----------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.4 Compound Types {.section}
+4.4 Compound Types 
 ------------------
 
 In netCDF-4 files it’s possible to create a data type which corresponds
@@ -2693,7 +2693,7 @@ types in netCDF-4.
   [[\<](#Compound_002dTypes "Previous section in reading order")]   [[\>](#VLEN_002dType "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.5 Opaque Types {.section}
+4.5 Opaque Types 
 ----------------
 
 Store blobs of bits in opaque types. Create an opaque type with
@@ -2705,7 +2705,7 @@ nc\_def\_opaque. Read and write them with nc\_get\_vara/nc\_put\_vara.
   [[\<](#Opaque_002dTypes "Previous section in reading order")]   [[\>](#Strings "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- -------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.6 Variable Length Arrays (VLEN) {.section}
+4.6 Variable Length Arrays (VLEN) 
 ---------------------------------
 
 Create a VLEN type to store variable length arrays of a known base type.
@@ -2718,7 +2718,7 @@ nc\_get\_vara/nc\_put\_vara.
   [[\<](#VLEN_002dType "Previous section in reading order")]   [[\>](#New_002dinq_002dFunctions "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ -------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.7 Strings {.section}
+4.7 Strings 
 -----------
 
 Use the NC\_STRING type to store arrays of strings. Read and write them
@@ -2730,7 +2730,7 @@ with nc\_get\_vara/nc\_put\_vara.
   [[\<](#Strings "Previous section in reading order")]   [[\>](#Parallel "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ --------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.8 New Inquiry Functions {.section}
+4.8 New Inquiry Functions 
 -------------------------
 
 There are many new inquiry functions to allow a program to navigate a
@@ -2745,7 +2745,7 @@ nc\_inq\_dimids.
   [[\<](#New_002dinq_002dFunctions "Previous section in reading order")]   [[\>](#Parallel-I_002fO-Choices-for-NetCDF-Users "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ------------------------------------------------------------------------------------ --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.9 Parallel I/O with NetCDF {.section}
+4.9 Parallel I/O with NetCDF 
 ----------------------------
 
 Parallel I/O allows many processes to read/write netCDF data at the same
@@ -2758,7 +2758,7 @@ performance computing environments.
   [[\<](#Parallel "Previous section in reading order")]   [[\>](#Parallel-I_002fO-with-NetCDF_002d4 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ----------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- -------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.1 Parallel I/O Choices for NetCDF Users {.subsection}
+### 4.9.1 Parallel I/O Choices for NetCDF Users 
 
 Parallel read-only access can be achieved netCDF files using the netCDF
 C/Fortran library. Each process can run a copy of the netCDF library and
@@ -2787,7 +2787,7 @@ read netCDF-4/HDF5 files.
   [[\<](#Parallel-I_002fO-Choices-for-NetCDF-Users "Previous section in reading order")]   [[\>](#Building-NetCDF_002d4-for-Parallel-I_002fO "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- -------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.2 Parallel I/O with NetCDF-4 {.subsection}
+### 4.9.2 Parallel I/O with NetCDF-4 
 
 NetCDF-4 provides access to HDF5 parallel I/O features for netCDF-4/HDF5
 files. NetCDF classic and 64-bit offset format may not be opened or
@@ -2804,7 +2804,7 @@ APIs.
   [[\<](#Parallel-I_002fO-with-NetCDF_002d4 "Previous section in reading order")]   [[\>](#Opening_002fCreating-Files-for-Parallel-I_002fO "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel-I_002fO-with-NetCDF_002d4 "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------ --- ------------------------------------------------------------------------------- ---------------------------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.9.2.1 Building NetCDF-4 for Parallel I/O {.subsubsection}
+#### 4.9.2.1 Building NetCDF-4 for Parallel I/O 
 
 You must build netCDF-4 properly to take advantage of parallel features.
 
@@ -2823,7 +2823,7 @@ desired set environmental variable FC to mpif90 (or some local variant.)
   [[\<](#Building-NetCDF_002d4-for-Parallel-I_002fO "Previous section in reading order")]   [[\>](#Collective_002fIndependent-Access "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel-I_002fO-with-NetCDF_002d4 "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.9.2.2 Opening/Creating Files for Parallel I/O {.subsubsection}
+#### 4.9.2.2 Opening/Creating Files for Parallel I/O 
 
 The nc\_open\_par and nc\_create\_par functions are used to create/open
 a netCDF file with the C API. (Or use nf\_open\_par/nf\_create\_par from
@@ -2842,7 +2842,7 @@ characteristic of the data file, but the way it was opened.
   [[\<](#Opening_002fCreating-Files-for-Parallel-I_002fO "Previous section in reading order")]   [[\>](#simple_005fxy_005fpar-in-C "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel-I_002fO-with-NetCDF_002d4 "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------- --------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.9.2.3 Collective/Independent Access {.subsubsection}
+#### 4.9.2.3 Collective/Independent Access 
 
 Parallel file access is either collective (all processors must
 participate) or independent (any processor may access the data without
@@ -2870,7 +2870,7 @@ reading of a netCDF file.
   [[\<](#Collective_002fIndependent-Access "Previous section in reading order")]   [[\>](#simple_005fxy_005fpar_005fwr_002ef90 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Parallel "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- -------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.3 simple\_xy\_par\_wr.c and simple\_xy\_par\_rd.c {.subsection}
+### 4.9.3 simple\_xy\_par\_wr.c and simple\_xy\_par\_rd.c 
 
 For this release, only a Fortran 90 language version of this example is
 provided. Other APIs will be demonstrated in examples in future
@@ -2897,7 +2897,7 @@ the file.)
   [[\<](#simple_005fxy_005fpar-in-C "Previous section in reading order")]   [[\>](#simple_005fxy_005fpar_005frd_002ef90 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fpar-in-C "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- -------------------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.9.3.1 simple\_xy\_par\_wr.f90 {.subsubsection}
+#### 4.9.3.1 simple\_xy\_par\_wr.f90 
 
 * * * * *
 
@@ -2905,7 +2905,7 @@ the file.)
   [[\<](#simple_005fxy_005fpar_005fwr_002ef90 "Previous section in reading order")]   [[\>](#Future "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fpar-in-C "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------------------- -------------------------------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.9.3.2 simple\_xy\_par\_rd.f90 {.subsubsection}
+#### 4.9.3.2 simple\_xy\_par\_rd.f90 
 
 * * * * *
 
@@ -2913,7 +2913,7 @@ the file.)
   [[\<](#simple_005fxy_005fpar_005frd_002ef90 "Previous section in reading order")]   [[\>](#NetCDF_002d4-Examples "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#API_002dExtensions "Up section")]   [[\>\>](#NetCDF_002d4-Examples "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.10 The Future of NetCDF {.section}
+4.10 The Future of NetCDF 
 -------------------------
 
 NetCDF continues under active development at Unidata (see
@@ -2933,7 +2933,7 @@ The next few releases of netCDF will include:
   [[\<](#Future "Previous section in reading order")]   [[\>](#simple_005fnc4 "Next section in reading order")]       [[\<\<](#API_002dExtensions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5. NetCDF-4 Examples {.chapter}
+5. NetCDF-4 Examples 
 ====================
 
 Any existing netCDF applications can be converted to generate
@@ -2962,7 +2962,7 @@ netCDF-4. More examples will be added in future releases.
   [[\<](#NetCDF_002d4-Examples "Previous section in reading order")]   [[\>](#simple_005fnc4-in-C "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Examples "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.1 The simple\_nc4 Example {.section}
+5.1 The simple\_nc4 Example 
 ---------------------------
 
 This example, like the simple\_xy netCDF-3 example above, is an overly
@@ -2991,7 +2991,7 @@ file.
   [[\<](#simple_005fnc4 "Previous section in reading order")]   [[\>](#simple_005fnc4_005fwr_002ec "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fnc4 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ---------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- -------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.1.1 simple\_nc4\_wr.c and simple\_nc4\_rd.c {.subsection}
+### 5.1.1 simple\_nc4\_wr.c and simple\_nc4\_rd.c 
 
 For this release, only a C language version of this example is provided.
 Other APIs will be demonstrated in examples in future releases.
@@ -3007,7 +3007,7 @@ Other APIs will be demonstrated in examples in future releases.
   [[\<](#simple_005fnc4-in-C "Previous section in reading order")]   [[\>](#simple_005fnc4_005frd_002ec "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fnc4-in-C "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.1.1.1 simple\_nc4\_wr.c {.subsubsection}
+#### 5.1.1.1 simple\_nc4\_wr.c 
 
 * * * * *
 
@@ -3015,7 +3015,7 @@ Other APIs will be demonstrated in examples in future releases.
   [[\<](#simple_005fnc4_005fwr_002ec "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4 "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fnc4-in-C "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ---------------------------------------------------------------- --- ---------------------------------------------------------------------------------- ------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.1.1.2 simple\_nc4\_rd.c {.subsubsection}
+#### 5.1.1.2 simple\_nc4\_rd.c 
 
 * * * * *
 
@@ -3023,7 +3023,7 @@ Other APIs will be demonstrated in examples in future releases.
   [[\<](#simple_005fnc4_005frd_002ec "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4-in-C "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Examples "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- --------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.2 The simple\_xy\_nc4 Example {.section}
+5.2 The simple\_xy\_nc4 Example 
 -------------------------------
 
 This example, like the simple\_xy netCDF-3 example above, is an overly
@@ -3054,7 +3054,7 @@ data file.
   [[\<](#simple_005fxy_005fnc4 "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005fwr_002ec "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.2.1 simple\_xy\_nc4\_wr.c and simple\_xy\_nc4\_rd.c {.subsection}
+### 5.2.1 simple\_xy\_nc4\_wr.c and simple\_xy\_nc4\_rd.c 
 
 This is just like the simple\_xy example, but with chunking and variable
 compression.
@@ -3070,7 +3070,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4-in-C "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005frd_002ec "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-C "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- -------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.1.1 simple\_xy\_nc4\_wr.c {.subsubsection}
+#### 5.2.1.1 simple\_xy\_nc4\_wr.c 
 
 * * * * *
 
@@ -3078,7 +3078,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005fwr_002ec "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4-in-F77 "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-C "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- -------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.1.2 simple\_xy\_nc4\_rd.c {.subsubsection}
+#### 5.2.1.2 simple\_xy\_nc4\_rd.c 
 
 * * * * *
 
@@ -3086,7 +3086,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005frd_002ec "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005fwr_002ef "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.2.2 simple\_xy\_nc4\_wr.f and simple\_xy\_nc4\_rd.f {.subsection}
+### 5.2.2 simple\_xy\_nc4\_wr.f and simple\_xy\_nc4\_rd.f 
 
 This is just like the simple\_xy example, but with chunking and variable
 compression.
@@ -3102,7 +3102,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4-in-F77 "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005frd_002ef "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-F77 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- ---------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.2.1 simple\_xy\_nc4\_wr.f {.subsubsection}
+#### 5.2.2.1 simple\_xy\_nc4\_wr.f 
 
 * * * * *
 
@@ -3110,7 +3110,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005fwr_002ef "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4-in-F90 "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-F77 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ----------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- ---------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.2.2 simple\_xy\_nc4\_rd.f {.subsubsection}
+#### 5.2.2.2 simple\_xy\_nc4\_rd.f 
 
 * * * * *
 
@@ -3118,7 +3118,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005frd_002ef "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005fwr_002ef90 "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 5.2.3 simple\_xy\_nc4\_wr.f90 and simple\_xy\_nc4\_rd.f90 {.subsection}
+### 5.2.3 simple\_xy\_nc4\_wr.f90 and simple\_xy\_nc4\_rd.f90 
 
 This is just like the simple\_xy example, but with chunking and variable
 compression.
@@ -3134,7 +3134,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4-in-F90 "Previous section in reading order")]   [[\>](#simple_005fxy_005fnc4_005frd_002ef90 "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-F90 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ---------------------------------------------------------------------------------- ---------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.3.1 simple\_xy\_nc4\_wr.f90 {.subsubsection}
+#### 5.2.3.1 simple\_xy\_nc4\_wr.f90 
 
 * * * * *
 
@@ -3142,7 +3142,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005fwr_002ef90 "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#simple_005fxy_005fnc4-in-F90 "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- --------------------------------------------------------- --- ---------------------------------------------------------------------------------- ---------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 5.2.3.2 simple\_xy\_nc4\_rd.f90 {.subsubsection}
+#### 5.2.3.2 simple\_xy\_nc4\_rd.f90 
 
 * * * * *
 
@@ -3150,7 +3150,7 @@ compression.
   [[\<](#simple_005fxy_005fnc4_005frd_002ef90 "Previous section in reading order")]   [ \> ]       [[\<\<](#NetCDF_002d4-Examples "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- -------- --- ---------------------------------------------------------------------------------- --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Index {.unnumbered}
+Index 
 =====
 
 Jump to:  

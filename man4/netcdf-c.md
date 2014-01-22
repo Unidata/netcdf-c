@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-The NetCDF C Interface Guide {.settitle}
+The NetCDF C Interface Guide 
 ============================
 
 This document describes the C interface to the netCDF library; it
@@ -72,7 +72,7 @@ Guide](#NetCDF-2-C-Transition-Guide)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 Use of the NetCDF Library
@@ -102,7 +102,7 @@ Use of the NetCDF Library
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Datasets
 ~~~~
 
@@ -234,7 +234,7 @@ nc\_get\_chunk\_cache](#nc_005fget_005fchunk_005fcache)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Groups
 ~~~~
 
@@ -290,7 +290,7 @@ nc\_inq\_grp\_full\_ncid](#nc_005finq_005fgrp_005ffull_005fncid)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Dimensions
 ~~~~
 
@@ -329,7 +329,7 @@ nc\_inq\_unlimdims](#nc_005finq_005funlimdims)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 User Defined Data Types
 ~~~~
 
@@ -495,7 +495,7 @@ nc\_inq\_enum\_ident](#nc_005finq_005fenum_005fident)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Compound Types Introduction
 ~~~~
 
@@ -534,7 +534,7 @@ nc\_inq\_compound\_fieldtype](#nc_005finq_005fcompound_005ffieldtype)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Variables
 ~~~~
 
@@ -758,7 +758,7 @@ nc\_var\_par\_access](#nc_005fvar_005fpar_005faccess)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Reading and Writing Character String Values
 ~~~~
 
@@ -771,7 +771,7 @@ Model](#Classic-Strings)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Attributes
 ~~~~
 
@@ -807,7 +807,7 @@ nc\_copy\_att](#nc_005fcopy_005fatt)
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -816,7 +816,7 @@ nc\_copy\_att](#nc_005fcopy_005fatt)
   [[\<](#Top "Previous section in reading order")]   [[\>](#Creating "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- --------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1. Use of the NetCDF Library {.chapter}
+1. Use of the NetCDF Library 
 ============================
 
 You can use the netCDF library without knowing about all of the netCDF
@@ -854,7 +854,7 @@ are described in later chapters.
   [[\<](#Use-of-the-NetCDF-Library "Previous section in reading order")]   [[\>](#Reading-Known "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.1 Creating a NetCDF Dataset {.section}
+1.1 Creating a NetCDF Dataset 
 -----------------------------
 
 Here is a typical sequence of netCDF calls used to create a new netCDF
@@ -920,7 +920,7 @@ are not written out until nc\_sync or nc\_close is called.
   [[\<](#Creating "Previous section in reading order")]   [[\>](#Reading-Unknown "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ---------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.2 Reading a NetCDF Dataset with Known Names {.section}
+1.2 Reading a NetCDF Dataset with Known Names 
 ---------------------------------------------
 
 Here we consider the case where you know the names of not only the
@@ -971,7 +971,7 @@ to close a dataset open only for reading.
   [[\<](#Reading-Known "Previous section in reading order")]   [[\>](#Adding "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.3 Reading a netCDF Dataset with Unknown Names {.section}
+1.3 Reading a netCDF Dataset with Unknown Names 
 -----------------------------------------------
 
 It is possible to write programs (e.g., generic software) which do such
@@ -1047,7 +1047,7 @@ nc\_get\_varm for various kinds of array access.
   [[\<](#Reading-Unknown "Previous section in reading order")]   [[\>](#Errors "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.4 Adding New Dimensions, Variables, Attributes {.section}
+1.4 Adding New Dimensions, Variables, Attributes 
 ------------------------------------------------
 
 An existing netCDF dataset can be extensively altered. New dimensions,
@@ -1125,7 +1125,7 @@ the next access.
   [[\<](#Adding "Previous section in reading order")]   [[\>](#Compiling "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ---------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.5 Error Handling {.section}
+1.5 Error Handling 
 ------------------
 
 The netCDF library provides the facilities needed to handle errors in a
@@ -1155,7 +1155,7 @@ value.
   [[\<](#Errors "Previous section in reading order")]   [[\>](#Datasets "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Use-of-the-NetCDF-Library "Up section")]   [[\>\>](#Datasets "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- --------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.6 Compiling and Linking with the NetCDF Library {.section}
+1.6 Compiling and Linking with the NetCDF Library 
 -------------------------------------------------
 
 Details of how to compile and link a program that uses the netCDF C or
@@ -1308,7 +1308,7 @@ somewhat to produce this slightly simpler list.
   [[\<](#Compiling "Previous section in reading order")]   [[\>](#Interface-Descriptions "Next section in reading order")]       [[\<\<](#Use-of-the-NetCDF-Library "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ----------------------------------------------------------------- --- -------------------------------------------------------------------------------------- --------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2. Datasets {.chapter}
+2. Datasets 
 ===========
 
 This chapter presents the interfaces of the netCDF functions that deal
@@ -1375,7 +1375,7 @@ The operations supported on a netCDF dataset as a single object are:
   [[\<](#Datasets "Previous section in reading order")]   [[\>](#parallel-access "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ---------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.1 NetCDF Library Interface Descriptions {.section}
+2.1 NetCDF Library Interface Descriptions 
 -----------------------------------------
 
 Each interface description for a particular netCDF function in this and
@@ -1401,7 +1401,7 @@ error status: nc\_strerror](#nc_005fstrerror).
   [[\<](#Interface-Descriptions "Previous section in reading order")]   [[\>](#nc_005fstrerror "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ---------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.2 Parallel Access for NetCDF Files {.section}
+2.2 Parallel Access for NetCDF Files 
 ------------------------------------
 
 To use parallel access, open or create the file with nc\_open\_par (see
@@ -1522,7 +1522,7 @@ main(int argc, char **argv)
   [[\<](#parallel-access "Previous section in reading order")]   [[\>](#nc_005finq_005flibvers "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ----------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.3 Get error message corresponding to error status: nc\_strerror {.section}
+2.3 Get error message corresponding to error status: nc\_strerror 
 -----------------------------------------------------------------
 
 The function nc\_strerror returns a static reference to an error message
@@ -1531,7 +1531,7 @@ error number, presumably returned by a previous call to some other
 netCDF function. The list of netCDF error status codes is available in
 the appropriate include file for each language binding.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1544,7 +1544,7 @@ const char * nc_strerror(int ncerr);
 :   An error status that might have been returned from a previous call
     to some netCDF function.
 
-Errors {.heading}
+Errors 
 ------
 
 If you provide an invalid integer error status that does not correspond
@@ -1552,7 +1552,7 @@ to any netCDF error message or or to any system error message (as
 understood by the system strerror function), nc\_strerror returns a
 string indicating that there is no such error status.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example of a simple error handling function that uses
@@ -1578,13 +1578,13 @@ if (status != NC_NOERR) {
   [[\<](#nc_005fstrerror "Previous section in reading order")]   [[\>](#nc_005fcreate "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- -------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.4 Get netCDF library version: nc\_inq\_libvers {.section}
+2.4 Get netCDF library version: nc\_inq\_libvers 
 ------------------------------------------------
 
 The function nc\_inq\_libvers returns a string identifying the version
 of the netCDF library, and when it was built.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1593,13 +1593,13 @@ Usage {.heading}
 const char * nc_inq_libvers(void);
 ~~~~
 
-Errors {.heading}
+Errors 
 ------
 
 This function takes no arguments, and thus no errors are possible in its
 invocation.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_libvers to print the version of the
@@ -1619,7 +1619,7 @@ netCDF library with which the program is linked:
   [[\<](#nc_005finq_005flibvers "Previous section in reading order")]   [[\>](#nc_005f_005fcreate "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.5 Create a NetCDF Dataset: nc\_create {.section}
+2.5 Create a NetCDF Dataset: nc\_create 
 ---------------------------------------
 
 This function creates a new netCDF dataset, returning a netCDF ID that
@@ -1636,7 +1636,7 @@ A creation mode flag specifies:
     the new 64-bit offset format (use NC\_64BIT\_OFFSET), or NC\_NETCDF4
     for a netCDF-4/HDF5 file.
 
-Usage {.heading}
+Usage 
 -----
 
 NOTE: When creating a netCDF-4 file HDF5 error reporting is turned off,
@@ -1698,7 +1698,7 @@ int nc_create (const char* path, int cmode, int *ncidp);
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_create returns the value NC\_NOERR if no errors occurred. Possible
@@ -1712,7 +1712,7 @@ causes of errors include:
 -   Attempting to create a netCDF dataset in a directory where you don’t
     have permission to create files.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -1728,7 +1728,7 @@ Return Codes {.heading}
 :   Error writing netCDF-4 file-level metadata in HDF5 file. (netCDF-4
     files only).
 
-Examples {.heading}
+Examples 
 --------
 
 In this example we create a netCDF dataset named foo.nc; we want the
@@ -1807,7 +1807,7 @@ Options: nc\_\_create](#nc_005f_005fcreate).
   [[\<](#nc_005fcreate "Previous section in reading order")]   [[\>](#nc_005fcreate_005fpar "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ---------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.6 Create a NetCDF Dataset With Performance Options: nc\_\_create {.section}
+2.6 Create a NetCDF Dataset With Performance Options: nc\_\_create 
 ------------------------------------------------------------------
 
 This function is a variant of nc\_create, nc\_\_create (note the double
@@ -1827,7 +1827,7 @@ with the same name and whether access to the dataset is shared, and
 whether this file should be in netCDF classic format (the default), or
 the new 64-bit offset format.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -1913,7 +1913,7 @@ int nc__create(const char *path, int cmode, size_t initialsz,
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_create returns the value NC\_NOERR if no errors occurred. Possible
@@ -1927,7 +1927,7 @@ causes of errors include:
 -   Attempting to create a netCDF dataset in a directory where you don’t
     have permission to create files.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -1943,7 +1943,7 @@ Return Codes {.heading}
 :   Error writing netCDF-4 file-level metadata in HDF5 file. (netCDF-4
     files only).
 
-Examples {.heading}
+Examples 
 --------
 
 In this example we create a netCDF dataset named foo.nc; we want the
@@ -1988,7 +1988,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005f_005fcreate "Previous section in reading order")]   [[\>](#nc_005fopen "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.7 Create a NetCDF Dataset With Performance Options: nc\_create\_par {.section}
+2.7 Create a NetCDF Dataset With Performance Options: nc\_create\_par 
 ---------------------------------------------------------------------
 
 This function is a variant of nc\_create, nc\_create\_par allows users
@@ -2011,7 +2011,7 @@ the default. To use independent access on a variable, See section
 [Change between Collective and Independent Parallel Access:
 nc\_var\_par\_access](#nc_005fvar_005fpar_005faccess).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2040,7 +2040,7 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -2062,7 +2062,7 @@ Return Codes {.heading}
  `NC_EHDFERR`
 :   Unexpected error from the HDF5 layer.
 
-Examples {.heading}
+Examples 
 --------
 
  
@@ -2084,14 +2084,14 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fcreate_005fpar "Previous section in reading order")]   [[\>](#nc_005f_005fopen "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.8 Open a NetCDF Dataset for Access: nc\_open {.section}
+2.8 Open a NetCDF Dataset for Access: nc\_open 
 ----------------------------------------------
 
 The function nc\_open opens an existing netCDF dataset for access. It
 determines the underlying file format automatically. Use the same call
 to open a netCDF classic, 64-bit offset, or netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2134,7 +2134,7 @@ int nc_open (const char *path, int omode, int *ncidp);
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Errors {.heading}
+Errors 
 ------
 
 When opening a netCDF-4 file HDF5 error reporting is turned off, if it
@@ -2148,7 +2148,7 @@ include:
 -   The specified netCDF dataset does not exist.
 -   A meaningless mode was specified.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -2166,7 +2166,7 @@ Return Codes {.heading}
  `NC_ENOCOMPOIND`
 :   (NetCDF-4 files only.)
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_open to open an existing netCDF dataset
@@ -2190,7 +2190,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fopen "Previous section in reading order")]   [[\>](#nc_005fopen_005fpar "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.9 Open a NetCDF Dataset for Access with Performance Tuning: nc\_\_open {.section}
+2.9 Open a NetCDF Dataset for Access with Performance Tuning: nc\_\_open 
 ------------------------------------------------------------------------
 
 A function opens a netCDF dataset for access with an additional
@@ -2199,7 +2199,7 @@ possible to open a DAP data source through this interface, but it is
 deprecated because all of the performance tuning parameters are ignored.
 The standard nc\_open interface should be used instead.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2253,7 +2253,7 @@ int nc__open(const char *path, int mode, size_t *bufrsizehintp, int *ncidp);
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_\_open returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -2263,7 +2263,7 @@ include:
 -   The specified netCDF dataset does not exist.
 -   A meaningless mode was specified.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_\_open to open an existing netCDF dataset
@@ -2289,7 +2289,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005f_005fopen "Previous section in reading order")]   [[\>](#nc_005fredef "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.10 Open a NetCDF Dataset for Parallel Access {.section}
+2.10 Open a NetCDF Dataset for Parallel Access 
 ----------------------------------------------
 
 This function opens a netCDF-4 dataset for parallel access.
@@ -2304,7 +2304,7 @@ the default. To use independent access on a variable, See section
 [Change between Collective and Independent Parallel Access:
 nc\_var\_par\_access](#nc_005fvar_005fpar_005faccess).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2339,7 +2339,7 @@ int nc_open_par(const char *path, int mode, MPI_Comm comm,
  `ncidp`
 :   Pointer to location where returned netCDF ID is to be stored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -2351,7 +2351,7 @@ Return Codes {.heading}
 ``
 :   A meaningless mode was specified.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example (from nc\_test4/tst\_parallel2.c) using
@@ -2378,14 +2378,14 @@ nc\_open\_par.
   [[\<](#nc_005fopen_005fpar "Previous section in reading order")]   [[\>](#nc_005fenddef "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ -------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.11 Put Open NetCDF Dataset into Define Mode: nc\_redef {.section}
+2.11 Put Open NetCDF Dataset into Define Mode: nc\_redef 
 --------------------------------------------------------
 
 The function nc\_redef puts an open netCDF dataset into define mode, so
 dimensions, variables, and attributes can be added or renamed and
 attributes can be deleted.
 
-Usage {.heading}
+Usage 
 -----
 
 For netCDF-4 files (i.e. files created with NC\_NETCDF4 in the cmode,
@@ -2407,7 +2407,7 @@ int nc_redef(int ncid);
  `ncid`
 :   netCDF ID, from a previous call to nc\_open or nc\_create.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_redef returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -2420,7 +2420,7 @@ include:
 -   The specified netCDF dataset was opened for read-only.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -2441,7 +2441,7 @@ Errors {.heading}
  `NC_EPERM`
 :   File is read-only.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_redef to open an existing netCDF dataset
@@ -2468,7 +2468,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fredef "Previous section in reading order")]   [[\>](#nc_005f_005fenddef "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.12 Leave Define Mode: nc\_enddef {.section}
+2.12 Leave Define Mode: nc\_enddef 
 ----------------------------------
 
 The function nc\_enddef takes an open netCDF dataset out of define mode.
@@ -2494,7 +2494,7 @@ which must be set (if they are going to be set at all) between the
 nc\_def\_var and the next nc\_enddef. Once the nc\_enddef is called,
 these settings can no longer be changed for a variable.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2509,7 +2509,7 @@ int nc_enddef(int ncid);
     the enddef will not just end define mode in one group, but in the
     entire file.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_enddef returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -2523,7 +2523,7 @@ include:
     File Support](netcdf.html#Large-File-Support) section ‘Large File
     Support’ in The NetCDF Users Guide.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_enddef to finish the definitions of a new
@@ -2552,7 +2552,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fenddef "Previous section in reading order")]   [[\>](#nc_005fclose "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.13 Leave Define Mode with Performance Tuning: nc\_\_enddef {.section}
+2.13 Leave Define Mode with Performance Tuning: nc\_\_enddef 
 ------------------------------------------------------------
 
 The function nc\_\_enddef takes an open netCDF dataset out of define
@@ -2619,7 +2619,7 @@ prevents us from providing minfree and alignment control of the
 dimension, the third section will always be copied with the new variable
 added.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2647,7 +2647,7 @@ int nc__enddef(int ncid, size_t h_minfree, size_t v_align,
 :   Controls the alignment of the beginning of the data section for
     variables which have an unlimited dimension (record variables).
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_\_enddef returns the value NC\_NOERR if no errors occurred.
@@ -2661,7 +2661,7 @@ errors include:
     File Support](netcdf.html#Large-File-Support) section ‘Large File
     Support’ in The NetCDF Users Guide.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_enddef to finish the definitions of a new
@@ -2690,7 +2690,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005f_005fenddef "Previous section in reading order")]   [[\>](#nc_005finq-Family "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.14 Close an Open NetCDF Dataset: nc\_close {.section}
+2.14 Close an Open NetCDF Dataset: nc\_close 
 --------------------------------------------
 
 The function nc\_close closes an open netCDF dataset.
@@ -2702,7 +2702,7 @@ before define mode was last entered.) After an open netCDF dataset is
 closed, its netCDF ID may be reassigned to the next netCDF dataset that
 is opened or created.
 
-Usage {.heading}
+Usage 
 -----
 
 For netCDF-4 files, the ncid of the root group must be passed into
@@ -2717,7 +2717,7 @@ int nc_close(int ncid);
  `ncid`
 :   NetCDF ID, from a previous call to nc\_open or nc\_create.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_close returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -2738,7 +2738,7 @@ include:
 :   ncid did not contain the root group id of this file. (NetCDF-4
     only).
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_close to finish the definitions of a new
@@ -2767,7 +2767,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fclose "Previous section in reading order")]   [[\>](#nc_005fsync "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.15 Inquire about an Open NetCDF Dataset: nc\_inq Family {.section}
+2.15 Inquire about an Open NetCDF Dataset: nc\_inq Family 
 ---------------------------------------------------------
 
 Members of the nc\_inq family of functions return information about an
@@ -2788,7 +2788,7 @@ was opened or created.
 No I/O is performed when these functions are called, since the required
 information is available in memory for each open netCDF dataset.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2841,7 +2841,7 @@ int nc_inq_path     (int ncid, size_t *pathlenp, char *path);
     which the specified open netCDF dataset was opened or created. If
     NULL, this argument is ignored.
 
-Errors {.heading}
+Errors 
 ------
 
 All members of the nc\_inq family return the value NC\_NOERR if no
@@ -2850,7 +2850,7 @@ Possible causes of errors include:
 
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq to find out about a netCDF dataset
@@ -2876,7 +2876,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq-Family "Previous section in reading order")]   [[\>](#nc_005fabort "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.16 Synchronize an Open NetCDF Dataset to Disk: nc\_sync {.section}
+2.16 Synchronize an Open NetCDF Dataset to Disk: nc\_sync 
 ---------------------------------------------------------
 
 The function nc\_sync offers a way to synchronize the disk copy of a
@@ -2936,7 +2936,7 @@ without having to close and reopen the dataset.
 Data is automatically synchronized to disk when a netCDF dataset is
 closed, or whenever you leave define mode.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -2948,7 +2948,7 @@ int nc_sync(int ncid);
  `ncid`
 :   NetCDF ID, from a previous call to nc\_open or nc\_create.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_sync returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -2958,7 +2958,7 @@ include:
 -   The netCDF dataset is in define mode.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_sync to synchronize the disk writes of a
@@ -2987,7 +2987,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fsync "Previous section in reading order")]   [[\>](#nc_005fset_005ffill "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.17 Back Out of Recent Definitions: nc\_abort {.section}
+2.17 Back Out of Recent Definitions: nc\_abort 
 ----------------------------------------------
 
 You no longer need to call this function, since it is called
@@ -2999,7 +2999,7 @@ define mode was entered by a call to nc\_redef, the netCDF dataset is
 restored to its state before definition mode was entered and the dataset
 is closed.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3011,7 +3011,7 @@ int nc_abort(int ncid);
  `ncid`
 :   NetCDF ID, from a previous call to nc\_open or nc\_create.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_abort returns the value NC\_NOERR if no errors occurred. Otherwise,
@@ -3022,7 +3022,7 @@ include:
     deletion of the dataset failed.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_abort to back out of redefinitions of a
@@ -3055,7 +3055,7 @@ if (status != NC_NOERR) {
   [[\<](#nc_005fabort "Previous section in reading order")]   [[\>](#nc_005fset_005fdefault_005fformat "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ---------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.18 Set Fill Mode for Writes: nc\_set\_fill {.section}
+2.18 Set Fill Mode for Writes: nc\_set\_fill 
 --------------------------------------------
 
 This function is intended for advanced usage, to optimize writes under
@@ -3115,7 +3115,7 @@ The use of this feature may not be available (or even needed) in future
 releases. Programmers are cautioned against heavy reliance upon this
 feature.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3134,7 +3134,7 @@ int nc_set_fill (int ncid, int fillmode, int *old_modep);
 :   Pointer to location for returned current fill mode of the dataset
     before this call, either NC\_NOFILL or NC\_FILL.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -3150,7 +3150,7 @@ Return Codes {.heading}
  `NC_EINVAL`
 :   The fill mode argument is neither NC\_NOFILL nor NC\_FILL.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_set\_fill to set nofill mode for subsequent
@@ -3180,7 +3180,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fset_005ffill "Previous section in reading order")]   [[\>](#nc_005fset_005fchunk_005fcache "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.19 Set Default Creation Format: nc\_set\_default\_format {.section}
+2.19 Set Default Creation Format: nc\_set\_default\_format 
 ----------------------------------------------------------
 
 This function is intended for advanced users.
@@ -3220,7 +3220,7 @@ where the existing default format will be written.
 Using nc\_create with a cmode including NC\_64BIT\_OFFSET overrides the
 default format, and creates a 64-bit offset file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3240,7 +3240,7 @@ int nc_set_default_format(int format, int *old_formatp);
     the new format) will be written. This allows you to get the existing
     default format while setting a new default format.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -3253,7 +3253,7 @@ Return Codes {.heading}
     Trying to set the default format to something else will result in an
     invalid argument error.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_set\_default\_format to create the same
@@ -3281,7 +3281,7 @@ libsrc4/tst\_utf8.c):
   [[\<](#nc_005fset_005fdefault_005fformat "Previous section in reading order")]   [[\>](#nc_005fget_005fchunk_005fcache "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.20 Set HDF5 Chunk Cache for Future File Opens/Creates: nc\_set\_chunk\_cache {.section}
+2.20 Set HDF5 Chunk Cache for Future File Opens/Creates: nc\_set\_chunk\_cache 
 ------------------------------------------------------------------------------
 
 This function changes the default chunk cache settings in the HDF5
@@ -3293,7 +3293,7 @@ For more information, see the documentation for the H5Pset\_cache()
 function in the HDF5 library at the HDF5 website:
 [http://hdfgroup.org/HDF5/](http://hdfgroup.org/HDF5/).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3319,7 +3319,7 @@ int nc_set_chunk_cache(size_t size, size_t nelems, float preemption);
     a value of one means fully read chunks are always preempted before
     other chunks.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -3328,7 +3328,7 @@ Return Codes {.heading}
  `NC_EINVAL`
 :   Preemption must be between zero and one (inclusive).
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_files.c:
@@ -3358,7 +3358,7 @@ This example is from libsrc4/tst\_files.c:
   [[\<](#nc_005fset_005fchunk_005fcache "Previous section in reading order")]   [[\>](#Groups "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Datasets "Up section")]   [[\>\>](#Groups "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ------------------------------------------------- --- --------------------------------------------------------------------- -------------------------------- ---------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.21 Get the HDF5 Chunk Cache Settings for Future File Opens/Creates: nc\_get\_chunk\_cache {.section}
+2.21 Get the HDF5 Chunk Cache Settings for Future File Opens/Creates: nc\_get\_chunk\_cache 
 -------------------------------------------------------------------------------------------
 
 This function gets the chunk cache settings for the HDF5 library. The
@@ -3371,7 +3371,7 @@ For more information, see the documentation for the H5Pget\_cache()
 function in the HDF5 library at the HDF5 website:
 [http://hdfgroup.org/HDF5/](http://hdfgroup.org/HDF5/).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3396,13 +3396,13 @@ int nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp);
     is strictly LRU) while a value of one means fully read chunks are
     always preempted before other chunks. If NULL, will be ignored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
 :   No error.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_files.c:
@@ -3427,7 +3427,7 @@ This example is from libsrc4/tst\_files.c:
   [[\<](#nc_005fget_005fchunk_005fcache "Previous section in reading order")]   [[\>](#nc_005finq_005fncid "Next section in reading order")]       [[\<\<](#Datasets "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- -------------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3. Groups {.chapter}
+3. Groups 
 =========
 
 NetCDF-4 added support for hierarchical groups within netCDF datasets.
@@ -3477,13 +3477,13 @@ NC\_CLASSIC\_MODEL file cannot contain groups (except the root group).
   [[\<](#Groups "Previous section in reading order")]   [[\>](#nc_005finq_005fgrps "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.1 Find a Group ID: nc\_inq\_ncid {.section}
+3.1 Find a Group ID: nc\_inq\_ncid 
 ----------------------------------
 
 Given an ncid and group name (NULL or "" gets root group), return ncid
 of the named group.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3502,7 +3502,7 @@ int nc_inq_ncid(int ncid, const char *name, int *grp_ncid);
 :   An int pointer that will receive the group id, if the group is
     found.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3525,7 +3525,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -3549,13 +3549,13 @@ Example {.heading}
   [[\<](#nc_005finq_005fncid "Previous section in reading order")]   [[\>](#nc_005finq_005fvarids "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.2 Get a List of Groups in a Group: nc\_inq\_grps {.section}
+3.2 Get a List of Groups in a Group: nc\_inq\_grps 
 --------------------------------------------------
 
 Given a location id, return the number of groups it contains, and an
 array of their ncids.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3577,7 +3577,7 @@ int nc_inq_grps(int ncid, int *numgrps, int *ncids);
     this function with NULL for ncids parameter to find out how many
     groups there are.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3600,7 +3600,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -3629,12 +3629,12 @@ Example {.heading}
   [[\<](#nc_005finq_005fgrps "Previous section in reading order")]   [[\>](#nc_005finq_005fdimids "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.3 Find all the Variables in a Group: nc\_inq\_varids {.section}
+3.3 Find all the Variables in a Group: nc\_inq\_varids 
 ------------------------------------------------------
 
 Find all varids for a location.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3654,7 +3654,7 @@ nc_inq_varids(int ncid, int *nvars, int *varids);
 :   An already allocated array to store the list of varids. Ignored if
     NULL.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3677,7 +3677,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars.c.
@@ -3701,13 +3701,13 @@ This example is from libsrc4/tst\_vars.c.
   [[\<](#nc_005finq_005fvarids "Previous section in reading order")]   [[\>](#nc_005finq_005fgrpname "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.4 Find all Dimensions Visible in a Group: nc\_inq\_dimids {.section}
+3.4 Find all Dimensions Visible in a Group: nc\_inq\_dimids 
 -----------------------------------------------------------
 
 Find all dimids for a location. This finds all dimensions in a group, or
 any of its parents.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3734,7 +3734,7 @@ int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents);
 :   If non-zero then all the dimensions in all parent groups will also
     be retrieved.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3757,7 +3757,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_dims.c.
@@ -3783,14 +3783,14 @@ This example is from libsrc4/tst\_dims.c.
   [[\<](#nc_005finq_005fdimids "Previous section in reading order")]   [[\>](#nc_005finq_005fgrpname_005ffull "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.5 Find a Group’s Name: nc\_inq\_grpname {.section}
+3.5 Find a Group’s Name: nc\_inq\_grpname 
 -----------------------------------------
 
 Given a group ID find its name. (Root group is named "/"). See section
 [Find a Group’s Full Name:
 nc\_inq\_grpname\_full](#nc_005finq_005fgrpname_005ffull).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3811,7 +3811,7 @@ a terminating NULL byte.
 
 ``
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3834,7 +3834,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_grps.c.
@@ -3856,7 +3856,7 @@ This example is from libsrc4/tst\_grps.c.
   [[\<](#nc_005finq_005fgrpname "Previous section in reading order")]   [[\>](#nc_005finq_005fgrpname_005flen "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.6 Find a Group’s Full Name: nc\_inq\_grpname\_full {.section}
+3.6 Find a Group’s Full Name: nc\_inq\_grpname\_full 
 ----------------------------------------------------
 
 Given ncid, find complete name of group. (Root group is named "/", a
@@ -3864,7 +3864,7 @@ full "path" for each group is provided in the name, with groups
 separated with a forward slash / as in Unix directory names. For example
 "/group1/subgrp1/subsubgrp1")
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3892,7 +3892,7 @@ nc\_inq\_grpname\_len](#nc_005finq_005fgrpname_005flen)).
 
 ``
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3915,7 +3915,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from the test program libsrc4/tst\_grps.c.
@@ -3938,7 +3938,7 @@ This example is from the test program libsrc4/tst\_grps.c.
   [[\<](#nc_005finq_005fgrpname_005ffull "Previous section in reading order")]   [[\>](#nc_005finq_005fgrp_005fparent "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ------------------------------------------------------------------------ --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.7 Find the Length of a Group’s Full Name: nc\_inq\_grpname\_len {.section}
+3.7 Find the Length of a Group’s Full Name: nc\_inq\_grpname\_len 
 -----------------------------------------------------------------
 
 Given ncid, find len of the full name, as returned by
@@ -3946,7 +3946,7 @@ nc\_inq\_grpname\_full See section [Find a Group’s Full Name:
 nc\_inq\_grpname\_full](#nc_005finq_005fgrpname_005ffull). (Root group
 is named "/", with length 1.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -3962,7 +3962,7 @@ int nc_inq_grpname_len(int ncid, size_t *lenp);
 :   Pointer to an int where the length will be placed. Length does not
     include NULL terminator.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -3985,7 +3985,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_grps.c.
@@ -4007,7 +4007,7 @@ This example is from libsrc4/tst\_grps.c.
   [[\<](#nc_005finq_005fgrpname_005flen "Previous section in reading order")]   [[\>](#nc_005finq_005fgrp_005fncid "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.8 Find a Group’s Parent: nc\_inq\_grp\_parent {.section}
+3.8 Find a Group’s Parent: nc\_inq\_grp\_parent 
 -----------------------------------------------
 
 Given ncid, find the ncid of the parent group.
@@ -4015,7 +4015,7 @@ Given ncid, find the ncid of the parent group.
 When used with the root group, this function returns the NC\_ENOGRP
 error (since the root group has no parent.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4034,7 +4034,7 @@ Pointer to an int. The ncid of the group will be copied there.
 
 ``
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -4060,7 +4060,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -4080,13 +4080,13 @@ Example {.heading}
   [[\<](#nc_005finq_005fgrp_005fparent "Previous section in reading order")]   [[\>](#nc_005finq_005fgrp_005ffull_005fncid "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.9 Find a Group by Name: nc\_inq\_grp\_ncid {.section}
+3.9 Find a Group by Name: nc\_inq\_grp\_ncid 
 --------------------------------------------
 
 Given a group location id and the name of an immediate subgroup, find
 the location id of the named subgroup.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4105,7 +4105,7 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid);
 :   A pointer to int which will get the group id of the named subgroup,
     if it is found.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 The following return codes may be returned by this function.
@@ -4136,7 +4136,7 @@ The following return codes may be returned by this function.
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program libsrc4/tst\_grps.c.
@@ -4155,13 +4155,13 @@ This example is from test program libsrc4/tst\_grps.c.
   [[\<](#nc_005finq_005fgrp_005fncid "Previous section in reading order")]   [[\>](#nc_005fdef_005fgrp "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.10 Find a Group by its Fully-qualified Name: nc\_inq\_grp\_full\_ncid {.section}
+3.10 Find a Group by its Fully-qualified Name: nc\_inq\_grp\_full\_ncid 
 -----------------------------------------------------------------------
 
 Given a fully qualified group name and an ncid, find the ncid of the
 group id.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4179,7 +4179,7 @@ int nc_inq_grp_full_ncid(int ncid, char *full_name, int *grp_ncid);
  `grp_ncid`
 :   A pointer to int which will get the group id, if it is found.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 The following return codes may be returned by this function.
@@ -4210,7 +4210,7 @@ The following return codes may be returned by this function.
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program libsrc4/tst\_grps.c.
@@ -4229,12 +4229,12 @@ This example is from test program libsrc4/tst\_grps.c.
   [[\<](#nc_005finq_005fgrp_005ffull_005fncid "Previous section in reading order")]   [[\>](#Dimensions "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Groups "Up section")]   [[\>\>](#Dimensions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------- ------------------------------ -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.11 Create a New Group: nc\_def\_grp {.section}
+3.11 Create a New Group: nc\_def\_grp 
 -------------------------------------
 
 Create a group. Its location id is returned in the new\_ncid pointer.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4253,7 +4253,7 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid);
  `new_ncid`
 :   A pointer to an int. The ncid of the new group will be placed there.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -4292,7 +4292,7 @@ Errors {.heading}
  `NC_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -4312,7 +4312,7 @@ Example {.heading}
   [[\<](#nc_005fdef_005fgrp "Previous section in reading order")]   [[\>](#Dimensions-Introduction "Next section in reading order")]       [[\<\<](#Groups "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------- --------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4. Dimensions {.chapter}
+4. Dimensions 
 =============
 
   --------------------------------------------------------------------------------------- ---- ----------------------------------
@@ -4330,7 +4330,7 @@ Example {.heading}
   [[\<](#Dimensions "Previous section in reading order")]   [[\>](#nc_005fdef_005fdim "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.1 Dimensions Introduction {.section}
+4.1 Dimensions Introduction 
 ---------------------------
 
 Dimensions for a netCDF dataset are defined when it is created, while
@@ -4381,7 +4381,7 @@ Operations supported on dimensions are:
   [[\<](#Dimensions-Introduction "Previous section in reading order")]   [[\>](#nc_005finq_005fdimid "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.2 Create a Dimension: nc\_def\_dim {.section}
+4.2 Create a Dimension: nc\_def\_dim 
 ------------------------------------
 
 The function nc\_def\_dim adds a new dimension to an open netCDF dataset
@@ -4391,7 +4391,7 @@ unlimited length dimension, called the record dimension, may be defined
 for each classic or 64-bit offset netCDF dataset. NetCDF-4 datasets may
 have multiple unlimited dimensions.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4415,7 +4415,7 @@ int nc_def_dim (int ncid, const char *name, size_t len, int *dimidp);
  `dimidp`
 :   Pointer to location for returned dimension ID.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_dim returns the value NC\_NOERR if no errors occurred.
@@ -4430,7 +4430,7 @@ errors include:
     length dimension defined for this netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_def\_dim to create a dimension named lat of
@@ -4459,7 +4459,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fdef_005fdim "Previous section in reading order")]   [[\>](#nc_005finq_005fdim-Family "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.3 Get a Dimension ID from Its Name: nc\_inq\_dimid {.section}
+4.3 Get a Dimension ID from Its Name: nc\_inq\_dimid 
 ----------------------------------------------------
 
 The function nc\_inq\_dimid returns (as an argument) the ID of a netCDF
@@ -4467,7 +4467,7 @@ dimension, given the name of the dimension. If ndims is the number of
 dimensions defined for a netCDF dataset, each dimension has an ID
 between 0 and ndims-1.
 
-Usage {.heading}
+Usage 
 -----
 
 When searching for a dimension, the specified group is searched, and
@@ -4490,7 +4490,7 @@ int nc_inq_dimid (int ncid, const char *name, int *dimidp);
  `dimidp`
 :   Pointer to location for the returned dimension ID.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_dimid returns the value NC\_NOERR if no errors occurred.
@@ -4501,7 +4501,7 @@ The name that was specified is not the name of a dimension in the netCDF
 dataset. The specified netCDF ID does not refer to an open netCDF
 dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_dimid to determine the dimension ID of
@@ -4528,7 +4528,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq_005fdimid "Previous section in reading order")]   [[\>](#nc_005frename_005fdim "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ---------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.4 Inquire about a Dimension: nc\_inq\_dim Family {.section}
+4.4 Inquire about a Dimension: nc\_inq\_dim Family 
 --------------------------------------------------
 
 This family of functions returns information about a netCDF dimension.
@@ -4541,7 +4541,7 @@ nc\_inq\_dimlen. The function nc\_inq\_dim returns all the information
 about a dimension; the other functions each return just one item of
 information.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4572,7 +4572,7 @@ int nc_inq_dimlen  (int ncid, int dimid, size_t *lengthp);
 :   Pointer to location for returned length of dimension. For the
     unlimited dimension, this is the number of records written so far.
 
-Errors {.heading}
+Errors 
 ------
 
 These functions return the value NC\_NOERR if no errors occurred.
@@ -4582,7 +4582,7 @@ errors include:
 -   The dimension ID is invalid for the specified netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_dim to determine the length of a
@@ -4618,7 +4618,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq_005fdim-Family "Previous section in reading order")]   [[\>](#nc_005finq_005funlimdims "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.5 Rename a Dimension: nc\_rename\_dim {.section}
+4.5 Rename a Dimension: nc\_rename\_dim 
 ---------------------------------------
 
 The function nc\_rename\_dim renames an existing dimension in a netCDF
@@ -4631,7 +4631,7 @@ than the old name, the netCDF dataset must be in define mode.
 For netCDF-4 files the dataset is switched to define more for the
 rename, regardless of the name length.
 
-Usage {.heading}
+Usage 
 -----
 
 int nc\_rename\_dim(int ncid, int dimid, const char\* name);
@@ -4647,7 +4647,7 @@ int nc\_rename\_dim(int ncid, int dimid, const char\* name);
  `name`
 :   New dimension name.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_rename\_dim returns the value NC\_NOERR if no errors occurred.
@@ -4660,7 +4660,7 @@ errors include:
 -   The new name is longer than the old name and the netCDF dataset is
     not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_rename\_dim to rename the dimension lat to
@@ -4692,7 +4692,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005frename_005fdim "Previous section in reading order")]   [[\>](#User-Defined-Data-Types "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Dimensions "Up section")]   [[\>\>](#User-Defined-Data-Types "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------------- ---------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.6 Find All Unlimited Dimension IDs: nc\_inq\_unlimdims {.section}
+4.6 Find All Unlimited Dimension IDs: nc\_inq\_unlimdims 
 --------------------------------------------------------
 
 In netCDF-4 files, it’s possible to have multiple unlimited dimensions.
@@ -4702,7 +4702,7 @@ group.
 Dimensions are visible in a group if they have been defined in that
 group, or any ancestor group.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4726,7 +4726,7 @@ int nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp);
     with a NULL for this parameter and use the nunlimdimsp parameter to
     get the number of visible unlimited dimensions.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -4749,7 +4749,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -4777,7 +4777,7 @@ Example {.heading}
   [[\<](#nc_005finq_005funlimdims "Previous section in reading order")]   [[\>](#User-Defined-Types "Next section in reading order")]       [[\<\<](#Dimensions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------------- --------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5. User Defined Data Types {.chapter}
+5. User Defined Data Types 
 ==========================
 
   -------------------------------------------------------------------------------------------------------------------------------------------- ---- --
@@ -4823,7 +4823,7 @@ Example {.heading}
   [[\<](#User-Defined-Data-Types "Previous section in reading order")]   [[\>](#nc_005finq_005ftypeids "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ----------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.1 User Defined Types Introduction {.section}
+5.1 User Defined Types Introduction 
 -----------------------------------
 
 NetCDF-4 has added support for four different user defined data types.
@@ -4868,12 +4868,12 @@ Attribute’s Values:nc\_get\_att\_ type](#nc_005fget_005fatt_005f-type)).
   [[\<](#User-Defined-Types "Previous section in reading order")]   [[\>](#nc_005finq_005ftypeid "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.2 Learn the IDs of All Types in Group: nc\_inq\_typeids {.section}
+5.2 Learn the IDs of All Types in Group: nc\_inq\_typeids 
 ---------------------------------------------------------
 
 Learn the number of types defined in a group, and their IDs.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4893,7 +4893,7 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids);
 :   A pointer to an int array which will get the typeids. If NULL,
     ignored.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -4902,7 +4902,7 @@ Errors {.heading}
  `NC_BADID`
 :   Bad ncid.
 
-Example {.heading}
+Example 
 -------
 
 The following example is from the test program libsrc4/tst\_enums.c.
@@ -4923,14 +4923,14 @@ The following example is from the test program libsrc4/tst\_enums.c.
   [[\<](#nc_005finq_005ftypeids "Previous section in reading order")]   [[\>](#nc_005finq_005ftype "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.3 Find a Typeid from Group and Name: nc\_inq\_typeid {.section}
+5.3 Find a Typeid from Group and Name: nc\_inq\_typeid 
 ------------------------------------------------------
 
 Given a group ID and a type name, find the ID of the type. If the type
 is not found in the group, then the parents are searched. If still not
 found, the entire file is searched.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -4948,7 +4948,7 @@ int nc_inq_typeid(int ncid, const char *name, nc_type *typeidp);
  `typeidp`
 :   A pointer to an int which will get the typeid.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -4960,7 +4960,7 @@ Errors {.heading}
  `NC_EBADTYPE`
 :   Can’t find type.
 
-Example {.heading}
+Example 
 -------
 
 The following example is from the test program libsrc4/tst\_vars.c. It
@@ -5003,7 +5003,7 @@ tests that the correct names are given for atomic types.
   [[\<](#nc_005finq_005ftypeid "Previous section in reading order")]   [[\>](#nc_005finq_005fuser_005ftype "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.4 Learn About a User Defined Type: nc\_inq\_type {.section}
+5.4 Learn About a User Defined Type: nc\_inq\_type 
 --------------------------------------------------
 
 Given an ncid and a typeid, get the information about a type. This
@@ -5013,7 +5013,7 @@ type, whether compound, opaque, enumeration, or variable length array.
 For even more information about a user defined type [Learn About a User
 Defined Type: nc\_inq\_user\_type](#nc_005finq_005fuser_005ftype).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5043,7 +5043,7 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *sizep);
     is returned as the size of a character pointer. The size may be used
     to malloc space for the data, no matter what the type.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -5068,7 +5068,7 @@ Return Codes {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from the test program tst\_enums.c, and it uses all the
@@ -5103,14 +5103,14 @@ possible inquiry functions on an enum type.
   [[\<](#nc_005finq_005ftype "Previous section in reading order")]   [[\>](#Compound-Types "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ --------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.5 Learn About a User Defined Type: nc\_inq\_user\_type {.section}
+5.5 Learn About a User Defined Type: nc\_inq\_user\_type 
 --------------------------------------------------------
 
 Given an ncid and a typeid, get the information about a user defined
 type. This function will work on any user defined type, whether
 compound, opaque, enumeration, or variable length array.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5145,7 +5145,7 @@ nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *sizep,
 :   Return the class of the user defined type, NC\_VLEN, NC\_OPAQUE,
     NC\_ENUM, or NC\_COMPOUND.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5160,7 +5160,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -5188,7 +5188,7 @@ Example {.heading}
   [[\<](#nc_005finq_005fuser_005ftype "Previous section in reading order")]   [[\>](#nc_005fdef_005fcompound "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.6 Compound Types Introduction {.section}
+5.6 Compound Types Introduction 
 -------------------------------
 
 Compound data types can be defined for netCDF-4/HDF5 format files. A
@@ -5244,7 +5244,7 @@ Use the nc\_inq\_compound functions to learn about the compound type.
   [[\<](#Compound-Types "Previous section in reading order")]   [[\>](#nc_005finsert_005fcompound "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- --------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.7 Creating a Compound Type: nc\_def\_compound {.section}
+5.7 Creating a Compound Type: nc\_def\_compound 
 -----------------------------------------------
 
 Create a compound type. Provide an ncid, a name, and a total size (in
@@ -5259,7 +5259,7 @@ compound type.
 Note that there does not seem to be a way to read such types into
 structures in Fortran 90 (and there are no structures in Fortran 77).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5281,7 +5281,7 @@ int nc_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp);
 :   A pointer to an nc\_type. The typeid of the new type will be placed
     there.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5319,7 +5319,7 @@ Errors {.heading}
  `NC_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -5351,12 +5351,12 @@ Example {.heading}
   [[\<](#nc_005fdef_005fcompound "Previous section in reading order")]   [[\>](#nc_005finsert_005farray_005fcompound "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.8 Inserting a Field into a Compound Type: nc\_insert\_compound {.section}
+5.8 Inserting a Field into a Compound Type: nc\_insert\_compound 
 ----------------------------------------------------------------
 
 Insert a named field into a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5383,7 +5383,7 @@ int nc_insert_compound(int ncid, nc_type typeid, const char *name, size_t offset
  `field_typeid`
 :   The type of the field to be inserted.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5419,7 +5419,7 @@ Errors {.heading}
  `NC_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -5428,12 +5428,12 @@ Example {.heading}
   [[\<](#nc_005finsert_005fcompound "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.9 Inserting an Array Field into a Compound Type: nc\_insert\_array\_compound {.section}
+5.9 Inserting an Array Field into a Compound Type: nc\_insert\_array\_compound 
 ------------------------------------------------------------------------------
 
 Insert a named field into a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5462,7 +5462,7 @@ int nc_insert_array_compound(int ncid, nc_type xtype, const char *name,
  `field_typeid`
 :   The base type of the array to be inserted.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5504,7 +5504,7 @@ Errors {.heading}
     and can’t be changed. If you wish to add an array to a compound
     type, you must do so before the compound type is committed.
 
-Example {.heading}
+Example 
 -------
 
 This example comes from the test file libsrc4/tst\_compounds.c, which
@@ -5585,12 +5585,12 @@ data.
   [[\<](#nc_005finsert_005farray_005fcompound "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005fname "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- --------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.10 Learn About a Compound Type: nc\_inq\_compound {.section}
+5.10 Learn About a Compound Type: nc\_inq\_compound 
 ---------------------------------------------------
 
 Get the number of fields, len, and name of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5620,7 +5620,7 @@ int nc_inq_compound(int ncid, nc_type xtype, char *name, size_t *sizep,
 :   A pointer to a size\_t. The number of fields in the compound type
     will be placed here. Ignored if NULL.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -5645,7 +5645,7 @@ Return Codes {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 The following example is from the test program libsrc4/tst\_compounds.c.
@@ -5704,12 +5704,12 @@ nc\_insert\_array\_compound](#nc_005finsert_005farray_005fcompound).
   [[\<](#nc_005finq_005fcompound "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005fsize "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.11 Learn the Name of a Compound Type: nc\_inq\_compound\_name {.section}
+5.11 Learn the Name of a Compound Type: nc\_inq\_compound\_name 
 ---------------------------------------------------------------
 
 Get the name of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5729,7 +5729,7 @@ int nc_inq_compound_name(int ncid, nc_type xtype, char *name);
     as a null terminated string. It will have a maximum length of
     NC\_MAX\_NAME+1.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5741,7 +5741,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -5753,12 +5753,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005fname "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005fnfields "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------- ------------------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.12 Learn the Size of a Compound Type: nc\_inq\_compound\_size {.section}
+5.12 Learn the Size of a Compound Type: nc\_inq\_compound\_size 
 ---------------------------------------------------------------
 
 Get the len of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5776,7 +5776,7 @@ int nc_inq_compound_size(int ncid, nc_type xtype, size_t *sizep);
  `size`
 :   A pointer, which, if not NULL, get the size of the compound type.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5788,7 +5788,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -5800,12 +5800,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005fsize "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffield "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.13 Learn the Number of Fields in a Compound Type: nc\_inq\_compound\_nfields {.section}
+5.13 Learn the Number of Fields in a Compound Type: nc\_inq\_compound\_nfields 
 ------------------------------------------------------------------------------
 
 Get the number of fields of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5824,7 +5824,7 @@ nc_inq_compound_nfields(int ncid, nc_type xtype, size_t *nfieldsp);
 :   A pointer, which, if not NULL, get the number of fields of the
     compound type.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5836,7 +5836,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -5848,12 +5848,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005fnfields "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffieldname "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------- -------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.14 Learn About a Field of a Compound Type: nc\_inq\_compound\_field {.section}
+5.14 Learn About a Field of a Compound Type: nc\_inq\_compound\_field 
 ---------------------------------------------------------------------
 
 Get information about one of the fields of a compound type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5891,7 +5891,7 @@ int nc_inq_compound_field(int ncid, nc_type xtype, int fieldid, char *name,
 :   A pointer which, if non-NULL, will get the dimension sizes of the
     field.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5903,7 +5903,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -5915,12 +5915,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffield "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffieldindex "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- --------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.15 Find the Name of a Field in a Compound Type: nc\_inq\_compound\_fieldname {.section}
+5.15 Find the Name of a Field in a Compound Type: nc\_inq\_compound\_fieldname 
 ------------------------------------------------------------------------------
 
 Given the typeid and the fieldid, get the name.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5942,7 +5942,7 @@ int nc_inq_compound_fieldname(nc_type typeid, int fieldid, char *name);
     as a null terminated string. It will have a maximum length of
     NC\_MAX\_NAME+1.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -5957,7 +5957,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -5969,12 +5969,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffieldname "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffieldoffset "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ---------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.16 Get the FieldID of a Compound Type Field: nc\_inq\_compound\_fieldindex {.section}
+5.16 Get the FieldID of a Compound Type Field: nc\_inq\_compound\_fieldindex 
 ----------------------------------------------------------------------------
 
 Given the typeid and the name, get the fieldid.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -5993,7 +5993,7 @@ int nc_inq_compound_fieldindex(nc_type typeid, const char *name, int *fieldidp);
  `fieldidp`
 :   A pointer to an int which will get the field id of the named field.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6008,7 +6008,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -6020,12 +6020,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffieldindex "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffieldtype "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- -------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.17 Get the Offset of a Field: nc\_inq\_compound\_fieldoffset {.section}
+5.17 Get the Offset of a Field: nc\_inq\_compound\_fieldoffset 
 --------------------------------------------------------------
 
 Given the typeid and fieldid, get the offset.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6047,7 +6047,7 @@ int nc_inq_compound_fieldoffset(nc_type typeid, int fieldid,
 :   A pointer to a size\_t. The offset of the field will be placed
     there.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6062,7 +6062,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -6074,12 +6074,12 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffieldoffset "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffieldndims "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------------- --------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.18 Find the Type of a Field: nc\_inq\_compound\_fieldtype {.section}
+5.18 Find the Type of a Field: nc\_inq\_compound\_fieldtype 
 -----------------------------------------------------------
 
 Given the typeid and the fieldid, get the type of that field.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6099,7 +6099,7 @@ nc_inq_compound_fieldtype(nc_type typeid, int fieldid, nc_type *field_typeidp);
  `field_typeidp`
 :   Pointer to a nc\_type which will get the typeid of the field.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6114,7 +6114,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -6126,13 +6126,13 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffieldtype "Previous section in reading order")]   [[\>](#nc_005finq_005fcompound_005ffielddim_005fsizes "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ----------------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.19 Find the Number of Dimensions in an Array Field: nc\_inq\_compound\_fieldndims {.section}
+5.19 Find the Number of Dimensions in an Array Field: nc\_inq\_compound\_fieldndims 
 -----------------------------------------------------------------------------------
 
 Given the typeid and the fieldid, get the number of dimensions of that
 field.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6157,7 +6157,7 @@ int nc_inq_compound_fieldndims(int ncid, nc_type xtype, int fieldid,
 :   Pointer to an int which will get the number of dimensions of the
     field. Non-array fields have 0 dimensions.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6172,7 +6172,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -6184,13 +6184,13 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffieldndims "Previous section in reading order")]   [[\>](#Variable-Length-Array "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.20 Find the Sizes of Dimensions in an Array Field: nc\_inq\_compound\_fielddim\_sizes {.section}
+5.20 Find the Sizes of Dimensions in an Array Field: nc\_inq\_compound\_fielddim\_sizes 
 ---------------------------------------------------------------------------------------
 
 Given the xtype and the fieldid, get the sizes of dimensions for that
 field. User must have allocated storage for the dim\_sizes.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6215,7 +6215,7 @@ int nc_inq_compound_fielddim_sizes(int ncid, nc_type xtype, int fieldid,
 :   Pointer to an array of int which will get the sizes of the
     dimensions of the field. Non-array fields have 0 dimensions.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6230,7 +6230,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Compound Type:
@@ -6242,7 +6242,7 @@ nc\_inq\_compound](#nc_005finq_005fcompound).
   [[\<](#nc_005finq_005fcompound_005ffielddim_005fsizes "Previous section in reading order")]   [[\>](#nc_005fdef_005fvlen "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.21 Variable Length Array Introduction {.section}
+5.21 Variable Length Array Introduction 
 ---------------------------------------
 
 NetCDF-4 added support for a variable length array type. This is not
@@ -6282,12 +6282,12 @@ actual data.
   [[\<](#Variable-Length-Array "Previous section in reading order")]   [[\>](#nc_005finq_005fvlen "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.22 Define a Variable Length Array (VLEN): nc\_def\_vlen {.section}
+5.22 Define a Variable Length Array (VLEN): nc\_def\_vlen 
 ---------------------------------------------------------
 
 Use this function to define a variable length array type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6310,7 +6310,7 @@ nc_def_vlen(int ncid, const char *name, nc_type base_typeid, nc_type *xtypep);
 :   A pointer to an nc\_type variable. The typeid of the new VLEN type
     will be set here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6337,7 +6337,7 @@ Errors {.heading}
  `NC_ENOMEM`
 :   Out of memory.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -6372,12 +6372,12 @@ Example {.heading}
   [[\<](#nc_005fdef_005fvlen "Previous section in reading order")]   [[\>](#nc_005ffree_005fvlen "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ --------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.23 Learning about a Variable Length Array (VLEN) Type: nc\_inq\_vlen {.section}
+5.23 Learning about a Variable Length Array (VLEN) Type: nc\_inq\_vlen 
 ----------------------------------------------------------------------
 
 Use this type to learn about a vlen.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6405,7 +6405,7 @@ nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep,
 :   A pointer to an nc\_type, this will get the type of the VLEN base
     type. (In other words, what type is this a VLEN of?)
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6420,7 +6420,7 @@ Errors {.heading}
  `NC_EBADGRPID`
 :   Group ID part of ncid was invalid.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -6443,7 +6443,7 @@ Example {.heading}
   [[\<](#nc_005finq_005fvlen "Previous section in reading order")]   [[\>](#nc_005ffree_005fvlens "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.24 Releasing Memory for a Variable Length Array (VLEN) Type: nc\_free\_vlen {.section}
+5.24 Releasing Memory for a Variable Length Array (VLEN) Type: nc\_free\_vlen 
 -----------------------------------------------------------------------------
 
 When a VLEN is read into user memory from the file, the HDF5 library
@@ -6460,7 +6460,7 @@ To save the user the trouble calling free() on each element of the VLEN
 array (i.e. the array of arrays), the nc\_free\_vlen function is
 provided.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6473,7 +6473,7 @@ int nc_free_vlen(nc_vlen_t *vl);
 :   A pointer to the variable length array structure which is to be
     freed.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6482,7 +6482,7 @@ Errors {.heading}
  `NC_EBADTYPE`
 :   Can’t find the typeid.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program libsrc4/tst\_vl.c.
@@ -6501,7 +6501,7 @@ This example is from test program libsrc4/tst\_vl.c.
   [[\<](#nc_005ffree_005fvlen "Previous section in reading order")]   [[\>](#Opaque-Type "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.25 Releasing Memory for an Array of Variable Length Array (VLEN) Type: nc\_free\_vlen {.section}
+5.25 Releasing Memory for an Array of Variable Length Array (VLEN) Type: nc\_free\_vlen 
 ---------------------------------------------------------------------------------------
 
 When a VLEN is read into user memory from the file, the HDF5 library
@@ -6518,7 +6518,7 @@ To save the user the trouble calling free() on each element of the VLEN
 array (i.e. the array of arrays), the nc\_free\_vlens function is
 provided. It frees all the vlens in an array.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6533,7 +6533,7 @@ int nc_free_vlens(size_t len, nc_vlen_t vlens[])
  `vlens`
 :   Array of VLENs to be freed.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -6545,7 +6545,7 @@ Return Codes {.heading}
   [[\<](#nc_005ffree_005fvlens "Previous section in reading order")]   [[\>](#nc_005fdef_005fopaque "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.26 Opaque Type Introduction {.section}
+5.26 Opaque Type Introduction 
 -----------------------------
 
 NetCDF-4 added support for the opaque type. This is not supported in
@@ -6567,12 +6567,12 @@ nc\_inq\_opaque](#nc_005finq_005fopaque) to learn its name and size.
   [[\<](#Opaque-Type "Previous section in reading order")]   [[\>](#nc_005finq_005fopaque "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.27 Creating Opaque Types: nc\_def\_opaque {.section}
+5.27 Creating Opaque Types: nc\_def\_opaque 
 -------------------------------------------
 
 Create an opaque type. Provide a size and a name.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6596,7 +6596,7 @@ nc_def_opaque(int ncid, size_t size, const char *name, nc_type *typeidp);
     typeid when defining variables of this type with [Create a Variable:
     `nc_def_var`](#nc_005fdef_005fvar).
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6611,7 +6611,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from the test program libsrc4/tst\_opaques.c.
@@ -6630,12 +6630,12 @@ This example is from the test program libsrc4/tst\_opaques.c.
   [[\<](#nc_005fdef_005fopaque "Previous section in reading order")]   [[\>](#Enum-Type "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.28 Learn About an Opaque Type: nc\_inq\_opaque {.section}
+5.28 Learn About an Opaque Type: nc\_inq\_opaque 
 ------------------------------------------------
 
 Given a typeid, get the information about an opaque type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6658,7 +6658,7 @@ int nc_inq_opaque(int ncid, nc_type xtype, char *name, size_t *sizep);
  `sizep`
 :   If non-NULL, the size of the opaque type will be copied here.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6673,7 +6673,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from test program libsrc4/tst\_opaques.c:
@@ -6693,7 +6693,7 @@ This example is from test program libsrc4/tst\_opaques.c:
   [[\<](#nc_005finq_005fopaque "Previous section in reading order")]   [[\>](#nc_005fdef_005fenum "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.29 Enum Type Introduction {.section}
+5.29 Enum Type Introduction 
 ---------------------------
 
 NetCDF-4 added support for the enum type. This is not supported in
@@ -6705,7 +6705,7 @@ classic or 64-bit offset files.
   [[\<](#Enum-Type "Previous section in reading order")]   [[\>](#nc_005finsert_005fenum "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ----------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.30 Creating a Enum Type: nc\_def\_enum {.section}
+5.30 Creating a Enum Type: nc\_def\_enum 
 ----------------------------------------
 
 Create an enum type. Provide an ncid, a name, and a base integer type.
@@ -6715,7 +6715,7 @@ nc\_insert\_enum (see section [Inserting a Field into a Enum Type:
 nc\_insert\_enum](#nc_005finsert_005fenum)). Call nc\_insert\_enum once
 for each value you wish to make part of the enumeration.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6740,7 +6740,7 @@ int nc_def_enum(int ncid, nc_type base_typeid, const char *name,
 :   A pointer to an nc\_type. The typeid of the new type will be placed
     there.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6856,12 +6856,12 @@ use of an enum type, including the use of a fill value.
   [[\<](#nc_005fdef_005fenum "Previous section in reading order")]   [[\>](#nc_005finq_005fenum "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.31 Inserting a Field into a Enum Type: nc\_insert\_enum {.section}
+5.31 Inserting a Field into a Enum Type: nc\_insert\_enum 
 ---------------------------------------------------------
 
 Insert a named member into a enum type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6884,7 +6884,7 @@ int nc_insert_enum(int ncid, nc_type xtype, const char *identifier,
  `value`
 :   The value that is to be associated with this member.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -6919,7 +6919,7 @@ Errors {.heading}
  `NC_ENOTINDEFINE`
 :   Not in define mode.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_enums.c; also see the example in See
@@ -6951,12 +6951,12 @@ section [Creating a Enum Type: nc\_def\_enum](#nc_005fdef_005fenum).
   [[\<](#nc_005finsert_005fenum "Previous section in reading order")]   [[\>](#nc_005finq_005fenum_005fmember "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.32 Learn About a Enum Type: nc\_inq\_enum {.section}
+5.32 Learn About a Enum Type: nc\_inq\_enum 
 -------------------------------------------
 
 Get information about a user-define enumeration type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -6990,7 +6990,7 @@ nc_inq_enum(int ncid, nc_type xtype, char *name, nc_type *base_nc_typep,
 :   If non-NULL, a size\_t pointer which will get the number of members
     defined for this enumeration type.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -7002,7 +7002,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_enums.c, and is a continuation of the
@@ -7053,12 +7053,12 @@ of a Enum Type: nc\_inq\_enum\_member](#nc_005finq_005fenum_005fmember).
   [[\<](#nc_005finq_005fenum "Previous section in reading order")]   [[\>](#nc_005finq_005fenum_005fident "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ------------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.33 Learn the Name of a Enum Type: nc\_inq\_enum\_member {.section}
+5.33 Learn the Name of a Enum Type: nc\_inq\_enum\_member 
 ---------------------------------------------------------
 
 Get information about a member of an enum type.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7087,7 +7087,7 @@ int nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
     the base type of this enum type). It will get the value associated
     with this member.
 
-Errors {.heading}
+Errors 
 ------
 
  `NC_NOERR`
@@ -7099,7 +7099,7 @@ Errors {.heading}
  `NC_EHDFERR`
 :   An error was reported by the HDF5 layer.
 
-Example {.heading}
+Example 
 -------
 
 This is the continuation of the example in [Creating a Enum Type:
@@ -7152,12 +7152,12 @@ enum type is examined.
   [[\<](#nc_005finq_005fenum_005fmember "Previous section in reading order")]   [[\>](#Variables "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Data-Types "Up section")]   [[\>\>](#Variables "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.34 Learn the Name of a Enum Type: nc\_inq\_enum\_ident {.section}
+5.34 Learn the Name of a Enum Type: nc\_inq\_enum\_ident 
 --------------------------------------------------------
 
 Get the name which is associated with an enum member value.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7180,7 +7180,7 @@ int nc_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier
     get the identifier, as a null terminated string. It will have a
     maximum length of NC\_MAX\_NAME+1.
 
-Return Code {.heading}
+Return Code 
 -----------
 
  `NC_NOERR`
@@ -7195,7 +7195,7 @@ Return Code {.heading}
  `NC_EINVAL`
 :   The value was not found in the enum.
 
-Example {.heading}
+Example 
 -------
 
 See the example section for [Learn About a Enum Type:
@@ -7207,7 +7207,7 @@ nc\_inq\_enum](#nc_005finq_005fenum) for a full example.
   [[\<](#nc_005finq_005fenum_005fident "Previous section in reading order")]   [[\>](#Variable-Introduction "Next section in reading order")]       [[\<\<](#User-Defined-Data-Types "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------------------ --------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6. Variables {.chapter}
+6. Variables 
 ============
 
   ----------------------------------------------------------------------------------------------------------------------------- ---- ----------------------------------------------
@@ -7256,7 +7256,7 @@ nc\_inq\_enum](#nc_005finq_005fenum) for a full example.
   [[\<](#Variables "Previous section in reading order")]   [[\>](#Variable-Types "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- --------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.1 Introduction {.section}
+6.1 Introduction 
 ----------------
 
 Variables for a netCDF dataset are defined when the dataset is created,
@@ -7308,7 +7308,7 @@ Operations supported on variables are:
   [[\<](#Variable-Introduction "Previous section in reading order")]   [[\>](#NetCDF_002d3-Variable-Types "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.2 Language Types Corresponding to netCDF external data types {.section}
+6.2 Language Types Corresponding to netCDF external data types 
 --------------------------------------------------------------
 
 NetCDF supported six atomic data types through version 3.6.0 (char,
@@ -7326,7 +7326,7 @@ section [Create a NetCDF Dataset: nc\_create](#nc_005fcreate)).
   [[\<](#Variable-Types "Previous section in reading order")]   [[\>](#NetCDF_002d4-Atomic-Types "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.3 NetCDF-3 Classic and 64-Bit Offset Data Types {.section}
+6.3 NetCDF-3 Classic and 64-Bit Offset Data Types 
 -------------------------------------------------
 
 NetCDF-3 classic and 64-bit offset files support 6 atomic data types,
@@ -7358,7 +7358,7 @@ values of the corresponding type.
   [[\<](#NetCDF_002d3-Variable-Types "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.4 NetCDF-4 Atomic Types {.section}
+6.4 NetCDF-4 Atomic Types 
 -------------------------
 
 NetCDF-4 files support all of the atomic data types from netCDF-3, plus
@@ -7391,7 +7391,7 @@ created with the NC\_CLASSIC\_MODEL flags.
   [[\<](#NetCDF_002d4-Atomic-Types "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar_005fchunking "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.5 Create a Variable: `nc_def_var` {.section}
+6.5 Create a Variable: `nc_def_var` 
 -----------------------------------
 
 The function nc\_def\_var adds a new variable to an open netCDF dataset
@@ -7399,7 +7399,7 @@ in define mode. It returns (as an argument) a variable ID, given the
 netCDF ID, the variable name, the variable type, the number of
 dimensions, and a list of the dimension IDs.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7442,7 +7442,7 @@ int nc_def_var (int ncid, const char *name, nc_type xtype,
  `varidp`
 :   Pointer to location for the returned variable ID.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_var returns the value NC\_NOERR if no errors occurred.
@@ -7481,7 +7481,7 @@ errors include:
  `NC_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_def\_var to create a variable named rh of
@@ -7524,7 +7524,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fdef_005fvar "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005fchunking "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.6 Define Chunking Parameters for a Variable: `nc_def_var_chunking` {.section}
+6.6 Define Chunking Parameters for a Variable: `nc_def_var_chunking` 
 --------------------------------------------------------------------
 
 The function nc\_def\_var\_chunking sets the chunking parameters for a
@@ -7551,7 +7551,7 @@ before nc\_enddef is called.
 Note that you cannot set chunking for scalar variables. Only non-scalar
 variables can have chunking.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7583,7 +7583,7 @@ int nc_def_var_chunking(int ncid, int varid, int storage, size_t *chunksizesp);
 :   A pointer to an array list of chunk sizes. The array must have one
     chunksize for each dimension of the variable.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_var\_chunking returns the value NC\_NOERR if no errors
@@ -7628,7 +7628,7 @@ Possible return codes include:
  `NC_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 In this example from libsrc4/tst\_vars2.c, chunksizes are set with
@@ -7678,13 +7678,13 @@ nc\_var\_def\_chunking, and checked with nc\_var\_inq\_chunking.
   [[\<](#nc_005fdef_005fvar_005fchunking "Previous section in reading order")]   [[\>](#nc_005fset_005fvar_005fchunk_005fcache "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ --------------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.7 Learn About Chunking Parameters for a Variable: `nc_inq_var_chunking` {.section}
+6.7 Learn About Chunking Parameters for a Variable: `nc_inq_var_chunking` 
 -------------------------------------------------------------------------
 
 The function nc\_inq\_var\_chunking returns the chunking settings for a
 variable in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7709,7 +7709,7 @@ int nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
 :   A pointer to an array list of chunk sizes. The array must have one
     chunksize for each dimension in the variable.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_var\_chunking returns the value NC\_NOERR if no errors
@@ -7729,7 +7729,7 @@ Possible return codes include:
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars2.c in which a variable with
@@ -7778,7 +7778,7 @@ nc\_inq\_var\_chunking:
   [[\<](#nc_005finq_005fvar_005fchunking "Previous section in reading order")]   [[\>](#nc_005fget_005fvar_005fchunk_005fcache "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ --------------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.8 Set HDF5 Chunk Cache for a Variable: nc\_set\_var\_chunk\_cache {.section}
+6.8 Set HDF5 Chunk Cache for a Variable: nc\_set\_var\_chunk\_cache 
 -------------------------------------------------------------------
 
 This function changes the chunk cache settings for a variable. The
@@ -7789,7 +7789,7 @@ For more information, see the documentation for the H5Pset\_cache()
 function in the HDF5 library at the HDF5 website:
 [http://hdfgroup.org/HDF5/](http://hdfgroup.org/HDF5/).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7823,7 +7823,7 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
     a value of one means fully read chunks are always preempted before
     other chunks.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -7832,7 +7832,7 @@ Return Codes {.heading}
  `NC_EINVAL`
 :   Preemption must be between zero and one (inclusive).
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars2.c:
@@ -7862,7 +7862,7 @@ This example is from libsrc4/tst\_vars2.c:
   [[\<](#nc_005fset_005fvar_005fchunk_005fcache "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar_005ffill "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ---------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.9 Get the HDF5 Chunk Cache Settings for a Variable: nc\_get\_var\_chunk\_cache {.section}
+6.9 Get the HDF5 Chunk Cache Settings for a Variable: nc\_get\_var\_chunk\_cache 
 --------------------------------------------------------------------------------
 
 This function gets the current chunk cache settings for a variable in a
@@ -7872,7 +7872,7 @@ For more information, see the documentation for the H5Pget\_cache()
 function in the HDF5 library at the HDF5 website:
 [http://hdfgroup.org/HDF5/](http://hdfgroup.org/HDF5/).
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7905,13 +7905,13 @@ int nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
     is strictly LRU) while a value of one means fully read chunks are
     always preempted before other chunks. If NULL, will be ignored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
 :   No error.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars2.c:
@@ -7943,7 +7943,7 @@ This example is from libsrc4/tst\_vars2.c:
   [[\<](#nc_005fget_005fvar_005fchunk_005fcache "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005ffill "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ---------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.10 Define Fill Parameters for a Variable: `nc_def_var_fill` {.section}
+6.10 Define Fill Parameters for a Variable: `nc_def_var_fill` 
 -------------------------------------------------------------
 
 The function nc\_def\_var\_fill sets the fill parameters for a variable
@@ -7952,7 +7952,7 @@ in a netCDF-4 file.
 This function must be called after the variable is defined, but before
 nc\_enddef is called.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -7983,7 +7983,7 @@ int nc_def_var_fill(int ncid, int varid, int no_fill, void *fill_value);
     written to a \_FillValue attribute, created for this purpose. If
     NULL, this argument will be ignored.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -8013,7 +8013,7 @@ Return Codes {.heading}
  `NC_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars.c
@@ -8041,13 +8041,13 @@ This example is from libsrc4/tst\_vars.c
   [[\<](#nc_005fdef_005fvar_005ffill "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar_005fdeflate "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.11 Learn About Fill Parameters for a Variable: `nc_inq_var_fill` {.section}
+6.11 Learn About Fill Parameters for a Variable: `nc_inq_var_fill` 
 ------------------------------------------------------------------
 
 The function nc\_inq\_var\_fill returns the fill settings for a variable
 in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8073,7 +8073,7 @@ int nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_value);
 :   A pointer which will get the fill value for this variable. This
     parameter will be ignored if it is NULL.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -8088,7 +8088,7 @@ Return Codes {.heading}
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars.c
@@ -8120,7 +8120,7 @@ This example is from libsrc4/tst\_vars.c
   [[\<](#nc_005finq_005fvar_005ffill "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005fdeflate "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.12 Define Compression Parameters for a Variable: `nc_def_var_deflate` {.section}
+6.12 Define Compression Parameters for a Variable: `nc_def_var_deflate` 
 -----------------------------------------------------------------------
 
 The function nc\_def\_var\_deflate sets the deflate parameters for a
@@ -8131,7 +8131,7 @@ nc\_enddef is called.
 
 This does not work with scalar variables.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8159,7 +8159,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 :   If the deflate parameter is non-zero, set the deflate level to this
     value. Must be between 0 and 9.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_var\_deflate returns the value NC\_NOERR if no errors occurred.
@@ -8198,7 +8198,7 @@ Possible return codes include:
 :   Invalid deflate\_level. The deflate level must be between 0 and 9,
     inclusive.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8207,13 +8207,13 @@ Example {.heading}
   [[\<](#nc_005fdef_005fvar_005fdeflate "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005fszip "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.13 Learn About Deflate Parameters for a Variable: `nc_inq_var_deflate` {.section}
+6.13 Learn About Deflate Parameters for a Variable: `nc_inq_var_deflate` 
 ------------------------------------------------------------------------
 
 The function nc\_inq\_var\_deflate returns the deflate settings for a
 variable in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8245,7 +8245,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep,
     this variable, the nc\_inq\_var\_deflate function will write the
     deflate\_level here.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_var\_deflate returns the value NC\_NOERR if no errors occurred.
@@ -8265,7 +8265,7 @@ Possible return codes include:
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8274,13 +8274,13 @@ Example {.heading}
   [[\<](#nc_005finq_005fvar_005fdeflate "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar_005ffletcher32 "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.14 Learn About Szip Parameters for a Variable: `nc_inq_var_szip` {.section}
+6.14 Learn About Szip Parameters for a Variable: `nc_inq_var_szip` 
 ------------------------------------------------------------------
 
 The function nc\_inq\_var\_szip returns the szip settings for a variable
 in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8304,7 +8304,7 @@ int nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blo
 :   If this pointer is non-NULL, the nc\_inq\_var\_szip function will
     write the bits per pixel here.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_var\_szip returns the value NC\_NOERR if no errors occurred.
@@ -8324,7 +8324,7 @@ Possible return codes include:
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 This example is from libsrc4/tst\_vars3.c.
@@ -8347,7 +8347,7 @@ This example is from libsrc4/tst\_vars3.c.
   [[\<](#nc_005finq_005fvar_005fszip "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005ffletcher32 "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.15 Define Checksum Parameters for a Variable: `nc_def_var_fletcher32` {.section}
+6.15 Define Checksum Parameters for a Variable: `nc_def_var_fletcher32` 
 -----------------------------------------------------------------------
 
 The function nc\_def\_var\_fletcher32 sets the checksum parameters for a
@@ -8356,7 +8356,7 @@ variable in a netCDF-4 file.
 This function may only be called after the variable is defined, but
 before nc\_enddef is called.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8376,7 +8376,7 @@ nc_def_var_fletcher32(int ncid, int varid, int checksum);
 :   If this is NC\_FLETCHER32, fletcher32 checksums will be turned on
     for this variable.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_var\_fletcher32 returns the value NC\_NOERR if no errors
@@ -8411,7 +8411,7 @@ Possible return codes include:
  `NC_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8420,13 +8420,13 @@ Example {.heading}
   [[\<](#nc_005fdef_005fvar_005ffletcher32 "Previous section in reading order")]   [[\>](#nc_005fdef_005fvar_005fendian "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.16 Learn About Checksum Parameters for a Variable: `nc_inq_var_fletcher32` {.section}
+6.16 Learn About Checksum Parameters for a Variable: `nc_inq_var_fletcher32` 
 ----------------------------------------------------------------------------
 
 The function nc\_inq\_var\_fletcher32 returns the checksum settings for
 a variable in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8447,7 +8447,7 @@ nc_inq_var_fletcher32(int ncid, int varid, int *checksump);
     pointed at to NC\_FLETCHER32 if the fletcher32 checksum filter is
     turned on for this variable, and NC\_NOCHECKSUM if it is not.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_var\_fletcher32 returns the value NC\_NOERR if no errors
@@ -8467,7 +8467,7 @@ Possible return codes include:
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8476,7 +8476,7 @@ Example {.heading}
   [[\<](#nc_005finq_005fvar_005ffletcher32 "Previous section in reading order")]   [[\>](#nc_005finq_005fvar_005fendian "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.17 Define Endianness of a Variable: `nc_def_var_endian` {.section}
+6.17 Define Endianness of a Variable: `nc_def_var_endian` 
 ---------------------------------------------------------
 
 The function nc\_def\_var\_endian sets the endianness for a variable in
@@ -8492,7 +8492,7 @@ endian machine.
 In some cases a user might wish to change from native endianness to
 either big or little-endianness. This function allows them to do that.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8513,7 +8513,7 @@ nc_def_var_endian(int ncid, int varid, int endian);
     default). Set to NC\_ENDIAN\_LITTLE for little endian, or
     NC\_ENDIAN\_BIG for big endian.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_def\_var\_endian returns the value NC\_NOERR if no errors occurred.
@@ -8548,7 +8548,7 @@ Possible return codes include:
  `NC_EPERM`
 :   Attempt to create object in read-only file.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8557,13 +8557,13 @@ Example {.heading}
   [[\<](#nc_005fdef_005fvar_005fendian "Previous section in reading order")]   [[\>](#nc_005finq_005fvarid "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- --------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.18 Learn About Endian Parameters for a Variable: `nc_inq_var_endian` {.section}
+6.18 Learn About Endian Parameters for a Variable: `nc_inq_var_endian` 
 ----------------------------------------------------------------------
 
 The function nc\_inq\_var\_endian returns the endianness settings for a
 variable in a netCDF-4 file.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8586,7 +8586,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp);
     format, and NC\_ENDIAN\_NATIVE if the endianness is not set, and the
     variable is not created yet.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_var\_endian returns the value NC\_NOERR if no errors occurred.
@@ -8606,7 +8606,7 @@ Possible return codes include:
  `NC_ENOTVAR`
 :   Can’t find this variable.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -8615,13 +8615,13 @@ Example {.heading}
   [[\<](#nc_005finq_005fvar_005fendian "Previous section in reading order")]   [[\>](#nc_005finq_005fvar "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.19 Get a Variable ID from Its Name: nc\_inq\_varid {.section}
+6.19 Get a Variable ID from Its Name: nc\_inq\_varid 
 ----------------------------------------------------
 
 The function nc\_inq\_varid returns the ID of a netCDF variable, given
 its name.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8640,7 +8640,7 @@ int nc_inq_varid (int ncid, const char *name, int *varidp);
  `varidp`
 :   Pointer to location for returned variable ID.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_inq\_varid returns the value NC\_NOERR if no errors occurred.
@@ -8651,7 +8651,7 @@ errors include:
     the specified netCDF dataset.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_varid to find out the ID of a variable
@@ -8677,7 +8677,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq_005fvarid "Previous section in reading order")]   [[\>](#nc_005fput_005fvar1_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.20 Get Information about a Variable from Its ID: nc\_inq\_var {.section}
+6.20 Get Information about a Variable from Its ID: nc\_inq\_var 
 ---------------------------------------------------------------
 
 family &findex nc\_inq\_vardimid
@@ -8695,7 +8695,7 @@ information about a variable.
 These other functions include nc\_inq\_varname, nc\_inq\_vartype,
 nc\_inq\_varndims, nc\_inq\_vardimid, and nc\_inq\_varnatts.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8755,7 +8755,7 @@ errors include:
 The variable ID is invalid for the specified netCDF dataset. The
 specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_var to find out about a variable named
@@ -8791,7 +8791,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq_005fvar "Previous section in reading order")]   [[\>](#nc_005fput_005fvar_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ----------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.21 Write a Single Data Value: nc\_put\_var1\_ type {.section}
+6.21 Write a Single Data Value: nc\_put\_var1\_ type 
 ----------------------------------------------------
 
 The functions nc\_put\_var1\_ type put a single data value of the
@@ -8807,7 +8807,7 @@ The nc\_put\_var1() function will write a variable of any type,
 including user defined type. For this function, the type of the data in
 memory must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -8871,7 +8871,7 @@ int nc_put_var1(int ncid, int varid, const size_t *indexp,
     See [(netcdf)Type Conversion](netcdf.html#Type-Conversion) section
     ‘Type Conversion’ in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -8890,7 +8890,7 @@ Return Codes {.heading}
 -   NC\_EBADID The specified netCDF ID does not refer to an open netCDF
     dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_put\_var1\_double to set the (1,2,3)
@@ -8927,7 +8927,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fvar1_005f-type "Previous section in reading order")]   [[\>](#nc_005fput_005fvara_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.22 Write an Entire Variable: nc\_put\_var\_ type {.section}
+6.22 Write an Entire Variable: nc\_put\_var\_ type 
 --------------------------------------------------
 
 The nc\_put\_var\_ type family of functions write all the values of a
@@ -8959,7 +8959,7 @@ The nc\_put\_var() function will write a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9004,7 +9004,7 @@ int nc_put_var       (int ncid, int varid,  const void *op);
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR The variable ID is invalid for the specified netCDF
@@ -9019,7 +9019,7 @@ Return Codes {.heading}
     dataset.
 -   NC\_ENOTVAR Bad variable ID.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_put\_var\_double to add or change all the
@@ -9060,7 +9060,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fvar_005f-type "Previous section in reading order")]   [[\>](#nc_005fput_005fvars_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.23 Write an Array of Values: nc\_put\_vara\_ type {.section}
+6.23 Write an Array of Values: nc\_put\_vara\_ type 
 ---------------------------------------------------
 
 The function nc\_put\_vara\_ type writes values into a netCDF variable
@@ -9078,7 +9078,7 @@ The nc\_put\_var() function will write a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9163,7 +9163,7 @@ int nc_put_vara       (int ncid, int varid,  const size_t *startp,
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -9190,7 +9190,7 @@ Return Codes {.heading}
 -   NC\_ENOMEM Out of memory.
 -   NC\_EBADTYPE Bad type.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_put\_vara\_double to add or change all the
@@ -9234,7 +9234,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fvara_005f-type "Previous section in reading order")]   [[\>](#nc_005fput_005fvarm_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.24 Write a Subsampled Array of Values: nc\_put\_vars\_ type {.section}
+6.24 Write a Subsampled Array of Values: nc\_put\_vars\_ type 
 -------------------------------------------------------------
 
 Each member of the family of functions nc\_put\_vars\_ type writes a
@@ -9250,7 +9250,7 @@ The nc\_put\_vars() function will write a variable of any type,
 including user defined type. For this function, the type of the data in
 memory must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9354,7 +9354,7 @@ int nc_put_vars       (int ncid, int varid,  const size_t *startp,
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -9381,7 +9381,7 @@ Return Codes {.heading}
 -   NC\_ENOMEM Out of memory.
 -   NC\_EBADTYPE Bad type.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example of using nc\_put\_vars\_float to write – from an
@@ -9423,7 +9423,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fvars_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fvar1_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.25 Write a Mapped Array of Values: nc\_put\_varm\_ type {.section}
+6.25 Write a Mapped Array of Values: nc\_put\_varm\_ type 
 ---------------------------------------------------------
 
 The nc\_put\_varm\_ type family of functions writes a mapped array
@@ -9443,7 +9443,7 @@ The nc\_put\_varm() function will write a variable of any type,
 including user defined type. For this function, the type of the data in
 memory must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9561,7 +9561,7 @@ n
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -9587,7 +9587,7 @@ Return Codes {.heading}
 -   NC\_ECHAR Attempt to convert to or from char.
 -   NC\_ENOMEM Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 The following imap vector maps in the trivial way a 4x3x2 netCDF
@@ -9686,7 +9686,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fvarm_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fvar_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ----------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.26 Read a Single Data Value: nc\_get\_var1\_ type {.section}
+6.26 Read a Single Data Value: nc\_get\_var1\_ type 
 ---------------------------------------------------
 
 The functions nc\_get\_var1\_ type get a single data value from a
@@ -9703,7 +9703,7 @@ The nc\_get\_var1() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9767,7 +9767,7 @@ int nc_get_var1       (int ncid, int varid,  const size_t *indexp,
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -9793,7 +9793,7 @@ Return Codes {.heading}
 -   NC\_ECHAR Attempt to convert to or from char.
 -   NC\_ENOMEM Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_get\_var1\_double to get the (1,2,3)
@@ -9830,7 +9830,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fget_005fvar1_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fvara_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.27 Read an Entire Variable nc\_get\_var\_ type {.section}
+6.27 Read an Entire Variable nc\_get\_var\_ type 
 ------------------------------------------------
 
 The members of the nc\_get\_var\_ type family of functions read all the
@@ -9857,7 +9857,7 @@ The nc\_get\_var() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -9900,7 +9900,7 @@ int nc_get_var       (int ncid, int varid,  void *ip);
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -9926,7 +9926,7 @@ Return Codes {.heading}
 -   NC\_ECHAR Attempt to convert to or from char.
 -   NC\_ENOMEM Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_get\_var\_double to read all the values of
@@ -9964,7 +9964,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fget_005fvar_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fvars_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.28 Read an Array of Values: nc\_get\_vara\_ type {.section}
+6.28 Read an Array of Values: nc\_get\_vara\_ type 
 --------------------------------------------------
 
 The members of the nc\_get\_vara\_ type family of functions read an
@@ -9980,7 +9980,7 @@ The nc\_get\_vara() function will write a variable of any type,
 including user defined type. For this function, the type of the data in
 memory must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -10061,7 +10061,7 @@ int nc_get_vara       (int ncid, int varid, const size_t start[],
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -10084,7 +10084,7 @@ Return Codes {.heading}
 -   NC\_EBADID The specified netCDF ID does not refer to an open netCDF
     dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_get\_vara\_double to read all the values of
@@ -10125,7 +10125,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fget_005fvara_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fvarm_005f-type "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.29 Read a Subsampled Array of Values: nc\_get\_vars\_ type {.section}
+6.29 Read a Subsampled Array of Values: nc\_get\_vars\_ type 
 ------------------------------------------------------------
 
 The nc\_get\_vars\_ type family of functions read a subsampled (strided)
@@ -10142,7 +10142,7 @@ The nc\_get\_vars() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -10242,7 +10242,7 @@ int nc_get_vars       (int ncid, int varid,  const size_t *startp,
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -10268,7 +10268,7 @@ Return Codes {.heading}
 -   NC\_ECHAR Attempt to convert to or from char.
 -   NC\_ENOMEM Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example that uses nc\_get\_vars\_double to read every other
@@ -10312,7 +10312,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fget_005fvars_005f-type "Previous section in reading order")]   [[\>](#Strings "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- -------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.30 Read a Mapped Array of Values: nc\_get\_varm\_ type {.section}
+6.30 Read a Mapped Array of Values: nc\_get\_varm\_ type 
 --------------------------------------------------------
 
 The nc\_get\_varm\_ type family of functions reads a mapped array
@@ -10332,7 +10332,7 @@ The nc\_get\_varm() function will read a variable of any type, including
 user defined type. For this function, the type of the data in memory
 must match the type of the variable - no data conversion is done.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -10448,7 +10448,7 @@ int nc_get_varm       (int ncid, int varid,  const size_t *startp,
     Conversion](netcdf.html#Type-Conversion) section ‘Type Conversion’
     in The NetCDF Users Guide.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -10474,7 +10474,7 @@ Return Codes {.heading}
 -   NC\_ECHAR Attempt to convert to or from char.
 -   NC\_ENOMEM Out of memory.
 
-Example {.heading}
+Example 
 -------
 
 The following imap vector maps in the trivial way a 4x3x2 netCDF
@@ -10572,7 +10572,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fget_005fvarm_005f-type "Previous section in reading order")]   [[\>](#Classic-Strings "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.31 Reading and Writing Character String Values {.section}
+6.31 Reading and Writing Character String Values 
 ------------------------------------------------
 
 Prior to version 4.0, strings could only be stored as simple arrays of
@@ -10599,7 +10599,7 @@ Arrays of Strings](#Arrays-of-Strings).
   [[\<](#Strings "Previous section in reading order")]   [[\>](#Arrays-of-Strings "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Strings "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ ------------------------------------------------------------ --- ---------------------------------------------------------------------- ------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.31.1 Reading and Writing Character String Values in the Classic Model {.subsection}
+### 6.31.1 Reading and Writing Character String Values in the Classic Model 
 
 Character strings are not a primitive netCDF external data type, in part
 because FORTRAN does not support the abstraction of variable-length
@@ -10697,7 +10697,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#Classic-Strings "Previous section in reading order")]   [[\>](#nc_005ffree_005fstring "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Strings "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ----------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 6.31.2 Reading and Writing Arrays of Strings {.subsection}
+### 6.31.2 Reading and Writing Arrays of Strings 
 
 In netCDF-4, the NC\_STRING type is introduced. It can store arrays of
 strings compactly.
@@ -10766,7 +10766,7 @@ NC\_STRING: nc\_free\_string](#nc_005ffree_005fstring).
   [[\<](#Arrays-of-Strings "Previous section in reading order")]   [[\>](#Fill-Values "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.32 Releasing Memory for a NC\_STRING: nc\_free\_string {.section}
+6.32 Releasing Memory for a NC\_STRING: nc\_free\_string 
 --------------------------------------------------------
 
 When a STRING is read into user memory from the file, the HDF5 library
@@ -10783,7 +10783,7 @@ To save the user the trouble calling free() on each element of the
 NC\_STRING array (i.e. the array of arrays), the nc\_free\_string
 function is provided.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -10798,13 +10798,13 @@ int nc_free_string(size_t len, char **data);
  `**data`
 :   The pointer to the data array.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
 :   No error.
 
-Example {.heading}
+Example 
 -------
 
  
@@ -10821,7 +10821,7 @@ Example {.heading}
   [[\<](#nc_005ffree_005fstring "Previous section in reading order")]   [[\>](#nc_005frename_005fvar "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ---------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.33 Fill Values {.section}
+6.33 Fill Values 
 ----------------
 
 What happens when you try to read a value that was never written in an
@@ -10868,7 +10868,7 @@ larger type cannot be represented in the smaller type.
   [[\<](#Fill-Values "Previous section in reading order")]   [[\>](#nc_005fcopy_005fvar "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.34 Rename a Variable: nc\_rename\_var {.section}
+6.34 Rename a Variable: nc\_rename\_var 
 ---------------------------------------
 
 The function nc\_rename\_var changes the name of a netCDF variable in an
@@ -10876,7 +10876,7 @@ open netCDF dataset. If the new name is longer than the old name, the
 netCDF dataset must be in define mode. You cannot rename a variable to
 have the name of any existing variable.
 
-Usage {.heading}
+Usage 
 -----
 
 int nc\_rename\_var(int ncid, int varid, const char\* name);
@@ -10888,7 +10888,7 @@ varid Variable ID.
 
 name New name for the specified variable.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_rename\_var returns the value NC\_NOERR if no errors occurred.
@@ -10899,7 +10899,7 @@ The new name is in use as the name of another variable. The variable ID
 is invalid for the specified netCDF dataset. The specified netCDF ID
 does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_rename\_var to rename the variable rh to
@@ -10933,7 +10933,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005frename_005fvar "Previous section in reading order")]   [[\>](#nc_005fvar_005fpar_005faccess "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.35 Copy a Variable from One File to Another: nc\_copy\_var {.section}
+6.35 Copy a Variable from One File to Another: nc\_copy\_var 
 ------------------------------------------------------------
 
 This function will copy a variable and its attributes from one file to
@@ -10954,7 +10954,7 @@ moving data for other variables in the target file. This is not a
 problem for netCDF-4 files, which support efficient addition of
 variables without moving data for other variables.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -10969,7 +10969,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
 -   ncid\_out The file ID for the file where the variable should be
     copied to.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
 -   NC\_NOERR No error.
@@ -10979,7 +10979,7 @@ Return Codes {.heading}
 -   NC\_ENOMEM Out of memory.
 -   NC\_ERANGE One or more values out of range.
 
-Example {.heading}
+Example 
 -------
 
 * * * * *
@@ -10988,7 +10988,7 @@ Example {.heading}
   [[\<](#nc_005fcopy_005fvar "Previous section in reading order")]   [[\>](#nc_005fvar_005fubyte "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ --------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.36 Change between Collective and Independent Parallel Access: nc\_var\_par\_access {.section}
+6.36 Change between Collective and Independent Parallel Access: nc\_var\_par\_access 
 ------------------------------------------------------------------------------------
 
 The function nc\_var\_par\_access changes whether read/write operations
@@ -11013,7 +11013,7 @@ parallel-netcdf library, which does not allow per-variable setting of
 the parallel access mode. For these files, calling nc\_var\_par\_access
 sets the access for all of the variables in the file.
 
-Usage {.heading}
+Usage 
 -----
 
 int nc\_var\_par\_access(int ncid, int varid, int access);
@@ -11031,13 +11031,13 @@ int nc\_var\_par\_access(int ncid, int varid, int access);
 :   NC\_INDEPENDENT to set this variable to independent operations.
     NC\_COLLECTIVE to set it to collective operations.
 
-Return Values {.heading}
+Return Values 
 -------------
 
  `NC_NOERR`
 :   No error.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_var\_par\_access:
@@ -11085,7 +11085,7 @@ Here is an example using nc\_var\_par\_access:
   [[\<](#nc_005fvar_005fpar_005faccess "Previous section in reading order")]   [[\>](#Attributes "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Attributes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ----------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-6.37 Deprecated “\_ubyte” variable functions {.section}
+6.37 Deprecated “\_ubyte” variable functions 
 --------------------------------------------
 
 Note: the following functions are also defined but deprecated, as they
@@ -11125,7 +11125,7 @@ int nc_get_varm_ubyte (int ncid, int varid, const size_t *startp,
   [[\<](#nc_005fvar_005fubyte "Previous section in reading order")]   [[\>](#Attributes-Introduction "Next section in reading order")]       [[\<\<](#Variables "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7. Attributes {.chapter}
+7. Attributes 
 =============
 
   ------------------------------------------------------------------------------------------- ---- ------------------------------------------
@@ -11145,7 +11145,7 @@ int nc_get_varm_ubyte (int ncid, int varid, const size_t *startp,
   [[\<](#Attributes "Previous section in reading order")]   [[\>](#nc_005fput_005fatt_005f-type "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ----------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.1 Introduction {.section}
+7.1 Introduction 
 ----------------
 
 Attributes may be associated with each netCDF variable to specify such
@@ -11189,7 +11189,7 @@ Operations supported on attributes are:
   [[\<](#Attributes-Introduction "Previous section in reading order")]   [[\>](#nc_005finq_005fatt-Family "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- -------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.2 Create an Attribute: nc\_put\_att\_ type {.section}
+7.2 Create an Attribute: nc\_put\_att\_ type 
 --------------------------------------------
 
 The function nc\_put\_att\_ type adds or changes a variable attribute or
@@ -11197,7 +11197,7 @@ global attribute of an open netCDF dataset. If this attribute is new, or
 if the space required to store the attribute is greater than before, the
 netCDF dataset must be in define mode.
 
-Usage {.heading}
+Usage 
 -----
 
 With netCDF-4 files, nc\_put\_att will notice if you are writing a
@@ -11278,7 +11278,7 @@ int nc_put_att           (int ncid, int varid, const char *name, nc_type xtype,
     occur. See [(netcdf)Type Conversion](netcdf.html#Type-Conversion)
     section ‘Type Conversion’ in The NetCDF Users Guide.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_put\_att\_ type returns the value NC\_NOERR if no errors occurred.
@@ -11295,7 +11295,7 @@ errors include:
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 -   The number of attributes for this variable exceeds NC\_MAX\_ATTRS.
 
-Return Codes {.heading}
+Return Codes 
 ------------
 
  `NC_NOERR`
@@ -11319,7 +11319,7 @@ Return Codes {.heading}
     leaves define mode for the first time. NC\_EFILLVALUE is returned
     when the user attempts to set the fill value after it’s too late.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_put\_att\_double to add a variable
@@ -11362,7 +11362,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fput_005fatt_005f-type "Previous section in reading order")]   [[\>](#nc_005fget_005fatt_005f-type "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ----------------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.3 Get Information about an Attribute: nc\_inq\_att Family {.section}
+7.3 Get Information about an Attribute: nc\_inq\_att Family 
 -----------------------------------------------------------
 
 This family of functions returns information about a netCDF attribute.
@@ -11384,7 +11384,7 @@ The function nc\_inq\_att returns the attribute’s type and length. The
 other functions each return just one item of information about an
 attribute.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -11443,7 +11443,7 @@ int nc_inq_attid   (int ncid, int varid, const char *name, int *attnump);
     knowing its number is not very useful, because accessing information
     about an attribute requires its name.
 
-Errors {.heading}
+Errors 
 ------
 
 Each function returns the value NC\_NOERR if no errors occurred.
@@ -11457,7 +11457,7 @@ errors include:
     more than the number of attributes defined for the specified
     variable.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_inq\_att to find out the type and length of
@@ -11495,7 +11495,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005finq_005fatt-Family "Previous section in reading order")]   [[\>](#nc_005fcopy_005fatt "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ -------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.4 Get Attribute’s Values:nc\_get\_att\_ type {.section}
+7.4 Get Attribute’s Values:nc\_get\_att\_ type 
 ----------------------------------------------
 
 Members of the nc\_get\_att\_ type family of functions get the value(s)
@@ -11505,7 +11505,7 @@ The nc\_get\_att() functions works for any type of attribute, and must
 be used to get attributes of user-defined type. We recommend that they
 type safe versions of this function be used where possible.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -11556,7 +11556,7 @@ int nc_get_att           (int ncid, int varid, const char *name, void *ip);
     much space to reserve, call nc\_inq\_attlen first to find out the
     length of the attribute.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_get\_att\_ type returns the value NC\_NOERR if no errors occurred.
@@ -11569,7 +11569,7 @@ errors include:
 -   One or more of the attribute values are out of the range of values
     representable by the desired type.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_get\_att\_double to determine the values of
@@ -11625,7 +11625,7 @@ title[t_len] = '\0';       /* null terminate */
   [[\<](#nc_005fget_005fatt_005f-type "Previous section in reading order")]   [[\>](#nc_005frename_005fatt "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- ---------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.5 Copy Attribute from One NetCDF to Another: nc\_copy\_att {.section}
+7.5 Copy Attribute from One NetCDF to Another: nc\_copy\_att 
 ------------------------------------------------------------
 
 The function nc\_copy\_att copies an attribute from one open netCDF
@@ -11639,7 +11639,7 @@ ncid\_out if they are in define mode. (This is the ensure that all
 user-defined types are committed to the file(s) before the copy is
 attempted.)
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -11673,7 +11673,7 @@ int nc_copy_att (int ncid_in, int varid_in, const char *name,
     attribute will be copied, or NC\_GLOBAL to copy to a global
     attribute.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_copy\_att returns the value NC\_NOERR if no errors occurred.
@@ -11688,7 +11688,7 @@ errors include:
 -   The input or output netCDF ID does not refer to an open netCDF
     dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_copy\_att to copy the variable attribute
@@ -11732,7 +11732,7 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005fcopy_005fatt "Previous section in reading order")]   [[\>](#nc_005fdel_005fatt "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.6 Rename an Attribute: nc\_rename\_att {.section}
+7.6 Rename an Attribute: nc\_rename\_att 
 ----------------------------------------
 
 The function nc\_rename\_att changes the name of an attribute. If the
@@ -11740,7 +11740,7 @@ new name is longer than the original name, the netCDF dataset must be in
 define mode. You cannot rename an attribute to have the same name as
 another attribute of the same variable.
 
-Usage {.heading}
+Usage 
 -----
 
  
@@ -11765,7 +11765,7 @@ int nc_rename_att (int ncid, int varid, const char* name,
     name is longer than the current name, the netCDF dataset must be in
     define mode.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_rename\_att returns the value NC\_NOERR if no errors occurred.
@@ -11780,7 +11780,7 @@ errors include:
 -   The specified attribute does not exist.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_rename\_att to rename the variable
@@ -11813,13 +11813,13 @@ if (status != NC_NOERR) handle_error(status);
   [[\<](#nc_005frename_005fatt "Previous section in reading order")]   [[\>](#Summary-of-C-Interface "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Attributes "Up section")]   [[\>\>](#Summary-of-C-Interface "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ----------------------------------------------------------------- --- ----------------------------------------------------------------------- ---------------------------------- -------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-7.7 Delete an Attribute: nc\_del\_att {.section}
+7.7 Delete an Attribute: nc\_del\_att 
 -------------------------------------
 
 The function nc\_del\_att deletes a netCDF attribute from an open netCDF
 dataset. The netCDF dataset must be in define mode.
 
-Usage {.heading}
+Usage 
 -----
 
 int nc\_del\_att (int ncid, int varid, const char\* name);
@@ -11835,7 +11835,7 @@ int nc\_del\_att (int ncid, int varid, const char\* name);
  `name`
 :   The name of the attribute to be deleted.
 
-Errors {.heading}
+Errors 
 ------
 
 nc\_del\_att returns the value NC\_NOERR if no errors occurred.
@@ -11847,7 +11847,7 @@ errors include:
 -   The specified attribute does not exist.
 -   The specified netCDF ID does not refer to an open netCDF dataset.
 
-Example {.heading}
+Example 
 -------
 
 Here is an example using nc\_del\_att to delete the variable attribute
@@ -11895,7 +11895,7 @@ int nc_get_att_ubyte     (int ncid, int varid, const char *name, unsigned char *
   [[\<](#nc_005fdel_005fatt "Previous section in reading order")]   [[\>](#NetCDF-3-Transition-Guide "Next section in reading order")]       [[\<\<](#Attributes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF-3-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------------------- --- ----------------------------------------------------------------------- --------------------------- ----------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-A. Summary of C Interface {.appendix}
+A. Summary of C Interface 
 =========================
 
  
@@ -12164,7 +12164,7 @@ int nc_get_att_double (int ncid, int varid, const char *name,
   [[\<](#Summary-of-C-Interface "Previous section in reading order")]   [[\>](#Introduction-1 "Next section in reading order")]       [[\<\<](#Summary-of-C-Interface "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------------- --------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B. NetCDF 3 to NetCDF 4 Transition Guide {.appendix}
+B. NetCDF 3 to NetCDF 4 Transition Guide 
 ========================================
 
 * * * * *
@@ -12173,7 +12173,7 @@ B. NetCDF 3 to NetCDF 4 Transition Guide {.appendix}
   [[\<](#NetCDF-3-Transition-Guide "Previous section in reading order")]   [[\>](#NetCDF_002d4-and-HDF5 "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ---------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.1 Introduction {.section}
+B.1 Introduction 
 ----------------
 
 The release of netCDF-4 represents a substantial increase in the
@@ -12218,7 +12218,7 @@ software development effort.
   [[\<](#Introduction-1 "Previous section in reading order")]   [[\>](#Backward-Compatibility "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ----------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.2 NetCDF-4 and HDF5 {.section}
+B.2 NetCDF-4 and HDF5 
 ---------------------
 
 NetCDF-4 depends on HDF5 to deliver the new features of the expanded
@@ -12244,7 +12244,7 @@ only those created by netCDF-4.
   [[\<](#NetCDF_002d4-and-HDF5 "Previous section in reading order")]   [[\>](#The-Classic-and-the-Expanded-NetCDF-Data-Models "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------------------------------ --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.3 Backward Compatibility {.section}
+B.3 Backward Compatibility 
 --------------------------
 
 In the context of netCDF, backward compatibility has several meanings.
@@ -12276,7 +12276,7 @@ In the context of netCDF, backward compatibility has several meanings.
   [[\<](#Backward-Compatibility "Previous section in reading order")]   [[\>](#Using-NetCDF_002d4_002e0-with-the-Classic-and-64_002dbit-Offset-Formats "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------ --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.4 The Classic and the Expanded NetCDF Data Models {.section}
+B.4 The Classic and the Expanded NetCDF Data Models 
 ---------------------------------------------------
 
 The classic netCDF data model consists of variables, dimensions, and
@@ -12323,7 +12323,7 @@ nc\_create](#nc_005fcreate)).
   [[\<](#The-Classic-and-the-Expanded-NetCDF-Data-Models "Previous section in reading order")]   [[\>](#Creating-a-NetCDF_002d4_002fHDF5-File "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.5 Using NetCDF-4.0 with the Classic and 64-bit Offset Formats {.section}
+B.5 Using NetCDF-4.0 with the Classic and 64-bit Offset Formats 
 ---------------------------------------------------------------
 
 Prior to the 4.0 release, two underlying data formats were available for
@@ -12346,7 +12346,7 @@ library relies on the core netCDF-3.x code.
   [[\<](#Using-NetCDF_002d4_002e0-with-the-Classic-and-64_002dbit-Offset-Formats "Previous section in reading order")]   [[\>](#Using-NetCDF_002d4_002e0-with-the-Classic-Model "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------ --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.6 Creating a NetCDF-4/HDF5 File {.section}
+B.6 Creating a NetCDF-4/HDF5 File 
 ---------------------------------
 
 The extra features of netCDF-4 can only be accessed by adding the
@@ -12362,7 +12362,7 @@ nc\_create](#nc_005fcreate)).
   [[\<](#Creating-a-NetCDF_002d4_002fHDF5-File "Previous section in reading order")]   [[\>](#Use-of-the-Expanded-Model-Impacts-Fortran-Portability "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ------------------------------------------------------------------------------------------------ --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.7 Using NetCDF-4.0 with the Classic Model {.section}
+B.7 Using NetCDF-4.0 with the Classic Model 
 -------------------------------------------
 
 By changing your nc\_create call to create a netCDF-4/HDF5 file you gain
@@ -12405,7 +12405,7 @@ next call to nc\_enddef.
   [[\<](#Using-NetCDF_002d4_002e0-with-the-Classic-Model "Previous section in reading order")]   [[\>](#The-C_002b_002b-API-Does-Not-Handle-Expanded-Model-in-this-Release "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.8 Use of the Expanded Model Impacts Fortran Portability {.section}
+B.8 Use of the Expanded Model Impacts Fortran Portability 
 ---------------------------------------------------------
 
 Using expanded model features impacts portability for Fortran
@@ -12428,7 +12428,7 @@ programmers already deal with when doing data I/O.
   [[\<](#Use-of-the-Expanded-Model-Impacts-Fortran-Portability "Previous section in reading order")]   [[\>](#NetCDF-2-C-Transition-Guide "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-3-Transition-Guide "Up section")]   [[\>\>](#NetCDF-2-C-Transition-Guide "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- ------------------------------------------------- ------------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B.9 The C++ API Does Not Handle Expanded Model in this Release {.section}
+B.9 The C++ API Does Not Handle Expanded Model in this Release 
 --------------------------------------------------------------
 
 Unfortunately, the C++ API does not support the netCDF-4 expanded data
@@ -12443,7 +12443,7 @@ users using the –enable-cxx4 option to configure (see
   [[\<](#The-C_002b_002b-API-Does-Not-Handle-Expanded-Model-in-this-Release "Previous section in reading order")]   [[\>](#Overview-of-C-interface-changes "Next section in reading order")]       [[\<\<](#NetCDF-3-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------- --- -------------------------------------------------------------------------------------- --------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C. NetCDF 2 to NetCDF 3 C Transition Guide {.appendix}
+C. NetCDF 2 to NetCDF 3 C Transition Guide 
 ==========================================
 
 * * * * *
@@ -12452,7 +12452,7 @@ C. NetCDF 2 to NetCDF 3 C Transition Guide {.appendix}
   [[\<](#NetCDF-2-C-Transition-Guide "Previous section in reading order")]   [[\>](#The-New-C-Interface "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- -------------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.1 Overview of C interface changes {.section}
+C.1 Overview of C interface changes 
 -----------------------------------
 
 NetCDF version 3 includes a complete rewrite of the netCDF library. It
@@ -12503,7 +12503,7 @@ data access significantly in most cases.
   [[\<](#Overview-of-C-interface-changes "Previous section in reading order")]   [[\>](#Function-Naming-Conventions "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ---------------------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.2 The New C Interface {.section}
+C.2 The New C Interface 
 -----------------------
 
 First, here’s an example of C code that uses the netCDF-2 interface:
@@ -12565,7 +12565,7 @@ below.
   [[\<](#The-New-C-Interface "Previous section in reading order")]   [[\>](#Type-Conversion "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.3 Function Naming Conventions {.section}
+C.3 Function Naming Conventions 
 -------------------------------
 
 The netCDF-3 C library employs a new naming convention, intended to make
@@ -12614,7 +12614,7 @@ backward compatibility.
   [[\<](#Function-Naming-Conventions "Previous section in reading order")]   [[\>](#Error-handling "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- --------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.4 Type Conversion {.section}
+C.4 Type Conversion 
 -------------------
 
 With the new interface, users need not be aware of the external type of
@@ -12676,7 +12676,7 @@ larger type, respectively.
   [[\<](#Type-Conversion "Previous section in reading order")]   [[\>](#NC_005fLONG-and-NC_005fINT "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- --------------------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.5 Error handling {.section}
+C.5 Error handling 
 ------------------
 
 The new interface handles errors differently than netCDF-2. In the old
@@ -12703,7 +12703,7 @@ their own GUI interface.
   [[\<](#Error-handling "Previous section in reading order")]   [[\>](#What_0027s-Missing_003f "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------------------------ --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.6 NC\_LONG and NC\_INT {.section}
+C.6 NC\_LONG and NC\_INT 
 ------------------------
 
 Where the netCDF-2 interface used NC\_LONG to identify an external data
@@ -12720,7 +12720,7 @@ netCDF external data type corresponding to 64-bit integers.
   [[\<](#NC_005fLONG-and-NC_005fINT "Previous section in reading order")]   [[\>](#Other-Changes "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- -------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.7 What’s Missing? {.section}
+C.7 What’s Missing? 
 -------------------
 
 The new C interface omits three "record I/O" functions, ncrecput,
@@ -12753,7 +12753,7 @@ representable in CDL.
   [[\<](#What_0027s-Missing_003f "Previous section in reading order")]   [[\>](#NetCDF_002d3-Error-Codes "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-2-C-Transition-Guide "Up section")]   [[\>\>](#NetCDF_002d3-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.8 Other Changes {.section}
+C.8 Other Changes 
 -----------------
 
 There are two new functions in netCDF-3 that don’t correspond to any
@@ -12940,7 +12940,7 @@ functions, see the netCDF-2 User’s Guide.
   [[\<](#Other-Changes "Previous section in reading order")]   [[\>](#NetCDF_002d4-Error-Codes "Next section in reading order")]       [[\<\<](#NetCDF-2-C-Transition-Guide "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF_002d4-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------------------------- --- ---------------------------------------------------------------------------------------- --------------------------- ---------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-D. NetCDF-3 Error Codes {.appendix}
+D. NetCDF-3 Error Codes 
 =======================
 
  
@@ -12992,7 +12992,7 @@ D. NetCDF-3 Error Codes {.appendix}
   [[\<](#NetCDF_002d3-Error-Codes "Previous section in reading order")]   [[\>](#DAP-Error-Codes "Next section in reading order")]       [[\<\<](#NetCDF_002d3-Error-Codes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#DAP-Error-Codes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- ---------------------------------------------------------- --- ------------------------------------------------------------------------------------- --------------------------- ------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-E. NetCDF-4 Error Codes {.appendix}
+E. NetCDF-4 Error Codes 
 =======================
 
 NetCDF-4 uses all error codes from NetCDF-3 (see section [NetCDF-3 Error
@@ -13026,7 +13026,7 @@ were added for new errors unique to netCDF-4.
   [[\<](#NetCDF_002d4-Error-Codes "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#NetCDF_002d4-Error-Codes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-F. DAP Error Codes {.appendix}
+F. DAP Error Codes 
 ==================
 
 If the DAP client is enabled, then the following additional error codes
@@ -13063,7 +13063,7 @@ may occur.
   [[\<](#DAP-Error-Codes "Previous section in reading order")]   [ \> ]       [[\<\<](#DAP-Error-Codes "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- -------- --- ---------------------------------------------------------------------------- --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-G. Index {.chapter}
+G. Index 
 ========
 
 Jump to:  

@@ -4,7 +4,7 @@
   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-NetCDF Users Guide {.settitle}
+NetCDF Users Guide 
 ==================
 
 This guide describes the netCDF object model. This document applies to
@@ -101,7 +101,7 @@ Description of experimental dispatch mechanism
 
 Index of Concepts and Functions
 
-~~~~ {.menu-comment}
+~~~~ 
  — The Detailed Node Listing —
 
 Introduction
@@ -172,7 +172,7 @@ Plans for Future Development
 
 Papers Relating to Scientific Data
 
-~~~~ {.menu-comment}
+~~~~ 
 Components of a NetCDF Dataset
 ~~~~
 
@@ -207,7 +207,7 @@ Variables](#Attributes-and-Variables)
 
 Attributes vs. Variables
 
-~~~~ {.menu-comment}
+~~~~ 
 Data
 ~~~~
 
@@ -242,7 +242,7 @@ Reading and Writing Data
 
 Changing Type of Numeric Data
 
-~~~~ {.menu-comment}
+~~~~ 
 Forms of Data Access
 ~~~~
 
@@ -259,7 +259,7 @@ Access](#Fortran-Section-Access)
 
 A Fortran Example
 
-~~~~ {.menu-comment}
+~~~~ 
 File Structure and Performance
 ~~~~
 
@@ -334,7 +334,7 @@ Using HDF5 with NetCDF-4
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 Improving Performance With Chunking
 ~~~~
 
@@ -360,7 +360,7 @@ Improving Performance With Chunking
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 NetCDF Utilities
 ~~~~
 
@@ -406,7 +406,7 @@ Copying, Converting, Compressing, and Chunking Data Files
 
 Turning CDL into Classic Data Files
 
-~~~~ {.menu-comment}
+~~~~ 
 File Format Specification
 ~~~~
 
@@ -439,7 +439,7 @@ HDF5 with NetCDF Limitations
 
   
 
-~~~~ {.menu-comment}
+~~~~ 
 The NetCDF Classic Format Specification
 ~~~~
 
@@ -461,7 +461,7 @@ How to Get the Data You Want
 
 The Binary Layout of some Simple Files
 
-~~~~ {.menu-comment}
+~~~~ 
 ~~~~
 
 * * * * *
@@ -470,7 +470,7 @@ The Binary Layout of some Simple Files
   [[\<](#Top "Previous section in reading order")]   [[\>](#Summary "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Summary "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------- -------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ----------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Foreword {.unnumbered}
+Foreword 
 ========
 
 Unidata ([http://www.unidata.ucar.edu](http://www.unidata.ucar.edu)) is
@@ -569,7 +569,7 @@ Research
   [[\<](#Foreword "Previous section in reading order")]   [[\>](#Introduction "Next section in reading order")]       [[\<\<](#Foreword "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Introduction "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ------------------------------------------------------- --- --------------------------------------------------------------------- --------------------------- ---------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Summary {.unnumbered}
+Summary 
 =======
 
 The purpose of the Network Common Data Form (netCDF) interface is to
@@ -630,7 +630,7 @@ and Porting Guide: (netcdf-install)Top](netcdf-install.html#Top) section
   [[\<](#Summary "Previous section in reading order")]   [[\>](#Interface "Next section in reading order")]       [[\<\<](#Summary "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ ---------------------------------------------------- --- -------------------------------------------------------------------- --------------------------- ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1. Introduction {.chapter}
+1. Introduction 
 ===============
 
   ----------------------------------------------------------------------------- ---- ---------------------------------------------------------
@@ -654,7 +654,7 @@ and Porting Guide: (netcdf-install)Top](netcdf-install.html#Top) section
   [[\<](#Introduction "Previous section in reading order")]   [[\>](#Not-DBMS "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.1 The NetCDF Interface {.section}
+1.1 The NetCDF Interface 
 ------------------------
 
 The Network Common Data Form, or netCDF, is an interface to a library of
@@ -710,7 +710,7 @@ in The NetCDF Installation and Porting Guide.
   [[\<](#Interface "Previous section in reading order")]   [[\>](#Format "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.2 NetCDF Is Not a Database Management System {.section}
+1.2 NetCDF Is Not a Database Management System 
 ----------------------------------------------
 
 Why not use an existing database management system for storing
@@ -744,7 +744,7 @@ transaction-processing are unnecessary for most scientific applications.
   [[\<](#Not-DBMS "Previous section in reading order")]   [[\>](#Which-Format "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.3 The netCDF File Format {.section}
+1.3 The netCDF File Format 
 --------------------------
 
 Until version 3.6.0, all versions of netCDF employed only one binary
@@ -793,7 +793,7 @@ is ever modified.
   [[\<](#Format "Previous section in reading order")]   [[\>](#NetCDF-Classic-Format-1 "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.4 How to Select the Format {.section}
+1.4 How to Select the Format 
 ----------------------------
 
 With three different base formats, care must be taken in creating data
@@ -836,7 +836,7 @@ Guide.
   [[\<](#Which-Format "Previous section in reading order")]   [[\>](#NetCDF-64_002dbit-Offset-Format "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Which-Format "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- -------------------------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.4.1 NetCDF Classic Format {.subsection}
+### 1.4.1 NetCDF Classic Format 
 
 The original netCDF format is identified using four bytes in the file
 header. All files in this format have “CDF\\001” at the beginning of the
@@ -857,7 +857,7 @@ Limitations](#Classic-Limitations)).
   [[\<](#NetCDF-Classic-Format-1 "Previous section in reading order")]   [[\>](#NetCDF_002d4-Format-1 "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Which-Format "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ---------------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.4.2 NetCDF 64-bit Offset Format {.subsection}
+### 1.4.2 NetCDF 64-bit Offset Format 
 
 For these users, 64-bit offset format is a natural choice. It greatly
 eases the size restrictions of netCDF classic files (see section [NetCDF
@@ -876,7 +876,7 @@ versions of the netCDF library can’t read 64-bit offset files.
   [[\<](#NetCDF-64_002dbit-Offset-Format "Previous section in reading order")]   [[\>](#Performance "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Which-Format "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ ------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 1.4.3 NetCDF-4 Format {.subsection}
+### 1.4.3 NetCDF-4 Format 
 
 In version 4.0, netCDF included another new underlying format: HDF5.
 
@@ -907,7 +907,7 @@ For more discussion of format issues see [The NetCDF Tutorial:
   [[\<](#NetCDF_002d4-Format-1 "Previous section in reading order")]   [[\>](#Archival "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- --------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.5 What about Performance? {.section}
+1.5 What about Performance? 
 ---------------------------
 
 One of the goals of netCDF is to support efficient access to small
@@ -943,7 +943,7 @@ performance.
   [[\<](#Performance "Previous section in reading order")]   [[\>](#Conventions "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.6 Is NetCDF a Good Archive Format? {.section}
+1.6 Is NetCDF a Good Archive Format? 
 ------------------------------------
 
 NetCDF classic or 64-bit offset formats can be used as a general-purpose
@@ -967,7 +967,7 @@ compressed.
   [[\<](#Archival "Previous section in reading order")]   [[\>](#Background "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.7 Creating Self-Describing Data conforming to Conventions {.section}
+1.7 Creating Self-Describing Data conforming to Conventions 
 -----------------------------------------------------------
 
 The mere use of netCDF is not sufficient to make data "self-describing"
@@ -999,7 +999,7 @@ areas.
   [[\<](#Conventions "Previous section in reading order")]   [[\>](#Whats-New "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.8 Background and Evolution of the NetCDF Interface {.section}
+1.8 Background and Evolution of the NetCDF Interface 
 ----------------------------------------------------
 
 The development of the netCDF interface began with a modest goal related
@@ -1225,7 +1225,7 @@ CF-compliance checking and many other features.
   [[\<](#Background "Previous section in reading order")]   [[\>](#Limitations "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.9 What’s New Since the Previous Release? {.section}
+1.9 What’s New Since the Previous Release? 
 ------------------------------------------
 
 This Guide documents the No value for VERSION release of netCDF, which
@@ -1252,7 +1252,7 @@ More information about netCDF-4 can be found at the netCDF web page
   [[\<](#Whats-New "Previous section in reading order")]   [[\>](#Future "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.10 Limitations of NetCDF {.section}
+1.10 Limitations of NetCDF 
 --------------------------
 
 The netCDF classic data model is widely applicable to data that can be
@@ -1367,7 +1367,7 @@ For more information about parallel-netcdf, see their web site:
   [[\<](#Limitations "Previous section in reading order")]   [[\>](#References "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.11 Plans for NetCDF {.section}
+1.11 Plans for NetCDF 
 ---------------------
 
 Future versions of netCDF will include the following features:
@@ -1382,7 +1382,7 @@ Future versions of netCDF will include the following features:
   [[\<](#Future "Previous section in reading order")]   [[\>](#Dataset-Components "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#Dataset-Components "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ---------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-1.12 References {.section}
+1.12 References 
 ---------------
 
 1.  Brown, S. A, M. Folk, G. Goucher, and R. Rew, "Software for Portable
@@ -1433,7 +1433,7 @@ Future versions of netCDF will include the following features:
   [[\<](#References "Previous section in reading order")]   [[\>](#Data-Model "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------- --------------------------- -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2. Components of a NetCDF Dataset {.chapter}
+2. Components of a NetCDF Dataset 
 =================================
 
   ------------------------------------------------------------------------------- ---- --------------------------
@@ -1450,7 +1450,7 @@ Future versions of netCDF will include the following features:
   [[\<](#Dataset-Components "Previous section in reading order")]   [[\>](#Enhanced-Model-in-NetCDF_002d4-Files "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Dataset-Components "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.1 The NetCDF Data Model {.section}
+2.1 The NetCDF Data Model 
 -------------------------
 
 A netCDF dataset contains dimensions, variables, and attributes, which
@@ -1466,7 +1466,7 @@ identified by dataset ID numbers, in addition to ordinary file names.
   [[\<](#Data-Model "Previous section in reading order")]   [[\>](#Naming-Conventions "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Data-Model "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------- -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.1 Enhanced Model in NetCDF-4 Files {.subsection}
+### 2.1.1 Enhanced Model in NetCDF-4 Files 
 
 Files created with the netCDF-4 format have access to an enhanced data
 model, which includes named groups. Groups, like directories in a Unix
@@ -1504,7 +1504,7 @@ offset format files.
   [[\<](#Enhanced-Model-in-NetCDF_002d4-Files "Previous section in reading order")]   [[\>](#Network-Common-Data-Form-Language-_0028CDL_0029 "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Data-Model "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------ --- ------------------------------------------------------------------------------- ---------------------------------- -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.2 Naming Conventions {.subsection}
+### 2.1.2 Naming Conventions 
 
 The names of dimensions, variables and attributes (and, in netCDF-4
 files, groups, user-defined types, compound member names, and
@@ -1526,7 +1526,7 @@ permitted.
   [[\<](#Naming-Conventions "Previous section in reading order")]   [[\>](#Dimensions "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Data-Model "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------------- ---------------------------------- -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.1.3 Network Common Data Form Language (CDL) {.subsection}
+### 2.1.3 Network Common Data Form Language (CDL) 
 
 We will use a small netCDF example to illustrate the concepts of the
 netCDF classic data model. This includes dimensions, variables, and
@@ -1624,7 +1624,7 @@ classic format may result in an error because size limits are violated.
   [[\<](#Network-Common-Data-Form-Language-_0028CDL_0029 "Previous section in reading order")]   [[\>](#Variables "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Dataset-Components "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------------------------- ---------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.2 Dimensions {.section}
+2.2 Dimensions 
 --------------
 
 A dimension may be used to represent a real physical dimension, for
@@ -1690,7 +1690,7 @@ same length.
   [[\<](#Dimensions "Previous section in reading order")]   [[\>](#Coordinate-Variables "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Dataset-Components "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- --------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.3 Variables {.section}
+2.3 Variables 
 -------------
 
 Variables are used to store the bulk of the data in a netCDF dataset. A
@@ -1763,7 +1763,7 @@ length of the unlimited dimension is the number of records.
   [[\<](#Variables "Previous section in reading order")]   [[\>](#Attributes "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Variables "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------------- --------------------------------- -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 2.3.1 Coordinate Variables {.subsection}
+### 2.3.1 Coordinate Variables 
 
 It is legal for a variable to have the same name as a dimension. Such
 variables have no special meaning to the netCDF library. However there
@@ -1813,7 +1813,7 @@ decreasing).
   [[\<](#Coordinate-Variables "Previous section in reading order")]   [[\>](#Attributes-and-Variables "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Dataset-Components "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.4 Attributes {.section}
+2.4 Attributes 
 --------------
 
 NetCDF attributes are used to store data about the data (ancillary data
@@ -1915,7 +1915,7 @@ Performance](#Structure).
   [[\<](#Attributes "Previous section in reading order")]   [[\>](#Data "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Dataset-Components "Up section")]   [[\>\>](#Data "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ----------------------------------------------- --- ------------------------------------------------------------------------------- ------------------------------------------ -------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-2.5 Differences between Attributes and Variables {.section}
+2.5 Differences between Attributes and Variables 
 ------------------------------------------------
 
 In contrast to variables, which are intended for bulk data, attributes
@@ -1951,7 +1951,7 @@ attributes.
   [[\<](#Attributes-and-Variables "Previous section in reading order")]   [[\>](#External-Types "Next section in reading order")]       [[\<\<](#Dataset-Components "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------- --------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3. Data {.chapter}
+3. Data 
 =======
 
 This chapter discusses the primitive netCDF external data types, the
@@ -1972,7 +1972,7 @@ structures other than arrays may be implemented in a netCDF dataset.
   [[\<](#Data "Previous section in reading order")]   [[\>](#Classic-Data-Structures "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------- ------------------------------------------------------------------ --- ----------------------------------------------------------------- ---------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.1 NetCDF External Data Types {.section}
+3.1 NetCDF External Data Types 
 ------------------------------
 
 The atomic external types supported by the netCDF interface are:
@@ -2057,7 +2057,7 @@ types of a language see [Variables](#Variables).
   [[\<](#External-Types "Previous section in reading order")]   [[\>](#User-Defined-Types "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------- ---------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.2 Data Structures in Classic and 64-bit Offset Files {.section}
+3.2 Data Structures in Classic and 64-bit Offset Files 
 ------------------------------------------------------
 
 The only kind of data structure directly supported by the netCDF classic
@@ -2107,7 +2107,7 @@ netCDF datasets.
   [[\<](#Classic-Data-Structures "Previous section in reading order")]   [[\>](#Compound-Types "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------- ---------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.3 NetCDF-4 User Defined Data Types {.section}
+3.3 NetCDF-4 User Defined Data Types 
 ------------------------------------
 
 NetCDF supported six data types through version 3.6.0 (char, byte,
@@ -2153,7 +2153,7 @@ data of user defined type.
   [[\<](#User-Defined-Types "Previous section in reading order")]   [[\>](#VLEN-Types "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Types "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ----------------------------------------------------- --- ----------------------------------------------------------------- ------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.1 Compound Types {.subsection}
+### 3.3.1 Compound Types 
 
 Compound types allow the user to combine atomic and user-defined types
 into C-like structs. Since users defined types may be used within a
@@ -2182,7 +2182,7 @@ Interface Guide.
   [[\<](#Compound-Types "Previous section in reading order")]   [[\>](#Opaque-Types "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Types "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------------- --- ----------------------------------------------------------------- ------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.2 VLEN Types {.subsection}
+### 3.3.2 VLEN Types 
 
 Variable length arrays can be used to create a ragged array of data, in
 which one of the dimensions varies in size from point to point.
@@ -2217,7 +2217,7 @@ NetCDF C Interface Guide.
   [[\<](#VLEN-Types "Previous section in reading order")]   [[\>](#Enum-Types "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Types "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ----------------------------------------------------- --- ----------------------------------------------------------------- ------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.3 Opaque Types {.subsection}
+### 3.3.3 Opaque Types 
 
 Opaque types allow the user to store arrays of data blobs of a fixed
 size.
@@ -2232,7 +2232,7 @@ in The NetCDF C Interface Guide in The NetCDF C Interface Guide.
   [[\<](#Opaque-Types "Previous section in reading order")]   [[\>](#Groups-1 "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Types "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- --------------------------------------------------- --- ----------------------------------------------------------------- ------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.4 Enum Types {.subsection}
+### 3.3.4 Enum Types 
 
 Enum types allow the user to specify an enumeration.
 
@@ -2246,7 +2246,7 @@ The NetCDF C Interface Guide in The NetCDF C Interface Guide.
   [[\<](#Enum-Types "Previous section in reading order")]   [[\>](#Data-Access "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#User-Defined-Types "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------ --- ----------------------------------------------------------------- ------------------------------------------ ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.3.5 Groups {.subsection}
+### 3.3.5 Groups 
 
 Although not a type of data, groups can help organize data within a
 dataset. Like a directory structure on a Unix file-system, the grouping
@@ -2261,7 +2261,7 @@ The NetCDF C Interface Guide in The NetCDF C Interface Guide.
   [[\<](#Groups-1 "Previous section in reading order")]   [[\>](#Forms-of-Data-Access "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- --------------------------------------------------------------- --- ----------------------------------------------------------------- ---------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.4 Data Access {.section}
+3.4 Data Access 
 ---------------
 
 To access (read or write) netCDF data you specify an open netCDF
@@ -2297,7 +2297,7 @@ variable in a netCDF dataset.
   [[\<](#Data-Access "Previous section in reading order")]   [[\>](#C-Section-Access "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data-Access "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ----------------------------------------------------------- --- ----------------------------------------------------------------- ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.1 Forms of Data Access {.subsection}
+### 3.4.1 Forms of Data Access 
 
 The netCDF interface supports several forms of direct access to data
 values in an open netCDF dataset. We describe each of these forms of
@@ -2357,7 +2357,7 @@ access.
   [[\<](#Forms-of-Data-Access "Previous section in reading order")]   [[\>](#More-on-General-Array-Section-Access-for-C "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data-Access "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ------------------------------------------------------------------------------------- --- ----------------------------------------------------------------- ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.2 A C Example of Array-Section Access {.subsection}
+### 3.4.2 A C Example of Array-Section Access 
 
 Assume that in our earlier example of a netCDF dataset (see section
 [Network Common Data Form Language (CDL)](#Data-Model)), we wish to read
@@ -2443,7 +2443,7 @@ programs written in other supported languages.
   [[\<](#C-Section-Access "Previous section in reading order")]   [[\>](#Fortran-Section-Access "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data-Access "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ----------------------------------------------------------------- --- ----------------------------------------------------------------- ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.3 More on General Array Section Access for C {.subsection}
+### 3.4.3 More on General Array Section Access for C 
 
 The use of mapped array sections allows non-trivial relationships
 between the disk addresses of variable elements and the addresses where
@@ -2511,7 +2511,7 @@ instead.
   [[\<](#More-on-General-Array-Section-Access-for-C "Previous section in reading order")]   [[\>](#More-on-General-Array-Section-Access-for-Fortran "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data-Access "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------- --- ----------------------------------------------------------------- ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.4 A Fortran Example of Array-Section Access {.subsection}
+### 3.4.4 A Fortran Example of Array-Section Access 
 
 Assume that in our earlier example of a netCDF dataset (see section [The
 NetCDF Data Model](#Data-Model)), we wish to read a cross-section of all
@@ -2591,7 +2591,7 @@ programs written in other supported languages.
   [[\<](#Fortran-Section-Access "Previous section in reading order")]   [[\>](#Type-Conversion "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data-Access "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ---------------------------------------------------------- --- ----------------------------------------------------------------- ----------------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 3.4.5 More on General Array Section Access for Fortran {.subsection}
+### 3.4.5 More on General Array Section Access for Fortran 
 
 The use of mapped array sections allows non-trivial relationships
 between the disk addresses of variable elements and the addresses where
@@ -2639,7 +2639,7 @@ instead.
   [[\<](#More-on-General-Array-Section-Access-for-Fortran "Previous section in reading order")]   [[\>](#Structure "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Data "Up section")]   [[\>\>](#Structure "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------------- ---------------------------------------------------- --- ----------------------------------------------------------------- ---------------------------- ------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-3.5 Type Conversion {.section}
+3.5 Type Conversion 
 -------------------
 
 Each netCDF variable has an external type, specified when the variable
@@ -2706,7 +2706,7 @@ to the 1024th power.
   [[\<](#Type-Conversion "Previous section in reading order")]   [[\>](#Classic-File-Parts "Next section in reading order")]       [[\<\<](#Data "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------------- --- ----------------------------------------------------------------- --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4. File Structure and Performance {.chapter}
+4. File Structure and Performance 
 =================================
 
 This chapter describes the file structure of a netCDF classic or 64-bit
@@ -2749,7 +2749,7 @@ will support earlier versions of the netCDF file format.
   [[\<](#Structure "Previous section in reading order")]   [[\>](#NetCDF_002d4-File-Parts "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ------------------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.1 Parts of a NetCDF Classic File {.section}
+4.1 Parts of a NetCDF Classic File 
 ----------------------------------
 
 A netCDF classic or 64-bit offset dataset is stored as a single file
@@ -2847,7 +2847,7 @@ For more detail see [File Format Specification](#File-Format).
   [[\<](#Classic-File-Parts "Previous section in reading order")]   [[\>](#XDR-Layer "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- ---------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.2 Parts of a NetCDF-4 HDF5 File {.section}
+4.2 Parts of a NetCDF-4 HDF5 File 
 ---------------------------------
 
 NetCDF-4 files are created with the HDF5 library, and are HDF5 files in
@@ -2877,7 +2877,7 @@ dimension ids.
   [[\<](#NetCDF_002d4-File-Parts "Previous section in reading order")]   [[\>](#Large-File-Support "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.3 The Extended XDR Layer {.section}
+4.3 The Extended XDR Layer 
 --------------------------
 
 XDR is a standard for describing and encoding data and a library of
@@ -2903,7 +2903,7 @@ not use IEEE floating-point as its native representation.
   [[\<](#XDR-Layer "Previous section in reading order")]   [[\>](#g_t64-bit-Offset-Limitations "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------- ----------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.4 Large File Support {.section}
+4.4 Large File Support 
 ----------------------
 
 It is possible to write netCDF files that exceed 2 GiByte on platforms
@@ -2958,7 +2958,7 @@ section [How to Select the Format](#Which-Format).
   [[\<](#Large-File-Support "Previous section in reading order")]   [[\>](#Classic-Limitations "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------- -------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.5 NetCDF 64-bit Offset Format Limitations {.section}
+4.5 NetCDF 64-bit Offset Format Limitations 
 -------------------------------------------
 
 Although the 64-bit offset format allows the creation of much larger
@@ -2995,7 +2995,7 @@ boundaries.
   [[\<](#g_t64-bit-Offset-Limitations "Previous section in reading order")]   [[\>](#The-NetCDF_002d3-IO-Layer "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------- -------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.6 NetCDF Classic Format Limitations {.section}
+4.6 NetCDF Classic Format Limitations 
 -------------------------------------
 
 There are important constraints on the structure of large netCDF classic
@@ -3067,7 +3067,7 @@ netcdf bigfile2 {
   [[\<](#Classic-Limitations "Previous section in reading order")]   [[\>](#UNICOS-Optimization "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ -------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.7 The NetCDF-3 I/O Layer {.section}
+4.7 The NetCDF-3 I/O Layer 
 --------------------------
 
 The following discussion applies only to netCDF classic and 64-bit
@@ -3121,7 +3121,7 @@ better I/O performance are practical in some cases.
   [[\<](#The-NetCDF_002d3-IO-Layer "Previous section in reading order")]   [[\>](#Chunking "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ --------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.8 UNICOS Optimization {.section}
+4.8 UNICOS Optimization 
 -----------------------
 
 It should be noted that no UNICOS platform has been available at Unidata
@@ -3182,7 +3182,7 @@ have been seen.
   [[\<](#UNICOS-Optimization "Previous section in reading order")]   [[\>](#Chunk-Cache "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.9 Improving Performance With Chunking {.section}
+4.9 Improving Performance With Chunking 
 ---------------------------------------
 
 NetCDF may use HDF5 as a storage format (when files are created with
@@ -3222,7 +3222,7 @@ workshop presentation
   [[\<](#Chunking "Previous section in reading order")]   [[\>](#Default-Chunking "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Chunking "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- ----------------------------------------------------------- --- ---------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.1 The Chunk Cache {.subsection}
+### 4.9.1 The Chunk Cache 
 
 When data are first read or written to a netCDF-4/HDF5 variable, the
 HDF5 library opens a cache for that variable. The default size of that
@@ -3267,7 +3267,7 @@ Guide, ).
   [[\<](#Chunk-Cache "Previous section in reading order")]   [[\>](#Default-Chunking-4_005f0_005f1 "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Chunking "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------------------------- --- ---------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.2 The Default Chunking Scheme in version 4.1 (and 4.1.1) {.subsection}
+### 4.9.2 The Default Chunking Scheme in version 4.1 (and 4.1.1) 
 
 When the data writer does not specify chunk sizes for variable, the
 netCDF library has to come up with some default values.
@@ -3299,7 +3299,7 @@ sizes in each dimension which results in chunks of DEFAULT\_CHUNK\_SIZE
   [[\<](#Default-Chunking "Previous section in reading order")]   [[\>](#Parallel-Chunking "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Chunking "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- ------------------------------------------------------------ --- ---------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.3 The Default Chunking Scheme in version 4.0.1 {.subsection}
+### 4.9.3 The Default Chunking Scheme in version 4.0.1 
 
 In the 4.0.1 release, the default chunk sizes were chosen with a
 different scheme, as demonstrated in the following C code:
@@ -3342,7 +3342,7 @@ other read access patterns will result in slower performance.
   [[\<](#Default-Chunking-4_005f0_005f1 "Previous section in reading order")]   [[\>](#bm_005ffile "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Chunking "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ------------------------------------------------------ --- ---------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.4 Chunking and Parallel I/O {.subsection}
+### 4.9.4 Chunking and Parallel I/O 
 
 When files are opened for read/write parallel I/O access, the chunk
 cache is not used. Therefore it is important to open parallel files with
@@ -3354,7 +3354,7 @@ read only access when possible, to achieve the best performance.
   [[\<](#Parallel-Chunking "Previous section in reading order")]   [[\>](#Parallel-Access "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Chunking "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------------- -------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.9.5 A Utility to Help Benchmark Results: bm\_file {.subsection}
+### 4.9.5 A Utility to Help Benchmark Results: bm\_file 
 
 The bm\_file utility may be used to copy files, from one netCDF format
 to another, changing chunking, filter, parallel I/O, and other
@@ -3462,7 +3462,7 @@ bm_file -v [-s N]|[-t V:S:S:S -u V:C:C:C -r V:I:I:I] -o file_out -f N -h -c V:C:
   [[\<](#bm_005ffile "Previous section in reading order")]   [[\>](#Interoperability-with-HDF5 "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- --------------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.10 Parallel Access with NetCDF-4 {.section}
+4.10 Parallel Access with NetCDF-4 
 ----------------------------------
 
 Use the special parallel open (or create) calls to open (or create) a
@@ -3497,7 +3497,7 @@ See the parallel-netcdf site for more information
   [[\<](#Parallel-Access "Previous section in reading order")]   [[\>](#DAP-Support "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------ --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.11 Interoperability with HDF5 {.section}
+4.11 Interoperability with HDF5 
 -------------------------------
 
 To create HDF5 files that can be read by netCDF-4, use HDF5 1.8, which
@@ -3559,7 +3559,7 @@ then verify them in HDF5. (And vice versa).
   [[\<](#Interoperability-with-HDF5 "Previous section in reading order")]   [[\>](#Accessing-OPeNDAP-Data "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Structure "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------- ----------------------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-4.12 DAP Support {.section}
+4.12 DAP Support 
 ----------------
 
 Beginning with netCDF version 4.1, optional support is provided for
@@ -3591,7 +3591,7 @@ DDS and DAS, refer to the OPeNDAP web site
   [[\<](#DAP-Support "Previous section in reading order")]   [[\>](#DAP-to-NetCDF-Translation-Rules "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-Support "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------------------- --- ---------------------------------------------------------------------- ----------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.12.1 Accessing OPeNDAP Data {.subsection}
+### 4.12.1 Accessing OPeNDAP Data 
 
 In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific format.
@@ -3744,7 +3744,7 @@ variables:
   [[\<](#Accessing-OPeNDAP-Data "Previous section in reading order")]   [[\>](#netCDF_002d3-Translation-Rules "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-Support "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- ------------------------------------------------------------------------- --- ---------------------------------------------------------------------- ----------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.12.2 DAP to NetCDF Translation Rules {.subsection}
+### 4.12.2 DAP to NetCDF Translation Rules 
 
 Currently only one translation available: DAP 2 Protocol to netCDF-3.
 There used to be a DAP 2 Protocol to netCDF-4 translation but that has
@@ -3756,7 +3756,7 @@ been removed until the DAP4 protocol is available.
   [[\<](#DAP-to-NetCDF-Translation-Rules "Previous section in reading order")]   [[\>](#Variable-Definition "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------ -------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.1 netCDF-3 Translation Rules {.subsubsection}
+#### 4.12.2.1 netCDF-3 Translation Rules 
 
 The current default translation code translates the OPeNDAP protocol to
 netCDF-3 (classic). This netCDF-3 translation converts an OPeNDAP DAP
@@ -3803,7 +3803,7 @@ Dataset {
   [[\<](#netCDF_002d3-Translation-Rules "Previous section in reading order")]   [[\>](#Variable-Dimension-Translation "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- ------------------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.2 Variable Definition {.subsubsection}
+#### 4.12.2.2 Variable Definition 
 
 The set of netCDF variables is derived from the fields with primitive
 base types as they occur in Sequences, Grids, and Structures. The field
@@ -3826,7 +3826,7 @@ are left out in order to mimic the behavior of libnc-dap.
   [[\<](#Variable-Definition "Previous section in reading order")]   [[\>](#Dimension-translation "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ---------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.3 Variable Dimension Translation {.subsubsection}
+#### 4.12.2.3 Variable Dimension Translation 
 
 A variable’s rank is determined from three sources.
 
@@ -3849,7 +3849,7 @@ A variable’s rank is determined from three sources.
   [[\<](#Variable-Dimension-Translation "Previous section in reading order")]   [[\>](#Variable-Name-Translation "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------- -------------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.4 Dimension translation {.subsubsection}
+#### 4.12.2.4 Dimension translation 
 
 For dimensions, the rules are as follows.
 
@@ -3923,7 +3923,7 @@ dimensions:
   [[\<](#Dimension-translation "Previous section in reading order")]   [[\>](#Translating-DAP-DDS-Sequences "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------------------ --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.5 Variable Name Translation {.subsubsection}
+#### 4.12.2.5 Variable Name Translation 
 
 The steps for variable name translation are as follows.
 
@@ -3992,7 +3992,7 @@ than S1.FS2.f1(2,3).
   [[\<](#Variable-Name-Translation "Previous section in reading order")]   [[\>](#Dimension-Definition "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ --------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.6 Translating DAP DDS Sequences {.subsubsection}
+#### 4.12.2.6 Translating DAP DDS Sequences 
 
 Any variable (as determined above) that is contained directly or
 indirectly by a Sequence is subject to revision of its rank using the
@@ -4067,7 +4067,7 @@ cost is not prohibitive.
   [[\<](#Translating-DAP-DDS-Sequences "Previous section in reading order")]   [[\>](#Type-Definition "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.7 Dimension Definition {.subsubsection}
+#### 4.12.2.7 Dimension Definition 
 
 The rules for choosing and defining dimensions is as follows.
 
@@ -4093,7 +4093,7 @@ The rules for choosing and defining dimensions is as follows.
   [[\<](#Dimension-Definition "Previous section in reading order")]   [[\>](#Choosing-a-Translation "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- ----------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.8 Type Definition {.subsubsection}
+#### 4.12.2.8 Type Definition 
 
 The rules for choosing user-defined types are as follows.
 
@@ -4156,7 +4156,7 @@ The rules for choosing user-defined types are as follows.
   [[\<](#Type-Definition "Previous section in reading order")]   [[\>](#Caching "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- -------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.9 Choosing a Translation {.subsubsection}
+#### 4.12.2.9 Choosing a Translation 
 
 The decision about whether to translate to netCDF-3 or netCDF-4 is
 determined by applying the following rules in order.
@@ -4180,7 +4180,7 @@ determined by applying the following rules in order.
   [[\<](#Choosing-a-Translation "Previous section in reading order")]   [[\>](#Defined-Client-Parameters "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------- -------------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.10 Caching {.subsubsection}
+#### 4.12.2.10 Caching 
 
 In an effort to provide better performance for some access patterns,
 client-side caching of data is available. The default is no caching, but
@@ -4225,7 +4225,7 @@ caching initially and later turn it on to see its effect on performance.
   [[\<](#Caching "Previous section in reading order")]   [[\>](#Notes-on-Debugging-OPeNDAP-Access "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-to-NetCDF-Translation-Rules "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------ ---------------------------------------------------------------------------- --- ---------------------------------------------------------------------- ------------------------------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### 4.12.2.11 Defined Client Parameters {.subsubsection}
+#### 4.12.2.11 Defined Client Parameters 
 
 Currently, a limited set of client parameters is recognized. Parameters
 not listed here are ignored, but no error is signalled.
@@ -4277,7 +4277,7 @@ not listed here are ignored, but no error is signalled.
   [[\<](#Defined-Client-Parameters "Previous section in reading order")]   [[\>](#HTTP-Configuration_002e "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-Support "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ------------------------------------------------------------------ --- ---------------------------------------------------------------------- ----------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.12.3 Notes on Debugging OPeNDAP Access {.subsection}
+### 4.12.3 Notes on Debugging OPeNDAP Access 
 
 The OPeNDAP support makes use of the logging facility of the underlying
 oc system (see http://www.opendap.org/oc). Note that this is currently
@@ -4296,7 +4296,7 @@ mount, you may see some .nfsxxxxx files; those can be ignored.
   [[\<](#Notes-on-Debugging-OPeNDAP-Access "Previous section in reading order")]   [[\>](#NetCDF-Utilities "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#DAP-Support "Up section")]   [[\>\>](#NetCDF-Utilities "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ----------------------------------------------------------- --- ---------------------------------------------------------------------- ----------------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### 4.12.4 HTTP Configuration. {.subsection}
+### 4.12.4 HTTP Configuration. 
 
 Limited support for configuring the http connection is provided via
 parameters in the “.dodsrc” configuration file. The relevant .dodsrc
@@ -4448,7 +4448,7 @@ to the "certificates" directory produced by MyProxyLogon.
   [[\<](#HTTP-Configuration_002e "Previous section in reading order")]   [[\>](#CDL-Syntax "Next section in reading order")]       [[\<\<](#Structure "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ----------------------------------------------------- --- ---------------------------------------------------------------------- --------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5. NetCDF Utilities {.chapter}
+5. NetCDF Utilities 
 ===================
 
 One of the primary reasons for using the netCDF interface for
@@ -4500,7 +4500,7 @@ Description Language).
   [[\<](#NetCDF-Utilities "Previous section in reading order")]   [[\>](#CDL-Data-Types "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------- --------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.1 CDL Syntax {.section}
+5.1 CDL Syntax 
 --------------
 
 Below is an example of CDL, describing a netCDF dataset with several
@@ -4641,7 +4641,7 @@ designates a fill value for variables.
   [[\<](#CDL-Syntax "Previous section in reading order")]   [[\>](#CDL-Constants "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- -------------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.2 CDL Data Types {.section}
+5.2 CDL Data Types 
 ------------------
 
 The CDL primitive data types for the classic model are:
@@ -4716,7 +4716,7 @@ type holds variable length strings.
   [[\<](#CDL-Data-Types "Previous section in reading order")]   [[\>](#ncgen "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- ------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.3 CDL Notation for Data Constants {.section}
+5.3 CDL Notation for Data Constants 
 -----------------------------------
 
 This section describes the CDL notation for constants.
@@ -4826,7 +4826,7 @@ constants:
   [[\<](#CDL-Constants "Previous section in reading order")]   [[\>](#ncdump "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------ ------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.4 ncgen {.section}
+5.4 ncgen 
 ---------
 
 The ncgen tool generates a netCDF file or a C or FORTRAN program that
@@ -4917,7 +4917,7 @@ where:
     faster, but it will also eliminate the possibility of detecting the
     inadvertent reading of values that haven’t been written.
 
-Examples {.heading}
+Examples 
 --------
 
 Check the syntax of the CDL file foo.cdl:
@@ -4953,7 +4953,7 @@ ncgen -c foo.cdl > foo.c
   [[\<](#ncgen "Previous section in reading order")]   [[\>](#nccopy "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- ------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.5 ncdump {.section}
+5.5 ncdump 
 ----------
 
 The ncdump tool generates the CDL text representation of a netCDF
@@ -5112,7 +5112,7 @@ where:
     values “gregorian” or “standard”, “proleptic\_gregorian”, “noleap”
     or “365\_day”, “all\_leap” or “366\_day”, “360\_day”, and “julian”.
 
-Examples {.heading}
+Examples 
 --------
 
 Look at the structure of the data in the netCDF dataset foo.nc:
@@ -5146,7 +5146,7 @@ ncdump -h http://thredds-test.ucar.edu/dts/test.01
   [[\<](#ncdump "Previous section in reading order")]   [[\>](#ncgen3 "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------- --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.6 nccopy {.section}
+5.6 nccopy 
 ----------
 
 The nccopy utility copies an input netCDF file to an output netCDF file,
@@ -5279,10 +5279,10 @@ where:
     may want to specify a value larger than the default for OPeNDAP
     copies of large files over high latency networks.
 
-Examples {.heading}
+Examples 
 --------
 
-#### Simple copy, check for corruption or truncation {.subsubheading}
+#### Simple copy, check for corruption or truncation 
 
 Make a copy of foo1.nc, a netCDF file of any type, to foo2.nc, a netCDF
 file of the same type:
@@ -5305,7 +5305,7 @@ interface. If the original file was generated in ‘No fill’ mode so that
 fill values are not stored for padding for data alignment, the output
 file may have different padding bytes.
 
-#### Uncompress and convert to classic format {.subsubheading}
+#### Uncompress and convert to classic format 
 
 Convert a netCDF-4 classic model file that uses compression
 (compressed.nc) to a netCDF-3 file (classic.nc):
@@ -5318,7 +5318,7 @@ nccopy -k classic compressed.nc classic.nc
 
 Note that “1” could be used instead of “classic”.
 
-#### Copy a subset of data on an OPeNDAP server to a netCDF file {.subsubheading}
+#### Copy a subset of data on an OPeNDAP server to a netCDF file 
 
 Download the variable ‘time\_bnds’ and it’s associated attributes from
 an OPeNDAP server and copy the result to a netCDF file named ‘tb.nc’:
@@ -5333,7 +5333,7 @@ Note that URLs that name specific variables as command-line arguments
 should generally be quoted, to avoid the shell interpreting special
 characters in OPeNDAP syntax, such as ‘?’.
 
-#### Apply compression to a netCDF file {.subsubheading}
+#### Apply compression to a netCDF file 
 
 Compress all the variables in the input file foo.nc, a netCDF file of
 any type, to the output file bar.nc:
@@ -5358,7 +5358,7 @@ will now use deflation level 1.
   [[\<](#nccopy "Previous section in reading order")]   [[\>](#Units "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Utilities "Up section")]   [[\>\>](#Units "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------ --- ----------------------------------------------------------------------------- ---------------------------------------- --------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-5.7 ncgen3 {.section}
+5.7 ncgen3 
 ----------
 
 The ncgen3 tool is the new name for the older, original ncgen utility.
@@ -5432,7 +5432,7 @@ where:
   [[\<](#ncgen3 "Previous section in reading order")]   [[\>](#Attribute-Conventions "Next section in reading order")]       [[\<\<](#NetCDF-Utilities "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Attribute-Conventions "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ---------------------------------------------------------------- --- ----------------------------------------------------------------------------- --------------------------- ------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-A. Units {.appendix}
+A. Units 
 ========
 
 The Unidata Program Center has developed a units library to convert
@@ -5553,7 +5553,7 @@ manual pages that come with its distribution.
   [[\<](#Units "Previous section in reading order")]   [[\>](#File-Format "Next section in reading order")]       [[\<\<](#Units "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#File-Format "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------ --------------------------- --------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-B. Attribute Conventions {.appendix}
+B. Attribute Conventions 
 ========================
 
 Names commencing with underscore (’\_’) are reserved for use by the
@@ -5785,7 +5785,7 @@ with character data.
   [[\<](#Attribute-Conventions "Previous section in reading order")]   [[\>](#NetCDF-Classic-Format "Next section in reading order")]       [[\<\<](#Attribute-Conventions "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ---------------------------------------------------------------- --- ---------------------------------------------------------------------------------- --------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C. File Format Specification {.appendix}
+C. File Format Specification 
 ============================
 
 In different contexts, “netCDF” may refer to an abstract data model, a
@@ -5876,7 +5876,7 @@ written entirely in Java.
   [[\<](#File-Format "Previous section in reading order")]   [[\>](#Classic-Format-Spec "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#File-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------ ----------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.1 The NetCDF Classic Format Specification {.section}
+C.1 The NetCDF Classic Format Specification 
 -------------------------------------------
 
 To present the format more formally, we use a BNF grammar notation. In
@@ -5917,7 +5917,7 @@ elements of the format.
   [[\<](#NetCDF-Classic-Format "Previous section in reading order")]   [[\>](#Computing-Offsets "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classic-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------- ------------------------------------------------------------ --- ------------------------------------------------------------------------ --------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### The Format in Detail {.unnumberedsubsec}
+### The Format in Detail 
 
  
 
@@ -6141,7 +6141,7 @@ detecting the inadvertent reading of values that haven’t been written.
   [[\<](#Classic-Format-Spec "Previous section in reading order")]   [[\>](#Examples "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classic-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ --------------------------------------------------- --- ------------------------------------------------------------------------ --------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Notes on Computing File Offsets {.unnumberedsubsec}
+### Notes on Computing File Offsets 
 
 The offset (position within the file) of a specified data value in a
 classic format or 64-bit offset data file is completely determined by
@@ -6210,7 +6210,7 @@ is no record padding.
   [[\<](#Computing-Offsets "Previous section in reading order")]   [[\>](#g_t64_002dbit-Offset-Format "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classic-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------- ---------------------------------------------------------------------- --- ------------------------------------------------------------------------ --------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### Examples {.unnumberedsubsec}
+### Examples 
 
 By using the grammar above, we can derive the smallest valid netCDF
 file, having no dimensions, no variables, no attributes, and hence, no
@@ -6307,7 +6307,7 @@ dump of this file:
   [[\<](#Examples "Previous section in reading order")]   [[\>](#NetCDF_002d4-Format "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#File-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------ ----------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.2 The 64-bit Offset Format {.section}
+C.2 The 64-bit Offset Format 
 ----------------------------
 
 The netCDF 64-bit offset format differs from the classic format only in
@@ -6326,7 +6326,7 @@ worth of data) on 32-bit platforms.
   [[\<](#g_t64_002dbit-Offset-Format "Previous section in reading order")]   [[\>](#Creation-Order "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#File-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------ ----------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.3 The NetCDF-4 Format {.section}
+C.3 The NetCDF-4 Format 
 -----------------------
 
 The netCDF-4 format implements and expands the netCDF-3 data model by
@@ -6370,7 +6370,7 @@ create files that will be accessable from netCDF-4.
   [[\<](#NetCDF_002d4-Format "Previous section in reading order")]   [[\>](#Groups "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ ------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.1 Creation Order {.subsection}
+### C.3.1 Creation Order 
 
 The netCDF API maintains the creation order of objects that are created
 in the file. The same is not true in HDF5, which maintains the objects
@@ -6423,7 +6423,7 @@ creation ordering is turned on by the netCDF library.
   [[\<](#Creation-Order "Previous section in reading order")]   [[\>](#Dimensions-with-HDF5-Dimension-Scales "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.2 Groups {.subsection}
+### C.3.2 Groups 
 
 NetCDF-4 groups are the same as HDF5 groups, but groups in a netCDF-4
 file must be strictly hierarchical. In general, HDF5 permits
@@ -6444,7 +6444,7 @@ API) makes little use of names, and refers to entities by number.
   [[\<](#Groups "Previous section in reading order")]   [[\>](#Dimensions-without-HDF5-Dimension-Scales "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ----------------------------------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.3 Dimensions with HDF5 Dimension Scales {.subsection}
+### C.3.3 Dimensions with HDF5 Dimension Scales 
 
 Until version 1.8, HDF5 did not have any capability to represent shared
 dimensions. With the 1.8 release, HDF5 introduced the dimension scale
@@ -6494,7 +6494,7 @@ involved, except through the HDF5 API.
   [[\<](#Dimensions-with-HDF5-Dimension-Scales "Previous section in reading order")]   [[\>](#Dimension-and-Coordinate-Variable-Ordering "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------ ------------------------------------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.4 Dimensions without HDF5 Dimension Scales {.subsection}
+### C.3.4 Dimensions without HDF5 Dimension Scales 
 
 Starting with the netCDF-4.1 release, netCDF can read HDF5 files which
 do not use dimension scales. In this case the netCDF library assigns
@@ -6524,7 +6524,7 @@ understood by the netCDF library.
   [[\<](#Dimensions-without-HDF5-Dimension-Scales "Previous section in reading order")]   [[\>](#Variables-1 "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.5 Dimension and Coordinate Variable Ordering {.subsection}
+### C.3.5 Dimension and Coordinate Variable Ordering 
 
 In order to preserve creation order, the netCDF-4 library writes
 variables in their creation order. Since some variables are also
@@ -6567,7 +6567,7 @@ on all dimension scales in the file.
   [[\<](#Dimension-and-Coordinate-Variable-Ordering "Previous section in reading order")]   [[\>](#Attributes-2 "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.6 Variables {.subsection}
+### C.3.6 Variables 
 
 Variables in netCDF-4/HDF5 files exactly correspond to HDF5 datasets.
 The data types match naturally between netCDF and HDF5.
@@ -6636,7 +6636,7 @@ stripped from the name for the netCDF API.
   [[\<](#Variables-1 "Previous section in reading order")]   [[\>](#User_002dDefined-Data-Types "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ---------------------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.7 Attributes {.subsection}
+### C.3.7 Attributes 
 
 Attributes in HDF5 and netCDF-4 correspond very closely. Each attribute
 in an HDF5 file is represented as an attribute in the netCDF-4 file,
@@ -6674,7 +6674,7 @@ netCDF-4 API.
   [[\<](#Attributes-2 "Previous section in reading order")]   [[\>](#Compression "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.8 User-Defined Data Types {.subsection}
+### C.3.8 User-Defined Data Types 
 
 Each user-defined data type in an HDF5 file exactly corresponds to a
 user-defined data type in the netCDF-4 file. Only base data types which
@@ -6687,7 +6687,7 @@ reference data types may be used.)
   [[\<](#User_002dDefined-Data-Types "Previous section in reading order")]   [[\>](#NetCDF_002d4-Classic-Model-Format "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF_002d4-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ---------------------------------------------------------------------------- --- ------------------------------------------------------------------------ ------------------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### C.3.9 Compression {.subsection}
+### C.3.9 Compression 
 
 The HDF5 library provides data compression using the zlib library and
 the szlib library. NetCDF-4 only allows users to create data with the
@@ -6711,7 +6711,7 @@ deflation of zero, and correctly report that to the user.
   [[\<](#Compression "Previous section in reading order")]   [[\>](#HDF4-SD-Format "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#File-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------ ----------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.4 The NetCDF-4 Classic Model Format {.section}
+C.4 The NetCDF-4 Classic Model Format 
 -------------------------------------
 
 Every classic and 64-bit offset file can be represented as a netCDF-4
@@ -6746,7 +6746,7 @@ are written to the file.
   [[\<](#NetCDF_002d4-Classic-Model-Format "Previous section in reading order")]   [[\>](#Internal-Dispatch-Table "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#File-Format "Up section")]   [[\>\>](#Internal-Dispatch-Table "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------ ----------------------------------- --------------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-C.5 HDF4 SD Format {.section}
+C.5 HDF4 SD Format 
 ------------------
 
 Starting with version 4.1, the netCDF libraries can read HDF4 SD
@@ -6789,7 +6789,7 @@ manner.
   [[\<](#HDF4-SD-Format "Previous section in reading order")]   [[\>](#netCDF-Dispatch-Mechanism "Next section in reading order")]       [[\<\<](#File-Format "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------ --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-D. Internal Dispatch Table {.appendix}
+D. Internal Dispatch Table 
 ==========================
 
 ### Draft 3: 5/15/2010 {.subheading}
@@ -6800,7 +6800,7 @@ D. Internal Dispatch Table {.appendix}
   [[\<](#Internal-Dispatch-Table "Previous section in reading order")]   [[\>](#Adding-a-New-Dispatch-Table "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- ---------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-netCDF Dispatch Mechanism {.unnumberedsec}
+netCDF Dispatch Mechanism 
 -------------------------
 
 This document describes the architecture and details of the new netCDF
@@ -6827,7 +6827,7 @@ must define this minimal set of operations.
   [[\<](#netCDF-Dispatch-Mechanism "Previous section in reading order")]   [[\>](#Step-1_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Adding a New Dispatch Table {.unnumberedsec}
+Adding a New Dispatch Table 
 ---------------------------
 
 In order to make this process concrete, let us assume we plan to add an
@@ -6839,7 +6839,7 @@ in-memory implementation of netcdf-3.
   [[\<](#Adding-a-New-Dispatch-Table "Previous section in reading order")]   [[\>](#Step-2 "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------------------- ------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 1. {.unnumberedsec}
+Step 1. 
 -------
 
 Define a –enable flag and an AM\_CONFIGURE flag in configure.ac. We will
@@ -6851,7 +6851,7 @@ use the flags –enable-netcdfm and USE\_NETCDFM respectively.
   [[\<](#Step-1_002e "Previous section in reading order")]   [[\>](#Step-3_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 2 {.unnumberedsec}
+Step 2 
 ------
 
 Choose some prefix of characters to identify the new dispatch system. In
@@ -6866,7 +6866,7 @@ procedures.
   [[\<](#Step-2 "Previous section in reading order")]   [[\>](#Step-4_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ----------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 3. {.unnumberedsec}
+Step 3. 
 -------
 
 Modify file libdispatch/ncdispatch.h as follows.
@@ -6895,7 +6895,7 @@ Modify file libdispatch/ncdispatch.h as follows.
   [[\<](#Step-3_002e "Previous section in reading order")]   [[\>](#Step-5_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 4. {.unnumberedsec}
+Step 4. 
 -------
 
 Modify file libdispatch/netcdf.c as follows.
@@ -6918,7 +6918,7 @@ Modify file libdispatch/netcdf.c as follows.
   [[\<](#Step-4_002e "Previous section in reading order")]   [[\>](#Step-6_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 5. {.unnumberedsec}
+Step 5. 
 -------
 
 Define the functions necessary to fill in the dispatch table. As a rule,
@@ -6966,7 +6966,7 @@ noinst_LTLIBRARIES = libnetcdfm.la
   [[\<](#Step-5_002e "Previous section in reading order")]   [[\>](#Step-7_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 6. {.unnumberedsec}
+Step 6. 
 -------
 
 Provide for the inclusion of this library in the final libnetcdf
@@ -6987,7 +6987,7 @@ endif
   [[\<](#Step-6_002e "Previous section in reading order")]   [[\>](#Step-8_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 7. {.unnumberedsec}
+Step 7. 
 -------
 
 Modify the NC\_intialize function in liblib/stub.c by adding appropriate
@@ -7016,7 +7016,7 @@ int NC_initialize(void)
   [[\<](#Step-7_002e "Previous section in reading order")]   [[\>](#Step-9_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- ------------------------------------------------------ --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 8. {.unnumberedsec}
+Step 8. 
 -------
 
 Add a directory of tests; ncm\_test, say. The file ncm\_test/Makefile.am
@@ -7044,7 +7044,7 @@ EXTRA_DIST = ...
   [[\<](#Step-8_002e "Previous section in reading order")]   [[\>](#Choosing-a-Dispatch-Table "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Internal-Dispatch-Table "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- -------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Step 9. {.unnumberedsec}
+Step 9. 
 -------
 
 Provide for libnetcdfm to be constructed by adding the following to the
@@ -7067,7 +7067,7 @@ SUBDIRS = ... $(DISPATCHDIR)  $(NCM) ... $(NCMTESTDIR)
   [[\<](#Step-9_002e "Previous section in reading order")]   [[\>](#Special-Dispatch-Table-Signatures_002e "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Step-9_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------- --------------------------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### D.0.1 Choosing a Dispatch Table {.subsection}
+### D.0.1 Choosing a Dispatch Table 
 
 The dispatch table is chosen in the NC\_create and the NC\_open
 procedures in libdispatch/netcdf.c. The decision is currently based on
@@ -7103,7 +7103,7 @@ the NCM dispatcher. Some possibilities are as follows.
   [[\<](#Choosing-a-Dispatch-Table "Previous section in reading order")]   [[\>](#Create_002fOpen "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Step-9_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------ ---------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### D.0.2 Special Dispatch Table Signatures. {.subsection}
+### D.0.2 Special Dispatch Table Signatures. 
 
 Several of the entries in the dispatch table are significantly different
 than those of the external API.
@@ -7114,7 +7114,7 @@ than those of the external API.
   [[\<](#Special-Dispatch-Table-Signatures_002e "Previous section in reading order")]   [[\>](#Notes_003a "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Special-Dispatch-Table-Signatures_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------------------------- ----------------------------------------------------- --- ------------------------------------------------------------------------------------ -------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### D.0.2.1 Create/Open {.subsubsection}
+#### D.0.2.1 Create/Open 
 
 The create table entry and the open table entry have the following
 signatures respectively.
@@ -7148,7 +7148,7 @@ parameter.
   [[\<](#Create_002fOpen "Previous section in reading order")]   [[\>](#put_005fvara_002fget_005fvara "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Special-Dispatch-Table-Signatures_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   -------------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ -------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### D.0.2.2 Notes: {.subsubsection}
+#### D.0.2.2 Notes: 
 
 -   As with the existing code, and when MPI is not being used, the comm
     and info parameters should be passed in as 0. This is taken care of
@@ -7189,7 +7189,7 @@ parameter.
   [[\<](#Notes_003a "Previous section in reading order")]   [[\>](#put_005fattr_002fget_005fattr "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Special-Dispatch-Table-Signatures_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   --------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ -------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### D.0.2.3 put\_vara/get\_vara {.subsubsection}
+#### D.0.2.3 put\_vara/get\_vara 
 
  
 
@@ -7214,7 +7214,7 @@ encounter the NC\_INT64 type.
   [[\<](#put_005fvara_002fget_005fvara "Previous section in reading order")]   [[\>](#NetCDF-Library-Assembly "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Special-Dispatch-Table-Signatures_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- ------------------------------------------------------------------ --- ------------------------------------------------------------------------------------ -------------------------------------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-#### D.0.2.4 put\_attr/get\_attr {.subsubsection}
+#### D.0.2.4 put\_attr/get\_attr 
 
  
 
@@ -7235,7 +7235,7 @@ put/get\_vara, it used NC\_INT64 to encode the long case.
   [[\<](#put_005fattr_002fget_005fattr "Previous section in reading order")]   [[\>](#Utility-Construction "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Step-9_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------------- --------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### D.0.3 NetCDF Library Assembly {.subsection}
+### D.0.3 NetCDF Library Assembly 
 
 The assembly of the final libnetcdf library occurs in the directory
 liblib. The Makefile uses all of the available configuration flags to
@@ -7250,7 +7250,7 @@ from libsrc4 depending on the USE\_NETCDF4 flag.
   [[\<](#NetCDF-Library-Assembly "Previous section in reading order")]   [[\>](#Miscellaneous-Notes "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Step-9_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ---------------------------------------------------------------------- -------------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### D.0.4 Utility Construction {.subsection}
+### D.0.4 Utility Construction 
 
 All of the utilities and the test directories (nctest, nc\_test, ...)
 are expected to obtain their libnetcdf library and their netcdf.h from
@@ -7262,7 +7262,7 @@ the ones in liblib.
   [[\<](#Utility-Construction "Previous section in reading order")]   [[\>](#Combined-Index "Next section in reading order")]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Step-9_002e "Up section")]   [[\>\>](#Combined-Index "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------------------ ----------------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-### D.0.5 Miscellaneous Notes {.subsection}
+### D.0.5 Miscellaneous Notes 
 
 1.  It may be desirable to include a few test cases in the libsrcm
     directory. Libsrc4, for example, has quite a number of such tests.
@@ -7276,7 +7276,7 @@ the ones in liblib.
   [[\<](#Miscellaneous-Notes "Previous section in reading order")]   [ \> ]       [[\<\<](#Internal-Dispatch-Table "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [ \>\> ]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
   ------------------------------------------------------------------ -------- --- ------------------------------------------------------------------------------------ --------------------------- ---------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Index {.unnumbered}
+Index 
 =====
 
 Jump to:  
