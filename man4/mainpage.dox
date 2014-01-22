@@ -34,7 +34,15 @@ Hartnett, Dennis Heimbigner and Ward Fisher
 <p>Texinfo-based Documentation (Conversion in Progress):
 - Conversion Completed
 - Conversion Pending
-  - \ref netcdf-c-texi 
+  - \ref netcdf-texi
+  - \ref netcdf-install-texi
+  - \ref netcdf-internal-texi
+  - \ref netcdf-c-texi
+  - \ref netcdf-cxx-texi
+  - \ref netcdf-cxx4-texi
+  - \ref netcdf-tutorial-texi
+  - \ref netcdf-f77-texi
+  - \ref netcdf-f90-texi
 
 
 \internal
