@@ -55,9 +55,9 @@ NC5_create(const char *path, int cmode,
     if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
 	return NC_EINVAL;
 
+    /* Appears that this comment is wrong; allow 64 bit offset*/
     /* Cannot have 64 bit offset flag */
-    if(cmode & (NC_64BIT_OFFSET))
-	return NC_EINVAL;
+    /*if(cmode & (NC_64BIT_OFFSET)) return NC_EINVAL;*/
 
     comm = ((NC_MPI_INFO *)mpidata)->comm; 
     info = ((NC_MPI_INFO *)mpidata)->info;	
@@ -109,9 +109,9 @@ NC5_open(const char *path, int cmode,
     if((cmode & (NC_MPIIO|NC_MPIPOSIX)) == (NC_MPIIO|NC_MPIPOSIX))
 	return NC_EINVAL;
 
+    /* Appears that this comment is wrong; allow 64 bit offset*/
     /* Cannot have 64 bit offset flag */
-    if(cmode & (NC_64BIT_OFFSET))
-	return NC_EINVAL;
+    /* if(cmode & (NC_64BIT_OFFSET)) return NC_EINVAL; */
 
     if(mpidata != NULL) {
         comm = ((NC_MPI_INFO *)mpidata)->comm; 
