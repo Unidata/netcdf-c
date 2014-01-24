@@ -1,18 +1,13 @@
 \page netcdf-internal-texi NetCDF-Internal Documentation (netCDF 3.6.0)
 
-  ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
-  [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
+
 
 NetCDF Library Internals 
 ========================
 
-The most recent update of this documentation was released with version
-3.6.0 of netCDF.
+The most recent update of this documentation was released with version 3.6.0 of netCDF.
 
-The netCDF data model is described in The NetCDF Users’ Guide (see [The
-NetCDF Users Guide: (netcdf)Top](netcdf.html#Top) section ‘Top’ in The
-NetCDF Users’ Guide).
+The netCDF data model is described in The NetCDF Users’ Guide (see [The NetCDF Users Guide: (netcdf)Top](netcdf.html#Top) section ‘Top’ in The NetCDF Users’ Guide).
 
 Reference guides are available for the C (see [The NetCDF Users Guide
 for C: (netcdf-c)Top](netcdf-c.html#Top) section ‘Top’ in The NetCDF
@@ -24,67 +19,37 @@ Guide for FORTRAN 77), and FORTRAN (see [The NetCDF Users’ Guide for
 FORTRAN 90: (netcdf-f90)Top](netcdf-f90.html#Top) section ‘Top’ in The
 NetCDF Users’ Guide for FORTRAN 90).
 
-[1. C Code](#C-Code)
+  ------------------------------------------------------------------- ---- --
 
-  
+[1. C Code](#C-Code)
 
 [2. Derivitive Works](#Derivitive-Works)
 
-  
-
 [3. Concept Index](#Concept-Index)
 
-  
+  ------------------------------------------------------------------- ---- --
 
-~~~~ 
- — The Detailed Node Listing —
+### The Detailed Node Listing
 
-C Code
-~~~~
+#### C Code
 
 [1.1 libsrc directory](#libsrc-directory)
 
-  
-
 [1.2 nc\_test directory](#nc_005ftest-directory)
-
-  
 
 [1.3 nctest directory](#nctest-directory)
 
-  
-
 [1.4 cxx directory](#cxx-directory)
-
-  
 
 [1.5 man directory](#man-directory)
 
-  
-
 [1.6 ncgen and ncgen4 directories](#ncgen-and-ncgen4-directories)
-
-  
 
 [1.7 ncdump directory](#ncdump-directory)
 
-  
-
 [1.8 fortran directory](#fortran-directory)
 
-  
 
-~~~~ 
-~~~~
-
-~~~~ 
-~~~~
-
-* * * * *
-
-  -------------------------------------------------- ----------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
-  [[\<](#Top "Previous section in reading order")]   [[\>](#libsrc-directory "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Derivitive-Works "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [[Contents](#SEC_Contents "Table of contents")]   [[Index](#Concept-Index "Index")]   [[?](#SEC_About "About (help)")]
-  -------------------------------------------------- ----------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- -------------------------------------------- --- --- --- --- ----------------------------------------- ------------------------------------------------- ----------------------------------- ----------------------------------
 
 1. C Code 
 =========
