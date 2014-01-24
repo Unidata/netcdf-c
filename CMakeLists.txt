@@ -119,14 +119,19 @@ ENDIF()
 #
 # Also, set some other default compiler flags.
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 ENDIF()
 
 IF(NOT ENABLE_COVERAGE_TESTS)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
   SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
 ENDIF()
+
+IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS) {
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-varaible -Wno-unused-parameter")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+}
 
 
 ADD_DEFINITIONS()
