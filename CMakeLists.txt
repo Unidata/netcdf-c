@@ -121,6 +121,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   OPTION (ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
   OPTION (ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
+  OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
   
   # Debugging flags
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
@@ -680,7 +681,6 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 # Enable Large file tests
-OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
 ENDIF()
