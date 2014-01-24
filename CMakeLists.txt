@@ -155,15 +155,6 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     ENDIF(APPLE)
   ENDIF(ENABLE_CONVERSION_WARNINGS)
 
-  # On 64-bit linux builds with large file tests enabled, we need to 
-  # specify the mcmodel flag.
-  IF(CMAKE_SIZEOF_VOID EQUAL 8 AND CMAKE_COMPILER_IS_GNUCC AND ENABLE_LARGE_FILE_TESTS) # 64-bit gcc platform
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcmodel=large")
-  ENDIF()
-    
-
-
 ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 # End default linux gcc & apple compiler options.
