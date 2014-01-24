@@ -9,7 +9,7 @@
 #endif
 
 #ifndef OCDEBUG
-#define OCDEBUG
+#undef OCDEBUG
 #endif
 
 /* OCCATCHERROR is used to detect errors as close

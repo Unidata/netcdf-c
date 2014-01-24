@@ -16,11 +16,11 @@ CDFnode* v4node = NULL;
 
 /* Forward*/
 static NCerror sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq);
-static NCerror restruct3r(CDFnode*, CDFnode*, NClist*);
-static NCerror repairgrids(NClist*);
-static NCerror structwrap3(CDFnode*, CDFnode*, int, CDFnode*, int);
+static NCerror restruct3r(NCDAPCOMMON*, CDFnode*, CDFnode*, NClist*);
+static NCerror repairgrids(NCDAPCOMMON*, NClist*);
+static NCerror structwrap3(NCDAPCOMMON*, CDFnode*, CDFnode*, int, CDFnode*, int);
 static int findin(CDFnode* parent, CDFnode* child);
-static CDFnode* makenewstruct3(CDFnode* node, CDFnode* template);
+static CDFnode* makenewstruct3(NCDAPCOMMON*, CDFnode*, CDFnode*);
 static NCerror mapnodes3r(CDFnode*, CDFnode*, int depth);
 static NCerror mapfcn(CDFnode* dstnode, CDFnode* srcnode);
 static NCerror definedimsetplus3(NCDAPCOMMON* nccomm, CDFnode* node);
@@ -315,7 +315,7 @@ Input is
 */
 
 NCerror
-restruct3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
+restruct3(NCDAPCOMMON* ncc, CDFnode* ddsroot, CDFnode* template, NClist* projections)
 {
     NCerror ncstat = NC_NOERR;
     NClist* repairs = nclistnew();
@@ -338,11 +338,11 @@ fprintf(stderr,"restruct: template=%s\n",dumptree(template));
     /* Match roots */
     if(!simplenodematch34(ddsroot,template))
 	ncstat = NC_EDATADDS;
-    else if(!restruct3r(ddsroot,template,repairs))
+    else if(!restruct3r(ncc, ddsroot,template,repairs))
 	ncstat = NC_EDATADDS;
     else if(nclistlength(repairs) > 0) {
 	/* Do the repairs */
-	ncstat = repairgrids(repairs);
+	ncstat = repairgrids(ncc, repairs);
     }
 
     if(repairs)
@@ -364,7 +364,7 @@ we expected a grid.
 */
 
 static int
-restruct3r(CDFnode* parentnode, CDFnode* templateparent, NClist* repairlist)
+restruct3r(NCDAPCOMMON* ncc, CDFnode* parentnode, CDFnode* templateparent, NClist* repairlist)
 {
     int index, i, j, match;
 
@@ -399,7 +399,7 @@ ocfqn(subnode->ocnode),ocfqn(matchnode->ocnode));
                node of the template, so it is ok =>
                recurse looking for nested mis-matches
             */
-	    if(!restruct3r(subnode,matchnode,repairlist))
+	    if(!restruct3r(ncc,subnode,matchnode,repairlist))
 		return 0;
 	} else {
             /* If we do not have a direct match, then we need to look
@@ -430,7 +430,7 @@ ocfqn(subnode->ocnode),ocfqn(matchnode->ocnode));
 /* Wrap the node wrt the template grid or template struct */
 
 static NCerror
-repairgrids(NClist* repairlist)
+repairgrids(NCDAPCOMMON* ncc, NClist* repairlist)
 {
     NCerror ncstat = NC_NOERR;
     int i;
@@ -440,7 +440,7 @@ repairgrids(NClist* repairlist)
 	CDFnode* template = (CDFnode*)nclistget(repairlist,i+1);
 	int index = findin(node->container,node);
 	int tindex = findin(template->container,template);
-	ncstat = structwrap3(node,node->container,index,
+	ncstat = structwrap3(ncc, node,node->container,index,
                              template->container,tindex);
 #ifdef DEBUG
 fprintf(stderr,"repairgrids: %s -> %s\n",
@@ -452,14 +452,13 @@ ocfqn(node->ocnode),ocfqn(template->ocnode));
 }
 
 static NCerror
-structwrap3(CDFnode* node, CDFnode* parent, int parentindex,
+structwrap3(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, int parentindex,
                            CDFnode* templategrid, int gridindex)
 {
     CDFnode* newstruct;
 
     ASSERT((templategrid->nctype == NC_Grid));
-
-    newstruct = makenewstruct3(node,templategrid);
+    newstruct = makenewstruct3(ncc, node,templategrid);
     if(newstruct == NULL) {return THROW(NC_ENOMEM);}
 
     /* replace the node with the new structure
@@ -489,17 +488,14 @@ findin(CDFnode* parent, CDFnode* child)
 */
   
 static CDFnode*
-makenewstruct3(CDFnode* node, CDFnode* templatenode)
+makenewstruct3(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* templatenode)
 {
-    CDFnode* newstruct = (CDFnode*)calloc(1,sizeof(CDFnode));
+    CDFnode* newstruct = makecdfnode34(ncc,templatenode->ocname,OC_Structure,
+                                      templatenode->ocnode, node->container);
     if(newstruct == NULL) return NULL;
-    newstruct->nctype = NC_Structure;
     newstruct->nc_virtual = 1;
-    newstruct->ocname = nulldup(templatenode->ocname);
-    newstruct->ocnode = templatenode->ocnode;
     newstruct->ncbasename = nulldup(templatenode->ncbasename);
     newstruct->subnodes = nclistnew();
-    newstruct->container = node->container;
     newstruct->template = templatenode;
     node->container = newstruct;
     nclistpush(newstruct->subnodes,(void*)node);
