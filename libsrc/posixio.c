@@ -1763,7 +1763,7 @@ ncio_px_pad_length(ncio *nciop, off_t length)
 {
 
 	int status = ENOERR;
-	printf("\nncio_px_pad_length entered.\n");
+	
 	if(nciop == NULL)
 		return EINVAL;
 
