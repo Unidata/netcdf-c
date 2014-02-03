@@ -661,6 +661,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/RELEASE_NOTES.md \
                          @CMAKE_SOURCE_DIR@/man4/netcdf-tutorial.md \
                          @CMAKE_SOURCE_DIR@/man4/netcdf-f77.md \
                          @CMAKE_SOURCE_DIR@/man4/netcdf-f90.md \
+                         @CMAKE_SOURCE_DIR@/man4/all-error-codes.md \
                          @CMAKE_SOURCE_DIR@/COPYRIGHT \
                          @CMAKE_SOURCE_DIR@/include/netcdf.h \
                          @CMAKE_SOURCE_DIR@/examples/C/simple_xy_wr.c \
