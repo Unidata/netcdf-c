@@ -575,6 +575,7 @@ INPUT = \
     @abs_top_srcdir@/man4/netcdf-tutorial.md \
     @abs_top_srcdir@/man4/netcdf-f77.md \
     @abs_top_srcdir@/man4/netcdf-f90.md \
+    @abs_top_srcdir@/man4/all-error-codes.md \
     @abs_top_srcdir@/COPYRIGHT \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \

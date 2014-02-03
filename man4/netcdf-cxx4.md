@@ -1,8 +1,5 @@
 \page netcdf-cxx4-texi NetCDF-CXX4 Documentation
 
-  ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 The NetCDF C++ Interface Guide 
 ==============================
@@ -22,96 +19,38 @@ The first part of this master menu lists the major nodes in this Info
 document. The rest of the menu lists all the lower level nodes in the
 document.
 
-For a complete description of the netCDF format and utilities see
-[(netcdf)Top](netcdf.html#Top) section ‘Top’ in The NetCDF Users Guide.
 
-[Introduction](#Introduction)
-
-  
-
-[NetCDF Classes](#NetCDF-Classes)
+* [Introduction](#Introduction)
+* [NetCDF Classes](#NetCDF-Classes)
+* [Auxiliary Classes](#Auxiliary-Classes)
+* [Index](#Combined-Index)
 
   
 
-[Auxiliary Classes](#Auxiliary-Classes)
 
-  
+## The Detailed Node Listing
 
-[Index](#Combined-Index)
+### Introduction
 
-  
+* [Class Hierarchy](#Class-Hierarchy)
+* [Auxiliary Types and Constants](#Auxiliary-Types-and-Constants)
 
-~~~~ 
- — The Detailed Node Listing —
 
-Introduction
-~~~~
+### NetCDF Classes
 
-[Class Hierarchy](#Class-Hierarchy)
+* [Class NcFile](#Class-NcFile): Files
+* [Class NcDim](#Class-NcDim): Dimensions
+* [Class NcTypedComponent](#Class-NcTypedComponent): Operations common to variables and attributes
+* [Class NcVar](#Class-NcVar): Variables
+* [Class NcAtt](#Class-NcAtt): Attributes
 
-  
+### Auxiliary Classes
 
-[Auxiliary Types and Constants](#Auxiliary-Types-and-Constants)
+* [Class NcValues](#Class-NcValues)
+* [Class NcError](#Class-NcError)
 
-  
 
-~~~~ 
-NetCDF Classes
-~~~~
-
-[Class NcFile](#Class-NcFile)
-
-  
-
-Files
-
-[Class NcDim](#Class-NcDim)
-
-  
-
-Dimensions
-
-[Class NcTypedComponent](#Class-NcTypedComponent)
-
-  
-
-Operations common to variables and attributes
-
-[Class NcVar](#Class-NcVar)
-
-  
-
-Variables
-
-[Class NcAtt](#Class-NcAtt)
-
-  
-
-Attributes
-
-~~~~ 
-Auxiliary Classes
-~~~~
-
-[Class NcValues](#Class-NcValues)
-
-  
-
-[Class NcError](#Class-NcError)
-
-  
-
-~~~~ 
-~~~~
-
-* * * * *
-
-  -------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Top "Previous section in reading order")]   [[\>](#Class-Hierarchy "Next section in reading order")]       [[\<\<](#Top "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  -------------------------------------------------- ---------------------------------------------------------- --- ---------------------------------------------------------------- --------------------------- ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-
-Introduction 
-============
+# Introduction <a name="Introduction"></a>
 
 The main requirements for the design of the C++ interface are:
 
@@ -137,6 +76,7 @@ Some of the features of the C++ interface are:
     between define and data modes. Whenever a mode switch is required,
     it happens implicitly.
 
+
 The header file ‘`netcdfcpp.h`’ must be included in source code files
 using this interface.
 
@@ -147,18 +87,8 @@ This manual assumes familiarity with Chapters 1 through 4 of the netCDF
 User’s Guide, where the concepts of netCDF dimensions, variables, and
 attributes are discussed.
 
-  ----------------------------------------------------------------- ---- --
-  [Class Hierarchy](#Class-Hierarchy)                                    
-  [Auxiliary Types and Constants](#Auxiliary-Types-and-Constants)        
-  ----------------------------------------------------------------- ---- --
 
-* * * * *
-
-  ----------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Introduction "Previous section in reading order")]   [[\>](#Auxiliary-Types-and-Constants "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ----------------------------------------------------------- ------------------------------------------------------------------------ --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-
-Class Hierarchy 
+Class Hierarchy  <a name="Class-Hierarchy"></a>
 ---------------
 
 The class for netCDF file objects is `NcFile`.
@@ -196,14 +126,10 @@ NcValues                   abstract base class for array
 NcError                    for error handling
 ~~~~
 
-* * * * *
-
-  -------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Class-Hierarchy "Previous section in reading order")]   [[\>](#NetCDF-Classes "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Introduction "Up section")]   [[\>\>](#NetCDF-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  -------------------------------------------------------------- --------------------------------------------------------- --- ------------------------------------------------------------------------- ------------------------------------ ------------------------------------------ --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 Auxiliary Types and Constants 
 -----------------------------
+<A name="Auxiliary-Classes"></A>
 
 The netCDF classes use several auxiliary types for arguments and return
 types from member functions: `NcToken`, `NcType`, `NcBool`, and
@@ -236,30 +162,13 @@ is currently a typedef for `unsigned char`, but it may be changed to a
 typedef for `signed char`, so don’t depend on the underlying
 representation.)
 
-* * * * *
 
-  ---------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------- --------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Auxiliary-Types-and-Constants "Previous section in reading order")]   [[\>](#Class-NcFile "Next section in reading order")]       [[\<\<](#Introduction "Beginning of this chapter or previous chapter")]   [[Up](#Top "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ---------------------------------------------------------------------------- ------------------------------------------------------- --- ------------------------------------------------------------------------- --------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-NetCDF Classes 
+NetCDF Classes  <a name="NetCDF-Classes"></a>
 ==============
 
-  --------------------------------------------------- ---- -----------------------------------------------
-  [Class NcFile](#Class-NcFile)                            Files
-  [Class NcDim](#Class-NcDim)                              Dimensions
-  [Class NcTypedComponent](#Class-NcTypedComponent)        Operations common to variables and attributes
-  [Class NcVar](#Class-NcVar)                              Variables
-  [Class NcAtt](#Class-NcAtt)                              Attributes
-  --------------------------------------------------- ---- -----------------------------------------------
 
-* * * * *
-
-  ------------------------------------------------------------- -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#NetCDF-Classes "Previous section in reading order")]   [[\>](#Public-Member-Functions-1 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ------------------------------------------------------------- -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-
-Class NcFile 
+Class NcFile <a name="Class-NcFile"></a> 
 ------------
 
 `NcFile` is the class for netCDF files, providing methods for netCDF
@@ -291,11 +200,7 @@ when necessary. Be aware that switching from accessing data to adding or
 renaming dimensions, variables and attributes can be expensive, since it
 may entail a copy of the data.
 
-* * * * *
 
-  ----------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ------------------------------------ --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Class-NcFile "Previous section in reading order")]   [[\>](#Class-NcDim "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcFile "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ----------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ------------------------------------ --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 ### Public Member Functions 
 
@@ -464,13 +369,8 @@ Either just closes file (if recently it has been in data mode as the
 result of accessing data), or backs out of the most recent sequence of
 changes to the file schema (dimensions, variables, and attributes).
 
-* * * * *
 
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Public-Member-Functions-1 "Previous section in reading order")]   [[\>](#Public-Member-Functions-4 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-
-Class NcDim 
+Class NcDim <a name="Class-NcDim"></a> 
 -----------
 
 A netCDF dimension has a name and a size. Dimensions are only created
@@ -478,11 +378,6 @@ and destroyed by NcFile member functions, because they cannot exist
 independently of an open netCDF file. Hence there are no public
 constructors or destructors.
 
-* * * * *
-
-  ---------------------------------------------------------- ----------------------------------------------------------------- --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Class-NcDim "Previous section in reading order")]   [[\>](#Class-NcTypedComponent "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcDim "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ---------------------------------------------------------- ----------------------------------------------------------------- --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 ### Public Member Functions 
 
@@ -512,13 +407,9 @@ Renames the dimension to `newname`.
 
 If the dimension may have been renamed, make sure its name is updated.
 
-* * * * *
 
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Public-Member-Functions-4 "Previous section in reading order")]   [[\>](#Public-Member-Functions-6 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
-Class NcTypedComponent 
+Class NcTypedComponent <a name="Class-NcTypedComponent"></a> 
 ----------------------
 
 `NcTypedComponent` is an abstract base class for `NcVar` and `NcAtt`
@@ -527,11 +418,7 @@ We list here the member functions that variables and attributes inherit
 from `NcTypedComponent`, but these member functions are also documented
 under the `NcVar` and `NcAtt` classes for convenience.
 
-* * * * *
 
-  --------------------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ---------------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Class-NcTypedComponent "Previous section in reading order")]   [[\>](#Class-NcVar "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcTypedComponent "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  --------------------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ---------------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 ### Public Member Functions 
 
@@ -592,11 +479,6 @@ provide conversions from the value type of the variable or attribute to
 the specified type. If the value is out-of-range, the fill-value of the
 appropriate type is returned.
 
-* * * * *
-
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Public-Member-Functions-6 "Previous section in reading order")]   [[\>](#Public-Member-Functions-2 "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#NetCDF-Classes "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ------------------------------------------------------------------------ -------------------------------------------------------------------- --- --------------------------------------------------------------------------- -------------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 Class NcVar 
 -----------
@@ -607,12 +489,6 @@ attributes, and a block of values associated with it. Because variables
 are only associated with open netCDF files, there are no public
 constructors for this class. Use member functions of `NcFile` to get
 variables or add new variables.
-
-* * * * *
-
-  ---------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[\<](#Class-NcVar "Previous section in reading order")]   [[\>](#Class-NcAtt "Next section in reading order")]       [[\<\<](#NetCDF-Classes "Beginning of this chapter or previous chapter")]   [[Up](#Class-NcVar "Up section")]   [[\>\>](#Auxiliary-Classes "Next chapter")]                   [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ---------------------------------------------------------- ------------------------------------------------------ --- --------------------------------------------------------------------------- ----------------------------------- --------------------------------------------- --- --- --- --- ----------------------------------------- ------------ ------------------------------------ ----------------------------------
 
 ### Public Member Functions 
 
@@ -2291,54 +2167,5 @@ Jump to:  
 [**R**](#Index_cp_letter-R)   [**S**](#Index_cp_letter-S)  
 [**T**](#Index_cp_letter-T)   [**V**](#Index_cp_letter-V)  
 
-* * * * *
-
-  ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-  [[Top](#Top "Cover (top) of document")]   [Contents]   [[Index](#Combined-Index "Index")]   [[?](#SEC_About "About (help)")]
-  ----------------------------------------- ------------ ------------------------------------ ----------------------------------
-
-About This Document
-===================
-
-This document was generated by *Ward Fisher* on *January 22, 2014* using
-[*texi2html 1.82*](http://www.nongnu.org/texi2html/).
-
-The buttons in the navigation panels have the following meaning:
-
-  Button       Name          Go to                                           From 1.2.3 go to
-  ------------ ------------- ----------------------------------------------- ------------------
-  [ \< ]       Back          Previous section in reading order               1.2.2
-  [ \> ]       Forward       Next section in reading order                   1.2.4
-  [ \<\< ]     FastBack      Beginning of this chapter or previous chapter   1
-  [ Up ]       Up            Up section                                      1.2
-  [ \>\> ]     FastForward   Next chapter                                    2
-  [Top]        Top           Cover (top) of document                          
-  [Contents]   Contents      Table of contents                                
-  [Index]      Index         Index                                            
-  [ ? ]        About         About (help)                                     
-
-where the **Example** assumes that the current position is at
-**Subsubsection One-Two-Three** of a document of the following
-structure:
-
--   1. Section One
-    -   1.1 Subsection One-One
-        -   ...
-
-    -   1.2 Subsection One-Two
-        -   1.2.1 Subsubsection One-Two-One
-        -   1.2.2 Subsubsection One-Two-Two
-        -   1.2.3 Subsubsection One-Two-Three     **\<== Current
-            Position**
-        -   1.2.4 Subsubsection One-Two-Four
-
-    -   1.3 Subsection One-Three
-        -   ...
-
-    -   1.4 Subsection One-Four
-
-* * * * *
-
-This document was generated by *Ward Fisher* on *January 22, 2014* using
-[*texi2html 1.82*](http://www.nongnu.org/texi2html/). \
+-------- ----------------------------------
 
