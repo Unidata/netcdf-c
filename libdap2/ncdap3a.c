@@ -31,8 +31,6 @@ freegetvara(Getvara* vara)
 NCerror
 freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 {
-    /* abort the metadata file */
-    (void)nc_abort(getncid(dapcomm));
     freenccache(dapcomm,dapcomm->cdf.cache);
     nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
