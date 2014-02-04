@@ -9,27 +9,29 @@
 
 #include <config.h>
 #include <stdio.h>
+
+/* Windows platforms, including MinGW, Cygwin, Visual Studio */
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
+
 #ifndef ENOERR
 #define ENOERR 0
 #endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#ifdef _MSC_VER /* Microsoft Compilers */
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
+
 #ifndef HAVE_SSIZE_T
 #define ssize_t int
 #endif
@@ -1661,10 +1663,11 @@ posixio_open(const char *path,
 	if(nciop == NULL)
 		return ENOMEM;
 
-//#ifdef O_BINARY
-#if _MSC_VER
+#ifdef O_BINARY
+	//#if _MSC_VER
 	fSet(oflags, O_BINARY);
 #endif
+
 #ifdef vms
 	fd = open(path, oflags, 0, "ctx=stm");
 #else
