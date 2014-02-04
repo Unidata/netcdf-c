@@ -16,7 +16,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "")
+SET(netCDF_VERSION_NOTE ".1")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(netCDF_SO_VERSION 7.2.0)
@@ -35,6 +35,11 @@ getuname(osrel  -r)
 getuname(cpu    -m)
 set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
+
+# Determine if DOXYGEN and DOT are available.  These will be used
+# when building the documentation.
+FIND_PROGRAM(NC_DOXYGEN NAMES doxygen)
+FIND_PROGRAM(NC_DOT NAMES dot)
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
@@ -628,6 +633,15 @@ IF (ENABLE_DAP)
 	INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 ENDIF()
 
+# Check for the math library so it can be explicitely linked.
+IF(NOT WIN32)
+       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
+       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
+       IF(NOT HAVE_LIBM)
+       	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
+       ENDIF()
+ENDIF()
+
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
@@ -752,15 +766,31 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Determine whether or not to generate documentation.
-OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
+OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." ON)
 IF(ENABLE_DOXYGEN)
-	SET(BUILD_DOCS ON CACHE BOOL "")
-	OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
-	IF(ENABLE_INTERNAL_DOCS)
-		SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
-	ELSE()
-		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
-	ENDIF()
+  IF(NC_DOXYGEN)
+    SET(BUILD_DOCS ON CACHE BOOL "")
+    
+    # Offer the option to build internal documentation.
+    OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
+    IF(ENABLE_INTERNAL_DOCS)
+      SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+    ELSE()
+      SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+    ENDIF()
+
+    # Specify whether or not 'dot' was found on the system path.
+    IF(NC_DOT)
+      SET(HAVE_DOT YES CACHE STRING "")
+    ELSE(NC_DOT)
+      SET(HAVE_DOT NO CACHE_STRING "")
+    ENDIF(NC_DOT)
+
+  ELSE(NC_DOXYGEN)
+    MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
+  ENDIF(NC_DOXYGEN)
+	
+
 ENDIF()
 
 # By default, MSVC has a stack size of 1000000.
@@ -907,15 +937,6 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 # End system inspection checks.
 #####
 
-
-# Check for the math library so it can be explicitely linked.
-IF(NOT WIN32)
-       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
-       IF(NOT HAVE_LIBM)
-       	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
-       ENDIF()
-ENDIF()
 
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
