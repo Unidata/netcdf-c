@@ -8,6 +8,8 @@ This file contains a high-level description of this package's evolution. Release
 
 * Corrected a DAP issue reported by Jeff Whitaker related to non-conforming servers.
 
+* Corrected an issue with DAP tests failing in a 64-bit Cygwin environment. [NCF-286](https://bugtracking.unidata.ucar.edu/browse/NCF-286)
+
 ## 4.3.1 Released 2014-01-16
 
 * Add an extended format inquiry method to the netcdf API: nc\_inq\_format\_extended. NC\_HAVE\_INQ\_FORMAT\_EXTENDED is defined in netcdf.h [NCF-273]
