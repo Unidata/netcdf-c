@@ -27,7 +27,7 @@ netCDF4+DAP		| [netCDF4.3.1.1-NC4-DAP-32.exe][r4]	| [netCDF4.3.1.1-NC4-DAP-64.ex
 
 ## Latest Release Candidate (netCDF-C 4.3.1.1-rc6)
 
-*Note: The latest release candidate may actually* ***pre-date*** *the latest stable release.  If you are interested in using the latest developer snapshot on Windows, it  may be downloaded from http://github.com/Unidata/netcdf-c but be warned,* ***you will need to compile it yourself!***
+*Note: The latest release candidate may actually* **pre-date** *the latest stable release.  If you are interested in using the latest developer snapshot on Windows, it  may be downloaded from http://github.com/Unidata/netcdf-c but be warned,* **you will need to compile it yourself!**
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
