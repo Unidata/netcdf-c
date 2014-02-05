@@ -14,18 +14,20 @@ Users who prefer to build the netCDF-C libraries from source in a Windows enviro
 
 These libraries can be used with Visual Studio 2010 projects.  The downloads are installer packages which contain the netCDF-C libraries and utilities (ncgen, ncgen3, ncdump and nccopy), as well as the associated dependencies.  
 
-## Latest Stable Release (netCDF-C 4.3.0)
+## Latest Stable Release (netCDF-C 4.3.1.1)
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
-netCDF 3		| [netCDF4.3.1-NC3-32.exe][r1]		| [netCDF4.3.1-NC3-64.exe][r5] 
-netCDF3+DAP		| [netCDF4.3.1-NC3-DAP-32.exe][r2]	| [netCDF4.3.1-NC3-DAP-64.exe][r6]
-netCDF4			| [netCDF4.3.1-NC4-32.exe][r3]		| [netCDF4.3.1-NC4-64.exe][r7]
-netCDF4+DAP		| [netCDF4.3.1-NC4-DAP-32.exe][r4]	| [netCDF4.3.1-NC4-DAP-64.exe][r8]
+netCDF 3		| [netCDF4.3.1.1-NC3-32.exe][r1]		| [netCDF4.3.1.1-NC3-64.exe][r5] 
+netCDF3+DAP		| [netCDF4.3.1.1-NC3-DAP-32.exe][r2]	| [netCDF4.3.1.1-NC3-DAP-64.exe][r6]
+netCDF4			| [netCDF4.3.1.1-NC4-32.exe][r3]		| [netCDF4.3.1.1-NC4-64.exe][r7]
+netCDF4+DAP		| [netCDF4.3.1.1-NC4-DAP-32.exe][r4]	| [netCDF4.3.1.1-NC4-DAP-64.exe][r8]
 
 
 
-## Latest Release Candidate (netCDF-C 4.3.1-rc6)
+## Latest Release Candidate (netCDF-C 4.3.1.1-rc6)
+
+*Note: The latest release candidate may actually* ***pre-date*** *the latest stable release.  If you are interested in using the latest developer snapshot on Windows, it  may be downloaded from http://github.com/Unidata/netcdf-c but be warned,* ***you will need to compile it yourself!***
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
@@ -52,14 +54,14 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 1. When building the netCDF-C libraries with netCDF4 support, using the 'debug' libraries may cause extraneous warnings. These warnings are related to cross-dll memory management, and appear to be harmless. You can safely ignore them by using the 'release' libraries. [NCF-220]
 
 
-[r1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC3-32.exe
-[r2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC3-DAP-32.exe
-[r3]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC4-32.exe
-[r4]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC4-DAP-32.exe
-[r5]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC3-64.exe
-[r6]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC3-DAP-64.exe
-[r7]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC4-64.exe
-[r8]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-NC4-DAP-64.exe
+[r1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC3-32.exe
+[r2]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC3-DAP-32.exe
+[r3]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC4-32.exe
+[r4]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC4-DAP-32.exe
+[r5]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC3-64.exe
+[r6]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC3-DAP-64.exe
+[r7]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC4-64.exe
+[r8]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1.1-NC4-DAP-64.exe
 
 
 [rc1]: http://www.unidata.ucar.edu/netcdf/win_netcdf/netCDF4.3.1-rc6-NC3-32.exe

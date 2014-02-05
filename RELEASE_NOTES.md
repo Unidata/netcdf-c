@@ -2,7 +2,7 @@
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
-## 4.3.1.1 Released TBD
+## 4.3.1.1 Released 2014-02-05
 
 4.3.1.1 Is a bug-fix for the 4.3.1 release.
 
