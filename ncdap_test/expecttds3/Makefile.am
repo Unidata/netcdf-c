@@ -19,4 +19,5 @@ tst-PROFILER_RASS.nc.dmp \
 tst-RUC.nc.dmp \
 tst-sst.nc.dmp \
 tst-striped.nc.dmp \
-tst-upc-nmm-point.nc.dmp
+tst-upc-nmm-point.nc.dmp \
+CMakeLists.txt
