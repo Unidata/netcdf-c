@@ -6,9 +6,6 @@ doxygen*.tmp
 *.o
 *.lo
 *.la
-Makefile.in
-stamp-h1
-autom4te.cache
 myhtml
 CMakeLists.txt.user
 scan-build
