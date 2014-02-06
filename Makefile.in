@@ -389,9 +389,7 @@ ACLOCAL_AMFLAGS = -I m4
 # These files get added to the distribution.
 EXTRA_DIST = README README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake \
-	config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in \
-	netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake RELEASE_NOTES.md \
-	CTestCustom.cmake CTestConfig.cmake
+	config.h.in.cmake cmake_uninstall.cmake.in 
 
 
 # Doxygen doesn't build nicely in vpath builds.
@@ -1015,6 +1013,10 @@ uninstall-am: uninstall-binSCRIPTS uninstall-pkgconfigDATA
 	ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-binSCRIPTS uninstall-pkgconfigDATA
 
+	netcdf-config-version.cmake.in \
+	netcdf-config.cmake.in FixBundle.cmake.in \
+	nc-config.in.cmake RELEASE_NOTES.md CTestCustom.cmake \
+	CTestConfig.cmake
 
 # At Unidata, package up binaries.
 ftpbin: install
