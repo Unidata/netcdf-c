@@ -299,7 +299,7 @@ MACRO(print_conf_summary)
 	ENDIF()
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
-	MESSAGE(STATUS "\tCMAKE_C_FLAGS:\t\t" ${CMAKE_C_FLAGS})
+	MESSAGE(STATUS "\tCMAKE_C_FLAGS:\t\t\t" ${CMAKE_C_FLAGS})
 	MESSAGE(STATUS "\tCMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
 
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
@@ -1069,6 +1069,56 @@ install (FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
 		${netCDF_BINARY_DIR}/netcdf-config-version.cmake
 		DESTINATION share/cmake)
 
+
+###
+# Create pkgconfig files.
+###
+
+IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  SET(CMAKE_INSTALL_LIBDIR lib)
+ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+
+# Set 
+SET(prefix ${CMAKE_INSTALL_PREFIX})
+SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
+SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+SET(includedir ${CMAKE_INSTALL_PREFIX}/include)
+SET(CC ${CMAKE_C_COMPILER})
+SET(PACKAGE_VERSION ${VERSION})
+# Process all dependency libraries and create a string
+# used when parsing netcdf.pc.in
+
+IF(NOT BUILD_SHARED_LIBS)
+  FOREACH(_LIB ${ALL_TLL_LIBS})
+    GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
+    STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
+    LIST(APPEND NC_LIBS "-l${_NAME}")
+    GET_FILENAME_COMPONENT(_LIB_DIR ${_LIB} PATH)
+    LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
+  ENDFOREACH()
+
+ENDIF(NOT BUILD_SHARED_LIBS)
+
+SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
+
+STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
+
+LIST(REMOVE_DUPLICATES NC_LIBS)
+LIST(REMOVE_DUPLICATES LINKFLAGS)
+
+configure_file (
+  ${netCDF_SOURCE_DIR}/netcdf.pc.in
+  ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
+
+install (FILES ${netCDF_BINARY_DIR}/netcdf.pc 
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
+
+###
+# End pkgconfig file creation.
+###
+
+####
 # End CMake package configuration files.
 #####
 # Various options for CPACK
