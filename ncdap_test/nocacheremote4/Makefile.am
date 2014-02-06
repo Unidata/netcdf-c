@@ -40,4 +40,5 @@ test.06.1.dmp \
 test.07.1.dmp \
 test.07.2.dmp \
 test.07.3.dmp \
-test.07.4.dmp
+test.07.4.dmp \
+CMakeLists.txt

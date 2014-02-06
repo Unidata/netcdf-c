@@ -53,7 +53,7 @@ ADD_SUBDIRECTORY(expectremote4)
 ADD_SUBDIRECTORY(expecttds3)
 ADD_SUBDIRECTORY(nocacheremote3)
 ADD_SUBDIRECTORY(nocacheremote4)
-ADD_SUBDIRECTORY(special3)
+#ADD_SUBDIRECTORY(special3)
 ADD_SUBDIRECTORY(testdata3)
 
 
