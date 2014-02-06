@@ -2,6 +2,12 @@
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
+## 4.3.1.2 Released TBD
+
+* Addressed an issue related to old dap servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
+
+* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless supressed with `-DENABLE_DOXYGEN=OFF`.
+
 ## 4.3.1.1 Released 2014-02-05
 
 4.3.1.1 Is a bug-fix for the 4.3.1 release.
