@@ -227,7 +227,8 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 
     /* re-struct*/
     if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
-        ncstat = restruct3(nccomm, dxdroot,nccomm->cdf.ddsroot,constraint->projections);
+        ncstat = restruct3(nccomm,dxdroot,nccomm->cdf.fullddsroot,
+			   constraint->projections);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
 

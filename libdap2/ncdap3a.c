@@ -644,6 +644,18 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
     ncstat = buildcdftree34(dapcomm,ocroot,OCDDS,&ddsroot);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     dapcomm->cdf.fullddsroot = ddsroot;
+    ddsroot = NULL; /* avoid double reclaim */
+
+    /* Combine DDS and DAS */
+    if(dapcomm->oc.ocdasroot != NULL) {
+	ncstat = dapmerge3(dapcomm,dapcomm->cdf.fullddsroot,
+                           dapcomm->oc.ocdasroot);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    }
+
+#ifdef DEBUG
+fprintf(stderr,"full template:\n%s",dumptree(dapcomm->cdf.fullddsroot));
+#endif
 
 done:
     nullfree(ce);
@@ -688,7 +700,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 
         /* Combine DDS and DAS */
 	if(dapcomm->oc.ocdasroot != NULL) {
-            ncstat = dapmerge3(dapcomm,dapcomm->cdf.ddsroot->ocnode,
+            ncstat = dapmerge3(dapcomm,dapcomm->cdf.ddsroot,
                                dapcomm->oc.ocdasroot);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}

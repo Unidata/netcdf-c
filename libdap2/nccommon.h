@@ -208,8 +208,8 @@ typedef struct CDFdim {
 
 typedef struct CDFarray {
     NClist*  dimsetall;   /* dimsetplus + inherited */
-    NClist*  dimsetplus;  /* dimset0 + pseudo */
     NClist*  dimsettrans; /* dimset0 plus inherited(transitive closure) */
+    NClist*  dimsetplus;  /* dimset0 + pseudo */
     NClist*  dimset0;     /* original dims from the dds */
     struct CDFnode* stringdim;
     /* Track sequence related information */
@@ -324,6 +324,7 @@ extern NClist* getalldims34(NCDAPCOMMON* nccomm, int visibleonly);
 /* From cdf3.c */
 extern NCerror dimimprint3(NCDAPCOMMON*);
 extern NCerror definedimsets3(NCDAPCOMMON*,CDFtree*);
+extern NCerror definedimsettrans3(NCDAPCOMMON*,CDFtree*);
 
 /* From cache.c */
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);
