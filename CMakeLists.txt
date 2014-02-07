@@ -478,7 +478,7 @@ IF (ENABLE_HDF4)
      INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
    ENDIF() 
  
-   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
+   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
    IF(NOT HDF4_DF_LIB)
 	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
    ENDIF()
@@ -766,7 +766,7 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Determine whether or not to generate documentation.
-OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." ON)
+OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
   IF(NC_DOXYGEN)
     SET(BUILD_DOCS ON CACHE BOOL "")
