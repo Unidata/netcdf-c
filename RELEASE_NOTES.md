@@ -4,6 +4,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
+* Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
+
 * Addressed an issue related to old dap servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
 
 * When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless supressed with `-DENABLE_DOXYGEN=OFF`.
