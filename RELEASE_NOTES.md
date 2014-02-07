@@ -100,7 +100,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
 
-* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
+* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\\MD) or static CRT libraries (\\MT) in Visual Studio builds.
 
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 
