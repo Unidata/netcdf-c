@@ -26,6 +26,7 @@ IF(ENABLE_TESTS)
 	
 	IF(ENABLE_DAP_REMOTE_TESTS)
 		add_sh_test(ncdap tst_remote3)
+		add_sh_test(ncdap tst_formatx)
 	ENDIF()
 
 	IF(ENABLE_DAP_LONG_TESTS)
@@ -41,18 +42,19 @@ IF(ENABLE_TESTS)
 	add_bin_test(ncdap test_partvar)
 	add_bin_test(ncdap test_varm3)
 	add_bin_test(ncdap t_auth)
+	add_bin_test(ncdap t_misc)
 	
 ENDIF()
-
+ADD_SUBDIRECTORY(testdata3)
 ADD_SUBDIRECTORY(expected3)
 ADD_SUBDIRECTORY(expected4)
 ADD_SUBDIRECTORY(expectremote3)
 ADD_SUBDIRECTORY(expectremote4)
-ADD_SUBDIRECTORY(expecttds3)
-ADD_SUBDIRECTORY(nocacheremote3)
-ADD_SUBDIRECTORY(nocacheremote4)
-ADD_SUBDIRECTORY(special3)
-ADD_SUBDIRECTORY(testdata3)
+#ADD_SUBDIRECTORY(expecttds3)
+#ADD_SUBDIRECTORY(nocacheremote3)
+#ADD_SUBDIRECTORY(nocacheremote4)
+#ADD_SUBDIRECTORY(special3)
+
 
 
 ## Specify files to be distributed by 'make dist'

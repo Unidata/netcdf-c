@@ -254,15 +254,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_MREMAP
 #cmakedefine HAVE_DECL_ISINF
 
-
-/* Some linux systems have getrlimit, but
-   no definition of RLIM_INFINITY */
-//#cmakedefine HAVE_RLIM_INFINITY
-//#ifdef HAVE_RLIM_INFINITY
-	#cmakedefine HAVE_GETRLIMIT
-//#else
-//	#undef HAVE_GETRLIMIT
-//#endif
+#cmakedefine HAVE_GETRLIMIT
 #cmakedefine HAVE_FSYNC
 
 #cmakedefine HAVE_H5PGET_FAPL_MPIPOSIX 1

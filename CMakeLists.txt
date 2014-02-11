@@ -16,7 +16,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE "-rc7")
+SET(netCDF_VERSION_NOTE ".1")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(netCDF_SO_VERSION 7.2.0)
@@ -35,6 +35,11 @@ getuname(osrel  -r)
 getuname(cpu    -m)
 set(BUILDNAME        "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
+
+# Determine if DOXYGEN and DOT are available.  These will be used
+# when building the documentation.
+FIND_PROGRAM(NC_DOXYGEN NAMES doxygen)
+FIND_PROGRAM(NC_DOT NAMES dot)
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
@@ -104,7 +109,7 @@ INCLUDE(GenerateExportHeader)
 ################################
 
 
-# Default to shared libs on.
+# Default building shared libraries.
 OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
 SET (LIB_TYPE STATIC)
 IF (BUILD_SHARED_LIBS)
@@ -114,20 +119,50 @@ IF (BUILD_SHARED_LIBS)
 	ENDIF()
 ENDIF()
 
-# Supress unused variable and parameter warnings, for the time being,
-# on GCC.
-#
-# Also, set some other default compiler flags.
+# Set some default linux gcc & apple compiler options for
+# debug builds.
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-unused-variable -Wno-unused-parameter")
-ENDIF()
 
-IF(NOT ENABLE_COVERAGE_TESTS)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
-ENDIF()
+  OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+  OPTION (ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+  OPTION (ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
+  OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
+  
+  # Debugging flags
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 
+  # Coverage tests need to have optimization turned off.
+  IF(NOT ENABLE_COVERAGE_TESTS)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
+  ELSE()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+    MESSAGE(STATUS "Coverage Tests: On.")    
+  ENDIF()
+  
+  # Unused var and parameter warnings create a lot of noise.
+  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS) 
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+  ENDIF()
+  
+  # Warnings for 64-to-32 bit conversions.
+  IF(ENABLE_CONVERSION_WARNINGS)
+    IF(APPLE)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+    ELSE()
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
+    ENDIF(APPLE)
+  ENDIF(ENABLE_CONVERSION_WARNINGS)
+
+ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+
+# End default linux gcc & apple compiler options.
 
 ADD_DEFINITIONS()
 
@@ -264,6 +299,9 @@ MACRO(print_conf_summary)
 	ENDIF()
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
+	MESSAGE(STATUS "\tCMAKE_C_FLAGS:\t\t\t" ${CMAKE_C_FLAGS})
+	MESSAGE(STATUS "\tCMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
+
 	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
 
 	MESSAGE("")
@@ -421,18 +459,6 @@ IF(ENABLE_DISKLESS)
 	SET(USE_DISKLESS ON)
 ENDIF()
 
-OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-IF(ENABLE_CONVERSION_WARNINGS)
-        IF(NOT MSVC)
-		IF(APPLE)
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
-    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
-  		ELSE()
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
-    			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
-  		ENDIF(APPLE)
-        ENDIF(NOT MSVC)
-ENDIF(ENABLE_CONVERSION_WARNINGS)
 # Option Logging, only valid for netcdf4. 
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
@@ -452,7 +478,7 @@ IF (ENABLE_HDF4)
      INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
    ENDIF() 
  
-   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf)
+   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
    IF(NOT HDF4_DF_LIB)
 	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
    ENDIF()
@@ -607,6 +633,15 @@ IF (ENABLE_DAP)
 	INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 ENDIF()
 
+# Check for the math library so it can be explicitely linked.
+IF(NOT WIN32)
+       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
+       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
+       IF(NOT HAVE_LIBM)
+       	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
+       ENDIF()
+ENDIF()
+
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
@@ -651,7 +686,6 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 # Enable Large file tests
-OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
 ENDIF()
@@ -676,18 +710,6 @@ IF(ENABLE_LARGE_FILE_SUPPORT)
     SET(_FILE_OFFSET_BITS 64)
     SET(_LARGEFILE64_SOURCE TRUE)
     SET(_LARGEFILE_SOURCE TRUE)
-  ENDIF()
-ENDIF()
-
-
-# Provide the option to perform coverage tests.
-IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  OPTION (ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-  IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-    MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 ENDIF()
 
@@ -746,13 +768,29 @@ ENDIF()
 # Determine whether or not to generate documentation.
 OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
-	SET(BUILD_DOCS ON CACHE BOOL "")
-	OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
-	IF(ENABLE_INTERNAL_DOCS)
-		SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
-	ELSE()
-		SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
-	ENDIF()
+  IF(NC_DOXYGEN)
+    SET(BUILD_DOCS ON CACHE BOOL "")
+    
+    # Offer the option to build internal documentation.
+    OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
+    IF(ENABLE_INTERNAL_DOCS)
+      SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+    ELSE()
+      SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+    ENDIF()
+
+    # Specify whether or not 'dot' was found on the system path.
+    IF(NC_DOT)
+      SET(HAVE_DOT YES CACHE STRING "")
+    ELSE(NC_DOT)
+      SET(HAVE_DOT NO CACHE_STRING "")
+    ENDIF(NC_DOT)
+
+  ELSE(NC_DOXYGEN)
+    MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
+  ENDIF(NC_DOXYGEN)
+	
+
 ENDIF()
 
 # By default, MSVC has a stack size of 1000000.
@@ -834,6 +872,7 @@ CHECK_INCLUDE_FILE("inttypes.h"  HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE("pstdint.h"	HAVE_PSTDINT_H)
 CHECK_INCLUDE_FILE("endian.h"	HAVE_ENDIAN_H)
 CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
+CHECK_INCLUDE_FILE("stddef.h"   HAVE_STDDEF_H)
 
 # Type checks
 CHECK_TYPE_SIZE("double"	 SIZEOF_DOUBLE)
@@ -899,15 +938,6 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 # End system inspection checks.
 #####
 
-
-# Check for the math library so it can be explicitely linked.
-IF(NOT WIN32)
-       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
-       IF(NOT HAVE_LIBM)
-       	      MESSAGE(FATAL_ERROR "Unable to find the math library.")
-       ENDIF()
-ENDIF()
 
 # Create config.h file, nc-config
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
@@ -1040,6 +1070,56 @@ install (FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
 		${netCDF_BINARY_DIR}/netcdf-config-version.cmake
 		DESTINATION share/cmake)
 
+
+###
+# Create pkgconfig files.
+###
+
+IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  SET(CMAKE_INSTALL_LIBDIR lib)
+ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+
+# Set 
+SET(prefix ${CMAKE_INSTALL_PREFIX})
+SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
+SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+SET(includedir ${CMAKE_INSTALL_PREFIX}/include)
+SET(CC ${CMAKE_C_COMPILER})
+SET(PACKAGE_VERSION ${VERSION})
+# Process all dependency libraries and create a string
+# used when parsing netcdf.pc.in
+
+IF(NOT BUILD_SHARED_LIBS)
+  FOREACH(_LIB ${ALL_TLL_LIBS})
+    GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
+    STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
+    LIST(APPEND NC_LIBS "-l${_NAME}")
+    GET_FILENAME_COMPONENT(_LIB_DIR ${_LIB} PATH)
+    LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
+  ENDFOREACH()
+
+ENDIF(NOT BUILD_SHARED_LIBS)
+
+SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
+
+STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
+
+LIST(REMOVE_DUPLICATES NC_LIBS)
+LIST(REMOVE_DUPLICATES LINKFLAGS)
+
+configure_file (
+  ${netCDF_SOURCE_DIR}/netcdf.pc.in
+  ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
+
+install (FILES ${netCDF_BINARY_DIR}/netcdf.pc 
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
+
+###
+# End pkgconfig file creation.
+###
+
+####
 # End CMake package configuration files.
 #####
 # Various options for CPACK

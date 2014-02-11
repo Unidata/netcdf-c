@@ -1382,16 +1382,16 @@ copy(char* infile, char* outfile)
 
 	/* Check if any vars in -v don't exist */
     if(missing_vars(igrp, option_nlvars, option_lvars))
-	return EXIT_FAILURE;
+	exit(EXIT_FAILURE);
 
     if(option_nlgrps > 0) {
 	if(inkind != NC_FORMAT_NETCDF4) {
 	    error("Group list (-g ...) only permitted for netCDF-4 file");
-	    return EXIT_FAILURE;
+	    exit(EXIT_FAILURE);
 	}
 	/* Check if any grps in -g don't exist */
 	if(grp_matches(igrp, option_nlgrps, option_lgrps, option_grpids) == 0)
-	    return EXIT_FAILURE;
+	    exit(EXIT_FAILURE);
     }
 
     if(option_write_diskless)
@@ -1997,7 +1997,7 @@ main(int argc, char**argv)
     }
 
     if(copy(inputfile, outputfile) != NC_NOERR)
-        exit(1);
-    return 0;
+        exit(EXIT_FAILURE);
+    exit(EXIT_SUCCESS);
 }
 END_OF_MAIN();

@@ -403,6 +403,10 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
 	oc_dds_atomictype(nccomm->oc.conn,ocnode,&octype);
         node->etype = octypetonc(octype);
     }
+    if(container != NULL)
+	node->root = container->root;
+    else if(node->nctype == NC_Dataset)
+	node->root = node;
     return node;
 }
 
@@ -459,32 +463,45 @@ buildcdftree34r(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 
     switch (octype) {
     case OC_Dataset:
+	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
+	nclistpush(tree->nodes,(void*)cdfnode);
+	tree->root = cdfnode;
+	cdfnode->tree = tree;
+	break;
+
     case OC_Grid:
     case OC_Structure:
     case OC_Sequence:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
 	nclistpush(tree->nodes,(void*)cdfnode);
+#if 0
 	if(tree->root == NULL) {
 	    tree->root = cdfnode;
 	    cdfnode->tree = tree;
 	}		
+#endif
 	break;
 
     case OC_Atomic:
 	cdfnode = makecdfnode34(nccomm,ocname,octype,ocnode,container);
 	nclistpush(tree->nodes,(void*)cdfnode);
+#if 0
 	if(tree->root == NULL) {
 	    tree->root = cdfnode;
 	    cdfnode->tree = tree;
 	}		
+#endif
 	break;
 
     case OC_Dimension:
     default: PANIC1("buildcdftree: unexpect OC node type: %d",(int)octype);
 
     }    
+#if 0
     /* cross link */
+    assert(tree->root != NULL);
     cdfnode->root = tree->root;
+#endif
 
     if(ocrank > 0) defdimensions(ocnode,cdfnode,nccomm,tree);
     for(i=0;i<ocnsubnodes;i++) {
@@ -729,6 +746,7 @@ simplenodematch34(CDFnode* node1, CDFnode* node2)
        which returns different Dataset {...} names
        depending on the constraint.
     */
+
     if(FLAGSET(node1->root->tree->owner->controls,NCF_COLUMBIA)
        && node1->nctype == NC_Dataset) return 1;
 

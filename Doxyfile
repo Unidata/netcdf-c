@@ -32,7 +32,7 @@ PROJECT_NAME           = netCDF-C
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 4.3.1-RC6
+PROJECT_NUMBER         = 4.3.1.1
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
@@ -45,7 +45,7 @@ PROJECT_BRIEF          = "The netCDF C libraries"
 # exceed 55 pixels and the maximum width should not exceed 200 pixels. 
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = /Users/wfisher/Desktop/gitprojects/netcdf-c/man4/unidata_logo_cmyk.png
+PROJECT_LOGO           = ./man4/unidata_logo_cmyk.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -709,7 +709,9 @@ FILE_PATTERNS          = *.c \
                          *.f90 \
                          *.f \
                          *.vhd \
-                         *.vhdl
+                         *.vhdl \
+			 *.md \
+			 *.doc 
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 

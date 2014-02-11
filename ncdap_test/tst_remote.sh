@@ -16,6 +16,12 @@ DTS="$SVC/dts"
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
+
+# Determine If we're on OSX or Linux
+
+myplatform=`uname -a | cut -d" " -f 1`
+
+
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
 
@@ -31,8 +37,8 @@ if test "x$timing" = "x1" ; then leakcheck=0; fi
 # get the list of test files
 # Currently C2 fails because server is not responding
 #WHICHTESTS="S1 C1 C2 CB"
-#WHICHTESTS="S1 C1 CB"
-WHICHTESTS="CB"
+WHICHTESTS="S1 C1 CB"
+
 if test -n "$longtests"; then
 WHICHTESTS="${WHICHTESTS} L1 LC1 LC2"
 fi
@@ -252,10 +258,34 @@ echo '#DODSRC' >./.dodsrc
 
 for t in ${TESTSET} ; do
   # see if we are using constraints
+  #index=`expr index "${t}" ";"`
+  
+  #echo index: $index
+  
+  if [ "$myplatform" = "Darwin" ]; then
+      index=`echo "${t}" | sed -n "s/;.*//p" | wc -c`    
+      if (( $index == 0 )) ; then
+	  constrained=0
+      else
+	  constrained=1
+      fi
+
+  else
+      index=`expr index "${t}" ";"`
+
+      if test "x$index" = "x0" ; then
+	  constrained=0
+      else
+	  constrained=1
+      fi
+
+  fi
+
   if test "x$constrained" = "x0" ; then # No constraint
     testname=$t
     ce=
   else # Constrained
+      
     testname=`echo $t | cut -d ';' -f1`
     testno=`echo $t | cut -d ';' -f2`
     ce=`echo $t | cut -d ';' -f3-`

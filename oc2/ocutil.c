@@ -694,8 +694,8 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
     tmpname = (char*)malloc(tmpsize);
     if(tmpname == NULL) return OC_ENOMEM;
     if(!occopycat(tmpname,tmpsize,1,base)) {
-      free(tmpname);
-      return OC_EOVERRUN;
+	free(tmpname);
+	return OC_EOVERRUN;
     }
 #ifdef HAVE_MKSTEMP
     if(!occoncat(tmpname,tmpsize,1,"XXXXXX")) {

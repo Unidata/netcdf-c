@@ -28,13 +28,14 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
     char** values = NULL;
     conn = nccomm->oc.conn;
 
-    if(ddsroot == NULL || dasroot == NULL) return NC_NOERR;
+    if(ddsroot == NULL || dasroot == NULL)
+	return NC_NOERR;
     /* Merge the das tree onto the dds tree */ 
-    ocstat = oc_merge_das(nccomm->oc.conn,dasroot,ddsroot);
+    ocstat = oc_merge_das(nccomm->oc.conn,dasroot,ddsroot->ocnode);
     if(ocstat != OC_NOERR) goto done;
 
     /* Create attributes on CDFnodes */
-    allnodes = nccomm->cdf.ddsroot->tree->nodes;
+    allnodes = ddsroot->tree->nodes;
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
 	OCddsnode ocnode = node->ocnode;

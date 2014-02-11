@@ -49,7 +49,7 @@ extern void ocdataddsmsg(struct OCstate*, struct OCtree*);
 extern const char* ocdtmodestring(OCDT mode,int compact);
 
 /* Define some classifiers */
-#define iscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid)
+#define iscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid || (t) == OC_Attributeset)
 
 #define isatomic(t) ((t) == OC_Atomic)
 

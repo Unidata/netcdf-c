@@ -2,9 +2,25 @@
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
-## 4.3.1 Released TBD
+## 4.3.1.2 Released TBD
 
-* Add an extended format inquiry method to the netcdf API: nc_inq_format_extended. [NCF-273]
+* Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
+
+* Addressed an issue related to old dap servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
+
+* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless supressed with `-DENABLE_DOXYGEN=OFF`.
+
+## 4.3.1.1 Released 2014-02-05
+
+4.3.1.1 Is a bug-fix for the 4.3.1 release.
+
+* Corrected a DAP issue reported by Jeff Whitaker related to non-conforming servers.
+
+* Corrected an issue with DAP tests failing in a 64-bit Cygwin environment. [NCF-286](https://bugtracking.unidata.ucar.edu/browse/NCF-286)
+
+## 4.3.1 Released 2014-01-16
+
+* Add an extended format inquiry method to the netcdf API: nc\_inq\_format\_extended. NC\_HAVE\_INQ\_FORMAT\_EXTENDED is defined in netcdf.h [NCF-273]
 
 [NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
 
@@ -86,7 +102,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-166]:https://bugtracking.unidata.ucar.edu/browse/NCF-166
 
-* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\MD) or static CRT libraries (\MT) in Visual Studio builds.
+* Added a new configuration flag, `NC_USE_STATIC_CRT` for CMake-based Windows builds.  The default value is 'OFF'.  This will allow the user to define whether to use the shared CRT libraries (\\MD) or static CRT libraries (\\MT) in Visual Studio builds.
 
 * Ensure netCDF-4 compiles with OpenMPI as an alternative to MPICH2. [NCF-160]
 

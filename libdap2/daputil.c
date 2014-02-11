@@ -36,7 +36,7 @@ nc__testurl(const char* path, char** basenamep)
     NCURI* uri;
     int ok = ncuriparse(path,&uri);
     if(ok) {
-	char* slash = strrchr(uri->file, '/');
+	char* slash = (uri->file == NULL ? NULL : strrchr(uri->file, '/'));
 	char* dot;
 	if(slash == NULL) slash = (char*)path; else slash++;
         slash = nulldup(slash);
@@ -721,7 +721,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
     }
 
     if(SHOWFETCH) {
-	/* Build uri string minus the constraint */
+	/* Build uri string minus the constraint and #tag */
 	char* baseurl = ncuribuild(nccomm->oc.url,NULL,ext,0);
 	if(ce == NULL)
             LOG1(NCLOGNOTE,"fetch: %s",baseurl);

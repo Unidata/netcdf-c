@@ -31,8 +31,6 @@ freegetvara(Getvara* vara)
 NCerror
 freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 {
-    /* abort the metadata file */
-    (void)nc_abort(getncid(dapcomm));
     freenccache(dapcomm,dapcomm->cdf.cache);
     nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
@@ -646,6 +644,18 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
     ncstat = buildcdftree34(dapcomm,ocroot,OCDDS,&ddsroot);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     dapcomm->cdf.fullddsroot = ddsroot;
+    ddsroot = NULL; /* avoid double reclaim */
+
+    /* Combine DDS and DAS */
+    if(dapcomm->oc.ocdasroot != NULL) {
+	ncstat = dapmerge3(dapcomm,dapcomm->cdf.fullddsroot,
+                           dapcomm->oc.ocdasroot);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
+    }
+
+#ifdef DEBUG
+fprintf(stderr,"full template:\n%s",dumptree(dapcomm->cdf.fullddsroot));
+#endif
 
 done:
     nullfree(ce);
@@ -680,7 +690,7 @@ fetchconstrainedmetadata3(NCDAPCOMMON* dapcomm)
 
         if(!FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
             /* fix DAP server problem by adding back any inserting needed structure nodes */
-            ncstat = restruct3(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot,dapcomm->oc.dapconstraint->projections);    
+            ncstat = restruct3(dapcomm, dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot,dapcomm->oc.dapconstraint->projections);    
             if(ncstat) goto fail;
 	}
 
@@ -690,7 +700,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 
         /* Combine DDS and DAS */
 	if(dapcomm->oc.ocdasroot != NULL) {
-            ncstat = dapmerge3(dapcomm,dapcomm->cdf.ddsroot->ocnode,
+            ncstat = dapmerge3(dapcomm,dapcomm->cdf.ddsroot,
                                dapcomm->oc.ocdasroot);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}

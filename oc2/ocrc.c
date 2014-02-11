@@ -341,9 +341,10 @@ ocdodsrc_read(char* basename, char* path)
 		oclog(OCLOGERR, "%s entry too long: %s",basename,line);
 		continue;
 	    }
-	    strcat(line,"=1");
+	    strncat(line,"=1",2);
 	    value = strchr(line,'=');
 	}
+	if(value == NULL) continue;
         *value = '\0';
 	value++;
 	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,TRIM(key),strlen(key));

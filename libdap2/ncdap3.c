@@ -212,7 +212,7 @@ NCD3_open(const char * path, int mode,
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Define the dimsettrans list */
-    ncstat = definedimsets3(dapcomm,dapcomm->cdf.fullddsroot->tree);
+    ncstat = definedimsettrans3(dapcomm,dapcomm->cdf.fullddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* Mark the nodes of the template that are eligible for prefetch */

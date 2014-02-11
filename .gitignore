@@ -2,7 +2,15 @@ build
 html
 doxygen*.tmp
 \#*.*\#
-autom4te.cache
+*.*~
+*.o
+*.lo
+*.la
 myhtml
 CMakeLists.txt.user
 scan-build
+.deps
+.libs
+*.zip
+*.gz
+Makefile

@@ -94,4 +94,5 @@ test.vs3.das test.vs3.dds test.vs3.dods \
 test.vs4.das test.vs4.dds test.vs4.dods \
 test.vs5.das test.vs5.dds test.vs5.dods \
 text.nc.das text.nc.dds text.nc.dods \
-whoi.das whoi.dds whoi.dods
+whoi.das whoi.dds whoi.dods \
+CMakeLists.txt

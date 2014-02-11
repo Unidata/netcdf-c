@@ -1322,6 +1322,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
 #ifdef EXTRA_TESTS
       num_plists++;
 #endif
+ 
+   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+   if (H5Pset_obj_track_times(plistid,0)<0)
+      BAIL(NC_EHDFERR);
 
    /* Find the HDF5 type of the dataset. */
    if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->type_info->nc_typeid, &typeid, 
@@ -1925,6 +1929,11 @@ create_group(NC_GRP_INFO_T *grp)
 #ifdef EXTRA_TESTS
       num_plists++;
 #endif
+
+      /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+      if (H5Pset_obj_track_times(gcpl_id,0)<0)
+         BAIL(NC_EHDFERR);
+
       if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
          BAIL(NC_EHDFERR);
       if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
@@ -2245,6 +2254,11 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
 #ifdef EXTRA_TESTS
       num_plists++;
 #endif
+
+      /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+      if (H5Pset_obj_track_times(create_propid,0)<0)
+         BAIL(NC_EHDFERR);
+
       dims[0] = dim->len;
       max_dims[0] = dim->len;
       if (dim->unlimited) 

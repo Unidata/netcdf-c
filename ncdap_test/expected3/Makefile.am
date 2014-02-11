@@ -33,6 +33,7 @@ test.sds1.dmp test.sds2.dmp test.sds3.dmp \
 test.sds4.dmp test.sds5.dmp test.sds6.dmp \
 test.sds7.dmp test.vs1.dmp test.vs2.dmp \
 test.vs3.dmp test.vs4.dmp test.vs5.dmp \
-text.nc.dmp whoi.dmp
+text.nc.dmp whoi.dmp \
+CMakeLists.txt
 
  

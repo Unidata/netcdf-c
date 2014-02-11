@@ -2189,11 +2189,7 @@ main(int argc, char *argv[])
     if (argc <= 1)
     {
        usage();
-#ifdef vms
-    exit(EXIT_SUCCESS);
-#else
-    return EXIT_SUCCESS;
-#endif
+       exit(EXIT_SUCCESS);
     }
 
     while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwK")) != EOF)
@@ -2286,7 +2282,7 @@ main(int argc, char *argv[])
 	  break;
         case '?':
 	  usage();
-	  return EXIT_FAILURE;
+	  exit(EXIT_FAILURE);
       }
 
     set_max_len(max_len);
@@ -2298,7 +2294,7 @@ main(int argc, char *argv[])
     if (argc != 1)
     {
        usage();
-       return EXIT_FAILURE;
+       exit(EXIT_FAILURE);
     }
 
     i = 0;
@@ -2343,20 +2339,20 @@ main(int argc, char *argv[])
 		init_types(ncid);
 		/* Check if any vars in -v don't exist */
 		if(missing_vars(ncid, formatting_specs.nlvars, formatting_specs.lvars))
-		    return EXIT_FAILURE;
+		    exit(EXIT_FAILURE);
 		if(formatting_specs.nlgrps > 0) {
 		    if(formatting_specs.nc_kind != NC_FORMAT_NETCDF4) {
 			error("Group list (-g ...) only permitted for netCDF-4 file");
-			return EXIT_FAILURE;
+			exit(EXIT_FAILURE);
 		    }
 		    /* Check if any grps in -g don't exist */
 		    if(grp_matches(ncid, formatting_specs.nlgrps, formatting_specs.lgrps, formatting_specs.grpids) == 0)
-			return EXIT_FAILURE;
+			exit(EXIT_FAILURE);
 		}
 		if (xml_out) {
 		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
 			error("NcML output (-x) currently only permitted for netCDF classic model");
-			return EXIT_FAILURE;
+			exit(EXIT_FAILURE);
 		    }
 		    do_ncdumpx(ncid, path);
 		} else {
@@ -2367,10 +2363,6 @@ main(int argc, char *argv[])
 	}
 	free(path);
     }
-#ifdef vms
     exit(EXIT_SUCCESS);
-#else
-    return EXIT_SUCCESS;
-#endif
 }
 END_OF_MAIN();

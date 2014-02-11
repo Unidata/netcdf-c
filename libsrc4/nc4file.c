@@ -353,6 +353,10 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    num_plists++;
 #endif
 
+   /* RJ: this suppose to be FALSE that is defined in H5 private.h as 0 */
+   if (H5Pset_obj_track_times(fcpl_id,0)<0)
+      BAIL(NC_EHDFERR);
+
    /* Set latest_format in access propertly list and
     * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
     * on HDF5 creation ordering. */

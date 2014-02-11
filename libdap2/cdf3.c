@@ -16,17 +16,18 @@ CDFnode* v4node = NULL;
 
 /* Forward*/
 static NCerror sequencecheck3r(CDFnode* node, NClist* vars, CDFnode* topseq);
-static NCerror restruct3r(CDFnode*, CDFnode*, NClist*);
-static NCerror repairgrids(NClist*);
-static NCerror structwrap3(CDFnode*, CDFnode*, int, CDFnode*, int);
+static NCerror restruct3r(NCDAPCOMMON*, CDFnode*, CDFnode*, NClist*);
+static NCerror repairgrids(NCDAPCOMMON*, NClist*);
+static NCerror structwrap3(NCDAPCOMMON*, CDFnode*, CDFnode*, int, CDFnode*, int);
 static int findin(CDFnode* parent, CDFnode* child);
-static CDFnode* makenewstruct3(CDFnode* node, CDFnode* template);
+static CDFnode* makenewstruct3(NCDAPCOMMON*, CDFnode*, CDFnode*);
 static NCerror mapnodes3r(CDFnode*, CDFnode*, int depth);
 static NCerror mapfcn(CDFnode* dstnode, CDFnode* srcnode);
 static NCerror definedimsetplus3(NCDAPCOMMON* nccomm, CDFnode* node);
 static NCerror definedimsetall3(NCDAPCOMMON* nccomm, CDFnode* node);
-static NCerror definedimsetall3(NCDAPCOMMON* nccomm, CDFnode* node);
-static NCerror definedimsettrans3(NCDAPCOMMON* nccomm, CDFnode* node);
+static NCerror definetransdimset3(NCDAPCOMMON* nccomm, CDFnode* node);
+static NCerror definedimsettransR3(NCDAPCOMMON* nccomm, CDFnode* node);
+static NCerror definedimsetsR3(NCDAPCOMMON* nccomm, CDFnode* node);
 
 /* Accumulate useful node sets  */
 NCerror
@@ -315,7 +316,7 @@ Input is
 */
 
 NCerror
-restruct3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
+restruct3(NCDAPCOMMON* ncc, CDFnode* ddsroot, CDFnode* templateroot, NClist* projections)
 {
     NCerror ncstat = NC_NOERR;
     NClist* repairs = nclistnew();
@@ -332,17 +333,17 @@ restruct3(CDFnode* ddsroot, CDFnode* template, NClist* projections)
 
 #ifdef DEBUG
 fprintf(stderr,"restruct: ddsroot=%s\n",dumptree(ddsroot));
-fprintf(stderr,"restruct: template=%s\n",dumptree(template));
+fprintf(stderr,"restruct: templateroot=%s\n",dumptree(templateroot));
 #endif
 
     /* Match roots */
-    if(!simplenodematch34(ddsroot,template))
+    if(!simplenodematch34(ddsroot,templateroot))
 	ncstat = NC_EDATADDS;
-    else if(!restruct3r(ddsroot,template,repairs))
+    else if(!restruct3r(ncc,ddsroot,templateroot,repairs))
 	ncstat = NC_EDATADDS;
     else if(nclistlength(repairs) > 0) {
 	/* Do the repairs */
-	ncstat = repairgrids(repairs);
+	ncstat = repairgrids(ncc, repairs);
     }
 
     if(repairs)
@@ -364,13 +365,13 @@ we expected a grid.
 */
 
 static int
-restruct3r(CDFnode* parentnode, CDFnode* templateparent, NClist* repairlist)
+restruct3r(NCDAPCOMMON* ncc, CDFnode* dxdparent, CDFnode* templateparent, NClist* repairlist)
 {
     int index, i, j, match;
 
 #ifdef DEBUG
 fprintf(stderr,"restruct: matched: %s -> %s\n",
-ocfqn(parentnode->ocnode),ocfqn(templateparent->ocnode));
+ocfqn(dxdparent->ocnode),ocfqn(templateparent->ocnode));
 #endif
 
     /* walk each node child and locate its match
@@ -378,28 +379,28 @@ ocfqn(parentnode->ocnode),ocfqn(templateparent->ocnode));
        non-matches may be nodes needing wrapping.
     */
 
-    for(index=0;index<nclistlength(parentnode->subnodes);index++) {
-        CDFnode* subnode = (CDFnode*)nclistget(parentnode->subnodes,index);
+    for(index=0;index<nclistlength(dxdparent->subnodes);index++) {
+        CDFnode* dxdsubnode = (CDFnode*)nclistget(dxdparent->subnodes,index);
 	CDFnode* matchnode = NULL;
 
 	/* Look for a matching template node with same ocname */
         for(i=0;i<nclistlength(templateparent->subnodes);i++) {
-            CDFnode* subtemp = (CDFnode*)nclistget(templateparent->subnodes,i);
-	    if(strcmp(subnode->ocname,subtemp->ocname) == 0) {
-		matchnode = subtemp;
+            CDFnode* templatesubnode = (CDFnode*)nclistget(templateparent->subnodes,i);
+	    if(strcmp(dxdsubnode->ocname,templatesubnode->ocname) == 0) {
+		matchnode = templatesubnode;
 		break;
 	    }
 	}
 #ifdef DEBUG
 fprintf(stderr,"restruct: candidate: %s -> %s\n",
-ocfqn(subnode->ocnode),ocfqn(matchnode->ocnode));
+ocfqn(dxdsubnode->ocnode),ocfqn(matchnode->ocnode));
 #endif
-	if(simplenodematch34(subnode,matchnode)) {
+	if(simplenodematch34(dxdsubnode,matchnode)) {
 	    /* this subnode of the node matches the corresponding
                node of the template, so it is ok =>
                recurse looking for nested mis-matches
             */
-	    if(!restruct3r(subnode,matchnode,repairlist))
+	    if(!restruct3r(ncc,dxdsubnode,matchnode,repairlist))
 		return 0;
 	} else {
             /* If we do not have a direct match, then we need to look
@@ -408,12 +409,13 @@ ocfqn(subnode->ocnode),ocfqn(matchnode->ocnode));
             */
             for(match=0,i=0;!match && i<nclistlength(templateparent->subnodes);i++) {
                 CDFnode* subtemp = (CDFnode*)nclistget(templateparent->subnodes,i);
-                if(subtemp->nctype == NC_Grid) { /* look inside */
+                if(subtemp->nctype == NC_Grid) {
+		    /* look inside */
                     for(j=0;j<nclistlength(templateparent->subnodes);j++) {
                         CDFnode* gridfield = (CDFnode*)nclistget(subtemp->subnodes,j);
-                        if(simplenodematch34(subnode,gridfield)) {
+                        if(simplenodematch34(dxdsubnode,gridfield)) {
                             /* We need to do this repair */
-                            nclistpush(repairlist,(void*)subnode);
+                            nclistpush(repairlist,(void*)dxdsubnode);
                             nclistpush(repairlist,(void*)gridfield);
                             match = 1;
                             break;
@@ -430,7 +432,7 @@ ocfqn(subnode->ocnode),ocfqn(matchnode->ocnode));
 /* Wrap the node wrt the template grid or template struct */
 
 static NCerror
-repairgrids(NClist* repairlist)
+repairgrids(NCDAPCOMMON* ncc, NClist* repairlist)
 {
     NCerror ncstat = NC_NOERR;
     int i;
@@ -440,7 +442,7 @@ repairgrids(NClist* repairlist)
 	CDFnode* template = (CDFnode*)nclistget(repairlist,i+1);
 	int index = findin(node->container,node);
 	int tindex = findin(template->container,template);
-	ncstat = structwrap3(node,node->container,index,
+	ncstat = structwrap3(ncc, node,node->container,index,
                              template->container,tindex);
 #ifdef DEBUG
 fprintf(stderr,"repairgrids: %s -> %s\n",
@@ -452,14 +454,13 @@ ocfqn(node->ocnode),ocfqn(template->ocnode));
 }
 
 static NCerror
-structwrap3(CDFnode* node, CDFnode* parent, int parentindex,
+structwrap3(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, int parentindex,
                            CDFnode* templategrid, int gridindex)
 {
     CDFnode* newstruct;
 
     ASSERT((templategrid->nctype == NC_Grid));
-
-    newstruct = makenewstruct3(node,templategrid);
+    newstruct = makenewstruct3(ncc, node,templategrid);
     if(newstruct == NULL) {return THROW(NC_ENOMEM);}
 
     /* replace the node with the new structure
@@ -489,17 +490,14 @@ findin(CDFnode* parent, CDFnode* child)
 */
   
 static CDFnode*
-makenewstruct3(CDFnode* node, CDFnode* templatenode)
+makenewstruct3(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* templatenode)
 {
-    CDFnode* newstruct = (CDFnode*)calloc(1,sizeof(CDFnode));
+    CDFnode* newstruct = makecdfnode34(ncc,templatenode->ocname,OC_Structure,
+                                      templatenode->ocnode, node->container);
     if(newstruct == NULL) return NULL;
-    newstruct->nctype = NC_Structure;
     newstruct->nc_virtual = 1;
-    newstruct->ocname = nulldup(templatenode->ocname);
-    newstruct->ocnode = templatenode->ocnode;
     newstruct->ncbasename = nulldup(templatenode->ncbasename);
     newstruct->subnodes = nclistnew();
-    newstruct->container = node->container;
     newstruct->template = templatenode;
     node->container = newstruct;
     nclistpush(newstruct->subnodes,(void*)node);
@@ -660,35 +658,38 @@ clonedim(NCDAPCOMMON* nccomm, CDFnode* dim, CDFnode* var)
 static NClist*
 clonedimset3(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
 {
-    NClist* result = nclistnew();
+    NClist* result = NULL;
     int i;
-    for(i=0;i<nclistlength(dimset);i++) {
-	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	nclistpush(result,(void*)clonedim(nccomm,dim,var));
+    if(dimset != NULL) {
+        for(i=0;i<nclistlength(dimset);i++) {
+	    if(result == NULL)
+		result = nclistnew();
+	    CDFnode* dim = (CDFnode*)nclistget(dimset,i);
+	    nclistpush(result,(void*)clonedim(nccomm,dim,var));
+        }
     }
     return result;
 }
 
-/* Define the dimsetplus list for a node */
+/* Define the dimsetplus list for a node = dimset0+pseudo dims */
 static NCerror
 definedimsetplus3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 {
     int ncstat = NC_NOERR;
-    NClist* dimset;
-    CDFnode* clone;
+    NClist* dimset = NULL;
+    CDFnode* clone = NULL;
 
-    ASSERT(node->array.dimsetplus == NULL);
-    if(node->array.dimset0 == NULL)
-	dimset = nclistnew();
-    else { /* copy the dimset0 into dimset */
+    if(node->array.dimset0 != NULL)
+        /* copy the dimset0 into dimset */
         dimset = nclistclone(node->array.dimset0);
-    }
     /* Insert the sequence or string dims */
     if(node->array.stringdim != NULL) {
+        if(dimset == NULL) dimset = nclistnew();
 	clone = node->array.stringdim;
         nclistpush(dimset,(void*)clone);
     }
     if(node->array.seqdim != NULL) {
+        if(dimset == NULL) dimset = nclistnew();
 	clone = node->array.seqdim;
         nclistpush(dimset,(void*)clone);
     }
@@ -696,33 +697,22 @@ definedimsetplus3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
     return ncstat;
 }
 
-/* Define the dimsetall list for a node */
+/* Define the dimsetall list for a node =  */
 static NCerror
 definedimsetall3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 {
     int i;
     int ncstat = NC_NOERR;
-    NClist* dimsetall;
+    NClist* dimsetall = NULL;
 
-    /* Because of upward recursion (see below) the dimsetall may
-       already be defined */
-    if(node->array.dimsetall != NULL)
-	return ncstat;
     if(node->container != NULL) {
-        if(node->container->array.dimsetall == NULL) {
-#ifdef DEBUG1
-fprintf(stderr,"dimsetall: recurse to container%s\n",node->container->ocname);
-#endif
-    	    ncstat = definedimsetall3(nccomm,node->container);
-	    if(ncstat != NC_NOERR) return ncstat;
-        }
 	/* We need to clone the parent dimensions because we will be assigning
            indices vis-a-vis this variable */
         dimsetall = clonedimset3(nccomm,node->container->array.dimsetall,node);
-    } else
-	dimsetall = nclistnew();
-    // concat parentall and dimset;
+    }
+    /* append dimsetplus; */
     for(i=0;i<nclistlength(node->array.dimsetplus);i++) {
+        if(dimsetall == NULL) dimsetall = nclistnew();
 	CDFnode* clone = (CDFnode*)nclistget(node->array.dimsetplus,i);
 	nclistpush(dimsetall,(void*)clone);
     }
@@ -733,33 +723,25 @@ fprintf(stderr,"dimsetall: |%s|=%d\n",node->ocname,(int)nclistlength(dimsetall))
     return ncstat;
 }
 
-/* Define the dimsettrans list for a node */
+/* Define the dimsettrans list for a single node */
 static NCerror
-definedimsettrans3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
+definetransdimset3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 {
     int i;
     int ncstat = NC_NOERR;
-    NClist* dimsettrans;
+    NClist* dimsettrans = NULL;
 
-    /* Because of upward recursion (see below) the dimsettrans may
-       already be defined */
-    if(node->array.dimsettrans != NULL)
-	return ncstat;
-    if(node->container != NULL) {
-        if(node->container->array.dimsettrans == NULL) {
 #ifdef DEBUG1
-fprintf(stderr,"dimsettrans: recurse to container%s\n",node->container->ocname);
+fprintf(stderr,"dimsettrans3: node=%s/%d\n",node->ocname,nclistlength(node->array.dimset0));
 #endif
-	    ncstat = definedimsettrans3(nccomm,node->container);
-	    if(ncstat != NC_NOERR) return ncstat;
-        }
+    if(node->container != NULL) {
 	/* We need to clone the parent dimensions because we will be assigning
            indices vis-a-vis this variable */
         dimsettrans = clonedimset3(nccomm,node->container->array.dimsettrans,node);
-    } else
-	dimsettrans = nclistnew();
-    // concat parent dimset0 and dimset;
+    }
+    /* concat parent dimset0 and dimset;*/
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
+        if(dimsettrans == NULL) dimsettrans = nclistnew();
 	CDFnode* clone = (CDFnode*)nclistget(node->array.dimset0,i);
 	nclistpush(dimsettrans,(void*)clone);
     }
@@ -770,37 +752,81 @@ fprintf(stderr,"dimsettrans: |%s|=%d\n",node->ocname,(int)nclistlength(dimsettra
     return ncstat;
 }
 
-/* Define the dimsetplus, dimsettrans, and dimsetall lists for
-   all nodes with dimensions
+/*
+Recursively define the transitive closure of dimensions
+(dimsettrans) based on the original dimension set (dimset0):
 */
+
 NCerror
-definedimsets3(NCDAPCOMMON* nccomm, CDFtree* tree)
+definedimsettrans3(NCDAPCOMMON* nccomm, CDFtree* tree)
+{
+    /* recursively walk the tree */
+    definedimsettransR3(nccomm, tree->root);
+    return NC_NOERR;
+}
+
+/*
+Recursive helper for definedimsettrans3
+*/
+static NCerror
+definedimsettransR3(NCDAPCOMMON* nccomm, CDFnode* node)
 {
     int i;
     int ncstat = NC_NOERR;
-    NClist* allnodes = tree->nodes;
 
-    for(i=0;i<nclistlength(allnodes);i++) {
-	CDFnode* rankednode = (CDFnode*)nclistget(allnodes,i);
-	if(rankednode->nctype == NC_Dimension) continue; //ignore
-	ASSERT((rankednode->array.dimsettrans == NULL));
-	ncstat = definedimsettrans3(nccomm,rankednode);
-	if(ncstat != NC_NOERR) return ncstat;
+    definetransdimset3(nccomm,node);
+    /* recurse */
+    for(i=0;i<nclistlength(node->subnodes);i++) {
+	CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
+	if(subnode->nctype == NC_Dimension) continue; /*ignore*/
+	ASSERT((subnode->array.dimsettrans == NULL));
+	ASSERT((subnode->array.dimsetplus == NULL));
+	ASSERT((subnode->array.dimsetall == NULL));
+	ncstat = definedimsettransR3(nccomm,subnode);
+	if(ncstat != NC_NOERR)
+	    break;
     }
-    for(i=0;i<nclistlength(allnodes);i++) {
-	CDFnode* rankednode = (CDFnode*)nclistget(allnodes,i);
-	if(rankednode->nctype == NC_Dimension) continue; //ignore
-	ASSERT((rankednode->array.dimsetplus == NULL));
-	ncstat = definedimsetplus3(nccomm,rankednode);
-	if(ncstat != NC_NOERR) return ncstat;
-    }
-    for(i=0;i<nclistlength(allnodes);i++) {
-	CDFnode* rankednode = (CDFnode*)nclistget(allnodes,i);
-	if(rankednode->nctype == NC_Dimension) continue; //ignore
-	ASSERT((rankednode->array.dimsetplus != NULL));
-	ncstat = definedimsetall3(nccomm,rankednode);
-	if(ncstat != NC_NOERR) return ncstat;
-    }     
+    return ncstat;
+}
+
+
+/*
+Recursively define two dimension sets for each structural node
+based on the original dimension set (dimset0):
+1. dimsetplus = dimset0+pseudo-dimensions (string,sequence).
+2. dimsetall = parent-dimsetall + dimsetplus
+*/
+
+NCerror
+definedimsets3(NCDAPCOMMON* nccomm, CDFtree* tree)
+{
+    /* recursively walk the tree */
+    definedimsetsR3(nccomm, tree->root);
     return NC_NOERR;
+}
+
+/*
+Recursive helper
+*/
+static NCerror
+definedimsetsR3(NCDAPCOMMON* nccomm, CDFnode* node)
+{
+    int i;
+    int ncstat = NC_NOERR;
+
+    definedimsetplus3(nccomm,node);
+    definedimsetall3(nccomm,node);
+    /* recurse */
+    for(i=0;i<nclistlength(node->subnodes);i++) {
+	CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
+	if(subnode->nctype == NC_Dimension) continue; /*ignore*/
+	ASSERT((subnode->array.dimsettrans == NULL));
+	ASSERT((subnode->array.dimsetplus == NULL));
+	ASSERT((subnode->array.dimsetall == NULL));
+	ncstat = definedimsetsR3(nccomm,subnode);
+	if(ncstat != NC_NOERR)
+	    break;
+    }
+    return ncstat;
 }
 
