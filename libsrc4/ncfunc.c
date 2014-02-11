@@ -82,8 +82,12 @@ NC4_inq_format_extended(int ncid, int *formatp, int *modep)
    if(modep) *modep = (nc->mode|NC_NETCDF4);
 
    if(formatp) {
+#ifdef USE_HDF4
 	/* Distinguish HDF5 from HDF4 */
 	*formatp = (h5->hdf4 ? NC_FORMAT_NC_HDF4 : NC_FORMAT_NC_HDF5);
+#else /* USE_HDF4 */
+	*formatp = NC_FORMAT_NC_HDF5;
+#endif /* USE_HDF4 */
    }
    return NC_NOERR;
 }

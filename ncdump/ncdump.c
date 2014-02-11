@@ -1282,7 +1282,7 @@ get_fill_info(int ncid, int varid, ncvar_t *vp) {
 	    *(uint64_t *)fillvalp = NC_FILL_UINT64;
 	    break;
 	case NC_STRING:
-	    *((char **)fillvalp) = NC_FILL_STRING;
+	    *((char **)fillvalp) = strdup(NC_FILL_STRING);
 	    break;
 #endif /* USE_NETCDF4 */
 	default:		/* no default fill values for NC_NAT
