@@ -878,7 +878,7 @@ copy_vars(int igrp, int ogrp)
             continue;
 	NC_CHECK(copy_var(igrp, varid, ogrp));
     }
-    free(vlist);
+    freeidlist(vlist);
     return stat;
 }
 
@@ -1077,7 +1077,7 @@ copy_data(int igrp, int ogrp)
 #endif
 
     int iv;			/* variable number */
-    idnode_t* vlist = 0;		/* list for vars specified with -v option */
+    idnode_t* vlist = NULL;	/* list for vars specified with -v option */
 
     /*
      * If any vars were specified with -v option, get list of
@@ -1118,6 +1118,7 @@ copy_data(int igrp, int ogrp)
     }
     free(grpids);
 #endif	/* USE_NETCDF4 */
+    freeidlist(vlist);
     return stat;
 }
 

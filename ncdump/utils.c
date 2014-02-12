@@ -261,6 +261,19 @@ idmember(const idnode_t* idlist, int id)
     return false;    
 }
 
+/*
+ * Release a variable list.
+ */
+void
+freeidlist(idnode_t *idlist)
+{
+   while(idlist) {
+      idnode_t *vp = idlist->next;
+      free(idlist);
+      idlist = vp;
+   }
+}
+
 /* 
  * Return true if group identified by grpid is member of grpids, a list of groups.
  * nlgrps is number of groups in the list.

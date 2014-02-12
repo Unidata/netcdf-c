@@ -369,6 +369,8 @@ NIL|nil|Nil {
 			int32_val = (int)uint64_val;
 			return lexdebug(INT_CONST);
 #endif
+                     default:
+                         yyerror("Unknown integer size");
 		    }
 		}
 
