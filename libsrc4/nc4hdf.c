@@ -3725,7 +3725,6 @@ nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
       switch (xtype)
       {
          case NC_BYTE:
-         case NC_CHAR:
          case NC_UBYTE:
          case NC_SHORT:
          case NC_USHORT:
@@ -3741,6 +3740,10 @@ nc4_get_typeclass(const NC_HDF5_FILE_INFO_T *h5, nc_type xtype, int *type_class)
          case NC_DOUBLE:
             /* NC_FLOAT is class used for all floating-point types */
             *type_class = NC_FLOAT;
+            break;
+
+         case NC_CHAR:
+            *type_class = NC_CHAR;
             break;
 
          case NC_STRING:

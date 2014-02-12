@@ -420,8 +420,6 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
     * struct. */
    if (xtype <= NC_STRING)
    {
-      H5T_class_t class;
-
       if (!(type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
 	 BAIL(NC_ENOMEM);
       type_info->nc_typeid = xtype;
@@ -437,24 +435,31 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
 	 BAIL(retval);
 
       /* Set the "class" of the type */
-      if ((class = H5Tget_class(type_info->hdf_typeid)) < 0)
-         BAIL(NC_EHDFERR);
-      switch(class)
+      if (xtype == NC_CHAR)
+         type_info->nc_type_class = NC_CHAR;
+      else
       {
-         case H5T_STRING:
-            type_info->nc_type_class = NC_STRING;
-            break;
+         H5T_class_t class;
 
-         case H5T_INTEGER:
-            type_info->nc_type_class = NC_INT;
-            break;
+         if ((class = H5Tget_class(type_info->hdf_typeid)) < 0)
+            BAIL(NC_EHDFERR);
+         switch(class)
+         {
+            case H5T_STRING:
+               type_info->nc_type_class = NC_STRING;
+               break;
 
-         case H5T_FLOAT:
-            type_info->nc_type_class = NC_FLOAT;
-            break;
+            case H5T_INTEGER:
+               type_info->nc_type_class = NC_INT;
+               break;
 
-         default:
-            BAIL(NC_EBADTYPID);
+            case H5T_FLOAT:
+               type_info->nc_type_class = NC_FLOAT;
+               break;
+
+            default:
+               BAIL(NC_EBADTYPID);
+         }
       }
    }
    /* If this is a user defined type, find it. */
