@@ -24,10 +24,27 @@ Hartnett, Dennis Heimbigner and Ward Fisher
 - \ref building
 - \ref tutorial
 - \ref user_guide
+  - \ref all-error-codes
 - <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Other Documentation</a>
-- NetCDF CMake and Windows support:
-	- \ref netCDF-CMake
-	- \ref winbin
+
+
+<p>NetCDF CMake and Windows support:
+- \ref netCDF-CMake
+- \ref winbin
+
+<p>Texinfo-based Documentation (Conversion in Progress):
+- Conversion Completed
+- Conversion Pending
+  - \ref netcdf-texi
+  - \ref netcdf-install-texi
+  - \ref netcdf-internal-texi
+  - \ref netcdf-c-texi
+  - \ref netcdf-cxx-texi
+  - \ref netcdf-cxx4-texi
+  - \ref netcdf-tutorial-texi
+  - \ref netcdf-f77-texi
+  - \ref netcdf-f90-texi
+
 
 \internal
 
