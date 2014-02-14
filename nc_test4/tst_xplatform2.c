@@ -295,9 +295,6 @@ main(int argc, char **argv)
    nc_vlen_t *vlen_of_comp_out;
    struct s2 *comp_array_of_comp_out;
    struct s3 *comp_array_of_vlen_of_comp_out;
-#if 0
-   char zero = 0;
-#endif
 
    printf("\nTesting nested types across platforms.\n");
 
@@ -365,16 +362,16 @@ main(int argc, char **argv)
       if (nc_put_att(ncid, NC_GLOBAL, VLEN_ATT_NAME, vlen_typeid,
       		     DIM1_LEN, vlen_of_comp_out)) ERR;
 
-      /* /\* How does it look? *\/ */
-      /* if (check_file_1(ncid, vlen_of_comp_out)) ERR; */
+      /* How does it look? */
+      if (check_file_1(ncid, vlen_of_comp_out)) ERR;
 
       /* We're done - wasn't that easy? */
       if (nc_close(ncid)) ERR;
 
       /* Check it out. */
-      /* if (nc_open(FILE_NAME_1, NC_NOWRITE, &ncid)) ERR; */
-      /* if (check_file_1(ncid, vlen_of_comp_out)) ERR; */
-      /* if (nc_close(ncid)) ERR; */
+      if (nc_open(FILE_NAME_1, NC_NOWRITE, &ncid)) ERR;
+      if (check_file_1(ncid, vlen_of_comp_out)) ERR;
+      if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    printf("*** testing Solaris-written vlen of compound type...");
@@ -455,7 +452,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#ifdef EXTRA_TESTS
    printf("*** testing compound attribute containing array of vlen of compound type...");
    {
       nc_type vlen_typeid, s3_typeid, s1_typeid;
@@ -553,7 +549,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#endif
 
    /* Free our mallocs. */
    for (i = 0; i < DIM1_LEN; i++)
@@ -568,5 +563,4 @@ main(int argc, char **argv)
 
    FINAL_RESULTS;
 }
-
 

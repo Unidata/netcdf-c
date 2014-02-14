@@ -316,7 +316,7 @@ typedef struct NCcommon {
 	int   substrate; /* ncid for another protocol on which to build */
 } NCcommon;
 
-extern int NC_atomictypelen(nc_type xtype);
+extern size_t NC_atomictypelen(nc_type xtype);
 extern char* NC_atomictypename(nc_type xtype);
 
 /* Provide an initializer */

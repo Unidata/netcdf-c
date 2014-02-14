@@ -54,16 +54,16 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    /* Find info for this file and group, and set pointer to each. */
    h5 = NC4_DATA(nc);
    if (!(grp = nc4_rec_find_grp(h5->root_grp, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;      
+      BAIL(NC_EBADGRPID);
 
    /* Normalize name. */
    if ((retval = nc4_normalize_name(name, norm_name)))
-      return retval;
+      BAIL(retval);
 
    /* Find the attribute, if it exists. If we don't find it, we are
       major failures. */
    if ((retval = nc4_find_grp_att(grp, varid, norm_name, my_attnum, &att)))
-      return retval;
+      BAIL(retval);
    
    /* If mem_type is NC_NAT, it means we want to use the attribute's
     * file type as the mem type as well. */
@@ -77,7 +77,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    if (data && att->len &&
        ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
 	(att->nc_typeid != NC_CHAR && mem_type == NC_CHAR)))
-      return NC_ECHAR; /* take that, you freak! */
+      BAIL(NC_ECHAR); /* take that, you freak! */
 
    /* Copy the info. */
    if (lenp)
@@ -89,11 +89,11 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 
    /* Zero len attributes are easy to read! */
    if (!att->len)
-      return NC_NOERR;
+      BAIL(NC_NOERR);
 
    /* Later on, we will need to know the size of this type. */
    if ((retval = nc4_get_typelen_mem(h5, mem_type, is_long, &type_size)))
-      return retval;
+      BAIL(retval);
 
    /* We may have to convert data. Treat NC_CHAR the same as
     * NC_UBYTE. If the mem_type is NAT, don't try any conversion - use
@@ -103,9 +103,9 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
        !(mem_type == NC_CHAR && 
 	 (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE)))
    {
-      need_to_convert++;
       if (!(bufr = malloc((size_t)(att->len * type_size))))
-	 return NC_ENOMEM;
+	 BAIL(NC_ENOMEM);
+      need_to_convert++;
       if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid, 
 				     mem_type, (size_t)att->len, &range_error, 
 				     NULL, (h5->cmode & NC_CLASSIC_MODEL), 0, is_long)))
@@ -132,15 +132,18 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
    {
       if (att->vldata)
       {
-	 size_t base_typelen = type_size;
+	 size_t base_typelen;
 	 hvl_t *vldest = data;
 	 NC_TYPE_INFO_T *type;
 
-	 if ((retval = nc4_find_type(h5, att->nc_typeid, &type))) {
-	   if(bufr)
-              free(bufr);
-	   return retval;
-	 }
+         /* Get the type object for the attribute's type */
+	 if ((retval = nc4_find_type(h5, att->nc_typeid, &type)))
+	   BAIL(retval);
+
+         /* Retrieve the size of the base type */
+         if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, 0, &base_typelen)))
+            BAIL(retval);
+
 	 for (i = 0; i < att->len; i++)
 	 {
 	    vldest[i].len = att->vldata[i].len;
@@ -156,9 +159,8 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
             /* Check for NULL pointer for string (valid in HDF5) */
             if(att->stdata[i])
             {
-                if (!(((char **)data)[i] = malloc(strlen(att->stdata[i]) + 1)))
+                if (!(((char **)data)[i] = strdup(att->stdata[i])))
                    BAIL(NC_ENOMEM);
-                strcpy(((char **)data)[i], att->stdata[i]);
             }
             else
                 ((char **)data)[i] = att->stdata[i];
@@ -171,6 +173,7 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
 	 {
 	    long *lp = data;
 	    int *ip = bufr;
+
 	    for (i = 0; i < att->len; i++)
 	       *lp++ = *ip++;
 	 }
@@ -182,11 +185,9 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
  exit:
    if (need_to_convert)
       free(bufr);
-   if (retval)
-      return retval;
    if (range_error)
-      return NC_ERANGE;
-   return NC_NOERR;
+      retval = NC_ERANGE;
+   return retval;
 }
 
 /* Put attribute metadata into our global metadata. */
@@ -351,7 +352,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
 	 return NC_ELATEFILL;
 
       /* If fill value hasn't been set, allocate space. Of course,
-       * vlens have to be differnt... */
+       * vlens have to be different... */
       if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->nc_typeid, 0, 
 					&type_size)))
 	 return retval;
@@ -430,6 +431,16 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       if (type_class == NC_VLEN)
       {
          const hvl_t *vldata1;
+	 NC_TYPE_INFO_T *type;
+	 size_t base_typelen;
+
+         /* Get the type object for the attribute's type */
+	 if ((retval = nc4_find_type(h5, file_type, &type)))
+	   BAIL(retval);
+
+         /* Retrieve the size of the base type */
+         if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, 0, &base_typelen)))
+            BAIL(retval);
 
          vldata1 = data;
          if (!(att->vldata = malloc(att->len * sizeof(hvl_t))))
@@ -437,9 +448,9 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
          for (i = 0; i < att->len; i++)
          {
             att->vldata[i].len = vldata1[i].len;
-            if (!(att->vldata[i].p = malloc(type_size * att->vldata[i].len)))
+            if (!(att->vldata[i].p = malloc(base_typelen * att->vldata[i].len)))
                BAIL(NC_ENOMEM);
-            memcpy(att->vldata[i].p, vldata1[i].p, type_size * att->vldata[i].len);
+            memcpy(att->vldata[i].p, vldata1[i].p, base_typelen * att->vldata[i].len);
          }
       }
       else if (type_class == NC_STRING)
@@ -451,9 +462,8 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
          {
             if(NULL != ((char **)data)[i]) {
                LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
-               if (!(att->stdata[i] = malloc(strlen(((char **)data)[i]) + 1)))
+               if (!(att->stdata[i] = strdup(((char **)data)[i])))
                   BAIL(NC_ENOMEM);
-               strcpy(att->stdata[i], ((char **)data)[i]);
            }
            else
                att->stdata[i] = ((char **)data)[i];
