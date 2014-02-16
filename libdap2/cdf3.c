@@ -659,12 +659,17 @@ static NClist*
 clonedimset3(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
 {
     NClist* result = NULL;
-    int i;
+	
+	
+    
+	int i;
     if(dimset != NULL) {
         for(i=0;i<nclistlength(dimset);i++) {
-	    if(result == NULL)
-		result = nclistnew();
-	    CDFnode* dim = (CDFnode*)nclistget(dimset,i);
+		CDFnode *dim = NULL;
+		if(result == NULL)
+			result = nclistnew();
+
+		dim = (CDFnode*)nclistget(dimset,i);
 	    nclistpush(result,(void*)clonedim(nccomm,dim,var));
         }
     }
@@ -712,9 +717,10 @@ definedimsetall3(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
     }
     /* append dimsetplus; */
     for(i=0;i<nclistlength(node->array.dimsetplus);i++) {
+		CDFnode* clone = NULL;
         if(dimsetall == NULL) dimsetall = nclistnew();
-	CDFnode* clone = (CDFnode*)nclistget(node->array.dimsetplus,i);
-	nclistpush(dimsetall,(void*)clone);
+		clone = (CDFnode*)nclistget(node->array.dimsetplus,i);
+		nclistpush(dimsetall,(void*)clone);
     }
     node->array.dimsetall = dimsetall;
 #ifdef DEBUG1
@@ -741,8 +747,9 @@ fprintf(stderr,"dimsettrans3: node=%s/%d\n",node->ocname,nclistlength(node->arra
     }
     /* concat parent dimset0 and dimset;*/
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
+		CDFnode* clone = NULL;
         if(dimsettrans == NULL) dimsettrans = nclistnew();
-	CDFnode* clone = (CDFnode*)nclistget(node->array.dimset0,i);
+	 clone = (CDFnode*)nclistget(node->array.dimset0,i);
 	nclistpush(dimsettrans,(void*)clone);
     }
     node->array.dimsettrans = dimsettrans;
