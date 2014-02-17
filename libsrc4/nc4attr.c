@@ -48,8 +48,8 @@ nc4_get_att(int ncid, NC *nc, int varid, const char *name,
       my_attnum = *attnum;
    assert(nc && NC4_DATA(nc));
 
-   LOG((3, "nc4_get_att: ncid 0x%x varid %d name %s attnum %d mem_type %d", 
-	ncid, varid, name, my_attnum, mem_type));
+   LOG((3, "%s: ncid 0x%x varid %d name %s attnum %d mem_type %d", 
+	__func__, ncid, varid, name, my_attnum, mem_type));
 
    /* Find info for this file and group, and set pointer to each. */
    h5 = NC4_DATA(nc);
