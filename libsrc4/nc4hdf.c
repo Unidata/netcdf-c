@@ -754,7 +754,7 @@ nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp,
              *        correct with this usage, as long as it's not executed on
              *        heterogenous systems)
              */
-            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_INT, MPI_MAX, h5->comm))
+            if(MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &xtend_size, (var->ndims * (sizeof(hsize_t) / sizeof(int))), MPI_UNSIGNED, MPI_MAX, h5->comm))
                 BAIL(NC_EMPI);
          }
 #endif /* USE_PARALLEL */
