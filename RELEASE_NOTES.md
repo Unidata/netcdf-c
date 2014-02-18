@@ -4,6 +4,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
+* Enabled netCDF-4 bit-for-bit reproducibility for nccopy and other applications (thanks to Rimvydas Jasinskas and Quincey Koziol) by turning off HDF5 object creation, access, and modification time tracking.  [NCF-290](https://bugtracking.unidata.ucar.edu/browse/NCF-290)
+
 * Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
 
 * Addressed an issue related to old dap servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
