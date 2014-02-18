@@ -4,13 +4,25 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
+* Cleaned up type handling in netCDF-4 to fix bugs with fill-values.
+
+* Corrected "BAIL" macros to avoid infinite loop when logging is disabled and an error occurs.
+
+* Refactored how types are used for attributes, variables, and committed types, clarifying and categorizing fields in structs, and eliminating duplicated type information between variables and types they use.
+
+* Made type structure sharable by committed datatypes and variables that use it.
+
+* Handled string datatypes correctly, particularly for fill value attributes. Expanded testing for string fill values.
+
+* Simplified iteration of objects in the file when it's opened, tracking fewer objects and using less memory.
+
 * Enabled netCDF-4 bit-for-bit reproducibility for nccopy and other applications (thanks to Rimvydas Jasinskas and Quincey Koziol) by turning off HDF5 object creation, access, and modification time tracking.  [NCF-290](https://bugtracking.unidata.ucar.edu/browse/NCF-290)
 
 * Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
 
-* Addressed an issue related to old dap servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
+* Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
 
-* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless supressed with `-DENABLE_DOXYGEN=OFF`.
+* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless suppressed with `-DENABLE_DOXYGEN=OFF`.
 
 ## 4.3.1.1 Released 2014-02-05
 
@@ -22,7 +34,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1 Released 2014-01-16
 
-* Add an extended format inquiry method to the netcdf API: nc\_inq\_format\_extended. NC\_HAVE\_INQ\_FORMAT\_EXTENDED is defined in netcdf.h [NCF-273]
+* Add an extended format inquiry method to the netCDF API: nc\_inq\_format\_extended. NC\_HAVE\_INQ\_FORMAT\_EXTENDED is defined in netcdf.h [NCF-273]
 
 [NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
 
