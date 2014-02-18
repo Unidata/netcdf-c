@@ -365,10 +365,10 @@ nctypelen(nc_type type)
 /** \internal
 \ingroup variables
 Find the length of a type. Redunant over nctypelen() above. */
-int
+size_t
 NC_atomictypelen(nc_type xtype)
 {
-   int sz = 0;
+   size_t sz = 0;
    switch(xtype) {
       case NC_NAT: sz = 0; break;
       case NC_BYTE: sz = sizeof(signed char); break;

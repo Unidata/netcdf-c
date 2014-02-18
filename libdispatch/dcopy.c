@@ -151,7 +151,7 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
       return ret;
    if (nids)
    {
-      if (!(ids = (int *)malloc(nids * sizeof(int))))
+      if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
 	 return NC_ENOMEM;
       if ((ret = nc_inq_typeids(ncid2, &nids, ids)))
 	 return ret;
@@ -176,7 +176,7 @@ NC_rec_find_nc_type(int ncid1, nc_type tid1, int ncid2, nc_type* tid2)
       return ret;
    if (nids)
    {
-      if (!(ids = (int *)malloc(nids * sizeof(int))))
+      if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
 	 return NC_ENOMEM;
       if ((ret = nc_inq_grps(ncid1, &nids, ids)))
       {
@@ -328,9 +328,9 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
       this is a scalar, which I will treat as a 1-D array with one
       element. */
    real_ndims = ndims ? ndims : 1;
-   if (!(start = malloc(real_ndims * sizeof(size_t))))
+   if (!(start = malloc((size_t)real_ndims * sizeof(size_t))))
       BAIL(NC_ENOMEM);
-   if (!(count = malloc(real_ndims * sizeof(size_t))))
+   if (!(count = malloc((size_t)real_ndims * sizeof(size_t))))
       BAIL(NC_ENOMEM);
 
    /* The start array will be all zeros, except the first element,
@@ -338,7 +338,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
       size, except for the first element, which will be one, because
       we will copy one record at a time. For this we need the var
       shape. */
-   if (!(dimlen = malloc(real_ndims * sizeof(size_t))))
+   if (!(dimlen = malloc((size_t)real_ndims * sizeof(size_t))))
       BAIL(NC_ENOMEM);
 
    /* Set to 0, to correct for an unlikely dereference
@@ -489,8 +489,13 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
    {
       /* Handle non-string atomic types. */
       if (len) 
-	 if (!(data = malloc(len * NC_atomictypelen(xtype))))
+      {
+         size_t size = NC_atomictypelen(xtype);
+
+         assert(size > 0);
+	 if (!(data = malloc(len * size)))
 	    return NC_ENOMEM;
+      }
 
       res = nc_get_att(ncid_in, varid_in, name, data);
       if (!res)

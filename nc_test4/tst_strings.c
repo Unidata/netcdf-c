@@ -138,9 +138,9 @@ main(int argc, char **argv)
 
       int ncid, i;
       char *data[SOME_PRES] = {"Washington", "Adams", "Jefferson", "Madison",
-			       "Monroe", "Adams", "Jackson", "VanBuren",
-			       "Harrison", "Tyler", "Polk", "Tayor",
-			       "Fillmore", "Peirce", "Buchanan", "Lincoln"};
+			       "Monroe", "Adams", "Jackson", "Van Buren",
+			       "Harrison", "Tyler", "Polk", "Taylor",
+			       "Fillmore", "Pierce", "Buchanan", "Lincoln"};
       char *data_in[SOME_PRES];
 
       /* Create a file with string attribute. */
@@ -169,9 +169,9 @@ main(int argc, char **argv)
       int ncid, varid, i, dimids[NDIMS_PRES];
       size_t start[NDIMS_PRES], count[NDIMS_PRES];
       char *data[SOME_PRES] = {"Washington", "Adams", "Jefferson", "Madison",
-			       "Monroe", "Adams", "Jackson", "VanBuren",
-			       "Harrison", "Tyler", "Polk", "Tayor",
-			       "Fillmore", "Peirce", "Buchanan", "Lincoln"};
+			       "Monroe", "Adams", "Jackson", "Van Buren",
+			       "Harrison", "Tyler", "Polk", "Taylor",
+			       "Fillmore", "Pierce", "Buchanan", "Lincoln"};
       char *data_in[NUM_PRES];
 
       /* Create a file with NUM_PRES strings, and write SOME_PRES of
@@ -189,8 +189,8 @@ main(int argc, char **argv)
       if (nc_get_var_string(ncid, varid, data_in)) ERR;
       for (i = 0; i < NUM_PRES; i++)
       {
-	 if (i < SOME_PRES && strcmp(data_in[i], data[i])) ERR;
-	 if (i >= SOME_PRES && strcmp(data_in[i], "")) ERR;
+	 if (i < SOME_PRES && (data_in[i] == NULL || strcmp(data_in[i], data[i]))) ERR;
+	 if (i >= SOME_PRES && (data_in[i] == NULL || strcmp(data_in[i], ""))) ERR;
       }
       
       /* Must free your data! */
@@ -199,8 +199,8 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-    printf("\n*** Testing netcdf-4 strided string access.\n");
-    {
+   printf("*** Testing netcdf-4 strided string access...");
+   {
 #define NUM_PRES 43
 #define SOME_PRES 16
 #define NDIMS_PRES 1
@@ -209,9 +209,9 @@ main(int argc, char **argv)
       size_t start[NDIMS_PRES], count[NDIMS_PRES];
       ptrdiff_t stride[NDIMS_PRES];
       char *data[SOME_PRES] = {"Washington", "Adams", "Jefferson", "Madison",
-			       "Monroe", "Adams", "Jackson", "VanBuren",
-			       "Harrison", "Tyler", "Polk", "Tayor",
-			       "Fillmore", "Peirce", "Buchanan", "Lincoln"};
+			       "Monroe", "Adams", "Jackson", "Van Buren",
+			       "Harrison", "Tyler", "Polk", "Taylor",
+			       "Fillmore", "Pierce", "Buchanan", "Lincoln"};
       char *data_in[NUM_PRES];
       int status;
 

@@ -1317,8 +1317,10 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                     convert1(&list->data[i],&iconst);
                     if(iconst.nctype == NC_INT) {
                         special->_ChunkSizes[i] = (size_t)iconst.value.int32v;
-                    } else
+                    } else {
+                        efree(special->_ChunkSizes);
                         derror("%s: illegal value",specialname(tag));
+                    }
                 }
                 special->flags |= _CHUNKSIZES_FLAG;
                 /* Chunksizes => storage == chunked */

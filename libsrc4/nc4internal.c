@@ -283,7 +283,7 @@ nc4_rec_find_grp(NC_GRP_INFO_T *start_grp, int target_nc_grpid)
 	 if ((res = nc4_rec_find_grp(g, target_nc_grpid)))
 	    return res;
 
-   /* Can't find if. Fate, why do you mock me? */
+   /* Can't find it. Fate, why do you mock me? */
    return NULL;
 }
 
@@ -372,7 +372,7 @@ nc4_rec_find_hdf_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid)
    /* Does this group have the type we are searching for? */
    for (type = start_grp->type; type; type = type->l.next)
    {
-      if ((equal = H5Tequal(type->native_typeid ? type->native_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
+      if ((equal = H5Tequal(type->native_hdf_typeid ? type->native_hdf_typeid : type->hdf_typeid, target_hdf_typeid)) < 0)
 	 return NULL;
       if (equal)
 	 return type;
@@ -384,31 +384,7 @@ nc4_rec_find_hdf_type(NC_GRP_INFO_T *start_grp, hid_t target_hdf_typeid)
 	 if ((res = nc4_rec_find_hdf_type(g, target_hdf_typeid)))
 	    return res;
 
-   /* Can't find if. Fate, why do you mock me? */
-   return NULL;
-}
-
-/* Recursively hunt for a netCDF type id. */
-NC_TYPE_INFO_T *
-nc4_rec_find_nc_type(NC_GRP_INFO_T *start_grp, nc_type target_nc_typeid)
-{
-   NC_GRP_INFO_T *g;
-   NC_TYPE_INFO_T *type, *res;
-
-   assert(start_grp);
-   
-   /* Does this group have the type we are searching for? */
-   for (type = start_grp->type; type; type = type->l.next)
-      if (type->nc_typeid == target_nc_typeid)
-	 return type;
-
-   /* Shake down the kids. */
-   if (start_grp->children)
-      for (g = start_grp->children; g; g = g->l.next)
-	 if ((res = nc4_rec_find_nc_type(g, target_nc_typeid)))
-	    return res;
-
-   /* Can't find if. Fate, why do you mock me? */
+   /* Can't find it. Fate, why do you mock me? */
    return NULL;
 }
 
@@ -432,13 +408,44 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 	 if ((res = nc4_rec_find_named_type(g, name)))
 	    return res;
 
-   /* Can't find if. Oh, woe is me! */
+   /* Can't find it. Oh, woe is me! */
+   return NULL;
+}
+
+/* Recursively hunt for a netCDF type id. */
+NC_TYPE_INFO_T *
+nc4_rec_find_nc_type(const NC_GRP_INFO_T *start_grp, nc_type target_nc_typeid)
+{
+   NC_TYPE_INFO_T *type;
+
+   assert(start_grp);
+   
+   /* Does this group have the type we are searching for? */
+   for (type = start_grp->type; type; type = type->l.next)
+      if (type->nc_typeid == target_nc_typeid)
+	 return type;
+
+   /* Shake down the kids. */
+   if (start_grp->children)
+   {
+      NC_GRP_INFO_T *g;
+
+      for (g = start_grp->children; g; g = g->l.next)
+      {
+         NC_TYPE_INFO_T *res;
+
+	 if ((res = nc4_rec_find_nc_type(g, target_nc_typeid)))
+	    return res;
+      }
+   }
+
+   /* Can't find it. Fate, why do you mock me? */
    return NULL;
 }
 
 /* Use a netCDF typeid to find a type in a type_list. */
 int
-nc4_find_type(NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
+nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
 {
    if (typeid < 0 || !type)
       return NC_EINVAL;
@@ -464,11 +471,7 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
    NC_GRP_INFO_T *g;
    NC_VAR_INFO_T *var;
-   int d, ndims;
    int retval; 
-   
-   size_t mylen;
-   int curmax = 0;
    
    assert(grp && len);
    LOG((3, "nc4_find_dim_len: grp->name %s dimid %d", grp->name, dimid));
@@ -483,6 +486,8 @@ nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
     * dimension, and remember the max length. */
    for (var = grp->var; var; var = var->l.next)
    {
+     size_t mylen;
+
      /* Find max length of dim in this variable... */
      if ((retval = find_var_dim_max_length(grp, var->varid, dimid, &mylen)))
        return retval;
@@ -763,16 +768,28 @@ nc4_check_dup_name(NC_GRP_INFO_T *grp, char *name)
 
 /* Add to the end of a type list. */
 int
-nc4_type_list_add(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T **type)
+nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
+                  NC_TYPE_INFO_T **type)
 {
    NC_TYPE_INFO_T *new_type;
 
+   /* Allocate memory for the type */
    if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
       return NC_ENOMEM;
 
    /* Add object to list */
-   obj_list_add((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)new_type);
+   obj_list_add((NC_LIST_NODE_T **)(&grp->type), (NC_LIST_NODE_T *)new_type);
 
+   /* Remember info about this type. */
+   new_type->nc_typeid = grp->nc4_info->next_typeid++;
+   new_type->size = size;
+   if (!(new_type->name = strdup(name)))
+      return NC_ENOMEM;
+
+   /* Increment the ref. count on the type */
+   new_type->rc++;
+
+   /* Return a pointer to the new type, if requested */
    if (type)
       *type = new_type;
 
@@ -803,8 +820,8 @@ nc4_field_list_add(NC_FIELD_INFO_T **list, int fieldid, const char *name,
       return NC_ENOMEM;
    }
    field->hdf_typeid = field_hdf_typeid;
-   field->native_typeid = native_typeid;
-   field->nctype = xtype;
+   field->native_hdf_typeid = native_typeid;
+   field->nc_typeid = xtype;
    field->offset = offset;
    field->ndims = ndims;
    if (ndims)
@@ -860,6 +877,100 @@ nc4_enum_member_add(NC_ENUM_MEMBER_INFO_T **list, size_t size,
    return NC_NOERR;
 }
 
+/* Delete a field from a field list, and nc_free the memory. */
+static void
+field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
+{
+   /* Take this field out of the list. */
+   obj_list_del((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)field);
+
+   /* Free some stuff. */
+   if (field->name)
+      free(field->name);
+   if (field->dim_size)
+      free(field->dim_size);
+
+   /* Nc_Free the memory. */
+   free(field);
+}
+
+/* Free allocated space for type information. */
+int
+nc4_type_free(NC_TYPE_INFO_T *type)
+{
+   /* Decrement the ref. count on the type */
+   assert(type->rc);
+   type->rc--;
+
+   /* Release the type, if the ref. count drops to zero */
+   if (0 == type->rc)
+   {
+      /* Close any open user-defined HDF5 typeids. */
+      if (type->hdf_typeid && H5Tclose(type->hdf_typeid) < 0)
+         return NC_EHDFERR;
+      if (type->native_hdf_typeid && H5Tclose(type->native_hdf_typeid) < 0)
+         return NC_EHDFERR;
+
+      /* Free the name. */
+      if (type->name)
+         free(type->name);
+
+      /* Class-specific cleanup */
+      switch (type->nc_type_class)
+      {
+         case NC_COMPOUND:
+            {
+               NC_FIELD_INFO_T *field;
+
+               /* Delete all the fields in this type (there will be some if its a
+               * compound). */
+               field = type->u.c.field;
+               while (field)
+               {
+                  NC_FIELD_INFO_T *f = field->l.next;
+
+                  field_list_del(&type->u.c.field, field);
+                  field = f;
+               }
+            }
+            break;
+
+         case NC_ENUM:
+            {
+               NC_ENUM_MEMBER_INFO_T *enum_member;
+
+               /* Delete all the enum_members, if any. */
+               enum_member = type->u.e.enum_member;
+               while (enum_member)
+               {
+                  NC_ENUM_MEMBER_INFO_T *em = enum_member->l.next;
+
+                  free(enum_member->value);
+                  free(enum_member->name);
+                  free(enum_member);
+                  enum_member = em;
+               }
+
+               if (H5Tclose(type->u.e.base_hdf_typeid) < 0)
+                  return NC_EHDFERR;
+            }
+            break;
+
+         case NC_VLEN:
+            if (H5Tclose(type->u.v.base_hdf_typeid) < 0)
+               return NC_EHDFERR;
+
+         default:
+            break;
+      }
+
+      /* Release the memory. */
+      free(type);
+   }
+
+   return NC_NOERR;
+}
+
 /* Delete a var from a var list, and free the memory. */
 int
 nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
@@ -906,34 +1017,24 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
       if (var->hdf_datasetid)
       {
          if (var->type_info)
-            if (var->type_info->class == NC_VLEN)
+         {
+            if (var->type_info->nc_type_class == NC_VLEN)
                nc_free_vlen((nc_vlen_t *)var->fill_value);
+            else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
+               free(*(char **)var->fill_value);
+         }
       }
       free(var->fill_value);
       var->fill_value = NULL;
    }
 
-   /* For atomic types we have allocated space for type information. */
-   if (var->type_info && var->xtype <= NC_STRING)
+   /* Release type information */
+   if (var->type_info)
    {
-      if (var->type_info->native_typeid)
-	 if ((H5Tclose(var->type_info->native_typeid)) < 0)
-	    return NC_EHDFERR;
+      int retval;
 
-      /* Only need to close the hdf_typeid when it was obtained with
-       * H5Dget_type (which happens when reading a file, but not when
-       * creating a variable). */
-      if (var->type_info->close_hdf_typeid || var->xtype == NC_STRING)
-	 if ((H5Tclose(var->type_info->hdf_typeid)) < 0)
-	    return NC_EHDFERR;
-
-      /* Free the name. */
-      if (var->type_info->name) {
-	 free(var->type_info->name);
-	 var->type_info->name = NULL;
-      }
-      
-      free(var->type_info);
+      if ((retval = nc4_type_free(var->type_info)))
+          return retval;
       var->type_info = NULL;
    }
    
@@ -951,74 +1052,15 @@ nc4_var_list_del(NC_VAR_INFO_T **list, NC_VAR_INFO_T *var)
    return NC_NOERR;
 }
 
-/* Delete a field from a field list, and nc_free the memory. */
-static void
-field_list_del(NC_FIELD_INFO_T **list, NC_FIELD_INFO_T *field)
-{
-   /* Take this field out of the list. */
-   obj_list_del((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)field);
-
-   /* Free some stuff. */
-   if (field->name)
-      free(field->name);
-   if (field->dim_size)
-      free(field->dim_size);
-
-   /* Nc_Free the memory. */
-   free(field);
-}
-
 /* Delete a type from a type list, and nc_free the memory. */
 static int
 type_list_del(NC_TYPE_INFO_T **list, NC_TYPE_INFO_T *type)
 {
-   NC_FIELD_INFO_T *field, *f;
-   NC_ENUM_MEMBER_INFO_T *enum_member, *em;
-
    /* Take this type out of the list. */
    obj_list_del((NC_LIST_NODE_T **)list, (NC_LIST_NODE_T *)type);
 
-   /* Close any open user-defined HDF5 typieds. */
-   if (type->hdf_typeid)
-   {
-      if (H5Tclose(type->hdf_typeid) < 0)
-	 return NC_EHDFERR;
-   }   
-   if (type->native_typeid)
-   {
-      if (H5Tclose(type->native_typeid) < 0)
-	 return NC_EHDFERR;
-   }
-
-   /* Free the name. */
-   if (type->name)
-      free(type->name);
-
-   /* Delete all the fields in this type (there will be some if its a
-    * compound). */
-   field = type->field;
-   while (field)
-   {
-      f = field->l.next;
-      field_list_del(&type->field, field);
-      field = f;
-   }
-
-   /* Delete all the enum_members, if any. */
-   enum_member = type->enum_member;
-   while (enum_member)
-   {
-      em = enum_member->l.next;
-      free(enum_member->value);
-      free(enum_member->name);
-      free(enum_member);
-      enum_member = em;
-   }
-
-   /* Nc_Free the memory. */
-   free(type);
-   
-   return NC_NOERR;
+   /* Free the type, and its components */
+   return nc4_type_free(type);
 }
 
 /* Delete a del from a var list, and nc_free the memory. */
@@ -1161,7 +1203,7 @@ nc4_att_list_del(NC_ATT_INFO_T **list, NC_ATT_INFO_T *att)
       free(att->name);
 
    /* Close the HDF5 typeid. */
-   if (att->native_typeid && H5Tclose(att->native_typeid) < 0)
+   if (att->native_hdf_typeid && H5Tclose(att->native_hdf_typeid) < 0)
       return NC_EHDFERR;
 
    /* If this is a string array attribute, delete all members of the
@@ -1215,13 +1257,13 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
       assert(NULL == coord_var->dimscale_attached);
 
       /* Allocate space for tracking them */
-      if (NULL == (coord_var->dimscale_attached = calloc(coord_var->ndims, sizeof(int))))
+      if (NULL == (coord_var->dimscale_attached = calloc(coord_var->ndims, sizeof(nc_bool_t))))
          return NC_ENOMEM;
    }
 
    /* Detach dimension from variable */
-   coord_var->dimscale = 0;
-   coord_var->dirty++;
+   coord_var->dimscale = NC_FALSE;
+   coord_var->dirty = NC_TRUE;
    dim->coord_var = NULL;
 
    return NC_NOERR;
@@ -1234,8 +1276,8 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    int retval = NC_NOERR;
 
    /* Attach variable to dimension */
-   var->dimscale++;
-   var->dirty++;
+   var->dimscale = NC_TRUE;
+   var->dirty = NC_TRUE;
    dim->coord_var = var;
 
    /* Detach dimscales from the [new] coordinate variable */
@@ -1269,7 +1311,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      assert(dim_datasetid > 0);
                      if (H5DSdetach_scale(var->hdf_datasetid, dim_datasetid, d) < 0)
                         BAIL(NC_EHDFERR);
-                     var->dimscale_attached[d] = 0;
+                     var->dimscale_attached[d] = NC_FALSE;
                      if (dims_detached++ == var->ndims)
                         finished++;
                   }
@@ -1353,7 +1395,7 @@ nc_set_log_level(int new_level)
 /* Recursively print the metadata of a group. */
 #define MAX_NESTS 10
 static int
-rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
+rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 {
    NC_GRP_INFO_T *g;
    NC_ATT_INFO_T *att;
@@ -1367,7 +1409,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
    int t, retval, d;
 
    /* Come up with a number of tabs relative to the group. */
-   for (t = 0; t < *tab_count && t < MAX_NESTS; t++)
+   for (t = 0; t < tab_count && t < MAX_NESTS; t++)
       strcat(tabs, "\t");
 
    LOG((2, "%s GROUP - %s nc_grpid: %d nvars: %d natts: %d",
@@ -1375,7 +1417,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
    
    for(att = grp->att; att; att = att->l.next)
       LOG((2, "%s GROUP ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
-	   tabs, att->attnum, att->name, att->xtype, att->len));
+	   tabs, att->attnum, att->name, att->nc_typeid, att->len));
 
    for(dim = grp->dim; dim; dim = dim->l.next)
       LOG((2, "%s DIMENSION - dimid: %d name: %s len: %d unlimited: %d",
@@ -1394,11 +1436,11 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
            }
       }
       LOG((2, "%s VARIABLE - varid: %d name: %s type: %d ndims: %d dimscale: %d dimids:%s",
-	   tabs, var->varid, var->name, var->xtype, var->ndims, var->dimscale, 
+	   tabs, var->varid, var->name, var->type_info->nc_typeid, var->ndims, (int)var->dimscale, 
 	   (dims_string ? dims_string : " -")));
       for(att = var->att; att; att = att->l.next)
 	 LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
-	      tabs, att->attnum, att->name, att->xtype, att->len));
+	      tabs, att->attnum, att->name, att->nc_typeid, att->len));
       if(dims_string)
       {
          free(dims_string);
@@ -1409,26 +1451,32 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
    for (type = grp->type; type; type = type->l.next)
    {
       LOG((2, "%s TYPE - nc_typeid: %d hdf_typeid: 0x%x size: %d committed: %d "
-	   "name: %s num_fields: %d base_nc_type: %d", tabs, type->nc_typeid, 
-	   type->hdf_typeid, type->size, type->committed, type->name, 
-	   type->num_fields, type->base_nc_type));
+	   "name: %s num_fields: %d", tabs, type->nc_typeid, 
+	   type->hdf_typeid, type->size, (int)type->committed, type->name, 
+	   type->u.c.num_fields));
       /* Is this a compound type? */
-      if (type->class == NC_COMPOUND)
+      if (type->nc_type_class == NC_COMPOUND)
       {
 	 LOG((3, "compound type"));
-	 for (field = type->field; field; field = field->l.next)
+	 for (field = type->u.c.field; field; field = field->l.next)
 	    LOG((4, "field %s offset %d nctype %d ndims %d", field->name, 
-		 field->offset, field->nctype, field->ndims));
+		 field->offset, field->nc_typeid, field->ndims));
       }
-      else if (type->class == NC_VLEN)
+      else if (type->nc_type_class == NC_VLEN)
+      {
 	 LOG((3, "VLEN type"));
-      else if (type->class == NC_OPAQUE)
+         LOG((4, "base_nc_type: %d", type->u.v.base_nc_typeid));
+      }
+      else if (type->nc_type_class == NC_OPAQUE)
 	 LOG((3, "Opaque type"));
-      else if (type->class == NC_ENUM)
+      else if (type->nc_type_class == NC_ENUM)
+      {
 	 LOG((3, "Enum type"));
+         LOG((4, "base_nc_type: %d", type->u.e.base_nc_typeid));
+      }
       else
       {
-	 LOG((0, "Unknown class: %d", type->class));
+	 LOG((0, "Unknown class: %d", type->nc_type_class));
 	 return NC_EBADTYPE;
       }
    }
@@ -1436,11 +1484,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int *tab_count)
    /* Call self for each child of this group. */
    if (grp->children)
    {
-      (*tab_count)++;
       for (g = grp->children; g; g = g->l.next)
-	 if ((retval = rec_print_metadata(g, tab_count)))
+	 if ((retval = rec_print_metadata(g, tab_count + 1)))
 	    return retval;
-      (*tab_count)--;
    }
    
    return NC_NOERR;
@@ -1453,7 +1499,6 @@ int
 log_metadata_nc(NC *nc)
 {
    NC_HDF5_FILE_INFO_T *h5 = NC4_DATA(nc);
-   int tab_count = 0;
 
    LOG((2, "*** NetCDF-4 Internal Metadata: int_ncid 0x%x ext_ncid 0x%x", 
 	nc->int_ncid, nc->ext_ncid));
@@ -1464,9 +1509,9 @@ log_metadata_nc(NC *nc)
    }
    LOG((2, "FILE - hdfid: 0x%x path: %s cmode: 0x%x parallel: %d redef: %d "
 	"fill_mode: %d no_write: %d next_nc_grpid: %d",	h5->hdfid, nc->path, 
-	h5->cmode, h5->parallel, h5->redef, h5->fill_mode, h5->no_write, 
+	h5->cmode, (int)h5->parallel, (int)h5->redef, h5->fill_mode, (int)h5->no_write, 
 	h5->next_nc_grpid));
-   return rec_print_metadata(h5->root_grp, &tab_count);
+   return rec_print_metadata(h5->root_grp, 0);
 }
 
 #endif /*LOGGING */

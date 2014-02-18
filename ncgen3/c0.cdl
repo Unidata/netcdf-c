@@ -318,9 +318,9 @@ data:
   39000, 38990 ;
 
 // The following trips a bug on Cray T3E, but should work on other platforms
-// c213 =
-//  "1",
-//  "two" ;
+ c213 =
+  "1",
+  "two" ;
 
  s221 =
   2500,
