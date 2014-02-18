@@ -55,9 +55,8 @@ typedef struct NC4_rec_read_metadata_obj_info
 /* Tracks the groups, named datatypes and datasets in the group, for later use */
 typedef struct NC4_rec_read_metadata_ud
 {
-    NC4_rec_read_metadata_obj_info_t *types_head, *types_tail;    /* Pointers to head & tail of list of named datatypes */
-    NC4_rec_read_metadata_obj_info_t *dsets_head, *dsets_tail;    /* Pointers to head & tail of list of datasets */
-    NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
+   NC4_rec_read_metadata_obj_info_t *grps_head, *grps_tail;      /* Pointers to head & tail of list of groups */
+   NC_GRP_INFO_T *grp;                                          /* Pointer to parent group */
 } NC4_rec_read_metadata_ud_t;
 
 /* Forward */
@@ -78,12 +77,19 @@ static int virgin = 1;
 /* For performance, fill this array only the first time, and keep it
  * in global memory for each further use. */
 #define NUM_TYPES 12
-static hid_t native_type_constant[NUM_TYPES];
-
-static char nc_type_name[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short", "int", "float",
-							"double", "ubyte", "ushort", "uint", 
-							"int64", "uint64", "string"};
-int nc4_free_global_hdf_string_typeid();
+static hid_t h5_native_type_constant_g[NUM_TYPES];
+static const char nc_type_name_g[NUM_TYPES][NC_MAX_NAME + 1] = {"char", "byte", "short",
+    "int", "float", "double", "ubyte",
+    "ushort", "uint", "int64",
+    "uint64", "string"};
+static const nc_type nc_type_constant_g[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT,
+    NC_INT, NC_FLOAT, NC_DOUBLE, NC_UBYTE,
+    NC_USHORT, NC_UINT, NC_INT64,
+    NC_UINT64, NC_STRING};
+static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short), 
+    sizeof(int), sizeof(float), sizeof(double), sizeof(unsigned char),
+    sizeof(unsigned short), sizeof(unsigned int), sizeof(long long), 
+    sizeof(unsigned long long), sizeof(char *)};
 
 /* Set chunk cache size. Only affects files opened/created *after* it
  * is called.  */
@@ -295,7 +301,7 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
       property list. */
    if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX))
    {
-      nc4_info->parallel++;
+      nc4_info->parallel = NC_TRUE;
       if (cmode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "creating parallel file with MPI/IO"));
@@ -542,7 +548,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if (SIZEOF_SIZE_T < 8 && scale_size > NC_MAX_UINT)
    {
       new_dim->len = NC_MAX_UINT;
-      new_dim->too_long = 1;
+      new_dim->too_long = NC_TRUE;
    }
    else
       new_dim->len = scale_size;
@@ -554,7 +560,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* If the dimscale has an unlimited dimension, then this dimension
     * is unlimited. */
    if (max_scale_size == H5S_UNLIMITED)
-      new_dim->unlimited++;
+      new_dim->unlimited = NC_TRUE;
 
    /* If the scale name is set to DIM_WITHOUT_VARIABLE, then this is a
     * dimension, but not a variable. (If get_scale_name returns an
@@ -667,7 +673,7 @@ get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
 		nc_type *xtype)
 {
    NC_TYPE_INFO_T *type;
-   hid_t class;
+   H5T_class_t class;
    htri_t is_str, equal = 0;
 
    assert(h5 && xtype);
@@ -780,24 +786,16 @@ get_netcdf_type(NC_HDF5_FILE_INFO_T *h5, hid_t native_typeid,
  * one. */
 static int
 get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
-	       nc_type *xtype, NC_TYPE_INFO_T **type_info)
+	       NC_TYPE_INFO_T **type_info)
 {
    NC_TYPE_INFO_T *type;
    htri_t is_str, equal = 0;
-   hid_t class, native_typeid, hdf_typeid;
+   H5T_class_t class;
+   hid_t native_typeid, hdf_typeid;
    H5T_order_t order;
-   int endianness;
-   nc_type nc_type_constant[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT, NC_INT, NC_FLOAT,
-					  NC_DOUBLE, NC_UBYTE, NC_USHORT, NC_UINT,
-					  NC_INT64, NC_UINT64, NC_STRING};
-   int type_size[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short), 
-			       sizeof(int), sizeof(float), sizeof(double),
-			       sizeof(unsigned char), sizeof(unsigned short), 
-			       sizeof(unsigned int), sizeof(long long), 
-			       sizeof(unsigned long long), 0};
    int t;
 
-   assert(h5 && xtype && type_info);
+   assert(h5 && type_info);
 
    /* Because these N5T_NATIVE_* constants are actually function calls
     * (!) in H5Tpublic.h, I can't initialize this array in the usual
@@ -805,18 +803,18 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
     * about calling functions when defining constants. So I have to do
     * it like this. Note that there's no native types for char or
     * string. Those are handled later. */
-   if (!native_type_constant[1])
+   if (!h5_native_type_constant_g[1])
    {
-      native_type_constant[1] = H5T_NATIVE_SCHAR;
-      native_type_constant[2] = H5T_NATIVE_SHORT;
-      native_type_constant[3] = H5T_NATIVE_INT;
-      native_type_constant[4] = H5T_NATIVE_FLOAT;
-      native_type_constant[5] = H5T_NATIVE_DOUBLE;
-      native_type_constant[6] = H5T_NATIVE_UCHAR;
-      native_type_constant[7] = H5T_NATIVE_USHORT;
-      native_type_constant[8] = H5T_NATIVE_UINT;
-      native_type_constant[9] = H5T_NATIVE_LLONG;
-      native_type_constant[10] = H5T_NATIVE_ULLONG;
+      h5_native_type_constant_g[1] = H5T_NATIVE_SCHAR;
+      h5_native_type_constant_g[2] = H5T_NATIVE_SHORT;
+      h5_native_type_constant_g[3] = H5T_NATIVE_INT;
+      h5_native_type_constant_g[4] = H5T_NATIVE_FLOAT;
+      h5_native_type_constant_g[5] = H5T_NATIVE_DOUBLE;
+      h5_native_type_constant_g[6] = H5T_NATIVE_UCHAR;
+      h5_native_type_constant_g[7] = H5T_NATIVE_USHORT;
+      h5_native_type_constant_g[8] = H5T_NATIVE_UINT;
+      h5_native_type_constant_g[9] = H5T_NATIVE_LLONG;
+      h5_native_type_constant_g[10] = H5T_NATIVE_ULLONG;
    }
    
    /* Get the HDF5 typeid - we'll need it later. */
@@ -838,7 +836,6 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
       /* Allocate a phony NC_TYPE_INFO_T struct to hold type info. */
       if (!(*type_info = calloc(1, sizeof(NC_TYPE_INFO_T))))
 	 return NC_ENOMEM;
-      (*type_info)->class = class;
 
       /* H5Tequal doesn't work with H5T_C_S1 for some reason. But
        * H5Tget_class will return H5T_STRING if this is a string. */
@@ -848,15 +845,23 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	    return NC_EHDFERR;
 	 /* Make sure fixed-len strings will work like variable-len strings */
 	 if (is_str || H5Tget_size(hdf_typeid) > 1)
+         {
+            /* Set a class for the type */
 	    t = NUM_TYPES - 1;
+            (*type_info)->nc_type_class = NC_STRING;
+         }
 	 else
-	     t = 0;
+         {
+            /* Set a class for the type */
+	    t = 0;
+            (*type_info)->nc_type_class = NC_CHAR;
+         }
       }
       else if (class == H5T_INTEGER || class == H5T_FLOAT)
       {
 	 for (t = 1; t < NUM_TYPES - 1; t++)
 	 {
-	    if ((equal = H5Tequal(native_typeid, native_type_constant[t])) < 0)
+	    if ((equal = H5Tequal(native_typeid, h5_native_type_constant_g[t])) < 0)
 	       return NC_EHDFERR;
 	    if (equal)
 	       break;
@@ -867,36 +872,39 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	 {
 	    if ((order = H5Tget_order(hdf_typeid)) < 0) 
 	       return NC_EHDFERR;
+
+	    /* Copy this into the type_info struct. */
 	    if (order == H5T_ORDER_LE)
-	       endianness = NC_ENDIAN_LITTLE;
+               (*type_info)->endianness = NC_ENDIAN_LITTLE;
 	    else if (order == H5T_ORDER_BE)
-	       endianness = NC_ENDIAN_BIG;
+               (*type_info)->endianness = NC_ENDIAN_BIG;
 	    else /* don't support H5T_ORDER_VAX, H5T_ORDER_MIXED, H5T_ORDER_NONE */
 		return NC_EBADTYPE;
-	    /* Copy this into the type_info struct. */
-	    (*type_info)->endianness = endianness;
+
+            /* Set a class for the type */
+            /* (Note use of 'NC_INT' for all integer types) */
+            (*type_info)->nc_type_class = NC_INT;
 	 }
+         else
+         {
+            /* Set a class for the type */
+            /* (Note use of 'NC_FLOAT' for all floating-point types) */
+            (*type_info)->nc_type_class = NC_FLOAT;
+         }
       }
-      *xtype = nc_type_constant[t];
-      (*type_info)->nc_typeid = nc_type_constant[t];
-      (*type_info)->size = type_size[t];
-      if (!((*type_info)->name = malloc((strlen(nc_type_name[t]) + 1) * sizeof(char))))
+      (*type_info)->nc_typeid = nc_type_constant_g[t];
+      (*type_info)->size = nc_type_size_g[t];
+      if (!((*type_info)->name = strdup(nc_type_name_g[t])))
 	 return NC_ENOMEM;
-      strcpy((*type_info)->name, nc_type_name[t]);
-      (*type_info)->class = class;
       (*type_info)->hdf_typeid = hdf_typeid;
-      (*type_info)->native_typeid = native_typeid;
-      (*type_info)->close_hdf_typeid = 1;
+      (*type_info)->native_hdf_typeid = native_typeid;
       return NC_NOERR;
    }
    else
    {
       /* This is a user-defined type. */
       if((type = nc4_rec_find_hdf_type(h5->root_grp, native_typeid)))
-      {
-         *xtype = type->nc_typeid;
 	 *type_info = type;
-      }
 
       /* The type entry in the array of user-defined types already has
        * an open data typeid (and native typeid), so close the ones we
@@ -910,7 +918,6 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
          return NC_NOERR;
    }
 
-   *xtype = NC_NAT;
    return NC_EBADTYPID;
 }
 
@@ -929,23 +936,23 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
    size_t fixed_size = 0;
 
    assert(att->name);
-   LOG((5, "%s: att->attnum %d att->name %s att->xtype %d att->len %d",
-        __func__, att->attnum, att->name, att->xtype, att->len));
+   LOG((5, "%s: att->attnum %d att->name %s att->nc_typeid %d att->len %d",
+        __func__, att->attnum, att->name, (int)att->nc_typeid, att->len));
 
    /* Get type of attribute in file. */
    if ((file_typeid = H5Aget_type(attid)) < 0)
       return NC_EATTMETA;
-   if ((att->native_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0) 
+   if ((att->native_hdf_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0) 
       BAIL(NC_EHDFERR);
-   if ((att_class = H5Tget_class(att->native_typeid)) < 0)
+   if ((att_class = H5Tget_class(att->native_hdf_typeid)) < 0)
       BAIL(NC_EATTMETA);
-   if (att_class == H5T_STRING && !H5Tis_variable_str(att->native_typeid))
+   if (att_class == H5T_STRING && !H5Tis_variable_str(att->native_hdf_typeid))
    {
       fixed_len_string++;
-      if (!(fixed_size = H5Tget_size(att->native_typeid)))
+      if (!(fixed_size = H5Tget_size(att->native_hdf_typeid)))
 	 BAIL(NC_EATTMETA);
    }
-   if ((retval = get_netcdf_type(grp->nc4_info, att->native_typeid, &(att->xtype))))
+   if ((retval = get_netcdf_type(grp->nc4_info, att->native_hdf_typeid, &(att->nc_typeid))))
       BAIL(retval);
 
 
@@ -964,9 +971,9 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     * zero length att. */
    if (att_ndims == 0 && att_npoints == 0)
       dims[0] = 0;
-   else if (att->xtype == NC_STRING)
+   else if (att->nc_typeid == NC_STRING)
        dims[0] = att_npoints;
-   else if (att->xtype == NC_CHAR)
+   else if (att->nc_typeid == NC_CHAR)
    {
       /* NC_CHAR attributes are written as a scalar in HDF5, of type
        * H5T_C_S1, of variable length. */
@@ -978,7 +985,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       else
       {
 	 /* This is really a string type! */
-	 att->xtype = NC_STRING;
+	 att->nc_typeid = NC_STRING;
 	 dims[0] = att_npoints;
       }
    } 
@@ -1016,17 +1023,17 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       attribute. */
    if (dims[0])
    {
-      if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->xtype, 0,
+      if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid, 0,
 					&type_size)))
 	 return retval;
       if (att_class == H5T_VLEN)
       {
 	 if (!(att->vldata = malloc((unsigned int)(att->len * sizeof(hvl_t)))))
 	    BAIL(NC_ENOMEM);
-	 if (H5Aread(attid, att->native_typeid, att->vldata) < 0)
+	 if (H5Aread(attid, att->native_hdf_typeid, att->vldata) < 0)
 	    BAIL(NC_EATTMETA);
       }
-      else if (att->xtype == NC_STRING)
+      else if (att->nc_typeid == NC_STRING)
       {
 	 if (!(att->stdata = calloc(att->len, sizeof(char *))))
 	    BAIL(NC_ENOMEM);
@@ -1051,7 +1058,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 	       BAIL(NC_ENOMEM);
 
 	    /* Read the fixed-len strings as one big block. */
-	    if (H5Aread(attid, att->native_typeid, contig_buf) < 0)
+	    if (H5Aread(attid, att->native_hdf_typeid, contig_buf) < 0)
 	       BAIL(NC_EATTMETA);
 	    
 	    /* Copy strings, one at a time, into their new home. Alloc
@@ -1072,7 +1079,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 	 else
 	 {
 	    /* Read variable-length string atts. */
-	    if (H5Aread(attid, att->native_typeid, att->stdata) < 0)
+	    if (H5Aread(attid, att->native_hdf_typeid, att->stdata) < 0)
 	       BAIL(NC_EATTMETA);
 	 }
       }
@@ -1080,7 +1087,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
       {
 	 if (!(att->data = malloc((unsigned int)(att->len * type_size))))
 	    BAIL(NC_ENOMEM);
-	 if (H5Aread(attid, att->native_typeid, att->data) < 0)
+	 if (H5Aread(attid, att->native_hdf_typeid, att->data) < 0)
 	    BAIL(NC_EATTMETA);
       }
    }
@@ -1107,24 +1114,15 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 }
 
 /* Read information about a user defined type from the HDF5 file, and
- * stash it in the group's list of types. Return the netcdf typeid
- * through a pointer, if caller desires it. */
+ * stash it in the group's list of types. */
 static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
    NC_TYPE_INFO_T *type;
    H5T_class_t class;
-   hid_t native_typeid = 0;
-   int nmembers;
-   hid_t member_hdf_typeid, base_hdf_typeid = 0;
-   char *member_name = NULL;
-   size_t type_size = 0, member_offset;
-   unsigned int m;
-   nc_type ud_type_type = NC_NAT, base_nc_type = NC_NAT, member_xtype;
-   htri_t ret;
+   hid_t native_typeid;
+   size_t type_size;
    int retval = NC_NOERR;
-   void *value = NULL;
-   int i;
 
    assert(grp && type_name);
 
@@ -1139,211 +1137,235 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
       return NC_EHDFERR;
    LOG((5, "type_size %d", type_size));
 
+   /* Add to the list for this new type, and get a local pointer to it. */
+   if ((retval = nc4_type_list_add(grp, type_size, type_name, &type)))
+      return retval;
+
+   /* Remember common info about this type. */
+   type->committed = NC_TRUE;
+   type->hdf_typeid = hdf_typeid;
+   H5Iinc_ref(type->hdf_typeid);        /* Increment number of objects using ID */
+   type->native_hdf_typeid = native_typeid;
+
    /* What is the class of this type, compound, vlen, etc. */
    if ((class = H5Tget_class(hdf_typeid)) < 0)
       return NC_EHDFERR;
    switch (class)
    {
       case H5T_STRING:
-         ud_type_type = NC_STRING;
+         type->nc_type_class = NC_STRING;
          break;
+
       case H5T_COMPOUND:
-         ud_type_type = NC_COMPOUND; 
-         break;
-      case H5T_VLEN:
-         /* For conveninence we allow user to pass vlens of strings
-          * with null terminated strings. This means strings are
-          * treated slightly differently by the API, although they are
-          * really just VLENs of characters. */
-         if ((ret = H5Tis_variable_str(hdf_typeid)) < 0)
-            return NC_EHDFERR;
-         if (ret)
-            ud_type_type = NC_STRING;
-         else
          {
-            ud_type_type = NC_VLEN;
+            int nmembers;
+            unsigned int m;
 
-            /* Find the base type of this vlen (i.e. what is this a
-             * vlen of?) */
-            if (!(base_hdf_typeid = H5Tget_super(native_typeid)))
+            type->nc_type_class = NC_COMPOUND;
+
+            if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
                return NC_EHDFERR;
+            LOG((5, "compound type has %d members", nmembers));
+            for (m = 0; m < nmembers; m++)
+            {
+               hid_t member_hdf_typeid;
+               hid_t member_native_typeid;
+               char *member_name;
+               size_t member_offset;
+               H5T_class_t mem_class;
+               nc_type member_xtype;
 
+               /* Get the typeid and native typeid of this member of the
+                * compound type. */
+               if ((member_hdf_typeid = H5Tget_member_type(type->native_hdf_typeid, m)) < 0)
+                  return NC_EHDFERR;
+               if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid, H5T_DIR_DEFAULT)) < 0) 
+                  return NC_EHDFERR;
+
+               /* Get the name of the member.*/
+               member_name = H5Tget_member_name(type->native_hdf_typeid, m);
+               if (!member_name || strlen(member_name) > NC_MAX_NAME)
+                  return NC_EBADNAME;
+
+               /* Offset in bytes on *this* platform. */
+               member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
+
+               /* Get dimensional data if this member is an array of something. */
+               if ((mem_class = H5Tget_class(member_hdf_typeid)) < 0)
+                  return NC_EHDFERR;
+               if (mem_class == H5T_ARRAY)
+               {
+                  int ndims, dim_size[NC_MAX_VAR_DIMS];
+                  hsize_t dims[NC_MAX_VAR_DIMS];
+                  int d;
+
+                  if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
+                     return NC_EHDFERR;
+                  if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
+                     return NC_EHDFERR;
+                  for (d = 0; d < ndims; d++)
+                     dim_size[d] = dims[d];
+
+                  /* What is the netCDF typeid of this member? */
+                  if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid), 
+                                                &member_xtype)))
+                     return retval;
+
+                  /* Add this member to our list of fields in this compound type. */
+                  if ((retval = nc4_field_list_add(&type->u.c.field, type->u.c.num_fields++, member_name, 
+                                                   member_offset, H5Tget_super(member_hdf_typeid), 
+                                                   H5Tget_super(member_native_typeid), 
+                                                   member_xtype, ndims, dim_size)))
+                     return retval;
+               }
+               else
+               {
+                  /* What is the netCDF typeid of this member? */
+                  if ((retval = get_netcdf_type(grp->nc4_info, member_native_typeid, 
+                                                &member_xtype)))
+                     return retval;
+
+                  /* Add this member to our list of fields in this compound type. */
+                  if ((retval = nc4_field_list_add(&type->u.c.field, type->u.c.num_fields++, member_name, 
+                                                   member_offset, member_hdf_typeid, member_native_typeid, 
+                                                   member_xtype, 0, NULL)))
+                     return retval;
+               } 
+               
+               /* HDF5 allocated this for us. */
+               free(member_name);
+            }
+         }
+         break;
+
+      case H5T_VLEN:
+         {
+            htri_t ret;
+
+            /* For conveninence we allow user to pass vlens of strings
+             * with null terminated strings. This means strings are
+             * treated slightly differently by the API, although they are
+             * really just VLENs of characters. */
+            if ((ret = H5Tis_variable_str(hdf_typeid)) < 0)
+               return NC_EHDFERR;
+            if (ret)
+               type->nc_type_class = NC_STRING;
+            else
+            {
+               hid_t base_hdf_typeid;
+               nc_type base_nc_type = NC_NAT;
+
+               type->nc_type_class = NC_VLEN;
+
+               /* Find the base type of this vlen (i.e. what is this a
+                * vlen of?) */
+               if (!(base_hdf_typeid = H5Tget_super(native_typeid)))
+                  return NC_EHDFERR;
+
+               /* What size is this type? */
+               if (!(type_size = H5Tget_size(base_hdf_typeid)))
+                  return NC_EHDFERR;
+
+               /* What is the netcdf corresponding type. */
+               if ((retval = get_netcdf_type(grp->nc4_info, base_hdf_typeid, 
+                                             &base_nc_type)))
+                  return retval;
+               LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d", 
+                    base_hdf_typeid, type_size, base_nc_type));
+
+               /* Remember the base types for this vlen */
+               type->u.v.base_nc_typeid = base_nc_type;
+               type->u.v.base_hdf_typeid = base_hdf_typeid;
+            }
+         }
+         break;
+
+      case H5T_OPAQUE:
+         type->nc_type_class = NC_OPAQUE;
+         break;
+
+      case H5T_ENUM:
+         {
+            hid_t base_hdf_typeid;
+            nc_type base_nc_type = NC_NAT;
+            void *value;
+            int i;
+
+            type->nc_type_class = NC_ENUM;
+
+            /* Find the base type of this enum (i.e. what is this a
+             * enum of?) */
+            if (!(base_hdf_typeid = H5Tget_super(hdf_typeid)))
+               return NC_EHDFERR;
             /* What size is this type? */
             if (!(type_size = H5Tget_size(base_hdf_typeid)))
                return NC_EHDFERR;
-
             /* What is the netcdf corresponding type. */
             if ((retval = get_netcdf_type(grp->nc4_info, base_hdf_typeid, 
-					  &base_nc_type)))
+                                          &base_nc_type)))
                return retval;
             LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d", 
                  base_hdf_typeid, type_size, base_nc_type));
+
+            /* Remember the base types for this enum */
+            type->u.e.base_nc_typeid = base_nc_type;
+            type->u.e.base_hdf_typeid = base_hdf_typeid;
+
+            /* Find out how many member are in the enum. */
+            if ((type->u.e.num_members = H5Tget_nmembers(hdf_typeid)) < 0) 
+               return NC_EHDFERR;
+
+            /* Allocate space for one value. */
+            if (!(value = calloc(1, type_size)))
+               return NC_ENOMEM;
+
+            /* Read each name and value defined in the enum. */
+            for (i = 0; i < type->u.e.num_members; i++)
+            {
+               char *member_name;
+
+               /* Get the name and value from HDF5. */
+               if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
+               {
+                  if(value) free(value);
+                  return NC_EHDFERR;
+               }
+               if (strlen(member_name) > NC_MAX_NAME)
+               {
+                  if(value) free(value); 
+                  free(member_name); 
+                  return NC_EBADNAME;
+               }
+               if (H5Tget_member_value(hdf_typeid, i, value) < 0) 
+               {
+                  if(value) free(value); 
+                  free(member_name); 
+                  return NC_EHDFERR;
+               }
+
+               /* Insert new field into this type's list of fields. */
+               if ((retval = nc4_enum_member_add(&type->u.e.enum_member, type->size, 
+                                                 member_name, value)))
+               {
+                  if(value) free(value); 
+                  free(member_name); 
+                  return retval;
+               }
+
+               /* Free the member name (which HDF5 allocated for us). */
+               free(member_name); 
+            }
+            
+            /* Free the tempory memory for one value */
+            free(value);
          }
          break;
-      case H5T_OPAQUE:
-         ud_type_type = NC_OPAQUE;
-         /* What size is this type? */
-         if (!(type_size = H5Tget_size(hdf_typeid)))
-            return NC_EHDFERR;
-         LOG((5, "type_size %d", type_size));
-         break;
-      case H5T_ENUM:
-         ud_type_type = NC_ENUM;
 
-         /* Find the base type of this enum (i.e. what is this a
-          * enum of?) */
-         if (!(base_hdf_typeid = H5Tget_super(hdf_typeid)))
-            return NC_EHDFERR;
-         /* What size is this type? */
-         if (!(type_size = H5Tget_size(base_hdf_typeid)))
-            return NC_EHDFERR;
-         /* What is the netcdf corresponding type. */
-         if ((retval = get_netcdf_type(grp->nc4_info, base_hdf_typeid, 
-				       &base_nc_type)))
-            return retval;
-         LOG((5, "base_hdf_typeid 0x%x type_size %d base_nc_type %d", 
-              base_hdf_typeid, type_size, base_nc_type));
-         break;
       default:
          LOG((0, "unknown class"));
          return NC_EBADCLASS;
    }
 
-   /* Add to the list for this new type, and get a local pointer to it. */
-   if ((retval = nc4_type_list_add(&grp->type, &type)))
-      return retval;
-
-   /* Remember info about this type. */
-   type->nc_typeid = grp->nc4_info->next_typeid++;
-   type->size = type_size;
-   if (!(type->name = strdup(type_name)))
-      return NC_ENOMEM;
-   type->class = ud_type_type;
-   type->base_nc_type = base_nc_type;
-   type->committed++;
-   type->hdf_typeid = hdf_typeid;
-   H5Iinc_ref(type->hdf_typeid);        /* Increment number of objects using ID */
-   type->native_typeid = native_typeid;
-
-   /* Read info about each member of this compound type. */
-   if (ud_type_type == NC_COMPOUND)
-   {
-      if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
-         return NC_EHDFERR;
-      LOG((5, "compound type has %d members", nmembers));
-      for (m = 0; m < nmembers; m++)
-      {
-         H5T_class_t mem_class;
-	 hid_t member_native_typeid;
-         int ndims = 0, dim_size[NC_MAX_VAR_DIMS];
-         hsize_t dims[NC_MAX_VAR_DIMS];
-         int d;
-
-	 /* Get the typeid and native typeid of this member of the
-	  * compound type. */
-         if ((member_hdf_typeid = H5Tget_member_type(type->native_typeid, m)) < 0)
-            return NC_EHDFERR;
-	 if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid, H5T_DIR_DEFAULT)) < 0) 
-	    return NC_EHDFERR;
-
-	 /* Get the name of the member.*/
-         member_name = H5Tget_member_name(type->native_typeid, m);
-         if (!member_name || strlen(member_name) > NC_MAX_NAME)
-            return NC_EBADNAME;
-
-	 /* Offset in bytes on *this* platform. */
-         member_offset = H5Tget_member_offset(type->native_typeid, m);
-
-	 /* Get dimensional data if this member is an array of something. */
-         if ((mem_class = H5Tget_class(member_hdf_typeid)) < 0)
-            return NC_EHDFERR;
-         if (mem_class == H5T_ARRAY)
-         {
-            if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
-               return NC_EHDFERR;
-            if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
-               return NC_EHDFERR;
-            for (d = 0; d < ndims; d++)
-               dim_size[d] = dims[d];
-	    /* What is the netCDF typeid of this member? */
-	    if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid), 
-					  &member_xtype)))
-	       return retval;
-         }
-	 else
-	 {
-	    /* What is the netCDF typeid of this member? */
-	    if ((retval = get_netcdf_type(grp->nc4_info, member_native_typeid, 
-					  &member_xtype)))
-	       return retval;
-	 }
-
-	 /* Add this member to our list of fields in this compound type. */
-         if (ndims)
-         {
-            if ((retval = nc4_field_list_add(&type->field, type->num_fields++, member_name, 
-                                             member_offset, H5Tget_super(member_hdf_typeid), 
-					     H5Tget_super(member_native_typeid), 
-                                             member_xtype, ndims, dim_size)))
-               return retval;
-         }
-         else
-         {
-            if ((retval = nc4_field_list_add(&type->field, type->num_fields++, member_name, 
-                                             member_offset, member_hdf_typeid, member_native_typeid, 
-					     member_xtype, 0, NULL)))
-               return retval;
-         } 
-         
-         /* HDF5 allocated this for us. */
-         free(member_name);
-      }
-   }
-   else if (ud_type_type == NC_VLEN)
-   {
-      type->base_hdf_typeid = base_hdf_typeid;
-   }
-   else if (ud_type_type == NC_ENUM)
-   {
-      /* Remember the base HDF5 type for this enum. */
-      type->base_hdf_typeid = base_hdf_typeid;
-
-      /* Find out how many member are in the enum. */
-      if ((type->num_enum_members = H5Tget_nmembers(hdf_typeid)) < 0) 
-         return NC_EHDFERR;
-
-      /* Allocate space for one value. */
-      if (!(value = calloc(1, type_size)))
-         return NC_ENOMEM;
-
-      /* Read each name and value defined in the enum. */
-      for (i = 0; i < type->num_enum_members; i++)
-	{
-	  /* Get the name and value from HDF5. */
-	  if (!(member_name = H5Tget_member_name(hdf_typeid, i))) {
-	    if(value) free(value);
-	    return NC_EHDFERR;
-	  }
-	  if (!member_name || strlen(member_name) > NC_MAX_NAME) {
-	   if(value) free(value); 
-	   return NC_EBADNAME;
-	 }
-         if (H5Tget_member_value(hdf_typeid, i, value) < 0) 
-            return NC_EHDFERR;
-
-         /* Insert new field into this type's list of fields. */
-         if ((retval = nc4_enum_member_add(&type->enum_member, type->size, 
-                                           member_name, value)))
-	   return retval;
-	 free(member_name); 
-     
-	}
-      
-      /* Free the tempory memory for one value, and the member name
-       * (which HDF5 allocated for us). */
-      free(value);
-   }
-   
    return retval;
 }
 
@@ -1383,14 +1405,14 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
    /* Add a variable to the end of the group's var list. */
    if ((retval = nc4_var_list_add(&grp->var, &var)))
-      return retval;
+      BAIL(retval);
    
    /* Fill in what we already know. */
    var->hdf_datasetid = datasetid;
    H5Iinc_ref(var->hdf_datasetid);      /* Increment number of objects using ID */
    incr_id_rc++;                        /* Indicate that we've incremented the ref. count (for errors) */
    var->varid = grp->nvars++;
-   var->created++;
+   var->created = NC_TRUE;
    var->ndims = ndims;
 
    /* We need some room to store information about dimensions for this
@@ -1398,9 +1420,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if (var->ndims)
    {
       if (!(var->dim = calloc(var->ndims, sizeof(NC_DIM_INFO_T *))))
-	 return NC_ENOMEM;
+	 BAIL(NC_ENOMEM);
       if (!(var->dimids = calloc(var->ndims, sizeof(int))))
-	 return NC_ENOMEM;
+	 BAIL(NC_ENOMEM);
    }
 
    /* Get the current chunk cache settings. */
@@ -1413,7 +1435,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    /* Learn about current chunk cache settings. */
    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems), 
 			   &(var->chunk_cache_size), &rdcc_w0)) < 0)
-      return NC_EHDFERR;
+      BAIL(NC_EHDFERR);
    var->chunk_cache_preemption = rdcc_w0;
 
    /* Check for a weird case: a non-coordinate variable that has the
@@ -1424,13 +1446,13 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    {
       /* Allocate space for the name. */
       if (!(var->name = malloc(((strlen(obj_name) - strlen(NON_COORD_PREPEND))+ 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->name, &obj_name[strlen(NON_COORD_PREPEND)]);
 
       /* Allocate space for the HDF5 name. */
       if (!(var->hdf5_name = malloc((strlen(obj_name) + 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->hdf5_name, obj_name);
    }
@@ -1438,7 +1460,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    {
       /* Allocate space for the name. */
       if (!(var->name = malloc((strlen(obj_name) + 1) * sizeof(char))))
-         return NC_ENOMEM;
+         BAIL(NC_ENOMEM);
 
       strcpy(var->name, obj_name);
    }
@@ -1465,7 +1487,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          var->chunksizes[d] = chunksize[d];
    }
    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
-      var->contiguous++; 
+      var->contiguous = NC_TRUE;
 
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */
@@ -1479,25 +1501,28 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       switch (filter)
       {
          case H5Z_FILTER_SHUFFLE:
-            var->shuffle = 1;
+            var->shuffle = NC_TRUE;
             break;
+
          case H5Z_FILTER_FLETCHER32:
-            var->fletcher32 = 1;
+            var->fletcher32 = NC_TRUE;
             break;
+
          case H5Z_FILTER_DEFLATE:
-            var->deflate++;
-            if (cd_nelems != CD_NELEMS_ZLIB ||
-                cd_values[0] > MAX_DEFLATE_LEVEL)
+            var->deflate = NC_TRUE;
+            if (cd_nelems != CD_NELEMS_ZLIB || cd_values[0] > MAX_DEFLATE_LEVEL)
                BAIL(NC_EHDFERR);
             var->deflate_level = cd_values[0];
             break;
+
          case H5Z_FILTER_SZIP:
-            var->deflate++;
+            var->szip = NC_TRUE;
             if (cd_nelems != CD_NELEMS_SZIP)
                BAIL(NC_EHDFERR);
 	    var->options_mask = cd_values[0];
             var->pixels_per_block = cd_values[1];
             break;
+
          default:
             LOG((1, "Yikes! Unknown filter type found on dataset!"));
             break;
@@ -1506,8 +1531,11 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
                
    /* Learn all about the type of this variable. */
    if ((retval = get_type_info2(grp->nc4_info, datasetid, 
-				&var->xtype, &var->type_info)))
+				&var->type_info)))
       BAIL(retval);
+
+   /* Indicate that the variable has a pointer to the type */
+   var->type_info->rc++;
 
    /* Is there a fill value associated with this dataset? */
    if (H5Pfill_value_defined(propid, &fill_status) < 0)
@@ -1519,36 +1547,37 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       /* Allocate space to hold the fill value. */
       if (!var->fill_value)
       {
-	 if (var->type_info->class == NC_VLEN)
+	 if (var->type_info->nc_type_class == NC_VLEN)
 	 {
 	    if (!(var->fill_value = malloc(sizeof(nc_vlen_t))))
 	       BAIL(NC_ENOMEM);
 	 }
-	 else if (var->type_info->size)
+	 else if (var->type_info->nc_type_class == NC_STRING)
 	 {
-	    if (!(var->fill_value = malloc(var->type_info->size)))
+	    if (!(var->fill_value = malloc(sizeof(char *))))
 	       BAIL(NC_ENOMEM);
 	 }
 	 else
 	 {
-	    if (!(var->fill_value = malloc(sizeof(char *))))
+            assert(var->type_info->size);
+	    if (!(var->fill_value = malloc(var->type_info->size)))
 	       BAIL(NC_ENOMEM);
 	 }
       }
       
       /* Get the fill value from the HDF5 property lust. */
-      if (H5Pget_fill_value(propid, var->type_info->native_typeid, 
+      if (H5Pget_fill_value(propid, var->type_info->native_hdf_typeid, 
 			    var->fill_value) < 0)
          BAIL(NC_EHDFERR);
    }
    else
-      var->no_fill = 1;
+      var->no_fill = NC_TRUE;
 
    /* If it's a scale, mark it as such. */
    if (dim)
    {
       assert(ndims);
-      var->dimscale++;
+      var->dimscale = NC_TRUE;
       if (var->ndims > 1)
       {
 	 if ((retval = read_coord_dimids(var)))
@@ -1582,7 +1611,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       {
          /* Allocate space to remember whether the dimscale has been attached
           * for each dimension. */
-         if (NULL == (var->dimscale_attached = calloc(ndims, sizeof(int))))
+         if (NULL == (var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
             BAIL(NC_ENOMEM);       
 
          /* Store id information allowing us to match hdf5
@@ -1594,7 +1623,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             if (H5DSiterate_scales(var->hdf_datasetid, d, NULL, dimscale_visitor,
                                    &(var->dimscale_hdf5_objids[d])) < 0)
                BAIL(NC_EHDFERR);
-            var->dimscale_attached[d]++;
+            var->dimscale_attached[d] = NC_TRUE;
          }
       }
    }
@@ -1649,7 +1678,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
                 BAIL(retval);
          }
 	 
-	 att->created++;
+	 att->created = NC_TRUE;
       } /* endif not HDF5 att */
    } /* next attribute */
 
@@ -1658,7 +1687,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    if ((retval = nc4_adjust_var_cache(grp, var)))
       BAIL(retval);
 
-  exit:
+exit:
    if (retval)
    {
        if (incr_id_rc && H5Idec_ref(datasetid) < 0)
@@ -1667,7 +1696,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
           BAIL2(NC_EHDFERR);
    }
    if (access_pid && H5Pclose(access_pid) < 0)
-      BAIL2(retval);
+      BAIL2(NC_EHDFERR);
 #ifdef EXTRA_TESTS
    num_plists--;
 #endif
@@ -1738,11 +1767,9 @@ read_grp_atts(NC_GRP_INFO_T *grp)
             else
                BAIL(retval);
          }
-         att->created++;
-         if ((retval = nc4_find_type(grp->nc4_info, att->xtype, &type)))
+         att->created = NC_TRUE;
+         if ((retval = nc4_find_type(grp->nc4_info, att->nc_typeid, &type)))
             BAIL(retval);
-         if (type)
-            att->class = type->class;
       }
    }
 
@@ -1798,7 +1825,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
 	 BAIL(retval);
    
-  exit: 
+exit: 
    if (spaceid && H5Sclose(spaceid) <0)
       BAIL2(retval);
 #ifdef EXTRA_TESTS
@@ -1809,20 +1836,29 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 }
 
 static int
-nc4_iter_list_add(NC4_rec_read_metadata_obj_info_t **head,
+nc4_rec_read_metadata_cb_list_add(NC4_rec_read_metadata_obj_info_t **head,
                   NC4_rec_read_metadata_obj_info_t **tail,
-                  NC4_rec_read_metadata_obj_info_t *oinfo)
+                  const NC4_rec_read_metadata_obj_info_t *oinfo)
 {
+   NC4_rec_read_metadata_obj_info_t *new_oinfo;    /* Pointer to info for object */
+
+   /* Allocate memory for the object's info */
+   if (!(new_oinfo = calloc(1, sizeof(*new_oinfo))))
+      return NC_ENOMEM;
+
+   /* Make a copy of the object's info */
+   memcpy(new_oinfo, oinfo, sizeof(*oinfo));
+
    if (*tail)
    {
        assert(*head);
-       (*tail)->next = oinfo;
-       *tail = oinfo;
+       (*tail)->next = new_oinfo;
+       *tail = new_oinfo;
    }
    else
    {
        assert(NULL == *head);
-       *head = *tail = oinfo;
+       *head = *tail = new_oinfo;
    }
 
    return (NC_NOERR);
@@ -1833,63 +1869,93 @@ nc4_rec_read_metadata_cb(hid_t grpid, const char *name, const H5L_info_t *info,
 		      void *_op_data)
 {
     NC4_rec_read_metadata_ud_t *udata = (NC4_rec_read_metadata_ud_t *)_op_data; /* Pointer to user data for callback */
-    NC4_rec_read_metadata_obj_info_t *oinfo;    /* Pointer to info for object */
+    NC4_rec_read_metadata_obj_info_t oinfo;    /* Pointer to info for object */
     int retval = H5_ITER_CONT;
 
-   /* Allocate memory for the object's info */
-   if (!(oinfo = calloc(1, sizeof(NC4_rec_read_metadata_obj_info_t))))
-      return NC_ENOMEM;
+   /* Reset the memory for the object's info */
+   memset(&oinfo, 0, sizeof(oinfo));
 
    /* Open this critter. */
-   if ((oinfo->oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
-      return H5_ITER_ERROR;
+   if ((oinfo.oid = H5Oopen(grpid, name, H5P_DEFAULT)) < 0) 
+      BAIL(H5_ITER_ERROR);
 	  
    /* Get info about the object.*/
-   if (H5Gget_objinfo(oinfo->oid, ".", 1, &oinfo->statbuf) < 0)
-     return H5_ITER_ERROR;
+   if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
+      BAIL(H5_ITER_ERROR);
 
-   strncpy(oinfo->oname, name, NC_MAX_NAME);
+   strncpy(oinfo.oname, name, NC_MAX_NAME);
 	   
    /* Add object to list, for later */
-   switch(oinfo->statbuf.type)
+   switch(oinfo.statbuf.type)
    {
       case H5G_GROUP:
-         LOG((3, "found group %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->grps_head, &udata->grps_tail, oinfo))
+         LOG((3, "found group %s", oinfo.oname));
+
+         /* Defer descending into child group immediately, so that the types
+          *     in the current group can be processed and be ready for use by
+          *     vars in the child group(s).
+          */
+         if (nc4_rec_read_metadata_cb_list_add(&udata->grps_head, &udata->grps_tail, &oinfo))
              BAIL(H5_ITER_ERROR);
          break;
 
       case H5G_DATASET:
-         LOG((3, "found dataset %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->dsets_head, &udata->dsets_tail, oinfo))
-             BAIL(H5_ITER_ERROR);
+         LOG((3, "found dataset %s", oinfo.oname));
+
+         /* Learn all about this dataset, which may be a dimscale
+          * (i.e. dimension metadata), or real data. */
+         if ((retval = read_dataset(udata->grp, oinfo.oid, oinfo.oname, &oinfo.statbuf)))
+         {
+            /* Allow NC_EBADTYPID to transparently skip over datasets
+             *  which have a datatype that netCDF-4 doesn't undertand
+             *  (currently), but break out of iteration for other
+             *  errors.
+             */
+            if(NC_EBADTYPID != retval)
+               BAIL(H5_ITER_ERROR);
+            else
+               retval = H5_ITER_CONT;
+         }
+
+         /* Close the object */
+         if (H5Oclose(oinfo.oid) < 0)
+	    BAIL(H5_ITER_ERROR);
          break;
 
       case H5G_TYPE:
-         LOG((3, "found datatype %s", oinfo->oname));
-         if (nc4_iter_list_add(&udata->types_head, &udata->types_tail, oinfo))
-             BAIL(H5_ITER_ERROR);
+         LOG((3, "found datatype %s", oinfo.oname));
+
+         /* Process the named datatype */
+         if (read_type(udata->grp, oinfo.oid, oinfo.oname))
+            BAIL(H5_ITER_ERROR);
+
+         /* Close the object */
+         if (H5Oclose(oinfo.oid) < 0)
+	    BAIL(H5_ITER_ERROR);
          break;
 
       default:
-         LOG((0, "Unknown object class %d in %s!", oinfo->statbuf.type, __func__));
+         LOG((0, "Unknown object class %d in %s!", oinfo.statbuf.type, __func__));
          BAIL(H5_ITER_ERROR);
     }
 
 exit:
    if (retval)
    {
-      if (oinfo)
-      {
-         if (oinfo->oid > 0 && H5Oclose(oinfo->oid) < 0)
-	    BAIL2(H5_ITER_ERROR);
-         free(oinfo);
-      }
+      if (oinfo.oid > 0 && H5Oclose(oinfo.oid) < 0)
+         BAIL2(H5_ITER_ERROR);
    }
 
    return (retval);
 }
 
+/* This is the main function to recursively read all the metadata for the file. */
+/* The links in the 'grp' are iterated over and added to the file's metadata
+ *      information.  Note that child groups are not immediately processed, but
+ *      are deferred until all the other links in the group are handled (so that
+ *      vars in the child groups are guaranteed to have types that they use in
+ *      a parent group in place).
+ */
 static int
 nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 {
@@ -1903,9 +1969,6 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
 
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
-
-    /* Portably initialize user data for iteration */
-    memset(&udata, 0, sizeof(udata));
 
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
@@ -1946,6 +2009,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
         iter_index = H5_INDEX_NAME;
     }
 
+    /* Portably initialize user data for iteration */
+    memset(&udata, 0, sizeof(udata));
+    udata.grp = grp;
+
     /* Iterate over links in this group, building lists for the types,
      *  datasets and groups encountered
      */
@@ -1953,49 +2020,10 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
             nc4_rec_read_metadata_cb, (void *)&udata) < 0)
 	BAIL(NC_EHDFERR);
 
-    /* Process the types, datasets and groups found */
-    /* (Make certain it's in this order, so that the types are available for
-     *  future datasets & child groups)
+    /* Process the child groups found */
+    /* (Deferred until now, so that the types in the current group get
+     *  processed and are available for vars in the child group(s).)
      */
-    for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
-    {
-        /* Process the named datatype */
-        if ((retval = read_type(grp, oinfo->oid, oinfo->oname)))
-            BAIL(retval);
-
-        /* Close the object */
-        if (H5Oclose(oinfo->oid) < 0)
-	    BAIL(NC_EHDFERR);
-
-        /* Advance to next node, free current node */
-        udata.types_head = oinfo->next;
-        free(oinfo);
-    }
-    for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
-    {
-        /* Learn all about this dataset, which may be a dimscale
-         * (i.e. dimension metadata), or real data. */
-        if ((retval = read_dataset(grp, oinfo->oid, oinfo->oname, &oinfo->statbuf)))
-        {
-            /* Allow NC_EBADTYPID to transparently skip over datasets
-             *  which have a datatype that netCDF-4 doesn't undertand
-             *  (currently), but break out of iteration for other
-             *  errors.
-             */
-            if(NC_EBADTYPID != retval)
-                BAIL(retval);
-            else
-                retval = NC_NOERR;
-        }
-
-        /* Close the object */
-        if (H5Oclose(oinfo->oid) < 0)
-	    BAIL(NC_EHDFERR);
-
-        /* Advance to next node, free current node */
-        udata.dsets_head = oinfo->next;
-        free(oinfo);
-    }
     for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
     {
         NC_GRP_INFO_T *child_grp;
@@ -2027,31 +2055,11 @@ exit:
     /* Clean up local information on error, if anything remains */
     if (retval)
     {
-        for (oinfo = udata.types_head; oinfo; oinfo = udata.types_head)
-        {
-            /* Close the object */
-            if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Advance to next node, free current node */
-            udata.types_head = oinfo->next;
-            free(oinfo);
-        }
-        for (oinfo = udata.dsets_head; oinfo; oinfo = udata.dsets_head)
-        {
-            /* Close the object */
-            if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Advance to next node, free current node */
-            udata.dsets_head = oinfo->next;
-            free(oinfo);
-        }
         for (oinfo = udata.grps_head; oinfo; oinfo = udata.grps_head)
         {
             /* Close the object */
             if (H5Oclose(oinfo->oid) < 0)
-                BAIL(NC_EHDFERR);
+                BAIL2(NC_EHDFERR);
 
             /* Advance to next node, free current node */
             udata.grps_head = oinfo->next;
@@ -2112,7 +2120,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
       property list. */
    if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
    {
-      nc4_info->parallel++;
+      nc4_info->parallel = NC_TRUE;
       if (mode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "opening parallel file with MPI/IO"));
@@ -2158,7 +2166,7 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 
    /* Does the mode specify that this file is read-only? */
    if ((mode & NC_WRITE) == 0)
-      nc4_info->no_write++;
+      nc4_info->no_write = NC_TRUE;
 
    /* Now read in all the metadata. Some types and dimscale
     * information may be difficult to resolve here, if, for example, a
@@ -2256,31 +2264,31 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 
    if (type_info)
    {
-      if (hdf4_typeid == DFNT_FLOAT32 || hdf4_typeid == DFNT_FLOAT64)
-	 type_info->class = H5T_FLOAT;
+      if (hdf4_typeid == DFNT_FLOAT32)
+	 type_info->nc_type_class = NC_FLOAT;
+      else if (hdf4_typeid == DFNT_FLOAT64)
+	 type_info->nc_type_class = NC_DOUBLE;
       else if (hdf4_typeid == DFNT_CHAR)
-	 type_info->class = H5T_STRING;
+	 type_info->nc_type_class = NC_STRING;
       else
-	 type_info->class = H5T_INTEGER;
+	 type_info->nc_type_class = NC_INT;
       type_info->endianness = NC_ENDIAN_BIG;
       type_info->nc_typeid = *xtype;
       if (type_info->name)
 	 free(type_info->name);
-      if (!(type_info->name = malloc((strlen(nc_type_name[t]) + 1) * sizeof(char))))
+      if (!(type_info->name = malloc((strlen(nc_type_name_g[t]) + 1) * sizeof(char))))
 	 return NC_ENOMEM;
-      strcpy(type_info->name, nc_type_name[t]);      
+      strcpy(type_info->name, nc_type_name_g[t]);      
    }
 
    return NC_NOERR;
 }
-#endif /* USE_HDF4 */
 
 /* Open a HDF4 file. Things have already been kicked off in nc_open,
  * but here the netCDF-4 part of opening a file is handled. */
 static int
 nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 {
-#ifdef USE_HDF4
    NC_HDF5_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_ATT_INFO_T *att;
@@ -2303,9 +2311,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    nc4_info = NC4_DATA(nc);
    assert(nc4_info && nc4_info->root_grp);
    h5 = nc4_info;
-   h5->hdf4++;
+   h5->hdf4 = NC_TRUE;
    grp = h5->root_grp;
-   h5->no_write++;
+   h5->no_write = NC_TRUE;
 
    /* Open the file and initialize SD interface. */
    if ((h5->sdid = SDstart(path, DFACC_READ)) == FAIL)
@@ -2325,7 +2333,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if ((retval = nc4_att_list_add(&h5->root_grp->att, &att)))
 	 return retval;
       att->attnum = grp->natts++;
-      att->created++;
+      att->created = NC_TRUE;
 
       /* Learn about this attribute. */
       if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char))))
@@ -2370,8 +2378,8 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	return retval;
       
       var->varid = grp->nvars++;
-      var->created = 1;
-      var->written_to = 1;
+      var->created = NC_TRUE;
+      var->written_to = NC_TRUE;
             
       /* Open this dataset in HDF4 file. */
       if ((var->sdsid = SDselect(h5->sdid, v)) == FAIL)
@@ -2503,7 +2511,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	   return retval;
 	 }
 	 att->attnum = var->natts++;
-	 att->created++;
+	 att->created = NC_TRUE;
 
 	 /* Learn about this attribute. */
 	 if (!(att->name = malloc(NC_MAX_HDF4_NAME * sizeof(char)))) {
@@ -2547,9 +2555,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
    log_metadata_nc(h5->root_grp->nc4_info->controller);
 #endif
    return NC_NOERR;   
-#endif /* USE_HDF4 */
    return NC_ENOTBUILT;
 }
+#endif /* USE_HDF4 */
 
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
@@ -2634,11 +2642,14 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
          nc_file->int_ncid = nc_file->ext_ncid;
          res = nc4_open_file(path, mode, comm, info, nc_file);
       }
+#ifdef USE_HDF4   
       else if (hdf_file == NC_HDF4_FILE)
       {
          nc_file->int_ncid = nc_file->ext_ncid;
          res = nc4_open_hdf4_file(path, mode, nc_file);
-      } else /* netcdf */
+      }
+#endif /* USE_HDF4 */
+      else /* netcdf */
       {
          assert(0); /* should never happen */
       }
@@ -2652,6 +2663,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    variable and then (optionally) specify the fill value. To
    accomplish this in HDF5 I have to delete the dataset, and recreate
    it, with the fill value specified. */
+/* QAK: This looks completely unused in the code. (?) */
 int 
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
@@ -2722,7 +2734,7 @@ NC4_redef(int ncid)
 
    /* For nc_abort, we need to remember if we're in define mode as a
       redef. */
-   nc4_info->redef++;
+   nc4_info->redef = NC_TRUE;
 
    return NC_NOERR;
 }
@@ -2790,7 +2802,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
       h5->flags ^= NC_INDEF;
       
       /* Redef mode needs to be tracked seperately for nc_abort. */
-      h5->redef = 0;
+      h5->redef = NC_FALSE;
    }
 
 #ifdef LOGGING
@@ -2878,14 +2890,14 @@ close_netcdf4_file(NC_HDF5_FILE_INFO_T *h5, int abort)
 	goto exit;
 
    /* Close hdf file. */
+#ifdef USE_HDF4
    if (h5->hdf4)
    {
-#ifdef USE_HDF4
       if (SDend(h5->sdid))
          BAIL_QUIET(NC_EHDFERR);
-#endif /* USE_HDF4 */
    } 
    else
+#endif /* USE_HDF4 */
    {
 #ifdef USE_PARALLEL
       /* Free the MPI Comm & Info objects, if we opened the file in parallel */
@@ -3091,7 +3103,7 @@ nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
    h5->flags ^= NC_INDEF;
 
    /* Redef mode needs to be tracked seperately for nc_abort. */
-   h5->redef = 0;
+   h5->redef = NC_FALSE;
 
    return sync_netcdf4_file(h5);
 }

@@ -34,7 +34,7 @@ main()
       H5O_info_t obj_info;
       char names[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"H", "He", "Li", "Be", "B", "C"};
       char name[MAX_SYMBOL_LEN + 1];
-      size_t size;
+      ssize_t size;
 
       /* Create file, setting latest_format in access propertly list
        * and H5P_CRT_ORDER_TRACKED in the creation property list. */
@@ -112,7 +112,7 @@ main()
       hid_t dimscaleid;
       hid_t dimscale_spaceid;
       hsize_t dimscale_dims[1] = {DIM1_LEN};
-      size_t size;
+      ssize_t size;
 
       /* Create file, setting latest_format in access propertly list
        * and H5P_CRT_ORDER_TRACKED in the creation property list. */
@@ -155,8 +155,8 @@ main()
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
 	 if (obj_info.type != H5O_TYPE_DATASET) ERR;
-	 size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-                                	 NULL, 0, H5P_DEFAULT);
+	 if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+                                	 NULL, 0, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 				name, size+1, H5P_DEFAULT) < 0) ERR;
 	 if (strcmp(name, names[i])) ERR;
@@ -180,7 +180,7 @@ main()
       float val = 3.1495;
       H5O_info_t obj_info;
       char name[MAX_NAME_LEN + 1];
-      size_t size;
+      ssize_t size;
 
       /* Create file, setting latest_format in access propertly list
        * and H5P_CRT_ORDER_TRACKED in the creation property list. */

@@ -26,10 +26,6 @@ because it can free an array of VLEN objects.
 \param vl pointer to the vlen object.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad \ref ncid.
-\returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
-\returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 */
 int
 nc_free_vlen(nc_vlen_t *vl)
@@ -51,10 +47,6 @@ will free the vlen memory.
 \param vlens pointer to the vlen object.
 
 \returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad \ref ncid.
-\returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
-\returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 */ 
 int
 nc_free_vlens(size_t len, nc_vlen_t vlens[])

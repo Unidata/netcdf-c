@@ -121,6 +121,9 @@ extern void make_lvars(char *optarg, int *nlvarsp, char ***lvarsp);
 /* Make list of groups from comma-delimited string */
 extern void make_lgrps(char *optarg, int *nlgrpsp, char*** lgrpsp, idnode_t **grpidsp);
 
+/* Release an id list */
+extern void freeidlist(idnode_t *idlist);
+
 /* 
  * Simplest interface for group iteration: get total number of groups
  * (including all descendant groups, recursively) and all group ids
