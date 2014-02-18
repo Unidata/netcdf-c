@@ -4,7 +4,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
-* Cleaned up type handling in libsrc4 to fix bugs with fill-values.
+* Cleaned up type handling in netCDF-4 to fix bugs with fill-values.
 
 * Corrected "BAIL" macros to avoid infinite loop when logging is disabled and an error occurs.
 
@@ -12,9 +12,9 @@ This file contains a high-level description of this package's evolution. Release
 
 * Made type structure sharable by committed datatypes and variables that use it.
 
-* Handle string datatypes correctly, particularly for fill value attributes. Expand testing for string fill values.
+* Handled string datatypes correctly, particularly for fill value attributes. Expanded testing for string fill values.
 
-* Simplified iteration of objects in the file when it's opened, reducing the objects that are tracked and memory used.
+* Simplified iteration of objects in the file when it's opened, tracking fewer objects and using less memory.
 
 * Enabled netCDF-4 bit-for-bit reproducibility for nccopy and other applications (thanks to Rimvydas Jasinskas and Quincey Koziol) by turning off HDF5 object creation, access, and modification time tracking.  [NCF-290](https://bugtracking.unidata.ucar.edu/browse/NCF-290)
 
