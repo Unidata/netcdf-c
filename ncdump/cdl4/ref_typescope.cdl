@@ -28,7 +28,7 @@ group: g {
     types:
       opaque(4) op_t2 ;
     variables:
-      op_t3 v2 ; // use /g/op_t3
+      op_t3 v2 ; // use /g/h/op_t3
     data:
 
      v2 = 0X00000000 ;

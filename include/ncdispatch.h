@@ -316,7 +316,7 @@ typedef struct NCcommon {
 	int   substrate; /* ncid for another protocol on which to build */
 } NCcommon;
 
-extern int NC_atomictypelen(nc_type xtype);
+extern size_t NC_atomictypelen(nc_type xtype);
 extern char* NC_atomictypename(nc_type xtype);
 
 /* Provide an initializer */
@@ -363,8 +363,8 @@ extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 
-extern size_t* NC_coord_zero;
-extern size_t* NC_coord_one;
+extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
 
 #endif /* _DISPATCH_H */
 

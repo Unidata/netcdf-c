@@ -749,7 +749,7 @@ ncx_get_int_uint(const void *xp, unsigned int *ip)
 	ix_int xx;
 	get_ix_int(xp, &xx);
 	*ip = xx;
-	if(xx > UINT_MAX || xx < 0)
+	if(xx < 0)
 		return NC_ERANGE;
 	return ENOERR;
 }
@@ -2131,10 +2131,10 @@ ncx_get_off_t(const void **xpp, off_t *lp, size_t sizeof_off_t)
 	assert(sizeof_off_t == 4 || sizeof_off_t == 8);
 
  	if (sizeof_off_t == 4) {
-		*lp = *cp++ << 24;
-		*lp |= (*cp++ << 16);
-		*lp |= (*cp++ <<  8);
-		*lp |= *cp; 
+		*lp =  (off_t)(*cp++ << 24);
+		*lp |= (off_t)(*cp++ << 16);
+		*lp |= (off_t)(*cp++ <<  8);
+		*lp |= (off_t)*cp; 
 	} else {
 #if SIZEOF_OFF_T == 4
 /* Read a 64-bit offset on a system with only a 32-bit offset */

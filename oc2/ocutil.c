@@ -699,7 +699,7 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
     }
 #ifdef HAVE_MKSTEMP
     if(!occoncat(tmpname,tmpsize,1,"XXXXXX")) {
-	free(tmpname);
+        free(tmpname);
 	return OC_EOVERRUN;
     }
     /* Note Potential problem: old versions of this function
@@ -714,8 +714,10 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
 	char spid[7];
 	if(rno < 0) rno = -rno;
         snprintf(spid,sizeof(spid),"%06d",rno);
-	if(!occoncat(tmpname,tmpsize,1,spid))
+	if(!occoncat(tmpname,tmpsize,1,spid)) {
+            free(tmpname);
 	    return OC_EOVERRUN;
+        }
 #if defined(_WIN32) || defined(_WIN64)
         fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
 #  else
@@ -724,6 +726,8 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
     }
 #endif /* !HAVE_MKSTEMP */
     if(tmpnamep) *tmpnamep = tmpname;    
+    else free(tmpname);
     if(fdp) *fdp = fd;
+    else if(fd) close(fd);
     return OC_NOERR;
 }

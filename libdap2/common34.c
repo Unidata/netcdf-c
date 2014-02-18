@@ -348,17 +348,21 @@ fprintf(stderr,"basedim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 NCerror
 makegetvar34(NCDAPCOMMON* nccomm, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
 {
-    Getvara* getvar;
     NCerror ncstat = NC_NOERR;
 
-    getvar = (Getvara*)calloc(1,sizeof(Getvara));
-    MEMCHECK(getvar,NC_ENOMEM);
-    if(getvarp) *getvarp = getvar;
+    if(getvarp)
+    {
+       Getvara* getvar;
 
-    getvar->target = var;
-    getvar->memory = data;
-    getvar->dsttype = dsttype;
-    if(ncstat) nullfree(getvar);
+       getvar = (Getvara*)calloc(1,sizeof(Getvara));
+       MEMCHECK(getvar,NC_ENOMEM);
+
+       getvar->target = var;
+       getvar->memory = data;
+       getvar->dsttype = dsttype;
+
+       *getvarp = getvar;
+    }
     return ncstat;
 }
 
@@ -387,7 +391,7 @@ makecdfnode34(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
         size_t len = strlen(ocname);
         if(len >= NC_MAX_NAME) len = NC_MAX_NAME-1;
         node->ocname = (char*)malloc(len+1);
-	if(node->ocname == NULL) return NULL;
+	if(node->ocname == NULL) { nullfree(node); return NULL;}
 	memcpy(node->ocname,ocname,len);
 	node->ocname[len] = '\0';
     }
