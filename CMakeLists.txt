@@ -16,10 +16,12 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE ".1")
+SET(netCDF_VERSION_NOTE ".2")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(netCDF_SO_VERSION 7.2.0)
+SET(PACKAGE_VERSION ${VERSION})
+
 
 # Get system configuration,
 # Use it to determine osname,
@@ -1089,7 +1091,7 @@ SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
 SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 SET(includedir ${CMAKE_INSTALL_PREFIX}/include)
 SET(CC ${CMAKE_C_COMPILER})
-SET(PACKAGE_VERSION ${VERSION})
+
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 

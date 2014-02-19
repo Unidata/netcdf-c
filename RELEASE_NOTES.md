@@ -1,4 +1,6 @@
-\page release_notes Release Notes
+Release Notes {#release_notes}
+=============
+\brief Historic Release Notes.
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
 
@@ -1593,3 +1595,5 @@ description of the evolution of the netCDF-3 package.
 
 * A comparison of the netCDF-2 and netCDF-3 releases can be found in the
 file COMPATIBILITY.
+
+*/

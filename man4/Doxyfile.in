@@ -474,7 +474,7 @@ SHOW_USED_FILES        = YES
 # then setting the SHOW_DIRECTORIES tag to YES will show the directory hierarchy
 # in the documentation. The default is NO.
 
-SHOW_DIRECTORIES       = NO
+# SHOW_DIRECTORIES       = NO
 
 # Set the SHOW_FILES tag to NO to disable the generation of the Files page.
 # This will remove the Files entry from the Quick Index and from the
@@ -570,18 +570,19 @@ WARN_LOGFILE           =
 
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/man4/mainpage.doc \
-    @abs_top_srcdir@/man4/tutorial.doc \
-    @abs_top_srcdir@/man4/install.doc \
-    @abs_top_srcdir@/man4/dispatch.doc \
+    @abs_top_srcdir@/man4/mainpage.dox \
+    @abs_top_srcdir@/man4/tutorial.dox \
+    @abs_top_srcdir@/man4/install.dox \
+    @abs_top_srcdir@/man4/dispatch.dox \
     @abs_top_srcdir@/man4/Building-with-CMake.md \
     @abs_top_srcdir@/man4/windows-binaries.md \
-    @abs_top_srcdir@/man4/guide.doc \
-    @abs_top_srcdir@/man4/types.doc \
-    @abs_top_srcdir@/man4/notes.doc \
-    @abs_top_srcdir@/man4/cdl.doc \
-    @abs_top_srcdir@/man4/architecture.doc \
-    @abs_top_srcdir@/man4/internal.doc \
+    @abs_top_srcdir@/man4/all-error-codes.md \
+    @abs_top_srcdir@/man4/guide.dox \
+    @abs_top_srcdir@/man4/types.dox \
+    @abs_top_srcdir@/man4/notes.dox \
+    @abs_top_srcdir@/man4/cdl.dox \
+    @abs_top_srcdir@/man4/architecture.dox \
+    @abs_top_srcdir@/man4/internal.dox \
     @abs_top_srcdir@/COPYRIGHT \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
@@ -868,7 +869,7 @@ HTML_STYLESHEET        =
 # files or namespaces will be aligned in HTML using tables. If set to
 # NO a bullet list will be used.
 
-HTML_ALIGN_MEMBERS     = YES
+# HTML_ALIGN_MEMBERS     = YES
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the
@@ -1021,7 +1022,7 @@ GENERATE_TREEVIEW      = NO
 # By enabling USE_INLINE_TREES, doxygen will generate the Groups, Directories,
 # and Class Hierarchy pages using a tree view instead of an ordered list.
 
-USE_INLINE_TREES       = NO
+# USE_INLINE_TREES       = NO
 
 # If the treeview is enabled (see GENERATE_TREEVIEW) then this tag can be
 # used to set the initial width (in pixels) of the frame in which the tree
