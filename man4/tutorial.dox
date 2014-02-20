@@ -1,14 +1,18 @@
-/*! \file
-The tutorial document.
+/*! 
 
-\page tutorial Tutorial 
+\page tutorial NetCDF Tutorials
 
-Background and Further Reading:
+\section sec_tut Tutorial Documentation
+
+This page contains refrences to various other NetCDF background and tutorial pages.
+
+\subsection background_further_reading Background and Further Reading
+
 - \ref what_is_netcdf
 - \ref netcdf_documentation
 
-NetCDF Data Model:
-- \ref netcdf_data_model
+\subsection sub_sec_netcdf_data_model NetCDF Data Model:
+- \ref netcdf_data_model \todo Update the name of the netcdf data model page.
 - \ref classic_model
 - \ref enhanced_model
 - \ref unlimited_dims
@@ -16,20 +20,20 @@ NetCDF Data Model:
 - \ref user_defined_types
 - \ref string_type
 
-Important Conventions:
+\subsection sub_sec_important_conventions Important Conventions:
 - \ref fill_values
 
-Tools for NetCDF:
+\subsection sub_sec_tools_for_netcdf Tools for NetCDF:
 - \ref netcdf_utilities
 - \ref netcdf_tools
 
-Programming with NetCDF:
+\subsection sub_sec_programming_with_netcdf Programming with NetCDF:
 - \ref netcdf_apis
 - \ref error_handling
 - \ref interoperability_hdf5
 - \ref parallel_io
 
-Example Programs:
+\subsection sub_sec_example_programs Example Programs:
 - \ref examples1
 
 \page what_is_netcdf What is NetCDF?

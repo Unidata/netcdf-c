@@ -815,12 +815,6 @@ IF(MSVC)
 ENDIF()
 
 
-# Internal Documentation
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-IF(ENABLE_INTERNAL_DOCS)
-	SET(BUILD_INTERNAL_DOCS ON)
-ENDIF()
-
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)

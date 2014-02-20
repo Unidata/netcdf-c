@@ -1,12 +1,21 @@
-\page winbin Installing and Using netCDF-C Libraries in a Windows Environment
+Installing and Using netCDF-C Libraries in Windows {#winbin}
+==================================================
+
+\brief NetCDF-C Libraries in a Windows Environment may be used under multiple sets of circumstances.
+
+[TOC]
 
 There are several development environments available for programmers who develop on Windows. 
 
-* Microsoft Visual Studio 
-* MSYS/MinGW
-* Cygwin
+* `Microsoft Visual Studio `
+* `MSYS/MinGW`
+* `Cygwin`
 
-For the latter two, the Linux/Unix build instructions may be used. For the former build environment, you may download using the Windows build instructions, or you may download the pre-built netCDF-C libraries from this page.
+For developers using `Microsoft Visual Studio`, you may download using the Windows build instructions, or you may download the pre-built netCDF-C libraries from this page.
+
+For developers using `MSYS/MinGW` or `Cygwin`, you may build netCDF-C using the Linux/Unix build instructions.  
+
+> For complex builds that include netCDF-4 and/or DAP support this may prove tricky, as it is time consuming to collect all of the dependencies.  In these cases it may be easier to use the pre-built `netcdf` packages provided by the `MSYS` and `Cygwin` environments.
 
 Users who prefer to build the netCDF-C libraries from source in a Windows environment using Microsoft Visual Studio are referred to \ref netCDF-CMake
 

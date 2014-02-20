@@ -50,7 +50,7 @@ File Structure and Performance
 Improving Performance with Chunking
 - \ref chunk_cache
 - \ref default_chunking_4_1
-- \ref default_chunking_4_0_1
+- default_chunking_4_0_1
 - \ref chunking_parallel_io
 - \ref bm_file
 
