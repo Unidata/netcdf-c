@@ -369,6 +369,9 @@ by the desired type. */
 #define NC_EDAPCONSTRAINT (-75)    /**< Malformed DAP Constraint*/
 #define NC_ETRANSLATION (-76)      /**< Untranslatable construct */
 
+/* Misc. additional errors */
+#define NC_ECANTREMOVE  (-77)      /**< Can't remove file */
+
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if
    needed. */

@@ -1970,6 +1970,9 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
 
+    /* Portably initialize user data for later */
+    memset(&udata, 0, sizeof(udata));
+
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
     if (!grp->hdf_grpid)
@@ -2009,8 +2012,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
         iter_index = H5_INDEX_NAME;
     }
 
-    /* Portably initialize user data for iteration */
-    memset(&udata, 0, sizeof(udata));
+    /* Set user data for iteration */
     udata.grp = grp;
 
     /* Iterate over links in this group, building lists for the types,
@@ -2981,7 +2983,8 @@ NC4_abort(int ncid)
    
    /* Delete the file, if we should. */
    if (delete_file)
-      remove(path);
+      if (remove(path) < 0)
+          return NC_ECANTREMOVE;
 
    return retval;
 }
