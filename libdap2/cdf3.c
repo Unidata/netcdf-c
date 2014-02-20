@@ -659,19 +659,15 @@ static NClist*
 clonedimset3(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
 {
     NClist* result = NULL;
-	
-	
-    
-	int i;
-    if(dimset != NULL) {
-        for(i=0;i<nclistlength(dimset);i++) {
-		CDFnode *dim = NULL;
-		if(result == NULL)
-			result = nclistnew();
+    int i;
 
-		dim = (CDFnode*)nclistget(dimset,i);
-	    nclistpush(result,(void*)clonedim(nccomm,dim,var));
-        }
+    for(i=0;i<nclistlength(dimset);i++) {
+        CDFnode *dim = NULL;
+        if(result == NULL)
+           result = nclistnew();
+
+        dim = (CDFnode*)nclistget(dimset,i);
+        nclistpush(result,(void*)clonedim(nccomm,dim,var));
     }
     return result;
 }
