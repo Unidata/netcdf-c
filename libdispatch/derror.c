@@ -13,7 +13,7 @@ Research/Unidata. See COPYRIGHT file for more info.
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
 /** \defgroup lib_version Library Version 
-
+    Functions related to querying the library version.
 */
 
 /**

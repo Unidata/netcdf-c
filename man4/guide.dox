@@ -2,9 +2,11 @@
 
 NetCDF Users Guide
 
+The NetCDF Users Guide
+
 \page user_guide The NetCDF Users Guide
 
-\ref netcdf_summary
+\ref netcdf_summary A summary description of NetCDF.
 
 Introduction
 - \ref netcdf_interface

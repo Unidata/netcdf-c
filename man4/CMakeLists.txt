@@ -14,9 +14,12 @@ IF(BUILD_DOCS)
 		# Copy the image files used by markdown documentation 
 		# manually.
 		FILE(GLOB IMG_FILES ${CMAKE_CURRENT_BINARY_DIR}/images/*.jpg)
+		
+		# Set abs_top_srcdir to work with the autotools
+		# doxyfile template.
+		SET(abs_top_srcdir ${CMAKE_SOURCE_DIR})
+		CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
 
-
-		CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 		ADD_CUSTOM_TARGET(doc ALL
 			${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
