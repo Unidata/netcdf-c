@@ -36,7 +36,7 @@ Hartnett, Dennis Heimbigner and Ward Fisher
 
 \internal
 
-\section internal-documentation Internal Documentation 
+Internal Documentation 
 
 The dispatch interface within the netCDF library allows the netCDF API
 to be used for different types of back-ends, for example, the HDF5
