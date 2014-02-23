@@ -2343,12 +2343,12 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count)) 
 	 return NC_EATTMETA;
       if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-					      &att->xtype, NULL)))
+					      &att->nc_typeid, NULL)))
 	 return retval;
       att->len = att_count;
 
       /* Allocate memory to hold the data. */
-      if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size)))
+      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size)))
 	 return retval;
       if (!(att->data = malloc(att_type_size * att->len)))
 	 return NC_ENOMEM;
@@ -2412,12 +2412,12 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	return NC_ENOMEM;
       }
       
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info))) {
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->type_info->nc_typeid, var->type_info))) {
 	if(dimsize) free(dimsize);
 	return retval;
       }
       
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size))) {
+      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &var_type_size))) {
 	if(dimsize) free(dimsize);
 	return retval;
       }
@@ -2525,7 +2525,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	    return NC_EATTMETA;
 	 }
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-						 &att->xtype, NULL))) {
+						 &att->nc_typeid, NULL))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }
@@ -2533,7 +2533,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 att->len = att_count;
 
 	 /* Allocate memory to hold the data. */
-	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size))) {
+	 if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }
