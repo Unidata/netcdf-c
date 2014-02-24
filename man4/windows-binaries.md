@@ -3,7 +3,9 @@ Installing and Using netCDF-C Libraries in Windows {#winbin}
 
 \brief NetCDF-C Libraries in a Windows Environment may be used under multiple sets of circumstances.
 
-[TOC]
+
+
+\tableofcontents
 
 There are several development environments available for programmers who develop on Windows. 
 

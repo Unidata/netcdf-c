@@ -11,6 +11,8 @@ library.
 
 \page getting Getting NetCDF
 
+\tableofcontents
+
 \section sec_get_pre_built Getting pre-built netCDF-C libraries.
 
 The easiest way to get netCDF is through a package management program,
@@ -21,6 +23,9 @@ repositories.
 When getting netCDF from a software repository, you will wish to get
 the development version of the package ("netcdf-devel"). This includes
 the netcdf.h header file.
+
+\note If you are interested in building NetCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
+
 
 \section sec_get_source Getting the latest netCDF-C Source Code
 

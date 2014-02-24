@@ -577,6 +577,7 @@ INPUT = \
     @abs_top_srcdir@/man4/Building-with-CMake.md \
     @abs_top_srcdir@/man4/windows-binaries.md \
     @abs_top_srcdir@/man4/all-error-codes.md \
+    @abs_top_srcdir@/man4/cmake_faq.md \
     @abs_top_srcdir@/man4/guide.dox \
     @abs_top_srcdir@/man4/types.dox \
     @abs_top_srcdir@/man4/notes.dox \

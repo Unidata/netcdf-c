@@ -1,25 +1,15 @@
 \page netCDF-CMake Build Instructions for netCDF-C using CMake
 
-# Table of Contents
+[TOC]
 
-* [Overview](#overview)
-* [Requirements](#requirements)
-* [Build Process](#buildprocess)
-* [Building](#building)
-* [Testing](#testing)
-* [FAQ](#FAQ)
-
-
-
-
-# <a id="overview"></a>Overview
+# Overview {#cmake_overview}
 
 Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
 
 In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
 
 		
-# <a id="requirements"></a> Requirements
+# Requirements {#cmake_requirements}
 The following packages are required to build netCDF-C using CMake.
 
 * netCDF-C Source Code
@@ -32,7 +22,7 @@ The following packages are required to build netCDF-C using CMake.
 <img src="deptree.jpg" height="250px" />
 </center>
 
-# <a id="buildprocess"></a>The CMake Build Process
+# The CMake Build Process {#cmake_build}
 
 There are four steps in the Build Process when using CMake
 
@@ -43,7 +33,7 @@ There are four steps in the Build Process when using CMake
 
 For users who prefer pre-built binaries, installation packages are available at \ref winbin
 
-## <a id="configuration"></a>Configuration
+## Configuration {#cmake_configuration}
 
 The output of the configuration step is a project file based on the appropriate configurator specified.  Common configurators include:
 
@@ -52,7 +42,7 @@ The output of the configuration step is a project file based on the appropriate 
 * CodeBlocks
 * ... and others
 
-### Common CMake Options
+### Common CMake Options {#cmake_common_options}
 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
@@ -66,7 +56,7 @@ Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFI
 
 A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
 
-### Configuring your build from the command line.
+### Configuring your build from the command line. {#cmake_command_line}
 
 The easiest configuration case would be one in which all of the dependent libraries are installed on the system path (in either Unix/Linux or Windows) and all the default options are desired. From the build directory (often, but not required to be located within the source directory):
 
@@ -76,9 +66,7 @@ If you have libraries installed in a custom directory, you may need to specify t
 
 > $ cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
 
-
-
-## <a id="building"></a>Building
+## Building {#cmake_building}
 
 The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.  
 
@@ -88,9 +76,7 @@ Building can also be executed indirectly via cmake:
 
 > $ cmake --build [Build Directory]
 
-
-
-## <a id="testing"></a>Testing
+## Testing {#cmake_testing}
 
 Testing can be executed several different ways:
 
@@ -104,7 +90,7 @@ or
 
 > $ cmake --build [Build Directory] --target test
 
-## <a id="installation"></a>Installation
+## Installation {#cmake_installation}
 
 Once netCDF has been built and tested, it may be installed using the following commands:
 
@@ -114,107 +100,6 @@ or
 
 > $ cmake --build [Build Directory] --target install
 
-# <a id="FAQ"></a> CMake Frequently Asked Questions (FAQ)
+# See Also {#cmake_see_also}
 
-## <a id="faqtoc"></a> Table of Contents
-
-* [How can I see the options available to CMake?](#listoptions)
-* [How do I specify how to build a shared or static library?](#sharedstatic)
-* [Can I build both shared and static libraries at the same time with cmake?](#sharedstaticboth)
-* [What if I want to link against multiple libraries in a non-standard location?](#nonstdloc)
-* [How can I specify a Parallel Build using HDF5](#parallelhdf)
-
-
-## Frequently Asked Questions
-
-
-* **How can I see the options available to CMake?** <a id="listoptions"></a>
-
-        $ cmake [path to source tree] -L	- This will show the basic options.
-        $ cmake [path to source tree] -LA	- This will show the basic and advanced options.
-
-[Back to the top of the FAQ](#faqtoc)
-
-
---
-
-* **How do I specify how to build a shared or static library?** <a id="sharedstatic"></a>
-
-    This is controlled with the internal `cmake` option, `BUILD_SHARED_LIBS`.
-
-        $ cmake [Source Directory] -DBUILD_SHARED_LIBS=[ON/OFF]
-	
-[Back to the top of the FAQ](#faqtoc)
-
-
---
-	
-* **Can I build both shared and static libraries at the same time with cmake?** <a id="sharedstaticboth"></a>
-
-    Not at this time; it is required to instead build first one version, and then the other, if you need both.
-
-
-[Back to the top of the FAQ](#faqtoc)
-
---
-
-
-* **How can I specify linking against a particular library?** <a id="partlib"></a>
-
-    It depends on the library.  To specify a custom `ZLib`, for example, you would do the following:
-		
-        $ cmake [Source Directory] -DZLIB_LIBRARY=/path/to/my/zlib.lib
-        
-
-    `HDF5` is more complex, since it requires both the `hdf5` and `hdf5_hl` libraries. You would specify custom `HDF5` libraries as follows:
-		
-        $ cmake [Source Directory] -DHDF5_LIB=/path/to/hdf5.lib \
-            -DHDF5_HL_LIB=/path/to/hdf5_hl.lib \
-            -DHDF5_INCLUDE_DIR=/path/to/hdf5/include
-
-
-    Alternatively, you may specify:
-		
-        $ cmake [Source Directory] \
-            -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" \
-            -DHDF5_INCLUDE_DIRS=/path/to/hdf5/include/
-
-
-[Back to the top of the FAQ](#faqtoc)
-
---
-			
-* **What if I want to link against multiple libraries in a non-standard location?**<a id="nonstdloc"></a>
-
-    You can specify the path to search when looking for dependencies and header files using the `CMAKE_PREFIX_PATH` variable:
-	
-* Windows:	
-    
-        $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=c:\shared\libs\
-	
-		
-* Linux/Unix/OSX:
-
-        $ cmake [Source Directory] -DCMAKE_PREFIX_PATH=/usr/custom_library_locations/		
-
-[Back to the top of the FAQ](#faqtoc)
-
---
-		
-
-* **How can I specify a Parallel Build using HDF5** <a id="parallelhdf"></a>
-
-	
-    If cmake is having problems finding the parallel `HDF5` install, you can specify the location manually:
-
-	
-        $ cmake [Source Directory] -DENABLE_PARALLEL=ON \
-            -DHDF5_LIB=/usr/lib64/openmpi/lib/libhdf5.so \
-            -DHDF5_HL_LIB=/usr/lib64/openmpi/lib/libhdf5.hl.so \
-            -DHDF5_INCLUDE_DIR=/usr/include/openmpi-x86_64 \
-		
-
-    You will, of course, need to use the location of the libraries specific to your development environment.
-	
-
-[Back to the top of FAQ](#faqtoc)
+For further information regarding NetCDF and CMake, see \ref cmake_faq
