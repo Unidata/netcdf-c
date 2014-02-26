@@ -1897,8 +1897,11 @@ void adapt_url_for_cache(char **pathp) {
 }
 #endif
 
-/** @page ncdump \b ncdump tool - Convert netCDF file to text form (CDL)
-@section  SYNOPSIS
+/** \page guide_ncdump ncdump tool - Convert netCDF file to text form (CDL)
+
+\tableofcontents
+
+\section  ncdump_SYNOPSIS ncdump synopsis
 
 \code
 ncdump   [-chistxw]  [-v  var1,...]  [-b lang]  [-f lang]
@@ -1908,7 +1911,7 @@ ncdump   [-chistxw]  [-v  var1,...]  [-b lang]  [-f lang]
 ncdump    -k file
 \endcode
 
-@section  DESCRIPTION
+\section ncdump_DESCRIPTION ncdump description
 
 The \b ncdump utility generates a text representation of a specified
 netCDF file on standard output, optionally excluding some or all of
@@ -1955,7 +1958,7 @@ be appropriate to use the variable attribute
     Z:C_format = "%.3g"
 \endcode
 
-@section  OPTIONS
+\section ncdump_OPTIONS ncdump options
 
 @par -c 
 Show the values of \e coordinate \e variables (1D variables with the
@@ -2106,7 +2109,7 @@ with client-side caching of entire variables.
 Output XML (NcML) instead of CDL.  The NcML does not include data values.
 The NcML output option currently only works for netCDF classic model data.
 
-@section  EXAMPLES
+\section  ncdump_EXAMPLES ncdump examples
 
 Look at the structure of the data in the netCDF file foo.nc:
 
@@ -2151,11 +2154,14 @@ performance-related characterisitics of a netCDF-4 file:
    ncdump -h -s nc4file.nc
 \endcode
 
-@section see_also SEE ALSO
+\section see_also SEE ALSO
 
 ncgen(1), netcdf(3)
 
-@section string_note NOTE ON STRING OUTPUT
+- \ref guide_ncgen
+- \ref guide_nccopy
+
+\section ncdump_string_note NOTE ON STRING OUTPUT
 
 For classic, 64-bit offset or netCDF-4 classic model data, \b ncdump
 generates line breaks after embedded newlines in displaying character

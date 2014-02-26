@@ -1,9 +1,11 @@
 /** \file 
 Documentation of error handling.
 
-\page Programming Notes
+\page programming_notes Programming Notes
 
-\section error_handling Error Handling
+\tableofcontents
+
+\section error_handling_notes Error Handling
 
 Each netCDF function returns an integer status value. Non-zero values
 indicate error.

@@ -788,7 +788,6 @@ static int
 get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
 	       NC_TYPE_INFO_T **type_info)
 {
-   NC_TYPE_INFO_T *type;
    htri_t is_str, equal = 0;
    H5T_class_t class;
    hid_t native_typeid, hdf_typeid;
@@ -902,6 +901,8 @@ get_type_info2(NC_HDF5_FILE_INFO_T *h5, hid_t datasetid,
    }
    else
    {
+      NC_TYPE_INFO_T *type;
+
       /* This is a user-defined type. */
       if((type = nc4_rec_find_hdf_type(h5->root_grp, native_typeid)))
 	 *type_info = type;
@@ -2276,11 +2277,9 @@ get_netcdf_type_from_hdf4(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid,
 	 type_info->nc_type_class = NC_INT;
       type_info->endianness = NC_ENDIAN_BIG;
       type_info->nc_typeid = *xtype;
-      if (type_info->name)
-	 free(type_info->name);
-      if (!(type_info->name = malloc((strlen(nc_type_name_g[t]) + 1) * sizeof(char))))
+      type_info->size = nc_type_size_g[t];
+      if (!(type_info->name = strdup(nc_type_name_g[t])))
 	 return NC_ENOMEM;
-      strcpy(type_info->name, nc_type_name_g[t]);      
    }
 
    return NC_NOERR;
@@ -2416,6 +2415,9 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	if(dimsize) free(dimsize);
 	return retval;
       }
+
+      /* Indicate that the variable has a pointer to the type */
+      var->type_info->rc++;
       
       if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &var_type_size))) {
 	if(dimsize) free(dimsize);
@@ -2424,7 +2426,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 
       var->type_info->size = var_type_size;
       LOG((3, "reading HDF4 dataset %s, rank %d netCDF type %d", var->name, 
-	   rank, var->xtype));
+	   rank, var->type_info->nc_typeid));
 
       /* Get the fill value. */
       if (!(var->fill_value = malloc(var_type_size))) {

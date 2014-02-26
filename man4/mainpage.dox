@@ -1,7 +1,10 @@
-/** \file 
-This header file holds the documentation for the main page.
+/** \file mainpage.dox Main Documentation Page
+
+\brief This header file holds the documentation for the main page.
 
 \mainpage
+
+\tableofcontents
 
 \section NetCDF
 
@@ -20,17 +23,20 @@ Foundation.
 \authors Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed
 Hartnett, Dennis Heimbigner and Ward Fisher
 
-\subsection learn-more Learn more about NetCDF
+\subsection this_release Learn more about the current NetCDF-C Release
 
 - \ref release_notes
 - \ref getting
 - \ref building
+
+\subsection learn-more Learn more about using NetCDF-C
+
 - \ref tutorial
 - \ref user_guide
-- <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Other Documentation</a>
+- <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>
 
 
-\subsection netcdf-cmake-windows NetCDF CMake and Windows support:
+\section netcdf-cmake-windows NetCDF CMake and Windows support:
 - \ref netCDF-CMake
 - \ref winbin
 
