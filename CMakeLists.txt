@@ -16,10 +16,12 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 1)
-SET(netCDF_VERSION_NOTE ".1")
+SET(netCDF_VERSION_NOTE ".2")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(netCDF_SO_VERSION 7.2.0)
+SET(PACKAGE_VERSION ${VERSION})
+
 
 # Get system configuration,
 # Use it to determine osname,
@@ -151,13 +153,13 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
-    IF(APPLE)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
-      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
-    ELSE()
+    IF(CMAKE_COMPILER_IS_GNUCC)
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wconversion")
-    ENDIF(APPLE)
+    ELSEIF(APPLE)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32")
+    ENDIF(CMAKE_COMPILER_IS_GNUCC)
   ENDIF(ENABLE_CONVERSION_WARNINGS)
 
 ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
@@ -287,7 +289,7 @@ ENDMACRO()
 MACRO(print_conf_summary)
 	MESSAGE("")
 	MESSAGE("")
-	MESSAGE(STATUS "CMake Summary:")
+	MESSAGE("Configuration Summary:")
 	MESSAGE("")
 	MESSAGE(STATUS "\tBuild Type:\t\t\t" ${CMAKE_BUILD_TYPE})
 	MESSAGE(STATUS "\tBuilding Shared Libraries:\t" ${BUILD_SHARED_LIBS})
@@ -299,10 +301,14 @@ MACRO(print_conf_summary)
 	ENDIF()
 	MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
 	MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
-	MESSAGE(STATUS "\tCMAKE_C_FLAGS:\t\t\t" ${CMAKE_C_FLAGS})
-	MESSAGE(STATUS "\tCMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
+	MESSAGE("")
+	MESSAGE(STATUS "Compiler:")
+	MESSAGE("")
+	MESSAGE(STATUS "CMAKE_C_COMPILER:\t\t ${CMAKE_C_COMPILER}")
+	MESSAGE(STATUS "CMAKE_C_FLAGS:\t\t" ${CMAKE_C_FLAGS})
+	MESSAGE(STATUS "CMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
 
-	MESSAGE(STATUS "\tLinking against:\t\t" "${ALL_TLL_LIBS}") 
+	MESSAGE(STATUS "Linking against:\t\t" "${ALL_TLL_LIBS}") 
 
 	MESSAGE("")
 
@@ -809,12 +815,6 @@ IF(MSVC)
 ENDIF()
 
 
-# Internal Documentation
-OPTION (ENABLE_INTERNAL_DOCS "Enable documentation of library internals. This is of interest only to those developing the netCDF library." OFF)
-IF(ENABLE_INTERNAL_DOCS)
-	SET(BUILD_INTERNAL_DOCS ON)
-ENDIF()
-
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
@@ -1085,7 +1085,7 @@ SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
 SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 SET(includedir ${CMAKE_INSTALL_PREFIX}/include)
 SET(CC ${CMAKE_C_COMPILER})
-SET(PACKAGE_VERSION ${VERSION})
+
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 

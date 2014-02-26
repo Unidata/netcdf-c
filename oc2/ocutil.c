@@ -725,6 +725,10 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
 #  endif
     }
 #endif /* !HAVE_MKSTEMP */
+    if(fd < 0) {
+       free(tmpname);
+       return OC_EOPEN;
+    }
     if(tmpnamep) *tmpnamep = tmpname;    
     else free(tmpname);
     if(fdp) *fdp = fd;

@@ -1,7 +1,9 @@
 /** \file 
 Documentation of error handling.
 
-\page Programming Notes
+\page programming_notes Programming Notes
+
+\tableofcontents
 
 \section error_handling Error Handling
 
@@ -26,7 +28,7 @@ available, you may get an error from a layer below the netCDF library,
 but the resulting write error will still be reflected in the returned
 status value.  
 
-\page ignored_if_null Ignored if NULL
+\section ignored_if_null Ignored if NULL
 
 Many of the argurments of netCDF functions are pointers. For example,
 the nc_inq() functions takes four pointers:
@@ -51,12 +53,12 @@ if (nc_inq(ncid, &ndims, NULL, NULL, NULL))
 User must allocate space for the result of an inq function before the
 function is called.
 
-\page specify_hyperslab Specify a Hyperslab
+\section specify_hyperslab Specify a Hyperslab
 
 The NetCDF allows specification of hyperslabs to be read or written
 with vectors which specify the start, count, stride, and mapping.
 
-\section start_vector A Vector Specifying Start Index for Each Dimension
+\subsection start_vector A Vector Specifying Start Index for Each Dimension
 
 A vector of size_t integers specifying the index in the
 variable where the first of the data values will be read. 
@@ -68,7 +70,7 @@ The length of start vector must be the same as the number of
 dimensions of the specified variable. The elements of start
 correspond, in order, to the variable's dimensions. 
 
-\section count_vector A Vector Specifying Count for Each Dimension
+\subsection count_vector A Vector Specifying Count for Each Dimension
 
 A vector of size_t integers specifying the edge lengths
 along each dimension of the block of data values to be read. 
@@ -82,7 +84,7 @@ variable's dimensions.
 Setting any element of the count array to zero causes the function to
 exit without error, and without doing anything.
 
-\section stride_vector A Vector Specifying Stride for Each Dimension
+\subsection stride_vector A Vector Specifying Stride for Each Dimension
 
 A vector of size_t integers specifying the interval between selected
 indices.
@@ -96,7 +98,7 @@ variable's dimensions.
 
 A NULL stride argument is treated as (1, 1, ... , 1).
 
-\section map_vector A Vector Specifying Mapping for Each Dimension
+\subsection map_vector A Vector Specifying Mapping for Each Dimension
 
 A vector of integers that specifies the mapping between the dimensions
 of a netCDF variable and the in-memory structure of the internal data
@@ -115,7 +117,7 @@ type-independent units of elements.
 memory locations is 1 and not the element's byte-length as in netCDF
 2.
 
-\page ncid NetCDF ID
+\section ncid NetCDF ID
 
 Most netCDF function require the netCDF ID as a first parameter.
 

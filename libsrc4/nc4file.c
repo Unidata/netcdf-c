@@ -1970,6 +1970,9 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
     assert(grp && grp->name);
     LOG((3, "%s: grp->name %s", __func__, grp->name));
 
+    /* Portably initialize user data for later */
+    memset(&udata, 0, sizeof(udata));
+
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
     if (!grp->hdf_grpid)
@@ -2009,8 +2012,7 @@ nc4_rec_read_metadata(NC_GRP_INFO_T *grp)
         iter_index = H5_INDEX_NAME;
     }
 
-    /* Portably initialize user data for iteration */
-    memset(&udata, 0, sizeof(udata));
+    /* Set user data for iteration */
     udata.grp = grp;
 
     /* Iterate over links in this group, building lists for the types,
@@ -2341,12 +2343,12 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
       if (SDattrinfo(h5->sdid, a, att->name, &att_data_type, &att_count)) 
 	 return NC_EATTMETA;
       if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-					      &att->xtype, NULL)))
+					      &att->nc_typeid, NULL)))
 	 return retval;
       att->len = att_count;
 
       /* Allocate memory to hold the data. */
-      if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size)))
+      if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size)))
 	 return retval;
       if (!(att->data = malloc(att_type_size * att->len)))
 	 return NC_ENOMEM;
@@ -2410,12 +2412,12 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	return NC_ENOMEM;
       }
       
-      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->xtype, var->type_info))) {
+      if ((retval = get_netcdf_type_from_hdf4(h5, data_type, &var->type_info->nc_typeid, var->type_info))) {
 	if(dimsize) free(dimsize);
 	return retval;
       }
       
-      if ((retval = nc4_get_typelen_mem(h5, var->xtype, 0, &var_type_size))) {
+      if ((retval = nc4_get_typelen_mem(h5, var->type_info->nc_typeid, 0, &var_type_size))) {
 	if(dimsize) free(dimsize);
 	return retval;
       }
@@ -2523,7 +2525,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	    return NC_EATTMETA;
 	 }
 	 if ((retval = get_netcdf_type_from_hdf4(h5, att_data_type, 
-						 &att->xtype, NULL))) {
+						 &att->nc_typeid, NULL))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }
@@ -2531,7 +2533,7 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 att->len = att_count;
 
 	 /* Allocate memory to hold the data. */
-	 if ((retval = nc4_get_typelen_mem(h5, att->xtype, 0, &att_type_size))) {
+	 if ((retval = nc4_get_typelen_mem(h5, att->nc_typeid, 0, &att_type_size))) {
 	   if(dimsize) free(dimsize);
 	   return retval;
 	 }
@@ -2981,7 +2983,8 @@ NC4_abort(int ncid)
    
    /* Delete the file, if we should. */
    if (delete_file)
-      remove(path);
+      if (remove(path) < 0)
+          return NC_ECANTREMOVE;
 
    return retval;
 }
