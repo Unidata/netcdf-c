@@ -67,7 +67,7 @@ main(int argc, char **argv)
 	    data_in[i][j] = -88;
 
       /* Read the data through a vara_int function from the netCDF API. */
-      if (nc_get_vara_int(ncid, 0, nstart, ncount, data_in)) ERR;
+      if (nc_get_vara_int(ncid, 0, nstart, ncount, (int *)data_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
 	 for (j = 0; j < LON_LEN; j++)
 	    if (data_in[i][j] != data_out[i][j]) ERR;
@@ -78,7 +78,7 @@ main(int argc, char **argv)
 	    data_in[i][j] = -88;
 
       /* Read the data through a var_int function from the netCDF API. */
-      if (nc_get_var_int(ncid, 0, data_in)) ERR;
+      if (nc_get_var_int(ncid, 0, (int *)data_in)) ERR;
       for (i = 0; i < LAT_LEN; i++)
 	 for (j = 0; j < LON_LEN; j++)
 	    if (data_in[i][j] != data_out[i][j]) ERR;
