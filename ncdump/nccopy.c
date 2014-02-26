@@ -1532,8 +1532,11 @@ usage(void)
 	  progname, USAGE);
 }
 
-/** @page nccopy \b nccopy tool - Copy a netCDF file, optionally changing format, compression, or chunking in the output.
-@section  SYNOPSIS
+/** @page guide_nccopy nccopy tool - Copy a netCDF file, optionally changing format, compression, or chunking in the output.
+
+\tableofcontents
+
+\section  nccopy_SYNOPSIS nccopy synopsis
 
 \code
 nccopy [-k kind] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] var1,...]
@@ -1541,7 +1544,7 @@ nccopy [-k kind] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] var1,...]
        [-r]   infile   outfile
 \endcode
 
-@section  DESCRIPTION
+\section  nccopy_DESCRIPTION nccopy description
 
 The \b nccopy utility copies an input netCDF file in any supported
 format variant to an output netCDF file, optionally converting the
@@ -1564,7 +1567,7 @@ If DAP support was enabled when \b nccopy was built, the file name may
 specify a DAP URL. This may be used to convert data on DAP servers to
 local netCDF files.
 
-@section  OPTIONS
+\section nccopy_OPTIONS nccopy options
 @par -k \e kind
 Specifies the kind of file to be created (that is, the format variant)
 and, by inference, the data model (i.e. netcdf-3 (classic) versus
@@ -1759,9 +1762,9 @@ file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
 
-@section  EXAMPLES
+\section  nccopy_EXAMPLES nccopy examples
 
-@subsection simple_copy Simple Copy
+\subsection simple_copy Simple Copy
 Make  a copy  of  foo1.nc, a  netCDF  file of  any type,  to
 foo2.nc, a netCDF file of the same type:
 \code
@@ -1775,7 +1778,7 @@ through the netCDF interface.  If the original file was generated in
 'No fill' mode so that fill values are not stored for padding for data
 alignment, the output file may have different padding bytes.
 
-@subsection uncompress Uncompress Data
+\subsection nccopy_uncompress Uncompress Data
 Convert a netCDF-4 classic model file, compressed.nc, that uses
 compression, to a netCDF-3 file classic.nc:
 \code
@@ -1783,7 +1786,7 @@ nccopy -k classic compressed.nc classic.nc
 \endcode
 Note that '1' could be used instead of 'classic'.
 
-@subsection remote_access Remote Access to Data Subset
+\subsection remote_access Remote Access to Data Subset
 Download the variable 'time_bnds' and its associated attributes from
 an OPeNDAP server and copy the result to a netCDF file named 'tb.nc':
 \code
@@ -1793,7 +1796,7 @@ Note that URLs that name specific variables as command-line arguments
 should generally be quoted, to avoid the shell interpreting special
 characters such as '?'.
 
-@subsection compress Compress Data
+\subsection nccopy_compress Compress Data
 Compress all the variables in the input file foo.nc, a netCDF file of
 any type, to the output file bar.nc:
 \code
@@ -1807,7 +1810,7 @@ levels, the output will also be a netCDF-4 file of the same type, but
 all the variables, including any uncompressed variables in the input,
 will now use deflation level 1.
 
-@subsection rechunk Rechunk Data for Faster Access
+\subsection nccopy_rechunk Rechunk Data for Faster Access
 Assume the input data includes gridded variables that use time, lat,
 lon dimensions, with 1000 times by 1000 latitudes by 1000 longitudes,
 and that the time dimension varies most slowly.  Also assume that
@@ -1829,7 +1832,7 @@ memory before writing it to disk on close:
 \code
 nccopy -w -c time/1000,lat/40,lon/40 slow.nc fast.nc
 \endcode
-@section see_also SEE ALSO
+\section see_also SEE ALSO
 
 ncdump(1), ncgen(1), netcdf(3)
 
