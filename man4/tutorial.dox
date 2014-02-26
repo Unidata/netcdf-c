@@ -52,24 +52,26 @@ by the National Science Foundation.
 
 \page netcdf_utilities The NetCDF Utilities
 
+\tableofcontents
+
 The ncdump command reads a netCDF file and outputs text in a format
 called CDL. The ncgen command reads a text file in CDL format, and
 generates a netCDF data file. The nccopy command copies a netCDF file
 from one binary format to another, optionally changing compression and
 chunksize settings.
 
-\section ncdump ncdump
+\section netcdf_utilities_ncdump ncdump
 
 The utility ncdump can be used to show the contents of netCDF
 files. By default, ncdump shows the CDL description of the file. This
 CDL description can be fed into ncgen to create the data file.
 
-\section ncgen ncgen
+\section netcdf_utilities_ncgen ncgen
 
 The ncgen utility can take an ASCII input file, in CDL format, and
 generate a binary netCDF file. It is the opposite of ncdump.
 
-\section nccopy nccopy
+\section netcdf_utilities_nccopy nccopy
 
 The nccopy utility can copy a netCDF file, changing binary format,
 chunk sizes, compression, and other storage settings.
