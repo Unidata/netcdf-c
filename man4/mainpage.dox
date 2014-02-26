@@ -6,13 +6,33 @@
 
 \tableofcontents
 
-\section NetCDF
+\section mainpage_netcdf NetCDF
 
 NetCDF is a set of software libraries and self-describing,
 machine-independent data formats that support the creation, access,
 and sharing of array-oriented scientific data. The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/netcdf">http://www.unidata.ucar.edu/netcdf</a>.  The NetCDF source-code is hosted at <a href="http://github.com">GitHub</a>, and may be found directly at <a href="http://github.com/Unidata/netcdf-c">http://github.com/Unidata/netcdf-c</a>.
 
-\subsection credits Credits
+\subsection this_release Learn more about the current NetCDF-C Release
+
+- \ref release_notes
+- \ref getting_and_building_netcdf
+
+\subsection learn-more Learn more about using NetCDF-C
+
+- \ref tutorial
+- \ref user_guide
+- \ref netcdf_working_with_netcdf_files
+- <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>
+
+
+\subsection netcdf-cmake-windows NetCDF CMake and Windows support:
+- \ref netCDF-CMake
+- \ref winbin
+
+\subsection netcdf_credits Credits
+
+\authors Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed
+Hartnett, Dennis Heimbigner and Ward Fisher
 
 <p>NetCDF was developed and is maintained
 at <a href="http://www.unidata.ucar.edu">Unidata</a>, part of the
@@ -20,25 +40,10 @@ at <a href="http://www.unidata.ucar.edu">Unidata</a>, part of the
 Programs</a> (UCP). Unidata is funded primarily by the National Science
 Foundation.
 
-\authors Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed
-Hartnett, Dennis Heimbigner and Ward Fisher
 
-\subsection this_release Learn more about the current NetCDF-C Release
+<a href="http://www.unidata.ucar.edu">Unidata</a> provides data and
+software tools for use in geoscience education and research.
 
-- \ref release_notes
-- \ref getting
-- \ref building
-
-\subsection learn-more Learn more about using NetCDF-C
-
-- \ref tutorial
-- \ref user_guide
-- <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>
-
-
-\section netcdf-cmake-windows NetCDF CMake and Windows support:
-- \ref netCDF-CMake
-- \ref winbin
 
 \internal
 
@@ -54,8 +59,5 @@ library, or a DAP client accessing remote data.
 - \ref put_attr_dispatch
 
 \endinternal
-
-<a href="http://www.unidata.ucar.edu">Unidata</a> provides data and
-software tools for use in geoscience education and research.
 
 */

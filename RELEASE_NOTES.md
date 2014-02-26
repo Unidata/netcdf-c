@@ -1,8 +1,9 @@
 Release Notes {#release_notes}
 =============
-\brief Historic Release Notes.
 
-This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). 
+\brief Release notes file for the netcdf-c package.
+
+This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the netcdf-c++ and netcdf-fortran libraries have been separated into their own libraries.
 
 ## 4.3.1.2 Released TBD
 
@@ -28,7 +29,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.1 Released 2014-02-05
 
-4.3.1.1 Is a bug-fix for the 4.3.1 release.
+This is a bug-fix-only release for version 4.3.1.
 
 * Corrected a DAP issue reported by Jeff Whitaker related to non-conforming servers.
 
@@ -40,6 +41,7 @@ This file contains a high-level description of this package's evolution. Release
 
 [NCF-273]:https://bugtracking.unidata.ucar.edu/browse/NCF-273
 
+
 ### 4.3.1-rc6 Released 2013-12-19
 
 * Fixed fill value handling for string types in nc4\_get\_vara().
@@ -50,6 +52,7 @@ This file contains a high-level description of this package's evolution. Release
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
 * A number of previously-disabled unit tests were reviewed and made active. 
+
 
 ### 4.3.1-rc5 Released 2013-12-06
 
@@ -82,6 +85,7 @@ This file contains a high-level description of this package's evolution. Release
   options. [NCF-275]
 
 [NCF-275]:https://bugtracking.unidata.ucar.edu/browse/NCF-275
+
 
 ### 4.3.1-rc4 Released 2013-11-06
 

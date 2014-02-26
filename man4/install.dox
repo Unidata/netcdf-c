@@ -1,5 +1,6 @@
 /*! \file
-Documentation for getting and building netCDF
+
+\brief Documentation for getting and building netCDF
 
 This document is for getting and building the netCDF C library and
 utilities, version 4.3.0.  Other libraries that depend on the netCDF C
@@ -9,11 +10,15 @@ library is successfully installed.  The netCDF-Java library is also a
 separate distribution that is currently independent of the netCDF C
 library.
 
-\page getting Getting NetCDF
+\page getting_and_building_netcdf Getting and Building NetCDF-C
+
+\brief This page provides instructions for obtaining and building NetCDF-C.
 
 \tableofcontents
 
-\section sec_get_pre_built Getting pre-built netCDF-C libraries.
+\section getting Getting NetCDF
+
+\subsection sec_get_pre_built Getting pre-built netCDF-C libraries.
 
 The easiest way to get netCDF is through a package management program,
 such as rpm, yum, adept, and others. NetCDF is available from many
@@ -26,8 +31,7 @@ the netcdf.h header file.
 
 \note If you are interested in building NetCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
 
-
-\section sec_get_source Getting the latest netCDF-C Source Code
+\subsection sec_get_source Getting the latest netCDF-C Source Code
 
 Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the 
 Unidata GitHub repository, available at http://github.com/Unidata/netcdf-c.
@@ -37,7 +41,7 @@ Two options are available for building from source:
 - The latest release.
 - The developer snapshot.
 
-\subsection sec_latest_release The latest release
+\subsubsection sec_latest_release The latest release
 
 The latest release may be downloaded from github at the following location:
 
@@ -45,7 +49,7 @@ The latest release may be downloaded from github at the following location:
 
 Source files are available in `.tar.gz` and `.zip` formats.
 
-\subsection sec_dev_snapshot The developer snapshot
+\subsubsection sec_dev_snapshot The developer snapshot
 
 The developer snapshot may be cloned from github directly by using the `git` command.
 
@@ -58,7 +62,7 @@ portability bugs.
 Once you have downloaded and unpacked the distribution, see the
 following section on \ref building.
 
-\page building Building NetCDF
+\section building Building NetCDF
 
 The netCDF-C library and utilities require third-party libraries for
 full functionality. (See \ref architecture).
@@ -69,7 +73,7 @@ full functionality. (See \ref architecture).
 - <a class="el" href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-fortran-install.html" >Building netCDF-Fortran Libraries</a>
 - \ref configure_options
 
-\section sub CMake and Windows support
+\subsection sub CMake and Windows support
 
 - \ref netCDF-CMake
 - \ref winbin
