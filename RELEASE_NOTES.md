@@ -6,6 +6,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
+* Fixed small default chunk size for 1-dimensional record variables.
+
 * Cleaned up type handling in netCDF-4 to fix bugs with fill-values.
 
 * Corrected "BAIL" macros to avoid infinite loop when logging is disabled and an error occurs.
