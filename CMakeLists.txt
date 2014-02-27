@@ -785,6 +785,15 @@ IF(ENABLE_DOXYGEN)
       SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
     ENDIF()
 
+
+    # Option to turn on the TODO list in the doxygen-generated documentation.
+    OPTION(ENABLE_DOXYGEN_TODO_LIST "Turn on todo list in documentation. This is of interest to developers only." OFF)
+    IF(ENABLE_DOXYGEN_TODO_LIST)
+      SET(SHOW_DOXYGEN_TODO_LIST YES CACHE STRING "")
+    ELSE()
+      SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
+    ENDIF()
+
     # Specify whether or not 'dot' was found on the system path.
     IF(NC_DOT)
       SET(HAVE_DOT YES CACHE STRING "")

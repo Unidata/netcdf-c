@@ -349,13 +349,10 @@ information about the CF conventions, see http://cf-pcmdi.llnl.gov.
 
 \page error_handling Error Handling
 
-See Also:
-
-- \ref nc-error-codes
-- Function \ref nc_strerror
+\ingroup error
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
-0 on success, in the tradition of C. 
+0 on success, in the tradition of C.
 
 When programming with netCDF in these languages, always check return
 values of every netCDF API call. The return code can be looked up in
