@@ -2,6 +2,8 @@
 
 \page tutorial NetCDF Tutorials
 
+\tableofcontents
+
 \section sec_tut Tutorial Documentation
 
 This page contains refrences to various other NetCDF background and tutorial pages.
@@ -25,7 +27,7 @@ This page contains refrences to various other NetCDF background and tutorial pag
 
 \subsection sub_sec_tools_for_netcdf Tools for NetCDF:
 - \ref netcdf_utilities
-- \ref netcdf_tools
+- \ref external_netcdf_tools
 
 \subsection sub_sec_programming_with_netcdf Programming with NetCDF:
 - \ref netcdf_apis
@@ -50,9 +52,13 @@ Unidata is part of the University Corporation for Atmospheric Research
 href="http://www.uop.ucar.edu">UCP</a>). Unidata is funded primarily
 by the National Science Foundation.
 
-\page netcdf_utilities The NetCDF Utilities
+\page netcdf_working_with_netcdf_files Working with NetCDF Files from the command line.
+
+\brief Options for working with netcdf-formatted files from the command line or with an external program.
 
 \tableofcontents
+
+\section netcdf_utilities The NetCDF Utilities
 
 The ncdump command reads a netCDF file and outputs text in a format
 called CDL. The ncgen command reads a text file in CDL format, and
@@ -60,25 +66,33 @@ generates a netCDF data file. The nccopy command copies a netCDF file
 from one binary format to another, optionally changing compression and
 chunksize settings.
 
-\section netcdf_utilities_ncdump ncdump
+\subsection netcdf_utilities_ncdump ncdump
 
 The utility ncdump can be used to show the contents of netCDF
 files. By default, ncdump shows the CDL description of the file. This
 CDL description can be fed into ncgen to create the data file.
 
-\section netcdf_utilities_ncgen ncgen
+See also: \ref guide_ncdump
+
+\subsection netcdf_utilities_ncgen ncgen
 
 The ncgen utility can take an ASCII input file, in CDL format, and
 generate a binary netCDF file. It is the opposite of ncdump.
 
-\section netcdf_utilities_nccopy nccopy
+See also: 
+- \ref guide_ncgen
+- \ref guide_ncgen3
+
+\subsection netcdf_utilities_nccopy nccopy
 
 The nccopy utility can copy a netCDF file, changing binary format,
 chunk sizes, compression, and other storage settings.
 
-\page netcdf_tools Tools for Manipulating NetCDF Files
+See also: \ref guide_nccopy
 
-Many existing software applications can read and manipulate netCDF
+\section external_netcdf_tools Tools for Manipulating NetCDF Files
+
+Many existing 3rd-party software applications can read and manipulate netCDF
 files. Before writing your own program, check to see if any existing
 programs meet your needs.
 

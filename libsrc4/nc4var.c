@@ -248,9 +248,9 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    else
       type_size = var->type_info->size;
 
+#ifdef LOGGING   
    /* Later this will become the total number of bytes in the default
     * chunk. */
-#ifdef LOGGING   
    total_chunk_size = (double) type_size;
 #endif
 
@@ -291,8 +291,15 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	      "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
 
-   /* Find total chunk size. */
+   /* For 1D record variables, use reasonable chunksize instead of 1 */
+   if (var->ndims == 1 && var->dim[0]->unlimited && var->chunksizes[0] == 1) {
+       var->chunksizes[0] = (size_t) ((double)DEFAULT_CHUNK_SIZE/type_size);
+       if (var->chunksizes[0] < 1)
+	   var->chunksizes[0] = 1;
+   }
+
 #ifdef LOGGING   
+   /* Find total chunk size. */
    for (d = 0; d < var->ndims; d++)
        total_chunk_size *= (double) var->chunksizes[d];
    LOG((4, "total_chunk_size %f", total_chunk_size));
