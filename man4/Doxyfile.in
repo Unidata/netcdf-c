@@ -132,7 +132,7 @@ INLINE_INHERITED_MEMB  = NO
 # shortest path that makes the file name unique will be used
 # The default value is: YES.
 
-FULL_PATH_NAMES        = YES
+FULL_PATH_NAMES        = NO
 
 # The STRIP_FROM_PATH tag can be used to strip a user-defined part of the path.
 # Stripping is only done if one of the specified strings matches the left-hand
@@ -745,21 +745,20 @@ WARN_LOGFILE           =
 
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
+    @abs_top_srcdir@/COPYRIGHT \
     @abs_top_srcdir@/man4/mainpage.dox \
-    @abs_top_srcdir@/man4/tutorial.dox \
-    @abs_top_srcdir@/man4/install.dox \
+    @abs_top_srcdir@/man4/install.md \
     @abs_top_srcdir@/man4/dispatch.dox \
-    @abs_top_srcdir@/man4/Building-with-CMake.md \
-    @abs_top_srcdir@/man4/windows-binaries.md \
-    @abs_top_srcdir@/man4/all-error-codes.md \
-    @abs_top_srcdir@/man4/cmake_faq.md \
     @abs_top_srcdir@/man4/guide.dox \
     @abs_top_srcdir@/man4/types.dox \
     @abs_top_srcdir@/man4/notes.dox \
     @abs_top_srcdir@/man4/cdl.dox \
     @abs_top_srcdir@/man4/architecture.dox \
     @abs_top_srcdir@/man4/internal.dox \
-    @abs_top_srcdir@/COPYRIGHT \
+    @abs_top_srcdir@/man4/tutorial.dox \
+    @abs_top_srcdir@/man4/windows-binaries.md \
+    @abs_top_srcdir@/man4/all-error-codes.md \
+    @abs_top_srcdir@/man4/cmake_faq.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
@@ -2194,7 +2193,7 @@ GROUP_GRAPHS           = YES
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-UML_LOOK               = YES
+UML_LOOK               = NO
 
 # If the UML_LOOK tag is enabled, the fields and methods are shown inside the
 # class node. If there are many fields or methods and many nodes the graph may

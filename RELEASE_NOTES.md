@@ -1,5 +1,5 @@
 Release Notes {#release_notes}
-=============
+===============================
 
 \brief Release notes file for the netcdf-c package.
 

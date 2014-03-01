@@ -1,6 +1,4 @@
-/*! \file
-
-\brief Documentation for getting and building netCDF
+/*!
 
 This document is for getting and building the netCDF C library and
 utilities, version 4.3.0.  Other libraries that depend on the netCDF C
@@ -78,7 +76,7 @@ full functionality. (See \ref architecture).
 - \ref netCDF-CMake
 - \ref winbin
 
-\page build_default Building with NetCDF-4 and the Remote Data Client
+\subsection build_default Building with NetCDF-4 and the Remote Data Client
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
 libraries. (And, optionally, the szlib library). Versions required are
@@ -166,7 +164,7 @@ include/, and bin/.  The installation location specified with the
 <CODE>--prefix</CODE> option must be different from the source directory where the
 software is being built.
 
-\page build_classic Building NetCDF with Classic Library Only
+\subsection build_classic Building NetCDF with Classic Library Only
 
 It is possible to build the netCDF C libraries and utilities so that
 only the netCDF classic and 64-bit offset formats are supported, or
@@ -209,7 +207,7 @@ make check install
 If you get the message that netCDF installed correctly, then you are
 done!
 
-\page build_hdf4 Building with HDF4 Support
+\subsection build_hdf4 Building with HDF4 Support
 
 The netCDF-4 library can (since version 4.1) read HDF4 data files, if
 they were created with the SD (Scientific Data) API. 
@@ -252,7 +250,7 @@ make check
 make install
 \endverbatim
 
-\page build_parallel Building with Parallel I/O Support
+\subsection build_parallel Building with Parallel I/O Support
 
 For parallel I/O to work, HDF5 must be installed with
 –enable-parallel, and an MPI library (and related libraries) must be
@@ -297,7 +295,7 @@ href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
 pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
 "--enable-pnetcdf" option.
 
-\page linking Linking to NetCDF
+\subsection linking Linking to NetCDF
 
 For static build, to use netCDF-4 you must link to all the libraries,
 netCDF, HDF5, zlib, szip (if used with HDF5 build), and curl (if the
@@ -325,7 +323,7 @@ netCDF-4 libraries:
 cc -o myapp myapp.c `nc-config --cflags --libs`
 \endverbatim
 
-\page configure_options ./configure options
+\subsection configure_options ./configure options
 
 Note: --disable prefix indicates that the option is normally enabled.
 <table>
@@ -370,4 +368,3 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>
 </table>
 */
-
