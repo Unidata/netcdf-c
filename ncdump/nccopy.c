@@ -1532,7 +1532,6 @@ usage(void)
 	  progname, USAGE);
 }
 
- */
 int
 main(int argc, char**argv)
 {
