@@ -730,7 +730,7 @@ ocmktmp(const char* base, char** tmpnamep, int* fdp)
        return OC_EOPEN;
     }
     if(tmpnamep) *tmpnamep = tmpname;    
-    else if(tmpname != null) {free(tmpname);}
+    else if(tmpname != NULL) {free(tmpname);}
     if(fdp) *fdp = fd;
     else if(fd >= 0) close(fd);
     return OC_NOERR;
