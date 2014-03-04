@@ -96,7 +96,7 @@ is still in initial define mode.
 _Fill_Value_ attribute, and will tell the HDF5 layer to use the
 specified fill value for that variable.
 
-\section Example
+\section nc_put_att_text_example Example
 
 Here is an example using nc_put_att_double() to add a variable
 attribute named valid_range for a netCDF variable named rh and
