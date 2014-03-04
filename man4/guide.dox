@@ -4,8 +4,11 @@
 
 \mainpage
 
+\tableofcontents
+
 \section user_guide The NetCDF User's Guide
 
+- \ref mainpage_netcdf
 - \subpage netcdf_summary
 - \subpage netcdf_introduction
 - \subpage file_structure_and_performance
@@ -23,9 +26,7 @@ Data
 - \ref remote_client
 - \ref type_conversion
 
-\page netcdf_summary NetCDF Summary
-
-\tableofcontents
+\section netcdf_summary The Purpose of NetCDF
 
 The purpose of the Network Common Data Form (netCDF) interface is to
 allow you to create, access, and share array-oriented data in a form
