@@ -34,7 +34,7 @@ int optind;
 #define COPY_BUFFER_SIZE (5000000)
 #define COPY_CHUNKCACHE_PREEMPTION (1.0f) /* for copying, can eject fully read chunks */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
-#define CHUNK_THRESHOLD (8192)	/* variables with fewer bytes don't get chunked */
+#define CHUNK_THRESHOLD (8192)	/* non-record variables with fewer bytes don't get chunked */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */
@@ -1656,6 +1656,11 @@ chunks.  To see the chunking resulting from copying with a chunkspec,
 use the '-s' option of ncdump on the output file.
 
 @par
+As an I/O optimization, \b nccopy has a threshold for the minimum size of
+non-record variables that get chunked, currently 8192 bytes.  In the future,
+use of this threshold and its size may be settable in an option.
+
+@par
 Note that \b nccopy requires variables that share a dimension to also
 share the chunk size associated with that dimension, but the
 programming interface has no such restriction.  If you need to
@@ -1728,7 +1733,7 @@ performance, if the output fits in memory.
 @par
 For netCDF-4 output, including netCDF-4 classic model, an integer or
 floating-point number that specifies the size in bytes of chunk cache
-for chunked variables.  This is not a property of the file, but merely
+allocated for each chunked variable.  This is not a property of the file, but merely
 a performance tuning parameter for avoiding compressing or
 decompressing the same data multiple times while copying and changing
 chunk shapes.  A suffix of K, M, G, or T multiplies the chunk cache
@@ -1740,13 +1745,12 @@ buffer size and divide it optimally between a copy buffer and chunk
 cache, but no general algorithm for computing the optimum chunk cache
 size has been implemented yet. Using the '-w' option may provide
 better performance, if the output fits in memory.
-
 @par -e \e cache_elems
 @par
 For netCDF-4 output, including netCDF-4 classic model, specifies
-number of elements that the chunk cache can hold. A suffix of K, M, G,
-or T multiplies the copy buffer size by one thousand, million,
-billion, or trillion, respectively.  This is not a
+number of chunks that the chunk cache can hold. A suffix of K, M, G,
+or T multiplies the number of chunks that can be held in the cache 
+by one thousand, million, billion, or trillion, respectively.  This is not a
 property of the file, but merely a performance tuning parameter for
 avoiding compressing or decompressing the same data multiple times
 while copying and changing chunk shapes.  The default is 1009 (or

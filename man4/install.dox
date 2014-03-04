@@ -12,7 +12,7 @@ library.
 
 \page getting_and_building_netcdf Getting and Building NetCDF-C
 
-\brief This page provides instructions for obtaining and building NetCDF-C.
+\brief This page provides instructions for obtaining and building netCDF-C.
 
 \tableofcontents
 
@@ -29,7 +29,7 @@ When getting netCDF from a software repository, you will wish to get
 the development version of the package ("netcdf-devel"). This includes
 the netcdf.h header file.
 
-\note If you are interested in building NetCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
+\note If you are interested in building netCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
 
 \subsection sec_get_source Getting the latest netCDF-C Source Code
 
@@ -85,7 +85,7 @@ libraries. (And, optionally, the szlib library). Versions required are
 at least HDF5 1.8.8, zlib 1.2.5, and curl 7.18.0 or later.
 (Optionally, if building with szlib, get szip 2.0 or later.)
 
-HDF5 1.8.9 and zlib 1.2.7 packages are available from the <a
+HDF5 1.8.12 and zlib 1.2.8 packages are available from the <a
 href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
 site</a>. If you wish to use the remote data client code, then you
 will also need libcurl, which can be obtained from the <a
@@ -146,7 +146,7 @@ FAQ</a> for more details on using shared libraries.
 If you are building HDF5 with szip, then include the <CODE>--with-szlib=</CODE>
 option, with the directory holding the szip library.
 
-After HDF5 is done, build netcdf, specifying the location of the
+After HDF5 is done, build netCDF, specifying the location of the
 HDF5, zlib, and (if built into HDF5) the szip header files and
 libraries in the CPPFLAGS and LDFLAGS environment variables. For example:
 
@@ -230,7 +230,7 @@ Then, when building netCDF-4, use the
 option to configure. The location for the HDF4 header files and
 library must be set in the CPPFLAGS and LDFLAGS options.
 
-For HDF4 access to work, the library must be build with netCDF-4
+For HDF4 access to work, the library must be built with netCDF-4
 features.
 
 Here's an example, assuming the HDF5 library has been built and
