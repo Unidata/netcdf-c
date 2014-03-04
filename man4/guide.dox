@@ -1,12 +1,18 @@
-/*! \file 
+/*! \file guide.dox The NetCDF User's Guide
 
-NetCDF Users Guide
+\brief The NetCDF User's Guide
 
-The NetCDF Users Guide
+\mainpage
 
-\page user_guide The NetCDF Users Guide
+\section user_guide The NetCDF User's Guide
 
-\tableofcontents
+- \subpage netcdf_summary
+- \subpage netcdf_introduction
+- \subpage file_structure_and_performance
+- \subpage netcdf_data_set_components
+- \subpage netcdf_perf_chunking
+- \subpage netcdf_utilities_guide
+- \subpage file_format_specifications
 
 Data
 - \ref external_types
@@ -17,46 +23,9 @@ Data
 - \ref remote_client
 - \ref type_conversion
 
-File Structure and Performance
-- \ref classic_file_parts
-- \ref parts_of_netcdf4
-- \ref xdr_layer
-- \ref large_file_support
-- \ref offset_format_limitations
-- \ref classic_format_limitations
-- \ref netcdf_3_io
-- \ref parallel_access  
-- \ref interoperability_with_hdf5
-- \ref creating_self
-- \ref dap_support
+\page netcdf_summary NetCDF Summary
 
-Improving Performance with Chunking
-- \ref chunk_cache
-- \ref default_chunking_4_1
-- default_chunking_4_0_1
-- \ref chunking_parallel_io
-- \ref bm_file
-
-NetCDF Utilities
-- \ref cdl_syntax
-- \ref cdl_data_types
-- \ref cdl_constants
-- \ref guide_ncgen
-- \ref guide_ncdump
-- \ref guide_nccopy
-- \ref guide_ncgen3
-
-File Format Specification
-- \ref classic_format_spec
-- \ref computing_offsets
-- \ref offset_examples
-- \ref offset_format_spec
-- \ref netcdf_4_spec
-- \ref netcdf_4_classic_spec
-- \ref hdf4_sd_format
-
-
-\section netcdf_summary Summary
+\tableofcontents
 
 The purpose of the Network Common Data Form (netCDF) interface is to
 allow you to create, access, and share array-oriented data in a form
@@ -97,9 +66,11 @@ software that works with netCDF data.
 Separate documentation of the Java netCDF library can be found at
 http://www.unidata.ucar.edu/software/netcdf-java.
 
-\section netcdf_introduction An Introduction to NetCDF
+\page netcdf_introduction An Introduction to NetCDF
 
-\subsection netcdf_interface The NetCDF Interface
+\tableofcontents
+
+\section netcdf_interface The NetCDF Interface
 
 The Network Common Data Form, or netCDF, is an interface to a library
 of data access functions for storing and retrieving data in the form
@@ -149,7 +120,7 @@ its widespread use.
 For detailed installation instructions, see <a
 href="http://www.unidata.ucar.edu/netcdf/docs/building.html" >Building NetCDF</a>.
 
-\subsection netcdf_format The netCDF File Format
+\section netcdf_format The netCDF File Format
 
 Until version 3.6.0, all versions of netCDF employed only one binary
 data format, now referred to as netCDF classic format. NetCDF classic
@@ -189,7 +160,7 @@ using the format specification to develop independent low-level
 software for reading and writing netCDF files, because this could lead
 to compatibility problems if the format is ever modified.
 
-\subsubsection select_format How to Select the Format
+\subsection select_format How to Select the Format
 
 With three different base formats, care must be taken in creating data
 files to choose the correct base format.
@@ -217,7 +188,7 @@ It is also possible to change the default creation format, to convert
 a large body of code without changing every create call. C programmers
 see nc_set_default_format. Fortran programs see NF_SET_DEFAULT_FORMAT.
 
-\subsubsection classic_format NetCDF Classic Format
+\subsection classic_format NetCDF Classic Format
 
 The original netCDF format is identified using four bytes in the file
 header. All files in this format have “CDF\001” at the beginning of
@@ -243,7 +214,7 @@ beginning of the file. In this documentation this format is called
 Since 64-bit offset format was introduced in version 3.6.0, earlier
 versions of the netCDF library can't read 64-bit offset files.  
 
-\subsubsection netcdf_4_format NetCDF-4 Format
+\subsection netcdf_4_format NetCDF-4 Format
 
 In version 4.0, netCDF included another new underlying format: HDF5.
 
@@ -266,7 +237,7 @@ better).
 
 For more discussion of format issues see The NetCDF Tutorial.
 
-\subsection performance What about Performance?
+\section performance What about Performance?
 
 One of the goals of netCDF is to support efficient access to small
 subsets of large datasets. To support this goal, netCDF uses direct
@@ -295,7 +266,7 @@ operations, less so in data access operations. We continue to study
 the challenge of implementing netCDF-4/HDF5 format without
 compromising performance.
 
-\subsection creating_self Creating Self-Describing Data conforming to Conventions
+\section creating_self Creating Self-Describing Data conforming to Conventions
 
 The mere use of netCDF is not sufficient to make data
 "self-describing" and meaningful to both humans and machines. The
@@ -319,7 +290,7 @@ conventions are often needed for local use. These should be
 contributed to the above netCDF conventions site if likely to interest
 other users in similar areas.
 
-\subsection limitations Limitations of NetCDF
+\section limitations Limitations of NetCDF
 
 The netCDF classic data model is widely applicable to data that can be
 organized into a collection of named array variables with named
@@ -426,9 +397,11 @@ http://hdfgroup.org/HDF5/.
 For more information about parallel-netcdf, see their web site:
 http://www.mcs.anl.gov/parallel-netcdf.
 
-\section netcdf_data_set_components The Components of a NetCDF Data Set
+\page netcdf_data_set_components The Components of a NetCDF Data Set
 
-\subsection data_model The Data Model
+\tableofcontents
+
+\section data_model The Data Model
 
 A netCDF dataset contains dimensions, variables, and attributes, which
 all have both a name and an ID number by which they are
@@ -438,7 +411,7 @@ dataset. The netCDF library allows simultaneous access to multiple
 netCDF datasets which are identified by dataset ID numbers, in
 addition to ordinary file names.
 
-\subsubsection Enhanced Data Model in NetCDF-4/HDF5 Files
+\subsection Enhanced Data Model in NetCDF-4/HDF5 Files
 
 Files created with the netCDF-4 format have access to an enhanced data
 model, which includes named groups. Groups, like directories in a Unix
@@ -474,7 +447,7 @@ Groups and user-defined types are only available in files created in
 the netCDF-4/HDF5 format. They are not available for classic or 64-bit
 offset format files.
 
-\subsection dimensions Dimensions
+\section dimensions Dimensions
 
 A dimension may be used to represent a real physical dimension, for
 example, time, latitude, longitude, or height. A dimension might also
@@ -536,7 +509,7 @@ data whose dimensions correspond to those of physical space/time
 should have a shape comprising different dimensions, even if some of
 these have the same length.
 
-\subsection variables Variables
+\section variables Variables
 
 Variables are used to store the bulk of the data in a netCDF
 dataset. A variable represents an array of values of the same type. A
@@ -591,7 +564,7 @@ product is variable because it involves the length of the unlimited
 dimension, which can vary. The length of the unlimited dimension is
 the number of records.
 
-\subsection coordinate_variables Coordinate Variables
+\section coordinate_variables Coordinate Variables
 
 It is legal for a variable to have the same name as a dimension. Such
 variables have no special meaning to the netCDF library. However there
@@ -633,7 +606,7 @@ use of coordinate variables commonly assume they are numeric vectors
 and strictly monotonic (all values are different and either increasing
 or decreasing).
 
-\subsection attributes Attributes
+\section attributes Attributes
 
 NetCDF attributes are used to store data about the data (ancillary
 data or metadata), similar in many ways to the information stored in
@@ -721,7 +694,7 @@ attributes. However adding new attributes to an existing classic or
 64-bit offset format dataset can incur the same expense as copying the
 dataset. For a more extensive discussion see Structure.
 
-\subsection differences_atts_vars Differences between Attributes and Variables
+\section differences_atts_vars Differences between Attributes and Variables
 
 In contrast to variables, which are intended for bulk data, attributes
 are intended for ancillary data, or information about the data. The
@@ -750,9 +723,9 @@ defined netCDF dimensions to index their values, or require a
 significant amount of storage, that data should be represented using
 variables rather than attributes.
 
-\subsection object_name NetCDF Names
+\section object_name NetCDF Names
 
-\subsubsection Permitted Characters in NetCDF Names
+\subsection Permitted Characters in NetCDF Names
 
 The names of dimensions, variables and attributes (and, in netCDF-4
 files, groups, user-defined types, compound member names, and
@@ -770,7 +743,7 @@ Names that have trailing space characters are also not permitted.
 
 Case is significant in netCDF names. 
 
-\subsubsection Name Length
+\subsection Name Length
 
 A zero-length name is not allowed.  
 
@@ -782,12 +755,12 @@ All netCDF inquiry functions will return names of maximum size
 terminating NULL, space should be reserved for NC_MAX_NAME + 1
 characters.
 
-\subsubsection NetCDF Conventions
+\subsection NetCDF Conventions
 
 Some widely used conventions restrict names to only alphanumeric
 characters or underscores. 
 
-\subsection archival Is NetCDF a Good Archive Format?
+\section archival Is NetCDF a Good Archive Format?
 
 NetCDF classic or 64-bit offset formats can be used as a
 general-purpose archive format for storing arrays. Compression of data
@@ -805,7 +778,7 @@ others not. In this case the compression and decompression of data
 happen transparently to the user, and the data may be stored, read,
 and written compressed.
 
-\subsection attribute_conventions Attribute Conventions
+\section attribute_conventions Attribute Conventions
 
 Attribute conventions are assumed by some netCDF generic applications,
 e.g., ‘units’ as the name for a string attribute that gives the units
@@ -821,7 +794,7 @@ character data.
 \note Attribute names commencing with underscore ('_') are reserved
 for use by the netCDF library.
 
-\subsubsection units Units
+\subsection units Units
 
 A character string that specifies the units used for the variable's
 data. Unidata has developed a freely-available library of routines to
@@ -832,13 +805,13 @@ recommended units syntax permits data represented in conformable units
 to be automatically converted to common units for arithmetic
 operations. For more information see Units.
 
-\subsubsection long_name Long Name
+\subsection long_name Long Name
 
 A long descriptive name. This could be used for labeling plots, for
 example. If a variable has no long_name attribute assigned, the
 variable name should be used as a default.
 
-\subsubsection _FillValue FillValue
+\subsection _FillValue FillValue
 
 The _FillValue attribute specifies the fill value used to pre-fill
 disk space allocated to the variable. Such pre-fill occurs unless
@@ -863,7 +836,7 @@ and therefore treated as missing when read by generic applications. It
 is legal (but not recommended) for the fill value to be within the
 valid range.
 
-\subsubsection missing_value Missing Value
+\subsection missing_value Missing Value
 
 This attribute is not treated in any special way by the library or
 conforming generic applications, but is often useful documentation and
@@ -906,7 +879,7 @@ If the variable is packed using scale_factor and add_offset attributes
 (see below), the _FillValue, missing_value, valid_range, valid_min, or
 valid_max attributes should have the data type of the packed data.
 
-\subsubsection scale_factor Scale Factor
+\subsection scale_factor Scale Factor
 
 If present for a variable, the data are to be multiplied by this
 factor after the data are read by the application that accesses the
@@ -918,7 +891,7 @@ specified in the domain of the data in the file (the packed data), so
 that they can be interpreted before the scale_factor and add_offset
 are applied.  
 
-\subsubsection add_offset Add Offset
+\subsection add_offset Add Offset
 
 If present for a variable, this number is to be added to the data
 after it is read by the application that accesses the data. If both
@@ -937,7 +910,7 @@ short, whereas the unpacked values are intended to be of type float or
 double. The attributes scale_factor and add_offset should both be of
 the type intended for the unpacked data, e.g. float or double.
 
-\subsubsection coordinates Coordinates
+\subsection coordinates Coordinates
 
 Following the CF (Climate and Forecast) conventions for netCDF
 metadata, we define an <em>auxiliary coordinate variable</em> as any netCDF
@@ -951,7 +924,7 @@ names of auxiliary coordinate variables and (optionally) coordinate
 variables.  There is no restriction on the order in which the variable
 names appear in the coordinates attribute string.
 
-\subsubsection signedness Signedness
+\subsection signedness Signedness
 
 Deprecated attribute, originally designed to indicate whether byte
 values should be treated as signed or unsigned. The attributes
@@ -960,7 +933,7 @@ you intend that a byte variable store only non-negative values, you
 can use valid_min = 0 and valid_max = 255. This attribute is ignored
 by the netCDF library.  
 
-\subsubsection C_format C Format
+\subsection C_format C Format
 
 \tableofcontents
 
@@ -973,19 +946,19 @@ defined. The format applies to the scaled (internal) type and value,
 regardless of the presence of the scaling attributes scale_factor and
 add_offset.  
 
-\subsubsection FORTRAN_format FORTRAN format
+\subsection FORTRAN_format FORTRAN format
 
 A character array providing the format that should be used by FORTRAN
 applications to print values for this variable. For example, if you
 know a variable is only accurate to three significant digits, it would
 be appropriate to define the FORTRAN_format attribute as "(G10.3)".
 
-\subsubsection title Title
+\subsection title Title
 
 A global attribute that is a character array providing a succinct
 description of what is in the dataset.  
 
-\subsubsection history History
+\subsection history History
 
 A global attribute for an audit trail. This is a character array with
 a line for each invocation of a program that has modified the
@@ -993,7 +966,7 @@ dataset. Well-behaved generic netCDF applications should append a line
 containing: date, time of day, user name, program name and command
 arguments.  
 
-\subsubsection Conventions Conventions
+\subsection Conventions Conventions
 
 If present, 'Conventions' is a global attribute that is a character
 array for the name of the conventions followed by the
@@ -1038,7 +1011,7 @@ Typical conventions web sites will include references to documents in
 some form agreed upon by the community that supports the conventions
 and examples of netCDF file structures that follow the conventions.
 
-\subsection background Background and Evolution of the NetCDF Interface
+\section background Background and Evolution of the NetCDF Interface
 
 The development of the netCDF interface began with a modest goal
 related to Unidata's needs: to provide a common interface between
@@ -1263,12 +1236,12 @@ application is also included that provides a graphical user interface
 to capabilities similar to the C-based ncdump and ncgen utilities, as
 well as CF-compliance checking and many other features.
 
-\subsection remote_client The Remote Data Access Client
+\section remote_client The Remote Data Access Client
 
 Starting with version 4.1.1 the netCDF C libraries and utilities have
 supported remote data access.
 
-\subsection data_access Data Access
+\section data_access Data Access
 
 To access (read or write) netCDF data you specify an open netCDF
 dataset, a netCDF variable, and information (e.g., indices)
@@ -1297,7 +1270,7 @@ Similarly, a variable is not specified by name for every data access
 either, but by a variable ID, a small integer used to identify each
 variable in a netCDF dataset.
 
-\subsection forms_of_data_access Forms of Data Access
+\section forms_of_data_access Forms of Data Access
 
 The netCDF interface supports several forms of direct access to data
 values in an open netCDF dataset. We describe each of these forms of
@@ -1344,7 +1317,7 @@ The use of mapped array sections is discussed more fully below, but
 first we present an example of the more commonly used array-section
 access.
 
-\subsection c_array_section_access A C Example of Array-Section Access
+\section c_array_section_access A C Example of Array-Section Access
 
 Assume that in our earlier example of a netCDF dataset (see Network
 Common Data Form Language (CDL)), we wish to read a cross-section of
@@ -1476,11 +1449,13 @@ required. If you do not need these more general forms of access, you
 may ignore these capabilities and use single value access or regular
 array section access instead.
 
-\section file_structure_and_performance File Structure and Performance
+\page file_structure_and_performance File Structure and Performance
+
+\tableofcontents
 
 \todo Indent the following part below this.
 
-\section classic_file_parts Parts of a NetCDF Classic File
+\section  classic_file_parts Parts of a NetCDF Classic File
 
 A netCDF classic or 64-bit offset dataset is stored as a single file
 comprising two parts:
@@ -2081,7 +2056,7 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     lon 
 \endcode
 
-\subsubsection var_dim_trans Variable Dimension Translation
+\subsection var_dim_trans Variable Dimension Translation
 
 A variable's rank is determined from three sources.
 - The variable has the dimensions associated with the field it
@@ -2175,7 +2150,7 @@ dimensions:
   S1.FS2.f2_0 = 2 ;
 \endcode
 
-\subsubsection var_name_trans Variable Name Translation
+\subsection var_name_trans Variable Name Translation
 
 The steps for variable name translation are as follows.
 
@@ -2523,6 +2498,10 @@ entries should have same value, which is the file path for the
 certificate produced by MyProxyLogon. The HTTP.SSL.CAPATH entry should
 be the path to the "certificates" directory produced by MyProxyLogon.
 
+\page netcdf_perf_chunking Improving Performance with Chunking
+
+\tableofcontents
+
 \section chunk_cache The Chunk Cache
 
 When data are first read or written to a netCDF-4/HDF5 variable, the
@@ -2674,9 +2653,11 @@ The bm_file program is controlled with command line options.
        file        Name of netCDF file
 </pre>
 
-\section netcdf_utilities_guide Netcdf Utilities
+\page netcdf_utilities_guide Netcdf Utilities
 
-\subsection cdl_syntax CDL Syntax
+\tableofcontents
+
+\section cdl_syntax CDL Syntax
 
 Below is an example of CDL, describing a netCDF classic format file with several
 named dimensions (lat, lon, time), variables (z, t, p, rh, lat, lon,
@@ -2816,7 +2797,7 @@ conversions among numeric primitive types are supported.
 A special notation for fill values is supported: the ‘_’ character
 designates a fill value for variables.
 
-\subsection cdl_data_types CDL Data Types
+\section cdl_data_types CDL Data Types
 
 The CDL primitive data types for the classic model are:
 - char - Characters.
@@ -2880,7 +2861,7 @@ encouraged to add the special variable attribute "_Encoding" with a
 value that the netCDF libraries recognize. Currently those valid
 values are "UTF-8" or "ASCII", case insensitive.
 
-\subsection cdl_constants CDL Notation for Data Constants
+\section cdl_constants CDL Notation for Data Constants
 
 This section describes the CDL notation for constants.
 
@@ -3000,11 +2981,11 @@ extended as necessary.
 The ncgen man-page reference has more details about CDL representation
 of constants of user-defined types.
 
-\subsection guide_ncdump ncdump 
+\section guide_ncdump ncdump 
 
 \brief Convert netCDF file to text form (CDL)
 
-\subsubsection  ncdump_SYNOPSIS ncdump synopsis
+\subsection  ncdump_SYNOPSIS ncdump synopsis
 
 \code
 ncdump   [-chistxw]  [-v  var1,...]  [-b lang]  [-f lang]
@@ -3014,7 +2995,7 @@ ncdump   [-chistxw]  [-v  var1,...]  [-b lang]  [-f lang]
 ncdump    -k file
 \endcode
 
-\subsubsection ncdump_DESCRIPTION ncdump description
+\subsection ncdump_DESCRIPTION ncdump description
 
 The \b ncdump utility generates a text representation of a specified
 netCDF file on standard output, optionally excluding some or all of
@@ -3061,7 +3042,7 @@ be appropriate to use the variable attribute
     Z:C_format = "%.3g"
 \endcode
 
-\subsubsection ncdump_OPTIONS ncdump options
+\subsection ncdump_OPTIONS ncdump options
 
 @par -c 
 Show the values of \e coordinate \e variables (1D variables with the
@@ -3212,7 +3193,7 @@ with client-side caching of entire variables.
 Output XML (NcML) instead of CDL.  The NcML does not include data values.
 The NcML output option currently only works for netCDF classic model data.
 
-\subsubsection  ncdump_EXAMPLES ncdump examples
+\subsection  ncdump_EXAMPLES ncdump examples
 
 Look at the structure of the data in the netCDF file foo.nc:
 
@@ -3257,26 +3238,26 @@ performance-related characterisitics of a netCDF-4 file:
    ncdump -h -s nc4file.nc
 \endcode
 
-\subsubsection see_also_ncdump SEE ALSO
+\subsection see_also_ncdump SEE ALSO
 
 ncgen(1), netcdf(3)
 
 - \ref guide_ncgen
 - \ref guide_nccopy
 
-\subsubsection ncdump_string_note NOTE ON STRING OUTPUT
+\subsection ncdump_string_note NOTE ON STRING OUTPUT
 
 For classic, 64-bit offset or netCDF-4 classic model data, \b ncdump
 generates line breaks after embedded newlines in displaying character
 data.  This is not done for netCDF-4 files, because netCDF-4 supports
 arrays of real strings of varying length.
 
-\subsection guide_nccopy nccopy
+\section guide_nccopy nccopy
 
 \brief Copy a netCDF file, optionally changing format, compression, or chunking in the output.
 
 
-\subsubsection  nccopy_SYNOPSIS nccopy synopsis
+\subsection  nccopy_SYNOPSIS nccopy synopsis
 
 \code
 nccopy [-k kind] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] var1,...]
@@ -3284,7 +3265,7 @@ nccopy [-k kind] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] var1,...]
        [-r]   infile   outfile
 \endcode
 
-\subsubsection  nccopy_DESCRIPTION nccopy description
+\subsection  nccopy_DESCRIPTION nccopy description
 
 The \b nccopy utility copies an input netCDF file in any supported
 format variant to an output netCDF file, optionally converting the
@@ -3307,7 +3288,7 @@ If DAP support was enabled when \b nccopy was built, the file name may
 specify a DAP URL. This may be used to convert data on DAP servers to
 local netCDF files.
 
-\subsubsection nccopy_OPTIONS nccopy options
+\subsection nccopy_OPTIONS nccopy options
 
 \par -k \e kind
 Specifies the kind of file to be created (that is, the format variant)
@@ -3503,7 +3484,7 @@ file in memory before copying.  Requires that input file be small
 enough to fit into memory.  For \b nccopy, this doesn't seem to provide
 any significant speedup, so may not be a useful option.
 
-\subsubsection nccopy_EXAMPLES nccopy examples
+\subsection nccopy_EXAMPLES nccopy examples
 
 <H4> Simple Copy </H4>
 Make  a copy  of  foo1.nc, a  netCDF  file of  any type,  to
@@ -3577,11 +3558,11 @@ memory before writing it to disk on close:
 nccopy -w -c time/1000,lat/40,lon/40 slow.nc fast.nc
 \endcode
 
-\subsubsection see_also_nccopy SEE ALSO
+\subsection see_also_nccopy SEE ALSO
 
 ncdump(1), ncgen(1), netcdf(3)
 
-\subsection guide_ncgen ncgen
+\section guide_ncgen ncgen
 
 The ncgen tool generates a netCDF file or a C or FORTRAN program that
 creates a netCDF dataset. If no options are specified in invoking
@@ -3683,7 +3664,7 @@ dataset:
      ncgen -l c foo.cdl > foo.c
 \endcode
 
-\subsection guide_ncgen3 ncgen3
+\section guide_ncgen3 ncgen3
 
 The ncgen3 tool is the new name for the older, original ncgen utility.
 
@@ -3748,8 +3729,11 @@ faster, but it will also eliminate the possibility of detecting the
 inadvertent reading of values that haven't been written.
 </pre>
 
+\page file_format_specifications File Format Specifications
 
-\section file_format_spec_guide NetCDF File Format Specification
+\tableofcontents
+
+\todo Wrap the following group of pages into this.  From NetCDF Classic Format Spec through HDF4 SD Format.
 
 \section classic_format_spec The NetCDF Classic Format Specification
 
@@ -4058,7 +4042,7 @@ A special case: Where there is exactly one record variable, we drop
 the requirement that each record be four-byte aligned, so in this case
 there is no record padding.
 
-\section offset_examples Examples
+\subsection offset_examples Examples
 
 By using the grammar above, we can derive the smallest valid netCDF
 file, having no dimensions, no variables, no attributes, and hence, no
