@@ -186,7 +186,7 @@ apply.
 \returns ::NC_ELATEFILL Fill values must be written while the file
 is still in initial define mode.
 
-\section Example
+\section nc_put_att_double_example Example
 
 Here is an example using nc_put_att_double() to add a variable
 attribute named valid_range for a netCDF variable named rh and

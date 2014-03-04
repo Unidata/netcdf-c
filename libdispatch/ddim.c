@@ -90,7 +90,7 @@ unlimited dimensions.
 \returns ::NC_ENOMEM Memory allocation (malloc) failure
 \returns ::NC_EPERM Write to read only
 
-\section Example
+\section nc_def_dim_example Example
 
 Here is an example using nc_def_dim() to create a dimension named lat of
 length 18 and a unlimited dimension named rec in a new netCDF dataset
@@ -176,7 +176,7 @@ the unlimited dimension, this is the number of records written so far.
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
@@ -241,7 +241,7 @@ with length less than NC_MAX_NAME.
 \returns ::NC_ENAMEINUSE String match to name in use
 \returns ::NC_ENOMEM     Memory allocation (malloc) failure
 \returns ::NC_EPERM      Write to read only
-\section Example
+\section nc_rename_dim_example Example
 
 Here is an example using nc_rename_dim to rename the dimension lat to
 latitude in an existing netCDF dataset named foo.nc:
@@ -354,7 +354,7 @@ will be null-terminated. Ignored if NULL.
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example2 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
@@ -411,7 +411,7 @@ nc_def_dim().
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example3 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the

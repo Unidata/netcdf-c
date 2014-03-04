@@ -2654,11 +2654,13 @@ The bm_file program is controlled with command line options.
        file        Name of netCDF file
 </pre>
 
-\page netcdf_utilities_guide Netcdf Utilities
+\page netcdf_utilities_guide NetCDF Utilities
 
 \tableofcontents
 
-\section cdl_syntax CDL Syntax
+\section cdl_guide CDL Guide
+
+\subsection cdl_syntax CDL Syntax
 
 Below is an example of CDL, describing a netCDF classic format file with several
 named dimensions (lat, lon, time), variables (z, t, p, rh, lat, lon,
@@ -2798,7 +2800,7 @@ conversions among numeric primitive types are supported.
 A special notation for fill values is supported: the ‘_’ character
 designates a fill value for variables.
 
-\section cdl_data_types CDL Data Types
+\subsection cdl_data_types CDL Data Types
 
 The CDL primitive data types for the classic model are:
 - char - Characters.
@@ -2862,7 +2864,7 @@ encouraged to add the special variable attribute "_Encoding" with a
 value that the netCDF libraries recognize. Currently those valid
 values are "UTF-8" or "ASCII", case insensitive.
 
-\section cdl_constants CDL Notation for Data Constants
+\subsection cdl_constants CDL Notation for Data Constants
 
 This section describes the CDL notation for constants.
 
@@ -2984,7 +2986,7 @@ of constants of user-defined types.
 
 \section guide_ncdump ncdump 
 
-\brief Convert netCDF file to text form (CDL)
+Convert NetCDF file to text form (CDL)
 
 \subsection  ncdump_SYNOPSIS ncdump synopsis
 
@@ -3255,7 +3257,7 @@ arrays of real strings of varying length.
 
 \section guide_nccopy nccopy
 
-\brief Copy a netCDF file, optionally changing format, compression, or chunking in the output.
+Copy a netCDF file, optionally changing format, compression, or chunking in the output.
 
 
 \subsection  nccopy_SYNOPSIS nccopy synopsis

@@ -67,7 +67,7 @@ function. The error codes are defined in netcdf.h.
 
 \returns short string containing error message.
 
-\section Example
+\section handle_error_example Example
 
 Here is an example of a simple error handling function that uses
 nc_strerror to print the error message corresponding to the netCDF
