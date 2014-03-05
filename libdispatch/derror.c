@@ -12,10 +12,6 @@ Research/Unidata. See COPYRIGHT file for more info.
 /* Tell the user the version of netCDF. */
 static const char nc_libvers[] = PACKAGE_VERSION " of "__DATE__" "__TIME__" $";
 
-/** \defgroup lib_version Library Version 
-    Functions related to querying the library version.
-*/
-
 /**
 \ingroup lib_version
 Return the library version.
@@ -54,9 +50,8 @@ status value.
 
  */
 
-/**
-\ingroup error
-Given an error number, return an error message. 
+/*! Given an error number, return an error message. 
+\addtogroup error
 
 This function returns a static reference to an error message string
 corresponding to an integer netCDF error status or to a system error
@@ -67,7 +62,7 @@ function. The error codes are defined in netcdf.h.
 
 \returns short string containing error message.
 
-\section handle_error_example Example
+\section handle_error_example nc_strerror Example
 
 Here is an example of a simple error handling function that uses
 nc_strerror to print the error message corresponding to the netCDF
