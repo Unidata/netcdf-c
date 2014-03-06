@@ -76,6 +76,7 @@ extern int nc_get_default_format(void);
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
+extern NC* find_path_in_NCList(const char* path); /* find the path in the list of files */
 extern void free_NCList(void);/* reclaim whole list */
 extern int count_NCList(void); /* return # of entries in NClist */
 

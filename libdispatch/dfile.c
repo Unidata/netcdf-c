@@ -1,11 +1,11 @@
-/** \file 
+/** \file
 File create and open functions
 
 These functions end up calling functions in one of the dispatch layers
 (netCDF-4, dap server, etc).
 
 Copyright 2010 University Corporation for Atmospheric
-Research/Unidata. See COPYRIGHT file for more info.  
+Research/Unidata. See COPYRIGHT file for more info.
 */
 
 #include "config.h"
@@ -31,7 +31,8 @@ enum FileType {
 FT_UNKNOWN,
 FT_HDF,
 FT_NC,
-FT_PNETCDF
+FT_PNETCDF,
+FT_MEM
 };
 
 
@@ -55,7 +56,7 @@ associated with a netCDF dataset.
 
 Functions that deal with the netCDF library include:
 - Get version of library.
-- Get error message corresponding to a returned error code. 
+- Get error message corresponding to a returned error code.
 
 The operations supported on a netCDF dataset as a single object are:
 - Create, given dataset name and whether to overwrite or not.
@@ -83,23 +84,23 @@ nc_local_initialize(void)
     int i;
 
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	NC_coord_one[i] = 1;
-	NC_coord_zero[i] = 0;
+        NC_coord_one[i] = 1;
+        NC_coord_zero[i] = 0;
     }
 }
 
 static int
 NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
-		   enum FileType* filetype, int* version)
+                   enum FileType* filetype, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
-    
+
    *filetype = FT_UNKNOWN;
 
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
 #ifdef USE_PARALLEL
-   if (use_parallel) 
+   if (use_parallel)
    {
       MPI_File fh;
       MPI_Status status;
@@ -108,17 +109,17 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       MPI_Info info = MPI_INFO_NULL;
 
       if(mpi_info != NULL) {
-	 comm = ((NC_MPI_INFO*)mpi_info)->comm;
-	 info = ((NC_MPI_INFO*)mpi_info)->info;
+         comm = ((NC_MPI_INFO*)mpi_info)->comm;
+         info = ((NC_MPI_INFO*)mpi_info)->info;
       }
-      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, 
-				 &fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+      if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info,
+                                 &fh)) != MPI_SUCCESS)
+         return NC_EPARINIT;
       if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &status)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+                                 &status)) != MPI_SUCCESS)
+         return NC_EPARINIT;
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+         return NC_EPARINIT;
    } else
 #endif /* USE_PARALLEL */
    {
@@ -129,52 +130,77 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 #endif
 
       if(path == NULL || strlen(path)==0)
-	return NC_EINVAL;
-	
-      if (!(fp = fopen(path, "r")))
-	 return errno;
+        return NC_EINVAL;
+
+
+      if (!(fp = fopen(path, "r")) )
+        /* no file */
+        {
+          if (find_path_in_NCList(path)) {
+            /* File is in memory */
+            *filetype = FT_MEM;
+            /* In memory files always return version 2 */
+            *version = 2;       
+            return NC_NOERR;
+          }
+          return errno;
+        }
 
 #ifdef HAVE_SYS_STAT_H
       /* The file must be at least MAGIC_NUMBER_LEN in size,
          or otherwise the following fread will exhibit unexpected
          behavior. */
       if(!(fstat(fileno(fp),&st) == 0)) {
-	fclose(fp);
-	return errno;
+        fclose(fp);
+        return errno;
       }
-      
+
+      if (st.st_size == 0 && find_path_in_NCList(path)) {
+        /* Empty file and in our list */
+        /* File is in memory and not synced yet */
+        if (find_path_in_NCList(path)) {
+          *filetype = FT_MEM;
+          *version = 2;       
+          return NC_NOERR;
+        }
+        /* An empty file that is not in our list */
+        fclose(fp);
+        return NC_ENOTNC;
+      }
+
       if(st.st_size < MAGIC_NUMBER_LEN) {
-	fclose(fp);
-	return NC_ENOTNC;
+        /* Not enough bytes to check magic number for type */
+        fclose(fp);
+        return NC_ENOTNC;
       }
 #endif
-            
+
 
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
-	  if(i == 0) 
-		return NC_ENOTNC;
-      if(i != 1) 
-	return errno;
+          if(i == 0)
+                return NC_ENOTNC;
+      if(i != 1)
+        return errno;
     }
-    
+
     /* Look at the magic number */
     /* Ignore the first byte for HDF */
     if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
-	*filetype = FT_HDF;
-	*version = 5;
+        *filetype = FT_HDF;
+        *version = 5;
     } else if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
-	*filetype = FT_HDF;
-	*version = 4;
+        *filetype = FT_HDF;
+        *version = 4;
     } else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
-	*filetype = FT_NC;
-        if(magic[3] == '\001') 
+        *filetype = FT_NC;
+        if(magic[3] == '\001')
             *version = 1; /* netcdf classic version 1 */
-         else if(magic[3] == '\002') 
+         else if(magic[3] == '\002')
             *version = 2; /* netcdf classic version 2 */
          else if(magic[3] == '\005') {
-	    *filetype = FT_PNETCDF;
+            *filetype = FT_PNETCDF;
             *version = 5; /* pnetcdf file */
          } else
             return NC_ENOTNC;
@@ -209,7 +235,7 @@ stored.
 <h2>The cmode Flag</h2>
 
 The cmode flag is used to control the type of file created, and some
-aspects of how it may be used. 
+aspects of how it may be used.
 
 Setting NC_NOCLOBBER means you do not want to clobber (overwrite) an
 existing dataset; an error (NC_EEXIST) is returned if the specified
@@ -221,7 +247,7 @@ concurrently; it means that dataset accesses are not buffered and
 caching is limited. Since the buffering scheme is optimized for
 sequential access, programs that do not access data sequentially may
 see some performance improvement by setting the NC_SHARE flag. This
-flag is ignored for netCDF-4 files. 
+flag is ignored for netCDF-4 files.
 
 Setting NC_64BIT_OFFSET causes netCDF to create a 64-bit offset format
 file, instead of a netCDF classic format file. The 64-bit offset
@@ -389,7 +415,7 @@ nc_create(const char *path, int cmode, int *ncidp)
 Create a netCDF file with some extra parameters controlling classic
 file cacheing.
 
-Like nc_create(), this function creates a netCDF file. 
+Like nc_create(), this function creates a netCDF file.
 
 \param path The file name of the new netCDF dataset.
 
@@ -448,10 +474,10 @@ and initial size for the file.
 */
 int
 nc__create(const char *path, int cmode, size_t initialsz,
-	   size_t *chunksizehintp, int *ncidp)
+           size_t *chunksizehintp, int *ncidp)
 {
-   return NC_create(path, cmode, initialsz, 0, 
-		    chunksizehintp, 0, NULL, ncidp);
+   return NC_create(path, cmode, initialsz, 0,
+                    chunksizehintp, 0, NULL, ncidp);
 
 }
 /**
@@ -463,16 +489,16 @@ backward compatibility.
 
  */
 int
-nc__create_mp(const char *path, int cmode, size_t initialsz, 
-	      int basepe, size_t *chunksizehintp, int *ncidp)
+nc__create_mp(const char *path, int cmode, size_t initialsz,
+              int basepe, size_t *chunksizehintp, int *ncidp)
 {
-   return NC_create(path, cmode, initialsz, basepe, 
-		    chunksizehintp, 0, NULL, ncidp);
+   return NC_create(path, cmode, initialsz, basepe,
+                    chunksizehintp, 0, NULL, ncidp);
 }
 
-/** 
+/**
 Open an existing netCDF file.
- 
+
 This function opens an existing netCDF dataset for access. It
 determines the underlying file format automatically. Use the same call
 to open a netCDF classic, 64-bit offset, or netCDF-4 file.
@@ -480,7 +506,7 @@ to open a netCDF classic, 64-bit offset, or netCDF-4 file.
 \param path File name for netCDF dataset to be opened. When DAP
 support is enabled, then the path may be an OPeNDAP URL rather than a
 file path.
- 
+
 \param mode The mode flag may include NC_WRITE (for read/write
 access) and NC_SHARE (see below) and NC_DISKLESS (see below).
 
@@ -543,7 +569,7 @@ improvement in this case.
 It is not necessary to pass any information about the format of the
 file being opened. The file type will be detected automatically by the
 netCDF library.
- 
+
 If a the path is a DAP URL, then the open mode is read-only.
 Setting NC_WRITE will be ignored.
 
@@ -573,10 +599,10 @@ named foo.nc for read-only, non-shared access:
 
 @code
 #include <netcdf.h>
-   ... 
+   ...
 int status = NC_NOERR;
 int ncid;
-   ... 
+   ...
 status = nc_open("foo.nc", 0, &ncid);
 if (status != NC_NOERR) handle_error(status);
 @endcode
@@ -587,14 +613,14 @@ nc_open(const char *path, int mode, int *ncidp)
    return NC_open(path, mode, 0, NULL, 0, NULL, ncidp);
 }
 
-/** 
+/**
 Open a netCDF file with extra performance parameters for the classic
 library.
 
 \param path File name for netCDF dataset to be opened. When DAP
 support is enabled, then the path may be an OPeNDAP URL rather than a
 file path.
- 
+
 \param mode The mode flag may include NC_WRITE (for read/write
 access) and NC_SHARE as in nc_open().
 
@@ -615,7 +641,7 @@ Because of internal requirements, the value may not be set to exactly
 the value requested. The actual value chosen is returned by reference.
 
 Using a NULL pointer or having the pointer point to the value
-NC_SIZEHINT_DEFAULT causes the library to choose a default. 
+NC_SIZEHINT_DEFAULT causes the library to choose a default.
 How the system chooses the default depends on the system. On
 many systems, the "preferred I/O block size" is available from the
 stat() system call, struct stat member st_blksize. If this is
@@ -640,10 +666,10 @@ files only.)
 */
 int
 nc__open(const char *path, int mode,
-	 size_t *chunksizehintp, int *ncidp)
+         size_t *chunksizehintp, int *ncidp)
 {
-   return NC_open(path, mode, 0, chunksizehintp, 0, 
-		  NULL, ncidp);
+   return NC_open(path, mode, 0, chunksizehintp, 0,
+                  NULL, ncidp);
 }
 
 /**
@@ -655,14 +681,14 @@ backward compatibility.
 
  */
 int
-nc__open_mp(const char *path, int mode, int basepe, 
-	    size_t *chunksizehintp, int *ncidp)
+nc__open_mp(const char *path, int mode, int basepe,
+            size_t *chunksizehintp, int *ncidp)
 {
    return NC_open(path, mode, basepe, chunksizehintp,
-		  0, NULL, ncidp);
+                  0, NULL, ncidp);
 }
 
-/** 
+/**
 Get the file pathname (or the opendap URL) which was used to
 open/create the ncid's file.
 
@@ -673,13 +699,13 @@ nc_create().
 if NULL.
 
 \param path Pointer where path name will be copied. Space must already
-be allocated. Ignored if NULL.  
+be allocated. Ignored if NULL.
 
 \returns ::NC_NOERR No error.
 
 \returns ::NC_EBADID Invalid ncid passed.
 */
-int 
+int
 nc_inq_path(int ncid, size_t *pathlen, char *path)
 {
    NC* ncp;
@@ -687,8 +713,8 @@ nc_inq_path(int ncid, size_t *pathlen, char *path)
    if ((stat = NC_check_id(ncid, &ncp)))
       return stat;
    if(ncp->path == NULL) {
-	if(pathlen) *pathlen = 0;
-	if(path) path[0] = '\0';
+        if(pathlen) *pathlen = 0;
+        if(path) path[0] = '\0';
    } else {
        if (pathlen) *pathlen = strlen(ncp->path);
        if (path) strcpy(path, ncp->path);
@@ -733,14 +759,14 @@ named foo.nc and put it into define mode:
 
 \code
 #include <netcdf.h>
-   ... 
+   ...
 int status = NC_NOERR;
 int ncid;
-   ... 
-status = nc_open("foo.nc", NC_WRITE, &ncid);  
+   ...
+status = nc_open("foo.nc", NC_WRITE, &ncid);
 if (status != NC_NOERR) handle_error(status);
-   ... 
-status = nc_redef(ncid);                      
+   ...
+status = nc_redef(ncid);
 if (status != NC_NOERR) handle_error(status);
 \endcode
  */
@@ -775,7 +801,7 @@ For netCDF-4/HDF5 format files there are some variable settings (the
 compression, endianness, fletcher32 error correction, and fill value)
 which must be set (if they are going to be set at all) between the
 nc_def_var() and the next nc_enddef(). Once the nc_enddef() is called,
-these settings can no longer be changed for a variable.  
+these settings can no longer be changed for a variable.
 
 \param ncid NetCDF ID, from a previous call to nc_open() or
 nc_create().
@@ -801,10 +827,10 @@ netCDF dataset named foo.nc and put it into data mode:
         ...
      status = nc_create("foo.nc", NC_NOCLOBBER, &ncid);
      if (status != NC_NOERR) handle_error(status);
-     
-        ...  create dimensions, variables, attributes 
-     
-     status = nc_enddef(ncid); 
+
+        ...  create dimensions, variables, attributes
+
+     status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
 \endcode
  */
@@ -813,7 +839,7 @@ nc_enddef(int ncid)
 {
    int status = NC_NOERR;
    NC *ncp;
-   status = NC_check_id(ncid, &ncp); 
+   status = NC_check_id(ncid, &ncp);
    if(status != NC_NOERR) return status;
    return ncp->dispatch->_enddef(ncid,0,1,0,1);
 }
@@ -877,7 +903,7 @@ calculated from the sizes of the record variables. This unfortunate
 fact prevents us from providing minfree and alignment control of the
 "records" in a netcdf file. If you add a variable which has an
 unlimited dimension, the third section will always be copied with the
-new variable added.  
+new variable added.
 
 \param ncid NetCDF ID, from a previous call to nc_open() or
 nc_create().
@@ -900,8 +926,8 @@ variables).
 
  */
 int
-nc__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, 
-	   size_t r_align)
+nc__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+           size_t r_align)
 {
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
@@ -1015,13 +1041,13 @@ dataset named foo.nc:
      status = nc_open("foo.nc", NC_WRITE, &ncid);
      if (status != NC_NOERR) handle_error(status);
         ...
-     status = nc_redef(ncid);                  
+     status = nc_redef(ncid);
      if (status != NC_NOERR) handle_error(status);
         ...
      status = nc_def_dim(ncid, "lat", 18L, &latid);
      if (status != NC_NOERR) {
         handle_error(status);
-        status = nc_abort(ncid);               
+        status = nc_abort(ncid);
         if (status != NC_NOERR) handle_error(status);
      }
 \endcode
@@ -1036,7 +1062,7 @@ nc_abort(int ncid)
    stat = ncp->dispatch->abort(ncid);
    del_from_NCList(ncp);
    free_NC(ncp);
-   return stat;   
+   return stat;
 }
 
 /**
@@ -1071,10 +1097,10 @@ netCDF dataset named foo.nc and release its netCDF ID:
         ...
      status = nc_create("foo.nc", NC_NOCLOBBER, &ncid);
      if (status != NC_NOERR) handle_error(status);
-     
-        ...   create dimensions, variables, attributes 
-     
-     status = nc_close(ncid);       
+
+        ...   create dimensions, variables, attributes
+
+     status = nc_close(ncid);
      if (status != NC_NOERR) handle_error(status);
 \endcode
 
@@ -1149,7 +1175,7 @@ The use of this feature may not be available (or even needed) in
 future releases. Programmers are cautioned against heavy reliance upon
 this feature.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or 
+\param ncid NetCDF ID, from a previous call to nc_open() or
 nc_create().
 
 \param fillmode Desired fill mode for the dataset, either ::NC_NOFILL or
@@ -1179,15 +1205,15 @@ writes of a netCDF dataset named foo.nc:
         ...
      int ncid, status, old_fill_mode;
         ...
-     status = nc_open("foo.nc", NC_WRITE, &ncid);  
+     status = nc_open("foo.nc", NC_WRITE, &ncid);
      if (status != NC_NOERR) handle_error(status);
-     
+
         ...     write data with default prefilling behavior
-     
+
      status = nc_set_fill(ncid, ::NC_NOFILL, &old_fill_mode);
      if (status != NC_NOERR) handle_error(status);
-     
-        ...    write data with no prefilling 
+
+        ...    write data with no prefilling
 \endcode
  */
 int
@@ -1245,7 +1271,7 @@ as presented by the API.
 
 This function returns the (rarely needed) format version.
 
-\param ncid NetCDF ID, from a previous call to nc_open() or 
+\param ncid NetCDF ID, from a previous call to nc_open() or
 nc_create().
 
 \param formatp Pointer to location for returned format version, one of
@@ -1304,7 +1330,7 @@ nc_inq_format_extended(int ncid, int *formatp, int *modep)
 Inquire about a file or group.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
 \param ndimsp Pointer to location for returned number of dimensions
@@ -1319,7 +1345,7 @@ attributes defined for this netCDF dataset. Ignored if NULL.
 \param unlimdimidp Pointer to location for returned ID of the
 unlimited dimension, if there is one for this netCDF dataset. If no
 unlimited length dimension has been defined, -1 is returned. Ignored
-if NULL.  If there are multiple unlimited dimensions (possible only 
+if NULL.  If there are multiple unlimited dimensions (possible only
 for netCDF-4 files), only a pointer to the first is returned, for
 backward compatibility.  If you want them all, use nc_inq_unlimids().
 
@@ -1372,7 +1398,7 @@ type, whether compound, opaque, enumeration, or variable length array.
 For even more information about a user defined type nc_inq_user_type().
 
 \param ncid The ncid for the group containing the type (ignored for
-atomic types).  
+atomic types).
 
 \param xtype The typeid for this type, as returned by nc_def_compound,
 nc_def_opaque, nc_def_enum, nc_def_vlen, or nc_inq_var, or as found in
@@ -1407,7 +1433,7 @@ for which classic model has been turned on.
 This example is from the test program tst_enums.c, and it uses all the
 possible inquiry functions on an enum type.
 
-\code        
+\code
            if (nc_inq_user_type(ncid, typeids[0], name_in, &base_size_in, &base_nc_type_in,
                                 &nfields_in, &class_in)) ERR;
            if (strcmp(name_in, TYPE_NAME) || base_size_in != sizeof(int) ||
@@ -1423,7 +1449,7 @@ possible inquiry functions on an enum type.
               if (nc_inq_enum_ident(ncid, typeid, member_value[i], name_in)) ERR;
               if (strcmp(name_in, member_name[i])) ERR;
            }
-     
+
            if (nc_close(ncid)) ERR;
 \endcode
  */
@@ -1481,9 +1507,9 @@ stored.
 \returns ::NC_NOERR No error.
 */
 int
-NC_create(const char *path, int cmode, size_t initialsz, 
-	  int basepe, size_t *chunksizehintp, int useparallel, 
-	  void* mpi_info, int *ncidp)
+NC_create(const char *path, int cmode, size_t initialsz,
+          int basepe, size_t *chunksizehintp, int useparallel,
+          void* mpi_info, int *ncidp)
 {
    int stat = NC_NOERR;
    NC* ncp = NULL;
@@ -1499,23 +1525,23 @@ NC_create(const char *path, int cmode, size_t initialsz,
    if(!nc_initialized)
    {
       if ((stat = NC_initialize()))
-	 return stat; 
+         return stat;
       /* Do local initialization */
       nc_local_initialize();
       nc_initialized = 1;
    }
 
    if((isurl = NC_testurl(path)))
-	model = NC_urlmodel(path);
+        model = NC_urlmodel(path);
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
       if(cmode & NC_NETCDF4)
-	model = NC_DISPATCH_NC4;
+        model = NC_DISPATCH_NC4;
       else if(cmode & NC_PNETCDF)
-	model = NC_DISPATCH_NC5;
+        model = NC_DISPATCH_NC5;
       else if(cmode & NC_CLASSIC_MODEL)
-	model = NC_DISPATCH_NC3;
+        model = NC_DISPATCH_NC3;
    }
 
    if(model == 0) {
@@ -1523,25 +1549,25 @@ NC_create(const char *path, int cmode, size_t initialsz,
       int format = nc_get_default_format();
       switch (format) {
 #ifdef USE_NETCDF4
-	 case NC_FORMAT_NETCDF4:
-	    xcmode |= NC_NETCDF4;
-	    model = NC_DISPATCH_NC4;
-	    break;
-	 case NC_FORMAT_NETCDF4_CLASSIC:
-	    xcmode |= NC_CLASSIC_MODEL;
-	    model = NC_DISPATCH_NC4;
-	    break;
+         case NC_FORMAT_NETCDF4:
+            xcmode |= NC_NETCDF4;
+            model = NC_DISPATCH_NC4;
+            break;
+         case NC_FORMAT_NETCDF4_CLASSIC:
+            xcmode |= NC_CLASSIC_MODEL;
+            model = NC_DISPATCH_NC4;
+            break;
 #endif
-	 case NC_FORMAT_64BIT:
-	    xcmode |= NC_64BIT_OFFSET;
-	    /* fall thru */
-	 case NC_FORMAT_CLASSIC:
-	 default:
-	    model = NC_DISPATCH_NC3;
-	    break;
+         case NC_FORMAT_64BIT:
+            xcmode |= NC_64BIT_OFFSET;
+            /* fall thru */
+         case NC_FORMAT_CLASSIC:
+         default:
+            model = NC_DISPATCH_NC3;
+            break;
       }
    }
-   
+
    /* Add inferred flags */
    cmode |= xcmode;
 
@@ -1557,41 +1583,42 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #ifdef USE_NETCDF4
 #ifdef USE_CDMREMOTE
       if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
-	 dispatcher = NCCR_dispatch_table;
+         dispatcher = NCCR_dispatch_table;
       else
 #endif
       if(model == (NC_DISPATCH_NC4))
- 	dispatcher = NC4_dispatch_table;
+        dispatcher = NC4_dispatch_table;
       else
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP
       if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
-	dispatcher = NCD3_dispatch_table;
+        dispatcher = NCD3_dispatch_table;
       else
 #endif
 #ifdef USE_PNETCDF
       if(model == (NC_DISPATCH_NC5))
-	dispatcher = NC5_dispatch_table;
+        dispatcher = NC5_dispatch_table;
       else
 #endif
       if(model == (NC_DISPATCH_NC3))
- 	dispatcher = NC3_dispatch_table;
+        dispatcher = NC3_dispatch_table;
       else
-	 return NC_ENOTNC;
+         return NC_ENOTNC;
    }
 
    /* Create the NC* instance and insert its dispatcher */
    stat = new_NC(dispatcher,path,cmode,&ncp);
    if(stat) return stat;
 
+
    /* Add to list of known open files and define ext_ncid */
    add_to_NCList(ncp);
 
    /* Assume create will fill in remaining ncp fields */
    if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
-				   useparallel, mpi_info, dispatcher, ncp))) {
-	del_from_NCList(ncp); /* oh well */
-	free_NC(ncp);
+                                   useparallel, mpi_info, dispatcher, ncp))) {
+        del_from_NCList(ncp); /* oh well */
+        free_NC(ncp);
      } else {
        if(ncidp)*ncidp = ncp->ext_ncid;
      }
@@ -1615,7 +1642,7 @@ For open, we have the following pieces of information to use to determine the di
 */
 int
 NC_open(const char *path, int cmode,
-	int basepe, size_t *chunksizehintp,
+        int basepe, size_t *chunksizehintp,
         int useparallel, void* mpi_info,
         int *ncidp)
 {
@@ -1624,7 +1651,7 @@ NC_open(const char *path, int cmode,
    NC_Dispatch* dispatcher = NULL;
    /* Need two pieces of information for now */
    int model = 0;
-   int isurl = 0; 
+   int isurl = 0;
    int version = 0;
    enum FileType filetype = FT_UNKNOWN;
 
@@ -1645,25 +1672,49 @@ NC_open(const char *path, int cmode,
       model = 0;
       /* Look at the file if it exists */
       stat = NC_check_file_type(path,useparallel,mpi_info,
-				&filetype,&version);
+                                &filetype,&version);
       if(stat == NC_NOERR) {
-	switch (filetype) {
-	case FT_NC:
-	    if(version == 1 || version == 2)
-		model = NC_DISPATCH_NC3;
-	    break;
-	case FT_HDF:
-	    model = NC_DISPATCH_NC4;
-	    break;
-	case FT_PNETCDF:
-	    model = NC_DISPATCH_NC5;
-	    break;
-	default:
-	    return NC_ENOTNC;
-	}
+        switch (filetype) {
+        case FT_NC:
+          if(version == 1 || version == 2)
+            model = NC_DISPATCH_NC3;
+          break;
+        case FT_HDF:
+          model = NC_DISPATCH_NC4;
+          break;
+        case FT_PNETCDF:
+          model = NC_DISPATCH_NC5;
+          break;
+        case FT_MEM:
+          model = NC_DISPATCH_NC3;
+          break;
+        default:
+            return NC_ENOTNC;
+        }
       } else /* presumably not a netcdf file */
-	return stat;
+
+        return stat;
    }
+
+
+   if (filetype == FT_MEM) {
+     /* We did not find a file, so it should be in memory */
+     if (cmode & NC_DISKLESS) {
+       /* We also asked for a file in memory, so that's fine */
+       ncp = find_path_in_NCList(path);
+       if (!ncp) {
+         /* But we can't find it, so that's bad */
+         return NC_EBADID;
+       }
+       *ncidp = ncp->ext_ncid;
+       return NC_NOERR;
+     }
+     else {
+       /* We did not find a file, but we did expect one */
+       return NC_ENOTNC;
+     }
+   }
+
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
@@ -1680,7 +1731,7 @@ NC_open(const char *path, int cmode,
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
    } else if(model & NC_DISPATCH_NC5) {
-      cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */ 
+      cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */
       cmode |= NC_PNETCDF;
    }
 
@@ -1694,26 +1745,26 @@ NC_open(const char *path, int cmode,
    /* Figure out what dispatcher to use */
 #if  defined(USE_CDMREMOTE)
    if(model == (NC_DISPATCH_NC4 | NC_DISPATCH_NCR))
-	dispatcher = NCCR_dispatch_table;
+        dispatcher = NCCR_dispatch_table;
    else
 #endif
 #if defined(USE_DAP)
    if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
-	dispatcher = NCD3_dispatch_table;
+        dispatcher = NCD3_dispatch_table;
    else
 #endif
 #if  defined(USE_PNETCDF)
    if(model == (NC_DISPATCH_NC5))
-	dispatcher = NC5_dispatch_table;
+        dispatcher = NC5_dispatch_table;
    else
 #endif
 #if defined(USE_NETCDF4)
    if(model == (NC_DISPATCH_NC4))
-	dispatcher = NC4_dispatch_table;
+        dispatcher = NC4_dispatch_table;
    else
 #endif
    if(model == (NC_DISPATCH_NC3))
-	dispatcher = NC3_dispatch_table;
+        dispatcher = NC3_dispatch_table;
    else
       return  NC_ENOTNC;
 
@@ -1728,12 +1779,12 @@ havetable:
 
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
-			   useparallel, mpi_info, dispatcher, ncp);
+                           useparallel, mpi_info, dispatcher, ncp);
    if(stat == NC_NOERR) {
      if(ncidp) *ncidp = ncp->ext_ncid;
    } else {
-	del_from_NCList(ncp);
-	free_NC(ncp);
+        del_from_NCList(ncp);
+        free_NC(ncp);
    }
    return stat;
 }
@@ -1756,12 +1807,12 @@ nc__pseudofd(void)
 #ifdef HAVE_GETRLIMIT
         struct rlimit rl;
         if(getrlimit(RLIMIT_NOFILE,&rl) == 0) {
-	    if(rl.rlim_max != RLIM_INFINITY)
-	        maxfd = rl.rlim_max;
-	    if(rl.rlim_cur != RLIM_INFINITY)
-	        maxfd = rl.rlim_cur;
-	}
-	pseudofd = maxfd+1;
+            if(rl.rlim_max != RLIM_INFINITY)
+                maxfd = rl.rlim_max;
+            if(rl.rlim_cur != RLIM_INFINITY)
+                maxfd = rl.rlim_cur;
+        }
+        pseudofd = maxfd+1;
 #endif
     }
 

@@ -470,6 +470,8 @@ CdDivDelTime(double begEtm, double endEtm, CdDeltaTime delTime, CdTimeType timeT
 	
 	extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
 
+        delMonths = 0;
+
 	switch(delTime.units){
 	  case CdYear:
 		delMonths = 12;
@@ -787,6 +789,9 @@ cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* re
 	double base_etm, etm, delta;
 	long ndel, hoursInYear;
 	
+
+        ndel = 0;
+        delta = 0;
 					     /* Parse the relunits */
 	if(cdParseRelunits(timetype, relunits, &unit, &base_comptime))
 		return;
@@ -977,7 +982,8 @@ cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* com
 	double delta;
 	long idelta;
 
-					     /* Parse the relunits */
+        delta = 0;
+				     /* Parse the relunits */
 	if(cdParseRelunits(timetype, relunits, &unit, &base_comptime))
 		return;
 

@@ -47,6 +47,7 @@ time ./tst_diskless4 $SIZE open
 echo ""
 time ./tst_diskless4 $SIZE opendiskless
 
+
 # cleanup
 rm -f $FILE4 tst_diskless4.cdl
 
