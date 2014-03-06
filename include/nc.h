@@ -27,7 +27,8 @@ typedef struct NC {
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
-	int substrate;
+	int   substrate;
+	int   refcount; /* To enable multiple name-based opens */
 } NC;
 
 /*
@@ -76,6 +77,7 @@ extern int nc_get_default_format(void);
 extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
+extern NC* find_in_NCList_by_name(const char*);
 extern void free_NCList(void);/* reclaim whole list */
 extern int count_NCList(void); /* return # of entries in NClist */
 

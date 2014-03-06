@@ -44,15 +44,18 @@ TESTS += t_dap3a test_cvt3 test_vara test_partvar
 TESTS += test_varm3
 TESTS += t_dap3a
 TESTS += test_nstride_cached
-TESTS += t_auth
 TESTS += t_misc
 
 check_PROGRAMS += t_dap3a test_cvt3 test_vara test_partvar
 check_PROGRAMS += test_varm3
 check_PROGRAMS += t_dap3a
 check_PROGRAMS += test_nstride_cached
-check_PROGRAMS += t_auth
 check_PROGRAMS += t_misc
+
+if ENABLE_DAP_AUTH_TESTS
+check_PROGRAMS += t_auth
+TESTS += t_auth
+endif
 
 endif #ENABLE_DAP_REMOTE_TESTS
 
