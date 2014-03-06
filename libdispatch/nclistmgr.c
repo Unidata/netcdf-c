@@ -45,6 +45,7 @@ add_to_NCList(NC* ncp)
     /* Check the refcount */
     if(ncp->refcount > 0)
 	return NC_NOERR;
+
     new_id = 0; /* id's begin at 1 */
     for(i=1; i < NCFILELISTLENGTH; i++) {
 	if(nc_filelist[i] == NULL) {new_id = i; break;}
@@ -66,6 +67,7 @@ del_from_NCList(NC* ncp)
    /* Check the refcount */
    if(ncp->refcount > 0)
 	return; /* assume caller has decrecmented */
+
    nc_filelist[ncid] = NULL;
    numfiles--;
 

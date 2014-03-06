@@ -1033,9 +1033,11 @@ nc_abort(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+
    /* What to do if refcount > 0? */
    /* currently, forcibly abort */
    ncp->refcount = 0;
+
    stat = ncp->dispatch->abort(ncid);
    del_from_NCList(ncp);
    free_NC(ncp);
@@ -1088,8 +1090,10 @@ nc_close(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+
    ncp->refcount--;
-   if(ncp->refcount > 0) {
+   if(ncp->refcount <= 0)
+   {
        stat = ncp->dispatch->close(ncid);
        /* Remove from the nc list */
        del_from_NCList(ncp);
