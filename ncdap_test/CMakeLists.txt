@@ -40,10 +40,16 @@ IF(ENABLE_TESTS)
 	ENDIF()
 	add_bin_test(ncdap test_nstride_cached)
 	add_bin_test(ncdap test_partvar)
-	add_bin_test(ncdap test_varm3)
 	add_bin_test(ncdap t_auth)
 	add_bin_test(ncdap t_misc)
 	
+# test_varm3 did not survive the transition
+# to remotetest.unidata.ucar.edu; the
+# coads_climatology.nc file cannot be found.
+# Can restore if/when we find that file
+# and put it in testdods directory on remotetest.
+#	add_bin_test(ncdap test_varm3)
+
 ENDIF()
 ADD_SUBDIRECTORY(testdata3)
 ADD_SUBDIRECTORY(expected3)

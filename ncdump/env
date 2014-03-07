@@ -1,0 +1,6 @@
+F="tst_small.nc"
+
+alias q0="./ncdump $F"
+alias qh="./ncdump -h $F"
+alias qq="gdb --args ./ncdump $F"
+alias qqh="gdb --args ./ncdump -h $F"
