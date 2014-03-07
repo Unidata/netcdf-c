@@ -171,7 +171,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /** Extended format specifier returned by  nc_inq_format_extended() 
  *  Added in version 4.3.1. This returns the true format of the
- *  underlying data‥
+ *  underlying data.
  * The function returns two values
  * 1. a small integer indicating the underlying source type
  *    of the data. Note that this may differ from what the user
