@@ -40,8 +40,13 @@ IF(ENABLE_TESTS)
 	ENDIF()
 	add_bin_test(ncdap test_nstride_cached)
 	add_bin_test(ncdap test_partvar)
-	add_bin_test(ncdap t_auth)
 	add_bin_test(ncdap t_misc)
+
+	IF(ENABLE_DAP_AUTH_TESTS)
+	  add_bin_test(ncdap t_auth)
+	ENDIF()
+
+
 	
 # test_varm3 did not survive the transition
 # to remotetest.unidata.ucar.edu; the
