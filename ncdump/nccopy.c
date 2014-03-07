@@ -1532,6 +1532,7 @@ usage(void)
 	  progname, USAGE);
 }
 
+<<<<<<< HEAD
 /** @page guide_nccopy nccopy tool - Copy a netCDF file, optionally changing format, compression, or chunking in the output.
 
 \tableofcontents
@@ -1841,6 +1842,8 @@ nccopy -w -c time/1000,lat/40,lon/40 slow.nc fast.nc
 ncdump(1), ncgen(1), netcdf(3)
 
  */
+=======
+>>>>>>> d6d5077494c420e73bfd48513c88eb0025905e4b
 int
 main(int argc, char**argv)
 {

@@ -38,20 +38,6 @@ This page contains refrences to various other NetCDF background and tutorial pag
 \subsection sub_sec_example_programs Example Programs:
 - \ref examples1
 
-\page what_is_netcdf What is NetCDF?
-
-NetCDF is a set of data formats, programming interfaces, and software
-libraries that help read and write scientific data files.
-
-NetCDF was developed and is maintained at <a
-href="http://www.unidata.ucar.edu">Unidata</a>. Unidata provides data
-and software tools for use in geoscience education and research.
-
-Unidata is part of the University Corporation for Atmospheric Research
-(<a href="http://www.ucar.edu">UCAR</a>) Community Programs (<a
-href="http://www.uop.ucar.edu">UCP</a>). Unidata is funded primarily
-by the National Science Foundation.
-
 \page netcdf_working_with_netcdf_files Working with NetCDF Files from the command line.
 
 \brief Options for working with netcdf-formatted files from the command line or with an external program.
@@ -363,13 +349,10 @@ information about the CF conventions, see http://cf-pcmdi.llnl.gov.
 
 \page error_handling Error Handling
 
-See Also:
-
-- \ref nc-error-codes
-- Function \ref nc_strerror
+\ingroup error
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
-0 on success, in the tradition of C. 
+0 on success, in the tradition of C.
 
 When programming with netCDF in these languages, always check return
 values of every netCDF API call. The return code can be looked up in

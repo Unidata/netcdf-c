@@ -743,55 +743,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT = \
-    @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/COPYRIGHT \
-    @abs_top_srcdir@/man4/mainpage.dox \
-    @abs_top_srcdir@/man4/install.md \
-    @abs_top_srcdir@/man4/dispatch.dox \
-    @abs_top_srcdir@/man4/guide.dox \
-    @abs_top_srcdir@/man4/types.dox \
-    @abs_top_srcdir@/man4/notes.dox \
-    @abs_top_srcdir@/man4/cdl.dox \
-    @abs_top_srcdir@/man4/architecture.dox \
-    @abs_top_srcdir@/man4/internal.dox \
-    @abs_top_srcdir@/man4/tutorial.dox \
-    @abs_top_srcdir@/man4/windows-binaries.md \
-    @abs_top_srcdir@/man4/all-error-codes.md \
-    @abs_top_srcdir@/man4/cmake_faq.md \
-    @abs_top_srcdir@/include/netcdf.h \
-    @abs_top_srcdir@/examples/C/simple_xy_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_rd.c \
-    @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
-    @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
-    @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
-    @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
-    @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
-    @abs_top_srcdir@/libdispatch/dfile.c \
-    @abs_top_srcdir@/libdispatch/ddim.c \
-    @abs_top_srcdir@/libdispatch/datt.c \
-    @abs_top_srcdir@/libdispatch/dattget.c \
-    @abs_top_srcdir@/libdispatch/dattinq.c \
-    @abs_top_srcdir@/libdispatch/dattput.c \
-    @abs_top_srcdir@/libdispatch/dvar.c \
-    @abs_top_srcdir@/libdispatch/dvarget.c \
-    @abs_top_srcdir@/libdispatch/dvarinq.c \
-    @abs_top_srcdir@/libdispatch/dvarput.c \
-    @abs_top_srcdir@/libdispatch/dgroup.c \
-    @abs_top_srcdir@/libdispatch/dtype.c \
-    @abs_top_srcdir@/libdispatch/dcompound.c \
-    @abs_top_srcdir@/libdispatch/denum.c \
-    @abs_top_srcdir@/libdispatch/dvlen.c \
-    @abs_top_srcdir@/libdispatch/dopaque.c \
-    @abs_top_srcdir@/libdispatch/dparallel.c \
-    @abs_top_srcdir@/libdispatch/derror.c \
-    @abs_top_srcdir@/libdispatch/dv2i.c \
-    @abs_top_srcdir@/libsrc4/nc4file.c \
-    @abs_top_srcdir@/ncdump/ncdump.c \
-    @abs_top_srcdir@/ncdump/nccopy.c
+INPUT = @abs_top_srcdir@/man4/guide.dox
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1087,7 +1039,7 @@ GENERATE_HTML          = YES
 # The default directory is: html.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_OUTPUT            = html
+HTML_OUTPUT            = html/html_guide
 
 # The HTML_FILE_EXTENSION tag can be used to specify the file extension for each
 # generated HTML page (for example: .htm, .php, .asp).

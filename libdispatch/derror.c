@@ -29,7 +29,8 @@ nc_inq_libvers(void)
    return nc_libvers;
 }
 
-/** \defgroup error Error Handling
+/** \addtogroup error NetCDF Error Handling
+
 NetCDF functions non-zero status codes on error.
 
 Each netCDF function returns an integer status value. If the returned
@@ -55,7 +56,7 @@ status value.
 
 /**
 \ingroup error
- Given an error number, return an error message. 
+Given an error number, return an error message. 
 
 This function returns a static reference to an error message string
 corresponding to an integer netCDF error status or to a system error
