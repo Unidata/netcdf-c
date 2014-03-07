@@ -302,11 +302,18 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
   MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
   MESSAGE("")
-  MESSAGE(STATUS "Compiler:")
+  IF(ENABLE_TESTS)
+    MESSAGE(STATUS "\tTests Enabled:\t\t\t${ENABLE_TESTS}")
+    MESSAGE(STATUS "\tDAP Remote Tests:\t\t${ENABLE_DAP_REMOTE_TESTS}")
+    MESSAGE(STATUS "\tDAP AUTH Tests:\t\t\t${ENABLE_DAP_AUTH_TESTS}")
+    MESSAGE("")
+  ENDIF()
+  MESSAGE("Compiler:")
   MESSAGE("")
   MESSAGE(STATUS "CMAKE_C_COMPILER:\t\t ${CMAKE_C_COMPILER}")
   MESSAGE(STATUS "CMAKE_C_FLAGS:\t\t" ${CMAKE_C_FLAGS})
   MESSAGE(STATUS "CMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
+
 
   MESSAGE(STATUS "Linking against:\t\t" "${ALL_TLL_LIBS}")
 
@@ -656,6 +663,11 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+
+IF(ENABLE_DAP_REMOTE_TESTS)
+  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests.")
+ENDIF()
+
 
 # If netCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF_4 AND USE_DAP)
