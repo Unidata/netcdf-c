@@ -129,7 +129,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION (ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
   OPTION (ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
   OPTION (ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
-  
+
   # Debugging flags
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
@@ -142,15 +142,15 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-    MESSAGE(STATUS "Coverage Tests: On.")    
+    MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
-  
+
   # Unused var and parameter warnings create a lot of noise.
-  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS) 
+  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
   ENDIF()
-  
+
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     IF(CMAKE_COMPILER_IS_GNUCC)
@@ -199,7 +199,7 @@ MACRO(GEN_m4 filename)
 	IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-		COMMAND ${NC_M4} 
+		COMMAND ${NC_M4}
 		ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
 		VERBATIM
 	)
@@ -211,7 +211,7 @@ MACRO(add_bin_env_temp_large_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
 	IF(MSVC)
-		SET_TARGET_PROPERTIES(${prefix}_${F} 
+		SET_TARGET_PROPERTIES(${prefix}_${F}
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 			)
 	ENDIF()
@@ -229,7 +229,7 @@ MACRO(add_bin_env_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
 	IF(MSVC)
-		SET_TARGET_PROPERTIES(${prefix}_${F} 
+		SET_TARGET_PROPERTIES(${prefix}_${F}
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 			)
 	ENDIF()
@@ -242,11 +242,11 @@ MACRO(add_bin_env_test prefix F)
 ENDMACRO()
 
 # Build a binary used by a script, but don't make a test out of it.
-MACRO(build_bin_test F) 
+MACRO(build_bin_test F)
 	ADD_EXECUTABLE(${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${F} netcdf)
 	IF(MSVC)
-		SET_TARGET_PROPERTIES(${F} 
+		SET_TARGET_PROPERTIES(${F}
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 		)
 	ENDIF()
@@ -258,7 +258,7 @@ MACRO(add_bin_test_no_prefix F)
 	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
-	ENDIF()	
+	ENDIF()
 ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
@@ -267,7 +267,7 @@ MACRO(build_bin_test_no_prefix F)
 	ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
 	IF(MSVC)
 		SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
-	ENDIF()	
+	ENDIF()
 ENDMACRO()
 
 
@@ -275,14 +275,14 @@ MACRO(add_bin_test prefix F)
 	ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
 	TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
 	IF(MSVC)
-		SET_TARGET_PROPERTIES(${prefix}_${F} 
+		SET_TARGET_PROPERTIES(${prefix}_${F}
 			PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 			)
 	ENDIF()
 	ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
 	IF(MSVC)
 		SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
-	ENDIF()	
+	ENDIF()
 ENDMACRO()
 
 # A script to print out information at the end of the configuration step.
@@ -308,7 +308,7 @@ MACRO(print_conf_summary)
 	MESSAGE(STATUS "CMAKE_C_FLAGS:\t\t" ${CMAKE_C_FLAGS})
 	MESSAGE(STATUS "CMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
 
-	MESSAGE(STATUS "Linking against:\t\t" "${ALL_TLL_LIBS}") 
+	MESSAGE(STATUS "Linking against:\t\t" "${ALL_TLL_LIBS}")
 
 	MESSAGE("")
 
@@ -329,9 +329,9 @@ ENDMACRO()
 # Taken From:
 # 	http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
 #
-MACRO(specify_static_crt_flag) 
+MACRO(specify_static_crt_flag)
 
-  SET(vars 
+  SET(vars
     CMAKE_C_FLAGS
     CMAKE_C_FLAGS_DEBUG
     CMAKE_C_FLAGS_MINSIZEREL
@@ -339,13 +339,13 @@ MACRO(specify_static_crt_flag)
     CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
     CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-  
+
   FOREACH(flag_var ${vars})
     IF(${flag_var} MATCHES "/MD")
       STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
     ENDIF()
-  ENDFOREACH()			    
-  
+  ENDFOREACH()
+
   FOREACH(flag_var ${vars})
     MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
   ENDFOREACH()
@@ -368,11 +368,11 @@ IF(NOT MSVC)
 
 	# when building, don't use the install RPATH already
 	# (but later on when installing)
-	SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 	# Stanza for Apple RPATH.
 	# See: http://www.cmake.org/pipermail/cmake/2011-April/043826.html
-	# 
+	#
 	IF(APPLE)
 	  SET(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 	ENDIF(APPLE)
@@ -408,7 +408,7 @@ SET (CHUNK_CACHE_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET (CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in cache.")
 SET (CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files (a number between 0 and 1, inclusive.")
 SET (MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
-SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.") 
+SET (NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET (TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
@@ -439,7 +439,7 @@ OPTION (BUILD_V2 "Build netCDF Version 2." ON)
 
 # Option to build utilities
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
-	
+
 # Option to use MMAP
 OPTION (ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
@@ -465,15 +465,15 @@ IF(ENABLE_DISKLESS)
 	SET(USE_DISKLESS ON)
 ENDIF()
 
-# Option Logging, only valid for netcdf4. 
+# Option Logging, only valid for netcdf4.
 OPTION (ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
 	SET(LOGGING ON)
 ENDIF()
 # Option to use HDF4
 OPTION (ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required)." OFF)
-IF (ENABLE_HDF4) 
-   SET(USE_HDF4 ON) 
+IF (ENABLE_HDF4)
+   SET(USE_HDF4 ON)
    # Check for include files, libraries.
 
    FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
@@ -482,8 +482,8 @@ IF (ENABLE_HDF4)
    ELSE()
      SET(HAVE_MFHDF_H ON CACHE BOOL "")
      INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
-   ENDIF() 
- 
+   ENDIF()
+
    FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
    IF(NOT HDF4_DF_LIB)
 	MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
@@ -497,7 +497,7 @@ IF (ENABLE_HDF4)
    SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
    # End include files, libraries.
    MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
-   
+
    MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
 
    # Look for the jpeglib.h header file.
@@ -515,7 +515,7 @@ IF (ENABLE_HDF4)
    ENDIF()
    SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
    MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
-   
+
    # Option to enable HDF4 file tests.
    OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires wget)." ON)
    IF(ENABLE_HDF4_FILE_TESTS)
@@ -526,9 +526,9 @@ IF (ENABLE_HDF4)
        MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
        SET(USE_HDF4_FILE_TESTS OFF)
      ENDIF()
-     
+
    ENDIF()
-   
+
  ENDIF ()
 
 # Option to Build DLL
@@ -568,14 +568,20 @@ ENDIF()
 IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
   SET(USE_NETCDF4 ON)
-
   # Accomodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
   IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
-	SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
+  	SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
   	SET(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
+    # Find out if HDF5 was built with parallel support.
+    # Do that by checking for the targets H5Pget_fapl_mpiposx and
+    # H5Pget_fapl_mpio in ${HDF5_LIB}.
+    CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpioposix "" HDF5_IS_PARALLEL)
+    IF(NOT HDF5_IS_PARALLEL)
+      CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL)
+    ENDIF()
   ELSE()
     IF(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE REQUIRED)
@@ -583,11 +589,10 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
     ELSE()
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
-
   ENDIF()
-  
+
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
-  
+
   # Starting with hdf5 1.8.11, dynamic loading is an option.
   # In case hdf5 has a dependency on libdl, the user must specify
   # -DENABLE_DYNAMIC_LOADING=ON when configuring netcdf.
@@ -611,13 +616,13 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 	FIND_PACKAGE(SZIP NO_MODULE)
 	INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
-	
+
   SET(H5_USE_16_API 1)
-  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility (Required)" ON)  
+  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility (Required)" ON)
   IF(NOT NC_ENABLE_HDF_16_API)
     SET(H5_USE_16_API 0)
   ENDIF()
-  
+
   # Check for ZLib, but only if using HDF5.
   FIND_PACKAGE(ZLIB)
   IF(NOT ZLIB_LIBRARY)
@@ -653,7 +658,7 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 # If netCDF4 and DAP, Option for DAP groups.
-IF(ENABLE_NETCDF_4 AND USE_DAP)		
+IF(ENABLE_NETCDF_4 AND USE_DAP)
 		  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
 	SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
@@ -687,7 +692,7 @@ ENDIF()
 # Enable Tests
 #IF(NOT MSVC)
 OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-IF(ENABLE_TESTS) 
+IF(ENABLE_TESTS)
  SET(BUILD_TESTSETS ON CACHE BOOL "")
 ENDIF()
 
@@ -730,19 +735,12 @@ SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
 IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
 	SET(USE_PARALLEL ON CACHE BOOL "")
-	# Check for H5Pget_fapl_mpiposx, define USE_PARALLEL_POSIX
-	CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpioposix "" USE_PARALLEL_POSIX)	
-		
-	# Else Check for H5Pget_fapl_mpio, define USE_PARALLEL_MPIO
-	IF(NOT USE_PARALLEL_POSIX)
-	       CHECK_LIBRARY_EXISTS(${HDF5_LIB} H5Pget_fapl_mpio "" USE_PARALLEL_MPIO)
-	ENDIF()
-	
-	IF(NOT USE_PARALLEL_POSIX AND NOT USE_PARALLEL_MPIO)
+	IF(NOT HDF5_IS_PARALLEL)
 		SET(USE_PARALLEL OFF CACHE BOOL "")
 		MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
+  ELSE()
+	  SET(STATUS_PARALLEL "ON")
 	ENDIF()
-	SET(STATUS_PARALLEL "ON")
 ENDIF()
 
 # Options to enable parallel IO, tests.
@@ -751,14 +749,14 @@ OPTION(ENABLE_PNETCDF "Build with parallel I/O for classic and 64-bit offset fil
 IF(ENABLE_PNETCDF)
 	# Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
 	# Does the user want to turn on PNETCDF read ability?
-	SET(USE_PNETCDF ON CACHE BOOL "")	
+	SET(USE_PNETCDF ON CACHE BOOL "")
 	FIND_LIBRARY(PNETCDF NAMES pnetcdf)
 	FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
 	IF(NOT PNETCDF)
 		MESSAGE(STATUS "Cannot find pnetcdf library. Disabling pnetcdf support.")
 		SET(USE_PNETCDF OFF CACHE BOOL "")
 	ENDIF()
-	SET(STATUS_PNETCDF "ON")	
+	SET(STATUS_PNETCDF "ON")
 	INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
 	SET(HAVE_LIBPNETCDF ON)
         # pnetcdf => parallel
@@ -776,7 +774,7 @@ OPTION (ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
   IF(NC_DOXYGEN)
     SET(BUILD_DOCS ON CACHE BOOL "")
-    
+
     # Offer the option to build internal documentation.
     OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
     IF(ENABLE_INTERNAL_DOCS)
@@ -804,7 +802,7 @@ IF(ENABLE_DOXYGEN)
   ELSE(NC_DOXYGEN)
     MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
   ENDIF(NC_DOXYGEN)
-	
+
 
 ENDIF()
 
@@ -812,7 +810,7 @@ ENDIF()
 # Allow a user to override this.
 IF(MSVC)
   SET(NC_MSVC_STACK_SIZE 40000000 CACHE STRING "Default stack size for MSVC-based projects.")
-  
+
   # By default, CMake sets the stack to 1000000.
   # Remove this limitation.
   # See here for more details:
@@ -820,7 +818,7 @@ IF(MSVC)
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
   SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
   SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /STACK:${NC_MSVC_STACK_SIZE}")
-  
+
 ENDIF()
 
 
@@ -916,7 +914,7 @@ ELSE()
 	ENDIF()
 ENDIF()
 
-# Check for various functions. 
+# Check for various functions.
 CHECK_FUNCTION_EXISTS(fsync	HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat 	HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strerror	HAVE_STRERROR)
@@ -1011,7 +1009,7 @@ IF(ENABLE_TESTS)
 	IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
 		ADD_SUBDIRECTORY(ncdap_test)
 	ENDIF()
-	
+
 	IF(ENABLE_EXAMPLES)
 		ADD_SUBDIRECTORY(examples)
 	ENDIF()
@@ -1045,7 +1043,7 @@ IF(MSVC)
 ENDIF()
 
 
-IF(ENABLE_DOXYGEN)	
+IF(ENABLE_DOXYGEN)
 	INSTALL(DIRECTORY man4 DESTINATION "." COMPONENT documentation)
 ENDIF()
 
@@ -1088,7 +1086,7 @@ IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   SET(CMAKE_INSTALL_LIBDIR lib)
 ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 
-# Set 
+# Set
 SET(prefix ${CMAKE_INSTALL_PREFIX})
 SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
 SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
@@ -1121,7 +1119,7 @@ configure_file (
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-install (FILES ${netCDF_BINARY_DIR}/netcdf.pc 
+install (FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
 
 ###
@@ -1136,8 +1134,8 @@ install (FILES ${netCDF_BINARY_DIR}/netcdf.pc
 
 ##
 # Declare exclusions list used when building a source file.
-# NOTE!! This list uses regular expressions, NOT wildcards!! 
-## 
+# NOTE!! This list uses regular expressions, NOT wildcards!!
+##
 SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"/expecttds3/"
 	"/nocacheremote3/"
@@ -1159,7 +1157,7 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 	"Make0"
 	"/obsolete/"
 	"/unknown/"
-	".*~" 
+	".*~"
 )
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
 	${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
