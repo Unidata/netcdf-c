@@ -42,9 +42,11 @@ add_to_NCList(NC* ncp)
 	    return NC_ENOMEM;
 	numfiles = 0;
     }
+#ifdef USE_REFCOUNT
     /* Check the refcount */
     if(ncp->refcount > 0)
 	return NC_NOERR;
+#endif
 
     new_id = 0; /* id's begin at 1 */
     for(i=1; i < NCFILELISTLENGTH; i++) {
@@ -64,9 +66,11 @@ del_from_NCList(NC* ncp)
    unsigned int ncid = ((unsigned int)ncp->ext_ncid) >> ID_SHIFT;
    if(numfiles == 0 || ncid == 0 || nc_filelist == NULL) return;
    if(nc_filelist[ncid] != ncp) return;
+#ifdef USE_REFCOUNT
    /* Check the refcount */
    if(ncp->refcount > 0)
 	return; /* assume caller has decrecmented */
+#endif
 
    nc_filelist[ncid] = NULL;
    numfiles--;

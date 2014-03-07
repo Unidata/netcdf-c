@@ -28,7 +28,9 @@ typedef struct NC {
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
 	int   substrate;
+#ifdef USE_REFCOUNT
 	int   refcount; /* To enable multiple name-based opens */
+#endif
 } NC;
 
 /*
