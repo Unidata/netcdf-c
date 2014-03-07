@@ -5,7 +5,7 @@
 #include <netcdf.h>
 
 
-#define URL1 "http://thredds-test.ucar.edu" /* test that no trailing / is ok */
+#define URL1 "http://remotetest.unidata.ucar.edu" /* test that no trailing / is ok */
 
 static void
 CHECK(int e, const char* msg)

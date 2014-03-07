@@ -42,6 +42,10 @@ add_to_NCList(NC* ncp)
 	    return NC_ENOMEM;
 	numfiles = 0;
     }
+    /* Check the refcount */
+    if(ncp->refcount > 0)
+	return NC_NOERR;
+
     new_id = 0; /* id's begin at 1 */
     for(i=1; i < NCFILELISTLENGTH; i++) {
 	if(nc_filelist[i] == NULL) {new_id = i; break;}
@@ -60,6 +64,10 @@ del_from_NCList(NC* ncp)
    unsigned int ncid = ((unsigned int)ncp->ext_ncid) >> ID_SHIFT;
    if(numfiles == 0 || ncid == 0 || nc_filelist == NULL) return;
    if(nc_filelist[ncid] != ncp) return;
+   /* Check the refcount */
+   if(ncp->refcount > 0)
+	return; /* assume caller has decrecmented */
+
    nc_filelist[ncid] = NULL;
    numfiles--;
 
@@ -77,4 +85,26 @@ find_in_NCList(int ext_ncid)
 	f = nc_filelist[ncid];
    return f;
 }
+
+/*
+Added to support open by name
+*/
+NC*
+find_in_NCList_by_name(const char* path)
+{
+   int i;
+   NC* f = NULL;
+   if(nc_filelist == NULL)
+	return NULL;
+   for(i=1; i < NCFILELISTLENGTH; i++) {
+	if(nc_filelist[i] != NULL) {
+	    if(strcmp(nc_filelist[i]->path,path)==0) {
+		f = nc_filelist[i];
+		break;
+	    }				
+	}
+   }
+   return f;
+}
+
 

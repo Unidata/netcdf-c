@@ -1033,6 +1033,11 @@ nc_abort(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+
+   /* What to do if refcount > 0? */
+   /* currently, forcibly abort */
+   ncp->refcount = 0;
+
    stat = ncp->dispatch->abort(ncid);
    del_from_NCList(ncp);
    free_NC(ncp);
@@ -1085,10 +1090,15 @@ nc_close(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   stat = ncp->dispatch->close(ncid);
-   /* Remove from the nc list */
-   del_from_NCList(ncp);
-   free_NC(ncp);
+
+   ncp->refcount--;
+   if(ncp->refcount <= 0)
+   {
+       stat = ncp->dispatch->close(ncid);
+       /* Remove from the nc list */
+       del_from_NCList(ncp);
+       free_NC(ncp);
+   }
    return stat;
 }
 
@@ -1505,6 +1515,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
       nc_initialized = 1;
    }
 
+   /* If this path is already open, then fail */
+   ncp = find_in_NCList_by_name(path);
+   if(ncp != NULL)
+	return NC_ENFILE;   
+
    if((isurl = NC_testurl(path)))
 	model = NC_urlmodel(path);
 
@@ -1634,6 +1649,14 @@ NC_open(const char *path, int cmode,
       /* Do local initialization */
       nc_local_initialize();
       nc_initialized = 1;
+   }
+
+   /* If this path is already open, then bump the refcount and return it */
+   ncp = find_in_NCList_by_name(path);
+   if(ncp != NULL) {
+	ncp->refcount++;
+	if(ncidp) *ncidp = ncp->ext_ncid;	
+	return NC_NOERR;
    }
 
    isurl = NC_testurl(path);
