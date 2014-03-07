@@ -12,11 +12,10 @@ separate distribution that is currently independent of the netCDF C
 library.
 
 
-
 Getting NetCDF {#getting}
 =========================
 
-Getting pre-built netCDF-C libraries. {#sec_get_pre_built}
+Getting pre-built NetCDF-C libraries. {#sec_get_pre_built}
 -------------------------------------
 
 The easiest way to get netCDF is through a package management program,
@@ -30,7 +29,7 @@ the netcdf.h header file.
 
     If you are interested in building NetCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
 
-Getting the latest netCDF-C Source Code {#sec_get_source}
+Getting the latest NetCDF-C Source Code {#sec_get_source}
 ----------------------------------------
 
 Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the 
@@ -73,7 +72,7 @@ full functionality. (See \ref architecture).
 - \ref build_classic
 - \ref build_hdf4
 - \ref build_parallel
-- <a class="el" href="http://www.unidata.ucar.edu/netcdf/docs/netcdf-fortran-install.html" >Building netCDF-Fortran Libraries</a>
+- \ref building_netcdf_fortran
 - \ref configure_options
 
 CMake and Windows support {#sub}

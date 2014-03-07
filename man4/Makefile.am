@@ -5,9 +5,9 @@
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
-    mainpage.doc tutorial.doc install.doc dispatch.doc \
-    guide.doc types.doc notes.doc cdl.doc \
-    architecture.doc internal.doc Doxyfile.in.cmake windows-binaries.md \
+    mainpage.dox tutorial.dox install.dox dispatch.dox \
+    guide.dox types.dox notes.dox cdl.dox \
+    architecture.dox internal.dox windows-binaries.md \
     Building-with-CMake.md CMakeLists.txt
 
 # Turn off parallel builds in this directory.
