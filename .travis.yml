@@ -2,4 +2,8 @@ language: c
 compiler:
   - gcc
   - clang
-script: cmake
+
+before_script:
+  - cmake ..
+
+script: make
