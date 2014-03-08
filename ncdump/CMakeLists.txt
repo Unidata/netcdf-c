@@ -37,8 +37,10 @@ TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
 IF(ENABLE_TESTS)
-	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c bom.c)
+	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
+	ADD_EXECUTABLE(bom bom.c)
 	TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
+	TARGET_LINK_LIBRARIES(bom netcdf)
 	# Base tests
 	# The tests are set up as a combination of shell scripts and executables that
 	# must be run in a particular order. It is painful but will use macros to help
