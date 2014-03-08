@@ -6,6 +6,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* BOM Sequences */
 static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
