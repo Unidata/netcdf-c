@@ -124,6 +124,13 @@ struct Languages legallanguages[] = {
 };
 #endif
 
+/* BOM Sequences */
+static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
+static char* BE32 = "\x00\x00\xFE\xFF"; /* UTF-32; big-endian */
+static char* LE32 = "\xFF\xFE";       /* UTF-32; little-endian */
+static char* BE16 = "\xFE\xFF";       /* UTF-16; big-endian */
+static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
+
 /* The default minimum iterator size depends
    on whether we are doing binary or language
    based output.
@@ -371,11 +378,36 @@ main(
 
     fp = stdin;
     if (argc > 0 && strcmp(argv[0], "-") != 0) {
+	char bom[4];
+	size_t count;
 	if ((fp = fopen(argv[0], "r")) == NULL) {
 	    derror ("can't open file %s for reading: ", argv[0]);
 	    perror("");
 	    return(7);
 	}
+   	/* Check the leading bytes for an occurrence of a BOM */
+        /* re: http://www.unicode.org/faq/utf_bom.html#BOM */
+	/* Attempt to read the first four bytes */
+	memset(bom,0,sizeof(bom));
+	count = fread(bom,1,2,fp);
+	if(count == 2) {
+	    switch (bom[0]) {
+	    case '\x00':
+	    case '\xFF':
+	    case '\xFE':
+	        /* Only UTF-* is allowed; complain and exit */
+		fprintf(stderr,"Input file contains a BOM indicating a non-UTF8 encoding\n");
+		return 1;
+	    case '\xEF':
+		/* skip the BOM */
+	        fread(bom,1,1,fp);
+	        break;
+	    default: /* legal printable char, presumably; rewind */
+	        rewind(fp);
+		break;
+	    }
+	}
+
 	cdlname = (char*)emalloc(NC_MAX_NAME);
 	cdlname = nulldup(argv[0]);
 	if(strlen(cdlname) > NC_MAX_NAME) cdlname[NC_MAX_NAME] = '\0';

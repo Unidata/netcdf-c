@@ -37,7 +37,7 @@ TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
 IF(ENABLE_TESTS)
-	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
+	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c bom.c)
 	TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
 	# Base tests
 	# The tests are set up as a combination of shell scripts and executables that
@@ -58,8 +58,8 @@ IF(ENABLE_TESTS)
 	add_sh_test(ncdump tst_charfill)
 	add_sh_test(ncdump tst_iter)
 	add_sh_test(ncdump tst_formatx3)
+	add_sh_test(ncdump tst_bom)
 	
-
 	IF(EXTRA_TESTS)
 		add_sh_test(ncdump run_back_comp_tests)
 	ENDIF()
