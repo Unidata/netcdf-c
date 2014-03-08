@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nschloe/netcdf-c.png?branch=travis-ci)](https://travis-ci.org/nschloe/netcdf-c)
+
 # Unidata NetCDF
 
 The Unidata network Common Data Form (netCDF) is an interface for
