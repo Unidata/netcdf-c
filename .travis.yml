@@ -12,4 +12,6 @@ before_install:
 before_script:
   - cmake .
 
-script: make
+script:
+  - make
+  - make test
