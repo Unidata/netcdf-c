@@ -5,7 +5,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq cmake libhdf5-dev
+  - sudo apt-get install -qq libhdf5-serial-dev
 
 before_script:
   - cmake .
