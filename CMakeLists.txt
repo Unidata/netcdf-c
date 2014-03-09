@@ -797,9 +797,9 @@ IF(ENABLE_DOXYGEN)
 
 
     # Option to turn on the TODO list in the doxygen-generated documentation.
-    OPTION(ENABLE_DOXYGEN_TODO_LIST "Turn on todo list in documentation. This is of interest to developers only." OFF)
-    IF(ENABLE_DOXYGEN_TODO_LIST)
-      SET(SHOW_DOXYGEN_TODO_LIST YES CACHE STRING "")
+    OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+    IF(ENABLE_DOXYGEN_TASKS)
+      SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
     ELSE()
       SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
     ENDIF()
@@ -958,11 +958,10 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 #####
 
 
-# Create config.h file, nc-config
+# Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
   "${netCDF_BINARY_DIR}/config.h")
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
 
@@ -1131,11 +1130,22 @@ configure_file (
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-install (FILES ${netCDF_BINARY_DIR}/netcdf.pc
+
+FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
+FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+
+INSTALL (FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
 
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
+
 ###
-# End pkgconfig file creation.
+# End pkgconfig, nc-config file creation.
 ###
 
 ####
@@ -1217,18 +1227,6 @@ set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
 set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
   "The netCDF user documentation.")
 print_conf_summary()
-
-
-# Create nc-config
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
-configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
-FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-#EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
-
-
 
 
 # Enable Makedist files.

@@ -31,7 +31,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
 
-\section Example
+\section nc_inq_varid_example4 Example
 
 Here is an example using nc_inq_varid to find out the ID of a variable
 named rh in an existing netCDF dataset named foo.nc:
@@ -85,7 +85,7 @@ stored. \ref ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
 
-\section Example
+\section nc_inq_var_example5 Example
 
 Here is an example using nc_inq_var() to find out about a variable named
 rh in an existing netCDF dataset named foo.nc:

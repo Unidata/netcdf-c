@@ -37,7 +37,7 @@ you wish to insert into the compound type.
 \returns ::NC_EPERM Attempt to write to a read-only file.
 \returns ::NC_ENOTINDEFINE Not in define mode. 
 
-\section Example
+\section nc_def_compound_example Example
 
 \code
 struct s1
