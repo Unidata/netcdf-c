@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/nschloe/netcdf-c.png?branch=travis-ci)](https://travis-ci.org/nschloe/netcdf-c)
-
 # Unidata NetCDF
+
+[![Build Status](https://travis-ci.org/nschloe/netcdf-c.png?branch=travis-ci)](https://travis-ci.org/nschloe/netcdf-c)
 
 The Unidata network Common Data Form (netCDF) is an interface for
 scientific data access and a freely-distributed software library that
