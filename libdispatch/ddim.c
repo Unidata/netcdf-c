@@ -9,59 +9,11 @@ Research/Unidata. See COPYRIGHT file for more info.
 
 #include "ncdispatch.h"
 
-/*! \defgroup dimensions Dimensions 
-
-Dimensions are used to define the shape of data in netCDF.
-
-Dimensions for a netCDF dataset are defined when it is created, while
-the netCDF dataset is in define mode. Additional dimensions may be
-added later by reentering define mode. A netCDF dimension has a name
-and a length. In a netCDF classic or 64-bit offset file, at most one
-dimension can have the unlimited length, which means variables using
-this dimension can grow along this dimension. In a netCDF-4 file
-multiple unlimited dimensions are supported.
-
-There is a suggested limit (1024) to the number of dimensions that can
-be defined in a single netCDF dataset. The limit is the value of the
-predefined macro NC_MAX_DIMS. The purpose of the limit is to make
-writing generic applications simpler. They need only provide an array
-of NC_MAX_DIMS dimensions to handle any netCDF dataset. The
-implementation of the netCDF library does not enforce this advisory
-maximum, so it is possible to use more dimensions, if necessary, but
-netCDF utilities that assume the advisory maximums may not be able to
-handle the resulting netCDF datasets.
-
-NC_MAX_VAR_DIMS, which must not exceed NC_MAX_DIMS, is the maximum
-number of dimensions that can be used to specify the shape of a single
-variable.  It is also intended to simplify writing generic
-applications.
-
-Ordinarily, the name and length of a dimension are fixed when the
-dimension is first defined. The name may be changed later, but the
-length of a dimension (other than the unlimited dimension) cannot be
-changed without copying all the data to a new netCDF dataset with a
-redefined dimension length.
-
-Dimension lengths in the C interface are type size_t rather than type
-int to make it possible to access all the data in a netCDF dataset on
-a platform that only supports a 16-bit int data type, for example
-MSDOS. If dimension lengths were type int instead, it would not be
-possible to access data from variables with a dimension length greater
-than a 16-bit int can accommodate.
-
-A netCDF dimension in an open netCDF dataset is referred to by a small
-integer called a dimension ID. In the C interface, dimension IDs are
-0, 1, 2, ..., in the order in which the dimensions were defined.
-
-Operations supported on dimensions are:
-- Create a dimension, given its name and length.
-- Get a dimension ID from its name.
-- Get a dimension's name and length from its ID.
-- Rename a dimension. 
-*/
 /**@{*/
 
-/*!  Define a new dimension. The function nc_def_dim adds a new
+/*!  
+
+Define a new dimension. The function nc_def_dim adds a new
 dimension to an open netCDF dataset in define mode. It returns (as an
 argument) a dimension ID, given the netCDF ID, the dimension name, and
 the dimension length. At most one unlimited length dimension, called
@@ -90,7 +42,7 @@ unlimited dimensions.
 \returns ::NC_ENOMEM Memory allocation (malloc) failure
 \returns ::NC_EPERM Write to read only
 
-\section Example
+\section nc_def_dim_example Example
 
 Here is an example using nc_def_dim() to create a dimension named lat of
 length 18 and a unlimited dimension named rec in a new netCDF dataset
@@ -176,7 +128,7 @@ the unlimited dimension, this is the number of records written so far.
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
@@ -241,7 +193,7 @@ with length less than NC_MAX_NAME.
 \returns ::NC_ENAMEINUSE String match to name in use
 \returns ::NC_ENOMEM     Memory allocation (malloc) failure
 \returns ::NC_EPERM      Write to read only
-\section Example
+\section nc_rename_dim_example Example
 
 Here is an example using nc_rename_dim to rename the dimension lat to
 latitude in an existing netCDF dataset named foo.nc:
@@ -354,7 +306,7 @@ will be null-terminated. Ignored if NULL.
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example2 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
@@ -411,7 +363,7 @@ nc_def_dim().
 \returns ::NC_EBADID  Not a valid ID.
 \returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section Example
+\section nc_inq_dim_example3 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the

@@ -25,7 +25,7 @@ The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/netcdf"
 
 \subsection learn-more Learn more about using NetCDF-C
 
-- \ref tutorial
+- \ref sec_tut
 - \ref user_guide
 - \ref netcdf_working_with_netcdf_files
 - <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>

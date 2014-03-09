@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "The NetCDF User's Guide"
+PROJECT_NAME           = "The NetCDF-C Tutorial"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -743,7 +743,18 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT = @abs_top_srcdir@/man4/guide.dox
+INPUT = @abs_top_srcdir@/man4/tutorial.dox \
+    @abs_top_srcdir@/examples/C/simple_xy_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_rd.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c 
+
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -811,7 +822,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           =
+EXAMPLE_PATH           = @abs_top_srcdir@/examples/C
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1039,7 +1050,7 @@ GENERATE_HTML          = YES
 # The default directory is: html.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_OUTPUT            = html/html_guide
+HTML_OUTPUT            = html/html_tutorial
 
 # The HTML_FILE_EXTENSION tag can be used to specify the file extension for each
 # generated HTML page (for example: .htm, .php, .asp).
@@ -2003,14 +2014,13 @@ SKIP_FUNCTION_MACROS   = YES
 # the path). If a tag file is not located in the directory in which doxygen is
 # run, you must also specify the path to the tagfile here.
 
-TAGFILES               = @CMAKE_CURRENT_BINARY_DIR@/main.tag=../ "@CMAKE_CURRENT_BINARY_DIR@/tutorial.tag = ../html_tutorial"
-		     
+TAGFILES               = @CMAKE_CURRENT_BINARY_DIR@/main.tag=../ "@CMAKE_CURRENT_BINARY_DIR@/guide.tag = ../html_guide/"
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       = @CMAKE_CURRENT_BINARY_DIR@/guide.tag
+GENERATE_TAGFILE       = @CMAKE_CURRENT_BINARY_DIR@/tutorial.tag
 
 # If the ALLEXTERNALS tag is set to YES all external class will be listed in the
 # class index. If set to NO only the inherited external classes will be listed.
