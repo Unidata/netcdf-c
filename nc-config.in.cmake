@@ -10,8 +10,8 @@ libdir=@CMAKE_INSTALL_PREFIX@/lib
 includedir=@CMAKE_INSTALL_PREFIX@/include
 
 cc="@CMAKE_C_COMPILER@"
-cflags="-I@CMAKE_INSTALL_PREFIX@/include @CMAKE_C_FLAGS@ @CMAKE_CPP_FLAGS@"
-libs="-L@CMAKE_INSTALL_PREFIX@/lib -l@ALL_TLL_LIBS@"
+cflags="-I@CMAKE_INSTALL_PREFIX@/include"
+libs="-L@CMAKE_INSTALL_PREFIX@/lib @NC_LIBS@"
 
 has_dap="@USE_DAP@"
 if [ -z $has_dap ]; then
