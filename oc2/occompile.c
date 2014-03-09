@@ -74,7 +74,7 @@ static OCerror
 occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 {
     OCerror ocstat = OC_NOERR;
-    int i;
+    size_t i;
     OCdata* data = NULL;
     size_t nelements = 0;
     OClist* records = NULL;
@@ -144,7 +144,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
             /* pick up the sequence record begin marker*/
             char tmp[sizeof(unsigned int)];
             /* extract the tag byte*/
-	    if(!xxdr_opaque(xxdrs,tmp,sizeof(tmp)))
+	    if(!xxdr_opaque(xxdrs,tmp,(off_t)sizeof(tmp)))
 		{ocstat = OC_EXDR; goto fail;}
             if(tmp[0] == StartOfSequence) {
 		/* Allocate a record instance */
@@ -224,7 +224,7 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
 static OCerror
 occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
 {
-    int i;
+    size_t i;
     OCerror ocstat = OC_NOERR;
     size_t nelements;
     OCnode* xnode = data->template;
@@ -276,7 +276,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
 {
     OCerror ocstat = OC_NOERR;
     int i;
-    size_t nelements,xdrsize;
+    off_t nelements,xdrsize;
     unsigned int xxdrcount;
     OCnode* xnode = data->template;
     int scalar = (xnode->array.rank == 0);
@@ -333,12 +333,14 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
 	/* We need to walk each string, get size, then skip */
         for(i=0;i<data->nstrings;i++) {
 	    unsigned int len;
+	    off_t lenz;
 	    data->strings[i] = xxdr_getpos(xxdrs);
 	    /* get exact string length */
 	    if(!xxdr_uint(xxdrs,&len)) {ocstat = OC_EXDR; goto fail;}
-	    len = RNDUP(len);
+	    lenz = (off_t)len;
+	    lenz = RNDUP(lenz);
 	    /* Skip the data */
-	    xxdr_skip(xxdrs,len);
+	    xxdr_skip(xxdrs,lenz);
         }
         break;
 
@@ -435,8 +437,8 @@ ocerrorstring(XXDR* xdrs)
 {
     /* Check to see if the xdrs contains "Error {\n'; assume it is at the beginning of data */
     off_t avail = xxdr_getavail(xdrs);
-    char* data = (char*)malloc(avail);
-    if(!xxdr_setpos(xdrs,0)) return 0;
+    char* data = (char*)malloc((size_t)avail);
+    if(!xxdr_setpos(xdrs,(off_t)0)) return 0;
     if(!xxdr_opaque(xdrs,data,avail)) return 0;
     /* check for error tag at front */
     if(ocstrncmp(data,tag,sizeof(tag))==0) {

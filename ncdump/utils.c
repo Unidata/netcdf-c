@@ -83,8 +83,8 @@ escaped_name(const char* cp) {
 	*sp++ = '\\';
     }
     for (; *cp; cp++) {
-	if (isascii(*cp)) {
-	    if(iscntrl(*cp)) {	/* render control chars as two hex digits, \%xx */
+	if (isascii((int)*cp)) {
+	    if(iscntrl((int)*cp)) {	/* render control chars as two hex digits, \%xx */
 		snprintf(sp, 4,"\\%%%.2x", *cp);
 		sp += 4;
 	    } else {

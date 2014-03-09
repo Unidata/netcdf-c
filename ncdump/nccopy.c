@@ -34,7 +34,7 @@ int optind;
 #define COPY_BUFFER_SIZE (5000000)
 #define COPY_CHUNKCACHE_PREEMPTION (1.0f) /* for copying, can eject fully read chunks */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
-#define CHUNK_THRESHOLD (8192)	/* variables with fewer bytes don't get chunked */
+#define CHUNK_THRESHOLD (8192)	/* non-record variables with fewer bytes don't get chunked */
 
 #ifndef USE_NETCDF4
 #define NC_CLASSIC_MODEL 0x0100 /* Enforce classic model if netCDF-4 not available. */

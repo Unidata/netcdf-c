@@ -418,11 +418,13 @@ NIL|nil|Nil {
 		    case -1: token = INT64_CONST; break;
 		    case 1:
 			/* if value is too big, complain */
+			/* cannot actually test this.
 		        if(uint64_val > NC_MAX_INT64) {
-			   sprintf(errstr,"32 bit integer constant out of range: %s",(char*)yytext);
+			   sprintf(errstr,"64 bit integer constant out of range: %s",(char*)yytext);
 			   yyerror(errstr);
 			}
-		        int64_val = (long long)(uint64_val & 0x7fffffffffffffff);
+                        */
+		        int64_val = (long long)(uint64_val & 0x7fffffffffffffffLL);
 			token = INT64_CONST;
 			break;
 		    }

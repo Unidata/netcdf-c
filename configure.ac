@@ -304,6 +304,22 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+# Default is now to do the remote authorization tests
+AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
+AC_ARG_ENABLE([dap-auth-test],
+              [AS_HELP_STRING([--enable-dap-auth-tests],
+                                 [enable dap remote authorization tests])])
+test "x$enable_dap_auth_tests" = xyes || enable_dap_auth_tests=no
+# dap must be enabled
+if test "x$enable_dap" = "xno" ; then
+  enable_dap_auth_tests=no
+fi
+# if remote tests are disabled, then so is this
+if test "x$enable_dap_remote_tests" = "xno" ; then
+  enable_dap_remote_tests=no
+fi
+AC_MSG_RESULT($enable_dap_auth_tests)
+
 # Control if groups are supported in [netcdf4]dap2 code
 AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
@@ -608,7 +624,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand \
+		mkstemp rand memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
@@ -811,6 +827,7 @@ AM_CONDITIONAL(TEST_PARALLEL, [test "x$enable_parallel" = xyes -a "x$enable_para
 AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])

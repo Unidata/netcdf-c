@@ -12,8 +12,10 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE) 
 
-ADD_EXECUTABLE(nctestserver nctestserver.c)
-TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
+IF(ENABLE_DAP_REMOTE_TESTS)
+	ADD_EXECUTABLE(nctestserver nctestserver.c)
+	TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
+ENDIF()
 
 IF(ENABLE_TESTS)
 	# Base tests
@@ -24,26 +26,36 @@ IF(ENABLE_TESTS)
 
 	add_sh_test(ncdap tst_ncdap3)
 	
-	IF(ENABLE_DAP_REMOTE_TESTS)
-		add_sh_test(ncdap tst_remote3)
-		add_sh_test(ncdap tst_formatx)
-	ENDIF()
-
-	IF(ENABLE_DAP_LONG_TESTS)
-		add_sh_test(ncdap tst_longremote3)
-	ENDIF()
-
 	IF(NOT MSVC)
 		add_bin_env_test(ncdap t_dap3a)
 		add_bin_env_test(ncdap test_cvt)
 		add_bin_env_test(ncdap test_vara)
 	ENDIF()
-	add_bin_test(ncdap test_nstride_cached)
-	add_bin_test(ncdap test_partvar)
-	add_bin_test(ncdap test_varm3)
-	add_bin_test(ncdap t_auth)
-	add_bin_test(ncdap t_misc)
+
+	IF(ENABLE_DAP_REMOTE_TESTS)
+		add_sh_test(ncdap tst_remote3)
+		add_sh_test(ncdap tst_formatx)
+		add_bin_test(ncdap test_partvar)
+		IF(ENABLE_DAP_LONG_TESTS)
+			add_sh_test(ncdap tst_longremote3)
+		ENDIF()
+
+		add_bin_test(ncdap test_nstride_cached)
+		add_bin_test(ncdap t_misc)
+
+		IF(ENABLE_DAP_AUTH_TESTS)
+		  add_bin_test(ncdap t_auth)
+		ENDIF()
 	
+# test_varm3 did not survive the transition
+# to remotetest.unidata.ucar.edu; the
+# coads_climatology.nc file cannot be found.
+# Can restore if/when we find that file
+# and put it in testdods directory on remotetest.
+#	add_bin_test(ncdap test_varm3)
+
+	ENDIF()
+
 ENDIF()
 ADD_SUBDIRECTORY(testdata3)
 ADD_SUBDIRECTORY(expected3)

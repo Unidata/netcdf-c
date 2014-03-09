@@ -56,10 +56,10 @@ ocextract_credentials(const char *url, char **name, char **pw, char **result_url
 	char *pos;
 	char *end;
 	char *middle;
-	int up_len = 0;
-	int mid_len = 0;
-	int midpas_len = 0;
-	int url_len = 0;
+	size_t up_len = 0;
+	size_t mid_len = 0;
+	size_t midpas_len = 0;
+	size_t url_len = 0;
 
 	if (strchr(url, '@')) {
 		pos = strstr(url, "http://");
@@ -87,7 +87,7 @@ ocextract_credentials(const char *url, char **name, char **pw, char **result_url
 		if (!result_url)
 			return OC_ENOMEM;
 
-		strncpy(*result_url, url, pos - url);
+		strncpy(*result_url, url, (size_t)(pos - url));
 		strncpy(*result_url + (pos - url), end + 1, url_len - (pos - url));
 
 #if 0
@@ -167,7 +167,7 @@ parseproxy(OCstate* state, char* v)
 	host_pos = v;
     port_pos = strchr(host_pos, ':');
     if (port_pos) {
-        int host_len;
+        size_t host_len;
         char *port_sep = port_pos;
         port_pos++;
         *port_sep = '\0';
@@ -181,7 +181,7 @@ parseproxy(OCstate* state, char* v)
 
         state->proxy.port = atoi(port_pos);
     } else {
-        int host_len = strlen(host_pos);
+        size_t host_len = strlen(host_pos);
         state->proxy.host = malloc(sizeof(char) * host_len + 1);
         if (!state->proxy.host)
             return OC_ENOMEM;
@@ -487,7 +487,7 @@ ocdodsrc_lookup(char* key, char* url)
     if(url == NULL) url = "";
     /* Assume that the triple store has been properly sorted */
     for(found=0,i=0;i<ocdodsrc->ntriples;i++,triple++) {
-	int triplelen = strlen(triple->url);
+	size_t triplelen = strlen(triple->url);
 	int t;
 	if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
 	/* If the triple entry has no url, then use it (because we have checked all other cases)*/

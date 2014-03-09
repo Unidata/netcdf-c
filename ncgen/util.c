@@ -654,4 +654,19 @@ findlastunlimited(Dimset* dimset)
     return -1;
 }
 
+/* Return standard format string */
+const char *
+kind_string(int kind)
+{
+    static char text[1024];
+    switch (kind) {
+    case 1: return "classic";
+    case 2: return "64-bit offset";
+    case 3: return "netCDF-4";
+    case 4: return "netCDF-4 classic model";
+    default:
+	derror("Unknown format index: %d\n",kind);
+    }
+    return NULL;
+}
 

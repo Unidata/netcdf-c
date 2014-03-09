@@ -23,7 +23,7 @@ struct OCdata {
     OCdata**  instances;	/* vector of instances; if rank > 0, then
                                    it captures the array elements, else
                                    it captures the field instances. */
-    off_t     nstrings;
+    size_t     nstrings;
     off_t*    strings;
 };
 

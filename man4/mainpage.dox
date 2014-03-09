@@ -19,13 +19,16 @@ The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/netcdf"
 - \ref release_notes
 - \ref getting_and_building_netcdf
 
+\subsubsection nightly_status The Latest NetCDF-C Build Status
+
+- <A href="http://my.cdash.org/index.php?project=netcdf-c">The NetCDF-C Nightly and Continuous Integration Dashboard</A>
+
 \subsection learn-more Learn more about using NetCDF-C
 
 - \ref tutorial
 - \ref user_guide
 - \ref netcdf_working_with_netcdf_files
 - <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/docs/index-413.html">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>
-
 
 \subsection netcdf-cmake-windows NetCDF CMake and Windows support:
 - \ref netCDF-CMake

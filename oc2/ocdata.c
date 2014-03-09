@@ -195,7 +195,10 @@ ocdata_position(OCstate* state, OCdata* data, size_t* indices)
 	indices[0] = data->index;
     else if(fisset(data->datamode,OCDT_ELEMENT)) {
 	/* Transform the linearized array index into a set of indices */
-	ocarrayindices(data->index,template->array.rank,template->array.sizes,indices);
+	ocarrayindices(data->index,
+                       template->array.rank,
+                       template->array.sizes,
+                       indices);
     } else
 	return OCTHROW(OC_EBADTYPE);
     return OCTHROW(OC_NOERR);
@@ -363,7 +366,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 	    unsigned short* sp = (unsigned short*)memory;
 	    for(i=0;i<count;i++,sp++) {
 	        unsigned int tmp;
-		if(!xxdr_getbytes(xdrs,(char*)&tmp,XDRUNIT))		
+		if(!xxdr_getbytes(xdrs,(char*)&tmp,(off_t)XDRUNIT))
 		    {OCTHROW(OC_EDATADDS); goto xdrfail;}
 		/* convert from network order if necessary */
 		if(!xxdr_network_order)
@@ -398,7 +401,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 	    return OCTHROW(OC_EDATADDS);
 	for(i=0;i<count;i++,sp++) {
 	    off_t len;
-	    size_t offset = data->strings[start+i];
+	    off_t offset = data->strings[start+i];
             xxdr_setpos(xdrs,offset);
             /* get the string */
 	    if(!xxdr_string(xdrs,sp,&len))

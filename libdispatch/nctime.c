@@ -50,7 +50,7 @@ cdTrim(char* s, int n)
 
 	if(s==NULL)
 		return;
-	for(c=s; *c && c<s+n-1 && !isspace(*c); c++);
+	for(c=s; *c && c<s+n-1 && !isspace((int)*c); c++);
 	*c='\0';
 	return;
 }

@@ -6,8 +6,8 @@
 
 typedef struct OCbytes {
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
-  unsigned long alloc;
-  unsigned long length;
+  size_t alloc;
+  size_t length;
   char* content;
 } OCbytes;
 
@@ -19,8 +19,8 @@ typedef struct OCbytes {
 
 EXTERNC OCbytes* ocbytesnew(void);
 EXTERNC void ocbytesfree(OCbytes*);
-EXTERNC int ocbytessetalloc(OCbytes*,unsigned long);
-EXTERNC int ocbytessetlength(OCbytes*,unsigned long);
+EXTERNC int ocbytessetalloc(OCbytes*,size_t);
+EXTERNC int ocbytessetlength(OCbytes*,size_t);
 EXTERNC int ocbytesfill(OCbytes*, char fill);
 
 /* Produce a duplicate of the contents*/
@@ -29,14 +29,14 @@ EXTERNC char* ocbytesdup(OCbytes*);
 EXTERNC char* ocbytesextract(OCbytes*);
 
 /* Return the ith byte; -1 if no such index */
-EXTERNC int ocbytesget(OCbytes*,unsigned long);
+EXTERNC int ocbytesget(OCbytes*,size_t);
 /* Set the ith byte */
-EXTERNC int ocbytesset(OCbytes*,unsigned long,char);
+EXTERNC int ocbytesset(OCbytes*,size_t,char);
 
 /* Append one byte */
-EXTERNC int ocbytesappend(OCbytes*,char); /* Add at Tail */
+EXTERNC int ocbytesappend(OCbytes*,int); /* Add at Tail */
 /* Append n bytes */
-EXTERNC int ocbytesappendn(OCbytes*,const void*,unsigned long); /* Add at Tail */
+EXTERNC int ocbytesappendn(OCbytes*,const void*,size_t); /* Add at Tail */
 
 /* Null terminate the byte string without extending its length (for debugging) */
 EXTERNC int ocbytesnull(OCbytes*);
@@ -45,7 +45,7 @@ EXTERNC int ocbytesnull(OCbytes*);
 EXTERNC int ocbytescat(OCbytes*,const char*);
 
 /* Set the contents of the buffer; mark the buffer as non-extendible */
-EXTERNC int ocbytessetcontents(OCbytes*, char*, unsigned long);
+EXTERNC int ocbytessetcontents(OCbytes*, char*, size_t);
 
 /* Following are always "in-lined"*/
 #define ocbyteslength(bb) ((bb)!=NULL?(bb)->length:0)
