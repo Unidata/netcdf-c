@@ -291,16 +291,16 @@ MACRO(print_conf_summary)
   MESSAGE("")
   MESSAGE("Configuration Summary:")
   MESSAGE("")
-  MESSAGE(STATUS "\tBuild Type:\t\t\t" ${CMAKE_BUILD_TYPE})
-  MESSAGE(STATUS "\tBuilding Shared Libraries:\t" ${BUILD_SHARED_LIBS})
-  MESSAGE(STATUS "\tBuilding netCDF-4:\t\t" ${ENABLE_NETCDF_4})
-  MESSAGE(STATUS "\tBuilding DAP Support:\t\t" ${ENABLE_DAP})
-  MESSAGE(STATUS "\tBuilding Utilities:\t\t" ${BUILD_UTILITIES})
+  MESSAGE(STATUS "Build Type:\t\t\t" ${CMAKE_BUILD_TYPE})
+  MESSAGE(STATUS "Building Shared Libraries:\t" ${BUILD_SHARED_LIBS})
+  MESSAGE(STATUS "Building netCDF-4:\t\t" ${ENABLE_NETCDF_4})
+  MESSAGE(STATUS "Building DAP Support:\t\t" ${ENABLE_DAP})
+  MESSAGE(STATUS "Building Utilities:\t\t" ${BUILD_UTILITIES})
   IF(CMAKE_PREFIX_PATH)
-    MESSAGE(STATUS "\tCMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
+    MESSAGE(STATUS "CMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
   ENDIF()
-  MESSAGE(STATUS "\tUsing pnetcdf:\t\t\t" ${STATUS_PNETCDF})
-  MESSAGE(STATUS "\tUsing Parallel IO:\t\t" ${STATUS_PARALLEL})
+  MESSAGE(STATUS "Using pnetcdf:\t\t\t" ${STATUS_PNETCDF})
+  MESSAGE(STATUS "Using Parallel IO:\t\t" ${STATUS_PARALLEL})
   MESSAGE("")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "\tTests Enabled:\t\t\t${ENABLE_TESTS}")
@@ -958,11 +958,10 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 #####
 
 
-# Create config.h file, nc-config
+# Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
   "${netCDF_BINARY_DIR}/config.h")
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
 # End autotools-style checs for config.h
 
@@ -1131,11 +1130,22 @@ configure_file (
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
-install (FILES ${netCDF_BINARY_DIR}/netcdf.pc
+
+FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
+configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
+FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+
+INSTALL (FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
 
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
+
 ###
-# End pkgconfig file creation.
+# End pkgconfig, nc-config file creation.
 ###
 
 ####
@@ -1217,18 +1227,6 @@ set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
 set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
   "The netCDF user documentation.")
 print_conf_summary()
-
-
-# Create nc-config
-FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
-configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
-FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-#EXECUTE_PROCESS(COMMAND "chmod 755 ${netCDF_BINARY_DIR}/nc-config")
-
-
 
 
 # Enable Makedist files.
