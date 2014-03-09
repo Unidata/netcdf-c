@@ -215,8 +215,8 @@ isglobalname(const char* name)
 static int
 isdodsname(const char* name)
 {
-    int len = strlen(name);
-    int glen = strlen("DODS");
+    size_t len = strlen(name);
+    size_t glen = strlen("DODS");
     if(len < glen) return 0;
     if(ocstrncmp(name,"DODS",glen) != 0)
 	return 0;
@@ -337,7 +337,7 @@ addedges(OCnode* node)
 static void
 setroot(OCnode* root, OClist* ocnodes)
 {
-    int i;
+    size_t i;
     for(i=0;i<oclistlength(ocnodes);i++) {
 	OCnode* node = (OCnode*)oclistget(ocnodes,i);
 	node->root = root;
@@ -359,7 +359,7 @@ dapsemanticerror(DAPparsestate* state, OCerror err, const char* msg)
 }
 
 static char*
-flatten(char* s, char* tmp, int tlen)
+flatten(char* s, char* tmp, size_t tlen)
 {
     int c;
     char* p,*q;

@@ -96,7 +96,7 @@ xxdr_uchar(XXDR* xdr, unsigned char* ip)
 {
    unsigned int ii;
    if(!ip) return 0;
-   if(!xdr->getbytes(xdr,(char*)&ii,sizeof(unsigned int)))
+   if(!xdr->getbytes(xdr,(char*)&ii,(off_t)sizeof(unsigned int)))
 	return 0;
     /*convert from network order*/
     if(!xxdr_network_order) {
@@ -112,7 +112,7 @@ xxdr_ushort(XXDR* xdr, unsigned short* ip)
 {
    unsigned int ii;
    if(!ip) return 0;
-   if(!xdr->getbytes(xdr,(char*)&ii,sizeof(unsigned int)))
+   if(!xdr->getbytes(xdr,(char*)&ii,(off_t)sizeof(unsigned int)))
 	return 0;
     /*convert from network order*/
     if(!xxdr_network_order) {
@@ -127,7 +127,7 @@ int
 xxdr_uint(XXDR* xdr, unsigned int* ip)
 {
    if(!ip) return 0;
-   if(!xdr->getbytes(xdr,(char*)ip,sizeof(*ip)))
+   if(!xdr->getbytes(xdr,(char*)ip,(off_t)sizeof(*ip)))
 	return 0;
     /*convert from network order*/
     if(!xxdr_network_order) {
@@ -142,7 +142,7 @@ xxdr_ulonglong(XXDR* xdr, unsigned long* llp)
 {
    /* Pull two units */
    if(!llp) return 0;
-   if(!xdr->getbytes(xdr,(char*)llp,sizeof(*llp)))
+   if(!xdr->getbytes(xdr,(char*)llp,(off_t)sizeof(*llp)))
        return 0;
    /* Convert to signed/unsigned  */
    /*convert from network order*/
@@ -172,9 +172,9 @@ xxdr_string(XXDR* xdrs, char** sp, off_t* lenp)
     char* s;
     unsigned int len;
     if(!xxdr_uint(xdrs,&len)) return 0;
-    s = (char*)malloc((off_t)len+1);
+    s = (char*)malloc((size_t)len+1);
     if(s == NULL) return 0;
-    if(!xxdr_opaque(xdrs,s,len)) {
+    if(!xxdr_opaque(xdrs,s,(off_t)len)) {
 	free((void*)s);	
 	return 0;
     }
@@ -219,7 +219,7 @@ xxdr_free(XXDR* xdr)
 int
 xxdr_skip(XXDR* xdrs, off_t len)
 {
-    unsigned int pos;
+    off_t pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
     // Removed the following; pos is unsigned. jhrg 9/30/13
@@ -233,9 +233,11 @@ xxdr_skip_strings(XXDR* xdrs, off_t n)
 {
     while(n-- > 0) {
         unsigned int slen;
+        off_t slenz;
 	if(!xxdr_uint(xdrs,&slen)) return 0;
-	slen = RNDUP(slen);
-	if(xxdr_skip(xdrs,slen)) return 0;
+	slenz = (off_t)slen;
+	slenz = RNDUP(slenz);
+	if(xxdr_skip(xdrs,slenz)) return 0;
     }
     return 1;
 }
@@ -281,7 +283,7 @@ xxdrtrace(xdrs,"getbytes",len);
     if(len < 0) len = 0;
     if(!xdrs->valid)
     {
-        if(fseek((FILE *)xdrs->data, xdrs->pos + xdrs->base, 0) != 0) {
+        if(fseek((FILE *)xdrs->data, (long)(xdrs->pos + xdrs->base), 0) != 0) {
 	    ok=0;
 	    goto done;
 	}
@@ -290,7 +292,7 @@ xxdrtrace(xdrs,"getbytes",len);
     if(xdrs->pos + len > xdrs->length)
         return 0;
     if(len > 0) {
-        count = fread(addr, len, 1, (FILE*)xdrs->data);
+        count = fread(addr, (size_t)len, (size_t)1, (FILE*)xdrs->data);
         if(count <= 0) {
 	    ok=0;
 	    goto done;
@@ -383,7 +385,7 @@ xxdrtrace(xdrs,"getbytes",len);
     if(len < 0) len = 0;
     if(xdrs->pos+len > xdrs->length) {ok=0; goto done;}
     if(len > 0) {
-        memcpy(addr,(char*)xdrs->data+xdrs->base+xdrs->pos, len);
+        memcpy(addr,(char*)xdrs->data+xdrs->base+xdrs->pos, (size_t)len);
     }
     xdrs->pos += len;
 done:
@@ -471,7 +473,7 @@ xxdr_double(XXDR* xdr, double* dp)
    int status = 0;
    char data[2*XDRUNIT];
    /* Pull two units */
-   status = xxdr_opaque(xdr,data,2*XDRUNIT);
+   status = xxdr_opaque(xdr,data,(off_t)2*XDRUNIT);
    if(status && dp) {
 	xxdrntohdouble(data,dp);
    }
@@ -483,7 +485,7 @@ void
 xxdrntohdouble(char* c8, double* dp)
 {
     unsigned int ii[2];
-    memcpy(ii,c8,2*XDRUNIT);
+    memcpy(ii,c8,(size_t)2*XDRUNIT);
     if(!xxdr_big_endian) {
 	unsigned int tmp;
 	/* reverse byte order */

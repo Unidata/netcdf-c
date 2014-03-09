@@ -319,9 +319,9 @@ ocuriparse(const char* uri0, OCURI** durip)
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
-	int plen = prefixparams ? strlen(prefixparams) : 0;
-	int slen = suffixparams ? strlen(suffixparams) : 0;
-	int space = plen + slen + 1;
+	size_t plen = prefixparams ? strlen(prefixparams) : 0;
+	size_t slen = suffixparams ? strlen(suffixparams) : 0;
+	size_t space = plen + slen + 1;
 	/* add 1 for an extra comma if both are defined */
         space++;
         duri->params = (char*)malloc(space);
@@ -720,14 +720,14 @@ ocrshift1(char* p)
 static char* hexchars = "0123456789abcdefABCDEF";
 
 static void
-toHex(unsigned int b, char hex[2])
+toHex(int b, char* hex)
 {
     hex[0] = hexchars[(b >> 4) & 0xff];
     hex[1] = hexchars[(b) & 0xff];
 }
 
 
-static unsigned int
+static int
 fromHex(int c)
 {
     if(c >= '0' && c <= '9') return (c - '0');

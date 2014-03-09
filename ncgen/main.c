@@ -39,6 +39,7 @@ int header_only;
 /* flags for tracking what output format to use */
 int k_flag;    /* > 0  => -k was specified on command line*/
 int format_flag;   /* _Format attribute value (same range as -k flag) */
+int format_attribute; /* 1=>format came from format attribute */
 int enhanced_flag; /* 1 => netcdf-4 constructs appear in the parse */
 int specials_flag; /* 1=> special attributes are present */
 int usingclassic;
@@ -192,6 +193,7 @@ main(
 
     k_flag = 0;
     format_flag = 0;
+    format_attribute = 0;
     enhanced_flag = 0;
     specials_flag = 0;
 

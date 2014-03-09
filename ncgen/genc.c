@@ -22,6 +22,7 @@ static const char* dimncid(Symbol*);
 static void definectype(Symbol*);
 static void genc_deftype(Symbol*);
 static void genc_definespecialattributes(Symbol* vsym);
+static void genc_defineglobalspecials(void);
 #endif
 
 static void genc_defineattr(Symbol* asym);
@@ -253,6 +254,10 @@ gen_ncc(const char *filename)
     codeflush();
     
 #ifdef USE_NETCDF4
+    genc_defineglobalspecials();
+#endif /*USE_NETCDF4*/
+
+#ifdef USE_NETCDF4
     /* Define the group structure */
     /* ncid created above is also root group*/
     if(!usingclassic) {
@@ -401,6 +406,22 @@ gen_ncc(const char *filename)
 }
 
 #ifdef USE_NETCDF4
+
+static void
+genc_defineglobalspecials(void)
+{
+    const char* format = NULL;
+    if(usingclassic) return;
+    if(!/*Main.*/format_attribute) return;
+    /* Watch out, this is a global Attribute */
+    format = kind_string(/*Main.*/format_flag);
+    bbprintf0(stmt,"%sstat = nc_put_att_text(ncid, NC_GLOBAL, \"_Format\", 1, \"%s\");\n",
+	          indented(1),
+		  format);
+    codedump(stmt);
+    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+}
+
 static void
 genc_definespecialattributes(Symbol* vsym)
 {

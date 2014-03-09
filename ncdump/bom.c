@@ -6,6 +6,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* BOM Sequences */
 static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
@@ -18,7 +19,7 @@ int
 main(int argc, char** argv)
 {
     char* bom = U8;
-    int bomlen = 3;
+    size_t bomlen = 3;
     if(argc > 1 && strlen(argv[1]) > 0) {
 	char* which = argv[1];
 	switch (which[0]) {
@@ -30,4 +31,3 @@ main(int argc, char** argv)
     fwrite(bom,1,bomlen,stdout);
     exit(0);
 }
-

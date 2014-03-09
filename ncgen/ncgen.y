@@ -1177,7 +1177,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     char* sdata = NULL;
     int idata =  -1;
 
-    if(tag == _FORMAT) {
+    if(tag == _FORMAT_FLAG) {
         if(vsym != NULL) {
             derror("_Format: must be global attribute");
             vsym = NULL;
@@ -1189,7 +1189,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
         }
     }
 
-    specials_flag += (tag == _FILLVALUE_FLAG ? 0 : 1);
+    if(tag != _FILLVALUE_FLAG && tag != _FORMAT_FLAG)
+        /*Main.*/specials_flag++;
 
     if(isconst) {
 	con = (NCConstant*)data;
@@ -1234,25 +1235,26 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     }
     
     if(tag == _FORMAT_FLAG) {
+	/* Watch out: this is a global attribute */
 	struct Kvalues* kvalue;
 	int found = 0;
 
 	/* Use the table in main.c */
         for(kvalue = legalkinds; kvalue->name; kvalue++) {
 	    if(strcmp(sdata, kvalue->name) == 0) {
-		format_flag = kvalue->k_flag;
+		/*Main.*/format_flag = kvalue->k_flag;
 		found = 1;
 	        break;
 	    }
 	}
 	if(!found)
 	    derror("_Format: illegal value: %s",sdata);
+	/*Main.*/format_attribute = 1;
     } else {
         Specialdata* special;
 
         /* Set up special info */
         special = &vsym->var.special;
-        special->flags = 0;
 
         if(tag == _FILLVALUE_FLAG) {
             special->_Fillvalue = list;
@@ -1272,8 +1274,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
-            attr=makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
+            attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
         } else switch (tag) {
+	    // These will be output as attributes later
             case _STORAGE_FLAG:
                 if(strcmp(sdata,"contiguous") == 0)
                     special->_Storage = NC_CONTIGUOUS;
@@ -1329,7 +1332,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 } break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
-
+    }
     return attr;
 }
 

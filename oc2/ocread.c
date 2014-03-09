@@ -233,14 +233,14 @@ readfile(const char* path, const char* suffix, OCbytes* packet)
 	return OCTHROW(OC_EOPEN);
     }
     /* Get the file size */
-    filesize = lseek(fd,0,SEEK_END);
+    filesize = lseek(fd,(off_t)0,SEEK_END);
     if(filesize < 0) {
 	stat = OC_EIO;
 	oclog(OCLOGERR,"lseek failed: %s",filename);
 	goto done;
     }
     /* Move file pointer back to the beginning of the file */
-    (void)lseek(fd,0,SEEK_SET);
+    (void)lseek(fd,(off_t)0,SEEK_SET);
     stat = OC_NOERR;
     for(totalread=0;;) {
 	off_t count = (off_t)read(fd,buf,sizeof(buf));

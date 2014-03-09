@@ -36,8 +36,10 @@ ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
+ADD_EXECUTABLE(bom bom.c)
+
 IF(ENABLE_TESTS)
-	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c bom.c)
+	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
 	TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
 	# Base tests
 	# The tests are set up as a combination of shell scripts and executables that

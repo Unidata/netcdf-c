@@ -28,7 +28,7 @@ extern int oc_ispacked(OCnode* node);
 extern size_t octotaldimsize(size_t,size_t*);
 
 extern size_t ocarrayoffset(size_t rank, size_t*, size_t*);
-extern void ocarrayindices(size_t index, int rank, size_t*, size_t*);
+extern void ocarrayindices(size_t index, size_t rank, size_t*, size_t*);
 extern size_t ocedgeoffset(size_t rank, size_t*, size_t*);
 
 extern int ocvalidateindices(size_t rank, size_t*, size_t*);

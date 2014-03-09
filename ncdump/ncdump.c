@@ -1944,7 +1944,7 @@ main(int argc, char *argv[])
 	  break;
 	case 'b':		/* brief comments in data section */
 	  formatting_specs.brief_data_cmnts = true;
-	  switch (tolower(optarg[0])) {
+	  switch (tolower((int)optarg[0])) {
 	    case 'c':
 	      formatting_specs.data_lang = LANG_C;
 	      break;
@@ -1957,7 +1957,7 @@ main(int argc, char *argv[])
 	  break;
 	case 'f':		/* full comments in data section */
 	  formatting_specs.full_data_cmnts = true;
-	  switch (tolower(optarg[0])) {
+	  switch (tolower((int)optarg[0])) {
 	    case 'c':
 	      formatting_specs.data_lang = LANG_C;
 	      break;

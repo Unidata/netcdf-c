@@ -65,6 +65,7 @@ const char*
 NC_findtestserver(const char* path)
 {
 #ifdef USE_DAP
+#ifdef ENABLE_DAP_REMOTE_TESTS
     /* NCDAP_ping is defined in libdap2/ncdap3.c */
     const char** svc;
     if(path == NULL) path = "";
@@ -79,6 +80,7 @@ NC_findtestserver(const char* path)
 	if(stat == NC_NOERR)
 	    return *svc;
     }
+#endif
 #endif
     return NULL;
 }

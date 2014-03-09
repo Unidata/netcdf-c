@@ -141,7 +141,7 @@ ocfindbod(OCbytes* buffer, size_t* bodp, size_t* ddslenp)
 
     for(marks = DDSdatamarks;*marks;marks++) {
 	char* mark = *marks;
-        int tlen = strlen(mark);
+        size_t tlen = strlen(mark);
         for(i=0;i<len;i++) {
 	    if((i+tlen) <= len 
 	        && (ocstrncmp(content+i,mark,tlen)==0)) {
@@ -422,7 +422,8 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
 #define ERRCHUNK 1024
 #define ERRFILL ' '
 #define ERRTAG "Error {" 
-    unsigned int i,j,len;
+    int i,j;
+    size_t len;
     XXDR* xdrs;
     char* contents;
     off_t ckp;
@@ -434,10 +435,10 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
     if(len < strlen(ERRTAG))
 	return; /* no room */
     ckp = xxdr_getpos(xdrs);
-    xxdr_setpos(xdrs,0);
+    xxdr_setpos(xdrs,(off_t)0);
     /* read the whole thing */
     contents = (char*)malloc(len+1);
-    (void)xxdr_getbytes(xdrs,contents,len);
+    (void)xxdr_getbytes(xdrs,contents,(off_t)len);
     contents[len] = '\0';
     /* Look for error tag */
     for(i=0;i<len;i++) {
@@ -477,7 +478,7 @@ ocarrayoffset(size_t rank, size_t* sizes, size_t* indices)
 
 /* Inverse of ocarrayoffset: convert linear index to a set of indices */
 void
-ocarrayindices(size_t index, int rank, size_t* sizes, size_t* indices)
+ocarrayindices(size_t index, size_t rank, size_t* sizes, size_t* indices)
 {
     int i;
     for(i=rank-1;i>=0;i--) {

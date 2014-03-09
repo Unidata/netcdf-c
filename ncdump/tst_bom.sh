@@ -45,7 +45,7 @@ if ../ncgen/ncgen -k1 -o tst_bom16.nc tst_bom16.cdl ; then
 echo 'BOM Big Endian 16 succeeded, but should not'
 exit 1
 else
-echo '***XFAIL: BOM Big Endian 16'
+echo '***XFAIL : BOM Big Endian 16'
 fi
 
 # Cleanup

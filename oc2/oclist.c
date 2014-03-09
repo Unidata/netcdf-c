@@ -48,7 +48,7 @@ oclistfree(OClist* l)
 }
 
 int
-oclistsetalloc(OClist* l, unsigned long sz)
+oclistsetalloc(OClist* l, size_t sz)
 {
   void** newcontent;
   if(l == NULL) return FALSE;
@@ -65,7 +65,7 @@ oclistsetalloc(OClist* l, unsigned long sz)
 }
 
 int
-oclistsetlength(OClist* l, unsigned long sz)
+oclistsetlength(OClist* l, size_t sz)
 {
   if(l == NULL) return FALSE;
   if(sz > l->alloc && !oclistsetalloc(l,sz)) return FALSE;
@@ -74,7 +74,7 @@ oclistsetlength(OClist* l, unsigned long sz)
 }
 
 void*
-oclistget(OClist* l, unsigned long index)
+oclistget(OClist* l, size_t index)
 {
   if(l == NULL || l->length == 0) return NULL;
   if(index >= l->length) return NULL;
@@ -82,7 +82,7 @@ oclistget(OClist* l, unsigned long index)
 }
 
 int
-oclistset(OClist* l, unsigned long index, void* elem)
+oclistset(OClist* l, size_t index, void* elem)
 {
   if(l == NULL) return FALSE;
   if(index >= l->length) return FALSE;
@@ -92,7 +92,7 @@ oclistset(OClist* l, unsigned long index, void* elem)
 
 /* Insert at position i of l; will push up elements i..|seq|. */
 int
-oclistinsert(OClist* l, unsigned long index, void* elem)
+oclistinsert(OClist* l, size_t index, void* elem)
 {
   int i; /* do not make unsigned */
   if(l == NULL) return FALSE;
@@ -130,9 +130,9 @@ oclisttop(OClist* l)
 }
 
 void*
-oclistremove(OClist* l, unsigned long i)
+oclistremove(OClist* l, size_t i)
 {
-  unsigned long len;
+  size_t len;
   void* elem;
   if(l == NULL || (len=l->length) == 0) return NULL;
   if(i >= len) return NULL;
@@ -155,7 +155,7 @@ oclistdup(OClist* l)
 int
 oclistcontains(OClist* l, void* elem)
 {
-    unsigned long i;
+    size_t i;
     for(i=0;i<oclistlength(l);i++) {
 	if(elem == oclistget(l,i)) return 1;
     }
@@ -166,8 +166,8 @@ oclistcontains(OClist* l, void* elem)
 int
 oclistelemremove(OClist* l, void* elem)
 {
-  unsigned long len;
-  unsigned long i;
+  size_t len;
+  size_t i;
   int found = 0;
   if(l == NULL || (len=l->length) == 0) return 0;
   for(i=0;i<oclistlength(l);i++) {
@@ -193,7 +193,7 @@ oclistelemremove(OClist* l, void* elem)
 int
 oclistunique(OClist* l)
 {
-    unsigned long i,j,k,len;
+    size_t i,j,k,len;
     void** content;
     if(l == NULL || l->length == 0) return 1;
     len = l->length;

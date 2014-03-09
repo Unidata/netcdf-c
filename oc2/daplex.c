@@ -250,7 +250,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 static void
 dapaddyytext(DAPlexstate* lex, int c)
 {
-    ocbytesappend(lex->yytext,(char)c);
+    ocbytesappend(lex->yytext,c);
 }
 
 #ifndef DAP2ENCODE

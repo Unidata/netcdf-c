@@ -16,6 +16,10 @@ DAP=1
 #M32=1
 #M64=1
 
+CFLAGS=""
+#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+
 FORCE="-i"
 
 #INSTALL=1
