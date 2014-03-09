@@ -318,7 +318,7 @@ nctypealignment(nc_type nctype)
 }
 
 static int
-getpadding(int offset, int alignment)
+getpadding(size_t offset, size_t alignment)
 {
     int rem = (alignment==0?0:(offset % alignment));
     int pad = (rem==0?0:(alignment - rem));
@@ -360,7 +360,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 
     for(offset=0,i=0;i<cmpd->nfields;i++) {
         struct NCAUX_FIELD* field = &cmpd->fields[i];
-	int alignment = 0;
+	size_t alignment = 0;
 	nc_type firsttype = findfirstfield(cmpd->ncid,field->fieldtype);
 
         /* only support 'c' alignment for now*/

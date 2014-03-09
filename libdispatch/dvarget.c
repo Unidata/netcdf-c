@@ -73,7 +73,7 @@ NC_get_vara(int ncid, int varid,
 #endif
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
-      int ndims;
+      size_t ndims;
       stat = nc_inq_varndims(ncid, varid, &ndims); 
       if(stat != NC_NOERR) return stat;
       stat = NC_getshape(ncid,varid,ndims,shape);
@@ -89,7 +89,7 @@ NC_get_vara(int ncid, int varid,
 static int
 NC_get_var(int ncid, int varid, void *value, nc_type memtype)
 {
-   int ndims;
+   size_t ndims;
    size_t shape[NC_MAX_VAR_DIMS];
    int stat = nc_inq_varndims(ncid,varid, &ndims);
    if(stat) return stat;
@@ -117,7 +117,8 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
   /* Rebuilt get_vars code to simplify and avoid use of get_varm */
   
    int status = NC_NOERR;
-   int i,simplestride,rank,isrecvar;
+   int i,simplestride,isrecvar;
+   size_t rank;
    struct GETodometer odom;
    nc_type vartype = NC_NAT;
    NC* ncp;
@@ -256,7 +257,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 {
    int status = NC_NOERR;
    nc_type vartype = NC_NAT;
-   int varndims,maxidim;
+   size_t varndims,maxidim;
    NC* ncp;
    size_t memtypelen;
    ptrdiff_t cvtmap[NC_MAX_VAR_DIMS];

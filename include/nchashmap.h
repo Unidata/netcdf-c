@@ -48,7 +48,7 @@ externC int nchashremove(NChashmap*, nchashid nchash);
 
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
-externC int nchashith(NChashmap*, int i, nchashid*, void**);
+externC int nchashith(NChashmap*, size_t i, nchashid*, void**);
 
 externC int nchashkeys(NChashmap* hm, nchashid** keylist);
 
