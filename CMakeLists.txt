@@ -598,6 +598,16 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF()
 
+  # Assert HDF5 version.
+  SET(HDF5_VERSION_REQUIRED 1.8.6)
+  execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
+                  OUTPUT_VARIABLE HDF5_VERSION
+                  )
+  IF (${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+    MESSAGE(FATAL_ERROR
+            "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+  ENDIF()
+
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
 
   # Starting with hdf5 1.8.11, dynamic loading is an option.
