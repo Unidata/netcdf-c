@@ -162,13 +162,13 @@ nchashlookup(NChashmap* hm, nchashid hash, void** valuep)
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
 int
-nchashith(NChashmap* hm, size_t index, nchashid* hashp, void** elemp)
+nchashith(NChashmap* hm, int index, nchashid* hashp, void** elemp)
 {
-    size_t i;
+    int i;
     if(hm == NULL) return FALSE;
     for(i=0;i<hm->alloc;i++) {
 	NClist* seq = hm->table[i];
-	size_t len = nclistlength(seq) / 2;
+	int len = nclistlength(seq) / 2;
 	if(len == 0) continue;
 	if((index - len) < 0) {
 	    if(hashp) *hashp = (nchashid)nclistget(seq,index*2);
@@ -185,7 +185,7 @@ nchashith(NChashmap* hm, size_t index, nchashid* hashp, void** elemp)
 int
 nchashkeys(NChashmap* hm, nchashid** keylist)
 {
-    size_t i,j,index;
+    int i,j,index;
     nchashid* keys;
     if(hm == NULL) return FALSE;
     if(hm->size == 0) {

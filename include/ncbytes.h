@@ -6,8 +6,8 @@
 
 typedef struct NCbytes {
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
-  size_t alloc;
-  size_t length;
+  unsigned long alloc;
+  unsigned long length;
   char* content;
 } NCbytes;
 
@@ -19,8 +19,8 @@ typedef struct NCbytes {
 
 EXTERNC NCbytes* ncbytesnew(void);
 EXTERNC void ncbytesfree(NCbytes*);
-EXTERNC int ncbytessetalloc(NCbytes*,size_t);
-EXTERNC int ncbytessetlength(NCbytes*,size_t);
+EXTERNC int ncbytessetalloc(NCbytes*,unsigned long);
+EXTERNC int ncbytessetlength(NCbytes*,unsigned long);
 EXTERNC int ncbytesfill(NCbytes*, char fill);
 
 /* Produce a duplicate of the contents*/
@@ -29,14 +29,14 @@ EXTERNC char* ncbytesdup(NCbytes*);
 EXTERNC char* ncbytesextract(NCbytes*);
 
 /* Return the ith byte; -1 if no such index */
-EXTERNC int ncbytesget(NCbytes*,size_t);
+EXTERNC int ncbytesget(NCbytes*,unsigned long);
 /* Set the ith byte */
-EXTERNC int ncbytesset(NCbytes*,size_t,char);
+EXTERNC int ncbytesset(NCbytes*,unsigned long,char);
 
 /* Append one byte */
-EXTERNC int ncbytesappend(NCbytes*,int); /* Add at Tail */
+EXTERNC int ncbytesappend(NCbytes*,char); /* Add at Tail */
 /* Append n bytes */
-EXTERNC int ncbytesappendn(NCbytes*,const void*,size_t); /* Add at Tail */
+EXTERNC int ncbytesappendn(NCbytes*,const void*,unsigned long); /* Add at Tail */
 
 /* Null terminate the byte string without extending its length (for debugging) */
 EXTERNC int ncbytesnull(NCbytes*);
@@ -45,7 +45,7 @@ EXTERNC int ncbytesnull(NCbytes*);
 EXTERNC int ncbytescat(NCbytes*,const char*);
 
 /* Set the contents of the buffer; mark the buffer as non-extendible */
-EXTERNC int ncbytessetcontents(NCbytes*, char*, size_t);
+EXTERNC int ncbytessetcontents(NCbytes*, char*, unsigned long);
 
 /* Following are always "in-lined"*/
 #define ncbyteslength(bb) ((bb)!=NULL?(bb)->length:0)

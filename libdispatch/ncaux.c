@@ -1,4 +1,3 @@
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
@@ -360,7 +359,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 
     for(offset=0,i=0;i<cmpd->nfields;i++) {
         struct NCAUX_FIELD* field = &cmpd->fields[i];
-	size_t alignment = 0;
+	int alignment = 0;
 	nc_type firsttype = findfirstfield(cmpd->ncid,field->fieldtype);
 
         /* only support 'c' alignment for now*/

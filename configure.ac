@@ -633,12 +633,14 @@ AC_ARG_ENABLE([diskless],
               [AS_HELP_STRING([--disable-diskless],
                               [disable support for in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xno || enable_diskless=yes
-AC_MSG_RESULT($enable_diskless)
 
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" -o "x$enable_rpc" = "xyes" ; then
 enable_diskless=yes
 AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
 fi
+
+AC_MSG_RESULT($enable_diskless)
+
 
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
