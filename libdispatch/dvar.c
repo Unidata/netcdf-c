@@ -423,7 +423,7 @@ NC_atomictypename(nc_type xtype)
 Get the shape of a variable.    
  */
 int
-NC_getshape(int ncid, int varid, size_t ndims, size_t* shape)
+NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 {
    int dimids[NC_MAX_VAR_DIMS];
    int i;

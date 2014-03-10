@@ -42,7 +42,7 @@ ncbytesnew(void)
 }
 
 int
-ncbytessetalloc(NCbytes* bb, size_t sz)
+ncbytessetalloc(NCbytes* bb, unsigned long sz)
 {
   char* newcontent;
   if(bb == NULL) return ncbytesfail();
@@ -69,7 +69,7 @@ ncbytesfree(NCbytes* bb)
 }
 
 int
-ncbytessetlength(NCbytes* bb, size_t sz)
+ncbytessetlength(NCbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return ncbytesfail();
   if(bb->length < sz) {
@@ -82,14 +82,14 @@ ncbytessetlength(NCbytes* bb, size_t sz)
 int
 ncbytesfill(NCbytes* bb, char fill)
 {
-  size_t i;
+  unsigned long i;
   if(bb == NULL) return ncbytesfail();
   for(i=0;i<bb->length;i++) bb->content[i] = fill;
   return TRUE;
 }
 
 int
-ncbytesget(NCbytes* bb, size_t index)
+ncbytesget(NCbytes* bb, unsigned long index)
 {
   if(bb == NULL) return -1;
   if(index >= bb->length) return -1;
@@ -97,7 +97,7 @@ ncbytesget(NCbytes* bb, size_t index)
 }
 
 int
-ncbytesset(NCbytes* bb, size_t index, char elem)
+ncbytesset(NCbytes* bb, unsigned long index, char elem)
 {
   if(bb == NULL) return ncbytesfail();
   if(index >= bb->length) return ncbytesfail();
@@ -106,14 +106,14 @@ ncbytesset(NCbytes* bb, size_t index, char elem)
 }
 
 int
-ncbytesappend(NCbytes* bb, int elem)
+ncbytesappend(NCbytes* bb, char elem)
 {
   if(bb == NULL) return ncbytesfail();
   /* We need space for the char + null */
   while(bb->length+1 >= bb->alloc) {
 	if(!ncbytessetalloc(bb,0)) return ncbytesfail();
   }
-  bb->content[bb->length] = (elem & 0xFF);
+  bb->content[bb->length] = elem;
   bb->length++;
   bb->content[bb->length] = '\0';
   return TRUE;
@@ -134,7 +134,7 @@ ncbytescat(NCbytes* bb, const char* s)
 }
 
 int
-ncbytesappendn(NCbytes* bb, const void* elem, size_t n)
+ncbytesappendn(NCbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return ncbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
@@ -180,7 +180,7 @@ ncbytesextract(NCbytes* bb)
 }
 
 int
-ncbytessetcontents(NCbytes* bb, char* contents, size_t alloc)
+ncbytessetcontents(NCbytes* bb, char* contents, unsigned long alloc)
 {
     if(bb == NULL) return ncbytesfail();
     ncbytesclear(bb);
@@ -197,7 +197,7 @@ ncbytessetcontents(NCbytes* bb, char* contents, size_t alloc)
 int
 ncbytesnull(NCbytes* bb)
 {
-    ncbytesappend(bb,(int)'\0');
+    ncbytesappend(bb,'\0');
     bb->length--;
     return 1;
 }

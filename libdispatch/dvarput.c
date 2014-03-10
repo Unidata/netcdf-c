@@ -69,7 +69,7 @@ NC_put_vara(int ncid, int varid, const size_t *start,
    if(stat != NC_NOERR) return stat;
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
-      size_t ndims;
+      int ndims;
       stat = nc_inq_varndims(ncid, varid, &ndims); 
       if(stat != NC_NOERR) return stat;
       stat = NC_getshape(ncid, varid, ndims, shape);
@@ -85,7 +85,7 @@ NC_put_vara(int ncid, int varid, const size_t *start,
 static int
 NC_put_var(int ncid, int varid, const void *value, nc_type memtype)
 {
-   size_t ndims;
+   int ndims;
    size_t shape[NC_MAX_VAR_DIMS];
    int stat = nc_inq_varndims(ncid,varid, &ndims);
    if(stat) return stat;
@@ -122,8 +122,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
   /* Rebuilt put_vars code to simplify and avoid use of put_varm */
   
    int status = NC_NOERR;
-   int i,simplestride,isrecvar;
-   size_t rank;
+   int i,simplestride,rank,isrecvar;
    struct PUTodometer odom;
    nc_type vartype = NC_NAT;
    NC* ncp;
@@ -265,8 +264,8 @@ NCDEFAULT_put_varm(
 {
    int status = NC_NOERR;
    nc_type vartype = NC_NAT;
-   size_t varndims = 0;
-   size_t maxidim = 0;
+   int varndims = 0;
+   int maxidim = 0;
    NC* ncp;
    size_t memtypelen;
    ptrdiff_t cvtmap[NC_MAX_VAR_DIMS];

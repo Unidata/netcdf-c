@@ -358,7 +358,7 @@ extern int NCDAP_ping(const char*);
 
 /* Misc */
 
-extern int NC_getshape(int ncid, int varid, size_t ndims, size_t* shape);
+extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
 extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 
 #define nullstring(s) (s==NULL?"(null)":s)
