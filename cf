@@ -19,10 +19,7 @@ DAP=1
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
-<<<<<<< HEAD
 #CFLAGS="-Wconversion"
-=======
->>>>>>> 513cb29ea4eb4e1087c9dbcdf3471e08c741fb2b
 
 FORCE="-i"
 
