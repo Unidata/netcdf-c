@@ -197,7 +197,8 @@ NC_dispatch_overlay(const NC_Dispatch* overlay, const NC_Dispatch* base, NC_Disp
 {
     void** voverlay = (void**)overlay;
     void** vmerge;
-    int i, count = sizeof(NC_Dispatch) / sizeof(void*);
+    int i;
+    size_t count = sizeof(NC_Dispatch) / sizeof(void*);
     /* dispatch table must be exact multiple of sizeof(void*) */
     assert(count * sizeof(void*) == sizeof(NC_Dispatch));
     *merge = *base;

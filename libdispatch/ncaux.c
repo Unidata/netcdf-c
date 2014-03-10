@@ -29,7 +29,7 @@ Author: D. Heimbigner 10/7/2008
 struct NCAUX_FIELD {
     char* name;
     nc_type fieldtype;
-    int ndims;
+    size_t ndims;
     int dimsizes[NC_MAX_VAR_DIMS];    
     size_t size;
     size_t offset;
@@ -40,7 +40,7 @@ struct NCAUX_CMPD {
     int ncid;
     int mode;
     char* name;
-    int nfields;
+    size_t nfields;
     struct NCAUX_FIELD* fields;
     size_t size;
     size_t offset; /* cumulative as fields are added */
@@ -126,8 +126,8 @@ ncaux_add_field(void* tag,  const char *name, nc_type field_type,
     field->name = strdup(name);
     field->fieldtype = field_type;
     if(field->name == NULL) {status = NC_ENOMEM; goto done;}    
-    field->ndims = ndims;
-    memcpy(field->dimsizes,dimsizes,sizeof(int)*ndims);
+    field->ndims = (size_t)ndims;
+    memcpy(field->dimsizes,dimsizes,sizeof(int)*field->ndims);
     cmpd->nfields++;
 
 done:
@@ -135,11 +135,11 @@ done:
 }
 
 static size_t
-dimproduct(int ndims, int* dimsizes)
+dimproduct(size_t ndims, int* dimsizes)
 {
     int i;
     size_t product = 1;
-    for(i=0;i<ndims;i++) product *= dimsizes[i];
+    for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
     return product;
 }
 
@@ -167,7 +167,7 @@ ncaux_end_compound(void* tag, nc_type* idp)
 	} else {
             status = nc_insert_array_compound(cmpd->ncid, *idp, field->name,
 					field->offset, field->fieldtype,
-					field->ndims,field->dimsizes);
+					(int)field->ndims,field->dimsizes);
 	}
         if(status != NC_NOERR) goto done;
     }
@@ -224,7 +224,7 @@ It seems to work for HDF5 for a wide variety of machines.
 
 typedef struct Alignment {
     char* typename;
-    int alignment;
+    size_t alignment;
 } Alignment;
 
 typedef Alignment Typealignvec;
@@ -317,11 +317,11 @@ nctypealignment(nc_type nctype)
     return align->alignment;
 }
 
-static int
+static size_t
 getpadding(size_t offset, size_t alignment)
 {
-    int rem = (alignment==0?0:(offset % alignment));
-    int pad = (rem==0?0:(alignment - rem));
+    size_t rem = (alignment==0?0:(offset % alignment));
+    size_t pad = (rem==0?0:(alignment - rem));
     return pad;
 }
 

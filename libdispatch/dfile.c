@@ -123,7 +123,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 #endif /* USE_PARALLEL */
    {
       FILE *fp;
-      int i;
+      size_t i;
 #ifdef HAVE_SYS_STAT_H
       struct stat st;
 #endif
@@ -1799,9 +1799,9 @@ nc__pseudofd(void)
         struct rlimit rl;
         if(getrlimit(RLIMIT_NOFILE,&rl) == 0) {
 	    if(rl.rlim_max != RLIM_INFINITY)
-	        maxfd = rl.rlim_max;
+	        maxfd = (int)rl.rlim_max;
 	    if(rl.rlim_cur != RLIM_INFINITY)
-	        maxfd = rl.rlim_cur;
+	        maxfd = (int)rl.rlim_cur;
 	}
 	pseudofd = maxfd+1;
 #endif

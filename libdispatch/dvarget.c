@@ -19,7 +19,7 @@ struct GETodometer {
 
 static void
 odom_init(struct GETodometer* odom,
-	    size_t rank,
+	    int rank,
 	    const size_t* start, const size_t* edges, const ptrdiff_t* stride)
 {
     int i;
@@ -30,7 +30,7 @@ odom_init(struct GETodometer* odom,
 	odom->start[i] = (start != NULL ? start[i] : 0);
 	odom->edges[i] = (edges != NULL ? edges[i] : 1);
 	odom->stride[i] = (stride != NULL ? stride[i] : 1);
-	odom->stop[i] = odom->start[i] + (odom->edges[i]*odom->stride[i]);
+	odom->stop[i] = odom->start[i] + (odom->edges[i]*((size_t)odom->stride[i]));
 	odom->index[i] = odom->start[i];
     }    
 }
@@ -47,7 +47,7 @@ odom_next(struct GETodometer* odom)
     int i;
     if(odom->rank == 0) return 0;
     for(i=odom->rank-1;i>=0;i--) {
-        odom->index[i] += odom->stride[i];
+        odom->index[i] += (size_t)odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
 	if(i == 0) return 0; /* leave the 0th entry if it overflows*/
 	odom->index[i] = odom->start[i]; /* reset this position*/
@@ -73,7 +73,7 @@ NC_get_vara(int ncid, int varid,
 #endif
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
-      size_t ndims;
+      int ndims;
       stat = nc_inq_varndims(ncid, varid, &ndims); 
       if(stat != NC_NOERR) return stat;
       stat = NC_getshape(ncid,varid,ndims,shape);
@@ -89,7 +89,7 @@ NC_get_vara(int ncid, int varid,
 static int
 NC_get_var(int ncid, int varid, void *value, nc_type memtype)
 {
-   size_t ndims;
+   int ndims;
    size_t shape[NC_MAX_VAR_DIMS];
    int stat = nc_inq_varndims(ncid,varid, &ndims);
    if(stat) return stat;
@@ -118,11 +118,12 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
   
    int status = NC_NOERR;
    int i,simplestride,isrecvar;
-   size_t rank;
+   int rank;
    struct GETodometer odom;
    nc_type vartype = NC_NAT;
    NC* ncp;
-   size_t vartypelen, memtypelen;
+   int memtypelen;
+   size_t vartypelen;
    char* value = (char*)value0;
    size_t numrecs;
    size_t varshape[NC_MAX_VAR_DIMS];
@@ -144,7 +145,7 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    if(status != NC_NOERR) return status;
 
    if(memtype > NC_MAX_ATOMIC_TYPE)
-	memtypelen = vartypelen;
+	memtypelen = (int)vartypelen;
     else
 	memtypelen = nctypelen(memtype);
 
@@ -257,9 +258,9 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 {
    int status = NC_NOERR;
    nc_type vartype = NC_NAT;
-   size_t varndims,maxidim;
+   int varndims,maxidim;
    NC* ncp;
-   size_t memtypelen;
+   int memtypelen;
    ptrdiff_t cvtmap[NC_MAX_VAR_DIMS];
    char* value = (char*)value0;
 
@@ -364,7 +365,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 
       /* assert(sizeof(ptrdiff_t) >= sizeof(size_t)); */
       /* Allocate space for mystart,mystride,mymap etc.all at once */
-      mystart = (size_t *)calloc(varndims * 7, sizeof(ptrdiff_t));
+      mystart = (size_t *)calloc((size_t)(varndims * 7), sizeof(ptrdiff_t));
       if(mystart == NULL) return NC_ENOMEM;
       myedges = mystart + varndims;
       iocount = myedges + varndims;
@@ -423,8 +424,8 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	       mymap[idim + 1] * (ptrdiff_t) myedges[idim + 1];
 #endif
 	 iocount[idim] = 1;
-	 length[idim] = mymap[idim] * myedges[idim];
-	 stop[idim] = mystart[idim] + myedges[idim] * mystride[idim];
+	 length[idim] = ((size_t)mymap[idim]) * myedges[idim];
+	 stop[idim] = (mystart[idim] + myedges[idim] * (size_t)mystride[idim]);
       }
 
       /*
@@ -486,12 +487,13 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	  */
 	 idim = maxidim;
         carry:
-	 value += (mymap[idim] * memtypelen);
-	 mystart[idim] += mystride[idim];
+	 value += (((int)mymap[idim]) * memtypelen);
+	 mystart[idim] += (size_t)mystride[idim];
 	 if (mystart[idim] == stop[idim])
 	 {
+	    size_t l = (length[idim] * (size_t)memtypelen);
+	    value -= l;
 	    mystart[idim] = start[idim];
-	    value -= (length[idim] * memtypelen);
 	    if (--idim < 0)
 	       break; /* normal return */
 	    goto carry;
