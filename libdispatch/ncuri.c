@@ -316,9 +316,9 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     /* concat suffix and prefix params */
     if(prefixparams != NULL || suffixparams != NULL) {
-	size_t plen = prefixparams ? strlen(prefixparams) : 0;
-	size_t slen = suffixparams ? strlen(suffixparams) : 0;
-	size_t space = plen + slen + 1;
+	int plen = prefixparams ? strlen(prefixparams) : 0;
+	int slen = suffixparams ? strlen(suffixparams) : 0;
+	int space = plen + slen + 1;
 	/* add 1 for an extra ampersand if both are defined */
         space++;
         duri->params = (char*)malloc(space);
@@ -397,7 +397,7 @@ ncurisetconstraints(NCURI* duri,const char* constraints)
     proj = (char*) p;
     select = strchr(proj,'&');
     if(select != NULL) {
-        size_t plen = (select - proj);
+        size_t plen = (size_t)(select - proj);
 	if(plen == 0) {
 	    proj = NULL;
 	} else {
@@ -430,8 +430,8 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     char* tmpfile;
     char* tmpsuffix;
     char* tmpquery;
-    int nparams = 0;
-    int paramslen = 0;
+    size_t nparams = 0;
+    size_t paramslen = 0;
 
     /* if both are specified, prefix has priority */
     int withsuffixparams = ((flags&NCURISUFFIXPARAMS)!=0
@@ -580,7 +580,7 @@ ncuridecodeparams(NCURI* ncuri)
 {
     char* cp;
     int i,c;
-    int nparams;
+    size_t nparams;
     char* params;
     char** plist;
 
@@ -721,19 +721,19 @@ ncrshift1(char* p)
 static char* hexchars = "0123456789abcdefABCDEF";
 
 static void
-toHex(int b, char hex[2])
+toHex(unsigned int b, char hex[2])
 {
     hex[0] = hexchars[(b >> 4) & 0xff];
     hex[1] = hexchars[(b) & 0xff];
 }
 
 
-static unsigned int
+static int
 fromHex(int c)
 {
-    if(c >= '0' && c <= '9') return (c - '0');
-    if(c >= 'a' && c <= 'f') return (10 + (c - 'a'));
-    if(c >= 'A' && c <= 'F') return (10 + (c - 'A'));
+    if(c >= '0' && c <= '9') return (int) (c - '0');
+    if(c >= 'a' && c <= 'f') return (int) (10 + (c - 'a'));
+    if(c >= 'A' && c <= 'F') return (int) (10 + (c - 'A'));
     return 0;
 }
 
@@ -767,7 +767,7 @@ ncuriencode(char* s, char* allowable)
 	    while((c2=*a++)) {
 		if(c == c2) break;
 	    }
-            if(c2) {*outptr++ = c;}
+            if(c2) {*outptr++ = (char)c;}
             else {
 		char hex[2];
 		toHex(c,hex);
@@ -807,7 +807,7 @@ ncuridecodeonly(char* s, char* only)
 
     outptr = decoded;
     inptr = s;
-    while((c = *inptr++)) {
+    while((c = (unsigned int)*inptr++)) {
 	if(c == '+' && only != NULL && strchr(only,'+') != NULL)
 	    *outptr++ = ' ';
 	else if(c == '%') {
@@ -819,11 +819,11 @@ ncuridecodeonly(char* s, char* only)
 		int xc = (fromHex(inptr[0]) << 4) | (fromHex(inptr[1]));
 		if(only == NULL || strchr(only,xc) != NULL) {
 		    inptr += 2; /* decode it */
-		    c = xc;
+		    c = (unsigned int)xc;
                 }
             }
         }
-        *outptr++ = c;
+        *outptr++ = (char)c;
     }
     *outptr = EOFCHAR;
     return decoded;

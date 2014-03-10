@@ -25,7 +25,7 @@
 
 NChashmap* nchashnew(void) {return nchashnew0(DEFAULTALLOC);}
 
-NChashmap* nchashnew0(int alloc)
+NChashmap* nchashnew0(size_t alloc)
 {
   NChashmap* hm;
   if(sizeof(nchashid) != sizeof(void*)){
@@ -60,7 +60,8 @@ nchashfree(NChashmap* hm)
 int
 nchashinsert(NChashmap* hm, nchashid hash, void* value)
 {
-    int i,offset,len;
+    int i;
+    size_t offset,len;
     NClist* seq;
     void** list;
 
@@ -83,7 +84,8 @@ nchashinsert(NChashmap* hm, nchashid hash, void* value)
 int
 nchashreplace(NChashmap* hm, nchashid hash, void* value)
 {
-    int i,offset,len;
+    int i;
+    size_t offset,len;
     NClist* seq;
     void** list;
 
@@ -106,7 +108,8 @@ nchashreplace(NChashmap* hm, nchashid hash, void* value)
 int
 nchashremove(NChashmap* hm, nchashid hash)
 {
-    size_t i,offset,len;
+    size_t i;
+    size_t offset,len;
     NClist* seq;
     void** list;
 
@@ -117,7 +120,7 @@ nchashremove(NChashmap* hm, nchashid hash)
     list = nclistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
 	if(hash==(nchashid)(*list)) {
-	    nclistremove(seq,i+1);
+	    nclistremove(seq,(i+1));
 	    nclistremove(seq,i);
 	    hm->size--;
 	    if(nclistlength(seq) == 0) {nclistfree(seq); hm->table[offset] = NULL;}
@@ -140,7 +143,8 @@ nchashget(NChashmap* hm, nchashid hash)
 int
 nchashlookup(NChashmap* hm, nchashid hash, void** valuep)
 {
-    int i,offset,len;
+    int i;
+    size_t offset,len;
     NClist* seq;
     void** list;
 
@@ -158,13 +162,13 @@ nchashlookup(NChashmap* hm, nchashid hash, void** valuep)
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
 int
-nchashith(NChashmap* hm, size_t index, nchashid* hashp, void** elemp)
+nchashith(NChashmap* hm, int index, nchashid* hashp, void** elemp)
 {
-    size_t i;
+    int i;
     if(hm == NULL) return FALSE;
     for(i=0;i<hm->alloc;i++) {
 	NClist* seq = hm->table[i];
-	size_t len = nclistlength(seq) / 2;
+	int len = nclistlength(seq) / 2;
 	if(len == 0) continue;
 	if((index - len) < 0) {
 	    if(hashp) *hashp = (nchashid)nclistget(seq,index*2);
@@ -181,7 +185,7 @@ nchashith(NChashmap* hm, size_t index, nchashid* hashp, void** elemp)
 int
 nchashkeys(NChashmap* hm, nchashid** keylist)
 {
-    size_t i,j,index;
+    int i,j,index;
     nchashid* keys;
     if(hm == NULL) return FALSE;
     if(hm->size == 0) {

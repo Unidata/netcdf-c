@@ -104,7 +104,7 @@ typedef signed char schar;
  * the record variable ids, if the array parameter is non-null.
  */
 static int
-numrecvars(int ncid, int *nrecvarsp, int *recvarids)
+numrecvars(int ncid, int* nrecvarsp, int *recvarids)
 {
     int status = NC_NOERR;
     int nvars = 0;
@@ -158,7 +158,7 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
     int ndims;
     int dimids[MAX_NC_DIMS];
     int id;
-    size_t size;
+    int size;
 
     *recsizep = 0;
     status = nc_inq_unlimdim(ncid, &recdimid); 
@@ -182,9 +182,9 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
 	status = nc_inq_dimlen(ncid, dimids[id], &len);
 	if(status != NC_NOERR)
 		return status;
-	size *= len;
+	size *= (int)len;
     }
-    *recsizep = size;
+    *recsizep = (size_t)size;
     return NC_NOERR;
 }
 
@@ -256,7 +256,7 @@ nc_inq_rec(
 	return status;
 
     if (nrecvarsp != NULL)
-	*nrecvarsp = nrvars;
+	*nrecvarsp = (size_t)nrvars;
     if (recvarids != NULL)
 	for (varid = 0; varid < nrvars; varid++)
 	    recvarids[varid] = rvarids[varid];
@@ -964,7 +964,7 @@ ncattput(
     const void*	value
 )
 {
-	const int status = nc_put_att(ncid, varid, name, datatype, (size_t)len, value);
+	const int status = nc_put_att(ncid, varid, name, datatype, len, value);
 	if(status != NC_NOERR)
 	{
 		nc_advise("ncattput", status, "ncid %d", ncid);

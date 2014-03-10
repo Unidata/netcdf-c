@@ -20,13 +20,13 @@ typedef unsigned long nchashid;
 externC int nchashnull(void*);
 
 typedef struct NChashmap {
-  int alloc;
-  int size; /* # of pairs still in table*/
+  size_t alloc;
+  size_t size; /* # of pairs still in table*/
   NClist** table;
 } NChashmap;
 
 externC NChashmap* nchashnew(void);
-externC NChashmap* nchashnew0(int);
+externC NChashmap* nchashnew0(size_t);
 externC int nchashfree(NChashmap*);
 
 /* Insert a (ncnchashid,void*) pair into the table*/
@@ -48,7 +48,7 @@ externC int nchashremove(NChashmap*, nchashid nchash);
 
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
-externC int nchashith(NChashmap*, size_t i, nchashid*, void**);
+externC int nchashith(NChashmap*, int i, nchashid*, void**);
 
 externC int nchashkeys(NChashmap* hm, nchashid** keylist);
 
