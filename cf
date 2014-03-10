@@ -19,7 +19,7 @@ DAP=1
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
-CFLAGS="-Wconversion"
+#CFLAGS="-Wconversion"
 
 FORCE="-i"
 
@@ -160,7 +160,7 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
-#FLAGS="$FLAGS --enable-dap-auth-tests"
+FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-doxygen"
 #FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
