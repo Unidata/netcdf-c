@@ -189,6 +189,14 @@ nc_strerror(int ncerr1)
 	 return "NetCDF: Malformed or unexpected Constraint";
       case NC_ETRANSLATION:
 	 return "NetCDF: Untranslatable construct";
+      case NC_EACCESS:
+	 return "NetCDF: Access failure";
+      case NC_EAUTH:
+	 return "NetCDF: Authorization failure";
+      case NC_ENOTFOUND:
+	 return "NetCDF: file not found";
+      case NC_ECANTREMOVE:
+	 return "NetCDF: cannot delete file";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

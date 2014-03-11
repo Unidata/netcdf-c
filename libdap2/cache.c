@@ -218,9 +218,9 @@ buildcachenode34(NCDAPCOMMON* nccomm,
     if((flags & NCF_PREFETCH_ALL) == 0)
         ce = buildconstraintstring3(constraint);
 
-    ocstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
+    ncstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     nullfree(ce);
-    if(ocstat) {THROWCHK(ocerrtoncerr(ocstat)); goto done;}
+    if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) {THROWCHK(ncstat); goto done;}

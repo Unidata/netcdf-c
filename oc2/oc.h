@@ -524,9 +524,15 @@ extern OCerror oc_merge_das(OClink, OCddsnode dasroot, OCddsnode ddsroot);
 /* Debugging */
 
 /* When a server error is detected, then it is possible
-   to get the server error info using this procedure */
+   to get DODS supplied server error info using this procedure */
 extern OCerror oc_svcerrordata(OClink link, char** codep,
                                char** msgp, long* httpp);
+
+/* Get the HTTP return code from the last call;
+   note that this may or may not be the same as returned
+   by oc_svcerrordata.
+ */
+extern int oc_httpcode(OClink);
 
 /**************************************************/
 /* Experimental/Undocumented */

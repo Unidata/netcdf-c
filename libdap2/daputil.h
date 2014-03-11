@@ -79,7 +79,7 @@ extern int nc__testurl(const char* parth, char** basename);
 
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
-extern OCerror dap_fetch(struct NCDAPCOMMON*,OClink,const char*,OCdxd,OCobject*);
+extern NCerror dap_fetch(struct NCDAPCOMMON*,OClink,const char*,OCdxd,OCobject*);
 
 extern int dap_badname(char* name);
 extern char* dap_repairname(char* name);

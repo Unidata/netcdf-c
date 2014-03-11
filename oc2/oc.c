@@ -1831,6 +1831,23 @@ oc_svcerrordata(OCobject link, char** codep,
     return OCTHROW(ocsvcerrordata(state,codep,msgp,httpp));
 }
 
+/*!
+Obtain the HTTP code (e.g. 200, 404, etc) from the last
+fetch command.
+
+\param[in] link The link through which the server is accessed.
+
+\retval the HTTP code
+*/
+
+OCerror
+oc_httpcode(OCobject link)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    return state->error.httpcode;
+}
 
 /**************************************************/
 /* New 10/31/2009: return the size(in bytes)

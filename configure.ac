@@ -523,20 +523,34 @@ AM_PROG_CC_C_O
 AC_C_CONST
 
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+# CURLOPT_RESPONSE_CODE is not defined until curl version 7.10.7
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
 CFLAGS="${curl_cflags}"
+
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
 [[int x = CURLOPT_KEYPASSWD;]])],
                    [havekeypassword=yes],
                    [havekeypassword=no])
-AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_CHECKING([whether CURLOPT_KEYPASSWD is defined])
 AC_MSG_RESULT([${havekeypassword}])
 if test $havekeypassword = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
 fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_RESPONSE_CODE;]])],
+                   [haveresponsecode=yes],
+                   [haveresponsecode=no])
+AC_MSG_CHECKING([whether CURLOPT_RESPONSE_CODE is defined])
+AC_MSG_RESULT([${haveresponsecode}])
+if test $haveresponsecode = yes; then
+  AC_DEFINE([HAVE_CURLOPT_RESPONSE_CODE],[1],[Is CURLOPT_RESPONSE_CODE defined])
+fi
+
 CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.

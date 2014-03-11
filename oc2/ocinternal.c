@@ -267,9 +267,9 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     default:
 	break;
     }/*switch*/
+    /* Obtain any http code */
+    state->error.httpcode = ocfetchhttpcode(state->curl);
     if(stat != OC_NOERR) {
-	/* Obtain any http code */
-	state->error.httpcode = ocfetchhttpcode(state->curl);
 	if(state->error.httpcode >= 400) {
 	    oclog(OCLOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
 	} else {
