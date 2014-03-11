@@ -168,7 +168,7 @@ element of the dimids array.
 \returns ::NC_ENAMEINUSE Name already in use.
 \returns ::NC_EPERM Attempt to create object in read-only file. 
 
-\section Example
+\section nc_def_var_example Example
 
 Here is an example using nc_def_var to create a variable named rh of
 type double with three dimensions, time, lat, and lon in a new netCDF
@@ -250,7 +250,7 @@ nc_inq_ncid().
 \returns ::NC_ENAMEINUSE Name in use.
 \returns ::NC_ENOMEM Out of memory.
 
-\section Example
+\section nc_rename_var_example Example
 
 Here is an example using nc_rename_var to rename the variable rh to
 rel_hum in an existing netCDF dataset named foo.nc:
