@@ -96,9 +96,10 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_ZLIB 1
 #cmakedefine USE_X_GETOPT 1
 #cmakedefine LARGE_FILE_TESTS 1
-#cmakedefine HAVE_CURLOPT_KEYPASSWD
 #cmakedefine HAVE_DECL_ISFINITE 1
-#cmakedefine HAVE_DECL_ISNAN
+#cmakedefine HAVE_DECL_ISNAN 1
+#cmakedefine HAVE_CURLOPT_KEYPASSWD 1
+#cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 #cmakedefine HAVE_ALLOCA
