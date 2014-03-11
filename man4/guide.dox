@@ -17,17 +17,6 @@
 - \subpage netcdf_utilities_guide
 - \subpage file_format_specifications
 
-\section user_guide The NetCDF User's Guide
-
-- \ref mainpage_netcdf
-- \subpage netcdf_summary
-- \subpage netcdf_introduction
-- \subpage file_structure_and_performance
-- \subpage netcdf_data_set_components
-- \subpage netcdf_perf_chunking
-- \subpage netcdf_utilities_guide
-- \subpage file_format_specifications
-
 Data
 - \ref external_types
 - \ref classic_structures
@@ -79,9 +68,15 @@ Separate documentation of the Java netCDF library can be found at
 http://www.unidata.ucar.edu/software/netcdf-java.
 
 \page netcdf_introduction An Introduction to NetCDF
+<<<<<<< HEAD
 
 \tableofcontents
 
+=======
+
+\tableofcontents
+
+>>>>>>> db60cdaebbcd43f7672230a3106623fced87be32
 \section netcdf_interface The NetCDF Interface
 
 The Network Common Data Form, or netCDF, is an interface to a library
@@ -410,9 +405,15 @@ For more information about parallel-netcdf, see their web site:
 http://www.mcs.anl.gov/parallel-netcdf.
 
 \page netcdf_data_set_components The Components of a NetCDF Data Set
+<<<<<<< HEAD
 
 \tableofcontents
 
+=======
+
+\tableofcontents
+
+>>>>>>> db60cdaebbcd43f7672230a3106623fced87be32
 \section data_model The Data Model
 
 A netCDF dataset contains dimensions, variables, and attributes, which
