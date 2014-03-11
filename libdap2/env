@@ -6,7 +6,7 @@ alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias q
 #TOP="/home/dmh/mach/netcdf-c"
 TOP="/cygdrive/f/git/netcdf-c"
 
-F="http://thredds-test.ucar.edu/dts/test.07"
+F="http://tiggeUser:tigge@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
 
 #CON='SPEED.SPEED'
 #VAR=SPEED
@@ -122,4 +122,6 @@ F="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTHLY/.sst
 #F="http://ticket:ticket1@utmea.enea.it:8080/thredds/dodsC/UNIDATA_passwd/head_out.nc"
 F="http://nomads.ncep.noaa.gov:9090/dods/gens/gens20140123/gep_all_12z"
 VAR=prmslmsl 
+F="http://data.nodc.noaa.gov/thredds/dodsC/testdata/pathfinderAgg/pathFinderV5.2_night.ncml"
+CON="sst_dtime.sst_dtime"
 fi

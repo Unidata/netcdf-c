@@ -58,5 +58,6 @@ extern NCConstant builddatasublist(Datalist* dl);
 extern void dlextend(Datalist* dl);
 extern void dlsetalloc(Datalist* dl, size_t newalloc);
 extern void check_err(const int stat, const int line, const char* file);
+extern const char* kind_string(int kind);
 
 #endif /*NCGEN_UTIL_H*/

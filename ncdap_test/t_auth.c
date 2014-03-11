@@ -4,7 +4,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define BASICAUTHURL "http://tiggeUser:tigge@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
+#define BASICAUTHURL "http://remoteUser:remotePassword@remotetest.unidata.ucar.edu/thredds/restricted/basicAuth/dodsC/test/testData.nc"
 
 static void
 CHECK(int e, const char* msg)

@@ -26,7 +26,11 @@ ocfetchhttpcode(CURL* curl)
     long httpcode;
     CURLcode cstat = CURLE_OK;
     /* Extract the http code */
+#ifdef HAVE_CURLINFO_RESPONSE_CODE
     cstat = curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&httpcode);
+#else
+    cstat = curl_easy_getinfo(curl,CURLINFO_HTTP_CODE,&httpcode);
+#endif
     if(cstat != CURLE_OK) httpcode = 0;
     return httpcode;
 }
@@ -62,6 +66,7 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	fetchdata.stream = stream;
 	fetchdata.size = 0;
 	cstat = curl_easy_perform(curl);
+
 	if (cstat != CURLE_OK)
 	    goto fail;
 

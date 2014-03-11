@@ -28,10 +28,10 @@ man_MANS = ncdump.1 nccopy.1
 if BUILD_TESTSETS
 #if !BUILD_DLL
 # These tests are run for both netCDF-4 and non-netCDF-4 builds.
-check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8
+check_PROGRAMS = rewrite-scalar ctest ctest64 ncdump tst_utf8 bom
 TESTS = run_tests.sh tst_64bit.sh ctest ctest64 tst_output.sh	\
 tst_lengths.sh tst_calendars.sh tst_utf8 run_utf8_tests.sh      \
-tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh
+tst_nccopy3.sh tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh
 
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh

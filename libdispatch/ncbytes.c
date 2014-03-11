@@ -19,7 +19,7 @@
 
 static int ncbytesdebug = 1;
 
-static long
+static int
 ncbytesfail(void)
 {
     fflush(stdout);
@@ -33,7 +33,7 @@ NCbytes*
 ncbytesnew(void)
 {
   NCbytes* bb = (NCbytes*)malloc(sizeof(NCbytes));
-  if(bb == NULL) return (NCbytes*)ncbytesfail();
+  if(bb == NULL) return (ncbytesfail(),NULL);
   bb->alloc=0;
   bb->length=0;
   bb->content=NULL;
@@ -113,7 +113,7 @@ ncbytesappend(NCbytes* bb, char elem)
   while(bb->length+1 >= bb->alloc) {
 	if(!ncbytessetalloc(bb,0)) return ncbytesfail();
   }
-  bb->content[bb->length] = elem;
+  bb->content[bb->length] = (char)(elem & 0xFF);
   bb->length++;
   bb->content[bb->length] = '\0';
   return TRUE;
@@ -154,7 +154,7 @@ ncbytesprepend(NCbytes* bb, char elem)
   if(bb == NULL) return ncbytesfail();
   if(bb->length >= bb->alloc) if(!ncbytessetalloc(bb,0)) return ncbytesfail();
   /* could we trust memcpy? instead */
-  for(i=bb->alloc;i>=1;i--) {bb->content[i]=bb->content[i-1];}
+  for(i=(int)bb->alloc;i>=1;i--) {bb->content[i]=bb->content[i-1];}
   bb->content[0] = elem;
   bb->length++;
   return TRUE;

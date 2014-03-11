@@ -171,7 +171,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /** Extended format specifier returned by  nc_inq_format_extended() 
  *  Added in version 4.3.1. This returns the true format of the
- *  underlying data‥
+ *  underlying data.
  * The function returns two values
  * 1. a small integer indicating the underlying source type
  *    of the data. Note that this may differ from what the user
@@ -368,9 +368,12 @@ by the desired type. */
 #define NC_EDAPURL	(-74)      /**< Malformed DAP URL */
 #define NC_EDAPCONSTRAINT (-75)    /**< Malformed DAP Constraint*/
 #define NC_ETRANSLATION (-76)      /**< Untranslatable construct */
+#define NC_EACCESS      (-77)      /**< Access Failure */
+#define NC_EAUTH        (-78)      /**< Authorization Failure */
 
 /* Misc. additional errors */
-#define NC_ECANTREMOVE  (-77)      /**< Can't remove file */
+#define NC_ENOTFOUND     (-90)      /**< No such file */
+#define NC_ECANTREMOVE   (-91)      /**< Can't remove file */
 
 /* The following was added in support of netcdf-4. Make all netcdf-4
    error codes < -100 so that errors can be added to netcdf-3 if

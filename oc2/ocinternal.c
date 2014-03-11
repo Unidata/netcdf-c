@@ -267,9 +267,9 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     default:
 	break;
     }/*switch*/
+    /* Obtain any http code */
+    state->error.httpcode = ocfetchhttpcode(state->curl);
     if(stat != OC_NOERR) {
-	/* Obtain any http code */
-	state->error.httpcode = ocfetchhttpcode(state->curl);
 	if(state->error.httpcode >= 400) {
 	    oclog(OCLOGWARN,"oc_open: Could not read url; http error = %l",state->error.httpcode);
 	} else {
@@ -499,7 +499,7 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
     } else
 	tree->text = NULL;
     /* reset the position of the tmp file*/
-    fseek(tree->data.file,tree->data.bod,SEEK_SET);
+    fseek(tree->data.file,(long)tree->data.bod,SEEK_SET);
     if(tree->text == NULL) stat = OC_EDATADDS;
     return OCTHROW(stat);
 }
@@ -655,7 +655,8 @@ dataError(XXDR* xdrs, OCstate* state)
 {
     int depth=0;
     int errfound = 0;
-    off_t ckp=0,avail=0,i=0;
+    off_t ckp=0,avail=0;
+    int i=0;
     char* errmsg = NULL;
     char errortext[16]; /* bigger thant |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
@@ -670,17 +671,17 @@ dataError(XXDR* xdrs, OCstate* state)
     /* Try to locate the whole error body */
     xxdr_setpos(xdrs,ckp);
     for(depth=0,i=0;i<avail;i++) {
-	xxdr_getbytes(xdrs,errortext,1);
+	xxdr_getbytes(xdrs,errortext,(off_t)1);
 	if(errortext[0] == CLBRACE) depth++;
 	else if(errortext[0] == CRBRACE) {
 	    depth--;
 	    if(depth == 0) {i++; break;}
 	}
     }    
-    errmsg = (char*)malloc(i+1);
+    errmsg = (char*)malloc((size_t)i+1);
     if(errmsg == NULL) {errfound = 1; goto done;}
     xxdr_setpos(xdrs,ckp);
-    xxdr_getbytes(xdrs,errmsg,i);
+    xxdr_getbytes(xdrs,errmsg,(off_t)i);
     errmsg[i] = '\0';
     state->error.message = errmsg;
     state->error.code = strdup("?");

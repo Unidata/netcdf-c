@@ -173,6 +173,24 @@ gen_netcdf(const char *filename)
 }
 
 #ifdef USE_NETCDF4
+
+#if 0
+Turn off for now.
+
+static void
+genbin_defineglobalspecials(void)
+{
+    int stat = NC_NOERR;
+    const char* format = NULL;
+    if(usingclassic) return;
+    if(!/*Main.*/format_attribute) return;
+    /* Watch out, this is a global Attribute */
+    format = kind_string(/*Main.*/format_flag);
+    stat = nc_put_att_text(rootgroup->ncid,NC_GLOBAL,"_Format",strlen(format),format);
+    check_err(stat,__LINE__,__FILE__);  
+}
+#endif /*0*/
+
 static void
 genbin_definespecialattributes(Symbol* var)
 {
@@ -356,7 +374,7 @@ genbin_write(Generator* generator, Symbol* sym, Bytebuffer* memory,
     else if(sym->objectclass == NC_VAR)
 	return genbin_writevar(generator,sym,memory,rank,start,count);
     else
-	PANIC("illegal symbol for genc_write");
+	PANIC("illegal symbol for genbin_write");
     return NC_EINVAL;
 }
 

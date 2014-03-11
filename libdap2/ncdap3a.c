@@ -223,10 +223,10 @@ fprintf(stderr,"seqcountconstraints: %s\n",ncbytescontents(seqcountconstraints))
 
     /* Fetch the minimal data */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
-        ocstat = dap_fetch(dapcomm,conn,NULL,OCDATADDS,&ocroot);
+        ncstat = dap_fetch(dapcomm,conn,NULL,OCDATADDS,&ocroot);
     else
-        ocstat = dap_fetch(dapcomm,conn,ncbytescontents(seqcountconstraints),OCDATADDS,&ocroot);
-    if(ocstat) goto fail;
+        ncstat = dap_fetch(dapcomm,conn,ncbytescontents(seqcountconstraints),OCDATADDS,&ocroot);
+    if(ncstat) goto fail;
 
     ncstat = buildcdftree34(dapcomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) goto fail;	
@@ -614,8 +614,8 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
         ce = nulldup(dapcomm->oc.url->selection);
 
     /* Get selection constrained DDS */
-    ocstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
-    if(ocstat != OC_NOERR) {
+    ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
+    if(ncstat != NC_NOERR) {
 	/* Special Hack. If the protocol is file, then see if
            we can get the dds from the .dods file
         */
@@ -623,21 +623,21 @@ fetchtemplatemetadata3(NCDAPCOMMON* dapcomm)
 	    THROWCHK(ocstat); goto done;
 	}
 	/* Fetch the data dds */
-        ocstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDATADDS,&ocroot);
-        if(ocstat != OC_NOERR) {
-	    THROWCHK(ocstat); goto done;
+        ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDATADDS,&ocroot);
+        if(ncstat != NC_NOERR) {
+	    THROWCHK(ncstat); goto done;
 	}
 	/* Note what we did */
 	nclog(NCLOGWARN,"Cannot locate .dds file, using .dods file");
     }
 
     /* Get selection constrained DAS */
-    ocstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDAS,&dapcomm->oc.ocdasroot);
-    if(ocstat != OC_NOERR) {
+    ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDAS,&dapcomm->oc.ocdasroot);
+    if(ncstat != NC_NOERR) {
 	/* Ignore but complain */
 	nclog(NCLOGWARN,"Could not read DAS; ignored");
         dapcomm->oc.ocdasroot = NULL;	
-	ocstat = OC_NOERR;
+	ncstat = NC_NOERR;
     }
 
     /* Construct the netcdf cdf tree corresponding to the dds tree*/
@@ -677,8 +677,8 @@ fetchconstrainedmetadata3(NCDAPCOMMON* dapcomm)
     else
         ce = buildconstraintstring3(dapcomm->oc.dapconstraint);
     {
-        ocstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
-        if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
+        ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
+        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
         /* Construct our parallel dds tree; including attributes*/
         ncstat = buildcdftree34(dapcomm,ocroot,OCDDS,&ddsroot);

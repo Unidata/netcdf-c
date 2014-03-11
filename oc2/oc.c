@@ -697,7 +697,7 @@ oc_dds_dimensionsizes(OCobject link, OCobject ddsnode, size_t* dimsizes)
 
     if(node->array.rank == 0) return OCTHROW(OCTHROW(OC_ESCALAR));
     if(dimsizes != NULL) {
-	int i;
+	size_t i;
         for(i=0;i<node->array.rank;i++) {
             OCnode* dim = (OCnode*)oclistget(node->array.dimensions,i);
 	    dimsizes[i] = dim->dim.declsize;
@@ -1654,7 +1654,7 @@ Non-atomic types (e.g. OC_Structure) return zero.
 size_t
 oc_typesize(OCtype etype)
 {
-    return OCTHROW(octypesize(etype));
+    return octypesize(etype);
 }
 
 /*!
@@ -1831,6 +1831,23 @@ oc_svcerrordata(OCobject link, char** codep,
     return OCTHROW(ocsvcerrordata(state,codep,msgp,httpp));
 }
 
+/*!
+Obtain the HTTP code (e.g. 200, 404, etc) from the last
+fetch command.
+
+\param[in] link The link through which the server is accessed.
+
+\retval the HTTP code
+*/
+
+OCerror
+oc_httpcode(OCobject link)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    return state->error.httpcode;
+}
 
 /**************************************************/
 /* New 10/31/2009: return the size(in bytes)

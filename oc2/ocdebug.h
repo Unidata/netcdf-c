@@ -75,12 +75,12 @@ extern void  ocfree(void*);
 #define MEMGOTO(var,label) {if((var)==NULL) goto label;}
 
 #ifdef OCCATCHERROR
+extern int ocbreakpoint(int err);
+extern int octhrow(int err);
 /* Place breakpoint on ocbreakpoint to catch errors close to where they occur*/
 #define OCTHROW(e) octhrow(e)
 #define OCTHROWCHK(e) (void)octhrow(e)
 #define OCGOTO(label) {ocbreakpoint(-1); goto label;}
-extern int ocbreakpoint(int err);
-extern int octhrow(int err);
 #else
 #define OCTHROW(e) (e)
 #define OCTHROWCHK(e)

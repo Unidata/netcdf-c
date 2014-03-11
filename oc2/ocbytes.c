@@ -42,7 +42,7 @@ ocbytesnew(void)
 }
 
 int
-ocbytessetalloc(OCbytes* bb, unsigned long sz)
+ocbytessetalloc(OCbytes* bb, size_t sz)
 {
   char* newcontent;
   if(bb == NULL) return ocbytesfail();
@@ -69,7 +69,7 @@ ocbytesfree(OCbytes* bb)
 }
 
 int
-ocbytessetlength(OCbytes* bb, unsigned long sz)
+ocbytessetlength(OCbytes* bb, size_t sz)
 {
   if(bb == NULL) return ocbytesfail();
   if(bb->length < sz) {
@@ -82,14 +82,14 @@ ocbytessetlength(OCbytes* bb, unsigned long sz)
 int
 ocbytesfill(OCbytes* bb, char fill)
 {
-  unsigned long i;
+  size_t i;
   if(bb == NULL) return ocbytesfail();
   for(i=0;i<bb->length;i++) bb->content[i] = fill;
   return TRUE;
 }
 
 int
-ocbytesget(OCbytes* bb, unsigned long index)
+ocbytesget(OCbytes* bb, size_t index)
 {
   if(bb == NULL) return -1;
   if(index >= bb->length) return -1;
@@ -97,7 +97,7 @@ ocbytesget(OCbytes* bb, unsigned long index)
 }
 
 int
-ocbytesset(OCbytes* bb, unsigned long index, char elem)
+ocbytesset(OCbytes* bb, size_t index, char elem)
 {
   if(bb == NULL) return ocbytesfail();
   if(index >= bb->length) return ocbytesfail();
@@ -106,14 +106,14 @@ ocbytesset(OCbytes* bb, unsigned long index, char elem)
 }
 
 int
-ocbytesappend(OCbytes* bb, char elem)
+ocbytesappend(OCbytes* bb, int elem)
 {
   if(bb == NULL) return ocbytesfail();
   /* We need space for the char + null */
   while(bb->length+1 >= bb->alloc) {
 	if(!ocbytessetalloc(bb,0)) return ocbytesfail();
   }
-  bb->content[bb->length] = elem;
+  bb->content[bb->length] = (char)elem;
   bb->length++;
   bb->content[bb->length] = '\0';
   return TRUE;
@@ -131,7 +131,7 @@ ocbytescat(OCbytes* bb, const char* s)
 }
 
 int
-ocbytesappendn(OCbytes* bb, const void* elem, unsigned long n)
+ocbytesappendn(OCbytes* bb, const void* elem, size_t n)
 {
   if(bb == NULL || elem == NULL) return ocbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
@@ -177,7 +177,7 @@ ocbytesextract(OCbytes* bb)
 }
 
 int
-ocbytessetcontents(OCbytes* bb, char* contents, unsigned long alloc)
+ocbytessetcontents(OCbytes* bb, char* contents, size_t alloc)
 {
     if(bb == NULL) return ocbytesfail();
     ocbytesclear(bb);

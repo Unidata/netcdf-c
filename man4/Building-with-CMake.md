@@ -1,4 +1,5 @@
-\page netCDF-CMake Build Instructions for netCDF-C using CMake
+Build Instructions for NetCDF-C using CMake {#netCDF-CMake}
+===========================================
 
 [TOC]
 

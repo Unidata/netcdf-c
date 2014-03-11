@@ -50,7 +50,7 @@ cdTrim(char* s, int n)
 
 	if(s==NULL)
 		return;
-	for(c=s; *c && c<s+n-1 && !isspace(*c); c++);
+	for(c=s; *c && c<s+n-1 && !isspace((int)*c); c++);
 	*c='\0';
 	return;
 }
@@ -119,7 +119,7 @@ CdMonthDay(int *doy, CdTime *date)
 	date->month	= 0;
 	for (i = 0; i < 12; i++) {
 		(date->month)++;
-		date->day	= idoy;
+		date->day = (short)idoy;
 		if ((idoy -= ((date->timeType & Cd365) ? (mon_day_cnt[date->month-1]) : 30)) <= 0) {
 			return;
 		}
@@ -190,7 +190,7 @@ Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime)
 	int     daysInYear;		     /* days in non-leap year */
 	extern void CdMonthDay(int *doy, CdTime *date);
 
-	doy	= (long) floor(etime / 24.) + 1;
+	doy	= (int) floor(etime / 24.) + 1;
 	htime->hour	= etime - (double) (doy - 1) * 24.;
 
 					     /* Correct for goofy floor func on J90 */
@@ -280,7 +280,7 @@ CdAddDelTime(double begEtm, long nDel, CdDeltaTime delTime, CdTimeType timeType,
 		delMonths = delMonths * nDel * delTime.count + bhtime.month - 1;
 		delYears = (delMonths >= 0 ? (delMonths/12) : (delMonths+1)/12 - 1);
 		ehtime.year = bhtime.year + delYears;
-		ehtime.month = delMonths - (12 * delYears) + 1;
+		ehtime.month = (short)(delMonths - (12 * delYears) + 1);
 		ehtime.day = 1;
 		ehtime.hour = 0.0;
 		ehtime.timeType = timeType;
@@ -291,7 +291,7 @@ CdAddDelTime(double begEtm, long nDel, CdDeltaTime delTime, CdTimeType timeType,
 		Cdh2e(&ehtime,endEtm);
 		break;
 	  case CdWeek: case CdDay: case CdHour: case CdMinute: case CdSecond:
-		delHours *= (nDel * delTime.count);
+		delHours = delHours * (double)(nDel * delTime.count);
 		*endEtm = begEtm + delHours;
 		break;
 	  default: break;
@@ -513,7 +513,7 @@ CdDivDelTime(double begEtm, double endEtm, CdDeltaTime delTime, CdTimeType timeT
 			range = (ehtime.month - bhtime.month);
 			if(range < 0) range += 12;
 		}
-		*nDel = abs(range)/delMonths;
+		*nDel = abs((int)range)/delMonths;
 		break;
 	  case CdWeek: case CdDay: case CdHour: case CdMinute: case CdSecond:
 		delHours *= (double)delTime.count;
@@ -532,7 +532,7 @@ CdDivDelTime(double begEtm, double endEtm, CdDeltaTime delTime, CdTimeType timeT
 			if(frange < 0.0 || frange >= hoursInYear)
 				frange -= hoursInYear * floor(frange/hoursInYear);
 		}
-		*nDel = (frange + 1.e-10*delHours)/delHours;
+		*nDel = (long)((frange + 1.e-10*delHours)/delHours);
 		break;
 	    default: break;
 	}
@@ -834,8 +834,12 @@ cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* re
 		if(!(timetype & cdStandardCal)){	/* Climatological time */
 			hoursInYear = (timetype & cd365Days) ? 8760. : (timetype & cdHasLeap) ? 8784. : 8640.;
 					     /* Normalize delta to interval [0,hoursInYear) */
-			if(delta < 0.0 || delta >= hoursInYear)
-				delta -= hoursInYear * floor(delta/hoursInYear);
+			if(delta < 0.0 || delta >= hoursInYear) {
+				double down = ((double)delta)/((double)hoursInYear);
+				down = floor(down);
+				down = down * (double)hoursInYear;
+				delta = delta - down;
+			}
 		}
 		break;
 	  case cdYear: case cdSeason: case cdMonth:
@@ -1089,7 +1093,7 @@ cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
 	dtmp = 60.0 * (comptime.hour - (double)ihr);
 	imin = (int)dtmp;
 	sec = 60.0 * (dtmp - (double)imin);
-	isec = sec;
+	isec = (int)sec;
 
 	if(sec == isec)
 	    if(isec == 0)

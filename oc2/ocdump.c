@@ -54,7 +54,7 @@ tabto(int pos, OCbytes* buffer)
     len = ocbyteslength(buffer);
     /* find preceding newline */
     for(bol=len-1;;bol--) {
-	int c = ocbytesget(buffer,bol);
+	int c = ocbytesget(buffer,(size_t)bol);
 	if(c < 0) break;
 	if(c == '\n') {bol++; break;}
     }
@@ -172,7 +172,7 @@ dumpocnode1(OCnode* node, int depth)
 	    if(att->nvalues == 1) {
 		dumpattvalue(att->etype,att->values,0);
 	    } else {
-		unsigned int j;
+		int j;
 	        fprintf(stdout,"{");
 		for(j=0;j<att->nvalues;j++) {
 		    if(j>0) fprintf(stdout,", ");
@@ -252,7 +252,7 @@ addfield(char* field, char* line, int align)
 }
 
 static void
-dumpfield(int index, char* n8, int isxdr)
+dumpfield(size_t index, char* n8, int isxdr)
 {
     char line[1024];
     char tmp[32];
@@ -315,7 +315,7 @@ dumpfield(int index, char* n8, int isxdr)
     addfield(tmp,line,16);
 
     /* double */
-    memcpy(dform.cv,n8,2*XDRUNIT);
+    memcpy(dform.cv,n8,(size_t)(2*XDRUNIT));
     if(isxdr) xxdrntohdouble(dform.cv,&dform.d);
     sprintf(tmp,"%#g",dform.d);
     addfield(tmp,line,12);
@@ -419,17 +419,17 @@ ocdumpmemory(char* memory, size_t len, int xdrencoded, int level)
 }
 
 static int
-ocreadfile(FILE* file, int datastart, char** memp, size_t* lenp)
+ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 {
     char* mem;
     size_t len;
-    size_t red;
+    long red;
     struct stat stats;
-    ssize_t pos;
+    long pos;
 
     pos = ftell(file);
     fseek(file,0,SEEK_SET);
-    fseek(file,datastart,SEEK_SET);
+    fseek(file,(long)datastart,SEEK_SET);
 
     fstat(fileno(file),&stats);
     len = stats.st_size;
@@ -456,7 +456,10 @@ ocdd(OCstate* state, OCnode* root, int xdrencoded, int level)
     char* mem;
     size_t len;
     if(root->tree->data.file != NULL) {
-        if(!ocreadfile(root->tree->data.file,root->tree->data.bod,&mem,&len)) {
+        if(!ocreadfile(root->tree->data.file,
+                       root->tree->data.bod,
+                       &mem,
+                       &len)) {
     	    fprintf(stderr,"ocdd could not read data file\n");
 	    return;
 	}

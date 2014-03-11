@@ -80,17 +80,17 @@ pathtostring(OClist* path, char* separator, int usecdfname)
     char* pathname;
     if(path == NULL || (len = oclistlength(path))==0) return NULL;
     for(slen=0,i=0;i<len;i++) {
-	OCnode* node = (OCnode*)oclistget(path,i);
+	OCnode* node = (OCnode*)oclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
 	slen += strlen(node->name);
     }
     slen += ((len-1)*strlen(separator));
     slen += 1;   /* for null terminator*/
-    pathname = (char*)ocmalloc(slen);
+    pathname = (char*)ocmalloc((size_t)slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';
     for(i=0;i<len;i++) {
-	OCnode* node = (OCnode*)oclistget(path,i);
+	OCnode* node = (OCnode*)oclistget(path,(size_t)i);
 	if(node->container == NULL || node->name == NULL) continue;
 	if(strlen(pathname) > 0) strcat(pathname,separator);
         strcat(pathname,node->name);
@@ -135,7 +135,7 @@ makeattribute(char* name, OCtype ptype, OClist* values)
 	int i;
         att->values = (char**)ocmalloc(sizeof(char*)*att->nvalues);
         for(i=0;i<att->nvalues;i++)
-	    att->values[i] = nulldup((char*)oclistget(values,i));
+	    att->values[i] = nulldup((char*)oclistget(values,(size_t)i));
     }
     return att;
 }
@@ -163,9 +163,9 @@ ocroot_free(OCnode* root)
 	ocdata_free(state,tree->data.data);
 
     for(i=0;i<oclistlength(state->trees);i++) {
-	OCnode* node = (OCnode*)oclistget(state->trees,i);
+	OCnode* node = (OCnode*)oclistget(state->trees,(size_t)i);
 	if(root == node)
-	    oclistremove(state->trees,i);
+	    oclistremove(state->trees,(size_t)i);
     }
     /* Note: it is ok if state->trees does not contain this root */    
     octree_free(tree);
@@ -529,9 +529,9 @@ occorrelater(OCnode* dds, OCnode* dxd)
     case OC_Sequence:
 	/* Remember: there may be fewer datadds fields than dds fields */
 	for(i=0;i<oclistlength(dxd->subnodes);i++) {
-	    OCnode* dxd1 = (OCnode*)oclistget(dxd->subnodes,i);
+	    OCnode* dxd1 = (OCnode*)oclistget(dxd->subnodes,(size_t)i);
 	    for(j=0;j<oclistlength(dds->subnodes);j++) {
-		OCnode* dds1 = (OCnode*)oclistget(dds->subnodes,j);
+		OCnode* dds1 = (OCnode*)oclistget(dds->subnodes,(size_t)j);
 		if(strcmp(dxd1->name,dds1->name) == 0) {
 		    ocstat = occorrelater(dds1,dxd1);
 		    if(ocstat != OC_NOERR) {OCTHROWCHK(ocstat); goto fail;}
@@ -548,8 +548,8 @@ occorrelater(OCnode* dds, OCnode* dxd)
     /* Correlate the dimensions */
     if(dds->array.rank > 0) {
 	for(i=0;i<oclistlength(dxd->subnodes);i++) {
-	    OCnode* ddsdim = (OCnode*)oclistget(dds->array.dimensions,i);
-	    OCnode* dxddim = (OCnode*)oclistget(dxd->array.dimensions,i);
+	    OCnode* ddsdim = (OCnode*)oclistget(dds->array.dimensions,(size_t)i);
+	    OCnode* dxddim = (OCnode*)oclistget(dxd->array.dimensions,(size_t)i);
 	    ocstat = occorrelater(ddsdim,dxddim);
 	    if(!ocstat) goto fail;	    
 	}	
@@ -582,7 +582,7 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
     OClist* treenodes = ddsroot->tree->nodes;
     OClist* path = oclistnew();
     for(i=0;i<oclistlength(treenodes);i++) {
-        OCnode* node = (OCnode*)oclistget(treenodes,i);
+        OCnode* node = (OCnode*)oclistget(treenodes,(size_t)i);
 	if(node->octype != OC_Atomic) continue;
 	if(node->etype != OC_String && node->etype != OC_URL) continue;
 	/* collect node path */
@@ -592,7 +592,7 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
         ok = 1;
 #endif
 	for(j=1;j<oclistlength(path)-1;j++) {/* skip top level dataset and node itself*/
-            OCnode* pathnode = (OCnode*)oclistget(path,j);
+            OCnode* pathnode = (OCnode*)oclistget(path,(size_t)j);
 	    if(pathnode->octype != OC_Structure
 		|| pathnode->array.rank > 0) {
 #if 0

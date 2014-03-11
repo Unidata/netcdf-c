@@ -697,13 +697,15 @@ deltatime()
 #endif
 
 /* Provide a wrapper for oc_fetch so we can log what it does */
-OCerror
+NCerror
 dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
              OCdxd dxd, OCddsnode* rootp)
 {
-    OCerror ocstat;
-    char* ext;
+    NCerror ncstat = NC_NOERR;
+    OCerror ocstat = OC_NOERR;
+    char* ext = NULL;
     OCflags flags = 0;
+    int httpcode = 0;
 
     if(dxd == OCDDS) ext = ".dds";
     else if(dxd == OCDAS) ext = ".das";
@@ -747,7 +749,21 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 fprintf(stderr,"fetch: dds:\n");
 oc_dumpnode(conn,*rootp);
 #endif
-    return ocstat;
+    
+    /* Look at the HTTP return code */
+    httpcode = oc_httpcode(conn);
+    if(httpcode < 400) {
+        ncstat = ocerrtoncerr(ocstat);
+    } else if(httpcode >= 500) {
+        ncstat = NC_EDAPSVC;
+    } else if(httpcode == 401) {
+	ncstat = NC_EAUTH;
+    } else if(httpcode == 404) {
+	ncstat = NC_ENOTFOUND;
+    } else {
+	ncstat = NC_EACCESS;
+    }
+    return ncstat;
 }
 
 /* Check a name to see if it contains illegal dap characters

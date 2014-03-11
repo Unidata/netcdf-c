@@ -235,11 +235,10 @@ static int
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int d;
-   size_t type_size, max_len = 0;
+   size_t type_size;
    float num_values = 1, num_set = 0;
    int retval;
 #ifdef LOGGING   
-   int max_dim;
    double total_chunk_size;
 #endif
 
@@ -260,20 +259,10 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
-      if (var->dim[d]->len) 
+      if (var->dim[d]->len > 0) 
 	 num_values *= (float)var->dim[d]->len;
       else
 	 num_set++;
-      
-      if (var->dim[d]->len > max_len)
-      {
-	 max_len = var->dim[d]->len;
-#ifdef LOGGING
-	 max_dim = d;
-#endif
-      }
-      LOG((4, "d = %d max_dim %d max_len %ld num_values %f", d, max_dim, max_len, 
-	   num_values));
    }
 
    /* Pick a chunk length for each dimension, if one has not already

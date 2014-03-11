@@ -123,7 +123,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 #endif /* USE_PARALLEL */
    {
       FILE *fp;
-      int i;
+      size_t i;
 #ifdef HAVE_SYS_STAT_H
       struct stat st;
 #endif
@@ -546,6 +546,9 @@ netCDF library.
  
 If a the path is a DAP URL, then the open mode is read-only.
 Setting NC_WRITE will be ignored.
+
+As of version 4.3.1.2, multiple calls to nc_open with the same
+path will return the same ncid value.
 
 \note When opening a netCDF-4 file HDF5 error reporting is turned off,
 if it is on. This doesn't stop the HDF5 error stack from recording the
@@ -1033,6 +1036,13 @@ nc_abort(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
+
+#ifdef USE_REFCOUNT
+   /* What to do if refcount > 0? */
+   /* currently, forcibly abort */
+   ncp->refcount = 0;
+#endif
+
    stat = ncp->dispatch->abort(ncid);
    del_from_NCList(ncp);
    free_NC(ncp);
@@ -1085,10 +1095,17 @@ nc_close(int ncid)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   stat = ncp->dispatch->close(ncid);
-   /* Remove from the nc list */
-   del_from_NCList(ncp);
-   free_NC(ncp);
+
+#ifdef USE_REFCOUNT
+   ncp->refcount--;
+   if(ncp->refcount <= 0)
+#endif
+   {
+       stat = ncp->dispatch->close(ncid);
+       /* Remove from the nc list */
+       del_from_NCList(ncp);
+       free_NC(ncp);
+   }
    return stat;
 }
 
@@ -1505,6 +1522,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
       nc_initialized = 1;
    }
 
+   /* If this path is already open, then fail */
+   ncp = find_in_NCList_by_name(path);
+   if(ncp != NULL)
+	return NC_ENFILE;   
+
    if((isurl = NC_testurl(path)))
 	model = NC_urlmodel(path);
 
@@ -1587,6 +1609,11 @@ NC_create(const char *path, int cmode, size_t initialsz,
    /* Add to list of known open files and define ext_ncid */
    add_to_NCList(ncp);
 
+#ifdef USE_REFCOUNT
+   /* bump the refcount */
+   ncp->refcount++;
+#endif
+
    /* Assume create will fill in remaining ncp fields */
    if ((stat = dispatcher->create(path, cmode, initialsz, basepe, chunksizehintp,
 				   useparallel, mpi_info, dispatcher, ncp))) {
@@ -1635,6 +1662,16 @@ NC_open(const char *path, int cmode,
       nc_local_initialize();
       nc_initialized = 1;
    }
+
+#ifdef USE_REFCOUNT
+   /* If this path is already open, then bump the refcount and return it */
+   ncp = find_in_NCList_by_name(path);
+   if(ncp != NULL) {
+	ncp->refcount++;
+	if(ncidp) *ncidp = ncp->ext_ncid;	
+	return NC_NOERR;
+   }
+#endif
 
    isurl = NC_testurl(path);
    if(isurl)
@@ -1726,6 +1763,11 @@ havetable:
    /* Add to list of known open files */
    add_to_NCList(ncp);
 
+#ifdef USE_REFCOUNT
+   /* bump the refcount */
+   ncp->refcount++;
+#endif
+
    /* Assume open will fill in remaining ncp fields */
    stat = dispatcher->open(path, cmode, basepe, chunksizehintp,
 			   useparallel, mpi_info, dispatcher, ncp);
@@ -1757,9 +1799,9 @@ nc__pseudofd(void)
         struct rlimit rl;
         if(getrlimit(RLIMIT_NOFILE,&rl) == 0) {
 	    if(rl.rlim_max != RLIM_INFINITY)
-	        maxfd = rl.rlim_max;
+	        maxfd = (int)rl.rlim_max;
 	    if(rl.rlim_cur != RLIM_INFINITY)
-	        maxfd = rl.rlim_cur;
+	        maxfd = (int)rl.rlim_cur;
 	}
 	pseudofd = maxfd+1;
 #endif

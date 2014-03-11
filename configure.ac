@@ -304,6 +304,22 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+# Default is now to do the remote authorization tests
+AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
+AC_ARG_ENABLE([dap-auth-tests],
+              [AS_HELP_STRING([--enable-dap-auth-tests],
+                                 [enable dap remote authorization tests])])
+test "x$enable_dap_auth_tests" = xyes || enable_dap_auth_tests=no
+# dap must be enabled
+if test "x$enable_dap" = "xno" ; then
+  enable_dap_auth_tests=no
+fi
+# if remote tests are disabled, then so is this
+if test "x$enable_dap_remote_tests" = "xno" ; then
+  enable_dap_remote_tests=no
+fi
+AC_MSG_RESULT($enable_dap_auth_tests)
+
 # Control if groups are supported in [netcdf4]dap2 code
 AC_MSG_CHECKING([whether [netcdf4] group names should be enabled (default on)])
 AC_ARG_ENABLE([dap-groups],
@@ -507,20 +523,34 @@ AM_PROG_CC_C_O
 AC_C_CONST
 
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+# CURLOPT_RESPONSE_CODE is not defined until curl version 7.10.7
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
 CFLAGS="${curl_cflags}"
+
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
 [[int x = CURLOPT_KEYPASSWD;]])],
                    [havekeypassword=yes],
                    [havekeypassword=no])
-AC_MSG_CHECKING([whether a CURLOPT_KEYPASSWD is defined])
+AC_MSG_CHECKING([whether CURLOPT_KEYPASSWD is defined])
 AC_MSG_RESULT([${havekeypassword}])
 if test $havekeypassword = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
 fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_RESPONSE_CODE;]])],
+                   [haveresponsecode=yes],
+                   [haveresponsecode=no])
+AC_MSG_CHECKING([whether CURLOPT_RESPONSE_CODE is defined])
+AC_MSG_RESULT([${haveresponsecode}])
+if test $haveresponsecode = yes; then
+  AC_DEFINE([HAVE_CURLOPT_RESPONSE_CODE],[1],[Is CURLOPT_RESPONSE_CODE defined])
+fi
+
 CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.
@@ -608,7 +638,7 @@ AC_HEADER_STDBOOL
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat strerror snprintf strchr strrchr strcat strcpy \
                 strdup strcasecmp strtod strtoll strtoull strstr \
-		mkstemp rand \
+		mkstemp rand memcmp \
 		getrlimit gettimeofday fsync MPI_Comm_f2c])
 
 # Does the user want to use NC_DISKLESS?
@@ -811,6 +841,7 @@ AM_CONDITIONAL(TEST_PARALLEL, [test "x$enable_parallel" = xyes -a "x$enable_para
 AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])

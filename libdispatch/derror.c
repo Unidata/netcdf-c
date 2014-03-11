@@ -29,7 +29,8 @@ nc_inq_libvers(void)
    return nc_libvers;
 }
 
-/** \defgroup error Error Handling
+/** \addtogroup error NetCDF Error Handling
+
 NetCDF functions non-zero status codes on error.
 
 Each netCDF function returns an integer status value. If the returned
@@ -55,7 +56,7 @@ status value.
 
 /**
 \ingroup error
- Given an error number, return an error message. 
+Given an error number, return an error message. 
 
 This function returns a static reference to an error message string
 corresponding to an integer netCDF error status or to a system error
@@ -188,6 +189,14 @@ nc_strerror(int ncerr1)
 	 return "NetCDF: Malformed or unexpected Constraint";
       case NC_ETRANSLATION:
 	 return "NetCDF: Untranslatable construct";
+      case NC_EACCESS:
+	 return "NetCDF: Access failure";
+      case NC_EAUTH:
+	 return "NetCDF: Authorization failure";
+      case NC_ENOTFOUND:
+	 return "NetCDF: file not found";
+      case NC_ECANTREMOVE:
+	 return "NetCDF: cannot delete file";
       case NC_EHDFERR:
 	 return "NetCDF: HDF error";
       case NC_ECANTREAD:

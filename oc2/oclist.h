@@ -14,24 +14,24 @@
 EXTERNC int oclistnull(void*);
 
 typedef struct OClist {
-  unsigned long alloc;
-  unsigned long length;
+  size_t alloc;
+  size_t length;
   void** content;
 } OClist;
 
 EXTERNC OClist* oclistnew(void);
 EXTERNC int oclistfree(OClist*);
-EXTERNC int oclistsetalloc(OClist*,unsigned long);
-EXTERNC int oclistsetlength(OClist*,unsigned long);
+EXTERNC int oclistsetalloc(OClist*,size_t);
+EXTERNC int oclistsetlength(OClist*,size_t);
 
 /* Set the ith element */
-EXTERNC int oclistset(OClist*,unsigned long,void*);
+EXTERNC int oclistset(OClist*,size_t,void*);
 /* Get value at position i */
-EXTERNC void* oclistget(OClist*,unsigned long);/* Return the ith element of l */
+EXTERNC void* oclistget(OClist*,size_t);/* Return the ith element of l */
 /* Insert at position i; will push up elements i..|seq|. */
-EXTERNC int oclistinsert(OClist*,unsigned long,void*);
+EXTERNC int oclistinsert(OClist*,size_t,void*);
 /* Remove element at position i; will move higher elements down */
-EXTERNC void* oclistremove(OClist* l, unsigned long i);
+EXTERNC void* oclistremove(OClist* l, size_t i);
 
 /* Tail operations */
 EXTERNC int oclistpush(OClist*,void*); /* Add at Tail */

@@ -16,6 +16,13 @@ DAP=1
 #M32=1
 #M64=1
 
+CFLAGS=""
+#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
+#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+#CFLAGS="-Wconversion"
+
+FORCE="-i"
+
 #INSTALL=1
 PREFIX=/usr/local
 
@@ -153,6 +160,7 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
+FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-doxygen"
 #FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
@@ -215,6 +223,6 @@ export DISTCHECK_CONFIGURE_FLAGS
 if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 sh $X ./configure ${FLAGS}
 for c in $cmds; do
-  ${MAKE} $c
+  ${MAKE} ${FORCE} $c
 done
 exit 0

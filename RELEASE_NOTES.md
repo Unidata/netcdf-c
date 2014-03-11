@@ -1,5 +1,5 @@
 Release Notes {#release_notes}
-=============
+===============================
 
 \brief Release notes file for the netcdf-c package.
 
@@ -7,7 +7,12 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.1.2 Released TBD
 
-* Fixed small default chunk size for 1-dimensional record variables.
+* Added a separate flag to enable DAP AUTH tests. These tests are disabled by default.  The flags for autotools and CMAKE-based builds are (respectively):
+
+	* --enable-dap-auth-tests
+	* -DENABLE\_DAP\_AUTH\_TESTS
+
+* Fixed small default chunk size for 1-dimensional record variables.  [NCF-211](https://bugtracking.unidata.ucar.edu/browse/NCF-211)
 
 * Cleaned up type handling in netCDF-4 to fix bugs with fill-values.
 

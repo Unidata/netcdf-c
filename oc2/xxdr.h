@@ -49,10 +49,10 @@
 
 #if 1
 /* faster version when XDRUNIT is a power of two */
-# define RNDUP(x)  (((x) + XDRUNIT - 1) & ~(XDRUNIT - 1))
+# define RNDUP(x)  ((off_t)(((x) + XDRUNIT - 1) & ~(XDRUNIT - 1)))
 #else /* old version */
-#define RNDUP(x)  ((((x) + XDRUNIT - 1) / XDRUNIT) \
-    * XDRUNIT)
+#define RNDUP(x)  ((off_t)((((x) + XDRUNIT - 1) / XDRUNIT) \
+    * XDRUNIT))
 #endif
 
 /* signature: void swapinline16(unsigned short* sp) */
