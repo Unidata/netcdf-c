@@ -61,9 +61,11 @@ INCLUDE (${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
+INCLUDE (${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
+
 FIND_PACKAGE(PkgConfig QUIET)
 
 # Enable 'dist and distcheck'.
@@ -647,6 +649,17 @@ IF (ENABLE_DAP)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
   ENDIF()
+
+  # Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
+  CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+  # Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
+  CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
   ADD_DEFINITIONS(-DCURL_STATICLIB=1)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 ENDIF()
