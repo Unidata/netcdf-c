@@ -717,7 +717,16 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-
+   # The user may have built HDF5 with libdl (dynamic loading support).
+   if test "x$enable_dynamic_loading" = xyes; then
+      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
+      if test "x$nc_dlfcn_h_missing" = xyes; then
+      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
+      fi
+      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
+      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
+   fi
+   
    # Check for the main hdf5 and hdf5_hl library.
 
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
@@ -760,17 +769,6 @@ if test "x$enable_netcdf_4" = xyes; then
    	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
-
-   # The user may have built HDF5 with libdl (dynamic loading support).
-   if test "x$enable_dynamic_loading" = xyes; then
-      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
-      if test "x$nc_dlfcn_h_missing" = xyes; then
-      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
-      fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
-      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
-   fi
-   
 
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then
