@@ -1,7 +1,6 @@
 language: c
 compiler:
-  - mpicc
-#  - gcc
+  - gcc
 # - clang
 
 before_install:
@@ -11,9 +10,7 @@ before_install:
   - sudo apt-get install -qq cmake libhdf5-openmpi-7 libhdf5-openmpi-dev
 
 before_script:
-  - cmake \
-      -DENABLE_PARALLEL:BOOL=ON \
-      .
+  - cmake -DCMAKE_C_COMPILER=mpicc -DENABLE_PARALLEL:BOOL=ON .
 
 script:
   - make && make test
