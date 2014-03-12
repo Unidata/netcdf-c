@@ -37,7 +37,9 @@ For more information about netCDF, see the netCDF Web page at
 You can obtain a copy of the latest released version of netCDF software
 from
 
-* http://www.unidata.ucar.edu/downloads/netcdf
+* http://github.com/Unidata/netcdf-c 
+* http://github.com/Unidata/netcdf-fortran
+* http://github.com/Unidata/netcdf-cxx
 
 Copyright and licensing information can be found here, as well as in
 the COPYRIGHT file accompanying the software
