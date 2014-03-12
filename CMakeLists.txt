@@ -604,10 +604,20 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   SET(HDF5_VERSION_REQUIRED 1.8.6)
   execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
                   OUTPUT_VARIABLE HDF5_VERSION
+		  ERROR_QUIET
                   )
-  IF (${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-    MESSAGE(FATAL_ERROR
-            "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+  
+  # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
+  # the call to h5cc will have failed.  At this point we will have to
+  # trust the user that they have configured their system properly.
+
+    IF("${HDF5_VERSION}" STREQUAL "")
+    MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
+  ELSE()
+    IF (${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+      MESSAGE(FATAL_ERROR
+        "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ENDIF()
   ENDIF()
 
   INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
