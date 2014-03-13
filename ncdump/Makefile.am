@@ -125,7 +125,7 @@ ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
 ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh            \
 tst_formatx3.sh tst_formatx4.sh                                         \
-CMakeLists.txt XGetopt.c
+CMakeLists.txt XGetopt.c tst_bom.sh
 
 # NCGEN4 additions
 SUBDIRS=cdl4 expected4
