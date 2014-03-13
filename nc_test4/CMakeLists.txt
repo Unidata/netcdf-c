@@ -64,11 +64,12 @@ IF(USE_HDF4_FILE_TESTS)
 ENDIF()
 
 IF(TEST_PARALLEL)
-  	add_bin_test(nc_test4 tst_mpi_parallel)	
-	add_bin_test(nc_test4 tst_parallel)
-	add_bin_test(nc_test4 tst_parallel3)
-	add_bin_test(nc_test4 tst_parallel4)
-	add_bin_test(nc_test4 tst_nc4perf)
+  	build_bin_test(tst_mpi_parallel)	
+	build_bin_test(tst_parallel)
+	build_bin_test(tst_parallel3)
+	build_bin_test(tst_parallel4)
+	build_bin_test(tst_nc4perf)
+	add_sh_test(nc_test4 run_par_test)
 ENDIF()	
 
 ## Specify files to be distributed by 'make dist'
