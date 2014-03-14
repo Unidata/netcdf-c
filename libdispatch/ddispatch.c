@@ -32,9 +32,6 @@ static struct NCPROTOCOLLIST {
 */
 static const char* servers[] = {
 "http://remotetest.unidata.ucar.edu",
-"http://thredds-test.unidata.ucar.edu",
-"http://remotetest.ucar.edu",
-"http://thredds-test.ucar.edu",
 NULL
 };
 

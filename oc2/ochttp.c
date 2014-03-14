@@ -23,7 +23,7 @@ struct Fetchdata {
 long
 ocfetchhttpcode(CURL* curl)
 {
-    long httpcode;
+    long httpcode = 200;
     CURLcode cstat = CURLE_OK;
     /* Extract the http code */
 #ifdef HAVE_CURLINFO_RESPONSE_CODE
@@ -90,16 +90,28 @@ fail:
 }
 
 int
-ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
+ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
+           struct OCcredentials* creds)
 {
 	int stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
 	size_t len;
+        long httpcode = 0;
 
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
 	if (cstat != CURLE_OK)
 		goto fail;
+
+	if(creds != NULL && creds->password != NULL  && creds->username != NULL) {
+	    /* Set user and password */
+	    cstat = curl_easy_setopt(curl, CURLOPT_USERNAME, creds->username);
+	    if (cstat != CURLE_OK)
+		goto fail;
+	    cstat = curl_easy_setopt(curl, CURLOPT_PASSWORD, creds->password);
+	    if (cstat != CURLE_OK)
+		goto fail;
+	}
 
 	/* send all data to this function  */
 	cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -115,12 +127,15 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
 	cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
 
 	cstat = curl_easy_perform(curl);
+
 	if(cstat == CURLE_PARTIAL_FILE) {
 	    /* Log it but otherwise ignore */
 	    oclog(OCLOGWARN, "curl error: %s; ignored",
 		   curl_easy_strerror(cstat));
 	    cstat = CURLE_OK;
 	}
+        httpcode = ocfetchhttpcode(curl);
+
 	if(cstat != CURLE_OK) goto fail;
 
         /* Get the last modified time */
@@ -140,7 +155,14 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime)
 
 fail:
 	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-	return OCTHROW(OC_ECURL);
+	switch (httpcode) {
+	case 401: stat = OC_EAUTH; break;
+	case 404: stat = OC_ENOFILE; break;
+	case 500: stat = OC_EDAPSVC; break;
+	case 200: break;
+	default: stat = OC_ECURL; break;
+	}
+	return OCTHROW(stat);
 }
 
 static size_t
@@ -312,7 +334,7 @@ ocping(const char* url)
 
     /* Try to get the file */
     buf = ocbytesnew();
-    stat = ocfetchurl(curl,url,buf,NULL);
+    stat = ocfetchurl(curl,url,buf,NULL,NULL);
     if(stat == OC_NOERR) {
 	/* Don't trust curl to return an error when request gets 404 */
 	long http_code = 0;

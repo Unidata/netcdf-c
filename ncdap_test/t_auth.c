@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
 
-#define BASICAUTHURL "http://tiggeUser:tigge@remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc"
+static char* URLS[] = {
+"http://tiggeUser:tigge@remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc",
+NULL
+};
 
 static void
 CHECK(int e, const char* msg)
@@ -18,12 +21,26 @@ CHECK(int e, const char* msg)
 int
 main()
 {
-    int ncid,retval;
+    int ncid,retval,pass;
+    char** url;
 
     printf("Testing: Http Basic Authorization\n");
-    retval = nc_open(BASICAUTHURL, 0, &ncid);
-    CHECK(retval,"*** Fail: Http Basic Authorization");
-    retval = nc_close(ncid);
-    printf("*** PASS: Http Basic Authorization\n");
-    return 0;
+    pass = 0;
+    for(url=URLS;*url;url++) {
+        retval = nc_open(*url, 0, &ncid);
+	if(retval == NC_NOERR) {
+	    printf("URL: %s\n",*url);
+	    pass = 1;
+	    break;
+	}
+        printf("fail: %s: %s\n", nc_strerror(retval),*url);
+    }
+    if(pass) {
+	retval = nc_close(ncid);
+        printf("*** PASS: Http Basic Authorization\n");
+        return 0;
+    } else {
+        CHECK(retval,"*** Fail: Http Basic Authorization");
+	return 1;
+    }
 }

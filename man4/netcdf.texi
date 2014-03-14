@@ -3174,7 +3174,7 @@ URL with a specific format.
 The URL is composed of three parts.
 @enumerate
 @item URL - this is a standard form URL such as
-http://thredds-test.ucar.edu/dts/test.01
+http://remotetest.unidata.ucar.edu/dts/test.01
 @item Constraints - these are suffixed to the URL and
 take the form ``?<projections>&selections''.
 The meaning of the terms projection and selection is somewhat complicated;
@@ -3209,13 +3209,13 @@ For example, if a web browser is given the following,
 the first URL will return the DDS for the specified dataset,
 and the second URL will return the DAS for the specified dataset.
 @example
-http://thredds-test.ucar.edu/dts/test.01.dds
-http://thredds-test.ucar.edu/dts/test.01.das
+http://remotetest.unidata.ucar.edu/dts/test.01.dds
+http://remotetest.unidata.ucar.edu/dts/test.01.das
 @end example
 Then by using the following ncdump command, it is possible to see the
 equivalent netCDF Classic translation.
 @example
-ncdump -h http://thredds-test.ucar.edu/dts/test.01
+ncdump -h http://remotetest.unidata.ucar.edu/dts/test.01
 @end example
 
 The DDS output from the web server should look like this.
@@ -3291,7 +3291,7 @@ mechanism . In this case, the parameter ``show=dds''
 can be prefixed to the URL and the data retrieved using
 the following command
 @example
-ncdump -h http://thredds-test.ucar.edu/dts/test.01.dds#show=dds
+ncdump -h http://remotetest.unidata.ucar.edu/dts/test.01.dds#show=dds
 @end example
 The ncdump -h command will then show both the translation and the original
 DDS. In the above example, the DDS would appear as the global
@@ -4776,7 +4776,7 @@ ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
 
 Examine the translated DDS for the DAP source from the specified URL.
 
-ncdump -h http://thredds-test.ucar.edu/dts/test.01
+ncdump -h http://remotetest.unidata.ucar.edu/dts/test.01
 
 @node nccopy, ncgen3, ncdump, NetCDF Utilities
 @section nccopy
