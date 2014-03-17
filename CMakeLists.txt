@@ -287,7 +287,7 @@ MACRO(add_bin_test prefix F)
   ENDIF()
 ENDMACRO()
 
-# A script to print out information at the end of the configuration step.
+# A cmake script to print out information at the end of the configuration step.
 MACRO(print_conf_summary)
   MESSAGE("")
   MESSAGE("")
@@ -296,20 +296,30 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Build Type:\t\t\t" ${CMAKE_BUILD_TYPE})
   MESSAGE(STATUS "Building Shared Libraries:\t" ${BUILD_SHARED_LIBS})
   MESSAGE(STATUS "Building netCDF-4:\t\t" ${ENABLE_NETCDF_4})
-  MESSAGE(STATUS "Building DAP Support:\t\t" ${ENABLE_DAP})
+  MESSAGE(STATUS "Building DAP Support:\t" ${ENABLE_DAP})
   MESSAGE(STATUS "Building Utilities:\t\t" ${BUILD_UTILITIES})
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:\t\t" "${CMAKE_PREFIX_PATH}")
   ENDIF()
-  MESSAGE(STATUS "Using pnetcdf:\t\t\t" ${STATUS_PNETCDF})
-  MESSAGE(STATUS "Using Parallel IO:\t\t" ${STATUS_PARALLEL})
   MESSAGE("")
-  IF(ENABLE_TESTS)
-    MESSAGE(STATUS "\tTests Enabled:\t\t\t${ENABLE_TESTS}")
-    MESSAGE(STATUS "\tDAP Remote Tests:\t\t${ENABLE_DAP_REMOTE_TESTS}")
-    MESSAGE(STATUS "\tDAP AUTH Tests:\t\t\t${ENABLE_DAP_AUTH_TESTS}")
+
+  IF(${STATUS_PNETCDF} OR ${STATUS_PARALLEL})
+    MESSAGE("Building Parallel NetCDF")
+    MESSAGE(STATUS "Using pnetcdf:\t\t" ${STATUS_PNETCDF})
+    MESSAGE(STATUS "Using Parallel IO:\t\t" ${STATUS_PARALLEL})
     MESSAGE("")
   ENDIF()
+
+  MESSAGE("Tests Enabled:\t\t\t${ENABLE_TESTS}")
+  IF(ENABLE_TESTS)
+    MESSAGE(STATUS "DAP Remote Tests:\t\t${ENABLE_DAP_REMOTE_TESTS}")
+    MESSAGE(STATUS "DAP AUTH Tests:\t\t${ENABLE_DAP_AUTH_TESTS}")
+    MESSAGE(STATUS "Extra Tests:\t\t\t${ENABLE_EXTRA_TESTS}")
+    MESSAGE(STATUS "Coverage Tests:\t\t${ENABLE_COVERAGE_TESTS}")
+    MESSAGE(STATUS "Parallel Tests:\t\t${ENABLE_PARALLEL_TESTS}")
+    MESSAGE(STATUS "Large File Tests:\t\t${ENABLE_LARGE_FILE_TESTS}")
+  ENDIF()
+  MESSAGE("")
   MESSAGE("Compiler:")
   MESSAGE("")
   MESSAGE(STATUS "CMAKE_C_COMPILER:\t\t ${CMAKE_C_COMPILER}")
@@ -584,7 +594,10 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
     SET(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
-
+    SET(HDF5_C_LIBRARY ${HDF5_LIB})
+    SET(HDF5_HL_LIBRARY ${HDF5_HL_LIB})
+    MESSAGE(STATUS "Using HDF5 Library: ${HDF5_LIB}")
+    MESSAGE(STATUS "Using HDF5_HL LIbrary: ${HDF5_HL_LIB}")
   ELSE()
     IF(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL NO_MODULE REQUIRED)
@@ -595,14 +608,21 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 
   # Depending on the install, either HDF5_hdf_library or
   # HDF5_C_LIBRARY may be defined.  We must check for either.
-    
+  IF(HDF5_C_LIBRARY)
+    SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
+  ENDIF()
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
   # H5Pget_fapl_mpio in ${HDF5_LIB}.
-  #CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpioposix "" HDF5_IS_PARALLEL)
-  #IF(NOT HDF5_IS_PARALLEL)
-   # CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL)
-  #ENDIF()
+
+  IF(NOT HDF5_IS_PARALLEL)
+    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpioposix "" HDF5_IS_PARALLEL_MPIOPOSIX)
+    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+    
+    IF(HDF5_IS_PARALLEL_MPIOPOSIX OR HDF5_IS_PARALLEL_MPIO)
+      SET(HDF5_IS_PARALLEL ON)
+    ENDIF()
+  ENDIF()
   
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.6)
@@ -781,7 +801,7 @@ ENDIF()
 
 # Enable Parallel (different than pnetcdf).
 SET(STATUS_PARALLEL "OFF")
-OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" OFF)
+OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" "${HDF5_IS_PARALLEL}")
 IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
   SET(USE_PARALLEL ON CACHE BOOL "")
   IF(NOT HDF5_IS_PARALLEL)
