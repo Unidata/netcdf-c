@@ -98,6 +98,8 @@ are set when opening a binary file on Windows. */
 #cmakedefine LARGE_FILE_TESTS 1
 #cmakedefine HAVE_DECL_ISFINITE 1
 #cmakedefine HAVE_DECL_ISNAN 1
+#cmakedefine HAVE_CURLOPT_USERNAME 1
+#cmakedefine HAVE_CURLOPT_PASSWORD 1
 #cmakedefine HAVE_CURLOPT_KEYPASSWD 1
 #cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
 #cmakedefine HAVE_DECL_SIGNBIT 1

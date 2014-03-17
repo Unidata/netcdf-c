@@ -96,21 +96,28 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	int stat = OC_NOERR;
 	CURLcode cstat = CURLE_OK;
 	size_t len;
-        long httpcode = 0;
-
+    long httpcode = 0;
+	char tbuf[1024];
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
 	if (cstat != CURLE_OK)
 		goto fail;
-
+	
 	if(creds != NULL && creds->password != NULL  && creds->username != NULL) {
 	    /* Set user and password */
+#if defined (HAVE_CURLOPT_USERNAME) && defined (HAVE_CURLOPT_PASSWORD)
 	    cstat = curl_easy_setopt(curl, CURLOPT_USERNAME, creds->username);
 	    if (cstat != CURLE_OK)
 		goto fail;
 	    cstat = curl_easy_setopt(curl, CURLOPT_PASSWORD, creds->password);
 	    if (cstat != CURLE_OK)
 		goto fail;
+#else		
+		snprintf(tbuf,1023,"%s:%s",creds->username,creds->password);	
+		cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, tbuf);
+		if (cstat != CURLE_OK)
+			goto fail;
+#endif
 	}
 
 	/* send all data to this function  */

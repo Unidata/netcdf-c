@@ -703,6 +703,16 @@ IF (ENABLE_DAP)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
   ENDIF()
 
+  # Check to see if CURLOPT_USERNAME is defined. It is present starting version 7.19.1
+  CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+  # Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
+  CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
   # Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
   CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
