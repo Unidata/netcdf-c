@@ -6,6 +6,9 @@
 #include "ocdebug.h"
 #include "ocrc.h"
 
+#define OC_MAX_REDIRECTS 10L
+
+
 /* Condition on libcurl version */
 /* Set up an alias as needed */
 #ifndef HAVE_CURLOPT_KEYPASSWD
@@ -103,8 +106,10 @@ Do not think this is correct
     /* Following are always set */
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
-    cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
-    OCDBG1(1,"CURLOPT_MAXREDIRS=%ld",10L);
+    cstat = curl_easy_setopt(curl, CURLOPT_UNRESTRICTED_AUTH, 1L);
+    OCDBG1(1,"CURLOPT_UNRESTRICTED_AUTH=%ld",1L);
+    cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, OC_MAX_REDIRECTS);
+    OCDBG1(1,"CURLOPT_MAXREDIRS=%ld",OC_MAX_REDIRECTS);
 #if 0
     cstat = curl_setopt(curl,CURLOPT_RETURNTRANSFER, 1L);
     OCDBG1(1,"CURLOPT_RETURNTRANSFER=%ld",1L);

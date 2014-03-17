@@ -1878,7 +1878,7 @@ In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
 format. The URL is composed of three parts.
  -  URL - this is a standard form URL such as
-    http://thredds-test.ucar.edu/dts/test.01
+    http://remotetest.unidata.ucar.edu/dts/test.01
 
  -  Constraints - these are suffixed to the URL and take the form
     “?\<projections>&\<selections>”. The meaning of the terms projection
@@ -1907,15 +1907,15 @@ will return the DDS for the specified dataset, and the second URL will
 return the DAS for the specified dataset.
 
 \code
-     http://thredds-test.ucar.edu/dts/test.01.dds
-     http://thredds-test.ucar.edu/dts/test.01.das
+     http://remotetest.unidata.ucar.edu/dts/test.01.dds
+     http://remotetest.unidata.ucar.edu/dts/test.01.das
 \endcode
 
 Then by using the following ncdump command, it is possible to see the
 equivalent netCDF Classic translation.
 
 \code
-     ncdump -h http://thredds-test.ucar.edu/dts/test.01
+     ncdump -h http://remotetest.unidata.ucar.edu/dts/test.01
 \endcode
 
 The DDS output from the web server should look like this.
@@ -1994,7 +1994,7 @@ using the client parameters mechanism . In this case, the parameter
 the following command
 
 \code
-     ncdump -h http://thredds-test.ucar.edu/dts/test.01.dds#show=dds
+     ncdump -h http://remotetest.unidata.ucar.edu/dts/test.01.dds#show=dds
 \endcode
 
 The ncdump -h command will then show both the translation and the
