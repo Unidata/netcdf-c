@@ -606,31 +606,33 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF()
 
-  # Depending on the install, either HDF5_hdf_library or
-  # HDF5_C_LIBRARY may be defined.  We must check for either.
-  IF(HDF5_C_LIBRARY)
-    SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
-  ENDIF()
+
+  IF(NOT MSVC)
+    # Depending on the install, either HDF5_hdf_library or
+     # HDF5_C_LIBRARY may be defined.  We must check for either.
+     IF(HDF5_C_LIBRARY)
+	SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
+     ENDIF()
   
-  # Find out if HDF5 was built with parallel support.
-  # Do that by checking for the targets H5Pget_fapl_mpiposx and
-  # H5Pget_fapl_mpio in ${HDF5_LIB}.
-  CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-  CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+	# Find out if HDF5 was built with parallel support.
+  	# Do that by checking for the targets H5Pget_fapl_mpiposx and
+  	# H5Pget_fapl_mpio in ${HDF5_LIB}.
+  	CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+  	CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
   
-  IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
-    SET(HDF5_IS_PARALLEL ON)
-  ENDIF()
+	IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
+    	    SET(HDF5_IS_PARALLEL ON)
+  	ENDIF()
   
-  IF(HDF5_IS_PARALLEL_MPIO)
-    SET(USE_PARALLEL_MPIO ON)
-  ENDIF()
+	IF(HDF5_IS_PARALLEL_MPIO)
+	    SET(USE_PARALLEL_MPIO ON)
+  	ENDIF()
   
-  IF(HDF5_IS_PARALLEL_MPIPOSIX)
-    SET(USE_PARALLEL_POSIX ON)
-  ENDIF()
-  
-  
+	IF(HDF5_IS_PARALLEL_MPIPOSIX)
+    	    SET(USE_PARALLEL_POSIX ON)
+  	ENDIF()
+  ENDIF(NOT MSVC)
+
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.6)
   execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
