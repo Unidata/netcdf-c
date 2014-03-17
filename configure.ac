@@ -522,12 +522,36 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_C_CONST
 
+# CURLOPT_USERNAME is not defined until curl version 7.19.1
+# CURLOPT_PASSWORD is not defined until curl version 7.19.1
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
 # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
 CFLAGS="${curl_cflags}"
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_USERNAME;]])],
+                   [haveusername=yes],
+                   [haveusername=no])
+AC_MSG_CHECKING([whether CURLOPT_USERNAME is defined])
+AC_MSG_RESULT([${haveusername}])
+if test $haveusername = yes; then
+  AC_DEFINE([HAVE_CURLOPT_USERNAME],[1],[Is CURLOPT_USERNAME defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_PASSWORD;]])],
+                   [havepassword=yes],
+                   [havepassword=no])
+AC_MSG_CHECKING([whether CURLOPT_PASSWORD is defined])
+AC_MSG_RESULT([${havepassword}])
+if test $havepassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_PASSWORD],[1],[Is CURLOPT_PASSWORD defined])
+fi
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
