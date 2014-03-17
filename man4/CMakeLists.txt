@@ -29,6 +29,6 @@ IF(BUILD_DOCS)
 	ENDIF()
 ENDIF()
 
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html mainpage.doc tutorial.doc install.doc dispatch.doc guide.doc types.doc notes.doc cdl.doc architecture.doc internal.doc Doxyfile.in.cmake windows-binaries.md Building-with-CMake.md)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html mainpage.doc tutorial.doc install.doc dispatch.doc guide.doc types.doc notes.doc cdl.doc architecture.doc internal.doc Doxyfile.in.cmake windows-binaries.md building-with-cmake.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
