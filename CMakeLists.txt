@@ -861,9 +861,9 @@ IF(ENABLE_DOXYGEN)
 
 
     # Option to turn on the TODO list in the doxygen-generated documentation.
-    OPTION(ENABLE_DOXYGEN_TODO_LIST "Turn on todo list in documentation. This is of interest to developers only." OFF)
-    IF(ENABLE_DOXYGEN_TODO_LIST)
-      SET(SHOW_DOXYGEN_TODO_LIST YES CACHE STRING "")
+    OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+    IF(ENABLE_DOXYGEN_TASKS)
+      SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
     ELSE()
       SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
     ENDIF()
