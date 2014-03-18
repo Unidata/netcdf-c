@@ -5,10 +5,16 @@ Release Notes {#release_notes}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the netcdf-c++ and netcdf-fortran libraries have been separated into their own libraries.
 
-## 4.3.1.2 Released TBD
+## 4.3.2 Released TBD
 
+### 4.3.2-rc1 Released TBD
+
+* Pre-built Windows downloads will now be bundled with the latest (as of the time of this writing) versions of the various dependencies:
+	* `hdf5: 1.8.12`
+	* `zlib: 1.2.8`
+	* `libcurl: 7.35.0`
+	
 * Added a separate flag to enable DAP AUTH tests. These tests are disabled by default.  The flags for autotools and CMAKE-based builds are (respectively):
-
 	* --enable-dap-auth-tests
 	* -DENABLE\_DAP\_AUTH\_TESTS
 

@@ -13,7 +13,7 @@ IF(BUILD_DOCS)
 		FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 		# Copy the image files used by markdown documentation 
 		# manually.
-		FILE(GLOB IMG_FILES ${CMAKE_CURRENT_BINARY_DIR}/images/*.jpg)
+		FILE(GLOB IMG_FILES ${CMAKE_CURRENT_BINARY_DIR}/images/*.jpg ${CMAKE_CURRENT_BINARY_DIR}/images/*.png)
 		
 		# Set abs_top_srcdir to work with the autotools
 		# doxyfile template.
