@@ -703,6 +703,10 @@ IF (ENABLE_DAP)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
   ENDIF()
 
+  ADD_DEFINITIONS(-DCURL_STATICLIB=1)
+  INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
+
+
   # Check to see if CURLOPT_USERNAME is defined. It is present starting version 7.19.1
   CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
@@ -723,8 +727,6 @@ int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 #include <curl/curl.h>
 int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 
-  ADD_DEFINITIONS(-DCURL_STATICLIB=1)
-  INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 ENDIF()
 
 # Check for the math library so it can be explicitely linked.
@@ -1124,7 +1126,12 @@ IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
   DESTINATION include COMPONENT headers)
 ENDIF()
-# Install the dependencies.
+
+# Install the dependencies. This is Windows/Visual studio only,
+# and mirrors the configuration used on the build system.  It is
+# a less-than-optimal system, but it's what we currently have, and
+# the only way to avoid making the user build all the dependencies
+# themselves.
 IF(MSVC)
   INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
 ENDIF()
