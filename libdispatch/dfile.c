@@ -1522,10 +1522,12 @@ NC_create(const char *path, int cmode, size_t initialsz,
       nc_initialized = 1;
    }
 
+#ifdef USE_REFCOUNT
    /* If this path is already open, then fail */
    ncp = find_in_NCList_by_name(path);
    if(ncp != NULL)
 	return NC_ENFILE;   
+#endif
 
    if((isurl = NC_testurl(path)))
 	model = NC_urlmodel(path);
