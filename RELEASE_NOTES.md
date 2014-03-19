@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.2 Released TBD
 
-### 4.3.2-rc1 Released TBD
+### 4.3.2-rc1 Released 2014-03-19
 
 * Pre-built Windows downloads will now be bundled with the latest (as of the time of this writing) versions of the various dependencies:
 	* `hdf5: 1.8.12`
