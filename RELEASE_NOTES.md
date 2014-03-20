@@ -38,8 +38,6 @@ This file contains a high-level description of this package's evolution. Release
 
 * Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
 
-* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless suppressed with `-DENABLE_DOXYGEN=OFF`.
-
 ## 4.3.1.1 Released 2014-02-05
 
 This is a bug-fix-only release for version 4.3.1.
