@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.2 Released TBD
 
-### 4.3.2-rc1 Released 2014-03-19
+### 4.3.2-rc1 Released 2014-03-20
 
 * Pre-built Windows downloads will now be bundled with the latest (as of the time of this writing) versions of the various dependencies:
 	* `hdf5: 1.8.12`
@@ -37,8 +37,6 @@ This file contains a high-level description of this package's evolution. Release
 * Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
 
 * Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
-
-* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless suppressed with `-DENABLE_DOXYGEN=OFF`.
 
 ## 4.3.1.1 Released 2014-02-05
 
