@@ -23,4 +23,9 @@ chunkspec_size(int dimid);
 extern int
 chunkspec_ndims(void);
 
+/* Return whether chunking should be omitted, due to explicit
+ * command-line specification. */
+extern bool_t
+chunkspec_omit(void);
+
 #endif	/* _CHUNKSPEC_H_  */

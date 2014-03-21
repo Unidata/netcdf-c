@@ -17,8 +17,8 @@
 #include <string.h>
 #include <netcdf.h>
 #include "nciter.h"
-#include "chunkspec.h"
 #include "utils.h"
+#include "chunkspec.h"
 #include "dimmap.h"
 #include "nccomps.h"
 
@@ -520,8 +520,10 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
 	    }
 	    /* Explicitly set chunking, even if default */
 	    /* If product of chunksizes is too small and no unlimited
-	     * dimensions used, don't chunk */
-	    if ((csprod < option_min_chunk_bytes && !is_unlimited) || contig == 1) {
+	     * dimensions used, don't chunk.  Also if chunking
+	     * explicitly turned off with chunk spec, don't chunk. */
+	    if ((csprod < option_min_chunk_bytes && !is_unlimited) || contig == 1
+		|| chunkspec_omit() == true) {
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
 	    } else {
 		NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
@@ -532,19 +534,19 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     }
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
-	int shuffle, deflate, deflate_level;
-	NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle, &deflate, &deflate_level));
-	if(deflate_level == 0 && deflate == 1) /* TODO: why is this needed??  Bug in nc_inq_var_deflate? */
-	    deflate = 0;
-	if(option_deflate_level >= 0) { /* change output compression, if requested */
-	  deflate_level = option_deflate_level;
- 	  deflate=1;
- 	}
- 	if(shuffle==0 && option_shuffle_vars != 0) {
- 	  shuffle = option_shuffle_vars;
-	}
-	if(deflate != 0 || shuffle != 0) {
-	    NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle, deflate_level > 0, deflate_level));
+	int shuffle_in, deflate_in, deflate_level_in, shuffle_out, deflate_out, deflate_level_out;
+	if(option_deflate_level != 0) {
+	    NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle_in, &deflate_in, &deflate_level_in));
+	    if(option_deflate_level == -1) { /* not specified, copy input compression and shuffling */
+		shuffle_out = shuffle_in;
+		deflate_out = deflate_in;
+		deflate_level_out = deflate_level_in;
+	    } else if(option_deflate_level > 0) { /* change to specified compression, shuffling */
+		shuffle_out = option_shuffle_vars;
+		deflate_out=1;
+		deflate_level_out = option_deflate_level;
+	    }
+	    NC_CHECK(nc_def_var_deflate(ogrp, o_varid, shuffle_out, deflate_out, deflate_level_out));
 	}
     }
     {				/* handle checksum parameters */
@@ -644,7 +646,7 @@ static int
 set_var_compressed(int ogrp, int o_varid)
 {
     int stat = NC_NOERR;
-    if (option_deflate_level >= 0) {
+    if (option_deflate_level > 0) {
 	int deflate = 1;
 	NC_CHECK(nc_def_var_deflate(ogrp, o_varid, option_shuffle_vars, deflate, option_deflate_level));
     }
@@ -838,9 +840,9 @@ copy_var(int igrp, int varid, int ogrp)
 	    } else {
 		/* Set chunking if specified in command line option */
 		NC_CHECK(set_var_chunked(ogrp, o_varid));
+		/* Set compression if specified in command line option */
+		NC_CHECK(set_var_compressed(ogrp, o_varid));
 	    }
-	    /* Set compression if specified in command line option */
-	    NC_CHECK(set_var_compressed(ogrp, o_varid));
 	}
     }
 #endif	/* USE_NETCDF4 */

@@ -16,6 +16,7 @@ static struct {
     size_t ndims;		/* number of dimensions in chunkspec string */
     int *dimids;		/* ids for dimensions in chunkspec string */
     size_t *chunksizes;		/* corresponding chunk sizes */
+    bool_t omit;		/* true if chunking to be turned off */
 } chunkspecs;
 
 /*
@@ -30,6 +31,8 @@ static struct {
  *         omitted, in which case it is assumed to be the entire
  *         dimension size.  That is also the default for dimensions
  *         not mentioned in the string.
+ *         If the chunkspec string is "/", specifiying no dimensions or 
+ *         chunk sizes, it indicates chunking to be turned off on output.
  *
  * Returns NC_NOERR if no error, NC_EINVAL if spec has consecutive
  * unescaped commas or no chunksize specified for dimension.
@@ -45,8 +48,13 @@ chunkspec_parse(int ncid, const char *spec) {
     int comma_seen = 0;
 
     chunkspecs.ndims = 0;
-    if (!spec || *spec == '\0')
+    chunkspecs.omit = false;
+    if (!spec || *spec == '\0') /* default chunking */
 	return NC_NOERR; 
+    if (spec[0] == '/' && spec[1] == '\0') { /* no chunking */
+	chunkspecs.omit = true;
+	return NC_NOERR;
+    }
     /* Count unescaped commas, handle consecutive unescaped commas as error */
     for(cp = spec; *cp; cp++) {
 	if(*cp == ',' && *pp != '\\') {
@@ -139,6 +147,13 @@ chunkspec_size(int dimid) {
 int
 chunkspec_ndims(void) {
     return chunkspecs.ndims;
+}
+
+/* Return whether chunking should be omitted, due to explicit
+ * command-line specification. */
+bool_t
+chunkspec_omit(void) {
+    return chunkspecs.omit;
 }
 
 
