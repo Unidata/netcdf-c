@@ -3348,12 +3348,15 @@ Note that \b nccopy requires all variables to be compressed using the
 same compression level, but the API has no such restriction.  With a
 program you can customize compression for each variable independently.
 
-\par -s
-For netCDF-4 output, including netCDF-4 classic model,
-specify shuffling of variable data bytes before compression or after
-decompression.  This option is ignored unless a non-zero deflation
-level is specified.  Turning shuffling on sometimes improves
-compression.
+\par -s For netCDF-4 output, including netCDF-4 classic model, specify
+shuffling of variable data bytes before compression or after
+decompression.  Shuffling refers to interlacing of bytes in a chunk so
+that the first bytes of all values are contiguous in storage, followed
+by all the second bytes, and so on, which often improves compression.
+This option is ignored unless a non-zero deflation level is specified.
+Using -d0 to specify no deflation on input data that has been
+compressed and shuffled turns off both compression and shuffling in
+the output.
 
 \par -u
 Convert any unlimited size dimensions in the input to fixed size
@@ -3384,8 +3387,9 @@ The chunkspec argument is a string of comma-separated associations,
 each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
 appear in the chunkspec string, except possibly escaped blanks that
-are part of a dimension name.  A chunkspec must name at least one
-dimension, and may omit dimensions which are not to be chunked or for
+are part of a dimension name.  A chunkspec names dimensions along
+which chunking is to take place, and omits dimensions which are 
+not to be chunked or for
 which the default chunk length is desired.  If a dimension name is
 followed by a '/' character but no subsequent chunk length, the actual
 dimension length is assumed.  If copying a classic model file to a
@@ -3393,7 +3397,13 @@ netCDF-4 output file and not naming all dimensions in the chunkspec,
 unnamed dimensions will also use the actual dimension length for the
 chunk length.  An example of a chunkspec for variables that use
 'm' and 'n' dimensions might be 'm/100,n/200' to specify 100 by 200
-chunks.  To see the chunking resulting from copying with a chunkspec,
+chunks.  
+
+\par
+The chunkspec '/' that omits all dimension names and
+corresponding chunk lengths specifies that no chunking is to occur in
+the output, so can be used to unchunk all the chunked variables.
+To see the chunking resulting from copying with a chunkspec,
 use the '-s' option of ncdump on the output file.
 
 \par
