@@ -44,7 +44,16 @@ echo "*** Test nccopy -d1 -s can compress a netCDF-4 file even more ..."
 if test `wc -c < tmp.nc` -ge  `wc -c < tst_inflated4.nc`; then
     exit 1
 fi
-rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp.nc 
+echo "*** Test nccopy -d0 turns off compression, shuffling of compressed, shuffled file ..."
+./nccopy -d0 tst_inflated4.nc tmp.nc
+./ncdump -sh tmp.nc > tmp.cdl
+if fgrep '_DeflateLevel' < tmp.cdl ; then
+    exit 1
+fi
+if fgrep '_Shuffle' < tmp.cdl ; then
+    exit 1
+fi
+rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp.nc tmp.cdl
 
 echo "*** Testing nccopy -d1 -s on ncdump/*.nc files"
 for i in $TESTFILES ; do
@@ -64,6 +73,9 @@ echo "*** Test that nccopy -c can chunk and unchunk files"
 ./ncdump -n tmp tmp-chunked.nc > tmp-chunked.cdl
 diff tmp.cdl tmp-chunked.cdl
 ./nccopy -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ tmp-chunked.nc tmp-unchunked.nc
+./ncdump -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
+diff tmp.cdl tmp-unchunked.cdl
+./nccopy -c / tmp-chunked.nc tmp-unchunked.nc
 ./ncdump -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp.cdl tmp-unchunked.cdl
 # echo "*** Test that nccopy compression with chunking can improve compression"

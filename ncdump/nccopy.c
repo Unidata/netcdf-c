@@ -823,7 +823,6 @@ copy_var(int igrp, int varid, int ogrp)
 
     /* define the output variable */
     NC_CHECK(nc_def_var(ogrp, name, o_typeid, ndims, odimids, &o_varid));
-
     /* attach the variable attributes to the output variable */
     NC_CHECK(copy_atts(igrp, varid, ogrp, o_varid));
 #ifdef USE_NETCDF4    
