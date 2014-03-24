@@ -1,10 +1,9 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapattr3.c,v 1.14 2009/12/03 03:42:38 dmh Exp $
  *********************************************************************/
 
-#include "ncdap3.h"
+#include "ncdap.h"
 
 #define OCCHECK(exp) if((ocstat = (exp))) {THROWCHK(ocstat); goto done;}
 
@@ -17,7 +16,7 @@ attributes such as "strlen" and "dimname"
 and stuff from DODS_EXTRA.
 */
 int
-dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
+dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 {
     int i,j;
     NCerror ncstat = NC_NOERR;
@@ -147,7 +146,7 @@ Given a das attribute walk it to see if it
 has at least 1 actual attribute (no recursion)
 */
 static int
-hasattribute3(OClink conn, OCdasnode dasnode)
+hasattribute(OClink conn, OCdasnode dasnode)
 {
     int i;
     OCerror ocstat = OC_NOERR;
@@ -171,7 +170,7 @@ done:
 }
 
 int
-dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
+dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 {
     unsigned int i,j;
     NCerror ncerr = NC_NOERR;
@@ -208,7 +207,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
         OCCHECK(oc_dds_name(conn,das,&ocname));
 	OCCHECK(oc_dds_nsubnodes(conn,das,&nsubnodes));
 
-	isglobal = (ocname == NULL ? 0 : isglobalname3(ocname));
+	isglobal = (ocname == NULL ? 0 : isglobalname(ocname));
 
 	/* catch DODS_EXTRA */
 	if(isglobal && ocname != NULL && strcmp(ocname,"DODS_EXTRA")==0) {
@@ -221,7 +220,7 @@ dapmerge3(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	    nullfree(ocname);
 	    continue;
 	}
-	hasattributes = hasattribute3(conn,das);
+	hasattributes = hasattribute(conn,das);
 	if(hasattributes) {
 	    /* Look for previously collected nodes with same name*/
             for(j=0;j<nclistlength(dasnodes);j++) {
@@ -262,13 +261,13 @@ loop:
 	    OCddsnode container;
    	    OCCHECK(oc_dds_container(conn,das,&container));
             ASSERT(container != NULL);
-	    ocfullname = makeocpathstring3(conn,container,".");
+	    ocfullname = makeocpathstring(conn,container,".");
 	} else {
-	    ocfullname = makeocpathstring3(conn,das,".");
+	    ocfullname = makeocpathstring(conn,das,".");
 	}
         for(j=0;j<nclistlength(varnodes);j++) {
 	    CDFnode* dds = (CDFnode*)nclistget(varnodes,j);
-	    char* ddsfullname = makecdfpathstring3(dds,".");
+	    char* ddsfullname = makecdfpathstring(dds,".");
 	    if(strcmp(ocfullname,ddsfullname)==0
 	       || strcmp(ocbasename,ddsfullname)==0
 	       || strcmp(ocbasename,dds->ocname)==0) {
@@ -424,7 +423,7 @@ done:
 }
 
 static int
-isglobalname3(char* name)
+isglobalname(char* name)
 {
     int len = strlen(name);
     int glen = strlen("global");

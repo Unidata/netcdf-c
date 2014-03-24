@@ -1590,7 +1590,7 @@ NC_create(const char *path, int cmode, size_t initialsz,
 #endif /*USE_NETCDF4*/
 #ifdef USE_DAP
       if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
-	dispatcher = NCD3_dispatch_table;
+	dispatcher = NCD2_dispatch_table;
       else
 #endif
 #ifdef USE_PNETCDF
@@ -1738,7 +1738,7 @@ NC_open(const char *path, int cmode,
 #endif
 #if defined(USE_DAP)
    if(model == (NC_DISPATCH_NC3 | NC_DISPATCH_NCD))
-	dispatcher = NCD3_dispatch_table;
+	dispatcher = NCD2_dispatch_table;
    else
 #endif
 #if  defined(USE_PNETCDF)

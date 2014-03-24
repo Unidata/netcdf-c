@@ -30,10 +30,9 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* "$Id: ncd3dispatch.h,v 1.3 2010/05/27 21:34:09 dmh Exp $" */
 
-#ifndef _NCD3DISPATCH_H
-#define _NCD3DISPATCH_H
+#ifndef _NCD2DISPATCH_H
+#define _NCD2DISPATCH_H
 
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include "netcdf.h"
@@ -44,24 +43,24 @@ extern "C" {
 #endif
 
 EXTERNL int
-NCD3_open(const char *path, int mode,
+NCD2_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
          int use_parallel, void* mpidata,
          struct NC_Dispatch* dispatch, NC* ncp);
 
 EXTERNL int
-NCD3_close(int ncid);
+NCD2_close(int ncid);
 
 EXTERNL int
-NCD3_inq_format_extended(int ncid, int* formatp, int* modep);
+NCD2_inq_format_extended(int ncid, int* formatp, int* modep);
 
 
 /* End _var */
 
-extern int NCD3_initialize(void);
+extern int NCD2_initialize(void);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /*_NCD3DISPATCH_H*/
+#endif /*_NCD2DISPATCH_H*/

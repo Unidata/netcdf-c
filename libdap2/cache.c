@@ -1,10 +1,9 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header$
  *********************************************************************/
 
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapdump.h"
 
 static int iscacheableconstraint(DCEconstraint* con);
@@ -68,7 +67,7 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 
 done:
 #ifdef DEBUG
-fprintf(stderr,"iscached: search: %s\n",makecdfpathstring3(target,"."));
+fprintf(stderr,"iscached: search: %s\n",makecdfpathstring(target,"."));
 if(found)
    fprintf(stderr,"iscached: found: %s\n",dumpcachenode(cachenode));
 else
@@ -84,7 +83,7 @@ else
       will prefetch the whole thing
 */
 NCerror
-prefetchdata3(NCDAPCOMMON* nccomm)
+prefetchdata(NCDAPCOMMON* nccomm)
 {
     int i;
     NCFLAGS flags;
@@ -160,8 +159,8 @@ nullfree(s);
 
     flags = NCF_PREFETCH;
     if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
-    ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,flags);
-    newconstraint = NULL; /* buildcachenode34 takes control of newconstraint */
+    ncstat = buildcachenode(nccomm,newconstraint,vars,&cache,flags);
+    newconstraint = NULL; /* buildcachenodetakes control of newconstraint */
     if(ncstat != OC_NOERR) goto done;
     else if(cache == NULL) goto done;
     else
@@ -180,7 +179,7 @@ ncbytescat(buf,"prefetch.vars: ");
 for(i=0;i<nclistlength(vars);i++) {
 CDFnode* var = (CDFnode*)nclistget(vars,i);
 ncbytescat(buf," ");
-s = makecdfpathstring3(var,".");
+s = makecdfpathstring(var,".");
 ncbytescat(buf,s);
 nullfree(s);
  }
@@ -197,7 +196,7 @@ done:
 }
 
 NCerror
-buildcachenode34(NCDAPCOMMON* nccomm,
+buildcachenode(NCDAPCOMMON* nccomm,
 	        DCEconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
@@ -216,18 +215,18 @@ buildcachenode34(NCDAPCOMMON* nccomm,
 	isprefetch = 1;	
 
     if((flags & NCF_PREFETCH_ALL) == 0)
-        ce = buildconstraintstring3(constraint);
+        ce = buildconstraintstring(constraint);
 
     ncstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     nullfree(ce);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
-    ncstat = buildcdftree34(nccomm,ocroot,OCDATA,&dxdroot);
+    ncstat = buildcdftree(nccomm,ocroot,OCDATA,&dxdroot);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* re-struct*/
     if(!FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
-        ncstat = restruct3(nccomm,dxdroot,nccomm->cdf.fullddsroot,
+        ncstat = restruct(nccomm,dxdroot,nccomm->cdf.fullddsroot,
 			   constraint->projections);
         if(ncstat) {THROWCHK(ncstat); goto done;}
     }
@@ -296,7 +295,7 @@ done:
     if(cachep) *cachep = cachenode;
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(ncstat != OC_NOERR) {
-	freecdfroot34(dxdroot);
+	freecdfroot(dxdroot);
 	freenccachenode(nccomm,cachenode);
 	if(cachep) *cachep = NULL;
     }
@@ -320,7 +319,7 @@ fprintf(stderr,"freecachenode: %s\n",
 #endif
     oc_data_free(nccomm->oc.conn,node->content);
     dcefree((DCEnode*)node->constraint);
-    freecdfroot34(node->datadds);
+    freecdfroot(node->datadds);
     nclistfree(node->vars);
     nullfree(node);
 
@@ -384,7 +383,7 @@ A variable is prefetchable if
 3. it is not contained in sequence or a dimensioned structure.
 */
 NCerror
-markprefetch3(NCDAPCOMMON* nccomm)
+markprefetch(NCDAPCOMMON* nccomm)
 {
     int i,j;
     NClist* allvars = nccomm->cdf.fullddsroot->tree->varnodes;

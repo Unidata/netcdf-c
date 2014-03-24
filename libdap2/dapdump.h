@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdump.h,v 1.9 2010/04/10 20:56:37 dmh Exp $
  *********************************************************************/
 #ifndef DUMP_H
 #define DUMP_H

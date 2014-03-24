@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header$
  *********************************************************************/
 
 #ifndef DAPODOM_H
