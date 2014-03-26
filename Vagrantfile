@@ -20,6 +20,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.cpus = 1
   end
 
+  config.vm.network "forwarded_port", guest: 22, host: 2222, auto_correct: true
+
   config.vm.define "precise32_dev" do |v|
     v.vm.provision :shell, :path => "bootstrap_dev.sh"
     v.vm.box = "hashicorp/precise32"
@@ -32,7 +34,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "saucy32_dev" do |saucy32_dev|
     saucy32_dev.vm.provision :shell, :path => "bootstrap_dev.sh"
-    saucy32_dev.vm.box = "saucy32"
+    saucy32_dev.vm.box = "wardf/saucy32"
   end
 
   config.vm.define "saucy64_dev", primary: true do |saucy64_dev|
