@@ -20,7 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.cpus = 1
   end
 
-  config.vm.network "forwarded_port", guest: 22, host: 2222, auto_correct: true
+  # config.vm.network "forwarded_port", guest: 22, host: 2222, auto_correct: true
 
   config.vm.define "precise32_dev" do |v|
     v.vm.provision :shell, :path => "bootstrap_dev.sh"
