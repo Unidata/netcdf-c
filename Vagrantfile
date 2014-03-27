@@ -24,22 +24,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "precise32_dev" do |v|
     v.vm.provision :shell, :path => "bootstrap_dev.sh"
-    v.vm.box = "hashicorp/precise32"
+    v.vm.box = "precise32"
   end
 
   config.vm.define "precise64_dev" do |v|
     v.vm.provision :shell, :path => "bootstrap_dev.sh"
-    v.vm.box = "hashicorp/precise64"
+    v.vm.box = "precise64"
   end
 
   config.vm.define "saucy32_dev" do |saucy32_dev|
     saucy32_dev.vm.provision :shell, :path => "bootstrap_dev.sh"
-    saucy32_dev.vm.box = "wardf/saucy32"
+    saucy32_dev.vm.box = "saucy32"
   end
 
   config.vm.define "saucy64_dev", primary: true do |saucy64_dev|
     saucy64_dev.vm.provision :shell, :path => "bootstrap_dev.sh"
-    saucy64_dev.vm.box = "wardf/saucy64"
+    saucy64_dev.vm.box = "saucy64"
   end
 
   # The url from where the 'config.vm.box' box will be fetched if it
@@ -88,7 +88,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Enable provisioning with Puppet stand alone.  Puppet manifests
   # are contained in a directory path relative to this Vagrantfile.
   # You will need to create the manifests directory and a manifest in
-  # the file wardf/saucy64.pp in the manifests_path directory.
+  # the file saucy64.pp in the manifests_path directory.
   #
   # An example Puppet manifest to provision the message of the day:
   #
