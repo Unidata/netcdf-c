@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/daputil.c,v 1.47 2010/05/21 23:24:15 dmh Exp $
  *********************************************************************/
 
 #include "config.h"
@@ -13,7 +12,7 @@
 #include "oc.h"
 extern int oc_dumpnode(OClink, OCddsnode);
 
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapalign.h"
 
 #define LBRACKET '['
@@ -58,7 +57,7 @@ names to %2f.
 */
 
 char*
-cdflegalname3(char* name)
+cdflegalname(char* name)
 {
     return repairname(name,"/");
 }
@@ -222,10 +221,9 @@ nctypetostring(nc_type nctype)
     return NULL;
 }
 
-
 /* Pad a buffer */
 int
-alignbuffer3(NCbytes* buf, int alignment)
+dapalignbuffer(NCbytes* buf, int alignment)
 {
     int pad;
     unsigned long len;
@@ -243,7 +241,7 @@ alignbuffer3(NCbytes* buf, int alignment)
 }
 
 size_t
-dimproduct3(NClist* dimensions)
+dapdimproduct(NClist* dimensions)
 {
     size_t size = 1;
     unsigned int i;
@@ -258,7 +256,7 @@ dimproduct3(NClist* dimensions)
 
 /* Return value of param or NULL if not found */
 const char*
-paramvalue34(NCDAPCOMMON* nccomm, const char* key)
+dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
 {
     const char* value;
 
@@ -274,7 +272,7 @@ static const char* checkseps = "+,:;";
    check if param is defined.
 */
 int
-paramcheck34(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
+dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
 {
     const char* value;
     char* p;
@@ -331,7 +329,7 @@ nclistdeleteall(NClist* l, void* elem)
 
 /* Collect the set of container nodes ending in "container"*/
 void
-collectnodepath3(CDFnode* node, NClist* path, int withdataset)
+collectnodepath(CDFnode* node, NClist* path, int withdataset)
 {
     if(node == NULL) return;
     nclistpush(path,(void*)node);
@@ -359,7 +357,7 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
 }
 
 char*
-makeocpathstring3(OClink conn, OCddsnode node, const char* sep)
+makeocpathstring(OClink conn, OCddsnode node, const char* sep)
 {
     int i,len,first;
     char* result;
@@ -400,7 +398,7 @@ makeocpathstring3(OClink conn, OCddsnode node, const char* sep)
 }
 
 char*
-makepathstring3(NClist* path, const char* separator, int flags)
+makepathstring(NClist* path, const char* separator, int flags)
 {
     int i,len,first;
     NCbytes* pathname = NULL;
@@ -436,30 +434,30 @@ makepathstring3(NClist* path, const char* separator, int flags)
 
 /* convert path to string using the ncname field */
 char*
-makecdfpathstring3(CDFnode* var, const char* separator)
+makecdfpathstring(CDFnode* var, const char* separator)
 {
     char* spath;
     NClist* path = nclistnew();
-    collectnodepath3(var,path,WITHDATASET); /* <= note */
-    spath = makepathstring3(path,separator,PATHNC);
+    collectnodepath(var,path,WITHDATASET); /* <= note */
+    spath = makepathstring(path,separator,PATHNC);
     nclistfree(path);
     return spath;
 }
 
 /* Collect the set names of container nodes ending in "container"*/
 void
-clonenodenamepath3(CDFnode* node, NClist* path, int withdataset)
+clonenodenamepath(CDFnode* node, NClist* path, int withdataset)
 {
     if(node == NULL) return;
     /* stop at the dataset container as well*/
     if(node->nctype != NC_Dataset)
-        clonenodenamepath3(node->container,path,withdataset);
+        clonenodenamepath(node->container,path,withdataset);
     if(node->nctype != NC_Dataset || withdataset)
         nclistpush(path,(void*)nulldup(node->ncbasename));
 }
 
 char*
-simplepathstring3(NClist* names,  char* separator)
+simplepathstring(NClist* names,  char* separator)
 {
     int i;
     size_t len;

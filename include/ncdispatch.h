@@ -113,8 +113,8 @@ extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 
 #ifdef USE_DAP
-extern NC_Dispatch* NCD3_dispatch_table;
-extern int NCD3_initialize(void);
+extern NC_Dispatch* NCD2_dispatch_table;
+extern int NCD2_initialize(void);
 #endif
 
 #ifdef USE_PNETCDF

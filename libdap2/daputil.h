@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/daputil.h,v 1.25 2010/05/05 22:15:16 dmh Exp $
  *********************************************************************/
 #ifndef DAPUTIL_H
 #define DAPUTIL_H 1
@@ -26,21 +25,21 @@ extern size_t nctypesizeof(nc_type);
 extern char* nctypetostring(nc_type);
 extern char* maketmppath(char* path, char* prefix);
 
-extern void collectnodepath3(struct CDFnode*, NClist* path, int dataset);
+extern void collectnodepath(struct CDFnode*, NClist* path, int dataset);
 extern void collectocpath(OClink conn, OCobject node, NClist* path);
 
-extern char* makecdfpathstring3(struct CDFnode*,const char*);
-extern void clonenodenamepath3(struct CDFnode*, NClist*, int);
-extern char* makepathstring3(NClist* path, const char* separator, int flags);
+extern char* makecdfpathstring(struct CDFnode*,const char*);
+extern void clonenodenamepath(struct CDFnode*, NClist*, int);
+extern char* makepathstring(NClist* path, const char* separator, int flags);
 
-extern char* makeocpathstring3(OClink, OCobject, const char*);
+extern char* makeocpathstring(OClink, OCobject, const char*);
 
-extern char* cdflegalname3(char* dapname);
+extern char* cdflegalname(char* dapname);
 
 /* Given a param string; return its value or null if not found*/
-extern const char* paramvalue34(struct NCDAPCOMMON* drno, const char* param);
+extern const char* dapparamvalue(struct NCDAPCOMMON* drno, const char* param);
 /* Given a param string; check for a given substring */
-extern int paramcheck34(struct NCDAPCOMMON* drno, const char* param, const char* substring);
+extern int dapparamcheck(struct NCDAPCOMMON* drno, const char* param, const char* substring);
 
 extern int nclistconcat(NClist* l1, NClist* l2);
 extern int nclistminus(NClist* l1, NClist* l2);
@@ -63,8 +62,8 @@ extern unsigned long getlimitnumber(const char* limit);
 extern void dapexpandescapes(char *termstring);
 
 /* Only used by libncdap4 */
-extern int alignbuffer3(NCbytes*, int alignment);
-extern size_t dimproduct3(NClist* dimensions);
+extern int dapalignbuffer(NCbytes*, int alignment);
+extern size_t dapdimproduct(NClist* dimensions);
 
 #if defined(DLL_NETCDF)
 # if defined(DLL_EXPORT)

@@ -1,13 +1,12 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapcvt.c,v 1.14 2009/11/29 00:16:26 dmh Exp $
  *********************************************************************/
 #include "config.h"
-#include "ncdap3.h"
+#include "ncdap.h"
 
 NCerror
-dapconvert3(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
+dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
 {
     NCerror ncstat = NC_NOERR;
     size_t i;
@@ -191,7 +190,7 @@ fail:
 }
 
 NCerror
-dapcvtattrval3(nc_type etype, void* dst, NClist* src)
+dapcvtattrval(nc_type etype, void* dst, NClist* src)
 {
     int i,ok;
     NCerror  ncstat = NC_NOERR;

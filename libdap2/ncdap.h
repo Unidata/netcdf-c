@@ -1,10 +1,9 @@
 /*********************************************************************
   *   Copyright 1993, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
-  *   $Header: /upc/share/CVS/netcdf-3/libncdap3/ncdap3.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
-#ifndef NCDAP3_H
-#define NCDAP3_H 1
+#ifndef NCDAP_H
+#define NCDAP_H 1
 
 #include "config.h"
 #include <stdlib.h>
@@ -51,7 +50,7 @@ struct NCsegment;
 
 #include "nccommon.h"
 #include "getvara.h"
-#include "constraints3.h"
+#include "constraints.h"
 
 /**************************************************/
 
@@ -94,24 +93,24 @@ extern struct NCTMODEL nctmodels[];
 /* Import some internal procedures from libsrc*/
 
 /* Internal, but non-static procedures */
-extern NCerror computecdfvarnames3(NCDAPCOMMON*,CDFnode*,NClist*);
-extern NCerror computecdfnodesets3(NCDAPCOMMON* nccomm, CDFtree* tree);
-extern NCerror computevarnodes3(NCDAPCOMMON*, NClist*, NClist*);
+extern NCerror computecdfvarnames(NCDAPCOMMON*,CDFnode*,NClist*);
+extern NCerror computecdfnodesets(NCDAPCOMMON* nccomm, CDFtree* tree);
+extern NCerror computevarnodes(NCDAPCOMMON*, NClist*, NClist*);
 extern NCerror collectvardefdims(NCDAPCOMMON* drno, CDFnode* var, NClist* dimset);
-extern NCerror fixgrids3(NCDAPCOMMON* drno);
-extern NCerror dapmerge3(NCDAPCOMMON* drno, CDFnode* node, OCobject dasroot);
-extern NCerror sequencecheck3(NCDAPCOMMON* drno);
-extern NCerror computecdfdimnames3(NCDAPCOMMON*);
-extern NCerror attachdatadds3(struct NCDAPCOMMON*);
-extern NCerror detachdatadds3(struct NCDAPCOMMON*);
+extern NCerror fixgrids(NCDAPCOMMON* drno);
+extern NCerror dapmerge(NCDAPCOMMON* drno, CDFnode* node, OCobject dasroot);
+extern NCerror sequencecheck(NCDAPCOMMON* drno);
+extern NCerror computecdfdimnames(NCDAPCOMMON*);
+extern NCerror attachdatadds(struct NCDAPCOMMON*);
+extern NCerror detachdatadds(struct NCDAPCOMMON*);
 extern void dapdispatch3init(void);
 
 /*
-extern void dereference3(NCconstraint* constraint);
-extern NCerror rereference3(NCconstraint*, NClist*);
+extern void dereference(NCconstraint* constraint);
+extern NCerror rereference(NCconstraint*, NClist*);
 */
 
-extern NCerror buildvaraprojection3(CDFnode*,
+extern NCerror buildvaraprojection(CDFnode*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     struct DCEprojection** projectionlist);
 
@@ -124,32 +123,28 @@ extern NCerror nc3d_getvarx(int ncid, int varid,
 
 /**************************************************/
 
-/* From: ncdap3.c*/
+/* From: ncd2dispatch.c*/
 extern size_t dap_one[NC_MAX_VAR_DIMS];
 extern size_t dap_zero[NC_MAX_VAR_DIMS];
 
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
-extern NCerror restruct3(NCDAPCOMMON*, CDFnode* ddsroot, CDFnode* template, NClist*);
+extern NCerror restruct(NCDAPCOMMON*, CDFnode* ddsroot, CDFnode* template, NClist*);
 extern void setvisible(CDFnode* root, int visible);
-extern NCerror mapnodes3(CDFnode* dstroot, CDFnode* srcroot);
-extern void unmap3(CDFnode* root);
+extern NCerror mapnodes(CDFnode* dstroot, CDFnode* srcroot);
+extern void unmap(CDFnode* root);
 
-/* From: ncdap3a.c*/
-extern NCerror fetchtemplatemetadata3(NCDAPCOMMON* nccomm);
-extern NCerror fetchconstrainedmetadata3(NCDAPCOMMON* nccomm);
-extern void applyclientparamcontrols3(NCDAPCOMMON*);
-extern NCerror suppressunusablevars3(NCDAPCOMMON*);
-extern NCerror addstringdims(NCDAPCOMMON* drno);
-extern NCerror defseqdims(NCDAPCOMMON* drno);
-extern NCerror fixzerodims3(NCDAPCOMMON*);
-extern void estimatevarsizes3(NCDAPCOMMON*);
-extern NCerror defrecorddim3(NCDAPCOMMON*);
-extern NCerror showprojection3(NCDAPCOMMON*, CDFnode* var);
-
+#if 0
+extern NCerror fetchtemplatemetadata(NCDAPCOMMON* nccomm);
+extern NCerror fetchconstrainedmetadata(NCDAPCOMMON* nccomm);
+extern void applyclientparamcontrols(NCDAPCOMMON*);
+extern NCerror suppressunusablevars(NCDAPCOMMON*);
+extern void estimatevarsizes(NCDAPCOMMON*);
+extern NCerror showprojection(NCDAPCOMMON*, CDFnode* var);
+#endif
 
 /* From: dapcvt.c*/
-extern NCerror dapconvert3(nc_type, nc_type, char*, char*, size_t);
-extern int dapcvtattrval3(nc_type, void*, NClist*);
+extern NCerror dapconvert(nc_type, nc_type, char*, char*, size_t);
+extern int dapcvtattrval(nc_type, void*, NClist*);
 
-#endif /*NCDAP3_H*/
+#endif /*NCDAP_H*/

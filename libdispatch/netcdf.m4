@@ -22,13 +22,8 @@ NC_Dispatch* NC4_dispatch_table = NULL;
 #endif
 
 #ifdef USE_DAP
-NC_Dispatch* NCD3_dispatch_table = NULL;
+NC_Dispatch* NCD2_dispatch_table = NULL;
 #endif
-
-#if defined(USE_DAP) && defined(USE_NETCDF4)
-NC_Dispatch* NCD4_dispatch_table = NULL;
-#endif
-
 
 #ifndef NC_ENOTNC4
 #define NC_ENOTNC4 (-111)

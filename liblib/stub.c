@@ -15,10 +15,7 @@ extern int NC4_initialize(void);
 #endif
 
 #ifdef USE_DAP
-extern int NCD3_initialize(void);
-#ifdef USE_NETCDF4
-extern int NCD4_initialize(void);
-#endif
+extern int NCD2_initialize(void);
 #endif
 
 #ifdef USE_CDMREMOTE
@@ -50,7 +47,7 @@ NC_initialize(void)
     if((stat = NC3_initialize())) return stat;
 
 #ifdef USE_DAP
-    if((stat = NCD3_initialize())) return stat;
+    if((stat = NCD2_initialize())) return stat;
 #endif
 
 #ifdef USE_PNETCDF
