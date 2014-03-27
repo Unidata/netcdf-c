@@ -748,7 +748,7 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 IF(ENABLE_DAP_REMOTE_TESTS)
-  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests.")
+  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." ON)
 ENDIF()
 
 
