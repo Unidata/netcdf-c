@@ -317,7 +317,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     * beer. */
    for (d = 0; d < var->ndims; d++)
    {
-       int num_chunks;
+       size_t num_chunks;
        size_t overhang;
        assert(var->chunksizes[d] > 0);
        num_chunks = (var->dim[d]->len + var->chunksizes[d] - 1) / var->chunksizes[d];
@@ -641,7 +641,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    NC_VAR_INFO_T *var;
    NC_ATT_INFO_T *att;
    int natts=0;
-   size_t type_size;
    int d;
    int retval;
 
@@ -798,7 +797,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
-   size_t type_size;
    int d;
    int retval;
 
@@ -1025,11 +1023,11 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                            NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
                            NULL, NULL, NULL, NULL);
 
-   /* Copy to size_t array. */
+   /* Copy from size_t array. */
    if (*contiguousp == NC_CHUNKED)
       for (i = 0; i < var->ndims; i++)
       {
-	 chunksizesp[i] = cs[i];
+	 chunksizesp[i] = (int)cs[i];
 	 if (cs[i] > NC_MAX_INT)
 	    retval = NC_ERANGE;
       }
