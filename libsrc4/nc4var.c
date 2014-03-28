@@ -761,11 +761,14 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          {
             if (!(fill_valuep = calloc(1, sizeof(char *))))
                return NC_ENOMEM;
+	    
             if ((retval = nc4_get_default_fill_value(var->type_info, (char **)fill_valuep)))
             {
                free(fill_valuep);
                return retval;
-            }
+            } else {
+	      free(fill_valuep);
+	    }
          }
          else
          {

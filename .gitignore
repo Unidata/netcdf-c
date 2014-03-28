@@ -16,3 +16,4 @@ scan-build
 Makefile
 .DS_Store
 build-par
+build_llvm
