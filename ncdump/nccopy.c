@@ -534,7 +534,8 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     }
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
-	int shuffle_in, deflate_in, deflate_level_in, shuffle_out, deflate_out, deflate_level_out;
+	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
+	int shuffle_out, deflate_out, deflate_level_out;
 	if(option_deflate_level != 0) {
 	    NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle_in, &deflate_in, &deflate_level_in));
 	    if(option_deflate_level == -1) { /* not specified, copy input compression and shuffling */

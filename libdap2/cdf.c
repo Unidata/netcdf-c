@@ -967,7 +967,7 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
     OCtype ocatomtype;
     char* ocname = NULL;
     NCerror ncerr = NC_NOERR;
-    CDFnode* cdfnode;
+    CDFnode* cdfnode = NULL;
 
     oc_dds_class(nccomm->oc.conn,ocnode,&octype);
     if(octype == OC_Atomic)
@@ -1020,7 +1020,14 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
     case OC_Dimension:
     default: PANIC1("buildcdftree: unexpect OC node type: %d",(int)octype);
 
-    }    
+    }
+    /* Avoid a rare but perhaps possible null-dereference 
+       of cdfnode. Not sure what error to throw, so using
+       NC_EDAP: generic DAP error. */
+    if(!cdfnode) {
+      return NC_EDAP;
+    }
+
 #if 0
     /* cross link */
     assert(tree->root != NULL);
@@ -1194,7 +1201,7 @@ defdimensions(OCddsnode ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* 
 	OCddsnode ocdim;
 	char* ocname;
 	size_t declsize;
-
+	
 	oc_dds_ithdimension(nccomm->oc.conn,ocnode,i,&ocdim);
 	oc_dimension_properties(nccomm->oc.conn,ocdim,&declsize,&ocname);
 
