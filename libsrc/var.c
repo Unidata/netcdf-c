@@ -71,21 +71,26 @@ new_x_NC_var(
 	if(ndims != 0)
 	{
 #ifdef MALLOCHACK
-		/*
-		 * NOTE: lint may complain about the next 3 lines:
-		 * "pointer cast may result in improper alignment".
-		 * We use the M_RNDUP() macro to get the proper alignment.
-		 */
-		varp->dimids = (int *)((char *)varp + M_RNDUP(sizeof(NC_var)));
-		varp->shape = (size_t *)((char *)varp->dimids + o1);
-		varp->dsizes = (off_t *)((char *)varp->shape + o2);
+	  /*
+	   * NOTE: lint may complain about the next 3 lines:
+	   * "pointer cast may result in improper alignment".
+	   * We use the M_RNDUP() macro to get the proper alignment.
+	   */
+	  varp->dimids = (int *)((char *)varp + M_RNDUP(sizeof(NC_var)));
+	  varp->shape = (size_t *)((char *)varp->dimids + o1);
+	  varp->dsizes = (off_t *)((char *)varp->shape + o2);
 #else /*!MALLOCHACK*/
-		varp->dimids = (int*)malloc(o1);
-		varp->shape = (size_t*)malloc(o2);
-		varp->dsizes = (off_t*)malloc(o3);
+	  varp->dimids = (int*)malloc(o1);
+	  varp->shape = (size_t*)malloc(o2);
+	  varp->dsizes = (off_t*)malloc(o3);
 #endif /*!MALLOCHACK*/
+	} else {
+	  varp->dimids = NULL;
+	  varp->shape = NULL;
+	  varp->dsizes=NULL;
 	}
-
+		
+	
 	varp->xsz = 0;
 	varp->len = 0;
 	varp->begin = 0;
@@ -102,16 +107,16 @@ static NC_var *
 new_NC_var(const char *uname, nc_type type,
 	size_t ndims, const int *dimids)
 {
-	NC_string *strp;
-	NC_var *varp;
-
+	NC_string *strp = NULL;
+	NC_var *varp = NULL;
+	
 	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NULL;
 	strp = new_NC_string(strlen(name), name);
 	free(name);
 	if(strp == NULL)
-		return NULL;
+	  return NULL;
 
 	varp = new_x_NC_var(strp, ndims);
 	if(varp == NULL )
@@ -123,7 +128,9 @@ new_NC_var(const char *uname, nc_type type,
 	varp->type = type;
 
 	if( ndims != 0 && dimids != NULL)
-		(void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
+	  (void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
+	
+
 
 	return(varp);
 }
@@ -401,7 +408,7 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 	
 	varp->xsz = ncx_szof(varp->type);
 
-	if(varp->ndims == 0)
+	if(varp->ndims == 0 || varp->dimids == NULL)
 	{
 		goto out;
 	}
@@ -537,7 +544,7 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 	NC *nc;
 	NC3_INFO* ncp;
 	int varid;
-	NC_var *varp;
+	NC_var *varp = NULL;
 
 	status = NC_check_id(ncid, &nc); 
 	if(status != NC_NOERR)
