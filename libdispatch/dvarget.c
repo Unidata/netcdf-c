@@ -589,7 +589,7 @@ allocated by the user before this function is called.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
 
-\section Example
+\section nc_get_vara_double_example Example
 
 Here is an example using nc_get_vara_double() to read all the values of
 the variable named rh from an existing netCDF dataset named
