@@ -3,31 +3,31 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 INCLUDE_DIRECTORIES(".")
 
 IF(BUILD_SHARED_LIBS AND WIN32)
-	remove_definitions(-DDLL_EXPORT)
-	remove_definitions(-DDLL_NETCDF)
+  remove_definitions(-DDLL_EXPORT)
+  remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
 
 
 #IF(EXTRA_TESTS)
 ADD_CUSTOM_COMMAND(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest.c
-	COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
-		"${CMAKE_CURRENT_SOURCE_DIR}/ctest.c"
-	)
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest.c
+  COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ctest.c"
+  )
 ADD_CUSTOM_COMMAND(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c
-	COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
-		"${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c"
-	)
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c
+  COMMAND cmake -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c"
+  )
 #ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
 
 IF(USE_X_GETOPT)
-	SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
-	SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
+  SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
+  SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
 ENDIF()
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
@@ -37,103 +37,103 @@ TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 
 IF(ENABLE_TESTS)
-	ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
-	ADD_EXECUTABLE(bom bom.c)
-	TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
-	TARGET_LINK_LIBRARIES(bom netcdf)
-	# Base tests
-	# The tests are set up as a combination of shell scripts and executables that
-	# must be run in a particular order. It is painful but will use macros to help
-	# keep it from being too bad.
-	
-	## Start adding tests in the appropriate order
-	add_sh_test(ncdump run_tests)
-	add_sh_test(ncdump tst_64bit)
-	add_bin_test(ncdump ctest)
-	add_bin_test(ncdump ctest64)
-	add_sh_test(ncdump tst_output)
-	add_sh_test(ncdump tst_lengths)
-	add_sh_test(ncdump tst_calendars)
-	add_bin_test(ncdump tst_utf8)
-	add_sh_test(ncdump run_utf8_tests)
-	add_sh_test(ncdump tst_nccopy3)
-	add_sh_test(ncdump tst_charfill)
-	add_sh_test(ncdump tst_iter)
-	add_sh_test(ncdump tst_formatx3)
-	add_sh_test(ncdump tst_bom)
-	
-	IF(EXTRA_TESTS)
-		add_sh_test(ncdump run_back_comp_tests)
-	ENDIF()
-	
-	IF(USE_NETCDF4)
-		add_bin_test(ncdump tst_create_files)
-		add_bin_test(ncdump tst_group_data)
-		add_bin_test(ncdump tst_enum_data)
-		add_bin_test(ncdump tst_opaque_data)
-		add_bin_test(ncdump tst_string_data)
-		add_bin_test(ncdump tst_vlen_data)
-		add_bin_test(ncdump tst_comp)
-		add_bin_test(ncdump tst_comp2)
-		add_bin_test(ncdump tst_nans)
-		add_bin_test(ncdump tst_h_scalar)
-		add_sh_test(ncdump tst_formatx4)
-		#add_bin_test(ncdump tst_special_atts)
-		# Add this test by hand, as it is also called from a script.
-		# Editing the script would break autotools compatibility.
-		set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
-		FOREACH (MTEST ${MANUAL_TESTS})
-			ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
-			TARGET_LINK_LIBRARIES(${MTEST} netcdf)
-			IF(MSVC)
-				SET_TARGET_PROPERTIES(${MTEST}
-					PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-				)
-			ENDIF()
-			#ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
-		ENDFOREACH()
-		
-		IF(NOT WIN32)
-			# tst_netcdf4 depends on the output from other scripts
-			# that don't currently run. So for time being, leave
-			# it disabled.
+  ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
+  ADD_EXECUTABLE(bom bom.c)
+  TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
+  TARGET_LINK_LIBRARIES(bom netcdf)
+  # Base tests
+  # The tests are set up as a combination of shell scripts and executables that
+  # must be run in a particular order. It is painful but will use macros to help
+  # keep it from being too bad.
+  
+  ## Start adding tests in the appropriate order
+  add_sh_test(ncdump run_tests)
+  add_sh_test(ncdump tst_64bit)
+  add_bin_test(ncdump ctest)
+  add_bin_test(ncdump ctest64)
+  add_sh_test(ncdump tst_output)
+  add_sh_test(ncdump tst_lengths)
+  add_sh_test(ncdump tst_calendars)
+  add_bin_test(ncdump tst_utf8)
+  add_sh_test(ncdump run_utf8_tests)
+  add_sh_test(ncdump tst_nccopy3)
+  add_sh_test(ncdump tst_charfill)
+  add_sh_test(ncdump tst_iter)
+  add_sh_test(ncdump tst_formatx3)
+  add_sh_test(ncdump tst_bom)
+  
+  IF(EXTRA_TESTS)
+    add_sh_test(ncdump run_back_comp_tests)
+  ENDIF()
+  
+  IF(USE_NETCDF4)
+    add_bin_test(ncdump tst_create_files)
+    add_bin_test(ncdump tst_group_data)
+    add_bin_test(ncdump tst_enum_data)
+    add_bin_test(ncdump tst_opaque_data)
+    add_bin_test(ncdump tst_string_data)
+    add_bin_test(ncdump tst_vlen_data)
+    add_bin_test(ncdump tst_comp)
+    add_bin_test(ncdump tst_comp2)
+    add_bin_test(ncdump tst_nans)
+    add_bin_test(ncdump tst_h_scalar)
+    add_sh_test(ncdump tst_formatx4)
+    #add_bin_test(ncdump tst_special_atts)
+    # Add this test by hand, as it is also called from a script.
+    # Editing the script would break autotools compatibility.
+    set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
+    FOREACH (MTEST ${MANUAL_TESTS})
+      ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
+      TARGET_LINK_LIBRARIES(${MTEST} netcdf)
+      IF(MSVC)
+	SET_TARGET_PROPERTIES(${MTEST}
+	  PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+	  )
+      ENDIF()
+      #ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
+    ENDFOREACH()
+    
+    IF(NOT WIN32)
+      # tst_netcdf4 depends on the output from other scripts
+      # that don't currently run. So for time being, leave
+      # it disabled.
 
-			#add_sh_test(ncdump tst_netcdf4)
-			#add_bin_test(ncdump tst_h_rdc0)
-		ENDIF()
-		add_bin_test(ncdump tst_unicode)
-		if(NOT WIN32)
-			#add_bin_test(ncdump tst_fillbug)
-			#add_sh_test(ncdump tst_fillbug)
-		ENDIF()
-		IF(NOT WIN32)	
-			add_sh_test(ncdump tst_netcdf4_4)
-		ENDIF()	
-		
-		IF(NOT WIN32)
-			#add_sh_test(ncdump tst_nccopy4)
-		ENDIF()
-		add_sh_test(ncdump tst_grp_spec)
-		add_sh_test(ncdump tst_mud)
-		add_sh_test(ncdump_shell tst_h_scalar)
-	
-	ENDIF()
-	
-	add_sh_test(ncdump tst_ncgen4_classic)
-	IF(USE_NETCDF4)
-		add_sh_test(ncdump tst_ncgen4)
-	ENDIF()
+      #add_sh_test(ncdump tst_netcdf4)
+      #add_bin_test(ncdump tst_h_rdc0)
+    ENDIF()
+    add_bin_test(ncdump tst_unicode)
+    if(NOT WIN32)
+      #add_bin_test(ncdump tst_fillbug)
+      #add_sh_test(ncdump tst_fillbug)
+    ENDIF()
+    IF(NOT WIN32)	
+      add_sh_test(ncdump tst_netcdf4_4)
+    ENDIF()	
+    
+    IF(NOT WIN32)
+      #add_sh_test(ncdump tst_nccopy4)
+    ENDIF()
+    add_sh_test(ncdump tst_grp_spec)
+    add_sh_test(ncdump tst_mud)
+    add_sh_test(ncdump_shell tst_h_scalar)
+    
+  ENDIF()
+  
+  add_sh_test(ncdump tst_ncgen4_classic)
+  IF(USE_NETCDF4)
+    add_sh_test(ncdump tst_ncgen4)
+  ENDIF()
 
 
 ENDIF()
 
 IF(MSVC)
-	SET_TARGET_PROPERTIES(ncdump 
-		PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-		)
-	SET_TARGET_PROPERTIES(nccopy
-		PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-		)
+  SET_TARGET_PROPERTIES(ncdump 
+    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+    )
+  SET_TARGET_PROPERTIES(nccopy
+    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+    )
 
 ENDIF()
 
@@ -161,6 +161,6 @@ SET(CLEANFILES test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c ctest64.
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
 IF(NOT MSVC)	
-	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+  INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
 ENDIF()
 

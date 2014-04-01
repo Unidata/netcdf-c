@@ -24,6 +24,7 @@ CFLAGS=""
 FORCE="-i"
 
 #INSTALL=1
+#PREFIX=/usr/local
 PREFIX=/usr/local
 
 if test "x$cmds" = x ; then
@@ -170,7 +171,7 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 
-FLAGS="$FLAGS --disable-shared"
+#FLAGS="$FLAGS --disable-shared"
 #FLAGS="$FLAGS --enable-shared"
 
 if test "x$HDF5" = "x" ; then
