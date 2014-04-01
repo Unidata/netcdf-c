@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h> 
 #include <netcdf.h>
 #include "generic.h"
 #include "ncgen.h"
@@ -60,12 +61,12 @@ gen_load_c(
     )
 {
     int  idim, ival;
-    char *val_string;
-    char *charvalp;
-    short *shortvalp;
-    int *intvalp;
-    float *floatvalp;
-    double *doublevalp;
+    char *val_string = NULL;
+    char *charvalp = NULL;
+    short *shortvalp = NULL;
+    int *intvalp = NULL;
+    float *floatvalp = NULL;
+    double *doublevalp = NULL;
     char stmnt[C_MAX_STMNT];
     size_t stmnt_len;
     char s2[C_MAX_STMNT] = {'\0'};
@@ -123,21 +124,26 @@ gen_load_c(
             for (ival = 0; ival < var_len-1; ival++) {
 		switch (vars[varnum].type) {
 		  case NC_BYTE:
-			sprintf(s2, "%d, ", *charvalp++);
+		    assert(charvalp != NULL);
+		    sprintf(s2, "%d, ", *charvalp++);
 		    break;
 		  case NC_SHORT:
-			sprintf(s2, "%d, ", *shortvalp++);
+		    assert(shortvalp != NULL);
+		    sprintf(s2, "%d, ", *shortvalp++);
 		    break;
 		  case NC_INT:
-			sprintf(s2, "%ld, ", (long)*intvalp++);
+		    assert(intvalp != NULL);
+		    sprintf(s2, "%ld, ", (long)*intvalp++);
 		    break;
 		  case NC_FLOAT:
-			sprintf(s2, "%.8g, ", *floatvalp++);
+		    assert(floatvalp != NULL);
+		    sprintf(s2, "%.8g, ", *floatvalp++);
 		    break;
 		  case NC_DOUBLE:
-			sprintf(s2, "%#.16g", *doublevalp++);
-			tztrim(s2);
-			strcat(s2, ", ");
+		    assert(doublevalp != NULL);
+		    sprintf(s2, "%#.16g", *doublevalp++);
+		    tztrim(s2);
+		    strcat(s2, ", ");
 		    break;
 		  default: break;
 		}
@@ -151,33 +157,38 @@ gen_load_c(
 		}
 	    }
 	    for (;ival < var_len; ival++) {
-		switch (vars[varnum].type) {
-		  case NC_BYTE:
-			sprintf(s2, "%d", *charvalp);
-		    break;
-		  case NC_SHORT:
-			sprintf(s2, "%d", *shortvalp);
-		    break;
-		  case NC_INT:
-			sprintf(s2, "%ld", (long)*intvalp);
-		    break;
-		  case NC_FLOAT:
-			sprintf(s2, "%.8g", *floatvalp);
-		    break;
-		  case NC_DOUBLE:
-			sprintf(s2, "%#.16g", *doublevalp++);
-			tztrim(s2);
-		    break;
-		  default: break;
-		}
-		stmnt_len += strlen(s2);
-		if (stmnt_len < C_MAX_STMNT)
-		  strcat(stmnt, s2);
-		else {
-		    cline(stmnt);
-		    strcpy(stmnt,s2);
-		    stmnt_len = strlen(stmnt);
-		}
+	      switch (vars[varnum].type) {
+	      case NC_BYTE:
+		assert(charvalp != NULL);
+		sprintf(s2, "%d", *charvalp);
+		break;
+	      case NC_SHORT:
+		assert(shortvalp != NULL);
+		sprintf(s2, "%d", *shortvalp);
+		break;
+	      case NC_INT:
+		assert(intvalp != NULL);
+		sprintf(s2, "%ld", (long)*intvalp);
+		break;
+	      case NC_FLOAT:
+		assert(floatvalp != NULL);
+		sprintf(s2, "%.8g", *floatvalp);
+		break;
+	      case NC_DOUBLE:
+		assert(doublevalp != NULL);
+		sprintf(s2, "%#.16g", *doublevalp++);
+		tztrim(s2);
+		break;
+	      default: break;
+	      }
+	      stmnt_len += strlen(s2);
+	      if (stmnt_len < C_MAX_STMNT)
+		strcat(stmnt, s2);
+	      else {
+		cline(stmnt);
+		strcpy(stmnt,s2);
+		stmnt_len = strlen(stmnt);
+	      }
 	    }
 	    break;
 	}
@@ -289,15 +300,17 @@ fstrcat(
     size_t *slenp			/* pointer to length of source string */
     )
 {
-    *slenp += strlen(t);
-    if (*slenp >= FORT_MAX_STMNT) {
-	derror("FORTRAN statement too long: %s",s);
-	fline(s);
-	strcpy(s, t);
-	*slenp = strlen(s);
-    } else {
-	strcat(s, t);
-    }
+  
+  *slenp += strlen(t);
+  
+  if (*slenp >= FORT_MAX_STMNT) {
+    derror("FORTRAN statement too long: %s",s);
+    fline(s);
+    strncpy(s, t, FORT_MAX_STMNT);
+    *slenp = strlen(s);
+  } else {
+    strncat(s, t, strlen(t));
+  }
 }
 
 /*

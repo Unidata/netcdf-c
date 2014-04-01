@@ -5147,7 +5147,7 @@ NC3_get_vara(int ncid, int varid,
 	/* If this is a record variable, then we have to
            substitute the number of records into dimension 0. */
 	if(varp->shape[0] == 0) {
-	    memcpy((void*)modedges,(void*)varp->shape,
+	    (void*)memcpy((void*)modedges,(void*)varp->shape,
                           sizeof(size_t)*varp->ndims);
 	    modedges[0] = NC_get_numrecs(nc3);
 	    edges = modedges;
@@ -5280,7 +5280,7 @@ NC3_put_vara(int ncid, int varid,
 	/* If this is a record variable, then we have to
            substitute the number of records into dimension 0. */
 	if(varp->shape[0] == 0) {
-	    memcpy((void*)modedges,(void*)varp->shape,
+	    (void*)memcpy((void*)modedges,(void*)varp->shape,
                           sizeof(size_t)*varp->ndims);
 	    modedges[0] = NC_get_numrecs(nc3);
 	    edges = modedges;

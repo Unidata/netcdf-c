@@ -156,16 +156,17 @@ nc_inq_dimid2(int ncid, const char *dimname, int *dimidp) {
     } 
 #ifdef USE_NETCDF4
     else {  /* Parse group name out and get dimid using that */
-	size_t grp_namelen = sp - dimname;
-	char *grpname = emalloc(grp_namelen + 1);
-	int grpid;
-	strncpy(grpname, dimname, grp_namelen);
-	grpname[grp_namelen] = '\0';
-	ret = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
-	if(ret == NC_NOERR) {
-	    ret = nc_inq_dimid(grpid, dimname, dimidp);
-	}
-	free(grpname);
+      size_t grp_namelen = sp - dimname;
+      char *grpname = emalloc(grp_namelen+1);
+      
+      int grpid;
+      strncpy(grpname, dimname, grp_namelen+1);
+      grpname[grp_namelen] = '\0';
+      ret = nc_inq_grp_full_ncid(ncid, grpname, &grpid);
+      if(ret == NC_NOERR) {
+	ret = nc_inq_dimid(grpid, dimname, dimidp);
+      }
+      free(grpname);
     }	
 #endif	/* USE_NETCDF4 */
     return ret;
