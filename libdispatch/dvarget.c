@@ -71,6 +71,8 @@ NC_get_vara(int ncid, int varid,
 #ifdef USE_NETCDF4
    if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
 #endif
+
+
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
       int ndims;
@@ -78,9 +80,24 @@ NC_get_vara(int ncid, int varid,
       if(stat != NC_NOERR) return stat;
       stat = NC_getshape(ncid,varid,ndims,shape);
       if(stat != NC_NOERR) return stat;
-      return ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
+      stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
    } else
-      return ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
+      stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
+ {
+ if(edges != null ) {
+    if(memtype == NC_BYTE || memtype == NC_BYTE) {
+      int ndims, i;
+      int nelems ;
+      nc_inq_varndims(ncid, varid, &ndims); 
+      for(nelems=1,i=0;i<ndims;i++) nelems *= edges[i];
+      for(i=0;i<nelems; i++) {
+	fprintf(stderr,"[%d] = %d\n",i,value[i]);
+      }
+      fflush(stderr);
+    }
+ }
+ }
+  return stat;
 }
 
 /** \ingroup variables 

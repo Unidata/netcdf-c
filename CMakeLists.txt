@@ -149,7 +149,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Unused var and parameter warnings create a lot of noise.
   IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter -m32")
     #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
   ENDIF()
 
