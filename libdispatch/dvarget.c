@@ -72,19 +72,6 @@ NC_get_vara(int ncid, int varid,
    if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
 #endif
 
- {
-    int i;
-    int ndims = 0;
-    fprintf(stderr,"XXXXXXXXXX\n");
-    fprintf(stderr,"ncid=%d varid=%d value=%lx memtype=%d\n",
-		ncid,varid,(unsigned long)value,memtype);
-    nc_inq_varndims(ncid, varid, &ndims);
-    fprintf(stderr,"ndims=%d ",ndims);
-    for(i=0;i<ndims;i++)
-	fprintf(stderr,"(%d..%d)",start[i],edges[i]);
-    fprintf(stderr,"\nXXXXXXXXXX\n");
-    fflush(stderr);
- }
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
       int ndims;
@@ -95,22 +82,6 @@ NC_get_vara(int ncid, int varid,
       stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
    } else
       stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
- {
- if(edges != NULL) {
-    if(memtype == NC_BYTE || memtype == NC_BYTE) {
-      int ndims, i;
-      int nelems ;
-      nc_inq_varndims(ncid, varid, &ndims); 
-      for(nelems=1,i=0;i<ndims;i++) nelems *= edges[i];
-      fprintf(stderr,"//////////\n");
-      for(i=0;i<nelems*8; i++) {
-	fprintf(stderr,"[%d] = %d\n",i,((char*)value)[i]);
-      }
-      fprintf(stderr,"//////////\n");
-      fflush(stderr);
-    }
- }
- }
   return stat;
 }
 

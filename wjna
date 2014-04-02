@@ -2,7 +2,7 @@
 
 JNADIR="c:/opt/jna"
 
-PREFIX="${JNADIR}"
+PREFIX="c:/opt"
 
 CPP="${JNADIR}/deps/shared"
 
