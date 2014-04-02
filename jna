@@ -1,21 +1,19 @@
 #!/bin/bash
 
 PREFIX=/home/dmh/opt/jna
-#LIBDIR="${PREFIX}/lib"
-LIBDIR="/usr/local/lib"
 
 CFLAGS=""
 CPPFLAGS="-I/usr/local/include"
 
-LDFLAGS="-L${LIBDIR} -lhdf5_hl -lhdf5 -lz $LDFLAGS"
-LD_LIBRARY_PATH="${LIBDIR}:$LD_LIBRARY_PATH"
+LDFLAGS="-L${PREFIX}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
+LD_LIBRARY_PATH="${PREFIX}/lib:$LD_LIBRARY_PATH"
 
 MAKE=make
 
 FLAGS="--prefix ${PREFIX}"
+FLAGS="$FLAGS --disable-cxx"
 FLAGS="$FLAGS --disable-examples"
 FLAGS="$FLAGS --disable-utilities"
-FLAGS="$FLAGS --enable-shared"
 
 export PATH
 export CC
