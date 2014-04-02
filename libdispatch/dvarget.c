@@ -84,14 +84,14 @@ NC_get_vara(int ncid, int varid,
    } else
       stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
  {
- if(edges != null ) {
+ if(edges != NULL) {
     if(memtype == NC_BYTE || memtype == NC_BYTE) {
       int ndims, i;
       int nelems ;
       nc_inq_varndims(ncid, varid, &ndims); 
       for(nelems=1,i=0;i<ndims;i++) nelems *= edges[i];
       for(i=0;i<nelems; i++) {
-	fprintf(stderr,"[%d] = %d\n",i,value[i]);
+	fprintf(stderr,"[%d] = %d\n",i,((char*)value)[i]);
       }
       fflush(stderr);
     }
