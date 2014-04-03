@@ -480,7 +480,10 @@ IF(MSVC)
 ENDIF()
 
 # Option to build netCDF Version 2
-OPTION (BUILD_V2 "Build netCDF Version 2." ON)
+OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
+IF(NOT ENABLE_V2_API)
+       SET(NO_NETCDF_2 ON)
+ENDIF()
 
 # Option to build utilities
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
@@ -1118,7 +1121,9 @@ ENDIF()
 
 # Enable tests
 IF(ENABLE_TESTS)
-  ADD_SUBDIRECTORY(nctest)
+  IF(ENABLE_V2_API)
+	ADD_SUBDIRECTORY(nctest)
+  ENDIF()
   ADD_SUBDIRECTORY(nc_test)
   IF(USE_NETCDF4)
       ADD_SUBDIRECTORY(nc_test4)
