@@ -80,7 +80,8 @@ FIND_PACKAGE(MakeDist)
 # Set the build type.
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
-    FORCE)
+      FORCE
+      )
 ENDIF()
 
 # Set build type uppercase
@@ -307,7 +308,7 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Building DAP Support:       ${ENABLE_DAP}")
   MESSAGE(STATUS "Building Utilities:         ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
-    MESSAGE(STATUS "CMake Prefix Path:        ${CMAKE_PREFIX_PATH}")
+    MESSAGE(STATUS "CMake Prefix Path:          ${CMAKE_PREFIX_PATH}")
   ENDIF()
   MESSAGE("")
   MESSAGE(STATUS "Using pNetCDF:              ${STATUS_PNETCDF}")
@@ -323,6 +324,7 @@ MACRO(print_conf_summary)
     MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
     MESSAGE(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
   ENDIF()
+
   MESSAGE("")
   MESSAGE("Compiler:")
   MESSAGE("")
@@ -466,20 +468,18 @@ OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 # Option to use MMAP
 OPTION(ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
-  IF(NOT HAVE_MREMAP)
-    MESSAGE(STATUS "mremap not found: disabling MMAP support.")
-    SET(ENABLE_MMAP OFF)
-  ELSE()
+  IF(HAVE_MREMAP)
     SET(HAVE_MMAP ON)
     SET(BUILD_MMAP ON)
     SET(USE_MMAP ON)
+  ELSE()
+    MESSAGE(STATUS "mremap not found: disabling MMAP support.")
+    SET(ENABLE_MMAP OFF)
   ENDIF()
 ENDIF()
 
-
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
-
 
 # Option to use Diskless
 OPTION(ENABLE_DISKLESS "Build Diskless." ON)
@@ -500,11 +500,11 @@ IF(ENABLE_HDF4)
   # Check for include files, libraries.
 
   FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
-  IF(NOT MFHDF_H_INCLUDE_DIR)
-    MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
-  ELSE()
+  IF(MFHDF_H_INCLUDE_DIR)
     SET(HAVE_MFHDF_H ON CACHE BOOL "")
     INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
+  ELSE()
+    MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
   ENDIF()
 
   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
@@ -525,11 +525,11 @@ IF(ENABLE_HDF4)
 
   # Look for the jpeglib.h header file.
   FIND_PATH(JPEGLIB_H_INCLUDE_DIR jpeglib.h)
-  IF(NOT JPEGLIB_H_INCLUDE_DIR)
-    MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
-  ELSE()
+  IF(JPEGLIB_H_INCLUDE_DIR)
     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
+  ELSE()
+    MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
   ENDIF()
 
   FIND_LIBRARY(JPEG_LIB NAMES jpeg libjpeg)
@@ -550,7 +550,6 @@ IF(ENABLE_HDF4)
       SET(USE_HDF4_FILE_TESTS OFF)
     ENDIF()
   ENDIF()
-
 ENDIF()
 
 # Option to Build DLL
@@ -812,7 +811,6 @@ IF(ENABLE_LARGE_FILE_SUPPORT)
   ENDIF()
 ENDIF()
 
-
 OPTION(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
 IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
@@ -823,11 +821,11 @@ SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL "Build netCDF-4 with parallel IO" "${HDF5_IS_PARALLEL}")
 IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
   SET(USE_PARALLEL ON CACHE BOOL "")
-  IF(NOT HDF5_IS_PARALLEL)
+  IF(HDF5_IS_PARALLEL)
+    SET(STATUS_PARALLEL "ON")
+  ELSE()
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
-  ELSE()
-    SET(STATUS_PARALLEL "ON")
   ENDIF()
 ENDIF()
 
