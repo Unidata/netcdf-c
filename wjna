@@ -1,53 +1,28 @@
 #!/bin/bash
 
-JNADIR="c:/Users/dmh/opt/jna"
+JNADIR="c:/opt/jna"
 
 PREFIX="${JNADIR}"
 
-# CMAKE Prefix Path
-CPP="${JNADIR}"
-
-CMP="${CPP}/deps/shared/share/cmake"
-
-INCLUDES="${JNADIR}/deps/shared/include"
+CPP="${JNADIR}/deps/shared"
 
 FLAGS=""
 
-# Why does this not work?
-#FLAGS="-DHDF5_LIBRARY=${CPP} ${FLAGS}"
-#FLAGS="-DHDF5_INCLUDE_DIR=${INCLUDES} ${FLAGS}"
-
-# But this does
-#CPP="${CPP};${CMP}"
-
 FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} ${FLAGS}"
-#FLAGS="-DCMAKE_PREFIX_PATH=${CPP} ${FLAGS}"
+FLAGS="-DCMAKE_PREFIX_PATH=${CPP} ${FLAGS}"
 
-FLAGS="-DHDF5_LIB=${CPP}/hdf5.dll ${FLAGS}"
-FLAGS="-DHDF5_HL_LIB=${CPP}/hdf5_hl.dll ${FLAGS}"
-FLAGS="-DHDF5_INCLUDE_DIR=${INCLUDES} ${FLAGS}"
+FLAGS="-DHDF5_DIR=${CPP}/cmake/hdf5 ${FLAGS}"
 
-FLAGS="-DZLIB_LIBRARY=${CPP}/zlib.dll ${FLAGS}"
-FLAGS="-DZLIB_INCLUDE_DIR=${INCLUDES} ${FLAGS}"
-
-FLAGS="-DCURL_LIBRARY=${CPP}/libcurl.dll ${FLAGS}"
-FLAGS="-DCURL_INCLUDE_DIR=${INCLUDES} ${FLAGS}"
-
-FLAGS="-ENABLE_CONVERSION_WARNINGS=OFF ${FLAGS}"
+FLAGS="-DENABLE_CONVERSION_WARNINGS=OFF ${FLAGS}"
 FLAGS="-DBUILD_UTILITIES=OFF ${FLAGS}"
 FLAGS="-DENABLE_EXAMPLES=OFF ${FLAGS}"
-FLAGS="-BUILD_V2=OFF ${FLAGS}"
 
 rm -fr ./build
 mkdir build
 pushd build
 cmake -G"Visual Studio 10" ${FLAGS} ..
 cmake --build . --config Release
+cmake --build . --target INSTALL
 popd
 
 exit
-
-# heap
-#FLAGS="-DHDF5_LIBRARY=${CPP} ${FLAGS}"
-#FLAGS="-DHDF5_INCLUDE_DIRS=/usr/local/include ${FLAGS}"
-#CPP="${JNADIR}/deps/shared/share/cmake"
