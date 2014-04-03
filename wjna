@@ -2,9 +2,9 @@
 
 JNADIR="c:/opt/jna"
 
-PREFIX="c:/opt"
+PREFIX="${JNADIR}"
 
-CPP="c:/opt/jna/deps/shared"
+CPP="${JNADIR}/deps/shared"
 
 FLAGS=""
 
@@ -16,13 +16,13 @@ FLAGS="-DHDF5_DIR=${CPP}/cmake/hdf5 ${FLAGS}"
 FLAGS="-DENABLE_CONVERSION_WARNINGS=OFF ${FLAGS}"
 FLAGS="-DBUILD_UTILITIES=OFF ${FLAGS}"
 FLAGS="-DENABLE_EXAMPLES=OFF ${FLAGS}"
-FLAGS="-DBUILD_V2=OFF ${FLAGS}"
 
 rm -fr ./build
 mkdir build
 pushd build
 cmake -G"Visual Studio 10" ${FLAGS} ..
 cmake --build . --config Release
+cmake --build . --target INSTALL
 popd
 
 exit
