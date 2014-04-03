@@ -481,8 +481,9 @@ ENDIF()
 
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
+SET(BUILD_V2 ${ENABLE_V2_API})
 IF(NOT ENABLE_V2_API)
-       SET(NO_NETCDF_2 ON)
+  SET(NO_NETCDF_2 ON)
 ENDIF()
 
 # Option to build utilities
@@ -1122,7 +1123,7 @@ ENDIF()
 # Enable tests
 IF(ENABLE_TESTS)
   IF(ENABLE_V2_API)
-	ADD_SUBDIRECTORY(nctest)
+    ADD_SUBDIRECTORY(nctest)
   ENDIF()
   ADD_SUBDIRECTORY(nc_test)
   IF(USE_NETCDF4)
