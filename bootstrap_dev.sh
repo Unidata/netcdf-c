@@ -1,6 +1,6 @@
 # Install base development packages.
 apt-get update
-apt-get -y install ubuntu-dev-tools m4 git libjpeg-dev libcurl4-openssl-dev wget htop libtool bison flex
+apt-get -y install ubuntu-dev-tools m4 git libjpeg-dev libcurl4-openssl-dev wget htop libtool bison flex autoconf
 
 ## Install several packages from source.
 # * cmake
@@ -15,7 +15,6 @@ pushd cmake-2.8.12.2
 make install
 popd
 rm -rf cmake-2.8.12.2
-rm cmake-2.8.12.2.tar.gz
 
 # Install hdf4 from source.
 wget http://www.hdfgroup.org/ftp/HDF/HDF_Current/src/hdf-4.2.10.tar.bz2
@@ -25,7 +24,6 @@ pushd hdf-4.2.10
 sudo make install
 popd
 rm -rf hdf-4.2.10
-rm -rf hdf-4.2.10.tar.bz2
 
 # Install hdf5 from source
 wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.12.tar.bz2
@@ -35,6 +33,9 @@ pushd hdf5-1.8.12
 make install
 popd
 rm -rf hdf5-1.8.12
-rm -rf hdf5-1.8.12.tar.bz2
+
 # Clone netcdf-c from the local repository into the VM.
 sudo -i -u vagrant git clone /vagrant /home/vagrant/netcdf-c
+
+# Create a text file indicating provisioning is finished.
+sudo -i -u vagrant touch /home/vagrant/PROVISION_FINISHED_SUCCESSFULLY
