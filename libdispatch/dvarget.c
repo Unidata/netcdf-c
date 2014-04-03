@@ -82,7 +82,7 @@ NC_get_vara(int ncid, int varid,
       stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
    } else
       stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
-  return stat;
+   return stat;
 }
 
 /** \ingroup variables 
