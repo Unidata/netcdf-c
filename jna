@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PREFIX=/home/dmh/opt/jna
+
+CFLAGS=""
+CPPFLAGS="-I/usr/local/include"
+
+LDFLAGS="-L${PREFIX}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
+LD_LIBRARY_PATH="${PREFIX}/lib:$LD_LIBRARY_PATH"
+
+MAKE=make
+
+FLAGS="--prefix ${PREFIX}"
+FLAGS="$FLAGS --disable-cxx"
+FLAGS="$FLAGS --disable-examples"
+FLAGS="$FLAGS --disable-utilities"
+
+export PATH
+export CC
+export CPPFLAGS
+export CFLAGS
+export LDFLAGS
+export LD_LIBRARY_PATH
+
+DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
+export DISTCHECK_CONFIGURE_FLAGS
+
+if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+sh ./configure ${FLAGS}
