@@ -324,6 +324,9 @@ fprintf(stderr,"matchpartialname: choice: %s %s for %s\n",
 #endif
 
 done:
+    nclistfree(namematches);
+    nclistfree(matches);
+    nclistfree(matchpath);
     return THROW(ncstat);
 }
 

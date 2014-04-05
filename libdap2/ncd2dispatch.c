@@ -615,7 +615,8 @@ buildncstructures(NCDAPCOMMON* dapcomm)
     CDFnode* dds = dapcomm->cdf.ddsroot;
     NC* ncsub;
 
-    NC_check_id(dapcomm->controller->substrate,&ncsub);
+    ncstat = NC_check_id(dapcomm->controller->substrate,&ncsub);
+    if(ncstat != NC_NOERR) goto done;
 
     ncstat = buildglobalattrs(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
