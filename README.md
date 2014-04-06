@@ -40,7 +40,7 @@ from
 * http://github.com/Unidata/netcdf-c 
 * http://github.com/Unidata/netcdf-fortran
 * http://github.com/Unidata/netcdf-cxx4
-* http://github.com/Unidata/netcdf-python
+* http://github.com/Unidata/netcdf4-python
 
 Copyright and licensing information can be found here, as well as in
 the COPYRIGHT file accompanying the software
