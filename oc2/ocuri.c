@@ -599,7 +599,7 @@ ocuridecodeparams(OCURI* ocuri)
     /* plist is an env style list */
     plist = (char**)calloc(1,sizeof(char*)*(2*nparams+1)); /* +1 for null termination */
     if(plist == NULL)
-	return NC_ENOMEM;
+	return 0;
 
     /* Break up each param into a (name,value) pair*/
     /* and insert into the param list */

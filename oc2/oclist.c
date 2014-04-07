@@ -147,7 +147,7 @@ void**
 oclistdup(OClist* l)
 {
     void** result = (void**)malloc(sizeof(void*)*(l->length+1));
-    if(result != NULL && l != NULL && oclistength(l) != 0)
+    if(result != NULL && l != NULL && oclistlength(l) != 0)
         memcpy((void*)result,(void*)l->content,sizeof(void*)*l->length);
     result[l->length] = (void*)0;
     return result;

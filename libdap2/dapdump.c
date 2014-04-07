@@ -597,7 +597,7 @@ dumpslices(DCEslice* slice, unsigned int rank)
 
     buf = ncbytesnew();
     for(i=0;i<rank;i++,slice++) {
-	String sslice = dumpslice(slice);
+	char* sslice = dumpslice(slice);
 	if(sslice != NULL) {
 	    ncbytescat(buf,sslice);
 	    free(sslice);
