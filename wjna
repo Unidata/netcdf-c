@@ -20,7 +20,7 @@ FLAGS="-DENABLE_EXAMPLES=OFF ${FLAGS}"
 rm -fr ./build
 mkdir build
 pushd build
-cmake -G"Visual Studio 10" ${FLAGS} ..
+cmake -G"Visual Studio 8" ${FLAGS} ..
 cmake --build . --config Release
 cmake --build . --target INSTALL
 popd

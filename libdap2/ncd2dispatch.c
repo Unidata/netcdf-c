@@ -1412,9 +1412,10 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
 	    /* create a psuedo dimension for the charification of the string*/
-	    if(var->dodsspecial.dimname != NULL)
+	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
-	    else
+	        dimname[sizeof(dimname)-1] = '\0';
+	    } else
 	        snprintf(dimname,sizeof(dimname),"maxStrlen%lu",
 			 (unsigned long)dimsize);
 	    sdim = makecdfnode(dapcomm, dimname, OC_Dimension, NULL,

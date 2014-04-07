@@ -342,6 +342,8 @@ NCcache*
 createnccache(void)
 {
     NCcache* c = (NCcache*)calloc(1,sizeof(NCcache));
+    if(c == NULL)
+	return NULL;
     c->cachelimit = DFALTCACHELIMIT;
     c->cachesize = 0;
     c->nodes = nclistnew();
