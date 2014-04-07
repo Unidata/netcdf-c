@@ -18,3 +18,4 @@ Makefile
 build-par
 build_llvm
 .vagrant
+Vagrantfile
