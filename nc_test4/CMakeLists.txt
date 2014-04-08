@@ -21,6 +21,11 @@ IF(NOT MSVC)
 	SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
+# If the v2 API was built, add the test program.
+IF(ENABLE_V2_API)
+  build_bin_test(tst_v2)
+ENDIF()
+
 IF(LARGE_FILE_TESTS)
 	SET(NC4_TESTS ${NC4_TESTS} tst_large tst_large2)
 ENDIF()

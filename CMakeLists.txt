@@ -66,7 +66,18 @@ INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/GetPrerequisites.cmake)
 
+INCLUDE(CheckCCompilerFlag)
 FIND_PACKAGE(PkgConfig QUIET)
+
+
+# A macro to check if a C linker supports a particular flag.
+MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
+  SET(T_REQ_FLAG "${CMAKE_REQUIRED_FLAGS}")
+  SET(CMAKE_REQUIRED_FLAGS "${M_FLAG}")
+  
+  CHECK_C_SOURCE_COMPILES("int main() {return 0;}" ${M_RESULT})
+  SET(CMAKE_REQUIRED_FLAGS "${T_REQ_FLAG}")
+ENDMACRO()
 
 # Enable 'dist and distcheck'.
 # File adapted from http://ensc.de/cmake/FindMakeDist.cmake
@@ -78,6 +89,9 @@ IF (NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
       FORCE)
 ENDIF()
+
+# Set build type uppercase
+STRING(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 
 ################################
 # End Project Properties
@@ -120,6 +134,7 @@ IF (BUILD_SHARED_LIBS)
   SET(LIB_TYPE SHARED)
   IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC")
   ENDIF()
 ENDIF()
 
@@ -134,34 +149,41 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Debugging flags
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
-  #SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 
-  # Coverage tests need to have optimization turned off.
+  # Check to see if -W1,--no-undefined is supported.
+  CHECK_C_LINKER_FLAG("-W1,--no-undefined" LIBTOOL_HAS_NO_UNDEFINED)
+    
+  IF(LIBTOOL_HAS_NO_UNDEFINED)
+    SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -W1,--no-undefined")
+  ENDIF()
+  SET(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
+    
+    # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
-    #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -profile-arcs -ftest-coverage")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
   
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
-  #SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
 
   # Unused var and parameter warnings create a lot of noise.
   IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter -m32")
-    #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-  ENDIF()
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+   ENDIF()
 
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
-    IF(CMAKE_COMPILER_IS_GNUCC)
-      #SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wconversion")
-      SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wconversion")
-    ELSEIF(APPLE)
-      #SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wshorten-64-to-32")
+    CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
+    CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
+    
+    IF(CC_HAS_SHORTEN_64_32)
       SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wshorten-64-to-32")
-    ENDIF(CMAKE_COMPILER_IS_GNUCC)
+    ENDIF()
+    IF(CC_HAS_WCONVERSION)
+      SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wconversion")      
+    ENDIF()
+
   ENDIF(ENABLE_CONVERSION_WARNINGS)
 
 ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
@@ -330,8 +352,7 @@ MACRO(print_conf_summary)
   IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
     MESSAGE(STATUS "CMAKE_C_FLAGS_RELEASE:\t" ${CMAKE_C_FLAGS_RELEASE})
   ENDIF()
-
-  # MESSAGE(STATUS "CMAKE_CXX_FLAGS:\t\t" ${CMAKE_CXX_FLAGS})
+  
   MESSAGE(STATUS "Linking against:\t\t" "${ALL_TLL_LIBS}")
 
   MESSAGE("")
@@ -459,7 +480,10 @@ IF(MSVC)
 ENDIF()
 
 # Option to build netCDF Version 2
-OPTION (BUILD_V2 "Build netCDF Version 2." ON)
+OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
+IF(NOT ENABLE_V2_API)
+       SET(NO_NETCDF_2 ON)
+ENDIF()
 
 # Option to build utilities
 OPTION (BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
@@ -733,6 +757,8 @@ int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 
 ENDIF()
+
+# Check to see if libtool supports 
 
 # Check for the math library so it can be explicitely linked.
 IF(NOT WIN32)
@@ -1095,7 +1121,9 @@ ENDIF()
 
 # Enable tests
 IF(ENABLE_TESTS)
-  ADD_SUBDIRECTORY(nctest)
+  IF(ENABLE_V2_API)
+	ADD_SUBDIRECTORY(nctest)
+  ENDIF()
   ADD_SUBDIRECTORY(nc_test)
   IF(USE_NETCDF4)
       ADD_SUBDIRECTORY(nc_test4)

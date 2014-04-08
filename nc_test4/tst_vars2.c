@@ -1,6 +1,6 @@
 /* This is part of the netCDF package.
    Copyright 2005 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables. 
    $Id: tst_vars2.c,v 1.35 2010/01/25 21:01:08 ed Exp $
