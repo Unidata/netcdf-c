@@ -950,6 +950,19 @@ AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
 
+# temporary to deal with a JNA problem
+AC_MSG_CHECKING([If compilation is for use with JNA])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug fix])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
+fi
+
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
 AH_BOTTOM(

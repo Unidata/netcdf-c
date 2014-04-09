@@ -1187,6 +1187,13 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                member_name = H5Tget_member_name(type->native_hdf_typeid, m);
                if (!member_name || strlen(member_name) > NC_MAX_NAME)
                   return NC_EBADNAME;
+#ifdef JNA
+/* There appears to be a bug that is
+   causing malloc error. */
+	       member_name = strdup(member_name);
+	       if(member_name == NULL)
+		  return NC_ENOMEM;
+#endif /*JNA*/
 
                /* Offset in bytes on *this* platform. */
                member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
