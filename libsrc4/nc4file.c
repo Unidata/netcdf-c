@@ -1187,13 +1187,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                member_name = H5Tget_member_name(type->native_hdf_typeid, m);
                if (!member_name || strlen(member_name) > NC_MAX_NAME)
                   return NC_EBADNAME;
-#ifdef JNA
-/* There appears to be a bug that is
-   causing malloc error. */
-	       member_name = strdup(member_name);
-	       if(member_name == NULL)
-		  return NC_ENOMEM;
-#endif /*JNA*/
 
                /* Offset in bytes on *this* platform. */
                member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
@@ -1332,8 +1325,35 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             {
                char *member_name;
 
+#ifdef JNA
+    /* Workaround for JNA bug */
+    member_name = H5Tget_member_name(hdf_typeid, i);
+    if(member_name != NULL) {
+	char* newstring;
+	size_t slen = strlen(member_name);
+#if 0
+	fprintf(stderr,"%d=%ld\n",i,slen);
+	fprintf(stderr,"\t=|%s|\n",member_name);
+	fflush(stderr);
+#endif
+	/* Fix by limiting size and realloc'ing */
+	/* Apparently strdup is the problem */
+#if 0
+	newstring = strdup(member_name);
+	if(newstring == NULL) return NC_ENOMEM;
+#endif
+	newstring = malloc(slen+1);
+	if(newstring == NULL) return NC_ENOMEM;
+	strcpy(newstring,member_name);
+#if 0
+	fprintf(stderr,"=%s\n",member_name);
+	fflush(stderr);
+#endif
+    } else
+#else
                /* Get the name and value from HDF5. */
                if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
+#endif /*JNA*/
                {
                   if(value) free(value);
                   return NC_EHDFERR;
