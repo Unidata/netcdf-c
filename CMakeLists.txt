@@ -831,6 +831,11 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
+OPTION (ENABLE_JNA "Enable jna bug workaround." OFF)
+IF(ENABLE_JNA)
+  SET(JNA ON)
+ENDIF()
+
 # Linux specific large file support flags.
 # Modelled after check in CMakeLists.txt for hdf5.
 OPTION(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)

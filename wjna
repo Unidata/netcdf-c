@@ -16,11 +16,13 @@ FLAGS="-DHDF5_DIR=${CPP}/cmake/hdf5 ${FLAGS}"
 FLAGS="-DENABLE_CONVERSION_WARNINGS=OFF ${FLAGS}"
 FLAGS="-DBUILD_UTILITIES=OFF ${FLAGS}"
 FLAGS="-DENABLE_EXAMPLES=OFF ${FLAGS}"
+FLAGS="-DENABLE_V2_API=OFF ${FLAGS}"
+FLAGS="-DENABLE_JNA=ON ${FLAGS}"
 
 rm -fr ./build
 mkdir build
 pushd build
-cmake -G"Visual Studio 8" ${FLAGS} ..
+cmake -G"Visual Studio 12" ${FLAGS} ..
 cmake --build . --config Release
 cmake --build . --target INSTALL
 popd

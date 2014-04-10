@@ -95,6 +95,19 @@ if test "x$enable_fsync" = xyes ; then
 AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
 fi
 
+# Temporary until JNA bug is fixed
+AC_MSG_CHECKING([if jna bug workaround is enabledd])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug workaround])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
+fi
+
 # Does the user want to run extra tests with valgrind?
 AC_MSG_CHECKING([whether extra valgrind tests should be run])	
 AC_ARG_ENABLE([valgrind-tests],
