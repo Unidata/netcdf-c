@@ -16,6 +16,7 @@ FLAGS="--prefix ${PREFIX}"
 FLAGS="$FLAGS --disable-examples"
 FLAGS="$FLAGS --disable-utilities"
 FLAGS="$FLAGS --enable-shared"
+#FLAGS="$FLAGS --enable-jna"
 
 export PATH
 export CC

@@ -831,7 +831,8 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
-OPTION (ENABLE_JNA "Enable jna bug workaround." OFF)
+# Temporary 
+OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
 IF(ENABLE_JNA)
   SET(JNA ON)
 ENDIF()
