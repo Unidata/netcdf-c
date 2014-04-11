@@ -20,7 +20,7 @@
 #define VAR2_NAME "sourdough_wheat_loaf"
 #define VAR3_NAME "white_loaf"
 
-extern int ncopts;
+EXTERNL int ncopts;
 
 int
 main(int argc, char **argv)
