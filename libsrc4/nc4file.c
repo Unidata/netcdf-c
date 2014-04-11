@@ -1291,6 +1291,10 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             nc_type base_nc_type = NC_NAT;
             void *value;
             int i;
+	    char *member_name = NULL;
+#ifdef JNA
+            char jna[1001];
+#endif	
 
             type->nc_type_class = NC_ENUM;
 
@@ -1323,69 +1327,49 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             /* Read each name and value defined in the enum. */
             for (i = 0; i < type->u.e.num_members; i++)
             {
-               char *member_name;
-
-#ifdef JNA
-    /* Workaround for JNA bug */
-    member_name = H5Tget_member_name(hdf_typeid, i);
-    if(member_name != NULL) {
-	char* newstring;
-	size_t slen = strlen(member_name);
-#if 0
-	fprintf(stderr,"%d=%ld\n",i,slen);
-	fprintf(stderr,"\t=|%s|\n",member_name);
-	fflush(stderr);
-#endif
-	/* Fix by limiting size and realloc'ing */
-	/* Apparently strdup is the problem */
-#if 0
-	newstring = strdup(member_name);
-	if(newstring == NULL) return NC_ENOMEM;
-#endif
-	newstring = malloc(slen+1);
-	if(newstring == NULL) return NC_ENOMEM;
-	strcpy(newstring,member_name);
-#if 0
-	fprintf(stderr,"=%s\n",member_name);
-	fflush(stderr);
-#endif
-    } else
-#else
+	       retval = NC_NOERR;
                /* Get the name and value from HDF5. */
                if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
-#endif /*JNA*/
                {
-                  if(value) free(value);
-                  return NC_EHDFERR;
+                  retval = NC_EHDFERR;
+		  break;		  
                }
+#ifdef JNA
+		strncpy(jna,member_name,1000);
+		member_name = jna;	
+#endif
+
                if (strlen(member_name) > NC_MAX_NAME)
                {
-                  if(value) free(value); 
-                  free(member_name); 
-                  return NC_EBADNAME;
+                  retval = NC_EBADNAME;
+		  break;
                }
                if (H5Tget_member_value(hdf_typeid, i, value) < 0) 
                {
-                  if(value) free(value); 
-                  free(member_name); 
-                  return NC_EHDFERR;
+                  retval = NC_EHDFERR;
+		  break;
                }
 
                /* Insert new field into this type's list of fields. */
                if ((retval = nc4_enum_member_add(&type->u.e.enum_member, type->size, 
                                                  member_name, value)))
                {
-                  if(value) free(value); 
-                  free(member_name); 
-                  return retval;
+		  break;
                }
 
+#ifndef JNA
                /* Free the member name (which HDF5 allocated for us). */
-               free(member_name); 
+               if(member_name != NULL) free(member_name); 
+#endif	       
+	       member_name = NULL;
             }
-            
-            /* Free the tempory memory for one value */
-            free(value);
+#ifndef JNA
+	    if(member_name != NULL)
+		free(member_name);
+#endif
+            if(value) free(value);
+	    if(retval) /* error exit from loop */
+		return retval;
          }
          break;
 
@@ -1393,7 +1377,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
          LOG((0, "unknown class"));
          return NC_EBADCLASS;
    }
-
    return retval;
 }
 

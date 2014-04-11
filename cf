@@ -130,6 +130,7 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --with-libcf"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
+FLAGS="$FLAGS --enable-jna"
 
 #FLAGS="$FLAGS --disable-shared"
 FLAGS="$FLAGS --enable-shared"

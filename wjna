@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REBUILD=1
+#REBUILD=1
 
 #VS=12
 VS=10
