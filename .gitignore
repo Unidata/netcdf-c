@@ -1,4 +1,5 @@
-build
+Vagrantfile
+build*
 html
 doxygen*.tmp
 \#*.*\#
