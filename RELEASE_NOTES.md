@@ -7,11 +7,14 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.2 Released TBD
 
+### 4.3.2-rc3 Released TBD
+
 ### 4.3.2-rc2 Released 2014-04-15
 
 * Cleaned up a number of CMake inconsistencies related to CMake usage, parallel builds.
-* Now passing -Wl,--no-undefined to linker.
+* Now passing -Wl,--no-undefined to linker when appropriate.
 * Corrected an issue preventing large file tests from running correctly under Windows.
+* Misc Bug Fixes detected by static analysis.
 
 ### 4.3.2-rc1 Released 2014-03-20
 
