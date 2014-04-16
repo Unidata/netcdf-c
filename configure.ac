@@ -95,7 +95,8 @@ if test "x$enable_fsync" = xyes ; then
 AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
 fi
 
-# Temporary until JNA bug is fixed
+# Temporary until JNA bug is fixed (which is probably never).
+# See Jira NCF-298
 AC_MSG_CHECKING([if jna bug workaround is enabledd])
 AC_ARG_ENABLE([jna],
               [AS_HELP_STRING([--enable-jna],
