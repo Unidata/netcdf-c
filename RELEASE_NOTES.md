@@ -9,6 +9,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.2-rc3 Released TBD
 
+* The oc .dodsrc reader was improperly handling the user name and password
+  entries. [NCF-299](https://bugtracking.unidata.ucar.edu/browse/NCF-299)
+
 ### 4.3.2-rc2 Released 2014-04-15
 
 * Cleaned up a number of CMake inconsistencies related to CMake usage, parallel builds.

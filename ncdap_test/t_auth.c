@@ -12,7 +12,7 @@ static char* URL2 =
 "http://remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc";
 
 /* .dodsrc file */
-static char* DODSRC = "HTTP.CREDENTIALS.USER=tiggeUser\nHTTP.CREDENTIALS.PASSWORD=tigge\n";
+static char* CONTENT = "HTTP.CREDENTIALS.USER=tiggeUser\nHTTP.CREDENTIALS.PASSWORD=tigge\n";
 
 static void
 CHECK(int e, const char* msg)
@@ -23,41 +23,50 @@ CHECK(int e, const char* msg)
     exit(1);
 }
 
+
 int
-main()
+main(int argc, char** argv)
 {
     int ncid,retval,pass;
     char** url;
     FILE* dodsrc;
-
-    printf("Testing: Http Basic Authorization\n\n");
-    printf("Embedded user:pwd: %s\n",URL1);
     pass = 1; /* assume success */
-    retval = nc_open(URL1, 0, &ncid);
-    if(retval != NC_NOERR) {
-        pass = 0;
-        printf("*** FAIL: Embedded user:pwd %s\n",URL1);
-    } else
-	retval = nc_close(ncid);
 
-    printf(".dodsrc user:pwd: %s\n",URL1);
     dodsrc = fopen(".dodsrc","w");
     if(dodsrc == NULL) {
         fprintf(stderr,"Cannot create .dodsrc\n");
-	exit(1);
+        exit(1);
     }    
-    fprintf(dodsrc,DODSRC);
+    fprintf(dodsrc,CONTENT);
     fclose(dodsrc);
-    retval = nc_open(URL1, 0, &ncid);
-    if(retval != NC_NOERR) {
-        pass = 0;
-        printf("*** FAIL: .dodsrc user:pwd %s\n",URL1);
-    } else
-	retval = nc_close(ncid);
-//    unlink(".dodsrc"); /* delete the file */
 
-    if(!pass)
-	return 1;
-    printf("*** PASS: Http Basic Authorization\n");
-    return 0;
+    printf("Testing: Http Basic Authorization\n\n");
+    if(1) {
+        printf("Embedded user:pwd: %s\n",URL1);
+        retval = nc_open(URL1, 0, &ncid);
+        if(retval != NC_NOERR) {
+            pass = 0;
+            printf("*** FAIL: Embedded user:pwd\n");
+        } else {
+            printf("*** PASS: Embedded user:pwd\n");
+	    retval = nc_close(ncid);
+	}
+        fflush(stdout);
+    }
+
+    if(1) {
+        printf(".dodsrc user:pwd: %s\n",URL1);
+
+        retval = nc_open(URL2, 0, &ncid);
+        if(retval != NC_NOERR) {
+            pass = 0;
+            printf("*** FAIL: .dodsrc user:pwd\n");
+        } else {
+	    retval = nc_close(ncid);
+            printf("*** PASS: .dodsrc user:pwd\n");
+        }
+        fflush(stdout);
+    }
+    unlink(".dodsrc"); /* delete the file */
+    return !pass;
 }
