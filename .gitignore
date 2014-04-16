@@ -1,3 +1,4 @@
+CTestConfig.cmake
 Vagrantfile
 build*
 html
