@@ -9,8 +9,15 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.2-rc3 Released TBD
 
-* The oc .dodsrc reader was improperly handling the user name and password
-  entries. [NCF-299](https://bugtracking.unidata.ucar.edu/browse/NCF-299)
+* The oc .dodsrc reader was improperly handling the user name and password entries. [NCF-299](https://bugtracking.unidata.ucar.edu/browse/NCF-299)
+
+* CTestConfig.cmake has been made into a template so that users may easily specify the location of an alternative CDash-based Dashboard using the following two options:
+
+	* `NC_TEST_DROP_SITE` - Specify an alternative Dashboard by URL or IP address.
+
+	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
+	
+
 
 ### 4.3.2-rc2 Released 2014-04-15
 
