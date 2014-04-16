@@ -16,7 +16,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 2)
-SET(netCDF_VERSION_NOTE "-rc2")
+SET(netCDF_VERSION_NOTE "-rc3")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(netCDF_SO_VERSION 7.2.0)
@@ -460,10 +460,6 @@ IF(NOT NETCDF_LIB_NAME STREQUAL "")
   SET(MOD_NETCDF_NAME ON)
 ENDIF()
 
-# Option to use a local or remote CDash instance.
-# instances Defined in CTestConfig.cmake
-OPTION (USE_REMOTE_CDASH "Use CDash instance at CDash.org." OFF)
-
 # Set the appropriate compiler/architecture for universal OSX binaries.
 IF(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
   SET(CMAKE_OSX_ARCHITECTURES i386;x86_64)
@@ -816,6 +812,18 @@ ENDIF()
 OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
 IF(ENABLE_TESTS)
  SET(BUILD_TESTSETS ON CACHE BOOL "")
+
+ # Options for CTest-based tests, dashboards.
+ SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
+ SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+ SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
+
+ # Create a CTestConfig file from the template.
+ CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
+   "${netCDF_SOURCE_DIR}/CTestConfig.cmake"
+   @ONLY
+   )
+
 ENDIF()
 
 # Enable Large file tests
