@@ -816,6 +816,7 @@ IF(ENABLE_TESTS)
  # Options for CTest-based tests, dashboards.
  SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
  SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+ SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
  # Create a CTestConfig file from the template.
  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
