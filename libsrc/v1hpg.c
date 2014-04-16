@@ -1136,7 +1136,8 @@ NC_computeshapes(NC3_INFO* ncp)
 
 	if(first_rec != NULL)
 	{
-		assert(ncp->begin_rec <= first_rec->begin);
+		if(ncp->begin_rec > first_rec->begin)
+		    return(NC_ENOTNC); /* not a netCDF file or corrupted */
 		ncp->begin_rec = first_rec->begin;
 		/*
 	 	 * for special case of exactly one record variable, pack value
@@ -1154,11 +1155,12 @@ NC_computeshapes(NC3_INFO* ncp)
 		ncp->begin_var = ncp->begin_rec;
 	}
 
-	assert(ncp->begin_var > 0);
-	assert(ncp->xsz <= (size_t)ncp->begin_var);
-	assert(ncp->begin_rec > 0);
-	assert(ncp->begin_var <= ncp->begin_rec);
-	
+	if(ncp->begin_var <= 0 ||
+	   ncp->xsz > (size_t)ncp->begin_var ||
+	   ncp->begin_rec <= 0 ||
+	   ncp->begin_var > ncp->begin_rec)
+	    return(NC_ENOTNC); /* not a netCDF file or corrupted */
+
 	return(ENOERR);
 }
 
