@@ -148,7 +148,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 		{ocstat = OC_EXDR; goto fail;}
             if(tmp[0] == StartOfSequence) {
 		/* Allocate a record instance */
-		OCdata* record;
+		OCdata* record = NULL;
 		ocstat = occompilerecord(state,xnode,xxdrs,&record);
 	        if(ocstat != OC_NOERR) goto fail;
 		/* Capture the back link */
