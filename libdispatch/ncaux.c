@@ -130,6 +130,8 @@ ncaux_add_field(void* tag,  const char *name, nc_type field_type,
     cmpd->nfields++;
 
 done:
+    if(newfields)
+      free(newfields);
     return status;
 }
 
