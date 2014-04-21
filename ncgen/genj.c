@@ -519,11 +519,8 @@ genj_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 {
     Symbol* basetype = asym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
-    size_t len = asym->data->length; /* default assumption */
-    Datalist* list;
-
-    list = asym->data;
-    len = list == NULL?0:list->length;
+    /* default assumption */
+    size_t len = asym->data == NULL?0:asym->data->length; 
 
     codeprintf("%s/* attribute: %s */\n",indented(1),asym->name);
 
