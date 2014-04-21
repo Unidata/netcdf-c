@@ -1161,6 +1161,10 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
          {
             int nmembers;
             unsigned int m;
+	    char* member_name = NULL;
+#ifdef JNA
+            char jna[1001];
+#endif	
 
             type->nc_type_class = NC_COMPOUND;
 
@@ -1171,22 +1175,32 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             {
                hid_t member_hdf_typeid;
                hid_t member_native_typeid;
-               char *member_name;
                size_t member_offset;
                H5T_class_t mem_class;
                nc_type member_xtype;
+
+	       retval = NC_NOERR;
 
                /* Get the typeid and native typeid of this member of the
                 * compound type. */
                if ((member_hdf_typeid = H5Tget_member_type(type->native_hdf_typeid, m)) < 0)
                   return NC_EHDFERR;
+
                if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid, H5T_DIR_DEFAULT)) < 0) 
                   return NC_EHDFERR;
 
                /* Get the name of the member.*/
                member_name = H5Tget_member_name(type->native_hdf_typeid, m);
-               if (!member_name || strlen(member_name) > NC_MAX_NAME)
-                  return NC_EBADNAME;
+               if (!member_name || strlen(member_name) > NC_MAX_NAME) {
+                  retval = NC_EBADNAME;
+		  break;
+	       }
+#ifdef JNA
+	       else {
+		strncpy(jna,member_name,1000);
+		member_name = jna;	
+               }
+#endif
 
                /* Offset in bytes on *this* platform. */
                member_offset = H5Tget_member_offset(type->native_hdf_typeid, m);
@@ -1200,42 +1214,55 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                   hsize_t dims[NC_MAX_VAR_DIMS];
                   int d;
 
-                  if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
-                     return NC_EHDFERR;
-                  if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
-                     return NC_EHDFERR;
+                  if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0) {
+                     retval = NC_EHDFERR;
+		     break;
+		  }
+                  if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims) {
+                     retval = NC_EHDFERR;
+		     break;
+		  }
                   for (d = 0; d < ndims; d++)
                      dim_size[d] = dims[d];
 
                   /* What is the netCDF typeid of this member? */
                   if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid), 
                                                 &member_xtype)))
-                     return retval;
+		     break;
 
                   /* Add this member to our list of fields in this compound type. */
                   if ((retval = nc4_field_list_add(&type->u.c.field, type->u.c.num_fields++, member_name, 
                                                    member_offset, H5Tget_super(member_hdf_typeid), 
                                                    H5Tget_super(member_native_typeid), 
                                                    member_xtype, ndims, dim_size)))
-                     return retval;
+                     break;
                }
                else
                {
                   /* What is the netCDF typeid of this member? */
                   if ((retval = get_netcdf_type(grp->nc4_info, member_native_typeid, 
                                                 &member_xtype)))
-                     return retval;
+                     break;
 
                   /* Add this member to our list of fields in this compound type. */
                   if ((retval = nc4_field_list_add(&type->u.c.field, type->u.c.num_fields++, member_name, 
                                                    member_offset, member_hdf_typeid, member_native_typeid, 
                                                    member_xtype, 0, NULL)))
-                     return retval;
+                     break;
                } 
                
-               /* HDF5 allocated this for us. */
-               free(member_name);
+#ifndef JNA
+               /* Free the member name (which HDF5 allocated for us). */
+               if(member_name != NULL) free(member_name); 
+#endif	       
+	       member_name = NULL;
             }
+#ifndef JNA
+	    if(member_name != NULL)
+		free(member_name);
+#endif
+	    if(retval) /* error exit from loop */
+		return retval;
          }
          break;
 
@@ -1363,6 +1390,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 #endif	       
 	       member_name = NULL;
             }
+
 #ifndef JNA
 	    if(member_name != NULL)
 		free(member_name);
