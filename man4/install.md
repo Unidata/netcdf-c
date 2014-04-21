@@ -27,7 +27,7 @@ When getting netCDF from a software repository, you will wish to get
 the development version of the package ("netcdf-devel"). This includes
 the netcdf.h header file.
 
-    If you are interested in building NetCDF-C on Windows, please see \ref winbin and \ref netCDF-CMake.
+Pre-release libraries for Windows may be found here: \ref winbin.
 
 Getting the latest NetCDF-C Source Code {#sec_get_source}
 ----------------------------------------
