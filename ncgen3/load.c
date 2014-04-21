@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include <assert.h> 
 #include <netcdf.h>
 #include "generic.h"
@@ -309,7 +310,7 @@ fstrcat(
     strncpy(s, t, FORT_MAX_STMNT);
     *slenp = strlen(s);
   } else {
-    strncat(s, t, strlen(t));
+    strncat(s, t, fmin(strlen(t),FORT_MAX_STMNT-strlen(t)));
   }
 }
 
