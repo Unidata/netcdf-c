@@ -24,7 +24,6 @@ CFLAGS=""
 PREFIX=/usr/local
 stddir="/usr/local"
 
-
 if test "x$cmds" = x ; then
 cmds=""
 #cmds="all"

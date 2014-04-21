@@ -412,7 +412,10 @@ main(
 
 	cdlname = (char*)emalloc(NC_MAX_NAME);
 	cdlname = nulldup(argv[0]);
-	if(strlen(cdlname) > NC_MAX_NAME) cdlname[NC_MAX_NAME] = '\0';
+	if(cdlname != NULL) {
+	  if(strlen(cdlname) > NC_MAX_NAME) 
+	    cdlname[NC_MAX_NAME] = '\0';
+	}
     }
 
     /* Standard Unidata java interface => usingclassic */
