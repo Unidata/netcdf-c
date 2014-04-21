@@ -29,13 +29,13 @@ SET(PACKAGE_VERSION ${VERSION})
 # when committing to CDash.
 find_program(UNAME NAMES uname)
 IF(UNAME)
-macro(getuname name flag)
+  macro(getuname name flag)
     exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
-endmacro(getuname)
-getuname(osname -s)
-getuname(osrel  -r)
-getuname(cpu    -m)
-set(BUILDNAME "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
+  endmacro(getuname)
+  getuname(osname -s)
+  getuname(osrel  -r)
+  getuname(cpu    -m)
+  set(BUILDNAME "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
 
 # Determine if DOXYGEN and DOT are available.  These will be used
@@ -47,13 +47,13 @@ FIND_PROGRAM(NC_DOT NAMES dot)
 INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
-    SET(GLOBAL PROPERTY USE_FOLDERS ON)
+  SET(GLOBAL PROPERTY USE_FOLDERS ON)
 ENDIF()
 
 
 #Add custom CMake Module
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
-    CACHE INTERNAL "Location of our custom CMake modules.")
+  CACHE INTERNAL "Location of our custom CMake modules.")
 
 # auto-configure style checks, other CMake modules.
 INCLUDE (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
@@ -87,7 +87,7 @@ FIND_PACKAGE(MakeDist)
 # Set the build type.
 IF (NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
-      FORCE)
+    FORCE)
 ENDIF()
 
 # Set build type uppercase
@@ -157,8 +157,8 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -Wl,-no-undefined")
   ENDIF()
   SET(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
-    
-    # Coverage tests need to have optimization turned off.
+  
+  # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -170,7 +170,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   # Unused var and parameter warnings create a lot of noise.
   IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-   ENDIF()
+  ENDIF()
 
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
@@ -221,12 +221,12 @@ ENDMACRO()
 FIND_PROGRAM(NC_M4 NAMES m4)
 MACRO(GEN_m4 filename)
   IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    COMMAND ${NC_M4}
-    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    VERBATIM
-  )
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      COMMAND ${NC_M4}
+      ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      VERBATIM
+      )
   ENDIF()
 ENDMACRO(GEN_m4)
 
@@ -272,7 +272,7 @@ MACRO(build_bin_test F)
   IF(MSVC)
     SET_TARGET_PROPERTIES(${F}
       PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
+      )
   ENDIF()
 ENDMACRO()
 
@@ -518,71 +518,71 @@ ENDIF()
 # Option to use HDF4
 OPTION (ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability (HDF4, HDF5 and Zlib required)." OFF)
 IF (ENABLE_HDF4)
-   SET(USE_HDF4 ON)
-   # Check for include files, libraries.
+  SET(USE_HDF4 ON)
+  # Check for include files, libraries.
 
-   FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
-   IF(NOT MFHDF_H_INCLUDE_DIR)
-  MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
-   ELSE()
-     SET(HAVE_MFHDF_H ON CACHE BOOL "")
-     INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
-   ENDIF()
+  FIND_PATH(MFHDF_H_INCLUDE_DIR mfhdf.h)
+  IF(NOT MFHDF_H_INCLUDE_DIR)
+    MESSAGE(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
+  ELSE()
+    SET(HAVE_MFHDF_H ON CACHE BOOL "")
+    INCLUDE_DIRECTORIES(${MFHDF_H_INCLUDE_DIR})
+  ENDIF()
 
-   FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
-   IF(NOT HDF4_DF_LIB)
-  MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
-   ENDIF()
+  FIND_LIBRARY(HDF4_DF_LIB NAMES df libdf hdf)
+  IF(NOT HDF4_DF_LIB)
+    MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 df library.")
+  ENDIF()
 
-   FIND_LIBRARY(HDF4_MFHDF_LIB NAMES mfhdf libmfhdf)
-   IF(NOT HDF4_MFHDF_LIB)
-  MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
-   ENDIF()
+  FIND_LIBRARY(HDF4_MFHDF_LIB NAMES mfhdf libmfhdf)
+  IF(NOT HDF4_MFHDF_LIB)
+    MESSAGE(FATAL_ERROR "Can't find or link to the hdf4 mfhdf library.")
+  ENDIF()
 
-   SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
-   # End include files, libraries.
-   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
+  SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
+  # End include files, libraries.
+  MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
 
-   MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
+  MESSAGE(STATUS "Seeking HDF4 jpeg dependency.")
 
-   # Look for the jpeglib.h header file.
-   FIND_PATH(JPEGLIB_H_INCLUDE_DIR jpeglib.h)
-   IF(NOT JPEGLIB_H_INCLUDE_DIR)
-     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
-   ELSE()
-     SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
-     INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
-   ENDIF()
+  # Look for the jpeglib.h header file.
+  FIND_PATH(JPEGLIB_H_INCLUDE_DIR jpeglib.h)
+  IF(NOT JPEGLIB_H_INCLUDE_DIR)
+    MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find jpeglib.h")
+  ELSE()
+    SET(HAVE_JPEGLIB_H ON CACHE BOOL "")
+    INCLUDE_DIRECTORIES(${JPEGLIB_H_INCLUDE_DIR})
+  ENDIF()
 
-   FIND_LIBRARY(JPEG_LIB NAMES jpeg libjpeg)
-   IF(NOT JPEG_LIB)
-     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
-   ENDIF()
-   SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
-   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
+  FIND_LIBRARY(JPEG_LIB NAMES jpeg libjpeg)
+  IF(NOT JPEG_LIB)
+    MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
+  ENDIF()
+  SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
+  MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
-   # Option to enable HDF4 file tests.
-   OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires wget)." ON)
-   IF(ENABLE_HDF4_FILE_TESTS)
-     FIND_PROGRAM(PROG_WGET NAMES wget)
-     IF(PROG_WGET)
-       SET(USE_HDF4_FILE_TESTS ON)
-     ELSE()
-       MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
-       SET(USE_HDF4_FILE_TESTS OFF)
-     ENDIF()
+  # Option to enable HDF4 file tests.
+  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires wget)." ON)
+  IF(ENABLE_HDF4_FILE_TESTS)
+    FIND_PROGRAM(PROG_WGET NAMES wget)
+    IF(PROG_WGET)
+      SET(USE_HDF4_FILE_TESTS ON)
+    ELSE()
+      MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
+      SET(USE_HDF4_FILE_TESTS OFF)
+    ENDIF()
 
-   ENDIF()
+  ENDIF()
 
- ENDIF ()
+ENDIF ()
 
 # Option to Build DLL
 IF(WIN32)
   OPTION (ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   IF (ENABLE_DLL)
-      SET(BUILD_DLL ON CACHE BOOL "")
+    SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
-      ADD_DEFINITIONS(-DDLL_EXPORT)
+    ADD_DEFINITIONS(-DDLL_EXPORT)
   ENDIF ()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -635,42 +635,42 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
-     # HDF5_C_LIBRARY may be defined.  We must check for either.
-     IF(HDF5_C_LIBRARY)
-	SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
-     ENDIF()
-  
-	# Find out if HDF5 was built with parallel support.
-  	# Do that by checking for the targets H5Pget_fapl_mpiposx and
-  	# H5Pget_fapl_mpio in ${HDF5_LIB}.
-  	CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-  	CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-  
-	IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
-    	    SET(HDF5_IS_PARALLEL ON)
-  	ENDIF()
-  
-	IF(HDF5_IS_PARALLEL_MPIO)
-	    SET(USE_PARALLEL_MPIO ON)
-  	ENDIF()
-  
-	IF(HDF5_IS_PARALLEL_MPIPOSIX)
-    	    SET(USE_PARALLEL_POSIX ON)
-  	ENDIF()
+    # HDF5_C_LIBRARY may be defined.  We must check for either.
+    IF(HDF5_C_LIBRARY)
+      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
+    ENDIF()
+    
+    # Find out if HDF5 was built with parallel support.
+    # Do that by checking for the targets H5Pget_fapl_mpiposx and
+    # H5Pget_fapl_mpio in ${HDF5_LIB}.
+    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+    CHECK_LIBRARY_EXISTS(${HDF5_hdf5_LIBRARY} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+    
+    IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
+      SET(HDF5_IS_PARALLEL ON)
+    ENDIF()
+    
+    IF(HDF5_IS_PARALLEL_MPIO)
+      SET(USE_PARALLEL_MPIO ON)
+    ENDIF()
+    
+    IF(HDF5_IS_PARALLEL_MPIPOSIX)
+      SET(USE_PARALLEL_POSIX ON)
+    ENDIF()
   ENDIF(NOT MSVC)
 
   # Assert HDF5 version.
   SET(HDF5_VERSION_REQUIRED 1.8.6)
   execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
-                  OUTPUT_VARIABLE HDF5_VERSION
-		  ERROR_QUIET
-                  )
+    OUTPUT_VARIABLE HDF5_VERSION
+    ERROR_QUIET
+    )
   
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
   # trust the user that they have configured their system properly.
 
-    IF("${HDF5_VERSION}" STREQUAL "")
+  IF("${HDF5_VERSION}" STREQUAL "")
     MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
   ELSE()
     IF (${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
@@ -701,8 +701,8 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-  FIND_PACKAGE(SZIP NO_MODULE)
-  INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
+    FIND_PACKAGE(SZIP NO_MODULE)
+    INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 
   SET(H5_USE_16_API 1)
@@ -714,7 +714,7 @@ IF (USE_HDF5 OR ENABLE_NETCDF_4)
   # Check for ZLib, but only if using HDF5.
   FIND_PACKAGE(ZLIB)
   IF(NOT ZLIB_LIBRARY)
-  MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
+    MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
   ENDIF()
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
@@ -738,18 +738,18 @@ IF (ENABLE_DAP)
 #include <curl/curl.h>
 int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
 
-  # Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
+CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
 int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
 
-  # Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
+CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
 int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 
-  # Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
+CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
 int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 
@@ -759,11 +759,11 @@ ENDIF()
 
 # Check for the math library so it can be explicitely linked.
 IF(NOT WIN32)
-       FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-       MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
-       IF(NOT HAVE_LIBM)
-              MESSAGE(FATAL_ERROR "Unable to find the math library.")
-       ENDIF()
+  FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
+  MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
+  IF(NOT HAVE_LIBM)
+    MESSAGE(FATAL_ERROR "Unable to find the math library.")
+  ENDIF()
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
@@ -777,7 +777,7 @@ ENDIF()
 
 # If netCDF4 and DAP, Option for DAP groups.
 IF(ENABLE_NETCDF_4 AND USE_DAP)
-      OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
+  OPTION(ENABLE_DAP_GROUPS "Whether netcdf4 group names should be enabled." ON)
 ELSE()
   SET(ENABLE_DAP_GROUPS OFF CACHE BOOL "Whether netcdf4 group names should be enabled.")
 ENDIF()
@@ -811,18 +811,18 @@ ENDIF()
 #IF(NOT MSVC)
 OPTION (ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
 IF(ENABLE_TESTS)
- SET(BUILD_TESTSETS ON CACHE BOOL "")
+  SET(BUILD_TESTSETS ON CACHE BOOL "")
 
- # Options for CTest-based tests, dashboards.
- SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
- SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
- SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
+  # Options for CTest-based tests, dashboards.
+  SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "my.cdash.org" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
 
- # Create a CTestConfig file from the template.
- CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
-   "${netCDF_SOURCE_DIR}/CTestConfig.cmake"
-   @ONLY
-   )
+  # Create a CTestConfig file from the template.
+  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
+    "${netCDF_SOURCE_DIR}/CTestConfig.cmake"
+    @ONLY
+    )
 
 ENDIF()
 
@@ -895,8 +895,8 @@ IF(ENABLE_PNETCDF)
   SET(STATUS_PNETCDF "ON")
   INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
   SET(HAVE_LIBPNETCDF ON)
-        # pnetcdf => parallel
-        SET(STATUS_PARALLEL "ON")
+  # pnetcdf => parallel
+  SET(STATUS_PARALLEL "ON")
 ENDIF()
 
 # Enable Parallel Tests.
@@ -1106,11 +1106,11 @@ add_subdirectory(libdispatch)
 add_subdirectory(libsrc)
 
 IF (USE_PNETCDF)
-add_subdirectory(libsrc5)
+  add_subdirectory(libsrc5)
 ENDIF (USE_PNETCDF)
 
 IF (USE_HDF5)
-add_subdirectory(libsrc4)
+  add_subdirectory(libsrc4)
 ENDIF (USE_HDF5)
 
 IF (USE_DAP)
@@ -1141,7 +1141,7 @@ IF(ENABLE_TESTS)
   ENDIF()
   ADD_SUBDIRECTORY(nc_test)
   IF(USE_NETCDF4)
-      ADD_SUBDIRECTORY(nc_test4)
+    ADD_SUBDIRECTORY(nc_test4)
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
@@ -1170,10 +1170,10 @@ ADD_SUBDIRECTORY(man4)
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-    DESTINATION include COMPONENT headers)
+  DESTINATION include COMPONENT headers)
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-  DESTINATION include COMPONENT headers)
+    DESTINATION include COMPONENT headers)
 ENDIF()
 
 # Install the dependencies. This is Windows/Visual studio only,
@@ -1198,7 +1198,7 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
   @ONLY
-)
+  )
 #INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
 
 # Create CMake package configuration files. With these, other packages using
@@ -1217,8 +1217,8 @@ configure_file (
   ${netCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
 
 install (FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
-    ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
-    DESTINATION share/cmake)
+  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
+  DESTINATION share/cmake)
 
 
 ###
@@ -1312,11 +1312,11 @@ SET (CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
   "/obsolete/"
   "/unknown/"
   ".*~"
-)
+  )
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
   ${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
   @ONLY
-)
+  )
 
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
 IF(NOT CPACK_PACK_VERSION)
