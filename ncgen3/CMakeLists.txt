@@ -8,39 +8,38 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
-	${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
-ADD_CUSTOM_COMMAND(
-	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.h
-	COMMAND bison -pncg -d ${netCDF_SOURCE_DIR}/ncgen3/ncgen.y
-	COMMAND mv ncgen.tab.c ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c
-	COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
-	VERBATIM
-)
+    ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.h
+    COMMAND bison -pncg -d ${netCDF_SOURCE_DIR}/ncgen3/ncgen.y
+    COMMAND mv ncgen.tab.c ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c
+    COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
+    VERBATIM
+    )
 ENDIF()
 IF(USE_X_GETOPT)
-	SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
+  SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
 ENDIF()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 
-TARGET_LINK_LIBRARIES(ncgen3 netcdf)
+TARGET_LINK_LIBRARIES(ncgen3 netcdf ${ALL_TLL_LIBS})
 
 IF(ENABLE_TESTS)
-	SET(NCGEN3_TESTS run_tests)
-	IF(USE_NETCDF4)
-		SET(NCGEN3_TESTS ${NCGEN3_TESTS} run_nc4_tests)
-	ENDIF()
-	
-	FOREACH(F ${NCGEN3_TESTS})
-		add_sh_test(ncgen3 ${F})
-		#ADD_TEST(ncgen3_${F} sh ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh)
-	ENDFOREACH()
+  SET(NCGEN3_TESTS run_tests)
+  IF(USE_NETCDF4)
+    SET(NCGEN3_TESTS ${NCGEN3_TESTS} run_nc4_tests)
+  ENDIF()
+  
+  FOREACH(F ${NCGEN3_TESTS})
+    add_sh_test(ncgen3 ${F})
+  ENDFOREACH()
 ENDIF()
 INSTALL(TARGETS ncgen3 DESTINATION bin COMPONENT utilities) 
 
 SET(MAN_FILES ncgen3.1)
 IF(NOT MSVC)
-	INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+  INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
 ENDIF()
 
 ## Specify files to be distributed by 'make dist'

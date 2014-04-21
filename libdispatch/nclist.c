@@ -50,12 +50,12 @@ nclistfree(NClist* l)
 int
 nclistsetalloc(NClist* l, unsigned long sz)
 {
-  void** newcontent;
+  void** newcontent = NULL;
   if(l == NULL) return FALSE;
   if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
   newcontent=(void**)calloc(sz,sizeof(void*));
-  if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
+  if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
   }
   if(l->content != NULL) free(l->content);

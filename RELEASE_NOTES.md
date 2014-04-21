@@ -7,6 +7,25 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.2 Released TBD
 
+### 4.3.2-rc3 Released TBD
+
+* The oc .dodsrc reader was improperly handling the user name and password entries. [NCF-299](https://bugtracking.unidata.ucar.edu/browse/NCF-299)
+
+* CTestConfig.cmake has been made into a template so that users may easily specify the location of an alternative CDash-based Dashboard using the following two options:
+
+	* `NC_TEST_DROP_SITE` - Specify an alternative Dashboard by URL or IP address.
+
+	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
+	
+* Return an error code on open instead of an assertion violation for truncated file.
+
+### 4.3.2-rc2 Released 2014-04-15
+
+* Cleaned up a number of CMake inconsistencies related to CMake usage, parallel builds.
+* Now passing -Wl,--no-undefined to linker when appropriate.
+* Corrected an issue preventing large file tests from running correctly under Windows.
+* Misc Bug Fixes detected by static analysis.
+
 ### 4.3.2-rc1 Released 2014-03-20
 
 * Pre-built Windows downloads will now be bundled with the latest (as of the time of this writing) versions of the various dependencies:

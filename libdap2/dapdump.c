@@ -597,7 +597,11 @@ dumpslices(DCEslice* slice, unsigned int rank)
 
     buf = ncbytesnew();
     for(i=0;i<rank;i++,slice++) {
-        ncbytescat(buf,dumpslice(slice));
+	char* sslice = dumpslice(slice);
+	if(sslice != NULL) {
+	    ncbytescat(buf,sslice);
+	    free(sslice);
+	}
     }
     result = ncbytesdup(buf);
     ncbytesfree(buf);

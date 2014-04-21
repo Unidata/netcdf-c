@@ -69,7 +69,9 @@ are set when opening a binary file on Windows. */
 
 /* Various other options. */
 #cmakedefine BUILD_V2 1
+#cmakedefine NO_NETCDF_2 1
 #cmakedefine USE_FSYNC 1
+#cmakedefine JNA 1
 #cmakedefine ENABLE_DOXYGEN 1
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1

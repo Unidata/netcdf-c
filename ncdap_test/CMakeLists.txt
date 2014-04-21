@@ -13,8 +13,8 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE) 
 
 IF(ENABLE_DAP_REMOTE_TESTS)
-	ADD_EXECUTABLE(nctestserver nctestserver.c)
-	TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
+  ADD_EXECUTABLE(nctestserver nctestserver.c)
+  TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
 ENDIF()
 
 IF(ENABLE_TESTS)
@@ -47,13 +47,13 @@ IF(ENABLE_TESTS)
       add_bin_test(ncdap t_auth)
     ENDIF()
     
-# test_varm3 did not survive the transition
-# to remotetest.unidata.ucar.edu; the
-# coads_climatology.nc file cannot be found.
-# Can restore if/when we find that file
-# and put it in testdods directory on remotetest.
+    # test_varm3 did not survive the transition
+    # to remotetest.unidata.ucar.edu; the
+    # coads_climatology.nc file cannot be found.
+    # Can restore if/when we find that file
+    # and put it in testdods directory on remotetest.
     add_bin_test(ncdap test_varm3)
-    ENDIF()
+  ENDIF()
 
 ENDIF()
 ADD_SUBDIRECTORY(testdata3)

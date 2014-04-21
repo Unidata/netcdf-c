@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.3.2-rc2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3.2-rc3], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -93,6 +93,20 @@ test "x$enable_fsync" = xno || enable_fsync=yes
 AC_MSG_RESULT($enable_fsync)
 if test "x$enable_fsync" = xyes ; then
 AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
+fi
+
+# Temporary until JNA bug is fixed (which is probably never).
+# See Jira NCF-298
+AC_MSG_CHECKING([if jna bug workaround is enabledd])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug workaround])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
 # Does the user want to run extra tests with valgrind?
@@ -949,6 +963,19 @@ AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
+
+# temporary to deal with a JNA problem
+AC_MSG_CHECKING([If compilation is for use with JNA])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug fix])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
+fi
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],

@@ -615,7 +615,8 @@ buildncstructures(NCDAPCOMMON* dapcomm)
     CDFnode* dds = dapcomm->cdf.ddsroot;
     NC* ncsub;
 
-    NC_check_id(dapcomm->controller->substrate,&ncsub);
+    ncstat = NC_check_id(dapcomm->controller->substrate,&ncsub);
+    if(ncstat != NC_NOERR) goto done;
 
     ncstat = buildglobalattrs(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
@@ -1411,9 +1412,10 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
 	    /* create a psuedo dimension for the charification of the string*/
-	    if(var->dodsspecial.dimname != NULL)
+	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
-	    else
+	        dimname[sizeof(dimname)-1] = '\0';
+	    } else
 	        snprintf(dimname,sizeof(dimname),"maxStrlen%lu",
 			 (unsigned long)dimsize);
 	    sdim = makecdfnode(dapcomm, dimname, OC_Dimension, NULL,

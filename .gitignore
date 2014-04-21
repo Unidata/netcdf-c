@@ -1,4 +1,6 @@
-build
+CTestConfig.cmake
+Vagrantfile
+build*
 html
 doxygen*.tmp
 \#*.*\#
@@ -17,3 +19,5 @@ Makefile
 .DS_Store
 build-par
 build_llvm
+.vagrant
+Vagrantfile

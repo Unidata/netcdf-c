@@ -7,9 +7,9 @@ defines a machine-independent format for representing scientific data.
 Together, the interface, library, and format support the creation,
 access, and sharing of scientific data.  The current netCDF software
 provides C interfaces for applications and data.  Separate software
-distributions available from Unidata provide Java, Fortran, and C++
-interfaces.  They have been tested on various common platforms.
-
+distributions available from Unidata provide Java, Fortran, Python,
+and C++ interfaces.  They have been tested on various common
+platforms.
 
 NetCDF files are self-describing, network-transparent, directly
 accessible, and extendible.  `Self-describing` means that a netCDF file
@@ -39,7 +39,8 @@ from
 
 * http://github.com/Unidata/netcdf-c 
 * http://github.com/Unidata/netcdf-fortran
-* http://github.com/Unidata/netcdf-cxx
+* http://github.com/Unidata/netcdf-cxx4
+* http://github.com/Unidata/netcdf4-python
 
 Copyright and licensing information can be found here, as well as in
 the COPYRIGHT file accompanying the software
@@ -47,7 +48,7 @@ the COPYRIGHT file accompanying the software
 * http://www.unidata.ucar.edu/software/netcdf/copyright.html
 
 To install this package, please see the file INSTALL in the
-distribution, or the (possibly more up-to-date) document:
+distribution, or the (usually more up-to-date) document:
 
 * http://www.unidata.ucar.edu/netcdf/docs/building.html
 
