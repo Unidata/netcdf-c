@@ -47,12 +47,8 @@ IF(ENABLE_TESTS)
       add_bin_test(ncdap t_auth)
     ENDIF()
     
-    # test_varm3 did not survive the transition
-    # to remotetest.unidata.ucar.edu; the
-    # coads_climatology.nc file cannot be found.
-    # Can restore if/when we find that file
-    # and put it in testdods directory on remotetest.
     add_bin_test(ncdap test_varm3)
+    
   ENDIF()
 
 ENDIF()
@@ -61,11 +57,6 @@ ADD_SUBDIRECTORY(expected3)
 ADD_SUBDIRECTORY(expected4)
 ADD_SUBDIRECTORY(expectremote3)
 ADD_SUBDIRECTORY(expectremote4)
-#ADD_SUBDIRECTORY(expecttds3)
-#ADD_SUBDIRECTORY(nocacheremote3)
-#ADD_SUBDIRECTORY(nocacheremote4)
-#ADD_SUBDIRECTORY(special3)
-
 
 
 ## Specify files to be distributed by 'make dist'
