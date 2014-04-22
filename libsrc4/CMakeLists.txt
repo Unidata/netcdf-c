@@ -10,7 +10,7 @@ IF(LOGGING)
   SET(libsrc4_SOURCES ${libsrc4_SOURCES} error4.c)
 ENDIF()
 
-add_library(netcdf4 OBJECT ${libsrc4_SOURCES}) 
+add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
 # Files for make dist
 FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
@@ -26,7 +26,6 @@ ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 ###
 # The C API man page.
 ###
-
 
 set(man_MANS netcdf.3)
 
