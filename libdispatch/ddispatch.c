@@ -63,7 +63,7 @@ NC_findtestserver(const char* path)
 {
 #ifdef USE_DAP
 #ifdef ENABLE_DAP_REMOTE_TESTS
-    /* NCDAP_ping is defined in libdap2/ncdap3.c */
+    /* NCDAP_ping is defined in libdap2/ncdap.c */
     const char** svc;
     if(path == NULL) path = "";
     for(svc=servers;*svc != NULL;svc++) {
