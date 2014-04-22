@@ -413,7 +413,7 @@ copy_groups(int iroot, int oroot)
 	    char *grpname_full;
 	    char grpname[NC_MAX_NAME];
 	    size_t len_name;
-	    int ogid, oparid, iparid;
+	    int ogid = 0, oparid = 0, iparid = 0;
 	    /* get full group name of input group */
 	    NC_CHECK(nc_inq_grpname(grpids[i], grpname));
 	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
@@ -535,7 +535,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid)
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
 	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
-	int shuffle_out, deflate_out, deflate_level_out;
+	int shuffle_out=0, deflate_out=0, deflate_level_out=0;
 	if(option_deflate_level != 0) {
 	    NC_CHECK(nc_inq_var_deflate(igrp, varid, &shuffle_in, &deflate_in, &deflate_level_in));
 	    if(option_deflate_level == -1) { /* not specified, copy input compression and shuffling */
