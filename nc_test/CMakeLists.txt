@@ -3,7 +3,7 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 INCLUDE_DIRECTORIES(".")
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})
-	GEN_m4(${F})
+  GEN_m4(${F})
 ENDFOREACH()
 
 
@@ -15,7 +15,7 @@ TARGET_LINK_LIBRARIES(nc_test netcdf)
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
 
 IF(NOT MSVC)
-	SET(TESTS ${TESTS} tst_atts3)
+  SET(TESTS ${TESTS} tst_atts3)
 ENDIF()
 
 IF(USE_NETCDF4)
@@ -23,9 +23,9 @@ IF(USE_NETCDF4)
 ENDIF()
 
 IF(USE_PNETCDF)
-	build_bin_test_no_prefix(tst_pnetcdf)
-	build_bin_test_no_prefix(tst_parallel2)
-	add_sh_test(nc_test run_pnetcdf_test)
+  build_bin_test_no_prefix(tst_pnetcdf)
+  build_bin_test_no_prefix(tst_parallel2)
+  add_sh_test(nc_test run_pnetcdf_test)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
@@ -45,24 +45,24 @@ ENDIF()
 
 # Build executables required for the shell scripts.
 FOREACH(BINFILE ${TESTFILES})
-	build_bin_test(${BINFILE})
+  build_bin_test(${BINFILE})
 ENDFOREACH()
 
 # Process single-file test files.
 FOREACH(CTEST ${TESTS})
-	add_bin_test(nc_test ${CTEST})
+  add_bin_test(nc_test ${CTEST})
 ENDFOREACH()
 
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_DISKLESS)
-	add_sh_test(nc_test run_diskless)  	
-	IF(BUILD_MMAP)
-		add_sh_test(nc_test run_mmap)
-	ENDIF()
-	IF(LARGE_FILE_TESTS)
-		add_sh_test(nc_test run_diskless2)
-	ENDIF()
+  add_sh_test(nc_test run_diskless)  	
+  IF(BUILD_MMAP)
+    add_sh_test(nc_test run_mmap)
+  ENDIF()
+  IF(LARGE_FILE_TESTS)
+    add_sh_test(nc_test run_diskless2)
+  ENDIF()
 
 ENDIF()
 
@@ -70,7 +70,7 @@ ENDIF()
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(MSVC)
-	FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
+  FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 ENDIF()
 
 

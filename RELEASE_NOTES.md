@@ -17,7 +17,7 @@ This file contains a high-level description of this package's evolution. Release
 
 	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
 	
-
+* Return an error code on open instead of an assertion violation for truncated file.
 
 ### 4.3.2-rc2 Released 2014-04-15
 

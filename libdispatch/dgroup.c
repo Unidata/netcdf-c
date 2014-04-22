@@ -67,6 +67,11 @@ created with the HDF5 flag in nc_create(). Groups are not compatible
 with the netCDF classic data model, so files created with the
 ::NC_CLASSIC_MODEL file cannot contain groups (except the root group).
 
+Encoding both the open file id and group id in a single integer
+currently limits the number of groups per netCDF-4 file to no more
+than 32767.  Similarly, the number of simultaneously open netCDF-4
+files in one program context is limited to 32767.
+
  */
 /** \{ */ 
 int
