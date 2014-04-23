@@ -313,12 +313,12 @@ MACRO(print_conf_summary)
 
   IF(${STATUS_PNETCDF} OR ${STATUS_PARALLEL})
     MESSAGE("Building Parallel NetCDF")
-    MESSAGE(STATUS "Using pnetcdf:\t\t" ${STATUS_PNETCDF})
-    MESSAGE(STATUS "Using Parallel IO:\t\t" ${STATUS_PARALLEL})
+    MESSAGE(STATUS "Using pnetcdf:       ${STATUS_PNETCDF}")
+    MESSAGE(STATUS "Using Parallel IO:   ${STATUS_PARALLEL}")
     MESSAGE("")
   ENDIF()
 
-  MESSAGE("Tests Enabled:\t\t\t${ENABLE_TESTS}")
+           MESSAGE("Tests Enabled:     ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
     MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
@@ -745,7 +745,7 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 IF(ENABLE_DAP_REMOTE_TESTS)
-  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." ON)
+  OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." OFF)
 ENDIF()
 
 
