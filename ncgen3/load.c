@@ -19,6 +19,8 @@ extern int netcdf_flag;
 extern int c_flag;
 extern int fortran_flag;
 
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
 #define fpr    (void) fprintf
 
 
