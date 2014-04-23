@@ -39,7 +39,7 @@ doesn't if the attribute was stored without a trailing zero byte, for
 example from a FORTRAN program. Before using the value as a C string,
 make sure it is null-terminated. \ref ignored_if_null.
 
-\section Example
+\section nc_inq_att_example Example
 
 Here is an example using nc_inq_att() to find out the type and length of
 a variable attribute named valid_range for a netCDF variable named rh

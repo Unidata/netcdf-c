@@ -1,6 +1,8 @@
-/*! 
+/*! \file tutorial.dox The NetCDF-C Tutorial
 
-\page tutorial NetCDF Tutorials
+\brief The NetCDF-C Tutorial
+
+\mainpage 
 
 \tableofcontents
 
@@ -349,7 +351,7 @@ information about the CF conventions, see http://cf-pcmdi.llnl.gov.
 
 \page error_handling Error Handling
 
-\ingroup error
+\addtogroup error
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
 0 on success, in the tradition of C.
