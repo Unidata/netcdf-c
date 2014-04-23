@@ -473,8 +473,9 @@ ocdodsrc_process(OCstate* state)
     /* Support combined case */
     if((value = curllookup("CREDENTIALS.USERPASSWORD",url)) != NULL) {
 	char* combined  = value;
+		char* sep = NULL;
         if(combined == NULL) {stat = OC_ENOMEM; goto done;}
-	char* sep = (char*)strchr(combined,':');
+		sep = (char*)strchr(combined,':');
         if(sep == NULL) {
             oclog(OCLOGERR,"CREDENTIALS.USERPASSWORD: no ':' found");
 	    stat = OC_EINVAL;
