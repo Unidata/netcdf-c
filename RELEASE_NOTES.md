@@ -5,7 +5,7 @@ Release Notes {#release_notes}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the netcdf-c++ and netcdf-fortran libraries have been separated into their own libraries.
 
-## 4.3.2 Released TBD
+## 4.3.2 Released 2014-04-23
 
 * As part of an ongoing project, the Doxygen-generated netcdf documentation has been reorganized.  The goal is to make the documentation easier to parse, and to eliminate redundant material.  This project is ongoing.
 
