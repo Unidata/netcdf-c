@@ -95,7 +95,7 @@ main()
         const char* svc = NC_findtestserver("thredds");
         if(svc == NULL) {
 	    fprintf(stderr,"Cannot locate test server\n");
-	    exit(1);
+	    exit(0);
         }
         strcpy(url,svc);
         strcat(url,TESTPATH);
