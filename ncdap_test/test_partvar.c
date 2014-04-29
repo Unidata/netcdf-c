@@ -102,7 +102,7 @@ main()
     svc = NC_findtestserver("dts");
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
-	exit(1);
+	exit(0);
     }
     strcpy(url,PARAMS);
     strcat(url,svc);
