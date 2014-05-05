@@ -137,7 +137,7 @@ fi
 AC_MSG_CHECKING([do we require hdf5 dynamic-loading support])
 AC_ARG_ENABLE([dynamic-loading], [AS_HELP_STRING([--enable-dynamic-loading],
 				 [enable dynamic loading for use with supported hdf5 installs (libdl, HDF5 required)])])
-test "x$enable_dynamic_loading" = xyes || enable_dynamic_loading=xno
+test "x$enable_dynamic_loading" = xno || enable_dynamic_loading=yes
 AC_MSG_RESULT([$enable_dynamic_loading])
 
 # Does the user want to turn on HDF4 read ability?
