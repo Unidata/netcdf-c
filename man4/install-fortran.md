@@ -23,7 +23,7 @@ syntax to set environment variables instead of the
        ENV_VARIABLE=value
 
 syntax used in the examples that use a POSIX-standard shell. In either
-case, *\${DIR1}* is the value of the environment variable *DIR1*.
+case, <I>${DIR1}</I> is the value of the environment variable <I>DIR1</I>.
 
 It will be easier to build the netCDF Fortran library if the C (and if
 needed, HDF5) libraries are built as shared libraries (the default), but
@@ -33,8 +33,8 @@ Building with shared libraries {#building_fortran_shared_libraries}
 ==============================
 
 1.  First make sure the netCDF C library has been built, tested, and
-    installed under directory *\${DIR1}*, as specified by
-    --prefix=*\${DIR1}* to the C library configure script, or under
+    installed under directory <I>${DIR1}</I>, as specified by
+    --prefix=<I>${DIR1}</I> to the C library configure script, or under
     directory /usr/local by default.
 2.  For the Fortran netCDF library, use the same C compiler as used to
     create the netCDF C library, specified with the CC environment
