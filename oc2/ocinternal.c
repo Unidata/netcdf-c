@@ -40,8 +40,8 @@
 /* Define default rc files and aliases*/
 static char* rcfilenames[4] = {".daprc",".dodsrc",".ocrc",NULL};
 
-static int ocextractddsinmemory(OCstate*,OCtree*,int);
-static int ocextractddsinfile(OCstate*,OCtree*,int);
+static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
+static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);

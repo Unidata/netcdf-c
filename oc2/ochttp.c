@@ -334,6 +334,13 @@ ocping(const char* url)
     cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10);
     if (cstat != CURLE_OK)
         goto done;
+    /* Use redirects */
+    cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
+    if (cstat != CURLE_OK)
+        goto done;
+    cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    if (cstat != CURLE_OK)
+        goto done;
 
     /* fail on HTTP 400 code errors */
     cstat = curl_easy_setopt(curl, CURLOPT_FAILONERROR, (long)1);
