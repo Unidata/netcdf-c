@@ -308,12 +308,21 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	 if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#ifdef USE_PARALLEL_POSIX
       else /* MPI/POSIX */
       {
 	 LOG((4, "creating parallel file with MPI/posix"));
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#else /* USE_PARALLEL_POSIX */
+      /* Should not happen! Code in NC4_create/NC4_open should alias the
+       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
+       *        available in HDF5. -QAK
+       */
+      else /* MPI/POSIX */
+         BAIL(NC_EPARINIT);
+#endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
@@ -464,6 +473,17 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
        || (cmode & (NC_MPIIO | NC_MPIPOSIX) && cmode & NC_DISKLESS)
       )
       return NC_EINVAL;
+
+#ifndef USE_PARALLEL_POSIX
+/* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
+ *      the NC_MPIPOSIX flag to NC_MPIIO. -QAK
+ */
+   if(cmode & NC_MPIPOSIX)
+   {
+      cmode &= ~NC_MPIPOSIX;
+      cmode |= NC_MPIIO;
+   }
+#endif /* USE_PARALLEL_POSIX */
 
    cmode |= NC_NETCDF4;
 
@@ -2168,12 +2188,21 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 	 if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#ifdef USE_PARALLEL_POSIX
       else /* MPI/POSIX */
       {
 	 LOG((4, "opening parallel file with MPI/posix"));
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#else /* USE_PARALLEL_POSIX */
+      /* Should not happen! Code in NC4_create/NC4_open should alias the
+       *        NC_MPIPOSIX flag to NC_MPIIO, if the MPI-POSIX VFD is not
+       *        available in HDF5. -QAK
+       */
+      else /* MPI/POSIX */
+         BAIL(NC_EPARINIT);
+#endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
@@ -2639,6 +2668,17 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 		NC_PNETCDF | NC_NOCLOBBER | NC_NETCDF4 | NC_CLASSIC_MODEL) ||
        (mode & NC_MPIIO && mode & NC_MPIPOSIX))
       return NC_EINVAL;
+
+#ifndef USE_PARALLEL_POSIX
+/* If the HDF5 library has been compiled without the MPI-POSIX VFD, alias
+ *      the NC_MPIPOSIX flag to NC_MPIIO. -QAK
+ */
+   if(mode & NC_MPIPOSIX)
+   {
+      mode &= ~NC_MPIPOSIX;
+      mode |= NC_MPIIO;
+   }
+#endif /* USE_PARALLEL_POSIX */
 
 
    /* Depending on the type of file, open it. */

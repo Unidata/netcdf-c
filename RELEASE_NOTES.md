@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* When the NC_MPIPOSIX flag is given for parallel I/O access and the HDF5 library does not have the MPI-POSIX VFD configured in, the NC_MPIPOSIX flag is transparently aliased to the NC_MPIIO flag within the netCDF-4 library.
+
 ## 4.3.2 Released 2014-04-23
 
 * As part of an ongoing project, the Doxygen-generated netcdf documentation has been reorganized.  The goal is to make the documentation easier to parse, and to eliminate redundant material.  This project is ongoing.
