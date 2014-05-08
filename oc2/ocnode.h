@@ -82,6 +82,6 @@ extern void ocroot_free(OCnode* root);
 extern void ocnodes_free(OClist*);
 
 /* Merge DAS with DDS or DATADDS*/
-extern int ocddsdasmerge(struct OCstate*, OCnode* das, OCnode* dds);
+extern OCerror ocddsdasmerge(struct OCstate*, OCnode* das, OCnode* dds);
 
 #endif /*OCNODE_H*/

@@ -206,11 +206,10 @@ extern void occlose(OCstate* state);
 extern OCerror ocfetch(OCstate*, const char*, OCdxd, OCflags, OCnode**);
 extern int oc_network_order;
 extern int oc_invert_xdr_double;
-extern int ocinternalinitialize(void);
+
+extern OCerror ocinternalinitialize(void);
 
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
-
-extern int ocinternalinitialize(void);
 
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 

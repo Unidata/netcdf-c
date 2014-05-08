@@ -46,7 +46,7 @@ static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
 
-static int ocsetcurlproperties(OCstate*);
+static OCerror ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -65,7 +65,7 @@ extern OCnode* makeunlimiteddimension(void);
 /* Collect global state info in one place */
 struct OCGLOBALSTATE ocglobalstate;
 
-int
+OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
@@ -561,7 +561,7 @@ ocupdatelastmodifieddata(OCstate* state)
 /*
     Set curl properties for link based on rc files etc.
 */
-static int
+static OCerror
 ocsetcurlproperties(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;

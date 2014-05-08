@@ -231,7 +231,7 @@ Note that start and count are linearized from the oc_data_read
 arguments.
 */
 
-int
+OCerror
 ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
 		void* memory, size_t memsize)
              

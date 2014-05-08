@@ -35,7 +35,7 @@ ocfetchhttpcode(CURL* curl)
     return httpcode;
 }
 
-int
+OCerror
 ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 		off_t* sizep, long* filetime)
 {
@@ -259,7 +259,7 @@ encodeurltext(char* text, OCbytes* buf)
 
 #endif
 
-int
+OCerror
 occurlopen(CURL** curlp)
 {
 	int stat = OC_NOERR;
@@ -286,7 +286,7 @@ occurlclose(CURL* curl)
 		curl_easy_cleanup(curl);
 }
 
-int
+OCerror
 ocfetchlastmodified(CURL* curl, char* url, long* filetime)
 {
     int stat = OC_NOERR;
@@ -318,7 +318,7 @@ fail:
     return OCTHROW(OC_ECURL);
 }
 
-int
+OCerror
 ocping(const char* url)
 {
     int stat = OC_NOERR;

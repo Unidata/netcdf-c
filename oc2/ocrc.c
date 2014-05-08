@@ -47,7 +47,7 @@ occredentials_in_url(const char *url)
 	return 0;
 }
 
-static int
+static OCerror
 ocextract_credentials(const char *url, char **name, char **pw, char **result_url)
 {
 	char *pos;
@@ -295,7 +295,7 @@ ocdodsrc_read(char* basename, char* path)
     in_file = fopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
 	oclog(OCLOGERR, "Could not open configuration file: %s",basename);
-	return OC_EPERM;
+	return 0;
     }
 
     for(;;) {
