@@ -11,5 +11,5 @@ include ("${_prefix}/share/cmake/netcdf-targets.cmake")
 # Report other information
 set (netcdf_INCLUDE_DIRS "${_prefix}/include/")
 
-
+set (netcdf_LIBRARIES "netcdf")
 

@@ -1180,7 +1180,7 @@ configure_file(
 
 install(FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
   ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
-  DESTINATION share/cmake)
+  DESTINATION share/cmake/netcdf)
 
 
 ###
