@@ -1,9 +1,11 @@
 #!/bin/bash
 
+# Define where the installation will be
 PREFIX=/home/dmh/opt/jna
-#PREFIX=/usr/local
+#PREFIX=/opt/netcdf
+
+# Define where to look for e.g. libz or libhdf5
 LIBDIR=/usr/local/lib
-#LIBDIR="${PREFIX}/lib"
 
 CFLAGS=""
 CPPFLAGS="-I${PREFIX}/include"
