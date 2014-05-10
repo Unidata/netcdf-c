@@ -318,7 +318,7 @@ MACRO(print_conf_summary)
     MESSAGE("")
   ENDIF()
 
-           MESSAGE("Tests Enabled:     ${ENABLE_TESTS}")
+  MESSAGE("Tests Enabled:     ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
     MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
@@ -593,7 +593,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
   IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
-    SET(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
     SET(HDF5_C_LIBRARY ${HDF5_LIB})
     SET(HDF5_HL_LIBRARY ${HDF5_HL_LIB})
     MESSAGE(STATUS "Using HDF5 Library: ${HDF5_LIB}")
@@ -605,7 +604,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
   ENDIF()
-
+  
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARY may be defined.  We must check for either.
@@ -644,7 +643,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     OUTPUT_VARIABLE HDF5_VERSION
     ERROR_QUIET
     )
-  
+
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
   # trust the user that they have configured their system properly.
@@ -654,11 +653,11 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
-        "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
   ENDIF()
 
-  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
 
   # Starting with hdf5 1.8.11, dynamic loading is an option.
   # In case hdf5 has a dependency on libdl, the user must specify
@@ -715,18 +714,18 @@ IF(ENABLE_DAP)
   #include <curl/curl.h>
   int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
 
-  # Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
+CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
 
-  # Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
+CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 
-  # Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
-  CHECK_C_SOURCE_COMPILES("
+# Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
+CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 ENDIF()
@@ -1180,7 +1179,7 @@ configure_file(
 
 install(FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
   ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
-  DESTINATION share/cmake)
+  DESTINATION share/cmake/netcdf)
 
 
 ###
