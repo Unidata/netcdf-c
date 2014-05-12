@@ -18,7 +18,7 @@ IF(BUILD_DOCS)
     # Set abs_top_srcdir to work with the autotools
     # doxyfile template.
     SET(abs_top_srcdir ${CMAKE_SOURCE_DIR})
-
+    SET(abs_builddir ${CMAKE_CURRENT_BINARY_DIR})
     # Create general and guide doxyfiles.
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
       ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
