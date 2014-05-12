@@ -9,7 +9,9 @@ EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     guide.dox types.dox notes.dox cdl.dox \
     architecture.dox internal.dox windows-binaries.md \
     building-with-cmake.md CMakeLists.txt \
-    Doxyfile.guide.in Doxyfile.tutorial.in
+    Doxyfile.guide.in Doxyfile.tutorial.in \
+    groups.dox install.md install-fortran.md \
+    all-error-codes.md cmake_faq.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
