@@ -11,14 +11,25 @@ cmake_minimum_required(VERSION 2.8.8)
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
-#Project Version
+#####
+# Version Info:
+#
+# Release Version
+# Library Version
+# SO Version
+#
+# SO Version is computed from library version. See:
+# http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
+#####
+
 SET(netCDF_VERSION_MAJOR 4)
 SET(netCDF_VERSION_MINOR 3)
 SET(netCDF_VERSION_PATCH 3)
 SET(netCDF_VERSION_NOTE "-rc1")
 SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
-SET(netCDF_SO_VERSION 7.2.0)
+SET(netCDF_LIB_VERSION 7.2.0)
+SET(netCDF_SO_VERSION 7)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
