@@ -20,7 +20,7 @@ extern int c_flag;
 extern int fortran_flag;
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
-
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define fpr    (void) fprintf
 
 
@@ -311,7 +311,7 @@ fstrcat(
     strncpy(s, t, FORT_MAX_STMNT);
     *slenp = strlen(s);
   } else {
-    strncat(s, t, MIN(strlen(t),FORT_MAX_STMNT-strlen(t)));
+    strncat(s, t, MAX(0,MIN(strlen(t),strlen(s)-(strlen(t)))));
   }
 }
 
