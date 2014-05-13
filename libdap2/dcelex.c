@@ -42,7 +42,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
     int token;
     int c;
     int len;
-    char* p=lexstate->next;
+    char* p=NULL;
     token = 0;
     ncbytesclear(lexstate->yytext);
     ncbytesnull(lexstate->yytext);
