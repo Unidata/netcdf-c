@@ -1199,8 +1199,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                H5T_class_t mem_class;
                nc_type member_xtype;
 
-	       retval = NC_NOERR;
-
+	     
                /* Get the typeid and native typeid of this member of the
                 * compound type. */
                if ((member_hdf_typeid = H5Tget_member_type(type->native_hdf_typeid, m)) < 0)
