@@ -615,7 +615,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
   ENDIF()
-  
+
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARY may be defined.  We must check for either.
@@ -824,7 +824,7 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
-# Temporary 
+# Temporary
 OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
 IF(ENABLE_JNA)
   SET(JNA ON)
@@ -1141,11 +1141,17 @@ ADD_SUBDIRECTORY(man4)
 #####
 # Moving on to CPack, install packages.
 #####
-INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION include COMPONENT headers)
+INSTALL(
+  FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
+  DESTINATION ${INCLUDEDIR}
+  COMPONENT headers
+  )
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
-  INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION include COMPONENT headers)
+  INSTALL(
+    FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
+    DESTINATION ${INCLUDEDIR}
+    COMPONENT headers
+    )
 ENDIF()
 
 # Install the dependencies. This is Windows/Visual studio only,
@@ -1154,12 +1160,19 @@ ENDIF()
 # the only way to avoid making the user build all the dependencies
 # themselves.
 IF(MSVC)
-  INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+  INSTALL(
+    DIRECTORY ${CMAKE_PREFIX_PATH}
+    DESTINATION "deps"
+    COMPONENT dependencies
+    )
 ENDIF()
 
-
 IF(ENABLE_DOXYGEN)
-  INSTALL(DIRECTORY man4 DESTINATION "." COMPONENT documentation)
+  INSTALL(
+    DIRECTORY man4
+    DESTINATION ${DOCDIR}
+    COMPONENT documentation
+    )
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1240,10 +1253,16 @@ FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   DESTINATION ${netCDF_BINARY_DIR}/
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
-INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
+INSTALL(
+  FILES ${netCDF_BINARY_DIR}/netcdf.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfi
+  )
 
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
+INSTALL(
+  PROGRAMS ${netCDF_BINARY_DIR}/nc-config
+  DESTINATION ${BINDIR}
+  COMPONENT utilities
+  )
 
 ###
 # End pkgconfig, nc-config file creation.
