@@ -152,11 +152,11 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   # Debugging flags
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
 
-  # Check to see if -W1,--no-undefined is supported.
-  CHECK_C_LINKER_FLAG("-W1,--no-undefined" LIBTOOL_HAS_NO_UNDEFINED)
+  # Check to see if -Wl,--no-undefined is supported.
+  CHECK_C_LINKER_FLAG("-Wl,--no-undefined" LIBTOOL_HAS_NO_UNDEFINED)
 
   IF(LIBTOOL_HAS_NO_UNDEFINED)
-    SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -W1,--no-undefined")
+    SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -Wl,--no-undefined")
   ENDIF()
   SET(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
 
