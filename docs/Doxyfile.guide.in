@@ -51,7 +51,7 @@ PROJECT_BRIEF          =
 # and the maximum width should not exceed 200 pixels. Doxygen will copy the logo
 # to the output directory.
 
-PROJECT_LOGO           = ../../man4/netcdf-50x50.png
+PROJECT_LOGO           = ../../docs/netcdf-50x50.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
@@ -661,7 +661,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            = @abs_top_srcdir@/man4/DoxygenLayout.xml
+LAYOUT_FILE            = @abs_top_srcdir@/docs/DoxygenLayout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib
@@ -743,7 +743,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT = @abs_top_srcdir@/man4/guide.dox
+INPUT = @abs_top_srcdir@/docs/guide.dox
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -831,19 +831,19 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH = @abs_top_srcdir@/man4/images/chunking2.png \
-    @abs_top_srcdir@/man4/images/compatibility3.png \
-    @abs_top_srcdir@/man4/images/compression.png \
-    @abs_top_srcdir@/man4/images/groups.png \
-    @abs_top_srcdir@/man4/images/nc4-model.png \
-    @abs_top_srcdir@/man4/images/ncatts.png \
-    @abs_top_srcdir@/man4/images/nc-classic-uml.png \
-    @abs_top_srcdir@/man4/images/nccoords.png \
-    @abs_top_srcdir@/man4/images/ncfile.png \
-    @abs_top_srcdir@/man4/images/netcdf_architecture.png \
-    @abs_top_srcdir@/man4/images/pnetcdf.png \
-    @abs_top_srcdir@/man4/images/deptree.jpg \
-    @abs_top_srcdir@/man4/images/InstallTreeWindows.jpg
+IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
+    @abs_top_srcdir@/docs/images/compatibility3.png \
+    @abs_top_srcdir@/docs/images/compression.png \
+    @abs_top_srcdir@/docs/images/groups.png \
+    @abs_top_srcdir@/docs/images/nc4-model.png \
+    @abs_top_srcdir@/docs/images/ncatts.png \
+    @abs_top_srcdir@/docs/images/nc-classic-uml.png \
+    @abs_top_srcdir@/docs/images/nccoords.png \
+    @abs_top_srcdir@/docs/images/ncfile.png \
+    @abs_top_srcdir@/docs/images/netcdf_architecture.png \
+    @abs_top_srcdir@/docs/images/pnetcdf.png \
+    @abs_top_srcdir@/docs/images/deptree.jpg \
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.jpg
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1076,7 +1076,7 @@ HTML_HEADER            =
 # that doxygen normally uses.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_FOOTER            = @abs_top_srcdir@/man4/footer.html
+HTML_FOOTER            = @abs_top_srcdir@/docs/footer.html
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading style
 # sheet that is used by each HTML page. It can be used to fine-tune the look of

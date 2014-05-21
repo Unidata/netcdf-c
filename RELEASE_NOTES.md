@@ -9,7 +9,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
-* Removed redundant variable `BUILD_DOCS` from the CMake configuration file.  See the issue at github: [BUILD\_DOCS, ENABLE\_DOXYGEN](https://github.com/Unidata/netcdf-c/issues/59).
+* Renamed `man4/` directory to `docs/` to make the purpose and contents clearer. See [man4 vs. docs #60](https://github.com/Unidata/netcdf-c/issues/60).
+
+* Removed redundant variable `BUILD_DOCS` from the CMake configuration file.  See the issue at github: [BUILD\_DOCS, ENABLE\_DOXYGEN #59](https://github.com/Unidata/netcdf-c/issues/59).
 
 * Added missing documentation templates to `man4/Makefile.am`, to correct an issue when trying to build the local `Doxygen`-generated documentation. This issue was reported by Nico Schlömer and may be viewed on github.  [Releases miss Doxygen files #56](https://github.com/Unidata/netcdf-c/issues/56)
 

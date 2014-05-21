@@ -25,9 +25,9 @@ pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
 
 # We need a way to automatically generate INSTALL from
-# man4/install.doc, now that we've switched from texinfo to doxygen.
+# docs/install.doc, now that we've switched from texinfo to doxygen.
 # INSTALL:
-#	non-existent-doxygen-to-text-utility <  man4/install.doc > INSTALL
+#	non-existent-doxygen-to-text-utility <  docs/install.doc > INSTALL
 
 # Does the user want to build the V2 API?
 if BUILD_V2
@@ -89,7 +89,7 @@ SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
 $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRC5) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
 $(TESTDIRS) \
-man4 $(EXAMPLES) \
+docs $(EXAMPLES) \
 $(UDUNITS) $(LIBCF)
 
 # Remove these generated files, for a distclean.

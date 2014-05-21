@@ -25,7 +25,7 @@ if BUILD_DOCS
 
 # Copy man pages.
 #directory = $(top_srcdir)/docs/man/man3/
-#dist_man_MANS = $(man4directory)/man_page_1.3 $(directory)/man_page_2.3
+#dist_man_MANS = $(docsdirectory)/man_page_1.3 $(directory)/man_page_2.3
 # $(directory)/man_page_1.3: doxyfile.stamp
 # $(directory)/man_page_2.3: doxyfile.stamp
 
@@ -39,9 +39,9 @@ if BUILD_DOCS
 
 all-local: doxyfile.stamp
 clean-local:
-	rm -rf $(top_builddir)/man4/man
-	rm -rf $(top_builddir)/man4/html
-	rm -rf $(top_builddir)/man4/latex
+	rm -rf $(top_builddir)/docs/man
+	rm -rf $(top_builddir)/docs/html
+	rm -rf $(top_builddir)/docs/latex
 endif 
 
 # Timestamp to prevent rebuilds.

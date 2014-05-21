@@ -1137,7 +1137,7 @@ ENDIF()
 #####
 # Build doxygen documentation, if need be.
 #####
-ADD_SUBDIRECTORY(man4)
+ADD_SUBDIRECTORY(docs)
 #####
 # Moving on to CPack, install packages.
 #####
@@ -1159,7 +1159,7 @@ ENDIF()
 
 
 IF(ENABLE_DOXYGEN)
-  INSTALL(DIRECTORY man4 DESTINATION "." COMPONENT documentation)
+  INSTALL(DIRECTORY docs DESTINATION "." COMPONENT documentation)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own

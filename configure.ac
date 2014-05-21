@@ -627,13 +627,13 @@ fi
 if test "x$enable_doxygen" != xno; then
    if test -n "$DOXYGEN"; then
         AC_SUBST(HAVE_DOT)   
-        AC_CONFIG_FILES([man4/Doxyfile])
+        AC_CONFIG_FILES([docs/Doxyfile])
    fi
 # Note: the list of files to input to doxygen
-# has been moved to man4/Doxyfile.in so
+# has been moved to docs/Doxyfile.in so
 # that make distcheck works correctly.
 # Any new inputs should be inserted into
-# man4/Doxyfile.in and possibley man4/Makefile.am
+# docs/Doxyfile.in and possibley docs/Makefile.am
 fi
 
 # Find the install program.
@@ -1001,8 +1001,8 @@ AC_CONFIG_FILES([Makefile
                  netcdf.pc
                  include/Makefile
                  h5_test/Makefile
-                 man4/Makefile
-                 man4/images/Makefile
+                 docs/Makefile
+                 docs/images/Makefile
                  libsrc/Makefile
                  libsrc4/Makefile
                  libsrc5/Makefile
