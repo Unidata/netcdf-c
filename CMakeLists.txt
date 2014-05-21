@@ -47,7 +47,8 @@ ENDIF()
 
 # Determine if DOXYGEN and DOT are available.  These will be used
 # when building the documentation.
-FIND_PROGRAM(NC_DOXYGEN NAMES doxygen)
+#FIND_PROGRAM(NC_DOXYGEN NAMES doxygen)
+FIND_PACKAGE(Doxygen)
 FIND_PROGRAM(NC_DOT NAMES dot)
 
 # For CMAKE_INSTALL_LIBDIR
@@ -329,7 +330,7 @@ MACRO(print_conf_summary)
     MESSAGE("")
   ENDIF()
 
-  MESSAGE("Tests Enabled:     ${ENABLE_TESTS}")
+  MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
     MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
@@ -892,9 +893,7 @@ ENDIF()
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
 IF(ENABLE_DOXYGEN)
-  IF(NC_DOXYGEN)
-    SET(BUILD_DOCS ON CACHE BOOL "")
-
+  IF(DOXYGEN_FOUND)
     # Offer the option to build internal documentation.
     OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
     IF(ENABLE_INTERNAL_DOCS)
@@ -902,14 +901,14 @@ IF(ENABLE_DOXYGEN)
     ELSE()
       SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
     ENDIF()
-
+    
     # Option to turn on the TODO list in the doxygen-generated documentation.
     OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
     IF(ENABLE_DOXYGEN_TASKS)
       SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-    ELSE()
+    ELSE(ENABLE_DOXYGEN_TASKS)
       SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-    ENDIF()
+    ENDIF(ENABLE_DOXYGEN_TASKS)
 
     # Specify whether or not 'dot' was found on the system path.
     IF(NC_DOT)
@@ -918,9 +917,10 @@ IF(ENABLE_DOXYGEN)
       SET(HAVE_DOT NO CACHE_STRING "")
     ENDIF(NC_DOT)
 
-  ELSE(NC_DOXYGEN)
+  ELSE(DOXYGEN_FOUND)
     MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
-  ENDIF(NC_DOXYGEN)
+    SET(ENABLE_DOXYGEN=OFF)
+  ENDIF(DOXYGEN_FOUND)
 ENDIF()
 
 # By default, MSVC has a stack size of 1000000.
