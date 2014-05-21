@@ -1142,10 +1142,13 @@ ADD_SUBDIRECTORY(docs)
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION include COMPONENT headers)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+  COMPONENT headers)
+
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION include COMPONENT headers)
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+    COMPONENT headers)
 ENDIF()
 
 # Install the dependencies. This is Windows/Visual studio only,
@@ -1155,11 +1158,6 @@ ENDIF()
 # themselves.
 IF(MSVC)
   INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
-ENDIF()
-
-
-IF(ENABLE_DOXYGEN)
-  INSTALL(DIRECTORY docs DESTINATION "." COMPONENT documentation)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1241,9 +1239,11 @@ FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig )
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config DESTINATION bin COMPONENT utilities)
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config 
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT utilities)
 
 ###
 # End pkgconfig, nc-config file creation.
