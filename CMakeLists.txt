@@ -1059,7 +1059,7 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 #####
 
 # Create config.h file.
-configure_file("${netCDF_SOURCE_DIR}/config.h.in.cmake"
+configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
@@ -1232,7 +1232,7 @@ configure_file(
   ${netCDF_BINARY_DIR}/netcdf.pc @ONLY)
 
 FILE(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
-configure_file("${netCDF_SOURCE_DIR}/nc-config.in.cmake"
+configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
   "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY)
 FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   DESTINATION ${netCDF_BINARY_DIR}/
@@ -1328,7 +1328,7 @@ print_conf_summary()
 
 # Enable Makedist files.
 ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.in.cmake cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.in.cmake configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
+ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
