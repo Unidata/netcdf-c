@@ -45,8 +45,18 @@ clean-local:
 endif 
 
 # Timestamp to prevent rebuilds.
+# We must do this twice. The first time
+# builds the tag files. The second time
+# includes them in the documentation.
+
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) Doxyfile.guide
+	$(DOXYGEN) Doxyfile.tutorial
+
+	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) Doxyfile.guide
+	$(DOXYGEN) Doxyfile.tutorial
 	echo Timestamp > doxyfile.stamp
 
 CLEANFILES = doxyfile.stamp html latex man

@@ -47,7 +47,7 @@ ENDIF()
 
 # Determine if DOXYGEN and DOT are available.  These will be used
 # when building the documentation.
-#FIND_PROGRAM(NC_DOXYGEN NAMES doxygen)
+
 FIND_PACKAGE(Doxygen)
 FIND_PROGRAM(NC_DOT NAMES dot)
 

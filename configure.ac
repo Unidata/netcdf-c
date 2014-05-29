@@ -628,6 +628,8 @@ if test "x$enable_doxygen" != xno; then
    if test -n "$DOXYGEN"; then
         AC_SUBST(HAVE_DOT)   
         AC_CONFIG_FILES([docs/Doxyfile])
+	AC_CONFIG_FILES([docs/Doxyfile.guide])
+	AC_CONFIG_FILES([docs/Doxyfile.tutorial])
    fi
 # Note: the list of files to input to doxygen
 # has been moved to docs/Doxyfile.in so
