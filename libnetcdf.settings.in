@@ -1,0 +1,17 @@
+NetCDF Configuration Summary
+============================
+
+General
+-------
+
+NetCDF Version:	@PACKAGE_VERSION@
+Configured On:	@CONFIG_DATE@
+Host System:	@host_cpu@-@host_vendor@-@host_os@
+
+Compiling Options
+-----------------
+
+
+Features:
+---------
+
