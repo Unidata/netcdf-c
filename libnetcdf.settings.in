@@ -8,6 +8,7 @@ NetCDF Version:		@PACKAGE_VERSION@
 Configured On:		@CONFIG_DATE@
 Host System:		@host_cpu@-@host_vendor@-@host_os@
 Build Directory: 	@abs_top_builddir@
+Install Prefix:         @prefix@
 
 Compiling Options
 -----------------
@@ -29,6 +30,7 @@ Features:
 NetCDF-2 API:			@HAS_NC2@
 NetCDF-4 API:			@HAS_NC4@
 HDF4 Support:			@HAS_HDF4@
+HDF5 Support:			@HAS_HDF5@
 PNetCDF Support:		@HAS_PNETCDF@
 Parallel Support:		@HAS_PARALLEL@
 DAP Support:			@HAS_DAP@
