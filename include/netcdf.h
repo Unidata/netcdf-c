@@ -76,7 +76,7 @@ extern "C" {
 #define NC_FILL_UINT    (4294967295U)
 #define NC_FILL_INT64   ((long long)-9223372036854775806LL)
 #define NC_FILL_UINT64  ((unsigned long long)18446744073709551614ULL)
-#define NC_FILL_STRING  (char *)""
+#define NC_FILL_STRING  ((char *)"")
 /**@}*/
 
 /*! Max or min values for a type. Nothing greater/smaller can be
