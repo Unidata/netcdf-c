@@ -541,6 +541,29 @@ AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCD
 # Find the C compiler.
 AC_MSG_NOTICE([finding C compiler])
 
+## Compiler with version information. This consists of the full path
+## name of the compiler and the reported version number.
+AC_SUBST([CC_VERSION])
+## Strip anything that looks like a flag off of $CC
+CC_NOFLAGS=`echo $CC | sed 's/ -.*//'`
+
+if `echo $CC_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
+  CC_VERSION="$CC"
+else
+  CC_VERSION="$CC";
+  for x in `echo $PATH | sed -e 's/:/ /g'`; do
+    if test -x $x/$CC_NOFLAGS; then
+      CC_VERSION="$x/$CC"
+      break
+    fi
+  done
+fi
+if test -n "$cc_version_info"; then
+  CC_VERSION="$CC_VERSION ( $cc_version_info)"
+fi
+
+
+
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_C_CONST

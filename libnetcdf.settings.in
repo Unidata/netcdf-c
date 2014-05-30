@@ -11,6 +11,15 @@ Host System:	@host_cpu@-@host_vendor@-@host_os@
 Compiling Options
 -----------------
 
+C Compiler:			@CC_VERSION@
+CFLAGS:				@CFLAGS@
+AM_CFLAGS:			@AM_CFLAGS@
+CPPFLAGS:			@CPPFLAGS@
+AM_CPPFLAGS:			@AM_CPPFLAGS@
+Shared Library:			@enable_shared@
+Static Library:			@enable_static@
+Statically Linked Executables:	@STATIC_EXEC@
+LDFLAGS:
 
 Features:
 ---------
