@@ -989,15 +989,6 @@ esac
 
 NC_FLIBS="-lnetcdff $NC_LIBS"
 
-AC_SUBST(NC_LIBS,[$NC_LIBS])
-AC_SUBST(HAS_DAP,[$enable_dap])
-AC_SUBST(HAS_NC2,[$nc_build_v2])
-AC_SUBST(HAS_NC4,[$enable_netcdf_4])
-AC_SUBST(HAS_HDF4,[$enable_hdf4])
-AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
-AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
-AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
-
 # temporary to deal with a JNA problem
 AC_MSG_CHECKING([If compilation is for use with JNA])
 AC_ARG_ENABLE([jna],
@@ -1010,6 +1001,19 @@ AC_MSG_RESULT($enable_jna)
 if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
+
+AC_SUBST(NC_LIBS,[$NC_LIBS])
+AC_SUBST(HAS_DAP,[$enable_dap])
+AC_SUBST(HAS_NC2,[$nc_build_v2])
+AC_SUBST(HAS_NC4,[$enable_netcdf_4])
+AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
+AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
+AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
+AC_SUBST(HAS_PARALLEL,[$enable_parallel])
+AC_SUBST(HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(HAS_MMAP,[$enable_mmap])
+AC_SUBST(HAS_JNA,[$enable_jna])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1027,6 +1031,19 @@ AH_BOTTOM([#include "ncconfigure.h"])
 # Uncomment this to keep a copy of autoconf defines at this point, for
 # debugging purposes.
 # cp confdefs.h my_config.h
+
+# Create output variables from various 
+# shell variables, for use in generating
+# libnetcdf.settings.
+AC_SUBST([enable_shared])
+AC_SUBST([enable_static])
+AC_SUBST([CFLAGS])
+AC_SUBST([CPPFLAGS])
+AC_SUBST([LDFLAGS])
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_LDFLAGS])
+
 
 
 AC_MSG_NOTICE([generating header files and makefiles])
@@ -1065,3 +1082,5 @@ AC_CONFIG_FILES([Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()
+
+cat libnetcdf.settings
