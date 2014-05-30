@@ -6,8 +6,7 @@ alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias q
 #TOP="/home/dmh/mach/netcdf-c"
 TOP="/cygdrive/f/git/netcdf-c"
 
-F="http://thredds.ucar.edu/thredds/dodsC/grib/NCEP/NAM/CONUS_12km/best"
-#CON="OneD.amp,TwoD.amp,ThreeD.amp"
+F="http://thredds1.nkn.uidaho.edu:8080/thredds/dodsC/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/TEST/macav2livneh_nocompress_tasmax_CSIRO-Mk3-6-0_historical_1980_1989_CONUS.nc"
 
 #VAR=SPEED
 
