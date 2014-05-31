@@ -32,20 +32,12 @@ main(int argc, char **argv)
    int storage;
    size_t chunksizes[NC_MAX_VAR_DIMS];
    const char* srcdir = ".";
-   char* path;
-   
-   if(argc > 1)
-	srcdir = argv[1];
 
    printf("\n*** Testing HDF4/NetCDF-4 chunking API: chunked...\n");
    {
-      path = (char*)malloc(sizeof(srcdir)+sizeof(CHUNKEDFILE)+2);
-      strcpy(path,srcdir);
-      strcat(path,"/");
-      strcat(path,CHUNKEDFILE);
 
       /* Open with netCDF */
-      if (nc_open(path, NC_NOWRITE, &ncid)) ERR; 
+      if (nc_open(CHUNKEDFILE, NC_NOWRITE, &ncid)) ERR; 
 
       /* Get a variable id */
       if(nc_inq_varid(ncid,CHUNKEDVAR,&varid)) ERR;
@@ -73,13 +65,8 @@ main(int argc, char **argv)
    
    printf("\n*** Testing HDF4/NetCDF-4 chunking API: contiguous...\n");
    {
-      path = (char*)malloc(sizeof(srcdir)+sizeof(CONTIGFILE)+2);
-      strcpy(path,srcdir);
-      strcat(path,"/");
-      strcat(path,CONTIGFILE);
-
       /* Open with netCDF */
-      if (nc_open(path, NC_NOWRITE, &ncid)) ERR; 
+      if (nc_open(CONTIGFILE, NC_NOWRITE, &ncid)) ERR; 
 
       /* Get a variable id */
       if(nc_inq_varid(ncid,CONTIGVAR,&varid)) ERR;

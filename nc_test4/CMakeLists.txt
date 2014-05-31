@@ -66,7 +66,7 @@ IF(USE_HDF4_FILE_TESTS)
   add_sh_test(nc_test4 run_get_hdf4_files)
   add_bin_test(nc_test4 tst_interops3)
   add_sh_test(nc_test4 tst_formatx_hdf4)
-  add_bin_test(nc_test4 tst_chunk_hdf4)
+  build_bin_test(tst_chunk_hdf4)
   add_sh_test(nc_test4 run_chunk_hdf4)
 ENDIF()
 
