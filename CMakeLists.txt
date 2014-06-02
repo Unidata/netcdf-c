@@ -98,6 +98,10 @@ ENDIF()
 # Set build type uppercase
 STRING(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 
+# Determine the configure date.
+EXECUTE_PROCESS(COMMAND date
+  OUTPUT_VARIABLE CONFIG_DATE)
+
 ################################
 # End Project Properties
 ################################
@@ -393,6 +397,28 @@ MACRO(specify_static_crt_flag)
   ENDFOREACH()
   MESSAGE(STATUS "")
 ENDMACRO()
+
+# A function used to create autotools-style 'yes/no' definitions.
+# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
+# returned.
+FUNCTION(is_enabled feature ret_val)
+  IF(${feature})
+    SET(${ret_val} "yes" PARENT_SCOPE)
+  ELSE()
+    SET(${ret_val} "no" PARENT_SCOPE)
+  ENDIF(${feature})
+ENDFUNCTION()
+
+# A function used to create autotools-style 'yes/no' definitions.
+# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
+# returned.
+FUNCTION(is_disabled feature ret_val)
+  IF(${feature})
+    SET(${ret_val} "no" PARENT_SCOPE)
+  ELSE()
+    SET(${ret_val} "yes" PARENT_SCOPE)
+  ENDIF(${feature})
+ENDFUNCTION()
 
 ################################
 # End Macro Definitions
@@ -1209,15 +1235,13 @@ SET(CC ${CMAKE_C_COMPILER})
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 
-IF(NOT BUILD_SHARED_LIBS)
-  FOREACH(_LIB ${ALL_TLL_LIBS})
-    GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
-    STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
-    LIST(APPEND NC_LIBS "-l${_NAME}")
-    GET_FILENAME_COMPONENT(_LIB_DIR ${_LIB} PATH)
-    LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
-  ENDFOREACH()
-ENDIF(NOT BUILD_SHARED_LIBS)
+FOREACH(_LIB ${ALL_TLL_LIBS})
+  GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
+  STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
+  LIST(APPEND NC_LIBS "-l${_NAME}")
+  GET_FILENAME_COMPONENT(_LIB_DIR ${_LIB} PATH)
+  LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
+ENDFOREACH()
 
 SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
@@ -1335,9 +1359,38 @@ ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_
 # Configure and print the libnetcdf.settings file.
 #####
 
-# Set a few variables to mirror those used by autoconf.
+# Set variables to mirror those used by autoconf.
 # This way we don't need to maintain two separate template
 # files.
+SET(host_cpu "${cpu}")
+SET(host_vendor "${osname}")
+SET(host_os "${osrel}")
+SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
+
+SET(CC_VERSION "${CMAKE_C_COMPILER}")
+SET(CFLAGS "${CMAKE_C_FLAGS} ${CFLAGS}")
+SET(CPPFLAGS "${CMAKE_CPP_FLAGS} ${CPPFLAGS}")
+SET(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_LINKER_FLAGS} ${LDFLAGS}")
+
+is_disabled(BUILD_SHARED_LIBRARY enable_static)
+is_enabled(BUILD_SHARED_LIBRARY enable_shared)
+
+# Remove libnetcdf from NC_LIBS.
+STRING(REPLACE "-lnetcdf " "" TMP_NC_LIBS "${NC_LIBS}")
+SET(LIBS "${TMP_NC_LIBS}")
+
+is_enabled(ENABLE_V2_API HAS_NC2)
+is_enabled(ENABLE_NETCDF_4 HAS_NC4)
+is_enabled(ENABLE_HDF4 HAS_HDF4)
+is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(STATUS_PNETCDF HAS_PNETCDF)
+is_enabled(STATUS_PARALLEL HAS_PARALLEL)
+is_enabled(USE_DAP HAS_DAP)
+is_enabled(USE_DISKLESS HAS_DISKLESS)
+is_enabled(USE_MMAP HAS_MMAP)
+is_enabled(JNA HAS_JNA)
+
+# Generate file from template.
 
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
