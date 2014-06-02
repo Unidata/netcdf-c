@@ -1417,6 +1417,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, int write_dimid)
       if(!var->shuffle && !var->deflate && !var->options_mask &&
           !var->fletcher32 && (var->chunksizes == NULL || !var->chunksizes[0])) {
 #ifdef USE_HDF4
+      NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
       if(h5->hdf4 || !unlimdim)
 #else 
       if(!unlimdim)

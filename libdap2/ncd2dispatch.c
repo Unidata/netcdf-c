@@ -5,6 +5,7 @@
 
 #include "ncdap.h"
 #include "ncd2dispatch.h"
+#include "dapalign.h"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
@@ -399,9 +400,9 @@ NCD2_open(const char * path, int mode,
 	ncloginit();
         if(nclogopen(value))
 	    ncsetlogging(1);
-	ocloginit();
-        if(oclogopen(value))
-	    ocsetlogging(1);
+	ncloginit();
+        if(nclogopen(value))
+	    ncsetlogging(1);
     }
 
     /* fetch and build the unconstrained DDS for use as

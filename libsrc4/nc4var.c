@@ -807,7 +807,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_DIM_INFO_T *dim;
    int d;
    int retval;
-   nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs
+   nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs */
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
@@ -1016,6 +1016,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
    NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_VAR_INFO_T *var;
+   NC_HDF5_FILE_INFO_T *h5;
 
    size_t *cs = NULL;
    int i, retval;

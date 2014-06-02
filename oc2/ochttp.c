@@ -97,7 +97,6 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	CURLcode cstat = CURLE_OK;
 	size_t len;
         long httpcode = 0;
-	char tbuf[1024];
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
 	if (cstat != CURLE_OK)
@@ -114,6 +113,7 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	    if (cstat != CURLE_OK)
 		goto fail;
 #else		
+        	char tbuf[1024];
 		snprintf(tbuf,1023,"%s:%s",creds->username,creds->password);	
 		cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, tbuf);
 		if (cstat != CURLE_OK)

@@ -39,6 +39,7 @@ static int extract(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t diminde
 static int extractstring(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t dimindex, OClink, OCdatanode, struct NCMEMORY*);
 static void freegetvara(Getvara* vara);
 static NCerror makegetvar(NCDAPCOMMON*, CDFnode*, void*, nc_type, Getvara**);
+static NCerror attachsubset(CDFnode* target, CDFnode* template);
 
 /**************************************************/
 /**
@@ -1154,7 +1155,7 @@ template tree is typically a structural superset of target tree.
 WARNING: Dimensions are not attached 
 */
 
-NCerror
+static NCerror
 attachsubset(CDFnode* target, CDFnode* template)
 {
     NCerror ncstat = NC_NOERR;
