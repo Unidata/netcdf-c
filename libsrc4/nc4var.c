@@ -522,7 +522,12 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
       }
 
       /* Check for unlimited dimension and turn off contiguous storage */
+      /* (unless HDF4 file) */
+#ifdef USE_HDF4
+      if (dim->unlimited && !h5->hdf4)
+#else
       if (dim->unlimited)
+#endif
 	 var->contiguous = NC_FALSE;
 
       /* Track dimensions for variable */
@@ -802,12 +807,17 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_DIM_INFO_T *dim;
    int d;
    int retval;
+   nc_bool_t ishdf4 = NC_FALSE; /* Use this to avoid so many ifdefs
 
    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
    /* Find info for this file and group, and set pointer to each. */
    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
+
+#ifdef USE_HDF4
+   ishdf4 = h5->hdf4;
+#endfi
 
    /* Attempting to do any of these things on a netCDF-3 file produces
     * an error. */
@@ -883,6 +893,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       if (var->deflate || var->fletcher32 || var->shuffle)
 	 return NC_EINVAL;
       
+     if (!ishdf4) {
       for (d = 0; d < var->ndims; d++)
       {
 	 if ((retval = nc4_find_dim(grp, var->dimids[d], &dim, NULL)))
@@ -890,12 +901,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 	 if (dim->unlimited)
 	    return NC_EINVAL;
       }
-
       var->contiguous = NC_TRUE;
+    }
    }
 
    /* Chunksizes anyone? */
-   if (contiguous && *contiguous == NC_CHUNKED)
+   if (!ishdf4 && contiguous && *contiguous == NC_CHUNKED)
    {
       var->contiguous = NC_FALSE;
 
@@ -1005,11 +1016,12 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
    NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_VAR_INFO_T *var;
+
    size_t *cs = NULL;
    int i, retval;
 
    /* Find this ncid's file info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    assert(nc);
 
@@ -1050,13 +1062,19 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
    NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_VAR_INFO_T *var;
+   NC_HDF5_FILE_INFO_T *h5;
    size_t *cs = NULL;
    int i, retval;
 
    /* Find this ncid's file info. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, NULL)))
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
       return retval;
    assert(nc);
+
+#ifdef USE_HDF4
+   if(h5->hdf4)
+	return NC_NOERR;
+#endif  
 
    /* Find var cause I need the number of dims. */
    if ((retval = nc4_find_g_var_nc(nc, ncid, varid, &grp, &var)))
