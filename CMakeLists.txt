@@ -1239,7 +1239,8 @@ FILE(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  COMPONENT utilities)
 
 INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config 
   DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -1329,6 +1330,36 @@ print_conf_summary()
 # Enable Makedist files.
 ADD_MAKEDIST()
 ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
+
+#####
+# Configure and print the libnetcdf.settings file.
+#####
+
+# Set a few variables to mirror those used by autoconf.
+# This way we don't need to maintain two separate template
+# files.
+
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
+  @ONLY
+  )
+
+# Read in settings file, print out.
+# Avoid using system-specific calls so that this
+# might also work on Windows.
+FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
+  LIBNETCDF_SETTINGS)
+MESSAGE(${LIBNETCDF_SETTINGS})
+
+# Install libnetcdf.settings file into same location
+# as the libraries.
+INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
+  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  COMPONENT libraries)
+
+#####
+# End libnetcdf.settings section.
+#####
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
