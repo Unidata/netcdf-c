@@ -817,7 +817,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
 #ifdef USE_HDF4
    ishdf4 = h5->hdf4;
-#endfi
+#endif
 
    /* Attempting to do any of these things on a netCDF-3 file produces
     * an error. */
