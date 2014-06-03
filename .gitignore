@@ -1,32 +1,3 @@
-### The following block of files should be removed
-### from .gitignore when this branch is merged back in to
-### master.
-/Makefile
-Makefile.in
-/aclocal.m4
-/autom4te.cache
-/config.*
-/configure
-/depcomp
-/install-sh
-/libtool
-/ltmain.sh
-/m4/
-/missing
-/stamp-h?
-.deps/
-.dirstamp
-.libs/
-*.l[ao]
-*~
-VERSION
-compile
-comps.txt
-libnetcdf.settings
-nc-config
-netcdf.pc
-test-driver
-
 ### 'Normal' gitignore files.
 debug.txt
 CTestConfig.cmake
