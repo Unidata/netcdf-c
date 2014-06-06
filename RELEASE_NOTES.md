@@ -9,6 +9,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Replaced the `NetCDF Library Architecture` image with an updated version from the 2012 NetCDF Workshop.  
 
 * Fix HDF4 files to support chunking.
   [NCF-272](https://bugtracking.unidata.ucar.edu/browse/NCF-272)
