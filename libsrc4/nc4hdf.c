@@ -3321,73 +3321,154 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UBYTE:
                for (fp = (float *)src, ubp = dest; count < len; count++)
                {
-                  if (*fp > X_UCHAR_MAX || *fp < 0)
+                  float f = *fp++;
+                  if (f > X_UCHAR_MAX)
+                  {
+                     f = X_UCHAR_MAX;
                      (*range_error)++;
-                  *ubp++ = *fp++;
+                  }
+                  else if (f < 0)
+                  {
+                     f = 0;
+                     (*range_error)++;
+                  }
+                  *ubp++ = f;
                }
                break;
             case NC_BYTE:
                for (fp = (float *)src, bp = dest; count < len; count++)
                {
-                  if (*fp > (double)X_SCHAR_MAX || *fp < (double)X_SCHAR_MIN)
+                  float f = *fp++;
+                  if (f > (double)X_SCHAR_MAX)
+                  {
+                     f = (double)X_SCHAR_MAX;
                      (*range_error)++;
-                  *bp++ = *fp++;
+                  }
+                  else if (f < (double)X_SCHAR_MIN)
+                  {
+                     f = (double)X_SCHAR_MIN;
+                     (*range_error)++;
+                  }
+                  *bp++ = f;
                }
                break;
             case NC_SHORT:
                for (fp = (float *)src, sp = dest; count < len; count++)
                {
-                  if (*fp > (double)X_SHORT_MAX || *fp < (double)X_SHORT_MIN)
+                  float f = *fp++;
+                  if (f > (double)X_SHORT_MAX)
+                  {
+                     f = (double)X_SHORT_MAX;
                      (*range_error)++;
-                  *sp++ = *fp++;
+                  }
+                  else if (f < (double)X_SHORT_MIN)
+                  {
+                     f = (double)X_SHORT_MIN;
+                     (*range_error)++;
+                  }
+                  *sp++ = f;
                }
                break;
             case NC_USHORT:
                for (fp = (float *)src, usp = dest; count < len; count++)
                {
-                  if (*fp > X_USHORT_MAX || *fp < 0)
+                  float f = *fp++;
+                  if (f > (double)X_USHORT_MAX)
+                  {
+                     f = (double)X_USHORT_MAX;
                      (*range_error)++;
-                  *usp++ = *fp++;
+                  }
+                  else if (f < 0)
+                  {
+                     f = 0;
+                     (*range_error)++;
+                  }
+                  *usp++ = f;
                }
                break;
             case NC_UINT:
                for (fp = (float *)src, uip = dest; count < len; count++)
                {
-                  if (*fp > X_UINT_MAX || *fp < 0)
+                  float f = *fp++;
+                  if (f > X_UINT_MAX)
+                  {
+                     f = X_UINT_MAX;
                      (*range_error)++;
-                  *uip++ = *fp++;
+                  }
+                  else if (f < 0)
+                  {
+                     f = 0;
+                     (*range_error)++;
+                  }
+                  *uip++ = f;
                }
                break;
             case NC_INT:
                if (dest_long)
                   for (fp = (float *)src, lp = dest; count < len; count++)
                   {
-                     if (*fp > (double)X_LONG_MAX || *fp < (double)X_LONG_MIN)
+                     float f = *fp++;
+                     if (f > (double)X_LONG_MAX)
+                     {
+                        f = (double)X_LONG_MAX;
                         (*range_error)++;
-                     *lp++ = *fp++;
+                     }
+                     else if (f < (double)X_LONG_MIN)
+                     {
+                        f = (double)X_LONG_MIN;
+                        (*range_error)++;
+                     }
+                     *lp++ = f;
                   }
                else
                   for (fp = (float *)src, ip = dest; count < len; count++)
                   {
-                     if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
+                     float f = *fp++;
+                     if (f > (double)X_INT_MAX)
+                     {
+                        f = (double)X_INT_MAX;
                         (*range_error)++;
-                     *ip++ = *fp++;
+                     }
+                     else if (f < (double)X_INT_MIN)
+                     {
+                        f = (double)X_INT_MIN;
+                        (*range_error)++;
+                     }
+                     *ip++ = f;
                   }
                break;
             case NC_INT64:
                for (fp = (float *)src, lip = dest; count < len; count++)
                {
-                  if (*fp > X_INT64_MAX || *fp <X_INT64_MIN)
-                    (*range_error)++;
-                  *lip++ = *fp++;
+                  float f = *fp++;
+                  if (f > X_INT64_MAX)
+                  {
+                     f = X_INT64_MAX;
+                     (*range_error)++;
+                  }
+                  else if (f < X_INT64_MIN)
+                  {
+                     f = X_INT64_MIN;
+                     (*range_error)++;
+                  }
+                  *lip++ = f;
                }
                break;
             case NC_UINT64:
-               for (fp = (float *)src, lip = dest; count < len; count++)
+               for (fp = (float *)src, ulip = dest; count < len; count++)
                {
-                  if (*fp > X_UINT64_MAX || *fp < 0)
-                    (*range_error)++;
-                  *lip++ = *fp++;
+                  float f = *fp++;
+                  if (f > (double)X_UINT64_MAX)
+                  {
+                     f = (double)X_UINT64_MAX;
+                     (*range_error)++;
+                  }
+                  else if (f < 0)
+                  {
+                     f = 0;
+                     (*range_error)++;
+                  }
+                  *ulip++ = f;
                }
                break;
             case NC_FLOAT:
@@ -3415,81 +3496,171 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UBYTE:
                for (dp = (double *)src, ubp = dest; count < len; count++)
                {
-                  if (*dp > X_UCHAR_MAX || *dp < 0)
+                  double d = *dp++;
+                  if (d > X_UCHAR_MAX)
+                  {
+                     d = X_UCHAR_MAX;
                      (*range_error)++;
-                  *ubp++ = *dp++;
+                  }
+                  else if (d < 0)
+                  {
+                     d = 0;
+                     (*range_error)++;
+                  }
+                  *ubp++ = d;
                }
                break;
             case NC_BYTE:
                for (dp = (double *)src, bp = dest; count < len; count++)
                {
-                  if (*dp > X_SCHAR_MAX || *dp < X_SCHAR_MIN)
+                  double d = *dp++;
+                  if (d > X_SCHAR_MAX)
+                  {
+                     d = X_SCHAR_MAX;
                      (*range_error)++;
-                  *bp++ = *dp++;
+                  }
+                  else if (d < X_SCHAR_MIN)
+                  {
+                     d = X_SCHAR_MIN;
+                     (*range_error)++;
+                  }
+                  *bp++ = d;
                }
                break;
             case NC_SHORT:
                for (dp = (double *)src, sp = dest; count < len; count++)
                {
-                  if (*dp > X_SHORT_MAX || *dp < X_SHORT_MIN)
+                  double d = *dp++;
+                  if (d > X_SHORT_MAX)
+                  {
+                     d = X_SHORT_MAX;
                      (*range_error)++;
-                  *sp++ = *dp++;
+                  }
+                  else if (d < X_SHORT_MIN)
+                  {
+                     d = X_SHORT_MIN;
+                     (*range_error)++;
+                  }
+                  *sp++ = d;
                }
                break;
             case NC_USHORT:
                for (dp = (double *)src, usp = dest; count < len; count++)
                {
-                  if (*dp > X_USHORT_MAX || *dp < 0)
+                  double d = *dp++;
+                  if (d > X_USHORT_MAX)
+                  {
+                     d = X_USHORT_MAX;
                      (*range_error)++;
-                  *usp++ = *dp++;
+                  }
+                  else if (d < 0)
+                  {
+                     d = 0;
+                     (*range_error)++;
+                  }
+                  *usp++ = d;
                }
                break;
             case NC_UINT:
                for (dp = (double *)src, uip = dest; count < len; count++)
                {
-                  if (*dp > X_UINT_MAX || *dp < 0)
+                  double d = *dp++;
+                  if (d > X_UINT_MAX)
+                  {
+                     d = X_UINT_MAX;
                      (*range_error)++;
-                  *uip++ = *dp++;
+                  }
+                  else if (d < 0)
+                  {
+                     d = 0;
+                     (*range_error)++;
+                  }
+                  *uip++ = d;
                }
                break;
             case NC_INT:
                if (dest_long)
                   for (dp = (double *)src, lp = dest; count < len; count++)
                   {
-                     if (*dp > X_LONG_MAX || *dp < X_LONG_MIN)
+                     double d = *dp++;
+                     if (d > X_LONG_MAX)
+                     {
+                        d = X_LONG_MAX;
                         (*range_error)++;
-                     *lp++ = *dp++;
+                     }
+                     else if (d < X_LONG_MIN)
+                     {
+                        d = X_LONG_MIN;
+                        (*range_error)++;
+                     }
+                     *lp++ = d;
                   }
                else
                   for (dp = (double *)src, ip = dest; count < len; count++)
                   {
-                     if (*dp > X_INT_MAX || *dp < X_INT_MIN)
+                     double d = *dp++;
+                     if (d > X_INT_MAX)
+                     {
+                        d = X_INT_MAX;
                         (*range_error)++;
-                     *ip++ = *dp++;
+                     }
+                     else if (d < X_INT_MIN)
+                     {
+                        d = X_INT_MIN;
+                        (*range_error)++;
+                     }
+                     *ip++ = d;
                   }
                break;
             case NC_INT64:
                for (dp = (double *)src, lip = dest; count < len; count++)
                {
-                  if (*dp > X_INT64_MAX || *dp < X_INT64_MIN)
-                    (*range_error)++;
-                  *lip++ = *dp++;
+                  double d = *dp++;
+                  if (d > X_INT64_MAX)
+                  {
+                     d = X_INT64_MAX;
+                     (*range_error)++;
+                  }
+                  else if (d < X_INT64_MIN)
+                  {
+                     d = X_INT64_MIN;
+                     (*range_error)++;
+                  }
+                  *lip++ = d;
                }
                break;
             case NC_UINT64:
-               for (dp = (double *)src, lip = dest; count < len; count++)
+               for (dp = (double *)src, ulip = dest; count < len; count++)
                {
-                  if (*dp > X_UINT64_MAX || *dp < 0)
-                    (*range_error)++;
-                  *lip++ = *dp++;
+                  double d = *dp++;
+                  if (d > X_UINT64_MAX)
+                  {
+                     d = X_UINT64_MAX;
+                     (*range_error)++;
+                  }
+                  else if (d < 0)
+                  {
+                     d = 0;
+                     (*range_error)++;
+                  }
+                  *ulip++ = d;
                }
                break;
             case NC_FLOAT:
                for (dp = (double *)src, fp = dest; count < len; count++)
                {
-                  if (*dp > X_FLOAT_MAX || *dp < X_FLOAT_MIN)
+                  double d = *dp++;
+                  if (d > X_FLOAT_MAX)
+                  {
+                     d = X_FLOAT_MAX;
                      (*range_error)++;
-                  *fp++ = *dp++;
+                  }
+                  else if (d < X_FLOAT_MIN)
+                  {
+                     d = X_FLOAT_MIN;
+                     (*range_error)++;
+                  }
+                  *fp++ = d;
                }
                break;
             case NC_DOUBLE:
