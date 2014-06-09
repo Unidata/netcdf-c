@@ -2542,17 +2542,18 @@ nc4_rec_write_groups_types(NC_GRP_INFO_T *grp)
    return NC_NOERR;
 }
 
-/* This function will copy data from one buffer to another, in
-   accordance with the types. Range errors will be noted, and the fill
-   value used (or the default fill value if none is supplied) for
-   values that overflow the type.
+/*! Copy data from one buffer to another, performing appropriate data conversion.
 
-   I should be able to take this out when HDF5 does the right thing
-   with data type conversion.
-
-   Ed Hartnett, 11/15/3
+  This function will copy data from one buffer to another, in
+  accordance with the types. Range errors will be noted, and the fill
+  value used (or the default fill value if none is supplied) for
+  values that overflow the type.
+  
+  I should be able to take this out when HDF5 does the right thing
+  with data type conversion.
+  
+  Ed Hartnett, 11/15/3
 */
-
 int
 nc4_convert_type(const void *src, void *dest, 
                  const nc_type src_type, const nc_type dest_type, 
@@ -3321,7 +3322,7 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UBYTE:
                for (fp = (float *)src, ubp = dest; count < len; count++)
                {
-                  if (*fp > X_UCHAR_MAX || *fp < 0)
+		 if (*fp > X_UCHAR_MAX || *fp < 0)
                      (*range_error)++;
                   *ubp++ = *fp++;
                }
