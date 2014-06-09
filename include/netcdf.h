@@ -152,7 +152,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_MPIIO         0x2000 
 /** Turn on MPI POSIX I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIPOSIX      0x4000
+#define NC_MPIPOSIX      0x4000 /**< \deprecated As of libhdf5 1.8.13. */
 #define NC_PNETCDF       0x8000	/**< Use parallel-netcdf library. Mode flag for nc_open(). */
 
 /** Format specifier for nc_set_default_format() and returned
