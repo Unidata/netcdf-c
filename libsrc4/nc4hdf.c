@@ -2611,10 +2611,12 @@ nc4_convert_type(const void *src, void *dest,
             case NC_UBYTE:
                for (bp = (signed char *)src, ubp = dest; count < len; count++)
                {
-                  if (*bp < 0)
-                     (*range_error)++;
-                  *ubp++ = *bp++;
-               }
+		 if (*bp < 0) {
+		   (*range_error)++; *bp++;
+		 } else {
+		   *ubp++ = *bp++;
+		 }
+	       }
                break;
             case NC_SHORT:
                for (bp = (signed char *)src, sp = dest; count < len; count++)
