@@ -1,7 +1,9 @@
-/** \file 
+/** \file types.dox Documentation related to NetCDF Types
 Documentation of types.
 
 \page data_type Data Types
+
+\tableofcontents
 
 Data in a netCDF file may be one of the \ref external_types, or may be
 a user-defined data type (see \ref user_defined_types).
@@ -163,7 +165,7 @@ nc_put_var1()/nc_get_var1(), nc_put_vara()/nc_get_vara(), or
 nc_put_vars()/nc_get_vars() functons to access attribute and variable
 data of user defined type.
 
-\subsection Compound Types
+\subsection compound_types Compound Types
 
 Compound types allow the user to combine atomic and user-defined types
 into C-like structs. Since users defined types may be used within a
@@ -183,7 +185,7 @@ are portable.
 For more information on creating and using compound types, see
 Compound Types in The NetCDF C Interface Guide.
 
-\subsection VLEN Types
+\subsection vlen_types VLEN Types
 
 Variable length arrays can be used to create a ragged array of data,
 in which one of the dimensions varies in size from point to point.
@@ -210,14 +212,14 @@ and pointers to the data, rather than the actual data.
 For more information on creating and using variable length arrays, see
 Variable Length Arrays in The NetCDF C Interface Guide.
 
-\subsection Opaque Types
+\subsection opaque_types Opaque Types
 
 Opaque types allow the user to store arrays of data blobs of a fixed size.
 
 For more information on creating and using opaque types, see Opaque
 Type in The NetCDF C Interface Guide.
 
-\subsection Enum Types
+\subsection enum_types Enum Types
 
 Enum types allow the user to specify an enumeration.
 
@@ -285,5 +287,15 @@ your system that is less than 2 to the 128th power. The largest double
 precision value you can write to a double variable is the largest
 double-precision number representable on your system that is less than
 2 to the 1024th power.
+
+The _uchar and _schar functions were introduced in netCDF-3 to
+eliminate an ambiguity, and support both signed and unsigned byte data.
+In netCDF-2, whether the external NC_BYTE type represented signed or
+unsigned values was left up to the user. In netcdf-3, we treat NC_BYTE
+as signed for the purposes of conversion to short, int, long, float, or
+double. (Of course, no conversion takes place when the internal type is
+signed char.) In the _uchar functions, we treat NC_BYTE as if it were
+unsigned. Thus, no NC_ERANGE error can occur converting between NC_BYTE
+and unsigned char.
 
 */
