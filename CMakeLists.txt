@@ -155,6 +155,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
+  SET(NC_OPT_LEVEL "-O0")
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
 
   # Check to see if -Wl,--no-undefined is supported.
@@ -167,12 +168,14 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
-  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+
+  
 
   # Unused var and parameter warnings create a lot of noise.
   IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
@@ -192,6 +195,8 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     ENDIF()
 
   ENDIF(ENABLE_CONVERSION_WARNINGS)
+
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NC_OPT_LEVEL}")
 
 ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 

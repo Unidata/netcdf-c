@@ -932,7 +932,7 @@ check_file(char *filename)
     }
 }
 
-/* TODO: Maybe this function belongs in the netcdf library. */
+/* \TODO: Maybe this function belongs in the netcdf library. */
 const char *
 s_nc_type(nc_type type)
 {
