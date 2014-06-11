@@ -39,7 +39,7 @@ IF(ENABLE_TESTS)
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
-  
+
   ## Start adding tests in the appropriate order
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
@@ -55,11 +55,11 @@ IF(ENABLE_TESTS)
   add_sh_test(ncdump tst_iter)
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
-  
+
   IF(EXTRA_TESTS)
     add_sh_test(ncdump run_back_comp_tests)
   ENDIF()
-  
+
   IF(USE_NETCDF4)
     add_bin_test(ncdump tst_create_files)
     add_bin_test(ncdump tst_group_data)
@@ -86,7 +86,7 @@ IF(ENABLE_TESTS)
       ENDIF()
       #ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
     ENDFOREACH()
-    
+
     IF(NOT WIN32)
       # tst_netcdf4 depends on the output from other scripts
       # that don't currently run. So for time being, leave
@@ -100,19 +100,19 @@ IF(ENABLE_TESTS)
       #add_bin_test(ncdump tst_fillbug)
       #add_sh_test(ncdump tst_fillbug)
     ENDIF()
-    IF(NOT WIN32)	
+    IF(NOT WIN32)
       add_sh_test(ncdump tst_netcdf4_4)
-    ENDIF()	
-    
+    ENDIF()
+
     IF(NOT WIN32)
       #add_sh_test(ncdump tst_nccopy4)
     ENDIF()
     add_sh_test(ncdump tst_grp_spec)
     add_sh_test(ncdump tst_mud)
     add_sh_test(ncdump_shell tst_h_scalar)
-    
+
   ENDIF()
-  
+
   add_sh_test(ncdump tst_ncgen4_classic)
   IF(USE_NETCDF4)
     add_sh_test(ncdump tst_ncgen4)
@@ -122,7 +122,7 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 IF(MSVC)
-  SET_TARGET_PROPERTIES(ncdump 
+  SET_TARGET_PROPERTIES(ncdump
     PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
   SET_TARGET_PROPERTIES(nccopy
@@ -137,7 +137,7 @@ INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)
 SET(MAN_FILES nccopy.1 ncdump.1)
 
 
-FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1) 
+FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 ADD_SUBDIRECTORY(cdl4)
@@ -145,14 +145,14 @@ ADD_SUBDIRECTORY(expected4)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test0.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl ref_tst_solar_2.cdl ref_tst_small.cdl tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl ref_tst_nans.cdl small.cdl small2.cdl ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_calendars.cdl ref_times.cdl ref_tst_special_atts.cdl ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl ref_nc_test_netcdf4_4_0.nc ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_charfill.cdl tst_charfill.cdl ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_ncf213.cdl CMakeLists.txt Makefile.am XGetopt.c nccopy.1 ncdump.1) 
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test0.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_tst_solar_1.cdl ref_tst_solar_2.cdl ref_tst_small.cdl tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl ref_tst_nans.cdl small.cdl small2.cdl ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_calendars.cdl ref_times.cdl ref_tst_special_atts.cdl ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl ref_nc_test_netcdf4_4_0.nc ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl ref_tst_charfill.cdl tst_charfill.cdl ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_ncf213.cdl CMakeLists.txt Makefile.am XGetopt.c nccopy.1 ncdump.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
 SET(CLEANFILES test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl ctest.c ctest64.c ctest0.nc  ctest0_64.nc c1.cdl c1_4.cdl ctest1_64.cdl c0.nc c0_4.nc small.nc small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl tst_string_data.cdl tst_fillbug.cdl tst_opaque_data.cdl tst_compounds4.cdl tst_utf8.cdl tst_compounds3.cdl tst_special_atts.cdl tst_nans.cdl tst_format_att_64.cdl tst_vlen_data.cdl tst_solar_1.cdl tst_format_att.cdl tst_inflated.nc tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl tst_mud4-bc.cdl)
 
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
-IF(NOT MSVC)	
+IF(NOT MSVC)
   INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
 ENDIF()
 

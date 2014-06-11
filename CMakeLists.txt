@@ -331,7 +331,7 @@ MACRO(print_conf_summary)
     MESSAGE("")
   ENDIF()
 
-  MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
+  MESSAGE("Tests Enabled:        ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
     MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
@@ -637,7 +637,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
   ENDIF()
-  
+
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARY may be defined.  We must check for either.
@@ -686,7 +686,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
-	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+        "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
   ENDIF()
 
@@ -850,7 +850,7 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
-# Temporary 
+# Temporary
 OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
 IF(ENABLE_JNA)
   SET(JNA ON)
@@ -926,7 +926,7 @@ IF(ENABLE_DOXYGEN)
     ELSE()
       SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
     ENDIF()
-    
+
     # Option to turn on the TODO list in the doxygen-generated documentation.
     OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
     IF(ENABLE_DOXYGEN_TASKS)
@@ -1167,12 +1167,12 @@ ADD_SUBDIRECTORY(docs)
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 ENDIF()
 
@@ -1265,7 +1265,7 @@ INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config 
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT utilities)
 

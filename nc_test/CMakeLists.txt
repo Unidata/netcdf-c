@@ -29,7 +29,7 @@ IF(LARGE_FILE_TESTS)
   IF(NOT MSVC)
     SET(TESTS ${TESTS} large_files)
   ENDIF()
-  
+
 ENDIF()
 
 IF(BUILD_DISKLESS)
@@ -52,7 +52,7 @@ ENDFOREACH()
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_DISKLESS)
-  add_sh_test(nc_test run_diskless)  	
+  add_sh_test(nc_test run_diskless)
   IF(BUILD_MMAP)
     add_sh_test(nc_test run_mmap)
   ENDIF()

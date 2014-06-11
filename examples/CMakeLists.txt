@@ -6,5 +6,3 @@ ENDIF()
 
 SET(CUR_EXTRA_DIST CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
-
-
