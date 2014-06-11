@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Bumped minimum CMake version to `2.8.9` from `2.8.8` as part of a larger pull request contributed by Nico Schlömer. [Pull Request #64](https://github.com/Unidata/netcdf-c/pull/64) 
+
 * Replaced the `NetCDF Library Architecture` image with an updated version from the 2012 NetCDF Workshop slides.  
 
 * Fix HDF4 files to support chunking.

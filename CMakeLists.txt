@@ -6,7 +6,7 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 #Project Name
 project(netCDF C)
@@ -136,14 +136,11 @@ INCLUDE(GenerateExportHeader)
 ################################
 
 # Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
 OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-SET(LIB_TYPE STATIC)
 IF(BUILD_SHARED_LIBS)
-  SET(LIB_TYPE SHARED)
-  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC")
-  ENDIF()
+  SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
 # Set some default linux gcc & apple compiler options for
@@ -465,8 +462,6 @@ ENDIF()
 # Option checks
 ################################
 
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 # HDF5 cache variables.
 SET(DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
@@ -747,23 +742,27 @@ IF(ENABLE_DAP)
   ADD_DEFINITIONS(-DCURL_STATICLIB=1)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
-  # Check to see if CURLOPT_USERNAME is defined. It is present starting version 7.19.1
+  # Check to see if CURLOPT_USERNAME is defined.
+  # It is present starting version 7.19.1.
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
 
-# Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_PASSWORD is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
 
-# Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_KEYPASSWD is defined.
+  # It is present starting version 7.16.4.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 
-# Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLINFO_RESPONSE_CODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 ENDIF()
@@ -1369,49 +1368,10 @@ SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
 
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
-
-# Build CFLAGS from debug and release flags as needed.
-SET(CFLAGS_TMP "${CMAKE_C_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(CFLAGS_TMP "${CFLAGS_TMP} ${CMAKE_C_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(CFLAGS_TMP "${CFLAGS_TMP} ${CMAKE_C_FLAGS_RELEASE}")
-ENDIF()
-
-SET(CFLAGS "${CFLAGS_TMP} ${CFLAGS}")
-# End CFLAGS
-
-# Build CPPFLAGS from debug and release flags as needed.
-SET(CPPFLAGS_TMP "${CMAKE_CPP_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(CPPFLAGS_TMP "${CPPFLAGS_TMP} ${CMAKE_CPP_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(CPPFLAGS_TMP "${CPPFLAGS_TMP} ${CMAKE_CPP_FLAGS_RELEASE}")
-ENDIF()
-
-SET(CPPFLAGS "${CPPFLAGS_TMP} ${CPPFLAGS}")
-# End CPPFLAGS
-
-# Build LDFLAGS from debug and release flags as needed.
-SET(LDFLAGS_TMP "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_LINKER_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(LDFLAGS_TMP "${LDFLAGS_TMP} ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CMAKE_LINKER_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(LDFLAGS_TMP "${LDFLAGS_TMP} ${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${CMAKE_LINKER_FLAGS_RELEASE}")
-ENDIF()
-
-SET(LDFLAGS "${LDFLAGS_TMP} ${LDFLAGS}")
-# End LDFLAGS
-
+# Build *FLAGS for libnetcdf.settings.
+SET(CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+SET(CPPFLAGS "${CMAKE_CPP_FLAGS} ${CMAKE_CPP_FLAGS_${CMAKE_BUILD_TYPE}}")
+SET(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BUILD_TYPE}}")
 
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)

@@ -1,11 +1,6 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2013, see the COPYRIGHT file for more information.
 
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-INCLUDE_DIRECTORIES(".")
-
-
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget t_ncxx)
 foreach (f ${m4_SOURCES})      
