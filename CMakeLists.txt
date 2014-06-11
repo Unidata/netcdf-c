@@ -329,7 +329,7 @@ MACRO(print_conf_summary)
     MESSAGE("")
   ENDIF()
 
-  MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
+  MESSAGE("Tests Enabled:        ${ENABLE_TESTS}")
   IF(ENABLE_TESTS)
     MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
     MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
@@ -684,7 +684,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
-	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+        "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
   ENDIF()
 
@@ -740,23 +740,27 @@ IF(ENABLE_DAP)
   ADD_DEFINITIONS(-DCURL_STATICLIB=1)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
-  # Check to see if CURLOPT_USERNAME is defined. It is present starting version 7.19.1
+  # Check to see if CURLOPT_USERNAME is defined.
+  # It is present starting version 7.19.1.
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
 
-# Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_PASSWORD is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
 
-# Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_KEYPASSWD is defined.
+  # It is present starting version 7.16.4.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 
-# Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLINFO_RESPONSE_CODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 ENDIF()
