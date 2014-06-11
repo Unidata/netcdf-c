@@ -6,7 +6,7 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 #Project Name
 project(netCDF C)
@@ -138,10 +138,7 @@ INCLUDE(GenerateExportHeader)
 # Default building shared libraries.
 OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
 IF(BUILD_SHARED_LIBS)
-  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC")
-  ENDIF()
+  SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
 # Set some default linux gcc & apple compiler options for
