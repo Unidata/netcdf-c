@@ -1,11 +1,7 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-INCLUDE_DIRECTORIES(".")
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})
   GEN_m4(${F})
 ENDFOREACH()
-
 
 SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
@@ -33,7 +29,7 @@ IF(LARGE_FILE_TESTS)
   IF(NOT MSVC)
     SET(TESTS ${TESTS} large_files)
   ENDIF()
-  
+
 ENDIF()
 
 IF(BUILD_DISKLESS)
@@ -56,7 +52,7 @@ ENDFOREACH()
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_DISKLESS)
-  add_sh_test(nc_test run_diskless)  	
+  add_sh_test(nc_test run_diskless)
   IF(BUILD_MMAP)
     add_sh_test(nc_test run_mmap)
   ENDIF()

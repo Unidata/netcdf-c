@@ -1,7 +1,3 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-INCLUDE_DIRECTORIES(".")
-
 SET(liblib_LIBS dispatch netcdf3)
 
 #####

@@ -463,8 +463,6 @@ ENDIF()
 # Option checks
 ################################
 
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 # HDF5 cache variables.
 SET(DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")

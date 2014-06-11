@@ -1,8 +1,3 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-INCLUDE_DIRECTORIES(".")
-
-
 SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
@@ -10,7 +5,7 @@ add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
-FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE) 
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 IF(ENABLE_DAP_REMOTE_TESTS)
   ADD_EXECUTABLE(nctestserver nctestserver.c)
@@ -23,9 +18,9 @@ IF(ENABLE_TESTS)
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
   # Binary Test Macro
-  
+
   add_sh_test(ncdap tst_ncdap3)
-  
+
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
     add_bin_env_test(ncdap test_cvt)
@@ -39,16 +34,16 @@ IF(ENABLE_TESTS)
     IF(ENABLE_DAP_LONG_TESTS)
       add_sh_test(ncdap tst_longremote3)
     ENDIF()
-    
+
     add_bin_test(ncdap test_nstride_cached)
     add_bin_test(ncdap t_misc)
-    
+
     IF(ENABLE_DAP_AUTH_TESTS)
       add_bin_test(ncdap t_auth)
     ENDIF()
-    
+
     add_bin_test(ncdap test_varm3)
-    
+
   ENDIF()
 
 ENDIF()
