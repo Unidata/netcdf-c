@@ -378,7 +378,7 @@ test_nc_get_vara_$1(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {

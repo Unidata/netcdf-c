@@ -518,7 +518,8 @@ main(int argc, char **argv)
       /* Read all atts (except text) as uchar. */
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, uchar_in) != NC_ERANGE) ERR;
       for (i = 0; i < ATT_LEN; i++)
-	 if (uchar_in[i] != (unsigned char) schar_out[i]) ERR;
+     if (uchar_in[i] != (unsigned char) schar_out[i])
+	  ERR;
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_UCHAR_NAME, uchar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (uchar_in[i] != uchar_out[i]) ERR;

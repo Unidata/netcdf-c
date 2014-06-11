@@ -1,5 +1,10 @@
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
+#####
+# Generate some tests from corresponding .m4 files.
+# Note, these generated files are maintained in git
+#####
 INCLUDE_DIRECTORIES(".")
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})

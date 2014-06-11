@@ -1504,7 +1504,7 @@ test_nc_get_vara_text(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -1669,7 +1669,7 @@ test_nc_get_vara_uchar(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -1834,7 +1834,7 @@ test_nc_get_vara_schar(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -1999,7 +1999,7 @@ test_nc_get_vara_short(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -2164,7 +2164,7 @@ test_nc_get_vara_int(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -2329,7 +2329,7 @@ test_nc_get_vara_long(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -2494,7 +2494,7 @@ test_nc_get_vara_float(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
@@ -2659,7 +2659,7 @@ test_nc_get_vara_double(void)
 				error("varid: %d, ", i);
 				error("var_name: %s, ", var_name[i]);
 				error("element number: %d ", j);
-				error("expect: %g", expect[j]);
+				error("expect: %g ", expect[j]);
 				error("got: %g", (double) value[j]);
 			    }
 			} else {
