@@ -944,7 +944,7 @@ IF(ENABLE_DOXYGEN)
 
   ELSE(DOXYGEN_FOUND)
     MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
-    SET(ENABLE_DOXYGEN=OFF)
+    SET(ENABLE_DOXYGEN OFF)
   ENDIF(DOXYGEN_FOUND)
 ENDIF()
 
