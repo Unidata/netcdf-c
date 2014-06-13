@@ -79,6 +79,12 @@ This file contains a high-level description of this package's evolution. Release
 
 * Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
 
+* Modified nc_{get/put}_vars to no longer use
+  nc_get/put_varm. They now directly use nc_get/put_vara
+  directly. This means that nc_get/put_vars now work
+  properly for user defined types as well as atomic types.
+  [NCF-228] (https://bugtracking.unidata.ucar.edu/browse/NCF-228)
+
 ## 4.3.1.1 Released 2014-02-05
 
 This is a bug-fix-only release for version 4.3.1.
