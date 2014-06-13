@@ -2617,6 +2617,25 @@ nc4_open_hdf4_file(const char *path, int mode, NC *nc)
 	 }
       }
       if(dimsize) free(dimsize);
+
+      {
+        /* HDF4 files can be chunked */
+	HDF_CHUNK_DEF chunkdefs;
+	int flag;
+        if(!SDgetchunkinfo(var->sdsid, &chunkdefs, &flag)) {
+	    if(flag == HDF_NONE)
+		var->contiguous = NC_TRUE;
+            else if((flag & HDF_CHUNK) != 0) {
+		var->contiguous = NC_FALSE;
+		if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
+	 	    return NC_ENOMEM;
+	        for (d = 0; d < var->ndims; d++) {
+		    var->chunksizes[d] = chunkdefs.chunk_lengths[d];
+		}
+	    }
+	}
+      }
+
    } /* next var */
 
 #ifdef LOGGING
