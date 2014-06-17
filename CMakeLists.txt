@@ -1408,7 +1408,7 @@ MESSAGE(${LIBNETCDF_SETTINGS})
 # Install libnetcdf.settings file into same location
 # as the libraries.
 INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
-  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT libraries)
 
 #####
