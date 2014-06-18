@@ -916,7 +916,7 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Determine whether or not to generate documentation.
-OPTION(ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
+OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
   IF(DOXYGEN_FOUND)
     # Offer the option to build internal documentation.
