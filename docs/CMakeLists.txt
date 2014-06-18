@@ -59,8 +59,9 @@ IF(ENABLE_DOXYGEN)
   IF(ENABLE_DOXYGEN_LATEX_OUTPUT)
     # Process 'main' netcdf documentation.
     FIND_PROGRAM(NC_MAKE NAMES make)
-    IF(NOT NC_MAKE)
-      MESSAGE(STATUS "Unable to locate 'make' program.  Unable to build pdf documentation.")
+    FIND_PROGRAM(NC_PDFLATEX NAMES pdflatex)
+    IF(NOT NC_MAKE OR NOT NC_PDFLATEX)
+      MESSAGE(STATUS "Unable to locate 'make' or 'pdflatex' program.  Unable to build pdf documentation.")
     ELSE()
       ADD_CUSTOM_TARGET(doc_all_pdf ALL
         make
@@ -84,6 +85,7 @@ IF(ENABLE_DOXYGEN)
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex_tutorial"
         COMMENT "Building NetCDF-Tutorial PDF Documentation" VERBATIM
         )
+
     ENDIF()
   ENDIF()
 
