@@ -56,12 +56,12 @@ IF(ENABLE_DOXYGEN)
 
   # If ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
   # the PDF files.
-  IF(ENABLE_DOXYGEN_LATEX_OUTPUT)
+  IF(ENABLE_DOXYGEN_PDF_OUTPUT)
     # Process 'main' netcdf documentation.
     FIND_PROGRAM(NC_MAKE NAMES make)
     FIND_PROGRAM(NC_PDFLATEX NAMES pdflatex)
     IF(NOT NC_MAKE OR NOT NC_PDFLATEX)
-      MESSAGE(STATUS "Unable to locate 'make' or 'pdflatex' program.  Unable to build pdf documentation.")
+      MESSAGE(WARNING "Unable to locate 'make' and/or 'pdflatex' program.  Unable to build pdf documentation.")
     ELSE()
       ADD_CUSTOM_TARGET(doc_all_pdf ALL
         make
@@ -85,8 +85,14 @@ IF(ENABLE_DOXYGEN)
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex_tutorial"
         COMMENT "Building NetCDF-Tutorial PDF Documentation" VERBATIM
         )
+      INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.pdf"
+	"${CMAKE_CURRENT_BINARY_DIR}/netcdf-guide.pdf"
+	"${CMAKE_CURRENT_BINARY_DIR}/netcdf-tutorial.pdf"
+	DESTINATION "${CMAKE_INSTALL_DOCDIR}/pdf"
+	COMPONENT documentation)
 
     ENDIF()
+
   ENDIF()
 
 
@@ -97,8 +103,8 @@ IF(ENABLE_DOXYGEN)
 
   FILE(COPY ${IMG_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/html)
 
-  INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+  INSTALL(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}/html"
     COMPONENT documentation)
 
 ENDIF(ENABLE_DOXYGEN)
