@@ -9,6 +9,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Fix HDF4 files to support chunking.
+  [NCF-272](https://bugtracking.unidata.ucar.edu/browse/NCF-272)
+
 * Renamed `man4/` directory to `docs/` to make the purpose and contents clearer. See [man4 vs. docs #60](https://github.com/Unidata/netcdf-c/issues/60).
 
 * Removed redundant variable `BUILD_DOCS` from the CMake configuration file.  See the issue at github: [BUILD\_DOCS, ENABLE\_DOXYGEN #59](https://github.com/Unidata/netcdf-c/issues/59).

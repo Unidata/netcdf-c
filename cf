@@ -22,16 +22,16 @@ CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
-PREFIX=/usr/local
 stddir="/usr/local"
-
-if test "x$cmds" = x ; then
-cmds=""
-#cmds="all"
-#cmds="all check"
-#cmds="all dist"
-#cmds="all distcheck"
-#cmds="$cmds install"
+PREFIX=/usr/local
+if test "x${cmds}" = x ; then
+  cmds=""
+else
+for f in $cmds ; do
+  if test "x$f" = "xdistcheck" ; then
+    PREFIX=/tmp/$HOST
+  fi
+done
 fi
 
 # HDF4=>HDF5
