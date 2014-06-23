@@ -907,6 +907,7 @@ IF(ENABLE_PNETCDF)
   SET(HAVE_LIBPNETCDF ON)
   # pnetcdf => parallel
   SET(STATUS_PARALLEL "ON")
+  SET(USE_PARALLEL ON)
 ENDIF()
 
 # Enable Parallel Tests.
