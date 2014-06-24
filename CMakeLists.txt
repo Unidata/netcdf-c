@@ -171,11 +171,6 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
 
-  # Unused var and parameter warnings create a lot of noise.
-  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-  ENDIF()
-
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
