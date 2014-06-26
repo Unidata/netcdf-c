@@ -1,6 +1,6 @@
 THISDIR=../oc2
 #OCDIR=/home/dmh/svn/oc2.0
-OCDIR=f:/svn/oc2.0
+OCDIR=f:/git/oc
 
 # Make consistent with Makefile.am
 SRC=oc.c \
@@ -64,3 +64,4 @@ diffoc::
 		fi; \
 	    fi; \
 	done
+
