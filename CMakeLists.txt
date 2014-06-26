@@ -148,7 +148,6 @@ ENDIF()
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  OPTION(ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
   OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
@@ -170,11 +169,6 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   ENDIF()
 
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
-
-  # Unused var and parameter warnings create a lot of noise.
-  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-  ENDIF()
 
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
@@ -504,7 +498,7 @@ OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 OPTION(ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
   IF(NOT HAVE_MREMAP)
-    MESSAGE(STATUS "mremap not found: disabling MMAP support.")
+    MESSAGE(WARNING "mremap not found: disabling MMAP support.")
     SET(ENABLE_MMAP OFF)
   ELSE()
     SET(HAVE_MMAP ON)
@@ -637,7 +631,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
   ENDIF()
-  
+
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARY may be defined.  We must check for either.
@@ -850,7 +844,7 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
-# Temporary 
+# Temporary
 OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
 IF(ENABLE_JNA)
   SET(JNA ON)
@@ -907,6 +901,7 @@ IF(ENABLE_PNETCDF)
   SET(HAVE_LIBPNETCDF ON)
   # pnetcdf => parallel
   SET(STATUS_PARALLEL "ON")
+  SET(USE_PARALLEL ON)
 ENDIF()
 
 # Enable Parallel Tests.
@@ -916,7 +911,7 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Determine whether or not to generate documentation.
-OPTION(ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
+OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
   IF(DOXYGEN_FOUND)
     # Offer the option to build internal documentation.
@@ -926,7 +921,7 @@ IF(ENABLE_DOXYGEN)
     ELSE()
       SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
     ENDIF()
-    
+
     # Option to turn on the TODO list in the doxygen-generated documentation.
     OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
     IF(ENABLE_DOXYGEN_TASKS)
@@ -935,15 +930,23 @@ IF(ENABLE_DOXYGEN)
       SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
     ENDIF(ENABLE_DOXYGEN_TASKS)
 
+    OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
+
+    IF(ENABLE_DOXYGEN_PDF_OUTPUT)
+      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
+    ELSE()
+      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
+    ENDIF()
+
     # Specify whether or not 'dot' was found on the system path.
     IF(NC_DOT)
       SET(HAVE_DOT YES CACHE STRING "")
     ELSE(NC_DOT)
-      SET(HAVE_DOT NO CACHE_STRING "")
+      SET(HAVE_DOT NO CACHE STRING "")
     ENDIF(NC_DOT)
 
   ELSE(DOXYGEN_FOUND)
-    MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
+    MESSAGE(WARNING "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
     SET(ENABLE_DOXYGEN OFF)
   ENDIF(DOXYGEN_FOUND)
 ENDIF()
@@ -1167,12 +1170,12 @@ ADD_SUBDIRECTORY(docs)
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 ENDIF()
 
@@ -1265,7 +1268,7 @@ INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config 
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT utilities)
 
@@ -1408,7 +1411,7 @@ MESSAGE(${LIBNETCDF_SETTINGS})
 # Install libnetcdf.settings file into same location
 # as the libraries.
 INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
-  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT libraries)
 
 #####

@@ -65,3 +65,7 @@ diffoc::
 	    fi; \
 	done
 
+backoc::
+	for f in ${FILES} ; do \
+	    cp -f ./$$f ${OCDIR}/$$f ; \
+	done
