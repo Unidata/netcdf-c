@@ -52,7 +52,7 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
 
 
 /* Set various general curl flags */
-int
+CURLcode
 ocset_curl_flags(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;

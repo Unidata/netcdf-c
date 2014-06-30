@@ -148,7 +148,6 @@ ENDIF()
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  OPTION(ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
   OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
@@ -170,11 +169,6 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   ENDIF()
 
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
-
-  # Unused var and parameter warnings create a lot of noise.
-  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-  ENDIF()
 
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
@@ -907,6 +901,7 @@ IF(ENABLE_PNETCDF)
   SET(HAVE_LIBPNETCDF ON)
   # pnetcdf => parallel
   SET(STATUS_PARALLEL "ON")
+  SET(USE_PARALLEL ON)
 ENDIF()
 
 # Enable Parallel Tests.
