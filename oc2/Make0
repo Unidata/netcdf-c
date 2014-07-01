@@ -33,7 +33,7 @@ makeoc::
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; \
 	done
-	rm -f ocdebug.h 
+	rm -f ocdebug.h XGetopt.[ch]
 	sed -e 's|^[#]if 1|#if 0|g' \
 	    < ${OCDIR}/ocdebug.h | tr -d '\r' >./ocdebug.h
 	# This should match the bison command in Makefile.am
