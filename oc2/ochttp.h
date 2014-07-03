@@ -4,6 +4,9 @@
 #ifndef HTTP_H
 #define HTTP_H 1
 
+extern int curlopen(CURL** curlp);
+extern void curlclose(CURL*);
+
 extern OCerror ocfetchurl(CURL*, const char*, OCbytes*, long*, struct OCcredentials*);
 extern OCerror ocfetchurl_file(CURL*, const char*, FILE*, off_t*, long*);
 

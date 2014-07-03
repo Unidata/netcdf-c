@@ -3,11 +3,15 @@ Release Notes {#release_notes}
 
 \brief Release notes file for the netcdf-c package.
 
-This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the netcdf-c++ and netcdf-fortran libraries have been separated into their own libraries.
+This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.3.3 Released TBD
 
 ### 4.3.3-rc1 Released TBD
+
+* Added a new option for cmake-based builds, `ENABLE_DOXYGEN_LATEX_OUTPUT`.  On those systems with `make` and `pdflatex`, setting this option **ON** will result in pdf versions of the documentation being built.  This feature is experimental.  
+
+* Bumped minimum CMake version to `2.8.9` from `2.8.8` as part of a larger pull request contributed by Nico Schlömer. [Pull Request #64](https://github.com/Unidata/netcdf-c/pull/64) 
 
 * Replaced the `NetCDF Library Architecture` image with an updated version from the 2012 NetCDF Workshop slides.  
 
@@ -76,6 +80,12 @@ This file contains a high-level description of this package's evolution. Release
 * Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
 
 * Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
+
+* Modified nc_{get/put}_vars to no longer use
+  nc_get/put_varm. They now directly use nc_get/put_vara
+  directly. This means that nc_get/put_vars now work
+  properly for user defined types as well as atomic types.
+  [NCF-228] (https://bugtracking.unidata.ucar.edu/browse/NCF-228)
 
 ## 4.3.1.1 Released 2014-02-05
 

@@ -1,16 +1,7 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-
-#####
-# Generate some tests from corresponding .m4 files.
-# Note, these generated files are maintained in git
-#####
-INCLUDE_DIRECTORIES(".")
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})
   GEN_m4(${F})
 ENDFOREACH()
-
 
 SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})

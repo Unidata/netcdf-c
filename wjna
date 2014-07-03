@@ -2,8 +2,8 @@
 
 REBUILD=1
 
-VS=12
-#VS=10
+#VS=12
+VS=10
 
 JNADIR="c:/opt/jna"
 

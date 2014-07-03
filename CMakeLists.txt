@@ -6,7 +6,7 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 #Project Name
 project(netCDF C)
@@ -136,14 +136,11 @@ INCLUDE(GenerateExportHeader)
 ################################
 
 # Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
 OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-SET(LIB_TYPE STATIC)
 IF(BUILD_SHARED_LIBS)
-  SET(LIB_TYPE SHARED)
-  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC")
-  ENDIF()
+  SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
 # Set some default linux gcc & apple compiler options for
@@ -151,7 +148,6 @@ ENDIF()
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  OPTION(ENABLE_USED_VAR_PAR_WARNINGS "Enable warnings for unused parameters and variables. Creates very noisy output." OFF)
   OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
@@ -176,11 +172,6 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 
   
-
-  # Unused var and parameter warnings create a lot of noise.
-  IF(NOT ENABLE_UNUSED_VAR_PAR_WARNINGS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
-  ENDIF()
 
   # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
@@ -470,8 +461,6 @@ ENDIF()
 # Option checks
 ################################
 
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 # HDF5 cache variables.
 SET(DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
 SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
@@ -514,7 +503,7 @@ OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 OPTION(ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
   IF(NOT HAVE_MREMAP)
-    MESSAGE(STATUS "mremap not found: disabling MMAP support.")
+    MESSAGE(WARNING "mremap not found: disabling MMAP support.")
     SET(ENABLE_MMAP OFF)
   ELSE()
     SET(HAVE_MMAP ON)
@@ -647,7 +636,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF()
   ENDIF()
-  
+
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
     # HDF5_C_LIBRARY may be defined.  We must check for either.
@@ -752,23 +741,27 @@ IF(ENABLE_DAP)
   ADD_DEFINITIONS(-DCURL_STATICLIB=1)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
-  # Check to see if CURLOPT_USERNAME is defined. It is present starting version 7.19.1
+  # Check to see if CURLOPT_USERNAME is defined.
+  # It is present starting version 7.19.1.
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
 
-# Check to see if CURLOPT_PASSWORD is defined. It is present starting version 7.19.1
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_PASSWORD is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
 
-# Check to see if CURLOPT_KEYPASSWD is defined. It is present starting version 7.16.4
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLOPT_KEYPASSWD is defined.
+  # It is present starting version 7.16.4.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
 
-# Check to see if CURLINFO_RESPONSE_CODE is defined. It showed up in curl 7.10.7
-CHECK_C_SOURCE_COMPILES("
+  # Check to see if CURLINFO_RESPONSE_CODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
 ENDIF()
@@ -856,7 +849,7 @@ IF(ENABLE_FSYNC)
   SET(USE_FSYNC ON)
 ENDIF()
 
-# Temporary 
+# Temporary
 OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
 IF(ENABLE_JNA)
   SET(JNA ON)
@@ -913,6 +906,7 @@ IF(ENABLE_PNETCDF)
   SET(HAVE_LIBPNETCDF ON)
   # pnetcdf => parallel
   SET(STATUS_PARALLEL "ON")
+  SET(USE_PARALLEL ON)
 ENDIF()
 
 # Enable Parallel Tests.
@@ -922,7 +916,7 @@ IF(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
 ENDIF()
 
 # Determine whether or not to generate documentation.
-OPTION(ENABLE_DOXYGEN "Enable generation of doxygen." OFF)
+OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
   IF(DOXYGEN_FOUND)
     # Offer the option to build internal documentation.
@@ -932,7 +926,7 @@ IF(ENABLE_DOXYGEN)
     ELSE()
       SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
     ENDIF()
-    
+
     # Option to turn on the TODO list in the doxygen-generated documentation.
     OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
     IF(ENABLE_DOXYGEN_TASKS)
@@ -941,16 +935,24 @@ IF(ENABLE_DOXYGEN)
       SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
     ENDIF(ENABLE_DOXYGEN_TASKS)
 
+    OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
+
+    IF(ENABLE_DOXYGEN_PDF_OUTPUT)
+      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
+    ELSE()
+      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
+    ENDIF()
+
     # Specify whether or not 'dot' was found on the system path.
     IF(NC_DOT)
       SET(HAVE_DOT YES CACHE STRING "")
     ELSE(NC_DOT)
-      SET(HAVE_DOT NO CACHE_STRING "")
+      SET(HAVE_DOT NO CACHE STRING "")
     ENDIF(NC_DOT)
 
   ELSE(DOXYGEN_FOUND)
-    MESSAGE(STATUS "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
-    SET(ENABLE_DOXYGEN=OFF)
+    MESSAGE(WARNING "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
+    SET(ENABLE_DOXYGEN OFF)
   ENDIF(DOXYGEN_FOUND)
 ENDIF()
 
@@ -1173,12 +1175,12 @@ ADD_SUBDIRECTORY(docs)
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 ENDIF()
 
@@ -1271,7 +1273,7 @@ INSTALL(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config 
+INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   COMPONENT utilities)
 
@@ -1374,49 +1376,10 @@ SET(abs_top_builddir "${CMAKE_BINARY_DIR}")
 
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
-
-# Build CFLAGS from debug and release flags as needed.
-SET(CFLAGS_TMP "${CMAKE_C_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(CFLAGS_TMP "${CFLAGS_TMP} ${CMAKE_C_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(CFLAGS_TMP "${CFLAGS_TMP} ${CMAKE_C_FLAGS_RELEASE}")
-ENDIF()
-
-SET(CFLAGS "${CFLAGS_TMP} ${CFLAGS}")
-# End CFLAGS
-
-# Build CPPFLAGS from debug and release flags as needed.
-SET(CPPFLAGS_TMP "${CMAKE_CPP_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(CPPFLAGS_TMP "${CPPFLAGS_TMP} ${CMAKE_CPP_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(CPPFLAGS_TMP "${CPPFLAGS_TMP} ${CMAKE_CPP_FLAGS_RELEASE}")
-ENDIF()
-
-SET(CPPFLAGS "${CPPFLAGS_TMP} ${CPPFLAGS}")
-# End CPPFLAGS
-
-# Build LDFLAGS from debug and release flags as needed.
-SET(LDFLAGS_TMP "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_LINKER_FLAGS}")
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-  SET(LDFLAGS_TMP "${LDFLAGS_TMP} ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CMAKE_LINKER_FLAGS_DEBUG}")
-ENDIF()
-
-IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-  SET(LDFLAGS_TMP "${LDFLAGS_TMP} ${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${CMAKE_LINKER_FLAGS_RELEASE}")
-ENDIF()
-
-SET(LDFLAGS "${LDFLAGS_TMP} ${LDFLAGS}")
-# End LDFLAGS
-
+# Build *FLAGS for libnetcdf.settings.
+SET(CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+SET(CPPFLAGS "${CMAKE_CPP_FLAGS} ${CMAKE_CPP_FLAGS_${CMAKE_BUILD_TYPE}}")
+SET(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BUILD_TYPE}}")
 
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
@@ -1453,7 +1416,7 @@ MESSAGE(${LIBNETCDF_SETTINGS})
 # Install libnetcdf.settings file into same location
 # as the libraries.
 INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
-  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT libraries)
 
 #####

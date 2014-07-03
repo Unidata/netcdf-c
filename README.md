@@ -1,4 +1,10 @@
-# Unidata NetCDF
+Unidata NetCDF
+==============
+
+<a href="https://scan.coverity.com/projects/157">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/157/badge.svg"/>
+</a>
 
 The Unidata network Common Data Form (netCDF) is an interface for
 scientific data access and a freely-distributed software library that
