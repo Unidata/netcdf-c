@@ -2656,9 +2656,13 @@ int nc4_convert_type(const void *src, void *dest,
         case NC_UINT64:
           for (bp = (signed char *)src, ulip = dest; count < len; count++)
             {
-              if (*bp < 0)
+              if (*bp < 0) {
                 (*range_error)++;
-              *ulip++ = *bp++;
+                ulip++;
+                bp++;
+              } else {
+                *ulip++ = *bp++;
+              }
             }
           break;
         case NC_FLOAT:
