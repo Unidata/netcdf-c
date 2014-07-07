@@ -6,7 +6,10 @@ alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias q
 #TOP="/home/dmh/mach/netcdf-c"
 TOP="/cygdrive/f/git/netcdf-c"
 
-F="http://thredds1.nkn.uidaho.edu:8080/thredds/dodsC/NWCSC_INTEGRATED_SCENARIOS_ALL_CLIMATE/macav2livneh/TEST/macav2livneh_nocompress_tasmax_CSIRO-Mk3-6-0_historical_1980_1989_CONUS.nc"
+F="http://www.monsoondata.org:9191/dods/foo"
+#F="http://www.monsoondata.org:9191/dods/gfs"
+
+#F="http://monsoondata.org:9090/dods/_expr_{gfs2/gfs.2014043000}{ave(t,lon=0,lon=360)}{0:0,-90:90,500:500,30apr2014:30apr2014}"
 
 #VAR=SPEED
 
@@ -22,7 +25,7 @@ PARMS="log"
 #PARMS="${PARMS}&nocache"
 #PARMS="${PARMS}&wholevar"
 PARMS="${PARMS}&show=fetch"
-PARMS="${PARMS}&noprefetch"
+#PARMS="${PARMS}&noprefetch"
 #PARMS="${PARMS}&prefetch"
 #PARMS="${PARMS}&prefetch=eager"
 

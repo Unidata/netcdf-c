@@ -6,6 +6,13 @@
 #include "ncdap.h"
 #include "dapdump.h"
 
+/*
+Grads servers always require a constraint,
+which does not necessarily happen during prefetch.
+So this flag controls this. By default, it is on.
+*/
+#define GRADS_PREFETCH
+
 static int iscacheableconstraint(DCEconstraint* con);
 
 /* Return 1 if we can reuse cached data to address
@@ -136,7 +143,7 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 
     /* Create a single constraint consisting of the projections for the variables;
        each projection is whole variable. The selections are passed on as is.
-       The exception is if we are prefetching everything.
+       Conditionally, The exception is if we are prefetching everything.
     */
 
     newconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
@@ -158,7 +165,9 @@ nullfree(s);
 }
 
     flags = NCF_PREFETCH;
+#ifndef GRADS_PREFETCH
     if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
+#endif
     ncstat = buildcachenode(nccomm,newconstraint,vars,&cache,flags);
     newconstraint = NULL; /* buildcachenodetakes control of newconstraint */
     if(ncstat != OC_NOERR) goto done;
@@ -214,7 +223,9 @@ buildcachenode(NCDAPCOMMON* nccomm,
     if((flags & NCF_PREFETCH) != 0)
 	isprefetch = 1;	
 
+#ifndef GRADS_PREFETCH
     if((flags & NCF_PREFETCH_ALL) == 0)
+#endif
         ce = buildconstraintstring(constraint);
 
     ncstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
