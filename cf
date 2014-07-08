@@ -23,6 +23,7 @@ CFLAGS=""
 
 stddir="/usr/local"
 PREFIX=/usr/local
+
 if test "x${cmds}" = x ; then
   cmds=""
 else
@@ -102,11 +103,6 @@ fi
 CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 
 
-if test -z "$NB" ; then
-${MAKE} maintainer-clean >/dev/null 2>&1
-if autoreconf -i --force ; then ok=1; else exit ; fi
-fi
-
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
@@ -180,6 +176,11 @@ export CXXFLAGS
 
 DISTCHECK_CONFIGURE_FLAGS="$FLAGS"
 export DISTCHECK_CONFIGURE_FLAGS
+
+if test -z "$NB" ; then
+${MAKE} maintainer-clean >/dev/null 2>&1
+if autoreconf -i --force ; then ok=1; else exit ; fi
+fi
 
 if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
 sh $X ./configure ${FLAGS}

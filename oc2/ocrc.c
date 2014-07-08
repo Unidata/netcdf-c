@@ -81,8 +81,8 @@ ocextract_credentials(const char *url, char **name, char **pw, char **result_url
 		url_len = strlen(url) - up_len;
 
 		*result_url = malloc(sizeof(char) * (url_len + 1));
-		if(*result_url == NULL)
-			return OC_ENOMEM;
+		if (*result_url == NULL)
+		    return OC_ENOMEM;
 
 		strncpy(*result_url, url, (size_t)(pos - url));
 		strncpy(*result_url + (pos - url), end + 1, url_len - (pos - url));
@@ -119,7 +119,6 @@ rcreadline(FILE* f, char* more, int morelen)
     more[i] = '\0';
     return 1;
 }
-
 
 /* Trim TRIMCHARS from both ends of text; */
 static void
@@ -173,7 +172,7 @@ parseproxy(OCstate* state, char* v)
         *port_sep = '\0';
         host_len = strlen(host_pos);
         state->proxy.host = malloc(sizeof(char) * host_len + 1);
-        if(state->proxy.host == NULL)
+        if (state->proxy.host == NULL)
             return OC_ENOMEM;
 
         strncpy(state->proxy.host, host_pos, host_len);
@@ -183,7 +182,7 @@ parseproxy(OCstate* state, char* v)
     } else {
         size_t host_len = strlen(host_pos);
         state->proxy.host = malloc(sizeof(char) * host_len + 1);
-        if(state->proxy.host == NULL)
+        if (state->proxy.host == NULL)
             return OC_ENOMEM;
 
         strncpy(state->proxy.host, host_pos, host_len);
@@ -196,13 +195,13 @@ parseproxy(OCstate* state, char* v)
     state->proxy.port = atoi(v);
     s_len = strlen(v);
     state->proxy.user = malloc(sizeof(char) * s_len + 1);
-    if(state->proxy.user == NULL)
+    if (state->proxy.user == NULL)
         return OC_ENOMEM;
      strncpy(state->proxy.user, v, s_len);
      state->proxy.user[s_len] = '\0';
      p_len = strlen(v);
      state->proxy.password = malloc(sizeof(char) * p_len + 1);
-     if(state->proxy.password == NULL)
+     if (state->proxy.password == NULL)
          return OC_ENOMEM;
      strncpy(state->proxy.password, v, p_len);
      state->proxy.password[p_len] = '\0';
@@ -295,7 +294,7 @@ ocdodsrc_read(char* basename, char* path)
     in_file = fopen(path, "r"); /* Open the file to read it */
     if (in_file == NULL) {
 	oclog(OCLOGERR, "Could not open configuration file: %s",basename);
-	return 0;
+	return OC_EPERM;
     }
 
     for(;;) {

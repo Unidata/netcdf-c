@@ -39,6 +39,7 @@ readDDS(OCstate* state, OCtree* tree)
     long lastmodified = -1;
 
     ocurisetconstraints(state->uri,tree->constraint);
+    ocset_user_password(state);
 
 #ifdef OCDEBUG
 fprintf(stderr,"readDDS:\n");

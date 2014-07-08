@@ -97,6 +97,7 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	CURLcode cstat = CURLE_OK;
 	size_t len;
         long httpcode = 0;
+
 	/* Set the URL */
 	cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
 	if (cstat != CURLE_OK)
@@ -113,7 +114,6 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 	    if (cstat != CURLE_OK)
 		goto fail;
 #else		
-        	char tbuf[1024];
 		snprintf(tbuf,1023,"%s:%s",creds->username,creds->password);	
 		cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, tbuf);
 		if (cstat != CURLE_OK)
@@ -121,6 +121,7 @@ ocfetchurl(CURL* curl, const char* url, OCbytes* buf, long* filetime,
 #endif
 	}
 #endif
+
 	/* send all data to this function  */
 	cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 	if (cstat != CURLE_OK)
@@ -330,15 +331,16 @@ ocping(const char* url)
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) return stat;    
 
-    /* use a very short timeout: 10 seconds */
-    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10);
-    if (cstat != CURLE_OK)
-        goto done;
     /* Use redirects */
     cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
     if (cstat != CURLE_OK)
         goto done;
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* use a very short timeout: 10 seconds */
+    cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)10);
     if (cstat != CURLE_OK)
         goto done;
 
