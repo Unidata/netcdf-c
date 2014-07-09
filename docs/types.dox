@@ -160,10 +160,14 @@ user-defined types or the new atomic data types.
 
 Once types are defined, use their ID like any other type ID when
 defining variables or attributes. Use functions
-nc_put_att()/nc_get_att() and the nc_put_var()/nc_get_var(),
-nc_put_var1()/nc_get_var1(), nc_put_vara()/nc_get_vara(), or
-nc_put_vars()/nc_get_vars() functons to access attribute and variable
-data of user defined type.
+
+- nc_put_att() / nc_get_att()
+- nc_put_var() / nc_get_var()
+- nc_put_var1() / nc_get_var1()
+- nc_put_vara() / nc_get_vara()
+- nc_put_vars() / nc_get_vars()
+
+functons to access attribute and variable data of user defined type.
 
 \subsection types_compound_types Compound Types
 
