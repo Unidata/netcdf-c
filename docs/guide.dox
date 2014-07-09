@@ -51,7 +51,7 @@ that makes the data useful.
 
 This User's Guide presents the netCDF data model. It explains how the
 netCDF data model uses dimensions, variables, and attributes to store
-data. 
+data.
 
 Reference documentation for UNIX systems, in the form of UNIX 'man'
 pages for the C and FORTRAN interfaces is also available at the netCDF
@@ -213,7 +213,7 @@ beginning of the file. In this documentation this format is called
 “64-bit offset format.”
 
 Since 64-bit offset format was introduced in version 3.6.0, earlier
-versions of the netCDF library can't read 64-bit offset files.  
+versions of the netCDF library can't read 64-bit offset files.
 
 \subsection netcdf_4_format NetCDF-4 Format
 
@@ -734,7 +734,7 @@ enumeration symbols) consist of arbitrary sequences of alphanumeric
 characters, underscore '_', period '.', plus '+', hyphen '-', or at
 sign '@', but beginning with an alphanumeric character or
 underscore. However names commencing with underscore are reserved for
-system use. 
+system use.
 
 Beginning with versions 3.6.3 and 4.0, names may also include UTF-8
 encoded Unicode characters as well as other special characters, except
@@ -742,11 +742,11 @@ for the character '/', which may not appear in a name.
 
 Names that have trailing space characters are also not permitted.
 
-Case is significant in netCDF names. 
+Case is significant in netCDF names.
 
 \subsection Name Length
 
-A zero-length name is not allowed.  
+A zero-length name is not allowed.
 
 Names longer than ::NC_MAX_NAME will not be accepted any netCDF define
 function. An error of ::NC_EMAXNAME will be returned.
@@ -759,7 +759,7 @@ characters.
 \subsection NetCDF Conventions
 
 Some widely used conventions restrict names to only alphanumeric
-characters or underscores. 
+characters or underscores.
 
 \section archival Is NetCDF a Good Archive Format?
 
@@ -783,7 +783,7 @@ and written compressed.
 
 Attribute conventions are assumed by some netCDF generic applications,
 e.g., ‘units’ as the name for a string attribute that gives the units
-for a netCDF variable. 
+for a netCDF variable.
 
 It is strongly recommended that applicable conventions be followed
 unless there are good reasons for not doing so. Below we list the
@@ -890,7 +890,7 @@ If valid values are specified using the valid_min, valid_max,
 valid_range, or _FillValue attributes, those values should be
 specified in the domain of the data in the file (the packed data), so
 that they can be interpreted before the scale_factor and add_offset
-are applied.  
+are applied.
 
 \subsection add_offset Add Offset
 
@@ -932,7 +932,7 @@ values should be treated as signed or unsigned. The attributes
 valid_min and valid_max may be used for this purpose. For example, if
 you intend that a byte variable store only non-negative values, you
 can use valid_min = 0 and valid_max = 255. This attribute is ignored
-by the netCDF library.  
+by the netCDF library.
 
 \subsection C_format C Format
 
@@ -945,7 +945,7 @@ be appropriate to define the C_format attribute as "%.3g". The ncdump
 utility program uses this attribute for variables for which it is
 defined. The format applies to the scaled (internal) type and value,
 regardless of the presence of the scaling attributes scale_factor and
-add_offset.  
+add_offset.
 
 \subsection FORTRAN_format FORTRAN format
 
@@ -957,7 +957,7 @@ be appropriate to define the FORTRAN_format attribute as "(G10.3)".
 \subsection title Title
 
 A global attribute that is a character array providing a succinct
-description of what is in the dataset.  
+description of what is in the dataset.
 
 \subsection history History
 
@@ -965,7 +965,7 @@ A global attribute for an audit trail. This is a character array with
 a line for each invocation of a program that has modified the
 dataset. Well-behaved generic netCDF applications should append a line
 containing: date, time of day, user name, program name and command
-arguments.  
+arguments.
 
 \subsection Conventions Conventions
 
@@ -1349,9 +1349,9 @@ declared as:
          ...
      float   temp[TIMES*LEVELS*LATS*LONS];
 \endcode
-     
+
      to keep the data in a one-dimensional array, or
-     
+
 \code
          ...
      float   temp[TIMES][LEVELS][LATS][LONS];
@@ -1377,9 +1377,9 @@ lon, varying fastest:
           temp[0][1][0][1]
           temp[0][1][0][2]
           temp[0][1][0][3]
-     
+
                 ...
-     
+
           temp[2][1][4][7]
           temp[2][1][4][8]
           temp[2][1][4][9]
@@ -2011,12 +2011,12 @@ For illustrative purposes, the following example will be used.
 Dataset {
   Int32 f1;
   Structure {
-    Int32 f11;        
+    Int32 f11;
     Structure {
       Int32 f1[3];
       Int32 f2;
-    } FS2[2]; 
-  } S1; 
+    } FS2[2];
+  } S1;
   Structure {
     Grid {
       Array:
@@ -2054,7 +2054,7 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     S2.G1.temp
     S2.G2.G2
     lat
-    lon 
+    lon
 \endcode
 
 \subsection var_dim_trans Variable Dimension Translation
@@ -2090,7 +2090,7 @@ variables.
         S2.G2.lat -> S2.G2.lat[lat=2]
         S2.G2.lon -> S2.G2.lon[lon=2]
         lat -> lat[lat=2]
-        lon -> lon[lon=2] 
+        lon -> lon[lon=2]
 \endcode
 
 Collect all of the dimension specifications from the DDS, both named
@@ -2105,7 +2105,7 @@ example, this would create the following dimensions.
         S1.FS2.f1_1 = 3 ;
         S1.FS2.f2_0 = 2 ;
         S2.G2.lat_0 = 2 ;
-        S2.G2.lon_0 = 2 ; 
+        S2.G2.lon_0 = 2 ;
 \endcode
 
 If however, the anonymous dimension is the single dimension of a MAP
@@ -2114,7 +2114,7 @@ vector This leads to the following.
 
 \code
         S2.G2.lat_0 -> S2.G2.lat
-        S2.G2.lon_0 -> S2.G2.lon 
+        S2.G2.lon_0 -> S2.G2.lon
 \endcode
 
 For each unique named dimension "<name>=NN", create a netCDF dimension
@@ -2124,7 +2124,7 @@ duplicates are ignored. This produces the following.
 
 \code
         S2.G2.lat -> lat
-        S2.G2.lon -> lon 
+        S2.G2.lon -> lon
 \endcode
 
 Note that this produces duplicates that will be ignored later.
@@ -2166,16 +2166,16 @@ following fields would be collected.
         S2.G1.temp
         S2.G2.G2
         lat
-        lon 
+        lon
 \endcode
 
 All grid array variables are renamed to be the same as the containing
 grid and the grid prefix is removed. In the above DDS, this results in
 the following changes.
 
-\code    
+\code
         G1.temp -> G1
-        G2.G2 -> G2 
+        G2.G2 -> G2
 \endcode
 
 It is important to note that this process could produce duplicate
@@ -2254,7 +2254,7 @@ Dataset {
       Int32 f1[3];
       Int32 f2;
     } SQ1;
-  } S1[2]; 
+  } S1[2];
   Sequence {
     Structure {
       Int32 x1[7];
@@ -2428,56 +2428,56 @@ follows.
     HTTP.VERBOSE
         Type: boolean ("1"/"0")
         Description: Produce verbose output, especially using SSL.
-        Related CURL Flags: CURLOPT_VERBOSE 
+        Related CURL Flags: CURLOPT_VERBOSE
     HTTP.DEFLATE
         Type: boolean ("1"/"0")
         Description: Allow use of compression by the server.
-        Related CURL Flags: CURLOPT_ENCODING 
+        Related CURL Flags: CURLOPT_ENCODING
     HTTP.COOKIEJAR
         Type: String representing file path
         Description: Specify the name of file into which to store cookies. Defaults to in-memory storage.
-        Related CURL Flags:CURLOPT_COOKIEJAR 
+        Related CURL Flags:CURLOPT_COOKIEJAR
     HTTP.COOKIEFILE
         Type: String representing file path
         Description: Same as HTTP.COOKIEJAR.
-        Related CURL Flags: CURLOPT_COOKIEFILE 
+        Related CURL Flags: CURLOPT_COOKIEFILE
     HTTP.CREDENTIALS.USER
         Type: String representing user name
         Description: Specify the user name for Digest and Basic authentication.
-        Related CURL Flags: 
+        Related CURL Flags:
     HTTP.CREDENTIALS.PASSWORD
         Type: String representing password
         Type: boolean ("1"/"0")
         Description: Specify the password for Digest and Basic authentication.
-        Related CURL Flags: 
+        Related CURL Flags:
     HTTP.SSL.CERTIFICATE
         Type: String representing file path
         Description: Path to a file containing a PEM cerficate.
-        Related CURL Flags: CURLOPT_CERT 
+        Related CURL Flags: CURLOPT_CERT
     HTTP.SSL.KEY
         Type: String representing file path
         Description: Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.
-        Related CURL Flags: CURLOPT_SSLKEY 
+        Related CURL Flags: CURLOPT_SSLKEY
     HTTP.SSL.KEYPASSWORD
         Type: String representing password
         Description: Password for accessing the HTTP.SSL.KEY/HTTP.SSL.CERTIFICATE
-        Related CURL Flags: CURLOPT_KEYPASSWORD 
+        Related CURL Flags: CURLOPT_KEYPASSWORD
     HTTP.SSL.CAPATH
         Type: String representing directory
         Description: Path to a directory containing trusted certificates for validating server sertificates.
-        Related CURL Flags: CURLOPT_CAPATH 
+        Related CURL Flags: CURLOPT_CAPATH
     HTTP.SSL.VALIDATE
         Type: boolean ("1"/"0")
         Description: Cause the client to verify the server's presented certificate.
-        Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST 
+        Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST
     HTTP.TIMEOUT
         Type: String ("dddddd")
         Description: Specify the maximum time in seconds that you allow the http transfer operation to take.
-        Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL 
+        Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL
     HTTP.PROXY_SERVER
         Type: String representing url to access the proxy: (e.g.http://[username:password@]host[:port])
         Description: Specify the needed information for accessing a proxy.
-        Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD 
+        Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD
 </pre>
 
 The related curl flags line indicates the curl flags modified by this
@@ -2491,7 +2491,7 @@ For ESG client side key support, the following entries must be specified:
     HTTP.COOKIEJAR
     HTTP.SSL.CERTIFICATE
     HTTP.SSL.KEY
-    HTTP.SSL.CAPATH 
+    HTTP.SSL.CAPATH
 \endcode
 
 Additionally, for ESG, the HTTP.SSL.CERTIFICATE and HTTP.SSL.KEY
@@ -2608,15 +2608,15 @@ in nc_test4/run_bm_elena.sh.
 
 <pre>
      #!/bin/sh
-     
+
      # This shell runs some benchmarks that Elena ran as described here:
      # http://hdfeos.org/workshops/ws06/presentations/Pourmal/HDF5_IO_Perf.pdf
-     
+
      # $Id: netcdf.texi,v 1.82 2010/05/15 20:43:13 dmh Exp $
-     
+
      set -e
      echo ""
-     
+
      echo "*** Testing the benchmarking program bm_file for simple float file, no compression..."
      ./bm_file -h -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:1024:16:256 tst_elena_int_3D.nc
      ./bm_file -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:1024:256:256 tst_elena_int_3D.nc
@@ -2625,7 +2625,7 @@ in nc_test4/run_bm_elena.sh.
      ./bm_file -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:256:64:256 tst_elena_int_3D.nc
      ./bm_file -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:256:256:256 tst_elena_int_3D.nc
      echo '*** SUCCESS!!!'
-     
+
      exit 0
 </pre>
 
@@ -2669,16 +2669,16 @@ data.
 
 \code
      netcdf foo {    // example netCDF specification in CDL
-     
+
      dimensions:
      lat = 10, lon = 5, time = unlimited;
-     
+
      variables:
        int     lat(lat), lon(lon), time(time);
        float   z(time,lat,lon), t(time,lat,lon);
        double  p(time,lat,lon);
        int     rh(time,lat,lon);
-     
+
        lat:units = "degrees_north";
        lon:units = "degrees_east";
        time:units = "seconds";
@@ -2686,7 +2686,7 @@ data.
        z:valid_range = 0., 5000.;
        p:_FillValue = -9999.;
        rh:_FillValue = -1;
-     
+
      data:
        lat   = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90;
        lon   = -140, -118, -96, -84, -52;
@@ -2810,7 +2810,7 @@ The CDL primitive data types for the classic model are:
 - long - (Deprecated, synonymous with int)
 - float - IEEE single-precision floating point (32 bits).
 - real - (Synonymous with float).
-- double - IEEE double-precision floating point (64 bits). 
+- double - IEEE double-precision floating point (64 bits).
 
 NetCDF-4 supports the additional primitive types:
 - ubyte - Unsigned eight-bit integers.
@@ -2818,7 +2818,7 @@ NetCDF-4 supports the additional primitive types:
 - uint - Unsigned 32-bit integers.
 - int64 - 64-bit singed integers.
 - uint64 - Unsigned 64-bit singed integers.
-- string - Variable-length string of characters 
+- string - Variable-length string of characters
 
 Except for the added numeric data-types byte and ubyte, CDL supports
 the same numeric primitive
@@ -2984,7 +2984,7 @@ extended as necessary.
 The ncgen man-page reference has more details about CDL representation
 of constants of user-defined types.
 
-\section guide_ncdump ncdump 
+\section guide_ncdump ncdump
 
 Convert NetCDF file to text form (CDL)
 
@@ -3047,7 +3047,7 @@ be appropriate to use the variable attribute
 
 \subsection ncdump_OPTIONS ncdump options
 
-@par -c 
+@par -c
 Show the values of \e coordinate \e variables (1D variables with the
 same names as dimensions) as well as the declarations of all
 dimensions, variables, attribute values, groups, and user-defined
@@ -3063,9 +3063,9 @@ for any variables. The output is identical to using the '-c' option
 except that the values of coordinate variables are not included. (At
 most one of '-c' or '-h' options may be present.)
 
-@par -v \a var1,...  
+@par -v \a var1,...
 
-@par 
+@par
 The output will include data values for the specified variables, in
 addition to the declarations of all dimensions, variables, and
 attributes. One or more variables must be specified by name in the
@@ -3156,7 +3156,7 @@ than the logical schema of the data. All the special virtual
 attributes begin with '_' followed by an upper-case
 letter. Currently they include the global attribute '_Format' and
 the variable attributes '_ChunkSizes', '_DeflateLevel',
-'_Endianness', '_Fletcher32', '_NoFill', '_Shuffle', and '_Storage'. 
+'_Endianness', '_Fletcher32', '_NoFill', '_Shuffle', and '_Storage'.
 The \b ncgen utility recognizes these attributes and
 supports them appropriately.
 
@@ -3231,7 +3231,7 @@ omega:
 Examine the translated DDS for the DAP source from the specified URL:
 
 \code
-   ncdump -h http://test.opendap.org:8080/dods/dts/test.01 
+   ncdump -h http://test.opendap.org:8080/dods/dts/test.01
 \endcode
 
 Without dumping all the data, show the special virtual attributes that indicate
@@ -3372,7 +3372,7 @@ each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
 appear in the chunkspec string, except possibly escaped blanks that
 are part of a dimension name.  A chunkspec names dimensions along
-which chunking is to take place, and omits dimensions which are 
+which chunking is to take place, and omits dimensions which are
 not to be chunked or for
 which the default chunk length is desired.  If a dimension name is
 followed by a '/' character but no subsequent chunk length, the actual
@@ -3381,7 +3381,7 @@ netCDF-4 output file and not naming all dimensions in the chunkspec,
 unnamed dimensions will also use the actual dimension length for the
 chunk length.  An example of a chunkspec for variables that use
 'm' and 'n' dimensions might be 'm/100,n/200' to specify 100 by 200
-chunks.  
+chunks.
 
 \par
 The chunkspec '/' that omits all dimension names and
@@ -3402,9 +3402,9 @@ programming interface has no such restriction.  If you need to
 customize chunking for variables independently, you will need to use
 the library API in a custom utility program.
 
-\par -v \a var1,...  
+\par -v \a var1,...
 
-\par 
+\par
 The output will include data values for the specified variables, in
 addition to the declarations of all dimensions, variables, and
 attributes. One or more variables must be specified by name in the
@@ -3418,9 +3418,9 @@ file may be specified with an absolute path name, such as
 default, without this option, is to include data values for \e all variables
 in the output.
 
-\par -V \a var1,...  
+\par -V \a var1,...
 
-\par 
+\par
 The output will include the specified variables only but all dimensions and
 global or group attributes. One or more variables must be specified by name in the
 comma-delimited list following this option. The list must be a single argument
@@ -3485,7 +3485,7 @@ better performance, if the output fits in memory.
 \par
 For netCDF-4 output, including netCDF-4 classic model, specifies
 number of chunks that the chunk cache can hold. A suffix of K, M, G,
-or T multiplies the number of chunks that can be held in the cache 
+or T multiplies the number of chunks that can be held in the cache
 by one thousand, million, billion, or trillion, respectively.  This is not a
 property of the file, but merely a performance tuning parameter for
 avoiding compressing or decompressing the same data multiple times
@@ -3640,7 +3640,7 @@ arguments to the -k flag can be as follows.
         1, classic – Produce a netcdf classic file format file.
         2, 64-bit-offset, '64-bit offset' – Produce a netcdf 64 bit classic file format file.
         3, hdf5, netCDF-4, enhanced – Produce a netcdf-4 format file.
-        4, hdf5-nc3, 'netCDF-4 classic model', enhanced-nc3 – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input. 
+        4, hdf5-nc3, 'netCDF-4 classic model', enhanced-nc3 – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
 
 Note that the -v flag is a deprecated alias for -k.
 
@@ -4094,7 +4094,7 @@ components and values.
        C   D   F 001  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
        17220   17921   00000   00000   00000   00000   00000   00000
      [magic number ] [  0 records  ] [  0 dimensions   (ABSENT)    ]
-     
+
         0000    0000    0000    0000    0000    0000    0000    0000
       \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
        00000   00000   00000   00000   00000   00000   00000   00000
@@ -4121,27 +4121,27 @@ which corresponds to a 92-byte netCDF file. The following is an edited dump of t
        C   D   F 001  \0  \0  \0  \0  \0  \0  \0  \n  \0  \0  \0 001
        17220   17921   00000   00000   00000   00010   00000   00001
      [magic number ] [  0 records  ] [NC_DIMENSION ] [ 1 dimension ]
-     
+
         0000    0003    6469    6d00    0000    0005    0000    0000
       \0  \0  \0 003   d   i   m  \0  \0  \0  \0 005  \0  \0  \0  \0
        00000   00003   25705   27904   00000   00005   00000   00000
      [  3 char name = "dim"        ] [ size = 5    ] [ 0 global atts
-     
+
         0000    0000    0000    000b    0000    0001    0000    0002
       \0  \0  \0  \0  \0  \0  \0 013  \0  \0  \0 001  \0  \0  \0 002
        00000   00000   00000   00011   00000   00001   00000   00002
       (ABSENT)     ] [NC_VARIABLE  ] [ 1 variable  ] [ 2 char name =
-     
+
         7678    0000    0000    0001    0000    0000    0000    0000
        v   x  \0  \0  \0  \0  \0 001  \0  \0  \0  \0  \0  \0  \0  \0
        30328   00000   00000   00001   00000   00000   00000   00000
       "vx"         ] [1 dimension  ] [ with ID 0   ] [ 0 attributes
-     
+
         0000    0000    0000    0003    0000    000c    0000    0050
       \0  \0  \0  \0  \0  \0  \0 003  \0  \0  \0  \f  \0  \0  \0   P
        00000   00000   00000   00003   00000   00012   00000   00080
       (ABSENT)     ] [type NC_SHORT] [size 12 bytes] [offset:    80]
-     
+
         0003    0001    0004    0001    0005    8001
       \0 003  \0 001  \0 004  \0 001  \0 005 200 001
        00003   00001   00004   00001   00005  -32767
@@ -4336,11 +4336,11 @@ However, these may be different. Consider the following code:
 \code
            /* Create a test file. */
            if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_NETCDF4, &ncid)) ERR;
-     
+
            /* Define dimensions in order. */
            if (nc_def_dim(ncid, DIM0, NC_UNLIMITED, &dimids[0])) ERR;
            if (nc_def_dim(ncid, DIM1, 4, &dimids[1])) ERR;
-     
+
            /* Define coordinate variables in a different order. */
            if (nc_def_var(ncid, DIM1, NC_DOUBLE, 1, &dimids[1], &varid[1])) ERR;
            if (nc_def_var(ncid, DIM0, NC_DOUBLE, 1, &dimids[0], &varid[0])) ERR;
@@ -4385,7 +4385,7 @@ little-endian has been specified for that variable.)
 - NC_INT64 = H5T_NATIVE_LLONG
 - NC_UINT64 = H5T_NATIVE_ULLONG
 - NC_FLOAT = H5T_NATIVE_FLOAT
-- NC_DOUBLE = H5T_NATIVE_DOUBLE 
+- NC_DOUBLE = H5T_NATIVE_DOUBLE
 
 The NC_CHAR type represents a single character, and the NC_STRING an
 array of characters. This can be confusing because a one-dimensional
@@ -4417,7 +4417,7 @@ ignored by the netCDF-4 API.
   dimension scale API.
 - NAME This attribute is created and maintained by the HDF5 dimension
   scale API.
-- _Netcdf4Dimid Holds a scalar H5T_NATIVE_INT that is the (zero-based) 
+- _Netcdf4Dimid Holds a scalar H5T_NATIVE_INT that is the (zero-based)
   dimension ID for this dimension, needed when dimensions and
   coordinate variables are defined in different orders.
 
@@ -4426,7 +4426,7 @@ ignored by the netCDF-4 API.
 Each user-defined data type in an HDF5 file exactly corresponds to a
 user-defined data type in the netCDF-4 file. Only base data types
 which correspond to netCDF-4 data types may be used. (For example, no
-HDF5 reference data types may be used.)  
+HDF5 reference data types may be used.)
 
 \subsection compression_spec Compression
 
@@ -4491,7 +4491,7 @@ straighforward manner.
 - DFNT_INT32 = NC_INT
 - DFNT_UINT32 = NC_UINT
 - DFNT_FLOAT32 = NC_FLOAT
-- DFNT_FLOAT64 = NC_DOUBLE 
+- DFNT_FLOAT64 = NC_DOUBLE
 
 
 */

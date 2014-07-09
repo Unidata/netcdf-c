@@ -1,11 +1,11 @@
-/** \file 
+/** \file
 Documentation of error handling.
 
 \page programming_notes Programming Notes
 
 \tableofcontents
 
-\section error_handling Error Handling
+\section sec_error_handling Error Handling
 
 Each netCDF function returns an integer status value. Non-zero values
 indicate error.
@@ -26,7 +26,7 @@ netCDF library. For example, if a write operation causes you to exceed
 disk quotas or to attempt to write to a device that is no longer
 available, you may get an error from a layer below the netCDF library,
 but the resulting write error will still be reflected in the returned
-status value.  
+status value.
 
 \section ignored_if_null Ignored if NULL
 
@@ -41,7 +41,7 @@ A NULL may be passed for any of these pointers, and it will be
 ignored. For example, interested in the number of dimensions only, the
 following code will work:
 
-\code 
+\code
 int ndims;
 ...
 if (nc_inq(ncid, &ndims, NULL, NULL, NULL))
@@ -61,19 +61,19 @@ with vectors which specify the start, count, stride, and mapping.
 \subsection start_vector A Vector Specifying Start Index for Each Dimension
 
 A vector of size_t integers specifying the index in the
-variable where the first of the data values will be read. 
+variable where the first of the data values will be read.
 
 The indices are relative to 0, so for example, the first data value of
-a variable would have index (0, 0, ... , 0). 
+a variable would have index (0, 0, ... , 0).
 
 The length of start vector must be the same as the number of
 dimensions of the specified variable. The elements of start
-correspond, in order, to the variable's dimensions. 
+correspond, in order, to the variable's dimensions.
 
 \subsection count_vector A Vector Specifying Count for Each Dimension
 
 A vector of size_t integers specifying the edge lengths
-along each dimension of the block of data values to be read. 
+along each dimension of the block of data values to be read.
 
 To read a single value, for example, specify count as (1, 1, ... , 1).
 
@@ -91,7 +91,7 @@ indices.
 
 A value of 1 accesses adjacent values of the netCDF variable in the
 corresponding dimension; a value of 2 accesses every other value of
-the netCDF variable in the corresponding dimension; and so on. 
+the netCDF variable in the corresponding dimension; and so on.
 
 The elements of the stride vector correspond, in order, to the
 variable's dimensions.
