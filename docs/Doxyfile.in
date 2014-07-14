@@ -746,6 +746,7 @@ WARN_LOGFILE           =
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/COPYRIGHT \
+    @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/groups.dox \
     @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/docs/install.md \
@@ -753,8 +754,6 @@ INPUT = \
     @abs_top_srcdir@/docs/dispatch.dox \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/notes.dox \
-    @abs_top_srcdir@/docs/cdl.dox \
-    @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
@@ -762,14 +761,14 @@ INPUT = \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
-    @abs_top_srcdir@/libdispatch/datt.c \
-    @abs_top_srcdir@/libdispatch/dattget.c \
-    @abs_top_srcdir@/libdispatch/dattinq.c \
-    @abs_top_srcdir@/libdispatch/dattput.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
     @abs_top_srcdir@/libdispatch/dvarget.c \
     @abs_top_srcdir@/libdispatch/dvarinq.c \
     @abs_top_srcdir@/libdispatch/dvarput.c \
+    @abs_top_srcdir@/libdispatch/datt.c \
+    @abs_top_srcdir@/libdispatch/dattget.c \
+    @abs_top_srcdir@/libdispatch/dattinq.c \
+    @abs_top_srcdir@/libdispatch/dattput.c \
     @abs_top_srcdir@/libdispatch/dgroup.c \
     @abs_top_srcdir@/libdispatch/dtype.c \
     @abs_top_srcdir@/libdispatch/dcompound.c \

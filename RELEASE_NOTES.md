@@ -12,11 +12,11 @@ This file contains a high-level description of this package's evolution. Release
 * Jennifer Adams has requested a reversion in behavior so that all dap requests include a constraint. Problem is caused by change in prefetch where if all variables are requested, then no constraint is generated.  Fix is to always generate a constraint in prefetch.
   [NCF-308](https://bugtracking.unidata.ucar.edu/browse/NCF-308)
 
-* Added a new option for cmake-based builds, `ENABLE_DOXYGEN_LATEX_OUTPUT`.  On those systems with `make` and `pdflatex`, setting this option **ON** will result in pdf versions of the documentation being built.  This feature is experimental.  
+* Added a new option for cmake-based builds, `ENABLE_DOXYGEN_LATEX_OUTPUT`.  On those systems with `make` and `pdflatex`, setting this option **ON** will result in pdf versions of the documentation being built.  This feature is experimental.
 
-* Bumped minimum CMake version to `2.8.9` from `2.8.8` as part of a larger pull request contributed by Nico Schlömer. [Pull Request #64](https://github.com/Unidata/netcdf-c/pull/64) 
+* Bumped minimum CMake version to `2.8.9` from `2.8.8` as part of a larger pull request contributed by Nico Schlömer. [Pull Request #64](https://github.com/Unidata/netcdf-c/pull/64)
 
-* Replaced the `NetCDF Library Architecture` image with an updated version from the 2012 NetCDF Workshop slides.  
+* Replaced the `NetCDF Library Architecture` image with an updated version from the 2012 NetCDF Workshop slides.
 
 * Fix HDF4 files to support chunking.
   [NCF-272](https://bugtracking.unidata.ucar.edu/browse/NCF-272)
@@ -26,7 +26,7 @@ This file contains a high-level description of this package's evolution. Release
 
 * Renamed `man4/` directory to `docs/` to make the purpose and contents clearer. See [man4 vs. docs #60](https://github.com/Unidata/netcdf-c/issues/60).
 
-* Removed redundant variable `BUILD_DOCS` from the CMake configuration file.  See the issue at github: [BUILD\_DOCS, ENABLE\_DOXYGEN #59](https://github.com/Unidata/netcdf-c/issues/59).
+* Removed redundant variable `BUILD_DOCS` from the CMake configuration file.  See the issue at github: [#59](https://github.com/Unidata/netcdf-c/issues/59).
 
 * Added missing documentation templates to `man4/Makefile.am`, to correct an issue when trying to build the local `Doxygen`-generated documentation. This issue was reported by Nico Schlömer and may be viewed on github.  [Releases miss Doxygen files #56](https://github.com/Unidata/netcdf-c/issues/56)
 
@@ -43,7 +43,7 @@ This file contains a high-level description of this package's evolution. Release
 	* `NC_TEST_DROP_SITE` - Specify an alternative Dashboard by URL or IP address.
 
 	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
-	
+
 * Return an error code on open instead of an assertion violation for truncated file.
 
 ### 4.3.2-rc2 Released 2014-04-15
@@ -59,7 +59,7 @@ This file contains a high-level description of this package's evolution. Release
 	* `hdf5: 1.8.12`
 	* `zlib: 1.2.8`
 	* `libcurl: 7.35.0`
-	
+
 * Added a separate flag to enable DAP AUTH tests. These tests are disabled by default.  The flags for autotools and CMAKE-based builds are (respectively):
 	* --enable-dap-auth-tests
 	* -DENABLE\_DAP\_AUTH\_TESTS
@@ -114,7 +114,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 * Addressed an issue reported by Jeff Whitaker regarding `nc_inq_nvars` returning an incorrect number of dimensions (this issue was introduced in 4.3.1-rc5).  Integrated a test contributed by Jeff Whitaker.
 
-* A number of previously-disabled unit tests were reviewed and made active. 
+* A number of previously-disabled unit tests were reviewed and made active.
 
 
 ### 4.3.1-rc5 Released 2013-12-06
@@ -178,7 +178,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 * Modify ncgen to support disambiguating references to
   an enum constant in a data list. [NCF-265]
-  
+
 [NCF-265]:https://bugtracking.unidata.ucar.edu/browse/NCF-265
 
 * Corrected bug in netCDF-4 dimension ID ordering assumptions, resulting in access that works locally but fails through DAP server. [NCF-166]
@@ -224,8 +224,8 @@ This is a bug-fix-only release for version 4.3.1.
 	$ git clone https://github.com/Unidata/netCDF-C.git
 
 * Note: in this release, it is necessary to generate the `configure` script and makefile templates using `autoreconf` in the root netCDF-C directory.:
-	
-	$ autoreconf -i -f 
+
+	$ autoreconf -i -f
 
 * Added `nc_rename_grp` to allow for group renaming in netCDF-4 files. [NCF-204]
 
@@ -240,7 +240,7 @@ This is a bug-fix-only release for version 4.3.1.
 * Added support for dynamic loading, to compliment the dynamic loading support introduced in hdf 1.8.11.  Dynamic loading support depends on libdl, and is enabled as follows: [NCF-258]
 	* autotools-based builds: --enable-dynamic-loading
 	* cmake-based builds: -DENABLE\_DYNAMIC\_LOADING=ON
-	
+
 [NCF-258]: https://www.unidata.ucar.edu/jira/browse/NCF-258
 
 * Fix issue of netCDF-4 parallel independent access with unlimited dimension hanging.  Extending the size of an unlimited dimension in HDF5 must be a collective operation, so now an error is returned if trying to extend in independent access mode. [NCF-250]
@@ -707,7 +707,7 @@ contiguous blocks of memory. [NCF-69]
 
 * Make changes necessary for upgrading to HDF5 1.8.7 [NCF-66]
 
-### 4.1.3-rc1 2011-05-06 
+### 4.1.3-rc1 2011-05-06
 
 * Stop looking for xdr if --disable-dap is used.
 
@@ -1331,7 +1331,7 @@ dimension sizes between 2\^31 and 2\^32 (for byte variables).
 
 * Fixed ncgen to properly handle dimensions between 2\^31 and 2\^32.
 
-### 3.6.0-beta2 
+### 3.6.0-beta2
 
 * Added -v2 (version 2 format with 64-bit offsets) option to
 ncgen, to specify that generated files or generated C/Fortran code
@@ -1349,7 +1349,7 @@ part of the build process. VC++ with managed extensions is required
 
 * Added windows installer files to build windows binary installs.
 
-### 3.6.0-beta1 
+### 3.6.0-beta1
 
 * By incorporating Greg Sjaardema's patch, added support for
 64-bit offset files, which remove many of the restrictions relating to
@@ -1365,7 +1365,7 @@ format testing, and once for 64-bit offset format testing.
 * The implementation of the Fortran-77 interface has been adapted to
 version 4.3 of Burkhard Burow's "cfortran.h".
 
-### 3.6.0-alpha 
+### 3.6.0-alpha
 
 * Added NEC SX specific optimization for NFILL tunable
 parameter in libsrc/putget.c
