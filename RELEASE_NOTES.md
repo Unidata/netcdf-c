@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Bumped minimum required version of `cmake` to `2.8.12`.  This was necessitated by the adoption of the new `CMAKE_MACOSX_RPATH` property, for use on OSX.
+
 * Jennifer Adams has requested a reversion in behavior so that all dap requests include a constraint. Problem is caused by change in prefetch where if all variables are requested, then no constraint is generated.  Fix is to always generate a constraint in prefetch.
   [NCF-308](https://bugtracking.unidata.ucar.edu/browse/NCF-308)
 
