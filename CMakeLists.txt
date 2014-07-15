@@ -6,11 +6,12 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.12)
 
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
+
 #####
 # Version Info:
 #
@@ -428,12 +429,9 @@ IF(NOT MSVC)
   # (but later on when installing)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-  # Stanza for Apple RPATH.
-  # See: http://www.cmake.org/pipermail/cmake/2011-April/043826.html
-  #
-  IF(APPLE)
-    SET(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-  ENDIF(APPLE)
+  if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+  endif(APPLE)
 
   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
@@ -441,11 +439,13 @@ IF(NOT MSVC)
   # which point to directories outside the build tree to the install RPATH
   SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-  # the RPATH to be used when installing, but only if it's not a system directory
+  # the RPATH to be used when installing,
+  # but only if it's not a system directory
   LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
   IF("${isSystemDir}" STREQUAL "-1")
     SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   ENDIF("${isSystemDir}" STREQUAL "-1")
+
 ENDIF()
 
 ##
