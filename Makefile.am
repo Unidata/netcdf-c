@@ -93,7 +93,7 @@ docs $(EXAMPLES) \
 $(UDUNITS) $(LIBCF)
 
 # Remove these generated files, for a distclean.
-DISTCLEANFILES = VERSION comps.txt test_prog
+DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings
 
 # The nc-config script helps the user build programs with netCDF.
 bin_SCRIPTS = nc-config
@@ -101,6 +101,7 @@ bin_SCRIPTS = nc-config
 # What needs to go in the binrary dist?
 BINFILES = README_BINARIES.txt
 BINFILES += include/netcdf.h share/man/man3/netcdf.3 lib/libnetcdf.a
+BINFILES += libnetcdf.settings
 ZIPBINFILES = ${prefix}/include/netcdf.h ${prefix}/share/man/man3/netcdf.3 ${prefix}/lib/libnetcdf.a
 
 if BUILD_UTILITIES
@@ -116,6 +117,10 @@ lib/libnetcdf.la lib/netcdfdll.def
 ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
 ${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 endif # BUILD_DLL
+
+# install libnetcdf.settings in lib directory.
+settingsdir=$(libdir)
+settings_DATA=libnetcdf.settings
 
 # At Unidata, package up binaries.
 ftpbin: install
