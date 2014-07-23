@@ -664,7 +664,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF(NOT MSVC)
 
   # Assert HDF5 version.
-  SET(HDF5_VERSION_REQUIRED 1.8.6)
+  SET(HDF5_VERSION_REQUIRED 1.8.8)
   execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
     OUTPUT_VARIABLE HDF5_VERSION
     ERROR_QUIET
