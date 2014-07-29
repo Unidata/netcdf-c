@@ -183,8 +183,10 @@ parseproxy(OCstate* state, char* v)
     } else {
         size_t host_len = strlen(host_pos);
         state->proxy.host = malloc(sizeof(char) * host_len + 1);
-        if (state->proxy.host == NULL)
-            return OC_ENOMEM;
+        if (state->proxy.host == NULL) {
+          if(host_pos) free(host_pos);
+          return OC_ENOMEM;
+        }
 
         strncpy(state->proxy.host, host_pos, host_len);
         state->proxy.host[host_len] = '\0';
