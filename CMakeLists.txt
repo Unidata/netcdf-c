@@ -6,11 +6,12 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.12)
 
 #Project Name
 project(netCDF C)
 set(PACKAGE "netCDF" CACHE STRING "")
+
 #####
 # Version Info:
 #
@@ -48,7 +49,6 @@ ENDIF()
 # Determine if DOXYGEN and DOT are available.  These will be used
 # when building the documentation.
 
-FIND_PACKAGE(Doxygen)
 FIND_PROGRAM(NC_DOT NAMES dot)
 
 # For CMAKE_INSTALL_LIBDIR
@@ -428,12 +428,9 @@ IF(NOT MSVC)
   # (but later on when installing)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-  # Stanza for Apple RPATH.
-  # See: http://www.cmake.org/pipermail/cmake/2011-April/043826.html
-  #
-  IF(APPLE)
-    SET(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-  ENDIF(APPLE)
+  if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+  endif(APPLE)
 
   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
@@ -441,11 +438,13 @@ IF(NOT MSVC)
   # which point to directories outside the build tree to the install RPATH
   SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-  # the RPATH to be used when installing, but only if it's not a system directory
+  # the RPATH to be used when installing,
+  # but only if it's not a system directory
   LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
   IF("${isSystemDir}" STREQUAL "-1")
     SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   ENDIF("${isSystemDir}" STREQUAL "-1")
+
 ENDIF()
 
 ##
@@ -665,7 +664,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF(NOT MSVC)
 
   # Assert HDF5 version.
-  SET(HDF5_VERSION_REQUIRED 1.8.6)
+  SET(HDF5_VERSION_REQUIRED 1.8.8)
   execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
     OUTPUT_VARIABLE HDF5_VERSION
     ERROR_QUIET
@@ -913,42 +912,37 @@ ENDIF()
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
 IF(ENABLE_DOXYGEN)
-  IF(DOXYGEN_FOUND)
-    # Offer the option to build internal documentation.
-    OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
-    IF(ENABLE_INTERNAL_DOCS)
-      SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
-    ELSE()
-      SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
-    ENDIF()
+  FIND_PACKAGE(Doxygen REQUIRED)
+  # Offer the option to build internal documentation.
+  OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
+  IF(ENABLE_INTERNAL_DOCS)
+    SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+  ELSE()
+    SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+  ENDIF()
 
-    # Option to turn on the TODO list in the doxygen-generated documentation.
-    OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
-    IF(ENABLE_DOXYGEN_TASKS)
-      SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-    ELSE(ENABLE_DOXYGEN_TASKS)
-      SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-    ENDIF(ENABLE_DOXYGEN_TASKS)
+  # Option to turn on the TODO list in the doxygen-generated documentation.
+  OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+  IF(ENABLE_DOXYGEN_TASKS)
+    SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
+  ELSE(ENABLE_DOXYGEN_TASKS)
+    SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
+  ENDIF(ENABLE_DOXYGEN_TASKS)
 
-    OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
+  OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
-    IF(ENABLE_DOXYGEN_PDF_OUTPUT)
-      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
-    ELSE()
-      SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
-    ENDIF()
+  IF(ENABLE_DOXYGEN_PDF_OUTPUT)
+    SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
+  ELSE()
+    SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
+  ENDIF()
 
-    # Specify whether or not 'dot' was found on the system path.
-    IF(NC_DOT)
-      SET(HAVE_DOT YES CACHE STRING "")
-    ELSE(NC_DOT)
-      SET(HAVE_DOT NO CACHE STRING "")
-    ENDIF(NC_DOT)
-
-  ELSE(DOXYGEN_FOUND)
-    MESSAGE(WARNING "Unable to build internal documentation.  Doxygen does not appear to be on your executable path. Install doxygen and configure the project again.")
-    SET(ENABLE_DOXYGEN OFF)
-  ENDIF(DOXYGEN_FOUND)
+  # Specify whether or not 'dot' was found on the system path.
+  IF(NC_DOT)
+    SET(HAVE_DOT YES CACHE STRING "")
+  ELSE(NC_DOT)
+    SET(HAVE_DOT NO CACHE STRING "")
+  ENDIF(NC_DOT)
 ENDIF()
 
 # By default, MSVC has a stack size of 1000000.

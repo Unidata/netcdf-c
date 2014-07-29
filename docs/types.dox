@@ -127,7 +127,7 @@ attributes, or variables that refer to other attributes or variables,
 provides a flexible mechanism for representing some kinds of complex
 structures in netCDF datasets.
 
-\section user_defined_types NetCDF-4 User Defined Data Types
+\section nc4_user_defined_types NetCDF-4 User Defined Data Types
 
 NetCDF supported six data types through version 3.6.0 (char, byte,
 short, int, float, and double). Starting with version 4.0, many new
@@ -160,12 +160,16 @@ user-defined types or the new atomic data types.
 
 Once types are defined, use their ID like any other type ID when
 defining variables or attributes. Use functions
-nc_put_att()/nc_get_att() and the nc_put_var()/nc_get_var(),
-nc_put_var1()/nc_get_var1(), nc_put_vara()/nc_get_vara(), or
-nc_put_vars()/nc_get_vars() functons to access attribute and variable
-data of user defined type.
 
-\subsection compound_types Compound Types
+- nc_put_att() / nc_get_att()
+- nc_put_var() / nc_get_var()
+- nc_put_var1() / nc_get_var1()
+- nc_put_vara() / nc_get_vara()
+- nc_put_vars() / nc_get_vars()
+
+functons to access attribute and variable data of user defined type.
+
+\subsection types_compound_types Compound Types
 
 Compound types allow the user to combine atomic and user-defined types
 into C-like structs. Since users defined types may be used within a
@@ -174,7 +178,7 @@ compound type, they can contain nested compound types.
 Users define a compound type, and (in their C code) a corresponding C
 struct. They can then use nc_put_vara() and related functions to write
 multi-dimensional arrays of these structs, and nc_get_vara() calls
-to read them. 
+to read them.
 
 While structs, in general, are not portable from platform to platform,
 the HDF5 layer (when installed) performs the magic required to figure
@@ -212,7 +216,7 @@ and pointers to the data, rather than the actual data.
 For more information on creating and using variable length arrays, see
 Variable Length Arrays in The NetCDF C Interface Guide.
 
-\subsection opaque_types Opaque Types
+\subsection types_opaque_types Opaque Types
 
 Opaque types allow the user to store arrays of data blobs of a fixed size.
 
@@ -224,7 +228,7 @@ Type in The NetCDF C Interface Guide.
 Enum types allow the user to specify an enumeration.
 
 For more information on creating and using enum types, see Enum Type
-in The NetCDF C Interface Guide.  
+in The NetCDF C Interface Guide.
 
 \section type_conversion Type Conversion
 

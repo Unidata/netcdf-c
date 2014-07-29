@@ -107,7 +107,7 @@ XFAILTESTS="ref_const_test $XFAILTESTS"
 # Fails because ?
 XFAILTESTS="ref_tst_chardata $XFAILTESTS"
 # Fails because ncdump is crashing
-XFAILTESTS="ref_tst_econst $XFAILTESTS"
+#XFAILTESTS="ref_tst_econst $XFAILTESTS"
 
 # Following are generally not run
 # Because of the size of their output

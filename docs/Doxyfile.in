@@ -746,6 +746,7 @@ WARN_LOGFILE           =
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/COPYRIGHT \
+    @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/groups.dox \
     @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/docs/install.md \
@@ -753,8 +754,6 @@ INPUT = \
     @abs_top_srcdir@/docs/dispatch.dox \
     @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/notes.dox \
-    @abs_top_srcdir@/docs/cdl.dox \
-    @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
@@ -762,14 +761,14 @@ INPUT = \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
-    @abs_top_srcdir@/libdispatch/datt.c \
-    @abs_top_srcdir@/libdispatch/dattget.c \
-    @abs_top_srcdir@/libdispatch/dattinq.c \
-    @abs_top_srcdir@/libdispatch/dattput.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
     @abs_top_srcdir@/libdispatch/dvarget.c \
     @abs_top_srcdir@/libdispatch/dvarinq.c \
     @abs_top_srcdir@/libdispatch/dvarput.c \
+    @abs_top_srcdir@/libdispatch/datt.c \
+    @abs_top_srcdir@/libdispatch/dattget.c \
+    @abs_top_srcdir@/libdispatch/dattinq.c \
+    @abs_top_srcdir@/libdispatch/dattput.c \
     @abs_top_srcdir@/libdispatch/dgroup.c \
     @abs_top_srcdir@/libdispatch/dtype.c \
     @abs_top_srcdir@/libdispatch/dcompound.c \
@@ -807,7 +806,7 @@ FILE_PATTERNS          =
 # be searched for input files as well.
 # The default value is: NO.
 
-RECURSIVE              = YES
+RECURSIVE              = NO
 
 # The EXCLUDE tag can be used to specify files and/or directories that should be
 # excluded from the INPUT source files. This way you can easily exclude a
@@ -1856,18 +1855,6 @@ GENERATE_XML           = NO
 # This tag requires that the tag GENERATE_XML is set to YES.
 
 XML_OUTPUT             = xml
-
-# The XML_SCHEMA tag can be used to specify a XML schema, which can be used by a
-# validating XML parser to check the syntax of the XML files.
-# This tag requires that the tag GENERATE_XML is set to YES.
-
-XML_SCHEMA             =
-
-# The XML_DTD tag can be used to specify a XML DTD, which can be used by a
-# validating XML parser to check the syntax of the XML files.
-# This tag requires that the tag GENERATE_XML is set to YES.
-
-XML_DTD                =
 
 # If the XML_PROGRAMLISTING tag is set to YES doxygen will dump the program
 # listings (including syntax highlighting and cross-referencing information) to

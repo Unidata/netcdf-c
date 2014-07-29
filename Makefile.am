@@ -15,7 +15,7 @@ EXTRA_DIST = README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	netcdf-config-version.cmake.in \
 	netcdf-config.cmake.in FixBundle.cmake.in \
 	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
-	CTestConfig.cmake.in libnetcdf.settings
+	CTestConfig.cmake.in libnetcdf.settings.in
 
 # Doxygen doesn't build nicely in vpath builds.
 # Don't do this; it wipes out any exported values
@@ -84,7 +84,7 @@ endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
-# depend on it. 
+# depend on it.
 SUBDIRS = include $(OCLIB) $(H5_TEST_DIR) libdispatch libsrc		\
 $(LIBSRC4_DIR) $(DAP2) $(LIBCDMR) $(LIBSRC5) liblib  \
 $(NCGEN3) $(NCGEN) $(NCDUMP) \
@@ -93,7 +93,7 @@ docs $(EXAMPLES) \
 $(UDUNITS) $(LIBCF)
 
 # Remove these generated files, for a distclean.
-DISTCLEANFILES = VERSION comps.txt test_prog
+DISTCLEANFILES = VERSION comps.txt test_prog libnetcdf.settings
 
 # The nc-config script helps the user build programs with netCDF.
 bin_SCRIPTS = nc-config
@@ -101,6 +101,7 @@ bin_SCRIPTS = nc-config
 # What needs to go in the binrary dist?
 BINFILES = README_BINARIES.txt
 BINFILES += include/netcdf.h share/man/man3/netcdf.3 lib/libnetcdf.a
+BINFILES += libnetcdf.settings
 ZIPBINFILES = ${prefix}/include/netcdf.h ${prefix}/share/man/man3/netcdf.3 ${prefix}/lib/libnetcdf.a
 
 if BUILD_UTILITIES
@@ -116,6 +117,10 @@ lib/libnetcdf.la lib/netcdfdll.def
 ZIPBINFILES += ${prefix}/bin/libnetcdf-7.dll ${prefix}/lib/libnetcdf.dll.a ${prefix}/lib/libnetcdf.a	\
 ${prefix}/lib/libnetcdf.la ${prefix}/lib/netcdfdll.def
 endif # BUILD_DLL
+
+# install libnetcdf.settings in lib directory.
+settingsdir=$(libdir)
+settings_DATA=libnetcdf.settings
 
 # At Unidata, package up binaries.
 ftpbin: install
@@ -165,7 +170,7 @@ endif # BUILD_DLL
 	@echo '| http://www.unidata.ucar.edu/software/netcdf/                |'
 	@echo '|                                                             |'
 	@echo '| NetCDF is developed and maintained at the Unidata Program   |'
-	@echo '| Center. Unidata provides a broad array of data and software |' 
+	@echo '| Center. Unidata provides a broad array of data and software |'
 	@echo '| tools for use in geoscience education and research.         |'
 	@echo '| http://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'

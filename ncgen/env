@@ -1,12 +1,12 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
 K="-k3"
-F="test.cdl"
+F="mrd.cdl"
 #B="-B12"
 DBG="-d"
 #DBG="-D2"
-#NCGEN="./.libs/ncgen"
-NCGEN="./ncgen"
+NCGEN="./.libs/ncgen"
+#NCGEN="./ncgen"
 alias q0="$NCGEN ${DBG} $K -lb $B $F"
 alias qh="$NCGEN ${DBG} $K -lb $B -h $F"
 alias qc="$NCGEN ${DBG} $K -lc $B $F"

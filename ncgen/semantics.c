@@ -1017,7 +1017,9 @@ thisunlim->name,
         /*!lastunlim => data is list of sublists, recurse on each sublist*/
 	for(i=0;i<data->length;i++) {
 	    NCConstant* con = data->data+i;
-	    ASSERT(con->nctype == NC_COMPOUND);
+	    if(con->nctype != NC_COMPOUND) {
+		semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
+	    }
 	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
 	}
     } else {			/* lastunlim */

@@ -32,7 +32,7 @@ Pre-release libraries for Windows may be found here: \ref winbin.
 Getting the latest NetCDF-C Source Code {#sec_get_source}
 ----------------------------------------
 
-Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the 
+Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the
 Unidata GitHub repository, available at http://github.com/Unidata/netcdf-c.
 
 Two options are available for building from source:
@@ -134,7 +134,7 @@ $ make check install
 Then you build HDF5, specifying the location of the zlib library:
 
 ~~~
-$ ./configure --with-zlib=/home/ed/local --prefix=/home/ed/local 
+$ ./configure --with-zlib=/home/ed/local --prefix=/home/ed/local
 $ make check install
 ~~~
 
@@ -195,7 +195,7 @@ the <CODE>--prefix</CODE> option must be different from the source directory whe
 the software is being built.)
 
 Starting with version 4.1.1 the netCDF C libraries and utilities have
-supported remote data access, using the OPeNDAP protocols.  To build 
+supported remote data access, using the OPeNDAP protocols.  To build
 with full support for netCDF-4 APIs and format but without remote
 client access, use:
 
@@ -218,7 +218,7 @@ Building with HDF4 Support {#build_hdf4}
 ---------------------
 
 The netCDF-4 library can (since version 4.1) read HDF4 data files, if
-they were created with the SD (Scientific Data) API. 
+they were created with the SD (Scientific Data) API.
 
 For this to work, you must build the HDF4 library with the
 configure option
@@ -229,7 +229,7 @@ to prevent it from building an HDF4 version of the netCDF-2 library
 that conflicts with the netCDF-2 functions that are built into the Unidata
 netCDF library.
 
-Then, when building netCDF-4, use the 
+Then, when building netCDF-4, use the
 ~~~
   --enable-hdf4
 ~~~
@@ -336,7 +336,7 @@ cc -o myapp myapp.c `nc-config --cflags --libs`
 configure options {#configure_options}
 -----------------------------
 
-These options are used for `autotools`-based builds.  For `cmake` options, see \todo Finish this reference.
+These options are used for `autotools`-based builds.  For `cmake` options, see
 
 Note: --disable prefix indicates that the option is normally enabled.
 <table>
@@ -388,9 +388,9 @@ Build Instructions for NetCDF-C using CMake {#netCDF-CMake}
 
 Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
 
-In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
+In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.
 
-		
+
 ##  Requirements {#cmake_requirements}
 The following packages are required to build netCDF-C using CMake.
 
@@ -450,7 +450,7 @@ If you have libraries installed in a custom directory, you may need to specify t
 
 ## Building {#cmake_building}
 
-The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.  
+The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.
 
 > $ make
 
@@ -478,12 +478,10 @@ Once netCDF has been built and tested, it may be installed using the following c
 
 > $ make install
 
-or 
+or
 
 > $ cmake --build [Build Directory] --target install
 
 ## See Also {#cmake_see_also}
 
 For further information regarding NetCDF and CMake, see \ref cmake_faq
-
-
