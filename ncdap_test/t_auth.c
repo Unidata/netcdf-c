@@ -10,6 +10,9 @@ static char* URL1 =
 /* user:pwd from .dodsrc*/
 static char* URL2 = 
 "http://remotetest.unidata.ucar.edu/thredds/dodsC/restrict/testData.nc";
+/* Test redirect */
+static char* URL3 = 
+"http://tiggeUser:tigge@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc";
 
 /* .dodsrc file */
 static char* CONTENT = "HTTP.CREDENTIALS.USER=tiggeUser\nHTTP.CREDENTIALS.PASSWORD=tigge\n";
@@ -68,5 +71,19 @@ main(int argc, char** argv)
         fflush(stdout);
     }
     unlink(".dodsrc"); /* delete the file */
+
+    printf("Testing: Http Basic Redirect\n\n");
+    if(1) {
+        printf("Basic redirect: %s\n",URL3);
+        retval = nc_open(URL3, 0, &ncid);
+        if(retval != NC_NOERR) {
+            printf("*** XFAIL: Basic redirect\n");
+        } else {
+            printf("*** PASS: Basic redirect\n");
+	    retval = nc_close(ncid);
+	}
+        fflush(stdout);
+    }
+
     return !pass;
 }
