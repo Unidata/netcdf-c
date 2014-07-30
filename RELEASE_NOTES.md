@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Converted the [Manually-maintained FAQ page](http://www.unidata.ucar.edu/software/netcdf/docs/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
+
 * Bumped minimum required version of `cmake` to `2.8.12`.  This was necessitated by the adoption of the new `CMAKE_MACOSX_RPATH` property, for use on OSX.
 
 * Jennifer Adams has requested a reversion in behavior so that all dap requests include a constraint. Problem is caused by change in prefetch where if all variables are requested, then no constraint is generated.  Fix is to always generate a constraint in prefetch.
