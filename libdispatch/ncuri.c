@@ -578,16 +578,17 @@ suceeded, 0 otherwise; */
 int
 ncuridecodeparams(NCURI* ncuri)
 {
-    char* cp;
+    char* cp = NULL;
     int i,c;
     size_t nparams;
-    char* params;
+    char* params = NULL;
     char** plist;
 
     if(ncuri == NULL) return 0;
     if(ncuri->params == NULL) return 1;
 
-    params = strdup(ncuri->params); /* so we can modify */
+    params = strndup(ncuri->params,
+		     (strlen(ncuri->params)+1)); /* so we can modify */
 
     /* Pass 1 to break string into pieces at the ampersands
        and count # of pairs */
@@ -599,8 +600,10 @@ ncuridecodeparams(NCURI* ncuri)
 
     /* plist is an env style list */
     plist = (char**)calloc(1,sizeof(char*)*(2*nparams+1)); /* +1 for null termination */
-    if(plist == NULL)
-	return 0;
+    if(plist == NULL) {
+      if(params) free(params);
+      return 0;
+    }
 
     /* Break up each param into a (name,value) pair*/
     /* and insert into the param list */
