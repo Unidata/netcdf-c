@@ -72,8 +72,11 @@ ncaux_begin_compound(int ncid, const char *name, int alignmode, void** tagp)
     cmpd->name = strdup(name);    
     if(cmpd->name == NULL) {status = NC_ENOMEM; goto fail;}
 
-    if(tagp) *tagp = (void*)cmpd;
-
+    if(tagp) {
+      *tagp = (void*)cmpd;
+    } else { /* Error, free cmpd to avoid memory leak. */
+      free(cmpd);
+    }
     return status;
 
 fail:
