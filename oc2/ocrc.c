@@ -365,7 +365,7 @@ int
 ocdodsrc_process(OCstate* state)
 {
     int stat = 0;
-    char* value;
+    char* value = NULL;
     char* url = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
     struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
 
@@ -450,7 +450,7 @@ ocdodsrc_process(OCstate* state)
     }
 
     if((value = curllookup("SSL.VERIFYPEER",url)) != NULL) {
-	char* s = strdup(value);
+        char* s = strndup(value,strlen(value));
 	int tf = 0;
 	if(s == NULL || strcmp(s,"0")==0 || strcasecmp(s,"false")==0)
 	    tf = 0;
@@ -460,7 +460,8 @@ ocdodsrc_process(OCstate* state)
 	    tf = 1; /* default if not null */
         state->ssl.verifypeer = tf;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+	  oclog(OCLOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+	if(s) free(s);
     }
 
     if((value = curllookup("CREDENTIALS.USER",url)) != NULL) {
