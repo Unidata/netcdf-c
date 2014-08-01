@@ -335,7 +335,7 @@ ocdodsrc_read(char* basename, char* path)
 	    line = rtag + 1;
 	    *rtag = '\0';
 	    /* save the url */
-	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,url,MAXRCLINESIZE);
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,url,MAXRCLINESIZE-1);
 	    rctrim(ocdodsrc->triples[ocdodsrc->ntriples].url);
 	}
 	/* split off key and value */
@@ -347,11 +347,11 @@ ocdodsrc_read(char* basename, char* path)
 	    *value = '\0';
 	    value++;
 	}
-	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,key,MAXRCLINESIZE);
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,key,MAXRCLINESIZE-1);
 	if(*value == '\0')
 	    strcpy(ocdodsrc->triples[ocdodsrc->ntriples].value,"1");/*dfalt*/
 	else
-	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,value,MAXRCLINESIZE);
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,value,MAXRCLINESIZE-1);
 	rctrim(	ocdodsrc->triples[ocdodsrc->ntriples].key);
 	rctrim(	ocdodsrc->triples[ocdodsrc->ntriples].value);
 	ocdodsrc->ntriples++;
