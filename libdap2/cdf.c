@@ -1043,7 +1043,10 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 	CDFnode* subnode;
 	oc_dds_ithfield(nccomm->oc.conn,ocnode,i,&ocsubnode);
 	ncerr = buildcdftreer(nccomm,ocsubnode,cdfnode,tree,&subnode);
-	if(ncerr) return ncerr;
+	if(ncerr) {
+	  if(ocname) free(ocname);
+	  return ncerr;
+	}
 	nclistpush(cdfnode->subnodes,(void*)subnode);
     }
     nullfree(ocname);

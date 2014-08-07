@@ -371,9 +371,13 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
       goto exit;
 
    /* Allocate memory for one record. */
-   if (!(data = malloc(reclen * type_size)))
-      return NC_ENOMEM;
-   
+   if (!(data = malloc(reclen * type_size))) {
+     if(count) free(count);
+     if(dimlen) free(dimlen);
+     if(start) free(start);
+     return NC_ENOMEM;
+   }   
+
    /* Copy the var data one record at a time. */
    for (start[0]=0; !retval && start[0]<(size_t)dimlen[0]; start[0]++)
    {

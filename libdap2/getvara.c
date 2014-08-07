@@ -551,6 +551,7 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
                 dapodom_next(odom);
             }
             dapodom_free(odom);
+	    odom = NULL;
 	} else {/* scalar instance */
 	    ncstat = movetofield(nccomm,currentcontent,path,depth,xgetvar,dimindex,memory,segments);
 	    if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
@@ -608,6 +609,7 @@ done:
     oc_data_free(conn,fieldcontent);
     oc_data_free(conn,reccontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
+    if(odom) dapodom_free(odom);
     return THROW(ncstat);
 }
 

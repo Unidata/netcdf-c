@@ -335,7 +335,7 @@ ocdodsrc_read(char* basename, char* path)
 	    line = rtag + 1;
 	    *rtag = '\0';
 	    /* save the url */
-	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,url,MAXRCLINESIZE);
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].url,url,MAXRCLINESIZE-1);
 	    rctrim(ocdodsrc->triples[ocdodsrc->ntriples].url);
 	}
 	/* split off key and value */
@@ -347,11 +347,11 @@ ocdodsrc_read(char* basename, char* path)
 	    *value = '\0';
 	    value++;
 	}
-	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,key,MAXRCLINESIZE);
+	strncpy(ocdodsrc->triples[ocdodsrc->ntriples].key,key,MAXRCLINESIZE-1);
 	if(*value == '\0')
 	    strcpy(ocdodsrc->triples[ocdodsrc->ntriples].value,"1");/*dfalt*/
 	else
-	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,value,MAXRCLINESIZE);
+	    strncpy(ocdodsrc->triples[ocdodsrc->ntriples].value,value,MAXRCLINESIZE-1);
 	rctrim(	ocdodsrc->triples[ocdodsrc->ntriples].key);
 	rctrim(	ocdodsrc->triples[ocdodsrc->ntriples].value);
 	ocdodsrc->ntriples++;
@@ -365,7 +365,7 @@ int
 ocdodsrc_process(OCstate* state)
 {
     int stat = 0;
-    char* value;
+    char* value = NULL;
     char* url = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
     struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
 
@@ -450,7 +450,7 @@ ocdodsrc_process(OCstate* state)
     }
 
     if((value = curllookup("SSL.VERIFYPEER",url)) != NULL) {
-	char* s = strdup(value);
+        char* s = strndup(value,strlen(value));
 	int tf = 0;
 	if(s == NULL || strcmp(s,"0")==0 || strcasecmp(s,"false")==0)
 	    tf = 0;
@@ -460,7 +460,8 @@ ocdodsrc_process(OCstate* state)
 	    tf = 1; /* default if not null */
         state->ssl.verifypeer = tf;
         if(ocdebug > 0)
-            oclog(OCLOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+	  oclog(OCLOGNOTE,"SSL.VERIFYPEER: %d", state->ssl.verifypeer);
+	if(s) free(s);
     }
 
     if((value = curllookup("CREDENTIALS.USER",url)) != NULL) {
