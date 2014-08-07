@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc1 Released TBD
 
+* Fixed ncdump bug for char variables with multiple unlimited dimensions and added an associated test.  Now the output CDL properly disambiguates dimension groupings, so that ncgen can generate the original file from the CDL. [NCF-310](https://bugtracking.unidata.ucar.edu/browse/NCF-310)
+
 * Converted the [Manually-maintained FAQ page](http://www.unidata.ucar.edu/software/netcdf/docs/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
 
 * Bumped minimum required version of `cmake` to `2.8.12`.  This was necessitated by the adoption of the new `CMAKE_MACOSX_RPATH` property, for use on OSX.
