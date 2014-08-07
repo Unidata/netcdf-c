@@ -64,6 +64,21 @@ static char* fileallow =
 static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
+#ifndef HAVE_STRNCMP
+#define strndup ncstrndup
+/* Not all systems have strndup, so provide one*/
+char*
+ncstrndup(const char* s, size_t len)
+{
+    char* dup;
+    if(s == NULL) return NULL;
+    dup = (char*)malloc(len+1);
+    if(dup == NULL) return NULL;
+    memcpy((void*)dup,s,len);
+    dup[len] = '\0';
+    return dup;
+}
+#endif
 /* Forward */
 static void ncparamfree(char** params);
 static int ncfind(char** params, const char* key);

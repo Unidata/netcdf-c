@@ -536,6 +536,9 @@ vardata(
     size_t nrows;
     int vrank = vp->ndims;
 
+    int level = 0;
+    int marks_pending = 0;
+
     cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
     edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
     add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
@@ -576,8 +579,6 @@ vardata(
     nrows = nels/ncols;		/* number of "rows" */
     vals = emalloc(ncols * vp->tinfo->size);
     
-    int level = 0;
-    int marks_pending = 0;
     NC_CHECK(print_rows(level, ncid, varid, vp, vdims, cor, edg, vals, marks_pending));
     free(vals);
     free(cor);

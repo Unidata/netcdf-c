@@ -55,7 +55,7 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
-#ifdef EXTERN_UNUSEd
+#ifdef EXTERN_UNUSED
 void
 makedimlist(OClist* path, OClist* dims)
 {
