@@ -237,6 +237,7 @@ are set when opening a binary file on Windows. */
 
 /* Set if we have strdup */
 #cmakedefine HAVE_STRDUP
+#cmakedefine HAVE_STRNDUP
 #cmakedefine HAVE_STRLCAT
 #cmakedefine HAVE_STRERROR
 #cmakedefine HAVE_SNPRINTF
