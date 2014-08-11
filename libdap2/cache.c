@@ -104,7 +104,7 @@ prefetchdata(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
         /* If we cannot constrain and caching is enabled,
            then pull in everything */
-        if(FLAGSET(nccomm->controls,NCF_CACHE)) { 
+        if(FLAGSET(nccomm->controls,NCF_CACHE)) {
 	    for(i=0;i<nclistlength(allvars);i++) {
 	        nclistpush(vars,nclistget(allvars,i));
 	    }
@@ -199,7 +199,7 @@ ncbytesfree(buf);
 
 done:
     nclistfree(vars);
-    dcefree((DCEnode*)newconstraint);    
+    dcefree((DCEnode*)newconstraint);
     if(ncstat && cache != NULL) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
@@ -221,7 +221,7 @@ buildcachenode(NCDAPCOMMON* nccomm,
     int isprefetch = 0;
 
     if((flags & NCF_PREFETCH) != 0)
-	isprefetch = 1;	
+	isprefetch = 1;
 
 #ifndef GRADS_PREFETCH
     if((flags & NCF_PREFETCH_ALL) == 0)
@@ -370,7 +370,7 @@ iscacheableprojection(DCEprojection* proj)
     cacheable = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
         DCEsegment* segment = (DCEsegment*)nclistget(proj->var->segments,i);
-	if(!iswholesegment(segment)) {cacheable = 0; break;}	
+	if(!iswholesegment(segment)) {cacheable = 0; break;}
     }
     return cacheable;
 }
@@ -419,16 +419,17 @@ markprefetch(NCDAPCOMMON* nccomm)
             CDFnode* dim = (CDFnode*)nclistget(var->array.dimsettrans,j);
             nelems *= dim->dim.declsize;
 	}
-	if(nelems <= nccomm->cdf.smallsizelimit
-	    && FLAGSET(nccomm->controls,NCF_PREFETCH)) {
-	    var->prefetchable = 1;
-if(SHOWFETCH)
- {
-  extern char* ocfqn(OCddsnode);
-  nclog(NCLOGDBG,"prefetchable: %s=%lu",
-      ocfqn(var->ocnode),(unsigned long)nelems);
- }
-	}
+        if(nelems <= nccomm->cdf.smallsizelimit
+           && FLAGSET(nccomm->controls,NCF_PREFETCH)) {
+          var->prefetchable = 1;
+          if(SHOWFETCH)
+            {
+              extern char* ocfqn(OCddsnode);
+              nclog(NCLOGDBG,"prefetchable: %s=%lu",
+                    ocfqn(var->ocnode),(unsigned long)nelems);
+              free(ocfqn);
+            }
+        }
     }
     return NC_NOERR;
 }
