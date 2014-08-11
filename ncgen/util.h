@@ -53,6 +53,7 @@ extern unsigned char* makebytestring(char* s, size_t* lenp);
 extern int getpadding(int offset, int alignment);
 
 extern Datalist* builddatalist(int initialize);
+extern void dlfree(Datalist **dlist);
 extern void dlappend(Datalist*, NCConstant*);
 extern NCConstant builddatasublist(Datalist* dl);
 extern void dlextend(Datalist* dl);
