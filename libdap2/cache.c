@@ -427,7 +427,6 @@ markprefetch(NCDAPCOMMON* nccomm)
               extern char* ocfqn(OCddsnode);
               nclog(NCLOGDBG,"prefetchable: %s=%lu",
                     ocfqn(var->ocnode),(unsigned long)nelems);
-              free(ocfqn);
             }
         }
     }

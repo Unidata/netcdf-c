@@ -306,7 +306,7 @@ fprintf(stderr,"getvarx: FETCHWHOLE: fetchconstraint: %s\n",dumpconstraint(fetch
 #endif
         ncstat = buildcachenode(dapcomm,fetchconstraint,vars,&cachenode,0);
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
-	if(ncstat != NC_NOERR) {THROWCHK(ncstat); if(varainfo) free(varainfo); goto fail;}
+	if(ncstat != NC_NOERR) {THROWCHK(ncstat); nullfree(varainfo); goto fail;}
     } break;
 
     case CACHED: {
