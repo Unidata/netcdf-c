@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2013, see the COPYRIGHT file for more information.
+# Copyright 2012-2014, see the COPYRIGHT file for more information.
 
 ##################################
 # Set Project Properties
@@ -48,8 +48,6 @@ ENDIF()
 
 # Determine if DOXYGEN and DOT are available.  These will be used
 # when building the documentation.
-
-FIND_PROGRAM(NC_DOT NAMES dot)
 
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
@@ -937,6 +935,7 @@ IF(ENABLE_DOXYGEN)
     SET(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
   ENDIF()
 
+  FIND_PROGRAM(NC_DOT NAMES dot)
   # Specify whether or not 'dot' was found on the system path.
   IF(NC_DOT)
     SET(HAVE_DOT YES CACHE STRING "")
