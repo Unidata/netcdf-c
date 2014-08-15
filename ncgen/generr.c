@@ -62,6 +62,7 @@ verror(fmt,va_alist) const char* fmt; va_dcl
     strcpy(newfmt,"netCDF classic: not supported: ");
     strncat(newfmt,fmt,2000);
     vderror(newfmt,argv);
+    va_end(argv);
 }
 
 #ifndef NO_STDARG
@@ -103,7 +104,7 @@ markcdf4(const char* msg)
         markcdf4_msg = (char*)msg;
 }
 
-char* 
+char*
 getmarkcdf4(void)
 {
     return markcdf4_msg;
