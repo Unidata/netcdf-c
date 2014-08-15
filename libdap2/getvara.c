@@ -634,11 +634,25 @@ movetofield(NCDAPCOMMON* nccomm,
     OCdatanode fieldcontent = NULL;
     CDFnode* xnext;
     int newdepth;
+    int ffield;
 
     /* currentcontent points to the grid/dataset/structure/record instance */
     xnext = (CDFnode*)nclistget(path,depth+1);
     ASSERT((xnext != NULL));
-    fieldindex = findfield(xnode,xnext);
+
+     /* If findfield is less than 0,
+         and passes through this stanza,
+         an undefined value will be passed to
+         oc_data_ithfield.  See coverity
+         issue 712596. */
+    ffield = findfield(xnode, xnext);
+    if(ffield < 0) {
+      ncstat = NC_EBADFIELD;
+      goto done;
+    } else {
+      fieldindex = findfield(xnode,xnext);
+    }
+
     /* If the next node is a nc_virtual node, then
        we need to effectively
        ignore it and use the appropriate subnode.
