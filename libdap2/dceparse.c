@@ -203,7 +203,7 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
     if(start < 0) {
     	dceerror(state,"Illegal array index");
 	start = 1;
-    }    
+    }
     slice = (DCEslice*)dcecreate(CES_SLICE);
     slice->first = start;
     slice->stride = 1;
@@ -221,13 +221,13 @@ indexer(DCEparsestate* state, Object name, Object indices)
     NClist* list = (NClist*)indices;
     DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
     seg->name = strdup((char*)name);
-    for(i=0;i<nclistlength(list);i++) {    
+    for(i=0;i<nclistlength(list);i++) {
 	DCEslice* slice = (DCEslice*)nclistget(list,i);
         seg->slices[i] = *slice;
 	free(slice);
     }
     nclistfree(indices);
-    return seg;    
+    return seg;
 }
 
 Object
@@ -271,7 +271,7 @@ Object
 var(DCEparsestate* state, Object indexpath)
 {
     DCEvar* v = (DCEvar*)dcecreate(CES_VAR);
-    v->segments = (NClist*)indexpath;        
+    v->segments = (NClist*)indexpath;
     return v;
 }
 
@@ -334,18 +334,18 @@ dce_parse_cleanup(DCEparsestate* state)
 static DCEparsestate*
 ce_parse_init(char* input, DCEconstraint* constraint)
 {
-    DCEparsestate* state = NULL;
-    if(input==NULL) {
-        dceerror(state,"ce_parse_init: no input buffer");
-    } else {
-        state = (DCEparsestate*)calloc(1,sizeof(DCEparsestate));
-        if(state==NULL) return (DCEparsestate*)NULL;
-        state->errorbuf[0] = '\0';
-        state->errorcode = 0;
-        dcelexinit(input,&state->lexstate);
+  DCEparsestate* state = (DCEparsestate*)calloc(1,sizeof(DCEparsestate));;
+  if(state==NULL) return (DCEparsestate*)NULL;
+
+  if(input==NULL) {
+    dceerror(state,"ce_parse_init: no input buffer");
+  } else {
+    state->errorbuf[0] = '\0';
+    state->errorcode = 0;
+    dcelexinit(input,&state->lexstate);
 	state->constraint = constraint;
-    }
-    return state;
+  }
+  return state;
 }
 
 #ifdef PARSEDEBUG

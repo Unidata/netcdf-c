@@ -71,10 +71,10 @@ int   filelike; /* 1=>this protocol has no host, user+pwd, or port */
 };
 
 /* Allowable character sets for encode */
-static char* fileallow = 
+static char* fileallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
-static char* queryallow = 
+static char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
 /* Forward */
@@ -112,7 +112,7 @@ ocuriparse(const char* uri0, OCURI** durip)
     duri = (OCURI*)calloc(1,sizeof(OCURI));
     if(duri == NULL)
 	{THROW(2); goto fail;}
-	
+
     /* save original uri */
     duri->uri = nulldup(uri0);
 
@@ -126,7 +126,7 @@ ocuriparse(const char* uri0, OCURI** durip)
        first char is guaranteed to be '\0' */
 
     duri->strings = uri;
-    uri++; 
+    uri++;
 
     /* dup the incoming url */
     strcpy(uri,uri0);
@@ -139,7 +139,7 @@ ocuriparse(const char* uri0, OCURI** durip)
     for(p=uri;*p;p++) {
 	if(*p == '\\' || *p < ' ')
 	    oclshift1(p); /* compress out */
-    }	
+    }
 
     p = uri;
 
@@ -166,7 +166,7 @@ ocuriparse(const char* uri0, OCURI** durip)
     }
 
     /* Tag the protocol */
-    protocol = p;    
+    protocol = p;
     p = strchr(p,':');
     if(!p)
 	{THROW(5); goto fail;}
@@ -179,7 +179,7 @@ ocuriparse(const char* uri0, OCURI** durip)
     for(i=0;i<nprotos;i++) {
         if(strcmp(protocol,legalprotocols[i].name)==0) {
 	    proto = &legalprotocols[i];
-	    break;	    
+	    break;
 	}
     }
     if(proto == NULL)
@@ -212,7 +212,7 @@ ocuriparse(const char* uri0, OCURI** durip)
 	    file = p+1; /* +1 becauseof the shift */
 	}
     }
-    
+
     /* If you shift in the code below, you must reset file beginning */
 
     if(host != NULL) {/* Parse the host section */
@@ -263,7 +263,7 @@ ocuriparse(const char* uri0, OCURI** durip)
     p = oclocate(p,"?#");
     if(p != NULL) { /* we have constraint and/or suffixparams */
 	char* fileend = p; /* save the end of the file section */
-	char* constraintend = NULL; 
+	char* constraintend = NULL;
 	if(*p == '?')
             constraint = p+1;
 	else
@@ -399,8 +399,8 @@ ocurisetconstraints(OCURI* duri,const char* constraints)
     if(duri->constraint != NULL) free(duri->constraint);
     if(duri->projection != NULL) free(duri->projection);
     if(duri->selection != NULL) free(duri->selection);
-    duri->constraint = NULL;	
-    duri->projection = NULL;	
+    duri->constraint = NULL;
+    duri->projection = NULL;
     duri->selection = NULL;
 
     if(constraints == NULL || strlen(constraints)==0) return;
@@ -473,7 +473,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     if(duri->port != NULL) {
 	len += (NILLEN(":")+NILLEN(duri->port));
     }
-    
+
     tmpfile = duri->file;
     if(encode)
 	tmpfile = ocuriencode(tmpfile,fileallow);
@@ -497,7 +497,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
 	char** p;
 	if(duri->paramlist == NULL)
 	    if(!ocuridecodeparams(duri))
-		return NULL;		
+		return NULL;
 	for(paramslen=0,nparams=0,p=duri->paramlist;*p;p++) {
 	    nparams++;
 	    paramslen += NILLEN(*p);
@@ -512,7 +512,7 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     }
 
     len += 1; /* null terminator */
-    
+
     newuri = (char*)malloc(len);
     if(newuri == NULL) return NULL;
 
@@ -527,11 +527,11 @@ ocuribuild(OCURI* duri, const char* prefix, const char* suffix, int flags)
     if(withuserpwd) {
         strcat(newuri,duri->user);
         strcat(newuri,":");
-        strcat(newuri,duri->password);	
+        strcat(newuri,duri->password);
         strcat(newuri,"@");
     }
     if(duri->host != NULL) { /* may be null if using file: protocol */
-        strcat(newuri,duri->host);	
+        strcat(newuri,duri->host);
     }
     if(duri->port != NULL) {
         strcat(newuri,":");
@@ -594,10 +594,10 @@ suceeded, 0 otherwise; */
 int
 ocuridecodeparams(OCURI* ocuri)
 {
-    char* cp;
+    char* cp = NULL;
     int i,c;
     int nparams;
-    char* params;
+    char* params = NULL;
     char** plist;
 
     if(ocuri == NULL) return 0;
@@ -615,21 +615,23 @@ ocuridecodeparams(OCURI* ocuri)
 
     /* plist is an env style list */
     plist = (char**)calloc(1,sizeof(char*)*(2*nparams+1)); /* +1 for null termination */
-    if(plist == NULL)
-	return 0;
+    if(plist == NULL) {
+      free(params);
+      return 0;
+    }
 
     /* Break up each param into a (name,value) pair*/
     /* and insert into the param list */
     /* parameters of the form name name= are converted to name=""*/
     for(cp=params,i=0;i<nparams;i++) {
-	char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
-	char* vp;
-	/*break up the ith param*/
-	vp = strchr(cp,'=');
-	if(vp != NULL) {*vp = EOFCHAR; vp++;} else {vp = "";}
-	plist[2*i] = nulldup(cp);	
-	plist[2*i+1] = nulldup(vp);
-	cp = next;
+      char* next = cp+strlen(cp)+1; /* save ptr to next pair*/
+      char* vp;
+      /*break up the ith param*/
+      vp = strchr(cp,'=');
+      if(vp != NULL) {*vp = EOFCHAR; vp++;} else {vp = "";}
+      plist[2*i] = nulldup(cp);
+      plist[2*i+1] = nulldup(vp);
+      cp = next;
     }
     plist[2*nparams] = NULL;
     free(params);
@@ -817,7 +819,7 @@ ocuridecodeonly(char* s, char* only)
     char* outptr;
     char* inptr;
     unsigned int c;
-    
+
     if (s == NULL) return NULL;
     if(only == NULL) only = "";
 
@@ -847,4 +849,3 @@ ocuridecodeonly(char* s, char* only)
     *outptr = EOFCHAR;
     return decoded;
 }
-
