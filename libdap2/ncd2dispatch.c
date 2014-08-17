@@ -581,7 +581,7 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
 
 done:
     if(drno != NULL) NCD2_close(drno->ext_ncid);
-    ncstat = ocerrtoncerr(ocstat);
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
@@ -1596,8 +1596,8 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
     /* throw away the fetch'd trees */
     unattach(dapcomm->cdf.ddsroot);
     freecdfroot(dxdroot);
-#if 0
-Note sure what this is doing?
+#if 1
+/*Note sure what this is doing?*/
     if(ncstat != NC_NOERR) {
         /* Cannot get DATADDDS*/
 	char* code;
@@ -1617,7 +1617,7 @@ Note sure what this is doing?
 fail:
     ncbytesfree(seqcountconstraints);
     oc_data_free(conn,rootcontent);
-    ncstat = ocerrtoncerr(ocstat);
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 
@@ -1715,7 +1715,7 @@ countsequence(NCDAPCOMMON* dapcomm, CDFnode* xseq, size_t* sizep)
 
 done:
     nclistfree(path);
-    ncstat = ocerrtoncerr(ocstat);
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
@@ -2007,7 +2007,7 @@ fprintf(stderr,"full template:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 
 done:
     nullfree(ce);
-    ncstat = ocerrtoncerr(ocstat);
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 
@@ -2061,7 +2061,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 
 fail:
     nullfree(ce);
-    ncstat = ocerrtoncerr(ocstat);
+    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 
