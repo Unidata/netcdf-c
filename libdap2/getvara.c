@@ -416,10 +416,10 @@ save = (DCEnode*)varaprojection;
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
 fail:
-    if(vars != null) nclistfree(vars);
-    if(varaprojection != null) dcefree((DCEnode*)varaprojection);
-    if(fetchconstraint != null) dcefree((DCEnode*)fetchconstraint);
-    if(varainfo != null) freegetvara(varainfo);
+    if(vars != NULL) nclistfree(vars);
+    if(varaprojection != NULL) dcefree((DCEnode*)varaprojection);
+    if(fetchconstraint != NULL) dcefree((DCEnode*)fetchconstraint);
+    if(varainfo != NULL) freegetvara(varainfo);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     //if(varainfo) freegetvara(varainfo);
     return THROW(ncstat);
@@ -984,7 +984,7 @@ extractstring(
 	free(s);	
     }    
 done:
-    if(strings != null) nclistfree(strings);
+    if(strings != NULL) nclistfree(strings);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
