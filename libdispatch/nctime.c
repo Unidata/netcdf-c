@@ -827,6 +827,7 @@ cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* re
 	Cdh2e(&humantime,&etm);
 					     /* Calculate relative time value for months or hours */
 	deltime.count = 1;
+	/* Coverity[MIXED_ENUMS] */
 	deltime.units = (CdTimeUnit)unit;
 	switch(unit){
 	  case cdWeek: case cdDay: case cdHour: case cdMinute: case cdSecond:
@@ -1040,6 +1041,7 @@ cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* com
 	}
 
 	deltime.count = 1;
+	/* Coverity[MIXED_ENUMS] */
 	deltime.units = (CdTimeUnit)baseunits;
 
 	humantime.year = base_comptime.year;

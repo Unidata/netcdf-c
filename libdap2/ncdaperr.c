@@ -8,7 +8,7 @@
 NCerror
 ocerrtoncerr(OCerror ocerr)
 {
-    if(ocerr >= 0) return ocerr; /* really a system error*/
+    if(ocerr > 0) return ocerr; /* really a system error*/
     switch (ocerr) {
     case OC_NOERR:	  return NC_NOERR;
     case OC_EBADID:	  return NC_EBADID;

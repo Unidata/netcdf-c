@@ -45,7 +45,7 @@ static NCerror makeseqdim(NCDAPCOMMON*, CDFnode* seq, size_t count, CDFnode** sq
 static NCerror countsequence(NCDAPCOMMON*, CDFnode* xseq, size_t* sizep);
 static NCerror freeNCDAPCOMMON(NCDAPCOMMON*);
 static NCerror fetchtemplatemetadata(NCDAPCOMMON*);
-static int fieldindex(CDFnode* parent, CDFnode* child);
+static size_t fieldindex(CDFnode* parent, CDFnode* child);
 static NCerror computeseqcountconstraints(NCDAPCOMMON*, CDFnode*, NCbytes*);
 static void computeseqcountconstraintsr(NCDAPCOMMON*, CDFnode*, CDFnode**);
 static void estimatevarsizes(NCDAPCOMMON*);
@@ -581,7 +581,7 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
 
 done:
     if(drno != NULL) NCD2_close(drno->ext_ncid);
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
+    ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
@@ -1531,6 +1531,7 @@ showprojection(NCDAPCOMMON* dapcomm, CDFnode* var)
 	if(i > 0) ncbytescat(projection,".");
 	ncbytescat(projection,node->ocname);
     }
+    nclistfree(path);
     /* Now, add the dimension info */
     rank = nclistlength(var->array.dimset0);
     for(i=0;i<rank;i++) {
@@ -1546,6 +1547,7 @@ showprojection(NCDAPCOMMON* dapcomm, CDFnode* var)
                                "_projection",
 		               ncbyteslength(projection),
 			       ncbytescontents(projection));
+    ncbytesfree(projection);
     return ncstat;
 }
 
@@ -1585,7 +1587,7 @@ fprintf(stderr,"seqcountconstraints: %s\n",ncbytescontents(seqcountconstraints))
     /* WARNING: we are now switching to datadds tree */
     xseq = seq->attachment;
     ncstat = countsequence(dapcomm,xseq,&seqsize);
-    if(ncstat) goto fail;
+    if(ncstat != NC_NOERR) goto fail;
 
 #ifdef DEBUG
 fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
@@ -1594,6 +1596,8 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
     /* throw away the fetch'd trees */
     unattach(dapcomm->cdf.ddsroot);
     freecdfroot(dxdroot);
+#if 0
+Note sure what this is doing?
     if(ncstat != NC_NOERR) {
         /* Cannot get DATADDDS*/
 	char* code;
@@ -1606,12 +1610,14 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
 	}
 	ocstat = OC_NOERR;
     }
+#endif
+
     if(sizep) *sizep = seqsize;
 
 fail:
     ncbytesfree(seqcountconstraints);
     oc_data_free(conn,rootcontent);
-    if(ocstat) ncstat = ocerrtoncerr(ocstat);
+    ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 
@@ -1709,7 +1715,7 @@ countsequence(NCDAPCOMMON* dapcomm, CDFnode* xseq, size_t* sizep)
 
 done:
     nclistfree(path);
-    if(ocstat) ncstat = ocerrtoncerr(ocstat);
+    ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
@@ -2001,7 +2007,7 @@ fprintf(stderr,"full template:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 
 done:
     nullfree(ce);
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
+    ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 
@@ -2055,7 +2061,7 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 
 fail:
     nullfree(ce);
-    if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
+    ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
 

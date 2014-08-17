@@ -33,6 +33,8 @@ typedef struct bounds_node bounds_node_t;
 #define CD_NULL_MONTH 1		/* Null month value */
 #define CD_NULL_YEAR 0		/* Null year value, component time */
 
+/* Why do we have same enum defined twice? */
+
 typedef enum CdTimeUnit {
         CdBadTimeUnit = 0,
 	CdMinute = 1,
@@ -46,7 +48,7 @@ typedef enum CdTimeUnit {
 } CdTimeUnit;
 
 typedef enum cdUnitTime {
-    cdBadUnit = CdBadTimeUnit,
+        cdBadUnit = CdBadTimeUnit,
 	cdMinute = CdMinute,
 	cdHour = CdHour,
 	cdDay = CdDay,

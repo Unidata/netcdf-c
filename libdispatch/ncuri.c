@@ -21,7 +21,7 @@
 static int failpoint = 0;
 #define THROW(n) {failpoint=(n); goto fail;}
 #else
-#define THROW(n)
+#define THROW(n) {goto fail;}
 #endif
 
 
@@ -185,7 +185,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 	}
     }
     if(proto == NULL)
-	{THROW(6); goto fail; /* illegal protocol*/}
+	{THROW(6); /* illegal protocol*/}
 
     /* skip // */
     if(p[0] != '/' && p[1] != '/')
@@ -252,7 +252,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 
         /* check for empty host section */
 	if(*host == EOFCHAR)
-	    {THROW(13); goto fail;}
+	    {THROW(13);}
 
     }
 
@@ -315,7 +315,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     /* do last minute empty check */
 
-    if(protocol != NULL && *protocol == EOFCHAR) protocol = NULL;
+    if(*protocol == EOFCHAR) protocol = NULL;
     if(user != NULL && *user == EOFCHAR) user = NULL;
     if(pwd != NULL && *pwd == EOFCHAR) pwd = NULL;
     if(host != NULL && *host == EOFCHAR) host = NULL;
@@ -462,9 +462,9 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     int withconstraints = ((flags&NCURICONSTRAINTS)!=0
 	                   && duri->constraint != NULL);
 #ifdef NEWESCAPE
-    int encode = (flags&NCURIENCODE);
+    const int encode = (flags&NCURIENCODE);
 #else
-    int encode = 0;
+    const int encode = 0;
 #endif
 
     if(prefix != NULL) len += NILLEN(prefix);
@@ -657,6 +657,7 @@ ncurilookup(NCURI* uri, const char* key, const char** resultp)
 	i = ncuridecodeparams(uri);
 	if(!i) return 0;
     }
+    /* Coverity[FORWARD_NULL] */
     i = ncfind(uri->paramlist,key);
     if(i < 0)
 	return 0;

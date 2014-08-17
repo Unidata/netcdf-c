@@ -1,14 +1,14 @@
+#TOP="/home/dmh/mach/netcdf-c"
+TOP="/cygdrive/f/git/netcdf-c"
+
+
 alias xx="cd ..;make; cd libdap2"
 
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-TOP="/home/dmh/mach/netcdf-c"
-#TOP="/cygdrive/f/git/netcdf-c"
 
-F='http://carbon.dkrz.de/thredds/dodsC/cordex/output/EUR-11/KNMI/ICHEC-EC-EARTH/historical/r1i1p1/KNMI-RACMO22E/v1/day/tas/v20140313/tas_EUR-11_ICHEC-EC-EARTH_historical_r1i1p1_KNMI-RACMO22E_v1_day_19500101-19501231.nc'
-
-VAR=rlon
+F="http://thredds.aodn.org.au/thredds/fileServer/IMOS/ANMN/NSW/PH100/Velocity/IMOS_ANMN-NSW_AETVZ_20131127T230000Z_PH100_FV01_PH100-1311-Workhorse-ADCP-109.5_END-20140306T010000Z_C-20140521T053527Z.nc"
 
 #PROG=./ncd
 PROG="$TOP/ncdump/ncdump"

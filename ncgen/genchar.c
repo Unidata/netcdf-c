@@ -17,10 +17,10 @@ static void gen_chararrayr(Dimset*,int,int,Bytebuffer*,Datalist*,int,int,int);
 /*
 Matching strings to char variables, attributes, and vlen
 constants is challenging because it is desirable to mimic
-the original ncgen. The "algorithms" used there have no
+the original ncgen(3). The "algorithms" used there have no
 simple characterization (such as "abc" == {'a','b','c'}).
 So, this rather ugly code is kept in this file
-and a variety of heuristics are used to mimic ncgen.
+and a variety of heuristics are used to mimic ncgen3.
 
 The core algorithm is as follows.
 1. Assume we have a set of dimensions D1..Dn,
@@ -77,8 +77,6 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
     }
 
     expectedsize = (xproduct * unitsize);
-
-
 
     gen_chararrayr(dimset,0,lastunlim,databuf,data,fillchar,unitsize,expectedsize);
 }

@@ -415,11 +415,11 @@ save = (DCEnode*)varaprojection;
     ncstat = moveto(dapcomm,varainfo,varainfo->cache->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
-    nclistfree(vars);
-    dcefree((DCEnode*)varaprojection);
-    dcefree((DCEnode*)fetchconstraint);
-    freegetvara(varainfo);
 fail:
+    if(vars != null) nclistfree(vars);
+    if(varaprojection != null) dcefree((DCEnode*)varaprojection);
+    if(fetchconstraint != null) dcefree((DCEnode*)fetchconstraint);
+    if(varainfo != null) freegetvara(varainfo);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
@@ -958,6 +958,7 @@ extractstring(
             dapodom_next(odom);
 	}
         dapodom_free(odom);
+	odom = NULL;
     }
     /* Get each string in turn, slice it by applying the string dimm
        and store in user supplied memory
@@ -967,8 +968,8 @@ extractstring(
 	slicestring(conn,s,&segment->slices[rank0],memory);
 	free(s);	
     }    
-    nclistfree(strings);
 done:
+    if(strings != null) nclistfree(strings);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }

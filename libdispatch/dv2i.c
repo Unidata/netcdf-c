@@ -247,7 +247,6 @@ nc_inq_rec(
     if(status != NC_NOERR)
 	return status;
 
-    *nrecvarsp = 0;
     if (recdimid == -1)
 	return NC_NOERR;
     
@@ -257,6 +256,7 @@ nc_inq_rec(
 
     if (nrecvarsp != NULL)
 	*nrecvarsp = (size_t)nrvars;
+
     if (recvarids != NULL)
 	for (varid = 0; varid < nrvars; varid++)
 	    recvarids[varid] = rvarids[varid];

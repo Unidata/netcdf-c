@@ -143,12 +143,11 @@ NC_urlmodel(const char* path)
     }
 
     if(model == 0) {
-        /* Now look at the protocol */
         for(protolist=ncprotolist;protolist->protocol;protolist++) {
 	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
     	        model |= protolist->modelflags;
     	        if(protolist->substitute) {
-    	            if(tmpurl->protocol) free(tmpurl->protocol);
+		    free(tmpurl->protocol);
     		    tmpurl->protocol = strdup(protolist->substitute);
     	        }
     	        break;	    
