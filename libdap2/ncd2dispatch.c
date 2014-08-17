@@ -1747,7 +1747,7 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
     return NC_NOERR;
 }
 
-static int
+static size_t
 fieldindex(CDFnode* parent, CDFnode* child)
 {
     unsigned int i;
