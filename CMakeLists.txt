@@ -97,8 +97,11 @@ ENDIF()
 STRING(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 
 # Determine the configure date.
-EXECUTE_PROCESS(COMMAND date
-  OUTPUT_VARIABLE CONFIG_DATE)
+EXECUTE_PROCESS(
+  COMMAND date
+  OUTPUT_VARIABLE CONFIG_DATE
+  )
+string(STRIP ${CONFIG_DATE} CONFIG_DATE)
 
 ################################
 # End Project Properties
@@ -677,7 +680,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ELSE()
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
-	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+  "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
   ENDIF()
 
@@ -1225,7 +1228,8 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 SET(prefix ${CMAKE_INSTALL_PREFIX})
 SET(exec_prefix ${CMAKE_INSTALL_PREFIX})
 SET(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-SET(includedir ${CMAKE_INSTALL_PREFIX}/include)
+SET(includedir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDERIR})
+
 SET(CC ${CMAKE_C_COMPILER})
 
 # Process all dependency libraries and create a string
@@ -1388,29 +1392,63 @@ is_enabled(USE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 
-# Generate file from template.
+# Display
+MESSAGE("
+NetCDF Configuration Summary
+============================
 
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
-  @ONLY
+General
+-------
+
+NetCDF Version:    ${PACKAGE_VERSION}
+Configured On:     ${CONFIG_DATE}
+Host System:       ${host_cpu}-${host_vendor}-${host_os}
+Build Directory:   ${abs_top_builddir}
+Install Prefix:    ${prefix}
+
+
+Compiling Options
+-----------------
+
+C Compiler:        ${CC_VERSION}
+CFLAGS:            ${CFLAGS}
+CPPFLAGS:          ${CPPFLAGS}
+LDFLAGS:           ${LDFLAGS}
+AM_CFLAGS          ${AM_CFLAGS}
+AM_CPPFLAGS:       ${AM_CPPFLAGS}
+AM_LDFLAGS:        ${AM_LDFLAGS}
+Shared Library:    ${enable_shared}
+Static Library:    ${enable_static}
+Extra libraries:   ${LIBS}
+
+
+Features:
+---------
+
+NetCDF-2 API:       ${HAS_NC2}
+NetCDF-4 API:       ${HAS_NC4}
+HDF4 Support:       ${HAS_HDF4}
+HDF5 Support:       ${HAS_HDF5}
+PNetCDF Support:    ${HAS_PNETCDF}
+Parallel Support:   ${HAS_PARALLEL}
+DAP Support:        ${HAS_DAP}
+Diskless Support:   ${HAS_DISKLESS}
+MMap Support:       ${HAS_MMAP}
+JNA Support:        ${HAS_JNA}
+")
+
+# Generate file from template.
+set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   )
 
-# Read in settings file, print out.
-# Avoid using system-specific calls so that this
-# might also work on Windows.
-FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
-  LIBNETCDF_SETTINGS)
-MESSAGE(${LIBNETCDF_SETTINGS})
-
-# Install libnetcdf.settings file into same location
-# as the libraries.
-INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  COMPONENT libraries)
-
-#####
-# End libnetcdf.settings section.
-#####
+INSTALL(
+  FILES "${netCDF_BINARY_DIR}/netCDFConfig.cmake"
+  DESTINATION "${ConfigPackageLocation}"
+  COMPONENT Devel
+  )
 
 # Create export configuration
 include(CMakePackageConfigHelpers)
@@ -1420,13 +1458,16 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
   )
 
-set(ConfigPackageLocation lib/cmake/netCDF)
 install(
   FILES
   "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
   COMPONENT Devel
   )
+
+#####
+# End libnetcdf.settings section.
+#####
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
