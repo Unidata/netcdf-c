@@ -1438,20 +1438,26 @@ JNA Support:        ${HAS_JNA}
 ")
 
 # Generate file from template.
+include(CMakePackageConfigHelpers)
 set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
-CONFIGURE_FILE(
+CONFIGURE_PACKAGE_CONFIG_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  INSTALL_DESTINATION "${ConfigPackageLocation}"
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  PATH_VARS
+  CMAKE_INSTALL_PREFIX
+  CMAKE_INSTALL_INCLUDEDIR
+  CMAKE_INSTALL_LIBDIR
   )
 
 INSTALL(
-  FILES "${netCDF_BINARY_DIR}/netCDFConfig.cmake"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   DESTINATION "${ConfigPackageLocation}"
   COMPONENT Devel
   )
 
 # Create export configuration
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
   VERSION ${netCDF_VERSION}

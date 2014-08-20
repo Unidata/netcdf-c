@@ -2,11 +2,12 @@
 #
 # General
 #
+@PACKAGE_INIT@
+
 set(NetCDFVersion "@PACKAGE_VERSION@")
-set(CONFIG_DATE "@CONFIG_DATE@")
-set(HOST_SYSTEM "@host_cpu@-@host_vendor@-@host_os@")
-set(BUILD_DIR "@abs_top_builddir@")
-set(netCDF_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+set_and_check(netCDF_INSTALL_PREFIX "@PACKAGE_CMAKE_INSTALL_PREFIX@")
+set_and_check(netCDF_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(netCDF_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
 # Compiling Options
 #
