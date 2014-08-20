@@ -1412,5 +1412,21 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # End libnetcdf.settings section.
 #####
 
+# Create export configuration
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  VERSION ${netCDF_VERSION}
+  COMPATIBILITY SameMajorVersion
+  )
+
+set(ConfigPackageLocation lib/cmake/netCDF)
+install(
+  FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  DESTINATION ${ConfigPackageLocation}
+  COMPONENT Devel
+  )
+
 # CPack inclusion must come last.
 INCLUDE(CPack)
