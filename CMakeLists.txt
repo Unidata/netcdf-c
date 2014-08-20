@@ -1203,17 +1203,17 @@ install(EXPORT netcdf-targets
   DESTINATION share/cmake
   COMPONENT documentation)
 
-#configure_file(
-#  ${netCDF_SOURCE_DIR}/netcdf-config.cmake.in
-#  ${netCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
+configure_file(
+  ${netCDF_SOURCE_DIR}/netcdf-config.cmake.in
+  ${netCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
 
-#configure_file(
-#  ${netCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
-#  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
+configure_file(
+  ${netCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
+  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
 
-#install(FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
-#  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
-#  DESTINATION share/cmake/netcdf)
+install(FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
+  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
+  DESTINATION share/cmake/netcdf)
 
 
 ###
