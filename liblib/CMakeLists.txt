@@ -53,7 +53,11 @@ IF(USE_HDF5 OR USE_NETCDF4)
     IF(HDF5_hdf5_hl_LIBRARY AND NOT HDF5_HL_LIBRARY)
       SET(HDF5_HL_LIBRARY ${HDF5_hdf5_hl_LIBRARY})
     ENDIF()
-    SET(TLL_LIBS ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY} ${TLL_LIBS} ${SZIP_LIBRARY})
+    # The order of the libraries is important here for static
+    # builds:
+    # Make sure that HDF5_C_LIBRARY appears *after*
+    # HDF5_HL_LIBRARY.
+    SET(TLL_LIBS ${HDF5_HL_LIBRARY} ${HDF5_C_LIBRARY} ${TLL_LIBS} ${SZIP_LIBRARY})
   ELSE() # Windows CMake defines HDF5_LIBRARIES.
     SET(TLL_LIBS ${HDF5_LIBRARIES} ${TLL_LIBS} ${SZIP_LIBRARY})
   ENDIF()
