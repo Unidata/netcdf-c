@@ -9,6 +9,8 @@ set_and_check(netCDF_INSTALL_PREFIX "@PACKAGE_CMAKE_INSTALL_PREFIX@")
 set_and_check(netCDF_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 set_and_check(netCDF_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
+set(netcdf_LIBRARIES "netcdf")
+
 # Compiling Options
 #
 set(netCDF_C_COMPILER @CC_VERSION@)

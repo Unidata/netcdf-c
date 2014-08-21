@@ -1198,23 +1198,44 @@ CONFIGURE_FILE(
 
 # Create CMake package configuration files. With these, other packages using
 # cmake should be able to find netcdf using find_package and find_library.
-# This call is paired with one in liblib.
-install(EXPORT netcdf-targets
-  DESTINATION share/cmake
-  COMPONENT documentation)
+# The EXPORT call is paired with one in liblib.
+set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
+install(EXPORT netCDFTargets
+  DESTINATION ${ConfigPackageLocation}
+  COMPONENT Devel
+  )
 
-configure_file(
-  ${netCDF_SOURCE_DIR}/netcdf-config.cmake.in
-  ${netCDF_BINARY_DIR}/netcdf-config.cmake @ONLY)
+include(CMakePackageConfigHelpers)
+CONFIGURE_PACKAGE_CONFIG_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  INSTALL_DESTINATION "${ConfigPackageLocation}"
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  PATH_VARS
+  CMAKE_INSTALL_PREFIX
+  CMAKE_INSTALL_INCLUDEDIR
+  CMAKE_INSTALL_LIBDIR
+  )
 
-configure_file(
-  ${netCDF_SOURCE_DIR}/netcdf-config-version.cmake.in
-  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake @ONLY)
+INSTALL(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  DESTINATION "${ConfigPackageLocation}"
+  COMPONENT Devel
+  )
 
-install(FILES ${netCDF_BINARY_DIR}/netcdf-config.cmake
-  ${netCDF_BINARY_DIR}/netcdf-config-version.cmake
-  DESTINATION share/cmake/netcdf)
+# Create export configuration
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  VERSION ${netCDF_VERSION}
+  COMPATIBILITY SameMajorVersion
+  )
 
+install(
+  FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  DESTINATION ${ConfigPackageLocation}
+  COMPONENT Devel
+  )
 
 ###
 # Create pkgconfig files.
@@ -1392,19 +1413,6 @@ is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 
 # Generate file from template.
-include(CMakePackageConfigHelpers)
-set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
-CONFIGURE_PACKAGE_CONFIG_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
-
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   @ONLY)
@@ -1421,26 +1429,6 @@ MESSAGE(${LIBNETCDF_SETTINGS})
 INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT libraries)
-
-INSTALL(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT Devel
-  )
-
-# Create export configuration
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
-  VERSION ${netCDF_VERSION}
-  COMPATIBILITY SameMajorVersion
-  )
-
-install(
-  FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
-  DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel
-  )
 
 #####
 # End libnetcdf.settings section.
