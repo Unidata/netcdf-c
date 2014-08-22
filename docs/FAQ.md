@@ -197,12 +197,12 @@ the mailing-list, containing the same messages but appearing at most
 once per day instead of whenever anyone sends a message to the group.
 
 To subscribe or unsubscribe to either of these mailing lists, use one of
-these mailing list actions:   [ [subscribe:
-non-digest](mailto:netcdfgroup-join@unidata.ucar.edu) ]   [ [subscribe:
+these mailing list actions:  [ [subscribe:
+non-digest](mailto:netcdfgroup-join@unidata.ucar.edu) ]  [ [subscribe:
 digest](mailto:netcdfgroup-request@unidata.ucar.edu?subject=subscribe%0A%20%20%20%20%20%20%20%20%20%20digest)
-]   [ [change subscription
+]  [ [change subscription
 options](http://mailman.unidata.ucar.edu/mailman/options/netcdfgroup) ]
-  [ [view posts](/mailing_lists/archives/netcdfgroup/) ]   [ [search
+ [ [view posts](/mailing_lists/archives/netcdfgroup/) ]  [ [search
 archives](/search.jsp) ] .
 
 * * * * *
