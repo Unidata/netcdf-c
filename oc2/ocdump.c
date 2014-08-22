@@ -431,7 +431,7 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
     fseek(file,0,SEEK_SET);
 
     if(fseek(file,(long)datastart,SEEK_SET) < 0) {
-      fprintf(stderr,"ocdreadfile: fseek error.\n");
+      fprintf(stderr,"ocreadfile: fseek error.\n");
       return 0;
     }
 
@@ -445,10 +445,13 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
     /* Read only the data part */
     red = fread(mem,1,len,file);
     if(red < len) {
-	fprintf(stderr,"ocreadfile: short file\n");
-	return 0;
+      fprintf(stderr,"ocreadfile: short file\n");
+      return 0;
     }
-    fseek(file,pos,SEEK_SET); /* leave it as we found it*/
+    if(fseek(file,pos,SEEK_SET) < 0) { /* leave it as we found it*/
+      fprintf(stderr,"ocreadfile: fseek error.\n");
+      return 0;
+    }
     if(memp) *memp = mem;
     if(lenp) *lenp = len;
     return 1;
