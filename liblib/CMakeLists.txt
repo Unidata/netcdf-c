@@ -70,7 +70,9 @@ ENDIF()
 IF(ENABLE_PNETCDF AND PNETCDF)
   SET(TLL_LIBS ${TLL_LIBS} ${PNETCDF})
 ENDIF()
-TARGET_LINK_LIBRARIES(netcdf ${TLL_LIBS})
+# Use PRIVATE, cf.
+# <http://www.cmake.org/cmake/help/v3.0/command/target_link_libraries.html>.
+TARGET_LINK_LIBRARIES(netcdf PRIVATE ${TLL_LIBS})
 
 IF(MSVC)
   SET_TARGET_PROPERTIES(netcdf PROPERTIES
