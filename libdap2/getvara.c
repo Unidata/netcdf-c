@@ -306,7 +306,9 @@ fprintf(stderr,"getvarx: FETCHWHOLE: fetchconstraint: %s\n",dumpconstraint(fetch
 #endif
         ncstat = buildcachenode(dapcomm,fetchconstraint,vars,&cachenode,0);
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
-	if(ncstat != NC_NOERR) {THROWCHK(ncstat); nullfree(varainfo); goto fail;}
+	if(ncstat != NC_NOERR) {THROWCHK(ncstat); nullfree(varainfo);
+                                                varainfo=NULL;
+                                                goto fail;}
     } break;
 
     case CACHED: {
@@ -981,8 +983,8 @@ extractstring(
     for(i=0;i<nclistlength(strings);i++) {
 	char* s = (char*)nclistget(strings,i);
 	slicestring(conn,s,&segment->slices[rank0],memory);
-	free(s);	
-    }    
+	free(s);
+    }
 done:
     if(strings != NULL) nclistfree(strings);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);

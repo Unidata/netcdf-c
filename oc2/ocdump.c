@@ -421,7 +421,7 @@ ocdumpmemory(char* memory, size_t len, int xdrencoded, int level)
 static int
 ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 {
-    char* mem;
+    char* mem = NULL;
     size_t len;
     long red;
     struct stat stats;
@@ -429,23 +429,36 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 
     pos = ftell(file);
     fseek(file,0,SEEK_SET);
-    fseek(file,(long)datastart,SEEK_SET);
+
+    if(fseek(file,(long)datastart,SEEK_SET) < 0) {
+      fprintf(stderr,"ocreadfile: fseek error.\n");
+      return 0;
+    }
 
     fstat(fileno(file),&stats);
     len = stats.st_size;
     len -= datastart;
-    
+
     mem = (char*)calloc(len+1,1);
     if(mem == NULL) return 0;
 
     /* Read only the data part */
     red = fread(mem,1,len,file);
     if(red < len) {
-	fprintf(stderr,"ocreadfile: short file\n");
-	return 0;
-    }	
-    fseek(file,pos,SEEK_SET); /* leave it as we found it*/
-    if(memp) *memp = mem;
+      fprintf(stderr,"ocreadfile: short file\n");
+      if(mem) free(mem);
+      return 0;
+    }
+    if(fseek(file,pos,SEEK_SET) < 0) { /* leave it as we found it*/
+      fprintf(stderr,"ocreadfile: fseek error.\n");
+      if(mem) free(mem);
+      return 0;
+    }
+    if(memp)
+      *memp = mem;
+    else
+      free(mem);
+
     if(lenp) *lenp = len;
     return 1;
 }
@@ -556,12 +569,12 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
         snprintf(tmp,sizeof(tmp),"%04lu ",(unsigned long)data->index);
         ocbytescat(buffer,tmp);
     }
-   
+
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the mode flags in compact form */
     ocbytescat(buffer,ocdtmodestring(data->datamode,1));
-   
+
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the size or ninstances */
@@ -616,7 +629,7 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	OCdata* next = path[i-1];
 	if(next->container == NULL) break;
 	path[i] = next->container;
-    }    	        
+    }
     /* Path is in reverse order */
     for(i=i-1;i>=0;i--) {
 	pathdata = path[i];
@@ -660,5 +673,5 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	ocbytescat(buffer,octypetoddsstring(template->etype));
     }
     snprintf(tmp,sizeof(tmp),"->0x%0lx",(unsigned long)pathdata);
-    ocbytescat(buffer,tmp);	
+    ocbytescat(buffer,tmp);
 }
