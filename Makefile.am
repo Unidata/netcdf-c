@@ -12,8 +12,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt \
 	config.h.cmake.in cmake_uninstall.cmake.in \
-	netcdf-config-version.cmake.in \
-	netcdf-config.cmake.in FixBundle.cmake.in \
+	FixBundle.cmake.in \
 	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
 	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in
 
