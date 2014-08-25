@@ -154,11 +154,11 @@ am__v_P_1 = :
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 = 
+am__v_GEN_1 =
 AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
-am__v_at_1 = 
+am__v_at_1 =
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -402,8 +402,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt \
 	config.h.cmake.in cmake_uninstall.cmake.in \
-	netcdf-config-version.cmake.in \
-	netcdf-config.cmake.in FixBundle.cmake.in \
+	FixBundle.cmake.in \
 	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
 	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in
 
@@ -532,7 +531,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
