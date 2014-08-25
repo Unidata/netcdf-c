@@ -786,7 +786,8 @@ CLEANFILES = test0.nc test1.cdl test1.nc test2.cdl ctest1.cdl \
 	tst_deflated.nc tst_chunking.nc tmp*.nc tst_charfill.nc \
 	tmp_tst_charfill.cdl iter.* tst_nc_test_netcdf4_4_0.cdl \
 	tst_mud4.nc tst_mud4.cdl tst_mud4-bc.cdl tst_ncf213.cdl \
-	tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc results/*.nc \
+	tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc \
+	tst_mud4_chars.cdl tst_mud4_chars.nc results/*.nc \
 	results/*.dmp results/*.dmp2 tmp*.cdl
 
 # These files all have to be included with the distribution.
