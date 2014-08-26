@@ -2814,8 +2814,7 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-  //NC *nc;
-   NC_HDF5_FILE_INFO_T* nc4_info;
+  NC_HDF5_FILE_INFO_T* nc4_info;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 

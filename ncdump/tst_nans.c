@@ -46,11 +46,11 @@ main(int argc, char **argv)
     double dvals[NVALS], dvals_in[NVALS];
 
     
-    float fnan = NC_FNAN;//(NC_INFINITE-NC_INFINITE);//0.f/0.f;
-    double dnan = NC_DNAN;//(NC_INFINITE-NC_INFINITE);//0.0/0.0;
-    float fpinf = NC_FPINF;//NC_INFINITE;//1.0f/0.0f;
+    float fnan = NC_FNAN;/*(NC_INFINITE-NC_INFINITE);//0.f/0.f; */
+    double dnan = NC_DNAN;/*(NC_INFINITE-NC_INFINITE);//0.0/0.0; */
+    float fpinf = NC_FPINF;/*NC_INFINITE;//1.0f/0.0f; */
     float fninf = -fpinf;
-    double dpinf = NC_DPINF;//NC_INFINITE;//1.0/0.0;
+    double dpinf = NC_DPINF;/*NC_INFINITE;//1.0/0.0; */
     double dninf = -dpinf;
     nc_type att_type;
     size_t att_len;

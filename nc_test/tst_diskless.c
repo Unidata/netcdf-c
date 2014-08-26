@@ -130,7 +130,7 @@ printf("*** testing diskless file with scalar vars...");
     
     /* Close the file. */
     if (nc_close(ncid))
-	abort(); //ERR;
+      abort(); /* ERR; */
     }
     SUMMARIZE_ERR;
 
@@ -247,7 +247,7 @@ printf("*** testing diskless file with scalar vars...");
     /* Close the file, losing all information. Hey! What kind of
     * storage format is this, anyway? */
     if (nc_close(ncid))
-	abort(); //ERR;
+      abort(); /* ERR; */
     }
     SUMMARIZE_ERR;
     printf("*** testing diskless file with scalar vars and type conversion...");
@@ -305,12 +305,12 @@ printf("*** testing diskless file with scalar vars...");
     
     /* Close the file. */
     if (nc_close(ncid))
-	abort(); //ERR;
+      abort(); /* ERR; */
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
     
     /* Unnecessary exit(0), FINAL_RESULTS returns. */
-    //exit(0);
+    /* exit(0); */
 }
     

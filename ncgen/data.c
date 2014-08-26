@@ -18,7 +18,7 @@ extern int lvsnprintf(char*, size_t, const char*, va_list);
 NCConstant nullconstant;
 NCConstant fillconstant;
 
-Datalist nildatalist; // to support NIL keyword
+Datalist nildatalist; /* to support NIL keyword */
 
 Bytebuffer* codebuffer;
 Bytebuffer* codetmp;
