@@ -109,11 +109,11 @@ ncuriparse(const char* uri0, NCURI** durip)
     char* suffixparams = NULL;
 
     if(uri0 == NULL || strlen(uri0) == 0)
-	{THROW(1); goto fail;}
+	{THROW(1);}
 
     duri = (NCURI*)calloc(1,sizeof(NCURI));
     if(duri == NULL)
-	{THROW(2); goto fail;}
+      {THROW(2);}
 
     /* save original uri */
     duri->uri = nulldup(uri0);
@@ -122,7 +122,7 @@ ncuriparse(const char* uri0, NCURI** durip)
     uri = (char*)malloc(strlen(uri0)+1+PADDING); /* +1 for trailing null,
                                                     +PADDING for shifting */
     if(uri == NULL)
-	{THROW(3); goto fail;}
+	{THROW(3);}
 
     /* strings will be broken into pieces with intermixed '\0; characters;
        first char is guaranteed to be '\0' */
@@ -161,7 +161,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 		break;
 	}
 	if(*p == 0)
-	    {THROW(4); goto fail; /* malformed client params*/}
+	    {THROW(4); /* malformed client params*/}
         terminate(p); /* nul term the prefixparams (overwrites
                          the final RBRACKET) */
 	p++; /* move past the final RBRACKET */
@@ -171,7 +171,7 @@ ncuriparse(const char* uri0, NCURI** durip)
     protocol = p;
     p = strchr(p,':');
     if(!p)
-	{THROW(5); goto fail;}
+	{THROW(5);}
     terminate(p); /*overwrite colon*/
     p++; /* skip the colon */
 
@@ -189,12 +189,12 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     /* skip // */
     if(p[0] != '/' && p[1] != '/')
-	{THROW(7); goto fail;}
+	{THROW(7);}
     p += 2;
 
     /* If this is all we have (proto://) then fail */
     if(*p == EOFCHAR)
-	{THROW(8); goto fail;}
+	{THROW(8);}
 
     /* establish the start of the file section */
     if(proto->filelike) {/* everything after proto:// */
@@ -222,13 +222,13 @@ ncuriparse(const char* uri0, NCURI** durip)
         p = strchr(host,'@');
         if(p) {
 	    if(p == host)
-		{THROW(9); goto fail; /* we have proto://@ */}
+		{THROW(9); /* we have proto://@ */}
 	    user = host;
 	    terminate(p); /* overwrite '@' */
 	    host = p+1; /* start of host ip name */
 	    p = strchr(user,':');
  	    if(p == NULL)
-		{THROW(10); goto fail; /* malformed */}
+		{THROW(10); /* malformed */}
 	    terminate(p); /*overwrite colon */
 	    pwd = p+1;
 	}
@@ -241,11 +241,11 @@ ncuriparse(const char* uri0, NCURI** durip)
 	    p++;
 	    port = p;
 	    if(*port == EOFCHAR)
-		{THROW(11); goto fail; /* we have proto://...:/ */}
+		{THROW(11); /* we have proto://...:/ */}
 	    /* The port must look something like a number */
 	    for(;*p;p++) {
 	        if(strchr("0123456789-",*p) == NULL)
-		    {THROW(12); goto fail;  /* probably not a real port, fail */}
+		    {THROW(12);  /* probably not a real port, fail */}
 	    }
 	} /* else *p == NULL */
 
