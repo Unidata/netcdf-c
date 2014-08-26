@@ -1,0 +1,36 @@
+/*********************************************************************
+  *   Copyright 2014, UCAR/Unidata
+  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+  *********************************************************************/
+
+#include "config.h"
+#include <stdlib.h>
+
+static const char* ncsettings;
+
+static char** map = NULL;
+static void parse();
+
+const char*
+nc_settings(const char* key)
+{
+    char** mapp;
+    int keylen = strlen(key);
+    if(map == NULL)
+	parse();
+    for(mapp=map;*mapp != NULL;mapp+=2) {
+	/* Note this assumes that no key is a prefix of another */
+	if(strncmp(*mapp,key,keylen)==0) {
+	    return mapp[1];
+	}
+    }    
+    return NULL;
+}
+
+static void parse()
+{
+}
+
+static const char* ncsettings =
+
+
