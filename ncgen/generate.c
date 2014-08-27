@@ -111,6 +111,8 @@ generate_array(Symbol* vsym,
     nc_type typecode = basetype->typ.typecode;
     Odometer* odom;
     nciter_t iter;
+    int firstunlim,secondunlim;
+    int hasunlimited;
 
     ASSERT(rank > 0);
 
@@ -125,19 +127,30 @@ generate_array(Symbol* vsym,
         odom = newodometer(dimset,NULL,NULL);
         writer(generator,vsym,code,odom->rank,odom->start,odom->count);
     } else
-#else /*!CHARBUG*/
-    /* Case: char var && dim 1..n are not unlimited */
-    if(findunlimited(dimset,1) == rank && typecode == NC_CHAR) {
+#endif /*!CHARBUG*/
+    firstunlim = findunlimited(dimset,0);
+    hasunlimited = (firstunlim < rank);
+    secondunlim = findunlimited(dimset,1);
+    /* Case 0: no unlimited and char var*/
+    if(!hasunlimited && typecode == NC_CHAR) {
 	Bytebuffer* charbuf = bbNew();
-	gen_leafchararray(dimset,0,vsym->data,charbuf,filler);
+	gen_leafchararray(dimset,rank,vsym->data,charbuf,filler);
 	generator->charconstant(generator,code,charbuf);
 	bbFree(charbuf);
         odom = newodometer(dimset,NULL,NULL);
         writer(generator,vsym,code,odom->rank,odom->start,odom->count);
     } else
-#endif
+    /* Case 1: char var && dim 1..n are not unlimited */
+    if(secondunlim == rank && typecode == NC_CHAR) {
+	Bytebuffer* charbuf = bbNew();
+	gen_leafchararray(dimset,(hasunlimited?firstunlim:0),vsym->data,charbuf,filler);
+	generator->charconstant(generator,code,charbuf);
+	bbFree(charbuf);
+        odom = newodometer(dimset,NULL,NULL);
+        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
+    } else
     /* Case 2: dim 1..n are not unlimited */
-    if(findunlimited(dimset,1) == rank) {
+    if(secondunlim < rank) {
 	size_t offset = 0; /* where are we in the data list */
 	size_t nelems = 0; /* # of data list items to read */
         /* Create an iterator and odometer and just walk the datalist */
@@ -213,10 +226,11 @@ generate_arrayr(Symbol* vsym,
     Dimset* dimset = &vsym->typ.dimset;
     int rank = dimset->ndims;
     int lastunlimited;
+    int hasunlimited;
     int typecode = basetype->typ.typecode;
 
     lastunlimited = findlastunlimited(dimset);
-    if(lastunlimited == rank) lastunlimited = 0;
+    hasunlimited = (lastunlimited < rank);
 
     ASSERT(rank > 0);
     ASSERT(dimindex >= 0 && dimindex < rank);
@@ -224,7 +238,7 @@ generate_arrayr(Symbol* vsym,
 #ifdef CHARBUG
     ASSERT(typecode != NC_CHAR);
 #else /*!CHARBUG*/
-    if(dimindex == lastunlimited && typecode == NC_CHAR) {
+    if(hasunlimited && dimindex == lastunlimited && typecode == NC_CHAR) {
 	Bytebuffer* charbuf = bbNew();
 	gen_leafchararray(dimset,dimindex,list,charbuf,filler);
 	generator->charconstant(generator,code,charbuf);
@@ -256,7 +270,7 @@ generate_arrayr(Symbol* vsym,
         generator->listend(generator,LISTDATA,uid,i,code);
 	odometerfree(slabodom);
     } else {
-        /* If we are strictly to the left of the next unlimited
+        /* If we are strictly to the left of the next unlimited (if any)
            then our datalist is a list of compounds representing
            the next unlimited; so walk the subarray from this index
 	   upto next unlimited.
@@ -264,16 +278,18 @@ generate_arrayr(Symbol* vsym,
 	int i;
 	Odometer* slabodom;
         int nextunlimited = findunlimited(dimset,dimindex+1);
-	ASSERT((dimindex < nextunlimited
-                && (dimset->dimsyms[nextunlimited]->dim.isunlimited)));
+	int hasnextunlim = (nextunlimited < rank);
+	ASSERT(((!hasnextunlim) || (dimindex < nextunlimited
+                && dimset->dimsyms[nextunlimited]->dim.isunlimited)));
 	/* build a sub odometer */
-        slabodom = newsubodometer(odom,dimset,dimindex,nextunlimited);
+        slabodom = newsubodometer(odom,dimset,dimindex,
+		   hasnextunlim?nextunlimited:rank);
 	/* compute the starting offset in our datalist
 	   (Assumes that slabodom->index[i] == slabodom->start[i])
         */
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
-        NCConstant* con = datalistith(list,offset);
+            NCConstant* con = datalistith(list,offset);
 #ifdef USE_NOFILL
 	    if(nofill_flag && con == NULL)
 		break;
@@ -282,7 +298,6 @@ generate_arrayr(Symbol* vsym,
 		if(filler == NULL)
 		    filler = getfiller(vsym);
 	        generate_arrayr(vsym,code,filler,odom,nextunlimited,NULL,generator);
-
 	    } else if(!islistconst(con))
 	        semwarn(constline(con),"Expected {...} representing unlimited list");
 	    else {

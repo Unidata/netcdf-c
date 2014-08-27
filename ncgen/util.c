@@ -656,6 +656,11 @@ check_err(const int stat, const int line, const char* file) {
     }
 }
 
+/**
+Find the index of the first unlimited
+dimension at or after 'start'.
+If no unlimited exists, return |dimset|
+*/
 int
 findunlimited(Dimset* dimset, int start)
 {
@@ -666,6 +671,11 @@ findunlimited(Dimset* dimset, int start)
     return dimset->ndims;
 }
 
+/**
+Find the index of the last unlimited
+dimension.
+If no unlimited exists, return |dimset|
+*/
 int
 findlastunlimited(Dimset* dimset)
 {
@@ -674,7 +684,7 @@ findlastunlimited(Dimset* dimset)
 	if(dimset->dimsyms[i]->dim.isunlimited)
 	    return i;
     }
-    return -1;
+    return dimset->ndims;
 }
 
 /* Return standard format string */
