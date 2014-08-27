@@ -287,9 +287,6 @@ px_pgin(ncio *const nciop,
 	assert(offset % X_ALIGN == 0);
 	assert(extent % X_ALIGN == 0);
 #endif
-    /*
-	assert(*posp == OFF_NONE || *posp == lseek(nciop->fd, 0, SEEK_CUR));
-    */
     /* *posp == OFF_NONE (-1) on first call. This
        is problematic because lseek also returns -1
        on error. Use errno instead. */
