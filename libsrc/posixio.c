@@ -290,9 +290,10 @@ px_pgin(ncio *const nciop,
     /* *posp == OFF_NONE (-1) on first call. This
        is problematic because lseek also returns -1
        on error. Use errno instead. */
-    if(*posp != OFF_NONE || *posp == lseek(nciop->fd, 0, SEEK_CUR)) {
+    if(*posp != OFF_NONE && *posp != lseek(nciop->fd, 0, SEEK_CUR)) {
       if(errno) {
         status = errno;
+        printf("Error %d: %s\n",errno,strerror(errno));
         return status;
       }
     }
