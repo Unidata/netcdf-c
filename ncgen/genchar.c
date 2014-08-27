@@ -50,7 +50,7 @@ Two other cases:
 void
 gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fillsrc)
 {
-    int ndims,lastunlim;
+    int ndims,lastunlim, hasunlim;
     int fillchar = getfillchar(fillsrc);
     size_t expectedsize,xproduct;
     size_t unitsize;
@@ -59,15 +59,14 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
 
     ndims = dimset->ndims;
 
-
     /* Find the last unlimited */
     lastunlim = findlastunlimited(dimset);
-    if(lastunlim < 0) lastunlim = 0; /* pretend */
+    hasunlim = (lastunlim < ndims);
 
     /* Compute crossproduct upto the last dimension,
        starting at the last unlimited
     */
-    xproduct = crossproduct(dimset,lastunlim,ndims-1);
+    xproduct = crossproduct(dimset,(hasunlim?lastunlim:0),ndims-1);
     if(ndims == 0) {
 	unitsize = 1;
     } else if(lastunlim == ndims-1) {/* last dimension is unlimited */
@@ -77,7 +76,6 @@ gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fil
     }
 
     expectedsize = (xproduct * unitsize);
-
     gen_chararrayr(dimset,0,lastunlim,databuf,data,fillchar,unitsize,expectedsize);
 }
 
@@ -88,9 +86,10 @@ gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
 	       int unitsize, int expectedsize)
 {
     int i;
+    int hasunlimited = (lastunlimited < dimset->ndims);
     size_t dimsize = dimset->dimsyms[dimindex]->dim.declsize;
 
-    if(dimindex < lastunlimited) {
+    if(hasunlimited && dimindex < lastunlimited) {
 	/* keep recursing */
         for(i=0;i<dimsize;i++) {
 	    NCConstant* c = datalistith(data,i);
@@ -215,6 +214,7 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
     size_t expectedsize,xproduct,unitsize;
     int ndims = dimset->ndims;
     int fillchar = getfillchar(fillsrc);
+    int hasunlimited = (lastunlim < dimset->ndims);
 
     ASSERT(bbLength(databuf) == 0);
 
@@ -222,22 +222,27 @@ gen_leafchararray(Dimset* dimset, int lastunlim, Datalist* data,
        no unlimiteds => we should be at a list of simple constants
     */
 
-    /* Compute crossproduct upto the last dimension,
-       starting at the last unlimited
-    */
-    xproduct = crossproduct(dimset,lastunlim,ndims-1);
+    /* Compute crossproduct starting at the last unlimited */
+    if(hasunlimited)
+	xproduct = crossproduct(dimset,lastunlim,ndims);
+    else
+	xproduct = crossproduct(dimset,0,ndims);
 
     /* Compute the required size (after padding) of each string constant */
     /* expected size is the size of concat of the string constants
        after padding
     */
-    if(ndims == 0) {
+    if(ndims == 0 || !hasunlimited) {
 	unitsize = 1;
         expectedsize = (xproduct * unitsize);
     } else
     if(lastunlim == ndims-1) {/* last dimension is unlimited */
         unitsize = 1;
+#if 0
         expectedsize = (xproduct*dimset->dimsyms[lastunlim]->dim.declsize);
+#else
+        expectedsize = (xproduct*unitsize);
+#endif
     } else
     { /* last dim is not unlimited */
         unitsize = dimset->dimsyms[ndims-1]->dim.declsize;
