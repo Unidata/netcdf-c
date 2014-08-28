@@ -21,8 +21,7 @@ dvarinq.c ddispatch.c                                                   \
 nclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
 ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
 dsubstrate.c \
-nc.c nclistmgr.c \
-ncsettings.c
+nc.c nclistmgr.c
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
@@ -42,11 +41,4 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr
-
-ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
-	rm -f ncsettings.c
-	cat ncsettings.hdr > ncsettings.c
-	sed -e 's/"/\\"/g' <$(top_srcdir)/libnetcdf.settings | sed -e 's/\(.*\)/"\1\\n"/' >> ncsettings.c
-	echo ';' >> ncsettings.c
-	
+EXTRA_DIST=CMakeLists.txt
