@@ -26,7 +26,7 @@ EXTERNL int
 NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, 
 		  nc_type typeid2, int *equalp)
 {
-   NC_GRP_INFO_T *grp1, *grp2;
+   NC_GRP_INFO_T *grpone, *grptwo;
    NC_TYPE_INFO_T *type1, *type2;
    int retval;
    
@@ -62,14 +62,14 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
    }
 
    /* Not atomic types - so find type1 and type2 information. */
-   if ((retval = nc4_find_nc4_grp(ncid1, &grp1)))
+   if ((retval = nc4_find_nc4_grp(ncid1, &grpone)))
       return retval;
-   if (!(type1 = nc4_rec_find_nc_type(grp1->nc4_info->root_grp, 
+   if (!(type1 = nc4_rec_find_nc_type(grpone->nc4_info->root_grp, 
 				      typeid1)))
       return NC_EBADTYPE;
-   if ((retval = nc4_find_nc4_grp(ncid2, &grp2)))
+   if ((retval = nc4_find_nc4_grp(ncid2, &grptwo)))
       return retval;
-   if (!(type2 = nc4_rec_find_nc_type(grp2->nc4_info->root_grp, 
+   if (!(type2 = nc4_rec_find_nc_type(grptwo->nc4_info->root_grp, 
 				      typeid2)))
       return NC_EBADTYPE;
 
@@ -84,7 +84,8 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 EXTERNL int
 NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
-   NC_GRP_INFO_T *grp, *grp2;
+   NC_GRP_INFO_T *grp;
+   NC_GRP_INFO_T *grptwo;
    NC_HDF5_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type = NULL;
    char *norm_name;
@@ -120,8 +121,8 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
      return retval;
    }
    /* Is the type in this group? If not, search parents. */
-   for (grp2 = grp; grp2; grp2 = grp2->parent)
-      for (type = grp2->type; type; type = type->l.next)
+   for (grptwo = grp; grptwo; grptwo = grptwo->parent)
+      for (type = grptwo->type; type; type = type->l.next)
 	 if (!strcmp(norm_name, type->name))
 	 {
 	    if (typeidp)
