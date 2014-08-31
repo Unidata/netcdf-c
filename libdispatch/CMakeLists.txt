@@ -1,4 +1,4 @@
-SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8proc.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c dsubstrate.c nc.c nclistmgr.c)
+SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8proc.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c dsubstrate.c nc.c nclistmgr.c ncsettings.c)
 
 IF(USE_NETCDF4)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c ncaux.c)
@@ -11,5 +11,18 @@ ENDIF(BUILD_V2)
 add_library(dispatch OBJECT ${libdispatch_SOURCES}) 
 
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am ncsettings.hdr)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
+
+add_custom_command(
+  OUTPUT ncsettings.c
+  COMMAND rm -f ncsettings.c tmp1 tmp2
+  COMMAND cat ncsettings.hdr > ncsettings.c
+  COMMAND tr '\t\r' '  ' <${CMAKE_CURRENT_SOURCE_DIR}/../libnetcdf.settings >tmp1
+  COMMAND sed -e 's/"/\\"/g' <tmp1 >tmp2
+  COMMAND rm -f tmp1
+  COMMAND sed -e 's/\(.*\)/\"\1\\n\"/' <tmp2 >>ncsettings.c
+  COMMAND echo ';' >> ncsettings.c
+  )
+
+ADD_CUSTOM_TARGET(ncsettings.c DEPENDS c: ${CMAKE_CURRENT_SOURCE_DIR}/../libnetcdf.settings ncsettings.hdr)
