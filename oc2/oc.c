@@ -569,7 +569,7 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
 
         err = oc_dds_ithfield(link,ddsnode,i,&field);
         if(err != OC_NOERR) return err;
-	// Get the field's name
+	/* Get the field's name */
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
 	if(fieldname != NULL) {
@@ -985,7 +985,7 @@ oc_data_fieldbyname(OCobject link, OCobject datanode, const char* name, OCobject
 	char* fieldname = NULL;
         err = oc_dds_ithfield(link,ddsnode,i,&field);
         if(err != OC_NOERR) return err;
-	// Get the field's name
+	/* Get the field's name */
         err = oc_dds_name(link,field,&fieldname);
         if(err != OC_NOERR) return err;
  	if(!fieldname)

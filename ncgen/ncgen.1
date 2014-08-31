@@ -14,7 +14,7 @@ ncgen
 \%[-n]
 \%[-o \fInetcdf_filename\fP]
 \%[-x]
-\%\fIinput_file\fP
+\%[\fIinput_file\fP]
 .hy
 .ft
 .SH DESCRIPTION
@@ -24,7 +24,8 @@ or a file in some source language that when executed will
 construct the corresponding binary .nc file.
 The input to \fBncgen\fP is a description of a netCDF
 file in a small language known as CDL (network Common Data form Language),
-described below.
+described below.  Input is read from standard input if no input_file
+is specified.
 If no options are specified in invoking \fBncgen\fP, it merely checks the
 syntax of the input CDL file, producing error messages for
 any violations of CDL syntax.  Other options can be used, for example,

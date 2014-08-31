@@ -210,11 +210,9 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	if(i == 0 && isrecvar) {/*do nothing*/}
         else {
 	  /* mystart is unsigned, will never be < 0 */
-	  //if(mystart[i] < 0 || mystart[i] > dimlen)
 	  if(mystart[i] > dimlen)
 	    return NC_EINVALCOORDS;
           /* myediges is unsigned, will never be < 0 */ 
-	  //if(myedges[i] < 0 || (mystart[i] + myedges[i] > dimlen))
 	  if(mystart[i] + myedges[i] > dimlen)
 	    return NC_EEDGE;
        }

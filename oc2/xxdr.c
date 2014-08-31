@@ -54,6 +54,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #ifdef _WIN32
 #include <wchar.h>
 #include <sys/types.h>
@@ -222,8 +226,7 @@ xxdr_skip(XXDR* xdrs, off_t len)
     off_t pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
-    // Removed the following; pos is unsigned. jhrg 9/30/13
-    // if(pos < 0) pos = 0;
+    /* Removed the following; pos is unsigned. jhrg 9/30/13 */
     return xxdr_setpos(xdrs,pos);
 }
 

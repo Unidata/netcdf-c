@@ -142,7 +142,7 @@ main()
 #endif
 
     check(err = nc_get_varm_float (ncid, varid, start, count, stride, imap,(float*) dat),__FILE__,__LINE__);
-//    check(err = nc_get_vara_float (ncid, varid, start, count, (float*) dat),__FILE__,__LINE__);
+    /*    check(err = nc_get_vara_float (ncid, varid, start, count, (float*) dat),__FILE__,__LINE__); */
 
 #ifdef STANDALONE
     printf("varm: %s =",VAR);

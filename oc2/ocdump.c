@@ -435,7 +435,11 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
       return 0;
     }
 
-    fstat(fileno(file),&stats);
+    if(fstat(fileno(file),&stats) < 0) {
+      fprintf(stderr,"ocreadfile: fstat error.\n");
+      return 0;
+    }
+
     len = stats.st_size;
     len -= datastart;
 

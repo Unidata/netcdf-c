@@ -14,6 +14,10 @@ Version: 2.0
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 /*!\file oc.h
 */
 

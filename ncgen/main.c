@@ -172,7 +172,7 @@ main(
     int c;
     FILE *fp;
 	struct Languages* langs;
-    char* lang_name;//
+    char* lang_name;
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif

@@ -7,7 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
-### 4.3.3-rc1 Released TBD
+### 4.3.3-rc2 Released TBD
+
+* Corrected an issue where building with HDF4 support for Visual Studio would fail.
+
+### 4.3.3-rc1 Released 2014-08-25
 
 * Added `CMake`-based export files, contributed by Nico Schlömer. See https://github.com/Unidata/netcdf-c/pull/74.
 

@@ -6,12 +6,12 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
-LDADD = ${top_builddir}/liblib/libnetcdf.la 
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 TESTS_ENVIRONMENT=CC=${CC}
 
 # This is the program we're building, and it's sources.
-bin_PROGRAMS = ncdump 
+bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c	\
 ncdump.h vardata.h dumplib.h indent.h isnan.h nctime0.h cdl.h \
 utils.h utils.c nciter.h nciter.c nccomps.h
@@ -102,7 +102,8 @@ tmp_subset.cdl tst_inflated4.nc tst_deflated.nc tst_chunking.nc tmp*.nc \
 tst_charfill.nc tmp_tst_charfill.cdl \
 iter.* \
 tst_nc_test_netcdf4_4_0.cdl tst_mud4.nc tst_mud4.cdl tst_mud4-bc.cdl \
-tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc
+tst_ncf213.cdl tst_ncf213.nc tst_h_scalar.cdl tst_h_scalar.nc \
+tst_mud4_chars.cdl tst_mud4_chars.nc
 
 # These files all have to be included with the distribution.
 EXTRA_DIST = run_tests.sh tst_64bit.sh tst_output.sh test0.cdl		\
@@ -123,6 +124,7 @@ ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh              \
 ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh                   \
 tst_iter.sh tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl             \
+ref_tst_mud4_chars.cdl \
 ref_tst_ncf213.cdl cdl4/ref_tst_h_scalar.cdl tst_h_scalar.sh            \
 tst_formatx3.sh tst_formatx4.sh                                         \
 CMakeLists.txt XGetopt.c tst_bom.sh

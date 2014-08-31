@@ -1530,8 +1530,8 @@ usage(void)
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s",
-	  progname, USAGE);
+    error("%s [-k n] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetcdf library version %s",
+	  progname, USAGE, nc_inq_libvers());
 }
 
 int
