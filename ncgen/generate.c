@@ -111,46 +111,48 @@ generate_array(Symbol* vsym,
     nc_type typecode = basetype->typ.typecode;
     Odometer* odom;
     nciter_t iter;
-    int firstunlim,secondunlim;
+    int firstunlim;
+    int innerunlim; /* => unlim in other than dim 0 */
+    int lastunlimlim;
     int hasunlimited;
 
     ASSERT(rank > 0);
 
-    /* Start by doing easy cases */
-
-#ifdef CHARBUG
-    if(typecode == NC_CHAR) { /* case: character typed variable, rank > 0 */
-	Bytebuffer* charbuf = bbNew();
-        gen_chararray(dimset,vsym->data,charbuf,filler);
-	generator->charconstant(generator,code,charbuf);
-	bbFree(charbuf);
-        odom = newodometer(dimset,NULL,NULL);
-        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-    } else
-#endif /*!CHARBUG*/
-    firstunlim = findunlimited(dimset,0);
+    /* Start by locating the first two unlimited dims, if they exit */
+    firstunlim = findunlimited(dimset,0); /*firstulim=rank if no unlimited*/
     hasunlimited = (firstunlim < rank);
-    secondunlim = findunlimited(dimset,1);
-    /* Case 0: no unlimited and char var*/
+    innerunlim = findunlimited(dimset,1);
+    lastunlim = findlastunlimited(dimset);
     if(!hasunlimited && typecode == NC_CHAR) {
+        /* Case 0: no unlimited and char var*/
 	Bytebuffer* charbuf = bbNew();
+	/*
+	Action: just concat/pad any char constants and fill to
+	dimension cross product.
+        */
 	gen_leafchararray(dimset,rank,vsym->data,charbuf,filler);
+	/* generate a language specific character constant */
 	generator->charconstant(generator,code,charbuf);
 	bbFree(charbuf);
+	/* dump to output */
         odom = newodometer(dimset,NULL,NULL);
         writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-    } else
-    /* Case 1: char var && dim 1..n are not unlimited */
-    if(secondunlim == rank && typecode == NC_CHAR) {
+    } else if(innerunlim == rank && typecode == NC_CHAR) {
+        /* Case 1: char var && dim 1..n are not unlimited, but 0 MAY be*/
 	Bytebuffer* charbuf = bbNew();
+	/*
+	Action: just concat/pad any char constants and fill to
+	dimension cross product using the unlim's current size.
+        */
 	gen_leafchararray(dimset,(hasunlimited?firstunlim:0),vsym->data,charbuf,filler);
+	/* generate a language specific character constant */
 	generator->charconstant(generator,code,charbuf);
 	bbFree(charbuf);
+	/* dump to output */
         odom = newodometer(dimset,NULL,NULL);
         writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-    } else
-    /* Case 2: dim 1..n are not unlimited */
-    if(secondunlim < rank) {
+    } else if(innerunlim < rank) {
+        /* Case 2: dim 1..n are not unlimited */
 	size_t offset = 0; /* where are we in the data list */
 	size_t nelems = 0; /* # of data list items to read */
         /* Create an iterator and odometer and just walk the datalist */
