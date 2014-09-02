@@ -14,15 +14,14 @@ FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SO
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am ncsettings.hdr)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
-add_custom_command(
-  OUTPUT ncsettings.c
-  COMMAND rm -f ncsettings.c tmp1 tmp2
-  COMMAND cat ncsettings.hdr > ncsettings.c
-  COMMAND tr '\t\r' '  ' <${CMAKE_CURRENT_SOURCE_DIR}/../libnetcdf.settings >tmp1
-  COMMAND sed -e 's/"/\\"/g' <tmp1 >tmp2
-  COMMAND rm -f tmp1
-  COMMAND sed -e 's/\(.*\)/\"\1\\n\"/' <tmp2 >>ncsettings.c
-  COMMAND echo ';' >> ncsettings.c
-  )
+FILE(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c")
+FILE(READ "${CMAKE_SOURCE_DIR}/libnetcdf.settings" settings)
 
-ADD_CUSTOM_TARGET(ncsettings.c DEPENDS c: ${CMAKE_CURRENT_SOURCE_DIR}/../libnetcdf.settings ncsettings.hdr)
+
+STRING(REGEX REPLACE "	" " " settings "${settings}")
+STRING(REGEX REPLACE "\r" " " settings "${settings}")
+STRING(REPLACE "\"" "\\\"" settings "${settings}")
+STRING(REGEX REPLACE "^" "\"\\1" settings "${settings}")
+FILE(READ "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.hdr" hdr)
+FILE(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c" "${hdr}" "${settings}")
+FILE(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c" ";")
