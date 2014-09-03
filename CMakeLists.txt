@@ -929,13 +929,15 @@ IF(ENABLE_DOXYGEN)
     SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
   ENDIF()
 
+  OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
+
   # Option to turn on the TODO list in the doxygen-generated documentation.
-  OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
-  IF(ENABLE_DOXYGEN_TASKS)
+  OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+  IF(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-  ELSE(ENABLE_DOXYGEN_TASKS)
+  ELSE(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-  ENDIF(ENABLE_DOXYGEN_TASKS)
+  ENDIF(DOXYGEN_ENABLE_TASKS)
 
   OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
@@ -970,7 +972,7 @@ ENDIF()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-
+MARK_AS_ADVANCED(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH DOXYGEN_ENABLE_TASKS)
 ################################
 # Option checks
 ################################
