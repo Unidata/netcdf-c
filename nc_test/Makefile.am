@@ -15,10 +15,8 @@ tst_diskless3.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl \
 tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc
 
 # These are the tests which are always run.
-XTESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
+TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
 tst_nofill tst_nofill2 tst_nofill3 tst_atts3
-
-TESTPROGRAMS =
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts
@@ -96,8 +94,11 @@ endif # USE_VALGRIND_TESTS
 EXTRA_DIST = test_get.m4 test_put.m4 run_valgrind_tests.sh \
 run_diskless.sh run_diskless2.sh run_mmap.sh run_pnetcdf_test.sh
 
+
 # ref_tst_diskless2.cdl is for diff comparison and to produce tst_diskless2.c
 EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
+
+#EXTRA_DIST += ${nc_test_SOURCES}
 
 # Only clean these on mainatiner-clean, because they require m4 to
 # regenerate.
