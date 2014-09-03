@@ -16,9 +16,7 @@ tst_diskless4.cdl tst_diskless4.nc tst_formatx.nc
 
 # These are the tests which are always run.
 XTESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_settings
-
-TESTPROGRAMS = tst_settings
+tst_nofill tst_nofill2 tst_nofill3 tst_atts3
 
 if USE_NETCDF4
 TESTPROGRAMS += tst_atts
@@ -29,15 +27,15 @@ TESTPROGRAMS += tst_parallel2 tst_pnetcdf tst_formatx_pnetcdf
 endif
 
 # if EXTRA_TESTS
-# TESTPROGRAMS += 
+# TESTPROGRAMS +=
 # endif # EXTRA_TESTS
 
 # These are the source files for the main workhorse test program,
 # nc_test. If you pass nc_test, you are doing well.
 nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
-test_read.c test_write.c util.c error.h tests.h 
+test_read.c test_write.c util.c error.h tests.h
 
-LDADD = ${top_builddir}/liblib/libnetcdf.la 
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib
 
 # If the user asked for large file tests, then add them.
@@ -106,4 +104,3 @@ EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
-
