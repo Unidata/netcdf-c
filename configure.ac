@@ -1035,9 +1035,11 @@ AH_BOTTOM([#include "ncconfigure.h"])
 # debugging purposes.
 # cp confdefs.h my_config.h
 
+#####
 # Create output variables from various
 # shell variables, for use in generating
 # libnetcdf.settings.
+#####
 AC_SUBST([enable_shared])
 AC_SUBST([enable_static])
 AC_SUBST([CFLAGS])
@@ -1047,18 +1049,35 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AC_SUBST(USE_NETCDF_2,[1])
-AC_SUBST(USE_NETCDF4)
-AC_SUBST(USE_HDF4)
+#####
+# Define values used in include/netcdf_meta.h
+#####
+AC_DEFINE_UNQUOTED(NC_VERSION, "${PACKAGE_VERSION}", "")
+AC_DEFINE_UNQUOTED(NC_HAS_NC2, ${USE_NETCDF_2}, "")
+AC_DEFINE_UNQUOTED(NC_HAS_NC4, ${USE_NETCDF4}, "")
+AC_DEFINE_UNQUOTED(NC_HAS_HDF4, ${USE_HDF4}, "")
+
+AC_SUBST(NC_HAS_DAP,[$enable_dap])
+AC_SUBST(NC_HAS_HDF4,[$enable_hdf4])
+AC_SUBST(NC_HAS_PNETCDF,[$enable_pnetcdf])
+AC_SUBST(NC_HAS_HDF5,[$enable_netcdf_4])
+AC_SUBST(NC_HAS_SZLIB,[$nc_has_szlib])
+AC_SUBST(NC_HAS_PARALLEL,[$enable_parallel])
+AC_SUBST(NC_HAS_DISKLESS,[$enable_diskless])
+AC_SUBST(NC_HAS_MMAP,[$enable_mmap])
+AC_SUBST(NC_HAS_JNA,[$enable_jna])
+
+
+
+AC_CONFIG_HEADERS([include/netcdf_meta.h])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
 		         libnetcdf.settings
-                 include/netcdf_meta.h
                  include/Makefile
-                 h5_test/Makefile
+                  h5_test/Makefile
                  docs/Makefile
                  docs/images/Makefile
                  libsrc/Makefile

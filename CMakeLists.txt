@@ -396,15 +396,14 @@ ENDMACRO()
 # If a variable is set, it 'yes' is returned. Otherwise, 'no' is
 # returned.
 #
-# Also creates a version of the ret_val appended with 'BOOL',
+# Also creates a version of the ret_val prepended with 'NC',
 # when feature is true, which is used to generate netcdf_meta.h.
 FUNCTION(is_enabled feature ret_val)
   IF(${feature})
     SET(${ret_val} "yes" PARENT_SCOPE)
-    SET("${ret_val}_BOOL" 1 PARENT_SCOPE)
+    SET("NC_${ret_val}" 1 PARENT_SCOPE)
   ELSE()
     SET(${ret_val} "no" PARENT_SCOPE)
-    SET("${ret_val}_BOOL" 0 PARENT_SCOPE)
   ENDIF(${feature})
 ENDFUNCTION()
 
@@ -412,15 +411,14 @@ ENDFUNCTION()
 # If a variable is set, it 'yes' is returned. Otherwise, 'no' is
 # returned.
 #
-# Also creates a version of the ret_val appended with 'BOOL',
+# Also creates a version of the ret_val prepended with 'NC',
 # when feature is true, which is used to generate netcdf_meta.h.
 FUNCTION(is_disabled feature ret_val)
   IF(${feature})
     SET(${ret_val} "no" PARENT_SCOPE)
-    SET("${ret_val}_BOOL" 0 PARENT_SCOPE)
   ELSE()
     SET(${ret_val} "yes" PARENT_SCOPE)
-    SET("${ret_val}_BOOL" 1 PARENT_SCOPE)
+    SET("NC_${ret_val}" 1 PARENT_SCOPE)
   ENDIF(${feature})
 ENDFUNCTION()
 
@@ -500,10 +498,7 @@ ENDIF()
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
 IF(NOT ENABLE_V2_API)
-  SET(NO_NETCDF_2 1)
-  SET(USE_NETCDF_2 0)
-ELSE()
-  SET(USE_NETCDF_2 1)
+  SET(NO_NETCDF_2 ON)
 ENDIF()
 
 # Option to build utilities
@@ -611,7 +606,7 @@ SET(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic
 # Build netCDF4
 OPTION(ENABLE_NETCDF_4 "Enable netCDF-4" ON)
 IF(ENABLE_NETCDF_4)
-  SET(USE_NETCDF4 1 CACHE BOOL "")
+  SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
@@ -628,7 +623,7 @@ OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 
 IF(USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
-  SET(USE_NETCDF4 1)
+  SET(USE_NETCDF4 ON)
   # Accomodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
@@ -1419,7 +1414,7 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # Create 'netcdf_meta.h' include file.
 #####
 configure_file(
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.cmake.in
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 
