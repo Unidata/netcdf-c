@@ -1,4 +1,4 @@
-## This is a CMake file, part of Unidata's netCDF package.
+# This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2014, see the COPYRIGHT file for more information.
 
 ##################################
@@ -1395,6 +1395,19 @@ MESSAGE(${LIBNETCDF_SETTINGS})
 INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT libraries)
+
+# Construct libdispatch/ncsettings.c from libnetcdf.settings
+# Ugh!
+MESSAGE("Building libdispatch/ncsettings.c")
+FILE(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/libdispatch/ncsettings.c")
+FILE(READ "${CMAKE_BINARY_DIR}/libnetcdf.settings" settings)
+STRING(REPLACE "\"" "\\\"" settings "${settings}")
+STRING(REGEX REPLACE "\n" "\\\\n" settings "${settings}")
+MESSAGE("|${settings}|")
+FILE(READ "${CMAKE_CURRENT_SOURCE_DIR}/libdispatch/ncsettings.hdr" hdr)
+FILE(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libdispatch/ncsettings.c" "${hdr}")
+FILE(APPEND "${CMAKE_CURRENT_BINARY_DIR}/libdispatch/ncsettings.c" "\\\"${settings}\\\"")
+FILE(APPEND "${CMAKE_CURRENT_BINARY_DIR}/libdispatch/ncsettings.c" "\";")
 
 #####
 # End libnetcdf.settings section.

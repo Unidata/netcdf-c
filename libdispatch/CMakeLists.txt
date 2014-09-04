@@ -14,14 +14,3 @@ FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SO
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am ncsettings.hdr)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
-FILE(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c")
-FILE(READ "${CMAKE_SOURCE_DIR}/libnetcdf.settings" settings)
-
-
-STRING(REGEX REPLACE "	" " " settings "${settings}")
-STRING(REGEX REPLACE "\r" " " settings "${settings}")
-STRING(REPLACE "\"" "\\\"" settings "${settings}")
-STRING(REGEX REPLACE "^" "\"\\1" settings "${settings}")
-FILE(READ "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.hdr" hdr)
-FILE(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c" "${hdr}" "${settings}")
-FILE(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/ncsettings.c" ";")

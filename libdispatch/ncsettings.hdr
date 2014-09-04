@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "netcdf.h"
 
 /* General rule
 try to avoid any obscure string functions.
@@ -27,7 +28,7 @@ static const char* ncsettings_text;
 
 static char** lines;
 static int nlines;
-static char* dup;
+static char* text;
 static char** map = NULL;
 
 /*forward*/
@@ -70,7 +71,6 @@ parse()
 {
     int i,keypos;
     int nkeys;
-    const char** line;
 
     preprocess();
 
@@ -92,7 +92,7 @@ parse()
     fflush(stdout);
 #endif
     /* Create the map of proper size */
-    map = (char**)malloc(((2*nkeys)+1) * sizeof(char*));/*+1 for terminating null*/
+    map = (char**)malloc(sizeof(char*)*((size_t)(2*nkeys)+1));/*+1 for terminating null*/
     if(map == NULL) {
 	fprintf(stderr,"ncsettings: out of memory\n");
 	return;
@@ -124,7 +124,7 @@ parseline(const char* line, int keypos)
     /* find colon ending of the key */
     r = strchr(line,':');
     if(r == NULL) { /* malformed */
-	fprintf(stderr,"malformed libnetcdf.settings file: %s\n,line");
+	fprintf(stderr,"malformed libnetcdf.settings file: %s\n",line);
 	return 0;
     }
     /* back up from the colon to the first non-blank */
@@ -132,11 +132,11 @@ parseline(const char* line, int keypos)
 	if(*p != ' ') break;
     }
     if(p == line) {/* empty key */
-	fprintf(stderr,"malformed libnetcdf.settings file: %s\n,line");
+	fprintf(stderr,"malformed libnetcdf.settings file: %s\n",line);
 	return 0;
     }
     delta = p - line;
-    key = strndup(line,delta);
+    key = strndup(line,(size_t)delta);
     /* skip post ':' blanks */
     for(p=r+1;;p++) {
 	if(*p != ' ') break;
@@ -187,21 +187,20 @@ preprocess()
     printf("input: %s\n",ncsettings_text);
     fflush(stdout);
 #endif
-    dup = (char*)malloc(strlen(ncsettings_text)+1);
+    text = (char*)malloc(strlen(ncsettings_text)+1);
     nlines = 0;
     /* steps 1 and 2 */
-    for(p=ncsettings_text,q=dup;(c=*p);p++) {
+    for(p=ncsettings_text,q=text;(c=*p);p++) {
 	switch (c) {
 	case '\r': case '\t': *q++ = ' '; break;
 	case '\n': nlines++; *q++ = '\0'; break;
-	default: *q++ = c; break;
+	default: *q++ = (char)c; break;
 	}
     }
     /* step 3 */    
-    lines = (char**)malloc(nlines*sizeof(char*));
-    r = dup;
+    lines = (char**)malloc(sizeof(char*)*((size_t)nlines));
+    r = text;
     for(i=0;i<nlines;i++) {
-	int suppress;
 	lines[i] = r;
 	r += strlen(r);
 	r++; /* skip terminating nul */
@@ -235,10 +234,10 @@ void
 nc_settings_reclaim()
 {
     if(lines != NULL) free(lines);
-    if(dup != NULL) free(dup);
+    if(text != NULL) free(text);
     if(map != NULL) free(map);
     lines = NULL;
-    dup = NULL;
+    text = NULL;
     map = NULL;
 }
 
