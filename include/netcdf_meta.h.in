@@ -10,10 +10,10 @@
 
 #define NC_VERSION @PACKAGE_VERSION@
 
+test @PACKAGE_VERSION@
 
-
-#define NC_HAS_NC2  @HAS_NC2_BOOL@ @HAS_NC2@
-#define NC_HAS_NC4  @HAS_NC4_BOOL@ @HAS_NC4@
-#define NC_HAS_HDF4 @HAS_HDF4_BOOL@ @HAS_HDF4@
+#define NC_HAS_NC2  @HAS_NC2@
+#define NC_HAS_NC4  @HAS_HDF5@
+#define NC_HAS_HDF4 @USE_HDF4@
 
 #endif
