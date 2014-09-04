@@ -500,7 +500,10 @@ ENDIF()
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
 IF(NOT ENABLE_V2_API)
-  SET(NO_NETCDF_2 ON)
+  SET(NO_NETCDF_2 1)
+  SET(USE_NETCDF_2 0)
+ELSE()
+  SET(USE_NETCDF_2 1)
 ENDIF()
 
 # Option to build utilities
@@ -608,7 +611,7 @@ SET(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic
 # Build netCDF4
 OPTION(ENABLE_NETCDF_4 "Enable netCDF-4" ON)
 IF(ENABLE_NETCDF_4)
-  SET(USE_NETCDF4 ON CACHE BOOL "")
+  SET(USE_NETCDF4 1 CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF4 ON CACHE BOOL "")
 ENDIF()
@@ -625,7 +628,7 @@ OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
 
 IF(USE_HDF5 OR ENABLE_NETCDF_4)
   SET(USE_HDF5 ON)
-  SET(USE_NETCDF4 ON)
+  SET(USE_NETCDF4 1)
   # Accomodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should

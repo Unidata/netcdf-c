@@ -451,6 +451,8 @@ AC_MSG_RESULT($nc_build_v2)
 AM_CONDITIONAL(BUILD_V2, [test x$nc_build_v2 = xyes])
 if test "x$nc_build_v2" = xno; then
    AC_DEFINE_UNQUOTED(NO_NETCDF_2, 1, [do not build the netCDF version 2 API])
+else
+   AC_DEFINE_UNQUOTED(USE_NETCDF_2, 1, [build the netCDF version 2 API])
 fi
 
 # Does the user want to disable ncgen/ncdump/nccopy?
@@ -1002,6 +1004,7 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
+
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
@@ -1044,7 +1047,9 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-
+AC_SUBST(USE_NETCDF_2,[1])
+AC_SUBST(USE_NETCDF4)
+AC_SUBST(USE_HDF4)
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
