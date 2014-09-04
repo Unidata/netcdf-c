@@ -395,22 +395,32 @@ ENDMACRO()
 # A function used to create autotools-style 'yes/no' definitions.
 # If a variable is set, it 'yes' is returned. Otherwise, 'no' is
 # returned.
+#
+# Also creates a version of the ret_val appended with 'BOOL',
+# when feature is true, which is used to generate netcdf_meta.h.
 FUNCTION(is_enabled feature ret_val)
   IF(${feature})
     SET(${ret_val} "yes" PARENT_SCOPE)
+    SET("${ret_val}_BOOL" 1 PARENT_SCOPE)
   ELSE()
     SET(${ret_val} "no" PARENT_SCOPE)
+    SET("${ret_val}_BOOL" 0 PARENT_SCOPE)
   ENDIF(${feature})
 ENDFUNCTION()
 
 # A function used to create autotools-style 'yes/no' definitions.
 # If a variable is set, it 'yes' is returned. Otherwise, 'no' is
 # returned.
+#
+# Also creates a version of the ret_val appended with 'BOOL',
+# when feature is true, which is used to generate netcdf_meta.h.
 FUNCTION(is_disabled feature ret_val)
   IF(${feature})
     SET(${ret_val} "no" PARENT_SCOPE)
+    SET("${ret_val}_BOOL" 0 PARENT_SCOPE)
   ELSE()
     SET(${ret_val} "yes" PARENT_SCOPE)
+    SET("${ret_val}_BOOL" 1 PARENT_SCOPE)
   ENDIF(${feature})
 ENDFUNCTION()
 
@@ -1401,6 +1411,16 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 # End libnetcdf.settings section.
 #####
+
+#####
+# Create 'netcdf_meta.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
+  ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
+
+
+
 
 ####
 # Export files
