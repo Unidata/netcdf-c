@@ -14,6 +14,13 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
 
+AC_DEFINE_UNQUOTED(NC_VERSION_MAJOR, 4, "")
+AC_DEFINE_UNQUOTED(NC_VERSION_MINOR, 3, "")
+AC_DEFINE_UNQUOTED(NC_VERSION_PATCH, 3, "")
+AC_DEFINE_UNQUOTED(NC_VERSION_NOTE,  "-rc2", "")
+
+AC_DEFINE_UNQUOTED(NC_VERSION, "${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE}", "")
+
 # Initialize with name, version, and support email address.
 AC_INIT([netCDF], [4.3.3-rc2], [support-netcdf@unidata.ucar.edu])
 
@@ -1049,27 +1056,46 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
+AC_DEFUN([AX_SET_META], [
+  if [ test "x$1" == "xyes" ]; then
+     AC_SUBST([$2], [1])
+  else
+     AC_SUBST([$2], [0])
+  fi
+])
+
+#AC_SUBST([NC_VERSION], [$PACKAGE_VERSION])
+#AC_SUBST([NC_VERSION_MAJOR], [$NC_VERSION_MAJOR])
+#AC_SUBST([NC_VERSION_MINOR], [$NC_VERSION_MINOR])
+#AC_SUBST([NC_VERSION_PATCH], [$NC_VERSION_PATCH])
+#AC_SUBST([NC_VERSION_NOTE], [$NC_VERSION_NOTE])
+
 #####
 # Define values used in include/netcdf_meta.h
 #####
 AC_DEFINE_UNQUOTED(NC_VERSION, "${PACKAGE_VERSION}", "")
-AC_DEFINE_UNQUOTED(NC_HAS_NC2, ${USE_NETCDF_2}, "")
-AC_DEFINE_UNQUOTED(NC_HAS_NC4, ${USE_NETCDF4}, "")
-AC_DEFINE_UNQUOTED(NC_HAS_HDF4, ${USE_HDF4}, "")
+AC_DEFINE_UNQUOTED(NC_VERSION_MAJOR, "${NC_VERSION_MAJOR}", "")
+AC_DEFINE_UNQUOTED(NC_VERSION_MINOR, "${NC_VERSION_MINOR}", "")
+AC_DEFINE_UNQUOTED(NC_VERSION_PATCH, "${NC_VERSION_PATCH}", "")
+AC_DEFINE_UNQUOTED(NC_VERSION_NOTE,  "${NC_VERSION_NOTE}", "")
 
-AC_SUBST(NC_HAS_DAP,[$enable_dap])
-AC_SUBST(NC_HAS_HDF4,[$enable_hdf4])
-AC_SUBST(NC_HAS_PNETCDF,[$enable_pnetcdf])
-AC_SUBST(NC_HAS_HDF5,[$enable_netcdf_4])
-AC_SUBST(NC_HAS_SZLIB,[$nc_has_szlib])
-AC_SUBST(NC_HAS_PARALLEL,[$enable_parallel])
-AC_SUBST(NC_HAS_DISKLESS,[$enable_diskless])
-AC_SUBST(NC_HAS_MMAP,[$enable_mmap])
-AC_SUBST(NC_HAS_JNA,[$enable_jna])
-
-
+AS_IF([ ! test -z "$USE_NETCDF_2" ], [AC_DEFINE([NC_HAS_NC2], [1], [""])])
+AS_IF([ ! test -z "$USE_NETCDF4" ],  [AC_DEFINE([NC_HAS_NC4], [1], [""])])
+AS_IF([ ! test -z "$USE_HDF4" ],     [AC_DEFINE([NC_HAS_HDF4], [1], [""])])
+AS_IF([ ! test -z "$USE_HDF5" ],     [AC_DEFINE([NC_HAS_HDF5], [1], [""])])
+AS_IF([ ! test -z "$USE_SZIP" ],     [AC_DEFINE([NC_HAS_SZIP], [1], [""])])
+AS_IF([ ! test -z "$USE_DAP" ],      [AC_DEFINE([NC_HAS_DAP], [1], [""])])
+AS_IF([ ! test -z "$USE_DISKLESS" ], [AC_DEFINE([NC_HAS_DISKLESS], [1], [""])])
+AS_IF([ ! test -z "$USE_MMAP" ],     [AC_DEFINE([NC_HAS_MMAP], [1], [""])])
+AS_IF([ ! test -z "$JNA" ],          [AC_DEFINE([NC_HAS_JNA], [1], [""])])
+AS_IF([ ! test -z "$USE_PNETCDF" ],  [AC_DEFINE([NC_HAS_PNETCDF], [1], [""])])
+AS_IF([ ! test -z "$USE_PARALLEL" ], [AC_DEFINE([NC_HAS_PARALLEL], [1], [""])])
 
 AC_CONFIG_HEADERS([include/netcdf_meta.h])
+
+#####
+# End netcdf_meta.h definitions.
+#####
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
@@ -1077,7 +1103,7 @@ AC_CONFIG_FILES([Makefile
                  netcdf.pc
 		         libnetcdf.settings
                  include/Makefile
-                  h5_test/Makefile
+                 h5_test/Makefile
                  docs/Makefile
                  docs/images/Makefile
                  libsrc/Makefile

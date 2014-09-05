@@ -8,12 +8,23 @@
 #ifndef NETCDF_META_H
 #define NETCDF_META_H
 
+#undef NC_VERSION_MAJOR
+#undef NC_VERSION_MINOR
+#undef NC_VERSION_PATCH
+#undef NC_VERSION_NOTE
+
 #undef NC_VERSION
 
-#undef PACKAGE_VERSION
-
-#undef NC_HAS_NC2 0
+#undef NC_HAS_NC2
 #undef NC_HAS_NC4
 #undef NC_HAS_HDF4
+#undef NC_HAS_HDF5
+#undef NC_HAS_SZIP
+#undef NC_HAS_DAP
+#undef NC_HAS_DISKLESS
+#undef NC_HAS_MMAP
+#undef NC_HAS_JNA
+#undef NC_HAS_PNETCDF
+#undef NC_HAS_PARALLEL
 
 #endif
