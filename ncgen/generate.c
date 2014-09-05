@@ -111,18 +111,84 @@ generate_array(Symbol* vsym,
     nc_type typecode = basetype->typ.typecode;
     Odometer* odom;
     nciter_t iter;
-    int firstunlim;
-    int innerunlim; /* => unlim in other than dim 0 */
-    int lastunlimlim;
-    int hasunlimited;
 
     ASSERT(rank > 0);
 
+    /* First, create an odometer using all of the dimensions */
+    odom = newodometer(dimset,NULL,NULL);
+    /* recurse using the helper function */
+    generate_arrayr(vsym,code,vsym->data,list,odom,0,filler,generator);
+}
+
+static void
+generate_arrayr(Symbol* vsym,
+               Bytebuffer* code,
+               Datalist* list,
+	       Odometer* odom,
+               int dimindex,
+               Datalist* filler,
+               Generator* generator
+              )
+{
+    int lastunlim = findlastunlimited(dimset);
+
+    if(lastunlim > dimindex) {
+	/* If we have not reached the last unlimited, then just
+	   iterate and recurse
+	*/
+	/* Iterate over this odometer's dimension */
+        thisodom = newsubodometer(odom,dimset,dimindex,dimindex);
+	while(odometermore(thisodom)) {
+            /*create a sub odometer for remaining dimensions */
+            suffixodom = newsubodometer(odom,dimset,dimindex+1,rank);
+            /* recurse using the helper function */
+            generate_arrayr(vsym,code,?,list,odom,0,filler,generator);
+	    odometerincr(thisodom);	
+	}
+    } else if(typecode != NC_CHAR{/* we are at last unlimited and variable is not  char */
+	/* build a special odometer to walk the last few dimensions */
+        slabodom = newsubodometer(odom,dimset,dimindex,rank);
+	/* compute the starting offset in our datalist
+	   (Assumes that slabodom->index[i] == slabodom->start[i])
+        */
+        generator->listbegin(generator,LISTDATA,list->length,code,&uid);
+	for(i=0;odometermore(slabodom);i++) {
+	    size_t offset = odometeroffset(slabodom);
+            NCConstant* con = datalistith(list,offset);
+#ifdef USE_NOFILL
+	    if(nofill_flag && con == NULL)
+		break;
+#endif
+            generator->list(generator,LISTDATA,uid,i,code);
+            generate_basetype(basetype,con,code,filler,generator);
+	    odometerincr(slabodom);
+        }
+        generator->listend(generator,LISTDATA,uid,i,code);
+	odometerfree(slabodom);
+
+    } else {/* we are at last unlimited and variable is char */
+	Bytebuffer* charbuf = bbNew();
+	/*
+	Action: just concat/pad any char constants and fill to
+	dimension cross product.
+        */
+	gen_leafchararray(dimset,lastunlim,list,charbuf,filler);
+	/* generate a language specific character constant */
+	generator->charconstant(generator,code,charbuf);
+	bbFree(charbuf);
+	/* dump to output */
+        odom = newodometer(dimset,NULL,NULL);
+        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
+    }
+    
+
+}
+
+
+
     /* Start by locating the first two unlimited dims, if they exit */
     firstunlim = findunlimited(dimset,0); /*firstulim=rank if no unlimited*/
-    hasunlimited = (firstunlim < rank);
     innerunlim = findunlimited(dimset,1);
-    lastunlim = findlastunlimited(dimset);
     if(!hasunlimited && typecode == NC_CHAR) {
         /* Case 0: no unlimited and char var*/
 	Bytebuffer* charbuf = bbNew();

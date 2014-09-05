@@ -111,7 +111,6 @@ int       datalistline(Datalist*);
 #define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
 #define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
 
-
 NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
 int srcline(Datasrc* ds);
