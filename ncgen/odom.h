@@ -30,7 +30,7 @@ extern void odometerfree(Odometer*);
 extern char* odometerprint(Odometer* odom);
 
 extern int odometermore(Odometer* odom);
-extern int odometerincr(Odometer* odo);
+extern int odometerincr(Odometer* odom);
 extern size_t odometeroffset(Odometer* odom);
 
 #endif /*ODOM_H*/
