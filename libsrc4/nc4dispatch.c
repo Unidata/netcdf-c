@@ -102,9 +102,13 @@ NC4_get_var_chunk_cache,
 
 NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+extern int ncbzip2_register(void);
+
 int
 NC4_initialize(void)
 {
     NC4_dispatch_table = &NC4_dispatcher;
+    /* Register the bzip2 filter */
+    ncbzip2_register();
     return NC_NOERR;
 }

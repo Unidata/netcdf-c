@@ -171,6 +171,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
    nc_bool_t szip;              /* True if var has szip filter applied */
+   nc_bool_t bzip2;             /* True if var has bzip2 filter applied */
    int options_mask;
    int pixels_per_block;
    size_t chunk_cache_size, chunk_cache_nelems;

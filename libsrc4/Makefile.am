@@ -15,7 +15,8 @@ endif
 # This is our output. The netCDF-4 convenience library.
 noinst_LTLIBRARIES = libnetcdf4.la
 libnetcdf4_la_SOURCES = nc4dispatch.c nc4dispatch.h nc4attr.c nc4dim.c	\
-nc4file.c nc4grp.c nc4hdf.c nc4internal.c nc4type.c nc4var.c ncfunc.c error4.c
+nc4file.c nc4grp.c nc4hdf.c nc4internal.c nc4type.c nc4var.c ncfunc.c error4.c \
+ncbzip2.h ncbzip2.c
 
 EXTRA_DIST=CMakeLists.txt
 

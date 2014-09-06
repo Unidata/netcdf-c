@@ -23,6 +23,8 @@
 #include <pnetcdf.h>
 #endif
 
+#include "nc4compress.c"
+
 #define NC3_STRICT_ATT_NAME "_nc3_strict"
 
 /* This is to track opened HDF5 objects to make sure they are
@@ -1532,16 +1534,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
       BAIL(NC_EHDFERR);
 
   /* If the user wants to deflate the data, set that up now. */
-  if (var->deflate)
-    if (H5Pset_deflate(plistid, var->deflate_level) < 0)
-      BAIL(NC_EHDFERR);
-
-  /* Szip? NO! We don't want anyone to produce szipped netCDF files! */
-  /* #ifdef USE_SZIP */
-  /*    if (var->options_mask) */
-  /*       if (H5Pset_szip(plistid, var->options_mask, var->bits_per_pixel) < 0) */
-  /*          BAIL(NC_EHDFERR); */
-  /* #endif */
+  if (strlen(var->algorithm) > 0) {
+     if(nccompress_set(var->algorithm,plistid,var->compress_params) != NC_NOERR)
+	 BAIL(NC_EHDFERR);
+  }
 
   /* If the user wants to fletcher error correcton, set that up now. */
   if (var->fletcher32)
@@ -1565,8 +1561,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
        * has not specified chunksizes, use contiguous variable for
        * better performance. */
 
-      if(!var->shuffle && !var->deflate && !var->options_mask &&
-         !var->fletcher32 && (var->chunksizes == NULL || !var->chunksizes[0])) {
+     if(!var->shuffle && strlen(var->algorithm) == 0 && !var->fletcher32
+&& !var->options_mask
+        && (var->chunksizes == NULL || !var->chunksizes[0])) {
 #ifdef USE_HDF4
         NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;
         if(h5->hdf4 || !unlimdim)
