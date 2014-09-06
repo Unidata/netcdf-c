@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <bzlib.h>
 #include "hdf5.h"
-#include "ncbzip2.h"
+#include "nc4bzip2.h"
 
 /* Forward */
 static const H5Z_class2_t H5Z_BZIP2[1]; 
@@ -21,7 +21,6 @@ ncbzip2_set(hid_t plistid, const unsigned int level)
     int status;
     unsigned int cd_values[1];
     cd_values[0] = level;
-fprintf(stderr,"using bzip\n");
     status = H5Pset_filter(plistid, (H5Z_filter_t)H5Z_FILTER_BZIP2, H5Z_FLAG_MANDATORY, (size_t)1, cd_values);
     return status;
 }
@@ -36,11 +35,8 @@ ncbzip2_register(void)
     htri_t avail;
     unsigned int filter_info;
 
-fprintf(stderr,"register bzip2\n");
-
     status = H5Zregister(H5Z_BZIP2);
     if(status < 0) {
-fprintf(stderr,"fail: register bzip2\n");
 	return status;
     }
 
@@ -53,13 +49,13 @@ fprintf(stderr,"fail: register bzip2\n");
      */
     avail = H5Zfilter_avail(H5Z_FILTER_BZIP2);
     if (!avail) {
-        printf ("bzip2 filter not available.\n");
+        fprintf(stderr,"bzip2 filter not available.\n");
         return 1;
     }
     status = H5Zget_filter_info (H5Z_FILTER_BZIP2, &filter_info);
     if ( !(filter_info & H5Z_FILTER_CONFIG_ENCODE_ENABLED) ||
                 !(filter_info & H5Z_FILTER_CONFIG_DECODE_ENABLED) ) {
-        printf ("bzip2 filter not available for encoding and decoding.\n");
+        fprintf(stderr,"bzip2 filter not available for encoding and decoding.\n");
         return 1;
     }
 
