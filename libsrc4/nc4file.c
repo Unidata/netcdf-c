@@ -35,6 +35,8 @@ extern int num_plists;
 extern int num_spaces;
 #endif /* EXTRA_TESTS */
 
+#define BZIP2 1
+
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 
@@ -1554,6 +1556,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    }
    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
       var->contiguous = NC_TRUE;
+
 
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */
