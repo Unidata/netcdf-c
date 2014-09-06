@@ -216,6 +216,8 @@ FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
+LDFLAGS="${LDFLAGS} -L${stddir}/lib -lbz2"
+
 export PATH
 export CC
 export CPPFLAGS
