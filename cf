@@ -17,8 +17,8 @@ DAP=1
 SZIP=1
 BZIP2=1
 #FPZIP=1
-COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lszip
-
+#ZFP=1
+COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lszip -lfpzip -lzp
 
 if test "x$PNETCDF" = x1 ; then
 PAR=1
@@ -155,6 +155,7 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
+#FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
@@ -169,6 +170,9 @@ COMP="$COMP,bzip2"
 fi
 if test "x$FPZIP" = x1 ; then
 COMP="$COMP,fpzip"
+fi
+if test "x$ZFP" = x1 ; then
+COMP="$COMP,zfp"
 fi
 FLAGS="$FLAGS --with-compression=${COMP}"
 
@@ -218,7 +222,8 @@ FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
 if test "x$COMPRESSORS" != "" ; then
-LDFLAGS="${LDFLAGS} ${COMPRESSORS}"
+FLAGS="$FLAGS --with-compression='${COMPRESSION}'"
+LDFLAGS="${LDFLAGS} ${COMPRESSLIBS}"
 fi
 
 export PATH
