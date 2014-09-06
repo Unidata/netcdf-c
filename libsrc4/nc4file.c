@@ -26,7 +26,7 @@ COPYRIGHT file for copying and redistribution conditions.
 #include <pnetcdf.h>
 #endif
 
-#include "ncbzip2.h"
+#include "nc4bzip2.h"
 
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
@@ -34,6 +34,8 @@ COPYRIGHT file for copying and redistribution conditions.
 extern int num_plists;
 extern int num_spaces;
 #endif /* EXTRA_TESTS */
+
+#define BZIP2 1
 
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
@@ -84,6 +86,7 @@ float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION;
 /* To turn off HDF5 error messages, I have to catch an early
    invocation of a netcdf function. */
 static int virgin = 1;
+
 
 /* For performance, fill this array only the first time, and keep it
  * in global memory for each further use. */
@@ -1559,6 +1562,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
       var->contiguous = NC_TRUE;
 
+
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */
    if ((num_filters = H5Pget_nfilters(propid)) < 0)
@@ -1596,10 +1600,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
          case H5Z_FILTER_BZIP2:
             var->deflate = NC_TRUE;
             var->bzip2 = NC_TRUE;
-            if (cd_nelems != CD_NELEMS_SZIP)
+            if (cd_nelems != CD_NELEMS_BZIP2)
                BAIL(NC_EHDFERR);
             var->deflate_level = cd_values[0];
-fprintf(stderr,"bzip2 available\n");
             break;
 
          default:
