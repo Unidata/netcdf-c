@@ -103,6 +103,8 @@ NC4_def_var_compress
 
 NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+extern int ncbzip2_register(void);
+
 int
 NC4_initialize(void)
 {
