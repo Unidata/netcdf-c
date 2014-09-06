@@ -14,6 +14,11 @@ DAP=1
 
 #PAR=1
 
+# Following two must be consistent
+COMPRESSORS="bzip2 fpzip"
+COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lfpzip
+
+
 if test "x$PNETCDF" = x1 ; then
 PAR=1
 fi
@@ -127,11 +132,11 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 #FLAGS="$FLAGS --enable-mmap"
+#FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
-FLAGS="$FLAGS --with-compression=Bzip2,zip"
 
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
@@ -179,7 +184,8 @@ FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
 if test "x$COMPRESSORS" != "" ; then
-LDFLAGS="${LDFLAGS} ${COMPRESSORS}"
+FLAGS="$FLAGS --with-compression='${COMPRESSION}'"
+LDFLAGS="${LDFLAGS} ${COMPRESSLIBS}"
 fi
 
 export PATH
