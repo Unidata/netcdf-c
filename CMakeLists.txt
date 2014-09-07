@@ -549,6 +549,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
   SET(USE_ZLIB ON)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+
+  # Check for bzip2, but only if using HDF5.
+  FIND_PACKAGE(BZIP2)
+  IF(NOT BZIP2_LIBRARY)
+    MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find bzip2.")
+  ENDIF()
+  SET(USE_BZIP2 ON)
+  INCLUDE_DIRECTORIES(${BZIP2_INCLUDE_DIRS})
+
 ENDIF()
 
 # Option to Build DAP Client
