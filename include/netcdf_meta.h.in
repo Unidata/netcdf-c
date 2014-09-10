@@ -8,23 +8,23 @@
 #ifndef NETCDF_META_H
 #define NETCDF_META_H
 
-#undef NC_VERSION_MAJOR
-#undef NC_VERSION_MINOR
-#undef NC_VERSION_PATCH
-#undef NC_VERSION_NOTE
+#define NC_VERSION_MAJOR @NC_VERSION_MAJOR@
+#define NC_VERSION_MINOR @NC_VERSION_MINOR@
+#define NC_VERSION_PATCH @NC_VERSION_PATCH@
+#define NC_VERSION_NOTE  "@NC_VERSION_NOTE@"
 
-#undef NC_VERSION
+#define NC_VERSION       "@NC_VERSION@"
 
-#undef NC_HAS_NC2
-#undef NC_HAS_NC4
-#undef NC_HAS_HDF4
-#undef NC_HAS_HDF5
-#undef NC_HAS_SZIP
-#undef NC_HAS_DAP
-#undef NC_HAS_DISKLESS
-#undef NC_HAS_MMAP
-#undef NC_HAS_JNA
-#undef NC_HAS_PNETCDF
-#undef NC_HAS_PARALLEL
+#define NC_HAS_NC2       @NC_HAS_NC2@
+#define NC_HAS_NC4       @NC_HAS_NC4@
+#define NC_HAS_HDF4      @NC_HAS_HDF4@
+#define NC_HAS_HDF5      @NC_HAS_HDF5@
+#define NC_HAS_SZIP      @NC_HAS_SZIP@
+#define NC_HAS_DAP       @NC_HAS_DAP@
+#define NC_HAS_DISKLESS  @NC_HAS_DISKLESS@
+#define NC_HAS_MMAP      @NC_HAS_MMAP@
+#define NC_HAS_JNA       @NC_HAS_JNA@
+#define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@
+#define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@
 
 #endif

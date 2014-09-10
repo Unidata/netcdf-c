@@ -14,16 +14,13 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
 
-AC_DEFINE_UNQUOTED(NC_VERSION_MAJOR, 4, "")
-AC_DEFINE_UNQUOTED(NC_VERSION_MINOR, 3, "")
-AC_DEFINE_UNQUOTED(NC_VERSION_PATCH, 3, "")
-AC_DEFINE_UNQUOTED(NC_VERSION_NOTE,  "-rc2", "")
-
-AC_DEFINE_UNQUOTED(NC_VERSION, "${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE}", "")
-
 # Initialize with name, version, and support email address.
 AC_INIT([netCDF], [4.3.3-rc2], [support-netcdf@unidata.ucar.edu])
 
+AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=3
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=3
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-rc2"
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -1056,42 +1053,36 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
-AC_DEFUN([AX_SET_META], [
-  if [ test "x$1" == "xyes" ]; then
-     AC_SUBST([$2], [1])
+# Args:
+# 1. netcdf_meta.h variable
+# 2. conditional variable that is yes or no.
+# 3. default condition
+#
+# example: AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[]) # Because it checks for no.
+#          AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
+AC_DEFUN([AX_SET_META],[
+  if [ test "x$2" = x$3 ]; then
+     AC_SUBST([$1]) $1=1
   else
-     AC_SUBST([$2], [0])
+     AC_SUBST([$1]) $1=0
   fi
 ])
-
-#AC_SUBST([NC_VERSION], [$PACKAGE_VERSION])
-#AC_SUBST([NC_VERSION_MAJOR], [$NC_VERSION_MAJOR])
-#AC_SUBST([NC_VERSION_MINOR], [$NC_VERSION_MINOR])
-#AC_SUBST([NC_VERSION_PATCH], [$NC_VERSION_PATCH])
-#AC_SUBST([NC_VERSION_NOTE], [$NC_VERSION_NOTE])
 
 #####
 # Define values used in include/netcdf_meta.h
 #####
-AC_DEFINE_UNQUOTED(NC_VERSION, "${PACKAGE_VERSION}", "")
-AC_DEFINE_UNQUOTED(NC_VERSION_MAJOR, "${NC_VERSION_MAJOR}", "")
-AC_DEFINE_UNQUOTED(NC_VERSION_MINOR, "${NC_VERSION_MINOR}", "")
-AC_DEFINE_UNQUOTED(NC_VERSION_PATCH, "${NC_VERSION_PATCH}", "")
-AC_DEFINE_UNQUOTED(NC_VERSION_NOTE,  "${NC_VERSION_NOTE}", "")
-
-AS_IF([ ! test -z "$USE_NETCDF_2" ], [AC_DEFINE([NC_HAS_NC2], [1], [""])])
-AS_IF([ ! test -z "$USE_NETCDF4" ],  [AC_DEFINE([NC_HAS_NC4], [1], [""])])
-AS_IF([ ! test -z "$USE_HDF4" ],     [AC_DEFINE([NC_HAS_HDF4], [1], [""])])
-AS_IF([ ! test -z "$USE_HDF5" ],     [AC_DEFINE([NC_HAS_HDF5], [1], [""])])
-AS_IF([ ! test -z "$USE_SZIP" ],     [AC_DEFINE([NC_HAS_SZIP], [1], [""])])
-AS_IF([ ! test -z "$USE_DAP" ],      [AC_DEFINE([NC_HAS_DAP], [1], [""])])
-AS_IF([ ! test -z "$USE_DISKLESS" ], [AC_DEFINE([NC_HAS_DISKLESS], [1], [""])])
-AS_IF([ ! test -z "$USE_MMAP" ],     [AC_DEFINE([NC_HAS_MMAP], [1], [""])])
-AS_IF([ ! test -z "$JNA" ],          [AC_DEFINE([NC_HAS_JNA], [1], [""])])
-AS_IF([ ! test -z "$USE_PNETCDF" ],  [AC_DEFINE([NC_HAS_PNETCDF], [1], [""])])
-AS_IF([ ! test -z "$USE_PARALLEL" ], [AC_DEFINE([NC_HAS_PARALLEL], [1], [""])])
-
-AC_CONFIG_HEADERS([include/netcdf_meta.h])
+AC_SUBST([NC_VERSION]) NC_VERSION=$VERSION
+AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
+AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
+AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
+AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
+AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
+AX_SET_META([NC_HAS_DAP],[$enable_dap],[yes])
+AX_SET_META([NC_HAS_DISKLESS],[$enable_diskless],[yes])
+AX_SET_META([NC_HAS_MMAP],[$enable_mmap],[yes])
+AX_SET_META([NC_HAS_JNA],[$enable_jna],[yes])
+AX_SET_META([NC_HAS_PNETCDF],[$enable_pnetcdf],[yes])
+AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 
 #####
 # End netcdf_meta.h definitions.
@@ -1102,6 +1093,7 @@ AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
 		         libnetcdf.settings
+                 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  docs/Makefile
