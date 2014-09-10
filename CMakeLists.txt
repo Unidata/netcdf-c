@@ -23,12 +23,13 @@ set(PACKAGE "netCDF" CACHE STRING "")
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-SET(netCDF_VERSION_MAJOR 4)
-SET(netCDF_VERSION_MINOR 3)
-SET(netCDF_VERSION_PATCH 3)
-SET(netCDF_VERSION_NOTE "-rc2")
-SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
+SET(NC_VERSION_MAJOR 4)
+SET(NC_VERSION_MINOR 3)
+SET(NC_VERSION_PATCH 3)
+SET(NC_VERSION_NOTE "-rc2")
+SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+SET(NC_VERSION ${netCDF_VERSION})
 SET(netCDF_LIB_VERSION 7.2.0)
 SET(netCDF_SO_VERSION 7)
 SET(PACKAGE_VERSION ${VERSION})
@@ -1187,6 +1188,10 @@ INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
+INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_meta.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT headers)
+
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -1414,11 +1419,8 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # Create 'netcdf_meta.h' include file.
 #####
 configure_file(
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.cmake.in
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.cmake.in
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
-
-
-
 
 ####
 # Export files
