@@ -17,7 +17,6 @@ static void genbin_definevardata(Symbol* vsym);
 static int  genbin_write(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writevar(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
-static void freeDatalist(Datalist **dlist);
 #ifdef USE_NETCDF4
 static void genbin_deftype(Symbol* tsym);
 static void genbin_definespecialattributes(Symbol* var);

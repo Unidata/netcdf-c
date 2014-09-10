@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include "odom.h"
 
 /******************************************************/
 /* Code for generating char variables etc; mostly
@@ -12,7 +13,7 @@
 
 static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
 static int getfillchar(Datalist* fillsrc);
-static void gen_chararrayr(Dimset*,int,int,Bytebuffer*,Datalist*,int,int,int);
+static void gen_chararrayr(Dimset*, Odometer*, int dimindex, Bytebuffer*, Datalist*, int fillchar);
 
 /*
 Matching strings to char variables, attributes, and vlen
@@ -23,9 +24,9 @@ So, this rather ugly code is kept in this file
 and a variety of heuristics are used to mimic ncgen3.
 
 The core algorithm is as follows.
-1. Assume we have a set of dimensions D1..Dn,
-   where D1 may optionally be an Unlimited dimension.
-   It is assumed that the sizes of the Di are all known.
+1. Assume we have a set of dimensions D1..Dn.
+   Any of the Di may be unlimited,
+   but it is assumed that the sizes of the Di are all known.
 2. Given a sequence of string or character constants
    C1..Cm, our goal is to construct a single string
    whose length is the cross product of D1 thru Dn.
@@ -40,7 +41,7 @@ The core algorithm is as follows.
 8. If S is longer than the Dx * Dn, then truncate
    and generate a warning.
 
-Two other cases:
+Two special cases:
 1. character vlen: char(*) vlen_t.
     For this case, we simply concat all the elements.
 2. character attribute.
@@ -50,83 +51,95 @@ Two other cases:
 void
 gen_chararray(Dimset* dimset, Datalist* data, Bytebuffer* databuf, Datalist* fillsrc)
 {
-    int ndims,lastunlim, hasunlim;
     int fillchar = getfillchar(fillsrc);
-    size_t expectedsize,xproduct;
-    size_t unitsize;
+    Odometer* odom;
 
     ASSERT(bbLength(databuf) == 0);
 
-    ndims = dimset->ndims;
-
-    /* Find the last unlimited */
-    lastunlim = findlastunlimited(dimset);
-    hasunlim = (lastunlim < ndims);
-
-    /* Compute crossproduct upto the last dimension,
-       starting at the last unlimited
-    */
-    xproduct = crossproduct(dimset,(hasunlim?lastunlim:0),ndims-1);
-    if(ndims == 0) {
-	unitsize = 1;
-    } else if(lastunlim == ndims-1) {/* last dimension is unlimited */
-        unitsize = 1;
-    } else { /* last dim is not unlimited */
-        unitsize = dimset->dimsyms[ndims-1]->dim.declsize;
-    }
-
-    expectedsize = (xproduct * unitsize);
-    gen_chararrayr(dimset,0,lastunlim,databuf,data,fillchar,unitsize,expectedsize);
+    odom = newodometer(dimset,NULL,NULL);
+    gen_chararrayr(dimset,odom,0,databuf,data,fillchar);
+    odometerfree(odom);
 }
 
 /* Recursive helper */
 static void
-gen_chararrayr(Dimset* dimset, int dimindex, int lastunlimited,
-               Bytebuffer* databuf, Datalist* data, int fillchar,
-	       int unitsize, int expectedsize)
+gen_chararrayr(Dimset* dimset, Odometer* odom, int dimindex,
+               Bytebuffer* databuf, Datalist* data, int fillchar)
 {
-    int i;
-    int hasunlimited = (lastunlimited < dimset->ndims);
-    size_t dimsize = dimset->dimsyms[dimindex]->dim.declsize;
+    NCConstant* con;
 
-    if(hasunlimited && dimindex < lastunlimited) {
-	/* keep recursing */
-        for(i=0;i<dimsize;i++) {
-	    NCConstant* c = datalistith(data,i);
-	    ASSERT(islistconst(c));
-	    gen_chararrayr(dimset,dimindex+1,lastunlimited,databuf,
-			   c->value.compoundv,fillchar,unitsize,expectedsize);
+    /* If the data is a list of lists, then recurse */
+    if(islistconst(datalistith(data,0))){ 
+	/* Iterate over this odometer's dimension */
+        Odometer* thisodom = newsubodometer(odom,dimset,dimindex,dimindex+1);
+	while(odometermore(thisodom)) {
+	    Datalist* sublist;
+	    size_t offset = odometeroffset(thisodom);
+	    /* Get the offset'th datalist; exception top-level list */
+	    if(dimindex == 0) {
+	        sublist = data;
+	    } else {
+	        con = datalistith(data,offset);
+		if(isnilconst(con)) {
+		    /* list is too short */
+		    semerror(constline(con),"Datalist is shorter than corresponding dimension");
+	            return;
+	        }	    
+	        if(!islistconst(con)) {
+		    semerror(constline(con),"Expected data list {...}, constant found");
+		    return;
+	        }
+		sublist = const2list(con);
+	    }
+            /* recurse using the helper function */
+            gen_chararrayr(dimset,odom,dimindex+1,databuf,sublist,fillchar);
+	    odometerincr(thisodom);	
 	}
-    } else {/* we should be at a list of simple constants */
-	for(i=0;i<data->length;i++) {
-	    NCConstant* c = datalistith(data,i);
-	    ASSERT(!islistconst(c));
-	    if(isstringable(c->nctype)) {
+	odometerfree(thisodom);
+    } else {/* Construct a single character constant according to the rules above */
+	int len,i;
+        size_t expectedsize,xproduct, unitsize;
+        int rank = dimset->ndims;
+
+        /* Compute crossproduct upto (but not including) the last dimension */
+        xproduct = crossproduct(dimset,dimindex,rank-1);
+        if(rank == 0)
+	    unitsize = 1;
+        else
+            unitsize = dimset->dimsyms[rank-1]->dim.declsize;
+	expectedsize = (xproduct * unitsize);
+
+	/* get each char const, pad, and concat */        
+	len = datalistlen(data);
+	for(i=0;i<len;i++) {
+	    NCConstant* con = datalistith(data,i);
+	    if(isstringable(consttype(con))) {
 		int j;
 	        size_t constsize;
-	        constsize = gen_charconstant(c,databuf,fillchar);
+	        constsize = gen_charconstant(con,databuf,fillchar);
 		if(constsize % unitsize > 0) {
 	            size_t padsize = unitsize - (constsize % unitsize);
 	            for(j=0;j<padsize;j++) bbAppend(databuf,fillchar);
 		}
 	    } else {
-	        semwarn(constline(c),
+	        semwarn(constline(con),
 		       "Encountered non-string and non-char constant in datalist; ignored");
 	    }
 	}
-    }
-    /* If |databuf| > expectedsize, complain: exception is zero length */
-    if(bbLength(databuf) == 0 && expectedsize == 1) {
-	/* this is okay */
-    } else if(bbLength(databuf) > expectedsize) {
-	semwarn(data->data[0].lineno,"character data list too long");
-    } else {
-	size_t bufsize = bbLength(databuf);
-	/* Pad to size dimproduct size */
-	if(bufsize % expectedsize > 0) {
-	    size_t padsize = expectedsize - (bufsize % expectedsize);
-            for(i=0;i<padsize;i++) bbAppend(databuf,fillchar);
-	}
+        /* If |databuf| > expectedsize, complain: exception is zero length */
+        if(bbLength(databuf) == 0 && expectedsize == 1) {
+	    /* this is okay */
+        } else if(bbLength(databuf) > expectedsize) {
+	    semwarn(data->data[0].lineno,"character data list too long");
+        } else {
+	    size_t bufsize = bbLength(databuf);
+	    /* Pad to size dimproduct size */
+	    if(bufsize % expectedsize > 0) {
+	        size_t padsize = expectedsize - (bufsize % expectedsize);
+                for(i=0;i<padsize;i++)
+		    bbAppend(databuf,fillchar);
+	    }
+        }
     }
 }
 

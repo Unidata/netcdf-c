@@ -65,8 +65,8 @@ generate_attrdata(Symbol* asym, Generator* generator, Writer writer, Bytebuffer*
 	size_t count;
         generator->listbegin(generator,LISTATTR,asym->data->length,codebuf,&uid);
         for(count=0;count<asym->data->length;count++) {
-        NCConstant* con = datalistith(asym->data,count);
-	    generator->list(generator,LISTATTR,uid,count,codebuf);
+            NCConstant* con = datalistith(asym->data,count);
+            generator->list(generator,LISTATTR,uid,count,codebuf);
             generate_basetype(asym->typ.basetype,con,codebuf,NULL,generator);
 	}
         generator->listend(generator,LISTATTR,uid,count,codebuf);
@@ -81,6 +81,9 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     Datalist* filler = getfiller(vsym);
+    const size_t* start;
+    const size_t* count;
+    Odometer* odom;
 
     if(vsym->data == NULL) return;
 
@@ -93,8 +96,12 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
         generate_basetype(basetype,c0,code,filler,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
+        /* First, create an odometer using all of the dimensions */
+        odom = newodometer(dimset,NULL,NULL);
+	start = odometerstartvector(odom);
+	count = odometercountvector(odom);
 	generate_array(vsym,code,filler,generator,writer);
-        writer(generator,vsym,code,0,NULL,NULL);
+        writer(generator,vsym,code,rank,start,count);
     }
 }
 
@@ -111,64 +118,113 @@ generate_array(Symbol* vsym,
     Symbol* basetype = vsym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
     Odometer* odom;
-    nciter_t iter;
 
     ASSERT(rank > 0);
 
-    /* First, create an odometer using all of the dimensions */
-    odom = newodometer(dimset,NULL,NULL);
-    /* recurse using the helper function */
-    generate_arrayr(vsym,code,vsym->data,odom,0,filler,generator);
+    /* NC_CHAR variables need special handling */
+    if(typecode == NC_CHAR) {
+	/* Handoff to gen_chararray */
+        gen_chararray(dimset, vsym->data, code, filler);
+    } else {
+        /* First, create an odometer using all of the dimensions */
+        odom = newodometer(dimset,NULL,NULL);
+        /* recurse using the helper function */
+        generate_arrayr(vsym,code,vsym->data,odom,0,filler,generator);
+    }
 }
 
+/**
+The basic idea is to split the
+set of dimensions into groups
+and iterate over each group.
+A group is defined as the range
+of indices starting at an unlimited
+dimension upto (but not including)
+the next unlimited.
+The first group starts at index 0,
+even if dimension 0 is not unlimited.
+The last group is everything from the
+last unlimited dimension thru the last
+dimension (index rank-1).
+*/
 static void
 generate_arrayr(Symbol* vsym,
-               Bytebuffer* code,
-               Datalist* list,
-	       Odometer* odom,
-               int dimindex,
-               Datalist* filler,
-               Generator* generator
+		Bytebuffer* code,
+		Datalist* list,
+		Odometer* odom,
+		int dimindex,
+                Datalist* filler,
+                Generator* generator
               )
 {
     Dimset* dimset = &vsym->typ.dimset;
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     nc_type typecode = basetype->typ.typecode;
-
     int lastunlim = findlastunlimited(dimset);
-    /* If no last unlim, then use last dimension */
-    if(lastunlim == rank)
-	lastunlim = rank - 1;
+    int nextunlim = findunlimited(dimset,dimindex+1);
+    int lastindex = nextunlim-1;
+    int islastgroup = (dimindex == lastunlim || lastunlim == rank);
+    int isunlim = (dimindex == lastindex); /* is this dim unlimiteded */
+    
+    ASSERT((typecode != NC_CHAR));
 
-    if(lastunlim > dimindex) {
-	/* If we have not reached the last unlimited, then just
-	   iterate and recurse
-	*/
-	/* Iterate over this odometer's dimension */
-        Odometer* thisodom = newsubodometer(odom,dimset,dimindex,dimindex);
+    if(!islastgroup) {
+        /* If not the last group, then iterate
+           over the group dimensions and recurse.
+         */
+	/* Iterate over the dimensions from dimindex to lastindex */
+        Odometer* thisodom = newsubodometer(odom,dimset,dimindex,lastindex+1);
 	while(odometermore(thisodom)) {
-	    NCConstant* sublist;
+	    NCConstant* con;
+	    Datalist* sublist;
 	    size_t offset = odometeroffset(thisodom);
-	    /* Get the offset'th datalist */
-	    sublist = datalistith(list,offset);
-	    if(isnilconst(sublist)) {
-		/* list is too short */
-		semerror(constline(sublist),"Datalist is shorter than corresponding dimension");
-	        return;
-	    }	    
-	    if(!islistconst(sublist)) {
-		semerror(constline(sublist),"Expected data list {...}, constant found");
-		return;
+	    /* Get the offset'th datalist; exception top-level list */
+	    if(dimindex == 0) {
+	        sublist = list;
+	    } else {
+	        con = datalistith(list,offset);
+		if(isnilconst(con)) {
+		    /* list is too short */
+		    semerror(constline(con),"Datalist is shorter than corresponding dimension");
+	            return;
+	        }	    
+                if(!islistconst(con)) {
+		    semerror(constline(con),"Expected data list {...}, constant found");
+		    return;
+	        }
+		sublist = compoundfor(con);
 	    }
             /* recurse using the helper function */
-            generate_arrayr(vsym,code,const2list(sublist),odom,dimindex+1,filler,generator);
+            generate_arrayr(vsym,code,sublist,odom,dimindex+1,filler,generator);
 	    odometerincr(thisodom);	
 	}
-    } else if(typecode != NC_CHAR) {/* we are at last unlimited (or last dimension) and variable is not  char */
+    } else if(isunlim) {
+	int i;
+	int uid;
+	/* We need to special case the situation when the last group
+           has one unlimited dimension.
+           We should be pointing to a constant that is the leaf unlimited
+           compound list {...}.
+        */
+	/* build an odometer to walk the last dimension */
+        Odometer* slabodom = newsubodometer(odom,dimset,dimindex,lastindex+1);
+        generator->listbegin(generator,LISTDATA,list->length,code,&uid);
+	for(i=0;odometermore(slabodom);i++) {
+	    size_t offset = odometeroffset(slabodom);
+            NCConstant* con = datalistith(list,offset);
+	    generator->list(generator,LISTDATA,uid,i,code);
+	    generate_basetype(basetype,con,code,filler,generator);
+	    odometerincr(slabodom);
+	}
+        generator->listend(generator,LISTDATA,uid,i,code);
+	odometerfree(slabodom);
+    } else {/* This is the last group; should be a simple list of constants,
+               but might be a list if the base type is a compound */
 	int uid,i;
-	/* build a special odometer to walk the last few dimensions */
-        Odometer* slabodom = newsubodometer(odom,dimset,dimindex,rank);
+	/* build an odometer to walk the last few dimensions */
+        Odometer* slabodom = newsubodometer(odom,dimset,dimindex,lastindex+1);
+
 	/* compute the starting offset in our datalist
 	   (Assumes that slabodom->index[i] == slabodom->start[i])
         */
@@ -180,27 +236,12 @@ generate_arrayr(Symbol* vsym,
 	    if(nofill_flag && con == NULL)
 		break;
 #endif
-            generator->list(generator,LISTDATA,uid,i,code);
-            generate_basetype(basetype,con,code,filler,generator);
+	    generator->list(generator,LISTDATA,uid,i,code);
+	    generate_basetype(basetype,con,code,filler,generator);
 	    odometerincr(slabodom);
         }
         generator->listend(generator,LISTDATA,uid,i,code);
 	odometerfree(slabodom);
-    } else {/* we are at last unlimited (or last dim) and variable is char */
-	Bytebuffer* charbuf = bbNew();
-	/*
-	Action: just concat/pad any char constants and fill to
-	dimension cross product.
-        */
-	gen_leafchararray(dimset,lastunlim,list,charbuf,filler);
-	/* generate a language specific character constant */
-	generator->charconstant(generator,code,charbuf);
-	bbFree(charbuf);
-#if 0
-	/* dump to output */
-        odom = newodometer(dimset,NULL,NULL);
-        writer(generator,vsym,code,odom->rank,odom->start,odom->count);
-#endif
     }
 }
 
