@@ -547,6 +547,18 @@ AC_MSG_RESULT($TEMP_LARGE)
 #AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
+# Enable alternate compression algorithms
+# 1. bzip2
+AC_MSG_CHECKING([check for alternate compression algorithm: bzip2])
+AC_ARG_WITH([withbzip2],
+              [AS_HELP_STRING([--with-bzip2],
+                              [Allow use of bzip2 compression algorithm])],
+            [NC_BZIP2=yes], [NC_BZIP2=no])
+AC_MSG_RESULT([$NC_BZIP2])
+if test "x$NC_BZIP2" = x ; then
+AC_DEFINE_UNQUOTED([NC_BZIP2], [1], [Allow use of bzip2 compression.])
+fi
+
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
 # fortran compilers, just because the user doesn't want fortran. This
