@@ -1,11 +1,11 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
-K="-k1"
+K="-k3"
 F="test0.cdl"
 #B="-B12"
 DBG="-d"
-#L=b
-L=c
+L=b
+#L=c
 #DBG="-D2"
 NCGEN="./.libs/ncgen"
 #NCGEN="./ncgen"

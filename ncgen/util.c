@@ -691,7 +691,6 @@ findlastunlimited(Dimset* dimset)
 const char *
 kind_string(int kind)
 {
-    static char text[1024];
     switch (kind) {
     case 1: return "classic";
     case 2: return "64-bit offset";

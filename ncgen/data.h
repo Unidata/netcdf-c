@@ -110,6 +110,7 @@ void srcsetfill(Datasrc* ds, Datalist* list);
 int       datalistline(Datalist*);
 #define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
 #define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
+#define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
 
 NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
@@ -118,6 +119,7 @@ int srcline(Datasrc* ds);
 #define islistconst(con) ((con)!=NULL && (con)->nctype == NC_COMPOUND)
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)
 #define constline(con) (con==NULL?0:(con)->lineno)
+#define consttype(con) (con==NULL?NC_NAT:(con)->nctype)
 
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 
@@ -189,7 +191,7 @@ struct Generator {
 extern int generator_getstate(Generator*,void**);
 extern int generator_reset(Generator*,void*);
 
-typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,size_t*,size_t*);
+typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,const size_t*,const size_t*);
 
 extern void generate_attrdata(struct Symbol*, Generator*, Writer writer, Bytebuffer*);
 extern void generate_vardata(struct Symbol*, Generator*, Writer writer,Bytebuffer*);
