@@ -405,6 +405,7 @@ FUNCTION(is_enabled feature ret_val)
     SET("NC_${ret_val}" 1 PARENT_SCOPE)
   ELSE()
     SET(${ret_val} "no" PARENT_SCOPE)
+    SET("NC_${ret_val}" 0 PARENT_SCOPE)
   ENDIF(${feature})
 ENDFUNCTION()
 
@@ -721,7 +722,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-    FIND_PACKAGE(SZIP NO_MODULE)
+    FIND_PACKAGE(SZIP NO_MODULE REQUIRED)
     INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 
@@ -1386,6 +1387,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(USE_DAP HAS_DAP)
@@ -1419,7 +1421,7 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # Create 'netcdf_meta.h' include file.
 #####
 configure_file(
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.cmake.in
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 ####

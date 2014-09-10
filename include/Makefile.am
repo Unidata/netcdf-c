@@ -20,4 +20,4 @@ if USE_NETCDF4
 noinst_HEADERS += ncaux.h
 endif
 
-EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.cmake.in netcdf_meta.h.in
+EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in
