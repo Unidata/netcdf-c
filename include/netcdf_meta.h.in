@@ -27,4 +27,15 @@
 #define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@
 #define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@
 
+/* Define two hard-coded functionality-related
+   macros, but this is not going to be
+   standard practice. */
+#ifndef NC_HAVE_RENAME_GRP
+#define NC_HAVE_RENAME_GRP
+#endif
+
+#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
+#define NC_HAVE_INQ_FORMAT_EXTENDED
+#endif
+
 #endif
