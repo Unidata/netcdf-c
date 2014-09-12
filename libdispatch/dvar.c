@@ -582,4 +582,13 @@ nc_def_var_endian(int ncid, int varid, int endian)
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
 }
 
+int
+nc_def_var_compress(int ncid, int varid, int useshuffle, int algorithm, nc_compression_t* params)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->def_var_compress(ncid,varid,useshuffle,algorithm,params);
+}
+
 #endif /* USE_NETCDF4 */

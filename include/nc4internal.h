@@ -166,14 +166,10 @@ typedef struct NC_VAR_INFO
    nc_bool_t dimscale;          /* True if var is a dimscale */
    nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
    HDF5_OBJID_T *dimscale_hdf5_objids;
-   nc_bool_t deflate;           /* True if var has deflate filter applied */
-   int deflate_level;
+   int algorithm;              /* Deflate algorithm; zero => none */
+   nc_compression_t compress_params;
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
-   nc_bool_t szip;              /* True if var has szip filter applied */
-   nc_bool_t bzip2;             /* True if var has bzip2 filter applied */
-   int options_mask;
-   int pixels_per_block;
    size_t chunk_cache_size, chunk_cache_nelems;
    float chunk_cache_preemption;
 #ifdef USE_HDF4

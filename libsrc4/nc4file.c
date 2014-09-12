@@ -26,7 +26,7 @@ COPYRIGHT file for copying and redistribution conditions.
 #include <pnetcdf.h>
 #endif
 
-#include "nc4bzip2.h"
+#include "nc4compress.h"
 
 /* This is to track opened HDF5 objects to make sure they are
  * closed. */
@@ -1583,26 +1583,25 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
             break;
 
          case H5Z_FILTER_DEFLATE:
-            var->deflate = NC_TRUE;
+            var->algorithm = filter;
             if (cd_nelems != CD_NELEMS_ZLIB || cd_values[0] > MAX_DEFLATE_LEVEL)
                BAIL(NC_EHDFERR);
-            var->deflate_level = cd_values[0];
+            var->compress_params.level = cd_values[0];
             break;
 
          case H5Z_FILTER_SZIP:
-            var->szip = NC_TRUE;
+            var->algorithm = filter;
             if (cd_nelems != CD_NELEMS_SZIP)
                BAIL(NC_EHDFERR);
-	    var->options_mask = cd_values[0];
-            var->pixels_per_block = cd_values[1];
+	    var->compress_params.szip.options_mask = cd_values[0];
+            var->compress_params.szip.pixels_per_block = cd_values[1];
             break;
 
          case H5Z_FILTER_BZIP2:
-            var->deflate = NC_TRUE;
-            var->bzip2 = NC_TRUE;
+            var->algorithm = filter;
             if (cd_nelems != CD_NELEMS_BZIP2)
                BAIL(NC_EHDFERR);
-            var->deflate_level = cd_values[0];
+            var->compress_params.level = cd_values[0];
             break;
 
          default:

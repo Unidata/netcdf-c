@@ -88,6 +88,7 @@ various C global variables
 #define _NOFILL_FLAG        0x040
 #define _FILLVALUE_FLAG     0x080
 #define _FORMAT_FLAG        0x100
+#define _COMPRESSION_FLAG   0x200
 
 /* Define an enumeration of supported languages */
 typedef enum Language {
@@ -118,6 +119,7 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
+    int           _Algorithm;    /* HDf5 compression algorithm id; 0=>none */
 } Specialdata;
 
 /* Track a set of dimensions*/

@@ -185,6 +185,7 @@ NCConstant       constant;
         _ENDIANNESS
         _NOFILL
         _FLETCHER32
+        _COMPRESSION
 	DATASETID	
 
 %type <sym> ident typename primtype dimd varspec
@@ -752,6 +753,8 @@ attrdecl:
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)&$5,1);}
 	| type_var_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)&$5,1);}
+	| type_var_ref ':' _COMPRESSION '=' conststring
+	    {$$ = makespecial(_COMPRESSION_FLAG,$1,NULL,(void*)&$5,1);}
 	| ':' _FORMAT '=' conststring
 	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)&$4,1);}
 	;
@@ -1136,6 +1139,7 @@ specialname(int flag)
     case _SHUFFLE_FLAG: return "_Shuffle";
     case _ENDIAN_FLAG: return "_Endianness";
     case _NOFILL_FLAG: return "_NoFill";
+    case _COMPRESSION_FLAG: return "_Compression";
     default: break;
     }
     return "<unknown>";
@@ -1212,6 +1216,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _FORMAT_FLAG:
     case _STORAGE_FLAG:
     case _ENDIAN_FLAG:
+    case _COMPRESSION_FLAG:
 	iconst.nctype = NC_STRING;
 	convert1(con,&iconst);
 	if(iconst.nctype == NC_STRING)
@@ -1330,6 +1335,19 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->flags |= _STORAGE_FLAG;
                 special->_Storage = NC_CHUNKED;
                 } break;
+            case _COMPRESSION_FLAG:
+                if(strcmp(sdata,"zip") == 0) {
+                    special->_Algorithm = NC_COMPRESS_DEFLATE;
+		    /* overrides zip (DEFLATE_FLAG) */
+		    special->flags &= (~_DEFLATE_FLAG);
+                } else if(strcmp(sdata,"bzip2") == 0) {
+                    special->_Algorithm = NC_COMPRESS_BZIP2;
+		    /* overrides zip (DEFLATE_FLAG) */
+		    special->flags &= (~_DEFLATE_FLAG);
+                } else
+                    derror("_Compression: illegal value: %s",sdata);
+                special->flags |= _COMPRESSION_FLAG;
+                break;
             default: PANIC1("makespecial: illegal token: %d",tag);
          }
     }

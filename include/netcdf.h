@@ -1930,6 +1930,36 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
 #endif
 
+/* Compression API */
+/* Registered ids for available compression filters */
+/* Note that the numbers should match those of HDF5 (see H5Zpublic.h) */
+
+#define NC_COMPRESS_DEFLATE 1
+#define NC_COMPRESS_ZIP NC_COMPRESS_DEFLATE
+#define NC_COMPRESS_SZIP 4
+#define NC_COMPRESS_BZIP2 307
+
+/** This is the type for compression parameters */
+typedef struct {
+    int level; /* e.g zip, bzip2 */
+    struct {
+        int options_mask;
+        int pixels_per_block;
+    } szip;
+} nc_compression_t;
+
+/* Set compression settings for a variable.
+   Must be called after nc_def_var and before nc_enddef.
+   The form of the parameters is algorithm dependent.
+*/
+EXTERNL int
+nc_def_var_compress(int ncid, int varid, int useshuffle, int algorithm, nc_compression_t *params);
+
+/* Find out compression settings of a var. */
+EXTERNL int
+nc_inq_var_compress(int ncid, int varid, int *useshufflep, 
+		   int *algorithmp, nc_compression_t* paramsp);
+
 #define NC_HAVE_META_H
 
 #endif /* _NETCDF_ */

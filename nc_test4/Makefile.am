@@ -23,7 +23,7 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs        \
 tst_h_scalar tst_rename
 
-check_PROGRAMS = $(NC4_TESTS) renamegroup
+check_PROGRAMS = $(NC4_TESTS) renamegroup tst_compress
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -32,7 +32,7 @@ endif
 
 TESTS = $(NC4_TESTS)
 
-TESTS += run_grp_rename.sh
+TESTS += run_grp_rename.sh run_compress.sh
 
 # If the v2 API was built, add its test program.
 if BUILD_V2
@@ -121,7 +121,7 @@ run_bm_ar4.sh ref_tst_compounds.nc run_hdf4_valgrind_tests.sh		\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc run_get_knmi_files.sh CMakeLists.txt               \
 run_grp_rename.sh tst_formatx_hdf4.sh                                   \
-run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4
+run_chunk_hdf4.sh contiguous.hdf4 chunked.hdf4 run_compress.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 bm_radar.nc bm_radar1.nc radar_3d_compression_test.txt			\

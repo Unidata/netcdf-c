@@ -486,6 +486,24 @@ genc_definespecialattributes(Symbol* vsym)
         codedump(stmt);
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }   
+    if(special->flags & (_COMPRESSION_FLAG) && (special->_Algorithm > 0)) {
+	bbprintf0(stmt,"    {\n");
+        codedump(stmt);
+	bbprintf0(stmt,"        nc_compression_t parms;\n");
+        codedump(stmt);
+	bbprintf0(stmt,"        parms.level = %d;\n",special->_DeflateLevel);
+        codedump(stmt);
+        bbprintf0(stmt,
+                "        stat = nc_def_var_compress(%s, %s, %s, %d, &parms);\n",
+                groupncid(vsym->container),
+                varncid(vsym),
+                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
+                (special->_Algorithm));
+        codedump(stmt);
+	bbprintf0(stmt,"    }\n");
+        codedump(stmt);
+        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    }   
 }
 #endif /*USE_NETCDF4*/
 

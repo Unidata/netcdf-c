@@ -236,6 +236,16 @@ genbin_definespecialattributes(Symbol* var)
                                  NULL);
         check_err(stat,__LINE__,__FILE__);
     }
+    if(special->flags & (_COMPRESSION_FLAG) && (special->_Algorithm > 0)) {
+	nc_compression_t parms;
+	parms.level = special->_DeflateLevel;
+        stat = nc_def_var_compress(var->container->ncid,
+                                  var->ncid,
+                                  (special->_Shuffle == 1?1:0),
+                                  (special->_Algorithm >= 0),
+				  &parms);
+        check_err(stat,__LINE__,__FILE__);
+    }
 }
 #endif /*USE_NETCDF4*/
 

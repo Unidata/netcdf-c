@@ -121,7 +121,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp, 
 				     dimidsp, nattsp, NULL, NULL, NULL, 
-				     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				     NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /** 
@@ -259,10 +259,15 @@ turned on for this variable, and a 0 otherwise. \ref ignored_if_null.
 
 \param deflatep If this pointer is non-NULL, the nc_inq_var_deflate
 function will write a 1 if the deflate filter is turned on for this
-variable, and a 0 otherwise. \ref ignored_if_null.
+variable, and a 0 otherwise.
+For nc_def_var_compress, the id of the compression filter is returned
+if enabled, zero otherwise.
+\ref ignored_if_null.
 
-\param deflate_levelp If the deflate filter is in use for this
-variable, the deflate_level will be writen here. \ref ignored_if_null.
+\param deflate_paramsp If a compression filter is in use for this
+variable, the deflate_param will be writen here. The format
+depends on the algorithm. For zip and bzip, it is a pointer to an
+integer. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file. 
@@ -270,13 +275,14 @@ variable, the deflate_level will be writen here. \ref ignored_if_null.
 \returns ::NC_ENOTVAR Invalid variable ID.
 */
 int
-nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, 
+nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
 		   int *deflate_levelp)
 {
    NC* ncp;
+   nc_compression_t params;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_var_all(
+   stat =  ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -285,16 +291,19 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*nattsp*/
       shufflep, /*shufflep*/
       deflatep, /*deflatep*/
-      deflate_levelp, /*deflatelevelp*/
+      &params, /*deflateparamsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL /*endianp*/
       );
+   if(stat == NC_NOERR) {
+      if(deflate_levelp != NULL)
+          *deflate_levelp = params.level;
+   }
+   return stat;
 }
 
 /** \ingroup variables
@@ -328,9 +337,10 @@ int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 {
    NC* ncp;
+   nc_compression_t parms;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_var_all(
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -345,10 +355,13 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL, /*chunksizep*/
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      options_maskp, /*optionsmaskp*/
-      pixels_per_blockp /*pixelsp*/
+      NULL /*endianp*/
       );
+  if(stat == NC_NOERR) {
+    if(options_maskp) *options_maskp = parms.szip.options_mask;
+    if(pixels_per_blockp) *pixels_per_blockp = parms.szip.pixels_per_block;
+  }
+  return stat;
 }
 
 /** \ingroup variables
@@ -392,9 +405,7 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*chunksizep*/
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL /*endianp*/
       );
 }
 
@@ -428,7 +439,7 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, 
 				     NULL, NULL, NULL, NULL, NULL, storagep, 
-				     chunksizesp, NULL, NULL, NULL, NULL, NULL);
+				     chunksizesp, NULL, NULL, NULL);
 }
 
 /** \ingroup variables
@@ -475,9 +486,7 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       NULL, /*chunksizep*/
       no_fill, /*nofillp*/
       fill_valuep, /*fillvaluep*/
-      NULL, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      NULL /*endianp*/
       );
 }
 
@@ -523,9 +532,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*chunksizep*/
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
-      endianp, /*endianp*/
-      NULL, /*optionsmaskp*/
-      NULL /*pixelsp*/
+      endianp /*endianp*/
       );
 }
 

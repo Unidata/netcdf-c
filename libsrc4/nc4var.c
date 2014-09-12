@@ -635,10 +635,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 int 
 NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, int *algorithmp, nc_compression_t *compress_paramsp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       int *options_maskp, int *pixels_per_blockp)
+               int *no_fill, void *fill_valuep, int *endiannessp)
 {
    NC *nc;
    NC_GRP_INFO_T *grp; 
@@ -717,10 +716,10 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       *contiguousp = var->contiguous ? NC_CONTIGUOUS : NC_CHUNKED;
 
    /* Filter stuff. */
-   if (deflatep)
-      *deflatep = (int)var->deflate;
-   if (deflate_levelp)
-      *deflate_levelp = var->deflate_level;
+   if (algorithmp)
+      *algorithmp = (int)var->algorithm;
+   if (compress_paramsp)
+      *compress_paramsp = var->compress_params;
    if (shufflep)
       *shufflep = (int)var->shuffle;
    if (fletcher32p)
@@ -728,10 +727,12 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    /* NOTE: No interface for returning szip flag currently (but it should never
     *   be set).
     */
+/* SZIP is disabled
    if (options_maskp)
       *options_maskp = var->options_mask;
    if (pixels_per_blockp)
       *pixels_per_blockp = var->pixels_per_block;
+*/
 
    /* Fill value stuff. */
    if (no_fill)
@@ -795,8 +796,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    internal function, deliberately hidden from the user so that we can
    change the prototype of this functions without changing the API. */
 static int
-nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate, 
-		 int *deflate_level, int *fletcher32, int *contiguous, 
+nc_def_var_extra(int ncid, int varid, int *shuffle, int *algorithm,
+		 nc_compression_t* params, int *fletcher32, int *contiguous, 
 		 const size_t *chunksizes, int *no_fill, 
                  const void *fill_value, int *endianness)
 {
@@ -837,7 +838,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
    /* Can't turn on contiguous and deflate/fletcher32/szip. */
    if (contiguous)
-      if ((*contiguous != NC_CHUNKED && deflate) || 
+      if ((*contiguous != NC_CHUNKED && algorithm) || 
 	  (*contiguous != NC_CHUNKED && fletcher32))
 	 return NC_EINVAL;
 
@@ -847,15 +848,15 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       return NC_ELATEDEF;
 
    /* Check compression options. */
-   if (deflate && !deflate_level)
+   if (algorithm != NULL && params == NULL)
       return NC_EINVAL;      
        
    /* Valid deflate level? */
-   if (deflate && deflate_level)
+   if (algorithm != NULL && params != NULL)
    {
-      if (*deflate)
-         if (*deflate_level < MIN_DEFLATE_LEVEL ||
-             *deflate_level > MAX_DEFLATE_LEVEL)
+      if (*algorithm == NC_COMPRESS_DEFLATE)
+         if (params->level < MIN_DEFLATE_LEVEL ||
+             params->level > MAX_DEFLATE_LEVEL)
             return NC_EINVAL;
 
       /* For scalars, just ignore attempt to deflate. */
@@ -865,9 +866,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
       /* Well, if we couldn't find any errors, I guess we have to take
        * the users settings. Darn! */
       var->contiguous = NC_FALSE;
-      var->deflate = *deflate;
-      if (*deflate)
-         var->deflate_level = *deflate_level;
+      var->algorithm = *algorithm;
+      var->compress_params = *params;
       LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
    }
 
@@ -890,7 +890,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     * for this data. */
    if (contiguous && *contiguous)
    {
-      if (var->deflate || var->fletcher32 || var->shuffle)
+      if (var->algorithm || var->fletcher32 || var->shuffle)
 	 return NC_EINVAL;
       
      if (!ishdf4) {
@@ -926,7 +926,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
    /* Is this a variable with a chunksize greater than the current
     * cache size? */
-   if (!var->contiguous && (chunksizes || deflate || contiguous))
+   if (!var->contiguous && (chunksizes || algorithm || contiguous))
    {
       /* Determine default chunksizes for this variable. */
       if (!var->chunksizes[0])
@@ -978,8 +978,10 @@ int
 NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate, 
                    int deflate_level)
 {
+   nc_compression_t parms;
+   parms.level = deflate_level;
    return nc_def_var_extra(ncid, varid, &shuffle, &deflate, 
-                           &deflate_level, NULL, NULL, NULL, NULL, NULL, NULL);
+                           &parms, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* Set checksum for a var. This must be called after the nc_def_var
@@ -1037,7 +1039,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
    
    retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL, 
                            NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
-                           NULL, NULL, NULL, NULL);
+                           NULL, NULL);
 
    /* Copy from size_t array. */
    if (*contiguousp == NC_CHUNKED)
@@ -1114,6 +1116,16 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
 {
    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                            NULL, NULL, NULL, &endianness);
+}
+
+/* Set the compression algorithm for a var.
+   Must be called after nc_def_var and before nc_enddef or any
+   functions which writes data to the file. */
+int
+NC4_def_var_compress(int ncid, int varid ,int useshuffle, int algorithm, nc_compression_t* params)
+{
+   return nc_def_var_extra(ncid, varid, &useshuffle, &algorithm,
+                           params, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* Get var id from name. */

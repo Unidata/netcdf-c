@@ -130,10 +130,9 @@ NC4_def_var(int ncid, const char *name,
 EXTERNL int
 NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, int *algorithmp, nc_compression_t *params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       int *options_maskp, int *pixels_per_blockp);
+               int *no_fill, void *fill_valuep, int *endiannessp);
 
 EXTERNL int
 NC4_inq_varid(int ncid, const char *name, int *varidp);
@@ -268,7 +267,10 @@ NC4_inq_unlimdims(int, int *, int *);
 EXTERNL int
 NC4_show_metadata(int);
 
-extern int 
+EXTERNL int
+NC4_def_var_compress(int, int, int, int, nc_compression_t*);
+
+EXTERNL int 
 NC4_initialize(void);
 
 #if defined(__cplusplus)

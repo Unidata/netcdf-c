@@ -92,7 +92,8 @@ extern int ncgdebug;
     _ENDIANNESS = 302,
     _NOFILL = 303,
     _FLETCHER32 = 304,
-    DATASETID = 305
+    _COMPRESSION = 305,
+    DATASETID = 306
   };
 #endif
 
@@ -110,7 +111,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant       constant;
 
-#line 114 "ncgentab.h" /* yacc.c:1909  */
+#line 115 "ncgentab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

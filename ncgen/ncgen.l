@@ -83,6 +83,7 @@ static struct Specialtoken {
 {"_Shuffle",_SHUFFLE},
 {"_Endianness",_ENDIANNESS},
 {"_NoFill",_NOFILL},
+{"_Compression",_COMPRESSION},
 {NULL,0} /* null terminate */
 };
 
@@ -163,7 +164,7 @@ NUMBER       [+-]?[0-9][0-9]*[BbSsLl]
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_Compression"
 
 USASCII   [\x01-\x7F]
 

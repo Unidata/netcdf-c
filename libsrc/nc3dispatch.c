@@ -32,10 +32,9 @@
 
 static int NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, int *algorithmp, nc_compression_t* paramsp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       int *options_maskp, int *pixels_per_blockp);
+               int *no_fill, void *fill_valuep, int *endiannessp);
 
 static int NC3_var_par_access(int,int,int);
 
@@ -76,6 +75,7 @@ static int NC3_def_var_fill(int,int,int,const void*);
 static int NC3_def_var_endian(int,int,int);
 static int NC3_set_var_chunk_cache(int,int,size_t,size_t,float);
 static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
+static int NC3_def_var_compress(int,int,int,int,nc_compression_t*);
 #endif /*USE_NETCDF4*/
 
 static NC_Dispatch NC3_dispatcher = {
@@ -165,9 +165,8 @@ NC3_def_var_fill,
 NC3_def_var_endian,
 NC3_set_var_chunk_cache,
 NC3_get_var_chunk_cache,
-
-#endif /*_NC4DISPATCH_H*/
-
+NC3_def_var_compress
+#endif /*USE_NETCDF4*/
 };
 
 NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
@@ -182,20 +181,18 @@ NC3_initialize(void)
 static int
 NC3_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, int *algorithmp, nc_compression_t *params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       int *options_maskp, int *pixels_per_blockp)
+               int *no_fill, void *fill_valuep, int *endiannessp)
 {
     int stat = NC3_inq_var(ncid,varid,name,xtypep,ndimsp,dimidsp,nattsp);
     if(stat) return stat;
     if(shufflep) *shufflep = 0;
-    if(deflatep) *deflatep = 0;
+    if(algorithmp) *algorithmp = 0;
     if(fletcher32p) *fletcher32p = 0;
     if(contiguousp) *contiguousp = NC_CONTIGUOUS;
     if(no_fill) *no_fill = 1;
     if(endiannessp) return NC_ENOTNC4;
-    if(options_maskp) return NC_ENOTNC4;
     return NC_NOERR;
 }
 
@@ -501,6 +498,12 @@ NC3_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
 static int
 NC3_def_var_endian(int ncid, int varid, int endianness)
+{
+    return NC_ENOTNC4;
+}
+
+static int
+NC3_def_var_compress(int ncid, int varid ,int useshuffle, int algorithmp, nc_compression_t* params)
 {
     return NC_ENOTNC4;
 }

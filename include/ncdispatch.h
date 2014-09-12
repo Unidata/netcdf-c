@@ -242,13 +242,12 @@ int (*put_vars)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const 
 int (*get_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, void*, nc_type);
 int (*put_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const ptrdiff_t*, const void*, nc_type);
 
-
 int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, int *compressionp,
+               nc_compression_t *deflate_params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
-               int *no_fill, void *fill_valuep, int *endiannessp, 
-	       int *options_maskp, int *pixels_per_blockp);
+               int *no_fill, void *fill_valuep, int *endiannessp);
 
 int (*var_par_access)(int, int, int);
 
@@ -293,6 +292,7 @@ int (*def_var_fill)(int, int, int, const void*);
 int (*def_var_endian)(int, int, int);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
 int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
+int (*def_var_compress)(int, int, int, int, nc_compression_t*);
 #endif /*USE_NETCDF4*/
 };
 
