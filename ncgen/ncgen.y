@@ -1338,8 +1338,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 } break;
             case _COMPRESSION_FLAG:
                 strncpy(special->_Algorithm,sdata,NC_COMPRESSION_MAX_NAME);
-	        /* overrides zip (DEFLATE_FLAG) */
-		special->flags &= (~_DEFLATE_FLAG);
                 special->flags |= _COMPRESSION_FLAG;
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
