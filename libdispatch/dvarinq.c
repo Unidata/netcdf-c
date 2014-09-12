@@ -260,14 +260,11 @@ turned on for this variable, and a 0 otherwise. \ref ignored_if_null.
 \param deflatep If this pointer is non-NULL, the nc_inq_var_deflate
 function will write a 1 if the deflate filter is turned on for this
 variable, and a 0 otherwise.
-For nc_def_var_compress, the id of the compression filter is returned
-if enabled, zero otherwise.
 \ref ignored_if_null.
 
 \param deflate_paramsp If a compression filter is in use for this
-variable, the deflate_param will be writen here. The format
-depends on the algorithm. For zip and bzip, it is a pointer to an
-integer. \ref ignored_if_null.
+variable, the deflate_level will be writen here.
+\ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file. 
@@ -574,6 +571,61 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp, 
 					unlimdimidsp);
+}
+
+/** \ingroup variables
+Learn the shuffle and compression settings for a variable.
+
+This is a wrapper for nc_inq_var_all().
+
+\param ncid NetCDF or group ID, from a previous call to nc_open(),
+nc_create(), nc_def_grp(), or associated inquiry functions such as 
+nc_inq_ncid().
+
+\param varid Variable ID
+
+\param useshufflep A 1 will be written here if the shuffle filter is
+turned on for this variable, and a 0 otherwise. \ref ignored_if_null.
+
+\param algorithmp If this pointer is non-NULL, the nc_inq_var_compress
+function will write the algorithm id for the compression filter
+turned on for this variable, and a 0 otherwise.
+\ref ignored_if_null.
+
+\param params If a compression filter is in use for this
+variable, the algorithm dependent parameters will be writen here.
+\ref ignored_if_null.
+
+\returns ::NC_NOERR No error.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file. 
+\returns ::NC_EBADID Bad ncid.
+\returns ::NC_ENOTVAR Invalid variable ID.
+\returns ::NC_EHDF Invalid/unknown compression algorithm.
+*/
+int
+nc_inq_var_compress(int ncid, int varid, int* useshufflep, int* algorithmp, nc_compression_t* params)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) return stat;
+   stat =  ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      useshufflep, /*shufflep*/
+      algorithmp, /*algorithmp*/
+      params, /*paramsp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL /*endianp*/
+      );
+   return stat;
 }
 
 #endif /* USE_NETCDF4 */
