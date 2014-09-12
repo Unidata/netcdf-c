@@ -29,4 +29,19 @@ else
   echo "***FAIL: run_compress"
 fi
 
+# ncdump both files
+../ncdump/ncdump -s -n compress zip.nc > zip.cdl
+../ncdump/ncdump -s -n compress bzip2.nc > bzip2.cdl
+
+# diff the two files
+if diff -wBb zip.cdl bzip2.cdl ; then
+  echo "***PASS: tst_compress"
+  CODE=0
+else
+  echo "***FAIL: tst_compress"
+  CODE=1
+fi
+rm -f zip.nc bzip2.nc zip.cdl bzip2.cdl
+>>>>>>> Add support for multiple compression algorithms.
+
 exit $CODE
