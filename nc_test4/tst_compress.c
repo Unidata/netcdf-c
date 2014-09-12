@@ -43,7 +43,7 @@ test_bzip2(const char *testfile)
     int ncid, varid, dimids[NUMDIMS];
     size_t index[NUMDIMS];
     nc_compression_t parms;
-    int status;
+    int algorithm;
 
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
@@ -61,7 +61,7 @@ test_bzip2(const char *testfile)
 	    int value = (i*DIM2) + j;
 	    index[0] = i;
             index[1] = j;
-            if ((status = nc_put_var1_int(ncid, varid, index, &value))) {
+            if (nc_put_var1_int(ncid, varid, index, &value)) {
 		ERR;
 	    }
 	}
@@ -71,6 +71,14 @@ test_bzip2(const char *testfile)
     /* Open the file and check it. */
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
+    /* Check the compression algorithm */
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
+    if (algorithm != NC_COMPRESS_BZIP2) {
+	printf("Compression algorithm mismatch: %d\n",algorithm);
+	exit(1);
+    } else {
+	printf("Compression algorithm verified: %d\n",algorithm);
+    }
     for(i=0;i<DIM1;i++) {
         for(j=0;j<DIM2;j++) {
 	    int expected = (i*DIM2) + j;
@@ -92,6 +100,7 @@ test_zip(const char *testfile)
     int ncid, varid, dimids[NUMDIMS];
     size_t index[NUMDIMS];
     nc_compression_t parms;
+    int algorithm;
 
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
@@ -118,6 +127,15 @@ test_zip(const char *testfile)
     /* Open the file and check it. */
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
+    /* Check the compression algorithm */
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
+    if (algorithm != NC_COMPRESS_ZIP) {
+	printf("Compression algorithm mismatch: %d\n",algorithm);
+	exit(1);
+    } else {
+	printf("Compression algorithm verified: %d\n",algorithm);
+    }
+
     for(i=0;i<DIM1;i++) {
         for(j=0;j<DIM2;j++) {
 	    int expected = (i*DIM2) + j;
