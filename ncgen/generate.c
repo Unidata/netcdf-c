@@ -15,7 +15,7 @@
 
 /* Forward*/
 static void generate_array(Symbol*,Bytebuffer*,Datalist*,Generator*,Writer);
-static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,Datalist*,Generator*);
+static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,int,Datalist*,Generator*);
 static void generate_primdata(Symbol*, NCConstant*, Bytebuffer*, Datalist* fillsrc, Generator*);
 static void generate_fieldarray(Symbol*, NCConstant*, Dimset*, Bytebuffer*, Datalist* fillsrc, Generator*);
 
@@ -126,10 +126,15 @@ generate_array(Symbol* vsym,
 	/* Handoff to gen_chararray */
         gen_chararray(dimset, vsym->data, code, filler);
     } else {
+	NCConstant con;
+	Datalist* wrap;
         /* First, create an odometer using all of the dimensions */
         odom = newodometer(dimset,NULL,NULL);
+	/* wrap the datalist as a list to simplify special cases */
+	con = list2const(vsym->data);
+	wrap = const2list(&con);
         /* recurse using the helper function */
-        generate_arrayr(vsym,code,vsym->data,odom,0,filler,generator);
+        generate_arrayr(vsym,code,wrap,odom,0,0,filler,generator);
     }
 }
 
@@ -153,6 +158,7 @@ generate_arrayr(Symbol* vsym,
 		Datalist* list,
 		Odometer* odom,
 		int dimindex,
+		int parentoffset,
                 Datalist* filler,
                 Generator* generator
               )
@@ -165,7 +171,7 @@ generate_arrayr(Symbol* vsym,
     int nextunlim = findunlimited(dimset,dimindex+1);
     int lastindex = nextunlim-1;
     int islastgroup = (dimindex == lastunlim || lastunlim == rank);
-    int isunlim = (dimindex == lastindex); /* is this dim unlimiteded */
+    int isunlim = isunlimited(dimset,dimindex); /* is this dim unlimiteded */
     
     ASSERT((typecode != NC_CHAR));
 
@@ -180,9 +186,6 @@ generate_arrayr(Symbol* vsym,
 	    Datalist* sublist;
 	    size_t offset = odometeroffset(thisodom);
 	    /* Get the offset'th datalist; exception top-level list */
-	    if(dimindex == 0) {
-	        sublist = list;
-	    } else {
 	        con = datalistith(list,offset);
 		if(isnilconst(con)) {
 		    /* list is too short */
@@ -194,11 +197,11 @@ generate_arrayr(Symbol* vsym,
 		    return;
 	        }
 		sublist = compoundfor(con);
-	    }
             /* recurse using the helper function */
-            generate_arrayr(vsym,code,sublist,odom,dimindex+1,filler,generator);
+            generate_arrayr(vsym,code,sublist,odom,dimindex+1,offset,filler,generator);
 	    odometerincr(thisodom);	
 	}
+#if 0
     } else if(isunlim) {
 	int i;
 	int uid;
@@ -219,19 +222,39 @@ generate_arrayr(Symbol* vsym,
 	}
         generator->listend(generator,LISTDATA,uid,i,code);
 	odometerfree(slabodom);
+#endif
     } else {/* This is the last group; should be a simple list of constants,
                but might be a list if the base type is a compound */
 	int uid,i;
+	Datalist* actual;
+
 	/* build an odometer to walk the last few dimensions */
         Odometer* slabodom = newsubodometer(odom,dimset,dimindex,lastindex+1);
 
-	/* compute the starting offset in our datalist
-	   (Assumes that slabodom->index[i] == slabodom->start[i])
+	/* We need to special case the situation when the last group
+           has one unlimited dimension only.
+           We should be pointing to a constant that is the leaf unlimited
+           compound list {...}.
+	   Note that there is a special case to the special case,
+           when there is only one dimension and it is unlimited.
         */
-        generator->listbegin(generator,LISTDATA,list->length,code,&uid);
+	if(isunlim && dimindex == rank-1) {
+            NCConstant* con = datalistith(list,parentoffset);
+	    if(!islistconst(con)) {
+		semerror(constline(con),"Expected data list {...}, constant found");
+		return;
+	    }
+	    actual =  con->value.compoundv;
+	} else {
+	    actual = list;
+	}
+
+	/* start the list for the output */
+        generator->listbegin(generator,LISTDATA,actual->length,code,&uid);
+
 	for(i=0;odometermore(slabodom);i++) {
 	    size_t offset = odometeroffset(slabodom);
-            NCConstant* con = datalistith(list,offset);
+            NCConstant* con = datalistith(actual,offset);
 #ifdef USE_NOFILL
 	    if(nofill_flag && con == NULL)
 		break;
@@ -269,7 +292,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
 	    ASSERT(fill->length == 1);
 	    con = &fill->data[0];
 	    if(!islistconst(con))
-	        semerror(con->lineno,"Compound data fill value is not enclosed in {..}");
+	        semerror(constline(con),"Compound data fill value is not enclosed in {..}");
 	}
 	if(!islistconst(con)) {/* fail on no compound*/
 	    semerror(constline(con),"Compound data must be enclosed in {..}");

@@ -61,4 +61,7 @@ extern void dlsetalloc(Datalist* dl, size_t newalloc);
 extern void check_err(const int stat, const int line, const char* file);
 extern const char* kind_string(int kind);
 
+/* Inline functions */
+#define isunlimited(dimset,i) ((dimset)->dimsyms[i]->dim.isunlimited)
+
 #endif /*NCGEN_UTIL_H*/
