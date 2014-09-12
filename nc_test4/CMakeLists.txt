@@ -8,7 +8,7 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars
   tst_xplatform tst_xplatform2 tst_h_atts2 tst_endian_fill tst_atts 
   t_type cdm_sea_soundings tst_vl tst_atts1 tst_atts2
   tst_vars2 tst_files5 tst_files6 tst_sync tst_h_strbug tst_h_refs
-  tst_h_scalar tst_rename)
+  tst_h_scalar tst_rename tst_compress)
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 build_bin_test(renamegroup)
