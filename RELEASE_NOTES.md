@@ -9,6 +9,12 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc2 Released TBD
 
+* Added a new file, `netcdf_meta.h`.  This file is generated automatically at configure time and contains information related to the capabilities of the netcdf library.  This file may be used by projects dependent upon `netcdf` to make decisions during configuration, based on how the `netcdf` library was built.  The macro `NC_HAVE_META_H` is defined in `netcdf.h`.  Paired with judicious use of `#ifdef`'s, this macro will indicate to developers whether or not the meta-header file is present. See [NCF-313](https://bugtracking.unidata.ucar.edu/browse/NCF-313).
+    
+    > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.  
+
+
+* Corrected embedded URLs in release notes.
 * Corrected an issue where building with HDF4 support for Visual Studio would fail.
 
 ### 4.3.3-rc1 Released 2014-08-25
@@ -1026,10 +1032,10 @@ output.
 Turkal).
 
 * Fixed bug in C++ API creating 64-bit offset files. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known\_problems.html\#cxx\_64-bit.)
+http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#cxx_64-bit).
 
 * Fixed bug for variables larger than 4 GB. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known\_problems.html\#large\_vars\_362.)
+http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#large_vars_362).
 
 * Changed the configure.ac to build either 3.6.x or 4.x build from the
 same configure.ac.
@@ -1180,7 +1186,7 @@ configure.
 * Switched to new build system, with automake and libtool. Now shared
 libraries are built (as well as static ones) on platforms which support
 it. For more information about shared libraries, see
-http://www.unidata.ucar.edu/software/netcdf/docs/faq.html\#shared\_intro
+http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#shared_intro
 
 * Fixed ncdump crash that happened when no arguments were used.
 

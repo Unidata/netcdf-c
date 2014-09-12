@@ -23,12 +23,13 @@ set(PACKAGE "netCDF" CACHE STRING "")
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-SET(netCDF_VERSION_MAJOR 4)
-SET(netCDF_VERSION_MINOR 3)
-SET(netCDF_VERSION_PATCH 3)
-SET(netCDF_VERSION_NOTE "-rc2")
-SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
+SET(NC_VERSION_MAJOR 4)
+SET(NC_VERSION_MINOR 3)
+SET(NC_VERSION_PATCH 3)
+SET(NC_VERSION_NOTE "-rc2")
+SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+SET(NC_VERSION ${netCDF_VERSION})
 SET(netCDF_LIB_VERSION 7.2.0)
 SET(netCDF_SO_VERSION 7)
 SET(PACKAGE_VERSION ${VERSION})
@@ -497,7 +498,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-    FIND_PACKAGE(SZIP NO_MODULE)
+    FIND_PACKAGE(SZIP NO_MODULE REQUIRED)
     INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 
@@ -714,13 +715,15 @@ IF(ENABLE_DOXYGEN)
     SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
   ENDIF()
 
+  OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
+
   # Option to turn on the TODO list in the doxygen-generated documentation.
-  OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
-  IF(ENABLE_DOXYGEN_TASKS)
+  OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+  IF(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-  ELSE(ENABLE_DOXYGEN_TASKS)
+  ELSE(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-  ENDIF(ENABLE_DOXYGEN_TASKS)
+  ENDIF(DOXYGEN_ENABLE_TASKS)
 
   OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
@@ -755,7 +758,7 @@ ENDIF()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-
+MARK_AS_ADVANCED(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH DOXYGEN_ENABLE_TASKS)
 ################################
 # Option checks
 ################################
@@ -1185,6 +1188,10 @@ INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
+INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_meta.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT headers)
+
 IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
   INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_par.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -1379,6 +1386,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(USE_DAP HAS_DAP)
@@ -1407,6 +1415,13 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 # End libnetcdf.settings section.
 #####
+
+#####
+# Create 'netcdf_meta.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
+  ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 ####
 # Export files

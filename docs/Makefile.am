@@ -9,7 +9,6 @@ EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     guide.dox types.dox notes.dox cdl.dox \
     architecture.dox internal.dox windows-binaries.md \
     building-with-cmake.md CMakeLists.txt \
-    Doxyfile.guide.in Doxyfile.tutorial.in \
     groups.dox install.md install-fortran.md \
     all-error-codes.md cmake_faq.md
 
@@ -42,7 +41,7 @@ clean-local:
 	rm -rf $(top_builddir)/docs/man
 	rm -rf $(top_builddir)/docs/html
 	rm -rf $(top_builddir)/docs/latex
-endif 
+endif
 
 # Timestamp to prevent rebuilds.
 # We must do this twice. The first time
@@ -51,12 +50,6 @@ endif
 
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile
-	$(DOXYGEN) Doxyfile.guide
-	$(DOXYGEN) Doxyfile.tutorial
-
-	$(DOXYGEN) Doxyfile
-	$(DOXYGEN) Doxyfile.guide
-	$(DOXYGEN) Doxyfile.tutorial
 	echo Timestamp > doxyfile.stamp
 
 CLEANFILES = doxyfile.stamp html latex man

@@ -1,3 +1,5 @@
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
+
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})
   GEN_m4(${F})
@@ -20,7 +22,7 @@ TARGET_LINK_LIBRARIES(nc_test
   )
 
 # Some extra tests
-SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
+SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta)
 
 IF(NOT MSVC)
   SET(TESTS ${TESTS} tst_atts3)

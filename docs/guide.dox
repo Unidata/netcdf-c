@@ -1,8 +1,6 @@
-/*! \file guide.dox The NetCDF User's Guide
+/*! \page guide.dox The NetCDF User's Guide
 
 \brief The NetCDF User's Guide
-
-\mainpage
 
 \tableofcontents
 
