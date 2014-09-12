@@ -216,7 +216,9 @@ FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
-LDFLAGS="${LDFLAGS} -L${stddir}/lib -lbz2"
+if test "x$COMPRESSORS" != "" ; then
+LDFLAGS="${LDFLAGS} ${COMPRESSORS}"
+fi
 
 export PATH
 export CC
