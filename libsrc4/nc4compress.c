@@ -6,12 +6,25 @@
 #include "hdf5.h"
 #include "nc4compress.h"
 
-/* Forward */
-static const H5Z_class2_t H5Z_BZIP2[1]; 
+#ifdef BZIP2_COMPRESSION
 
+/*forward*/
 /* declare a filter function */
 static size_t H5Z_filter_bzip2(unsigned flags,size_t cd_nelmts,const unsigned cd_values[],
                     size_t nbytes,size_t *buf_size,void**buf);
+
+static const H5Z_class2_t H5Z_BZIP2[1] = {{
+    H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
+    (H5Z_filter_t)H5Z_FILTER_BZIP2,         /* Filter id number             */
+    1,              /* encoder_present flag (set to true) */
+    1,              /* decoder_present flag (set to true) */
+    "bzip2",                  /* Filter name for debugging    */
+    NULL,                       /* The "can apply" callback     */
+    NULL,                       /* The "set local" callback     */
+    (H5Z_func_t)H5Z_filter_bzip2,         /* The actual filter function   */
+}};
+
+#endif
 
 /*
 Turn on bzip for a variable's plist
@@ -27,13 +40,19 @@ nccompress_set(int algorithm, hid_t plistid, const nc_compression_t* parms)
         status = H5Pset_deflate(plistid, parms->level);
 	break;
     case NC_COMPRESS_BZIP2:
+#ifdef BZIP2_COMPRESSION
         cd_values[0] = parms->level;
         status = H5Pset_filter(plistid, (H5Z_filter_t)H5Z_FILTER_BZIP2, H5Z_FLAG_MANDATORY, (size_t)1, cd_values);
+#else
+        status = NC_EHDFERR;
+#endif
 	break;
     case NC_COMPRESS_SZIP:
-	return NC_EHDFERR;
+	status = NC_EHDFERR;
+	break;
     default:
-	return NC_EHDFERR;
+	status = NC_EHDFERR;
+	break;
     }
     return status;
 }
@@ -52,12 +71,18 @@ nccompress_register(int algorithm, const nc_compression_t* parms)
     case NC_COMPRESS_DEFLATE: /* already registered */
 	break;
     case NC_COMPRESS_BZIP2:
+#ifdef BZIP2_COMPRESSION
         status = H5Zregister(H5Z_BZIP2);
+#else
+	status = NC_EHDFERR;
+#endif
 	break;
     case NC_COMPRESS_SZIP:
-	return NC_EHDFERR;
+	status = NC_EHDFERR;
+	break;
     default:
-	return NC_EHDFERR;
+	status = NC_EHDFERR;
+	break;
     }
     if(status < 0) {
 	return status;
@@ -84,17 +109,7 @@ nccompress_register(int algorithm, const nc_compression_t* parms)
     return 0;
 }
 
-static const H5Z_class2_t H5Z_BZIP2[1] = {{
-    H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
-    (H5Z_filter_t)H5Z_FILTER_BZIP2,         /* Filter id number             */
-    1,              /* encoder_present flag (set to true) */
-    1,              /* decoder_present flag (set to true) */
-    "bzip2",                  /* Filter name for debugging    */
-    NULL,                       /* The "can apply" callback     */
-    NULL,                       /* The "set local" callback     */
-    (H5Z_func_t)H5Z_filter_bzip2,         /* The actual filter function   */
-}};
-
+#ifdef BZIP2_COMPRESSION
 static size_t
 H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
                      const unsigned int cd_values[], size_t nbytes,
@@ -227,3 +242,4 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
     free(outbuf);
   return 0;
 }
+#endif /*BZIP2_COMPRESSION*/
