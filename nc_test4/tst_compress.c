@@ -155,19 +155,19 @@ main(int argc, char **argv)
 {
     char testfile[NC_MAX_NAME + 1];
 
+#ifdef BZIP2_COMPRESSION
     {
         printf("\n*** Testing bzip2 compression.\n");
 	sprintf(testfile, "%s", BZIP2_FILE_NAME);
 	test_bzip2(testfile);
-//	(void) remove(testfile);
 	SUMMARIZE_ERR;
     }
+#endif
     
     {
         printf("\n*** Testing zip compression.\n");
 	sprintf(testfile, "%s", ZIP_FILE_NAME);
 	test_zip(testfile);
-//	(void) remove(testfile);
 	SUMMARIZE_ERR;
     }
 
