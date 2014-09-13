@@ -96,6 +96,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_DISKLESS 1
 #cmakedefine USE_SZIP 1
 #cmakedefine USE_ZLIB 1
+#cmakedefine BZIP2_COMPRESSION 1
 #cmakedefine USE_X_GETOPT 1
 #cmakedefine LARGE_FILE_TESTS 1
 #cmakedefine HAVE_DECL_ISFINITE 1

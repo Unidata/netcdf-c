@@ -806,6 +806,43 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
      opendap with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
 fi
 
+# Check for compression algorithms
+AC_MSG_CHECKING([which compression algorithms will be available])
+AC_ARG_WITH([compression],
+            [AS_HELP_STRING([--with-compression=<comma or blank separated list of algorithms>],
+                            [specify available compression algorithms])],
+            [ALGORITHMS=$with_compression])
+if test "x$enable_netcdf_4" = xyes ; then 
+AC_MSG_RESULT($ALGORITHMS)
+else
+AC_MSG_RESULT(none)
+fi
+ALGORITHMS=`echo "$ALGORITHMS"|sed -e "s/[,]/ /g" | tr [A-Z] [a-z]`
+# Compute a singular list of algorithms
+ALGORITHM_LIST="zip"
+if test "x$enable_netcdf_4" = xyes ; then 
+for a in $ALGORITHMS ; do
+  ALG_DUP=0
+  for al in $ALGORITHM_LIST ; do
+    if test "x$al" = "x$a" ; then ALG_DUP=1 ; fi
+  done
+  if test "x$ALG_DUP" = "x0" ; then
+      ALGORITHM_LIST="$ALGORITHM_LIST $a"
+      case "$a" in
+      bzip2)
+         AC_DEFINE([BZIP2_COMPRESSION], [1], [if true, allow bzip2 compression])
+         ;;
+      zip)
+        ;; #ignore
+      *)
+        AC_MSG_ERROR([Unknown compression algorithm "$a"])
+       ;;
+      esac
+  fi
+done
+fi
+
+
 # We need the math library
 AC_CHECK_LIB([m], [floor], [],
 [AC_MSG_ERROR([Can't find or link to the math library.])])
@@ -1048,6 +1085,11 @@ AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_DISKLESS,[$enable_diskless])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
+if test "x$enable_netcdf_4" = xyes ; then 
+AC_SUBST(ALGORITHMS,[$ALGORITHM_LIST])
+else
+AC_SUBST(ALGORITHMS,[none])
+fi
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
