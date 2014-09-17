@@ -119,6 +119,10 @@ main(int argc, char **argv) {
      //static float var1[J_LEN];
      static float *var1 = NULL;
      var1 = malloc(sizeof(float)*J_LEN);
+     if(!var1) {
+       printf("Malloc failed.  This may happen on systems with < 4GB. THIS TEST DID NOT PASS, but is returning 0.\n");
+       return 0;
+     }
      static size_t var1_start[RANK_var1] = {0, 0, 0};
      static size_t var1_count[RANK_var1] = {1, 1, J_LEN};
      static size_t x_start[RANK_x] = {0, 0};
