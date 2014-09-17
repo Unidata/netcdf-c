@@ -172,9 +172,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
-  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
-
-  # Warnings for 64-to-32 bit conversions.
+    # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
