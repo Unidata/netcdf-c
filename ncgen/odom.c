@@ -144,7 +144,7 @@ odometeroffset(Odometer* odom)
 Get the start vector
 from the odometer
 */
-const size_t*
+size_t*
 odometerstartvector(Odometer* odom)
 {
     return odom->start;
@@ -154,7 +154,7 @@ odometerstartvector(Odometer* odom)
 Get the count vector
 from the odometer
 */
-const size_t*
+size_t*
 odometercountvector(Odometer* odom)
 {
     return odom->count;

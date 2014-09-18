@@ -15,7 +15,7 @@
 
 /* Forward*/
 static void generate_array(Symbol*,Bytebuffer*,Datalist*,Generator*,Writer);
-static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,int,Datalist*,Generator*);
+static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,Datalist*,Generator*);
 static void generate_primdata(Symbol*, NCConstant*, Bytebuffer*, Datalist* fillsrc, Generator*);
 static void generate_fieldarray(Symbol*, NCConstant*, Dimset*, Bytebuffer*, Datalist* fillsrc, Generator*);
 
@@ -101,7 +101,6 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
 	start = odometerstartvector(odom);
 	count = odometercountvector(odom);
 	generate_array(vsym,code,filler,generator,writer);
-        writer(generator,vsym,code,rank,start,count);
     }
 }
 
@@ -150,6 +149,7 @@ generate_array(Symbol* vsym,
 	    /* Create an odometer to get the dimension info */
             odom = newodometer(dimset,NULL,NULL);
             writer(generator,vsym,code,odom->rank,odom->start,odom->count);
+//            writer(generator,vsym,code,odom->rank,0,bbLength(charbuf));
 	    bbFree(charbuf);
 	} else { /* typecode != NC_CHAR */
             /* Case: dim 1..rank-1 are not unlimited, dim 0 might be */
@@ -160,8 +160,9 @@ generate_array(Symbol* vsym,
             odom = newodometer(dimset,NULL,NULL);
             for(;;offset+=nelems) {
                 int i,uid;
-                nelems=nc_next_iter(&iter,odom->start,odom->count);
-                if(nelems == 0) break;
+                nelems=nc_next_iter(&iter,odometerstartvector(odom),odometercountvector(odom));
+                if(nelems == 0)
+		    break;
                 bbClear(code);
                 generator->listbegin(generator,LISTDATA,vsym->data->length,code,&uid);
                 for(i=0;i<nelems;i++) {
@@ -194,18 +195,13 @@ generate_array(Symbol* vsym,
 }
 
 /**
-The basic idea is to split the
-set of dimensions into groups
-and iterate over each group.
-A group is defined as the range
-of indices starting at an unlimited
-dimension upto (but not including)
-the next unlimited.
-The first group starts at index 0,
-even if dimension 0 is not unlimited.
-The last group is everything from the
-last unlimited dimension thru the last
-dimension (index rank-1).
+The basic idea is to split the set of dimensions into groups
+and iterate over each group.  A group is defined as the
+range of indices starting at an unlimited dimension upto
+(but not including) the next unlimited.  The first group
+starts at index 0, even if dimension 0 is not unlimited.
+The last group is everything from the last unlimited
+dimension thru the last dimension (index rank-1).
 */
 static void
 generate_arrayr(Symbol* vsym,
@@ -312,6 +308,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         }
         if(!islistconst(con)) {/* fail on no compound*/
             semerror(constline(con),"Compound data must be enclosed in {..}");
+        }
         data = con->value.compoundv;
         nfields = listlength(tsym->subnodes);
         dllen = datalistlen(data);
