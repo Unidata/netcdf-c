@@ -1,4 +1,4 @@
-Release Notes {#release_notes}
+Release Notes {#RELEASE_NOTES}
 ===============================
 
 \brief Release notes file for the netcdf-c package.
@@ -10,9 +10,8 @@ This file contains a high-level description of this package's evolution. Release
 ### 4.3.3-rc2 Released TBD
 
 * Added a new file, `netcdf_meta.h`.  This file is generated automatically at configure time and contains information related to the capabilities of the netcdf library.  This file may be used by projects dependent upon `netcdf` to make decisions during configuration, based on how the `netcdf` library was built.  The macro `NC_HAVE_META_H` is defined in `netcdf.h`.  Paired with judicious use of `#ifdef`'s, this macro will indicate to developers whether or not the meta-header file is present. See [NCF-313](https://bugtracking.unidata.ucar.edu/browse/NCF-313).
-    
-    > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.  
 
+    > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.
 
 * Corrected embedded URLs in release notes.
 * Corrected an issue where building with HDF4 support for Visual Studio would fail.

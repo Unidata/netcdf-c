@@ -16,7 +16,7 @@ The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/netcdf"
 
 \subsection this_release Learn more about the current NetCDF-C Release
 
-- \ref release_notes
+- \ref RELEASE_NOTES
 - \ref getting_and_building_netcdf
 
 \subsubsection nightly_status The Latest NetCDF-C Build Status
@@ -52,7 +52,7 @@ software tools for use in geoscience education and research.
 
 \internal
 
-Internal Documentation 
+Internal Documentation
 
 The dispatch interface within the netCDF library allows the netCDF API
 to be used for different types of back-ends, for example, the HDF5
