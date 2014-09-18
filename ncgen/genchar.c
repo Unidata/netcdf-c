@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include "odom.h"
 
 /******************************************************/
 /* Code for generating char variables etc; mostly
@@ -28,9 +29,9 @@ So, this rather ugly code is kept in this file
 and a variety of heuristics are used to mimic ncgen3.
 
 The core algorithm is as follows.
-1. Assume we have a set of dimensions D1..Dn,
-   where D1 may optionally be an Unlimited dimension.
-   It is assumed that the sizes of the Di are all known.
+1. Assume we have a set of dimensions D1..Dn.
+   Any of the Di may be unlimited,
+   but it is assumed that the sizes of the Di are all known.
 2. Given a sequence of string or character constants
    C1..Cm, our goal is to construct a single string
    whose length is the cross product of D1 thru Dn.
@@ -45,7 +46,7 @@ The core algorithm is as follows.
 8. If S is longer than the Dx * Dn, then truncate
    and generate a warning.
 
-Two other cases:
+Two special cases:
 1. character vlen: char(*) vlen_t.
     For this case, we simply concat all the elements.
 2. character attribute.

@@ -127,6 +127,7 @@ int srcline(Datasrc* ds);
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)
 #define constline(con) (con==NULL?0:(con)->lineno)
 #define consttype(con) (con==NULL?NC_NAT:(con)->nctype)
+
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
 #define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
 
@@ -194,7 +195,6 @@ struct Generator {
 
 extern int generator_getstate(Generator*,void**);
 extern int generator_reset(Generator*,void*);
-
 
 typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,const size_t*,const size_t*);
 

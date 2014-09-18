@@ -15,7 +15,7 @@
 
 /* Forward*/
 static void generate_array(Symbol*,Bytebuffer*,Datalist*,Generator*,Writer);
-static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,Datalist*,Generator*);
+static void generate_arrayr(Symbol*,Bytebuffer*,Datalist*,Odometer*,int,int,Datalist*,Generator*);
 static void generate_primdata(Symbol*, NCConstant*, Bytebuffer*, Datalist* fillsrc, Generator*);
 static void generate_fieldarray(Symbol*, NCConstant*, Dimset*, Bytebuffer*, Datalist* fillsrc, Generator*);
 
@@ -65,8 +65,8 @@ generate_attrdata(Symbol* asym, Generator* generator, Writer writer, Bytebuffer*
 	size_t count;
         generator->listbegin(generator,LISTATTR,asym->data->length,codebuf,&uid);
         for(count=0;count<asym->data->length;count++) {
-        NCConstant* con = datalistith(asym->data,count);
-	    generator->list(generator,LISTATTR,uid,count,codebuf);
+            NCConstant* con = datalistith(asym->data,count);
+            generator->list(generator,LISTATTR,uid,count,codebuf);
             generate_basetype(asym->typ.basetype,con,codebuf,NULL,generator);
 	}
         generator->listend(generator,LISTATTR,uid,count,codebuf);
@@ -81,6 +81,9 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
     int rank = dimset->ndims;
     Symbol* basetype = vsym->typ.basetype;
     Datalist* filler = getfiller(vsym);
+    const size_t* start;
+    const size_t* count;
+    Odometer* odom;
 
     if(vsym->data == NULL) return;
 
@@ -93,7 +96,12 @@ generate_vardata(Symbol* vsym, Generator* generator, Writer writer, Bytebuffer* 
         generate_basetype(basetype,c0,code,filler,generator);
         writer(generator,vsym,code,0,NULL,NULL);
     } else {/*rank > 0*/
+        /* First, create an odometer using all of the dimensions */
+        odom = newodometer(dimset,NULL,NULL);
+	start = odometerstartvector(odom);
+	count = odometercountvector(odom);
 	generate_array(vsym,code,filler,generator,writer);
+        writer(generator,vsym,code,rank,start,count);
     }
 }
 
@@ -185,6 +193,20 @@ generate_array(Symbol* vsym,
         odometerfree(odom);
 }
 
+/**
+The basic idea is to split the
+set of dimensions into groups
+and iterate over each group.
+A group is defined as the range
+of indices starting at an unlimited
+dimension upto (but not including)
+the next unlimited.
+The first group starts at index 0,
+even if dimension 0 is not unlimited.
+The last group is everything from the
+last unlimited dimension thru the last
+dimension (index rank-1).
+*/
 static void
 generate_arrayr(Symbol* vsym,
                Bytebuffer* code,
@@ -262,7 +284,6 @@ generate_arrayr(Symbol* vsym,
     return;
 }
 
-
 /* Generate an instance of the basetype */
 void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
@@ -291,7 +312,6 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         }
         if(!islistconst(con)) {/* fail on no compound*/
             semerror(constline(con),"Compound data must be enclosed in {..}");
-        }
         data = con->value.compoundv;
         nfields = listlength(tsym->subnodes);
         dllen = datalistlen(data);
