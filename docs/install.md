@@ -127,14 +127,14 @@ services</a>.
 Build zlib like this:
 
 ~~~
-$ ./configure --prefix=/home/ed/local
+$ ./configure --prefix=/home/username/local
 $ make check install
 ~~~
 
 Then you build HDF5, specifying the location of the zlib library:
 
 ~~~
-$ ./configure --with-zlib=/home/ed/local --prefix=/home/ed/local
+$ ./configure --with-zlib=/home/username/local --prefix=/home/username/local
 $ make check install
 ~~~
 
@@ -155,7 +155,7 @@ HDF5, zlib, and (if built into HDF5) the szip header files and
 libraries in the CPPFLAGS and LDFLAGS environment variables. For example:
 
 ~~~
-$ CPPFLAGS=-I/home/ed/local/include LDFLAGS=-L/home/ed/local/lib ./configure --prefix=/home/ed/local
+$ CPPFLAGS=-I/home/username/local/include LDFLAGS=-L/home/username/local/lib ./configure --prefix=/home/username/local
 $ make check install
 ~~~
 
@@ -163,8 +163,8 @@ The configure script will try to find necessary tools in your
 path. When you run configure you may optionally use the <CODE>--prefix</CODE>
 argument to change the default installation directory. The above
 examples install the zlib, HDF5, and netCDF-4 libraries in
-/home/ed/local/lib, the header file in /home/ed/local/include, and the
-utilities in /home/ed/local/bin. If you don't provide a <CODE>--prefix</CODE>
+/home/username/local/lib, the header file in /home/username/local/include, and the
+utilities in /home/username/local/bin. If you don't provide a <CODE>--prefix</CODE>
 option, installation will be in /usr/local/, in subdirectories lib/,
 include/, and bin/.  The installation location specified with the
 <CODE>--prefix</CODE> option must be different from the source directory where the
@@ -185,11 +185,11 @@ To build without support for the netCDF-4 formats or the additional
 netCDF-4 functions, but with remote access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-netcdf-4
+$ ./configure --prefix=/home/username/local --disable-netcdf-4
 $ make check install
 ~~~
 
-(Replace `/home/ed/local` with the name of the directory where
+(Replace `/home/username/local` with the name of the directory where
 netCDF is to be installed.  The installation location specified with
 the <CODE>--prefix</CODE> option must be different from the source directory where
 the software is being built.)
@@ -200,14 +200,14 @@ with full support for netCDF-4 APIs and format but without remote
 client access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-dap
+$ ./configure --prefix=/home/username/local --disable-dap
 $ make check install
 ~~~
 
 To build without netCDF-4 support or remote client access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-netcdf-4 --disable-dap
+$ ./configure --prefix=/home/username/local --disable-netcdf-4 --disable-dap
 $ make check install
 ~~~
 
