@@ -1,21 +1,22 @@
 #!/bin/sh
 
 # To add a new test,
-# 1. put the .cdl file in the 'cdl4' directory
+# 1. put the .cdl file in the 'cdl' directory
 # 2. put the result of running ncgen then ncdump
-#    into the directory 'expected4' as .dmp
-# 3. Modify the file tst_ncgen4_shared.sh to add
+#    into the directory 'expected' as .dmp
+# 3. Modify the file tst_ncgen_shared.sh to add
 #    the test to the end of the TESTS4 variable
-# 4. Add the new files into cdl4/Makfile.am
-#    and expected4/Makefile.am 
+#    or CLASSIC variable.
+# 4. Add the new files into cdl/Makfile.am
+#    and expected/Makefile.am 
 
 set -e
 RESULTSDIR="./results"
 #SHOWXFAILS=1
 
 # Locate the cdl and expected directory
-cdl="${srcdir}/cdl4"
-expected="${srcdir}/expected4"
+cdl="${srcdir}/cdl"
+expected="${srcdir}/expected"
 
 case "x${KFLAG}" in
 x1) CLASSIC=1; MODE=3;;
@@ -43,6 +44,8 @@ tst_ncml
 n3time \
 ref_tst_chardata \
 ref_tst_nul3 \
+ref_tst_long_charconst \
+tst_chararray \
 unlimtest1"
 
 NONCLASSIC3="\

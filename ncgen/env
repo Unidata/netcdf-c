@@ -16,5 +16,9 @@ alias qq="gdb --args $NCGEN ${DBG} $K -l${L} $B $F"
 alias qqc="gdb --args $NCGEN ${DBG} $K -lc $B $F"
 alias qv="valgrind --leak-check=full $NCGEN ${DBG} $K -l${L} $B $F"
 
+NCGEN3="../ncgen3/ncgen3"
+alias p0="$NCGEN3 -b $F"
+alias pc="$NCGEN3 -lc $F"
+
 
 

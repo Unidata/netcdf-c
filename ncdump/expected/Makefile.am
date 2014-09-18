@@ -1,9 +1,7 @@
 ## This is a automake file, part of Unidata's netCDF package.
 # Copyright 2007, see the COPYRIGHT file for more information.
 
-# This is to include the libnc-dap test comparison files
-
-# $Id: Makefile.am,v 1.4 2010/04/27 18:50:45 dmh Exp $
+# This is to include the test comparison files
 
 EXTRA_DIST = \
 c0.dmp example_good.dmp fills.dmp nc_enddef.dmp nc_sync.dmp pres_temp_4D.dmp \
@@ -22,6 +20,7 @@ ref_solar.dmp unlimtest1.dmp unlimtest2.dmp \
 ref_tst_vlen_data.dmp ref_tst_vlen_data2.dmp \
 ref_niltest.dmp ref_tst_h_scalar.dmp ref_tst_econst.dmp \
 ref_tst_nul3.dmp ref_tst_nul4.dmp ref_tst_names.dmp \
+ref_tst_long_charconst.dmp tst_chararray.dmp \
 CMakeLists.txt
 
 # These do not exist because they are not run as usual tests
