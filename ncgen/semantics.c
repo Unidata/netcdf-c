@@ -649,7 +649,7 @@ computesize(Symbol* tsym)
         case NC_FIELD: /* Compute size assume no unlimited dimensions*/
 	    if(tsym->typ.dimset.ndims > 0) {
 	        computesize(tsym->typ.basetype);
-	        totaldimsize = crossproduct(&tsym->typ.dimset,0,0);
+	        totaldimsize = crossproduct(&tsym->typ.dimset,0,rankfor(&tsym->typ.dimset));
 	        tsym->typ.size = tsym->typ.basetype->typ.size * totaldimsize;
 	        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
 	        tsym->typ.nelems = 1;

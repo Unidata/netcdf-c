@@ -23,7 +23,7 @@ echo "*** Testing ncgen and ncdump test output for netCDF-4 classic format."
 # echo "*** creating netcdf-4 classic file c0.nc from c0.cdl..."
 ../ncgen/ncgen -k4 -b -o c0.nc $srcdir/../ncgen/c0.cdl
 # echo "*** creating c1.cdl from c0.nc..."
-./ncdump -n c1 c0.nc | sed 's/e+0/e+/g' > c1.cdl
+
 # echo "*** comparing c1.cdl with ref_ctest1_nc4c.cdl..."
 diff -b c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 

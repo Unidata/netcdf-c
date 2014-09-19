@@ -123,6 +123,8 @@ Thus, these three dimensions will be reduced to a single
 dimension of size 30 (0..29).
 A particular point in the three dimensions, say [x][y][z], is reduced to
 a number in the range 0..29 by computing ((x*5)+y)*3+z
+So, given an odometer in some state, it computes the offset
+for that odometer's state.
 */
 
 size_t
@@ -137,3 +139,24 @@ odometeroffset(Odometer* odom)
     } 
     return count;
 }
+
+/*
+Get the start vector
+from the odometer
+*/
+size_t*
+odometerstartvector(Odometer* odom)
+{
+    return odom->start;
+}
+
+/*
+Get the count vector
+from the odometer
+*/
+size_t*
+odometercountvector(Odometer* odom)
+{
+    return odom->count;
+}
+

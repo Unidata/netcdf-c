@@ -2,9 +2,14 @@
 # This shell script tests the output several previous tests.
 # $Id: tst_output.sh,v 1.17 2010/05/14 16:21:15 ed Exp $
 
+set -e
+
+if test "x$srcdir" = x ; then
+srcdir=`pwd`
+fi
+
 echo ""
 echo "*** Testing ncgen and ncdump test output for classic format."
-set -e
 echo "*** creating ctest1.cdl from ctest0.nc..."
 ./ncdump -n c1 ctest0.nc > ctest1.cdl
 echo "*** creating c0.nc from c0.cdl..."

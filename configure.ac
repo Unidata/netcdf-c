@@ -1112,8 +1112,8 @@ AC_CONFIG_FILES([Makefile
                  libdap2/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
-                 ncdump/cdl4/Makefile
-                 ncdump/expected4/Makefile
+                 ncdump/cdl/Makefile
+                 ncdump/expected/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
