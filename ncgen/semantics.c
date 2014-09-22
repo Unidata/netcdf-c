@@ -1084,8 +1084,9 @@ processunlimiteddims(void)
 	if(first == 0) {
 	    computeunlimitedsizes(dimset,first,var->data,ischar);
 	} else {
-	    for(i=0;i<var->data->length;i++) {
-	        NCConstant* con = var->data->data+i;
+	    int j;
+	    for(j=0;j<var->data->length;j++) {
+	        NCConstant* con = var->data->data+j;
 	        if(con->nctype != NC_COMPOUND)
 		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 		else
