@@ -276,6 +276,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
 		   int *deflate_levelp)
 {
    NC* ncp;
+   char* algorithm;
    nc_compression_t params;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
@@ -287,7 +288,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       shufflep, /*shufflep*/
-      deflatep, /*deflatep*/
+      &algorithm, /*deflatep*/
       &params, /*deflateparamsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
@@ -297,6 +298,8 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL /*endianp*/
       );
    if(stat == NC_NOERR) {
+      if(deflatep != NULL)
+	  *deflatep = (strcmp(algorithm,"zip")==0?1:0);
       if(deflate_levelp != NULL)
           *deflate_levelp = params.level;
    }
@@ -603,7 +606,7 @@ variable, the algorithm dependent parameters will be writen here.
 \returns ::NC_EHDF Invalid/unknown compression algorithm.
 */
 int
-nc_inq_var_compress(int ncid, int varid, int* useshufflep, int* algorithmp, nc_compression_t* params)
+nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, nc_compression_t* params)
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);

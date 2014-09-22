@@ -119,7 +119,7 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
-    int           _Algorithm;    /* HDf5 compression algorithm id; 0=>none */
+    char           _Algorithm[COMPRESSION_MAX_NAME];    /* HDf5 compression algorithm name; ""=>none */
 } Specialdata;
 
 /* Track a set of dimensions*/

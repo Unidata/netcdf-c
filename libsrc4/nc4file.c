@@ -1458,13 +1458,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    hid_t attid = 0;
    char att_name[NC_MAX_HDF5_NAME + 1];
 
-#define CD_NELEMS_ZLIB 1
-#define CD_NELEMS_SZIP 4
-#define CD_NELEMS_BZIP2 1
    H5Z_filter_t filter;
    int num_filters;
-   unsigned int cd_values[CD_NELEMS_SZIP];
-   size_t cd_nelems = CD_NELEMS_SZIP;
    hid_t propid = 0;
    H5D_fill_value_t fill_status;
    H5D_layout_t layout;
@@ -1562,52 +1557,38 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
       var->contiguous = NC_TRUE;
 
-
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */
    if ((num_filters = H5Pget_nfilters(propid)) < 0)
       BAIL(NC_EHDFERR);
    for (f = 0; f < num_filters; f++)
    {
+      size_t cd_nelems = COMPRESSION_MAX_PARAMS;
+      unsigned int cd_values[COMPRESSION_MAX_PARAMS];
+      int status;
       if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
                                    cd_values, 0, NULL, NULL)) < 0)
-         BAIL(NC_EHDFERR);
-      switch (filter)
-      {
-         case H5Z_FILTER_SHUFFLE:
-            var->shuffle = NC_TRUE;
-            break;
-
-         case H5Z_FILTER_FLETCHER32:
-            var->fletcher32 = NC_TRUE;
-            break;
-
-         case H5Z_FILTER_DEFLATE:
-            var->algorithm = filter;
-            if (cd_nelems != CD_NELEMS_ZLIB || cd_values[0] > MAX_DEFLATE_LEVEL)
-               BAIL(NC_EHDFERR);
-            var->compress_params.level = cd_values[0];
-            break;
-
-         case H5Z_FILTER_SZIP:
-            var->algorithm = filter;
-            if (cd_nelems != CD_NELEMS_SZIP)
-               BAIL(NC_EHDFERR);
-	    var->compress_params.szip.options_mask = cd_values[0];
-            var->compress_params.szip.pixels_per_block = cd_values[1];
-            break;
-
-         case H5Z_FILTER_BZIP2:
-            var->algorithm = filter;
-            if (cd_nelems != CD_NELEMS_BZIP2)
-               BAIL(NC_EHDFERR);
-            var->compress_params.level = cd_values[0];
-            break;
-
-         default:
-            LOG((1, "Yikes! Unknown filter type found on dataset!"));
-            break;
-      }
+            BAIL(NC_EHDFERR);
+        switch (filter)
+        {
+           case H5Z_FILTER_SHUFFLE:
+              var->shuffle = NC_TRUE;
+              break;
+           case H5Z_FILTER_FLETCHER32:
+              var->fletcher32 = NC_TRUE;
+              break;
+           default:
+	      status = nccompress_inq_parameters(
+                                      filter,
+				      propid,
+				      cd_nelems,
+				      cd_values,
+				      var->algorithm,
+                                      &var->compress_params);
+	      if(status != NC_NOERR)
+                  LOG((1, "Yikes! Unknown filter type found on dataset!"));
+  	      break;
+        }
    }
 
    /* Learn all about the type of this variable. */
@@ -1790,6 +1771,7 @@ exit:
       BAIL2(NC_EHDFERR);
    return retval;
 }
+
 
 /* This function is called by nc4_rec_read_metadata to read all the
  * group level attributes (the NC_GLOBAL atts for this group). */

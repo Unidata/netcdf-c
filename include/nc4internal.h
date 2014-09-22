@@ -47,6 +47,8 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 
 #define MEGABYTE 1048576
 
+#define COMPRESSION_NAME_MAX 64
+
 /*
  * limits of the external representation
  */
@@ -166,7 +168,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t dimscale;          /* True if var is a dimscale */
    nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
    HDF5_OBJID_T *dimscale_hdf5_objids;
-   int algorithm;              /* Deflate algorithm; zero => none */
+   char algorithm[COMPRESSION_NAME_MAX]; /* Deflate algorithm name ; "" => none */
    nc_compression_t compress_params;
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */

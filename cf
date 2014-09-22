@@ -131,7 +131,7 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
-#FLAGS="$FLAGS --with-compression=Bzip2,zip"
+FLAGS="$FLAGS --with-compression=Bzip2,zip"
 
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"

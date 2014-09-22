@@ -41,6 +41,7 @@
 #define ENABLE_JAVA
 
 #include "netcdf.h"
+#include "nc4compress.h"
 #include "data.h"
 #include "ncgen.h"
 #include "genlib.h"

@@ -9,6 +9,7 @@
 #include "nc.h"
 #include "ncdispatch.h"
 #include "nc4dispatch.h"
+#include "nc4compress.h"
 
 static NC_Dispatch NC4_dispatcher = {
 
@@ -102,14 +103,11 @@ NC4_def_var_compress
 
 NC_Dispatch* NC4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-extern int nccompress_register(int,nc_compression_t*);
-
 int
 NC4_initialize(void)
 {
-    nc_compression_t parms;
     NC4_dispatch_table = &NC4_dispatcher;
-    /* Register the bzip2 filter */
-    nccompress_register(NC_COMPRESS_BZIP2,&parms);
+    /* Register all known filters */
+    nccompress_register_all();
     return NC_NOERR;
 }

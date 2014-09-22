@@ -486,7 +486,7 @@ genc_definespecialattributes(Symbol* vsym)
         codedump(stmt);
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }   
-    if(special->flags & (_COMPRESSION_FLAG) && (special->_Algorithm > 0)) {
+    if(special->flags & (_COMPRESSION_FLAG) && (strlen(special->_Algorithm) > 0)) {
 	bbprintf0(stmt,"    {\n");
         codedump(stmt);
 	bbprintf0(stmt,"        nc_compression_t parms;\n");

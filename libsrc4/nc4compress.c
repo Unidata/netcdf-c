@@ -1,19 +1,239 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <bzlib.h>
 #include "netcdf.h"
 #include "hdf5.h"
 #include "nc4compress.h"
 
+typedef struct NC_COMPRESSOR {
+    const char* name;
+    const H5Z_class2_t* info;
+    int (*_register)(const struct NC_COMPRESSOR*);
+    int (*_attach)(const struct NC_COMPRESSOR*,nc_compression_t*,hid_t);
+    int (*_inq)(const struct NC_COMPRESSOR*,hid_t,size_t,unsigned int*,nc_compression_t*);
+} NC_COMPRESSOR;
+
+#define DEBUG
+
+#ifndef DEBUG
+#define THROW(e) (e)
+#else
+#define THROW(e) checkerr(e,__FILE__,__LINE__)
+static int checkerr(int e, const char* file, int line)
+{
+   if(e != 0) {
+     fprintf(stderr, "Error %d in file %s, line %d.\n", e, file, line);
+     fflush(stderr);
+     abort();
+   }
+   return e;
+}
+#endif
+
+/* Forward */
+static const NC_COMPRESSOR compressors[];
+static int validate(const NC_COMPRESSOR* info);
+
+/*
+Turn on compression for a variable's plist
+*/
+int
+nccompress_set(const char*algorithm, hid_t plistid, nc_compression_t* parms)
+{
+    const NC_COMPRESSOR* cmp;
+
+    for(cmp=compressors;cmp->name != NULL;cmp++) {
+	if(strcmp(cmp->name,algorithm)==0) {
+	    if(cmp->_attach(cmp,parms,plistid) != NC_NOERR)
+		return THROW(NC_EHDFERR);
+	    return THROW(NC_NOERR);
+	}
+    }
+    return THROW(NC_EHDFERR);
+}
+
+/* 
+Register all known filters with the library
+*/
+int
+nccompress_register_all(void)
+{
+    const NC_COMPRESSOR* cmp;
+
+    for(cmp=compressors;cmp->name != NULL;cmp++) {
+	if(cmp->_register(cmp) != NC_NOERR)
+	    return THROW(NC_EHDFERR);
+	if(validate(cmp) != NC_NOERR)
+	    return THROW(NC_EHDFERR);
+    }
+    return THROW(NC_NOERR);
+}
+
+const char*
+nccompress_name_for(int id)
+{
+    const NC_COMPRESSOR* cmp;
+    for(cmp=compressors;cmp->name != NULL;cmp++) {
+	if(cmp->info->id == id)
+	    return cmp->info->name;
+    }
+    return NULL;
+}
+
+int
+nccompress_id_for(const char* name)
+{
+    const NC_COMPRESSOR* cmp;
+    for(cmp=compressors;cmp->name != NULL;cmp++) {
+	if(strcmp(cmp->name,name)==0)
+	    return cmp->info->id;
+    }
+    return -1;
+}
+
+int
+nccompress_inq_parameters(H5Z_filter_t filter,
+                          hid_t propid,
+			  size_t argc,
+                          unsigned int* argv,
+			  char* name,
+                          nc_compression_t* parms)
+{
+    const NC_COMPRESSOR* cmp;
+
+    for(cmp=compressors;cmp->name != NULL;cmp++) {
+	if(cmp->info->id == filter) {
+	    if(cmp->_inq(cmp,propid,argc,argv,parms) != NC_NOERR)
+		return THROW(NC_EHDFERR);
+	    strncpy(name,cmp->name,COMPRESSION_MAX_NAME);
+	    return THROW(NC_NOERR);
+	}
+    }
+    return THROW(NC_EHDFERR);
+}
+
+/*
+* Check if compression is available and can be used for both
+* compression and decompression.  Normally we do not perform error
+* checking in these examples for the sake of clarity, but in this
+* case we will make an exception because this filter is an
+* optional part of the hdf5 library.
+*/
+static int
+validate(const NC_COMPRESSOR* info)
+{
+    htri_t avail;
+    unsigned int filter_info;
+    herr_t status;
+
+    avail = H5Zfilter_avail(info->info->id);
+    if(!avail) {
+        fprintf(stderr,"Filter not available: %s.\n",info->name);
+        return THROW(NC_EHDFERR);
+    }
+    status = H5Zget_filter_info(info->info->id, &filter_info);
+    if(!(filter_info & H5Z_FILTER_CONFIG_ENCODE_ENABLED) ||
+	!(filter_info & H5Z_FILTER_CONFIG_DECODE_ENABLED) ) {
+        fprintf(stderr,"Filter not available for encoding and decoding: %s.\n",info->name);
+        return THROW(NC_EHDFERR);
+    }
+    return THROW(NC_NOERR);
+}
+
+/**************************************************/
+/*#ifdef ZIP (DEFLATE) compression always defined */
+
+static const H5Z_class2_t H5Z_ZIP = {
+    H5Z_CLASS_T_VERS,                 /* H5Z_class_t version */
+    (H5Z_filter_t)H5Z_FILTER_DEFLATE, /* Filter id number */
+    1,                                /* encoder_present flag (set to true) */
+    1,                                /* decoder_present flag (set to true) */
+    "zip",                            /* Filter name for debugging    */
+    NULL,                             /* The "can apply" callback     */
+    NULL,                             /* The "set local" callback     */
+    (H5Z_func_t)NULL,                 /* The actual filter function   */
+};
+
+static int
+zip_register(const NC_COMPRESSOR* info)
+{
+    return THROW(NC_NOERR); /* no-op */
+}
+
+static int
+zip_attach(const NC_COMPRESSOR* info, nc_compression_t* parms, hid_t plistid)
+{
+    int status = H5Pset_deflate(plistid, parms->level);
+    return THROW((status ? NC_EHDFERR : NC_NOERR));
+}
+
+static int
+zip_inq(const NC_COMPRESSOR* info, hid_t propid, size_t argc, unsigned int* argv, nc_compression_t* parms)
+{
+#define CD_NELEMS_ZIP 1
+   parms->level = argv[0];
+   return THROW(NC_NOERR);
+#undef CD_NELEMS_ZIP
+}
+
+/**************************************************/
+#ifdef SZIP_COMPRESSION
+
+/* declare a filter function's info */
+static const H5Z_class2_t H5Z_SZIP = {
+    H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
+    (H5Z_filter_t)H5Z_FILTER_SZIP,         /* Filter id number             */
+    1,              /* encoder_present flag (set to true) */
+    1,              /* decoder_present flag (set to true) */
+    "szip",                  /* Filter name for debugging    */
+    NULL,                       /* The "can apply" callback     */
+    NULL,                       /* The "set local" callback     */
+    (H5Z_func_t)NULL
+};
+
+static int
+szip_register(const NC_COMPRESSOR* info)
+{
+    herr_t status;
+    status = H5Zregister(info->info->id);
+    return THROW((status ? NC_EHDFERR : NC_NOERR));
+}
+
+static int
+szip_attach(const NC_COMPRESSOR* info, nc_compression_t* parms, hid_t plistid)
+{
+    unsigned int cd_values[1];
+
+    cd_values[0] = parms->level;
+    int status = H5Pset_filter(plistid, info->info->id, H5Z_FLAG_MANDATORY, (size_t)1, cd_values);
+    return THROW((status ? NC_EHDFERR : NC_NOERR));
+}
+
+static int
+szip_inq(const NC_COMPRESSOR* info, hid_t propid, size_t argc, unsigned int* argv, nc_compression_t* parms)
+{
+#define CD_NELEMS_SZIP 4
+   params->szip.options_mask = argv[0];
+   params->szip.pixels_per_block = argv[1];
+   return THROW(NC_NOERR);
+}
+#undef CD_NELEMS_SZIP
+}
+#endif /*SZIP_COMPRESSION*/
+
+/**************************************************/
 #ifdef BZIP2_COMPRESSION
 
-/*forward*/
-/* declare a filter function */
-static size_t H5Z_filter_bzip2(unsigned flags,size_t cd_nelmts,const unsigned cd_values[],
+#define H5Z_FILTER_BZIP2 307
+
+/*Forward*/
+static size_t H5Z_filter_bzip2(unsigned flags,size_t cd_nelmts,const unsigned argv[],
                     size_t nbytes,size_t *buf_size,void**buf);
 
-static const H5Z_class2_t H5Z_BZIP2[1] = {{
+/* declare a filter function's info */
+static const H5Z_class2_t H5Z_BZIP2 = {
     H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
     (H5Z_filter_t)H5Z_FILTER_BZIP2,         /* Filter id number             */
     1,              /* encoder_present flag (set to true) */
@@ -22,97 +242,37 @@ static const H5Z_class2_t H5Z_BZIP2[1] = {{
     NULL,                       /* The "can apply" callback     */
     NULL,                       /* The "set local" callback     */
     (H5Z_func_t)H5Z_filter_bzip2,         /* The actual filter function   */
-}};
+};
 
-#endif
-
-/*
-Turn on bzip for a variable's plist
-*/
-int
-nccompress_set(int algorithm, hid_t plistid, const nc_compression_t* parms)
-{
-    int status;
-    unsigned int cd_values[1];
-    switch (algorithm) {
-    case NC_COMPRESS_DEFLATE:
-        cd_values[0] = parms->level;
-        status = H5Pset_deflate(plistid, parms->level);
-	break;
-    case NC_COMPRESS_BZIP2:
-#ifdef BZIP2_COMPRESSION
-        cd_values[0] = parms->level;
-        status = H5Pset_filter(plistid, (H5Z_filter_t)H5Z_FILTER_BZIP2, H5Z_FLAG_MANDATORY, (size_t)1, cd_values);
-#else
-        status = NC_EHDFERR;
-#endif
-	break;
-    case NC_COMPRESS_SZIP:
-	status = NC_EHDFERR;
-	break;
-    default:
-	status = NC_EHDFERR;
-	break;
-    }
-    return status;
-}
-
-/* 
-Register filter with the library
-*/
-int
-nccompress_register(int algorithm, const nc_compression_t* parms)
+static int
+bzip2_register(const NC_COMPRESSOR* info)
 {
     herr_t status;
-    htri_t avail;
-    unsigned int filter_info;
-
-    switch (algorithm) {
-    case NC_COMPRESS_DEFLATE: /* already registered */
-	break;
-    case NC_COMPRESS_BZIP2:
-#ifdef BZIP2_COMPRESSION
-        status = H5Zregister(H5Z_BZIP2);
-#else
-	status = NC_EHDFERR;
-#endif
-	break;
-    case NC_COMPRESS_SZIP:
-	status = NC_EHDFERR;
-	break;
-    default:
-	status = NC_EHDFERR;
-	break;
-    }
-    if(status < 0) {
-	return status;
-    }
-
-    /*
-     * Check if compression is available and can be used for both
-     * compression and decompression.  Normally we do not perform error
-     * checking in these examples for the sake of clarity, but in this
-     * case we will make an exception because this filter is an
-     * optional part of the hdf5 library.
-     */
-    avail = H5Zfilter_avail((H5Z_filter_t)algorithm);
-    if(!avail) {
-        fprintf(stderr,"Filter not available: %d.\n",algorithm);
-        return 1;
-    }
-    status = H5Zget_filter_info((H5Z_filter_t)algorithm, &filter_info);
-    if(!(filter_info & H5Z_FILTER_CONFIG_ENCODE_ENABLED) ||
-	!(filter_info & H5Z_FILTER_CONFIG_DECODE_ENABLED) ) {
-        fprintf(stderr,"Filter not available for encoding and decoding: %d.\n",algorithm);
-        return 1;
-    }
-    return 0;
+    status = H5Zregister(info->info);
+    return THROW((status ? NC_EHDFERR : NC_NOERR));
 }
 
-#ifdef BZIP2_COMPRESSION
+static int
+bzip2_attach(const NC_COMPRESSOR* info, nc_compression_t* parms, hid_t plistid)
+{
+    unsigned int argv[1];
+    argv[0] = parms->level;
+    int status = H5Pset_filter(plistid, info->info->id, H5Z_FLAG_MANDATORY, (size_t)1, argv);
+    return THROW((status ? NC_EHDFERR : NC_NOERR));
+}
+
+static int
+bzip2_inq(const NC_COMPRESSOR* info, hid_t propid, size_t argc, unsigned int* argv, nc_compression_t* parms)
+{
+#define CD_NELEMS_BZIP2 1
+   parms->level = argv[0];
+   return THROW(NC_NOERR);
+#undef CD_NELEMS_BZIP2
+}
+
 static size_t
 H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
-                     const unsigned int cd_values[], size_t nbytes,
+                     const unsigned int argv[], size_t nbytes,
                      size_t *buf_size, void **buf)
 {
   char *outbuf = NULL;
@@ -205,7 +365,7 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Get compression block size if present. */
     if(cd_nelmts > 0) {
-      blockSize100k = cd_values[0];
+      blockSize100k = argv[0];
       if(blockSize100k < 1 || blockSize100k > 9) {
 	fprintf(stderr, "invalid compression block size: %d\n", blockSize100k);
 	goto cleanupAndFail;
@@ -243,3 +403,14 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
   return 0;
 }
 #endif /*BZIP2_COMPRESSION*/
+
+/**************************************************/
+
+/* Provide access to all the compressors */
+static const NC_COMPRESSOR compressors[] = {
+    {"zip", &H5Z_ZIP, zip_register, zip_attach, zip_inq},
+#ifdef BZIP2_COMPRESSION
+    {"bzip2", &H5Z_BZIP2, bzip2_register, bzip2_attach, bzip2_inq},
+#endif
+    {NULL, NULL, NULL, NULL}
+};
