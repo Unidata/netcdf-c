@@ -1947,6 +1947,18 @@ union {
     <put structs for any other algorithms here>
 };
 */
+=======
+    struct {
+	int isdouble; /* 0=> double precision 1=> single precision */
+        int ny;
+        int nz;
+        int minbits;
+        int maxbits;
+        int maxprec;
+        int minexp;
+    } zfpzip;
+} nc_compression_t;
+>>>>>>> switch
 
 /* Set compression settings for a variable.
    Must be called after nc_def_var and before nc_enddef.
