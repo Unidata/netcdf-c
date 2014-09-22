@@ -734,6 +734,9 @@ unescape(
 	    *p++ = (*t); t++;
 	}
     }
+if(s+yyleng <= p) {
+    int x = 0;
+}
     *p = '\0';
     return (p - s);
 }

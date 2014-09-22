@@ -186,7 +186,9 @@ yytext[MAXTRST-1] = '\0';
 }
 */
 		        /* FIX: Assumes unescape also does normalization */
-			bbSetlength(lextext,yyleng-2);
+			bbSetalloc(lextext,yyleng+1); /*+1 for nul */
+			/* Adjust length */
+		        bbSetlength(lextext,yyleng-2); /*-2 for quotes */
 			len = unescape(bbContents(lextext),
                                        (char *)yytext+1,yyleng-2,!ISIDENT);
 			if(len < 0) {
