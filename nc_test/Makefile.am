@@ -36,7 +36,7 @@ nc_test_SOURCES = nc_test.c error.c test_get.c test_put.c \
 test_read.c test_write.c util.c error.h tests.h
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_builddir)/liblib
+AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include
 
 # If the user asked for large file tests, then add them.
 if LARGE_FILE_TESTS
