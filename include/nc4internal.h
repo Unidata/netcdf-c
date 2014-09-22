@@ -47,6 +47,8 @@ typedef enum {VAR, DIM, ATT} NC_OBJ_T;
 
 #define MEGABYTE 1048576
 
+#define COMPRESSION_NAME_MAX 64
+
 /*
  * limits of the external representation
  */
