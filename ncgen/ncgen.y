@@ -1338,6 +1338,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 } break;
             case _COMPRESSION_FLAG:
 <<<<<<< HEAD
+<<<<<<< HEAD
                 strncpy(special->_Algorithm,sdata,COMPRESSION_MAX_NAME);
 	        /* overrides zip (DEFLATE_FLAG) */
 		special->flags &= (~_DEFLATE_FLAG);
@@ -1353,6 +1354,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 } else
                     derror("_Compression: illegal value: %s",sdata);
 >>>>>>> Add support for multiple compression algorithms.
+=======
+                strncpy(special->_Algorithm,sdata,COMPRESSION_MAX_NAME);
+	        /* overrides zip (DEFLATE_FLAG) */
+		special->flags &= (~_DEFLATE_FLAG);
+>>>>>>> switch
                 special->flags |= _COMPRESSION_FLAG;
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);

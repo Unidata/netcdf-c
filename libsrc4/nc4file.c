@@ -1557,7 +1557,6 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
       var->contiguous = NC_TRUE;
 
-
    /* The possible values of filter (which is just an int) can be
     * found in H5Zpublic.h. */
    if ((num_filters = H5Pget_nfilters(propid)) < 0)
