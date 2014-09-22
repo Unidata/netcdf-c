@@ -1944,15 +1944,21 @@ The intent is to allow anything that will fit into 32 bits.
 union {
     int params[NC_COMPRESSION_MAX_PARAMS];
     unsigned int level; // e.g zip, bzip2
-    struct {
-        unsigned int options_mask;
-	unsigned int bits_per_pixel;
-        unsigned int pixels_per_block;
-	unsigned int pixels_per_scanline;
-    } szip;
     <put structs for any other algorithms here>
 };
 */
+=======
+    struct {
+	int isdouble; /* 0=> double precision 1=> single precision */
+        int ny;
+        int nz;
+        int minbits;
+        int maxbits;
+        int maxprec;
+        int minexp;
+    } zfpzip;
+} nc_compression_t;
+>>>>>>> switch
 
 /* Set compression settings for a variable.
    Must be called after nc_def_var and before nc_enddef.

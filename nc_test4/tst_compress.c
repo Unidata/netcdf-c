@@ -43,7 +43,7 @@ test_bzip2(const char *testfile)
     int ncid, varid, dimids[NUMDIMS];
     size_t index[NUMDIMS];
     nc_compression_t parms;
-    int algorithm;
+    char* algorithm;
 
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
@@ -53,7 +53,7 @@ test_bzip2(const char *testfile)
     if (nc_def_var(ncid, "var", NC_INT, NUMDIMS, dimids, &varid)) ERR;
     /* Use bzip2 compression */
     parms.level = DEFLATE_LEVEL;
-    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, NC_COMPRESS_BZIP2, &parms)) ERR;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "bzip2", &parms)) ERR;
     if (nc_enddef(ncid)) ERR;
     /* Fill in the array */
     for(i=0;i<DIM1;i++) {
@@ -73,11 +73,11 @@ test_bzip2(const char *testfile)
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
     /* Check the compression algorithm */
     if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
-    if (algorithm != NC_COMPRESS_BZIP2) {
-	printf("Compression algorithm mismatch: %d\n",algorithm);
+    if (strcmp(algorithm,"bzip2") != 0) {
+	printf("Compression algorithm mismatch: %s\n",algorithm);
 	exit(1);
     } else {
-	printf("Compression algorithm verified: %d\n",algorithm);
+	printf("Compression algorithm verified: %s\n",algorithm);
     }
     for(i=0;i<DIM1;i++) {
         for(j=0;j<DIM2;j++) {
@@ -100,7 +100,7 @@ test_zip(const char *testfile)
     int ncid, varid, dimids[NUMDIMS];
     size_t index[NUMDIMS];
     nc_compression_t parms;
-    int algorithm;
+    char* algorithm;
 
     /* Create a file with one big variable. */
     if (nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
@@ -110,7 +110,7 @@ test_zip(const char *testfile)
     if (nc_def_var(ncid, "var", NC_INT, NUMDIMS, dimids, &varid)) ERR;
     /* Use zip compression */
     parms.level = DEFLATE_LEVEL;
-    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, NC_COMPRESS_ZIP, &parms)) ERR;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "zip", &parms)) ERR;
     if (nc_enddef(ncid)) ERR;
 
     /* Fill in the array */
@@ -129,11 +129,11 @@ test_zip(const char *testfile)
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
     /* Check the compression algorithm */
     if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
-    if (algorithm != NC_COMPRESS_ZIP) {
-	printf("Compression algorithm mismatch: %d\n",algorithm);
+    if (strcmp(algorithm,"zip") != 0) {
+	printf("Compression algorithm mismatch: %s\n",algorithm);
 	exit(1);
     } else {
-	printf("Compression algorithm verified: %d\n",algorithm);
+	printf("Compression algorithm verified: %s\n",algorithm);
     }
 
     for(i=0;i<DIM1;i++) {
