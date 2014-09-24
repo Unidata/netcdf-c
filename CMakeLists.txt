@@ -937,9 +937,9 @@ IF(ENABLE_DOXYGEN)
 
   OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
   IF(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH)
-    SET(SERVER_SIDE_SEARCH NO)
+    SET(SERVER_SIDE_SEARCH YES CACHE STRING "")
   ELSE()
-    SET(SERVER_SIDE_EARCH YES)
+    SET(SERVER_SIDE_SEARCH NO CACHE STRING "")
   ENDIF()
   # Option to turn on the TODO list in the doxygen-generated documentation.
   OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
