@@ -1919,6 +1919,17 @@ ncrecput(int ncid, long recnum, void *const *datap);
 #define END_OF_MAIN()
 #endif
 
+/* Define two hard-coded functionality-related
+   macros, but this is not going to be
+   standard practice. */
+#ifndef NC_HAVE_RENAME_GRP
+#define NC_HAVE_RENAME_GRP /*!< rename_grp() support. */
+#endif
+
+#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
+#define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
+#endif
+
 #define NC_HAVE_META_H
 
 #endif /* _NETCDF_ */

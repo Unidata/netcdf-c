@@ -49,15 +49,6 @@
 #define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@   /*!< pnetcdf support. */
 #define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@  /*!< parallel IO support via hdf5. */
 
-/* Define two hard-coded functionality-related
-   macros, but this is not going to be
-   standard practice. */
-#ifndef NC_HAVE_RENAME_GRP
-#define NC_HAVE_RENAME_GRP /*!< rename_grp() support. */
-#endif
 
-#ifndef NC_HAVE_INQ_FORMAT_EXTENDED
-#define NC_HAVE_INQ_FORMAT_EXTENDED /*!< inq_format_extended() support. */
-#endif
 
 #endif
