@@ -20,6 +20,7 @@ This file contains a high-level description of this package's evolution. Release
 
     > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.
 
+* Changed `Doxygen`-generated documentation hosted by Unidata to use more robust server-based searching.
 * Corrected embedded URLs in release notes.
 * Corrected an issue where building with HDF4 support with Visual Studio would fail.
 
