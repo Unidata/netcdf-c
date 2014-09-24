@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
-### 4.3.3-rc2 Released TBD
+### 4.3.3-rc2 Released 2014-09-24
 
 * Fixed the code for handling character constants
   in datalists in ncgen. Two of the problems were:
@@ -21,7 +21,7 @@ This file contains a high-level description of this package's evolution. Release
     > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.
 
 * Corrected embedded URLs in release notes.
-* Corrected an issue where building with HDF4 support for Visual Studio would fail.
+* Corrected an issue where building with HDF4 support with Visual Studio would fail.
 
 ### 4.3.3-rc1 Released 2014-08-25
 
