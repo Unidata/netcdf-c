@@ -1339,7 +1339,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _COMPRESSION_FLAG:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 strncpy(special->_Algorithm,sdata,COMPRESSION_MAX_NAME);
+=======
+                strncpy(special->_Algorithm,sdata,NC_COMPRESSION_MAX_NAME);
+>>>>>>> significant mod to compression interface to store parms into int[] instead of struct.
 	        /* overrides zip (DEFLATE_FLAG) */
 		special->flags &= (~_DEFLATE_FLAG);
 =======

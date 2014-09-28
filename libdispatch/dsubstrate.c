@@ -408,7 +408,7 @@ static int
 NCSUB_inq_var_all(int ncid, int varid, char* name, nc_type* xtypep, 
                int* ndimsp, int* dimidsp, int* nattsp, 
                int* shufflep, char** algorithmp,
-	       nc_compression_t* paramsp, 
+	       int* paramsp, 
                int* fletcher32p, int* contiguousp, size_t* chunksizesp, 
                int* no_fill, void* fill_valuep, int* endiannessp
 	       )
@@ -836,7 +836,7 @@ NCSUB_get_var_chunk_cache(int ncid, int a1, size_t* a2, size_t* a3, float* a4)
 }
 
 static int
-NCSUB_def_var_compress(int ncid, int a1, int a2, const char* a3, nc_compression_t* a4)
+NCSUB_def_var_compress(int ncid, int a1, int a2, const char* a3, int* a4)
 {
     NC *nc, *ncsub;
     int ncstat = NC_check_id(ncid, &nc);

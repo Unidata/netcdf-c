@@ -1932,37 +1932,39 @@ ncrecput(int ncid, long recnum, void *const *datap);
 
 /* Compression API */
 
-/** This is the type for compression parameters */
-typedef struct {
-    int level; /* e.g zip, bzip2 */
+#define NC_COMPRESSION_MAX_NAME 64
+#define NC_COMPRESSION_MAX_PARAMS 64
+
+/** 
+The compression parameters are stored in an
+array of ints. For the current set of algorithms,
+the array conforms to this union{}.
+Note that some fields are int, some are unsigned int.
+The intent is to allow anything that will fit into 32 bits.
+union {
+    int params[NC_COMPRESSION_MAX_PARAMS];
+    unsigned int level; // e.g zip, bzip2
     struct {
         unsigned int options_mask;
 	unsigned int bits_per_pixel;
         unsigned int pixels_per_block;
 	unsigned int pixels_per_scanline;
     } szip;
-    struct {
-	int isdouble; /* 0=> double precision 1=> single precision */
-        int ny;
-        int nz;
-        int minbits;
-        int maxbits;
-        int maxprec;
-        int minexp;
-    } zfpzip;
-} nc_compression_t;
+    <put structs for any other algorithms here>
+};
+*/
 
 /* Set compression settings for a variable.
    Must be called after nc_def_var and before nc_enddef.
    The form of the parameters is algorithm dependent.
 */
 EXTERNL int
-nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, nc_compression_t *params);
+nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, int* params);
 
 /* Find out compression settings of a var. */
 EXTERNL int
 nc_inq_var_compress(int ncid, int varid, int *useshufflep, 
-		    char**algorithmp, nc_compression_t* paramsp);
+		    char**algorithmp, int* paramsp);
 
 #define NC_HAVE_META_H
 

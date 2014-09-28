@@ -246,7 +246,7 @@ genbin_definespecialattributes(Symbol* var)
                                   var->ncid,
                                   (special->_Shuffle == 1?1:0),
                                   algorithm,
-				  &parms);
+				  parms.params);
         check_err(stat,__LINE__,__FILE__);
     }
 }

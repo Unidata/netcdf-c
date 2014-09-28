@@ -1563,8 +1563,8 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
       BAIL(NC_EHDFERR);
    for (f = 0; f < num_filters; f++)
    {
-      size_t cd_nelems = COMPRESSION_MAX_PARAMS;
-      unsigned int cd_values[COMPRESSION_MAX_PARAMS];
+      size_t cd_nelems = NC_COMPRESSION_MAX_PARAMS;
+      unsigned int cd_values[NC_COMPRESSION_MAX_PARAMS];
       int status;
       if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
                                    cd_values, 0, NULL, NULL)) < 0)
@@ -1584,7 +1584,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 				      cd_nelems,
 				      cd_values,
 				      var->algorithm,
-                                      &var->compress_params);
+                                      var->compress_params);
 	      if(status != NC_NOERR)
                   LOG((1, "Yikes! Unknown filter type found on dataset!"));
   	      break;

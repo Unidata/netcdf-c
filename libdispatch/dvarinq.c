@@ -5,7 +5,10 @@ Copyright 2010 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 
+#include "config.h"
+#include "netcdf.h"
 #include "ncdispatch.h"
+#include "nc4compress.h"
 
 /** \name Learning about Variables
 
@@ -289,7 +292,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*nattsp*/
       shufflep, /*shufflep*/
       &algorithm, /*deflatep*/
-      &params, /*deflateparamsp*/
+      params.params, /*deflate paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -606,7 +609,7 @@ variable, the algorithm dependent parameters will be writen here.
 \returns ::NC_EHDF Invalid/unknown compression algorithm.
 */
 int
-nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, nc_compression_t* params)
+nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, int* paramsp)
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
@@ -620,7 +623,7 @@ nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, nc
       NULL, /*nattsp*/
       useshufflep, /*shufflep*/
       algorithmp, /*algorithmp*/
-      params, /*paramsp*/
+      paramsp, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
