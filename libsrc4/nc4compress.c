@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef BZIP2_COMPRESSION
 #include <bzlib.h>
+#endif
+#ifdef SZIP_COMPRESSION
+#include <szlib.h>
+#endif
 #include "netcdf.h"
 #include "hdf5.h"
 #include "nc4compress.h"
@@ -188,39 +193,50 @@ static const H5Z_class2_t H5Z_SZIP = {
     1,              /* encoder_present flag (set to true) */
     1,              /* decoder_present flag (set to true) */
     "szip",                  /* Filter name for debugging    */
-    NULL,                       /* The "can apply" callback     */
-    NULL,                       /* The "set local" callback     */
-    (H5Z_func_t)NULL
+    NULL,                       /* The "can apply" callback     */ 
+    NULL,        /* The "set local" callback     */
+    (H5Z_func_t)NULL, /* The actual filter function */
 };
 
 static int
 szip_register(const NC_COMPRESSOR* info)
 {
-    herr_t status;
-    status = H5Zregister(info->info->id);
-    return THROW((status ? NC_EHDFERR : NC_NOERR));
+    return THROW(NC_NOERR); /* no-op */
 }
 
 static int
 szip_attach(const NC_COMPRESSOR* info, nc_compression_t* parms, hid_t plistid)
 {
-    unsigned int cd_values[1];
+    htri_t avail;
+    herr_t status;
 
-    cd_values[0] = parms->level;
-    int status = H5Pset_filter(plistid, info->info->id, H5Z_FLAG_MANDATORY, (size_t)1, cd_values);
+    /* See if already in the hdf5 library */
+    avail = H5Zfilter_avail(H5Z_FILTER_SZIP);
+    if(avail) {
+        status = H5Pset_szip(plistid, parms->szip.options_mask, parms->szip.pixels_per_block);
+    } else {
+	fprintf(stderr,"szip compression not available\n");
+	return NC_EHDFERR;
+    }
     return THROW((status ? NC_EHDFERR : NC_NOERR));
 }
 
 static int
 szip_inq(const NC_COMPRESSOR* info, hid_t propid, size_t argc, unsigned int* argv, nc_compression_t* parms)
 {
-#define CD_NELEMS_SZIP 4
-   params->szip.options_mask = argv[0];
-   params->szip.pixels_per_block = argv[1];
+#define CD_NELEMS_SZIP 2
+   parms->szip.options_mask = argv[0];
+   parms->szip.bits_per_pixel = argv[1];
+#if 0
+   parms->szip.pixels_per_block = argv[2];
+   parms->szip.pixels_per_scanline = argv[3];
+#endif
    return THROW(NC_NOERR);
-}
 #undef CD_NELEMS_SZIP
 }
+
+/* end H5Z_set_local_szip() */
+
 #endif /*SZIP_COMPRESSION*/
 
 /**************************************************/
@@ -411,6 +427,9 @@ static const NC_COMPRESSOR compressors[] = {
     {"zip", &H5Z_ZIP, zip_register, zip_attach, zip_inq},
 #ifdef BZIP2_COMPRESSION
     {"bzip2", &H5Z_BZIP2, bzip2_register, bzip2_attach, bzip2_inq},
+#endif
+#ifdef SZIP_COMPRESSION
+    {"szip", &H5Z_SZIP, szip_register, szip_attach, szip_inq},
 #endif
     {NULL, NULL, NULL, NULL}
 };
