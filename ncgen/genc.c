@@ -494,7 +494,7 @@ genc_definespecialattributes(Symbol* vsym)
 	bbprintf0(stmt,"        parms.level = %d;\n",special->_DeflateLevel);
         codedump(stmt);
         bbprintf0(stmt,
-                "        stat = nc_def_var_compress(%s, %s, %s, %d, &parms);\n",
+                "        stat = nc_def_var_compress(%s, %s, %s, %d, parms.params);\n",
                 groupncid(vsym->container),
                 varncid(vsym),
                 (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),

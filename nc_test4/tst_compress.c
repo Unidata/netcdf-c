@@ -14,6 +14,7 @@
 #ifdef SZIP_COMPRESSION
 #include <szlib.h>
 #endif
+#include "nc4compress.h"
 
 #define ZIP_FILE_NAME "zip.nc"
 #define BZIP2_FILE_NAME "bzip2.nc"
@@ -62,7 +63,7 @@ test_bzip2(const char *testfile)
     if (nc_def_var(ncid, "var", NC_INT, NUMDIMS, dimids, &varid)) ERR;
     /* Use bzip2 compression */
     parms.level = DEFLATE_LEVEL;
-    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "bzip2", &parms)) ERR;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "bzip2", parms.params)) ERR;
     if (nc_enddef(ncid)) ERR;
     /* Fill in the array */
     for(i=0;i<DIM1;i++) {
@@ -81,7 +82,7 @@ test_bzip2(const char *testfile)
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
     /* Check the compression algorithm */
-    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,parms.params)) ERR;
     if (strcmp(algorithm,"bzip2") != 0) {
 	printf("Compression algorithm mismatch: %s\n",algorithm);
 	exit(1);
@@ -128,7 +129,7 @@ test_szip(const char *testfile)
     parms.szip.options_mask = SZ_EC_OPTION_MASK;
     parms.szip.pixels_per_block = 32;
 #endif
-    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "szip", &parms)) ERR;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "szip", parms.params)) ERR;
     if (nc_enddef(ncid)) ERR;
     /* Fill in the array */
     for(i=0;i<DIM1;i++) {
@@ -147,7 +148,7 @@ test_szip(const char *testfile)
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
     /* Check the compression algorithm */
-    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,parms->params)) ERR;
     if (strcmp(algorithm,"szip") != 0) {
 	printf("Compression algorithm mismatch: %s\n",algorithm);
 	exit(1);
@@ -186,7 +187,7 @@ test_zip(const char *testfile)
     if (nc_def_var(ncid, "var", NC_INT, NUMDIMS, dimids, &varid)) ERR;
     /* Use zip compression */
     parms.level = DEFLATE_LEVEL;
-    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "zip", &parms)) ERR;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "zip", parms.params)) ERR;
     if (nc_enddef(ncid)) ERR;
 
     /* Fill in the array */
@@ -204,7 +205,7 @@ test_zip(const char *testfile)
     if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
     if (nc_inq_varid(ncid, "var", &varid)) ERR;
     /* Check the compression algorithm */
-    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,&parms)) ERR;
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,parms.params)) ERR;
     if (strcmp(algorithm,"zip") != 0) {
 	printf("Compression algorithm mismatch: %s\n",algorithm);
 	exit(1);

@@ -45,13 +45,14 @@ static int validate(const NC_COMPRESSOR* info);
 Turn on compression for a variable's plist
 */
 int
-nccompress_set(const char*algorithm, hid_t plistid, nc_compression_t* parms)
+nccompress_set(const char*algorithm, hid_t plistid, int* parms)
 {
     const NC_COMPRESSOR* cmp;
+    nc_compression_t* uparams = (nc_compression_t*)parms;
 
     for(cmp=compressors;cmp->name != NULL;cmp++) {
 	if(strcmp(cmp->name,algorithm)==0) {
-	    if(cmp->_attach(cmp,parms,plistid) != NC_NOERR)
+	    if(cmp->_attach(cmp,uparams,plistid) != NC_NOERR)
 		return THROW(NC_EHDFERR);
 	    return THROW(NC_NOERR);
 	}
@@ -104,15 +105,16 @@ nccompress_inq_parameters(H5Z_filter_t filter,
 			  size_t argc,
                           unsigned int* argv,
 			  char* name,
-                          nc_compression_t* parms)
+                          int* parms)
 {
     const NC_COMPRESSOR* cmp;
+    nc_compression_t* uparams = (nc_compression_t*)parms;
 
     for(cmp=compressors;cmp->name != NULL;cmp++) {
 	if(cmp->info->id == filter) {
-	    if(cmp->_inq(cmp,propid,argc,argv,parms) != NC_NOERR)
+	    if(cmp->_inq(cmp,propid,argc,argv,uparams) != NC_NOERR)
 		return THROW(NC_EHDFERR);
-	    strncpy(name,cmp->name,COMPRESSION_MAX_NAME);
+	    strncpy(name,cmp->name,NC_COMPRESSION_MAX_NAME);
 	    return THROW(NC_NOERR);
 	}
     }
