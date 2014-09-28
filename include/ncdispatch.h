@@ -244,7 +244,7 @@ int (*put_varm)(int, int, const size_t*, const size_t*, const ptrdiff_t*, const 
 
 int (*inq_var_all)(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, char** compressionp,
+               int *shufflep, char** algorithmp,
                nc_compression_t *deflate_params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
                int *no_fill, void *fill_valuep, int *endiannessp);

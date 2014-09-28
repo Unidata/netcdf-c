@@ -787,7 +787,7 @@ EXTERNL int
 nc_inq_var_deflate(int ncid, int varid, int *shufflep,
 		   int *deflatep, int *deflate_levelp);
 
-/* Find out szip settings of a var. */
+/* Find out szip settings of a var. (options mask and pixels per block really should be unsigned*/
 EXTERNL int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp);
 
@@ -1936,8 +1936,10 @@ ncrecput(int ncid, long recnum, void *const *datap);
 typedef struct {
     int level; /* e.g zip, bzip2 */
     struct {
-        int options_mask;
-        int pixels_per_block;
+        unsigned int options_mask;
+	unsigned int bits_per_pixel;
+        unsigned int pixels_per_block;
+	unsigned int pixels_per_scanline;
     } szip;
     struct {
 	int isdouble; /* 0=> double precision 1=> single precision */

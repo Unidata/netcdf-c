@@ -11,6 +11,7 @@ HDF5=1
 DAP=1
 #HDF4=1
 #PNETCDF=1
+#SZIP=1
 
 #PAR=1
 
@@ -35,6 +36,10 @@ CFLAGS="-Wall -Wno-unused-variable ${CFLAGS}"
 
 stddir="/usr/local"
 PREFIX=/usr/local
+
+if test "x$SZIP" = x1 ; then
+stddir="/home/dmh/experimental"
+fi
 
 if test "x${cmds}" = x ; then
   cmds=""
@@ -94,6 +99,10 @@ LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
 LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
+if test "x$SZIP" = "x1" ; then
+LDFLAGS="$LDFLAGS -lsz"
+fi
+
 if test "x$HDF4" = "x1" ; then
 LDFLAGS="$LDFLAGS -ljpeg"
 fi
@@ -136,7 +145,11 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
-FLAGS="$FLAGS --with-compression=Bzip2,zip"
+if test "x$SZIP" = x ; then
+FLAGS="$FLAGS --with-compression=zip,Bzip2"
+else
+FLAGS="$FLAGS --with-compression=zip,Bzip2,szip"
+fi
 
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"

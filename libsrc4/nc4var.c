@@ -9,11 +9,14 @@ Research. See COPYRIGHT file for copying and redistribution
 conditions.
 */
 
+#include <math.h>
+#ifdef SZIP_COMPRESSION
+#include <szlib.h>
+#endif
 #include "netcdf.h"
 #include "nc4compress.h"
 #include "nc4dispatch.h"
 #include "nc4internal.h"
-#include <math.h>
 
 #if 0 /*def USE_PNETCDF*/
 #include <pnetcdf.h>
@@ -32,13 +35,7 @@ extern int num_plists;
 /* One meg is the minimum buffer size. */
 #define ONE_MEG 1048576
 
-/* Szip options. */
-#define NC_SZIP_EC_OPTION_MASK 4
-#define NC_SZIP_NN_OPTION_MASK 32
-#define NC_SZIP_MAX_PIXELS_PER_BLOCK 32
-
 extern int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
-
 
 /* If the HDF5 dataset for this variable is open, then close it and
  * reopen it, with the perhaps new settings for chunk caching. */
@@ -726,15 +723,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       *shufflep = (int)var->shuffle;
    if (fletcher32p)
       *fletcher32p = (int)var->fletcher32;
-   /* NOTE: No interface for returning szip flag currently (but it should never
-    *   be set).
-    */
-/* SZIP is disabled
-   if (options_maskp)
-      *options_maskp = var->options_mask;
-   if (pixels_per_blockp)
-      *pixels_per_blockp = var->pixels_per_block;
-*/
 
    /* Fill value stuff. */
    if (no_fill)
@@ -860,6 +848,17 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, const char* algorithm,
          if (params->level < MIN_DEFLATE_LEVEL ||
              params->level > MAX_DEFLATE_LEVEL)
             return NC_EINVAL;
+#ifdef BZIP2_COMPRESSION
+      if (strcmp(algorithm,"bzip2") == 0)
+         if (params->level > MAX_DEFLATE_LEVEL)
+            return NC_EINVAL;
+#endif
+#ifdef SZIP_COMPRESSION
+      if (strcmp(algorithm,"szip") == 0)
+         if (params->szip.pixels_per_block > SZ_MAX_PIXELS_PER_BLOCK
+             || params->szip.pixels_per_scanline > SZ_MAX_PIXELS_PER_SCANLINE)
+            return NC_EINVAL;
+#endif
 
       /* For scalars, just ignore attempt to deflate. */
       if (!var->ndims)
@@ -892,7 +891,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, const char* algorithm,
     * for this data. */
    if (contiguous && *contiguous)
    {
-      if (var->algorithm || var->fletcher32 || var->shuffle)
+      if (*var->algorithm != '\0' || var->fletcher32 || var->shuffle)
 	 return NC_EINVAL;
       
      if (!ishdf4) {

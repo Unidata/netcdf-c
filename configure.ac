@@ -832,6 +832,9 @@ for a in $ALGORITHMS ; do
       bzip2)
          AC_DEFINE([BZIP2_COMPRESSION], [1], [if true, allow bzip2 compression])
          ;;
+      szip)
+         AC_DEFINE([SZIP_COMPRESSION], [1], [if true, allow szip compression])
+         ;;
       zip)
         ;; #ignore
       *)
