@@ -46,10 +46,6 @@ IF(UNAME)
   getuname(cpu    -m)
   set(BUILDNAME "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
-
-# Determine if DOXYGEN and DOT are available.  These will be used
-# when building the documentation.
-
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
@@ -103,6 +99,12 @@ EXECUTE_PROCESS(
   OUTPUT_VARIABLE CONFIG_DATE
   )
 string(STRIP ${CONFIG_DATE} CONFIG_DATE)
+
+##
+# Allow for extra dependencies.
+##
+
+SET(EXTRA_DEPS "")
 
 ################################
 # End Project Properties
@@ -843,6 +845,32 @@ IF(ENABLE_TESTS)
     )
 
 ENDIF()
+
+###
+# Allow the user to specify libraries
+# to link against, similar to automakes 'LIBS' variable.
+###
+SET(NC_EXTRA_DEPS "" CACHE STRING "Additional libraries to link against.")
+IF(NC_EXTRA_DEPS)
+  STRING(REPLACE " " ";" DEPS_LIST ${NC_EXTRA_DEPS})
+  FOREACH(_DEP ${DEPS_LIST})
+    STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
+    FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
+    MESSAGE(${${_LIB}_DEP})
+    IF(NOT "${_LIB}_DEP")
+      MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
+    ELSE()
+      MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
+    ENDIF()
+    SET(EXTRA_DEPS ${EXTRA_DEPS} "${${_LIB}_DEP}")
+  ENDFOREACH()
+  MESSAGE("Extra deps: ${EXTRA_DEPS}")
+  LIST(REMOVE_DUPLICATES EXTRA_DEPS)
+ENDIF()
+###
+# End user-specified dependent libraries.
+###
+
 
 # Enable Large file tests
 IF(ENABLE_LARGE_FILE_TESTS)

@@ -7,6 +7,15 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
+### 4.3.3-rc3 Released ?
+
+* Added a new option, `NC_EXTRA_DEPS`, for cmake-based builds.  This is analogous to `LIBS` in autotools-based builds.  Example usage:
+
+    $ cmake .. -NC_EXTRA_DEPS="-lcustom_lib"
+
+More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugtracking.unidata.ucar.edu/browse/NCF-316)
+
+
 ### 4.3.3-rc2 Released 2014-09-24
 
 * Fixed the code for handling character constants
