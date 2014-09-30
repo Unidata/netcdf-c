@@ -496,10 +496,12 @@ NC_check_vlen(NC_var *varp, size_t vlen_max) {
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
-	if (varp->shape[ii] > vlen_max / prod) {
-	    return 0;		/* size in bytes won't fit in a 32-bit int */
-	}
-	prod *= varp->shape[ii];
+      if(!varp->shape)
+        return 0; /* Shape is undefined/NULL. */
+      if (varp->shape[ii] > vlen_max / prod) {
+        return 0;		/* size in bytes won't fit in a 32-bit int */
+      }
+      prod *= varp->shape[ii];
     }
     return 1;			/* OK */
 }
