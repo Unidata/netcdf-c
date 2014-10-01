@@ -298,7 +298,8 @@ main(
 		   */
 	    {
 		struct Kvalues* kvalue;
-		char *kind_name = (char *) emalloc(strlen(optarg)+1);
+		char *kind_name = (optarg != NULL ? (char *) emalloc(strlen(optarg)+1)
+                           : emalloc(1));
 		if (! kind_name) {
 		    derror ("%s: out of memory", progname);
 		    return(1);
