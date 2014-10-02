@@ -303,8 +303,13 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
             ASSERT(fill->length == 1);
             con = &fill->data[0];
-            if(!islistconst(con))
+            if(!islistconst(con)) {
+
+              if(con)
                 semerror(con->lineno,"Compound data fill value is not enclosed in {..}");
+              else
+                semerror(0,"Compound data fill value not enclosed in {..}, con is NULL.");
+            }
         }
         if(!islistconst(con)) {/* fail on no compound*/
             semerror(constline(con),"Compound data must be enclosed in {..}");
