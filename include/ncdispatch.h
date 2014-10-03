@@ -293,7 +293,6 @@ int (*def_var_endian)(int, int, int);
 int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
 int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
 int (*def_var_compress)(int, int, int, const char*, unsigned int*);
-
 #endif /*USE_NETCDF4*/
 };
 

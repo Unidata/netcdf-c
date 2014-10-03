@@ -160,11 +160,17 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
-if test "x$SZIP" = x ; then
-FLAGS="$FLAGS --with-compression=zip,Bzip2"
-else
-FLAGS="$FLAGS --with-compression=zip,Bzip2,szip"
+COMP="zip"
+if test "x$SZIP" = x1 ; then
+COMP="$COMP,szip"
 fi
+if test "x$BZIP2" = x1 ; then
+COMP="$COMP,bzip2"
+fi
+if test "x$FPZIP" = x1 ; then
+COMP="$COMP,fpzip"
+fi
+FLAGS="$FLAGS --with-compression=${COMP}"
 
 COMP="zip"
 if test "x$SZIP" = x1 ; then
