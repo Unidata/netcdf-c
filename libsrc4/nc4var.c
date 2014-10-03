@@ -634,7 +634,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 int 
 NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, char* *algorithmp, int* compress_paramsp,
+               int *shufflep, char* *algorithmp, unsigned int* compress_paramsp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
                int *no_fill, void *fill_valuep, int *endiannessp)
 {
@@ -787,7 +787,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    change the prototype of this functions without changing the API. */
 static int
 nc_def_var_extra(int ncid, int varid, int *shuffle, const char* algorithm,
-		 int* params, int *fletcher32, int *contiguous, 
+		 unsigned int* params, int *fletcher32, int *contiguous, 
 		 const size_t *chunksizes, int *no_fill, 
                  const void *fill_value, int *endianness)
 {
@@ -1124,7 +1124,7 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
    Must be called after nc_def_var and before nc_enddef or any
    functions which writes data to the file. */
 int
-NC4_def_var_compress(int ncid, int varid ,int useshuffle, const char* algorithm, int* params)
+NC4_def_var_compress(int ncid, int varid ,int useshuffle, const char* algorithm, unsigned int* params)
 {
    return nc_def_var_extra(ncid, varid, &useshuffle, algorithm,
                            params, NULL, NULL, NULL, NULL, NULL, NULL);

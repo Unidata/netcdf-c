@@ -583,7 +583,7 @@ nc_def_var_endian(int ncid, int varid, int endian)
 }
 
 int
-nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, int* params)
+nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, unsigned int* params)
 {
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);

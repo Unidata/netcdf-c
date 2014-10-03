@@ -130,7 +130,7 @@ NC4_def_var(int ncid, const char *name,
 EXTERNL int
 NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
                int *ndimsp, int *dimidsp, int *nattsp, 
-               int *shufflep, char** algorithmp, int* params,
+               int *shufflep, char** algorithmp, unsigned int* params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
                int *no_fill, void *fill_valuep, int *endiannessp);
 
@@ -268,7 +268,7 @@ EXTERNL int
 NC4_show_metadata(int);
 
 EXTERNL int
-NC4_def_var_compress(int, int, int, const char*, int*);
+NC4_def_var_compress(int, int, int, const char*, unsigned int*);
 
 EXTERNL int 
 NC4_initialize(void);

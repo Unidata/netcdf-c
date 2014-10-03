@@ -829,6 +829,9 @@ for a in $ALGORITHMS ; do
   if test "x$ALG_DUP" = "x0" ; then
       ALGORITHM_LIST="$ALGORITHM_LIST $a"
       case "$a" in
+      fpzip)
+         AC_DEFINE([FPZIP_COMPRESSION], [1], [if true, allow fpzip compression])
+         ;;
       bzip2)
          AC_DEFINE([BZIP2_COMPRESSION], [1], [if true, allow bzip2 compression])
          ;;

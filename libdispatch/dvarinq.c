@@ -609,7 +609,7 @@ variable, the algorithm dependent parameters will be writen here.
 \returns ::NC_EHDF Invalid/unknown compression algorithm.
 */
 int
-nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, int* paramsp)
+nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, unsigned int* paramsp)
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);

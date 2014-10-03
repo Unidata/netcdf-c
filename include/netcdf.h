@@ -1959,12 +1959,12 @@ union {
    The form of the parameters is algorithm dependent.
 */
 EXTERNL int
-nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, int* params);
+nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, unsigned int* params);
 
 /* Find out compression settings of a var. */
 EXTERNL int
 nc_inq_var_compress(int ncid, int varid, int *useshufflep, 
-		    char**algorithmp, int* paramsp);
+		    char**algorithmp, unsigned int* paramsp);
 
 #define NC_HAVE_META_H
 

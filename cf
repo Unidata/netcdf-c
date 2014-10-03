@@ -12,6 +12,8 @@ DAP=1
 #HDF4=1
 #PNETCDF=1
 #SZIP=1
+BZIP2=1
+FPZIP=1
 
 #PAR=1
 
@@ -103,6 +105,20 @@ if test "x$SZIP" = "x1" ; then
 LDFLAGS="$LDFLAGS -lsz"
 fi
 
+if test "x$BZIP2" = "x1" ; then
+LDFLAGS="$LDFLAGS -L/machine/dmh/libs/lib -lbz2"
+CPPFLAGS="$CPPFLAGS -I/machine/dmh/libs/include"
+LD_LIBRARY_PATH="/machine/dmh/libs/lib:$LD_LIBRARY_PATH"
+LDFLAGS="$LDFLAGS -lbz2"
+fi
+
+if test "x$FPZIP" = "x1" ; then
+LDFLAGS="$LDFLAGS -L/machine/dmh/libs/lib -lfpzip"
+CPPFLAGS="$CPPFLAGS -I/machine/dmh/libs/include"
+LD_LIBRARY_PATH="/machine/dmh/libs/lib:$LD_LIBRARY_PATH"
+LDFLAGS="$LDFLAGS -lfpzip"
+fi
+
 if test "x$HDF4" = "x1" ; then
 LDFLAGS="$LDFLAGS -ljpeg"
 fi
@@ -145,11 +161,17 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #valgrind => not shared
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
-if test "x$SZIP" = x ; then
-FLAGS="$FLAGS --with-compression=zip,Bzip2"
-else
-FLAGS="$FLAGS --with-compression=zip,Bzip2,szip"
+COMP="zip"
+if test "x$SZIP" = x1 ; then
+COMP="$COMP,szip"
 fi
+if test "x$BZIP2" = x1 ; then
+COMP="$COMP,bzip2"
+fi
+if test "x$FPZIP" = x1 ; then
+COMP="$COMP,fpzip"
+fi
+FLAGS="$FLAGS --with-compression=${COMP}"
 
 if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
