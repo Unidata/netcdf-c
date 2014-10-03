@@ -14,18 +14,17 @@
 #ifdef SZIP_COMPRESSION
 #include <szlib.h>
 #endif
+#ifdef FPZIP_COMPRESSION
+#include <fpzip.h>
+#endif
 #include "nc4compress.h"
 
 #define ZIP_FILE_NAME "zip.nc"
 #define BZIP2_FILE_NAME "bzip2.nc"
 #define SZIP_FILE_NAME "szip.nc"
+#define FPZIP_FILE_NAME "fpzip.nc"
 
 #define DEFLATE_LEVEL 9
-
-        unsigned int options_mask;
-	unsigned int bits_per_pixel;
-        unsigned int pixels_per_block;
-
 
 #define NUMDIMS 2		/* rank of each variable in tests */
 #if 0
@@ -46,6 +45,66 @@ variables:
 }
 */
 
+#ifdef FPZIP_COMPRESSION
+static int
+test_bzip2(const char *testfile) 
+{
+    int i,j;
+    int ncid, varid, dimids[NUMDIMS];
+    size_t index[NUMDIMS];
+    nc_compression_t parms;
+    char* algorithm;
+
+    /* Create a file with one big variable. */
+    if (nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+    if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
+    if (nc_def_dim(ncid, "dim1", DIM1, &dimids[0])) ERR;
+    if (nc_def_dim(ncid, "dim2", DIM2, &dimids[1])) ERR;
+    if (nc_def_var(ncid, "var", NC_INT, NUMDIMS, dimids, &varid)) ERR;
+    /* Use fpzip compression */
+    parms.level = DEFLATE_LEVEL;
+    if (nc_def_var_compress(ncid, varid, NC_NOSHUFFLE, "fpzip", parms.params)) ERR;
+    if (nc_enddef(ncid)) ERR;
+    /* Fill in the array */
+    for(i=0;i<DIM1;i++) {
+        for(j=0;j<DIM2;j++) {
+	    int value = (i*DIM2) + j;
+	    index[0] = i;
+            index[1] = j;
+            if (nc_put_var1_int(ncid, varid, index, &value)) {
+		ERR;
+	    }
+	}
+    }
+    if (nc_close(ncid)) ERR;
+
+    /* Open the file and check it. */
+    if (nc_open(testfile, NC_NOWRITE, &ncid)) ERR;
+    if (nc_inq_varid(ncid, "var", &varid)) ERR;
+    /* Check the compression algorithm */
+    if (nc_inq_var_compress(ncid,varid,NULL,&algorithm,parms.params)) ERR;
+    if (strcmp(algorithm,"fpzip") != 0) {
+	printf("Compression algorithm mismatch: %s\n",algorithm);
+	exit(1);
+    } else {
+	printf("Compression algorithm verified: %s\n",algorithm);
+    }
+    for(i=0;i<DIM1;i++) {
+        for(j=0;j<DIM2;j++) {
+	    int expected = (i*DIM2) + j;
+	    int value = (i*DIM2) + j;
+	    index[0] = i;
+            index[1] = j;
+            if (nc_get_var1_int(ncid, varid, index, &value)) ERR;
+	    if(value != expected) ERR;
+	}
+    }
+    if (nc_close(ncid)) ERR;
+    return 0;
+}
+#endif
+
+#ifdef BZIP_COMPRESSION
 static int
 test_bzip2(const char *testfile) 
 {
@@ -102,6 +161,7 @@ test_bzip2(const char *testfile)
     if (nc_close(ncid)) ERR;
     return 0;
 }
+#endif
 
 #ifdef SZIP_COMPRESSION
 static int
@@ -232,6 +292,15 @@ main(int argc, char **argv)
 {
     char testfile[NC_MAX_NAME + 1];
 
+#ifdef FPZIP_COMPRESSION
+    {
+        printf("\n*** Testing fpzip compression.\n");
+	sprintf(testfile, "%s", FPZIP_FILE_NAME);
+	test_fpzip(testfile);
+	SUMMARIZE_ERR;
+    }
+#endif
+    
 #ifdef BZIP2_COMPRESSION
     {
         printf("\n*** Testing bzip2 compression.\n");
