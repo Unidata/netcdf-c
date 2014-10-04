@@ -1,6 +1,8 @@
 #include "ncdispatch.h"
 #include "ncuri.h"
 
+#define MAXSERVERURL 4096
+
 extern int NCSUBSTRATE_intialize(void);
 
 /* Define vectors of zeros and ones for use with various nc_get_varX function*/
@@ -26,11 +28,11 @@ static struct NCPROTOCOLLIST {
     {NULL,NULL,0} /* Terminate search */
 };
 
-/* Define the server to ping in order;
+/* Define the default servers to ping in order;
    make the order attempt to optimize
    against future changes.
 */
-static const char* servers[] = {
+static const char* default_servers[] = {
 "http://remotetest.unidata.ucar.edu",
 NULL
 };
@@ -56,26 +58,37 @@ NCDISPATCH_initialize(void)
 }
 
 /* search list of servers and return first that succeeds when
-   concatenated with the specified path part
+   concatenated with the specified path part.
+   Search list can be prefixed by the second argument.
 */
-const char*
-NC_findtestserver(const char* path)
+char*
+NC_findtestserver(const char* path, const char** servers)
 {
 #ifdef USE_DAP
 #ifdef ENABLE_DAP_REMOTE_TESTS
     /* NCDAP_ping is defined in libdap2/ncdap.c */
     const char** svc;
+    int stat;
+    char* url = (char*)malloc(MAXSERVERURL);
+
     if(path == NULL) path = "";
-    for(svc=servers;*svc != NULL;svc++) {
-        int stat;
-        char url[4096];
-	snprintf(url,sizeof(url),"%s%s%s",
-			*svc,
-			(path[0] == '/' ? "" : "/"),
-			path);
-	stat = NCDAP_ping(url);
-	if(stat == NC_NOERR)
-	    return *svc;
+    if(strlen(path) > 0 && path[0] == '/')
+	path++;
+
+    if(servers != NULL) {
+        for(svc=servers;*svc != NULL;svc++) {
+            snprintf(url,MAXSERVERURL,"%s/%s",*svc,path);
+            stat = NCDAP_ping(url);
+            if(stat == NC_NOERR)
+                return url;
+        }
+    }
+    /* not found in user supplied list; try defaults */
+    for(svc=default_servers;*svc != NULL;svc++) {
+        snprintf(url,MAXSERVERURL,"%s/%s",*svc,path);
+        stat = NCDAP_ping(url);
+        if(stat == NC_NOERR)
+            return url;
     }
 #endif
 #endif
