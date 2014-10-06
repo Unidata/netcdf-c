@@ -186,7 +186,7 @@ ocuriparse(const char* uri0, OCURI** durip)
 	{THROW(6); goto fail; /* illegal protocol*/}
 
     /* skip // */
-    if(p[0] != '/' && p[1] != '/')
+    if(p[0] != '/' || p[1] != '/')
 	{THROW(7); goto fail;}
     p += 2;
 
