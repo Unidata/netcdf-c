@@ -188,7 +188,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 	{THROW(6); /* illegal protocol*/}
 
     /* skip // */
-    if(p[0] != '/' && p[1] != '/')
+    if(p[0] != '/' || p[1] != '/')
 	{THROW(7);}
     p += 2;
 
