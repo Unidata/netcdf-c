@@ -9,6 +9,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc3 Released ?
 
+* Fixed bug where if the netCDF-C library is built with the
+HDF5 library but without the HDF4 library and one attempts
+to open an HDF4 file, an abort occurs rather than returning
+a proper error code (NC_ENOTNC). [NCF-317](https://bugtracking.unidata.ucar.edu/browse/NCF-317)
+
 * Added a new option, `NC_EXTRA_DEPS`, for cmake-based builds.  This is analogous to `LIBS` in autotools-based builds.  Example usage:
 
     $ cmake .. -NC_EXTRA_DEPS="-lcustom_lib"

@@ -93,6 +93,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 		   enum FileType* filetype, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
+   int status = NC_NOERR;
     
    *filetype = FT_UNKNOWN;
 
@@ -113,12 +114,12 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
       }
       if((retval = MPI_File_open(comm, (char *)path, MPI_MODE_RDONLY,info, 
 				 &fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+	 {status = NC_EPARINIT; goto done;}
       if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
 				 &status)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+	 {status = NC_EPARINIT; goto done;}
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
-	 return NC_EPARINIT;
+	 {status = NC_EPARINIT; goto done;}
    } else
 #endif /* USE_PARALLEL */
    {
@@ -129,10 +130,10 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 #endif
 
       if(path == NULL || strlen(path)==0)
-	return NC_EINVAL;
+	 {status = NC_EINVAL; goto done;}
 	
       if (!(fp = fopen(path, "r")))
-	 return errno;
+	 {status = errno; goto done;}
 
 #ifdef HAVE_SYS_STAT_H
       /* The file must be at least MAGIC_NUMBER_LEN in size,
@@ -140,47 +141,58 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
          behavior. */
       if(!(fstat(fileno(fp),&st) == 0)) {
 	fclose(fp);
-	return errno;
+	status = errno;
+        goto done;
       }
       
       if(st.st_size < MAGIC_NUMBER_LEN) {
 	fclose(fp);
-	return NC_ENOTNC;
+	status = NC_ENOTNC;
+        goto done;
       }
 #endif
-            
 
       i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
       fclose(fp);
-	  if(i == 0) 
-		return NC_ENOTNC;
+      if(i == 0) 
+	{status = NC_ENOTNC; goto done;}
       if(i != 1) 
-	return errno;
+	{status = errno; goto done;}
     }
     
     /* Look at the magic number */
     /* Ignore the first byte for HDF */
+#ifdef USE_NETCDF4
     if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
 	*filetype = FT_HDF;
 	*version = 5;
+#ifdef USE_HDF4
     } else if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
 	*filetype = FT_HDF;
 	*version = 4;
-    } else if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
+#endif
+    } else
+#endif
+    if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
 	*filetype = FT_NC;
         if(magic[3] == '\001') 
             *version = 1; /* netcdf classic version 1 */
          else if(magic[3] == '\002') 
             *version = 2; /* netcdf classic version 2 */
+#ifdef USE_PNETCDF
          else if(magic[3] == '\005') {
 	    *filetype = FT_PNETCDF;
             *version = 5; /* pnetcdf file */
-         } else
-            return NC_ENOTNC;
+         }
+#endif
+	 else
+	    {status = NC_ENOTNC; goto done;}
      } else
-            return NC_ENOTNC;
-   return NC_NOERR;
+        {status = NC_ENOTNC; goto done;}
+
+done:
+   return status;
 }
 
 /**  \ingroup datasets
@@ -1534,12 +1546,17 @@ NC_create(const char *path, int cmode, size_t initialsz,
 
    /* Look to the incoming cmode for hints */
    if(model == 0) {
+#ifdef USE_NETCDF4
       if(cmode & NC_NETCDF4)
 	model = NC_DISPATCH_NC4;
+      else
+#endif
+      if(cmode & NC_CLASSIC_MODEL)
+	model = NC_DISPATCH_NC3;
+#ifdef USE_PNETCDF
       else if(cmode & NC_PNETCDF)
 	model = NC_DISPATCH_NC5;
-      else if(cmode & NC_CLASSIC_MODEL)
-	model = NC_DISPATCH_NC3;
+#endif
    }
 
    if(model == 0) {

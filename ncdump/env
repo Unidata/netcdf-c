@@ -1,7 +1,10 @@
-CDL="gc"
-L="-lb"
+NC="avhrr.hdf"
 
-NCGEN="../ncgen/.libs/ncgen"
-alias q0="${NCGEN} ${L} ${CDL}.cdl"
-alias qq="gdb --args ${NCGEN} ${L} ${CDL}.cdl"
+NCDUMP="./ncdump"
+#NCDUMP="./.libs/ncdump"
+
+alias q0="${NCDUMP} ${NC}"
+alias qh="${NCDUMP} -h ${NC}"
+alias qq="gdb --args ${NCDUMP} ${NC}"
+alias qqh="gdb --args ${NCDUMP} -h ${NC}"
 

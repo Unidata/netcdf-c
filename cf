@@ -1,7 +1,7 @@
-
 #!/bin/bash
 #X="-x"
 #NB=1
+#DB=1
 
 if test $# != 0 ; then
 cmds=$@
@@ -128,8 +128,11 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
 
-#FLAGS="$FLAGS --disable-shared"
+if test "x${DB}" = x1 ; then
+FLAGS="$FLAGS --disable-shared"
+else
 FLAGS="$FLAGS --enable-shared"
+fi
 
 if test "x$HDF5" = "x" ; then
 FLAGS="$FLAGS --disable-netcdf-4"
