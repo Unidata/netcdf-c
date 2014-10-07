@@ -103,7 +103,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
    if (use_parallel) 
    {
       MPI_File fh;
-      MPI_Status status;
+      MPI_Status mstatus;
       int retval;
       MPI_Comm comm = MPI_COMM_WORLD;
       MPI_Info info = MPI_INFO_NULL;
@@ -116,7 +116,7 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
 				 &fh)) != MPI_SUCCESS)
 	 {status = NC_EPARINIT; goto done;}
       if((retval = MPI_File_read(fh, magic, MAGIC_NUMBER_LEN, MPI_CHAR,
-				 &status)) != MPI_SUCCESS)
+				 &mstatus)) != MPI_SUCCESS)
 	 {status = NC_EPARINIT; goto done;}
       if((retval = MPI_File_close(&fh)) != MPI_SUCCESS)
 	 {status = NC_EPARINIT; goto done;}
