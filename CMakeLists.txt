@@ -997,7 +997,15 @@ ENDMACRO()
 
 MACRO(add_bin_test prefix F)
   ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
-  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+  # Some tests explicitly depend on HDF5, e.g., ncdump_tst_h_scalar.
+  # Some others depend on HDF5_HL, e.g., nc_test4_tst_interops.
+  # Hence, we have to link the tests against those libraries.
+  # TODO see if we can implement a more fine-grained approach
+  TARGET_LINK_LIBRARIES(${prefix}_${F}
+    netcdf
+    ${HDF5_C_LIBRARIES}
+    ${HDF5_HL_LIBRARIES}
+    )
   IF(MSVC)
     SET_TARGET_PROPERTIES(${prefix}_${F}
       PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
