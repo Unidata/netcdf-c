@@ -680,11 +680,17 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF(NOT MSVC)
 
   # Assert HDF5 version.
-  SET(HDF5_VERSION_REQUIRED 1.8.8)
-  execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
-    OUTPUT_VARIABLE HDF5_VERSION
-    ERROR_QUIET
-    )
+  SET(HDF5_VERSION_REQUIRED 1.8.10)
+
+  IF(HDF5_IS_PARALLEL)
+	SET(HDF5_CC h5pcc)
+  ELSE()
+	SET(HDF5_CC h5cc)
+  ENDIF()
+
+  execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
+  OUTPUT_VARIABLE HDF5_VERSION
+  ERROR_QUIET)
 
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
@@ -696,6 +702,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
 	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ELSE()
+        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
     ENDIF()
   ENDIF()
 
