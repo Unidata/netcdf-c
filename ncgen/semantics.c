@@ -672,6 +672,13 @@ processvars(void)
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* vsym = (Symbol*)listget(vardefs,i);
 	Symbol* basetype = vsym->typ.basetype;
+        /* If we are in classic mode, then convert long -> int32 */
+	if(usingclassic) {
+	    if(basetype->typ.typecode == NC_LONG || basetype->typ.typecode == NC_INT64) {
+	        vsym->typ.basetype = primsymbols[NC_INT];
+		basetype = vsym->typ.basetype;
+	    }
+        }
 	/* fill in the typecode*/
 	vsym->typ.typecode = basetype->typ.typecode;
 	/* validate uses of NIL */

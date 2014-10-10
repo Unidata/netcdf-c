@@ -472,7 +472,7 @@ main(
     if(k_flag == 0)
 	k_flag = 1;
 
-    usingclassic = (k_flag <= 2?1:0);
+    usingclassic = (k_flag <= 2 || k_flag == 4)?1:0;
 
     /* compute cmode_modifier */
     switch (k_flag) {

@@ -557,9 +557,17 @@ extern int H5Eprint1(FILE * stream);
 #endif
 
 void
-check_err(const int stat, const int line, const char* file) {
+check_err(const int stat, const int line, const char* file)
+{
+    check_err2(stat,-1,line,file);
+}
+
+void check_err2(const int stat, const int cdlline, const int line, const char* file) {
     if (stat != NC_NOERR) {
-	fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
+	if(cdlline >= 0)
+	    fprintf(stderr, "ncgen: cdl line %d; %s\n", cdlline, nc_strerror(stat));
+	else
+	    fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
 	fprintf(stderr, "\t(%s:%d)\n", file,line);
 #ifdef USE_NETCDF4
 	H5Eprint1(stderr);

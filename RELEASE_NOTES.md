@@ -9,6 +9,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc3 Released ?
 
+* Fixed bug in ncgen. When classic format was in force (k=1 or k=4),
+the "long" datatype should be treated as int32. Was returning an error.
+[NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
+
 * Fixed bug where if the netCDF-C library is built with the
 HDF5 library but without the HDF4 library and one attempts
 to open an HDF4 file, an abort occurs rather than returning

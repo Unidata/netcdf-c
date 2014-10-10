@@ -54,6 +54,7 @@ extern unsigned char* makebytestring(char* s, size_t* lenp);
 extern int getpadding(int offset, int alignment);
 
 extern void check_err(const int stat, const int line, const char* file);
+extern void check_err2(const int stat, const int cdlline, const int line, const char* file);
 extern const char* kind_string(int kind);
 
 /* Inline functions */
