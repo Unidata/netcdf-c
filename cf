@@ -12,6 +12,12 @@ DAP=1
 #HDF4=1
 #PNETCDF=1
 
+#PAR=1
+
+if test "x$PNETCDF" = x1 ; then
+PAR=1
+fi
+
 #RPC=1
 #PGI=1
 #M32=1
@@ -103,7 +109,6 @@ fi
 
 CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 
-
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
@@ -117,7 +122,7 @@ FLAGS="$FLAGS --disable-examples"
 #FLAGS="$FLAGS --enable-large-file-tests"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
-FLAGS="$FLAGS --enable-dap-auth-tests"
+#FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-doxygen"
 #FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
@@ -132,6 +137,10 @@ if test "x${DB}" = x1 ; then
 FLAGS="$FLAGS --disable-shared"
 else
 FLAGS="$FLAGS --enable-shared"
+fi
+
+if test "x${PAR}" = x ; then
+FLAGS="$FLAGS --disable-parallel"
 fi
 
 if test "x$HDF5" = "x" ; then

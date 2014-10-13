@@ -9,6 +9,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc3 Released ?
 
+* The pnetcdf support was not properly being used to provide
+mpi parallel io for netcdf-3 classic files. The wrong
+dispatch table was being used.
+[NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+
 * Fixed bug in ncgen. When classic format was in force (k=1 or k=4),
 the "long" datatype should be treated as int32. Was returning an error.
 [NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)

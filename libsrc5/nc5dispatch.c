@@ -72,7 +72,11 @@ NC5_create(const char *path, int cmode,
     /* Fix up the cmode by keeping only essential flags;
        these are the flags that are the same in netcf.h and pnetcdf.h
     */
+#if 0
     cmode &= (NC_WRITE | NC_NOCLOBBER | NC_LOCK | NC_SHARE | NC_64BIT_OFFSET);
+#else
+    cmode &= (NC_WRITE | NC_NOCLOBBER | NC_LOCK | NC_SHARE );
+#endif
 
     /* It turns out that pnetcdf.h defines a flag called
        NC_64BIT_DATA (not to be confused with NC_64BIT_OFFSET).

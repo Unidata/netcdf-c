@@ -1538,12 +1538,13 @@ NC_create(const char *path, int cmode, size_t initialsz,
 	model = NC_DISPATCH_NC4;
       else
 #endif
+#ifdef USE_PNETCDF
+      if(cmode & NC_PNETCDF)
+	model = NC_DISPATCH_NC5;
+      else
+#endif
       if(cmode & NC_CLASSIC_MODEL)
 	model = NC_DISPATCH_NC3;
-#ifdef USE_PNETCDF
-      else if(cmode & NC_PNETCDF)
-	model = NC_DISPATCH_NC5;
-#endif
    }
 
    if(model == 0) {
@@ -1716,7 +1717,12 @@ Not longer needed
       cmode &= ~NC_NETCDF4; /* must be netcdf-3 */
       if(version == 2) cmode |= NC_64BIT_OFFSET;
    } else if(model & NC_DISPATCH_NC5) {
+#if 0
+It appears that pnetcdf can read NC_64_BIT_OFFSET
       cmode &= ~(NC_NETCDF4 | NC_64BIT_OFFSET); /* must be pnetcdf */ 
+#else
+      cmode &= ~(NC_NETCDF4);
+#endif
       cmode |= NC_PNETCDF;
    }
 

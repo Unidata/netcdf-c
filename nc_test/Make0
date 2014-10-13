@@ -1,5 +1,5 @@
 # Test c output
-T=tst_settings
+T=test_read
 #VG=valgrind --leak-check=full
 
 CFLAGS=-g -O0 -I.. -I../include
