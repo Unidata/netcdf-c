@@ -24,17 +24,6 @@ Research/Unidata. See COPYRIGHT file for more info.
 #endif
 #include "ncdispatch.h"
 
-/* Define an enum over the possible set of
-   File Types
-*/
-enum FileType {
-FT_UNKNOWN,
-FT_HDF,
-FT_NC,
-FT_PNETCDF
-};
-
-
 static int nc_initialized = 0;
 
 /** \defgroup datasets NetCDF Files
@@ -90,12 +79,12 @@ nc_local_initialize(void)
 
 static int
 NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
-		   enum FileType* filetype, int* version)
+		   int* model, int* version)
 {
    char magic[MAGIC_NUMBER_LEN];
    int status = NC_NOERR;
     
-   *filetype = FT_UNKNOWN;
+   *model = 0;
 
    /* Get the 4-byte magic from the beginning of the file. Don't use posix
     * for parallel, use the MPI functions instead. */
@@ -164,30 +153,28 @@ NC_check_file_type(const char *path, int use_parallel, void *mpi_info,
     /* Ignore the first byte for HDF */
 #ifdef USE_NETCDF4
     if(magic[1] == 'H' && magic[2] == 'D' && magic[3] == 'F') {
-	*filetype = FT_HDF;
+	*model = NC_DISPATCH_NC4;
 	*version = 5;
 #ifdef USE_HDF4
     } else if(magic[0] == '\016' && magic[1] == '\003'
               && magic[2] == '\023' && magic[3] == '\001') {
-	*filetype = FT_HDF;
+	*model = NC_DISPATCH_NC4;
 	*version = 4;
 #endif
     } else
 #endif
     if(magic[0] == 'C' && magic[1] == 'D' && magic[2] == 'F') {
-	*filetype = FT_NC;
-        if(magic[3] == '\001') 
+        if(magic[3] == '\001')
             *version = 1; /* netcdf classic version 1 */
-         else if(magic[3] == '\002') 
+         else if(magic[3] == '\002')
             *version = 2; /* netcdf classic version 2 */
 #ifdef USE_PNETCDF
-         else if(magic[3] == '\005') {
-	    *filetype = FT_PNETCDF;
+         else if(magic[3] == '\005')
             *version = 5; /* pnetcdf file */
-         }
 #endif
 	 else
 	    {status = NC_ENOTNC; goto done;}
+	 *model = (use_parallel || *version == 5)?NC_DISPATCH_NC5:NC_DISPATCH_NC3;
      } else
         {status = NC_ENOTNC; goto done;}
 
@@ -1672,7 +1659,6 @@ NC_open(const char *path, int cmode,
    int model = 0;
    int isurl = 0; 
    int version = 0;
-   enum FileType filetype = FT_UNKNOWN;
 
    if(!nc_initialized) {
       stat = NC_initialize();
@@ -1696,27 +1682,14 @@ NC_open(const char *path, int cmode,
    if(isurl)
       model = NC_urlmodel(path);
    else {
-      filetype = FT_UNKNOWN;
       version = 0;
       model = 0;
       /* Look at the file if it exists */
       stat = NC_check_file_type(path,useparallel,mpi_info,
-				&filetype,&version);
+				&model,&version);
       if(stat == NC_NOERR) {
-	switch (filetype) {
-	case FT_NC:
-	    if(version == 1 || version == 2)
-		model = NC_DISPATCH_NC3;
-	    break;
-	case FT_HDF:
-	    model = NC_DISPATCH_NC4;
-	    break;
-	case FT_PNETCDF:
-	    model = NC_DISPATCH_NC5;
-	    break;
-	default:
+	if(model == 0)
 	    return NC_ENOTNC;
-	}
       } else /* presumably not a netcdf file */
 	return stat;
    }
