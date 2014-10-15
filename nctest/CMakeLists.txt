@@ -14,6 +14,6 @@ ADD_TEST(tst_rename ${EXECUTABLE_OUTPUT_PATH}/tst_rename)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_nctest_classic.nc ref_nctest_64bit_offset.nc)
+LIST(APPEND CUR_EXTRA_DIST CMakeLists.txt Makefile.am)
+LIST(APPEND CUR_EXTRA_DIST ref_nctest_classic.nc ref_nctest_64bit_offset.nc)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
