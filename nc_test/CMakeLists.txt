@@ -86,6 +86,6 @@ ENDIF()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 ref_tst_diskless2.cdl)
+LIST(APPEND CUR_EXTRA_DIST CMakeLists.txt Makefile.am)
+LIST(APPEND CUR_EXTRA_DIST test_get.m4 test_put.m4 ref_tst_diskless2.cdl)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
