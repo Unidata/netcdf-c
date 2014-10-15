@@ -407,8 +407,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
   IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
-    SET(HDF5_C_LIBRARY ${HDF5_LIB})
-    SET(HDF5_HL_LIBRARY ${HDF5_HL_LIB})
+    SET(HDF5_C_LIBRARIES ${HDF5_LIB})
+    SET(HDF5_HL_LIBRARIES ${HDF5_HL_LIB})
     MESSAGE(STATUS "Using HDF5 Library: ${HDF5_LIB}")
     MESSAGE(STATUS "Using HDF5_HL LIbrary: ${HDF5_HL_LIB}")
   ELSE()
@@ -426,9 +426,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
-    # HDF5_C_LIBRARY may be defined.  We must check for either.
-    IF(HDF5_C_LIBRARY)
-      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
+    # HDF5_C_LIBRARIES may be defined.  We must check for either.
+    IF(HDF5_C_LIBRARIES)
+      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
     ENDIF()
 
     # Find out if HDF5 was built with parallel support.
