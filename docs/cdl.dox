@@ -23,12 +23,12 @@ data.
        double  p(time,lat,lon);
        int     rh(time,lat,lon);
      
-       lat:units = "degrees_north";
+       char lat:units = "degrees_north";
        lon:units = "degrees_east";
        time:units = "seconds";
        z:units = "meters";
-       z:valid_range = 0., 5000.;
-       p:_FillValue = -9999.;
+       float z:valid_range = 0., 5000.;
+       double p:_FillValue = -9999.;
        rh:_FillValue = -1;
      
      data:
@@ -75,18 +75,26 @@ type, a length, and a value. In contrast to variables that are
 intended for data, attributes are intended for ancillary data or
 metadata (data about data).
 
-In CDL, an attribute is designated by a variable and attribute name,
-separated by a colon (':'). It is possible to assign global attributes
-to the netCDF dataset as a whole by omitting the variable name and
-beginning the attribute name with a colon (':'). The data type of an
-attribute in CDL, if not explicitly specified, is derived from the
-type of the value assigned to it. The length of an attribute is the
-number of data values or the number of characters in the character
-string assigned to it. Multiple values are assigned to non-character
-attributes by separating the values with commas (','). All values
-assigned to an attribute must be of the same type. In the netCDF-4
-enhanced model, attributes may be declared to be of user-defined type,
-like variables.
+In CDL, an attribute is designated by a data type, a
+variable, and an attribute name. The variable and the
+attribute name are separated by a colon (':').  If present,
+the data type precedes the variable name.  It is possible to
+assign global attributes to the netCDF dataset as a whole by
+omitting the variable name and beginning the attribute name
+with a colon (':'). The data type of an attribute in CDL, if
+not explicitly specified, is derived from the type of the
+value assigned to it, with one exception.  If the value is a
+string, then the inferred type is char, not string.  If it
+is desired to have a string typed attribute, this must be
+stated explicitly.
+
+The length of an attribute is the number of data values or
+the number of characters in the character string assigned to
+it if the type is char. Multiple values are assigned to
+non-character attributes by separating the values with
+commas (','). All values assigned to an attribute must be of
+the same type. In the netCDF-4 enhanced model, attributes
+may be declared to be of user-defined type, like variables.
 
 In CDL, just as for netCDF, the names of dimensions, variables and
 attributes (and, in netCDF-4 files, groups, user-defined types,
