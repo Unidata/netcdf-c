@@ -141,3 +141,50 @@ libraries is to use the "nf-config" utility installed in *${DIR1}*/bin:
 or the more general "pkg-config" utility, if you have it:
 
        fortran_compiler my_prog.f -o my_prog `pkg-config --cflags --libs netcdf-fortran`
+       
+
+Specifying The Environment for Building {#specify_build_env_fortran}
+========================================
+
+
+The netCDF configure script searches your path to find the compilers and tools it needed. To use compilers that can't be found in your path, set their environment variables.
+
+The configure script will use gcc and associated GNU tools if they are found. Many users, especially those with performance concerns, will wish to use a vendor supplied compiler.
+
+For example, on an AIX system, users may wish to use xlc (the AIX compiler) in one of its many flavors. Set environment variables before the build to achieve this.
+
+For example, to change the C compiler, set CC to xlc (in sh: export CC=xlc). (But don't forget to also set CXX to xlC, or else configure will try to use g++, the GNU C++ compiler to build the netCDF C++ API. Similarly set FC to xlf90 so that the Fortran APIs are built properly.)
+
+By default, the netCDF library is built with assertions turned on. If you wish to turn off assertions, set CPPFLAGS to -DNDEBUG (csh ex: setenv CPPFLAGS -DNDEBUG).
+
+If GNU compilers are used, the configure script sets CPPFLAGS to “-g -O2”. If this is not desired, set CPPFLAGS to nothing, or to whatever other value you wish to use, before running configure.
+
+For cross-compiles, the following environment variables can be used to override the default fortran/C type settings like this (in sh):
+
+     export NCBYTE_T=''integer(selected_int_kind(2))''
+     export NCSHORT_T=''integer*2''
+     export NF_INT1_T=''integer(selected_int_kind(2))''
+     export NF_INT2_T=''integer*2''
+     export NF_INT1_IS_C_SHORT=1
+     export NF_INT2_IS_C_SHORT=1
+     export NF_INT_IS_C_INT=1
+     export NF_REAL_IS_C_FLOAT=1
+     export NF_DOUBLEPRECISION_IS_C_DOUBLE=1
+     
+In this case you will need to run configure with –disable-fortran-compiler-check and –disable-fortran-type-check.
+
+Variable Description Notes
+--------------------------
+
+Variable | Usage | Description
+---|---|---
+CC	| C compiler	| If you don't specify this, the configure script will try to find a suitable C compiler. The default choice is gcc. If you wish to use a vendor compiler you must set CC to that compiler, and set other environment variables (as described below) to appropriate settings.
+FC	| Fortran compiler (if any)| 	If you don't specify this, the configure script will try to find a suitable Fortran and Fortran 77 compiler. Set FC to "" explicitly, or provide the –disable-f77 option to configure, if no Fortran interface (neither F90 nor F77) is desired. Use –disable-f90 to disable the netCDF Fortran 90 API, but build the netCDF Fortran 77 API.
+F77	| Fortran 77 compiler (if any)	| Only specify this if your platform explicitly needs a different Fortran 77 compiler. Otherwise use FC to specify the Fortran compiler. If you don't specify this, the configure script will try to find a suitable Fortran compiler. For vendor compilers, make sure you're using the same vendor's Fortran 90 compiler. Using Fortran compilers from different vendors, or mixing vendor compilers with g77, the GNU F77 compiler, is not supported and may not work.
+CXX	| C++ compiler	| If you don't specify this, the configure script will try to find a suitable C++ compiler. Set CXX to "" explicitly, or use the –disable-cxx configure option, if no C++ interface is desired. If using a vendor C++ compiler, use that vendor's C compiler to compile the C interface. Using different vendor compilers for C and C++ may not work.
+CFLAGS	| C compiler flags	| "-O" or "-g", for example.
+CPPFLAGS	| C preprocessor options	| "-DNDEBUG" to omit assertion checks, for example.
+FCFLAGS| 	Fortran 90 compiler flags	| "-O" or "-g", for example. These flags will be used for FORTRAN 90. If setting these you may also need to set FFLAGS for the FORTRAN 77 test programs.
+FFLAGS	| Fortran 77 compiler flags	| "-O" or "-g", for example. If you need to pass the same arguments to the FORTRAN 90 build, also set FCFLAGS.
+CXXFLAGS	| C++ compiler flags	| "-O" or "-g", for example.
+ARFLAGS, NMFLAGS, FPP, M4FLAGS, LIBS, FLIBS, FLDFLAGS	| Miscellaneous	| One or more of these were needed for some platforms, as specified below. Unless specified, you should not set these environment variables, because that may interfere with the configure script. 
