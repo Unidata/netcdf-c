@@ -141,7 +141,7 @@ check_nc_config:
 
 install-data-hook:
 if BUILD_DLL
-	cp liblib/netcdfdll.def ${prefix}/lib
+	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/lib
 endif # BUILD_DLL
 	@echo ''
 	@echo '+-------------------------------------------------------------+'
