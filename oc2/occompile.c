@@ -30,7 +30,7 @@ static const char StartOfSequence = '\x5A';
 static const char EndOfSequence = '\xA5';
 
 /*
-Provide an option that makes a single pass over 
+Provide an option that makes a single pass over
 the data packet and record pointers into it
 to speed up access.
 */
@@ -118,8 +118,13 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 	    /* create and fill the element instances */
 	    for(i=0;i<nelements;i++) {
 		OCdata* instance = newocdata(xnode);
-		MEMFAIL(instance);
-		fset(instance->datamode,OCDT_ELEMENT);
+		//MEMFAIL(instance);
+        if( (instance)==((void*)0) ) {
+          free(data);
+          octhrow(OC_ENOMEM);
+        }
+
+        fset(instance->datamode,OCDT_ELEMENT);
 		data->instances[i] = instance;
 		data->ninstances++;
 		/* Capture the back link */
@@ -169,7 +174,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 	data->ninstances = nelements;
 	data->instances = (OCdata**)oclistdup(records);
 	MEMFAIL(data);
-	oclistfree(records);	    
+	oclistfree(records);
 	records = NULL;
         break;
 
@@ -185,8 +190,11 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
     }
 
 /*ok:*/
-    if(datap) *datap = data;
-    return OCTHROW(ocstat);    
+    if(datap)
+      *datap = data;
+    else
+      free(data);
+    return OCTHROW(ocstat);
 
 fail:
     /* See if we can extract error info from the response */
@@ -216,9 +224,15 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
     /* Compile the fields of this record */
     ocstat = OCTHROW(occompilefields(state,record,xxdrs,!TOPLEVEL));
     if(ocstat == OC_NOERR) {
-        if(recordp) *recordp = record;
+        if(recordp)
+          *recordp = record;
+        else
+          free(record);
+    } else {
+      free(record);
     }
-    return OCTHROW(ocstat);    
+
+    return OCTHROW(ocstat);
 }
 
 static OCerror
@@ -280,7 +294,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
     unsigned int xxdrcount;
     OCnode* xnode = data->template;
     int scalar = (xnode->array.rank == 0);
-    
+
     OCASSERT((xnode->octype == OC_Atomic));
 
     if(!scalar) {
@@ -398,7 +412,7 @@ istoplevel(OCnode* node)
     switch (node->octype) {
     case OC_Dataset: case OC_Grid: case OC_Atomic: return 1;
     case OC_Structure:
-	return (node->array.rank == 0 ? 1 : 0); /* Toplevel if scalar */ 
+	return (node->array.rank == 0 ? 1 : 0); /* Toplevel if scalar */
     case OC_Sequence: default: return 0;
     }
     return 1;
@@ -438,7 +452,7 @@ ocerrorstring(XXDR* xdrs)
     /* Check to see if the xdrs contains "Error {\n'; assume it is at the beginning of data */
     off_t avail = xxdr_getavail(xdrs);
     char* data = (char*)malloc((size_t)avail);
-    if(!xxdr_setpos(xdrs,(off_t)0)) return 0;
+    if(!xxdr_setpos(xdrs,(off_t)0)) {free(data); return 0;}
     if(!xxdr_opaque(xdrs,data,avail)) return 0;
     /* check for error tag at front */
     if(ocstrncmp(data,tag,sizeof(tag))==0) {
