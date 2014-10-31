@@ -389,7 +389,7 @@ IF(ENABLE_NETCDF_4)
 ENDIF()
 
 # Option for building RPC
-OPTION(ENABLE_RPC OFF "Enable RPC Client and Server.")
+OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
 IF(ENABLE_RPC)
   SET(BUILD_RPC ON CACHE BOOL "")
 ENDIF()
