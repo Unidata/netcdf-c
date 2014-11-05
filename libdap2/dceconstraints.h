@@ -2,7 +2,6 @@
   *   Copyright 1993, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *********************************************************************/
-/* $Header$ */
 
 #ifndef DCECONSTRAINTS_H
 #define DCECONSTRAINTS_H 1

@@ -71,6 +71,7 @@ NC_get_vara(int ncid, int varid,
 #ifdef USE_NETCDF4
    if(memtype >= NC_FIRSTUSERTYPEID) memtype = NC_NAT;
 #endif
+
    if(edges == NULL) {
       size_t shape[NC_MAX_VAR_DIMS];
       int ndims;
@@ -78,9 +79,10 @@ NC_get_vara(int ncid, int varid,
       if(stat != NC_NOERR) return stat;
       stat = NC_getshape(ncid,varid,ndims,shape);
       if(stat != NC_NOERR) return stat;
-      return ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
+      stat = ncp->dispatch->get_vara(ncid,varid,start,shape,value,memtype);
    } else
-      return ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
+      stat =  ncp->dispatch->get_vara(ncid,varid,start,edges,value,memtype);
+   return stat;
 }
 
 /** \ingroup variables 
@@ -589,7 +591,7 @@ allocated by the user before this function is called.
 \returns ::NC_EINDEFINE Operation not allowed in define mode.
 \returns ::NC_EBADID Bad ncid.
 
-\section Example
+\section nc_get_vara_double_example Example
 
 Here is an example using nc_get_vara_double() to read all the values of
 the variable named rh from an existing netCDF dataset named

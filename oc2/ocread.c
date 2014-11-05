@@ -40,8 +40,6 @@ readDDS(OCstate* state, OCtree* tree)
 
     ocurisetconstraints(state->uri,tree->constraint);
 
-    ocset_user_password(state);
-
 #ifdef OCDEBUG
 fprintf(stderr,"readDDS:\n");
 #endif
@@ -106,14 +104,13 @@ readpacket(OCstate* state, OCURI* url,OCbytes* packet,OCdxd dxd,long* lastmodifi
 	int flags = 0;
 	if(!fileprotocol) {
 	    flags |= OCURICONSTRAINTS;
-	    flags |= OCURIUSERPWD;
 	}
 	flags |= OCURIENCODE;
         fetchurl = ocuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
             {fprintf(stderr,"fetch url=%s\n",fetchurl); fflush(stderr);}
-        stat = ocfetchurl(curl,fetchurl,packet,lastmodified);
+        stat = ocfetchurl(curl,fetchurl,packet,lastmodified,&state->creds);
 	if(stat)
 	    oc_curl_printerror(state);
 	if(ocdebug > 0)

@@ -1,14 +1,13 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdump.c,v 1.21 2010/05/26 21:43:31 dmh Exp $
  *********************************************************************/
 
 #include "config.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapdump.h"
 #include "dceconstraints.h"
 
@@ -257,7 +256,7 @@ dumppath(CDFnode* leaf)
     int i;
 
     if(leaf == NULL) return nulldup("");
-    collectnodepath3(leaf,path,!WITHDATASET);
+    collectnodepath(leaf,path,!WITHDATASET);
     for(i=0;i<nclistlength(path);i++) {
 	CDFnode* node = (CDFnode*)nclistget(path,i);
 	if(i > 0) ncbytescat(buf,".");
@@ -510,7 +509,7 @@ dumpcachenode(NCcachenode* node)
 
     if(node == NULL) return strdup("cachenode{null}");
     buf = ncbytesnew();
-    result = buildconstraintstring3(node->constraint);
+    result = buildconstraintstring(node->constraint);
     snprintf(tmp,sizeof(tmp),"cachenode%s(%lx){size=%lu; constraint=%s; vars=",
 		node->isprefetch?"*":"",
 		(unsigned long)node,
@@ -522,7 +521,7 @@ dumpcachenode(NCcachenode* node)
     else for(i=0;i<nclistlength(node->vars);i++) {
 	CDFnode* var = (CDFnode*)nclistget(node->vars,i);
 	if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,makecdfpathstring3(var,"."));
+	ncbytescat(buf,makecdfpathstring(var,"."));
     }
     ncbytescat(buf,"}");
     result = ncbytesdup(buf);
@@ -598,7 +597,11 @@ dumpslices(DCEslice* slice, unsigned int rank)
 
     buf = ncbytesnew();
     for(i=0;i<rank;i++,slice++) {
-        ncbytescat(buf,dumpslice(slice));
+	char* sslice = dumpslice(slice);
+	if(sslice != NULL) {
+	    ncbytescat(buf,sslice);
+	    free(sslice);
+	}
     }
     result = ncbytesdup(buf);
     ncbytesfree(buf);

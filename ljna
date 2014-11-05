@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PREFIX=/home/dmh/opt/jna
+#PREFIX=/usr/local
+LIBDIR=/usr/local/lib
+#LIBDIR="${PREFIX}/lib"
+
+CFLAGS=""
+CPPFLAGS="-I${PREFIX}/include"
+
+LDFLAGS="-L${LIBDIR} -lhdf5_hl -lhdf5 -lz $LDFLAGS"
+LD_LIBRARY_PATH="${LIBDIR}:$LD_LIBRARY_PATH"
+
+MAKE=make
+
+FLAGS="--prefix ${PREFIX}"
+FLAGS="$FLAGS --disable-examples"
+FLAGS="$FLAGS --disable-utilities"
+FLAGS="$FLAGS --enable-shared"
+#FLAGS="$FLAGS --enable-jna"
+
+export PATH
+export CC
+export CPPFLAGS
+export CFLAGS
+export LDFLAGS
+export LD_LIBRARY_PATH
+
+if test -f Makefile ; then ${MAKE} distclean >/dev/null 2>&1 ; fi
+sh ./configure ${FLAGS}
+

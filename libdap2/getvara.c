@@ -1,14 +1,13 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/getvara3.c,v 1.44 2010/05/27 21:34:08 dmh Exp $
  *********************************************************************/
 
 
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapodom.h"
 #include "dapdump.h"
-#include "ncd3dispatch.h"
+#include "ncd2dispatch.h"
 #include "ocx.h"
 
 #define NEWVARM
@@ -38,7 +37,10 @@ static NCerror removepseudodims(DCEprojection* proj);
 
 static int extract(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t dimindex, OClink, OCdatanode, struct NCMEMORY*);
 static int extractstring(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t dimindex, OClink, OCdatanode, struct NCMEMORY*);
+static void freegetvara(Getvara* vara);
+static NCerror makegetvar(NCDAPCOMMON*, CDFnode*, void*, nc_type, Getvara**);
 
+/**************************************************/
 /**
 1. We build the projection to be sent to the server aka
 the fetch constraint.  We want the server do do as much work
@@ -145,7 +147,7 @@ nc3d_getvarx(int ncid, int varid,
    if(FLAGSET(dapcomm->controls,NCF_PREFETCH)
       && !FLAGSET(dapcomm->controls,NCF_PREFETCH_EAGER)) {
         if(dapcomm->cdf.cache != NULL && dapcomm->cdf.cache->prefetch == NULL) {
-            ncstat = prefetchdata3(dapcomm);
+            ncstat = prefetchdata(dapcomm);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}
     }
@@ -241,11 +243,11 @@ fprintf(stderr,"\n");
 	}
     }
 
-    ncstat = makegetvar34(dapcomm,cdfvar,data,dsttype,&varainfo);
+    ncstat = makegetvar(dapcomm,cdfvar,data,dsttype,&varainfo);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Compile the start/stop/stride info into a projection */
-    ncstat = buildvaraprojection3(varainfo->target,
+    ncstat = buildvaraprojection(varainfo->target,
 		                  startp,countp,stridep,
                                   &varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
@@ -301,7 +303,7 @@ fprintf(stderr,"var is in cache\n");
 #ifdef DEBUG
 fprintf(stderr,"getvarx: FETCHWHOLE: fetchconstraint: %s\n",dumpconstraint(fetchconstraint));
 #endif
-        ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+        ncstat = buildcachenode(dapcomm,fetchconstraint,vars,&cachenode,0);
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     } break;
@@ -338,7 +340,7 @@ fprintf(stderr,"getvarx: FETCHVAR: fetchconstraint: %s\n",dumpconstraint(fetchco
         /* buildcachenode3 will create a new cachenode and
            will also fetch the corresponding datadds.
         */
-        ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+        ncstat = buildcachenode(dapcomm,fetchconstraint,vars,&cachenode,0);
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
     } break;
@@ -374,7 +376,7 @@ fprintf(stderr,"getvarx: FETCHPART: fetchconstraint: %s\n",dumpconstraint(fetchc
         /* buildcachenode3 will create a new cachenode and
            will also fetch the corresponding datadds.
         */
-        ncstat = buildcachenode34(dapcomm,fetchconstraint,vars,&cachenode,0);
+        ncstat = buildcachenode(dapcomm,fetchconstraint,vars,&cachenode,0);
 
 	fetchconstraint = NULL; /*buildcachenode34 takes control of fetchconstraint.*/
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
@@ -390,8 +392,8 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 #endif
 
     /* attach DATADDS to (constrained) DDS */
-    unattach34(dapcomm->cdf.ddsroot);
-    ncstat = attachsubset34(cachenode->datadds,dapcomm->cdf.ddsroot);
+    unattach(dapcomm->cdf.ddsroot);
+    ncstat = attachsubset(cachenode->datadds,dapcomm->cdf.ddsroot);
     if(ncstat) goto fail;	
 
     /* Fix up varainfo to use the cache */
@@ -462,7 +464,7 @@ moveto(NCDAPCOMMON* nccomm, Getvara* xgetvar, CDFnode* xrootnode, void* memory)
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
     /* Remember: xgetvar->target is in DATADDS tree */
-    collectnodepath3(xgetvar->target,path,WITHDATASET);
+    collectnodepath(xgetvar->target,path,WITHDATASET);
     ncstat = movetor(nccomm,xrootcontent,
                      path,0,xgetvar,0,&memstate,
                      xgetvar->varaprojection->var->segments);
@@ -775,7 +777,7 @@ fprintf(stderr,"\n");
 	if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 	if(requireconversion) {
 	    /* convert the value to external type */
-            ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
+            ncstat = dapconvert(xnode->etype,xgetvar->dsttype,memory->next,value,1);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
         }
         memory->next += (externtypesize);
@@ -830,7 +832,7 @@ fprintf(stderr,"\n");
 	        char value[16]; /* Big enough to hold any numeric value */
 	        ocstat = oc_data_readn(conn,currentcontent,odom->index,1,interntypesize,value);
 	        if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
-	        ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
+	        ncstat = dapconvert(xnode->etype,xgetvar->dsttype,memory->next,value,1);
 	        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 	        memory->next += (externtypesize);
 	        dapodom_next(odom);
@@ -848,7 +850,7 @@ fprintf(stderr,"\n");
 	        char value[16]; /* Big enough to hold any numeric value */
 	        ocstat = oc_data_readn(conn,currentcontent,odom->index,1,interntypesize,value);
 	        if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
-	        ncstat = dapconvert3(xnode->etype,xgetvar->dsttype,memory->next,value,1);
+	        ncstat = dapconvert(xnode->etype,xgetvar->dsttype,memory->next,value,1);
 	        if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 	        memory->next += (externtypesize);
 	        dapodom_next(odom);
@@ -968,6 +970,213 @@ done:
     return THROW(ncstat);
 }
 
+static NCerror
+makegetvar(NCDAPCOMMON* nccomm, CDFnode* var, void* data, nc_type dsttype, Getvara** getvarp)
+{
+    NCerror ncstat = NC_NOERR;
+
+    if(getvarp)
+    {
+       Getvara* getvar;
+
+       getvar = (Getvara*)calloc(1,sizeof(Getvara));
+       MEMCHECK(getvar,NC_ENOMEM);
+
+       getvar->target = var;
+       getvar->memory = data;
+       getvar->dsttype = dsttype;
+
+       *getvarp = getvar;
+    }
+    return ncstat;
+}
+
+/*
+Given DDS node, locate the node
+in a DATADDS that matches the DDS node.
+Return NULL if no node found
+*/
+
+void
+unattach(CDFnode* root)
+{
+    unsigned int i;
+    CDFtree* xtree = root->tree;
+    for(i=0;i<nclistlength(xtree->nodes);i++) {
+	CDFnode* xnode = (CDFnode*)nclistget(xtree->nodes,i);
+	/* break bi-directional link */
+        xnode->attachment = NULL;
+    }
+}
+
+static void
+setattach(CDFnode* target, CDFnode* template)
+{
+    target->attachment = template;
+    template->attachment = target;
+    /* Transfer important information */
+    target->externaltype = template->externaltype;
+    target->maxstringlength = template->maxstringlength;
+    target->sequencelimit = template->sequencelimit;
+    target->ncid = template->ncid;
+    /* also transfer libncdap4 info */
+    target->typeid = template->typeid;
+    target->typesize = template->typesize;
+}
+
+static NCerror
+attachdims(CDFnode* xnode, CDFnode* template)
+{
+    unsigned int i;
+    for(i=0;i<nclistlength(xnode->array.dimsetall);i++) {
+	CDFnode* xdim = (CDFnode*)nclistget(xnode->array.dimsetall,i);
+	CDFnode* tdim = (CDFnode*)nclistget(template->array.dimsetall,i);
+	setattach(xdim,tdim);
+#ifdef DEBUG2
+fprintf(stderr,"attachdim: %s->%s\n",xdim->ocname,tdim->ocname);
+#endif
+    }
+    return NC_NOERR;
+}
+
+/* 
+Match a DATADDS node to a DDS node.
+It is assumed that both trees have been re-struct'ed if necessary.
+*/
+
+static NCerror
+attachr(CDFnode* xnode, NClist* templatepath, int depth)
+{
+    unsigned int i,plen,lastnode,gridable;
+    NCerror ncstat = NC_NOERR;
+    CDFnode* templatepathnode;
+    CDFnode* templatepathnext;
+
+    plen = nclistlength(templatepath);
+    if(depth >= plen) {THROWCHK(ncstat=NC_EINVAL); goto done;}
+
+    lastnode = (depth == (plen-1));
+    templatepathnode = (CDFnode*)nclistget(templatepath,depth);
+    ASSERT((simplenodematch(xnode,templatepathnode)));
+    setattach(xnode,templatepathnode);    
+#ifdef DEBUG2
+fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,templatepathnode->ocname);
+#endif
+
+    if(lastnode) goto done; /* We have the match and are done */
+
+    if(nclistlength(xnode->array.dimsetall) > 0) {
+	attachdims(xnode,templatepathnode);
+    }
+
+    ASSERT((!lastnode));
+    templatepathnext = (CDFnode*)nclistget(templatepath,depth+1);
+
+    gridable = (templatepathnext->nctype == NC_Grid && depth+2 < plen);
+
+    /* Try to find an xnode subnode that matches templatepathnext */
+    for(i=0;i<nclistlength(xnode->subnodes);i++) {
+        CDFnode* xsubnode = (CDFnode*)nclistget(xnode->subnodes,i);
+        if(simplenodematch(xsubnode,templatepathnext)) {
+	    ncstat = attachr(xsubnode,templatepath,depth+1);
+	    if(ncstat) goto done;
+        } else if(gridable && xsubnode->nctype == NC_Atomic) {
+            /* grids may or may not appear in the datadds;
+	       try to match the xnode subnodes against the parts of the grid
+	    */
+   	    CDFnode* templatepathnext2 = (CDFnode*)nclistget(templatepath,depth+2);
+	    if(simplenodematch(xsubnode,templatepathnext2)) {
+	        ncstat = attachr(xsubnode,templatepath,depth+2);
+                if(ncstat) goto done;
+	    }
+	}
+    }
+done:
+    return THROW(ncstat);
+}
+
+NCerror
+attach(CDFnode* xroot, CDFnode* template)
+{
+    NCerror ncstat = NC_NOERR;
+    NClist* templatepath = nclistnew();
+    CDFnode* ddsroot = template->root;
+
+    if(xroot->attachment) unattach(xroot);
+    if(ddsroot != NULL && ddsroot->attachment) unattach(ddsroot);
+    if(!simplenodematch(xroot,ddsroot))
+	{THROWCHK(ncstat=NC_EINVAL); goto done;}
+    collectnodepath(template,templatepath,WITHDATASET);
+    ncstat = attachr(xroot,templatepath,0);
+done:
+    nclistfree(templatepath);
+    return ncstat;
+}
+
+static NCerror
+attachsubsetr(CDFnode* target, CDFnode* template)
+{
+    unsigned int i;
+    NCerror ncstat = NC_NOERR;
+    int fieldindex;
+
+#ifdef DEBUG2
+fprintf(stderr,"attachsubsetr: attach: target=%s template=%s\n",
+	target->ocname,template->ocname);
+#endif
+
+    ASSERT((nodematch(target,template)));
+    setattach(target,template);
+
+    /* Try to match target subnodes against template subnodes */
+
+    fieldindex = 0;
+    for(fieldindex=0,i=0;i<nclistlength(template->subnodes) && fieldindex<nclistlength(target->subnodes);i++) {
+        CDFnode* templatesubnode = (CDFnode*)nclistget(template->subnodes,i);
+        CDFnode* targetsubnode = (CDFnode*)nclistget(target->subnodes,fieldindex);
+        if(nodematch(targetsubnode,templatesubnode)) {
+#ifdef DEBUG2
+fprintf(stderr,"attachsubsetr: match: %s :: %s\n",targetsubnode->ocname,templatesubnode->ocname);
+#endif
+            ncstat = attachsubsetr(targetsubnode,templatesubnode);
+   	    if(ncstat) goto done;
+	    fieldindex++;
+	}
+    }
+done:
+    return THROW(ncstat);
+}
+
+
+/* 
+Match nodes in template tree to nodes in target tree;
+template tree is typically a structural superset of target tree.
+WARNING: Dimensions are not attached 
+*/
+
+NCerror
+attachsubset(CDFnode* target, CDFnode* template)
+{
+    NCerror ncstat = NC_NOERR;
+
+    if(template == NULL) {THROWCHK(ncstat=NC_NOERR); goto done;}
+    if(!nodematch(target,template)) {THROWCHK(ncstat=NC_EINVAL); goto done;}
+#ifdef DEBUG2
+fprintf(stderr,"attachsubset: target=%s\n",dumptree(target));
+fprintf(stderr,"attachsubset: template=%s\n",dumptree(template));
+#endif
+    ncstat = attachsubsetr(target,template);
+done:
+    return ncstat;
+}
+
+static void
+freegetvara(Getvara* vara)
+{
+    if(vara == NULL) return;
+    dcefree((DCEnode*)vara->varaprojection);
+    nullfree(vara);
+}
 
 #ifdef EXTERN_UNUSED
 int
@@ -1138,7 +1347,7 @@ fprintf(stderr,"new: %lu -> %lu  %f\n",
 	ncstat = nc_get_var1(ncid,varid,indexset,(void*)&internalmem);
         if(ncstat != NC_NOERR) goto done;
 	/* Convert to external type */
-	ncstat = dapconvert3(cdfvar->etype,dsttype,externalmem,internalmem);
+	ncstat = dapconvert(cdfvar->etype,dsttype,externalmem,internalmem);
         if(ncstat != NC_NOERR) goto done;
 	memcpy(dataoffset,(void*)externalmem,externsize);
 /*

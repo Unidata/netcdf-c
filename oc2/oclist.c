@@ -50,12 +50,12 @@ oclistfree(OClist* l)
 int
 oclistsetalloc(OClist* l, size_t sz)
 {
-  void** newcontent;
+  void** newcontent = NULL;
   if(l == NULL) return FALSE;
   if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
   newcontent=(void**)calloc(sz,sizeof(void*));
-  if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
+  if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
   }
   if(l->content != NULL) free(l->content);
@@ -147,7 +147,8 @@ void**
 oclistdup(OClist* l)
 {
     void** result = (void**)malloc(sizeof(void*)*(l->length+1));
-    memcpy((void*)result,(void*)l->content,sizeof(void*)*l->length);
+    if(result != NULL && l != NULL && oclistlength(l) != 0)
+        memcpy((void*)result,(void*)l->content,sizeof(void*)*l->length);
     result[l->length] = (void*)0;
     return result;
 }

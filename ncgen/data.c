@@ -179,7 +179,7 @@ srcline(Datasrc* ds)
     /* pick closest available entry*/
     if(len == 0) return 0;
     if(index >= len) index = len-1;
-    return ds->data[ds->index].lineno;
+    return ds->data[index].lineno;
 }
 
 void

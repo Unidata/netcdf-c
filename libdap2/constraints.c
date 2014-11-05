@@ -1,19 +1,18 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdce3/constraints3.c,v 1.40 2010/05/27 21:34:07 dmh Exp $
  *********************************************************************/
 
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapdump.h"
 #include "dapdump.h"
 #include "dceparselex.h"
 
-static void completesegments3(NClist* fullpath, NClist* segments);
-static NCerror qualifyprojectionnames3(DCEprojection* proj);
-static NCerror qualifyprojectionsizes3(DCEprojection* proj);
-static NCerror matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep);
-static int matchsuffix3(NClist* matchpath, NClist* segments);
+static void completesegments(NClist* fullpath, NClist* segments);
+static NCerror qualifyprojectionnames(DCEprojection* proj);
+static NCerror qualifyprojectionsizes(DCEprojection* proj);
+static NCerror matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep);
+static int matchsuffix(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
 static DCEprojection* projectify(CDFnode* field, DCEprojection* container);
 static int slicematch(NClist* seglist1, NClist* seglist2);
@@ -51,7 +50,7 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
 */
 
 NCerror
-mapconstraints3(DCEconstraint* constraint,
+mapconstraints(DCEconstraint* constraint,
 		CDFnode* root)
 {
     int i;
@@ -64,7 +63,7 @@ mapconstraints3(DCEconstraint* constraint,
 	CDFnode* cdfmatch = NULL;
 	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
 	if(proj->discrim != CES_VAR) continue; // ignore functions
-	ncstat = matchpartialname3(nodes,proj->var->segments,&cdfmatch);
+	ncstat = matchpartialname(nodes,proj->var->segments,&cdfmatch);
 	if(ncstat) goto done;
 	/* Cross links */
 	assert(cdfmatch != NULL);
@@ -82,7 +81,7 @@ done:
     3. selection path
 */
 NCerror
-qualifyconstraints3(DCEconstraint* constraint)
+qualifyconstraints(DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     int i;
@@ -93,8 +92,8 @@ fprintf(stderr,"qualifyconstraints.before: %s\n",
     if(constraint != NULL) {
         for(i=0;i<nclistlength(constraint->projections);i++) {  
             DCEprojection* p = (DCEprojection*)nclistget(constraint->projections,i);
-            ncstat = qualifyprojectionnames3(p);
-            ncstat = qualifyprojectionsizes3(p);
+            ncstat = qualifyprojectionnames(p);
+            ncstat = qualifyprojectionsizes(p);
         }
     }
 #ifdef DEBUG
@@ -108,7 +107,7 @@ fprintf(stderr,"qualifyconstraints.after: %s\n",
    by adding prefix segment objects.
 */
 static NCerror
-qualifyprojectionnames3(DCEprojection* proj)
+qualifyprojectionnames(DCEprojection* proj)
 {
     NCerror ncstat = NC_NOERR;
     NClist* fullpath = nclistnew();
@@ -116,13 +115,13 @@ qualifyprojectionnames3(DCEprojection* proj)
     ASSERT((proj->discrim == CES_VAR
             && proj->var->annotation != NULL
             && ((CDFnode*)proj->var->annotation)->ocnode != NULL));
-    collectnodepath3((CDFnode*)proj->var->annotation,fullpath,!WITHDATASET);
+    collectnodepath((CDFnode*)proj->var->annotation,fullpath,!WITHDATASET);
 #ifdef DEBUG
 fprintf(stderr,"qualify: %s -> ",
 	dumpprojection(proj));
 #endif
     /* Now add path nodes to create full path */
-    completesegments3(fullpath,proj->var->segments);
+    completesegments(fullpath,proj->var->segments);
 
 #ifdef DEBUG
 fprintf(stderr,"%s\n",
@@ -134,7 +133,7 @@ fprintf(stderr,"%s\n",
 
 /* Make sure that the slice declsizes are all defined for this projection */
 static NCerror
-qualifyprojectionsizes3(DCEprojection* proj)
+qualifyprojectionsizes(DCEprojection* proj)
 {
     int i,j;
     ASSERT(proj->discrim == CES_VAR);
@@ -171,7 +170,7 @@ fprintf(stderr,"qualifyprojectionsizes.after: %s\n",
 }
 
 static void
-completesegments3(NClist* fullpath, NClist* segments)
+completesegments(NClist* fullpath, NClist* segments)
 {
     int i,delta;
     /* add path nodes to segments to create full path */
@@ -229,7 +228,7 @@ Additional constraints (4/12/2010):
  */
 
 static NCerror
-matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
+matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep)
 {
     int i,nsegs;
     NCerror ncstat = NC_NOERR;
@@ -269,9 +268,9 @@ matchpartialname3(NClist* nodes, NClist* segments, CDFnode** nodep)
     for(i=0;i<nclistlength(namematches);i++) {
         CDFnode* matchnode = (CDFnode*)nclistget(namematches,i);
 	nclistclear(matchpath);
-	collectnodepath3(matchnode,matchpath,0);
+	collectnodepath(matchnode,matchpath,0);
 	/* Do a suffix match */
-        if(matchsuffix3(matchpath,segments)) {
+        if(matchsuffix(matchpath,segments)) {
 	    nclistpush(matches,(void*)matchnode);
 #ifdef DEBUG
 fprintf(stderr,"matchpartialname: pathmatch: %s :: %s\n",
@@ -298,7 +297,7 @@ matchnode->ncfullname,dumpsegments(segments));
 	for(i=0;i<nclistlength(matches);i++) {
 	    CDFnode* candidate = (CDFnode*)nclistget(matches,i);
 	    nclistclear(matchpath);
-	    collectnodepath3(candidate,matchpath,0);
+	    collectnodepath(candidate,matchpath,0);
 	    if(minpath == 0) {
 		minpath = nclistlength(matchpath);
 		minnode = candidate;
@@ -325,11 +324,14 @@ fprintf(stderr,"matchpartialname: choice: %s %s for %s\n",
 #endif
 
 done:
+    nclistfree(namematches);
+    nclistfree(matches);
+    nclistfree(matchpath);
     return THROW(ncstat);
 }
 
 static int
-matchsuffix3(NClist* matchpath, NClist* segments)
+matchsuffix(NClist* matchpath, NClist* segments)
 {
     int i,pathstart;
     int nsegs = nclistlength(segments);
@@ -376,19 +378,19 @@ matchsuffix3(NClist* matchpath, NClist* segments)
 */
 
 char*
-buildprojectionstring3(NClist* projections)
+buildprojectionstring(NClist* projections)
 {
     return dcebuildprojectionstring(projections);
 }
 
 char*
-buildselectionstring3(NClist* selections)
+buildselectionstring(NClist* selections)
 {
     return dcebuildselectionstring(selections);
 }
 
 char*
-buildconstraintstring3(DCEconstraint* constraints)
+buildconstraintstring(DCEconstraint* constraints)
 {
     return dcebuildconstraintstring(constraints);
 }
@@ -399,7 +401,7 @@ buildconstraintstring3(DCEconstraint* constraints)
    with any pseudo dimensions removed
 */
 NCerror
-buildvaraprojection3(CDFnode* var,
+buildvaraprojection(CDFnode* var,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     DCEprojection** projectionp)
 {
@@ -590,7 +592,7 @@ fprintf(stderr,"fixprojection: list = %s\n",dumpprojections(list));
 	    if(p2 == NULL) continue;
 	    if(p2->discrim != CES_VAR) continue;
 	    nclistclear(tmp);
-	    collectnodepath3((CDFnode*)p2->var->annotation,tmp,WITHDATASET);
+	    collectnodepath((CDFnode*)p2->var->annotation,tmp,WITHDATASET);
 	    for(k=0;k<nclistlength(tmp);k++) {
 		void* candidate = (void*)nclistget(tmp,k);
 	        if(candidate == p1->var->annotation) {
@@ -717,7 +719,7 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
     int dimindex;
 
     /* Collect the nodes needed to construct the projection segments */    
-    collectnodepath3(var,path,!WITHDATASET);
+    collectnodepath(var,path,!WITHDATASET);
 
     segments = nclistnew();
     dimindex = 0; /* point to next subset of slices */

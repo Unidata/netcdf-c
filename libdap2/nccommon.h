@@ -1,7 +1,6 @@
 /*********************************************************************
   *   Copyright 1993, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
-  *   $Header: /upc/share/CVS/netcdf-3/libnccommon/nccommon.h,v 1.40 2010/05/30 19:45:52 dmh Exp $
   *********************************************************************/
 
 #ifndef NCCOMMON_H
@@ -157,7 +156,7 @@ typedef struct NCCDF {
 #endif
 } NCCDF;
 
-/* Define a structure holding common info for NCDAP{3,4} */
+/* Define a structure holding common info for NCDAP */
 
 typedef struct NCDAPCOMMON {
     NC*   controller; /* Parent instance of NCDAPCOMMON */
@@ -182,7 +181,7 @@ typedef struct CDFtree {
     NClist*  gridnodes; /* grid nodes */
     NClist*  dimnodes; /* (base) dimension nodes */
     /* Classification flags */
-    int restructed; /* Was this tree passed thru restruct3? */
+    int restructed; /* Was this tree passed thru restruct? */
 } CDFtree;
 
 /* Track the kinds of dimensions */
@@ -289,48 +288,40 @@ typedef struct CDFnode {
 /**************************************************/
 /* Shared procedures */
 
-/* From ncdap3.c*/
-extern NCerror freeNCDAPCOMMON(NCDAPCOMMON*);
-extern NCerror fetchtemplatemetadata3(NCDAPCOMMON*);
-
 /* From error.c*/
 extern NCerror ocerrtoncerr(OCerror);
 
-/* From: common34.c */
-extern NCerror fixgrid34(NCDAPCOMMON* drno, CDFnode* grid);
-extern NCerror computecdfinfo34(NCDAPCOMMON*, NClist*);
-extern char* cdfname34(char* basename);
-extern NCerror augmentddstree34(NCDAPCOMMON*, NClist*);
-extern NCerror computecdfdimnames34(NCDAPCOMMON*);
-extern NCerror buildcdftree34(NCDAPCOMMON*, OCddsnode, OCdxd, CDFnode**);
-extern CDFnode* makecdfnode34(NCDAPCOMMON*, char* nm, OCtype,
-			    /*optional*/ OCddsnode ocnode, CDFnode* container);
-extern void freecdfroot34(CDFnode*);
-extern NCerror makegetvar34(NCDAPCOMMON*, struct CDFnode*, void*, nc_type, struct Getvara**);
-extern NCerror applyclientparams34(NCDAPCOMMON* drno);
-extern NCerror attach34(CDFnode* xroot, CDFnode* ddstarget);
-extern NCerror attachall34(CDFnode* xroot, CDFnode* ddsroot);
-extern NCerror attachsubset34(CDFnode*, CDFnode*);
-extern void unattach34(CDFnode*);
-extern int nodematch34(CDFnode* node1, CDFnode* node2);
-extern int simplenodematch34(CDFnode* node1, CDFnode* node2);
-extern CDFnode* findxnode34(CDFnode* target, CDFnode* xroot);
-extern int constrainable34(NCURI*);
-extern char* makeconstraintstring34(DCEconstraint*);
-extern size_t estimatedataddssize34(CDFnode* datadds);
-extern void canonicalprojection34(NClist*, NClist*);
-extern NClist* getalldims34(NCDAPCOMMON* nccomm, int visibleonly);
+extern NCerror attach(CDFnode* xroot, CDFnode* ddstarget);
+extern void unattach(CDFnode*);
+extern int nodematch(CDFnode* node1, CDFnode* node2);
+extern int simplenodematch(CDFnode* node1, CDFnode* node2);
+extern CDFnode* findxnode(CDFnode* target, CDFnode* xroot);
+extern int constrainable(NCURI*);
+extern char* makeconstraintstring(DCEconstraint*);
+extern size_t estimatedataddssize(CDFnode* datadds);
+extern void canonicalprojection(NClist*, NClist*);
+extern NClist* getalldims(NCDAPCOMMON* nccomm, int visibleonly);
 
-/* From cdf3.c */
-extern NCerror dimimprint3(NCDAPCOMMON*);
-extern NCerror definedimsets3(NCDAPCOMMON*,CDFtree*);
-extern NCerror definedimsettrans3(NCDAPCOMMON*,CDFtree*);
+/* From cdf.c */
+extern NCerror fixgrid(NCDAPCOMMON* drno, CDFnode* grid);
+extern NCerror computecdfinfo(NCDAPCOMMON*, NClist*);
+extern char* cdfname(char* basename);
+extern NCerror augmentddstree(NCDAPCOMMON*, NClist*);
+extern NCerror computecdfdimnames(NCDAPCOMMON*);
+extern NCerror buildcdftree(NCDAPCOMMON*, OCddsnode, OCdxd, CDFnode**);
+extern CDFnode* makecdfnode(NCDAPCOMMON*, char* nm, OCtype,
+			    /*optional*/ OCddsnode ocnode, CDFnode* container);
+extern void freecdfroot(CDFnode*);
+
+extern NCerror dimimprint(NCDAPCOMMON*);
+extern NCerror definedimsets(NCDAPCOMMON*,CDFtree*);
+extern NCerror definedimsettrans(NCDAPCOMMON*,CDFtree*);
 
 /* From cache.c */
 extern int iscached(NCDAPCOMMON*, CDFnode* target, NCcachenode** cachenodep);
-extern NCerror prefetchdata3(NCDAPCOMMON*);
-extern NCerror markprefetch3(NCDAPCOMMON*);
-extern NCerror buildcachenode34(NCDAPCOMMON*,
+extern NCerror prefetchdata(NCDAPCOMMON*);
+extern NCerror markprefetch(NCDAPCOMMON*);
+extern NCerror buildcachenode(NCDAPCOMMON*,
 	        DCEconstraint* constraint,
 		NClist* varlist,
 		NCcachenode** cachep,
@@ -346,8 +337,8 @@ extern void freenccache(NCDAPCOMMON*, NCcache* cache);
 extern int nc__opendap(void);
 
 /* Define accessors for the dispatchdata */
-#define NCD3_DATA(nc) ((NCDAPCOMMON*)(nc)->dispatchdata)
-#define NCD3_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
+#define NCD2_DATA(nc) ((NCDAPCOMMON*)(nc)->dispatchdata)
+#define NCD2_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
 
 
 #endif /*NCCOMMON_H*/

@@ -236,8 +236,9 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
    int d;
    size_t type_size;
-   float num_values = 1, num_set = 0;
+   float num_values = 1, num_unlim = 0;
    int retval;
+   size_t suggested_size;
 #ifdef LOGGING   
    double total_chunk_size;
 #endif
@@ -254,15 +255,26 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 #endif
 
    /* How many values in the variable (or one record, if there are
-    * unlimited dimensions); which is the largest dimension, and how
-    * long is it? */
+    * unlimited dimensions). */
    for (d = 0; d < var->ndims; d++)
    {
       assert(var->dim[d]);
-      if (var->dim[d]->len > 0) 
+      if (! var->dim[d]->unlimited) 
 	 num_values *= (float)var->dim[d]->len;
-      else
-	 num_set++;
+      else {
+	  num_unlim++;
+	  var->chunksizes[d] = 1; /* overwritten below, if all dims are unlimited */
+      }
+   }
+
+   if (var->ndims > 0 && var->ndims == num_unlim) { /* all dims unlimited */
+       suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
+       for (d = 0; d < var->ndims; d++)
+       {
+	   var->chunksizes[d] = suggested_size ? suggested_size : 1;
+	   LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
+		"chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
+       }
    }
 
    /* Pick a chunk length for each dimension, if one has not already
@@ -270,22 +282,14 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    for (d = 0; d < var->ndims; d++)
       if (!var->chunksizes[d])
       {
-	 size_t suggested_size;
 	 suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size), 
-			       1/(double)(var->ndims - num_set)) * var->dim[d]->len - .5);
+			       1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
 	 if (suggested_size > var->dim[d]->len)
 	    suggested_size = var->dim[d]->len;
 	 var->chunksizes[d] = suggested_size ? suggested_size : 1;
 	 LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
 	      "chunksize %ld", __func__, var->name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
       }
-
-   /* For 1D record variables, use reasonable chunksize instead of 1 */
-   if (var->ndims == 1 && var->dim[0]->unlimited && var->chunksizes[0] == 1) {
-       var->chunksizes[0] = (size_t) ((double)DEFAULT_CHUNK_SIZE/type_size);
-       if (var->chunksizes[0] < 1)
-	   var->chunksizes[0] = 1;
-   }
 
 #ifdef LOGGING   
    /* Find total chunk size. */
@@ -294,7 +298,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
    LOG((4, "total_chunk_size %f", total_chunk_size));
 #endif
    
-   /* But did this add up to a chunk that is too big? */
+   /* But did this result in a chunk that is too big? */
    retval = check_chunksizes(grp, var, var->chunksizes);
    if (retval)
    {
@@ -313,7 +317,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     * beer. */
    for (d = 0; d < var->ndims; d++)
    {
-       int num_chunks;
+       size_t num_chunks;
        size_t overhang;
        assert(var->chunksizes[d] > 0);
        num_chunks = (var->dim[d]->len + var->chunksizes[d] - 1) / var->chunksizes[d];
@@ -637,7 +641,6 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
    NC_VAR_INFO_T *var;
    NC_ATT_INFO_T *att;
    int natts=0;
-   size_t type_size;
    int d;
    int retval;
 
@@ -758,11 +761,14 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
          {
             if (!(fill_valuep = calloc(1, sizeof(char *))))
                return NC_ENOMEM;
+	    
             if ((retval = nc4_get_default_fill_value(var->type_info, (char **)fill_valuep)))
             {
                free(fill_valuep);
                return retval;
-            }
+            } else {
+	      free(fill_valuep);
+	    }
          }
          else
          {
@@ -794,7 +800,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
-   size_t type_size;
    int d;
    int retval;
 
@@ -1021,11 +1026,11 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *contiguousp, int *chunksizesp
                            NULL, NULL, NULL, NULL, contiguousp, cs, NULL,
                            NULL, NULL, NULL, NULL);
 
-   /* Copy to size_t array. */
+   /* Copy from size_t array. */
    if (*contiguousp == NC_CHUNKED)
       for (i = 0; i < var->ndims; i++)
       {
-	 chunksizesp[i] = cs[i];
+	 chunksizesp[i] = (int)cs[i];
 	 if (cs[i] > NC_MAX_INT)
 	    retval = NC_ERANGE;
       }

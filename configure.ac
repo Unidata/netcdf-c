@@ -15,7 +15,7 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address. 
-AC_INIT([netCDF], [4.3.1.2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3.3-rc1], [support-netcdf@unidata.ucar.edu])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.
@@ -93,6 +93,20 @@ test "x$enable_fsync" = xno || enable_fsync=yes
 AC_MSG_RESULT($enable_fsync)
 if test "x$enable_fsync" = xyes ; then
 AC_DEFINE([USE_FSYNC], [1], [if true, include experimental fsync code])
+fi
+
+# Temporary until JNA bug is fixed (which is probably never).
+# See Jira NCF-298
+AC_MSG_CHECKING([if jna bug workaround is enabledd])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug workaround])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
 # Does the user want to run extra tests with valgrind?
@@ -522,12 +536,36 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_C_CONST
 
+# CURLOPT_USERNAME is not defined until curl version 7.19.1
+# CURLOPT_PASSWORD is not defined until curl version 7.19.1
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-# CURLOPT_RESPONSE_CODE is not defined until curl version 7.10.7
+# CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
 CFLAGS="${curl_cflags}"
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_USERNAME;]])],
+                   [haveusername=yes],
+                   [haveusername=no])
+AC_MSG_CHECKING([whether CURLOPT_USERNAME is defined])
+AC_MSG_RESULT([${haveusername}])
+if test $haveusername = yes; then
+  AC_DEFINE([HAVE_CURLOPT_USERNAME],[1],[Is CURLOPT_USERNAME defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_PASSWORD;]])],
+                   [havepassword=yes],
+                   [havepassword=no])
+AC_MSG_CHECKING([whether CURLOPT_PASSWORD is defined])
+AC_MSG_RESULT([${havepassword}])
+if test $havepassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_PASSWORD],[1],[Is CURLOPT_PASSWORD defined])
+fi
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
@@ -542,13 +580,13 @@ fi
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
-[[int x = CURLOPT_RESPONSE_CODE;]])],
+[[int x = CURLINFO_RESPONSE_CODE;]])],
                    [haveresponsecode=yes],
                    [haveresponsecode=no])
-AC_MSG_CHECKING([whether CURLOPT_RESPONSE_CODE is defined])
+AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
 AC_MSG_RESULT([${haveresponsecode}])
 if test $haveresponsecode = yes; then
-  AC_DEFINE([HAVE_CURLOPT_RESPONSE_CODE],[1],[Is CURLOPT_RESPONSE_CODE defined])
+  AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
 fi
 
 CFLAGS="$SAVECFLAGS"
@@ -717,7 +755,16 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
-
+   # The user may have built HDF5 with libdl (dynamic loading support).
+   if test "x$enable_dynamic_loading" = xyes; then
+      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
+      if test "x$nc_dlfcn_h_missing" = xyes; then
+      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
+      fi
+      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
+      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
+   fi
+   
    # Check for the main hdf5 and hdf5_hl library.
 
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [], 
@@ -760,17 +807,6 @@ if test "x$enable_netcdf_4" = xyes; then
    	AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
   	AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
-
-   # The user may have built HDF5 with libdl (dynamic loading support).
-   if test "x$enable_dynamic_loading" = xyes; then
-      AC_CHECK_HEADERS([dlfcn.h], [], [nc_dlfcn_h_missing=yes])
-      if test "x$nc_dlfcn_h_missing" = xyes; then
-      	      AC_MSG_ERROR([Cannot find dlfcn.h, yet --enable-dynamic-loading was used.])
-      fi
-      AC_CHECK_LIB([dl],[dlopen], [], [AC_MSG_ERROR([Can't find or link against libdf. See config.log for errors.])])
-      AC_DEFINE([USE_LIBDL],[1], [if true, enable dynamic loading support])
-   fi
-   
 
    # If the user wants hdf4 built in, check it out.
    if test "x$enable_hdf4" = xyes; then
@@ -927,6 +963,19 @@ AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_HDF5,[$enable_netcdf_4])
 AC_SUBST(HAS_SZLIB,[$nc_has_szlib])
+
+# temporary to deal with a JNA problem
+AC_MSG_CHECKING([If compilation is for use with JNA])
+AC_ARG_ENABLE([jna],
+              [AS_HELP_STRING([--enable-jna],
+                              [enable jna bug fix])],
+				[],
+				[enable_jna=no])
+test "x$enable_jna" = xno || enable_jna=yes
+AC_MSG_RESULT($enable_jna)
+if test "x$enable_jna" = xyes ; then
+AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
+fi
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],

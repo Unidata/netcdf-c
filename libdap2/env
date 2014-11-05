@@ -6,9 +6,9 @@ alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias q
 #TOP="/home/dmh/mach/netcdf-c"
 TOP="/cygdrive/f/git/netcdf-c"
 
-F="http://tiggeUser:tigge@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
+F="http://thredds.ucar.edu/thredds/dodsC/grib/NCEP/NAM/CONUS_12km/best"
+#CON="OneD.amp,TwoD.amp,ThreeD.amp"
 
-#CON='SPEED.SPEED'
 #VAR=SPEED
 
 #PROG=./ncd

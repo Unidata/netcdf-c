@@ -9,7 +9,7 @@ FOREACH(F ${exam_C_tests})
 ENDFOREACH()
 
 FOREACH(F ${exam_C_tests})
-	add_bin_test(C_tests ${F})
+  add_bin_test(C_tests ${F})
 ENDFOREACH()
 
 

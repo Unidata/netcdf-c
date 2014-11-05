@@ -1,4 +1,7 @@
-build
+debug.txt
+CTestConfig.cmake
+Vagrantfile
+build*
 html
 doxygen*.tmp
 \#*.*\#
@@ -15,3 +18,7 @@ scan-build
 *.gz
 Makefile
 .DS_Store
+build-par
+build_llvm
+.vagrant
+Vagrantfile

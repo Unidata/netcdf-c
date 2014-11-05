@@ -1,14 +1,13 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapdebug.c,v 1.9 2009/09/23 22:26:00 dmh Exp $
  *********************************************************************/
 #include "config.h"
 #include <stdarg.h>
 #include <stdio.h>
 
 #include "nclog.h"
-#include "ncdap3.h"
+#include "ncdap.h"
 
 int ncdap3debug = 0;
 
@@ -52,5 +51,5 @@ ocfqn(OCddsnode node)
 {
     OClink conn;
     oc_get_connection(node,&conn);
-    return makeocpathstring3(conn,node,".");
+    return makeocpathstring(conn,node,".");
 }

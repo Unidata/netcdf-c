@@ -130,13 +130,6 @@ REMOTETESTSC3="\
 argo_all.cdp;1;&location.LATITUDE<1&location.LATITUDE>-1\
 "
 
-# Test string access 
-# this test cannot be used because the
-# dataset has a limited lifetime
-#REMOTEURLC4="http://thredds-test.ucar.edu/thredds/dodsC/station/metar"
-#REMOTETESTSC4="\
-#Surface_METAR_20120101_0000.nc;1;weather[0:10]"
-
 # Constrained long tests
 REMOTEURLLC1="$DTS"
 REMOTETESTSLC1="\

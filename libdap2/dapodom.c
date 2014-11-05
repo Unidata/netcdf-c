@@ -1,10 +1,9 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapodom.c,v 1.12 2010/05/27 21:34:08 dmh Exp $
  *********************************************************************/
 
-#include "ncdap3.h"
+#include "ncdap.h"
 #include "dapodom.h"
 
 /**********************************************/

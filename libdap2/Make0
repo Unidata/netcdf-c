@@ -1,14 +1,9 @@
 NCLIB=../liblib/.libs/libnetcdf.a
 NCINCL=-I ../liblib
 
-#CYGWIN
-#LFLAG=-L/usr/lib -L/usr/local/lib
-#HDF5LIB=/usr/lib/libhdf5_hl.a /usr/lib/libhdf5.a
+LFLAG=-L/usr/local/lib
 
-#!CYGWIN
-LFLAG=-L/upc/share/ed/local/${HOST}/lib
-HDF5LIB=/share/ed/local/${HOST}/lib/libhdf5_hl.a /share/ed/local/${HOST}/lib/libhdf5.a
-
+HDF5LIB=-lhdf5_hl -lhdf5
 CURLLIB=-lcurl
 ZLIB=-lz
 
@@ -262,7 +257,7 @@ e::
 	cc -E -g -c ${E}.c ${INCL} -I../oc2 >${E}.txt
 
 ##################################################
-T=
+T=t_auth
 
 v::
 	cc -g -c ${T}.c ${INCL}

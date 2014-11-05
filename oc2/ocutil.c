@@ -359,11 +359,11 @@ ocerrstring(int err)
 	case OC_EDIMSIZE:
 	    return "OC_EDIMSIZE: Invalid dimension size";
 	case OC_EDAP:
-	    return "OC_EDAP: DAP failure";
+	    return "OC_EDAP: unspecified DAP failure";
 	case OC_EXDR:
 	    return "OC_EXDR: XDR failure";
 	case OC_ECURL:
-	    return "OC_ECURL: libcurl failure";
+	    return "OC_ECURL: unspecified libcurl failure";
 	case OC_EBADURL:
 	    return "OC_EBADURL: malformed url";
 	case OC_EBADVAR:
@@ -398,6 +398,11 @@ ocerrstring(int err)
 	/* String concatenation overrun */
 	case OC_EOVERRUN:
 	    return "OC_EOVERRUN: internal concatenation failed";
+
+	/* Authorization Error */
+	case OC_EAUTH:
+	    return "OC_EAUTH: authorization failure";
+
 	default: break;
     }
     return "<unknown error code>";

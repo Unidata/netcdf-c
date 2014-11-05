@@ -2320,7 +2320,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
          
       if (v1)
       {
-         hsize_t *new_size;
+         hsize_t *new_size = NULL;
          NC_GRP_INFO_T *g;
          NC_DIM_INFO_T *dim1;
          int d1;
@@ -2347,8 +2347,10 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
                      }
             }
          }
-         if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0)
-            BAIL(NC_EHDFERR);
+         if (H5Dset_extent(v1->hdf_datasetid, new_size) < 0) {
+	   free(new_size);
+	   BAIL(NC_EHDFERR);
+	 }
          free(new_size);
       }
    }
@@ -2363,6 +2365,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, int write_dimid)
 
    return NC_NOERR;
   exit:
+   
    return retval;
 }
 

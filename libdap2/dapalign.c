@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapalign.c,v 1.5 2009/09/23 22:26:00 dmh Exp $
  *********************************************************************/
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -25,7 +24,7 @@ Author: D. Heimbigner 10/7/2008
 */
 #include "config.h"
 #ifndef OFFSETTEST
-#include        "ncdap3.h"
+#include        "ncdap.h"
 #else
 #include        <stdlib.h>
 #include        <string.h>

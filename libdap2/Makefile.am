@@ -15,12 +15,12 @@ EXTRA_DIST = CMakeLists.txt
 
 LDADD=
 
-SRC= constraints3.c common34.c dapcvt.c dapalign.c dapodom.c daputil.c	\
-ncdaperr.c cdf3.c cache.c dapdump.c dapdebug.c dapattr3.c		\
-ncd3dispatch.c ncdap3.c ncdap3a.c getvara3.c dceconstraints.c dcetab.c	\
+SRC= constraints.c dapcvt.c dapalign.c dapodom.c daputil.c	\
+ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c		\
+ncd2dispatch.c getvara.c dceconstraints.c dcetab.c	\
 dceparse.c dcelex.c
 
-HDRS= nccommon.h constraints3.h ncd3dispatch.h ncdap3.h dapalign.h	\
+HDRS= nccommon.h constraints.h ncd2dispatch.h ncdap.h dapalign.h	\
 dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
 dceconstraints.h dcetab.h dceparselex.h
 

@@ -5,10 +5,39 @@ Release Notes {#release_notes}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the netcdf-c++ and netcdf-fortran libraries have been separated into their own libraries.
 
-## 4.3.1.2 Released TBD
+## 4.3.3 Released TBD
 
+### 4.3.3-rc1 Released TBD
+
+## 4.3.2 Released 2014-04-23
+
+* As part of an ongoing project, the Doxygen-generated netcdf documentation has been reorganized.  The goal is to make the documentation easier to parse, and to eliminate redundant material.  This project is ongoing.
+
+* The oc .dodsrc reader was improperly handling the user name and password entries. [NCF-299](https://bugtracking.unidata.ucar.edu/browse/NCF-299)
+
+* CTestConfig.cmake has been made into a template so that users may easily specify the location of an alternative CDash-based Dashboard using the following two options:
+
+	* `NC_TEST_DROP_SITE` - Specify an alternative Dashboard by URL or IP address.
+
+	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
+	
+* Return an error code on open instead of an assertion violation for truncated file.
+
+### 4.3.2-rc2 Released 2014-04-15
+
+* Cleaned up a number of CMake inconsistencies related to CMake usage, parallel builds.
+* Now passing -Wl,--no-undefined to linker when appropriate.
+* Corrected an issue preventing large file tests from running correctly under Windows.
+* Misc Bug Fixes detected by static analysis.
+
+### 4.3.2-rc1 Released 2014-03-20
+
+* Pre-built Windows downloads will now be bundled with the latest (as of the time of this writing) versions of the various dependencies:
+	* `hdf5: 1.8.12`
+	* `zlib: 1.2.8`
+	* `libcurl: 7.35.0`
+	
 * Added a separate flag to enable DAP AUTH tests. These tests are disabled by default.  The flags for autotools and CMAKE-based builds are (respectively):
-
 	* --enable-dap-auth-tests
 	* -DENABLE\_DAP\_AUTH\_TESTS
 
@@ -31,8 +60,6 @@ This file contains a high-level description of this package's evolution. Release
 * Addressed an issue where `cmake`-based builds would not properly create a `pkg-config` file. This file is now created properly by `cmake`.  [NCF-288](https://bugtracking.unidata.ucar.edu/browse/NCF-288)
 
 * Addressed an issue related to old DAP servers. [NCF-287](https://bugtracking.unidata.ucar.edu/browse/NCF-287)
-
-* When using `cmake` to build, and `doxygen` is detected, documentation is now built automatically unless suppressed with `-DENABLE_DOXYGEN=OFF`.
 
 ## 4.3.1.1 Released 2014-02-05
 

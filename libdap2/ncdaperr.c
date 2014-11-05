@@ -1,10 +1,9 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/ncdaperr.c,v 1.10 2009/09/23 22:26:08 dmh Exp $
  *********************************************************************/
 
-#include "ncdap3.h"
+#include "ncdap.h"
 
 NCerror
 ocerrtoncerr(OCerror ocerr)

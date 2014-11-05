@@ -272,7 +272,7 @@ dumpfield(size_t index, char* n8, int isxdr)
     line[0] = '\0';
 
     /* offset */
-    sprintf(tmp,"%6d",index);
+    sprintf(tmp,"%6zd",index);
     addfield(tmp,line,5);
 
     memcpy(form.cv,n8,4);

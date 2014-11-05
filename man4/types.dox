@@ -1,12 +1,12 @@
 /** \file 
 Documentation of types.
 
-\page data_type Data Type
+\page data_type Data Types
 
 Data in a netCDF file may be one of the \ref external_types, or may be
 a user-defined data type (see \ref user_defined_types).
 
-\page external_types External Data Types
+\section external_types External Data Types
 
 The atomic external types supported by the netCDF interface are:
 - ::NC_BYTE 	8-bit signed integer
@@ -84,7 +84,7 @@ converted into other numeric types, it is interpreted as signed.
 For the correspondence between netCDF external data types and the data
 types of a language see \ref variables.
 
-\page classic_structures Data Structures in Classic and 64-bit Offset Files
+\section classic_structures Data Structures in Classic and 64-bit Offset Files
 
 The only kind of data structure directly supported by the netCDF
 classic (and 64-bit offset) abstraction is a collection of named
@@ -125,7 +125,7 @@ attributes, or variables that refer to other attributes or variables,
 provides a flexible mechanism for representing some kinds of complex
 structures in netCDF datasets.
 
-\page user_defined_types NetCDF-4 User Defined Data Types
+\section user_defined_types NetCDF-4 User Defined Data Types
 
 NetCDF supported six data types through version 3.6.0 (char, byte,
 short, int, float, and double). Starting with version 4.0, many new
@@ -163,7 +163,7 @@ nc_put_var1()/nc_get_var1(), nc_put_vara()/nc_get_vara(), or
 nc_put_vars()/nc_get_vars() functons to access attribute and variable
 data of user defined type.
 
-\section Compound Types
+\subsection Compound Types
 
 Compound types allow the user to combine atomic and user-defined types
 into C-like structs. Since users defined types may be used within a
@@ -183,7 +183,7 @@ are portable.
 For more information on creating and using compound types, see
 Compound Types in The NetCDF C Interface Guide.
 
-\section VLEN Types
+\subsection VLEN Types
 
 Variable length arrays can be used to create a ragged array of data,
 in which one of the dimensions varies in size from point to point.
@@ -210,21 +210,21 @@ and pointers to the data, rather than the actual data.
 For more information on creating and using variable length arrays, see
 Variable Length Arrays in The NetCDF C Interface Guide.
 
-\section Opaque Types
+\subsection Opaque Types
 
 Opaque types allow the user to store arrays of data blobs of a fixed size.
 
 For more information on creating and using opaque types, see Opaque
 Type in The NetCDF C Interface Guide.
 
-\section Enum Types
+\subsection Enum Types
 
 Enum types allow the user to specify an enumeration.
 
 For more information on creating and using enum types, see Enum Type
 in The NetCDF C Interface Guide.  
 
-\page type_conversion Type Conversion
+\section type_conversion Type Conversion
 
 Each netCDF variable has an external type, specified when the variable
 is first defined. This external type determines whether the data is

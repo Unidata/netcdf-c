@@ -1,7 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *   $Header: /upc/share/CVS/netcdf-3/libncdap3/dapalign.h,v 1.3 2009/09/23 22:26:00 dmh Exp $
  *********************************************************************/
 #ifndef ALIGN_H
 #define ALIGN_H 1

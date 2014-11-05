@@ -69,7 +69,9 @@ are set when opening a binary file on Windows. */
 
 /* Various other options. */
 #cmakedefine BUILD_V2 1
+#cmakedefine NO_NETCDF_2 1
 #cmakedefine USE_FSYNC 1
+#cmakedefine JNA 1
 #cmakedefine ENABLE_DOXYGEN 1
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
@@ -96,9 +98,12 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_ZLIB 1
 #cmakedefine USE_X_GETOPT 1
 #cmakedefine LARGE_FILE_TESTS 1
-#cmakedefine HAVE_CURLOPT_KEYPASSWD
 #cmakedefine HAVE_DECL_ISFINITE 1
-#cmakedefine HAVE_DECL_ISNAN
+#cmakedefine HAVE_DECL_ISNAN 1
+#cmakedefine HAVE_CURLOPT_USERNAME 1
+#cmakedefine HAVE_CURLOPT_PASSWORD 1
+#cmakedefine HAVE_CURLOPT_KEYPASSWD 1
+#cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 #cmakedefine HAVE_ALLOCA
@@ -200,6 +205,8 @@ are set when opening a binary file on Windows. */
 /* Define if we have filelengthi64. */
 #cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
 
+/* The size of `char` as computed by sizeof. */
+#cmakedefine SIZEOF_CHAR @SIZEOF_CHAR@
 /* The size of `double` as computed by sizeof. */
 #cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
 /* The size of `float` as computed by sizeof. */
