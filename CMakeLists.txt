@@ -1528,12 +1528,7 @@ install(
 # End export files
 ####
 
-###
-# If build fortran, we will want to run a script.
-###
-IF(BUILD_FORTRAN)
-  INSTALL(SCRIPT "${CMAKE_SOURCE_DIR}/PostInstall.cmake")
-ENDIF(BUILD_FORTRAN)
+
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
