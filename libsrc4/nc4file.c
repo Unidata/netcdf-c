@@ -302,6 +302,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
    if ((cmode & NC_MPIIO) || (cmode & NC_MPIPOSIX))
    {
       nc4_info->parallel = NC_TRUE;
+
+/* If the MPI-POSIX VFD is available in HDF5, allow using it.  Otherwise,
+ * alias NC_MPIPOSIX to use the MPI-IO VFD.
+ */
+#ifdef USE_PARALLEL_POSIX
       if (cmode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "creating parallel file with MPI/IO"));
@@ -314,6 +319,11 @@ nc4_create_file(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#else /* USE_PARALLEL_POSIX */
+     LOG((4, "creating parallel file with MPI/IO"));
+     if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
+        BAIL(NC_EPARINIT);
+#endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
@@ -2162,6 +2172,11 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
    if (mode & NC_MPIIO || mode & NC_MPIPOSIX)
    {
       nc4_info->parallel = NC_TRUE;
+
+/* If the MPI-POSIX VFD is available in HDF5, allow using it.  Otherwise,
+ * alias NC_MPIPOSIX to use the MPI-IO VFD.
+ */
+#ifdef USE_PARALLEL_POSIX
       if (mode & NC_MPIIO)  /* MPI/IO */
       {
 	 LOG((4, "opening parallel file with MPI/IO"));
@@ -2174,6 +2189,11 @@ nc4_open_file(const char *path, int mode, MPI_Comm comm,
 	 if (H5Pset_fapl_mpiposix(fapl_id, comm, 0) < 0)
 	    BAIL(NC_EPARINIT);
       }
+#else /* USE_PARALLEL_POSIX */
+     LOG((4, "opening parallel file with MPI/IO"));
+     if (H5Pset_fapl_mpio(fapl_id, comm, info) < 0)
+        BAIL(NC_EPARINIT);
+#endif /* USE_PARALLEL_POSIX */
 
       /* Keep copies of the MPI Comm & Info objects */
       if (MPI_SUCCESS != MPI_Comm_dup(comm, &nc4_info->comm))
