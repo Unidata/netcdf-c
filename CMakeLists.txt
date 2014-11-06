@@ -309,6 +309,14 @@ OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
   SET(LOGGING ON)
 ENDIF()
+
+# Option to automatically build netcdf-fortran.
+OPTION(BUILD_FORTRAN "Download and build netcdf-fortran automatically." OFF)
+IF(BUILD_FORTRAN)
+  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/fortran_install.sh.in"
+    "${CMAKE_BINARY_DIR}/fortran_install.sh")
+ENDIF(BUILD_FORTRAN)
+
 # Option to use HDF4
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
@@ -1519,6 +1527,13 @@ install(
 ####
 # End export files
 ####
+
+###
+# If build fortran, we will want to run a script.
+###
+IF(BUILD_FORTRAN)
+  INSTALL(SCRIPT "${CMAKE_SOURCE_DIR}/PostInstall.cmake")
+ENDIF(BUILD_FORTRAN)
 
 # CPack inclusion must come last.
 INCLUDE(CPack)
