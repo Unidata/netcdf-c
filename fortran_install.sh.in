@@ -15,4 +15,4 @@ git checkout v4.4.1
 ###
 # Invoke cmake to build netcdf-fortran
 ###
-cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ && make && make install
+cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ && make && make test &&  make install
