@@ -25,9 +25,11 @@ nc_inq_libvers(void)
    return nc_libvers;
 }
 
-/** \addtogroup error NetCDF Error Handling
+/*! NetCDF Error Handling
 
-NetCDF functions non-zero status codes on error.
+\addtogroup error NetCDF Error Handling
+
+NetCDF functions return a non-zero status codes on error.
 
 Each netCDF function returns an integer status value. If the returned
 status value indicates an error, you may handle it in any way desired,
@@ -48,10 +50,11 @@ available, you may get an error from a layer below the netCDF library,
 but the resulting write error will still be reflected in the returned
 status value.
 
- */
+*/
 
-/*! Given an error number, return an error message. 
-\addtogroup error
+/** \{ */
+
+/*! Given an error number, return an error message.
 
 This function returns a static reference to an error message string
 corresponding to an integer netCDF error status or to a system error
@@ -62,10 +65,8 @@ function. The error codes are defined in netcdf.h.
 
 \returns short string containing error message.
 
-\section handle_error_example nc_strerror Example
-
 Here is an example of a simple error handling function that uses
-nc_strerror to print the error message corresponding to the netCDF
+nc_strerror() to print the error message corresponding to the netCDF
 error status returned from any netCDF function call and then exit:
 
 \code
@@ -79,8 +80,7 @@ error status returned from any netCDF function call and then exit:
      }
 \endcode
 */
-const char *
-nc_strerror(int ncerr1)
+const char *nc_strerror(int ncerr1)
 {
    /* System error? */
    if(NC_ISSYSERR(ncerr1))
@@ -190,6 +190,8 @@ nc_strerror(int ncerr1)
 	 return "NetCDF: Authorization failure";
       case NC_ENOTFOUND:
 	 return "NetCDF: file not found";
+      case NC_ECANTEXTEND:
+	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
       case NC_ECANTREMOVE:
 	 return "NetCDF: cannot delete file";
       case NC_EHDFERR:
@@ -202,7 +204,7 @@ nc_strerror(int ncerr1)
 	 return "NetCDF: Can't create file";
       case NC_EFILEMETA:
 	 return "NetCDF: Can't add HDF5 file metadata";
-      case NC_EDIMMETA:      
+      case NC_EDIMMETA:
 	 return "NetCDF: Can't define dimensional metadata";
       case NC_EATTMETA:
 	 return "NetCDF: Can't open HDF5 attribute";
@@ -256,4 +258,4 @@ nc_strerror(int ncerr1)
    }
 }
 
-
+/** \} */

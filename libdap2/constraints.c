@@ -62,7 +62,7 @@ mapconstraints(DCEconstraint* constraint,
     for(i=0;i<nclistlength(dceprojections);i++) {
 	CDFnode* cdfmatch = NULL;
 	DCEprojection* proj = (DCEprojection*)nclistget(dceprojections,i);
-	if(proj->discrim != CES_VAR) continue; // ignore functions
+	if(proj->discrim != CES_VAR) continue; /* ignore functions */
 	ncstat = matchpartialname(nodes,proj->var->segments,&cdfmatch);
 	if(ncstat) goto done;
 	/* Cross links */

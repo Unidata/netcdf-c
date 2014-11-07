@@ -88,13 +88,19 @@ struct Vlendata {
     unsigned long count;
 };
 extern struct Vlendata* vlendata;
+extern Datalist* alldatalists;
 
 /* from: data.c */
-int issublist(Datasrc* src);
-int isstring(Datasrc* src);
-int isfillvalue(Datasrc* src);
-int istype(Datasrc* src, nc_type);
-int isstringable(nc_type nctype);
+extern Datalist* builddatalist(int initialize);
+extern void dlfree(Datalist **dlist);
+extern void dlappend(Datalist*, NCConstant*);
+extern NCConstant builddatasublist(Datalist* dl);
+extern void dlextend(Datalist* dl);
+extern void dlsetalloc(Datalist* dl, size_t newalloc);
+
+int       datalistline(Datalist*);
+#define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
+#define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
 
 Datasrc* datalist2src(Datalist* list);
 Datasrc* const2src(NCConstant*);
@@ -102,15 +108,16 @@ NCConstant list2const(Datalist*);
 Datalist* const2list(NCConstant* con);
 void freedatasrc(Datasrc* src);
 
+int issublist(Datasrc* src);
+int isstring(Datasrc* src);
+int isfillvalue(Datasrc* src);
+int istype(Datasrc* src, nc_type);
+int isstringable(nc_type nctype);
+
 void srcpush(Datasrc*);
 void srcpushlist(Datasrc* src, Datalist* cmpd);
 void srcpop(Datasrc*);
 void srcsetfill(Datasrc* ds, Datalist* list);
-
-int       datalistline(Datalist*);
-#define   datalistith(dl,i) ((dl)==NULL?NULL:((i) >= (dl)->length?NULL:&(dl)->data[i]))
-#define   datalistlen(dl) ((dl)==NULL?0:(dl)->length)
-
 
 NCConstant* srcnext(Datasrc*);
 int srcmore(Datasrc*);
@@ -119,8 +126,10 @@ int srcline(Datasrc* ds);
 #define islistconst(con) ((con)!=NULL && (con)->nctype == NC_COMPOUND)
 #define isfillconst(con) ((con)!=NULL && (con)->nctype == NC_FILLVALUE)
 #define constline(con) (con==NULL?0:(con)->lineno)
+#define consttype(con) (con==NULL?NC_NAT:(con)->nctype)
 
 #define isnilconst(con) ((con)!=NULL && (con)->nctype == NC_NIL)
+#define   compoundfor(con) ((con)==NULL?NULL:(con)->value.compoundv)
 
 NCConstant* emptystringconst(int,NCConstant*);
 
@@ -164,10 +173,7 @@ extern NCConstant nilconstant;
 /* From genchar.c */
 void gen_charattr(Datalist*, Bytebuffer*);
 void gen_charvlen(Datalist*, Bytebuffer*);
-void gen_chararray(struct Dimset*, Datalist*, Bytebuffer*, Datalist* fillsrc);
-#ifndef CHARBUG
-void gen_leafchararray(struct Dimset*,int,Datalist*,Bytebuffer* databuf, Datalist* fillsrc);
-#endif
+void gen_chararray(struct Dimset*, int, Datalist*, Bytebuffer*, Datalist* fillsrc);
 
 /* Mnemonic */
 #define UNKNOWN ((size_t)0)
@@ -190,7 +196,7 @@ struct Generator {
 extern int generator_getstate(Generator*,void**);
 extern int generator_reset(Generator*,void*);
 
-typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,size_t*,size_t*);
+typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,const size_t*,const size_t*);
 
 extern void generate_attrdata(struct Symbol*, Generator*, Writer writer, Bytebuffer*);
 extern void generate_vardata(struct Symbol*, Generator*, Writer writer,Bytebuffer*);

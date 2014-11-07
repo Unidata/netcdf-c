@@ -52,7 +52,7 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
 
 
 /* Set various general curl flags */
-int
+CURLcode
 ocset_curl_flags(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
@@ -122,7 +122,7 @@ done:
     return cstat;
 }
 
-int
+OCerror
 ocset_proxy(OCstate* state)
 {
     CURLcode cstat;
@@ -154,7 +154,7 @@ ocset_proxy(OCstate* state)
     return OC_NOERR;
 }
 
-int
+OCerror
 ocset_ssl(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
@@ -213,7 +213,7 @@ fail:
  * used with global values read from the.dodsrc file. The reason is that
  * we may have multiple password sources.
  */
-int
+OCerror
 ocset_user_password(OCstate* state)
 {
     CURLcode cstat;

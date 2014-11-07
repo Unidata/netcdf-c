@@ -72,6 +72,7 @@ main(int argc, char **argv)
     memory = malloc(filesize);
     if(memory == NULL) {
         fprintf(stderr,"Cannot malloc %lu bytes\n",(unsigned long)filesize);
+	fprintf(stderr,"This may mean your machine does not have enough RAM. If this is the case, it is safe to ignore this error.\n");
 	exit(1);
     }
     free(memory);

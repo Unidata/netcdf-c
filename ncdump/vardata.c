@@ -323,9 +323,6 @@ static void
 pr_tvals(
      const ncvar_t *vp,		/* variable */
      size_t len,		/* number of values to print */
-     bool_t lastrow,		/* true if this is the last row for this
-				 * variable, so terminate with ";" instead
-				 * of "," */
      const char *vals,		/* pointer to block of values */
      const size_t *cor		/* corner coordinates */
      )
@@ -377,13 +374,10 @@ pr_tvals(
 	}
     }
     printf("\"");
-    /* if (fsp && formatting_specs.full_data_cmnts) { */
-    if (formatting_specs.full_data_cmnts) {
-	lastdelim (0, lastrow);
-	annotate (vp,  (size_t *)cor, 0L);
-    } else {
-	lastdelim2 (0, lastrow);
-    }
+    /* if (formatting_specs.full_data_cmnts) { */
+    /* 	lastdelim (0, lastrow); */
+    /* 	annotate (vp,  (size_t *)cor, 0L); */
+    /* }  */
 }
 
 
@@ -428,8 +422,6 @@ print_rows(
     int ncid,		/* netcdf id */
     int varid,		/* variable id */
     const ncvar_t *vp,	/* variable */
-    size_t ncols,	/* number of values in a row */
-    int rank,	       	/* number of elements in following 3 arrays  */
     size_t vdims[],    	/* variable dimension sizes */
     size_t cor[],      	/* corner coordinates */
     size_t edg[],      	/* edges of hypercube */
@@ -437,6 +429,8 @@ print_rows(
     int marks_pending	/* number of pending closing "}" record markers */
     ) 
 {
+    int rank = vp->ndims;
+    size_t ncols = rank > 0 ? vdims[rank - 1] : 1; /* number of values in a row */
     int d0 = 0;
     size_t inc = 1;
     int i;
@@ -461,11 +455,11 @@ print_rows(
 	local_cor[level] = 0;
 	local_edg[level] = 1;
 	for(i = 0; i < d0 - 1; i++) {
-	    print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
+	    print_rows(level + 1, ncid, varid, vp, vdims, 
 		       local_cor, local_edg, vals, 0);
 	    local_cor[level] += 1;
 	}
-	print_rows(level + 1, ncid, varid, vp, ncols, rank, vdims, 
+	print_rows(level + 1, ncid, varid, vp, vdims, 
 		   local_cor, local_edg, vals, marks_pending);
 	free(local_edg);
 	free(local_cor);
@@ -473,22 +467,28 @@ print_rows(
 	char *valp = vals;
 	bool_t lastrow;
 	int j;
-	if(formatting_specs.brief_data_cmnts && rank > 1) {
+	if(formatting_specs.brief_data_cmnts && rank > 1 && ncols > 0) {
 	    annotate_brief(vp, cor, vdims);
 	}
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
-	for(i=0; i < d0 - 1; i++) {
-	    print_any_val(sb, vp, (void *)valp);
-	    valp += vp->tinfo->size; /* next value according to type */
-	    if (formatting_specs.full_data_cmnts) {
-		printf("%s, ", sb->buf);
-		annotate (vp, cor, i);
-	    } else {
-		sbuf_cat(sb, ", ");
-		lput(sbuf_str(sb));
+
+	/* Test if we should treat array of chars as strings along last dimension  */
+	if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	    pr_tvals(vp, ncols, vals, cor);
+	} else {			/* for non-text variables */
+	    for(i=0; i < d0 - 1; i++) {
+		print_any_val(sb, vp, (void *)valp);
+		valp += vp->tinfo->size; /* next value according to type */
+		if (formatting_specs.full_data_cmnts) {
+		    printf("%s, ", sb->buf);
+		    annotate (vp, cor, i);
+		} else {
+		    sbuf_cat(sb, ", ");
+		    lput(sbuf_str(sb));
+		}
 	    }
+	    print_any_val(sb, vp, (void *)valp);
 	}
-	print_any_val(sb, vp, (void *)valp);
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {
@@ -503,7 +503,7 @@ print_rows(
 	    }
 	    printf("%s", sbuf_str(sb));
 	    lastdelim (0, lastrow);
-	    annotate (vp, cor, i);
+	    annotate (vp, cor, 0L);
 	} else {
 	    for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, "}");
@@ -515,7 +515,6 @@ print_rows(
     sbuf_free(sb);
     return NC_NOERR;
 }
-
 
 /* Output the data for a single variable, in CDL syntax. */
 int
@@ -532,11 +531,13 @@ vardata(
     void *vals;
 
     int id;
-    int ir;
     size_t nels;
     size_t ncols;
     size_t nrows;
     int vrank = vp->ndims;
+
+    int level = 0;
+    int marks_pending = 0;
 
     cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
     edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
@@ -578,28 +579,7 @@ vardata(
     nrows = nels/ncols;		/* number of "rows" */
     vals = emalloc(ncols * vp->tinfo->size);
     
-    /* Test if we should treat array of chars as a string  */
-    if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
-	for (ir = 0; ir < nrows; ir++) {
-	    if (vrank > 0) {
-		if (formatting_specs.brief_data_cmnts != false && vrank > 1 && ncols > 0) {
-		    annotate_brief(vp, cor, vdims);
-		}
-	    }
-	    NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals));
-	    pr_tvals(vp, ncols, (ir == nrows-1), (char *) vals, cor);
-	    if (ir < nrows-1)
-	      if (!upcorner(vdims, vp->ndims, cor, add))
-	        error("vardata: odometer overflowed!");
-	    set_indent(2);
-	}
-    } else {
-	int level = 0;
-	int rank = vp->ndims;
-	int marks_pending = 0;
-	NC_CHECK(print_rows(level, ncid, varid, vp, ncols, rank, vdims, cor, edg, 
-			    vals, marks_pending));
-    }
+    NC_CHECK(print_rows(level, ncid, varid, vp, vdims, cor, edg, vals, marks_pending));
     free(vals);
     free(cor);
     free(edg);
@@ -775,7 +755,7 @@ vardatax(
     vals = emalloc(ncols * vp->tinfo->size);
     
     for (ir = 0; ir < nrows; ir++) {
-	size_t corsav;
+	size_t corsav = 0;
 	bool_t lastrow;
 
 	if (vrank > 0) {

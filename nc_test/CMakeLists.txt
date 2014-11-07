@@ -1,18 +1,28 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 
-INCLUDE_DIRECTORIES(".")
 SET (nc_test_m4_SOURCES test_get test_put)
 FOREACH (F ${nc_test_m4_SOURCES})
   GEN_m4(${F})
 ENDFOREACH()
 
-
-SET (nc_test_SRC nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
+SET (nc_test_SRC
+  nc_test.c
+  error.c
+  test_get.c
+  test_put.c
+  test_read.c
+  test_write.c
+  util.c
+  )
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
-TARGET_LINK_LIBRARIES(nc_test netcdf)
+TARGET_LINK_LIBRARIES(nc_test
+  netcdf
+  # util.c explicitly uses libm
+  ${HAVE_LIBM}
+  )
 
 # Some extra tests
-SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3)
+SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta)
 
 IF(NOT MSVC)
   SET(TESTS ${TESTS} tst_atts3)
@@ -33,7 +43,7 @@ IF(LARGE_FILE_TESTS)
   IF(NOT MSVC)
     SET(TESTS ${TESTS} large_files)
   ENDIF()
-  
+
 ENDIF()
 
 IF(BUILD_DISKLESS)
@@ -56,7 +66,7 @@ ENDFOREACH()
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
 IF(BUILD_DISKLESS)
-  add_sh_test(nc_test run_diskless)  	
+  add_sh_test(nc_test run_diskless)
   IF(BUILD_MMAP)
     add_sh_test(nc_test run_mmap)
   ENDIF()

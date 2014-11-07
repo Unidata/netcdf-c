@@ -26,7 +26,7 @@ netcdf-4.1-beta2-snapshot2009091100
 
 #undef DEBUG
 
-#define TESTPATH "/thredds/dodsC/testdods/coads_climatology.nc"
+#define TESTPATH "/dodsC/testdods/coads_climatology.nc"
 #define VAR "SST"
 
 static float expected_stride1[12] = {
@@ -80,6 +80,7 @@ main()
     int idim;
     float dat[20];
     char url[4096];
+    char* svc;
 #ifdef STANDALONE
     int ndim;
 #endif
@@ -90,16 +91,22 @@ main()
     oc_logopen(NULL);
 #endif
 
-    {
-        /* Find Test Server */
-        const char* svc = NC_findtestserver("thredds");
-        if(svc == NULL) {
-	    fprintf(stderr,"Cannot locate test server\n");
-	    exit(0);
-        }
-        strcpy(url,svc);
-        strcat(url,TESTPATH);
+    /* Find Test Server */
+    svc = getenv("THREDDSTESTSERVER");
+    if(svc != NULL) {
+        const char* testserver[2];
+	testserver[0] = svc;
+	testserver[1] = NULL;
+        svc = NC_findtestserver("thredds",testserver);
+    } else 	
+        svc = NC_findtestserver("thredds",NULL);
+
+    if(svc == NULL) {
+        fprintf(stderr,"Cannot locate test server\n");
+	exit(0);
     }
+    strcpy(url,svc);
+    strcat(url,TESTPATH);
 
     printf("*** Test: varm on URL: %s\n",url);
 
@@ -142,7 +149,7 @@ main()
 #endif
 
     check(err = nc_get_varm_float (ncid, varid, start, count, stride, imap,(float*) dat),__FILE__,__LINE__);
-//    check(err = nc_get_vara_float (ncid, varid, start, count, (float*) dat),__FILE__,__LINE__);
+    /*    check(err = nc_get_vara_float (ncid, varid, start, count, (float*) dat),__FILE__,__LINE__); */
 
 #ifdef STANDALONE
     printf("varm: %s =",VAR);
@@ -253,5 +260,3 @@ main()
     return fail;
 
 }
-
-

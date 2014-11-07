@@ -852,7 +852,6 @@ static void
 genf77_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	       int rank, size_t* start, size_t* count)
 {
-    Datalist* list;
     Symbol* basetype = asym->typ.basetype;
     /* default assumption */
     size_t len = asym->data==NULL?0:asym->data->length;

@@ -43,6 +43,6 @@ extern OCerror ocdata_recordcount(OCstate*, OCdata*, size_t*);
 extern OCerror ocdata_getroot(OCstate*, OCnode*, OCdata**);
 
 /* Atomic leaf reading */
-extern int ocdata_read(OCstate*,OCdata*,size_t,size_t,void*,size_t);
+extern OCerror ocdata_read(OCstate*,OCdata*,size_t,size_t,void*,size_t);
 
 #endif /*OCDATA_H*/

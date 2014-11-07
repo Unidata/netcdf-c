@@ -11,6 +11,13 @@
 #include <malloc.h>
 #endif
 
+/* Required for getcwd, other functions. */
+#ifdef _MSC_VER
+#include <direct.h>
+#define getcwd _getcwd
+#endif
+
+
 #ifdef _AIX
 #include <netinet/in.h>
 #endif
@@ -39,6 +46,12 @@
 #include "ocuri.h"
 
 #define OCCACHEPOS
+
+#ifndef HAVE_STRNDUP
+/* Not all systems have strndup, so provide one*/
+#define strndup ocstrndup
+#endif
+
 
 /* Forwards */
 typedef struct OCstate OCstate;
@@ -206,11 +219,9 @@ extern void occlose(OCstate* state);
 extern OCerror ocfetch(OCstate*, const char*, OCdxd, OCflags, OCnode**);
 extern int oc_network_order;
 extern int oc_invert_xdr_double;
-extern int ocinternalinitialize(void);
+extern OCerror ocinternalinitialize(void);
 
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
-
-extern int ocinternalinitialize(void);
 
 extern OCerror ocsetuseragent(OCstate* state, const char* agent);
 

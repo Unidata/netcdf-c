@@ -1,10 +1,9 @@
 # Test c output
-T=tst_diskless3
+T=test_read
 #VG=valgrind --leak-check=full
 
 CFLAGS=-g -O0 -I.. -I../include
-LDFLAGS=../liblib/.libs/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
-LD_RUN_PATH=/share/ed/local/spock/lib
+LDFLAGS=../liblib/.libs/libnetcdf.a  -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -lm -lcurl
 
 #	cd .. ; ${MAKE} all
 

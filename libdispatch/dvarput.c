@@ -210,11 +210,9 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	if(i == 0 && isrecvar) {/*do nothing*/}
         else {
 	  /* mystart is unsigned, will never be < 0 */
-	  //if(mystart[i] < 0 || mystart[i] > dimlen)
 	  if(mystart[i] > dimlen)
 	    return NC_EINVALCOORDS;
           /* myediges is unsigned, will never be < 0 */ 
-	  //if(myedges[i] < 0 || (mystart[i] + myedges[i] > dimlen))
 	  if(mystart[i] + myedges[i] > dimlen)
 	    return NC_EEDGE;
        }
@@ -1312,8 +1310,9 @@ atomic type; it will not write user defined types. For this
 function, the type of the data in memory must match the type
 of the variable - no data conversion is done.
 
-Use of this family of functions is discouraged, although not
-formally deprecated. The reason is the complexity of the
+@deprecated Use of this family of functions is discouraged,
+although it will continue to be supported.
+The reason is the complexity of the
 algorithm makes its use difficult for users to properly use.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),

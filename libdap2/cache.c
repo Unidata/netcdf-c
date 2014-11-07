@@ -6,6 +6,13 @@
 #include "ncdap.h"
 #include "dapdump.h"
 
+/*
+Grads servers always require a constraint,
+which does not necessarily happen during prefetch.
+So this flag controls this. By default, it is on.
+*/
+#define GRADS_PREFETCH
+
 static int iscacheableconstraint(DCEconstraint* con);
 
 /* Return 1 if we can reuse cached data to address
@@ -97,7 +104,7 @@ prefetchdata(NCDAPCOMMON* nccomm)
     if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
         /* If we cannot constrain and caching is enabled,
            then pull in everything */
-        if(FLAGSET(nccomm->controls,NCF_CACHE)) { 
+        if(FLAGSET(nccomm->controls,NCF_CACHE)) {
 	    for(i=0;i<nclistlength(allvars);i++) {
 	        nclistpush(vars,nclistget(allvars,i));
 	    }
@@ -136,7 +143,7 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
 
     /* Create a single constraint consisting of the projections for the variables;
        each projection is whole variable. The selections are passed on as is.
-       The exception is if we are prefetching everything.
+       Conditionally, The exception is if we are prefetching everything.
     */
 
     newconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
@@ -158,7 +165,9 @@ nullfree(s);
 }
 
     flags = NCF_PREFETCH;
+#ifndef GRADS_PREFETCH
     if(nclistlength(allvars) == nclistlength(vars)) flags |= NCF_PREFETCH_ALL;
+#endif
     ncstat = buildcachenode(nccomm,newconstraint,vars,&cache,flags);
     newconstraint = NULL; /* buildcachenodetakes control of newconstraint */
     if(ncstat != OC_NOERR) goto done;
@@ -190,7 +199,7 @@ ncbytesfree(buf);
 
 done:
     nclistfree(vars);
-    dcefree((DCEnode*)newconstraint);    
+    dcefree((DCEnode*)newconstraint);
     if(ncstat && cache != NULL) freenccachenode(nccomm,cache);
     return THROW(ncstat);
 }
@@ -212,9 +221,11 @@ buildcachenode(NCDAPCOMMON* nccomm,
     int isprefetch = 0;
 
     if((flags & NCF_PREFETCH) != 0)
-	isprefetch = 1;	
+	isprefetch = 1;
 
+#ifndef GRADS_PREFETCH
     if((flags & NCF_PREFETCH_ALL) == 0)
+#endif
         ce = buildconstraintstring(constraint);
 
     ncstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
@@ -359,7 +370,7 @@ iscacheableprojection(DCEprojection* proj)
     cacheable = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
         DCEsegment* segment = (DCEsegment*)nclistget(proj->var->segments,i);
-	if(!iswholesegment(segment)) {cacheable = 0; break;}	
+	if(!iswholesegment(segment)) {cacheable = 0; break;}
     }
     return cacheable;
 }
@@ -408,16 +419,18 @@ markprefetch(NCDAPCOMMON* nccomm)
             CDFnode* dim = (CDFnode*)nclistget(var->array.dimsettrans,j);
             nelems *= dim->dim.declsize;
 	}
-	if(nelems <= nccomm->cdf.smallsizelimit
-	    && FLAGSET(nccomm->controls,NCF_PREFETCH)) {
-	    var->prefetchable = 1;
-if(SHOWFETCH)
- {
-  extern char* ocfqn(OCddsnode);
-  nclog(NCLOGDBG,"prefetchable: %s=%lu",
-      ocfqn(var->ocnode),(unsigned long)nelems);
- }
-	}
+        if(nelems <= nccomm->cdf.smallsizelimit
+           && FLAGSET(nccomm->controls,NCF_PREFETCH)) {
+          var->prefetchable = 1;
+          if(SHOWFETCH)
+            {
+              extern char* ocfqn(OCddsnode);
+              char *tmp = ocfqn(var->ocnode);
+              nclog(NCLOGDBG,"prefetchable: %s=%lu",
+                    tmp,(unsigned long)nelems);
+              free(tmp);
+            }
+        }
     }
     return NC_NOERR;
 }

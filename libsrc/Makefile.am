@@ -61,7 +61,7 @@ ARGS_MANPAGE += -DPARALLEL_IO=TRUE
 endif
 
 # This rule generates the C manpage.
-netcdf.3: $(top_srcdir)/man4/netcdf.m4 
+netcdf.3: $(top_srcdir)/docs/netcdf.m4 
 	m4 $(M4FLAGS) $(ARGS_MANPAGE) $? >$@  || rm $@
 
 

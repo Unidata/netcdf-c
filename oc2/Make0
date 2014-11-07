@@ -1,6 +1,6 @@
 THISDIR=../oc2
 #OCDIR=/home/dmh/svn/oc2.0
-OCDIR=f:/svn/oc2.0
+OCDIR=f:/git/oc
 
 # Make consistent with Makefile.am
 SRC=oc.c \
@@ -33,7 +33,7 @@ makeoc::
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; \
 	done
-	rm -f ocdebug.h 
+	rm -f ocdebug.h XGetopt.[ch]
 	sed -e 's|^[#]if 1|#if 0|g' \
 	    < ${OCDIR}/ocdebug.h | tr -d '\r' >./ocdebug.h
 	# This should match the bison command in Makefile.am
@@ -63,4 +63,9 @@ diffoc::
 		diff -w ${THISDIR}/$$x $$f ; \
 		fi; \
 	    fi; \
+	done
+
+backoc::
+	for f in ${FILES} ; do \
+	    cp -f ./$$f ${OCDIR}/$$f ; \
 	done

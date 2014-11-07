@@ -257,7 +257,7 @@ e::
 	cc -E -g -c ${E}.c ${INCL} -I../oc2 >${E}.txt
 
 ##################################################
-T=t_auth
+T=test_nstride_cached
 
 v::
 	cc -g -c ${T}.c ${INCL}

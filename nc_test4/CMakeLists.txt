@@ -1,6 +1,3 @@
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-INCLUDE_DIRECTORIES(".")
 # Some extra tests
 SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars 
   tst_varms tst_unlim_vars tst_converts tst_converts2 tst_grps tst_grps2
@@ -23,6 +20,7 @@ ENDIF()
 
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
+
   build_bin_test(tst_v2)
 ENDIF()
 
@@ -33,7 +31,6 @@ ENDIF()
 
 IF(USE_HDF4)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
-
 ENDIF()
 
 IF(BUILD_BENCHMARKS)
@@ -62,24 +59,29 @@ FOREACH(CTEST ${NC4_TESTS})
   add_bin_test(nc_test4 ${CTEST})
 ENDFOREACH()
 
-IF(USE_HDF4_FILE_TESTS)
-  add_sh_test(nc_test4 run_get_hdf4_files)
-  add_bin_test(nc_test4 tst_interops3)
-  add_sh_test(nc_test4 tst_formatx_hdf4)
+# This must go after the 'foreach' stanza
+# immediately above this comment.
+IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
+    add_sh_test(nc_test4 run_get_hdf4_files)
+    add_bin_test(nc_test4 tst_interops3)
+    add_sh_test(nc_test4 tst_formatx_hdf4)
+    build_bin_test(tst_chunk_hdf4)
+    add_sh_test(nc_test4 run_chunk_hdf4)
 ENDIF()
 
+
 IF(TEST_PARALLEL)
-  build_bin_test(tst_mpi_parallel)	
+  build_bin_test(tst_mpi_parallel)
   build_bin_test(tst_parallel)
   build_bin_test(tst_parallel3)
   build_bin_test(tst_parallel4)
   build_bin_test(tst_nc4perf)
   add_sh_test(nc_test4 run_par_test)
-ENDIF()	
+ENDIF()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc ref_grp_rename.cdl ref_tst_nvars.nc)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ref_chunks1.cdl ref_chunks2.cdl ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc ref_tst_interops4.nc ref_grp_rename.cdl ref_tst_nvars.nc contig.hdf4 chunked.hdf4)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

@@ -48,16 +48,18 @@ extern char* poolcat(const char* s1, const char* s2);
 extern size_t crossproduct(Dimset* dimset, int start, int stop);
 extern int findunlimited(Dimset* dimset, int start);
 extern int findlastunlimited(Dimset* dimset);
+extern int countunlimited(Dimset* dimset);
 
 extern unsigned char* makebytestring(char* s, size_t* lenp);
 extern int getpadding(int offset, int alignment);
 
-extern Datalist* builddatalist(int initialize);
-extern void dlappend(Datalist*, NCConstant*);
-extern NCConstant builddatasublist(Datalist* dl);
-extern void dlextend(Datalist* dl);
-extern void dlsetalloc(Datalist* dl, size_t newalloc);
 extern void check_err(const int stat, const int line, const char* file);
+extern void check_err2(const int stat, const int cdlline, const int line, const char* file);
 extern const char* kind_string(int kind);
+
+/* Inline functions */
+#define isunlimited(dimset,i) ((dimset)->dimsyms[i]->dim.isunlimited)
+#define declsizefor(dimset,i) ((dimset)->dimsyms[i]->dim.declsize)
+#define rankfor(dimset) ((dimset)->ndims)
 
 #endif /*NCGEN_UTIL_H*/

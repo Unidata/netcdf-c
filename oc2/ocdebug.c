@@ -12,11 +12,11 @@ int ocdebug;
 
 #ifdef OCCATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
-int
-ocbreakpoint(int err) {return err;}
+OCerror
+ocbreakpoint(OCerror err) {return err;}
 
-int
-octhrow(int err)
+OCerror
+octhrow(OCerror err)
 {
     if(err == 0) return err;
     return ocbreakpoint(err);

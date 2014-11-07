@@ -1,18 +1,28 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
 K="-k3"
-F="test.cdl"
+F="z.cdl"
 #B="-B12"
 DBG="-d"
+L=b
+#L=c
 #DBG="-D2"
-#NCGEN="./.libs/ncgen"
+if test -f ./.libs/ncgen ; then
+NCGEN="./.libs/ncgen"
+else
 NCGEN="./ncgen"
-alias q0="$NCGEN ${DBG} $K -lb $B $F"
-alias qh="$NCGEN ${DBG} $K -lb $B -h $F"
+fi
+alias q0="$NCGEN ${DBG} $K -l${L} $B $F"
+alias qh="$NCGEN ${DBG} $K -l${L} $B -h $F"
 alias qc="$NCGEN ${DBG} $K -lc $B $F"
-alias qq="gdb --args $NCGEN ${DBG} $K -lb $B $F"
+alias qq="gdb --args $NCGEN ${DBG} $K -l${L} $B $F"
+alias qqh="gdb --args $NCGEN ${DBG} $K -l${L} $B -h $F"
 alias qqc="gdb --args $NCGEN ${DBG} $K -lc $B $F"
-alias qv="valgrind --leak-check=full $NCGEN ${DBG} $K -lb $B $F"
+alias qv="valgrind --leak-check=full $NCGEN ${DBG} $K -l${L} $B $F"
+
+NCGEN3="../ncgen3/ncgen3"
+alias p0="$NCGEN3 -b $F"
+alias pc="$NCGEN3 -lc $F"
 
 
 

@@ -42,7 +42,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
     int token;
     int c;
     int len;
-    char* p=lexstate->next;
+    char* p=NULL;
     token = 0;
     ncbytesclear(lexstate->yytext);
     ncbytesnull(lexstate->yytext);
@@ -109,7 +109,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
 	            isnumber = 1; /* maybe */
 	    }
 	    /* A number followed by an id char is assumed to just be
-	       a funny id */	       
+	       a funny id */
 	    if(isnumber && (*p == '\0' || strchr(wordcharsn,*p) == NULL))  {
 	        token = SCAN_NUMBERCONST;
 	    } else {
@@ -191,9 +191,22 @@ void
 dcelexinit(char* input, DCElexstate** lexstatep)
 {
     DCElexstate* lexstate = (DCElexstate*)malloc(sizeof(DCElexstate));
-    if(lexstatep) *lexstatep = lexstate;
+
+    /* If lexstatep is NULL,
+       we want to free lexstate and
+       return to avoid a memory leak. */
+    if(lexstatep) {
+      *lexstatep = lexstate;
+    } else {
+      if(lexstate) free(lexstate);
+      return;
+    }
+
     if(lexstate == NULL) return;
     memset((void*)lexstate,0,sizeof(DCElexstate));
+
+
+
 #ifdef URLDECODE
     lexstate->input = ncuridecode(input);
 #else
@@ -221,4 +234,3 @@ dcelexcleanup(DCElexstate** lexstatep)
     free(lexstate);
     *lexstatep = NULL;
 }
-

@@ -55,7 +55,7 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
-#ifdef EXTERN_UNUSEd
+#ifdef EXTERN_UNUSED
 void
 makedimlist(OClist* path, OClist* dims)
 {
@@ -598,7 +598,7 @@ occopycat(char* dst, size_t size, size_t n, ...)
     va_list args;
     size_t avail = size - 1;
     int i; 
-    int status = 1; // assume ok
+    int status = 1; /* assume ok */
     char* p = dst;
 
     if(n == 0) {
@@ -642,8 +642,8 @@ int
 occoncat(char* dst, size_t size, size_t n, ...)
 {
     va_list args;
-    int status = 1; // assume ok
-    size_t avail;
+    int status = 1; /* assume ok */
+    size_t avail = 0;
     int i; 
     char* p;
     size_t dstused;

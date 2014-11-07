@@ -6,8 +6,41 @@
 
 #include "ncdispatch.h"
 
+/** \defgroup user_types User-Defined Types
+
+User defined types allow for more complex data structures.
+
+NetCDF-4 has added support for four different user defined data
+types. User defined type may only be used in files created with the
+::NC_NETCDF4 and without ::NC_CLASSIC_MODEL.
+- compound type: like a C struct, a compound type is a collection of
+types, including other user defined types, in one package.
+- variable length array type: used to store ragged arrays.
+- opaque type: This type has only a size per element, and no other
+  type information.
+- enum type: Like an enumeration in C, this type lets you assign text
+  values to integer values, and store the integer values.
+
+Users may construct user defined type with the various nc_def_*
+functions described in this section. They may learn about user defined
+types by using the nc_inq_ functions defined in this section.
+
+Once types are constructed, define variables of the new type with
+nc_def_var (see nc_def_var). Write to them with nc_put_var1,
+nc_put_var, nc_put_vara, or nc_put_vars. Read data of user-defined
+type with nc_get_var1, nc_get_var, nc_get_vara, or nc_get_vars (see
+\ref variables).
+
+Create attributes of the new type with nc_put_att (see nc_put_att_
+type). Read attributes of the new type with nc_get_att (see
+\ref attributes).
+*/
+
+/** \{ */
+
+
 /** \internal
-\ingroup user_types
+\addtogroup user_types
 Learn if two types are equal
 
 \param ncid1 \ref ncid of first typeid.
@@ -24,7 +57,7 @@ the two types are equal, a zero if they are not equal.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
-nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2, 
+nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 		  nc_type typeid2, int *equal)
 {
     NC* ncp1;
@@ -38,7 +71,7 @@ nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
     Functions to learn about any kind of user-defined type. */
 /*! \{ */ /* All these functions are part of this named group... */
 
-/** \ingroup user_types 
+/** \ingroup user_types
 
 Find a type by name. Given a group ID and a type name, find the ID of
 the type. If the type is not found in the group, then the parents are
@@ -99,7 +132,7 @@ compound types. \ref ignored_if_null.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
-nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size, 
+nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size,
 		 nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
 {
     NC *ncp;
@@ -109,3 +142,5 @@ nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size,
 					base_nc_typep, nfieldsp, classp);
 }
 /*! \} */  /* End of named group ...*/
+
+/** \} */

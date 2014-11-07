@@ -21,7 +21,7 @@ variables:
 */
 
 #define PARAMS ""
-#define DTSTEST "/dts/ingrid"
+#define DTSTEST "/ingrid"
 #define VAR "v3H"
 #define ISTA 35
 #define IZ 44
@@ -99,10 +99,18 @@ main()
     const char* svc = NULL;
 
     /* Find Test Server */
-    svc = NC_findtestserver("dts");
+    svc = getenv("DTSTESTSERVER");
+    if(svc != NULL) {
+        const char* dtstestserver[2];
+	dtstestserver[0] = svc;
+	dtstestserver[1] = NULL;
+        svc = NC_findtestserver("dts",dtstestserver);
+    } else 	
+        svc = NC_findtestserver("dts",NULL);
+
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
-	exit(1);
+	exit(0);
     }
     strcpy(url,PARAMS);
     strcat(url,svc);

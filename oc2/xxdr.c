@@ -54,6 +54,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #ifdef _WIN32
 #include <wchar.h>
 #include <sys/types.h>
@@ -175,14 +179,14 @@ xxdr_string(XXDR* xdrs, char** sp, off_t* lenp)
     s = (char*)malloc((size_t)len+1);
     if(s == NULL) return 0;
     if(!xxdr_opaque(xdrs,s,(off_t)len)) {
-	free((void*)s);	
+	free((void*)s);
 	return 0;
     }
     s[len] = '\0'; /* make sure it is null terminated */
     if(sp) *sp = s;
     if(lenp) *lenp = len;
     /* xxdr_opaque will have skippped any trailing bytes */
-    return 1;    
+    return 1;
 }
 
 /* returns bytes off from beginning*/
@@ -210,7 +214,7 @@ xxdr_getavail(XXDR* xdr)
 void
 xxdr_free(XXDR* xdr)
 {
-    xdr->free(xdr);    
+    xdr->free(xdr);
 }
 
 /***********************************/
@@ -222,8 +226,7 @@ xxdr_skip(XXDR* xdrs, off_t len)
     off_t pos;
     pos = xxdr_getpos(xdrs);
     pos = (pos + len);
-    // Removed the following; pos is unsigned. jhrg 9/30/13
-    // if(pos < 0) pos = 0;
+    /* Removed the following; pos is unsigned. jhrg 9/30/13 */
     return xxdr_setpos(xdrs,pos);
 }
 
@@ -318,8 +321,8 @@ xxdrtrace(xdrs,"getavail",0);
 }
 
 static int
-xxdr_filesetpos(XXDR* xdrs, off_t pos) 
-{ 
+xxdr_filesetpos(XXDR* xdrs, off_t pos)
+{
     int ok = 1;
 xxdrtrace(xdrs,"setpos",pos);
     if(pos == xdrs->pos) goto done;
@@ -351,10 +354,13 @@ xxdr_filecreate(FILE* file, off_t base)
         xdrs->data = (void*)file;
         xdrs->base = base;
         xdrs->pos = 0;
-	xdrs->valid = 0;
-        if(fseek(file,0L,SEEK_END)) return NULL;
-	xdrs->length = (off_t)ftell(file);
-	xdrs->length -= xdrs->base;
+        xdrs->valid = 0;
+        if(fseek(file,0L,SEEK_END)) {
+          free(xdrs);
+          return NULL;
+        }
+        xdrs->length = (off_t)ftell(file);
+        xdrs->length -= xdrs->base;
         xdrs->getbytes = xxdr_filegetbytes;
         xdrs->setpos = xxdr_filesetpos;
         xdrs->getpos = xxdr_filegetpos;
@@ -408,8 +414,8 @@ xxdrtrace(xdrs,"getavail",0);
 
 
 static int
-xxdr_memsetpos(XXDR* xdrs, off_t pos) 
-{ 
+xxdr_memsetpos(XXDR* xdrs, off_t pos)
+{
     int ok = 1;
 xxdrtrace(xdrs,"setpos",pos);
     if(pos == xdrs->pos) goto done;
@@ -513,7 +519,7 @@ xxdr_init()
 	if(!xxdr_network_order) {
 	    fprintf(stderr,"xxdr_init: endian mismatch\n");
 	    fflush(stderr);
-	    exit(1);	
+	    exit(1);
 	}
     }
 #endif

@@ -244,6 +244,11 @@ int test_pio_4d(size_t cache_size, int facc_type, int access_flag, MPI_Comm comm
    return 0;
 }
 
+/* Note: When the MPI-POSIX VFD is not compiled in to HDF5, the NC_MPIPOSIX
+ *      flag will be aliased to the NC_MPIIO flag within the library, and
+ *      therefore this test will exercise the aliasing, with the MPI-IO VFD,
+ *      under that configuration. -QAK
+ */
 #define NUM_MODES 2
 #define NUM_FACC 2
 #define NUM_CHUNK_COMBOS_2D 3

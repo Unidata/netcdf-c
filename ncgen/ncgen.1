@@ -14,7 +14,7 @@ ncgen
 \%[-n]
 \%[-o \fInetcdf_filename\fP]
 \%[-x]
-\%\fIinput_file\fP
+\%[\fIinput_file\fP]
 .hy
 .ft
 .SH DESCRIPTION
@@ -24,7 +24,8 @@ or a file in some source language that when executed will
 construct the corresponding binary .nc file.
 The input to \fBncgen\fP is a description of a netCDF
 file in a small language known as CDL (network Common Data form Language),
-described below.
+described below.  Input is read from standard input if no input_file
+is specified.
 If no options are specified in invoking \fBncgen\fP, it merely checks the
 syntax of the input CDL file, producing error messages for
 any violations of CDL syntax.  Other options can be used, for example,
@@ -335,14 +336,14 @@ For example, consider this.
 .HP
 .RS
 .nf
-netcdf ... {
-...
-variables:
+ netcdf ... {
+ ...
+ variables:
     int dimensions;
         dimensions: attribute=0 ; // this will cause an error
         dimensions : attribute=0 ; // this is ok.
-...
-}
+	...
+ }
 .fi
 .RE
 .LP
@@ -527,7 +528,7 @@ are all acceptable \fIfloat\fP constants:
 -2.0f
 3.14159265358979f	// will be truncated to less precision
 1.f
-.1f
+
 .fi
 .RE
 .LP
@@ -574,10 +575,10 @@ in favor of the string type.
 Some character constant examples are as follows.
 .RS
 .nf
-'a'		// ASCII `a'
-"a"		// equivalent to 'a'
-"Two\\nlines\\n"	// a 10-character string with two embedded newlines
-"a bell:\\007"	// a string containing an ASCII bell
+ 'a'		// ASCII `a'
+ "a"		// equivalent to 'a'
+ "Two\\nlines\\n"	// a 10-character string with two embedded newlines
+ "a bell:\\007"	// a string containing an ASCII bell
 .fi
 .RE
 Note that the netCDF character array "a" would fit in a one-element
@@ -788,7 +789,7 @@ complications. consider, for example
 .nf
 dimensions: u=UNLIMITED; d1=1; d2=2; d3=3;
             d4=4; d5=5; u2=UNLIMITED;
-variables: char var(d3,d4);
+variables: char var(d4,d5);
 datalist: var="1", "two", "three";
 .fi
 .RE

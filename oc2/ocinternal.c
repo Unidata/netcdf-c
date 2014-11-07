@@ -40,13 +40,13 @@
 /* Define default rc files and aliases*/
 static char* rcfilenames[4] = {".daprc",".dodsrc",".ocrc",NULL};
 
-static int ocextractddsinmemory(OCstate*,OCtree*,int);
-static int ocextractddsinfile(OCstate*,OCtree*,int);
+static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
+static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
 static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
 
-static int ocsetcurlproperties(OCstate*);
+static OCerror ocsetcurlproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -65,7 +65,7 @@ extern OCnode* makeunlimiteddimension(void);
 /* Collect global state info in one place */
 struct OCGLOBALSTATE ocglobalstate;
 
-int
+OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
@@ -168,7 +168,7 @@ ocopen(OCstate** statep, const char* url)
     CURL* curl = NULL; /* curl handle*/
 
     if(!ocuriparse(url,&tmpurl)) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}
-    
+
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) {OCTHROWCHK(stat); goto fail;}
 
@@ -191,7 +191,7 @@ ocopen(OCstate** statep, const char* url)
     stat = ocsetcurlproperties(state);
 
     if(statep) *statep = state;
-    return OCTHROW(stat);   
+    return OCTHROW(stat);
 
 fail:
     ocurifree(tmpurl);
@@ -207,7 +207,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     OCtree* tree = NULL;
     OCnode* root = NULL;
     OCerror stat = OC_NOERR;
-    
+
     tree = (OCtree*)ocmalloc(sizeof(OCtree));
     MEMCHECK(tree,OC_ENOMEM);
     memset((void*)tree,0,sizeof(OCtree));
@@ -283,7 +283,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
 	oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,	
+		  state->error.code,
 		  (state->error.message?state->error.message:""));
     }
     if(stat) {OCTHROWCHK(stat); goto fail;}
@@ -340,7 +340,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
 	if(dataError(tree->data.xdrs,state)) {
 	    stat = OC_EDATADDS;
 	    oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,	
+		  state->error.code,
 		  (state->error.message?state->error.message:""));
 	    goto fail;
 	}
@@ -388,12 +388,11 @@ createtempfile(OCstate* state, OCtree* tree)
 
 fail:
     if(name != NULL) {
-          oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
-	  free(name);
+        oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: %s",name);
+	free(name);
     } else {
-      oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
+        oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
     }
-    
     return stat;
 }
 
@@ -423,7 +422,7 @@ occlose(OCstate* state)
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
     ocfree(state->ssl.cainfo);
-    ocfree(state->ssl.capath); 
+    ocfree(state->ssl.capath);
     ocfree(state->proxy.host);
     ocfree(state->creds.username);
     ocfree(state->creds.password);
@@ -504,7 +503,10 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
     } else
 	tree->text = NULL;
     /* reset the position of the tmp file*/
-    fseek(tree->data.file,(long)tree->data.bod,SEEK_SET);
+    if(fseek(tree->data.file,(long)tree->data.bod,SEEK_SET) < 0) {
+      stat = OC_EDATADDS;
+      return OCTHROW(stat);
+    }
     if(tree->text == NULL) stat = OC_EDATADDS;
     return OCTHROW(stat);
 }
@@ -561,7 +563,7 @@ ocupdatelastmodifieddata(OCstate* state)
 /*
     Set curl properties for link based on rc files etc.
 */
-static int
+static OCerror
 ocsetcurlproperties(OCstate* state)
 {
     CURLcode cstat = CURLE_OK;
@@ -592,7 +594,7 @@ ocsetcurlproperties(OCstate* state)
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(state->curlflags.cookiejar == NULL 
+    if(state->curlflags.cookiejar == NULL
        || *state->curlflags.cookiejar) {
 #if 1
 	/* Apparently anything non-null will work */
@@ -602,7 +604,7 @@ ocsetcurlproperties(OCstate* state)
 	char* tmp;
 	int fd;
         int stat;
-		
+
         tmp = (char*)malloc(strlen(ocglobalstate.home)
 				  +strlen("/")
 				  +strlen(OCDIR)
@@ -622,7 +624,7 @@ ocsetcurlproperties(OCstate* state)
 	errno = 0;
 	/* Create the actual cookie file */
 	stat = ocmktmp(tmp,&state->curlflags.cookiejar,&fd);
-	close(fd);	
+	close(fd);
 
 #if 0
 	fd = creat(tmp,S_IRUSR | S_IWUSR);
@@ -682,7 +684,7 @@ dataError(XXDR* xdrs, OCstate* state)
 	    depth--;
 	    if(depth == 0) {i++; break;}
 	}
-    }    
+    }
     errmsg = (char*)malloc((size_t)i+1);
     if(errmsg == NULL) {errfound = 1; goto done;}
     xxdr_setpos(xdrs,ckp);

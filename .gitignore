@@ -1,3 +1,6 @@
+### 'Normal' gitignore files.
+ctest.c
+ctest64.c
 debug.txt
 CTestConfig.cmake
 Vagrantfile

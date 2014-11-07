@@ -15,10 +15,15 @@
 extern int lvsnprintf(char*, size_t, const char*, va_list);
 */
 
+#define DATALISTINIT 32
+
+/* Track all known datalist*/
+Datalist* alldatalists = NULL;
+
 NCConstant nullconstant;
 NCConstant fillconstant;
 
-Datalist nildatalist; // to support NIL keyword
+Datalist nildatalist; /* to support NIL keyword */
 
 Bytebuffer* codebuffer;
 Bytebuffer* codetmp;
@@ -672,4 +677,88 @@ indented(int n)
     indentation = dent+(INDENTMAX - 4*n);
     return indentation;
 }
+
+void
+dlextend(Datalist* dl)
+{
+    size_t newalloc;
+    newalloc = (dl->alloc > 0?2*dl->alloc:1);
+    dlsetalloc(dl,newalloc);
+}
+
+void
+dlsetalloc(Datalist* dl, size_t newalloc)
+{
+    NCConstant* newdata;
+    if(newalloc <= 0) newalloc = 1;
+    if(dl->alloc > 0)
+        newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
+    else {
+        newdata = (NCConstant*)emalloc(sizeof(NCConstant)*newalloc);
+        memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
+    }
+    dl->alloc = newalloc;
+    dl->data = newdata;
+}
+
+
+Datalist*
+builddatalist(int initial)
+{
+    Datalist* ci;
+    if(initial <= 0) initial = DATALISTINIT;
+    initial++; /* for header*/
+    ci = (Datalist*)emalloc(sizeof(Datalist));
+    memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
+    ci->data = (NCConstant*)emalloc(sizeof(NCConstant)*initial);
+    memset((void*)ci->data,0,sizeof(NCConstant)*initial);
+    ci->alloc = initial;
+    ci->length = 0;
+    return ci;
+}
+
+void
+dlappend(Datalist* dl, NCConstant* constant)
+{
+    if(dl->length >= dl->alloc) dlextend(dl);
+    if(constant == NULL) constant = &nullconstant;
+    dl->data[dl->length++] = *constant;
+}
+
+NCConstant
+builddatasublist(Datalist* dl)
+{
+
+  NCConstant d;
+  d.nctype = NC_COMPOUND;
+  d.lineno = (dl->length > 0?dl->data[0].lineno:0);
+  d.value.compoundv = dl;
+  d.filled = 0;
+  return d;
+
+}
+
+/*! Function to free an allocated datalist.
+
+  This function is used to free an individual datalist
+  object.  It is possible, hypothetically, that a
+  datalist will appear in the middle of a set of datalists,
+  in which case we'll need to determine that and shuffle around
+  'next' pointers.  For the time being, this assumes that
+  we are freeing a datalist which was allocated locally
+  and must be discarded.
+
+  Using this function instead of an inline 'free' just in
+  case we ever want to extend it, we won't have to go back
+  and re-write a bunch of stuff. I hope.
+
+  @param dlist Pointer to datalist object being freed.
+
+ */
+void dlfree(Datalist **dlist) {
+
+  if(*dlist) free(*dlist);
+  dlist = NULL;
+}
+
 

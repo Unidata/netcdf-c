@@ -9,10 +9,10 @@
 #define _CURLFUNCTION_H_
 
 extern void oc_curl_protocols(struct OCGLOBALSTATE*);
-extern int ocset_curl_flags(OCstate*);
-extern int ocset_user_password(OCstate*);
-extern int ocset_proxy(OCstate*);
-extern int ocset_ssl(OCstate*);
+extern CURLcode ocset_curl_flags(OCstate*);
+extern OCerror ocset_user_password(OCstate*);
+extern OCerror ocset_proxy(OCstate*);
+extern OCerror ocset_ssl(OCstate*);
 extern void oc_curl_setup(OCstate* state);
 extern void oc_curl_debug(OCstate* state);
 extern void oc_curl_printerror(OCstate* state);

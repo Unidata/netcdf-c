@@ -26,7 +26,7 @@ variables:
 	double PolarGrid.Data\\ Fields.Spectra(Bands\:PolarGrid, YDim\:PolarGrid, XDim\:PolarGrid) ;
 */
 
-#define DTSTEST "/dts/test.GridFile"
+#define DTSTEST "/test.GridFile"
 
 #define PARAMS ""
 #define VAR "UTMGrid.Data Fields.Vegetation"
@@ -88,7 +88,15 @@ main()
     char url[4096];
 
     /* Find Test Server */
-    svc = NC_findtestserver("dts");
+    svc = getenv("DTSTESTSERVER");
+    if(svc != NULL) {
+        const char* testserver[2];
+	testserver[0] = svc;
+	testserver[1] = NULL;
+        svc = NC_findtestserver("dts",testserver);
+    } else 	
+        svc = NC_findtestserver("dts",NULL);
+
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
 	exit(1);

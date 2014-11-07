@@ -7,16 +7,16 @@
 extern int curlopen(CURL** curlp);
 extern void curlclose(CURL*);
 
-extern int ocfetchurl(CURL*, const char*, OCbytes*, long*, struct OCcredentials*);
-extern int ocfetchurl_file(CURL*, const char*, FILE*, off_t*, long*);
+extern OCerror ocfetchurl(CURL*, const char*, OCbytes*, long*, struct OCcredentials*);
+extern OCerror ocfetchurl_file(CURL*, const char*, FILE*, off_t*, long*);
 
 extern long ocfetchhttpcode(CURL* curl);
 
-extern int ocfetchlastmodified(CURL* curl, char* url, long* filetime);
+extern OCerror ocfetchlastmodified(CURL* curl, char* url, long* filetime);
 
-extern int occurlopen(CURL** curlp);
+extern OCerror occurlopen(CURL** curlp);
 extern void occurlclose(CURL* curlp);
 
-extern int ocping(const char* url);
+extern OCerror ocping(const char* url);
 
 #endif /*HTTP_H*/

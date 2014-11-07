@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef LOGGING
 #define LOGGING
+#endif
 #include "netcdf.h"
 
 #undef RENAME_DEBUG

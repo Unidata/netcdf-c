@@ -8,12 +8,12 @@ echo "*** Testing extended file format output."
 set -e
 
 # Figure our dst server
-SVC=`./nctestserver dts`
-if test "x$SVC" = "x" ; then
-echo "cannot locate test server"
+DTS=`./nctestserver dts ${DTSTESTSERVER}` 
+if test "x$DTS" = "x" ; then
+echo "cannot locate test server for dts"
 exit
 fi
-URL="$SVC/dts/test.03"
+URL="$DTS/test.03"
 
 ECODE=0
 echo "Test extended format output for a DAP2  file"

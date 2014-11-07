@@ -649,7 +649,7 @@ computesize(Symbol* tsym)
         case NC_FIELD: /* Compute size assume no unlimited dimensions*/
 	    if(tsym->typ.dimset.ndims > 0) {
 	        computesize(tsym->typ.basetype);
-	        totaldimsize = crossproduct(&tsym->typ.dimset,0,0);
+	        totaldimsize = crossproduct(&tsym->typ.dimset,0,rankfor(&tsym->typ.dimset));
 	        tsym->typ.size = tsym->typ.basetype->typ.size * totaldimsize;
 	        tsym->typ.alignment = tsym->typ.basetype->typ.alignment;
 	        tsym->typ.nelems = 1;
@@ -672,6 +672,13 @@ processvars(void)
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* vsym = (Symbol*)listget(vardefs,i);
 	Symbol* basetype = vsym->typ.basetype;
+        /* If we are in classic mode, then convert long -> int32 */
+	if(usingclassic) {
+	    if(basetype->typ.typecode == NC_LONG || basetype->typ.typecode == NC_INT64) {
+	        vsym->typ.basetype = primsymbols[NC_INT];
+		basetype = vsym->typ.basetype;
+	    }
+        }
 	/* fill in the typecode*/
 	vsym->typ.typecode = basetype->typ.typecode;
 	/* validate uses of NIL */
@@ -1017,7 +1024,9 @@ thisunlim->name,
         /*!lastunlim => data is list of sublists, recurse on each sublist*/
 	for(i=0;i<data->length;i++) {
 	    NCConstant* con = data->data+i;
-	    ASSERT(con->nctype == NC_COMPOUND);
+	    if(con->nctype != NC_COMPOUND) {
+		semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
+	    }
 	    computeunlimitedsizes(dimset,nextunlim,con->value.compoundv,ischar);
 	}
     } else {			/* lastunlim */
@@ -1082,8 +1091,9 @@ processunlimiteddims(void)
 	if(first == 0) {
 	    computeunlimitedsizes(dimset,first,var->data,ischar);
 	} else {
-	    for(i=0;i<var->data->length;i++) {
-	        NCConstant* con = var->data->data+i;
+	    int j;
+	    for(j=0;j<var->data->length;j++) {
+	        NCConstant* con = var->data->data+j;
 	        if(con->nctype != NC_COMPOUND)
 		    semerror(con->lineno,"UNLIMITED dimension (other than first) must be enclosed in {}");
 		else

@@ -6,13 +6,8 @@
 
 #include "includes.h"
 
-#define DATALISTINIT 32
-
 /* Track primitive symbol instances (initialized in ncgen.y) */
 Symbol* primsymbols[PRIMNO];
-
-/* Track all known datalist*/
-static Datalist* alldatalists = NULL;
 
 char*
 append(const char* s1, const char* s2)
@@ -84,7 +79,7 @@ tztrim(
     )
 {
     char *cp, *ep;
-    
+
     cp = ss;
     if (*cp == '-')
       cp++;
@@ -138,7 +133,7 @@ freeSymbol(Symbol* sym)
     case NG_FIELD:
     case NG_OPAQUE:
     default: break;
-    }    
+    }
     efree(sym->name);
     efree(sym);
 #endif
@@ -169,15 +164,15 @@ nctypename(nc_type nctype)
 	return nctypenamesextend[(nctype - NC_GRP)];
     if(nctype == NC_FILLVALUE) return "NC_FILL";
     if(nctype == NC_NIL) return "NC_NIL";
-    s = poolalloc(128);    
+    s = poolalloc(128);
     sprintf(s,"NC_<%d>",nctype);
     return s;
 }
 
 /* These are the augmented NC_ values (0 based from NC_GRP)*/
-char* ncclassnames[9] = { 
-"NC_GRP", "NC_DIM", "NC_VAR", "NC_ATT", 
-"NC_TYP", "NC_ECONST", "NC_FIELD", "NC_ARRAY", 
+char* ncclassnames[9] = {
+"NC_GRP", "NC_DIM", "NC_VAR", "NC_ATT",
+"NC_TYP", "NC_ECONST", "NC_FIELD", "NC_ARRAY",
 "NC_PRIM"
 };
 
@@ -190,7 +185,7 @@ ncclassname(nc_class ncc)
     if(ncc == NC_FILLVALUE) return "NC_FILL";
     if(ncc >= NC_GRP && ncc <= NC_PRIM)
 	return ncclassnames[ncc - NC_GRP];
-    s = poolalloc(128);    
+    s = poolalloc(128);
     sprintf(s,"NC_<%d>",ncc);
     return s;
 }
@@ -331,7 +326,7 @@ prefixtostring(List* prefix, char* separator)
             strcat(result,separator);
 	    strcat(result,sym->name); /* append "/<prefix[i]>"*/
 	}
-    }    
+    }
     return result;
 }
 #endif
@@ -340,7 +335,7 @@ prefixtostring(List* prefix, char* separator)
 char*
 fullname(Symbol* sym)
 {
-#ifdef USE_NETCDF4    
+#ifdef USE_NETCDF4
     char* s1;
     char* result;
     char* prefix;
@@ -357,7 +352,7 @@ int
 prefixeq(List* x1, List* x2)
 {
     Symbol** l1;
-    Symbol** l2;    
+    Symbol** l2;
     int len,i;
     if((len=listlength(x1)) != listlength(x2)) return 0;
     l1=(Symbol**)listcontents(x1);
@@ -377,7 +372,7 @@ prefixdup(List* prefix)
     dupseq = listnew();
     listsetalloc(dupseq,listlength(prefix));
     for(i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
-    return dupseq;    
+    return dupseq;
 }
 
 /*
@@ -445,14 +440,14 @@ makebytestring(char* s, size_t* lenp)
     int i;
 
     ASSERT((slen%2) == 0);
-    ASSERT(blen > 0); 
+    ASSERT(blen > 0);
     bytes = (unsigned char*)emalloc(blen);
     b = bytes;
     for(i=0;i<slen;i+=2) {
 	unsigned int digit1 = chartohex(*s++);
 	unsigned int digit2 = chartohex(*s++);
 	unsigned int byte = (digit1 << 4) | digit2;
-	*b++ = byte;				
+	*b++ = byte;
     }
     if(lenp) *lenp = blen;
     return bytes;
@@ -466,66 +461,15 @@ getpadding(int offset, int alignment)
     return pad;
 }
 
-
-
-void
-dlextend(Datalist* dl)
+static void
+reclaimSymbols(void)
 {
-    size_t newalloc;
-    newalloc = (dl->alloc > 0?2*dl->alloc:1);
-    dlsetalloc(dl,newalloc);
-}
-
-void
-dlsetalloc(Datalist* dl, size_t newalloc)
-{
-    NCConstant* newdata;
-    if(newalloc <= 0) newalloc = 1;
-    if(dl->alloc > 0)
-        newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
-    else {
-        newdata = (NCConstant*)emalloc(sizeof(NCConstant)*newalloc);
-        memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
+    Symbol* sym;
+    for(sym=symlist;sym;) {
+	Symbol* next = sym->next;
+        freeSymbol(sym);
+	sym = next;
     }
-    dl->alloc = newalloc;
-    dl->data = newdata;
-}
-
-
-Datalist*
-builddatalist(int initial)
-{
-    Datalist* ci;
-    if(initial <= 0) initial = DATALISTINIT;
-    initial++; /* for header*/
-    ci = (Datalist*)emalloc(sizeof(Datalist));
-    memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
-    ci->data = (NCConstant*)emalloc(sizeof(NCConstant)*initial);
-    memset((void*)ci->data,0,sizeof(NCConstant)*initial);
-    ci->alloc = initial;
-    ci->length = 0;
-    return ci;
-}
-
-void
-dlappend(Datalist* dl, NCConstant* constant)
-{
-    if(dl->length >= dl->alloc) dlextend(dl);
-    if(constant == NULL) constant = &nullconstant;
-    dl->data[dl->length++] = *constant;
-}
-
-NCConstant
-builddatasublist(Datalist* dl)
-{
-
-  NCConstant d;
-  d.nctype = NC_COMPOUND;
-  d.lineno = (dl->length > 0?dl->data[0].lineno:0);
-  d.value.compoundv = dl;
-  d.filled = 0;
-  return d;
- 
 }
 
 static void
@@ -534,7 +478,7 @@ constantFree(NCConstant* con)
     switch(con->nctype) {
     case NC_COMPOUND:
 	/* do nothing; ReclaimDatalists below will take care of the datalist	*/
-	break;	
+	break;
     case NC_STRING:
 	if(con->value.stringv.len > 0 && con->value.stringv.stringv != NULL)
 	    efree(con->value.stringv.stringv);
@@ -560,24 +504,13 @@ reclaimDatalists(void)
 	    for(i=0,con=list->data;i<list->length;i++,con++)
 	        constantFree(con);
 	    list->data = NULL;
-	}	
+	}
     }
     /* Step 2: free up the datalist itself*/
     for(list=alldatalists;list != NULL;) {
 	Datalist* current = list;
 	list = list->next;
 	efree(current);
-    }
-}
-
-static void
-reclaimSymbols(void)
-{
-    Symbol* sym;
-    for(sym=symlist;sym;) {
-	Symbol* next = sym->next;
-        freeSymbol(sym);
-	sym = next;
     }
 }
 
@@ -588,6 +521,10 @@ cleanup()
   reclaimSymbols();
 }
 
+
+
+
+
 /* compute the total n-dimensional size as 1 long array;
    if stop == 0, then stop = dimset->ndims.
 */
@@ -596,11 +533,10 @@ crossproduct(Dimset* dimset, int start, int stop)
 {
     size_t totalsize = 1;
     int i;
-    if(stop == 0) stop = dimset->ndims;
     for(i=start;i<stop;i++) {
 	totalsize = totalsize * dimset->dimsyms[i]->dim.declsize;
     }
-    return totalsize;    
+    return totalsize;
 }
 
 /* Do the "complement" of crossproduct;
@@ -618,21 +554,34 @@ prefixarraylength(Dimset* dimset, int last)
 
 #ifdef USE_NETCDF4
 extern int H5Eprint1(FILE * stream);
-#endif   
+#endif
 
 void
-check_err(const int stat, const int line, const char* file) {
+check_err(const int stat, const int line, const char* file)
+{
+    check_err2(stat,-1,line,file);
+}
+
+void check_err2(const int stat, const int cdlline, const int line, const char* file) {
     if (stat != NC_NOERR) {
-	fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
+	if(cdlline >= 0)
+	    fprintf(stderr, "ncgen: cdl line %d; %s\n", cdlline, nc_strerror(stat));
+	else
+	    fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
 	fprintf(stderr, "\t(%s:%d)\n", file,line);
 #ifdef USE_NETCDF4
 	H5Eprint1(stderr);
-#endif   
+#endif
 	fflush(stderr);
 	exit(1);
     }
 }
 
+/**
+Find the index of the first unlimited
+dimension at or after 'start'.
+If no unlimited exists, return |dimset|
+*/
 int
 findunlimited(Dimset* dimset, int start)
 {
@@ -643,6 +592,11 @@ findunlimited(Dimset* dimset, int start)
     return dimset->ndims;
 }
 
+/**
+Find the index of the last unlimited
+dimension.
+If no unlimited exists, return |dimset|
+*/
 int
 findlastunlimited(Dimset* dimset)
 {
@@ -651,14 +605,27 @@ findlastunlimited(Dimset* dimset)
 	if(dimset->dimsyms[i]->dim.isunlimited)
 	    return i;
     }
-    return -1;
+    return dimset->ndims;
+}
+
+/**
+Count the number of unlimited dimensions.
+*/
+int
+countunlimited(Dimset* dimset)
+{
+    int i, count;
+    for(count=0,i=dimset->ndims-1;i>=0;i--) {
+	if(dimset->dimsyms[i]->dim.isunlimited)
+	    count++;
+    }
+    return count;
 }
 
 /* Return standard format string */
 const char *
 kind_string(int kind)
 {
-    static char text[1024];
     switch (kind) {
     case 1: return "classic";
     case 2: return "64-bit offset";
@@ -669,4 +636,3 @@ kind_string(int kind)
     }
     return NULL;
 }
-
