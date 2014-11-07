@@ -311,11 +311,14 @@ IF(ENABLE_LOGGING)
 ENDIF()
 
 # Option to automatically build netcdf-fortran.
-OPTION(BUILD_FORTRAN "Download and build netcdf-fortran automatically." OFF)
-IF(BUILD_FORTRAN)
-  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/fortran_install.sh.in"
-    "${CMAKE_BINARY_DIR}/fortran_install.sh")
-ENDIF(BUILD_FORTRAN)
+IF(NOT MSVC)
+  OPTION(BUILD_FORTRAN "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
+  IF(BUILD_FORTRAN)
+    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/fortran_install.sh.in"
+      "${CMAKE_BINARY_DIR}/fortran_install.sh"
+      @ONLY)
+  ENDIF(BUILD_FORTRAN)
+ENDIF()
 
 # Option to use HDF4
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)

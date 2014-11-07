@@ -2,17 +2,66 @@
 # Script to automatically build, install netcdf-fortran.
 # Very rought draft.
 
+DOCMAKE=""
+MARG=""
+if [ $# -lt 1 ]; then
+    echo ""
+    echo "WARNING! THIS SCRIPT IS NOT MEANT TO BE RUN MANUALLY."
+    echo "WARNING! THIS SCRIPT IS NOT MEANT TO BE RUN MANUALLY."
+    echo ""
+    exit 1
+fi
+
+while getopts "t:" o; do
+    case "${o}" in
+        t)
+            MARG=${OPTARG}
+            ;;
+        *)
+            echo "Specify type with -t. Types are autotools or cmake."
+            exit 1
+            ;;
+    esac
+done
+
+case ${MARG} in
+    cmake)
+        DOCMAKE="TRUE"
+        ;;
+    autotools)
+        ;;
+    *)
+        echo "Illegal type. Types are autotools or cmake."
+        exit 1
+        ;;
+esac
+
+
+
 
 ###
-# Fetch netcdf-fortran from git
+# Fetch netcdf-fortran from git if need be.
 ###
-git clone http://github.com/unidata/netcdf-fortran
-cd netcdf-fortran
-mkdir -p build
-cd build
-git checkout v4.4.1
+
+if [ ! -d "netcdf-fortran" ]; then
+    git clone http://github.com/unidata/netcdf-fortran
+    cd netcdf-fortran
+    git checkout v4.4.1
+fi
 
 ###
 # Invoke cmake to build netcdf-fortran
 ###
-cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ && make && make test &&  make install
+
+if [ "x$DOCMAKE" = "xTRUE" ]; then
+
+    mkdir -p build
+    cd build
+    cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ -DBUILD_SHARED_LIBS=@BUILD_SHARED_LIBS@ -DTEST_PARALLEL=@ENABLE_PARALLEL@ && make && make test &&  make install
+
+else
+
+    echo "Autotools support is not yet complete."
+
+
+fi
