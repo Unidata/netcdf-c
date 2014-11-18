@@ -61,8 +61,6 @@ if [ "x$DOCMAKE" = "xTRUE" ]; then
     cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ -DBUILD_SHARED_LIBS=@BUILD_SHARED_LIBS@ -DTEST_PARALLEL=@ENABLE_PARALLEL@ && make && make test &&  make install
 
 else
-
-    echo "Autotools support is not yet complete."
-
-
+    CFLAGS="-I@abs_top_builddir@/include" LDFLAGS="-L@abs_top_builddir@/liblib/.libs" ./configure --prefix=@prefix@
+    make && make check && make install
 fi

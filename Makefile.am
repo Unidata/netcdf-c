@@ -140,6 +140,12 @@ check_nc_config:
 	./test_prog
 
 install-data-hook:
+
+if BUILD_FORTRAN
+	chmod u+x $(abs_top_builddir)/postinstall.sh
+	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools"
+endif
+
 if BUILD_DLL
 	cp liblib/netcdfdll.def $(DESTDIR)${prefix}/lib
 endif # BUILD_DLL
