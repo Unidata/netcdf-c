@@ -45,9 +45,10 @@ esac
 
 if [ ! -d "netcdf-fortran" ]; then
     git clone http://github.com/unidata/netcdf-fortran
-    cd netcdf-fortran
-    git checkout v4.4.1
 fi
+
+cd netcdf-fortran
+git checkout v4.4.1
 
 ###
 # Invoke cmake to build netcdf-fortran

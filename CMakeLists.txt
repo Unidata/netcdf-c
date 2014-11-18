@@ -314,8 +314,8 @@ ENDIF()
 IF(NOT MSVC)
   OPTION(BUILD_FORTRAN "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
   IF(BUILD_FORTRAN)
-    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/fortran_install.sh.in"
-      "${CMAKE_BINARY_DIR}/fortran_install.sh"
+    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
+      "${CMAKE_BINARY_DIR}/postinstall.sh"
       @ONLY)
   ENDIF(BUILD_FORTRAN)
 ENDIF()
