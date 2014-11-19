@@ -3,6 +3,9 @@
 # Very rought draft.
 
 DOCMAKE=""
+DOAUTOTOOL=""
+DOACTION=""
+
 MARG=""
 if [ $# -lt 1 ]; then
     echo ""
@@ -12,10 +15,13 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-while getopts "t:" o; do
+while getopts "a:t:" o; do
     case "${o}" in
         t)
             MARG=${OPTARG}
+            ;;
+        a)
+            DOACTION=${OPTARG}
             ;;
         *)
             echo "Specify type with -t. Types are autotools or cmake."
@@ -24,11 +30,17 @@ while getopts "t:" o; do
     esac
 done
 
+
+###
+# Make sure we're specifying an allowed
+# build system.
+###
 case ${MARG} in
     cmake)
         DOCMAKE="TRUE"
         ;;
     autotools)
+        DOAUTOTOOL="TRUE"
         ;;
     *)
         echo "Illegal type. Types are autotools or cmake."
@@ -36,7 +48,19 @@ case ${MARG} in
         ;;
 esac
 
-
+###
+# Make sure we're performing a valid action.
+###
+case ${DOACTION} in
+    build)
+        ;;
+    install)
+        ;;
+    *)
+        echo "Illegal action."
+        exit 1
+        ;;
+esac
 
 
 ###
@@ -48,7 +72,7 @@ if [ ! -d "netcdf-fortran" ]; then
 fi
 
 cd netcdf-fortran
-git checkout v4.4.1
+#git checkout v4.4.1
 
 ###
 # Invoke cmake to build netcdf-fortran
@@ -58,9 +82,27 @@ if [ "x$DOCMAKE" = "xTRUE" ]; then
 
     mkdir -p build
     cd build
-    cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ -DBUILD_SHARED_LIBS=@BUILD_SHARED_LIBS@ -DTEST_PARALLEL=@ENABLE_PARALLEL@ && make && make test &&  make install
 
-else
-    CFLAGS="-I@abs_top_builddir@/include" LDFLAGS="-L@abs_top_builddir@/liblib/.libs" ./configure --prefix=@prefix@
-    make && make check && make install
+    if [ "x$DOACTION" = "xbuild" ]; then
+        cmake .. -DCMAKE_PREFIX_PATH=@CMAKE_INSTALL_PREFIX@ -DCMAKE_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@ -DBUILD_SHARED_LIBS=@BUILD_SHARED_LIBS@ -DTEST_PARALLEL=@ENABLE_PARALLEL@ &&
+        make && make test
+    fi
+
+    if [ "x$DOACTION" = "xinstall" ]; then
+        make install
+    fi
+
+fi
+
+if [ "x$DOAUTOTOOL" = "xTRUE" ]; then
+
+    if [ "x$DOACTION" = "xbuild" ]; then
+        CFLAGS="-I@abs_top_builddir@/include" LDFLAGS="-L@abs_top_builddir@/liblib/.libs" ./configure --prefix=@prefix@
+        make && make check
+    fi
+
+    if [ "x$DOACTION" = "xinstall" ]; then
+        make install
+    fi
+
 fi

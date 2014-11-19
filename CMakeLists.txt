@@ -317,6 +317,17 @@ IF(NOT MSVC)
     CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
       "${CMAKE_BINARY_DIR}/postinstall.sh"
       @ONLY)
+
+    ADD_CUSTOM_TARGET(build-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a build"
+      DEPENDS netcdf
+      )
+
+    ADD_CUSTOM_TARGET(install-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a install"
+      DEPENDS build-netcdf-fortran
+      )
+
   ENDIF(BUILD_FORTRAN)
 ENDIF()
 
@@ -1384,6 +1395,7 @@ CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
+
 
 ADD_CUSTOM_TARGET(uninstall
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
