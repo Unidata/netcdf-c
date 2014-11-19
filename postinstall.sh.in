@@ -15,6 +15,17 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+
+##
+# Check for 'git', exit if it's not found.
+##
+hash git 2>/dev/null
+if [ $? -eq 1 ]; then
+    echo "ERROR: 'git' is required to install netcdf-fortran automatically"
+    echo "through this method. Please reinstall git and try again."
+    exit 1
+fi
+
 while getopts "a:t:" o; do
     case "${o}" in
         t)
@@ -72,7 +83,6 @@ if [ ! -d "netcdf-fortran" ]; then
 fi
 
 cd netcdf-fortran
-#git checkout v4.4.1
 
 ###
 # Invoke cmake to build netcdf-fortran
@@ -97,8 +107,23 @@ fi
 if [ "x$DOAUTOTOOL" = "xTRUE" ]; then
 
     if [ "x$DOACTION" = "xbuild" ]; then
-        CFLAGS="-I@abs_top_builddir@/include" LDFLAGS="-L@abs_top_builddir@/liblib/.libs" ./configure --prefix=@prefix@
-        make && make check
+        if [ ! -f "configure" ]; then
+            autoreconf -if
+        fi
+
+        STATIC_BUILD="--disable-static"
+        if [ "x@enable_static@" = "xyes" ]; then
+            STATIC_BUILD="--enable-static"
+        fi
+
+        SHARED_BUILD="--disable-shared"
+        if [ "x@enable_shared@" = "xyes" ]; then
+            SHARED_BUILD="--enable-shared"
+        fi
+
+        LIBS="@LIBS@" CFLAGS="-I@prefix@/include" LDFLAGS="-L@prefix@/lib" ./configure --prefix=@prefix@ $STATIC_BUILD $SHARED_BUILD
+        LIBS="@LIBS@" make
+        LIBS="@LIBS@" make check
     fi
 
     if [ "x$DOACTION" = "xinstall" ]; then
