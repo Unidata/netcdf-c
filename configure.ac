@@ -173,10 +173,10 @@ AC_MSG_RESULT($enable_hdf4_file_tests)
 # Does the user want to try to install netcdf-fortran
 # automatically?
 AC_MSG_CHECKING([whether we should attempt to install netcdf-fortran (EXPERIMENTAL)])
-AC_ARG_ENABLE([fortran], [AS_HELP_STRING([--enable-fortran],
+AC_ARG_ENABLE([fortran], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
 			 [Download and install netcdf-fortran (EXPERIMENTAL)])])
-test "x$enable_fortran" = xyes || enable_fortran=no
-AC_MSG_RESULT([$enable_fortran])
+test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
+AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
 
 # Does the user want to turn on PNETCDF read ability?
 AC_MSG_CHECKING([whether parallel I/O for classic and 64-bit offset files using parallel-netcdf is to be enabled])
@@ -872,7 +872,7 @@ if test "x$enable_netcdf_4" = xyes; then
 fi
 
 # Check for downloading/building fortran via postinstall script.
-if test "x$enable_fortran" = xyes; then
+if test "x$enable_remote_fortran_bootstrap" = xyes; then
    AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
 fi
 
@@ -943,7 +943,7 @@ AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
-AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_fortran = xyes])
+AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias

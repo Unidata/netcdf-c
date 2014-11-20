@@ -312,7 +312,10 @@ ENDIF()
 
 # Option to automatically build netcdf-fortran.
 IF(NOT MSVC)
-  OPTION(BUILD_FORTRAN "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
+  OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
+  IF(ENABLE_REMOTE_FORTRAN_BOOTSTRAP)
+    SET(BUILD_FORTRAN ON)
+  ENDIF()
   IF(BUILD_FORTRAN)
     CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
       "${CMAKE_BINARY_DIR}/postinstall.sh"
