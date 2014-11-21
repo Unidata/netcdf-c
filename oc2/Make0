@@ -1,6 +1,6 @@
 THISDIR=../oc2
-#OCDIR=/home/dmh/svn/oc2.0
-OCDIR=f:/git/oc
+OCDIR=/home/dmh/git/oc
+#OCIR=f:/git/oc
 
 # Make consistent with Makefile.am
 SRC=oc.c \

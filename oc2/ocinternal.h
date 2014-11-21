@@ -17,7 +17,6 @@
 #define getcwd _getcwd
 #endif
 
-
 #ifdef _AIX
 #include <netinet/in.h>
 #endif
@@ -44,6 +43,11 @@
 #include "oclist.h"
 #include "ocbytes.h"
 #include "ocuri.h"
+
+#ifndef HAVE_STRNDUP
+/* Not all systems have strndup, so provide one*/
+#define strndup ocstrndup
+#endif
 
 #define OCCACHEPOS
 

@@ -38,7 +38,7 @@
 
 
 /* Define default rc files and aliases*/
-static char* rcfilenames[4] = {".daprc",".dodsrc",".ocrc",NULL};
+static char* rcfilenames[4] = {".ocrc", ".dodsrc", ".daprc",NULL};
 
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
@@ -47,6 +47,8 @@ static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
 
 static OCerror ocsetcurlproperties(OCstate*);
+
+static OCerror rc_search(const char* prefix, char** pathp);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -69,6 +71,7 @@ OCerror
 ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
+    char* path = NULL;
 
     if(!ocglobalstate.initialized) {
         memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
@@ -110,51 +113,70 @@ ocinternalinitialize(void)
 
     /* compile the .dodsrc, if any */
     {
-        char* path = NULL;
-	char** alias;
-	FILE* f = NULL;
-        /* locate the configuration files: . first in '.',  then $HOME */
-	for(alias=rcfilenames;*alias;alias++) {
-	    size_t pathlen = strlen("./")+strlen(*alias)+1;
-            path = (char*)malloc(pathlen);
-	    if(path == NULL) return OC_ENOMEM;
-	    if(!occopycat(path,pathlen,2,"./",*alias)) {
-	        if(path) free(path);
-		return OC_EOVERRUN;
-	    }
-  	    /* see if file is readable */
-	    f = fopen(path,"r");
-	    if(f != NULL) break;
-    	    if(path != NULL) {free(path); path = NULL;} /* cleanup */
-	}
-	if(f == NULL) { /* try $HOME */
-	    OCASSERT(path == NULL);
-	    for(alias=rcfilenames;*alias;alias++) {
-		size_t pathlen = strlen(ocglobalstate.home)+1+strlen(*alias)+1;
-	        path = (char*)malloc(pathlen);
-	        if(path == NULL) return OC_ENOMEM;
-		if(!occopycat(path,pathlen,3,ocglobalstate.home,"/",*alias)) {
-		    if(path) free(path);
-		    return OC_EOVERRUN;
-		}
-		f = fopen(path,"r");
-		if(f != NULL) break;
- 	        if(path != NULL) {free(path); path=NULL;}
-            }
-	}
-        if(f == NULL) {
+        /* locate the configuration files: first in '.',  then $HOME */
+	stat = rc_search("./",&path);
+	if(stat == OC_NOERR && path == NULL)  /* try $HOME */
+	    stat = rc_search(ocglobalstate.home,&path);
+	if(stat != OC_NOERR)
+	    goto done;
+        if(path == NULL) {
             oclog(OCLOGDBG,"Cannot find runtime configuration file");
 	} else {
-	    OCASSERT(path != NULL);
-       	    fclose(f);
             if(ocdebug > 1)
 		fprintf(stderr, "DODS RC file: %s\n", path);
-            if(ocdodsrc_read(*alias,path) == 0)
+            if(ocdodsrc_read(path) == 0)
 	        oclog(OCLOGERR, "Error parsing %s\n",path);
         }
-        if(path != NULL) free(path);
     }
 
+done:
+    if(path != NULL)
+	free(path);
+    return OCTHROW(stat);
+}
+
+/**
+ * Prefix must end in '/'
+ */
+static
+OCerror
+rc_search(const char* prefix, char** pathp)
+{
+    char* path = NULL;
+    char** alias;
+    FILE* f = NULL;
+    int plen = strlen(prefix);
+    OCerror stat = OC_NOERR;
+
+    for(alias=rcfilenames;*alias;alias++) {
+	size_t pathlen = plen+strlen(*alias)+1;
+	path = (char*)malloc(pathlen);
+	if(path == NULL) {
+	    stat = OC_ENOMEM;
+	    goto done;
+	}
+	if(!occopycat(path,pathlen,2,prefix,*alias)) {
+	    stat = OC_EOVERRUN;
+	    goto done;
+	}
+  	/* see if file is readable */
+	f = fopen(path,"r");
+	if(f != NULL)
+	    goto done;
+	free(path);
+        path = NULL;
+    }
+
+done:
+    if(f != NULL)
+	fclose(f);
+    if(stat != OC_NOERR) {
+	if(path != NULL)
+	    free(path);
+	path = NULL;
+    }
+    if(pathp != NULL)
+	*pathp = path;
     return OCTHROW(stat);
 }
 
@@ -168,7 +190,7 @@ ocopen(OCstate** statep, const char* url)
     CURL* curl = NULL; /* curl handle*/
 
     if(!ocuriparse(url,&tmpurl)) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}
-
+    
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) {OCTHROWCHK(stat); goto fail;}
 
@@ -191,7 +213,7 @@ ocopen(OCstate** statep, const char* url)
     stat = ocsetcurlproperties(state);
 
     if(statep) *statep = state;
-    return OCTHROW(stat);
+    return OCTHROW(stat);   
 
 fail:
     ocurifree(tmpurl);
@@ -207,7 +229,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     OCtree* tree = NULL;
     OCnode* root = NULL;
     OCerror stat = OC_NOERR;
-
+    
     tree = (OCtree*)ocmalloc(sizeof(OCtree));
     MEMCHECK(tree,OC_ENOMEM);
     memset((void*)tree,0,sizeof(OCtree));
@@ -283,7 +305,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
 	oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,
+		  state->error.code,	
 		  (state->error.message?state->error.message:""));
     }
     if(stat) {OCTHROWCHK(stat); goto fail;}
@@ -340,7 +362,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
 	if(dataError(tree->data.xdrs,state)) {
 	    stat = OC_EDATADDS;
 	    oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,
+		  state->error.code,	
 		  (state->error.message?state->error.message:""));
 	    goto fail;
 	}
@@ -393,7 +415,7 @@ fail:
     } else {
         oclog(OCLOGERR,"oc_open: attempt to create tmp file failed: NULL");
     }
-    return stat;
+    return OCTHROW(stat);
 }
 
 void
@@ -415,14 +437,17 @@ occlose(OCstate* state)
     ocfree(state->error.message);
     ocfree(state->curlflags.useragent);
     if(state->curlflags.cookiejar) {
+#if 0
+probably not a good thing to do
 	unlink(state->curlflags.cookiejar);
+#endif
 	ocfree(state->curlflags.cookiejar);
     }
     ocfree(state->ssl.certificate);
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
     ocfree(state->ssl.cainfo);
-    ocfree(state->ssl.capath);
+    ocfree(state->ssl.capath); 
     ocfree(state->proxy.host);
     ocfree(state->creds.username);
     ocfree(state->creds.password);
@@ -503,11 +528,9 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
     } else
 	tree->text = NULL;
     /* reset the position of the tmp file*/
-    if(fseek(tree->data.file,(long)tree->data.bod,SEEK_SET) < 0) {
-      stat = OC_EDATADDS;
-      return OCTHROW(stat);
-    }
-    if(tree->text == NULL) stat = OC_EDATADDS;
+    if(fseek(tree->data.file,(long)tree->data.bod,SEEK_SET) < 0
+       || tree->text == NULL)
+	stat = OC_EDATADDS;
     return OCTHROW(stat);
 }
 
@@ -557,7 +580,7 @@ ocupdatelastmodifieddata(OCstate* state)
     if(status == OC_NOERR) {
 	state->datalastmodified = lastmodified;
     }
-    return status;
+    return OCTHROW(status);
 }
 
 /*
@@ -594,7 +617,7 @@ ocsetcurlproperties(OCstate* state)
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(state->curlflags.cookiejar == NULL
+    if(state->curlflags.cookiejar == NULL 
        || *state->curlflags.cookiejar) {
 #if 1
 	/* Apparently anything non-null will work */
@@ -604,7 +627,7 @@ ocsetcurlproperties(OCstate* state)
 	char* tmp;
 	int fd;
         int stat;
-
+		
         tmp = (char*)malloc(strlen(ocglobalstate.home)
 				  +strlen("/")
 				  +strlen(OCDIR)
@@ -624,7 +647,7 @@ ocsetcurlproperties(OCstate* state)
 	errno = 0;
 	/* Create the actual cookie file */
 	stat = ocmktmp(tmp,&state->curlflags.cookiejar,&fd);
-	close(fd);
+	close(fd);	
 
 #if 0
 	fd = creat(tmp,S_IRUSR | S_IWUSR);
@@ -641,7 +664,7 @@ ocsetcurlproperties(OCstate* state)
 fail:
     if(cstat != CURLE_OK)
 	oclog(OCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-    return OC_ECURL;
+    return OCTHROW(OC_ECURL);
 }
 
 OCerror
@@ -651,7 +674,7 @@ ocsetuseragent(OCstate* state, const char* agent)
 	free(state->curlflags.useragent);
     state->curlflags.useragent = strdup(agent);
     if(state->curlflags.useragent == NULL)
-	return OC_ENOMEM;
+	return OCTHROW(OC_ENOMEM);
     return OC_NOERR;
 }
 
@@ -684,7 +707,7 @@ dataError(XXDR* xdrs, OCstate* state)
 	    depth--;
 	    if(depth == 0) {i++; break;}
 	}
-    }
+    }    
     errmsg = (char*)malloc((size_t)i+1);
     if(errmsg == NULL) {errfound = 1; goto done;}
     xxdr_setpos(xdrs,ckp);

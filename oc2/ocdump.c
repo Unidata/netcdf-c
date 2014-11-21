@@ -418,7 +418,7 @@ ocdumpmemory(char* memory, size_t len, int xdrencoded, int level)
     }
 }
 
-static int
+static OCerror
 ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 {
     char* mem = NULL;
@@ -426,45 +426,46 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
     long red;
     struct stat stats;
     long pos;
+    OCerror stat = OC_NOERR;
 
     pos = ftell(file);
     fseek(file,0,SEEK_SET);
-
     if(fseek(file,(long)datastart,SEEK_SET) < 0) {
-      fprintf(stderr,"ocreadfile: fseek error.\n");
-      return 0;
+	fprintf(stderr,"ocreadfile: fseek error.\n");
+	stat = OC_ERCFILE;
+	goto done;
     }
 
     if(fstat(fileno(file),&stats) < 0) {
-      fprintf(stderr,"ocreadfile: fstat error.\n");
-      return 0;
+	fprintf(stderr,"ocreadfile: fstat error.\n");
+	stat = OC_ERCFILE;
+	goto done;
     }
-
     len = stats.st_size;
     len -= datastart;
-
+    
     mem = (char*)calloc(len+1,1);
-    if(mem == NULL) return 0;
+    if(mem == NULL) {stat = OC_ENOMEM; goto done;}
 
     /* Read only the data part */
     red = fread(mem,1,len,file);
     if(red < len) {
-      fprintf(stderr,"ocreadfile: short file\n");
-      if(mem) free(mem);
-      return 0;
+	fprintf(stderr,"ocreadfile: short file\n");
+	stat = OC_ERCFILE;
+	goto done;
+    }	
+    if(fseek(file,pos,SEEK_SET) < 0) {; /* leave it as we found it*/
+        fprintf(stderr,"ocreadfile: fseek error.\n");
+	stat = OC_ERCFILE;
+	goto done;
     }
-    if(fseek(file,pos,SEEK_SET) < 0) { /* leave it as we found it*/
-      fprintf(stderr,"ocreadfile: fseek error.\n");
-      if(mem) free(mem);
-      return 0;
-    }
-    if(memp)
-      *memp = mem;
-    else
-      free(mem);
+    if(memp) {*memp = mem; mem = NULL;}
+    if(lenp) *lenp = len; 
 
-    if(lenp) *lenp = len;
-    return 1;
+done:
+    if(mem != NULL)
+	free(mem);
+    return OCTHROW(stat);
 }
 
 void
@@ -573,12 +574,12 @@ ocdumpdatatree(OCstate* state, OCdata* data, OCbytes* buffer, int depth)
         snprintf(tmp,sizeof(tmp),"%04lu ",(unsigned long)data->index);
         ocbytescat(buffer,tmp);
     }
-
+   
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the mode flags in compact form */
     ocbytescat(buffer,ocdtmodestring(data->datamode,1));
-
+   
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the size or ninstances */
@@ -633,7 +634,7 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	OCdata* next = path[i-1];
 	if(next->container == NULL) break;
 	path[i] = next->container;
-    }
+    }    	        
     /* Path is in reverse order */
     for(i=i-1;i>=0;i--) {
 	pathdata = path[i];
@@ -677,5 +678,5 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	ocbytescat(buffer,octypetoddsstring(template->etype));
     }
     snprintf(tmp,sizeof(tmp),"->0x%0lx",(unsigned long)pathdata);
-    ocbytescat(buffer,tmp);
+    ocbytescat(buffer,tmp);	
 }
