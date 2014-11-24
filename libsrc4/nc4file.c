@@ -2922,7 +2922,7 @@ sync_netcdf4_file(NC_HDF5_FILE_INFO_T *h5)
    /* Write any metadata that has changed. */
    if (!(h5->cmode & NC_NOWRITE))
    {
-      int bad_coord_order = 0;	/* if detected, propagate to all groups to consistently store dimids */
+      nc_bool_t bad_coord_order = NC_FALSE;	/* if detected, propagate to all groups to consistently store dimids */
 
       if ((retval = nc4_rec_write_groups_types(h5->root_grp)))
 	 return retval;

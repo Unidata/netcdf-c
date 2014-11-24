@@ -199,7 +199,7 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var = NULL;
-   NC_ATT_INFO_T *att, **attlist = NULL, *varatt;
+   NC_ATT_INFO_T *att, **attlist = NULL;
    char norm_name[NC_MAX_NAME + 1];
    nc_bool_t new_att = NC_FALSE;
    int retval = NC_NOERR, range_error = 0;
@@ -334,11 +334,12 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       att->attnum = 0;
 
    /* If this is the _FillValue attribute, then we will also have to
-    * copy the value to the fll_vlue pointer of the NC_VAR_INFO_T
+    * copy the value to the fill_vlue pointer of the NC_VAR_INFO_T
     * struct for this var. (But ignore a global _FillValue
     * attribute). */
    if (!strcmp(att->name, _FillValue) && varid != NC_GLOBAL)
    {
+      NC_ATT_INFO_T *varatt;
       int size;
 
       /* Fill value must be same type and have exactly one value */
@@ -409,12 +410,6 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       }
       else
 	 memcpy(var->fill_value, data, type_size);
-
-      /* Mark the var and all its atts as dirty, so they get
-       * rewritten. */
-      var->dirty = NC_TRUE;
-      for (varatt = var->att; varatt; varatt = varatt->l.next)
-	 varatt->dirty = NC_TRUE;
    }
 
    /* Copy the attribute data, if there is any. VLENs and string
@@ -492,6 +487,10 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
    }
    att->dirty = NC_TRUE;
    att->created = NC_FALSE;
+
+   /* Mark attributes on variable dirty, so they get written */
+   if(var)
+       var->attr_dirty = NC_TRUE;
 
  exit:
    /* If there was an error return it, otherwise return any potential
@@ -794,8 +793,12 @@ NC4_del_att(int ncid, int varid, const char *name)
 
    /* Delete it from the HDF5 file, if it's been created. */
    if (att->created)
+   {
+      assert(locid);
+
       if(H5Adelete(locid, att->name) < 0)
 	 BAIL(NC_EATTMETA);
+   }
 
    /* Renumber all following attributes. */
    for (natt = att->l.next; natt; natt = natt->l.next)

@@ -413,7 +413,7 @@ nc_def_var_nc4(int ncid, const char *name, nc_type xtype,
    strcpy(var->name, norm_name);
    var->varid = grp->nvars++;
    var->ndims = ndims;
-   var->dirty = NC_TRUE;
+   var->is_new_var = NC_TRUE;
    
    /* If this is a user-defined type, there is a type_info struct with
     * all the type information. For atomic types, fake up a type_info
@@ -1175,7 +1175,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC *nc;
    NC_GRP_INFO_T *grp; 
    NC_HDF5_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var;
+   NC_VAR_INFO_T *var, *tmp_var;
    int retval = NC_NOERR;
 
    LOG((2, "%s: ncid 0x%x varid %d name %s", 
@@ -1206,17 +1206,18 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if ((retval = NC_check_name(name)))
       return retval;
 
-   /* Is name in use? */
+   /* Check if name is in use, and retain a pointer to the correct variable */
+   tmp_var = NULL;
    for (var = grp->var; var; var = var->l.next)
+   {
       if (!strncmp(var->name, name, NC_MAX_NAME))
          return NC_ENAMEINUSE;   
-
-   /* Find the var. */
-   for (var = grp->var; var; var = var->l.next)
       if (var->varid == varid)
-         break;
-   if (!var)
+         tmp_var = var;
+   }
+   if (!tmp_var)
       return NC_ENOTVAR;
+   var = tmp_var;
 
    /* If we're not in define mode, new name must be of equal or
       less size, if strict nc3 rules are in effect for this . */
