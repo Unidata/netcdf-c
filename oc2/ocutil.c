@@ -55,7 +55,7 @@ ocstrncmp(const char* s1, const char* s2, size_t len)
 }
 
 
-#ifdef EXTERN_UNUSED
+#if 0
 void
 makedimlist(OClist* path, OClist* dims)
 {
@@ -87,7 +87,7 @@ ocfreeprojectionclause(OCprojectionclause* clause)
     free(clause);
 }
 
-#ifdef EXTERN_UNUSED
+#if 0
 void
 freeAttributes(OClist* attset)
 {
@@ -107,7 +107,7 @@ freeAttributes(OClist* attset)
 }
 #endif
 
-#ifdef EXTERN_UNUSED
+#if 0
 void
 freeOCnode(OCnode* cdf, int deep)
 {

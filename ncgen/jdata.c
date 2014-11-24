@@ -50,10 +50,18 @@ j_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 	bbprintf(codetmp,"%d",con->value.int32v);
 	break;
     case NC_FLOAT:
-	bbprintf(codetmp,"%f",con->value.floatv);
+	/* Special case for nan */
+	if(isnan(con->value.floatv))
+	    bbprintf(codetmp,"Float.NaN");
+	else
+	    bbprintf(codetmp,"%f",con->value.floatv);
 	break;
     case NC_DOUBLE:
-	bbprintf(codetmp,"%lf",con->value.doublev);
+	/* Special case for nan */
+	if(isnan(con->value.doublev))
+	    bbprintf(codetmp,"Double.NaN");
+	else
+	    bbprintf(codetmp,"%lf",con->value.doublev);
 	break;
     case NC_UBYTE:
         bbprintf(codetmp,"%hhu",con->value.uint8v);
