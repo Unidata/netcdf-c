@@ -9,19 +9,27 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc3 Released ?
 
-* The pnetcdf support was not properly being used to provide
-mpi parallel io for netcdf-3 classic files. The wrong
-dispatch table was being used.
-[NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
 
-* Fixed bug in ncgen. When classic format was in force (k=1 or k=4),
-the "long" datatype should be treated as int32. Was returning an error.
-[NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
+	* CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
+	* Autotools: `--enable-remote-fortran-bootstrap`
 
-* Fixed bug where if the netCDF-C library is built with the
-HDF5 library but without the HDF4 library and one attempts
-to open an HDF4 file, an abort occurs rather than returning
-a proper error code (NC_ENOTNC). [NCF-317](https://bugtracking.unidata.ucar.edu/browse/NCF-317)
+	> Enabling these options creates two new make targets:
+
+	~~~	
+	$ make build-netcdf-fortran
+	$ make install-netcdf-fortran
+	~~~
+
+	These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
+	
+	It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
+
+* The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+
+* Fixed bug in ncgen. When classic format was in force (k=1 or k=4), the "long" datatype should be treated as int32. Was returning an error. [NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
+
+* Fixed bug where if the netCDF-C library is built with the HDF5 library but without the HDF4 library and one attempts to open an HDF4 file, an abort occurs rather than returning a proper error code (NC_ENOTNC). [NCF-317](https://bugtracking.unidata.ucar.edu/browse/NCF-317)
 
 * Added a new option, `NC_EXTRA_DEPS`, for cmake-based builds.  This is analogous to `LIBS` in autotools-based builds.  Example usage:
 

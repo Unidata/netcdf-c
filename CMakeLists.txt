@@ -309,6 +309,31 @@ OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
   SET(LOGGING ON)
 ENDIF()
+
+# Option to automatically build netcdf-fortran.
+IF(NOT MSVC)
+  OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
+  IF(ENABLE_REMOTE_FORTRAN_BOOTSTRAP)
+    SET(BUILD_FORTRAN ON)
+  ENDIF()
+  IF(BUILD_FORTRAN)
+    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
+      "${CMAKE_BINARY_DIR}/postinstall.sh"
+      @ONLY)
+
+    ADD_CUSTOM_TARGET(build-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a build"
+      DEPENDS netcdf
+      )
+
+    ADD_CUSTOM_TARGET(install-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a install"
+      DEPENDS build-netcdf-fortran
+      )
+
+  ENDIF(BUILD_FORTRAN)
+ENDIF()
+
 # Option to use HDF4
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
@@ -1374,6 +1399,7 @@ CONFIGURE_FILE(
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
 
+
 ADD_CUSTOM_TARGET(uninstall
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
@@ -1519,6 +1545,8 @@ install(
 ####
 # End export files
 ####
+
+
 
 # CPack inclusion must come last.
 INCLUDE(CPack)

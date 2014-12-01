@@ -461,13 +461,13 @@ Convert a java name that might possibly
 contain utf8 characters to one that is
 acceptable to the Java compiler.
 Basically this means convert the printables
-using codify (above) equivalent and then escape
+using ccodify (above) equivalent and then escape
 all the utf chars.
 */
 static char*
 jcodify (const char *name)
 {
-    return codify(name);
+    return ccodify(name);
 }
 
 /**************************************************/

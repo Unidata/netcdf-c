@@ -2435,10 +2435,6 @@ follows.
         Type: String representing file path
         Description: Specify the name of file into which to store cookies. Defaults to in-memory storage.
         Related CURL Flags:CURLOPT_COOKIEJAR
-    HTTP.COOKIEFILE
-        Type: String representing file path
-        Description: Same as HTTP.COOKIEJAR.
-        Related CURL Flags: CURLOPT_COOKIEFILE
     HTTP.CREDENTIALS.USER
         Type: String representing user name
         Description: Specify the user name for Digest and Basic authentication.

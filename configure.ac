@@ -170,6 +170,14 @@ if test "x$enable_hdf4_file_tests" = xyes; then
 fi
 AC_MSG_RESULT($enable_hdf4_file_tests)
 
+# Does the user want to try to install netcdf-fortran
+# automatically?
+AC_MSG_CHECKING([whether we should attempt to install netcdf-fortran (EXPERIMENTAL)])
+AC_ARG_ENABLE([fortran], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
+			 [Download and install netcdf-fortran (EXPERIMENTAL)])])
+test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
+AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
+
 # Does the user want to turn on PNETCDF read ability?
 AC_MSG_CHECKING([whether parallel I/O for classic and 64-bit offset files using parallel-netcdf is to be enabled])
 AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
@@ -724,6 +732,8 @@ AC_ARG_ENABLE([diskless],
                               [disable support for in-memory (NC_DISKLESS) files])])
 test "x$enable_diskless" = xno || enable_diskless=yes
 
+
+# Check for enable DAP
 if test "x$enable_dap" = "xyes" -o "x$enable_cdmremote" = "xyes" -o "x$enable_rpc" = "xyes" ; then
 enable_diskless=yes
 AC_MSG_NOTICE([--enable-dap requires --enable-diskless])
@@ -861,6 +871,12 @@ if test "x$enable_netcdf_4" = xyes; then
    fi
 fi
 
+# Check for downloading/building fortran via postinstall script.
+if test "x$enable_remote_fortran_bootstrap" = xyes; then
+   AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
+fi
+
+
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
    enable_logging=no
@@ -927,6 +943,7 @@ AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
+AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_CDMREMOTE, [test "x$enable_cdmremote" = xyes]) # Alias
@@ -1090,8 +1107,9 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES([Makefile
                  nc-config
                  netcdf.pc
-		         libnetcdf.settings
-                 include/netcdf_meta.h
+	         libnetcdf.settings
+		 postinstall.sh
+		 include/netcdf_meta.h
                  include/Makefile
                  h5_test/Makefile
                  docs/Makefile

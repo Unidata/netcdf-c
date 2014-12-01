@@ -104,8 +104,11 @@ Do not think this is correct
     }
 
     /* Following are always set */
+#if 0 /*Turn off since it introduces a potential security risk*/
     cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
+#endif
+
     cstat = curl_easy_setopt(curl, CURLOPT_UNRESTRICTED_AUTH, 1L);
     OCDBG1(1,"CURLOPT_UNRESTRICTED_AUTH=%ld",1L);
     cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, OC_MAX_REDIRECTS);
