@@ -26,8 +26,7 @@ extern struct OCTriplestore {
    } triples[MAXRCLINES];
 } *ocdodsrc;
 
-extern int ocdodsrc_read(const char* path);
-extern int ocdodsrc_process(OCstate* state);
+extern OCerror ocdodsrc_process(OCstate* state);
 extern char* ocdodsrc_lookup(char* key, char* url);
 
 #endif /* RC_H_ */

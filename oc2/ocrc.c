@@ -23,6 +23,9 @@
 #define HTTPPREFIXDEPRECATED "CURL."
 #define HTTPPREFIX           "HTTP."
 
+static OCerror ocdodsrc_read(const char* path);
+static OCerror ocreadrc(void);
+
 static int parseproxy(OCstate* state, char* v);
 static int rcreadline(FILE* f, char* more, int morelen);
 static void rctrim(char* text);
@@ -211,7 +214,7 @@ sorttriplestore(void)
 {
     int i, nsorted;
     struct OCTriple* sorted = NULL;
-    struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
+    struct OCTriplestore* ocdodsrc = ocglobalstate.rc.ocdodsrc;
 
     if(ocdodsrc == NULL) return; /* nothing to sort */
     if(ocdodsrc->ntriples <= 1) return; /* nothing to sort */
@@ -266,7 +269,7 @@ ocdodsrc_read(const char* path)
     char line0[MAXRCLINESIZE+1];
     FILE *in_file = NULL;
     int linecount = 0;
-    struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
+    struct OCTriplestore* ocdodsrc = ocglobalstate.rc.ocdodsrc;
 
     if(ocdodsrc == NULL) {
         ocdodsrc = (struct OCTriplestore*)malloc(sizeof(struct OCTriplestore));
@@ -274,7 +277,7 @@ ocdodsrc_read(const char* path)
             oclog(OCLOGERR,"ocdodsrc_read: out of memory");
             return 0;
         }
-        ocglobalstate.ocdodsrc = ocdodsrc;
+        ocglobalstate.rc.ocdodsrc = ocdodsrc;
     }
     ocdodsrc->ntriples = 0;
 
@@ -348,9 +351,16 @@ ocdodsrc_process(OCstate* state)
     int stat = 0;
     char* value = NULL;
     char* url = ocuribuild(state->uri,NULL,NULL,OCURIENCODE);
-    struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
+    struct  OCTriplestore* ocdodsrc;
 
+    if(ocglobalstate.rc.ocdodsrc == NULL)
+	ocreadrc();    
+    if(ocglobalstate.rc.ocdodsrc == NULL)
+	return OC_NOERR;
+
+    ocdodsrc = ocglobalstate.rc.ocdodsrc;
     if(ocdodsrc == NULL) goto done;
+
     value = curllookup("DEFLATE",url);
     if(value != NULL) {
         if(atoi(value)) state->curlflags.compress = 1;
@@ -484,8 +494,16 @@ char*
 ocdodsrc_lookup(char* key, char* url)
 {
     int i,found;
-    struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
-    struct OCTriple* triple = ocdodsrc->triples;
+    struct OCTriplestore* ocdodsrc;
+    struct OCTriple* triple;
+
+    if(ocglobalstate.rc.ocdodsrc == NULL)
+	ocreadrc();
+    if(ocglobalstate.rc.ocdodsrc == NULL)
+	return NULL;
+
+    ocdodsrc = ocglobalstate.rc.ocdodsrc;
+    triple = ocdodsrc->triples;
 
     if(key == NULL || ocdodsrc == NULL) return NULL;
     if(url == NULL) url = "";
@@ -514,7 +532,7 @@ static void
 ocdodsrcdump(char* msg, struct OCTriple* triples, int ntriples)
 {
     int i;
-    struct OCTriplestore* ocdodsrc = ocglobalstate.ocdodsrc;
+    struct OCTriplestore* ocdodsrc = ocglobalstate.rc.ocdodsrc;
 
     if(msg != NULL) fprintf(stderr,"%s\n",msg);
     if(ocdodsrc == NULL) {
@@ -549,3 +567,24 @@ curllookup(char* suffix, char* url)
     }
     return value;
 }
+
+/* compile the .dodsrc, if any */
+OCerror
+ocreadrc(void)
+{
+    OCerror stat = OC_NOERR;
+    if(ocglobalstate.rc.rcfile == NULL) {
+        oclog(OCLOGNOTE,"No dods rc file specified\n");
+	return OC_NOERR;
+    }
+    if(ocdebug > 0)
+	fprintf(stderr, "Dods rc file: %s\n", ocglobalstate.rc.rcfile);
+    if(ocglobalstate.rc.rcfile != NULL) {
+	if(ocdodsrc_read(ocglobalstate.rc.rcfile) == 0) {
+	    oclog(OCLOGERR, "Error parsing %s\n",ocglobalstate.rc.rcfile);
+	    stat = OC_ERCFILE;
+	}
+    }
+    return stat;
+}
+

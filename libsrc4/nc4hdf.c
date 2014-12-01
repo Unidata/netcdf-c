@@ -2164,7 +2164,7 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     }
 
   /* If this is not a dimension scale, do this stuff. */
-  if (var->was_coord && var->dimscale_attached)
+  if (var->was_coord_var && var->dimscale_attached)
     {
       /* If the variable already exists in the file, Remove any dimension scale
        * attributes from it, if they exist. */

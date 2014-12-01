@@ -1,6 +1,6 @@
 THISDIR=../oc2
-OCDIR=/home/dmh/git/oc
-#OCIR=f:/git/oc
+#OCDIR=/home/dmh/git/oc
+OCDIR=f:/git/oc
 
 # Make consistent with Makefile.am
 SRC=oc.c \
@@ -29,6 +29,7 @@ all::
 makeoc::
 	rm -f ${THISDIR}/*.[chy]
 	for file in ${FILES} ; do \
+	    echo "${OCDIR}/$$file" ; \
 	    f="${OCDIR}/$$file" ; \
 	        base=`basename $$f` ; \
 		cat $$f | tr -d '' >${THISDIR}/$$base; \

@@ -583,4 +583,12 @@ extern OCerror oc_set_curl_callback(OClink,oc_curl_callback*,void* state);
 }
 #endif
 
+/**************************************************/
+/* Experimental methods to deal with rc file
+   and with ESG style authorization redirection.
+*/
+
+/* Allow specification of the rc file */
+extern OCerror oc_set_rcfile(const char* rcfilepath);
+
 #endif /*OC_H*/
