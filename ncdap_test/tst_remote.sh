@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+#set -x
 quiet=0
 leakcheck=0
 timing=0
@@ -244,9 +244,8 @@ for i in $WHICHTESTS ; do
   *) echo "Unknown which test: $i" ;;
   esac
 
+rm -f ./.dodsrc ./.ocrc
 cd ${RESULTSDIR}
-rm -f ./.dodsrc
-echo '#DODSRC' >./.dodsrc
 
 for t in ${TESTSET} ; do
   # see if we are using constraints

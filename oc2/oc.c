@@ -33,11 +33,10 @@ static int ocinitialized = 0;
 #define OCDEREF(T,s,x) (s)=(T)(x)
 
 /**************************************************/
-
-static int
+static OCerror
 oc_initialize(void)
 {
-    int status = OC_NOERR;
+    OCerror status = OC_NOERR;
     status = ocinternalinitialize();
     ocinitialized = 1;
     return status;
@@ -2088,5 +2087,66 @@ oc_set_curl_callback(OClink link, oc_curl_callback* callback, void* userstate)
     OCDEREF(OCstate*,state,link);
     state->usercurl = callback;
     state->usercurldata = userstate;
+    return OCTHROW(OC_NOERR);
+}
+
+OCerror
+oc_set_rcfile(const char* rcfile)
+{
+    FILE* f;
+    if(!ocinitialized) oc_initialize(); /* so ocglobalstate is defined */
+    if(rcfile == NULL || strlen(rcfile) == 0)
+	return OCTHROW(OC_EINVAL);
+    f = fopen(rcfile,"r");
+    if(f == NULL)
+	return OCTHROW(OC_ERCFILE);
+    fclose(f);
+    ocglobalstate.rc.rcfile = strdup(rcfile);
+    return OCTHROW(OC_NOERR);
+}
+
+OCerror
+oc_set_rcsearchpath(const char* path)
+{
+    char* p;
+    char *q;
+    int nelems;
+    int plen;
+    char* rcp;
+
+    if(!ocinitialized) oc_initialize(); /* so ocglobalstate is defined */
+    if(path == NULL || strlen(path) == 0)
+	return OCTHROW(OC_EINVAL);
+    plen = strlen(path);
+    rcp = strdup(path);
+    /* Count number of path elements */
+    for(nelems=1,p=rcp;*p;p++) {
+	if(*p==';' || *p==':') nelems++;
+    }
+    ocglobalstate.rc.searchpath = (char**)malloc(sizeof(char*)*(nelems+1)); /* +1 for null terminator */
+    ocglobalstate.rc.searchpath[nelems] = NULL;
+    if(nelems == 1) {
+        ocglobalstate.rc.searchpath[0] = rcp; rcp = NULL;
+    } else {
+	int i;
+        for(i=0,q=rcp,p=rcp;;p++) {
+	    if(*p==';' || *p==':' || *p == '\0') {
+		ocglobalstate.rc.searchpath[i] = strdup(q);
+		if(*p == '\0') break;
+		*p = '\0';
+		p = p+1; q = p;		
+	    }
+        }
+    }
+    return OCTHROW(OC_NOERR);
+}
+
+OCerror
+oc_set_esg(OClink link, int tf)
+{
+    OCstate* state;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    state->curlflags.esg = tf;
     return OCTHROW(OC_NOERR);
 }

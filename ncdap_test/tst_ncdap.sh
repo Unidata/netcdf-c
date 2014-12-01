@@ -67,6 +67,7 @@ fi
 rm -fr ${RESULTSDIR}
 mkdir "${RESULTSDIR}"
 
+rm -f ./.dodsrc ./.ocrc
 passcount=0
 xfailcount=0
 failcount=0
@@ -76,8 +77,6 @@ echo "        Base URL: ${TESTURL}"
 echo "        Client Parameters: ${PARAMS}"
 
 cd ${RESULTSDIR}
-rm -f ./.dodsrc
-echo '#DODSRC' >./.dodsrc
 
 for x in ${TESTSET} ; do
   url="${PARAMS}${TESTURL}/$x"
