@@ -67,7 +67,7 @@ Float64 lon_rho[eta_rho = 336][xi_rho = 896];
 Float64 lat_rho[eta_rho = 336][xi_rho = 896];
 */
 
-#define URL "%s/thredds/dodsC/testdods/rtofs.nc"
+#define URL "%s/dodsC/testdods/rtofs.nc"
 #define VAR1 "Latitude"
 #define VAR2 "Longitude"
 #define XSIZE 850
@@ -98,15 +98,16 @@ main()
         const char* testserver[2];
 	testserver[0] = svc;
 	testserver[1] = NULL;
-        svc = NC_findtestserver("dts",testserver);
+        svc = NC_findtestserver("thredds",testserver);
     } else 	
-        svc = NC_findtestserver("dts",NULL);
+        svc = NC_findtestserver("thredds",NULL);
 
     if(svc == NULL) {
         fprintf(stderr,"Cannot locate test server\n");
 	exit(0);
     }
 
+    strcpy(url,URL);
     snprintf(url,sizeof(url),URL,svc);
 
     for (idim=0; idim<5; idim++) {
