@@ -2115,16 +2115,16 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 
   LOG((4, "%s: writing var %s", __func__, var->name));
 
-  /* If this is a coordinate var, and a dataset has already
-   * been created for it, then delete that dataset and recreate
-   * it (because its type may be wrong anyway.) But then we
-   * have to reattach dimension scales for all vars! Oh well,
-   * this all only happens when the user defines a var, writes
-   * metadata, reenters define mode, and adds a coordinate
-   * var. Presumably this will happen rarely. */
+  /* If the variable has already been created & the fill value changed,
+   * indicate that the existing variable should be replaced. */
+  if (var->created && var->fill_val_changed)
+    {
+      replace_existing_var = NC_TRUE;
+      var->fill_val_changed = NC_FALSE;
+    }
 
   /* Is this a coordinate var that has already been created in
-   * the HDF5 as a dimscale dataset? Check for dims with the
+   * the HDF5 file as a dimscale dataset? Check for dims with the
    * same name in this group. If there is one, check to see if
    * this object exists in the HDF group. */
   if (var->became_coord_var)
@@ -2140,10 +2140,34 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
               return retval;
             if (exists)
               {
-                hid_t dim_datasetid;  /* Dataset ID for dimension */
+                /* Indicate that the variable already exists, and should be replaced */
+                replace_existing_var = NC_TRUE;
+                break;
+              }
+          }
+    }
 
-             /* Indicate that the variable already exists */
-             replace_existing_var = NC_TRUE;
+  /* Check dims if the variable will be replaced, so that the dimensions
+   * will be de-attached and re-attached correctly. */
+  /* (Note: There's a temptation to merge this loop over the dimensions with
+   *        the prior loop over dimensions, but that blurs the line over the
+   *        purpose of them, so they are currently separate.  If performance
+   *        becomes an issue here, it would be possible to merge them. -QAK)
+   */
+  if (replace_existing_var)
+    {
+      NC_DIM_INFO_T *d1;
+
+      for (d1 = grp->dim; d1; d1 = d1->l.next)
+        if (!strcmp(d1->name, var->name))
+          {
+            nc_bool_t exists;
+
+            if ((retval = var_exists(grp->hdf_grpid, var->name, &exists)))
+              return retval;
+            if (exists)
+              {
+                hid_t dim_datasetid;  /* Dataset ID for dimension */
 
                 /* Find dataset ID for dimension */
                 if (d1->coord_var)

@@ -151,6 +151,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t is_new_var;        /* True if variable is newly created */
    nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
    nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
+   nc_bool_t fill_val_changed;  /* True if variable's fill value changes after it has been created */
    nc_bool_t attr_dirty;        /* True if variable's attributes are dirty and should be rewritten */
    nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
    nc_bool_t written_to;        /* True if variable has data written to it */

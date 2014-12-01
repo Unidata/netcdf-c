@@ -410,6 +410,11 @@ nc4_put_att(int ncid, NC *nc, int varid, const char *name,
       }
       else
 	 memcpy(var->fill_value, data, type_size);
+      
+      /* Indicate that the fill value was changed, if the variable has already
+       * been created in the file, so the dataset gets deleted and re-created. */
+      if (var->created)
+         var->fill_val_changed = NC_TRUE;
    }
 
    /* Copy the attribute data, if there is any. VLENs and string
