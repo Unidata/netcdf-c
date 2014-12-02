@@ -23,6 +23,16 @@ Users who prefer to build the netCDF-C libraries from source in a Windows enviro
 
 These libraries can be used with Visual Studio 2010 projects.  The downloads are installer packages which contain the netCDF-C libraries and utilities (ncgen, ncgen3, ncdump and nccopy), as well as the associated dependencies.  
 
+
+## Included Dependencies
+
+The included dependencies and versions are as follows:
+
+* `libhdf5`: 1.8.14
+* `libcurl`: 7.35.0
+* `zlib`:    1.2.8
+I
+
 ## Latest Stable Release (netCDF-C 4.3.2)
 
 Configuration		| 32-bit 						| 64-bit |
