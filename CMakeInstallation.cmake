@@ -1,12 +1,12 @@
 #####
 # Contains variables and settings used
-# by the CMake build system in order to 
+# by the CMake build system in order to
 # build binary installers.
 #####
 
 
 ###
-# Set options specific to the 
+# Set options specific to the
 # Nullsoft Installation System (NSIS)
 ###
 
@@ -16,4 +16,4 @@ IF(WIN32)
   SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 ENDIF()
 
-INCLUDE(CPACK)
+INCLUDE(CPack)
