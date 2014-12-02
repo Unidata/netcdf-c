@@ -1251,6 +1251,7 @@ ENDIF()
 # Build doxygen documentation, if need be.
 #####
 ADD_SUBDIRECTORY(docs)
+
 #####
 # Moving on to CPack, install packages.
 #####
@@ -1378,6 +1379,7 @@ SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
   "/unknown/"
   ".*~"
   )
+
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
   ${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
   @ONLY
@@ -1549,4 +1551,5 @@ install(
 
 
 # CPack inclusion must come last.
-INCLUDE(CPack)
+# INCLUDE(CPack)
+INCLUDE(CMakeInstallation.cmake)
