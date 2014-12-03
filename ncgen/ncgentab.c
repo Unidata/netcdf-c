@@ -3322,32 +3322,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->_Storage = NC_CHUNKED;
                 } break;
             case _COMPRESSION_FLAG:
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                strncpy(special->_Algorithm,sdata,COMPRESSION_MAX_NAME);
-=======
                 strncpy(special->_Algorithm,sdata,NC_COMPRESSION_MAX_NAME);
->>>>>>> significant mod to compression interface to store parms into int[] instead of struct.
 	        /* overrides zip (DEFLATE_FLAG) */
 		special->flags &= (~_DEFLATE_FLAG);
-=======
-                if(strcmp(sdata,"zip") == 0) {
-                    special->_Algorithm = NC_COMPRESS_DEFLATE;
-		    /* overrides zip (DEFLATE_FLAG) */
-		    special->flags &= (~_DEFLATE_FLAG);
-                } else if(strcmp(sdata,"bzip2") == 0) {
-                    special->_Algorithm = NC_COMPRESS_BZIP2;
-		    /* overrides zip (DEFLATE_FLAG) */
-		    special->flags &= (~_DEFLATE_FLAG);
-                } else
-                    derror("_Compression: illegal value: %s",sdata);
->>>>>>> Add support for multiple compression algorithms.
-=======
-                strncpy(special->_Algorithm,sdata,COMPRESSION_MAX_NAME);
-	        /* overrides zip (DEFLATE_FLAG) */
-		special->flags &= (~_DEFLATE_FLAG);
->>>>>>> switch
                 special->flags |= _COMPRESSION_FLAG;
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);

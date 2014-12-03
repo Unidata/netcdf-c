@@ -11,14 +11,12 @@ HDF5=1
 DAP=1
 #HDF4=1
 #PNETCDF=1
+#PAR=1
+
+# Following must be consistent
 #SZIP=1
 BZIP2=1
 FPZIP=1
-
-#PAR=1
-
-# Following two must be consistent
-COMPRESSORS="bzip2 fpzip"
 COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lfpzip
 
 
@@ -218,7 +216,7 @@ FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
-if test "x$COMPRESSORS" != "" ; then
+if test "x$COMPRESSORS" != "x" ; then
 FLAGS="$FLAGS --with-compression='${COMPRESSION}'"
 LDFLAGS="${LDFLAGS} ${COMPRESSLIBS}"
 fi

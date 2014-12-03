@@ -1198,6 +1198,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expected4/Makefile
                  ncdap_test/expectremote3/Makefile
                  ncdap_test/expectremote4/Makefile
+                 nccompress_test/Makefile
 		 ],
                  [test -f  nc-config && chmod 755 nc-config])
 AC_OUTPUT()

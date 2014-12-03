@@ -50,6 +50,7 @@ if USE_NETCDF4
 H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
 NC_TEST4 = nc_test4
+NCCOMPRESS_TEST = nccompress_test
 endif
 
 # Build the opendap client?
@@ -78,7 +79,7 @@ endif
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(NCDAPTESTDIR) $(NCCOMPRESS_TEST)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
