@@ -3913,7 +3913,7 @@ the intent of elements of the format.
      FILL_SHORT   = \\x80 \\x01                 // (short) -32767
      FILL_INT     = \\x80 \\x00 \\x00 \\x01       // (int) -2147483647
      FILL_FLOAT   = \\x7C \\xF0 \\x00 \\x00       // (float) 9.9692099683868690e+36
-     FILL_DOUBLE  = \\x47 \\x9E \\x00 \\x00 \\x00 \\x00 //(double)9.9692099683868690e+36
+     FILL_DOUBLE  = \\x47 \\x9E \\x00 \\x00 \\x00 \\x00 \\x00 \\x00 //(double)9.9692099683868690e+36
 </pre>
 
 Note on vsize: This number is the product of the dimension lengths
