@@ -1349,16 +1349,14 @@ copy(char* infile, char* outfile)
 
     NC_CHECK(nc_inq_format(igrp, &inkind));
 
-/* option_kind specifies which netCDF format for output: 
- *   -1 -> same as input, 
- *    1 -> classic
- *    2 -> 64-bit offset
- *    3 -> netCDF-4, 
- *    4 -> netCDF-4 classic model
+/* option_kind specifies which netCDF format for output, one of
  *
- * However, if compression or shuffling was specified and kind was -1,
- * kind is changed to format 4 that supports compression for input of
- * type 1 or 2.  
+ *     SAME_AS_INPUT, NC_FORMAT_CLASSIC, NC_FORMAT_64BIT, 
+ *     NC_FORMAT_NETCDF4, NC_FORMAT_NETCDF4_CLASSIC 
+ *
+ * However, if compression or shuffling was specified and kind was SAME_AS_INPUT,
+ * option_kind is changed to NC_FORMAT_NETCDF4_CLASSIC, if input format is 
+ * NC_FORMAT_CLASSIC or NC_FORMAT_64BIT .
  */
     outkind = option_kind;
     if (option_kind == SAME_AS_INPUT) {	/* default, kind not specified */
@@ -1415,11 +1413,11 @@ copy(char* infile, char* outfile)
 #else
     case NC_FORMAT_NETCDF4:
     case NC_FORMAT_NETCDF4_CLASSIC:
-	error("nccopy built with --disable-netcdf4, can't create netCDF-4 files");
+	error("netCDF library built with --disable-netcdf4, can't create netCDF-4 files");
 	break;
 #endif	/* USE_NETCDF4 */
     default:
-	error("bad value (%d) for -k option\n", option_kind);
+	error("bad value for option specifying desired output format, see usage\n");
 	break;
     }
     NC_CHECK(nc_create(outfile, create_mode, &ogrp));
@@ -1510,9 +1508,8 @@ usage(void)
 {
 #define USAGE   "\
   [-k kind] specify kind of netCDF format for output file, default same as input\n\
-	    kind strings: classic, 64-bit-offset, netCDF-4, netCDF-4-classic\n\
-            deprecated kind numbers: 1 (classic), 2 (64-bit-offset),\n\
-                                     3 (netCDF-4), 4 (netCDF-4 classic model\n\
+	    kind strings: classic (or n3), 64-bit-offset (or n6),\n\
+                          netCDF-4 (or n4), netCDF-4-classic (or n7)\n\
   [-3]      netCDF classic output (same as -k classic)\n\
   [-6]      64-bit-offset output (same as -k 64-bit-offset)\n\
   [-4]      netCDF-4 output (same as -k netCDF-4)\n\
@@ -1537,7 +1534,7 @@ usage(void)
     /* Don't document this flaky option until it works better */
     /* [-x]      use experimental computed estimates for variable-specific chunk caches\n\ */
 
-    error("%s [-[3|4|6|7] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetcdf library version %s",
+    error("%s [-k kind] [-[3|4|6|7]] [-d n] [-s] [-c chunkspec] [-u] [-w] [-[v|V] varlist] [-[g|G] grplist] [-m n] [-h n] [-e n] [-r] infile outfile\n%s\nnetCDF library version %s",
 	  progname, USAGE, nc_inq_libvers());
 }
 
@@ -1555,11 +1552,13 @@ main(int argc, char**argv)
     } legalkinds[] = {
 	/* NetCDF-3 classic format (32-bit offsets) */
 	{"classic", NC_FORMAT_CLASSIC},
+	{"n3", NC_FORMAT_CLASSIC},
 	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" instead of "-k1" */
 	
 	/* NetCDF-3 64-bit offset format */
 	{"64-bit-offset", NC_FORMAT_64BIT},
 	{"64-bit offset", NC_FORMAT_64BIT},
+	{"n6", NC_FORMAT_64BIT},
 	{"2", NC_FORMAT_64BIT},	/* deprecated, use "-6" instead of "-k2" */
 	
 	/* NetCDF-4 HDF5-based format */
@@ -1567,6 +1566,7 @@ main(int argc, char**argv)
 	{"netCDF4", NC_FORMAT_NETCDF4},
 	{"hdf5", NC_FORMAT_NETCDF4},
 	{"enhanced", NC_FORMAT_NETCDF4},
+	{"n4", NC_FORMAT_NETCDF4},
 	{"3", NC_FORMAT_NETCDF4}, /* deprecated, use "-4" instead of "-k3" */
 
 	/* NetCDF-4 HDF5-based format, restricted to classic data model */
@@ -1576,6 +1576,7 @@ main(int argc, char**argv)
 	{"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
 	{"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC},
 	{"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+	{"n7", NC_FORMAT_NETCDF4_CLASSIC},
 	{"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" instead of "-k4" */
 
 	/* null terminate*/
@@ -1615,7 +1616,7 @@ main(int argc, char**argv)
 		    }
 		}
 		if(kvalue->name == NULL) {
-		    error("invalid format: %s", kind_name);
+		    error("invalid output format: %s", kind_name);
 		}
 	    }
 	    break;
