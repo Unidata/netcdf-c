@@ -106,4 +106,4 @@ EXTRA_DIST += ref_tst_diskless2.cdl CMakeLists.txt
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
-	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
+	m4 $(AM_M4FLAGS) $(M4FLAGS) -s $< >$@
