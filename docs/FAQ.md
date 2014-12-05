@@ -92,7 +92,7 @@ Another freely available tool,
 developed as a netCDF add-in for MS Excel that can facilitate the
 conversion of netCDF data to and from text form.
 
-Note that ncdump and similar tools can print metadata and data values
+Note that **ncdump** and similar tools can print metadata and data values
 from netCDF files, but in general they don't understand coordinate
 systems specified in the metadata, only variable arrays and their
 indices. To interpret georeferencing metadata so you can print the data
@@ -109,13 +109,13 @@ How do I convert ASCII or text data to netCDF? {#How-do-I-convert-ASCII-or-text-
 
 
 One way to convert data in text form to netCDF is to use the **ncgen**
-tool that is part of the netCDF software distribution. Using ncgen for
+tool that is part of the netCDF software distribution. Using **ncgen** for
 this purpose is a two-step process:
 
 1.  Convert text data to a file in [CDL
     form](/software/netcdf/docs/netcdf.html#CDL-Syntax) using a text
     editor or text manipulation tools
-2.  Convert the CDL representation to netCDF using the ncgen tool with
+2.  Convert the CDL representation to netCDF using the **ncgen** tool with
     the "-o" or "-b" option
 
 For more information, see the [ncgen
@@ -348,8 +348,8 @@ build netCDF from source on various platforms. Often, it's as easy as
 running
 
 ~~~~ {.boldcode}
-./configure
-make check install
+  ./configure
+  make check install
 ~~~~
 
 * * * * *
@@ -545,9 +545,9 @@ If you have an unusual combination of compilers or platform, you may
 have to set a few environment variables before invoking
 
 ~~~~ {.boldcode}
-./configure
-make test
-make install
+  ./configure
+  make test
+  make install
 ~~~~
 
 For details, see the [NetCDF Installation and Porting
@@ -581,7 +581,7 @@ If you invoke
 ~~~~
 
 the last line of the resulting output will identify the version
-associated with the ncdump utility. You can also call one of the
+associated with the **ncdump** utility. You can also call one of the
 functions `nc_inq_libvers()`, `nf_inq_libvers()`, or
 `nf90_inq_libvers()` from C, Fortran-77, or Fortran-90 programs to get a
 version string.
@@ -681,10 +681,13 @@ user-block of 512, 1024, 2048, ... bytes before what is actually an
 
 With netCDF version 4.0 or later, there is an easy way that will
 distinguish between netCDF-4 and netCDF-4 classic model files, using the
-"-k" option to ncdump to determine the kind of file, for example:
+"-k" option to **ncdump** to determine the kind of file, for example:
 
-          ncdump -k foo.nc
-          classic
+~~~~~ {.boldcode}
+  ncdump -k foo.nc
+  classic
+~~~~~
+
 
 In a program, you can call the function
 [nc\_inq\_format](http://www.unidata.ucar.edu/netcdf/docs/netcdf-c.html#nc_005finq-Family)
@@ -878,7 +881,7 @@ To write compressed data, what changes do I need to make to my netCDF-3 program?
 -----------------
 
 
-The nccopy utility in versions 4.1.2 and later supports a "-d *level*"
+The **nccopy** utility in versions 4.1.2 and later supports a "-d *level*"
 deflate option that copies a netCDF file, compressing all variables
 using the specified level of deflation and default chunking parameters,
 or you can specify chunking with the "-c" option.
@@ -952,26 +955,37 @@ Every netCDF-3 file can be read or written by a netCDF version 4
 library, so in that respect netCDF-3 files are already netCDF-4 files
 and need no conversion. But if you want to convert a classic or 64-bit
 offset format file into a netCDF-4 format or netCDF-4 classic model
-format file, the easiest way is to use the nccopy utility from netCDF
-versions 4.1 and later. For example to convert a classic format file
-foo3.nc to a netCDF-4 classic format file foo4.nc, use:
+format file, the easiest way is to use the **nccopy** utility. For example
+to convert a classic format file foo3.nc to a netCDF-4 format file
+foo4.nc, use:
 
-         nccopy -k 4 foo3.nc foo4c.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
+  nccopy -k netCDF-4 foo3.nc foo4.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To convert a classic format file foo3.nc to a netCDF-4 classic
+model format file foo4c.nc, you could use:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
+  nccopy -k netCDF-4-classic foo3.nc foo4c.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have installed [NCO](/netcdf/docs/software.html#NCO), the NCO
 utility "ncks" can be used to accomplish the same task, as follows:
 
-         ncks -4 foo3.nc foo4c.nc
+~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
+  ncks -7 foo3.nc foo4c.nc
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Another method is available for relatively small files, using the ncdump
-and ncgen utilities (built with a netCDF-4 library). Assuming
+Another method is available for relatively small files, using the **ncdump**
+and **ncgen** utilities (built with a netCDF-4 library). Assuming
 "small3.nc" is a small classic format or 64-bit offset format netCDF
-file, you can create an equivalent netCDF-4 classic file named
-"small4c.nc" as follows:
+file, you can create an equivalent netCDF-4 file named
+"small4.nc" as follows:
 
 ~~~~ {.boldcode}
   ncdump small3.nc > small.cdl
-  ncgen -o small4c.nc -k 4 small.cdl
+  ncgen -o small4.nc -k netCDF-4-classic small.cdl
 ~~~~
 
 Why might someone want to convert netCDF-4 files into netCDF-3 files? {#Why-might-someone-want-to-convert-netCDF-4-files-into-netCDF-3-files}
@@ -998,19 +1012,23 @@ library, or because no features of the enhanced model were used in
 writing the file, then there are several ways to convert it to a
 netCDF-3 file.
 
-You can use the nccopy utility from netCDF versions 4.1 and later. For
+You can use the **nccopy** utility. For
 example to convert a netCDF-4 classic-model format file foo4c.nc to a
 classic format file foo3.nc, use:
 
-         nccopy -k classic foo4c.nc foo3.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
+  nccopy -k classic foo4c.nc foo3.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have installed [NCO](/netcdf/docs/software.html#NCO), the NCO
 utility "ncks" can be used to accomplish the same task, as follows:
 
-         ncks -3 foo4c.nc foo3.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
+  ncks -3 foo4c.nc foo3.nc
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For a relatively small netCDF-4 classic model file, "small4c.nc" for
-example, you can also use the ncdump and ncgen utilities to create an
+example, you can also use the **ncdump** and **ncgen** utilities to create an
 equivalent netCDF-3 classic format file named "small3.nc" as follows:
 
 ~~~~ {.boldcode}
@@ -1086,9 +1104,9 @@ netCDF libraries don't use the file extension. A user can currently
 create a netCDF file with any extension, even one not consistent with
 the format of the file.
 
-The ncgen utility uses ".nc" as a default extension for output, but this
+The **ncgen** utility uses ".nc" as a default extension for output, but this
 can be overridden using the "-o" option to specify the name for the
-output file. Recent versions of ncgen also have a "-k" option to specify
+output file. Recent versions of **ncgen** also have a "-k" option to specify
 what kind of output file is desired, selecting any of the 4 format
 variants, using either a numeric code or a text string. Most other
 netCDF client software pays no attention to the file extension, so using
@@ -1160,18 +1178,18 @@ user-defined types.
 We recommend proceeding incrementally, supporting features that are
 easier to implement first. For example, handling the six new primitive
 types is relatively straightforward. After that, using recursion (or the
-group iterator interface used in nccopy) to support Groups is not too
+group iterator interface used in **nccopy**) to support Groups is not too
 difficult. Providing support for user-defined types is more of a
 challenge, especially since they can be nested.
 
-The utility program nccopy, provided in releases 4.1 and later, shows
+The utility program **nccopy**, provided in releases 4.1 and later, shows
 how this can be done using the C interface. It copies an input netCDF
 file in any of the format variants, handling nested groups, strings, and
 any user-defined types, including arbitrarily nested compound types,
 variable-length types, and data of any valid netCDF-4 type. It also
 demonstrates how to handle variables that are too large to fit in memory
 by using an iterator interface. Other generic utility programs can make
-use of parts of nccopy for more complex operations on netCDF data.
+use of parts of **nccopy** for more complex operations on netCDF data.
 
 * * * * *
 
@@ -1346,7 +1364,7 @@ variant of the format is used. The version of the format will be
 preserved by the library on writing. If you want to modify a classic
 format file to use the 64-bit offset format so you can make it much
 larger, you will have to create a new file and copy the data to it. The
-nccopy utility available in version 4.1 can copy a classic file to a
+**nccopy** utility available in version 4.1 can copy a classic file to a
 64-bit offset file.
 
 * * * * *
@@ -1394,29 +1412,31 @@ display the first four bytes of a file, say foo.nc, is to run the
 following command:
 
 ~~~~ {.boldcode}
-      od -An -c -N4 foo.nc
+  od -An -c -N4 foo.nc
 ~~~~
 
 which will output
 
 ~~~~ {.boldcode}
-      C   D   F 001
+  C   D   F 001
 ~~~~
 
 or
 
 ~~~~ {.boldcode}
-      C   D   F 002
+  C   D   F 002
 ~~~~
 
 depending on whether foo.nc is a classic or 64-bit offset netCDF file,
 respectively.
 
 With netCDF version 3.6.2 or later, there is an easier way, using the
-"-k" option to ncdump to determine the kind of file, for example:
+"-k" option to **ncdump** to determine the kind of file, for example:
 
-          ncdump -k foo.nc
-          classic
+~~~~ {.boldcode}
+  ncdump -k foo.nc
+  classic
+~~~~
 
 * * * * *
 
@@ -1489,13 +1509,10 @@ How do I create a 64-bit offset netCDF file using the ncgen utility? {#How-do-I-
 -----------------
 
 
-A new flag, '-k', has been added to ncgen to specify the kind of file
-format variant. By default or if '-k 1' or '-k classic' is specified,
-the generated file will be in netCDF classic format. If '-k 2' or '-k
-64-bit-offset' is specified, the generated file will use the new 64-bit
-offset format. To permit creating very large files quickly, another new
-ncgen flag, '-x', has been added to specify use of nofill mode when
-generating the netCDF file.
+A command-line option, '-k', specifies the kind of file format
+variant. By default or if '-k classic' is specified, the generated
+file will be in netCDF classic format.  If '-k 64-bit-offset' is
+specified, the generated file will use the 64-bit offset format.
 
 * * * * *
 
@@ -1789,8 +1806,8 @@ interface. As a command-line example, you could convert *fileIn.grib* to
 *fileOut.nc* as follows:
 
 ~~~~ {.boldcode}
-java -Xmx1g -classpath netcdfAll-4.3.jar ucar.nc2.dataset.NetcdfDataset \
-  -in fileIn.grib -out fileOut.nc [-isLargeFile] [-netcdf4]
+  java -Xmx1g -classpath netcdfAll-4.3.jar ucar.nc2.dataset.NetcdfDataset \
+    -in fileIn.grib -out fileOut.nc [-isLargeFile] [-netcdf4]
 ~~~~
 
 For more details on using netCDF Java, see the CDM man pages for
@@ -1805,10 +1822,10 @@ Can I recover data from a netCDF file that was not closed properly? {#Can-I-reco
 -----------------
 
 
-*I have some netcdf files which have data in them and were apparently
-not properly closed. When I examine them using ncdump they report zero
+_I have some netcdf files which have data in them and were apparently
+not properly closed. When I examine them using **ncdump** they report zero
 data points, although the size is a few megabytes. Is there a way of
-recovering them?*
+recovering them?_
 
 If the files are in classic format or 64-bit offset format (if they were
 created by netCDF version 3.6.3 or earlier, for example), then you can
