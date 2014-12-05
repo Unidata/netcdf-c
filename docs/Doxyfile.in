@@ -895,7 +895,7 @@ IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
     @abs_top_srcdir@/docs/images/netcdf_architecture.png \
     @abs_top_srcdir@/docs/images/pnetcdf.png \
     @abs_top_srcdir@/docs/images/deptree.jpg \
-    @abs_top_srcdir@/docs/images/InstallTreeWindows.jpg
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.png
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
