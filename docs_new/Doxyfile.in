@@ -746,10 +746,10 @@ WARN_LOGFILE           =
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/COPYRIGHT \
+    @abs_top_srcdir@/docs_new/mainpage.dox \
     @abs_top_srcdir@/docs_new/FAQ.md \
     @abs_top_srcdir@/docs_new/architecture.dox \
     @abs_top_srcdir@/docs_new/groups.dox \
-    @abs_top_srcdir@/docs_new/mainpage.dox \
     @abs_top_srcdir@/docs_new/install.md \
     @abs_top_srcdir@/docs_new/install-fortran.md \
     @abs_top_srcdir@/docs_new/dispatch.dox \
@@ -759,6 +759,8 @@ INPUT = \
     @abs_top_srcdir@/docs_new/windows-binaries.md \
     @abs_top_srcdir@/docs_new/all-error-codes.md \
     @abs_top_srcdir@/docs_new/cmake_faq.md \
+    @abs_top_srcdir@/docs_new/guide.dox \
+    @abs_top_srcdir@/docs_new/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_meta.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
@@ -783,18 +785,16 @@ INPUT = \
     @abs_top_srcdir@/libsrc4/nc4file.c \
     @abs_top_srcdir@/ncdump/ncdump.c \
     @abs_top_srcdir@/ncdump/nccopy.c \
-    @abs_top_srcdir@/docs_new/guide.dox \
-    @abs_top_srcdir@/docs_new/tutorial.dox \
-    @abs_top_srcdir@/examples/C/simple_xy_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_rd.c \
-    @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
-    @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
-    @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
-    @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
-    @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
-    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c
+    #@abs_top_srcdir@/examples/C/simple_xy_wr.c \
+    #@abs_top_srcdir@/examples/C/simple_xy_rd.c \
+    #@abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
+    #@abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
+    #@abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
+    #@abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
+    #@abs_top_srcdir@/examples/C/simple_nc4_wr.c \
+    #@abs_top_srcdir@/examples/C/simple_nc4_rd.c \
+    #@abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
+    #@abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c
 
 
 # This tag can be used to specify the character encoding of the source files
