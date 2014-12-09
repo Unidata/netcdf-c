@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ${srcdir}/tst_ncgen4_shared.sh
+. ${srcdir}/tst_ncgen_shared.sh
 
 if test "${MODE}" = 3 ; then
   TESTSET="${TESTS3} ${BIGTESTS3} ${BIGBIG3}"

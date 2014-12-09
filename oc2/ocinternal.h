@@ -17,7 +17,6 @@
 #define getcwd _getcwd
 #endif
 
-
 #ifdef _AIX
 #include <netinet/in.h>
 #endif
@@ -44,6 +43,11 @@
 #include "oclist.h"
 #include "ocbytes.h"
 #include "ocuri.h"
+
+#ifndef HAVE_STRNDUP
+/* Not all systems have strndup, so provide one*/
+#define strndup ocstrndup
+#endif
 
 #define OCCACHEPOS
 
@@ -128,8 +132,13 @@ extern struct OCGLOBALSTATE {
         int proto_file;
         int proto_https;
     } curl;
-    struct OCTriplestore* ocdodsrc; /* the .dodsrc triple store */
+    char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME for use in creating $HOME/.oc dir */
+    struct {
+        struct OCTriplestore* ocdodsrc; /* the .dodsrc triple store */
+        char* rcfile; /* specified rcfile; overrides anything else */
+	char** searchpath; /* Where to search */
+    } rc;
 } ocglobalstate;
 
 /*! Specifies the OCstate = non-opaque version of OClink */
@@ -152,10 +161,10 @@ struct OCstate {
 	int compress;
 	int verbose;
 	int timeout;
-	int followlocation;
 	int maxredirs;
 	char* useragent;
 	char* cookiejar;
+	int esg;
     } curlflags;
     struct OCSSL {
 	int   validate;

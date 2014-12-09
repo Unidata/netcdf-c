@@ -745,11 +745,11 @@ WARN_LOGFILE           =
 
 INPUT = \
     @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/COPYRIGHT \
+    @abs_top_srcdir@/docs/COPYRIGHT.dox \
+    @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/groups.dox \
-    @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/dispatch.dox \
@@ -759,7 +759,10 @@ INPUT = \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/cmake_faq.md \
+    @abs_top_srcdir@/docs/guide.dox \
+    @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
+    @abs_top_srcdir@/include/netcdf_meta.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
@@ -779,7 +782,18 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dparallel.c \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
-    @abs_top_srcdir@/libsrc4/nc4file.c
+    @abs_top_srcdir@/libsrc4/nc4file.c \
+    @abs_top_srcdir@/examples/C/simple_xy_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_rd.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c
+
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -879,7 +893,7 @@ IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
     @abs_top_srcdir@/docs/images/netcdf_architecture.png \
     @abs_top_srcdir@/docs/images/pnetcdf.png \
     @abs_top_srcdir@/docs/images/deptree.jpg \
-    @abs_top_srcdir@/docs/images/InstallTreeWindows.jpg
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.png
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1544,7 +1558,7 @@ SEARCHENGINE           = YES
 # The default value is: NO.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SERVER_BASED_SEARCH    = NO
+SERVER_BASED_SEARCH    = @SERVER_SIDE_SEARCH@
 
 # When EXTERNAL_SEARCH tag is enabled doxygen will no longer generate the PHP
 # script for searching. Instead the search results are written to an XML file
@@ -2027,13 +2041,13 @@ SKIP_FUNCTION_MACROS   = YES
 # the path). If a tag file is not located in the directory in which doxygen is
 # run, you must also specify the path to the tagfile here.
 
-TAGFILES               = @abs_builddir@/guide.tag=html_guide/ "@abs_builddir@/tutorial.tag = html_tutorial/"
+# TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       = @abs_builddir@/main.tag
+# GENERATE_TAGFILE       = html/main.tag
 
 # If the ALLEXTERNALS tag is set to YES all external class will be listed in the
 # class index. If set to NO only the inherited external classes will be listed.

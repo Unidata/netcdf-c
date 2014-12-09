@@ -6,13 +6,8 @@
 
 #include "includes.h"
 
-#define DATALISTINIT 32
-
 /* Track primitive symbol instances (initialized in ncgen.y) */
 Symbol* primsymbols[PRIMNO];
-
-/* Track all known datalist*/
-static Datalist* alldatalists = NULL;
 
 char*
 append(const char* s1, const char* s2)
@@ -466,89 +461,15 @@ getpadding(int offset, int alignment)
     return pad;
 }
 
-
-
-void
-dlextend(Datalist* dl)
+static void
+reclaimSymbols(void)
 {
-    size_t newalloc;
-    newalloc = (dl->alloc > 0?2*dl->alloc:1);
-    dlsetalloc(dl,newalloc);
-}
-
-void
-dlsetalloc(Datalist* dl, size_t newalloc)
-{
-    NCConstant* newdata;
-    if(newalloc <= 0) newalloc = 1;
-    if(dl->alloc > 0)
-        newdata = (NCConstant*)erealloc((void*)dl->data,sizeof(NCConstant)*newalloc);
-    else {
-        newdata = (NCConstant*)emalloc(sizeof(NCConstant)*newalloc);
-        memset((void*)newdata,0,sizeof(NCConstant)*newalloc);
+    Symbol* sym;
+    for(sym=symlist;sym;) {
+	Symbol* next = sym->next;
+        freeSymbol(sym);
+	sym = next;
     }
-    dl->alloc = newalloc;
-    dl->data = newdata;
-}
-
-
-Datalist*
-builddatalist(int initial)
-{
-    Datalist* ci;
-    if(initial <= 0) initial = DATALISTINIT;
-    initial++; /* for header*/
-    ci = (Datalist*)emalloc(sizeof(Datalist));
-    memset((void*)ci,0,sizeof(Datalist)); /* only clear the hdr*/
-    ci->data = (NCConstant*)emalloc(sizeof(NCConstant)*initial);
-    memset((void*)ci->data,0,sizeof(NCConstant)*initial);
-    ci->alloc = initial;
-    ci->length = 0;
-    return ci;
-}
-
-void
-dlappend(Datalist* dl, NCConstant* constant)
-{
-    if(dl->length >= dl->alloc) dlextend(dl);
-    if(constant == NULL) constant = &nullconstant;
-    dl->data[dl->length++] = *constant;
-}
-
-NCConstant
-builddatasublist(Datalist* dl)
-{
-
-  NCConstant d;
-  d.nctype = NC_COMPOUND;
-  d.lineno = (dl->length > 0?dl->data[0].lineno:0);
-  d.value.compoundv = dl;
-  d.filled = 0;
-  return d;
-
-}
-
-/*! Function to free an allocated datalist.
-
-  This function is used to free an individual datalist
-  object.  It is possible, hypothetically, that a
-  datalist will appear in the middle of a set of datalists,
-  in which case we'll need to determine that and shuffle around
-  'next' pointers.  For the time being, this assumes that
-  we are freeing a datalist which was allocated locally
-  and must be discarded.
-
-  Using this function instead of an inline 'free' just in
-  case we ever want to extend it, we won't have to go back
-  and re-write a bunch of stuff. I hope.
-
-  @param dlist Pointer to datalist object being freed.
-
- */
-void dlfree(Datalist **dlist) {
-
-  if(*dlist) free(*dlist);
-  dlist = NULL;
 }
 
 static void
@@ -593,23 +514,16 @@ reclaimDatalists(void)
     }
 }
 
-static void
-reclaimSymbols(void)
-{
-    Symbol* sym;
-    for(sym=symlist;sym;) {
-	Symbol* next = sym->next;
-        freeSymbol(sym);
-	sym = next;
-    }
-}
-
 void
 cleanup()
 {
   reclaimDatalists();
   reclaimSymbols();
 }
+
+
+
+
 
 /* compute the total n-dimensional size as 1 long array;
    if stop == 0, then stop = dimset->ndims.
@@ -619,7 +533,6 @@ crossproduct(Dimset* dimset, int start, int stop)
 {
     size_t totalsize = 1;
     int i;
-    if(stop == 0) stop = dimset->ndims;
     for(i=start;i<stop;i++) {
 	totalsize = totalsize * dimset->dimsyms[i]->dim.declsize;
     }
@@ -644,9 +557,17 @@ extern int H5Eprint1(FILE * stream);
 #endif
 
 void
-check_err(const int stat, const int line, const char* file) {
+check_err(const int stat, const int line, const char* file)
+{
+    check_err2(stat,-1,line,file);
+}
+
+void check_err2(const int stat, const int cdlline, const int line, const char* file) {
     if (stat != NC_NOERR) {
-	fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
+	if(cdlline >= 0)
+	    fprintf(stderr, "ncgen: cdl line %d; %s\n", cdlline, nc_strerror(stat));
+	else
+	    fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
 	fprintf(stderr, "\t(%s:%d)\n", file,line);
 #ifdef USE_NETCDF4
 	H5Eprint1(stderr);
@@ -656,6 +577,11 @@ check_err(const int stat, const int line, const char* file) {
     }
 }
 
+/**
+Find the index of the first unlimited
+dimension at or after 'start'.
+If no unlimited exists, return |dimset|
+*/
 int
 findunlimited(Dimset* dimset, int start)
 {
@@ -666,6 +592,11 @@ findunlimited(Dimset* dimset, int start)
     return dimset->ndims;
 }
 
+/**
+Find the index of the last unlimited
+dimension.
+If no unlimited exists, return |dimset|
+*/
 int
 findlastunlimited(Dimset* dimset)
 {
@@ -674,14 +605,27 @@ findlastunlimited(Dimset* dimset)
 	if(dimset->dimsyms[i]->dim.isunlimited)
 	    return i;
     }
-    return -1;
+    return dimset->ndims;
+}
+
+/**
+Count the number of unlimited dimensions.
+*/
+int
+countunlimited(Dimset* dimset)
+{
+    int i, count;
+    for(count=0,i=dimset->ndims-1;i>=0;i--) {
+	if(dimset->dimsyms[i]->dim.isunlimited)
+	    count++;
+    }
+    return count;
 }
 
 /* Return standard format string */
 const char *
 kind_string(int kind)
 {
-    static char text[1024];
     switch (kind) {
     case 1: return "classic";
     case 2: return "64-bit offset";

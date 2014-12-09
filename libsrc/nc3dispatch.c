@@ -170,7 +170,7 @@ NC3_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NC3_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
 
 int
 NC3_initialize(void)

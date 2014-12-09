@@ -23,12 +23,13 @@ set(PACKAGE "netCDF" CACHE STRING "")
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-SET(netCDF_VERSION_MAJOR 4)
-SET(netCDF_VERSION_MINOR 3)
-SET(netCDF_VERSION_PATCH 3)
-SET(netCDF_VERSION_NOTE "-rc1")
-SET(netCDF_VERSION ${netCDF_VERSION_MAJOR}.${netCDF_VERSION_MINOR}.${netCDF_VERSION_PATCH}${netCDF_VERSION_NOTE})
+SET(NC_VERSION_MAJOR 4)
+SET(NC_VERSION_MINOR 3)
+SET(NC_VERSION_PATCH 3)
+SET(NC_VERSION_NOTE "-rc2")
+SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
+SET(NC_VERSION ${netCDF_VERSION})
 SET(netCDF_LIB_VERSION 7.2.0)
 SET(netCDF_SO_VERSION 7)
 SET(PACKAGE_VERSION ${VERSION})
@@ -45,10 +46,6 @@ IF(UNAME)
   getuname(cpu    -m)
   set(BUILDNAME "${osname}-${osrel}-${cpu}" CACHE STRING "Build name variable for CDash")
 ENDIF()
-
-# Determine if DOXYGEN and DOT are available.  These will be used
-# when building the documentation.
-
 # For CMAKE_INSTALL_LIBDIR
 INCLUDE(GNUInstallDirs)
 
@@ -102,6 +99,12 @@ EXECUTE_PROCESS(
   OUTPUT_VARIABLE CONFIG_DATE
   )
 string(STRIP ${CONFIG_DATE} CONFIG_DATE)
+
+##
+# Allow for extra dependencies.
+##
+
+SET(EXTRA_DEPS "")
 
 ################################
 # End Project Properties
@@ -171,9 +174,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
-  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
-
-  # Warnings for 64-to-32 bit conversions.
+    # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
@@ -204,220 +205,6 @@ ENDIF()
 ################################
 
 
-################################
-# Define Utility Macros
-################################
-
-# Macro to append files to the EXTRA_DIST files.
-SET(EXTRA_DIST "")
-MACRO(ADD_EXTRA_DIST files)
-  FOREACH(F ${files})
-    SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/${F})
-    SET(EXTRA_DIST ${EXTRA_DIST} PARENT_SCOPE)
-  ENDFOREACH()
-ENDMACRO()
-
-# A basic script used to convert m4 files
-FIND_PROGRAM(NC_M4 NAMES m4)
-MACRO(GEN_m4 filename)
-  IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-      COMMAND ${NC_M4}
-      ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-      VERBATIM
-      )
-  ENDIF()
-ENDMACRO(GEN_m4)
-
-# Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
-MACRO(add_bin_env_temp_large_test prefix F)
-  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
-  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
-  IF(MSVC)
-    SET_TARGET_PROPERTIES(${prefix}_${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-  ENDIF()
-
-  ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
-  IF(MSVC)
-    SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
-  ENDIF()
-ENDMACRO()
-
-
-# Tests which are binary, but depend on a particular environmental variable.
-MACRO(add_bin_env_test prefix F)
-  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
-  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
-  IF(MSVC)
-    SET_TARGET_PROPERTIES(${prefix}_${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-  ENDIF()
-
-  ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
-  IF(MSVC)
-    SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
-  ENDIF()
-ENDMACRO()
-
-# Build a binary used by a script, but don't make a test out of it.
-MACRO(build_bin_test F)
-  ADD_EXECUTABLE(${F} ${F}.c)
-  TARGET_LINK_LIBRARIES(${F} netcdf)
-  IF(MSVC)
-    SET_TARGET_PROPERTIES(${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-  ENDIF()
-ENDMACRO()
-
-# Binary tests which are used by a script looking for a specific name.
-MACRO(add_bin_test_no_prefix F)
-  build_bin_test(${F})
-  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
-  IF(MSVC)
-    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
-  ENDIF()
-ENDMACRO()
-
-# Binary tests which are used by a script looking for a specific name.
-MACRO(build_bin_test_no_prefix F)
-  build_bin_test(${F})
-  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
-  IF(MSVC)
-    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
-  ENDIF()
-ENDMACRO()
-
-MACRO(add_bin_test prefix F)
-  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
-  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
-  IF(MSVC)
-    SET_TARGET_PROPERTIES(${prefix}_${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-  ENDIF()
-  ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
-  IF(MSVC)
-    SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
-  ENDIF()
-ENDMACRO()
-
-# A cmake script to print out information at the end of the configuration step.
-MACRO(print_conf_summary)
-  MESSAGE("")
-  MESSAGE("")
-  MESSAGE("Configuration Summary:")
-  MESSAGE("")
-  MESSAGE(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
-  MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
-  MESSAGE(STATUS "Building DAP Support:          ${ENABLE_DAP}")
-  MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
-  IF(CMAKE_PREFIX_PATH)
-    MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
-  ENDIF()
-  MESSAGE("")
-
-  IF(${STATUS_PNETCDF} OR ${STATUS_PARALLEL})
-    MESSAGE("Building Parallel NetCDF")
-    MESSAGE(STATUS "Using pnetcdf:       ${STATUS_PNETCDF}")
-    MESSAGE(STATUS "Using Parallel IO:   ${STATUS_PARALLEL}")
-    MESSAGE("")
-  ENDIF()
-
-  MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
-  IF(ENABLE_TESTS)
-    MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
-    MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
-    MESSAGE(STATUS "Extra Tests:       ${ENABLE_EXTRA_TESTS}")
-    MESSAGE(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
-    MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
-    MESSAGE(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
-  ENDIF()
-
-  MESSAGE("")
-  MESSAGE("Compiler:")
-  MESSAGE("")
-  MESSAGE(STATUS "Build Type:           ${CMAKE_BUILD_TYPE}")
-  MESSAGE(STATUS "CMAKE_C_COMPILER:     ${CMAKE_C_COMPILER}")
-  MESSAGE(STATUS "CMAKE_C_FLAGS:        ${CMAKE_C_FLAGS}")
-  IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-    MESSAGE(STATUS "CMAKE_C_FLAGS_DEBUG:  ${CMAKE_C_FLAGS_DEBUG}")
-  ENDIF()
-  IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
-    MESSAGE(STATUS "CMAKE_C_FLAGS_RELEASE:   ${CMAKE_C_FLAGS_RELEASE}")
-  ENDIF()
-
-  MESSAGE(STATUS "Linking against:      ${ALL_TLL_LIBS}")
-
-  MESSAGE("")
-ENDMACRO()
-
-# Shell script Macro
-MACRO(add_sh_test prefix F)
-  IF(NOT MSVC)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
-  ENDIF()
-ENDMACRO()
-
-# Macro for replacing '/MD' with '/MT'.
-# Used only on Windows, /MD tells VS to use the shared
-# CRT libs, MT tells VS to use the static CRT libs.
-#
-# Taken From:
-#   http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
-#
-MACRO(specify_static_crt_flag)
-  SET(vars
-    CMAKE_C_FLAGS
-    CMAKE_C_FLAGS_DEBUG
-    CMAKE_C_FLAGS_MINSIZEREL
-    CMAKE_C_FLAGS_RELWITHDEBINFO
-    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
-    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
-    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-
-  FOREACH(flag_var ${vars})
-    IF(${flag_var} MATCHES "/MD")
-      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-    ENDIF()
-  ENDFOREACH()
-
-  FOREACH(flag_var ${vars})
-    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
-  ENDFOREACH()
-  MESSAGE(STATUS "")
-ENDMACRO()
-
-# A function used to create autotools-style 'yes/no' definitions.
-# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
-# returned.
-FUNCTION(is_enabled feature ret_val)
-  IF(${feature})
-    SET(${ret_val} "yes" PARENT_SCOPE)
-  ELSE()
-    SET(${ret_val} "no" PARENT_SCOPE)
-  ENDIF(${feature})
-ENDFUNCTION()
-
-# A function used to create autotools-style 'yes/no' definitions.
-# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
-# returned.
-FUNCTION(is_disabled feature ret_val)
-  IF(${feature})
-    SET(${ret_val} "no" PARENT_SCOPE)
-  ELSE()
-    SET(${ret_val} "yes" PARENT_SCOPE)
-  ENDIF(${feature})
-ENDFUNCTION()
-
-################################
-# End Macro Definitions
-################################
-
 
 ##
 # Configuration for post-install RPath
@@ -434,8 +221,6 @@ IF(NOT MSVC)
   if(APPLE)
     set(CMAKE_MACOSX_RPATH ON)
   endif(APPLE)
-
-  SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
   # add the automatically determined parts of the RPATH
   # which point to directories outside the build tree to the install RPATH
@@ -524,6 +309,31 @@ OPTION(ENABLE_LOGGING "Enable Logging." OFF)
 IF(ENABLE_LOGGING)
   SET(LOGGING ON)
 ENDIF()
+
+# Option to automatically build netcdf-fortran.
+IF(NOT MSVC)
+  OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
+  IF(ENABLE_REMOTE_FORTRAN_BOOTSTRAP)
+    SET(BUILD_FORTRAN ON)
+  ENDIF()
+  IF(BUILD_FORTRAN)
+    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
+      "${CMAKE_BINARY_DIR}/postinstall.sh"
+      @ONLY)
+
+    ADD_CUSTOM_TARGET(build-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a build"
+      DEPENDS netcdf
+      )
+
+    ADD_CUSTOM_TARGET(install-netcdf-fortran
+      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a install"
+      DEPENDS build-netcdf-fortran
+      )
+
+  ENDIF(BUILD_FORTRAN)
+ENDIF()
+
 # Option to use HDF4
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF5 read capability(HDF4, HDF5 and Zlib required)." OFF)
 IF(ENABLE_HDF4)
@@ -571,13 +381,13 @@ IF(ENABLE_HDF4)
   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with(requires wget)." ON)
+  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
   IF(ENABLE_HDF4_FILE_TESTS)
-    FIND_PROGRAM(PROG_WGET NAMES wget)
-    IF(PROG_WGET)
+    FIND_PROGRAM(PROG_CURL NAMES curl)
+    IF(PROG_CURL)
       SET(USE_HDF4_FILE_TESTS ON)
     ELSE()
-      MESSAGE(STATUS "Unable to locate 'wget'.  Disabling hdf4 file tests.")
+      MESSAGE(STATUS "Unable to locate 'curl'.  Disabling hdf4 file tests.")
       SET(USE_HDF4_FILE_TESTS OFF)
     ENDIF()
   ENDIF()
@@ -604,7 +414,7 @@ IF(ENABLE_NETCDF_4)
 ENDIF()
 
 # Option for building RPC
-OPTION(ENABLE_RPC OFF "Enable RPC Client and Server.")
+OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
 IF(ENABLE_RPC)
   SET(BUILD_RPC ON CACHE BOOL "")
 ENDIF()
@@ -622,8 +432,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
   IF(HDF5_LIB AND HDF5_HL_LIB AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_LIB} ${HDF5_HL_LIB})
-    SET(HDF5_C_LIBRARY ${HDF5_LIB})
-    SET(HDF5_HL_LIBRARY ${HDF5_HL_LIB})
+    SET(HDF5_C_LIBRARIES ${HDF5_LIB})
+    SET(HDF5_HL_LIBRARIES ${HDF5_HL_LIB})
     MESSAGE(STATUS "Using HDF5 Library: ${HDF5_LIB}")
     MESSAGE(STATUS "Using HDF5_HL LIbrary: ${HDF5_HL_LIB}")
   ELSE()
@@ -641,9 +451,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   IF(NOT MSVC)
     # Depending on the install, either HDF5_hdf_library or
-    # HDF5_C_LIBRARY may be defined.  We must check for either.
-    IF(HDF5_C_LIBRARY)
-      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARY})
+    # HDF5_C_LIBRARIES may be defined.  We must check for either.
+    IF(HDF5_C_LIBRARIES)
+      SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
     ENDIF()
 
     # Find out if HDF5 was built with parallel support.
@@ -672,11 +482,17 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF(NOT MSVC)
 
   # Assert HDF5 version.
-  SET(HDF5_VERSION_REQUIRED 1.8.8)
-  execute_process(COMMAND sh -c "h5cc -showconfig | grep -i \"HDF5 version\" | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*$/\\1/'"
-    OUTPUT_VARIABLE HDF5_VERSION
-    ERROR_QUIET
-    )
+  SET(HDF5_VERSION_REQUIRED 1.8.10)
+
+  IF(HDF5_IS_PARALLEL)
+	SET(HDF5_CC h5pcc)
+  ELSE()
+	SET(HDF5_CC h5cc)
+  ENDIF()
+
+  execute_process(COMMAND sh -c "${HDF5_CC} -showconfig | grep -i 'HDF5 version' | cut -d: -f2 | tr -d ' '"
+  OUTPUT_VARIABLE HDF5_VERSION
+  ERROR_QUIET)
 
   # It cannot be assumed that libhdf5.settings exists.  If it doesn't,
   # the call to h5cc will have failed.  At this point we will have to
@@ -688,6 +504,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR
 	"netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ELSE()
+        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
     ENDIF()
   ENDIF()
 
@@ -712,7 +530,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   IF(USE_SZIP)
-    FIND_PACKAGE(SZIP NO_MODULE)
+    FIND_PACKAGE(SZIP NO_MODULE REQUIRED)
     INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIR})
   ENDIF()
 
@@ -838,6 +656,32 @@ IF(ENABLE_TESTS)
 
 ENDIF()
 
+###
+# Allow the user to specify libraries
+# to link against, similar to automakes 'LIBS' variable.
+###
+SET(NC_EXTRA_DEPS "" CACHE STRING "Additional libraries to link against.")
+IF(NC_EXTRA_DEPS)
+  STRING(REPLACE " " ";" DEPS_LIST ${NC_EXTRA_DEPS})
+  FOREACH(_DEP ${DEPS_LIST})
+    STRING(REGEX REPLACE "^-l" "" _LIB ${_DEP})
+    FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
+    MESSAGE(${${_LIB}_DEP})
+    IF(NOT "${_LIB}_DEP")
+      MESSAGE(FATAL_ERROR "Error finding ${_LIB}.")
+    ELSE()
+      MESSAGE(STATUS "Found ${_LIB}: ${${_LIB}_DEP}")
+    ENDIF()
+    SET(EXTRA_DEPS ${EXTRA_DEPS} "${${_LIB}_DEP}")
+  ENDFOREACH()
+  MESSAGE("Extra deps: ${EXTRA_DEPS}")
+  LIST(REMOVE_DUPLICATES EXTRA_DEPS)
+ENDIF()
+###
+# End user-specified dependent libraries.
+###
+
+
 # Enable Large file tests
 IF(ENABLE_LARGE_FILE_TESTS)
   SET(LARGE_FILE_TESTS ON)
@@ -929,13 +773,19 @@ IF(ENABLE_DOXYGEN)
     SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
   ENDIF()
 
+  OPTION(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH "Enable doxygen server-side search. This is of interest to developers only." OFF)
+  IF(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH)
+    SET(SERVER_SIDE_SEARCH YES CACHE STRING "")
+  ELSE()
+    SET(SERVER_SIDE_SEARCH NO CACHE STRING "")
+  ENDIF()
   # Option to turn on the TODO list in the doxygen-generated documentation.
-  OPTION(ENABLE_DOXYGEN_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
-  IF(ENABLE_DOXYGEN_TASKS)
+  OPTION(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+  IF(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-  ELSE(ENABLE_DOXYGEN_TASKS)
+  ELSE(DOXYGEN_ENABLE_TASKS)
     SET(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-  ENDIF(ENABLE_DOXYGEN_TASKS)
+  ENDIF(DOXYGEN_ENABLE_TASKS)
 
   OPTION(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
@@ -970,7 +820,7 @@ ENDIF()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_PNETCDF ENABLE_COVERAGE_TESTS)
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
-
+MARK_AS_ADVANCED(DOXYGEN_ENABLE_SERVER_SIDE_SEARCH DOXYGEN_ENABLE_TASKS)
 ################################
 # Option checks
 ################################
@@ -1090,6 +940,237 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 # End system inspection checks.
 #####
 
+################################
+# Define Utility Macros
+################################
+
+# Macro to append files to the EXTRA_DIST files.
+SET(EXTRA_DIST "")
+MACRO(ADD_EXTRA_DIST files)
+  FOREACH(F ${files})
+    SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/${F})
+    SET(EXTRA_DIST ${EXTRA_DIST} PARENT_SCOPE)
+  ENDFOREACH()
+ENDMACRO()
+
+# A basic script used to convert m4 files
+FIND_PROGRAM(NC_M4 NAMES m4)
+MACRO(GEN_m4 filename)
+  IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      COMMAND ${NC_M4}
+      ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      VERBATIM
+      )
+  ENDIF()
+ENDMACRO(GEN_m4)
+
+# Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
+MACRO(add_bin_env_temp_large_test prefix F)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${prefix}_${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF()
+
+  ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+  IF(MSVC)
+    SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+  ENDIF()
+ENDMACRO()
+
+
+# Tests which are binary, but depend on a particular environmental variable.
+MACRO(add_bin_env_test prefix F)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+  TARGET_LINK_LIBRARIES(${prefix}_${F} netcdf)
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${prefix}_${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF()
+
+  ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+  IF(MSVC)
+    SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
+  ENDIF()
+ENDMACRO()
+
+# Build a binary used by a script, but don't make a test out of it.
+MACRO(build_bin_test F)
+  ADD_EXECUTABLE(${F} ${F}.c)
+  TARGET_LINK_LIBRARIES(${F} netcdf)
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF()
+ENDMACRO()
+
+# Binary tests which are used by a script looking for a specific name.
+MACRO(add_bin_test_no_prefix F)
+  build_bin_test(${F})
+  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+  IF(MSVC)
+    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+  ENDIF()
+ENDMACRO()
+
+# Binary tests which are used by a script looking for a specific name.
+MACRO(build_bin_test_no_prefix F)
+  build_bin_test(${F})
+  ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
+  IF(MSVC)
+    SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
+  ENDIF()
+ENDMACRO()
+
+MACRO(add_bin_test prefix F)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+  # Some tests explicitly depend on HDF5, e.g., ncdump_tst_h_scalar.
+  # Some others depend on HDF5_HL, e.g., nc_test4_tst_interops.
+  # Hence, we have to link the tests against those libraries.
+  # TODO see if we can implement a more fine-grained approach
+  TARGET_LINK_LIBRARIES(${prefix}_${F}
+    netcdf
+    ${HDF5_C_LIBRARIES}
+    ${HDF5_HL_LIBRARIES}
+    )
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${prefix}_${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF()
+  ADD_TEST(${prefix}_${F} ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F})
+  IF(MSVC)
+    SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
+  ENDIF()
+ENDMACRO()
+
+# A cmake script to print out information at the end of the configuration step.
+MACRO(print_conf_summary)
+  MESSAGE("")
+  MESSAGE("")
+  MESSAGE("Configuration Summary:")
+  MESSAGE("")
+  MESSAGE(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
+  MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
+  MESSAGE(STATUS "Building DAP Support:          ${ENABLE_DAP}")
+  MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
+  IF(CMAKE_PREFIX_PATH)
+    MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
+  ENDIF()
+  MESSAGE("")
+
+  IF(${STATUS_PNETCDF} OR ${STATUS_PARALLEL})
+    MESSAGE("Building Parallel NetCDF")
+    MESSAGE(STATUS "Using pnetcdf:       ${STATUS_PNETCDF}")
+    MESSAGE(STATUS "Using Parallel IO:   ${STATUS_PARALLEL}")
+    MESSAGE("")
+  ENDIF()
+
+  MESSAGE("Tests Enabled:              ${ENABLE_TESTS}")
+  IF(ENABLE_TESTS)
+    MESSAGE(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
+    MESSAGE(STATUS "DAP AUTH Tests:    ${ENABLE_DAP_AUTH_TESTS}")
+    MESSAGE(STATUS "Extra Tests:       ${ENABLE_EXTRA_TESTS}")
+    MESSAGE(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
+    MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
+    MESSAGE(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
+  ENDIF()
+
+  MESSAGE("")
+  MESSAGE("Compiler:")
+  MESSAGE("")
+  MESSAGE(STATUS "Build Type:           ${CMAKE_BUILD_TYPE}")
+  MESSAGE(STATUS "CMAKE_C_COMPILER:     ${CMAKE_C_COMPILER}")
+  MESSAGE(STATUS "CMAKE_C_FLAGS:        ${CMAKE_C_FLAGS}")
+  IF("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
+    MESSAGE(STATUS "CMAKE_C_FLAGS_DEBUG:  ${CMAKE_C_FLAGS_DEBUG}")
+  ENDIF()
+  IF("${CMAKE_BUILD_TYPE}" STREQUAL "RELEASE")
+    MESSAGE(STATUS "CMAKE_C_FLAGS_RELEASE:   ${CMAKE_C_FLAGS_RELEASE}")
+  ENDIF()
+
+  MESSAGE(STATUS "Linking against:      ${ALL_TLL_LIBS}")
+
+  MESSAGE("")
+ENDMACRO()
+
+# Shell script Macro
+MACRO(add_sh_test prefix F)
+  IF(NOT MSVC)
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+  ENDIF()
+ENDMACRO()
+
+# Macro for replacing '/MD' with '/MT'.
+# Used only on Windows, /MD tells VS to use the shared
+# CRT libs, MT tells VS to use the static CRT libs.
+#
+# Taken From:
+#   http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
+#
+MACRO(specify_static_crt_flag)
+  SET(vars
+    CMAKE_C_FLAGS
+    CMAKE_C_FLAGS_DEBUG
+    CMAKE_C_FLAGS_MINSIZEREL
+    CMAKE_C_FLAGS_RELWITHDEBINFO
+    CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL
+    CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+
+  FOREACH(flag_var ${vars})
+    IF(${flag_var} MATCHES "/MD")
+      STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    ENDIF()
+  ENDFOREACH()
+
+  FOREACH(flag_var ${vars})
+    MESSAGE(STATUS " '${flag_var}': ${${flag_var}}")
+  ENDFOREACH()
+  MESSAGE(STATUS "")
+ENDMACRO()
+
+# A function used to create autotools-style 'yes/no' definitions.
+# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
+# returned.
+#
+# Also creates a version of the ret_val prepended with 'NC',
+# when feature is true, which is used to generate netcdf_meta.h.
+FUNCTION(is_enabled feature ret_val)
+  IF(${feature})
+    SET(${ret_val} "yes" PARENT_SCOPE)
+    SET("NC_${ret_val}" 1 PARENT_SCOPE)
+  ELSE()
+    SET(${ret_val} "no" PARENT_SCOPE)
+    SET("NC_${ret_val}" 0 PARENT_SCOPE)
+  ENDIF(${feature})
+ENDFUNCTION()
+
+# A function used to create autotools-style 'yes/no' definitions.
+# If a variable is set, it 'yes' is returned. Otherwise, 'no' is
+# returned.
+#
+# Also creates a version of the ret_val prepended with 'NC',
+# when feature is true, which is used to generate netcdf_meta.h.
+FUNCTION(is_disabled feature ret_val)
+  IF(${feature})
+    SET(${ret_val} "no" PARENT_SCOPE)
+  ELSE()
+    SET(${ret_val} "yes" PARENT_SCOPE)
+    SET("NC_${ret_val}" 1 PARENT_SCOPE)
+  ENDIF(${feature})
+ENDFUNCTION()
+
+################################
+# End Macro Definitions
+################################
+
 # Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
@@ -1170,10 +1251,15 @@ ENDIF()
 # Build doxygen documentation, if need be.
 #####
 ADD_SUBDIRECTORY(docs)
+
 #####
 # Moving on to CPack, install packages.
 #####
 INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT headers)
+
+INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_meta.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT headers)
 
@@ -1183,13 +1269,27 @@ IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
     COMPONENT headers)
 ENDIF()
 
-# Install the dependencies. This is Windows/Visual studio only,
-# and mirrors the configuration used on the build system.  It is
-# a less-than-optimal system, but it's what we currently have, and
-# the only way to avoid making the user build all the dependencies
-# themselves.
+##
+# Brute force, grab all of the dlls from the depency directory,
+# install them in the binary dir. Grab all of the .libs, put them
+# in the libdir.
+##
 IF(MSVC)
-  INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+  FILE(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/lib/*.lib)
+  INSTALL(FILES ${COPY_FILES}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  COMPONENT dependencies)
+
+  FILE(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/bin/*.dll)
+  STRING(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
+  INSTALL(FILES ${COPY_FILES}
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT dependencies)
+
+  #INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+  #  INSTALL(FILES ${ALL_TLL_LIBS}
+  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  #  COMPONENT dependencies)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1201,7 +1301,6 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
   @ONLY
   )
-#INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
 
 ###
 # Create pkgconfig files.
@@ -1260,81 +1359,9 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 # End pkgconfig, nc-config file creation.
 ###
 
-####
-# End CMake package configuration files.
-#####
-# Various options for CPACK
-#####
-
 ##
-# Declare exclusions list used when building a source file.
-# NOTE!! This list uses regular expressions, NOT wildcards!!
+# Print the configuration summary
 ##
-SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
-  "/expecttds3/"
-  "/nocacheremote3/"
-  "/nocacheremote4/"
-  "/special3/"
-  "${CMAKE_BINARY_DIR}/*"
-  "/myhtml/*"
-  "/.svn/"
-  "my.*\\\\.sh"
-  "/.deps/"
-  "/.libs"
-  "/html/"
-  ".*\\\\.jar"
-  ".*\\\\.jdl"
-  ".*\\\\.sed"
-  ".*\\\\.proto"
-  ".*\\\\.texi"
-  ".*\\\\.example"
-  "Make0"
-  "/obsolete/"
-  "/unknown/"
-  ".*~"
-  )
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
-  ${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
-  @ONLY
-  )
-
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
-IF(NOT CPACK_PACK_VERSION)
-  SET(CPACK_PACKAGE_VERSION ${VERSION})
-ENDIF()
-
-IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TGZ")
-  SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
-ENDIF()
-
-# Create an 'uninstall' target.
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-
-ADD_CUSTOM_TARGET(uninstall
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-
-## Customize some of the package component descriptions
-set(CPACK_COMPONENT_UTILITIES_DISPLAY_NAME "netCDF Utilities")
-set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "netCDF Libraries")
-set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "netCDF Headers")
-set(CPACK_COMPONENT_DEPENDENCIES_DISPLAY_NAME "netCDF Dependencies")
-set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "netCDF Documentation")
-
-
-set (CPACK_COMPONENT_UTILITIES_DESCRIPTION
-  "The netCDF Utilities")
-set (CPACK_COMPONENT_LIBRARIES_DESCRIPTION
-  "The netCDF Libraries")
-set (CPACK_COMPONENT_HEADERS_DESCRIPTION
-  "C header files for use with netCDF")
-set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
-  "Dependencies for this build of netCDF")
-set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
-  "The netCDF user documentation.")
 print_conf_summary()
 
 # Enable Makedist files.
@@ -1371,6 +1398,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(USE_DAP HAS_DAP)
@@ -1400,6 +1428,16 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # End libnetcdf.settings section.
 #####
 
+#####
+# Create 'netcdf_meta.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
+  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h @ONLY)
+
+FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
+  DESTINATION ${netCDF_BINARY_DIR}/include/)
+
 ####
 # Export files
 ####
@@ -1408,9 +1446,10 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 # cmake should be able to find netcdf using find_package and find_library.
 # The EXPORT call is paired with one in liblib.
 set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
+
 install(EXPORT netCDFTargets
   DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 include(CMakePackageConfigHelpers)
@@ -1428,7 +1467,7 @@ CONFIGURE_PACKAGE_CONFIG_FILE(
 INSTALL(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   DESTINATION "${ConfigPackageLocation}"
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 # Create export configuration
@@ -1442,12 +1481,15 @@ install(
   FILES
   "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 ####
 # End export files
 ####
 
+
+
 # CPack inclusion must come last.
-INCLUDE(CPack)
+# INCLUDE(CPack)
+INCLUDE(CMakeInstallation.cmake)

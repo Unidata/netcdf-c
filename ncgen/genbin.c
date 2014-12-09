@@ -17,7 +17,6 @@ static void genbin_definevardata(Symbol* vsym);
 static int  genbin_write(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writevar(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
-static void freeDatalist(Datalist **dlist);
 #ifdef USE_NETCDF4
 static void genbin_deftype(Symbol* tsym);
 static void genbin_definespecialattributes(Symbol* var);
@@ -500,7 +499,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
             case NC_INT64: {
                 long long* data = (long long*)bbContents(databuf);
                 stat = nc_put_att_longlong(grpid,varid,asym->name,typid,len,data);
-                check_err(stat,__LINE__,__FILE__);
+                check_err2(stat,asym->lineno,__LINE__,__FILE__);
             } break;
             case NC_UINT64: {
                 unsigned long long* data = (unsigned long long*)bbContents(databuf);

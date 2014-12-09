@@ -348,9 +348,9 @@ extern const char* NCDAP_urllookup(void* dapurl, const char* param);
 # else
 #  define MSC_NCDISPATCH_EXTRA __declspec(dllimport)
 # endif
-MSC_NCDISPATCH_EXTRA extern const char* NC_findtestserver(const char*);
+MSC_NCDISPATCH_EXTRA extern char* NC_findtestserver(const char*, const char**);
 #else
-extern const char* NC_findtestserver(const char*);
+extern char* NC_findtestserver(const char*,const char**);
 #endif
 
 /* Ping a specific server */

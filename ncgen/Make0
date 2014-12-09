@@ -1,5 +1,5 @@
 # Test c output
-T=test_opaque
+T=test0
 K=1
 #VG=valgrind --leak-check=full
 

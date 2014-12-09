@@ -1,6 +1,10 @@
-F="tst_small.nc"
+NC="avhrr.hdf"
 
-alias q0="./ncdump $F"
-alias qh="./ncdump -h $F"
-alias qq="gdb --args ./ncdump $F"
-alias qqh="gdb --args ./ncdump -h $F"
+NCDUMP="./ncdump"
+#NCDUMP="./.libs/ncdump"
+
+alias q0="${NCDUMP} ${NC}"
+alias qh="${NCDUMP} -h ${NC}"
+alias qq="gdb --args ${NCDUMP} ${NC}"
+alias qqh="gdb --args ${NCDUMP} -h ${NC}"
+

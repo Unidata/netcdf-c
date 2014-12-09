@@ -75,6 +75,14 @@ full functionality. (See \ref architecture).
 - \ref building_netcdf_fortran
 - \ref configure_options
 
+Requirements {#netcdf_requirements}
+----------------------------------
+
+* HDF5 1.8.9 (netcdf-4 support)
+* zlib 1.2.5
+* curl 7.18.0 (DAP support)
+
+
 CMake and Windows support {#sub}
 --------------------------------
 
@@ -86,7 +94,7 @@ Building with NetCDF-4 and the Remote Data Client {#build_default}
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
 libraries. (And, optionally, the szlib library). Versions required are
-at least HDF5 1.8.8, zlib 1.2.5, and curl 7.18.0 or later.
+at least HDF5 1.8.9, zlib 1.2.5, and curl 7.18.0 or later.
 (Optionally, if building with szlib, get szip 2.0 or later.)
 
 HDF5 1.8.9 and zlib 1.2.7 packages are available from the <a
@@ -107,7 +115,7 @@ Fortran, C++, or Java API's.  Only the HDF5 C library is used.
 Optionally, you can also build netCDF-4 with the szip library
 (a.k.a. szlib). NetCDF cannot create szipped data files, but can read
 HDF5 data files that have used szip.
-
+8
 There are license restrictions on the use of szip, see the section on
 licensing terms in the <a
 href="http://www.hdfgroup.org/doc_resource/SZIP/">web page on szip
@@ -127,14 +135,14 @@ services</a>.
 Build zlib like this:
 
 ~~~
-$ ./configure --prefix=/home/ed/local
+$ ./configure --prefix=/home/username/local
 $ make check install
 ~~~
 
 Then you build HDF5, specifying the location of the zlib library:
 
 ~~~
-$ ./configure --with-zlib=/home/ed/local --prefix=/home/ed/local
+$ ./configure --with-zlib=/home/username/local --prefix=/home/username/local
 $ make check install
 ~~~
 
@@ -155,7 +163,7 @@ HDF5, zlib, and (if built into HDF5) the szip header files and
 libraries in the CPPFLAGS and LDFLAGS environment variables. For example:
 
 ~~~
-$ CPPFLAGS=-I/home/ed/local/include LDFLAGS=-L/home/ed/local/lib ./configure --prefix=/home/ed/local
+$ CPPFLAGS=-I/home/username/local/include LDFLAGS=-L/home/username/local/lib ./configure --prefix=/home/username/local
 $ make check install
 ~~~
 
@@ -163,8 +171,8 @@ The configure script will try to find necessary tools in your
 path. When you run configure you may optionally use the <CODE>--prefix</CODE>
 argument to change the default installation directory. The above
 examples install the zlib, HDF5, and netCDF-4 libraries in
-/home/ed/local/lib, the header file in /home/ed/local/include, and the
-utilities in /home/ed/local/bin. If you don't provide a <CODE>--prefix</CODE>
+/home/username/local/lib, the header file in /home/username/local/include, and the
+utilities in /home/username/local/bin. If you don't provide a <CODE>--prefix</CODE>
 option, installation will be in /usr/local/, in subdirectories lib/,
 include/, and bin/.  The installation location specified with the
 <CODE>--prefix</CODE> option must be different from the source directory where the
@@ -185,11 +193,11 @@ To build without support for the netCDF-4 formats or the additional
 netCDF-4 functions, but with remote access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-netcdf-4
+$ ./configure --prefix=/home/username/local --disable-netcdf-4
 $ make check install
 ~~~
 
-(Replace `/home/ed/local` with the name of the directory where
+(Replace `/home/username/local` with the name of the directory where
 netCDF is to be installed.  The installation location specified with
 the <CODE>--prefix</CODE> option must be different from the source directory where
 the software is being built.)
@@ -200,14 +208,14 @@ with full support for netCDF-4 APIs and format but without remote
 client access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-dap
+$ ./configure --prefix=/home/username/local --disable-dap
 $ make check install
 ~~~
 
 To build without netCDF-4 support or remote client access, use:
 
 ~~~
-$ ./configure --prefix=/home/ed/local --disable-netcdf-4 --disable-dap
+$ ./configure --prefix=/home/username/local --disable-netcdf-4 --disable-dap
 $ make check install
 ~~~
 
@@ -317,7 +325,7 @@ For example, one user reports that she can build other applications
 with netCDF-4 by setting the LIBS environment variable:
 
 ~~~
-LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.6/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
+LIBS='-L/X/netcdf-4.0/lib -lnetcdf -L/X/hdf5-1.8.9/lib -lhdf5_hl -lhdf5 -lz -lm -L/X/szip-2.1/lib -lsz'
 ~~~
 
 For shared builds, only -lnetcdf is needed. All other libraries will

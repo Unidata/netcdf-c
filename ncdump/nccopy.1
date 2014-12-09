@@ -148,8 +148,8 @@ argument to the command, hence cannot contain unescaped blanks or
 other white space characters. The named variables must be valid netCDF
 variables in the input-file. A variable within a group in a netCDF-4
 file may be specified with an absolute path name, such as
-'/GroupA/GroupA2/var'.  Use of a relative path name such as 'var' or
-'grp/var' specifies all matching variable names in the file.  The
+"/GroupA/GroupA2/var".  Use of a relative path name such as 'var' or
+"grp/var" specifies all matching variable names in the file.  The
 default, without this option, is to include data values for \fI all \fP variables
 in the output.
 .IP "\fB -V \fP \fI var1,... \fP"
@@ -236,7 +236,7 @@ API.  If the input file has extra bytes
 after the end of the
 netCDF data, those will not be copied, because they are not accessible
 through the netCDF interface.  If the original file was generated in
-'No fill' mode so that fill values are not stored for padding for data
+"No fill" mode so that fill values are not stored for padding for data
 alignment, the output file may have different padding bytes.
 .LP
 Convert a netCDF-4 classic model file, compressed.nc, that uses compression,

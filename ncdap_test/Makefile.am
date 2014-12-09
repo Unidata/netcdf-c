@@ -42,6 +42,7 @@ endif
 test_partvar_SOURCES = test_partvar.c
 test_nstride_cached_SOURCE = test_nstride_cached.c
 t_auth_SOURCES = t_auth.c
+t_auth1_SOURCES = t_auth1.c
 t_misc_SOURCES = t_misc.c
 test_varm3_SOURCES = test_varm3.c
 
@@ -56,7 +57,7 @@ check_PROGRAMS += t_misc
 check_PROGRAMS += test_varm3
 
 if ENABLE_DAP_AUTH_TESTS
-check_PROGRAMS += t_auth
+check_PROGRAMS += t_auth t_auth1
 TESTS += t_auth
 endif
 

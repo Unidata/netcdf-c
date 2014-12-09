@@ -76,7 +76,7 @@ extern void  ocfree(void*);
 
 #define MEMCHECK(var,throw) {if((var)==NULL) return (throw);}
 #define MEMFAIL(var) MEMCHECK(var,OCTHROW(OC_ENOMEM))
-#define MEMGOTO(var,label) {if((var)==NULL) goto label;}
+#define MEMGOTO(var,stat,label) {if((var)==NULL) {stat=OC_ENOMEM;goto label;}}
 
 #ifdef OCCATCHERROR
 extern OCerror ocbreakpoint(OCerror err);

@@ -186,7 +186,7 @@ ocuriparse(const char* uri0, OCURI** durip)
 	{THROW(6); goto fail; /* illegal protocol*/}
 
     /* skip // */
-    if(p[0] != '/' && p[1] != '/')
+    if(p[0] != '/' || p[1] != '/')
 	{THROW(7); goto fail;}
     p += 2;
 
@@ -616,8 +616,8 @@ ocuridecodeparams(OCURI* ocuri)
     /* plist is an env style list */
     plist = (char**)calloc(1,sizeof(char*)*(2*nparams+1)); /* +1 for null termination */
     if(plist == NULL) {
-      free(params);
-      return 0;
+	free(params);
+	return 0;
     }
 
     /* Break up each param into a (name,value) pair*/

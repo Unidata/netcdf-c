@@ -4,7 +4,7 @@
 #include <string.h>
 #include <netcdf.h>
 
-#define URL "http://remotetest.unidata.ucar.edu/dts/test.02"
+#define URL "http://%s/dts/test.02"
 #define VAR "i32"
 
 #define ERRCODE 2
@@ -21,8 +21,16 @@ main()
     size_t start[1];
     size_t count[1];
     int ok = 1;    
+    char url[1024];
 
-    if ((retval = nc_open(URL, 0, &ncid)))
+    {
+    char* evv = getenv("REMOTETESTSERVER");
+    if(evv == NULL)
+	evv = "remotetest.unidata.ucar.edu";
+    snprintf(url,sizeof(url),URL,evv);
+    }
+
+    if ((retval = nc_open(url, 0, &ncid)))
        ERR(retval);
     if ((retval = nc_inq_varid(ncid, VAR, &varid)))
        ERR(retval);

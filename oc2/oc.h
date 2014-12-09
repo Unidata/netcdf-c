@@ -13,7 +13,6 @@ Version: 2.0
 
 #include <stdlib.h>
 #include <stdio.h>
-
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -583,5 +582,13 @@ extern OCerror oc_set_curl_callback(OClink,oc_curl_callback*,void* state);
 #ifdef __cplusplus
 }
 #endif
+
+/**************************************************/
+/* Experimental methods to deal with rc file
+   and with ESG style authorization redirection.
+*/
+
+/* Allow specification of the rc file */
+extern OCerror oc_set_rcfile(const char* rcfilepath);
 
 #endif /*OC_H*/

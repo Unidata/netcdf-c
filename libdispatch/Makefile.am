@@ -41,4 +41,24 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-EXTRA_DIST=CMakeLists.txt
+EXTRA_DIST=CMakeLists.txt ncsettings.hdr
+
+# Build ncsettings.c as follows:
+# 1. copy ncsettings.hdr to ncsettings.c
+# 2. append libnetcdf.settings to ncsettings.c after
+#    processing it as follows:
+#    1. convert tabs and cr to blanks
+#    2. convert embedded double quote (") to escaped form (\").
+#    3. append newline (\n) to each line
+#    4. surround each line with double quotes.
+# 3. finally, add a semicolon to the end of ncsettings.c
+#    to complete the string constant.
+
+ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
+	rm -f ncsettings.c
+	cat ncsettings.hdr > ncsettings.c
+	tr '\t\r' '  ' <${top_srcdir}/libnetcdf.settings | \
+	sed -e 's/"/\\"/g' | \
+	sed -e 's/\(.*\)/\"\1\\n\"/' | \
+	cat >> ncsettings.c
+	echo ';' >> ncsettings.c

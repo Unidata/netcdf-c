@@ -81,6 +81,7 @@ new_x_NC_var(
 #else /*!MALLOCHACK*/
 	  varp->dimids = (int*)malloc(o1);
 	  varp->shape = (size_t*)malloc(o2);
+      if(varp->shape) { memset(varp->shape,0,o2); }
 	  varp->dsizes = (off_t*)malloc(o3);
 #endif /*!MALLOCHACK*/
 	} else {
@@ -94,7 +95,7 @@ new_x_NC_var(
 	varp->len = 0;
 	varp->begin = 0;
 
-	return varp;
+ 	return varp;
 }
 
 
@@ -438,11 +439,12 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
  			shp >= varp->shape;
 			shp--, dsp--)
 	{
-		if(!(shp == varp->shape && IS_RECVAR(varp)))
+      /*if(!(shp == varp->shape && IS_RECVAR(varp)))*/
+      if( shp != NULL && (shp != varp->shape || !IS_RECVAR(varp)))
 		{
 		    if( (off_t)(*shp) <= OFF_T_MAX / product )
 			{
-				product *= *shp;
+              product *= (*shp > 0 ? *shp : 1);
 			} else
 			{
 				product = OFF_T_MAX ;
@@ -496,10 +498,12 @@ NC_check_vlen(NC_var *varp, size_t vlen_max) {
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
-	if (varp->shape[ii] > vlen_max / prod) {
-	    return 0;		/* size in bytes won't fit in a 32-bit int */
-	}
-	prod *= varp->shape[ii];
+      if(!varp->shape)
+        return 0; /* Shape is undefined/NULL. */
+      if (varp->shape[ii] > vlen_max / prod) {
+        return 0;		/* size in bytes won't fit in a 32-bit int */
+      }
+      prod *= varp->shape[ii];
     }
     return 1;			/* OK */
 }

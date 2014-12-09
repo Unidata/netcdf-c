@@ -125,12 +125,14 @@ struct Languages legallanguages[] = {
 };
 #endif
 
+#if 0 /*not used*/
 /* BOM Sequences */
 static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
 static char* BE32 = "\x00\x00\xFE\xFF"; /* UTF-32; big-endian */
 static char* LE32 = "\xFF\xFE";       /* UTF-32; little-endian */
 static char* BE16 = "\xFE\xFF";       /* UTF-16; big-endian */
 static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
+#endif
 
 /* The default minimum iterator size depends
    on whether we are doing binary or language
@@ -176,7 +178,7 @@ main(
 #ifdef __hpux
     setlocale(LC_CTYPE,"");
 #endif
-    
+
     init_netcdf();
 
     opterr = 1;			/* print error message if bad option */
@@ -207,7 +209,7 @@ main(
     while ((c = getopt(argc, argv, "hbcfk:l:no:v:xdM:D:B:P")) != EOF)
       switch(c) {
 	case 'd':
-	  debug = 1;	  
+	  debug = 1;
 	  break;
 	case 'D':
 	  debug = atoi(optarg);
@@ -236,29 +238,34 @@ main(
 	  l_flag = L_BINARY;
 	  break;
 	case 'h':
-	  header_only = 1;	  
+	  header_only = 1;
 	  break;
-     case 'l': /* specify language, instead of using -c or -f or -b */
+    case 'l': /* specify language, instead of using -c or -f or -b */
 
-		 {
+      {
 		if(l_flag != 0) {
-		    fprintf(stderr,"Please specify only one language\n");
-		    return 1;
+          fprintf(stderr,"Please specify only one language\n");
+          return 1;
 		}
-		lang_name = (char*) emalloc(strlen(optarg)+1);
+        if(!optarg) {
+          derror("%s: output language is null",
+                 progname);
+          return(1);
+        }
+        lang_name = (char*) emalloc(strlen(optarg)+1);
 		(void)strcpy(lang_name, optarg);
 		for(langs=legallanguages;langs->name != NULL;langs++) {
-		    if(strcmp(lang_name,langs->name)==0) {
+          if(strcmp(lang_name,langs->name)==0) {
 			l_flag = langs->flag;
-		        break;
-		    }
+            break;
+          }
 		}
 		if(langs->name == NULL) {
-		    derror("%s: output language %s not implemented", 
-			   progname, lang_name);
-		    return(1);
+          derror("%s: output language %s not implemented",
+                 progname, lang_name);
+          return(1);
 		}
-	    }
+      }
 	  break;
 	case 'n':		/* old version of -b, uses ".cdf" extension */
 	  if(l_flag != 0) {
@@ -276,7 +283,7 @@ main(
 	  break;
         case 'v': /* a deprecated alias for "kind" option */
 	    /*FALLTHRU*/
-        case 'k': /* for specifying variant of netCDF format to be generated 
+        case 'k': /* for specifying variant of netCDF format to be generated
                      Possible values are:
                      1 (=> classic 32 bit)
                      2 (=> classic 64 bit)
@@ -291,7 +298,8 @@ main(
 		   */
 	    {
 		struct Kvalues* kvalue;
-		char *kind_name = (char *) emalloc(strlen(optarg)+1);
+		char *kind_name = (optarg != NULL ? (char *) emalloc(strlen(optarg)+1)
+                           : emalloc(1));
 		if (! kind_name) {
 		    derror ("%s: out of memory", progname);
 		    return(1);
@@ -413,7 +421,7 @@ main(
 	cdlname = (char*)emalloc(NC_MAX_NAME);
 	cdlname = nulldup(argv[0]);
 	if(cdlname != NULL) {
-	  if(strlen(cdlname) > NC_MAX_NAME) 
+	  if(strlen(cdlname) > NC_MAX_NAME)
 	    cdlname[NC_MAX_NAME] = '\0';
 	}
     }
@@ -464,7 +472,7 @@ main(
     if(k_flag == 0)
 	k_flag = 1;
 
-    usingclassic = (k_flag <= 2?1:0);
+    usingclassic = (k_flag <= 2 || k_flag == 4)?1:0;
 
     /* compute cmode_modifier */
     switch (k_flag) {
@@ -479,7 +487,7 @@ main(
 	cmode_modifier |= (NC_DISKLESS|NC_NOCLOBBER);
 
     processsemantics();
-    if(!syntax_only && error_count == 0) 
+    if(!syntax_only && error_count == 0)
         define_netcdf();
 
     return 0;

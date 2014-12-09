@@ -20,6 +20,7 @@ ENDIF()
 
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
+
   build_bin_test(tst_v2)
 ENDIF()
 
@@ -30,7 +31,6 @@ ENDIF()
 
 IF(USE_HDF4)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops2)
-
 ENDIF()
 
 IF(BUILD_BENCHMARKS)
@@ -59,13 +59,16 @@ FOREACH(CTEST ${NC4_TESTS})
   add_bin_test(nc_test4 ${CTEST})
 ENDFOREACH()
 
-IF(USE_HDF4_FILE_TESTS)
-  add_sh_test(nc_test4 run_get_hdf4_files)
-  add_bin_test(nc_test4 tst_interops3)
-  add_sh_test(nc_test4 tst_formatx_hdf4)
-  build_bin_test(tst_chunk_hdf4)
-  add_sh_test(nc_test4 run_chunk_hdf4)
+# This must go after the 'foreach' stanza
+# immediately above this comment.
+IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
+    add_sh_test(nc_test4 run_get_hdf4_files)
+    add_bin_test(nc_test4 tst_interops3)
+    add_sh_test(nc_test4 tst_formatx_hdf4)
+    build_bin_test(tst_chunk_hdf4)
+    add_sh_test(nc_test4 run_chunk_hdf4)
 ENDIF()
+
 
 IF(TEST_PARALLEL)
   build_bin_test(tst_mpi_parallel)

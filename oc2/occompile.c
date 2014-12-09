@@ -112,13 +112,13 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 
 	    /* allocate space to capture all the element instances */
 	    data->instances = (OCdata**)malloc(nelements*sizeof(OCdata*));
-	    MEMFAIL(data);
+	    MEMGOTO(data->instances,ocstat,fail);
 	    data->ninstances = 0;
 
 	    /* create and fill the element instances */
 	    for(i=0;i<nelements;i++) {
 		OCdata* instance = newocdata(xnode);
-		MEMFAIL(instance);
+		MEMGOTO(instance,ocstat,fail);
 		fset(instance->datamode,OCDT_ELEMENT);
 		data->instances[i] = instance;
 		data->ninstances++;
@@ -168,7 +168,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 	/* extract the content */
 	data->ninstances = nelements;
 	data->instances = (OCdata**)oclistdup(records);
-	MEMFAIL(data);
+	MEMGOTO(data,ocstat,fail);
 	oclistfree(records);	    
 	records = NULL;
         break;
@@ -185,7 +185,14 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
     }
 
 /*ok:*/
-    if(datap) *datap = data;
+    if(datap) {
+	*datap = data;
+	data = NULL;
+    }
+
+    if(data != NULL)
+	ocdata_free(state,data);
+
     return OCTHROW(ocstat);    
 
 fail:
@@ -197,9 +204,10 @@ fail:
 	    ocdata_free(state,(OCdata*)oclistget(records,i));
 	oclistfree(records);
     }
-    if(data != NULL) {
+
+    if(data != NULL)
 	ocdata_free(state,data);
-    }
+
     return OCTHROW(ocstat);
 }
 
@@ -216,7 +224,12 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
     /* Compile the fields of this record */
     ocstat = OCTHROW(occompilefields(state,record,xxdrs,!TOPLEVEL));
     if(ocstat == OC_NOERR) {
-        if(recordp) *recordp = record;
+        if(recordp) {
+	    *recordp = record;
+	    record = NULL;
+	}
+        if(record != NULL)
+	    ocdata_free(state,record);
     }
     return OCTHROW(ocstat);    
 }
@@ -437,9 +450,11 @@ ocerrorstring(XXDR* xdrs)
 {
     /* Check to see if the xdrs contains "Error {\n'; assume it is at the beginning of data */
     off_t avail = xxdr_getavail(xdrs);
-    char* data = (char*)malloc((size_t)avail);
+    char* data;
     if(!xxdr_setpos(xdrs,(off_t)0)) return 0;
-    if(!xxdr_opaque(xdrs,data,avail)) return 0;
+    data = (char*)malloc((size_t)avail);
+    MEMCHECK(data,0);    
+    if(!xxdr_opaque(xdrs,data,avail)) {free(data); return 0;}
     /* check for error tag at front */
     if(ocstrncmp(data,tag,sizeof(tag))==0) {
 	char* p;

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ${srcdir}/tst_ncgen4_shared.sh
+. ${srcdir}/tst_ncgen_shared.sh
 
 ALLXFAIL="${XFAILTESTS} ${SPECIALTESTS}"
 

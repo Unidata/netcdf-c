@@ -113,7 +113,10 @@ bbAppend(Bytebuffer* bb, char elem)
 {
   if(bb == NULL) return bbFail();
   /* We need space for the char + null */
-  while(bb->length+1 >= bb->alloc) if(!bbSetalloc(bb,0)) return bbFail();
+  while(bb->length+1 >= bb->alloc) {
+    if(!bbSetalloc(bb,0))
+      return bbFail();
+  }
   bb->content[bb->length] = elem;
   bb->length++;
   bb->content[bb->length] = '\0';
@@ -197,14 +200,21 @@ j=5 4 3
   return TRUE;
 }
 
-int
-bbHeadpop(Bytebuffer* bb, char* pelem)
+/*! Pop head off of a byte buffer.
+ *
+ * @param Bytebuffer bb Pointer to Bytebuffer.
+ * @param char* pelem pointer to location for head element.
+ *
+ * @return Returns TRUE on success.
+ */
+int bbHeadpop(Bytebuffer* bb, char* pelem)
 {
   if(bb == NULL) return bbFail();
   if(bb->length == 0) return bbFail();
   *pelem = bb->content[0];
-  memcpy((void*)&bb->content[0],(void*)&bb->content[1],
-        sizeof(char)*(bb->length - 1));
+  memmove((void*)&bb->content[0],
+          (void*)&bb->content[1],
+          sizeof(char)*(bb->length - 1));
   bb->length--;
   return TRUE;
 }

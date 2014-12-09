@@ -2,7 +2,7 @@
 Functions for getting data from variables.
 
 Copyright 2011 University Corporation for Atmospheric
-Research/Unidata. See \ref COPYRIGHT file for more info.
+Research/Unidata. See \ref copyright file for more info.
 
 */
 
@@ -1401,8 +1401,9 @@ atomic type; it will not read user defined types. For this
 function, the type of the data in memory must match the type
 of the variable - no data conversion is done.
 
-Use of this family of functions is discouraged, although not
-formally deprecated. The reason is the complexity of the
+@deprecated Use of this family of functions is discouraged,
+although it will continue to be supported.
+The reason is the complexity of the
 algorithm makes its use difficult for users to properly use.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),

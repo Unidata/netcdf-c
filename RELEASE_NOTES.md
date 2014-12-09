@@ -1,4 +1,4 @@
-Release Notes {#release_notes}
+Release Notes {#RELEASE_NOTES}
 ===============================
 
 \brief Release notes file for the netcdf-c package.
@@ -6,6 +6,54 @@ Release Notes {#release_notes}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.3.3 Released TBD
+
+### 4.3.3-rc3 Released ?
+
+* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
+
+	* CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
+	* Autotools: `--enable-remote-fortran-bootstrap`
+
+	> Enabling these options creates two new make targets:
+
+	~~~	
+	$ make build-netcdf-fortran
+	$ make install-netcdf-fortran
+	~~~
+
+	These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
+	
+	It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
+
+* The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+
+* Fixed bug in ncgen. When classic format was in force (k=1 or k=4), the "long" datatype should be treated as int32. Was returning an error. [NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
+
+* Fixed bug where if the netCDF-C library is built with the HDF5 library but without the HDF4 library and one attempts to open an HDF4 file, an abort occurs rather than returning a proper error code (NC_ENOTNC). [NCF-317](https://bugtracking.unidata.ucar.edu/browse/NCF-317)
+
+* Added a new option, `NC_EXTRA_DEPS`, for cmake-based builds.  This is analogous to `LIBS` in autotools-based builds.  Example usage:
+
+    $ cmake .. -NC_EXTRA_DEPS="-lcustom_lib"
+
+More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugtracking.unidata.ucar.edu/browse/NCF-316)
+
+
+### 4.3.3-rc2 Released 2014-09-24
+
+* Fixed the code for handling character constants
+  in datalists in ncgen. Two of the problems were:
+  1. It failed on large constants
+  2. It did not handle e.g. var = 'a', 'b', ...
+     in the same way that ncgen3 did.
+  See [NCF-309](https://bugtracking.unidata.ucar.edu/browse/NCF-309).
+
+* Added a new file, `netcdf_meta.h`.  This file is generated automatically at configure time and contains information related to the capabilities of the netcdf library.  This file may be used by projects dependent upon `netcdf` to make decisions during configuration, based on how the `netcdf` library was built.  The macro `NC_HAVE_META_H` is defined in `netcdf.h`.  Paired with judicious use of `ifdef`'s, this macro will indicate to developers whether or not the meta-header file is present. See [NCF-313](https://bugtracking.unidata.ucar.edu/browse/NCF-313).
+
+    > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.
+
+* Changed `Doxygen`-generated documentation hosted by Unidata to use more robust server-based searching.
+* Corrected embedded URLs in release notes.
+* Corrected an issue where building with HDF4 support with Visual Studio would fail.
 
 ### 4.3.3-rc1 Released 2014-08-25
 
@@ -1022,10 +1070,10 @@ output.
 Turkal).
 
 * Fixed bug in C++ API creating 64-bit offset files. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known\_problems.html\#cxx\_64-bit.)
+http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#cxx_64-bit).
 
 * Fixed bug for variables larger than 4 GB. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known\_problems.html\#large\_vars\_362.)
+http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#large_vars_362).
 
 * Changed the configure.ac to build either 3.6.x or 4.x build from the
 same configure.ac.
@@ -1176,7 +1224,7 @@ configure.
 * Switched to new build system, with automake and libtool. Now shared
 libraries are built (as well as static ones) on platforms which support
 it. For more information about shared libraries, see
-http://www.unidata.ucar.edu/software/netcdf/docs/faq.html\#shared\_intro
+http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#shared_intro
 
 * Fixed ncdump crash that happened when no arguments were used.
 

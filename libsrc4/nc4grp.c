@@ -65,7 +65,7 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 int
 NC4_rename_grp(int grpid, const char *name)
 {
-   NC_GRP_INFO_T *grp, *g;
+   NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;

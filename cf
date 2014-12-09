@@ -1,7 +1,7 @@
-
 #!/bin/bash
 #X="-x"
 #NB=1
+DB=1
 
 if test $# != 0 ; then
 cmds=$@
@@ -11,6 +11,12 @@ HDF5=1
 DAP=1
 #HDF4=1
 #PNETCDF=1
+
+#PAR=1
+
+if test "x$PNETCDF" = x1 ; then
+PAR=1
+fi
 
 #RPC=1
 #PGI=1
@@ -103,7 +109,6 @@ fi
 
 CXXFLAGS="$CPPFLAGS $CXXFLAGS"
 
-
 FLAGS="--prefix ${PREFIX}"
 #FLAGS="$FLAGS --disable-f77 --disable-f90"
 #FLAGS="$FLAGS --disable-cxx"
@@ -128,8 +133,15 @@ FLAGS="$FLAGS --enable-dap-auth-tests"
 #FLAGS="$FLAGS --enable-valgrind-tests"
 FLAGS="$FLAGS --enable-jna"
 
-#FLAGS="$FLAGS --disable-shared"
+if test "x${DB}" = x1 ; then
+FLAGS="$FLAGS --disable-shared"
+else
 FLAGS="$FLAGS --enable-shared"
+fi
+
+if test "x${PAR}" = x ; then
+FLAGS="$FLAGS --disable-parallel"
+fi
 
 if test "x$HDF5" = "x" ; then
 FLAGS="$FLAGS --disable-netcdf-4"

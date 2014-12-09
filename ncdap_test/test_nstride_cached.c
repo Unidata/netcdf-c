@@ -52,6 +52,7 @@ incorrect data return
 #include<stdio.h>
 #include<string.h>
 #include "netcdf.h"
+#include "ncdispatch.h"
 
 #define VERBOSE 1
 
@@ -66,11 +67,13 @@ Float64 lon_rho[eta_rho = 336][xi_rho = 896];
 Float64 lat_rho[eta_rho = 336][xi_rho = 896];
 */
 
-static char* URL="https://remotetest.unidata.ucar.edu/thredds/dodsC/testdods/rtofs.nc";
+#define URL "%s/dodsC/testdods/rtofs.nc"
 #define VAR1 "Latitude"
 #define VAR2 "Longitude"
 #define XSIZE 850
 #define YSIZE 712
+
+static char url[1024];
 
 int
 main()
@@ -81,13 +84,31 @@ main()
     int i;
     int ncstatus;
     size_t start[5], count[5];
-    ptrdiff_t stride[5], tmp_ptrdiff_t;
+    ptrdiff_t stride[5];
     int pass = 1;
     int nelems = XSIZE*YSIZE;
-
     int idim, ndim;
     float *dat = (float*)malloc(sizeof(float)*nelems);
     float sdat[10];
+    char* svc;
+
+    /* Find Test Server */
+    svc = getenv("THREDDSTESTSERVER");
+    if(svc != NULL) {
+        const char* testserver[2];
+	testserver[0] = svc;
+	testserver[1] = NULL;
+        svc = NC_findtestserver("thredds",testserver);
+    } else 	
+        svc = NC_findtestserver("thredds",NULL);
+
+    if(svc == NULL) {
+        fprintf(stderr,"Cannot locate test server\n");
+	exit(0);
+    }
+
+    strcpy(url,URL);
+    snprintf(url,sizeof(url),URL,svc);
 
     for (idim=0; idim<5; idim++) {
         start[idim] = 0;
@@ -99,13 +120,13 @@ main()
 
     printf(" \n");
     printf("********************\n");
-    printf("open URL %s\n",URL);
+    printf("open URL %s\n",url);
     printf(" \n");
 
-    ncstatus = nc_open(URL, NC_NOWRITE, &ncid);
+    ncstatus = nc_open(url, NC_NOWRITE, &ncid);
 
     if(ncstatus != NC_NOERR) {
-	fprintf(stderr,"Could not open: %s; server may be down; test ignored\n",URL);
+	fprintf(stderr,"Could not open: %s; server may be down; test ignored\n",url);
 	exit(0);
     }
 
@@ -216,7 +237,7 @@ main()
 #endif
 
     ncstatus = nc_close (ncid);
-    ncstatus = nc_open(URL, NC_NOWRITE, &ncid);
+    ncstatus = nc_open(url, NC_NOWRITE, &ncid);
 
     /*  ----------------------------------------------------- */
     /* Read a subset of the data with strides */

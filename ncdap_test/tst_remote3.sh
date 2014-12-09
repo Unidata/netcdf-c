@@ -6,7 +6,6 @@
 # as the location of the source directory.
 srcdir=`dirname $0`
 
-
 # compute the build directory
 builddir=`pwd`/..
 # Hack for CYGWIN
