@@ -758,7 +758,6 @@ INPUT = \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
-    @abs_top_srcdir@/docs/cmake_faq.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/include/netcdf.h \
