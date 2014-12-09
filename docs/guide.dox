@@ -6,7 +6,6 @@
 
 \section user_guide The NetCDF User's Guide
 
-- \ref mainpage_netcdf
 - \subpage netcdf_summary
 - \subpage netcdf_introduction
 - \subpage file_structure_and_performance
