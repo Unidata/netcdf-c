@@ -1452,8 +1452,6 @@ array section access instead.
 
 \tableofcontents
 
-\todo Indent the following part below this.
-
 \section  classic_file_parts Parts of a NetCDF Classic File
 
 A netCDF classic or 64-bit offset dataset is stored as a single file
@@ -3744,8 +3742,6 @@ inadvertent reading of values that haven't been written.
 \page file_format_specifications File Format Specifications
 
 \tableofcontents
-
-\todo Wrap the following group of pages into this.  From NetCDF Classic Format Spec through HDF4 SD Format.
 
 \section classic_format_spec The NetCDF Classic Format Specification
 
