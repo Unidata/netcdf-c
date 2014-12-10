@@ -6,7 +6,6 @@
 
 \section user_guide The NetCDF User's Guide
 
-- \ref mainpage_netcdf
 - \subpage netcdf_summary
 - \subpage netcdf_introduction
 - \subpage file_structure_and_performance
@@ -1453,8 +1452,6 @@ array section access instead.
 \page file_structure_and_performance File Structure and Performance
 
 \tableofcontents
-
-\todo Indent the following part below this.
 
 \section  classic_file_parts Parts of a NetCDF Classic File
 
@@ -3746,8 +3743,6 @@ inadvertent reading of values that haven't been written.
 \page file_format_specifications File Format Specifications
 
 \tableofcontents
-
-\todo Wrap the following group of pages into this.  From NetCDF Classic Format Spec through HDF4 SD Format.
 
 \section classic_format_spec The NetCDF Classic Format Specification
 

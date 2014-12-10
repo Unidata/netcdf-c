@@ -744,12 +744,10 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT = \
-    @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/docs/mainpage.dox \
+    @abs_top_srcdir@/RELEASE_NOTES.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/architecture.dox \
-    @abs_top_srcdir@/docs/groups.dox \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/dispatch.dox \
@@ -758,9 +756,9 @@ INPUT = \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
-    @abs_top_srcdir@/docs/cmake_faq.md \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/COPYRIGHT.dox \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_meta.h \
     @abs_top_srcdir@/libdispatch/dfile.c \

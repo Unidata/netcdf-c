@@ -15,7 +15,14 @@ At least the following dispatch tables are supported.
 - netcdf classic files (netcdf-3)
 - netcdf enhanced files (netcdf-4)
 - OPeNDAP to netcdf-3
-- OPeNDAP to netcdf-4 
+- OPeNDAP to netcdf-4
+
+Internal Dispatch Tables
+- \subpage adding_dispatch
+- \subpage dispatch_notes
+- \subpage put_vara_dispatch
+- \subpage put_attr_dispatch
+
 
 The dispatch table represents a distillation of the netcdf API down to
 a minimal set of internal operations. The format of the dispatch table
@@ -24,15 +31,17 @@ table must define this minimal set of operations.
 
 \page adding_dispatch Adding a New Dispatch Table
 
+\tableofcontents
+
 In order to make this process concrete, let us assume we plan to add
-an in-memory implementation of netcdf-3.  
+an in-memory implementation of netcdf-3.
 
 \section dispatch_step1 Step 1.
 
 Define a –enable flag and an AM_CONFIGURE flag in configure.ac. We
 will use the flags –enable-netcdfm and USE_NETCDFM respectively.
 
-\section dispatch_step2 Step 2
+\section dispatch_step2 Step 2.
 
 Choose some prefix of characters to identify the new dispatch
 system. In effect we are defining a name-space. For our in-memory
@@ -70,7 +79,7 @@ Modify file libdispatch/netcdf.c as follows.
               #endif
 \endcode
 
-    Add includes for any necessary header files as needed. 
+    Add includes for any necessary header files as needed.
 
 \section dispatch_step5 Step 5.
 
@@ -90,7 +99,7 @@ As part of the ncmdispatch.c file, you must define the following.
      NCM_open,
      ...
      };
-     
+
      int
      NCM_initialize(void)
      {
@@ -219,7 +228,7 @@ signatures respectively.
                 int useparallel, MPI_Comm comm, MPI_Info info,
                 struct NC_Dispatch*, struct NC** ncp);
 \endcode
-     
+
 \code
      int (*open)(const char *path, int mode,
               int basepe, size_t *chunksizehintp,
@@ -274,7 +283,7 @@ replaced with a separate structure containing the common fields.
      int (*put_vara)(int ncid, int varid, const size_t *start, const size_t *count,
                           const void *value, nc_type memtype);
 \endcode
-     
+
 \code
      int (*get_vara)(int ncid, int varid, const size_t *start, const size_t *count,
                      void *value, nc_type memtype);
@@ -293,7 +302,7 @@ to encounter the ::NC_INT64 type.
      int (*get_att)(int ncid, int varid, const char *name,
                          void *value, nc_type memtype);
 \endcode
-     
+
 \code
      int (*put_att)(int ncid, int varid, const char *name, nc_type datatype, size_t len,
                     const void *value, nc_type memtype);

@@ -1,5 +1,5 @@
-Release Notes {#RELEASE_NOTES}
-===============================
+Release Notes       {#RELEASE_NOTES}
+=============
 
 \brief Release notes file for the netcdf-c package.
 
@@ -16,13 +16,13 @@ This file contains a high-level description of this package's evolution. Release
 
 	> Enabling these options creates two new make targets:
 
-	~~~	
+	~~~
 	$ make build-netcdf-fortran
 	$ make install-netcdf-fortran
 	~~~
 
 	These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
-	
+
 	It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
 
 * The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)

@@ -1,10 +1,6 @@
 CMake-Related Frequently-Asked-Questions (FAQ) {#cmake_faq}
 ==============================================
 
-[TOC]
-
-# CMake Frequently Asked Questions (FAQ) {#cmake_faq_2}
-
 Below are a list of commonly-asked questions regarding NetCDF and CMake.
 
 ## How can I see the options available to CMake? {#listoptions}

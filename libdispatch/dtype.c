@@ -40,7 +40,7 @@ type). Read attributes of the new type with nc_get_att (see
 
 
 /** \internal
-\addtogroup user_types
+\ingroup user_types
 Learn if two types are equal
 
 \param ncid1 \ref ncid of first typeid.
