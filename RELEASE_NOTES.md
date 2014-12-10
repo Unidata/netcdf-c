@@ -574,8 +574,7 @@ call nf-config, ncxx-config, and ncxx4-config for for backward
 compatibility with use of nc-config in current Makefiles. [NCF-165]
 [NCF-179]
 
-* 4.2 Released 2012-03-19 (Note: Jira entries include reference to
-'[NCF-XX]')
+## 4.2.0 2012-05-01
 
 * Completely rebuilt the DAP constraint handling. This primarily affects
 users who specify a DAP constraint as part of their URL. [NCF-120]

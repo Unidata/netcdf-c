@@ -1225,15 +1225,17 @@ Forecast (CF) metadata conventions.
 
 In September, 2010, the Netcdf-Java/CDM (Common Data Model) version
 4.2 library was declared stable and made available to users. This
-100%-Java implementation provides a read-write interface to netCDF-3
-classic and 64-bit offset data, as well as a read-onlt interface to
+100%-Java implementation provided a read-write interface to netCDF-3
+classic and 64-bit offset data, as well as a read-only interface to
 netCDF-4 enhanced model data and many other formats of scientific data
-through a common (CDM) interface. The NetCDF-Java library also
-implements NcML, which allows you to add metadata to CDM datasets, as
-well as to create virtual datasets through aggregation. A ToolsUI
+through a common (CDM) interface. More recent releases support
+writing netCDF-4 data. The NetCDF-Java library also
+implements NcML, which allows you to add metadata to CDM datasets. A ToolsUI
 application is also included that provides a graphical user interface
 to capabilities similar to the C-based ncdump and ncgen utilities, as
 well as CF-compliance checking and many other features.
+
+The 
 
 \section remote_client The Remote Data Access Client
 

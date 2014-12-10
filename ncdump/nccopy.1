@@ -8,7 +8,8 @@ optionally compressing or chunking data in the output copy.
 .HP
 nccopy
 .nh
-\%[-k \fI kind \fP]
+\%[-k \fI kind_name \fP]
+\%[-\fIkind_code\fP]
 \%[-d \fI n \fP]
 \%[-s]
 \%[-c \fI chunkspec \fP]
@@ -37,6 +38,17 @@ a netCDF-4 classic model file as well, permitting data compression,
 efficient schema changes, larger variable sizes, and use of other
 netCDF-4 features.
 .LP
+If no output format is specified, with either \fB-k \fP \fI kind_name\fP 
+or \fB-\fP\fIkind_code\fP, then the output will use the same
+format as the input, unless the input is classic or 64-bit offset
+and either chunking or compression is specified, in which case the
+output will be netCDF-4 classic model format.  Note that attempting
+some kinds of format conversion will result in an error, if the
+conversion is not possible.  For example, an attempt to copy a
+netCDF-4 file that uses features of the enhanced model, such as
+groups or variable-length strings, to any of the other kinds of netCDF
+formats that use the classic model will result in an error.
+.LP
 \fBnccopy\fP also serves as an example of a generic netCDF-4 program,
 with its ability to read any valid netCDF file and handle nested
 groups, strings, and user-defined types, including arbitrarily
@@ -47,28 +59,40 @@ If DAP support was enabled when \fBnccopy\fP was built, the file name may
 specify a DAP URL. This may be used to convert data on DAP servers to
 local netCDF files.
 .SH OPTIONS
-.IP "\fB -k \fP \fI kind \fP"
-Specifies the kind of file to be created (that is, the format variant)
+.IP "\fB -k \fP \fI kind_name \fP"
+Use format name to specify the kind of file to be created
+and, by inference, the data model (i.e. netcdf-3 (classic) or
+netcdf-4 (enhanced)).  The possible arguments are as follows.
+.RS
+.RS
+.IP "'nc3' or 'classic' => netCDF classic format"
+.IP "'nc6' or '64-bit-offset' => netCDF 64-bit format"
+.IP "'nc4' or 'netCDF-4' => netCDF-4 format (enhanced data model)"
+.IP "'nc7' or 'netCDF-4 classic model' => netCDF-4 classic model format"
+.RE
+.RE
+.IP 
+Note: The old format numbers '1', '2', '3', '4', equivalent
+to the format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are
+also still accepted but deprecated, due to easy confusion between
+format numbers and format names.
+.IP "[\fB-\fP\fIkind_code\fP]"
+Use format numeric code (instead of format name) to specify the kind of file to be created
 and, by inference, the data model (i.e. netcdf-3 (classic) versus
 netcdf-4 (enhanced)).  The possible arguments are as follows.
 .RS
 .RS
-.IP "'1' or 'classic' => netcdf classic format"
-.IP "'2', '64-bit-offset', or '64-bit offset' => netCDF 64-bit format"
-.IP "'3', 'hdf5', 'netCDF-4', or 'enhanced' => netCDF-4 format (enhanced data model)"
-.IP "'4', 'hdf5-nc3', 'netCDF-4 classic model', or 'enhanced-nc3' => netCDF-4 classic model format"
+.IP "3 => netcdf classic format"
+.IP "6 => netCDF 64-bit format"
+.IP "4 => netCDF-4 format (enhanced data model)"
+.IP "7 => netCDF-4 classic model format"
 .RE
 .RE
-.IP 
-If no value for -k is specified, then the output will use the same
-format as the input, except if the input is classic or 64-bit offset
-and either chunking or compression is specified, in which case the
-output will be netCDF-4 classic model format.  Note that attempting
-some kinds of format conversion will result in an error, if the
-conversion is not possible.  For example, an attempt to copy a
-netCDF-4 file that uses features of the enhanced model, such as
-groups or variable-length strings, to any of the other kinds of netCDF
-formats that use the classic model will result in an error.
+The mnemonic for the numeric code "7" is "7=3+4" to specify the format
+that uses the netCDF-3 data model for compatibility and the netCDF-4
+storage format (based on HDF5) for performance. Credit is due to NCO for
+use of these numeric codes instead of the old and confusing format
+numbers.
 .IP "\fB -d \fP \fI n \fP"
 For netCDF-4 output, including netCDF-4 classic model, specify
 deflation level (level of compression) for variable data output.  0
@@ -246,7 +270,7 @@ to a netCDF-3 file classic.nc:
 nccopy -k classic compressed.nc classic.nc
 .RE
 .LP
-Note that '1' could be used instead of 'classic'.
+Note that 'nc3' could be used instead of 'classic'.
 .LP
 Download the variable 'time_bnds' and its associated attributes from
 an OPeNDAP server and copy the result to a netCDF file named 'tb.nc':
