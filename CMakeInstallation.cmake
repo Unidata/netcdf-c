@@ -39,6 +39,8 @@ SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 # Nullsoft Installation System (NSIS)
 ###
 
+SET(CPACK_PACKAGE_CONTACT "NetCDF Support <support-netcdf@unidata.ucar.edu>")
+
 IF(WIN32)
   SET(CPACK_NSIS_MODIFY_PATH ON)
   SET(CPACK_NSIS_DISPLAY_NAME "NetCDF ${netCDF_VERSION}")
@@ -54,6 +56,27 @@ IF(WIN32)
 
 ENDIF()
 
+###
+# Set debian-specific options used when
+# creating .deb.
+#
+# http://www.cmake.org/Wiki/CMake:CPackPackageGenerators
+###
+
+# This should be set using the output of dpkg --print-architecture.
+FIND_PROGRAM(NC_DPKG NAMES dpkg)
+IF(NC_DPKG)
+  # Define a macro for getting the dpkg architecture.
+  MACRO(getdpkg_arch arch)
+    exec_program("${NC_DPKG}" ARGS "--print-architecture" OUTPUT_VARIABLE "${arch}")
+  ENDMACRO(getdpkg_arch)
+  getdpkg_arch(dpkg_arch)
+
+  SET(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")	
+  SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${dpkg_arch}")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.8), libhdf5-dev (>= 1.8.11), libcurl4-openssl-dev (>= 7.35.0)")
+ENDIF()
+
 
 ##
 # Set Copyright, License info for CPack.
@@ -66,6 +89,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
 IF(NOT CPACK_PACK_VERSION)
   SET(CPACK_PACKAGE_VERSION ${VERSION})
+ENDIF()
+
+IF(UNIX)
+  SET(CPACK_GENERATOR "STGZ" "TBZ2" "DEB" "ZIP")
 ENDIF()
 
 IF(APPLE)
