@@ -74,7 +74,7 @@ IF(NC_DPKG)
 
   SET(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")	
   SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${dpkg_arch}")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.8), libhdf5-dev (>= 1.8.11), libcurl4-openssl-dev (>= 7.35.0)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.3.4), libhdf5-7 (>= 1.8.11), libcurl4-openssl-dev (>= 7.22.0)")
 ENDIF()
 
 
