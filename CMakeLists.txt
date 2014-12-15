@@ -1251,6 +1251,7 @@ ENDIF()
 # Build doxygen documentation, if need be.
 #####
 ADD_SUBDIRECTORY(docs)
+
 #####
 # Moving on to CPack, install packages.
 #####
@@ -1268,13 +1269,27 @@ IF(ENABLE_PNETCDF OR ENABLE_PARALLEL)
     COMPONENT headers)
 ENDIF()
 
-# Install the dependencies. This is Windows/Visual studio only,
-# and mirrors the configuration used on the build system.  It is
-# a less-than-optimal system, but it's what we currently have, and
-# the only way to avoid making the user build all the dependencies
-# themselves.
+##
+# Brute force, grab all of the dlls from the depency directory,
+# install them in the binary dir. Grab all of the .libs, put them
+# in the libdir.
+##
 IF(MSVC)
-  INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+  FILE(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/lib/*.lib)
+  INSTALL(FILES ${COPY_FILES}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  COMPONENT dependencies)
+
+  FILE(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/bin/*.dll)
+  STRING(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
+  INSTALL(FILES ${COPY_FILES}
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT dependencies)
+
+  #INSTALL(DIRECTORY ${CMAKE_PREFIX_PATH} DESTINATION "deps" COMPONENT dependencies)
+  #  INSTALL(FILES ${ALL_TLL_LIBS}
+  #  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  #  COMPONENT dependencies)
 ENDIF()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1286,7 +1301,6 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
   @ONLY
   )
-#INSTALL(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake)
 
 ###
 # Create pkgconfig files.
@@ -1345,82 +1359,9 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 # End pkgconfig, nc-config file creation.
 ###
 
-####
-# End CMake package configuration files.
-#####
-# Various options for CPACK
-#####
-
 ##
-# Declare exclusions list used when building a source file.
-# NOTE!! This list uses regular expressions, NOT wildcards!!
+# Print the configuration summary
 ##
-SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
-  "/expecttds3/"
-  "/nocacheremote3/"
-  "/nocacheremote4/"
-  "/special3/"
-  "${CMAKE_BINARY_DIR}/*"
-  "/myhtml/*"
-  "/.svn/"
-  "my.*\\\\.sh"
-  "/.deps/"
-  "/.libs"
-  "/html/"
-  ".*\\\\.jar"
-  ".*\\\\.jdl"
-  ".*\\\\.sed"
-  ".*\\\\.proto"
-  ".*\\\\.texi"
-  ".*\\\\.example"
-  "Make0"
-  "/obsolete/"
-  "/unknown/"
-  ".*~"
-  )
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
-  ${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
-  @ONLY
-  )
-
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
-IF(NOT CPACK_PACK_VERSION)
-  SET(CPACK_PACKAGE_VERSION ${VERSION})
-ENDIF()
-
-IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TGZ")
-  SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
-ENDIF()
-
-# Create an 'uninstall' target.
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-
-
-ADD_CUSTOM_TARGET(uninstall
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-
-## Customize some of the package component descriptions
-set(CPACK_COMPONENT_UTILITIES_DISPLAY_NAME "netCDF Utilities")
-set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "netCDF Libraries")
-set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "netCDF Headers")
-set(CPACK_COMPONENT_DEPENDENCIES_DISPLAY_NAME "netCDF Dependencies")
-set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "netCDF Documentation")
-
-
-set (CPACK_COMPONENT_UTILITIES_DESCRIPTION
-  "The netCDF Utilities")
-set (CPACK_COMPONENT_LIBRARIES_DESCRIPTION
-  "The netCDF Libraries")
-set (CPACK_COMPONENT_HEADERS_DESCRIPTION
-  "C header files for use with netCDF")
-set (CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
-  "Dependencies for this build of netCDF")
-set (CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
-  "The netCDF user documentation.")
 print_conf_summary()
 
 # Enable Makedist files.
@@ -1505,9 +1446,10 @@ FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
 # cmake should be able to find netcdf using find_package and find_library.
 # The EXPORT call is paired with one in liblib.
 set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
+
 install(EXPORT netCDFTargets
   DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 include(CMakePackageConfigHelpers)
@@ -1525,7 +1467,7 @@ CONFIGURE_PACKAGE_CONFIG_FILE(
 INSTALL(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   DESTINATION "${ConfigPackageLocation}"
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 # Create export configuration
@@ -1539,7 +1481,7 @@ install(
   FILES
   "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
-  COMPONENT Devel
+  COMPONENT headers
   )
 
 ####
@@ -1549,4 +1491,5 @@ install(
 
 
 # CPack inclusion must come last.
-INCLUDE(CPack)
+# INCLUDE(CPack)
+INCLUDE(CMakeInstallation.cmake)

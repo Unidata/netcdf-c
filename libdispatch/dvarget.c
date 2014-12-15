@@ -2,7 +2,7 @@
 Functions for getting data from variables.
 
 Copyright 2011 University Corporation for Atmospheric
-Research/Unidata. See \ref COPYRIGHT file for more info.
+Research/Unidata. See \ref copyright file for more info.
 
 */
 

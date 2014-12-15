@@ -1,8 +1,6 @@
 NetCDF Error Code Listing {#nc-error-codes}
 ==================
 
-\ingroup error
-
 \tableofcontents
 
 # NetCDF-3 Error Codes {#nc3-error-codes}
