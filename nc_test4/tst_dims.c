@@ -91,7 +91,7 @@ main(int argc, char **argv)
       int ndims_in, dimids_in[MAX_DIMS];
       size_t len_in;
       char name_in[NC_MAX_NAME + 1];
-      int varid_in;
+      int dimid_in;
 
       /* Create a file with one dim and nothing else. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -102,8 +102,8 @@ main(int argc, char **argv)
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1) ERR;
-      if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
-      if (varid_in != 0) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -118,8 +118,8 @@ main(int argc, char **argv)
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1) ERR;
-      if (nc_inq_dimid(ncid, LAT_NAME, &varid_in)) ERR;
-      if (varid_in != 0) ERR;
+      if (nc_inq_dimid(ncid, LAT_NAME, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -131,7 +131,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** Testing renaming of one dimension...");
    {
-      int ncid, dimid, varid_in;
+      int ncid, dimid, dimid_in;
       char name_in[NC_MAX_NAME + 1];
       size_t len_in;
       int ndims_in, dimids_in[MAX_DIMS];
@@ -147,8 +147,8 @@ main(int argc, char **argv)
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1) ERR;
       if (dimids_in[0] != 0) ERR;
-      if (nc_inq_dimid(ncid, BUBBA, &varid_in)) ERR;
-      if (varid_in != 0) ERR;
+      if (nc_inq_dimid(ncid, BUBBA, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, BUBBA)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -161,8 +161,8 @@ main(int argc, char **argv)
       if (len_in != LAT_LEN || strcmp(name_in, BUBBA)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
       if (ndims_in != 1 || dimids_in[0] != 0) ERR;
-      if (nc_inq_dimid(ncid, BUBBA, &varid_in)) ERR;
-      if (varid_in != 0) ERR;
+      if (nc_inq_dimid(ncid, BUBBA, &dimid_in)) ERR;
+      if (dimid_in != 0) ERR;
       if (nc_inq_dimname(ncid, 0, name_in)) ERR;
       if (strcmp(name_in, BUBBA)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;

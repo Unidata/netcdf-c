@@ -1,5 +1,5 @@
-Release Notes {#RELEASE_NOTES}
-===============================
+Release Notes       {#RELEASE_NOTES}
+=============
 
 \brief Release notes file for the netcdf-c package.
 
@@ -16,13 +16,13 @@ This file contains a high-level description of this package's evolution. Release
 
 	> Enabling these options creates two new make targets:
 
-	~~~	
+	~~~
 	$ make build-netcdf-fortran
 	$ make install-netcdf-fortran
 	~~~
 
 	These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
-	
+
 	It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
 
 * The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
@@ -47,7 +47,7 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
      in the same way that ncgen3 did.
   See [NCF-309](https://bugtracking.unidata.ucar.edu/browse/NCF-309).
 
-* Added a new file, `netcdf_meta.h`.  This file is generated automatically at configure time and contains information related to the capabilities of the netcdf library.  This file may be used by projects dependent upon `netcdf` to make decisions during configuration, based on how the `netcdf` library was built.  The macro `NC_HAVE_META_H` is defined in `netcdf.h`.  Paired with judicious use of `#ifdef`'s, this macro will indicate to developers whether or not the meta-header file is present. See [NCF-313](https://bugtracking.unidata.ucar.edu/browse/NCF-313).
+* Added a new file, `netcdf_meta.h`.  This file is generated automatically at configure time and contains information related to the capabilities of the netcdf library.  This file may be used by projects dependent upon `netcdf` to make decisions during configuration, based on how the `netcdf` library was built.  The macro `NC_HAVE_META_H` is defined in `netcdf.h`.  Paired with judicious use of `ifdef`'s, this macro will indicate to developers whether or not the meta-header file is present. See [NCF-313](https://bugtracking.unidata.ucar.edu/browse/NCF-313).
 
     > Determining the presence of `netcdf_meta.h` can also be accomplished by methods common to autotools and cmake-based build systems.
 
@@ -574,8 +574,7 @@ call nf-config, ncxx-config, and ncxx4-config for for backward
 compatibility with use of nc-config in current Makefiles. [NCF-165]
 [NCF-179]
 
-* 4.2 Released 2012-03-19 (Note: Jira entries include reference to
-'[NCF-XX]')
+## 4.2.0 2012-05-01
 
 * Completely rebuilt the DAP constraint handling. This primarily affects
 users who specify a DAP constraint as part of their URL. [NCF-120]

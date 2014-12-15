@@ -558,8 +558,7 @@ test_nc_get_vars_$1(void)
 		    for (j = 0; j < nels; j++) {
 			if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
 				&& expect[j] >= $1_min && expect[j] <= $1_max) {
-			    IF (!equal(value[j],expect[j],var_type[i],
-				    NCT_ITYPE($1))){
+			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
 				error("value read not that expected");
 				if (verbose) {
 				    error("\n");
@@ -757,8 +756,7 @@ test_nc_get_varm_$1(void)
                         if (inRange3(expect[j],var_type[i],NCT_ITYPE($1))
                                 && expect[j] >= $1_min 
 				&& expect[j] <= $1_max) {
-			    IF (!equal(value[j],expect[j],var_type[i],
-				    NCT_ITYPE($1))){
+			    IF (!equal(value[j],expect[j],var_type[i], NCT_ITYPE($1))){
                                 error("value read not that expected");
                                 if (verbose) {
                                     error("\n");
@@ -859,8 +857,7 @@ test_nc_get_att_$1(void)
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    if (inRange3(expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))
                             && expect[k] >= $1_min && expect[k] <= $1_max) {
-			IF (!equal(value[k],expect[k],ATT_TYPE(i,j),
-				NCT_ITYPE($1))){
+			IF (!equal(value[k],expect[k],ATT_TYPE(i,j), NCT_ITYPE($1))){
 			    error("value read not that expected");
                             if (verbose) {
                                 error("\n");
