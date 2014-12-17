@@ -94,12 +94,14 @@ ENDIF()
 STRING(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 
 # Determine the configure date.
+
 EXECUTE_PROCESS(
   COMMAND date
   OUTPUT_VARIABLE CONFIG_DATE
   )
-string(STRIP ${CONFIG_DATE} CONFIG_DATE)
-
+IF(CONFIG_DATE)
+	string(STRIP ${CONFIG_DATE} CONFIG_DATE)
+ENDIF()
 ##
 # Allow for extra dependencies.
 ##
