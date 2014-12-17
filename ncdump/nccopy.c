@@ -1508,13 +1508,12 @@ usage(void)
 {
 #define USAGE   "\
   [-k kind] specify kind of netCDF format for output file, default same as input\n\
-	    kind strings: classic (or n3), 64-bit-offset (or n6),\n\
-                          netCDF-4 (or n4), netCDF-4-classic (or n7)\n\
-  [-3]      netCDF classic output (same as -k classic)\n\
-  [-6]      64-bit-offset output (same as -k 64-bit-offset)\n\
-  [-4]      netCDF-4 output (same as -k netCDF-4)\n\
-  [-7]      netCDF-4-classic output (same as -k netCDF-4 classic)\n\ 
-            mnemonic: 7=3+4, compatibility of netCDF-3 classic, performance of netCDF-4\n\
+	    kind strings: 'classic', '64-bit offset',\n\
+                          'netCDF-4', 'netCDF-4 classic model'\n\
+  [-3]      netCDF classic output (same as -k 'classic')\n\
+  [-6]      64-bit-offset output (same as -k '64-bit offset')\n\
+  [-4]      netCDF-4 output (same as -k 'netCDF-4')\n\
+  [-7]      netCDF-4-classic output (same as -k 'netCDF-4 classic model')\n\
   [-d n]    set output deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      add shuffle option to deflation compression\n\
   [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
@@ -1551,33 +1550,33 @@ main(int argc, char**argv)
 	int kind;
     } legalkinds[] = {
 	/* NetCDF-3 classic format (32-bit offsets) */
-	{"classic", NC_FORMAT_CLASSIC},
-	{"n3", NC_FORMAT_CLASSIC},
-	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" instead of "-k1" */
+	{"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
+	{"nc3", NC_FORMAT_CLASSIC},	/* short format name */
+	{"1", NC_FORMAT_CLASSIC}, /* deprecated, use "-3" or "-k nc3" instead */
 	
 	/* NetCDF-3 64-bit offset format */
-	{"64-bit-offset", NC_FORMAT_64BIT},
-	{"64-bit offset", NC_FORMAT_64BIT},
-	{"n6", NC_FORMAT_64BIT},
-	{"2", NC_FORMAT_64BIT},	/* deprecated, use "-6" instead of "-k2" */
+	{"64-bit offset", NC_FORMAT_64BIT}, /* canonical format name */
+	{"nc6", NC_FORMAT_64BIT},	    /* short format name */
+	{"2", NC_FORMAT_64BIT},	/* deprecated, use "-6" or "-k nc6" instead */
+	{"64-bit-offset", NC_FORMAT_64BIT}, /* deprecated alias */
 	
 	/* NetCDF-4 HDF5-based format */
-	{"netCDF-4", NC_FORMAT_NETCDF4},
-	{"netCDF4", NC_FORMAT_NETCDF4},
+	{"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
+	{"nc4", NC_FORMAT_NETCDF4},	 /* short format name */
+	{"3", NC_FORMAT_NETCDF4}, /* deprecated, use "-4" or "-k nc4" instead */
+	{"netCDF4", NC_FORMAT_NETCDF4}, /* deprecated aliases */
 	{"hdf5", NC_FORMAT_NETCDF4},
 	{"enhanced", NC_FORMAT_NETCDF4},
-	{"n4", NC_FORMAT_NETCDF4},
-	{"3", NC_FORMAT_NETCDF4}, /* deprecated, use "-4" instead of "-k3" */
 
 	/* NetCDF-4 HDF5-based format, restricted to classic data model */
-	{"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC},
+	{"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC}, /* canonical format name */
+	{"nc7", NC_FORMAT_NETCDF4_CLASSIC}, /* short format name */
+	{"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" or -k nc7" */
+	{"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated aliases */
 	{"netCDF-4_classic", NC_FORMAT_NETCDF4_CLASSIC},
 	{"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
 	{"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
-	{"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC},
 	{"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
-	{"n7", NC_FORMAT_NETCDF4_CLASSIC},
-	{"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" instead of "-k4" */
 
 	/* null terminate*/
 	{NULL,0}
@@ -1594,16 +1593,16 @@ main(int argc, char**argv)
     while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated 
-                     String versions:
-                       "classic"
-                       "64-bit-offset"
-		       "netCDF-4"
-		       "netCDF-4-classic"
-                     Numeric format versions (deprecated):
-                       1 (=> classic 32 bit)
-                       2 (=> classic 64 bit offsets)
-                       3 (=> netCDF-4/HDF5)
-                       4 (=> classic, but stored in netCDF-4/HDF5 format)
+                     Format names:
+                       "classic" or "nc3"
+                       "64-bit offset" or "nc6"
+		       "netCDF-4" or "nc4"
+		       "netCDF-4 classic model" or "nc7"
+                     Format version numbers (deprecated):
+                       1 (=> classic)
+                       2 (=> 64-bit offset)
+                       3 (=> netCDF-4)
+                       4 (=> netCDF-4 classic model)
 		   */
 	    {
 		struct Kvalues* kvalue;
