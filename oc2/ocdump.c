@@ -509,7 +509,7 @@ ocdumpdata(OCstate* state, OCdata* data, OCbytes* buffer, int frominstance)
         snprintf(tmp,sizeof(tmp)," xdrsize=%ld",(unsigned long)data->xdrsize);
         ocbytescat(buffer,tmp);
     }
-    if(iscontainer(template->octype)) {
+    if(ociscontainer(template->octype)) {
         snprintf(tmp,sizeof(tmp)," ninstances=%d",(int)data->ninstances);
         ocbytescat(buffer,tmp);
     } else if(template->etype == OC_String || template->etype == OC_URL) {
@@ -665,14 +665,14 @@ ocdumpdatapath(OCstate* state, OCdata* data, OCbytes* buffer)
 	}
     }
     /* Add suffix to path */
-    if(iscontainer(template->octype)) {
+    if(ociscontainer(template->octype)) {
         /* add the container type, except distinguish record and sequence */
 	ocbytescat(buffer,":");
 	if(isrecord)
 	    ocbytescat(buffer,"Record");
 	else
 	    ocbytescat(buffer,octypetoddsstring(template->octype));
-    } else if(isatomic(template->octype)) {
+    } else if(ocisatomic(template->octype)) {
 	/* add the atomic etype */
 	ocbytescat(buffer,":");
 	ocbytescat(buffer,octypetoddsstring(template->etype));

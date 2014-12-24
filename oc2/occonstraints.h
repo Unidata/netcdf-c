@@ -1,8 +1,8 @@
 /* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
-#ifndef CONSTRAINTS_H
-#define CONSTRAINTS_H 1
+#ifndef OCCONSTRAINTS_H
+#define OCCONSTRAINTS_H 1
 
 /*! Specifies an OCslice. */
 typedef struct OCslice {
@@ -36,4 +36,4 @@ typedef struct OCselectionclause {
 } OCselectionclause;
 
 
-#endif /*CONSTRAINTS_H*/
+#endif /*OCCONSTRAINTS_H*/

@@ -4,17 +4,21 @@
 #ifndef OCOCDBG_H
 #define OCOCDBG_H
 
+#ifndef OCDEBUG
+#undef OCDEBUG
+#endif
+
 #include "config.h"
 
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
 
-#include "oc.h"
+#include <curl/curl.h>
 
-#ifndef OCDEBUG
-#undef OCDEBUG
-#endif
+#include "oc.h"
+#include "ocinternal.h"
+
 
 /* OCCATCHERROR is used to detect errors as close
    to their point of origin as possible. When
@@ -33,18 +37,18 @@
 
 /* Need some syntactic trickery to make these macros work*/
 #ifdef OCDEBUG
-#define OCDBG(l,msg) {oclog(OCLOGDBG,msg);}
-#define OCDBG1(l,msg,arg) {oclog(OCLOGDBG,msg,arg);}
-#define OCDBG2(l,msg,arg1,arg2) {oclog(OCLOGDBG,msg,arg1,arg2);}
-#define OCDBGTEXT(l,text) {oclogtext(OCLOGNOTE,text);} else {}
-#define OCDBGCODE(l,code) {code;}
+#define OCDBG(msg) {oclog(OCLOGDBG,msg);}
+#define OCDBG1(msg,arg) {oclog(OCLOGDBG,msg,arg);}
+#define OCDBG2(msg,arg1,arg2) {oclog(OCLOGDBG,msg,arg1,arg2);}
+#define OCDBGTEXT(text) {oclogtext(OCLOGNOTE,text);} else {}
+#define OCDBGCODE(code) {code;}
 
 #else
-#define OCDBG(l,msg)
-#define OCDBG1(l,msg,arg)
-#define OCDBG2(l,msg,arg1,arg2)
-#define OCDBGTEXT(l,text)
-#define OCDBGCODE(l,code)
+#define OCDBG(msg)
+#define OCDBG1(msg,arg)
+#define OCDBG2(msg,arg1,arg2)
+#define OCDBGTEXT(text)
+#define OCDBGCODE(code)
 #endif
 
 
@@ -75,22 +79,29 @@ extern void* ocmalloc(size_t size);
 extern void  ocfree(void*);
 
 #define MEMCHECK(var,throw) {if((var)==NULL) return (throw);}
-#define MEMFAIL(var) MEMCHECK(var,OCTHROW(OC_ENOMEM))
+#define MEMFAIL(var) MEMCHECK(var,OCCATCH(OC_ENOMEM))
 #define MEMGOTO(var,stat,label) {if((var)==NULL) {stat=OC_ENOMEM;goto label;}}
 
 #ifdef OCCATCHERROR
 extern OCerror ocbreakpoint(OCerror err);
-extern OCerror octhrow(OCerror err);
+extern OCerror occatch(OCerror err);
+extern CURLcode ocreportcurlerror(struct OCstate* state, CURLcode cstat);
 /* Place breakpoint on ocbreakpoint to catch errors close to where they occur*/
-#define OCTHROW(e) octhrow(e)
-#define OCTHROWCHK(e) (void)octhrow(e)
+#define OCCATCH(e) occatch(e)
+#define OCCATCHCHK(e) (void)occatch(e)
 #define OCGOTO(label) {ocbreakpoint(-1); goto label;}
+#define OCCURLERR(s,e) ocreportcurlerror(s,e)
+#define CURLERR(e) ocreportcurlerror(NULL,e)
 #else
-#define OCTHROW(e) (e)
-#define OCTHROWCHK(e)
+#define OCCATCH(e) (e)
+#define OCCATCHCHK(e)
 #define OCGOTO(label) goto label
+#define CURLERR(s,e) (e)
+#define OCCURLERR(s,e) (e)
+#define CURLERR(e) (e)
 #endif
-
+#define OCTHROW(e) OCCATCH(e)
+#define OCTHROWCHK(e) OCCATCHCHK(e)
 
 #endif /*OCOCDBG_H*/
 

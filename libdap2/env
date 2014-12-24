@@ -1,14 +1,12 @@
-#TOP="/home/dmh/mach/netcdf-c"
-TOP="/cygdrive/f/git/netcdf-c"
-
+TOP="/home/dmh/git/netcdf-c"
+#TOP="/cygdrive/f/git/netcdf-c"
 
 alias xx="cd ..;make; cd libdap2"
 
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-F="http://remotetest.unidata.ucar.edu/thredds/dodsC/testdods/in.nc"
-CON="var_nm.dot"
+F="file://${TOP}/ncdap_test/testdata3/test.02"
 
 if test -f ./ncd ; then
 PROG=./ncd
@@ -28,6 +26,7 @@ PARMS="${PARMS}&show=fetch"
 #PARMS="${PARMS}&noprefetch"
 #PARMS="${PARMS}&prefetch"
 #PARMS="${PARMS}&prefetch=eager"
+PARMS="[log][cache][noprefetch]"
 
 VARGS="--leak-check=full"
 
