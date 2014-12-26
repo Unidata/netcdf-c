@@ -10,7 +10,9 @@
 
 
 extern OCerror ocset_curlopt(OCstate* state, int flag, void* value);
-extern OCerror ocset_curlflagbyname(OCstate*, const char* name, void* value);
+
+struct OCCURLFLAG* occurlflagbyflag(int flag);
+struct OCCURLFLAG* occurlflagbyname(const char* name);
 
 extern OCerror ocset_flags_perfetch(OCstate*);
 extern OCerror ocset_flags_perlink(OCstate*);
