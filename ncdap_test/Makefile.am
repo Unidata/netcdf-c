@@ -41,8 +41,8 @@ endif
 
 test_partvar_SOURCES = test_partvar.c
 test_nstride_cached_SOURCE = test_nstride_cached.c
-t_auth_SOURCES = t_auth.c
-t_auth1_SOURCES = t_auth1.c
+#t_auth_SOURCES = t_auth.c
+#t_auth1_SOURCES = t_auth1.c
 t_misc_SOURCES = t_misc.c
 test_varm3_SOURCES = test_varm3.c
 

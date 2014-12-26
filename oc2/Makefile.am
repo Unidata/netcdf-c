@@ -29,6 +29,7 @@ ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
 ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
+occurlflags.h \
 xxdr.h
 
 EXTRA_DIST = dap.y CMakeLists.txt
