@@ -31,6 +31,11 @@ ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
+# These rules are used if someone wants to rebuild ncgenyy.c or ncgentab.c
+# Otherwise never invoked, but records how to do it.
+# BTW: note that renaming is essential because otherwise
+# autoconf will forcibly delete files of the name *.tab.*
+
 ADD_CUSTOM_COMMAND(
   OUTPUT ncgentab.h
   COMMAND flex -Pncg -B ncgen.l
@@ -45,7 +50,6 @@ ADD_CUSTOM_COMMAND(
   COMMAND mv ncgenyy.c ${CMAKE_CURRENT_SOURCE_DIR}
 
   )
-
 ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
 
 ## Specify files to be distributed by 'make dist'

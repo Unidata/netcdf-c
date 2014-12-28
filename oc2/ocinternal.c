@@ -594,6 +594,12 @@ ocset_curlproperties(OCstate* state)
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
+    if(state->curlflags.cookiejar != NULL
+       && strlen(state->curlflags.cookiejar) == 0) {
+	free(state->curlflags.cookiejar);
+	state->curlflags.cookiejar = NULL;
+    }
+
     if(state->curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
 	char tmp[OCPATHMAX+1];
@@ -607,9 +613,14 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
 	/* Create the unique cookie file name */
 	stat = ocmktmp(tmp,&state->curlflags.cookiejar);
-	state->curlflags.createdflags |= COOKIECREATED;
+	state->curlflags.createdflags |= COOKIECREATED;	
+	if(stat != OC_NOERR && errno != EEXIST) {
+	    fprintf(stderr,"Cannot create cookie file\n");
+	    goto fail;
+	}
+	errno = 0;
     }
-    OCASSERT(state->curlflags.cookiejar != NULL && *state->curlflags.cookiejar != '\0');
+    OCASSERT(state->curlflags.cookiejar != NULL);
     
     /* Make sure the cookie jar exists and can be read and written */
     {
