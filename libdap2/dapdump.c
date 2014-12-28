@@ -509,7 +509,7 @@ dumpcachenode(NCcachenode* node)
 
     if(node == NULL) return strdup("cachenode{null}");
     buf = ncbytesnew();
-    result = buildconstraintstring(node->constraint);
+    result = dcebuildconstraintstring(node->constraint);
     snprintf(tmp,sizeof(tmp),"cachenode%s(%lx){size=%lu; constraint=%s; vars=",
 		node->isprefetch?"*":"",
 		(unsigned long)node,

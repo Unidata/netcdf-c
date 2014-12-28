@@ -41,11 +41,10 @@ endif
 
 test_partvar_SOURCES = test_partvar.c
 test_nstride_cached_SOURCE = test_nstride_cached.c
-t_auth_SOURCES = t_auth.c
-t_auth1_SOURCES = t_auth1.c
+#t_auth_SOURCES = t_auth.c
+#t_auth1_SOURCES = t_auth1.c
 t_misc_SOURCES = t_misc.c
 test_varm3_SOURCES = test_varm3.c
-
 
 TESTS += test_varm3
 TESTS += test_nstride_cached
@@ -57,12 +56,12 @@ check_PROGRAMS += t_misc
 check_PROGRAMS += test_varm3
 
 if ENABLE_DAP_AUTH_TESTS
-check_PROGRAMS += t_auth t_auth1
-TESTS += t_auth
+#check_PROGRAMS += t_auth t_auth1
+#TESTS += t_auth
+TESTS += testauth.sh
 endif
 
 endif #ENABLE_DAP_REMOTE_TESTS
-
 
 if USE_NETCDF4
 
@@ -94,7 +93,7 @@ EXTRA_DIST = tst_ncdap3.sh tst_ncdap4.sh \
              tst_remote3.sh tst_remote4.sh \
              tst_longremote3.sh tst_longremote4.sh \
              tst_ncdap.sh tst_ncdap_shared.sh tst_remote.sh \
-	     t_dap.c CMakeLists.txt tst_formatx.sh
+	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh
 
 CLEANFILES = test_varm3 test_cvt3 results/*.dmp results/*.das results/*.dds datadds* t_dap3a test_nstride_cached
 

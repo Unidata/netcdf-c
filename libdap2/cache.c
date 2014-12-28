@@ -226,7 +226,7 @@ buildcachenode(NCDAPCOMMON* nccomm,
 #ifndef GRADS_PREFETCH
     if((flags & NCF_PREFETCH_ALL) == 0)
 #endif
-        ce = buildconstraintstring(constraint);
+        ce = dcebuildconstraintstring(constraint);
 
     ncstat = dap_fetch(nccomm,conn,ce,OCDATADDS,&ocroot);
     nullfree(ce);
@@ -370,7 +370,7 @@ iscacheableprojection(DCEprojection* proj)
     cacheable = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
         DCEsegment* segment = (DCEsegment*)nclistget(proj->var->segments,i);
-	if(!iswholesegment(segment)) {cacheable = 0; break;}
+	if(!dapiswholesegment(segment)) {cacheable = 0; break;}
     }
     return cacheable;
 }

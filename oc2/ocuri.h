@@ -7,7 +7,7 @@
 /*! This is an open structure meaning
 	it is ok to directly access its fields*/
 typedef struct OCURI {
-    char* uri;        /* as passed by the caller */
+    char* uri;        /* as passed buy the caller */
     char* params;     /* all params */
     char** paramlist;    /*!<null terminated list */
     char* constraint; /*!< projection+selection */
@@ -16,8 +16,7 @@ typedef struct OCURI {
     char* strings;    /* first char of strings is always '\0' */
     /* Following all point into the strings field */
     char* protocol;
-    char* user; /* from user:password@ */
-    char* password; /* from user:password@ */
+    char* userpwd; /* from user:password@ */
     char* host;	      /*!< host*/
     char* port;	      /*!< host */
     char* file;	      /*!< file */
@@ -39,6 +38,7 @@ extern void ocurisetconstraints(OCURI*,const char* constraints);
 #define OCURIPARAMS	  	OCURIPREFIXPARAMS
 #define OCURIENCODE		16 /* If output should be encoded */
 #define OCURISTD	  	(OCURICONSTRAINTS|OCURIUSERPWD)
+#define OCURIALL	  	(0xFFFF)
 
 extern char* ocuribuild(OCURI*,const char* prefix, const char* suffix, int flags);
 
