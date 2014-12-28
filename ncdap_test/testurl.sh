@@ -47,11 +47,11 @@ SUFFIX="log&show=fetch"
 BOTHP="[log][show=fetch]"
 BOTHS="noprefetch&fetch=disk"
 
-function reset {
+locreset () {
     rm -f ./tmp ./errtmp
 }
 
-function buildurl {
+buildurl () {
   front="$1"
   back="$2"
   url="${front}${URL}"
@@ -67,7 +67,7 @@ NCDUMP="gdb --args $NCDUMP"
 fi
 
 # Initialize
-reset
+locreset
 
 if test "x$NOP" != x1 ; then
 echo "***Testing url prefix parameters"
@@ -78,7 +78,7 @@ ${NCDUMP} -h "$url" >./tmp 2> ./errtmp
 if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 fi
 
-reset
+locreset
 if test "x$NOS" != x1 ; then
 echo "***Testing url suffix parameters"
 buildurl "" $SUFFIX
@@ -88,7 +88,7 @@ ${NCDUMP} -h "$url" >./tmp  2> ./errtmp
 if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 fi
 
-reset
+locreset
 if test "x$NOB" != x1 ; then
 echo "***Testing url prefix+suffix parameters"
 buildurl $BOTHP $BOTHS
@@ -98,7 +98,7 @@ ${NCDUMP} -h "$url" >./tmp 2> ./errtmp
 if test "x${SHOW}" = x1 ; then cat ./tmp ; fi
 fi
 
-reset
+locreset
 
 if test "x$pass" = x0 ; then
   echo "***FAIL"
