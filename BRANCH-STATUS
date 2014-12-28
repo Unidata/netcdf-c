@@ -1,0 +1,5 @@
+In middle of fixing Jira NCF-314.
+TODO: Finish setting global option for output type for -3 -4 -6 -7
+      Add short (two-letter) strings for output type
+      Change all man-page docs
+      Do same fixes for ncgen as ncdump

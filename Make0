@@ -1,18 +1,31 @@
-# Test c output
-T=leak
-VG=valgrind --leak-check=full
+T=t
 
-CFLAGS=-g -O0 -I. -I./include
+NCLIB=./liblib/.libs/libnetcdf.a
 
-CFLAGS=-g -O0 -I../include -I/share/ed/local/spock/include
-LDFLAGS=./liblib/.libs/libnetcdf.a -L/share/ed/local/spock/lib -lhdf5_hl -lhdf5 -lz -lcurl -lm -llber -lldap -lrt -lssl -lcrypto -ldl
 LFLAG=-L/usr/local/lib
+
+HDF5LIB=-lhdf5_hl -lhdf5
+CURLLIB=-lcurl
+ZLIB=-lz
+
+OTHERLIBS=-lm
+
+LIBS=${NCLIB} ${LFLAG} ${CURLLIB} ${HDF5LIB} ${ZLIB} ${OTHERLIBS}
+INCL=-I. -I./include
 RPATH=-Wl,-rpath,${LFLAG}
 
+# Might want to specify a particular C compiler with flags
+CC=gcc
+#CFLAGS=-g -O2 -Wall -DHAVE_CONFIG_H
+CFLAGS=-g -O2 -DHAVE_CONFIG_H
+
+GFLAGS=-g -O0
+
+##################################################
+
 all::
-	gcc ${CFLAGS} -o t ${T}.c ${LDFLAGS} 
-	${VG} ./t
+	cc -g -c ${T}.c ${INCL}
+	cc -g -o ${T} ${T}.o ${LIBS} ${RPATH}
 
-
-build::
-	export CFLAGS; export LDFLAGS; ${MAKE} all
+clean:
+	rm -f ${T}.o ${T}.exe

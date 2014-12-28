@@ -18,9 +18,6 @@
 
 /**************************************************/
 
-static int ocinitialized = 0;
-
-/**************************************************/
 /* Track legal ids */
 
 #define ocverify(o) ((o) != NULL && (((OCheader*)(o))->magic == OCMAGIC)?1:0)
@@ -31,17 +28,6 @@ static int ocinitialized = 0;
 #define OCVERIFY(k,x) OCVERIFYX(k,x,OCTHROW(OC_EINVAL))
 
 #define OCDEREF(T,s,x) (s)=(T)(x)
-
-/**************************************************/
-static OCerror
-oc_initialize(void)
-{
-    OCerror status = OC_NOERR;
-    status = ocinternalinitialize();
-    ocinitialized = 1;
-    return status;
-}
-
 
 /**************************************************/
 /*!\file oc.c
@@ -68,7 +54,7 @@ oc_open(const char* url, OCobject* linkp)
 {
     OCerror ocerr;
     OCstate* state;
-    if(!ocinitialized) oc_initialize();
+    if(!ocglobalstate.initialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {
 	*linkp = (OCobject)(state);
@@ -462,7 +448,7 @@ oc_dds_ithfield(OCobject link, OCobject ddsnode, size_t index, OCobject* fieldno
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(!iscontainer(node->octype))
+    if(!ociscontainer(node->octype))
 	return OCTHROW(OC_EBADTYPE);
 
     if(index >= oclistlength(node->subnodes))
@@ -555,7 +541,7 @@ oc_dds_fieldbyname(OCobject link, OCobject ddsnode, const char* name, OCobject* 
     OCVERIFY(OC_Node,ddsnode);
     OCDEREF(OCnode*,node,ddsnode);
 
-    if(!iscontainer(node->octype))
+    if(!ociscontainer(node->octype))
 	return OCTHROW(OC_EBADTYPE);
 
     /* Search the fields to find a name match */
@@ -1925,47 +1911,6 @@ oc_ping(const char* url)
 {
     return OCTHROW(ocping(url));
 }
-
-/*!
-Set the user agent field.
-
-\param[in] link The link through which the server is accessed.
-\param[in] agent The user agent string
-
-\retval OC_NOERR if the request succeeded.
-\retval OC_EINVAL if the request failed, typically
-                  because the agent string is null or zero-length.
-*/
-
-OCerror
-oc_set_useragent(OCobject link, const char* agent)
-{
-    OCstate* state;
-    OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
-    return OCTHROW(ocsetuseragent(state,agent));
-}
-
-/*!
-Force the curl library to trace its actions.
-
-\param[in] link The link through which the server is accessed.
-
-\retval OC_NOERR if the request succeeded.
-\retval OC_EINVAL if the request failed.
-
-*/
-
-OCerror
-oc_trace_curl(OCobject link)
-{
-    OCstate* state;
-    OCVERIFY(OC_State,link);
-    OCDEREF(OCstate*,state,link);
-    oc_curl_debug(state);
-    return OCTHROW(OC_NOERR);
-}
-
 /**@}*/
 
 /**************************************************/
@@ -2079,74 +2024,161 @@ oc_dds_free(OCobject link, OCobject dds0)
 }
 
 
+/**************************************************/
+/* Curl specific  options */
+
+/*!\defgroup Curl Curl-specifi Procedures
+@{*/
+
+/*!
+Set an arbitrary curl option. Option
+must be one of the ones supported by oc.
+
+\param[in] link The link through which the server is accessed.
+\param[in] option The name of the option to set;
+                  See occurlfunction.c for
+                  the set of supported flags and names.
+\param[in] value The option value.
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_ECURL if the request failed.
+*/
+
 OCerror
-oc_set_curl_callback(OClink link, oc_curl_callback* callback, void* userstate)
+oc_set_curlopt(OClink link, const char* option, void* value)
+{
+    OCstate* state;
+    struct OCCURLFLAG* f;
+
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+    f = occurlflagbyname(option);
+    if(f == NULL)
+	return OCTHROW(OC_ECURL);
+    return OCTHROW(ocset_curlopt(state,f->flag,value));
+}
+
+/*!
+Set the absolute path to use for the .netrc file
+
+\param[in] link The link through which the server is accessed.
+\param[in] netrc The path to use.
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_EINVAL if the request failed, typically
+                  because the path string is null or zero-length.
+*/
+
+OCerror
+oc_set_netrc(OClink* link, const char* file)
+{
+    OCstate* state;
+    FILE* f;
+    OCVERIFY(OC_State,link);
+    OCDEREF(OCstate*,state,link);
+
+
+    if(file == NULL || strlen(file) == 0)
+	return OC_EINVAL;
+    oclog(OCLOGDBG,"OC: using netrc file: %s",file);
+    /* See if it exists and is readable; complain if not */
+    f = fopen(file,"r");
+    if(f == NULL)
+	oclog(OCLOGWARN,"OC: netrc file is not readable; continuing");
+    else {
+	fclose(f);
+    }
+    return OCTHROW(ocset_netrc(state,file));
+}
+
+/*!
+Set the user agent field.
+
+\param[in] link The link through which the server is accessed.
+\param[in] agent The user agent string
+
+\retval OC_NOERR if the request succeeded.
+\retval OC_EINVAL if the request failed, typically
+                  because the agent string is null or zero-length.
+*/
+
+OCerror
+oc_set_useragent(OCobject link, const char* agent)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    state->usercurl = callback;
-    state->usercurldata = userstate;
-    return OCTHROW(OC_NOERR);
+
+    if(agent == NULL || strlen(agent) == 0)
+	return OC_EINVAL;
+    return OCTHROW(ocset_useragent(state,agent));
 }
+
+/*!
+Set the absolute path to use for the rc file.
+WARNING: this MUST be called before any other
+call in order for this to take effect.
+
+\param[in] rcfile The path to use.
+
+\retval OC_NOERR if the request succeeded.
+*/
 
 OCerror
 oc_set_rcfile(const char* rcfile)
 {
+    OCerror stat = OC_NOERR;
     FILE* f;
-    if(!ocinitialized) oc_initialize(); /* so ocglobalstate is defined */
     if(rcfile == NULL || strlen(rcfile) == 0)
-	return OCTHROW(OC_EINVAL);
+	{stat = (OC_EINVAL); goto done;}
     f = fopen(rcfile,"r");
     if(f == NULL)
-	return OCTHROW(OC_ERCFILE);
+	{stat = (OC_ERCFILE); goto done;}
     fclose(f);
+    if(!ocglobalstate.initialized) {
+	ocinternalinitialize(); /* so ocglobalstate is defined, but not triplestore */
+    }
     ocglobalstate.rc.rcfile = strdup(rcfile);
-    return OCTHROW(OC_NOERR);
+    /* (re) load the rcfile and esp the triplestore*/
+    stat = ocrc_load();    
+done:
+    return OCTHROW(stat);
 }
 
-OCerror
-oc_set_rcsearchpath(const char* path)
-{
-    char* p;
-    char *q;
-    int nelems;
-    int plen;
-    char* rcp;
+/*!
+Force the curl library to trace its actions.
 
-    if(!ocinitialized) oc_initialize(); /* so ocglobalstate is defined */
-    if(path == NULL || strlen(path) == 0)
-	return OCTHROW(OC_EINVAL);
-    plen = strlen(path);
-    rcp = strdup(path);
-    /* Count number of path elements */
-    for(nelems=1,p=rcp;*p;p++) {
-	if(*p==';' || *p==':') nelems++;
-    }
-    ocglobalstate.rc.searchpath = (char**)malloc(sizeof(char*)*(nelems+1)); /* +1 for null terminator */
-    ocglobalstate.rc.searchpath[nelems] = NULL;
-    if(nelems == 1) {
-        ocglobalstate.rc.searchpath[0] = rcp; rcp = NULL;
-    } else {
-	int i;
-        for(i=0,q=rcp,p=rcp;;p++) {
-	    if(*p==';' || *p==':' || *p == '\0') {
-		ocglobalstate.rc.searchpath[i] = strdup(q);
-		if(*p == '\0') break;
-		*p = '\0';
-		p = p+1; q = p;		
-	    }
-        }
-    }
-    return OCTHROW(OC_NOERR);
-}
+\param[in] link The link through which the server is accessed.
+
+\retval OC_NOERR if the request succeeded.
+*/
 
 OCerror
-oc_set_esg(OClink link, int tf)
+oc_trace_curl(OCobject link)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    state->curlflags.esg = tf;
+    oc_curl_debug(state);
     return OCTHROW(OC_NOERR);
 }
+
+OCerror
+oc_initialize(void)
+{
+    OCerror status = OC_NOERR;
+    if(!ocglobalstate.initialized) {
+        /* Clean up before re-initializing */
+	if(ocglobalstate.tempdir != NULL) free(ocglobalstate.tempdir);
+	if(ocglobalstate.home != NULL) free(ocglobalstate.home);
+	if(ocglobalstate.rc.rcfile != NULL) free(ocglobalstate.rc.rcfile);
+    }
+    ocglobalstate.initialized = 0;
+    status = ocinternalinitialize();
+    /* (re) load the rcfile */
+    status =  ocrc_load();    
+    return OCTHROW(status);
+}
+
+/**@}*/
+

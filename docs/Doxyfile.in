@@ -744,12 +744,9 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT = \
-    @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/COPYRIGHT \
-    @abs_top_srcdir@/docs/FAQ.md \
-    @abs_top_srcdir@/docs/architecture.dox \
-    @abs_top_srcdir@/docs/groups.dox \
     @abs_top_srcdir@/docs/mainpage.dox \
+    @abs_top_srcdir@/RELEASE_NOTES.md \
+    @abs_top_srcdir@/docs/architecture.dox \
     @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
     @abs_top_srcdir@/docs/dispatch.dox \
@@ -758,7 +755,11 @@ INPUT = \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
-    @abs_top_srcdir@/docs/cmake_faq.md \
+    @abs_top_srcdir@/docs/guide.dox \
+    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/FAQ.md \
+    @abs_top_srcdir@/docs/COPYRIGHT.dox \
+    @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_meta.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
@@ -781,10 +782,6 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
     @abs_top_srcdir@/libsrc4/nc4file.c \
-    @abs_top_srcdir@/ncdump/ncdump.c \
-    @abs_top_srcdir@/ncdump/nccopy.c \
-    @abs_top_srcdir@/docs/guide.dox \
-    @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/examples/C/simple_xy_wr.c \
     @abs_top_srcdir@/examples/C/simple_xy_rd.c \
     @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
@@ -895,7 +892,7 @@ IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
     @abs_top_srcdir@/docs/images/netcdf_architecture.png \
     @abs_top_srcdir@/docs/images/pnetcdf.png \
     @abs_top_srcdir@/docs/images/deptree.jpg \
-    @abs_top_srcdir@/docs/images/InstallTreeWindows.jpg
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.png
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

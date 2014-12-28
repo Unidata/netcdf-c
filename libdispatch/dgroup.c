@@ -2,7 +2,7 @@
 Functions for netCDF-4 features.
 
 Copyright 2010 University Corporation for Atmospheric
-Research/Unidata. See \ref COPYRIGHT file for more info. */
+Research/Unidata. See \ref copyright file for more info. */
 
 #include "ncdispatch.h"
 

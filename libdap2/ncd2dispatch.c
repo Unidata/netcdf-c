@@ -374,7 +374,7 @@ NCD2_open(const char * path, int mode,
     dapcomm->oc.dapconstraint->selections = nclistnew();
 
      /* Parse constraints to make sure they are syntactically correct */
-     ncstat = parsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
+     ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
      if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Construct a url for oc minus any constraint and params*/
@@ -499,19 +499,19 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
 
     /* Process the constraints to map to the constrained CDF tree */
     /* (must follow fixgrids3 */
-    ncstat = mapconstraints(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
+    ncstat = dapmapconstraints(dapcomm->oc.dapconstraint,dapcomm->cdf.ddsroot);
     if(ncstat != NC_NOERR) goto done;
 
     /* Canonicalize the constraint */
-    ncstat = fixprojections(dapcomm->oc.dapconstraint->projections);
+    ncstat = dapfixprojections(dapcomm->oc.dapconstraint->projections);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Fill in segment information */
-    ncstat = qualifyconstraints(dapcomm->oc.dapconstraint);
+    ncstat = dapqualifyconstraints(dapcomm->oc.dapconstraint);
     if(ncstat != NC_NOERR) goto done;
 
     /* Accumulate set of variables in the constraint's projections */
-    ncstat = computeprojectedvars(dapcomm,dapcomm->oc.dapconstraint);
+    ncstat = dapcomputeprojectedvars(dapcomm,dapcomm->oc.dapconstraint);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
     /* using the modified constraint, rebuild the constraint string */
@@ -519,7 +519,7 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
 	/* ignore all constraints */
 	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,0);
     } else {
-	char* constraintstring = buildconstraintstring(dapcomm->oc.dapconstraint);
+	char* constraintstring = dcebuildconstraintstring(dapcomm->oc.dapconstraint);
         ncurisetconstraints(dapcomm->oc.url,constraintstring);
 	nullfree(constraintstring);
         dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURICONSTRAINTS);
@@ -2023,7 +2023,7 @@ fetchconstrainedmetadata(NCDAPCOMMON* dapcomm)
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = buildconstraintstring(dapcomm->oc.dapconstraint);
+        ce = dcebuildconstraintstring(dapcomm->oc.dapconstraint);
     {
         ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}

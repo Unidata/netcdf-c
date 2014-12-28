@@ -1,16 +1,16 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   See netcdf/COPYRIGHT filey for copying and redistribution conditions.
  *********************************************************************/
 
 #include "ncdap.h"
-#include "dapdump.h"
 #include "dapdump.h"
 #include "dceparselex.h"
 
 static void completesegments(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror qualifyprojectionsizes(DCEprojection* proj);
+static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep);
 static int matchsuffix(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
@@ -20,7 +20,7 @@ static int slicematch(NClist* seglist1, NClist* seglist2);
 /* Parse incoming url constraints, if any,
    to check for syntactic correctness */ 
 NCerror
-parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
+dapparsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
 		    DCEconstraint* dceconstraint)
 {
     NCerror ncstat = NC_NOERR;
@@ -50,7 +50,7 @@ parsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
 */
 
 NCerror
-mapconstraints(DCEconstraint* constraint,
+dapmapconstraints(DCEconstraint* constraint,
 		CDFnode* root)
 {
     int i;
@@ -81,12 +81,12 @@ done:
     3. selection path
 */
 NCerror
-qualifyconstraints(DCEconstraint* constraint)
+dapqualifyconstraints(DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     int i;
 #ifdef DEBUG
-fprintf(stderr,"qualifyconstraints.before: %s\n",
+fprintf(stderr,"ncqualifyconstraints.before: %s\n",
 		dumpconstraint(constraint));
 #endif
     if(constraint != NULL) {
@@ -97,7 +97,7 @@ fprintf(stderr,"qualifyconstraints.before: %s\n",
         }
     }
 #ifdef DEBUG
-fprintf(stderr,"qualifyconstraints.after: %s\n",
+fprintf(stderr,"ncqualifyconstraints.after: %s\n",
 		dumpconstraint(constraint));
 #endif
     return ncstat;
@@ -372,36 +372,12 @@ matchsuffix(NClist* matchpath, NClist* segments)
    return 1; /* all segs matched */
 }
 
-
-/* Convert a DCEprojection instance into a string
-   that can be used with the url
-*/
-
-char*
-buildprojectionstring(NClist* projections)
-{
-    return dcebuildprojectionstring(projections);
-}
-
-char*
-buildselectionstring(NClist* selections)
-{
-    return dcebuildselectionstring(selections);
-}
-
-char*
-buildconstraintstring(DCEconstraint* constraints)
-{
-    return dcebuildconstraintstring(constraints);
-}
-
-
 /* Given the arguments to vara
    construct a corresponding projection
    with any pseudo dimensions removed
 */
 NCerror
-buildvaraprojection(CDFnode* var,
+dapbuildvaraprojection(CDFnode* var,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     DCEprojection** projectionp)
 {
@@ -418,7 +394,6 @@ buildvaraprojection(CDFnode* var,
        in the path, including pseudo-dims
     */
     ncstat = dapvar2projection(var,&projection);
-
 
 #ifdef DEBUG
 fprintf(stderr,"buildvaraprojection: skeleton: %s\n",dumpprojection(projection));
@@ -467,7 +442,7 @@ fprintf(stderr,"buildvaraprojection3: final: projection=%s\n",
 }
 
 int
-iswholeslice(DCEslice* slice, CDFnode* dim)
+dapiswholeslice(DCEslice* slice, CDFnode* dim)
 {
     if(slice->first != 0 || slice->stride != 1) return 0;
     if(dim != NULL) {
@@ -481,7 +456,7 @@ iswholeslice(DCEslice* slice, CDFnode* dim)
 }
 
 int
-iswholesegment(DCEsegment* seg)
+dapiswholesegment(DCEsegment* seg)
 {
     int i,whole;
     NClist* dimset = NULL;
@@ -495,13 +470,13 @@ iswholesegment(DCEsegment* seg)
     whole = 1; /* assume so */
     for(i=0;i<rank;i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
-	if(!iswholeslice(&seg->slices[i],dim)) {whole = 0; break;}	
+	if(!dapiswholeslice(&seg->slices[i],dim)) {whole = 0; break;}	
     }
     return whole;
 }
 
 int
-iswholeprojection(DCEprojection* proj)
+dapiswholeprojection(DCEprojection* proj)
 {
     int i,whole;
     
@@ -510,19 +485,19 @@ iswholeprojection(DCEprojection* proj)
     whole = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
         DCEsegment* segment = (DCEsegment*)nclistget(proj->var->segments,i);
-	if(!iswholesegment(segment)) {whole = 0; break;}	
+	if(!dapiswholesegment(segment)) {whole = 0; break;}	
     }
     return whole;
 }
 
 int
-iswholeconstraint(DCEconstraint* con)
+dapiswholeconstraint(DCEconstraint* con)
 {
     int i;
     if(con == NULL) return 1;
     if(con->projections != NULL) {
 	for(i=0;i<nclistlength(con->projections);i++) {
-	 if(!iswholeprojection((DCEprojection*)nclistget(con->projections,i)))
+	 if(!dapiswholeprojection((DCEprojection*)nclistget(con->projections,i)))
 	    return 0;
 	}
     }
@@ -546,7 +521,7 @@ The term "expanded" means
 */
 
 NCerror
-fixprojections(NClist* list)
+dapfixprojections(NClist* list)
 {
     int i,j,k;
     NCerror ncstat = NC_NOERR;
@@ -865,7 +840,7 @@ fprintf(stderr,"dapshiftprojection.after: %s\n",dumpprojection(projection));
    of the input constraint.
 */
 NCerror
-computeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
+dapcomputeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     NClist* vars = NULL;

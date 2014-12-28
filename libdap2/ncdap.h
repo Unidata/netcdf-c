@@ -110,7 +110,7 @@ extern void dereference(NCconstraint* constraint);
 extern NCerror rereference(NCconstraint*, NClist*);
 */
 
-extern NCerror buildvaraprojection(CDFnode*,
+extern NCerror dapbuildvaraprojection(CDFnode*,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     struct DCEprojection** projectionlist);
 

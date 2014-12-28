@@ -9,35 +9,44 @@
 
 This page contains refrences to various other NetCDF background and tutorial pages.
 
+\subsection tutorial_pages Tutorial Pages
+
+- \subpage netcdf_working_with_netcdf_files
+- \subpage tutorial_ncids
+- \subpage creating
+- \subpage reading_known
+- \subpage reading_unknown
+- \subpage accessing_subsets
+
 \subsection background_further_reading Background and Further Reading
 
 - \ref what_is_netcdf
-- \ref netcdf_documentation
+- \subpage netcdf_documentation
 
 \subsection sub_sec_netcdf_data_model NetCDF Data Model:
-- \ref netcdf_data_model
+- \subpage netcdf_data_model
 - \ref classic_model
 - \ref enhanced_model
-- \ref unlimited_dims
-- \ref groups
-- \ref user_defined_types
-- \ref string_type
+- \subpage unlimited_dims
+- \subpage groups
+- \subpage user_defined_types
+- \subpage string_type
 
 \subsection sub_sec_important_conventions Important Conventions:
-- \ref fill_values
+- \subpage fill_values
 
 \subsection sub_sec_tools_for_netcdf Tools for NetCDF:
 - \ref netcdf_utilities
 - \ref external_netcdf_tools
 
 \subsection sub_sec_programming_with_netcdf Programming with NetCDF:
-- \ref netcdf_apis
-- \ref error_handling
-- \ref interoperability_hdf5
-- \ref parallel_io
+- \subpage netcdf_apis
+- \subpage error_handling
+- \subpage interoperability_hdf5
+- \subpage parallel_io
 
 \subsection sub_sec_example_programs Example Programs:
-- \ref examples1
+- \subpage examples1
 
 \page netcdf_working_with_netcdf_files Working with NetCDF Files from the command line.
 

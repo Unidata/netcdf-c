@@ -63,7 +63,7 @@ In order to use the netcdf libraries, you must ensure that the .dll files (along
 When installed, the netCDF libraries are placed in the specified locations, along with the netCDF-C utilities and dependencies.
 
 <center>
-<IMG SRC="InstallTreeWindows.png" width="1000"/>
+<IMG SRC="InstallTreeWindows.png" width="400"/>
 </center>
 
 # Notes

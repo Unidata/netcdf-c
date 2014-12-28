@@ -4,10 +4,12 @@
 #include "config.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
-#include "ocrc.h"
+#include "occurlfunctions.h"
 
-#define OC_MAX_REDIRECTS 10L
+#define OC_MAX_REDIRECTS 20L
 
+/* Mnemonic */
+#define OPTARG void*
 
 /* Condition on libcurl version */
 /* Set up an alias as needed */
@@ -15,14 +17,298 @@
 #define CURLOPT_KEYPASSWD CURLOPT_SSLKEYPASSWD
 #endif
 
+#define NETRCFILETAG "HTTP.NETRC"
 
-static char* combinecredentials(const char* user, const char* pwd);
+#define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != OC_NOERR) {goto done;}}
+
+/* forward */
+static OCerror oc_set_curl_options(OCstate* state);
+static void* cvt(char* value, enum OCCURLFLAGTYPE type);
+
+static OCerror
+check(OCstate* state, int flag, void* value)
+{
+    OCerror stat = ocset_curlopt(state,flag,value);
+#ifdef OCDEBUG
+    long l = (long)value;
+    const char* name = occurlflagbyflag(flag)->name;
+    if(l <= 1000) {
+	OCDBG2("%s=%ld",name,l);
+    } else {
+	char show[65];
+	char* s = (char*)value;
+	strncpy(show,s,64);
+	show[64] = '\0';
+	OCDBG2("%s=%s",name,show);
+    }
+#endif
+    return stat;
+}
+
+#if 0
+static void
+showopt(int flag, void* value)
+{
+    struct OCCURLFLAG* f = occurlflagbyflag(flag);
+    if(f == NULL)  {
+	OCDBG1("Unsupported flag: %d",flag);
+    } else switch (f->type) {
+	case CF_LONG:
+	    OCDBG2("%s=%ld",f->name,(long)value);
+	    break;
+	case CF_STRING: {
+   	    char show[65];
+	    char* s = (char*)value;
+	    strncpy(show,s,64);
+	    show[64] = '\0';
+	    OCDBG2("%s=%s",f->name,show);
+            } break;
+	case CF_UNKNOWN: case CF_OTHER:
+	    OCDBG1("%s=<something>",f->name);
+	    break;
+    }
+}
+#endif
+
+/*
+Set a specific curl flag; primary wrapper for curl_easy_setopt
+*/
+OCerror
+ocset_curlopt(OCstate* state, int flag, void* value)
+{
+    OCerror stat = OC_NOERR;
+    CURLcode cstat = CURLE_OK;    
+    cstat = OCCURLERR(state,curl_easy_setopt(state->curl,flag,value));
+    if(cstat != CURLE_OK)
+	stat = OC_ECURL;
+    return stat;
+}
+
+/*
+Update a specific flag from state
+*/
+OCerror
+ocset_curlflag(OCstate* state, int flag)
+{
+    OCerror stat = OC_NOERR;
+
+    switch (flag) {
+
+    case CURLOPT_USERPWD:
+        if(state->creds.userpwd != NULL) {
+	    CHECK(state, CURLOPT_USERPWD, state->creds.userpwd);
+            CHECK(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
+	}
+	break;
+
+    case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
+        if(state->curlflags.cookiejar) {
+	    /* Assume we will read and write cookies to same place */
+	    CHECK(state, CURLOPT_COOKIEJAR, state->curlflags.cookiejar);
+	    CHECK(state, CURLOPT_COOKIEFILE, state->curlflags.cookiejar);
+        }
+	break;
+
+    case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
+	if(state->curlflags.netrc) {
+	    CHECK(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_REQUIRED);
+	    CHECK(state, CURLOPT_NETRC_FILE, state->curlflags.netrc);
+        }
+	break;
+
+    case CURLOPT_VERBOSE:
+	if(state->curlflags.verbose)
+	    CHECK(state, CURLOPT_VERBOSE, (OPTARG)1L);
+	break;
+
+    case CURLOPT_TIMEOUT:
+	if(state->curlflags.timeout)
+	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->curlflags.timeout));
+	break;
+
+    case CURLOPT_USERAGENT:
+        if(state->curlflags.useragent)
+	    CHECK(state, CURLOPT_USERAGENT, state->curlflags.useragent);
+	break;
+
+    case CURLOPT_FOLLOWLOCATION: 
+        CHECK(state, CURLOPT_FOLLOWLOCATION, (OPTARG)1L);
+	break;
+
+    case CURLOPT_MAXREDIRS:
+	CHECK(state, CURLOPT_MAXREDIRS, (OPTARG)OC_MAX_REDIRECTS);
+	break;
+
+    case CURLOPT_ERRORBUFFER:
+	CHECK(state, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
+	break;
+
+    case CURLOPT_ENCODING:
+#ifdef CURLOPT_ENCODING
+	if(state->curlflags.compress) {
+	    CHECK(state, CURLOPT_ENCODING,"deflate, gzip");
+        }
+#endif
+	break;
+
+    case CURLOPT_PROXY:
+	if(state->proxy.host != NULL) {
+	    CHECK(state, CURLOPT_PROXY, state->proxy.host);
+	    CHECK(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->proxy.port);
+	    if(state->proxy.userpwd) {
+                CHECK(state, CURLOPT_PROXYUSERPWD, state->proxy.userpwd);
+#ifdef CURLOPT_PROXYAUTH
+	        CHECK(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
+#endif
+	    }
+	}
+	break;
+
+    case CURLOPT_USE_SSL:
+    case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
+    case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
+    {
+        struct OCSSL* ssl = &state->ssl;
+        CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer?1L:0L));
+        CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
+        if(ssl->certificate)
+            CHECK(state, CURLOPT_SSLCERT, ssl->certificate);
+        if(ssl->key) 
+            CHECK(state, CURLOPT_SSLKEY, ssl->key);
+        if(ssl->keypasswd)
+            /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
+            CHECK(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
+        if(ssl->cainfo) 
+            CHECK(state, CURLOPT_CAINFO, ssl->cainfo);
+        if(ssl->capath) 
+            CHECK(state, CURLOPT_CAPATH, ssl->capath);
+    }    
+    break;
+
+    default: {
+	struct OCCURLFLAG* f = occurlflagbyflag(flag);
+	if(f != NULL)
+	    oclog(OCLOGWARN,"Attempt to update unexpected curl flag: %s",
+				f->name);
+	} break;
+    }
+done:
+    return stat;    
+}
+
+
+/* Set various general curl flags per fetch  */
+OCerror
+ocset_flags_perfetch(OCstate* state)
+{
+    OCerror stat = OC_NOERR;
+    /* currently none */
+    return stat;
+}
+
+/* Set various general curl flags per link */
+
+OCerror
+ocset_flags_perlink(OCstate* state)
+{
+    OCerror stat = OC_NOERR;
+
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_ENCODING);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_NETRC);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_TIMEOUT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERAGENT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERPWD);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_PROXY);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USE_SSL);
+
+    /* Following are always set */
+    ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
+    ocset_curlflag(state, CURLOPT_MAXREDIRS);
+    ocset_curlflag(state, CURLOPT_ERRORBUFFER);
+
+    /* Set the CURL. options */
+    stat = oc_set_curl_options(state);
+
+    return stat;
+}
+
+/**
+Directly set any options starting with 'CURL.'
+*/
+static OCerror
+oc_set_curl_options(OCstate* state)
+{
+    OCerror stat = OC_NOERR;
+    struct OCTriplestore* store;
+    struct OCTriple* triple;
+    int i;
+    char* hostport;
+    struct OCCURLFLAG* ocflag;
+
+    hostport = occombinehostport(state->uri);
+    if(hostport == NULL) hostport = "";
+
+    store = &ocglobalstate.rc.ocrc;
+    triple = store->triples;
+
+    /* Assume that the triple store has been properly sorted */
+    for(i=0;i<store->ntriples;i++,triple++) {
+        size_t hostlen = strlen(triple->host);
+	const char* flagname;
+
+        if(ocstrncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
+        /* do hostport prefix comparison */
+	if(hostlen > 0) {
+            int t = ocstrncmp(hostport,triple->host,hostlen);
+            if(t !=  0) continue;
+	}
+	flagname = triple->key+5; /* 5 == strlen("CURL."); */
+	ocflag = occurlflagbyname(flagname);
+	if(ocflag == NULL) {stat = OC_ECURL; goto done;}
+	stat = ocset_curlopt(state,ocflag->flag,cvt(triple->value,ocflag->type));
+    }
+done:
+    return stat;
+}
+
+static void*
+cvt(char* value, enum OCCURLFLAGTYPE type)
+{
+    switch (type) {
+    case CF_LONG: {
+	/* Try to convert to long value */
+	const char* p = value;
+	char* q = NULL;
+	long longvalue = strtol(p,&q,10);
+	if(*q != '\0')
+	    return NULL;
+	return (void*)longvalue;
+	}
+    case CF_STRING:
+	return (void*)value;
+    case CF_UNKNOWN: case CF_OTHER:
+	return (void*)value;
+    }
+    return NULL;
+}
 
 void
 oc_curl_debug(OCstate* state)
 {
-    curl_easy_setopt(state->curl,CURLOPT_VERBOSE,1);
-    curl_easy_setopt(state->curl,CURLOPT_ERRORBUFFER,(void*)state->curlerror);
+    state->curlflags.verbose = 1;
+    ocset_curlflag(state,CURLOPT_VERBOSE);
+    ocset_curlflag(state,CURLOPT_ERRORBUFFER);
+}
+
+/* Misc. */
+
+int
+ocrc_netrc_required(OCstate* state)
+{
+    char* netrcfile = ocrc_lookup(NETRCFILETAG,state->uri->uri);
+    return (netrcfile != NULL || state->curlflags.netrc != NULL ? 0 : 1);
 }
 
 void
@@ -41,8 +327,8 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
     curl_version_info_data* curldata;
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
-        if(strcmp("file",*proto)==0) {state->curl.proto_file=1;break;}
-        if(strcmp("http",*proto)==0) {state->curl.proto_https=1;break;}
+        if(strcmp("file",*proto)==0) {state->curl.proto_file=1;}
+        if(strcmp("http",*proto)==0) {state->curl.proto_https=1;}
     }
     if(ocdebug > 0) {
         oclog(OCLOGNOTE,"Curl file:// support = %d",state->curl.proto_file);
@@ -51,214 +337,105 @@ oc_curl_protocols(struct OCGLOBALSTATE* state)
 }
 
 
-/* Set various general curl flags */
-CURLcode
-ocset_curl_flags(OCstate* state)
+/*
+"Inverse" of ocset_curlflag;
+Given a flag and value, it updates state.
+Update a specific flag from state->curlflags.
+*/
+OCerror
+ocset_curlstate(OCstate* state, int flag, void* value)
 {
-    CURLcode cstat = CURLE_OK;
-    CURL* curl = state->curl;
-    struct OCcurlflags* flags = &state->curlflags;
+    OCerror stat = OC_NOERR;
 
-#if 0
-    cstat = curl_easy_reset(curl);
-#endif
+    switch (flag) {
 
-#ifdef CURLOPT_ENCODING
-    if (flags->compress) {
-	cstat = curl_easy_setopt(curl, CURLOPT_ENCODING,"deflate, gzip");
-	if(cstat != CURLE_OK) goto done;
-	OCDBG(1,"CURLOPT_ENCODING=deflate, gzip");
+    case CURLOPT_USERPWD:
+        if(state->creds.userpwd != NULL) free(state->creds.userpwd);
+	state->creds.userpwd = strdup((char*)value);
+	break;
+
+    case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
+        if(state->curlflags.cookiejar != NULL) free(state->curlflags.cookiejar);
+	state->curlflags.cookiejar = strdup((char*)value);
+	break;
+
+    case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
+        if(state->curlflags.netrc != NULL) free(state->curlflags.netrc);
+	state->curlflags.netrc = strdup((char*)value);
+	break;
+
+    case CURLOPT_VERBOSE:
+	state->curlflags.verbose = (long)value;
+	break;
+
+    case CURLOPT_TIMEOUT:
+	state->curlflags.timeout = (long)value;
+	break;
+
+    case CURLOPT_USERAGENT:
+        if(state->curlflags.useragent != NULL) free(state->curlflags.useragent);
+        state->curlflags.useragent = strdup((char*)value);
+	break;
+
+    case CURLOPT_FOLLOWLOCATION: 
+	/* no need to store; will always be set */
+	break;
+
+    case CURLOPT_MAXREDIRS:
+	/* no need to store; will always be set */
+	break;
+
+    case CURLOPT_ERRORBUFFER:
+	/* no need to store; will always be set */
+	break;
+
+    case CURLOPT_ENCODING:
+	/* no need to store; will always be set to fixed value */
+	break;
+
+    case CURLOPT_PROXY:
+	/* We assume that the value is the proxy url */
+	if(state->proxy.host != NULL) free(state->proxy.host);
+	if(state->proxy.userpwd != NULL) free(state->proxy.userpwd);
+	state->proxy.host = NULL;
+	state->proxy.userpwd = NULL;
+	if(!ocparseproxy(state,(char*)value))
+		{stat = OC_EINVAL; goto done;}
+	break;
+
+    case CURLOPT_SSLCERT:
+	if(state->ssl.certificate != NULL) free(state->ssl.certificate);
+	state->ssl.certificate = strdup((char*)value);
+	break;
+    case CURLOPT_SSLKEY:
+	if(state->ssl.key != NULL) free(state->ssl.key);
+	state->ssl.key = strdup((char*)value);
+	break;
+    case CURLOPT_KEYPASSWD:
+	if(state->ssl.keypasswd!= NULL) free(state->ssl.keypasswd);
+	state->ssl.keypasswd = strdup((char*)value);
+	break;
+    case CURLOPT_SSL_VERIFYPEER:
+	state->ssl.verifypeer = (long)value;
+	break;
+    case CURLOPT_SSL_VERIFYHOST:
+	state->ssl.verifyhost = (long)value;
+    case CURLOPT_CAINFO:
+	if(state->ssl.cainfo != NULL) free(state->ssl.cainfo);
+	state->ssl.cainfo = strdup((char*)value);
+	break;
+    case CURLOPT_CAPATH:
+	if(state->ssl.capath != NULL) free(state->ssl.capath);
+	state->ssl.capath = strdup((char*)value);
+	break;
+
+    default: {
+	struct OCCURLFLAG* f = occurlflagbyflag(flag);
+	if(f != NULL)
+	    oclog(OCLOGWARN,"Attempt to add unexpected curl flag to state: %s",
+				f->name);
+	} break;
     }
-#endif
-#if 0
-Do not think this is correct
-    if (flags->cookiejar) {
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIESESSION, 1);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG(1,"CURLOPT_COOKIESESSION=1");
-    }
-#endif
-    if (flags->cookiejar) {
-	/* Assume we will read and write cookies to same place */
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEJAR, flags->cookiejar);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_COOKIEJAR=%s",flags->cookiejar);
-	cstat = curl_easy_setopt(curl, CURLOPT_COOKIEFILE, flags->cookiejar);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_COOKIEFILE=%s",flags->cookiejar);
-    }
-    if (flags->verbose) {
-	cstat = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_VERBOSE=%ld",1L);
-    }
-
-    if (flags->timeout) {
-	cstat = curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)flags->timeout);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_TIMEOUT=%ld",1L);
-    }
-
-    if (flags->useragent) {
-	cstat = curl_easy_setopt(curl, CURLOPT_USERAGENT, flags->useragent);
-	if (cstat != CURLE_OK) goto done;
-	OCDBG1(1,"CURLOPT_USERAGENT=%s",flags->useragent);
-    }
-
-    /* Following are always set */
-    cstat = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    OCDBG1(1,"CURLOPT_FOLLOWLOCATION=%ld",1L);
-
-#if 0
-    /*This potentially introduces a potential security risk;
-    */
-        cstat = curl_easy_setopt(curl, CURLOPT_UNRESTRICTED_AUTH, 1L);
-        OCDBG1(1,"CURLOPT_UNRESTRICTED_AUTH=%ld",1L);
-#endif
-
-    cstat = curl_easy_setopt(curl, CURLOPT_MAXREDIRS, OC_MAX_REDIRECTS);
-    OCDBG1(1,"CURLOPT_MAXREDIRS=%ld",OC_MAX_REDIRECTS);
-
-#if 0
-    cstat = curl_setopt(curl,CURLOPT_RETURNTRANSFER, 1L);
-    OCDBG1(1,"CURLOPT_RETURNTRANSFER=%ld",1L);
-#endif
-
-    cstat = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
-    OCDBG1(1,"CURLOPT_ERRORBUFFER",0);
-
 done:
-    return cstat;
-}
-
-OCerror
-ocset_proxy(OCstate* state)
-{
-    CURLcode cstat;
-    CURL* curl = state->curl;
-    struct OCproxy *proxy = &state->proxy;
-    struct OCcredentials *creds = &state->creds;
-
-    cstat = curl_easy_setopt(curl, CURLOPT_PROXY, proxy->host);
-    if (cstat != CURLE_OK) return OC_ECURL;
-    OCDBG1(1,"CURLOPT_PROXY=%s",proxy->host);
-
-    cstat = curl_easy_setopt(curl, CURLOPT_PROXYPORT, proxy->port);
-    if (cstat != CURLE_OK) return OC_ECURL;
-    OCDBG1(1,"CURLOPT_PROXYPORT=%d",proxy->port);
-
-    if (creds->username) {
-        char *combined = combinecredentials(creds->username,creds->password);
-        if (!combined) return OC_ENOMEM;
-        cstat = curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, combined);
-        if (cstat != CURLE_OK) return OC_ECURL;
-	OCDBG1(1,"CURLOPT_PROXYUSERPWD=%s",combined);
-#ifdef CURLOPT_PROXYAUTH
-        cstat = curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
-        if(cstat != CURLE_OK) goto fail;
-	OCDBG1(1,"CURLOPT_PROXYAUTH=%ld",(long)CURLAUTH_ANY);
-#endif
-        free(combined);
-    }
-    return OC_NOERR;
-}
-
-OCerror
-ocset_ssl(OCstate* state)
-{
-    CURLcode cstat = CURLE_OK;
-    CURL* curl = state->curl;
-    struct OCSSL* ssl = &state->ssl;
-    long verify = (ssl->validate?1L:0L);
-    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verify);
-    if (cstat != CURLE_OK) goto fail;
-    OCDBG1(1,"CURLOPT_SSL_VERIFYPEER=%ld",verify);
-    cstat=curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, (verify?2L:0L));
-    if (cstat != CURLE_OK) goto fail;
-    OCDBG1(1,"CURLOPT_SSL_VERIFYHOST=%ld",(verify?2L:0L));
-#ifdef OCIGNORE
-    if(verify)
-#endif
-    {
-        if(ssl->certificate) {
-            cstat = curl_easy_setopt(curl, CURLOPT_SSLCERT, ssl->certificate);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_SSLCERT=%s",ssl->certificate);
-        }
-        if(ssl->key) {
-            cstat = curl_easy_setopt(curl, CURLOPT_SSLKEY, ssl->key);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
-        }
-        if(ssl->keypasswd) {
-            /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
-            cstat = curl_easy_setopt(curl, CURLOPT_KEYPASSWD, ssl->keypasswd);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_SSLKEY=%s",ssl->key);
-        }
-        if(ssl->cainfo) {
-            cstat = curl_easy_setopt(curl, CURLOPT_CAINFO, ssl->cainfo);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_CAINFO=%s",ssl->cainfo);
-        }
-        if(ssl->capath) {
-            cstat = curl_easy_setopt(curl, CURLOPT_CAPATH, ssl->capath);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_CAPATH=%s",ssl->capath);
-        }
-        {
-            cstat = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, ssl->verifypeer);
-            if(cstat != CURLE_OK) goto fail;
-	    OCDBG1(1,"CURLOPT_SSL_VERIFYPEER=%d",ssl->verifypeer);
-        }
-    }    
-    return OC_NOERR;
-
-fail:
-    return OC_ECURL;
-}
-
-/* This is called with arguments while the other functions in this file are
- * used with global values read from the.dodsrc file. The reason is that
- * we may have multiple password sources.
- */
-OCerror
-ocset_user_password(OCstate* state)
-{
-    CURLcode cstat;
-    CURL* curl = state->curl;
-    char* combined = NULL;
-    const char* userC = state->creds.username;
-    const char* passwordC = state->creds.password;
-
-    if(userC == NULL || passwordC == NULL) return OC_NOERR;
-
-    combined = combinecredentials(userC,passwordC);
-    if (!combined) return OC_ENOMEM;
-    cstat = curl_easy_setopt(curl, CURLOPT_USERPWD, combined);
-    if (cstat != CURLE_OK) goto done;
-    OCDBG1(1,"CURLOPT_USERPWD=%s",combined);
-    cstat = curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long) CURLAUTH_ANY);
-    if (cstat != CURLE_OK) goto done;
-    OCDBG1(1,"CURLOPT_HTTPAUTH=%ld",(long)CURLAUTH_ANY);
-
-done:
-    if(combined != NULL) free(combined);
-    return (cstat == CURLE_OK?OC_NOERR:OC_ECURL);
-}
-
-
-static char*
-combinecredentials(const char* user, const char* pwd)
-{
-    int userPassSize = strlen(user) + strlen(pwd) + 2;
-    char *userPassword = malloc(sizeof(char) * userPassSize);
-    if (!userPassword) {
-        oclog(OCLOGERR,"Out of Memory\n");
-	return NULL;
-    }
-    strcpy(userPassword, user);
-    strcat(userPassword, ":");
-    strcat(userPassword, pwd);
-    return userPassword;
+    return stat;    
 }
