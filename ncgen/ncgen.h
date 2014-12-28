@@ -103,7 +103,7 @@ char* name;
 int k_flag;
 };
 
-#define NKVALUES 16
+#define NKVALUES 24
 extern struct Kvalues legalkinds[NKVALUES];
 
 /* Note: some non-var specials (i.e. _Format) are not included in this struct*/
