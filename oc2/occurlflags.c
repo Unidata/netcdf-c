@@ -51,7 +51,9 @@ static struct OCCURLFLAG oc_allcurlflags[] = {
 {"CURLOPT_CAINFO",CURLOPT_CAINFO,10065,CF_UNKNOWN},
 {"CURLOPT_CAPATH",CURLOPT_CAPATH,10097,CF_UNKNOWN},
 {"CURLOPT_CERTINFO",CURLOPT_CERTINFO,172,CF_UNKNOWN},
+#ifdef HAVE_CURLOPT_CHUNK_BGN_FUNCTION
 {"CURLOPT_CHUNK_BGN_FUNCTION",CURLOPT_CHUNK_BGN_FUNCTION,20198,CF_UNKNOWN},
+#endif
 {"CURLOPT_CHUNK_DATA",CURLOPT_CHUNK_DATA,10201,CF_UNKNOWN},
 {"CURLOPT_CHUNK_END_FUNCTION",CURLOPT_CHUNK_END_FUNCTION,20199,CF_UNKNOWN},
 {"CURLOPT_CLOSEPOLICY",CURLOPT_CLOSEPOLICY,72,CF_UNKNOWN},
@@ -285,7 +287,7 @@ occurlflagbyname(const char* name)
     const char* p;
     char* q;
 
-    if(nflags == 0) initialize();    
+    if(nflags == 0) initialize();
     /* Force upper case */
     for(p=name,q=flagname;*p;p++) {
         int cc = touppercase(*p);
@@ -307,7 +309,7 @@ occurlflagbyname(const char* name)
 struct OCCURLFLAG*
 occurlflagbyflag(int flag)
 {
-    if(nflags == 0) initialize();    
+    if(nflags == 0) initialize();
     if(flag >= 0 || flag <= maxflag)
 	return flagindices[flag];
     return NULL;

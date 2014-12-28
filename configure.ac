@@ -586,6 +586,7 @@ AC_C_CONST
 # CURLOPT_PASSWORD is not defined until curl version 7.19.1
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
 # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
+# CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
@@ -633,6 +634,17 @@ AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
 AC_MSG_RESULT([${haveresponsecode}])
 if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_CHUNK_BGN_FUNCTION;]])],
+                   [havebgnfunction=yes],
+                   [havebgnfunction=no])
+AC_MSG_CHECKING([whether CURLOPT_CHUNK_BGN_FUNCTION is defined])
+AC_MSG_RESULT([${havebgnfunction}])
+if test $havebgnfunction = yes; then
+  AC_DEFINE([HAVE_CURLOPT_CHUNK_BGN_FUNCTION],[1],[Is CURLOPT_CHUNK_BGN_FUNCTION defined])
 fi
 
 CFLAGS="$SAVECFLAGS"

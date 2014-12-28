@@ -9,6 +9,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ### 4.3.3-rc3 Released ?
 
+* Added an explicit check in the build systems (autotools, cmake) for the CURL-related option `CURLOPT_CHUNK_BGN_FUNCTION`.  This option was introduced in libcurl version `7.21.0`.  On installations which require libcurl and have this version, `CURLOPT_CHUNK_BGN_FUNCTION` will be available. Otherwise, it will not.
+
 * Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
 
 	* CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`

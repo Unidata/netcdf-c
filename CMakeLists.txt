@@ -586,6 +586,15 @@ IF(ENABLE_DAP)
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+  # Check to see if CURLOPT_CHUNK_BGN_FUNCTION is defined.
+  # It showed up in curl 7.21.0.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
+
+
+
 ENDIF()
 
 # Check to see if libtool supports

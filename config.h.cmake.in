@@ -17,16 +17,16 @@ are set when opening a binary file on Windows. */
   #define close _close
   #define read _read
   #define lseek _lseeki64
-  
+
   #define fstat _fstat64
 
   #define off_t __int64
   #define _off_t __int64
-  
+
   #ifndef _OFF_T_DEFINED
   #define _OFF_T_DEFINED
   #endif
-  
+
 #ifdef _WIN32
 	#ifndef strcasecmp
   		#define strcasecmp _stricmp
@@ -104,6 +104,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_CURLOPT_PASSWORD 1
 #cmakedefine HAVE_CURLOPT_KEYPASSWD 1
 #cmakedefine HAVE_CURLINFO_RESPONSE_CODE 1
+#cmakedefine HAVE_CURLOPT_CHUNK_BGN_FUNCTION 1
 #cmakedefine HAVE_DECL_SIGNBIT 1
 #cmakedefine HAVE_DOPRNT
 #cmakedefine HAVE_ALLOCA
@@ -208,7 +209,7 @@ are set when opening a binary file on Windows. */
 /* The size of `char` as computed by sizeof. */
 #cmakedefine SIZEOF_CHAR @SIZEOF_CHAR@
 /* The size of `double` as computed by sizeof. */
-#cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@ 
+#cmakedefine SIZEOF_DOUBLE @SIZEOF_DOUBLE@
 /* The size of `float` as computed by sizeof. */
 #cmakedefine SIZEOF_FLOAT @SIZEOF_FLOAT@
 /* The size of `int` as computed by sizeof. */
@@ -225,7 +226,7 @@ are set when opening a binary file on Windows. */
 /* The size of `size_t` as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
 /* The size of `ssize_t` as computed by sizeof. */
-#cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@ 
+#cmakedefine SIZEOF_SSIZE_T @SIZEOF_SSIZE_T@
 /* The size of `uchar` as computed by sizeof. */
 #cmakedefine SIZEOF_UCHAR @SIZEOF_UCHAR@
 /* The size of `__int64` found on Windows systems. */
@@ -273,8 +274,8 @@ are set when opening a binary file on Windows. */
 /* Specifies if various libraries are present. */
 #cmakedefine HAVE_LIBM 1
 
-/* Define to 1 if the system has the type `uchar'.*/ 
-#cmakedefine HAVE_UCHAR 
+/* Define to 1 if the system has the type `uchar'.*/
+#cmakedefine HAVE_UCHAR
 
 /* Misc defines copied from autotools config.h.in */
 #cmakedefine CRAY_STACKSEG_END
