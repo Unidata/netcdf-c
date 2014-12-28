@@ -1855,7 +1855,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    NC_DIM_INFO_T *dim = NULL;   /* Dimension created for scales */
    hid_t spaceid = 0;
    int ndims;
-   int is_scale = 0;
+   htri_t is_scale;
    int retval = NC_NOERR;
 
    /* Get the dimension information for this dataset. */

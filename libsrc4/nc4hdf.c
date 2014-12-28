@@ -1452,7 +1452,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 {
   NC_GRP_INFO_T *g;
   hid_t plistid = 0, access_plistid = 0, typeid = 0, spaceid = 0;
-  hsize_t *chunksize = NULL, *dimsize = NULL, *maxdimsize = NULL;
+  hsize_t chunksize[H5S_MAX_RANK], dimsize[H5S_MAX_RANK], maxdimsize[H5S_MAX_RANK];
   int d;
   void *fillp = NULL;
   NC_DIM_INFO_T *dim = NULL;
@@ -1575,14 +1575,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 #endif
             var->contiguous = NC_TRUE;
       }
-      if (!(dimsize = malloc(var->ndims * sizeof(hsize_t))))
-        BAIL(NC_ENOMEM);
-      if (!(maxdimsize = malloc(var->ndims * sizeof(hsize_t))))
-        BAIL(NC_ENOMEM);
-      if (!var->contiguous)
-        if (!(chunksize = malloc(var->ndims * sizeof(hsize_t))))
-          BAIL(NC_ENOMEM);
 
+      /* Gather current & maximum dimension sizes, along with chunk sizes */
       for (d = 0; d < var->ndims; d++)
         {
           for (g = grp; g && (dims_found < var->ndims); g = g->parent)
@@ -1720,9 +1714,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 #ifdef EXTRA_TESTS
   num_spaces--;
 #endif
-  if (maxdimsize) free(maxdimsize);
-  if (dimsize) free(dimsize);
-  if (chunksize) free(chunksize);
   if (fillp)
     {
       if (var->type_info->nc_type_class == NC_VLEN)
@@ -2282,13 +2273,23 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
           BAIL(retval);
     }
 
-  /* If this is a dimension scale, reattach the scale everywhere it
-   * is used. (Recall that netCDF dimscales are always 1-D). */
-  if (replace_existing_var && var->dimscale)
+  if (replace_existing_var)
     {
-      if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
-                                        var->dimids[0], var->hdf_datasetid)))
-        return retval;
+      /* If this is a dimension scale, reattach the scale everywhere it
+       * is used. (Recall that netCDF dimscales are always 1-D). */
+      if(var->dimscale)
+        {
+          if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
+                                            var->dimids[0], var->hdf_datasetid)))
+            return retval;
+        }
+      /* If it's not a dimension scale, clear the dimscale attached flags,
+       * so the dimensions are re-attached. */
+      else
+        {
+          if (var->dimscale_attached)
+            memset(var->dimscale_attached, 0, sizeof(nc_bool_t) * var->ndims);
+        }
     }
 
   /* Clear coord. var state transition flags */
