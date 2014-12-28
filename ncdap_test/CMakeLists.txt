@@ -20,7 +20,7 @@ IF(ENABLE_TESTS)
   # Binary Test Macro
   
   add_sh_test(ncdap tst_ncdap3)
-  
+
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
     add_bin_env_test(ncdap test_cvt)
@@ -34,6 +34,7 @@ IF(ENABLE_TESTS)
     IF(ENABLE_DAP_LONG_TESTS)
       add_sh_test(ncdap tst_longremote3)
     ENDIF()
+    add_sh_test(ncdap testurl)
     
     add_bin_test(ncdap test_nstride_cached)
     add_bin_test(ncdap t_misc)
@@ -45,8 +46,8 @@ IF(ENABLE_TESTS)
     add_bin_test(ncdap test_varm3)
     
   ENDIF()
-
 ENDIF()
+
 ADD_SUBDIRECTORY(testdata3)
 ADD_SUBDIRECTORY(expected3)
 ADD_SUBDIRECTORY(expected4)
