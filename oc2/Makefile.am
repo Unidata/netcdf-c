@@ -19,6 +19,7 @@ ocinternal.c ocnode.c \
 ochttp.c \
 ocrc.c ocread.c ocutil.c \
 ocbytes.c oclist.c ocuri.c oclog.c \
+occurlflags.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
@@ -26,7 +27,7 @@ dapparselex.h daptab.h \
 occlientparams.h occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
-ochttp.h ocrc.h ocread.h ocutil.h \
+ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 

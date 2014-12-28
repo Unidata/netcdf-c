@@ -95,7 +95,7 @@ ocdata_ithfield(OCstate* state, OCdata* container, size_t index, OCdata** fieldp
 
     template = container->template;
 
-    if(!iscontainer(template->octype))
+    if(!ociscontainer(template->octype))
 	return OCTHROW(OC_EBADTYPE);
 
     /* Validate index */

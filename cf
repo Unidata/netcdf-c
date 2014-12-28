@@ -25,7 +25,7 @@ fi
 
 CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter -Wconversion ${CFLAGS}"
-#CFLAGS="-Wall -Wno-unused-variable -Wno-unused-parameter ${CFLAGS}"
+CFLAGS="-Wall -Wno-unused-variable ${CFLAGS}"
 #CFLAGS="-Wconversion"
 
 stddir="/usr/local"
@@ -139,8 +139,8 @@ else
 FLAGS="$FLAGS --enable-shared"
 fi
 
-if test "x${PAR}" = x ; then
-FLAGS="$FLAGS --disable-parallel"
+if test "x${PAR}" != x ; then
+FLAGS="$FLAGS --enable-parallel"
 fi
 
 if test "x$HDF5" = "x" ; then

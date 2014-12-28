@@ -35,6 +35,8 @@ static int cuErrorOccurred = 0;		     /* True iff cdError was called */
 #define VALCMP(a,b) ((a)<(b)?-1:(b)<(a)?1:0)
 
 /* forward declarations */
+static void CdMonthDay(int *doy, CdTime *date);
+static void CdDayOfYear(CdTime *date, int *doy);
 static void cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* reltime);
 static void cdRel2CompMixed(double reltime, cdUnitTime unit, cdCompTime basetime, cdCompTime *comptime);
 static void cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* comptime);
@@ -188,7 +190,6 @@ Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime)
 	int 	doy;			/* day of year */
 	int     daysInLeapYear;		     /* number of days in a leap year */
 	int     daysInYear;		     /* days in non-leap year */
-	extern void CdMonthDay(int *doy, CdTime *date);
 
 	doy	= (int) floor(etime / 24.) + 1;
 	htime->hour	= etime - (double) (doy - 1) * 24.;
@@ -624,7 +625,6 @@ Cdh2e(CdTime *htime, double *etime)
 	long    baseYear;		     /* base year for epochal time */
 	int     daysInLeapYear;		     /* number of days in a leap year */
 	int     daysInYear;		     /* days in non-leap year */
-	extern void CdDayOfYear(CdTime *date, int *doy);
 
 	CdDayOfYear(htime,&doy);
 	

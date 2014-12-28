@@ -1,6 +1,6 @@
 /*********************************************************************
  *   Copyright 1993, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
+ *   See netcdf/COPYRIGHT file for copying and redistribuution conditions.
  *********************************************************************/
 
 
@@ -247,7 +247,7 @@ fprintf(stderr,"\n");
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 
     /* Compile the start/stop/stride info into a projection */
-    ncstat = buildvaraprojection(varainfo->target,
+    ncstat = dapbuildvaraprojection(varainfo->target,
 		                  startp,countp,stridep,
                                   &varaprojection);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}

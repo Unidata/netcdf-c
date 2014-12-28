@@ -56,6 +56,11 @@
 #define strndup ocstrndup
 #endif
 
+#define OCPATHMAX 8192
+
+#ifndef nullfree
+#define nullfree(x) {if((x)!=NULL) free(x);}
+#endif
 
 /* Forwards */
 typedef struct OCstate OCstate;
@@ -71,6 +76,12 @@ struct OCTriplestore;
 
 /* Define a magic number to mark externally visible oc objects */
 #define OCMAGIC ((unsigned int)0x0c0c0c0c) /*clever, huh*/
+
+/* Max rc file line size */
+#define MAXRCLINESIZE 4096
+
+/* Max number of triples from an rc file */
+#define MAXRCLINES 4096
 
 /* Define a struct that all oc objects must start with */
 /* OCheader must be defined here to make it available in other headers */
@@ -104,7 +115,7 @@ typedef struct OCheader {
 #define nullstring(s) (s==NULL?"(null)":s)
 #define PATHSEPARATOR "."
 
-#define OCDIR ".oc"
+#define OCDIR "oc"
 
 /* Define infinity for memory size */
 #if SIZEOF_SIZE_T == 4 
@@ -125,6 +136,25 @@ typedef struct OCheader {
 /* Default user agent string (will have version appended)*/
 #define DFALTUSERAGENT "oc"
 
+/* Hold known curl flags */
+
+enum OCCURLFLAGTYPE {CF_UNKNOWN=0,CF_OTHER=1,CF_STRING=2,CF_LONG=3};
+struct OCCURLFLAG {
+    const char* name;
+    int flag;
+    int value;
+    enum OCCURLFLAGTYPE type;
+};
+
+struct OCTriplestore {
+    int ntriples;
+    struct OCTriple {
+        char host[MAXRCLINESIZE]; /* includes port if specified */
+        char key[MAXRCLINESIZE];
+        char value[MAXRCLINESIZE];
+   } triples[MAXRCLINES];
+};
+
 /* Collect global state info in one place */
 extern struct OCGLOBALSTATE {
     int initialized;
@@ -135,9 +165,9 @@ extern struct OCGLOBALSTATE {
     char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME for use in creating $HOME/.oc dir */
     struct {
-        struct OCTriplestore* ocdodsrc; /* the .dodsrc triple store */
+	int loaded;
+        struct OCTriplestore ocrc; /* the rc file triple store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
-	char** searchpath; /* Where to search */
     } rc;
 } ocglobalstate;
 
@@ -151,39 +181,44 @@ struct OCstate {
 	char* code;
 	char* message;
 	long  httpcode;
-	char  curlerrorbuf[CURL_ERROR_SIZE]; /* to get curl error message */
+	char  curlerrorbuf[CURL_ERROR_SIZE]; /* CURLOPT_ERRORBUFFER*/
     } error;
     CURL* curl; /* curl handle*/
     char curlerror[CURL_ERROR_SIZE];
     struct OCcurlflags {
-        int proto_file;
-        int proto_https;
-	int compress;
-	int verbose;
-	int timeout;
-	int maxredirs;
-	char* useragent;
-	char* cookiejar;
-	int esg;
+        int proto_file; /* Is file: supported? */
+        int proto_https; /* is https: supported? */
+	int compress; /*CURLOPT_ENCODING*/
+	int verbose; /*CURLOPT_ENCODING*/
+	int timeout; /*CURLOPT_TIMEOUT*/
+	int maxredirs; /*CURLOPT_MAXREDIRS*/
+	char* useragent; /*CURLOPT_USERAGENT*/
+	/* track which of these are created by oc */
+#define COOKIECREATED 1
+#define NETRCCREATED 2
+	int createdflags;
+	char* cookiejar; /*CURLOPT_COOKIEJAR,CURLOPT_COOKIEFILE*/
+	char* netrc; /*CURLOPT_NETRC,CURLOPT_NETRC_FILE*/
     } curlflags;
     struct OCSSL {
-	int   validate;
-        char* certificate;
-	char* key;
-	char* keypasswd;
-        char* cainfo; /* certificate authority */
-	char* capath; 
-	int   verifypeer;
+	int   verifypeer; /* CURLOPT_SSL_VERIFYPEER;
+                             do not do this when cert might be self-signed
+                             or temporarily incorrect */
+	int   verifyhost; /* CURLOPT_SSL_VERIFYHOST; for client-side verification */
+        char* certificate; /*CURLOPT_SSLCERT*/
+	char* key; /*CURLOPT_SSLKEY*/
+	char* keypasswd; /*CURLOPT_SSLKEYPASSWD*/
+        char* cainfo; /* CURLOPT_CAINFO; certificate authority */
+	char* capath;  /*CURLOPT_CAPATH*/
     } ssl;
     struct OCproxy {
-	char *host;
-	int port;
+	char *host; /*CURLOPT_PROXY*/
+	int port;; /*CURLOPT_PROXYPORT*/
+	char* userpwd;; /*CURLOPT_PROXYUSERPWD*/
     } proxy;
     struct OCcredentials {
-	char *username;
-	char *password;
+	char *userpwd; /*CURLOPT_USERPWD*/
     } creds;
-    oc_curl_callback* usercurl;
     void* usercurldata;
     long ddslastmodified;
     long datalastmodified;
@@ -232,6 +267,14 @@ extern OCerror ocinternalinitialize(void);
 
 extern OCerror ocupdatelastmodifieddata(OCstate* state);
 
-extern OCerror ocsetuseragent(OCstate* state, const char* agent);
+extern OCerror ocset_useragent(OCstate* state, const char* agent);
+extern OCerror ocset_netrc(OCstate* state, const char* path);
+
+/* From ocrc.c */
+extern OCerror ocrc_load(); /* find, read, and compile */
+extern OCerror ocrc_process(OCstate* state); /* extract relevant triples */
+extern char* ocrc_lookup(char* key, char* url);
+extern struct OCTriple* ocrc_triple_iterate(char* key, char* url, struct OCTriple* prevp);
+extern int ocparseproxy(OCstate* state, char* v);
 
 #endif /*COMMON_H*/

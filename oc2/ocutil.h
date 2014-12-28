@@ -42,15 +42,18 @@ extern void ocfreeprojectionclause(OCprojectionclause* clause);
 
 /* Misc. */
 
-extern int ocmktmp(const char* base, char** tmpnamep, int* fdp);
+/* merge two envv style lists */
+extern char** ocmerge(const char** list1, const char** list2);
+
+extern int ocmktmp(const char* base, char** tmpnamep);
 
 extern void ocdataddsmsg(struct OCstate*, struct OCtree*);
 
 extern const char* ocdtmodestring(OCDT mode,int compact);
 
 /* Define some classifiers */
-#define iscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid || (t) == OC_Attributeset)
+#define ociscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid || (t) == OC_Attributeset)
 
-#define isatomic(t) ((t) == OC_Atomic)
+#define ocisatomic(t) ((t) == OC_Atomic)
 
 #endif /*UTIL_H*/
