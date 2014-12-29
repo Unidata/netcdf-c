@@ -1263,8 +1263,11 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T 
 
    /* Detach dimension from variable */
    coord_var->dimscale = NC_FALSE;
-   coord_var->dirty = NC_TRUE;
    dim->coord_var = NULL;
+
+   /* Set state transition indicators */
+   coord_var->was_coord_var = NC_TRUE;
+   coord_var->became_coord_var = NC_FALSE;
 
    return NC_NOERR;
 }
@@ -1274,11 +1277,6 @@ int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 {
    int retval = NC_NOERR;
-
-   /* Attach variable to dimension */
-   var->dimscale = NC_TRUE;
-   var->dirty = NC_TRUE;
-   dim->coord_var = var;
 
    /* Detach dimscales from the [new] coordinate variable */
    if(var->dimscale_attached)
@@ -1334,6 +1332,26 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
       if (H5Gunlink(grp->hdf_grpid, dim->name) < 0)
          return NC_EDIMMETA;
    }
+
+   /* Attach variable to dimension */
+   var->dimscale = NC_TRUE;
+   dim->coord_var = var;
+
+   /* Check if this variable used to be a coord. var */
+   if (var->was_coord_var)
+   {
+      /* Reattach the scale everywhere it is used. */
+      /* (Recall that netCDF dimscales are always 1-D) */
+      if ((retval = rec_reattach_scales(grp->nc4_info->root_grp, 
+                                        var->dimids[0], var->hdf_datasetid)))
+         return retval;
+
+      /* Set state transition indicator (cancels earlier transition) */
+      var->was_coord_var = NC_FALSE;
+   }
+   else
+      /* Set state transition indicator */
+      var->became_coord_var = NC_TRUE;
 
   exit:
    return retval;
