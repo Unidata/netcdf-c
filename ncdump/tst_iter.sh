@@ -40,7 +40,7 @@ $CC ./iter.c -o iter.exe
 ./iter.exe >>iter.cdl
 
 # echo "*** create iter.nc "
-../ncgen/ncgen -k1 -o iter.nc ./iter.cdl
+../ncgen/ncgen -k nc3 -o iter.nc ./iter.cdl
 echo "*** dumping iter.nc to iter.dmp"
 ./ncdump iter.nc > iter.dmp
 echo "*** reformat iter.dmp"
