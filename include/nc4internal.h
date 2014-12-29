@@ -148,7 +148,11 @@ typedef struct NC_VAR_INFO
    NC_DIM_INFO_T **dim;
    int varid;
    int natts;
-   nc_bool_t dirty;             /* True if variable modified */
+   nc_bool_t is_new_var;        /* True if variable is newly created */
+   nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
+   nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
+   nc_bool_t fill_val_changed;  /* True if variable's fill value changes after it has been created */
+   nc_bool_t attr_dirty;        /* True if variable's attributes are dirty and should be rewritten */
    nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
@@ -322,14 +326,15 @@ int nc4_convert_type(const void *src, void *dest,
 
 /* These functions do HDF5 things. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
+int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 int nc4_put_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_get_vara(NC *nc, int ncid, int varid, const size_t *startp, 
 		 const size_t *countp, nc_type xtype, int is_long, void *op);
 int nc4_rec_match_dimscales(NC_GRP_INFO_T *grp);
-int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, int *bad_coord_orderp);
-int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, int bad_coord_order);
+int nc4_rec_detect_need_to_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp);
+int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
 int nc4_rec_write_groups_types(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_HDF5_FILE_INFO_T *h5);
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
