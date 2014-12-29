@@ -28,7 +28,7 @@ echo "*** Generate a cdl file with leading UTF-8 BOM."
 cat tst_bom.cdl >> tst_bom8.cdl
 
 echo "*** Verify .nc file"
-../ncgen/ncgen -k1 -o tst_bom8.nc tst_bom8.cdl
+../ncgen/ncgen -k nc3 -o tst_bom8.nc tst_bom8.cdl
 ../ncdump/ncdump -n tst_bom tst_bom8.nc > tmp.cdl
 diff -w tst_bom.cdl tmp.cdl
 
@@ -41,7 +41,7 @@ echo "*** Generate a cdl file with leading UTF-16 BOM."
 cat tst_bom.cdl >> tst_bom16.cdl
 
 echo "*** Verify UTF-16 file fails"
-if ../ncgen/ncgen -k1 -o tst_bom16.nc tst_bom16.cdl ; then
+if ../ncgen/ncgen -k nc3 -o tst_bom16.nc tst_bom16.cdl ; then
 echo 'BOM Big Endian 16 succeeded, but should not'
 exit 1
 else

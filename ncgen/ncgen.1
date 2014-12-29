@@ -9,7 +9,8 @@ ncgen
 \%[-b]
 \%[-c]
 \%[-f]
-\%[-k \fIfile format\fP]
+\%[-k \fIformat_name\fP]
+\%[-\fIformat_code\fP]
 \%[-l \fIoutput language\fP]
 \%[-n]
 \%[-o \fInetcdf_filename\fP]
@@ -67,22 +68,41 @@ If this option is specified it implies
 This option is necessary because netCDF files
 cannot be written directly to standard output, since standard output is not
 seekable.
-.IP "\fB-k \fRfile_format\fP"
+.IP "\fB-k \fIformat_name\fP"
+.IP "\fB-\fIformat_code\fP"
 The -k flag specifies the format of the file to be created and, by inference,
 the data model accepted by ncgen (i.e. netcdf-3 (classic) versus
-netcdf-4).
-The possible arguments are as follows.
+netcdf-4). As a shortcut, a numeric \fIformat_code\fP may be specified instead.
+The possible \fIformat_name\fP values for the -k option are:
 .RS
 .RS
-.IP "'1', 'classic' => netcdf classic file format, netcdf-3 type model."
-.IP "'2', '64-bit-offset', '64-bit offset' => netcdf 64 bit classic file format, netcdf-3 type model."
-.IP "'3', 'hdf5', 'netCDF-4', 'enhanced' => netcdf-4 file format, netcdf-4 type model."
-.IP "'4', 'hdf5-nc3', 'netCDF-4 classic model', 'enhanced-nc3' => netcdf-4 file format, netcdf-3 type model."
+.IP "'classic' or 'nc3' => netCDF classic format"
+.IP "'64-bit-offset' or 'nc6' => netCDF 64-bit format"
+.IP "'netCDF-4' 0r 'nc4' => netCDF-4 format (enhanced data model)"
+.IP "'netCDF-4 classic model' or 'nc7' => netCDF-4 classic model format"
 .RE
 .RE
-Note that -v is accepted to mean the same thing as
--k for backward compatibility, but -k is preferred, to match
-the corresponding ncdump option. 
+Accepted \fIformat_number\fP arguments, just shortcuts for format_names, are:
+.RS
+.RS
+.IP "3 => netcdf classic format"
+.IP "6 => netCDF 64-bit format"
+.IP "4 => netCDF-4 format (enhanced data model)"
+.IP "7 => netCDF-4 classic model format"
+.RE
+.RE
+The numeric code "7" is used because "7=3+4", a mnemonic for the format
+that uses the netCDF-3 data model for compatibility with the netCDF-4
+storage format for performance. Credit is due to NCO for use of these
+numeric codes instead of the old and confusing format numbers.
+.LP
+Note: The old version format numbers '1', '2', '3', '4', equivalent
+to the format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are
+also still accepted but deprecated, due to easy confusion between
+format numbers and format names. Various old format name aliases are
+also accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', etc.
+Also, note that -v is accepted to mean the same thing as
+-k for backward compatibility.
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
 large netCDF files greatly, but later attempts to read unwritten data

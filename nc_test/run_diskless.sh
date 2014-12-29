@@ -69,7 +69,7 @@ if test -f $FILE2 ; then
   echo "**** $FILE2 created"
   # Do a cyle test
   if ../ncdump/ncdump $FILE2 |sed -e s/tst_diskless2/tmp1/ > tmp1.cdl ; then
-    if ../ncgen/ncgen -k3 -o tmp1.nc tmp1.cdl ;then
+    if ../ncgen/ncgen -k nc4 -o tmp1.nc tmp1.cdl ;then
       if ../ncdump/ncdump tmp1.nc >tmp2.cdl ; then
         if diff -wb tmp1.cdl tmp2.cdl ; then
           ok=yes
