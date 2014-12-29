@@ -3651,12 +3651,20 @@ should be used intstead.
 -k
 The -k file specifies the kind of netCDF file to generate. The
 arguments to the -k flag can be as follows.
-        1, classic – Produce a netcdf classic file format file.
-        2, 64-bit-offset, '64-bit offset' – Produce a netcdf 64 bit classic file format file.
-        3, hdf5, netCDF-4, enhanced – Produce a netcdf-4 format file.
-        4, hdf5-nc3, 'netCDF-4 classic model', enhanced-nc3 – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
+        'classic', 'nc3' – Produce a netcdf classic file format file.
+        '64-bit offset', 'nc6' – Produce a netcdf 64 bit classic file format file.
+        'netCDF-4', 'nc4' – Produce a netcdf-4 format file.
+        'netCDF-4 classic model', 'nc7' – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
 
-Note that the -v flag is a deprecated alias for -k.
+Note that the -v flag is a deprecated alias for -k. The code 'nc7' is
+used as a short form for the unwieldy 'netCDF-4 classic model' because
+7=3+4, a mnemonic for the format that uses the netCDF-3 data model for
+compatibility with the netCDF-4 storage format for performance. The
+old version format numbers '1', '2', '3', '4', equivalent to the
+format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are also
+still accepted but deprecated, due to easy confusion between format
+numbers and format names. Various old format name aliases are also
+accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', for 'netCDF-4'.
 
 -l
 The -l file specifies that ncgen should output (to standard output)
