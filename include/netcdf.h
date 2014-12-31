@@ -1937,12 +1937,12 @@ ncrecput(int ncid, long recnum, void *const *datap);
 
 /** 
 The compression parameters are stored in an
-array of ints. For the current set of algorithms,
+array of unsigned ints. For the current set of algorithms,
 the array conforms to this union{}.
 Note that some fields are int, some are unsigned int.
 The intent is to allow anything that will fit into 32 bits.
 union {
-    int params[NC_COMPRESSION_MAX_PARAMS];
+    unsigned int params[NC_COMPRESSION_MAX_PARAMS];
     unsigned int level; // e.g zip, bzip2
     <put structs for any other algorithms here>
 };

@@ -1562,7 +1562,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
        * better performance. */
 
      if(!var->shuffle && strlen(var->algorithm) == 0 && !var->fletcher32
-&& !var->options_mask
         && (var->chunksizes == NULL || !var->chunksizes[0])) {
 #ifdef USE_HDF4
         NC_HDF5_FILE_INFO_T *h5 = grp->nc4_info;

@@ -35,8 +35,6 @@ extern int num_plists;
 extern int num_spaces;
 #endif /* EXTRA_TESTS */
 
-#define BZIP2 1
-
 #define MIN_DEFLATE_LEVEL 0
 #define MAX_DEFLATE_LEVEL 9
 

@@ -31,7 +31,7 @@ ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
-EXTRA_DIST = dap.y CMakeLists.txt
+EXTRA_DIST = dap.y CMakeLists.txt makeparser.sh
 
 if BUILD_DAP
 noinst_LTLIBRARIES = liboc.la
@@ -46,9 +46,7 @@ endif
 
 .PHONEY: bison
 
-bison:: dap.y
-	rm -f dap.tab.c dap.tab.h
-	bison --debug -d -p dap dap.y
-	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
+bison:: 
+	sh ./makeparser.sh	
 
 

@@ -24,7 +24,7 @@ ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
-FILES=${HDRS} ${SRC} dap.y
+FILES=${HDRS} ${SRC} dap.y makeparser.sh
 
 all::
 

@@ -103,10 +103,6 @@ IF(CONFIG_DATE)
 	string(STRIP ${CONFIG_DATE} CONFIG_DATE)
 ENDIF()
 ##
-# Allow for extra dependencies.
-##
-
-SET(EXTRA_DEPS "")
 
 ##
 # Allow for extra dependencies.

@@ -869,7 +869,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, const char* algorithm,
       /* Well, if we couldn't find any errors, I guess we have to take
        * the users settings. Darn! */
       var->contiguous = NC_FALSE;
-      strncpy(var->algorithm,algorithm,COMPRESSION_NAME_MAX);
+      strncpy(var->algorithm,algorithm,NC_COMPRESSION_MAX_NAME);
       memcpy((void*)var->compress_params,(void*)params,sizeof(var->compress_params));
       LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
    }
