@@ -266,8 +266,9 @@ variable, and a 0 otherwise.
 \ref ignored_if_null.
 
 \param deflate_paramsp If a compression filter is in use for this
-variable, the deflate_level will be writen here.
-\ref ignored_if_null.
+variable, the deflate_param will be writen here. The format
+depends on the algorithm. For zip and bzip, it is a pointer to an
+integer. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file. 
