@@ -11,7 +11,6 @@ HDF5=1
 DAP=1
 #HDF4=1
 #PNETCDF=1
-<<<<<<< HEAD
 
 #PAR=1
 
@@ -21,16 +20,6 @@ BZIP2=1
 #FPZIP=1
 #ZFP=1
 COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lszip -lfpzip -lzp
-=======
-#PAR=1
-
-# Following must be consistent
-#SZIP=1
-BZIP2=1
-FPZIP=1
-COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lfpzip
-
->>>>>>> ckp
 
 if test "x$PNETCDF" = x1 ; then
 PAR=1
