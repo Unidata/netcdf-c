@@ -116,12 +116,6 @@ SET(EXTRA_DEPS "")
 
 SET(EXTRA_DEPS "")
 
-##
-# Allow for extra dependencies.
-##
-
-SET(EXTRA_DEPS "")
-
 ################################
 # End Project Properties
 ################################

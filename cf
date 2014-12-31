@@ -181,18 +181,6 @@ fi
 if test "x$FPZIP" = x1 ; then
 COMP="$COMP,fpzip"
 fi
-FLAGS="$FLAGS --with-compression=${COMP}"
-
-COMP="zip"
-if test "x$SZIP" = x1 ; then
-COMP="$COMP,szip"
-fi
-if test "x$BZIP2" = x1 ; then
-COMP="$COMP,bzip2"
-fi
-if test "x$FPZIP" = x1 ; then
-COMP="$COMP,fpzip"
-fi
 if test "x$ZFP" = x1 ; then
 COMP="$COMP,zfp"
 fi
@@ -241,11 +229,6 @@ LDFLAGS="-L${MPI2}/lib -L${MPI1}/lib -L${MPI3}/lib"
 LDLIBS="-lmpich -lmpl"
 FLAGS="$FLAGS --enable-pnetcdf"
 FLAGS="$FLAGS --enable-parallel-tests"
-fi
-
-if test "x$COMPRESSORS" != "x" ; then
-FLAGS="$FLAGS --with-compression='${COMPRESSION}'"
-LDFLAGS="${LDFLAGS} ${COMPRESSLIBS}"
 fi
 
 export PATH
