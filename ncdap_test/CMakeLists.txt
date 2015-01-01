@@ -41,6 +41,7 @@ IF(ENABLE_TESTS)
     
     IF(ENABLE_DAP_AUTH_TESTS)
       add_bin_test(ncdap t_auth)
+      add_sh_test(ncdap testauth)
     ENDIF()
     
     add_bin_test(ncdap test_varm3)
