@@ -26,8 +26,8 @@ static char* combinecredentials(const char* user, const char* pwd);
 
 static void storedump(char* msg, struct OCTriple*, int ntriples);
 
-/* Define default rc files and aliases*/
-static char* rcfilenames[] = {".dodsrc",".ocrc",NULL};
+/* Define default rc files and aliases, also defines search order*/
+static char* rcfilenames[] = {".ocrc",".dodsrc",NULL};
 
 /* The Username and password are in the URL if the URL is of the form:
  * http://<name>:<passwd>@<host>/....
@@ -358,6 +358,10 @@ ocrc_load(void)
     OCerror stat = OC_NOERR;
     char* path = NULL;
 
+    if(ocglobalstate.rc.ignore) {
+        oclog(OCLOGDBG,"No runtime configuration file specified; continuing");
+	return OC_NOERR;
+    }
     if(ocglobalstate.rc.loaded) return OC_NOERR;
 
     /* locate the configuration files: first if specified,
@@ -407,6 +411,10 @@ ocrc_process(OCstate* state)
 	ocinternalinitialize();    
     if(!ocglobalstate.rc.loaded)
 	ocrc_load();    
+    /* Note, we still must do this function even if
+       ocglobalstate.rc.ignore is set in order
+       to getinfo e.g. user:pwd from url
+    */
 
     url_userpwd = uri->userpwd;
     url_hostport = occombinehostport(uri);
@@ -554,6 +562,8 @@ ocrc_locate(char* key, char* hostport)
     struct OCTriplestore* ocrc = &ocglobalstate.rc.ocrc;
     struct OCTriple* triple;
 
+    if(ocglobalstate.rc.ignore)
+	return NULL;
     if(!ocglobalstate.rc.loaded)
 	ocrc_load();
 
@@ -626,13 +636,10 @@ ocrc_lookup(char* suffix, char* url)
 	if(value != NULL)
 	    return value;
     }
-<<<<<<< HEAD
-    return NULL;
-=======
     return value;
 }
 
-/* compile the .dodsrc, if any */
+/* compile the rc file, if any */
 static OCerror
 ocreadrc(void)
 {
@@ -669,7 +676,6 @@ done:
     if(path != NULL)
 	free(path);
     return stat;
->>>>>>> 4bcf90c7c8e9263453b469cc358b3f5a7af84d3a
 }
 #endif
 

@@ -2119,28 +2119,35 @@ Set the absolute path to use for the rc file.
 WARNING: this MUST be called before any other
 call in order for this to take effect.
 
-\param[in] rcfile The path to use.
+\param[in] rcfile The path to use. If NULL, or "",
+                  then do not use any rcfile.
 
 \retval OC_NOERR if the request succeeded.
+\retval OC_ERCFILE if the file failed to load
 */
 
 OCerror
 oc_set_rcfile(const char* rcfile)
 {
     OCerror stat = OC_NOERR;
-    FILE* f;
-    if(rcfile == NULL || strlen(rcfile) == 0)
-	{stat = (OC_EINVAL); goto done;}
-    f = fopen(rcfile,"r");
-    if(f == NULL)
-	{stat = (OC_ERCFILE); goto done;}
-    fclose(f);
-    if(!ocglobalstate.initialized) {
+    if(rcfile != NULL && strlen(rcfile) == 0)
+	rcfile = NULL;
+
+    if(!ocglobalstate.initialized)
 	ocinternalinitialize(); /* so ocglobalstate is defined, but not triplestore */
+    if(rcfile == NULL) {
+	ocglobalstate.rc.ignore = 1;
+    } else {	
+        FILE* f = fopen(rcfile,"r");
+        if(f == NULL) {
+	    stat = (OC_ERCFILE);
+	    goto done;
+        }
+        fclose(f);
+        ocglobalstate.rc.rcfile = strdup(rcfile);
+        /* (re) load the rcfile and esp the triplestore*/
+        stat = ocrc_load();    
     }
-    ocglobalstate.rc.rcfile = strdup(rcfile);
-    /* (re) load the rcfile and esp the triplestore*/
-    stat = ocrc_load();    
 done:
     return OCTHROW(stat);
 }
