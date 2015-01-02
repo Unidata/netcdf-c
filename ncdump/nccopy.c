@@ -604,7 +604,7 @@ set_var_chunked(int ogrp, int o_varid)
 	    int odimid = dimids[odim];
 	    int idimid = dimmap_idimid(odimid); /* corresponding dimid in input file */
 	    if(dimmap_ounlim(odimid))
-		is_unlimited = 1;
+		is_unlimited = 1; /* whether vriable is unlimited */
 	    if(idimid != -1) {
 		size_t chunksize = chunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;
@@ -612,7 +612,9 @@ set_var_chunked(int ogrp, int o_varid)
 		if( (chunksize > 0) || dimmap_ounlim(odimid)) {
 		    chunked = 1;		    
 		}
-		varsize *= dimlen;
+		if(dimlen > 0) { /* dimlen for unlimited dims is still 0 before copying data */
+		    varsize *= dimlen;
+		}
 	    }
 	}
 	/* Don't chunk small variables that don't use an unlimited
@@ -622,7 +624,7 @@ set_var_chunked(int ogrp, int o_varid)
 
 	if(chunked) {
 	    /* Allocate chunksizes and set defaults to dimsize for any
-	     * dimensions not mentioned in chunkspec. */
+	     * dimensions not mentioned in chunkspec, except use 1 for unlimited dims. */
 	    size_t *chunkp = (size_t *) emalloc(ndims * sizeof(size_t));
 	    for(odim = 0; odim < ndims; odim++) {
 		int odimid = dimids[odim];
@@ -631,7 +633,11 @@ set_var_chunked(int ogrp, int o_varid)
 		if(chunksize > 0) {
 		    chunkp[odim] = chunksize;
 		} else {
-		    NC_CHECK(nc_inq_dimlen(ogrp, odimid, &chunkp[odim]));
+		    if(dimmap_ounlim(odimid)){
+			chunkp[odim] = 1;
+		    } else {
+			NC_CHECK(nc_inq_dimlen(ogrp, odimid, &chunkp[odim]));
+		    }
 		}
 	    }
 	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, chunkp));
