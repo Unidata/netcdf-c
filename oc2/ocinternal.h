@@ -165,6 +165,7 @@ extern struct OCGLOBALSTATE {
     char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME for use in creating $HOME/.oc dir */
     struct {
+	int ignore; /* if 1, then do not use any rc file */
 	int loaded;
         struct OCTriplestore ocrc; /* the rc file triple store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */

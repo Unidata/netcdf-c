@@ -4,9 +4,9 @@ NCLIB=./liblib/.libs/libnetcdf.a
 
 LFLAG=-L/usr/local/lib
 
-HDF5LIB=-lhdf5_hl -lhdf5
-CURLLIB=-lcurl
-ZLIB=-lz
+#HDF5LIB=-lhdf5_hl -lhdf5
+#CURLLIB=-lcurl
+#ZLIB=-lz
 
 OTHERLIBS=-lm
 
