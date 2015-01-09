@@ -17,7 +17,7 @@ typedef union {
         unsigned int pixels_per_block;
 	unsigned int pixels_per_scanline;
     } szip;
-    FPZ fpzip;
+        FPZ fpzip;
 } nc_compression_t;
 
 /*
