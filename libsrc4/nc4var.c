@@ -847,12 +847,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, const char* algorithm,
    if (algorithm != NULL && params != NULL)
    {
       if (strcmp(algorithm,"zip") == 0)
-         if (uparams->level < MIN_DEFLATE_LEVEL ||
-             uparams->level > MAX_DEFLATE_LEVEL)
+         if (uparams->zip.level < MIN_DEFLATE_LEVEL ||
+             uparams->zip.level > MAX_DEFLATE_LEVEL)
             return NC_EINVAL;
 #ifdef BZIP2_COMPRESSION
       if (strcmp(algorithm,"bzip2") == 0)
-         if (uparams->level > MAX_DEFLATE_LEVEL)
+         if (uparams->bzip2.level > MAX_DEFLATE_LEVEL)
             return NC_EINVAL;
 #endif
 #ifdef SZIP_COMPRESSION
@@ -982,7 +982,7 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                    int deflate_level)
 {
    nc_compression_t parms;
-   parms.level = deflate_level;
+   parms.zip.level = deflate_level;
    return nc_def_var_extra(ncid, varid, &shuffle, "zip",
                            parms.params, NULL, NULL, NULL, NULL, NULL, NULL);
 }

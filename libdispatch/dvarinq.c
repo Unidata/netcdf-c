@@ -304,7 +304,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       if(deflatep != NULL)
 	  *deflatep = (strcmp(algorithm,"zip")==0?1:0);
       if(deflate_levelp != NULL)
-          *deflate_levelp = params.level;
+          *deflate_levelp = params.zip.level;
    }
    return stat;
 }

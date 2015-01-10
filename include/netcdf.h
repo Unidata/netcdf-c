@@ -1941,11 +1941,24 @@ array of unsigned ints. For the current set of algorithms,
 the array conforms to this union{}.
 Note that some fields are int, some are unsigned int.
 The intent is to allow anything that will fit into 32 bits.
-union {
-    unsigned int params[NC_COMPRESSION_MAX_PARAMS];
-    unsigned int level; // e.g zip, bzip2
-    <put structs for any other algorithms here>
-};
+typedef union {
+    unsigned int params[NC_COMPRESSION_MAX_PARAMS]; arbitrary 32 bit values
+    struct {
+        unsigned int level;
+    } zip;
+    struct {
+        unsigned int level
+    } bzip2;
+    struct {
+        unsigned int options_mask;
+	unsigned int bits_per_pixel;
+        unsigned int pixels_per_block;
+	unsigned int pixels_per_scanline;
+    } szip;
+    struct {
+	int prec;  number of bits of precision (zero = full)
+    } fpzip;
+} nc_compression_t;
 */
 
 /* Set compression settings for a variable.

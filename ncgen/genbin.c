@@ -239,7 +239,7 @@ genbin_definespecialattributes(Symbol* var)
     if(special->flags & (_COMPRESSION_FLAG) && (special->_Algorithm > 0)) {
 	nc_compression_t parms;
 	const char* algorithm;
-	parms.level = special->_DeflateLevel;
+	parms.zip.level = special->_DeflateLevel;
 	algorithm = special->_Algorithm;
 	if(strlen(algorithm)==0) algorithm = NULL;
         stat = nc_def_var_compress(var->container->ncid,

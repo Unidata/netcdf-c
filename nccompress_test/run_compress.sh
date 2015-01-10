@@ -29,9 +29,6 @@ echo "srcdir=${srcdir}"
 builddir=${srcdir}/..
 echo "builddir=${builddir}"
 
-
-
-
 # Known compressions
 C="zip bzip2 szip fpzip zfp"
 

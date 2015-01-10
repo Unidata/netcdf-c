@@ -4,20 +4,40 @@
 #include <hdf5.h>
 #include <fpzip.h>
 
+#define CD_NELEMS_ZIP 1
+#define CD_NELEMS_SZIP 2
+#define CD_NELEMS_BZIP2 1
+#define CD_NELEMS_FPZIP 64
+#define CD_NELEMS_ZFP 64
+
 /* It should be possible to overlay this
 on the params[] to extract the values.
-This should matc the union comment in netcdf.h.
+This should match the union comment in netcdf.h.
 */
 typedef union {
-    unsigned int params[NC_COMPRESSION_MAX_PARAMS]; // arbitrary 32 bit values
-    unsigned int level; /* e.g zip, bzip2 */
+    unsigned int params[NC_COMPRESSION_MAX_PARAMS];/*arbitrary 32 bit values*/
+    struct {unsigned int level;} zip;
+    struct {unsigned int level;} bzip2;
     struct {
         unsigned int options_mask;
 	unsigned int bits_per_pixel;
         unsigned int pixels_per_block;
 	unsigned int pixels_per_scanline;
     } szip;
-        FPZ fpzip;
+    struct {
+	int isdouble;
+	int prec; /* number of bits of precision (zero = full) */
+	int rank;
+	size_t chunksizes[(NC_COMPRESSION_MAX_PARAMS-3)/2];
+    } fpzip;
+    struct {
+      int isdouble;
+      int prec;
+      double rate;
+      double tolerance;
+      int rank;
+      size_t chunksizes[(NC_COMPRESSION_MAX_PARAMS-5)/2];
+    } zfp; 
 } nc_compression_t;
 
 /*
