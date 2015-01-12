@@ -70,8 +70,8 @@ ocinternalinitialize(void)
     int stat = OC_NOERR;
 
     if(sizeof(long) != sizeof(void*)) {
-	fprintf(stderr,"OC depends on the assumption that sizeof(long) == sizeof(void*)\n");
-	OCASSERT(sizeof(long) == sizeof(void*));
+      fprintf(stderr,"OC depends on the assumption that sizeof(long) == sizeof(void*)\n");
+      //OCASSERT(sizeof(long) == sizeof(void*));
     }
 
     if(!ocglobalstate.initialized) {
@@ -159,7 +159,7 @@ ocopen(OCstate** statep, const char* url)
     CURL* curl = NULL; /* curl handle*/
 
     if(!ocuriparse(url,&tmpurl)) {OCTHROWCHK(stat=OC_EBADURL); goto fail;}
-    
+
     stat = occurlopen(&curl);
     if(stat != OC_NOERR) {OCTHROWCHK(stat); goto fail;}
 
@@ -189,7 +189,7 @@ ocopen(OCstate** statep, const char* url)
 #endif
 
     if(statep) *statep = state;
-    return OCTHROW(stat);   
+    return OCTHROW(stat);
 
 fail:
     ocurifree(tmpurl);
@@ -205,7 +205,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     OCtree* tree = NULL;
     OCnode* root = NULL;
     OCerror stat = OC_NOERR;
-    
+
     tree = (OCtree*)ocmalloc(sizeof(OCtree));
     MEMCHECK(tree,OC_ENOMEM);
     memset((void*)tree,0,sizeof(OCtree));
@@ -278,7 +278,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
 	oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,	
+		  state->error.code,
 		  (state->error.message?state->error.message:""));
     }
     if(stat) {OCTHROWCHK(stat); goto fail;}
@@ -335,7 +335,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
 	if(dataError(tree->data.xdrs,state)) {
 	    stat = OC_EDATADDS;
 	    oclog(OCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
-		  state->error.code,	
+		  state->error.code,
 		  (state->error.message?state->error.message:""));
 	    goto fail;
 	}
@@ -368,7 +368,7 @@ createtempfile(OCstate* state, OCtree* tree)
     char* name = NULL;
     int len;
 
-    len = 
+    len =
 	  strlen(ocglobalstate.tempdir)
 	  + 1 /* '/' */
 	  + strlen(DATADDSFILE);
@@ -435,7 +435,7 @@ occlose(OCstate* state)
     ocfree(state->ssl.key);
     ocfree(state->ssl.keypasswd);
     ocfree(state->ssl.cainfo);
-    ocfree(state->ssl.capath); 
+    ocfree(state->ssl.capath);
     ocfree(state->proxy.host);
     ocfree(state->proxy.userpwd);
     ocfree(state->creds.userpwd);
@@ -617,7 +617,7 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
 	/* Create the unique cookie file name */
 	stat = ocmktmp(tmp,&state->curlflags.cookiejar);
-	state->curlflags.createdflags |= COOKIECREATED;	
+	state->curlflags.createdflags |= COOKIECREATED;
 	if(stat != OC_NOERR && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
@@ -625,10 +625,10 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
     }
     OCASSERT(state->curlflags.cookiejar != NULL);
-    
+
     /* Make sure the cookie jar exists and can be read and written */
     {
-	FILE* f = NULL;        
+	FILE* f = NULL;
 	char* fname = state->curlflags.cookiejar;
 	/* See if the file exists already */
         f = fopen(fname,"r");
@@ -698,7 +698,7 @@ dataError(XXDR* xdrs, OCstate* state)
 	    depth--;
 	    if(depth == 0) {i++; break;}
 	}
-    }    
+    }
     errmsg = (char*)malloc((size_t)i+1);
     if(errmsg == NULL) {errfound = 1; goto done;}
     xxdr_setpos(xdrs,ckp);
@@ -715,7 +715,7 @@ done:
 }
 
 /**************************************************/
-/* Curl option functions */ 
+/* Curl option functions */
 /*
 Note that if we set the option in curlflags,
 then we need to also invoke the ocset_curlopt
