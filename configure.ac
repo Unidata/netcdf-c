@@ -664,6 +664,12 @@ fi
 
 AC_MSG_NOTICE([finding other utilities])
 
+# Is m4 installed? If not, bail.
+AC_CHECK_PROGS([NC_m4], [m4])
+if test -z "$NC_M4"; then
+   AC_MSG_ERROR([Cannot find m4 utility. Install m4 and try again.])
+fi
+
 # Is doxygen installed? If so, have configure construct the Doxyfile.
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN"; then
