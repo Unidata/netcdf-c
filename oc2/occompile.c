@@ -16,7 +16,7 @@
 #define TOPLEVEL 1
 
 /* Forward */
-static OCdata* newocdata(OCnode* template);
+static OCdata* newocdata(OCnode* oc_template);
 static size_t ocxdrsize(OCtype etype,int isscalar);
 static OCerror occompile1(OCstate*, OCnode*, XXDR*, OCdata**);
 static OCerror occompilerecord(OCstate*, OCnode*, XXDR*, OCdata**);

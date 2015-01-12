@@ -605,7 +605,11 @@ ocset_curlproperties(OCstate* state)
 	char tmp[OCPATHMAX+1];
         int stat;
 	snprintf(tmp,sizeof(tmp)-1,"%s/%s/",ocglobalstate.tempdir,OCDIR);
+#ifdef _MSC_VER
+	stat = mkdir(tmp);
+#else
 	stat = mkdir(tmp,S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
 	if(stat != 0 && errno != EEXIST) {
 	    fprintf(stderr,"Cannot create cookie directory\n");
 	    goto fail;
