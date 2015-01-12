@@ -966,9 +966,12 @@ ENDMACRO()
 
 # A basic script used to convert m4 files
 FIND_PROGRAM(NC_M4 NAMES m4)
-IF(NOT NC_M4)
-  MESSAGE(FATAL "Cannot find 'm4' utility. Install m4 and try again.")
-ENDIF(NOT NC_M4)
+IF(NOT MSVC)
+  IF(NOT NC_M4)
+    MESSAGE(FATAL "Cannot find 'm4' utility. Install m4 and try again.")
+  ENDIF(NOT NC_M4)
+ENDIF(NOT MSVC)
+
 MACRO(GEN_m4 filename)
   IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
     ADD_CUSTOM_COMMAND(
