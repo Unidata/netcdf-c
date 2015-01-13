@@ -622,7 +622,7 @@ ocset_curlproperties(OCstate* state)
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-	errno = 0;
+		errno = 0;
     }
     OCASSERT(state->curlflags.cookiejar != NULL);
 

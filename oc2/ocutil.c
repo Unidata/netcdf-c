@@ -719,7 +719,7 @@ ocmktmp(const char* base, char** tmpnamep)
 	    return OC_EOVERRUN;
         }
 #if defined(_WIN32) || defined(_WIN64)
-        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT|O_EXCL|FILE_ATTRIBUTE_TEMPORARY, _S_IREAD|_S_IWRITE);
+        fd=open(tmpname,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #  else
         fd=open(tmpname,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
 #  endif
