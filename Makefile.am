@@ -14,7 +14,8 @@ EXTRA_DIST = README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
 	config.h.cmake.in cmake_uninstall.cmake.in \
 	FixBundle.cmake.in \
 	nc-config.cmake.in RELEASE_NOTES.md CTestCustom.cmake \
-	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in
+	CTestConfig.cmake.in libnetcdf.settings.in netCDFConfig.cmake.in \
+	CMakeInstallation.cmake
 
 # Doxygen doesn't build nicely in vpath builds.
 # Don't do this; it wipes out any exported values
