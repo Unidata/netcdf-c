@@ -7,21 +7,35 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
-### 4.3.3-rc3 Released ?
+### 4.3.3-rc3 Released 2015-01-14
 
-* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
+* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build for *NON-MSVC* builds.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
 
-	* CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
-	* Autotools: `--enable-remote-fortran-bootstrap`
+ * CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
+ * Autotools: `--enable-remote-fortran-bootstrap`
 
-    Enabling these options creates two new make targets:
+Details are as follows:
 
-	* build-netcdf-fortran
-	* install-netcdf-fortran
+----
+
+Enabling these options creates two new make targets:
+
+*  `build-netcdf-fortran`
+* `install-netcdf-fortran`
+
+Example Work Flow from netcdf-c source directory:
+
+* $ `./configure --enable-remote-fortran-bootstrap --prefix=$HOME/local`
+* $ `make check`
+* $ `make install`
+* $ `make build-netcdf-fortran`
+* $ `make install-netcdf-fortran`
 
 > These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.<br><br>
 
 > It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
+
+----
 
 * Added a failure state if the `m4` utility is not found on non-Windows systems; previously, the build would fail when it reached the point of invoking m4.
 
