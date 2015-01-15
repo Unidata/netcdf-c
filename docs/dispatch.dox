@@ -1,9 +1,12 @@
-/*! \file
+/** \file
+
 Documentation for the dispatch system
 
 \internal
 
 \defgroup dispatch The Dispatch Layer
+
+\page intro Introduction
 
 The dispatch layer is a way to add read/write modules to the netCDF
 library.
@@ -19,9 +22,340 @@ read the data as if it were in netCDF. This would give netCDF tools
 read-only access to data in this format, transparently to the tool.
 
 This mechanism is already used within the netCDF library to handle the
-netCDF-4/HDF5 files, and the remote data access features. 
+netCDF-4/HDF5 files, the remote data access features (DAP),
+and PNETCDF files.
 
 Conceptually, the dispatch layer provides the same capabilities as the
 IOSP in the netCDF-Java library. However, unlike Java, C does not
-provide the advanced features to make this seemless.
+provide the advanced features to make this quite seamless.
+
+\section nc_dispatch Internal Dispatch Table Architecture
+
+This document describes the architecture and details of the netCDF
+internal dispatch mechanism. The idea is that when a user opens or
+creates a netcdf file, a specific dispatch table is
+chosen. Subsequent netcdf API calls are then channeled through that
+dispatch table to the appropriate function for implementing that API
+call.
+
+At least the following dispatch tables are supported.
+- netcdf classic files (netcdf-3)
+- netcdf enhanced files (netcdf-4)
+- OPeNDAP to netcdf-3
+- PNETCDF
+
+Table of Contents
+\tableofcontents
+
+The dispatch table represents a distillation of the netcdf API down to
+a minimal set of internal operations. The format of the dispatch table
+is defined in the file libdispatch/ncdispatch.h. Every new dispatch
+table must define this minimal set of operations.
+
+\page adding_dispatch Adding a New Dispatch Table
+
+In order to make this process concrete, let us assume we plan to add
+an in-memory implementation of netcdf-3. Note that this
+capability already exists inside the libsrc code, but we will
+pretent otherwise heree.
+
+\section dispatch_step1 Step 1.
+
+Define an enable flag, a config.h flag, and an AM_CONFIGURE
+flag in configure.ac. We will use the flags --enable-netcdfm
+ENABLE_NETCDFM, and USE_NETCDFM respectively.
+
+\section dispatch_step2 Step 2.
+
+It is assumed here that there is a directory called, say,
+libsrcm, containing the code for implementing this dispatcher.
+
+Choose some prefix of characters to identify the new
+dispatch system. In effect we are defining a name-space. For
+our in-memory system, we will choose "NCM" and "ncm". NCM is
+used for procedures to be entered into the dispatch table
+and ncm for all other procedures.
+
+\section dispatch_step3 Step 3.
+
+Modify file libdispatch/ncdispatch.h as follows.
+
+    Add an index for this implementation:
+
+\code
+              #define NC_DISPATCH_NCM  5
+\endcode
+
+    Define an external reference to the in-memory dispatch table.
+    At the same time, we will define an initialization procedure
+    for this dispatcher.
+
+\code
+              #ifdef ENABLE_NETCDFM
+              extern NC_Dispatch* NCM_dispatch_table;
+              extern int NCM_initialize(void);
+              #endif
+\endcode
+
+\section dispatch_step4 Step 4.
+
+Create a called include/ncmdispatch.h
+using, say, include/nc3dispatch.h as a template.
+
+\section dispatch_step5 Step 5.
+
+Create a file called libsrcm/ncmdispatch.c, using
+libsrc/nc3dispatch.c as a template.
+
+In particular,
+define the functions necessary to fill in the dispatch table.
+Within the libsrcm directory, we need to define Makefile.am, the source files
+containing the dispatch table code and the functions to be placed in the
+dispatch table, call them ncmdispatch.c and ncmdispatch.h.
+
+As part of the ncmdispatch.c file, you must define the following.
+
+\code
+     NC_Dispatch NCM_dispatcher = {
+     NC_DISPATCH_NCM,
+     NCM_create,
+     NCM_open,
+     ...
+     };
+
+     int
+     NCM_initialize(void)
+     {
+         NCM_dispatch_table = &NCM_dispatcher;
+	 ...
+         return NC_NOERR;
+     }
+\endcode
+
+Assuming that the in-memory library does not require any external
+libraries, then the Makefile.am will look something like this.
+
+\code
+     NCM_SOURCES = ncmdispatch.c ncmdispatch.h ...
+     AM_CPPFLAGS +=  -I$(top_srcdir)/libsrc -I$(top_srcdir)/libdispatch
+     libnetcdfm_la_SOURCES = $(NCM_SOURCES)
+     noinst_LTLIBRARIES = libnetcdfm.la
+\endcode
+
+\section dispatch_step6 Step 6.
+
+Provide for the inclusion of this library in the final libnetcdf
+library. This is accomplished by modifying liblib/Makefile.am by
+adding something like the following.
+
+\code
+     if USE_NETCDFM
+        libnetcdf_la_LIBADD += $(top_builddir)/libsrcm/libnetcdfm.la
+     endif
+\endcode
+
+\section dispatch_step7 Step 7.
+
+Modify the NC_initialize function in liblib/stub.c by adding
+appropriate references to the NCM dispatch function.
+
+\code
+     #ifdef ENABLE_NETCDFM
+     extern int NCM_initialize(void);
+     #endif
+     ...
+     int NC_initialize(void)
+     {
+     ...
+     #ifdef ENABLE_DAP
+         if((stat = NCM_initialize())) return stat;
+     #endif
+     ...
+     }
+\endcode
+
+\section dispatch_step8 Step 8.
+
+Add a directory of tests; ncm_test, say. The file ncm_test/Makefile.am
+will look something like this.
+
+\code
+     # These files are created by the tests.
+     CLEANFILES = ...
+     # These are the tests which are always run.
+     TESTPROGRAMS = test1 test2 ...
+     test1_SOURCES = test1.c ...
+     ...
+     # Set up the tests.
+     check_PROGRAMS = $(TESTPROGRAMS)
+     TESTS = $(TESTPROGRAMS)
+     # Any extra files required by the tests
+     EXTRA_DIST = ...
+\endcode
+
+\section dispatch_step9 Step 9.
+
+Provide for libnetcdfm to be constructed by adding the following to
+the top-level Makefile.am.
+
+\code
+     if USE_NETCDFM
+     NCM=libsrcm
+     NCMTESTDIR=ncm_test
+     endif
+     ...
+     SUBDIRS = ... $(DISPATCHDIR)  $(NCM) ... $(NCMTESTDIR)
+\endcode
+
+\section dispatch_step9 Step 10.
+
+Modify configure.ac to process the enable flag --enable-netcdfm.
+Typically, this will look like this.
+
+\code
+    # Does the user want to turn on netcdfm?
+    AC_MSG_CHECKING([whether netcdfm is to be enabled])
+    AC_ARG_ENABLE([netcdfm], [AS_HELP_STRING([--enable-netcdfm],
+                  [build with netcdfm])])
+    test "x$enable_netcdfm" = xyes || enable_netcdfm=no
+    AC_MSG_RESULT($enable_netcdfm)
+    # Set the config.h flag
+    if test "x$enable_netcdfm" = xyes; then
+       AC_DEFINE([ENABLE_NETCDFM], [1], [if true, build NETCDFM])
+    fi
+    # Define the automake conditional flag
+    AM_CONDITIONAL(USE_NETCDFM, [test "x$enable_netcdfm" = xyes])
+\endcode
+
+\section choosing_dispatch_table_create Choosing a Dispatch Table for nc_create
+
+The dispatch table is chosen in the NC_create and the NC_open
+procedures in libdispatch/dfile.c.
+
+When creating a file, 
+the dispatch table is currently chosen based on
+the following pieces of information.
+
+* The file path,
+* The mode,
+* The output of the function NC_testurl,
+* The output of the function NC_urlmodel.
+
+NC_testurl returns one if the file path looks like a
+url, and zero otherwise.
+If NC_testurl returns 1, then the function NC_urlmodel
+can be called to attempt to get what is called the 'model'.
+The model is typically the OR of a flag indicating
+the url protocol to use (e.g. opendap DAP2)
+and the representation (either netcdf-3 or netcdf-4, currently).
+
+The mode argument can be used to detect, for example, what kind
+of file to create: netcdf-3, netcdf-4, 64-bit netcdf-3, etc.
+
+Although currently not used, this code could be modified to
+also use other pieces of information such as environment
+variables.
+
+\section choosing_dispatch_table_open Choosing a Dispatch Table for nc_opne
+
+When opening a file, 
+the dispatch table is currently chosen based on
+the following pieces of information.
+
+* The file contents,
+* The file path,
+* The mode,
+* The output of the function NC_testurl,
+* The output of the function NC_urlmodel.
+
+A function is provided, NC_check_file_type,
+to attempt to determine the file type, and hence the
+appropriate dispatcher based on the file content.
+
+\section choosing_dispatch_table_test Adding Dispatch Table tests
+
+When adding a new dispatcher, it is probably necessary
+to modify the above function in libdispatch/dfile.c and
+libdispatch/ddispatch.c.
+Some possibilities are as follows.
+
+- Add a new mode flag: say NC_NETCDFM.
+- Use an environment variable.
+- Define a special file path format that indicates the need to use a
+  special dispatch table. Note that if you do this, then you
+  may need to modify e.g. ncdump to accept that path format.a
+
+In addition to the above, there is one additional mechanism to force
+the use of a specific dispatch table. The procedure
+"NC_set_dispatch_override()" can be invoked to specify a dispatch
+table.
+
+\section special_dispatch Special Dispatch Table Signatures.
+
+Several of the entries in the dispatch table are significantly
+different than those of the external API.
+
+\section create_open_dispatch Create/Open
+
+The create table entry and the open table entry have the following
+signatures respectively.
+
+\code
+int (*create)(const char *path, int cmode,
+	  size_t initialsz, int basepe, size_t *chunksizehintp, 
+	  int use_parallel, void* parameters,
+	  struct NC_Dispatch* table, NC* ncp);
+\endcode
+
+\code
+    int (*open)(const char *path, int mode,
+	    int basepe, size_t *chunksizehintp,
+	    int use_parallel, void* parameters,
+	    struct NC_Dispatch* table, NC* ncp);
+\endcode
+
+The key difference is that these are the union of all the possible
+create/open signatures from the netcdf.h API. Note especially the last
+two parameters. The dispatch table is included in case the create
+function (e.g. NCM_create) needs to invoke other dispatch
+functions. The very last parameter is a pointer to an NC
+instance. This will be created and passed in. It is the duty
+of the dispatch specific open and create functions to properly
+fill in its fields.
+
+
+\page put_vara_dispatch Accessing Data with put_vara() and get_vara()
+
+\code
+     int (*put_vara)(int ncid, int varid, const size_t *start, const size_t *count,
+                          const void *value, nc_type memtype);
+\endcode
+
+\code
+     int (*get_vara)(int ncid, int varid, const size_t *start, const size_t *count,
+                     void *value, nc_type memtype);
+\endcode
+
+Most of the parameters are similar to the netcdf API parameters. The
+last parameter, however, is the type of the data in
+memory. Additionally, instead of using an "int islong" parameter, the
+memtype will be either ::NC_INT or ::NC_INT64, depending on the value
+of sizeof(long). This means that even netcdf-3 code must be prepared
+to encounter the ::NC_INT64 type.
+
+\page put_attr_dispatch Accessing Attributes with put_attr() and get_attr()
+
+\code
+     int (*get_att)(int ncid, int varid, const char *name,
+                         void *value, nc_type memtype);
+\endcode
+
+\code
+     int (*put_att)(int ncid, int varid, const char *name, nc_type datatype, size_t len,
+                    const void *value, nc_type memtype);
+\endcode
+
+Again, the key difference is the memtype parameter. As with
+put/get_vara, it used ::NC_INT64 to encode the long case.
+
 */

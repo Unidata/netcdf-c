@@ -39,8 +39,6 @@
 #include "netcdf.h"
 #include "ncdispatch.h"
 
-
-
 #if defined(__cplusplus)
 extern "C" {
 #endif

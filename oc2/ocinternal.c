@@ -71,7 +71,7 @@ ocinternalinitialize(void)
 
     if(sizeof(long) != sizeof(void*)) {
 	fprintf(stderr,"OC depends on the assumption that sizeof(long) == sizeof(void*)\n");
-	OCASSERT(sizeof(long) == sizeof(void*));
+//	OCASSERT(sizeof(long) == sizeof(void*));
     }
 
     if(!ocglobalstate.initialized) {

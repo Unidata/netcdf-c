@@ -17,7 +17,7 @@ man_MANS = ncgen3.1
 
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l c0.cdl run_tests.sh	\
-run_nc4_tests.sh XGetopt.c $(man_MANS)
+run_nc4_tests.sh XGetopt.c $(man_MANS) makeparser.sh
 
 # There is a netcdf classic and netcdf-4 test script, but don't run
 # them for DLL builds.
@@ -36,8 +36,4 @@ EXTRA_DIST += CMakeLists.txt XGetopt.c
 # Otherwise never invoked, but records how to do it. Don't forget to
 # manually insert #include "config.h" in ncgenyy.c!
 makeparser::
-	flex -Pncg -8 ncgen.l
-	mv lex.ncg.c ncgenyy.c
-	bison -pncg -d ncgen.y
-	mv ncgen.tab.c ncgentab.c
-	mv ncgen.tab.h ncgentab.h
+	sh ./makeparser.sh

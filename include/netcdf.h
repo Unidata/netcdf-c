@@ -1933,32 +1933,16 @@ ncrecput(int ncid, long recnum, void *const *datap);
 /* Compression API */
 
 #define NC_COMPRESSION_MAX_NAME 64
+/* This must be the max of the NC_NELEMS_XXX in nc4compress.h */
 #define NC_COMPRESSION_MAX_PARAMS 64
+/* Define the max number of dimensions that can be handled by
+   some of the compressors */
+#define NC_COMPRESSION_MAX_DIMS 16
 
 /** 
 The compression parameters are stored in an
 array of unsigned ints. For the current set of algorithms,
-the array conforms to this union{}.
-Note that some fields are int, some are unsigned int.
-The intent is to allow anything that will fit into 32 bits.
-typedef union {
-    unsigned int params[NC_COMPRESSION_MAX_PARAMS]; arbitrary 32 bit values
-    struct {
-        unsigned int level;
-    } zip;
-    struct {
-        unsigned int level
-    } bzip2;
-    struct {
-        unsigned int options_mask;
-	unsigned int bits_per_pixel;
-        unsigned int pixels_per_block;
-	unsigned int pixels_per_scanline;
-    } szip;
-    struct {
-	int prec;  number of bits of precision (zero = full)
-    } fpzip;
-} nc_compression_t;
+the array conforms to the union defined in nc4compress.h.
 */
 
 /* Set compression settings for a variable.
@@ -1966,12 +1950,12 @@ typedef union {
    The form of the parameters is algorithm dependent.
 */
 EXTERNL int
-nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, unsigned int* params);
+nc_def_var_compress(int ncid, int varid, int useshuffle, const char* algorithm, int nparams, unsigned int* params);
 
 /* Find out compression settings of a var. */
 EXTERNL int
 nc_inq_var_compress(int ncid, int varid, int *useshufflep, 
-		    char**algorithmp, unsigned int* paramsp);
+		    char**algorithmp, int* nparamsp, unsigned int* paramsp);
 
 #define NC_HAVE_META_H
 

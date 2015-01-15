@@ -14,11 +14,10 @@ DAP=1
 #PAR=1
 
 # Following must be consistent
-SZIP=1
+#SZIP=1
 BZIP2=1
-#FPZIP=1
-#ZFP=1
-COMPRESSLIBS=-L/machine/dmh/libs/lib -lbz2 -lszip -lfpzip -lzp
+FPZIP=1
+ZFP=1
 
 if test "x$PNETCDF" = x1 ; then
 PAR=1
@@ -36,10 +35,6 @@ CFLAGS="-Wall -Wno-unused-variable ${CFLAGS}"
 
 stddir="/usr/local"
 PREFIX=/usr/local
-
-if test "x$SZIP" = x1 ; then
-stddir="/home/dmh/experimental"
-fi
 
 if test "x${cmds}" = x ; then
   cmds=""
@@ -100,7 +95,7 @@ LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
 fi
 
 if test "x$SZIP" = "x1" ; then
-LDFLAGS="$LDFLAGS -lsz"
+LDFLAGS="$LDFLAGS -lsz -laec"
 fi
 
 if test "x$BZIP2" = "x1" ; then
@@ -115,6 +110,13 @@ LDFLAGS="$LDFLAGS -L/machine/dmh/libs/lib -lfpzip"
 CPPFLAGS="$CPPFLAGS -I/machine/dmh/libs/include"
 LD_LIBRARY_PATH="/machine/dmh/libs/lib:$LD_LIBRARY_PATH"
 LDFLAGS="$LDFLAGS -lfpzip"
+fi
+
+if test "x$ZFP" = "x1" ; then
+LDFLAGS="$LDFLAGS -L/machine/dmh/libs/lib -lzfp"
+CPPFLAGS="$CPPFLAGS -I/machine/dmh/libs/include"
+LD_LIBRARY_PATH="/machine/dmh/libs/lib:$LD_LIBRARY_PATH"
+LDFLAGS="$LDFLAGS -lzfp"
 fi
 
 if test "x$HDF4" = "x1" ; then

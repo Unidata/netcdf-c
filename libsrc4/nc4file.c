@@ -1532,8 +1532,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
    }
 
    /* Find out what filters are applied to this HDF5 dataset,
-    * fletcher32, deflate, and/or shuffle. All other filters are
-    * ignored. */
+    * fletcher32, deflate, and/or shuffle, and other compressors. */
    if ((propid = H5Dget_create_plist(datasetid)) < 0)
       BAIL(NC_EHDFERR);
 #ifdef EXTRA_TESTS
@@ -1579,9 +1578,10 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 	      status = nccompress_inq_parameters(
                                       filter,
 				      propid,
-				      cd_nelems,
+				      (int)cd_nelems,
 				      cd_values,
 				      var->algorithm,
+				      &var->compress_nparams,
                                       var->compress_params);
 	      if(status != NC_NOERR)
                   LOG((1, "Yikes! Unknown filter type found on dataset!"));

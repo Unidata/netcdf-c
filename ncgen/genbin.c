@@ -237,6 +237,7 @@ genbin_definespecialattributes(Symbol* var)
         check_err(stat,__LINE__,__FILE__);
     }
     if(special->flags & (_COMPRESSION_FLAG) && (special->_Algorithm > 0)) {
+	int nparams = NC_COMPRESSION_MAX_PARAMS;
 	nc_compression_t parms;
 	const char* algorithm;
 	parms.zip.level = special->_DeflateLevel;
@@ -246,6 +247,7 @@ genbin_definespecialattributes(Symbol* var)
                                   var->ncid,
                                   (special->_Shuffle == 1?1:0),
                                   algorithm,
+				  nparams,
 				  parms.params);
         check_err(stat,__LINE__,__FILE__);
     }

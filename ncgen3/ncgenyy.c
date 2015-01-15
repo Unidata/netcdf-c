@@ -1,5 +1,5 @@
 
-#line 3 "lex.ncg.c"
+#line 3 "ncgenyy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -909,7 +909,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 913 "lex.ncg.c"
+#line 913 "ncgenyy.c"
 
 #define INITIAL 0
 
@@ -1093,7 +1093,7 @@ YY_DECL
     
 #line 107 "ncgen.l"
 
-#line 1097 "lex.ncg.c"
+#line 1097 "ncgenyy.c"
 
 	if ( !(yy_init) )
 		{
@@ -1470,7 +1470,7 @@ YY_RULE_SETUP
 #line 285 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 1474 "lex.ncg.c"
+#line 1474 "ncgenyy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

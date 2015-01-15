@@ -706,12 +706,20 @@ NC5_put_vara(int ncid,
 }
 
 static int
+NC5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, 
+               int *ndimsp, int *dimidsp, int *nattsp, 
+               int *shufflep, char** algorithmp,
+               int *nparams, unsigned int* compression_params,
+               int *fletcher32p, int *contiguousp, size_t *chunksizesp, 
+               int *no_fill, void *fill_valuep, int *endiannessp)
+
+static int
 NC5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *ndimsp, int *dimidsp, int *nattsp,
-               int *shufflep, int *deflatep, int *deflate_levelp,
+               int *shufflep, char** algorithmp,
+	       int *nparamsp, unsigned in* compression_params,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
-               int *no_fill, void *fill_valuep, int *endiannessp,
-	       int *options_maskp, int *pixels_per_blockp)
+               int *no_fill, void *fill_valuep, int *endiannessp)
 {
     int status;
     NC* nc;

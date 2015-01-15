@@ -408,7 +408,7 @@ static int
 NCSUB_inq_var_all(int ncid, int varid, char* name, nc_type* xtypep, 
                int* ndimsp, int* dimidsp, int* nattsp, 
                int* shufflep, char** algorithmp,
-	       unsigned int* paramsp, 
+	       int* nparamsp, unsigned int* paramsp, 
                int* fletcher32p, int* contiguousp, size_t* chunksizesp, 
                int* no_fill, void* fill_valuep, int* endiannessp
 	       )
@@ -420,8 +420,8 @@ NCSUB_inq_var_all(int ncid, int varid, char* name, nc_type* xtypep,
    if(ncstat != NC_NOERR) return ncstat;
    return ncsub->dispatch->inq_var_all(nc->substrate,varid,name,xtypep,
                                      ndimsp,dimidsp,nattsp,shufflep,
-                                     algorithmp,paramsp,fletcher32p,
-                                     contiguousp,chunksizesp,
+                                     algorithmp,nparamsp, paramsp,
+				     fletcher32p,contiguousp,chunksizesp,
                                      no_fill,fill_valuep,
                                      endiannessp);
 }
@@ -836,14 +836,14 @@ NCSUB_get_var_chunk_cache(int ncid, int a1, size_t* a2, size_t* a3, float* a4)
 }
 
 static int
-NCSUB_def_var_compress(int ncid, int a1, int a2, const char* a3, unsigned int* a4)
+NCSUB_def_var_compress(int ncid, int a1, int a2, const char* a3, int nparams, unsigned int* params)
 {
     NC *nc, *ncsub;
     int ncstat = NC_check_id(ncid, &nc);
     if(ncstat != NC_NOERR) return ncstat;
     ncstat = NC_check_id(nc->substrate, &ncsub);
     if(ncstat != NC_NOERR) return ncstat;
-    return ncsub->dispatch->def_var_compress(nc->substrate,a1,a2,a3,a4);
+    return ncsub->dispatch->def_var_compress(nc->substrate,a1,a2,a3,nparams,params);
 }
 
 

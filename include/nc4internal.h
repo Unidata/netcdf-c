@@ -167,6 +167,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
    HDF5_OBJID_T *dimscale_hdf5_objids;
    char algorithm[NC_COMPRESSION_MAX_NAME]; /* Deflate algorithm name ; "" => none */
+   int compress_nparams; /* actual # of compression params */
    unsigned int compress_params[NC_COMPRESSION_MAX_PARAMS];
    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */

@@ -4,7 +4,7 @@ set -e
 #S="-s"
 
 # Compressions to test
-TC="bzip2 fpzip"
+TC="nozip zip szip bzip2 fpzip"
 
 # if this is part of a distcheck action, then this script
 # will be executed in a different directory
@@ -13,29 +13,19 @@ TC="bzip2 fpzip"
 srcdir=`dirname $0`
 cd $srcdir
 srcdir=`pwd`
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir="$srcdir"/..
-fi
-tmp=`echo ${srcdir}|sed -e 's/^\\\\//g'`
-if test ${tmp} = ${srcdir} ; then
-  srcdir=`pwd`/${srcdir}
-  tmp=`echo ${srcdir}|sed -e 's/\\\\$//g'`
-  srcdir=${tmp}
-fi
 echo "srcdir=${srcdir}"
 # Also compute the build directory
-#builddir=`pwd`/..
-builddir=${srcdir}/..
+builddir=`pwd`
+#builddir=${srcdir}/..
 echo "builddir=${builddir}"
 
 # Known compressions
-C="zip bzip2 szip fpzip zfp"
+C="nozip zip bzip2 szip fpzip zfp"
 
-if test -f "./tst_compress.exe" ; then
-EXE="./tst_compress.exe"
+if test -f "${builddir}/tst_compress.exe" ; then
+EXE="${builddir}/tst_compress.exe"
 else
-EXE="./tst_compress"
+EXE="${builddir}/tst_compress"
 fi
 
 function clean {
@@ -81,7 +71,10 @@ if test "x$1" = xbaseline ; then
 fi
 
 # Main test
-if ! test -f ${srcdir}/baseline.cdl ; then
+if test -f ${srcdir}/baseline.cdl ; then
+    echo "baseline: ${srcdir}/baseline.cdl"
+else
+    echo "baseline: ${srcdir}/baseline.cdl"
   echo "No baseline file exists"
   exit 1
 fi
@@ -95,9 +88,10 @@ if ! ${EXE} $TC ; then
 fi
 
 # ncdump both files
+if test -f nozip.nc ;   then compare nozip; fi
 if test -f zip.nc ;   then compare zip; fi
-if test -f bzip2.nc ; then compare bzip2; fi
 if test -f szip.nc ;  then compare szip ; fi
+if test -f bzip2.nc ; then compare bzip2; fi
 if test -f fpzip.nc ; then compare fpzip ; fi
 if test -f zfp.nc ; then compare zfp ; fi
 

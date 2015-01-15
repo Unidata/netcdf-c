@@ -1,7 +1,7 @@
 # test: ../ncdump/cdl4/ref_const_test.cdl
 # test: ../ncdump/cdl4/ref_tst_chardata.cdl
 K="-k nc4"
-F="z.cdl"
+F="ref_tst_special_atts.cdl"
 #B="-B12"
 DBG="-d"
 L=b

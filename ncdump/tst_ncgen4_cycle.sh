@@ -1,5 +1,4 @@
 #!/bin/sh
-
 . ${srcdir}/tst_ncgen_shared.sh
 
 if test "${MODE}" = 3 ; then

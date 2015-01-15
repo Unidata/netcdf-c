@@ -124,7 +124,8 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp, 
 				     dimidsp, nattsp, NULL, NULL, NULL, 
-				     NULL, NULL, NULL, NULL, NULL, NULL);
+				     NULL, NULL, NULL, NULL, NULL, NULL,
+				     NULL);
 }
 
 /** 
@@ -280,6 +281,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
 {
    NC* ncp;
    char* algorithm;
+   int nparams;
    nc_compression_t params;
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
@@ -291,8 +293,9 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       shufflep, /*shufflep*/
-      &algorithm, /*deflatep*/
-      params.params, /*deflate paramsp*/
+      &algorithm, /*compressor*/
+      &nparams,       /* nparamsp*/
+      params.params, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -351,8 +354,9 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
+      NULL, /*compressor*/
+      NULL, /*nparamsp*/
+      NULL, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -401,8 +405,9 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
+      NULL, /*compressor*/
+      NULL, /* nparamsp*/
+      NULL, /*paramsp*/
       fletcher32p, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -441,8 +446,8 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, 
-				     NULL, NULL, NULL, NULL, NULL, storagep, 
-				     chunksizesp, NULL, NULL, NULL);
+				     NULL, NULL, NULL, NULL, NULL, NULL,
+				     storagep, chunksizesp, NULL, NULL, NULL);
 }
 
 /** \ingroup variables
@@ -482,8 +487,9 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
+      NULL, /*compressor*/
+      NULL, /*nparamsp*/
+      NULL, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -528,8 +534,9 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
+      NULL, /*algorithmp*/
+      NULL, /*nparamsp*/
+      NULL, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
@@ -609,7 +616,7 @@ variable, the algorithm dependent parameters will be writen here.
 \returns ::NC_EHDF Invalid/unknown compression algorithm.
 */
 int
-nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, unsigned int* paramsp)
+nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, int* nparamsp, unsigned int* paramsp)
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
@@ -623,6 +630,7 @@ nc_inq_var_compress(int ncid, int varid, int* useshufflep, char** algorithmp, un
       NULL, /*nattsp*/
       useshufflep, /*shufflep*/
       algorithmp, /*algorithmp*/
+      nparamsp, /*nparamsp*/
       paramsp, /*paramsp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
