@@ -14,7 +14,7 @@ This has some similarities to OCNODE.
 struct OCdata {
     OCheader  header;
     OCDT      datamode;
-    OCnode*   template;
+    OCnode*   pattern;
     OCdata*   container; /* link back to container instance */
     size_t    index;     /* WRT to the container */
     off_t     xdroffset;	/* Of this instance wrt xxdr_getpos() */

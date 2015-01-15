@@ -47,13 +47,13 @@ OCerror
 ocdata_container(OCstate* state, OCdata* data, OCdata** containerp)
 {
     OCdata* container;
-    OCnode* template;
+    OCnode* pattern;
 
     OCASSERT(state != NULL);
 
-    template = data->template;
+    pattern = data->pattern;
 
-    if(template->container == NULL)
+    if(pattern->container == NULL)
 	return OCTHROW(OC_EBADTYPE);
 
     container = data->container;
@@ -71,12 +71,12 @@ OCerror
 ocdata_root(OCstate* state, OCdata* data, OCdata** rootp)
 {
     OCdata* root;
-    OCnode* template;
+    OCnode* pattern;
 
     OCASSERT(state != NULL);
 
-    template = data->template;
-    root = template->tree->data.data;
+    pattern = data->pattern;
+    root = pattern->tree->data.data;
     if(rootp) *rootp = root;
 
     octrace("root", state, root);
@@ -88,14 +88,14 @@ OCerror
 ocdata_ithfield(OCstate* state, OCdata* container, size_t index, OCdata** fieldp)
 {
     OCdata* field;
-    OCnode* template;
+    OCnode* pattern;
 
     OCASSERT(state != NULL);
     OCASSERT(container != NULL);
 
-    template = container->template;
+    pattern = container->pattern;
 
-    if(!ociscontainer(template->octype))
+    if(!ociscontainer(pattern->octype))
 	return OCTHROW(OC_EBADTYPE);
 
     /* Validate index */
@@ -115,25 +115,25 @@ ocdata_ithelement(OCstate* state, OCdata* data, size_t* indices, OCdata** elemen
 {
     int stat = OC_NOERR;
     OCdata* element;
-    OCnode* template;
+    OCnode* pattern;
     size_t index,rank;
 
     OCASSERT(state != NULL);
     OCASSERT(data != NULL);
 
-    template = data->template;
-    rank = template->array.rank;
+    pattern = data->pattern;
+    rank = pattern->array.rank;
 
     /* Must be a dimensioned Structure */
-    if(template->octype != OC_Structure || rank == 0)
+    if(pattern->octype != OC_Structure || rank == 0)
 	return OCTHROW(OC_EBADTYPE);
 
     /* Validate indices */
-    if(!ocvalidateindices(rank,template->array.sizes,indices))
+    if(!ocvalidateindices(rank,pattern->array.sizes,indices))
 	return OCTHROW(OC_EINVALCOORDS);
 
     /* compute linearized index */
-    index = ocarrayoffset(rank,template->array.sizes,indices);
+    index = ocarrayoffset(rank,pattern->array.sizes,indices);
 
     if(index >= data->ninstances)
 	return OCTHROW(OC_EINDEX);
@@ -156,15 +156,15 @@ ocdata_ithrecord(OCstate* state, OCdata* data,
 {
     int stat = OC_NOERR;
     OCdata* record;
-    OCnode* template;
+    OCnode* pattern;
 
     OCASSERT(state != NULL);
     OCASSERT(data != NULL);
 
-    template = data->template;
+    pattern = data->pattern;
 
     /* Must be a Sequence */
-    if(template->octype != OC_Sequence
+    if(pattern->octype != OC_Sequence
        || !fisset(data->datamode,OCDT_SEQUENCE))
 	return OCTHROW(OC_EBADTYPE);
 
@@ -184,20 +184,20 @@ ocdata_ithrecord(OCstate* state, OCdata* data,
 OCerror
 ocdata_position(OCstate* state, OCdata* data, size_t* indices)
 {
-    OCnode* template;
+    OCnode* pattern;
 
     OCASSERT(state != NULL);
     OCASSERT(data != NULL);
     OCASSERT(indices != NULL);
 
-    template = data->template;
+    pattern = data->pattern;
     if(fisset(data->datamode,OCDT_RECORD))
 	indices[0] = data->index;
     else if(fisset(data->datamode,OCDT_ELEMENT)) {
 	/* Transform the linearized array index into a set of indices */
 	ocarrayindices(data->index,
-                       template->array.rank,
-                       template->array.sizes,
+                       pattern->array.rank,
+                       pattern->array.sizes,
                        indices);
     } else
 	return OCTHROW(OC_EBADTYPE);
@@ -211,7 +211,7 @@ ocdata_recordcount(OCstate* state, OCdata* data, size_t* countp)
     OCASSERT(data != NULL);
     OCASSERT(countp != NULL);
 
-    if(data->template->octype != OC_Sequence
+    if(data->pattern->octype != OC_Sequence
        || !fisset(data->datamode,OCDT_SEQUENCE))
 	return OCTHROW(OC_EBADTYPE);
 
@@ -241,7 +241,7 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
     OCtype etype, octype;
     int isscalar;
     size_t elemsize, totalsize, countsize;
-    OCnode* template;
+    OCnode* pattern;
 
     octrace("read", state, data);
 
@@ -250,12 +250,12 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
     assert(memory != NULL);
     assert(memsize > 0);
 
-    template = data->template;
-    octype = template->octype;
+    pattern = data->pattern;
+    octype = pattern->octype;
     assert(octype == OC_Atomic);
-    etype = template->etype;
+    etype = pattern->etype;
 
-    isscalar = (template->array.rank == 0 ? 1 : 0);
+    isscalar = (pattern->array.rank == 0 ? 1 : 0);
 
     /* validate memory space*/
     elemsize = octypesize(etype);
@@ -265,7 +265,7 @@ ocdata_read(OCstate* state, OCdata* data, size_t start, size_t count,
 	return OCTHROW(OC_EINVAL);
 
     /* Get XXDR* */
-    xdrs = template->root->tree->data.xdrs;
+    xdrs = pattern->root->tree->data.xdrs;
 
     if(isscalar) {
         /* Extract the data */
@@ -291,7 +291,7 @@ static OCerror
 ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, size_t count)
 {
     int i;
-    OCnode* template;
+    OCnode* pattern;
     OCtype etype;
     off_t elemsize, totalsize, xdrtotal, xdrstart;
     int scalar;
@@ -302,9 +302,9 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     OCASSERT(count > 0);
     OCASSERT((start+count) <= data->ninstances);
 
-    template = data->template;
-    etype = template->etype;
-    scalar = (template->array.rank == 0);
+    pattern = data->pattern;
+    etype = pattern->etype;
+    scalar = (pattern->array.rank == 0);
 
     /* Note that for strings, xdrsize == 0 */
     xdrtotal = count*data->xdrsize; /* amount (in xdr sizes) to read */

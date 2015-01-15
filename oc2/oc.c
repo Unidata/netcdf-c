@@ -1228,7 +1228,7 @@ oc_data_recordcount(OCobject link, OCobject datanode, size_t* countp)
 }
 
 /*!
-Return the dds node that is the "template"
+Return the dds node that is the "pattern"
 for this data instance.
 
 \param[in] link The link through which the server is accessed.
@@ -1247,14 +1247,14 @@ oc_data_ddsnode(OCobject link, OCobject datanode, OCobject* nodep)
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    OCASSERT(data->template != NULL);
+    OCASSERT(data->pattern != NULL);
     if(nodep == NULL) ocerr = OC_EINVAL;
-    else *nodep = (OCobject)data->template;
+    else *nodep = (OCobject)data->pattern;
     return OCTHROW(ocerr);
 }
 
 /*!
-Return the OCtype of the ddsnode that is the "template"
+Return the OCtype of the ddsnode that is the "pattern"
 for this data instance. This is a convenience function
 since it can be obtained using a combination of other
 API procedures.
@@ -1275,9 +1275,9 @@ oc_data_octype(OCobject link, OCobject datanode, OCtype* typep)
     OCVERIFY(OC_Data,datanode);
     OCDEREF(OCdata*,data,datanode);
 
-    OCASSERT(data->template != NULL);
+    OCASSERT(data->pattern != NULL);
     if(typep == NULL) ocerr = OC_EINVAL;
-    else *typep = data->template->octype;
+    else *typep = data->pattern->octype;
     return OCTHROW(ocerr);
 }
 
@@ -1368,7 +1368,7 @@ oc_data_read(OCobject link, OCobject datanode,
 	         size_t memsize, void* memory)
 {
     OCdata* data;
-    OCnode* template;
+    OCnode* pattern;
     size_t count, rank;
 
     OCVERIFY(OC_Data,datanode);
@@ -1381,8 +1381,8 @@ oc_data_read(OCobject link, OCobject datanode,
 	return OCTHROW(OCTHROW(OC_EINVALCOORDS));
 
     /* Convert edges to a count */
-    template = data->template;
-    rank = template->array.rank;
+    pattern = data->pattern;
+    rank = pattern->array.rank;
     count = octotaldimsize(rank,edges);
 
     return OCTHROW(oc_data_readn(link,datanode,start,count,memsize,memory));
@@ -1454,7 +1454,7 @@ oc_data_readn(OCobject link, OCobject datanode,
     OCerror ocerr = OC_NOERR;
     OCstate* state;
     OCdata* data;
-    OCnode* template;
+    OCnode* pattern;
     size_t rank,startpoint;
 
     OCVERIFY(OC_State,link);
@@ -1467,8 +1467,8 @@ oc_data_readn(OCobject link, OCobject datanode,
     if(memory == NULL || memsize == 0)
 	return OCTHROW(OC_EINVAL);
 
-    template = data->template;
-    rank = template->array.rank;
+    pattern = data->pattern;
+    rank = pattern->array.rank;
 
     if(rank == 0) {
 	startpoint = 0;
@@ -1476,12 +1476,12 @@ oc_data_readn(OCobject link, OCobject datanode,
     } else if(start == NULL) {
         return OCTHROW(OCTHROW(OC_EINVALCOORDS));
     } else {/* not scalar */
-	startpoint = ocarrayoffset(rank,template->array.sizes,start);
+	startpoint = ocarrayoffset(rank,pattern->array.sizes,start);
     }
     if(N > 0)
         ocerr = ocdata_read(state,data,startpoint,N,memory,memsize);
     if(ocerr == OC_EDATADDS)
-	ocdataddsmsg(state,template->tree);
+	ocdataddsmsg(state,pattern->tree);
     return OCTHROW(OCTHROW(ocerr));
 }
 

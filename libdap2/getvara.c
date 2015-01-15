@@ -39,7 +39,7 @@ static int extract(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t diminde
 static int extractstring(NCDAPCOMMON*, Getvara*, CDFnode*, DCEsegment*, size_t dimindex, OClink, OCdatanode, struct NCMEMORY*);
 static void freegetvara(Getvara* vara);
 static NCerror makegetvar(NCDAPCOMMON*, CDFnode*, void*, nc_type, Getvara**);
-static NCerror attachsubset(CDFnode* target, CDFnode* template);
+static NCerror attachsubset(CDFnode* target, CDFnode* pattern);
 
 /**************************************************/
 /**
@@ -1029,27 +1029,27 @@ unattach(CDFnode* root)
 }
 
 static void
-setattach(CDFnode* target, CDFnode* template)
+setattach(CDFnode* target, CDFnode* pattern)
 {
-    target->attachment = template;
-    template->attachment = target;
+    target->attachment = pattern;
+    pattern->attachment = target;
     /* Transfer important information */
-    target->externaltype = template->externaltype;
-    target->maxstringlength = template->maxstringlength;
-    target->sequencelimit = template->sequencelimit;
-    target->ncid = template->ncid;
+    target->externaltype = pattern->externaltype;
+    target->maxstringlength = pattern->maxstringlength;
+    target->sequencelimit = pattern->sequencelimit;
+    target->ncid = pattern->ncid;
     /* also transfer libncdap4 info */
-    target->typeid = template->typeid;
-    target->typesize = template->typesize;
+    target->typeid = pattern->typeid;
+    target->typesize = pattern->typesize;
 }
 
 static NCerror
-attachdims(CDFnode* xnode, CDFnode* template)
+attachdims(CDFnode* xnode, CDFnode* pattern)
 {
     unsigned int i;
     for(i=0;i<nclistlength(xnode->array.dimsetall);i++) {
 	CDFnode* xdim = (CDFnode*)nclistget(xnode->array.dimsetall,i);
-	CDFnode* tdim = (CDFnode*)nclistget(template->array.dimsetall,i);
+	CDFnode* tdim = (CDFnode*)nclistget(pattern->array.dimsetall,i);
 	setattach(xdim,tdim);
 #ifdef DEBUG2
 fprintf(stderr,"attachdim: %s->%s\n",xdim->ocname,tdim->ocname);
@@ -1064,48 +1064,48 @@ It is assumed that both trees have been re-struct'ed if necessary.
 */
 
 static NCerror
-attachr(CDFnode* xnode, NClist* templatepath, int depth)
+attachr(CDFnode* xnode, NClist* patternpath, int depth)
 {
     unsigned int i,plen,lastnode,gridable;
     NCerror ncstat = NC_NOERR;
-    CDFnode* templatepathnode;
-    CDFnode* templatepathnext;
+    CDFnode* patternpathnode;
+    CDFnode* patternpathnext;
 
-    plen = nclistlength(templatepath);
+    plen = nclistlength(patternpath);
     if(depth >= plen) {THROWCHK(ncstat=NC_EINVAL); goto done;}
 
     lastnode = (depth == (plen-1));
-    templatepathnode = (CDFnode*)nclistget(templatepath,depth);
-    ASSERT((simplenodematch(xnode,templatepathnode)));
-    setattach(xnode,templatepathnode);
+    patternpathnode = (CDFnode*)nclistget(patternpath,depth);
+    ASSERT((simplenodematch(xnode,patternpathnode)));
+    setattach(xnode,patternpathnode);
 #ifdef DEBUG2
-fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,templatepathnode->ocname);
+fprintf(stderr,"attachnode: %s->%s\n",xnode->ocname,patternpathnode->ocname);
 #endif
 
     if(lastnode) goto done; /* We have the match and are done */
 
     if(nclistlength(xnode->array.dimsetall) > 0) {
-	attachdims(xnode,templatepathnode);
+	attachdims(xnode,patternpathnode);
     }
 
     ASSERT((!lastnode));
-    templatepathnext = (CDFnode*)nclistget(templatepath,depth+1);
+    patternpathnext = (CDFnode*)nclistget(patternpath,depth+1);
 
-    gridable = (templatepathnext->nctype == NC_Grid && depth+2 < plen);
+    gridable = (patternpathnext->nctype == NC_Grid && depth+2 < plen);
 
-    /* Try to find an xnode subnode that matches templatepathnext */
+    /* Try to find an xnode subnode that matches patternpathnext */
     for(i=0;i<nclistlength(xnode->subnodes);i++) {
         CDFnode* xsubnode = (CDFnode*)nclistget(xnode->subnodes,i);
-        if(simplenodematch(xsubnode,templatepathnext)) {
-	    ncstat = attachr(xsubnode,templatepath,depth+1);
+        if(simplenodematch(xsubnode,patternpathnext)) {
+	    ncstat = attachr(xsubnode,patternpath,depth+1);
 	    if(ncstat) goto done;
         } else if(gridable && xsubnode->nctype == NC_Atomic) {
             /* grids may or may not appear in the datadds;
 	       try to match the xnode subnodes against the parts of the grid
 	    */
-   	    CDFnode* templatepathnext2 = (CDFnode*)nclistget(templatepath,depth+2);
-	    if(simplenodematch(xsubnode,templatepathnext2)) {
-	        ncstat = attachr(xsubnode,templatepath,depth+2);
+   	    CDFnode* patternpathnext2 = (CDFnode*)nclistget(patternpath,depth+2);
+	    if(simplenodematch(xsubnode,patternpathnext2)) {
+	        ncstat = attachr(xsubnode,patternpath,depth+2);
                 if(ncstat) goto done;
 	    }
 	}
@@ -1115,49 +1115,49 @@ done:
 }
 
 NCerror
-attach(CDFnode* xroot, CDFnode* template)
+attach(CDFnode* xroot, CDFnode* pattern)
 {
     NCerror ncstat = NC_NOERR;
-    NClist* templatepath = nclistnew();
-    CDFnode* ddsroot = template->root;
+    NClist* patternpath = nclistnew();
+    CDFnode* ddsroot = pattern->root;
 
     if(xroot->attachment) unattach(xroot);
     if(ddsroot != NULL && ddsroot->attachment) unattach(ddsroot);
     if(!simplenodematch(xroot,ddsroot))
 	{THROWCHK(ncstat=NC_EINVAL); goto done;}
-    collectnodepath(template,templatepath,WITHDATASET);
-    ncstat = attachr(xroot,templatepath,0);
+    collectnodepath(pattern,patternpath,WITHDATASET);
+    ncstat = attachr(xroot,patternpath,0);
 done:
-    nclistfree(templatepath);
+    nclistfree(patternpath);
     return ncstat;
 }
 
 static NCerror
-attachsubsetr(CDFnode* target, CDFnode* template)
+attachsubsetr(CDFnode* target, CDFnode* pattern)
 {
     unsigned int i;
     NCerror ncstat = NC_NOERR;
     int fieldindex;
 
 #ifdef DEBUG2
-fprintf(stderr,"attachsubsetr: attach: target=%s template=%s\n",
-	target->ocname,template->ocname);
+fprintf(stderr,"attachsubsetr: attach: target=%s pattern=%s\n",
+	target->ocname,pattern->ocname);
 #endif
 
-    ASSERT((nodematch(target,template)));
-    setattach(target,template);
+    ASSERT((nodematch(target,pattern)));
+    setattach(target,pattern);
 
-    /* Try to match target subnodes against template subnodes */
+    /* Try to match target subnodes against pattern subnodes */
 
     fieldindex = 0;
-    for(fieldindex=0,i=0;i<nclistlength(template->subnodes) && fieldindex<nclistlength(target->subnodes);i++) {
-        CDFnode* templatesubnode = (CDFnode*)nclistget(template->subnodes,i);
+    for(fieldindex=0,i=0;i<nclistlength(pattern->subnodes) && fieldindex<nclistlength(target->subnodes);i++) {
+        CDFnode* patternsubnode = (CDFnode*)nclistget(pattern->subnodes,i);
         CDFnode* targetsubnode = (CDFnode*)nclistget(target->subnodes,fieldindex);
-        if(nodematch(targetsubnode,templatesubnode)) {
+        if(nodematch(targetsubnode,patternsubnode)) {
 #ifdef DEBUG2
-fprintf(stderr,"attachsubsetr: match: %s :: %s\n",targetsubnode->ocname,templatesubnode->ocname);
+fprintf(stderr,"attachsubsetr: match: %s :: %s\n",targetsubnode->ocname,patternsubnode->ocname);
 #endif
-            ncstat = attachsubsetr(targetsubnode,templatesubnode);
+            ncstat = attachsubsetr(targetsubnode,patternsubnode);
    	    if(ncstat) goto done;
 	    fieldindex++;
 	}
@@ -1168,23 +1168,23 @@ done:
 
 
 /*
-Match nodes in template tree to nodes in target tree;
-template tree is typically a structural superset of target tree.
+Match nodes in pattern tree to nodes in target tree;
+pattern tree is typically a structural superset of target tree.
 WARNING: Dimensions are not attached
 */
 
 static NCerror
-attachsubset(CDFnode* target, CDFnode* template)
+attachsubset(CDFnode* target, CDFnode* pattern)
 {
     NCerror ncstat = NC_NOERR;
 
-    if(template == NULL) {THROWCHK(ncstat=NC_NOERR); goto done;}
-    if(!nodematch(target,template)) {THROWCHK(ncstat=NC_EINVAL); goto done;}
+    if(pattern == NULL) {THROWCHK(ncstat=NC_NOERR); goto done;}
+    if(!nodematch(target,pattern)) {THROWCHK(ncstat=NC_EINVAL); goto done;}
 #ifdef DEBUG2
 fprintf(stderr,"attachsubset: target=%s\n",dumptree(target));
-fprintf(stderr,"attachsubset: template=%s\n",dumptree(template));
+fprintf(stderr,"attachsubset: pattern=%s\n",dumptree(pattern));
 #endif
-    ncstat = attachsubsetr(target,template);
+    ncstat = attachsubsetr(target,pattern);
 done:
     return ncstat;
 }

@@ -266,13 +266,13 @@ typedef struct CDFnode {
     unsigned long    sequencelimit; /* 0=>unlimited */
     BOOL	     usesequence;   /* If this sequence is usable */
     BOOL             elided;        /* 1 => node does not partipate in naming*/
-    struct CDFnode*  basenode;      /* derived tree map to template tree */
+    struct CDFnode*  basenode;      /* derived tree map to pattern tree */
     BOOL	     invisible;     /* 1 => do not show to user */
     BOOL	     zerodim;       /* 1 => node has a zero dimension */
     /* These two flags track the effects on grids of constraints */
     BOOL             nc_virtual;       /* node added by regrid */
     struct CDFnode* attachment;     /* DDS<->DATADDS cross link*/
-    struct CDFnode* template;       /* temporary field for regridding */
+    struct CDFnode* pattern;       /* temporary field for regridding */
     /* Fields for use by libncdap4 */
     NCtypesize       typesize;
     int              typeid;        /* when treating field as type */

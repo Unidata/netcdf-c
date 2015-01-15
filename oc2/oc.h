@@ -432,7 +432,7 @@ extern OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*)
 */
 extern OCerror oc_data_position(OClink, OCdatanode data, size_t* indices);
 
-/* Return the template dds node for an data */
+/* Return the pattern dds node for an data */
 extern OCerror oc_data_ddsnode(OClink, OCdatanode data, OCddsnode*);
 
 /* Return the octype of the data (convenience) */

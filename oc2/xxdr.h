@@ -150,7 +150,7 @@ extern int xxdr_ushort(XXDR* , unsigned short*);
 extern int xxdr_uint(XXDR* , unsigned int*);
 
 /* get an int from underlying stream*/
-extern int xxdr_ulonglong(XXDR* , unsigned long*);
+extern int xxdr_ulonglong(XXDR* , unsigned long long*);
 
 /* get a float from underlying stream*/
 extern int xxdr_float(XXDR* , float*);
