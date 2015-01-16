@@ -70,13 +70,15 @@ ocinternalinitialize(void)
     int stat = OC_NOERR;
 
     if(sizeof(off_t) != sizeof(void*)) {
-	fprintf(stderr,"OC xxdr depends on the assumption that sizeof(off_t) == sizeof(void*)\n");
-	OCASSERT(sizeof(off_t) == sizeof(void*));
+      fprintf(stderr,"OC xxdr depends on the assumption that sizeof(off_t) == sizeof(void*)\n");
+      //Commenting out for now, as this does not hold true on 32-bit
+      //linux systems.
+      //OCASSERT(sizeof(off_t) == sizeof(void*));
     }
 
     if(!ocglobalstate.initialized) {
-        memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
-	ocglobalstate.initialized = 1;
+      memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
+      ocglobalstate.initialized = 1;
     }
 
     /* Capture temp dir*/
