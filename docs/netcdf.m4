@@ -426,12 +426,12 @@ INCLUDE(netcdf)
 ifelse(API,C,,
 .SS Most Systems:)
 ifelse(NETCDF4,TRUE,
-COMPILER() ...  -lnetcdf -lhdf5_hl -lhdf5 -lz -lm,
-COMPILER() ... -lnetcdf)
+COMPILER() ...  \-lnetcdf \-lhdf5_hl \-lhdf5 \-lz \-lm,
+COMPILER() ... \-lnetcdf)
 ifelse(API,C,,
 .sp
 .SS CRAY PVP Systems:
-f90 -dp -i64 ... -lnetcdf
+f90 \-dp \-i64 ... \-lnetcdf
 )
 .ad
 .hy
@@ -704,7 +704,7 @@ NVARS() will contain the number of variables,
 NATTS() will contain the number of attributes, and
 UNLIMDIMID() will contain the
 dimension ID of the unlimited dimension if one exists, or
-ifelse(API,C, <<-1>>, <<0>>) otherwise.
+ifelse(API,C, <<\-1>>, <<0>>) otherwise.
 FORMATN() will contain the version number of the dataset <format>, one of
 MACRO(FORMAT_CLASSIC), MACRO(FORMAT_64BIT), MACRO(FORMAT_NETCDF4), or
 MACRO(FORMAT_NETCDF4_CLASSIC).

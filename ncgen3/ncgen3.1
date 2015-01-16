@@ -7,13 +7,13 @@ a C program, or a Fortran program
 .HP
 ncgen3
 .nh
-\%[-b]
-\%[-c]
-\%[-f]
-\%[-k \fIkind_of_file\fP]
-\%[-x]
-\%[-n]
-\%[-o \fInetcdf_filename\fP]
+\%[\-b]
+\%[\-c]
+\%[\-f]
+\%[\-k \fIkind_of_file\fP]
+\%[\-x]
+\%[\-n]
+\%[\-o \fInetcdf_filename\fP]
 \%\fIinput_file\fP
 .hy
 .ft
@@ -58,15 +58,15 @@ the "\fB-b\fP" option.  (This option is necessary because netCDF files
 cannot be written directly to standard output, since standard output is not
 seekable.)
 .IP "\fB-k \fRkind_of_file\fP"
-Using -k2 or -k "64-bit offset" specifies that
+Using \-k2 or \-k "64-bit offset" specifies that
 generated file (or program) should use version 2 of format that
 employs 64-bit file offsets.  The default is to use version 1
 ("classic") format with 32-bit file offsets, although this limits the
 size of the netCDF file, variables, and records to the sizes supported
 by the classic format.  (NetCDF-4 will support additional kinds of
 netCDF files, "netCDF-4" and "netCDF-4 classic model".)
-Note: -v is also accepted to mean the same thing as
--k for backward compatibility, but -k is preferred, to match
+Note: \-v is also accepted to mean the same thing as
+\-k for backward compatibility, but \-k is preferred, to match
 the corresponding ncdump option. 
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
@@ -84,7 +84,7 @@ From the CDL file `\fBfoo.cdl\fP', generate an equivalent binary netCDF file
 named `\fBx.nc\fP':
 .RS
 .HP
-ncgen3 -o x.nc foo.cdl
+ncgen3 \-o x.nc foo.cdl
 .RE
 .LP
 From the CDL file `\fBfoo.cdl\fP', generate a C program containing the
@@ -92,7 +92,7 @@ netCDF function invocations necessary to create an equivalent binary netCDF
 file named `\fBx.nc\fP':
 .RS
 .HP
-ncgen3 -c -o x.nc foo.cdl
+ncgen3 \-c \-o x.nc foo.cdl
 .RE
 .LP
 .SH USAGE
@@ -126,12 +126,12 @@ attributes so that the data would be more completely self-describing.)
 	time:units = "seconds since 1992-1-1 00:00:00";
 	Z:units = "geopotential meters";
 	Z:valid_range = 0., 5000.;
-	p:_FillValue = -9999.;
-	rh:_FillValue = -1;
+	p:_FillValue = \-9999.;
+	rh:_FillValue = \-1;
 
 \fBdata\fP:
 	lat   = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90;
-	lon   = -140, -118, -96, -84, -52;
+	lon   = \-140, \-118, \-96, \-84, \-52;
 }
 .fi
 .RE
@@ -235,12 +235,12 @@ does for character data.
 declarations in the output C code and to the nonstandard \fBBYTE\fP
 declaration in output Fortran code.
 .LP
-Shorts can hold values between -32768 and 32767.
+Shorts can hold values between \-32768 and 32767.
 \fBncgen3\fP converts \fBshort\fP declarations to \fBshort\fP
 declarations in the output C code and to the nonstandard \fBINTEGER*2\fP
 declaration in output Fortran code.
 .LP
-Longs can hold values between -2147483648 and 2147483647.
+Longs can hold values between \-2147483648 and 2147483647.
 \fBncgen3\fP converts \fBlong\fP declarations to \fBlong\fP
 declarations in the output C code and to \fBINTEGER\fP
 declarations in output Fortran code.  \fBint\fP and \fBinteger\fP are
@@ -248,14 +248,14 @@ accepted as synonyms for \fBlong\fP in CDL declarations.
 Now that there are platforms with 64-bit representations for C longs, it may
 be better to use the \fBint\fP synonym to avoid confusion.
 .LP
-Floats can hold values between about -3.4+38 and 3.4+38.  Their
+Floats can hold values between about \-3.4+38 and 3.4+38.  Their
 external representation is as 32-bit IEEE normalized single-precision
 floating point numbers.  \fBncgen3\fP converts \fBfloat\fP
 declarations to \fBfloat\fP declarations in the output C code and to
 \fBREAL\fP declarations in output Fortran code.  \fBreal\fP is accepted
 as a synonym for \fBfloat\fP in CDL declarations.
 .LP
-Doubles can hold values between about -1.7+308 and 1.7+308.  Their
+Doubles can hold values between about \-1.7+308 and 1.7+308.  Their
 external representation is as 64-bit IEEE standard normalized
 double-precision floating point numbers.  \fBncgen3\fP converts
 \fBdouble\fP declarations to \fBdouble\fP declarations in the output C
@@ -308,7 +308,7 @@ begins with `0', it is interpreted as octal, except that if it begins with
 `0x', it is interpreted as a hexadecimal constant.  For example:
 .RS
 .nf
--2s	// a short -2
+\-2s	// a short \-2
 0123s	// octal
 0x7ffs  //hexadecimal
 .fi
@@ -322,7 +322,7 @@ octal, except that if it begins with `0x', it is interpreted as a hexadecimal
 constant.  Examples of valid \fIlong\fP constants include:
 .RS
 .nf
--2
+\-2
 1234567890L
 0123		// octal
 0x7ff		// hexadecimal
@@ -336,7 +336,7 @@ constant with an `f' or `F' appended.  For example the following
 are all acceptable \fIfloat\fP constants:
 .RS
 .nf
--2.0f
+\-2.0f
 3.14159265358979f	// will be truncated to less precision
 1.f
 
@@ -350,7 +350,7 @@ floating point constant.  An optional `d' or `D' may be appended.
 For example the following are all acceptable \fIdouble\fP constants:
 .RS
 .nf
--2.0
+\-2.0
 3.141592653589793
 1.0e-20
 1.d
