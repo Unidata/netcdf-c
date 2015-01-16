@@ -7,14 +7,14 @@ ncdump \- Convert netCDF file to text form (CDL)
 .HP
 ncdump
 .nh
-\%[-chistxw]
-\%[-v \fIvar1,...\fP]
-\%[-b \fIlang\fP]
-\%[-f \fIlang\fP]
-\%[-l \fIlen\fP]
-\%[-n \fIname\fP]
-\%[-p \fIf_digits[,d_digits]\fP]
-\%[-g \fIgrp1,...\fP]
+\%[\-chistxw]
+\%[\-v \fIvar1,...\fP]
+\%[\-b \fIlang\fP]
+\%[\-f \fIlang\fP]
+\%[\-l \fIlen\fP]
+\%[\-n \fIname\fP]
+\%[\-p \fIf_digits[,d_digits]\fP]
+\%[\-g \fIgrp1,...\fP]
 \%\fIfile\fP
 .br
 .ft B
@@ -39,7 +39,7 @@ data representation between binary and text representations.  See
 representations.
 .LP
 \fBncdump\fP may also be used to determine what kind of netCDF file is used
-(which variant of the netCDF file format) with the -k option.
+(which variant of the netCDF file format) with the \-k option.
 .LP
 If DAP support was enabled when \fBncdump\fP was built, the file name
 may specify a DAP URL. This allows \fBncdump\fP to access data sources
@@ -121,19 +121,19 @@ be used.  If \fIlang\fP begins with `F' or `f', then Fortran language
 conventions will be used.  In either case, the data will be presented
 in the same order; only the annotations will differ.  This option may
 be useful for piping data into other filters, since each data value
-appears on a separate line, fully identified. (At most one of '-b' or '-f' options may be present.)
+appears on a separate line, fully identified. (At most one of '\-b' or '\-f' options may be present.)
 .IP "\fB-l\fP \fIlength\fP"
 Changes the default maximum line length (80) used in formatting lists of
 non-character data values.
 .IP "\fB-n\fP \fIname\fP"
-CDL requires a name for a netCDF file, for use by \fBncgen -b\fP in
+CDL requires a name for a netCDF file, for use by \fBncgen \-b\fP in
 generating a default netCDF file name.  By default, \fIncdump\fP constructs
 this name from the last component of the file name of the input netCDF file
 by stripping off any extension it has.  Use the \fB-n\fP option to specify a
-different name.  Although the output file name used by \fBncgen -b\fP can be
+different name.  Although the output file name used by \fBncgen \-b\fP can be
 specified, it may be wise to have \fIncdump\fP change the default name to
 avoid inadvertently overwriting a valuable netCDF file when using
-\fBncdump\fP, editing the resulting CDL file, and using \fBncgen -b\fP to
+\fBncdump\fP, editing the resulting CDL file, and using \fBncgen \-b\fP to
 generate a new netCDF file from the edited CDL file.
 .IP "\fB-p\fP \fIfloat_digits[,double_digits]\fP"
 Specifies default precision (number of significant digits) to use in
@@ -163,8 +163,8 @@ format variant 2).  NetCDF-4, uses a third variant of the format,
 to features supported by the netCDF-3 data model but represented using
 the HDF5 format, so that an unmodified netCDF-3 program can read or
 write the file just by relinking with the netCDF-4 library.  
-The string output by using the `-k' option may be provided as the
-value of the `-k' option to ncgen(1) to
+The string output by using the `\-k' option may be provided as the
+value of the `\-k' option to ncgen(1) to
 specify exactly what kind of netCDF file to generate, when you want to
 override the default inferred from the CDL.
 .IP "\fB-s\fP"
@@ -212,7 +212,7 @@ values interpreted with this option include the CF Conventions values
 `gregorian' or `standard', `proleptic_gregorian', `noleap' or `365_day',
 `all_leap' or `366_day', `360_day', and `julian'.
 .IP "\fB-i\fP"
-Same as the '-t' option, except output time data as date-time strings
+Same as the '\-t' option, except output time data as date-time strings
 with ISO-8601 standard 'T' separator, instead of a blank.
 .IP "\fB-g\fP \fIgrp1,...\fP"
 For netCDF-4 files, the output will include data values only for the
@@ -235,14 +235,14 @@ The NcML output option currently only works for netCDF classic model data.
 Look at the structure of the data in the netCDF file `\fBfoo.nc\fP':
 .RS
 .HP
-ncdump -c foo.nc
+ncdump \-c foo.nc
 .RE
 .LP
 Produce an annotated CDL version of the structure and data in the
 netCDF file `\fBfoo.nc\fP', using C-style indexing for the annotations:
 .RS
 .HP
-ncdump -b c foo.nc > foo.cdl
+ncdump \-b c foo.nc > foo.cdl
 .RE
 .LP
 Output data for only the variables `uwind' and `vwind' from the netCDF file
@@ -250,7 +250,7 @@ Output data for only the variables `uwind' and `vwind' from the netCDF file
 digits of precision:
 .RS
 .HP
-ncdump -v uwind,vwind -p 3 foo.nc
+ncdump \-v uwind,vwind \-p 3 foo.nc
 .RE
 .LP
 Produce a fully-annotated (one data value per line) listing of the data for
@@ -258,7 +258,7 @@ the variable `omega', using Fortran conventions for indices, and changing the
 netCDF dataset name in the resulting CDL file to `omega':
 .RS
 .HP
-ncdump -v omega -f fortran -n omega foo.nc > Z.cdl
+ncdump \-v omega \-f fortran \-n omega foo.nc > Z.cdl
 .RE
 .SH "SEE ALSO"
 .LP
