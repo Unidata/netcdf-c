@@ -77,7 +77,7 @@ OCerror
 ocset_curlopt(OCstate* state, int flag, void* value)
 {
     OCerror stat = OC_NOERR;
-    CURLcode cstat = CURLE_OK;    
+    CURLcode cstat = CURLE_OK;
     cstat = OCCURLERR(state,curl_easy_setopt(state->curl,flag,value));
     if(cstat != CURLE_OK)
 	stat = OC_ECURL;
@@ -131,7 +131,7 @@ ocset_curlflag(OCstate* state, int flag)
 	    CHECK(state, CURLOPT_USERAGENT, state->curlflags.useragent);
 	break;
 
-    case CURLOPT_FOLLOWLOCATION: 
+    case CURLOPT_FOLLOWLOCATION:
         CHECK(state, CURLOPT_FOLLOWLOCATION, (OPTARG)1L);
 	break;
 
@@ -173,16 +173,16 @@ ocset_curlflag(OCstate* state, int flag)
         CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
         if(ssl->certificate)
             CHECK(state, CURLOPT_SSLCERT, ssl->certificate);
-        if(ssl->key) 
+        if(ssl->key)
             CHECK(state, CURLOPT_SSLKEY, ssl->key);
         if(ssl->keypasswd)
             /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
             CHECK(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
-        if(ssl->cainfo) 
+        if(ssl->cainfo)
             CHECK(state, CURLOPT_CAINFO, ssl->cainfo);
-        if(ssl->capath) 
+        if(ssl->capath)
             CHECK(state, CURLOPT_CAPATH, ssl->capath);
-    }    
+    }
     break;
 
     default: {
@@ -193,7 +193,7 @@ ocset_curlflag(OCstate* state, int flag)
 	} break;
     }
 done:
-    return stat;    
+    return stat;
 }
 
 
@@ -241,11 +241,11 @@ static OCerror
 oc_set_curl_options(OCstate* state)
 {
     OCerror stat = OC_NOERR;
-    struct OCTriplestore* store;
-    struct OCTriple* triple;
+    struct OCTriplestore* store = NULL;
+    struct OCTriple* triple = NULL;
     int i;
-    char* hostport;
-    struct OCCURLFLAG* ocflag;
+    char* hostport = NULL;
+    struct OCCURLFLAG* ocflag = NULL;
 
     hostport = occombinehostport(state->uri);
     if(hostport == NULL) hostport = "";
@@ -260,16 +260,17 @@ oc_set_curl_options(OCstate* state)
 
         if(ocstrncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
         /* do hostport prefix comparison */
-	if(hostlen > 0) {
-            int t = ocstrncmp(hostport,triple->host,hostlen);
-            if(t !=  0) continue;
-	}
-	flagname = triple->key+5; /* 5 == strlen("CURL."); */
-	ocflag = occurlflagbyname(flagname);
-	if(ocflag == NULL) {stat = OC_ECURL; goto done;}
-	stat = ocset_curlopt(state,ocflag->flag,cvt(triple->value,ocflag->type));
+        if(hostlen > 0) {
+          int t = ocstrncmp(hostport,triple->host,hostlen);
+          if(t !=  0) continue;
+        }
+        flagname = triple->key+5; /* 5 == strlen("CURL."); */
+        ocflag = occurlflagbyname(flagname);
+        if(ocflag == NULL) {stat = OC_ECURL; goto done;}
+        stat = ocset_curlopt(state,ocflag->flag,cvt(triple->value,ocflag->type));
     }
-done:
+ done:
+    if(hostport && hostport != "") free(hostport);
     return stat;
 }
 
@@ -377,7 +378,7 @@ ocset_curlstate(OCstate* state, int flag, void* value)
         state->curlflags.useragent = strdup((char*)value);
 	break;
 
-    case CURLOPT_FOLLOWLOCATION: 
+    case CURLOPT_FOLLOWLOCATION:
 	/* no need to store; will always be set */
 	break;
 
@@ -437,5 +438,5 @@ ocset_curlstate(OCstate* state, int flag, void* value)
 	} break;
     }
 done:
-    return stat;    
+    return stat;
 }
