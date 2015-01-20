@@ -388,7 +388,7 @@ createtempfile(OCstate* state, OCtree* tree)
 #endif
     tree->data.filename = name; /* remember our tmp file name */
     name = NULL;
-    tree->data.file = fopen(name,"w+");
+    tree->data.file = fopen(tree->data.filename,"w+");
     if(tree->data.file == NULL) return OC_EOPEN;
     /* unlink the temp file so it will automatically be reclaimed */
     if(ocdebug == 0) unlink(tree->data.filename);
