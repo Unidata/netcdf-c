@@ -724,18 +724,18 @@ ocrc_triple_iterate(char* key, char* url, struct OCTriple* prev)
 {
     struct OCTriple* next;
     if(prev == NULL)
-	next = ocrc_locate(key,url);
+      next = ocrc_locate(key,url);
     else
-	next = prev+1;
+      next = prev+1;
     if(next == NULL)
-	return NULL;
-    for(;next->key != NULL;next++) {
-	/* See if key as prefix still matches */
-	int cmp = strcmp(key,next->key);
-	if(cmp != 0) {next = NULL; break;} /* key mismatch */
-	/* compare url */
-        cmp = ocstrncmp(url,next->host,strlen(next->host));
-        if(cmp ==  0) break;
+      return NULL;
+    for(; strlen(next->key) > 0; next++) {
+      /* See if key as prefix still matches */
+      int cmp = strcmp(key,next->key);
+      if(cmp != 0) {next = NULL; break;} /* key mismatch */
+      /* compare url */
+      cmp = ocstrncmp(url,next->host,strlen(next->host));
+      if(cmp ==  0) break;
     }
     return next;
 }
