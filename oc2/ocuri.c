@@ -316,18 +316,19 @@ ocuriparse(const char* uri0, OCURI** durip)
 	size_t slen = suffixparams ? strlen(suffixparams) : 0;
 	size_t space = plen + slen + 1;
 	/* add 1 for an extra ampersand if both are defined */
-        if(plen > 0 && slen > 0) space++;
-        duri->params = (char*)malloc(space);
-	if(duri->params == NULL)
-	   return 0;
-	duri->params[0] = EOFCHAR; /* so we can use strcat */
+    if(plen > 0 && slen > 0) space++;
+    /* Add an extra char for null termination. */
+    duri->params = (char*)malloc(space+1);
+    if(duri->params == NULL)
+      return 0;
+    duri->params[0] = EOFCHAR; /* so we can use strcat */
 	if(plen > 0) {
-            strncat(duri->params,prefixparams,space);
-	    if(slen > 0)
+      strncat(duri->params,prefixparams,space);
+      if(slen > 0)
 		strncat(duri->params,"&",space);
 	}
 	if(slen > 0)
-            strncat(duri->params,suffixparams,space);
+      strncat(duri->params,suffixparams,space);
     }
 
 #ifdef OCURIDEBUG
@@ -347,7 +348,7 @@ ocuriparse(const char* uri0, OCURI** durip)
 		fprintf(stderr,"DEBUG: param decode failed\n");
 		duri->paramlist = NULL;
 	    }
-	} 
+	}
 	if(duri->paramlist != NULL) {
 	    for(p=duri->paramlist,nparms=0;*p;p++,nparms++);
 	    nparms = nparms / 2;
