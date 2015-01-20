@@ -417,14 +417,15 @@ ocset_curlstate(OCstate* state, int flag, void* value)
 	state->ssl.keypasswd = strdup((char*)value);
 	break;
     case CURLOPT_SSL_VERIFYPEER:
-	state->ssl.verifypeer = (long)value;
-	break;
+      state->ssl.verifypeer = (long)value;
+      break;
     case CURLOPT_SSL_VERIFYHOST:
-	state->ssl.verifyhost = (long)value;
+      state->ssl.verifyhost = (long)value;
+      break;
     case CURLOPT_CAINFO:
-	if(state->ssl.cainfo != NULL) free(state->ssl.cainfo);
-	state->ssl.cainfo = strdup((char*)value);
-	break;
+      if(state->ssl.cainfo != NULL) free(state->ssl.cainfo);
+      state->ssl.cainfo = strdup((char*)value);
+      break;
     case CURLOPT_CAPATH:
 	if(state->ssl.capath != NULL) free(state->ssl.capath);
 	state->ssl.capath = strdup((char*)value);
