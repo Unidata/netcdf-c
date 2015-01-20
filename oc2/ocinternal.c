@@ -191,6 +191,9 @@ ocopen(OCstate** statep, const char* url)
 #endif
 
     if(statep) *statep = state;
+    else {
+      if(state != NULL) ocfree(state);
+    }
     return OCTHROW(stat);
 
 fail:
