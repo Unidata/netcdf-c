@@ -53,12 +53,15 @@ OCerror
 oc_open(const char* url, OCobject* linkp)
 {
     OCerror ocerr;
-    OCstate* state;
+    OCstate* state = NULL;
     if(!ocglobalstate.initialized) oc_initialize();
     ocerr = ocopen(&state,url);
     if(ocerr == OC_NOERR && linkp) {
-	*linkp = (OCobject)(state);
+      *linkp = (OCobject)(state);
+    } else {
+      if(state) free(state);
     }
+
     return OCTHROW(ocerr);
 }
 
@@ -2137,7 +2140,7 @@ oc_set_rcfile(const char* rcfile)
 	ocinternalinitialize(); /* so ocglobalstate is defined, but not triplestore */
     if(rcfile == NULL) {
 	ocglobalstate.rc.ignore = 1;
-    } else {	
+    } else {
         FILE* f = fopen(rcfile,"r");
         if(f == NULL) {
 	    stat = (OC_ERCFILE);
@@ -2146,7 +2149,7 @@ oc_set_rcfile(const char* rcfile)
         fclose(f);
         ocglobalstate.rc.rcfile = strdup(rcfile);
         /* (re) load the rcfile and esp the triplestore*/
-        stat = ocrc_load();    
+        stat = ocrc_load();
     }
 done:
     return OCTHROW(stat);
@@ -2183,9 +2186,8 @@ oc_initialize(void)
     ocglobalstate.initialized = 0;
     status = ocinternalinitialize();
     /* (re) load the rcfile */
-    status =  ocrc_load();    
+    status =  ocrc_load();
     return OCTHROW(status);
 }
 
 /**@}*/
-
