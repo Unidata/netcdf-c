@@ -129,13 +129,13 @@ extern size_t dap_zero[NC_MAX_VAR_DIMS];
 
 extern NCerror nc3d_open(const char* path, int mode, int* ncidp);
 extern int nc3d_close(int ncid);
-extern NCerror restruct(NCDAPCOMMON*, CDFnode* ddsroot, CDFnode* template, NClist*);
+extern NCerror restruct(NCDAPCOMMON*, CDFnode* ddsroot, CDFnode* pattern, NClist*);
 extern void setvisible(CDFnode* root, int visible);
 extern NCerror mapnodes(CDFnode* dstroot, CDFnode* srcroot);
 extern void unmap(CDFnode* root);
 
 #if 0
-extern NCerror fetchtemplatemetadata(NCDAPCOMMON* nccomm);
+extern NCerror fetchpatternmetadata(NCDAPCOMMON* nccomm);
 extern NCerror fetchconstrainedmetadata(NCDAPCOMMON* nccomm);
 extern void applyclientparamcontrols(NCDAPCOMMON*);
 extern NCerror suppressunusablevars(NCDAPCOMMON*);

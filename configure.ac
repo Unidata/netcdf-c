@@ -15,12 +15,12 @@ AC_REVISION([$Id: configure.ac,v 1.450 2010/05/28 19:42:47 dmh Exp $])
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.3.3-rc2], [support-netcdf@unidata.ucar.edu])
+AC_INIT([netCDF], [4.3.3-rc3], [support-netcdf@unidata.ucar.edu])
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=3
 AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=3
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-rc2"
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-rc3"
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -586,6 +586,7 @@ AC_C_CONST
 # CURLOPT_PASSWORD is not defined until curl version 7.19.1
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
 # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
+# CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
@@ -635,6 +636,17 @@ if test $haveresponsecode = yes; then
   AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
 fi
 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_CHUNK_BGN_FUNCTION;]])],
+                   [havebgnfunction=yes],
+                   [havebgnfunction=no])
+AC_MSG_CHECKING([whether CURLOPT_CHUNK_BGN_FUNCTION is defined])
+AC_MSG_RESULT([${havebgnfunction}])
+if test $havebgnfunction = yes; then
+  AC_DEFINE([HAVE_CURLOPT_CHUNK_BGN_FUNCTION],[1],[Is CURLOPT_CHUNK_BGN_FUNCTION defined])
+fi
+
 CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.
@@ -651,6 +663,12 @@ if test "x$enable_shared" = xyes; then
 fi
 
 AC_MSG_NOTICE([finding other utilities])
+
+# Is m4 installed? If not, bail.
+AC_CHECK_PROGS([NC_M4], [m4])
+if test -z "$NC_M4"; then
+   AC_MSG_ERROR([Cannot find m4 utility. Install m4 and try again.])
+fi
 
 # Is doxygen installed? If so, have configure construct the Doxyfile.
 AC_CHECK_PROGS([DOXYGEN], [doxygen])

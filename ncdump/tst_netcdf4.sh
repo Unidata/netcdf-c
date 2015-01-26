@@ -13,7 +13,7 @@ export srcdir;
 echo ""
 echo "*** Testing ncgen and ncdump test output for netCDF-4 format."
 # echo "*** creating netcdf-4 file c0_4.nc from c0_4.cdl..."
-../ncgen/ncgen -k3 -b -o c0_4.nc $srcdir/../ncgen/c0_4.cdl
+../ncgen/ncgen -k nc4 -b -o c0_4.nc $srcdir/../ncgen/c0_4.cdl
 # echo "*** creating c1_4.cdl from c0_4.nc..."
 ./ncdump -n c1 c0_4.nc | sed 's/e+0/e+/g' > c1_4.cdl
 # echo "*** comparing c1_4.cdl with ref_ctest1_nc4.cdl..."
@@ -21,7 +21,7 @@ diff -b c1_4.cdl $srcdir/ref_ctest1_nc4.cdl
 
 echo "*** Testing ncgen and ncdump test output for netCDF-4 classic format."
 # echo "*** creating netcdf-4 classic file c0.nc from c0.cdl..."
-../ncgen/ncgen -k4 -b -o c0.nc $srcdir/../ncgen/c0.cdl
+../ncgen/ncgen -k nc7 -b -o c0.nc $srcdir/../ncgen/c0.cdl
 # echo "*** creating c1.cdl from c0.nc..."
 
 # echo "*** comparing c1.cdl with ref_ctest1_nc4c.cdl..."

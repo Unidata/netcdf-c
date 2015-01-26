@@ -6,14 +6,15 @@ ncgen \- From a CDL file generate a netCDF-3 file, a netCDF-4 file or a C progra
 .HP
 ncgen
 .nh
-\%[-b]
-\%[-c]
-\%[-f]
-\%[-k \fIfile format\fP]
-\%[-l \fIoutput language\fP]
-\%[-n]
-\%[-o \fInetcdf_filename\fP]
-\%[-x]
+\%[\-b]
+\%[\-c]
+\%[\-f]
+\%[\-k \fIformat_name\fP]
+\%[\-\fIformat_code\fP]
+\%[\-l \fIoutput language\fP]
+\%[\-n]
+\%[\-o \fInetcdf_filename\fP]
+\%[\-x]
 \%[\fIinput_file\fP]
 .hy
 .ft
@@ -52,43 +53,62 @@ Generate
 .B C
 source code that will create a netCDF file
 matching the netCDF specification.  The C source code is written to
-standard output; equivalent to -lc.
+standard output; equivalent to \-lc.
 .IP "\fB-f\fP"
 Generate
 .B FORTRAN 77
 source code that will create a netCDF file
 matching the netCDF specification.
 The source code is written to
-standard output; equivalent to -lf77.
+standard output; equivalent to \-lf77.
 .IP "\fB-o\fP \fRnetcdf_file\fP"
 Name of the file to pass to calls to "nc_create()".
 If this option is specified it implies
-(in the absense of any explicit -l flag) the "\fB-b\fP" option.
+(in the absence of any explicit \-l flag) the "\fB-b\fP" option.
 This option is necessary because netCDF files
 cannot be written directly to standard output, since standard output is not
 seekable.
-.IP "\fB-k \fRfile_format\fP"
-The -k flag specifies the format of the file to be created and, by inference,
+.IP "\fB-k \fIformat_name\fP"
+.IP "\fB-\fIformat_code\fP"
+The \-k flag specifies the format of the file to be created and, by inference,
 the data model accepted by ncgen (i.e. netcdf-3 (classic) versus
-netcdf-4).
-The possible arguments are as follows.
+netcdf-4). As a shortcut, a numeric \fIformat_code\fP may be specified instead.
+The possible \fIformat_name\fP values for the \-k option are:
 .RS
 .RS
-.IP "'1', 'classic' => netcdf classic file format, netcdf-3 type model."
-.IP "'2', '64-bit-offset', '64-bit offset' => netcdf 64 bit classic file format, netcdf-3 type model."
-.IP "'3', 'hdf5', 'netCDF-4', 'enhanced' => netcdf-4 file format, netcdf-4 type model."
-.IP "'4', 'hdf5-nc3', 'netCDF-4 classic model', 'enhanced-nc3' => netcdf-4 file format, netcdf-3 type model."
+.IP "'classic' or 'nc3' => netCDF classic format"
+.IP "'64-bit offset' or 'nc6' => netCDF 64-bit format"
+.IP "'netCDF-4' 0r 'nc4' => netCDF-4 format (enhanced data model)"
+.IP "'netCDF-4 classic model' or 'nc7' => netCDF-4 classic model format"
 .RE
 .RE
-Note that -v is accepted to mean the same thing as
--k for backward compatibility, but -k is preferred, to match
-the corresponding ncdump option. 
+Accepted \fIformat_number\fP arguments, just shortcuts for format_names, are:
+.RS
+.RS
+.IP "3 => netcdf classic format"
+.IP "6 => netCDF 64-bit format"
+.IP "4 => netCDF-4 format (enhanced data model)"
+.IP "7 => netCDF-4 classic model format"
+.RE
+.RE
+The numeric code "7" is used because "7=3+4", a mnemonic for the format
+that uses the netCDF-3 data model for compatibility with the netCDF-4
+storage format for performance. Credit is due to NCO for use of these
+numeric codes instead of the old and confusing format numbers.
+.LP
+Note: The old version format numbers '1', '2', '3', '4', equivalent
+to the format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are
+also still accepted but deprecated, due to easy confusion between
+format numbers and format names. Various old format name aliases are
+also accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', etc.
+Also, note that \-v is accepted to mean the same thing as
+\-k for backward compatibility.
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
 large netCDF files greatly, but later attempts to read unwritten data
 from the generated file will not be easily detectable.
 .IP "\fB-l \fRoutput_language\fP"
-The -l flag specifies the output language to use
+The \-l flag specifies the output language to use
 when generating source code that will create or define a netCDF file
 matching the netCDF specification.
 The output is written to standard output.
@@ -116,29 +136,29 @@ not just special performance-related attributes such as
 The rules are as follows, in order of application.
 .IP "\fB1.\fP"
 If either Fortran or Java output is specified,
-then -k flag value of 1 (classic model) will be used.
+then \-k flag value of 1 (classic model) will be used.
 Conflicts with the use of enhanced constructs
 in the CDL will report an error.
 .IP "\fB2.\fP"
-If both the -k flag and _Format attribute are specified,
+If both the \-k flag and _Format attribute are specified,
 the _Format flag will be ignored.
-If no -k flag is specified, and a _Format attribute value
-is specified, then the -k flag value 
+If no \-k flag is specified, and a _Format attribute value
+is specified, then the \-k flag value
 will be set to that of the _Format attribute.
-Otherwise the -k flag is undefined.
+Otherwise the \-k flag is undefined.
 .IP "\fB3.\fP"
-If the -k option is defined and is consistent with the CDL,
+If the \-k option is defined and is consistent with the CDL,
 ncgen will output a file in the requested form,
 else an error will be reported.
 .IP "\fB4.\fP"
-If the -k flag is undefined,
+If the \-k flag is undefined,
 and if there are netCDF-4 constructs in the CDL,
-a -k flag value of 3 (enhanced model) will be used.
+a \-k flag value of 3 (enhanced model) will be used.
 .IP "\fB5.\fP"
-If special performance-related attributes are specified in the CDL, 
-a -k flag value of 4 (netCDF-4 classic model) will be used.
+If special performance-related attributes are specified in the CDL,
+a \-k flag value of 4 (netCDF-4 classic model) will be used.
 .IP "\fB6.\fP"
-Otherwise ncgen will set the -k flag to 1 (classic model).
+Otherwise ncgen will set the \-k flag to 1 (classic model).
 .RE
 .SH EXAMPLES
 .LP
@@ -152,7 +172,7 @@ From the CDL file `\fBfoo.cdl\fP', generate an equivalent binary netCDF file
 named `\fBx.nc\fP':
 .RS
 .HP
-ncgen -o x.nc foo.cdl
+ncgen \-o x.nc foo.cdl
 .RE
 .LP
 From the CDL file `\fBfoo.cdl\fP', generate a C program containing the
@@ -160,7 +180,7 @@ netCDF function invocations necessary to create an equivalent binary netCDF
 file named `\fBx.nc\fP':
 .RS
 .HP
-ncgen -lc foo.cdl >x.c
+ncgen \-lc foo.cdl >x.c
 .RE
 .LP
 .SH USAGE
@@ -203,12 +223,12 @@ netcdf foo {  // an example netCDF specification in CDL
 	// typed variable attributes
 	\fIstring\fP Z:units = "geopotential meters";
 	\fIfloat\fP Z:valid_range = 0., 5000.;
-	\fIdouble\fP p:_FillValue = -9999.;
-	\fIlong\fP rh:_FillValue = -1;
+	\fIdouble\fP p:_FillValue = \-9999.;
+	\fIlong\fP rh:_FillValue = \-1;
 	\fIvlen_t\fP :globalatt = {17, 18, 19};
 \fBdata\fP:
 	lat   = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90;
-	lon   = -140, -118, -96, -84, -52;
+	lon   = \-140, \-118, \-96, \-84, \-52;
 \fBgroup\fP: g {
 \fBtypes\fP:
     \fIcompound\fP cmpd_t { \fIvlen_t\fP f1; \fIenum_t\fP f2;};
@@ -397,12 +417,12 @@ mays for character data.
 declarations in the output C code and to the nonstandard \fBBYTE\fP
 declaration in output Fortran code.
 .LP
-Shorts can hold values between -32768 and 32767.
+Shorts can hold values between \-32768 and 32767.
 \fBncgen\fP converts \fBshort\fP declarations to \fBshort\fP
 declarations in the output C code and to the nonstandard \fBINTEGER*2\fP
 declaration in output Fortran code.
 .LP
-Ints can hold values between -2147483648 and 2147483647.
+Ints can hold values between \-2147483648 and 2147483647.
 \fBncgen\fP converts \fBint\fP declarations to \fBint\fP
 declarations in the output C code and to \fBINTEGER\fP
 declarations in output Fortran code.  \fBlong\fP
@@ -410,20 +430,20 @@ is accepted as a synonym for \fBint\fP in CDL declarations, but is
 deprecated since there are now platforms with 64-bit representations
 for C longs.
 .LP
-Int64 can hold values between -9223372036854775808
+Int64 can hold values between \-9223372036854775808
 and 9223372036854775807.
 \fBncgen\fP converts \fBint64\fP declarations to \fBlonglong\fP
 declarations in the output C code.
 .\" and to \fBINTEGER\fP declarations in output Fortran code.
 .LP
-Floats can hold values between about -3.4+38 and 3.4+38.  Their
+Floats can hold values between about \-3.4+38 and 3.4+38.  Their
 external representation is as 32-bit IEEE normalized single-precision
 floating point numbers.  \fBncgen\fP converts \fBfloat\fP
 declarations to \fBfloat\fP declarations in the output C code and to
 \fBREAL\fP declarations in output Fortran code.  \fBreal\fP is accepted
 as a synonym for \fBfloat\fP in CDL declarations.
 .LP
-Doubles can hold values between about -1.7+308 and 1.7+308.  Their
+Doubles can hold values between about \-1.7+308 and 1.7+308.  Their
 external representation is as 64-bit IEEE standard normalized
 double-precision floating point numbers.  \fBncgen\fP converts
 \fBdouble\fP declarations to \fBdouble\fP declarations in the output C
@@ -440,7 +460,7 @@ is unspecified by default. A variable of char type
 may be marked with an "_Encoding" attribute to indicate
 the character set to be used: US-ASCII, ISO-8859-1, etc.
 Note that specifying the encoding of UTF-8 is equivalent to
-specifying US-ASCII 
+specifying US-ASCII
 This is because multi-byte UTF-8 characters cannot
 be stored in an 8-bit character. The only legal
 single byte UTF-8 values are by definition
@@ -470,8 +490,8 @@ constants include:
 .RS
 .nf
  0b             // a zero byte
- -1b            // -1 as an 8-bit byte
- 255b           // also -1 as a signed 8-bit byte
+ \-1b            // \-1 as an 8-bit byte
+ 255b           // also \-1 as a signed 8-bit byte
 .fi
 .RE
 .LP
@@ -482,7 +502,7 @@ begins with `0', it is interpreted as octal, except that if it begins with
 `0x', it is interpreted as a hexadecimal constant.  For example:
 .RS
 .nf
--2s	// a short -2
+\-2s	// a short \-2
 0123s	// octal
 0x7ffs  //hexadecimal
 .fi
@@ -498,7 +518,7 @@ constant (but see opaque constants below).
 Examples of valid \fIint\fP constants include:
 .RS
 .nf
--2
+\-2
 1234567890L
 0123		// octal
 0x7ff		// hexadecimal
@@ -512,20 +532,20 @@ begins with `0', it is interpreted as octal, except that if it begins with
 `0x', it is interpreted as a hexadecimal constant.  For example:
 .RS
 .nf
--2ll	// an unsigned -2
+\-2ll	// an unsigned \-2
 0123LL	// octal
 0x7ffLL  //hexadecimal
 .fi
 .RE
 .LP
 Floating point constants of type \fIfloat\fP are appropriate for representing
-floating point data with about seven significant digits of precision. 
+floating point data with about seven significant digits of precision.
 The form of a \fIfloat\fP constant is the same as a C floating point
 constant with an `f' or `F' appended.  For example the following
 are all acceptable \fIfloat\fP constants:
 .RS
 .nf
--2.0f
+\-2.0f
 3.14159265358979f	// will be truncated to less precision
 1.f
 
@@ -539,7 +559,7 @@ floating point constant.  An optional `d' or `D' may be appended.
 For example the following are all acceptable \fIdouble\fP constants:
 .RS
 .nf
--2.0
+\-2.0
 3.141592653589793
 1.0e-20
 1.d
@@ -687,7 +707,7 @@ Prefix the enumeration constant with the name of the enumeration separated
 by a dot: \fIenum.econst\fP, for example.
 .IP "\fB2.\fP"
 If case one is not sufficient to disambiguate the enumeration constant,
-then one must specify the precise enumeration type using 
+then one must specify the precise enumeration type using
 a group path: \fI/g1/g2/enum.econst\fP, for example.
 .SS "Special Attributes"
 .LP
@@ -702,10 +722,10 @@ properties of the data in CDL
 .LP
 The special attributes currently supported are as follows:
 `_Format',
-`_Fletcher32, 
-`_ChunkSizes', 
-`_Endianness', 
-`_DeflateLevel', 
+`_Fletcher32,
+`_ChunkSizes',
+`_Endianness',
+`_DeflateLevel',
 `_Shuffle', and
 `_Storage'.
 .LP
@@ -865,7 +885,7 @@ and the shorter will be padded to produce this.
 datalist: var={"1","t","w","o","\\0"}, {"t","h","r","e","e"};
 .in -5
 .LP
-Consider an even more complicated case.        
+Consider an even more complicated case.
 .in +5
 .nf
 variables: char var(u,u2,u3);
@@ -1203,6 +1223,4 @@ constbool:
 /* Push all idents thru here for tracking */
 ident: IDENT ;
 .fi
-.RE 
-
-
+.RE

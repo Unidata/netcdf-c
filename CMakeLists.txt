@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 3)
 SET(NC_VERSION_PATCH 3)
-SET(NC_VERSION_NOTE "-rc2")
+SET(NC_VERSION_NOTE "-rc3")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
@@ -586,6 +586,15 @@ IF(ENABLE_DAP)
   CHECK_C_SOURCE_COMPILES("
   #include <curl/curl.h>
   int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+  # Check to see if CURLOPT_CHUNK_BGN_FUNCTION is defined.
+  # It showed up in curl 7.21.0.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_CHUNK_BGN_FUNCTION;}" HAVE_CURLOPT_CHUNK_BGN_FUNCTION)
+
+
+
 ENDIF()
 
 # Check to see if libtool supports
@@ -877,6 +886,7 @@ CHECK_INCLUDE_FILE("BaseTsd.h"  HAVE_BASETSD_H)
 CHECK_INCLUDE_FILE("stddef.h"   HAVE_STDDEF_H)
 
 # Type checks
+CHECK_TYPE_SIZE("void*"     SIZEOF_VOIDSTAR)
 CHECK_TYPE_SIZE("char"      SIZEOF_CHAR)
 CHECK_TYPE_SIZE("double"    SIZEOF_DOUBLE)
 CHECK_TYPE_SIZE("float"     SIZEOF_FLOAT)
@@ -957,6 +967,12 @@ ENDMACRO()
 
 # A basic script used to convert m4 files
 FIND_PROGRAM(NC_M4 NAMES m4)
+IF(NOT MSVC)
+  IF(NOT NC_M4)
+    MESSAGE(FATAL "Cannot find 'm4' utility. Install m4 and try again.")
+  ENDIF(NOT NC_M4)
+ENDIF(NOT MSVC)
+
 MACRO(GEN_m4 filename)
   IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
     ADD_CUSTOM_COMMAND(

@@ -81,7 +81,7 @@ FAIL=0
 
 # Create ref_tst_group_rename.nc
 rm -f tst_grp_rename.nc
-../ncgen/ncgen -k3 ./tst_grp_rename.cdl
+../ncgen/ncgen -k nc4 ./tst_grp_rename.cdl
 
 # Try to rename 2nd level group
 if ! ./renamegroup tst_grp_rename.nc "/inner/inner_inner" "inner_renamed" ; then

@@ -92,9 +92,6 @@ int main(int argc, char **argv)
       return -1;
    }
 
-   if (facc_type != NC_MPIPOSIX)
-      facc_type = NC_MPIIO;
-
    facc_type = NC_NETCDF4|NC_MPIIO;
    facc_type_open = NC_MPIIO;
 

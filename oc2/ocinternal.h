@@ -165,6 +165,7 @@ extern struct OCGLOBALSTATE {
     char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME for use in creating $HOME/.oc dir */
     struct {
+	int ignore; /* if 1, then do not use any rc file */
 	int loaded;
         struct OCTriplestore ocrc; /* the rc file triple store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
@@ -213,8 +214,8 @@ struct OCstate {
     } ssl;
     struct OCproxy {
 	char *host; /*CURLOPT_PROXY*/
-	int port;; /*CURLOPT_PROXYPORT*/
-	char* userpwd;; /*CURLOPT_PROXYUSERPWD*/
+	int port; /*CURLOPT_PROXYPORT*/
+	char* userpwd; /*CURLOPT_PROXYUSERPWD*/
     } proxy;
     struct OCcredentials {
 	char *userpwd; /*CURLOPT_USERPWD*/

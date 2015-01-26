@@ -44,7 +44,7 @@ static NCerror getseqdimsize(NCDAPCOMMON*, CDFnode* seq, size_t* sizep);
 static NCerror makeseqdim(NCDAPCOMMON*, CDFnode* seq, size_t count, CDFnode** sqdimp);
 static NCerror countsequence(NCDAPCOMMON*, CDFnode* xseq, size_t* sizep);
 static NCerror freeNCDAPCOMMON(NCDAPCOMMON*);
-static NCerror fetchtemplatemetadata(NCDAPCOMMON*);
+static NCerror fetchpatternmetadata(NCDAPCOMMON*);
 static size_t fieldindex(CDFnode* parent, CDFnode* child);
 static NCerror computeseqcountconstraints(NCDAPCOMMON*, CDFnode*, NCbytes*);
 static void computeseqcountconstraintsr(NCDAPCOMMON*, CDFnode*, CDFnode**);
@@ -406,11 +406,11 @@ NCD2_open(const char * path, int mode,
     }
 
     /* fetch and build the unconstrained DDS for use as
-       template */
-    ncstat = fetchtemplatemetadata(dapcomm);
+       pattern */
+    ncstat = fetchpatternmetadata(dapcomm);
     if(ncstat != NC_NOERR) goto done;
 
-    /* Operations on the template tree */
+    /* Operations on the pattern tree */
 
     /* Accumulate useful nodes sets  */
     ncstat = computecdfnodesets(dapcomm,dapcomm->cdf.fullddsroot->tree);
@@ -420,7 +420,7 @@ NCD2_open(const char * path, int mode,
     ncstat = definedimsettrans(dapcomm,dapcomm->cdf.fullddsroot->tree);
     if(ncstat) {THROWCHK(ncstat); goto done;}
 
-    /* Mark the nodes of the template that are eligible for prefetch */
+    /* Mark the nodes of the pattern that are eligible for prefetch */
     ncstat = markprefetch(dapcomm);
 
     /* fetch and build the constrained DDS */
@@ -1942,7 +1942,7 @@ fprintf(stderr,"total estimatedsize = %lu\n",totalsize);
 }
 
 static NCerror
-fetchtemplatemetadata(NCDAPCOMMON* dapcomm)
+fetchpatternmetadata(NCDAPCOMMON* dapcomm)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -2002,7 +2002,7 @@ fetchtemplatemetadata(NCDAPCOMMON* dapcomm)
     }
 
 #ifdef DEBUG
-fprintf(stderr,"full template:\n%s",dumptree(dapcomm->cdf.fullddsroot));
+fprintf(stderr,"full pattern:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 #endif
 
 done:

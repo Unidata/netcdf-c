@@ -7,25 +7,47 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
-### 4.3.3-rc3 Released ?
+### 4.3.3-rc3 Released 2015-01-14
 
-* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
+* Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build for *NON-MSVC* builds.  This functionality is enabled at configure time by using the following **Highly Experimental** options:
 
-	* CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
-	* Autotools: `--enable-remote-fortran-bootstrap`
+ * CMake:  `-DENABLE_REMOTE_FORTRAN_BOOTSTRAP=ON`
+ * Autotools: `--enable-remote-fortran-bootstrap`
 
-	> Enabling these options creates two new make targets:
+Details are as follows:
 
-	~~~
-	$ make build-netcdf-fortran
-	$ make install-netcdf-fortran
-	~~~
+----
 
-	These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
+Enabling these options creates two new make targets:
 
-	It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
+*  `build-netcdf-fortran`
+* `install-netcdf-fortran`
+
+Example Work Flow from netcdf-c source directory:
+
+* $ `./configure --enable-remote-fortran-bootstrap --prefix=$HOME/local`
+* $ `make check`
+* $ `make install`
+* $ `make build-netcdf-fortran`
+* $ `make install-netcdf-fortran`
+
+> These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.<br><br>
+
+> It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
+
+----
+
+* Added a failure state if the `m4` utility is not found on non-Windows systems; previously, the build would fail when it reached the point of invoking m4.
+
+* Added an explicit check in the build systems (autotools, cmake) for the CURL-related option `CURLOPT_CHUNK_BGN_FUNCTION`.  This option was introduced in libcurl version `7.21.0`.  On installations which require libcurl and have this version, `CURLOPT_CHUNK_BGN_FUNCTION` will be available. Otherwise, it will not.
 
 * The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
+
+* In nccopy utility, provided proper default for unlimited dimension in chunk-size specification instead of requiring explicit chunk size. Added associated test. [NCF-321](https://bugtracking.unidata.ucar.edu/browse/NCF-321)
+
+* Fixed documentation typo in FILL_DOUBLE definition in classic format specification grammar. Fixed other typos and inconsistencies in Doxygen version of User Guide.
+
+* For nccopy and ncgen, added numeric options (-3, -4, -6, -7) for output format, to provide less confusing format version specifications than the error-prone equivalent -k options (-k1, -k2, -k3, -k4). The new numeric options are compatible with NCO's mnemonic version options. The old -k numeric options will still be accepted but are deprecated, due to easy confusion between format numbers and format names. [NCF-314](https://bugtracking.unidata.ucar.edu/browse/NCF-314)
 
 * Fixed bug in ncgen. When classic format was in force (k=1 or k=4), the "long" datatype should be treated as int32. Was returning an error. [NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
 
@@ -58,6 +80,10 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 ### 4.3.3-rc1 Released 2014-08-25
 
 * Added `CMake`-based export files, contributed by Nico Schlömer. See https://github.com/Unidata/netcdf-c/pull/74.
+
+* Documented that ncgen input can come from standard input.
+
+* Regularized generation of libnetcdf.settings file to make parsing it easier.
 
 * Fixed ncdump bug for char variables with multiple unlimited dimensions and added an associated test.  Now the output CDL properly disambiguates dimension groupings, so that ncgen can generate the original file from the CDL. [NCF-310](https://bugtracking.unidata.ucar.edu/browse/NCF-310)
 
@@ -101,6 +127,8 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
 
 * Return an error code on open instead of an assertion violation for truncated file.
+
+* Documented limit on number of Groups per netCDF-4 file (32767).
 
 ### 4.3.2-rc2 Released 2014-04-15
 

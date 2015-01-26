@@ -16,7 +16,7 @@
 #define TOPLEVEL 1
 
 /* Forward */
-static OCdata* newocdata(OCnode* template);
+static OCdata* newocdata(OCnode* pattern);
 static size_t ocxdrsize(OCtype etype,int isscalar);
 static OCerror occompile1(OCstate*, OCnode*, XXDR*, OCdata**);
 static OCerror occompilerecord(OCstate*, OCnode*, XXDR*, OCdata**);
@@ -218,7 +218,7 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
     OCdata* record = newocdata(xnode);/* create record record */
     MEMFAIL(record);
     fset(record->datamode,OCDT_RECORD);
-    record->template = xnode;
+    record->pattern = xnode;
     /* capture the current record position */
     record->xdroffset = xxdr_getpos(xxdrs);
     /* Compile the fields of this record */
@@ -240,7 +240,7 @@ occompilefields(OCstate* state, OCdata* data, XXDR* xxdrs, int istoplevel)
     size_t i;
     OCerror ocstat = OC_NOERR;
     size_t nelements;
-    OCnode* xnode = data->template;
+    OCnode* xnode = data->pattern;
 
     assert(data != NULL);
     nelements = oclistlength(xnode->subnodes);
@@ -291,7 +291,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
     int i;
     off_t nelements,xdrsize;
     unsigned int xxdrcount;
-    OCnode* xnode = data->template;
+    OCnode* xnode = data->pattern;
     int scalar = (xnode->array.rank == 0);
     
     OCASSERT((xnode->octype == OC_Atomic));
@@ -391,13 +391,13 @@ ocdata_free(OCstate* state, OCdata* data)
 }
 
 static OCdata*
-newocdata(OCnode* template)
+newocdata(OCnode* pattern)
 {
     OCdata* data = (OCdata*)calloc(1,sizeof(OCdata));
     MEMCHECK(data,NULL);
     data->header.magic = OCMAGIC;
     data->header.occlass = OC_Data;
-    data->template = template;
+    data->pattern = pattern;
     return data;
 }
 

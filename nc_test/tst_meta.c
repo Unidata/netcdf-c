@@ -10,6 +10,8 @@
 */
 
 #include <config.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <netcdf.h>
 #include <netcdf_meta.h>
 

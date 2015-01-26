@@ -27,7 +27,7 @@ x4) CLASSIC=1; MODE=3;;
 esac
 
 # Define the set of tests that can be
-# processed with either the -k1 or -k3 or -k4 flag
+# processed with either the -k nc3 or -k nc4 or -k nc7 flag
 
 # The netcdf-3 tests are divided into two parts
 # These test can be run when --enable-netcdf-4 is false
@@ -72,7 +72,7 @@ TESTS3="${CLASSIC3} ${NONCLASSIC3}"
 fi
 
 # Define the set of tests that must be
-# processed with the -k3 flag
+# processed with the -k nc4 flag
 
 TESTS4="\
 ref_dimscope \

@@ -1000,7 +1000,7 @@ conventions.
 
 It is possible for a netCDF file to adhere to more than one set of
 conventions, even when there is no inheritance relationship among the
-conventions. In this case, the value of the `Conventions' attribute
+conventions. In this case, the value of the 'Conventions' attribute
 may be a single text string containing a list of the convention names
 separated by blank space (recommended) or commas (if a convention name
 contains blanks).
@@ -3027,10 +3027,10 @@ data that has not yet been written.  If a variable has no
 type is used unless the variable is of byte type.
 
 \b ncdump defines a default display format used for each type of
-netCDF data, but this can be changed if a `C_format' attribute
+netCDF data, but this can be changed if a 'C_format' attribute
 is defined for a netCDF variable.  In this case, \b ncdump will
-use the `C_format' attribute to format each value.  For
-example, if floating-point data for the netCDF variable `Z' is
+use the 'C_format' attribute to format each value.  For
+example, if floating-point data for the netCDF variable 'Z' is
 known to be accurate to only three significant digits, it would
 be appropriate to use the variable attribute
 
@@ -3067,8 +3067,8 @@ argument to the command, hence cannot contain unescaped blanks or
 other white space characters. The named variables must be valid netCDF
 variables in the input-file. A variable within a group in a netCDF-4
 file may be specified with an absolute path name, such as
-`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
-`grp/var' specifies all matching variable names in the file.  The
+'/GroupA/GroupA2/var'.  Use of a relative path name such as 'var' or
+'grp/var' specifies all matching variable names in the file.  The
 default, without this option and in the absence of the '-c' or '-h'
 options, is to include data values for \e all variables in the output.
 
@@ -3274,8 +3274,8 @@ a netCDF-4 classic model file as well, permitting data compression,
 efficient schema changes, larger variable sizes, and use of other
 netCDF-4 features.
 
-If no output format is specified, with either \b -k  \Ikind_name 
-or \b -\Ikind_code, then the output will use the same
+If no output format is specified, with either \b -k  \e kind_name 
+or \e -kind_code, then the output will use the same
 format as the input, unless the input is classic or 64-bit offset
 and either chunking or compression is specified, in which case the
 output will be netCDF-4 classic model format.  Attempting
@@ -3300,9 +3300,9 @@ local netCDF files.
 \par -k \e kind_name
 Use format name to specify the kind of file to be created
 and, by inference, the data model (i.e. netcdf-3 (classic) or
-netcdf-4 (enhanced)).  The possible arguments are as follows. \n
+netcdf-4 (enhanced)).  The possible arguments are: \n
     'nc3' or 'classic' => netCDF classic format \n
-    'nc6' or '64-bit-offset' => netCDF 64-bit format \n
+    'nc6' or '64-bit offset' => netCDF 64-bit format \n
     'nc4' or 'netCDF-4' => netCDF-4 format (enhanced data model) \n
     'nc7' or 'netCDF-4 classic model' => netCDF-4 classic model format \n
 
@@ -3315,14 +3315,14 @@ format numbers and format names.
 \par -k \e kind_code
 Use format numeric code (instead of format name) to specify the kind of file to be created
 and, by inference, the data model (i.e. netcdf-3 (classic) versus
-netcdf-4 (enhanced)).  The numeric codes are:
+netcdf-4 (enhanced)).  The numeric codes are: \n
     3 => netcdf classic format \n
     6 => netCDF 64-bit format \n
     4 => netCDF-4 format (enhanced data model) \n
     7 => netCDF-4 classic model format \n
 
 The numeric code "7" is used because "7=3+4", specifying the format
-that uses the netCDF-3 data model for compatibility and the netCDF-4
+that uses the netCDF-3 data model for compatibility with the netCDF-4
 storage format for performance. Credit is due to NCO for use of these
 numeric codes instead of the old and confusing format numbers.
 
@@ -3385,17 +3385,17 @@ The \e chunkspec argument is a string of comma-separated associations,
 each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
 appear in the chunkspec string, except possibly escaped blanks that
-are part of a dimension name.  A chunkspec names at
-least one dimension, and may omit dimensions which are not to be
-chunked or for which the default chunk length is desired.  If a dimension name is
+are part of a dimension name.  A chunkspec names at least one
+dimension, and may omit dimensions which are not to be chunked or for
+which the default chunk length is desired.  If a dimension name is
 followed by a '/' character but no subsequent chunk length, the actual
 dimension length is assumed.  If copying a classic model file to a
 netCDF-4 output file and not naming all dimensions in the chunkspec,
 unnamed dimensions will also use the actual dimension length for the
-chunk length.  An example of a chunkspec for variables that use
-'m' and 'n' dimensions might be 'm/100,n/200' to specify 100 by 200
-chunks. To see the chunking resulting from copying with a
-chunkspec, use the '-s' option of ncdump on the output file.
+chunk length.  An example of a chunkspec for variables that use 'm'
+and 'n' dimensions might be 'm/100,n/200' to specify 100 by 200
+chunks. To see the chunking resulting from copying with a chunkspec,
+use the '-s' option of ncdump on the output file.
 
 \par
 The chunkspec '/' that omits all dimension names and
@@ -3427,8 +3427,8 @@ argument to the command, hence cannot contain unescaped blanks or
 other white space characters. The named variables must be valid netCDF
 variables in the input-file. A variable within a group in a netCDF-4
 file may be specified with an absolute path name, such as
-`/GroupA/GroupA2/var'.  Use of a relative path name such as `var' or
-`grp/var' specifies all matching variable names in the file.  The
+'/GroupA/GroupA2/var'.  Use of a relative path name such as 'var' or
+'grp/var' specifies all matching variable names in the file.  The
 default, without this option, is to include data values for \e all variables
 in the output.
 
@@ -3441,8 +3441,8 @@ comma-delimited list following this option. The list must be a single argument
 to the command, hence cannot contain unescaped blanks or other white space
 characters. The named variables must be valid netCDF variables in the
 input-file. A variable within a group in a netCDF-4 file may be specified with
-an absolute path name, such as `/GroupA/GroupA2/var'.  Use of a relative path
-name such as `var' or `grp/var' specifies all matching variable names in the
+an absolute path name, such as '/GroupA/GroupA2/var'.  Use of a relative path
+name such as 'var' or 'grp/var' specifies all matching variable names in the
 file.  The default, without this option, is to include \e all variables in the
 output.
 
@@ -3533,8 +3533,8 @@ through the netCDF interface.  If the original file was generated in
 alignment, the output file may have different padding bytes.
 
 <H4> Uncompress Data </H4>
-Convert a netCDF-4 classic model file, compressed.nc, that uses
-compression, to a netCDF-3 file classic.nc:
+Convert a netCDF-4 classic model file, compressed.nc, that uses compression,
+to a netCDF-3 file classic.nc:
 \code
 nccopy -k classic compressed.nc classic.nc
 \endcode
@@ -3553,8 +3553,8 @@ characters such as '?'.
 
 <H4> Compress Data </H4>
 
-Compress all the variables in the input file foo.nc, a netCDF file of
-any type, to the output file bar.nc:
+Compress all the variables in the input file foo.nc, a netCDF file of any
+type, to the output file bar.nc:
 \code
 nccopy -d1 foo.nc bar.nc
 \endcode
@@ -3651,12 +3651,20 @@ should be used intstead.
 -k
 The -k file specifies the kind of netCDF file to generate. The
 arguments to the -k flag can be as follows.
-        1, classic – Produce a netcdf classic file format file.
-        2, 64-bit-offset, '64-bit offset' – Produce a netcdf 64 bit classic file format file.
-        3, hdf5, netCDF-4, enhanced – Produce a netcdf-4 format file.
-        4, hdf5-nc3, 'netCDF-4 classic model', enhanced-nc3 – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
+        'classic', 'nc3' – Produce a netcdf classic file format file.
+        '64-bit offset', 'nc6' – Produce a netcdf 64 bit classic file format file.
+        'netCDF-4', 'nc4' – Produce a netcdf-4 format file.
+        'netCDF-4 classic model', 'nc7' – Produce a netcdf-4 file format, but restricted to netcdf-3 classic CDL input.
 
-Note that the -v flag is a deprecated alias for -k.
+Note that the -v flag is a deprecated alias for -k. The code 'nc7' is
+used as a short form for the unwieldy 'netCDF-4 classic model' because
+7=3+4, a mnemonic for the format that uses the netCDF-3 data model for
+compatibility with the netCDF-4 storage format for performance. The
+old version format numbers '1', '2', '3', '4', equivalent to the
+format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are also
+still accepted but deprecated, due to easy confusion between format
+numbers and format names. Various old format name aliases are also
+accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', for 'netCDF-4'.
 
 -l
 The -l file specifies that ncgen should output (to standard output)
@@ -3918,7 +3926,7 @@ the intent of elements of the format.
      NC_DOUBLE    = \\x00 \\x00 \\x00 \\x06       // IEEE double precision floats
                                   // Default fill values for each type, may be
                                   // overridden by variable attribute named
-                                  // `_FillValue'. See "Note on fill values",
+                                  // '_FillValue'. See "Note on fill values",
                                   // below.
      FILL_CHAR    = \\x00                      // null byte
      FILL_BYTE    = \\x81                      // (signed char) -127

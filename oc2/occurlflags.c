@@ -43,6 +43,7 @@ static struct OCCURLFLAG oc_curlflags[] = {
 {NULL,0}
 };
 
+#if 0
 static struct OCCURLFLAG oc_allcurlflags[] = {
 {"CURLOPT_ADDRESS_SCOPE",CURLOPT_ADDRESS_SCOPE,171,CF_UNKNOWN},
 {"CURLOPT_APPEND",CURLOPT_APPEND,50,CF_UNKNOWN},
@@ -232,6 +233,15 @@ static struct OCCURLFLAG oc_allcurlflags[] = {
 {NULL,0}
 };
 
+struct OCCURLFLAG*
+occurlflagsall(void)
+{
+    if(nflags == 0) initialize();
+    return oc_allcurlflags;
+}
+
+#endif
+
 static int touppercase(int c)
 {
     if(c >= 'a' && c <= 'z')
@@ -267,14 +277,6 @@ occurlflags(void)
     if(nflags == 0) initialize();
     return oc_curlflags;
 }
-
-struct OCCURLFLAG*
-occurlflagsall(void)
-{
-    if(nflags == 0) initialize();
-    return oc_allcurlflags;
-}
-
 
 struct OCCURLFLAG*
 occurlflagbyname(const char* name)

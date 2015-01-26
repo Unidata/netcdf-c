@@ -141,7 +141,7 @@ xxdr_uint(XXDR* xdr, unsigned int* ip)
 
 /* get a long long  from underlying stream*/
 int
-xxdr_ulonglong(XXDR* xdr, unsigned long* llp)
+xxdr_ulonglong(XXDR* xdr, unsigned long long* llp)
 {
    /* Pull two units */
    if(!llp) return 0;

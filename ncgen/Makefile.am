@@ -36,7 +36,7 @@ endif # USE_NETCDF4
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 		ncf199.nc
 
-# These rule are used if someone wants to rebuild ncgenyy.c or ncgentab.c
+# These rules are used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it.
 # BTW: note that renaming is essential because otherwise
 # autoconf will forcibly delete files of the name *.tab.*

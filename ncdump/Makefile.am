@@ -90,7 +90,7 @@ small2.nc c0tmp.nc c1.ncml utf8.cdl utf8_64.cdl utf8.nc utf8_64.nc	\
 tmp.cdl tst_vlen_data.nc tst_utf8.nc tst_special_atts.nc		\
 tst_unicode.nc tst_solar_2.nc tst_string_data.nc tst_calendars.nc	\
 tst_nans.nc tst_opaque_data.nc tst_solar_cmp.nc tst_enum_data.nc	\
-tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_comp2.nc tst_ncml.nc	\
+tst_solar_1.nc tst_mslp_64.nc tst_mslp.nc tst_bug321.nc tst_comp2.nc tst_ncml.nc	\
 tst_fillbug.nc tst_group_data.nc tst_small.nc tst_comp.nc		\
 tst_unicode.cdl tst_group_data.cdl tst_compounds2.cdl tst_comp.cdl	\
 tst_enum_data.cdl tst_small.cdl tst_times.cdl tst_solar_2.cdl		\
@@ -117,7 +117,7 @@ ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_fillbug.sh tst_calendars.cdl	\
 tst_calendars.sh ref_times.cdl ref_tst_special_atts.cdl			\
 ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
 ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
-ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
+ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl tst_bug321.cdl \
 ref_tst_format_att.cdl ref_tst_format_att_64.cdl tst_nccopy3.sh		\
 tst_nccopy4.sh ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh	\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl         \

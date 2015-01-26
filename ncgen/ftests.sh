@@ -43,7 +43,7 @@ LIBS="-L${INSTALL}/lib -lnetcdf"
 RPATH="-Wl,-rpath,${INSTALL}/lib"
 
 # Define the set of tests that can be
-# processed with either the -k1 or -k3 flag
+# processed with either the -k nc3 or -k nc4 flag
 
 TESTS3="\
 test0 \
@@ -72,7 +72,7 @@ FTNFAIL="ref_tst_unicode"
 
 
 # Define the set of tests that must be
-# processed with the -k3 flag
+# processed with the -k nc4 flag
 
 TESTS4="\
 ref_dimscope \
