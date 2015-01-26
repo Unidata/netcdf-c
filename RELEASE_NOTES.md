@@ -43,6 +43,12 @@ Example Work Flow from netcdf-c source directory:
 
 * The pnetcdf support was not properly being used to provide mpi parallel io for netcdf-3 classic files. The wrong dispatch table was being used. [NCF-319](https://bugtracking.unidata.ucar.edu/browse/NCF-319)
 
+* In nccopy utility, provided proper default for unlimited dimension in chunk-size specification instead of requiring explicit chunk size. Added associated test. [NCF-321](https://bugtracking.unidata.ucar.edu/browse/NCF-321)
+
+* Fixed documentation typo in FILL_DOUBLE definition in classic format specification grammar. Fixed other typos and inconsistencies in Doxygen version of User Guide.
+
+* For nccopy and ncgen, added numeric options (-3, -4, -6, -7) for output format, to provide less confusing format version specifications than the error-prone equivalent -k options (-k1, -k2, -k3, -k4). The new numeric options are compatible with NCO's mnemonic version options. The old -k numeric options will still be accepted but are deprecated, due to easy confusion between format numbers and format names. [NCF-314](https://bugtracking.unidata.ucar.edu/browse/NCF-314)
+
 * Fixed bug in ncgen. When classic format was in force (k=1 or k=4), the "long" datatype should be treated as int32. Was returning an error. [NCF-318](https://bugtracking.unidata.ucar.edu/browse/NCF-318)
 
 * Fixed bug where if the netCDF-C library is built with the HDF5 library but without the HDF4 library and one attempts to open an HDF4 file, an abort occurs rather than returning a proper error code (NC_ENOTNC). [NCF-317](https://bugtracking.unidata.ucar.edu/browse/NCF-317)
@@ -74,6 +80,10 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 ### 4.3.3-rc1 Released 2014-08-25
 
 * Added `CMake`-based export files, contributed by Nico Schlömer. See https://github.com/Unidata/netcdf-c/pull/74.
+
+* Documented that ncgen input can come from standard input.
+
+* Regularized generation of libnetcdf.settings file to make parsing it easier.
 
 * Fixed ncdump bug for char variables with multiple unlimited dimensions and added an associated test.  Now the output CDL properly disambiguates dimension groupings, so that ncgen can generate the original file from the CDL. [NCF-310](https://bugtracking.unidata.ucar.edu/browse/NCF-310)
 
@@ -117,6 +127,8 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 	* `NC_CTEST_DROP_LOC_PREFIX` - Specify a prefix on the remote webserver relative to the root directory. This lets CTest accommodate dashboards that do not live at the top level of the web server.
 
 * Return an error code on open instead of an assertion violation for truncated file.
+
+* Documented limit on number of Groups per netCDF-4 file (32767).
 
 ### 4.3.2-rc2 Released 2014-04-15
 
