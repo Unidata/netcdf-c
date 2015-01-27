@@ -1117,10 +1117,21 @@ MACRO(print_conf_summary)
 
   MESSAGE("")
 ENDMACRO()
-
+##
 # Shell script Macro
+##
+# Determine if 'bash' is on the system.
+##
+
+FIND_PROGRAM(HAVE_BASH NAMES bash)
+IF(HAVE_BASH)
+  MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+ELSE()
+  MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
+ENDIF()
+
 MACRO(add_sh_test prefix F)
-  IF(NOT MSVC)
+  IF(HAVE_BASH)
     ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
   ENDIF()
 ENDMACRO()

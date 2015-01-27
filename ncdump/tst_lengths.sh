@@ -33,6 +33,11 @@
 # cc -g -o rewrite-scalar -I../libsrc rewrite-scalar.c -L../libsrc -lnetcdf
 # echo "netcdf small {variables: byte t; data: t = 1;}" > small.cdl
 set -e
+
+if test "x$srcdir" = x ; then
+srcdir=`pwd`
+fi
+
 echo ""
 echo "*** testing length of classic file"
 ../ncgen/ncgen -b ${srcdir}/small.cdl
