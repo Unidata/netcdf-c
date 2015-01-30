@@ -1281,7 +1281,11 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 
 #ifndef JNA
                /* Free the member name (which HDF5 allocated for us). */
+			   /* On Windows using the microsoft runtime, it is an error
+				  for one library to free memory allocated by a different library. */
+#ifndef _MSC_VER
                if(member_name != NULL) free(member_name);
+#endif
 #endif
 	       member_name = NULL;
             }
