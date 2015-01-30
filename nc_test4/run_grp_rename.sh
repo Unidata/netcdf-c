@@ -6,6 +6,10 @@
 set -e
 echo ""
 
+if test "x$srcdir" = x ; then
+srcdir=`pwd`
+fi
+
 # Create the input cdl file
 rm -f tst_grp_rename.cdl
 cat >tst_grp_rename.cdl <<EOF

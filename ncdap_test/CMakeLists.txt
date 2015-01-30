@@ -10,6 +10,21 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSION
 IF(ENABLE_DAP_REMOTE_TESTS)
   ADD_EXECUTABLE(nctestserver nctestserver.c)
   TARGET_LINK_LIBRARIES(nctestserver netcdf ${ALL_TLL_LIBS})
+
+  ####				     
+  # We have to do a little tweaking    
+  # to remove the Release/ and Debug/ directories
+  # in MSVC builds.  This is required to get
+  # test scripts to work.
+  ####
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY 
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG 
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(nctestserver PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_TESTS)
