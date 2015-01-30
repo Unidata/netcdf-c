@@ -92,7 +92,11 @@ ENDIF()
   add_sh_test(ncdump run_utf8_tests)
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_charfill)
+
+IF(NOT MSVC)
   add_sh_test(ncdump tst_iter)
+ENDIF()
+
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
   
