@@ -88,13 +88,13 @@ rm -f tst_grp_rename.nc
 ../ncgen/ncgen -k nc4 ./tst_grp_rename.cdl
 
 # Try to rename 2nd level group
-if ! ./renamegroup tst_grp_rename.nc "/inner/inner_inner" "inner_renamed" ; then
+if ! ./renamegroup tst_grp_rename.nc "inner/inner_inner" "inner_renamed" ; then
   echo "***FAIL: attempt to rename /inner/inner_inner failed"
   FAIL=1
 fi
 
 # Try to 1st level group
-if ! ./renamegroup tst_grp_rename.nc "/inner" "renamed" ; then
+if ! ./renamegroup tst_grp_rename.nc "inner" "renamed" ; then
   echo "***FAIL: attempt to rename /inner failed"
   FAIL=1
 fi
@@ -103,7 +103,7 @@ fi
 rm -f tst_grp_rename.dmp
 ../ncdump/ncdump tst_grp_rename.nc > ./tst_grp_rename.dmp
 
-if ! diff ref_grp_rename.cdl tst_grp_rename.dmp ; then
+if ! diff -b ref_grp_rename.cdl tst_grp_rename.dmp ; then
   echo "***FAIL: output and reference output differ"
   FAIL=1
 fi
@@ -116,6 +116,6 @@ else
   echo "***XFAIL : attempt to rename root group failed as expected"
 fi
 
-rm -f tst_grp_rename.cdl tst_grp_rename.nc ref_grp_rename.nc
+#rm -f tst_grp_rename.cdl tst_grp_rename.nc ref_grp_rename.nc
 
 exit $FAIL
