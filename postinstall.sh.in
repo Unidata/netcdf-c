@@ -5,6 +5,7 @@
 DOCMAKE=""
 DOAUTOTOOL=""
 DOACTION=""
+TARGVERSION="v4.4.2"
 
 MARG=""
 if [ $# -lt 1 ]; then
@@ -80,9 +81,11 @@ esac
 
 if [ ! -d "netcdf-fortran" ]; then
     git clone http://github.com/unidata/netcdf-fortran
+
 fi
 
 cd netcdf-fortran
+git checkout $TARGVERSION
 
 ###
 # Invoke cmake to build netcdf-fortran
