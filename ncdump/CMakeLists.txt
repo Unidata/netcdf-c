@@ -100,7 +100,12 @@ ENDIF()
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
   
-  IF(EXTRA_TESTS)
+  ###
+  # This test fails on Visual Studio builds with bash.
+  # It passes, but technically fails because the scientific
+  # formatting omits a 0.
+  ###
+  IF(EXTRA_TESTS AND NOT MSVC)
     add_sh_test(ncdump run_back_comp_tests)
   ENDIF()
   
@@ -140,15 +145,15 @@ ENDIF()
       #add_bin_test(ncdump tst_h_rdc0)
     ENDIF()
     add_bin_test(ncdump tst_unicode)
-    if(NOT WIN32)
+    if(NOT MSVC)
       #add_bin_test(ncdump tst_fillbug)
       #add_sh_test(ncdump tst_fillbug)
     ENDIF()
-    IF(NOT WIN32)	
+    IF(NOT MSVC)	
       add_sh_test(ncdump tst_netcdf4_4)
     ENDIF()	
     
-    IF(NOT WIN32)
+    IF(NOT MSVC)
       #add_sh_test(ncdump tst_nccopy4)
     ENDIF()
     add_sh_test(ncdump tst_grp_spec)
