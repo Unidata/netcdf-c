@@ -24,7 +24,7 @@ TARGET_LINK_LIBRARIES(nc_test
 # Some extra tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta)
 
-IF(NOT MSVC)
+IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)
 ENDIF()
 

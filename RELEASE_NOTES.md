@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
+* Enabled previously-disabled shell-script-based tests for Visual Studio when `bash` is detected.
+
 ### 4.3.3-rc3 Released 2015-01-14
 
 * Added functionality to make it easier to build `netcdf-fortran` as part of the `netcdf-c` build for *NON-MSVC* builds.  This functionality is enabled at configure time by using the following **Highly Experimental** options:

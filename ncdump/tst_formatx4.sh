@@ -14,7 +14,7 @@ echo "Test extended format output for a netcdf-4 file"
 rm -f tmp
 ../ncgen/ncgen -k nc4 -b -o ./test.nc $srcdir/ref_tst_small.cdl
 ./ncdump -K test.nc >tmp
-if ! fgrep 'HDF5 mode=00001000' <tmp ; then
+if ! grep 'HDF5 mode=00001000' <tmp ; then
 echo "*** Fail: extended format for a netcdf-4 file"
 ECODE=1
 fi
@@ -23,7 +23,7 @@ echo "Test extended format output for a classic netcdf-4 file"
 rm -f tmp
 ../ncgen/ncgen -k nc7 -b -o ./test.nc $srcdir/ref_tst_small.cdl
 ./ncdump -K test.nc >tmp
-if ! fgrep 'HDF5 mode=00001000' <tmp ; then
+if ! grep 'HDF5 mode=00001000' <tmp ; then
 echo "*** Fail: extended format for a classic netcdf-4 file"
 ECODE=1
 fi

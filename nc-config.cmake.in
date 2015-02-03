@@ -4,10 +4,10 @@
 # various things about the netCDF installation. This code was
 # contributed by netCDF user Arlindo DaSilva. Thanks Arlindo!
 
-prefix=@CMAKE_INSTALL_PREFIX@
-exec_prefix=@CMAKE_INSTALL_PREFIX@
-libdir=@CMAKE_INSTALL_PREFIX@/lib
-includedir=@CMAKE_INSTALL_PREFIX@/include
+prefix="@CMAKE_INSTALL_PREFIX@"
+exec_prefix="@CMAKE_INSTALL_PREFIX@"
+libdir="@CMAKE_INSTALL_PREFIX@/lib"
+includedir="@CMAKE_INSTALL_PREFIX@/include"
 
 cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/include"

@@ -7,6 +7,21 @@ ENDIF()
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 
+####
+# We have to do a little tweaking
+# to remove the Release/ and Debug/ directories
+# in MSVC builds.  This is required to get
+# test scripts to work.
+####
+IF(MSVC)
+  SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY 
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG 
+    ${CMAKE_CURRENT_BINARY_DIR})
+  SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+    ${CMAKE_CURRENT_BINARY_DIR})
+ENDIF()
+
 INSTALL(TARGETS ncgen DESTINATION bin COMPONENT utilities)
 
 # Copy the input for the flex file (ncgen.l)
