@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.3.3 Released TBD
 
+* Fixed bug resulting in error closing a valid netCDF-4 file with a dimension and a non-coordinate variable with the same name. [NCF-324](https://bugtracking.unidata.ucar.edu/browse/NCF-324)
+
 * Enabled previously-disabled shell-script-based tests for Visual Studio when `bash` is detected.
 
 ### 4.3.3-rc3 Released 2015-01-14
