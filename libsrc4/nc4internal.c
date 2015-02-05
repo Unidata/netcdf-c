@@ -464,7 +464,7 @@ nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **ty
 }
 
 /* Find the actual length of a dim by checking the length of that dim
- * in all variables that use it, in grp or children. *len must be
+ * in all variables that use it, in grp or children. **len must be
  * initialized to zero before this function is called. */
 int
 nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)

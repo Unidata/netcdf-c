@@ -6,6 +6,7 @@
 
 #include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -205,6 +206,7 @@ main(
 		   derror("Invalid format, try classic, 64-bit offset, netCDF-4, or netCDF-4 classic model");
 		   return 2;
 		}
+		free(kind_name);
 	    }
 	  break;
 	case '?':
