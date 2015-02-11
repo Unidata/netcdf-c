@@ -1339,7 +1339,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    dim->coord_var = var;
 
    /* Check if this variable used to be a coord. var */
-   if (var->was_coord_var)
+   if (var->was_coord_var && grp != NULL)
    {
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */
