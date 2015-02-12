@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.3.3 Released TBD
+## 4.3.3 Released 2015-02-12
 
 * Fixed bug resulting in error closing a valid netCDF-4 file with a dimension and a non-coordinate variable with the same name. [NCF-324](https://bugtracking.unidata.ucar.edu/browse/NCF-324)
 
