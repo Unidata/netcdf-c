@@ -222,6 +222,8 @@ ocset_flags_perlink(OCstate* state)
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERPWD);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_PROXY);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USE_SSL);
+    if(stat != OC_NOERR)
+      return stat;
 
     /* Following are always set */
     ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
@@ -248,7 +250,10 @@ oc_set_curl_options(OCstate* state)
     struct OCCURLFLAG* ocflag = NULL;
 
     hostport = occombinehostport(state->uri);
-    if(hostport == NULL) hostport = "";
+    if(hostport == NULL) {
+      hostport = (char*)malloc(sizeof(char)*1);
+      *hostport = "";
+    }
 
     store = &ocglobalstate.rc.ocrc;
     triple = store->triples;
@@ -256,7 +261,7 @@ oc_set_curl_options(OCstate* state)
     /* Assume that the triple store has been properly sorted */
     for(i=0;i<store->ntriples;i++,triple++) {
         size_t hostlen = strlen(triple->host);
-	const char* flagname;
+        const char* flagname;
 
         if(ocstrncmp("CURL.",triple->key,5) != 0) continue; /* not a curl flag */
         /* do hostport prefix comparison */
@@ -270,7 +275,7 @@ oc_set_curl_options(OCstate* state)
         stat = ocset_curlopt(state,ocflag->flag,cvt(triple->value,ocflag->type));
     }
  done:
-    if(hostport && hostport != "") free(hostport);
+    if(hostport && *hostport != "") free(hostport);
     return stat;
 }
 

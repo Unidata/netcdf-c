@@ -464,7 +464,7 @@ nc4_find_type(const NC_HDF5_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **ty
 }
 
 /* Find the actual length of a dim by checking the length of that dim
- * in all variables that use it, in grp or children. *len must be
+ * in all variables that use it, in grp or children. **len must be
  * initialized to zero before this function is called. */
 int
 nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
@@ -1339,7 +1339,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    dim->coord_var = var;
 
    /* Check if this variable used to be a coord. var */
-   if (var->was_coord_var)
+   if (var->was_coord_var && grp != NULL)
    {
       /* Reattach the scale everywhere it is used. */
       /* (Recall that netCDF dimscales are always 1-D) */

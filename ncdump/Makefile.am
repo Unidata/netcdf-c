@@ -136,5 +136,5 @@ EXTRA_DIST += tst_ncgen_shared.sh tst_ncgen4.sh tst_ncgen4_classic.sh	\
 tst_ncgen4_diff.sh tst_ncgen4_cycle.sh ref_ctest.c ref_ctest64.c \
 ctest.c ctest64.c
 
-CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl
+CLEANFILES += results/*.nc results/*.dmp results/*.dmp2 tmp*.cdl tst_bug324.nc
 DISTCLEANFILES = results

@@ -76,14 +76,14 @@ main(int argc, char **argv)
 	if ( nc_inq_var(ncid, h_id, NULL, &h_type, &h_rank, h_dims, &h_natts) ) ERR;
 	if ( h_type != NC_DOUBLE || h_rank != RANK_H || h_natts != 0 ) ERR;
 	{
-	    double lat_data[RANK_LAT];
+	    double lat_data[LEN_LAT];
 	    size_t start[RANK_LAT] = {0} ;
 	    size_t count[1] = {LEN_LAT};
 	    if ( nc_get_vara(ncid, lat_id, start, count, lat_data) ) ERR;
 	    if ( lat_data[0] != -45.0 || lat_data[1] != 45.0 ) ERR;
 	}
 	{
-	    double h_data[RANK_H];
+	    double h_data[LEN_H];
 	    size_t start[RANK_H] = {0} ;
 	    size_t count[1] = {LEN_H};
 	    if ( nc_get_vara(ncid, h_id, start, count, h_data) ) ERR;
