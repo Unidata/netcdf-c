@@ -1,6 +1,8 @@
 Unidata NetCDF
 ==============
 
+[![Build Status](https://travis-ci.org/nschloe/netcdf-c.png?branch=travis-ci)](https://travis-ci.org/nschloe/netcdf-c)
+
 <a href="https://scan.coverity.com/projects/157">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/157/badge.svg"/>
