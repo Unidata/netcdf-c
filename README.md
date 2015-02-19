@@ -1,7 +1,7 @@
 Unidata NetCDF
 ==============
 
-[![Build Status](https://travis-ci.org/nschloe/netcdf-c.png?branch=travis-ci)](https://travis-ci.org/nschloe/netcdf-c)
+[![Build Status](https://travis-ci.org/Unidata/netcdf-c.svg?branch=master)](https://travis-ci.org/Unidata/netcdf-c)
 
 <a href="https://scan.coverity.com/projects/157">
   <img alt="Coverity Scan Build Status"
@@ -34,7 +34,7 @@ data in heterogeneous networking environments and for writing
 application software that does not depend on application-specific
 formats.  For information about a variety of analysis and display
 packages that have been developed to analyze and display data in
-netCDF form, see 
+netCDF form, see
 
 * http://www.unidata.ucar.edu/netcdf/software.html
 
@@ -45,7 +45,7 @@ For more information about netCDF, see the netCDF Web page at
 You can obtain a copy of the latest released version of netCDF software
 from
 
-* http://github.com/Unidata/netcdf-c 
+* http://github.com/Unidata/netcdf-c
 * http://github.com/Unidata/netcdf-fortran
 * http://github.com/Unidata/netcdf-cxx4
 * http://github.com/Unidata/netcdf4-python
@@ -64,7 +64,7 @@ The netCDF-3 C and FORTRAN-77 interfaces are documented in man(1)
 pages at
 
 * http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3.html
-* http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html 
+* http://www.unidata.ucar.edu/netcdf/docs/netcdf-man-3f.html
 
 User's Guides are also available in several forms from the same
 location.
