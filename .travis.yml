@@ -19,4 +19,5 @@ before_script:
   - ./configure
 
 script:
-  - make && make check
+  - make
+  - LD_LIBRARY_PATH=/usr/local/lib make check
