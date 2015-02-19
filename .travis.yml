@@ -11,7 +11,7 @@ before_install:
   - wget http://www.unidata.ucar.edu/downloads/netcdf/ftp/hdf5-1.8.14.tar.bz2
   - sudo mv hdf5-1.8.14.tar.bz2 /usr/local
   - pushd /usr/local
-  - sudo tar -jxf hdf5-1.8.14.bz2
+  - sudo tar -jxf hdf5-1.8.14.tar.bz2
   - popd
 
 before_script:
