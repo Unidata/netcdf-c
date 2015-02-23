@@ -118,7 +118,7 @@ new_NC_attr(
 	free(name);
 	if(strp == NULL)
 		return NULL;
-	
+
 	attrp = new_x_NC_attr(strp, type, nelems);
 	if(attrp == NULL)
 	{
@@ -137,7 +137,8 @@ dup_NC_attr(const NC_attr *rattrp)
 		 rattrp->type, rattrp->nelems);
 	if(attrp == NULL)
 		return NULL;
-	(void) memcpy(attrp->xvalue, rattrp->xvalue, rattrp->xsz);
+    if(attrp->xvalue != NULL && rattrp->xvalue != NULL)
+    	(void) memcpy(attrp->xvalue, rattrp->xvalue, rattrp->xsz);
 	return attrp;
 }
 
@@ -179,7 +180,7 @@ void
 free_NC_attrarrayV(NC_attrarray *ncap)
 {
 	assert(ncap != NULL);
-	
+
 	if(ncap->nalloc == 0)
 		return;
 
@@ -268,7 +269,7 @@ incr_NC_attrarray(NC_attrarray *ncap, NC_attr *newelemp)
 			(ncap->nalloc + NC_ARRAY_GROWBY) * sizeof(NC_attr *));
 		if(vp == NULL)
 			return NC_ENOMEM;
-	
+
 		ncap->value = vp;
 		ncap->nalloc += NC_ARRAY_GROWBY;
 	}
@@ -365,7 +366,7 @@ NC_findattr(const NC_attrarray *ncap, const char *uname)
 /*
  * Look up by ncid, varid and name, return NULL if not found
  */
-static int 
+static int
 NC_lookupattr(int ncid,
 	int varid,
 	const char *name, /* attribute name */
@@ -427,7 +428,7 @@ NC3_inq_attname(int ncid, int varid, int attnum, char *name)
 }
 
 
-int 
+int
 NC3_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
 	int status;
@@ -444,7 +445,7 @@ NC3_inq_attid(int ncid, int varid, const char *name, int *attnump)
 	ncap = NC_attrarray0(ncp, varid);
 	if(ncap == NULL)
 		return NC_ENOTVAR;
-	
+
 
 	attrpp = NC_findattr(ncap, name);
 	if(attrpp == NULL)
@@ -580,7 +581,7 @@ NC3_del_att(int ncid, int varid, const char *uname)
 	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
 	if(name == NULL)
 	    return NC_ENOMEM;
-	
+
 			/* sortof inline NC_findattr() */
 	slen = strlen(name);
 
@@ -784,10 +785,10 @@ NC3_put_att(
         if(!NC_indef(ncp)) {
 	    const size_t xsz = ncx_len_NC_attrV(type, nelems);
             attrp = *attrpp; /* convenience */
-    
+
 	    if(xsz > attrp->xsz) return NC_ENOTINDEFINE;
 	    /* else, we can reuse existing without redef */
-                    
+
 	    attrp->xsz = xsz;
             attrp->type = type;
             attrp->nelems = nelems;
@@ -796,7 +797,7 @@ NC3_put_att(
                 void *xp = attrp->xvalue;
                 status = dispatchput(&xp, nelems, (const void*)value, type, memtype);
             }
-                       
+
             set_NC_hdirty(ncp);
 
             if(NC_doHsync(ncp)) {
@@ -897,4 +898,3 @@ NC3_get_att(
     status =  NC_EBADTYPE;
     return status;
 }
-
