@@ -123,7 +123,7 @@ static void
 rctrim(char* text)
 {
     char* p = text;
-    size_t len = strlen(text);
+    size_t len = 0;
     int i;
     /* locate first non-trimchar */
     for(;*p;p++) {
