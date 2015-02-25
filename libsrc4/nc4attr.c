@@ -617,7 +617,7 @@ NC4_rename_att(int ncid, int varid, const char *name,
    NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var;
+   NC_VAR_INFO_T *var = NULL;
    NC_ATT_INFO_T *att, *list;
    char norm_newname[NC_MAX_NAME + 1], norm_name[NC_MAX_NAME + 1];
    hid_t datasetid = 0;
@@ -712,6 +712,10 @@ NC4_rename_att(int ncid, int varid, const char *name,
       return NC_ENOMEM;
    strcpy(att->name, norm_newname);
    att->dirty = NC_TRUE;
+
+   /* Mark attributes on variable dirty, so they get written */
+   if(var)
+       var->attr_dirty = NC_TRUE;
 
    return retval;
 }

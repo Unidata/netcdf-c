@@ -4,6 +4,8 @@
 
 #include <netcdf.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* On error, prints line number and file of test program. */
 #define ERR do {                                     \
@@ -155,6 +157,84 @@ main(int argc, char **argv)
 	  fprintf(stderr, "\trh_in[%d] is %g, should be %g\n", ii, rh_in[ii], rh[ii]);
       }
       if (nc_close(ncid)) ERR;
+
+      if (formats[format] == NC_FORMAT_NETCDF4) {
+          printf("*** Test renaming attribute in sub-group for %s...\n",
+                fmt_names[format]);
+          {
+#define DIMNAME "lon"
+#define VARNAME "lon"
+#define G1_VARNAME "lon"
+#define OLD_NAME "units"
+#define NEW_NAME "new_units"
+#define CONTENTS "degrees_east"
+#define RANK_lon 1
+#define GRP_NAME "g1"
+#define RANK_g1_lon 1
+
+            /* IDs of file, groups, dimensions, variables, attributes */
+            int ncid, g1_grp, lon_dim, lon_var, g1_lon_var, units_att;
+            size_t lon_len = 4;
+            char *data_in;
+
+            /* variable shapes */
+            int lon_dims[RANK_lon];
+            int g1_lon_dims[RANK_g1_lon];
+
+            if (!(data_in = malloc(strlen(CONTENTS) + 1))) ERR;
+
+            /* Create test file */
+            if (nc_create(file_names[format], NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+            /* Create subgroup and outer dimension */
+            if (nc_def_grp(ncid, GRP_NAME, &g1_grp)) ERR;
+            if (nc_def_dim(ncid, DIMNAME, lon_len, &lon_dim)) ERR;
+            /* Create outer variable and subgroup variable */
+            lon_dims[0] = lon_dim;
+            if (nc_def_var(ncid, VARNAME, NC_FLOAT, RANK_lon, lon_dims, &lon_var)) ERR;
+            g1_lon_dims[0] = lon_dim;
+            if (nc_def_var(g1_grp, G1_VARNAME, NC_FLOAT, RANK_g1_lon, g1_lon_dims, &g1_lon_var)) ERR;
+            /* assign per-variable attributes */
+            if (nc_put_att_text(ncid, lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR;
+            if (nc_put_att_text(g1_grp, g1_lon_var, OLD_NAME, strlen(CONTENTS), CONTENTS)) ERR;
+            if (nc_enddef (ncid)) ERR;
+            /* write variable data */
+            {
+              float lon_data[4] = {0, 90, 180, 270};
+              size_t start[] = {0};
+              size_t count[] = {4};
+              if (nc_put_vara(ncid, lon_var, start, count, lon_data)) ERR;
+            }
+            {
+              float g1_lon_data[4] = {0, 90, 180, 270};
+              size_t start[] = {0};
+              size_t count[] = {4};
+              if (nc_put_vara(g1_grp, g1_lon_var, start, count, g1_lon_data)) ERR;
+            }
+            if (nc_close(ncid)) ERR;
+
+            /* reopen the file and rename the attribute in the subgroup */
+            if (nc_open(file_names[format], NC_WRITE, &ncid)) ERR;
+            if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR;
+            if (nc_inq_varid(g1_grp,VARNAME,&g1_lon_var)) ERR;
+            if (nc_rename_att(g1_grp, g1_lon_var, OLD_NAME, NEW_NAME)) ERR;
+            if (nc_close(ncid)) ERR;
+
+            /* reopen the file again and see if renamed attribute exists and
+               has expected value */
+            {
+              nc_type att_type;
+              size_t att_len;
+
+              if (nc_open(file_names[format], NC_NOWRITE, &ncid)) ERR;
+              if (nc_inq_grp_ncid(ncid, GRP_NAME, &g1_grp)) ERR;
+              if (nc_inq_varid(g1_grp, VARNAME, &g1_lon_var)) ERR;
+              if (nc_get_att_text(g1_grp, g1_lon_var, NEW_NAME, data_in)) ERR;
+              if (strncmp(CONTENTS, data_in, strlen(CONTENTS))) ERR;
+              if (nc_close(ncid)) ERR;
+            }
+            free(data_in);
+          }
+      }
     }
 
   return(0);
