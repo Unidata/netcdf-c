@@ -5,6 +5,10 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.3.X Released ????
+
+* Add an authorization reference document as oc2/ocauth.html.
+
 ## 4.3.3.1 Released 2015-02-25
 
 * Fixed a bug related to renaming the attributes of coordinate variables in a subgroup. See [NCF-325](https://bugtracking.unidata.ucar.edu/browse/NCF-325) for more information.

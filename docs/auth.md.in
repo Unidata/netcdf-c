@@ -1,0 +1,11 @@
+Authorization Support in the netDF-C Libraries {#auth}
+==================================================
+
+\brief It is possible to support a number of authorization schemes
+in the netCDF-C library.
+
+Authorization in the netCDF-C library is delegated to
+the oc2 code, which in turn delegates it to the libcurl library.
+
+Following is the authorization documentation.
+

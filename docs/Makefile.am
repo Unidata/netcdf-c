@@ -10,7 +10,7 @@ EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html \
     architecture.dox internal.dox windows-binaries.md \
     building-with-cmake.md CMakeLists.txt \
     groups.dox install.md install-fortran.md \
-    all-error-codes.md cmake_faq.md credits.md
+    all-error-codes.md cmake_faq.md credits.md auth.md.in auth.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -53,6 +53,9 @@ doxyfile.stamp:
 	echo Timestamp > doxyfile.stamp
 
 CLEANFILES = doxyfile.stamp html latex man
+
+auth.md: auth.md.in ../oc2/ocauth.html
+	cat auth.md.in ../oc2/ocauth.html >auth.md
 
 # This builds the docs from source, if necessary, and tars up
 # everything needed for the website. Run this and copy the resulting

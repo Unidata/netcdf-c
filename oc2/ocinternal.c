@@ -69,12 +69,14 @@ ocinternalinitialize(void)
 {
     int stat = OC_NOERR;
 
+#if 0
     if(sizeof(off_t) != sizeof(void*)) {
       fprintf(stderr,"OC xxdr depends on the assumption that sizeof(off_t) == sizeof(void*)\n");
       //Commenting out for now, as this does not hold true on 32-bit
       //linux systems.
       //OCASSERT(sizeof(off_t) == sizeof(void*));
     }
+#endif
 
     if(!ocglobalstate.initialized) {
       memset((void*)&ocglobalstate,0,sizeof(ocglobalstate));
@@ -627,7 +629,7 @@ ocset_curlproperties(OCstate* state)
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-		errno = 0;
+	errno = 0;
     }
     OCASSERT(state->curlflags.cookiejar != NULL);
 

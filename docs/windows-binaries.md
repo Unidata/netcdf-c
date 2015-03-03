@@ -1,3 +1,5 @@
+\section winbin Installing and Using netCDF-C Libraries in Windows
+
 Installing and Using netCDF-C Libraries in Windows {#winbin}
 ==================================================
 

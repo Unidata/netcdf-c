@@ -30,6 +30,9 @@ The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/netcdf"
 - \ref netCDF-CMake
 - \ref winbin
 
+\section netcdf-authorization Authorization Support in the NetCDF-C Library:
+- \ref auth
+
 \section netcdf_credits About NetCDF
 
 \authors Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed

@@ -116,8 +116,7 @@ typedef struct XXDR XXDR; /* forward */
 /* Assume |off_t| == |void*| */
 struct XXDR {
   char* data;
-  off_t pos; /* relative to data;
-                 may be a cache of underlying stream pos */
+  off_t pos; /* relative to data; may be a cache of underlying stream pos */
   int valid;         /* 1=>underlying stream pos == pos */
   off_t base; /* beginning of data in case bod != 0*/
   off_t length; /* total size of available data (relative to base)*/
@@ -126,7 +125,7 @@ struct XXDR {
   int (*setpos)(XXDR*,off_t);
   off_t (*getpos)(XXDR*);
   off_t (*getavail)(XXDR*);
-  void (*free)(XXDR*);		  /* xdr kind specific free function */
+  void (*free)(XXDR*); /* xdr kind specific free function */
 };
 
 /* Track network order */

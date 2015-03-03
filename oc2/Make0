@@ -1,5 +1,5 @@
-OCDIR=/home/dmh/git/oc
-#OCDIR=f:/git/oc
+#OCDIR=/home/dmh/git/oc
+OCDIR=f:/git/oc
 
 THISDIR=../oc2
 
@@ -24,7 +24,11 @@ ochttp.h ocread.h ocutil.h \
 ocbytes.h oclist.h ocuri.h oclog.h \
 xxdr.h
 
-FILES=${HDRS} ${SRC} dap.y
+DOCS=docs/ocauth.html
+
+MISC=dap.y
+
+FILES=${HDRS} ${SRC} ${MISC} ${DOCS}
 
 all::
 
@@ -45,6 +49,23 @@ makeoc::
 	mv dap.tab.c daptab.c; mv dap.tab.h daptab.h
 
 diffoc::
+	@if ! test -e ${OCDIR} ; then echo "${OCDIR} not found"; exit ; fi
+	@for file in ${FILES} ; do \
+	    f="${OCDIR}/$$file" ; \
+	    x=`basename $$f|tr -d '' ` ; \
+	    if test "x$${x}" = "xdaptab.c" -o "x$${x}" = "xdaptab.h" ; then echo "ignore: $${x}"; continue; fi ;\
+	    if ! test -e ${THISDIR}/$$x ; then \
+		echo "Missing file: $$x"; \
+	    fi ; \
+	    if test -e ${THISDIR}/$$x -a -e ${OCDIR}/$$x ; then \
+		if ! diff --brief -wBb ${THISDIR}/$$x $$f > /dev/null ; then \
+		echo diff -wBb ${THISDIR}/$$x $$f ;\
+		diff -w ${THISDIR}/$$x $$f ; \
+		fi; \
+	    fi; \
+	done
+
+olddiff::
 	if ! test -e ${OCDIR} ; then echo "${OCDIR} not found"; exit ; fi
 	for file in ${FILES} ; do \
 	    f="${OCDIR}/$$file" ; \
