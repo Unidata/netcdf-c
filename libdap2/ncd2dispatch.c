@@ -7,6 +7,8 @@
 #include "ncd2dispatch.h"
 #include "dapalign.h"
 
+#define NCRCFILE "NCRCFILE"
+
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
 #    include <sys/time.h>
@@ -203,6 +205,12 @@ NCD2_initialize(void)
     if(nclogopen(NULL))
         ncsetlogging(1); /* turn it on */
 #endif
+    /* Look at env vars for rc file location */
+    if(getenv(NCRCFILE) != NULL) {
+	const char* ncrcfile = getenv(NCRCFILE);
+	if(oc_set_rcfile(ncrcfile) != OC_NOERR)
+	    return NC_EAUTH;
+    }
     return NC_NOERR;
 }
 

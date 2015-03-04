@@ -255,7 +255,7 @@ oc_set_curl_options(OCstate* state)
       *hostport = '\0';
     }
 
-    store = &ocglobalstate.rc.ocrc;
+    store = &ocglobalstate.rc.daprc;
     triple = store->triples;
 
     /* Assume that the triple store has been properly sorted */

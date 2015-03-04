@@ -4,10 +4,14 @@ Authorization Support in the netDF-C Libraries {#auth}
 \brief It is possible to support a number of authorization schemes
 in the netCDF-C library.
 
-Authorization in the netCDF-C library is delegated to
-the oc2 code, which in turn delegates it to the libcurl library.
+With one exception, authorization in the netCDF-C library is
+delegated to the oc2 code, which in turn delegates it to the
+libcurl library. The exception is that the location of the rc
+file can be specified by setting the environment variable *NCRCFILE*.
+Note that the value of this environment variable should be the
+absolute path of the rc file, not the path to its containing directory.
 
-Following is the authorization documentation.
+Following is the authorization documentation as taken from the oc library.
 
 <!- Copyright 2014, UCAR/Unidata and OPeNDAP, Inc. --> 
 <!- See the COPYRIGHT file for more information. --> 
@@ -65,7 +69,7 @@ The libcurl authorization mechanisms can be accessed in two ways
 <ol>
 <li> Inserting the username and password into the url, or
 <li> Accessing information from a so-called <i>rc</i> file named either
-<i>.ocrc</i> or <i>.dodsrc</i>
+<i>.daprc</i> or <i>.dodsrc</i>
 </ol>
 
 <h2 class="break"><a name="URL-AUTH"><u>URL-Based Authentication</u></a></h2> 
@@ -85,9 +89,9 @@ The oc library supports an <i>rc</i> file mechanism to allow the passing
 of a number of parameters to liboc and libcurl.
 <p>
 The file must be called one of the following names:
-".ocrc", ".dodsrc"
-If both .ocrc and .dodsrc exist, then
-the .ocrc file will take precedence.
+".daprc" or ".dodsrc"
+If both .daprc and .dodsrc exist, then
+the .daprc file will take precedence.
 <p>
 Searching for the rc file first looks in the current directory
 and then in the home directory (as defined by the HOME environment
@@ -192,7 +196,7 @@ oc_set_netrc(OClink* link, const char* file)
 </pre>
 (This is equivalent to the -N flag to ocprint). 
 <p>
-<li> Put the following line in your .ocrc/.dodsrc file.
+<li> Put the following line in your .daprc/.dodsrc file.
 <pre>
 HTTP.NETRC=&lt;path to netrc file&gt;
 </pre>

@@ -167,7 +167,7 @@ extern struct OCGLOBALSTATE {
     struct {
 	int ignore; /* if 1, then do not use any rc file */
 	int loaded;
-        struct OCTriplestore ocrc; /* the rc file triple store fields*/
+        struct OCTriplestore daprc; /* the rc file triple store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
     } rc;
 } ocglobalstate;
