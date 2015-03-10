@@ -131,6 +131,8 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    int memtypelen;
    const char* value = (const char*)value0;
    size_t numrecs;
+   int nrecdims;		   /* number of record dims for a variable */
+   int is_recdim[NC_MAX_VAR_DIMS]; /* for variable's dimensions */
    size_t varshape[NC_MAX_VAR_DIMS];
    size_t mystart[NC_MAX_VAR_DIMS];
    size_t myedges[NC_MAX_VAR_DIMS];
@@ -171,7 +173,10 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    if(status != NC_NOERR) return status;
 
    /* Get variable dimension sizes */
-   isrecvar = NC_is_recvar(ncid,varid,&numrecs);
+   /* isrecvar = NC_is_recvar(ncid,varid,&numrecs); */
+   status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
+   if(status != NC_NOERR) return status;
+   isrecvar = (nrecdims > 0);
    NC_getshape(ncid,varid,rank,varshape);	
 
    /* Optimize out using various checks */
@@ -191,8 +196,8 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
 	size_t dimlen;
 	mystart[i] = (start == NULL ? 0 : start[i]);
 	if(edges == NULL) {
-	   if(i == 0 && isrecvar)
-  	      myedges[i] = numrecs - start[i];
+	   if(is_recdim[i] && isrecvar)
+  	      myedges[i] = varshape[i] - start[i];
 	   else
 	      myedges[i] = varshape[i] - mystart[i];
 	} else
@@ -206,8 +211,8 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
            return NC_ESTRIDE;
   	if(mystride[i] != 1) simplestride = 0;	
         /* illegal value checks */
-	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
-	if(i == 0 && isrecvar) {/*do nothing*/}
+	dimlen = varshape[i];
+	if(is_recdim[i]) {/*do nothing*/}
         else {
 	  /* mystart is unsigned, will never be < 0 */
 	  if(mystart[i] > dimlen)

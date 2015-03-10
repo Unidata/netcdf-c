@@ -309,6 +309,70 @@ NC_is_recvar(int ncid, int varid, size_t* nrecs)
    return (dimset[0] == unlimid ? 1: 0);
 }
 
+/** \internal
+\ingroup variables
+Get the number of record dimensions for a variable and an array that
+identifies which of a variable's dimensions are record dimensions.
+Intended to be used instead of NC_is_recvar, which doesn't work for
+netCDF-4 variables which have multiple unlimited dimensions or an
+unlimited dimension that is not the first of a variable's dimensions.
+Example use:
+\code
+int nrecdims;
+int is_recdim[NC_MAX_VAR_DIMS];
+  ...
+status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
+isrecvar = (nrecdims > 0);
+\endcode
+ */
+int
+NC_inq_recvar(int ncid, int varid, int *nrecdims, int *is_recdim)
+{
+   int status = NC_NOERR;
+   int unlimid;
+   int nvardims;
+   int dimset[NC_MAX_VAR_DIMS];
+   int dim;
+    
+   *nrecdims = 0;
+   status = nc_inq_varndims(ncid,varid,&nvardims);
+   if(status != NC_NOERR) return status;
+   if(nvardims == 0) return NC_NOERR; /* scalars have no dims */
+   for(dim = 0; dim < nvardims; dim++)
+     is_recdim[dim] = 0;
+   status = nc_inq_unlimdim(ncid, &unlimid);
+   if(status != NC_NOERR) return status;
+   if(unlimid == -1) return status; /* no unlimited dims for any variables */
+#ifdef USE_NETCDF4
+   {
+     int nunlimdims;
+     int unlimids[NC_MAX_DIMS];
+     int recdim;
+     status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
+     if(status != NC_NOERR) return status;
+     if(nunlimdims == 0) return status;
+     status = nc_inq_vardimid(ncid, varid, dimset);
+     if(status != NC_NOERR) return status;
+     for (dim = 0; dim < nvardims; dim++) { /* netCDF-4 rec dims need not be first dim for a rec var */
+       for(recdim = 0; recdim < nunlimdims; recdim++) {
+	 if(dimset[dim] == unlimids[recdim]) {
+	   is_recdim[dim] = 1;
+	   *nrecdims += 1;
+	 }		
+       }
+     }
+   }
+#else
+   status = nc_inq_vardimid(ncid, varid, dimset);
+   if(status != NC_NOERR) return status;
+   if(dimset[0] == unlimid) {
+     is_recdim[0] = 1;
+     *nrecdims++;
+   }
+#endif /* USE_NETCDF4 */
+   return status;
+}
+
 /* Ok to use NC pointers because
    all IOSP's will use that structure,
    but not ok to use e.g. NC_Var pointers

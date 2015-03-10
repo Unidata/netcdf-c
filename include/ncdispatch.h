@@ -360,6 +360,7 @@ extern int NCDAP_ping(const char*);
 
 extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
 extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
+extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 

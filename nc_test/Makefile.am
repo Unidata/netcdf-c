@@ -19,7 +19,7 @@ TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
 tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta
 
 if USE_NETCDF4
-TESTPROGRAMS += tst_atts
+TESTPROGRAMS += tst_atts tst_put_vars
 endif
 
 if USE_PNETCDF
