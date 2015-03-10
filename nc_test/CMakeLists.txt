@@ -30,6 +30,7 @@ ENDIF()
 
 IF(USE_NETCDF4)
   SET(TESTS ${TESTS} tst_atts)
+  SET(TESTS ${TESTS} tst_put_vars)
 ENDIF()
 
 IF(USE_PNETCDF)
