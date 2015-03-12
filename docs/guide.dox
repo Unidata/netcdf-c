@@ -13,8 +13,10 @@
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
 - \subpage file_format_specifications
+- \subpage auth
 
-Data
+\subsection user_guide_data Data-Related Reference
+
 - \ref external_types
 - \ref classic_structures
 - \ref user_defined_types
@@ -3256,7 +3258,7 @@ Copy a netCDF file, optionally changing format, compression, or chunking in the 
 \subsection  nccopy_SYNOPSIS nccopy synopsis
 
 \code
-nccopy [-k kind_name] [-kind_code] [-d n] [-s] [-c chunkspec] [-u] [-w] 
+nccopy [-k kind_name] [-kind_code] [-d n] [-s] [-c chunkspec] [-u] [-w]
        [-[v|V] var1,...] [-[g|G] grp1,...] [-m bufsize] [-h chunk_cache]
        [-e cache_elems] [-r]   infile   outfile
 \endcode
@@ -3274,7 +3276,7 @@ a netCDF-4 classic model file as well, permitting data compression,
 efficient schema changes, larger variable sizes, and use of other
 netCDF-4 features.
 
-If no output format is specified, with either \b -k  \e kind_name 
+If no output format is specified, with either \b -k  \e kind_name
 or \e -kind_code, then the output will use the same
 format as the input, unless the input is classic or 64-bit offset
 and either chunking or compression is specified, in which case the
@@ -3345,7 +3347,7 @@ Note that \b nccopy requires all variables to be compressed using the
 same compression level, but the API has no such restriction.  With
 a program you can customize compression for each variable independently.
 
-\par -s 
+\par -s
 For netCDF-4 output, including netCDF-4 classic model, specify
 shuffling of variable data bytes before compression or after
 decompression.  Shuffling refers to interlacing of bytes in a chunk so

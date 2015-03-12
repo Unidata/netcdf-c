@@ -42,6 +42,9 @@ files in one program context is limited to 32767.
  */
 /** \{ */
 
+/*!
+
+ */
 int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
     NC* ncp;
