@@ -1,4 +1,5 @@
 ### 'Normal' gitignore files.
+autom4te.cache
 ctest.c
 ctest64.c
 debug.txt
