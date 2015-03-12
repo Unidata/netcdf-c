@@ -1,21 +1,16 @@
-/*! \page guide.dox The NetCDF User's Guide
+/*! \page user_guide The NetCDF User's Guide
 
-\brief The NetCDF User's Guide
+The following sections are made available in the NetCDF User's Guide.
 
-\tableofcontents
-
-\section user_guide The NetCDF User's Guide
-
-- \subpage netcdf_summary
 - \subpage netcdf_introduction
 - \subpage file_structure_and_performance
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
 - \subpage file_format_specifications
-- \subpage auth
+- \subpage dap_support
 
-\subsection user_guide_data Data-Related Reference
+Data-Related Documents
 
 - \ref external_types
 - \ref classic_structures
@@ -1825,7 +1820,11 @@ release stage. It is tested in libsrc4/tst_interops.c, which contains
 some examples of how to create HDF5 files, modify them in netCDF-4,
 and then verify them in HDF5. (And vice versa).
 
-\section dap_support DAP Support
+\page dap_support DAP Support
+
+\tableofcontents
+
+\section dap_introduction OPeNDAP Introduction
 
 Beginning with netCDF version 4.1, optional support is provided for
 accessing data through OPeNDAP servers using the DAP protocol.
@@ -1847,7 +1846,19 @@ data model for DAP attributes, which is encoded textually in a DAS
 (Dataset Attribute Structure). For detailed information about the DAP
 DDS and DAS, refer to the OPeNDAP web site http://opendap.org.
 
-\subsection Accessing OPeNDAP Data
+\subsection dap_dap_information OPeNDAP Documentation
+
+See the following pages for more information.
+
+- \subpage dap_accessing_data
+- \subpage auth
+- \subpage dap_to_netcdf
+- \subpage var_dim_trans
+- \subpage var_name_trans
+
+\page dap_accessing_data Accessing OPeNDAP Data
+
+\tableofcontents
 
 In order to access an OPeNDAP data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
@@ -1989,13 +2000,15 @@ variables:
 }
 \endcode
 
-\subsection dap_to_netcdf DAP to NetCDF Translation Rules
+\page dap_to_netcdf DAP to NetCDF Translation Rules
+
+\tableofcontents
 
 Currently only one translation available: DAP 2 Protocol to netCDF-3.
 There used to be a DAP 2 Protocol to netCDF-4 translation
 but that has been removed until the DAP4 protocol is available.
 
-\subsubsection nc3_trans_rules netCDF-3 Translation Rules
+\section nc3_trans_rules netCDF-3 Translation Rules
 
 The current default translation code translates the OPeNDAP protocol
 to netCDF-3 (classic). This netCDF-3 translation converts an OPeNDAP
@@ -2035,9 +2048,9 @@ Dataset {
   Int32 lat[lat=2];
   Int32 lon[lon=2];
 } D1;
-\code
+\endcode
 
-\subsubsection var_def Variable Definition
+\section var_def Variable Definition
 
 The set of netCDF variables is derived from the fields with primitive
 base types as they occur in Sequences, Grids, and Structures. The
@@ -2056,7 +2069,9 @@ within grids are left out in order to mimic the behavior of libnc-dap.
     lon
 \endcode
 
-\subsection var_dim_trans Variable Dimension Translation
+\page var_dim_trans Variable Dimension Translation
+
+\tableofcontents
 
 A variable's rank is determined from three sources.
 - The variable has the dimensions associated with the field it
@@ -2071,7 +2086,7 @@ containers is a DAP DDS Sequence. This is discussed more fully below.
 If the type of the netCDF variable is char, then an extra string
 dimension is added as the last dimension.
 
-\subsubsection dim_trans Dimension translation
+\section dim_trans Dimension translation
 
 For dimensions, the rules are as follows.
 
@@ -2150,7 +2165,9 @@ dimensions:
   S1.FS2.f2_0 = 2 ;
 \endcode
 
-\subsection var_name_trans Variable Name Translation
+\page var_name_trans Variable Name Translation
+
+\tableofcontents
 
 The steps for variable name translation are as follows.
 
@@ -2219,7 +2236,7 @@ int S1.FS2.f1(lat, lat) ;
 Note that this is incorrect because it dimensions S1.FS2.f1(2,2)
 rather than S1.FS2.f1(2,3).
 
-\subsubsection translation Translating DAP DDS Sequences
+\section dap_translation Translating DAP DDS Sequences
 
 Any variable (as determined above) that is contained directly or
 indirectly by a Sequence is subject to revision of its rank using the
@@ -2289,7 +2306,7 @@ data to determine how many records are associated with the
 sequence. Since libnc-dap did essentially the same thing, it can be
 assumed that the cost is not prohibitive.
 
-\subsubsection caching Caching
+\section dap_caching Caching
 
 In an effort to provide better performance for some access patterns,
 client-side caching of data is available. The default is no caching,
@@ -2332,7 +2349,7 @@ have an obvious answer. Probably a good rule of thumb is to avoid
 caching initially and later turn it on to see its effect on
 performance.
 
-\subsubsection defined_params Defined Client Parameters
+\section dap_defined_params Defined Client Parameters
 
 Currently, a limited set of client parameters is
 recognized. Parameters not listed here are ignored, but no error is
@@ -2363,7 +2380,7 @@ Parameter Name Legal Values Semantics
   cache.
 - "noprefetch" - This disables prefetch of small variables.
 
-\subsubsection dap_debug Notes on Debugging OPeNDAP Access
+\section dap_debug Notes on Debugging OPeNDAP Access
 
 The OPeNDAP support makes use of the logging facility of the
 underlying oc system (see http://www.opendap.org/oc).
@@ -2378,7 +2395,7 @@ Users should also be aware that if one is
 accessing data over an NFS mount, one may see some .nfsxxxxx files;
 those can be ignored.
 
-\subsubsection http_config HTTP Configuration.
+\subsection http_config HTTP Configuration.
 
 Limited support for configuring the http connection is provided via
 parameters in the “.dodsrc” configuration file. The relevant .dodsrc file is
@@ -2493,6 +2510,8 @@ Additionally, for ESG, the HTTP.SSL.CERTIFICATE and HTTP.SSL.KEY
 entries should have same value, which is the file path for the
 certificate produced by MyProxyLogon. The HTTP.SSL.CAPATH entry should
 be the path to the "certificates" directory produced by MyProxyLogon.
+
+
 
 \page netcdf_perf_chunking Improving Performance with Chunking
 

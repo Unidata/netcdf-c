@@ -1,7 +1,4 @@
-/** \file 
-Documentation of netCDF architecture.
-
-\page architecture NetCDF Library Architecture
+/*! \page architecture NetCDF Library Architecture
 
 \image html netcdf_architecture.png "NetCDF Architecture"
 \image latex netcdf_architecture.png "NetCDF Architecture"
@@ -17,4 +14,3 @@ The netCDF C-based libraries depend on a core C library and some externally deve
 - "Apps" in the above means applications, not mobile apps!
 
 */
-
