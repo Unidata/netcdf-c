@@ -1,4 +1,4 @@
-Getting and Building NetCDF-C {#getting_and_building_netcdf}
+Getting and Building netCDF {#getting_and_building_netcdf}
 =============================
 
 [TOC]
@@ -12,10 +12,12 @@ separate distribution that is currently independent of the netCDF C
 library.
 
 
-Getting NetCDF {#getting}
+Getting netCDF-C {#getting}
 =========================
 
-Getting pre-built NetCDF-C libraries. {#sec_get_pre_built}
+* For information regarding the netCDF-Fortran libraries, see \subpage building_netcdf_fortran.
+
+Getting pre-built netCDF-C libraries. {#sec_get_pre_built}
 -------------------------------------
 
 The easiest way to get netCDF is through a package management program,
@@ -29,7 +31,7 @@ the netcdf.h header file.
 
 Pre-release libraries for Windows may be found here: \ref winbin.
 
-Getting the latest NetCDF-C Source Code {#sec_get_source}
+Getting the latest netCDF-C Source Code {#sec_get_source}
 ----------------------------------------
 
 Starting with netCDF-C version 4.3.1, the netCDF-C source code is hosted at the
@@ -63,7 +65,7 @@ portability bugs.***
 Once you have downloaded and unpacked the distribution, see the
 following section on \ref building.
 
-Building NetCDF {#building}
+Building netCDF-C {#building}
 ===========================
 
 The netCDF-C library and utilities require third-party libraries for
@@ -87,9 +89,9 @@ CMake and Windows support {#sub}
 --------------------------------
 
 - \ref netCDF-CMake
-- \ref winbin
+- \subpage winbin
 
-Building with NetCDF-4 and the Remote Data Client {#build_default}
+Building with netCDF-4 and the Remote Data Client {#build_default}
 --------------------------------
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
@@ -178,7 +180,7 @@ include/, and bin/.  The installation location specified with the
 <CODE>--prefix</CODE> option must be different from the source directory where the
 software is being built.
 
-Building NetCDF with Classic Library Only {#build_classic}
+Building netCDF with Classic Library Only {#build_classic}
 ---------------------------------------
 
 It is possible to build the netCDF C libraries and utilities so that
@@ -312,7 +314,7 @@ href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
 pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
 "--enable-pnetcdf" option.
 
-Linking to NetCDF {#linking}
+Linking to netCDF-C {#linking}
 -------------------
 
 For static build, to use netCDF-4 you must link to all the libraries,
@@ -389,7 +391,7 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--enable-mmap<td>Use mmap to implement NC_DISKLESS<td>
 </table>
 
-Build Instructions for NetCDF-C using CMake {#netCDF-CMake}
+Build Instructions for netCDF-C using CMake {#netCDF-CMake}
 ===========================================
 
 ## Overview {#cmake_overview}
@@ -492,4 +494,4 @@ or
 
 ## See Also {#cmake_see_also}
 
-For further information regarding NetCDF and CMake, see \ref cmake_faq
+For further information regarding netCDF and CMake, see \ref cmake_faq
