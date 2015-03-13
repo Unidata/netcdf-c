@@ -1,4 +1,4 @@
-Appendix B: Attribute Conventions {#attribute_conventions}
+Appendix A: Attribute Conventions {#attribute_conventions}
 =====================
 
 Attribute conventions are assumed by some netCDF generic applications, e.g., ‘units’ as the name for a string attribute that gives the units for a netCDF variable.
