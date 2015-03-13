@@ -8,7 +8,7 @@ It is strongly recommended that applicable conventions be followed unless there 
     Attribute names commencing with underscore ('_') are reserved for use by the netCDF library.
 
 # Conventions
-----
+
 
 `units`
 
