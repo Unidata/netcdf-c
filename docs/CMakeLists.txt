@@ -38,21 +38,6 @@ IF(ENABLE_DOXYGEN)
         COMMENT "Building NetCDF PDF Documentation" VERBATIM
         )
 
-      # Process 'guide' netcdf documentation.
-      ADD_CUSTOM_TARGET(doc_guide_pdf ALL
-        make
-        COMMAND mv refman.pdf ../netcdf-guide.pdf
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex_guide"
-        COMMENT "Building NetCDF-Guide PDF Documentation" VERBATIM
-        )
-
-      # Process 'tutorial' netcdf documentation.
-      ADD_CUSTOM_TARGET(doc_tutorial_pdf ALL
-        make
-        COMMAND mv refman.pdf ../netcdf-tutorial.pdf
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex_tutorial"
-        COMMENT "Building NetCDF-Tutorial PDF Documentation" VERBATIM
-        )
       INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.pdf"
 	"${CMAKE_CURRENT_BINARY_DIR}/netcdf-guide.pdf"
 	"${CMAKE_CURRENT_BINARY_DIR}/netcdf-tutorial.pdf"
