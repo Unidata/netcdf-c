@@ -2,6 +2,10 @@
 
 [TOC]
 
+<H2>See Also:</H2>
+
+* \subpage nc-error-codes
+
 # Ignored if NULL {#ignored_if_null}
 
 Many of the argurments of netCDF functions are pointers. For example,
