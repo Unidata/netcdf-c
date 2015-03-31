@@ -69,13 +69,13 @@ struct Kvalues legalkinds[NKVALUES] = {
     {"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
     {"nc3", NC_FORMAT_CLASSIC},	    /* short format name */
     {"1", NC_FORMAT_CLASSIC},	/* deprecated, use "-3" or "-k nc3" instead */
-	
+
     /* NetCDF-3 64-bit offset format */
     {"64-bit offset", NC_FORMAT_64BIT}, /* canonical format name */
     {"nc6", NC_FORMAT_64BIT},		/* short format name */
     {"2", NC_FORMAT_64BIT},     /* deprecated, use "-6" or "-k nc6" instead */
     {"64-bit-offset", NC_FORMAT_64BIT}, /* aliases */
-	
+
     /* NetCDF-4 HDF5-based format */
     {"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
     {"nc4", NC_FORMAT_NETCDF4},	     /* short format name */
@@ -313,12 +313,13 @@ main(
 		    derror ("%s: out of memory", progname);
 		    return(1);
 		}
-		(void)strcpy(kind_name, optarg);
-	        for(kvalue=legalkinds;kvalue->name;kvalue++) {
-		    if(strcmp(kind_name,kvalue->name) == 0) {
-		        k_flag = kvalue->k_flag;
+        if(optarg != NULL)
+          (void)strcpy(kind_name, optarg);
+        for(kvalue=legalkinds;kvalue->name;kvalue++) {
+          if(strcmp(kind_name,kvalue->name) == 0) {
+            k_flag = kvalue->k_flag;
 			break;
-		    }
+          }
 		}
 		if(kvalue->name == NULL) {
 		   derror("Invalid format: %s",kind_name);
