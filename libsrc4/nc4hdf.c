@@ -1553,9 +1553,13 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
       int unlimdim = 0;
 
       /* Check to see if any unlimited dimensions are used in this var. */
-      for (d = 0; d < var->ndims; d++)
-        if (var->dim[d]->unlimited)
-          unlimdim++;
+      for (d = 0; d < var->ndims; d++) {
+	for (g = grp; g; g = g->parent) 
+	  for (dim = g->dim; dim; dim = dim->l.next) 
+	    if (dim->dimid == var->dimids[d]) 
+	      if (dim->unlimited) 
+		unlimdim++; 
+      }
 
       /* If there are no unlimited dims, and no filters, and the user
        * has not specified chunksizes, use contiguous variable for
