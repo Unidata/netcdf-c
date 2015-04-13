@@ -9,7 +9,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # These files get added to the distribution.
-EXTRA_DIST = README.md COPYRIGHT INSTALL INSTALL.cmake test_prog.c \
+EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c \
 	lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt \
 	config.h.cmake.in cmake_uninstall.cmake.in \
 	FixBundle.cmake.in \

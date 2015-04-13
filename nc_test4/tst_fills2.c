@@ -364,6 +364,20 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 
+   printf("*** Testing fix for netCDF-4 fill-value bug...");
+   {
+      int  ncid, varid, dimids[1];
+      double fillval = -9999;
+
+      /* Test case for NCF-187 bug, thanks to Alexander Barth for fix */
+      if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_dim(ncid, "x", 182, &dimids[0])) ERR;
+      if (nc_def_var(ncid, "u_obs", NC_FLOAT, 1, dimids, &varid)) ERR;
+      if (nc_put_att_double (ncid, varid, "_FillValue", NC_FLOAT, 1, &fillval)) ERR;
+      if (nc_close(ncid)) ERR;
+      SUMMARIZE_ERR;
+   }
+
    FINAL_RESULTS;
 }
 

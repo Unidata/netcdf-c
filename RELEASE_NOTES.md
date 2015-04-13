@@ -8,7 +8,14 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.3.X Released ????
 
 * Addressed an issue in netcdf4 files where writing unlimited dimensions that were not declared at head of the dimensions list, as reported by Ellen Johnson at Mathworks.  See [NCF-326](https://bugtracking.unidata.ucar.edu/browse/NCF-326) for more information.
-* Add an authorization reference document as oc2/ocauth.html.
+
+* Added an authorization reference document as oc2/ocauth.html.
+
+* Fixed bug resulting in segmentation violation when trying to add a
+  _FillValue attribute to a variable in an existing netCDF-4 file
+  defined without it (thanks to Alexander Barth). See
+  [NCF-187](https://bugtracking.unidata.ucar.edu/browse/NCF-187) for
+  more information.
 
 ## 4.3.3.1 Released 2015-02-25
 
