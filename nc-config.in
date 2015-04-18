@@ -6,12 +6,10 @@
 
 prefix=@prefix@
 exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 cc="@CC@"
 cflags=" -I${includedir} @CPPFLAGS@" 
-libs="-L${libdir} @NC_LIBS@"
 has_dap="@HAS_DAP@"
 has_nc2="@HAS_NC2@"
 has_nc4="@HAS_NC4@"
@@ -182,7 +180,7 @@ while test $# -gt 0; do
        	;;
 
      --libs)
-       	echo $libs
+       	pkg-config netcdf --libs
        	;;
 
     --prefix)
