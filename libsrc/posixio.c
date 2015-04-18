@@ -667,7 +667,7 @@ done:
 	pxp->bf_rflags |= rflags;
 	pxp->bf_refcount++;
 
-	*vpp = (char *)pxp->bf_base + diff;
+    *vpp = (void *)((char *)pxp->bf_base + diff);
 	return ENOERR;
 }
 
