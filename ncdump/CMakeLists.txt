@@ -123,16 +123,9 @@ ENDIF()
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
     set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
-    FOREACH (MTEST ${MANUAL_TESTS})
-      ADD_EXECUTABLE(${MTEST} ${MTEST}.c)
-      TARGET_LINK_LIBRARIES(${MTEST} netcdf)
-      IF(MSVC)
-	SET_TARGET_PROPERTIES(${MTEST}
-	  PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-	  )
-      ENDIF()
-      #ADD_TEST(${MTEST} ${EXECUTABLE_OUTPUT_PATH}/${MTEST})
-    ENDFOREACH()
+    add_bin_test(ncdump tst_special_atts)
+    add_bin_test(ncdump tst_compress)
+    add_bin_test(ncdump tst_chunking)
 
     IF(NOT WIN32)
       # tst_netcdf4 depends on the output from other scripts
@@ -152,8 +145,9 @@ ENDIF()
     ENDIF()
 
     IF(NOT MSVC)
-      #add_sh_test(ncdump tst_nccopy4)
+      add_sh_test(ncdump tst_nccopy4)
     ENDIF()
+
     add_sh_test(ncdump tst_grp_spec)
     add_sh_test(ncdump tst_mud)
     add_sh_test(ncdump_shell tst_h_scalar)
