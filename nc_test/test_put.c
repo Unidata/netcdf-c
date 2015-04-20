@@ -322,7 +322,7 @@ check_vars_uchar(const char *filename)
 static
 void
 check_vars_schar(const char *filename)
-{
+{
     int  ncid;                  /* netCDF id */
     size_t index[MAX_RANK];
     int  err;           /* status */
@@ -891,7 +891,7 @@ check_atts_text(int  ncid)
                         }
                     }
                 }
-            }                                               
+            }                                               
         }
     }
 
@@ -3088,7 +3088,7 @@ test_nc_put_vara_text(void)
 
     value[0] = 0;
     for (i = 0; i < NVARS; i++) {
-	canConvert = (var_type[i] == NC_CHAR) == (NCT_TEXT == NCT_TEXT);
+	canConvert = (var_type[i] == NC_CHAR) == (NCT_TEXT == NCT_TEXT);
         assert(var_rank[i] <= MAX_RANK);
         assert(var_nels[i] <= MAX_NELS);
         for (j = 0; j < var_rank[i]; j++) {
@@ -3316,7 +3316,7 @@ test_nc_put_vara_uchar(void)
 		}
 		nels *= edge[j];
 	    }
-            for (allInExtRange = 1, j = 0; j < nels; j++) {
+            for (allInExtRange = 1, j = 0; j < nels; j++) {
 		err = toMixedBase(j, var_rank[i], edge, index);
 		IF (err) 
 		    error("error in toMixedBase 1");
@@ -4103,7 +4103,7 @@ test_nc_put_vara_float(void)
 
     err = remove(scratch);
     IF (err)
-        error("remove of %s failed", scratch);
+        error("remove of %s failed", scratch);
 }
 
 void
@@ -6582,7 +6582,7 @@ test_nc_put_varm_float(void)
 	      if (!canConvert) {
 		IF(err != NC_ECHAR)
 			error("conversion: status = %d", err);
-	      } else {
+	      } else {
 		IF (err != NC_EINVALCOORDS)
 		    error("bad start: status = %d", err);
 		start[j] = 0;

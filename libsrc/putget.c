@@ -513,7 +513,7 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 	} while(nowserving != myticket);
 	/* now our turn to check & update value */
 #endif
-
+
 	if(numrecs > NC_get_numrecs(ncp))
 	{
 
@@ -1473,7 +1473,7 @@ putNCvx_int_uchar(NC3_INFO* ncp, const NC_var *varp,
 	size_t remaining = varp->xsz * nelems;
 	int status = NC_NOERR;
 	void *xp;
-
+
 	if(nelems == 0)
 		return NC_NOERR;
 
@@ -3060,7 +3060,7 @@ getNCvx_schar_double(const NC3_INFO* ncp, const NC_var *varp,
 		value += nget;
 	}
 
-	return status;
+	return status;
 }
 
 static int
@@ -3506,7 +3506,7 @@ getNCvx_short_uint(const NC3_INFO* ncp, const NC_var *varp,
 
 static int
 getNCvx_short_ulonglong(const NC3_INFO* ncp, const NC_var *varp,
-		 const size_t *start, size_t nelems, ulonglong *value)
+		 const size_t *start, size_t nelems, ulonglong *value)
 {
 	off_t offset = NC_varoffset(ncp, varp, start);
 	size_t remaining = varp->xsz * nelems;
@@ -5133,7 +5133,7 @@ NC3_get_vara(int ncid, int varid,
 
     varp = NC_lookupvar(nc3, varid);
     if(varp == NULL)
-        return NC_ENOTVAR;
+        return NC_ENOTVAR;
 
     if(memtype == NC_NAT) memtype=varp->type;
 
@@ -5166,7 +5166,7 @@ NC3_get_vara(int ncid, int varid,
     /* Get the size of the memtype */
     memtypelen = nctypelen(memtype);
 
-    if(varp->ndims == 0) /* scalar variable */
+    if(varp->ndims == 0) /* scalar variable */
     {
         return( readNCv(nc3, varp, start, 1, (void*)value, memtype) );
     }

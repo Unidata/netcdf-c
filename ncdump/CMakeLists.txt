@@ -91,9 +91,11 @@ ENDIF()
   add_sh_test(ncdump tst_nccopy3)
   add_sh_test(ncdump tst_charfill)
 
-IF(NOT MSVC)
-  add_sh_test(ncdump tst_iter)
-ENDIF()
+  # The following test script invokes
+  # gcc directly.
+  IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+      add_sh_test(ncdump tst_iter)
+  ENDIF()
 
   add_sh_test(ncdump tst_formatx3)
   add_sh_test(ncdump tst_bom)
@@ -126,17 +128,17 @@ ENDIF()
     add_bin_test_no_prefix(tst_compress)
     add_bin_test_no_prefix(tst_chunking)
 
-    IF(NOT WIN32)
+    # Known failure on MSVC; the number of 0's padding
+    # is different, but the result is actually correct.
+    IF(NOT MSVC)
       add_sh_test(ncdump tst_netcdf4)
       add_bin_test(ncdump tst_h_rdc0)
     ENDIF()
 
     add_bin_test(ncdump tst_unicode)
 
-    if(NOT MSVC)
-      add_bin_test(ncdump tst_fillbug)
-      add_sh_test(ncdump_sh tst_fillbug)
-    ENDIF()
+    add_bin_test(ncdump tst_fillbug)
+    add_sh_test(ncdump_sh tst_fillbug)
 
     IF(NOT MSVC)
       add_sh_test(ncdump tst_netcdf4_4)
