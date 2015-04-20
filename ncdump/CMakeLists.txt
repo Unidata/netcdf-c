@@ -3,7 +3,6 @@ IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
-#IF(EXTRA_TESTS)
 ADD_CUSTOM_COMMAND(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ctest.c
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest.c"
@@ -14,7 +13,6 @@ ADD_CUSTOM_COMMAND(
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest64.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/ctest64.c"
   )
-#ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c)
@@ -122,7 +120,6 @@ ENDIF()
     add_bin_test(ncdump tst_h_scalar)
     add_bin_test(ncdump tst_bug324)
     add_sh_test(ncdump tst_formatx4)
-    #add_bin_test(ncdump tst_special_atts)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
     set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
@@ -147,8 +144,8 @@ ENDIF()
     ENDIF()
     add_bin_test(ncdump tst_unicode)
     if(NOT MSVC)
-      #add_bin_test(ncdump tst_fillbug)
-      #add_sh_test(ncdump tst_fillbug)
+      add_bin_test(ncdump tst_fillbug)
+      add_sh_test(ncdump_sh tst_fillbug)
     ENDIF()
     IF(NOT MSVC)
       add_sh_test(ncdump tst_netcdf4_4)
