@@ -122,10 +122,9 @@ ENDIF()
     add_sh_test(ncdump tst_formatx4)
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
-    set(MANUAL_TESTS tst_special_atts tst_compress tst_chunking)
-    add_bin_test(ncdump tst_special_atts)
-    add_bin_test(ncdump tst_compress)
-    add_bin_test(ncdump tst_chunking)
+    add_bin_test_no_prefix(tst_special_atts)
+    add_bin_test_no_prefix(tst_compress)
+    add_bin_test_no_prefix(tst_chunking)
 
     IF(NOT WIN32)
       add_sh_test(ncdump tst_netcdf4)
